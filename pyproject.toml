@@ -1,0 +1,88 @@
+[tool.poetry]
+name = "coola"
+version = "0.0.1a0"
+description = "coola is a library to check if two complex objects are equal or not"
+readme = "README.md"
+authors = ["Thibaut Durand <durand.tibo+gh@gmail.com>"]
+homepage = "https://github.com/durandtibo/coola"
+repository = "https://github.com/durandtibo/coola"
+keywords = ["coola"]
+
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Testing",
+]
+
+packages = [
+    { include = "coola", from = "src" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.8.1"
+numpy = "^1.23"
+torch = "^1.13"
+
+[tool.poetry.group.dev.dependencies]
+black = "^22.10"
+codecov = "^2.1"
+coverage = { extras = ["toml"], version = "^6.5" }
+flake8 = "^6.0"
+flake8-black = "^0.3"
+flake8-bugbear = "^22.12"
+isort = "^5.10"
+pre-commit = "^2.20"
+pylint = "^2.15"
+pytest = "^7.2"
+pytest-cov = "^4.0"
+pytest-timeout = "^2.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.coverage.paths]
+source = ["src", "*/site-packages"]
+
+[tool.coverage.run]
+branch = true
+source = ["coola"]
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:"
+]
+
+[tool.pytest.ini_options]
+testpaths = "tests/"
+log_format = "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+log_level = "DEBUG"
+addopts = "--color yes --durations 10 -rf"
+# Configuration of the short test summary info
+# https://docs.pytest.org/en/stable/usage.html#detailed-summary-report
+
+[tool.black]
+line-length = 100
+target-version = ["py38", "py39", "py310"]
+include = '\.pyi?$'
+
+[tool.pylint.FORMAT]
+max-line-length = 100
+
+[tool.isort]
+profile = "black"
+
+[tool.docformatter]
+recursive = true
+wrap-summaries = 72
+wrap-descriptions = 72
+syntax = "google"
