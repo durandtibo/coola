@@ -30,15 +30,14 @@ jobs:
           which python
           python --version
 
-      - name: Load Poetry cache
-        id: cache-poetry
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.local
-            ~/.cache/pypoetry
-          key: cache-os-${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}-${{ hashFiles('.github/workflows/ci.yaml') }}
-
+#      - name: Load Poetry cache
+#        id: cache-poetry
+#        uses: actions/cache@v3
+#        with:
+#          path: |
+#            ~/.local
+#            ~/.cache/pypoetry
+#          key: cache-os-${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}-${{ hashFiles('.github/workflows/ci.yaml') }}
 
       - name: Install Poetry
         uses: snok/install-poetry@v1
