@@ -1,0 +1,130 @@
+name: CI
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ '3.10' ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Log Python info
+        run: |
+          which python
+          python --version
+
+      - name: Load Poetry cache
+        id: cache-poetry
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.local
+            ~/.cache/pypoetry
+          key: cache-os-${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}-${{ hashFiles('.github/workflows/ci.yaml') }}
+
+      - name: Log info about Poetry cache
+        run: |
+          echo "===== ls -la $HOME/ ====="
+          ls -la $HOME/
+          echo "===== ls -la $HOME/.local ====="
+          ls -la $HOME/.local
+          echo "===== ls -la $HOME/.cache/ ====="
+          ls -la $HOME/.cache/
+          echo "===== ls -la $HOME/.cache/pypoetry/ ====="
+          ls -la $HOME/.cache/pypoetry/
+          echo "===== ls -la $HOME/.cache/pypoetry/virtualenvs/ ====="
+          ls -la $HOME/.cache/pypoetry/virtualenvs/
+        continue-on-error: true
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Log Poetry info
+        run: |
+          echo "===== which poetry ====="
+          which poetry
+          echo "===== poetry --help ====="
+          poetry --help
+          echo "===== poetry config --list ====="
+          poetry config --list
+          echo "===== poetry env use $(which python) ====="
+          poetry env use $(which python)
+          echo "===== poetry env list ====="
+          poetry env list
+          echo "===== poetry env info ====="
+          poetry env info
+          echo "===== poetry env info --path ====="
+          poetry env info --path
+          echo "===== ls -la $HOME/ ====="
+          ls -la $HOME/
+          echo "===== ls -la $HOME/.local ====="
+          ls -la $HOME/.local
+          echo "===== ls -la $HOME/.cache/ ====="
+          ls -la $HOME/.cache/
+          echo "===== ls -la $HOME/.cache/pypoetry/ ====="
+          ls -la $HOME/.cache/pypoetry/
+          echo "===== ls -la $HOME/.cache/pypoetry/virtualenvs/ ====="
+          ls -la $HOME/.cache/pypoetry/virtualenvs/
+        continue-on-error: true
+
+      - name: Install packages
+        run: |
+          source "$( poetry env info --path )/bin/activate"
+          make config-poetry
+          make install
+
+      - name: Show installed packages
+        run: |
+          source "$( poetry env info --path )/bin/activate"
+          poetry show
+          poetry show --tree
+
+      - name: Format
+        run: |
+          source "$( poetry env info --path )/bin/activate"
+          make format
+
+      - name: Lint
+        run: |
+          source "$( poetry env info --path )/bin/activate"
+          make lint
+
+#      - name: Run unit tests
+#        run: |
+#          source "$( poetry env info --path )/bin/activate"
+#          export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
+#          make unit-test-cov
+#
+#      - name: Run integration tests
+#        run: |
+#          source "$( poetry env info --path )/bin/activate"
+#          make integration-test-cov
+
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.10' && github.repository == 'durandtibo/coola' && (github.event_name == 'push' || github.event_name == 'pull_request')
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
+          files: ./coverage.xml
+          # Ignore codecov failures as the codecov server is not
+          # very reliable but we don't want to report a failure
+          # in the github UI just because the coverage report failed to
+          # be published.
+          fail_ci_if_error: false
