@@ -36,6 +36,13 @@ numpy = ["numpy"]
 torch = ["torch"]
 all = ["numpy", "torch"]
 
+[tool.poetry.group.docs.dependencies]
+mkdocs-material = "^8.5"
+mkdocstrings = "^0.19"
+
+[tool.poetry.group.examples.dependencies]
+jupyterlab = "^3.5"
+
 [tool.poetry.group.dev.dependencies]
 black = "^22.10"
 codecov = "^2.1"
