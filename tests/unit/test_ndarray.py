@@ -3,7 +3,7 @@ import logging
 import numpy as np
 from pytest import LogCaptureFixture
 
-from coola.equal import EqualityTester
+from coola.equality import EqualityTester
 from coola.ndarray import NDArrayEqualityOperator
 
 #############################################

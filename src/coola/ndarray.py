@@ -3,7 +3,7 @@ __all__ = ["NDArrayEqualityOperator"]
 import logging
 from typing import Any
 
-from coola.equal import BaseEqualityOperator, BaseEqualityTester, EqualityTester
+from coola.equality import BaseEqualityOperator, BaseEqualityTester, EqualityTester
 from coola.import_utils import is_numpy_available
 
 if is_numpy_available():
