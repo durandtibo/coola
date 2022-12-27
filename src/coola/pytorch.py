@@ -25,6 +25,13 @@ class PackedSequenceAllCloseOperator(BaseAllCloseOperator[PackedSequence]):
     r"""Implements an allclose operator for
     ``torch.nn.utils.rnn.PackedSequence``."""
 
+    def __init__(self):
+        if not is_torch_available():
+            raise RuntimeError(
+                "`PackedSequenceAllCloseOperator` requires the `torch` package to be installed. "
+                "You can install `torch` package with the command:\n\npip install torch\n"
+            )
+
     def allclose(
         self,
         tester: BaseAllCloseTester,
@@ -87,6 +94,13 @@ class PackedSequenceEqualityOperator(BaseEqualityOperator[PackedSequence]):
     r"""Implements an equality operator for
     ``torch.nn.utils.rnn.PackedSequence``."""
 
+    def __init__(self):
+        if not is_torch_available():
+            raise RuntimeError(
+                "`PackedSequenceEqualityOperator` requires the `torch` package to be installed. "
+                "You can install `torch` package with the command:\n\npip install torch\n"
+            )
+
     def equal(
         self,
         tester: BaseEqualityTester,
@@ -116,6 +130,13 @@ class PackedSequenceEqualityOperator(BaseEqualityOperator[PackedSequence]):
 
 class TensorAllCloseOperator(BaseAllCloseOperator[Tensor]):
     r"""Implements an allclose operator for ``torch.Tensor``."""
+
+    def __init__(self):
+        if not is_torch_available():
+            raise RuntimeError(
+                "`TensorAllCloseOperator` requires the `torch` package to be installed. You can "
+                "install `torch` package with the command:\n\npip install torch\n"
+            )
 
     def allclose(
         self,
@@ -157,6 +178,13 @@ class TensorAllCloseOperator(BaseAllCloseOperator[Tensor]):
 
 class TensorEqualityOperator(BaseEqualityOperator[Tensor]):
     r"""Implements an equality operator for ``torch.Tensor``."""
+
+    def __init__(self):
+        if not is_torch_available():
+            raise RuntimeError(
+                "`TensorEqualityOperator` requires the `torch` package to be installed. You can "
+                "install `torch` package with the command:\n\npip install torch\n"
+            )
 
     def equal(
         self,

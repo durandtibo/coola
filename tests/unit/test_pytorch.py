@@ -1,8 +1,8 @@
 import logging
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import torch
-from pytest import LogCaptureFixture, mark
+from pytest import LogCaptureFixture, mark, raises
 from torch import Tensor
 from torch.nn.utils.rnn import pack_padded_sequence
 
@@ -172,6 +172,12 @@ def test_packed_sequence_allclose_operator_allclose_true_rtol(tensor: Tensor, rt
     )
 
 
+def test_packed_sequence_allclose_operator_no_torch():
+    with patch("coola.pytorch.is_torch_available", lambda *args, **kwargs: False):
+        with raises(RuntimeError):
+            PackedSequenceAllCloseOperator()
+
+
 ####################################################
 #     Tests for PackedSequenceEqualityOperator     #
 ####################################################
@@ -279,6 +285,12 @@ def test_packed_sequence_equality_operator_equal_false_different_type_show_diffe
         assert caplog.messages[0].startswith(
             "object2 is not a `torch.nn.utils.rnn.PackedSequence`:"
         )
+
+
+def test_packed_sequence_equality_operator_no_torch():
+    with patch("coola.pytorch.is_torch_available", lambda *args, **kwargs: False):
+        with raises(RuntimeError):
+            PackedSequenceEqualityOperator()
 
 
 ############################################
@@ -432,6 +444,12 @@ def test_tensor_allclose_operator_allclose_true_rtol(tensor: Tensor, rtol: float
     assert TensorAllCloseOperator().allclose(AllCloseTester(), torch.ones(2, 3), tensor, rtol=rtol)
 
 
+def test_tensor_allclose_operator_no_torch():
+    with patch("coola.pytorch.is_torch_available", lambda *args, **kwargs: False):
+        with raises(RuntimeError):
+            TensorAllCloseOperator()
+
+
 ############################################
 #     Tests for TensorEqualityOperator     #
 ############################################
@@ -562,3 +580,9 @@ def test_tensor_equality_operator_equal_false_different_type_show_difference(
             show_difference=True,
         )
         assert caplog.messages[0].startswith("object2 is not a torch.Tensor:")
+
+
+def test_tensor_equality_operator_no_torch():
+    with patch("coola.pytorch.is_torch_available", lambda *args, **kwargs: False):
+        with raises(RuntimeError):
+            TensorEqualityOperator()

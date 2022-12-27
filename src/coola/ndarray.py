@@ -25,6 +25,11 @@ class NDArrayAllCloseOperator(BaseAllCloseOperator[ndarray]):
     """
 
     def __init__(self, check_dtype: bool = True):
+        if not is_numpy_available():
+            raise RuntimeError(
+                "`NDArrayAllCloseOperator` requires the `numpy` package to be installed. You can "
+                "install `numpy` package with the command:\n\npip install numpy\n"
+            )
         self._check_dtype = bool(check_dtype)
 
     def allclose(
@@ -69,6 +74,11 @@ class NDArrayEqualityOperator(BaseEqualityOperator[ndarray]):
     """
 
     def __init__(self, check_dtype: bool = True):
+        if not is_numpy_available():
+            raise RuntimeError(
+                "`NDArrayEqualityOperator` requires the `numpy` package to be installed. You can "
+                "install `numpy` package with the command:\n\npip install numpy\n"
+            )
         self._check_dtype = bool(check_dtype)
 
     def equal(
