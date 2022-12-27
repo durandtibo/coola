@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "coola"
-version = "0.0.1a3"
+version = "0.0.1a4"
 description = "coola is a library to check if two complex objects are equal or not"
 readme = "README.md"
 authors = ["Thibaut Durand <durand.tibo+gh@gmail.com>"]
@@ -28,10 +28,11 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.8.1"
-numpy = "^1.23"
+numpy = { version = "^1.23", optional = true }
 torch = { version = "^1.13", optional = true }
 
 [tool.poetry.extras]
+numpy = ["numpy"]
 torch = ["torch"]
 
 [tool.poetry.group.dev.dependencies]
@@ -63,7 +64,8 @@ source = ["coola"]
 show_missing = true
 exclude_lines = [
     "pragma: no cover",
-    "if is_torch_available()"
+    "if is_torch_available()",
+    "if is_numpy_available()",
 ]
 
 [tool.pytest.ini_options]

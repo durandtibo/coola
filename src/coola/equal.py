@@ -13,8 +13,6 @@ from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
 from typing import Any, Generic, Optional, Type, TypeVar
 
-import numpy as np
-
 from coola.format import str_dict, str_indent
 
 logger = logging.getLogger(__name__)
@@ -191,22 +189,6 @@ class MappingEqualityOperator(BaseEqualityOperator[Mapping]):
         return True
 
 
-class NDArrayEqualityOperator(BaseEqualityOperator[np.ndarray]):
-    r"""Implements an equality operator for ``numpy.ndarray``."""
-
-    def equal(
-        self,
-        tester: BaseEqualityTester,
-        object1: np.ndarray,
-        object2: Any,
-        show_difference: bool = False,
-    ) -> bool:
-        object_equal = np.array_equal(object1, object2)
-        if show_difference and not object_equal:
-            logger.info(f"numpy.arrays are different\nobject1=\n{object1}\nobject2=\n{object2}")
-        return object_equal
-
-
 class SequenceEqualityOperator(BaseEqualityOperator[Sequence]):
     r"""Implements an equality operator for sequences."""
 
@@ -248,7 +230,6 @@ class EqualityTester(BaseEqualityTester):
         Sequence: SequenceEqualityOperator(),
         dict: MappingEqualityOperator(),
         list: SequenceEqualityOperator(),
-        np.ndarray: NDArrayEqualityOperator(),
         object: DefaultEqualityOperator(),
         tuple: SequenceEqualityOperator(),
     }

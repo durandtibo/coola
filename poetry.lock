@@ -468,7 +468,7 @@ name = "numpy"
 version = "1.24.1"
 description = "Fundamental package for array computing in Python"
 category = "main"
-optional = false
+optional = true
 python-versions = ">=3.8"
 files = [
     {file = "numpy-1.24.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:179a7ef0889ab769cc03573b6217f54c8bd8e16cef80aad369e1e8185f994cd7"},
@@ -1040,9 +1040,10 @@ files = [
 ]
 
 [extras]
+numpy = ["numpy"]
 torch = ["torch"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8.1"
-content-hash = "4656982422ecb6f489e6a3b00480b00d2cb3320217849ba0affb19fb221979f9"
+content-hash = "9ccda0a721c152b180e2e766626cd1b574fe071984a1afed222cc8d750e91206"
