@@ -227,6 +227,7 @@ class EqualityTester(BaseEqualityTester):
     """Implements the default equality tester."""
 
     registry: dict[Type[object], BaseEqualityOperator] = {
+        Mapping: MappingEqualityOperator(),
         Sequence: SequenceEqualityOperator(),
         dict: MappingEqualityOperator(),
         list: SequenceEqualityOperator(),
