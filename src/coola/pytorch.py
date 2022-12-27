@@ -4,7 +4,7 @@ import logging
 from typing import Any
 
 from coola import is_torch_available
-from coola.equal import BaseEqualityOperator, BaseEqualityTester, EqualityTester
+from coola.equality import BaseEqualityOperator, BaseEqualityTester, EqualityTester
 
 if is_torch_available():
     from torch import Tensor, is_tensor

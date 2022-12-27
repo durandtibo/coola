@@ -11,7 +11,7 @@ from pytest import LogCaptureFixture, mark, raises
 from torch import Tensor
 from torch.nn.utils.rnn import PackedSequence
 
-from coola.equal import (
+from coola.equality import (
     BaseEqualityOperator,
     DefaultEqualityOperator,
     EqualityTester,

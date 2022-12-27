@@ -1,6 +1,6 @@
 __all__ = ["BaseEqualityOperator", "BaseEqualityTester", "EqualityTester", "objects_are_equal"]
 
-from coola.equal import (
+from coola.equality import (
     BaseEqualityOperator,
     BaseEqualityTester,
     EqualityTester,
