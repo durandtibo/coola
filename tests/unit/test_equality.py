@@ -165,7 +165,7 @@ def test_objects_are_equal_numpy_array_false():
 def test_objects_are_equal_numpy_array_false_show_difference(caplog: LogCaptureFixture):
     with caplog.at_level(logging.INFO):
         assert not objects_are_equal(np.ones((2, 3)), np.zeros((2, 3)), show_difference=True)
-        assert caplog.messages[0].startswith("numpy.arrays are different")
+        assert caplog.messages[0].startswith("numpy.ndarrays are different")
 
 
 @mark.parametrize(
