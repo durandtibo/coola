@@ -95,5 +95,5 @@ possibly break any code that was using the old version of `coola`.
 
 ## License
 
-`object-factory` is licensed under BSD 3-Clause "New" or "Revised" license available in [LICENSE]()
+`coola` is licensed under BSD 3-Clause "New" or "Revised" license available in [LICENSE]()
 file.
