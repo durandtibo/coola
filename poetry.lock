@@ -1040,10 +1040,11 @@ files = [
 ]
 
 [extras]
+all = ["numpy", "torch"]
 numpy = ["numpy"]
 torch = ["torch"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8.1"
-content-hash = "9ccda0a721c152b180e2e766626cd1b574fe071984a1afed222cc8d750e91206"
+content-hash = "09deefd39c196e9f5c407f4b526b3d201137b08799d6318e90ae1067312e9dc9"
