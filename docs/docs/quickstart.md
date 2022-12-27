@@ -111,4 +111,91 @@ False
 ```
 
 Feel free to try any complex nested structure that you want. You can find the currently supported
-types [here](types.md).
+types [here](types.md#equal).
+
+## Almost equal or not?
+
+`coola` provides a function `objects_are_allclose` that can indicate if two complex/nested objects
+are equal equal within a tolerance or not. Due to numerical precision, it happens quite often that
+two numbers are not equal but the error is very tiny (`1.0` and `1.000000001`). The tolerance is
+mostly useful for numerical values. For a lot of types like string, the `objects_are_allclose`
+function behaves like the `objects_are_equal` function. The following example shows how to use this
+function.
+
+```python
+import numpy
+import torch
+
+from coola import objects_are_allclose, objects_are_equal
+
+data1 = {'torch': torch.ones(2, 3), 'numpy': numpy.zeros((2, 3))}
+data2 = {'torch': torch.zeros(2, 3), 'numpy': numpy.ones((2, 3))}
+data3 = {'torch': torch.ones(2, 3) + 1e-9, 'numpy': numpy.zeros((2, 3)) - 1e-9}
+
+print(objects_are_allclose(data1, data2))
+print(objects_are_allclose(data1, data3))
+print(objects_are_equal(data1, data3))
+```
+
+*Output*:
+
+```textmate
+False
+True
+False
+```
+
+The difference between `data1` and `data2` is large so `objects_are_allclose` returns false
+like `objects_are_equal`. The difference between `data1` and `data3` is tiny
+so `objects_are_allclose` returns true, whereas `objects_are_equal` returns false.
+It is possible to control the tolerance with the arguments `atol` and `rtol`. `atol` controls the
+absolute tolerance and `rtol` controls the relative tolerance.
+
+```python
+data1 = {'torch': torch.ones(2, 3), 'numpy': numpy.zeros((2, 3))}
+data2 = {'torch': torch.ones(2, 3) + 1e-4, 'numpy': numpy.zeros((2, 3)) - 1e-4}
+
+print(objects_are_allclose(data1, data2))
+print(objects_are_allclose(data1, data2, atol=1e-3))
+```
+
+*Output*:
+
+```textmate
+False
+True
+```
+
+Similarly to `objects_are_equal`, the `objects_are_allclose` function has an
+argument `show_difference` which shows the first difference found between the two objects.
+
+```python
+data1 = {'torch': torch.ones(2, 3), 'numpy': numpy.zeros((2, 3))}
+data2 = {'torch': torch.ones(2, 3) + 1e-4, 'numpy': numpy.zeros((2, 3)) - 1e-4}
+
+objects_are_allclose(data1, data2, show_difference=True)
+```
+
+*Output*:
+
+```textmate
+INFO:coola.pytorch:torch.Tensors are different
+object1=
+tensor([[1., 1., 1.],
+        [1., 1., 1.]])
+object2=
+tensor([[1.0001, 1.0001, 1.0001],
+        [1.0001, 1.0001, 1.0001]])
+INFO:coola.allclose:The mappings have a different value for the key torch:
+first mapping  = {'torch': tensor([[1., 1., 1.],
+        [1., 1., 1.]]), 'numpy': array([[0., 0., 0.],
+       [0., 0., 0.]])}
+second mapping = {'torch': tensor([[1.0001, 1.0001, 1.0001],
+        [1.0001, 1.0001, 1.0001]]), 'numpy': array([[-0.0001, -0.0001, -0.0001],
+       [-0.0001, -0.0001, -0.0001]])}
+```
+
+`objects_are_equal` and `objects_are_allclose` are very similar and should behave the same
+when `atol=0.0` and `rtol=0.0`. `objects_are_allclose` supports a lot of types and nested structure.
+Feel free to try any complex nested structure that you want. You can find the currently supported
+types [here](types.md#allclose).
