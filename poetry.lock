@@ -252,6 +252,26 @@ files = [
 ]
 
 [[package]]
+name = "docformatter"
+version = "1.5.1"
+description = "Formats docstrings to follow PEP 257"
+category = "dev"
+optional = false
+python-versions = ">=3.6,<4.0"
+files = [
+    {file = "docformatter-1.5.1-py3-none-any.whl", hash = "sha256:05d6e4c528278b3a54000e08695822617a38963a380f5aef19e12dd0e630f19a"},
+    {file = "docformatter-1.5.1.tar.gz", hash = "sha256:3fa3cdb90cdbcdee82747c58410e47fc7e2e8c352b82bed80767915eb03f2e43"},
+]
+
+[package.dependencies]
+charset_normalizer = ">=2.0.0,<3.0.0"
+tomli = {version = ">=2.0.0,<3.0.0", markers = "python_version >= \"3.7\""}
+untokenize = ">=0.1.1,<0.2.0"
+
+[package.extras]
+tomli = ["tomli (<2.0.0)"]
+
+[[package]]
 name = "exceptiongroup"
 version = "1.1.0"
 description = "Backport of PEP 654 (exception groups)"
@@ -913,6 +933,17 @@ files = [
 ]
 
 [[package]]
+name = "untokenize"
+version = "0.1.1"
+description = "Transforms tokens into original source code (while preserving whitespace)."
+category = "dev"
+optional = false
+python-versions = "*"
+files = [
+    {file = "untokenize-0.1.1.tar.gz", hash = "sha256:3865dbbbb8efb4bb5eaa72f1be7f3e0be00ea8b7f125c69cbd1f5fda926f37a2"},
+]
+
+[[package]]
 name = "urllib3"
 version = "1.26.13"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
@@ -1047,4 +1078,4 @@ torch = ["torch"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8.1"
-content-hash = "09deefd39c196e9f5c407f4b526b3d201137b08799d6318e90ae1067312e9dc9"
+content-hash = "e03cb467f04206e0639d4ad72debd1c9c001540b89ebcaed3ac7bae7b00c69ab"

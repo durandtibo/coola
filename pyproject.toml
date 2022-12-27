@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "coola"
-version = "0.0.1a7"
+version = "0.0.1a8"
 description = "coola is a library to check if two complex objects are equal or not"
 readme = "README.md"
 authors = ["Thibaut Durand <durand.tibo+gh@gmail.com>"]
@@ -40,6 +40,7 @@ all = ["numpy", "torch"]
 black = "^22.10"
 codecov = "^2.1"
 coverage = { extras = ["toml"], version = "^6.5" }
+docformatter = "^1.5"
 flake8 = "^6.0"
 flake8-black = "^0.3"
 flake8-bugbear = "^22.12"
