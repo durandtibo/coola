@@ -1,25 +1,12 @@
-__all__ = [
-    "BaseEqualityOperator",
-    "BaseEqualityTester",
-    "DefaultEqualityOperator",
-    "EqualityTester",
-    "MappingEqualityOperator",
-    "NDArrayEqualityOperator",
-    "PackedSequenceEqualityOperator",
-    "SequenceEqualityOperator",
-    "TensorEqualityOperator",
-    "objects_are_equal",
-]
+__all__ = ["BaseEqualityOperator", "BaseEqualityTester", "EqualityTester", "objects_are_equal"]
 
 from coola.equal import (
     BaseEqualityOperator,
     BaseEqualityTester,
-    DefaultEqualityOperator,
     EqualityTester,
-    MappingEqualityOperator,
-    NDArrayEqualityOperator,
-    PackedSequenceEqualityOperator,
-    SequenceEqualityOperator,
-    TensorEqualityOperator,
     objects_are_equal,
 )
+from coola.import_utils import is_torch_available
+
+if is_torch_available():
+    from coola import pytorch
