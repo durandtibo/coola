@@ -340,7 +340,9 @@ def test_mapping_equality_operator_equal_false_different_value_show_difference(
             object2={"1": torch.ones(2, 3), "2": torch.ones(2)},
             show_difference=True,
         )
-        assert caplog.messages[-1].startswith("The mappings have a different value for the key 2:")
+        assert caplog.messages[-1].startswith(
+            "The mappings have a different value for the key '2':"
+        )
 
 
 def test_mapping_equality_operator_equal_false_different_keys():

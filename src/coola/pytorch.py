@@ -137,6 +137,12 @@ class TensorAllCloseOperator(BaseAllCloseOperator[Tensor]):
                     f"torch.Tensor data types are different: {object1.shape} vs {object2.shape}"
                 )
             return False
+        if object1.device != object2.device:
+            if show_difference:
+                logger.info(
+                    f"torch.Tensor devices are different: {object1.device} vs {object2.device}"
+                )
+            return False
         if object1.shape != object2.shape:
             if show_difference:
                 logger.info(
@@ -167,6 +173,12 @@ class TensorEqualityOperator(BaseEqualityOperator[Tensor]):
             if show_difference:
                 logger.info(
                     f"torch.Tensor data types are different: {object1.dtype} vs {object2.dtype}"
+                )
+            return False
+        if object1.device != object2.device:
+            if show_difference:
+                logger.info(
+                    f"torch.Tensor devices are different: {object1.device} vs {object2.device}"
                 )
             return False
         object_equal = object1.equal(object2)
