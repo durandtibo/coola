@@ -11,7 +11,7 @@ __all__ = [
     "objects_are_equal",
 ]
 
-from src.coola.equal import (
+from coola.equal import (
     BaseEqualityOperator,
     BaseEqualityTester,
     DefaultEqualityOperator,
