@@ -106,12 +106,11 @@ jobs:
           source "$( poetry env info --path )/bin/activate"
           make lint
 
-#      - name: Run unit tests
-#        run: |
-#          source "$( poetry env info --path )/bin/activate"
-#          export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
-#          make unit-test-cov
-#
+      - name: Run unit tests
+        run: |
+          source "$( poetry env info --path )/bin/activate"
+          make unit-test-cov
+
 #      - name: Run integration tests
 #        run: |
 #          source "$( poetry env info --path )/bin/activate"
