@@ -1,7 +1,8 @@
 import logging
+from unittest.mock import patch
 
 import numpy as np
-from pytest import LogCaptureFixture, mark
+from pytest import LogCaptureFixture, mark, raises
 
 from coola.allclose import AllCloseTester
 from coola.equality import EqualityTester
@@ -129,6 +130,12 @@ def test_ndarray_allclose_operator_allclose_true_rtol(array: np.ndarray, rtol: f
     assert NDArrayAllCloseOperator().allclose(AllCloseTester(), np.ones((2, 3)), array, rtol=rtol)
 
 
+def test_ndarray_allclose_operator_no_numpy():
+    with patch("coola.ndarray.is_numpy_available", lambda *args, **kwargs: False):
+        with raises(RuntimeError):
+            NDArrayAllCloseOperator()
+
+
 #############################################
 #     Tests for NDArrayEqualityOperator     #
 #############################################
@@ -227,3 +234,9 @@ def test_ndarray_equality_operator_equal_false_different_type_show_difference(
             show_difference=True,
         )
         assert caplog.messages[0].startswith("object2 is not a numpy.ndarray:")
+
+
+def test_ndarray_equality_operator_no_numpy():
+    with patch("coola.ndarray.is_numpy_available", lambda *args, **kwargs: False):
+        with raises(RuntimeError):
+            NDArrayEqualityOperator()
