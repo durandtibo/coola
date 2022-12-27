@@ -32,7 +32,8 @@ def test_equality_tester_str():
 
 
 def test_equality_tester_registry_default():
-    assert len(EqualityTester.registry) == 8
+    assert len(EqualityTester.registry) == 9
+    assert isinstance(EqualityTester.registry[Mapping], MappingEqualityOperator)
     assert isinstance(EqualityTester.registry[PackedSequence], PackedSequenceEqualityOperator)
     assert isinstance(EqualityTester.registry[Sequence], SequenceEqualityOperator)
     assert isinstance(EqualityTester.registry[Tensor], TensorEqualityOperator)

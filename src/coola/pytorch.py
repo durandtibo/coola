@@ -176,7 +176,11 @@ class TensorEqualityOperator(BaseEqualityOperator[Tensor]):
 
 
 if is_torch_available() and not EqualityTester.has_equality_operator(Tensor):
-    AllCloseTester.add_allclose_operator(PackedSequence, PackedSequenceAllCloseOperator())
-    AllCloseTester.add_allclose_operator(Tensor, TensorAllCloseOperator())
-    EqualityTester.add_equality_operator(PackedSequence, PackedSequenceEqualityOperator())
-    EqualityTester.add_equality_operator(Tensor, TensorEqualityOperator())
+    AllCloseTester.add_allclose_operator(
+        PackedSequence, PackedSequenceAllCloseOperator(), exist_ok=True
+    )
+    AllCloseTester.add_allclose_operator(Tensor, TensorAllCloseOperator(), exist_ok=True)
+    EqualityTester.add_equality_operator(
+        PackedSequence, PackedSequenceEqualityOperator(), exist_ok=True
+    )
+    EqualityTester.add_equality_operator(Tensor, TensorEqualityOperator(), exist_ok=True)
