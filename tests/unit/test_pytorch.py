@@ -1,4 +1,5 @@
 import logging
+from unittest.mock import Mock
 
 import torch
 from pytest import LogCaptureFixture, mark
@@ -13,6 +14,11 @@ from coola.pytorch import (
     TensorAllCloseOperator,
     TensorEqualityOperator,
 )
+
+cuda_available = mark.skipif(not torch.cuda.is_available(), reason="Requires a device with CUDA")
+
+DEVICES = ("cpu", "cuda:0") if torch.cuda.is_available() else ("cpu",)
+
 
 ####################################################
 #     Tests for PackedSequenceAllCloseOperator     #
@@ -284,9 +290,13 @@ def test_tensor_allclose_operator_str():
     assert str(TensorAllCloseOperator()) == "TensorAllCloseOperator()"
 
 
+@mark.parametrize("device", DEVICES)
 @mark.parametrize("tensor", (torch.ones(2, 3), torch.ones(2, 3) + 1e-9, torch.ones(2, 3) - 1e-9))
-def test_tensor_allclose_operator_allclose_true(tensor: Tensor):
-    assert TensorAllCloseOperator().allclose(AllCloseTester(), torch.ones(2, 3), torch.ones(2, 3))
+def test_tensor_allclose_operator_allclose_true(tensor: Tensor, device: str):
+    device = torch.device(device)
+    assert TensorAllCloseOperator().allclose(
+        AllCloseTester(), torch.ones(2, 3, device=device), tensor.to(device=device)
+    )
 
 
 def test_tensor_allclose_operator_allclose_true_show_difference(caplog: LogCaptureFixture):
@@ -336,6 +346,36 @@ def test_tensor_allclose_operator_allclose_false_different_dtype_show_difference
             show_difference=True,
         )
         assert caplog.messages[0].startswith("torch.Tensor data types are different:")
+
+
+@cuda_available
+def test_tensor_allclose_operator_equal_false_different_device():
+    assert not TensorAllCloseOperator().allclose(
+        AllCloseTester(),
+        object1=torch.ones(2, 3, device=torch.device("cpu")),
+        object2=torch.ones(2, 3, device=torch.device("cuda:0")),
+    )
+
+
+def test_tensor_allclose_operator_equal_false_different_device_mock():
+    assert not TensorAllCloseOperator().allclose(
+        AllCloseTester(),
+        Mock(spec=Tensor, dtype=torch.float, device=torch.device("cpu")),
+        Mock(spec=Tensor, dtype=torch.float, device=torch.device("cuda:0")),
+    )
+
+
+def test_tensor_allclose_operator_equal_false_different_device_show_difference(
+    caplog: LogCaptureFixture,
+):
+    with caplog.at_level(logging.INFO):
+        assert not TensorAllCloseOperator().allclose(
+            tester=AllCloseTester(),
+            object1=Mock(spec=Tensor, dtype=torch.float, device=torch.device("cpu")),
+            object2=Mock(spec=Tensor, dtype=torch.float, device=torch.device("cuda:0")),
+            show_difference=True,
+        )
+        assert caplog.messages[0].startswith("torch.Tensor devices are different:")
 
 
 def test_tensor_allclose_operator_allclose_false_different_shape():
@@ -401,8 +441,14 @@ def test_tensor_equality_operator_str():
     assert str(TensorEqualityOperator()) == "TensorEqualityOperator()"
 
 
-def test_tensor_equality_operator_equal_true():
-    assert TensorEqualityOperator().equal(EqualityTester(), torch.ones(2, 3), torch.ones(2, 3))
+@mark.parametrize("device", DEVICES)
+def test_tensor_equality_operator_equal_true(device: str):
+    device = torch.device(device)
+    assert TensorEqualityOperator().equal(
+        EqualityTester(),
+        torch.ones(2, 3, device=device),
+        torch.ones(2, 3, device=device),
+    )
 
 
 def test_tensor_equality_operator_equal_true_show_difference(caplog: LogCaptureFixture):
@@ -452,6 +498,36 @@ def test_tensor_equality_operator_equal_false_different_dtype_show_difference(
             show_difference=True,
         )
         assert caplog.messages[0].startswith("torch.Tensor data types are different:")
+
+
+@cuda_available
+def test_tensor_equality_operator_equal_false_different_device():
+    assert not TensorEqualityOperator().equal(
+        EqualityTester(),
+        object1=torch.ones(2, 3, device=torch.device("cpu")),
+        object2=torch.ones(2, 3, device=torch.device("cuda:0")),
+    )
+
+
+def test_tensor_equality_operator_equal_false_different_device_mock():
+    assert not TensorEqualityOperator().equal(
+        EqualityTester(),
+        Mock(spec=Tensor, dtype=torch.float, device=torch.device("cpu")),
+        Mock(spec=Tensor, dtype=torch.float, device=torch.device("cuda:0")),
+    )
+
+
+def test_tensor_equality_operator_equal_false_different_device_show_difference(
+    caplog: LogCaptureFixture,
+):
+    with caplog.at_level(logging.INFO):
+        assert not TensorEqualityOperator().equal(
+            tester=EqualityTester(),
+            object1=Mock(spec=Tensor, dtype=torch.float, device=torch.device("cpu")),
+            object2=Mock(spec=Tensor, dtype=torch.float, device=torch.device("cuda:0")),
+            show_difference=True,
+        )
+        assert caplog.messages[0].startswith("torch.Tensor devices are different:")
 
 
 def test_tensor_equality_operator_equal_false_different_shape():
