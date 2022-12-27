@@ -32,3 +32,7 @@
 release to the next. In fact, it is very likely that the API will change multiple times before a
 stable 1.0.0 release. In practice, this means that upgrading `coola` to a new version will
 possibly break any code that was using the old version of `coola`.
+
+## License
+
+`coola` is licensed under BSD 3-Clause "New" or "Revised" license available in [LICENSE](LICENSE) file.
