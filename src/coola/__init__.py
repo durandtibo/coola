@@ -1,5 +1,20 @@
-__all__ = ["BaseEqualityOperator", "BaseEqualityTester", "EqualityTester", "objects_are_equal"]
+__all__ = [
+    "AllCloseTester",
+    "BaseAllCloseOperator",
+    "BaseAllCloseTester",
+    "BaseEqualityOperator",
+    "BaseEqualityTester",
+    "EqualityTester",
+    "objects_are_allclose",
+    "objects_are_equal",
+]
 
+from coola.allclose import (
+    AllCloseTester,
+    BaseAllCloseOperator,
+    BaseAllCloseTester,
+    objects_are_allclose,
+)
 from coola.equality import (
     BaseEqualityOperator,
     BaseEqualityTester,
