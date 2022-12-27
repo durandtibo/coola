@@ -112,4 +112,3 @@ False
 
 Feel free to try any complex nested structure that you want. You can find the currently supported
 types [here](types.md).
-
