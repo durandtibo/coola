@@ -60,7 +60,7 @@ class BaseAllCloseTester(ABC):
         .. code-block:: python
 
             >>> import torch
-            >>> from mltorch.utils.comparators import AllCloseTester, BaseAllCloseTester
+            >>> from coola import AllCloseTester, BaseAllCloseTester
             >>> tester: BaseAllCloseTester = AllCloseTester()
             >>> tester.allclose(
             ...     [torch.ones(2, 3), torch.zeros(2)],
@@ -465,8 +465,8 @@ class AllCloseTester(BaseAllCloseTester):
 
     @classmethod
     def has_allclose_operator(cls, data_type: Type[object]) -> bool:
-        r"""Indicates if an allclose operator is registered for the given data
-        type.
+        r"""Indicates if an allclose operator is registered for the given
+        data type.
 
         Args:
             data_type: Specifies the data type to check.

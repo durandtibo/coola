@@ -37,10 +37,7 @@ unit-test :
 unit-test-cov :
 	python -m pytest --timeout 10 --cov-report html --cov-report xml --cov-report term --cov=coola tests/unit
 
-.PHONY : integration-test
-integration-test :
-	python -m pytest tests/integration
-
-.PHONY : integration-test-cov
-integration-test-cov :
-	python -m pytest --cov-report html --cov-report xml --cov-report term --cov=coola --cov-append tests/integration
+.PHONY : publish
+publish :
+	poetry config pypi-token.pypi ${COOLA_PYPI_TOKEN}
+	poetry publish --build
