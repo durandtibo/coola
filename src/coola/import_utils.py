@@ -1,6 +1,11 @@
-__all__ = ["is_torch_available"]
+__all__ = ["is_numpy_available", "is_torch_available"]
 
 from importlib.util import find_spec
+
+
+def is_numpy_available() -> bool:
+    r"""Indicates if the NumPy package is installed or not."""
+    return find_spec("numpy") is not None
 
 
 def is_torch_available() -> bool:
