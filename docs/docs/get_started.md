@@ -1,7 +1,8 @@
 # Get Started
 
-This repository is tested on Python 3.10, and Linux system.
-It is recommended to install in a virtual environment to keep your system in order.
+It is highly recommended to install in
+a [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
+to keep your system in order.
 
 ## Installing with `pip` (recommended)
 
@@ -61,3 +62,7 @@ install it. Finally, you can test the installation with the following command:
 ```shell
 make test
 ```
+
+## Testing
+
+This repository is tested on Python 3.10, and Linux system.

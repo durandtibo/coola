@@ -2,35 +2,80 @@
 
 Both `objects_are_equal` and `objects_are_allclose` functions can be easily customized.
 
-## Mechanism/Overview
+## How to implement a custom `BaseEqualityTester`
 
-Internally, the `objects_are_equal` function uses a `BaseEqualityTester` to check if two
+Internally, the `objects_are_equal` function uses a `BaseEqualityTester` object to check if two
 objects are equal.
 `coola` comes with a default `BaseEqualityTester` named `EqualityTester`, but it is possible to
 implement a custom `BaseEqualityTester` to check if two objects are equal.
 The following example shows how to use a custom `BaseEqualityTester`.
 
 ```python
+from typing import Any
+
 from coola import BaseEqualityTester, objects_are_equal
 
 
 class MyCustomEqualityTester(BaseEqualityTester):
-    ...  # Custom implementation
+
+    def equal(self, object1: Any, object2: Any, show_difference: bool = False) -> bool:
+        ...  # Custom implementation
 
 
 objects_are_equal([1, 2, 3], (1, 2, 3), tester=MyCustomEqualityTester())
 ```
 
+Implemented a new `BaseEqualityTester` allows to customize the behavior of `objects_are_equal`.
+
 ## How to customize `EqualityTester`
 
-Implementing a new `BaseEqualityTester` can be a lot of work so it is not always a practical
+Implementing a new `BaseEqualityTester` can be a lot of work, so it is not always a practical
 solution.
+For example if you want to support a new type, you do not want to reimplement everything.
 Instead of implementing a new `BaseEqualityTester`, it is possible to customize the
 default `EqualityTester`.
 
 ### Overview
 
-TODO
+`EqualityTester` has a registry of equality operators with their associated types.
+An equality operator is an object that follows the `BaseEqualityOperator` API.
+`EqualityTester` uses the Method Resolution Order (MRO) of the first object to find the equality
+operator to use.
+It uses the most specific equality operator.
+For example, `EqualityTester` has an equality operator registered for `object` and another
+one `list`.
+If the first element to compare is a `list`, `EqualityTester` will use the equality operator
+associated to `list` to compare the two objects.
+You can use the following code to see the registered equality operators with their associated types.
+
+```python
+from coola import EqualityTester
+
+print(EqualityTester.registry)
+```
+
+*Output*:
+
+```textmate
+{collections.abc.Mapping: MappingEqualityOperator(),
+ collections.abc.Sequence: SequenceEqualityOperator(),
+ dict: MappingEqualityOperator(),
+ list: SequenceEqualityOperator(),
+ object: DefaultEqualityOperator(),
+ tuple: SequenceEqualityOperator(),
+ numpy.ndarray: NDArrayEqualityOperator(check_dtype=True),
+ torch.nn.utils.rnn.PackedSequence: PackedSequenceEqualityOperator(),
+ torch.Tensor: TensorEqualityOperator()}
+```
+
+An equality operator (`DefaultEqualityOperator`) is registered for `object` type, so this equality
+operator is considered like the default equality operator.
+For example, it will be used to compare `int` or `float` or `str` because there is no specific
+equality operator for these types.
+Note that the same equality operator can be used for multiple types.
+For example, by default, the same equality operator is used for `list`, `tuple`,
+and `collections.abc.Sequence`.
+The following sections explain how to customize this registry.
 
 ### Add an equality operator
 
@@ -46,7 +91,12 @@ Then, you need to add the `BaseEqualityOperator` to `EqualityTester`.
 ```python
 from typing import Any
 
-from coola import BaseEqualityOperator, BaseEqualityTester, EqualityTester, objects_are_equal
+from coola import (
+    BaseEqualityOperator,
+    BaseEqualityTester,
+    EqualityTester,
+    objects_are_equal,
+)
 
 
 # Step 1: implementation of a new equality operator
@@ -59,9 +109,9 @@ class MyCustomStrEqualityOperator(BaseEqualityOperator):
             object2: Any,
             show_difference: bool = False,
     ) -> bool:
-        # You can add code to check the type and to log a message to indicate 
-        # the difference between the objects if any. To keep this example 
-        # simple, this part is skipped. 
+        # You can add code to check the type and to log a message to indicate
+        # the difference between the objects if any. To keep this example
+        # simple, this part is skipped.
         return object1 in object2
 
 
@@ -84,7 +134,7 @@ the `objects_are_equal` function.
 You can use the `registry` attribute to check the registered equality operators.
 
 ```python
-EqualityTester.registry
+print(EqualityTester.registry)
 ```
 
 *Output*:
