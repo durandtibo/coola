@@ -79,7 +79,6 @@ objects_are_equal(torch.ones(2, 3), torch.ones(2, 3, dtype=torch.long))  # False
 objects_are_equal(torch.ones(2, 3), torch.ones(2, 3, device='cuda'))  # False
 objects_are_equal(torch.ones(2, 3), torch.zeros(2, 3))  # False
 objects_are_equal(torch.ones(2, 3), torch.ones(6))  # False
-objects_are_equal(torch.ones(2, 3), torch.ones(2, 3))  # True
 ```
 
 #### `torch.nn.utils.rnn.PackedSequence`
@@ -159,7 +158,6 @@ objects_are_equal(numpy.ones((2, 3)), numpy.ones((2, 3)))  # True
 objects_are_equal(numpy.ones((2, 3)), numpy.ones((2, 3), dtype=int))  # False
 objects_are_equal(numpy.ones((2, 3)), numpy.zeros((2, 3)))  # False
 objects_are_equal(numpy.ones((2, 3)), numpy.ones((6,)))  # False
-objects_are_equal(numpy.ones((2, 3)), numpy.ones((2, 3)))  # True
 ```
 
 ## Equal within a tolerance (allclose)
@@ -243,7 +241,6 @@ objects_are_allclose(torch.ones(2, 3), torch.ones(2, 3, dtype=torch.long))  # Fa
 objects_are_allclose(torch.ones(2, 3), torch.ones(2, 3, device='cuda'))  # False
 objects_are_allclose(torch.ones(2, 3), torch.zeros(2, 3))  # False
 objects_are_allclose(torch.ones(2, 3), torch.ones(6))  # False
-objects_are_allclose(torch.ones(2, 3), torch.ones(2, 3))  # True
 ```
 
 #### `torch.nn.utils.rnn.PackedSequence`
@@ -339,5 +336,4 @@ objects_are_allclose(numpy.ones((2, 3)), numpy.ones((2, 3)) + 1, rtol=1)  # True
 objects_are_allclose(numpy.ones((2, 3)), numpy.ones((2, 3), dtype=int))  # False
 objects_are_allclose(numpy.ones((2, 3)), numpy.zeros((2, 3)))  # False
 objects_are_allclose(numpy.ones((2, 3)), numpy.ones((6,)))  # False
-objects_are_allclose(numpy.ones((2, 3)), numpy.ones((2, 3)))  # True
 ```
