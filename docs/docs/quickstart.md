@@ -313,3 +313,87 @@ True
 `objects_are_allclose` supports a lot of types and nested structure.
 Feel free to try any complex nested structure that you want. You can find the currently supported
 types [here](types.md#equal-within-a-tolerance--allclose-).
+
+### Not A Number (NaN)
+
+`NaN` is not considered close to any other value, including `NaN`.
+
+```python
+from coola import objects_are_allclose
+
+print(objects_are_allclose(float('nan'), 0.0))
+print(objects_are_allclose(float('nan'), float('nan')))
+```
+
+*Output*:
+
+```textmate
+False
+False
+```
+
+In arrays or tensors, `NaN` are sometimes to indicate some values are not valid.
+However, it may be interested to check if the non-`NaN` values are equal.
+It is possible to use the `equal_nan=True` option to compare two tensors with `NaN` values.
+
+```python
+import numpy
+import torch
+
+from coola import objects_are_allclose
+
+print(
+    objects_are_allclose(
+        torch.tensor([0.0, 1.0, float("nan")]),
+        torch.tensor([0.0, 1.0, float("nan")]),
+    )
+)
+
+print(
+    objects_are_allclose(
+        torch.tensor([0.0, 1.0, float("nan")]),
+        torch.tensor([0.0, 1.0, float("nan")]),
+        equal_nan=True,
+    )
+)
+
+print(
+    objects_are_allclose(
+        numpy.array([0.0, 1.0, float("nan")]),
+        numpy.array([0.0, 1.0, float("nan")]),
+    )
+)
+
+print(
+    objects_are_allclose(
+        numpy.array([0.0, 1.0, float("nan")]),
+        numpy.array([0.0, 1.0, float("nan")]),
+        equal_nan=True,
+    )
+)
+```
+
+*Output*:
+
+```textmate
+False
+True
+False
+True
+```
+
+Note that `equal_nan` is only supported for NumPy `ndarray`s and PyTorch `Tensor`s.
+
+```python
+from coola import objects_are_allclose
+
+print(objects_are_allclose(float('nan'), float('nan')))
+print(objects_are_allclose(float('nan'), float('nan'), equal_nan=True))
+```
+
+*Output*:
+
+```textmate
+False
+False
+```

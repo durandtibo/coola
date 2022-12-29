@@ -5,9 +5,26 @@ two objects are equal or not.
 
 ## Equal
 
-TODO: add default
+### `object`
 
-### `collections.abc.Mapping` / `dict`
+By default, two objects are equal if:
+
+- they have the same type
+- they are equal i.e. `object1 == object2` returns `True`
+
+**Example**
+
+```python
+from coola import objects_are_equal
+
+objects_are_equal(1, 1)  # True
+objects_are_equal(1, 2)  # False
+objects_are_equal(1, 1.0)  # False
+objects_are_equal(True, True)  # True
+objects_are_equal('abc', 'abcd')  # False
+```
+
+### `collections.abc.Mapping` | `dict`
 
 Two `Mapping`s are equal if:
 
@@ -29,7 +46,7 @@ objects_are_equal({'int': 1, 'str': 'abc'}, {'int': 1, 'float': 0.2})  # False
 objects_are_equal({'int': 1, 'str': 'abc'}, {'int': 1, 'str': 'abcd'})  # False
 ```
 
-### `collections.abc.Sequence` / `list` / `tuple`
+### `collections.abc.Sequence` | `list` | `tuple`
 
 Two `Sequence`s are equal if:
 
@@ -99,42 +116,42 @@ from torch.nn.utils.rnn import pack_padded_sequence
 from coola import objects_are_equal
 
 objects_are_equal(
-  pack_padded_sequence(
-    input=torch.arange(10).view(2, 5).float(),
-    lengths=torch.tensor([5, 3], dtype=torch.long),
-    batch_first=True,
-  ),
-  pack_padded_sequence(
-    input=torch.arange(10).view(2, 5).float(),
-    lengths=torch.tensor([5, 3], dtype=torch.long),
-    batch_first=True,
-  ),
+    pack_padded_sequence(
+        input=torch.arange(10).view(2, 5).float(),
+        lengths=torch.tensor([5, 3], dtype=torch.long),
+        batch_first=True,
+    ),
+    pack_padded_sequence(
+        input=torch.arange(10).view(2, 5).float(),
+        lengths=torch.tensor([5, 3], dtype=torch.long),
+        batch_first=True,
+    ),
 )  # True
 
 objects_are_equal(
-  pack_padded_sequence(
-    input=torch.arange(10).view(2, 5).float(),
-    lengths=torch.tensor([5, 3], dtype=torch.long),
-    batch_first=True,
-  ),
-  pack_padded_sequence(
-    input=torch.arange(10).view(2, 5).add(1).float(),
-    lengths=torch.tensor([5, 3], dtype=torch.long),
-    batch_first=True,
-  ),
+    pack_padded_sequence(
+        input=torch.arange(10).view(2, 5).float(),
+        lengths=torch.tensor([5, 3], dtype=torch.long),
+        batch_first=True,
+    ),
+    pack_padded_sequence(
+        input=torch.arange(10).view(2, 5).add(1).float(),
+        lengths=torch.tensor([5, 3], dtype=torch.long),
+        batch_first=True,
+    ),
 )  # False | different values
 
 objects_are_equal(
-  pack_padded_sequence(
-    input=torch.arange(10).view(2, 5).float(),
-    lengths=torch.tensor([5, 3], dtype=torch.long),
-    batch_first=True,
-  ),
-  pack_padded_sequence(
-    input=torch.arange(10).view(2, 5).float(),
-    lengths=torch.tensor([5, 2], dtype=torch.long),
-    batch_first=True,
-  ),
+    pack_padded_sequence(
+        input=torch.arange(10).view(2, 5).float(),
+        lengths=torch.tensor([5, 3], dtype=torch.long),
+        batch_first=True,
+    ),
+    pack_padded_sequence(
+        input=torch.arange(10).view(2, 5).float(),
+        lengths=torch.tensor([5, 2], dtype=torch.long),
+        batch_first=True,
+    ),
 )  # False | different lengths
 ```
 
@@ -162,7 +179,60 @@ objects_are_equal(numpy.ones((2, 3)), numpy.ones((6,)))  # False
 
 ## Equal within a tolerance (allclose)
 
-### `collections.abc.Mapping` / `dict`
+### `object`
+
+The concept of equal within a tolerance does not make sense for all `object`s.
+In general, the tolerance is not used for `object`s.
+The tolerance is only used for numbers (see below).
+By default, two objects are equal if:
+
+- they have the same type
+- they are equal i.e. `object1 == object2` returns `True`
+
+**Example**
+
+```python
+from coola import objects_are_allclose
+
+objects_are_allclose('abc', 'abc')  # True
+objects_are_allclose('abc', 'abcd')  # False
+```
+
+### Numbers: `bool` | `int` | `float`
+
+Two numbers are equal within a tolerance if:
+
+- they have the same type
+- the values are equal with a tolerance
+
+**Example**
+
+```python
+from coola import objects_are_allclose
+
+objects_are_allclose(1, 2)  # False
+objects_are_allclose(1, 2, atol=1)  # True
+objects_are_allclose(1, 2, rtol=1)  # True
+
+objects_are_allclose(1.0, 2.0)  # False
+objects_are_allclose(1.0, 2.0, atol=1)  # True
+objects_are_allclose(1.0, 2.0, rtol=1)  # True
+
+objects_are_allclose(1, 2.0, atol=1)  # False
+```
+
+Note that booleans are explicitly considered as integers in Python so the tolerance can be used with
+booleans:
+
+```python
+from coola import objects_are_allclose
+
+objects_are_allclose(True, False)  # False
+objects_are_allclose(True, False, atol=1)  # True
+objects_are_allclose(True, False, rtol=1)  # True
+```
+
+### `collections.abc.Mapping` | `dict`
 
 Two `Mapping`s are equal within a tolerance if:
 
@@ -172,6 +242,8 @@ Two `Mapping`s are equal within a tolerance if:
 - For each key, the values are equal within a tolerance. The value associated to the key `k` in the
   first mapping has to be equal within the tolerance to value associated to the key `k` in the
   second mapping.
+
+**Example**
 
 ```python
 from collections import OrderedDict
@@ -187,7 +259,7 @@ objects_are_allclose({'int': 1, 'str': 'abc'}, {'int': 1, 'float': 0.2})  # Fals
 objects_are_allclose({'int': 1, 'str': 'abc'}, {'int': 1, 'str': 'abcd'})  # False
 ```
 
-### `collections.abc.Sequence` / `list` / `tuple`
+### `collections.abc.Sequence` | `list` | `tuple`
 
 Two `Sequence`s are equal within a tolerance if:
 
@@ -261,56 +333,56 @@ from torch.nn.utils.rnn import pack_padded_sequence
 from coola import objects_are_allclose
 
 objects_are_allclose(
-  pack_padded_sequence(
-    input=torch.arange(10).view(2, 5).float(),
-    lengths=torch.tensor([5, 3], dtype=torch.long),
-    batch_first=True,
-  ),
-  pack_padded_sequence(
-    input=torch.arange(10).view(2, 5).float(),
-    lengths=torch.tensor([5, 3], dtype=torch.long),
-    batch_first=True,
-  ),
+    pack_padded_sequence(
+        input=torch.arange(10).view(2, 5).float(),
+        lengths=torch.tensor([5, 3], dtype=torch.long),
+        batch_first=True,
+    ),
+    pack_padded_sequence(
+        input=torch.arange(10).view(2, 5).float(),
+        lengths=torch.tensor([5, 3], dtype=torch.long),
+        batch_first=True,
+    ),
 )  # True
 
 objects_are_allclose(
-  pack_padded_sequence(
-    input=torch.arange(10).view(2, 5).float() + 1,
-    lengths=torch.tensor([5, 3], dtype=torch.long),
-    batch_first=True,
-  ),
-  pack_padded_sequence(
-    input=torch.arange(10).view(2, 5).float(),
-    lengths=torch.tensor([5, 3], dtype=torch.long),
-    batch_first=True,
-  ),
-  atol=2,
+    pack_padded_sequence(
+        input=torch.arange(10).view(2, 5).float() + 1,
+        lengths=torch.tensor([5, 3], dtype=torch.long),
+        batch_first=True,
+    ),
+    pack_padded_sequence(
+        input=torch.arange(10).view(2, 5).float(),
+        lengths=torch.tensor([5, 3], dtype=torch.long),
+        batch_first=True,
+    ),
+    atol=2,
 )  # True
 
 objects_are_allclose(
-  pack_padded_sequence(
-    input=torch.arange(10).view(2, 5).float(),
-    lengths=torch.tensor([5, 3], dtype=torch.long),
-    batch_first=True,
-  ),
-  pack_padded_sequence(
-    input=torch.arange(10).view(2, 5).add(1).float(),
-    lengths=torch.tensor([5, 3], dtype=torch.long),
-    batch_first=True,
-  ),
+    pack_padded_sequence(
+        input=torch.arange(10).view(2, 5).float(),
+        lengths=torch.tensor([5, 3], dtype=torch.long),
+        batch_first=True,
+    ),
+    pack_padded_sequence(
+        input=torch.arange(10).view(2, 5).add(1).float(),
+        lengths=torch.tensor([5, 3], dtype=torch.long),
+        batch_first=True,
+    ),
 )  # False | different values
 
 objects_are_allclose(
-  pack_padded_sequence(
-    input=torch.arange(10).view(2, 5).float(),
-    lengths=torch.tensor([5, 3], dtype=torch.long),
-    batch_first=True,
-  ),
-  pack_padded_sequence(
-    input=torch.arange(10).view(2, 5).float(),
-    lengths=torch.tensor([5, 2], dtype=torch.long),
-    batch_first=True,
-  ),
+    pack_padded_sequence(
+        input=torch.arange(10).view(2, 5).float(),
+        lengths=torch.tensor([5, 3], dtype=torch.long),
+        batch_first=True,
+    ),
+    pack_padded_sequence(
+        input=torch.arange(10).view(2, 5).float(),
+        lengths=torch.tensor([5, 2], dtype=torch.long),
+        batch_first=True,
+    ),
 )  # False | different lengths
 ```
 
