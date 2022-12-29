@@ -32,6 +32,9 @@ class NDArrayAllCloseOperator(BaseAllCloseOperator[ndarray]):
             )
         self._check_dtype = bool(check_dtype)
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__qualname__}(check_dtype={self._check_dtype})"
+
     def allclose(
         self,
         tester: BaseAllCloseTester,
@@ -80,6 +83,9 @@ class NDArrayEqualityOperator(BaseEqualityOperator[ndarray]):
                 "install `numpy` package with the command:\n\npip install numpy\n"
             )
         self._check_dtype = bool(check_dtype)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__qualname__}(check_dtype={self._check_dtype})"
 
     def equal(
         self,
