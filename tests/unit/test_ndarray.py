@@ -41,6 +41,23 @@ def test_ndarray_allclose_operator_allclose_true_show_difference(caplog: LogCapt
         assert not caplog.messages
 
 
+def test_ndarray_allclose_operator_equal_true_nan_equal_nan_true():
+    assert NDArrayAllCloseOperator().allclose(
+        AllCloseTester(),
+        np.array([0.0, 1.0, float("nan")]),
+        np.array([0.0, 1.0, float("nan")]),
+        equal_nan=True,
+    )
+
+
+def test_ndarray_allclose_operator_equal_false_nan_equal_nan_false():
+    assert not NDArrayAllCloseOperator().allclose(
+        AllCloseTester(),
+        np.array([0.0, 1.0, float("nan")]),
+        np.array([0.0, 1.0, float("nan")]),
+    )
+
+
 def test_ndarray_allclose_operator_equal_false_different_dtype():
     assert not NDArrayAllCloseOperator().allclose(
         AllCloseTester(), np.ones((2, 3), dtype=float), np.ones((2, 3), dtype=int)
