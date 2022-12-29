@@ -262,16 +262,16 @@ class ScalarAllCloseOperator(BaseAllCloseOperator[Union[bool, int, float]]):
     def allclose(
         self,
         tester: BaseAllCloseTester,
-        object1: Union[int, float],
+        object1: Union[bool, int, float],
         object2: Any,
         rtol: float = 1e-5,
         atol: float = 1e-8,
         equal_nan: bool = False,
         show_difference: bool = False,
     ) -> bool:
-        if not isinstance(object2, (bool, int, float)):
+        if not type(object1) is type(object2):
             if show_difference:
-                logger.info(f"object2 is not a scalar (bool or int or float): {type(object2)}")
+                logger.info(f"Objects have different types: {type(object1)} vs {type(object2)}")
             return False
         number_equal = math.isclose(object1, object2, rel_tol=rtol, abs_tol=atol)
         if show_difference and not number_equal:
