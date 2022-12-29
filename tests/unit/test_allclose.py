@@ -100,48 +100,29 @@ def test_allclose_tester_find_allclose_operator_incorrect_type():
 ##########################################
 
 
-def test_objects_are_allclose_different_type():
+def test_objects_are_allclose_false_different_type():
     assert not objects_are_allclose([], ())
 
 
-def test_objects_are_allclose_different_type_show_difference(caplog: LogCaptureFixture):
-    with caplog.at_level(logging.INFO):
-        assert not objects_are_allclose(None, [], show_difference=True)
-        assert caplog.messages[0].startswith("Objects have different types:")
-
-
 @mark.parametrize(
-    "data1,data2", ((1.0, 1.0), (0.0, 0.0), (2.5, 2.5), (1.0 + 1e-9, 1.0), (1.0 - 1e-9, 1.0))
+    "object1,object2",
+    (
+        (1, 1),
+        (0, 0),
+        (-1, -1),
+        (1.0, 1.0),
+        (1.0, 1.0 + 1e-9),
+        (0.0, 0.0),
+        (0.0, 1e-9),
+        (-1.0, -1.0),
+        (True, True),
+        (False, False),
+    ),
 )
-def test_objects_are_allclose_scalar_true_float(data1: float, data2: float):
-    assert objects_are_allclose(data1, data2)
-
-
-@mark.parametrize("data1,data2", ((1, 1), (0, 0), (-1, -1)))
-def test_objects_are_allclose_scalar_true_int(data1: int, data2: int):
-    assert objects_are_allclose(data1, data2)
-
-
-@mark.parametrize("data1,data2", ((True, True), (False, False)))
-def test_objects_are_allclose_scalar_true_bool(data1: int, data2: int):
-    assert objects_are_allclose(data1, data2)
-
-
-def test_objects_are_allclose_scalar_true_show_difference(caplog: LogCaptureFixture):
-    with caplog.at_level(logging.INFO):
-        assert objects_are_allclose(1, 1, show_difference=True)
-        assert not caplog.messages
-
-
-@mark.parametrize("data1,data2", ((1.0, 1.1), (2.5, 0.0), (1.0 + 1e-7, 1.0), (1.0 - 1e-7, 1.0)))
-def test_objects_are_allclose_scalar_false(data1: float, data2: float):
-    assert not objects_are_allclose(data1, data2, rtol=0.0)
-
-
-def test_objects_are_allclose_scalar_false_show_difference(caplog: LogCaptureFixture):
-    with caplog.at_level(logging.INFO):
-        assert not objects_are_allclose(1, 2, show_difference=True)
-        assert caplog.messages[0].startswith("The numbers are different:")
+def test_objects_are_allclose_scalar_true_float(
+    object1: Union[bool, int, float], object2: Union[bool, int, float]
+):
+    assert objects_are_allclose(object1, object2)
 
 
 @mark.parametrize("value,atol", ((1.5, 1.0), (1.05, 1e-1), (1.0 + 5e-3, 1e-2)))
@@ -154,84 +135,102 @@ def test_objects_are_allclose_scalar_true_rtol(value, rtol: float):
     assert objects_are_allclose(value, 1.0, rtol=rtol)
 
 
-@mark.parametrize("tensor", (torch.ones(2, 3), torch.ones(2, 3) + 1e-9, torch.ones(2, 3) - 1e-9))
+@mark.parametrize(
+    "object1,object2",
+    (
+        (1, 2),
+        (1.0, 2.0),
+        (1.0, 1.0 + 1e-7),
+        (True, False),
+        (1, 1.0),
+        (1, True),
+        (1.0, True),
+    ),
+)
+def test_objects_are_allclose_scalar_false(object1: float, object2: float):
+    assert not objects_are_allclose(object1, object2, rtol=0.0)
+
+
+@mark.parametrize(
+    "tensor", (torch.ones(2, 3), torch.ones(2, 3).add(1e-9), torch.ones(2, 3).sub(1e-9))
+)
 def test_objects_are_allclose_torch_tensor_true(tensor: Tensor):
     assert objects_are_allclose(tensor, torch.ones(2, 3))
 
 
-def test_objects_are_allclose_torch_tensor_true_show_difference(caplog: LogCaptureFixture):
-    with caplog.at_level(logging.INFO):
-        assert objects_are_allclose(torch.ones(2, 3), torch.ones(2, 3), show_difference=True)
-        assert not caplog.messages
-
-
-@mark.parametrize("tensor", (torch.zeros(2, 3), torch.ones(2, 3) + 1e-7, torch.ones(2, 3) - 1e-7))
-def test_objects_are_allclose_torch_tensor_false(tensor):
+@mark.parametrize(
+    "tensor", (torch.zeros(2, 3), torch.ones(2, 3).add(1e-7), torch.ones(2, 3).sub(1e-7))
+)
+def test_objects_are_allclose_torch_tensor_false(tensor: Tensor):
     assert not objects_are_allclose(tensor, torch.ones(2, 3), rtol=0)
-
-
-def test_objects_are_allclose_torch_tensor_false_show_difference(caplog: LogCaptureFixture):
-    with caplog.at_level(logging.INFO):
-        assert not objects_are_allclose(torch.zeros(2, 3), torch.ones(2, 3), show_difference=True)
-        assert caplog.messages
 
 
 @mark.parametrize(
     "tensor,atol",
-    ((torch.ones(2, 3) + 0.5, 1), (torch.ones(2, 3) + 0.05, 1e-1), (torch.ones(2, 3) + 5e-3, 1e-2)),
+    (
+        (torch.ones(2, 3).add(0.5), 1),
+        (torch.ones(2, 3).add(0.05), 1e-1),
+        (torch.ones(2, 3).add(5e-3), 1e-2),
+    ),
 )
-def test_objects_are_allclose_torch_tensor_true_atol(tensor, atol: float):
+def test_objects_are_allclose_torch_tensor_true_atol(tensor: Tensor, atol: float):
     assert objects_are_allclose(tensor, torch.ones(2, 3), atol=atol, rtol=0)
 
 
 @mark.parametrize(
     "tensor,rtol",
-    ((torch.ones(2, 3) + 0.5, 1), (torch.ones(2, 3) + 0.05, 1e-1), (torch.ones(2, 3) + 5e-3, 1e-2)),
+    (
+        (torch.ones(2, 3).add(0.5), 1),
+        (torch.ones(2, 3).add(0.05), 1e-1),
+        (torch.ones(2, 3).add(5e-3), 1e-2),
+    ),
 )
-def test_objects_are_allclose_torch_tensor_true_rtol(tensor, rtol: float):
+def test_objects_are_allclose_torch_tensor_true_rtol(tensor: Tensor, rtol: float):
     assert objects_are_allclose(tensor, torch.ones(2, 3), rtol=rtol)
 
 
-@mark.parametrize("array", (np.ones((2, 3)), np.ones((2, 3)) + 1e-9, np.ones((2, 3)) - 1e-9))
-def test_objects_are_allclose_numpy_array_true(array):
+@mark.parametrize(
+    "array",
+    (np.ones((2, 3)), np.ones((2, 3)) + 1e-9, np.ones((2, 3)) - 1e-9),
+)
+def test_objects_are_allclose_numpy_array_true(array: np.ndarray):
     assert objects_are_allclose(array, np.ones((2, 3)))
 
 
-def test_objects_are_allclose_numpy_array_true_show_difference(caplog: LogCaptureFixture):
-    with caplog.at_level(logging.INFO):
-        assert objects_are_allclose(np.ones((2, 3)), np.ones((2, 3)), show_difference=True)
-        assert not caplog.messages
-
-
-@mark.parametrize("array", (np.zeros((2, 3)), np.ones((2, 3)) + 1e-7, np.ones((2, 3)) - 1e-7))
-def test_objects_are_allclose_numpy_array_false(array):
+@mark.parametrize(
+    "array",
+    (np.zeros((2, 3)), np.ones((2, 3)) + 1e-7, np.ones((2, 3)) - 1e-7),
+)
+def test_objects_are_allclose_numpy_array_false(array: np.ndarray):
     assert not objects_are_allclose(array, np.ones((2, 3)), rtol=0)
 
 
-def test_objects_are_allclose_numpy_array_false_show_difference(caplog: LogCaptureFixture):
-    with caplog.at_level(logging.INFO):
-        assert not objects_are_allclose(np.zeros((2, 3)), np.ones((2, 3)), show_difference=True)
-        assert caplog.messages
-
-
 @mark.parametrize(
-    "tensor,atol",
-    ((np.ones((2, 3)) + 0.5, 1), (np.ones((2, 3)) + 0.05, 1e-1), (np.ones((2, 3)) + 5e-3, 1e-2)),
+    "array,atol",
+    (
+        (np.ones((2, 3)) + 0.5, 1),
+        (np.ones((2, 3)) + 0.05, 1e-1),
+        (np.ones((2, 3)) + 5e-3, 1e-2),
+    ),
 )
-def test_objects_are_allclose_numpy_array_true_atol(tensor, atol: float):
-    assert objects_are_allclose(tensor, np.ones((2, 3)), atol=atol, rtol=0)
+def test_objects_are_allclose_numpy_array_true_atol(array: np.ndarray, atol: float):
+    assert objects_are_allclose(array, np.ones((2, 3)), atol=atol, rtol=0)
 
 
 @mark.parametrize(
-    "tensor,rtol",
-    ((np.ones((2, 3)) + 0.5, 1), (np.ones((2, 3)) + 0.05, 1e-1), (np.ones((2, 3)) + 5e-3, 1e-2)),
+    "array,rtol",
+    (
+        (np.ones((2, 3)) + 0.5, 1),
+        (np.ones((2, 3)) + 0.05, 1e-1),
+        (np.ones((2, 3)) + 5e-3, 1e-2),
+    ),
 )
-def test_objects_are_allclose_numpy_array_true_rtol(tensor, rtol: float):
-    assert objects_are_allclose(tensor, np.ones((2, 3)), rtol=rtol)
+def test_objects_are_allclose_numpy_array_true_rtol(array: np.ndarray, rtol: float):
+    assert objects_are_allclose(array, np.ones((2, 3)), rtol=rtol)
 
 
 @mark.parametrize(
-    "data1,data2",
+    "object1,object2",
     (
         ([], []),
         ((), ()),
@@ -243,24 +242,19 @@ def test_objects_are_allclose_numpy_array_true_rtol(tensor, rtol: float):
         ),
     ),
 )
-def test_objects_are_allclose_sequence_true(data1, data2):
-    assert objects_are_allclose(data1, data2)
+def test_objects_are_allclose_sequence_true(object1: Sequence, object2: Sequence):
+    assert objects_are_allclose(object1, object2)
 
 
-def test_objects_are_allclose_sequence_false(caplog: LogCaptureFixture):
+def test_objects_are_allclose_sequence_false():
     assert not objects_are_allclose([1, 2], [1, 3])
 
 
-def test_objects_are_allclose_sequence_false_show_difference(caplog: LogCaptureFixture):
-    with caplog.at_level(logging.INFO):
-        assert not objects_are_allclose([1, 2], [1, 3], show_difference=True)
-        assert caplog.messages
-
-
 @mark.parametrize(
-    "data1,data2",
+    "object1,object2",
     (
         ({}, {}),
+        (OrderedDict({}), OrderedDict({})),
         (
             {"1": torch.ones(2, 3), "2": torch.zeros(2)},
             {"1": torch.ones(2, 3), "2": torch.zeros(2)},
@@ -275,36 +269,28 @@ def test_objects_are_allclose_sequence_false_show_difference(caplog: LogCaptureF
         ),
     ),
 )
-def test_objects_are_allclose_mapping_true(data1, data2):
-    assert objects_are_allclose(data1, data2)
+def test_objects_are_allclose_mapping_true(object1: Mapping, object2: Mapping):
+    assert objects_are_allclose(object1, object2)
 
 
 def test_objects_are_allclose_mapping_false():
     assert not objects_are_allclose({"abc": 1, "def": 2}, {"abc": 1, "def": 3})
 
 
-def test_objects_are_allclose_mapping_false_show_difference(caplog: LogCaptureFixture):
-    with caplog.at_level(logging.INFO):
-        assert not objects_are_allclose(
-            {"abc": 1, "def": 2}, {"abc": 1, "def": 3}, show_difference=True
-        )
-        assert caplog.messages
-
-
 @mark.parametrize(
-    "data1,data2",
+    "object1,object2",
     (
         ("abc", "abc"),
         (set(), set()),
         ({1, 2, 3}, {1, 2, 3}),
     ),
 )
-def test_objects_are_allclose_other_types_true(data1, data2):
-    assert objects_are_allclose(data1, data2)
+def test_objects_are_allclose_other_types_true(object1: Any, object2: Any):
+    assert objects_are_allclose(object1, object2)
 
 
 @mark.parametrize(
-    "data1,data2",
+    "object1,object2",
     (
         ("abc", "abcd"),
         (set(), tuple()),
@@ -312,14 +298,45 @@ def test_objects_are_allclose_other_types_true(data1, data2):
         ({1, 2, 4}, {1, 2, 3}),
     ),
 )
-def test_objects_are_allclose_other_types_false(data1, data2):
-    assert not objects_are_allclose(data1, data2)
+def test_objects_are_allclose_other_types_false(object1: Any, object2: Any):
+    assert not objects_are_allclose(object1, object2)
 
 
-def test_objects_are_allclose_other_types_false_show_difference(caplog: LogCaptureFixture):
-    with caplog.at_level(logging.INFO):
-        assert not objects_are_allclose("abc", "abcd", show_difference=True)
-        assert caplog.messages
+def test_objects_are_equal_true_complex_objects():
+    assert objects_are_allclose(
+        {
+            "list": [
+                1,
+                2.0,
+                torch.arange(5, dtype=torch.float),
+                np.arange(3, dtype=float),
+                [1, 2, 3],
+            ],
+            "tuple": ("1", (1, 2, torch.ones(2, 3), np.ones((2, 3)))),
+            "dict": {"torch": torch.zeros(2, 3), "numpy": np.zeros((2, 3)), "list": []},
+            "str": "abc",
+            "int": 1,
+            "float": 2.5,
+            "torch": torch.ones(5),
+            "numpy": np.ones(4),
+        },
+        {
+            "list": [
+                1,
+                2.0,
+                torch.arange(5, dtype=torch.float).add(3e-9),
+                np.arange(3, dtype=float) + 3e-9,
+                [1, 2, 3],
+            ],
+            "tuple": ("1", (1, 2, torch.ones(2, 3), np.ones((2, 3)))),
+            "dict": {"torch": torch.zeros(2, 3), "numpy": np.zeros((2, 3)), "list": []},
+            "str": "abc",
+            "int": 1,
+            "float": 2.5 + 1e-9,
+            "torch": torch.ones(5).add(2e-9),
+            "numpy": np.ones(4) + 2e-9,
+        },
+    )
 
 
 #############################################
@@ -378,6 +395,7 @@ def test_mapping_allclose_operator_str():
     "object1,object2",
     (
         ({}, {}),
+        (OrderedDict({}), OrderedDict({})),
         (
             {"1": torch.ones(2, 3), "2": torch.zeros(2)},
             {"1": torch.ones(2, 3), "2": torch.zeros(2)},

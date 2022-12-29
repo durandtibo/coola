@@ -1,8 +1,7 @@
 import logging
 from collections import OrderedDict
 from collections.abc import Mapping, Sequence
-from numbers import Number
-from typing import Any
+from typing import Any, Union
 from unittest.mock import Mock, patch
 
 import numpy as np
@@ -96,76 +95,60 @@ def test_equality_tester_find_equality_operator_incorrect_type():
 #######################################
 
 
-def test_objects_are_equal_different_type():
+def test_objects_are_equal_false_different_type():
     assert not objects_are_equal([], ())
 
 
-def test_objects_are_equal_different_type_show_difference(caplog: LogCaptureFixture):
-    with caplog.at_level(logging.INFO):
-        assert not objects_are_equal([], (), show_difference=True)
-        assert caplog.messages[0].startswith("The sequences have different types:")
-
-
-@mark.parametrize("object1,object2", ((1, 1), (2.5, 2.5)))
-def test_objects_are_equal_scalar_true(object1: Number, object2: Number):
+@mark.parametrize(
+    "object1,object2",
+    (
+        (1, 1),
+        (0, 0),
+        (-1, -1),
+        (1.0, 1.0),
+        (0.0, 0.0),
+        (-1.0, -1.0),
+        (True, True),
+        (False, False),
+    ),
+)
+def test_objects_are_equal_scalar_true(
+    object1: Union[bool, int, float], object2: Union[bool, int, float]
+):
     assert objects_are_equal(object1, object2)
 
 
-def test_objects_are_equal_scalar_true_show_difference(caplog: LogCaptureFixture):
-    with caplog.at_level(logging.INFO):
-        assert objects_are_equal(1, 1, show_difference=True)
-        assert not caplog.messages
-
-
-@mark.parametrize("object1,object2", ((1, 1.1), (2.5, 0)))
-def test_objects_are_equal_scalar_false(object1: Number, object2: Number):
+@mark.parametrize(
+    "object1,object2",
+    (
+        (1, 2),
+        (1.0, 2.0),
+        (True, False),
+        (1, 1.0),
+        (1, True),
+        (1.0, True),
+    ),
+)
+def test_objects_are_equal_scalar_false(
+    object1: Union[bool, int, float], object2: Union[bool, int, float]
+):
     assert not objects_are_equal(object1, object2)
-
-
-def test_objects_are_equal_scalar_false_show_difference(caplog: LogCaptureFixture):
-    with caplog.at_level(logging.INFO):
-        assert not objects_are_equal(1, 2, show_difference=True)
-        assert caplog.messages[0].startswith("Objects are different:")
 
 
 def test_objects_are_equal_torch_tensor_true():
     assert objects_are_equal(torch.ones(2, 3), torch.ones(2, 3))
 
 
-def test_objects_are_equal_torch_tensor_true_show_difference(caplog: LogCaptureFixture):
-    with caplog.at_level(logging.INFO):
-        assert objects_are_equal(torch.ones(2, 3), torch.ones(2, 3), show_difference=True)
-        assert not caplog.messages
-
-
 def test_objects_are_equal_torch_tensor_false():
     assert not objects_are_equal(torch.ones(2, 3), torch.zeros(2, 3))
-
-
-def test_objects_are_equal_torch_tensor_false_show_difference(caplog: LogCaptureFixture):
-    with caplog.at_level(logging.INFO):
-        assert not objects_are_equal(torch.ones(2, 3), torch.zeros(2, 3), show_difference=True)
-        assert caplog.messages[0].startswith("torch.Tensors are different")
 
 
 def test_objects_are_equal_numpy_array_true():
     assert objects_are_equal(np.ones((2, 3)), np.ones((2, 3)))
 
 
-def test_objects_are_equal_numpy_array_true_show_difference(caplog: LogCaptureFixture):
-    with caplog.at_level(logging.INFO):
-        assert objects_are_equal(np.ones((2, 3)), np.ones((2, 3)), show_difference=True)
-        assert not caplog.messages
-
-
 def test_objects_are_equal_numpy_array_false():
     assert not objects_are_equal(np.ones((2, 3)), np.zeros((2, 3)))
-
-
-def test_objects_are_equal_numpy_array_false_show_difference(caplog: LogCaptureFixture):
-    with caplog.at_level(logging.INFO):
-        assert not objects_are_equal(np.ones((2, 3)), np.zeros((2, 3)), show_difference=True)
-        assert caplog.messages[0].startswith("numpy.ndarrays are different")
 
 
 @mark.parametrize(
@@ -187,12 +170,6 @@ def test_objects_are_equal_sequence_true(object1: Sequence, object2: Sequence):
 
 def test_objects_are_equal_sequence_false():
     assert not objects_are_equal([1, 2], [1, 3])
-
-
-def test_objects_are_equal_sequence_false_show_difference(caplog: LogCaptureFixture):
-    with caplog.at_level(logging.INFO):
-        assert not objects_are_equal([1, 2], [1, 3], show_difference=True)
-        assert caplog.messages
 
 
 @mark.parametrize(
@@ -221,14 +198,6 @@ def test_objects_are_equal_mapping_false():
     assert not objects_are_equal({"abc": 1, "def": 2}, {"abc": 1, "def": 3})
 
 
-def test_objects_are_equal_mapping_false_show_difference(caplog: LogCaptureFixture):
-    with caplog.at_level(logging.INFO):
-        assert not objects_are_equal(
-            {"abc": 1, "def": 2}, {"abc": 1, "def": 3}, show_difference=True
-        )
-        assert caplog.messages
-
-
 @mark.parametrize(
     "object1,object2",
     (
@@ -254,6 +223,31 @@ def test_objects_are_equal_other_types_false(object1: Any, object2: Any):
     assert not objects_are_equal(object1, object2)
 
 
+def test_objects_are_equal_true_complex_objects():
+    assert objects_are_equal(
+        {
+            "list": [1, 2.0, torch.arange(5), np.arange(3), [1, 2, 3]],
+            "tuple": ("1", (1, 2, torch.ones(2, 3), np.ones((2, 3)))),
+            "dict": {"torch": torch.zeros(2, 3), "numpy": np.zeros((2, 3)), "list": []},
+            "str": "abc",
+            "int": 1,
+            "float": 2.5,
+            "torch": torch.ones(5),
+            "numpy": np.ones(4),
+        },
+        {
+            "list": [1, 2.0, torch.arange(5), np.arange(3), [1, 2, 3]],
+            "tuple": ("1", (1, 2, torch.ones(2, 3), np.ones((2, 3)))),
+            "dict": {"torch": torch.zeros(2, 3), "numpy": np.zeros((2, 3)), "list": []},
+            "str": "abc",
+            "int": 1,
+            "float": 2.5,
+            "torch": torch.ones(5),
+            "numpy": np.ones(4),
+        },
+    )
+
+
 #############################################
 #     Tests for DefaultEqualityOperator     #
 #############################################
@@ -263,13 +257,39 @@ def test_default_equality_operator_str():
     assert str(DefaultEqualityOperator()) == "DefaultEqualityOperator()"
 
 
-@mark.parametrize("object1,object2", ((1, 1), (2.5, 2.5)))
-def test_default_equality_operator_equal_true_scalar(object1: Number, object2: Number):
+@mark.parametrize(
+    "object1,object2",
+    (
+        (1, 1),
+        (0, 0),
+        (-1, -1),
+        (1.0, 1.0),
+        (0.0, 0.0),
+        (-1.0, -1.0),
+        (True, True),
+        (False, False),
+    ),
+)
+def test_default_equality_operator_equal_true_scalar(
+    object1: Union[bool, int, float], object2: Union[bool, int, float]
+):
     assert DefaultEqualityOperator().equal(EqualityTester(), object1, object2)
 
 
-@mark.parametrize("object1,object2", ((1, 1.1), (2.5, 0)))
-def test_default_equality_operator_equal_false_scalar(object1: Number, object2: Number):
+@mark.parametrize(
+    "object1,object2",
+    (
+        (1, 2),
+        (1.0, 2.0),
+        (True, False),
+        (1, 1.0),
+        (1, True),
+        (1.0, True),
+    ),
+)
+def test_default_equality_operator_equal_false_scalar(
+    object1: Union[bool, int, float], object2: Union[bool, int, float]
+):
     assert not DefaultEqualityOperator().equal(EqualityTester(), object1, object2)
 
 
