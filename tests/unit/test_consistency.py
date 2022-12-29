@@ -17,9 +17,42 @@ EQUAL_FUNCTIONS: tuple[Callable[[Any, Any], bool], ...] = (
     partial(objects_are_allclose, atol=0.0, rtol=0.0),
 )
 
+
+@mark.parametrize("equal_fn", EQUAL_FUNCTIONS)
+def test_consistency_equal_complex_object(equal_fn: Callable[[Any, Any], bool]):
+    assert equal_fn(
+        {
+            "list": [1, 2.0, torch.arange(5), np.arange(3), [1, 2, 3]],
+            "tuple": ("1", (1, 2, torch.ones(2, 3), np.ones((2, 3)))),
+            "dict": {"torch": torch.zeros(2, 3), "numpy": np.zeros((2, 3)), "list": []},
+            "str": "abc",
+            "int": 1,
+            "float": 2.5,
+        },
+        {
+            "list": [1, 2.0, torch.arange(5), np.arange(3), [1, 2, 3]],
+            "tuple": ("1", (1, 2, torch.ones(2, 3), np.ones((2, 3)))),
+            "dict": {"torch": torch.zeros(2, 3), "numpy": np.zeros((2, 3)), "list": []},
+            "str": "abc",
+            "int": 1,
+            "float": 2.5,
+        },
+    )
+
+
 ##################
 #     Scalar     #
 ##################
+
+
+@mark.parametrize("equal_fn", EQUAL_FUNCTIONS)
+@mark.parametrize("value1,value2", ((True, True), (1, 1), (1.0, 1.0)))
+def test_consistency_equal_float_true(
+    equal_fn: Callable[[Any, Any], bool],
+    value1: Union[bool, int, float],
+    value2: Union[bool, int, float],
+):
+    assert equal_fn(value1, value2)
 
 
 @mark.parametrize("equal_fn", EQUAL_FUNCTIONS)
