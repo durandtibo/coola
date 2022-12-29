@@ -2,7 +2,7 @@ import logging
 from collections import OrderedDict
 from collections.abc import Mapping, Sequence
 from numbers import Number
-from typing import Union
+from typing import Any, Union
 from unittest.mock import Mock, patch
 
 import numpy as np
@@ -110,8 +110,20 @@ def test_objects_are_allclose_different_type_show_difference(caplog: LogCaptureF
         assert caplog.messages[0].startswith("Objects have different types:")
 
 
-@mark.parametrize("data1,data2", ((1, 1), (2.5, 2.5), (1 + 1e-9, 1), (1 - 1e-9, 1)))
-def test_objects_are_allclose_scalar_true(data1: float, data2: float):
+@mark.parametrize(
+    "data1,data2", ((1.0, 1.0), (0.0, 0.0), (2.5, 2.5), (1.0 + 1e-9, 1.0), (1.0 - 1e-9, 1.0))
+)
+def test_objects_are_allclose_scalar_true_float(data1: float, data2: float):
+    assert objects_are_allclose(data1, data2)
+
+
+@mark.parametrize("data1,data2", ((1, 1), (0, 0), (-1, -1)))
+def test_objects_are_allclose_scalar_true_int(data1: int, data2: int):
+    assert objects_are_allclose(data1, data2)
+
+
+@mark.parametrize("data1,data2", ((True, True), (False, False)))
+def test_objects_are_allclose_scalar_true_bool(data1: int, data2: int):
     assert objects_are_allclose(data1, data2)
 
 
@@ -121,9 +133,9 @@ def test_objects_are_allclose_scalar_true_show_difference(caplog: LogCaptureFixt
         assert not caplog.messages
 
 
-@mark.parametrize("data1,data2", ((1, 1.1), (2.5, 0), (1 + 1e-7, 1), (1 - 1e-7, 1)))
+@mark.parametrize("data1,data2", ((1.0, 1.1), (2.5, 0.0), (1.0 + 1e-7, 1.0), (1.0 - 1e-7, 1.0)))
 def test_objects_are_allclose_scalar_false(data1: float, data2: float):
-    assert not objects_are_allclose(data1, data2, rtol=0)
+    assert not objects_are_allclose(data1, data2, rtol=0.0)
 
 
 def test_objects_are_allclose_scalar_false_show_difference(caplog: LogCaptureFixture):
@@ -132,14 +144,14 @@ def test_objects_are_allclose_scalar_false_show_difference(caplog: LogCaptureFix
         assert caplog.messages[0].startswith("The numbers are different:")
 
 
-@mark.parametrize("value,atol", ((1.5, 1), (1.05, 1e-1), (1 + 5e-3, 1e-2)))
+@mark.parametrize("value,atol", ((1.5, 1.0), (1.05, 1e-1), (1.0 + 5e-3, 1e-2)))
 def test_objects_are_allclose_scalar_true_atol(value: float, atol: float):
-    assert objects_are_allclose(value, 1, atol=atol, rtol=0)
+    assert objects_are_allclose(value, 1.0, atol=atol, rtol=0.0)
 
 
-@mark.parametrize("value,rtol", ((1.5, 1), (1.05, 1e-1), (1 + 5e-3, 1e-2)))
+@mark.parametrize("value,rtol", ((1.5, 1.0), (1.05, 1e-1), (1 + 5e-3, 1e-2)))
 def test_objects_are_allclose_scalar_true_rtol(value, rtol: float):
-    assert objects_are_allclose(value, 1, rtol=rtol)
+    assert objects_are_allclose(value, 1.0, rtol=rtol)
 
 
 @mark.parametrize("tensor", (torch.ones(2, 3), torch.ones(2, 3) + 1e-9, torch.ones(2, 3) - 1e-9))
@@ -498,55 +510,123 @@ def test_scalar_allclose_operator_str():
     assert str(ScalarAllCloseOperator()) == "ScalarAllCloseOperator()"
 
 
-@mark.parametrize("value", (2, 2.0, 2 + 1e-9, 2 - 1e-9))
-def test_scalar_allclose_operator_allclose_true(value: Union[int, float]):
-    assert ScalarAllCloseOperator().allclose(AllCloseTester(), 2, value)
+@mark.parametrize(
+    "object1,object2",
+    (
+        (-1.0, -1.0),
+        (0.0, 0.0),
+        (1.0, 1.0),
+        (float("inf"), float("inf")),
+        (float("-inf"), float("-inf")),
+    ),
+)
+def test_scalar_allclose_operator_allclose_true_float(object1: float, object2: float):
+    assert ScalarAllCloseOperator().allclose(AllCloseTester(), object1, object2)
 
 
-def test_scalar_allclose_operator_allclose_true_bool():
-    assert ScalarAllCloseOperator().allclose(AllCloseTester(), True, True)
+@mark.parametrize("object1,object2", ((-1, -1), (0, 0), (1, 1)))
+def test_scalar_allclose_operator_allclose_true_int(object1: int, object2: int):
+    assert ScalarAllCloseOperator().allclose(AllCloseTester(), object1, object2)
+
+
+@mark.parametrize("object1,object2", ((True, True), (False, False)))
+def test_scalar_allclose_operator_allclose_true_bool(object1: bool, object2: bool):
+    assert ScalarAllCloseOperator().allclose(AllCloseTester(), object1, object2)
 
 
 def test_scalar_allclose_operator_allclose_true_show_difference(caplog: LogCaptureFixture):
     with caplog.at_level(logging.INFO):
         assert ScalarAllCloseOperator().allclose(
-            tester=AllCloseTester(),
-            object1=1,
-            object2=1,
-            show_difference=True,
+            tester=AllCloseTester(), object1=1, object2=1, show_difference=True
         )
         assert not caplog.messages
 
 
-@mark.parametrize("object1,object2", ((1, 1.1), (2.5, 0), (1 + 1e-7, 1), (1 - 1e-7, 1)))
-def test_scalar_allclose_operator_allclose_false_different_value(
-    object1: Union[int, float], object2: Union[int, float]
+@mark.parametrize(
+    "object1,object2,atol",
+    (
+        (0, 1, 1),
+        (1, 0, 1),
+        (1, 2, 1),
+        (1, 5, 10),
+        (1.0, 1.0 + 1e-4, 1e-3),
+        (1.0, 1.0 - 1e-4, 1e-3),
+        (False, True, 1),
+    ),
+)
+def test_scalar_allclose_operator_allclose_true_atol(
+    object1: Union[int, float], object2: Union[int, float], atol: float
 ):
-    assert not ScalarAllCloseOperator().allclose(AllCloseTester(), object1, object2, rtol=0)
+    assert ScalarAllCloseOperator().allclose(
+        AllCloseTester(), object1, object2, atol=atol, rtol=0.0
+    )
 
 
-def test_scalar_allclose_operator_allclose_false_bool():
-    assert not ScalarAllCloseOperator().allclose(AllCloseTester(), True, False)
+@mark.parametrize(
+    "object1,object2,rtol",
+    (
+        (0, 1, 1),
+        (1, 0, 1),
+        (1, 2, 1),
+        (1, 5, 10),
+        (1.0, 1.0 + 1e-4, 1e-3),
+        (1.0, 1.0 - 1e-4, 1e-3),
+        (False, True, 1),
+    ),
+)
+def test_scalar_allclose_operator_allclose_true_rtol(
+    object1: Union[int, float], object2: Union[int, float], rtol: float
+):
+    assert ScalarAllCloseOperator().allclose(
+        AllCloseTester(), object1, object2, atol=0.0, rtol=rtol
+    )
 
 
-def test_scalar_allclose_operator_allclose_false_show_difference(caplog: LogCaptureFixture):
+@mark.parametrize(
+    "object1,object2",
+    (
+        (1.0, 1.1),
+        (2.5, 0.0),
+        (1.0 + 1e-7, 1.0),
+        (1.0 - 1e-7, 1.0),
+        (float("inf"), 1.0),
+        (float("NaN"), 1.0),
+        (float("NaN"), float("NaN")),
+        (0, 1),
+        (1, -1),
+        (True, False),
+    ),
+)
+def test_scalar_allclose_operator_allclose_false_different_value(
+    object1: Union[bool, int, float], object2: Union[bool, int, float]
+):
+    assert not ScalarAllCloseOperator().allclose(AllCloseTester(), object1, object2, rtol=0.0)
+
+
+def test_scalar_allclose_operator_allclose_false_different_value_show_difference(
+    caplog: LogCaptureFixture,
+):
     with caplog.at_level(logging.INFO):
         assert not ScalarAllCloseOperator().allclose(AllCloseTester(), 1, 2, show_difference=True)
         assert caplog.messages[0].startswith("The numbers are different:")
 
 
-def test_scalar_allclose_operator_allclose_false_incorrect_type():
-    assert not ScalarAllCloseOperator().allclose(AllCloseTester(), 1, "abc")
+@mark.parametrize("object1,object2", ((1.0, 1), (1.0, True), (1, True), (1, "1")))
+def test_scalar_allclose_operator_allclose_false_incorrect_type(
+    object1: Union[bool, int, float], object2: Any
+):
+    assert not ScalarAllCloseOperator().allclose(AllCloseTester(), object1, object2)
 
 
+@mark.parametrize("object1,object2", ((1.0, 1), (1.0, True), (1, True), (1, "1")))
 def test_scalar_allclose_operator_allclose_false_incorrect_type_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: LogCaptureFixture, object1: Union[bool, int, float], object2: Any
 ):
     with caplog.at_level(logging.INFO):
         assert not ScalarAllCloseOperator().allclose(
-            AllCloseTester(), 1, "abc", show_difference=True
+            AllCloseTester(), object1, object2, show_difference=True
         )
-        assert caplog.messages[0].startswith("object2 is not a scalar (bool or int or float):")
+        assert caplog.messages[0].startswith("Objects have different types:")
 
 
 ##############################################
