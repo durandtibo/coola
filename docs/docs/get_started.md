@@ -12,7 +12,20 @@ The following command installs the latest version of the library:
 pip install coola
 ```
 
-TODO: optional dependencies
+To make the package as slim as possible, only the packages required to use `coola` are installed.
+It is possible to install all the optional dependencies by running the following command:
+
+```shell
+pip install 'coola[all]'
+```
+
+This command also installed NumPy and PyTorch.
+It is also possible to install the optional packages manually or to select the packages to install.
+In the following example, only NumPy is installed:
+
+```shell
+pip install coola numpy
+```
 
 ## Installing from source
 

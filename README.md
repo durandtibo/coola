@@ -78,7 +78,7 @@ pip install coola
 ```
 
 To make the package as slim as possible, only the minimal packages required to use `coola` are
-included.
+installed.
 To include all the packages, you can use the following command:
 
 ```shell
