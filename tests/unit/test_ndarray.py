@@ -14,7 +14,7 @@ from coola.ndarray import NDArrayAllCloseOperator, NDArrayEqualityOperator
 
 
 def test_ndarray_allclose_operator_str():
-    assert str(NDArrayAllCloseOperator()) == "NDArrayAllCloseOperator()"
+    assert str(NDArrayAllCloseOperator()).startswith("NDArrayAllCloseOperator(")
 
 
 @mark.parametrize("array", (np.ones((2, 3)), np.ones((2, 3)) + 1e-9, np.ones((2, 3)) - 1e-9))
@@ -159,7 +159,7 @@ def test_ndarray_allclose_operator_no_numpy():
 
 
 def test_ndarray_equality_operator_str():
-    assert str(NDArrayEqualityOperator()) == "NDArrayEqualityOperator()"
+    assert str(NDArrayEqualityOperator()).startswith("NDArrayEqualityOperator(")
 
 
 def test_ndarray_equality_operator_equal_true():
