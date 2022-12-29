@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "coola"
-version = "0.0.1"
+version = "0.0.2a0"
 description = "coola is a library to check if two complex/nested objects are equal or not"
 readme = "README.md"
 authors = ["Thibaut Durand <durand.tibo+gh@gmail.com>"]
@@ -32,8 +32,6 @@ numpy = { version = "^1.20", optional = true }
 torch = { version = "^1.10", optional = true }
 
 [tool.poetry.extras]
-numpy = ["numpy"]
-torch = ["torch"]
 all = ["numpy", "torch"]
 
 [tool.poetry.group.docs.dependencies]
