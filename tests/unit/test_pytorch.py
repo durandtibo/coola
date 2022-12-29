@@ -33,12 +33,12 @@ def test_packed_sequence_allclose_operator_allclose_true():
     assert PackedSequenceAllCloseOperator().allclose(
         tester=AllCloseTester(),
         object1=pack_padded_sequence(
-            input=torch.arange(10).view(2, 5).float(),
+            input=torch.arange(10, dtype=torch.float).view(2, 5),
             lengths=torch.tensor([5, 3], dtype=torch.long),
             batch_first=True,
         ),
         object2=pack_padded_sequence(
-            input=torch.arange(10).view(2, 5).float(),
+            input=torch.arange(10, dtype=torch.float).view(2, 5),
             lengths=torch.tensor([5, 3], dtype=torch.long),
             batch_first=True,
         ),
@@ -49,7 +49,7 @@ def test_packed_sequence_allclose_operator_allclose_false_different_value():
     assert not PackedSequenceAllCloseOperator().allclose(
         tester=AllCloseTester(),
         object1=pack_padded_sequence(
-            input=torch.arange(10).view(2, 5).float(),
+            input=torch.arange(10, dtype=torch.float).view(2, 5),
             lengths=torch.tensor([5, 3], dtype=torch.long),
             batch_first=True,
         ),
@@ -65,12 +65,12 @@ def test_packed_sequence_allclose_operator_allclose_false_different_lengths():
     assert not PackedSequenceAllCloseOperator().allclose(
         tester=AllCloseTester(),
         object1=pack_padded_sequence(
-            input=torch.arange(10).view(2, 5).float(),
+            input=torch.arange(10, dtype=torch.float).view(2, 5),
             lengths=torch.tensor([5, 3], dtype=torch.long),
             batch_first=True,
         ),
         object2=pack_padded_sequence(
-            input=torch.arange(10).view(2, 5).float(),
+            input=torch.arange(10, dtype=torch.float).view(2, 5),
             lengths=torch.tensor([5, 2], dtype=torch.long),
             batch_first=True,
         ),
@@ -84,7 +84,7 @@ def test_packed_sequence_allclose_operator_allclose_false_different_value_show_d
         assert not PackedSequenceAllCloseOperator().allclose(
             tester=AllCloseTester(),
             object1=pack_padded_sequence(
-                input=torch.arange(10).view(2, 5).float(),
+                input=torch.arange(10, dtype=torch.float).view(2, 5),
                 lengths=torch.tensor([5, 3], dtype=torch.long),
                 batch_first=True,
             ),
@@ -102,11 +102,11 @@ def test_packed_sequence_allclose_operator_allclose_false_different_type():
     assert not PackedSequenceAllCloseOperator().allclose(
         tester=AllCloseTester(),
         object1=pack_padded_sequence(
-            input=torch.arange(10).view(2, 5).float(),
+            input=torch.arange(10, dtype=torch.float).view(2, 5),
             lengths=torch.tensor([5, 3], dtype=torch.long),
             batch_first=True,
         ),
-        object2=torch.arange(10).view(2, 5).float(),
+        object2=torch.arange(10, dtype=torch.float).view(2, 5),
     )
 
 
@@ -117,11 +117,11 @@ def test_packed_sequence_allclose_operator_allclose_false_different_type_show_di
         assert not PackedSequenceAllCloseOperator().allclose(
             tester=AllCloseTester(),
             object1=pack_padded_sequence(
-                input=torch.arange(10).view(2, 5).float(),
+                input=torch.arange(10, dtype=torch.float).view(2, 5),
                 lengths=torch.tensor([5, 3], dtype=torch.long),
                 batch_first=True,
             ),
-            object2=torch.arange(10).view(2, 5).float(),
+            object2=torch.arange(10, dtype=torch.float).view(2, 5),
             show_difference=True,
         )
         assert caplog.messages[0].startswith(
@@ -191,12 +191,12 @@ def test_packed_sequence_equality_operator_equal_true():
     assert PackedSequenceEqualityOperator().equal(
         EqualityTester(),
         pack_padded_sequence(
-            input=torch.arange(10).view(2, 5).float(),
+            input=torch.arange(10, dtype=torch.float).view(2, 5),
             lengths=torch.tensor([5, 3], dtype=torch.long),
             batch_first=True,
         ),
         pack_padded_sequence(
-            input=torch.arange(10).view(2, 5).float(),
+            input=torch.arange(10, dtype=torch.float).view(2, 5),
             lengths=torch.tensor([5, 3], dtype=torch.long),
             batch_first=True,
         ),
@@ -207,7 +207,7 @@ def test_packed_sequence_equality_operator_equal_false_different_value():
     assert not PackedSequenceEqualityOperator().equal(
         EqualityTester(),
         pack_padded_sequence(
-            input=torch.arange(10).view(2, 5).float(),
+            input=torch.arange(10, dtype=torch.float).view(2, 5),
             lengths=torch.tensor([5, 3], dtype=torch.long),
             batch_first=True,
         ),
@@ -223,12 +223,12 @@ def test_packed_sequence_equality_operator_equal_false_different_lengths():
     assert not PackedSequenceEqualityOperator().equal(
         EqualityTester(),
         pack_padded_sequence(
-            input=torch.arange(10).view(2, 5).float(),
+            input=torch.arange(10, dtype=torch.float).view(2, 5),
             lengths=torch.tensor([5, 3], dtype=torch.long),
             batch_first=True,
         ),
         pack_padded_sequence(
-            input=torch.arange(10).view(2, 5).float(),
+            input=torch.arange(10, dtype=torch.float).view(2, 5),
             lengths=torch.tensor([5, 2], dtype=torch.long),
             batch_first=True,
         ),
@@ -242,7 +242,7 @@ def test_packed_sequence_equality_operator_equal_false_different_value_show_diff
         assert not PackedSequenceEqualityOperator().equal(
             EqualityTester(),
             pack_padded_sequence(
-                input=torch.arange(10).view(2, 5).float(),
+                input=torch.arange(10, dtype=torch.float).view(2, 5),
                 lengths=torch.tensor([5, 3], dtype=torch.long),
                 batch_first=True,
             ),
@@ -260,11 +260,11 @@ def test_packed_sequence_equality_operator_equal_false_different_type():
     assert not PackedSequenceEqualityOperator().equal(
         EqualityTester(),
         pack_padded_sequence(
-            input=torch.arange(10).view(2, 5).float(),
+            input=torch.arange(10, dtype=torch.float).view(2, 5),
             lengths=torch.tensor([5, 3], dtype=torch.long),
             batch_first=True,
         ),
-        torch.arange(10).view(2, 5).float(),
+        torch.arange(10, dtype=torch.float).view(2, 5),
     )
 
 
@@ -275,11 +275,11 @@ def test_packed_sequence_equality_operator_equal_false_different_type_show_diffe
         assert not PackedSequenceEqualityOperator().equal(
             EqualityTester(),
             pack_padded_sequence(
-                input=torch.arange(10).view(2, 5).float(),
+                input=torch.arange(10, dtype=torch.float).view(2, 5),
                 lengths=torch.tensor([5, 3], dtype=torch.long),
                 batch_first=True,
             ),
-            torch.arange(10).view(2, 5).float(),
+            torch.arange(10, dtype=torch.float).view(2, 5),
             show_difference=True,
         )
         assert caplog.messages[0].startswith(
@@ -320,6 +320,23 @@ def test_tensor_allclose_operator_allclose_true_show_difference(caplog: LogCaptu
             show_difference=True,
         )
         assert not caplog.messages
+
+
+def test_tensor_allclose_operator_allclose_false_nan_equal_nan_false():
+    assert not TensorAllCloseOperator().allclose(
+        AllCloseTester(),
+        torch.tensor([0.0, 1.0, float("nan")]),
+        torch.tensor([0.0, 1.0, float("nan")]),
+    )
+
+
+def test_tensor_allclose_operator_allclose_true_nan_equal_nan_false():
+    assert TensorAllCloseOperator().allclose(
+        AllCloseTester(),
+        torch.tensor([0.0, 1.0, float("nan")]),
+        torch.tensor([0.0, 1.0, float("nan")]),
+        equal_nan=True,
+    )
 
 
 def test_tensor_allclose_operator_allclose_false_different_value():
