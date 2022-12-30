@@ -1,9 +1,9 @@
 __all__ = ["str_dict", "str_indent"]
 
-from typing import Any
+from typing import Any, Dict
 
 
-def str_dict(data: dict[str, Any], sorted_keys: bool = False, indent: int = 0) -> str:
+def str_dict(data: Dict[str, Any], sorted_keys: bool = False, indent: int = 0) -> str:
     r"""Converts a dict to a pretty string representation.
 
     This function was designed for flat dictionary. If you have a
