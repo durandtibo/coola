@@ -32,10 +32,11 @@ complex/nested objects are equal or not.
 `coola` was initially designed to work
 with [PyTorch `Tensor`s](https://pytorch.org/docs/stable/tensors.html)
 and [NumPy `ndarray`](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html), but it
-is possible to extend it to [support other data structures](customization.md).
+is possible to extend it
+to [support other data structures](https://durandtibo.github.io/coola/customization).
 
 - [Motivation](#motivation)
-- [Documentation](TODO: add link)
+- [Documentation](https://durandtibo.github.io/coola/)
 - [Installation](#installation)
 - [Contributing](#contributing)
 - [API stability](#api-stability)
@@ -72,7 +73,8 @@ from coola import objects_are_allclose
 objects_are_allclose(data1, data2, atol=1e-6)
 ```
 
-Please check the [quickstart page](TODO: add link) to learn more on how to use `coola`.
+Please check the [quickstart page](https://durandtibo.github.io/coola/quickstart) to learn more on
+how to use `coola`.
 
 ## Installation
 
@@ -92,8 +94,8 @@ To include all the packages, you can use the following command:
 pip install coola[all]
 ```
 
-Please check the [get started page](TODO: add link) to see how to install only some specific
-packages or other alternatives to install the library.
+Please check the [get started page](https://durandtibo.github.io/coola/get_started) to see how to
+install only some specific packages or other alternatives to install the library.
 
 ## Contributing
 

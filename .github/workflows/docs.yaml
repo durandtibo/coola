@@ -1,4 +1,4 @@
-name: Deploy documentation
+name: Build and Deploy Documentation
 on:
   pull_request:
     branches:
@@ -6,6 +6,9 @@ on:
   push:
     branches:
       - main
+
+permissions:
+  contents: write
 
 jobs:
   build:
