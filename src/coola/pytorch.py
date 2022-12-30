@@ -215,12 +215,12 @@ class TensorEqualityOperator(BaseEqualityOperator[Tensor]):
         return object_equal
 
 
-if is_torch_available() and not EqualityTester.has_equality_operator(Tensor):
-    AllCloseTester.add_allclose_operator(
-        PackedSequence, PackedSequenceAllCloseOperator(), exist_ok=True
-    )
-    AllCloseTester.add_allclose_operator(Tensor, TensorAllCloseOperator(), exist_ok=True)
-    EqualityTester.add_equality_operator(
-        PackedSequence, PackedSequenceEqualityOperator(), exist_ok=True
-    )
-    EqualityTester.add_equality_operator(Tensor, TensorEqualityOperator(), exist_ok=True)
+if is_torch_available():
+    if not AllCloseTester.has_allclose_operator(PackedSequence):
+        AllCloseTester.add_allclose_operator(PackedSequence, PackedSequenceAllCloseOperator())
+    if not AllCloseTester.has_allclose_operator(Tensor):
+        AllCloseTester.add_allclose_operator(Tensor, TensorAllCloseOperator())
+    if not EqualityTester.has_equality_operator(PackedSequence):
+        EqualityTester.add_equality_operator(PackedSequence, PackedSequenceEqualityOperator())
+    if not EqualityTester.has_equality_operator(Tensor):
+        EqualityTester.add_equality_operator(Tensor, TensorEqualityOperator())

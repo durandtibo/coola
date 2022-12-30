@@ -248,7 +248,7 @@ class MappingAllCloseOperator(BaseAllCloseOperator[Mapping]):
             ):
                 if show_difference:
                     logger.info(
-                        f"The mappings have a different value for the key {key}:\n"
+                        f"The mappings have a different value for the key '{key}':\n"
                         f"first mapping  = {object1}\n"
                         f"second mapping = {object2}"
                     )
