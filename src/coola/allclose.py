@@ -464,7 +464,7 @@ class AllCloseTester(BaseAllCloseTester):
         )
 
     @classmethod
-    def has_allclose_operator(cls, data_type: type[object]) -> bool:
+    def has_allclose_operator(cls, data_type: Type[object]) -> bool:
         r"""Indicates if an allclose operator is registered for the given
         data type.
 
