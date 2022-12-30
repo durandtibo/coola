@@ -28,4 +28,4 @@ jobs:
       - name: Build and deploy documentation
         run: |
           cd docs/
-          poetry run mkdocs gh-deploy --force --clean
+          poetry run mkdocs gh-deploy --force --clean --verbose
