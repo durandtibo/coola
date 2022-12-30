@@ -11,7 +11,7 @@ __all__ = [
 import logging
 from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
-from typing import Any, Dict, Generic, Optional, Type, TypeVar
+from typing import Any, Generic, Optional, Type, TypeVar
 
 from coola.format import str_dict, str_indent
 
@@ -226,7 +226,7 @@ class SequenceEqualityOperator(BaseEqualityOperator[Sequence]):
 class EqualityTester(BaseEqualityTester):
     """Implements the default equality tester."""
 
-    registry: Dict[Type[object], BaseEqualityOperator] = {
+    registry: dict[Type[object], BaseEqualityOperator] = {
         Mapping: MappingEqualityOperator(),
         Sequence: SequenceEqualityOperator(),
         dict: MappingEqualityOperator(),

@@ -13,7 +13,7 @@ import logging
 import math
 from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
-from typing import Any, Dict, Generic, Optional, Type, TypeVar, Union
+from typing import Any, Generic, Optional, Type, TypeVar, Union
 
 from coola.format import str_dict, str_indent
 
@@ -334,7 +334,7 @@ class AllCloseTester(BaseAllCloseTester):
         - ``tuple``: ``SequenceAllCloseOperator``
     """
 
-    registry: Dict[Type[object], BaseAllCloseOperator] = {
+    registry: dict[Type[object], BaseAllCloseOperator] = {
         Mapping: MappingAllCloseOperator(),
         Sequence: SequenceAllCloseOperator(),
         bool: ScalarAllCloseOperator(),
