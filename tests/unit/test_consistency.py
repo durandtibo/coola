@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from collections.abc import Callable
 from functools import partial
-from typing import Any, Union
+from typing import Any, Tuple, Union
 from unittest.mock import Mock
 
 import numpy as np
@@ -12,7 +12,7 @@ from torch.nn.utils.rnn import pack_padded_sequence
 
 from coola import objects_are_allclose, objects_are_equal
 
-EQUAL_FUNCTIONS: tuple[Callable[[Any, Any], bool], ...] = (
+EQUAL_FUNCTIONS: Tuple[Callable[[Any, Any], bool], ...] = (
     objects_are_equal,
     partial(objects_are_allclose, atol=0.0, rtol=0.0),
 )
