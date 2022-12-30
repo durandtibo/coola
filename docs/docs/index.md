@@ -25,8 +25,6 @@
    <br/>
 </p>
 
-abc
-
 ## Overview
 
 `coola` is a Python library that provides simple functions to check in a single line if two

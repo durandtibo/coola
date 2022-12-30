@@ -9,7 +9,6 @@ on:
 
 permissions:
   contents: write
-#  pages: write
 
 jobs:
   build:
@@ -29,4 +28,4 @@ jobs:
       - name: Build and deploy documentation
         run: |
           cd docs/
-          poetry run mkdocs gh-deploy --force --clean --verbose
+          poetry run mkdocs gh-deploy --force --clean
