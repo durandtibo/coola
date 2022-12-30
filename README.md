@@ -34,6 +34,13 @@ with [PyTorch `Tensor`s](https://pytorch.org/docs/stable/tensors.html)
 and [NumPy `ndarray`](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html), but it
 is possible to extend it to [support other data structures](customization.md).
 
+- [Motivation](#motivation)
+- [Documentation](TODO: add link)
+- [Installation](#installation)
+- [Contributing](#contributing)
+- [API stability](#api-stability)
+- [License](#license)
+
 ## Motivation
 
 Let's imagine you have the following dictionaries that contain both a PyTorch `Tensor` and a

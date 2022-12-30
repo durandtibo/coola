@@ -116,6 +116,8 @@ class NDArrayEqualityOperator(BaseEqualityOperator[ndarray]):
         return object_equal
 
 
-if is_numpy_available() and not EqualityTester.has_equality_operator(ndarray):
-    AllCloseTester.add_allclose_operator(ndarray, NDArrayAllCloseOperator(), exist_ok=True)
-    EqualityTester.add_equality_operator(ndarray, NDArrayEqualityOperator(), exist_ok=True)
+if is_numpy_available():
+    if not AllCloseTester.has_allclose_operator(ndarray):
+        AllCloseTester.add_allclose_operator(ndarray, NDArrayAllCloseOperator())
+    if not EqualityTester.has_equality_operator(ndarray):
+        EqualityTester.add_equality_operator(ndarray, NDArrayEqualityOperator())
