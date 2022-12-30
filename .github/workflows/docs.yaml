@@ -1,6 +1,6 @@
-name: Build and Deploy Documentation
+name: Documentation
 on:
-  pull_request:
+  pull_request:  # TODO: remove
     branches:
       - main
   push:
@@ -25,7 +25,7 @@ jobs:
         run: |
           poetry run make config-poetry
           poetry install --with docs
-      - name: Publish
+      - name: Build and deploy documentation
         run: |
           cd docs/
-          poetry run mkdocs gh-deploy
+          poetry run mkdocs gh-deploy --force --clean
