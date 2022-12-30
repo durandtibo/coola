@@ -1,7 +1,6 @@
 from collections import OrderedDict
-from collections.abc import Callable
 from functools import partial
-from typing import Any, Tuple, Union
+from typing import Any, Callable, Tuple, Union
 from unittest.mock import Mock
 
 import numpy as np
