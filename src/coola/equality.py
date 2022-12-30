@@ -11,7 +11,7 @@ __all__ = [
 import logging
 from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
-from typing import Any, Generic, Optional, Type, TypeVar
+from typing import Any, Generic, Optional, TypeVar
 
 from coola.format import str_dict, str_indent
 
@@ -226,7 +226,7 @@ class SequenceEqualityOperator(BaseEqualityOperator[Sequence]):
 class EqualityTester(BaseEqualityTester):
     """Implements the default equality tester."""
 
-    registry: dict[Type[object], BaseEqualityOperator] = {
+    registry: dict[type[object], BaseEqualityOperator] = {
         Mapping: MappingEqualityOperator(),
         Sequence: SequenceEqualityOperator(),
         dict: MappingEqualityOperator(),
@@ -243,7 +243,7 @@ class EqualityTester(BaseEqualityTester):
 
     @classmethod
     def add_equality_operator(
-        cls, data_type: Type[object], operator: BaseEqualityOperator, exist_ok: bool = False
+        cls, data_type: type[object], operator: BaseEqualityOperator, exist_ok: bool = False
     ) -> None:
         r"""Adds an equality operator for a given data type.
 
@@ -321,7 +321,7 @@ class EqualityTester(BaseEqualityTester):
         )
 
     @classmethod
-    def has_equality_operator(cls, data_type: Type[object]) -> bool:
+    def has_equality_operator(cls, data_type: type[object]) -> bool:
         r"""Indicates if an equality operator is registered for the given
         data type.
 

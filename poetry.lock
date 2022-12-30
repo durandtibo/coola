@@ -1441,5 +1441,5 @@ all = ["numpy", "torch"]
 
 [metadata]
 lock-version = "2.0"
-python-versions = "^3.8.1"
-content-hash = "9d7dfda878fb38fe606b8dbc938d7e054074ddf7660bcf780e76e3463f130efb"
+python-versions = "^3.9"
+content-hash = "3af78a806e7255179cdc05e45eac5fbfe2ccd24d2ff05be63c93d1da2778fee3"

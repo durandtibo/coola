@@ -13,7 +13,7 @@ import logging
 import math
 from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
-from typing import Any, Generic, Optional, Type, TypeVar, Union
+from typing import Any, Generic, Optional, TypeVar, Union
 
 from coola.format import str_dict, str_indent
 
@@ -334,7 +334,7 @@ class AllCloseTester(BaseAllCloseTester):
         - ``tuple``: ``SequenceAllCloseOperator``
     """
 
-    registry: dict[Type[object], BaseAllCloseOperator] = {
+    registry: dict[type[object], BaseAllCloseOperator] = {
         Mapping: MappingAllCloseOperator(),
         Sequence: SequenceAllCloseOperator(),
         bool: ScalarAllCloseOperator(),
@@ -354,7 +354,7 @@ class AllCloseTester(BaseAllCloseTester):
 
     @classmethod
     def add_allclose_operator(
-        cls, data_type: Type[object], operator: BaseAllCloseOperator, exist_ok: bool = False
+        cls, data_type: type[object], operator: BaseAllCloseOperator, exist_ok: bool = False
     ) -> None:
         r"""Adds an allclose operator for a given data type.
 
@@ -464,7 +464,7 @@ class AllCloseTester(BaseAllCloseTester):
         )
 
     @classmethod
-    def has_allclose_operator(cls, data_type: Type[object]) -> bool:
+    def has_allclose_operator(cls, data_type: type[object]) -> bool:
         r"""Indicates if an allclose operator is registered for the given
         data type.
 
