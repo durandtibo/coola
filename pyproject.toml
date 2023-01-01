@@ -1,15 +1,16 @@
 [tool.poetry]
 name = "coola"
-version = "0.0.3a1"
+version = "0.0.3"
 description = "A light library to check if two complex/nested objects are equal or not"
 readme = "README.md"
 authors = ["Thibaut Durand <durand.tibo+gh@gmail.com>"]
 homepage = "https://github.com/durandtibo/coola"
 repository = "https://github.com/durandtibo/coola"
-keywords = ["coola"]
+keywords = ["equality", "complex/nested objects"]
+license = "BSD-3-Clause"
 
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Information Technology",
     "Intended Audience :: Science/Research",
