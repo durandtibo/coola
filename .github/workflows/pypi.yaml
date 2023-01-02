@@ -1,4 +1,4 @@
-name: Publish Python package
+name: Publish PYPI package
 on:
   workflow_dispatch:
   push:
@@ -21,4 +21,4 @@ jobs:
         env:
           COOLA_PYPI_TOKEN: ${{ secrets.COOLA_PYPI_TOKEN }}
         run: |
-          poetry run make publish
+          poetry run make publish-pypi
