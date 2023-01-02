@@ -9,5 +9,5 @@ List any dependencies that are required for this change.
 ## Checklist before requesting a review
 
 - [ ] I have performed a self-review of my code
-- [ ] If it is a new feature, I have added thorough tests and updated the documentation.
-- [ ] Does your submission pass tests?
+- [ ] If it is a new feature, I have added thorough tests and updated the documentation
+- [ ] My submission passes tests
