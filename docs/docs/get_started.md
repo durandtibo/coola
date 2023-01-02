@@ -73,9 +73,5 @@ required packages. This command will check if there is a more recent package ava
 install it. Finally, you can test the installation with the following command:
 
 ```shell
-make test
+make unit-test-cov
 ```
-
-## Testing
-
-This repository is tested on Python 3.10, and Linux system.
