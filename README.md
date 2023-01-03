@@ -99,17 +99,7 @@ install only some specific packages or other alternatives to install the library
 
 ## Contributing
 
-Please let us know if you encounter a bug by filing an issue.
-
-We welcome contributions from anyone, even if you are new to open source.
-
-- If you are planning to contribute back bug-fixes, please do so without any further discussion.
-- If you plan to contribute new features, utility functions, or extensions to the core, please first
-  open an issue and discuss the feature with us.
-
-Once you implement and test your feature or bug-fix, please submit a Pull Request.
-
-Please feel free to open an issue to share your feedback or to request new features.
+Please check the instructions in [CONTRIBUTING.md](.github/CONTRIBUTING.md).
 
 ## API stability
 
