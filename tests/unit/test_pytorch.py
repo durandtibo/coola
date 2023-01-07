@@ -1,8 +1,14 @@
 import logging
 from unittest.mock import Mock, patch
 
+from pytest import LogCaptureFixture, mark, raises, skip
+
+from coola import is_torch_available
+
+if not is_torch_available():
+    skip("skipping PyTorch tests", allow_module_level=True)
+
 import torch
-from pytest import LogCaptureFixture, mark, raises
 from torch import Tensor
 from torch.nn.utils.rnn import pack_padded_sequence
 
