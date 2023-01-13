@@ -5,7 +5,7 @@ from typing import Any
 
 from coola.allclose import AllCloseTester, BaseAllCloseOperator, BaseAllCloseTester
 from coola.equality import BaseEqualityOperator, BaseEqualityTester, EqualityTester
-from coola.import_utils import is_numpy_available
+from coola.import_utils import check_numpy, is_numpy_available
 
 if is_numpy_available():
     from numpy import allclose, array_equal, ndarray
@@ -25,11 +25,7 @@ class NDArrayAllCloseOperator(BaseAllCloseOperator[ndarray]):
     """
 
     def __init__(self, check_dtype: bool = True):
-        if not is_numpy_available():
-            raise RuntimeError(
-                "`NDArrayAllCloseOperator` requires the `numpy` package to be installed. You can "
-                "install `numpy` package with the command:\n\npip install numpy\n"
-            )
+        check_numpy()
         self._check_dtype = bool(check_dtype)
 
     def __repr__(self) -> str:
@@ -77,11 +73,7 @@ class NDArrayEqualityOperator(BaseEqualityOperator[ndarray]):
     """
 
     def __init__(self, check_dtype: bool = True):
-        if not is_numpy_available():
-            raise RuntimeError(
-                "`NDArrayEqualityOperator` requires the `numpy` package to be installed. You can "
-                "install `numpy` package with the command:\n\npip install numpy\n"
-            )
+        check_numpy()
         self._check_dtype = bool(check_dtype)
 
     def __repr__(self) -> str:

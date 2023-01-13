@@ -148,7 +148,7 @@ def test_ndarray_allclose_operator_allclose_true_rtol(array: np.ndarray, rtol: f
 
 
 def test_ndarray_allclose_operator_no_numpy():
-    with patch("coola.ndarray.is_numpy_available", lambda *args, **kwargs: False):
+    with patch("coola.import_utils.is_numpy_available", lambda *args, **kwargs: False):
         with raises(RuntimeError):
             NDArrayAllCloseOperator()
 
@@ -254,6 +254,6 @@ def test_ndarray_equality_operator_equal_false_different_type_show_difference(
 
 
 def test_ndarray_equality_operator_no_numpy():
-    with patch("coola.ndarray.is_numpy_available", lambda *args, **kwargs: False):
+    with patch("coola.import_utils.is_numpy_available", lambda *args, **kwargs: False):
         with raises(RuntimeError):
             NDArrayEqualityOperator()
