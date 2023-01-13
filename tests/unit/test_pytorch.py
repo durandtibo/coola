@@ -173,7 +173,7 @@ def test_packed_sequence_allclose_operator_allclose_true_rtol(tensor: Tensor, rt
 
 
 def test_packed_sequence_allclose_operator_no_torch():
-    with patch("coola.pytorch.is_torch_available", lambda *args, **kwargs: False):
+    with patch("coola.import_utils.is_torch_available", lambda *args, **kwargs: False):
         with raises(RuntimeError):
             PackedSequenceAllCloseOperator()
 
@@ -288,7 +288,7 @@ def test_packed_sequence_equality_operator_equal_false_different_type_show_diffe
 
 
 def test_packed_sequence_equality_operator_no_torch():
-    with patch("coola.pytorch.is_torch_available", lambda *args, **kwargs: False):
+    with patch("coola.import_utils.is_torch_available", lambda *args, **kwargs: False):
         with raises(RuntimeError):
             PackedSequenceEqualityOperator()
 
@@ -462,7 +462,7 @@ def test_tensor_allclose_operator_allclose_true_rtol(tensor: Tensor, rtol: float
 
 
 def test_tensor_allclose_operator_no_torch():
-    with patch("coola.pytorch.is_torch_available", lambda *args, **kwargs: False):
+    with patch("coola.import_utils.is_torch_available", lambda *args, **kwargs: False):
         with raises(RuntimeError):
             TensorAllCloseOperator()
 
@@ -600,6 +600,6 @@ def test_tensor_equality_operator_equal_false_different_type_show_difference(
 
 
 def test_tensor_equality_operator_no_torch():
-    with patch("coola.pytorch.is_torch_available", lambda *args, **kwargs: False):
+    with patch("coola.import_utils.is_torch_available", lambda *args, **kwargs: False):
         with raises(RuntimeError):
             TensorEqualityOperator()

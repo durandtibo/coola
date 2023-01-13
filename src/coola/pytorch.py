@@ -10,7 +10,7 @@ from typing import Any
 
 from coola.allclose import AllCloseTester, BaseAllCloseOperator, BaseAllCloseTester
 from coola.equality import BaseEqualityOperator, BaseEqualityTester, EqualityTester
-from coola.import_utils import is_torch_available
+from coola.import_utils import check_torch, is_torch_available
 
 if is_torch_available():
     from torch import Tensor, is_tensor
@@ -26,11 +26,7 @@ class PackedSequenceAllCloseOperator(BaseAllCloseOperator[PackedSequence]):
     ``torch.nn.utils.rnn.PackedSequence``."""
 
     def __init__(self):
-        if not is_torch_available():
-            raise RuntimeError(
-                "`PackedSequenceAllCloseOperator` requires the `torch` package to be installed. "
-                "You can install `torch` package with the command:\n\npip install torch\n"
-            )
+        check_torch()
 
     def allclose(
         self,
@@ -95,11 +91,7 @@ class PackedSequenceEqualityOperator(BaseEqualityOperator[PackedSequence]):
     ``torch.nn.utils.rnn.PackedSequence``."""
 
     def __init__(self):
-        if not is_torch_available():
-            raise RuntimeError(
-                "`PackedSequenceEqualityOperator` requires the `torch` package to be installed. "
-                "You can install `torch` package with the command:\n\npip install torch\n"
-            )
+        check_torch()
 
     def equal(
         self,
@@ -132,11 +124,7 @@ class TensorAllCloseOperator(BaseAllCloseOperator[Tensor]):
     r"""Implements an allclose operator for ``torch.Tensor``."""
 
     def __init__(self):
-        if not is_torch_available():
-            raise RuntimeError(
-                "`TensorAllCloseOperator` requires the `torch` package to be installed. You can "
-                "install `torch` package with the command:\n\npip install torch\n"
-            )
+        check_torch()
 
     def allclose(
         self,
@@ -180,11 +168,7 @@ class TensorEqualityOperator(BaseEqualityOperator[Tensor]):
     r"""Implements an equality operator for ``torch.Tensor``."""
 
     def __init__(self):
-        if not is_torch_available():
-            raise RuntimeError(
-                "`TensorEqualityOperator` requires the `torch` package to be installed. You can "
-                "install `torch` package with the command:\n\npip install torch\n"
-            )
+        check_torch()
 
     def equal(
         self,
