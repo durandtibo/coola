@@ -40,7 +40,6 @@ mkdocstrings = "^0.19"
 
 [tool.poetry.group.dev.dependencies]
 black = "^22.10"
-codecov = "^2.1"
 coverage = { extras = ["toml"], version = "^6.5" }
 docformatter = "^1.5"
 flake8 = "^6.0"
