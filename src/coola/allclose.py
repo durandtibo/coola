@@ -201,7 +201,7 @@ class DefaultAllCloseOperator(BaseAllCloseOperator[Any]):
         equal_nan: bool = False,
         show_difference: bool = False,
     ) -> bool:
-        if not type(object1) is type(object2):
+        if type(object1) is not type(object2):
             if show_difference:
                 logger.info(f"Objects have different types: {type(object1)} vs {type(object2)}")
             return False
@@ -224,7 +224,7 @@ class MappingAllCloseOperator(BaseAllCloseOperator[Mapping]):
         equal_nan: bool = False,
         show_difference: bool = False,
     ) -> bool:
-        if not type(object1) is type(object2):
+        if type(object1) is not type(object2):
             if show_difference:
                 logger.info(
                     f"The mappings have different types: {type(object1)} vs {type(object2)}"
@@ -269,7 +269,7 @@ class ScalarAllCloseOperator(BaseAllCloseOperator[Union[bool, int, float]]):
         equal_nan: bool = False,
         show_difference: bool = False,
     ) -> bool:
-        if not type(object1) is type(object2):
+        if type(object1) is not type(object2):
             if show_difference:
                 logger.info(f"Objects have different types: {type(object1)} vs {type(object2)}")
             return False
@@ -292,7 +292,7 @@ class SequenceAllCloseOperator(BaseAllCloseOperator[Sequence]):
         equal_nan: bool = False,
         show_difference: bool = False,
     ) -> bool:
-        if not type(object1) is type(object2):
+        if type(object1) is not type(object2):
             if show_difference:
                 logger.info(
                     f"The sequences have different types: {type(object1)} vs {type(object2)}"
