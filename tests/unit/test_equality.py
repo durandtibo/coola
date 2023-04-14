@@ -78,7 +78,7 @@ def test_equality_tester_add_equality_operator_duplicate_exist_ok_false() -> Non
     tester = EqualityTester()
     operator = Mock(spec=BaseEqualityOperator)
     tester.add_equality_operator(int, Mock(spec=BaseEqualityOperator))
-    with raises(ValueError):
+    with raises(RuntimeError, match="An operator (.*) is already registered"):
         tester.add_equality_operator(int, operator)
 
 
@@ -99,7 +99,7 @@ def test_equality_tester_find_equality_operator_indirect() -> None:
 
 
 def test_equality_tester_find_equality_operator_incorrect_type() -> None:
-    with raises(TypeError):
+    with raises(TypeError, match="Incorrect data type:"):
         EqualityTester().find_equality_operator(Mock(__mro__=[]))
 
 

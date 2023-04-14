@@ -82,7 +82,7 @@ def test_allclose_tester_add_allclose_operator_duplicate_exist_ok_false() -> Non
     tester = AllCloseTester()
     operator = Mock(spec=BaseAllCloseOperator)
     tester.add_allclose_operator(str, Mock(spec=BaseAllCloseOperator))
-    with raises(ValueError):
+    with raises(RuntimeError, match="An operator (.*) is already registered"):
         tester.add_allclose_operator(str, operator)
 
 
@@ -103,7 +103,7 @@ def test_allclose_tester_find_allclose_operator_indirect() -> None:
 
 
 def test_allclose_tester_find_allclose_operator_incorrect_type() -> None:
-    with raises(TypeError):
+    with raises(TypeError, match="Incorrect data type:"):
         AllCloseTester().find_allclose_operator(Mock(__mro__=[]))
 
 

@@ -177,7 +177,7 @@ def test_ndarray_allclose_operator_allclose_true_rtol(array: np.ndarray, rtol: f
 @numpy_available
 def test_ndarray_allclose_operator_no_numpy() -> None:
     with patch("coola.import_utils.is_numpy_available", lambda *args, **kwargs: False):
-        with raises(RuntimeError):
+        with raises(RuntimeError, match="`numpy` package is required but not installed."):
             NDArrayAllCloseOperator()
 
 
@@ -296,5 +296,5 @@ def test_ndarray_equality_operator_equal_false_different_type_show_difference(
 @numpy_available
 def test_ndarray_equality_operator_no_numpy() -> None:
     with patch("coola.import_utils.is_numpy_available", lambda *args, **kwargs: False):
-        with raises(RuntimeError):
+        with raises(RuntimeError, match="`numpy` package is required but not installed."):
             NDArrayEqualityOperator()

@@ -279,7 +279,7 @@ class EqualityTester(BaseEqualityTester):
             >>> EqualityTester.add_equality_operator(str, MyStringEqualityOperator(), exist_ok=True)
         """
         if data_type in cls.registry and not exist_ok:
-            raise ValueError(
+            raise RuntimeError(
                 f"An operator ({cls.registry[data_type]}) is already registered for the data "
                 f"type {data_type}. Please use `exist_ok=True` if you want to overwrite the "
                 "operator for this type"

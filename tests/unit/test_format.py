@@ -34,7 +34,7 @@ def test_str_dict_nested_dict() -> None:
 
 
 def test_str_dict_incorrect_indent() -> None:
-    with raises(ValueError):
+    with raises(ValueError, match="The indent has to be greater or equal to 0"):
         str_dict(data={"my_key": "my_value"}, indent=-1)
 
 
