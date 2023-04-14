@@ -29,7 +29,7 @@ def test_ndarray_allclose_operator_str() -> None:
 @mark.parametrize(
     "array", (np.ones((2, 3)), np.full((2, 3), 1.0 + 1e-9), np.full((2, 3), 1.0 - 1e-9))
 )
-def test_ndarray_allclose_operator_allclose_true(array: np.ndarray):
+def test_ndarray_allclose_operator_allclose_true(array: np.ndarray) -> None:
     assert NDArrayAllCloseOperator().allclose(AllCloseTester(), np.ones((2, 3)), array)
 
 
@@ -43,7 +43,7 @@ def test_ndarray_allclose_operator_equal_true_check_dtype_false() -> None:
 
 
 @numpy_available
-def test_ndarray_allclose_operator_allclose_true_show_difference(caplog: LogCaptureFixture):
+def test_ndarray_allclose_operator_allclose_true_show_difference(caplog: LogCaptureFixture) -> None:
     with caplog.at_level(logging.INFO):
         assert NDArrayAllCloseOperator().allclose(
             tester=AllCloseTester(),
@@ -83,7 +83,7 @@ def test_ndarray_allclose_operator_equal_false_different_dtype() -> None:
 @numpy_available
 def test_ndarray_allclose_operator_equal_false_different_dtype_show_difference(
     caplog: LogCaptureFixture,
-):
+) -> None:
     with caplog.at_level(logging.INFO):
         assert not NDArrayAllCloseOperator().allclose(
             tester=AllCloseTester(),
@@ -102,7 +102,7 @@ def test_ndarray_allclose_operator_equal_false_different_shape() -> None:
 @numpy_available
 def test_ndarray_allclose_operator_equal_false_different_shape_show_difference(
     caplog: LogCaptureFixture,
-):
+) -> None:
     with caplog.at_level(logging.INFO):
         assert not NDArrayAllCloseOperator().allclose(
             tester=AllCloseTester(),
@@ -117,14 +117,14 @@ def test_ndarray_allclose_operator_equal_false_different_shape_show_difference(
 @mark.parametrize(
     "array", (np.zeros((2, 3)), np.full((2, 3), 1.0 + 1e-7), np.full((2, 3), 1.0 - 1e-7))
 )
-def test_ndarray_allclose_operator_allclose_false_different_value(array: np.ndarray):
+def test_ndarray_allclose_operator_allclose_false_different_value(array: np.ndarray) -> None:
     assert not NDArrayAllCloseOperator().allclose(AllCloseTester(), np.ones((2, 3)), array, rtol=0)
 
 
 @numpy_available
 def test_ndarray_allclose_operator_allclose_false_different_value_show_difference(
     caplog: LogCaptureFixture,
-):
+) -> None:
     with caplog.at_level(logging.INFO):
         assert not NDArrayAllCloseOperator().allclose(
             tester=AllCloseTester(),
@@ -143,7 +143,7 @@ def test_ndarray_allclose_operator_allclose_false_different_type() -> None:
 @numpy_available
 def test_ndarray_allclose_operator_equal_false_different_type_show_difference(
     caplog: LogCaptureFixture,
-):
+) -> None:
     with caplog.at_level(logging.INFO):
         assert not NDArrayAllCloseOperator().allclose(
             tester=AllCloseTester(),
@@ -159,7 +159,7 @@ def test_ndarray_allclose_operator_equal_false_different_type_show_difference(
     "array,atol",
     ((np.full((2, 3), 1.5), 1), (np.full((2, 3), 1.05), 1e-1), (np.full((2, 3), 1.005), 1e-2)),
 )
-def test_ndarray_allclose_operator_allclose_true_atol(array: np.ndarray, atol: float):
+def test_ndarray_allclose_operator_allclose_true_atol(array: np.ndarray, atol: float) -> None:
     assert NDArrayAllCloseOperator().allclose(
         AllCloseTester(), np.ones((2, 3)), array, atol=atol, rtol=0
     )
@@ -170,7 +170,7 @@ def test_ndarray_allclose_operator_allclose_true_atol(array: np.ndarray, atol: f
     "array,rtol",
     ((np.full((2, 3), 1.5), 1), (np.full((2, 3), 1.05), 1e-1), (np.full((2, 3), 1.005), 1e-2)),
 )
-def test_ndarray_allclose_operator_allclose_true_rtol(array: np.ndarray, rtol: float):
+def test_ndarray_allclose_operator_allclose_true_rtol(array: np.ndarray, rtol: float) -> None:
     assert NDArrayAllCloseOperator().allclose(AllCloseTester(), np.ones((2, 3)), array, rtol=rtol)
 
 
@@ -204,7 +204,7 @@ def test_ndarray_equality_operator_equal_true_check_dtype_false() -> None:
 
 
 @numpy_available
-def test_ndarray_equality_operator_equal_true_show_difference(caplog: LogCaptureFixture):
+def test_ndarray_equality_operator_equal_true_show_difference(caplog: LogCaptureFixture) -> None:
     with caplog.at_level(logging.INFO):
         assert NDArrayEqualityOperator().equal(
             tester=EqualityTester(),
@@ -225,7 +225,7 @@ def test_ndarray_equality_operator_equal_false_different_dtype() -> None:
 @numpy_available
 def test_ndarray_equality_operator_equal_false_different_dtype_show_difference(
     caplog: LogCaptureFixture,
-):
+) -> None:
     with caplog.at_level(logging.INFO):
         assert not NDArrayEqualityOperator().equal(
             tester=EqualityTester(),
@@ -244,7 +244,7 @@ def test_ndarray_equality_operator_equal_false_different_shape() -> None:
 @numpy_available
 def test_ndarray_equality_operator_equal_false_different_shape_show_difference(
     caplog: LogCaptureFixture,
-):
+) -> None:
     with caplog.at_level(logging.INFO):
         assert not NDArrayEqualityOperator().equal(
             tester=EqualityTester(),
@@ -263,7 +263,7 @@ def test_ndarray_equality_operator_equal_false_different_value() -> None:
 @numpy_available
 def test_ndarray_equality_operator_equal_false_different_value_show_difference(
     caplog: LogCaptureFixture,
-):
+) -> None:
     with caplog.at_level(logging.INFO):
         assert not NDArrayEqualityOperator().equal(
             tester=EqualityTester(),
@@ -282,7 +282,7 @@ def test_ndarray_equality_operator_equal_false_different_type() -> None:
 @numpy_available
 def test_ndarray_equality_operator_equal_false_different_type_show_difference(
     caplog: LogCaptureFixture,
-):
+) -> None:
     with caplog.at_level(logging.INFO):
         assert not NDArrayEqualityOperator().equal(
             tester=EqualityTester(),

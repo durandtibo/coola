@@ -24,7 +24,7 @@ class NDArrayAllCloseOperator(BaseAllCloseOperator[ndarray]):
             ignored. Default: ``True``
     """
 
-    def __init__(self, check_dtype: bool = True):
+    def __init__(self, check_dtype: bool = True) -> None:
         check_numpy()
         self._check_dtype = bool(check_dtype)
 
@@ -72,7 +72,7 @@ class NDArrayEqualityOperator(BaseEqualityOperator[ndarray]):
             ignored. Default: ``True``
     """
 
-    def __init__(self, check_dtype: bool = True):
+    def __init__(self, check_dtype: bool = True) -> None:
         check_numpy()
         self._check_dtype = bool(check_dtype)
 

@@ -33,7 +33,7 @@ EQUAL_FUNCTIONS: tuple[Callable[[Any, Any], bool], ...] = (
 @numpy_available
 @torch_available
 @mark.parametrize("equal_fn", EQUAL_FUNCTIONS)
-def test_consistency_equal_complex_object(equal_fn: Callable[[Any, Any], bool]):
+def test_consistency_equal_complex_object(equal_fn: Callable[[Any, Any], bool]) -> None:
     assert equal_fn(
         {
             "list": [1, 2.0, torch.arange(5), np.arange(3), [1, 2, 3]],
@@ -65,7 +65,7 @@ def test_consistency_equal_float_true(
     equal_fn: Callable[[Any, Any], bool],
     value1: Union[bool, int, float],
     value2: Union[bool, int, float],
-):
+) -> None:
     assert equal_fn(value1, value2)
 
 
@@ -73,7 +73,7 @@ def test_consistency_equal_float_true(
 @mark.parametrize("value", (True, 1, 2.0))
 def test_consistency_equal_float_false(
     equal_fn: Callable[[Any, Any], bool], value: Union[bool, int, float]
-):
+) -> None:
     assert not equal_fn(1.0, value)
 
 
@@ -82,7 +82,7 @@ def test_consistency_equal_float_false(
 def test_consistency_equal_scalar_false_nan(
     equal_fn: Callable[[Any, Any], bool],
     value: Union[bool, int, float],
-):
+) -> None:
     assert not equal_fn(float("NaN"), value)
 
 
@@ -95,12 +95,16 @@ MAPPING_TYPES = (dict, OrderedDict)
 
 @mark.parametrize("equal_fn", EQUAL_FUNCTIONS)
 @mark.parametrize("type_fn", MAPPING_TYPES)
-def test_consistency_equal_mapping_true(equal_fn: Callable[[Any, Any], bool], type_fn: Callable):
+def test_consistency_equal_mapping_true(
+    equal_fn: Callable[[Any, Any], bool], type_fn: Callable
+) -> None:
     assert equal_fn(type_fn({"int": 1, "str": "abc"}), type_fn({"int": 1, "str": "abc"}))
 
 
 @mark.parametrize("equal_fn", EQUAL_FUNCTIONS)
-def test_consistency_equal_mapping_false_different_types(equal_fn: Callable[[Any, Any], bool]):
+def test_consistency_equal_mapping_false_different_types(
+    equal_fn: Callable[[Any, Any], bool]
+) -> None:
     assert not equal_fn({"int": 1, "str": "abc"}, OrderedDict({"int": 1, "str": "abc"}))
 
 
@@ -108,7 +112,7 @@ def test_consistency_equal_mapping_false_different_types(equal_fn: Callable[[Any
 @mark.parametrize("type_fn", MAPPING_TYPES)
 def test_consistency_equal_mapping_false_different_number_of_elements(
     equal_fn: Callable[[Any, Any], bool], type_fn: Callable
-):
+) -> None:
     assert not equal_fn(
         type_fn({"int": 1, "str": "abc"}), type_fn({"int": 1, "str": "abc", "float": 0.2})
     )
@@ -118,7 +122,7 @@ def test_consistency_equal_mapping_false_different_number_of_elements(
 @mark.parametrize("type_fn", MAPPING_TYPES)
 def test_consistency_equal_mapping_false_different_keys(
     equal_fn: Callable[[Any, Any], bool], type_fn: Callable
-):
+) -> None:
     assert not equal_fn(type_fn({"int": 1, "str": "abc"}), type_fn({"int": 1, "str0": "abc"}))
 
 
@@ -126,7 +130,7 @@ def test_consistency_equal_mapping_false_different_keys(
 @mark.parametrize("type_fn", MAPPING_TYPES)
 def test_consistency_equal_mapping_false_different_values(
     equal_fn: Callable[[Any, Any], bool], type_fn: Callable
-):
+) -> None:
     assert not equal_fn(type_fn({"int": 1, "str": "abc"}), type_fn({"int": 1, "str": "abcd"}))
 
 
@@ -139,12 +143,16 @@ SEQUENCE_TYPES = (list, tuple)
 
 @mark.parametrize("equal_fn", EQUAL_FUNCTIONS)
 @mark.parametrize("type_fn", SEQUENCE_TYPES)
-def test_consistency_equal_sequence_true(equal_fn: Callable[[Any, Any], bool], type_fn: Callable):
+def test_consistency_equal_sequence_true(
+    equal_fn: Callable[[Any, Any], bool], type_fn: Callable
+) -> None:
     assert equal_fn(type_fn([1, 2, "abc"]), type_fn([1, 2, "abc"]))
 
 
 @mark.parametrize("equal_fn", EQUAL_FUNCTIONS)
-def test_consistency_equal_sequence_false_different_types(equal_fn: Callable[[Any, Any], bool]):
+def test_consistency_equal_sequence_false_different_types(
+    equal_fn: Callable[[Any, Any], bool]
+) -> None:
     assert not equal_fn([1, 2, "abc"], (1, 2, "abc"))
 
 
@@ -152,7 +160,7 @@ def test_consistency_equal_sequence_false_different_types(equal_fn: Callable[[An
 @mark.parametrize("type_fn", SEQUENCE_TYPES)
 def test_consistency_equal_sequence_false_different_lengths(
     equal_fn: Callable[[Any, Any], bool], type_fn: Callable
-):
+) -> None:
     assert not equal_fn(type_fn([1, 2, "abc"]), type_fn([1, 2, "abc", 4]))
 
 
@@ -160,7 +168,7 @@ def test_consistency_equal_sequence_false_different_lengths(
 @mark.parametrize("type_fn", SEQUENCE_TYPES)
 def test_consistency_equal_sequence_false_different_values(
     equal_fn: Callable[[Any, Any], bool], type_fn: Callable
-):
+) -> None:
     assert not equal_fn(type_fn([1, 2, "abc"]), type_fn([1, 2, "abcd"]))
 
 
@@ -171,31 +179,39 @@ def test_consistency_equal_sequence_false_different_values(
 
 @torch_available
 @mark.parametrize("equal_fn", EQUAL_FUNCTIONS)
-def test_consistency_equal_tensor_true(equal_fn: Callable[[Any, Any], bool]):
+def test_consistency_equal_tensor_true(equal_fn: Callable[[Any, Any], bool]) -> None:
     assert equal_fn(torch.ones(2, 3), torch.ones(2, 3))
 
 
 @torch_available
 @mark.parametrize("equal_fn", EQUAL_FUNCTIONS)
-def test_consistency_equal_tensor_false_different_shapes(equal_fn: Callable[[Any, Any], bool]):
+def test_consistency_equal_tensor_false_different_shapes(
+    equal_fn: Callable[[Any, Any], bool]
+) -> None:
     assert not equal_fn(torch.ones(2, 3), torch.ones(3, 2))
 
 
 @torch_available
 @mark.parametrize("equal_fn", EQUAL_FUNCTIONS)
-def test_consistency_equal_tensor_false_different_dtypes(equal_fn: Callable[[Any, Any], bool]):
+def test_consistency_equal_tensor_false_different_dtypes(
+    equal_fn: Callable[[Any, Any], bool]
+) -> None:
     assert not equal_fn(torch.ones(2, 3), torch.ones(2, 3, dtype=torch.long))
 
 
 @torch_available
 @mark.parametrize("equal_fn", EQUAL_FUNCTIONS)
-def test_consistency_equal_tensor_false_different_values(equal_fn: Callable[[Any, Any], bool]):
+def test_consistency_equal_tensor_false_different_values(
+    equal_fn: Callable[[Any, Any], bool]
+) -> None:
     assert not equal_fn(torch.ones(2, 3), torch.zeros(2, 3))
 
 
 @torch_available
 @mark.parametrize("equal_fn", EQUAL_FUNCTIONS)
-def test_consistency_equal_tensor_false_different_devices(equal_fn: Callable[[Any, Any], bool]):
+def test_consistency_equal_tensor_false_different_devices(
+    equal_fn: Callable[[Any, Any], bool]
+) -> None:
     assert not equal_fn(
         Mock(spec=torch.Tensor, dtype=torch.float, device=torch.device("cpu")),
         Mock(spec=torch.Tensor, dtype=torch.float, device=torch.device("cuda:0")),
@@ -209,7 +225,7 @@ def test_consistency_equal_tensor_false_different_devices(equal_fn: Callable[[An
 
 @torch_available
 @mark.parametrize("equal_fn", EQUAL_FUNCTIONS)
-def test_consistency_equal_packed_sequence_true(equal_fn: Callable[[Any, Any], bool]):
+def test_consistency_equal_packed_sequence_true(equal_fn: Callable[[Any, Any], bool]) -> None:
     assert equal_fn(
         torch.nn.utils.rnn.pack_padded_sequence(
             input=torch.arange(10, dtype=torch.float).view(2, 5),
@@ -228,7 +244,7 @@ def test_consistency_equal_packed_sequence_true(equal_fn: Callable[[Any, Any], b
 @mark.parametrize("equal_fn", EQUAL_FUNCTIONS)
 def test_consistency_equal_packed_sequence_false_different_values(
     equal_fn: Callable[[Any, Any], bool]
-):
+) -> None:
     assert not equal_fn(
         torch.nn.utils.rnn.pack_padded_sequence(
             input=torch.arange(10, dtype=torch.float).view(2, 5),
@@ -247,7 +263,7 @@ def test_consistency_equal_packed_sequence_false_different_values(
 @mark.parametrize("equal_fn", EQUAL_FUNCTIONS)
 def test_consistency_equal_packed_sequence_false_different_lengths(
     equal_fn: Callable[[Any, Any], bool]
-):
+) -> None:
     assert not equal_fn(
         torch.nn.utils.rnn.pack_padded_sequence(
             input=torch.arange(10, dtype=torch.float).view(2, 5),
@@ -266,7 +282,7 @@ def test_consistency_equal_packed_sequence_false_different_lengths(
 @mark.parametrize("equal_fn", EQUAL_FUNCTIONS)
 def test_consistency_equal_packed_sequence_false_different_types(
     equal_fn: Callable[[Any, Any], bool]
-):
+) -> None:
     assert not equal_fn(
         torch.nn.utils.rnn.pack_padded_sequence(
             input=torch.arange(10, dtype=torch.float).view(2, 5),
@@ -284,23 +300,29 @@ def test_consistency_equal_packed_sequence_false_different_types(
 
 @numpy_available
 @mark.parametrize("equal_fn", EQUAL_FUNCTIONS)
-def test_consistency_equal_ndarray_true(equal_fn: Callable[[Any, Any], bool]):
+def test_consistency_equal_ndarray_true(equal_fn: Callable[[Any, Any], bool]) -> None:
     assert equal_fn(np.ones((2, 3)), np.ones((2, 3)))
 
 
 @numpy_available
 @mark.parametrize("equal_fn", EQUAL_FUNCTIONS)
-def test_consistency_equal_ndarray_false_different_shapes(equal_fn: Callable[[Any, Any], bool]):
+def test_consistency_equal_ndarray_false_different_shapes(
+    equal_fn: Callable[[Any, Any], bool]
+) -> None:
     assert not equal_fn(np.ones((2, 3)), np.ones((3, 2)))
 
 
 @numpy_available
 @mark.parametrize("equal_fn", EQUAL_FUNCTIONS)
-def test_consistency_equal_ndarray_false_different_dtypes(equal_fn: Callable[[Any, Any], bool]):
+def test_consistency_equal_ndarray_false_different_dtypes(
+    equal_fn: Callable[[Any, Any], bool]
+) -> None:
     assert not equal_fn(np.ones((2, 3), dtype=float), np.ones((2, 3), dtype=int))
 
 
 @numpy_available
 @mark.parametrize("equal_fn", EQUAL_FUNCTIONS)
-def test_consistency_equal_ndarray_false_different_values(equal_fn: Callable[[Any, Any], bool]):
+def test_consistency_equal_ndarray_false_different_values(
+    equal_fn: Callable[[Any, Any], bool]
+) -> None:
     assert not equal_fn(np.ones((2, 3)), np.zeros((2, 3)))

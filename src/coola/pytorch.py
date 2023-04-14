@@ -25,7 +25,7 @@ class PackedSequenceAllCloseOperator(BaseAllCloseOperator[PackedSequence]):
     r"""Implements an allclose operator for
     ``torch.nn.utils.rnn.PackedSequence``."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         check_torch()
 
     def allclose(
@@ -90,7 +90,7 @@ class PackedSequenceEqualityOperator(BaseEqualityOperator[PackedSequence]):
     r"""Implements an equality operator for
     ``torch.nn.utils.rnn.PackedSequence``."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         check_torch()
 
     def equal(
@@ -123,7 +123,7 @@ class PackedSequenceEqualityOperator(BaseEqualityOperator[PackedSequence]):
 class TensorAllCloseOperator(BaseAllCloseOperator[Tensor]):
     r"""Implements an allclose operator for ``torch.Tensor``."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         check_torch()
 
     def allclose(
@@ -167,7 +167,7 @@ class TensorAllCloseOperator(BaseAllCloseOperator[Tensor]):
 class TensorEqualityOperator(BaseEqualityOperator[Tensor]):
     r"""Implements an equality operator for ``torch.Tensor``."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         check_torch()
 
     def equal(

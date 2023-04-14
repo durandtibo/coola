@@ -139,7 +139,7 @@ class DefaultEqualityOperator(BaseEqualityOperator[Any]):
         object2: Any,
         show_difference: bool = False,
     ) -> bool:
-        if not type(object1) is type(object2):
+        if type(object1) is not type(object2):
             if show_difference:
                 logger.info(f"Objects have different types: {type(object1)} vs {type(object2)}")
             return False
@@ -159,7 +159,7 @@ class MappingEqualityOperator(BaseEqualityOperator[Mapping]):
         object2: Any,
         show_difference: bool = False,
     ) -> bool:
-        if not type(object1) is type(object2):
+        if type(object1) is not type(object2):
             if show_difference:
                 logger.info(
                     f"The mappings have different types: {type(object1)} vs {type(object2)}"
@@ -199,7 +199,7 @@ class SequenceEqualityOperator(BaseEqualityOperator[Sequence]):
         object2: Any,
         show_difference: bool = False,
     ) -> bool:
-        if not type(object1) is type(object2):
+        if type(object1) is not type(object2):
             if show_difference:
                 logger.info(
                     f"The sequences have different types: {type(object1)} vs {type(object2)}"
