@@ -4,12 +4,9 @@ from collections.abc import Mapping, Sequence
 from typing import Any, Union
 from unittest.mock import Mock, patch
 
-import numpy as np
-import torch
 from pytest import LogCaptureFixture, mark, raises
-from torch import Tensor
-from torch.nn.utils.rnn import PackedSequence
 
+from coola import is_numpy_available, is_torch_available
 from coola.equality import (
     BaseEqualityOperator,
     DefaultEqualityOperator,
@@ -20,6 +17,18 @@ from coola.equality import (
 )
 from coola.ndarray import NDArrayEqualityOperator
 from coola.pytorch import PackedSequenceEqualityOperator, TensorEqualityOperator
+from coola.testing import numpy_available, torch_available
+
+if is_numpy_available():
+    import numpy as np
+else:
+    np = Mock()
+
+if is_torch_available():
+    import torch
+else:
+    torch = Mock()
+
 
 ####################################
 #     Tests for EqualityTester     #
@@ -30,16 +39,20 @@ def test_equality_tester_str():
     assert str(EqualityTester()).startswith("EqualityTester(")
 
 
+@numpy_available
+@torch_available
 def test_equality_tester_registry_default():
     assert len(EqualityTester.registry) == 9
     assert isinstance(EqualityTester.registry[Mapping], MappingEqualityOperator)
-    assert isinstance(EqualityTester.registry[PackedSequence], PackedSequenceEqualityOperator)
     assert isinstance(EqualityTester.registry[Sequence], SequenceEqualityOperator)
-    assert isinstance(EqualityTester.registry[Tensor], TensorEqualityOperator)
     assert isinstance(EqualityTester.registry[dict], MappingEqualityOperator)
     assert isinstance(EqualityTester.registry[list], SequenceEqualityOperator)
     assert isinstance(EqualityTester.registry[np.ndarray], NDArrayEqualityOperator)
     assert isinstance(EqualityTester.registry[object], DefaultEqualityOperator)
+    assert isinstance(EqualityTester.registry[torch.Tensor], TensorEqualityOperator)
+    assert isinstance(
+        EqualityTester.registry[torch.nn.utils.rnn.PackedSequence], PackedSequenceEqualityOperator
+    )
     assert isinstance(EqualityTester.registry[tuple], SequenceEqualityOperator)
 
 
@@ -135,22 +148,27 @@ def test_objects_are_equal_scalar_false(
     assert not objects_are_equal(object1, object2)
 
 
+@torch_available
 def test_objects_are_equal_torch_tensor_true():
     assert objects_are_equal(torch.ones(2, 3), torch.ones(2, 3))
 
 
+@torch_available
 def test_objects_are_equal_torch_tensor_false():
     assert not objects_are_equal(torch.ones(2, 3), torch.zeros(2, 3))
 
 
+@numpy_available
 def test_objects_are_equal_numpy_array_true():
     assert objects_are_equal(np.ones((2, 3)), np.ones((2, 3)))
 
 
+@numpy_available
 def test_objects_are_equal_numpy_array_false():
     assert not objects_are_equal(np.ones((2, 3)), np.zeros((2, 3)))
 
 
+@torch_available
 @mark.parametrize(
     "object1,object2",
     (
@@ -172,6 +190,7 @@ def test_objects_are_equal_sequence_false():
     assert not objects_are_equal([1, 2], [1, 3])
 
 
+@torch_available
 @mark.parametrize(
     "object1,object2",
     (
@@ -223,6 +242,8 @@ def test_objects_are_equal_other_types_false(object1: Any, object2: Any):
     assert not objects_are_equal(object1, object2)
 
 
+@numpy_available
+@torch_available
 def test_objects_are_equal_true_complex_objects():
     assert objects_are_equal(
         {
@@ -320,6 +341,7 @@ def test_mapping_equality_operator_str():
     assert str(MappingEqualityOperator()) == "MappingEqualityOperator()"
 
 
+@torch_available
 @mark.parametrize(
     "object1,object2",
     (
@@ -342,6 +364,7 @@ def test_mapping_equality_operator_equal_true(object1: Mapping, object2: Mapping
     assert MappingEqualityOperator().equal(EqualityTester(), object1, object2)
 
 
+@torch_available
 def test_mapping_equality_operator_equal_false_different_value():
     assert not MappingEqualityOperator().equal(
         EqualityTester(),
@@ -350,6 +373,7 @@ def test_mapping_equality_operator_equal_false_different_value():
     )
 
 
+@torch_available
 def test_mapping_equality_operator_equal_false_different_value_show_difference(
     caplog: LogCaptureFixture,
 ):
@@ -365,6 +389,7 @@ def test_mapping_equality_operator_equal_false_different_value_show_difference(
         )
 
 
+@torch_available
 def test_mapping_equality_operator_equal_false_different_keys():
     assert not MappingEqualityOperator().equal(
         EqualityTester(),
@@ -373,6 +398,7 @@ def test_mapping_equality_operator_equal_false_different_keys():
     )
 
 
+@torch_available
 def test_mapping_equality_operator_equal_false_different_keys_show_difference(
     caplog: LogCaptureFixture,
 ):
@@ -386,6 +412,7 @@ def test_mapping_equality_operator_equal_false_different_keys_show_difference(
         assert caplog.messages[0].startswith("The mappings have different keys:")
 
 
+@torch_available
 def test_mapping_equality_operator_equal_false_different_length():
     assert not MappingEqualityOperator().equal(
         EqualityTester(),
@@ -394,6 +421,7 @@ def test_mapping_equality_operator_equal_false_different_length():
     )
 
 
+@torch_available
 def test_mapping_equality_operator_equal_false_different_length_show_difference(
     caplog: LogCaptureFixture,
 ):
@@ -428,6 +456,7 @@ def test_sequence_equality_operator_str():
     assert str(SequenceEqualityOperator()) == "SequenceEqualityOperator()"
 
 
+@torch_available
 @mark.parametrize(
     "object1,object2",
     (
@@ -449,6 +478,7 @@ def test_sequence_equality_operator_equal_true(object1: Sequence, object2: Seque
     assert SequenceEqualityOperator().equal(EqualityTester(), object1, object2)
 
 
+@torch_available
 @mark.parametrize(
     "object1,object2",
     (
@@ -477,6 +507,7 @@ def test_sequence_equality_operator_equal_false_different_value_show_difference(
         assert caplog.messages[-1].startswith("The sequences have at least one different value:")
 
 
+@torch_available
 @mark.parametrize(
     "object1,object2",
     (
