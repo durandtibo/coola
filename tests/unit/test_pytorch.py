@@ -20,10 +20,6 @@ if is_torch_available():
 
     cuda_available = mark.skipif(not torch.cuda.is_available(), reason="Requires a CUDA device")
     DEVICES = ("cpu", "cuda:0") if torch.cuda.is_available() else ("cpu",)
-else:
-    Tensor = None
-    cuda_available = mark.skipif(False, reason="Requires PyTorch and a CUDA device")
-    DEVICES = tuple()
 
 torch_available = mark.skipif(not is_torch_available(), reason="Requires PyTorch")
 
