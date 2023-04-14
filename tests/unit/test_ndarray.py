@@ -1,5 +1,5 @@
 import logging
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from pytest import LogCaptureFixture, mark, raises
 
@@ -7,11 +7,12 @@ from coola import is_numpy_available
 from coola.allclose import AllCloseTester
 from coola.equality import EqualityTester
 from coola.ndarray import NDArrayAllCloseOperator, NDArrayEqualityOperator
+from coola.testing import numpy_available
 
 if is_numpy_available():
     import numpy as np
-
-numpy_available = mark.skipif(not is_numpy_available(), reason="Requires NumPy")
+else:
+    np = Mock()
 
 
 #############################################
@@ -25,7 +26,9 @@ def test_ndarray_allclose_operator_str() -> None:
 
 
 @numpy_available
-@mark.parametrize("array", (np.ones((2, 3)), np.ones((2, 3)) + 1e-9, np.ones((2, 3)) - 1e-9))
+@mark.parametrize(
+    "array", (np.ones((2, 3)), np.full((2, 3), 1.0 + 1e-9), np.full((2, 3), 1.0 - 1e-9))
+)
 def test_ndarray_allclose_operator_allclose_true(array: np.ndarray):
     assert NDArrayAllCloseOperator().allclose(AllCloseTester(), np.ones((2, 3)), array)
 
@@ -111,7 +114,9 @@ def test_ndarray_allclose_operator_equal_false_different_shape_show_difference(
 
 
 @numpy_available
-@mark.parametrize("array", (np.zeros((2, 3)), np.ones((2, 3)) + 1e-7, np.ones((2, 3)) - 1e-7))
+@mark.parametrize(
+    "array", (np.zeros((2, 3)), np.full((2, 3), 1.0 + 1e-7), np.full((2, 3), 1.0 - 1e-7))
+)
 def test_ndarray_allclose_operator_allclose_false_different_value(array: np.ndarray):
     assert not NDArrayAllCloseOperator().allclose(AllCloseTester(), np.ones((2, 3)), array, rtol=0)
 
@@ -152,7 +157,7 @@ def test_ndarray_allclose_operator_equal_false_different_type_show_difference(
 @numpy_available
 @mark.parametrize(
     "array,atol",
-    ((np.ones((2, 3)) + 0.5, 1), (np.ones((2, 3)) + 0.05, 1e-1), (np.ones((2, 3)) + 5e-3, 1e-2)),
+    ((np.full((2, 3), 1.5), 1), (np.full((2, 3), 1.05), 1e-1), (np.full((2, 3), 1.005), 1e-2)),
 )
 def test_ndarray_allclose_operator_allclose_true_atol(array: np.ndarray, atol: float):
     assert NDArrayAllCloseOperator().allclose(
@@ -163,7 +168,7 @@ def test_ndarray_allclose_operator_allclose_true_atol(array: np.ndarray, atol: f
 @numpy_available
 @mark.parametrize(
     "array,rtol",
-    ((np.ones((2, 3)) + 0.5, 1), (np.ones((2, 3)) + 0.05, 1e-1), (np.ones((2, 3)) + 5e-3, 1e-2)),
+    ((np.full((2, 3), 1.5), 1), (np.full((2, 3), 1.05), 1e-1), (np.full((2, 3), 1.005), 1e-2)),
 )
 def test_ndarray_allclose_operator_allclose_true_rtol(array: np.ndarray, rtol: float):
     assert NDArrayAllCloseOperator().allclose(AllCloseTester(), np.ones((2, 3)), array, rtol=rtol)
