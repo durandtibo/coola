@@ -96,7 +96,6 @@ jobs:
   test-pytorch:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
-    needs: [test, test-minimal]
     strategy:
       max-parallel: 8
       fail-fast: false
@@ -211,7 +210,6 @@ jobs:
   package-pytorch:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
-    needs: [package, package-minimal]
     strategy:
       max-parallel: 8
       fail-fast: false
