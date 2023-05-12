@@ -96,13 +96,14 @@ jobs:
   test-pytorch:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
+    needs: [test, test-minimal]
     strategy:
       max-parallel: 8
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
         python-version: [ '3.9', '3.10', '3.11' ]
-        pytorch-version: [ 2.0.0, 1.13.1, 1.12.1, 1.11.0, 1.10.0 ]
+        pytorch-version: [ 2.0.1, 1.13.1, 1.12.1, 1.11.0, 1.10.0 ]
         exclude:
           - pytorch-version: 1.10.0
             python-version: 3.10
@@ -172,14 +173,14 @@ jobs:
 
       - name: Install package
         run: |
-          pip install coola
+          pip install "coola[all]"
 
       - name: Run short experiment
         run: |
-          python -c "import coola; assert coola.objects_are_equal(1.0, 1.0)"
-          python -c "import coola; assert not coola.is_torch_available(); assert not coola.is_numpy_available()"
+          python -c "import coola; import torch; assert coola.objects_are_equal(torch.arange(6), torch.arange(6))"
+          python -c "import coola; import numpy; assert coola.objects_are_equal(numpy.arange(6), numpy.arange(6))"
 
-  package-all:
+  package-minimal:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -200,23 +201,24 @@ jobs:
 
       - name: Install package
         run: |
-          pip install "coola[all]"
+          pip install coola
 
       - name: Run short experiment
         run: |
-          python -c "import coola; import torch; assert coola.objects_are_equal(torch.arange(6), torch.arange(6))"
-          python -c "import coola; import numpy; assert coola.objects_are_equal(numpy.arange(6), numpy.arange(6))"
+          python -c "import coola; assert coola.objects_are_equal(1.0, 1.0)"
+          python -c "import coola; assert not coola.is_torch_available(); assert not coola.is_numpy_available()"
 
   package-pytorch:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
+    needs: [package, package-minimal]
     strategy:
       max-parallel: 8
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
         python-version: [ '3.9', '3.10', '3.11' ]
-        pytorch-version: [ 2.0.0, 1.13.1, 1.12.1, 1.11.0, 1.10.0 ]
+        pytorch-version: [ 2.0.1, 1.13.1, 1.12.1, 1.11.0, 1.10.0 ]
         exclude:
           - pytorch-version: 1.10.0
             python-version: 3.10
