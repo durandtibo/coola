@@ -10,6 +10,9 @@
     <a href="https://pypi.org/project/coola/">
         <img alt="Python" src="https://img.shields.io/pypi/pyversions/coola.svg">
     </a>
+    <a href="https://codeclimate.com/github/durandtibo/coola/maintainability">
+        <img src="https://api.codeclimate.com/v1/badges/83ebb50e6c6f67b0570d/maintainability" />
+    </a>
     <a href="https://opensource.org/licenses/BSD-3-Clause">
         <img alt="BSD-3-Clause" src="https://img.shields.io/pypi/l/coola">
     </a>
