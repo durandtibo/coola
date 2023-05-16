@@ -155,6 +155,55 @@ jobs:
         run: |
           poetry run make unit-test-cov
 
+  test-numpy:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ '3.9', '3.10', '3.11' ]
+        numpy-version: [ 1.20.3, 1.21.6, 1.22.4, 1.23.5, 1.24.3 ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Install packages
+        run: |
+          poetry run make config-poetry
+          poetry run make install
+
+      - name: Install NumPy
+        run: |
+          poetry run pip install numpy==${{ matrix.numpy-version }}
+
+      - name: Show installed packages
+        run: |
+          poetry run poetry show
+          poetry run poetry show --tree
+
+      - name: Format
+        run: |
+          poetry run make format
+
+      - name: Lint
+        run: |
+          poetry run make lint
+
+      - name: Run unit tests
+        run: |
+          poetry run make unit-test-cov
+
   coverage:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
