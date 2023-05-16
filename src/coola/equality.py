@@ -13,7 +13,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
 from typing import Any, Generic, Optional, TypeVar
 
-from coola.format import str_dict, str_indent
+from coola.utils.format import str_dict, str_indent
 
 logger = logging.getLogger(__name__)
 

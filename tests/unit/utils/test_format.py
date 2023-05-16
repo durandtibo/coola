@@ -1,6 +1,6 @@
 from pytest import raises
 
-from coola.format import str_dict, str_indent
+from coola.utils.format import str_dict, str_indent
 
 ##############################
 #     Tests for str_dict     #
