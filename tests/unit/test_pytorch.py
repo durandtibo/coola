@@ -200,7 +200,7 @@ def test_packed_sequence_allclose_operator_allclose_true_rtol(
 
 @torch_available
 def test_packed_sequence_allclose_operator_no_torch() -> None:
-    with patch("coola.import_utils.is_torch_available", lambda *args, **kwargs: False):
+    with patch("coola.utils.imports.is_torch_available", lambda *args, **kwargs: False):
         with raises(RuntimeError, match="`torch` package is required but not installed."):
             PackedSequenceAllCloseOperator()
 
@@ -323,7 +323,7 @@ def test_packed_sequence_equality_operator_equal_false_different_type_show_diffe
 
 @torch_available
 def test_packed_sequence_equality_operator_no_torch() -> None:
-    with patch("coola.import_utils.is_torch_available", lambda *args, **kwargs: False):
+    with patch("coola.utils.imports.is_torch_available", lambda *args, **kwargs: False):
         with raises(RuntimeError, match="`torch` package is required but not installed."):
             PackedSequenceEqualityOperator()
 
@@ -526,7 +526,7 @@ def test_tensor_allclose_operator_allclose_true_rtol(tensor: torch.Tensor, rtol:
 
 @torch_available
 def test_tensor_allclose_operator_no_torch() -> None:
-    with patch("coola.import_utils.is_torch_available", lambda *args, **kwargs: False):
+    with patch("coola.utils.imports.is_torch_available", lambda *args, **kwargs: False):
         with raises(RuntimeError, match="`torch` package is required but not installed."):
             TensorAllCloseOperator()
 
@@ -679,6 +679,6 @@ def test_tensor_equality_operator_equal_false_different_type_show_difference(
 
 @torch_available
 def test_tensor_equality_operator_no_torch() -> None:
-    with patch("coola.import_utils.is_torch_available", lambda *args, **kwargs: False):
+    with patch("coola.utils.imports.is_torch_available", lambda *args, **kwargs: False):
         with raises(RuntimeError, match="`torch` package is required but not installed."):
             TensorEqualityOperator()
