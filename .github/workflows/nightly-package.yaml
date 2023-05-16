@@ -1,11 +1,11 @@
 name: Nightly Tests
 on:
   schedule:
-    - cron: '0 5 * * *' # run at 5 AM UTC
+    - cron: '0 6 * * *' # run at 6 AM UTC
   workflow_dispatch:  # to trigger manually
 
 jobs:
-  test:
+  package:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -24,32 +24,17 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-
-      - name: Install packages
+      - name: Install package
         run: |
-          poetry run make config-poetry
-          poetry run make install-all
+          pip install "coola[all]"
 
-      - name: Show installed packages
+      - name: Run short experiment
         run: |
-          poetry run poetry show
-          poetry run poetry show --tree
+          python -c "import coola; import torch; import numpy; " \
+            "assert coola.objects_are_equal(torch.arange(6), torch.arange(6)); " \
+            "assert coola.objects_are_equal(numpy.arange(6), numpy.arange(6))"
 
-      - name: Format
-        run: |
-          poetry run make format
-
-      - name: Lint
-        run: |
-          poetry run make lint
-
-      - name: Run unit tests
-        run: |
-          poetry run make unit-test-cov
-
-  test-minimal:
+  package-minimal:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -68,33 +53,19 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-
-      - name: Install packages
+      - name: Install package
         run: |
-          poetry run make config-poetry
-          poetry run make install
+          pip install coola
 
-      - name: Show installed packages
+      - name: Run short experiment
         run: |
-          poetry run poetry show
-          poetry run poetry show --tree
+          python -c "import coola; " \
+            "assert coola.objects_are_equal(1.0, 1.0); " \
+            "assert not coola.is_torch_available(); " \
+            "assert not coola.is_numpy_available()"
 
-      - name: Format
-        run: |
-          poetry run make format
-
-      - name: Lint
-        run: |
-          poetry run make lint
-
-      - name: Run unit tests
-        run: |
-          poetry run make unit-test-cov
-
-  test-pytorch:
-    needs: [test, test-minimal]
+  package-pytorch:
+    needs: [package, package-minimal]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -123,37 +94,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-
-      - name: Install packages
+      - name: Install package
         run: |
-          poetry run make config-poetry
-          poetry run make install
+          pip install coola torch==${{ matrix.pytorch-version }}
 
-      - name: Install PyTorch
+      - name: Run short experiment
         run: |
-          poetry run pip install torch==${{ matrix.pytorch-version }}
+          python -c "import coola; import torch; assert coola.objects_are_equal(torch.arange(6), torch.arange(6))"
 
-      - name: Show installed packages
-        run: |
-          poetry run poetry show
-          poetry run poetry show --tree
-
-      - name: Format
-        run: |
-          poetry run make format
-
-      - name: Lint
-        run: |
-          poetry run make lint
-
-      - name: Run unit tests
-        run: |
-          poetry run make unit-test-cov
-
-  test-numpy:
-    needs: [test, test-minimal]
+  package-numpy:
+    needs: [package, package-minimal]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -180,31 +130,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-
-      - name: Install packages
+      - name: Install package
         run: |
-          poetry run make config-poetry
-          poetry run make install
+          pip install coola numpy==${{ matrix.numpy-version }}
 
-      - name: Install NumPy
+      - name: Run short experiment
         run: |
-          poetry run pip install numpy==${{ matrix.numpy-version }}
-
-      - name: Show installed packages
-        run: |
-          poetry run poetry show
-          poetry run poetry show --tree
-
-      - name: Format
-        run: |
-          poetry run make format
-
-      - name: Lint
-        run: |
-          poetry run make lint
-
-      - name: Run unit tests
-        run: |
-          poetry run make unit-test-cov
+          python -c "import coola; import numpy; assert coola.objects_are_equal(numpy.arange(6), numpy.arange(6))"
