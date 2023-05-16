@@ -4,20 +4,27 @@
     <a href="https://github.com/durandtibo/coola/actions">
         <img alt="CI" src="https://github.com/durandtibo/coola/workflows/CI/badge.svg?event=push&branch=main">
     </a>
+    <a href="https://durandtibo.github.io/coola/">
+        <img alt="CI" src="https://github.com/durandtibo/coola/workflows/Documentation/badge.svg?event=push&branch=main">
+    </a>
+    <a href="https://codecov.io/gh/durandtibo/coola">
+        <img alt="Codecov" src="https://codecov.io/gh/durandtibo/coola/branch/main/graph/badge.svg">
+    </a>
+    <a href="https://codeclimate.com/github/durandtibo/coola/maintainability">
+        <img src="https://api.codeclimate.com/v1/badges/83ebb50e6c6f67b0570d/maintainability" />
+    </a>
+    <a href="https://codeclimate.com/github/durandtibo/coola/test_coverage">
+        <img src="https://api.codeclimate.com/v1/badges/83ebb50e6c6f67b0570d/test_coverage" />
+    </a>
+    <br/>
     <a href="https://pypi.org/project/coola/">
         <img alt="PYPI version" src="https://img.shields.io/pypi/v/coola">
     </a>
     <a href="https://pypi.org/project/coola/">
         <img alt="Python" src="https://img.shields.io/pypi/pyversions/coola.svg">
     </a>
-    <a href="https://codeclimate.com/github/durandtibo/coola/maintainability">
-        <img src="https://api.codeclimate.com/v1/badges/83ebb50e6c6f67b0570d/maintainability" />
-    </a>
     <a href="https://opensource.org/licenses/BSD-3-Clause">
         <img alt="BSD-3-Clause" src="https://img.shields.io/pypi/l/coola">
-    </a>
-    <a href="https://codecov.io/gh/durandtibo/coola">
-        <img alt="Codecov" src="https://codecov.io/gh/durandtibo/coola/branch/main/graph/badge.svg">
     </a>
     <a href="https://github.com/psf/black">
         <img  alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg">
