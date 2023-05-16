@@ -105,17 +105,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ '3.9', '3.10', '3.11' ]
-        pytorch-version: [ 2.0.0, 1.13.1, 1.12.1, 1.11.0, 1.10.0 ]
-        exclude:
-          - pytorch-version: 1.10.0
-            python-version: 3.10
-          - pytorch-version: 1.10.0
-            python-version: 3.11
-          - pytorch-version: 1.11.0
-            python-version: 3.11
-          - pytorch-version: 1.12.1
-            python-version: 3.11
+        python-version: [ '3.10' ]
+        pytorch-version: [ 2.0.0, 1.13.1, 1.12.1, 1.11.0 ]
+        include:
+          - os: ubuntu-latest
+            python-version: 3.9
+            pytorch-version: 1.10.0
 
     steps:
       - name: Checkout
@@ -163,15 +158,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ '3.9', '3.10', '3.11' ]
-        numpy-version: [ 1.20.3, 1.21.6, 1.22.4, 1.23.5, 1.24.3 ]
-        exclude:
-          - numpy-version: 1.20.3
-            python-version: 3.10
-          - numpy-version: 1.20.3
-            python-version: 3.11
-          - numpy-version: 1.21.6
-            python-version: 3.11
+        python-version: [ '3.10' ]
+        numpy-version: [ 1.24.3, 1.23.5, 1.22.4, 1.21.6 ]
+        include:
+          - os: ubuntu-latest
+            python-version: 3.9
+            numpy-version: 1.20.3
 
     steps:
       - name: Checkout
