@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "coola"
-version = "0.0.8a0"
+version = "0.0.8a1"
 description = "A light library to check if two complex/nested objects are equal or not"
 readme = "README.md"
 authors = ["Thibaut Durand <durand.tibo+gh@gmail.com>"]
@@ -30,7 +30,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.9"
 numpy = { version = "^1.20", optional = true }
-torch = { version = ">= 1.10, < 3.0", optional = true}
+torch = { version = ">=1.10,<3.0", optional = true}
 
 [tool.poetry.extras]
 all = ["numpy", "torch"]
@@ -41,14 +41,14 @@ mkdocstrings = "^0.21"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3"
-coverage = { extras = ["toml"], version = ">=6.5,<8.0" }
+coverage = { extras = ["toml"], version = "^7.2" }
 docformatter = "^1.6"
-pre-commit = ">=2.20,<4.0"
+pre-commit = "^3.3"
 pylint = "^2.17"
 pytest = "^7.3"
 pytest-cov = "^4.0"
 pytest-timeout = "^2.1"
-ruff = ">=0.0.261,<0.0.270"
+ruff = "^0.0,>=0.0.269"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
