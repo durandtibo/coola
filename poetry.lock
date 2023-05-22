@@ -303,6 +303,7 @@ files = [
 
 [package.dependencies]
 charset_normalizer = ">=3.0.0,<4.0.0"
+tomli = {version = ">=2.0.0,<3.0.0", optional = true, markers = "python_version < \"3.11\" and extra == \"tomli\""}
 untokenize = ">=0.1.1,<0.2.0"
 
 [package.extras]
@@ -1491,4 +1492,4 @@ all = ["numpy", "torch"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "83279004f636ecfc53e20f806cee46d8dc12eabcc744a4eb69c8f96b5a2a8c15"
+content-hash = "041d515e978c498b55849cd48cde02312096daa8ede261d75ae547d0bcd2e41c"
