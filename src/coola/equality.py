@@ -41,7 +41,7 @@ class BaseEqualityTester(ABC):
 
         Example usage:
 
-        .. code-block:: python
+        .. code-block:: pycon
 
             >>> import torch
             >>> from coola import BaseEqualityTester, EqualityTester
@@ -81,7 +81,7 @@ def objects_are_equal(
 
     Example usage:
 
-    .. code-block:: python
+    .. code-block:: pycon
 
         >>> import torch
         >>> from coola import objects_are_equal
@@ -262,11 +262,11 @@ class EqualityTester(BaseEqualityTester):
 
         Example usage:
 
-        .. code-block:: python
+        .. code-block:: pycon
 
             >>> from coola import EqualityTester, BaseEqualityTester, BaseEqualityOperator
             >>> class MyStringEqualityOperator(BaseEqualityOperator[str]):
-            ...    def equal(
+            ...     def equal(
             ...         self,
             ...         tester: BaseEqualityTester,
             ...         object1: str,
@@ -274,6 +274,7 @@ class EqualityTester(BaseEqualityTester):
             ...         show_difference: bool = False,
             ...     ) -> bool:
             ...         ...  # Custom implementation to test strings
+            ...
             >>> EqualityTester.add_equality_operator(str, MyStringEqualityOperator())
             # To overwrite an existing operato
             >>> EqualityTester.add_equality_operator(str, MyStringEqualityOperator(), exist_ok=True)
@@ -303,7 +304,7 @@ class EqualityTester(BaseEqualityTester):
 
         Example usage:
 
-        .. code-block:: python
+        .. code-block:: pycon
 
             >>> import torch
             >>> from coola import EqualityTester
@@ -334,7 +335,7 @@ class EqualityTester(BaseEqualityTester):
 
         Example usage:
 
-        .. code-block:: python
+        .. code-block:: pycon
 
             >>> from coola import EqualityTester
             >>> EqualityTester.has_equality_operator(list)
@@ -357,7 +358,7 @@ class EqualityTester(BaseEqualityTester):
 
         Example usage:
 
-        .. code-block:: python
+        .. code-block:: pycon
 
             >>> from coola import EqualityTester
             >>> EqualityTester.find_equality_operator(list)

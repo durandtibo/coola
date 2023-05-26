@@ -28,9 +28,9 @@ import torch
 
 from coola import objects_are_equal
 
-data1 = {'torch': torch.ones(2, 3), 'numpy': numpy.zeros((2, 3))}
-data2 = {'torch': torch.zeros(2, 3), 'numpy': numpy.ones((2, 3))}
-data3 = {'torch': torch.ones(2, 3), 'numpy': numpy.zeros((2, 3))}
+data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
+data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
+data3 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
 
 print(objects_are_equal(data1, data2))
 print(objects_are_equal(data1, data3))
@@ -60,8 +60,8 @@ import torch
 
 from coola import objects_are_equal
 
-data1 = {'torch': torch.ones(2, 3), 'numpy': numpy.zeros((2, 3))}
-data2 = {'torch': torch.zeros(2, 3), 'numpy': numpy.ones((2, 3))}
+data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
+data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
 
 objects_are_equal(data1, data2, show_difference=True)
 ```
@@ -128,10 +128,16 @@ import torch
 
 from coola import objects_are_equal
 
-data1 = {'list': [torch.ones(2, 3), numpy.zeros((2, 3))],
-         'dict': {'torch': torch.arange(5), 'str': 'abc'}, 'int': 1}
-data2 = {'list': [torch.ones(2, 3), numpy.zeros((2, 3))],
-         'dict': {'torch': torch.arange(5), 'str': 'abcd'}, 'int': 1}
+data1 = {
+    "list": [torch.ones(2, 3), numpy.zeros((2, 3))],
+    "dict": {"torch": torch.arange(5), "str": "abc"},
+    "int": 1,
+}
+data2 = {
+    "list": [torch.ones(2, 3), numpy.zeros((2, 3))],
+    "dict": {"torch": torch.arange(5), "str": "abcd"},
+    "int": 1,
+}
 
 print(objects_are_equal(data1, data2))
 ```
@@ -174,9 +180,11 @@ from collections import OrderedDict
 
 from coola import objects_are_equal
 
-objects_are_equal({'key1': 1, 'key2': 'abc'}, OrderedDict({'key1': 1, 'key2': 'abc'}))  # False
+objects_are_equal(
+    {"key1": 1, "key2": "abc"}, OrderedDict({"key1": 1, "key2": "abc"})
+)  # False
 
-{'key1': 1, 'key2': 'abc'} == OrderedDict({'key1': 1, 'key2': 'abc'})  # True
+{"key1": 1, "key2": "abc"} == OrderedDict({"key1": 1, "key2": "abc"})  # True
 ```
 
 ## Almost equal or not?
@@ -200,9 +208,9 @@ import torch
 
 from coola import objects_are_allclose, objects_are_equal
 
-data1 = {'torch': torch.ones(2, 3), 'numpy': numpy.zeros((2, 3))}
-data2 = {'torch': torch.zeros(2, 3), 'numpy': numpy.ones((2, 3))}
-data3 = {'torch': torch.ones(2, 3) + 1e-9, 'numpy': numpy.zeros((2, 3)) - 1e-9}
+data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
+data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
+data3 = {"torch": torch.ones(2, 3) + 1e-9, "numpy": numpy.zeros((2, 3)) - 1e-9}
 
 print(objects_are_allclose(data1, data2))
 print(objects_are_allclose(data1, data3))
@@ -232,8 +240,8 @@ import torch
 
 from coola import objects_are_allclose
 
-data1 = {'torch': torch.ones(2, 3), 'numpy': numpy.zeros((2, 3))}
-data2 = {'torch': torch.ones(2, 3) + 1e-4, 'numpy': numpy.zeros((2, 3)) - 1e-4}
+data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
+data2 = {"torch": torch.ones(2, 3) + 1e-4, "numpy": numpy.zeros((2, 3)) - 1e-4}
 
 print(objects_are_allclose(data1, data2))
 print(objects_are_allclose(data1, data2, atol=1e-3))
@@ -260,8 +268,8 @@ import torch
 
 from coola import objects_are_allclose
 
-data1 = {'torch': torch.ones(2, 3), 'numpy': numpy.zeros((2, 3))}
-data2 = {'torch': torch.ones(2, 3) + 1e-4, 'numpy': numpy.zeros((2, 3)) - 1e-4}
+data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
+data2 = {"torch": torch.ones(2, 3) + 1e-4, "numpy": numpy.zeros((2, 3)) - 1e-4}
 
 objects_are_allclose(data1, data2, show_difference=True)
 ```
@@ -296,10 +304,16 @@ import torch
 
 from coola import objects_are_allclose
 
-data1 = {'list': [torch.ones(2, 3), numpy.zeros((2, 3))],
-         'dict': {'torch': torch.arange(5), 'str': 'abc'}, 'int': 1}
-data2 = {'list': [torch.ones(2, 3), numpy.zeros((2, 3)) + 1e-9],
-         'dict': {'torch': torch.arange(5), 'str': 'abc'}, 'int': 1}
+data1 = {
+    "list": [torch.ones(2, 3), numpy.zeros((2, 3))],
+    "dict": {"torch": torch.arange(5), "str": "abc"},
+    "int": 1,
+}
+data2 = {
+    "list": [torch.ones(2, 3), numpy.zeros((2, 3)) + 1e-9],
+    "dict": {"torch": torch.arange(5), "str": "abc"},
+    "int": 1,
+}
 
 print(objects_are_allclose(data1, data2))
 ```
@@ -321,8 +335,8 @@ types [here](types.md#equal-within-a-tolerance--allclose-).
 ```python
 from coola import objects_are_allclose
 
-print(objects_are_allclose(float('nan'), 0.0))
-print(objects_are_allclose(float('nan'), float('nan')))
+print(objects_are_allclose(float("nan"), 0.0))
+print(objects_are_allclose(float("nan"), float("nan")))
 ```
 
 *Output*:
@@ -387,8 +401,8 @@ Note that `equal_nan` is only supported for NumPy `ndarray`s and PyTorch `Tensor
 ```python
 from coola import objects_are_allclose
 
-print(objects_are_allclose(float('nan'), float('nan')))
-print(objects_are_allclose(float('nan'), float('nan'), equal_nan=True))
+print(objects_are_allclose(float("nan"), float("nan")))
+print(objects_are_allclose(float("nan"), float("nan"), equal_nan=True))
 ```
 
 *Output*:

@@ -57,7 +57,7 @@ class BaseAllCloseTester(ABC):
 
         Example usage:
 
-        .. code-block:: python
+        .. code-block:: pycon
 
             >>> import torch
             >>> from coola import AllCloseTester, BaseAllCloseTester
@@ -116,14 +116,14 @@ def objects_are_allclose(
 
     Example usage:
 
-    .. code-block:: python
+    .. code-block:: pycon
 
         >>> import torch
         >>> from coola import objects_are_allclose
         >>> objects_are_allclose(
         ...     [torch.ones(2, 3), torch.zeros(2)],
         ...     [torch.ones(2, 3), torch.zeros(2)],
-        ...     )
+        ... )
         True
         >>> objects_are_allclose(
         ...     [torch.ones(2, 3), torch.ones(2)],
@@ -374,7 +374,7 @@ class AllCloseTester(BaseAllCloseTester):
 
         Example usage:
 
-        .. code-block:: python
+        .. code-block:: pycon
 
             >>> from coola import (
             ...     AllCloseTester,
@@ -382,7 +382,7 @@ class AllCloseTester(BaseAllCloseTester):
             ...     BaseAllCloseOperator,
             ... )
             >>> class MyStringAllCloseOperator(BaseAllCloseOperator[str]):
-            ...    def allclose(
+            ...     def allclose(
             ...         self,
             ...         tester: BaseAllCloseTester,
             ...         object1: str,
@@ -393,6 +393,7 @@ class AllCloseTester(BaseAllCloseTester):
             ...         show_difference: bool = False,
             ...     ) -> bool:
             ...         ...  # Custom implementation to test strings
+            ...
             >>> AllCloseTester.add_allclose_operator(str, MyStringAllCloseOperator())
             # To overwrite an existing operato
             >>> AllCloseTester.add_allclose_operator(str, MyStringAllCloseOperator(), exist_ok=True)
@@ -436,7 +437,7 @@ class AllCloseTester(BaseAllCloseTester):
 
         Example usage:
 
-        .. code-block:: python
+        .. code-block:: pycon
 
             >>> import torch
             >>> from coola import AllCloseTester
@@ -477,7 +478,7 @@ class AllCloseTester(BaseAllCloseTester):
 
         Example usage:
 
-        .. code-block:: python
+        .. code-block:: pycon
 
             >>> from coola import AllCloseTester
             >>> AllCloseTester.has_allclose_operator(list)
@@ -500,7 +501,7 @@ class AllCloseTester(BaseAllCloseTester):
 
         Example usage:
 
-        .. code-block:: python
+        .. code-block:: pycon
 
             >>> from coola import AllCloseTester
             >>> AllCloseTester.find_allclose_operator(list)

@@ -67,8 +67,8 @@ import torch
 
 from coola import objects_are_equal
 
-data1 = {'torch': torch.ones(2, 3), 'numpy': numpy.zeros((2, 3))}
-data2 = {'torch': torch.zeros(2, 3), 'numpy': numpy.ones((2, 3))}
+data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
+data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
 
 objects_are_equal(data1, data2)
 ```
