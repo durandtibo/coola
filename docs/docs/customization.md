@@ -17,7 +17,6 @@ from coola import BaseEqualityTester, objects_are_equal
 
 
 class MyCustomEqualityTester(BaseEqualityTester):
-
     def equal(self, object1: Any, object2: Any, show_difference: bool = False) -> bool:
         ...  # Custom implementation
 
@@ -101,13 +100,12 @@ from coola import (
 
 # Step 1: implementation of a new equality operator
 class MyCustomStrEqualityOperator(BaseEqualityOperator):
-
     def equal(
-            self,
-            tester: BaseEqualityTester,
-            object1: str,
-            object2: Any,
-            show_difference: bool = False,
+        self,
+        tester: BaseEqualityTester,
+        object1: str,
+        object2: Any,
+        show_difference: bool = False,
     ) -> bool:
         # You can add code to check the type and to log a message to indicate
         # the difference between the objects if any. To keep this example
@@ -118,8 +116,8 @@ class MyCustomStrEqualityOperator(BaseEqualityOperator):
 # Step 2: add the new equality operator to EqualityTester
 EqualityTester.add_equality_operator(str, MyCustomStrEqualityOperator())
 
-print(objects_are_equal('abc', 'abcde'))
-print(objects_are_equal('abc', 'cba'))
+print(objects_are_equal("abc", "abcde"))
+print(objects_are_equal("abc", "cba"))
 ```
 
 *Output*:

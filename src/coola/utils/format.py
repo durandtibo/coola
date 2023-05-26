@@ -23,7 +23,7 @@ def str_dict(data: dict[str, Any], sorted_keys: bool = False, indent: int = 0) -
 
         Example usage:
 
-    .. code-block:: python
+    .. code-block:: pycon
 
         >>> from coola.utils.format import str_dict
         >>> str_dict({"my_key": "my_value"})
@@ -58,7 +58,7 @@ def str_indent(original: Any, num_spaces: int = 2) -> str:
 
     Example usage:
 
-    .. code-block:: python
+    .. code-block:: pycon
 
         >>> from coola.utils.format import str_indent
         >>> print(f"\t{str_indent('string1\nstring2', 4)}")

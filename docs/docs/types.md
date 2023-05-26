@@ -21,7 +21,7 @@ objects_are_equal(1, 1)  # True
 objects_are_equal(1, 2)  # False
 objects_are_equal(1, 1.0)  # False
 objects_are_equal(True, True)  # True
-objects_are_equal('abc', 'abcd')  # False
+objects_are_equal("abc", "abcd")  # False
 ```
 
 ### `collections.abc.Mapping` | `dict`
@@ -39,11 +39,15 @@ from collections import OrderedDict
 
 from coola import objects_are_equal
 
-objects_are_equal({'int': 1, 'str': 'abc'}, {'int': 1, 'str': 'abc'})  # True
-objects_are_equal({'int': 1, 'str': 'abc'}, OrderedDict({'int': 1, 'str': 'abc'}))  # False
-objects_are_equal({'int': 1, 'str': 'abc'}, {'int': 1, 'str': 'abc', 'float': 0.2})  # False
-objects_are_equal({'int': 1, 'str': 'abc'}, {'int': 1, 'float': 0.2})  # False
-objects_are_equal({'int': 1, 'str': 'abc'}, {'int': 1, 'str': 'abcd'})  # False
+objects_are_equal({"int": 1, "str": "abc"}, {"int": 1, "str": "abc"})  # True
+objects_are_equal(
+    {"int": 1, "str": "abc"}, OrderedDict({"int": 1, "str": "abc"})
+)  # False
+objects_are_equal(
+    {"int": 1, "str": "abc"}, {"int": 1, "str": "abc", "float": 0.2}
+)  # False
+objects_are_equal({"int": 1, "str": "abc"}, {"int": 1, "float": 0.2})  # False
+objects_are_equal({"int": 1, "str": "abc"}, {"int": 1, "str": "abcd"})  # False
 ```
 
 ### `collections.abc.Sequence` | `list` | `tuple`
@@ -60,10 +64,10 @@ Two `Sequence`s are equal if:
 ```python
 from coola import objects_are_equal
 
-objects_are_equal([1, 2, 'abc'], [1, 2, 'abc'])  # True
-objects_are_equal([1, 2, 'abc'], (1, 2, 'abc'))  # False
-objects_are_equal([1, 2, 'abc'], [1, 2, 'abc', 4])  # False
-objects_are_equal([1, 2, 'abc'], [1, 2, 'abcd'])  # False
+objects_are_equal([1, 2, "abc"], [1, 2, "abc"])  # True
+objects_are_equal([1, 2, "abc"], (1, 2, "abc"))  # False
+objects_are_equal([1, 2, "abc"], [1, 2, "abc", 4])  # False
+objects_are_equal([1, 2, "abc"], [1, 2, "abcd"])  # False
 ```
 
 ### PyTorch
@@ -93,7 +97,7 @@ from coola import objects_are_equal
 
 objects_are_equal(torch.ones(2, 3), torch.ones(2, 3))  # True
 objects_are_equal(torch.ones(2, 3), torch.ones(2, 3, dtype=torch.long))  # False
-objects_are_equal(torch.ones(2, 3), torch.ones(2, 3, device='cuda'))  # False
+objects_are_equal(torch.ones(2, 3), torch.ones(2, 3, device="cuda"))  # False
 objects_are_equal(torch.ones(2, 3), torch.zeros(2, 3))  # False
 objects_are_equal(torch.ones(2, 3), torch.ones(6))  # False
 ```
@@ -194,8 +198,8 @@ By default, two objects are equal if:
 ```python
 from coola import objects_are_allclose
 
-objects_are_allclose('abc', 'abc')  # True
-objects_are_allclose('abc', 'abcd')  # False
+objects_are_allclose("abc", "abc")  # True
+objects_are_allclose("abc", "abcd")  # False
 ```
 
 ### Numbers: `bool` | `int` | `float`
@@ -250,13 +254,17 @@ from collections import OrderedDict
 
 from coola import objects_are_allclose
 
-objects_are_allclose({'int': 1, 'str': 'abc'}, {'int': 1, 'str': 'abc'})  # True
-objects_are_allclose({'int': 1, 'str': 'abc'}, {'int': 2, 'str': 'abc'}, atol=2)  # True
-objects_are_allclose({'int': 1, 'str': 'abc'}, {'int': 2, 'str': 'abc'}, rtol=1)  # True
-objects_are_allclose({'int': 1, 'str': 'abc'}, OrderedDict({'int': 1, 'str': 'abc'}))  # False
-objects_are_allclose({'int': 1, 'str': 'abc'}, {'int': 1, 'str': 'abc', 'float': 0.2})  # False
-objects_are_allclose({'int': 1, 'str': 'abc'}, {'int': 1, 'float': 0.2})  # False
-objects_are_allclose({'int': 1, 'str': 'abc'}, {'int': 1, 'str': 'abcd'})  # False
+objects_are_allclose({"int": 1, "str": "abc"}, {"int": 1, "str": "abc"})  # True
+objects_are_allclose({"int": 1, "str": "abc"}, {"int": 2, "str": "abc"}, atol=2)  # True
+objects_are_allclose({"int": 1, "str": "abc"}, {"int": 2, "str": "abc"}, rtol=1)  # True
+objects_are_allclose(
+    {"int": 1, "str": "abc"}, OrderedDict({"int": 1, "str": "abc"})
+)  # False
+objects_are_allclose(
+    {"int": 1, "str": "abc"}, {"int": 1, "str": "abc", "float": 0.2}
+)  # False
+objects_are_allclose({"int": 1, "str": "abc"}, {"int": 1, "float": 0.2})  # False
+objects_are_allclose({"int": 1, "str": "abc"}, {"int": 1, "str": "abcd"})  # False
 ```
 
 ### `collections.abc.Sequence` | `list` | `tuple`
@@ -273,12 +281,12 @@ Two `Sequence`s are equal within a tolerance if:
 ```python
 from coola import objects_are_allclose
 
-objects_are_allclose([1, 2, 'abc'], [1, 2, 'abc'])  # True
-objects_are_allclose([1, 2, 'abc'], [1, 3, 'abc'], atol=2)  # True
-objects_are_allclose([1, 2, 'abc'], [1, 3, 'abc'], rtol=1)  # True
-objects_are_allclose([1, 2, 'abc'], (1, 2, 'abc'))  # False
-objects_are_allclose([1, 2, 'abc'], [1, 2, 'abc', 4])  # False
-objects_are_allclose([1, 2, 'abc'], [1, 2, 'abcd'])  # False
+objects_are_allclose([1, 2, "abc"], [1, 2, "abc"])  # True
+objects_are_allclose([1, 2, "abc"], [1, 3, "abc"], atol=2)  # True
+objects_are_allclose([1, 2, "abc"], [1, 3, "abc"], rtol=1)  # True
+objects_are_allclose([1, 2, "abc"], (1, 2, "abc"))  # False
+objects_are_allclose([1, 2, "abc"], [1, 2, "abc", 4])  # False
+objects_are_allclose([1, 2, "abc"], [1, 2, "abcd"])  # False
 ```
 
 ### PyTorch
@@ -310,7 +318,7 @@ objects_are_allclose(torch.ones(2, 3), torch.ones(2, 3))  # True
 objects_are_allclose(torch.ones(2, 3), torch.ones(2, 3) + 1, atol=2)  # True
 objects_are_allclose(torch.ones(2, 3), torch.ones(2, 3) + 1, rtol=1)  # True
 objects_are_allclose(torch.ones(2, 3), torch.ones(2, 3, dtype=torch.long))  # False
-objects_are_allclose(torch.ones(2, 3), torch.ones(2, 3, device='cuda'))  # False
+objects_are_allclose(torch.ones(2, 3), torch.ones(2, 3, device="cuda"))  # False
 objects_are_allclose(torch.ones(2, 3), torch.zeros(2, 3))  # False
 objects_are_allclose(torch.ones(2, 3), torch.ones(6))  # False
 ```
