@@ -44,7 +44,7 @@
 
 ## Overview
 
-`coola` is a light Python library that provides simple functions to check in a single line if two
+`coola` is a Python library that provides simple functions to check in a single line if two
 complex/nested objects are equal or not.
 `coola` was initially designed to work
 with [PyTorch `Tensor`s](https://pytorch.org/docs/stable/tensors.html)
