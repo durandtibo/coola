@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use this library, please cite it as below."
+authors:
+- family-names: "Durand"
+  given-names: "Thibaut"
+
+title: "COOLA: A Python library to check if two complex/nested objects are equal or not."
+date-released: 2023-01-01
+url: "https://github.com/durandtibo/coola"
