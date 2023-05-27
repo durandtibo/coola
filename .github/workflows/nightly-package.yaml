@@ -65,7 +65,6 @@ jobs:
             "assert not coola.is_numpy_available()"
 
   package-pytorch:
-    needs: [package, package-minimal]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -103,7 +102,6 @@ jobs:
           python -c "import coola; import torch; assert coola.objects_are_equal(torch.arange(6), torch.arange(6))"
 
   package-numpy:
-    needs: [package, package-minimal]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
