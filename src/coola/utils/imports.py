@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = ["check_numpy", "check_torch", "is_numpy_available", "is_torch_available"]
 
 from importlib.util import find_spec

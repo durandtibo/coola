@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = [
     "AllCloseTester",
     "BaseAllCloseOperator",
@@ -13,7 +15,7 @@ import logging
 import math
 from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
-from typing import Any, Generic, Optional, TypeVar, Union
+from typing import Any, Generic, TypeVar, Union
 
 from coola.utils.format import str_dict, str_indent
 
@@ -89,7 +91,7 @@ def objects_are_allclose(
     atol: float = 1e-8,
     equal_nan: bool = False,
     show_difference: bool = False,
-    tester: Optional[BaseAllCloseTester] = None,
+    tester: BaseAllCloseTester | None = None,
 ) -> bool:
     r"""Indicates if two objects are equal within a tolerance.
 
@@ -262,7 +264,7 @@ class ScalarAllCloseOperator(BaseAllCloseOperator[Union[bool, int, float]]):
     def allclose(
         self,
         tester: BaseAllCloseTester,
-        object1: Union[bool, int, float],
+        object1: bool | int | float,
         object2: Any,
         rtol: float = 1e-5,
         atol: float = 1e-8,

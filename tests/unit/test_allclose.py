@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import logging
 from collections import OrderedDict
 from collections.abc import Mapping, Sequence
 from numbers import Number
-from typing import Any, Union
+from typing import Any
 from unittest.mock import Mock, patch
 
 from pytest import LogCaptureFixture, mark, raises
@@ -132,7 +134,7 @@ def test_objects_are_allclose_false_different_type() -> None:
     ),
 )
 def test_objects_are_allclose_scalar_true_float(
-    object1: Union[bool, int, float], object2: Union[bool, int, float]
+    object1: bool | int | float, object2: bool | int | float
 ) -> None:
     assert objects_are_allclose(object1, object2)
 
@@ -607,7 +609,7 @@ def test_scalar_allclose_operator_allclose_true_show_difference(caplog: LogCaptu
     ),
 )
 def test_scalar_allclose_operator_allclose_true_atol(
-    object1: Union[int, float], object2: Union[int, float], atol: float
+    object1: int | float, object2: int | float, atol: float
 ) -> None:
     assert ScalarAllCloseOperator().allclose(
         AllCloseTester(), object1, object2, atol=atol, rtol=0.0
@@ -627,7 +629,7 @@ def test_scalar_allclose_operator_allclose_true_atol(
     ),
 )
 def test_scalar_allclose_operator_allclose_true_rtol(
-    object1: Union[int, float], object2: Union[int, float], rtol: float
+    object1: int | float, object2: int | float, rtol: float
 ) -> None:
     assert ScalarAllCloseOperator().allclose(
         AllCloseTester(), object1, object2, atol=0.0, rtol=rtol
@@ -650,7 +652,7 @@ def test_scalar_allclose_operator_allclose_true_rtol(
     ),
 )
 def test_scalar_allclose_operator_allclose_false_different_value(
-    object1: Union[bool, int, float], object2: Union[bool, int, float]
+    object1: bool | int | float, object2: bool | int | float
 ) -> None:
     assert not ScalarAllCloseOperator().allclose(AllCloseTester(), object1, object2, rtol=0.0)
 
@@ -665,14 +667,14 @@ def test_scalar_allclose_operator_allclose_false_different_value_show_difference
 
 @mark.parametrize("object1,object2", ((1.0, 1), (1.0, True), (1, True), (1, "1")))
 def test_scalar_allclose_operator_allclose_false_incorrect_type(
-    object1: Union[bool, int, float], object2: Any
+    object1: bool | int | float, object2: Any
 ) -> None:
     assert not ScalarAllCloseOperator().allclose(AllCloseTester(), object1, object2)
 
 
 @mark.parametrize("object1,object2", ((1.0, 1), (1.0, True), (1, True), (1, "1")))
 def test_scalar_allclose_operator_allclose_false_incorrect_type_show_difference(
-    caplog: LogCaptureFixture, object1: Union[bool, int, float], object2: Any
+    caplog: LogCaptureFixture, object1: bool | int | float, object2: Any
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not ScalarAllCloseOperator().allclose(

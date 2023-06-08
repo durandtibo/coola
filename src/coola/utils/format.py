@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = ["str_dict", "str_indent"]
 
 from typing import Any
