@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from collections import OrderedDict
 from collections.abc import Callable
 from functools import partial
-from typing import Any, Union
+from typing import Any
 from unittest.mock import Mock
 
 from pytest import mark
@@ -63,8 +65,8 @@ def test_consistency_equal_complex_object(equal_fn: Callable[[Any, Any], bool]) 
 @mark.parametrize("value1,value2", ((True, True), (1, 1), (1.0, 1.0)))
 def test_consistency_equal_float_true(
     equal_fn: Callable[[Any, Any], bool],
-    value1: Union[bool, int, float],
-    value2: Union[bool, int, float],
+    value1: bool | int | float,
+    value2: bool | int | float,
 ) -> None:
     assert equal_fn(value1, value2)
 
@@ -72,7 +74,7 @@ def test_consistency_equal_float_true(
 @mark.parametrize("equal_fn", EQUAL_FUNCTIONS)
 @mark.parametrize("value", (True, 1, 2.0))
 def test_consistency_equal_float_false(
-    equal_fn: Callable[[Any, Any], bool], value: Union[bool, int, float]
+    equal_fn: Callable[[Any, Any], bool], value: bool | int | float
 ) -> None:
     assert not equal_fn(1.0, value)
 
@@ -81,7 +83,7 @@ def test_consistency_equal_float_false(
 @mark.parametrize("value", (True, 1, 1.0, float("NaN")))
 def test_consistency_equal_scalar_false_nan(
     equal_fn: Callable[[Any, Any], bool],
-    value: Union[bool, int, float],
+    value: bool | int | float,
 ) -> None:
     assert not equal_fn(float("NaN"), value)
 

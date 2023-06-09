@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pytest import raises
 
 from coola.utils.format import str_dict, str_indent

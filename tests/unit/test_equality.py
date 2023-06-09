@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import logging
 from collections import OrderedDict
 from collections.abc import Mapping, Sequence
-from typing import Any, Union
+from typing import Any
 from unittest.mock import Mock, patch
 
 from pytest import LogCaptureFixture, mark, raises
@@ -126,7 +128,7 @@ def test_objects_are_equal_false_different_type() -> None:
     ),
 )
 def test_objects_are_equal_scalar_true(
-    object1: Union[bool, int, float], object2: Union[bool, int, float]
+    object1: bool | int | float, object2: bool | int | float
 ) -> None:
     assert objects_are_equal(object1, object2)
 
@@ -143,7 +145,7 @@ def test_objects_are_equal_scalar_true(
     ),
 )
 def test_objects_are_equal_scalar_false(
-    object1: Union[bool, int, float], object2: Union[bool, int, float]
+    object1: bool | int | float, object2: bool | int | float
 ) -> None:
     assert not objects_are_equal(object1, object2)
 
@@ -292,7 +294,7 @@ def test_default_equality_operator_str() -> None:
     ),
 )
 def test_default_equality_operator_equal_true_scalar(
-    object1: Union[bool, int, float], object2: Union[bool, int, float]
+    object1: bool | int | float, object2: bool | int | float
 ) -> None:
     assert DefaultEqualityOperator().equal(EqualityTester(), object1, object2)
 
@@ -309,7 +311,7 @@ def test_default_equality_operator_equal_true_scalar(
     ),
 )
 def test_default_equality_operator_equal_false_scalar(
-    object1: Union[bool, int, float], object2: Union[bool, int, float]
+    object1: bool | int | float, object2: bool | int | float
 ) -> None:
     assert not DefaultEqualityOperator().equal(EqualityTester(), object1, object2)
 

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = [
     "BaseEqualityOperator",
     "BaseEqualityTester",
@@ -11,7 +13,7 @@ __all__ = [
 import logging
 from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
-from typing import Any, Generic, Optional, TypeVar
+from typing import Any, Generic, TypeVar
 
 from coola.utils.format import str_dict, str_indent
 
@@ -60,7 +62,7 @@ def objects_are_equal(
     object1: Any,
     object2: Any,
     show_difference: bool = False,
-    tester: Optional[BaseEqualityTester] = None,
+    tester: BaseEqualityTester | None = None,
 ) -> bool:
     r"""Indicates if two objects are equal or not.
 
