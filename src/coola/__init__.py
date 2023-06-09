@@ -23,8 +23,8 @@ from coola.equality import (
 )
 from coola.utils.imports import is_numpy_available, is_torch_available
 
-if is_numpy_available():
+if is_numpy_available():  # pragma: no cover
     from coola import ndarray  # noqa: F401
 
-if is_torch_available():
+if is_torch_available():  # pragma: no cover
     from coola import pytorch  # noqa: F401
