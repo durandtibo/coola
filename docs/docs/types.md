@@ -181,6 +181,87 @@ objects_are_equal(numpy.ones((2, 3)), numpy.zeros((2, 3)))  # False
 objects_are_equal(numpy.ones((2, 3)), numpy.ones((6,)))  # False
 ```
 
+### xarray
+
+You need to install `coola` with PyTorch to check if some xarray objects are equal or not. Please
+check the [get started page](get_started.md) for more information. `coola` currently support the
+following xarray objects:
+
+- `xarray.DataArray`
+- `xarray.Dataset`
+
+#### `xarray.DataArray`
+
+Two xarray `DataArray`s are equal if `xarray.DataArray.identical` returns `True`.
+In contrast to the standard usage in numpy, NaNs are compared like numbers, two `DataArray`s are
+equal if both objects have NaNs in the same positions.
+
+```python
+import numpy as np
+import xarray as xr
+
+from coola import objects_are_equal
+
+objects_are_equal(
+    xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"])
+)  # True
+objects_are_equal(
+    xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.zeros(6), dims=["z"])
+)  # False
+```
+
+#### `xarray.Dataset`
+
+Two xarray `Dataset`s are equal if `xarray.Dataset.identical` returns `True`.
+In contrast to the standard usage in numpy, NaNs are compared like numbers, two `Dataset`s are equal
+if both objects have NaNs in the same positions.
+
+```python
+import numpy as np
+import xarray as xr
+
+from coola import objects_are_equal
+
+ds1 = xr.Dataset(
+    {
+        "x": xr.DataArray(
+            np.arange(6),
+            dims=["z"],
+        ),
+        "y": xr.DataArray(
+            np.ones((6, 3)),
+            dims=["z", "t"],
+        ),
+    },
+    coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
+)
+ds2 = xr.Dataset(
+    {
+        "x": xr.DataArray(
+            np.arange(6),
+            dims=["z"],
+        ),
+        "y": xr.DataArray(
+            np.ones((6, 3)),
+            dims=["z", "t"],
+        ),
+    },
+    coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
+)
+ds3 = xr.Dataset(
+    {
+        "x": xr.DataArray(
+            np.arange(6),
+            dims=["z"],
+        ),
+    },
+    coords={"z": np.arange(6) + 1},
+)
+
+objects_are_equal(ds1, ds2)  # True
+objects_are_equal(ds1, ds3)  # False
+```
+
 ## Equal within a tolerance (allclose)
 
 ### `object`
