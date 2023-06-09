@@ -31,8 +31,11 @@ jobs:
       - name: Run short experiment
         run: |
           python -c "import coola; import torch; import numpy; " \
+            "assert coola.is_torch_available(); " \
+            "assert coola.is_xarray_available(); " \
+            "assert coola.is_numpy_available(); " \
             "assert coola.objects_are_equal(torch.arange(6), torch.arange(6)); " \
-            "assert coola.objects_are_equal(numpy.arange(6), numpy.arange(6))"
+            "assert coola.objects_are_equal(numpy.arange(6), numpy.arange(6)); "
 
   package-minimal:
     runs-on: ${{ matrix.os }}
@@ -62,6 +65,7 @@ jobs:
           python -c "import coola; " \
             "assert coola.objects_are_equal(1.0, 1.0); " \
             "assert not coola.is_torch_available(); " \
+            "assert not coola.is_xarray_available(); " \
             "assert not coola.is_numpy_available()"
 
   package-pytorch:
