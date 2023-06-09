@@ -41,21 +41,27 @@ def test_equality_tester_str() -> None:
     assert str(EqualityTester()).startswith("EqualityTester(")
 
 
-@numpy_available
-@torch_available
 def test_equality_tester_registry_default() -> None:
-    assert len(EqualityTester.registry) == 9
+    assert len(EqualityTester.registry) >= 6
     assert isinstance(EqualityTester.registry[Mapping], MappingEqualityOperator)
     assert isinstance(EqualityTester.registry[Sequence], SequenceEqualityOperator)
     assert isinstance(EqualityTester.registry[dict], MappingEqualityOperator)
     assert isinstance(EqualityTester.registry[list], SequenceEqualityOperator)
-    assert isinstance(EqualityTester.registry[np.ndarray], NDArrayEqualityOperator)
     assert isinstance(EqualityTester.registry[object], DefaultEqualityOperator)
+    assert isinstance(EqualityTester.registry[tuple], SequenceEqualityOperator)
+
+
+@numpy_available
+def test_equality_tester_registry_numpy() -> None:
+    assert isinstance(EqualityTester.registry[np.ndarray], NDArrayEqualityOperator)
+
+
+@torch_available
+def test_equality_tester_registry_torch() -> None:
     assert isinstance(EqualityTester.registry[torch.Tensor], TensorEqualityOperator)
     assert isinstance(
         EqualityTester.registry[torch.nn.utils.rnn.PackedSequence], PackedSequenceEqualityOperator
     )
-    assert isinstance(EqualityTester.registry[tuple], SequenceEqualityOperator)
 
 
 @patch.dict(EqualityTester.registry, {}, clear=True)
