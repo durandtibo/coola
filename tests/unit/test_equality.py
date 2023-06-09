@@ -9,6 +9,8 @@ from unittest.mock import Mock, patch
 from pytest import LogCaptureFixture, mark, raises
 
 from coola import is_numpy_available, is_torch_available
+from coola._numpy import NDArrayEqualityOperator
+from coola._torch import PackedSequenceEqualityOperator, TensorEqualityOperator
 from coola.equality import (
     BaseEqualityOperator,
     DefaultEqualityOperator,
@@ -17,8 +19,6 @@ from coola.equality import (
     SequenceEqualityOperator,
     objects_are_equal,
 )
-from coola.ndarray import NDArrayEqualityOperator
-from coola.pytorch import PackedSequenceEqualityOperator, TensorEqualityOperator
 from coola.testing import numpy_available, torch_available
 
 if is_numpy_available():

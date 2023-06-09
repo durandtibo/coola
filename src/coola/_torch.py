@@ -18,7 +18,7 @@ if is_torch_available():
     from torch import Tensor, is_tensor
     from torch.nn.utils.rnn import PackedSequence
 else:
-    PackedSequence, Tensor, is_tensor = None, None, None  # pragma: no cover
+    PackedSequence, Tensor = None, None  # pragma: no cover
 
 logger = logging.getLogger(__name__)
 
