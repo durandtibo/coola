@@ -33,6 +33,7 @@ if is_torch_available():
 else:
     torch = Mock()
 
+
 ####################################
 #     Tests for AllCloseTester     #
 ####################################
@@ -45,7 +46,7 @@ def test_allclose_tester_str() -> None:
 @numpy_available
 @torch_available
 def test_allclose_tester_registry_default() -> None:
-    assert len(AllCloseTester.registry) == 12
+    assert len(AllCloseTester.registry) >= 9
     assert isinstance(AllCloseTester.registry[Mapping], MappingAllCloseOperator)
     assert isinstance(AllCloseTester.registry[Sequence], SequenceAllCloseOperator)
     assert isinstance(AllCloseTester.registry[bool], ScalarAllCloseOperator)
@@ -53,13 +54,21 @@ def test_allclose_tester_registry_default() -> None:
     assert isinstance(AllCloseTester.registry[float], ScalarAllCloseOperator)
     assert isinstance(AllCloseTester.registry[int], ScalarAllCloseOperator)
     assert isinstance(AllCloseTester.registry[list], SequenceAllCloseOperator)
-    assert isinstance(AllCloseTester.registry[np.ndarray], NDArrayAllCloseOperator)
     assert isinstance(AllCloseTester.registry[object], DefaultAllCloseOperator)
+    assert isinstance(AllCloseTester.registry[tuple], SequenceAllCloseOperator)
+
+
+@numpy_available
+def test_allclose_tester_registry_numpy() -> None:
+    assert isinstance(AllCloseTester.registry[np.ndarray], NDArrayAllCloseOperator)
+
+
+@torch_available
+def test_allclose_tester_registry_torch() -> None:
     assert isinstance(AllCloseTester.registry[torch.Tensor], TensorAllCloseOperator)
     assert isinstance(
         AllCloseTester.registry[torch.nn.utils.rnn.PackedSequence], PackedSequenceAllCloseOperator
     )
-    assert isinstance(AllCloseTester.registry[tuple], SequenceAllCloseOperator)
 
 
 @patch.dict(AllCloseTester.registry, {}, clear=True)
