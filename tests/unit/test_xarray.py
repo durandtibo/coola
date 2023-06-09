@@ -29,7 +29,7 @@ def test_equality_tester_registry() -> None:
 @xarray_available
 def test_objects_are_equal_data_array() -> None:
     assert objects_are_equal(
-        xr.DataArray(data=np.arange(6), dims=["z"]), xr.DataArray(data=np.arange(6), dims=["z"])
+        xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"])
     )
 
 
@@ -52,8 +52,8 @@ def test_data_array_equality_operator_str() -> None:
 def test_data_array_equality_operator_equal_true() -> None:
     assert DataArrayEqualityOperator().equal(
         EqualityTester(),
-        xr.DataArray(data=np.arange(6), dims=["z"]),
-        xr.DataArray(data=np.arange(6), dims=["z"]),
+        xr.DataArray(np.arange(6), dims=["z"]),
+        xr.DataArray(np.arange(6), dims=["z"]),
     )
 
 
@@ -64,8 +64,8 @@ def test_data_array_equality_operator_equal_true_show_difference(
     with caplog.at_level(logging.INFO):
         assert DataArrayEqualityOperator().equal(
             EqualityTester(),
-            xr.DataArray(data=np.arange(6), dims=["z"]),
-            xr.DataArray(data=np.arange(6), dims=["z"]),
+            xr.DataArray(np.arange(6), dims=["z"]),
+            xr.DataArray(np.arange(6), dims=["z"]),
             show_difference=True,
         )
         assert not caplog.messages
@@ -75,8 +75,8 @@ def test_data_array_equality_operator_equal_true_show_difference(
 def test_data_array_equality_operator_equal_false_different_data() -> None:
     assert not DataArrayEqualityOperator().equal(
         EqualityTester(),
-        xr.DataArray(data=np.arange(6), dims=["z"]),
-        xr.DataArray(data=np.arange(6) + 1, dims=["z"]),
+        xr.DataArray(np.arange(6), dims=["z"]),
+        xr.DataArray(np.arange(6) + 1, dims=["z"]),
     )
 
 
@@ -87,8 +87,8 @@ def test_data_array_equality_operator_equal_false_different_data_show_difference
     with caplog.at_level(logging.INFO):
         assert not DataArrayEqualityOperator().equal(
             EqualityTester(),
-            xr.DataArray(data=np.arange(6), dims=["z"]),
-            xr.DataArray(data=np.arange(6) + 1, dims=["z"]),
+            xr.DataArray(np.arange(6), dims=["z"]),
+            xr.DataArray(np.arange(6) + 1, dims=["z"]),
             show_difference=True,
         )
         assert caplog.messages[0].startswith("xarray.DataArrays are different")
@@ -98,8 +98,8 @@ def test_data_array_equality_operator_equal_false_different_data_show_difference
 def test_data_array_equality_operator_equal_false_different_dims() -> None:
     assert not DataArrayEqualityOperator().equal(
         EqualityTester(),
-        xr.DataArray(data=np.arange(6), dims=["z"]),
-        xr.DataArray(data=np.arange(6), dims=["x"]),
+        xr.DataArray(np.arange(6), dims=["z"]),
+        xr.DataArray(np.arange(6), dims=["x"]),
     )
 
 
@@ -110,8 +110,8 @@ def test_data_array_equality_operator_equal_false_different_dims_show_difference
     with caplog.at_level(logging.INFO):
         assert not DataArrayEqualityOperator().equal(
             EqualityTester(),
-            xr.DataArray(data=np.arange(6), dims=["z"]),
-            xr.DataArray(data=np.arange(6), dims=["x"]),
+            xr.DataArray(np.arange(6), dims=["z"]),
+            xr.DataArray(np.arange(6), dims=["x"]),
             show_difference=True,
         )
         assert caplog.messages[0].startswith("xarray.DataArrays are different")
@@ -121,8 +121,8 @@ def test_data_array_equality_operator_equal_false_different_dims_show_difference
 def test_data_array_equality_operator_equal_false_different_coords() -> None:
     assert not DataArrayEqualityOperator().equal(
         EqualityTester(),
-        xr.DataArray(data=np.arange(6), dims=["z"], coords={"z": ["A", "B", "C", "D", "E", "F"]}),
-        xr.DataArray(data=np.arange(6), dims=["z"], coords={"z": ["1", "2", "3", "4", "5", "6"]}),
+        xr.DataArray(np.arange(6), dims=["z"], coords={"z": ["A", "B", "C", "D", "E", "F"]}),
+        xr.DataArray(np.arange(6), dims=["z"], coords={"z": ["1", "2", "3", "4", "5", "6"]}),
     )
 
 
@@ -133,12 +133,8 @@ def test_data_array_equality_operator_equal_false_different_coords_show_differen
     with caplog.at_level(logging.INFO):
         assert not DataArrayEqualityOperator().equal(
             EqualityTester(),
-            xr.DataArray(
-                data=np.arange(6), dims=["z"], coords={"z": ["A", "B", "C", "D", "E", "F"]}
-            ),
-            xr.DataArray(
-                data=np.arange(6), dims=["z"], coords={"z": ["1", "2", "3", "4", "5", "6"]}
-            ),
+            xr.DataArray(np.arange(6), dims=["z"], coords={"z": ["A", "B", "C", "D", "E", "F"]}),
+            xr.DataArray(np.arange(6), dims=["z"], coords={"z": ["1", "2", "3", "4", "5", "6"]}),
             show_difference=True,
         )
         assert caplog.messages[0].startswith("xarray.DataArrays are different")
@@ -148,8 +144,8 @@ def test_data_array_equality_operator_equal_false_different_coords_show_differen
 def test_data_array_equality_operator_equal_false_different_attrs() -> None:
     assert not DataArrayEqualityOperator().equal(
         EqualityTester(),
-        xr.DataArray(data=np.arange(6), dims=["z"], attrs={"global": "meow"}),
-        xr.DataArray(data=np.arange(6), dims=["z"], attrs={"global": "meoowww"}),
+        xr.DataArray(np.arange(6), dims=["z"], attrs={"global": "meow"}),
+        xr.DataArray(np.arange(6), dims=["z"], attrs={"global": "meoowww"}),
     )
 
 
@@ -160,8 +156,8 @@ def test_data_array_equality_operator_equal_false_different_attrs_show_differenc
     with caplog.at_level(logging.INFO):
         assert not DataArrayEqualityOperator().equal(
             EqualityTester(),
-            xr.DataArray(data=np.arange(6), dims=["z"], attrs={"global": "meow"}),
-            xr.DataArray(data=np.arange(6), dims=["z"], attrs={"global": "meoowww"}),
+            xr.DataArray(np.arange(6), dims=["z"], attrs={"global": "meow"}),
+            xr.DataArray(np.arange(6), dims=["z"], attrs={"global": "meoowww"}),
             show_difference=True,
         )
         assert caplog.messages[0].startswith("xarray.DataArrays are different")
@@ -171,7 +167,7 @@ def test_data_array_equality_operator_equal_false_different_attrs_show_differenc
 def test_data_array_equality_operator_equal_false_different_type() -> None:
     assert not DataArrayEqualityOperator().equal(
         EqualityTester(),
-        xr.DataArray(data=np.arange(6), dims=["z"]),
+        xr.DataArray(np.arange(6), dims=["z"]),
         np.arange(6),
     )
 
@@ -183,7 +179,7 @@ def test_data_array_equality_operator_equal_false_different_dtype_show_differenc
     with caplog.at_level(logging.INFO):
         assert not DataArrayEqualityOperator().equal(
             EqualityTester(),
-            xr.DataArray(data=np.arange(6), dims=["z"]),
+            xr.DataArray(np.arange(6), dims=["z"]),
             np.arange(6),
             show_difference=True,
         )
@@ -199,11 +195,11 @@ def create_dataset() -> xr.Dataset:
     return xr.Dataset(
         {
             "x": xr.DataArray(
-                data=np.arange(6),
+                np.arange(6),
                 dims=["z"],
             ),
             "y": xr.DataArray(
-                data=np.ones((6, 3)),
+                np.ones((6, 3)),
                 dims=["z", "t"],
             ),
         },
@@ -238,7 +234,7 @@ def test_dataset_equality_operator_equal_false_different_data() -> None:
     ds = xr.Dataset(
         {
             "x": xr.DataArray(
-                data=np.arange(6),
+                np.arange(6),
                 dims=["z"],
             ),
         },
@@ -255,7 +251,7 @@ def test_dataset_equality_operator_equal_false_different_data_show_difference(
     ds = xr.Dataset(
         {
             "x": xr.DataArray(
-                data=np.arange(6),
+                np.arange(6),
                 dims=["z"],
             ),
         },
@@ -274,11 +270,11 @@ def test_dataset_equality_operator_equal_false_different_coords() -> None:
     ds = xr.Dataset(
         {
             "x": xr.DataArray(
-                data=np.arange(6),
+                np.arange(6),
                 dims=["z"],
             ),
             "y": xr.DataArray(
-                data=np.ones((6, 3)),
+                np.ones((6, 3)),
                 dims=["z", "t"],
             ),
         },
@@ -295,11 +291,11 @@ def test_dataset_equality_operator_equal_false_different_coords_show_difference(
     ds = xr.Dataset(
         {
             "x": xr.DataArray(
-                data=np.arange(6),
+                np.arange(6),
                 dims=["z"],
             ),
             "y": xr.DataArray(
-                data=np.ones((6, 3)),
+                np.ones((6, 3)),
                 dims=["z", "t"],
             ),
         },
@@ -318,11 +314,11 @@ def test_dataset_equality_operator_equal_false_different_attrs() -> None:
     ds = xr.Dataset(
         {
             "x": xr.DataArray(
-                data=np.arange(6),
+                np.arange(6),
                 dims=["z"],
             ),
             "y": xr.DataArray(
-                data=np.ones((6, 3)),
+                np.ones((6, 3)),
                 dims=["z", "t"],
             ),
         },
@@ -339,11 +335,11 @@ def test_dataset_equality_operator_equal_false_different_attrs_show_difference(
     ds = xr.Dataset(
         {
             "x": xr.DataArray(
-                data=np.arange(6),
+                np.arange(6),
                 dims=["z"],
             ),
             "y": xr.DataArray(
-                data=np.ones((6, 3)),
+                np.ones((6, 3)),
                 dims=["z", "t"],
             ),
         },

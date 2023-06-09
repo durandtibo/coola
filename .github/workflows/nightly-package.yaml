@@ -135,3 +135,32 @@ jobs:
       - name: Run short experiment
         run: |
           python -c "import coola; import numpy; assert coola.objects_are_equal(numpy.arange(6), numpy.arange(6))"
+
+  package-xarray:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ '3.9', '3.10', '3.11' ]
+        xarray-version: [ 2023.5.0, 2023.4.0, 2023.3.0, 2023.2.0, 2023.1.0, 2022.12.0, 2022.11.0, 2022.10.0, 2022.9.0, 2022.6.0, 2022.3.0 ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package
+        run: |
+          pip install coola xarray==${{ matrix.xarray-version }}
+
+      - name: Run short experiment
+        run: |
+          python -c "import coola; import xarray as xr; import numpy as np; " \
+            "assert coola.objects_are_equal(xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"]))"
