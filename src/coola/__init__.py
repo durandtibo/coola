@@ -27,11 +27,14 @@ from coola.utils.imports import (
     is_xarray_available,
 )
 
+# Register NumPy comparators
 if is_numpy_available():  # pragma: no cover
-    from coola import ndarray  # noqa: F401
+    from coola import _numpy  # noqa: F401
 
+# Register PyTorch comparators
 if is_torch_available():  # pragma: no cover
-    from coola import pytorch  # noqa: F401
+    from coola import _torch  # noqa: F401
 
+# Register xarray comparators
 if is_xarray_available():  # pragma: no cover
-    from coola import xr  # noqa: F401
+    from coola import _xarray  # noqa: F401

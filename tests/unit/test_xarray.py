@@ -6,15 +6,13 @@ from unittest.mock import Mock
 from pytest import LogCaptureFixture
 
 from coola import is_numpy_available
+from coola._xarray import XarrayDataArrayEqualityOperator, XarrayDatasetEqualityOperator
 from coola.equality import EqualityTester, objects_are_equal
 from coola.testing import xarray_available
 from coola.utils.imports import is_xarray_available
-from coola.xr import XarrayDataArrayEqualityOperator, XarrayDatasetEqualityOperator
 
 if is_numpy_available():
     import numpy as np
-else:
-    np = Mock()
 
 if is_xarray_available():
     import xarray as xr
