@@ -21,7 +21,7 @@ if is_numpy_available():
 if is_xarray_available():
     import xarray as xr
 else:
-    xarray = Mock()
+    xr = Mock()
 
 
 @xarray_available
