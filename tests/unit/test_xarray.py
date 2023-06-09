@@ -17,6 +17,8 @@ from coola.utils.imports import is_xarray_available
 
 if is_numpy_available():
     import numpy as np
+else:
+    np = Mock()
 
 if is_xarray_available():
     import xarray as xr
