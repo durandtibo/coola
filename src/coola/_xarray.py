@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__all__ = ["XarrayDataArrayEqualityOperator", "XarrayDatasetEqualityOperator"]
+__all__ = ["DataArrayEqualityOperator", "DatasetEqualityOperator"]
 
 import logging
 from typing import Any
@@ -16,7 +16,7 @@ else:
 logger = logging.getLogger(__name__)
 
 
-class XarrayDataArrayEqualityOperator(BaseEqualityOperator[DataArray]):
+class DataArrayEqualityOperator(BaseEqualityOperator[DataArray]):
     r"""Implements an equality operator for ``xarray.DataArray``."""
 
     def __init__(self) -> None:
@@ -41,7 +41,7 @@ class XarrayDataArrayEqualityOperator(BaseEqualityOperator[DataArray]):
         return object_equal
 
 
-class XarrayDatasetEqualityOperator(BaseEqualityOperator[Dataset]):
+class DatasetEqualityOperator(BaseEqualityOperator[Dataset]):
     r"""Implements an equality operator for ``xarray.Dataset``."""
 
     def __init__(self) -> None:
@@ -66,6 +66,6 @@ class XarrayDatasetEqualityOperator(BaseEqualityOperator[Dataset]):
 
 if is_xarray_available():  # pragma: no cover
     if not EqualityTester.has_equality_operator(DataArray):
-        EqualityTester.add_equality_operator(DataArray, XarrayDataArrayEqualityOperator())
+        EqualityTester.add_equality_operator(DataArray, DataArrayEqualityOperator())
     if not EqualityTester.has_equality_operator(Dataset):
-        EqualityTester.add_equality_operator(Dataset, XarrayDatasetEqualityOperator())
+        EqualityTester.add_equality_operator(Dataset, DatasetEqualityOperator())
