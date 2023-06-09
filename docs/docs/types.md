@@ -192,9 +192,17 @@ following xarray objects:
 
 #### `xarray.DataArray`
 
-Two xarray `DataArray`s are equal if `xarray.DataArray.identical` returns `True`.
-In contrast to the standard usage in numpy, NaNs are compared like numbers, two `DataArray`s are
-equal if both objects have NaNs in the same positions.
+Two xarray `DataArray`s are equal if:
+
+- they have the same data values (attribute `data`)
+- they have the same name (attribute `name`)
+- they have the same dimension names (attribute `dims`)
+- they have the same coordinates (attribute `coords`)
+- they have the same metadata (attribute `attrs`)
+
+Unlike `xarray.DataArray.identical`, two `DataArray`s are not equal if both objects have NaNs in the
+same positions to follow the standard usage in numpy.
+You can use `objects_are_allclose` to compare objects with NaNs.
 
 ```python
 import numpy as np
