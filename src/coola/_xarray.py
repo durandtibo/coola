@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-__all__ = ["XarrayDataArrayEqualityOperator", "XarrayDatasetEqualityOperator"]
-
 import logging
 from typing import Any
 
@@ -16,8 +14,13 @@ else:
 logger = logging.getLogger(__name__)
 
 
-class XarrayDataArrayEqualityOperator(BaseEqualityOperator[DataArray]):
-    r"""Implements an equality operator for ``xarray.DataArray``."""
+class DataArrayEqualityOperator(BaseEqualityOperator[DataArray]):
+    r"""Implements an equality operator for ``xarray.DataArray``.
+
+    In contrast to the standard usage in numpy, NaNs are compared
+    like numbers, no assertion is raised if both objects have NaNs
+    in the same positions.
+    """
 
     def __init__(self) -> None:
         check_xarray()
@@ -41,8 +44,13 @@ class XarrayDataArrayEqualityOperator(BaseEqualityOperator[DataArray]):
         return object_equal
 
 
-class XarrayDatasetEqualityOperator(BaseEqualityOperator[Dataset]):
-    r"""Implements an equality operator for ``xarray.Dataset``."""
+class DatasetEqualityOperator(BaseEqualityOperator[Dataset]):
+    r"""Implements an equality operator for ``xarray.Dataset``.
+
+    In contrast to the standard usage in numpy, NaNs are compared
+    like numbers, no assertion is raised if both objects have NaNs
+    in the same positions.
+    """
 
     def __init__(self) -> None:
         check_xarray()
@@ -66,6 +74,6 @@ class XarrayDatasetEqualityOperator(BaseEqualityOperator[Dataset]):
 
 if is_xarray_available():  # pragma: no cover
     if not EqualityTester.has_equality_operator(DataArray):
-        EqualityTester.add_equality_operator(DataArray, XarrayDataArrayEqualityOperator())
+        EqualityTester.add_equality_operator(DataArray, DataArrayEqualityOperator())
     if not EqualityTester.has_equality_operator(Dataset):
-        EqualityTester.add_equality_operator(Dataset, XarrayDatasetEqualityOperator())
+        EqualityTester.add_equality_operator(Dataset, DatasetEqualityOperator())
