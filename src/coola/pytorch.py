@@ -201,7 +201,7 @@ class TensorEqualityOperator(BaseEqualityOperator[Tensor]):
         return object_equal
 
 
-if is_torch_available():
+if is_torch_available():  # pragma: no cover
     if not AllCloseTester.has_allclose_operator(PackedSequence):
         AllCloseTester.add_allclose_operator(PackedSequence, PackedSequenceAllCloseOperator())
     if not AllCloseTester.has_allclose_operator(Tensor):
