@@ -506,3 +506,41 @@ objects_are_allclose(numpy.ones((2, 3)), numpy.ones((2, 3), dtype=int))  # False
 objects_are_allclose(numpy.ones((2, 3)), numpy.zeros((2, 3)))  # False
 objects_are_allclose(numpy.ones((2, 3)), numpy.ones((6,)))  # False
 ```
+
+
+### xarray
+
+You need to install `coola` with PyTorch to check if some xarray objects are equal or not. Please
+check the [get started page](get_started.md) for more information. `coola` currently support the
+following xarray objects:
+
+- `xarray.DataArray`
+- `xarray.Dataset`
+
+#### `xarray.DataArray`
+
+Two xarray `DataArray`s are equal within a tolerance if:
+
+- they have the same data values within the tolerance (attribute `data`)
+- they have the same name (attribute `name`)
+- they have the same dimension names (attribute `dims`)
+- they have the same coordinates (attribute `coords`)
+- they have the same metadata (attribute `attrs`)
+
+Unlike `xarray.DataArray.identical`, two `DataArray`s are not equal if both objects have NaNs in the
+same positions to follow the standard usage in numpy.
+You can use `objects_are_allclose` to compare objects with NaNs.
+
+```python
+import numpy as np
+import xarray as xr
+
+from coola import objects_are_allclose
+
+objects_are_allclose(
+    xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"])
+)  # True
+objects_are_allclose(
+    xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.zeros(6), dims=["z"])
+)  # False
+```
