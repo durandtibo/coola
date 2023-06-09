@@ -15,7 +15,12 @@ logger = logging.getLogger(__name__)
 
 
 class DataArrayEqualityOperator(BaseEqualityOperator[DataArray]):
-    r"""Implements an equality operator for ``xarray.DataArray``."""
+    r"""Implements an equality operator for ``xarray.DataArray``.
+
+    In contrast to the standard usage in numpy, NaNs are compared
+    like numbers, no assertion is raised if both objects have NaNs
+    in the same positions.
+    """
 
     def __init__(self) -> None:
         check_xarray()
@@ -40,7 +45,12 @@ class DataArrayEqualityOperator(BaseEqualityOperator[DataArray]):
 
 
 class DatasetEqualityOperator(BaseEqualityOperator[Dataset]):
-    r"""Implements an equality operator for ``xarray.Dataset``."""
+    r"""Implements an equality operator for ``xarray.Dataset``.
+
+    In contrast to the standard usage in numpy, NaNs are compared
+    like numbers, no assertion is raised if both objects have NaNs
+    in the same positions.
+    """
 
     def __init__(self) -> None:
         check_xarray()
