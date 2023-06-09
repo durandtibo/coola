@@ -1,0 +1,44 @@
+from __future__ import annotations
+
+__all__ = ["XarrayDatasetEqualityOperator"]
+
+import logging
+from typing import Any
+
+from coola.equality import BaseEqualityOperator, BaseEqualityTester, EqualityTester
+from coola.utils.imports import check_xarray, is_xarray_available
+
+if is_xarray_available():
+    from xarray import Dataset
+else:
+    Dataset = None  # pragma: no cover
+
+logger = logging.getLogger(__name__)
+
+
+class XarrayDatasetEqualityOperator(BaseEqualityOperator[Dataset]):
+    r"""Implements an equality operator for ``xarray.Dataset``."""
+
+    def __init__(self) -> None:
+        check_xarray()
+
+    def equal(
+        self,
+        tester: BaseEqualityTester,
+        object1: Dataset,
+        object2: Any,
+        show_difference: bool = False,
+    ) -> bool:
+        if not isinstance(object2, Dataset):
+            if show_difference:
+                logger.info(f"object2 is not a xarray.Dataset: {type(object2)}")
+            return False
+        object_equal = object1.identical(object2)
+        if show_difference and not object_equal:
+            logger.info(f"xarray.ndarrays are different\nobject1=\n{object1}\nobject2=\n{object2}")
+        return object_equal
+
+
+if is_xarray_available():  # pragma: no cover
+    if not EqualityTester.has_equality_operator(Dataset):
+        EqualityTester.add_equality_operator(Dataset, XarrayDatasetEqualityOperator())
