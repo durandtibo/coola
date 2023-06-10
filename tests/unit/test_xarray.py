@@ -193,7 +193,7 @@ def test_data_array_allclose_operator_allclose_false_different_coords_show_diffe
             show_difference=True,
         )
         assert caplog.messages[0].startswith("numpy.ndarrays are different")
-        assert caplog.messages[1].startswith("xarray.DataArrays are different")
+        assert caplog.messages[-1].startswith("xarray.DataArrays are different")
 
 
 @xarray_available
@@ -342,7 +342,7 @@ def test_data_array_equality_operator_equal_false_different_data_show_difference
             xr.DataArray(np.arange(6) + 1),
             show_difference=True,
         )
-        assert caplog.messages[1].startswith("xarray.DataArrays are different")
+        assert caplog.messages[-1].startswith("xarray.DataArrays are different")
 
 
 @xarray_available
@@ -366,7 +366,7 @@ def test_data_array_equality_operator_equal_false_different_names_show_differenc
             show_difference=True,
         )
         assert caplog.messages[0].startswith("Objects are different")
-        assert caplog.messages[1].startswith("xarray.DataArrays are different")
+        assert caplog.messages[-1].startswith("xarray.DataArrays are different")
 
 
 @xarray_available
@@ -390,7 +390,7 @@ def test_data_array_equality_operator_equal_false_different_dims_show_difference
             show_difference=True,
         )
         assert caplog.messages[0].startswith("Objects are different")
-        assert caplog.messages[2].startswith("xarray.DataArrays are different")
+        assert caplog.messages[-1].startswith("xarray.DataArrays are different")
 
 
 @xarray_available
@@ -414,7 +414,7 @@ def test_data_array_equality_operator_equal_false_different_coords_show_differen
             show_difference=True,
         )
         assert caplog.messages[0].startswith("numpy.ndarrays are different")
-        assert caplog.messages[1].startswith("xarray.DataArrays are different")
+        assert caplog.messages[-1].startswith("xarray.DataArrays are different")
 
 
 @xarray_available
@@ -438,7 +438,7 @@ def test_data_array_equality_operator_equal_false_different_attrs_show_differenc
             show_difference=True,
         )
         assert caplog.messages[0].startswith("Objects are different")
-        assert caplog.messages[2].startswith("xarray.DataArrays are different")
+        assert caplog.messages[-1].startswith("xarray.DataArrays are different")
 
 
 @xarray_available
@@ -528,6 +528,15 @@ def test_dataset_equality_operator_equal_false_different_data() -> None:
 
 
 @xarray_available
+def test_dataset_equality_operator_equal_false_nan_values() -> None:
+    assert not DatasetEqualityOperator().equal(
+        EqualityTester(),
+        xr.Dataset({"x": xr.DataArray(np.array([0.0, float("nan"), 2.0]))}),
+        xr.Dataset({"x": xr.DataArray(np.array([0.0, float("nan"), 2.0]))}),
+    )
+
+
+@xarray_available
 def test_dataset_equality_operator_equal_false_different_data_show_difference(
     caplog: LogCaptureFixture,
 ) -> None:
@@ -545,7 +554,7 @@ def test_dataset_equality_operator_equal_false_different_data_show_difference(
         assert not DatasetEqualityOperator().equal(
             EqualityTester(), create_dataset(), ds, show_difference=True
         )
-        assert caplog.messages[0].startswith("xarray.Datasets are different")
+        assert caplog.messages[-1].startswith("xarray.Datasets are different")
 
 
 @xarray_available
@@ -589,7 +598,7 @@ def test_dataset_equality_operator_equal_false_different_coords_show_difference(
         assert not DatasetEqualityOperator().equal(
             EqualityTester(), create_dataset(), ds, show_difference=True
         )
-        assert caplog.messages[0].startswith("xarray.Datasets are different")
+        assert caplog.messages[-1].startswith("xarray.Datasets are different")
 
 
 @xarray_available
@@ -633,7 +642,7 @@ def test_dataset_equality_operator_equal_false_different_attrs_show_difference(
         assert not DatasetEqualityOperator().equal(
             EqualityTester(), create_dataset(), ds, show_difference=True
         )
-        assert caplog.messages[0].startswith("xarray.Datasets are different")
+        assert caplog.messages[-1].startswith("xarray.Datasets are different")
 
 
 @xarray_available

@@ -95,11 +95,9 @@ class DataArrayEqualityOperator(BaseEqualityOperator[DataArray]):
                 logger.info(f"object2 is not a xarray.DataArray: {type(object2)}")
             return False
         object_equal = (
-            tester.equal(object1.data, object2.data, show_difference)
+            tester.equal(object1.variable, object2.variable, show_difference)
             and tester.equal(object1.name, object2.name, show_difference)
-            and tester.equal(object1.dims, object2.dims, show_difference)
-            and tester.equal(object1.coords, object2.coords, show_difference)
-            and tester.equal(object1.attrs, object2.attrs, show_difference)
+            and tester.equal(object1._coords, object2._coords, show_difference)
         )
         if show_difference and not object_equal:
             logger.info(
@@ -109,12 +107,7 @@ class DataArrayEqualityOperator(BaseEqualityOperator[DataArray]):
 
 
 class DatasetEqualityOperator(BaseEqualityOperator[Dataset]):
-    r"""Implements an equality operator for ``xarray.Dataset``.
-
-    In contrast to the standard usage in numpy, NaNs are compared
-    like numbers, no assertion is raised if both objects have NaNs
-    in the same positions.
-    """
+    r"""Implements an equality operator for ``xarray.Dataset``."""
 
     def __init__(self) -> None:
         check_xarray()
@@ -130,7 +123,11 @@ class DatasetEqualityOperator(BaseEqualityOperator[Dataset]):
             if show_difference:
                 logger.info(f"object2 is not a xarray.Dataset: {type(object2)}")
             return False
-        object_equal = object1.identical(object2)
+        object_equal = (
+            tester.equal(object1.data_vars, object2.data_vars, show_difference)
+            and tester.equal(object1.coords, object2.coords, show_difference)
+            and tester.equal(object1.attrs, object2.attrs, show_difference)
+        )
         if show_difference and not object_equal:
             logger.info(f"xarray.Datasets are different\nobject1=\n{object1}\nobject2=\n{object2}")
         return object_equal
