@@ -110,6 +110,53 @@ class DataArrayEqualityOperator(BaseEqualityOperator[DataArray]):
         return object_equal
 
 
+class DatasetAllCloseOperator(BaseAllCloseOperator[Dataset]):
+    r"""Implements an allclose operator for ``xarray.Dataset``."""
+
+    def __init__(self) -> None:
+        check_xarray()
+
+    def allclose(
+        self,
+        tester: BaseAllCloseTester,
+        object1: Dataset,
+        object2: Any,
+        rtol: float = 1e-5,
+        atol: float = 1e-8,
+        equal_nan: bool = False,
+        show_difference: bool = False,
+    ) -> bool:
+        if object1 is object2:
+            return True
+        if not isinstance(object2, Dataset):
+            if show_difference:
+                logger.info(f"object2 is not a xarray.Dataset: {type(object2)}")
+            return False
+        object_equal = (
+            tester.allclose(
+                object1.data_vars,
+                object2.data_vars,
+                rtol=rtol,
+                atol=atol,
+                equal_nan=equal_nan,
+                show_difference=show_difference,
+            )
+            and objects_are_equal(
+                object1.coords,
+                object2.coords,
+                show_difference=show_difference,
+            )
+            and objects_are_equal(
+                object1.attrs,
+                object2.attrs,
+                show_difference=show_difference,
+            )
+        )
+        if show_difference and not object_equal:
+            logger.info(f"xarray.Datasets are different\nobject1=\n{object1}\nobject2=\n{object2}")
+        return object_equal
+
+
 class DatasetEqualityOperator(BaseEqualityOperator[Dataset]):
     r"""Implements an equality operator for ``xarray.Dataset``."""
 
@@ -218,6 +265,8 @@ class VariableEqualityOperator(BaseEqualityOperator[Variable]):
 if is_xarray_available():  # pragma: no cover
     if not AllCloseTester.has_allclose_operator(DataArray):
         AllCloseTester.add_allclose_operator(DataArray, DataArrayAllCloseOperator())
+    if not AllCloseTester.has_allclose_operator(Dataset):
+        AllCloseTester.add_allclose_operator(Dataset, DatasetAllCloseOperator())
     if not AllCloseTester.has_allclose_operator(Variable):
         AllCloseTester.add_allclose_operator(Variable, VariableAllCloseOperator())
 

@@ -9,6 +9,7 @@ from coola import AllCloseTester, is_numpy_available, objects_are_allclose
 from coola._xarray import (
     DataArrayAllCloseOperator,
     DataArrayEqualityOperator,
+    DatasetAllCloseOperator,
     DatasetEqualityOperator,
     VariableAllCloseOperator,
     VariableEqualityOperator,
@@ -125,7 +126,7 @@ def test_data_array_allclose_operator_allclose_false_different_data_show_differe
             xr.DataArray(np.arange(6) + 1),
             show_difference=True,
         )
-        assert caplog.messages[1].startswith("xarray.DataArrays are different")
+        assert caplog.messages[-1].startswith("xarray.DataArrays are different")
 
 
 @xarray_available
@@ -149,7 +150,7 @@ def test_data_array_allclose_operator_allclose_false_different_names_show_differ
             show_difference=True,
         )
         assert caplog.messages[0].startswith("Objects are different")
-        assert caplog.messages[1].startswith("xarray.DataArrays are different")
+        assert caplog.messages[-1].startswith("xarray.DataArrays are different")
 
 
 @xarray_available
@@ -173,7 +174,7 @@ def test_data_array_allclose_operator_allclose_false_different_dims_show_differe
             show_difference=True,
         )
         assert caplog.messages[0].startswith("Objects are different")
-        assert caplog.messages[2].startswith("xarray.DataArrays are different")
+        assert caplog.messages[-1].startswith("xarray.DataArrays are different")
 
 
 @xarray_available
@@ -224,7 +225,7 @@ def test_data_array_allclose_operator_allclose_false_different_attrs_show_differ
             show_difference=True,
         )
         assert caplog.messages[0].startswith("Objects are different")
-        assert caplog.messages[2].startswith("xarray.DataArrays are different")
+        assert caplog.messages[-1].startswith("xarray.DataArrays are different")
 
 
 @xarray_available
@@ -478,7 +479,7 @@ def test_data_array_equality_operator_equal_false_different_dtype_show_differenc
 
 
 #############################################
-#     Tests for DatasetEqualityOperator     #
+#     Tests for DatasetAllCloseOperator     #
 #############################################
 
 
@@ -497,6 +498,238 @@ def create_dataset() -> xr.Dataset:
         coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
         attrs={"global": "this is a global attribute"},
     )
+
+
+@xarray_available
+def test_objects_are_allclose_dataset() -> None:
+    assert objects_are_allclose(create_dataset(), create_dataset())
+
+
+@xarray_available
+def test_dataset_allclose_operator_str() -> None:
+    assert str(DatasetAllCloseOperator()).startswith("DatasetAllCloseOperator(")
+
+
+@xarray_available
+def test_dataset_allclose_operator_equal_true() -> None:
+    assert DatasetAllCloseOperator().allclose(AllCloseTester(), create_dataset(), create_dataset())
+
+
+@xarray_available
+def test_dataset_allclose_operator_allclose_true_same_object() -> None:
+    obj = create_dataset()
+    assert DatasetAllCloseOperator().allclose(AllCloseTester(), obj, obj)
+
+
+@xarray_available
+def test_dataset_allclose_operator_allclose_true_show_difference(
+    caplog: LogCaptureFixture,
+) -> None:
+    with caplog.at_level(logging.INFO):
+        assert DatasetAllCloseOperator().allclose(
+            AllCloseTester(), create_dataset(), create_dataset(), show_difference=True
+        )
+        assert not caplog.messages
+
+
+@xarray_available
+def test_dataset_allclose_operator_allclose_false_different_data() -> None:
+    ds = xr.Dataset(
+        {
+            "x": xr.DataArray(
+                np.arange(6),
+                dims=["z"],
+            ),
+        },
+        coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
+        attrs={"global": "this is a global attribute"},
+    )
+    assert not DatasetAllCloseOperator().allclose(AllCloseTester(), create_dataset(), ds)
+
+
+@xarray_available
+def test_dataset_allclose_operator_allclose_false_nan_values() -> None:
+    assert not DatasetAllCloseOperator().allclose(
+        AllCloseTester(),
+        xr.Dataset({"x": xr.DataArray(np.array([0.0, float("nan"), 2.0]))}),
+        xr.Dataset({"x": xr.DataArray(np.array([0.0, float("nan"), 2.0]))}),
+    )
+
+
+@xarray_available
+def test_dataset_allclose_operator_allclose_true_nan_values() -> None:
+    assert DatasetAllCloseOperator().allclose(
+        AllCloseTester(),
+        xr.Dataset({"x": xr.DataArray(np.array([0.0, float("nan"), 2.0]))}),
+        xr.Dataset({"x": xr.DataArray(np.array([0.0, float("nan"), 2.0]))}),
+        equal_nan=True,
+    )
+
+
+@xarray_available
+def test_dataset_allclose_operator_allclose_false_different_data_show_difference(
+    caplog: LogCaptureFixture,
+) -> None:
+    ds = xr.Dataset(
+        {
+            "x": xr.DataArray(
+                np.arange(6),
+                dims=["z"],
+            ),
+        },
+        coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
+        attrs={"global": "this is a global attribute"},
+    )
+    with caplog.at_level(logging.INFO):
+        assert not DatasetAllCloseOperator().allclose(
+            AllCloseTester(), create_dataset(), ds, show_difference=True
+        )
+        assert caplog.messages[-1].startswith("xarray.Datasets are different")
+
+
+@xarray_available
+def test_dataset_allclose_operator_allclose_false_different_coords() -> None:
+    ds = xr.Dataset(
+        {
+            "x": xr.DataArray(
+                np.arange(6),
+                dims=["z"],
+            ),
+            "y": xr.DataArray(
+                np.ones((6, 3)),
+                dims=["z", "t"],
+            ),
+        },
+        coords={"z": np.arange(6), "t": ["t1", "t2", "t3"]},
+        attrs={"global": "this is a global attribute"},
+    )
+    assert not DatasetAllCloseOperator().allclose(AllCloseTester(), create_dataset(), ds)
+
+
+@xarray_available
+def test_dataset_allclose_operator_allclose_false_different_coords_show_difference(
+    caplog: LogCaptureFixture,
+) -> None:
+    ds = xr.Dataset(
+        {
+            "x": xr.DataArray(
+                np.arange(6),
+                dims=["z"],
+            ),
+            "y": xr.DataArray(
+                np.ones((6, 3)),
+                dims=["z", "t"],
+            ),
+        },
+        coords={"z": np.arange(6), "t": ["t1", "t2", "t3"]},
+        attrs={"global": "this is a global attribute"},
+    )
+    with caplog.at_level(logging.INFO):
+        assert not DatasetAllCloseOperator().allclose(
+            AllCloseTester(), create_dataset(), ds, show_difference=True
+        )
+        assert caplog.messages[-1].startswith("xarray.Datasets are different")
+
+
+@xarray_available
+def test_dataset_allclose_operator_allclose_false_different_attrs() -> None:
+    ds = xr.Dataset(
+        {
+            "x": xr.DataArray(
+                np.arange(6),
+                dims=["z"],
+            ),
+            "y": xr.DataArray(
+                np.ones((6, 3)),
+                dims=["z", "t"],
+            ),
+        },
+        coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
+        attrs={"global": "meow"},
+    )
+    assert not DatasetAllCloseOperator().allclose(AllCloseTester(), create_dataset(), ds)
+
+
+@xarray_available
+def test_dataset_allclose_operator_allclose_false_different_attrs_show_difference(
+    caplog: LogCaptureFixture,
+) -> None:
+    ds = xr.Dataset(
+        {
+            "x": xr.DataArray(
+                np.arange(6),
+                dims=["z"],
+            ),
+            "y": xr.DataArray(
+                np.ones((6, 3)),
+                dims=["z", "t"],
+            ),
+        },
+        coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
+        attrs={"global": "meow"},
+    )
+    with caplog.at_level(logging.INFO):
+        assert not DatasetAllCloseOperator().allclose(
+            AllCloseTester(), create_dataset(), ds, show_difference=True
+        )
+        assert caplog.messages[-1].startswith("xarray.Datasets are different")
+
+
+@xarray_available
+def test_dataset_allclose_operator_allclose_false_different_dtype() -> None:
+    assert not DatasetAllCloseOperator().allclose(
+        AllCloseTester(), create_dataset(), np.ones((2, 3))
+    )
+
+
+@xarray_available
+def test_dataset_allclose_operator_allclose_false_different_dtype_show_difference(
+    caplog: LogCaptureFixture,
+) -> None:
+    with caplog.at_level(logging.INFO):
+        assert not DatasetAllCloseOperator().allclose(
+            AllCloseTester(), create_dataset(), np.ones((2, 3)), show_difference=True
+        )
+        assert caplog.messages[0].startswith("object2 is not a xarray.Dataset:")
+
+
+@xarray_available
+@mark.parametrize(
+    "dataset,atol",
+    (
+        (xr.Dataset({"x": xr.DataArray(np.full((2, 3), 1.5))}), 1),
+        (xr.Dataset({"x": xr.DataArray(np.full((2, 3), 1.05))}), 1e-1),
+        (xr.Dataset({"x": xr.DataArray(np.full((2, 3), 1.005))}), 1e-2),
+    ),
+)
+def test_dataset_allclose_operator_allclose_true_atol(dataset: xr.Dataset, atol: float) -> None:
+    assert DatasetAllCloseOperator().allclose(
+        AllCloseTester(),
+        xr.Dataset({"x": xr.DataArray(np.ones((2, 3)))}),
+        dataset,
+        atol=atol,
+        rtol=0,
+    )
+
+
+@xarray_available
+@mark.parametrize(
+    "dataset,rtol",
+    (
+        (xr.Dataset({"x": xr.DataArray(np.full((2, 3), 1.5))}), 1),
+        (xr.Dataset({"x": xr.DataArray(np.full((2, 3), 1.05))}), 1e-1),
+        (xr.Dataset({"x": xr.DataArray(np.full((2, 3), 1.005))}), 1e-2),
+    ),
+)
+def test_dataset_allclose_operator_allclose_true_rtol(dataset: xr.Dataset, rtol: float) -> None:
+    assert DatasetAllCloseOperator().allclose(
+        AllCloseTester(), xr.Dataset({"x": xr.DataArray(np.ones((2, 3)))}), dataset, rtol=rtol
+    )
+
+
+#############################################
+#     Tests for DatasetEqualityOperator     #
+#############################################
 
 
 @xarray_available
@@ -867,7 +1100,7 @@ def test_variable_allclose_operator_allclose_true_atol(array: xr.DataArray, atol
         (xr.Variable(dims=["x", "y"], data=np.full((2, 3), 1.005)), 1e-2),
     ),
 )
-def test_variable_allclose_operator_allclose_true_rtol(array: xr.DataArray, rtol: float) -> None:
+def test_variable_allclose_operator_allclose_true_rtol(array: xr.Variable, rtol: float) -> None:
     assert VariableAllCloseOperator().allclose(
         AllCloseTester(), xr.Variable(dims=["x", "y"], data=np.ones((2, 3))), array, rtol=rtol
     )
