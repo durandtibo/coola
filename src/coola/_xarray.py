@@ -15,7 +15,7 @@ from coola.utils.imports import check_xarray, is_xarray_available
 if is_xarray_available():
     from xarray import DataArray, Dataset, Variable
 else:
-    DataArray, Dataset = None, None  # pragma: no cover
+    DataArray, Dataset, Variable = None, None, None  # pragma: no cover
 
 logger = logging.getLogger(__name__)
 
