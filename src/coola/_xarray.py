@@ -36,6 +36,8 @@ class DataArrayAllCloseOperator(BaseAllCloseOperator[DataArray]):
         equal_nan: bool = False,
         show_difference: bool = False,
     ) -> bool:
+        if object1 is object2:
+            return True
         if not isinstance(object2, DataArray):
             if show_difference:
                 logger.info(f"object2 is not a xarray.DataArray: {type(object2)}")
@@ -90,6 +92,8 @@ class DataArrayEqualityOperator(BaseEqualityOperator[DataArray]):
         object2: Any,
         show_difference: bool = False,
     ) -> bool:
+        if object1 is object2:
+            return True
         if not isinstance(object2, DataArray):
             if show_difference:
                 logger.info(f"object2 is not a xarray.DataArray: {type(object2)}")
@@ -119,6 +123,8 @@ class DatasetEqualityOperator(BaseEqualityOperator[Dataset]):
         object2: Any,
         show_difference: bool = False,
     ) -> bool:
+        if object1 is object2:
+            return True
         if not isinstance(object2, Dataset):
             if show_difference:
                 logger.info(f"object2 is not a xarray.Dataset: {type(object2)}")
@@ -146,6 +152,8 @@ class VariableEqualityOperator(BaseEqualityOperator[Variable]):
         object2: Any,
         show_difference: bool = False,
     ) -> bool:
+        if object1 is object2:
+            return True
         if not isinstance(object2, Variable):
             if show_difference:
                 logger.info(f"object2 is not a xarray.Variable: {type(object2)}")

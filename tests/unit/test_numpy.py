@@ -36,6 +36,12 @@ def test_ndarray_allclose_operator_allclose_true(array: np.ndarray) -> None:
 
 
 @numpy_available
+def test_ndarray_allclose_operator_allclose_true_same_object() -> None:
+    array = np.ones((2, 3))
+    assert NDArrayAllCloseOperator().allclose(AllCloseTester(), array, array)
+
+
+@numpy_available
 def test_ndarray_allclose_operator_equal_true_check_dtype_false() -> None:
     assert NDArrayAllCloseOperator(check_dtype=False).allclose(
         AllCloseTester(),
@@ -196,6 +202,12 @@ def test_ndarray_equality_operator_str() -> None:
 @numpy_available
 def test_ndarray_equality_operator_equal_true() -> None:
     assert NDArrayEqualityOperator().equal(EqualityTester(), np.ones((2, 3)), np.ones((2, 3)))
+
+
+@numpy_available
+def test_ndarray_equality_operator_equal_true_same_object() -> None:
+    array = np.ones((2, 3))
+    assert NDArrayEqualityOperator().equal(EqualityTester(), array, array)
 
 
 @numpy_available

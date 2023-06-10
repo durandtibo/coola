@@ -391,6 +391,11 @@ def test_default_allclose_operator_str() -> None:
     assert str(DefaultAllCloseOperator()) == "DefaultAllCloseOperator()"
 
 
+def test_default_allclose_operator_allclose_true_same_object() -> None:
+    obj = Mock()
+    assert DefaultAllCloseOperator().allclose(AllCloseTester(), obj, obj)
+
+
 @mark.parametrize("object1,object2", ((1, 1), (2.5, 2.5)))
 def test_default_allclose_operator_allclose_true_scalar(object1: Number, object2: Number) -> None:
     assert DefaultAllCloseOperator().allclose(AllCloseTester(), object1, object2)
@@ -455,6 +460,11 @@ def test_mapping_allclose_operator_str() -> None:
 )
 def test_mapping_allclose_operator_allclose_true(object1: Mapping, object2: Mapping) -> None:
     assert MappingAllCloseOperator().allclose(AllCloseTester(), object1, object2)
+
+
+def test_mapping_allclose_operator_allclose_true_same_object() -> None:
+    obj = {"cat": "meow"}
+    assert MappingAllCloseOperator().allclose(AllCloseTester(), obj, obj)
 
 
 def test_mapping_allclose_operator_allclose_false_different_value() -> None:
@@ -597,6 +607,11 @@ def test_scalar_allclose_operator_allclose_true_bool(object1: bool, object2: boo
     assert ScalarAllCloseOperator().allclose(AllCloseTester(), object1, object2)
 
 
+def test_scalar_allclose_operator_allclose_true_same_object() -> None:
+    obj = 42
+    assert ScalarAllCloseOperator().allclose(AllCloseTester(), obj, obj)
+
+
 def test_scalar_allclose_operator_allclose_true_show_difference(caplog: LogCaptureFixture) -> None:
     with caplog.at_level(logging.INFO):
         assert ScalarAllCloseOperator().allclose(
@@ -714,6 +729,11 @@ def test_sequence_allclose_operator_str() -> None:
 )
 def test_sequence_allclose_operator_allclose_true(object1: Sequence, object2: Sequence) -> None:
     assert SequenceAllCloseOperator().allclose(AllCloseTester(), object1, object2)
+
+
+def test_sequence_allclose_operator_allclose_true_same_object() -> None:
+    obj = [1, 2, 3]
+    assert SequenceAllCloseOperator().allclose(AllCloseTester(), obj, obj)
 
 
 @torch_available

@@ -3,10 +3,7 @@ from __future__ import annotations
 __all__ = [
     "BaseEqualityOperator",
     "BaseEqualityTester",
-    "DefaultEqualityOperator",
     "EqualityTester",
-    "MappingEqualityOperator",
-    "SequenceEqualityOperator",
     "objects_are_equal",
 ]
 
@@ -141,6 +138,8 @@ class DefaultEqualityOperator(BaseEqualityOperator[Any]):
         object2: Any,
         show_difference: bool = False,
     ) -> bool:
+        if object1 is object2:
+            return True
         if type(object1) is not type(object2):
             if show_difference:
                 logger.info(f"Objects have different types: {type(object1)} vs {type(object2)}")
@@ -161,6 +160,8 @@ class MappingEqualityOperator(BaseEqualityOperator[Mapping]):
         object2: Any,
         show_difference: bool = False,
     ) -> bool:
+        if object1 is object2:
+            return True
         if type(object1) is not type(object2):
             if show_difference:
                 logger.info(
@@ -201,6 +202,8 @@ class SequenceEqualityOperator(BaseEqualityOperator[Sequence]):
         object2: Any,
         show_difference: bool = False,
     ) -> bool:
+        if object1 is object2:
+            return True
         if type(object1) is not type(object2):
             if show_difference:
                 logger.info(
