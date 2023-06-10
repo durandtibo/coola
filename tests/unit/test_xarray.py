@@ -74,6 +74,24 @@ def test_data_array_allclose_operator_equal_true_same_object() -> None:
 
 
 @xarray_available
+def test_data_array_allclose_operator_equal_true_coords_numerical() -> None:
+    assert DataArrayAllCloseOperator().allclose(
+        AllCloseTester(),
+        xr.DataArray(np.arange(6), dims=["x"], coords={"x": np.arange(6)}),
+        xr.DataArray(np.arange(6), dims=["x"], coords={"x": np.arange(6)}),
+    )
+
+
+@xarray_available
+def test_data_array_allclose_operator_equal_true_coords_str() -> None:
+    assert DataArrayAllCloseOperator().allclose(
+        AllCloseTester(),
+        xr.DataArray(np.arange(6), dims=["x"], coords={"x": [str(i) for i in range(6)]}),
+        xr.DataArray(np.arange(6), dims=["x"], coords={"x": [str(i) for i in range(6)]}),
+    )
+
+
+@xarray_available
 def test_data_array_allclose_operator_allclose_true_show_difference(
     caplog: LogCaptureFixture,
 ) -> None:
@@ -308,6 +326,24 @@ def test_data_array_equality_operator_equal_true() -> None:
 
 
 @xarray_available
+def test_data_array_equality_operator_equal_true_coords_numerical() -> None:
+    assert DataArrayEqualityOperator().equal(
+        EqualityTester(),
+        xr.DataArray(np.arange(6), dims=["x"], coords={"x": np.arange(6)}),
+        xr.DataArray(np.arange(6), dims=["x"], coords={"x": np.arange(6)}),
+    )
+
+
+@xarray_available
+def test_data_array_equality_operator_equal_true_coords_str() -> None:
+    assert DataArrayEqualityOperator().equal(
+        EqualityTester(),
+        xr.DataArray(np.arange(6), dims=["x"], coords={"x": [str(i) for i in range(6)]}),
+        xr.DataArray(np.arange(6), dims=["x"], coords={"x": [str(i) for i in range(6)]}),
+    )
+
+
+@xarray_available
 def test_data_array_equality_operator_equal_true_same_object() -> None:
     obj = xr.DataArray(np.arange(6))
     assert DataArrayEqualityOperator().equal(EqualityTester(), obj, obj)
@@ -486,14 +522,8 @@ def test_data_array_equality_operator_equal_false_different_dtype_show_differenc
 def create_dataset() -> xr.Dataset:
     return xr.Dataset(
         {
-            "x": xr.DataArray(
-                np.arange(6),
-                dims=["z"],
-            ),
-            "y": xr.DataArray(
-                np.ones((6, 3)),
-                dims=["z", "t"],
-            ),
+            "x": xr.DataArray(np.arange(6), dims=["z"]),
+            "y": xr.DataArray(np.ones((6, 3)), dims=["z", "t"]),
         },
         coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
         attrs={"global": "this is a global attribute"},
@@ -536,10 +566,7 @@ def test_dataset_allclose_operator_allclose_true_show_difference(
 def test_dataset_allclose_operator_allclose_false_different_data() -> None:
     ds = xr.Dataset(
         {
-            "x": xr.DataArray(
-                np.arange(6),
-                dims=["z"],
-            ),
+            "x": xr.DataArray(np.arange(6), dims=["z"]),
         },
         coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
         attrs={"global": "this is a global attribute"},
@@ -572,10 +599,7 @@ def test_dataset_allclose_operator_allclose_false_different_data_show_difference
 ) -> None:
     ds = xr.Dataset(
         {
-            "x": xr.DataArray(
-                np.arange(6),
-                dims=["z"],
-            ),
+            "x": xr.DataArray(np.arange(6), dims=["z"]),
         },
         coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
         attrs={"global": "this is a global attribute"},
@@ -591,14 +615,8 @@ def test_dataset_allclose_operator_allclose_false_different_data_show_difference
 def test_dataset_allclose_operator_allclose_false_different_coords() -> None:
     ds = xr.Dataset(
         {
-            "x": xr.DataArray(
-                np.arange(6),
-                dims=["z"],
-            ),
-            "y": xr.DataArray(
-                np.ones((6, 3)),
-                dims=["z", "t"],
-            ),
+            "x": xr.DataArray(np.arange(6), dims=["z"]),
+            "y": xr.DataArray(np.ones((6, 3)), dims=["z", "t"]),
         },
         coords={"z": np.arange(6), "t": ["t1", "t2", "t3"]},
         attrs={"global": "this is a global attribute"},
@@ -612,14 +630,8 @@ def test_dataset_allclose_operator_allclose_false_different_coords_show_differen
 ) -> None:
     ds = xr.Dataset(
         {
-            "x": xr.DataArray(
-                np.arange(6),
-                dims=["z"],
-            ),
-            "y": xr.DataArray(
-                np.ones((6, 3)),
-                dims=["z", "t"],
-            ),
+            "x": xr.DataArray(np.arange(6), dims=["z"]),
+            "y": xr.DataArray(np.ones((6, 3)), dims=["z", "t"]),
         },
         coords={"z": np.arange(6), "t": ["t1", "t2", "t3"]},
         attrs={"global": "this is a global attribute"},
@@ -635,14 +647,8 @@ def test_dataset_allclose_operator_allclose_false_different_coords_show_differen
 def test_dataset_allclose_operator_allclose_false_different_attrs() -> None:
     ds = xr.Dataset(
         {
-            "x": xr.DataArray(
-                np.arange(6),
-                dims=["z"],
-            ),
-            "y": xr.DataArray(
-                np.ones((6, 3)),
-                dims=["z", "t"],
-            ),
+            "x": xr.DataArray(np.arange(6), dims=["z"]),
+            "y": xr.DataArray(np.ones((6, 3)), dims=["z", "t"]),
         },
         coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
         attrs={"global": "meow"},
@@ -656,14 +662,8 @@ def test_dataset_allclose_operator_allclose_false_different_attrs_show_differenc
 ) -> None:
     ds = xr.Dataset(
         {
-            "x": xr.DataArray(
-                np.arange(6),
-                dims=["z"],
-            ),
-            "y": xr.DataArray(
-                np.ones((6, 3)),
-                dims=["z", "t"],
-            ),
+            "x": xr.DataArray(np.arange(6), dims=["z"]),
+            "y": xr.DataArray(np.ones((6, 3)), dims=["z", "t"]),
         },
         coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
         attrs={"global": "meow"},
@@ -768,10 +768,7 @@ def test_dataset_equality_operator_equal_true_show_difference(
 def test_dataset_equality_operator_equal_false_different_data() -> None:
     ds = xr.Dataset(
         {
-            "x": xr.DataArray(
-                np.arange(6),
-                dims=["z"],
-            ),
+            "x": xr.DataArray(np.arange(6), dims=["z"]),
         },
         coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
         attrs={"global": "this is a global attribute"},
@@ -794,10 +791,7 @@ def test_dataset_equality_operator_equal_false_different_data_show_difference(
 ) -> None:
     ds = xr.Dataset(
         {
-            "x": xr.DataArray(
-                np.arange(6),
-                dims=["z"],
-            ),
+            "x": xr.DataArray(np.arange(6), dims=["z"]),
         },
         coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
         attrs={"global": "this is a global attribute"},
@@ -813,14 +807,8 @@ def test_dataset_equality_operator_equal_false_different_data_show_difference(
 def test_dataset_equality_operator_equal_false_different_coords() -> None:
     ds = xr.Dataset(
         {
-            "x": xr.DataArray(
-                np.arange(6),
-                dims=["z"],
-            ),
-            "y": xr.DataArray(
-                np.ones((6, 3)),
-                dims=["z", "t"],
-            ),
+            "x": xr.DataArray(np.arange(6), dims=["z"]),
+            "y": xr.DataArray(np.ones((6, 3)), dims=["z", "t"]),
         },
         coords={"z": np.arange(6), "t": ["t1", "t2", "t3"]},
         attrs={"global": "this is a global attribute"},
@@ -834,14 +822,8 @@ def test_dataset_equality_operator_equal_false_different_coords_show_difference(
 ) -> None:
     ds = xr.Dataset(
         {
-            "x": xr.DataArray(
-                np.arange(6),
-                dims=["z"],
-            ),
-            "y": xr.DataArray(
-                np.ones((6, 3)),
-                dims=["z", "t"],
-            ),
+            "x": xr.DataArray(np.arange(6), dims=["z"]),
+            "y": xr.DataArray(np.ones((6, 3)), dims=["z", "t"]),
         },
         coords={"z": np.arange(6), "t": ["t1", "t2", "t3"]},
         attrs={"global": "this is a global attribute"},
@@ -857,14 +839,8 @@ def test_dataset_equality_operator_equal_false_different_coords_show_difference(
 def test_dataset_equality_operator_equal_false_different_attrs() -> None:
     ds = xr.Dataset(
         {
-            "x": xr.DataArray(
-                np.arange(6),
-                dims=["z"],
-            ),
-            "y": xr.DataArray(
-                np.ones((6, 3)),
-                dims=["z", "t"],
-            ),
+            "x": xr.DataArray(np.arange(6), dims=["z"]),
+            "y": xr.DataArray(np.ones((6, 3)), dims=["z", "t"]),
         },
         coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
         attrs={"global": "meow"},
@@ -878,14 +854,8 @@ def test_dataset_equality_operator_equal_false_different_attrs_show_difference(
 ) -> None:
     ds = xr.Dataset(
         {
-            "x": xr.DataArray(
-                np.arange(6),
-                dims=["z"],
-            ),
-            "y": xr.DataArray(
-                np.ones((6, 3)),
-                dims=["z", "t"],
-            ),
+            "x": xr.DataArray(np.arange(6), dims=["z"]),
+            "y": xr.DataArray(np.ones((6, 3)), dims=["z", "t"]),
         },
         coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
         attrs={"global": "meow"},
@@ -998,7 +968,7 @@ def test_variable_allclose_operator_allclose_false_different_data_show_differenc
             xr.Variable(dims=["z"], data=np.arange(6) + 1),
             show_difference=True,
         )
-        assert caplog.messages[1].startswith("xarray.Variables are different")
+        assert caplog.messages[-1].startswith("xarray.Variables are different")
 
 
 @xarray_available
@@ -1022,7 +992,7 @@ def test_variable_allclose_operator_allclose_false_different_dims_show_differenc
             show_difference=True,
         )
         assert caplog.messages[0].startswith("Objects are different")
-        assert caplog.messages[2].startswith("xarray.Variables are different")
+        assert caplog.messages[-1].startswith("xarray.Variables are different")
 
 
 @xarray_available
@@ -1046,7 +1016,7 @@ def test_variable_allclose_operator_allclose_false_different_attrs_show_differen
             show_difference=True,
         )
         assert caplog.messages[0].startswith("Objects are different")
-        assert caplog.messages[2].startswith("xarray.Variables are different")
+        assert caplog.messages[-1].startswith("xarray.Variables are different")
 
 
 @xarray_available
@@ -1181,7 +1151,7 @@ def test_variable_equality_operator_equal_false_different_data_show_difference(
             xr.Variable(dims=["z"], data=np.arange(6) + 1),
             show_difference=True,
         )
-        assert caplog.messages[1].startswith("xarray.Variables are different")
+        assert caplog.messages[-1].startswith("xarray.Variables are different")
 
 
 @xarray_available
@@ -1205,7 +1175,7 @@ def test_variable_equality_operator_equal_false_different_dims_show_difference(
             show_difference=True,
         )
         assert caplog.messages[0].startswith("Objects are different")
-        assert caplog.messages[2].startswith("xarray.Variables are different")
+        assert caplog.messages[-1].startswith("xarray.Variables are different")
 
 
 @xarray_available
@@ -1229,7 +1199,7 @@ def test_variable_equality_operator_equal_false_different_attrs_show_difference(
             show_difference=True,
         )
         assert caplog.messages[0].startswith("Objects are different")
-        assert caplog.messages[2].startswith("xarray.Variables are different")
+        assert caplog.messages[-1].startswith("xarray.Variables are different")
 
 
 @xarray_available

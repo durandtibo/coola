@@ -44,8 +44,8 @@ class DataArrayAllCloseOperator(BaseAllCloseOperator[DataArray]):
             return False
         object_equal = (
             tester.allclose(
-                object1.data,
-                object2.data,
+                object1.variable,
+                object2.variable,
                 rtol=rtol,
                 atol=atol,
                 equal_nan=equal_nan,
@@ -57,18 +57,8 @@ class DataArrayAllCloseOperator(BaseAllCloseOperator[DataArray]):
                 show_difference=show_difference,
             )
             and objects_are_equal(
-                object1.dims,
-                object2.dims,
-                show_difference=show_difference,
-            )
-            and objects_are_equal(
                 object1.coords,
                 object2.coords,
-                show_difference=show_difference,
-            )
-            and objects_are_equal(
-                object1.attrs,
-                object2.attrs,
                 show_difference=show_difference,
             )
         )
