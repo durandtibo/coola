@@ -1,0 +1,200 @@
+import logging
+from unittest.mock import Mock
+
+from pytest import LogCaptureFixture
+
+from coola import EqualityTester
+from coola._pandas import DataFrameEqualityOperator
+from coola.testing import pandas_available
+from coola.utils.imports import is_pandas_available
+
+if is_pandas_available():
+    import pandas as pd
+else:
+    pd = Mock()
+
+###############################################
+#     Tests for DataFrameEqualityOperator     #
+###############################################
+
+
+@pandas_available
+def test_ndarray_equality_operator_str() -> None:
+    assert str(DataFrameEqualityOperator()).startswith("DataFrameEqualityOperator(")
+
+
+@pandas_available
+def test_ndarray_equality_operator_equal_true() -> None:
+    assert DataFrameEqualityOperator().equal(
+        EqualityTester(),
+        pd.DataFrame(
+            {
+                "col1": [1, 2, 3, 4, 5],
+                "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+                "col3": ["a", "b", "c", "d", "e"],
+            }
+        ),
+        pd.DataFrame(
+            {
+                "col1": [1, 2, 3, 4, 5],
+                "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+                "col3": ["a", "b", "c", "d", "e"],
+            }
+        ),
+    )
+
+
+@pandas_available
+def test_ndarray_equality_operator_equal_true_same_object() -> None:
+    obj = pd.DataFrame(
+        {
+            "col1": [1, 2, 3, 4, 5],
+            "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+            "col3": ["a", "b", "c", "d", "e"],
+        }
+    )
+    assert DataFrameEqualityOperator().equal(EqualityTester(), obj, obj)
+
+
+@pandas_available
+def test_ndarray_equality_operator_equal_true_show_difference(caplog: LogCaptureFixture) -> None:
+    with caplog.at_level(logging.INFO):
+        assert DataFrameEqualityOperator().equal(
+            EqualityTester(),
+            pd.DataFrame(
+                {
+                    "col1": [1, 2, 3, 4, 5],
+                    "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+                    "col3": ["a", "b", "c", "d", "e"],
+                }
+            ),
+            pd.DataFrame(
+                {
+                    "col1": [1, 2, 3, 4, 5],
+                    "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+                    "col3": ["a", "b", "c", "d", "e"],
+                }
+            ),
+            show_difference=True,
+        )
+        assert not caplog.messages
+
+
+@pandas_available
+def test_ndarray_equality_operator_equal_false_different_data() -> None:
+    assert not DataFrameEqualityOperator().equal(
+        EqualityTester(),
+        pd.DataFrame(
+            {
+                "col1": [1, 2, 3, 4, 5],
+                "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+                "col3": ["a", "b", "c", "d", "e"],
+            }
+        ),
+        pd.DataFrame(
+            {
+                "col1": [1, 2, 3, 4, 5],
+                "col3": ["a", "b", "c", "d", "e"],
+            }
+        ),
+    )
+
+
+@pandas_available
+def test_ndarray_equality_operator_equal_false_different_dtype() -> None:
+    assert not DataFrameEqualityOperator().equal(
+        EqualityTester(),
+        pd.DataFrame(
+            {
+                "col1": [1, 2, 3, 4, 5],
+                "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+                "col3": ["a", "b", "c", "d", "e"],
+            }
+        ),
+        pd.DataFrame(
+            {
+                "col1": [1.0, 2.0, 3.0, 4.0, 5.0],
+                "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+                "col3": ["a", "b", "c", "d", "e"],
+            }
+        ),
+    )
+
+
+@pandas_available
+def test_ndarray_equality_operator_equal_false_nan() -> None:
+    assert not DataFrameEqualityOperator().equal(
+        EqualityTester(),
+        pd.DataFrame(
+            {
+                "col1": [1, 2, 3, 4, 5],
+                "col2": [1.1, 2.2, 3.3, 4.4, float("nan")],
+                "col3": ["a", "b", "c", "d", "e"],
+            }
+        ),
+        pd.DataFrame(
+            {
+                "col1": [1, 2, 3, 4, 5],
+                "col2": [1.1, 2.2, 3.3, 4.4, float("nan")],
+                "col3": ["a", "b", "c", "d", "e"],
+            }
+        ),
+    )
+
+
+@pandas_available
+def test_ndarray_equality_operator_equal_false_show_difference(caplog: LogCaptureFixture) -> None:
+    with caplog.at_level(logging.INFO):
+        assert not DataFrameEqualityOperator().equal(
+            EqualityTester(),
+            pd.DataFrame(
+                {
+                    "col1": [1, 2, 3, 4, 5],
+                    "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+                    "col3": ["a", "b", "c", "d", "e"],
+                }
+            ),
+            pd.DataFrame(
+                {
+                    "col1": [1, 2, 3, 4, 5],
+                    "col3": ["a", "b", "c", "d", "e"],
+                }
+            ),
+            show_difference=True,
+        )
+        assert caplog.messages[0].startswith("pandas.DataFrames are different")
+
+
+@pandas_available
+def test_ndarray_equality_operator_equal_false_different_type() -> None:
+    assert not DataFrameEqualityOperator().equal(
+        EqualityTester(),
+        pd.DataFrame(
+            {
+                "col1": [1, 2, 3, 4, 5],
+                "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+                "col3": ["a", "b", "c", "d", "e"],
+            }
+        ),
+        "meow",
+    )
+
+
+@pandas_available
+def test_ndarray_equality_operator_equal_false_different_type_show_difference(
+    caplog: LogCaptureFixture,
+) -> None:
+    with caplog.at_level(logging.INFO):
+        assert not DataFrameEqualityOperator().equal(
+            EqualityTester(),
+            pd.DataFrame(
+                {
+                    "col1": [1, 2, 3, 4, 5],
+                    "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+                    "col3": ["a", "b", "c", "d", "e"],
+                }
+            ),
+            "meow",
+            show_difference=True,
+        )
+        assert caplog.messages[0].startswith("object2 is not a pandas.DataFrame")
