@@ -31,6 +31,25 @@ def check_numpy() -> None:
         )
 
 
+def is_pandas_available() -> bool:
+    r"""Indicates if the NumPy package is installed or not."""
+    return find_spec("pandas") is not None
+
+
+def check_pandas() -> None:
+    r"""Checks if the pandas package is installed.
+
+    Raises:
+        RuntimeError if the pandas package is not installed.
+    """
+    if not is_pandas_available():
+        raise RuntimeError(
+            "`pandas` package is required but not installed. "
+            "You can install `pandas` package with the command:\n\n"
+            "pip install pandas\n"
+        )
+
+
 def is_torch_available() -> bool:
     r"""Indicates if the torch package is installed or not."""
     return find_spec("torch") is not None
