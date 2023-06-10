@@ -305,6 +305,11 @@ def test_default_equality_operator_equal_true_scalar(
     assert DefaultEqualityOperator().equal(EqualityTester(), object1, object2)
 
 
+def test_default_equality_operator_equal_true_same_object() -> None:
+    obj = Mock()
+    assert DefaultEqualityOperator().equal(EqualityTester(), obj, obj)
+
+
 @mark.parametrize(
     "object1,object2",
     (
@@ -374,6 +379,11 @@ def test_mapping_equality_operator_str() -> None:
 )
 def test_mapping_equality_operator_equal_true(object1: Mapping, object2: Mapping) -> None:
     assert MappingEqualityOperator().equal(EqualityTester(), object1, object2)
+
+
+def test_mapping_equality_operator_equal_true_same_object() -> None:
+    obj = {"cat": "meow"}
+    assert MappingEqualityOperator().equal(EqualityTester(), obj, obj)
 
 
 @torch_available
@@ -490,6 +500,11 @@ def test_sequence_equality_operator_str() -> None:
 )
 def test_sequence_equality_operator_equal_true(object1: Sequence, object2: Sequence) -> None:
     assert SequenceEqualityOperator().equal(EqualityTester(), object1, object2)
+
+
+def test_sequence_equality_operator_equal_true_same_object() -> None:
+    obj = [1, 2, 3]
+    assert SequenceEqualityOperator().equal(EqualityTester(), obj, obj)
 
 
 @torch_available

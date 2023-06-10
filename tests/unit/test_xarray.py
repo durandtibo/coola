@@ -66,6 +66,12 @@ def test_data_array_allclose_operator_equal_true() -> None:
 
 
 @xarray_available
+def test_data_array_allclose_operator_equal_true_same_object() -> None:
+    obj = xr.DataArray(np.arange(6))
+    assert DataArrayAllCloseOperator().allclose(AllCloseTester(), obj, obj)
+
+
+@xarray_available
 def test_data_array_allclose_operator_allclose_true_show_difference(
     caplog: LogCaptureFixture,
 ) -> None:
@@ -300,6 +306,12 @@ def test_data_array_equality_operator_equal_true() -> None:
 
 
 @xarray_available
+def test_data_array_equality_operator_equal_true_same_object() -> None:
+    obj = xr.DataArray(np.arange(6))
+    assert DataArrayEqualityOperator().equal(EqualityTester(), obj, obj)
+
+
+@xarray_available
 def test_data_array_equality_operator_equal_true_show_difference(
     caplog: LogCaptureFixture,
 ) -> None:
@@ -502,6 +514,12 @@ def test_dataset_equality_operator_equal_true() -> None:
 
 
 @xarray_available
+def test_dataset_equality_operator_equal_true_same_object() -> None:
+    obj = create_dataset()
+    assert DatasetEqualityOperator().equal(EqualityTester(), obj, obj)
+
+
+@xarray_available
 def test_dataset_equality_operator_equal_true_show_difference(
     caplog: LogCaptureFixture,
 ) -> None:
@@ -685,6 +703,12 @@ def test_variable_equality_operator_equal_true() -> None:
         xr.Variable(dims=["z"], data=np.arange(6)),
         xr.Variable(dims=["z"], data=np.arange(6)),
     )
+
+
+@xarray_available
+def test_variable_equality_operator_equal_true_same_object() -> None:
+    obj = xr.Variable(dims=["z"], data=np.arange(6))
+    assert VariableEqualityOperator().equal(EqualityTester(), obj, obj)
 
 
 @xarray_available
