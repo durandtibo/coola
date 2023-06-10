@@ -4,10 +4,6 @@ __all__ = [
     "AllCloseTester",
     "BaseAllCloseOperator",
     "BaseAllCloseTester",
-    "DefaultAllCloseOperator",
-    "MappingAllCloseOperator",
-    "ScalarAllCloseOperator",
-    "SequenceAllCloseOperator",
     "objects_are_allclose",
 ]
 
