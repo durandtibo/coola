@@ -115,7 +115,7 @@ def test_data_array_allclose_operator_allclose_false_different_data() -> None:
 
 
 @xarray_available
-def test_data_array_allclose_operator_allclose_false_nan_values() -> None:
+def test_data_array_allclose_operator_allclose_false_nan() -> None:
     assert not DataArrayAllCloseOperator().allclose(
         AllCloseTester(),
         xr.DataArray(np.array([0.0, float("nan"), 2.0])),
@@ -124,27 +124,13 @@ def test_data_array_allclose_operator_allclose_false_nan_values() -> None:
 
 
 @xarray_available
-def test_data_array_allclose_operator_allclose_true_nan_values() -> None:
+def test_data_array_allclose_operator_allclose_true_nan() -> None:
     assert DataArrayAllCloseOperator().allclose(
         AllCloseTester(),
         xr.DataArray(np.array([0.0, float("nan"), 2.0])),
         xr.DataArray(np.array([0.0, float("nan"), 2.0])),
         equal_nan=True,
     )
-
-
-@xarray_available
-def test_data_array_allclose_operator_allclose_false_different_data_show_difference(
-    caplog: LogCaptureFixture,
-) -> None:
-    with caplog.at_level(logging.INFO):
-        assert not DataArrayAllCloseOperator().allclose(
-            AllCloseTester(),
-            xr.DataArray(np.arange(6)),
-            xr.DataArray(np.arange(6) + 1),
-            show_difference=True,
-        )
-        assert caplog.messages[-1].startswith("xarray.DataArrays are different")
 
 
 @xarray_available
@@ -157,42 +143,12 @@ def test_data_array_allclose_operator_allclose_false_different_names() -> None:
 
 
 @xarray_available
-def test_data_array_allclose_operator_allclose_false_different_names_show_difference(
-    caplog: LogCaptureFixture,
-) -> None:
-    with caplog.at_level(logging.INFO):
-        assert not DataArrayAllCloseOperator().allclose(
-            AllCloseTester(),
-            xr.DataArray(np.arange(6), name="cat"),
-            xr.DataArray(np.arange(6), name="dog"),
-            show_difference=True,
-        )
-        assert caplog.messages[0].startswith("Objects are different")
-        assert caplog.messages[-1].startswith("xarray.DataArrays are different")
-
-
-@xarray_available
 def test_data_array_allclose_operator_allclose_false_different_dims() -> None:
     assert not DataArrayAllCloseOperator().allclose(
         AllCloseTester(),
         xr.DataArray(np.arange(6), dims=["z"]),
         xr.DataArray(np.arange(6), dims=["x"]),
     )
-
-
-@xarray_available
-def test_data_array_allclose_operator_allclose_false_different_dims_show_difference(
-    caplog: LogCaptureFixture,
-) -> None:
-    with caplog.at_level(logging.INFO):
-        assert not DataArrayAllCloseOperator().allclose(
-            AllCloseTester(),
-            xr.DataArray(np.arange(6), dims=["z"]),
-            xr.DataArray(np.arange(6), dims=["x"]),
-            show_difference=True,
-        )
-        assert caplog.messages[0].startswith("Objects are different")
-        assert caplog.messages[-1].startswith("xarray.DataArrays are different")
 
 
 @xarray_available
@@ -208,21 +164,6 @@ def test_data_array_allclose_operator_allclose_false_different_coords() -> None:
 
 
 @xarray_available
-def test_data_array_allclose_operator_allclose_false_different_coords_show_difference(
-    caplog: LogCaptureFixture,
-) -> None:
-    with caplog.at_level(logging.INFO):
-        assert not DataArrayAllCloseOperator().allclose(
-            AllCloseTester(),
-            xr.DataArray(np.arange(6), dims=["z"], coords={"z": ["A", "B", "C", "D", "E", "F"]}),
-            xr.DataArray(np.arange(6), dims=["z"], coords={"z": ["1", "2", "3", "4", "5", "6"]}),
-            show_difference=True,
-        )
-        assert caplog.messages[0].startswith("numpy.ndarrays are different")
-        assert caplog.messages[-1].startswith("xarray.DataArrays are different")
-
-
-@xarray_available
 def test_data_array_allclose_operator_allclose_false_different_attrs() -> None:
     assert not DataArrayAllCloseOperator().allclose(
         AllCloseTester(),
@@ -232,17 +173,16 @@ def test_data_array_allclose_operator_allclose_false_different_attrs() -> None:
 
 
 @xarray_available
-def test_data_array_allclose_operator_allclose_false_different_attrs_show_difference(
+def test_data_array_allclose_operator_allclose_false_show_difference(
     caplog: LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not DataArrayAllCloseOperator().allclose(
             AllCloseTester(),
-            xr.DataArray(np.arange(6), attrs={"global": "meow"}),
-            xr.DataArray(np.arange(6), attrs={"global": "meoowww"}),
+            xr.DataArray(np.arange(6)),
+            xr.DataArray(np.arange(6) + 1),
             show_difference=True,
         )
-        assert caplog.messages[0].startswith("Objects are different")
         assert caplog.messages[-1].startswith("xarray.DataArrays are different")
 
 
@@ -256,7 +196,7 @@ def test_data_array_allclose_operator_allclose_false_different_type() -> None:
 
 
 @xarray_available
-def test_data_array_allclose_operator_allclose_false_different_dtype_show_difference(
+def test_data_array_allclose_operator_allclose_false_different_type_show_difference(
     caplog: LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
@@ -350,9 +290,7 @@ def test_data_array_equality_operator_equal_true_same_object() -> None:
 
 
 @xarray_available
-def test_data_array_equality_operator_equal_true_show_difference(
-    caplog: LogCaptureFixture,
-) -> None:
+def test_data_array_equality_operator_equal_true_show_difference(caplog: LogCaptureFixture) -> None:
     with caplog.at_level(logging.INFO):
         assert DataArrayEqualityOperator().equal(
             EqualityTester(),
@@ -373,7 +311,7 @@ def test_data_array_equality_operator_equal_false_different_data() -> None:
 
 
 @xarray_available
-def test_data_array_equality_operator_equal_false_nan_values() -> None:
+def test_data_array_equality_operator_equal_false_nan() -> None:
     assert not DataArrayEqualityOperator().equal(
         EqualityTester(),
         xr.DataArray(np.array([0.0, float("nan"), 2.0])),
@@ -382,7 +320,43 @@ def test_data_array_equality_operator_equal_false_nan_values() -> None:
 
 
 @xarray_available
-def test_data_array_equality_operator_equal_false_different_data_show_difference(
+def test_data_array_equality_operator_equal_false_different_names() -> None:
+    assert not DataArrayEqualityOperator().equal(
+        EqualityTester(),
+        xr.DataArray(np.arange(6), name="cat"),
+        xr.DataArray(np.arange(6), name="dog"),
+    )
+
+
+@xarray_available
+def test_data_array_equality_operator_equal_false_different_dims() -> None:
+    assert not DataArrayEqualityOperator().equal(
+        EqualityTester(),
+        xr.DataArray(np.arange(6), dims=["z"]),
+        xr.DataArray(np.arange(6), dims=["x"]),
+    )
+
+
+@xarray_available
+def test_data_array_equality_operator_equal_false_different_coords() -> None:
+    assert not DataArrayEqualityOperator().equal(
+        EqualityTester(),
+        xr.DataArray(np.arange(6), dims=["z"], coords={"z": ["A", "B", "C", "D", "E", "F"]}),
+        xr.DataArray(np.arange(6), dims=["z"], coords={"z": ["1", "2", "3", "4", "5", "6"]}),
+    )
+
+
+@xarray_available
+def test_data_array_equality_operator_equal_false_different_attrs() -> None:
+    assert not DataArrayEqualityOperator().equal(
+        EqualityTester(),
+        xr.DataArray(np.arange(6), attrs={"global": "meow"}),
+        xr.DataArray(np.arange(6), attrs={"global": "meoowww"}),
+    )
+
+
+@xarray_available
+def test_data_array_equality_operator_equal_false_show_difference(
     caplog: LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
@@ -396,102 +370,6 @@ def test_data_array_equality_operator_equal_false_different_data_show_difference
 
 
 @xarray_available
-def test_data_array_equality_operator_equal_false_different_names() -> None:
-    assert not DataArrayEqualityOperator().equal(
-        EqualityTester(),
-        xr.DataArray(np.arange(6), name="cat"),
-        xr.DataArray(np.arange(6), name="dog"),
-    )
-
-
-@xarray_available
-def test_data_array_equality_operator_equal_false_different_names_show_difference(
-    caplog: LogCaptureFixture,
-) -> None:
-    with caplog.at_level(logging.INFO):
-        assert not DataArrayEqualityOperator().equal(
-            EqualityTester(),
-            xr.DataArray(np.arange(6), name="cat"),
-            xr.DataArray(np.arange(6), name="dog"),
-            show_difference=True,
-        )
-        assert caplog.messages[0].startswith("Objects are different")
-        assert caplog.messages[-1].startswith("xarray.DataArrays are different")
-
-
-@xarray_available
-def test_data_array_equality_operator_equal_false_different_dims() -> None:
-    assert not DataArrayEqualityOperator().equal(
-        EqualityTester(),
-        xr.DataArray(np.arange(6), dims=["z"]),
-        xr.DataArray(np.arange(6), dims=["x"]),
-    )
-
-
-@xarray_available
-def test_data_array_equality_operator_equal_false_different_dims_show_difference(
-    caplog: LogCaptureFixture,
-) -> None:
-    with caplog.at_level(logging.INFO):
-        assert not DataArrayEqualityOperator().equal(
-            EqualityTester(),
-            xr.DataArray(np.arange(6), dims=["z"]),
-            xr.DataArray(np.arange(6), dims=["x"]),
-            show_difference=True,
-        )
-        assert caplog.messages[0].startswith("Objects are different")
-        assert caplog.messages[-1].startswith("xarray.DataArrays are different")
-
-
-@xarray_available
-def test_data_array_equality_operator_equal_false_different_coords() -> None:
-    assert not DataArrayEqualityOperator().equal(
-        EqualityTester(),
-        xr.DataArray(np.arange(6), dims=["z"], coords={"z": ["A", "B", "C", "D", "E", "F"]}),
-        xr.DataArray(np.arange(6), dims=["z"], coords={"z": ["1", "2", "3", "4", "5", "6"]}),
-    )
-
-
-@xarray_available
-def test_data_array_equality_operator_equal_false_different_coords_show_difference(
-    caplog: LogCaptureFixture,
-) -> None:
-    with caplog.at_level(logging.INFO):
-        assert not DataArrayEqualityOperator().equal(
-            EqualityTester(),
-            xr.DataArray(np.arange(6), dims=["z"], coords={"z": ["A", "B", "C", "D", "E", "F"]}),
-            xr.DataArray(np.arange(6), dims=["z"], coords={"z": ["1", "2", "3", "4", "5", "6"]}),
-            show_difference=True,
-        )
-        assert caplog.messages[0].startswith("numpy.ndarrays are different")
-        assert caplog.messages[-1].startswith("xarray.DataArrays are different")
-
-
-@xarray_available
-def test_data_array_equality_operator_equal_false_different_attrs() -> None:
-    assert not DataArrayEqualityOperator().equal(
-        EqualityTester(),
-        xr.DataArray(np.arange(6), attrs={"global": "meow"}),
-        xr.DataArray(np.arange(6), attrs={"global": "meoowww"}),
-    )
-
-
-@xarray_available
-def test_data_array_equality_operator_equal_false_different_attrs_show_difference(
-    caplog: LogCaptureFixture,
-) -> None:
-    with caplog.at_level(logging.INFO):
-        assert not DataArrayEqualityOperator().equal(
-            EqualityTester(),
-            xr.DataArray(np.arange(6), attrs={"global": "meow"}),
-            xr.DataArray(np.arange(6), attrs={"global": "meoowww"}),
-            show_difference=True,
-        )
-        assert caplog.messages[0].startswith("Objects are different")
-        assert caplog.messages[-1].startswith("xarray.DataArrays are different")
-
-
-@xarray_available
 def test_data_array_equality_operator_equal_false_different_type() -> None:
     assert not DataArrayEqualityOperator().equal(
         EqualityTester(),
@@ -501,7 +379,7 @@ def test_data_array_equality_operator_equal_false_different_type() -> None:
 
 
 @xarray_available
-def test_data_array_equality_operator_equal_false_different_dtype_show_difference(
+def test_data_array_equality_operator_equal_false_different_type_show_difference(
     caplog: LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
@@ -552,9 +430,7 @@ def test_dataset_allclose_operator_allclose_true_same_object() -> None:
 
 
 @xarray_available
-def test_dataset_allclose_operator_allclose_true_show_difference(
-    caplog: LogCaptureFixture,
-) -> None:
+def test_dataset_allclose_operator_allclose_true_show_difference(caplog: LogCaptureFixture) -> None:
     with caplog.at_level(logging.INFO):
         assert DatasetAllCloseOperator().allclose(
             AllCloseTester(), create_dataset(), create_dataset(), show_difference=True
@@ -575,7 +451,7 @@ def test_dataset_allclose_operator_allclose_false_different_data() -> None:
 
 
 @xarray_available
-def test_dataset_allclose_operator_allclose_false_nan_values() -> None:
+def test_dataset_allclose_operator_allclose_false_nan() -> None:
     assert not DatasetAllCloseOperator().allclose(
         AllCloseTester(),
         xr.Dataset({"x": xr.DataArray(np.array([0.0, float("nan"), 2.0]))}),
@@ -584,31 +460,13 @@ def test_dataset_allclose_operator_allclose_false_nan_values() -> None:
 
 
 @xarray_available
-def test_dataset_allclose_operator_allclose_true_nan_values() -> None:
+def test_dataset_allclose_operator_allclose_true_nan() -> None:
     assert DatasetAllCloseOperator().allclose(
         AllCloseTester(),
         xr.Dataset({"x": xr.DataArray(np.array([0.0, float("nan"), 2.0]))}),
         xr.Dataset({"x": xr.DataArray(np.array([0.0, float("nan"), 2.0]))}),
         equal_nan=True,
     )
-
-
-@xarray_available
-def test_dataset_allclose_operator_allclose_false_different_data_show_difference(
-    caplog: LogCaptureFixture,
-) -> None:
-    ds = xr.Dataset(
-        {
-            "x": xr.DataArray(np.arange(6), dims=["z"]),
-        },
-        coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
-        attrs={"global": "this is a global attribute"},
-    )
-    with caplog.at_level(logging.INFO):
-        assert not DatasetAllCloseOperator().allclose(
-            AllCloseTester(), create_dataset(), ds, show_difference=True
-        )
-        assert caplog.messages[-1].startswith("xarray.Datasets are different")
 
 
 @xarray_available
@@ -625,25 +483,6 @@ def test_dataset_allclose_operator_allclose_false_different_coords() -> None:
 
 
 @xarray_available
-def test_dataset_allclose_operator_allclose_false_different_coords_show_difference(
-    caplog: LogCaptureFixture,
-) -> None:
-    ds = xr.Dataset(
-        {
-            "x": xr.DataArray(np.arange(6), dims=["z"]),
-            "y": xr.DataArray(np.ones((6, 3)), dims=["z", "t"]),
-        },
-        coords={"z": np.arange(6), "t": ["t1", "t2", "t3"]},
-        attrs={"global": "this is a global attribute"},
-    )
-    with caplog.at_level(logging.INFO):
-        assert not DatasetAllCloseOperator().allclose(
-            AllCloseTester(), create_dataset(), ds, show_difference=True
-        )
-        assert caplog.messages[-1].startswith("xarray.Datasets are different")
-
-
-@xarray_available
 def test_dataset_allclose_operator_allclose_false_different_attrs() -> None:
     ds = xr.Dataset(
         {
@@ -657,16 +496,15 @@ def test_dataset_allclose_operator_allclose_false_different_attrs() -> None:
 
 
 @xarray_available
-def test_dataset_allclose_operator_allclose_false_different_attrs_show_difference(
+def test_dataset_allclose_operator_allclose_false_show_difference(
     caplog: LogCaptureFixture,
 ) -> None:
     ds = xr.Dataset(
         {
             "x": xr.DataArray(np.arange(6), dims=["z"]),
-            "y": xr.DataArray(np.ones((6, 3)), dims=["z", "t"]),
         },
         coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
-        attrs={"global": "meow"},
+        attrs={"global": "this is a global attribute"},
     )
     with caplog.at_level(logging.INFO):
         assert not DatasetAllCloseOperator().allclose(
@@ -676,14 +514,14 @@ def test_dataset_allclose_operator_allclose_false_different_attrs_show_differenc
 
 
 @xarray_available
-def test_dataset_allclose_operator_allclose_false_different_dtype() -> None:
+def test_dataset_allclose_operator_allclose_false_different_type() -> None:
     assert not DatasetAllCloseOperator().allclose(
         AllCloseTester(), create_dataset(), np.ones((2, 3))
     )
 
 
 @xarray_available
-def test_dataset_allclose_operator_allclose_false_different_dtype_show_difference(
+def test_dataset_allclose_operator_allclose_false_different_type_show_difference(
     caplog: LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
@@ -754,9 +592,7 @@ def test_dataset_equality_operator_equal_true_same_object() -> None:
 
 
 @xarray_available
-def test_dataset_equality_operator_equal_true_show_difference(
-    caplog: LogCaptureFixture,
-) -> None:
+def test_dataset_equality_operator_equal_true_show_difference(caplog: LogCaptureFixture) -> None:
     with caplog.at_level(logging.INFO):
         assert DatasetEqualityOperator().equal(
             EqualityTester(), create_dataset(), create_dataset(), show_difference=True
@@ -786,24 +622,6 @@ def test_dataset_equality_operator_equal_false_nan_values() -> None:
 
 
 @xarray_available
-def test_dataset_equality_operator_equal_false_different_data_show_difference(
-    caplog: LogCaptureFixture,
-) -> None:
-    ds = xr.Dataset(
-        {
-            "x": xr.DataArray(np.arange(6), dims=["z"]),
-        },
-        coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
-        attrs={"global": "this is a global attribute"},
-    )
-    with caplog.at_level(logging.INFO):
-        assert not DatasetEqualityOperator().equal(
-            EqualityTester(), create_dataset(), ds, show_difference=True
-        )
-        assert caplog.messages[-1].startswith("xarray.Datasets are different")
-
-
-@xarray_available
 def test_dataset_equality_operator_equal_false_different_coords() -> None:
     ds = xr.Dataset(
         {
@@ -814,25 +632,6 @@ def test_dataset_equality_operator_equal_false_different_coords() -> None:
         attrs={"global": "this is a global attribute"},
     )
     assert not DatasetEqualityOperator().equal(EqualityTester(), create_dataset(), ds)
-
-
-@xarray_available
-def test_dataset_equality_operator_equal_false_different_coords_show_difference(
-    caplog: LogCaptureFixture,
-) -> None:
-    ds = xr.Dataset(
-        {
-            "x": xr.DataArray(np.arange(6), dims=["z"]),
-            "y": xr.DataArray(np.ones((6, 3)), dims=["z", "t"]),
-        },
-        coords={"z": np.arange(6), "t": ["t1", "t2", "t3"]},
-        attrs={"global": "this is a global attribute"},
-    )
-    with caplog.at_level(logging.INFO):
-        assert not DatasetEqualityOperator().equal(
-            EqualityTester(), create_dataset(), ds, show_difference=True
-        )
-        assert caplog.messages[-1].startswith("xarray.Datasets are different")
 
 
 @xarray_available
@@ -849,16 +648,13 @@ def test_dataset_equality_operator_equal_false_different_attrs() -> None:
 
 
 @xarray_available
-def test_dataset_equality_operator_equal_false_different_attrs_show_difference(
-    caplog: LogCaptureFixture,
-) -> None:
+def test_dataset_equality_operator_equal_false_show_difference(caplog: LogCaptureFixture) -> None:
     ds = xr.Dataset(
         {
             "x": xr.DataArray(np.arange(6), dims=["z"]),
-            "y": xr.DataArray(np.ones((6, 3)), dims=["z", "t"]),
         },
         coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
-        attrs={"global": "meow"},
+        attrs={"global": "this is a global attribute"},
     )
     with caplog.at_level(logging.INFO):
         assert not DatasetEqualityOperator().equal(
@@ -868,12 +664,12 @@ def test_dataset_equality_operator_equal_false_different_attrs_show_difference(
 
 
 @xarray_available
-def test_dataset_equality_operator_equal_false_different_dtype() -> None:
+def test_dataset_equality_operator_equal_false_different_type() -> None:
     assert not DatasetEqualityOperator().equal(EqualityTester(), create_dataset(), np.ones((2, 3)))
 
 
 @xarray_available
-def test_dataset_equality_operator_equal_false_different_dtype_show_difference(
+def test_dataset_equality_operator_equal_false_different_type_show_difference(
     caplog: LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
@@ -939,7 +735,7 @@ def test_variable_allclose_operator_allclose_false_different_data() -> None:
 
 
 @xarray_available
-def test_variable_allclose_operator_allclose_false_nan_values() -> None:
+def test_variable_allclose_operator_allclose_false_nan() -> None:
     assert not VariableAllCloseOperator().allclose(
         AllCloseTester(),
         xr.Variable(dims=["z"], data=np.array([0.0, float("nan"), 2.0])),
@@ -948,12 +744,30 @@ def test_variable_allclose_operator_allclose_false_nan_values() -> None:
 
 
 @xarray_available
-def test_variable_allclose_operator_allclose_true_nan_values() -> None:
+def test_variable_allclose_operator_allclose_true_nan() -> None:
     assert VariableAllCloseOperator().allclose(
         AllCloseTester(),
         xr.Variable(dims=["z"], data=np.array([0.0, float("nan"), 2.0])),
         xr.Variable(dims=["z"], data=np.array([0.0, float("nan"), 2.0])),
         equal_nan=True,
+    )
+
+
+@xarray_available
+def test_variable_allclose_operator_allclose_false_different_dims() -> None:
+    assert not VariableAllCloseOperator().allclose(
+        AllCloseTester(),
+        xr.Variable(dims=["z"], data=np.arange(6)),
+        xr.Variable(dims=["x"], data=np.arange(6)),
+    )
+
+
+@xarray_available
+def test_variable_allclose_operator_allclose_false_different_attrs() -> None:
+    assert not VariableAllCloseOperator().allclose(
+        AllCloseTester(),
+        xr.Variable(dims=["z"], data=np.arange(6), attrs={"global": "meow"}),
+        xr.Variable(dims=["z"], data=np.arange(6), attrs={"global": "meoowww"}),
     )
 
 
@@ -972,54 +786,6 @@ def test_variable_allclose_operator_allclose_false_different_data_show_differenc
 
 
 @xarray_available
-def test_variable_allclose_operator_allclose_false_different_dims() -> None:
-    assert not VariableAllCloseOperator().allclose(
-        AllCloseTester(),
-        xr.Variable(dims=["z"], data=np.arange(6)),
-        xr.Variable(dims=["x"], data=np.arange(6)),
-    )
-
-
-@xarray_available
-def test_variable_allclose_operator_allclose_false_different_dims_show_difference(
-    caplog: LogCaptureFixture,
-) -> None:
-    with caplog.at_level(logging.INFO):
-        assert not VariableAllCloseOperator().allclose(
-            AllCloseTester(),
-            xr.Variable(dims=["z"], data=np.arange(6)),
-            xr.Variable(dims=["x"], data=np.arange(6)),
-            show_difference=True,
-        )
-        assert caplog.messages[0].startswith("Objects are different")
-        assert caplog.messages[-1].startswith("xarray.Variables are different")
-
-
-@xarray_available
-def test_variable_allclose_operator_allclose_false_different_attrs() -> None:
-    assert not VariableAllCloseOperator().allclose(
-        AllCloseTester(),
-        xr.Variable(dims=["z"], data=np.arange(6), attrs={"global": "meow"}),
-        xr.Variable(dims=["z"], data=np.arange(6), attrs={"global": "meoowww"}),
-    )
-
-
-@xarray_available
-def test_variable_allclose_operator_allclose_false_different_attrs_show_difference(
-    caplog: LogCaptureFixture,
-) -> None:
-    with caplog.at_level(logging.INFO):
-        assert not VariableAllCloseOperator().allclose(
-            AllCloseTester(),
-            xr.Variable(dims=["z"], data=np.arange(6), attrs={"global": "meow"}),
-            xr.Variable(dims=["z"], data=np.arange(6), attrs={"global": "meoowww"}),
-            show_difference=True,
-        )
-        assert caplog.messages[0].startswith("Objects are different")
-        assert caplog.messages[-1].startswith("xarray.Variables are different")
-
-
-@xarray_available
 def test_variable_allclose_operator_allclose_false_different_type() -> None:
     assert not VariableAllCloseOperator().allclose(
         AllCloseTester(),
@@ -1029,7 +795,7 @@ def test_variable_allclose_operator_allclose_false_different_type() -> None:
 
 
 @xarray_available
-def test_variable_allclose_operator_allclose_false_different_dtype_show_difference(
+def test_variable_allclose_operator_allclose_false_different_type_show_difference(
     caplog: LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
@@ -1109,9 +875,7 @@ def test_variable_equality_operator_equal_true_same_object() -> None:
 
 
 @xarray_available
-def test_variable_equality_operator_equal_true_show_difference(
-    caplog: LogCaptureFixture,
-) -> None:
+def test_variable_equality_operator_equal_true_show_difference(caplog: LogCaptureFixture) -> None:
     with caplog.at_level(logging.INFO):
         assert VariableEqualityOperator().equal(
             EqualityTester(),
@@ -1132,26 +896,12 @@ def test_variable_equality_operator_equal_false_different_data() -> None:
 
 
 @xarray_available
-def test_variable_equality_operator_equal_false_nan_values() -> None:
+def test_variable_equality_operator_equal_false_nan() -> None:
     assert not VariableEqualityOperator().equal(
         EqualityTester(),
         xr.Variable(dims=["z"], data=np.array([0.0, float("nan"), 2.0])),
         xr.Variable(dims=["z"], data=np.array([0.0, float("nan"), 2.0])),
     )
-
-
-@xarray_available
-def test_variable_equality_operator_equal_false_different_data_show_difference(
-    caplog: LogCaptureFixture,
-) -> None:
-    with caplog.at_level(logging.INFO):
-        assert not VariableEqualityOperator().equal(
-            EqualityTester(),
-            xr.Variable(dims=["z"], data=np.arange(6)),
-            xr.Variable(dims=["z"], data=np.arange(6) + 1),
-            show_difference=True,
-        )
-        assert caplog.messages[-1].startswith("xarray.Variables are different")
 
 
 @xarray_available
@@ -1164,21 +914,6 @@ def test_variable_equality_operator_equal_false_different_dims() -> None:
 
 
 @xarray_available
-def test_variable_equality_operator_equal_false_different_dims_show_difference(
-    caplog: LogCaptureFixture,
-) -> None:
-    with caplog.at_level(logging.INFO):
-        assert not VariableEqualityOperator().equal(
-            EqualityTester(),
-            xr.Variable(dims=["z"], data=np.arange(6)),
-            xr.Variable(dims=["x"], data=np.arange(6)),
-            show_difference=True,
-        )
-        assert caplog.messages[0].startswith("Objects are different")
-        assert caplog.messages[-1].startswith("xarray.Variables are different")
-
-
-@xarray_available
 def test_variable_equality_operator_equal_false_different_attrs() -> None:
     assert not VariableEqualityOperator().equal(
         EqualityTester(),
@@ -1188,17 +923,14 @@ def test_variable_equality_operator_equal_false_different_attrs() -> None:
 
 
 @xarray_available
-def test_variable_equality_operator_equal_false_different_attrs_show_difference(
-    caplog: LogCaptureFixture,
-) -> None:
+def test_variable_equality_operator_equal_false_show_difference(caplog: LogCaptureFixture) -> None:
     with caplog.at_level(logging.INFO):
         assert not VariableEqualityOperator().equal(
             EqualityTester(),
-            xr.Variable(dims=["z"], data=np.arange(6), attrs={"global": "meow"}),
-            xr.Variable(dims=["z"], data=np.arange(6), attrs={"global": "meoowww"}),
+            xr.Variable(dims=["z"], data=np.arange(6)),
+            xr.Variable(dims=["z"], data=np.arange(6) + 1),
             show_difference=True,
         )
-        assert caplog.messages[0].startswith("Objects are different")
         assert caplog.messages[-1].startswith("xarray.Variables are different")
 
 
@@ -1212,7 +944,7 @@ def test_variable_equality_operator_equal_false_different_type() -> None:
 
 
 @xarray_available
-def test_variable_equality_operator_equal_false_different_dtype_show_difference(
+def test_variable_equality_operator_equal_false_different_type_show_difference(
     caplog: LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
