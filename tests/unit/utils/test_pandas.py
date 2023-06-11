@@ -4,7 +4,7 @@ from unittest.mock import Mock
 from pytest import LogCaptureFixture
 
 from coola import EqualityTester
-from coola._pandas import DataFrameEqualityOperator
+from coola._pandas import DataFrameEqualityOperator, SeriesEqualityOperator
 from coola.testing import pandas_available
 from coola.utils.imports import is_pandas_available
 
@@ -19,12 +19,12 @@ else:
 
 
 @pandas_available
-def test_ndarray_equality_operator_str() -> None:
+def test_dataframe_equality_operator_str() -> None:
     assert str(DataFrameEqualityOperator()).startswith("DataFrameEqualityOperator(")
 
 
 @pandas_available
-def test_ndarray_equality_operator_equal_true() -> None:
+def test_dataframe_equality_operator_equal_true() -> None:
     assert DataFrameEqualityOperator().equal(
         EqualityTester(),
         pd.DataFrame(
@@ -45,7 +45,7 @@ def test_ndarray_equality_operator_equal_true() -> None:
 
 
 @pandas_available
-def test_ndarray_equality_operator_equal_true_same_object() -> None:
+def test_dataframe_equality_operator_equal_true_same_object() -> None:
     obj = pd.DataFrame(
         {
             "col1": [1, 2, 3, 4, 5],
@@ -57,7 +57,7 @@ def test_ndarray_equality_operator_equal_true_same_object() -> None:
 
 
 @pandas_available
-def test_ndarray_equality_operator_equal_true_show_difference(caplog: LogCaptureFixture) -> None:
+def test_dataframe_equality_operator_equal_true_show_difference(caplog: LogCaptureFixture) -> None:
     with caplog.at_level(logging.INFO):
         assert DataFrameEqualityOperator().equal(
             EqualityTester(),
@@ -81,7 +81,7 @@ def test_ndarray_equality_operator_equal_true_show_difference(caplog: LogCapture
 
 
 @pandas_available
-def test_ndarray_equality_operator_equal_false_different_data() -> None:
+def test_dataframe_equality_operator_equal_false_different_data() -> None:
     assert not DataFrameEqualityOperator().equal(
         EqualityTester(),
         pd.DataFrame(
@@ -101,7 +101,7 @@ def test_ndarray_equality_operator_equal_false_different_data() -> None:
 
 
 @pandas_available
-def test_ndarray_equality_operator_equal_false_different_dtype() -> None:
+def test_dataframe_equality_operator_equal_false_different_dtype() -> None:
     assert not DataFrameEqualityOperator().equal(
         EqualityTester(),
         pd.DataFrame(
@@ -122,7 +122,7 @@ def test_ndarray_equality_operator_equal_false_different_dtype() -> None:
 
 
 @pandas_available
-def test_ndarray_equality_operator_equal_false_nan() -> None:
+def test_dataframe_equality_operator_equal_false_nan() -> None:
     assert not DataFrameEqualityOperator().equal(
         EqualityTester(),
         pd.DataFrame(
@@ -143,7 +143,7 @@ def test_ndarray_equality_operator_equal_false_nan() -> None:
 
 
 @pandas_available
-def test_ndarray_equality_operator_equal_false_show_difference(caplog: LogCaptureFixture) -> None:
+def test_dataframe_equality_operator_equal_false_show_difference(caplog: LogCaptureFixture) -> None:
     with caplog.at_level(logging.INFO):
         assert not DataFrameEqualityOperator().equal(
             EqualityTester(),
@@ -166,7 +166,7 @@ def test_ndarray_equality_operator_equal_false_show_difference(caplog: LogCaptur
 
 
 @pandas_available
-def test_ndarray_equality_operator_equal_false_different_type() -> None:
+def test_dataframe_equality_operator_equal_false_different_type() -> None:
     assert not DataFrameEqualityOperator().equal(
         EqualityTester(),
         pd.DataFrame(
@@ -181,7 +181,7 @@ def test_ndarray_equality_operator_equal_false_different_type() -> None:
 
 
 @pandas_available
-def test_ndarray_equality_operator_equal_false_different_type_show_difference(
+def test_dataframe_equality_operator_equal_false_different_type_show_difference(
     caplog: LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
@@ -198,3 +198,89 @@ def test_ndarray_equality_operator_equal_false_different_type_show_difference(
             show_difference=True,
         )
         assert caplog.messages[0].startswith("object2 is not a pandas.DataFrame")
+
+
+############################################
+#     Tests for SeriesEqualityOperator     #
+############################################
+
+
+@pandas_available
+def test_series_equality_operator_str() -> None:
+    assert str(SeriesEqualityOperator()).startswith("SeriesEqualityOperator(")
+
+
+@pandas_available
+def test_series_equality_operator_equal_true() -> None:
+    assert SeriesEqualityOperator().equal(
+        EqualityTester(), pd.Series([1, 2, 3, 4, 5]), pd.Series([1, 2, 3, 4, 5])
+    )
+
+
+@pandas_available
+def test_series_equality_operator_equal_true_same_object() -> None:
+    obj = pd.Series([1, 2, 3, 4, 5])
+    assert SeriesEqualityOperator().equal(EqualityTester(), obj, obj)
+
+
+@pandas_available
+def test_series_equality_operator_equal_true_show_difference(caplog: LogCaptureFixture) -> None:
+    with caplog.at_level(logging.INFO):
+        assert SeriesEqualityOperator().equal(
+            EqualityTester(),
+            pd.Series([1, 2, 3, 4, 5]),
+            pd.Series([1, 2, 3, 4, 5]),
+            show_difference=True,
+        )
+        assert not caplog.messages
+
+
+@pandas_available
+def test_series_equality_operator_equal_false_different_data() -> None:
+    assert not SeriesEqualityOperator().equal(
+        EqualityTester(), pd.Series([1, 2, 3, 4, 5]), pd.Series(["a", "b", "c", "d", "e"])
+    )
+
+
+@pandas_available
+def test_series_equality_operator_equal_false_different_dtype() -> None:
+    assert not SeriesEqualityOperator().equal(
+        EqualityTester(), pd.Series([1, 2, 3, 4, 5]), pd.Series([1.0, 2.0, 3.0, 4.0, 5.0])
+    )
+
+
+@pandas_available
+def test_series_equality_operator_equal_false_nan() -> None:
+    assert not SeriesEqualityOperator().equal(
+        EqualityTester(),
+        pd.Series([1, 2, 3, 4, 5]),
+        pd.Series([1.0, 2.0, 3.0, 4.0, 5.0]),
+    )
+
+
+@pandas_available
+def test_series_equality_operator_equal_false_show_difference(caplog: LogCaptureFixture) -> None:
+    with caplog.at_level(logging.INFO):
+        assert not SeriesEqualityOperator().equal(
+            EqualityTester(),
+            pd.Series([1, 2, 3, 4, 5]),
+            pd.Series(["a", "b", "c", "d", "e"]),
+            show_difference=True,
+        )
+        assert caplog.messages[0].startswith("pandas.Series are different")
+
+
+@pandas_available
+def test_series_equality_operator_equal_false_different_type() -> None:
+    assert not SeriesEqualityOperator().equal(EqualityTester(), pd.Series([1, 2, 3, 4, 5]), "meow")
+
+
+@pandas_available
+def test_series_equality_operator_equal_false_different_type_show_difference(
+    caplog: LogCaptureFixture,
+) -> None:
+    with caplog.at_level(logging.INFO):
+        assert not SeriesEqualityOperator().equal(
+            EqualityTester(), pd.Series([1, 2, 3, 4, 5]), "meow", show_difference=True
+        )
+        assert caplog.messages[0].startswith("object2 is not a pandas.Series")
