@@ -399,7 +399,7 @@ def test_series_equality_operator_equal_false_show_difference(caplog: LogCapture
             pd.Series(["a", "b", "c", "d", "e"]),
             show_difference=True,
         )
-        assert caplog.messages[0].startswith("pandas.Series are different")
+        assert caplog.messages[-1].startswith("pandas.Series are different")
 
 
 @pandas_available

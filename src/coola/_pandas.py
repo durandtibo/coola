@@ -96,7 +96,7 @@ class SeriesEqualityOperator(BaseEqualityOperator[Series]):
             if show_difference:
                 logger.info(f"object2 is not a pandas.Series: {type(object2)}")
             return False
-        object_equal = object1.eq(object2).all() and object1.dtypes == object2.dtypes
+        object_equal = tester.equal(object1.to_numpy(), object2.to_numpy(), show_difference)
         if show_difference and not object_equal:
             logger.info(f"pandas.Series are different\nobject1=\n{object1}\nobject2=\n{object2}")
         return object_equal
