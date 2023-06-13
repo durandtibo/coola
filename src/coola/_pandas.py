@@ -38,15 +38,13 @@ class DataFrameAllCloseOperator(BaseAllCloseOperator[DataFrame]):
             if show_difference:
                 logger.info(f"object2 is not a pandas.DataFrame: {type(object2)}")
             return False
-        object_equal = tester.allclose(
-            {name: values for name, values in object1.items()},
-            {name: values for name, values in object2.items()},
-            # object2.infer_objects().to_numpy(),
-            rtol=rtol,
-            atol=atol,
-            equal_nan=equal_nan,
-            show_difference=show_difference,
-        )
+        try:
+            pandas.testing.assert_frame_equal(object1, object2, rtol=rtol, atol=atol)
+            object_equal = True
+        except AssertionError:
+            object_equal = False
+        if not equal_nan and object1.isnull().any().any():
+            object_equal = False
         if show_difference and not object_equal:
             logger.info(
                 f"pandas.DataFrames are different\nobject1=\n{object1}\nobject2=\n{object2}"
@@ -73,7 +71,11 @@ class DataFrameEqualityOperator(BaseEqualityOperator[DataFrame]):
             if show_difference:
                 logger.info(f"object2 is not a pandas.DataFrame: {type(object2)}")
             return False
-        object_equal = object1.eq(object2).all().all() and all(object1.dtypes == object2.dtypes)
+        try:
+            pandas.testing.assert_frame_equal(object1, object2, check_exact=True)
+            object_equal = not object1.isnull().any().any()
+        except AssertionError:
+            object_equal = False
         if show_difference and not object_equal:
             logger.info(
                 f"pandas.DataFrames are different\nobject1=\n{object1}\nobject2=\n{object2}"
@@ -110,21 +112,6 @@ class SeriesAllCloseOperator(BaseAllCloseOperator[Series]):
             object_equal = False
         if not equal_nan and object1.isnull().any():
             object_equal = False
-        # if pandas.api.types.is_numeric_dtype(object1):
-        #     object_equal = tester.allclose(
-        #         object1.to_numpy(),
-        #         object2.to_numpy(),
-        #         rtol=rtol,
-        #         atol=atol,
-        #         equal_nan=equal_nan,
-        #         show_difference=show_difference,
-        #     )
-        # else:
-        #     object_equal = objects_are_equal(
-        #         object1,
-        #         object2,
-        #         show_difference=show_difference,
-        #     )
         if show_difference and not object_equal:
             logger.info(f"pandas.Series are different\nobject1=\n{object1}\nobject2=\n{object2}")
         return object_equal
@@ -154,7 +141,6 @@ class SeriesEqualityOperator(BaseEqualityOperator[Series]):
             object_equal = not object1.isnull().any()
         except AssertionError:
             object_equal = False
-        # object_equal = tester.equal(object1.to_numpy(), object2.to_numpy(), show_difference)
         if show_difference and not object_equal:
             logger.info(f"pandas.Series are different\nobject1=\n{object1}\nobject2=\n{object2}")
         return object_equal

@@ -38,6 +38,9 @@ def test_dataframe_allclose_operator_allclose_true() -> None:
                 "col1": [1, 2, 3, 4, 5],
                 "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                ),
             }
         ),
         pd.DataFrame(
@@ -45,6 +48,9 @@ def test_dataframe_allclose_operator_allclose_true() -> None:
                 "col1": [1, 2, 3, 4, 5],
                 "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                ),
             }
         ),
     )
@@ -57,6 +63,7 @@ def test_dataframe_allclose_operator_allclose_true_same_object() -> None:
             "col1": [1, 2, 3, 4, 5],
             "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
             "col3": ["a", "b", "c", "d", "e"],
+            "col4": pd.Series(["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]),
         }
     )
     assert DataFrameAllCloseOperator().allclose(AllCloseTester(), obj, obj)
@@ -74,6 +81,9 @@ def test_dataframe_allclose_operator_allclose_true_show_difference(
                     "col1": [1, 2, 3, 4, 5],
                     "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                     "col3": ["a", "b", "c", "d", "e"],
+                    "col4": pd.Series(
+                        ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                    ),
                 }
             ),
             pd.DataFrame(
@@ -81,6 +91,9 @@ def test_dataframe_allclose_operator_allclose_true_show_difference(
                     "col1": [1, 2, 3, 4, 5],
                     "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                     "col3": ["a", "b", "c", "d", "e"],
+                    "col4": pd.Series(
+                        ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                    ),
                 }
             ),
             show_difference=True,
@@ -97,11 +110,15 @@ def test_dataframe_allclose_operator_allclose_false_different_data() -> None:
                 "col1": [1, 2, 3, 4, 5],
                 "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                ),
             }
         ),
         pd.DataFrame(
             {
                 "col1": [1, 2, 3, 4, 5],
+                "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
             }
         ),
@@ -117,6 +134,9 @@ def test_dataframe_allclose_operator_allclose_false_different_columns() -> None:
                 "col1": [1, 2, 3, 4, 5],
                 "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                ),
             }
         ),
         pd.DataFrame(
@@ -124,6 +144,9 @@ def test_dataframe_allclose_operator_allclose_false_different_columns() -> None:
                 "col1": [1, 2, 3, 4, 5],
                 "col": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                ),
             }
         ),
     )
@@ -138,6 +161,9 @@ def test_dataframe_allclose_operator_allclose_false_different_index() -> None:
                 "col1": [1, 2, 3, 4, 5],
                 "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                ),
             }
         ),
         pd.DataFrame(
@@ -145,6 +171,9 @@ def test_dataframe_allclose_operator_allclose_false_different_index() -> None:
                 "col1": [1, 2, 3, 4, 5],
                 "col": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                ),
             },
             index=pd.Index([2, 3, 4, 5, 6]),
         ),
@@ -160,6 +189,9 @@ def test_dataframe_allclose_operator_allclose_false_different_dtype() -> None:
                 "col1": [1, 2, 3, 4, 5],
                 "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                ),
             }
         ),
         pd.DataFrame(
@@ -167,6 +199,9 @@ def test_dataframe_allclose_operator_allclose_false_different_dtype() -> None:
                 "col1": [1.0, 2.0, 3.0, 4.0, 5.0],
                 "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                ),
             }
         ),
     )
@@ -178,16 +213,22 @@ def test_dataframe_allclose_operator_allclose_false_nan() -> None:
         AllCloseTester(),
         pd.DataFrame(
             {
-                "col1": [1, 2, 3, 4, 5],
-                "col2": [1.1, 2.2, 3.3, 4.4, float("nan")],
-                "col3": ["a", "b", "c", "d", "e"],
+                "col1": [1, 2, 3, 4, 5, None],
+                "col2": [1.1, 2.2, 3.3, 4.4, 5.5, float("nan")],
+                "col3": ["a", "b", "c", "d", "e", None],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16", None]
+                ),
             }
         ),
         pd.DataFrame(
             {
-                "col1": [1, 2, 3, 4, 5],
-                "col2": [1.1, 2.2, 3.3, 4.4, float("nan")],
-                "col3": ["a", "b", "c", "d", "e"],
+                "col1": [1, 2, 3, 4, 5, None],
+                "col2": [1.1, 2.2, 3.3, 4.4, 5.5, float("nan")],
+                "col3": ["a", "b", "c", "d", "e", None],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16", None]
+                ),
             }
         ),
     )
@@ -199,16 +240,22 @@ def test_dataframe_allclose_operator_allclose_true_nan() -> None:
         AllCloseTester(),
         pd.DataFrame(
             {
-                "col1": [1, 2, 3, 4, 5],
-                "col2": [1.1, 2.2, 3.3, 4.4, float("nan")],
-                "col3": ["a", "b", "c", "d", "e"],
+                "col1": [1, 2, 3, 4, 5, None],
+                "col2": [1.1, 2.2, 3.3, 4.4, 5.5, float("nan")],
+                "col3": ["a", "b", "c", "d", "e", None],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16", None]
+                ),
             }
         ),
         pd.DataFrame(
             {
-                "col1": [1, 2, 3, 4, 5],
-                "col2": [1.1, 2.2, 3.3, 4.4, float("nan")],
-                "col3": ["a", "b", "c", "d", "e"],
+                "col1": [1, 2, 3, 4, 5, None],
+                "col2": [1.1, 2.2, 3.3, 4.4, 5.5, float("nan")],
+                "col3": ["a", "b", "c", "d", "e", None],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16", None]
+                ),
             }
         ),
         equal_nan=True,
@@ -227,12 +274,18 @@ def test_dataframe_allclose_operator_allclose_false_show_difference(
                     "col1": [1, 2, 3, 4, 5],
                     "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                     "col3": ["a", "b", "c", "d", "e"],
+                    "col4": pd.Series(
+                        ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                    ),
                 }
             ),
             pd.DataFrame(
                 {
                     "col1": [1, 2, 3, 4, 5],
                     "col3": ["a", "b", "c", "d", "e"],
+                    "col4": pd.Series(
+                        ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                    ),
                 }
             ),
             show_difference=True,
@@ -249,6 +302,9 @@ def test_dataframe_allclose_operator_allclose_false_different_type() -> None:
                 "col1": [1, 2, 3, 4, 5],
                 "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                ),
             }
         ),
         "meow",
@@ -267,6 +323,9 @@ def test_dataframe_allclose_operator_allclose_false_different_type_show_differen
                     "col1": [1, 2, 3, 4, 5],
                     "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                     "col3": ["a", "b", "c", "d", "e"],
+                    "col4": pd.Series(
+                        ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                    ),
                 }
             ),
             "meow",
@@ -294,6 +353,9 @@ def test_dataframe_equality_operator_equal_true() -> None:
                 "col1": [1, 2, 3, 4, 5],
                 "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                ),
             }
         ),
         pd.DataFrame(
@@ -301,6 +363,9 @@ def test_dataframe_equality_operator_equal_true() -> None:
                 "col1": [1, 2, 3, 4, 5],
                 "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                ),
             }
         ),
     )
@@ -313,6 +378,7 @@ def test_dataframe_equality_operator_equal_true_same_object() -> None:
             "col1": [1, 2, 3, 4, 5],
             "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
             "col3": ["a", "b", "c", "d", "e"],
+            "col4": pd.Series(["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]),
         }
     )
     assert DataFrameEqualityOperator().equal(EqualityTester(), obj, obj)
@@ -328,6 +394,9 @@ def test_dataframe_equality_operator_equal_true_show_difference(caplog: LogCaptu
                     "col1": [1, 2, 3, 4, 5],
                     "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                     "col3": ["a", "b", "c", "d", "e"],
+                    "col4": pd.Series(
+                        ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                    ),
                 }
             ),
             pd.DataFrame(
@@ -335,6 +404,9 @@ def test_dataframe_equality_operator_equal_true_show_difference(caplog: LogCaptu
                     "col1": [1, 2, 3, 4, 5],
                     "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                     "col3": ["a", "b", "c", "d", "e"],
+                    "col4": pd.Series(
+                        ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                    ),
                 }
             ),
             show_difference=True,
@@ -351,12 +423,18 @@ def test_dataframe_equality_operator_equal_false_different_data() -> None:
                 "col1": [1, 2, 3, 4, 5],
                 "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                ),
             }
         ),
         pd.DataFrame(
             {
                 "col1": [1, 2, 3, 4, 5],
                 "col3": ["a", "b", "c", "d", "e"],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                ),
             }
         ),
     )
@@ -371,6 +449,9 @@ def test_dataframe_equality_operator_equal_false_different_columns() -> None:
                 "col1": [1, 2, 3, 4, 5],
                 "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                ),
             }
         ),
         pd.DataFrame(
@@ -378,6 +459,9 @@ def test_dataframe_equality_operator_equal_false_different_columns() -> None:
                 "col1": [1, 2, 3, 4, 5],
                 "col": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                ),
             }
         ),
     )
@@ -392,6 +476,9 @@ def test_dataframe_equality_operator_equal_false_different_index() -> None:
                 "col1": [1, 2, 3, 4, 5],
                 "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                ),
             }
         ),
         pd.DataFrame(
@@ -399,6 +486,9 @@ def test_dataframe_equality_operator_equal_false_different_index() -> None:
                 "col1": [1, 2, 3, 4, 5],
                 "col": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                ),
             },
             index=pd.Index([2, 3, 4, 5, 6]),
         ),
@@ -414,6 +504,9 @@ def test_dataframe_equality_operator_equal_false_different_dtype() -> None:
                 "col1": [1, 2, 3, 4, 5],
                 "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                ),
             }
         ),
         pd.DataFrame(
@@ -421,6 +514,9 @@ def test_dataframe_equality_operator_equal_false_different_dtype() -> None:
                 "col1": [1.0, 2.0, 3.0, 4.0, 5.0],
                 "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                ),
             }
         ),
     )
@@ -432,16 +528,22 @@ def test_dataframe_equality_operator_equal_false_nan() -> None:
         EqualityTester(),
         pd.DataFrame(
             {
-                "col1": [1, 2, 3, 4, 5],
-                "col2": [1.1, 2.2, 3.3, 4.4, float("nan")],
-                "col3": ["a", "b", "c", "d", "e"],
+                "col1": [1, 2, 3, 4, 5, None],
+                "col2": [1.1, 2.2, 3.3, 4.4, 5.5, float("nan")],
+                "col3": ["a", "b", "c", "d", "e", None],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16", None]
+                ),
             }
         ),
         pd.DataFrame(
             {
-                "col1": [1, 2, 3, 4, 5],
-                "col2": [1.1, 2.2, 3.3, 4.4, float("nan")],
-                "col3": ["a", "b", "c", "d", "e"],
+                "col1": [1, 2, 3, 4, 5, None],
+                "col2": [1.1, 2.2, 3.3, 4.4, 5.5, float("nan")],
+                "col3": ["a", "b", "c", "d", "e", None],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16", None]
+                ),
             }
         ),
     )
@@ -457,12 +559,18 @@ def test_dataframe_equality_operator_equal_false_show_difference(caplog: LogCapt
                     "col1": [1, 2, 3, 4, 5],
                     "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                     "col3": ["a", "b", "c", "d", "e"],
+                    "col4": pd.Series(
+                        ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                    ),
                 }
             ),
             pd.DataFrame(
                 {
                     "col1": [1, 2, 3, 4, 5],
                     "col3": ["a", "b", "c", "d", "e"],
+                    "col4": pd.Series(
+                        ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                    ),
                 }
             ),
             show_difference=True,
@@ -479,6 +587,9 @@ def test_dataframe_equality_operator_equal_false_different_type() -> None:
                 "col1": [1, 2, 3, 4, 5],
                 "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
+                "col4": pd.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                ),
             }
         ),
         "meow",
@@ -497,6 +608,9 @@ def test_dataframe_equality_operator_equal_false_different_type_show_difference(
                     "col1": [1, 2, 3, 4, 5],
                     "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                     "col3": ["a", "b", "c", "d", "e"],
+                    "col4": pd.Series(
+                        ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                    ),
                 }
             ),
             "meow",
@@ -590,7 +704,7 @@ def test_series_allclose_operator_allclose_false_different_index() -> None:
 
 @pandas_available
 def test_series_allclose_operator_allclose_false_nan() -> None:
-    assert SeriesAllCloseOperator().allclose(
+    assert not SeriesAllCloseOperator().allclose(
         AllCloseTester(),
         pd.Series([1.0, 2.0, 3.0, 4.0, float("nan")]),
         pd.Series([1.0, 2.0, 3.0, 4.0, float("nan")]),
