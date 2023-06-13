@@ -131,6 +131,7 @@ def test_objects_are_equal_false_different_type() -> None:
         (-1.0, -1.0),
         (True, True),
         (False, False),
+        (None, None),
     ),
 )
 def test_objects_are_equal_scalar_true(
@@ -148,6 +149,7 @@ def test_objects_are_equal_scalar_true(
         (1, 1.0),
         (1, True),
         (1.0, True),
+        (1.0, None),
     ),
 )
 def test_objects_are_equal_scalar_false(
@@ -297,10 +299,11 @@ def test_default_equality_operator_str() -> None:
         (-1.0, -1.0),
         (True, True),
         (False, False),
+        (None, None),
     ),
 )
 def test_default_equality_operator_equal_true_scalar(
-    object1: bool | int | float, object2: bool | int | float
+    object1: bool | int | float | None, object2: bool | int | float | None
 ) -> None:
     assert DefaultEqualityOperator().equal(EqualityTester(), object1, object2)
 
@@ -319,10 +322,11 @@ def test_default_equality_operator_equal_true_same_object() -> None:
         (1, 1.0),
         (1, True),
         (1.0, True),
+        (1.0, None),
     ),
 )
 def test_default_equality_operator_equal_false_scalar(
-    object1: bool | int | float, object2: bool | int | float
+    object1: bool | int | float, object2: bool | int | float | None
 ) -> None:
     assert not DefaultEqualityOperator().equal(EqualityTester(), object1, object2)
 
