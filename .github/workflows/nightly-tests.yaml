@@ -93,6 +93,111 @@ jobs:
         run: |
           poetry run make unit-test-cov
 
+  test-numpy:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ '3.9', '3.10', '3.11' ]
+        numpy-version: [ 1.20.3, 1.21.6, 1.22.4, 1.23.5, 1.24.3 ]
+        exclude:
+          - numpy-version: 1.20.3
+            python-version: 3.10
+          - numpy-version: 1.20.3
+            python-version: 3.11
+          - numpy-version: 1.21.6
+            python-version: 3.11
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Install packages
+        run: |
+          poetry run make config-poetry
+          poetry run make install
+
+      - name: Install NumPy
+        run: |
+          poetry run pip install numpy==${{ matrix.numpy-version }}
+
+      - name: Show installed packages
+        run: |
+          poetry run poetry show
+          poetry run poetry show --tree
+
+      - name: Format
+        run: |
+          poetry run make format
+
+      - name: Lint
+        run: |
+          poetry run make lint
+
+      - name: Run unit tests
+        run: |
+          poetry run make unit-test-cov
+
+  test-pandas:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ '3.9', '3.10', '3.11' ]
+        pandas-version: [ 2.0.2, 1.5.3, 1.4.4, 1.3.5 ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Install packages
+        run: |
+          poetry run make config-poetry
+          poetry run make install
+
+      - name: Install pandas
+        run: |
+          poetry run pip install pandas==${{ matrix.pandas-version }}
+
+      - name: Show installed packages
+        run: |
+          poetry run poetry show
+          poetry run poetry show --tree
+
+      - name: Format
+        run: |
+          poetry run make format
+
+      - name: Lint
+        run: |
+          poetry run make lint
+
+      - name: Run unit tests
+        run: |
+          poetry run make unit-test-cov
+
   test-pytorch:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
@@ -151,62 +256,6 @@ jobs:
         run: |
           poetry run make unit-test-cov
 
-  test-numpy:
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
-    strategy:
-      max-parallel: 8
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-latest ]
-        python-version: [ '3.9', '3.10', '3.11' ]
-        numpy-version: [ 1.20.3, 1.21.6, 1.22.4, 1.23.5, 1.24.3 ]
-        exclude:
-          - numpy-version: 1.20.3
-            python-version: 3.10
-          - numpy-version: 1.20.3
-            python-version: 3.11
-          - numpy-version: 1.21.6
-            python-version: 3.11
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-
-      - name: Install packages
-        run: |
-          poetry run make config-poetry
-          poetry run make install
-
-      - name: Install NumPy
-        run: |
-          poetry run pip install numpy==${{ matrix.numpy-version }}
-
-      - name: Show installed packages
-        run: |
-          poetry run poetry show
-          poetry run poetry show --tree
-
-      - name: Format
-        run: |
-          poetry run make format
-
-      - name: Lint
-        run: |
-          poetry run make lint
-
-      - name: Run unit tests
-        run: |
-          poetry run make unit-test-cov
-
   test-xarray:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
@@ -235,7 +284,7 @@ jobs:
           poetry run make config-poetry
           poetry run make install
 
-      - name: Install NumPy
+      - name: Install xarray
         run: |
           poetry run pip install xarray==${{ matrix.xarray-version }}
 
