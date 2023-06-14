@@ -153,9 +153,6 @@ def test_data_array_allclose_operator_allclose_false_different_dims() -> None:
 
 @xarray_available
 def test_data_array_allclose_operator_allclose_false_different_coords() -> None:
-    print(
-        xr.DataArray(np.arange(6), dims=["z"], coords={"z": ["A", "B", "C", "D", "E", "F"]}).coords
-    )
     assert not DataArrayAllCloseOperator().allclose(
         AllCloseTester(),
         xr.DataArray(np.arange(6), dims=["z"], coords={"z": ["A", "B", "C", "D", "E", "F"]}),

@@ -253,7 +253,7 @@ def test_dataframe_allclose_operator_allclose_false_different_dtype() -> None:
 
 
 @pandas_available
-def test_dataframe_allclose_operator_allclose_false_nan() -> None:
+def test_dataframe_allclose_operator_allclose_false_null() -> None:
     assert not DataFrameAllCloseOperator().allclose(
         AllCloseTester(),
         pandas.DataFrame(
@@ -280,7 +280,7 @@ def test_dataframe_allclose_operator_allclose_false_nan() -> None:
 
 
 @pandas_available
-def test_dataframe_allclose_operator_allclose_true_nan() -> None:
+def test_dataframe_allclose_operator_allclose_true_null() -> None:
     assert DataFrameAllCloseOperator().allclose(
         AllCloseTester(),
         pandas.DataFrame(
@@ -303,6 +303,80 @@ def test_dataframe_allclose_operator_allclose_true_nan() -> None:
                 ),
             }
         ),
+        equal_nan=True,
+    )
+
+
+@pandas_available
+def test_dataframe_allclose_operator_allclose_false_nan() -> None:
+    assert not DataFrameAllCloseOperator().allclose(
+        AllCloseTester(),
+        pandas.DataFrame({"col": [1.1, 2.2, 3.3, 4.4, 5.5, float("nan")]}),
+        pandas.DataFrame({"col": [1.1, 2.2, 3.3, 4.4, 5.5, float("nan")]}),
+    )
+
+
+@pandas_available
+def test_dataframe_allclose_operator_allclose_false_nat() -> None:
+    assert not DataFrameAllCloseOperator().allclose(
+        AllCloseTester(),
+        pandas.DataFrame(
+            {"col": pandas.to_datetime(["2020/10/12", "2021/3/14", "2022/4/14", None])}
+        ),
+        pandas.DataFrame(
+            {"col": pandas.to_datetime(["2020/10/12", "2021/3/14", "2022/4/14", None])}
+        ),
+    )
+
+
+@pandas_available
+def test_dataframe_allclose_operator_allclose_true_nat() -> None:
+    assert DataFrameAllCloseOperator().allclose(
+        AllCloseTester(),
+        pandas.DataFrame(
+            {"col": pandas.to_datetime(["2020/10/12", "2021/3/14", "2022/4/14", None])}
+        ),
+        pandas.DataFrame(
+            {"col": pandas.to_datetime(["2020/10/12", "2021/3/14", "2022/4/14", None])}
+        ),
+        equal_nan=True,
+    )
+
+
+@pandas_available
+def test_dataframe_allclose_operator_allclose_false_none_str() -> None:
+    assert not DataFrameAllCloseOperator().allclose(
+        AllCloseTester(),
+        pandas.DataFrame({"col": ["a", "b", "c", "d", "e", None]}),
+        pandas.DataFrame({"col": ["a", "b", "c", "d", "e", None]}),
+    )
+
+
+@pandas_available
+def test_dataframe_allclose_operator_allclose_true_none_str() -> None:
+    assert DataFrameAllCloseOperator().allclose(
+        AllCloseTester(),
+        pandas.DataFrame({"col": ["a", "b", "c", "d", "e", None]}),
+        pandas.DataFrame({"col": ["a", "b", "c", "d", "e", None]}),
+        equal_nan=True,
+    )
+
+
+@pandas_available
+def test_dataframe_allclose_operator_allclose_false_none_int() -> None:
+    assert not DataFrameAllCloseOperator().allclose(
+        AllCloseTester(),
+        pandas.DataFrame({"col": [1, 2, 3, 4, 5, None]}),
+        pandas.DataFrame({"col": [1, 2, 3, 4, 5, None]}),
+    )
+
+
+@pandas_available
+def test_dataframe_allclose_operator_allclose_true_none_int() -> None:
+    assert DataFrameAllCloseOperator().allclose(
+        AllCloseTester(),
+        pandas.DataFrame({"col": [1, 2, 3, 4, 5, None]}),
+        pandas.DataFrame({"col": [1, 2, 3, 4, 5, None]}),
         equal_nan=True,
     )
 
@@ -596,7 +670,7 @@ def test_dataframe_equality_operator_equal_false_different_dtype() -> None:
 
 
 @pandas_available
-def test_dataframe_equality_operator_equal_false_nan() -> None:
+def test_dataframe_equality_operator_equal_false_null() -> None:
     assert not DataFrameEqualityOperator().equal(
         EqualityTester(),
         pandas.DataFrame(
@@ -619,6 +693,54 @@ def test_dataframe_equality_operator_equal_false_nan() -> None:
                 ),
             }
         ),
+    )
+
+
+@pandas_available
+def test_dataframe_equality_operator_equal_false_nan() -> None:
+    assert not DataFrameEqualityOperator().equal(
+        EqualityTester(),
+        pandas.DataFrame({"col": [1.1, 2.2, 3.3, 4.4, 5.5, float("nan")]}),
+        pandas.DataFrame({"col": [1.1, 2.2, 3.3, 4.4, 5.5, float("nan")]}),
+    )
+
+
+@pandas_available
+def test_dataframe_equality_operator_equal_false_nat() -> None:
+    assert not DataFrameEqualityOperator().equal(
+        EqualityTester(),
+        pandas.DataFrame(
+            {
+                "col": pandas.to_datetime(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16", None]
+                )
+            }
+        ),
+        pandas.DataFrame(
+            {
+                "col": pandas.to_datetime(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16", None]
+                )
+            }
+        ),
+    )
+
+
+@pandas_available
+def test_dataframe_equality_operator_equal_false_none_str() -> None:
+    assert not DataFrameEqualityOperator().equal(
+        EqualityTester(),
+        pandas.DataFrame({"col": ["a", "b", "c", "d", "e", None]}),
+        pandas.DataFrame({"col": ["a", "b", "c", "d", "e", None]}),
+    )
+
+
+@pandas_available
+def test_dataframe_equality_operator_equal_false_none_int() -> None:
+    assert not DataFrameEqualityOperator().equal(
+        EqualityTester(),
+        pandas.DataFrame({"col": [1, 2, 3, 4, 5, None]}),
+        pandas.DataFrame({"col": [1, 2, 3, 4, 5, None]}),
     )
 
 
