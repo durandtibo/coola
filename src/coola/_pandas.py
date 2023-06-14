@@ -43,8 +43,8 @@ class DataFrameAllCloseOperator(BaseAllCloseOperator[DataFrame]):
             object_equal = True
         except AssertionError:
             object_equal = False
-        if not equal_nan and object1.isnull().any().any():
-            object_equal = False
+        if not equal_nan and object_equal:
+            object_equal = not object1.isnull().any().any()
         if show_difference and not object_equal:
             logger.info(
                 f"pandas.DataFrames are different\nobject1=\n{object1}\nobject2=\n{object2}"
@@ -110,7 +110,7 @@ class SeriesAllCloseOperator(BaseAllCloseOperator[Series]):
             object_equal = True
         except AssertionError:
             object_equal = False
-        if not equal_nan and object1.isnull().any():
+        if not equal_nan and object_equal and object1.isnull().any():
             object_equal = False
         if show_difference and not object_equal:
             logger.info(f"pandas.Series are different\nobject1=\n{object1}\nobject2=\n{object2}")
