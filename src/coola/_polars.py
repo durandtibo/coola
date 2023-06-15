@@ -16,6 +16,49 @@ else:
 logger = logging.getLogger(__name__)
 
 
+class DataFrameAllCloseOperator(BaseAllCloseOperator[DataFrame]):
+    r"""Implements an equality operator for ``polars.DataFrame``."""
+
+    def __init__(self) -> None:
+        check_polars()
+
+    def allclose(
+        self,
+        tester: BaseAllCloseTester,
+        object1: DataFrame,
+        object2: Any,
+        rtol: float = 1e-5,
+        atol: float = 1e-8,
+        equal_nan: bool = False,
+        show_difference: bool = False,
+    ) -> bool:
+        if object1 is object2:
+            return True
+        if not isinstance(object2, DataFrame):
+            if show_difference:
+                logger.info(f"object2 is not a polars.DataFrame: {type(object2)}")
+            return False
+        try:
+            assert_frame_equal(
+                object1,
+                object2,
+                rtol=rtol,
+                atol=atol,
+                nans_compare_equal=equal_nan,
+                check_exact=False,
+            )
+            object_equal = True
+        except AssertionError:
+            object_equal = False
+        if not equal_nan and object_equal:
+            object_equal = object1.null_count().sum(axis=1).to_list()[0] == 0
+        if show_difference and not object_equal:
+            logger.info(
+                f"polars.DataFrames are different\nobject1=\n{object1}\nobject2=\n{object2}"
+            )
+        return object_equal
+
+
 class DataFrameEqualityOperator(BaseEqualityOperator[DataFrame]):
     r"""Implements an equality operator for ``polars.DataFrame``."""
 
@@ -118,6 +161,8 @@ class SeriesEqualityOperator(BaseEqualityOperator[Series]):
 
 
 if is_polars_available():  # pragma: no cover
+    if not AllCloseTester.has_allclose_operator(DataFrame):
+        AllCloseTester.add_allclose_operator(DataFrame, DataFrameAllCloseOperator())
     if not AllCloseTester.has_allclose_operator(Series):
         AllCloseTester.add_allclose_operator(Series, SeriesAllCloseOperator())
 
