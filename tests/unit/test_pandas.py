@@ -942,6 +942,156 @@ def test_dataframe_equality_operator_equal_false_different_type_show_difference(
         assert caplog.messages[0].startswith("object2 is not a pandas.DataFrame")
 
 
+@pandas_available
+def test_dataframe_equality_operator_equal_true_null_nulls_compare_equal() -> None:
+    assert DataFrameEqualityOperator(nulls_compare_equal=True).equal(
+        EqualityTester(),
+        pandas.DataFrame(
+            {
+                "col1": [1, 2, 3, 4, 5, None],
+                "col2": [1.1, 2.2, 3.3, 4.4, 5.5, float("nan")],
+                "col3": ["a", "b", "c", "d", "e", None],
+                "col4": pandas.to_datetime(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16", None]
+                ),
+            }
+        ),
+        pandas.DataFrame(
+            {
+                "col1": [1, 2, 3, 4, 5, None],
+                "col2": [1.1, 2.2, 3.3, 4.4, 5.5, float("nan")],
+                "col3": ["a", "b", "c", "d", "e", None],
+                "col4": pandas.to_datetime(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16", None]
+                ),
+            }
+        ),
+    )
+
+
+@pandas_available
+def test_dataframe_equality_operator_equal_false_null_nulls_compare_equal() -> None:
+    assert not DataFrameEqualityOperator(nulls_compare_equal=True).equal(
+        EqualityTester(),
+        pandas.DataFrame(
+            {
+                "col1": [1, 2, 3, 4, 6, None],
+                "col2": [1.1, 2.2, 3.3, 4.4, 5.5, float("nan")],
+                "col3": ["a", "b", "c", "d", "e", None],
+                "col4": pandas.to_datetime(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16", None]
+                ),
+            }
+        ),
+        pandas.DataFrame(
+            {
+                "col1": [1, 2, 3, 4, 5, None],
+                "col2": [1.1, 2.2, 3.3, 4.4, 5.5, float("nan")],
+                "col3": ["a", "b", "c", "d", "e", None],
+                "col4": pandas.to_datetime(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16", None]
+                ),
+            }
+        ),
+    )
+
+
+@pandas_available
+def test_dataframe_equality_operator_equal_true_nan_nulls_compare_equal() -> None:
+    assert DataFrameEqualityOperator(nulls_compare_equal=True).equal(
+        EqualityTester(),
+        pandas.DataFrame({"col": [1.1, 2.2, 3.3, 4.4, 5.5, float("nan")]}),
+        pandas.DataFrame({"col": [1.1, 2.2, 3.3, 4.4, 5.5, float("nan")]}),
+    )
+
+
+@pandas_available
+def test_dataframe_equality_operator_equal_false_nan_nulls_compare_equal() -> None:
+    assert not DataFrameEqualityOperator(nulls_compare_equal=True).equal(
+        EqualityTester(),
+        pandas.DataFrame({"col": [1.1, 2.2, 3.3, 4.4, 5.5, float("nan")]}),
+        pandas.DataFrame({"col": [1.1, 2.2, 3.3, 4.4, 6.0, float("nan")]}),
+    )
+
+
+@pandas_available
+def test_dataframe_equality_operator_equal_true_nat_nulls_compare_equal() -> None:
+    assert DataFrameEqualityOperator(nulls_compare_equal=True).equal(
+        EqualityTester(),
+        pandas.DataFrame(
+            {
+                "col": pandas.to_datetime(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16", None]
+                )
+            }
+        ),
+        pandas.DataFrame(
+            {
+                "col": pandas.to_datetime(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16", None]
+                )
+            }
+        ),
+    )
+
+
+@pandas_available
+def test_dataframe_equality_operator_equal_false_nat_nulls_compare_equal() -> None:
+    assert not DataFrameEqualityOperator(nulls_compare_equal=True).equal(
+        EqualityTester(),
+        pandas.DataFrame(
+            {
+                "col": pandas.to_datetime(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16", None]
+                )
+            }
+        ),
+        pandas.DataFrame(
+            {
+                "col": pandas.to_datetime(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/17", None]
+                )
+            }
+        ),
+    )
+
+
+@pandas_available
+def test_dataframe_equality_operator_equal_true_none_str_nulls_compare_equal() -> None:
+    assert DataFrameEqualityOperator(nulls_compare_equal=True).equal(
+        EqualityTester(),
+        pandas.DataFrame({"col": ["a", "b", "c", "d", "e", None]}),
+        pandas.DataFrame({"col": ["a", "b", "c", "d", "e", None]}),
+    )
+
+
+@pandas_available
+def test_dataframe_equality_operator_equal_false_none_str_nulls_compare_equal() -> None:
+    assert not DataFrameEqualityOperator(nulls_compare_equal=True).equal(
+        EqualityTester(),
+        pandas.DataFrame({"col": ["a", "b", "c", "d", "e", None]}),
+        pandas.DataFrame({"col": ["a", "b", "c", "d", "f", None]}),
+    )
+
+
+@pandas_available
+def test_dataframe_equality_operator_equal_true_none_int_nulls_compare_equal() -> None:
+    assert DataFrameEqualityOperator(nulls_compare_equal=True).equal(
+        EqualityTester(),
+        pandas.DataFrame({"col": [1, 2, 3, 4, 5, None]}),
+        pandas.DataFrame({"col": [1, 2, 3, 4, 5, None]}),
+    )
+
+
+@pandas_available
+def test_dataframe_equality_operator_equal_false_none_int_nulls_compare_equal() -> None:
+    assert not DataFrameEqualityOperator(nulls_compare_equal=True).equal(
+        EqualityTester(),
+        pandas.DataFrame({"col": [1, 2, 3, 4, 5, None]}),
+        pandas.DataFrame({"col": [1, 2, 3, 4, 6, None]}),
+    )
+
+
 ############################################
 #     Tests for SeriesAllCloseOperator     #
 ############################################
