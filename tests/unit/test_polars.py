@@ -1,7 +1,7 @@
 import logging
 from unittest.mock import Mock
 
-from pytest import LogCaptureFixture
+from pytest import LogCaptureFixture, mark
 
 from coola import (
     AllCloseTester,
@@ -423,6 +423,134 @@ def test_dataframe_allclose_operator_allclose_false_different_type_show_differen
             show_difference=True,
         )
         assert caplog.messages[-1].startswith("object2 is not a polars.DataFrame")
+
+
+@polars_available
+@mark.parametrize(
+    "df,atol",
+    (
+        (
+            polars.DataFrame(
+                {
+                    "col1": [1, 2, 3, 4, 5],
+                    "col2": [1.5, 2.5, 3.5, 4.5, 5.5],
+                    "col3": ["a", "b", "c", "d", "e"],
+                    "col4": polars.Series(
+                        ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                    ).str.to_datetime(),
+                }
+            ),
+            1.0,
+        ),
+        (
+            polars.DataFrame(
+                {
+                    "col1": [1, 2, 3, 4, 5],
+                    "col2": [1.05, 2.05, 3.05, 4.05, 5.05],
+                    "col3": ["a", "b", "c", "d", "e"],
+                    "col4": polars.Series(
+                        ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                    ).str.to_datetime(),
+                }
+            ),
+            1e-1,
+        ),
+        (
+            polars.DataFrame(
+                {
+                    "col1": [1, 2, 3, 4, 5],
+                    "col2": [1.005, 2.005, 3.005, 4.005, 5.005],
+                    "col3": ["a", "b", "c", "d", "e"],
+                    "col4": polars.Series(
+                        ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                    ).str.to_datetime(),
+                }
+            ),
+            1e-2,
+        ),
+    ),
+)
+def test_dataframe_allclose_operator_allclose_true_atol(df: polars.DataFrame, atol: float) -> None:
+    assert DataFrameAllCloseOperator().allclose(
+        AllCloseTester(),
+        polars.DataFrame(
+            {
+                "col1": [1, 2, 3, 4, 5],
+                "col2": [1.0, 2.0, 3.0, 4.0, 5.0],
+                "col3": ["a", "b", "c", "d", "e"],
+                "col4": polars.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                ).str.to_datetime(),
+            }
+        ),
+        df,
+        atol=atol,
+        rtol=0.0,
+    )
+
+
+@polars_available
+@mark.parametrize(
+    "df,rtol",
+    (
+        (
+            polars.DataFrame(
+                {
+                    "col1": [1, 2, 3, 4, 5],
+                    "col2": [1.5, 2.5, 3.5, 4.5, 5.5],
+                    "col3": ["a", "b", "c", "d", "e"],
+                    "col4": polars.Series(
+                        ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                    ).str.to_datetime(),
+                }
+            ),
+            1.0,
+        ),
+        (
+            polars.DataFrame(
+                {
+                    "col1": [1, 2, 3, 4, 5],
+                    "col2": [1.05, 2.15, 3.25, 4.35, 5.45],
+                    "col3": ["a", "b", "c", "d", "e"],
+                    "col4": polars.Series(
+                        ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                    ).str.to_datetime(),
+                }
+            ),
+            1e-1,
+        ),
+        (
+            polars.DataFrame(
+                {
+                    "col1": [1, 2, 3, 4, 5],
+                    "col2": [1.005, 2.015, 3.025, 4.035, 5.045],
+                    "col3": ["a", "b", "c", "d", "e"],
+                    "col4": polars.Series(
+                        ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                    ).str.to_datetime(),
+                }
+            ),
+            1e-2,
+        ),
+    ),
+)
+def test_dataframe_allclose_operator_allclose_true_rtol(df: polars.DataFrame, rtol: float) -> None:
+    assert DataFrameAllCloseOperator().allclose(
+        AllCloseTester(),
+        polars.DataFrame(
+            {
+                "col1": [1, 2, 3, 4, 5],
+                "col2": [1.0, 2.0, 3.0, 4.0, 5.0],
+                "col3": ["a", "b", "c", "d", "e"],
+                "col4": polars.Series(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                ).str.to_datetime(),
+            }
+        ),
+        df,
+        atol=0.0,
+        rtol=rtol,
+    )
 
 
 ###############################################
@@ -1068,35 +1196,34 @@ def test_series_allclose_operator_allclose_false_different_type_show_difference(
         assert caplog.messages[0].startswith("object2 is not a polars.Series")
 
 
-# TODO: Commented because of https://github.com/pola-rs/polars/issues/9358
-# @polars_available
-# @mark.parametrize(
-#     "series,atol",
-#     (
-#         (polars.Series([1.5, 1.5, 1.5]), 1.0),
-#         (polars.Series([1.05, 1.05, 1.05]), 1e-1),
-#         (polars.Series([1.005, 1.005, 1.005]), 1e-2),
-#     ),
-# )
-# def test_series_allclose_operator_allclose_true_atol(series: polars.Series, atol: float) -> None:
-#     assert SeriesAllCloseOperator().allclose(
-#         AllCloseTester(), polars.Series([1.0, 1.0, 1.0]), series, atol=atol, rtol=0.0
-#     )
-#
-#
-# @polars_available
-# @mark.parametrize(
-#     "series,rtol",
-#     (
-#         (polars.Series([1.5, 1.5, 1.5]), 1.0),
-#         (polars.Series([1.05, 1.05, 1.05]), 1e-1),
-#         (polars.Series([1.005, 1.005, 1.005]), 1e-2),
-#     ),
-# )
-# def test_series_allclose_operator_allclose_true_rtol(series: polars.Series, rtol: float) -> None:
-#     assert SeriesAllCloseOperator().allclose(
-#         AllCloseTester(), polars.Series([1.0, 1.0, 1.0]), series, rtol=rtol
-#     )
+@polars_available
+@mark.parametrize(
+    "series,atol",
+    (
+        (polars.Series([1.5, 1.5, 1.5]), 1.0),
+        (polars.Series([1.05, 1.05, 1.05]), 1e-1),
+        (polars.Series([1.005, 1.005, 1.005]), 1e-2),
+    ),
+)
+def test_series_allclose_operator_allclose_true_atol(series: polars.Series, atol: float) -> None:
+    assert SeriesAllCloseOperator().allclose(
+        AllCloseTester(), polars.Series([1.0, 1.0, 1.0]), series, atol=atol, rtol=0.0
+    )
+
+
+@polars_available
+@mark.parametrize(
+    "series,rtol",
+    (
+        (polars.Series([1.5, 1.5, 1.5]), 1.0),
+        (polars.Series([1.05, 1.05, 1.05]), 1e-1),
+        (polars.Series([1.005, 1.005, 1.005]), 1e-2),
+    ),
+)
+def test_series_allclose_operator_allclose_true_rtol(series: polars.Series, rtol: float) -> None:
+    assert SeriesAllCloseOperator().allclose(
+        AllCloseTester(), polars.Series([1.0, 1.0, 1.0]), series, atol=0.0, rtol=rtol
+    )
 
 
 ############################################
