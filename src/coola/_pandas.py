@@ -53,10 +53,19 @@ class DataFrameAllCloseOperator(BaseAllCloseOperator[DataFrame]):
 
 
 class DataFrameEqualityOperator(BaseEqualityOperator[DataFrame]):
-    r"""Implements an equality operator for ``pandas.DataFrame``."""
+    r"""Implements an equality operator for ``pandas.DataFrame``.
 
-    def __init__(self) -> None:
+    Args:
+        nulls_compare_equal (bool, optional): If ``True``, null values
+            (e.g. NaN or NaT) compare as true. Default: ``False``
+    """
+
+    def __init__(self, nulls_compare_equal: bool = False) -> None:
         check_pandas()
+        self._nulls_compare_equal = bool(nulls_compare_equal)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__qualname__}(nulls_compare_equal={self._nulls_compare_equal})"
 
     def equal(
         self,
@@ -71,15 +80,33 @@ class DataFrameEqualityOperator(BaseEqualityOperator[DataFrame]):
             if show_difference:
                 logger.info(f"object2 is not a pandas.DataFrame: {type(object2)}")
             return False
-        try:
-            pandas.testing.assert_frame_equal(object1, object2, check_exact=True)
-            object_equal = not object1.isnull().any().any()
-        except AssertionError:
-            object_equal = False
+        object_equal = self._compare_dataframes(object1, object2)
         if show_difference and not object_equal:
             logger.info(
                 f"pandas.DataFrames are different\nobject1=\n{object1}\nobject2=\n{object2}"
             )
+        return object_equal
+
+    def _compare_dataframes(self, df1: DataFrame, df2: DataFrame) -> bool:
+        r"""Indicates if the two DataFrames are equal or not.
+
+        Args:
+            df1 (``pandas.DataFrame``): Specifies the first
+                DataFrame to compare.
+            df2 (``pandas.DataFrame``): Specifies the second
+                DataFrame to compare.
+
+        Returns:
+            bool: ``True``if the two series are equal,
+                otherwise ``False``.
+        """
+        try:
+            pandas.testing.assert_frame_equal(df1, df2, check_exact=True)
+            object_equal = True
+        except AssertionError:
+            object_equal = False
+        if object_equal and not self._nulls_compare_equal:
+            object_equal = not df1.isnull().any().any()
         return object_equal
 
 
