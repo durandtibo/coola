@@ -1285,3 +1285,57 @@ def test_series_equality_operator_equal_false_different_type_show_difference(
             EqualityTester(), pandas.Series([1, 2, 3, 4, 5]), "meow", show_difference=True
         )
         assert caplog.messages[0].startswith("object2 is not a pandas.Series")
+
+
+@pandas_available
+def test_series_equality_operator_equal_false_nulls_compare_equal_nan() -> None:
+    assert not SeriesEqualityOperator(nulls_compare_equal=True).equal(
+        EqualityTester(),
+        pandas.Series([1.0, 2.0, 3.0, 4.0, float("nan")]),
+        pandas.Series([1.0, 2.0, 3.0, 5.0, float("nan")]),
+    )
+
+
+@pandas_available
+def test_series_equality_operator_equal_true_nulls_compare_equal_nan() -> None:
+    assert SeriesEqualityOperator(nulls_compare_equal=True).equal(
+        EqualityTester(),
+        pandas.Series([1.0, 2.0, 3.0, 4.0, float("nan")]),
+        pandas.Series([1.0, 2.0, 3.0, 4.0, float("nan")]),
+    )
+
+
+@pandas_available
+def test_series_equality_operator_equal_false_nulls_compare_equal_nat() -> None:
+    assert not SeriesEqualityOperator(nulls_compare_equal=True).equal(
+        EqualityTester(),
+        pandas.to_datetime(pandas.Series(["2020/10/12", "2021/3/14", "2022/4/14", None])),
+        pandas.to_datetime(pandas.Series(["2020/10/12", "2021/3/14", "2022/4/16", None])),
+    )
+
+
+@pandas_available
+def test_series_equality_operator_equal_true_nulls_compare_equal_nat() -> None:
+    assert SeriesEqualityOperator(nulls_compare_equal=True).equal(
+        EqualityTester(),
+        pandas.to_datetime(pandas.Series(["2020/10/12", "2021/3/14", "2022/4/14", None])),
+        pandas.to_datetime(pandas.Series(["2020/10/12", "2021/3/14", "2022/4/14", None])),
+    )
+
+
+@pandas_available
+def test_series_equality_operator_equal_false_nulls_compare_equal_none() -> None:
+    assert not SeriesEqualityOperator(nulls_compare_equal=True).equal(
+        EqualityTester(),
+        pandas.Series(["a", "b", "c", "d", "e", None]),
+        pandas.Series(["a", "b", "c", "d", "f", None]),
+    )
+
+
+@pandas_available
+def test_series_equality_operator_equal_true_nulls_compare_equal_none() -> None:
+    assert SeriesEqualityOperator(nulls_compare_equal=True).equal(
+        EqualityTester(),
+        pandas.Series(["a", "b", "c", "d", "e", None]),
+        pandas.Series(["a", "b", "c", "d", "e", None]),
+    )

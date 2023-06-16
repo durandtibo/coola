@@ -118,10 +118,19 @@ class SeriesAllCloseOperator(BaseAllCloseOperator[Series]):
 
 
 class SeriesEqualityOperator(BaseEqualityOperator[Series]):
-    r"""Implements an equality operator for ``pandas.Series``."""
+    r"""Implements an equality operator for ``pandas.Series``.
 
-    def __init__(self) -> None:
+    Args:
+        nulls_compare_equal (bool, optional): If ``True``, null values
+            (e.g. NaN or NaT) compare as true. Default: ``False``
+    """
+
+    def __init__(self, nulls_compare_equal: bool = False) -> None:
         check_pandas()
+        self._nulls_compare_equal = bool(nulls_compare_equal)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__qualname__}(nulls_compare_equal={self._nulls_compare_equal})"
 
     def equal(
         self,
@@ -136,13 +145,31 @@ class SeriesEqualityOperator(BaseEqualityOperator[Series]):
             if show_difference:
                 logger.info(f"object2 is not a pandas.Series: {type(object2)}")
             return False
-        try:
-            pandas.testing.assert_series_equal(object1, object2, check_exact=True)
-            object_equal = not object1.isnull().any()
-        except AssertionError:
-            object_equal = False
+        object_equal = self._compare_series(object1, object2)
         if show_difference and not object_equal:
             logger.info(f"pandas.Series are different\nobject1=\n{object1}\nobject2=\n{object2}")
+        return object_equal
+
+    def _compare_series(self, series1: Series, series2: Series) -> bool:
+        r"""Indicates if the two series are equal or not.
+
+        Args:
+            series1 (``pandas.Series``): Specifies the first series
+                to compare.
+            series2 (``pandas.Series``): Specifies the second series
+                to compare.
+
+        Returns:
+            bool: ``True``if the two series are equal,
+                otherwise ``False``.
+        """
+        try:
+            pandas.testing.assert_series_equal(series1, series2, check_exact=True)
+            object_equal = True
+        except AssertionError:
+            object_equal = False
+        if object_equal and not self._nulls_compare_equal:
+            object_equal = not series1.isnull().any()
         return object_equal
 
 
