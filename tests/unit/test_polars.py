@@ -1085,3 +1085,57 @@ def test_series_equality_operator_equal_false_different_type_show_difference(
             EqualityTester(), polars.Series([1, 2, 3, 4, 5]), "meow", show_difference=True
         )
         assert caplog.messages[0].startswith("object2 is not a polars.Series")
+
+
+@polars_available
+def test_series_equality_operator_equal_true_nan_nulls_compare_equal() -> None:
+    assert SeriesEqualityOperator(nulls_compare_equal=True).equal(
+        EqualityTester(),
+        polars.Series([1.0, 2.0, 3.0, 4.0, float("nan")]),
+        polars.Series([1.0, 2.0, 3.0, 4.0, float("nan")]),
+    )
+
+
+@polars_available
+def test_series_equality_operator_equal_false_nan_nulls_compare_equal() -> None:
+    assert not SeriesEqualityOperator(nulls_compare_equal=True).equal(
+        EqualityTester(),
+        polars.Series([1.0, 2.0, 3.0, 4.0, float("nan")]),
+        polars.Series([1.0, 2.0, 3.0, 5.0, float("nan")]),
+    )
+
+
+@polars_available
+def test_series_equality_operator_equal_true_nat_nulls_compare_equal() -> None:
+    assert SeriesEqualityOperator(nulls_compare_equal=True).equal(
+        EqualityTester(),
+        polars.Series(["2020/10/12", "2021/3/14", "2022/4/14", None]).str.to_datetime(),
+        polars.Series(["2020/10/12", "2021/3/14", "2022/4/14", None]).str.to_datetime(),
+    )
+
+
+@polars_available
+def test_series_equality_operator_equal_false_nat_nulls_compare_equal() -> None:
+    assert not SeriesEqualityOperator(nulls_compare_equal=True).equal(
+        EqualityTester(),
+        polars.Series(["2020/10/12", "2021/3/14", "2022/4/14", None]).str.to_datetime(),
+        polars.Series(["2020/10/12", "2021/3/14", "2022/4/16", None]).str.to_datetime(),
+    )
+
+
+@polars_available
+def test_series_equality_operator_equal_true_none_nulls_compare_equal() -> None:
+    assert SeriesEqualityOperator(nulls_compare_equal=True).equal(
+        EqualityTester(),
+        polars.Series(["a", "b", "c", "d", "e", None]),
+        polars.Series(["a", "b", "c", "d", "e", None]),
+    )
+
+
+@polars_available
+def test_series_equality_operator_equal_false_none_nulls_compare_equal() -> None:
+    assert not SeriesEqualityOperator(nulls_compare_equal=True).equal(
+        EqualityTester(),
+        polars.Series(["a", "b", "c", "d", "e", None]),
+        polars.Series(["a", "b", "c", "d", "f", None]),
+    )
