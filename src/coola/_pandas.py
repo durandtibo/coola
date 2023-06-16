@@ -8,8 +8,8 @@ from coola.equality import BaseEqualityOperator, BaseEqualityTester, EqualityTes
 from coola.utils.imports import check_pandas, is_pandas_available
 
 if is_pandas_available():
-    import pandas
     from pandas import DataFrame, Series
+    from pandas.testing import assert_frame_equal, assert_series_equal
 else:
     DataFrame, Series = None, None  # pragma: no cover
 
@@ -39,7 +39,7 @@ class DataFrameAllCloseOperator(BaseAllCloseOperator[DataFrame]):
                 logger.info(f"object2 is not a pandas.DataFrame: {type(object2)}")
             return False
         try:
-            pandas.testing.assert_frame_equal(object1, object2, rtol=rtol, atol=atol)
+            assert_frame_equal(object1, object2, rtol=rtol, atol=atol)
             object_equal = True
         except AssertionError:
             object_equal = False
@@ -101,7 +101,7 @@ class DataFrameEqualityOperator(BaseEqualityOperator[DataFrame]):
                 otherwise ``False``.
         """
         try:
-            pandas.testing.assert_frame_equal(df1, df2, check_exact=True)
+            assert_frame_equal(df1, df2, check_exact=True)
             object_equal = True
         except AssertionError:
             object_equal = False
@@ -133,7 +133,7 @@ class SeriesAllCloseOperator(BaseAllCloseOperator[Series]):
                 logger.info(f"object2 is not a pandas.Series: {type(object2)}")
             return False
         try:
-            pandas.testing.assert_series_equal(object1, object2, rtol=rtol, atol=atol)
+            assert_series_equal(object1, object2, rtol=rtol, atol=atol)
             object_equal = True
         except AssertionError:
             object_equal = False
@@ -191,7 +191,7 @@ class SeriesEqualityOperator(BaseEqualityOperator[Series]):
                 otherwise ``False``.
         """
         try:
-            pandas.testing.assert_series_equal(series1, series2, check_exact=True)
+            assert_series_equal(series1, series2, check_exact=True)
             object_equal = True
         except AssertionError:
             object_equal = False
