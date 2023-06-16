@@ -453,6 +453,134 @@ def test_dataframe_allclose_operator_allclose_false_different_type_show_differen
         assert caplog.messages[-1].startswith("object2 is not a pandas.DataFrame")
 
 
+@pandas_available
+@mark.parametrize(
+    "df,atol",
+    (
+        (
+            pandas.DataFrame(
+                {
+                    "col1": [1, 2, 3, 4, 5],
+                    "col2": [1.5, 2.5, 3.5, 4.5, 5.5],
+                    "col3": ["a", "b", "c", "d", "e"],
+                    "col4": pandas.to_datetime(
+                        ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                    ),
+                }
+            ),
+            1.0,
+        ),
+        (
+            pandas.DataFrame(
+                {
+                    "col1": [1, 2, 3, 4, 5],
+                    "col2": [1.05, 2.05, 3.05, 4.05, 5.05],
+                    "col3": ["a", "b", "c", "d", "e"],
+                    "col4": pandas.to_datetime(
+                        ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                    ),
+                }
+            ),
+            1e-1,
+        ),
+        (
+            pandas.DataFrame(
+                {
+                    "col1": [1, 2, 3, 4, 5],
+                    "col2": [1.005, 2.005, 3.005, 4.005, 5.005],
+                    "col3": ["a", "b", "c", "d", "e"],
+                    "col4": pandas.to_datetime(
+                        ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                    ),
+                }
+            ),
+            1e-2,
+        ),
+    ),
+)
+def test_dataframe_allclose_operator_allclose_true_atol(df: pandas.DataFrame, atol: float) -> None:
+    assert DataFrameAllCloseOperator().allclose(
+        AllCloseTester(),
+        pandas.DataFrame(
+            {
+                "col1": [1, 2, 3, 4, 5],
+                "col2": [1.0, 2.0, 3.0, 4.0, 5.0],
+                "col3": ["a", "b", "c", "d", "e"],
+                "col4": pandas.to_datetime(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                ),
+            }
+        ),
+        df,
+        atol=atol,
+        rtol=0.0,
+    )
+
+
+@pandas_available
+@mark.parametrize(
+    "df,rtol",
+    (
+        (
+            pandas.DataFrame(
+                {
+                    "col1": [1, 2, 3, 4, 5],
+                    "col2": [1.5, 2.5, 3.5, 4.5, 5.5],
+                    "col3": ["a", "b", "c", "d", "e"],
+                    "col4": pandas.to_datetime(
+                        ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                    ),
+                }
+            ),
+            1.0,
+        ),
+        (
+            pandas.DataFrame(
+                {
+                    "col1": [1, 2, 3, 4, 5],
+                    "col2": [1.05, 2.15, 3.25, 4.35, 5.45],
+                    "col3": ["a", "b", "c", "d", "e"],
+                    "col4": pandas.to_datetime(
+                        ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                    ),
+                }
+            ),
+            1e-1,
+        ),
+        (
+            pandas.DataFrame(
+                {
+                    "col1": [1, 2, 3, 4, 5],
+                    "col2": [1.005, 2.015, 3.025, 4.035, 5.045],
+                    "col3": ["a", "b", "c", "d", "e"],
+                    "col4": pandas.to_datetime(
+                        ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                    ),
+                }
+            ),
+            1e-2,
+        ),
+    ),
+)
+def test_dataframe_allclose_operator_allclose_true_rtol(df: pandas.DataFrame, rtol: float) -> None:
+    assert DataFrameAllCloseOperator().allclose(
+        AllCloseTester(),
+        pandas.DataFrame(
+            {
+                "col1": [1, 2, 3, 4, 5],
+                "col2": [1.0, 2.0, 3.0, 4.0, 5.0],
+                "col3": ["a", "b", "c", "d", "e"],
+                "col4": pandas.to_datetime(
+                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
+                ),
+            }
+        ),
+        df,
+        atol=0.0,
+        rtol=rtol,
+    )
+
+
 ###############################################
 #     Tests for DataFrameEqualityOperator     #
 ###############################################
@@ -1017,7 +1145,7 @@ def test_series_allclose_operator_allclose_true_atol(series: pandas.Series, atol
 )
 def test_series_allclose_operator_allclose_true_rtol(series: pandas.Series, rtol: float) -> None:
     assert SeriesAllCloseOperator().allclose(
-        AllCloseTester(), pandas.Series([1.0, 1.0, 1.0]), series, rtol=rtol
+        AllCloseTester(), pandas.Series([1.0, 1.0, 1.0]), series, atol=0.0, rtol=rtol
     )
 
 
