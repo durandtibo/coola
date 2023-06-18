@@ -28,6 +28,14 @@ class NDArrayAllCloseOperator(BaseAllCloseOperator[ndarray]):
         check_numpy()
         self._check_dtype = bool(check_dtype)
 
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+        return self._check_dtype == other._check_dtype
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}(check_dtype={self._check_dtype})"
 
@@ -64,6 +72,9 @@ class NDArrayAllCloseOperator(BaseAllCloseOperator[ndarray]):
             logger.info(f"numpy.ndarrays are different\nobject1=\n{object1}\nobject2=\n{object2}")
         return object_equal
 
+    def clone(self) -> NDArrayAllCloseOperator:
+        return self.__class__(check_dtype=self._check_dtype)
+
 
 class NDArrayEqualityOperator(BaseEqualityOperator[ndarray]):
     r"""Implements an equality operator for ``numpy.ndarray``.
@@ -78,8 +89,19 @@ class NDArrayEqualityOperator(BaseEqualityOperator[ndarray]):
         check_numpy()
         self._check_dtype = bool(check_dtype)
 
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+        return self._check_dtype == other._check_dtype
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}(check_dtype={self._check_dtype})"
+
+    def clone(self) -> NDArrayEqualityOperator:
+        return self.__class__(check_dtype=self._check_dtype)
 
     def equal(
         self,
