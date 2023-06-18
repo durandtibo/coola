@@ -28,6 +28,38 @@ def test_ndarray_allclose_operator_str() -> None:
 
 
 @numpy_available
+def test_ndarray_allclose_operator__eq__true() -> None:
+    assert NDArrayAllCloseOperator() == NDArrayAllCloseOperator()
+
+
+@numpy_available
+def test_ndarray_allclose_operator__eq__false_different_check_dtype() -> None:
+    assert not NDArrayAllCloseOperator(check_dtype=True) == NDArrayAllCloseOperator(
+        check_dtype=False
+    )
+
+
+@numpy_available
+def test_ndarray_allclose_operator__eq__false_different_type() -> None:
+    assert not NDArrayAllCloseOperator() == 123
+
+
+@numpy_available
+def test_ndarray_allclose_operator__ne__true_different_check_dtype() -> None:
+    assert NDArrayAllCloseOperator(check_dtype=True) != NDArrayAllCloseOperator(check_dtype=False)
+
+
+@numpy_available
+def test_ndarray_allclose_operator__ne__true_different_type() -> None:
+    assert NDArrayAllCloseOperator() != 123
+
+
+@numpy_available
+def test_ndarray_allclose_operator__ne__false_same_check_dtype() -> None:
+    assert not NDArrayAllCloseOperator() != NDArrayAllCloseOperator()
+
+
+@numpy_available
 @mark.parametrize(
     "array", (np.ones((2, 3)), np.full((2, 3), 1.0 + 1e-9), np.full((2, 3), 1.0 - 1e-9))
 )
@@ -189,6 +221,15 @@ def test_ndarray_allclose_operator_no_numpy() -> None:
             NDArrayAllCloseOperator()
 
 
+@numpy_available
+@mark.parametrize("check_dtype", (True, False))
+def test_ndarray_allclose_operator_clone(check_dtype: bool) -> None:
+    op = NDArrayAllCloseOperator(check_dtype)
+    op_cloned = op.clone()
+    assert op is not op_cloned
+    assert op == op_cloned
+
+
 #############################################
 #     Tests for NDArrayEqualityOperator     #
 #############################################
@@ -197,6 +238,47 @@ def test_ndarray_allclose_operator_no_numpy() -> None:
 @numpy_available
 def test_ndarray_equality_operator_str() -> None:
     assert str(NDArrayEqualityOperator()).startswith("NDArrayEqualityOperator(")
+
+
+@numpy_available
+def test_ndarray_equality_operator__eq__true() -> None:
+    assert NDArrayEqualityOperator() == NDArrayEqualityOperator()
+
+
+@numpy_available
+def test_ndarray_equality_operator__eq__false_different_check_dtype() -> None:
+    assert not NDArrayEqualityOperator(check_dtype=True) == NDArrayEqualityOperator(
+        check_dtype=False
+    )
+
+
+@numpy_available
+def test_ndarray_equality_operator__eq__false_different_type() -> None:
+    assert not NDArrayEqualityOperator() == 123
+
+
+@numpy_available
+def test_ndarray_equality_operator__ne__true_different_check_dtype() -> None:
+    assert NDArrayEqualityOperator(check_dtype=True) != NDArrayEqualityOperator(check_dtype=False)
+
+
+@numpy_available
+def test_ndarray_equality_operator__ne__true_different_type() -> None:
+    assert NDArrayEqualityOperator() != 123
+
+
+@numpy_available
+def test_ndarray_equality_operator__ne__false_same_check_dtype() -> None:
+    assert not NDArrayEqualityOperator() != NDArrayEqualityOperator()
+
+
+@numpy_available
+@mark.parametrize("check_dtype", (True, False))
+def test_ndarray_equality_operator_clone(check_dtype: bool) -> None:
+    op = NDArrayEqualityOperator(check_dtype)
+    op_cloned = op.clone()
+    assert op is not op_cloned
+    assert op == op_cloned
 
 
 @numpy_available
