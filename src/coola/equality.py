@@ -102,6 +102,14 @@ class BaseEqualityOperator(ABC, Generic[T]):
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
+    # @abstractmethod
+    # def clone(self) -> BaseEqualityOperator:
+    #     r"""Returns a copy of the equality operator.
+    #
+    #     Returns:
+    #         ``BaseEqualityOperator``: A copy of the equality operator.
+    #     """
+
     @abstractmethod
     def equal(
         self, tester: BaseEqualityTester, object1: T, object2: Any, show_difference: bool = False
@@ -131,6 +139,12 @@ class DefaultEqualityOperator(BaseEqualityOperator[Any]):
     objects.
     """
 
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, self.__class__)
+
+    def clone(self) -> DefaultEqualityOperator:
+        return self.__class__()
+
     def equal(
         self,
         tester: BaseEqualityTester,
@@ -152,6 +166,12 @@ class DefaultEqualityOperator(BaseEqualityOperator[Any]):
 
 class MappingEqualityOperator(BaseEqualityOperator[Mapping]):
     r"""Implements an equality operator for mappings."""
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, self.__class__)
+
+    def clone(self) -> MappingEqualityOperator:
+        return self.__class__()
 
     def equal(
         self,
@@ -194,6 +214,12 @@ class MappingEqualityOperator(BaseEqualityOperator[Mapping]):
 
 class SequenceEqualityOperator(BaseEqualityOperator[Sequence]):
     r"""Implements an equality operator for sequences."""
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, self.__class__)
+
+    def clone(self) -> SequenceEqualityOperator:
+        return self.__class__()
 
     def equal(
         self,

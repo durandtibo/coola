@@ -34,29 +34,12 @@ def test_ndarray_allclose_operator__eq__true() -> None:
 
 @numpy_available
 def test_ndarray_allclose_operator__eq__false_different_check_dtype() -> None:
-    assert not NDArrayAllCloseOperator(check_dtype=True) == NDArrayAllCloseOperator(
-        check_dtype=False
-    )
-
-
-@numpy_available
-def test_ndarray_allclose_operator__eq__false_different_type() -> None:
-    assert not NDArrayAllCloseOperator() == 123
-
-
-@numpy_available
-def test_ndarray_allclose_operator__ne__true_different_check_dtype() -> None:
     assert NDArrayAllCloseOperator(check_dtype=True) != NDArrayAllCloseOperator(check_dtype=False)
 
 
 @numpy_available
-def test_ndarray_allclose_operator__ne__true_different_type() -> None:
+def test_ndarray_allclose_operator__eq__false_different_type() -> None:
     assert NDArrayAllCloseOperator() != 123
-
-
-@numpy_available
-def test_ndarray_allclose_operator__ne__false_same_check_dtype() -> None:
-    assert not NDArrayAllCloseOperator() != NDArrayAllCloseOperator()
 
 
 @numpy_available
@@ -247,29 +230,12 @@ def test_ndarray_equality_operator__eq__true() -> None:
 
 @numpy_available
 def test_ndarray_equality_operator__eq__false_different_check_dtype() -> None:
-    assert not NDArrayEqualityOperator(check_dtype=True) == NDArrayEqualityOperator(
-        check_dtype=False
-    )
-
-
-@numpy_available
-def test_ndarray_equality_operator__eq__false_different_type() -> None:
-    assert not NDArrayEqualityOperator() == 123
-
-
-@numpy_available
-def test_ndarray_equality_operator__ne__true_different_check_dtype() -> None:
     assert NDArrayEqualityOperator(check_dtype=True) != NDArrayEqualityOperator(check_dtype=False)
 
 
 @numpy_available
-def test_ndarray_equality_operator__ne__true_different_type() -> None:
+def test_ndarray_equality_operator__eq__false_different_type() -> None:
     assert NDArrayEqualityOperator() != 123
-
-
-@numpy_available
-def test_ndarray_equality_operator__ne__false_same_check_dtype() -> None:
-    assert not NDArrayEqualityOperator() != NDArrayEqualityOperator()
 
 
 @numpy_available

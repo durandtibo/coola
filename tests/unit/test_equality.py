@@ -288,6 +288,23 @@ def test_default_equality_operator_str() -> None:
     assert str(DefaultEqualityOperator()) == "DefaultEqualityOperator()"
 
 
+@numpy_available
+def test_default_equality_operator__eq__true() -> None:
+    assert DefaultEqualityOperator() == DefaultEqualityOperator()
+
+
+@numpy_available
+def test_default_equality_operator__eq__false() -> None:
+    assert DefaultEqualityOperator() != 123
+
+
+def test_default_equality_operator_clone() -> None:
+    op = DefaultEqualityOperator()
+    op_cloned = op.clone()
+    assert op is not op_cloned
+    assert op == op_cloned
+
+
 @mark.parametrize(
     "object1,object2",
     (
@@ -360,6 +377,23 @@ def test_default_equality_operator_equal_different_type_show_difference(
 
 def test_mapping_equality_operator_str() -> None:
     assert str(MappingEqualityOperator()) == "MappingEqualityOperator()"
+
+
+@numpy_available
+def test_mapping_equality_operator__eq__true() -> None:
+    assert MappingEqualityOperator() == MappingEqualityOperator()
+
+
+@numpy_available
+def test_mapping_equality_operator__eq__false() -> None:
+    assert MappingEqualityOperator() != 123
+
+
+def test_mapping_equality_operator_clone() -> None:
+    op = MappingEqualityOperator()
+    op_cloned = op.clone()
+    assert op is not op_cloned
+    assert op == op_cloned
 
 
 @torch_available
@@ -482,6 +516,23 @@ def test_mapping_equality_operator_equal_different_type_show_difference(
 
 def test_sequence_equality_operator_str() -> None:
     assert str(SequenceEqualityOperator()) == "SequenceEqualityOperator()"
+
+
+@numpy_available
+def test_sequence_equality_operator__eq__true() -> None:
+    assert SequenceEqualityOperator() == SequenceEqualityOperator()
+
+
+@numpy_available
+def test_sequence_equality_operator__eq__false() -> None:
+    assert SequenceEqualityOperator() != 123
+
+
+def test_sequence_equality_operator_clone() -> None:
+    op = SequenceEqualityOperator()
+    op_cloned = op.clone()
+    assert op is not op_cloned
+    assert op == op_cloned
 
 
 @torch_available
