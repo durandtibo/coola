@@ -22,6 +22,12 @@ class DataFrameAllCloseOperator(BaseAllCloseOperator[DataFrame]):
     def __init__(self) -> None:
         check_pandas()
 
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, self.__class__)
+
+    def clone(self) -> DataFrameAllCloseOperator:
+        return self.__class__()
+
     def allclose(
         self,
         tester: BaseAllCloseTester,
@@ -64,8 +70,16 @@ class DataFrameEqualityOperator(BaseEqualityOperator[DataFrame]):
         check_pandas()
         self._nulls_compare_equal = bool(nulls_compare_equal)
 
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+        return self._nulls_compare_equal == other._nulls_compare_equal
+
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}(nulls_compare_equal={self._nulls_compare_equal})"
+
+    def clone(self) -> DataFrameEqualityOperator:
+        return self.__class__(nulls_compare_equal=self._nulls_compare_equal)
 
     def equal(
         self,
@@ -116,6 +130,12 @@ class SeriesAllCloseOperator(BaseAllCloseOperator[Series]):
     def __init__(self) -> None:
         check_pandas()
 
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, self.__class__)
+
+    def clone(self) -> SeriesAllCloseOperator:
+        return self.__class__()
+
     def allclose(
         self,
         tester: BaseAllCloseTester,
@@ -156,8 +176,16 @@ class SeriesEqualityOperator(BaseEqualityOperator[Series]):
         check_pandas()
         self._nulls_compare_equal = bool(nulls_compare_equal)
 
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+        return self._nulls_compare_equal == other._nulls_compare_equal
+
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}(nulls_compare_equal={self._nulls_compare_equal})"
+
+    def clone(self) -> SeriesEqualityOperator:
+        return self.__class__(nulls_compare_equal=self._nulls_compare_equal)
 
     def equal(
         self,
