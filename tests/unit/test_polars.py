@@ -73,6 +73,16 @@ def test_dataframe_allclose_operator_str() -> None:
 
 
 @polars_available
+def test_dataframe_allclose_operator__eq__true() -> None:
+    assert DataFrameAllCloseOperator() == DataFrameAllCloseOperator()
+
+
+@polars_available
+def test_dataframe_allclose_operator__eq__false() -> None:
+    assert DataFrameAllCloseOperator() != 123
+
+
+@polars_available
 def test_dataframe_allclose_operator_allclose_true() -> None:
     assert DataFrameAllCloseOperator().allclose(
         AllCloseTester(),
@@ -553,6 +563,14 @@ def test_dataframe_allclose_operator_allclose_true_rtol(df: polars.DataFrame, rt
     )
 
 
+@polars_available
+def test_dataframe_allclose_operator_clone() -> None:
+    op = DataFrameAllCloseOperator()
+    op_cloned = op.clone()
+    assert op is not op_cloned
+    assert op == op_cloned
+
+
 ###############################################
 #     Tests for DataFrameEqualityOperator     #
 ###############################################
@@ -587,6 +605,32 @@ def test_objects_are_equal_dataframe() -> None:
 @polars_available
 def test_dataframe_equality_operator_str() -> None:
     assert str(DataFrameEqualityOperator()).startswith("DataFrameEqualityOperator(")
+
+
+@polars_available
+def test_dataframe_equality_operator__eq__true() -> None:
+    assert DataFrameEqualityOperator() == DataFrameEqualityOperator()
+
+
+@polars_available
+def test_dataframe_equality_operator__eq__false_different_nulls_compare_equal() -> None:
+    assert DataFrameEqualityOperator(nulls_compare_equal=True) != DataFrameEqualityOperator(
+        nulls_compare_equal=False
+    )
+
+
+@polars_available
+def test_dataframe_equality_operator__eq__false_different_type() -> None:
+    assert DataFrameEqualityOperator() != 123
+
+
+@polars_available
+@mark.parametrize("nulls_compare_equal", (True, False))
+def test_dataframe_equality_operator_clone(nulls_compare_equal: bool) -> None:
+    op = DataFrameEqualityOperator(nulls_compare_equal)
+    op_cloned = op.clone()
+    assert op is not op_cloned
+    assert op == op_cloned
 
 
 @polars_available
@@ -1044,6 +1088,16 @@ def test_series_allclose_operator_str() -> None:
 
 
 @polars_available
+def test_series_allclose_operator__eq__true() -> None:
+    assert SeriesAllCloseOperator() == SeriesAllCloseOperator()
+
+
+@polars_available
+def test_series_allclose_operator__eq__false() -> None:
+    assert SeriesAllCloseOperator() != 123
+
+
+@polars_available
 def test_series_allclose_operator_allclose_true_int() -> None:
     assert SeriesAllCloseOperator().allclose(
         AllCloseTester(), polars.Series([1, 2, 3, 4, 5]), polars.Series([1, 2, 3, 4, 5])
@@ -1226,6 +1280,14 @@ def test_series_allclose_operator_allclose_true_rtol(series: polars.Series, rtol
     )
 
 
+@polars_available
+def test_series_allclose_operator_clone() -> None:
+    op = SeriesAllCloseOperator()
+    op_cloned = op.clone()
+    assert op is not op_cloned
+    assert op == op_cloned
+
+
 ############################################
 #     Tests for SeriesEqualityOperator     #
 ############################################
@@ -1239,6 +1301,32 @@ def test_objects_are_equal_series() -> None:
 @polars_available
 def test_series_equality_operator_str() -> None:
     assert str(SeriesEqualityOperator()).startswith("SeriesEqualityOperator(")
+
+
+@polars_available
+def test_series_equality_operator__eq__true() -> None:
+    assert SeriesEqualityOperator() == SeriesEqualityOperator()
+
+
+@polars_available
+def test_series_equality_operator__eq__false_different_nulls_compare_equal() -> None:
+    assert SeriesEqualityOperator(nulls_compare_equal=True) != SeriesEqualityOperator(
+        nulls_compare_equal=False
+    )
+
+
+@polars_available
+def test_series_equality_operator__eq__false_different_type() -> None:
+    assert SeriesEqualityOperator() != 123
+
+
+@polars_available
+@mark.parametrize("nulls_compare_equal", (True, False))
+def test_series_equality_operator_clone(nulls_compare_equal: bool) -> None:
+    op = SeriesEqualityOperator(nulls_compare_equal)
+    op_cloned = op.clone()
+    assert op is not op_cloned
+    assert op == op_cloned
 
 
 @polars_available
