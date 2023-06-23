@@ -227,11 +227,11 @@ class TensorEqualityOperator(BaseEqualityOperator[Tensor]):
 
 
 if is_torch_available():  # pragma: no cover
-    if not AllCloseTester.has_allclose_operator(PackedSequence):
-        AllCloseTester.add_allclose_operator(PackedSequence, PackedSequenceAllCloseOperator())
-    if not AllCloseTester.has_allclose_operator(Tensor):
-        AllCloseTester.add_allclose_operator(Tensor, TensorAllCloseOperator())
-    if not EqualityTester.has_equality_operator(PackedSequence):
-        EqualityTester.add_equality_operator(PackedSequence, PackedSequenceEqualityOperator())
-    if not EqualityTester.has_equality_operator(Tensor):
-        EqualityTester.add_equality_operator(Tensor, TensorEqualityOperator())
+    if not AllCloseTester.has_operator(PackedSequence):
+        AllCloseTester.add_operator(PackedSequence, PackedSequenceAllCloseOperator())
+    if not AllCloseTester.has_operator(Tensor):
+        AllCloseTester.add_operator(Tensor, TensorAllCloseOperator())
+    if not EqualityTester.has_operator(PackedSequence):
+        EqualityTester.add_operator(PackedSequence, PackedSequenceEqualityOperator())
+    if not EqualityTester.has_operator(Tensor):
+        EqualityTester.add_operator(Tensor, TensorEqualityOperator())

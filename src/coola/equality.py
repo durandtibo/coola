@@ -273,7 +273,7 @@ class EqualityTester(BaseEqualityTester):
         )
 
     @classmethod
-    def add_equality_operator(
+    def add_operator(
         cls, data_type: type[object], operator: BaseEqualityOperator, exist_ok: bool = False
     ) -> None:
         r"""Adds an equality operator for a given data type.
@@ -306,9 +306,9 @@ class EqualityTester(BaseEqualityTester):
             ...     ) -> bool:
             ...         ...  # Custom implementation to test strings
             ...
-            >>> EqualityTester.add_equality_operator(str, MyStringEqualityOperator())
+            >>> EqualityTester.add_operator(str, MyStringEqualityOperator())
             # To overwrite an existing operato
-            >>> EqualityTester.add_equality_operator(str, MyStringEqualityOperator(), exist_ok=True)
+            >>> EqualityTester.add_operator(str, MyStringEqualityOperator(), exist_ok=True)
         """
         if data_type in cls.registry and not exist_ok:
             raise RuntimeError(
@@ -348,12 +348,10 @@ class EqualityTester(BaseEqualityTester):
             >>> tester.equal([torch.ones(2, 3), torch.ones(2)], [torch.ones(2, 3), torch.zeros(2)])
             False
         """
-        return self.find_equality_operator(type(object1)).equal(
-            self, object1, object2, show_difference
-        )
+        return self.find_operator(type(object1)).equal(self, object1, object2, show_difference)
 
     @classmethod
-    def has_equality_operator(cls, data_type: type[object]) -> bool:
+    def has_operator(cls, data_type: type[object]) -> bool:
         r"""Indicates if an equality operator is registered for the given
         data type.
 
@@ -369,15 +367,15 @@ class EqualityTester(BaseEqualityTester):
         .. code-block:: pycon
 
             >>> from coola import EqualityTester
-            >>> EqualityTester.has_equality_operator(list)
+            >>> EqualityTester.has_operator(list)
             True
-            >>> EqualityTester.has_equality_operator(str)
+            >>> EqualityTester.has_operator(str)
             False
         """
         return data_type in cls.registry
 
     @classmethod
-    def find_equality_operator(cls, data_type: Any) -> BaseEqualityOperator:
+    def find_operator(cls, data_type: Any) -> BaseEqualityOperator:
         r"""Finds the equality operator associated to an object.
 
         Args:
@@ -392,9 +390,9 @@ class EqualityTester(BaseEqualityTester):
         .. code-block:: pycon
 
             >>> from coola import EqualityTester
-            >>> EqualityTester.find_equality_operator(list)
+            >>> EqualityTester.find_operator(list)
             SequenceEqualityOperator()
-            >>> EqualityTester.find_equality_operator(str)
+            >>> EqualityTester.find_operator(str)
             DefaultEqualityOperator()
         """
         for object_type in data_type.__mro__:

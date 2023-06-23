@@ -391,7 +391,7 @@ class AllCloseTester(BaseAllCloseTester):
         )
 
     @classmethod
-    def add_allclose_operator(
+    def add_operator(
         cls, data_type: type[object], operator: BaseAllCloseOperator, exist_ok: bool = False
     ) -> None:
         r"""Adds an allclose operator for a given data type.
@@ -432,9 +432,9 @@ class AllCloseTester(BaseAllCloseTester):
             ...     ) -> bool:
             ...         ...  # Custom implementation to test strings
             ...
-            >>> AllCloseTester.add_allclose_operator(str, MyStringAllCloseOperator())
+            >>> AllCloseTester.add_operator(str, MyStringAllCloseOperator())
             # To overwrite an existing operato
-            >>> AllCloseTester.add_allclose_operator(str, MyStringAllCloseOperator(), exist_ok=True)
+            >>> AllCloseTester.add_operator(str, MyStringAllCloseOperator(), exist_ok=True)
         """
         if data_type in cls.registry and not exist_ok:
             raise RuntimeError(
@@ -498,12 +498,12 @@ class AllCloseTester(BaseAllCloseTester):
             ... )
             False
         """
-        return self.find_allclose_operator(type(object1)).allclose(
+        return self.find_operator(type(object1)).allclose(
             self, object1, object2, rtol, atol, equal_nan, show_difference
         )
 
     @classmethod
-    def has_allclose_operator(cls, data_type: type[object]) -> bool:
+    def has_operator(cls, data_type: type[object]) -> bool:
         r"""Indicates if an allclose operator is registered for the given
         data type.
 
@@ -519,15 +519,15 @@ class AllCloseTester(BaseAllCloseTester):
         .. code-block:: pycon
 
             >>> from coola import AllCloseTester
-            >>> AllCloseTester.has_allclose_operator(list)
+            >>> AllCloseTester.has_operator(list)
             True
-            >>> AllCloseTester.has_allclose_operator(str)
+            >>> AllCloseTester.has_operator(str)
             False
         """
         return data_type in cls.registry
 
     @classmethod
-    def find_allclose_operator(cls, data_type: Any) -> BaseAllCloseOperator:
+    def find_operator(cls, data_type: Any) -> BaseAllCloseOperator:
         r"""Finds the allclose operator associated to an object.
 
         Args:
@@ -542,9 +542,9 @@ class AllCloseTester(BaseAllCloseTester):
         .. code-block:: pycon
 
             >>> from coola import AllCloseTester
-            >>> AllCloseTester.find_allclose_operator(list)
+            >>> AllCloseTester.find_operator(list)
             SequenceAllCloseOperator()
-            >>> AllCloseTester.has_allclose_operator(str)
+            >>> AllCloseTester.has_operator(str)
             DefaultAllCloseOperator()
         """
         for object_type in data_type.__mro__:

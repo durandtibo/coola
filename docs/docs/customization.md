@@ -114,7 +114,7 @@ class MyCustomStrEqualityOperator(BaseEqualityOperator):
 
 
 # Step 2: add the new equality operator to EqualityTester
-EqualityTester.add_equality_operator(str, MyCustomStrEqualityOperator())
+EqualityTester.add_operator(str, MyCustomStrEqualityOperator())
 
 print(objects_are_equal("abc", "abcde"))
 print(objects_are_equal("abc", "cba"))
@@ -169,7 +169,7 @@ class MyCustomMappingEqualityOperator(BaseEqualityOperator):
     ...  # Custom implementation
 
 
-EqualityTester.add_equality_operator(
+EqualityTester.add_operator(
     Mapping,
     MyCustomMappingEqualityOperator(),
     exist_ok=True,
