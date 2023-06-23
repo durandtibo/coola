@@ -23,6 +23,12 @@ class PackedSequenceAllCloseOperator(BaseAllCloseOperator[PackedSequence]):
     def __init__(self) -> None:
         check_torch()
 
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, self.__class__)
+
+    def clone(self) -> PackedSequenceAllCloseOperator:
+        return self.__class__()
+
     def allclose(
         self,
         tester: BaseAllCloseTester,
@@ -90,6 +96,12 @@ class PackedSequenceEqualityOperator(BaseEqualityOperator[PackedSequence]):
     def __init__(self) -> None:
         check_torch()
 
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, self.__class__)
+
+    def clone(self) -> PackedSequenceEqualityOperator:
+        return self.__class__()
+
     def equal(
         self,
         tester: BaseEqualityTester,
@@ -124,6 +136,12 @@ class TensorAllCloseOperator(BaseAllCloseOperator[Tensor]):
 
     def __init__(self) -> None:
         check_torch()
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, self.__class__)
+
+    def clone(self) -> TensorAllCloseOperator:
+        return self.__class__()
 
     def allclose(
         self,
@@ -170,6 +188,12 @@ class TensorEqualityOperator(BaseEqualityOperator[Tensor]):
 
     def __init__(self) -> None:
         check_torch()
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, self.__class__)
+
+    def clone(self) -> TensorEqualityOperator:
+        return self.__class__()
 
     def equal(
         self,
