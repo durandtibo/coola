@@ -65,50 +65,50 @@ def test_equality_tester_registry_torch() -> None:
 
 
 @patch.dict(EqualityTester.registry, {}, clear=True)
-def test_equality_tester_add_equality_operator() -> None:
+def test_equality_tester_add_operator() -> None:
     tester = EqualityTester()
     operator = Mock(spec=BaseEqualityOperator)
-    tester.add_equality_operator(int, operator)
+    tester.add_operator(int, operator)
     assert tester.registry[int] == operator
 
 
 @patch.dict(EqualityTester.registry, {}, clear=True)
-def test_equality_tester_add_equality_operator_duplicate_exist_ok_true() -> None:
+def test_equality_tester_add_operator_duplicate_exist_ok_true() -> None:
     tester = EqualityTester()
     operator = Mock(spec=BaseEqualityOperator)
-    tester.add_equality_operator(int, Mock(spec=BaseEqualityOperator))
-    tester.add_equality_operator(int, operator, exist_ok=True)
+    tester.add_operator(int, Mock(spec=BaseEqualityOperator))
+    tester.add_operator(int, operator, exist_ok=True)
     assert tester.registry[int] == operator
 
 
 @patch.dict(EqualityTester.registry, {}, clear=True)
-def test_equality_tester_add_equality_operator_duplicate_exist_ok_false() -> None:
+def test_equality_tester_add_operator_duplicate_exist_ok_false() -> None:
     tester = EqualityTester()
     operator = Mock(spec=BaseEqualityOperator)
-    tester.add_equality_operator(int, Mock(spec=BaseEqualityOperator))
+    tester.add_operator(int, Mock(spec=BaseEqualityOperator))
     with raises(RuntimeError, match="An operator (.*) is already registered"):
-        tester.add_equality_operator(int, operator)
+        tester.add_operator(int, operator)
 
 
-def test_equality_tester_has_equality_operator_true() -> None:
-    assert EqualityTester().has_equality_operator(dict)
+def test_equality_tester_has_operator_true() -> None:
+    assert EqualityTester().has_operator(dict)
 
 
-def test_equality_tester_has_equality_operator_false() -> None:
-    assert not EqualityTester().has_equality_operator(int)
+def test_equality_tester_has_operator_false() -> None:
+    assert not EqualityTester().has_operator(int)
 
 
-def test_equality_tester_find_equality_operator_direct() -> None:
-    assert isinstance(EqualityTester().find_equality_operator(dict), MappingEqualityOperator)
+def test_equality_tester_find_operator_direct() -> None:
+    assert isinstance(EqualityTester().find_operator(dict), MappingEqualityOperator)
 
 
-def test_equality_tester_find_equality_operator_indirect() -> None:
-    assert isinstance(EqualityTester().find_equality_operator(str), DefaultEqualityOperator)
+def test_equality_tester_find_operator_indirect() -> None:
+    assert isinstance(EqualityTester().find_operator(str), DefaultEqualityOperator)
 
 
-def test_equality_tester_find_equality_operator_incorrect_type() -> None:
+def test_equality_tester_find_operator_incorrect_type() -> None:
     with raises(TypeError, match="Incorrect data type:"):
-        EqualityTester().find_equality_operator(Mock(__mro__=[]))
+        EqualityTester().find_operator(Mock(__mro__=[]))
 
 
 #######################################

@@ -72,50 +72,50 @@ def test_allclose_tester_registry_torch() -> None:
 
 
 @patch.dict(AllCloseTester.registry, {}, clear=True)
-def test_allclose_tester_add_allclose_operator() -> None:
+def test_allclose_tester_add_operator() -> None:
     tester = AllCloseTester()
     operator = Mock(spec=BaseAllCloseOperator)
-    tester.add_allclose_operator(str, operator)
+    tester.add_operator(str, operator)
     assert tester.registry[str] == operator
 
 
 @patch.dict(AllCloseTester.registry, {}, clear=True)
-def test_allclose_tester_add_allclose_operator_duplicate_exist_ok_true() -> None:
+def test_allclose_tester_add_operator_duplicate_exist_ok_true() -> None:
     tester = AllCloseTester()
     operator = Mock(spec=BaseAllCloseOperator)
-    tester.add_allclose_operator(str, Mock(spec=BaseAllCloseOperator))
-    tester.add_allclose_operator(str, operator, exist_ok=True)
+    tester.add_operator(str, Mock(spec=BaseAllCloseOperator))
+    tester.add_operator(str, operator, exist_ok=True)
     assert tester.registry[str] == operator
 
 
 @patch.dict(AllCloseTester.registry, {}, clear=True)
-def test_allclose_tester_add_allclose_operator_duplicate_exist_ok_false() -> None:
+def test_allclose_tester_add_operator_duplicate_exist_ok_false() -> None:
     tester = AllCloseTester()
     operator = Mock(spec=BaseAllCloseOperator)
-    tester.add_allclose_operator(str, Mock(spec=BaseAllCloseOperator))
+    tester.add_operator(str, Mock(spec=BaseAllCloseOperator))
     with raises(RuntimeError, match="An operator (.*) is already registered"):
-        tester.add_allclose_operator(str, operator)
+        tester.add_operator(str, operator)
 
 
-def test_allclose_tester_has_allclose_operator_true() -> None:
-    assert AllCloseTester().has_allclose_operator(dict)
+def test_allclose_tester_has_operator_true() -> None:
+    assert AllCloseTester().has_operator(dict)
 
 
-def test_allclose_tester_has_allclose_operator_false() -> None:
-    assert not AllCloseTester().has_allclose_operator(str)
+def test_allclose_tester_has_operator_false() -> None:
+    assert not AllCloseTester().has_operator(str)
 
 
-def test_allclose_tester_find_allclose_operator_direct() -> None:
-    assert isinstance(AllCloseTester().find_allclose_operator(dict), MappingAllCloseOperator)
+def test_allclose_tester_find_operator_direct() -> None:
+    assert isinstance(AllCloseTester().find_operator(dict), MappingAllCloseOperator)
 
 
-def test_allclose_tester_find_allclose_operator_indirect() -> None:
-    assert isinstance(AllCloseTester().find_allclose_operator(str), DefaultAllCloseOperator)
+def test_allclose_tester_find_operator_indirect() -> None:
+    assert isinstance(AllCloseTester().find_operator(str), DefaultAllCloseOperator)
 
 
-def test_allclose_tester_find_allclose_operator_incorrect_type() -> None:
+def test_allclose_tester_find_operator_incorrect_type() -> None:
     with raises(TypeError, match="Incorrect data type:"):
-        AllCloseTester().find_allclose_operator(Mock(__mro__=[]))
+        AllCloseTester().find_operator(Mock(__mro__=[]))
 
 
 ##########################################

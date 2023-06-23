@@ -289,16 +289,16 @@ class VariableEqualityOperator(BaseEqualityOperator[Variable]):
 
 
 if is_xarray_available():  # pragma: no cover
-    if not AllCloseTester.has_allclose_operator(DataArray):
-        AllCloseTester.add_allclose_operator(DataArray, DataArrayAllCloseOperator())
-    if not AllCloseTester.has_allclose_operator(Dataset):
-        AllCloseTester.add_allclose_operator(Dataset, DatasetAllCloseOperator())
-    if not AllCloseTester.has_allclose_operator(Variable):
-        AllCloseTester.add_allclose_operator(Variable, VariableAllCloseOperator())
+    if not AllCloseTester.has_operator(DataArray):
+        AllCloseTester.add_operator(DataArray, DataArrayAllCloseOperator())
+    if not AllCloseTester.has_operator(Dataset):
+        AllCloseTester.add_operator(Dataset, DatasetAllCloseOperator())
+    if not AllCloseTester.has_operator(Variable):
+        AllCloseTester.add_operator(Variable, VariableAllCloseOperator())
 
-    if not EqualityTester.has_equality_operator(DataArray):
-        EqualityTester.add_equality_operator(DataArray, DataArrayEqualityOperator())
-    if not EqualityTester.has_equality_operator(Dataset):
-        EqualityTester.add_equality_operator(Dataset, DatasetEqualityOperator())
-    if not EqualityTester.has_equality_operator(Variable):
-        EqualityTester.add_equality_operator(Variable, VariableEqualityOperator())
+    if not EqualityTester.has_operator(DataArray):
+        EqualityTester.add_operator(DataArray, DataArrayEqualityOperator())
+    if not EqualityTester.has_operator(Dataset):
+        EqualityTester.add_operator(Dataset, DatasetEqualityOperator())
+    if not EqualityTester.has_operator(Variable):
+        EqualityTester.add_operator(Variable, VariableEqualityOperator())

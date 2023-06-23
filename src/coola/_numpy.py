@@ -129,7 +129,7 @@ class NDArrayEqualityOperator(BaseEqualityOperator[ndarray]):
 
 
 if is_numpy_available():  # pragma: no cover
-    if not AllCloseTester.has_allclose_operator(ndarray):
-        AllCloseTester.add_allclose_operator(ndarray, NDArrayAllCloseOperator())
-    if not EqualityTester.has_equality_operator(ndarray):
-        EqualityTester.add_equality_operator(ndarray, NDArrayEqualityOperator())
+    if not AllCloseTester.has_operator(ndarray):
+        AllCloseTester.add_operator(ndarray, NDArrayAllCloseOperator())
+    if not EqualityTester.has_operator(ndarray):
+        EqualityTester.add_operator(ndarray, NDArrayEqualityOperator())
