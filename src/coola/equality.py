@@ -282,13 +282,13 @@ class EqualityTester(BaseEqualityTester):
             data_type: Specifies the data type for this test.
             operator (``BaseEqualityOperator``): Specifies the operator
                 used to test the equality of the specified type.
-            exist_ok (bool, optional): If ``False``, ``ValueError`` is
-                raised if the data type already exists. This parameter
-                should be set to ``True`` to overwrite the operator for
-                a type. Default: ``False``.
+            exist_ok (bool, optional): If ``False``, ``RuntimeError``
+                is raised if the data type already exists. This
+                parameter should be set to ``True`` to overwrite the
+                operator for a type. Default: ``False``.
 
         Raises:
-            ValueError if an operator is already registered for the
+            RuntimeError if an operator is already registered for the
                 data type and ``exist_ok=False``.
 
         Example usage:
