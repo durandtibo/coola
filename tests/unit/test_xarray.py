@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import logging
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
-from pytest import LogCaptureFixture, mark
+from pytest import LogCaptureFixture, mark, raises
 
 from coola import AllCloseTester, is_numpy_available, objects_are_allclose
 from coola._xarray import (
@@ -56,6 +56,16 @@ def test_objects_are_allclose_data_array() -> None:
 @xarray_available
 def test_data_array_allclose_operator_str() -> None:
     assert str(DataArrayAllCloseOperator()).startswith("DataArrayAllCloseOperator(")
+
+
+@xarray_available
+def test_data_array_allclose_operator__eq__true() -> None:
+    assert DataArrayAllCloseOperator() == DataArrayAllCloseOperator()
+
+
+@xarray_available
+def test_data_array_allclose_operator__eq__false() -> None:
+    assert DataArrayAllCloseOperator() != 123
 
 
 @xarray_available
@@ -236,6 +246,21 @@ def test_data_array_allclose_operator_allclose_true_rtol(array: xr.DataArray, rt
     )
 
 
+@xarray_available
+def test_data_array_allclose_operator_clone() -> None:
+    op = DataArrayAllCloseOperator()
+    op_cloned = op.clone()
+    assert op is not op_cloned
+    assert op == op_cloned
+
+
+@xarray_available
+def test_data_array_allclose_operator_no_xarray() -> None:
+    with patch("coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False):
+        with raises(RuntimeError, match="`xarray` package is required but not installed."):
+            DataArrayAllCloseOperator()
+
+
 ###############################################
 #     Tests for DataArrayEqualityOperator     #
 ###############################################
@@ -251,6 +276,24 @@ def test_objects_are_equal_data_array() -> None:
 @xarray_available
 def test_data_array_equality_operator_str() -> None:
     assert str(DataArrayEqualityOperator()).startswith("DataArrayEqualityOperator(")
+
+
+@xarray_available
+def test_data_array_equality_operator__eq__true() -> None:
+    assert DataArrayEqualityOperator() == DataArrayEqualityOperator()
+
+
+@xarray_available
+def test_data_array_equality_operator__eq__false() -> None:
+    assert DataArrayEqualityOperator() != 123
+
+
+@xarray_available
+def test_data_array_equality_operator_clone() -> None:
+    op = DataArrayEqualityOperator()
+    op_cloned = op.clone()
+    assert op is not op_cloned
+    assert op == op_cloned
 
 
 @xarray_available
@@ -389,6 +432,13 @@ def test_data_array_equality_operator_equal_false_different_type_show_difference
         assert caplog.messages[0].startswith("object2 is not a xarray.DataArray:")
 
 
+@xarray_available
+def test_data_array_equality_operator_no_xarray() -> None:
+    with patch("coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False):
+        with raises(RuntimeError, match="`xarray` package is required but not installed."):
+            DataArrayEqualityOperator()
+
+
 #############################################
 #     Tests for DatasetAllCloseOperator     #
 #############################################
@@ -413,6 +463,16 @@ def test_objects_are_allclose_dataset() -> None:
 @xarray_available
 def test_dataset_allclose_operator_str() -> None:
     assert str(DatasetAllCloseOperator()).startswith("DatasetAllCloseOperator(")
+
+
+@xarray_available
+def test_dataset_allclose_operator__eq__true() -> None:
+    assert DatasetAllCloseOperator() == DatasetAllCloseOperator()
+
+
+@xarray_available
+def test_dataset_allclose_operator__eq__false() -> None:
+    assert DatasetAllCloseOperator() != 123
 
 
 @xarray_available
@@ -562,6 +622,21 @@ def test_dataset_allclose_operator_allclose_true_rtol(dataset: xr.Dataset, rtol:
     )
 
 
+@xarray_available
+def test_dataset_allclose_operator_clone() -> None:
+    op = DatasetAllCloseOperator()
+    op_cloned = op.clone()
+    assert op is not op_cloned
+    assert op == op_cloned
+
+
+@xarray_available
+def test_dataset_allclose_operator_no_xarray() -> None:
+    with patch("coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False):
+        with raises(RuntimeError, match="`xarray` package is required but not installed."):
+            DatasetAllCloseOperator()
+
+
 #############################################
 #     Tests for DatasetEqualityOperator     #
 #############################################
@@ -575,6 +650,24 @@ def test_objects_are_equal_dataset() -> None:
 @xarray_available
 def test_dataset_equality_operator_str() -> None:
     assert str(DatasetEqualityOperator()).startswith("DatasetEqualityOperator(")
+
+
+@xarray_available
+def test_dataset_equality_operator__eq__true() -> None:
+    assert DatasetEqualityOperator() == DatasetEqualityOperator()
+
+
+@xarray_available
+def test_dataset_equality_operator__eq__false() -> None:
+    assert DatasetEqualityOperator() != 123
+
+
+@xarray_available
+def test_dataset_equality_operator_clone() -> None:
+    op = DatasetEqualityOperator()
+    op_cloned = op.clone()
+    assert op is not op_cloned
+    assert op == op_cloned
 
 
 @xarray_available
@@ -676,6 +769,13 @@ def test_dataset_equality_operator_equal_false_different_type_show_difference(
         assert caplog.messages[0].startswith("object2 is not a xarray.Dataset:")
 
 
+@xarray_available
+def test_dataset_equality_operator_no_xarray() -> None:
+    with patch("coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False):
+        with raises(RuntimeError, match="`xarray` package is required but not installed."):
+            DatasetEqualityOperator()
+
+
 ##############################################
 #     Tests for VariableAllCloseOperator     #
 ##############################################
@@ -691,6 +791,16 @@ def test_objects_are_allclose_variable() -> None:
 @xarray_available
 def test_variable_allclose_operator_str() -> None:
     assert str(VariableAllCloseOperator()).startswith("VariableAllCloseOperator(")
+
+
+@xarray_available
+def test_variable_allclose_operator__eq__true() -> None:
+    assert VariableAllCloseOperator() == VariableAllCloseOperator()
+
+
+@xarray_available
+def test_variable_allclose_operator__eq__false() -> None:
+    assert VariableAllCloseOperator() != 123
 
 
 @xarray_available
@@ -839,6 +949,21 @@ def test_variable_allclose_operator_allclose_true_rtol(array: xr.Variable, rtol:
     )
 
 
+@xarray_available
+def test_variable_allclose_operator_clone() -> None:
+    op = VariableAllCloseOperator()
+    op_cloned = op.clone()
+    assert op is not op_cloned
+    assert op == op_cloned
+
+
+@xarray_available
+def test_variable_allclose_operator_no_xarray() -> None:
+    with patch("coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False):
+        with raises(RuntimeError, match="`xarray` package is required but not installed."):
+            VariableAllCloseOperator()
+
+
 ##############################################
 #     Tests for VariableEqualityOperator     #
 ##############################################
@@ -854,6 +979,24 @@ def test_objects_are_equal_variable() -> None:
 @xarray_available
 def test_variable_equality_operator_str() -> None:
     assert str(VariableEqualityOperator()).startswith("VariableEqualityOperator(")
+
+
+@xarray_available
+def test_variable_equality_operator__eq__true() -> None:
+    assert VariableEqualityOperator() == VariableEqualityOperator()
+
+
+@xarray_available
+def test_variable_equality_operator__eq__false() -> None:
+    assert VariableEqualityOperator() != 123
+
+
+@xarray_available
+def test_variable_equality_operator_clone() -> None:
+    op = VariableEqualityOperator()
+    op_cloned = op.clone()
+    assert op is not op_cloned
+    assert op == op_cloned
 
 
 @xarray_available
@@ -952,3 +1095,10 @@ def test_variable_equality_operator_equal_false_different_type_show_difference(
             show_difference=True,
         )
         assert caplog.messages[0].startswith("object2 is not a xarray.Variable:")
+
+
+@xarray_available
+def test_variable_equality_operator_no_xarray() -> None:
+    with patch("coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False):
+        with raises(RuntimeError, match="`xarray` package is required but not installed."):
+            VariableEqualityOperator()
