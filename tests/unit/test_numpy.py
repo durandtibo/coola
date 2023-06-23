@@ -198,19 +198,19 @@ def test_ndarray_allclose_operator_allclose_true_rtol(array: np.ndarray, rtol: f
 
 
 @numpy_available
-def test_ndarray_allclose_operator_no_numpy() -> None:
-    with patch("coola.utils.imports.is_numpy_available", lambda *args, **kwargs: False):
-        with raises(RuntimeError, match="`numpy` package is required but not installed."):
-            NDArrayAllCloseOperator()
-
-
-@numpy_available
 @mark.parametrize("check_dtype", (True, False))
 def test_ndarray_allclose_operator_clone(check_dtype: bool) -> None:
     op = NDArrayAllCloseOperator(check_dtype)
     op_cloned = op.clone()
     assert op is not op_cloned
     assert op == op_cloned
+
+
+@numpy_available
+def test_ndarray_allclose_operator_no_numpy() -> None:
+    with patch("coola.utils.imports.is_numpy_available", lambda *args, **kwargs: False):
+        with raises(RuntimeError, match="`numpy` package is required but not installed."):
+            NDArrayAllCloseOperator()
 
 
 #############################################

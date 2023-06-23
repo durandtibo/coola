@@ -1,7 +1,7 @@
 import logging
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
-from pytest import LogCaptureFixture, mark
+from pytest import LogCaptureFixture, mark, raises
 
 from coola import (
     AllCloseTester,
@@ -571,6 +571,13 @@ def test_dataframe_allclose_operator_clone() -> None:
     assert op == op_cloned
 
 
+@polars_available
+def test_dataframe_allclose_operator_no_polars() -> None:
+    with patch("coola.utils.imports.is_polars_available", lambda *args, **kwargs: False):
+        with raises(RuntimeError, match="`polars` package is required but not installed."):
+            DataFrameAllCloseOperator()
+
+
 ###############################################
 #     Tests for DataFrameEqualityOperator     #
 ###############################################
@@ -1072,6 +1079,13 @@ def test_dataframe_equality_operator_equal_false_none_int_nulls_compare_equal() 
     )
 
 
+@polars_available
+def test_dataframe_equality_operator_no_polars() -> None:
+    with patch("coola.utils.imports.is_polars_available", lambda *args, **kwargs: False):
+        with raises(RuntimeError, match="`polars` package is required but not installed."):
+            DataFrameEqualityOperator()
+
+
 ############################################
 #     Tests for SeriesAllCloseOperator     #
 ############################################
@@ -1286,6 +1300,13 @@ def test_series_allclose_operator_clone() -> None:
     op_cloned = op.clone()
     assert op is not op_cloned
     assert op == op_cloned
+
+
+@polars_available
+def test_series_allclose_operator_no_polars() -> None:
+    with patch("coola.utils.imports.is_polars_available", lambda *args, **kwargs: False):
+        with raises(RuntimeError, match="`polars` package is required but not installed."):
+            SeriesAllCloseOperator()
 
 
 ############################################
@@ -1504,3 +1525,10 @@ def test_series_equality_operator_equal_false_none_nulls_compare_equal() -> None
         polars.Series(["a", "b", "c", "d", "e", None]),
         polars.Series(["a", "b", "c", "d", "f", None]),
     )
+
+
+@polars_available
+def test_series_equality_operator_no_polars() -> None:
+    with patch("coola.utils.imports.is_polars_available", lambda *args, **kwargs: False):
+        with raises(RuntimeError, match="`polars` package is required but not installed."):
+            SeriesEqualityOperator()
