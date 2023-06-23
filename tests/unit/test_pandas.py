@@ -1,7 +1,7 @@
 import logging
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
-from pytest import LogCaptureFixture, mark
+from pytest import LogCaptureFixture, mark, raises
 
 from coola import (
     AllCloseTester,
@@ -599,6 +599,13 @@ def test_dataframe_allclose_operator_clone() -> None:
     assert op == op_cloned
 
 
+@pandas_available
+def test_dataframe_allclose_operator_no_pandas() -> None:
+    with patch("coola.utils.imports.is_pandas_available", lambda *args, **kwargs: False):
+        with raises(RuntimeError, match="`pandas` package is required but not installed."):
+            DataFrameAllCloseOperator()
+
+
 ###############################################
 #     Tests for DataFrameEqualityOperator     #
 ###############################################
@@ -1136,6 +1143,13 @@ def test_dataframe_equality_operator_equal_false_none_int_nulls_compare_equal() 
     )
 
 
+@pandas_available
+def test_dataframe_equality_operator_no_pandas() -> None:
+    with patch("coola.utils.imports.is_pandas_available", lambda *args, **kwargs: False):
+        with raises(RuntimeError, match="`pandas` package is required but not installed."):
+            DataFrameEqualityOperator()
+
+
 ############################################
 #     Tests for SeriesAllCloseOperator     #
 ############################################
@@ -1361,6 +1375,13 @@ def test_series_allclose_operator_clone() -> None:
     assert op == op_cloned
 
 
+@pandas_available
+def test_series_allclose_operator_no_pandas() -> None:
+    with patch("coola.utils.imports.is_pandas_available", lambda *args, **kwargs: False):
+        with raises(RuntimeError, match="`pandas` package is required but not installed."):
+            SeriesAllCloseOperator()
+
+
 ############################################
 #     Tests for SeriesEqualityOperator     #
 ############################################
@@ -1577,3 +1598,10 @@ def test_series_equality_operator_equal_true_nulls_compare_equal_none() -> None:
         pandas.Series(["a", "b", "c", "d", "e", None]),
         pandas.Series(["a", "b", "c", "d", "e", None]),
     )
+
+
+@pandas_available
+def test_series_equality_operator_no_pandas() -> None:
+    with patch("coola.utils.imports.is_pandas_available", lambda *args, **kwargs: False):
+        with raises(RuntimeError, match="`pandas` package is required but not installed."):
+            SeriesEqualityOperator()
