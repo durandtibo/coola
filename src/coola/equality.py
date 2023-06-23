@@ -102,13 +102,13 @@ class BaseEqualityOperator(ABC, Generic[T]):
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
-    # @abstractmethod
-    # def clone(self) -> BaseEqualityOperator:
-    #     r"""Returns a copy of the equality operator.
-    #
-    #     Returns:
-    #         ``BaseEqualityOperator``: A copy of the equality operator.
-    #     """
+    @abstractmethod
+    def clone(self) -> BaseEqualityOperator:
+        r"""Returns a copy of the equality operator.
+
+        Returns:
+            ``BaseEqualityOperator``: A copy of the equality operator.
+        """
 
     @abstractmethod
     def equal(
