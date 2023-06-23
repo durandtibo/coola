@@ -38,6 +38,16 @@ def test_packed_sequence_allclose_operator_str() -> None:
 
 
 @torch_available
+def test_packed_sequence_allclose_operator__eq__true() -> None:
+    assert PackedSequenceAllCloseOperator() == PackedSequenceAllCloseOperator()
+
+
+@torch_available
+def test_packed_sequence_allclose_operator__eq__false() -> None:
+    assert PackedSequenceAllCloseOperator() != 123
+
+
+@torch_available
 def test_packed_sequence_allclose_operator_allclose_true() -> None:
     assert PackedSequenceAllCloseOperator().allclose(
         AllCloseTester(),
@@ -211,6 +221,14 @@ def test_packed_sequence_allclose_operator_allclose_true_rtol(
 
 
 @torch_available
+def test_packed_sequence_allclose_operator_clone() -> None:
+    op = PackedSequenceAllCloseOperator()
+    op_cloned = op.clone()
+    assert op is not op_cloned
+    assert op == op_cloned
+
+
+@torch_available
 def test_packed_sequence_allclose_operator_no_torch() -> None:
     with patch("coola.utils.imports.is_torch_available", lambda *args, **kwargs: False):
         with raises(RuntimeError, match="`torch` package is required but not installed."):
@@ -225,6 +243,24 @@ def test_packed_sequence_allclose_operator_no_torch() -> None:
 @torch_available
 def test_packed_sequence_equality_operator_str() -> None:
     assert str(PackedSequenceEqualityOperator()) == "PackedSequenceEqualityOperator()"
+
+
+@torch_available
+def test_packed_sequence_equality_operator__eq__true() -> None:
+    assert PackedSequenceEqualityOperator() == PackedSequenceEqualityOperator()
+
+
+@torch_available
+def test_packed_sequence_equality_operator__eq__false() -> None:
+    assert PackedSequenceEqualityOperator() != 123
+
+
+@torch_available
+def test_packed_sequence_equality_operator_clone() -> None:
+    op = PackedSequenceEqualityOperator()
+    op_cloned = op.clone()
+    assert op is not op_cloned
+    assert op == op_cloned
 
 
 @torch_available
@@ -358,6 +394,16 @@ def test_packed_sequence_equality_operator_no_torch() -> None:
 @torch_available
 def test_tensor_allclose_operator_str() -> None:
     assert str(TensorAllCloseOperator()) == "TensorAllCloseOperator()"
+
+
+@torch_available
+def test_tensor_allclose_operator__eq__true() -> None:
+    assert TensorAllCloseOperator() == TensorAllCloseOperator()
+
+
+@torch_available
+def test_tensor_allclose_operator__eq__false() -> None:
+    assert TensorAllCloseOperator() != 123
 
 
 @torch_available
@@ -553,6 +599,14 @@ def test_tensor_allclose_operator_allclose_true_rtol(tensor: torch.Tensor, rtol:
 
 
 @torch_available
+def test_tensor_allclose_operator_clone() -> None:
+    op = TensorAllCloseOperator()
+    op_cloned = op.clone()
+    assert op is not op_cloned
+    assert op == op_cloned
+
+
+@torch_available
 def test_tensor_allclose_operator_no_torch() -> None:
     with patch("coola.utils.imports.is_torch_available", lambda *args, **kwargs: False):
         with raises(RuntimeError, match="`torch` package is required but not installed."):
@@ -567,6 +621,24 @@ def test_tensor_allclose_operator_no_torch() -> None:
 @torch_available
 def test_tensor_equality_operator_str() -> None:
     assert str(TensorEqualityOperator()) == "TensorEqualityOperator()"
+
+
+@torch_available
+def test_tensor_equality_operator__eq__true() -> None:
+    assert TensorEqualityOperator() == TensorEqualityOperator()
+
+
+@torch_available
+def test_tensor_equality_operator__eq__false() -> None:
+    assert TensorEqualityOperator() != 123
+
+
+@torch_available
+def test_tensor_equality_operator_clone() -> None:
+    op = TensorEqualityOperator()
+    op_cloned = op.clone()
+    assert op is not op_cloned
+    assert op == op_cloned
 
 
 @torch_available

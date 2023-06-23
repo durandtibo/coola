@@ -91,9 +91,6 @@ class NDArrayEqualityOperator(BaseEqualityOperator[ndarray]):
             return False
         return self._check_dtype == other._check_dtype
 
-    def __ne__(self, other: Any) -> bool:
-        return not self.__eq__(other)
-
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}(check_dtype={self._check_dtype})"
 
