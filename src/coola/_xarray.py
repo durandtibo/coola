@@ -26,6 +26,9 @@ class DataArrayAllCloseOperator(BaseAllCloseOperator[DataArray]):
     def __init__(self) -> None:
         check_xarray()
 
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, self.__class__)
+
     def allclose(
         self,
         tester: BaseAllCloseTester,
@@ -68,12 +71,21 @@ class DataArrayAllCloseOperator(BaseAllCloseOperator[DataArray]):
             )
         return object_equal
 
+    def clone(self) -> DataArrayAllCloseOperator:
+        return self.__class__()
+
 
 class DataArrayEqualityOperator(BaseEqualityOperator[DataArray]):
     r"""Implements an equality operator for ``xarray.DataArray``."""
 
     def __init__(self) -> None:
         check_xarray()
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, self.__class__)
+
+    def clone(self) -> DataArrayEqualityOperator:
+        return self.__class__()
 
     def equal(
         self,
@@ -105,6 +117,9 @@ class DatasetAllCloseOperator(BaseAllCloseOperator[Dataset]):
 
     def __init__(self) -> None:
         check_xarray()
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, self.__class__)
 
     def allclose(
         self,
@@ -146,12 +161,21 @@ class DatasetAllCloseOperator(BaseAllCloseOperator[Dataset]):
             logger.info(f"xarray.Datasets are different\nobject1=\n{object1}\nobject2=\n{object2}")
         return object_equal
 
+    def clone(self) -> DatasetAllCloseOperator:
+        return self.__class__()
+
 
 class DatasetEqualityOperator(BaseEqualityOperator[Dataset]):
     r"""Implements an equality operator for ``xarray.Dataset``."""
 
     def __init__(self) -> None:
         check_xarray()
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, self.__class__)
+
+    def clone(self) -> DatasetEqualityOperator:
+        return self.__class__()
 
     def equal(
         self,
@@ -181,6 +205,9 @@ class VariableAllCloseOperator(BaseAllCloseOperator[Variable]):
 
     def __init__(self) -> None:
         check_xarray()
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, self.__class__)
 
     def allclose(
         self,
@@ -222,12 +249,21 @@ class VariableAllCloseOperator(BaseAllCloseOperator[Variable]):
             logger.info(f"xarray.Variables are different\nobject1=\n{object1}\nobject2=\n{object2}")
         return object_equal
 
+    def clone(self) -> VariableAllCloseOperator:
+        return self.__class__()
+
 
 class VariableEqualityOperator(BaseEqualityOperator[Variable]):
     r"""Implements an equality operator for ``xarray.Variable``."""
 
     def __init__(self) -> None:
         check_xarray()
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, self.__class__)
+
+    def clone(self) -> VariableEqualityOperator:
+        return self.__class__()
 
     def equal(
         self,
