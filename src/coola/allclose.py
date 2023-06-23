@@ -180,13 +180,13 @@ class BaseAllCloseOperator(ABC, Generic[T]):
                 tolerance, otherwise ``False``
         """
 
-    # @abstractmethod
-    # def clone(self) -> BaseAllCloseOperator:
-    #     r"""Returns a copy of the equality operator.
-    #
-    #     Returns:
-    #         ``BaseEqualityOperator``: A copy of the equality operator.
-    #     """
+    @abstractmethod
+    def clone(self) -> BaseAllCloseOperator:
+        r"""Returns a copy of the equality operator.
+
+        Returns:
+            ``BaseAllCloseOperator``: A copy of the equality operator.
+        """
 
 
 class DefaultAllCloseOperator(BaseAllCloseOperator[Any]):
