@@ -180,6 +180,14 @@ class BaseAllCloseOperator(ABC, Generic[T]):
                 tolerance, otherwise ``False``
         """
 
+    # @abstractmethod
+    # def clone(self) -> BaseAllCloseOperator:
+    #     r"""Returns a copy of the equality operator.
+    #
+    #     Returns:
+    #         ``BaseEqualityOperator``: A copy of the equality operator.
+    #     """
+
 
 class DefaultAllCloseOperator(BaseAllCloseOperator[Any]):
     r"""Implements a default allclose operator.
@@ -188,6 +196,9 @@ class DefaultAllCloseOperator(BaseAllCloseOperator[Any]):
     because it is not possible to define an allclose operator for all
     objects.
     """
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, self.__class__)
 
     def allclose(
         self,
@@ -210,9 +221,15 @@ class DefaultAllCloseOperator(BaseAllCloseOperator[Any]):
             logger.info(f"Objects are different:\nobject1={object1}\nobject2={object2}")
         return object_equal
 
+    def clone(self) -> DefaultAllCloseOperator:
+        return self.__class__()
+
 
 class MappingAllCloseOperator(BaseAllCloseOperator[Mapping]):
     r"""Implements an equality operator for mappings."""
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, self.__class__)
 
     def allclose(
         self,
@@ -257,9 +274,15 @@ class MappingAllCloseOperator(BaseAllCloseOperator[Mapping]):
                 return False
         return True
 
+    def clone(self) -> MappingAllCloseOperator:
+        return self.__class__()
+
 
 class ScalarAllCloseOperator(BaseAllCloseOperator[Union[bool, int, float]]):
     r"""Implements an allclose operator for scalar values."""
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, self.__class__)
 
     def allclose(
         self,
@@ -282,9 +305,15 @@ class ScalarAllCloseOperator(BaseAllCloseOperator[Union[bool, int, float]]):
             logger.info(f"The numbers are different: {object1} vs {object2}")
         return number_equal
 
+    def clone(self) -> ScalarAllCloseOperator:
+        return self.__class__()
+
 
 class SequenceAllCloseOperator(BaseAllCloseOperator[Sequence]):
     r"""Implements an equality operator for sequences."""
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, self.__class__)
 
     def allclose(
         self,
@@ -320,6 +349,9 @@ class SequenceAllCloseOperator(BaseAllCloseOperator[Sequence]):
                     )
                 return False
         return True
+
+    def clone(self) -> SequenceAllCloseOperator:
+        return self.__class__()
 
 
 class AllCloseTester(BaseAllCloseTester):

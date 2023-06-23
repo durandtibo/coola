@@ -391,6 +391,14 @@ def test_default_allclose_operator_str() -> None:
     assert str(DefaultAllCloseOperator()) == "DefaultAllCloseOperator()"
 
 
+def test_default_allclose_operator__eq__true() -> None:
+    assert DefaultAllCloseOperator() == DefaultAllCloseOperator()
+
+
+def test_default_allclose_operator__eq__false() -> None:
+    assert DefaultAllCloseOperator() != 123
+
+
 def test_default_allclose_operator_allclose_true_same_object() -> None:
     obj = Mock()
     assert DefaultAllCloseOperator().allclose(AllCloseTester(), obj, obj)
@@ -430,6 +438,13 @@ def test_default_allclose_operator_allclose_different_type_show_difference(
         assert caplog.messages[0].startswith("Objects have different types:")
 
 
+def test_default_allclose_operator_clone() -> None:
+    op = DefaultAllCloseOperator()
+    op_cloned = op.clone()
+    assert op is not op_cloned
+    assert op == op_cloned
+
+
 #############################################
 #     Tests for MappingAllCloseOperator     #
 #############################################
@@ -437,6 +452,14 @@ def test_default_allclose_operator_allclose_different_type_show_difference(
 
 def test_mapping_allclose_operator_str() -> None:
     assert str(MappingAllCloseOperator()) == "MappingAllCloseOperator()"
+
+
+def test_mapping_allclose_operator__eq__true() -> None:
+    assert MappingAllCloseOperator() == MappingAllCloseOperator()
+
+
+def test_mapping_allclose_operator__eq__false() -> None:
+    assert MappingAllCloseOperator() != 123
 
 
 @mark.parametrize(
@@ -555,7 +578,7 @@ def test_mapping_allclose_operator_allclose_different_type_show_difference(
     ),
 )
 def test_mapping_allclose_operator_allclose_true_atol(mapping: Mapping, atol: float) -> None:
-    assert SequenceAllCloseOperator().allclose(
+    assert MappingAllCloseOperator().allclose(
         AllCloseTester(), {"key": torch.ones(2, 3)}, mapping, atol=atol, rtol=0.0
     )
 
@@ -569,9 +592,16 @@ def test_mapping_allclose_operator_allclose_true_atol(mapping: Mapping, atol: fl
     ),
 )
 def test_mapping_allclose_operator_allclose_true_rtol(mapping: Mapping, rtol: float) -> None:
-    assert SequenceAllCloseOperator().allclose(
+    assert MappingAllCloseOperator().allclose(
         AllCloseTester(), {"key": torch.ones(2, 3)}, mapping, rtol=rtol
     )
+
+
+def test_mapping_allclose_operator_clone() -> None:
+    op = MappingAllCloseOperator()
+    op_cloned = op.clone()
+    assert op is not op_cloned
+    assert op == op_cloned
 
 
 ############################################
@@ -581,6 +611,14 @@ def test_mapping_allclose_operator_allclose_true_rtol(mapping: Mapping, rtol: fl
 
 def test_scalar_allclose_operator_str() -> None:
     assert str(ScalarAllCloseOperator()) == "ScalarAllCloseOperator()"
+
+
+def test_scalar_allclose_operator__eq__true() -> None:
+    assert ScalarAllCloseOperator() == ScalarAllCloseOperator()
+
+
+def test_scalar_allclose_operator__eq__false() -> None:
+    assert ScalarAllCloseOperator() != 123
 
 
 @mark.parametrize(
@@ -707,6 +745,13 @@ def test_scalar_allclose_operator_allclose_false_incorrect_type_show_difference(
         assert caplog.messages[0].startswith("Objects have different types:")
 
 
+def test_scalar_allclose_operator_clone() -> None:
+    op = ScalarAllCloseOperator()
+    op_cloned = op.clone()
+    assert op is not op_cloned
+    assert op == op_cloned
+
+
 ##############################################
 #     Tests for SequenceAllCloseOperator     #
 ##############################################
@@ -714,6 +759,14 @@ def test_scalar_allclose_operator_allclose_false_incorrect_type_show_difference(
 
 def test_sequence_allclose_operator_str() -> None:
     assert str(SequenceAllCloseOperator()) == "SequenceAllCloseOperator()"
+
+
+def test_sequence_allclose_operator__eq__true() -> None:
+    assert SequenceAllCloseOperator() == SequenceAllCloseOperator()
+
+
+def test_sequence_allclose_operator__eq__false() -> None:
+    assert SequenceAllCloseOperator() != 123
 
 
 @mark.parametrize(
@@ -854,3 +907,10 @@ def test_sequence_allclose_operator_allclose_true_rtol(sequence: Sequence, rtol:
     assert SequenceAllCloseOperator().allclose(
         AllCloseTester(), [torch.ones(2, 3)], sequence, rtol=rtol
     )
+
+
+def test_sequence_allclose_operator_clone() -> None:
+    op = SequenceAllCloseOperator()
+    op_cloned = op.clone()
+    assert op is not op_cloned
+    assert op == op_cloned
