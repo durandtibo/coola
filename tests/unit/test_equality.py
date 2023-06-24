@@ -120,6 +120,16 @@ def test_equality_tester_find_operator_incorrect_type() -> None:
         EqualityTester().find_operator(Mock(__mro__=[]))
 
 
+@patch.dict(EqualityTester.registry, {object: DefaultEqualityOperator()}, clear=True)
+def test_equality_tester_local_copy() -> None:
+    tester = EqualityTester.local_copy()
+    tester.add_operator(dict, MappingEqualityOperator())
+    assert EqualityTester.registry == {object: DefaultEqualityOperator()}
+    assert tester == LocalEqualityTester(
+        {dict: MappingEqualityOperator(), object: DefaultEqualityOperator()}
+    )
+
+
 #########################################
 #     Tests for LocalEqualityTester     #
 #########################################
@@ -127,6 +137,32 @@ def test_equality_tester_find_operator_incorrect_type() -> None:
 
 def test_local_equality_tester_str() -> None:
     assert str(LocalEqualityTester()).startswith("LocalEqualityTester(")
+
+
+def test_local_equality_tester__eq__true() -> None:
+    assert LocalEqualityTester({object: DefaultEqualityOperator()}) == LocalEqualityTester(
+        {object: DefaultEqualityOperator()}
+    )
+
+
+def test_local_equality_tester__eq__true_empty() -> None:
+    assert LocalEqualityTester(None) == LocalEqualityTester({})
+
+
+def test_local_equality_tester__eq__false_different_key() -> None:
+    assert not LocalEqualityTester({object: DefaultEqualityOperator()}) == LocalEqualityTester(
+        {int: DefaultEqualityOperator()}
+    )
+
+
+def test_local_equality_tester__eq__false_different_value() -> None:
+    assert not LocalEqualityTester({object: DefaultEqualityOperator()}) == LocalEqualityTester(
+        {object: MappingEqualityOperator()}
+    )
+
+
+def test_local_equality_tester__eq__false_different_type() -> None:
+    assert not LocalEqualityTester() == 1
 
 
 def test_local_equality_tester_registry_default() -> None:
@@ -137,7 +173,7 @@ def test_local_equality_tester_add_operator() -> None:
     tester = LocalEqualityTester()
     operator = Mock(spec=BaseEqualityOperator)
     tester.add_operator(int, operator)
-    assert tester.registry == {int: operator}
+    assert tester == LocalEqualityTester({int: operator})
 
 
 def test_local_equality_tester_add_operator_duplicate_exist_ok_true() -> None:
@@ -145,7 +181,7 @@ def test_local_equality_tester_add_operator_duplicate_exist_ok_true() -> None:
     operator = Mock(spec=BaseEqualityOperator)
     tester.add_operator(int, Mock(spec=BaseEqualityOperator))
     tester.add_operator(int, operator, exist_ok=True)
-    assert tester.registry == {int: operator}
+    assert tester == LocalEqualityTester({int: operator})
 
 
 def test_local_equality_tester_add_operator_duplicate_exist_ok_false() -> None:
@@ -161,11 +197,15 @@ def test_local_equality_tester_clone() -> None:
     tester_cloned = tester.clone()
     tester.add_operator(list, SequenceEqualityOperator())
     tester_cloned.add_operator(object, DefaultEqualityOperator())
-    assert tester.registry == {dict: MappingEqualityOperator(), list: SequenceEqualityOperator()}
-    assert tester_cloned.registry == {
-        dict: MappingEqualityOperator(),
-        object: DefaultEqualityOperator(),
-    }
+    assert tester == LocalEqualityTester(
+        {dict: MappingEqualityOperator(), list: SequenceEqualityOperator()}
+    )
+    assert tester_cloned == LocalEqualityTester(
+        {
+            dict: MappingEqualityOperator(),
+            object: DefaultEqualityOperator(),
+        }
+    )
 
 
 def test_local_equality_tester_equal_true() -> None:
