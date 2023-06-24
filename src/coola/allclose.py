@@ -554,6 +554,38 @@ class AllCloseTester(BaseAllCloseTester):
                 return operator
         raise TypeError(f"Incorrect data type: {data_type}")
 
+    @classmethod
+    def local_copy(cls) -> LocalAllCloseTester:
+        r"""Returns a copy of ``AllCloseTester`` that can
+        easily be customized without changind ``AllCloseTester``.
+
+        Returns:
+            ``LocalAllCloseTester``: A local copy of
+                ``AllCloseTester``.
+
+        Example usage:
+
+        .. code-block:: pycon
+
+            >>> from coola import AllCloseTester
+            >>> AllCloseTester.local_copy()
+            LocalAllCloseTester(
+              <class 'collections.abc.Mapping'>           : MappingAllCloseOperator()
+              <class 'collections.abc.Sequence'>          : SequenceAllCloseOperator()
+              <class 'bool'>                              : ScalarAllCloseOperator()
+              <class 'dict'>                              : MappingAllCloseOperator()
+              <class 'float'>                             : ScalarAllCloseOperator()
+              <class 'int'>                               : ScalarAllCloseOperator()
+              <class 'list'>                              : SequenceAllCloseOperator()
+              <class 'object'>                            : DefaultAllCloseOperator()
+              <class 'tuple'>                             : SequenceAllCloseOperator()
+              <class 'numpy.ndarray'>                     : NDArrayAllCloseOperator(check_dtype=True)
+              <class 'torch.nn.utils.rnn.PackedSequence'> : PackedSequenceAllCloseOperator()
+              <class 'torch.Tensor'>                      : TensorAllCloseOperator()
+            )
+        """
+        return LocalAllCloseTester({key: value.clone() for key, value in cls.registry.items()})
+
 
 class LocalAllCloseTester(BaseAllCloseTester):
     """Implements an equality tester that can be easily customized.
@@ -693,7 +725,7 @@ class LocalAllCloseTester(BaseAllCloseTester):
         r"""Clones the current tester.
 
         Returns:
-            ``LocalEqualityTester``: A deep copy of the current
+            ``LocalAllCloseTester``: A deep copy of the current
                 tester.
 
         Example usage:

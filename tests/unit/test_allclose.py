@@ -119,6 +119,16 @@ def test_allclose_tester_find_operator_incorrect_type() -> None:
         AllCloseTester().find_operator(Mock(__mro__=[]))
 
 
+@patch.dict(AllCloseTester.registry, {object: DefaultAllCloseOperator()}, clear=True)
+def test_allclose_tester_local_copy() -> None:
+    tester = AllCloseTester.local_copy()
+    tester.add_operator(dict, MappingAllCloseOperator())
+    assert AllCloseTester.registry == {object: DefaultAllCloseOperator()}
+    assert tester == LocalAllCloseTester(
+        {dict: MappingAllCloseOperator(), object: DefaultAllCloseOperator()}
+    )
+
+
 #########################################
 #     Tests for LocalAllCloseTester     #
 #########################################
