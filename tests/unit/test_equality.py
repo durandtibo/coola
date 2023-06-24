@@ -15,6 +15,7 @@ from coola.equality import (
     BaseEqualityOperator,
     DefaultEqualityOperator,
     EqualityTester,
+    LocalEqualityTester,
     MappingEqualityOperator,
     SequenceEqualityOperator,
     objects_are_equal,
@@ -90,6 +91,14 @@ def test_equality_tester_add_operator_duplicate_exist_ok_false() -> None:
         tester.add_operator(int, operator)
 
 
+def test_equality_tester_equal_true() -> None:
+    assert EqualityTester().equal(1, 1)
+
+
+def test_equality_tester_equal_false() -> None:
+    assert not EqualityTester().equal(1, 2)
+
+
 def test_equality_tester_has_operator_true() -> None:
     assert EqualityTester().has_operator(dict)
 
@@ -109,6 +118,91 @@ def test_equality_tester_find_operator_indirect() -> None:
 def test_equality_tester_find_operator_incorrect_type() -> None:
     with raises(TypeError, match="Incorrect data type:"):
         EqualityTester().find_operator(Mock(__mro__=[]))
+
+
+#########################################
+#     Tests for LocalEqualityTester     #
+#########################################
+
+
+def test_local_equality_tester_str() -> None:
+    assert str(LocalEqualityTester()).startswith("LocalEqualityTester(")
+
+
+def test_local_equality_tester_registry_default() -> None:
+    assert LocalEqualityTester().registry == {}
+
+
+def test_local_equality_tester_add_operator() -> None:
+    tester = LocalEqualityTester()
+    operator = Mock(spec=BaseEqualityOperator)
+    tester.add_operator(int, operator)
+    assert tester.registry == {int: operator}
+
+
+def test_local_equality_tester_add_operator_duplicate_exist_ok_true() -> None:
+    tester = LocalEqualityTester()
+    operator = Mock(spec=BaseEqualityOperator)
+    tester.add_operator(int, Mock(spec=BaseEqualityOperator))
+    tester.add_operator(int, operator, exist_ok=True)
+    assert tester.registry == {int: operator}
+
+
+def test_local_equality_tester_add_operator_duplicate_exist_ok_false() -> None:
+    tester = LocalEqualityTester()
+    operator = Mock(spec=BaseEqualityOperator)
+    tester.add_operator(int, Mock(spec=BaseEqualityOperator))
+    with raises(RuntimeError, match="An operator (.*) is already registered"):
+        tester.add_operator(int, operator)
+
+
+def test_local_equality_tester_clone() -> None:
+    tester = LocalEqualityTester({dict: MappingEqualityOperator()})
+    tester_cloned = tester.clone()
+    tester.add_operator(list, SequenceEqualityOperator())
+    tester_cloned.add_operator(object, DefaultEqualityOperator())
+    assert tester.registry == {dict: MappingEqualityOperator(), list: SequenceEqualityOperator()}
+    assert tester_cloned.registry == {
+        dict: MappingEqualityOperator(),
+        object: DefaultEqualityOperator(),
+    }
+
+
+def test_local_equality_tester_equal_true() -> None:
+    assert LocalEqualityTester({object: DefaultEqualityOperator()}).equal(1, 1)
+
+
+def test_local_equality_tester_equal_false() -> None:
+    assert not LocalEqualityTester({object: DefaultEqualityOperator()}).equal(1, 2)
+
+
+def test_local_equality_tester_has_operator_true() -> None:
+    assert LocalEqualityTester({dict: MappingEqualityOperator()}).has_operator(dict)
+
+
+def test_local_equality_tester_has_operator_false() -> None:
+    assert not LocalEqualityTester().has_operator(int)
+
+
+def test_local_equality_tester_find_operator_direct() -> None:
+    assert isinstance(
+        LocalEqualityTester({dict: MappingEqualityOperator()}).find_operator(dict),
+        MappingEqualityOperator,
+    )
+
+
+def test_local_equality_tester_find_operator_indirect() -> None:
+    assert isinstance(
+        LocalEqualityTester(
+            {dict: MappingEqualityOperator(), object: DefaultEqualityOperator()}
+        ).find_operator(str),
+        DefaultEqualityOperator,
+    )
+
+
+def test_local_equality_tester_find_operator_incorrect_type() -> None:
+    with raises(TypeError, match="Incorrect data type:"):
+        LocalEqualityTester().find_operator(Mock(__mro__=[]))
 
 
 #######################################
