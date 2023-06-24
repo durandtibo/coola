@@ -16,6 +16,7 @@ from coola.allclose import (
     AllCloseTester,
     BaseAllCloseOperator,
     DefaultAllCloseOperator,
+    LocalAllCloseTester,
     MappingAllCloseOperator,
     ScalarAllCloseOperator,
     SequenceAllCloseOperator,
@@ -116,6 +117,121 @@ def test_allclose_tester_find_operator_indirect() -> None:
 def test_allclose_tester_find_operator_incorrect_type() -> None:
     with raises(TypeError, match="Incorrect data type:"):
         AllCloseTester().find_operator(Mock(__mro__=[]))
+
+
+#########################################
+#     Tests for LocalAllCloseTester     #
+#########################################
+
+
+def test_local_allclose_tester_str() -> None:
+    assert str(LocalAllCloseTester()).startswith("LocalAllCloseTester(")
+
+
+def test_local_allclose_tester__eq__true() -> None:
+    assert LocalAllCloseTester({object: DefaultAllCloseOperator()}) == LocalAllCloseTester(
+        {object: DefaultAllCloseOperator()}
+    )
+
+
+def test_local_allclose_tester__eq__true_empty() -> None:
+    assert LocalAllCloseTester(None) == LocalAllCloseTester({})
+
+
+def test_local_allclose_tester__eq__false_different_key() -> None:
+    assert not LocalAllCloseTester({object: DefaultAllCloseOperator()}) == LocalAllCloseTester(
+        {int: DefaultAllCloseOperator()}
+    )
+
+
+def test_local_allclose_tester__eq__false_different_value() -> None:
+    assert not LocalAllCloseTester({object: DefaultAllCloseOperator()}) == LocalAllCloseTester(
+        {object: MappingAllCloseOperator()}
+    )
+
+
+def test_local_allclose_tester__eq__false_different_type() -> None:
+    assert not LocalAllCloseTester() == 1
+
+
+def test_local_allclose_tester_registry_default() -> None:
+    assert LocalAllCloseTester().registry == {}
+
+
+def test_local_allclose_tester_add_operator() -> None:
+    tester = LocalAllCloseTester()
+    operator = Mock(spec=BaseAllCloseOperator)
+    tester.add_operator(int, operator)
+    assert tester == LocalAllCloseTester({int: operator})
+
+
+def test_local_allclose_tester_add_operator_duplicate_exist_ok_true() -> None:
+    tester = LocalAllCloseTester()
+    operator = Mock(spec=BaseAllCloseOperator)
+    tester.add_operator(int, Mock(spec=BaseAllCloseOperator))
+    tester.add_operator(int, operator, exist_ok=True)
+    assert tester == LocalAllCloseTester({int: operator})
+
+
+def test_local_allclose_tester_add_operator_duplicate_exist_ok_false() -> None:
+    tester = LocalAllCloseTester()
+    operator = Mock(spec=BaseAllCloseOperator)
+    tester.add_operator(int, Mock(spec=BaseAllCloseOperator))
+    with raises(RuntimeError, match="An operator (.*) is already registered"):
+        tester.add_operator(int, operator)
+
+
+def test_local_allclose_tester_clone() -> None:
+    tester = LocalAllCloseTester({dict: MappingAllCloseOperator()})
+    tester_cloned = tester.clone()
+    tester.add_operator(list, SequenceAllCloseOperator())
+    tester_cloned.add_operator(object, DefaultAllCloseOperator())
+    assert tester == LocalAllCloseTester(
+        {dict: MappingAllCloseOperator(), list: SequenceAllCloseOperator()}
+    )
+    assert tester_cloned == LocalAllCloseTester(
+        {
+            dict: MappingAllCloseOperator(),
+            object: DefaultAllCloseOperator(),
+        }
+    )
+
+
+def test_local_allclose_tester_allclose_true() -> None:
+    assert LocalAllCloseTester({object: DefaultAllCloseOperator()}).allclose(1, 1)
+
+
+def test_local_allclose_tester_allclose_false() -> None:
+    assert not LocalAllCloseTester({object: DefaultAllCloseOperator()}).allclose(1, 2)
+
+
+def test_local_allclose_tester_has_operator_true() -> None:
+    assert LocalAllCloseTester({dict: MappingAllCloseOperator()}).has_operator(dict)
+
+
+def test_local_allclose_tester_has_operator_false() -> None:
+    assert not LocalAllCloseTester().has_operator(int)
+
+
+def test_local_allclose_tester_find_operator_direct() -> None:
+    assert isinstance(
+        LocalAllCloseTester({dict: MappingAllCloseOperator()}).find_operator(dict),
+        MappingAllCloseOperator,
+    )
+
+
+def test_local_allclose_tester_find_operator_indirect() -> None:
+    assert isinstance(
+        LocalAllCloseTester(
+            {dict: MappingAllCloseOperator(), object: DefaultAllCloseOperator()}
+        ).find_operator(str),
+        DefaultAllCloseOperator,
+    )
+
+
+def test_local_allclose_tester_find_operator_incorrect_type() -> None:
+    with raises(TypeError, match="Incorrect data type:"):
+        LocalAllCloseTester().find_operator(Mock(__mro__=[]))
 
 
 ##########################################

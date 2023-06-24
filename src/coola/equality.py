@@ -487,7 +487,7 @@ class LocalEqualityTester(BaseEqualityTester):
             ...     ) -> bool:
             ...         ...  # Custom implementation to test strings
             ...
-            >>> tester = LocalEqualityTester()
+            >>> tester = LocalEqualityTester({...})
             >>> tester.add_operator(str, MyStringEqualityOperator())
             # To overwrite an existing operator
             >>> tester.add_operator(str, MyStringEqualityOperator(), exist_ok=True)
@@ -513,7 +513,7 @@ class LocalEqualityTester(BaseEqualityTester):
 
             >>> import torch
             >>> from coola import LocalEqualityTester
-            >>> tester = LocalEqualityTester()
+            >>> tester = LocalEqualityTester({...})
             >>> tester_cloned = tester.clone()
         """
         return self.__class__({key: value.clone() for key, value in self.registry.items()})
@@ -539,7 +539,7 @@ class LocalEqualityTester(BaseEqualityTester):
 
             >>> import torch
             >>> from coola import LocalEqualityTester
-            >>> tester = LocalEqualityTester()
+            >>> tester = LocalEqualityTester({...})
             >>> tester.equal(
             ...     [torch.ones(2, 3), torch.zeros(2)],
             ...     [torch.ones(2, 3), torch.zeros(2)],
@@ -566,7 +566,7 @@ class LocalEqualityTester(BaseEqualityTester):
         .. code-block:: pycon
 
             >>> from coola import LocalEqualityTester
-            >>> tester = LocalEqualityTester()
+            >>> tester = LocalEqualityTester({...})
             >>> tester.has_operator(list)
             True
             >>> tester.has_operator(str)
@@ -589,7 +589,7 @@ class LocalEqualityTester(BaseEqualityTester):
         .. code-block:: pycon
 
             >>> from coola import LocalEqualityTester
-            >>> tester = LocalEqualityTester()
+            >>> tester = LocalEqualityTester({...})
             >>> tester.find_operator(list)
             SequenceEqualityOperator()
             >>> tester.find_operator(str)
