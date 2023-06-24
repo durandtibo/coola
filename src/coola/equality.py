@@ -402,6 +402,35 @@ class EqualityTester(BaseEqualityTester):
                 return operator
         raise TypeError(f"Incorrect data type: {data_type}")
 
+    @classmethod
+    def local_copy(cls) -> LocalEqualityTester:
+        r"""Returns a copy of ``EqualityTester`` that can
+        easily be customized without changind ``EqualityTester``.
+
+        Returns:
+            ``LocalEqualityTester``: A local copy of
+                ``EqualityTester``.
+
+        Example usage:
+
+        .. code-block:: pycon
+
+            >>> from coola import EqualityTester
+            >>> EqualityTester.local_copy()
+            LocalEqualityTester(
+              <class 'collections.abc.Mapping'>           : MappingEqualityOperator()
+              <class 'collections.abc.Sequence'>          : SequenceEqualityOperator()
+              <class 'dict'>                              : MappingEqualityOperator()
+              <class 'list'>                              : SequenceEqualityOperator()
+              <class 'object'>                            : DefaultEqualityOperator()
+              <class 'tuple'>                             : SequenceEqualityOperator()
+              <class 'numpy.ndarray'>                     : NDArrayEqualityOperator(check_dtype=True)
+              <class 'torch.nn.utils.rnn.PackedSequence'> : PackedSequenceEqualityOperator()
+              <class 'torch.Tensor'>                      : TensorEqualityOperator()
+            )
+        """
+        return LocalEqualityTester({key: value.clone() for key, value in cls.registry.items()})
+
 
 class LocalEqualityTester(BaseEqualityTester):
     """Implements an equality tester that can be easily customized.
@@ -413,6 +442,11 @@ class LocalEqualityTester(BaseEqualityTester):
 
     def __init__(self, registry: dict[type[object], BaseEqualityOperator] | None = None) -> None:
         self.registry = registry or {}
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+        return self.registry == other.registry
 
     def __repr__(self) -> str:
         return (
