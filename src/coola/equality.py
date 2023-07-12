@@ -404,8 +404,8 @@ class EqualityTester(BaseEqualityTester):
 
     @classmethod
     def local_copy(cls) -> LocalEqualityTester:
-        r"""Returns a copy of ``EqualityTester`` that can
-        easily be customized without changind ``EqualityTester``.
+        r"""Returns a copy of ``EqualityTester`` that can easily be
+        customized without changind ``EqualityTester``.
 
         Returns:
             ``LocalEqualityTester``: A local copy of

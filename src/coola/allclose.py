@@ -556,8 +556,8 @@ class AllCloseTester(BaseAllCloseTester):
 
     @classmethod
     def local_copy(cls) -> LocalAllCloseTester:
-        r"""Returns a copy of ``AllCloseTester`` that can
-        easily be customized without changind ``AllCloseTester``.
+        r"""Returns a copy of ``AllCloseTester`` that can easily be
+        customized without changind ``AllCloseTester``.
 
         Returns:
             ``LocalAllCloseTester``: A local copy of
