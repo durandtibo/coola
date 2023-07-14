@@ -415,27 +415,9 @@ class AllCloseTester(BaseAllCloseTester):
 
         .. code-block:: pycon
 
-            >>> from coola import (
-            ...     AllCloseTester,
-            ...     BaseAllCloseTester,
-            ...     BaseAllCloseOperator,
-            ... )
-            >>> class MyStringAllCloseOperator(BaseAllCloseOperator[str]):
-            ...     def allclose(
-            ...         self,
-            ...         tester: BaseAllCloseTester,
-            ...         object1: str,
-            ...         object2: Any,
-            ...         rtol: float = 1e-5,
-            ...         atol: float = 1e-8,
-            ...         equal_nan: bool = False,
-            ...         show_difference: bool = False,
-            ...     ) -> bool:
-            ...         ...  # Custom implementation to test strings
-            ...
-            >>> AllCloseTester.add_operator(str, MyStringAllCloseOperator())
-            # To overwrite an existing operato
-            >>> AllCloseTester.add_operator(str, MyStringAllCloseOperator(), exist_ok=True)
+            >>> from coola import AllCloseTester
+            >>> from coola.allclose import SequenceAllCloseOperator
+            >>> AllCloseTester.add_operator(list, SequenceAllCloseOperator(), exist_ok=True)
         """
         if data_type in cls.registry and not exist_ok:
             raise RuntimeError(
@@ -545,7 +527,7 @@ class AllCloseTester(BaseAllCloseTester):
             >>> from coola import AllCloseTester
             >>> AllCloseTester.find_operator(list)
             SequenceAllCloseOperator()
-            >>> AllCloseTester.has_operator(str)
+            >>> AllCloseTester.find_operator(str)
             DefaultAllCloseOperator()
         """
         for object_type in data_type.__mro__:
@@ -568,21 +550,8 @@ class AllCloseTester(BaseAllCloseTester):
         .. code-block:: pycon
 
             >>> from coola import AllCloseTester
-            >>> AllCloseTester.local_copy()
-            LocalAllCloseTester(
-              <class 'collections.abc.Mapping'>           : MappingAllCloseOperator()
-              <class 'collections.abc.Sequence'>          : SequenceAllCloseOperator()
-              <class 'bool'>                              : ScalarAllCloseOperator()
-              <class 'dict'>                              : MappingAllCloseOperator()
-              <class 'float'>                             : ScalarAllCloseOperator()
-              <class 'int'>                               : ScalarAllCloseOperator()
-              <class 'list'>                              : SequenceAllCloseOperator()
-              <class 'object'>                            : DefaultAllCloseOperator()
-              <class 'tuple'>                             : SequenceAllCloseOperator()
-              <class 'numpy.ndarray'>                     : NDArrayAllCloseOperator(check_dtype=True)
-              <class 'torch.nn.utils.rnn.PackedSequence'> : PackedSequenceAllCloseOperator()
-              <class 'torch.Tensor'>                      : TensorAllCloseOperator()
-            )
+            >>> AllCloseTester.local_copy()  # doctest: +ELLIPSIS
+            LocalAllCloseTester(...)
         """
         return LocalAllCloseTester({key: value.clone() for key, value in cls.registry.items()})
 
@@ -632,28 +601,10 @@ class LocalAllCloseTester(BaseAllCloseTester):
 
         .. code-block:: pycon
 
-            >>> from coola import (
-            ...     LocalAllCloseTester,
-            ...     BaseAllCloseTester,
-            ...     BaseAllCloseOperator,
-            ... )
-            >>> class MyStringAllCloseOperator(BaseAllCloseOperator[str]):
-            ...     def allclose(
-            ...         self,
-            ...         tester: BaseAllCloseTester,
-            ...         object1: str,
-            ...         object2: Any,
-            ...         rtol: float = 1e-5,
-            ...         atol: float = 1e-8,
-            ...         equal_nan: bool = False,
-            ...         show_difference: bool = False,
-            ...     ) -> bool:
-            ...         ...  # Custom implementation to test strings
-            ...
-            >>> tester = LocalAllCloseTester({...})
-            >>> tester.add_operator(str, MyStringAllCloseOperator())
-            # To overwrite an existing operato
-            >>> tester.add_operator(str, MyStringAllCloseOperator(), exist_ok=True)
+            >>> from coola import AllCloseTester
+            >>> from coola.allclose import SequenceAllCloseOperator
+            >>> tester = AllCloseTester.local_copy()
+            >>> tester.add_operator(list, SequenceAllCloseOperator(), exist_ok=True)
         """
         if data_type in self.registry and not exist_ok:
             raise RuntimeError(
@@ -697,8 +648,8 @@ class LocalAllCloseTester(BaseAllCloseTester):
         .. code-block:: pycon
 
             >>> import torch
-            >>> from coola import LocalAllCloseTester
-            >>> tester = LocalAllCloseTester({...})
+            >>> from coola import AllCloseTester
+            >>> tester = AllCloseTester.local_copy()
             >>> tester.allclose(
             ...     [torch.ones(2, 3), torch.zeros(2)],
             ...     [torch.ones(2, 3), torch.zeros(2)],
@@ -732,9 +683,8 @@ class LocalAllCloseTester(BaseAllCloseTester):
 
         .. code-block:: pycon
 
-            >>> import torch
-            >>> from coola import LocalAllCloseTester
-            >>> tester = LocalAllCloseTester({...})
+            >>> from coola import AllCloseTester
+            >>> tester = AllCloseTester.local_copy()
             >>> tester_cloned = tester.clone()
         """
         return self.__class__({key: value.clone() for key, value in self.registry.items()})
@@ -754,8 +704,8 @@ class LocalAllCloseTester(BaseAllCloseTester):
 
         .. code-block:: pycon
 
-            >>> from coola import LocalAllCloseTester
-            >>> tester = LocalAllCloseTester({...})
+            >>> from coola import AllCloseTester
+            >>> tester = AllCloseTester.local_copy()
             >>> tester.has_operator(list)
             True
             >>> tester.has_operator(str)
@@ -777,8 +727,8 @@ class LocalAllCloseTester(BaseAllCloseTester):
 
         .. code-block:: pycon
 
-            >>> from coola import LocalAllCloseTester
-            >>> tester = LocalAllCloseTester({...})
+            >>> from coola import AllCloseTester
+            >>> tester = AllCloseTester.local_copy()
             >>> tester.find_operator(list)
             SequenceAllCloseOperator()
             >>> tester.find_operator(str)

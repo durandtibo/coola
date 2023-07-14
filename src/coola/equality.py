@@ -296,20 +296,9 @@ class EqualityTester(BaseEqualityTester):
 
         .. code-block:: pycon
 
-            >>> from coola import EqualityTester, BaseEqualityTester, BaseEqualityOperator
-            >>> class MyStringEqualityOperator(BaseEqualityOperator[str]):
-            ...     def equal(
-            ...         self,
-            ...         tester: BaseEqualityTester,
-            ...         object1: str,
-            ...         object2: Any,
-            ...         show_difference: bool = False,
-            ...     ) -> bool:
-            ...         ...  # Custom implementation to test strings
-            ...
-            >>> EqualityTester.add_operator(str, MyStringEqualityOperator())
-            # To overwrite an existing operator
-            >>> EqualityTester.add_operator(str, MyStringEqualityOperator(), exist_ok=True)
+            >>> from coola import EqualityTester
+            >>> from coola.equality import SequenceEqualityOperator
+            >>> EqualityTester.add_operator(list, SequenceEqualityOperator(), exist_ok=True)
         """
         if data_type in cls.registry and not exist_ok:
             raise RuntimeError(
@@ -416,18 +405,9 @@ class EqualityTester(BaseEqualityTester):
         .. code-block:: pycon
 
             >>> from coola import EqualityTester
-            >>> EqualityTester.local_copy()
-            LocalEqualityTester(
-              <class 'collections.abc.Mapping'>           : MappingEqualityOperator()
-              <class 'collections.abc.Sequence'>          : SequenceEqualityOperator()
-              <class 'dict'>                              : MappingEqualityOperator()
-              <class 'list'>                              : SequenceEqualityOperator()
-              <class 'object'>                            : DefaultEqualityOperator()
-              <class 'tuple'>                             : SequenceEqualityOperator()
-              <class 'numpy.ndarray'>                     : NDArrayEqualityOperator(check_dtype=True)
-              <class 'torch.nn.utils.rnn.PackedSequence'> : PackedSequenceEqualityOperator()
-              <class 'torch.Tensor'>                      : TensorEqualityOperator()
-            )
+            >>> tester = EqualityTester.local_copy()
+            >>> tester  # doctest: +ELLIPSIS
+            LocalEqualityTester(...)
         """
         return LocalEqualityTester({key: value.clone() for key, value in cls.registry.items()})
 
@@ -476,21 +456,11 @@ class LocalEqualityTester(BaseEqualityTester):
 
         .. code-block:: pycon
 
-            >>> from coola import LocalEqualityTester, BaseEqualityTester, BaseEqualityOperator
-            >>> class MyStringEqualityOperator(BaseEqualityOperator[str]):
-            ...     def equal(
-            ...         self,
-            ...         tester: BaseEqualityTester,
-            ...         object1: str,
-            ...         object2: Any,
-            ...         show_difference: bool = False,
-            ...     ) -> bool:
-            ...         ...  # Custom implementation to test strings
-            ...
-            >>> tester = LocalEqualityTester({...})
-            >>> tester.add_operator(str, MyStringEqualityOperator())
-            # To overwrite an existing operator
-            >>> tester.add_operator(str, MyStringEqualityOperator(), exist_ok=True)
+            >>> from coola import EqualityTester
+            >>> from coola.equality import DefaultEqualityOperator
+            >>> tester = EqualityTester.local_copy()
+            >>> tester.add_operator(str, DefaultEqualityOperator())
+            >>> tester.add_operator(str, DefaultEqualityOperator(), exist_ok=True)
         """
         if data_type in self.registry and not exist_ok:
             raise RuntimeError(
@@ -511,10 +481,10 @@ class LocalEqualityTester(BaseEqualityTester):
 
         .. code-block:: pycon
 
-            >>> import torch
-            >>> from coola import LocalEqualityTester
-            >>> tester = LocalEqualityTester({...})
-            >>> tester_cloned = tester.clone()
+           >>> import torch
+           >>> from coola import EqualityTester
+           >>> tester = EqualityTester.local_copy()
+           >>> tester_cloned = tester.clone()
         """
         return self.__class__({key: value.clone() for key, value in self.registry.items()})
 
@@ -538,8 +508,8 @@ class LocalEqualityTester(BaseEqualityTester):
         .. code-block:: pycon
 
             >>> import torch
-            >>> from coola import LocalEqualityTester
-            >>> tester = LocalEqualityTester({...})
+            >>> from coola import EqualityTester
+            >>> tester = EqualityTester.local_copy()
             >>> tester.equal(
             ...     [torch.ones(2, 3), torch.zeros(2)],
             ...     [torch.ones(2, 3), torch.zeros(2)],
@@ -565,8 +535,8 @@ class LocalEqualityTester(BaseEqualityTester):
 
         .. code-block:: pycon
 
-            >>> from coola import LocalEqualityTester
-            >>> tester = LocalEqualityTester({...})
+            >>> from coola import EqualityTester
+            >>> tester = EqualityTester.local_copy()
             >>> tester.has_operator(list)
             True
             >>> tester.has_operator(str)
@@ -588,8 +558,8 @@ class LocalEqualityTester(BaseEqualityTester):
 
         .. code-block:: pycon
 
-            >>> from coola import LocalEqualityTester
-            >>> tester = LocalEqualityTester({...})
+            >>> from coola import EqualityTester
+            >>> tester = EqualityTester.local_copy()
             >>> tester.find_operator(list)
             SequenceEqualityOperator()
             >>> tester.find_operator(str)
