@@ -13,7 +13,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
 from typing import Any, Generic, TypeVar
 
-from coola.utils.format import str_dict, str_indent
+from coola.utils.format import str_indent, str_mapping
 
 logger = logging.getLogger(__name__)
 
@@ -268,10 +268,7 @@ class EqualityTester(BaseEqualityTester):
     }
 
     def __repr__(self) -> str:
-        return (
-            f"{self.__class__.__qualname__}(\n  "
-            f"{str_indent(str_dict({str(key): value for key, value in self.registry.items()}))}\n)"
-        )
+        return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(self.registry))}\n)"
 
     @classmethod
     def add_operator(
@@ -429,10 +426,7 @@ class LocalEqualityTester(BaseEqualityTester):
         return self.registry == other.registry
 
     def __repr__(self) -> str:
-        return (
-            f"{self.__class__.__qualname__}(\n  "
-            f"{str_indent(str_dict({str(key): value for key, value in self.registry.items()}))}\n)"
-        )
+        return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(self.registry))}\n)"
 
     def add_operator(
         self, data_type: type[object], operator: BaseEqualityOperator, exist_ok: bool = False
