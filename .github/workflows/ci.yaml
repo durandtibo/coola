@@ -53,6 +53,11 @@ jobs:
         run: |
           poetry run make unit-test-cov
 
+      - name: Run doctest on source code
+        continue-on-error: true
+        run: |
+          poetry run make doctest-src
+
       - name: Upload coverage to Codecov
         if: github.repository == 'durandtibo/coola' && (github.event_name == 'push' || github.event_name == 'pull_request')
         uses: codecov/codecov-action@v3
