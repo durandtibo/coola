@@ -63,9 +63,10 @@ def str_indent(original: Any, num_spaces: int = 2) -> str:
     .. code-block:: pycon
 
         >>> from coola.utils.format import str_indent
-        >>> print(f"\t{str_indent('string1\nstring2', 4)}")
-            string1
-            string2
+        >>> print(str_indent("string1\nstring2\n  string3", 4))
+        string1
+        string2
+          string3
     """
     formatted_str = str(original).split("\n")
     if len(formatted_str) == 1:  # single line

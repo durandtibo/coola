@@ -42,6 +42,10 @@ format :
 docformat :
 	docformatter --config ./pyproject.toml --in-place $(SOURCE)
 
+.PHONY : doctest-src
+doctest-src :
+	python -m pytest --xdoctest $(SOURCE)
+
 .PHONY : test
 test :
 	python -m pytest
