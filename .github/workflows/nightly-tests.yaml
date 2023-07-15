@@ -137,14 +137,6 @@ jobs:
           poetry run poetry show
           poetry run poetry show --tree
 
-      - name: Format
-        run: |
-          poetry run make format
-
-      - name: Lint
-        run: |
-          poetry run make lint
-
       - name: Run unit tests
         run: |
           poetry run make unit-test-cov
@@ -191,14 +183,6 @@ jobs:
           poetry run poetry show
           poetry run poetry show --tree
 
-      - name: Format
-        run: |
-          poetry run make format
-
-      - name: Lint
-        run: |
-          poetry run make lint
-
       - name: Run unit tests
         run: |
           poetry run make unit-test-cov
@@ -239,14 +223,6 @@ jobs:
         run: |
           poetry run poetry show
           poetry run poetry show --tree
-
-      - name: Format
-        run: |
-          poetry run make format
-
-      - name: Lint
-        run: |
-          poetry run make lint
 
       - name: Run unit tests
         run: |
@@ -298,14 +274,6 @@ jobs:
           poetry run poetry show
           poetry run poetry show --tree
 
-      - name: Format
-        run: |
-          poetry run make format
-
-      - name: Lint
-        run: |
-          poetry run make lint
-
       - name: Run unit tests
         run: |
           poetry run make unit-test-cov
@@ -346,14 +314,6 @@ jobs:
         run: |
           poetry run poetry show
           poetry run poetry show --tree
-
-      - name: Format
-        run: |
-          poetry run make format
-
-      - name: Lint
-        run: |
-          poetry run make lint
 
       - name: Run unit tests
         run: |
