@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "coola"
-version = "0.0.13a3"
+version = "0.0.13a5"
 description = "A library to check if two complex/nested objects are equal or not"
 readme = "README.md"
 authors = ["Thibaut Durand <durand.tibo+gh@gmail.com>"]
