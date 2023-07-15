@@ -14,7 +14,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
 from typing import Any, Generic, TypeVar, Union
 
-from coola.utils.format import str_dict, str_indent
+from coola.utils.format import str_indent, str_mapping
 
 logger = logging.getLogger(__name__)
 
@@ -386,10 +386,7 @@ class AllCloseTester(BaseAllCloseTester):
     }
 
     def __repr__(self) -> str:
-        return (
-            f"{self.__class__.__qualname__}(\n  "
-            f"{str_indent(str_dict({str(key): value for key, value in self.registry.items()}))}\n)"
-        )
+        return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(self.registry))}\n)"
 
     @classmethod
     def add_operator(
@@ -573,10 +570,7 @@ class LocalAllCloseTester(BaseAllCloseTester):
         return self.registry == other.registry
 
     def __repr__(self) -> str:
-        return (
-            f"{self.__class__.__qualname__}(\n  "
-            f"{str_indent(str_dict({str(key): value for key, value in self.registry.items()}))}\n)"
-        )
+        return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(self.registry))}\n)"
 
     def add_operator(
         self, data_type: type[object], operator: BaseAllCloseOperator, exist_ok: bool = False
