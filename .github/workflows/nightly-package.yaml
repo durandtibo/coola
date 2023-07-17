@@ -167,7 +167,7 @@ jobs:
             "assert coola.objects_are_equal(polars.DataFrame({"col1": [1,2,3,4,5], "col2": [1.1,2.2,3.3,4.4,5.5]}), polars.DataFrame({"col1": [1,2,3,4,5], "col2": [1.1,2.2,3.3,4.4,5.5]}))"
 
 
-  package-pytorch:
+  package-torch:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
