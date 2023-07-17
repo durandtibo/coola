@@ -54,7 +54,6 @@ jobs:
           poetry run make unit-test-cov
 
       - name: Run doctest on source code
-        continue-on-error: true
         run: |
           poetry run make doctest-src
 
