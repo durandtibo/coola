@@ -35,20 +35,20 @@ from coola.utils.imports import (
 
 # Register NumPy comparators
 if is_numpy_available():  # pragma: no cover
-    from coola import _numpy  # noqa: F401
+    from coola import numpy_  # noqa: F401
 
 # Register pandas comparators
 if is_pandas_available():  # pragma: no cover
-    from coola import _pandas  # noqa: F401
+    from coola import pandas_  # noqa: F401
 
 # Register polars comparators
 if is_polars_available():  # pragma: no cover
-    from coola import _polars  # noqa: F401
+    from coola import polars_  # noqa: F401
 
 # Register PyTorch comparators
 if is_torch_available():  # pragma: no cover
-    from coola import _torch  # noqa: F401
+    from coola import torch_  # noqa: F401
 
 # Register xarray comparators
 if is_xarray_available():  # pragma: no cover
-    from coola import _xarray  # noqa: F401
+    from coola import xarray_  # noqa: F401
