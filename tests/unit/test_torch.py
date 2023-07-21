@@ -6,15 +6,15 @@ from unittest.mock import Mock, patch
 from pytest import LogCaptureFixture, mark, raises
 
 from coola import is_torch_available
-from coola._torch import (
+from coola.allclose import AllCloseTester
+from coola.equality import EqualityTester
+from coola.testing import torch_available
+from coola.torch_ import (
     PackedSequenceAllCloseOperator,
     PackedSequenceEqualityOperator,
     TensorAllCloseOperator,
     TensorEqualityOperator,
 )
-from coola.allclose import AllCloseTester
-from coola.equality import EqualityTester
-from coola.testing import torch_available
 
 if is_torch_available():
     import torch
