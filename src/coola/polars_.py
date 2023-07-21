@@ -5,7 +5,7 @@ from typing import Any
 
 from coola.allclose import AllCloseTester, BaseAllCloseOperator, BaseAllCloseTester
 from coola.equality import BaseEqualityOperator, BaseEqualityTester, EqualityTester
-from coola.utils.imports import check_polars, is_polars_available
+from coola.utils import check_polars, is_polars_available
 
 if is_polars_available():
     from polars import DataFrame, Series
