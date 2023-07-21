@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+__all__ = ["NDArrayAllCloseOperator", "NDArrayEqualityOperator"]
+
 import logging
 from typing import Any
 
 from coola.allclose import AllCloseTester, BaseAllCloseOperator, BaseAllCloseTester
 from coola.equality import BaseEqualityOperator, BaseEqualityTester, EqualityTester
-from coola.utils.imports import check_numpy, is_numpy_available
+from coola.utils import check_numpy, is_numpy_available
 
 if is_numpy_available():
     from numpy import allclose, array_equal, ndarray

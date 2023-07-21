@@ -5,7 +5,7 @@ from typing import Any
 
 from coola.allclose import AllCloseTester, BaseAllCloseOperator, BaseAllCloseTester
 from coola.equality import BaseEqualityOperator, BaseEqualityTester, EqualityTester
-from coola.utils.imports import check_torch, is_torch_available
+from coola.utils import check_torch, is_torch_available
 
 if is_torch_available():
     from torch import Tensor, is_tensor
