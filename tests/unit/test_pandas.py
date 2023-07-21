@@ -9,7 +9,7 @@ from coola import (
     objects_are_allclose,
     objects_are_equal,
 )
-from coola._pandas import (
+from coola.pandas_ import (
     DataFrameAllCloseOperator,
     DataFrameEqualityOperator,
     SeriesAllCloseOperator,

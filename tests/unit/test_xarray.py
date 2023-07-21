@@ -6,7 +6,10 @@ from unittest.mock import Mock, patch
 from pytest import LogCaptureFixture, mark, raises
 
 from coola import AllCloseTester, is_numpy_available, objects_are_allclose
-from coola._xarray import (
+from coola.equality import EqualityTester, objects_are_equal
+from coola.testing import xarray_available
+from coola.utils.imports import is_xarray_available
+from coola.xarray_ import (
     DataArrayAllCloseOperator,
     DataArrayEqualityOperator,
     DatasetAllCloseOperator,
@@ -14,9 +17,6 @@ from coola._xarray import (
     VariableAllCloseOperator,
     VariableEqualityOperator,
 )
-from coola.equality import EqualityTester, objects_are_equal
-from coola.testing import xarray_available
-from coola.utils.imports import is_xarray_available
 
 if is_numpy_available():
     import numpy as np

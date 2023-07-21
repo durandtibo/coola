@@ -10,8 +10,6 @@ from unittest.mock import Mock, patch
 from pytest import LogCaptureFixture, mark, raises
 
 from coola import is_numpy_available, is_torch_available
-from coola._numpy import NDArrayAllCloseOperator
-from coola._torch import PackedSequenceAllCloseOperator, TensorAllCloseOperator
 from coola.allclose import (
     AllCloseTester,
     BaseAllCloseOperator,
@@ -22,7 +20,9 @@ from coola.allclose import (
     SequenceAllCloseOperator,
     objects_are_allclose,
 )
+from coola.numpy_ import NDArrayAllCloseOperator
 from coola.testing import numpy_available, torch_available
+from coola.torch_ import PackedSequenceAllCloseOperator, TensorAllCloseOperator
 
 if is_numpy_available():
     import numpy as np
