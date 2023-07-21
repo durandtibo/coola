@@ -16,7 +16,7 @@ from coola.pandas_ import (
     SeriesEqualityOperator,
 )
 from coola.testing import pandas_available
-from coola.utils.imports import is_pandas_available
+from coola.utils import is_pandas_available
 
 if is_pandas_available():
     import pandas

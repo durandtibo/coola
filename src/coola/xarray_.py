@@ -10,7 +10,7 @@ from coola.equality import (
     EqualityTester,
     objects_are_equal,
 )
-from coola.utils.imports import check_xarray, is_xarray_available
+from coola.utils import check_xarray, is_xarray_available
 
 if is_xarray_available():
     from xarray import DataArray, Dataset, Variable
