@@ -254,21 +254,22 @@ class MappingAllCloseOperator(BaseAllCloseOperator[Mapping]):
             if show_difference:
                 logger.info(f"The mappings have different sizes: {len(object1)} vs {len(object2)}")
             return False
-        if set(object1.keys()) != set(object2.keys()):
+        keys1, keys2 = sorted(object1.keys()), sorted(object2.keys())
+        if not tester.allclose(keys1, keys2, rtol, atol, equal_nan, show_difference):
             if show_difference:
                 logger.info(
                     f"The mappings have different keys:\n"
-                    f"keys of object1: {sorted(set(object1.keys()))}\n"
-                    f"keys of object2: {sorted(set(object2.keys()))}"
+                    f"keys of object1: {keys1}\n"
+                    f"keys of object2: {keys2}"
                 )
             return False
-        for key in object1.keys():
+        for key1, key2 in zip(keys1, keys2):
             if not tester.allclose(
-                object1[key], object2[key], rtol, atol, equal_nan, show_difference
+                object1[key1], object2[key2], rtol, atol, equal_nan, show_difference
             ):
                 if show_difference:
                     logger.info(
-                        f"The mappings have a different value for the key '{key}':\n"
+                        f"The mappings have a different value for the key '{key1}':\n"
                         f"first mapping  = {object1}\n"
                         f"second mapping = {object2}"
                     )
