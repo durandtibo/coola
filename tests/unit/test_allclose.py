@@ -657,7 +657,7 @@ def test_mapping_allclose_operator_allclose_false_different_keys_show_difference
             object2={"10": torch.ones(2, 3), "20": torch.ones(2)},
             show_difference=True,
         )
-        assert caplog.messages[0].startswith("The mappings have different keys:")
+        assert caplog.messages[-1].startswith("The mappings have different keys:")
 
 
 def test_mapping_allclose_operator_allclose_false_different_length() -> None:
@@ -720,6 +720,34 @@ def test_mapping_allclose_operator_allclose_true_atol(mapping: Mapping, atol: fl
 def test_mapping_allclose_operator_allclose_true_rtol(mapping: Mapping, rtol: float) -> None:
     assert MappingAllCloseOperator().allclose(
         AllCloseTester(), {"key": torch.ones(2, 3)}, mapping, rtol=rtol
+    )
+
+
+@mark.parametrize(
+    "mapping,atol",
+    (
+        ({1.5: torch.ones(2, 3)}, 1),
+        ({1.05: torch.ones(2, 3)}, 1e-1),
+        ({1.005: torch.ones(2, 3)}, 1e-2),
+    ),
+)
+def test_mapping_allclose_operator_allclose_true_atol_keys(mapping: Mapping, atol: float) -> None:
+    assert MappingAllCloseOperator().allclose(
+        AllCloseTester(), {1.0: torch.ones(2, 3)}, mapping, atol=atol, rtol=0.0
+    )
+
+
+@mark.parametrize(
+    "mapping,rtol",
+    (
+        ({1.5: torch.ones(2, 3)}, 1),
+        ({1.05: torch.ones(2, 3)}, 1e-1),
+        ({1.005: torch.ones(2, 3)}, 1e-2),
+    ),
+)
+def test_mapping_allclose_operator_allclose_true_rtol_keys(mapping: Mapping, rtol: float) -> None:
+    assert MappingAllCloseOperator().allclose(
+        AllCloseTester(), {1.0: torch.ones(2, 3)}, mapping, rtol=rtol
     )
 
 
