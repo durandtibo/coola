@@ -17,7 +17,7 @@ from coola.comparators import (
 )
 from coola.testers import AllCloseTester
 from coola.testing import torch_available
-from coola.utils import is_torch_available
+from coola.utils.imports import is_torch_available
 
 if is_torch_available():
     import torch

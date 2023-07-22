@@ -5,11 +5,10 @@ from unittest.mock import Mock, patch
 
 from pytest import LogCaptureFixture, mark, raises
 
-from coola.allclose import AllCloseTester
-from coola.comparators.numpy_ import NDArrayAllCloseOperator, NDArrayEqualityOperator
-from coola.equality import EqualityTester
+from coola.comparators import NDArrayAllCloseOperator, NDArrayEqualityOperator
+from coola.testers import AllCloseTester, EqualityTester
 from coola.testing import numpy_available
-from coola.utils import is_numpy_available
+from coola.utils.imports import is_numpy_available
 
 if is_numpy_available():
     import numpy as np

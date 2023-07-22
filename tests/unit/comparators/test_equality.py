@@ -14,7 +14,7 @@ from coola.comparators import (
 )
 from coola.testers import EqualityTester
 from coola.testing import numpy_available, torch_available
-from coola.utils import is_torch_available
+from coola.utils.imports import is_torch_available
 
 if is_torch_available():
     import torch

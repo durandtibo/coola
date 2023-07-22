@@ -4,7 +4,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from coola.comparators.base import BaseAllCloseOperator, BaseEqualityOperator
-from coola.utils import check_polars, is_polars_available
+from coola.utils.imports import check_polars, is_polars_available
 
 if TYPE_CHECKING:
     from coola.testers import BaseAllCloseTester, BaseEqualityTester
