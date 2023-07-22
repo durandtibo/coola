@@ -5,6 +5,7 @@ __all__ = [
     "MappingAllCloseOperator",
     "ScalarAllCloseOperator",
     "SequenceAllCloseOperator",
+    "get_mapping_allclose",
 ]
 
 import logging
@@ -184,3 +185,24 @@ class SequenceAllCloseOperator(BaseAllCloseOperator[Sequence]):
 
     def clone(self) -> SequenceAllCloseOperator:
         return self.__class__()
+
+
+def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
+    r"""Gets a default mapping between the types and the allclose
+    operators.
+
+    Returns:
+        dict: The mapping between the types and the allclose
+            operators.
+    """
+    return {
+        Mapping: MappingAllCloseOperator(),
+        Sequence: SequenceAllCloseOperator(),
+        bool: ScalarAllCloseOperator(),
+        dict: MappingAllCloseOperator(),
+        float: ScalarAllCloseOperator(),
+        int: ScalarAllCloseOperator(),
+        list: SequenceAllCloseOperator(),
+        object: DefaultAllCloseOperator(),
+        tuple: SequenceAllCloseOperator(),
+    }

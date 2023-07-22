@@ -13,10 +13,6 @@ __all__ = [
     "NDArrayEqualityOperator",
     "PackedSequenceAllCloseOperator",
     "PackedSequenceEqualityOperator",
-    "PandasDataFrameAllCloseOperator",
-    "PandasDataFrameEqualityOperator",
-    "PolarsDataFrameAllCloseOperator",
-    "PolarsDataFrameEqualityOperator",
     "ScalarAllCloseOperator",
     "SequenceAllCloseOperator",
     "SequenceEqualityOperator",
@@ -24,6 +20,7 @@ __all__ = [
     "TensorEqualityOperator",
     "VariableAllCloseOperator",
     "VariableEqualityOperator",
+    "get_mapping_allclose",
 ]
 
 from coola.comparators.allclose import (
@@ -39,24 +36,13 @@ from coola.comparators.equality import (
     SequenceEqualityOperator,
 )
 from coola.comparators.numpy_ import NDArrayAllCloseOperator, NDArrayEqualityOperator
-from coola.comparators.pandas_ import (
-    DataFrameAllCloseOperator as PandasDataFrameAllCloseOperator,
-)
-from coola.comparators.pandas_ import (
-    DataFrameEqualityOperator as PandasDataFrameEqualityOperator,
-)
-from coola.comparators.polars_ import (
-    DataFrameAllCloseOperator as PolarsDataFrameAllCloseOperator,
-)
-from coola.comparators.polars_ import (
-    DataFrameEqualityOperator as PolarsDataFrameEqualityOperator,
-)
 from coola.comparators.torch_ import (
     PackedSequenceAllCloseOperator,
     PackedSequenceEqualityOperator,
     TensorAllCloseOperator,
     TensorEqualityOperator,
 )
+from coola.comparators.utils import get_mapping_allclose
 from coola.comparators.xarray_ import (
     DataArrayAllCloseOperator,
     DataArrayEqualityOperator,

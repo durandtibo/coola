@@ -230,3 +230,19 @@ class SeriesEqualityOperator(BaseEqualityOperator[Series]):
         if object_equal and not self._nulls_compare_equal:
             object_equal = not series1.isnull().any()
         return object_equal
+
+
+def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
+    r"""Gets a default mapping between the types and the allclose
+    operators.
+
+    This function returns an empty dictionary if pandas is not
+    installed.
+
+    Returns:
+        dict: The mapping between the types and the allclose
+            operators.
+    """
+    if not is_pandas_available():
+        return {}
+    return {DataFrame: DataFrameAllCloseOperator(), Series: SeriesAllCloseOperator()}

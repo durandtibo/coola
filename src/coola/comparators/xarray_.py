@@ -298,3 +298,23 @@ class VariableEqualityOperator(BaseEqualityOperator[Variable]):
         if show_difference and not object_equal:
             logger.info(f"xarray.Variables are different\nobject1=\n{object1}\nobject2=\n{object2}")
         return object_equal
+
+
+def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
+    r"""Gets a default mapping between the types and the allclose
+    operators.
+
+    This function returns an empty dictionary if xarray is not
+    installed.
+
+    Returns:
+        dict: The mapping between the types and the allclose
+            operators.
+    """
+    if not is_xarray_available():
+        return {}
+    return {
+        Dataset: DatasetAllCloseOperator(),
+        DataArray: DataArrayAllCloseOperator(),
+        Variable: VariableAllCloseOperator(),
+    }

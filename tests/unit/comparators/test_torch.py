@@ -11,6 +11,7 @@ from coola.comparators import (
     TensorAllCloseOperator,
     TensorEqualityOperator,
 )
+from coola.comparators.torch_ import get_mapping_allclose
 from coola.testers import AllCloseTester, EqualityTester
 from coola.testing import torch_available
 from coola.utils.imports import is_torch_available
@@ -787,3 +788,21 @@ def test_tensor_equality_operator_no_torch() -> None:
     with patch("coola.utils.imports.is_torch_available", lambda *args, **kwargs: False):
         with raises(RuntimeError, match="`torch` package is required but not installed."):
             TensorEqualityOperator()
+
+
+##########################################
+#     Tests for get_mapping_allclose     #
+##########################################
+
+
+@torch_available
+def test_get_mapping_allclose() -> None:
+    mapping = get_mapping_allclose()
+    assert len(mapping) == 2
+    assert isinstance(mapping[torch.Tensor], TensorAllCloseOperator)
+    assert isinstance(mapping[torch.nn.utils.rnn.PackedSequence], PackedSequenceAllCloseOperator)
+
+
+def test_get_mapping_allclose_no_torch() -> None:
+    with patch("coola.comparators.torch_.is_torch_available", lambda *args, **kwargs: False):
+        assert get_mapping_allclose() == {}

@@ -14,6 +14,7 @@ from coola.comparators.pandas_ import (
     DataFrameEqualityOperator,
     SeriesAllCloseOperator,
     SeriesEqualityOperator,
+    get_mapping_allclose,
 )
 from coola.testing import pandas_available
 from coola.utils.imports import is_pandas_available
@@ -1605,3 +1606,21 @@ def test_series_equality_operator_no_pandas() -> None:
     with patch("coola.utils.imports.is_pandas_available", lambda *args, **kwargs: False):
         with raises(RuntimeError, match="`pandas` package is required but not installed."):
             SeriesEqualityOperator()
+
+
+##########################################
+#     Tests for get_mapping_allclose     #
+##########################################
+
+
+@pandas_available
+def test_get_mapping_allclose() -> None:
+    mapping = get_mapping_allclose()
+    assert len(mapping) == 2
+    assert isinstance(mapping[pandas.DataFrame], DataFrameAllCloseOperator)
+    assert isinstance(mapping[pandas.Series], SeriesAllCloseOperator)
+
+
+def test_get_mapping_allclose_no_numpy() -> None:
+    with patch("coola.comparators.pandas_.is_pandas_available", lambda *args, **kwargs: False):
+        assert get_mapping_allclose() == {}
