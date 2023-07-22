@@ -12,11 +12,6 @@ __all__ = [
 ]
 
 
-from coola import numpy_  # noqa: F401
-from coola import pandas_  # noqa: F401
-from coola import polars_  # noqa: F401
-from coola import torch_  # noqa: F401
-from coola import xarray_  # noqa: F401
 from coola.allclose import (
     AllCloseTester,
     BaseAllCloseOperator,
@@ -24,6 +19,7 @@ from coola.allclose import (
     LocalAllCloseTester,
     objects_are_allclose,
 )
+from coola.comparators import numpy_, pandas_, polars_, torch_, xarray_  # noqa: F401
 from coola.equality import (
     BaseEqualityOperator,
     BaseEqualityTester,
