@@ -5,6 +5,8 @@ __all__ = [
     "PackedSequenceEqualityOperator",
     "TensorAllCloseOperator",
     "TensorEqualityOperator",
+    "get_mapping_allclose",
+    "get_mapping_equality",
 ]
 
 import logging
@@ -249,3 +251,19 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
     if not is_torch_available():
         return {}
     return {Tensor: TensorAllCloseOperator(), PackedSequence: PackedSequenceAllCloseOperator()}
+
+
+def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
+    r"""Gets a default mapping between the types and the equality
+    operators.
+
+    This function returns an empty dictionary if torch is not
+    installed.
+
+    Returns:
+        dict: The mapping between the types and the equality
+            operators.
+    """
+    if not is_torch_available():
+        return {}
+    return {Tensor: TensorEqualityOperator(), PackedSequence: PackedSequenceEqualityOperator()}

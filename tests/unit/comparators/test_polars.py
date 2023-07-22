@@ -15,6 +15,7 @@ from coola.comparators.polars_ import (
     SeriesAllCloseOperator,
     SeriesEqualityOperator,
     get_mapping_allclose,
+    get_mapping_equality,
 )
 from coola.testing import polars_available
 from coola.utils.imports import is_polars_available
@@ -1551,3 +1552,21 @@ def test_get_mapping_allclose() -> None:
 def test_get_mapping_allclose_no_numpy() -> None:
     with patch("coola.comparators.polars_.is_polars_available", lambda *args, **kwargs: False):
         assert get_mapping_allclose() == {}
+
+
+##########################################
+#     Tests for get_mapping_equality     #
+##########################################
+
+
+@polars_available
+def test_get_mapping_equality() -> None:
+    mapping = get_mapping_equality()
+    assert len(mapping) == 2
+    assert isinstance(mapping[polars.DataFrame], DataFrameEqualityOperator)
+    assert isinstance(mapping[polars.Series], SeriesEqualityOperator)
+
+
+def test_get_mapping_equality_no_numpy() -> None:
+    with patch("coola.comparators.polars_.is_polars_available", lambda *args, **kwargs: False):
+        assert get_mapping_equality() == {}

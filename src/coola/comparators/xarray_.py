@@ -4,9 +4,11 @@ __all__ = [
     "DataArrayAllCloseOperator",
     "DataArrayEqualityOperator",
     "DatasetAllCloseOperator",
+    "DatasetEqualityOperator",
     "VariableAllCloseOperator",
     "VariableEqualityOperator",
-    "DatasetEqualityOperator",
+    "get_mapping_allclose",
+    "get_mapping_equality",
 ]
 
 import logging
@@ -317,4 +319,24 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
         Dataset: DatasetAllCloseOperator(),
         DataArray: DataArrayAllCloseOperator(),
         Variable: VariableAllCloseOperator(),
+    }
+
+
+def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
+    r"""Gets a default mapping between the types and the equality
+    operators.
+
+    This function returns an empty dictionary if xarray is not
+    installed.
+
+    Returns:
+        dict: The mapping between the types and the equality
+            operators.
+    """
+    if not is_xarray_available():
+        return {}
+    return {
+        Dataset: DatasetEqualityOperator(),
+        DataArray: DataArrayEqualityOperator(),
+        Variable: VariableEqualityOperator(),
     }

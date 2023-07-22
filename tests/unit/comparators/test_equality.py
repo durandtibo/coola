@@ -12,6 +12,7 @@ from coola.comparators import (
     MappingEqualityOperator,
     SequenceEqualityOperator,
 )
+from coola.comparators.equality import get_mapping_equality
 from coola.testers import EqualityTester
 from coola.testing import numpy_available, torch_available
 from coola.utils.imports import is_torch_available
@@ -372,3 +373,19 @@ def test_sequence_equality_operator_equal_different_type_show_difference(
     with caplog.at_level(logging.INFO):
         assert not SequenceEqualityOperator().equal(EqualityTester(), [], (), show_difference=True)
         assert caplog.messages[0].startswith("The sequences have different types:")
+
+
+##########################################
+#     Tests for get_mapping_equality     #
+##########################################
+
+
+def test_get_mapping_equality() -> None:
+    mapping = get_mapping_equality()
+    assert len(mapping) == 6
+    assert isinstance(mapping[Mapping], MappingEqualityOperator)
+    assert isinstance(mapping[Sequence], SequenceEqualityOperator)
+    assert isinstance(mapping[dict], MappingEqualityOperator)
+    assert isinstance(mapping[list], SequenceEqualityOperator)
+    assert isinstance(mapping[object], DefaultEqualityOperator)
+    assert isinstance(mapping[tuple], SequenceEqualityOperator)

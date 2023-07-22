@@ -1,6 +1,11 @@
 from __future__ import annotations
 
-__all__ = ["DefaultEqualityOperator", "MappingEqualityOperator", "SequenceEqualityOperator"]
+__all__ = [
+    "DefaultEqualityOperator",
+    "MappingEqualityOperator",
+    "SequenceEqualityOperator",
+    "get_mapping_equality",
+]
 
 import logging
 from collections.abc import Mapping, Sequence
@@ -134,3 +139,21 @@ class SequenceEqualityOperator(BaseEqualityOperator[Sequence]):
                     )
                 return False
         return True
+
+
+def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
+    r"""Gets a default mapping between the types and the equality
+    operators.
+
+    Returns:
+        dict: The mapping between the types and the equality
+            operators.
+    """
+    return {
+        Mapping: MappingEqualityOperator(),
+        Sequence: SequenceEqualityOperator(),
+        dict: MappingEqualityOperator(),
+        list: SequenceEqualityOperator(),
+        object: DefaultEqualityOperator(),
+        tuple: SequenceEqualityOperator(),
+    }

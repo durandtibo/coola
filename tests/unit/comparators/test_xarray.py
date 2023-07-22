@@ -14,7 +14,7 @@ from coola.comparators import (
     VariableAllCloseOperator,
     VariableEqualityOperator,
 )
-from coola.comparators.xarray_ import get_mapping_allclose
+from coola.comparators.xarray_ import get_mapping_allclose, get_mapping_equality
 from coola.testers import AllCloseTester, EqualityTester
 from coola.testing import xarray_available
 from coola.utils.imports import is_numpy_available, is_xarray_available
@@ -1122,3 +1122,22 @@ def test_get_mapping_allclose() -> None:
 def test_get_mapping_allclose_no_xarray() -> None:
     with patch("coola.comparators.xarray_.is_xarray_available", lambda *args, **kwargs: False):
         assert get_mapping_allclose() == {}
+
+
+##########################################
+#     Tests for get_mapping_equality     #
+##########################################
+
+
+@xarray_available
+def test_get_mapping_equality() -> None:
+    mapping = get_mapping_equality()
+    assert len(mapping) == 3
+    assert isinstance(mapping[xr.DataArray], DataArrayEqualityOperator)
+    assert isinstance(mapping[xr.Dataset], DatasetEqualityOperator)
+    assert isinstance(mapping[xr.Variable], VariableEqualityOperator)
+
+
+def test_get_mapping_equality_no_xarray() -> None:
+    with patch("coola.comparators.xarray_.is_xarray_available", lambda *args, **kwargs: False):
+        assert get_mapping_equality() == {}
