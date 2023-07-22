@@ -10,7 +10,7 @@ __all__ = [
 
 from pytest import mark
 
-from coola.utils import (
+from coola.utils.imports import (
     is_numpy_available,
     is_pandas_available,
     is_polars_available,

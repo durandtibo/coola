@@ -12,9 +12,8 @@ __all__ = [
 ]
 
 
-from coola.allclose import objects_are_allclose
 from coola.comparators import BaseAllCloseOperator, BaseEqualityOperator
-from coola.equality import objects_are_equal
+from coola.comparison import objects_are_allclose, objects_are_equal
 from coola.testers import (
     AllCloseTester,
     BaseAllCloseTester,

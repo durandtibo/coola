@@ -16,7 +16,7 @@ from coola.comparators.polars_ import (
     SeriesEqualityOperator,
 )
 from coola.testing import polars_available
-from coola.utils import is_polars_available
+from coola.utils.imports import is_polars_available
 
 if is_polars_available():
     import polars

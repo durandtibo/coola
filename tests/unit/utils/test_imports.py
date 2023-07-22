@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from pytest import raises
 
-from coola.utils import (
+from coola.utils.imports import (
     check_numpy,
     check_pandas,
     check_polars,

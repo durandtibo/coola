@@ -13,7 +13,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from coola.comparators.base import BaseAllCloseOperator, BaseEqualityOperator
-from coola.utils import check_xarray, is_xarray_available
+from coola.utils.imports import check_xarray, is_xarray_available
 
 if TYPE_CHECKING:
     from coola.testers import BaseAllCloseTester, BaseEqualityTester
@@ -45,7 +45,7 @@ class DataArrayAllCloseOperator(BaseAllCloseOperator[DataArray]):
         equal_nan: bool = False,
         show_difference: bool = False,
     ) -> bool:
-        from coola.equality import objects_are_equal  # TODO: remove
+        from coola.comparison import objects_are_equal  # TODO: remove
 
         if object1 is object2:
             return True
@@ -139,7 +139,7 @@ class DatasetAllCloseOperator(BaseAllCloseOperator[Dataset]):
         equal_nan: bool = False,
         show_difference: bool = False,
     ) -> bool:
-        from coola.equality import objects_are_equal  # TODO: remove
+        from coola.comparison import objects_are_equal  # TODO: remove
 
         if object1 is object2:
             return True
@@ -229,7 +229,7 @@ class VariableAllCloseOperator(BaseAllCloseOperator[Variable]):
         equal_nan: bool = False,
         show_difference: bool = False,
     ) -> bool:
-        from coola.equality import objects_are_equal  # TODO: remove
+        from coola.comparison import objects_are_equal  # TODO: remove
 
         if object1 is object2:
             return True
