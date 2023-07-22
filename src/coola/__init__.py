@@ -19,11 +19,6 @@ from coola.allclose import (
     LocalAllCloseTester,
     objects_are_allclose,
 )
-from coola.comparators import numpy_, pandas_, polars_, torch_, xarray_  # noqa: F401
-from coola.equality import (
-    BaseEqualityOperator,
-    BaseEqualityTester,
-    EqualityTester,
-    LocalEqualityTester,
-    objects_are_equal,
-)
+from coola.comparators.base import BaseEqualityOperator
+from coola.equality import objects_are_equal
+from coola.testers import BaseEqualityTester, EqualityTester, LocalEqualityTester

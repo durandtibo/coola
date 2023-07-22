@@ -3,11 +3,14 @@ from __future__ import annotations
 __all__ = ["NDArrayAllCloseOperator", "NDArrayEqualityOperator"]
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from coola.allclose import AllCloseTester, BaseAllCloseOperator, BaseAllCloseTester
-from coola.equality import BaseEqualityOperator, BaseEqualityTester, EqualityTester
-from coola.utils import check_numpy, is_numpy_available
+from coola.comparators.base import BaseEqualityOperator
+from coola.utils.imports import check_numpy, is_numpy_available
+
+if TYPE_CHECKING:
+    from coola.testers import BaseEqualityTester
 
 if is_numpy_available():
     from numpy import allclose, array_equal, ndarray
@@ -133,5 +136,3 @@ class NDArrayEqualityOperator(BaseEqualityOperator[ndarray]):
 if is_numpy_available():  # pragma: no cover
     if not AllCloseTester.has_operator(ndarray):
         AllCloseTester.add_operator(ndarray, NDArrayAllCloseOperator())
-    if not EqualityTester.has_operator(ndarray):
-        EqualityTester.add_operator(ndarray, NDArrayEqualityOperator())

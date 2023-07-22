@@ -8,11 +8,14 @@ __all__ = [
 ]
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from coola.allclose import AllCloseTester, BaseAllCloseOperator, BaseAllCloseTester
-from coola.equality import BaseEqualityOperator, BaseEqualityTester, EqualityTester
+from coola.comparators.base import BaseEqualityOperator
 from coola.utils import check_torch, is_torch_available
+
+if TYPE_CHECKING:
+    from coola.testers import BaseEqualityTester
 
 if is_torch_available():
     from torch import Tensor, is_tensor
@@ -238,7 +241,3 @@ if is_torch_available():  # pragma: no cover
         AllCloseTester.add_operator(PackedSequence, PackedSequenceAllCloseOperator())
     if not AllCloseTester.has_operator(Tensor):
         AllCloseTester.add_operator(Tensor, TensorAllCloseOperator())
-    if not EqualityTester.has_operator(PackedSequence):
-        EqualityTester.add_operator(PackedSequence, PackedSequenceEqualityOperator())
-    if not EqualityTester.has_operator(Tensor):
-        EqualityTester.add_operator(Tensor, TensorEqualityOperator())

@@ -3,11 +3,14 @@ from __future__ import annotations
 __all__ = ["DataFrameAllCloseOperator", "DataFrameEqualityOperator"]
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from coola.allclose import AllCloseTester, BaseAllCloseOperator, BaseAllCloseTester
-from coola.equality import BaseEqualityOperator, BaseEqualityTester, EqualityTester
+from coola.comparators.base import BaseEqualityOperator
 from coola.utils import check_pandas, is_pandas_available
+
+if TYPE_CHECKING:
+    from coola.testers import BaseEqualityTester
 
 if is_pandas_available():
     from pandas import DataFrame, Series
@@ -235,8 +238,3 @@ if is_pandas_available():  # pragma: no cover
         AllCloseTester.add_operator(DataFrame, DataFrameAllCloseOperator())
     if not AllCloseTester.has_operator(Series):
         AllCloseTester.add_operator(Series, SeriesAllCloseOperator())
-
-    if not EqualityTester.has_operator(DataFrame):
-        EqualityTester.add_operator(DataFrame, DataFrameEqualityOperator())
-    if not EqualityTester.has_operator(Series):
-        EqualityTester.add_operator(Series, SeriesEqualityOperator())

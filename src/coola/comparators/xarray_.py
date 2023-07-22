@@ -10,16 +10,14 @@ __all__ = [
 ]
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from coola.allclose import AllCloseTester, BaseAllCloseOperator, BaseAllCloseTester
-from coola.equality import (
-    BaseEqualityOperator,
-    BaseEqualityTester,
-    EqualityTester,
-    objects_are_equal,
-)
+from coola.comparators.base import BaseEqualityOperator
 from coola.utils import check_xarray, is_xarray_available
+
+if TYPE_CHECKING:
+    from coola.testers import BaseEqualityTester
 
 if is_xarray_available():
     from xarray import DataArray, Dataset, Variable
@@ -48,6 +46,8 @@ class DataArrayAllCloseOperator(BaseAllCloseOperator[DataArray]):
         equal_nan: bool = False,
         show_difference: bool = False,
     ) -> bool:
+        from coola.equality import objects_are_equal  # TODO: remove
+
         if object1 is object2:
             return True
         if not isinstance(object2, DataArray):
@@ -140,6 +140,8 @@ class DatasetAllCloseOperator(BaseAllCloseOperator[Dataset]):
         equal_nan: bool = False,
         show_difference: bool = False,
     ) -> bool:
+        from coola.equality import objects_are_equal  # TODO: remove
+
         if object1 is object2:
             return True
         if not isinstance(object2, Dataset):
@@ -228,6 +230,8 @@ class VariableAllCloseOperator(BaseAllCloseOperator[Variable]):
         equal_nan: bool = False,
         show_difference: bool = False,
     ) -> bool:
+        from coola.equality import objects_are_equal  # TODO: remove
+
         if object1 is object2:
             return True
         if not isinstance(object2, Variable):
@@ -304,10 +308,3 @@ if is_xarray_available():  # pragma: no cover
         AllCloseTester.add_operator(Dataset, DatasetAllCloseOperator())
     if not AllCloseTester.has_operator(Variable):
         AllCloseTester.add_operator(Variable, VariableAllCloseOperator())
-
-    if not EqualityTester.has_operator(DataArray):
-        EqualityTester.add_operator(DataArray, DataArrayEqualityOperator())
-    if not EqualityTester.has_operator(Dataset):
-        EqualityTester.add_operator(Dataset, DatasetEqualityOperator())
-    if not EqualityTester.has_operator(Variable):
-        EqualityTester.add_operator(Variable, VariableEqualityOperator())
