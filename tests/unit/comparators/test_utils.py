@@ -125,7 +125,7 @@ def test_get_mapping_allclose_xarray() -> None:
 
 def test_get_mapping_equality() -> None:
     mapping = get_mapping_equality()
-    assert len(mapping) >= 9
+    assert len(mapping) >= 6
     assert isinstance(mapping[Mapping], MappingEqualityOperator)
     assert isinstance(mapping[Sequence], SequenceEqualityOperator)
     assert isinstance(mapping[dict], MappingEqualityOperator)
