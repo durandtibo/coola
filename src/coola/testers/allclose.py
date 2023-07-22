@@ -1,30 +1,32 @@
 from __future__ import annotations
 
-from coola.comparators import (
-    BaseAllCloseOperator,
-    DefaultAllCloseOperator,
-    MappingAllCloseOperator,
-    ScalarAllCloseOperator,
-    SequenceAllCloseOperator,
-)
-from coola.testers.base import BaseAllCloseTester
-
 __all__ = ["AllCloseTester", "LocalAllCloseTester"]
 
 import logging
-from collections.abc import Mapping, Sequence
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
+from coola.testers.base import BaseAllCloseTester
 from coola.utils.format import str_indent, str_mapping
-from coola.utils.imports import (
-    is_numpy_available,
-    is_pandas_available,
-    is_polars_available,
-    is_torch_available,
-    is_xarray_available,
-)
+
+if TYPE_CHECKING:
+    from coola.comparators.base import BaseAllCloseOperator
 
 logger = logging.getLogger(__name__)
+
+
+def get_default_operators() -> dict[type[object], BaseAllCloseOperator]:
+    r"""Gets the default operators used to initialize the registry of
+    ``AllCloseTester``.
+
+    Returns:
+        dict: The mapping between the types and the allclose
+            operators.
+    """
+    from coola.comparators.utils import (
+        get_mapping_allclose,  # Local import to avoid cyclic dependency
+    )
+
+    return get_mapping_allclose()
 
 
 class AllCloseTester(BaseAllCloseTester):
@@ -45,17 +47,7 @@ class AllCloseTester(BaseAllCloseTester):
         - ``tuple``: ``SequenceAllCloseOperator``
     """
 
-    registry: dict[type[object], BaseAllCloseOperator] = {
-        Mapping: MappingAllCloseOperator(),
-        Sequence: SequenceAllCloseOperator(),
-        bool: ScalarAllCloseOperator(),
-        dict: MappingAllCloseOperator(),
-        float: ScalarAllCloseOperator(),
-        int: ScalarAllCloseOperator(),
-        list: SequenceAllCloseOperator(),
-        object: DefaultAllCloseOperator(),
-        tuple: SequenceAllCloseOperator(),
-    }
+    registry: dict[type[object], BaseAllCloseOperator] = get_default_operators()
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(self.registry))}\n)"
@@ -405,69 +397,3 @@ class LocalAllCloseTester(BaseAllCloseTester):
             if operator is not None:
                 return operator
         raise TypeError(f"Incorrect data type: {data_type}")
-
-
-if is_numpy_available():  # pragma: no cover
-    from numpy import ndarray
-
-    from coola.comparators import NDArrayAllCloseOperator
-
-    if not AllCloseTester.has_operator(ndarray):
-        AllCloseTester.add_operator(ndarray, NDArrayAllCloseOperator())
-
-
-if is_pandas_available():  # pragma: no cover
-    from pandas import DataFrame, Series
-
-    from coola.comparators.pandas_ import (
-        DataFrameAllCloseOperator,
-        SeriesAllCloseOperator,
-    )
-
-    if not AllCloseTester.has_operator(DataFrame):
-        AllCloseTester.add_operator(DataFrame, DataFrameAllCloseOperator())
-    if not AllCloseTester.has_operator(Series):
-        AllCloseTester.add_operator(Series, SeriesAllCloseOperator())
-
-
-if is_polars_available():  # pragma: no cover
-    from polars import DataFrame, Series
-
-    from coola.comparators.polars_ import (
-        DataFrameAllCloseOperator,
-        SeriesAllCloseOperator,
-    )
-
-    if not AllCloseTester.has_operator(DataFrame):
-        AllCloseTester.add_operator(DataFrame, DataFrameAllCloseOperator())
-    if not AllCloseTester.has_operator(Series):
-        AllCloseTester.add_operator(Series, SeriesAllCloseOperator())
-
-
-if is_torch_available():  # pragma: no cover
-    from torch import Tensor
-    from torch.nn.utils.rnn import PackedSequence
-
-    from coola.comparators import PackedSequenceAllCloseOperator, TensorAllCloseOperator
-
-    if not AllCloseTester.has_operator(PackedSequence):
-        AllCloseTester.add_operator(PackedSequence, PackedSequenceAllCloseOperator())
-    if not AllCloseTester.has_operator(Tensor):
-        AllCloseTester.add_operator(Tensor, TensorAllCloseOperator())
-
-
-if is_xarray_available():  # pragma: no cover
-    from xarray import DataArray, Dataset, Variable
-
-    from coola.comparators import (
-        DataArrayAllCloseOperator,
-        DatasetAllCloseOperator,
-        VariableAllCloseOperator,
-    )
-
-    if not AllCloseTester.has_operator(DataArray):
-        AllCloseTester.add_operator(DataArray, DataArrayAllCloseOperator())
-    if not AllCloseTester.has_operator(Dataset):
-        AllCloseTester.add_operator(Dataset, DatasetAllCloseOperator())
-    if not AllCloseTester.has_operator(Variable):
-        AllCloseTester.add_operator(Variable, VariableAllCloseOperator())
