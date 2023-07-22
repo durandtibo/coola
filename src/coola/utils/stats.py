@@ -23,7 +23,7 @@ def quantile(values: Sequence[float | int], quantiles: Sequence[float]) -> list[
 
     .. code-block:: pycon
 
-        >>> from arctix.utils.stats import quantile
+        >>> from coola.utils.stats import quantile
         >>> quantile([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], (0.2, 0.5, 0.9))
         [2.0, 5.0, 9.0]
     """
