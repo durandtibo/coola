@@ -130,3 +130,19 @@ class NDArrayEqualityOperator(BaseEqualityOperator[ndarray]):
         if show_difference and not object_equal:
             logger.info(f"numpy.ndarrays are different\nobject1=\n{object1}\nobject2=\n{object2}")
         return object_equal
+
+
+def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
+    r"""Gets a default mapping between the types and the allclose
+    operators.
+
+    This function returns an empty dictionary if numpy is not
+    installed.
+
+    Returns:
+        dict: The mapping between the types and the allclose
+            operators.
+    """
+    if not is_numpy_available():
+        return {}
+    return {ndarray: NDArrayAllCloseOperator()}

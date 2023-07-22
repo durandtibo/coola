@@ -15,6 +15,7 @@ from coola.comparators import (
     ScalarAllCloseOperator,
     SequenceAllCloseOperator,
 )
+from coola.comparators.allclose import get_mapping_allclose
 from coola.testers import AllCloseTester
 from coola.testing import torch_available
 from coola.utils.imports import is_torch_available
@@ -585,3 +586,22 @@ def test_sequence_allclose_operator_clone() -> None:
     op_cloned = op.clone()
     assert op is not op_cloned
     assert op == op_cloned
+
+
+##########################################
+#     Tests for get_mapping_allclose     #
+##########################################
+
+
+def test_get_mapping_allclose() -> None:
+    mapping = get_mapping_allclose()
+    assert len(mapping) == 9
+    assert isinstance(mapping[Mapping], MappingAllCloseOperator)
+    assert isinstance(mapping[Sequence], SequenceAllCloseOperator)
+    assert isinstance(mapping[bool], ScalarAllCloseOperator)
+    assert isinstance(mapping[dict], MappingAllCloseOperator)
+    assert isinstance(mapping[float], ScalarAllCloseOperator)
+    assert isinstance(mapping[int], ScalarAllCloseOperator)
+    assert isinstance(mapping[list], SequenceAllCloseOperator)
+    assert isinstance(mapping[object], DefaultAllCloseOperator)
+    assert isinstance(mapping[tuple], SequenceAllCloseOperator)
