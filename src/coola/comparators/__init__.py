@@ -53,3 +53,14 @@ from coola.comparators.xarray_ import (
     VariableAllCloseOperator,
     VariableEqualityOperator,
 )
+from coola.testers.allclose import AllCloseTester
+from coola.testers.equality import EqualityTester
+
+for typ, op in get_mapping_allclose().items():
+    if not AllCloseTester.has_operator(typ):  # pragma: no cover
+        AllCloseTester.add_operator(typ, op)
+
+
+for typ, op in get_mapping_equality().items():
+    if not EqualityTester.has_operator(typ):  # pragma: no cover
+        EqualityTester.add_operator(typ, op)

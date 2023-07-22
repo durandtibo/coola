@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 if TYPE_CHECKING:
-    from coola.testers import BaseAllCloseTester, BaseEqualityTester
+    from coola.testers.base import BaseAllCloseTester, BaseEqualityTester
 
 logger = logging.getLogger(__name__)
 
