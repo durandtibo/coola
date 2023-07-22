@@ -1,6 +1,11 @@
 from __future__ import annotations
 
-__all__ = ["NDArrayAllCloseOperator", "NDArrayEqualityOperator"]
+__all__ = [
+    "NDArrayAllCloseOperator",
+    "NDArrayEqualityOperator",
+    "get_mapping_allclose",
+    "get_mapping_equality",
+]
 
 import logging
 from typing import TYPE_CHECKING, Any
@@ -146,3 +151,19 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
     if not is_numpy_available():
         return {}
     return {ndarray: NDArrayAllCloseOperator()}
+
+
+def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
+    r"""Gets a default mapping between the types and the equality
+    operators.
+
+    This function returns an empty dictionary if numpy is not
+    installed.
+
+    Returns:
+        dict: The mapping between the types and the equality
+            operators.
+    """
+    if not is_numpy_available():
+        return {}
+    return {ndarray: NDArrayEqualityOperator()}

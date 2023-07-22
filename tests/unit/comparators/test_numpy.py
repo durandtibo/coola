@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 from pytest import LogCaptureFixture, mark, raises
 
 from coola.comparators import NDArrayAllCloseOperator, NDArrayEqualityOperator
-from coola.comparators.numpy_ import get_mapping_allclose
+from coola.comparators.numpy_ import get_mapping_allclose, get_mapping_equality
 from coola.testers import AllCloseTester, EqualityTester
 from coola.testing import numpy_available
 from coola.utils.imports import is_numpy_available
@@ -377,3 +377,20 @@ def test_get_mapping_allclose() -> None:
 def test_get_mapping_allclose_no_numpy() -> None:
     with patch("coola.comparators.numpy_.is_numpy_available", lambda *args, **kwargs: False):
         assert get_mapping_allclose() == {}
+
+
+##########################################
+#     Tests for get_mapping_equality     #
+##########################################
+
+
+@numpy_available
+def test_get_mapping_equality() -> None:
+    mapping = get_mapping_equality()
+    assert len(mapping) == 1
+    assert isinstance(mapping[np.ndarray], NDArrayEqualityOperator)
+
+
+def test_get_mapping_equality_no_numpy() -> None:
+    with patch("coola.comparators.numpy_.is_numpy_available", lambda *args, **kwargs: False):
+        assert get_mapping_equality() == {}

@@ -2,16 +2,26 @@ from collections.abc import Mapping, Sequence
 
 from coola.comparators import (
     DataArrayAllCloseOperator,
+    DataArrayEqualityOperator,
     DatasetAllCloseOperator,
+    DatasetEqualityOperator,
     DefaultAllCloseOperator,
+    DefaultEqualityOperator,
     MappingAllCloseOperator,
+    MappingEqualityOperator,
     NDArrayAllCloseOperator,
+    NDArrayEqualityOperator,
     PackedSequenceAllCloseOperator,
+    PackedSequenceEqualityOperator,
     ScalarAllCloseOperator,
     SequenceAllCloseOperator,
+    SequenceEqualityOperator,
     TensorAllCloseOperator,
+    TensorEqualityOperator,
     VariableAllCloseOperator,
+    VariableEqualityOperator,
     get_mapping_allclose,
+    get_mapping_equality,
 )
 from coola.testing import (
     numpy_available,
@@ -106,3 +116,64 @@ def test_get_mapping_allclose_xarray() -> None:
     assert isinstance(mapping[xr.DataArray], DataArrayAllCloseOperator)
     assert isinstance(mapping[xr.Dataset], DatasetAllCloseOperator)
     assert isinstance(mapping[xr.Variable], VariableAllCloseOperator)
+
+
+##########################################
+#     Tests for get_mapping_equality     #
+##########################################
+
+
+def test_get_mapping_equality() -> None:
+    mapping = get_mapping_equality()
+    assert len(mapping) >= 9
+    assert isinstance(mapping[Mapping], MappingEqualityOperator)
+    assert isinstance(mapping[Sequence], SequenceEqualityOperator)
+    assert isinstance(mapping[dict], MappingEqualityOperator)
+    assert isinstance(mapping[list], SequenceEqualityOperator)
+    assert isinstance(mapping[object], DefaultEqualityOperator)
+    assert isinstance(mapping[tuple], SequenceEqualityOperator)
+
+
+@numpy_available
+def test_get_mapping_equality_numpy() -> None:
+    mapping = get_mapping_equality()
+    assert isinstance(mapping[np.ndarray], NDArrayEqualityOperator)
+
+
+@pandas_available
+def test_get_mapping_equality_pandas() -> None:
+    from coola.comparators.pandas_ import (
+        DataFrameEqualityOperator,
+        SeriesEqualityOperator,
+    )
+
+    mapping = get_mapping_equality()
+    assert isinstance(mapping[pandas.DataFrame], DataFrameEqualityOperator)
+    assert isinstance(mapping[pandas.Series], SeriesEqualityOperator)
+
+
+@polars_available
+def test_get_mapping_equality_polars() -> None:
+    from coola.comparators.polars_ import (
+        DataFrameEqualityOperator,
+        SeriesEqualityOperator,
+    )
+
+    mapping = get_mapping_equality()
+    assert isinstance(mapping[polars.DataFrame], DataFrameEqualityOperator)
+    assert isinstance(mapping[polars.Series], SeriesEqualityOperator)
+
+
+@torch_available
+def test_get_mapping_equality_torch() -> None:
+    mapping = get_mapping_equality()
+    assert isinstance(mapping[torch.Tensor], TensorEqualityOperator)
+    assert isinstance(mapping[torch.nn.utils.rnn.PackedSequence], PackedSequenceEqualityOperator)
+
+
+@xarray_available
+def test_get_mapping_equality_xarray() -> None:
+    mapping = get_mapping_equality()
+    assert isinstance(mapping[xr.DataArray], DataArrayEqualityOperator)
+    assert isinstance(mapping[xr.Dataset], DatasetEqualityOperator)
+    assert isinstance(mapping[xr.Variable], VariableEqualityOperator)

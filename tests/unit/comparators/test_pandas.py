@@ -15,6 +15,7 @@ from coola.comparators.pandas_ import (
     SeriesAllCloseOperator,
     SeriesEqualityOperator,
     get_mapping_allclose,
+    get_mapping_equality,
 )
 from coola.testing import pandas_available
 from coola.utils.imports import is_pandas_available
@@ -1624,3 +1625,21 @@ def test_get_mapping_allclose() -> None:
 def test_get_mapping_allclose_no_numpy() -> None:
     with patch("coola.comparators.pandas_.is_pandas_available", lambda *args, **kwargs: False):
         assert get_mapping_allclose() == {}
+
+
+##########################################
+#     Tests for get_mapping_equality     #
+##########################################
+
+
+@pandas_available
+def test_get_mapping_equality() -> None:
+    mapping = get_mapping_equality()
+    assert len(mapping) == 2
+    assert isinstance(mapping[pandas.DataFrame], DataFrameEqualityOperator)
+    assert isinstance(mapping[pandas.Series], SeriesEqualityOperator)
+
+
+def test_get_mapping_equality_no_numpy() -> None:
+    with patch("coola.comparators.pandas_.is_pandas_available", lambda *args, **kwargs: False):
+        assert get_mapping_equality() == {}

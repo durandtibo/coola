@@ -21,8 +21,10 @@ __all__ = [
     "VariableAllCloseOperator",
     "VariableEqualityOperator",
     "get_mapping_allclose",
+    "get_mapping_equality",
 ]
 
+from coola.comparators import pandas_, polars_  # noqa: F401
 from coola.comparators.allclose import (
     DefaultAllCloseOperator,
     MappingAllCloseOperator,
@@ -42,7 +44,7 @@ from coola.comparators.torch_ import (
     TensorAllCloseOperator,
     TensorEqualityOperator,
 )
-from coola.comparators.utils import get_mapping_allclose
+from coola.comparators.utils import get_mapping_allclose, get_mapping_equality
 from coola.comparators.xarray_ import (
     DataArrayAllCloseOperator,
     DataArrayEqualityOperator,
