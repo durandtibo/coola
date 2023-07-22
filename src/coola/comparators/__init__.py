@@ -1,8 +1,11 @@
 __all__ = [
+    "BaseEqualityOperator",
     "DataArrayAllCloseOperator",
     "DataArrayEqualityOperator",
     "DatasetAllCloseOperator",
     "DatasetEqualityOperator",
+    "DefaultEqualityOperator",
+    "MappingEqualityOperator",
     "NDArrayAllCloseOperator",
     "NDArrayEqualityOperator",
     "PackedSequenceAllCloseOperator",
@@ -11,13 +14,19 @@ __all__ = [
     "PandasDataFrameEqualityOperator",
     "PolarsDataFrameAllCloseOperator",
     "PolarsDataFrameEqualityOperator",
+    "SequenceEqualityOperator",
     "TensorAllCloseOperator",
     "TensorEqualityOperator",
     "VariableAllCloseOperator",
     "VariableEqualityOperator",
 ]
 
-
+from coola.comparators.base import BaseEqualityOperator
+from coola.comparators.equality import (
+    DefaultEqualityOperator,
+    MappingEqualityOperator,
+    SequenceEqualityOperator,
+)
 from coola.comparators.numpy_ import NDArrayAllCloseOperator, NDArrayEqualityOperator
 from coola.comparators.pandas_ import (
     DataFrameAllCloseOperator as PandasDataFrameAllCloseOperator,
