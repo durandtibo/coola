@@ -5,8 +5,6 @@ __all__ = [
     "BaseEqualityOperator",
     "BaseEqualityTester",
     "EqualityTester",
-    "LocalAllCloseTester",
-    "LocalEqualityTester",
     "objects_are_allclose",
     "objects_are_equal",
 ]
@@ -19,6 +17,4 @@ from coola.testers import (
     BaseAllCloseTester,
     BaseEqualityTester,
     EqualityTester,
-    LocalAllCloseTester,
-    LocalEqualityTester,
 )
