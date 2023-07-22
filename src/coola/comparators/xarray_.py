@@ -15,6 +15,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from coola.comparators.base import BaseAllCloseOperator, BaseEqualityOperator
+from coola.comparison import objects_are_equal
 from coola.utils.imports import check_xarray, is_xarray_available
 
 if TYPE_CHECKING:
@@ -47,8 +48,6 @@ class DataArrayAllCloseOperator(BaseAllCloseOperator[DataArray]):
         equal_nan: bool = False,
         show_difference: bool = False,
     ) -> bool:
-        from coola.comparison import objects_are_equal  # TODO: remove
-
         if object1 is object2:
             return True
         if not isinstance(object2, DataArray):
@@ -141,8 +140,6 @@ class DatasetAllCloseOperator(BaseAllCloseOperator[Dataset]):
         equal_nan: bool = False,
         show_difference: bool = False,
     ) -> bool:
-        from coola.comparison import objects_are_equal  # TODO: remove
-
         if object1 is object2:
             return True
         if not isinstance(object2, Dataset):
@@ -231,8 +228,6 @@ class VariableAllCloseOperator(BaseAllCloseOperator[Variable]):
         equal_nan: bool = False,
         show_difference: bool = False,
     ) -> bool:
-        from coola.comparison import objects_are_equal  # TODO: remove
-
         if object1 is object2:
             return True
         if not isinstance(object2, Variable):

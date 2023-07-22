@@ -14,21 +14,6 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def get_default_operators() -> dict[type[object], BaseAllCloseOperator]:
-    r"""Gets the default operators used to initialize the registry of
-    ``AllCloseTester``.
-
-    Returns:
-        dict: The mapping between the types and the allclose
-            operators.
-    """
-    from coola.comparators.utils import (
-        get_mapping_allclose,  # Local import to avoid cyclic dependency
-    )
-
-    return get_mapping_allclose()
-
-
 class AllCloseTester(BaseAllCloseTester):
     """Implements the default allclose tester.
 
@@ -47,7 +32,7 @@ class AllCloseTester(BaseAllCloseTester):
         - ``tuple``: ``SequenceAllCloseOperator``
     """
 
-    registry: dict[type[object], BaseAllCloseOperator] = get_default_operators()
+    registry: dict[type[object], BaseAllCloseOperator] = {}
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(self.registry))}\n)"
