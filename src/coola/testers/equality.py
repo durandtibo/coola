@@ -3,39 +3,36 @@ from __future__ import annotations
 __all__ = ["EqualityTester", "LocalEqualityTester"]
 
 import logging
-from collections.abc import Mapping, Sequence
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from coola.comparators import (
-    DefaultEqualityOperator,
-    MappingEqualityOperator,
-    SequenceEqualityOperator,
-)
-from coola.comparators.base import BaseEqualityOperator
 from coola.testers.base import BaseEqualityTester
 from coola.utils.format import str_indent, str_mapping
-from coola.utils.imports import (
-    is_numpy_available,
-    is_pandas_available,
-    is_polars_available,
-    is_torch_available,
-    is_xarray_available,
-)
+
+if TYPE_CHECKING:
+    from coola.comparators.base import BaseEqualityOperator
 
 logger = logging.getLogger(__name__)
+
+
+def get_default_operators() -> dict[type[object], BaseEqualityOperator]:
+    r"""Gets the default operators used to initialize the registry of
+    ``EqualityTester``.
+
+    Returns:
+        dict: The mapping between the types and the equality
+            operators.
+    """
+    from coola.comparators.utils import (
+        get_mapping_equality,  # Local import to avoid cyclic dependency
+    )
+
+    return get_mapping_equality()
 
 
 class EqualityTester(BaseEqualityTester):
     """Implements the default equality tester."""
 
-    registry: dict[type[object], BaseEqualityOperator] = {
-        Mapping: MappingEqualityOperator(),
-        Sequence: SequenceEqualityOperator(),
-        dict: MappingEqualityOperator(),
-        list: SequenceEqualityOperator(),
-        object: DefaultEqualityOperator(),
-        tuple: SequenceEqualityOperator(),
-    }
+    registry: dict[type[object], BaseEqualityOperator] = get_default_operators()
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(self.registry))}\n)"
@@ -334,69 +331,3 @@ class LocalEqualityTester(BaseEqualityTester):
             if operator is not None:
                 return operator
         raise TypeError(f"Incorrect data type: {data_type}")
-
-
-if is_numpy_available():  # pragma: no cover
-    from numpy import ndarray
-
-    from coola.comparators import NDArrayEqualityOperator
-
-    if not EqualityTester.has_operator(ndarray):
-        EqualityTester.add_operator(ndarray, NDArrayEqualityOperator())
-
-
-if is_pandas_available():  # pragma: no cover
-    from pandas import DataFrame, Series
-
-    from coola.comparators.pandas_ import (
-        DataFrameEqualityOperator,
-        SeriesEqualityOperator,
-    )
-
-    if not EqualityTester.has_operator(DataFrame):
-        EqualityTester.add_operator(DataFrame, DataFrameEqualityOperator())
-    if not EqualityTester.has_operator(Series):
-        EqualityTester.add_operator(Series, SeriesEqualityOperator())
-
-
-if is_polars_available():  # pragma: no cover
-    from polars import DataFrame, Series
-
-    from coola.comparators.polars_ import (
-        DataFrameEqualityOperator,
-        SeriesEqualityOperator,
-    )
-
-    if not EqualityTester.has_operator(DataFrame):
-        EqualityTester.add_operator(DataFrame, DataFrameEqualityOperator())
-    if not EqualityTester.has_operator(Series):
-        EqualityTester.add_operator(Series, SeriesEqualityOperator())
-
-
-if is_torch_available():  # pragma: no cover
-    from torch import Tensor
-    from torch.nn.utils.rnn import PackedSequence
-
-    from coola.comparators import PackedSequenceEqualityOperator, TensorEqualityOperator
-
-    if not EqualityTester.has_operator(PackedSequence):
-        EqualityTester.add_operator(PackedSequence, PackedSequenceEqualityOperator())
-    if not EqualityTester.has_operator(Tensor):
-        EqualityTester.add_operator(Tensor, TensorEqualityOperator())
-
-
-if is_xarray_available():  # pragma: no cover
-    from xarray import DataArray, Dataset, Variable
-
-    from coola.comparators import (
-        DataArrayEqualityOperator,
-        DatasetEqualityOperator,
-        VariableEqualityOperator,
-    )
-
-    if not EqualityTester.has_operator(DataArray):
-        EqualityTester.add_operator(DataArray, DataArrayEqualityOperator())
-    if not EqualityTester.has_operator(Dataset):
-        EqualityTester.add_operator(Dataset, DatasetEqualityOperator())
-    if not EqualityTester.has_operator(Variable):
-        EqualityTester.add_operator(Variable, VariableEqualityOperator())
