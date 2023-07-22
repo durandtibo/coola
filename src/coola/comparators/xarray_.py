@@ -1,5 +1,14 @@
 from __future__ import annotations
 
+__all__ = [
+    "DataArrayAllCloseOperator",
+    "DataArrayEqualityOperator",
+    "DatasetAllCloseOperator",
+    "VariableAllCloseOperator",
+    "VariableEqualityOperator",
+    "DatasetEqualityOperator",
+]
+
 import logging
 from typing import Any
 

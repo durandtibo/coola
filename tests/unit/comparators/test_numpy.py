@@ -6,8 +6,8 @@ from unittest.mock import Mock, patch
 from pytest import LogCaptureFixture, mark, raises
 
 from coola.allclose import AllCloseTester
+from coola.comparators.numpy_ import NDArrayAllCloseOperator, NDArrayEqualityOperator
 from coola.equality import EqualityTester
-from coola.numpy_ import NDArrayAllCloseOperator, NDArrayEqualityOperator
 from coola.testing import numpy_available
 from coola.utils import is_numpy_available
 
