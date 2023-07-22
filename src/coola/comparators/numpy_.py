@@ -5,12 +5,11 @@ __all__ = ["NDArrayAllCloseOperator", "NDArrayEqualityOperator"]
 import logging
 from typing import TYPE_CHECKING, Any
 
-from coola.allclose import AllCloseTester, BaseAllCloseOperator, BaseAllCloseTester
-from coola.comparators.base import BaseEqualityOperator
+from coola.comparators.base import BaseAllCloseOperator, BaseEqualityOperator
 from coola.utils.imports import check_numpy, is_numpy_available
 
 if TYPE_CHECKING:
-    from coola.testers import BaseEqualityTester
+    from coola.testers import BaseAllCloseTester, BaseEqualityTester
 
 if is_numpy_available():
     from numpy import allclose, array_equal, ndarray
@@ -131,8 +130,3 @@ class NDArrayEqualityOperator(BaseEqualityOperator[ndarray]):
         if show_difference and not object_equal:
             logger.info(f"numpy.ndarrays are different\nobject1=\n{object1}\nobject2=\n{object2}")
         return object_equal
-
-
-if is_numpy_available():  # pragma: no cover
-    if not AllCloseTester.has_operator(ndarray):
-        AllCloseTester.add_operator(ndarray, NDArrayAllCloseOperator())

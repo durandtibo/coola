@@ -5,12 +5,11 @@ __all__ = ["DataFrameAllCloseOperator", "DataFrameEqualityOperator"]
 import logging
 from typing import TYPE_CHECKING, Any
 
-from coola.allclose import AllCloseTester, BaseAllCloseOperator, BaseAllCloseTester
-from coola.comparators.base import BaseEqualityOperator
+from coola.comparators.base import BaseAllCloseOperator, BaseEqualityOperator
 from coola.utils import check_pandas, is_pandas_available
 
 if TYPE_CHECKING:
-    from coola.testers import BaseEqualityTester
+    from coola.testers import BaseAllCloseTester, BaseEqualityTester
 
 if is_pandas_available():
     from pandas import DataFrame, Series
@@ -231,10 +230,3 @@ class SeriesEqualityOperator(BaseEqualityOperator[Series]):
         if object_equal and not self._nulls_compare_equal:
             object_equal = not series1.isnull().any()
         return object_equal
-
-
-if is_pandas_available():  # pragma: no cover
-    if not AllCloseTester.has_operator(DataFrame):
-        AllCloseTester.add_operator(DataFrame, DataFrameAllCloseOperator())
-    if not AllCloseTester.has_operator(Series):
-        AllCloseTester.add_operator(Series, SeriesAllCloseOperator())
