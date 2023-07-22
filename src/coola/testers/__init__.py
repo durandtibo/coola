@@ -1,4 +1,12 @@
-__all__ = ["BaseEqualityTester", "EqualityTester", "LocalEqualityTester"]
+__all__ = [
+    "AllCloseTester",
+    "LocalAllCloseTester",
+    "BaseAllCloseTester",
+    "BaseEqualityTester",
+    "EqualityTester",
+    "LocalEqualityTester",
+]
 
-from coola.testers.base import BaseEqualityTester
-from coola.testers.default import EqualityTester, LocalEqualityTester
+from coola.testers.allclose import AllCloseTester, LocalAllCloseTester
+from coola.testers.base import BaseAllCloseTester, BaseEqualityTester
+from coola.testers.equality import EqualityTester, LocalEqualityTester

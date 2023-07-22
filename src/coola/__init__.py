@@ -12,13 +12,14 @@ __all__ = [
 ]
 
 
-from coola.allclose import (
-    AllCloseTester,
-    BaseAllCloseOperator,
-    BaseAllCloseTester,
-    LocalAllCloseTester,
-    objects_are_allclose,
-)
-from coola.comparators.base import BaseEqualityOperator
+from coola.allclose import objects_are_allclose
+from coola.comparators import BaseAllCloseOperator, BaseEqualityOperator
 from coola.equality import objects_are_equal
-from coola.testers import BaseEqualityTester, EqualityTester, LocalEqualityTester
+from coola.testers import (
+    AllCloseTester,
+    BaseAllCloseTester,
+    BaseEqualityTester,
+    EqualityTester,
+    LocalAllCloseTester,
+    LocalEqualityTester,
+)

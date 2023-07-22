@@ -12,12 +12,11 @@ __all__ = [
 import logging
 from typing import TYPE_CHECKING, Any
 
-from coola.allclose import AllCloseTester, BaseAllCloseOperator, BaseAllCloseTester
-from coola.comparators.base import BaseEqualityOperator
+from coola.comparators.base import BaseAllCloseOperator, BaseEqualityOperator
 from coola.utils import check_xarray, is_xarray_available
 
 if TYPE_CHECKING:
-    from coola.testers import BaseEqualityTester
+    from coola.testers import BaseAllCloseTester, BaseEqualityTester
 
 if is_xarray_available():
     from xarray import DataArray, Dataset, Variable
@@ -299,12 +298,3 @@ class VariableEqualityOperator(BaseEqualityOperator[Variable]):
         if show_difference and not object_equal:
             logger.info(f"xarray.Variables are different\nobject1=\n{object1}\nobject2=\n{object2}")
         return object_equal
-
-
-if is_xarray_available():  # pragma: no cover
-    if not AllCloseTester.has_operator(DataArray):
-        AllCloseTester.add_operator(DataArray, DataArrayAllCloseOperator())
-    if not AllCloseTester.has_operator(Dataset):
-        AllCloseTester.add_operator(Dataset, DatasetAllCloseOperator())
-    if not AllCloseTester.has_operator(Variable):
-        AllCloseTester.add_operator(Variable, VariableAllCloseOperator())
