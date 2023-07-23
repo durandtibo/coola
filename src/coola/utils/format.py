@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-__all__ = ["str_indent", "str_mapping"]
+__all__ = ["str_indent", "str_mapping", "str_sequence"]
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 
@@ -80,4 +80,33 @@ def str_mapping(mapping: Mapping, sorted_keys: bool = False, num_spaces: int = 2
     lines = []
     for key, value in sorted(mapping.items()) if sorted_keys else mapping.items():
         lines.append(f"({key}): {str_indent(value, num_spaces=num_spaces)}")
+    return "\n".join(lines)
+
+
+def str_sequence(sequence: Sequence, num_spaces: int = 2) -> str:
+    r"""Computes a string representation of a sequence.
+
+    Args:
+    ----
+        sequence (``Sequence``): Specifies the sequence.
+        num_spaces (int, optional): Specifies the number of spaces
+            used for the indentation. Default: ``2``.
+
+    Returns:
+    -------
+        str: The string representation of the sequence.
+
+    Example usage:
+
+    .. code-block:: pycon
+
+        >>> from coola.utils.format import str_sequence
+        >>> print(str_sequence(["abc", "something\nelse"]))
+        (0): abc
+        (1): something
+          else
+    """
+    lines = []
+    for i, item in enumerate(sequence):
+        lines.append(f"({i}): {str_indent(item, num_spaces=num_spaces)}")
     return "\n".join(lines)

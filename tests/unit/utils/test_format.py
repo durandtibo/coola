@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pytest import raises
 
-from coola.utils.format import str_indent, str_mapping
+from coola.utils.format import str_indent, str_mapping, str_sequence
 
 ################################
 #     Tests for str_indent     #
@@ -64,3 +64,24 @@ def test_str_mapping_sorted_values_true() -> None:
 
 def test_str_mapping_sorted_values_false() -> None:
     assert str_mapping({"key2": "value2", "key1": "value1"}) == "(key2): value2\n(key1): value1"
+
+
+##################################
+#     Tests for str_sequence     #
+##################################
+
+
+def test_str_sequence_empty() -> None:
+    assert str_sequence([]) == ""
+
+
+def test_str_sequence_1_item() -> None:
+    assert str_sequence(["abc"]) == "(0): abc"
+
+
+def test_str_sequence_2_items() -> None:
+    assert str_sequence(["abc", 123]) == "(0): abc\n(1): 123"
+
+
+def test_str_sequence_2_items_multiple_line() -> None:
+    assert str_sequence(["abc", "something\nelse"]) == "(0): abc\n(1): something\n  else"

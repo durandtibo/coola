@@ -13,9 +13,10 @@ __all__ = [
     "is_xarray_available",
     "str_indent",
     "str_mapping",
+    "str_sequence",
 ]
 
-from coola.utils.format import str_indent, str_mapping
+from coola.utils.format import str_indent, str_mapping, str_sequence
 from coola.utils.imports import (
     check_numpy,
     check_pandas,
