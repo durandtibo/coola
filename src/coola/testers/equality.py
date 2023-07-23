@@ -1,271 +1,23 @@
 from __future__ import annotations
 
-__all__ = [
-    "BaseEqualityOperator",
-    "BaseEqualityTester",
-    "EqualityTester",
-    "LocalEqualityTester",
-    "objects_are_equal",
-]
+__all__ = ["EqualityTester", "LocalEqualityTester"]
 
 import logging
-from abc import ABC, abstractmethod
-from collections.abc import Mapping, Sequence
-from typing import Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any
 
-from coola.utils import str_indent, str_mapping
+from coola.testers.base import BaseEqualityTester
+from coola.utils.format import str_indent, str_mapping
+
+if TYPE_CHECKING:
+    from coola.comparators.base import BaseEqualityOperator
 
 logger = logging.getLogger(__name__)
-
-T = TypeVar("T")
-
-
-class BaseEqualityTester(ABC):
-    r"""Defines the base class to implement an equality tester."""
-
-    @abstractmethod
-    def equal(self, object1: Any, object2: Any, show_difference: bool = False) -> bool:
-        r"""Indicates if two objects are equal or not.
-
-        Args:
-            object1: Specifies the first object to compare.
-            object2: Specifies the second object to compare.
-            show_difference (bool, optional): If ``True``, it shows a
-                difference between the two objects if they are
-                different. This parameter is useful to find the
-                difference between two objects. Default: ``False``
-
-        Returns:
-            bool: ``True`` if the two objects are equal, otherwise
-                ``False``.
-
-        Example usage:
-
-        .. code-block:: pycon
-
-            >>> import torch
-            >>> from coola import BaseEqualityTester, EqualityTester
-            >>> tester: BaseEqualityTester = EqualityTester()
-            >>> tester.equal(
-            ...     [torch.ones(2, 3), torch.zeros(2)],
-            ...     [torch.ones(2, 3), torch.zeros(2)],
-            ... )
-            True
-            >>> tester.equal([torch.ones(2, 3), torch.ones(2)], [torch.ones(2, 3), torch.zeros(2)])
-            False
-        """
-
-
-def objects_are_equal(
-    object1: Any,
-    object2: Any,
-    show_difference: bool = False,
-    tester: BaseEqualityTester | None = None,
-) -> bool:
-    r"""Indicates if two objects are equal or not.
-
-    Args:
-        object1: Specifies the first object to compare.
-        object2: Specifies the second object to compare.
-        show_difference (bool, optional): If ``True``, it shows a
-            difference between the two objects if they are
-            different. This parameter is useful to find the
-            difference between two objects. Default: ``False``
-        tester (``BaseEqualityTester`` or ``None``, optional):
-            Specifies an equality tester. If ``None``,
-            ``EqualityTester`` is used. Default: ``None``.
-
-    Returns:
-        bool: ``True`` if the two nested data are equal, otherwise
-            ``False``.
-
-    Example usage:
-
-    .. code-block:: pycon
-
-        >>> import torch
-        >>> from coola import objects_are_equal
-        >>> objects_are_equal(
-        ...     [torch.ones(2, 3), torch.zeros(2)],
-        ...     [torch.ones(2, 3), torch.zeros(2)],
-        ... )
-        True
-        >>> objects_are_equal([torch.ones(2, 3), torch.ones(2)], [torch.ones(2, 3), torch.zeros(2)])
-        False
-    """
-    tester = tester or EqualityTester()
-    return tester.equal(object1, object2, show_difference)
-
-
-class BaseEqualityOperator(ABC, Generic[T]):
-    r"""Define the base class to implement an equality operator."""
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
-
-    @abstractmethod
-    def clone(self) -> BaseEqualityOperator:
-        r"""Returns a copy of the equality operator.
-
-        Returns:
-            ``BaseEqualityOperator``: A copy of the equality operator.
-        """
-
-    @abstractmethod
-    def equal(
-        self, tester: BaseEqualityTester, object1: T, object2: Any, show_difference: bool = False
-    ) -> bool:
-        r"""Indicates if two objects are equal or not.
-
-        Args:
-            tester (``BaseEqualityTester``): Specifies an equality
-                tester.
-            object1: Specifies the first object to compare.
-            object2: Specifies the second object to compare.
-            show_difference (bool, optional): If ``True``, it shows
-                a difference between the two objects if they are
-                different. This parameter is useful to find the
-                difference between two objects. Default: ``False``
-
-        Returns:
-            bool: ``True`` if the two objects are equal, otherwise
-                ``False``.
-        """
-
-
-class DefaultEqualityOperator(BaseEqualityOperator[Any]):
-    r"""Implements a default equality operator.
-
-    The ``==`` operator is used to test the equality between the
-    objects.
-    """
-
-    def __eq__(self, other: Any) -> bool:
-        return isinstance(other, self.__class__)
-
-    def clone(self) -> DefaultEqualityOperator:
-        return self.__class__()
-
-    def equal(
-        self,
-        tester: BaseEqualityTester,
-        object1: Any,
-        object2: Any,
-        show_difference: bool = False,
-    ) -> bool:
-        if object1 is object2:
-            return True
-        if type(object1) is not type(object2):
-            if show_difference:
-                logger.info(f"Objects have different types: {type(object1)} vs {type(object2)}")
-            return False
-        object_equal = object1 == object2
-        if show_difference and not object_equal:
-            logger.info(f"Objects are different:\nobject1={object1}\nobject2={object2}")
-        return object_equal
-
-
-class MappingEqualityOperator(BaseEqualityOperator[Mapping]):
-    r"""Implements an equality operator for mappings."""
-
-    def __eq__(self, other: Any) -> bool:
-        return isinstance(other, self.__class__)
-
-    def clone(self) -> MappingEqualityOperator:
-        return self.__class__()
-
-    def equal(
-        self,
-        tester: BaseEqualityTester,
-        object1: Mapping,
-        object2: Any,
-        show_difference: bool = False,
-    ) -> bool:
-        if object1 is object2:
-            return True
-        if type(object1) is not type(object2):
-            if show_difference:
-                logger.info(
-                    f"The mappings have different types: {type(object1)} vs {type(object2)}"
-                )
-            return False
-        if len(object1) != len(object2):
-            if show_difference:
-                logger.info(f"The mappings have different sizes: {len(object1)} vs {len(object2)}")
-            return False
-        if set(object1.keys()) != set(object2.keys()):
-            if show_difference:
-                logger.info(
-                    f"The mappings have different keys:\n"
-                    f"keys of object1: {sorted(set(object1.keys()))}\n"
-                    f"keys of object2: {sorted(set(object2.keys()))}"
-                )
-            return False
-        for key in object1.keys():
-            if not tester.equal(object1[key], object2[key], show_difference):
-                if show_difference:
-                    logger.info(
-                        f"The mappings have a different value for the key '{key}':\n"
-                        f"first mapping  = {object1}\n"
-                        f"second mapping = {object2}"
-                    )
-                return False
-        return True
-
-
-class SequenceEqualityOperator(BaseEqualityOperator[Sequence]):
-    r"""Implements an equality operator for sequences."""
-
-    def __eq__(self, other: Any) -> bool:
-        return isinstance(other, self.__class__)
-
-    def clone(self) -> SequenceEqualityOperator:
-        return self.__class__()
-
-    def equal(
-        self,
-        tester: BaseEqualityTester,
-        object1: Sequence,
-        object2: Any,
-        show_difference: bool = False,
-    ) -> bool:
-        if object1 is object2:
-            return True
-        if type(object1) is not type(object2):
-            if show_difference:
-                logger.info(
-                    f"The sequences have different types: {type(object1)} vs {type(object2)}"
-                )
-            return False
-        if len(object1) != len(object2):
-            if show_difference:
-                logger.info(
-                    f"The sequences have different sizes: {len(object1):,} vs {len(object2):,}"
-                )
-            return False
-        for value1, value2 in zip(object1, object2):
-            if not tester.equal(value1, value2, show_difference):
-                if show_difference:
-                    logger.info(
-                        f"The sequences have at least one different value:\n"
-                        f"first sequence  = {object1}\n"
-                        f"second sequence = {object2}"
-                    )
-                return False
-        return True
 
 
 class EqualityTester(BaseEqualityTester):
     """Implements the default equality tester."""
 
-    registry: dict[type[object], BaseEqualityOperator] = {
-        Mapping: MappingEqualityOperator(),
-        Sequence: SequenceEqualityOperator(),
-        dict: MappingEqualityOperator(),
-        list: SequenceEqualityOperator(),
-        object: DefaultEqualityOperator(),
-        tuple: SequenceEqualityOperator(),
-    }
+    registry: dict[type[object], BaseEqualityOperator] = {}
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(self.registry))}\n)"
@@ -293,8 +45,8 @@ class EqualityTester(BaseEqualityTester):
 
         .. code-block:: pycon
 
-            >>> from coola import EqualityTester
-            >>> from coola.equality import SequenceEqualityOperator
+            >>> from coola.testers import EqualityTester
+            >>> from coola.comparators import SequenceEqualityOperator
             >>> EqualityTester.add_operator(list, SequenceEqualityOperator(), exist_ok=True)
         """
         if data_type in cls.registry and not exist_ok:
@@ -353,7 +105,7 @@ class EqualityTester(BaseEqualityTester):
 
         .. code-block:: pycon
 
-            >>> from coola import EqualityTester
+            >>> from coola.testers import EqualityTester
             >>> EqualityTester.has_operator(list)
             True
             >>> EqualityTester.has_operator(str)
@@ -376,7 +128,7 @@ class EqualityTester(BaseEqualityTester):
 
         .. code-block:: pycon
 
-            >>> from coola import EqualityTester
+            >>> from coola.testers import EqualityTester
             >>> EqualityTester.find_operator(list)
             SequenceEqualityOperator()
             >>> EqualityTester.find_operator(str)
@@ -401,7 +153,7 @@ class EqualityTester(BaseEqualityTester):
 
         .. code-block:: pycon
 
-            >>> from coola import EqualityTester
+            >>> from coola.testers import EqualityTester
             >>> tester = EqualityTester.local_copy()
             >>> tester  # doctest: +ELLIPSIS
             LocalEqualityTester(...)
@@ -450,8 +202,8 @@ class LocalEqualityTester(BaseEqualityTester):
 
         .. code-block:: pycon
 
-            >>> from coola import EqualityTester
-            >>> from coola.equality import DefaultEqualityOperator
+            >>> from coola.testers import EqualityTester
+            >>> from coola.comparators import DefaultEqualityOperator
             >>> tester = EqualityTester.local_copy()
             >>> tester.add_operator(str, DefaultEqualityOperator())
             >>> tester.add_operator(str, DefaultEqualityOperator(), exist_ok=True)
@@ -476,7 +228,7 @@ class LocalEqualityTester(BaseEqualityTester):
         .. code-block:: pycon
 
            >>> import torch
-           >>> from coola import EqualityTester
+           >>> from coola.testers import EqualityTester
            >>> tester = EqualityTester.local_copy()
            >>> tester_cloned = tester.clone()
         """
@@ -502,7 +254,7 @@ class LocalEqualityTester(BaseEqualityTester):
         .. code-block:: pycon
 
             >>> import torch
-            >>> from coola import EqualityTester
+            >>> from coola.testers import EqualityTester
             >>> tester = EqualityTester.local_copy()
             >>> tester.equal(
             ...     [torch.ones(2, 3), torch.zeros(2)],
@@ -529,7 +281,7 @@ class LocalEqualityTester(BaseEqualityTester):
 
         .. code-block:: pycon
 
-            >>> from coola import EqualityTester
+            >>> from coola.testers import EqualityTester
             >>> tester = EqualityTester.local_copy()
             >>> tester.has_operator(list)
             True
@@ -552,7 +304,7 @@ class LocalEqualityTester(BaseEqualityTester):
 
         .. code-block:: pycon
 
-            >>> from coola import EqualityTester
+            >>> from coola.testers import EqualityTester
             >>> tester = EqualityTester.local_copy()
             >>> tester.find_operator(list)
             SequenceEqualityOperator()

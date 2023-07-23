@@ -1,13 +1,20 @@
 from __future__ import annotations
 
-__all__ = ["NDArrayAllCloseOperator", "NDArrayEqualityOperator"]
+__all__ = [
+    "NDArrayAllCloseOperator",
+    "NDArrayEqualityOperator",
+    "get_mapping_allclose",
+    "get_mapping_equality",
+]
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from coola.allclose import AllCloseTester, BaseAllCloseOperator, BaseAllCloseTester
-from coola.equality import BaseEqualityOperator, BaseEqualityTester, EqualityTester
-from coola.utils import check_numpy, is_numpy_available
+from coola.comparators.base import BaseAllCloseOperator, BaseEqualityOperator
+from coola.utils.imports import check_numpy, is_numpy_available
+
+if TYPE_CHECKING:
+    from coola.testers import BaseAllCloseTester, BaseEqualityTester
 
 if is_numpy_available():
     from numpy import allclose, array_equal, ndarray
@@ -130,8 +137,33 @@ class NDArrayEqualityOperator(BaseEqualityOperator[ndarray]):
         return object_equal
 
 
-if is_numpy_available():  # pragma: no cover
-    if not AllCloseTester.has_operator(ndarray):
-        AllCloseTester.add_operator(ndarray, NDArrayAllCloseOperator())
-    if not EqualityTester.has_operator(ndarray):
-        EqualityTester.add_operator(ndarray, NDArrayEqualityOperator())
+def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
+    r"""Gets a default mapping between the types and the allclose
+    operators.
+
+    This function returns an empty dictionary if numpy is not
+    installed.
+
+    Returns:
+        dict: The mapping between the types and the allclose
+            operators.
+    """
+    if not is_numpy_available():
+        return {}
+    return {ndarray: NDArrayAllCloseOperator()}
+
+
+def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
+    r"""Gets a default mapping between the types and the equality
+    operators.
+
+    This function returns an empty dictionary if numpy is not
+    installed.
+
+    Returns:
+        dict: The mapping between the types and the equality
+            operators.
+    """
+    if not is_numpy_available():
+        return {}
+    return {ndarray: NDArrayEqualityOperator()}

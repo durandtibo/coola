@@ -4,22 +4,22 @@ __all__ = [
     "DataArrayAllCloseOperator",
     "DataArrayEqualityOperator",
     "DatasetAllCloseOperator",
+    "DatasetEqualityOperator",
     "VariableAllCloseOperator",
     "VariableEqualityOperator",
-    "DatasetEqualityOperator",
+    "get_mapping_allclose",
+    "get_mapping_equality",
 ]
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from coola.allclose import AllCloseTester, BaseAllCloseOperator, BaseAllCloseTester
-from coola.equality import (
-    BaseEqualityOperator,
-    BaseEqualityTester,
-    EqualityTester,
-    objects_are_equal,
-)
-from coola.utils import check_xarray, is_xarray_available
+from coola.comparators.base import BaseAllCloseOperator, BaseEqualityOperator
+from coola.comparison import objects_are_equal
+from coola.utils.imports import check_xarray, is_xarray_available
+
+if TYPE_CHECKING:
+    from coola.testers import BaseAllCloseTester, BaseEqualityTester
 
 if is_xarray_available():
     from xarray import DataArray, Dataset, Variable
@@ -297,17 +297,41 @@ class VariableEqualityOperator(BaseEqualityOperator[Variable]):
         return object_equal
 
 
-if is_xarray_available():  # pragma: no cover
-    if not AllCloseTester.has_operator(DataArray):
-        AllCloseTester.add_operator(DataArray, DataArrayAllCloseOperator())
-    if not AllCloseTester.has_operator(Dataset):
-        AllCloseTester.add_operator(Dataset, DatasetAllCloseOperator())
-    if not AllCloseTester.has_operator(Variable):
-        AllCloseTester.add_operator(Variable, VariableAllCloseOperator())
+def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
+    r"""Gets a default mapping between the types and the allclose
+    operators.
 
-    if not EqualityTester.has_operator(DataArray):
-        EqualityTester.add_operator(DataArray, DataArrayEqualityOperator())
-    if not EqualityTester.has_operator(Dataset):
-        EqualityTester.add_operator(Dataset, DatasetEqualityOperator())
-    if not EqualityTester.has_operator(Variable):
-        EqualityTester.add_operator(Variable, VariableEqualityOperator())
+    This function returns an empty dictionary if xarray is not
+    installed.
+
+    Returns:
+        dict: The mapping between the types and the allclose
+            operators.
+    """
+    if not is_xarray_available():
+        return {}
+    return {
+        Dataset: DatasetAllCloseOperator(),
+        DataArray: DataArrayAllCloseOperator(),
+        Variable: VariableAllCloseOperator(),
+    }
+
+
+def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
+    r"""Gets a default mapping between the types and the equality
+    operators.
+
+    This function returns an empty dictionary if xarray is not
+    installed.
+
+    Returns:
+        dict: The mapping between the types and the equality
+            operators.
+    """
+    if not is_xarray_available():
+        return {}
+    return {
+        Dataset: DatasetEqualityOperator(),
+        DataArray: DataArrayEqualityOperator(),
+        Variable: VariableEqualityOperator(),
+    }

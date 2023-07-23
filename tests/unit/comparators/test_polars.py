@@ -14,9 +14,11 @@ from coola.comparators.polars_ import (
     DataFrameEqualityOperator,
     SeriesAllCloseOperator,
     SeriesEqualityOperator,
+    get_mapping_allclose,
+    get_mapping_equality,
 )
 from coola.testing import polars_available
-from coola.utils import is_polars_available
+from coola.utils.imports import is_polars_available
 
 if is_polars_available():
     import polars
@@ -1532,3 +1534,39 @@ def test_series_equality_operator_no_polars() -> None:
     with patch("coola.utils.imports.is_polars_available", lambda *args, **kwargs: False):
         with raises(RuntimeError, match="`polars` package is required but not installed."):
             SeriesEqualityOperator()
+
+
+##########################################
+#     Tests for get_mapping_allclose     #
+##########################################
+
+
+@polars_available
+def test_get_mapping_allclose() -> None:
+    mapping = get_mapping_allclose()
+    assert len(mapping) == 2
+    assert isinstance(mapping[polars.DataFrame], DataFrameAllCloseOperator)
+    assert isinstance(mapping[polars.Series], SeriesAllCloseOperator)
+
+
+def test_get_mapping_allclose_no_numpy() -> None:
+    with patch("coola.comparators.polars_.is_polars_available", lambda *args, **kwargs: False):
+        assert get_mapping_allclose() == {}
+
+
+##########################################
+#     Tests for get_mapping_equality     #
+##########################################
+
+
+@polars_available
+def test_get_mapping_equality() -> None:
+    mapping = get_mapping_equality()
+    assert len(mapping) == 2
+    assert isinstance(mapping[polars.DataFrame], DataFrameEqualityOperator)
+    assert isinstance(mapping[polars.Series], SeriesEqualityOperator)
+
+
+def test_get_mapping_equality_no_numpy() -> None:
+    with patch("coola.comparators.polars_.is_polars_available", lambda *args, **kwargs: False):
+        assert get_mapping_equality() == {}

@@ -5,14 +5,18 @@ __all__ = [
     "PackedSequenceEqualityOperator",
     "TensorAllCloseOperator",
     "TensorEqualityOperator",
+    "get_mapping_allclose",
+    "get_mapping_equality",
 ]
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from coola.allclose import AllCloseTester, BaseAllCloseOperator, BaseAllCloseTester
-from coola.equality import BaseEqualityOperator, BaseEqualityTester, EqualityTester
-from coola.utils import check_torch, is_torch_available
+from coola.comparators.base import BaseAllCloseOperator, BaseEqualityOperator
+from coola.utils.imports import check_torch, is_torch_available
+
+if TYPE_CHECKING:
+    from coola.testers import BaseAllCloseTester, BaseEqualityTester
 
 if is_torch_available():
     from torch import Tensor, is_tensor
@@ -233,12 +237,33 @@ class TensorEqualityOperator(BaseEqualityOperator[Tensor]):
         return object_equal
 
 
-if is_torch_available():  # pragma: no cover
-    if not AllCloseTester.has_operator(PackedSequence):
-        AllCloseTester.add_operator(PackedSequence, PackedSequenceAllCloseOperator())
-    if not AllCloseTester.has_operator(Tensor):
-        AllCloseTester.add_operator(Tensor, TensorAllCloseOperator())
-    if not EqualityTester.has_operator(PackedSequence):
-        EqualityTester.add_operator(PackedSequence, PackedSequenceEqualityOperator())
-    if not EqualityTester.has_operator(Tensor):
-        EqualityTester.add_operator(Tensor, TensorEqualityOperator())
+def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
+    r"""Gets a default mapping between the types and the allclose
+    operators.
+
+    This function returns an empty dictionary if torch is not
+    installed.
+
+    Returns:
+        dict: The mapping between the types and the allclose
+            operators.
+    """
+    if not is_torch_available():
+        return {}
+    return {Tensor: TensorAllCloseOperator(), PackedSequence: PackedSequenceAllCloseOperator()}
+
+
+def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
+    r"""Gets a default mapping between the types and the equality
+    operators.
+
+    This function returns an empty dictionary if torch is not
+    installed.
+
+    Returns:
+        dict: The mapping between the types and the equality
+            operators.
+    """
+    if not is_torch_available():
+        return {}
+    return {Tensor: TensorEqualityOperator(), PackedSequence: PackedSequenceEqualityOperator()}

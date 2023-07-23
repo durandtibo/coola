@@ -1,13 +1,22 @@
 from __future__ import annotations
 
-__all__ = ["DataFrameAllCloseOperator", "DataFrameEqualityOperator"]
+__all__ = [
+    "DataFrameAllCloseOperator",
+    "DataFrameEqualityOperator",
+    "SeriesAllCloseOperator",
+    "SeriesEqualityOperator",
+    "get_mapping_allclose",
+    "get_mapping_equality",
+]
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from coola.allclose import AllCloseTester, BaseAllCloseOperator, BaseAllCloseTester
-from coola.equality import BaseEqualityOperator, BaseEqualityTester, EqualityTester
-from coola.utils import check_pandas, is_pandas_available
+from coola.comparators.base import BaseAllCloseOperator, BaseEqualityOperator
+from coola.utils.imports import check_pandas, is_pandas_available
+
+if TYPE_CHECKING:
+    from coola.testers import BaseAllCloseTester, BaseEqualityTester
 
 if is_pandas_available():
     from pandas import DataFrame, Series
@@ -230,13 +239,33 @@ class SeriesEqualityOperator(BaseEqualityOperator[Series]):
         return object_equal
 
 
-if is_pandas_available():  # pragma: no cover
-    if not AllCloseTester.has_operator(DataFrame):
-        AllCloseTester.add_operator(DataFrame, DataFrameAllCloseOperator())
-    if not AllCloseTester.has_operator(Series):
-        AllCloseTester.add_operator(Series, SeriesAllCloseOperator())
+def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
+    r"""Gets a default mapping between the types and the allclose
+    operators.
 
-    if not EqualityTester.has_operator(DataFrame):
-        EqualityTester.add_operator(DataFrame, DataFrameEqualityOperator())
-    if not EqualityTester.has_operator(Series):
-        EqualityTester.add_operator(Series, SeriesEqualityOperator())
+    This function returns an empty dictionary if pandas is not
+    installed.
+
+    Returns:
+        dict: The mapping between the types and the allclose
+            operators.
+    """
+    if not is_pandas_available():
+        return {}
+    return {DataFrame: DataFrameAllCloseOperator(), Series: SeriesAllCloseOperator()}
+
+
+def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
+    r"""Gets a default mapping between the types and the equality
+    operators.
+
+    This function returns an empty dictionary if pandas is not
+    installed.
+
+    Returns:
+        dict: The mapping between the types and the equality
+            operators.
+    """
+    if not is_pandas_available():
+        return {}
+    return {DataFrame: DataFrameEqualityOperator(), Series: SeriesEqualityOperator()}

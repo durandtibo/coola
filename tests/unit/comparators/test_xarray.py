@@ -5,8 +5,8 @@ from unittest.mock import Mock, patch
 
 from pytest import LogCaptureFixture, mark, raises
 
-from coola import AllCloseTester, objects_are_allclose
-from coola.comparators.xarray_ import (
+from coola import objects_are_allclose, objects_are_equal
+from coola.comparators import (
     DataArrayAllCloseOperator,
     DataArrayEqualityOperator,
     DatasetAllCloseOperator,
@@ -14,9 +14,10 @@ from coola.comparators.xarray_ import (
     VariableAllCloseOperator,
     VariableEqualityOperator,
 )
-from coola.equality import EqualityTester, objects_are_equal
+from coola.comparators.xarray_ import get_mapping_allclose, get_mapping_equality
+from coola.testers import AllCloseTester, EqualityTester
 from coola.testing import xarray_available
-from coola.utils import is_numpy_available, is_xarray_available
+from coola.utils.imports import is_numpy_available, is_xarray_available
 
 if is_numpy_available():
     import numpy as np
@@ -1102,3 +1103,41 @@ def test_variable_equality_operator_no_xarray() -> None:
     with patch("coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False):
         with raises(RuntimeError, match="`xarray` package is required but not installed."):
             VariableEqualityOperator()
+
+
+##########################################
+#     Tests for get_mapping_allclose     #
+##########################################
+
+
+@xarray_available
+def test_get_mapping_allclose() -> None:
+    mapping = get_mapping_allclose()
+    assert len(mapping) == 3
+    assert isinstance(mapping[xr.DataArray], DataArrayAllCloseOperator)
+    assert isinstance(mapping[xr.Dataset], DatasetAllCloseOperator)
+    assert isinstance(mapping[xr.Variable], VariableAllCloseOperator)
+
+
+def test_get_mapping_allclose_no_xarray() -> None:
+    with patch("coola.comparators.xarray_.is_xarray_available", lambda *args, **kwargs: False):
+        assert get_mapping_allclose() == {}
+
+
+##########################################
+#     Tests for get_mapping_equality     #
+##########################################
+
+
+@xarray_available
+def test_get_mapping_equality() -> None:
+    mapping = get_mapping_equality()
+    assert len(mapping) == 3
+    assert isinstance(mapping[xr.DataArray], DataArrayEqualityOperator)
+    assert isinstance(mapping[xr.Dataset], DatasetEqualityOperator)
+    assert isinstance(mapping[xr.Variable], VariableEqualityOperator)
+
+
+def test_get_mapping_equality_no_xarray() -> None:
+    with patch("coola.comparators.xarray_.is_xarray_available", lambda *args, **kwargs: False):
+        assert get_mapping_equality() == {}
