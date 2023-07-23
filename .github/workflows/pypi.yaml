@@ -19,6 +19,6 @@ jobs:
         uses: snok/install-poetry@v1
       - name: Publish
         env:
-          COOLA_PYPI_TOKEN: ${{ secrets.COOLA_PYPI_TOKEN }}
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
           poetry run make publish-pypi
