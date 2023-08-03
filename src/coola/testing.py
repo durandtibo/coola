@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 __all__ = [
+    "jax_available",
     "numpy_available",
     "pandas_available",
     "polars_available",
@@ -18,6 +19,7 @@ from coola.utils.imports import (
     is_xarray_available,
 )
 
+jax_available = mark.skipif(not is_numpy_available(), reason="Requires JAX")
 numpy_available = mark.skipif(not is_numpy_available(), reason="Requires NumPy")
 pandas_available = mark.skipif(not is_pandas_available(), reason="Requires pandas")
 polars_available = mark.skipif(not is_polars_available(), reason="Requires polars")
