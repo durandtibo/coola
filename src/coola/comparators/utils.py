@@ -18,6 +18,7 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
 
     return (
         cmp.allclose.get_mapping_allclose()
+        | cmp.jax_.get_mapping_allclose()
         | cmp.numpy_.get_mapping_allclose()
         | cmp.pandas_.get_mapping_allclose()
         | cmp.polars_.get_mapping_allclose()
@@ -38,6 +39,7 @@ def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
 
     return (
         cmp.equality.get_mapping_equality()
+        | cmp.jax_.get_mapping_equality()
         | cmp.numpy_.get_mapping_equality()
         | cmp.pandas_.get_mapping_equality()
         | cmp.polars_.get_mapping_equality()
