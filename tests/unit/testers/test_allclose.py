@@ -12,7 +12,7 @@ from coola.comparators import (
     ScalarAllCloseOperator,
     SequenceAllCloseOperator,
 )
-from coola.comparators.numpy_ import NDArrayAllCloseOperator
+from coola.comparators.numpy_ import ArrayAllCloseOperator
 from coola.comparators.torch_ import (
     PackedSequenceAllCloseOperator,
     TensorAllCloseOperator,
@@ -58,7 +58,7 @@ def test_allclose_tester_registry_default() -> None:
 
 @numpy_available
 def test_allclose_tester_registry_numpy() -> None:
-    assert isinstance(AllCloseTester.registry[np.ndarray], NDArrayAllCloseOperator)
+    assert isinstance(AllCloseTester.registry[np.ndarray], ArrayAllCloseOperator)
 
 
 @torch_available

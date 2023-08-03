@@ -1,6 +1,8 @@
 from collections.abc import Mapping, Sequence
 
 from coola.comparators import (
+    ArrayAllCloseOperator,
+    ArrayEqualityOperator,
     DataArrayAllCloseOperator,
     DataArrayEqualityOperator,
     DatasetAllCloseOperator,
@@ -9,8 +11,6 @@ from coola.comparators import (
     DefaultEqualityOperator,
     MappingAllCloseOperator,
     MappingEqualityOperator,
-    NDArrayAllCloseOperator,
-    NDArrayEqualityOperator,
     PackedSequenceAllCloseOperator,
     PackedSequenceEqualityOperator,
     ScalarAllCloseOperator,
@@ -76,7 +76,7 @@ def test_get_mapping_allclose() -> None:
 @numpy_available
 def test_get_mapping_allclose_numpy() -> None:
     mapping = get_mapping_allclose()
-    assert isinstance(mapping[np.ndarray], NDArrayAllCloseOperator)
+    assert isinstance(mapping[np.ndarray], ArrayAllCloseOperator)
 
 
 @pandas_available
@@ -137,7 +137,7 @@ def test_get_mapping_equality() -> None:
 @numpy_available
 def test_get_mapping_equality_numpy() -> None:
     mapping = get_mapping_equality()
-    assert isinstance(mapping[np.ndarray], NDArrayEqualityOperator)
+    assert isinstance(mapping[np.ndarray], ArrayEqualityOperator)
 
 
 @pandas_available
