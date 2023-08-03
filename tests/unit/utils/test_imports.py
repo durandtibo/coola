@@ -5,17 +5,34 @@ from unittest.mock import patch
 from pytest import raises
 
 from coola.utils.imports import (
+    check_jax,
     check_numpy,
     check_pandas,
     check_polars,
     check_torch,
     check_xarray,
+    is_jax_available,
     is_numpy_available,
     is_pandas_available,
     is_polars_available,
     is_torch_available,
     is_xarray_available,
 )
+
+
+def test_check_jax_with_package() -> None:
+    with patch("coola.utils.imports.is_jax_available", lambda *args: True):
+        check_jax()
+
+
+def test_check_jax_without_package() -> None:
+    with patch("coola.utils.imports.is_jax_available", lambda *args: False):
+        with raises(RuntimeError, match="`jax` package is required but not installed."):
+            check_jax()
+
+
+def test_is_jax_available() -> None:
+    assert isinstance(is_jax_available(), bool)
 
 
 def test_check_numpy_with_package() -> None:

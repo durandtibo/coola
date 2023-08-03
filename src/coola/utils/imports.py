@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 __all__ = [
+    "check_jax",
     "check_numpy",
     "check_pandas",
     "check_polars",
     "check_torch",
     "check_xarray",
+    "is_jax_available",
     "is_numpy_available",
     "is_pandas_available",
     "is_polars_available",
@@ -14,6 +16,25 @@ __all__ = [
 ]
 
 from importlib.util import find_spec
+
+
+def is_jax_available() -> bool:
+    r"""Indicates if the jax package is installed or not."""
+    return find_spec("jax") is not None
+
+
+def check_jax() -> None:
+    r"""Checks if the jax package is installed.
+
+    Raises:
+        RuntimeError if the jax package is not installed.
+    """
+    if not is_jax_available():
+        raise RuntimeError(
+            "`jax` package is required but not installed. "
+            "You can install `jax` package with the command:\n\n"
+            "pip install jax\n"
+        )
 
 
 def is_numpy_available() -> bool:
