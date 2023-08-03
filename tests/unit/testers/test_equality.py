@@ -6,10 +6,10 @@ from unittest.mock import Mock, patch
 from pytest import raises
 
 from coola.comparators import (
+    ArrayEqualityOperator,
     BaseEqualityOperator,
     DefaultEqualityOperator,
     MappingEqualityOperator,
-    NDArrayEqualityOperator,
     PackedSequenceEqualityOperator,
     SequenceEqualityOperator,
     TensorEqualityOperator,
@@ -50,7 +50,7 @@ def test_equality_tester_registry_default() -> None:
 
 @numpy_available
 def test_equality_tester_registry_numpy() -> None:
-    assert isinstance(EqualityTester.registry[np.ndarray], NDArrayEqualityOperator)
+    assert isinstance(EqualityTester.registry[np.ndarray], ArrayEqualityOperator)
 
 
 @torch_available

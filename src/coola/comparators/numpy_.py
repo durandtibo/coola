@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 __all__ = [
-    "NDArrayAllCloseOperator",
-    "NDArrayEqualityOperator",
+    "ArrayAllCloseOperator",
+    "ArrayEqualityOperator",
     "get_mapping_allclose",
     "get_mapping_equality",
 ]
 
 import logging
 from typing import TYPE_CHECKING, Any
+from unittest.mock import Mock
 
 from coola.comparators.base import BaseAllCloseOperator, BaseEqualityOperator
 from coola.utils.imports import check_numpy, is_numpy_available
@@ -17,17 +18,18 @@ if TYPE_CHECKING:
     from coola.testers import BaseAllCloseTester, BaseEqualityTester
 
 if is_numpy_available():
-    from numpy import allclose, array_equal, ndarray
-else:
-    ndarray, array_equal, allclose = None, None, None  # pragma: no cover
+    import numpy as np
+else:  # pragma: no cover
+    np = Mock()
 
 logger = logging.getLogger(__name__)
 
 
-class NDArrayAllCloseOperator(BaseAllCloseOperator[ndarray]):
+class ArrayAllCloseOperator(BaseAllCloseOperator[np.ndarray]):
     r"""Implements an allclose operator for ``numpy.ndarray``.
 
     Args:
+    ----
         check_dtype (bool, optional): If ``True``, the data type of
             the arrays are checked, otherwise the data types are
             ignored. Default: ``True``
@@ -48,7 +50,7 @@ class NDArrayAllCloseOperator(BaseAllCloseOperator[ndarray]):
     def allclose(
         self,
         tester: BaseAllCloseTester,
-        object1: ndarray,
+        object1: np.ndarray,
         object2: Any,
         rtol: float = 1e-5,
         atol: float = 1e-8,
@@ -57,7 +59,7 @@ class NDArrayAllCloseOperator(BaseAllCloseOperator[ndarray]):
     ) -> bool:
         if object1 is object2:
             return True
-        if not isinstance(object2, ndarray):
+        if not isinstance(object2, np.ndarray):
             if show_difference:
                 logger.info(f"object2 is not a numpy.ndarray: {type(object2)}")
             return False
@@ -73,19 +75,20 @@ class NDArrayAllCloseOperator(BaseAllCloseOperator[ndarray]):
                     f"numpy.ndarray shapes are different: {object1.shape} vs {object2.shape}"
                 )
             return False
-        object_equal = allclose(object1, object2, rtol=rtol, atol=atol, equal_nan=equal_nan)
+        object_equal = np.allclose(object1, object2, rtol=rtol, atol=atol, equal_nan=equal_nan)
         if show_difference and not object_equal:
             logger.info(f"numpy.ndarrays are different\nobject1=\n{object1}\nobject2=\n{object2}")
         return object_equal
 
-    def clone(self) -> NDArrayAllCloseOperator:
+    def clone(self) -> ArrayAllCloseOperator:
         return self.__class__(check_dtype=self._check_dtype)
 
 
-class NDArrayEqualityOperator(BaseEqualityOperator[ndarray]):
+class ArrayEqualityOperator(BaseEqualityOperator[np.ndarray]):
     r"""Implements an equality operator for ``numpy.ndarray``.
 
     Args:
+    ----
         check_dtype (bool, optional): If ``True``, the data type of
             the arrays are checked, otherwise the data types are
             ignored. Default: ``True``
@@ -103,19 +106,19 @@ class NDArrayEqualityOperator(BaseEqualityOperator[ndarray]):
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}(check_dtype={self._check_dtype})"
 
-    def clone(self) -> NDArrayEqualityOperator:
+    def clone(self) -> ArrayEqualityOperator:
         return self.__class__(check_dtype=self._check_dtype)
 
     def equal(
         self,
         tester: BaseEqualityTester,
-        object1: ndarray,
+        object1: np.ndarray,
         object2: Any,
         show_difference: bool = False,
     ) -> bool:
         if object1 is object2:
             return True
-        if not isinstance(object2, ndarray):
+        if not isinstance(object2, np.ndarray):
             if show_difference:
                 logger.info(f"object2 is not a numpy.ndarray: {type(object2)}")
             return False
@@ -131,7 +134,7 @@ class NDArrayEqualityOperator(BaseEqualityOperator[ndarray]):
                     f"numpy.ndarray shapes are different: {object1.shape} vs {object2.shape}"
                 )
             return False
-        object_equal = array_equal(object1, object2)
+        object_equal = np.array_equal(object1, object2)
         if show_difference and not object_equal:
             logger.info(f"numpy.ndarrays are different\nobject1=\n{object1}\nobject2=\n{object2}")
         return object_equal
@@ -145,12 +148,13 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
     installed.
 
     Returns:
+    -------
         dict: The mapping between the types and the allclose
             operators.
     """
     if not is_numpy_available():
         return {}
-    return {ndarray: NDArrayAllCloseOperator()}
+    return {np.ndarray: ArrayAllCloseOperator()}
 
 
 def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
@@ -161,9 +165,10 @@ def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
     installed.
 
     Returns:
+    -------
         dict: The mapping between the types and the equality
             operators.
     """
     if not is_numpy_available():
         return {}
-    return {ndarray: NDArrayEqualityOperator()}
+    return {np.ndarray: ArrayEqualityOperator()}
