@@ -5,6 +5,7 @@ from unittest.mock import Mock, patch
 
 from pytest import LogCaptureFixture, mark, raises
 
+from coola import objects_are_allclose, objects_are_equal
 from coola.comparators import ArrayAllCloseOperator, ArrayEqualityOperator
 from coola.comparators.numpy_ import get_mapping_allclose, get_mapping_equality
 from coola.testers import AllCloseTester, EqualityTester
@@ -17,9 +18,24 @@ else:
     np = Mock()
 
 
+@numpy_available
+def test_allclose_tester_registry() -> None:
+    assert isinstance(AllCloseTester.registry[np.ndarray], ArrayAllCloseOperator)
+
+
+@numpy_available
+def test_equality_tester_registry() -> None:
+    assert isinstance(EqualityTester.registry[np.ndarray], ArrayEqualityOperator)
+
+
 ###########################################
 #     Tests for ArrayAllCloseOperator     #
 ###########################################
+
+
+@numpy_available
+def test_objects_are_allclose_array() -> None:
+    assert objects_are_allclose(np.ones((2, 3)), np.ones((2, 3)))
 
 
 @numpy_available
@@ -216,6 +232,11 @@ def test_array_allclose_operator_no_numpy() -> None:
 ###########################################
 #     Tests for ArrayEqualityOperator     #
 ###########################################
+
+
+@numpy_available
+def test_objects_are_equal_array() -> None:
+    assert objects_are_equal(np.ones((2, 3)), np.ones((2, 3)))
 
 
 @numpy_available

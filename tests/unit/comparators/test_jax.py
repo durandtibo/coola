@@ -5,9 +5,13 @@ from unittest.mock import Mock, patch
 
 from pytest import LogCaptureFixture, mark, raises
 
-from coola import AllCloseTester
+from coola import AllCloseTester, objects_are_allclose, objects_are_equal
 from coola.comparators import JaxArrayAllCloseOperator, JaxArrayEqualityOperator
-from coola.comparators.jax_ import get_mapping_allclose, get_mapping_equality
+from coola.comparators.jax_ import (
+    get_array_impl_class,
+    get_mapping_allclose,
+    get_mapping_equality,
+)
 from coola.testers import EqualityTester
 from coola.testing import jax_available
 from coola.utils.imports import is_jax_available
@@ -18,9 +22,24 @@ else:
     jnp = Mock()
 
 
+@jax_available
+def test_allclose_tester_registry() -> None:
+    assert isinstance(AllCloseTester.registry[jnp.ndarray], JaxArrayAllCloseOperator)
+
+
+@jax_available
+def test_equality_tester_registry() -> None:
+    assert isinstance(EqualityTester.registry[jnp.ndarray], JaxArrayEqualityOperator)
+
+
 ##############################################
 #     Tests for JaxArrayAllCloseOperator     #
 ##############################################
+
+
+@jax_available
+def test_objects_are_allclose_array() -> None:
+    assert objects_are_allclose(jnp.ones((2, 3)), jnp.ones((2, 3)))
 
 
 @jax_available
@@ -226,6 +245,11 @@ def test_jax_darray_allclose_operator_no_jax() -> None:
 
 
 @jax_available
+def test_objects_are_equal_array() -> None:
+    assert objects_are_equal(jnp.ones((2, 3)), jnp.ones((2, 3)))
+
+
+@jax_available
 def test_jax_array_equality_operator_str() -> None:
     assert str(JaxArrayEqualityOperator()).startswith("JaxArrayEqualityOperator(")
 
@@ -379,8 +403,9 @@ def test_jax_array_equality_operator_no_jax() -> None:
 @jax_available
 def test_get_mapping_allclose() -> None:
     mapping = get_mapping_allclose()
-    assert len(mapping) == 1
+    assert len(mapping) == 2
     assert isinstance(mapping[jnp.ndarray], JaxArrayAllCloseOperator)
+    assert isinstance(mapping[get_array_impl_class()], JaxArrayAllCloseOperator)
 
 
 def test_get_mapping_allclose_no_jax() -> None:
@@ -396,8 +421,9 @@ def test_get_mapping_allclose_no_jax() -> None:
 @jax_available
 def test_get_mapping_equality() -> None:
     mapping = get_mapping_equality()
-    assert len(mapping) == 1
+    assert len(mapping) == 2
     assert isinstance(mapping[jnp.ndarray], JaxArrayEqualityOperator)
+    assert isinstance(mapping[get_array_impl_class()], JaxArrayEqualityOperator)
 
 
 def test_get_mapping_equality_no_jax() -> None:

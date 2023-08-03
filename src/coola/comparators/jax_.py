@@ -8,6 +8,7 @@ __all__ = [
 ]
 
 import logging
+from functools import lru_cache
 from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock
 
@@ -22,12 +23,12 @@ if is_jax_available():
 else:  # pragma: no cover
     jnp = Mock()
 
-
 logger = logging.getLogger(__name__)
 
 
 class JaxArrayAllCloseOperator(BaseAllCloseOperator[jnp.ndarray]):
-    r"""Implements an allclose operator for ``jax.numpy.ndarray``.
+    r"""Implements an allclose operator for
+    ``jax.Array``/``jax.numpy.ndarray``.
 
     Args:
     ----
@@ -88,7 +89,8 @@ class JaxArrayAllCloseOperator(BaseAllCloseOperator[jnp.ndarray]):
 
 
 class JaxArrayEqualityOperator(BaseEqualityOperator[jnp.ndarray]):
-    r"""Implements an equality operator for ``jax.numpy.ndarray``.
+    r"""Implements an equality operator for
+    ``jax.Array``/``jax.numpy.ndarray``.
 
     Args:
     ----
@@ -159,7 +161,10 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
     """
     if not is_jax_available():
         return {}
-    return {jnp.ndarray: JaxArrayAllCloseOperator()}
+    return {
+        jnp.ndarray: JaxArrayAllCloseOperator(),
+        get_array_impl_class(): JaxArrayAllCloseOperator(),
+    }
 
 
 def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
@@ -176,4 +181,18 @@ def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
     """
     if not is_jax_available():
         return {}
-    return {jnp.ndarray: JaxArrayEqualityOperator()}
+    return {
+        jnp.ndarray: JaxArrayEqualityOperator(),
+        get_array_impl_class(): JaxArrayEqualityOperator(),
+    }
+
+
+@lru_cache(maxsize=1)
+def get_array_impl_class() -> type:
+    r"""Gets the array implementation class.
+
+    Returns:
+    -------
+        The array implementation class.
+    """
+    return jnp.ones(1).__class__
