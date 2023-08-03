@@ -16,9 +16,9 @@ from coola.formatters import (
     TensorFormatter,
 )
 from coola.summarizers.base import BaseSummarizer
+from coola.types import Tensor, ndarray
 from coola.utils import is_numpy_available, is_torch_available
 from coola.utils.format import str_indent, str_mapping
-from coola.utils.types import Tensor, ndarray
 
 
 class Summarizer(BaseSummarizer):
