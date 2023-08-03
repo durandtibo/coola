@@ -9,6 +9,8 @@ from coola.comparators import (
     DatasetEqualityOperator,
     DefaultAllCloseOperator,
     DefaultEqualityOperator,
+    JaxArrayAllCloseOperator,
+    JaxArrayEqualityOperator,
     MappingAllCloseOperator,
     MappingEqualityOperator,
     PackedSequenceAllCloseOperator,
@@ -24,6 +26,7 @@ from coola.comparators import (
     get_mapping_equality,
 )
 from coola.testing import (
+    jax_available,
     numpy_available,
     pandas_available,
     polars_available,
@@ -31,12 +34,16 @@ from coola.testing import (
     xarray_available,
 )
 from coola.utils.imports import (
+    is_jax_available,
     is_numpy_available,
     is_pandas_available,
     is_polars_available,
     is_torch_available,
     is_xarray_available,
 )
+
+if is_jax_available():
+    import jax.numpy as jnp
 
 if is_numpy_available():
     import numpy as np
@@ -71,6 +78,12 @@ def test_get_mapping_allclose() -> None:
     assert isinstance(mapping[list], SequenceAllCloseOperator)
     assert isinstance(mapping[object], DefaultAllCloseOperator)
     assert isinstance(mapping[tuple], SequenceAllCloseOperator)
+
+
+@jax_available
+def test_get_mapping_allclose_jax() -> None:
+    mapping = get_mapping_allclose()
+    assert isinstance(mapping[jnp.ndarray], JaxArrayAllCloseOperator)
 
 
 @numpy_available
@@ -132,6 +145,12 @@ def test_get_mapping_equality() -> None:
     assert isinstance(mapping[list], SequenceEqualityOperator)
     assert isinstance(mapping[object], DefaultEqualityOperator)
     assert isinstance(mapping[tuple], SequenceEqualityOperator)
+
+
+@jax_available
+def test_get_mapping_equality_jax() -> None:
+    mapping = get_mapping_equality()
+    assert isinstance(mapping[jnp.ndarray], JaxArrayEqualityOperator)
 
 
 @numpy_available
