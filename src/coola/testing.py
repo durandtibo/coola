@@ -12,11 +12,12 @@ __all__ = [
 from pytest import mark
 
 from coola.utils.imports import (
+    is_jax_available,
     is_numpy_available,
     is_pandas_available,
     is_polars_available,
     is_torch_available,
-    is_xarray_available, is_jax_available,
+    is_xarray_available,
 )
 
 jax_available = mark.skipif(not is_jax_available(), reason="Requires JAX")
