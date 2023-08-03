@@ -15,7 +15,7 @@ T = TypeVar("T")
 
 
 class BaseAllCloseOperator(ABC, Generic[T]):
-    r"""Define the base class to implement an equality operator."""
+    r"""Defines the base class to implement an equality operator."""
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
@@ -34,6 +34,7 @@ class BaseAllCloseOperator(ABC, Generic[T]):
         r"""Indicates if two objects are equal within a tolerance.
 
         Args:
+        ----
             tester (``BaseAllCloseTester``): Specifies an equality
                 tester.
             object1: Specifies the first object to compare.
@@ -50,6 +51,7 @@ class BaseAllCloseOperator(ABC, Generic[T]):
                 difference between two objects. Default: ``False``
 
         Returns:
+        -------
             bool: ``True`` if the two objects are equal within a
                 tolerance, otherwise ``False``
         """
@@ -59,12 +61,13 @@ class BaseAllCloseOperator(ABC, Generic[T]):
         r"""Returns a copy of the equality operator.
 
         Returns:
+        -------
             ``BaseAllCloseOperator``: A copy of the equality operator.
         """
 
 
 class BaseEqualityOperator(ABC, Generic[T]):
-    r"""Define the base class to implement an equality operator."""
+    r"""Defines the base class to implement an equality operator."""
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
@@ -74,6 +77,7 @@ class BaseEqualityOperator(ABC, Generic[T]):
         r"""Returns a copy of the equality operator.
 
         Returns:
+        -------
             ``BaseEqualityOperator``: A copy of the equality operator.
         """
 
@@ -84,6 +88,7 @@ class BaseEqualityOperator(ABC, Generic[T]):
         r"""Indicates if two objects are equal or not.
 
         Args:
+        ----
             tester (``BaseEqualityTester``): Specifies an equality
                 tester.
             object1: Specifies the first object to compare.
@@ -94,6 +99,7 @@ class BaseEqualityOperator(ABC, Generic[T]):
                 difference between two objects. Default: ``False``
 
         Returns:
+        -------
             bool: ``True`` if the two objects are equal, otherwise
                 ``False``.
         """

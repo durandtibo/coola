@@ -5,6 +5,7 @@ from unittest.mock import Mock, patch
 
 from pytest import LogCaptureFixture, mark, raises
 
+from coola import objects_are_allclose, objects_are_equal
 from coola.comparators import (
     PackedSequenceAllCloseOperator,
     PackedSequenceEqualityOperator,
@@ -30,6 +31,21 @@ else:
 ####################################################
 #     Tests for PackedSequenceAllCloseOperator     #
 ####################################################
+
+
+def test_objects_are_allclose_packed_sequence() -> None:
+    assert objects_are_allclose(
+        torch.nn.utils.rnn.pack_padded_sequence(
+            input=torch.arange(10, dtype=torch.float).view(2, 5),
+            lengths=torch.tensor([5, 3], dtype=torch.long),
+            batch_first=True,
+        ),
+        torch.nn.utils.rnn.pack_padded_sequence(
+            input=torch.arange(10, dtype=torch.float).view(2, 5),
+            lengths=torch.tensor([5, 3], dtype=torch.long),
+            batch_first=True,
+        ),
+    )
 
 
 @torch_available
@@ -240,6 +256,21 @@ def test_packed_sequence_allclose_operator_no_torch() -> None:
 ####################################################
 
 
+def test_objects_are_equal_packed_sequence() -> None:
+    assert objects_are_equal(
+        torch.nn.utils.rnn.pack_padded_sequence(
+            input=torch.arange(10, dtype=torch.float).view(2, 5),
+            lengths=torch.tensor([5, 3], dtype=torch.long),
+            batch_first=True,
+        ),
+        torch.nn.utils.rnn.pack_padded_sequence(
+            input=torch.arange(10, dtype=torch.float).view(2, 5),
+            lengths=torch.tensor([5, 3], dtype=torch.long),
+            batch_first=True,
+        ),
+    )
+
+
 @torch_available
 def test_packed_sequence_equality_operator_str() -> None:
     assert str(PackedSequenceEqualityOperator()) == "PackedSequenceEqualityOperator()"
@@ -389,6 +420,10 @@ def test_packed_sequence_equality_operator_no_torch() -> None:
 ############################################
 #     Tests for TensorAllCloseOperator     #
 ############################################
+
+
+def test_objects_are_allclose_tensor() -> None:
+    assert objects_are_allclose(torch.ones(2, 3), torch.ones(2, 3))
 
 
 @torch_available
@@ -616,6 +651,10 @@ def test_tensor_allclose_operator_no_torch() -> None:
 ############################################
 #     Tests for TensorEqualityOperator     #
 ############################################
+
+
+def test_objects_are_equal_tensor() -> None:
+    assert objects_are_equal(torch.ones(2, 3), torch.ones(2, 3))
 
 
 @torch_available
