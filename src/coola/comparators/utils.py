@@ -11,19 +11,20 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
     operators.
 
     Returns:
+    -------
         dict: The mapping between the types and the allclose
             operators.
     """
-    from coola import comparators as cmp  # Local import to avoid cyclic dependencies
+    from coola import comparators  # Local import to avoid cyclic dependencies
 
     return (
-        cmp.allclose.get_mapping_allclose()
-        | cmp.jax_.get_mapping_allclose()
-        | cmp.numpy_.get_mapping_allclose()
-        | cmp.pandas_.get_mapping_allclose()
-        | cmp.polars_.get_mapping_allclose()
-        | cmp.torch_.get_mapping_allclose()
-        | cmp.xarray_.get_mapping_allclose()
+        comparators.allclose.get_mapping_allclose()
+        | comparators.jax_.get_mapping_allclose()
+        | comparators.numpy_.get_mapping_allclose()
+        | comparators.pandas_.get_mapping_allclose()
+        | comparators.polars_.get_mapping_allclose()
+        | comparators.torch_.get_mapping_allclose()
+        | comparators.xarray_.get_mapping_allclose()
     )
 
 
@@ -32,17 +33,18 @@ def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
     operators.
 
     Returns:
+    -------
         dict: The mapping between the types and the equality
             operators.
     """
-    from coola import comparators as cmp  # Local import to avoid cyclic dependencies
+    from coola import comparators  # Local import to avoid cyclic dependencies
 
     return (
-        cmp.equality.get_mapping_equality()
-        | cmp.jax_.get_mapping_equality()
-        | cmp.numpy_.get_mapping_equality()
-        | cmp.pandas_.get_mapping_equality()
-        | cmp.polars_.get_mapping_equality()
-        | cmp.torch_.get_mapping_equality()
-        | cmp.xarray_.get_mapping_equality()
+        comparators.equality.get_mapping_equality()
+        | comparators.jax_.get_mapping_equality()
+        | comparators.numpy_.get_mapping_equality()
+        | comparators.pandas_.get_mapping_equality()
+        | comparators.polars_.get_mapping_equality()
+        | comparators.torch_.get_mapping_equality()
+        | comparators.xarray_.get_mapping_equality()
     )
