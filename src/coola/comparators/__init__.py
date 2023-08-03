@@ -7,6 +7,7 @@ __all__ = [
     "DatasetEqualityOperator",
     "DefaultAllCloseOperator",
     "DefaultEqualityOperator",
+    "JaxArrayEqualityOperator",
     "MappingAllCloseOperator",
     "MappingEqualityOperator",
     "NDArrayAllCloseOperator",
@@ -37,6 +38,7 @@ from coola.comparators.equality import (
     MappingEqualityOperator,
     SequenceEqualityOperator,
 )
+from coola.comparators.jax_ import JaxArrayEqualityOperator
 from coola.comparators.numpy_ import NDArrayAllCloseOperator, NDArrayEqualityOperator
 from coola.comparators.torch_ import (
     PackedSequenceAllCloseOperator,
