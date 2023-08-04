@@ -28,7 +28,7 @@ jobs:
         run: |
           pip install "coola[all]"
 
-      - name: Run short experiment
+      - name: Tests
         run: |
           python -c "import coola; import torch; import numpy; " \
             "assert coola.is_jax_available(); " \
@@ -39,6 +39,15 @@ jobs:
             "assert coola.is_xarray_available(); " \
             "assert coola.objects_are_equal(torch.arange(6), torch.arange(6)); " \
             "assert coola.objects_are_equal(numpy.arange(6), numpy.arange(6)); "
+
+      - name: Check imports
+        run: |
+          python -c "from coola import objects_are_allclose, objects_are_equal, summary"
+          python -c "from coola.comparators import BaseAllCloseOperator, BaseEqualityOperator"
+          python -c "from coola.formatters import BaseFormatter"
+          python -c "from coola.reducers import BaseReducer"
+          python -c "from coola.summarizers import BaseSummarizer"
+          python -c "from coola.testers import BaseAllCloseTester, BaseEqualityTester"
 
   package-minimal:
     runs-on: ${{ matrix.os }}
@@ -63,7 +72,7 @@ jobs:
         run: |
           pip install coola
 
-      - name: Run short experiment
+      - name: Tests
         run: |
           python -c "import coola; " \
             "assert coola.objects_are_equal(1.0, 1.0); " \
@@ -98,7 +107,7 @@ jobs:
         run: |
           pip install coola jax==${{ matrix.jax-version }} jaxlib==${{ matrix.jax-version }}
 
-      - name: Run short experiment
+      - name: Tests
         run: |
           python -c "import coola; import jax; assert coola.objects_are_equal(jax.numpy.arange(6), jax.numpy.arange(6))"
 
@@ -129,7 +138,7 @@ jobs:
         run: |
           pip install coola numpy==${{ matrix.numpy-version }}
 
-      - name: Run short experiment
+      - name: Tests
         run: |
           python -c "import coola; import numpy; assert coola.objects_are_equal(numpy.arange(6), numpy.arange(6))"
 
@@ -162,7 +171,7 @@ jobs:
         run: |
           pip install coola pandas==${{ matrix.pandas-version }}
 
-      - name: Run short experiment
+      - name: Tests
         run: |
           python -c "import coola; import pandas; " \
             "assert coola.objects_are_equal(pandas.DataFrame({"col1": [1,2,3,4,5], "col2": [1.1,2.2,3.3,4.4,5.5]}), pandas.DataFrame({"col1": [1,2,3,4,5], "col2": [1.1,2.2,3.3,4.4,5.5]}))"
@@ -191,7 +200,7 @@ jobs:
         run: |
           pip install coola polars==${{ matrix.polars-version }}
 
-      - name: Run short experiment
+      - name: Tests
         run: |
           python -c "import coola; import polars; " \
             "assert coola.objects_are_equal(polars.DataFrame({"col1": [1,2,3,4,5], "col2": [1.1,2.2,3.3,4.4,5.5]}), polars.DataFrame({"col1": [1,2,3,4,5], "col2": [1.1,2.2,3.3,4.4,5.5]}))"
@@ -230,7 +239,7 @@ jobs:
         run: |
           pip install coola torch==${{ matrix.pytorch-version }}
 
-      - name: Run short experiment
+      - name: Tests
         run: |
           python -c "import coola; import torch; assert coola.objects_are_equal(torch.arange(6), torch.arange(6))"
 
@@ -258,7 +267,7 @@ jobs:
         run: |
           pip install coola xarray==${{ matrix.xarray-version }}
 
-      - name: Run short experiment
+      - name: Tests
         run: |
           python -c "import coola; import xarray as xr; import numpy as np; " \
             "assert coola.objects_are_equal(xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"]))"
