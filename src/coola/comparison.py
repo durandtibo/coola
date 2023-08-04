@@ -24,6 +24,7 @@ def objects_are_allclose(
     r"""Indicates if two objects are equal within a tolerance.
 
     Args:
+    ----
         object1: Specifies the first object to compare.
         object2: Specifies the second object to compare.
         rtol (float, optional): Specifies the relative tolerance
@@ -41,6 +42,7 @@ def objects_are_allclose(
             ``AllCloseTester`` is used. Default: ``None``.
 
     Returns:
+    -------
         bool: ``True`` if the two objects are (element-wise) equal
             within a tolerance, otherwise ``False``
 
@@ -81,6 +83,7 @@ def objects_are_equal(
     r"""Indicates if two objects are equal or not.
 
     Args:
+    ----
         object1: Specifies the first object to compare.
         object2: Specifies the second object to compare.
         show_difference (bool, optional): If ``True``, it shows a
@@ -92,6 +95,7 @@ def objects_are_equal(
             ``EqualityTester`` is used. Default: ``None``.
 
     Returns:
+    -------
         bool: ``True`` if the two nested data are equal, otherwise
             ``False``.
 

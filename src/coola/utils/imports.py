@@ -19,15 +19,21 @@ from importlib.util import find_spec
 
 
 def is_jax_available() -> bool:
-    r"""Indicates if the jax package is installed or not."""
+    r"""Indicates if the ``jax`` package is installed or not.
+
+    Returns:
+    -------
+        bool: ``True`` if ``jax`` is available otherwise ``False``.
+    """
     return find_spec("jax") is not None
 
 
 def check_jax() -> None:
-    r"""Checks if the jax package is installed.
+    r"""Checks if the ``jax`` package is installed.
 
     Raises:
-        RuntimeError if the jax package is not installed.
+    ------
+        RuntimeError if the ``jax`` package is not installed.
     """
     if not is_jax_available():
         raise RuntimeError(
@@ -38,15 +44,21 @@ def check_jax() -> None:
 
 
 def is_numpy_available() -> bool:
-    r"""Indicates if the NumPy package is installed or not."""
+    r"""Indicates if the ``numpy`` package is installed or not.
+
+    Returns:
+    -------
+        bool: ``True`` if ``numpy`` is available otherwise ``False``.
+    """
     return find_spec("numpy") is not None
 
 
 def check_numpy() -> None:
-    r"""Checks if the numpy package is installed.
+    r"""Checks if the ``numpy`` package is installed.
 
     Raises:
-        RuntimeError if the numpy package is not installed.
+    ------
+        RuntimeError if the ``numpy`` package is not installed.
     """
     if not is_numpy_available():
         raise RuntimeError(
@@ -57,15 +69,21 @@ def check_numpy() -> None:
 
 
 def is_pandas_available() -> bool:
-    r"""Indicates if the pandas package is installed or not."""
+    r"""Indicates if the ``pandas`` package is installed or not.
+
+    Returns:
+    -------
+        bool: ``True`` if ``pandas`` is available otherwise ``False``.
+    """
     return find_spec("pandas") is not None
 
 
 def check_pandas() -> None:
-    r"""Checks if the pandas package is installed.
+    r"""Checks if the ``pandas`` package is installed.
 
     Raises:
-        RuntimeError if the pandas package is not installed.
+    ------
+        RuntimeError if the ``pandas`` package is not installed.
     """
     if not is_pandas_available():
         raise RuntimeError(
@@ -76,15 +94,21 @@ def check_pandas() -> None:
 
 
 def is_polars_available() -> bool:
-    r"""Indicates if the polars package is installed or not."""
+    r"""Indicates if the ``polars`` package is installed or not.
+
+    Returns:
+    -------
+        bool: ``True`` if ``polars`` is available otherwise ``False``.
+    """
     return find_spec("polars") is not None
 
 
 def check_polars() -> None:
-    r"""Checks if the polars package is installed.
+    r"""Checks if the ``polars`` package is installed.
 
     Raises:
-        RuntimeError if the polars package is not installed.
+    ------
+        RuntimeError if the ``polars`` package is not installed.
     """
     if not is_polars_available():
         raise RuntimeError(
@@ -95,15 +119,20 @@ def check_polars() -> None:
 
 
 def is_torch_available() -> bool:
-    r"""Indicates if the torch package is installed or not."""
+    r"""Indicates if the ``torch`` package is installed or not.
+
+    Returns:
+    -------
+        bool: ``True`` if ``torch`` is available otherwise ``False``.
+    """
     return find_spec("torch") is not None
 
 
 def check_torch() -> None:
-    r"""Checks if the torch package is installed.
+    r"""Checks if the ``torch`` package is installed.
 
     Raises:
-        RuntimeError if the torch package is not installed.
+        RuntimeError if the ``torch`` package is not installed.
     """
     if not is_torch_available():
         raise RuntimeError(
@@ -114,15 +143,21 @@ def check_torch() -> None:
 
 
 def is_xarray_available() -> bool:
-    r"""Indicates if the NumPy package is installed or not."""
+    r"""Indicates if the ``xarray`` package is installed or not.
+
+    Returns:
+    -------
+        bool: ``True`` if ``xarray`` is available otherwise ``False``.
+    """
     return find_spec("xarray") is not None
 
 
 def check_xarray() -> None:
-    r"""Checks if the xarray package is installed.
+    r"""Checks if the ``xarray`` package is installed.
 
     Raises:
-        RuntimeError if the xarray package is not installed.
+    ------
+        RuntimeError if the ``xarray`` package is not installed.
     """
     if not is_xarray_available():
         raise RuntimeError(
