@@ -97,6 +97,20 @@ from coola import objects_are_allclose
 objects_are_allclose(data1, data2, atol=1e-6)
 ```
 
+The current supported types are:
+
+- [`jax.numpy.ndarray`](https://jax.readthedocs.io/en/latest/index.html)
+- [`numpy.ndarray`](https://numpy.org/doc/stable/index.html)
+- [`pandas.DataFrame`](https://pandas.pydata.org/)
+- [`pandas.Series`](https://pandas.pydata.org/)
+- [`polars.DataFrame`](https://www.pola.rs/)
+- [`polars.Series`](https://www.pola.rs/)
+- [`torch.Tensor`](https://pytorch.org/)
+- [`torch.nn.utils.rnn.PackedSequence`](https://pytorch.org/)
+- [`xarray.DataArray`](https://docs.xarray.dev/en/stable/)
+- [`xarray.Dataset`](https://docs.xarray.dev/en/stable/)
+- [`xarray.Variable`](https://docs.xarray.dev/en/stable/)
+
 Please check the [quickstart page](https://durandtibo.github.io/coola/quickstart) to learn more on
 how to use `coola`.
 

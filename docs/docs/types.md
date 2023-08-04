@@ -3,6 +3,20 @@
 :book: This page describes what types are currently supported and what rules are used to check if
 two objects are equal or not.
 
+The current supported types are:
+
+- [`jax.numpy.ndarray`](https://jax.readthedocs.io/en/latest/index.html)
+- [`numpy.ndarray`](https://numpy.org/doc/stable/index.html)
+- [`pandas.DataFrame`](https://pandas.pydata.org/)
+- [`pandas.Series`](https://pandas.pydata.org/)
+- [`polars.DataFrame`](https://www.pola.rs/)
+- [`polars.Series`](https://www.pola.rs/)
+- [`torch.Tensor`](https://pytorch.org/)
+- [`torch.nn.utils.rnn.PackedSequence`](https://pytorch.org/)
+- [`xarray.DataArray`](https://docs.xarray.dev/en/stable/)
+- [`xarray.Dataset`](https://docs.xarray.dev/en/stable/)
+- [`xarray.Variable`](https://docs.xarray.dev/en/stable/)
+
 ## Equal
 
 ### `object`
@@ -506,7 +520,6 @@ objects_are_allclose(numpy.ones((2, 3)), numpy.ones((2, 3), dtype=int))  # False
 objects_are_allclose(numpy.ones((2, 3)), numpy.zeros((2, 3)))  # False
 objects_are_allclose(numpy.ones((2, 3)), numpy.ones((6,)))  # False
 ```
-
 
 ### xarray
 
