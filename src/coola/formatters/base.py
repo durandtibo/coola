@@ -110,7 +110,8 @@ class BaseFormatter(ABC, Generic[T]):
     def state_dict(self) -> dict:
         r"""Return a dictionary containing state values.
 
-        Example usage:
+        Returns:
+        -------
             dict: the state values in a dict.
 
         Example usage:

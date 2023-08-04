@@ -29,6 +29,7 @@ class EqualityTester(BaseEqualityTester):
         r"""Adds an equality operator for a given data type.
 
         Args:
+        ----
             data_type: Specifies the data type for this test.
             operator (``BaseEqualityOperator``): Specifies the operator
                 used to test the equality of the specified type.
@@ -38,6 +39,7 @@ class EqualityTester(BaseEqualityTester):
                 operator for a type. Default: ``False``.
 
         Raises:
+        ------
             RuntimeError if an operator is already registered for the
                 data type and ``exist_ok=False``.
 
@@ -61,6 +63,7 @@ class EqualityTester(BaseEqualityTester):
         r"""Indicates if two objects are equal or not.
 
         Args:
+        ----
             object1: Specifies the first object to compare.
             object2: Specifies the second object to compare.
             show_difference (bool, optional): If ``True``, it shows a
@@ -69,6 +72,7 @@ class EqualityTester(BaseEqualityTester):
                 difference between two objects. Default: ``False``
 
         Returns:
+        -------
             bool: ``True`` if the two objects are equal, otherwise
                 ``False``.
 
@@ -95,9 +99,11 @@ class EqualityTester(BaseEqualityTester):
         data type.
 
         Args:
+        ----
             data_type: Specifies the data type to check.
 
         Returns:
+        -------
             bool: ``True`` if an equality operator is registered,
                 otherwise ``False``.
 
@@ -118,9 +124,11 @@ class EqualityTester(BaseEqualityTester):
         r"""Finds the equality operator associated to an object.
 
         Args:
+        ----
             data_type: Specifies the data type to get.
 
         Returns:
+        -------
             ``BaseEqualityOperator``: The equality operator associated
                 to the data type.
 
@@ -146,6 +154,7 @@ class EqualityTester(BaseEqualityTester):
         customized without changind ``EqualityTester``.
 
         Returns:
+        -------
             ``LocalEqualityTester``: A local copy of
                 ``EqualityTester``.
 
@@ -165,6 +174,7 @@ class LocalEqualityTester(BaseEqualityTester):
     """Implements an equality tester that can be easily customized.
 
     Args:
+    ----
         registry (dict or ``None``, optional): Specifies the initial
             registry with the equality operators. Default: ``None``
     """
@@ -186,6 +196,7 @@ class LocalEqualityTester(BaseEqualityTester):
         r"""Adds an equality operator for a given data type.
 
         Args:
+        ----
             data_type: Specifies the data type for this test.
             operator (``BaseEqualityOperator``): Specifies the operator
                 used to test the equality of the specified type.
@@ -195,6 +206,7 @@ class LocalEqualityTester(BaseEqualityTester):
                 operator for a type. Default: ``False``.
 
         Raises:
+        ------
             RuntimeError if an operator is already registered for the
                 data type and ``exist_ok=False``.
 
@@ -220,6 +232,7 @@ class LocalEqualityTester(BaseEqualityTester):
         r"""Clones the current tester.
 
         Returns:
+        -------
             ``LocalEqualityTester``: A deep copy of the current
                 tester.
 
@@ -238,6 +251,7 @@ class LocalEqualityTester(BaseEqualityTester):
         r"""Indicates if two objects are equal or not.
 
         Args:
+        ----
             object1: Specifies the first object to compare.
             object2: Specifies the second object to compare.
             show_difference (bool, optional): If ``True``, it shows a
@@ -246,6 +260,7 @@ class LocalEqualityTester(BaseEqualityTester):
                 difference between two objects. Default: ``False``
 
         Returns:
+        -------
             bool: ``True`` if the two objects are equal, otherwise
                 ``False``.
 
@@ -271,9 +286,11 @@ class LocalEqualityTester(BaseEqualityTester):
         data type.
 
         Args:
+        ----
             data_type: Specifies the data type to check.
 
         Returns:
+        -------
             bool: ``True`` if an equality operator is registered,
                 otherwise ``False``.
 
@@ -294,9 +311,11 @@ class LocalEqualityTester(BaseEqualityTester):
         r"""Finds the equality operator associated to an object.
 
         Args:
+        ----
             data_type: Specifies the data type to get.
 
         Returns:
+        -------
             ``BaseEqualityOperator``: The equality operator associated
                 to the data type.
 

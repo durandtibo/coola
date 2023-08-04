@@ -55,6 +55,7 @@ class ReducerRegistry:
         """Gets the available reducers.
 
         Returns:
+        -------
             tuple of strings: The available reducers.
 
         Example usage:

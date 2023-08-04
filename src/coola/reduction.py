@@ -8,7 +8,7 @@ from coola.reducers.registry import ReducerRegistry
 
 
 class Reduction:
-    r"""Implement the class that defines the reduction strategy."""
+    r"""Implements the class that defines the reduction strategy."""
 
     reducer = auto_reducer()
 
@@ -17,6 +17,7 @@ class Reduction:
         """Gets the available reducers.
 
         Returns:
+        -------
             tuple of strings: The available reducers.
 
         Example usage:

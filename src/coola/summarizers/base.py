@@ -8,7 +8,7 @@ from typing import Any
 
 
 class BaseSummarizer(ABC):
-    r"""Define the base class to implement a summarizer."""
+    r"""Defines the base class to implement a summarizer."""
 
     @abstractmethod
     def summary(
@@ -17,7 +17,7 @@ class BaseSummarizer(ABC):
         depth: int = 0,
         max_depth: int = 1,
     ) -> str:
-        r"""Summarize the input value in a string.
+        r"""Summarizes the input value in a string.
 
         Args:
         ----

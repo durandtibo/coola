@@ -19,6 +19,7 @@ class NumpyReducer(BaseBasicReducer):
     r"""Implement a reducer based on NumPy functions.
 
     Raises:
+    ------
         RuntimeError if ``numpy`` is not installed.
     """
 
