@@ -11,6 +11,7 @@ __all__ = [
 
 import logging
 from typing import TYPE_CHECKING, Any
+from unittest.mock import Mock
 
 from coola.comparators.base import BaseAllCloseOperator, BaseEqualityOperator
 from coola.utils.imports import check_torch, is_torch_available
@@ -19,15 +20,14 @@ if TYPE_CHECKING:
     from coola.testers import BaseAllCloseTester, BaseEqualityTester
 
 if is_torch_available():
-    from torch import Tensor, is_tensor
-    from torch.nn.utils.rnn import PackedSequence
-else:
-    PackedSequence, Tensor = None, None  # pragma: no cover
+    import torch
+else:  # pragma: no cover
+    torch = Mock()
 
 logger = logging.getLogger(__name__)
 
 
-class PackedSequenceAllCloseOperator(BaseAllCloseOperator[PackedSequence]):
+class PackedSequenceAllCloseOperator(BaseAllCloseOperator[torch.nn.utils.rnn.PackedSequence]):
     r"""Implements an allclose operator for
     ``torch.nn.utils.rnn.PackedSequence``."""
 
@@ -43,7 +43,7 @@ class PackedSequenceAllCloseOperator(BaseAllCloseOperator[PackedSequence]):
     def allclose(
         self,
         tester: BaseAllCloseTester,
-        object1: PackedSequence,
+        object1: torch.nn.utils.rnn.PackedSequence,
         object2: Any,
         rtol: float = 1e-5,
         atol: float = 1e-8,
@@ -52,7 +52,7 @@ class PackedSequenceAllCloseOperator(BaseAllCloseOperator[PackedSequence]):
     ) -> bool:
         if object1 is object2:
             return True
-        if not isinstance(object2, PackedSequence):
+        if not isinstance(object2, torch.nn.utils.rnn.PackedSequence):
             if show_difference:
                 logger.info(
                     f"object2 is not a `torch.nn.utils.rnn.PackedSequence`: {type(object2)}"
@@ -100,7 +100,7 @@ class PackedSequenceAllCloseOperator(BaseAllCloseOperator[PackedSequence]):
         return object_equal
 
 
-class PackedSequenceEqualityOperator(BaseEqualityOperator[PackedSequence]):
+class PackedSequenceEqualityOperator(BaseEqualityOperator[torch.nn.utils.rnn.PackedSequence]):
     r"""Implements an equality operator for
     ``torch.nn.utils.rnn.PackedSequence``."""
 
@@ -116,13 +116,13 @@ class PackedSequenceEqualityOperator(BaseEqualityOperator[PackedSequence]):
     def equal(
         self,
         tester: BaseEqualityTester,
-        object1: PackedSequence,
+        object1: torch.nn.utils.rnn.PackedSequence,
         object2: Any,
         show_difference: bool = False,
     ) -> bool:
         if object1 is object2:
             return True
-        if not isinstance(object2, PackedSequence):
+        if not isinstance(object2, torch.nn.utils.rnn.PackedSequence):
             if show_difference:
                 logger.info(
                     f"object2 is not a `torch.nn.utils.rnn.PackedSequence`: {type(object2)}"
@@ -142,7 +142,7 @@ class PackedSequenceEqualityOperator(BaseEqualityOperator[PackedSequence]):
         return object_equal
 
 
-class TensorAllCloseOperator(BaseAllCloseOperator[Tensor]):
+class TensorAllCloseOperator(BaseAllCloseOperator[torch.Tensor]):
     r"""Implements an allclose operator for ``torch.Tensor``."""
 
     def __init__(self) -> None:
@@ -157,7 +157,7 @@ class TensorAllCloseOperator(BaseAllCloseOperator[Tensor]):
     def allclose(
         self,
         tester: BaseAllCloseTester,
-        object1: Tensor,
+        object1: torch.Tensor,
         object2: Any,
         rtol: float = 1e-5,
         atol: float = 1e-8,
@@ -166,7 +166,7 @@ class TensorAllCloseOperator(BaseAllCloseOperator[Tensor]):
     ) -> bool:
         if object1 is object2:
             return True
-        if not is_tensor(object2):
+        if not isinstance(object2, torch.Tensor):
             if show_difference:
                 logger.info(f"object2 is not a torch.Tensor: {type(object2)}")
             return False
@@ -194,7 +194,7 @@ class TensorAllCloseOperator(BaseAllCloseOperator[Tensor]):
         return object_equal
 
 
-class TensorEqualityOperator(BaseEqualityOperator[Tensor]):
+class TensorEqualityOperator(BaseEqualityOperator[torch.Tensor]):
     r"""Implements an equality operator for ``torch.Tensor``."""
 
     def __init__(self) -> None:
@@ -209,13 +209,13 @@ class TensorEqualityOperator(BaseEqualityOperator[Tensor]):
     def equal(
         self,
         tester: BaseEqualityTester,
-        object1: Tensor,
+        object1: torch.Tensor,
         object2: Any,
         show_difference: bool = False,
     ) -> bool:
         if object1 is object2:
             return True
-        if not is_tensor(object2):
+        if not isinstance(object2, torch.Tensor):
             if show_difference:
                 logger.info(f"object2 is not a torch.Tensor: {type(object2)}")
             return False
@@ -251,7 +251,10 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
     """
     if not is_torch_available():
         return {}
-    return {Tensor: TensorAllCloseOperator(), PackedSequence: PackedSequenceAllCloseOperator()}
+    return {
+        torch.Tensor: TensorAllCloseOperator(),
+        torch.nn.utils.rnn.PackedSequence: PackedSequenceAllCloseOperator(),
+    }
 
 
 def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
@@ -268,4 +271,7 @@ def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
     """
     if not is_torch_available():
         return {}
-    return {Tensor: TensorEqualityOperator(), PackedSequence: PackedSequenceEqualityOperator()}
+    return {
+        torch.Tensor: TensorEqualityOperator(),
+        torch.nn.utils.rnn.PackedSequence: PackedSequenceEqualityOperator(),
+    }
