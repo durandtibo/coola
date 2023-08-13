@@ -14,7 +14,7 @@ from coola.utils.tensor import (
 
 @torch_available
 @patch("torch.cuda.is_available", lambda *args, **kwargs: False)
-@patch("torch.backends.mps.is_available", lambda *args, **kwargs: False)
+@patch("coola.utils.tensor.is_mps_available", lambda *args, **kwargs: False)
 def test_get_available_devices_cpu() -> None:
     assert get_available_devices() == ("cpu",)
 
