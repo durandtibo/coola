@@ -14,18 +14,14 @@ from coola.comparators import (
 )
 from coola.comparators.torch_ import get_mapping_allclose, get_mapping_equality
 from coola.testers import AllCloseTester, EqualityTester
-from coola.testing import torch_available
+from coola.testing import torch_available, torch_cuda_available
 from coola.utils.imports import is_torch_available
+from coola.utils.tensor import get_available_devices
 
 if is_torch_available():
     import torch
-
-    cuda_available = mark.skipif(not torch.cuda.is_available(), reason="Requires a CUDA device")
-    DEVICES = ("cpu", "cuda:0") if torch.cuda.is_available() else ("cpu",)
 else:
     torch = Mock()
-    cuda_available = mark.skipif(False, reason="Requires PyTorch and a CUDA device")
-    DEVICES = tuple()
 
 
 ####################################################
@@ -442,7 +438,7 @@ def test_tensor_allclose_operator__eq__false() -> None:
 
 
 @torch_available
-@mark.parametrize("device", DEVICES)
+@mark.parametrize("device", get_available_devices())
 @mark.parametrize(
     "tensor", (torch.ones(2, 3), torch.full((2, 3), 1.0 + 1e-9), torch.full((2, 3), 1.0 - 1e-9))
 )
@@ -533,7 +529,7 @@ def test_tensor_allclose_operator_allclose_false_different_dtype_show_difference
 
 
 @torch_available
-@cuda_available
+@torch_cuda_available
 def test_tensor_allclose_operator_equal_false_different_device() -> None:
     assert not TensorAllCloseOperator().allclose(
         AllCloseTester(),
@@ -681,7 +677,7 @@ def test_tensor_equality_operator_clone() -> None:
 
 
 @torch_available
-@mark.parametrize("device", DEVICES)
+@mark.parametrize("device", get_available_devices())
 def test_tensor_equality_operator_equal_true(device: str) -> None:
     device = torch.device(device)
     assert TensorEqualityOperator().equal(
@@ -752,7 +748,7 @@ def test_tensor_equality_operator_equal_false_different_dtype_show_difference(
 
 
 @torch_available
-@cuda_available
+@torch_cuda_available
 def test_tensor_equality_operator_equal_false_different_device() -> None:
     assert not TensorEqualityOperator().equal(
         EqualityTester(),
