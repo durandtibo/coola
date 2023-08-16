@@ -134,6 +134,12 @@ pip install coola[all]
 
 Please check the [get started page](https://durandtibo.github.io/coola/get_started) to see how to
 install only some specific packages or other alternatives to install the library.
+The following is the corresponding `coola` versions and supported Python, PyTorch and NumPy
+versions.
+
+| `coola`  | `numpy`        | `pandas`     | `polars`         | `torch`       | `xarray`           | `python`      |
+|----------|----------------|--------------|------------------|---------------|--------------------|---------------|
+| `0.0.20` | `>=1.20,<1.26` | `>=1.3,<2.1` | `>=0.18.3,<0.19` | `>=1.10,<2.1` | `>=2023.3,<2023.8` | `>=3.9,<3.12` |
 
 ## Contributing
 
