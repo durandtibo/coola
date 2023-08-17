@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "coola"
-version = "0.0.20a0"
+version = "0.0.21a0"
 description = "A library to check if two complex/nested objects are equal or not"
 readme = "README.md"
 authors = ["Thibaut Durand <durand.tibo+gh@gmail.com>"]
@@ -29,7 +29,7 @@ packages = [
 
 [tool.poetry.dependencies]
 # Core dependencies
-python = "^3.9"
+python = ">=3.9,<3.12"
 
 # Optional dependencies
 jax = { version = ">=0.3.0,<0.5", optional = true}
