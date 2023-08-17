@@ -48,15 +48,15 @@ doctest-src :
 
 .PHONY : test
 test :
-	python -m pytest
+	python -m pytest --xdoctest
 
 .PHONY : unit-test
 unit-test :
-	python -m pytest --timeout 10 $(UNIT_TESTS)
+	python -m pytest --xdoctest --timeout 10 $(UNIT_TESTS)
 
 .PHONY : unit-test-cov
 unit-test-cov :
-	python -m pytest --timeout 10 --cov-report html --cov-report xml --cov-report term --cov=$(NAME) $(UNIT_TESTS)
+	python -m pytest --xdoctest --timeout 10 --cov-report html --cov-report xml --cov-report term --cov=$(NAME) $(UNIT_TESTS)
 
 .PHONY : publish-pypi
 publish-pypi :
