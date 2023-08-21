@@ -1744,13 +1744,13 @@ files = [
 
 [[package]]
 name = "xarray"
-version = "2023.7.0"
+version = "2023.8.0"
 description = "N-D labeled arrays and datasets in Python"
 optional = true
 python-versions = ">=3.9"
 files = [
-    {file = "xarray-2023.7.0-py3-none-any.whl", hash = "sha256:af8b55bf78b792b8ad9326eb9d89980602f1a51e93d8465b445aeea3accca27e"},
-    {file = "xarray-2023.7.0.tar.gz", hash = "sha256:dace2fdbf1b7ff185d9c1226a24bf83c2ae52f3253dbfe80e17d1162600d055c"},
+    {file = "xarray-2023.8.0-py3-none-any.whl", hash = "sha256:eb42b56aea2c7d5db2a7d0c33fb005b78eb5c4421eb747f2ced138c70b5c204e"},
+    {file = "xarray-2023.8.0.tar.gz", hash = "sha256:825c6d64202a731a4e49321edd1e9dfabf4be06802f1b8c8a3c00a3ebfc8cedf"},
 ]
 
 [package.dependencies]
@@ -1814,4 +1814,4 @@ all = ["jax", "jaxlib", "numpy", "pandas", "polars", "torch", "xarray"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "74d386be89fb810b5e083ae1dd2070cb9ba79af672b39d38b4c143f49fd96bbe"
+content-hash = "c53c7db90eb7c9eb28774076010071d7cf074fbdd773a4f59d6fd459f99bc531"
