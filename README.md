@@ -126,20 +126,23 @@ pip install coola
 
 To make the package as slim as possible, only the minimal packages required to use `coola` are
 installed.
-To include all the packages, you can use the following command:
+To include all the dependencies, you can use the following command:
 
 ```shell
 pip install coola[all]
 ```
 
 Please check the [get started page](https://durandtibo.github.io/coola/get_started) to see how to
-install only some specific packages or other alternatives to install the library.
+install only some specific dependencies or other alternatives to install the library.
 The following is the corresponding `coola` versions and supported dependencies.
 
-| `coola`  | `numpy`        | `pandas`     | `polars`         | `torch`       | `xarray`           | `python`      |
-|----------|----------------|--------------|------------------|---------------|--------------------|---------------|
-| `0.0.21` | `>=1.20,<1.26` | `>=1.3,<2.1` | `>=0.18.3,<0.19` | `>=1.10,<2.1` | `>=2023.3,<2023.8` | `>=3.9,<3.12` |
-| `0.0.20` | `>=1.20,<1.26` | `>=1.3,<2.1` | `>=0.18.3,<0.19` | `>=1.10,<2.1` | `>=2023.3,<2023.8` | `>=3.9`       |
+| `coola`  | `jax`<sup>*</sup> | `numpy`<sup>*</sup> | `pandas`<sup>*</sup> | `polars`<sup>*</sup> | `torch`<sup>*</sup> | `xarray`<sup>*</sup> | `python`      |
+|----------|-------------------|---------------------|----------------------|----------------------|---------------------|----------------------|---------------|
+| `0.0.22` | `>=0.3,<0.5`      | `>=1.20,<1.26`      | `>=1.3,<2.1`         | `>=0.18.3,<0.19`     | `>=1.10,<2.1`       | `>=2023.3,<2023.9`   | `>=3.9,<3.12` |
+| `0.0.21` | `>=0.3,<0.5`      | `>=1.20,<1.26`      | `>=1.3,<2.1`         | `>=0.18.3,<0.19`     | `>=1.10,<2.1`       | `>=2023.3,<2023.8`   | `>=3.9,<3.12` |
+| `0.0.20` | `>=0.3,<0.5`      | `>=1.20,<1.26`      | `>=1.3,<2.1`         | `>=0.18.3,<0.19`     | `>=1.10,<2.1`       | `>=2023.3,<2023.8`   | `>=3.9`       |
+
+<sup>*</sup> indicates an optional dependency
 
 ## Contributing
 
