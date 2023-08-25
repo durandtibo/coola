@@ -252,7 +252,7 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         python-version: [ '3.9', '3.10', '3.11' ]
-        xarray-version: [ 2023.7.0, 2023.6.0, 2023.5.0, 2023.4.0, 2023.3.0 ]
+        xarray-version: [ '2023.8', '2023.7', '2023.6', '2023.5', '2023.4', '2023.3' ]
 
     steps:
       - name: Checkout
