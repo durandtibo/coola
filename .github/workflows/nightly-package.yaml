@@ -304,19 +304,19 @@ jobs:
 
       - name: check coola.comparators
         run: |
-          poetry run python -c "from coola import comparators"
+          python -c "from coola import comparators"
       - name: check coola.formatters
         run: |
-          poetry run python -c "from coola import formatters"
+          python -c "from coola import formatters"
       - name: check coola.reducers
         run: |
-          poetry run python -c "from coola import reducers"
+          python -c "from coola import reducers"
       - name: check coola.summarizers
         run: |
-          poetry run python -c "from coola import summarizers"
+          python -c "from coola import summarizers"
       - name: check coola.testers
         run: |
-          poetry run python -c "from coola import testers"
+          python -c "from coola import testers"
       - name: check coola.utils
         run: |
-          poetry run python -c "from coola import utils"
+          python -c "from coola import utils"
