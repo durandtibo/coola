@@ -76,6 +76,59 @@ jobs:
           coverageLocations: ./coverage.xml:coverage.py
           debug: true
 
+
+  detect-cyclic-import:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ '3.10' ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Install packages
+        run: |
+          poetry run make config-poetry
+          poetry run make install-all
+
+      - name: Show installed packages
+        run: |
+          poetry run poetry show
+          poetry run poetry show --tree
+
+      - name: check coola.comparators
+        run: |
+          poetry run python -c "from coola import comparators"
+      - name: check coola.formatters
+        run: |
+          poetry run python -c "from coola import formatters"
+      - name: check coola.reducers
+        run: |
+          poetry run python -c "from coola import reducers"
+      - name: check coola.summarizers
+        run: |
+          poetry run python -c "from coola import summarizers"
+      - name: check coola.testers
+        run: |
+          poetry run python -c "from coola import testers"
+      - name: check coola.utils
+        run: |
+          poetry run python -c "from coola import utils"
+
+
   test:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
@@ -120,6 +173,7 @@ jobs:
         run: |
           poetry run make unit-test-cov
 
+
   test-minimal:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
@@ -163,6 +217,7 @@ jobs:
       - name: Run unit tests
         run: |
           poetry run make unit-test-cov
+
 
   test-jax:
     runs-on: ${{ matrix.os }}
@@ -251,6 +306,7 @@ jobs:
         run: |
           poetry run make unit-test-cov
 
+
   test-pandas:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
@@ -292,6 +348,7 @@ jobs:
         run: |
           poetry run make unit-test-cov
 
+
   test-polars:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
@@ -332,6 +389,7 @@ jobs:
       - name: Run unit tests
         run: |
           poetry run make unit-test-cov
+
 
   test-torch:
     runs-on: ${{ matrix.os }}
@@ -377,6 +435,7 @@ jobs:
       - name: Run unit tests
         run: |
           poetry run make unit-test-cov
+
 
   test-xarray:
     runs-on: ${{ matrix.os }}
