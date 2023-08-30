@@ -76,25 +76,29 @@ It is not possible to use the default equality operator `==` because it will rai
 The `coola` library was developed to fill this gap. `coola` provides a function `objects_are_equal`
 that can indicate if two complex/nested objects are equal or not.
 
-```python
-import numpy
-import torch
+```pycon
+>>> import numpy
+>>> import torch
+>>> from coola import objects_are_equal
+>>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
+>>> data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
+>>> objects_are_equal(data1, data2)
+False
 
-from coola import objects_are_equal
-
-data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
-data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
-
-objects_are_equal(data1, data2)
 ```
 
 `coola` also provides a function `objects_are_allclose` that can indicate if two complex/nested
 objects are equal within a tolerance or not.
 
-```python
-from coola import objects_are_allclose
+```pycon
+>>> import numpy
+>>> import torch
+>>> from coola import objects_are_allclose
+>>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
+>>> data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
+>>> objects_are_allclose(data1, data2, atol=1e-6)
+False
 
-objects_are_allclose(data1, data2, atol=1e-6)
 ```
 
 The current supported types are:
@@ -138,6 +142,7 @@ The following is the corresponding `coola` versions and supported dependencies.
 
 | `coola`  | `jax`<sup>*</sup> | `numpy`<sup>*</sup> | `pandas`<sup>*</sup> | `polars`<sup>*</sup> | `torch`<sup>*</sup> | `xarray`<sup>*</sup> | `python`      |
 |----------|-------------------|---------------------|----------------------|----------------------|---------------------|----------------------|---------------|
+| `0.0.23` | `>=0.3,<0.5`      | `>=1.20,<1.26`      | `>=1.3,<2.1`         | `>=0.18.3,<0.20`     | `>=1.10,<2.1`       | `>=2023.3,<2023.9`   | `>=3.9,<3.12` |
 | `0.0.22` | `>=0.3,<0.5`      | `>=1.20,<1.26`      | `>=1.3,<2.1`         | `>=0.18.3,<0.19`     | `>=1.10,<2.1`       | `>=2023.3,<2023.9`   | `>=3.9,<3.12` |
 | `0.0.21` | `>=0.3,<0.5`      | `>=1.20,<1.26`      | `>=1.3,<2.1`         | `>=0.18.3,<0.19`     | `>=1.10,<2.1`       | `>=2023.3,<2023.8`   | `>=3.9,<3.12` |
 | `0.0.20` | `>=0.3,<0.5`      | `>=1.20,<1.26`      | `>=1.3,<2.1`         | `>=0.18.3,<0.19`     | `>=1.10,<2.1`       | `>=2023.3,<2023.8`   | `>=3.9`       |
