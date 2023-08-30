@@ -37,7 +37,7 @@ jaxlib = { version = ">=0.3", optional = true }
 numpy = { version = ">=1.20,<1.26", optional = true }
 pandas = { version = ">=1.3,<2.1", optional = true }
 # polars: 0.18.3 is the minimal version because of https://github.com/pola-rs/polars/issues/9358
-polars = { version = ">=0.18.3,<0.19", optional = true }
+polars = { version = ">=0.18.3,<0.20", optional = true }
 torch = { version = ">=1.10,<2.1", optional = true }
 xarray = { version = ">=2023.3,<2023.9", optional = true }
 
@@ -61,7 +61,7 @@ pylint = "^2.17"
 pytest = "^7.4"
 pytest-cov = "^4.1"
 pytest-timeout = "^2.1"
-ruff = ">=0.0.285,<1.0"
+ruff = ">=0.0.286,<1.0"
 xdoctest = "^1.1"
 
 [build-system]
