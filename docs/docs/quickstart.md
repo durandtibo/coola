@@ -230,29 +230,28 @@ when `atol=0.0` and `rtol=0.0`.
 Like `objects_are_equal`, the `objects_are_allclose` function has an argument `show_difference`
 which shows the first difference found between the two objects.
 
-```python
-import numpy
-import torch
+```pycon
+>>> import numpy
+>>> import torch
+>>> from coola import objects_are_allclose
+>>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
+>>> data2 = {"torch": torch.ones(2, 3) + 1e-4, "numpy": numpy.zeros((2, 3)) - 1e-4}
+>>> objects_are_allclose(data1, data2, show_difference=True)
+False
 
-from coola import objects_are_allclose
-
-data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
-data2 = {"torch": torch.ones(2, 3) + 1e-4, "numpy": numpy.zeros((2, 3)) - 1e-4}
-
-objects_are_allclose(data1, data2, show_difference=True)
 ```
 
 *Output*:
 
 ```textmate
-INFO:coola.pytorch:torch.Tensors are different
+INFO:coola.comparators.torch_:torch.Tensors are different
 object1=
 tensor([[1., 1., 1.],
         [1., 1., 1.]])
 object2=
 tensor([[1.0001, 1.0001, 1.0001],
         [1.0001, 1.0001, 1.0001]])
-INFO:coola.allclose:The mappings have a different value for the key torch:
+INFO:coola.comparators.allclose:The mappings have a different value for the key torch:
 first mapping  = {'torch': tensor([[1., 1., 1.],
         [1., 1., 1.]]), 'numpy': array([[0., 0., 0.],
        [0., 0., 0.]])}
@@ -266,31 +265,25 @@ second mapping = {'torch': tensor([[1.0001, 1.0001, 1.0001],
 Like the `objects_are_equal` function, the `objects_are_allclose` function can be used with
 complex/nested objects.
 
-```python
-import numpy
-import torch
-
-from coola import objects_are_allclose
-
-data1 = {
-    "list": [torch.ones(2, 3), numpy.zeros((2, 3))],
-    "dict": {"torch": torch.arange(5), "str": "abc"},
-    "int": 1,
-}
-data2 = {
-    "list": [torch.ones(2, 3), numpy.zeros((2, 3)) + 1e-9],
-    "dict": {"torch": torch.arange(5), "str": "abc"},
-    "int": 1,
-}
-
-print(objects_are_allclose(data1, data2))
-```
-
-*Output*:
-
-```textmate
+```pycon
+>>> import numpy
+>>> import torch
+>>> from coola import objects_are_allclose
+>>> data1 = {
+...     "list": [torch.ones(2, 3), numpy.zeros((2, 3))],
+...     "dict": {"torch": torch.arange(5), "str": "abc"},
+...     "int": 1,
+... }
+>>> data2 = {
+...     "list": [torch.ones(2, 3), numpy.zeros((2, 3)) + 1e-9],
+...     "dict": {"torch": torch.arange(5), "str": "abc"},
+...     "int": 1,
+... }
+>>> objects_are_allclose(data1, data2)
 True
+
 ```
+
 
 `objects_are_allclose` supports a lot of types and nested structure.
 Feel free to try any complex nested structure that you want. You can find the currently supported
@@ -300,59 +293,47 @@ types [here](types.md#equal-within-a-tolerance--allclose-).
 
 `NaN` is not considered close to any other value, including `NaN`.
 
-```python
-from coola import objects_are_allclose
+```pycon
+>>> from coola import objects_are_allclose
+>>> objects_are_allclose(float("nan"), 0.0)
+False
+>>> objects_are_allclose(float("nan"), float("nan"))
+False
 
-print(objects_are_allclose(float("nan"), 0.0))
-print(objects_are_allclose(float("nan"), float("nan")))
 ```
 
-*Output*:
-
-```textmate
-False
-False
-```
 
 In arrays or tensors, `NaN` are sometimes to indicate some values are not valid.
 However, it may be interested to check if the non-`NaN` values are equal.
 It is possible to use the `equal_nan=True` option to compare two tensors with `NaN` values.
 
-```python
-import numpy
-import torch
+```pycon
+>>> import numpy
+>>> import torch
+>>> from coola import objects_are_allclose
+>>> objects_are_allclose(
+...     torch.tensor([0.0, 1.0, float("nan")]),
+...     torch.tensor([0.0, 1.0, float("nan")]),
+... )
+False
+>>> objects_are_allclose(
+...     torch.tensor([0.0, 1.0, float("nan")]),
+...     torch.tensor([0.0, 1.0, float("nan")]),
+...     equal_nan=True,
+... )
+True
+>>> objects_are_allclose(
+...     numpy.array([0.0, 1.0, float("nan")]),
+...     numpy.array([0.0, 1.0, float("nan")]),
+... )
+False
+>>> objects_are_allclose(
+...     numpy.array([0.0, 1.0, float("nan")]),
+...     numpy.array([0.0, 1.0, float("nan")]),
+...     equal_nan=True,
+... )
+True
 
-from coola import objects_are_allclose
-
-print(
-    objects_are_allclose(
-        torch.tensor([0.0, 1.0, float("nan")]),
-        torch.tensor([0.0, 1.0, float("nan")]),
-    )
-)
-
-print(
-    objects_are_allclose(
-        torch.tensor([0.0, 1.0, float("nan")]),
-        torch.tensor([0.0, 1.0, float("nan")]),
-        equal_nan=True,
-    )
-)
-
-print(
-    objects_are_allclose(
-        numpy.array([0.0, 1.0, float("nan")]),
-        numpy.array([0.0, 1.0, float("nan")]),
-    )
-)
-
-print(
-    objects_are_allclose(
-        numpy.array([0.0, 1.0, float("nan")]),
-        numpy.array([0.0, 1.0, float("nan")]),
-        equal_nan=True,
-    )
-)
 ```
 
 *Output*:
@@ -366,16 +347,11 @@ True
 
 Note that `equal_nan` is only supported for NumPy `ndarray`s and PyTorch `Tensor`s.
 
-```python
-from coola import objects_are_allclose
-
-print(objects_are_allclose(float("nan"), float("nan")))
-print(objects_are_allclose(float("nan"), float("nan"), equal_nan=True))
-```
-
-*Output*:
-
-```textmate
+```pycon
+>>> from coola import objects_are_allclose
+>>> objects_are_allclose(float("nan"), float("nan"))
 False
+>>> objects_are_allclose(float("nan"), float("nan"), equal_nan=True)
 False
+
 ```
