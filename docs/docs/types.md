@@ -28,14 +28,19 @@ By default, two objects are equal if:
 
 **Example**
 
-```python
-from coola import objects_are_equal
+```pycon
+>>> from coola import objects_are_equal
+>>> objects_are_equal(1, 1)
+True
+>>> objects_are_equal(1, 2)
+False
+>>> objects_are_equal(1, 1.0)
+False
+>>> objects_are_equal(True, True)
+True
+>>> objects_are_equal("abc", "abcd")
+False
 
-objects_are_equal(1, 1)  # True
-objects_are_equal(1, 2)  # False
-objects_are_equal(1, 1.0)  # False
-objects_are_equal(True, True)  # True
-objects_are_equal("abc", "abcd")  # False
 ```
 
 ### `collections.abc.Mapping` | `dict`
@@ -48,20 +53,20 @@ Two `Mapping`s are equal if:
 - For each key, the values are equal. The value associated to the key `k` in the first mapping has
   to be equal to value associated to the key `k` in the second mapping.
 
-```python
-from collections import OrderedDict
+```pycon
+>>> from collections import OrderedDict
+>>> from coola import objects_are_equal
+>>> objects_are_equal({"int": 1, "str": "abc"}, {"int": 1, "str": "abc"})
+True
+>>> objects_are_equal({"int": 1, "str": "abc"}, OrderedDict({"int": 1, "str": "abc"}))
+False
+>>> objects_are_equal({"int": 1, "str": "abc"}, {"int": 1, "str": "abc", "float": 0.2})
+False
+>>> objects_are_equal({"int": 1, "str": "abc"}, {"int": 1, "float": 0.2})
+False
+>>> objects_are_equal({"int": 1, "str": "abc"}, {"int": 1, "str": "abcd"})
+False
 
-from coola import objects_are_equal
-
-objects_are_equal({"int": 1, "str": "abc"}, {"int": 1, "str": "abc"})  # True
-objects_are_equal(
-    {"int": 1, "str": "abc"}, OrderedDict({"int": 1, "str": "abc"})
-)  # False
-objects_are_equal(
-    {"int": 1, "str": "abc"}, {"int": 1, "str": "abc", "float": 0.2}
-)  # False
-objects_are_equal({"int": 1, "str": "abc"}, {"int": 1, "float": 0.2})  # False
-objects_are_equal({"int": 1, "str": "abc"}, {"int": 1, "str": "abcd"})  # False
 ```
 
 ### `collections.abc.Sequence` | `list` | `tuple`
@@ -75,13 +80,17 @@ Two `Sequence`s are equal if:
 
 **Example**
 
-```python
-from coola import objects_are_equal
+```pycon
+>>> from coola import objects_are_equal
+>>> objects_are_equal([1, 2, "abc"], [1, 2, "abc"])
+True
+>>> objects_are_equal([1, 2, "abc"], (1, 2, "abc"))
+False
+>>> objects_are_equal([1, 2, "abc"], [1, 2, "abc", 4])
+False
+>>> objects_are_equal([1, 2, "abc"], [1, 2, "abcd"])
+False
 
-objects_are_equal([1, 2, "abc"], [1, 2, "abc"])  # True
-objects_are_equal([1, 2, "abc"], (1, 2, "abc"))  # False
-objects_are_equal([1, 2, "abc"], [1, 2, "abc", 4])  # False
-objects_are_equal([1, 2, "abc"], [1, 2, "abcd"])  # False
 ```
 
 ### PyTorch
@@ -104,16 +113,18 @@ Two PyTorch `Tensor`s are equal if:
 
 **Example**
 
-```python
-import torch
+```pycon
+>>> import torch
+>>> from coola import objects_are_equal
+>>> objects_are_equal(torch.ones(2, 3), torch.ones(2, 3))
+True
+>>> objects_are_equal(torch.ones(2, 3), torch.ones(2, 3, dtype=torch.long))
+False
+>>> objects_are_equal(torch.ones(2, 3), torch.zeros(2, 3))
+False
+>>> objects_are_equal(torch.ones(2, 3), torch.ones(6))
+False
 
-from coola import objects_are_equal
-
-objects_are_equal(torch.ones(2, 3), torch.ones(2, 3))  # True
-objects_are_equal(torch.ones(2, 3), torch.ones(2, 3, dtype=torch.long))  # False
-objects_are_equal(torch.ones(2, 3), torch.ones(2, 3, device="cuda"))  # False
-objects_are_equal(torch.ones(2, 3), torch.zeros(2, 3))  # False
-objects_are_equal(torch.ones(2, 3), torch.ones(6))  # False
 ```
 
 #### `torch.nn.utils.rnn.PackedSequence`
@@ -127,50 +138,50 @@ Two PyTorch `PackedSequence`s are equal if:
 
 **Example**
 
-```python
-import torch
-from torch.nn.utils.rnn import pack_padded_sequence
+```pycon
+>>> import torch
+>>> from torch.nn.utils.rnn import pack_padded_sequence
+>>> from coola import objects_are_equal
+>>> objects_are_equal(
+...     pack_padded_sequence(
+...         input=torch.arange(10).view(2, 5).float(),
+...         lengths=torch.tensor([5, 3], dtype=torch.long),
+...         batch_first=True,
+...     ),
+...     pack_padded_sequence(
+...         input=torch.arange(10).view(2, 5).float(),
+...         lengths=torch.tensor([5, 3], dtype=torch.long),
+...         batch_first=True,
+...     ),
+... )
+True
+>>> objects_are_equal(
+...     pack_padded_sequence(
+...         input=torch.arange(10).view(2, 5).float(),
+...         lengths=torch.tensor([5, 3], dtype=torch.long),
+...         batch_first=True,
+...     ),
+...     pack_padded_sequence(
+...         input=torch.arange(10).view(2, 5).add(1).float(),
+...         lengths=torch.tensor([5, 3], dtype=torch.long),
+...         batch_first=True,
+...     ),
+... )  # different values
+False
+>>> objects_are_equal(
+...     pack_padded_sequence(
+...         input=torch.arange(10).view(2, 5).float(),
+...         lengths=torch.tensor([5, 3], dtype=torch.long),
+...         batch_first=True,
+...     ),
+...     pack_padded_sequence(
+...         input=torch.arange(10).view(2, 5).float(),
+...         lengths=torch.tensor([5, 2], dtype=torch.long),
+...         batch_first=True,
+...     ),
+... )  # different lengths
+False
 
-from coola import objects_are_equal
-
-objects_are_equal(
-    pack_padded_sequence(
-        input=torch.arange(10).view(2, 5).float(),
-        lengths=torch.tensor([5, 3], dtype=torch.long),
-        batch_first=True,
-    ),
-    pack_padded_sequence(
-        input=torch.arange(10).view(2, 5).float(),
-        lengths=torch.tensor([5, 3], dtype=torch.long),
-        batch_first=True,
-    ),
-)  # True
-
-objects_are_equal(
-    pack_padded_sequence(
-        input=torch.arange(10).view(2, 5).float(),
-        lengths=torch.tensor([5, 3], dtype=torch.long),
-        batch_first=True,
-    ),
-    pack_padded_sequence(
-        input=torch.arange(10).view(2, 5).add(1).float(),
-        lengths=torch.tensor([5, 3], dtype=torch.long),
-        batch_first=True,
-    ),
-)  # False | different values
-
-objects_are_equal(
-    pack_padded_sequence(
-        input=torch.arange(10).view(2, 5).float(),
-        lengths=torch.tensor([5, 3], dtype=torch.long),
-        batch_first=True,
-    ),
-    pack_padded_sequence(
-        input=torch.arange(10).view(2, 5).float(),
-        lengths=torch.tensor([5, 2], dtype=torch.long),
-        batch_first=True,
-    ),
-)  # False | different lengths
 ```
 
 ### `numpy.ndarray`
@@ -184,15 +195,18 @@ Two NumPy `ndarray`s are equal if:
 - they have the same shape i.e. `array1.shape == array2.shape` returns `True`
 - they have the same values i.e. `numpy.array_equal(array1, array2)` returns `True`
 
-```python
-import numpy
+```pycon
+>>> import numpy
+>>> from coola import objects_are_equal
+>>> objects_are_equal(numpy.ones((2, 3)), numpy.ones((2, 3)))
+True
+>>> objects_are_equal(numpy.ones((2, 3)), numpy.ones((2, 3), dtype=int))
+False
+>>> objects_are_equal(numpy.ones((2, 3)), numpy.zeros((2, 3)))
+False
+>>> objects_are_equal(numpy.ones((2, 3)), numpy.ones((6,)))
+False
 
-from coola import objects_are_equal
-
-objects_are_equal(numpy.ones((2, 3)), numpy.ones((2, 3)))  # True
-objects_are_equal(numpy.ones((2, 3)), numpy.ones((2, 3), dtype=int))  # False
-objects_are_equal(numpy.ones((2, 3)), numpy.zeros((2, 3)))  # False
-objects_are_equal(numpy.ones((2, 3)), numpy.ones((6,)))  # False
 ```
 
 ### xarray
@@ -218,18 +232,15 @@ Unlike `xarray.DataArray.identical`, two `DataArray`s are not equal if both obje
 same positions to follow the standard usage in numpy.
 You can use `objects_are_allclose` to compare objects with NaNs.
 
-```python
-import numpy as np
-import xarray as xr
+```pycon
+>>> import numpy as np
+>>> import xarray as xr
+>>> from coola import objects_are_equal
+>>> objects_are_equal(xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"]))
+True
+>>> objects_are_equal(xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.zeros(6), dims=["z"]))
+False
 
-from coola import objects_are_equal
-
-objects_are_equal(
-    xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"])
-)  # True
-objects_are_equal(
-    xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.zeros(6), dims=["z"])
-)  # False
 ```
 
 #### `xarray.Dataset`
@@ -238,50 +249,50 @@ Two xarray `Dataset`s are equal if `xarray.Dataset.identical` returns `True`.
 In contrast to the standard usage in numpy, NaNs are compared like numbers, two `Dataset`s are equal
 if both objects have NaNs in the same positions.
 
-```python
-import numpy as np
-import xarray as xr
+```pycon
+>>> import numpy as np
+>>> import xarray as xr
+>>> from coola import objects_are_equal
+>>> ds1 = xr.Dataset(
+...     {
+...         "x": xr.DataArray(
+...             np.arange(6),
+...             dims=["z"],
+...         ),
+...         "y": xr.DataArray(
+...             np.ones((6, 3)),
+...             dims=["z", "t"],
+...         ),
+...     },
+...     coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
+... )
+>>> ds2 = xr.Dataset(
+...     {
+...         "x": xr.DataArray(
+...             np.arange(6),
+...             dims=["z"],
+...         ),
+...         "y": xr.DataArray(
+...             np.ones((6, 3)),
+...             dims=["z", "t"],
+...         ),
+...     },
+...     coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
+... )
+>>> ds3 = xr.Dataset(
+...     {
+...         "x": xr.DataArray(
+...             np.arange(6),
+...             dims=["z"],
+...         ),
+...     },
+...     coords={"z": np.arange(6) + 1},
+... )
+>>> objects_are_equal(ds1, ds2)
+True
+>>> objects_are_equal(ds1, ds3)
+False
 
-from coola import objects_are_equal
-
-ds1 = xr.Dataset(
-    {
-        "x": xr.DataArray(
-            np.arange(6),
-            dims=["z"],
-        ),
-        "y": xr.DataArray(
-            np.ones((6, 3)),
-            dims=["z", "t"],
-        ),
-    },
-    coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
-)
-ds2 = xr.Dataset(
-    {
-        "x": xr.DataArray(
-            np.arange(6),
-            dims=["z"],
-        ),
-        "y": xr.DataArray(
-            np.ones((6, 3)),
-            dims=["z", "t"],
-        ),
-    },
-    coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
-)
-ds3 = xr.Dataset(
-    {
-        "x": xr.DataArray(
-            np.arange(6),
-            dims=["z"],
-        ),
-    },
-    coords={"z": np.arange(6) + 1},
-)
-
-objects_are_equal(ds1, ds2)  # True
-objects_are_equal(ds1, ds3)  # False
 ```
 
 ## Equal within a tolerance (allclose)
@@ -298,11 +309,13 @@ By default, two objects are equal if:
 
 **Example**
 
-```python
-from coola import objects_are_allclose
+```pycon
+>>> from coola import objects_are_allclose
+>>> objects_are_allclose("abc", "abc")
+True
+>>> objects_are_allclose("abc", "abcd")
+False
 
-objects_are_allclose("abc", "abc")  # True
-objects_are_allclose("abc", "abcd")  # False
 ```
 
 ### Numbers: `bool` | `int` | `float`
@@ -314,29 +327,37 @@ Two numbers are equal within a tolerance if:
 
 **Example**
 
-```python
-from coola import objects_are_allclose
+```pycon
+>>> from coola import objects_are_allclose
+>>> objects_are_allclose(1, 2)
+False
+>>> objects_are_allclose(1, 2, atol=1)
+True
+>>> objects_are_allclose(1, 2, rtol=1)
+True
+>>> objects_are_allclose(1.0, 2.0)
+False
+>>> objects_are_allclose(1.0, 2.0, atol=1)
+True
+>>> objects_are_allclose(1.0, 2.0, rtol=1)
+True
+>>> objects_are_allclose(1, 2.0, atol=1)
+False
 
-objects_are_allclose(1, 2)  # False
-objects_are_allclose(1, 2, atol=1)  # True
-objects_are_allclose(1, 2, rtol=1)  # True
-
-objects_are_allclose(1.0, 2.0)  # False
-objects_are_allclose(1.0, 2.0, atol=1)  # True
-objects_are_allclose(1.0, 2.0, rtol=1)  # True
-
-objects_are_allclose(1, 2.0, atol=1)  # False
 ```
 
 Note that booleans are explicitly considered as integers in Python so the tolerance can be used with
 booleans:
 
-```python
-from coola import objects_are_allclose
+```pycon
+>>> from coola import objects_are_allclose
+>>> objects_are_allclose(True, False)
+False
+>>> objects_are_allclose(True, False, atol=1)
+True
+>>> objects_are_allclose(True, False, rtol=1)
+True
 
-objects_are_allclose(True, False)  # False
-objects_are_allclose(True, False, atol=1)  # True
-objects_are_allclose(True, False, rtol=1)  # True
 ```
 
 ### `collections.abc.Mapping` | `dict`
@@ -352,22 +373,24 @@ Two `Mapping`s are equal within a tolerance if:
 
 **Example**
 
-```python
-from collections import OrderedDict
+```pycon
+>>> from collections import OrderedDict
+>>> from coola import objects_are_allclose
+>>> objects_are_allclose({"int": 1, "str": "abc"}, {"int": 1, "str": "abc"})
+True
+>>> objects_are_allclose({"int": 1, "str": "abc"}, {"int": 2, "str": "abc"}, atol=2)
+True
+>>> objects_are_allclose({"int": 1, "str": "abc"}, {"int": 2, "str": "abc"}, rtol=1)
+True
+>>> objects_are_allclose({"int": 1, "str": "abc"}, OrderedDict({"int": 1, "str": "abc"}))
+False
+>>> objects_are_allclose({"int": 1, "str": "abc"}, {"int": 1, "str": "abc", "float": 0.2})
+False
+>>> objects_are_allclose({"int": 1, "str": "abc"}, {"int": 1, "float": 0.2})
+False
+>>> objects_are_allclose({"int": 1, "str": "abc"}, {"int": 1, "str": "abcd"})
+False
 
-from coola import objects_are_allclose
-
-objects_are_allclose({"int": 1, "str": "abc"}, {"int": 1, "str": "abc"})  # True
-objects_are_allclose({"int": 1, "str": "abc"}, {"int": 2, "str": "abc"}, atol=2)  # True
-objects_are_allclose({"int": 1, "str": "abc"}, {"int": 2, "str": "abc"}, rtol=1)  # True
-objects_are_allclose(
-    {"int": 1, "str": "abc"}, OrderedDict({"int": 1, "str": "abc"})
-)  # False
-objects_are_allclose(
-    {"int": 1, "str": "abc"}, {"int": 1, "str": "abc", "float": 0.2}
-)  # False
-objects_are_allclose({"int": 1, "str": "abc"}, {"int": 1, "float": 0.2})  # False
-objects_are_allclose({"int": 1, "str": "abc"}, {"int": 1, "str": "abcd"})  # False
 ```
 
 ### `collections.abc.Sequence` | `list` | `tuple`
@@ -381,15 +404,21 @@ Two `Sequence`s are equal within a tolerance if:
 
 **Example**
 
-```python
-from coola import objects_are_allclose
+```pycon
+>>> from coola import objects_are_allclose
+>>> objects_are_allclose([1, 2, "abc"], [1, 2, "abc"])
+True
+>>> objects_are_allclose([1, 2, "abc"], [1, 3, "abc"], atol=2)
+True
+>>> objects_are_allclose([1, 2, "abc"], [1, 3, "abc"], rtol=1)
+True
+>>> objects_are_allclose([1, 2, "abc"], (1, 2, "abc"))
+False
+>>> objects_are_allclose([1, 2, "abc"], [1, 2, "abc", 4])
+False
+>>> objects_are_allclose([1, 2, "abc"], [1, 2, "abcd"])
+False
 
-objects_are_allclose([1, 2, "abc"], [1, 2, "abc"])  # True
-objects_are_allclose([1, 2, "abc"], [1, 3, "abc"], atol=2)  # True
-objects_are_allclose([1, 2, "abc"], [1, 3, "abc"], rtol=1)  # True
-objects_are_allclose([1, 2, "abc"], (1, 2, "abc"))  # False
-objects_are_allclose([1, 2, "abc"], [1, 2, "abc", 4])  # False
-objects_are_allclose([1, 2, "abc"], [1, 2, "abcd"])  # False
 ```
 
 ### PyTorch
@@ -412,18 +441,22 @@ Two PyTorch `Tensor`s are equal if:
 
 **Example**
 
-```python
-import torch
+```pycon
+>>> import torch
+>>> from coola import objects_are_allclose
+>>> objects_are_allclose(torch.ones(2, 3), torch.ones(2, 3))
+True
+>>> objects_are_allclose(torch.ones(2, 3), torch.ones(2, 3) + 1, atol=2)
+True
+>>> objects_are_allclose(torch.ones(2, 3), torch.ones(2, 3) + 1, rtol=1)
+True
+>>> objects_are_allclose(torch.ones(2, 3), torch.ones(2, 3, dtype=torch.long))
+False
+>>> objects_are_allclose(torch.ones(2, 3), torch.zeros(2, 3))
+False
+>>> objects_are_allclose(torch.ones(2, 3), torch.ones(6))
+False
 
-from coola import objects_are_allclose
-
-objects_are_allclose(torch.ones(2, 3), torch.ones(2, 3))  # True
-objects_are_allclose(torch.ones(2, 3), torch.ones(2, 3) + 1, atol=2)  # True
-objects_are_allclose(torch.ones(2, 3), torch.ones(2, 3) + 1, rtol=1)  # True
-objects_are_allclose(torch.ones(2, 3), torch.ones(2, 3, dtype=torch.long))  # False
-objects_are_allclose(torch.ones(2, 3), torch.ones(2, 3, device="cuda"))  # False
-objects_are_allclose(torch.ones(2, 3), torch.zeros(2, 3))  # False
-objects_are_allclose(torch.ones(2, 3), torch.ones(6))  # False
 ```
 
 #### `torch.nn.utils.rnn.PackedSequence`
@@ -437,64 +470,64 @@ Two PyTorch `PackedSequence`s are equal within a tolerance if:
 
 **Example**
 
-```python
-import torch
-from torch.nn.utils.rnn import pack_padded_sequence
+```pycon
+>>> import torch
+>>> from torch.nn.utils.rnn import pack_padded_sequence
+>>> from coola import objects_are_allclose
+>>> objects_are_allclose(
+...     pack_padded_sequence(
+...         input=torch.arange(10).view(2, 5).float(),
+...         lengths=torch.tensor([5, 3], dtype=torch.long),
+...         batch_first=True,
+...     ),
+...     pack_padded_sequence(
+...         input=torch.arange(10).view(2, 5).float(),
+...         lengths=torch.tensor([5, 3], dtype=torch.long),
+...         batch_first=True,
+...     ),
+... )
+True
+>>> objects_are_allclose(
+...     pack_padded_sequence(
+...         input=torch.arange(10).view(2, 5).float() + 1,
+...         lengths=torch.tensor([5, 3], dtype=torch.long),
+...         batch_first=True,
+...     ),
+...     pack_padded_sequence(
+...         input=torch.arange(10).view(2, 5).float(),
+...         lengths=torch.tensor([5, 3], dtype=torch.long),
+...         batch_first=True,
+...     ),
+...     atol=2,
+... )
+True
+>>> objects_are_allclose(
+...     pack_padded_sequence(
+...         input=torch.arange(10).view(2, 5).float(),
+...         lengths=torch.tensor([5, 3], dtype=torch.long),
+...         batch_first=True,
+...     ),
+...     pack_padded_sequence(
+...         input=torch.arange(10).view(2, 5).add(1).float(),
+...         lengths=torch.tensor([5, 3], dtype=torch.long),
+...         batch_first=True,
+...     ),
+... )  # different values
+False
+>>> objects_are_allclose(
+...     pack_padded_sequence(
+...         input=torch.arange(10).view(2, 5).float(),
+...         lengths=torch.tensor([5, 3], dtype=torch.long),
+...         batch_first=True,
+...     ),
+...     pack_padded_sequence(
+...         input=torch.arange(10).view(2, 5).float(),
+...         lengths=torch.tensor([5, 2], dtype=torch.long),
+...         batch_first=True,
+...     ),
+... )  # different lengths
+False
 
-from coola import objects_are_allclose
-
-objects_are_allclose(
-    pack_padded_sequence(
-        input=torch.arange(10).view(2, 5).float(),
-        lengths=torch.tensor([5, 3], dtype=torch.long),
-        batch_first=True,
-    ),
-    pack_padded_sequence(
-        input=torch.arange(10).view(2, 5).float(),
-        lengths=torch.tensor([5, 3], dtype=torch.long),
-        batch_first=True,
-    ),
-)  # True
-
-objects_are_allclose(
-    pack_padded_sequence(
-        input=torch.arange(10).view(2, 5).float() + 1,
-        lengths=torch.tensor([5, 3], dtype=torch.long),
-        batch_first=True,
-    ),
-    pack_padded_sequence(
-        input=torch.arange(10).view(2, 5).float(),
-        lengths=torch.tensor([5, 3], dtype=torch.long),
-        batch_first=True,
-    ),
-    atol=2,
-)  # True
-
-objects_are_allclose(
-    pack_padded_sequence(
-        input=torch.arange(10).view(2, 5).float(),
-        lengths=torch.tensor([5, 3], dtype=torch.long),
-        batch_first=True,
-    ),
-    pack_padded_sequence(
-        input=torch.arange(10).view(2, 5).add(1).float(),
-        lengths=torch.tensor([5, 3], dtype=torch.long),
-        batch_first=True,
-    ),
-)  # False | different values
-
-objects_are_allclose(
-    pack_padded_sequence(
-        input=torch.arange(10).view(2, 5).float(),
-        lengths=torch.tensor([5, 3], dtype=torch.long),
-        batch_first=True,
-    ),
-    pack_padded_sequence(
-        input=torch.arange(10).view(2, 5).float(),
-        lengths=torch.tensor([5, 2], dtype=torch.long),
-        batch_first=True,
-    ),
-)  # False | different lengths
 ```
 
 ### `numpy.ndarray`
@@ -508,17 +541,22 @@ Two NumPy `ndarray`s are equal within a tolerance if:
 - they have the same shape i.e. `array1.shape == array2.shape` returns `True`
 - the values are equal within a tolerance i.e. `numpy.allclose(array1, array2)` returns `True`
 
-```python
-import numpy
+```pycon
+>>> import numpy
+>>> from coola import objects_are_allclose
+>>> objects_are_allclose(numpy.ones((2, 3)), numpy.ones((2, 3)))
+True
+>>> objects_are_allclose(numpy.ones((2, 3)), numpy.ones((2, 3)) + 1, atol=2)
+True
+>>> objects_are_allclose(numpy.ones((2, 3)), numpy.ones((2, 3)) + 1, rtol=1)
+True
+>>> objects_are_allclose(numpy.ones((2, 3)), numpy.ones((2, 3), dtype=int))
+False
+>>> objects_are_allclose(numpy.ones((2, 3)), numpy.zeros((2, 3)))
+False
+>>> objects_are_allclose(numpy.ones((2, 3)), numpy.ones((6,)))
+False
 
-from coola import objects_are_allclose
-
-objects_are_allclose(numpy.ones((2, 3)), numpy.ones((2, 3)))  # True
-objects_are_allclose(numpy.ones((2, 3)), numpy.ones((2, 3)) + 1, atol=2)  # True
-objects_are_allclose(numpy.ones((2, 3)), numpy.ones((2, 3)) + 1, rtol=1)  # True
-objects_are_allclose(numpy.ones((2, 3)), numpy.ones((2, 3), dtype=int))  # False
-objects_are_allclose(numpy.ones((2, 3)), numpy.zeros((2, 3)))  # False
-objects_are_allclose(numpy.ones((2, 3)), numpy.ones((6,)))  # False
 ```
 
 ### xarray
@@ -544,16 +582,13 @@ Unlike `xarray.DataArray.identical`, two `DataArray`s are not equal if both obje
 same positions to follow the standard usage in numpy.
 You can use `objects_are_allclose` to compare objects with NaNs.
 
-```python
-import numpy as np
-import xarray as xr
+```pycon
+>>> import numpy as np
+>>> import xarray as xr
+>>> from coola import objects_are_allclose
+>>> objects_are_allclose(xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"]))
+True
+>>> objects_are_allclose(xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.zeros(6), dims=["z"]))
+False
 
-from coola import objects_are_allclose
-
-objects_are_allclose(
-    xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"])
-)  # True
-objects_are_allclose(
-    xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.zeros(6), dims=["z"])
-)  # False
 ```
