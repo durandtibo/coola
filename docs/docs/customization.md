@@ -10,18 +10,16 @@ objects are equal.
 implement a custom `BaseEqualityTester` to check if two objects are equal.
 The following example shows how to use a custom `BaseEqualityTester`.
 
-```python
-from typing import Any
+```pycon
+>>> from typing import Any
+>>> from coola import BaseEqualityTester, objects_are_equal
+>>> class MyCustomEqualityTester(BaseEqualityTester):
+...     def equal(self, object1: Any, object2: Any, show_difference: bool = False) -> bool:
+...         return object1 is object2
+...
+>>> objects_are_equal([1, 2, 3], (1, 2, 3), tester=MyCustomEqualityTester())
+False
 
-from coola import BaseEqualityTester, objects_are_equal
-
-
-class MyCustomEqualityTester(BaseEqualityTester):
-    def equal(self, object1: Any, object2: Any, show_difference: bool = False) -> bool:
-        ...  # Custom implementation
-
-
-objects_are_equal([1, 2, 3], (1, 2, 3), tester=MyCustomEqualityTester())
 ```
 
 Implemented a new `BaseEqualityTester` allows to customize the behavior of `objects_are_equal`.
@@ -47,24 +45,17 @@ If the first element to compare is a `list`, `EqualityTester` will use the equal
 associated to `list` to compare the two objects.
 You can use the following code to see the registered equality operators with their associated types.
 
-```python
-from coola import EqualityTester
+```pycon
+>>> from coola import EqualityTester
+>>> EqualityTester.registry
+{<class 'collections.abc.Mapping'>: MappingEqualityOperator(),
+ <class 'collections.abc.Sequence'>: SequenceEqualityOperator(),
+ <class 'dict'>: MappingEqualityOperator(),
+ <class 'list'>: SequenceEqualityOperator(),
+ <class 'object'>: DefaultEqualityOperator(),
+ <class 'tuple'>: SequenceEqualityOperator(),
+ ...}
 
-print(EqualityTester.registry)
-```
-
-*Output*:
-
-```textmate
-{collections.abc.Mapping: MappingEqualityOperator(),
- collections.abc.Sequence: SequenceEqualityOperator(),
- dict: MappingEqualityOperator(),
- list: SequenceEqualityOperator(),
- object: DefaultEqualityOperator(),
- tuple: SequenceEqualityOperator(),
- numpy.ndarray: NDArrayEqualityOperator(check_dtype=True),
- torch.nn.utils.rnn.PackedSequence: PackedSequenceEqualityOperator(),
- torch.Tensor: TensorEqualityOperator()}
 ```
 
 An equality operator (`DefaultEqualityOperator`) is registered for `object` type, so this equality
@@ -87,69 +78,49 @@ First, you need to implement a new `BaseEqualityOperator` with the expected beha
 specific type (`str` for this example).
 Then, you need to add the `BaseEqualityOperator` to `EqualityTester`.
 
-```python
-from typing import Any
-
-from coola import (
-    BaseEqualityOperator,
-    BaseEqualityTester,
-    EqualityTester,
-    objects_are_equal,
-)
-
-
-# Step 1: implementation of a new equality operator
-class MyCustomStrEqualityOperator(BaseEqualityOperator):
-    def equal(
-        self,
-        tester: BaseEqualityTester,
-        object1: str,
-        object2: Any,
-        show_difference: bool = False,
-    ) -> bool:
-        # You can add code to check the type and to log a message to indicate
-        # the difference between the objects if any. To keep this example
-        # simple, this part is skipped.
-        return object1 in object2
-
-
-# Step 2: add the new equality operator to EqualityTester
-EqualityTester.add_operator(str, MyCustomStrEqualityOperator())
-
-print(objects_are_equal("abc", "abcde"))
-print(objects_are_equal("abc", "cba"))
-```
-
-*Output*:
-
-```textmate
+```pycon
+>>> from typing import Any
+>>> from coola import BaseEqualityOperator, BaseEqualityTester, EqualityTester, objects_are_equal
+>>> # Step 1: implementation of a new equality operator
+>>> class MyCustomStrEqualityOperator(BaseEqualityOperator):
+...     def clone(self) -> "MyCustomStrEqualityOperator":
+...         return self.__class__()
+...
+...     def equal(
+...         self,
+...         tester: BaseEqualityTester,
+...         object1: str,
+...         object2: Any,
+...         show_difference: bool = False,
+...     ) -> bool:
+...         # You can add code to check the type and to log a message to indicate
+...         # the difference between the objects if any. To keep this example
+...         # simple, this part is skipped.
+...         return object1 in object2
+...
+>>> # Step 2: add the new equality operator to EqualityTester
+>>> tester = EqualityTester.local_copy()
+>>> tester.add_operator(str, MyCustomStrEqualityOperator())
+>>> objects_are_equal("abc", "abcde", tester=tester)
 True
+>>> objects_are_equal("abc", "cba", tester=tester)
 False
+>>> tester.registry
+{<class 'collections.abc.Mapping'>: MappingEqualityOperator(),
+ <class 'collections.abc.Sequence'>: SequenceEqualityOperator(),
+ <class 'dict'>: MappingEqualityOperator(),
+ <class 'list'>: SequenceEqualityOperator(),
+ <class 'object'>: DefaultEqualityOperator(),
+ <class 'tuple'>: SequenceEqualityOperator(),
+ ...
+ <class 'str'>: MyCustomStrEqualityOperator()}
+
+
 ```
 
 Once registered, the new equality operator is used automatically when you use
 the `objects_are_equal` function.
 You can use the `registry` attribute to check the registered equality operators.
-
-```python
-print(EqualityTester.registry)
-```
-
-*Output*:
-
-```textmate
-{collections.abc.Mapping: MappingEqualityOperator(),
- collections.abc.Sequence: SequenceEqualityOperator(),
- dict: MappingEqualityOperator(),
- list: SequenceEqualityOperator(),
- object: DefaultEqualityOperator(),
- tuple: SequenceEqualityOperator(),
- numpy.ndarray: NDArrayEqualityOperator(),
- torch.nn.utils.rnn.PackedSequence: PackedSequenceEqualityOperator(),
- torch.Tensor: TensorEqualityOperator(),
- str: MyCustomStrEqualityOperator()}
-```
-
 You should see the new added equality operator (last line for this example).
 
 ### Update the equality operator for a given type
@@ -159,48 +130,38 @@ This section explains how to update the equality operator for a specific type.
 To update an equality operator for a given type, you need to add the argument `exist_ok=True` when
 the new equality operator is added.
 
-```python
-from collections.abc import Mapping
+```pycon
+>>> from collections.abc import Mapping
+>>> from coola import BaseEqualityOperator, EqualityTester
+>>> class MyCustomMappingEqualityOperator(BaseEqualityOperator):
+...     def clone(self) -> "MyCustomMappingEqualityOperator":
+...         return self.__class__()
+...
+...     def equal(
+...         self,
+...         tester: BaseEqualityTester,
+...         object1: Mapping,
+...         object2: Any,
+...         show_difference: bool = False,
+...     ) -> bool:
+...         # You can add code to check the type and to log a message to indicate
+...         # the difference between the objects if any. To keep this example
+...         # simple, this part is skipped.
+...         return object1 is object2
+...
+>>> tester = EqualityTester.local_copy()
+>>> tester.add_operator(
+...     Mapping,
+...     MyCustomMappingEqualityOperator(),
+...     exist_ok=True,
+... )
+>>> tester.registry
+{<class 'collections.abc.Mapping'>: MyCustomMappingEqualityOperator(),
+ <class 'collections.abc.Sequence'>: SequenceEqualityOperator(),
+ <class 'dict'>: MappingEqualityOperator(),
+ <class 'list'>: SequenceEqualityOperator(),
+ <class 'object'>: DefaultEqualityOperator(),
+ <class 'tuple'>: SequenceEqualityOperator(),
+ ...}
 
-from coola import BaseEqualityOperator, EqualityTester
-
-
-class MyCustomMappingEqualityOperator(BaseEqualityOperator):
-    ...  # Custom implementation
-
-
-EqualityTester.add_operator(
-    Mapping,
-    MyCustomMappingEqualityOperator(),
-    exist_ok=True,
-)
-```
-
-To see the difference, you can check the list of registered equality operators before and after.
-Before, the registered equality operators should look like:
-
-```textmate
-{collections.abc.Mapping: MappingEqualityOperator(),
- collections.abc.Sequence: SequenceEqualityOperator(),
- dict: MappingEqualityOperator(),
- list: SequenceEqualityOperator(),
- object: DefaultEqualityOperator(),
- tuple: SequenceEqualityOperator(),
- numpy.ndarray: NDArrayEqualityOperator(),
- torch.nn.utils.rnn.PackedSequence: PackedSequenceEqualityOperator(),
- torch.Tensor: TensorEqualityOperator()}
-```
-
-After, the registered equality operators should look like:
-
-```textmate
-{collections.abc.Mapping: MyCustomMappingEqualityOperator(),
- collections.abc.Sequence: SequenceEqualityOperator(),
- dict: MappingEqualityOperator(),
- list: SequenceEqualityOperator(),
- object: DefaultEqualityOperator(),
- tuple: SequenceEqualityOperator(),
- numpy.ndarray: NDArrayEqualityOperator(),
- torch.nn.utils.rnn.PackedSequence: PackedSequenceEqualityOperator(),
- torch.Tensor: TensorEqualityOperator()}
 ```
