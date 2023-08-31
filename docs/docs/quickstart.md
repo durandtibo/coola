@@ -22,25 +22,18 @@ equal or not. It also works for simple objects like integer or string.
 The following example shows how to use the `objects_are_equal` function.
 The objects to compare are dictionaries containing a PyTorch `Tensor` and a NumPy `ndarray`.
 
-```python
-import numpy
-import torch
-
-from coola import objects_are_equal
-
-data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
-data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
-data3 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
-
-print(objects_are_equal(data1, data2))
-print(objects_are_equal(data1, data3))
-```
-
-*Output*:
-
-```textmate
+```pycon
+>>> import numpy
+>>> import torch
+>>> from coola import objects_are_equal
+>>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
+>>> data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
+>>> data3 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
+>>> objects_are_equal(data1, data2)
 False
+>>> objects_are_equal(data1, data3)
 True
+
 ```
 
 In one line, it is possible to check two complex/nested objects are equal or not.
@@ -54,29 +47,28 @@ This function has an argument `show_difference` which shows the first difference
 two objects. For example if you add `show_difference=True` when you compare the `data1`
 and `data2`, you will see at least one element that is different:
 
-```python
-import numpy
-import torch
+```pycon
+>>> import numpy
+>>> import torch
+>>> from coola import objects_are_equal
+>>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
+>>> data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
+>>> objects_are_equal(data1, data2, show_difference=True)
+False
 
-from coola import objects_are_equal
-
-data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
-data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
-
-objects_are_equal(data1, data2, show_difference=True)
 ```
 
-*Output*:
+*Log output*:
 
 ```textmate
-INFO:coola.pytorch:torch.Tensors are different
+INFO:coola.comparators.torch_:torch.Tensors are different
 object1=
 tensor([[1., 1., 1.],
         [1., 1., 1.]])
 object2=
 tensor([[0., 0., 0.],
         [0., 0., 0.]])
-INFO:coola.equality:The mappings have a different value for the key 'torch':
+INFO:coola.comparators.equality:The mappings have a different value for the key 'torch':
 first mapping  = {'torch': tensor([[1., 1., 1.],
         [1., 1., 1.]]), 'numpy': array([[0., 0., 0.],
        [0., 0., 0.]])}
@@ -99,53 +91,40 @@ No log is shown if the two objects are equal and `show_difference=True`.
 
 The previous examples use dictionary, but it is possible to use other types like list or tuple
 
-```python
-import numpy
-import torch
-
-from coola import objects_are_equal
-
-data1 = [torch.ones(2, 3), numpy.zeros((2, 3))]
-data2 = [torch.zeros(2, 3), numpy.ones((2, 3))]
-data3 = (torch.ones(2, 3), numpy.zeros((2, 3)))
-
-print(objects_are_equal(data1, data2))
-print(objects_are_equal(data1, data3))
-```
-
-*Output*:
-
-```textmate
+```pycon
+>>> import numpy
+>>> import torch
+>>> from coola import objects_are_equal
+>>> data1 = [torch.ones(2, 3), numpy.zeros((2, 3))]
+>>> data2 = [torch.zeros(2, 3), numpy.ones((2, 3))]
+>>> data3 = (torch.ones(2, 3), numpy.zeros((2, 3)))
+>>> objects_are_equal(data1, data2)
 False
+>>> objects_are_equal(data1, data3)
 False
+
 ```
 
 It is also possible to test more complex objects
 
-```python
-import numpy
-import torch
-
-from coola import objects_are_equal
-
-data1 = {
-    "list": [torch.ones(2, 3), numpy.zeros((2, 3))],
-    "dict": {"torch": torch.arange(5), "str": "abc"},
-    "int": 1,
-}
-data2 = {
-    "list": [torch.ones(2, 3), numpy.zeros((2, 3))],
-    "dict": {"torch": torch.arange(5), "str": "abcd"},
-    "int": 1,
-}
-
-print(objects_are_equal(data1, data2))
-```
-
-*Output*:
-
-```textmate
+```pycon
+>>> import numpy
+>>> import torch
+>>> from coola import objects_are_equal
+>>> data1 = {
+...     "list": [torch.ones(2, 3), numpy.zeros((2, 3))],
+...     "dict": {"torch": torch.arange(5), "str": "abc"},
+...     "int": 1,
+... }
+>>> data2 = {
+...     "list": [torch.ones(2, 3), numpy.zeros((2, 3))],
+...     "dict": {"torch": torch.arange(5), "str": "abcd"},
+...     "int": 1,
+... }
+...
+>>> objects_are_equal(data1, data2)
 False
+
 ```
 
 Feel free to try any complex nested structure that you want. You can find the currently supported
@@ -160,31 +139,34 @@ For example, `1` (integer) is considered different from `1.0` (float) or `True` 
 different behavior that the native python equality operator `==`. You can take a look to the
 following example to see some differences.
 
-```python
-from coola import objects_are_equal
+```pycon
+>>> from coola import objects_are_equal
+>>> objects_are_equal(1, 1)
+True
+>>> objects_are_equal(1, 1.0)
+False
+>>> objects_are_equal(1, True)
+False
+>>> 1 == 1
+True
+>>> 1 == 1.0
+True
+>>> 1 == True
+True
 
-objects_are_equal(1, 1)  # True
-objects_are_equal(1, 1.0)  # False
-objects_are_equal(1, True)  # False
-
-1 == 1  # True
-1 == 1.0  # True
-1 == True  # True
 ```
 
 Similarly, the `objects_are_equal` function considers a `dict` and `collections.OrderedDict` as
 different objects even if they have the same keys and values.
 
-```python
-from collections import OrderedDict
+```pycon
+>>> from collections import OrderedDict
+>>> from coola import objects_are_equal
+>>> objects_are_equal({"key1": 1, "key2": "abc"}, OrderedDict({"key1": 1, "key2": "abc"}))
+False
+>>> {"key1": 1, "key2": "abc"} == OrderedDict({"key1": 1, "key2": "abc"})
+True
 
-from coola import objects_are_equal
-
-objects_are_equal(
-    {"key1": 1, "key2": "abc"}, OrderedDict({"key1": 1, "key2": "abc"})
-)  # False
-
-{"key1": 1, "key2": "abc"} == OrderedDict({"key1": 1, "key2": "abc"})  # True
 ```
 
 ## Almost equal or not?
@@ -202,27 +184,20 @@ the `objects_are_equal` function.
 The following example shows how to use the `objects_are_allclose` function.
 The objects to compare are dictionaries containing a PyTorch Tensor and a NumPy ndarray.
 
-```python
-import numpy
-import torch
-
-from coola import objects_are_allclose, objects_are_equal
-
-data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
-data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
-data3 = {"torch": torch.ones(2, 3) + 1e-9, "numpy": numpy.zeros((2, 3)) - 1e-9}
-
-print(objects_are_allclose(data1, data2))
-print(objects_are_allclose(data1, data3))
-print(objects_are_equal(data1, data3))
-```
-
-*Output*:
-
-```textmate
+```pycon
+>>> import numpy
+>>> import torch
+>>> from coola import objects_are_allclose, objects_are_equal
+>>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
+>>> data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
+>>> data3 = {"torch": torch.ones(2, 3) + 1e-9, "numpy": numpy.zeros((2, 3)) - 1e-9}
+>>> objects_are_allclose(data1, data2)
 False
+>>> objects_are_allclose(data1, data3)
 True
+>>> objects_are_equal(data1, data3)
 False
+
 ```
 
 The difference between `data1` and `data2` is large so `objects_are_allclose` returns false
@@ -234,24 +209,17 @@ so `objects_are_allclose` returns true, whereas `objects_are_equal` returns fals
 It is possible to control the tolerance with the arguments `atol` and `rtol`. `atol` controls the
 absolute tolerance and `rtol` controls the relative tolerance.
 
-```python
-import numpy
-import torch
-
-from coola import objects_are_allclose
-
-data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
-data2 = {"torch": torch.ones(2, 3) + 1e-4, "numpy": numpy.zeros((2, 3)) - 1e-4}
-
-print(objects_are_allclose(data1, data2))
-print(objects_are_allclose(data1, data2, atol=1e-3))
-```
-
-*Output*:
-
-```textmate
+```pycon
+>>> import numpy
+>>> import torch
+>>> from coola import objects_are_allclose
+>>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
+>>> data2 = {"torch": torch.ones(2, 3) + 1e-4, "numpy": numpy.zeros((2, 3)) - 1e-4}
+>>> objects_are_allclose(data1, data2)
 False
+>>> objects_are_allclose(data1, data2, atol=1e-3)
 True
+
 ```
 
 `objects_are_equal` and `objects_are_allclose` are very similar and should behave the same

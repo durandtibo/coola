@@ -21,7 +21,7 @@ install :
 
 .PHONY : install-all
 install-all :
-	poetry install --no-interaction --all-extras
+	poetry install --no-interaction --all-extras --with docs
 	pip install --upgrade "torch>=2.0.1"  # TODO: https://github.com/pytorch/pytorch/issues/100974
 
 .PHONY : update
@@ -45,6 +45,7 @@ docformat :
 .PHONY : doctest-src
 doctest-src :
 	python -m pytest --xdoctest $(SOURCE)
+	find . -type f -name "*.md" | xargs python -m doctest -o NORMALIZE_WHITESPACE -o ELLIPSIS -o REPORT_NDIFF
 
 .PHONY : test
 test :

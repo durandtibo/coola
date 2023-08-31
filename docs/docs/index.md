@@ -68,25 +68,29 @@ It is not possible to use the default equality operator `==` because it will rai
 The `coola` library was developed to fill this gap. `coola` provides a function `objects_are_equal`
 that can indicate if two complex/nested objects are equal or not.
 
-```python
-import numpy
-import torch
+```pycon
+>>> import numpy
+>>> import torch
+>>> from coola import objects_are_equal
+>>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
+>>> data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
+>>> objects_are_equal(data1, data2)
+False
 
-from coola import objects_are_equal
-
-data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
-data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
-
-objects_are_equal(data1, data2)
 ```
 
 `coola` also provides a function `objects_are_allclose` that can indicate if two complex/nested
 objects are equal within a tolerance or not.
 
-```python
-from coola import objects_are_allclose
+```pycon
+>>> import numpy
+>>> import torch
+>>> from coola import objects_are_allclose
+>>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
+>>> data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
+>>> objects_are_allclose(data1, data2, atol=1e-6)
+False
 
-objects_are_allclose(data1, data2, atol=1e-6)
 ```
 
 ## API stability
