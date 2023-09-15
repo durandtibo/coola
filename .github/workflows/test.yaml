@@ -4,7 +4,7 @@ on:
   workflow_dispatch:  # to trigger manually
 
 jobs:
-  test:
+  all-deps:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -41,7 +41,7 @@ jobs:
           poetry run make unit-test-cov
 
 
-  test-minimal:
+  min-deps:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:

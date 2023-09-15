@@ -4,7 +4,7 @@ on:
   workflow_dispatch:  # to trigger manually
 
 jobs:
-  test-jax:
+  jax:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -46,7 +46,7 @@ jobs:
           poetry run make unit-test-cov
 
 
-  test-numpy:
+  numpy:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -95,7 +95,7 @@ jobs:
           poetry run make unit-test-cov
 
 
-  test-pandas:
+  pandas:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -142,7 +142,7 @@ jobs:
           poetry run make unit-test-cov
 
 
-  test-polars:
+  polars:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -184,7 +184,7 @@ jobs:
           poetry run make unit-test-cov
 
 
-  test-torch:
+  torch:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -193,15 +193,15 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         python-version: [ '3.9', '3.10', '3.11' ]
-        pytorch-version: [ 2.0.1, 1.13.1, 1.12.1, 1.11.0, 1.10.0 ]
+        torch-version: [ 2.0.1, 1.13.1, 1.12.1, 1.11.0, 1.10.0 ]
         exclude:
-          - pytorch-version: 1.10.0
+          - torch-version: 1.10.0
             python-version: 3.10
-          - pytorch-version: 1.10.0
+          - torch-version: 1.10.0
             python-version: 3.11
-          - pytorch-version: 1.11.0
+          - torch-version: 1.11.0
             python-version: 3.11
-          - pytorch-version: 1.12.1
+          - torch-version: 1.12.1
             python-version: 3.11
 
     steps:
@@ -223,7 +223,7 @@ jobs:
 
       - name: Install PyTorch
         run: |
-          poetry run pip install torch==${{ matrix.pytorch-version }}
+          poetry run pip install torch==${{ matrix.torch-version }}
 
       - name: Show installed packages
         run: |
@@ -235,7 +235,7 @@ jobs:
           poetry run make unit-test-cov
 
 
-  test-xarray:
+  xarray:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
