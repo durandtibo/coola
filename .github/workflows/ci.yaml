@@ -11,8 +11,7 @@ on:
 jobs:
   coverage:
     uses: ./.github/workflows/coverage.yaml
-    secrets:
-      CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+    secrets: inherit
   cyclic-imports:
     uses: ./.github/workflows/cyclic-imports.yaml
   doctest:
