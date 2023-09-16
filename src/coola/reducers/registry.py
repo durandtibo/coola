@@ -63,7 +63,7 @@ class ReducerRegistry:
         .. code-block:: pycon
 
             >>> from coola.reducers import ReducerRegistry
-            >>> ReducerRegistry.available_reducers()  # doctest: +ELLIPSIS
+            >>> ReducerRegistry.available_reducers()
             (...)
         """
         return tuple(cls.registry.keys())

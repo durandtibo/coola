@@ -24,7 +24,7 @@ def get_available_devices() -> tuple[str, ...]:
     .. code-block:: pycon
 
         >>> from coola.utils.tensor import get_available_devices
-        >>> get_available_devices()  # doctest:+ELLIPSIS
+        >>> get_available_devices()
         ('cpu'...)
     """
     devices = ["cpu"]

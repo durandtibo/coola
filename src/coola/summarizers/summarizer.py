@@ -189,7 +189,7 @@ class Summarizer(BaseSummarizer):
         .. code-block:: pycon
 
             >>> from coola import Summarizer
-            >>> Summarizer.state_dict()  # doctest: +ELLIPSIS
+            >>> Summarizer.state_dict()
             {<class 'collections.abc.Mapping'>: {'max_items': 5, 'num_spaces': 2},...
         """
         return {data_type: formatter.state_dict() for data_type, formatter in cls.registry.items()}
