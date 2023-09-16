@@ -194,7 +194,7 @@ class BaseReducer(ABC):
 
             >>> from coola.reducers import TorchReducer
             >>> reducer = TorchReducer()
-            >>> reducer.std([-2, -1, 0, 1, 2])  
+            >>> reducer.std([-2, -1, 0, 1, 2])
             1.581138...
         """
 

@@ -205,7 +205,7 @@ class AllCloseTester(BaseAllCloseTester):
         .. code-block:: pycon
 
             >>> from coola.testers import AllCloseTester
-            >>> AllCloseTester.local_copy()  
+            >>> AllCloseTester.local_copy()
             LocalAllCloseTester(...)
         """
         return LocalAllCloseTester({key: value.clone() for key, value in cls.registry.items()})
