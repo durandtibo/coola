@@ -164,7 +164,7 @@ class EqualityTester(BaseEqualityTester):
 
             >>> from coola.testers import EqualityTester
             >>> tester = EqualityTester.local_copy()
-            >>> tester  # doctest: +ELLIPSIS
+            >>> tester  
             LocalEqualityTester(...)
         """
         return LocalEqualityTester({key: value.clone() for key, value in cls.registry.items()})

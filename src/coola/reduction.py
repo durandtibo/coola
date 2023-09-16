@@ -25,7 +25,7 @@ class Reduction:
         .. code-block:: pycon
 
             >>> from coola import Reduction
-            >>> Reduction.available_reducers()  # doctest: +ELLIPSIS
+            >>> Reduction.available_reducers()  
             (...)
         """
         return ReducerRegistry.available_reducers()
