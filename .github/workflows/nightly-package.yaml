@@ -5,7 +5,7 @@ on:
   workflow_dispatch:  # to trigger manually
 
 jobs:
-  package:
+  all:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -50,7 +50,7 @@ jobs:
           python -c "from coola.testers import BaseAllCloseTester, BaseEqualityTester"
 
 
-  package-minimal:
+  min:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -85,7 +85,7 @@ jobs:
             "assert not coola.is_xarray_available(); "
 
 
-  package-jax:
+  jax:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -114,7 +114,7 @@ jobs:
           python -c "import coola; import jax; assert coola.objects_are_equal(jax.numpy.arange(6), jax.numpy.arange(6))"
 
 
-  package-numpy:
+  numpy:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -146,7 +146,7 @@ jobs:
           python -c "import coola; import numpy; assert coola.objects_are_equal(numpy.arange(6), numpy.arange(6))"
 
 
-  package-pandas:
+  pandas:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -181,7 +181,7 @@ jobs:
             "assert coola.objects_are_equal(pandas.DataFrame({"col1": [1,2,3,4,5], "col2": [1.1,2.2,3.3,4.4,5.5]}), pandas.DataFrame({"col1": [1,2,3,4,5], "col2": [1.1,2.2,3.3,4.4,5.5]}))"
 
 
-  package-polars:
+  polars:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -211,7 +211,7 @@ jobs:
             "assert coola.objects_are_equal(polars.DataFrame({"col1": [1,2,3,4,5], "col2": [1.1,2.2,3.3,4.4,5.5]}), polars.DataFrame({"col1": [1,2,3,4,5], "col2": [1.1,2.2,3.3,4.4,5.5]}))"
 
 
-  package-torch:
+  torch:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -249,7 +249,7 @@ jobs:
           python -c "import coola; import torch; assert coola.objects_are_equal(torch.arange(6), torch.arange(6))"
 
 
-  package-xarray:
+  xarray:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -279,7 +279,7 @@ jobs:
             "assert coola.objects_are_equal(xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"]))"
 
 
-  detect-cyclic-import:
+  cyclic-import:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
