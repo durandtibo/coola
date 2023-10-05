@@ -142,17 +142,33 @@ The following is the corresponding `coola` versions and supported dependencies.
 
 | `coola`  | `jax`<sup>*</sup> | `numpy`<sup>*</sup> | `pandas`<sup>*</sup> | `polars`<sup>*</sup> | `torch`<sup>*</sup> | `xarray`<sup>*</sup> | `python`      |
 |----------|-------------------|---------------------|----------------------|----------------------|---------------------|----------------------|---------------|
+| `0.0.25` | `>=0.3,<0.5`      | `>=1.21,<1.27`      | `>=1.3,<2.2`         | `>=0.18.3,<0.20`     | `>=1.10,<2.2`       | `>=2023.3,<2023.9`   | `>=3.9,<3.12` |
 | `0.0.24` | `>=0.3,<0.5`      | `>=1.21,<1.27`      | `>=1.3,<2.2`         | `>=0.18.3,<0.20`     | `>=1.10,<2.2`       | `>=2023.3,<2023.9`   | `>=3.9,<3.12` |
 | `0.0.23` | `>=0.3,<0.5`      | `>=1.21,<1.27`      | `>=1.3,<2.2`         | `>=0.18.3,<0.20`     | `>=1.10,<2.1`       | `>=2023.3,<2023.9`   | `>=3.9,<3.12` |
 | `0.0.22` | `>=0.3,<0.5`      | `>=1.20,<1.26`      | `>=1.3,<2.1`         | `>=0.18.3,<0.19`     | `>=1.10,<2.1`       | `>=2023.3,<2023.9`   | `>=3.9,<3.12` |
 | `0.0.21` | `>=0.3,<0.5`      | `>=1.20,<1.26`      | `>=1.3,<2.1`         | `>=0.18.3,<0.19`     | `>=1.10,<2.1`       | `>=2023.3,<2023.8`   | `>=3.9,<3.12` |
-| `0.0.20` | `>=0.3,<0.5`      | `>=1.20,<1.26`      | `>=1.3,<2.1`         | `>=0.18.3,<0.19`     | `>=1.10,<2.1`       | `>=2023.3,<2023.8`   | `>=3.9`       |
 
 <sup>*</sup> indicates an optional dependency
+
+<details>
+    <summary>older versions</summary>
+
+| `coola`  | `jax`<sup>*</sup> | `numpy`<sup>*</sup> | `pandas`<sup>*</sup> | `polars`<sup>*</sup> | `torch`<sup>*</sup> | `xarray`<sup>*</sup> | `python` |
+|----------|-------------------|---------------------|----------------------|----------------------|---------------------|----------------------|----------|
+| `0.0.20` | `>=0.3,<0.5`      | `>=1.20,<1.26`      | `>=1.3,<2.1`         | `>=0.18.3,<0.19`     | `>=1.10,<2.1`       | `>=2023.3,<2023.8`   | `>=3.9`  |
+
+</details>
 
 ## Contributing
 
 Please check the instructions in [CONTRIBUTING.md](.github/CONTRIBUTING.md).
+
+## Suggestions and Communication
+
+Everyone is welcome to contribute to the community.
+If you have any questions or suggestions, you can
+submit [Github Issues](https://github.com/durandtibo/coola/issues).
+We will reply to you as soon as possible. Thank you very much.
 
 ## API stability
 
