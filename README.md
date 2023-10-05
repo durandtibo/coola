@@ -163,6 +163,13 @@ The following is the corresponding `coola` versions and supported dependencies.
 
 Please check the instructions in [CONTRIBUTING.md](.github/CONTRIBUTING.md).
 
+## Suggestions and Communication
+
+Everyone is welcome to contribute to the community.
+If you have any questions or suggestions, you can
+submit [Github Issues](https://github.com/durandtibo/coola/issues).
+We will reply to you as soon as possible. Thank you very much.
+
 ## API stability
 
 :warning: While `coola` is in development stage, no API is guaranteed to be stable from one
