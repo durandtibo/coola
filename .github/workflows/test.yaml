@@ -3,6 +3,9 @@ on:
   workflow_call:
   workflow_dispatch:  # to trigger manually
 
+env:
+  PYTORCH_MPS_HIGH_WATERMARK_RATIO: 0.0
+
 jobs:
   all:
     runs-on: ${{ matrix.os }}
