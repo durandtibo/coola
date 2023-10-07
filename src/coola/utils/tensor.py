@@ -70,9 +70,17 @@ def is_mps_available() -> bool:
         >>> from coola.utils.tensor import is_mps_available
         >>> is_mps_available()
     """
-    return (
-        is_torch_available()
-        and hasattr(torch.backends, "mps")
-        and torch.backends.mps.is_available()
-        and torch.backends.mps.is_macos13_or_newer()
-    )
+    if not is_torch_available():
+        return False
+    try:
+        torch.ones(1, device=torch.device("mps"))
+        return True
+    except RuntimeError:
+        return False
+    # return (
+    #     is_torch_available()
+    #     and hasattr(torch.backends, "mps")
+    #     and torch.backends.mps.is_available()
+    #     and hasattr(torch.backends.mps, "is_macos13_or_newer")
+    #     and torch.backends.mps.is_macos13_or_newer()
+    # )

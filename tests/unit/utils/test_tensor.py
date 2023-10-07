@@ -76,6 +76,11 @@ def test_is_cuda_available_false() -> None:
     assert not is_cuda_available()
 
 
+@patch("coola.utils.tensor.is_torch_available", lambda *args, **kwargs: False)
+def test_is_cuda_available_no_torch() -> None:
+    assert not is_cuda_available()
+
+
 ######################################
 #     Tests for is_mpa_available     #
 ######################################
@@ -86,21 +91,6 @@ def test_is_mps_available() -> None:
     assert isinstance(is_mps_available(), bool)
 
 
-@torch_available
-@patch("torch.backends.mps.is_available", lambda *args, **kwargs: True)
-@patch("torch.backends.mps.is_macos13_or_newer", lambda *args, **kwargs: True)
-def test_is_mps_available_true() -> None:
-    assert is_mps_available()
-
-
-@torch_available
-@patch("torch.backends.mps.is_available", lambda *args, **kwargs: False)
-def test_is_mps_available_false_not_available() -> None:
-    assert not is_mps_available()
-
-
-@torch_available
-@patch("torch.backends.mps.is_available", lambda *args, **kwargs: True)
-@patch("torch.backends.mps.is_macos13_or_newer", lambda *args, **kwargs: False)
-def test_is_mps_available_false_old_macos() -> None:
+@patch("coola.utils.tensor.is_torch_available", lambda *args, **kwargs: False)
+def test_is_mps_available_no_torch() -> None:
     assert not is_mps_available()
