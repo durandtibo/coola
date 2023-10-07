@@ -1,4 +1,8 @@
+from __future__ import annotations
+
 from unittest.mock import patch
+
+from pytest import fixture
 
 from coola.testing import torch_available
 from coola.utils.tensor import (
@@ -6,6 +10,14 @@ from coola.utils.tensor import (
     is_cuda_available,
     is_mps_available,
 )
+
+
+@fixture(autouse=True)
+def reset() -> None:
+    get_available_devices.cache_clear()
+    is_cuda_available.cache_clear()
+    is_mps_available.cache_clear()
+
 
 ###########################################
 #     Tests for get_available_devices     #
@@ -72,3 +84,23 @@ def test_is_cuda_available_false() -> None:
 @torch_available
 def test_is_mps_available() -> None:
     assert isinstance(is_mps_available(), bool)
+
+
+@torch_available
+@patch("torch.backends.mps.is_available", lambda *args, **kwargs: True)
+@patch("torch.backends.mps.is_macos13_or_newer", lambda *args, **kwargs: True)
+def test_is_mps_available_true() -> None:
+    assert is_mps_available()
+
+
+@torch_available
+@patch("torch.backends.mps.is_available", lambda *args, **kwargs: False)
+def test_is_mps_available_false_not_available() -> None:
+    assert not is_mps_available()
+
+
+@torch_available
+@patch("torch.backends.mps.is_available", lambda *args, **kwargs: True)
+@patch("torch.backends.mps.is_macos13_or_newer", lambda *args, **kwargs: False)
+def test_is_mps_available_false_old_macos() -> None:
+    assert not is_mps_available()
