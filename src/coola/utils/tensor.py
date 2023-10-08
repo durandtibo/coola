@@ -77,10 +77,3 @@ def is_mps_available() -> bool:
         return True
     except RuntimeError:
         return False
-    # return (
-    #     is_torch_available()
-    #     and hasattr(torch.backends, "mps")
-    #     and torch.backends.mps.is_available()
-    #     and hasattr(torch.backends.mps, "is_macos13_or_newer")
-    #     and torch.backends.mps.is_macos13_or_newer()
-    # )

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from pytest import fixture
 
@@ -9,6 +9,7 @@ from coola.utils.tensor import (
     get_available_devices,
     is_cuda_available,
     is_mps_available,
+    torch,
 )
 
 
@@ -82,13 +83,27 @@ def test_is_cuda_available_no_torch() -> None:
 
 
 ######################################
-#     Tests for is_mpa_available     #
+#     Tests for is_mps_available     #
 ######################################
 
 
 @torch_available
 def test_is_mps_available() -> None:
     assert isinstance(is_mps_available(), bool)
+
+
+@torch_available
+@patch("coola.utils.tensor.is_torch_available", lambda *args, **kwargs: True)
+def test_is_mps_available_with_mps() -> None:
+    with patch("coola.utils.tensor.torch.ones", Mock(return_value=torch.ones(1))):
+        assert is_mps_available()
+
+
+@torch_available
+@patch("coola.utils.tensor.is_torch_available", lambda *args, **kwargs: True)
+def test_is_mps_available_without_mps() -> None:
+    with patch("coola.utils.tensor.torch.ones", Mock(side_effect=RuntimeError)):
+        assert not is_mps_available()
 
 
 @patch("coola.utils.tensor.is_torch_available", lambda *args, **kwargs: False)
