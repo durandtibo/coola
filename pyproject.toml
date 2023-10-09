@@ -29,7 +29,6 @@ packages = [
 
 [tool.poetry.dependencies]
 # Core dependencies
-feu = ">=0.0.1,<0.0.2"
 python = ">=3.9,<3.12"
 
 # Optional dependencies

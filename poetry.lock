@@ -318,20 +318,6 @@ files = [
 test = ["pytest (>=6)"]
 
 [[package]]
-name = "feu"
-version = "0.0.1"
-description = "A light library to help to manage packages"
-optional = false
-python-versions = ">=3.9,<3.13"
-files = [
-    {file = "feu-0.0.1-py3-none-any.whl", hash = "sha256:04edbdfa80a24dfe86bae2783ec49788cb034839e7c13afe1ae8e5bb3b3b22a9"},
-    {file = "feu-0.0.1.tar.gz", hash = "sha256:787fc6a1a821b2215486287eb0fccce03a5ebaac04c75239d16950a3e3439dc6"},
-]
-
-[package.dependencies]
-packaging = ">=22.0,<23.3"
-
-[[package]]
 name = "filelock"
 version = "3.12.4"
 description = "A platform independent file lock."
@@ -1712,4 +1698,4 @@ all = ["jax", "jaxlib", "numpy", "pandas", "polars", "torch", "xarray"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "ac9a329c1202783fb8e3df8b4b123fe3ee84582318107dd529be382b01394e76"
+content-hash = "8a9efcd71b2ad3c890f9a8759e4ebb9096bda653d01ea183e7fa72abe42734a3"
