@@ -5,7 +5,6 @@ __all__ = ["get_available_devices", "is_cuda_available", "is_mps_available"]
 from functools import lru_cache
 from unittest.mock import Mock
 
-
 from coola.utils.imports import is_torch_available
 
 if is_torch_available():
