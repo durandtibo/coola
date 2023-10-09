@@ -318,6 +318,20 @@ files = [
 test = ["pytest (>=6)"]
 
 [[package]]
+name = "feu"
+version = "0.0.1"
+description = "A light library to help to manage packages"
+optional = false
+python-versions = ">=3.9,<3.13"
+files = [
+    {file = "feu-0.0.1-py3-none-any.whl", hash = "sha256:04edbdfa80a24dfe86bae2783ec49788cb034839e7c13afe1ae8e5bb3b3b22a9"},
+    {file = "feu-0.0.1.tar.gz", hash = "sha256:787fc6a1a821b2215486287eb0fccce03a5ebaac04c75239d16950a3e3439dc6"},
+]
+
+[package.dependencies]
+packaging = ">=22.0,<23.3"
+
+[[package]]
 name = "filelock"
 version = "3.12.4"
 description = "A platform independent file lock."
@@ -1141,13 +1155,13 @@ testing = ["fields", "hunter", "process-tests", "pytest-xdist", "six", "virtuale
 
 [[package]]
 name = "pytest-timeout"
-version = "2.1.0"
+version = "2.2.0"
 description = "pytest plugin to abort hanging tests"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 files = [
-    {file = "pytest-timeout-2.1.0.tar.gz", hash = "sha256:c07ca07404c612f8abbe22294b23c368e2e5104b521c1790195561f37e1ac3d9"},
-    {file = "pytest_timeout-2.1.0-py3-none-any.whl", hash = "sha256:f6f50101443ce70ad325ceb4473c4255e9d74e3c7cd0ef827309dfa4c0d975c6"},
+    {file = "pytest-timeout-2.2.0.tar.gz", hash = "sha256:3b0b95dabf3cb50bac9ef5ca912fa0cfc286526af17afc806824df20c2f72c90"},
+    {file = "pytest_timeout-2.2.0-py3-none-any.whl", hash = "sha256:bde531e096466f49398a59f2dde76fa78429a09a12411466f88a07213e220de2"},
 ]
 
 [package.dependencies]
@@ -1698,4 +1712,4 @@ all = ["jax", "jaxlib", "numpy", "pandas", "polars", "torch", "xarray"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "44d92d6398383fbe5fb5ba2121cc2cdaa56195963211d4e65feec5ac683bca5f"
+content-hash = "ac9a329c1202783fb8e3df8b4b123fe3ee84582318107dd529be382b01394e76"
