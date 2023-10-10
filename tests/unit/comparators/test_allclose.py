@@ -213,7 +213,7 @@ def test_mapping_allclose_operator_allclose_different_type_show_difference(
         assert caplog.messages[0].startswith("The mappings have different types:")
 
 
-@torch.available
+@torch_available
 @mark.parametrize(
     "mapping,atol",
     (
@@ -228,7 +228,7 @@ def test_mapping_allclose_operator_allclose_true_atol(mapping: Mapping, atol: fl
     )
 
 
-@torch.available
+@torch_available
 @mark.parametrize(
     "mapping,rtol",
     (
@@ -243,7 +243,7 @@ def test_mapping_allclose_operator_allclose_true_rtol(mapping: Mapping, rtol: fl
     )
 
 
-@torch.available
+@torch_available
 @mark.parametrize(
     "mapping,atol",
     (
@@ -258,7 +258,7 @@ def test_mapping_allclose_operator_allclose_true_atol_keys(mapping: Mapping, ato
     )
 
 
-@torch.available
+@torch_available
 @mark.parametrize(
     "mapping,rtol",
     (
