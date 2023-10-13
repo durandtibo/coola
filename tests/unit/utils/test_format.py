@@ -4,6 +4,7 @@ from pytest import raises
 
 from coola.utils.format import (
     repr_indent,
+    repr_mapping,
     repr_sequence,
     str_indent,
     str_mapping,
@@ -42,6 +43,34 @@ def test_repr_indent_num_spaces_incorrect() -> None:
 
 def test_repr_indent_not_a_repring() -> None:
     assert repr_indent(123) == "123"
+
+
+##################################
+#     Tests for repr_mapping     #
+##################################
+
+
+def test_repr_mapping_empty() -> None:
+    assert repr_mapping({}) == ""
+
+
+def test_repr_mapping_1_item() -> None:
+    assert repr_mapping({"key": "value"}) == "(key): value"
+
+
+def test_repr_mapping_2_items() -> None:
+    assert repr_mapping({"key1": "value1", "key2": "value2"}) == "(key1): value1\n(key2): value2"
+
+
+def test_repr_mapping_sorted_values_true() -> None:
+    assert (
+        repr_mapping({"key2": "value2", "key1": "value1"}, sorted_keys=True)
+        == "(key1): value1\n(key2): value2"
+    )
+
+
+def test_repr_mapping_sorted_values_false() -> None:
+    assert repr_mapping({"key2": "value2", "key1": "value1"}) == "(key2): value2\n(key1): value1"
 
 
 ###################################
