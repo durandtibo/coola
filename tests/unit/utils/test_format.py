@@ -2,7 +2,41 @@ from __future__ import annotations
 
 from pytest import raises
 
-from coola.utils.format import str_indent, str_mapping, str_sequence
+from coola.utils.format import repr_indent, str_indent, str_mapping, str_sequence
+
+#################################
+#     Tests for repr_indent     #
+#################################
+
+
+def test_repr_indent_1_line() -> None:
+    assert repr_indent("abc") == "abc"
+
+
+def test_repr_indent_2_lines() -> None:
+    assert repr_indent("abc\n  def") == "abc\n    def"
+
+
+def test_repr_indent_num_spaces_0() -> None:
+    assert repr_indent("abc\ndef", num_spaces=0) == "abc\ndef"
+
+
+def test_repr_indent_num_spaces_2() -> None:
+    assert repr_indent("abc\ndef") == "abc\n  def"
+
+
+def test_repr_indent_num_spaces_4() -> None:
+    assert repr_indent("abc\ndef", num_spaces=4) == "abc\n    def"
+
+
+def test_repr_indent_num_spaces_incorrect() -> None:
+    with raises(RuntimeError):
+        repr_indent("abc\ndef", num_spaces=-1)
+
+
+def test_repr_indent_not_a_repring() -> None:
+    assert repr_indent(123) == "123"
+
 
 ################################
 #     Tests for str_indent     #
