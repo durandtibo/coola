@@ -1,9 +1,43 @@
 from __future__ import annotations
 
-__all__ = ["str_indent", "str_mapping", "str_sequence"]
+__all__ = ["repr_indent", "str_indent", "str_mapping", "str_sequence"]
 
 from collections.abc import Mapping, Sequence
 from typing import Any
+
+
+def repr_indent(original: Any, num_spaces: int = 2) -> str:
+    r"""Add indentations if the original string is a multi-lines string.
+
+    Args:
+    ----
+        original: Specifies the original string. If the inputis not a
+            string, it will be converted to a string with the function
+            ``repr``.
+        num_spaces (int, optional): Specifies the number of spaces
+            used for the indentation. Default: ``2``.
+
+    Returns:
+    -------
+        str: The indented string.
+
+    Raises:
+    ------
+        RuntimeError if num_spaces is not a positive integer.
+
+    Example usage:
+
+    .. code-block:: pycon
+
+        >>> from coola.utils.format import repr_indent
+        >>> print(repr_indent("string1\nstring2\n  string3", 4))
+        string1
+        string2
+          string3
+    """
+    if not isinstance(original, str):
+        original = repr(original)
+    return str_indent(original, num_spaces)
 
 
 def str_indent(original: Any, num_spaces: int = 2) -> str:
@@ -39,12 +73,12 @@ def str_indent(original: Any, num_spaces: int = 2) -> str:
         raise RuntimeError(
             f"Incorrect num_spaces. Expected a positive integer but received {num_spaces}"
         )
-    formatted_str = str(original).split("\n")
-    if len(formatted_str) == 1:  # single line
-        return formatted_str[0]
-    first = formatted_str.pop(0)
-    formatted_str = "\n".join([(num_spaces * " ") + line for line in formatted_str])
-    return first + "\n" + formatted_str
+    formatted = str(original).split("\n")
+    if len(formatted) == 1:  # single line
+        return formatted[0]
+    first = formatted.pop(0)
+    formatted = "\n".join([(num_spaces * " ") + line for line in formatted])
+    return first + "\n" + formatted
 
 
 def str_mapping(mapping: Mapping, sorted_keys: bool = False, num_spaces: int = 2) -> str:
