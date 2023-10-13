@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__all__ = ["repr_indent", "str_indent", "str_mapping", "str_sequence"]
+__all__ = ["repr_indent", "repr_indent", "str_indent", "str_mapping", "str_sequence"]
 
 from collections.abc import Mapping, Sequence
 from typing import Any
@@ -38,6 +38,35 @@ def repr_indent(original: Any, num_spaces: int = 2) -> str:
     if not isinstance(original, str):
         original = repr(original)
     return str_indent(original, num_spaces)
+
+
+def repr_sequence(sequence: Sequence, num_spaces: int = 2) -> str:
+    r"""Computes a string representation of a sequence.
+
+    Args:
+    ----
+        sequence (``Sequence``): Specifies the sequence.
+        num_spaces (int, optional): Specifies the number of spaces
+            used for the indentation. Default: ``2``.
+
+    Returns:
+    -------
+        str: The string representation of the sequence.
+
+    Example usage:
+
+    .. code-block:: pycon
+
+        >>> from coola.utils.format import repr_indent
+        >>> print(repr_sequence(["abc", "something\nelse"]))
+        (0): abc
+        (1): something
+          else
+    """
+    lines = []
+    for i, item in enumerate(sequence):
+        lines.append(f"({i}): {repr_indent(item, num_spaces=num_spaces)}")
+    return "\n".join(lines)
 
 
 def str_indent(original: Any, num_spaces: int = 2) -> str:
