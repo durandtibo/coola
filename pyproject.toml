@@ -6,7 +6,16 @@ readme = "README.md"
 authors = ["Thibaut Durand <durand.tibo+gh@gmail.com>"]
 homepage = "https://github.com/durandtibo/coola"
 repository = "https://github.com/durandtibo/coola"
-keywords = ["equality", "complex/nested objects", "pytorch", "numpy", "pandas", "polars", "jax", "xarray"]
+keywords = [
+    "complex/nested objects",
+    "equality",
+    "jax",
+    "numpy",
+    "pandas",
+    "polars",
+    "pytorch",
+    "xarray",
+]
 license = "BSD-3-Clause"
 
 classifiers = [
