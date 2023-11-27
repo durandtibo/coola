@@ -48,7 +48,7 @@ pandas = { version = ">=1.3,<2.2", optional = true }
 # polars: 0.18.3 is the minimal version because of https://github.com/pola-rs/polars/issues/9358
 polars = { version = ">=0.18.3,<0.20", optional = true }
 torch = { version = ">=1.10,<2.2", optional = true }
-xarray = { version = ">=2023.4,<2023.11", optional = true }
+xarray = { version = ">=2023.4,<2023.12", optional = true }
 
 [tool.poetry.extras]
 all = ["jax", "jaxlib", "numpy", "pandas", "polars", "torch", "xarray"]
