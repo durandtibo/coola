@@ -5,6 +5,9 @@ on:
   workflow_dispatch:  # to trigger manually
 
 jobs:
+  cyclic-imports:
+    uses: ./.github/workflows/cyclic-imports.yaml
+
   all:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
@@ -94,7 +97,7 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         python-version: [ '3.9', '3.10', '3.11' ]
-        jax-version: [ 0.4.20, 0.4.1 ]
+        jax-version: [ 0.4.21, 0.4.1 ]
 
     steps:
       - name: Checkout
@@ -155,7 +158,7 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         python-version: [ '3.9', '3.10', '3.11' ]
-        pandas-version: [ 2.1.1, 2.0.3, 1.5.3, 1.4.4, 1.3.5 ]
+        pandas-version: [ 2.1.4, 2.0.3, 1.5.3, 1.4.4, 1.3.5 ]
         exclude:
           - pandas-version: 1.4.4
             python-version: 3.11
@@ -190,7 +193,7 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         python-version: [ '3.9', '3.10', '3.11' ]
-        polars-version: [ '0.19.15', '0.18.15' ]
+        polars-version: [ '0.19.19', '0.18.15' ]
 
     steps:
       - name: Checkout
@@ -220,7 +223,7 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         python-version: [ '3.9', '3.10', '3.11' ]
-        torch-version: [ 2.1.0, 2.0.1, 1.13.1, 1.12.1, 1.11.0, 1.10.2 ]
+        torch-version: [ 2.1.1, 2.0.1, 1.13.1, 1.12.1, 1.11.0, 1.10.2 ]
         exclude:
           - torch-version: 1.10.2
             python-version: 3.10
@@ -258,7 +261,7 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         python-version: [ '3.9', '3.10', '3.11' ]
-        xarray-version: [ '2023.9', '2023.8', '2023.7', '2023.6', '2023.5', '2023.4', '2023.3' ]
+        xarray-version: [ '2023.12', '2023.11', '2023.10', '2023.9', '2023.8', '2023.7', '2023.6', '2023.5', '2023.4', '2023.3', '2023.2', '2023.1' ]
 
     steps:
       - name: Checkout
@@ -277,6 +280,3 @@ jobs:
         run: |
           python -c "import coola; import xarray as xr; import numpy as np; " \
             "assert coola.objects_are_equal(xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"]))"
-
-  cyclic-imports:
-    uses: ./.github/workflows/cyclic-imports.yaml
