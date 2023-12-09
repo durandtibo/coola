@@ -138,11 +138,11 @@ pip install coola[all]
 
 Please check the [get started page](https://durandtibo.github.io/coola/get_started) to see how to
 install only some specific dependencies or other alternatives to install the library.
-The following is the corresponding `coola` versions and supported dependencies.
+The following is the corresponding `coola` versions and tested dependencies.
 
 | `coola`  | `jax`<sup>*</sup> | `numpy`<sup>*</sup> | `pandas`<sup>*</sup> | `polars`<sup>*</sup> | `torch`<sup>*</sup> | `xarray`<sup>*</sup> | `python`      |
 |----------|-------------------|---------------------|----------------------|----------------------|---------------------|----------------------|---------------|
-| `main`   | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      | `>=1.3,<2.2`         | `>=0.18.3,<0.20`     | `>=1.10,<2.2`       | `>=2023.4,<2023.11`  | `>=3.9,<3.12` |
+| `main`   | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      | `>=1.3,<2.2`         | `>=0.18.3,<0.20`     | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.12` |
 | `0.0.25` | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      | `>=1.3,<2.2`         | `>=0.18.3,<0.20`     | `>=1.10,<2.2`       | `>=2023.4,<2023.11`  | `>=3.9,<3.12` |
 | `0.0.24` | `>=0.3,<0.5`      | `>=1.21,<1.27`      | `>=1.3,<2.2`         | `>=0.18.3,<0.20`     | `>=1.10,<2.2`       | `>=2023.3,<2023.9`   | `>=3.9,<3.12` |
 | `0.0.23` | `>=0.3,<0.5`      | `>=1.21,<1.27`      | `>=1.3,<2.2`         | `>=0.18.3,<0.20`     | `>=1.10,<2.1`       | `>=2023.3,<2023.9`   | `>=3.9,<3.12` |
