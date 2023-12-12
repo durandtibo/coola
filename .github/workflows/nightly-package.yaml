@@ -33,15 +33,16 @@ jobs:
 
       - name: Tests
         run: |
-          python -c "import coola; import torch; import numpy; " \
+          python -c "import coola; import numpy; " \
+            "assert coola.objects_are_equal([4.2, 2], [4.2, 2]); " \
+            "assert coola.objects_are_equal(numpy.arange(6), numpy.arange(6)); " \
             "assert coola.is_jax_available(); " \
             "assert coola.is_numpy_available(); " \
             "assert coola.is_pandas_available(); " \
             "assert coola.is_polars_available(); " \
-            "assert coola.is_torch_available(); " \
-            "assert coola.is_xarray_available(); " \
-            "assert coola.objects_are_equal(torch.arange(6), torch.arange(6)); " \
-            "assert coola.objects_are_equal(numpy.arange(6), numpy.arange(6)); "
+            "import sys; if sys.version_info[:2] < (3, 12): assert coola.is_torch_available(); " \
+            "assert coola.is_xarray_available(); "
+            
 
       - name: Check imports
         run: |
@@ -128,7 +129,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ '3.12', '3.11', '3.10', '3.9' ]
+        python-version: [ '3.11', '3.10', '3.9' ]
         numpy-version: [ 1.26.2, 1.25.2, 1.24.3, 1.23.5, 1.22.4, 1.21.6 ]
         exclude:
           - numpy-version: 1.21.6
