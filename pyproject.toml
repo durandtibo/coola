@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "coola"
-version = "0.1.0"
+version = "0.1.1a0"
 description = "A library to check if two complex/nested objects are equal or not"
 readme = "README.md"
 authors = ["Thibaut Durand <durand.tibo+gh@gmail.com>"]
@@ -28,6 +28,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering",
     "Topic :: Software Development :: Libraries",
 ]
@@ -38,7 +39,7 @@ packages = [
 
 [tool.poetry.dependencies]
 # Core dependencies
-python = ">=3.9,<3.12"
+python = ">=3.9,<3.13"
 
 # Optional dependencies
 jax = { version = ">=0.4.1,<1.0", optional = true }
@@ -47,7 +48,7 @@ numpy = { version = ">=1.21,<2.0", optional = true }
 pandas = { version = ">=1.3,<3.0", optional = true }
 # polars: 0.18.3 is the minimal version because of https://github.com/pola-rs/polars/issues/9358
 polars = { version = ">=0.18.3,<1.0", optional = true }
-torch = { version = ">=1.10,<3.0", optional = true }
+torch = { version = ">=1.10,<3.0", optional = true, python = ">=3.9,<3.12" }
 xarray = { version = ">=2023.1", optional = true }
 
 [tool.poetry.extras]
