@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ '3.12', '3.11' , '3.10', '3.9' ]
+        python-version: [ '3.12', '3.11', '3.10', '3.9' ]
         jax-version: [ 0.4.21, 0.4.1 ]
 
     steps:
@@ -54,11 +54,14 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ '3.12', '3.11' , '3.10', '3.9' ]
+        python-version: [ '3.11', '3.10', '3.9' ]
         numpy-version: [ 1.26.2, 1.25.2, 1.24.3, 1.23.5, 1.22.4, 1.21.6 ]
         exclude:
           - numpy-version: 1.21.6
             python-version: 3.11
+        include:
+          - numpy-version: 1.26.2
+            python-version: '3.12'
 
     steps:
       - name: Checkout
@@ -99,7 +102,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ '3.12', '3.11' , '3.10', '3.9' ]
+        python-version: [ '3.12', '3.11', '3.10', '3.9' ]
         pandas-version: [ 2.1.4, 2.0.3, 1.5.3, 1.4.4, 1.3.5 ]
         exclude:
           - pandas-version: 1.4.4
@@ -146,7 +149,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ '3.12', '3.11' , '3.10', '3.9' ]
+        python-version: [ '3.12', '3.11', '3.10', '3.9' ]
         polars-version: [ '0.19.19', '0.18.15' ]
 
     steps:
@@ -188,7 +191,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ '3.12', '3.11' , '3.10', '3.9' ]
+        python-version: [ '3.11', '3.10', '3.9' ]
         torch-version: [ 2.1.1, 2.0.1, 1.13.1, 1.12.1, 1.11.0, 1.10.2 ]
         exclude:
           - torch-version: 1.10.2
@@ -239,7 +242,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ '3.12', '3.11' , '3.10', '3.9' ]
+        python-version: [ '3.12', '3.11', '3.10', '3.9' ]
         xarray-version: [ '2023.12', '2023.11', '2023.10', '2023.9', '2023.8', '2023.7', '2023.6', '2023.5', '2023.4', '2023.3', '2023.2', '2023.1' ]
 
     steps:
