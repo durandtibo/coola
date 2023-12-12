@@ -4,49 +4,49 @@ on:
   workflow_dispatch:  # to trigger manually
 
 jobs:
-#  jax:
-#    runs-on: ${{ matrix.os }}
-#    timeout-minutes: 10
-#    strategy:
-#      max-parallel: 8
-#      fail-fast: false
-#      matrix:
-#        os: [ ubuntu-latest ]
-#        python-version: [ '3.12', '3.11', '3.10', '3.9' ]
-#        jax-version: [ 0.4.21, 0.4.1 ]
-#        exclude:
-#          - jax-version: 0.4.1
-#            python-version: 3.12
-#
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v3
-#
-#      - name: Set up Python
-#        uses: actions/setup-python@v4
-#        with:
-#          python-version: ${{ matrix.python-version }}
-#
-#      - name: Install Poetry
-#        uses: snok/install-poetry@v1
-#
-#      - name: Install packages
-#        run: |
-#          poetry run make config-poetry
-#          poetry run make install
-#
-#      - name: Install jax
-#        run: |
-#          poetry run pip install jax==${{ matrix.jax-version }} jaxlib==${{ matrix.jax-version }}
-#
-#      - name: Show installed packages
-#        run: |
-#          poetry run poetry show
-#          poetry run poetry show --tree
-#
-#      - name: Run unit tests
-#        run: |
-#          poetry run make unit-test-cov
+  #  jax:
+  #    runs-on: ${{ matrix.os }}
+  #    timeout-minutes: 10
+  #    strategy:
+  #      max-parallel: 8
+  #      fail-fast: false
+  #      matrix:
+  #        os: [ ubuntu-latest ]
+  #        python-version: [ '3.12', '3.11', '3.10', '3.9' ]
+  #        jax-version: [ 0.4.21, 0.4.1 ]
+  #        exclude:
+  #          - jax-version: 0.4.1
+  #            python-version: 3.12
+  #
+  #    steps:
+  #      - name: Checkout
+  #        uses: actions/checkout@v3
+  #
+  #      - name: Set up Python
+  #        uses: actions/setup-python@v4
+  #        with:
+  #          python-version: ${{ matrix.python-version }}
+  #
+  #      - name: Install Poetry
+  #        uses: snok/install-poetry@v1
+  #
+  #      - name: Install packages
+  #        run: |
+  #          poetry run make config-poetry
+  #          poetry run make install
+  #
+  #      - name: Install jax
+  #        run: |
+  #          poetry run pip install jax==${{ matrix.jax-version }} jaxlib==${{ matrix.jax-version }}
+  #
+  #      - name: Show installed packages
+  #        run: |
+  #          poetry run poetry show
+  #          poetry run poetry show --tree
+  #
+  #      - name: Run unit tests
+  #        run: |
+  #          poetry run make unit-test-cov
 
 
   numpy:
@@ -57,23 +57,26 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ '3.12', '3.11', '3.10', '3.9' ]
+        python-version: [ '3.11', '3.10', '3.9' ]
         numpy-version: [ 1.26.2, 1.25.2, 1.24.3, 1.23.5, 1.22.4, 1.21.6 ]
-#    runs-on: ${{ matrix.os }}
-#    timeout-minutes: 10
-#    strategy:
-#      max-parallel: 8
-#      fail-fast: false
-#      matrix:
-#        os: [ ubuntu-latest ]
-#        python-version: [ '3.11', '3.10', '3.9' ]
-#        numpy-version: [ 1.26.2, 1.25.2, 1.24.3, 1.23.5, 1.22.4, 1.21.6 ]
-#        exclude:
-#          - numpy-version: 1.21.6
-#            python-version: '3.11'
-#        include:
-#          - numpy-version: 1.26.2
-#            python-version: '3.12'
+        include:
+          - numpy-version: 1.26.2
+            python-version: '3.12'
+    #    runs-on: ${{ matrix.os }}
+    #    timeout-minutes: 10
+    #    strategy:
+    #      max-parallel: 8
+    #      fail-fast: false
+    #      matrix:
+    #        os: [ ubuntu-latest ]
+    #        python-version: [ '3.11', '3.10', '3.9' ]
+    #        numpy-version: [ 1.26.2, 1.25.2, 1.24.3, 1.23.5, 1.22.4, 1.21.6 ]
+    #        exclude:
+    #          - numpy-version: 1.21.6
+    #            python-version: '3.11'
+    #        include:
+    #          - numpy-version: 1.26.2
+    #            python-version: '3.12'
 
     steps:
       - name: Checkout
