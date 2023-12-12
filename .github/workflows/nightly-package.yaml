@@ -8,7 +8,7 @@ jobs:
   cyclic-imports:
     uses: ./.github/workflows/cyclic-imports.yaml
 
-  all:
+  stable-all:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -33,15 +33,15 @@ jobs:
 
       - name: Tests
         run: |
-          python -c "import coola; import torch; import numpy; " \
+          python -c "import coola; import numpy; " \
+            "assert coola.objects_are_equal([4.2, 2], [4.2, 2]); " \
+            "assert coola.objects_are_equal(numpy.arange(6), numpy.arange(6)); " \
             "assert coola.is_jax_available(); " \
             "assert coola.is_numpy_available(); " \
             "assert coola.is_pandas_available(); " \
             "assert coola.is_polars_available(); " \
-            "assert coola.is_torch_available(); " \
-            "assert coola.is_xarray_available(); " \
-            "assert coola.objects_are_equal(torch.arange(6), torch.arange(6)); " \
-            "assert coola.objects_are_equal(numpy.arange(6), numpy.arange(6)); "
+            "import sys; if sys.version_info[:2] < (3, 12): assert coola.is_torch_available(); " \
+            "assert coola.is_xarray_available(); "
 
       - name: Check imports
         run: |
@@ -53,7 +53,7 @@ jobs:
           python -c "from coola.testers import BaseAllCloseTester, BaseEqualityTester"
 
 
-  min:
+  stable-min:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -87,6 +87,104 @@ jobs:
             "assert not coola.is_torch_available(); " \
             "assert not coola.is_xarray_available(); "
 
+      - name: Check imports
+        run: |
+          python -c "from coola import objects_are_allclose, objects_are_equal, summary"
+          python -c "from coola.comparators import BaseAllCloseOperator, BaseEqualityOperator"
+          python -c "from coola.formatters import BaseFormatter"
+          python -c "from coola.reducers import BaseReducer"
+          python -c "from coola.summarizers import BaseSummarizer"
+          python -c "from coola.testers import BaseAllCloseTester, BaseEqualityTester"
+
+
+  latest-all:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+        python-version: [ '3.12', '3.11', '3.10', '3.9' ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package
+        run: |
+          pip install --pre "coola[all]"
+
+      - name: Tests
+        run: |
+          python -c "import coola; import numpy; " \
+            "assert coola.objects_are_equal([4.2, 2], [4.2, 2]); " \
+            "assert coola.objects_are_equal(numpy.arange(6), numpy.arange(6)); " \
+            "assert coola.is_jax_available(); " \
+            "assert coola.is_numpy_available(); " \
+            "assert coola.is_pandas_available(); " \
+            "assert coola.is_polars_available(); " \
+            "import sys; if sys.version_info[:2] < (3, 12): assert coola.is_torch_available(); " \
+            "assert coola.is_xarray_available(); "
+
+      - name: Check imports
+        run: |
+          python -c "from coola import objects_are_allclose, objects_are_equal, summary"
+          python -c "from coola.comparators import BaseAllCloseOperator, BaseEqualityOperator"
+          python -c "from coola.formatters import BaseFormatter"
+          python -c "from coola.reducers import BaseReducer"
+          python -c "from coola.summarizers import BaseSummarizer"
+          python -c "from coola.testers import BaseAllCloseTester, BaseEqualityTester"
+
+
+  latest-min:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+        python-version: [ '3.12', '3.11', '3.10', '3.9' ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package
+        run: |
+          pip install --pre coola
+
+      - name: Tests
+        run: |
+          python -c "import coola; " \
+            "assert coola.objects_are_equal(1.0, 1.0); " \
+            "assert not coola.is_jax_available();" \
+            "assert not coola.is_numpy_available();" \
+            "assert not coola.is_pandas_available();" \
+            "assert not coola.is_polars_available();" \
+            "assert not coola.is_torch_available(); " \
+            "assert not coola.is_xarray_available(); "
+
+      - name: Check imports
+        run: |
+          python -c "from coola import objects_are_allclose, objects_are_equal, summary"
+          python -c "from coola.comparators import BaseAllCloseOperator, BaseEqualityOperator"
+          python -c "from coola.formatters import BaseFormatter"
+          python -c "from coola.reducers import BaseReducer"
+          python -c "from coola.summarizers import BaseSummarizer"
+          python -c "from coola.testers import BaseAllCloseTester, BaseEqualityTester"
+
 
   jax:
     runs-on: ${{ matrix.os }}
@@ -98,6 +196,9 @@ jobs:
         os: [ ubuntu-latest ]
         python-version: [ '3.12', '3.11', '3.10', '3.9' ]
         jax-version: [ 0.4.21, 0.4.1 ]
+        exclude:
+          - jax-version: 0.4.1
+            python-version: 3.12
 
     steps:
       - name: Checkout
@@ -125,7 +226,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ '3.12', '3.11', '3.10', '3.9' ]
+        python-version: [ '3.11', '3.10', '3.9' ]
         numpy-version: [ 1.26.2, 1.25.2, 1.24.3, 1.23.5, 1.22.4, 1.21.6 ]
         exclude:
           - numpy-version: 1.21.6
@@ -160,13 +261,16 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ '3.12', '3.11', '3.10', '3.9' ]
+        python-version: [ '3.11', '3.10', '3.9' ]
         pandas-version: [ 2.1.4, 2.0.3, 1.5.3, 1.4.4, 1.3.5 ]
         exclude:
           - pandas-version: 1.4.4
             python-version: 3.11
           - pandas-version: 1.3.5
             python-version: 3.11
+        include:
+          - numpy-version: 2.1.4
+            python-version: '3.12'
 
     steps:
       - name: Checkout
