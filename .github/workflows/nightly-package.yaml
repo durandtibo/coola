@@ -8,7 +8,7 @@ jobs:
   cyclic-imports:
     uses: ./.github/workflows/cyclic-imports.yaml
 
-  all:
+  stable-all:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -42,7 +42,6 @@ jobs:
             "assert coola.is_polars_available(); " \
             "import sys; if sys.version_info[:2] < (3, 12): assert coola.is_torch_available(); " \
             "assert coola.is_xarray_available(); "
-            
 
       - name: Check imports
         run: |
@@ -54,7 +53,7 @@ jobs:
           python -c "from coola.testers import BaseAllCloseTester, BaseEqualityTester"
 
 
-  min:
+  stable-min:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -87,6 +86,104 @@ jobs:
             "assert not coola.is_polars_available();" \
             "assert not coola.is_torch_available(); " \
             "assert not coola.is_xarray_available(); "
+
+      - name: Check imports
+        run: |
+          python -c "from coola import objects_are_allclose, objects_are_equal, summary"
+          python -c "from coola.comparators import BaseAllCloseOperator, BaseEqualityOperator"
+          python -c "from coola.formatters import BaseFormatter"
+          python -c "from coola.reducers import BaseReducer"
+          python -c "from coola.summarizers import BaseSummarizer"
+          python -c "from coola.testers import BaseAllCloseTester, BaseEqualityTester"
+
+
+  latest-all:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+        python-version: [ '3.12', '3.11', '3.10', '3.9' ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package
+        run: |
+          pip install --pre "coola[all]"
+
+      - name: Tests
+        run: |
+          python -c "import coola; import numpy; " \
+            "assert coola.objects_are_equal([4.2, 2], [4.2, 2]); " \
+            "assert coola.objects_are_equal(numpy.arange(6), numpy.arange(6)); " \
+            "assert coola.is_jax_available(); " \
+            "assert coola.is_numpy_available(); " \
+            "assert coola.is_pandas_available(); " \
+            "assert coola.is_polars_available(); " \
+            "import sys; if sys.version_info[:2] < (3, 12): assert coola.is_torch_available(); " \
+            "assert coola.is_xarray_available(); "
+
+      - name: Check imports
+        run: |
+          python -c "from coola import objects_are_allclose, objects_are_equal, summary"
+          python -c "from coola.comparators import BaseAllCloseOperator, BaseEqualityOperator"
+          python -c "from coola.formatters import BaseFormatter"
+          python -c "from coola.reducers import BaseReducer"
+          python -c "from coola.summarizers import BaseSummarizer"
+          python -c "from coola.testers import BaseAllCloseTester, BaseEqualityTester"
+
+
+  latest-min:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+        python-version: [ '3.12', '3.11', '3.10', '3.9' ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package
+        run: |
+          pip install --pre coola
+
+      - name: Tests
+        run: |
+          python -c "import coola; " \
+            "assert coola.objects_are_equal(1.0, 1.0); " \
+            "assert not coola.is_jax_available();" \
+            "assert not coola.is_numpy_available();" \
+            "assert not coola.is_pandas_available();" \
+            "assert not coola.is_polars_available();" \
+            "assert not coola.is_torch_available(); " \
+            "assert not coola.is_xarray_available(); "
+
+      - name: Check imports
+        run: |
+          python -c "from coola import objects_are_allclose, objects_are_equal, summary"
+          python -c "from coola.comparators import BaseAllCloseOperator, BaseEqualityOperator"
+          python -c "from coola.formatters import BaseFormatter"
+          python -c "from coola.reducers import BaseReducer"
+          python -c "from coola.summarizers import BaseSummarizer"
+          python -c "from coola.testers import BaseAllCloseTester, BaseEqualityTester"
 
 
   jax:
