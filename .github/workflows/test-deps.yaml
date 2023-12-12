@@ -242,7 +242,7 @@ jobs:
 
   xarray:
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
+    timeout-minutes: 20
     strategy:
       max-parallel: 8
       fail-fast: false
