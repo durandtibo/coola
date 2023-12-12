@@ -4,49 +4,49 @@ on:
   workflow_dispatch:  # to trigger manually
 
 jobs:
-  #  jax:
-  #    runs-on: ${{ matrix.os }}
-  #    timeout-minutes: 10
-  #    strategy:
-  #      max-parallel: 8
-  #      fail-fast: false
-  #      matrix:
-  #        os: [ ubuntu-latest ]
-  #        python-version: [ '3.12', '3.11', '3.10', '3.9' ]
-  #        jax-version: [ 0.4.21, 0.4.1 ]
-  #        exclude:
-  #          - jax-version: 0.4.1
-  #            python-version: 3.12
-  #
-  #    steps:
-  #      - name: Checkout
-  #        uses: actions/checkout@v3
-  #
-  #      - name: Set up Python
-  #        uses: actions/setup-python@v4
-  #        with:
-  #          python-version: ${{ matrix.python-version }}
-  #
-  #      - name: Install Poetry
-  #        uses: snok/install-poetry@v1
-  #
-  #      - name: Install packages
-  #        run: |
-  #          poetry run make config-poetry
-  #          poetry run make install
-  #
-  #      - name: Install jax
-  #        run: |
-  #          poetry run pip install jax==${{ matrix.jax-version }} jaxlib==${{ matrix.jax-version }}
-  #
-  #      - name: Show installed packages
-  #        run: |
-  #          poetry run poetry show
-  #          poetry run poetry show --tree
-  #
-  #      - name: Run unit tests
-  #        run: |
-  #          poetry run make unit-test-cov
+  jax:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ '3.12', '3.11', '3.10', '3.9' ]
+        jax-version: [ 0.4.21, 0.4.1 ]
+        exclude:
+          - jax-version: 0.4.1
+            python-version: 3.12
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Install packages
+        run: |
+          poetry run make config-poetry
+          poetry run make install
+
+      - name: Install jax
+        run: |
+          poetry run pip install jax==${{ matrix.jax-version }} jaxlib==${{ matrix.jax-version }}
+
+      - name: Show installed packages
+        run: |
+          poetry run poetry show
+          poetry run poetry show --tree
+
+      - name: Run unit tests
+        run: |
+          poetry run make unit-test-cov
 
 
   numpy:
@@ -159,136 +159,136 @@ jobs:
           poetry run make unit-test-cov
 
 
-#  polars:
-#    runs-on: ${{ matrix.os }}
-#    timeout-minutes: 10
-#    strategy:
-#      max-parallel: 8
-#      fail-fast: false
-#      matrix:
-#        os: [ ubuntu-latest ]
-#        python-version: [ '3.12', '3.11', '3.10', '3.9' ]
-#        polars-version: [ '0.19.19', '0.18.15' ]
-#
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v3
-#
-#      - name: Set up Python
-#        uses: actions/setup-python@v4
-#        with:
-#          python-version: ${{ matrix.python-version }}
-#
-#      - name: Install Poetry
-#        uses: snok/install-poetry@v1
-#
-#      - name: Install packages
-#        run: |
-#          poetry run make config-poetry
-#          poetry run make install
-#
-#      - name: Install polars
-#        run: |
-#          poetry run pip install polars==${{ matrix.polars-version }}
-#
-#      - name: Show installed packages
-#        run: |
-#          poetry run poetry show
-#          poetry run poetry show --tree
-#
-#      - name: Run unit tests
-#        run: |
-#          poetry run make unit-test-cov
-#
-#
-#  torch:
-#    runs-on: ${{ matrix.os }}
-#    timeout-minutes: 10
-#    strategy:
-#      max-parallel: 8
-#      fail-fast: false
-#      matrix:
-#        os: [ ubuntu-latest ]
-#        python-version: [ '3.11', '3.10', '3.9' ]
-#        torch-version: [ 2.1.1, 2.0.1, 1.13.1, 1.12.1, 1.11.0, 1.10.2 ]
-#        exclude:
-#          - torch-version: 1.10.2
-#            python-version: 3.10
-#          - torch-version: 1.10.2
-#            python-version: 3.11
-#          - torch-version: 1.11.0
-#            python-version: 3.11
-#          - torch-version: 1.12.1
-#            python-version: 3.11
-#
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v3
-#
-#      - name: Set up Python
-#        uses: actions/setup-python@v4
-#        with:
-#          python-version: ${{ matrix.python-version }}
-#
-#      - name: Install Poetry
-#        uses: snok/install-poetry@v1
-#
-#      - name: Install packages
-#        run: |
-#          poetry run make config-poetry
-#          poetry run make install
-#
-#      - name: Install PyTorch
-#        run: |
-#          poetry run pip install torch==${{ matrix.torch-version }}
-#
-#      - name: Show installed packages
-#        run: |
-#          poetry run poetry show
-#          poetry run poetry show --tree
-#
-#      - name: Run unit tests
-#        run: |
-#          poetry run make unit-test-cov
-#
-#
-#  xarray:
-#    runs-on: ${{ matrix.os }}
-#    timeout-minutes: 20
-#    strategy:
-#      max-parallel: 8
-#      fail-fast: false
-#      matrix:
-#        os: [ ubuntu-latest ]
-#        python-version: [ '3.12', '3.11', '3.10', '3.9' ]
-#        xarray-version: [ '2023.12', '2023.11', '2023.10', '2023.9', '2023.8', '2023.7', '2023.6', '2023.5', '2023.4', '2023.3', '2023.2', '2023.1' ]
-#
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v3
-#
-#      - name: Set up Python
-#        uses: actions/setup-python@v4
-#        with:
-#          python-version: ${{ matrix.python-version }}
-#
-#      - name: Install Poetry
-#        uses: snok/install-poetry@v1
-#
-#      - name: Install packages
-#        run: |
-#          poetry run make config-poetry
-#          poetry run make install
-#
-#      - name: Install xarray
-#        run: |
-#          poetry run pip install xarray==${{ matrix.xarray-version }}
-#
-#      - name: Show installed packages
-#        run: |
-#          poetry run poetry show
-#          poetry run poetry show --tree
-#
-#      - name: Run unit tests
-#        run: |
-#          poetry run make unit-test-cov
+  polars:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ '3.12', '3.11', '3.10', '3.9' ]
+        polars-version: [ '0.19.19', '0.18.15' ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Install packages
+        run: |
+          poetry run make config-poetry
+          poetry run make install
+
+      - name: Install polars
+        run: |
+          poetry run pip install polars==${{ matrix.polars-version }}
+
+      - name: Show installed packages
+        run: |
+          poetry run poetry show
+          poetry run poetry show --tree
+
+      - name: Run unit tests
+        run: |
+          poetry run make unit-test-cov
+
+
+  torch:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ '3.11', '3.10', '3.9' ]
+        torch-version: [ 2.1.1, 2.0.1, 1.13.1, 1.12.1, 1.11.0, 1.10.2 ]
+        exclude:
+          - torch-version: 1.10.2
+            python-version: 3.10
+          - torch-version: 1.10.2
+            python-version: 3.11
+          - torch-version: 1.11.0
+            python-version: 3.11
+          - torch-version: 1.12.1
+            python-version: 3.11
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Install packages
+        run: |
+          poetry run make config-poetry
+          poetry run make install
+
+      - name: Install PyTorch
+        run: |
+          poetry run pip install torch==${{ matrix.torch-version }}
+
+      - name: Show installed packages
+        run: |
+          poetry run poetry show
+          poetry run poetry show --tree
+
+      - name: Run unit tests
+        run: |
+          poetry run make unit-test-cov
+
+
+  xarray:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ '3.12', '3.11', '3.10', '3.9' ]
+        xarray-version: [ '2023.12', '2023.11', '2023.10', '2023.9', '2023.8', '2023.7', '2023.6', '2023.5', '2023.4', '2023.3', '2023.2', '2023.1' ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Install packages
+        run: |
+          poetry run make config-poetry
+          poetry run make install
+
+      - name: Install xarray
+        run: |
+          poetry run pip install xarray==${{ matrix.xarray-version }}
+
+      - name: Show installed packages
+        run: |
+          poetry run poetry show
+          poetry run poetry show --tree
+
+      - name: Run unit tests
+        run: |
+          poetry run make unit-test-cov
