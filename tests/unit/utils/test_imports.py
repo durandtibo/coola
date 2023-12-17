@@ -20,6 +20,11 @@ from coola.utils.imports import (
     is_polars_available,
     is_torch_available,
     is_xarray_available,
+    jax_available,
+    numpy_available,
+    pandas_available,
+    polars_available,
+    torch_available,
     xarray_available,
 )
 
@@ -100,6 +105,43 @@ def test_is_jax_available() -> None:
     assert isinstance(is_jax_available(), bool)
 
 
+def test_jax_available_with_package() -> None:
+    with patch("coola.utils.imports.is_jax_available", lambda *args: True):
+        fn = jax_available(my_function)
+        assert fn(2) == 44
+
+
+def test_jax_available_without_package() -> None:
+    with patch("coola.utils.imports.is_jax_available", lambda *args: False):
+        fn = jax_available(my_function)
+        assert fn(2) is None
+
+
+def test_jax_available_decorator_with_package() -> None:
+    with patch("coola.utils.imports.is_jax_available", lambda *args: True):
+
+        @jax_available
+        def fn(n: int = 0) -> int:
+            return 42 + n
+
+        assert fn(2) == 44
+
+
+def test_jax_available_decorator_without_package() -> None:
+    with patch("coola.utils.imports.is_jax_available", lambda *args: False):
+
+        @jax_available
+        def fn(n: int = 0) -> int:
+            return 42 + n
+
+        assert fn(2) is None
+
+
+#################
+#     numpy     #
+#################
+
+
 def test_check_numpy_with_package() -> None:
     with patch("coola.utils.imports.is_numpy_available", lambda *args: True):
         check_numpy()
@@ -113,6 +155,43 @@ def test_check_numpy_without_package() -> None:
 
 def test_is_numpy_available() -> None:
     assert isinstance(is_numpy_available(), bool)
+
+
+def test_numpy_available_with_package() -> None:
+    with patch("coola.utils.imports.is_numpy_available", lambda *args: True):
+        fn = numpy_available(my_function)
+        assert fn(2) == 44
+
+
+def test_numpy_available_without_package() -> None:
+    with patch("coola.utils.imports.is_numpy_available", lambda *args: False):
+        fn = numpy_available(my_function)
+        assert fn(2) is None
+
+
+def test_numpy_available_decorator_with_package() -> None:
+    with patch("coola.utils.imports.is_numpy_available", lambda *args: True):
+
+        @numpy_available
+        def fn(n: int = 0) -> int:
+            return 42 + n
+
+        assert fn(2) == 44
+
+
+def test_numpy_available_decorator_without_package() -> None:
+    with patch("coola.utils.imports.is_numpy_available", lambda *args: False):
+
+        @numpy_available
+        def fn(n: int = 0) -> int:
+            return 42 + n
+
+        assert fn(2) is None
+
+
+##################
+#     pandas     #
+##################
 
 
 def test_check_pandas_with_package() -> None:
@@ -130,6 +209,43 @@ def test_is_pandas_available() -> None:
     assert isinstance(is_pandas_available(), bool)
 
 
+def test_pandas_available_with_package() -> None:
+    with patch("coola.utils.imports.is_pandas_available", lambda *args: True):
+        fn = pandas_available(my_function)
+        assert fn(2) == 44
+
+
+def test_pandas_available_without_package() -> None:
+    with patch("coola.utils.imports.is_pandas_available", lambda *args: False):
+        fn = pandas_available(my_function)
+        assert fn(2) is None
+
+
+def test_pandas_available_decorator_with_package() -> None:
+    with patch("coola.utils.imports.is_pandas_available", lambda *args: True):
+
+        @pandas_available
+        def fn(n: int = 0) -> int:
+            return 42 + n
+
+        assert fn(2) == 44
+
+
+def test_pandas_available_decorator_without_package() -> None:
+    with patch("coola.utils.imports.is_pandas_available", lambda *args: False):
+
+        @pandas_available
+        def fn(n: int = 0) -> int:
+            return 42 + n
+
+        assert fn(2) is None
+
+
+##################
+#     polars     #
+##################
+
+
 def test_check_polars_with_package() -> None:
     with patch("coola.utils.imports.is_polars_available", lambda *args: True):
         check_polars()
@@ -145,6 +261,43 @@ def test_is_polars_available() -> None:
     assert isinstance(is_polars_available(), bool)
 
 
+def test_polars_available_with_package() -> None:
+    with patch("coola.utils.imports.is_polars_available", lambda *args: True):
+        fn = polars_available(my_function)
+        assert fn(2) == 44
+
+
+def test_polars_available_without_package() -> None:
+    with patch("coola.utils.imports.is_polars_available", lambda *args: False):
+        fn = polars_available(my_function)
+        assert fn(2) is None
+
+
+def test_polars_available_decorator_with_package() -> None:
+    with patch("coola.utils.imports.is_polars_available", lambda *args: True):
+
+        @polars_available
+        def fn(n: int = 0) -> int:
+            return 42 + n
+
+        assert fn(2) == 44
+
+
+def test_polars_available_decorator_without_package() -> None:
+    with patch("coola.utils.imports.is_polars_available", lambda *args: False):
+
+        @polars_available
+        def fn(n: int = 0) -> int:
+            return 42 + n
+
+        assert fn(2) is None
+
+
+#################
+#     torch     #
+#################
+
+
 def test_check_torch_with_package() -> None:
     with patch("coola.utils.imports.is_torch_available", lambda *args: True):
         check_torch()
@@ -158,6 +311,38 @@ def test_check_torch_without_package() -> None:
 
 def test_is_torch_available() -> None:
     assert isinstance(is_torch_available(), bool)
+
+
+def test_torch_available_with_package() -> None:
+    with patch("coola.utils.imports.is_torch_available", lambda *args: True):
+        fn = torch_available(my_function)
+        assert fn(2) == 44
+
+
+def test_torch_available_without_package() -> None:
+    with patch("coola.utils.imports.is_torch_available", lambda *args: False):
+        fn = torch_available(my_function)
+        assert fn(2) is None
+
+
+def test_torch_available_decorator_with_package() -> None:
+    with patch("coola.utils.imports.is_torch_available", lambda *args: True):
+
+        @torch_available
+        def fn(n: int = 0) -> int:
+            return 42 + n
+
+        assert fn(2) == 44
+
+
+def test_torch_available_decorator_without_package() -> None:
+    with patch("coola.utils.imports.is_torch_available", lambda *args: False):
+
+        @torch_available
+        def fn(n: int = 0) -> int:
+            return 42 + n
+
+        assert fn(2) is None
 
 
 ##################
