@@ -1358,6 +1358,7 @@ def test_get_mapping_equality_no_numpy() -> None:
 #############################
 
 
+@polars_available
 def test_has_nan_df_true() -> None:
     assert has_nan(
         polars.DataFrame(
@@ -1366,19 +1367,23 @@ def test_has_nan_df_true() -> None:
     )
 
 
+@polars_available
 def test_has_nan_series_true() -> None:
     assert has_nan(polars.Series([1.1, 2.2, 3.3, 4.4, 5.5, float("nan")]))
 
 
+@polars_available
 def test_has_nan_df_false() -> None:
     assert not has_nan(
         polars.DataFrame({"float": [1.1, 2.2, 3.3, 4.4, 5.5], "str": ["a", "b", "c", "d", "e"]})
     )
 
 
+@polars_available
 def test_has_nan_series_false_float() -> None:
     assert not has_nan(polars.Series([1.1, 2.2, 3.3, 4.4, 5.5]))
 
 
+@polars_available
 def test_has_nan_series_false_str() -> None:
     assert not has_nan(polars.Series(["a", "b", "c", "d", "e"]))
