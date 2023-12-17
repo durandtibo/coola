@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from coola.testers import BaseAllCloseTester, BaseEqualityTester
 
 if is_polars_available():
+    import polars
     from polars import DataFrame, Series
     from polars.testing import assert_frame_equal, assert_series_equal
 else:
@@ -55,13 +56,14 @@ class DataFrameAllCloseOperator(BaseAllCloseOperator[DataFrame]):
             if show_difference:
                 logger.info(f"object2 is not a polars.DataFrame: {type(object2)}")
             return False
+        if not equal_nan and has_nan(object1):
+            return False
         try:
             assert_frame_equal(
                 object1,
                 object2,
                 rtol=rtol,
                 atol=atol,
-                nans_compare_equal=equal_nan,
                 check_exact=False,
             )
             object_equal = True
@@ -85,20 +87,19 @@ class DataFrameEqualityOperator(BaseEqualityOperator[DataFrame]):
             (e.g. NaN or NaT) compare as true. Default: ``False``
     """
 
-    def __init__(self, nulls_compare_equal: bool = False) -> None:
+    def __init__(self) -> None:
         check_polars()
-        self._nulls_compare_equal = bool(nulls_compare_equal)
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, self.__class__):
             return False
-        return self._nulls_compare_equal == other._nulls_compare_equal
+        return True
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}(nulls_compare_equal={self._nulls_compare_equal})"
+        return f"{self.__class__.__qualname__}()"
 
     def clone(self) -> DataFrameEqualityOperator:
-        return self.__class__(nulls_compare_equal=self._nulls_compare_equal)
+        return self.__class__()
 
     def equal(
         self,
@@ -135,14 +136,14 @@ class DataFrameEqualityOperator(BaseEqualityOperator[DataFrame]):
             bool: ``True``if the two series are equal,
                 otherwise ``False``.
         """
+        if has_nan(df1):
+            return False
         try:
-            assert_frame_equal(
-                df1, df2, check_exact=True, nans_compare_equal=self._nulls_compare_equal
-            )
+            assert_frame_equal(df1, df2, check_exact=True)
             object_equal = True
         except AssertionError:
             object_equal = False
-        if object_equal and not self._nulls_compare_equal:
+        if object_equal:
             object_equal = df1.null_count().sum(axis=1).to_list()[0] == 0
         return object_equal
 
@@ -175,13 +176,14 @@ class SeriesAllCloseOperator(BaseAllCloseOperator[Series]):
             if show_difference:
                 logger.info(f"object2 is not a polars.Series: {type(object2)}")
             return False
+        if not equal_nan and has_nan(object1):
+            return False
         try:
             assert_series_equal(
                 object1,
                 object2,
                 rtol=rtol,
                 atol=atol,
-                nans_compare_equal=equal_nan,
                 check_exact=False,
             )
             object_equal = True
@@ -195,28 +197,21 @@ class SeriesAllCloseOperator(BaseAllCloseOperator[Series]):
 
 
 class SeriesEqualityOperator(BaseEqualityOperator[Series]):
-    r"""Implements an equality operator for ``polars.Series``.
+    r"""Implements an equality operator for ``polars.Series``."""
 
-    Args:
-    ----
-        nulls_compare_equal (bool, optional): If ``True``, null values
-            (e.g. NaN or NaT) compare as true. Default: ``False``
-    """
-
-    def __init__(self, nulls_compare_equal: bool = False) -> None:
+    def __init__(self) -> None:
         check_polars()
-        self._nulls_compare_equal = bool(nulls_compare_equal)
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, self.__class__):
             return False
-        return self._nulls_compare_equal == other._nulls_compare_equal
+        return True
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}(nulls_compare_equal={self._nulls_compare_equal})"
+        return f"{self.__class__.__qualname__}()"
 
     def clone(self) -> SeriesEqualityOperator:
-        return self.__class__(nulls_compare_equal=self._nulls_compare_equal)
+        return self.__class__()
 
     def equal(
         self,
@@ -251,14 +246,14 @@ class SeriesEqualityOperator(BaseEqualityOperator[Series]):
             bool: ``True``if the two series are equal,
                 otherwise ``False``.
         """
+        if has_nan(series1):
+            return False
         try:
-            assert_series_equal(
-                series1, series2, check_exact=True, nans_compare_equal=self._nulls_compare_equal
-            )
+            assert_series_equal(series1, series2, check_exact=True)
             object_equal = True
         except AssertionError:
             object_equal = False
-        if object_equal and not self._nulls_compare_equal:
+        if object_equal:
             object_equal = not series1.is_null().any()
         return object_equal
 
@@ -295,3 +290,24 @@ def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
     if not is_polars_available():
         return {}
     return {DataFrame: DataFrameEqualityOperator(), Series: SeriesEqualityOperator()}
+
+
+def has_nan(obj: DataFrame | Series) -> bool:
+    r"""Indicates if a DataFrame or Series has NaN values.
+
+    Args:
+    ----
+        obj (``polars.DataFrame`` or ``polars.Series``): Specifies the
+            object to check.
+
+    Returns:
+    -------
+        bool: ``True`` if the DataFrame or Series has NaN values,
+            otherwise ``False``.
+    """
+    if isinstance(obj, Series):
+        return obj.dtype in polars.FLOAT_DTYPES and obj.is_nan().any()
+    for col in obj:
+        if col.dtype in polars.FLOAT_DTYPES and col.is_nan().any():
+            return True
+    return False

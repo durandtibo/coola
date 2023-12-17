@@ -16,6 +16,7 @@ from coola.comparators.polars_ import (
     SeriesEqualityOperator,
     get_mapping_allclose,
     get_mapping_equality,
+    has_nan,
 )
 from coola.testing import polars_available
 from coola.utils.imports import is_polars_available
@@ -622,21 +623,13 @@ def test_dataframe_equality_operator__eq__true() -> None:
 
 
 @polars_available
-def test_dataframe_equality_operator__eq__false_different_nulls_compare_equal() -> None:
-    assert DataFrameEqualityOperator(nulls_compare_equal=True) != DataFrameEqualityOperator(
-        nulls_compare_equal=False
-    )
-
-
-@polars_available
 def test_dataframe_equality_operator__eq__false_different_type() -> None:
     assert DataFrameEqualityOperator() != 123
 
 
 @polars_available
-@mark.parametrize("nulls_compare_equal", (True, False))
-def test_dataframe_equality_operator_clone(nulls_compare_equal: bool) -> None:
-    op = DataFrameEqualityOperator(nulls_compare_equal)
+def test_dataframe_equality_operator_clone() -> None:
+    op = DataFrameEqualityOperator()
     op_cloned = op.clone()
     assert op is not op_cloned
     assert op == op_cloned
@@ -932,156 +925,6 @@ def test_dataframe_equality_operator_equal_false_different_type_show_difference(
 
 
 @polars_available
-def test_dataframe_equality_operator_equal_true_null_nulls_compare_equal() -> None:
-    assert DataFrameEqualityOperator(nulls_compare_equal=True).equal(
-        EqualityTester(),
-        polars.DataFrame(
-            {
-                "col1": [1, 2, 3, 4, 5, None],
-                "col2": [1.1, 2.2, 3.3, 4.4, 5.5, float("nan")],
-                "col3": ["a", "b", "c", "d", "e", None],
-                "col4": polars.Series(
-                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16", None]
-                ).str.to_datetime(),
-            }
-        ),
-        polars.DataFrame(
-            {
-                "col1": [1, 2, 3, 4, 5, None],
-                "col2": [1.1, 2.2, 3.3, 4.4, 5.5, float("nan")],
-                "col3": ["a", "b", "c", "d", "e", None],
-                "col4": polars.Series(
-                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16", None]
-                ).str.to_datetime(),
-            }
-        ),
-    )
-
-
-@polars_available
-def test_dataframe_equality_operator_equal_false_null_nulls_compare_equal() -> None:
-    assert not DataFrameEqualityOperator(nulls_compare_equal=True).equal(
-        EqualityTester(),
-        polars.DataFrame(
-            {
-                "col1": [1, 2, 3, 4, 6, None],
-                "col2": [1.1, 2.2, 3.3, 4.4, 5.5, float("nan")],
-                "col3": ["a", "b", "c", "d", "e", None],
-                "col4": polars.Series(
-                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16", None]
-                ).str.to_datetime(),
-            }
-        ),
-        polars.DataFrame(
-            {
-                "col1": [1, 2, 3, 4, 5, None],
-                "col2": [1.1, 2.2, 3.3, 4.4, 5.5, float("nan")],
-                "col3": ["a", "b", "c", "d", "e", None],
-                "col4": polars.Series(
-                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16", None]
-                ).str.to_datetime(),
-            }
-        ),
-    )
-
-
-@polars_available
-def test_dataframe_equality_operator_equal_true_nan_nulls_compare_equal() -> None:
-    assert DataFrameEqualityOperator(nulls_compare_equal=True).equal(
-        EqualityTester(),
-        polars.DataFrame({"col": [1.1, 2.2, 3.3, 4.4, 5.5, float("nan")]}),
-        polars.DataFrame({"col": [1.1, 2.2, 3.3, 4.4, 5.5, float("nan")]}),
-    )
-
-
-@polars_available
-def test_dataframe_equality_operator_equal_false_nan_nulls_compare_equal() -> None:
-    assert not DataFrameEqualityOperator(nulls_compare_equal=True).equal(
-        EqualityTester(),
-        polars.DataFrame({"col": [1.1, 2.2, 3.3, 4.4, 5.5, float("nan")]}),
-        polars.DataFrame({"col": [1.1, 2.2, 3.3, 4.4, 6.0, float("nan")]}),
-    )
-
-
-@polars_available
-def test_dataframe_equality_operator_equal_true_nat_nulls_compare_equal() -> None:
-    assert DataFrameEqualityOperator(nulls_compare_equal=True).equal(
-        EqualityTester(),
-        polars.DataFrame(
-            {
-                "col": polars.Series(
-                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
-                ).str.to_datetime()
-            }
-        ),
-        polars.DataFrame(
-            {
-                "col": polars.Series(
-                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
-                ).str.to_datetime()
-            }
-        ),
-    )
-
-
-@polars_available
-def test_dataframe_equality_operator_equal_false_nat_nulls_compare_equal() -> None:
-    assert not DataFrameEqualityOperator(nulls_compare_equal=True).equal(
-        EqualityTester(),
-        polars.DataFrame(
-            {
-                "col": polars.Series(
-                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
-                ).str.to_datetime()
-            }
-        ),
-        polars.DataFrame(
-            {
-                "col": polars.Series(
-                    ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/18"]
-                ).str.to_datetime()
-            }
-        ),
-    )
-
-
-@polars_available
-def test_dataframe_equality_operator_equal_true_none_str_nulls_compare_equal() -> None:
-    assert DataFrameEqualityOperator(nulls_compare_equal=True).equal(
-        EqualityTester(),
-        polars.DataFrame({"col": ["a", "b", "c", "d", "e", None]}),
-        polars.DataFrame({"col": ["a", "b", "c", "d", "e", None]}),
-    )
-
-
-@polars_available
-def test_dataframe_equality_operator_equal_false_none_str_nulls_compare_equal() -> None:
-    assert not DataFrameEqualityOperator(nulls_compare_equal=True).equal(
-        EqualityTester(),
-        polars.DataFrame({"col": ["a", "b", "c", "d", "e", None]}),
-        polars.DataFrame({"col": ["a", "b", "c", "d", "f", None]}),
-    )
-
-
-@polars_available
-def test_dataframe_equality_operator_equal_true_none_int_nulls_compare_equal() -> None:
-    assert DataFrameEqualityOperator(nulls_compare_equal=True).equal(
-        EqualityTester(),
-        polars.DataFrame({"col": [1, 2, 3, 4, 5, None]}),
-        polars.DataFrame({"col": [1, 2, 3, 4, 5, None]}),
-    )
-
-
-@polars_available
-def test_dataframe_equality_operator_equal_false_none_int_nulls_compare_equal() -> None:
-    assert not DataFrameEqualityOperator(nulls_compare_equal=True).equal(
-        EqualityTester(),
-        polars.DataFrame({"col": [1, 2, 3, 4, 5, None]}),
-        polars.DataFrame({"col": [1, 2, 3, 4, 6, None]}),
-    )
-
-
-@polars_available
 def test_dataframe_equality_operator_no_polars() -> None:
     with patch("coola.utils.imports.is_polars_available", lambda *args, **kwargs: False):
         with raises(RuntimeError, match="`polars` package is required but not installed."):
@@ -1332,21 +1175,13 @@ def test_series_equality_operator__eq__true() -> None:
 
 
 @polars_available
-def test_series_equality_operator__eq__false_different_nulls_compare_equal() -> None:
-    assert SeriesEqualityOperator(nulls_compare_equal=True) != SeriesEqualityOperator(
-        nulls_compare_equal=False
-    )
-
-
-@polars_available
 def test_series_equality_operator__eq__false_different_type() -> None:
     assert SeriesEqualityOperator() != 123
 
 
 @polars_available
-@mark.parametrize("nulls_compare_equal", (True, False))
-def test_series_equality_operator_clone(nulls_compare_equal: bool) -> None:
-    op = SeriesEqualityOperator(nulls_compare_equal)
+def test_series_equality_operator_clone() -> None:
+    op = SeriesEqualityOperator()
     op_cloned = op.clone()
     assert op is not op_cloned
     assert op == op_cloned
@@ -1476,60 +1311,6 @@ def test_series_equality_operator_equal_false_different_type_show_difference(
 
 
 @polars_available
-def test_series_equality_operator_equal_true_nan_nulls_compare_equal() -> None:
-    assert SeriesEqualityOperator(nulls_compare_equal=True).equal(
-        EqualityTester(),
-        polars.Series([1.0, 2.0, 3.0, 4.0, float("nan")]),
-        polars.Series([1.0, 2.0, 3.0, 4.0, float("nan")]),
-    )
-
-
-@polars_available
-def test_series_equality_operator_equal_false_nan_nulls_compare_equal() -> None:
-    assert not SeriesEqualityOperator(nulls_compare_equal=True).equal(
-        EqualityTester(),
-        polars.Series([1.0, 2.0, 3.0, 4.0, float("nan")]),
-        polars.Series([1.0, 2.0, 3.0, 5.0, float("nan")]),
-    )
-
-
-@polars_available
-def test_series_equality_operator_equal_true_nat_nulls_compare_equal() -> None:
-    assert SeriesEqualityOperator(nulls_compare_equal=True).equal(
-        EqualityTester(),
-        polars.Series(["2020/10/12", "2021/3/14", "2022/4/14", None]).str.to_datetime(),
-        polars.Series(["2020/10/12", "2021/3/14", "2022/4/14", None]).str.to_datetime(),
-    )
-
-
-@polars_available
-def test_series_equality_operator_equal_false_nat_nulls_compare_equal() -> None:
-    assert not SeriesEqualityOperator(nulls_compare_equal=True).equal(
-        EqualityTester(),
-        polars.Series(["2020/10/12", "2021/3/14", "2022/4/14", None]).str.to_datetime(),
-        polars.Series(["2020/10/12", "2021/3/14", "2022/4/16", None]).str.to_datetime(),
-    )
-
-
-@polars_available
-def test_series_equality_operator_equal_true_none_nulls_compare_equal() -> None:
-    assert SeriesEqualityOperator(nulls_compare_equal=True).equal(
-        EqualityTester(),
-        polars.Series(["a", "b", "c", "d", "e", None]),
-        polars.Series(["a", "b", "c", "d", "e", None]),
-    )
-
-
-@polars_available
-def test_series_equality_operator_equal_false_none_nulls_compare_equal() -> None:
-    assert not SeriesEqualityOperator(nulls_compare_equal=True).equal(
-        EqualityTester(),
-        polars.Series(["a", "b", "c", "d", "e", None]),
-        polars.Series(["a", "b", "c", "d", "f", None]),
-    )
-
-
-@polars_available
 def test_series_equality_operator_no_polars() -> None:
     with patch("coola.utils.imports.is_polars_available", lambda *args, **kwargs: False):
         with raises(RuntimeError, match="`polars` package is required but not installed."):
@@ -1570,3 +1351,34 @@ def test_get_mapping_equality() -> None:
 def test_get_mapping_equality_no_numpy() -> None:
     with patch("coola.comparators.polars_.is_polars_available", lambda *args, **kwargs: False):
         assert get_mapping_equality() == {}
+
+
+#############################
+#     Tests for has_nan     #
+#############################
+
+
+def test_has_nan_df_true() -> None:
+    assert has_nan(
+        polars.DataFrame(
+            {"col": [1.1, 2.2, 3.3, 4.4, 5.5, float("nan")], "str": ["a", "b", "c", "d", "e", "f"]}
+        )
+    )
+
+
+def test_has_nan_series_true() -> None:
+    assert has_nan(polars.Series([1.1, 2.2, 3.3, 4.4, 5.5, float("nan")]))
+
+
+def test_has_nan_df_false() -> None:
+    assert not has_nan(
+        polars.DataFrame({"float": [1.1, 2.2, 3.3, 4.4, 5.5], "str": ["a", "b", "c", "d", "e"]})
+    )
+
+
+def test_has_nan_series_false_float() -> None:
+    assert not has_nan(polars.Series([1.1, 2.2, 3.3, 4.4, 5.5]))
+
+
+def test_has_nan_series_false_str() -> None:
+    assert not has_nan(polars.Series(["a", "b", "c", "d", "e"]))
