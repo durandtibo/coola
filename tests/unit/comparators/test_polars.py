@@ -302,19 +302,6 @@ def test_dataframe_allclose_operator_allclose_false_nan() -> None:
 
 
 @polars_available
-def test_dataframe_allclose_operator_allclose_false_nat() -> None:
-    assert not DataFrameAllCloseOperator().allclose(
-        AllCloseTester(),
-        polars.DataFrame(
-            {"col": polars.Series(["2020/10/12", "2021/3/14", "2022/4/14", None]).str.to_datetime()}
-        ),
-        polars.DataFrame(
-            {"col": polars.Series(["2020/10/12", "2021/3/14", "2022/4/14", None]).str.to_datetime()}
-        ),
-    )
-
-
-@polars_available
 def test_dataframe_allclose_operator_allclose_true_nat() -> None:
     assert DataFrameAllCloseOperator().allclose(
         AllCloseTester(),
@@ -324,16 +311,6 @@ def test_dataframe_allclose_operator_allclose_true_nat() -> None:
         polars.DataFrame(
             {"col": polars.Series(["2020/10/12", "2021/3/14", "2022/4/14", None]).str.to_datetime()}
         ),
-        equal_nan=True,
-    )
-
-
-@polars_available
-def test_dataframe_allclose_operator_allclose_false_none_str() -> None:
-    assert not DataFrameAllCloseOperator().allclose(
-        AllCloseTester(),
-        polars.DataFrame({"col": ["a", "b", "c", "d", "e", None]}),
-        polars.DataFrame({"col": ["a", "b", "c", "d", "e", None]}),
     )
 
 
@@ -343,16 +320,6 @@ def test_dataframe_allclose_operator_allclose_true_none_str() -> None:
         AllCloseTester(),
         polars.DataFrame({"col": ["a", "b", "c", "d", "e", None]}),
         polars.DataFrame({"col": ["a", "b", "c", "d", "e", None]}),
-        equal_nan=True,
-    )
-
-
-@polars_available
-def test_dataframe_allclose_operator_allclose_false_none_int() -> None:
-    assert not DataFrameAllCloseOperator().allclose(
-        AllCloseTester(),
-        polars.DataFrame({"col": [1, 2, 3, 4, 5, None]}),
-        polars.DataFrame({"col": [1, 2, 3, 4, 5, None]}),
     )
 
 
@@ -362,7 +329,6 @@ def test_dataframe_allclose_operator_allclose_true_none_int() -> None:
         AllCloseTester(),
         polars.DataFrame({"col": [1, 2, 3, 4, 5, None]}),
         polars.DataFrame({"col": [1, 2, 3, 4, 5, None]}),
-        equal_nan=True,
     )
 
 
@@ -824,8 +790,8 @@ def test_dataframe_equality_operator_equal_false_nan() -> None:
 
 
 @polars_available
-def test_dataframe_equality_operator_equal_false_nat() -> None:
-    assert not DataFrameEqualityOperator().equal(
+def test_dataframe_equality_operator_equal_true_nat() -> None:
+    assert DataFrameEqualityOperator().equal(
         EqualityTester(),
         polars.DataFrame(
             {"col": polars.Series(["2020/10/12", "2021/3/14", "2022/4/14", None]).str.to_datetime()}
@@ -837,8 +803,8 @@ def test_dataframe_equality_operator_equal_false_nat() -> None:
 
 
 @polars_available
-def test_dataframe_equality_operator_equal_false_none_str() -> None:
-    assert not DataFrameEqualityOperator().equal(
+def test_dataframe_equality_operator_equal_true_none_str() -> None:
+    assert DataFrameEqualityOperator().equal(
         EqualityTester(),
         polars.DataFrame({"col": ["a", "b", "c", "d", "e", None]}),
         polars.DataFrame({"col": ["a", "b", "c", "d", "e", None]}),
@@ -846,8 +812,8 @@ def test_dataframe_equality_operator_equal_false_none_str() -> None:
 
 
 @polars_available
-def test_dataframe_equality_operator_equal_false_none_int() -> None:
-    assert not DataFrameEqualityOperator().equal(
+def test_dataframe_equality_operator_equal_true_none_int() -> None:
+    assert DataFrameEqualityOperator().equal(
         EqualityTester(),
         polars.DataFrame({"col": [1, 2, 3, 4, 5, None]}),
         polars.DataFrame({"col": [1, 2, 3, 4, 5, None]}),
@@ -1042,30 +1008,11 @@ def test_series_allclose_operator_allclose_true_nan() -> None:
 
 
 @polars_available
-def test_series_allclose_operator_allclose_false_nat() -> None:
-    assert not SeriesAllCloseOperator().allclose(
-        AllCloseTester(),
-        polars.Series(["2020/10/12", "2021/3/14", "2022/4/14", None]).str.to_datetime(),
-        polars.Series(["2020/10/12", "2021/3/14", "2022/4/14", None]).str.to_datetime(),
-    )
-
-
-@polars_available
 def test_series_allclose_operator_allclose_true_nat() -> None:
     assert SeriesAllCloseOperator().allclose(
         AllCloseTester(),
         polars.Series(["2020/10/12", "2021/3/14", "2022/4/14", None]).str.to_datetime(),
         polars.Series(["2020/10/12", "2021/3/14", "2022/4/14", None]).str.to_datetime(),
-        equal_nan=True,
-    )
-
-
-@polars_available
-def test_series_allclose_operator_allclose_false_none() -> None:
-    assert not SeriesAllCloseOperator().allclose(
-        AllCloseTester(),
-        polars.Series(["a", "b", "c", "d", "e", None]),
-        polars.Series(["a", "b", "c", "d", "e", None]),
     )
 
 
@@ -1075,7 +1022,6 @@ def test_series_allclose_operator_allclose_true_none() -> None:
         AllCloseTester(),
         polars.Series(["a", "b", "c", "d", "e", None]),
         polars.Series(["a", "b", "c", "d", "e", None]),
-        equal_nan=True,
     )
 
 
@@ -1263,8 +1209,8 @@ def test_series_equality_operator_equal_false_nan() -> None:
 
 
 @polars_available
-def test_series_equality_operator_equal_false_nat() -> None:
-    assert not SeriesEqualityOperator().equal(
+def test_series_equality_operator_equal_true_nat() -> None:
+    assert SeriesEqualityOperator().equal(
         EqualityTester(),
         polars.Series(["2020/10/12", "2021/3/14", "2022/4/14", None]).str.to_datetime(),
         polars.Series(["2020/10/12", "2021/3/14", "2022/4/14", None]).str.to_datetime(),
@@ -1272,8 +1218,8 @@ def test_series_equality_operator_equal_false_nat() -> None:
 
 
 @polars_available
-def test_series_equality_operator_equal_false_none() -> None:
-    assert not SeriesEqualityOperator().equal(
+def test_series_equality_operator_equal_true_none() -> None:
+    assert SeriesEqualityOperator().equal(
         EqualityTester(),
         polars.Series(["a", "b", "c", "d", "e", None]),
         polars.Series(["a", "b", "c", "d", "e", None]),

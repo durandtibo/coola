@@ -69,8 +69,6 @@ class DataFrameAllCloseOperator(BaseAllCloseOperator[DataFrame]):
             object_equal = True
         except AssertionError:
             object_equal = False
-        if not equal_nan and object_equal:
-            object_equal = object1.null_count().sum(axis=1).to_list()[0] == 0
         if show_difference and not object_equal:
             logger.info(
                 f"polars.DataFrames are different\nobject1=\n{object1}\nobject2=\n{object2}"
@@ -79,13 +77,7 @@ class DataFrameAllCloseOperator(BaseAllCloseOperator[DataFrame]):
 
 
 class DataFrameEqualityOperator(BaseEqualityOperator[DataFrame]):
-    r"""Implements an equality operator for ``polars.DataFrame``.
-
-    Args:
-    ----
-        nulls_compare_equal (bool, optional): If ``True``, null values
-            (e.g. NaN or NaT) compare as true. Default: ``False``
-    """
+    r"""Implements an equality operator for ``polars.DataFrame``."""
 
     def __init__(self) -> None:
         check_polars()
@@ -143,8 +135,6 @@ class DataFrameEqualityOperator(BaseEqualityOperator[DataFrame]):
             object_equal = True
         except AssertionError:
             object_equal = False
-        if object_equal:
-            object_equal = df1.null_count().sum(axis=1).to_list()[0] == 0
         return object_equal
 
 
@@ -189,8 +179,6 @@ class SeriesAllCloseOperator(BaseAllCloseOperator[Series]):
             object_equal = True
         except AssertionError:
             object_equal = False
-        if not equal_nan and object_equal:
-            object_equal = not object1.is_null().any()
         if show_difference and not object_equal:
             logger.info(f"polars.Series are different\nobject1=\n{object1}\nobject2=\n{object2}")
         return object_equal
@@ -253,8 +241,6 @@ class SeriesEqualityOperator(BaseEqualityOperator[Series]):
             object_equal = True
         except AssertionError:
             object_equal = False
-        if object_equal:
-            object_equal = not series1.is_null().any()
         return object_equal
 
 
