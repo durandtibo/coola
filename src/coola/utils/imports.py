@@ -7,15 +7,59 @@ __all__ = [
     "check_polars",
     "check_torch",
     "check_xarray",
+    "decorator_package_available",
     "is_jax_available",
     "is_numpy_available",
     "is_pandas_available",
     "is_polars_available",
     "is_torch_available",
     "is_xarray_available",
+    "xarray_available",
 ]
 
+from collections.abc import Callable
+from functools import wraps
 from importlib.util import find_spec
+from typing import Any
+
+
+def decorator_package_available(
+    fn: Callable[..., Any], condition: Callable[[], bool]
+) -> Callable[..., Any]:
+    r"""Implements a decorator to execute a function only if a package is
+    installed.
+
+    Args:
+    ----
+        fn (``Callable``): Specifies the function to execute.
+        condition (``Callable``): Specifies the condition to
+            check if a package is installed or not.
+
+    Returns:
+    -------
+        ``Any``: The output of ``fn`` if ``xarray`` package is
+            installed, otherwise ``None``.
+
+    Example usage:
+
+    .. code-block:: pycon
+
+        >>> from coola.utils.imports import decorator_package_available
+        >>> @decorator_package_available(condition=is_numpy_available)
+        ... def my_function(n: int = 0) -> int:
+        ...     return 42 + n
+        ...
+        >>> my_function()
+    """
+
+    @wraps(fn)
+    def inner(*args, **kwargs) -> Any:
+        print(condition, condition())
+        if not condition():
+            return None
+        return fn(*args, **kwargs)
+
+    return inner
 
 
 def is_jax_available() -> bool:
@@ -165,3 +209,31 @@ def check_xarray() -> None:
             "You can install `xarray` package with the command:\n\n"
             "pip install xarray\n"
         )
+
+
+def xarray_available(fn: Callable[..., Any]) -> Callable[..., Any]:
+    r"""Implements a decorator to execute a function only if ``xarray``
+    package is installed.
+
+    Args:
+    ----
+        fn (``Callable``): Specifies the function to execute.
+
+    Returns:
+    -------
+        ``Any``: The output of ``fn`` if ``xarray`` package is
+            installed, otherwise ``None``.
+
+    Example usage:
+
+    .. code-block:: pycon
+
+        >>> from coola.utils.imports import xarray_available
+        >>> @xarray_available
+        ... def my_function(n: int = 0) -> int:
+        ...     return 42 + n
+        ...
+        >>> my_function()
+    """
+    print("is_xarray_available", is_xarray_available)
+    return decorator_package_available(fn, is_xarray_available)
