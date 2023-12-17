@@ -71,6 +71,13 @@ def is_jax_available() -> bool:
     Returns:
     -------
         bool: ``True`` if ``jax`` is available otherwise ``False``.
+
+    Example usage:
+
+    .. code-block:: pycon
+
+        >>> from coola.utils.imports import is_jax_available
+        >>> is_jax_available()
     """
     return find_spec("jax") is not None
 
@@ -81,6 +88,13 @@ def check_jax() -> None:
     Raises:
     ------
         RuntimeError if the ``jax`` package is not installed.
+
+    Example usage:
+
+    .. code-block:: pycon
+
+        >>> from coola.utils.imports import check_jax
+        >>> check_jax()  # doctest: +SKIP
     """
     if not is_jax_available():
         raise RuntimeError(
@@ -96,6 +110,13 @@ def is_numpy_available() -> bool:
     Returns:
     -------
         bool: ``True`` if ``numpy`` is available otherwise ``False``.
+
+    Example usage:
+
+    .. code-block:: pycon
+
+        >>> from coola.utils.imports import is_numpy_available
+        >>> is_numpy_available()
     """
     return find_spec("numpy") is not None
 
@@ -106,6 +127,13 @@ def check_numpy() -> None:
     Raises:
     ------
         RuntimeError if the ``numpy`` package is not installed.
+
+    Example usage:
+
+    .. code-block:: pycon
+
+        >>> from coola.utils.imports import check_numpy
+        >>> check_numpy()  # doctest: +SKIP
     """
     if not is_numpy_available():
         raise RuntimeError(
@@ -121,6 +149,13 @@ def is_pandas_available() -> bool:
     Returns:
     -------
         bool: ``True`` if ``pandas`` is available otherwise ``False``.
+
+    Example usage:
+
+    .. code-block:: pycon
+
+        >>> from coola.utils.imports import is_pandas_available
+        >>> is_pandas_available()
     """
     return find_spec("pandas") is not None
 
@@ -131,6 +166,13 @@ def check_pandas() -> None:
     Raises:
     ------
         RuntimeError if the ``pandas`` package is not installed.
+
+    Example usage:
+
+    .. code-block:: pycon
+
+        >>> from coola.utils.imports import check_pandas
+        >>> check_pandas()  # doctest: +SKIP
     """
     if not is_pandas_available():
         raise RuntimeError(
@@ -146,6 +188,13 @@ def is_polars_available() -> bool:
     Returns:
     -------
         bool: ``True`` if ``polars`` is available otherwise ``False``.
+
+    Example usage:
+
+    .. code-block:: pycon
+
+        >>> from coola.utils.imports import is_polars_available
+        >>> is_polars_available()
     """
     return find_spec("polars") is not None
 
@@ -156,6 +205,13 @@ def check_polars() -> None:
     Raises:
     ------
         RuntimeError if the ``polars`` package is not installed.
+
+    Example usage:
+
+    .. code-block:: pycon
+
+        >>> from coola.utils.imports import check_polars
+        >>> check_polars()  # doctest: +SKIP
     """
     if not is_polars_available():
         raise RuntimeError(
@@ -171,6 +227,13 @@ def is_torch_available() -> bool:
     Returns:
     -------
         bool: ``True`` if ``torch`` is available otherwise ``False``.
+
+    Example usage:
+
+    .. code-block:: pycon
+
+        >>> from coola.utils.imports import is_torch_available
+        >>> is_torch_available()
     """
     return find_spec("torch") is not None
 
@@ -180,6 +243,13 @@ def check_torch() -> None:
 
     Raises:
         RuntimeError if the ``torch`` package is not installed.
+
+    Example usage:
+
+    .. code-block:: pycon
+
+        >>> from coola.utils.imports import check_torch
+        >>> check_torch()  # doctest: +SKIP
     """
     if not is_torch_available():
         raise RuntimeError(
@@ -195,6 +265,13 @@ def is_xarray_available() -> bool:
     Returns:
     -------
         bool: ``True`` if ``xarray`` is available otherwise ``False``.
+
+    Example usage:
+
+    .. code-block:: pycon
+
+        >>> from coola.utils.imports import is_xarray_available
+        >>> is_xarray_available()
     """
     return find_spec("xarray") is not None
 
@@ -205,6 +282,13 @@ def check_xarray() -> None:
     Raises:
     ------
         RuntimeError if the ``xarray`` package is not installed.
+
+    Example usage:
+
+    .. code-block:: pycon
+
+        >>> from coola.utils.imports import check_xarray
+        >>> check_xarray()  # doctest: +SKIP
     """
     if not is_xarray_available():
         raise RuntimeError(
