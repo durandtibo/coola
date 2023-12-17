@@ -44,12 +44,15 @@ def decorator_package_available(
 
     .. code-block:: pycon
 
+        >>> from functools import partial
         >>> from coola.utils.imports import decorator_package_available
-        >>> @decorator_package_available(condition=is_numpy_available)
+        >>> decorator = partial(decorator_package_available, condition=is_numpy_available)
+        >>> @decorator
         ... def my_function(n: int = 0) -> int:
         ...     return 42 + n
         ...
-        >>> my_function()
+        >>> my_function(2)
+        44
     """
 
     @wraps(fn)
