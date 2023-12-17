@@ -14,6 +14,11 @@ __all__ = [
     "is_polars_available",
     "is_torch_available",
     "is_xarray_available",
+    "jax_available",
+    "numpy_available",
+    "pandas_available",
+    "polars_available",
+    "torch_available",
     "xarray_available",
 ]
 
@@ -57,12 +62,16 @@ def decorator_package_available(
 
     @wraps(fn)
     def inner(*args, **kwargs) -> Any:
-        print(condition, condition())
         if not condition():
             return None
         return fn(*args, **kwargs)
 
     return inner
+
+
+###############
+#     jax     #
+###############
 
 
 def is_jax_available() -> bool:
@@ -104,6 +113,38 @@ def check_jax() -> None:
         )
 
 
+def jax_available(fn: Callable[..., Any]) -> Callable[..., Any]:
+    r"""Implements a decorator to execute a function only if ``jax``
+    package is installed.
+
+    Args:
+    ----
+        fn (``Callable``): Specifies the function to execute.
+
+    Returns:
+    -------
+        ``Any``: The output of ``fn`` if ``jax`` package is
+            installed, otherwise ``None``.
+
+    Example usage:
+
+    .. code-block:: pycon
+
+        >>> from coola.utils.imports import jax_available
+        >>> @jax_available
+        ... def my_function(n: int = 0) -> int:
+        ...     return 42 + n
+        ...
+        >>> my_function()
+    """
+    return decorator_package_available(fn, is_jax_available)
+
+
+#################
+#     numpy     #
+#################
+
+
 def is_numpy_available() -> bool:
     r"""Indicates if the ``numpy`` package is installed or not.
 
@@ -141,6 +182,38 @@ def check_numpy() -> None:
             "You can install `numpy` package with the command:\n\n"
             "pip install numpy\n"
         )
+
+
+def numpy_available(fn: Callable[..., Any]) -> Callable[..., Any]:
+    r"""Implements a decorator to execute a function only if ``numpy``
+    package is installed.
+
+    Args:
+    ----
+        fn (``Callable``): Specifies the function to execute.
+
+    Returns:
+    -------
+        ``Any``: The output of ``fn`` if ``numpy`` package is
+            installed, otherwise ``None``.
+
+    Example usage:
+
+    .. code-block:: pycon
+
+        >>> from coola.utils.imports import numpy_available
+        >>> @numpy_available
+        ... def my_function(n: int = 0) -> int:
+        ...     return 42 + n
+        ...
+        >>> my_function()
+    """
+    return decorator_package_available(fn, is_numpy_available)
+
+
+##################
+#     pandas     #
+##################
 
 
 def is_pandas_available() -> bool:
@@ -182,6 +255,38 @@ def check_pandas() -> None:
         )
 
 
+def pandas_available(fn: Callable[..., Any]) -> Callable[..., Any]:
+    r"""Implements a decorator to execute a function only if ``pandas``
+    package is installed.
+
+    Args:
+    ----
+        fn (``Callable``): Specifies the function to execute.
+
+    Returns:
+    -------
+        ``Any``: The output of ``fn`` if ``pandas`` package is
+            installed, otherwise ``None``.
+
+    Example usage:
+
+    .. code-block:: pycon
+
+        >>> from coola.utils.imports import pandas_available
+        >>> @pandas_available
+        ... def my_function(n: int = 0) -> int:
+        ...     return 42 + n
+        ...
+        >>> my_function()
+    """
+    return decorator_package_available(fn, is_pandas_available)
+
+
+##################
+#     polars     #
+##################
+
+
 def is_polars_available() -> bool:
     r"""Indicates if the ``polars`` package is installed or not.
 
@@ -221,6 +326,38 @@ def check_polars() -> None:
         )
 
 
+def polars_available(fn: Callable[..., Any]) -> Callable[..., Any]:
+    r"""Implements a decorator to execute a function only if ``polars``
+    package is installed.
+
+    Args:
+    ----
+        fn (``Callable``): Specifies the function to execute.
+
+    Returns:
+    -------
+        ``Any``: The output of ``fn`` if ``polars`` package is
+            installed, otherwise ``None``.
+
+    Example usage:
+
+    .. code-block:: pycon
+
+        >>> from coola.utils.imports import polars_available
+        >>> @polars_available
+        ... def my_function(n: int = 0) -> int:
+        ...     return 42 + n
+        ...
+        >>> my_function()
+    """
+    return decorator_package_available(fn, is_polars_available)
+
+
+#################
+#     torch     #
+#################
+
+
 def is_torch_available() -> bool:
     r"""Indicates if the ``torch`` package is installed or not.
 
@@ -257,6 +394,38 @@ def check_torch() -> None:
             "You can install `torch` package with the command:\n\n"
             "pip install torch\n"
         )
+
+
+def torch_available(fn: Callable[..., Any]) -> Callable[..., Any]:
+    r"""Implements a decorator to execute a function only if ``torch``
+    package is installed.
+
+    Args:
+    ----
+        fn (``Callable``): Specifies the function to execute.
+
+    Returns:
+    -------
+        ``Any``: The output of ``fn`` if ``torch`` package is
+            installed, otherwise ``None``.
+
+    Example usage:
+
+    .. code-block:: pycon
+
+        >>> from coola.utils.imports import torch_available
+        >>> @torch_available
+        ... def my_function(n: int = 0) -> int:
+        ...     return 42 + n
+        ...
+        >>> my_function()
+    """
+    return decorator_package_available(fn, is_torch_available)
+
+
+##################
+#     xarray     #
+##################
 
 
 def is_xarray_available() -> bool:
@@ -322,5 +491,4 @@ def xarray_available(fn: Callable[..., Any]) -> Callable[..., Any]:
         ...
         >>> my_function()
     """
-    print("is_xarray_available", is_xarray_available)
     return decorator_package_available(fn, is_xarray_available)
