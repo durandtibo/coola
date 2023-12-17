@@ -31,17 +31,9 @@ jobs:
         run: |
           pip install "coola[all]"
 
-      - name: Tests
+      - name: Run some checks
         run: |
-          python -c "import coola; import numpy; " \
-            "assert coola.objects_are_equal([4.2, 2], [4.2, 2]); " \
-            "assert coola.objects_are_equal(numpy.arange(6), numpy.arange(6)); " \
-            "assert coola.is_jax_available(); " \
-            "assert coola.is_numpy_available(); " \
-            "assert coola.is_pandas_available(); " \
-            "assert coola.is_polars_available(); " \
-            "import sys; if sys.version_info[:2] < (3, 12): assert coola.is_torch_available(); " \
-            "assert coola.is_xarray_available(); "
+          python tests/package_checks.py
 
       - name: Check imports
         run: |
@@ -76,16 +68,9 @@ jobs:
         run: |
           pip install coola
 
-      - name: Tests
+      - name: Run some checks
         run: |
-          python -c "import coola; " \
-            "assert coola.objects_are_equal(1.0, 1.0); " \
-            "assert not coola.is_jax_available();" \
-            "assert not coola.is_numpy_available();" \
-            "assert not coola.is_pandas_available();" \
-            "assert not coola.is_polars_available();" \
-            "assert not coola.is_torch_available(); " \
-            "assert not coola.is_xarray_available(); "
+          python tests/package_checks.py
 
       - name: Check imports
         run: |
@@ -120,17 +105,9 @@ jobs:
         run: |
           pip install --pre "coola[all]"
 
-      - name: Tests
+      - name: Run some checks
         run: |
-          python -c "import coola; import numpy; " \
-            "assert coola.objects_are_equal([4.2, 2], [4.2, 2]); " \
-            "assert coola.objects_are_equal(numpy.arange(6), numpy.arange(6)); " \
-            "assert coola.is_jax_available(); " \
-            "assert coola.is_numpy_available(); " \
-            "assert coola.is_pandas_available(); " \
-            "assert coola.is_polars_available(); " \
-            "import sys; if sys.version_info[:2] < (3, 12): assert coola.is_torch_available(); " \
-            "assert coola.is_xarray_available(); "
+          python tests/package_checks.py
 
       - name: Check imports
         run: |
@@ -165,16 +142,9 @@ jobs:
         run: |
           pip install --pre coola
 
-      - name: Tests
+      - name: Run some checks
         run: |
-          python -c "import coola; " \
-            "assert coola.objects_are_equal(1.0, 1.0); " \
-            "assert not coola.is_jax_available();" \
-            "assert not coola.is_numpy_available();" \
-            "assert not coola.is_pandas_available();" \
-            "assert not coola.is_polars_available();" \
-            "assert not coola.is_torch_available(); " \
-            "assert not coola.is_xarray_available(); "
+          python tests/package_checks.py
 
       - name: Check imports
         run: |
@@ -213,9 +183,9 @@ jobs:
         run: |
           pip install coola jax==${{ matrix.jax-version }} jaxlib==${{ matrix.jax-version }}
 
-      - name: Tests
+      - name: Run some checks
         run: |
-          python -c "import coola; import jax; assert coola.objects_are_equal(jax.numpy.arange(6), jax.numpy.arange(6))"
+          python tests/package_checks.py
 
 
   numpy:
@@ -255,9 +225,9 @@ jobs:
         run: |
           pip install coola numpy==${{ matrix.numpy-version }}
 
-      - name: Tests
+      - name: Run some checks
         run: |
-          python -c "import coola; import numpy; assert coola.objects_are_equal(numpy.arange(6), numpy.arange(6))"
+          python tests/package_checks.py
 
 
   pandas:
@@ -297,10 +267,9 @@ jobs:
         run: |
           pip install coola pandas==${{ matrix.pandas-version }}
 
-      - name: Tests
+      - name: Run some checks
         run: |
-          python -c "import coola; import pandas; " \
-            "assert coola.objects_are_equal(pandas.DataFrame({"col1": [1,2,3,4,5], "col2": [1.1,2.2,3.3,4.4,5.5]}), pandas.DataFrame({"col1": [1,2,3,4,5], "col2": [1.1,2.2,3.3,4.4,5.5]}))"
+          python tests/package_checks.py
 
 
   polars:
@@ -327,10 +296,9 @@ jobs:
         run: |
           pip install coola polars==${{ matrix.polars-version }}
 
-      - name: Tests
+      - name: Run some checks
         run: |
-          python -c "import coola; import polars; " \
-            "assert coola.objects_are_equal(polars.DataFrame({"col1": [1,2,3,4,5], "col2": [1.1,2.2,3.3,4.4,5.5]}), polars.DataFrame({"col1": [1,2,3,4,5], "col2": [1.1,2.2,3.3,4.4,5.5]}))"
+          python tests/package_checks.py
 
 
   torch:
@@ -366,9 +334,9 @@ jobs:
         run: |
           pip install coola torch==${{ matrix.torch-version }}
 
-      - name: Tests
+      - name: Run some checks
         run: |
-          python -c "import coola; import torch; assert coola.objects_are_equal(torch.arange(6), torch.arange(6))"
+          python tests/package_checks.py
 
 
   xarray:
@@ -395,7 +363,6 @@ jobs:
         run: |
           pip install coola xarray==${{ matrix.xarray-version }}
 
-      - name: Tests
+      - name: Run some checks
         run: |
-          python -c "import coola; import xarray as xr; import numpy as np; " \
-            "assert coola.objects_are_equal(xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"]))"
+          python tests/package_checks.py
