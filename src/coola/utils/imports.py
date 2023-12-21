@@ -35,13 +35,11 @@ def decorator_package_available(
     installed.
 
     Args:
-    ----
         fn (``Callable``): Specifies the function to execute.
         condition (``Callable``): Specifies the condition to
             check if a package is installed or not.
 
     Returns:
-    -------
         ``Any``: The output of ``fn`` if ``xarray`` package is
             installed, otherwise ``None``.
 
@@ -78,7 +76,6 @@ def is_jax_available() -> bool:
     r"""Indicates if the ``jax`` package is installed or not.
 
     Returns:
-    -------
         bool: ``True`` if ``jax`` is available otherwise ``False``.
 
     Example usage:
@@ -95,7 +92,6 @@ def check_jax() -> None:
     r"""Checks if the ``jax`` package is installed.
 
     Raises:
-    ------
         RuntimeError if the ``jax`` package is not installed.
 
     Example usage:
@@ -118,11 +114,9 @@ def jax_available(fn: Callable[..., Any]) -> Callable[..., Any]:
     package is installed.
 
     Args:
-    ----
         fn (``Callable``): Specifies the function to execute.
 
     Returns:
-    -------
         ``Any``: The output of ``fn`` if ``jax`` package is
             installed, otherwise ``None``.
 
@@ -149,7 +143,6 @@ def is_numpy_available() -> bool:
     r"""Indicates if the ``numpy`` package is installed or not.
 
     Returns:
-    -------
         bool: ``True`` if ``numpy`` is available otherwise ``False``.
 
     Example usage:
@@ -166,7 +159,6 @@ def check_numpy() -> None:
     r"""Checks if the ``numpy`` package is installed.
 
     Raises:
-    ------
         RuntimeError if the ``numpy`` package is not installed.
 
     Example usage:
@@ -189,11 +181,9 @@ def numpy_available(fn: Callable[..., Any]) -> Callable[..., Any]:
     package is installed.
 
     Args:
-    ----
         fn (``Callable``): Specifies the function to execute.
 
     Returns:
-    -------
         ``Any``: The output of ``fn`` if ``numpy`` package is
             installed, otherwise ``None``.
 
@@ -220,7 +210,6 @@ def is_pandas_available() -> bool:
     r"""Indicates if the ``pandas`` package is installed or not.
 
     Returns:
-    -------
         bool: ``True`` if ``pandas`` is available otherwise ``False``.
 
     Example usage:
@@ -237,7 +226,6 @@ def check_pandas() -> None:
     r"""Checks if the ``pandas`` package is installed.
 
     Raises:
-    ------
         RuntimeError if the ``pandas`` package is not installed.
 
     Example usage:
@@ -260,11 +248,9 @@ def pandas_available(fn: Callable[..., Any]) -> Callable[..., Any]:
     package is installed.
 
     Args:
-    ----
         fn (``Callable``): Specifies the function to execute.
 
     Returns:
-    -------
         ``Any``: The output of ``fn`` if ``pandas`` package is
             installed, otherwise ``None``.
 
@@ -291,7 +277,6 @@ def is_polars_available() -> bool:
     r"""Indicates if the ``polars`` package is installed or not.
 
     Returns:
-    -------
         bool: ``True`` if ``polars`` is available otherwise ``False``.
 
     Example usage:
@@ -308,7 +293,6 @@ def check_polars() -> None:
     r"""Checks if the ``polars`` package is installed.
 
     Raises:
-    ------
         RuntimeError if the ``polars`` package is not installed.
 
     Example usage:
@@ -331,11 +315,9 @@ def polars_available(fn: Callable[..., Any]) -> Callable[..., Any]:
     package is installed.
 
     Args:
-    ----
         fn (``Callable``): Specifies the function to execute.
 
     Returns:
-    -------
         ``Any``: The output of ``fn`` if ``polars`` package is
             installed, otherwise ``None``.
 
@@ -362,7 +344,6 @@ def is_torch_available() -> bool:
     r"""Indicates if the ``torch`` package is installed or not.
 
     Returns:
-    -------
         bool: ``True`` if ``torch`` is available otherwise ``False``.
 
     Example usage:
@@ -401,11 +382,9 @@ def torch_available(fn: Callable[..., Any]) -> Callable[..., Any]:
     package is installed.
 
     Args:
-    ----
         fn (``Callable``): Specifies the function to execute.
 
     Returns:
-    -------
         ``Any``: The output of ``fn`` if ``torch`` package is
             installed, otherwise ``None``.
 
@@ -432,7 +411,6 @@ def is_xarray_available() -> bool:
     r"""Indicates if the ``xarray`` package is installed or not.
 
     Returns:
-    -------
         bool: ``True`` if ``xarray`` is available otherwise ``False``.
 
     Example usage:
@@ -449,7 +427,6 @@ def check_xarray() -> None:
     r"""Checks if the ``xarray`` package is installed.
 
     Raises:
-    ------
         RuntimeError if the ``xarray`` package is not installed.
 
     Example usage:
@@ -472,11 +449,9 @@ def xarray_available(fn: Callable[..., Any]) -> Callable[..., Any]:
     package is installed.
 
     Args:
-    ----
         fn (``Callable``): Specifies the function to execute.
 
     Returns:
-    -------
         ``Any``: The output of ``fn`` if ``xarray`` package is
             installed, otherwise ``None``.
 

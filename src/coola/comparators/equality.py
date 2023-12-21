@@ -146,7 +146,6 @@ def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
     operators.
 
     Returns:
-    -------
         dict: The mapping between the types and the equality
             operators.
     """

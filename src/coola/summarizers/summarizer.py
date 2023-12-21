@@ -61,7 +61,6 @@ class Summarizer(BaseSummarizer):
         r"""Add a formatter for a given data type.
 
         Args:
-        ----
             data_type: Specifies the data type for this test.
             formatter (``BaseFormatter``): Specifies the formatter
                 to use for the specified type.
@@ -71,7 +70,6 @@ class Summarizer(BaseSummarizer):
                 formatter for a type. Default: ``False``.
 
         Raises:
-        ------
             RuntimeError if a formatter is already registered for the
                 data type and ``exist_ok=False``.
 
@@ -97,11 +95,9 @@ class Summarizer(BaseSummarizer):
         type.
 
         Args:
-        ----
             data_type: Specifies the data type to check.
 
         Returns:
-        -------
             bool: ``True`` if a formatter is registered,
                 otherwise ``False``.
 
@@ -122,16 +118,13 @@ class Summarizer(BaseSummarizer):
         r"""Find the formatter associated to an object.
 
         Args:
-        ----
             data_type: Specifies the data type to get.
 
         Returns:
-        -------
             ``BaseFormatter``: The formatter associated to the data
                 type.
 
         Raises:
-        ------
             TypeError if a formatter cannot be found for this data
                 type.
 
@@ -156,7 +149,6 @@ class Summarizer(BaseSummarizer):
         r"""Load the state values from a dict.
 
         Args:
-        ----
             state_dict (dict): a dict with parameters
 
         Example usage:
@@ -181,7 +173,6 @@ class Summarizer(BaseSummarizer):
         r"""Return a dictionary containing state values.
 
         Returns:
-        -------
             dict: the state values in a dict.
 
         Example usage:
@@ -203,7 +194,6 @@ class Summarizer(BaseSummarizer):
         ``set_max_characters``.
 
         Args:
-        ----
             max_characters (int): Specifies the maximum of characters.
 
         Example usage:
@@ -232,7 +222,6 @@ class Summarizer(BaseSummarizer):
         ``set_max_items``.
 
         Args:
-        ----
             max_items (int): Specifies the maximum number of items to
                 show.
 
@@ -262,7 +251,6 @@ class Summarizer(BaseSummarizer):
         ``set_num_spaces``.
 
         Args:
-        ----
             num_spaces (int): Specifies the number of spaces for
                 indentation.
 
@@ -293,7 +281,6 @@ def set_summarizer_options(
     this function.
 
     Args:
-    ----
         max_characters (int or None, optional): Specifies the maximum
             number of characters to show. If ``None``, the maximum
             number of characters is unchanged. Default: ``None``
@@ -336,7 +323,6 @@ def summarizer_options(**kwargs) -> None:
     ``Summarizer`` is not used.
 
     Args:
-    ----
         **kwargs: Accepted arguments are same as
             ``set_summarizer_options``.
 

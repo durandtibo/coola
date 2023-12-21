@@ -17,7 +17,6 @@ def repr_indent(original: Any, num_spaces: int = 2) -> str:
     r"""Adds indentations if the original string is a multi-lines string.
 
     Args:
-    ----
         original: Specifies the original string. If the inputis not a
             string, it will be converted to a string with the function
             ``repr``.
@@ -25,11 +24,9 @@ def repr_indent(original: Any, num_spaces: int = 2) -> str:
             used for the indentation. Default: ``2``.
 
     Returns:
-    -------
         str: The indented string.
 
     Raises:
-    ------
         RuntimeError if num_spaces is not a positive integer.
 
     Example usage:
@@ -56,7 +53,6 @@ def repr_mapping(mapping: Mapping, sorted_keys: bool = False, num_spaces: int = 
     nice.
 
     Args:
-    ----
         mapping (``Mapping``): Specifies the mapping.
         sorted_keys (bool, optional): Specifies if the key of the dict
             are sorted or not. Default: ``False``
@@ -64,7 +60,6 @@ def repr_mapping(mapping: Mapping, sorted_keys: bool = False, num_spaces: int = 
             used for the indentation. Default: ``2``.
 
     Returns:
-    -------
         str: The string representation of the mapping.
 
     Example usage:
@@ -87,13 +82,11 @@ def repr_sequence(sequence: Sequence, num_spaces: int = 2) -> str:
     r"""Computes a string representation of a sequence.
 
     Args:
-    ----
         sequence (``Sequence``): Specifies the sequence.
         num_spaces (int, optional): Specifies the number of spaces
             used for the indentation. Default: ``2``.
 
     Returns:
-    -------
         str: The string representation of the sequence.
 
     Example usage:
@@ -116,7 +109,6 @@ def str_indent(original: Any, num_spaces: int = 2) -> str:
     r"""Adds indentations if the original string is a multi-lines string.
 
     Args:
-    ----
         original: Specifies the original string. If the inputis not a
             string, it will be converted to a string with the function
             ``str``.
@@ -124,11 +116,9 @@ def str_indent(original: Any, num_spaces: int = 2) -> str:
             used for the indentation. Default: ``2``.
 
     Returns:
-    -------
         str: The indented string.
 
     Raises:
-    ------
         RuntimeError if num_spaces is not a positive integer.
 
     Example usage:
@@ -162,7 +152,6 @@ def str_mapping(mapping: Mapping, sorted_keys: bool = False, num_spaces: int = 2
     nice.
 
     Args:
-    ----
         mapping (``Mapping``): Specifies the mapping.
         sorted_keys (bool, optional): Specifies if the key of the dict
             are sorted or not. Default: ``False``
@@ -170,7 +159,6 @@ def str_mapping(mapping: Mapping, sorted_keys: bool = False, num_spaces: int = 2
             used for the indentation. Default: ``2``.
 
     Returns:
-    -------
         str: The string representation of the mapping.
 
     Example usage:
@@ -193,13 +181,11 @@ def str_sequence(sequence: Sequence, num_spaces: int = 2) -> str:
     r"""Computes a string representation of a sequence.
 
     Args:
-    ----
         sequence (``Sequence``): Specifies the sequence.
         num_spaces (int, optional): Specifies the number of spaces
             used for the indentation. Default: ``2``.
 
     Returns:
-    -------
         str: The string representation of the sequence.
 
     Example usage:

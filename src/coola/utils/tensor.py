@@ -18,7 +18,6 @@ def get_available_devices() -> tuple[str, ...]:
     r"""Gets the available PyTorch devices on the machine.
 
     Returns
-    -------
         tuple: The available devices.
 
     Example usage:
@@ -42,7 +41,6 @@ def is_cuda_available() -> bool:
     r"""Indicates if CUDA is currently available.
 
     Returns:
-    -------
         bool: A boolean indicating if CUDA is currently available.
 
     Example usage:
@@ -60,7 +58,6 @@ def is_mps_available() -> bool:
     r"""Indicates if MPS is currently available.
 
     Returns:
-    -------
         bool: A boolean indicating if MPS is currently available.
 
     Example usage:

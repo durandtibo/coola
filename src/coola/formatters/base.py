@@ -19,7 +19,6 @@ class BaseFormatter(ABC, Generic[T]):
         r"""Return a copy of the formatter.
 
         Returns:
-        -------
             ``BaseFormatter``: A copy of the formatter.
 
         Example usage:
@@ -41,11 +40,9 @@ class BaseFormatter(ABC, Generic[T]):
         r"""Indicate if the other object is equal to the self object.
 
         Args:
-        ----
             other: Specifies the other object to compare.
 
         Returns:
-        -------
             bool: ``True`` if the objects are equal,
                 otherwise ``False``.
 
@@ -66,12 +63,10 @@ class BaseFormatter(ABC, Generic[T]):
         r"""Format a value.
 
         Args:
-        ----
             summarizer (``BaseSummarizer``): Specifies the summarizer.
             value: Specifies the value to summarize.
 
         Returns:
-        -------
             str: The formatted value.
 
         Example usage:
@@ -90,7 +85,6 @@ class BaseFormatter(ABC, Generic[T]):
         r"""Load the state values from a dict.
 
         Args:
-        ----
             state_dict (dict): a dict with parameters
 
         Example usage:
@@ -111,7 +105,6 @@ class BaseFormatter(ABC, Generic[T]):
         r"""Return a dictionary containing state values.
 
         Returns:
-        -------
             dict: the state values in a dict.
 
         Example usage:
