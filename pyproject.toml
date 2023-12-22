@@ -58,7 +58,7 @@ all = ["jax", "jaxlib", "numpy", "pandas", "polars", "torch", "xarray"]
 optional = true
 
 [tool.poetry.group.docs.dependencies]
-mkdocs-material = "^9.4"
+mkdocs-material = { extras = ["python"], version = "^9.5" }
 mkdocstrings = "^0.24"
 
 [tool.poetry.group.dev.dependencies]

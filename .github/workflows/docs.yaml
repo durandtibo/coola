@@ -1,5 +1,7 @@
 name: Documentation
 on:
+  workflow_call:
+  workflow_dispatch:  # to trigger manually
   push:
     branches:
       - main
@@ -22,7 +24,7 @@ jobs:
       - name: Install packages
         run: |
           poetry run make config-poetry
-          poetry install --with docs
+          make install-docs
       - name: Build and deploy documentation
         run: |
           cd docs/
