@@ -352,14 +352,3 @@ True
 False
 True
 ```
-
-Note that `equal_nan` is only supported for NumPy `ndarray`s and PyTorch `Tensor`s.
-
-```pycon
->>> from coola import objects_are_allclose
->>> objects_are_allclose(float("nan"), float("nan"))
-False
->>> objects_are_allclose(float("nan"), float("nan"), equal_nan=True)
-False
-
-```
