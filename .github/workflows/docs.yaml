@@ -1,5 +1,7 @@
 name: Documentation
 on:
+  workflow_call:
+  workflow_dispatch:  # to trigger manually
   push:
     branches:
       - main
