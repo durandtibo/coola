@@ -20,7 +20,6 @@ class BaseSummarizer(ABC):
         r"""Summarizes the input value in a string.
 
         Args:
-        ----
             value: Specifies the value to summarize.
             max_depth (int, optional): Specifies the maximum depth to
                 summarize if the input is nested. Default: ``1``
@@ -29,7 +28,6 @@ class BaseSummarizer(ABC):
                 ``Summarizer`` is used. Default: ``None``
 
         Returns:
-        -------
             str: The summary as a string.
 
         Example usage:

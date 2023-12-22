@@ -17,7 +17,6 @@ class Reduction:
         """Gets the available reducers.
 
         Returns:
-        -------
             tuple of strings: The available reducers.
 
         Example usage:
@@ -35,11 +34,9 @@ class Reduction:
         r"""Checks if the reducer is available.
 
         Args:
-        ----
             reducer (str): Specifies the reducer name.
 
         Raises:
-        ------
             RuntimeError if the reducer is not available.
 
         Example usage:
@@ -57,7 +54,6 @@ class Reduction:
         r"""Initializes the reduction strategy.
 
         Args:
-        ----
             reducer (str): Specifies the name of the reducer to use.
 
         Example usage:

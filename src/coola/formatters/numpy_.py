@@ -19,7 +19,6 @@ class NDArrayFormatter(BaseFormatter[numpy.ndarray]):
     r"""Implement a formatter for ``numpy.ndarray``.
 
     Args:
-    ----
         show_data (bool, optional): If ``True``, the returned string
             is the default string representation (``repr``).
             If ``False``, the returned string only contains the array
@@ -64,7 +63,6 @@ class NDArrayFormatter(BaseFormatter[numpy.ndarray]):
         r"""Indicates if the array data or metadata are shown.
 
         Returns:
-        -------
             bool: ``True`` if the array data are shown,
                 ``False`` if the array metadata are shown.
 
@@ -83,12 +81,10 @@ class NDArrayFormatter(BaseFormatter[numpy.ndarray]):
         r"""Set if the array data or metadata are shown.
 
         Args:
-        ----
             show_data (bool): ``True`` if the array data are shown,
                 ``False`` if the array metadata are shown.
 
         Raises:
-        ------
             TypeError if ``show_data`` is not an boolean.
 
         Example usage:

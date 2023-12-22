@@ -73,7 +73,6 @@ class DataFrameEqualityOperator(BaseEqualityOperator[DataFrame]):
     r"""Implements an equality operator for ``pandas.DataFrame``.
 
     Args:
-    ----
         nulls_compare_equal (bool, optional): If ``True``, null values
             (e.g. NaN or NaT) compare as true. Default: ``False``
     """
@@ -117,14 +116,12 @@ class DataFrameEqualityOperator(BaseEqualityOperator[DataFrame]):
         r"""Indicates if the two DataFrames are equal or not.
 
         Args:
-        ----
             df1 (``pandas.DataFrame``): Specifies the first
                 DataFrame to compare.
             df2 (``pandas.DataFrame``): Specifies the second
                 DataFrame to compare.
 
         Returns:
-        -------
             bool: ``True``if the two series are equal,
                 otherwise ``False``.
         """
@@ -182,7 +179,6 @@ class SeriesEqualityOperator(BaseEqualityOperator[Series]):
     r"""Implements an equality operator for ``pandas.Series``.
 
     Args:
-    ----
         nulls_compare_equal (bool, optional): If ``True``, null values
             (e.g. NaN or NaT) compare as true. Default: ``False``
     """
@@ -224,14 +220,12 @@ class SeriesEqualityOperator(BaseEqualityOperator[Series]):
         r"""Indicates if the two series are equal or not.
 
         Args:
-        ----
             series1 (``pandas.Series``): Specifies the first series
                 to compare.
             series2 (``pandas.Series``): Specifies the second series
                 to compare.
 
         Returns:
-        -------
             bool: ``True``if the two series are equal,
                 otherwise ``False``.
         """
@@ -253,7 +247,6 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
     installed.
 
     Returns:
-    -------
         dict: The mapping between the types and the allclose
             operators.
     """
@@ -270,7 +263,6 @@ def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
     installed.
 
     Returns:
-    -------
         dict: The mapping between the types and the equality
             operators.
     """

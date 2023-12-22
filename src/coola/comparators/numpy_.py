@@ -29,7 +29,6 @@ class ArrayAllCloseOperator(BaseAllCloseOperator[np.ndarray]):
     r"""Implements an allclose operator for ``numpy.ndarray``.
 
     Args:
-    ----
         check_dtype (bool, optional): If ``True``, the data type of
             the arrays are checked, otherwise the data types are
             ignored. Default: ``True``
@@ -88,7 +87,6 @@ class ArrayEqualityOperator(BaseEqualityOperator[np.ndarray]):
     r"""Implements an equality operator for ``numpy.ndarray``.
 
     Args:
-    ----
         check_dtype (bool, optional): If ``True``, the data type of
             the arrays are checked, otherwise the data types are
             ignored. Default: ``True``
@@ -148,7 +146,6 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
     installed.
 
     Returns:
-    -------
         dict: The mapping between the types and the allclose
             operators.
     """
@@ -165,7 +162,6 @@ def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
     installed.
 
     Returns:
-    -------
         dict: The mapping between the types and the equality
             operators.
     """

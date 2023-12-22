@@ -11,7 +11,6 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
     operators.
 
     Returns:
-    -------
         dict: The mapping between the types and the allclose
             operators.
     """
@@ -33,7 +32,6 @@ def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
     operators.
 
     Returns:
-    -------
         dict: The mapping between the types and the equality
             operators.
     """

@@ -31,7 +31,6 @@ class JaxArrayAllCloseOperator(BaseAllCloseOperator[jnp.ndarray]):
     ``jax.Array``/``jax.numpy.ndarray``.
 
     Args:
-    ----
         check_dtype (bool, optional): If ``True``, the data type of
             the arrays are checked, otherwise the data types are
             ignored. Default: ``True``
@@ -93,7 +92,6 @@ class JaxArrayEqualityOperator(BaseEqualityOperator[jnp.ndarray]):
     ``jax.Array``/``jax.numpy.ndarray``.
 
     Args:
-    ----
         check_dtype (bool, optional): If ``True``, the data type of
             the arrays are checked, otherwise the data types are
             ignored. Default: ``True``
@@ -155,7 +153,6 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
     installed.
 
     Returns:
-    -------
         dict: The mapping between the types and the allclose
             operators.
     """
@@ -175,7 +172,6 @@ def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
     installed.
 
     Returns:
-    -------
         dict: The mapping between the types and the equality
             operators.
     """
@@ -192,7 +188,6 @@ def get_array_impl_class() -> type:
     r"""Gets the array implementation class.
 
     Returns:
-    -------
         The array implementation class.
     """
     return jnp.ones(1).__class__

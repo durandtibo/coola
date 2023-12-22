@@ -19,15 +19,12 @@ class BaseReducer(ABC):
         r"""Computes the maximum value.
 
         Args:
-        ----
             values (sequence of ints or floats): Specifies the values.
 
         Returns:
-        -------
             int or float: The maximum value.
 
         Raises:
-        ------
             EmptySequenceError if the input sequence is empty.
 
         Example usage:
@@ -45,15 +42,12 @@ class BaseReducer(ABC):
         r"""Computes the mean value.
 
         Args:
-        ----
             values (sequence of ints or floats): Specifies the values.
 
         Returns:
-        -------
             int or float: The mean value.
 
         Raises:
-        ------
             EmptySequenceError if the input sequence is empty.
 
         Example usage:
@@ -71,15 +65,12 @@ class BaseReducer(ABC):
         r"""Computes the median value.
 
         Args:
-        ----
             values (sequence of ints or floats): Specifies the values.
 
         Returns:
-        -------
             int or float: The median value.
 
         Raises:
-        ------
             EmptySequenceError if the input sequence is empty.
 
         Example usage:
@@ -97,15 +88,12 @@ class BaseReducer(ABC):
         r"""Computes the minimum value.
 
         Args:
-        ----
             values (sequence of ints or floats): Specifies the values.
 
         Returns:
-        -------
             int or float: The minimum value.
 
         Raises:
-        ------
             EmptySequenceError if the input sequence is empty.
 
         Example usage:
@@ -123,17 +111,14 @@ class BaseReducer(ABC):
         r"""Computes the quantiles.
 
         Args:
-        ----
             values (sequence of ints or floats): Specifies the values.
             quantiles (sequence of float): Specifies the quantile
                 values in the range ``[0, 1]``.
 
         Returns:
-        -------
             list of floats: The quantiles.
 
         Raises:
-        ------
             EmptySequenceError if the input sequence is empty.
 
         Example usage:
@@ -151,13 +136,11 @@ class BaseReducer(ABC):
         r"""Sorts the values.
 
         Args:
-        ----
             values (sequence of ints or floats): Specifies the values.
             descending (bool, optional): Specifies the sorting order.
                 Default: ``False``
 
         Returns:
-        -------
             list: The sorted values.
 
         Example usage:
@@ -177,15 +160,12 @@ class BaseReducer(ABC):
         r"""Computes the standard deviation.
 
         Args:
-        ----
             values (sequence of ints or floats): Specifies the values.
 
         Returns:
-        -------
             float: The standard deviation.
 
         Raises:
-        ------
             EmptySequenceError if the input sequence is empty.
 
         Example usage:
@@ -213,11 +193,9 @@ class BaseBasicReducer(BaseReducer):
         r"""Computes the maximum value.
 
         Args:
-        ----
             values (sequence of ints or floats): Specifies the values.
 
         Returns:
-        -------
             int or float: The maximum value.
         """
 
@@ -231,11 +209,9 @@ class BaseBasicReducer(BaseReducer):
         r"""Computes the mean value.
 
         Args:
-        ----
             values (sequence of ints or floats): Specifies the values.
 
         Returns:
-        -------
             float: The mean value.
         """
 
@@ -249,11 +225,9 @@ class BaseBasicReducer(BaseReducer):
         r"""Computes the median value.
 
         Args:
-        ----
             values (sequence of ints or floats): Specifies the values.
 
         Returns:
-        -------
             int or float: The median value.
         """
 
@@ -267,11 +241,9 @@ class BaseBasicReducer(BaseReducer):
         r"""Computes the minimum value.
 
         Args:
-        ----
             values (sequence of ints or floats): Specifies the values.
 
         Returns:
-        -------
             int or float: The minimum value.
         """
 
@@ -285,13 +257,11 @@ class BaseBasicReducer(BaseReducer):
         r"""Computes the quantiles.
 
         Args:
-        ----
             values (sequence of ints or floats): Specifies the values.
             quantiles (sequence of float): Specifies the quantile
                 values in the range ``[0, 1]``.
 
         Returns:
-        -------
             list of floats: The quantiles.
         """
 
@@ -307,10 +277,8 @@ class BaseBasicReducer(BaseReducer):
         r"""Computes the standard deviation.
 
         Args:
-        ----
             values (sequence of ints or floats): Specifies the values.
 
         Returns:
-        -------
             float: The standard deviation.
         """

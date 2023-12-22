@@ -44,7 +44,6 @@ class AllCloseTester(BaseAllCloseTester):
         r"""Adds an allclose operator for a given data type.
 
         Args:
-        ----
             data_type: Specifies the data type for this test.
             operator (``BaseAllCloseOperator``): Specifies the operator
                 used to test the allclose equality of the specified
@@ -55,7 +54,6 @@ class AllCloseTester(BaseAllCloseTester):
                 operator for a type. Default: ``False``.
 
         Raises:
-        ------
             RuntimeError if an operator is already registered for the
                 data type and ``exist_ok=False``.
 
@@ -87,7 +85,6 @@ class AllCloseTester(BaseAllCloseTester):
         r"""Indicates if two objects are equal within a tolerance.
 
         Args:
-        ----
             object1: Specifies the first object to compare.
             object2: Specifies the second object to compare.
             rtol (float, optional): Specifies the relative tolerance
@@ -102,7 +99,6 @@ class AllCloseTester(BaseAllCloseTester):
                 difference between two objects. Default: ``False``
 
         Returns:
-        -------
             bool: ``True`` if the two objects are equal within a
                 tolerance, otherwise ``False``
 
@@ -141,11 +137,9 @@ class AllCloseTester(BaseAllCloseTester):
         data type.
 
         Args:
-        ----
             data_type: Specifies the data type to check.
 
         Returns:
-        -------
             bool: ``True`` if an allclose operator is registered,
                 otherwise ``False``.
 
@@ -166,11 +160,9 @@ class AllCloseTester(BaseAllCloseTester):
         r"""Finds the allclose operator associated to an object.
 
         Args:
-        ----
             data_type: Specifies the data type to get.
 
         Returns:
-        -------
             ``BaseAllCloseOperator``: The allclose operator associated
                 to the data type.
 
@@ -196,7 +188,6 @@ class AllCloseTester(BaseAllCloseTester):
         customized without changind ``AllCloseTester``.
 
         Returns:
-        -------
             ``LocalAllCloseTester``: A local copy of
                 ``AllCloseTester``.
 
@@ -215,7 +206,6 @@ class LocalAllCloseTester(BaseAllCloseTester):
     """Implements an equality tester that can be easily customized.
 
     Args:
-    ----
         registry (dict or ``None``, optional): Specifies the initial
             registry with the equality operators. Default: ``None``
     """
@@ -237,7 +227,6 @@ class LocalAllCloseTester(BaseAllCloseTester):
         r"""Adds an allclose operator for a given data type.
 
         Args:
-        ----
             data_type: Specifies the data type for this test.
             operator (``BaseAllCloseOperator``): Specifies the operator
                 used to test the allclose equality of the specified
@@ -248,7 +237,6 @@ class LocalAllCloseTester(BaseAllCloseTester):
                 operator for a type. Default: ``False``.
 
         Raises:
-        ------
             RuntimeError if an operator is already registered for the
                 data type and ``exist_ok=False``.
 
@@ -281,7 +269,6 @@ class LocalAllCloseTester(BaseAllCloseTester):
         r"""Indicates if two objects are equal within a tolerance.
 
         Args:
-        ----
             object1: Specifies the first object to compare.
             object2: Specifies the second object to compare.
             rtol (float, optional): Specifies the relative tolerance
@@ -296,7 +283,6 @@ class LocalAllCloseTester(BaseAllCloseTester):
                 difference between two objects. Default: ``False``
 
         Returns:
-        -------
             bool: ``True`` if the two objects are equal within a
                 tolerance, otherwise ``False``
 
@@ -333,7 +319,6 @@ class LocalAllCloseTester(BaseAllCloseTester):
         r"""Clones the current tester.
 
         Returns:
-        -------
             ``LocalAllCloseTester``: A deep copy of the current
                 tester.
 
@@ -352,11 +337,9 @@ class LocalAllCloseTester(BaseAllCloseTester):
         data type.
 
         Args:
-        ----
             data_type: Specifies the data type to check.
 
         Returns:
-        -------
             bool: ``True`` if an allclose operator is registered,
                 otherwise ``False``.
 
@@ -377,11 +360,9 @@ class LocalAllCloseTester(BaseAllCloseTester):
         r"""Finds the allclose operator associated to an object.
 
         Args:
-        ----
             data_type: Specifies the data type to get.
 
         Returns:
-        -------
             ``BaseAllCloseOperator``: The allclose operator associated
                 to the data type.
 

@@ -25,7 +25,6 @@ class BaseAllCloseTester(ABC):
         r"""Indicates if two objects are equal within a tolerance.
 
         Args:
-        ----
             object1: Specifies the first object to compare.
             object2: Specifies the second object to compare.
             rtol (float, optional): Specifies the relative tolerance
@@ -40,7 +39,6 @@ class BaseAllCloseTester(ABC):
                 difference between two objects. Default: ``False``
 
         Returns:
-        -------
             bool: ``True`` if the two objects are equal within a
                 tolerance, otherwise ``False``
 
@@ -79,7 +77,6 @@ class BaseEqualityTester(ABC):
         r"""Indicates if two objects are equal or not.
 
         Args:
-        ----
             object1: Specifies the first object to compare.
             object2: Specifies the second object to compare.
             show_difference (bool, optional): If ``True``, it shows a
@@ -88,7 +85,6 @@ class BaseEqualityTester(ABC):
                 difference between two objects. Default: ``False``
 
         Returns:
-        -------
             bool: ``True`` if the two objects are equal, otherwise
                 ``False``.
 
