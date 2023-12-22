@@ -11,12 +11,22 @@ __all__ = [
     "is_polars_available",
     "is_torch_available",
     "is_xarray_available",
+    "repr_indent",
+    "repr_mapping",
+    "repr_sequence",
     "str_indent",
     "str_mapping",
     "str_sequence",
 ]
 
-from coola.utils.format import str_indent, str_mapping, str_sequence
+from coola.utils.format import (
+    repr_indent,
+    repr_mapping,
+    repr_sequence,
+    str_indent,
+    str_mapping,
+    str_sequence,
+)
 from coola.utils.imports import (
     check_numpy,
     check_pandas,
