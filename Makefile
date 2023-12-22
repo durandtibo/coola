@@ -32,6 +32,10 @@ install-torch :
         pip install --upgrade "torch>=2.1.1";\
     fi
 
+.PHONY : install-docs
+install-docs :
+	poetry install --with docs
+
 .PHONY : update
 update :
 	-poetry self update
