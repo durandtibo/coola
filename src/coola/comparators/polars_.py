@@ -56,8 +56,6 @@ class DataFrameAllCloseOperator(BaseAllCloseOperator[DataFrame]):
             if show_difference:
                 logger.info(f"object2 is not a polars.DataFrame: {type(object2)}")
             return False
-        if not equal_nan and has_nan(object1):
-            return False
         try:
             assert_frame_equal(
                 object1,
@@ -68,6 +66,8 @@ class DataFrameAllCloseOperator(BaseAllCloseOperator[DataFrame]):
             )
             object_equal = True
         except AssertionError:
+            object_equal = False
+        if not equal_nan and object_equal and has_nan(object1):
             object_equal = False
         if show_difference and not object_equal:
             logger.info(
@@ -164,8 +164,6 @@ class SeriesAllCloseOperator(BaseAllCloseOperator[Series]):
             if show_difference:
                 logger.info(f"object2 is not a polars.Series: {type(object2)}")
             return False
-        if not equal_nan and has_nan(object1):
-            return False
         try:
             assert_series_equal(
                 object1,
@@ -176,6 +174,8 @@ class SeriesAllCloseOperator(BaseAllCloseOperator[Series]):
             )
             object_equal = True
         except AssertionError:
+            object_equal = False
+        if not equal_nan and object_equal and has_nan(object1):
             object_equal = False
         if show_difference and not object_equal:
             logger.info(f"polars.Series are different\nobject1=\n{object1}\nobject2=\n{object2}")
