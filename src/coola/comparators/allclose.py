@@ -133,6 +133,8 @@ class ScalarAllCloseOperator(BaseAllCloseOperator[Union[bool, int, float]]):
             if show_difference:
                 logger.info(f"Objects have different types: {type(object1)} vs {type(object2)}")
             return False
+        if equal_nan and math.isnan(object1) and math.isnan(object2):
+            return True
         number_equal = math.isclose(object1, object2, rel_tol=rtol, abs_tol=atol)
         if show_difference and not number_equal:
             logger.info(f"The numbers are different: {object1} vs {object2}")

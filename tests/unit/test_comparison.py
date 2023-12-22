@@ -247,6 +247,31 @@ def test_objects_are_allclose_other_types_false(object1: Any, object2: Any) -> N
     assert not objects_are_allclose(object1, object2)
 
 
+@mark.parametrize(
+    "object1,object2",
+    [
+        (float("nan"), float("nan")),
+        ([4.2, 2.3, float("nan")], [4.2, 2.3, float("nan")]),
+        ([4.2, 2.3, (float("nan"), 2, 3)], [4.2, 2.3, (float("nan"), 2, 3)]),
+    ],
+)
+def test_objects_are_allclose_scalar_equal_nan_true(object1: Any, object2: Any) -> None:
+    assert objects_are_allclose(object1, object2, equal_nan=True)
+
+
+@mark.parametrize(
+    "object1,object2",
+    [
+        (float("nan"), float("nan")),
+        (float("nan"), "abc"),
+        ([4.2, 2.3, float("nan")], [4.2, 2.3, float("nan")]),
+        ([4.2, 2.3, (float("nan"), 2, 3)], [4.2, 2.3, (float("nan"), 2, 3)]),
+    ],
+)
+def test_objects_are_allclose_scalar_equal_nan_false(object1: Any, object2: Any) -> None:
+    assert not objects_are_allclose(object1, object2)
+
+
 @numpy_available
 @torch_available
 def test_objects_are_allclose_true_complex_objects() -> None:

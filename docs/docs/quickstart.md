@@ -284,14 +284,13 @@ True
 
 ```
 
-
 `objects_are_allclose` supports a lot of types and nested structure.
 Feel free to try any complex nested structure that you want. You can find the currently supported
 types [here](types.md#equal-within-a-tolerance--allclose-).
 
 ### Not A Number (NaN)
 
-`NaN` is not considered close to any other value, including `NaN`.
+By default, `NaN` is not considered close to any other value, including `NaN`.
 
 ```pycon
 >>> from coola import objects_are_allclose
@@ -302,6 +301,15 @@ False
 
 ```
 
+By setting `equal_nan=True`, it is possible to change the above behavior and `NaN`s will be
+considered equal.
+
+```pycon
+>>> from coola import objects_are_allclose
+>>> objects_are_allclose(float("nan"), float("nan"), equal_nan=True)
+True
+
+```
 
 In arrays or tensors, `NaN` are sometimes to indicate some values are not valid.
 However, it may be interested to check if the non-`NaN` values are equal.

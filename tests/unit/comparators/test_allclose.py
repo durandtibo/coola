@@ -334,6 +334,16 @@ def test_scalar_allclose_operator_allclose_true_show_difference(caplog: LogCaptu
         assert not caplog.messages
 
 
+def test_scalar_allclose_operator_allclose_equal_nan_true() -> None:
+    assert ScalarAllCloseOperator().allclose(
+        AllCloseTester(), float("nan"), float("nan"), equal_nan=True
+    )
+
+
+def test_scalar_allclose_operator_allclose_equal_nan_false() -> None:
+    assert not ScalarAllCloseOperator().allclose(AllCloseTester(), float("nan"), float("nan"))
+
+
 @mark.parametrize(
     "object1,object2,atol",
     (
