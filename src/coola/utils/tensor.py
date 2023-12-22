@@ -17,7 +17,7 @@ else:  # pragma: no cover
 def get_available_devices() -> tuple[str, ...]:
     r"""Gets the available PyTorch devices on the machine.
 
-    Returns
+    Returns:
         tuple: The available devices.
 
     Example usage:
