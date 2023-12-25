@@ -272,7 +272,13 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
     >>> get_mapping_allclose()
     {<class 'collections.abc.Mapping'>: MappingAllCloseOperator(),
      <class 'collections.abc.Sequence'>: SequenceAllCloseOperator(),
-     ...}
+     <class 'bool'>: ScalarAllCloseOperator(),
+     <class 'dict'>: MappingAllCloseOperator(),
+     <class 'float'>: ScalarAllCloseOperator(),
+     <class 'int'>: ScalarAllCloseOperator(),
+     <class 'list'>: SequenceAllCloseOperator(),
+     <class 'object'>: DefaultAllCloseOperator(),
+     <class 'tuple'>: SequenceAllCloseOperator()}
 
     ```
     """
