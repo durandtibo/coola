@@ -19,7 +19,25 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
     >>> get_mapping_allclose()
     {<class 'collections.abc.Mapping'>: MappingAllCloseOperator(),
      <class 'collections.abc.Sequence'>: SequenceAllCloseOperator(),
-     ...}
+     <class 'bool'>: ScalarAllCloseOperator(),
+     <class 'dict'>: MappingAllCloseOperator(),
+     <class 'float'>: ScalarAllCloseOperator(),
+     <class 'int'>: ScalarAllCloseOperator(),
+     <class 'list'>: SequenceAllCloseOperator(),
+     <class 'object'>: DefaultAllCloseOperator(),
+     <class 'tuple'>: SequenceAllCloseOperator(),
+     <class 'jax.Array'>: JaxArrayAllCloseOperator(check_dtype=True),
+     <class 'jaxlib.xla_extension.ArrayImpl'>: JaxArrayAllCloseOperator(check_dtype=True),
+     <class 'numpy.ndarray'>: ArrayAllCloseOperator(check_dtype=True),
+     <class 'pandas.core.frame.DataFrame'>: DataFrameAllCloseOperator(),
+     <class 'pandas.core.series.Series'>: SeriesAllCloseOperator(),
+     <class 'polars.dataframe.frame.DataFrame'>: DataFrameAllCloseOperator(),
+     <class 'polars.series.series.Series'>: SeriesAllCloseOperator(),
+     <class 'torch.Tensor'>: TensorAllCloseOperator(),
+     <class 'torch.nn.utils.rnn.PackedSequence'>: PackedSequenceAllCloseOperator(),
+     <class 'xarray.core.dataset.Dataset'>: DatasetAllCloseOperator(),
+     <class 'xarray.core.dataarray.DataArray'>: DataArrayAllCloseOperator(),
+     <class 'xarray.core.variable.Variable'>: VariableAllCloseOperator()}
 
     ```
     """
@@ -49,7 +67,22 @@ def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
     >>> get_mapping_equality()
     {<class 'collections.abc.Mapping'>: MappingEqualityOperator(),
      <class 'collections.abc.Sequence'>: SequenceEqualityOperator(),
-     ...}
+     <class 'dict'>: MappingEqualityOperator(),
+     <class 'list'>: SequenceEqualityOperator(),
+     <class 'object'>: DefaultEqualityOperator(),
+     <class 'tuple'>: SequenceEqualityOperator(),
+     <class 'jax.Array'>: JaxArrayEqualityOperator(check_dtype=True),
+     <class 'jaxlib.xla_extension.ArrayImpl'>: JaxArrayEqualityOperator(check_dtype=True),
+     <class 'numpy.ndarray'>: ArrayEqualityOperator(check_dtype=True),
+     <class 'pandas.core.frame.DataFrame'>: DataFrameEqualityOperator(nulls_compare_equal=False),
+     <class 'pandas.core.series.Series'>: SeriesEqualityOperator(nulls_compare_equal=False),
+     <class 'polars.dataframe.frame.DataFrame'>: DataFrameEqualityOperator(),
+     <class 'polars.series.series.Series'>: SeriesEqualityOperator(),
+     <class 'torch.Tensor'>: TensorEqualityOperator(),
+     <class 'torch.nn.utils.rnn.PackedSequence'>: PackedSequenceEqualityOperator(),
+     <class 'xarray.core.dataset.Dataset'>: DatasetEqualityOperator(),
+     <class 'xarray.core.dataarray.DataArray'>: DataArrayEqualityOperator(),
+     <class 'xarray.core.variable.Variable'>: VariableEqualityOperator()}
 
     ```
     """
