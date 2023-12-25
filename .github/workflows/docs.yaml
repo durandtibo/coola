@@ -18,13 +18,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.11'
       - name: Install Poetry
         uses: snok/install-poetry@v1
       - name: Install packages
         run: |
           poetry run make config-poetry
-          make install-docs
+          make install-all
       - name: Build and deploy documentation
         run: |
           cd docs/
