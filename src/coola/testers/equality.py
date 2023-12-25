@@ -38,16 +38,17 @@ class EqualityTester(BaseEqualityTester):
                 operator for a type. Default: ``False``.
 
         Raises:
-            RuntimeError if an operator is already registered for the
+            RuntimeError: if an operator is already registered for the
                 data type and ``exist_ok=False``.
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.testers import EqualityTester
+        >>> from coola.comparators import SequenceEqualityOperator
+        >>> EqualityTester.add_operator(list, SequenceEqualityOperator(), exist_ok=True)
 
-            >>> from coola.testers import EqualityTester
-            >>> from coola.comparators import SequenceEqualityOperator
-            >>> EqualityTester.add_operator(list, SequenceEqualityOperator(), exist_ok=True)
+        ```
         """
         if data_type in cls.registry and not exist_ok:
             raise RuntimeError(
@@ -74,18 +75,19 @@ class EqualityTester(BaseEqualityTester):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> import torch
+        >>> from coola import EqualityTester
+        >>> tester = EqualityTester()
+        >>> tester.equal(
+        ...     [torch.ones(2, 3), torch.zeros(2)],
+        ...     [torch.ones(2, 3), torch.zeros(2)],
+        ... )
+        True
+        >>> tester.equal([torch.ones(2, 3), torch.ones(2)], [torch.ones(2, 3), torch.zeros(2)])
+        False
 
-            >>> import torch
-            >>> from coola import EqualityTester
-            >>> tester = EqualityTester()
-            >>> tester.equal(
-            ...     [torch.ones(2, 3), torch.zeros(2)],
-            ...     [torch.ones(2, 3), torch.zeros(2)],
-            ... )
-            True
-            >>> tester.equal([torch.ones(2, 3), torch.ones(2)], [torch.ones(2, 3), torch.zeros(2)])
-            False
+        ```
         """
         return self.find_operator(type(object1)).equal(self, object1, object2, show_difference)
 
@@ -103,13 +105,14 @@ class EqualityTester(BaseEqualityTester):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.testers import EqualityTester
+        >>> EqualityTester.has_operator(list)
+        True
+        >>> EqualityTester.has_operator(str)
+        False
 
-            >>> from coola.testers import EqualityTester
-            >>> EqualityTester.has_operator(list)
-            True
-            >>> EqualityTester.has_operator(str)
-            False
+        ```
         """
         return data_type in cls.registry
 
@@ -126,13 +129,14 @@ class EqualityTester(BaseEqualityTester):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.testers import EqualityTester
+        >>> EqualityTester.find_operator(list)
+        SequenceEqualityOperator()
+        >>> EqualityTester.find_operator(str)
+        DefaultEqualityOperator()
 
-            >>> from coola.testers import EqualityTester
-            >>> EqualityTester.find_operator(list)
-            SequenceEqualityOperator()
-            >>> EqualityTester.find_operator(str)
-            DefaultEqualityOperator()
+        ```
         """
         for object_type in data_type.__mro__:
             operator = cls.registry.get(object_type, None)
@@ -151,12 +155,13 @@ class EqualityTester(BaseEqualityTester):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.testers import EqualityTester
+        >>> tester = EqualityTester.local_copy()
+        >>> tester
+        LocalEqualityTester(...)
 
-            >>> from coola.testers import EqualityTester
-            >>> tester = EqualityTester.local_copy()
-            >>> tester
-            LocalEqualityTester(...)
+        ```
         """
         return LocalEqualityTester({key: value.clone() for key, value in cls.registry.items()})
 
@@ -195,18 +200,19 @@ class LocalEqualityTester(BaseEqualityTester):
                 operator for a type. Default: ``False``.
 
         Raises:
-            RuntimeError if an operator is already registered for the
+            RuntimeError: if an operator is already registered for the
                 data type and ``exist_ok=False``.
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.testers import EqualityTester
+        >>> from coola.comparators import DefaultEqualityOperator
+        >>> tester = EqualityTester.local_copy()
+        >>> tester.add_operator(str, DefaultEqualityOperator())
+        >>> tester.add_operator(str, DefaultEqualityOperator(), exist_ok=True)
 
-            >>> from coola.testers import EqualityTester
-            >>> from coola.comparators import DefaultEqualityOperator
-            >>> tester = EqualityTester.local_copy()
-            >>> tester.add_operator(str, DefaultEqualityOperator())
-            >>> tester.add_operator(str, DefaultEqualityOperator(), exist_ok=True)
+        ```
         """
         if data_type in self.registry and not exist_ok:
             raise RuntimeError(
@@ -219,18 +225,19 @@ class LocalEqualityTester(BaseEqualityTester):
     def clone(self) -> LocalEqualityTester:
         r"""Clones the current tester.
 
-        Returns:
-            ``LocalEqualityTester``: A deep copy of the current
-                tester.
+         Returns:
+             ``LocalEqualityTester``: A deep copy of the current
+                 tester.
 
-        Example usage:
+         Example usage:
 
-        .. code-block:: pycon
+         ```pycon
+         >>> import torch
+         >>> from coola.testers import EqualityTester
+         >>> tester = EqualityTester.local_copy()
+         >>> tester_cloned = tester.clone()
 
-           >>> import torch
-           >>> from coola.testers import EqualityTester
-           >>> tester = EqualityTester.local_copy()
-           >>> tester_cloned = tester.clone()
+        ```
         """
         return self.__class__({key: value.clone() for key, value in self.registry.items()})
 
@@ -251,18 +258,19 @@ class LocalEqualityTester(BaseEqualityTester):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> import torch
+        >>> from coola.testers import EqualityTester
+        >>> tester = EqualityTester.local_copy()
+        >>> tester.equal(
+        ...     [torch.ones(2, 3), torch.zeros(2)],
+        ...     [torch.ones(2, 3), torch.zeros(2)],
+        ... )
+        True
+        >>> tester.equal([torch.ones(2, 3), torch.ones(2)], [torch.ones(2, 3), torch.zeros(2)])
+        False
 
-            >>> import torch
-            >>> from coola.testers import EqualityTester
-            >>> tester = EqualityTester.local_copy()
-            >>> tester.equal(
-            ...     [torch.ones(2, 3), torch.zeros(2)],
-            ...     [torch.ones(2, 3), torch.zeros(2)],
-            ... )
-            True
-            >>> tester.equal([torch.ones(2, 3), torch.ones(2)], [torch.ones(2, 3), torch.zeros(2)])
-            False
+        ```
         """
         return self.find_operator(type(object1)).equal(self, object1, object2, show_difference)
 
@@ -279,14 +287,15 @@ class LocalEqualityTester(BaseEqualityTester):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.testers import EqualityTester
+        >>> tester = EqualityTester.local_copy()
+        >>> tester.has_operator(list)
+        True
+        >>> tester.has_operator(str)
+        False
 
-            >>> from coola.testers import EqualityTester
-            >>> tester = EqualityTester.local_copy()
-            >>> tester.has_operator(list)
-            True
-            >>> tester.has_operator(str)
-            False
+        ```
         """
         return data_type in self.registry
 
@@ -302,14 +311,15 @@ class LocalEqualityTester(BaseEqualityTester):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.testers import EqualityTester
+        >>> tester = EqualityTester.local_copy()
+        >>> tester.find_operator(list)
+        SequenceEqualityOperator()
+        >>> tester.find_operator(str)
+        DefaultEqualityOperator()
 
-            >>> from coola.testers import EqualityTester
-            >>> tester = EqualityTester.local_copy()
-            >>> tester.find_operator(list)
-            SequenceEqualityOperator()
-            >>> tester.find_operator(str)
-            DefaultEqualityOperator()
+        ```
         """
         for object_type in data_type.__mro__:
             operator = self.registry.get(object_type, None)

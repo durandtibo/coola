@@ -24,6 +24,20 @@ class DefaultEqualityOperator(BaseEqualityOperator[Any]):
 
     The ``==`` operator is used to test the equality between the
     objects.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola.comparators import DefaultEqualityOperator
+    >>> from coola.testers import EqualityTester
+    >>> tester = EqualityTester()
+    >>> op = DefaultEqualityOperator()
+    >>> op.equal(tester, 42, 42)
+    True
+    >>> op.equal(tester, "meow", "meov")
+    False
+
+    ```
     """
 
     def __eq__(self, other: Any) -> bool:
@@ -52,7 +66,24 @@ class DefaultEqualityOperator(BaseEqualityOperator[Any]):
 
 
 class MappingEqualityOperator(BaseEqualityOperator[Mapping]):
-    r"""Implements an equality operator for mappings."""
+    r"""Implements an equality operator for mappings.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola.comparators import MappingEqualityOperator
+    >>> from coola.testers import EqualityTester
+    >>> tester = EqualityTester()
+    >>> op = MappingEqualityOperator()
+    >>> op.equal(
+    ...     tester,
+    ...     {"key1": 42, "key2": 1.2, "key3": "abc"},
+    ...     {"key1": 42, "key2": 1.2, "key3": "abc"},
+    ... )
+    True
+
+    ```
+    """
 
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, self.__class__)
@@ -100,7 +131,20 @@ class MappingEqualityOperator(BaseEqualityOperator[Mapping]):
 
 
 class SequenceEqualityOperator(BaseEqualityOperator[Sequence]):
-    r"""Implements an equality operator for sequences."""
+    r"""Implements an equality operator for sequences.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola.comparators import SequenceEqualityOperator
+    >>> from coola.testers import EqualityTester
+    >>> tester = EqualityTester()
+    >>> op = SequenceEqualityOperator()
+    >>> op.equal(tester, [42, 1.2, "abc"], [42, 1.2, "abc"])
+    True
+
+    ```
+    """
 
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, self.__class__)
@@ -148,6 +192,20 @@ def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
     Returns:
         dict: The mapping between the types and the equality
             operators.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola.comparators.equality import get_mapping_equality
+    >>> get_mapping_equality()
+    {<class 'collections.abc.Mapping'>: MappingEqualityOperator(),
+     <class 'collections.abc.Sequence'>: SequenceEqualityOperator(),
+     <class 'dict'>: MappingEqualityOperator(),
+     <class 'list'>: SequenceEqualityOperator(),
+     <class 'object'>: DefaultEqualityOperator(),
+     <class 'tuple'>: SequenceEqualityOperator()}
+
+    ```
     """
     return {
         Mapping: MappingEqualityOperator(),

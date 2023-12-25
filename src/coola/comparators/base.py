@@ -15,7 +15,20 @@ T = TypeVar("T")
 
 
 class BaseAllCloseOperator(ABC, Generic[T]):
-    r"""Defines the base class to implement an equality operator."""
+    r"""Defines the base class to implement an equality operator.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola.testers import AllCloseTester
+    >>> from coola.comparators import DefaultAllCloseOperator
+    >>> tester = AllCloseTester()
+    >>> op = DefaultAllCloseOperator()
+    >>> op.allclose(tester, 42, 42)
+    True
+
+    ```
+    """
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
@@ -52,6 +65,20 @@ class BaseAllCloseOperator(ABC, Generic[T]):
         Returns:
             bool: ``True`` if the two objects are equal within a
                 tolerance, otherwise ``False``
+
+        Example usage:
+
+        ```pycon
+        >>> from coola.testers import AllCloseTester
+        >>> from coola.comparators import DefaultAllCloseOperator
+        >>> tester = AllCloseTester()
+        >>> op = DefaultAllCloseOperator()
+        >>> op.allclose(tester, 42, 42)
+        True
+        >>> op.allclose(tester, "meow", "meov")
+        False
+
+        ```
         """
 
     @abstractmethod
@@ -60,11 +87,37 @@ class BaseAllCloseOperator(ABC, Generic[T]):
 
         Returns:
             ``BaseAllCloseOperator``: A copy of the equality operator.
+
+        Example usage:
+
+        ```pycon
+        >>> from coola.comparators import DefaultAllCloseOperator
+        >>> op = DefaultAllCloseOperator()
+        >>> op_cloned = op.clone()
+        >>> op_cloned
+        DefaultAllCloseOperator()
+        >>> op is op_cloned
+        False
+
+        ```
         """
 
 
 class BaseEqualityOperator(ABC, Generic[T]):
-    r"""Defines the base class to implement an equality operator."""
+    r"""Defines the base class to implement an equality operator.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola.comparators import DefaultEqualityOperator
+    >>> from coola.testers import EqualityTester
+    >>> tester = EqualityTester()
+    >>> op = DefaultEqualityOperator()
+    >>> op.equal(tester, 42, 42)
+    True
+
+    ```
+    """
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
@@ -75,6 +128,19 @@ class BaseEqualityOperator(ABC, Generic[T]):
 
         Returns:
             ``BaseEqualityOperator``: A copy of the equality operator.
+
+        Example usage:
+
+        ```pycon
+        >>> from coola.comparators import DefaultEqualityOperator
+        >>> op = DefaultEqualityOperator()
+        >>> op_cloned = op.clone()
+        >>> op_cloned
+        DefaultEqualityOperator()
+        >>> op is op_cloned
+        False
+
+        ```
         """
 
     @abstractmethod
@@ -96,4 +162,18 @@ class BaseEqualityOperator(ABC, Generic[T]):
         Returns:
             bool: ``True`` if the two objects are equal, otherwise
                 ``False``.
+
+        Example usage:
+
+        ```pycon
+        >>> from coola.comparators import DefaultEqualityOperator
+        >>> from coola.testers import EqualityTester
+        >>> tester = EqualityTester()
+        >>> op = DefaultEqualityOperator()
+        >>> op.equal(tester, 42, 42)
+        True
+        >>> op.equal(tester, "meow", "meov")
+        False
+
+        ```
         """

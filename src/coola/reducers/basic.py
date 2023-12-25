@@ -12,7 +12,19 @@ from coola.utils.stats import quantile
 class BasicReducer(BaseBasicReducer):
     r"""Implements a basic reducer.
 
-    Note that this reducer does not implement the method ``quantiles``.
+    Example usage:
+
+    ```pycon
+    >>> from coola.reducers import BasicReducer
+    >>> reducer = BasicReducer()
+    >>> reducer.max([-2, -1, 0, 1, 2])
+    2
+    >>> reducer.median([-2, -1, 0, 1, 2])
+    0
+    >>> reducer.sort([2, 1, -2, 3, 0])
+    [-2, 0, 1, 2, 3]
+
+    ```
     """
 
     def __str__(self) -> str:

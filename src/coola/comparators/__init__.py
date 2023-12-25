@@ -1,3 +1,5 @@
+r"""This package contains the comparator implementations."""
+
 __all__ = [
     "ArrayAllCloseOperator",
     "ArrayEqualityOperator",

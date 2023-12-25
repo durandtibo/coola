@@ -27,6 +27,17 @@ class DefaultFormatter(BaseFormatter[Any]):
         max_characters (int, optional): Specifies the maximum number
             of characters to show. If a negative value is provided,
             all the characters are shown. Default: ``-1``
+
+    Example usage:
+
+    ```pycon
+    >>> from coola import Summarizer
+    >>> from coola.formatters import DefaultFormatter
+    >>> formatter = DefaultFormatter()
+    >>> formatter.format(Summarizer(), 1)
+    <class 'int'> 1
+
+    ```
     """
 
     def __init__(self, max_characters: int = -1) -> None:
@@ -69,12 +80,13 @@ class DefaultFormatter(BaseFormatter[Any]):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.formatters import DefaultFormatter
+        >>> formatter = DefaultFormatter()
+        >>> formatter.get_max_characters()
+        -1
 
-            >>> from coola.formatters import DefaultFormatter
-            >>> formatter = DefaultFormatter()
-            >>> formatter.get_max_characters()
-            -1
+        ```
         """
         return self._max_characters
 
@@ -86,17 +98,18 @@ class DefaultFormatter(BaseFormatter[Any]):
                 characters to show.
 
         Raises:
-            TypeError if ``max_characters`` is not an integer.
+            TypeError: if ``max_characters`` is not an integer.
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.formatters import DefaultFormatter
+        >>> formatter = DefaultFormatter()
+        >>> formatter.set_max_characters(10)
+        >>> formatter.get_max_characters()
+        10
 
-            >>> from coola.formatters import DefaultFormatter
-            >>> formatter = DefaultFormatter()
-            >>> formatter.set_max_characters(10)
-            >>> formatter.get_max_characters()
-            10
+        ```
         """
         if not isinstance(max_characters, int):
             raise TypeError(
@@ -116,6 +129,20 @@ class BaseCollectionFormatter(BaseFormatter[T]):
             all the items are shown. Default: ``5``
         num_spaces (int, optional): Specifies the number of spaces
             used for the indentation. Default: ``2``.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola import Summarizer
+    >>> from coola.formatters import MappingFormatter
+    >>> formatter = MappingFormatter()
+    >>> print(formatter.format(Summarizer(), {'key1': 1.2, 'key2': 'abc', 'key3': 42}))
+    <class 'dict'> (length=3)
+      (key1): 1.2
+      (key2): abc
+      (key3): 42
+
+    ```
     """
 
     def __init__(self, max_items: int = 5, num_spaces: int = 2) -> None:
@@ -151,12 +178,13 @@ class BaseCollectionFormatter(BaseFormatter[T]):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.formatters import MappingFormatter
+        >>> formatter = MappingFormatter()
+        >>> formatter.get_max_items()
+        5
 
-            >>> from coola.formatters import MappingFormatter
-            >>> formatter = MappingFormatter()
-            >>> formatter.get_max_items()
-            5
+        ```
         """
         return self._max_items
 
@@ -168,17 +196,18 @@ class BaseCollectionFormatter(BaseFormatter[T]):
                 items to show.
 
         Raises:
-            TypeError if ``max_items`` is not an integer.
+            TypeError: if ``max_items`` is not an integer.
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.formatters import MappingFormatter
+        >>> formatter = MappingFormatter()
+        >>> formatter.set_max_items(10)
+        >>> formatter.get_max_items()
+        10
 
-            >>> from coola.formatters import MappingFormatter
-            >>> formatter = MappingFormatter()
-            >>> formatter.set_max_items(10)
-            >>> formatter.get_max_items()
-            10
+        ```
         """
         if not isinstance(max_items, int):
             raise TypeError(
@@ -194,12 +223,13 @@ class BaseCollectionFormatter(BaseFormatter[T]):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.formatters import MappingFormatter
+        >>> formatter = MappingFormatter()
+        >>> formatter.get_num_spaces()
+        2
 
-            >>> from coola.formatters import MappingFormatter
-            >>> formatter = MappingFormatter()
-            >>> formatter.get_num_spaces()
-            2
+        ```
         """
         return self._num_spaces
 
@@ -211,18 +241,19 @@ class BaseCollectionFormatter(BaseFormatter[T]):
                 indentation.
 
         Raises:
-            TypeError if ``num_spaces`` is not an integer.
-            TValueError if ``num_spaces`` is not a positive integer.
+            TypeError: if ``num_spaces`` is not an integer.
+            ValueError: if ``num_spaces`` is not a positive integer.
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.formatters import MappingFormatter
+        >>> formatter = MappingFormatter()
+        >>> formatter.set_num_spaces(4)
+        >>> formatter.get_num_spaces()
+        4
 
-            >>> from coola.formatters import MappingFormatter
-            >>> formatter = MappingFormatter()
-            >>> formatter.set_num_spaces(4)
-            >>> formatter.get_num_spaces()
-            4
+        ```
         """
         if not isinstance(num_spaces, int):
             raise TypeError(
@@ -237,7 +268,22 @@ class BaseCollectionFormatter(BaseFormatter[T]):
 
 
 class MappingFormatter(BaseCollectionFormatter[Mapping]):
-    r"""Implements a formatter for ``Mapping``."""
+    r"""Implements a formatter for ``Mapping``.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola import Summarizer
+    >>> from coola.formatters import MappingFormatter
+    >>> formatter = MappingFormatter()
+    >>> print(formatter.format(Summarizer(), {'key1': 1.2, 'key2': 'abc', 'key3': 42}))
+    <class 'dict'> (length=3)
+      (key1): 1.2
+      (key2): abc
+      (key3): 42
+
+    ```
+    """
 
     def format(
         self, summarizer: BaseSummarizer, value: Mapping, depth: int = 0, max_depth: int = 1
@@ -264,7 +310,22 @@ class MappingFormatter(BaseCollectionFormatter[Mapping]):
 
 
 class SequenceFormatter(BaseCollectionFormatter[Sequence]):
-    r"""Implements a formatter for ``Sequence``."""
+    r"""Implements a formatter for ``Sequence``.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola import Summarizer
+    >>> from coola.formatters import SequenceFormatter
+    >>> formatter = SequenceFormatter()
+    >>> print(formatter.format(Summarizer(), [1, 2, 3]))
+    <class 'list'> (length=3)
+      (0): 1
+      (1): 2
+      (2): 3
+
+    ```
+    """
 
     def format(
         self, summarizer: BaseSummarizer, value: Sequence, depth: int = 0, max_depth: int = 1
@@ -287,7 +348,19 @@ class SequenceFormatter(BaseCollectionFormatter[Sequence]):
 
 
 class SetFormatter(BaseCollectionFormatter[set]):
-    r"""Implements a formatter for ``set``."""
+    r"""Implements a formatter for ``set``.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola import Summarizer
+    >>> from coola.formatters import SetFormatter
+    >>> formatter = SetFormatter()
+    >>> formatter.format(Summarizer(), {1})
+    <class 'set'> (length=1)\n  (0): 1
+
+    ```
+    """
 
     def format(
         self, summarizer: BaseSummarizer, value: set, depth: int = 0, max_depth: int = 1

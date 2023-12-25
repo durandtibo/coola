@@ -19,7 +19,21 @@ class NumpyReducer(BaseBasicReducer):
     r"""Implement a reducer based on NumPy functions.
 
     Raises:
-        RuntimeError if ``numpy`` is not installed.
+        RuntimeError: if ``numpy`` is not installed.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola.reducers import NumpyReducer
+    >>> reducer = NumpyReducer()
+    >>> reducer.max([-2, -1, 0, 1, 2])
+    2
+    >>> reducer.median([-2, -1, 0, 1, 2])
+    0.0
+    >>> reducer.sort([2, 1, -2, 3, 0])
+    [-2, 0, 1, 2, 3]
+
+    ```
     """
 
     def __init__(self) -> None:

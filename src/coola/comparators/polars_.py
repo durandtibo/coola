@@ -29,7 +29,37 @@ logger = logging.getLogger(__name__)
 
 
 class DataFrameAllCloseOperator(BaseAllCloseOperator[DataFrame]):
-    r"""Implements an equality operator for ``polars.DataFrame``."""
+    r"""Implements an equality operator for ``polars.DataFrame``.
+
+    Example usage:
+
+    ```pycon
+    >>> import polars
+    >>> from coola.testers import AllCloseTester
+    >>> from coola.comparators.polars_ import DataFrameAllCloseOperator
+    >>> tester = AllCloseTester()
+    >>> op = DataFrameAllCloseOperator()
+    >>> op.allclose(
+    ...     tester,
+    ...     polars.DataFrame(
+    ...         {
+    ...             "col1": [1, 2, 3, 4, 5],
+    ...             "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+    ...             "col3": ["a", "b", "c", "d", "e"],
+    ...         }
+    ...     ),
+    ...     polars.DataFrame(
+    ...         {
+    ...             "col1": [1, 2, 3, 4, 5],
+    ...             "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+    ...             "col3": ["a", "b", "c", "d", "e"],
+    ...         }
+    ...     ),
+    ... )
+    True
+
+    ```
+    """
 
     def __init__(self) -> None:
         check_polars()
@@ -77,7 +107,37 @@ class DataFrameAllCloseOperator(BaseAllCloseOperator[DataFrame]):
 
 
 class DataFrameEqualityOperator(BaseEqualityOperator[DataFrame]):
-    r"""Implements an equality operator for ``polars.DataFrame``."""
+    r"""Implements an equality operator for ``polars.DataFrame``.
+
+    Example usage:
+
+    ```pycon
+    >>> import polars
+    >>> from coola.comparators.polars_ import DataFrameEqualityOperator
+    >>> from coola.testers import EqualityTester
+    >>> tester = EqualityTester()
+    >>> op = DataFrameEqualityOperator()
+    >>> op.equal(
+    ...     tester,
+    ...     polars.DataFrame(
+    ...         {
+    ...             "col1": [1, 2, 3, 4, 5],
+    ...             "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+    ...             "col3": ["a", "b", "c", "d", "e"],
+    ...         }
+    ...     ),
+    ...     polars.DataFrame(
+    ...         {
+    ...             "col1": [1, 2, 3, 4, 5],
+    ...             "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+    ...             "col3": ["a", "b", "c", "d", "e"],
+    ...         }
+    ...     ),
+    ... )
+    True
+
+    ```
+    """
 
     def __init__(self) -> None:
         check_polars()
@@ -137,7 +197,21 @@ class DataFrameEqualityOperator(BaseEqualityOperator[DataFrame]):
 
 
 class SeriesAllCloseOperator(BaseAllCloseOperator[Series]):
-    r"""Implements an equality operator for ``polars.Series``."""
+    r"""Implements an equality operator for ``polars.Series``.
+
+    Example usage:
+
+    ```pycon
+    >>> import polars
+    >>> from coola.testers import AllCloseTester
+    >>> from coola.comparators.polars_ import SeriesAllCloseOperator
+    >>> tester = AllCloseTester()
+    >>> op = SeriesAllCloseOperator()
+    >>> op.allclose(tester, polars.Series([1, 2, 3, 4, 5]), polars.Series([1, 2, 3, 4, 5]))
+    True
+
+    ```
+    """
 
     def __init__(self) -> None:
         check_polars()
@@ -183,7 +257,21 @@ class SeriesAllCloseOperator(BaseAllCloseOperator[Series]):
 
 
 class SeriesEqualityOperator(BaseEqualityOperator[Series]):
-    r"""Implements an equality operator for ``polars.Series``."""
+    r"""Implements an equality operator for ``polars.Series``.
+
+    Example usage:
+
+    ```pycon
+    >>> import polars
+    >>> from coola.comparators.polars_ import SeriesEqualityOperator
+    >>> from coola.testers import EqualityTester
+    >>> tester = EqualityTester()
+    >>> op = SeriesEqualityOperator()
+    >>> op.equal(tester, polars.Series([1, 2, 3, 4, 5]), polars.Series([1, 2, 3, 4, 5]))
+    True
+
+    ```
+    """
 
     def __init__(self) -> None:
         check_polars()

@@ -13,6 +13,15 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
     Returns:
         dict: The mapping between the types and the allclose
             operators.
+
+    ```pycon
+    >>> from coola.comparators import get_mapping_allclose
+    >>> get_mapping_allclose()
+    {<class 'collections.abc.Mapping'>: MappingAllCloseOperator(),
+     <class 'collections.abc.Sequence'>: SequenceAllCloseOperator(),
+     ...}
+
+    ```
     """
     from coola import comparators  # Local import to avoid cyclic dependencies
 
@@ -34,6 +43,15 @@ def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
     Returns:
         dict: The mapping between the types and the equality
             operators.
+
+    ```pycon
+    >>> from coola.comparators import get_mapping_equality
+    >>> get_mapping_equality()
+    {<class 'collections.abc.Mapping'>: MappingEqualityOperator(),
+     <class 'collections.abc.Sequence'>: SequenceEqualityOperator(),
+     ...}
+
+    ```
     """
     from coola import comparators  # Local import to avoid cyclic dependencies
 

@@ -54,16 +54,17 @@ class AllCloseTester(BaseAllCloseTester):
                 operator for a type. Default: ``False``.
 
         Raises:
-            RuntimeError if an operator is already registered for the
+            RuntimeError: if an operator is already registered for the
                 data type and ``exist_ok=False``.
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.testers import AllCloseTester
+        >>> from coola.comparators import SequenceAllCloseOperator
+        >>> AllCloseTester.add_operator(list, SequenceAllCloseOperator(), exist_ok=True)
 
-            >>> from coola.testers import AllCloseTester
-            >>> from coola.comparators import SequenceAllCloseOperator
-            >>> AllCloseTester.add_operator(list, SequenceAllCloseOperator(), exist_ok=True)
+        ```
         """
         if data_type in cls.registry and not exist_ok:
             raise RuntimeError(
@@ -104,28 +105,29 @@ class AllCloseTester(BaseAllCloseTester):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> import torch
+        >>> from coola.testers import AllCloseTester
+        >>> tester = AllCloseTester()
+        >>> tester.allclose(
+        ...     [torch.ones(2, 3), torch.zeros(2)],
+        ...     [torch.ones(2, 3), torch.zeros(2)],
+        ... )
+        True
+        >>> tester.allclose(
+        ...     [torch.ones(2, 3), torch.ones(2)],
+        ...     [torch.ones(2, 3), torch.zeros(2)],
+        ... )
+        False
+        >>> tester.allclose(
+        ...     [torch.ones(2, 3) + 1e-7, torch.ones(2)],
+        ...     [torch.ones(2, 3), torch.ones(2) - 1e-7],
+        ...     rtol=0,
+        ...     atol=1e-8,
+        ... )
+        False
 
-            >>> import torch
-            >>> from coola.testers import AllCloseTester
-            >>> tester = AllCloseTester()
-            >>> tester.allclose(
-            ...     [torch.ones(2, 3), torch.zeros(2)],
-            ...     [torch.ones(2, 3), torch.zeros(2)],
-            ... )
-            True
-            >>> tester.allclose(
-            ...     [torch.ones(2, 3), torch.ones(2)],
-            ...     [torch.ones(2, 3), torch.zeros(2)],
-            ... )
-            False
-            >>> tester.allclose(
-            ...     [torch.ones(2, 3) + 1e-7, torch.ones(2)],
-            ...     [torch.ones(2, 3), torch.ones(2) - 1e-7],
-            ...     rtol=0,
-            ...     atol=1e-8,
-            ... )
-            False
+        ```
         """
         return self.find_operator(type(object1)).allclose(
             self, object1, object2, rtol, atol, equal_nan, show_difference
@@ -145,13 +147,14 @@ class AllCloseTester(BaseAllCloseTester):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.testers import AllCloseTester
+        >>> AllCloseTester.has_operator(list)
+        True
+        >>> AllCloseTester.has_operator(str)
+        False
 
-            >>> from coola.testers import AllCloseTester
-            >>> AllCloseTester.has_operator(list)
-            True
-            >>> AllCloseTester.has_operator(str)
-            False
+        ```
         """
         return data_type in cls.registry
 
@@ -168,13 +171,14 @@ class AllCloseTester(BaseAllCloseTester):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.testers import AllCloseTester
+        >>> AllCloseTester.find_operator(list)
+        SequenceAllCloseOperator()
+        >>> AllCloseTester.find_operator(str)
+        DefaultAllCloseOperator()
 
-            >>> from coola.testers import AllCloseTester
-            >>> AllCloseTester.find_operator(list)
-            SequenceAllCloseOperator()
-            >>> AllCloseTester.find_operator(str)
-            DefaultAllCloseOperator()
+        ```
         """
         for object_type in data_type.__mro__:
             operator = cls.registry.get(object_type, None)
@@ -193,11 +197,12 @@ class AllCloseTester(BaseAllCloseTester):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.testers import AllCloseTester
+        >>> AllCloseTester.local_copy()
+        LocalAllCloseTester(...)
 
-            >>> from coola.testers import AllCloseTester
-            >>> AllCloseTester.local_copy()
-            LocalAllCloseTester(...)
+        ```
         """
         return LocalAllCloseTester({key: value.clone() for key, value in cls.registry.items()})
 
@@ -237,17 +242,18 @@ class LocalAllCloseTester(BaseAllCloseTester):
                 operator for a type. Default: ``False``.
 
         Raises:
-            RuntimeError if an operator is already registered for the
+            RuntimeError: if an operator is already registered for the
                 data type and ``exist_ok=False``.
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.testers import AllCloseTester
+        >>> from coola.comparators import SequenceAllCloseOperator
+        >>> tester = AllCloseTester.local_copy()
+        >>> tester.add_operator(list, SequenceAllCloseOperator(), exist_ok=True)
 
-            >>> from coola.testers import AllCloseTester
-            >>> from coola.comparators import SequenceAllCloseOperator
-            >>> tester = AllCloseTester.local_copy()
-            >>> tester.add_operator(list, SequenceAllCloseOperator(), exist_ok=True)
+        ```
         """
         if data_type in self.registry and not exist_ok:
             raise RuntimeError(
@@ -288,28 +294,29 @@ class LocalAllCloseTester(BaseAllCloseTester):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> import torch
+        >>> from coola.testers import AllCloseTester
+        >>> tester = AllCloseTester.local_copy()
+        >>> tester.allclose(
+        ...     [torch.ones(2, 3), torch.zeros(2)],
+        ...     [torch.ones(2, 3), torch.zeros(2)],
+        ... )
+        True
+        >>> tester.allclose(
+        ...     [torch.ones(2, 3), torch.ones(2)],
+        ...     [torch.ones(2, 3), torch.zeros(2)],
+        ... )
+        False
+        >>> tester.allclose(
+        ...     [torch.ones(2, 3) + 1e-7, torch.ones(2)],
+        ...     [torch.ones(2, 3), torch.ones(2) - 1e-7],
+        ...     rtol=0,
+        ...     atol=1e-8,
+        ... )
+        False
 
-            >>> import torch
-            >>> from coola.testers import AllCloseTester
-            >>> tester = AllCloseTester.local_copy()
-            >>> tester.allclose(
-            ...     [torch.ones(2, 3), torch.zeros(2)],
-            ...     [torch.ones(2, 3), torch.zeros(2)],
-            ... )
-            True
-            >>> tester.allclose(
-            ...     [torch.ones(2, 3), torch.ones(2)],
-            ...     [torch.ones(2, 3), torch.zeros(2)],
-            ... )
-            False
-            >>> tester.allclose(
-            ...     [torch.ones(2, 3) + 1e-7, torch.ones(2)],
-            ...     [torch.ones(2, 3), torch.ones(2) - 1e-7],
-            ...     rtol=0,
-            ...     atol=1e-8,
-            ... )
-            False
+        ```
         """
         return self.find_operator(type(object1)).allclose(
             self, object1, object2, rtol, atol, equal_nan, show_difference
@@ -324,11 +331,12 @@ class LocalAllCloseTester(BaseAllCloseTester):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.testers import AllCloseTester
+        >>> tester = AllCloseTester.local_copy()
+        >>> tester_cloned = tester.clone()
 
-            >>> from coola.testers import AllCloseTester
-            >>> tester = AllCloseTester.local_copy()
-            >>> tester_cloned = tester.clone()
+        ```
         """
         return self.__class__({key: value.clone() for key, value in self.registry.items()})
 
@@ -345,14 +353,15 @@ class LocalAllCloseTester(BaseAllCloseTester):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.testers import AllCloseTester
+        >>> tester = AllCloseTester.local_copy()
+        >>> tester.has_operator(list)
+        True
+        >>> tester.has_operator(str)
+        False
 
-            >>> from coola.testers import AllCloseTester
-            >>> tester = AllCloseTester.local_copy()
-            >>> tester.has_operator(list)
-            True
-            >>> tester.has_operator(str)
-            False
+        ```
         """
         return data_type in self.registry
 
@@ -368,14 +377,15 @@ class LocalAllCloseTester(BaseAllCloseTester):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.testers import AllCloseTester
+        >>> tester = AllCloseTester.local_copy()
+        >>> tester.find_operator(list)
+        SequenceAllCloseOperator()
+        >>> tester.find_operator(str)
+        DefaultAllCloseOperator()
 
-            >>> from coola.testers import AllCloseTester
-            >>> tester = AllCloseTester.local_copy()
-            >>> tester.find_operator(list)
-            SequenceAllCloseOperator()
-            >>> tester.find_operator(str)
-            DefaultAllCloseOperator()
+        ```
         """
         for object_type in data_type.__mro__:
             operator = self.registry.get(object_type, None)

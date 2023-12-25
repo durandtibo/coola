@@ -25,28 +25,29 @@ def summary(value: Any, max_depth: int = 1, summarizer: BaseSummarizer | None = 
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola import summary
+    >>> print(summary(1))
+    <class 'int'> 1
+    >>> print(summary(["abc", "def"]))
+    <class 'list'> (length=2)
+      (0): abc
+      (1): def
+    >>> print(summary([[0, 1, 2], {"key1": "abc", "key2": "def"}]))
+    <class 'list'> (length=2)
+      (0): [0, 1, 2]
+      (1): {'key1': 'abc', 'key2': 'def'}
+    >>> print(summary([[0, 1, 2], {"key1": "abc", "key2": "def"}], max_depth=2))
+    <class 'list'> (length=2)
+      (0): <class 'list'> (length=3)
+          (0): 0
+          (1): 1
+          (2): 2
+      (1): <class 'dict'> (length=2)
+          (key1): abc
+          (key2): def
 
-        >>> from coola import summary
-        >>> print(summary(1))
-        <class 'int'> 1
-        >>> print(summary(["abc", "def"]))
-        <class 'list'> (length=2)
-          (0): abc
-          (1): def
-        >>> print(summary([[0, 1, 2], {"key1": "abc", "key2": "def"}]))
-        <class 'list'> (length=2)
-          (0): [0, 1, 2]
-          (1): {'key1': 'abc', 'key2': 'def'}
-        >>> print(summary([[0, 1, 2], {"key1": "abc", "key2": "def"}], max_depth=2))
-        <class 'list'> (length=2)
-          (0): <class 'list'> (length=3)
-              (0): 0
-              (1): 1
-              (2): 2
-          (1): <class 'dict'> (length=2)
-              (key1): abc
-              (key2): def
+    ```
     """
     summarizer = summarizer or Summarizer()
     return summarizer.summary(value=value, depth=0, max_depth=max_depth)

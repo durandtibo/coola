@@ -12,7 +12,22 @@ class EmptySequenceError(Exception):
 
 
 class BaseReducer(ABC):
-    r"""Defines the base class to implement a reducer."""
+    r"""Defines the base class to implement a reducer.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola.reducers import NumpyReducer
+    >>> reducer = NumpyReducer()
+    >>> reducer.max([-2, -1, 0, 1, 2])
+    2
+    >>> reducer.median([-2, -1, 0, 1, 2])
+    0.0
+    >>> reducer.sort([2, 1, -2, 3, 0])
+    [-2, 0, 1, 2, 3]
+
+    ```
+    """
 
     @abstractmethod
     def max(self, values: Sequence[int | float]) -> int | float:
@@ -25,7 +40,7 @@ class BaseReducer(ABC):
             int or float: The maximum value.
 
         Raises:
-            EmptySequenceError if the input sequence is empty.
+            EmptySequenceError: if the input sequence is empty.
 
         Example usage:
 
@@ -48,7 +63,7 @@ class BaseReducer(ABC):
             int or float: The mean value.
 
         Raises:
-            EmptySequenceError if the input sequence is empty.
+            EmptySequenceError: if the input sequence is empty.
 
         Example usage:
 
@@ -71,7 +86,7 @@ class BaseReducer(ABC):
             int or float: The median value.
 
         Raises:
-            EmptySequenceError if the input sequence is empty.
+            EmptySequenceError: if the input sequence is empty.
 
         Example usage:
 
@@ -94,7 +109,7 @@ class BaseReducer(ABC):
             int or float: The minimum value.
 
         Raises:
-            EmptySequenceError if the input sequence is empty.
+            EmptySequenceError: if the input sequence is empty.
 
         Example usage:
 
@@ -119,7 +134,7 @@ class BaseReducer(ABC):
             list of floats: The quantiles.
 
         Raises:
-            EmptySequenceError if the input sequence is empty.
+            EmptySequenceError: if the input sequence is empty.
 
         Example usage:
 
@@ -166,7 +181,7 @@ class BaseReducer(ABC):
             float: The standard deviation.
 
         Raises:
-            EmptySequenceError if the input sequence is empty.
+            EmptySequenceError: if the input sequence is empty.
 
         Example usage:
 

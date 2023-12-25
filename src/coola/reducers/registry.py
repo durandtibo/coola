@@ -30,15 +30,16 @@ class ReducerRegistry:
                 existing reducer. Default: ``False``.
 
         Raises:
-            RuntimeError if a reducer is already registered for the
+            RuntimeError: if a reducer is already registered for the
                 name and ``exist_ok=False``.
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.reducers import ReducerRegistry, BasicReducer
+        >>> ReducerRegistry.add_reducer("basic", BasicReducer(), exist_ok=True)
 
-            >>> from coola.reducers import ReducerRegistry, BasicReducer
-            >>> ReducerRegistry.add_reducer("basic", BasicReducer(), exist_ok=True)
+        ```
         """
         if name in cls.registry and not exist_ok:
             raise RuntimeError(
@@ -57,11 +58,12 @@ class ReducerRegistry:
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.reducers import ReducerRegistry
+        >>> ReducerRegistry.available_reducers()
+        ('basic', 'numpy', 'torch')
 
-            >>> from coola.reducers import ReducerRegistry
-            >>> ReducerRegistry.available_reducers()
-            (...)
+        ```
         """
         return tuple(cls.registry.keys())
 
@@ -78,12 +80,13 @@ class ReducerRegistry:
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.reducers import ReducerRegistry
+        >>> ReducerRegistry.has_reducer("basic")
+        True
+        >>> ReducerRegistry.has_reducer("missing")
+        False
 
-            >>> from coola.reducers import ReducerRegistry
-            >>> ReducerRegistry.has_reducer("basic")
-            True
-            >>> ReducerRegistry.has_reducer("missing")
-            False
+        ```
         """
         return name in cls.registry
