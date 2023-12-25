@@ -1,3 +1,5 @@
+r"""This package contains the utility functions."""
+
 from __future__ import annotations
 
 __all__ = [

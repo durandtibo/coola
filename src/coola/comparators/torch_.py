@@ -29,7 +29,33 @@ logger = logging.getLogger(__name__)
 
 class PackedSequenceAllCloseOperator(BaseAllCloseOperator[torch.nn.utils.rnn.PackedSequence]):
     r"""Implements an allclose operator for
-    ``torch.nn.utils.rnn.PackedSequence``."""
+    ``torch.nn.utils.rnn.PackedSequence``.
+
+    Example usage:
+
+    ```pycon
+    >>> import torch
+    >>> from coola.comparators import PackedSequenceAllCloseOperator
+    >>> from coola.testers import AllCloseTester
+    >>> tester = AllCloseTester()
+    >>> op = PackedSequenceAllCloseOperator()
+    >>> op.allclose(
+    ...     tester,
+    ...     torch.nn.utils.rnn.pack_padded_sequence(
+    ...         input=torch.arange(10, dtype=torch.float).view(2, 5),
+    ...         lengths=torch.tensor([5, 3], dtype=torch.long),
+    ...         batch_first=True,
+    ...     ),
+    ...     torch.nn.utils.rnn.pack_padded_sequence(
+    ...         input=torch.arange(10, dtype=torch.float).view(2, 5),
+    ...         lengths=torch.tensor([5, 3], dtype=torch.long),
+    ...         batch_first=True,
+    ...     ),
+    ... )
+    True
+
+    ```
+    """
 
     def __init__(self) -> None:
         check_torch()
@@ -102,7 +128,33 @@ class PackedSequenceAllCloseOperator(BaseAllCloseOperator[torch.nn.utils.rnn.Pac
 
 class PackedSequenceEqualityOperator(BaseEqualityOperator[torch.nn.utils.rnn.PackedSequence]):
     r"""Implements an equality operator for
-    ``torch.nn.utils.rnn.PackedSequence``."""
+    ``torch.nn.utils.rnn.PackedSequence``.
+
+    Example usage:
+
+    ```pycon
+    >>> import torch
+    >>> from coola.comparators import PackedSequenceEqualityOperator
+    >>> from coola.testers import EqualityTester
+    >>> tester = EqualityTester()
+    >>> op = PackedSequenceEqualityOperator()
+    >>> op.equal(
+    ...     tester,
+    ...     torch.nn.utils.rnn.pack_padded_sequence(
+    ...         input=torch.arange(10, dtype=torch.float).view(2, 5),
+    ...         lengths=torch.tensor([5, 3], dtype=torch.long),
+    ...         batch_first=True,
+    ...     ),
+    ...     torch.nn.utils.rnn.pack_padded_sequence(
+    ...         input=torch.arange(10, dtype=torch.float).view(2, 5),
+    ...         lengths=torch.tensor([5, 3], dtype=torch.long),
+    ...         batch_first=True,
+    ...     ),
+    ... )
+    True
+
+    ```
+    """
 
     def __init__(self) -> None:
         check_torch()
@@ -143,7 +195,21 @@ class PackedSequenceEqualityOperator(BaseEqualityOperator[torch.nn.utils.rnn.Pac
 
 
 class TensorAllCloseOperator(BaseAllCloseOperator[torch.Tensor]):
-    r"""Implements an allclose operator for ``torch.Tensor``."""
+    r"""Implements an allclose operator for ``torch.Tensor``.
+
+    Example usage:
+
+    ```pycon
+    >>> import torch
+    >>> from coola.comparators import TensorAllCloseOperator
+    >>> from coola.testers import AllCloseTester
+    >>> tester = AllCloseTester()
+    >>> op = TensorAllCloseOperator()
+    >>> op.allclose(tester, torch.arange(21), torch.arange(21))
+    True
+
+    ```
+    """
 
     def __init__(self) -> None:
         check_torch()
@@ -195,7 +261,21 @@ class TensorAllCloseOperator(BaseAllCloseOperator[torch.Tensor]):
 
 
 class TensorEqualityOperator(BaseEqualityOperator[torch.Tensor]):
-    r"""Implements an equality operator for ``torch.Tensor``."""
+    r"""Implements an equality operator for ``torch.Tensor``.
+
+    Example usage:
+
+    ```pycon
+    >>> import torch
+    >>> from coola.comparators import TensorEqualityOperator
+    >>> from coola.testers import EqualityTester
+    >>> tester = EqualityTester()
+    >>> op = TensorEqualityOperator()
+    >>> op.equal(tester, torch.arange(21), torch.arange(21))
+    True
+
+    ```
+    """
 
     def __init__(self) -> None:
         check_torch()
@@ -247,6 +327,16 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
     Returns:
         dict: The mapping between the types and the allclose
             operators.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola.comparators.torch_ import get_mapping_allclose
+    >>> get_mapping_allclose()
+    {<class 'torch.Tensor'>: TensorAllCloseOperator(),
+     <class 'torch.nn.utils.rnn.PackedSequence'>: PackedSequenceAllCloseOperator()}
+
+    ```
     """
     if not is_torch_available():
         return {}
@@ -266,6 +356,16 @@ def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
     Returns:
         dict: The mapping between the types and the equality
             operators.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola.comparators.torch_ import get_mapping_equality
+    >>> get_mapping_equality()
+    {<class 'torch.Tensor'>: TensorEqualityOperator(),
+     <class 'torch.nn.utils.rnn.PackedSequence'>: PackedSequenceEqualityOperator()}
+
+    ```
     """
     if not is_torch_available():
         return {}

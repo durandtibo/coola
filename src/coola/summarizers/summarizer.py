@@ -26,6 +26,45 @@ class Summarizer(BaseSummarizer):
 
     The registry is a class variable, so it is shared with all the
     instances of this class.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola import Summarizer
+    >>> summarizer = Summarizer()
+    >>> summarizer
+    Summarizer(
+      (<class 'collections.abc.Mapping'>): MappingFormatter(max_items=5, num_spaces=2)
+      (<class 'collections.abc.Sequence'>): SequenceFormatter(max_items=5, num_spaces=2)
+      (<class 'dict'>): MappingFormatter(max_items=5, num_spaces=2)
+      (<class 'list'>): SequenceFormatter(max_items=5, num_spaces=2)
+      (<class 'object'>): DefaultFormatter(max_characters=-1)
+      (<class 'set'>): SetFormatter(max_items=5, num_spaces=2)
+      (<class 'tuple'>): SequenceFormatter(max_items=5, num_spaces=2)
+      (<class 'numpy.ndarray'>): NDArrayFormatter(show_data=False)
+      (<class 'torch.Tensor'>): TensorFormatter(show_data=False)
+    )
+    >>> print(summarizer.summary(1))
+    <class 'int'> 1
+    >>> print(summarizer.summary(["abc", "def"]))
+    <class 'list'> (length=2)
+      (0): abc
+      (1): def
+    >>> print(summarizer.summary([[0, 1, 2], {"key1": "abc", "key2": "def"}]))
+    <class 'list'> (length=2)
+      (0): [0, 1, 2]
+      (1): {'key1': 'abc', 'key2': 'def'}
+    >>> print(summarizer.summary([[0, 1, 2], {"key1": "abc", "key2": "def"}], max_depth=2))
+    <class 'list'> (length=2)
+      (0): <class 'list'> (length=3)
+          (0): 0
+          (1): 1
+          (2): 2
+      (1): <class 'dict'> (length=2)
+          (key1): abc
+          (key2): def
+
+    ```
     """
 
     registry: dict[type[object], BaseFormatter] = {
@@ -70,16 +109,18 @@ class Summarizer(BaseSummarizer):
                 formatter for a type. Default: ``False``.
 
         Raises:
-            RuntimeError if a formatter is already registered for the
+            RuntimeError: if a formatter is already registered for the
                 data type and ``exist_ok=False``.
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
 
-            >>> from coola import Summarizer
-            >>> from coola.formatters import MappingFormatter
-            >>> Summarizer.add_formatter(dict, MappingFormatter(), exist_ok=True)
+        >>> from coola import Summarizer
+        >>> from coola.formatters import MappingFormatter
+        >>> Summarizer.add_formatter(dict, MappingFormatter(), exist_ok=True)
+
+        ```
         """
         if data_type in cls.registry and not exist_ok:
             raise RuntimeError(
@@ -103,13 +144,15 @@ class Summarizer(BaseSummarizer):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
 
-            >>> from coola import Summarizer
-            >>> Summarizer.has_formatter(list)
-            True
-            >>> Summarizer.has_formatter(str)
-            False
+        >>> from coola import Summarizer
+        >>> Summarizer.has_formatter(list)
+        True
+        >>> Summarizer.has_formatter(str)
+        False
+
+        ```
         """
         return data_type in cls.registry
 
@@ -125,18 +168,20 @@ class Summarizer(BaseSummarizer):
                 type.
 
         Raises:
-            TypeError if a formatter cannot be found for this data
+            TypeError: if a formatter cannot be found for this data
                 type.
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
 
-            >>> from coola import Summarizer
-            >>> Summarizer.find_formatter(list)
-            SequenceFormatter(max_items=5, num_spaces=2)
-            >>> Summarizer.find_formatter(str)
-            DefaultFormatter(max_characters=-1)
+        >>> from coola import Summarizer
+        >>> Summarizer.find_formatter(list)
+        SequenceFormatter(max_items=5, num_spaces=2)
+        >>> Summarizer.find_formatter(str)
+        DefaultFormatter(max_characters=-1)
+
+        ```
         """
         for object_type in data_type.__mro__:
             formatter = cls.registry.get(object_type, None)
@@ -149,20 +194,22 @@ class Summarizer(BaseSummarizer):
         r"""Load the state values from a dict.
 
         Args:
-            state_dict (dict): a dict with parameters
+            state (dict): A dictionary with state values
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
 
-            >>> from coola import Summarizer
-            >>> Summarizer.load_state_dict({object: {"max_characters": 10}})
-            >>> summarizer = Summarizer()
-            >>> summarizer.registry[object]
-            DefaultFormatter(max_characters=10)
-            >>> Summarizer.load_state_dict({object: {"max_characters": -1}})
-            >>> summarizer.registry[object]
-            DefaultFormatter(max_characters=-1)
+        >>> from coola import Summarizer
+        >>> Summarizer.load_state_dict({object: {"max_characters": 10}})
+        >>> summarizer = Summarizer()
+        >>> summarizer.registry[object]
+        DefaultFormatter(max_characters=10)
+        >>> Summarizer.load_state_dict({object: {"max_characters": -1}})
+        >>> summarizer.registry[object]
+        DefaultFormatter(max_characters=-1)
+
+        ```
         """
         for data_type, formatter in cls.registry.items():
             if (s := state.get(data_type)) is not None:
@@ -177,11 +224,13 @@ class Summarizer(BaseSummarizer):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
 
-            >>> from coola import Summarizer
-            >>> Summarizer.state_dict()
-            {<class 'collections.abc.Mapping'>: {'max_items': 5, 'num_spaces': 2},...
+        >>> from coola import Summarizer
+        >>> Summarizer.state_dict()
+        {<class 'collections.abc.Mapping'>: {'max_items': 5, 'num_spaces': 2},...}
+
+        ```
         """
         return {data_type: formatter.state_dict() for data_type, formatter in cls.registry.items()}
 
@@ -198,16 +247,18 @@ class Summarizer(BaseSummarizer):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
 
-            >>> from coola import Summarizer
-            >>> Summarizer.set_max_characters(10)
-            >>> summarizer = Summarizer()
-            >>> summarizer.registry[object]
-            DefaultFormatter(max_characters=10)
-            >>> Summarizer.set_max_characters(-1)
-            >>> summarizer.registry[object]
-            DefaultFormatter(max_characters=-1)
+        >>> from coola import Summarizer
+        >>> Summarizer.set_max_characters(10)
+        >>> summarizer = Summarizer()
+        >>> summarizer.registry[object]
+        DefaultFormatter(max_characters=10)
+        >>> Summarizer.set_max_characters(-1)
+        >>> summarizer.registry[object]
+        DefaultFormatter(max_characters=-1)
+
+        ```
         """
         for formatter in cls.registry.values():
             if hasattr(formatter, "set_max_characters"):
@@ -227,16 +278,18 @@ class Summarizer(BaseSummarizer):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
 
-            >>> from coola import Summarizer
-            >>> Summarizer.set_max_items(10)
-            >>> summarizer = Summarizer()
-            >>> summarizer.registry[dict]
-            MappingFormatter(max_items=10, num_spaces=2)
-            >>> Summarizer.set_max_items(5)
-            >>> summarizer.registry[dict]
-            MappingFormatter(max_items=5, num_spaces=2)
+        >>> from coola import Summarizer
+        >>> Summarizer.set_max_items(10)
+        >>> summarizer = Summarizer()
+        >>> summarizer.registry[dict]
+        MappingFormatter(max_items=10, num_spaces=2)
+        >>> Summarizer.set_max_items(5)
+        >>> summarizer.registry[dict]
+        MappingFormatter(max_items=5, num_spaces=2)
+
+        ```
         """
         for formatter in cls.registry.values():
             if hasattr(formatter, "set_max_items"):
@@ -256,16 +309,18 @@ class Summarizer(BaseSummarizer):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
 
-            >>> from coola import Summarizer
-            >>> Summarizer.set_num_spaces(4)
-            >>> summarizer = Summarizer()
-            >>> summarizer.registry[dict]
-            MappingFormatter(max_items=5, num_spaces=4)
-            >>> Summarizer.set_num_spaces(2)
-            >>> summarizer.registry[dict]
-            MappingFormatter(max_items=5, num_spaces=2)
+        >>> from coola import Summarizer
+        >>> Summarizer.set_num_spaces(4)
+        >>> summarizer = Summarizer()
+        >>> summarizer.registry[dict]
+        MappingFormatter(max_items=5, num_spaces=4)
+        >>> Summarizer.set_num_spaces(2)
+        >>> summarizer.registry[dict]
+        MappingFormatter(max_items=5, num_spaces=2)
+
+        ```
         """
         for formatter in cls.registry.values():
             if hasattr(formatter, "set_num_spaces"):
@@ -293,17 +348,18 @@ def set_summarizer_options(
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola import set_summarizer_options, summary
+    >>> print(summary("abcdefghijklmnopqrstuvwxyz"))
+    <class 'str'> abcdefghijklmnopqrstuvwxyz
+    >>> set_summarizer_options(max_characters=10)
+    >>> print(summary("abcdefghijklmnopqrstuvwxyz"))
+    <class 'str'> abcdefghij...
+    >>> set_summarizer_options(max_characters=-1)
+    >>> print(summary("abcdefghijklmnopqrstuvwxyz"))
+    <class 'str'> abcdefghijklmnopqrstuvwxyz
 
-        >>> from coola import set_summarizer_options, summary
-        >>> print(summary("abcdefghijklmnopqrstuvwxyz"))
-        <class 'str'> abcdefghijklmnopqrstuvwxyz
-        >>> set_summarizer_options(max_characters=10)
-        >>> print(summary("abcdefghijklmnopqrstuvwxyz"))
-        <class 'str'> abcdefghij...
-        >>> set_summarizer_options(max_characters=-1)
-        >>> print(summary("abcdefghijklmnopqrstuvwxyz"))
-        <class 'str'> abcdefghijklmnopqrstuvwxyz
+    ```
     """
     if max_characters is not None:
         Summarizer.set_max_characters(max_characters)
@@ -314,7 +370,7 @@ def set_summarizer_options(
 
 
 @contextmanager
-def summarizer_options(**kwargs) -> None:
+def summarizer_options(**kwargs: Any) -> None:
     r"""Context manager that temporarily changes the summarizer options.
 
     Accepted arguments are same as ``set_summarizer_options``.
@@ -328,17 +384,18 @@ def summarizer_options(**kwargs) -> None:
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola import summarizer_options, summary
+    >>> print(summary("abcdefghijklmnopqrstuvwxyz"))
+    <class 'str'> abcdefghijklmnopqrstuvwxyz
+    >>> with summarizer_options(max_characters=10):
+    ...     print(summary("abcdefghijklmnopqrstuvwxyz"))
+    ...
+    <class 'str'> abcdefghij...
+    >>> print(summary("abcdefghijklmnopqrstuvwxyz"))
+    <class 'str'> abcdefghijklmnopqrstuvwxyz
 
-        >>> from coola import summarizer_options, summary
-        >>> print(summary("abcdefghijklmnopqrstuvwxyz"))
-        <class 'str'> abcdefghijklmnopqrstuvwxyz
-        >>> with summarizer_options(max_characters=10):
-        ...     print(summary("abcdefghijklmnopqrstuvwxyz"))
-        ...
-        <class 'str'> abcdefghij...
-        >>> print(summary("abcdefghijklmnopqrstuvwxyz"))
-        <class 'str'> abcdefghijklmnopqrstuvwxyz
+    ```
     """
     state = Summarizer.state_dict()
     set_summarizer_options(**kwargs)

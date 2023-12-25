@@ -27,6 +27,18 @@ class DefaultAllCloseOperator(BaseAllCloseOperator[Any]):
     The ``==`` operator is used to test the equality between the objects
     because it is not possible to define an allclose operator for all
     objects.
+
+    ```pycon
+    >>> from coola.testers import AllCloseTester
+    >>> from coola.comparators import DefaultAllCloseOperator
+    >>> tester = AllCloseTester()
+    >>> op = DefaultAllCloseOperator()
+    >>> op.allclose(tester, 42, 42)
+    True
+    >>> DefaultAllCloseOperator().allclose(tester, "meow", "meov")
+    False
+
+    ```
     """
 
     def __eq__(self, other: Any) -> bool:
@@ -58,7 +70,35 @@ class DefaultAllCloseOperator(BaseAllCloseOperator[Any]):
 
 
 class MappingAllCloseOperator(BaseAllCloseOperator[Mapping]):
-    r"""Implements an equality operator for mappings."""
+    r"""Implements an equality operator for mappings.
+
+    ```pycon
+    >>> from coola.testers import AllCloseTester
+    >>> from coola.comparators import MappingAllCloseOperator
+    >>> tester = AllCloseTester()
+    >>> op = MappingAllCloseOperator()
+    >>> op.allclose(
+    ...     tester,
+    ...     {'key1': 42, 'key2': 1.2, "key3": "abc"},
+    ...     {'key1': 42, 'key2': 1.2, "key3": "abc"}
+    ... )
+    True
+    >>> MappingAllCloseOperator().allclose(
+    ...     tester,
+    ...     {'key1': 42, 'key2': 1.2, "key3": "abc"},
+    ...     {'key1': 42, 'key2': 1.201, "key3": "abc"}
+    ... )
+    False
+    >>> MappingAllCloseOperator().allclose(
+    ...     tester,
+    ...     {'key1': 42, 'key2': 1.2, "key3": "abc"},
+    ...     {'key1': 42, 'key2': 1.201, "key3": "abc"},
+    ...     atol=1e-2,
+    ... )
+    True
+
+    ```
+    """
 
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, self.__class__)
@@ -112,7 +152,22 @@ class MappingAllCloseOperator(BaseAllCloseOperator[Mapping]):
 
 
 class ScalarAllCloseOperator(BaseAllCloseOperator[Union[bool, int, float]]):
-    r"""Implements an allclose operator for scalar values."""
+    r"""Implements an allclose operator for scalar values.
+
+    ```pycon
+    >>> from coola.testers import AllCloseTester
+    >>> from coola.comparators import ScalarAllCloseOperator
+    >>> tester = AllCloseTester()
+    >>> op = ScalarAllCloseOperator()
+    >>> op.allclose(tester, 42, 42)
+    True
+    >>> op.allclose(tester, 42.0, 42.001)
+    False
+    >>> op.allclose(tester, 42.0, 42.001, atol=1e-2)
+    True
+
+    ```
+    """
 
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, self.__class__)
@@ -145,7 +200,22 @@ class ScalarAllCloseOperator(BaseAllCloseOperator[Union[bool, int, float]]):
 
 
 class SequenceAllCloseOperator(BaseAllCloseOperator[Sequence]):
-    r"""Implements an equality operator for sequences."""
+    r"""Implements an equality operator for sequences.
+
+    ```pycon
+    >>> from coola.testers import AllCloseTester
+    >>> from coola.comparators import SequenceAllCloseOperator
+    >>> tester = AllCloseTester()
+    >>> op = SequenceAllCloseOperator()
+    >>> op.allclose(tester, [42, 1.2, "abc"], [42, 1.2, "abc"])
+    True
+    >>> op.allclose(tester, [42, 1.2, "abc"], [42, 1.201, "abc"])
+    False
+    >>> op.allclose(tester, [42, 1.2, "abc"], [42, 1.201, "abc"], atol=1e-2)
+    True
+
+    ```
+    """
 
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, self.__class__)
@@ -196,6 +266,15 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
     Returns:
         dict: The mapping between the types and the allclose
             operators.
+
+    ```pycon
+    >>> from coola.comparators.allclose import get_mapping_allclose
+    >>> get_mapping_allclose()
+    {<class 'collections.abc.Mapping'>: MappingAllCloseOperator(),
+     <class 'collections.abc.Sequence'>: SequenceAllCloseOperator(),
+     ...}
+
+    ```
     """
     return {
         Mapping: MappingAllCloseOperator(),

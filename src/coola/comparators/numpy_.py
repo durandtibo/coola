@@ -32,6 +32,19 @@ class ArrayAllCloseOperator(BaseAllCloseOperator[np.ndarray]):
         check_dtype (bool, optional): If ``True``, the data type of
             the arrays are checked, otherwise the data types are
             ignored. Default: ``True``
+
+    Example usage:
+
+    ```pycon
+    >>> import numpy as np
+    >>> from coola.comparators import ArrayAllCloseOperator
+    >>> from coola.testers import AllCloseTester
+    >>> tester = AllCloseTester()
+    >>> op = ArrayAllCloseOperator()
+    >>> op.allclose(tester, np.arange(21), np.arange(21))
+    True
+
+    ```
     """
 
     def __init__(self, check_dtype: bool = True) -> None:
@@ -90,6 +103,19 @@ class ArrayEqualityOperator(BaseEqualityOperator[np.ndarray]):
         check_dtype (bool, optional): If ``True``, the data type of
             the arrays are checked, otherwise the data types are
             ignored. Default: ``True``
+
+    Example usage:
+
+    ```pycon
+    >>> import numpy as np
+    >>> from coola.comparators import ArrayEqualityOperator
+    >>> from coola.testers import EqualityTester
+    >>> tester = EqualityTester()
+    >>> op = ArrayEqualityOperator()
+    >>> op.equal(tester, np.arange(21), np.arange(21))
+    True
+
+    ```
     """
 
     def __init__(self, check_dtype: bool = True) -> None:
@@ -148,6 +174,15 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
     Returns:
         dict: The mapping between the types and the allclose
             operators.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola.comparators.numpy_ import get_mapping_allclose
+    >>> get_mapping_allclose()
+    {<class 'numpy.ndarray'>: ArrayAllCloseOperator(check_dtype=True)}
+
+    ```
     """
     if not is_numpy_available():
         return {}
@@ -164,6 +199,15 @@ def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
     Returns:
         dict: The mapping between the types and the equality
             operators.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola.comparators.numpy_ import get_mapping_equality
+    >>> get_mapping_equality()
+    {<class 'numpy.ndarray'>: ArrayEqualityOperator(check_dtype=True)}
+
+    ```
     """
     if not is_numpy_available():
         return {}

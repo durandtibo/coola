@@ -12,7 +12,19 @@ T = TypeVar("T")
 
 
 class BaseFormatter(ABC, Generic[T]):
-    r"""Define the base class to implement a formatter."""
+    r"""Define the base class to implement a formatter.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola import Summarizer
+    >>> from coola.formatters import DefaultFormatter
+    >>> formatter = DefaultFormatter()
+    >>> formatter.format(Summarizer(), 1)
+    <class 'int'> 1
+
+    ```
+    """
 
     @abstractmethod
     def clone(self) -> BaseFormatter:
@@ -23,16 +35,17 @@ class BaseFormatter(ABC, Generic[T]):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.formatters import DefaultFormatter
+        >>> formatter = DefaultFormatter()
+        >>> formatter2 = formatter.clone()
+        >>> formatter.set_max_characters(10)
+        >>> formatter
+        DefaultFormatter(max_characters=10)
+        >>> formatter2
+        DefaultFormatter(max_characters=-1)
 
-            >>> from coola.formatters import DefaultFormatter
-            >>> formatter = DefaultFormatter()
-            >>> formatter2 = formatter.clone()
-            >>> formatter.set_max_characters(10)
-            >>> formatter
-            DefaultFormatter(max_characters=10)
-            >>> formatter2
-            DefaultFormatter(max_characters=-1)
+        ```
         """
 
     @abstractmethod
@@ -48,14 +61,15 @@ class BaseFormatter(ABC, Generic[T]):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.formatters import DefaultFormatter
+        >>> formatter = DefaultFormatter()
+        >>> formatter.equal(DefaultFormatter())
+        True
+        >>> formatter.equal(DefaultFormatter(max_characters=10))
+        False
 
-            >>> from coola.formatters import DefaultFormatter
-            >>> formatter = DefaultFormatter()
-            >>> formatter.equal(DefaultFormatter())
-            True
-            >>> formatter.equal(DefaultFormatter(max_characters=10))
-            False
+        ```
         """
 
     @abstractmethod
@@ -71,13 +85,14 @@ class BaseFormatter(ABC, Generic[T]):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola import Summarizer
+        >>> from coola.formatters import DefaultFormatter
+        >>> formatter = DefaultFormatter()
+        >>> formatter.format(Summarizer(), 1)
+        <class 'int'> 1
 
-            >>> from coola import Summarizer
-            >>> from coola.formatters import DefaultFormatter
-            >>> formatter = DefaultFormatter()
-            >>> formatter.format(Summarizer(), 1)
-            <class 'int'> 1
+        ```
         """
 
     @abstractmethod
@@ -89,15 +104,16 @@ class BaseFormatter(ABC, Generic[T]):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.formatters import DefaultFormatter
+        >>> formatter = DefaultFormatter()
+        >>> # Please take a look to the implementation of the state_dict
+        >>> # function to know the expected structure
+        >>> formatter.load_state_dict({"max_characters": 10})
+        >>> formatter
+        DefaultFormatter(max_characters=10)
 
-            >>> from coola.formatters import DefaultFormatter
-            >>> formatter = DefaultFormatter()
-            >>> # Please take a look to the implementation of the state_dict
-            >>> # function to know the expected structure
-            >>> formatter.load_state_dict({"max_characters": 10})
-            >>> formatter
-            DefaultFormatter(max_characters=10)
+        ```
         """
 
     @abstractmethod
@@ -109,10 +125,11 @@ class BaseFormatter(ABC, Generic[T]):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.formatters import DefaultFormatter
+        >>> formatter = DefaultFormatter()
+        >>> formatter.state_dict()
+        {'max_characters': -1}
 
-            >>> from coola.formatters import DefaultFormatter
-            >>> formatter = DefaultFormatter()
-            >>> formatter.state_dict()
-            {'max_characters': -1}
+        ```
         """

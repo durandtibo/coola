@@ -34,6 +34,19 @@ class JaxArrayAllCloseOperator(BaseAllCloseOperator[jnp.ndarray]):
         check_dtype (bool, optional): If ``True``, the data type of
             the arrays are checked, otherwise the data types are
             ignored. Default: ``True``
+
+    Example usage:
+
+    ```pycon
+    >>> import jax.numpy as jnp
+    >>> from coola.comparators import JaxArrayAllCloseOperator
+    >>> from coola.testers import AllCloseTester
+    >>> tester = AllCloseTester()
+    >>> op = JaxArrayAllCloseOperator()
+    >>> op.allclose(tester, jnp.arange(21), jnp.arange(21))
+    True
+
+    ```
     """
 
     def __init__(self, check_dtype: bool = True) -> None:
@@ -76,7 +89,9 @@ class JaxArrayAllCloseOperator(BaseAllCloseOperator[jnp.ndarray]):
                     f"jax.numpy.ndarray shapes are different: {object1.shape} vs {object2.shape}"
                 )
             return False
-        object_equal = jnp.allclose(object1, object2, rtol=rtol, atol=atol, equal_nan=equal_nan)
+        object_equal = jnp.allclose(
+            object1, object2, rtol=rtol, atol=atol, equal_nan=equal_nan
+        ).item()
         if show_difference and not object_equal:
             logger.info(
                 f"jax.numpy.ndarrays are different\nobject1=\n{object1}\nobject2=\n{object2}"
@@ -95,6 +110,19 @@ class JaxArrayEqualityOperator(BaseEqualityOperator[jnp.ndarray]):
         check_dtype (bool, optional): If ``True``, the data type of
             the arrays are checked, otherwise the data types are
             ignored. Default: ``True``
+
+    Example usage:
+
+    ```pycon
+    >>> import jax.numpy as jnp
+    >>> from coola.comparators import JaxArrayEqualityOperator
+    >>> from coola.testers import EqualityTester
+    >>> tester = EqualityTester()
+    >>> op = JaxArrayEqualityOperator()
+    >>> op.equal(tester, jnp.arange(21), jnp.arange(21))
+    True
+
+    ```
     """
 
     def __init__(self, check_dtype: bool = True) -> None:
@@ -137,7 +165,7 @@ class JaxArrayEqualityOperator(BaseEqualityOperator[jnp.ndarray]):
                     f"jax.numpy.ndarray shapes are different: {object1.shape} vs {object2.shape}"
                 )
             return False
-        object_equal = jnp.array_equal(object1, object2)
+        object_equal = jnp.array_equal(object1, object2).item()
         if show_difference and not object_equal:
             logger.info(
                 f"jax.numpy.ndarrays are different\nobject1=\n{object1}\nobject2=\n{object2}"
@@ -155,6 +183,16 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
     Returns:
         dict: The mapping between the types and the allclose
             operators.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola.comparators.jax_ import get_mapping_allclose
+    >>> get_mapping_allclose()
+    {<class 'jax.Array'>: JaxArrayAllCloseOperator(check_dtype=True),
+     <class 'jaxlib.xla_extension.ArrayImpl'>: JaxArrayAllCloseOperator(check_dtype=True)}
+
+    ```
     """
     if not is_jax_available():
         return {}
@@ -174,6 +212,16 @@ def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
     Returns:
         dict: The mapping between the types and the equality
             operators.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola.comparators.jax_ import get_mapping_equality
+    >>> get_mapping_equality()
+    {<class 'jax.Array'>: JaxArrayEqualityOperator(check_dtype=True),
+     <class 'jaxlib.xla_extension.ArrayImpl'>: JaxArrayEqualityOperator(check_dtype=True)}
+
+    ```
     """
     if not is_jax_available():
         return {}

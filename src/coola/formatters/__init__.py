@@ -1,3 +1,5 @@
+r"""This package contains the formatter implementations."""
+
 __all__ = [
     "BaseFormatter",
     "DefaultFormatter",

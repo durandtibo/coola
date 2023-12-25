@@ -30,7 +30,26 @@ logger = logging.getLogger(__name__)
 
 
 class DataArrayAllCloseOperator(BaseAllCloseOperator[DataArray]):
-    r"""Implements an allclose operator for ``xarray.DataArray``."""
+    r"""Implements an allclose operator for ``xarray.DataArray``.
+
+    Example usage:
+
+    ```pycon
+    >>> import numpy as np
+    >>> import xarray as xr
+    >>> from coola.comparators import DataArrayAllCloseOperator
+    >>> from coola.testers import AllCloseTester
+    >>> tester = AllCloseTester()
+    >>> op = DataArrayAllCloseOperator()
+    >>> op.allclose(
+    ...     tester,
+    ...     xr.DataArray(np.arange(6)),
+    ...     xr.DataArray(np.arange(6)),
+    ... )
+    True
+
+    ```
+    """
 
     def __init__(self) -> None:
         check_xarray()
@@ -85,7 +104,26 @@ class DataArrayAllCloseOperator(BaseAllCloseOperator[DataArray]):
 
 
 class DataArrayEqualityOperator(BaseEqualityOperator[DataArray]):
-    r"""Implements an equality operator for ``xarray.DataArray``."""
+    r"""Implements an equality operator for ``xarray.DataArray``.
+
+    Example usage:
+
+    ```pycon
+    >>> import numpy as np
+    >>> import xarray as xr
+    >>> from coola.comparators import DataArrayEqualityOperator
+    >>> from coola.testers import EqualityTester
+    >>> tester = EqualityTester()
+    >>> op = DataArrayEqualityOperator()
+    >>> op.equal(
+    ...     tester,
+    ...     xr.DataArray(np.arange(6)),
+    ...     xr.DataArray(np.arange(6)),
+    ... )
+    True
+
+    ```
+    """
 
     def __init__(self) -> None:
         check_xarray()
@@ -122,7 +160,38 @@ class DataArrayEqualityOperator(BaseEqualityOperator[DataArray]):
 
 
 class DatasetAllCloseOperator(BaseAllCloseOperator[Dataset]):
-    r"""Implements an allclose operator for ``xarray.Dataset``."""
+    r"""Implements an allclose operator for ``xarray.Dataset``.
+
+    Example usage:
+
+    ```pycon
+    >>> import numpy as np
+    >>> import xarray as xr
+    >>> from coola.comparators import DatasetAllCloseOperator
+    >>> from coola.testers import AllCloseTester
+    >>> tester = AllCloseTester()
+    >>> op = DatasetAllCloseOperator()
+    >>> op.allclose(
+    ...     tester,
+    ...     xr.Dataset(
+    ...         {
+    ...             "x": xr.DataArray(np.arange(6), dims=["z"]),
+    ...         },
+    ...         coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
+    ...         attrs={"global": "this is a global attribute"},
+    ...     ),
+    ...     xr.Dataset(
+    ...         {
+    ...            "x": xr.DataArray(np.arange(6), dims=["z"]),
+    ...         },
+    ...         coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
+    ...         attrs={"global": "this is a global attribute"},
+    ...     ),
+    ... )
+    True
+
+    ```
+    """
 
     def __init__(self) -> None:
         check_xarray()
@@ -175,7 +244,38 @@ class DatasetAllCloseOperator(BaseAllCloseOperator[Dataset]):
 
 
 class DatasetEqualityOperator(BaseEqualityOperator[Dataset]):
-    r"""Implements an equality operator for ``xarray.Dataset``."""
+    r"""Implements an equality operator for ``xarray.Dataset``.
+
+    Example usage:
+
+    ```pycon
+    >>> import numpy as np
+    >>> import xarray as xr
+    >>> from coola.comparators import DatasetEqualityOperator
+    >>> from coola.testers import EqualityTester
+    >>> tester = EqualityTester()
+    >>> op = DatasetEqualityOperator()
+    >>> op.equal(
+    ...     tester,
+    ...     xr.Dataset(
+    ...         {
+    ...             "x": xr.DataArray(np.arange(6), dims=["z"]),
+    ...         },
+    ...         coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
+    ...         attrs={"global": "this is a global attribute"},
+    ...     ),
+    ...     xr.Dataset(
+    ...         {
+    ...            "x": xr.DataArray(np.arange(6), dims=["z"]),
+    ...         },
+    ...         coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
+    ...         attrs={"global": "this is a global attribute"},
+    ...     ),
+    ... )
+    True
+
+    ```
+    """
 
     def __init__(self) -> None:
         check_xarray()
@@ -210,7 +310,26 @@ class DatasetEqualityOperator(BaseEqualityOperator[Dataset]):
 
 
 class VariableAllCloseOperator(BaseAllCloseOperator[Variable]):
-    r"""Implements an allclose operator for ``xarray.Variable``."""
+    r"""Implements an allclose operator for ``xarray.Variable``.
+
+    Example usage:
+
+    ```pycon
+    >>> import numpy as np
+    >>> import xarray as xr
+    >>> from coola.comparators import VariableAllCloseOperator
+    >>> from coola.testers import AllCloseTester
+    >>> tester = AllCloseTester()
+    >>> op = VariableAllCloseOperator()
+    >>> op.allclose(
+    ...     tester,
+    ...     xr.Variable(dims=["z"], data=np.arange(6)),
+    ...     xr.Variable(dims=["z"], data=np.arange(6))
+    ... )
+    True
+
+    ```
+    """
 
     def __init__(self) -> None:
         check_xarray()
@@ -263,7 +382,26 @@ class VariableAllCloseOperator(BaseAllCloseOperator[Variable]):
 
 
 class VariableEqualityOperator(BaseEqualityOperator[Variable]):
-    r"""Implements an equality operator for ``xarray.Variable``."""
+    r"""Implements an equality operator for ``xarray.Variable``.
+
+    Example usage:
+
+    ```pycon
+    >>> import numpy as np
+    >>> import xarray as xr
+    >>> from coola.comparators import VariableEqualityOperator
+    >>> from coola.testers import EqualityTester
+    >>> tester = EqualityTester()
+    >>> op = VariableEqualityOperator()
+    >>> op.equal(
+    ...     tester,
+    ...     xr.Variable(dims=["z"], data=np.arange(6)),
+    ...     xr.Variable(dims=["z"], data=np.arange(6))
+    ... )
+    True
+
+    ```
+    """
 
     def __init__(self) -> None:
         check_xarray()
@@ -307,6 +445,17 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
     Returns:
         dict: The mapping between the types and the allclose
             operators.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola.comparators.xarray_ import get_mapping_allclose
+    >>> get_mapping_allclose()
+    {<class 'xarray.core.dataset.Dataset'>: DatasetAllCloseOperator(),
+     <class 'xarray.core.dataarray.DataArray'>: DataArrayAllCloseOperator(),
+     <class 'xarray.core.variable.Variable'>: VariableAllCloseOperator()}
+
+    ```
     """
     if not is_xarray_available():
         return {}
@@ -327,6 +476,17 @@ def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
     Returns:
         dict: The mapping between the types and the equality
             operators.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola.comparators.xarray_ import get_mapping_equality
+    >>> get_mapping_equality()
+    {<class 'xarray.core.dataset.Dataset'>: DatasetEqualityOperator(),
+     <class 'xarray.core.dataarray.DataArray'>: DataArrayEqualityOperator(),
+     <class 'xarray.core.variable.Variable'>: VariableEqualityOperator()}
+
+    ```
     """
     if not is_xarray_available():
         return {}

@@ -45,17 +45,18 @@ def decorator_package_available(
 
     Example usage:
 
-    .. code-block:: pycon
-
-        >>> from functools import partial
-        >>> from coola.utils.imports import decorator_package_available
-        >>> decorator = partial(decorator_package_available, condition=is_numpy_available)
-        >>> @decorator
-        ... def my_function(n: int = 0) -> int:
-        ...     return 42 + n
-        ...
-        >>> my_function(2)
+    ```pycon
+    >>> from functools import partial
+    >>> from coola.utils.imports import decorator_package_available
+    >>> decorator = partial(decorator_package_available, condition=is_numpy_available)
+    >>> @decorator
+    ... def my_function(n: int = 0) -> int:
+    ...     return 42 + n
+    ...
+    >>> my_function(2)
         44
+
+    ```
     """
 
     @wraps(fn)
@@ -80,10 +81,11 @@ def is_jax_available() -> bool:
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola.utils.imports import is_jax_available
+    >>> is_jax_available()
 
-        >>> from coola.utils.imports import is_jax_available
-        >>> is_jax_available()
+    ```
     """
     return find_spec("jax") is not None
 
@@ -92,14 +94,15 @@ def check_jax() -> None:
     r"""Checks if the ``jax`` package is installed.
 
     Raises:
-        RuntimeError if the ``jax`` package is not installed.
+        RuntimeError: if the ``jax`` package is not installed.
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola.utils.imports import check_jax
+    >>> check_jax()
 
-        >>> from coola.utils.imports import check_jax
-        >>> check_jax()  # doctest: +SKIP
+    ```
     """
     if not is_jax_available():
         raise RuntimeError(
@@ -122,14 +125,15 @@ def jax_available(fn: Callable[..., Any]) -> Callable[..., Any]:
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola.utils.imports import jax_available
+    >>> @jax_available
+    ... def my_function(n: int = 0) -> int:
+    ...     return 42 + n
+    ...
+    >>> my_function()
 
-        >>> from coola.utils.imports import jax_available
-        >>> @jax_available
-        ... def my_function(n: int = 0) -> int:
-        ...     return 42 + n
-        ...
-        >>> my_function()
+    ```
     """
     return decorator_package_available(fn, is_jax_available)
 
@@ -147,10 +151,11 @@ def is_numpy_available() -> bool:
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola.utils.imports import is_numpy_available
+    >>> is_numpy_available()
 
-        >>> from coola.utils.imports import is_numpy_available
-        >>> is_numpy_available()
+    ```
     """
     return find_spec("numpy") is not None
 
@@ -159,14 +164,15 @@ def check_numpy() -> None:
     r"""Checks if the ``numpy`` package is installed.
 
     Raises:
-        RuntimeError if the ``numpy`` package is not installed.
+        RuntimeError: if the ``numpy`` package is not installed.
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola.utils.imports import check_numpy
+    >>> check_numpy()
 
-        >>> from coola.utils.imports import check_numpy
-        >>> check_numpy()  # doctest: +SKIP
+    ```
     """
     if not is_numpy_available():
         raise RuntimeError(
@@ -189,14 +195,15 @@ def numpy_available(fn: Callable[..., Any]) -> Callable[..., Any]:
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola.utils.imports import numpy_available
+    >>> @numpy_available
+    ... def my_function(n: int = 0) -> int:
+    ...     return 42 + n
+    ...
+    >>> my_function()
 
-        >>> from coola.utils.imports import numpy_available
-        >>> @numpy_available
-        ... def my_function(n: int = 0) -> int:
-        ...     return 42 + n
-        ...
-        >>> my_function()
+    ```
     """
     return decorator_package_available(fn, is_numpy_available)
 
@@ -214,10 +221,11 @@ def is_pandas_available() -> bool:
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola.utils.imports import is_pandas_available
+    >>> is_pandas_available()
 
-        >>> from coola.utils.imports import is_pandas_available
-        >>> is_pandas_available()
+    ```
     """
     return find_spec("pandas") is not None
 
@@ -226,14 +234,15 @@ def check_pandas() -> None:
     r"""Checks if the ``pandas`` package is installed.
 
     Raises:
-        RuntimeError if the ``pandas`` package is not installed.
+        RuntimeError: if the ``pandas`` package is not installed.
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola.utils.imports import check_pandas
+    >>> check_pandas()
 
-        >>> from coola.utils.imports import check_pandas
-        >>> check_pandas()  # doctest: +SKIP
+    ```
     """
     if not is_pandas_available():
         raise RuntimeError(
@@ -256,14 +265,15 @@ def pandas_available(fn: Callable[..., Any]) -> Callable[..., Any]:
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola.utils.imports import pandas_available
+    >>> @pandas_available
+    ... def my_function(n: int = 0) -> int:
+    ...     return 42 + n
+    ...
+    >>> my_function()
 
-        >>> from coola.utils.imports import pandas_available
-        >>> @pandas_available
-        ... def my_function(n: int = 0) -> int:
-        ...     return 42 + n
-        ...
-        >>> my_function()
+    ```
     """
     return decorator_package_available(fn, is_pandas_available)
 
@@ -281,10 +291,11 @@ def is_polars_available() -> bool:
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola.utils.imports import is_polars_available
+    >>> is_polars_available()
 
-        >>> from coola.utils.imports import is_polars_available
-        >>> is_polars_available()
+    ```
     """
     return find_spec("polars") is not None
 
@@ -293,14 +304,15 @@ def check_polars() -> None:
     r"""Checks if the ``polars`` package is installed.
 
     Raises:
-        RuntimeError if the ``polars`` package is not installed.
+        RuntimeError: if the ``polars`` package is not installed.
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola.utils.imports import check_polars
+    >>> check_polars()
 
-        >>> from coola.utils.imports import check_polars
-        >>> check_polars()  # doctest: +SKIP
+    ```
     """
     if not is_polars_available():
         raise RuntimeError(
@@ -323,14 +335,15 @@ def polars_available(fn: Callable[..., Any]) -> Callable[..., Any]:
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola.utils.imports import polars_available
+    >>> @polars_available
+    ... def my_function(n: int = 0) -> int:
+    ...     return 42 + n
+    ...
+    >>> my_function()
 
-        >>> from coola.utils.imports import polars_available
-        >>> @polars_available
-        ... def my_function(n: int = 0) -> int:
-        ...     return 42 + n
-        ...
-        >>> my_function()
+    ```
     """
     return decorator_package_available(fn, is_polars_available)
 
@@ -348,10 +361,11 @@ def is_torch_available() -> bool:
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola.utils.imports import is_torch_available
+    >>> is_torch_available()
 
-        >>> from coola.utils.imports import is_torch_available
-        >>> is_torch_available()
+    ```
     """
     return find_spec("torch") is not None
 
@@ -360,14 +374,15 @@ def check_torch() -> None:
     r"""Checks if the ``torch`` package is installed.
 
     Raises:
-        RuntimeError if the ``torch`` package is not installed.
+        RuntimeError: if the ``torch`` package is not installed.
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola.utils.imports import check_torch
+    >>> check_torch()
 
-        >>> from coola.utils.imports import check_torch
-        >>> check_torch()  # doctest: +SKIP
+    ```
     """
     if not is_torch_available():
         raise RuntimeError(
@@ -390,14 +405,15 @@ def torch_available(fn: Callable[..., Any]) -> Callable[..., Any]:
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola.utils.imports import torch_available
+    >>> @torch_available
+    ... def my_function(n: int = 0) -> int:
+    ...     return 42 + n
+    ...
+    >>> my_function()
 
-        >>> from coola.utils.imports import torch_available
-        >>> @torch_available
-        ... def my_function(n: int = 0) -> int:
-        ...     return 42 + n
-        ...
-        >>> my_function()
+    ```
     """
     return decorator_package_available(fn, is_torch_available)
 
@@ -415,10 +431,11 @@ def is_xarray_available() -> bool:
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola.utils.imports import is_xarray_available
+    >>> is_xarray_available()
 
-        >>> from coola.utils.imports import is_xarray_available
-        >>> is_xarray_available()
+    ```
     """
     return find_spec("xarray") is not None
 
@@ -427,14 +444,15 @@ def check_xarray() -> None:
     r"""Checks if the ``xarray`` package is installed.
 
     Raises:
-        RuntimeError if the ``xarray`` package is not installed.
+        RuntimeError: if the ``xarray`` package is not installed.
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola.utils.imports import check_xarray
+    >>> check_xarray()
 
-        >>> from coola.utils.imports import check_xarray
-        >>> check_xarray()  # doctest: +SKIP
+    ```
     """
     if not is_xarray_available():
         raise RuntimeError(
@@ -457,13 +475,14 @@ def xarray_available(fn: Callable[..., Any]) -> Callable[..., Any]:
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola.utils.imports import xarray_available
+    >>> @xarray_available
+    ... def my_function(n: int = 0) -> int:
+    ...     return 42 + n
+    ...
+    >>> my_function()
 
-        >>> from coola.utils.imports import xarray_available
-        >>> @xarray_available
-        ... def my_function(n: int = 0) -> int:
-        ...     return 42 + n
-        ...
-        >>> my_function()
+    ```
     """
     return decorator_package_available(fn, is_xarray_available)

@@ -22,11 +22,12 @@ def get_available_devices() -> tuple[str, ...]:
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola.utils.tensor import get_available_devices
+    >>> get_available_devices()
+    ('cpu'...)
 
-        >>> from coola.utils.tensor import get_available_devices
-        >>> get_available_devices()
-        ('cpu'...)
+    ```
     """
     devices = ["cpu"]
     if is_cuda_available():
@@ -45,10 +46,11 @@ def is_cuda_available() -> bool:
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola.utils.tensor import is_cuda_available
+    >>> is_cuda_available()
 
-        >>> from coola.utils.tensor import is_cuda_available
-        >>> is_cuda_available()
+    ```
     """
     return is_torch_available() and torch.cuda.is_available()
 
@@ -62,10 +64,11 @@ def is_mps_available() -> bool:
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola.utils.tensor import is_mps_available
+    >>> is_mps_available()
 
-        >>> from coola.utils.tensor import is_mps_available
-        >>> is_mps_available()
+    ```
     """
     if not is_torch_available():
         return False

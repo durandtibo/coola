@@ -1,3 +1,5 @@
+r"""This package contains the reducer implementations."""
+
 __all__ = [
     "BaseBasicReducer",
     "BaseReducer",

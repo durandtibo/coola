@@ -46,27 +46,28 @@ def objects_are_allclose(
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> import torch
+    >>> from coola import objects_are_allclose
+    >>> objects_are_allclose(
+    ...     [torch.ones(2, 3), torch.zeros(2)],
+    ...     [torch.ones(2, 3), torch.zeros(2)],
+    ... )
+    True
+    >>> objects_are_allclose(
+    ...     [torch.ones(2, 3), torch.ones(2)],
+    ...     [torch.ones(2, 3), torch.zeros(2)],
+    ... )
+    False
+    >>> objects_are_allclose(
+    ...     [torch.ones(2, 3) + 1e-7, torch.ones(2)],
+    ...     [torch.ones(2, 3), torch.ones(2) - 1e-7],
+    ...     rtol=0,
+    ...     atol=1e-8,
+    ... )
+    False
 
-        >>> import torch
-        >>> from coola import objects_are_allclose
-        >>> objects_are_allclose(
-        ...     [torch.ones(2, 3), torch.zeros(2)],
-        ...     [torch.ones(2, 3), torch.zeros(2)],
-        ... )
-        True
-        >>> objects_are_allclose(
-        ...     [torch.ones(2, 3), torch.ones(2)],
-        ...     [torch.ones(2, 3), torch.zeros(2)],
-        ... )
-        False
-        >>> objects_are_allclose(
-        ...     [torch.ones(2, 3) + 1e-7, torch.ones(2)],
-        ...     [torch.ones(2, 3), torch.ones(2) - 1e-7],
-        ...     rtol=0,
-        ...     atol=1e-8,
-        ... )
-        False
+    ```
     """
     tester = tester or AllCloseTester()
     return tester.allclose(object1, object2, rtol, atol, equal_nan, show_difference)
@@ -97,17 +98,18 @@ def objects_are_equal(
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> import torch
+    >>> from coola import objects_are_equal
+    >>> objects_are_equal(
+    ...     [torch.ones(2, 3), torch.zeros(2)],
+    ...     [torch.ones(2, 3), torch.zeros(2)],
+    ... )
+    True
+    >>> objects_are_equal([torch.ones(2, 3), torch.ones(2)], [torch.ones(2, 3), torch.zeros(2)])
+    False
 
-        >>> import torch
-        >>> from coola import objects_are_equal
-        >>> objects_are_equal(
-        ...     [torch.ones(2, 3), torch.zeros(2)],
-        ...     [torch.ones(2, 3), torch.zeros(2)],
-        ... )
-        True
-        >>> objects_are_equal([torch.ones(2, 3), torch.ones(2)], [torch.ones(2, 3), torch.zeros(2)])
-        False
+    ```
     """
     tester = tester or EqualityTester()
     return tester.equal(object1, object2, show_difference)

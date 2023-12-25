@@ -27,17 +27,18 @@ def repr_indent(original: Any, num_spaces: int = 2) -> str:
         str: The indented string.
 
     Raises:
-        RuntimeError if num_spaces is not a positive integer.
+        RuntimeError: if num_spaces is not a positive integer.
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola.utils.format import repr_indent
+    >>> print(repr_indent("string1\nstring2\n  string3", 4))
+    string1
+    string2
+      string3
 
-        >>> from coola.utils.format import repr_indent
-        >>> print(repr_indent("string1\nstring2\n  string3", 4))
-        string1
-        string2
-          string3
+    ```
     """
     if not isinstance(original, str):
         original = repr(original)
@@ -64,13 +65,14 @@ def repr_mapping(mapping: Mapping, sorted_keys: bool = False, num_spaces: int = 
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola.utils.format import repr_mapping
+    >>> print(repr_mapping({"key1": "abc", "key2": "something\nelse"}))
+    (key1): abc
+    (key2): something
+      else
 
-        >>> from coola.utils.format import repr_mapping
-        >>> print(repr_mapping({"key1": "abc", "key2": "something\nelse"}))
-        (key1): abc
-        (key2): something
-          else
+    ```
     """
     lines = []
     for key, value in sorted(mapping.items()) if sorted_keys else mapping.items():
@@ -91,13 +93,15 @@ def repr_sequence(sequence: Sequence, num_spaces: int = 2) -> str:
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
 
-        >>> from coola.utils.format import repr_indent
-        >>> print(repr_sequence(["abc", "something\nelse"]))
-        (0): abc
-        (1): something
-          else
+    >>> from coola.utils.format import repr_indent
+    >>> print(repr_sequence(["abc", "something\nelse"]))
+    (0): abc
+    (1): something
+      else
+
+    ```
     """
     lines = []
     for i, item in enumerate(sequence):
@@ -119,17 +123,18 @@ def str_indent(original: Any, num_spaces: int = 2) -> str:
         str: The indented string.
 
     Raises:
-        RuntimeError if num_spaces is not a positive integer.
+        RuntimeError: if num_spaces is not a positive integer.
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola.utils.format import str_indent
+    >>> print(str_indent("string1\nstring2\n  string3", 4))
+    string1
+    string2
+      string3
 
-        >>> from coola.utils.format import str_indent
-        >>> print(str_indent("string1\nstring2\n  string3", 4))
-        string1
-        string2
-          string3
+    ```
     """
     if num_spaces < 0:
         raise RuntimeError(
@@ -163,13 +168,14 @@ def str_mapping(mapping: Mapping, sorted_keys: bool = False, num_spaces: int = 2
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola.utils.format import str_mapping
+    >>> print(str_mapping({"key1": "abc", "key2": "something\nelse"}))
+    (key1): abc
+    (key2): something
+      else
 
-        >>> from coola.utils.format import str_mapping
-        >>> print(str_mapping({"key1": "abc", "key2": "something\nelse"}))
-        (key1): abc
-        (key2): something
-          else
+    ```
     """
     lines = []
     for key, value in sorted(mapping.items()) if sorted_keys else mapping.items():
@@ -190,13 +196,14 @@ def str_sequence(sequence: Sequence, num_spaces: int = 2) -> str:
 
     Example usage:
 
-    .. code-block:: pycon
+    ```pycon
+    >>> from coola.utils.format import str_sequence
+    >>> print(str_sequence(["abc", "something\nelse"]))
+    (0): abc
+    (1): something
+      else
 
-        >>> from coola.utils.format import str_sequence
-        >>> print(str_sequence(["abc", "something\nelse"]))
-        (0): abc
-        (1): something
-          else
+    ```
     """
     lines = []
     for i, item in enumerate(sequence):

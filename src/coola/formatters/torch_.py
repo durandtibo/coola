@@ -21,6 +21,18 @@ class TensorFormatter(BaseFormatter[torch.Tensor]):
             is the default string representation (``repr``).
             If ``False``, the returned string only contains the tensor
             metadata. Default: ``False``
+
+    Example usage:
+
+    ```pycon
+    >>> import torch
+    >>> from coola import Summarizer
+    >>> from coola.formatters import TensorFormatter
+    >>> formatter = TensorFormatter()
+    >>> formatter.format(Summarizer(), torch.arange(21))
+    <class 'torch.Tensor'> | shape=torch.Size([21]) | dtype=torch.int64 | device=cpu
+
+    ```
     """
 
     def __init__(self, show_data: bool = False) -> None:
@@ -67,12 +79,13 @@ class TensorFormatter(BaseFormatter[torch.Tensor]):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.formatters import TensorFormatter
+        >>> formatter = TensorFormatter()
+        >>> formatter.get_show_data()
+        False
 
-            >>> from coola.formatters import TensorFormatter
-            >>> formatter = TensorFormatter()
-            >>> formatter.get_show_data()
-            False
+        ```
         """
         return self._show_data
 
@@ -84,17 +97,18 @@ class TensorFormatter(BaseFormatter[torch.Tensor]):
                 ``False`` if the tensor metadata are shown.
 
         Raises:
-            TypeError if ``show_data`` is not an boolean.
+            TypeError: if ``show_data`` is not an boolean.
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> from coola.formatters import TensorFormatter
+        >>> formatter = TensorFormatter()
+        >>> formatter.set_show_data(True)
+        >>> formatter.get_show_data()
+        True
 
-            >>> from coola.formatters import TensorFormatter
-            >>> formatter = TensorFormatter()
-            >>> formatter.set_show_data(True)
-            >>> formatter.get_show_data()
-            True
+        ```
         """
         if not isinstance(show_data, bool):
             raise TypeError(

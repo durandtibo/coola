@@ -1,3 +1,5 @@
+r"""This package contains the tester implementations."""
+
 __all__ = [
     "AllCloseTester",
     "LocalAllCloseTester",
@@ -6,7 +8,6 @@ __all__ = [
     "EqualityTester",
     "LocalEqualityTester",
 ]
-
 
 from coola.testers.allclose import AllCloseTester, LocalAllCloseTester
 from coola.testers.base import BaseAllCloseTester, BaseEqualityTester

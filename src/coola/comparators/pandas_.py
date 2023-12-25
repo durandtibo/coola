@@ -28,7 +28,37 @@ logger = logging.getLogger(__name__)
 
 
 class DataFrameAllCloseOperator(BaseAllCloseOperator[DataFrame]):
-    r"""Implements an equality operator for ``pandas.DataFrame``."""
+    r"""Implements an equality operator for ``pandas.DataFrame``.
+
+    Example usage:
+
+    ```pycon
+    >>> import pandas
+    >>> from coola.testers import AllCloseTester
+    >>> from coola.comparators.pandas_ import DataFrameAllCloseOperator
+    >>> tester = AllCloseTester()
+    >>> op = DataFrameAllCloseOperator()
+    >>> op.allclose(
+    ...     tester,
+    ...     pandas.DataFrame(
+    ...         {
+    ...             "col1": [1, 2, 3, 4, 5],
+    ...             "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+    ...             "col3": ["a", "b", "c", "d", "e"],
+    ...         }
+    ...     ),
+    ...     pandas.DataFrame(
+    ...         {
+    ...             "col1": [1, 2, 3, 4, 5],
+    ...             "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+    ...             "col3": ["a", "b", "c", "d", "e"],
+    ...         }
+    ...     ),
+    ... )
+    True
+
+    ```
+    """
 
     def __init__(self) -> None:
         check_pandas()
@@ -75,6 +105,35 @@ class DataFrameEqualityOperator(BaseEqualityOperator[DataFrame]):
     Args:
         nulls_compare_equal (bool, optional): If ``True``, null values
             (e.g. NaN or NaT) compare as true. Default: ``False``
+
+    Example usage:
+
+    ```pycon
+    >>> import pandas
+    >>> from coola.comparators.pandas_ import DataFrameEqualityOperator
+    >>> from coola.testers import EqualityTester
+    >>> tester = EqualityTester()
+    >>> op = DataFrameEqualityOperator()
+    >>> op.equal(
+    ...     tester,
+    ...     pandas.DataFrame(
+    ...         {
+    ...             "col1": [1, 2, 3, 4, 5],
+    ...             "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+    ...             "col3": ["a", "b", "c", "d", "e"],
+    ...         }
+    ...     ),
+    ...     pandas.DataFrame(
+    ...         {
+    ...             "col1": [1, 2, 3, 4, 5],
+    ...             "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+    ...             "col3": ["a", "b", "c", "d", "e"],
+    ...         }
+    ...     ),
+    ... )
+    True
+
+    ```
     """
 
     def __init__(self, nulls_compare_equal: bool = False) -> None:
@@ -136,7 +195,21 @@ class DataFrameEqualityOperator(BaseEqualityOperator[DataFrame]):
 
 
 class SeriesAllCloseOperator(BaseAllCloseOperator[Series]):
-    r"""Implements an equality operator for ``pandas.Series``."""
+    r"""Implements an equality operator for ``pandas.Series``.
+
+    Example usage:
+
+    ```pycon
+    >>> import pandas
+    >>> from coola.testers import AllCloseTester
+    >>> from coola.comparators.pandas_ import SeriesAllCloseOperator
+    >>> tester = AllCloseTester()
+    >>> op = SeriesAllCloseOperator()
+    >>> op.allclose(tester, pandas.Series([1, 2, 3, 4, 5]), pandas.Series([1, 2, 3, 4, 5]))
+    True
+
+    ```
+    """
 
     def __init__(self) -> None:
         check_pandas()
@@ -181,6 +254,19 @@ class SeriesEqualityOperator(BaseEqualityOperator[Series]):
     Args:
         nulls_compare_equal (bool, optional): If ``True``, null values
             (e.g. NaN or NaT) compare as true. Default: ``False``
+
+    Example usage:
+
+    ```pycon
+    >>> import pandas
+    >>> from coola.comparators.pandas_ import SeriesEqualityOperator
+    >>> from coola.testers import EqualityTester
+    >>> tester = EqualityTester()
+    >>> op = SeriesEqualityOperator()
+    >>> op.equal(tester, pandas.Series([1, 2, 3, 4, 5]), pandas.Series([1, 2, 3, 4, 5]))
+    True
+
+    ```
     """
 
     def __init__(self, nulls_compare_equal: bool = False) -> None:
@@ -249,6 +335,16 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
     Returns:
         dict: The mapping between the types and the allclose
             operators.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola.comparators.pandas_ import get_mapping_equality
+    >>> get_mapping_equality()
+    {<class 'pandas.core.frame.DataFrame'>: DataFrameEqualityOperator(nulls_compare_equal=False),
+     <class 'pandas.core.series.Series'>: SeriesEqualityOperator(nulls_compare_equal=False)}
+
+    ```
     """
     if not is_pandas_available():
         return {}
@@ -265,6 +361,16 @@ def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
     Returns:
         dict: The mapping between the types and the equality
             operators.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola.comparators.pandas_ import get_mapping_equality
+    >>> get_mapping_equality()
+    {<class 'pandas.core.frame.DataFrame'>: DataFrameEqualityOperator(nulls_compare_equal=False),
+     <class 'pandas.core.series.Series'>: SeriesEqualityOperator(nulls_compare_equal=False)}
+
+    ```
     """
     if not is_pandas_available():
         return {}

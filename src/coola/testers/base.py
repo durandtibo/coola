@@ -44,28 +44,29 @@ class BaseAllCloseTester(ABC):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> import torch
+        >>> from coola import AllCloseTester, BaseAllCloseTester
+        >>> tester: BaseAllCloseTester = AllCloseTester()
+        >>> tester.allclose(
+        ...     [torch.ones(2, 3), torch.zeros(2)],
+        ...     [torch.ones(2, 3), torch.zeros(2)],
+        ... )
+        True
+        >>> tester.allclose(
+        ...     [torch.ones(2, 3), torch.ones(2)],
+        ...     [torch.ones(2, 3), torch.zeros(2)],
+        ... )
+        False
+        >>> tester.allclose(
+        ...     [torch.ones(2, 3) + 1e-7, torch.ones(2)],
+        ...     [torch.ones(2, 3), torch.ones(2) - 1e-7],
+        ...     rtol=0,
+        ...     atol=1e-8,
+        ... )
+        False
 
-            >>> import torch
-            >>> from coola import AllCloseTester, BaseAllCloseTester
-            >>> tester: BaseAllCloseTester = AllCloseTester()
-            >>> tester.allclose(
-            ...     [torch.ones(2, 3), torch.zeros(2)],
-            ...     [torch.ones(2, 3), torch.zeros(2)],
-            ... )
-            True
-            >>> tester.allclose(
-            ...     [torch.ones(2, 3), torch.ones(2)],
-            ...     [torch.ones(2, 3), torch.zeros(2)],
-            ... )
-            False
-            >>> tester.allclose(
-            ...     [torch.ones(2, 3) + 1e-7, torch.ones(2)],
-            ...     [torch.ones(2, 3), torch.ones(2) - 1e-7],
-            ...     rtol=0,
-            ...     atol=1e-8,
-            ... )
-            False
+        ```
         """
 
 
@@ -90,16 +91,17 @@ class BaseEqualityTester(ABC):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
+        >>> import torch
+        >>> from coola import BaseEqualityTester, EqualityTester
+        >>> tester: BaseEqualityTester = EqualityTester()
+        >>> tester.equal(
+        ...     [torch.ones(2, 3), torch.zeros(2)],
+        ...     [torch.ones(2, 3), torch.zeros(2)],
+        ... )
+        True
+        >>> tester.equal([torch.ones(2, 3), torch.ones(2)], [torch.ones(2, 3), torch.zeros(2)])
+        False
 
-            >>> import torch
-            >>> from coola import BaseEqualityTester, EqualityTester
-            >>> tester: BaseEqualityTester = EqualityTester()
-            >>> tester.equal(
-            ...     [torch.ones(2, 3), torch.zeros(2)],
-            ...     [torch.ones(2, 3), torch.zeros(2)],
-            ... )
-            True
-            >>> tester.equal([torch.ones(2, 3), torch.ones(2)], [torch.ones(2, 3), torch.zeros(2)])
-            False
+        ```
         """

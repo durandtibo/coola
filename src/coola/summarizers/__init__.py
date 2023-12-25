@@ -1,3 +1,5 @@
+r"""This package contains the summarizer implementations."""
+
 __all__ = [
     "BaseSummarizer",
     "Summarizer",
