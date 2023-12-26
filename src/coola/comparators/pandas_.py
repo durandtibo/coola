@@ -104,7 +104,7 @@ class DataFrameEqualityOperator(BaseEqualityOperator[DataFrame]):
 
     Args:
         nulls_compare_equal (bool, optional): If ``True``, null values
-            (e.g. NaN or NaT) compare as true. Default: ``False``
+            (e.g. NaN or NaT) compare as true.
 
     Example usage:
 
@@ -253,7 +253,7 @@ class SeriesEqualityOperator(BaseEqualityOperator[Series]):
 
     Args:
         nulls_compare_equal (bool, optional): If ``True``, null values
-            (e.g. NaN or NaT) compare as true. Default: ``False``
+            (e.g. NaN or NaT) compare as true.
 
     Example usage:
 

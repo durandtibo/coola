@@ -26,7 +26,7 @@ class DefaultFormatter(BaseFormatter[Any]):
     Args:
         max_characters (int, optional): Specifies the maximum number
             of characters to show. If a negative value is provided,
-            all the characters are shown. Default: ``-1``
+            all the characters are shown.
 
     Example usage:
 
@@ -126,9 +126,9 @@ class BaseCollectionFormatter(BaseFormatter[T]):
     Args:
         max_items (int, optional): Specifies the maximum number
             of items to show. If a negative value is provided,
-            all the items are shown. Default: ``5``
+            all the items are shown.
         num_spaces (int, optional): Specifies the number of spaces
-            used for the indentation. Default: ``2``.
+            used for the indentation.
 
     Example usage:
 

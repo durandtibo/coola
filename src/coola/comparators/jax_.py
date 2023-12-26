@@ -33,7 +33,7 @@ class JaxArrayAllCloseOperator(BaseAllCloseOperator[jnp.ndarray]):
     Args:
         check_dtype (bool, optional): If ``True``, the data type of
             the arrays are checked, otherwise the data types are
-            ignored. Default: ``True``
+            ignored.
 
     Example usage:
 
@@ -109,7 +109,7 @@ class JaxArrayEqualityOperator(BaseEqualityOperator[jnp.ndarray]):
     Args:
         check_dtype (bool, optional): If ``True``, the data type of
             the arrays are checked, otherwise the data types are
-            ignored. Default: ``True``
+            ignored.
 
     Example usage:
 

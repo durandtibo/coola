@@ -152,8 +152,7 @@ class BaseReducer(ABC):
 
         Args:
             values: Specifies the values.
-            descending (bool, optional): Specifies the sorting order.
-                Default: ``False``
+            descending: Specifies the sorting order.
 
         Returns:
             The sorted values.
