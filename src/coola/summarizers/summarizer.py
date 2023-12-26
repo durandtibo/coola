@@ -101,12 +101,11 @@ class Summarizer(BaseSummarizer):
 
         Args:
             data_type: Specifies the data type for this test.
-            formatter (``BaseFormatter``): Specifies the formatter
-                to use for the specified type.
-            exist_ok (bool, optional): If ``False``, ``RuntimeError``
-                is raised if the data type already exists. This
-                parameter should be set to ``True`` to overwrite the
-                formatter for a type. Default: ``False``.
+            formatter: Specifies the formatter to use for the
+                specified type.
+            exist_ok: If ``False``, ``RuntimeError`` is raised if the
+                data type already exists. This parameter should be set
+                to ``True`` to overwrite the formatter for a type.
 
         Raises:
             RuntimeError: if a formatter is already registered for the
@@ -139,7 +138,7 @@ class Summarizer(BaseSummarizer):
             data_type: Specifies the data type to check.
 
         Returns:
-            bool: ``True`` if a formatter is registered,
+            ``True`` if a formatter is registered,
                 otherwise ``False``.
 
         Example usage:
@@ -164,8 +163,7 @@ class Summarizer(BaseSummarizer):
             data_type: Specifies the data type to get.
 
         Returns:
-            ``BaseFormatter``: The formatter associated to the data
-                type.
+            The formatter associated to the data type.
 
         Raises:
             TypeError: if a formatter cannot be found for this data
@@ -194,7 +192,7 @@ class Summarizer(BaseSummarizer):
         r"""Load the state values from a dict.
 
         Args:
-            state (dict): A dictionary with state values
+            state: A dictionary with state values.
 
         Example usage:
 
@@ -220,7 +218,7 @@ class Summarizer(BaseSummarizer):
         r"""Return a dictionary containing state values.
 
         Returns:
-            dict: the state values in a dict.
+            The state values in a dict.
 
         Example usage:
 
@@ -243,7 +241,7 @@ class Summarizer(BaseSummarizer):
         ``set_max_characters``.
 
         Args:
-            max_characters (int): Specifies the maximum of characters.
+            max_characters: Specifies the maximum of characters.
 
         Example usage:
 
@@ -273,8 +271,7 @@ class Summarizer(BaseSummarizer):
         ``set_max_items``.
 
         Args:
-            max_items (int): Specifies the maximum number of items to
-                show.
+            max_items: Specifies the maximum number of items to show.
 
         Example usage:
 
@@ -304,8 +301,7 @@ class Summarizer(BaseSummarizer):
         ``set_num_spaces``.
 
         Args:
-            num_spaces (int): Specifies the number of spaces for
-                indentation.
+            num_spaces: Specifies the number of spaces for indentation.
 
         Example usage:
 
@@ -336,15 +332,14 @@ def set_summarizer_options(
     this function.
 
     Args:
-        max_characters (int or None, optional): Specifies the maximum
-            number of characters to show. If ``None``, the maximum
-            number of characters is unchanged. Default: ``None``
-        max_items (int or None, optional): Specifies the maximum
-            number of items to show. If ``None``, the maximum
-            number of items is unchanged. Default: ``None``
-        num_spaces (int or None, optional): Specifies the number of
-            spaces for indentation. If ``None``, the number of  spaces
-            for indentation is unchanged.  Default: ``None``
+        max_characters: Specifies the maximum number of characters
+            to show. If ``None``, the maximum number of characters
+            is unchanged.
+        max_items: Specifies the maximum number of items to show.
+            If ``None``, the maximum number of items is unchanged.
+        num_spaces: Specifies the number of spaces for indentation.
+            If ``None``, the number of  spaces for indentation is
+            unchanged.
 
     Example usage:
 

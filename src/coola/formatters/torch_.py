@@ -17,10 +17,9 @@ class TensorFormatter(BaseFormatter[torch.Tensor]):
     r"""Implement a formatter for ``torch.Tensor``.
 
     Args:
-        show_data (bool, optional): If ``True``, the returned string
-            is the default string representation (``repr``).
-            If ``False``, the returned string only contains the tensor
-            metadata. Default: ``False``
+        show_data: If ``True``, the returned string is the default
+            string representation (``repr``). If ``False``,
+            the returned string only contains the tensor metadata.
 
     Example usage:
 
@@ -74,7 +73,7 @@ class TensorFormatter(BaseFormatter[torch.Tensor]):
         r"""Indicates if the tensor data or metadata are shown.
 
         Returns:
-            bool: ``True`` if the tensor data are shown,
+            ``True`` if the tensor data are shown,
                 ``False`` if the tensor metadata are shown.
 
         Example usage:
@@ -93,7 +92,7 @@ class TensorFormatter(BaseFormatter[torch.Tensor]):
         r"""Set if the tensor data or metadata are shown.
 
         Args:
-            show_data (bool): ``True`` if the tensor data are shown,
+            show_data: ``True`` if the tensor data are shown,
                 ``False`` if the tensor metadata are shown.
 
         Raises:

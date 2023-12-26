@@ -31,7 +31,7 @@ class ArrayAllCloseOperator(BaseAllCloseOperator[np.ndarray]):
     Args:
         check_dtype (bool, optional): If ``True``, the data type of
             the arrays are checked, otherwise the data types are
-            ignored. Default: ``True``
+            ignored.
 
     Example usage:
 
@@ -102,7 +102,7 @@ class ArrayEqualityOperator(BaseEqualityOperator[np.ndarray]):
     Args:
         check_dtype (bool, optional): If ``True``, the data type of
             the arrays are checked, otherwise the data types are
-            ignored. Default: ``True``
+            ignored.
 
     Example usage:
 
@@ -172,8 +172,7 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
     installed.
 
     Returns:
-        dict: The mapping between the types and the allclose
-            operators.
+        The mapping between the types and the allclose operators.
 
     Example usage:
 
@@ -197,8 +196,7 @@ def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
     installed.
 
     Returns:
-        dict: The mapping between the types and the equality
-            operators.
+        The mapping between the types and the equality operators.
 
     Example usage:
 

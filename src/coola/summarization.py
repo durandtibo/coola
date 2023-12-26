@@ -14,14 +14,13 @@ def summary(value: Any, max_depth: int = 1, summarizer: BaseSummarizer | None = 
 
     Args:
         value: Specifies the value to summarize.
-        max_depth (int, optional): Specifies the maximum depth to
-            summarize if the input is nested. Default: ``1``
-        summarizer (``BaseSummarizer`` or ``None``): Specifies the
-            summarization strategy. If ``None``, the default
-            ``Summarizer`` is used. Default: ``None``
+        max_depth: Specifies the maximum depth to summarize if the
+            input is nested.
+        summarizer: Specifies the summarization strategy. If ``None``,
+            the default ``Summarizer`` is used.
 
     Returns:
-        str: The summary as a string.
+        The summary as a string.
 
     Example usage:
 

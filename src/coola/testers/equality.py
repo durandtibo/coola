@@ -30,12 +30,11 @@ class EqualityTester(BaseEqualityTester):
 
         Args:
             data_type: Specifies the data type for this test.
-            operator (``BaseEqualityOperator``): Specifies the operator
-                used to test the equality of the specified type.
-            exist_ok (bool, optional): If ``False``, ``RuntimeError``
-                is raised if the data type already exists. This
-                parameter should be set to ``True`` to overwrite the
-                operator for a type. Default: ``False``.
+            operator: Specifies the operator used to test the equality
+                of the specified type.
+            exist_ok: If ``False``, ``RuntimeError`` is raised if the
+                data type already exists. This parameter should be set
+                to ``True`` to overwrite the operator for a type.
 
         Raises:
             RuntimeError: if an operator is already registered for the
@@ -59,36 +58,6 @@ class EqualityTester(BaseEqualityTester):
         cls.registry[data_type] = operator
 
     def equal(self, object1: Any, object2: Any, show_difference: bool = False) -> bool:
-        r"""Indicates if two objects are equal or not.
-
-        Args:
-            object1: Specifies the first object to compare.
-            object2: Specifies the second object to compare.
-            show_difference (bool, optional): If ``True``, it shows a
-                difference between the two objects if they are
-                different. This parameter is useful to find the
-                difference between two objects. Default: ``False``
-
-        Returns:
-            bool: ``True`` if the two objects are equal, otherwise
-                ``False``.
-
-        Example usage:
-
-        ```pycon
-        >>> import torch
-        >>> from coola import EqualityTester
-        >>> tester = EqualityTester()
-        >>> tester.equal(
-        ...     [torch.ones(2, 3), torch.zeros(2)],
-        ...     [torch.ones(2, 3), torch.zeros(2)],
-        ... )
-        True
-        >>> tester.equal([torch.ones(2, 3), torch.ones(2)], [torch.ones(2, 3), torch.zeros(2)])
-        False
-
-        ```
-        """
         return self.find_operator(type(object1)).equal(self, object1, object2, show_difference)
 
     @classmethod
@@ -100,7 +69,7 @@ class EqualityTester(BaseEqualityTester):
             data_type: Specifies the data type to check.
 
         Returns:
-            bool: ``True`` if an equality operator is registered,
+            ``True`` if an equality operator is registered,
                 otherwise ``False``.
 
         Example usage:
@@ -124,8 +93,7 @@ class EqualityTester(BaseEqualityTester):
             data_type: Specifies the data type to get.
 
         Returns:
-            ``BaseEqualityOperator``: The equality operator associated
-                to the data type.
+            The equality operator associated to the data type.
 
         Example usage:
 
@@ -150,8 +118,7 @@ class EqualityTester(BaseEqualityTester):
         customized without changind ``EqualityTester``.
 
         Returns:
-            ``LocalEqualityTester``: A local copy of
-                ``EqualityTester``.
+            A "local" copy of ``EqualityTester``.
 
         Example usage:
 
@@ -170,8 +137,8 @@ class LocalEqualityTester(BaseEqualityTester):
     """Implements an equality tester that can be easily customized.
 
     Args:
-        registry (dict or ``None``, optional): Specifies the initial
-            registry with the equality operators. Default: ``None``
+        registry: Specifies the initial registry with the equality
+            operators.
     """
 
     def __init__(self, registry: dict[type[object], BaseEqualityOperator] | None = None) -> None:
@@ -192,12 +159,11 @@ class LocalEqualityTester(BaseEqualityTester):
 
         Args:
             data_type: Specifies the data type for this test.
-            operator (``BaseEqualityOperator``): Specifies the operator
-                used to test the equality of the specified type.
-            exist_ok (bool, optional): If ``False``, ``RuntimeError``
-                is raised if the data type already exists. This
-                parameter should be set to ``True`` to overwrite the
-                operator for a type. Default: ``False``.
+            operator: Specifies the operator used to test the equality
+                of the specified type.
+            exist_ok: If ``False``, ``RuntimeError`` is raised if the
+                data type already exists. This parameter should be
+                set to ``True`` to overwrite the operator for a type.
 
         Raises:
             RuntimeError: if an operator is already registered for the
@@ -226,8 +192,7 @@ class LocalEqualityTester(BaseEqualityTester):
         r"""Clones the current tester.
 
          Returns:
-             ``LocalEqualityTester``: A deep copy of the current
-                 tester.
+             A deep copy of the current tester.
 
          Example usage:
 
@@ -242,36 +207,6 @@ class LocalEqualityTester(BaseEqualityTester):
         return self.__class__({key: value.clone() for key, value in self.registry.items()})
 
     def equal(self, object1: Any, object2: Any, show_difference: bool = False) -> bool:
-        r"""Indicates if two objects are equal or not.
-
-        Args:
-            object1: Specifies the first object to compare.
-            object2: Specifies the second object to compare.
-            show_difference (bool, optional): If ``True``, it shows a
-                difference between the two objects if they are
-                different. This parameter is useful to find the
-                difference between two objects. Default: ``False``
-
-        Returns:
-            bool: ``True`` if the two objects are equal, otherwise
-                ``False``.
-
-        Example usage:
-
-        ```pycon
-        >>> import torch
-        >>> from coola.testers import EqualityTester
-        >>> tester = EqualityTester.local_copy()
-        >>> tester.equal(
-        ...     [torch.ones(2, 3), torch.zeros(2)],
-        ...     [torch.ones(2, 3), torch.zeros(2)],
-        ... )
-        True
-        >>> tester.equal([torch.ones(2, 3), torch.ones(2)], [torch.ones(2, 3), torch.zeros(2)])
-        False
-
-        ```
-        """
         return self.find_operator(type(object1)).equal(self, object1, object2, show_difference)
 
     def has_operator(self, data_type: type[object]) -> bool:
@@ -282,7 +217,7 @@ class LocalEqualityTester(BaseEqualityTester):
             data_type: Specifies the data type to check.
 
         Returns:
-            bool: ``True`` if an equality operator is registered,
+            ``True`` if an equality operator is registered,
                 otherwise ``False``.
 
         Example usage:
@@ -306,8 +241,7 @@ class LocalEqualityTester(BaseEqualityTester):
             data_type: Specifies the data type to get.
 
         Returns:
-            ``BaseEqualityOperator``: The equality operator associated
-                to the data type.
+            The equality operator associated to the data type.
 
         Example usage:
 

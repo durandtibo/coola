@@ -45,13 +45,11 @@ class AllCloseTester(BaseAllCloseTester):
 
         Args:
             data_type: Specifies the data type for this test.
-            operator (``BaseAllCloseOperator``): Specifies the operator
-                used to test the allclose equality of the specified
-                type.
-            exist_ok (bool, optional): If ``False``, ``RuntimeError``
-                is raised if the data type already exists. This
-                parameter should be set to ``True`` to overwrite the
-                operator for a type. Default: ``False``.
+            operator: Specifies the operator used to test the allclose
+                equality of the specified type.
+            exist_ok: If ``False``, ``RuntimeError`` is raised if the
+                data type already exists. This parameter should be set
+                to ``True`` to overwrite the operator for a type.
 
         Raises:
             RuntimeError: if an operator is already registered for the
@@ -83,52 +81,6 @@ class AllCloseTester(BaseAllCloseTester):
         equal_nan: bool = False,
         show_difference: bool = False,
     ) -> bool:
-        r"""Indicates if two objects are equal within a tolerance.
-
-        Args:
-            object1: Specifies the first object to compare.
-            object2: Specifies the second object to compare.
-            rtol (float, optional): Specifies the relative tolerance
-                parameter. Default: ``1e-5``
-            atol (float, optional): Specifies the absolute tolerance
-                parameter. Default: ``1e-8``
-            equal_nan (bool, optional): If ``True``, then two ``NaN``s
-                will be considered equal. Default: ``False``
-            show_difference (bool, optional): If ``True``, it shows a
-                difference between the two objects if they are
-                different. This parameter is useful to find the
-                difference between two objects. Default: ``False``
-
-        Returns:
-            bool: ``True`` if the two objects are equal within a
-                tolerance, otherwise ``False``
-
-        Example usage:
-
-        ```pycon
-        >>> import torch
-        >>> from coola.testers import AllCloseTester
-        >>> tester = AllCloseTester()
-        >>> tester.allclose(
-        ...     [torch.ones(2, 3), torch.zeros(2)],
-        ...     [torch.ones(2, 3), torch.zeros(2)],
-        ... )
-        True
-        >>> tester.allclose(
-        ...     [torch.ones(2, 3), torch.ones(2)],
-        ...     [torch.ones(2, 3), torch.zeros(2)],
-        ... )
-        False
-        >>> tester.allclose(
-        ...     [torch.ones(2, 3) + 1e-7, torch.ones(2)],
-        ...     [torch.ones(2, 3), torch.ones(2) - 1e-7],
-        ...     rtol=0,
-        ...     atol=1e-8,
-        ... )
-        False
-
-        ```
-        """
         return self.find_operator(type(object1)).allclose(
             self, object1, object2, rtol, atol, equal_nan, show_difference
         )
@@ -142,7 +94,7 @@ class AllCloseTester(BaseAllCloseTester):
             data_type: Specifies the data type to check.
 
         Returns:
-            bool: ``True`` if an allclose operator is registered,
+            ``True`` if an allclose operator is registered,
                 otherwise ``False``.
 
         Example usage:
@@ -166,8 +118,7 @@ class AllCloseTester(BaseAllCloseTester):
             data_type: Specifies the data type to get.
 
         Returns:
-            ``BaseAllCloseOperator``: The allclose operator associated
-                to the data type.
+            The allclose operator associated to the data type.
 
         Example usage:
 
@@ -192,8 +143,7 @@ class AllCloseTester(BaseAllCloseTester):
         customized without changind ``AllCloseTester``.
 
         Returns:
-            ``LocalAllCloseTester``: A local copy of
-                ``AllCloseTester``.
+            A "local" copy of ``AllCloseTester``.
 
         Example usage:
 
@@ -211,8 +161,8 @@ class LocalAllCloseTester(BaseAllCloseTester):
     """Implements an equality tester that can be easily customized.
 
     Args:
-        registry (dict or ``None``, optional): Specifies the initial
-            registry with the equality operators. Default: ``None``
+        registry: Specifies the initial registry with the equality
+            operators.
     """
 
     def __init__(self, registry: dict[type[object], BaseAllCloseOperator] | None = None) -> None:
@@ -233,13 +183,11 @@ class LocalAllCloseTester(BaseAllCloseTester):
 
         Args:
             data_type: Specifies the data type for this test.
-            operator (``BaseAllCloseOperator``): Specifies the operator
-                used to test the allclose equality of the specified
-                type.
-            exist_ok (bool, optional): If ``False``, ``RuntimeError``
-                is raised if the data type already exists. This
-                parameter should be set to ``True`` to overwrite the
-                operator for a type. Default: ``False``.
+            operator: Specifies the operator used to test the allclose
+                equality of the specified type.
+            exist_ok: If ``False``, ``RuntimeError`` is raised if the
+                data type already exists. This parameter should be set
+                to ``True`` to overwrite the operator for a type.
 
         Raises:
             RuntimeError: if an operator is already registered for the
@@ -272,52 +220,6 @@ class LocalAllCloseTester(BaseAllCloseTester):
         equal_nan: bool = False,
         show_difference: bool = False,
     ) -> bool:
-        r"""Indicates if two objects are equal within a tolerance.
-
-        Args:
-            object1: Specifies the first object to compare.
-            object2: Specifies the second object to compare.
-            rtol (float, optional): Specifies the relative tolerance
-                parameter. Default: ``1e-5``
-            atol (float, optional): Specifies the absolute tolerance
-                parameter. Default: ``1e-8``
-            equal_nan (bool, optional): If ``True``, then two ``NaN``s
-                will be considered equal. Default: ``False``
-            show_difference (bool, optional): If ``True``, it shows a
-                difference between the two objects if they are
-                different. This parameter is useful to find the
-                difference between two objects. Default: ``False``
-
-        Returns:
-            bool: ``True`` if the two objects are equal within a
-                tolerance, otherwise ``False``
-
-        Example usage:
-
-        ```pycon
-        >>> import torch
-        >>> from coola.testers import AllCloseTester
-        >>> tester = AllCloseTester.local_copy()
-        >>> tester.allclose(
-        ...     [torch.ones(2, 3), torch.zeros(2)],
-        ...     [torch.ones(2, 3), torch.zeros(2)],
-        ... )
-        True
-        >>> tester.allclose(
-        ...     [torch.ones(2, 3), torch.ones(2)],
-        ...     [torch.ones(2, 3), torch.zeros(2)],
-        ... )
-        False
-        >>> tester.allclose(
-        ...     [torch.ones(2, 3) + 1e-7, torch.ones(2)],
-        ...     [torch.ones(2, 3), torch.ones(2) - 1e-7],
-        ...     rtol=0,
-        ...     atol=1e-8,
-        ... )
-        False
-
-        ```
-        """
         return self.find_operator(type(object1)).allclose(
             self, object1, object2, rtol, atol, equal_nan, show_difference
         )
@@ -326,8 +228,7 @@ class LocalAllCloseTester(BaseAllCloseTester):
         r"""Clones the current tester.
 
         Returns:
-            ``LocalAllCloseTester``: A deep copy of the current
-                tester.
+            A deep copy of the current tester.
 
         Example usage:
 
@@ -348,7 +249,7 @@ class LocalAllCloseTester(BaseAllCloseTester):
             data_type: Specifies the data type to check.
 
         Returns:
-            bool: ``True`` if an allclose operator is registered,
+            ``True`` if an allclose operator is registered,
                 otherwise ``False``.
 
         Example usage:
@@ -372,8 +273,7 @@ class LocalAllCloseTester(BaseAllCloseTester):
             data_type: Specifies the data type to get.
 
         Returns:
-            ``BaseAllCloseOperator``: The allclose operator associated
-                to the data type.
+            The allclose operator associated to the data type.
 
         Example usage:
 

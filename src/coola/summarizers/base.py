@@ -59,13 +59,12 @@ class BaseSummarizer(ABC):
 
         Args:
             value: Specifies the value to summarize.
-            depth (int, optional): Specifies the current depth.
-                Default: ``0`
-            max_depth (int, optional): Specifies the maximum depth to
-                summarize if the input is nested. Default: ``1``
+            depth: Specifies the current depth.
+            max_depth: Specifies the maximum depth to summarize if the
+                input is nested.
 
         Returns:
-            str: The summary as a string.
+            The summary as a string.
 
         Example usage:
 

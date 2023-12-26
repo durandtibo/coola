@@ -336,8 +336,7 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
     installed.
 
     Returns:
-        dict: The mapping between the types and the allclose
-            operators.
+        The mapping between the types and the allclose operators.
     """
     if not is_polars_available():
         return {}
@@ -352,8 +351,7 @@ def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
     installed.
 
     Returns:
-        dict: The mapping between the types and the equality
-            operators.
+        The mapping between the types and the equality operators.
     """
     if not is_polars_available():
         return {}

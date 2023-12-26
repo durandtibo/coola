@@ -104,7 +104,7 @@ class DataFrameEqualityOperator(BaseEqualityOperator[DataFrame]):
 
     Args:
         nulls_compare_equal (bool, optional): If ``True``, null values
-            (e.g. NaN or NaT) compare as true. Default: ``False``
+            (e.g. NaN or NaT) compare as true.
 
     Example usage:
 
@@ -253,7 +253,7 @@ class SeriesEqualityOperator(BaseEqualityOperator[Series]):
 
     Args:
         nulls_compare_equal (bool, optional): If ``True``, null values
-            (e.g. NaN or NaT) compare as true. Default: ``False``
+            (e.g. NaN or NaT) compare as true.
 
     Example usage:
 
@@ -333,8 +333,7 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
     installed.
 
     Returns:
-        dict: The mapping between the types and the allclose
-            operators.
+        The mapping between the types and the allclose operators.
 
     Example usage:
 
@@ -359,8 +358,7 @@ def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
     installed.
 
     Returns:
-        dict: The mapping between the types and the equality
-            operators.
+        The mapping between the types and the equality operators.
 
     Example usage:
 

@@ -22,12 +22,11 @@ class ReducerRegistry:
         r"""Adds a reducer to the registry.
 
         Args:
-            name (str): Specifies the name of the reducer.
-            reducer (``BaseReducer``): Specifies the reducer.
-            exist_ok (bool, optional): If ``False``, ``RuntimeError``
-                is raised if the name already exists. This
-                parameter should be set to ``True`` to overwrite the
-                existing reducer. Default: ``False``.
+            name: Specifies the name of the reducer.
+            reducer: Specifies the reducer.
+            exist_ok: If ``False``, ``RuntimeError`` is raised if the
+                name already exists. This parameter should be set to
+                ``True`` to overwrite the existing reducer.
 
         Raises:
             RuntimeError: if a reducer is already registered for the
@@ -54,7 +53,7 @@ class ReducerRegistry:
         """Gets the available reducers.
 
         Returns:
-            tuple of strings: The available reducers.
+            The available reducers.
 
         Example usage:
 
@@ -72,10 +71,10 @@ class ReducerRegistry:
         r"""Indicates if a reducer is registered for the given name.
 
         Args:
-            name (str): Specifies the name to check.
+            name: Specifies the name to check.
 
         Returns:
-            bool: ``True`` if a reducer is registered,
+            ``True`` if a reducer is registered,
                 otherwise ``False``.
 
         Example usage:
