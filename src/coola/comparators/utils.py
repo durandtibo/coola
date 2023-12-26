@@ -11,8 +11,7 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
     operators.
 
     Returns:
-        dict: The mapping between the types and the allclose
-            operators.
+        The mapping between the types and the allclose operators.
 
     ```pycon
     >>> from coola.comparators import get_mapping_allclose
@@ -59,8 +58,7 @@ def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
     operators.
 
     Returns:
-        dict: The mapping between the types and the equality
-            operators.
+        The mapping between the types and the equality operators.
 
     ```pycon
     >>> from coola.comparators import get_mapping_equality

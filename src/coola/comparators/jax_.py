@@ -181,8 +181,7 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
     installed.
 
     Returns:
-        dict: The mapping between the types and the allclose
-            operators.
+        The mapping between the types and the allclose operators.
 
     Example usage:
 
@@ -210,8 +209,7 @@ def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
     installed.
 
     Returns:
-        dict: The mapping between the types and the equality
-            operators.
+        The mapping between the types and the equality operators.
 
     Example usage:
 

@@ -15,7 +15,7 @@ def auto_reducer() -> BaseReducer:
         - Otherwise, use ``BasicReducer``
 
     Returns:
-        ``BaseReducer``: The "best" reducer.
+        The "best" reducer.
 
     Example usage:
 

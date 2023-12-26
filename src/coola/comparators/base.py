@@ -47,24 +47,20 @@ class BaseAllCloseOperator(ABC, Generic[T]):
         r"""Indicates if two objects are equal within a tolerance.
 
         Args:
-            tester (``BaseAllCloseTester``): Specifies an equality
-                tester.
+            tester: Specifies an equality tester.
             object1: Specifies the first object to compare.
             object2: Specifies the second object to compare.
-            rtol (float, optional): Specifies the relative tolerance
-                parameter. Default: ``1e-5``
-            atol (float, optional): Specifies the absolute tolerance
-                parameter. Default: ``1e-8``
-            equal_nan (bool, optional): If ``True``, then two ``NaN``s
-                will be considered equal. Default: ``False``
-            show_difference (bool, optional): If ``True``, it shows a
-                difference between the two objects if they are
-                different. This parameter is useful to find the
-                difference between two objects. Default: ``False``
+            rtol: Specifies the relative tolerance parameter.
+            atol: Specifies the absolute tolerance  parameter.
+            equal_nan: If ``True``, then two ``NaN``s will be
+                considered equal.
+            show_difference: If ``True``, it shows a difference between
+                the two objects if they are different. This parameter
+                is useful to find the difference between two objects.
 
         Returns:
-            bool: ``True`` if the two objects are equal within a
-                tolerance, otherwise ``False``
+            ``True`` if the two objects are equal within a tolerance,
+                otherwise ``False``
 
         Example usage:
 
@@ -86,7 +82,7 @@ class BaseAllCloseOperator(ABC, Generic[T]):
         r"""Returns a copy of the equality operator.
 
         Returns:
-            ``BaseAllCloseOperator``: A copy of the equality operator.
+            A copy of the equality operator.
 
         Example usage:
 
@@ -127,7 +123,7 @@ class BaseEqualityOperator(ABC, Generic[T]):
         r"""Returns a copy of the equality operator.
 
         Returns:
-            ``BaseEqualityOperator``: A copy of the equality operator.
+            A copy of the equality operator.
 
         Example usage:
 
@@ -150,18 +146,15 @@ class BaseEqualityOperator(ABC, Generic[T]):
         r"""Indicates if two objects are equal or not.
 
         Args:
-            tester (``BaseEqualityTester``): Specifies an equality
-                tester.
+            tester: Specifies an equality tester.
             object1: Specifies the first object to compare.
             object2: Specifies the second object to compare.
-            show_difference (bool, optional): If ``True``, it shows
-                a difference between the two objects if they are
-                different. This parameter is useful to find the
-                difference between two objects. Default: ``False``
+            show_difference: If ``True``, it shows a difference between
+                the two objects if they are different. This parameter
+                is useful to find the difference between two objects.
 
         Returns:
-            bool: ``True`` if the two objects are equal, otherwise
-                ``False``.
+            ``True`` if the two objects are equal, otherwise ``False``.
 
         Example usage:
 

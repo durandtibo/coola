@@ -34,10 +34,10 @@ class BaseReducer(ABC):
         r"""Computes the maximum value.
 
         Args:
-            values (sequence of ints or floats): Specifies the values.
+            values: Specifies the values.
 
         Returns:
-            int or float: The maximum value.
+            The maximum value.
 
         Raises:
             EmptySequenceError: if the input sequence is empty.
@@ -57,10 +57,10 @@ class BaseReducer(ABC):
         r"""Computes the mean value.
 
         Args:
-            values (sequence of ints or floats): Specifies the values.
+            values: Specifies the values.
 
         Returns:
-            int or float: The mean value.
+            The mean value.
 
         Raises:
             EmptySequenceError: if the input sequence is empty.
@@ -80,10 +80,10 @@ class BaseReducer(ABC):
         r"""Computes the median value.
 
         Args:
-            values (sequence of ints or floats): Specifies the values.
+            values: Specifies the values.
 
         Returns:
-            int or float: The median value.
+            The median value.
 
         Raises:
             EmptySequenceError: if the input sequence is empty.
@@ -103,10 +103,10 @@ class BaseReducer(ABC):
         r"""Computes the minimum value.
 
         Args:
-            values (sequence of ints or floats): Specifies the values.
+            values: Specifies the values.
 
         Returns:
-            int or float: The minimum value.
+            The minimum value.
 
         Raises:
             EmptySequenceError: if the input sequence is empty.
@@ -126,12 +126,12 @@ class BaseReducer(ABC):
         r"""Computes the quantiles.
 
         Args:
-            values (sequence of ints or floats): Specifies the values.
+            values: Specifies the values.
             quantiles (sequence of float): Specifies the quantile
                 values in the range ``[0, 1]``.
 
         Returns:
-            list of floats: The quantiles.
+            The quantiles.
 
         Raises:
             EmptySequenceError: if the input sequence is empty.
@@ -151,12 +151,12 @@ class BaseReducer(ABC):
         r"""Sorts the values.
 
         Args:
-            values (sequence of ints or floats): Specifies the values.
+            values: Specifies the values.
             descending (bool, optional): Specifies the sorting order.
                 Default: ``False``
 
         Returns:
-            list: The sorted values.
+            The sorted values.
 
         Example usage:
 
@@ -175,10 +175,10 @@ class BaseReducer(ABC):
         r"""Computes the standard deviation.
 
         Args:
-            values (sequence of ints or floats): Specifies the values.
+            values: Specifies the values.
 
         Returns:
-            float: The standard deviation.
+            The standard deviation.
 
         Raises:
             EmptySequenceError: if the input sequence is empty.
@@ -208,10 +208,10 @@ class BaseBasicReducer(BaseReducer):
         r"""Computes the maximum value.
 
         Args:
-            values (sequence of ints or floats): Specifies the values.
+            values: Specifies the values.
 
         Returns:
-            int or float: The maximum value.
+            The maximum value.
         """
 
     def mean(self, values: Sequence[int | float]) -> int | float:
@@ -224,10 +224,10 @@ class BaseBasicReducer(BaseReducer):
         r"""Computes the mean value.
 
         Args:
-            values (sequence of ints or floats): Specifies the values.
+            values: Specifies the values.
 
         Returns:
-            float: The mean value.
+            The mean value.
         """
 
     def median(self, values: Sequence[int | float]) -> int | float:
@@ -240,10 +240,10 @@ class BaseBasicReducer(BaseReducer):
         r"""Computes the median value.
 
         Args:
-            values (sequence of ints or floats): Specifies the values.
+            values: Specifies the values.
 
         Returns:
-            int or float: The median value.
+            The median value.
         """
 
     def min(self, values: Sequence[int | float]) -> int | float:
@@ -256,10 +256,10 @@ class BaseBasicReducer(BaseReducer):
         r"""Computes the minimum value.
 
         Args:
-            values (sequence of ints or floats): Specifies the values.
+            values: Specifies the values.
 
         Returns:
-            int or float: The minimum value.
+            The minimum value.
         """
 
     def quantile(self, values: Sequence[int | float], quantiles: Sequence[float]) -> list[float]:
@@ -272,12 +272,12 @@ class BaseBasicReducer(BaseReducer):
         r"""Computes the quantiles.
 
         Args:
-            values (sequence of ints or floats): Specifies the values.
-            quantiles (sequence of float): Specifies the quantile
-                values in the range ``[0, 1]``.
+            values: Specifies the values.
+            quantiles: Specifies the quantile values in the
+                range ``[0, 1]``.
 
         Returns:
-            list of floats: The quantiles.
+            The quantiles.
         """
 
     def std(self, values: Sequence[int | float]) -> float:
@@ -292,8 +292,8 @@ class BaseBasicReducer(BaseReducer):
         r"""Computes the standard deviation.
 
         Args:
-            values (sequence of ints or floats): Specifies the values.
+            values: Specifies the values.
 
         Returns:
-            float: The standard deviation.
+            The standard deviation.
         """

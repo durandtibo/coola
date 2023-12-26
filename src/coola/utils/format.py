@@ -20,11 +20,11 @@ def repr_indent(original: Any, num_spaces: int = 2) -> str:
         original: Specifies the original string. If the inputis not a
             string, it will be converted to a string with the function
             ``repr``.
-        num_spaces (int, optional): Specifies the number of spaces
-            used for the indentation. Default: ``2``.
+        num_spaces: Specifies the number of spaces used for the
+            indentation.
 
     Returns:
-        str: The indented string.
+        The indented string.
 
     Raises:
         RuntimeError: if num_spaces is not a positive integer.
@@ -54,14 +54,14 @@ def repr_mapping(mapping: Mapping, sorted_keys: bool = False, num_spaces: int = 
     nice.
 
     Args:
-        mapping (``Mapping``): Specifies the mapping.
-        sorted_keys (bool, optional): Specifies if the key of the dict
-            are sorted or not. Default: ``False``
-        num_spaces (int, optional): Specifies the number of spaces
-            used for the indentation. Default: ``2``.
+        mapping: Specifies the mapping.
+        sorted_keys: Specifies if the key of the dict are sorted
+            or not.
+        num_spaces: Specifies the number of spaces used for the
+            indentation.
 
     Returns:
-        str: The string representation of the mapping.
+        The string representation of the mapping.
 
     Example usage:
 
@@ -84,17 +84,16 @@ def repr_sequence(sequence: Sequence, num_spaces: int = 2) -> str:
     r"""Computes a string representation of a sequence.
 
     Args:
-        sequence (``Sequence``): Specifies the sequence.
-        num_spaces (int, optional): Specifies the number of spaces
-            used for the indentation. Default: ``2``.
+        sequence: Specifies the sequence.
+        num_spaces: Specifies the number of spaces used for the
+            indentation.
 
     Returns:
-        str: The string representation of the sequence.
+        The string representation of the sequence.
 
     Example usage:
 
     ```pycon
-
     >>> from coola.utils.format import repr_indent
     >>> print(repr_sequence(["abc", "something\nelse"]))
     (0): abc
@@ -116,11 +115,11 @@ def str_indent(original: Any, num_spaces: int = 2) -> str:
         original: Specifies the original string. If the inputis not a
             string, it will be converted to a string with the function
             ``str``.
-        num_spaces (int, optional): Specifies the number of spaces
-            used for the indentation. Default: ``2``.
+        num_spaces: Specifies the number of spaces used for the
+            indentation.
 
     Returns:
-        str: The indented string.
+        The indented string.
 
     Raises:
         RuntimeError: if num_spaces is not a positive integer.
@@ -157,14 +156,14 @@ def str_mapping(mapping: Mapping, sorted_keys: bool = False, num_spaces: int = 2
     nice.
 
     Args:
-        mapping (``Mapping``): Specifies the mapping.
-        sorted_keys (bool, optional): Specifies if the key of the dict
-            are sorted or not. Default: ``False``
-        num_spaces (int, optional): Specifies the number of spaces
-            used for the indentation. Default: ``2``.
+        mapping: Specifies the mapping.
+        sorted_keys: Specifies if the key of the dict are sorted
+            or not.
+        num_spaces: Specifies the number of spaces used for the
+            indentation.
 
     Returns:
-        str: The string representation of the mapping.
+        The string representation of the mapping.
 
     Example usage:
 
@@ -187,12 +186,12 @@ def str_sequence(sequence: Sequence, num_spaces: int = 2) -> str:
     r"""Computes a string representation of a sequence.
 
     Args:
-        sequence (``Sequence``): Specifies the sequence.
-        num_spaces (int, optional): Specifies the number of spaces
-            used for the indentation. Default: ``2``.
+        sequence: Specifies the sequence.
+        num_spaces: Specifies the number of spaces used for the
+            indentation.
 
     Returns:
-        str: The string representation of the sequence.
+        The string representation of the sequence.
 
     Example usage:
 

@@ -10,12 +10,12 @@ def quantile(values: Sequence[float | int], quantiles: Sequence[float]) -> list[
     r"""Computes the quantiles with the linear method.
 
     Args:
-        values (sequence of ints or floats): Specifies the values.
-        quantiles (sequence of float): Specifies the quantile
-            values in the range ``[0, 1]``.
+        values: Specifies the values.
+        quantiles: Specifies the quantile values in the
+            range ``[0, 1]``.
 
     Returns:
-        list of floats: The quantiles.
+        The quantiles.
 
     Example usage:
 
