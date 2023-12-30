@@ -40,10 +40,6 @@ repos:
     hooks:
       - id: python-check-blanket-noqa
       - id: python-use-type-annotations
-  - repo: https://github.com/guilatrova/tryceratops
-    rev: v2.3.2
-    hooks:
-      - id: tryceratops
   - repo: https://github.com/psf/black
     rev: 23.12.1
     hooks:

@@ -149,6 +149,7 @@ select = [
     "T20", # flake8-print
     "TD", # flake8-todos
     "TID", # flake8-tidy-imports
+    "TRY", # tryceratops
     "UP", # pyupgrade
     "W", # pycodestyle (Warning)
     # "COM", # flake8-commas
@@ -196,6 +197,7 @@ fixable = [
     "T20",
     "TD",
     "TID",
+    "TRY",
     "W",
 ]
 unfixable = []
