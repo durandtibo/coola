@@ -257,9 +257,10 @@ def test_data_array_allclose_operator_clone() -> None:
 
 @xarray_available
 def test_data_array_allclose_operator_no_xarray() -> None:
-    with patch("coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False):
-        with pytest.raises(RuntimeError, match="`xarray` package is required but not installed."):
-            DataArrayAllCloseOperator()
+    with patch(
+        "coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`xarray` package is required but not installed."):
+        DataArrayAllCloseOperator()
 
 
 ###############################################
@@ -437,9 +438,10 @@ def test_data_array_equality_operator_equal_false_different_type_show_difference
 
 @xarray_available
 def test_data_array_equality_operator_no_xarray() -> None:
-    with patch("coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False):
-        with pytest.raises(RuntimeError, match="`xarray` package is required but not installed."):
-            DataArrayEqualityOperator()
+    with patch(
+        "coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`xarray` package is required but not installed."):
+        DataArrayEqualityOperator()
 
 
 #############################################
@@ -637,9 +639,10 @@ def test_dataset_allclose_operator_clone() -> None:
 
 @xarray_available
 def test_dataset_allclose_operator_no_xarray() -> None:
-    with patch("coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False):
-        with pytest.raises(RuntimeError, match="`xarray` package is required but not installed."):
-            DatasetAllCloseOperator()
+    with patch(
+        "coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`xarray` package is required but not installed."):
+        DatasetAllCloseOperator()
 
 
 #############################################
@@ -780,9 +783,10 @@ def test_dataset_equality_operator_equal_false_different_type_show_difference(
 
 @xarray_available
 def test_dataset_equality_operator_no_xarray() -> None:
-    with patch("coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False):
-        with pytest.raises(RuntimeError, match="`xarray` package is required but not installed."):
-            DatasetEqualityOperator()
+    with patch(
+        "coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`xarray` package is required but not installed."):
+        DatasetEqualityOperator()
 
 
 ##############################################
@@ -968,9 +972,10 @@ def test_variable_allclose_operator_clone() -> None:
 
 @xarray_available
 def test_variable_allclose_operator_no_xarray() -> None:
-    with patch("coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False):
-        with pytest.raises(RuntimeError, match="`xarray` package is required but not installed."):
-            VariableAllCloseOperator()
+    with patch(
+        "coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`xarray` package is required but not installed."):
+        VariableAllCloseOperator()
 
 
 ##############################################
@@ -1112,9 +1117,10 @@ def test_variable_equality_operator_equal_false_different_type_show_difference(
 
 @xarray_available
 def test_variable_equality_operator_no_xarray() -> None:
-    with patch("coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False):
-        with pytest.raises(RuntimeError, match="`xarray` package is required but not installed."):
-            VariableEqualityOperator()
+    with patch(
+        "coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`xarray` package is required but not installed."):
+        VariableEqualityOperator()
 
 
 ##########################################

@@ -542,9 +542,10 @@ def test_dataframe_allclose_operator_clone() -> None:
 
 @polars_available
 def test_dataframe_allclose_operator_no_polars() -> None:
-    with patch("coola.utils.imports.is_polars_available", lambda *args, **kwargs: False):
-        with pytest.raises(RuntimeError, match="`polars` package is required but not installed."):
-            DataFrameAllCloseOperator()
+    with patch(
+        "coola.utils.imports.is_polars_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`polars` package is required but not installed."):
+        DataFrameAllCloseOperator()
 
 
 ###############################################
@@ -896,9 +897,10 @@ def test_dataframe_equality_operator_equal_false_different_type_show_difference(
 
 @polars_available
 def test_dataframe_equality_operator_no_polars() -> None:
-    with patch("coola.utils.imports.is_polars_available", lambda *args, **kwargs: False):
-        with pytest.raises(RuntimeError, match="`polars` package is required but not installed."):
-            DataFrameEqualityOperator()
+    with patch(
+        "coola.utils.imports.is_polars_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`polars` package is required but not installed."):
+        DataFrameEqualityOperator()
 
 
 ############################################
@@ -1103,9 +1105,10 @@ def test_series_allclose_operator_clone() -> None:
 
 @polars_available
 def test_series_allclose_operator_no_polars() -> None:
-    with patch("coola.utils.imports.is_polars_available", lambda *args, **kwargs: False):
-        with pytest.raises(RuntimeError, match="`polars` package is required but not installed."):
-            SeriesAllCloseOperator()
+    with patch(
+        "coola.utils.imports.is_polars_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`polars` package is required but not installed."):
+        SeriesAllCloseOperator()
 
 
 ############################################
@@ -1270,9 +1273,10 @@ def test_series_equality_operator_equal_false_different_type_show_difference(
 
 @polars_available
 def test_series_equality_operator_no_polars() -> None:
-    with patch("coola.utils.imports.is_polars_available", lambda *args, **kwargs: False):
-        with pytest.raises(RuntimeError, match="`polars` package is required but not installed."):
-            SeriesEqualityOperator()
+    with patch(
+        "coola.utils.imports.is_polars_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`polars` package is required but not installed."):
+        SeriesEqualityOperator()
 
 
 ##########################################

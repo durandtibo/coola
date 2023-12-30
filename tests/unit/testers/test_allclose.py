@@ -146,19 +146,19 @@ def test_local_allclose_tester__eq__true_empty() -> None:
 
 
 def test_local_allclose_tester__eq__false_different_key() -> None:
-    assert not LocalAllCloseTester({object: DefaultAllCloseOperator()}) == LocalAllCloseTester(
+    assert LocalAllCloseTester({object: DefaultAllCloseOperator()}) != LocalAllCloseTester(
         {int: DefaultAllCloseOperator()}
     )
 
 
 def test_local_allclose_tester__eq__false_different_value() -> None:
-    assert not LocalAllCloseTester({object: DefaultAllCloseOperator()}) == LocalAllCloseTester(
+    assert LocalAllCloseTester({object: DefaultAllCloseOperator()}) != LocalAllCloseTester(
         {object: MappingAllCloseOperator()}
     )
 
 
 def test_local_allclose_tester__eq__false_different_type() -> None:
-    assert not LocalAllCloseTester() == 1
+    assert LocalAllCloseTester() != 1
 
 
 def test_local_allclose_tester_registry_default() -> None:

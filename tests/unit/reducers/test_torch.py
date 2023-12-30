@@ -216,6 +216,7 @@ def test_torch_reducer_std_empty(values: Sequence[int | float]) -> None:
 
 @torch_available
 def test_torch_reducer_no_torch() -> None:
-    with patch("coola.utils.imports.is_torch_available", lambda *args, **kwargs: False):
-        with pytest.raises(RuntimeError, match="`torch` package is required but not installed."):
-            TorchReducer()
+    with patch(
+        "coola.utils.imports.is_torch_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`torch` package is required but not installed."):
+        TorchReducer()

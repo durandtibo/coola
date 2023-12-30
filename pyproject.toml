@@ -122,27 +122,38 @@ select = [
     "ANN", # annotations
     "B", # bugbear
     "BLE", # blind-except
-    "E", # pycodestyle (Error)
-    "F", # pyflakes
-    "N", # naming
-    "PTH", # pathlib
-    "UP", # pyupgrade
-    "W", # pycodestyle (Warning)
-    "LOG", # logging
-    #    "PL", # Pylint
-    #    "D", # pydocstyle
     "BLE", # flake8-blind-except
-    #    "COM", # flake8-commas
     "C4", # flake8-comprehensions
+    "E", # pycodestyle (Error)
     "EM", # flake8-errmsg
+    "F", # pyflakes
     "FA", # flake8-future-annotations
-    "ISC", # flake8-implicit-str-concat
+    "FURB", # refurb
     "ICN", # flake8-import-conventions
     "INP", # flake8-no-pep420
+    "ISC", # flake8-implicit-str-concat
+    "LOG", # logging
+    "N", # naming
+    "PD", # pandas-vet
+    "PERF", # Perflint
+    "PGH", # pygrep-hooks
     "PIE", # flake8-pie
-    "T20", # flake8-print
-    "PYI", # flake8-pyi
     "PT", # flake8-pytest-style
+    "PTH", # pathlib
+    "PYI", # flake8-pyi
+    "Q", # flake8-quotes
+    "RET", # flake8-return
+    "RSE", # flake8-raise
+    "SIM", # flake8-simplify
+    "T20", # flake8-print
+    "TD", # flake8-todos
+    "TID", # flake8-tidy-imports
+    "UP", # pyupgrade
+    "W", # pycodestyle (Warning)
+    # "COM", # flake8-commas
+    # "D", # pydocstyle
+    # "PL", # Pylint
+    # "TCH", # flake8-type-checking
 ]
 ignore = [
     "A003", # Class attribute `{name}` is shadowing a python builtin
@@ -160,22 +171,32 @@ fixable = [
     "A",
     "ANN",
     "B",
-    "E",
-    "F",
-    "PTH",
-    "W",
-    "LOG",
     "BLE",
     "C4",
+    "E",
     "EM",
+    "F",
     "FA",
-    "ISC",
+    "FURB",
     "ICN",
     "INP",
+    "ISC",
+    "LOG",
+    "PD",
+    "PERF",
+    "PGH",
     "PIE",
-    "T20",
-    "PYI",
     "PT",
+    "PTH",
+    "PYI",
+    "Q",
+    "RET",
+    "RSE",
+    "SIM",
+    "T20",
+    "TD",
+    "TID",
+    "W",
 ]
 unfixable = []
 

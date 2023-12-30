@@ -234,9 +234,10 @@ def test_jax_darray_allclose_operator_clone(check_dtype: bool) -> None:
 
 @jax_available
 def test_jax_darray_allclose_operator_no_jax() -> None:
-    with patch("coola.utils.imports.is_jax_available", lambda *args, **kwargs: False):
-        with pytest.raises(RuntimeError, match="`jax` package is required but not installed."):
-            JaxArrayAllCloseOperator()
+    with patch(
+        "coola.utils.imports.is_jax_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`jax` package is required but not installed."):
+        JaxArrayAllCloseOperator()
 
 
 ##############################################
@@ -392,9 +393,10 @@ def test_jax_array_equality_operator_equal_false_different_type_show_difference(
 
 @jax_available
 def test_jax_array_equality_operator_no_jax() -> None:
-    with patch("coola.utils.imports.is_jax_available", lambda *args, **kwargs: False):
-        with pytest.raises(RuntimeError, match="`jax` package is required but not installed."):
-            JaxArrayEqualityOperator()
+    with patch(
+        "coola.utils.imports.is_jax_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`jax` package is required but not installed."):
+        JaxArrayEqualityOperator()
 
 
 ##########################################

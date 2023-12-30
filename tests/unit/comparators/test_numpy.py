@@ -226,9 +226,10 @@ def test_array_allclose_operator_clone(check_dtype: bool) -> None:
 
 @numpy_available
 def test_array_allclose_operator_no_numpy() -> None:
-    with patch("coola.utils.imports.is_numpy_available", lambda *args, **kwargs: False):
-        with pytest.raises(RuntimeError, match="`numpy` package is required but not installed."):
-            ArrayAllCloseOperator()
+    with patch(
+        "coola.utils.imports.is_numpy_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`numpy` package is required but not installed."):
+        ArrayAllCloseOperator()
 
 
 ###########################################
@@ -382,9 +383,10 @@ def test_array_equality_operator_equal_false_different_type_show_difference(
 
 @numpy_available
 def test_array_equality_operator_no_numpy() -> None:
-    with patch("coola.utils.imports.is_numpy_available", lambda *args, **kwargs: False):
-        with pytest.raises(RuntimeError, match="`numpy` package is required but not installed."):
-            ArrayEqualityOperator()
+    with patch(
+        "coola.utils.imports.is_numpy_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`numpy` package is required but not installed."):
+        ArrayEqualityOperator()
 
 
 ##########################################

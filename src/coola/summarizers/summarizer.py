@@ -402,10 +402,8 @@ def summarizer_options(**kwargs: Any) -> None:
         Summarizer.load_state_dict(state)
 
 
-if is_numpy_available():  # pragma: no cover
-    if not Summarizer.has_formatter(ndarray):
-        Summarizer.add_formatter(ndarray, NDArrayFormatter())
+if is_numpy_available() and not Summarizer.has_formatter(ndarray):  # pragma: no cover
+    Summarizer.add_formatter(ndarray, NDArrayFormatter())
 
-if is_torch_available():  # pragma: no cover
-    if not Summarizer.has_formatter(Tensor):
-        Summarizer.add_formatter(Tensor, TensorFormatter())
+if is_torch_available() and not Summarizer.has_formatter(Tensor):  # pragma: no cover
+    Summarizer.add_formatter(Tensor, TensorFormatter())

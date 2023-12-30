@@ -146,19 +146,19 @@ def test_local_equality_tester__eq__true_empty() -> None:
 
 
 def test_local_equality_tester__eq__false_different_key() -> None:
-    assert not LocalEqualityTester({object: DefaultEqualityOperator()}) == LocalEqualityTester(
+    assert LocalEqualityTester({object: DefaultEqualityOperator()}) != LocalEqualityTester(
         {int: DefaultEqualityOperator()}
     )
 
 
 def test_local_equality_tester__eq__false_different_value() -> None:
-    assert not LocalEqualityTester({object: DefaultEqualityOperator()}) == LocalEqualityTester(
+    assert LocalEqualityTester({object: DefaultEqualityOperator()}) != LocalEqualityTester(
         {object: MappingEqualityOperator()}
     )
 
 
 def test_local_equality_tester__eq__false_different_type() -> None:
-    assert not LocalEqualityTester() == 1
+    assert LocalEqualityTester() != 1
 
 
 def test_local_equality_tester_registry_default() -> None:

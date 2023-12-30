@@ -118,7 +118,7 @@ class MappingEqualityOperator(BaseEqualityOperator[Mapping]):
                     f"keys of object2: {sorted(set(object2.keys()))}"
                 )
             return False
-        for key in object1.keys():
+        for key in object1:
             if not tester.equal(object1[key], object2[key], show_difference):
                 if show_difference:
                     logger.info(

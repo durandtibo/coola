@@ -242,9 +242,10 @@ def test_packed_sequence_allclose_operator_clone() -> None:
 
 @torch_available
 def test_packed_sequence_allclose_operator_no_torch() -> None:
-    with patch("coola.utils.imports.is_torch_available", lambda *args, **kwargs: False):
-        with pytest.raises(RuntimeError, match="`torch` package is required but not installed."):
-            PackedSequenceAllCloseOperator()
+    with patch(
+        "coola.utils.imports.is_torch_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`torch` package is required but not installed."):
+        PackedSequenceAllCloseOperator()
 
 
 ####################################################
@@ -408,9 +409,10 @@ def test_packed_sequence_equality_operator_equal_false_different_type_show_diffe
 
 @torch_available
 def test_packed_sequence_equality_operator_no_torch() -> None:
-    with patch("coola.utils.imports.is_torch_available", lambda *args, **kwargs: False):
-        with pytest.raises(RuntimeError, match="`torch` package is required but not installed."):
-            PackedSequenceEqualityOperator()
+    with patch(
+        "coola.utils.imports.is_torch_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`torch` package is required but not installed."):
+        PackedSequenceEqualityOperator()
 
 
 ############################################
@@ -641,9 +643,10 @@ def test_tensor_allclose_operator_clone() -> None:
 
 @torch_available
 def test_tensor_allclose_operator_no_torch() -> None:
-    with patch("coola.utils.imports.is_torch_available", lambda *args, **kwargs: False):
-        with pytest.raises(RuntimeError, match="`torch` package is required but not installed."):
-            TensorAllCloseOperator()
+    with patch(
+        "coola.utils.imports.is_torch_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`torch` package is required but not installed."):
+        TensorAllCloseOperator()
 
 
 ############################################
@@ -824,9 +827,10 @@ def test_tensor_equality_operator_equal_false_different_type_show_difference(
 
 @torch_available
 def test_tensor_equality_operator_no_torch() -> None:
-    with patch("coola.utils.imports.is_torch_available", lambda *args, **kwargs: False):
-        with pytest.raises(RuntimeError, match="`torch` package is required but not installed."):
-            TensorEqualityOperator()
+    with patch(
+        "coola.utils.imports.is_torch_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`torch` package is required but not installed."):
+        TensorEqualityOperator()
 
 
 ##########################################

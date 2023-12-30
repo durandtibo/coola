@@ -371,7 +371,4 @@ def has_nan(obj: DataFrame | Series) -> bool:
     """
     if isinstance(obj, Series):
         return obj.dtype in polars.FLOAT_DTYPES and obj.is_nan().any()
-    for col in obj:
-        if col.dtype in polars.FLOAT_DTYPES and col.is_nan().any():
-            return True
-    return False
+    return any(col.dtype in polars.FLOAT_DTYPES and col.is_nan().any() for col in obj)
