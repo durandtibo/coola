@@ -63,7 +63,7 @@ class DataFrameAllCloseOperator(BaseAllCloseOperator[DataFrame]):
     def __init__(self) -> None:
         check_pandas()
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
     def clone(self) -> DataFrameAllCloseOperator:
@@ -140,7 +140,7 @@ class DataFrameEqualityOperator(BaseEqualityOperator[DataFrame]):
         check_pandas()
         self._nulls_compare_equal = bool(nulls_compare_equal)
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, self.__class__):
             return False
         return self._nulls_compare_equal == other._nulls_compare_equal
@@ -214,7 +214,7 @@ class SeriesAllCloseOperator(BaseAllCloseOperator[Series]):
     def __init__(self) -> None:
         check_pandas()
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
     def clone(self) -> SeriesAllCloseOperator:
@@ -273,7 +273,7 @@ class SeriesEqualityOperator(BaseEqualityOperator[Series]):
         check_pandas()
         self._nulls_compare_equal = bool(nulls_compare_equal)
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, self.__class__):
             return False
         return self._nulls_compare_equal == other._nulls_compare_equal

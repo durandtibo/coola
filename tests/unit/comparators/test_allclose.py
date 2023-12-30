@@ -7,7 +7,7 @@ from numbers import Number
 from typing import Any
 from unittest.mock import Mock
 
-from pytest import LogCaptureFixture, mark
+import pytest
 
 from coola.comparators import (
     DefaultAllCloseOperator,
@@ -48,18 +48,18 @@ def test_default_allclose_operator_allclose_true_same_object() -> None:
     assert DefaultAllCloseOperator().allclose(AllCloseTester(), obj, obj)
 
 
-@mark.parametrize("object1,object2", ((1, 1), (2.5, 2.5)))
+@pytest.mark.parametrize(("object1", "object2"), [(1, 1), (2.5, 2.5)])
 def test_default_allclose_operator_allclose_true_scalar(object1: Number, object2: Number) -> None:
     assert DefaultAllCloseOperator().allclose(AllCloseTester(), object1, object2)
 
 
-@mark.parametrize("object1,object2", ((1, 1.1), (2.5, 0)))
+@pytest.mark.parametrize(("object1", "object2"), [(1, 1.1), (2.5, 0)])
 def test_default_allclose_operator_allclose_false_scalar(object1: Number, object2: Number) -> None:
     assert not DefaultAllCloseOperator().allclose(AllCloseTester(), object1, object2)
 
 
 def test_default_allclose_operator_allclose_different_value_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not DefaultAllCloseOperator().allclose(
@@ -73,7 +73,7 @@ def test_default_allclose_operator_allclose_different_type() -> None:
 
 
 def test_default_allclose_operator_allclose_different_type_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not DefaultAllCloseOperator().allclose(
@@ -106,9 +106,9 @@ def test_mapping_allclose_operator__eq__false() -> None:
     assert MappingAllCloseOperator() != 123
 
 
-@mark.parametrize(
-    "object1,object2",
-    (
+@pytest.mark.parametrize(
+    ("object1", "object2"),
+    [
         ({}, {}),
         (OrderedDict({}), OrderedDict({})),
         (
@@ -123,7 +123,7 @@ def test_mapping_allclose_operator__eq__false() -> None:
             OrderedDict([("1", torch.ones(2, 3)), ("2", torch.zeros(2))]),
             OrderedDict([("1", torch.ones(2, 3)), ("2", torch.zeros(2))]),
         ),
-    ),
+    ],
 )
 def test_mapping_allclose_operator_allclose_true(object1: Mapping, object2: Mapping) -> None:
     assert MappingAllCloseOperator().allclose(AllCloseTester(), object1, object2)
@@ -143,7 +143,7 @@ def test_mapping_allclose_operator_allclose_false_different_value() -> None:
 
 
 def test_mapping_allclose_operator_allclose_false_different_value_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not MappingAllCloseOperator().allclose(
@@ -166,7 +166,7 @@ def test_mapping_allclose_operator_allclose_false_different_keys() -> None:
 
 
 def test_mapping_allclose_operator_allclose_false_different_keys_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not MappingAllCloseOperator().allclose(
@@ -187,7 +187,7 @@ def test_mapping_allclose_operator_allclose_false_different_length() -> None:
 
 
 def test_mapping_allclose_operator_allclose_false_different_length_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not MappingAllCloseOperator().allclose(
@@ -204,7 +204,7 @@ def test_mapping_allclose_operator_allclose_false_different_type() -> None:
 
 
 def test_mapping_allclose_operator_allclose_different_type_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not MappingAllCloseOperator().allclose(
@@ -214,13 +214,13 @@ def test_mapping_allclose_operator_allclose_different_type_show_difference(
 
 
 @torch_available
-@mark.parametrize(
-    "mapping,atol",
-    (
+@pytest.mark.parametrize(
+    ("mapping", "atol"),
+    [
         ({"key": torch.full((2, 3), 1.5)}, 1),
         ({"key": torch.full((2, 3), 1.05)}, 1e-1),
         ({"key": torch.full((2, 3), 1.005)}, 1e-2),
-    ),
+    ],
 )
 def test_mapping_allclose_operator_allclose_true_atol(mapping: Mapping, atol: float) -> None:
     assert MappingAllCloseOperator().allclose(
@@ -229,13 +229,13 @@ def test_mapping_allclose_operator_allclose_true_atol(mapping: Mapping, atol: fl
 
 
 @torch_available
-@mark.parametrize(
-    "mapping,rtol",
-    (
+@pytest.mark.parametrize(
+    ("mapping", "rtol"),
+    [
         ({"key": torch.full((2, 3), 1.5)}, 1),
         ({"key": torch.full((2, 3), 1.05)}, 1e-1),
         ({"key": torch.full((2, 3), 1.005)}, 1e-2),
-    ),
+    ],
 )
 def test_mapping_allclose_operator_allclose_true_rtol(mapping: Mapping, rtol: float) -> None:
     assert MappingAllCloseOperator().allclose(
@@ -244,13 +244,13 @@ def test_mapping_allclose_operator_allclose_true_rtol(mapping: Mapping, rtol: fl
 
 
 @torch_available
-@mark.parametrize(
-    "mapping,atol",
-    (
+@pytest.mark.parametrize(
+    ("mapping", "atol"),
+    [
         ({1.5: torch.ones(2, 3)}, 1),
         ({1.05: torch.ones(2, 3)}, 1e-1),
         ({1.005: torch.ones(2, 3)}, 1e-2),
-    ),
+    ],
 )
 def test_mapping_allclose_operator_allclose_true_atol_keys(mapping: Mapping, atol: float) -> None:
     assert MappingAllCloseOperator().allclose(
@@ -259,13 +259,13 @@ def test_mapping_allclose_operator_allclose_true_atol_keys(mapping: Mapping, ato
 
 
 @torch_available
-@mark.parametrize(
-    "mapping,rtol",
-    (
+@pytest.mark.parametrize(
+    ("mapping", "rtol"),
+    [
         ({1.5: torch.ones(2, 3)}, 1),
         ({1.05: torch.ones(2, 3)}, 1e-1),
         ({1.005: torch.ones(2, 3)}, 1e-2),
-    ),
+    ],
 )
 def test_mapping_allclose_operator_allclose_true_rtol_keys(mapping: Mapping, rtol: float) -> None:
     assert MappingAllCloseOperator().allclose(
@@ -297,26 +297,26 @@ def test_scalar_allclose_operator__eq__false() -> None:
     assert ScalarAllCloseOperator() != 123
 
 
-@mark.parametrize(
-    "object1,object2",
-    (
+@pytest.mark.parametrize(
+    ("object1", "object2"),
+    [
         (-1.0, -1.0),
         (0.0, 0.0),
         (1.0, 1.0),
         (float("inf"), float("inf")),
         (float("-inf"), float("-inf")),
-    ),
+    ],
 )
 def test_scalar_allclose_operator_allclose_true_float(object1: float, object2: float) -> None:
     assert ScalarAllCloseOperator().allclose(AllCloseTester(), object1, object2)
 
 
-@mark.parametrize("object1,object2", ((-1, -1), (0, 0), (1, 1)))
+@pytest.mark.parametrize(("object1", "object2"), [(-1, -1), (0, 0), (1, 1)])
 def test_scalar_allclose_operator_allclose_true_int(object1: int, object2: int) -> None:
     assert ScalarAllCloseOperator().allclose(AllCloseTester(), object1, object2)
 
 
-@mark.parametrize("object1,object2", ((True, True), (False, False)))
+@pytest.mark.parametrize(("object1", "object2"), [(True, True), (False, False)])
 def test_scalar_allclose_operator_allclose_true_bool(object1: bool, object2: bool) -> None:
     assert ScalarAllCloseOperator().allclose(AllCloseTester(), object1, object2)
 
@@ -326,7 +326,9 @@ def test_scalar_allclose_operator_allclose_true_same_object() -> None:
     assert ScalarAllCloseOperator().allclose(AllCloseTester(), obj, obj)
 
 
-def test_scalar_allclose_operator_allclose_true_show_difference(caplog: LogCaptureFixture) -> None:
+def test_scalar_allclose_operator_allclose_true_show_difference(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     with caplog.at_level(logging.INFO):
         assert ScalarAllCloseOperator().allclose(
             tester=AllCloseTester(), object1=1, object2=1, show_difference=True
@@ -344,9 +346,9 @@ def test_scalar_allclose_operator_allclose_equal_nan_false() -> None:
     assert not ScalarAllCloseOperator().allclose(AllCloseTester(), float("nan"), float("nan"))
 
 
-@mark.parametrize(
-    "object1,object2,atol",
-    (
+@pytest.mark.parametrize(
+    ("object1", "object2", "atol"),
+    [
         (0, 1, 1),
         (1, 0, 1),
         (1, 2, 1),
@@ -354,19 +356,19 @@ def test_scalar_allclose_operator_allclose_equal_nan_false() -> None:
         (1.0, 1.0 + 1e-4, 1e-3),
         (1.0, 1.0 - 1e-4, 1e-3),
         (False, True, 1),
-    ),
+    ],
 )
 def test_scalar_allclose_operator_allclose_true_atol(
-    object1: int | float, object2: int | float, atol: float
+    object1: float, object2: float, atol: float
 ) -> None:
     assert ScalarAllCloseOperator().allclose(
         AllCloseTester(), object1, object2, atol=atol, rtol=0.0
     )
 
 
-@mark.parametrize(
-    "object1,object2,rtol",
-    (
+@pytest.mark.parametrize(
+    ("object1", "object2", "rtol"),
+    [
         (0, 1, 1),
         (1, 0, 1),
         (1, 2, 1),
@@ -374,19 +376,19 @@ def test_scalar_allclose_operator_allclose_true_atol(
         (1.0, 1.0 + 1e-4, 1e-3),
         (1.0, 1.0 - 1e-4, 1e-3),
         (False, True, 1),
-    ),
+    ],
 )
 def test_scalar_allclose_operator_allclose_true_rtol(
-    object1: int | float, object2: int | float, rtol: float
+    object1: float, object2: float, rtol: float
 ) -> None:
     assert ScalarAllCloseOperator().allclose(
         AllCloseTester(), object1, object2, atol=0.0, rtol=rtol
     )
 
 
-@mark.parametrize(
-    "object1,object2",
-    (
+@pytest.mark.parametrize(
+    ("object1", "object2"),
+    [
         (1.0, 1.1),
         (2.5, 0.0),
         (1.0 + 1e-7, 1.0),
@@ -397,32 +399,32 @@ def test_scalar_allclose_operator_allclose_true_rtol(
         (0, 1),
         (1, -1),
         (True, False),
-    ),
+    ],
 )
 def test_scalar_allclose_operator_allclose_false_different_value(
-    object1: bool | int | float, object2: bool | int | float
+    object1: bool | float, object2: bool | float
 ) -> None:
     assert not ScalarAllCloseOperator().allclose(AllCloseTester(), object1, object2, rtol=0.0)
 
 
 def test_scalar_allclose_operator_allclose_false_different_value_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not ScalarAllCloseOperator().allclose(AllCloseTester(), 1, 2, show_difference=True)
         assert caplog.messages[0].startswith("The numbers are different:")
 
 
-@mark.parametrize("object1,object2", ((1.0, 1), (1.0, True), (1, True), (1, "1")))
+@pytest.mark.parametrize(("object1", "object2"), [(1.0, 1), (1.0, True), (1, True), (1, "1")])
 def test_scalar_allclose_operator_allclose_false_incorrect_type(
-    object1: bool | int | float, object2: Any
+    object1: bool | float, object2: Any
 ) -> None:
     assert not ScalarAllCloseOperator().allclose(AllCloseTester(), object1, object2)
 
 
-@mark.parametrize("object1,object2", ((1.0, 1), (1.0, True), (1, True), (1, "1")))
+@pytest.mark.parametrize(("object1", "object2"), [(1.0, 1), (1.0, True), (1, True), (1, "1")])
 def test_scalar_allclose_operator_allclose_false_incorrect_type_show_difference(
-    caplog: LogCaptureFixture, object1: bool | int | float, object2: Any
+    caplog: pytest.LogCaptureFixture, object1: bool | float, object2: Any
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not ScalarAllCloseOperator().allclose(
@@ -455,16 +457,16 @@ def test_sequence_allclose_operator__eq__false() -> None:
     assert SequenceAllCloseOperator() != 123
 
 
-@mark.parametrize(
-    "object1,object2",
-    (
+@pytest.mark.parametrize(
+    ("object1", "object2"),
+    [
         ([], []),
         ((), ()),
         ([1, 2, 3], [1, 2, 3]),
         ((1, 2, 3), (1, 2, 3)),
         (["abc", "def"], ["abc", "def"]),
         (("abc", "def"), ("abc", "def")),
-    ),
+    ],
 )
 def test_sequence_allclose_operator_allclose_true(object1: Sequence, object2: Sequence) -> None:
     assert SequenceAllCloseOperator().allclose(AllCloseTester(), object1, object2)
@@ -476,9 +478,9 @@ def test_sequence_allclose_operator_allclose_true_same_object() -> None:
 
 
 @torch_available
-@mark.parametrize(
-    "object1,object2",
-    (
+@pytest.mark.parametrize(
+    ("object1", "object2"),
+    [
         ([torch.ones(2, 3), torch.zeros(2)], [torch.ones(2, 3), torch.zeros(2)]),
         ([torch.full((2, 3), 1.0 + 1e-9), torch.zeros(2)], [torch.ones(2, 3), torch.zeros(2)]),
         ((torch.ones(2, 3), torch.zeros(2)), (torch.ones(2, 3), torch.zeros(2))),
@@ -487,7 +489,7 @@ def test_sequence_allclose_operator_allclose_true_same_object() -> None:
             (torch.ones(2, 3), [torch.zeros(2), torch.ones(2)]),
             (torch.ones(2, 3), [torch.zeros(2), torch.ones(2)]),
         ),
-    ),
+    ],
 )
 def test_sequence_allclose_operator_allclose_true_torch(
     object1: Sequence, object2: Sequence
@@ -495,14 +497,14 @@ def test_sequence_allclose_operator_allclose_true_torch(
     assert SequenceAllCloseOperator().allclose(AllCloseTester(), object1, object2)
 
 
-@mark.parametrize(
-    "object1,object2",
-    (
+@pytest.mark.parametrize(
+    ("object1", "object2"),
+    [
         (["abc", "deg"], ["abc", "def"]),
         (("abc", "deg"), ("abc", "def")),
         ([torch.ones(2, 3), torch.zeros(2)], [torch.ones(2, 3), torch.ones(2)]),
         ((torch.ones(2, 3), torch.zeros(2)), (torch.ones(2, 3), torch.ones(2))),
-    ),
+    ],
 )
 def test_sequence_allclose_operator_allclose_false_different_value(
     object1: Sequence, object2: Sequence
@@ -511,7 +513,7 @@ def test_sequence_allclose_operator_allclose_false_different_value(
 
 
 def test_sequence_allclose_operator_allclose_false_different_value_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not SequenceAllCloseOperator().allclose(
@@ -523,14 +525,14 @@ def test_sequence_allclose_operator_allclose_false_different_value_show_differen
         assert caplog.messages[-1].startswith("The sequences have at least one different value:")
 
 
-@mark.parametrize(
-    "object1,object2",
-    (
+@pytest.mark.parametrize(
+    ("object1", "object2"),
+    [
         (["abc", "defg"], ["abc", "def"]),
         (("abc", "defg"), ("abc", "def")),
         ([torch.ones(2, 3), torch.zeros(2)], [torch.ones(2, 3), torch.ones(2), torch.ones(3)]),
         ((torch.ones(2, 3), torch.zeros(2)), (torch.ones(2, 3), torch.ones(2), torch.ones(3))),
-    ),
+    ],
 )
 def test_sequence_allclose_operator_allclose_false_different_length(
     object1: Sequence, object2: Sequence
@@ -539,7 +541,7 @@ def test_sequence_allclose_operator_allclose_false_different_length(
 
 
 def test_sequence_allclose_operator_allclose_false_different_length_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not SequenceAllCloseOperator().allclose(
@@ -556,7 +558,7 @@ def test_sequence_allclose_operator_allclose_false_different_type() -> None:
 
 
 def test_sequence_allclose_operator_allclose_different_type_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not SequenceAllCloseOperator().allclose(
@@ -566,13 +568,13 @@ def test_sequence_allclose_operator_allclose_different_type_show_difference(
 
 
 @torch_available
-@mark.parametrize(
-    "sequence,atol",
-    (
+@pytest.mark.parametrize(
+    ("sequence", "atol"),
+    [
         ([torch.full((2, 3), 1.5)], 1),
         ([torch.full((2, 3), 1.05)], 1e-1),
         ([torch.full((2, 3), 1.005)], 1e-2),
-    ),
+    ],
 )
 def test_sequence_allclose_operator_allclose_true_atol(sequence: Sequence, atol: float) -> None:
     assert SequenceAllCloseOperator().allclose(
@@ -581,13 +583,13 @@ def test_sequence_allclose_operator_allclose_true_atol(sequence: Sequence, atol:
 
 
 @torch_available
-@mark.parametrize(
-    "sequence,rtol",
-    (
+@pytest.mark.parametrize(
+    ("sequence", "rtol"),
+    [
         ([torch.full((2, 3), 1.5)], 1),
         ([torch.full((2, 3), 1.05)], 1e-1),
         ([torch.full((2, 3), 1.005)], 1e-2),
-    ),
+    ],
 )
 def test_sequence_allclose_operator_allclose_true_rtol(sequence: Sequence, rtol: float) -> None:
     assert SequenceAllCloseOperator().allclose(

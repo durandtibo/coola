@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pytest import raises
+import pytest
 
 from coola.utils.format import (
     repr_indent,
@@ -37,7 +37,7 @@ def test_repr_indent_num_spaces_4() -> None:
 
 
 def test_repr_indent_num_spaces_incorrect() -> None:
-    with raises(RuntimeError):
+    with pytest.raises(RuntimeError):
         repr_indent("abc\ndef", num_spaces=-1)
 
 
@@ -120,7 +120,7 @@ def test_str_indent_num_spaces_4() -> None:
 
 
 def test_str_indent_num_spaces_incorrect() -> None:
-    with raises(RuntimeError):
+    with pytest.raises(RuntimeError):
         str_indent("abc\ndef", num_spaces=-1)
 
 

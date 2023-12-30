@@ -141,6 +141,8 @@ select = [
     "INP", # flake8-no-pep420
     "PIE", # flake8-pie
     "T20", # flake8-print
+    "PYI", # flake8-pyi
+    "PT", # flake8-pytest-style
 ]
 ignore = [
     "A003", # Class attribute `{name}` is shadowing a python builtin
@@ -154,7 +156,27 @@ ignore = [
 ]
 
 # Allow autofix for all enabled rules (when `--fix`) is provided.
-fixable = ["A", "ANN", "B", "E", "F", "PTH", "W", "LOG", "BLE", "C4", "EM", "FA", "ISC", "ICN", "INP", "PIE", "T20"]
+fixable = [
+    "A",
+    "ANN",
+    "B",
+    "E",
+    "F",
+    "PTH",
+    "W",
+    "LOG",
+    "BLE",
+    "C4",
+    "EM",
+    "FA",
+    "ISC",
+    "ICN",
+    "INP",
+    "PIE",
+    "T20",
+    "PYI",
+    "PT",
+]
 unfixable = []
 
 exclude = [

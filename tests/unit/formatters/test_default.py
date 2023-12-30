@@ -1,6 +1,6 @@
 from collections import OrderedDict, defaultdict
 
-from pytest import mark, raises
+import pytest
 
 from coola import Summarizer, summarizer_options
 from coola.formatters import (
@@ -52,7 +52,7 @@ def test_default_formatter_format_float() -> None:
     assert DefaultFormatter().format(Summarizer(), 1.2) == "<class 'float'> 1.2"
 
 
-@mark.parametrize("max_characters", (-1, -10))
+@pytest.mark.parametrize("max_characters", [-1, -10])
 def test_default_formatter_format_max_characters_neg(max_characters: int) -> None:
     assert (
         DefaultFormatter(max_characters=max_characters).format(
@@ -97,7 +97,7 @@ def test_default_formatter_format_max_characters_100() -> None:
     )
 
 
-@mark.parametrize("max_depth", (0, -1, -2))
+@pytest.mark.parametrize("max_depth", [0, -1, -2])
 def test_default_formatter_format_max_depth_0(max_depth: int) -> None:
     assert (
         DefaultFormatter().format(Summarizer(), "abcdefghijklmnopqrstuvwxyz", max_depth=max_depth)
@@ -128,7 +128,7 @@ def test_default_formatter_get_max_characters() -> None:
     assert DefaultFormatter().get_max_characters() == -1
 
 
-@mark.parametrize("max_characters", (-1, 0, 1, 10))
+@pytest.mark.parametrize("max_characters", [-1, 0, 1, 10])
 def test_default_formatter_set_max_characters_int(max_characters: int) -> None:
     formatter = DefaultFormatter()
     assert formatter.get_max_characters() == -1
@@ -138,7 +138,7 @@ def test_default_formatter_set_max_characters_int(max_characters: int) -> None:
 
 def test_default_formatter_set_max_characters_incorrect_type() -> None:
     formatter = DefaultFormatter()
-    with raises(TypeError, match="Incorrect type for max_characters. Expected int value"):
+    with pytest.raises(TypeError, match="Incorrect type for max_characters. Expected int value"):
         formatter.set_max_characters(4.2)
 
 
@@ -296,7 +296,7 @@ def test_mapping_formatter_format_nested_dict_max_depth_3() -> None:
     )
 
 
-@mark.parametrize("max_depth", (0, -1, -2))
+@pytest.mark.parametrize("max_depth", [0, -1, -2])
 def test_mapping_formatter_format_nested_dict_max_depth_0(max_depth: int) -> None:
     assert MappingFormatter().format(
         Summarizer(),
@@ -351,7 +351,7 @@ def test_mapping_formatter_get_max_items() -> None:
     assert MappingFormatter().get_max_items() == 5
 
 
-@mark.parametrize("max_items", (-1, 0, 1, 10))
+@pytest.mark.parametrize("max_items", [-1, 0, 1, 10])
 def test_mapping_formatter_set_max_items_int(max_items: int) -> None:
     formatter = MappingFormatter()
     assert formatter.get_max_items() == 5
@@ -361,7 +361,7 @@ def test_mapping_formatter_set_max_items_int(max_items: int) -> None:
 
 def test_mapping_formatter_set_max_items_incorrect_type() -> None:
     formatter = MappingFormatter()
-    with raises(TypeError, match="Incorrect type for max_items. Expected int value"):
+    with pytest.raises(TypeError, match="Incorrect type for max_items. Expected int value"):
         formatter.set_max_items(4.2)
 
 
@@ -369,7 +369,7 @@ def test_mapping_formatter_get_num_spaces() -> None:
     assert MappingFormatter().get_num_spaces() == 2
 
 
-@mark.parametrize("num_spaces", (0, 1, 10))
+@pytest.mark.parametrize("num_spaces", [0, 1, 10])
 def test_mapping_formatter_set_num_spaces_int(num_spaces: int) -> None:
     formatter = MappingFormatter()
     assert formatter.get_num_spaces() == 2
@@ -379,14 +379,16 @@ def test_mapping_formatter_set_num_spaces_int(num_spaces: int) -> None:
 
 def test_mapping_formatter_set_num_spaces_incorrect_type() -> None:
     formatter = MappingFormatter()
-    with raises(TypeError, match="Incorrect type for num_spaces. Expected int value"):
+    with pytest.raises(TypeError, match="Incorrect type for num_spaces. Expected int value"):
         formatter.set_num_spaces(4.2)
 
 
-@mark.parametrize("num_spaces", (-1, -2))
+@pytest.mark.parametrize("num_spaces", [-1, -2])
 def test_mapping_formatter_set_num_spaces_incorrect_value(num_spaces: int) -> None:
     formatter = MappingFormatter()
-    with raises(ValueError, match="Incorrect value for num_spaces. Expected a positive integer"):
+    with pytest.raises(
+        ValueError, match="Incorrect value for num_spaces. Expected a positive integer"
+    ):
         formatter.set_num_spaces(num_spaces)
 
 
@@ -519,7 +521,7 @@ def test_sequence_formatter_format_nested_list_max_depth_3() -> None:
     )
 
 
-@mark.parametrize("max_depth", (0, -1, -2))
+@pytest.mark.parametrize("max_depth", [0, -1, -2])
 def test_sequence_formatter_format_nested_list_max_depth_0(max_depth: int) -> None:
     assert SequenceFormatter().format(
         Summarizer(), [[0, 1, 2], ["abc", "def"]], max_depth=max_depth
@@ -562,7 +564,7 @@ def test_sequence_formatter_get_max_items() -> None:
     assert SequenceFormatter().get_max_items() == 5
 
 
-@mark.parametrize("max_items", (-1, 0, 1, 10))
+@pytest.mark.parametrize("max_items", [-1, 0, 1, 10])
 def test_sequence_formatter_set_max_items_int(max_items: int) -> None:
     formatter = SequenceFormatter()
     assert formatter.get_max_items() == 5
@@ -572,7 +574,7 @@ def test_sequence_formatter_set_max_items_int(max_items: int) -> None:
 
 def test_sequence_formatter_set_max_items_incorrect_type() -> None:
     formatter = SequenceFormatter()
-    with raises(TypeError, match="Incorrect type for max_items. Expected int value"):
+    with pytest.raises(TypeError, match="Incorrect type for max_items. Expected int value"):
         formatter.set_max_items(4.2)
 
 
@@ -580,7 +582,7 @@ def test_sequence_formatter_get_num_spaces() -> None:
     assert SequenceFormatter().get_num_spaces() == 2
 
 
-@mark.parametrize("num_spaces", (0, 1, 10))
+@pytest.mark.parametrize("num_spaces", [0, 1, 10])
 def test_sequence_formatter_set_num_spaces_int(num_spaces: int) -> None:
     formatter = SequenceFormatter()
     assert formatter.get_num_spaces() == 2
@@ -590,14 +592,16 @@ def test_sequence_formatter_set_num_spaces_int(num_spaces: int) -> None:
 
 def test_sequence_formatter_set_num_spaces_incorrect_type() -> None:
     formatter = SequenceFormatter()
-    with raises(TypeError, match="Incorrect type for num_spaces. Expected int value"):
+    with pytest.raises(TypeError, match="Incorrect type for num_spaces. Expected int value"):
         formatter.set_num_spaces(4.2)
 
 
-@mark.parametrize("num_spaces", (-1, -2))
+@pytest.mark.parametrize("num_spaces", [-1, -2])
 def test_sequence_formatter_set_num_spaces_incorrect_value(num_spaces: int) -> None:
     formatter = SequenceFormatter()
-    with raises(ValueError, match="Incorrect value for num_spaces. Expected a positive integer"):
+    with pytest.raises(
+        ValueError, match="Incorrect value for num_spaces. Expected a positive integer"
+    ):
         formatter.set_num_spaces(num_spaces)
 
 
@@ -727,7 +731,7 @@ def test_set_formatter_format_nested_max_depth_3() -> None:
     }
 
 
-@mark.parametrize("max_depth", (0, -1, -2))
+@pytest.mark.parametrize("max_depth", [0, -1, -2])
 def test_set_formatter_format_nested_max_depth_0(max_depth: int) -> None:
     s = SetFormatter().format(Summarizer(), {(0, 1, 2), ("abc", "def")}, max_depth=max_depth)
     assert s in {"{(0, 1, 2), ('abc', 'def')}", "{('abc', 'def'), (0, 1, 2)}"}
@@ -765,7 +769,7 @@ def test_set_formatter_get_max_items() -> None:
     assert SetFormatter().get_max_items() == 5
 
 
-@mark.parametrize("max_items", (-1, 0, 1, 10))
+@pytest.mark.parametrize("max_items", [-1, 0, 1, 10])
 def test_set_formatter_set_max_items_int(max_items: int) -> None:
     formatter = SetFormatter()
     assert formatter.get_max_items() == 5
@@ -775,7 +779,7 @@ def test_set_formatter_set_max_items_int(max_items: int) -> None:
 
 def test_set_formatter_set_max_items_incorrect_type() -> None:
     formatter = SetFormatter()
-    with raises(TypeError, match="Incorrect type for max_items. Expected int value"):
+    with pytest.raises(TypeError, match="Incorrect type for max_items. Expected int value"):
         formatter.set_max_items(4.2)
 
 
@@ -783,7 +787,7 @@ def test_set_formatter_get_num_spaces() -> None:
     assert SetFormatter().get_num_spaces() == 2
 
 
-@mark.parametrize("num_spaces", (0, 1, 10))
+@pytest.mark.parametrize("num_spaces", [0, 1, 10])
 def test_set_formatter_set_num_spaces_int(num_spaces: int) -> None:
     formatter = SetFormatter()
     assert formatter.get_num_spaces() == 2
@@ -793,12 +797,14 @@ def test_set_formatter_set_num_spaces_int(num_spaces: int) -> None:
 
 def test_set_formatter_set_num_spaces_incorrect_type() -> None:
     formatter = SetFormatter()
-    with raises(TypeError, match="Incorrect type for num_spaces. Expected int value"):
+    with pytest.raises(TypeError, match="Incorrect type for num_spaces. Expected int value"):
         formatter.set_num_spaces(4.2)
 
 
-@mark.parametrize("num_spaces", (-1, -2))
+@pytest.mark.parametrize("num_spaces", [-1, -2])
 def test_set_formatter_set_num_spaces_incorrect_value(num_spaces: int) -> None:
     formatter = SetFormatter()
-    with raises(ValueError, match="Incorrect value for num_spaces. Expected a positive integer"):
+    with pytest.raises(
+        ValueError, match="Incorrect value for num_spaces. Expected a positive integer"
+    ):
         formatter.set_num_spaces(num_spaces)

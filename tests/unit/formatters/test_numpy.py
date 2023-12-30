@@ -1,6 +1,6 @@
 from unittest.mock import Mock
 
-from pytest import mark, raises
+import pytest
 
 from coola import Summarizer, summary
 from coola.formatters.numpy_ import NDArrayFormatter
@@ -54,8 +54,8 @@ def test_ndarray_formatter_equal_false_different_type() -> None:
 
 
 @numpy_available
-@mark.parametrize("shape", ((2,), (2, 3), (2, 3, 4)))
-@mark.parametrize("dtype", (float, int, bool))
+@pytest.mark.parametrize("shape", [(2,), (2, 3), (2, 3, 4)])
+@pytest.mark.parametrize("dtype", [float, int, bool])
 def test_ndarray_formatter_format(shape: tuple[int, ...], dtype: np.dtype) -> None:
     assert (
         NDArrayFormatter()
@@ -98,7 +98,7 @@ def test_ndarray_formatter_get_show_data() -> None:
 
 
 @numpy_available
-@mark.parametrize("show_data", (True, False))
+@pytest.mark.parametrize("show_data", [True, False])
 def test_ndarray_formatter_set_show_data_int(show_data: bool) -> None:
     formatter = NDArrayFormatter()
     assert not formatter.get_show_data()
@@ -109,5 +109,5 @@ def test_ndarray_formatter_set_show_data_int(show_data: bool) -> None:
 @numpy_available
 def test_ndarray_formatter_set_show_data_incorrect_type() -> None:
     formatter = NDArrayFormatter()
-    with raises(TypeError, match="Incorrect type for show_data. Expected bool value"):
+    with pytest.raises(TypeError, match="Incorrect type for show_data. Expected bool value"):
         formatter.set_show_data(4.2)

@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from unittest.mock import Mock, patch
 
-from pytest import raises
+import pytest
 
 from coola.comparators import (
     ArrayEqualityOperator,
@@ -83,7 +83,7 @@ def test_equality_tester_add_operator_duplicate_exist_ok_false() -> None:
     tester = EqualityTester()
     operator = Mock(spec=BaseEqualityOperator)
     tester.add_operator(int, Mock(spec=BaseEqualityOperator))
-    with raises(RuntimeError, match="An operator (.*) is already registered"):
+    with pytest.raises(RuntimeError, match="An operator (.*) is already registered"):
         tester.add_operator(int, operator)
 
 
@@ -112,7 +112,7 @@ def test_equality_tester_find_operator_indirect() -> None:
 
 
 def test_equality_tester_find_operator_incorrect_type() -> None:
-    with raises(TypeError, match="Incorrect data type:"):
+    with pytest.raises(TypeError, match="Incorrect data type:"):
         EqualityTester().find_operator(Mock(__mro__=[]))
 
 
@@ -184,7 +184,7 @@ def test_local_equality_tester_add_operator_duplicate_exist_ok_false() -> None:
     tester = LocalEqualityTester()
     operator = Mock(spec=BaseEqualityOperator)
     tester.add_operator(int, Mock(spec=BaseEqualityOperator))
-    with raises(RuntimeError, match="An operator (.*) is already registered"):
+    with pytest.raises(RuntimeError, match="An operator (.*) is already registered"):
         tester.add_operator(int, operator)
 
 
@@ -237,5 +237,5 @@ def test_local_equality_tester_find_operator_indirect() -> None:
 
 
 def test_local_equality_tester_find_operator_incorrect_type() -> None:
-    with raises(TypeError, match="Incorrect data type:"):
+    with pytest.raises(TypeError, match="Incorrect data type:"):
         LocalEqualityTester().find_operator(Mock(__mro__=[]))

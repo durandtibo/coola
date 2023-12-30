@@ -40,7 +40,7 @@ class DefaultEqualityOperator(BaseEqualityOperator[Any]):
     ```
     """
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
     def clone(self) -> DefaultEqualityOperator:
@@ -85,7 +85,7 @@ class MappingEqualityOperator(BaseEqualityOperator[Mapping]):
     ```
     """
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
     def clone(self) -> MappingEqualityOperator:
@@ -146,7 +146,7 @@ class SequenceEqualityOperator(BaseEqualityOperator[Sequence]):
     ```
     """
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
     def clone(self) -> SequenceEqualityOperator:

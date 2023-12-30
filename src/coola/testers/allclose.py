@@ -170,7 +170,7 @@ class LocalAllCloseTester(BaseAllCloseTester):
     def __init__(self, registry: dict[type[object], BaseAllCloseOperator] | None = None) -> None:
         self.registry = registry or {}
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, self.__class__):
             return False
         return self.registry == other.registry
