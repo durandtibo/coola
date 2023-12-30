@@ -74,6 +74,6 @@ def is_mps_available() -> bool:
         return False
     try:
         torch.ones(1, device="mps")
-        return True
     except RuntimeError:
         return False
+    return True
