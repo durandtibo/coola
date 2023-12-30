@@ -65,11 +65,12 @@ class AllCloseTester(BaseAllCloseTester):
         ```
         """
         if data_type in cls.registry and not exist_ok:
-            raise RuntimeError(
+            msg = (
                 f"An operator ({cls.registry[data_type]}) is already registered for the data "
                 f"type {data_type}.Please use `exist_ok=True` if you want to overwrite the "
                 "operator for this type"
             )
+            raise RuntimeError(msg)
         cls.registry[data_type] = operator
 
     def allclose(
@@ -135,7 +136,8 @@ class AllCloseTester(BaseAllCloseTester):
             operator = cls.registry.get(object_type, None)
             if operator is not None:
                 return operator
-        raise TypeError(f"Incorrect data type: {data_type}")
+        msg = f"Incorrect data type: {data_type}"
+        raise TypeError(msg)
 
     @classmethod
     def local_copy(cls) -> LocalAllCloseTester:
@@ -204,11 +206,12 @@ class LocalAllCloseTester(BaseAllCloseTester):
         ```
         """
         if data_type in self.registry and not exist_ok:
-            raise RuntimeError(
+            msg = (
                 f"An operator ({self.registry[data_type]}) is already registered for the data "
                 f"type {data_type}.Please use `exist_ok=True` if you want to overwrite the "
                 "operator for this type"
             )
+            raise RuntimeError(msg)
         self.registry[data_type] = operator
 
     def allclose(
@@ -291,4 +294,5 @@ class LocalAllCloseTester(BaseAllCloseTester):
             operator = self.registry.get(object_type, None)
             if operator is not None:
                 return operator
-        raise TypeError(f"Incorrect data type: {data_type}")
+        msg = f"Incorrect data type: {data_type}"
+        raise TypeError(msg)

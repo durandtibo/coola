@@ -112,10 +112,11 @@ class DefaultFormatter(BaseFormatter[Any]):
         ```
         """
         if not isinstance(max_characters, int):
-            raise TypeError(
+            msg = (
                 "Incorrect type for max_characters. Expected int value but "
-                f"received {max_characters}"
+                "received {max_characters}"
             )
+            raise TypeError(msg)
         self._max_characters = max_characters
 
 
@@ -210,9 +211,8 @@ class BaseCollectionFormatter(BaseFormatter[T]):
         ```
         """
         if not isinstance(max_items, int):
-            raise TypeError(
-                "Incorrect type for max_items. Expected int value but " f"received {max_items}"
-            )
+            msg = f"Incorrect type for max_items. Expected int value but received {max_items}"
+            raise TypeError(msg)
         self._max_items = max_items
 
     def get_num_spaces(self) -> int:
@@ -256,14 +256,14 @@ class BaseCollectionFormatter(BaseFormatter[T]):
         ```
         """
         if not isinstance(num_spaces, int):
-            raise TypeError(
-                f"Incorrect type for num_spaces. Expected int value but received {num_spaces}"
-            )
+            msg = f"Incorrect type for num_spaces. Expected int value but received {num_spaces}"
+            raise TypeError(msg)
         if num_spaces < 0:
-            raise ValueError(
+            msg = (
                 "Incorrect value for num_spaces. Expected a positive integer value but "
                 f"received {num_spaces}"
             )
+            raise ValueError(msg)
         self._num_spaces = num_spaces
 
 

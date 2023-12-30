@@ -238,7 +238,7 @@ def test_objects_are_allclose_other_types_true(object1: Any, object2: Any) -> No
     "object1,object2",
     (
         ("abc", "abcd"),
-        (set(), tuple()),
+        (set(), ()),
         ({1, 2}, {1, 2, 3}),
         ({1, 2, 4}, {1, 2, 3}),
     ),
@@ -443,7 +443,7 @@ def test_objects_are_equal_other_types_true(object1: Any, object2: Any) -> None:
     "object1,object2",
     (
         ("abc", "abcd"),
-        (set(), tuple()),
+        (set(), ()),
         ({1, 2}, {1, 2, 3}),
         ({1, 2, 4}, {1, 2, 3}),
     ),

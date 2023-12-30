@@ -15,7 +15,7 @@ if is_torch_available():
 else:
     torch = Mock()
     cuda_available = mark.skipif(False, reason="Requires PyTorch and a CUDA device")
-    DEVICES = tuple()
+    DEVICES = ()
 
 
 @torch_available

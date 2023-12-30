@@ -8,14 +8,14 @@ from coola.testing import numpy_available
 from coola.utils import is_numpy_available
 
 if is_numpy_available():
-    import numpy
+    import numpy as np
 else:
-    numpy = Mock()
+    np = Mock()
 
 
 @numpy_available
 def test_summary_ndarray() -> None:
-    assert summary(numpy.ones((2, 3))) == "<class 'numpy.ndarray'> | shape=(2, 3) | dtype=float64"
+    assert summary(np.ones((2, 3))) == "<class 'numpy.ndarray'> | shape=(2, 3) | dtype=float64"
 
 
 #####################################
@@ -56,10 +56,10 @@ def test_ndarray_formatter_equal_false_different_type() -> None:
 @numpy_available
 @mark.parametrize("shape", ((2,), (2, 3), (2, 3, 4)))
 @mark.parametrize("dtype", (float, int, bool))
-def test_ndarray_formatter_format(shape: tuple[int, ...], dtype: numpy.dtype) -> None:
+def test_ndarray_formatter_format(shape: tuple[int, ...], dtype: np.dtype) -> None:
     assert (
         NDArrayFormatter()
-        .format(Summarizer(), numpy.ones(shape, dtype=dtype))
+        .format(Summarizer(), np.ones(shape, dtype=dtype))
         .startswith("<class 'numpy.ndarray'>")
     )
 
@@ -67,16 +67,15 @@ def test_ndarray_formatter_format(shape: tuple[int, ...], dtype: numpy.dtype) ->
 @numpy_available
 def test_ndarray_formatter_format_show_data_false() -> None:
     assert (
-        NDArrayFormatter().format(Summarizer(), numpy.ones((2, 3)))
+        NDArrayFormatter().format(Summarizer(), np.ones((2, 3)))
         == "<class 'numpy.ndarray'> | shape=(2, 3) | dtype=float64"
     )
 
 
 @numpy_available
 def test_ndarray_formatter_format_show_data_true() -> None:
-    print(NDArrayFormatter(show_data=True).format(Summarizer(), numpy.ones((2, 3))))
     assert (
-        NDArrayFormatter(show_data=True).format(Summarizer(), numpy.ones((2, 3)))
+        NDArrayFormatter(show_data=True).format(Summarizer(), np.ones((2, 3)))
         == "array([[1., 1., 1.],\n       [1., 1., 1.]])"
     )
 

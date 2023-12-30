@@ -642,9 +642,10 @@ def test_set_formatter_format_1() -> None:
 
 def test_set_formatter_format_2() -> None:
     s = SetFormatter().format(Summarizer(), {"one line", "two\nlines"})
-    assert (s == "<class 'set'> (length=2)\n  (0): one line\n  (1): two\n    lines") or (
-        s == "<class 'set'> (length=2)\n  (0): two\n    lines\n  (1): one line"
-    )
+    assert s in {
+        "<class 'set'> (length=2)\n  (0): one line\n  (1): two\n    lines",
+        "<class 'set'> (length=2)\n  (0): two\n    lines\n  (1): one line",
+    }
 
 
 def test_set_formatter_format_length_5() -> None:
@@ -676,14 +677,15 @@ def test_set_formatter_format_length_10_max_items_5_max_depth_2() -> None:
 
 def test_set_formatter_format_nested() -> None:
     s = SetFormatter().format(Summarizer(), {(0, 1, 2), ("abc", "def")})
-    assert (s == "<class 'set'> (length=2)\n  (0): (0, 1, 2)\n  (1): ('abc', 'def')") or (
-        s == "<class 'set'> (length=2)\n  (0): ('abc', 'def')\n  (1): (0, 1, 2)"
-    )
+    assert s in {
+        "<class 'set'> (length=2)\n  (0): (0, 1, 2)\n  (1): ('abc', 'def')",
+        "<class 'set'> (length=2)\n  (0): ('abc', 'def')\n  (1): (0, 1, 2)",
+    }
 
 
 def test_set_formatter_format_nested_max_depth_2() -> None:
     s = SetFormatter().format(Summarizer(), {(0, 1, 2), ("abc", "def")}, max_depth=2)
-    assert s == (
+    assert s in {
         "<class 'set'> (length=2)\n"
         "  (0): <class 'tuple'> (length=3)\n"
         "      (0): 0\n"
@@ -691,8 +693,7 @@ def test_set_formatter_format_nested_max_depth_2() -> None:
         "      (2): 2\n"
         "  (1): <class 'tuple'> (length=2)\n"
         "      (0): abc\n"
-        "      (1): def"
-    ) or s == (
+        "      (1): def",
         "<class 'set'> (length=2)\n"
         "  (0): <class 'tuple'> (length=2)\n"
         "      (0): abc\n"
@@ -700,13 +701,13 @@ def test_set_formatter_format_nested_max_depth_2() -> None:
         "  (1): <class 'tuple'> (length=3)\n"
         "      (0): 0\n"
         "      (1): 1\n"
-        "      (2): 2"
-    )
+        "      (2): 2",
+    }
 
 
 def test_set_formatter_format_nested_max_depth_3() -> None:
     s = SetFormatter().format(Summarizer(), {(0, 1, 2), ("abc", "def")}, max_depth=3)
-    assert s == (
+    assert s in {
         "<class 'set'> (length=2)\n"
         "  (0): <class 'tuple'> (length=3)\n"
         "      (0): <class 'int'> 0\n"
@@ -714,8 +715,7 @@ def test_set_formatter_format_nested_max_depth_3() -> None:
         "      (2): <class 'int'> 2\n"
         "  (1): <class 'tuple'> (length=2)\n"
         "      (0): <class 'str'> abc\n"
-        "      (1): <class 'str'> def"
-    ) or s == (
+        "      (1): <class 'str'> def",
         "<class 'set'> (length=2)\n"
         "  (0): <class 'tuple'> (length=2)\n"
         "      (0): <class 'str'> abc\n"
@@ -723,30 +723,32 @@ def test_set_formatter_format_nested_max_depth_3() -> None:
         "  (1): <class 'tuple'> (length=3)\n"
         "      (0): <class 'int'> 0\n"
         "      (1): <class 'int'> 1\n"
-        "      (2): <class 'int'> 2"
-    )
+        "      (2): <class 'int'> 2",
+    }
 
 
 @mark.parametrize("max_depth", (0, -1, -2))
 def test_set_formatter_format_nested_max_depth_0(max_depth: int) -> None:
     s = SetFormatter().format(Summarizer(), {(0, 1, 2), ("abc", "def")}, max_depth=max_depth)
-    assert (s == "{(0, 1, 2), ('abc', 'def')}") or (s == "{('abc', 'def'), (0, 1, 2)}")
+    assert s in {"{(0, 1, 2), ('abc', 'def')}", "{('abc', 'def'), (0, 1, 2)}"}
 
 
 def test_set_formatter_format_nested_max_characters() -> None:
     formatter = SetFormatter()
     with summarizer_options(max_characters=5):
         s = formatter.format(Summarizer(), {(0, 1, 2), ("abc", "def")})
-        assert (s == "<class 'set'> (length=2)\n  (0): (0, 1...\n  (1): ('abc...") or (
-            s == "<class 'set'> (length=2)\n  (0): ('abc...\n  (1): (0, 1..."
-        )
+        assert s in {
+            "<class 'set'> (length=2)\n  (0): (0, 1...\n  (1): ('abc...",
+            "<class 'set'> (length=2)\n  (0): ('abc...\n  (1): (0, 1...",
+        }
 
 
 def test_set_formatter_format_num_spaces_4() -> None:
     s = SetFormatter(num_spaces=4).format(Summarizer(), {"one line", "two\nlines"})
-    assert (s == "<class 'set'> (length=2)\n    (0): one line\n    (1): two\n        lines") or (
-        s == "<class 'set'> (length=2)\n    (0): two\n        lines\n    (1): one line"
-    )
+    assert s in {
+        "<class 'set'> (length=2)\n    (0): one line\n    (1): two\n        lines",
+        "<class 'set'> (length=2)\n    (0): two\n        lines\n    (1): one line",
+    }
 
 
 def test_set_formatter_load_state_dict() -> None:

@@ -122,11 +122,12 @@ class Summarizer(BaseSummarizer):
         ```
         """
         if data_type in cls.registry and not exist_ok:
-            raise RuntimeError(
+            msg = (
                 f"A formatter ({cls.registry[data_type]}) is already registered for the data "
                 f"type {data_type}. Please use `exist_ok=True` if you want to overwrite the "
                 "formatter for this type"
             )
+            raise RuntimeError(msg)
         cls.registry[data_type] = formatter
 
     @classmethod
@@ -185,7 +186,8 @@ class Summarizer(BaseSummarizer):
             formatter = cls.registry.get(object_type, None)
             if formatter is not None:
                 return formatter
-        raise TypeError(f"Incorrect data type: {data_type}")
+        msg = f"Incorrect data type: {data_type}"
+        raise TypeError(msg)
 
     @classmethod
     def load_state_dict(cls, state: dict) -> None:

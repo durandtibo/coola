@@ -36,9 +36,10 @@ def test_summary_tuple() -> None:
 
 def test_summary_set() -> None:
     s = summary({"abc", "def"})
-    assert (s == "<class 'set'> (length=2)\n  (0): abc\n  (1): def") or (
-        s == "<class 'set'> (length=2)\n  (0): def\n  (1): abc"
-    )
+    assert s in {
+        "<class 'set'> (length=2)\n  (0): abc\n  (1): def",
+        "<class 'set'> (length=2)\n  (0): def\n  (1): abc",
+    }
 
 
 def test_summary_max_depth_1() -> None:
@@ -82,8 +83,8 @@ def test_summary_max_depth_0(max_depth: int) -> None:
     )
 
 
-@mark.parametrize("value", ("abc", 42))
-@mark.parametrize("max_depth", (1, 2))
+@mark.parametrize("value", ["abc", 42])
+@mark.parametrize("max_depth", [1, 2])
 def test_summary_summarizer(value: Any, max_depth: int) -> None:
     summarizer = Mock(spec=BaseSummarizer)
     summary(value, max_depth=max_depth, summarizer=summarizer)

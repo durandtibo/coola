@@ -49,7 +49,8 @@ class Reduction:
         ```
         """
         if reducer not in (reducers := cls.available_reducers()):
-            raise RuntimeError(f"Incorrect reducer {reducer}. Reducer should be one of {reducers}")
+            msg = f"Incorrect reducer {reducer}. Reducer should be one of {reducers}"
+            raise RuntimeError(msg)
 
     @classmethod
     def initialize(cls, reducer: str) -> None:
