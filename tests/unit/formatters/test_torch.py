@@ -1,6 +1,6 @@
 from unittest.mock import Mock
 
-from pytest import mark, raises
+import pytest
 
 from coola import Summarizer, summary
 from coola.formatters.torch_ import TensorFormatter
@@ -10,12 +10,14 @@ from coola.utils import is_torch_available
 if is_torch_available():
     import torch
 
-    cuda_available = mark.skipif(not torch.cuda.is_available(), reason="Requires a CUDA device")
+    cuda_available = pytest.mark.skipif(
+        not torch.cuda.is_available(), reason="Requires a CUDA device"
+    )
     DEVICES = ("cpu", "cuda:0") if torch.cuda.is_available() else ("cpu",)
 else:
     torch = Mock()
-    cuda_available = mark.skipif(False, reason="Requires PyTorch and a CUDA device")
-    DEVICES = tuple()
+    cuda_available = pytest.mark.skipif(False, reason="Requires PyTorch and a CUDA device")
+    DEVICES = ()
 
 
 @torch_available
@@ -62,9 +64,9 @@ def test_tensor_formatter_equal_false_different_type() -> None:
 
 
 @torch_available
-@mark.parametrize("shape", ((2,), (2, 3), (2, 3, 4)))
-@mark.parametrize("dtype", (torch.float, torch.long, torch.bool))
-@mark.parametrize("device", DEVICES)
+@pytest.mark.parametrize("shape", [(2,), (2, 3), (2, 3, 4)])
+@pytest.mark.parametrize("dtype", [torch.float, torch.long, torch.bool])
+@pytest.mark.parametrize("device", DEVICES)
 def test_tensor_formatter_format(shape: tuple[int, ...], dtype: torch.dtype, device: str) -> None:
     assert (
         TensorFormatter()
@@ -107,7 +109,7 @@ def test_tensor_formatter_get_show_data() -> None:
 
 
 @torch_available
-@mark.parametrize("show_data", (True, False))
+@pytest.mark.parametrize("show_data", [True, False])
 def test_tensor_formatter_set_show_data_int(show_data: bool) -> None:
     formatter = TensorFormatter()
     assert not formatter.get_show_data()
@@ -118,5 +120,5 @@ def test_tensor_formatter_set_show_data_int(show_data: bool) -> None:
 @torch_available
 def test_tensor_formatter_set_show_data_incorrect_type() -> None:
     formatter = TensorFormatter()
-    with raises(TypeError, match="Incorrect type for show_data. Expected bool value"):
+    with pytest.raises(TypeError, match="Incorrect type for show_data. Expected bool value"):
         formatter.set_show_data(4.2)

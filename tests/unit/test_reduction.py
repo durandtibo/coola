@@ -1,4 +1,4 @@
-from pytest import raises
+import pytest
 
 from coola import Reduction
 from coola.reducers import BaseReducer, BasicReducer, TorchReducer
@@ -27,7 +27,7 @@ def test_check_reducer() -> None:
 
 
 def test_check_reducer_missing() -> None:
-    with raises(RuntimeError, match="Incorrect reducer"):
+    with pytest.raises(RuntimeError, match="Incorrect reducer"):
         Reduction.check_reducer("missing")
 
 

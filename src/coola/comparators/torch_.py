@@ -60,7 +60,7 @@ class PackedSequenceAllCloseOperator(BaseAllCloseOperator[torch.nn.utils.rnn.Pac
     def __init__(self) -> None:
         check_torch()
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
     def clone(self) -> PackedSequenceAllCloseOperator:
@@ -159,7 +159,7 @@ class PackedSequenceEqualityOperator(BaseEqualityOperator[torch.nn.utils.rnn.Pac
     def __init__(self) -> None:
         check_torch()
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
     def clone(self) -> PackedSequenceEqualityOperator:
@@ -214,7 +214,7 @@ class TensorAllCloseOperator(BaseAllCloseOperator[torch.Tensor]):
     def __init__(self) -> None:
         check_torch()
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
     def clone(self) -> TensorAllCloseOperator:
@@ -280,7 +280,7 @@ class TensorEqualityOperator(BaseEqualityOperator[torch.Tensor]):
     def __init__(self) -> None:
         check_torch()
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
     def clone(self) -> TensorEqualityOperator:

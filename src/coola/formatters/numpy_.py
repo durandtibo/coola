@@ -10,12 +10,12 @@ from coola.summarizers.base import BaseSummarizer
 from coola.utils import check_numpy, is_numpy_available
 
 if is_numpy_available():
-    import numpy
+    import numpy as np
 else:
-    numpy = Mock()  # pragma: no cover
+    np = Mock()  # pragma: no cover
 
 
-class NDArrayFormatter(BaseFormatter[numpy.ndarray]):
+class NDArrayFormatter(BaseFormatter[np.ndarray]):
     r"""Implement a formatter for ``numpy.ndarray``.
 
     Args:
@@ -52,7 +52,7 @@ class NDArrayFormatter(BaseFormatter[numpy.ndarray]):
         return self._show_data == other._show_data
 
     def format(
-        self, summarizer: BaseSummarizer, value: numpy.ndarray, depth: int = 0, max_depth: int = 1
+        self, summarizer: BaseSummarizer, value: np.ndarray, depth: int = 0, max_depth: int = 1
     ) -> str:
         if self._show_data:
             return repr(value)
@@ -97,7 +97,7 @@ class NDArrayFormatter(BaseFormatter[numpy.ndarray]):
                 ``False`` if the array metadata are shown.
 
         Raises:
-            TypeError: if ``show_data`` is not an boolean.
+            TypeError: if ``show_data`` is not a boolean.
 
         Example usage:
 
@@ -111,7 +111,6 @@ class NDArrayFormatter(BaseFormatter[numpy.ndarray]):
         ```
         """
         if not isinstance(show_data, bool):
-            raise TypeError(
-                "Incorrect type for show_data. Expected bool value but received {show_data}"
-            )
+            msg = f"Incorrect type for show_data. Expected bool value but received {show_data}"
+            raise TypeError(msg)
         self._show_data = show_data

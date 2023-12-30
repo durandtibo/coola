@@ -1,7 +1,7 @@
 from collections.abc import Mapping, Sequence
 from unittest.mock import Mock, patch
 
-from pytest import fixture, mark, raises
+import pytest
 
 from coola import Summarizer, set_summarizer_options, summarizer_options
 from coola.formatters import (
@@ -13,8 +13,8 @@ from coola.formatters import (
 )
 
 
-@fixture(autouse=True, scope="function")
-def reset() -> None:
+@pytest.fixture(autouse=True)
+def _reset() -> None:
     state = Summarizer.state_dict()
     try:
         yield
@@ -102,7 +102,7 @@ def test_summarizer_add_formatter_duplicate_exist_ok_true() -> None:
 def test_summarizer_add_formatter_duplicate_exist_ok_false() -> None:
     formatter = Mock(spec=BaseFormatter)
     Summarizer.add_formatter(int, Mock(spec=BaseFormatter))
-    with raises(RuntimeError, match="A formatter (.*) is already registered"):
+    with pytest.raises(RuntimeError, match="A formatter (.*) is already registered"):
         Summarizer.add_formatter(int, formatter)
 
 
@@ -123,7 +123,7 @@ def test_summarizer_find_formatter_indirect() -> None:
 
 
 def test_summarizer_find_formatter_incorrect_type() -> None:
-    with raises(TypeError, match="Incorrect data type:"):
+    with pytest.raises(TypeError, match="Incorrect data type:"):
         Summarizer.find_formatter(Mock(__mro__=[]))
 
 
@@ -179,20 +179,20 @@ def test_set_summarizer_options_empty() -> None:
     assert state == Summarizer.state_dict()
 
 
-@mark.parametrize("max_characters", (-1, 0, 1, 10))
+@pytest.mark.parametrize("max_characters", [-1, 0, 1, 10])
 def test_set_summarizer_options_max_characters(max_characters: int) -> None:
     set_summarizer_options(max_characters=max_characters)
     assert Summarizer.registry[object].equal(DefaultFormatter(max_characters=max_characters))
 
 
-@mark.parametrize("max_items", (0, 1, 2))
+@pytest.mark.parametrize("max_items", [0, 1, 2])
 def test_set_summarizer_options_max_items(max_items: int) -> None:
     set_summarizer_options(max_items=max_items)
     assert Summarizer.registry[Mapping].equal(MappingFormatter(max_items=max_items))
     assert Summarizer.registry[Sequence].equal(SequenceFormatter(max_items=max_items))
 
 
-@mark.parametrize("num_spaces", (0, 1, 2))
+@pytest.mark.parametrize("num_spaces", [0, 1, 2])
 def test_set_summarizer_options_num_spaces(num_spaces: int) -> None:
     set_summarizer_options(num_spaces=num_spaces)
     assert Summarizer.registry[Mapping].equal(MappingFormatter(num_spaces=num_spaces))
@@ -223,7 +223,7 @@ def test_summarizer_options_empty() -> None:
         assert state == Summarizer.state_dict()
 
 
-@mark.parametrize("max_characters", (-1, 0, 1, 10))
+@pytest.mark.parametrize("max_characters", [-1, 0, 1, 10])
 def test_summarizer_options_max_characters(max_characters: int) -> None:
     assert Summarizer.registry[object].equal(DefaultFormatter())
     with summarizer_options(max_characters=max_characters):
@@ -231,7 +231,7 @@ def test_summarizer_options_max_characters(max_characters: int) -> None:
     assert Summarizer.registry[object].equal(DefaultFormatter())
 
 
-@mark.parametrize("max_items", (0, 1, 10))
+@pytest.mark.parametrize("max_items", [0, 1, 10])
 def test_summarizer_options_max_items(max_items: int) -> None:
     assert Summarizer.registry[Mapping].equal(MappingFormatter())
     assert Summarizer.registry[Sequence].equal(SequenceFormatter())
@@ -242,7 +242,7 @@ def test_summarizer_options_max_items(max_items: int) -> None:
     assert Summarizer.registry[Sequence].equal(SequenceFormatter())
 
 
-@mark.parametrize("num_spaces", (0, 1, 10))
+@pytest.mark.parametrize("num_spaces", [0, 1, 10])
 def test_summarizer_options_num_spaces(num_spaces: int) -> None:
     assert Summarizer.registry[Mapping].equal(MappingFormatter())
     assert Summarizer.registry[Sequence].equal(SequenceFormatter())

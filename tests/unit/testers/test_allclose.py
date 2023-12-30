@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from unittest.mock import Mock, patch
 
-from pytest import raises
+import pytest
 
 from coola.comparators import (
     BaseAllCloseOperator,
@@ -91,7 +91,7 @@ def test_allclose_tester_add_operator_duplicate_exist_ok_false() -> None:
     tester = AllCloseTester()
     operator = Mock(spec=BaseAllCloseOperator)
     tester.add_operator(str, Mock(spec=BaseAllCloseOperator))
-    with raises(RuntimeError, match="An operator (.*) is already registered"):
+    with pytest.raises(RuntimeError, match="An operator (.*) is already registered"):
         tester.add_operator(str, operator)
 
 
@@ -112,7 +112,7 @@ def test_allclose_tester_find_operator_indirect() -> None:
 
 
 def test_allclose_tester_find_operator_incorrect_type() -> None:
-    with raises(TypeError, match="Incorrect data type:"):
+    with pytest.raises(TypeError, match="Incorrect data type:"):
         AllCloseTester().find_operator(Mock(__mro__=[]))
 
 
@@ -146,19 +146,19 @@ def test_local_allclose_tester__eq__true_empty() -> None:
 
 
 def test_local_allclose_tester__eq__false_different_key() -> None:
-    assert not LocalAllCloseTester({object: DefaultAllCloseOperator()}) == LocalAllCloseTester(
+    assert LocalAllCloseTester({object: DefaultAllCloseOperator()}) != LocalAllCloseTester(
         {int: DefaultAllCloseOperator()}
     )
 
 
 def test_local_allclose_tester__eq__false_different_value() -> None:
-    assert not LocalAllCloseTester({object: DefaultAllCloseOperator()}) == LocalAllCloseTester(
+    assert LocalAllCloseTester({object: DefaultAllCloseOperator()}) != LocalAllCloseTester(
         {object: MappingAllCloseOperator()}
     )
 
 
 def test_local_allclose_tester__eq__false_different_type() -> None:
-    assert not LocalAllCloseTester() == 1
+    assert LocalAllCloseTester() != 1
 
 
 def test_local_allclose_tester_registry_default() -> None:
@@ -184,7 +184,7 @@ def test_local_allclose_tester_add_operator_duplicate_exist_ok_false() -> None:
     tester = LocalAllCloseTester()
     operator = Mock(spec=BaseAllCloseOperator)
     tester.add_operator(int, Mock(spec=BaseAllCloseOperator))
-    with raises(RuntimeError, match="An operator (.*) is already registered"):
+    with pytest.raises(RuntimeError, match="An operator (.*) is already registered"):
         tester.add_operator(int, operator)
 
 
@@ -237,5 +237,5 @@ def test_local_allclose_tester_find_operator_indirect() -> None:
 
 
 def test_local_allclose_tester_find_operator_incorrect_type() -> None:
-    with raises(TypeError, match="Incorrect data type:"):
+    with pytest.raises(TypeError, match="Incorrect data type:"):
         LocalAllCloseTester().find_operator(Mock(__mro__=[]))

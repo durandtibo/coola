@@ -110,7 +110,6 @@ class TensorFormatter(BaseFormatter[torch.Tensor]):
         ```
         """
         if not isinstance(show_data, bool):
-            raise TypeError(
-                "Incorrect type for show_data. Expected bool value but received {show_data}"
-            )
+            msg = f"Incorrect type for show_data. Expected bool value but received {show_data}"
+            raise TypeError(msg)
         self._show_data = show_data

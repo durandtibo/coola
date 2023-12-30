@@ -63,7 +63,7 @@ class DataFrameAllCloseOperator(BaseAllCloseOperator[DataFrame]):
     def __init__(self) -> None:
         check_pandas()
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
     def clone(self) -> DataFrameAllCloseOperator:
@@ -91,7 +91,7 @@ class DataFrameAllCloseOperator(BaseAllCloseOperator[DataFrame]):
         except AssertionError:
             object_equal = False
         if not equal_nan and object_equal:
-            object_equal = not object1.isnull().any().any()
+            object_equal = not object1.isna().any().any()
         if show_difference and not object_equal:
             logger.info(
                 f"pandas.DataFrames are different\nobject1=\n{object1}\nobject2=\n{object2}"
@@ -140,7 +140,7 @@ class DataFrameEqualityOperator(BaseEqualityOperator[DataFrame]):
         check_pandas()
         self._nulls_compare_equal = bool(nulls_compare_equal)
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, self.__class__):
             return False
         return self._nulls_compare_equal == other._nulls_compare_equal
@@ -190,7 +190,7 @@ class DataFrameEqualityOperator(BaseEqualityOperator[DataFrame]):
         except AssertionError:
             object_equal = False
         if object_equal and not self._nulls_compare_equal:
-            object_equal = not df1.isnull().any().any()
+            object_equal = not df1.isna().any().any()
         return object_equal
 
 
@@ -214,7 +214,7 @@ class SeriesAllCloseOperator(BaseAllCloseOperator[Series]):
     def __init__(self) -> None:
         check_pandas()
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
     def clone(self) -> SeriesAllCloseOperator:
@@ -241,7 +241,7 @@ class SeriesAllCloseOperator(BaseAllCloseOperator[Series]):
             object_equal = True
         except AssertionError:
             object_equal = False
-        if not equal_nan and object_equal and object1.isnull().any():
+        if not equal_nan and object_equal and object1.isna().any():
             object_equal = False
         if show_difference and not object_equal:
             logger.info(f"pandas.Series are different\nobject1=\n{object1}\nobject2=\n{object2}")
@@ -273,7 +273,7 @@ class SeriesEqualityOperator(BaseEqualityOperator[Series]):
         check_pandas()
         self._nulls_compare_equal = bool(nulls_compare_equal)
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, self.__class__):
             return False
         return self._nulls_compare_equal == other._nulls_compare_equal
@@ -321,7 +321,7 @@ class SeriesEqualityOperator(BaseEqualityOperator[Series]):
         except AssertionError:
             object_equal = False
         if object_equal and not self._nulls_compare_equal:
-            object_equal = not series1.isnull().any()
+            object_equal = not series1.isna().any()
         return object_equal
 
 

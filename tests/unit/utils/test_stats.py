@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from unittest.mock import Mock
 
-from pytest import mark
+import pytest
 
 from coola import objects_are_allclose, objects_are_equal
 from coola.testing import numpy_available
@@ -46,16 +46,11 @@ def test_quantile_21_decile() -> None:
 
 
 @numpy_available
-@mark.parametrize(
+@pytest.mark.parametrize(
     "array",
-    (
-        np.random.randn(5),
-        np.random.randn(100),
-        np.random.randn(1000),
-        np.random.rand(1000),
-    ),
+    [np.random.randn(5), np.random.randn(100), np.random.randn(1000), np.random.rand(1000)],
 )
-@mark.parametrize("num_quantiles", (0, 1, 2, 4, 8))
+@pytest.mark.parametrize("num_quantiles", [0, 1, 2, 4, 8])
 def test_quantile_numpy(array: np.ndarray, num_quantiles: int) -> None:
     q: list[float] = np.random.rand(num_quantiles).tolist()
     assert objects_are_allclose(

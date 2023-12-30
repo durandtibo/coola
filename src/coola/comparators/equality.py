@@ -40,7 +40,7 @@ class DefaultEqualityOperator(BaseEqualityOperator[Any]):
     ```
     """
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
     def clone(self) -> DefaultEqualityOperator:
@@ -85,7 +85,7 @@ class MappingEqualityOperator(BaseEqualityOperator[Mapping]):
     ```
     """
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
     def clone(self) -> MappingEqualityOperator:
@@ -118,7 +118,7 @@ class MappingEqualityOperator(BaseEqualityOperator[Mapping]):
                     f"keys of object2: {sorted(set(object2.keys()))}"
                 )
             return False
-        for key in object1.keys():
+        for key in object1:
             if not tester.equal(object1[key], object2[key], show_difference):
                 if show_difference:
                     logger.info(
@@ -146,7 +146,7 @@ class SequenceEqualityOperator(BaseEqualityOperator[Sequence]):
     ```
     """
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
     def clone(self) -> SequenceEqualityOperator:

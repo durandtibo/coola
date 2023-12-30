@@ -60,7 +60,7 @@ def decorator_package_available(
     """
 
     @wraps(fn)
-    def inner(*args, **kwargs) -> Any:
+    def inner(*args: Any, **kwargs: Any) -> Any:
         if not condition():
             return None
         return fn(*args, **kwargs)
@@ -105,11 +105,12 @@ def check_jax() -> None:
     ```
     """
     if not is_jax_available():
-        raise RuntimeError(
+        msg = (
             "`jax` package is required but not installed. "
             "You can install `jax` package with the command:\n\n"
             "pip install jax\n"
         )
+        raise RuntimeError(msg)
 
 
 def jax_available(fn: Callable[..., Any]) -> Callable[..., Any]:
@@ -175,11 +176,12 @@ def check_numpy() -> None:
     ```
     """
     if not is_numpy_available():
-        raise RuntimeError(
+        msg = (
             "`numpy` package is required but not installed. "
             "You can install `numpy` package with the command:\n\n"
             "pip install numpy\n"
         )
+        raise RuntimeError(msg)
 
 
 def numpy_available(fn: Callable[..., Any]) -> Callable[..., Any]:
@@ -245,11 +247,12 @@ def check_pandas() -> None:
     ```
     """
     if not is_pandas_available():
-        raise RuntimeError(
+        msg = (
             "`pandas` package is required but not installed. "
             "You can install `pandas` package with the command:\n\n"
             "pip install pandas\n"
         )
+        raise RuntimeError(msg)
 
 
 def pandas_available(fn: Callable[..., Any]) -> Callable[..., Any]:
@@ -315,11 +318,12 @@ def check_polars() -> None:
     ```
     """
     if not is_polars_available():
-        raise RuntimeError(
+        msg = (
             "`polars` package is required but not installed. "
             "You can install `polars` package with the command:\n\n"
             "pip install polars\n"
         )
+        raise RuntimeError(msg)
 
 
 def polars_available(fn: Callable[..., Any]) -> Callable[..., Any]:
@@ -385,11 +389,12 @@ def check_torch() -> None:
     ```
     """
     if not is_torch_available():
-        raise RuntimeError(
+        msg = (
             "`torch` package is required but not installed. "
             "You can install `torch` package with the command:\n\n"
             "pip install torch\n"
         )
+        raise RuntimeError(msg)
 
 
 def torch_available(fn: Callable[..., Any]) -> Callable[..., Any]:
@@ -455,11 +460,12 @@ def check_xarray() -> None:
     ```
     """
     if not is_xarray_available():
-        raise RuntimeError(
+        msg = (
             "`xarray` package is required but not installed. "
             "You can install `xarray` package with the command:\n\n"
             "pip install xarray\n"
         )
+        raise RuntimeError(msg)
 
 
 def xarray_available(fn: Callable[..., Any]) -> Callable[..., Any]:

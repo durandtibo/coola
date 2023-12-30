@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from unittest.mock import Mock, patch
 
-from pytest import fixture
+import pytest
 
 from coola.testing import torch_available
 from coola.utils.tensor import (
@@ -13,8 +13,8 @@ from coola.utils.tensor import (
 )
 
 
-@fixture(autouse=True)
-def reset() -> None:
+@pytest.fixture(autouse=True)
+def _reset() -> None:
     get_available_devices.cache_clear()
     is_cuda_available.cache_clear()
     is_mps_available.cache_clear()

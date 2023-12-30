@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from unittest.mock import Mock, patch
 
-from pytest import LogCaptureFixture, mark, raises
+import pytest
 
 from coola import AllCloseTester, objects_are_allclose, objects_are_equal
 from coola.comparators import JaxArrayAllCloseOperator, JaxArrayEqualityOperator
@@ -63,8 +63,8 @@ def test_jax_darray_allclose_operator__eq__false_different_type() -> None:
 
 
 @jax_available
-@mark.parametrize(
-    "array", (jnp.ones((2, 3)), jnp.full((2, 3), 1.0 + 1e-9), jnp.full((2, 3), 1.0 - 1e-9))
+@pytest.mark.parametrize(
+    "array", [jnp.ones((2, 3)), jnp.full((2, 3), 1.0 + 1e-9), jnp.full((2, 3), 1.0 - 1e-9)]
 )
 def test_jax_darray_allclose_operator_allclose_true(array: jnp.ndarray) -> None:
     assert JaxArrayAllCloseOperator().allclose(AllCloseTester(), jnp.ones((2, 3)), array)
@@ -87,7 +87,7 @@ def test_jax_darray_allclose_operator_allclose_true_check_dtype_false() -> None:
 
 @jax_available
 def test_jax_darray_allclose_operator_allclose_true_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert JaxArrayAllCloseOperator().allclose(
@@ -127,7 +127,7 @@ def test_jax_darray_allclose_operator_allclose_false_different_dtype() -> None:
 
 @jax_available
 def test_jax_darray_allclose_operator_allclose_false_different_dtype_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not JaxArrayAllCloseOperator().allclose(
@@ -148,7 +148,7 @@ def test_jax_darray_allclose_operator_allclose_false_different_shape() -> None:
 
 @jax_available
 def test_jax_darray_allclose_operator_allclose_false_different_shape_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not JaxArrayAllCloseOperator().allclose(
@@ -161,8 +161,8 @@ def test_jax_darray_allclose_operator_allclose_false_different_shape_show_differ
 
 
 @jax_available
-@mark.parametrize(
-    "array", (jnp.zeros((2, 3)), jnp.full((2, 3), 1.0 + 1e-7), jnp.full((2, 3), 1.0 - 1e-7))
+@pytest.mark.parametrize(
+    "array", [jnp.zeros((2, 3)), jnp.full((2, 3), 1.0 + 1e-7), jnp.full((2, 3), 1.0 - 1e-7)]
 )
 def test_jax_darray_allclose_operator_allclose_false_different_value(array: jnp.ndarray) -> None:
     assert not JaxArrayAllCloseOperator().allclose(
@@ -172,7 +172,7 @@ def test_jax_darray_allclose_operator_allclose_false_different_value(array: jnp.
 
 @jax_available
 def test_jax_darray_allclose_operator_allclose_false_different_value_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not JaxArrayAllCloseOperator().allclose(
@@ -191,7 +191,7 @@ def test_jax_darray_allclose_operator_allclose_false_different_type() -> None:
 
 @jax_available
 def test_jax_darray_allclose_operator_allclose_false_different_type_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not JaxArrayAllCloseOperator().allclose(
@@ -204,9 +204,9 @@ def test_jax_darray_allclose_operator_allclose_false_different_type_show_differe
 
 
 @jax_available
-@mark.parametrize(
-    "array,atol",
-    ((jnp.full((2, 3), 1.5), 1), (jnp.full((2, 3), 1.05), 1e-1), (jnp.full((2, 3), 1.005), 1e-2)),
+@pytest.mark.parametrize(
+    ("array", "atol"),
+    [(jnp.full((2, 3), 1.5), 1), (jnp.full((2, 3), 1.05), 1e-1), (jnp.full((2, 3), 1.005), 1e-2)],
 )
 def test_jax_darray_allclose_operator_allclose_true_atol(array: jnp.ndarray, atol: float) -> None:
     assert JaxArrayAllCloseOperator().allclose(
@@ -215,16 +215,16 @@ def test_jax_darray_allclose_operator_allclose_true_atol(array: jnp.ndarray, ato
 
 
 @jax_available
-@mark.parametrize(
-    "array,rtol",
-    ((jnp.full((2, 3), 1.5), 1), (jnp.full((2, 3), 1.05), 1e-1), (jnp.full((2, 3), 1.005), 1e-2)),
+@pytest.mark.parametrize(
+    ("array", "rtol"),
+    [(jnp.full((2, 3), 1.5), 1), (jnp.full((2, 3), 1.05), 1e-1), (jnp.full((2, 3), 1.005), 1e-2)],
 )
 def test_jax_darray_allclose_operator_allclose_true_rtol(array: jnp.ndarray, rtol: float) -> None:
     assert JaxArrayAllCloseOperator().allclose(AllCloseTester(), jnp.ones((2, 3)), array, rtol=rtol)
 
 
 @jax_available
-@mark.parametrize("check_dtype", (True, False))
+@pytest.mark.parametrize("check_dtype", [True, False])
 def test_jax_darray_allclose_operator_clone(check_dtype: bool) -> None:
     op = JaxArrayAllCloseOperator(check_dtype)
     op_cloned = op.clone()
@@ -234,9 +234,10 @@ def test_jax_darray_allclose_operator_clone(check_dtype: bool) -> None:
 
 @jax_available
 def test_jax_darray_allclose_operator_no_jax() -> None:
-    with patch("coola.utils.imports.is_jax_available", lambda *args, **kwargs: False):
-        with raises(RuntimeError, match="`jax` package is required but not installed."):
-            JaxArrayAllCloseOperator()
+    with patch(
+        "coola.utils.imports.is_jax_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`jax` package is required but not installed."):
+        JaxArrayAllCloseOperator()
 
 
 ##############################################
@@ -270,7 +271,7 @@ def test_jax_array_equality_operator__eq__false_different_type() -> None:
 
 
 @jax_available
-@mark.parametrize("check_dtype", (True, False))
+@pytest.mark.parametrize("check_dtype", [True, False])
 def test_jax_array_equality_operator_clone(check_dtype: bool) -> None:
     op = JaxArrayEqualityOperator(check_dtype)
     op_cloned = op.clone()
@@ -297,7 +298,9 @@ def test_jax_array_equality_operator_equal_true_check_dtype_false() -> None:
 
 
 @jax_available
-def test_jax_array_equality_operator_equal_true_show_difference(caplog: LogCaptureFixture) -> None:
+def test_jax_array_equality_operator_equal_true_show_difference(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     with caplog.at_level(logging.INFO):
         assert JaxArrayEqualityOperator().equal(
             tester=EqualityTester(),
@@ -317,7 +320,7 @@ def test_jax_array_equality_operator_equal_false_different_dtype() -> None:
 
 @jax_available
 def test_jax_array_equality_operator_equal_false_different_dtype_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not JaxArrayEqualityOperator().equal(
@@ -336,7 +339,7 @@ def test_jax_array_equality_operator_equal_false_different_shape() -> None:
 
 @jax_available
 def test_jax_array_equality_operator_equal_false_different_shape_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not JaxArrayEqualityOperator().equal(
@@ -357,7 +360,7 @@ def test_jax_array_equality_operator_equal_false_different_value() -> None:
 
 @jax_available
 def test_jax_array_equality_operator_equal_false_different_value_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not JaxArrayEqualityOperator().equal(
@@ -376,7 +379,7 @@ def test_jax_array_equality_operator_equal_false_different_type() -> None:
 
 @jax_available
 def test_jax_array_equality_operator_equal_false_different_type_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not JaxArrayEqualityOperator().equal(
@@ -390,9 +393,10 @@ def test_jax_array_equality_operator_equal_false_different_type_show_difference(
 
 @jax_available
 def test_jax_array_equality_operator_no_jax() -> None:
-    with patch("coola.utils.imports.is_jax_available", lambda *args, **kwargs: False):
-        with raises(RuntimeError, match="`jax` package is required but not installed."):
-            JaxArrayEqualityOperator()
+    with patch(
+        "coola.utils.imports.is_jax_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`jax` package is required but not installed."):
+        JaxArrayEqualityOperator()
 
 
 ##########################################

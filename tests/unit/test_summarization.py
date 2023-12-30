@@ -1,7 +1,7 @@
 from typing import Any
 from unittest.mock import Mock
 
-from pytest import mark
+import pytest
 
 from coola import BaseSummarizer, summary
 
@@ -36,9 +36,10 @@ def test_summary_tuple() -> None:
 
 def test_summary_set() -> None:
     s = summary({"abc", "def"})
-    assert (s == "<class 'set'> (length=2)\n  (0): abc\n  (1): def") or (
-        s == "<class 'set'> (length=2)\n  (0): def\n  (1): abc"
-    )
+    assert s in {
+        "<class 'set'> (length=2)\n  (0): abc\n  (1): def",
+        "<class 'set'> (length=2)\n  (0): def\n  (1): abc",
+    }
 
 
 def test_summary_max_depth_1() -> None:
@@ -74,7 +75,7 @@ def test_summary_max_depth_3() -> None:
     )
 
 
-@mark.parametrize("max_depth", (0, -1, -2))
+@pytest.mark.parametrize("max_depth", [0, -1, -2])
 def test_summary_max_depth_0(max_depth: int) -> None:
     assert (
         summary([[0, 1, 2], {"key1": "abc", "key2": "def"}], max_depth=max_depth)
@@ -82,8 +83,8 @@ def test_summary_max_depth_0(max_depth: int) -> None:
     )
 
 
-@mark.parametrize("value", ("abc", 42))
-@mark.parametrize("max_depth", (1, 2))
+@pytest.mark.parametrize("value", ["abc", 42])
+@pytest.mark.parametrize("max_depth", [1, 2])
 def test_summary_summarizer(value: Any, max_depth: int) -> None:
     summarizer = Mock(spec=BaseSummarizer)
     summary(value, max_depth=max_depth, summarizer=summarizer)

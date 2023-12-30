@@ -136,9 +136,8 @@ def str_indent(original: Any, num_spaces: int = 2) -> str:
     ```
     """
     if num_spaces < 0:
-        raise RuntimeError(
-            f"Incorrect num_spaces. Expected a positive integer but received {num_spaces}"
-        )
+        msg = f"Incorrect num_spaces. Expected a positive integer but received {num_spaces}"
+        raise RuntimeError(msg)
     formatted = str(original).split("\n")
     if len(formatted) == 1:  # single line
         return formatted[0]

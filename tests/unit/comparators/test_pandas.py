@@ -1,7 +1,7 @@
 import logging
 from unittest.mock import Mock, patch
 
-from pytest import LogCaptureFixture, mark, raises
+import pytest
 
 from coola import (
     AllCloseTester,
@@ -128,7 +128,7 @@ def test_dataframe_allclose_operator_allclose_true_same_object() -> None:
 
 @pandas_available
 def test_dataframe_allclose_operator_allclose_true_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert DataFrameAllCloseOperator().allclose(
@@ -395,7 +395,7 @@ def test_dataframe_allclose_operator_allclose_true_none_int() -> None:
 
 @pandas_available
 def test_dataframe_allclose_operator_allclose_false_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not DataFrameAllCloseOperator().allclose(
@@ -444,7 +444,7 @@ def test_dataframe_allclose_operator_allclose_false_different_type() -> None:
 
 @pandas_available
 def test_dataframe_allclose_operator_allclose_false_different_type_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not DataFrameAllCloseOperator().allclose(
@@ -466,9 +466,9 @@ def test_dataframe_allclose_operator_allclose_false_different_type_show_differen
 
 
 @pandas_available
-@mark.parametrize(
-    "df,atol",
-    (
+@pytest.mark.parametrize(
+    ("df", "atol"),
+    [
         (
             pandas.DataFrame(
                 {
@@ -508,7 +508,7 @@ def test_dataframe_allclose_operator_allclose_false_different_type_show_differen
             ),
             1e-2,
         ),
-    ),
+    ],
 )
 def test_dataframe_allclose_operator_allclose_true_atol(df: pandas.DataFrame, atol: float) -> None:
     assert DataFrameAllCloseOperator().allclose(
@@ -530,9 +530,9 @@ def test_dataframe_allclose_operator_allclose_true_atol(df: pandas.DataFrame, at
 
 
 @pandas_available
-@mark.parametrize(
-    "df,rtol",
-    (
+@pytest.mark.parametrize(
+    ("df", "rtol"),
+    [
         (
             pandas.DataFrame(
                 {
@@ -572,7 +572,7 @@ def test_dataframe_allclose_operator_allclose_true_atol(df: pandas.DataFrame, at
             ),
             1e-2,
         ),
-    ),
+    ],
 )
 def test_dataframe_allclose_operator_allclose_true_rtol(df: pandas.DataFrame, rtol: float) -> None:
     assert DataFrameAllCloseOperator().allclose(
@@ -603,9 +603,10 @@ def test_dataframe_allclose_operator_clone() -> None:
 
 @pandas_available
 def test_dataframe_allclose_operator_no_pandas() -> None:
-    with patch("coola.utils.imports.is_pandas_available", lambda *args, **kwargs: False):
-        with raises(RuntimeError, match="`pandas` package is required but not installed."):
-            DataFrameAllCloseOperator()
+    with patch(
+        "coola.utils.imports.is_pandas_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`pandas` package is required but not installed."):
+        DataFrameAllCloseOperator()
 
 
 ###############################################
@@ -662,7 +663,7 @@ def test_dataframe_equality_operator__eq__false_different_type() -> None:
 
 
 @pandas_available
-@mark.parametrize("nulls_compare_equal", (True, False))
+@pytest.mark.parametrize("nulls_compare_equal", [True, False])
 def test_dataframe_equality_operator_clone(nulls_compare_equal: bool) -> None:
     op = DataFrameEqualityOperator(nulls_compare_equal)
     op_cloned = op.clone()
@@ -713,7 +714,9 @@ def test_dataframe_equality_operator_equal_true_same_object() -> None:
 
 
 @pandas_available
-def test_dataframe_equality_operator_equal_true_show_difference(caplog: LogCaptureFixture) -> None:
+def test_dataframe_equality_operator_equal_true_show_difference(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     with caplog.at_level(logging.INFO):
         assert DataFrameEqualityOperator().equal(
             EqualityTester(),
@@ -926,7 +929,9 @@ def test_dataframe_equality_operator_equal_false_none_int() -> None:
 
 
 @pandas_available
-def test_dataframe_equality_operator_equal_false_show_difference(caplog: LogCaptureFixture) -> None:
+def test_dataframe_equality_operator_equal_false_show_difference(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     with caplog.at_level(logging.INFO):
         assert not DataFrameEqualityOperator().equal(
             EqualityTester(),
@@ -974,7 +979,7 @@ def test_dataframe_equality_operator_equal_false_different_type() -> None:
 
 @pandas_available
 def test_dataframe_equality_operator_equal_false_different_type_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not DataFrameEqualityOperator().equal(
@@ -1147,9 +1152,10 @@ def test_dataframe_equality_operator_equal_false_none_int_nulls_compare_equal() 
 
 @pandas_available
 def test_dataframe_equality_operator_no_pandas() -> None:
-    with patch("coola.utils.imports.is_pandas_available", lambda *args, **kwargs: False):
-        with raises(RuntimeError, match="`pandas` package is required but not installed."):
-            DataFrameEqualityOperator()
+    with patch(
+        "coola.utils.imports.is_pandas_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`pandas` package is required but not installed."):
+        DataFrameEqualityOperator()
 
 
 ############################################
@@ -1218,7 +1224,9 @@ def test_series_allclose_operator_allclose_true_same_object() -> None:
 
 
 @pandas_available
-def test_series_allclose_operator_allclose_true_show_difference(caplog: LogCaptureFixture) -> None:
+def test_series_allclose_operator_allclose_true_show_difference(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     with caplog.at_level(logging.INFO):
         assert SeriesAllCloseOperator().allclose(
             AllCloseTester(),
@@ -1310,7 +1318,9 @@ def test_series_allclose_operator_allclose_true_none() -> None:
 
 
 @pandas_available
-def test_series_allclose_operator_allclose_false_show_difference(caplog: LogCaptureFixture) -> None:
+def test_series_allclose_operator_allclose_false_show_difference(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     with caplog.at_level(logging.INFO):
         assert not SeriesAllCloseOperator().allclose(
             AllCloseTester(),
@@ -1330,7 +1340,7 @@ def test_series_allclose_operator_allclose_false_different_type() -> None:
 
 @pandas_available
 def test_series_allclose_operator_allclose_false_different_type_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not SeriesAllCloseOperator().allclose(
@@ -1340,13 +1350,13 @@ def test_series_allclose_operator_allclose_false_different_type_show_difference(
 
 
 @pandas_available
-@mark.parametrize(
-    "series,atol",
-    (
+@pytest.mark.parametrize(
+    ("series", "atol"),
+    [
         (pandas.Series([1.5, 1.5, 1.5]), 1.0),
         (pandas.Series([1.05, 1.05, 1.05]), 1e-1),
         (pandas.Series([1.005, 1.005, 1.005]), 1e-2),
-    ),
+    ],
 )
 def test_series_allclose_operator_allclose_true_atol(series: pandas.Series, atol: float) -> None:
     assert SeriesAllCloseOperator().allclose(
@@ -1355,13 +1365,13 @@ def test_series_allclose_operator_allclose_true_atol(series: pandas.Series, atol
 
 
 @pandas_available
-@mark.parametrize(
-    "series,rtol",
-    (
+@pytest.mark.parametrize(
+    ("series", "rtol"),
+    [
         (pandas.Series([1.5, 1.5, 1.5]), 1.0),
         (pandas.Series([1.05, 1.05, 1.05]), 1e-1),
         (pandas.Series([1.005, 1.005, 1.005]), 1e-2),
-    ),
+    ],
 )
 def test_series_allclose_operator_allclose_true_rtol(series: pandas.Series, rtol: float) -> None:
     assert SeriesAllCloseOperator().allclose(
@@ -1379,9 +1389,10 @@ def test_series_allclose_operator_clone() -> None:
 
 @pandas_available
 def test_series_allclose_operator_no_pandas() -> None:
-    with patch("coola.utils.imports.is_pandas_available", lambda *args, **kwargs: False):
-        with raises(RuntimeError, match="`pandas` package is required but not installed."):
-            SeriesAllCloseOperator()
+    with patch(
+        "coola.utils.imports.is_pandas_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`pandas` package is required but not installed."):
+        SeriesAllCloseOperator()
 
 
 ############################################
@@ -1417,7 +1428,7 @@ def test_series_equality_operator__eq__false_different_type() -> None:
 
 
 @pandas_available
-@mark.parametrize("nulls_compare_equal", (True, False))
+@pytest.mark.parametrize("nulls_compare_equal", [True, False])
 def test_series_equality_operator_clone(nulls_compare_equal: bool) -> None:
     op = SeriesEqualityOperator(nulls_compare_equal)
     op_cloned = op.clone()
@@ -1466,7 +1477,9 @@ def test_series_equality_operator_equal_true_same_object() -> None:
 
 
 @pandas_available
-def test_series_equality_operator_equal_true_show_difference(caplog: LogCaptureFixture) -> None:
+def test_series_equality_operator_equal_true_show_difference(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     with caplog.at_level(logging.INFO):
         assert SeriesEqualityOperator().equal(
             EqualityTester(),
@@ -1519,7 +1532,9 @@ def test_series_equality_operator_equal_false_none() -> None:
 
 
 @pandas_available
-def test_series_equality_operator_equal_false_show_difference(caplog: LogCaptureFixture) -> None:
+def test_series_equality_operator_equal_false_show_difference(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     with caplog.at_level(logging.INFO):
         assert not SeriesEqualityOperator().equal(
             EqualityTester(),
@@ -1539,7 +1554,7 @@ def test_series_equality_operator_equal_false_different_type() -> None:
 
 @pandas_available
 def test_series_equality_operator_equal_false_different_type_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not SeriesEqualityOperator().equal(
@@ -1604,9 +1619,10 @@ def test_series_equality_operator_equal_true_nulls_compare_equal_none() -> None:
 
 @pandas_available
 def test_series_equality_operator_no_pandas() -> None:
-    with patch("coola.utils.imports.is_pandas_available", lambda *args, **kwargs: False):
-        with raises(RuntimeError, match="`pandas` package is required but not installed."):
-            SeriesEqualityOperator()
+    with patch(
+        "coola.utils.imports.is_pandas_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`pandas` package is required but not installed."):
+        SeriesEqualityOperator()
 
 
 ##########################################

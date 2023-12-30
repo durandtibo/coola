@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from unittest.mock import Mock, patch
 
-from pytest import LogCaptureFixture, mark, raises
+import pytest
 
 from coola import objects_are_allclose, objects_are_equal
 from coola.comparators import (
@@ -122,7 +122,7 @@ def test_packed_sequence_allclose_operator_allclose_false_different_lengths() ->
 
 @torch_available
 def test_packed_sequence_allclose_operator_allclose_false_different_value_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not PackedSequenceAllCloseOperator().allclose(
@@ -157,7 +157,7 @@ def test_packed_sequence_allclose_operator_allclose_false_different_type() -> No
 
 @torch_available
 def test_packed_sequence_allclose_operator_allclose_false_different_type_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not PackedSequenceAllCloseOperator().allclose(
@@ -176,13 +176,13 @@ def test_packed_sequence_allclose_operator_allclose_false_different_type_show_di
 
 
 @torch_available
-@mark.parametrize(
-    "tensor,atol",
-    (
+@pytest.mark.parametrize(
+    ("tensor", "atol"),
+    [
         (torch.full((2, 3), 1.5), 1),
         (torch.full((2, 3), 1.05), 1e-1),
         (torch.full((2, 3), 1.005), 1e-2),
-    ),
+    ],
 )
 def test_packed_sequence_allclose_operator_allclose_true_atol(
     tensor: torch.Tensor, atol: float
@@ -205,13 +205,13 @@ def test_packed_sequence_allclose_operator_allclose_true_atol(
 
 
 @torch_available
-@mark.parametrize(
-    "tensor,rtol",
-    (
+@pytest.mark.parametrize(
+    ("tensor", "rtol"),
+    [
         (torch.full((2, 3), 1.5), 1),
         (torch.full((2, 3), 1.05), 1e-1),
         (torch.full((2, 3), 1.005), 1e-2),
-    ),
+    ],
 )
 def test_packed_sequence_allclose_operator_allclose_true_rtol(
     tensor: torch.Tensor, rtol: float
@@ -242,9 +242,10 @@ def test_packed_sequence_allclose_operator_clone() -> None:
 
 @torch_available
 def test_packed_sequence_allclose_operator_no_torch() -> None:
-    with patch("coola.utils.imports.is_torch_available", lambda *args, **kwargs: False):
-        with raises(RuntimeError, match="`torch` package is required but not installed."):
-            PackedSequenceAllCloseOperator()
+    with patch(
+        "coola.utils.imports.is_torch_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`torch` package is required but not installed."):
+        PackedSequenceAllCloseOperator()
 
 
 ####################################################
@@ -353,7 +354,7 @@ def test_packed_sequence_equality_operator_equal_false_different_lengths() -> No
 
 @torch_available
 def test_packed_sequence_equality_operator_equal_false_different_value_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not PackedSequenceEqualityOperator().equal(
@@ -388,7 +389,7 @@ def test_packed_sequence_equality_operator_equal_false_different_type() -> None:
 
 @torch_available
 def test_packed_sequence_equality_operator_equal_false_different_type_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not PackedSequenceEqualityOperator().equal(
@@ -408,9 +409,10 @@ def test_packed_sequence_equality_operator_equal_false_different_type_show_diffe
 
 @torch_available
 def test_packed_sequence_equality_operator_no_torch() -> None:
-    with patch("coola.utils.imports.is_torch_available", lambda *args, **kwargs: False):
-        with raises(RuntimeError, match="`torch` package is required but not installed."):
-            PackedSequenceEqualityOperator()
+    with patch(
+        "coola.utils.imports.is_torch_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`torch` package is required but not installed."):
+        PackedSequenceEqualityOperator()
 
 
 ############################################
@@ -438,9 +440,9 @@ def test_tensor_allclose_operator__eq__false() -> None:
 
 
 @torch_available
-@mark.parametrize("device", get_available_devices())
-@mark.parametrize(
-    "tensor", (torch.ones(2, 3), torch.full((2, 3), 1.0 + 1e-9), torch.full((2, 3), 1.0 - 1e-9))
+@pytest.mark.parametrize("device", get_available_devices())
+@pytest.mark.parametrize(
+    "tensor", [torch.ones(2, 3), torch.full((2, 3), 1.0 + 1e-9), torch.full((2, 3), 1.0 - 1e-9)]
 )
 def test_tensor_allclose_operator_allclose_true(tensor: torch.Tensor, device: str) -> None:
     device = torch.device(device)
@@ -456,7 +458,9 @@ def test_tensor_allclose_operator_allclose_true_same_obj() -> None:
 
 
 @torch_available
-def test_tensor_allclose_operator_allclose_true_show_difference(caplog: LogCaptureFixture) -> None:
+def test_tensor_allclose_operator_allclose_true_show_difference(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     with caplog.at_level(logging.INFO):
         assert TensorAllCloseOperator().allclose(
             AllCloseTester(),
@@ -495,7 +499,7 @@ def test_tensor_allclose_operator_allclose_false_different_value() -> None:
 
 @torch_available
 def test_tensor_allclose_operator_allclose_false_different_value_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not TensorAllCloseOperator().allclose(
@@ -516,7 +520,7 @@ def test_tensor_allclose_operator_allclose_false_different_dtype() -> None:
 
 @torch_available
 def test_tensor_allclose_operator_allclose_false_different_dtype_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not TensorAllCloseOperator().allclose(
@@ -549,7 +553,7 @@ def test_tensor_allclose_operator_equal_false_different_device_mock() -> None:
 
 @torch_available
 def test_tensor_allclose_operator_equal_false_different_device_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not TensorAllCloseOperator().allclose(
@@ -570,7 +574,7 @@ def test_tensor_allclose_operator_allclose_false_different_shape() -> None:
 
 @torch_available
 def test_tensor_allclose_operator_allclose_false_different_shape_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not TensorAllCloseOperator().allclose(
@@ -589,7 +593,7 @@ def test_tensor_allclose_operator_allclose_false_different_type() -> None:
 
 @torch_available
 def test_tensor_allclose_operator_allclose_false_different_type_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not TensorAllCloseOperator().allclose(
@@ -602,13 +606,13 @@ def test_tensor_allclose_operator_allclose_false_different_type_show_difference(
 
 
 @torch_available
-@mark.parametrize(
-    "tensor,atol",
-    (
+@pytest.mark.parametrize(
+    ("tensor", "atol"),
+    [
         (torch.full((2, 3), 1.5), 1),
         (torch.full((2, 3), 1.05), 1e-1),
         (torch.full((2, 3), 1.005), 1e-2),
-    ),
+    ],
 )
 def test_tensor_allclose_operator_allclose_true_atol(tensor: torch.Tensor, atol: float) -> None:
     assert TensorAllCloseOperator().allclose(
@@ -617,13 +621,13 @@ def test_tensor_allclose_operator_allclose_true_atol(tensor: torch.Tensor, atol:
 
 
 @torch_available
-@mark.parametrize(
-    "tensor,rtol",
-    (
+@pytest.mark.parametrize(
+    ("tensor", "rtol"),
+    [
         (torch.full((2, 3), 1.5), 1),
         (torch.full((2, 3), 1.05), 1e-1),
         (torch.full((2, 3), 1.005), 1e-2),
-    ),
+    ],
 )
 def test_tensor_allclose_operator_allclose_true_rtol(tensor: torch.Tensor, rtol: float) -> None:
     assert TensorAllCloseOperator().allclose(AllCloseTester(), torch.ones(2, 3), tensor, rtol=rtol)
@@ -639,9 +643,10 @@ def test_tensor_allclose_operator_clone() -> None:
 
 @torch_available
 def test_tensor_allclose_operator_no_torch() -> None:
-    with patch("coola.utils.imports.is_torch_available", lambda *args, **kwargs: False):
-        with raises(RuntimeError, match="`torch` package is required but not installed."):
-            TensorAllCloseOperator()
+    with patch(
+        "coola.utils.imports.is_torch_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`torch` package is required but not installed."):
+        TensorAllCloseOperator()
 
 
 ############################################
@@ -677,7 +682,7 @@ def test_tensor_equality_operator_clone() -> None:
 
 
 @torch_available
-@mark.parametrize("device", get_available_devices())
+@pytest.mark.parametrize("device", get_available_devices())
 def test_tensor_equality_operator_equal_true(device: str) -> None:
     device = torch.device(device)
     assert TensorEqualityOperator().equal(
@@ -694,7 +699,9 @@ def test_tensor_equality_operator_equal_true_same_object() -> None:
 
 
 @torch_available
-def test_tensor_equality_operator_equal_true_show_difference(caplog: LogCaptureFixture) -> None:
+def test_tensor_equality_operator_equal_true_show_difference(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     with caplog.at_level(logging.INFO):
         assert TensorEqualityOperator().equal(
             EqualityTester(),
@@ -712,7 +719,7 @@ def test_tensor_equality_operator_equal_false_different_value() -> None:
 
 @torch_available
 def test_tensor_equality_operator_equal_false_different_value_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not TensorEqualityOperator().equal(
@@ -735,7 +742,7 @@ def test_tensor_equality_operator_equal_false_different_dtype() -> None:
 
 @torch_available
 def test_tensor_equality_operator_equal_false_different_dtype_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not TensorEqualityOperator().equal(
@@ -768,7 +775,7 @@ def test_tensor_equality_operator_equal_false_different_device_mock() -> None:
 
 @torch_available
 def test_tensor_equality_operator_equal_false_different_device_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not TensorEqualityOperator().equal(
@@ -787,7 +794,7 @@ def test_tensor_equality_operator_equal_false_different_shape() -> None:
 
 @torch_available
 def test_tensor_equality_operator_equal_false_different_shape_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not TensorEqualityOperator().equal(
@@ -806,7 +813,7 @@ def test_tensor_equality_operator_equal_false_different_type() -> None:
 
 @torch_available
 def test_tensor_equality_operator_equal_false_different_type_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not TensorEqualityOperator().equal(
@@ -820,9 +827,10 @@ def test_tensor_equality_operator_equal_false_different_type_show_difference(
 
 @torch_available
 def test_tensor_equality_operator_no_torch() -> None:
-    with patch("coola.utils.imports.is_torch_available", lambda *args, **kwargs: False):
-        with raises(RuntimeError, match="`torch` package is required but not installed."):
-            TensorEqualityOperator()
+    with patch(
+        "coola.utils.imports.is_torch_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`torch` package is required but not installed."):
+        TensorEqualityOperator()
 
 
 ##########################################

@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from unittest.mock import Mock, patch
 
-from pytest import LogCaptureFixture, mark, raises
+import pytest
 
 from coola import objects_are_allclose, objects_are_equal
 from coola.comparators import (
@@ -104,7 +104,7 @@ def test_data_array_allclose_operator_equal_true_coords_str() -> None:
 
 @xarray_available
 def test_data_array_allclose_operator_allclose_true_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert DataArrayAllCloseOperator().allclose(
@@ -182,7 +182,7 @@ def test_data_array_allclose_operator_allclose_false_different_attrs() -> None:
 
 @xarray_available
 def test_data_array_allclose_operator_allclose_false_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not DataArrayAllCloseOperator().allclose(
@@ -205,7 +205,7 @@ def test_data_array_allclose_operator_allclose_false_different_type() -> None:
 
 @xarray_available
 def test_data_array_allclose_operator_allclose_false_different_type_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not DataArrayAllCloseOperator().allclose(
@@ -218,13 +218,13 @@ def test_data_array_allclose_operator_allclose_false_different_type_show_differe
 
 
 @xarray_available
-@mark.parametrize(
-    "array,atol",
-    (
+@pytest.mark.parametrize(
+    ("array", "atol"),
+    [
         (xr.DataArray(np.full((2, 3), 1.5)), 1),
         (xr.DataArray(np.full((2, 3), 1.05)), 1e-1),
         (xr.DataArray(np.full((2, 3), 1.005)), 1e-2),
-    ),
+    ],
 )
 def test_data_array_allclose_operator_allclose_true_atol(array: xr.DataArray, atol: float) -> None:
     assert DataArrayAllCloseOperator().allclose(
@@ -233,13 +233,13 @@ def test_data_array_allclose_operator_allclose_true_atol(array: xr.DataArray, at
 
 
 @xarray_available
-@mark.parametrize(
-    "array,rtol",
-    (
+@pytest.mark.parametrize(
+    ("array", "rtol"),
+    [
         (xr.DataArray(np.full((2, 3), 1.5)), 1),
         (xr.DataArray(np.full((2, 3), 1.05)), 1e-1),
         (xr.DataArray(np.full((2, 3), 1.005)), 1e-2),
-    ),
+    ],
 )
 def test_data_array_allclose_operator_allclose_true_rtol(array: xr.DataArray, rtol: float) -> None:
     assert DataArrayAllCloseOperator().allclose(
@@ -257,9 +257,10 @@ def test_data_array_allclose_operator_clone() -> None:
 
 @xarray_available
 def test_data_array_allclose_operator_no_xarray() -> None:
-    with patch("coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False):
-        with raises(RuntimeError, match="`xarray` package is required but not installed."):
-            DataArrayAllCloseOperator()
+    with patch(
+        "coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`xarray` package is required but not installed."):
+        DataArrayAllCloseOperator()
 
 
 ###############################################
@@ -331,7 +332,9 @@ def test_data_array_equality_operator_equal_true_same_object() -> None:
 
 
 @xarray_available
-def test_data_array_equality_operator_equal_true_show_difference(caplog: LogCaptureFixture) -> None:
+def test_data_array_equality_operator_equal_true_show_difference(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     with caplog.at_level(logging.INFO):
         assert DataArrayEqualityOperator().equal(
             EqualityTester(),
@@ -398,7 +401,7 @@ def test_data_array_equality_operator_equal_false_different_attrs() -> None:
 
 @xarray_available
 def test_data_array_equality_operator_equal_false_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not DataArrayEqualityOperator().equal(
@@ -421,7 +424,7 @@ def test_data_array_equality_operator_equal_false_different_type() -> None:
 
 @xarray_available
 def test_data_array_equality_operator_equal_false_different_type_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not DataArrayEqualityOperator().equal(
@@ -435,9 +438,10 @@ def test_data_array_equality_operator_equal_false_different_type_show_difference
 
 @xarray_available
 def test_data_array_equality_operator_no_xarray() -> None:
-    with patch("coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False):
-        with raises(RuntimeError, match="`xarray` package is required but not installed."):
-            DataArrayEqualityOperator()
+    with patch(
+        "coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`xarray` package is required but not installed."):
+        DataArrayEqualityOperator()
 
 
 #############################################
@@ -488,7 +492,9 @@ def test_dataset_allclose_operator_allclose_true_same_object() -> None:
 
 
 @xarray_available
-def test_dataset_allclose_operator_allclose_true_show_difference(caplog: LogCaptureFixture) -> None:
+def test_dataset_allclose_operator_allclose_true_show_difference(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     with caplog.at_level(logging.INFO):
         assert DatasetAllCloseOperator().allclose(
             AllCloseTester(), create_dataset(), create_dataset(), show_difference=True
@@ -555,7 +561,7 @@ def test_dataset_allclose_operator_allclose_false_different_attrs() -> None:
 
 @xarray_available
 def test_dataset_allclose_operator_allclose_false_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     ds = xr.Dataset(
         {
@@ -580,7 +586,7 @@ def test_dataset_allclose_operator_allclose_false_different_type() -> None:
 
 @xarray_available
 def test_dataset_allclose_operator_allclose_false_different_type_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not DatasetAllCloseOperator().allclose(
@@ -590,13 +596,13 @@ def test_dataset_allclose_operator_allclose_false_different_type_show_difference
 
 
 @xarray_available
-@mark.parametrize(
-    "dataset,atol",
-    (
+@pytest.mark.parametrize(
+    ("dataset", "atol"),
+    [
         (xr.Dataset({"x": xr.DataArray(np.full((2, 3), 1.5))}), 1),
         (xr.Dataset({"x": xr.DataArray(np.full((2, 3), 1.05))}), 1e-1),
         (xr.Dataset({"x": xr.DataArray(np.full((2, 3), 1.005))}), 1e-2),
-    ),
+    ],
 )
 def test_dataset_allclose_operator_allclose_true_atol(dataset: xr.Dataset, atol: float) -> None:
     assert DatasetAllCloseOperator().allclose(
@@ -609,13 +615,13 @@ def test_dataset_allclose_operator_allclose_true_atol(dataset: xr.Dataset, atol:
 
 
 @xarray_available
-@mark.parametrize(
-    "dataset,rtol",
-    (
+@pytest.mark.parametrize(
+    ("dataset", "rtol"),
+    [
         (xr.Dataset({"x": xr.DataArray(np.full((2, 3), 1.5))}), 1),
         (xr.Dataset({"x": xr.DataArray(np.full((2, 3), 1.05))}), 1e-1),
         (xr.Dataset({"x": xr.DataArray(np.full((2, 3), 1.005))}), 1e-2),
-    ),
+    ],
 )
 def test_dataset_allclose_operator_allclose_true_rtol(dataset: xr.Dataset, rtol: float) -> None:
     assert DatasetAllCloseOperator().allclose(
@@ -633,9 +639,10 @@ def test_dataset_allclose_operator_clone() -> None:
 
 @xarray_available
 def test_dataset_allclose_operator_no_xarray() -> None:
-    with patch("coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False):
-        with raises(RuntimeError, match="`xarray` package is required but not installed."):
-            DatasetAllCloseOperator()
+    with patch(
+        "coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`xarray` package is required but not installed."):
+        DatasetAllCloseOperator()
 
 
 #############################################
@@ -683,7 +690,9 @@ def test_dataset_equality_operator_equal_true_same_object() -> None:
 
 
 @xarray_available
-def test_dataset_equality_operator_equal_true_show_difference(caplog: LogCaptureFixture) -> None:
+def test_dataset_equality_operator_equal_true_show_difference(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     with caplog.at_level(logging.INFO):
         assert DatasetEqualityOperator().equal(
             EqualityTester(), create_dataset(), create_dataset(), show_difference=True
@@ -739,7 +748,9 @@ def test_dataset_equality_operator_equal_false_different_attrs() -> None:
 
 
 @xarray_available
-def test_dataset_equality_operator_equal_false_show_difference(caplog: LogCaptureFixture) -> None:
+def test_dataset_equality_operator_equal_false_show_difference(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     ds = xr.Dataset(
         {
             "x": xr.DataArray(np.arange(6), dims=["z"]),
@@ -761,7 +772,7 @@ def test_dataset_equality_operator_equal_false_different_type() -> None:
 
 @xarray_available
 def test_dataset_equality_operator_equal_false_different_type_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not DatasetEqualityOperator().equal(
@@ -772,9 +783,10 @@ def test_dataset_equality_operator_equal_false_different_type_show_difference(
 
 @xarray_available
 def test_dataset_equality_operator_no_xarray() -> None:
-    with patch("coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False):
-        with raises(RuntimeError, match="`xarray` package is required but not installed."):
-            DatasetEqualityOperator()
+    with patch(
+        "coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`xarray` package is required but not installed."):
+        DatasetEqualityOperator()
 
 
 ##############################################
@@ -821,7 +833,7 @@ def test_variable_allclose_operator_allclose_true_same_object() -> None:
 
 @xarray_available
 def test_variable_allclose_operator_allclose_true_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert VariableAllCloseOperator().allclose(
@@ -881,7 +893,7 @@ def test_variable_allclose_operator_allclose_false_different_attrs() -> None:
 
 @xarray_available
 def test_variable_allclose_operator_allclose_false_different_data_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not VariableAllCloseOperator().allclose(
@@ -904,7 +916,7 @@ def test_variable_allclose_operator_allclose_false_different_type() -> None:
 
 @xarray_available
 def test_variable_allclose_operator_allclose_false_different_type_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not VariableAllCloseOperator().allclose(
@@ -917,13 +929,13 @@ def test_variable_allclose_operator_allclose_false_different_type_show_differenc
 
 
 @xarray_available
-@mark.parametrize(
-    "array,atol",
-    (
+@pytest.mark.parametrize(
+    ("array", "atol"),
+    [
         (xr.Variable(dims=["x", "y"], data=np.full((2, 3), 1.5)), 1),
         (xr.Variable(dims=["x", "y"], data=np.full((2, 3), 1.05)), 1e-1),
         (xr.Variable(dims=["x", "y"], data=np.full((2, 3), 1.005)), 1e-2),
-    ),
+    ],
 )
 def test_variable_allclose_operator_allclose_true_atol(array: xr.DataArray, atol: float) -> None:
     assert VariableAllCloseOperator().allclose(
@@ -936,13 +948,13 @@ def test_variable_allclose_operator_allclose_true_atol(array: xr.DataArray, atol
 
 
 @xarray_available
-@mark.parametrize(
-    "array,rtol",
-    (
+@pytest.mark.parametrize(
+    ("array", "rtol"),
+    [
         (xr.Variable(dims=["x", "y"], data=np.full((2, 3), 1.5)), 1),
         (xr.Variable(dims=["x", "y"], data=np.full((2, 3), 1.05)), 1e-1),
         (xr.Variable(dims=["x", "y"], data=np.full((2, 3), 1.005)), 1e-2),
-    ),
+    ],
 )
 def test_variable_allclose_operator_allclose_true_rtol(array: xr.Variable, rtol: float) -> None:
     assert VariableAllCloseOperator().allclose(
@@ -960,9 +972,10 @@ def test_variable_allclose_operator_clone() -> None:
 
 @xarray_available
 def test_variable_allclose_operator_no_xarray() -> None:
-    with patch("coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False):
-        with raises(RuntimeError, match="`xarray` package is required but not installed."):
-            VariableAllCloseOperator()
+    with patch(
+        "coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`xarray` package is required but not installed."):
+        VariableAllCloseOperator()
 
 
 ##############################################
@@ -1016,7 +1029,9 @@ def test_variable_equality_operator_equal_true_same_object() -> None:
 
 
 @xarray_available
-def test_variable_equality_operator_equal_true_show_difference(caplog: LogCaptureFixture) -> None:
+def test_variable_equality_operator_equal_true_show_difference(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     with caplog.at_level(logging.INFO):
         assert VariableEqualityOperator().equal(
             EqualityTester(),
@@ -1064,7 +1079,9 @@ def test_variable_equality_operator_equal_false_different_attrs() -> None:
 
 
 @xarray_available
-def test_variable_equality_operator_equal_false_show_difference(caplog: LogCaptureFixture) -> None:
+def test_variable_equality_operator_equal_false_show_difference(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     with caplog.at_level(logging.INFO):
         assert not VariableEqualityOperator().equal(
             EqualityTester(),
@@ -1086,7 +1103,7 @@ def test_variable_equality_operator_equal_false_different_type() -> None:
 
 @xarray_available
 def test_variable_equality_operator_equal_false_different_type_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not VariableEqualityOperator().equal(
@@ -1100,9 +1117,10 @@ def test_variable_equality_operator_equal_false_different_type_show_difference(
 
 @xarray_available
 def test_variable_equality_operator_no_xarray() -> None:
-    with patch("coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False):
-        with raises(RuntimeError, match="`xarray` package is required but not installed."):
-            VariableEqualityOperator()
+    with patch(
+        "coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`xarray` package is required but not installed."):
+        VariableEqualityOperator()
 
 
 ##########################################

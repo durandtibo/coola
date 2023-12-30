@@ -67,6 +67,5 @@ class NumpyReducer(BaseBasicReducer):
         return np.std(np.asarray(values), ddof=1).item()
 
 
-if is_numpy_available():  # pragma: no cover
-    if not ReducerRegistry.has_reducer("numpy"):
-        ReducerRegistry.add_reducer("numpy", NumpyReducer())
+if is_numpy_available() and not ReducerRegistry.has_reducer("numpy"):  # pragma: no cover
+    ReducerRegistry.add_reducer("numpy", NumpyReducer())

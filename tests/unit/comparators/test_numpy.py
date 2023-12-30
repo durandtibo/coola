@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from unittest.mock import Mock, patch
 
-from pytest import LogCaptureFixture, mark, raises
+import pytest
 
 from coola import objects_are_allclose, objects_are_equal
 from coola.comparators import ArrayAllCloseOperator, ArrayEqualityOperator
@@ -59,8 +59,8 @@ def test_array_allclose_operator__eq__false_different_type() -> None:
 
 
 @numpy_available
-@mark.parametrize(
-    "array", (np.ones((2, 3)), np.full((2, 3), 1.0 + 1e-9), np.full((2, 3), 1.0 - 1e-9))
+@pytest.mark.parametrize(
+    "array", [np.ones((2, 3)), np.full((2, 3), 1.0 + 1e-9), np.full((2, 3), 1.0 - 1e-9)]
 )
 def test_array_allclose_operator_allclose_true(array: np.ndarray) -> None:
     assert ArrayAllCloseOperator().allclose(AllCloseTester(), np.ones((2, 3)), array)
@@ -82,7 +82,9 @@ def test_array_allclose_operator_allclose_true_check_dtype_false() -> None:
 
 
 @numpy_available
-def test_array_allclose_operator_allclose_true_show_difference(caplog: LogCaptureFixture) -> None:
+def test_array_allclose_operator_allclose_true_show_difference(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     with caplog.at_level(logging.INFO):
         assert ArrayAllCloseOperator().allclose(
             tester=AllCloseTester(),
@@ -121,7 +123,7 @@ def test_array_allclose_operator_allclose_false_different_dtype() -> None:
 
 @numpy_available
 def test_array_allclose_operator_allclose_false_different_dtype_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not ArrayAllCloseOperator().allclose(
@@ -140,7 +142,7 @@ def test_array_allclose_operator_allclose_false_different_shape() -> None:
 
 @numpy_available
 def test_array_allclose_operator_allclose_false_different_shape_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not ArrayAllCloseOperator().allclose(
@@ -153,8 +155,8 @@ def test_array_allclose_operator_allclose_false_different_shape_show_difference(
 
 
 @numpy_available
-@mark.parametrize(
-    "array", (np.zeros((2, 3)), np.full((2, 3), 1.0 + 1e-7), np.full((2, 3), 1.0 - 1e-7))
+@pytest.mark.parametrize(
+    "array", [np.zeros((2, 3)), np.full((2, 3), 1.0 + 1e-7), np.full((2, 3), 1.0 - 1e-7)]
 )
 def test_array_allclose_operator_allclose_false_different_value(array: np.ndarray) -> None:
     assert not ArrayAllCloseOperator().allclose(AllCloseTester(), np.ones((2, 3)), array, rtol=0)
@@ -162,7 +164,7 @@ def test_array_allclose_operator_allclose_false_different_value(array: np.ndarra
 
 @numpy_available
 def test_array_allclose_operator_allclose_false_different_value_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not ArrayAllCloseOperator().allclose(
@@ -181,7 +183,7 @@ def test_array_allclose_operator_allclose_false_different_type() -> None:
 
 @numpy_available
 def test_array_allclose_operator_allclose_false_different_type_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not ArrayAllCloseOperator().allclose(
@@ -194,9 +196,9 @@ def test_array_allclose_operator_allclose_false_different_type_show_difference(
 
 
 @numpy_available
-@mark.parametrize(
-    "array,atol",
-    ((np.full((2, 3), 1.5), 1), (np.full((2, 3), 1.05), 1e-1), (np.full((2, 3), 1.005), 1e-2)),
+@pytest.mark.parametrize(
+    ("array", "atol"),
+    [(np.full((2, 3), 1.5), 1), (np.full((2, 3), 1.05), 1e-1), (np.full((2, 3), 1.005), 1e-2)],
 )
 def test_array_allclose_operator_allclose_true_atol(array: np.ndarray, atol: float) -> None:
     assert ArrayAllCloseOperator().allclose(
@@ -205,16 +207,16 @@ def test_array_allclose_operator_allclose_true_atol(array: np.ndarray, atol: flo
 
 
 @numpy_available
-@mark.parametrize(
-    "array,rtol",
-    ((np.full((2, 3), 1.5), 1), (np.full((2, 3), 1.05), 1e-1), (np.full((2, 3), 1.005), 1e-2)),
+@pytest.mark.parametrize(
+    ("array", "rtol"),
+    [(np.full((2, 3), 1.5), 1), (np.full((2, 3), 1.05), 1e-1), (np.full((2, 3), 1.005), 1e-2)],
 )
 def test_array_allclose_operator_allclose_true_rtol(array: np.ndarray, rtol: float) -> None:
     assert ArrayAllCloseOperator().allclose(AllCloseTester(), np.ones((2, 3)), array, rtol=rtol)
 
 
 @numpy_available
-@mark.parametrize("check_dtype", (True, False))
+@pytest.mark.parametrize("check_dtype", [True, False])
 def test_array_allclose_operator_clone(check_dtype: bool) -> None:
     op = ArrayAllCloseOperator(check_dtype)
     op_cloned = op.clone()
@@ -224,9 +226,10 @@ def test_array_allclose_operator_clone(check_dtype: bool) -> None:
 
 @numpy_available
 def test_array_allclose_operator_no_numpy() -> None:
-    with patch("coola.utils.imports.is_numpy_available", lambda *args, **kwargs: False):
-        with raises(RuntimeError, match="`numpy` package is required but not installed."):
-            ArrayAllCloseOperator()
+    with patch(
+        "coola.utils.imports.is_numpy_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`numpy` package is required but not installed."):
+        ArrayAllCloseOperator()
 
 
 ###########################################
@@ -260,7 +263,7 @@ def test_array_equality_operator__eq__false_different_type() -> None:
 
 
 @numpy_available
-@mark.parametrize("check_dtype", (True, False))
+@pytest.mark.parametrize("check_dtype", [True, False])
 def test_array_equality_operator_clone(check_dtype: bool) -> None:
     op = ArrayEqualityOperator(check_dtype)
     op_cloned = op.clone()
@@ -287,7 +290,9 @@ def test_array_equality_operator_equal_true_check_dtype_false() -> None:
 
 
 @numpy_available
-def test_array_equality_operator_equal_true_show_difference(caplog: LogCaptureFixture) -> None:
+def test_array_equality_operator_equal_true_show_difference(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     with caplog.at_level(logging.INFO):
         assert ArrayEqualityOperator().equal(
             tester=EqualityTester(),
@@ -307,7 +312,7 @@ def test_array_equality_operator_equal_false_different_dtype() -> None:
 
 @numpy_available
 def test_array_equality_operator_equal_false_different_dtype_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not ArrayEqualityOperator().equal(
@@ -326,7 +331,7 @@ def test_array_equality_operator_equal_false_different_shape() -> None:
 
 @numpy_available
 def test_array_equality_operator_equal_false_different_shape_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not ArrayEqualityOperator().equal(
@@ -345,7 +350,7 @@ def test_array_equality_operator_equal_false_different_value() -> None:
 
 @numpy_available
 def test_array_equality_operator_equal_false_different_value_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not ArrayEqualityOperator().equal(
@@ -364,7 +369,7 @@ def test_array_equality_operator_equal_false_different_type() -> None:
 
 @numpy_available
 def test_array_equality_operator_equal_false_different_type_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not ArrayEqualityOperator().equal(
@@ -378,9 +383,10 @@ def test_array_equality_operator_equal_false_different_type_show_difference(
 
 @numpy_available
 def test_array_equality_operator_no_numpy() -> None:
-    with patch("coola.utils.imports.is_numpy_available", lambda *args, **kwargs: False):
-        with raises(RuntimeError, match="`numpy` package is required but not installed."):
-            ArrayEqualityOperator()
+    with patch(
+        "coola.utils.imports.is_numpy_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`numpy` package is required but not installed."):
+        ArrayEqualityOperator()
 
 
 ##########################################

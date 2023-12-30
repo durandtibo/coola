@@ -122,11 +122,12 @@ class Summarizer(BaseSummarizer):
         ```
         """
         if data_type in cls.registry and not exist_ok:
-            raise RuntimeError(
+            msg = (
                 f"A formatter ({cls.registry[data_type]}) is already registered for the data "
                 f"type {data_type}. Please use `exist_ok=True` if you want to overwrite the "
                 "formatter for this type"
             )
+            raise RuntimeError(msg)
         cls.registry[data_type] = formatter
 
     @classmethod
@@ -185,7 +186,8 @@ class Summarizer(BaseSummarizer):
             formatter = cls.registry.get(object_type, None)
             if formatter is not None:
                 return formatter
-        raise TypeError(f"Incorrect data type: {data_type}")
+        msg = f"Incorrect data type: {data_type}"
+        raise TypeError(msg)
 
     @classmethod
     def load_state_dict(cls, state: dict) -> None:
@@ -400,10 +402,8 @@ def summarizer_options(**kwargs: Any) -> None:
         Summarizer.load_state_dict(state)
 
 
-if is_numpy_available():  # pragma: no cover
-    if not Summarizer.has_formatter(ndarray):
-        Summarizer.add_formatter(ndarray, NDArrayFormatter())
+if is_numpy_available() and not Summarizer.has_formatter(ndarray):  # pragma: no cover
+    Summarizer.add_formatter(ndarray, NDArrayFormatter())
 
-if is_torch_available():  # pragma: no cover
-    if not Summarizer.has_formatter(Tensor):
-        Summarizer.add_formatter(Tensor, TensorFormatter())
+if is_torch_available() and not Summarizer.has_formatter(Tensor):  # pragma: no cover
+    Summarizer.add_formatter(Tensor, TensorFormatter())

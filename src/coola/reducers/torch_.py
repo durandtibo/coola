@@ -67,6 +67,5 @@ class TorchReducer(BaseBasicReducer):
         return torch.as_tensor(values, dtype=torch.float).std().item()
 
 
-if is_torch_available():  # pragma: no cover
-    if not ReducerRegistry.has_reducer("torch"):
-        ReducerRegistry.add_reducer("torch", TorchReducer())
+if is_torch_available() and not ReducerRegistry.has_reducer("torch"):  # pragma: no cover
+    ReducerRegistry.add_reducer("torch", TorchReducer())

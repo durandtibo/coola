@@ -41,7 +41,7 @@ class DefaultAllCloseOperator(BaseAllCloseOperator[Any]):
     ```
     """
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
     def allclose(
@@ -100,7 +100,7 @@ class MappingAllCloseOperator(BaseAllCloseOperator[Mapping]):
     ```
     """
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
     def allclose(
@@ -169,13 +169,13 @@ class ScalarAllCloseOperator(BaseAllCloseOperator[Union[bool, int, float]]):
     ```
     """
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
     def allclose(
         self,
         tester: BaseAllCloseTester,
-        object1: bool | int | float,
+        object1: bool | float,
         object2: Any,
         rtol: float = 1e-5,
         atol: float = 1e-8,
@@ -217,7 +217,7 @@ class SequenceAllCloseOperator(BaseAllCloseOperator[Sequence]):
     ```
     """
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
     def allclose(

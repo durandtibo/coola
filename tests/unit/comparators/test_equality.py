@@ -5,7 +5,7 @@ from collections import OrderedDict
 from collections.abc import Mapping, Sequence
 from unittest.mock import Mock
 
-from pytest import LogCaptureFixture, mark
+import pytest
 
 from coola.comparators import (
     DefaultEqualityOperator,
@@ -48,9 +48,9 @@ def test_default_equality_operator_clone() -> None:
     assert op == op_cloned
 
 
-@mark.parametrize(
-    "object1,object2",
-    (
+@pytest.mark.parametrize(
+    ("object1", "object2"),
+    [
         (1, 1),
         (0, 0),
         (-1, -1),
@@ -60,10 +60,10 @@ def test_default_equality_operator_clone() -> None:
         (True, True),
         (False, False),
         (None, None),
-    ),
+    ],
 )
 def test_default_equality_operator_equal_true_scalar(
-    object1: bool | int | float | None, object2: bool | int | float | None
+    object1: bool | float | None, object2: bool | float | None
 ) -> None:
     assert DefaultEqualityOperator().equal(EqualityTester(), object1, object2)
 
@@ -73,9 +73,9 @@ def test_default_equality_operator_equal_true_same_object() -> None:
     assert DefaultEqualityOperator().equal(EqualityTester(), obj, obj)
 
 
-@mark.parametrize(
-    "object1,object2",
-    (
+@pytest.mark.parametrize(
+    ("object1", "object2"),
+    [
         (1, 2),
         (1.0, 2.0),
         (True, False),
@@ -83,16 +83,16 @@ def test_default_equality_operator_equal_true_same_object() -> None:
         (1, True),
         (1.0, True),
         (1.0, None),
-    ),
+    ],
 )
 def test_default_equality_operator_equal_false_scalar(
-    object1: bool | int | float, object2: bool | int | float | None
+    object1: bool | float, object2: bool | float | None
 ) -> None:
     assert not DefaultEqualityOperator().equal(EqualityTester(), object1, object2)
 
 
 def test_default_equality_operator_equal_different_value_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not DefaultEqualityOperator().equal(
@@ -106,7 +106,7 @@ def test_default_equality_operator_equal_different_type() -> None:
 
 
 def test_default_equality_operator_equal_different_type_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not DefaultEqualityOperator().equal(EqualityTester(), [], (), show_difference=True)
@@ -140,9 +140,9 @@ def test_mapping_equality_operator_clone() -> None:
 
 
 @torch_available
-@mark.parametrize(
-    "object1,object2",
-    (
+@pytest.mark.parametrize(
+    ("object1", "object2"),
+    [
         ({}, {}),
         (
             {"1": torch.ones(2, 3), "2": torch.zeros(2)},
@@ -156,7 +156,7 @@ def test_mapping_equality_operator_clone() -> None:
             OrderedDict([("1", torch.ones(2, 3)), ("2", torch.zeros(2))]),
             OrderedDict([("1", torch.ones(2, 3)), ("2", torch.zeros(2))]),
         ),
-    ),
+    ],
 )
 def test_mapping_equality_operator_equal_true(object1: Mapping, object2: Mapping) -> None:
     assert MappingEqualityOperator().equal(EqualityTester(), object1, object2)
@@ -178,7 +178,7 @@ def test_mapping_equality_operator_equal_false_different_value() -> None:
 
 @torch_available
 def test_mapping_equality_operator_equal_false_different_value_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not MappingEqualityOperator().equal(
@@ -203,7 +203,7 @@ def test_mapping_equality_operator_equal_false_different_keys() -> None:
 
 @torch_available
 def test_mapping_equality_operator_equal_false_different_keys_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not MappingEqualityOperator().equal(
@@ -226,7 +226,7 @@ def test_mapping_equality_operator_equal_false_different_length() -> None:
 
 @torch_available
 def test_mapping_equality_operator_equal_false_different_length_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not MappingEqualityOperator().equal(
@@ -243,7 +243,7 @@ def test_mapping_equality_operator_equal_false_different_type() -> None:
 
 
 def test_mapping_equality_operator_equal_different_type_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not MappingEqualityOperator().equal(
@@ -279,9 +279,9 @@ def test_sequence_equality_operator_clone() -> None:
 
 
 @torch_available
-@mark.parametrize(
-    "object1,object2",
-    (
+@pytest.mark.parametrize(
+    ("object1", "object2"),
+    [
         ([], []),
         ((), ()),
         ([1, 2, 3], [1, 2, 3]),
@@ -294,7 +294,7 @@ def test_sequence_equality_operator_clone() -> None:
             (torch.ones(2, 3), [torch.zeros(2), torch.ones(2)]),
             (torch.ones(2, 3), [torch.zeros(2), torch.ones(2)]),
         ),
-    ),
+    ],
 )
 def test_sequence_equality_operator_equal_true(object1: Sequence, object2: Sequence) -> None:
     assert SequenceEqualityOperator().equal(EqualityTester(), object1, object2)
@@ -306,14 +306,14 @@ def test_sequence_equality_operator_equal_true_same_object() -> None:
 
 
 @torch_available
-@mark.parametrize(
-    "object1,object2",
-    (
+@pytest.mark.parametrize(
+    ("object1", "object2"),
+    [
         (["abc", "deg"], ["abc", "def"]),
         (("abc", "deg"), ("abc", "def")),
         ([torch.ones(2, 3), torch.zeros(2)], [torch.ones(2, 3), torch.ones(2)]),
         ((torch.ones(2, 3), torch.zeros(2)), (torch.ones(2, 3), torch.ones(2))),
-    ),
+    ],
 )
 def test_sequence_equality_operator_equal_false_different_value(
     object1: Sequence, object2: Sequence
@@ -322,7 +322,7 @@ def test_sequence_equality_operator_equal_false_different_value(
 
 
 def test_sequence_equality_operator_equal_false_different_value_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not SequenceEqualityOperator().equal(
@@ -335,14 +335,14 @@ def test_sequence_equality_operator_equal_false_different_value_show_difference(
 
 
 @torch_available
-@mark.parametrize(
-    "object1,object2",
-    (
+@pytest.mark.parametrize(
+    ("object1", "object2"),
+    [
         (["abc", "defg"], ["abc", "def"]),
         (("abc", "defg"), ("abc", "def")),
         ([torch.ones(2, 3), torch.zeros(2)], [torch.ones(2, 3), torch.ones(2), torch.ones(3)]),
         ((torch.ones(2, 3), torch.zeros(2)), (torch.ones(2, 3), torch.ones(2), torch.ones(3))),
-    ),
+    ],
 )
 def test_sequence_equality_operator_equal_false_different_length(
     object1: Sequence, object2: Sequence
@@ -351,7 +351,7 @@ def test_sequence_equality_operator_equal_false_different_length(
 
 
 def test_sequence_equality_operator_equal_false_different_length_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not SequenceEqualityOperator().equal(
@@ -368,7 +368,7 @@ def test_sequence_equality_operator_equal_false_different_type() -> None:
 
 
 def test_sequence_equality_operator_equal_different_type_show_difference(
-    caplog: LogCaptureFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
         assert not SequenceEqualityOperator().equal(EqualityTester(), [], (), show_difference=True)

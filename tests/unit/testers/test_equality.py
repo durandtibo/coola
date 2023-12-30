@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from unittest.mock import Mock, patch
 
-from pytest import raises
+import pytest
 
 from coola.comparators import (
     ArrayEqualityOperator,
@@ -83,7 +83,7 @@ def test_equality_tester_add_operator_duplicate_exist_ok_false() -> None:
     tester = EqualityTester()
     operator = Mock(spec=BaseEqualityOperator)
     tester.add_operator(int, Mock(spec=BaseEqualityOperator))
-    with raises(RuntimeError, match="An operator (.*) is already registered"):
+    with pytest.raises(RuntimeError, match="An operator (.*) is already registered"):
         tester.add_operator(int, operator)
 
 
@@ -112,7 +112,7 @@ def test_equality_tester_find_operator_indirect() -> None:
 
 
 def test_equality_tester_find_operator_incorrect_type() -> None:
-    with raises(TypeError, match="Incorrect data type:"):
+    with pytest.raises(TypeError, match="Incorrect data type:"):
         EqualityTester().find_operator(Mock(__mro__=[]))
 
 
@@ -146,19 +146,19 @@ def test_local_equality_tester__eq__true_empty() -> None:
 
 
 def test_local_equality_tester__eq__false_different_key() -> None:
-    assert not LocalEqualityTester({object: DefaultEqualityOperator()}) == LocalEqualityTester(
+    assert LocalEqualityTester({object: DefaultEqualityOperator()}) != LocalEqualityTester(
         {int: DefaultEqualityOperator()}
     )
 
 
 def test_local_equality_tester__eq__false_different_value() -> None:
-    assert not LocalEqualityTester({object: DefaultEqualityOperator()}) == LocalEqualityTester(
+    assert LocalEqualityTester({object: DefaultEqualityOperator()}) != LocalEqualityTester(
         {object: MappingEqualityOperator()}
     )
 
 
 def test_local_equality_tester__eq__false_different_type() -> None:
-    assert not LocalEqualityTester() == 1
+    assert LocalEqualityTester() != 1
 
 
 def test_local_equality_tester_registry_default() -> None:
@@ -184,7 +184,7 @@ def test_local_equality_tester_add_operator_duplicate_exist_ok_false() -> None:
     tester = LocalEqualityTester()
     operator = Mock(spec=BaseEqualityOperator)
     tester.add_operator(int, Mock(spec=BaseEqualityOperator))
-    with raises(RuntimeError, match="An operator (.*) is already registered"):
+    with pytest.raises(RuntimeError, match="An operator (.*) is already registered"):
         tester.add_operator(int, operator)
 
 
@@ -237,5 +237,5 @@ def test_local_equality_tester_find_operator_indirect() -> None:
 
 
 def test_local_equality_tester_find_operator_incorrect_type() -> None:
-    with raises(TypeError, match="Incorrect data type:"):
+    with pytest.raises(TypeError, match="Incorrect data type:"):
         LocalEqualityTester().find_operator(Mock(__mro__=[]))

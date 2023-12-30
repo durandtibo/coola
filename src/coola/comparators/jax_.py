@@ -53,7 +53,7 @@ class JaxArrayAllCloseOperator(BaseAllCloseOperator[jnp.ndarray]):
         check_jax()
         self._check_dtype = bool(check_dtype)
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, self.__class__):
             return False
         return self._check_dtype == other._check_dtype
@@ -129,7 +129,7 @@ class JaxArrayEqualityOperator(BaseEqualityOperator[jnp.ndarray]):
         check_jax()
         self._check_dtype = bool(check_dtype)
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, self.__class__):
             return False
         return self._check_dtype == other._check_dtype

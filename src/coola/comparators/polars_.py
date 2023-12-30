@@ -64,7 +64,7 @@ class DataFrameAllCloseOperator(BaseAllCloseOperator[DataFrame]):
     def __init__(self) -> None:
         check_polars()
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
     def clone(self) -> DataFrameAllCloseOperator:
@@ -142,7 +142,7 @@ class DataFrameEqualityOperator(BaseEqualityOperator[DataFrame]):
     def __init__(self) -> None:
         check_polars()
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, self.__class__):
             return False
         return True
@@ -216,7 +216,7 @@ class SeriesAllCloseOperator(BaseAllCloseOperator[Series]):
     def __init__(self) -> None:
         check_polars()
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
     def clone(self) -> SeriesAllCloseOperator:
@@ -276,7 +276,7 @@ class SeriesEqualityOperator(BaseEqualityOperator[Series]):
     def __init__(self) -> None:
         check_polars()
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, self.__class__):
             return False
         return True
@@ -371,7 +371,4 @@ def has_nan(obj: DataFrame | Series) -> bool:
     """
     if isinstance(obj, Series):
         return obj.dtype in polars.FLOAT_DTYPES and obj.is_nan().any()
-    for col in obj:
-        if col.dtype in polars.FLOAT_DTYPES and col.is_nan().any():
-            return True
-    return False
+    return any(col.dtype in polars.FLOAT_DTYPES and col.is_nan().any() for col in obj)

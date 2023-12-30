@@ -50,11 +50,12 @@ class EqualityTester(BaseEqualityTester):
         ```
         """
         if data_type in cls.registry and not exist_ok:
-            raise RuntimeError(
+            msg = (
                 f"An operator ({cls.registry[data_type]}) is already registered for the data "
                 f"type {data_type}. Please use `exist_ok=True` if you want to overwrite the "
                 "operator for this type"
             )
+            raise RuntimeError(msg)
         cls.registry[data_type] = operator
 
     def equal(self, object1: Any, object2: Any, show_difference: bool = False) -> bool:
@@ -110,7 +111,8 @@ class EqualityTester(BaseEqualityTester):
             operator = cls.registry.get(object_type, None)
             if operator is not None:
                 return operator
-        raise TypeError(f"Incorrect data type: {data_type}")
+        msg = f"Incorrect data type: {data_type}"
+        raise TypeError(msg)
 
     @classmethod
     def local_copy(cls) -> LocalEqualityTester:
@@ -144,7 +146,7 @@ class LocalEqualityTester(BaseEqualityTester):
     def __init__(self, registry: dict[type[object], BaseEqualityOperator] | None = None) -> None:
         self.registry = registry or {}
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, self.__class__):
             return False
         return self.registry == other.registry
@@ -181,11 +183,12 @@ class LocalEqualityTester(BaseEqualityTester):
         ```
         """
         if data_type in self.registry and not exist_ok:
-            raise RuntimeError(
+            msg = (
                 f"An operator ({self.registry[data_type]}) is already registered for the data "
                 f"type {data_type}. Please use `exist_ok=True` if you want to overwrite the "
                 "operator for this type"
             )
+            raise RuntimeError(msg)
         self.registry[data_type] = operator
 
     def clone(self) -> LocalEqualityTester:
@@ -259,4 +262,5 @@ class LocalEqualityTester(BaseEqualityTester):
             operator = self.registry.get(object_type, None)
             if operator is not None:
                 return operator
-        raise TypeError(f"Incorrect data type: {data_type}")
+        msg = f"Incorrect data type: {data_type}"
+        raise TypeError(msg)

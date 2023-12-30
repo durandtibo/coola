@@ -41,11 +41,12 @@ class ReducerRegistry:
         ```
         """
         if name in cls.registry and not exist_ok:
-            raise RuntimeError(
+            msg = (
                 f"A reducer ({cls.registry[name]}) is already registered for the name "
                 f"{name}. Please use `exist_ok=True` if you want to overwrite the "
                 "reducer for this type"
             )
+            raise RuntimeError(msg)
         cls.registry[name] = reducer
 
     @classmethod

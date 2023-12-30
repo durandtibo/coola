@@ -54,7 +54,7 @@ class DataArrayAllCloseOperator(BaseAllCloseOperator[DataArray]):
     def __init__(self) -> None:
         check_xarray()
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
     def allclose(
@@ -128,7 +128,7 @@ class DataArrayEqualityOperator(BaseEqualityOperator[DataArray]):
     def __init__(self) -> None:
         check_xarray()
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
     def clone(self) -> DataArrayEqualityOperator:
@@ -196,7 +196,7 @@ class DatasetAllCloseOperator(BaseAllCloseOperator[Dataset]):
     def __init__(self) -> None:
         check_xarray()
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
     def allclose(
@@ -280,7 +280,7 @@ class DatasetEqualityOperator(BaseEqualityOperator[Dataset]):
     def __init__(self) -> None:
         check_xarray()
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
     def clone(self) -> DatasetEqualityOperator:
@@ -334,7 +334,7 @@ class VariableAllCloseOperator(BaseAllCloseOperator[Variable]):
     def __init__(self) -> None:
         check_xarray()
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
     def allclose(
@@ -406,7 +406,7 @@ class VariableEqualityOperator(BaseEqualityOperator[Variable]):
     def __init__(self) -> None:
         check_xarray()
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
     def clone(self) -> VariableEqualityOperator:

@@ -1,13 +1,13 @@
 import copy
 from unittest.mock import Mock, patch
 
-from pytest import fixture, raises
+import pytest
 
 from coola.reducers import BasicReducer, ReducerRegistry
 
 
-@fixture(autouse=True, scope="function")
-def reset() -> None:
+@pytest.fixture(autouse=True)
+def _reset() -> None:
     state = copy.deepcopy(ReducerRegistry.registry)
     try:
         yield
@@ -48,7 +48,7 @@ def test_summarizer_add_reducer_duplicate_exist_ok_true() -> None:
 def test_summarizer_add_reducer_duplicate_exist_ok_false() -> None:
     reducer = Mock(spec=BasicReducer)
     ReducerRegistry.add_reducer("my_reducer", Mock(spec=BasicReducer))
-    with raises(RuntimeError, match="A reducer (.*) is already registered"):
+    with pytest.raises(RuntimeError, match="A reducer (.*) is already registered"):
         ReducerRegistry.add_reducer("my_reducer", reducer)
 
 
