@@ -1,4 +1,4 @@
-r"""This package contains the utility functions."""
+r"""Contain the utility functions."""
 
 from __future__ import annotations
 

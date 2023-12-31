@@ -1,4 +1,4 @@
-r"""This package contains the comparator implementations."""
+r"""Contain the comparator implementations."""
 
 __all__ = [
     "ArrayAllCloseOperator",

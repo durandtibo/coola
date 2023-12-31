@@ -1,4 +1,4 @@
-r"""This package contains the summarizer implementations."""
+r"""Contain the summarizer implementations."""
 
 __all__ = [
     "BaseSummarizer",

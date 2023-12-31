@@ -24,9 +24,9 @@ class DefaultFormatter(BaseFormatter[Any]):
     r"""Implement the default formatter.
 
     Args:
-        max_characters (int, optional): Specifies the maximum number
-            of characters to show. If a negative value is provided,
-            all the characters are shown.
+        max_characters: Specifies the maximum number of characters to
+            show. If a negative value is provided, all the characters
+            are shown.
 
     Example usage:
 
@@ -76,7 +76,7 @@ class DefaultFormatter(BaseFormatter[Any]):
         r"""Get the maximum number of characters to show.
 
         Returns:
-            int: The maximum number of characters to show.
+            The maximum number of characters to show.
 
         Example usage:
 
@@ -94,7 +94,7 @@ class DefaultFormatter(BaseFormatter[Any]):
         r"""Set the maximum number of characters to show.
 
         Args:
-            max_characters (int): Specifies the maximum number of
+            max_characters: Specifies the maximum number of
                 characters to show.
 
         Raises:
@@ -175,7 +175,7 @@ class BaseCollectionFormatter(BaseFormatter[T]):
         r"""Get the maximum number of items to show.
 
         Returns:
-            int: The maximum number of items to show.
+            The maximum number of items to show.
 
         Example usage:
 
@@ -193,8 +193,7 @@ class BaseCollectionFormatter(BaseFormatter[T]):
         r"""Set the maximum number of items to show.
 
         Args:
-            max_characters (int): Specifies the maximum number of
-                items to show.
+            max_items: Specifies the maximum number of items to show.
 
         Raises:
             TypeError: if ``max_items`` is not an integer.
@@ -219,7 +218,7 @@ class BaseCollectionFormatter(BaseFormatter[T]):
         r"""Get the number of spaces for indentation.
 
         Returns:
-            int: The number of spaces for indentation.
+            The number of spaces for indentation.
 
         Example usage:
 
@@ -237,8 +236,7 @@ class BaseCollectionFormatter(BaseFormatter[T]):
         r"""Set the number of spaces for indentation.
 
         Args:
-            max_characters (int): Specifies the number of spaces for
-                indentation.
+            num_spaces: Specifies the number of spaces for indentation.
 
         Raises:
             TypeError: if ``num_spaces`` is not an integer.

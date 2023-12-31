@@ -1,3 +1,5 @@
+r"""Implement some utility functions for ``torch.Tensor``s."""
+
 from __future__ import annotations
 
 __all__ = ["get_available_devices", "is_cuda_available", "is_mps_available"]

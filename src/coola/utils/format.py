@@ -1,3 +1,6 @@
+r"""Implement some utility functions to compute string representations
+of objects."""
+
 from __future__ import annotations
 
 __all__ = [

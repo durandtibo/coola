@@ -1,3 +1,5 @@
+r"""Implement some utility functions to manage optional dependencies."""
+
 from __future__ import annotations
 
 __all__ = [

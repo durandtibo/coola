@@ -1,3 +1,5 @@
+r"""Implement some utility functions to compute statistics."""
+
 from __future__ import annotations
 
 __all__ = ["quantile"]

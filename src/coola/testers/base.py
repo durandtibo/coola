@@ -1,3 +1,5 @@
+r"""Implement the base class to implement an allclose tester."""
+
 from __future__ import annotations
 
 __all__ = ["BaseAllCloseTester", "BaseEqualityTester"]
@@ -10,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class BaseAllCloseTester(ABC):
-    r"""Defines the base class to implement an allclose tester."""
+    r"""Define the base class to implement an allclose tester."""
 
     @abstractmethod
     def allclose(

@@ -1,3 +1,5 @@
+r"""Define some types."""
+
 from __future__ import annotations
 
 __all__ = ["Tensor", "ndarray"]

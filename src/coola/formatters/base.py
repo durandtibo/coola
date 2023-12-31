@@ -78,6 +78,8 @@ class BaseFormatter(ABC, Generic[T]):
         Args:
             summarizer: Specifies the summarizer.
             value: Specifies the value to summarize.
+            depth: Specifies the current depth.
+            max_depth: Specifies the maximum depth.
 
         Returns:
             str: The formatted value.
