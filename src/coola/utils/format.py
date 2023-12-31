@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 def repr_indent(original: Any, num_spaces: int = 2) -> str:
-    r"""Adds indentations if the original string is a multi-lines string.
+    r"""Add indentations if the original string is a multi-lines string.
 
     Args:
         original: Specifies the original string. If the inputis not a
@@ -48,7 +48,7 @@ def repr_indent(original: Any, num_spaces: int = 2) -> str:
 
 
 def repr_mapping(mapping: Mapping, sorted_keys: bool = False, num_spaces: int = 2) -> str:
-    r"""Computes a string representation of a mapping.
+    r"""Compute a string representation of a mapping.
 
     This function was designed for flat dictionary. If you have a
     nested dictionary, you may consider other functions. Note that
@@ -83,7 +83,7 @@ def repr_mapping(mapping: Mapping, sorted_keys: bool = False, num_spaces: int = 
 
 
 def repr_sequence(sequence: Sequence, num_spaces: int = 2) -> str:
-    r"""Computes a string representation of a sequence.
+    r"""Compute a string representation of a sequence.
 
     Args:
         sequence: Specifies the sequence.
@@ -111,7 +111,7 @@ def repr_sequence(sequence: Sequence, num_spaces: int = 2) -> str:
 
 
 def str_indent(original: Any, num_spaces: int = 2) -> str:
-    r"""Adds indentations if the original string is a multi-lines string.
+    r"""Add indentations if the original string is a multi-lines string.
 
     Args:
         original: Specifies the original string. If the inputis not a
@@ -149,7 +149,7 @@ def str_indent(original: Any, num_spaces: int = 2) -> str:
 
 
 def str_mapping(mapping: Mapping, sorted_keys: bool = False, num_spaces: int = 2) -> str:
-    r"""Computes a string representation of a mapping.
+    r"""Compute a string representation of a mapping.
 
     This function was designed for flat dictionary. If you have a
     nested dictionary, you may consider other functions. Note that
@@ -184,7 +184,7 @@ def str_mapping(mapping: Mapping, sorted_keys: bool = False, num_spaces: int = 2
 
 
 def str_sequence(sequence: Sequence, num_spaces: int = 2) -> str:
-    r"""Computes a string representation of a sequence.
+    r"""Compute a string representation of a sequence.
 
     Args:
         sequence: Specifies the sequence.

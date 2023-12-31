@@ -10,7 +10,7 @@ if is_numpy_available():
 else:  # pragma: no cover
 
     class ndarray:  # noqa: N801
-        r"""Defines a fake class so the code still works if numpy is not
+        r"""Define a fake class so the code still works if numpy is not
         installed."""
 
 
@@ -19,5 +19,5 @@ if is_torch_available():
 else:  # pragma: no cover
 
     class Tensor:
-        r"""Defines a fake class so the code still works if torch is not
+        r"""Define a fake class so the code still works if torch is not
         installed."""

@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class AllCloseTester(BaseAllCloseTester):
-    """Implements the default allclose tester.
+    """Implement the default allclose tester.
 
     By default, this tester uses the following mapping to test the
     objects:
@@ -41,7 +41,7 @@ class AllCloseTester(BaseAllCloseTester):
     def add_operator(
         cls, data_type: type[object], operator: BaseAllCloseOperator, exist_ok: bool = False
     ) -> None:
-        r"""Adds an allclose operator for a given data type.
+        r"""Add an allclose operator for a given data type.
 
         Args:
             data_type: Specifies the data type for this test.
@@ -88,7 +88,7 @@ class AllCloseTester(BaseAllCloseTester):
 
     @classmethod
     def has_operator(cls, data_type: type[object]) -> bool:
-        r"""Indicates if an allclose operator is registered for the given
+        r"""Indicate if an allclose operator is registered for the given
         data type.
 
         Args:
@@ -113,7 +113,7 @@ class AllCloseTester(BaseAllCloseTester):
 
     @classmethod
     def find_operator(cls, data_type: Any) -> BaseAllCloseOperator:
-        r"""Finds the allclose operator associated to an object.
+        r"""Find the allclose operator associated to an object.
 
         Args:
             data_type: Specifies the data type to get.
@@ -141,7 +141,7 @@ class AllCloseTester(BaseAllCloseTester):
 
     @classmethod
     def local_copy(cls) -> LocalAllCloseTester:
-        r"""Returns a copy of ``AllCloseTester`` that can easily be
+        r"""Return a copy of ``AllCloseTester`` that can easily be
         customized without changind ``AllCloseTester``.
 
         Returns:
@@ -160,7 +160,7 @@ class AllCloseTester(BaseAllCloseTester):
 
 
 class LocalAllCloseTester(BaseAllCloseTester):
-    """Implements an equality tester that can be easily customized.
+    """Implement an equality tester that can be easily customized.
 
     Args:
         registry: Specifies the initial registry with the equality
@@ -181,7 +181,7 @@ class LocalAllCloseTester(BaseAllCloseTester):
     def add_operator(
         self, data_type: type[object], operator: BaseAllCloseOperator, exist_ok: bool = False
     ) -> None:
-        r"""Adds an allclose operator for a given data type.
+        r"""Add an allclose operator for a given data type.
 
         Args:
             data_type: Specifies the data type for this test.
@@ -245,7 +245,7 @@ class LocalAllCloseTester(BaseAllCloseTester):
         return self.__class__({key: value.clone() for key, value in self.registry.items()})
 
     def has_operator(self, data_type: type[object]) -> bool:
-        r"""Indicates if an allclose operator is registered for the given
+        r"""Indicate if an allclose operator is registered for the given
         data type.
 
         Args:
@@ -270,7 +270,7 @@ class LocalAllCloseTester(BaseAllCloseTester):
         return data_type in self.registry
 
     def find_operator(self, data_type: Any) -> BaseAllCloseOperator:
-        r"""Finds the allclose operator associated to an object.
+        r"""Find the allclose operator associated to an object.
 
         Args:
             data_type: Specifies the data type to get.

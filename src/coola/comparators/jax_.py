@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 class JaxArrayAllCloseOperator(BaseAllCloseOperator[jnp.ndarray]):
-    r"""Implements an allclose operator for
+    r"""Implement an allclose operator for
     ``jax.Array``/``jax.numpy.ndarray``.
 
     Args:
@@ -103,7 +103,7 @@ class JaxArrayAllCloseOperator(BaseAllCloseOperator[jnp.ndarray]):
 
 
 class JaxArrayEqualityOperator(BaseEqualityOperator[jnp.ndarray]):
-    r"""Implements an equality operator for
+    r"""Implement an equality operator for
     ``jax.Array``/``jax.numpy.ndarray``.
 
     Args:
@@ -174,7 +174,7 @@ class JaxArrayEqualityOperator(BaseEqualityOperator[jnp.ndarray]):
 
 
 def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
-    r"""Gets a default mapping between the types and the allclose
+    r"""Get a default mapping between the types and the allclose
     operators.
 
     This function returns an empty dictionary if JAX is not
@@ -202,7 +202,7 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
 
 
 def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
-    r"""Gets a default mapping between the types and the equality
+    r"""Get a default mapping between the types and the equality
     operators.
 
     This function returns an empty dictionary if JAX is not
@@ -231,7 +231,7 @@ def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
 
 @lru_cache(maxsize=1)
 def get_array_impl_class() -> type:
-    r"""Gets the array implementation class.
+    r"""Get the array implementation class.
 
     Returns:
         The array implementation class.

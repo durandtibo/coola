@@ -21,7 +21,7 @@ T = TypeVar("T")
 
 
 class DefaultFormatter(BaseFormatter[Any]):
-    r"""Implements the default formatter.
+    r"""Implement the default formatter.
 
     Args:
         max_characters (int, optional): Specifies the maximum number
@@ -73,7 +73,7 @@ class DefaultFormatter(BaseFormatter[Any]):
         return {"max_characters": self._max_characters}
 
     def get_max_characters(self) -> int:
-        r"""Gets the maximum number of characters to show.
+        r"""Get the maximum number of characters to show.
 
         Returns:
             int: The maximum number of characters to show.
@@ -172,7 +172,7 @@ class BaseCollectionFormatter(BaseFormatter[T]):
         return {"max_items": self._max_items, "num_spaces": self._num_spaces}
 
     def get_max_items(self) -> int:
-        r"""Gets the maximum number of items to show.
+        r"""Get the maximum number of items to show.
 
         Returns:
             int: The maximum number of items to show.
@@ -216,7 +216,7 @@ class BaseCollectionFormatter(BaseFormatter[T]):
         self._max_items = max_items
 
     def get_num_spaces(self) -> int:
-        r"""Gets the number of spaces for indentation.
+        r"""Get the number of spaces for indentation.
 
         Returns:
             int: The number of spaces for indentation.
@@ -268,7 +268,7 @@ class BaseCollectionFormatter(BaseFormatter[T]):
 
 
 class MappingFormatter(BaseCollectionFormatter[Mapping]):
-    r"""Implements a formatter for ``Mapping``.
+    r"""Implement a formatter for ``Mapping``.
 
     Example usage:
 
@@ -310,7 +310,7 @@ class MappingFormatter(BaseCollectionFormatter[Mapping]):
 
 
 class SequenceFormatter(BaseCollectionFormatter[Sequence]):
-    r"""Implements a formatter for ``Sequence``.
+    r"""Implement a formatter for ``Sequence``.
 
     Example usage:
 
@@ -348,7 +348,7 @@ class SequenceFormatter(BaseCollectionFormatter[Sequence]):
 
 
 class SetFormatter(BaseCollectionFormatter[set]):
-    r"""Implements a formatter for ``set``.
+    r"""Implement a formatter for ``set``.
 
     Example usage:
 

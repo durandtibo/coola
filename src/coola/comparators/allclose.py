@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class DefaultAllCloseOperator(BaseAllCloseOperator[Any]):
-    r"""Implements a default allclose operator.
+    r"""Implement a default allclose operator.
 
     The ``==`` operator is used to test the equality between the objects
     because it is not possible to define an allclose operator for all
@@ -70,7 +70,7 @@ class DefaultAllCloseOperator(BaseAllCloseOperator[Any]):
 
 
 class MappingAllCloseOperator(BaseAllCloseOperator[Mapping]):
-    r"""Implements an equality operator for mappings.
+    r"""Implement an equality operator for mappings.
 
     ```pycon
     >>> from coola.testers import AllCloseTester
@@ -152,7 +152,7 @@ class MappingAllCloseOperator(BaseAllCloseOperator[Mapping]):
 
 
 class ScalarAllCloseOperator(BaseAllCloseOperator[Union[bool, int, float]]):
-    r"""Implements an allclose operator for scalar values.
+    r"""Implement an allclose operator for scalar values.
 
     ```pycon
     >>> from coola.testers import AllCloseTester
@@ -200,7 +200,7 @@ class ScalarAllCloseOperator(BaseAllCloseOperator[Union[bool, int, float]]):
 
 
 class SequenceAllCloseOperator(BaseAllCloseOperator[Sequence]):
-    r"""Implements an equality operator for sequences.
+    r"""Implement an equality operator for sequences.
 
     ```pycon
     >>> from coola.testers import AllCloseTester
@@ -260,7 +260,7 @@ class SequenceAllCloseOperator(BaseAllCloseOperator[Sequence]):
 
 
 def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
-    r"""Gets a default mapping between the types and the allclose
+    r"""Get a default mapping between the types and the allclose
     operators.
 
     Returns:

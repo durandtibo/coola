@@ -44,7 +44,7 @@ class BaseAllCloseOperator(ABC, Generic[T]):
         equal_nan: bool = False,
         show_difference: bool = False,
     ) -> bool:
-        r"""Indicates if two objects are equal within a tolerance.
+        r"""Indicate if two objects are equal within a tolerance.
 
         Args:
             tester: Specifies an equality tester.
@@ -79,7 +79,7 @@ class BaseAllCloseOperator(ABC, Generic[T]):
 
     @abstractmethod
     def clone(self) -> BaseAllCloseOperator:
-        r"""Returns a copy of the equality operator.
+        r"""Return a copy of the equality operator.
 
         Returns:
             A copy of the equality operator.
@@ -120,7 +120,7 @@ class BaseEqualityOperator(ABC, Generic[T]):
 
     @abstractmethod
     def clone(self) -> BaseEqualityOperator:
-        r"""Returns a copy of the equality operator.
+        r"""Return a copy of the equality operator.
 
         Returns:
             A copy of the equality operator.
@@ -143,7 +143,7 @@ class BaseEqualityOperator(ABC, Generic[T]):
     def equal(
         self, tester: BaseEqualityTester, object1: T, object2: Any, show_difference: bool = False
     ) -> bool:
-        r"""Indicates if two objects are equal or not.
+        r"""Indicate if two objects are equal or not.
 
         Args:
             tester: Specifies an equality tester.

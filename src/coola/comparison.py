@@ -21,7 +21,7 @@ def objects_are_allclose(
     show_difference: bool = False,
     tester: BaseAllCloseTester | None = None,
 ) -> bool:
-    r"""Indicates if two objects are equal within a tolerance.
+    r"""Indicate if two objects are equal within a tolerance.
 
     Args:
         object1: Specifies the first object to compare.
@@ -76,7 +76,7 @@ def objects_are_equal(
     show_difference: bool = False,
     tester: BaseEqualityTester | None = None,
 ) -> bool:
-    r"""Indicates if two objects are equal or not.
+    r"""Indicate if two objects are equal or not.
 
     Args:
         object1: Specifies the first object to compare.

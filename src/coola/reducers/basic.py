@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 class BasicReducer(BaseBasicReducer):
-    r"""Implements a basic reducer.
+    r"""Implement a basic reducer.
 
     Example usage:
 

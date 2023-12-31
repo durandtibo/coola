@@ -72,7 +72,7 @@ class TensorFormatter(BaseFormatter[torch.Tensor]):
         return {"show_data": self._show_data}
 
     def get_show_data(self) -> bool:
-        r"""Indicates if the tensor data or metadata are shown.
+        r"""Indicate if the tensor data or metadata are shown.
 
         Returns:
             ``True`` if the tensor data are shown,

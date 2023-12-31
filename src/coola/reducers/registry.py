@@ -6,7 +6,7 @@ from coola.utils.format import str_indent, str_mapping
 
 
 class ReducerRegistry:
-    """Implements the reducer registry.
+    """Implement the reducer registry.
 
     The registry is a class variable, so it is shared with all the
     instances of this class.
@@ -19,7 +19,7 @@ class ReducerRegistry:
 
     @classmethod
     def add_reducer(cls, name: str, reducer: BaseReducer, exist_ok: bool = False) -> None:
-        r"""Adds a reducer to the registry.
+        r"""Add a reducer to the registry.
 
         Args:
             name: Specifies the name of the reducer.
@@ -51,7 +51,7 @@ class ReducerRegistry:
 
     @classmethod
     def available_reducers(cls) -> tuple[str, ...]:
-        """Gets the available reducers.
+        """Get the available reducers.
 
         Returns:
             The available reducers.
@@ -69,7 +69,7 @@ class ReducerRegistry:
 
     @classmethod
     def has_reducer(cls, name: str) -> bool:
-        r"""Indicates if a reducer is registered for the given name.
+        r"""Indicate if a reducer is registered for the given name.
 
         Args:
             name: Specifies the name to check.

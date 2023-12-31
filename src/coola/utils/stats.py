@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 def quantile(values: Sequence[float | int], quantiles: Sequence[float]) -> list[float]:
-    r"""Computes the quantiles with the linear method.
+    r"""Compute the quantiles with the linear method.
 
     Args:
         values: Specifies the values.

@@ -8,13 +8,13 @@ from coola.reducers.registry import ReducerRegistry
 
 
 class Reduction:
-    r"""Implements the class that defines the reduction strategy."""
+    r"""Implement the class that defines the reduction strategy."""
 
     reducer = auto_reducer()
 
     @classmethod
     def available_reducers(cls) -> tuple[str, ...]:
-        """Gets the available reducers.
+        """Get the available reducers.
 
         Returns:
             The available reducers.
@@ -32,7 +32,7 @@ class Reduction:
 
     @classmethod
     def check_reducer(cls, reducer: str) -> None:
-        r"""Checks if the reducer is available.
+        r"""Check if the reducer is available.
 
         Args:
             reducer: Specifies the reducer name.
@@ -54,7 +54,7 @@ class Reduction:
 
     @classmethod
     def initialize(cls, reducer: str) -> None:
-        r"""Initializes the reduction strategy.
+        r"""Initialize the reduction strategy.
 
         Args:
             reducer: Specifies the name of the reducer to use.

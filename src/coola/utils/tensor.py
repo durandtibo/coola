@@ -15,7 +15,7 @@ else:  # pragma: no cover
 
 @lru_cache(1)
 def get_available_devices() -> tuple[str, ...]:
-    r"""Gets the available PyTorch devices on the machine.
+    r"""Get the available PyTorch devices on the machine.
 
     Returns:
         The available devices.
@@ -39,7 +39,7 @@ def get_available_devices() -> tuple[str, ...]:
 
 @lru_cache(1)
 def is_cuda_available() -> bool:
-    r"""Indicates if CUDA is currently available.
+    r"""Indicate if CUDA is currently available.
 
     Returns:
         A boolean indicating if CUDA is currently available.
@@ -57,7 +57,7 @@ def is_cuda_available() -> bool:
 
 @lru_cache(1)
 def is_mps_available() -> bool:
-    r"""Indicates if MPS is currently available.
+    r"""Indicate if MPS is currently available.
 
     Returns:
         A boolean indicating if MPS is currently available.

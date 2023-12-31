@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class EqualityTester(BaseEqualityTester):
-    """Implements the default equality tester."""
+    """Implement the default equality tester."""
 
     registry: dict[type[object], BaseEqualityOperator] = {}
 
@@ -26,7 +26,7 @@ class EqualityTester(BaseEqualityTester):
     def add_operator(
         cls, data_type: type[object], operator: BaseEqualityOperator, exist_ok: bool = False
     ) -> None:
-        r"""Adds an equality operator for a given data type.
+        r"""Add an equality operator for a given data type.
 
         Args:
             data_type: Specifies the data type for this test.
@@ -63,7 +63,7 @@ class EqualityTester(BaseEqualityTester):
 
     @classmethod
     def has_operator(cls, data_type: type[object]) -> bool:
-        r"""Indicates if an equality operator is registered for the given
+        r"""Indicate if an equality operator is registered for the given
         data type.
 
         Args:
@@ -88,7 +88,7 @@ class EqualityTester(BaseEqualityTester):
 
     @classmethod
     def find_operator(cls, data_type: Any) -> BaseEqualityOperator:
-        r"""Finds the equality operator associated to an object.
+        r"""Find the equality operator associated to an object.
 
         Args:
             data_type: Specifies the data type to get.
@@ -116,7 +116,7 @@ class EqualityTester(BaseEqualityTester):
 
     @classmethod
     def local_copy(cls) -> LocalEqualityTester:
-        r"""Returns a copy of ``EqualityTester`` that can easily be
+        r"""Return a copy of ``EqualityTester`` that can easily be
         customized without changind ``EqualityTester``.
 
         Returns:
@@ -136,7 +136,7 @@ class EqualityTester(BaseEqualityTester):
 
 
 class LocalEqualityTester(BaseEqualityTester):
-    """Implements an equality tester that can be easily customized.
+    """Implement an equality tester that can be easily customized.
 
     Args:
         registry: Specifies the initial registry with the equality
@@ -157,7 +157,7 @@ class LocalEqualityTester(BaseEqualityTester):
     def add_operator(
         self, data_type: type[object], operator: BaseEqualityOperator, exist_ok: bool = False
     ) -> None:
-        r"""Adds an equality operator for a given data type.
+        r"""Add an equality operator for a given data type.
 
         Args:
             data_type: Specifies the data type for this test.
@@ -194,7 +194,7 @@ class LocalEqualityTester(BaseEqualityTester):
     def clone(self) -> LocalEqualityTester:
         r"""Clones the current tester.
 
-         Returns:
+        Returns:
              A deep copy of the current tester.
 
          Example usage:
@@ -213,7 +213,7 @@ class LocalEqualityTester(BaseEqualityTester):
         return self.find_operator(type(object1)).equal(self, object1, object2, show_difference)
 
     def has_operator(self, data_type: type[object]) -> bool:
-        r"""Indicates if an equality operator is registered for the given
+        r"""Indicate if an equality operator is registered for the given
         data type.
 
         Args:
@@ -238,7 +238,7 @@ class LocalEqualityTester(BaseEqualityTester):
         return data_type in self.registry
 
     def find_operator(self, data_type: Any) -> BaseEqualityOperator:
-        r"""Finds the equality operator associated to an object.
+        r"""Find the equality operator associated to an object.
 
         Args:
             data_type: Specifies the data type to get.
