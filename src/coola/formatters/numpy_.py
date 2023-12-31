@@ -2,12 +2,14 @@ from __future__ import annotations
 
 __all__ = ["NDArrayFormatter"]
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock
 
 from coola.formatters.base import BaseFormatter
-from coola.summarizers.base import BaseSummarizer
 from coola.utils import check_numpy, is_numpy_available
+
+if TYPE_CHECKING:
+    from coola.summarizers.base import BaseSummarizer
 
 if is_numpy_available():
     import numpy as np

@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import math
-from collections.abc import Sequence
+from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
 
 from coola.reducers import EmptySequenceError, NumpyReducer, ReducerRegistry
 from coola.testing import numpy_available
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 @numpy_available

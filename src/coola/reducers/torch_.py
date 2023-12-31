@@ -2,12 +2,15 @@ from __future__ import annotations
 
 __all__ = ["TorchReducer"]
 
-from collections.abc import Sequence
+from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
 from coola.reducers.base import BaseBasicReducer
 from coola.reducers.registry import ReducerRegistry
 from coola.utils import check_torch, is_torch_available
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 if is_torch_available():
     import torch

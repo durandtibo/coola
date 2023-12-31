@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock
 
 from coola.formatters.base import BaseFormatter
-from coola.summarizers.base import BaseSummarizer
 from coola.utils import check_torch, is_torch_available
+
+if TYPE_CHECKING:
+    from coola.summarizers.base import BaseSummarizer
 
 if is_torch_available():
     import torch

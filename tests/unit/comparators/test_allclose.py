@@ -3,8 +3,7 @@ from __future__ import annotations
 import logging
 from collections import OrderedDict
 from collections.abc import Mapping, Sequence
-from numbers import Number
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock
 
 import pytest
@@ -19,6 +18,9 @@ from coola.comparators.allclose import get_mapping_allclose
 from coola.testers import AllCloseTester
 from coola.testing import torch_available
 from coola.utils.imports import is_torch_available
+
+if TYPE_CHECKING:
+    from numbers import Number
 
 if is_torch_available():
     import torch

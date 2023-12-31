@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import math
-from collections.abc import Sequence
+from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
 
 from coola.reducers import EmptySequenceError, ReducerRegistry, TorchReducer
 from coola.testing import torch_available
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 @torch_available

@@ -2,11 +2,14 @@ from __future__ import annotations
 
 __all__ = ["BasicReducer"]
 
-from collections.abc import Sequence
 from statistics import mean, median, stdev
+from typing import TYPE_CHECKING
 
 from coola.reducers.base import BaseBasicReducer
 from coola.utils.stats import quantile
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 class BasicReducer(BaseBasicReducer):
