@@ -3,10 +3,12 @@ from __future__ import annotations
 __all__ = ["summary"]
 
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from coola.summarizers.base import BaseSummarizer
 from coola.summarizers.summarizer import Summarizer
+
+if TYPE_CHECKING:
+    from coola.summarizers.base import BaseSummarizer
 
 
 def summary(value: Any, max_depth: int = 1, summarizer: BaseSummarizer | None = None) -> str:

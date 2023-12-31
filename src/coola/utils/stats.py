@@ -3,7 +3,10 @@ from __future__ import annotations
 __all__ = ["quantile"]
 
 import math
-from collections.abc import Sequence
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 def quantile(values: Sequence[float | int], quantiles: Sequence[float]) -> list[float]:

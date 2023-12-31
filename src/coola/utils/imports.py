@@ -22,10 +22,12 @@ __all__ = [
     "xarray_available",
 ]
 
-from collections.abc import Callable
 from functools import wraps
 from importlib.util import find_spec
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 def decorator_package_available(

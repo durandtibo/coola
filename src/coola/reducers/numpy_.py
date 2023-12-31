@@ -2,12 +2,15 @@ from __future__ import annotations
 
 __all__ = ["NumpyReducer"]
 
-from collections.abc import Sequence
+from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
 from coola.reducers.base import BaseBasicReducer
 from coola.reducers.registry import ReducerRegistry
 from coola.utils import check_numpy, is_numpy_available
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 if is_numpy_available():
     import numpy as np

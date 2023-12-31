@@ -122,7 +122,6 @@ select = [
     "A", # builtins
     "ANN", # annotations
     "B", # bugbear
-    "BLE", # blind-except
     "BLE", # flake8-blind-except
     "C4", # flake8-comprehensions
     "E", # pycodestyle (Error)
@@ -147,6 +146,7 @@ select = [
     "RSE", # flake8-raise
     "SIM", # flake8-simplify
     "T20", # flake8-print
+    "TCH", # flake8-type-checking
     "TD", # flake8-todos
     "TID", # flake8-tidy-imports
     "TRY", # tryceratops
@@ -155,7 +155,6 @@ select = [
     # "COM", # flake8-commas
     # "D", # pydocstyle
     # "PL", # Pylint
-    # "TCH", # flake8-type-checking
 ]
 ignore = [
     "A003", # Class attribute `{name}` is shadowing a python builtin
@@ -195,6 +194,7 @@ fixable = [
     "RSE",
     "SIM",
     "T20",
+    "TCH",
     "TD",
     "TID",
     "TRY",

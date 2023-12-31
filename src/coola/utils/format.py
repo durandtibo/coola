@@ -9,8 +9,10 @@ __all__ = [
     "str_sequence",
 ]
 
-from collections.abc import Mapping, Sequence
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
 
 
 def repr_indent(original: Any, num_spaces: int = 2) -> str:

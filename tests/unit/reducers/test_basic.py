@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import math
-from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 import pytest
 
 from coola.reducers import BasicReducer, EmptySequenceError, ReducerRegistry
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 def test_reducer_registry_available_reducers() -> None:

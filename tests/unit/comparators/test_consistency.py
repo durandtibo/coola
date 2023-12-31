@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 from collections import OrderedDict
-from collections.abc import Callable
 from functools import partial
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock
 
 import pytest
@@ -11,6 +10,9 @@ import pytest
 from coola import objects_are_allclose, objects_are_equal
 from coola.testing import numpy_available, torch_available
 from coola.utils.imports import is_numpy_available, is_torch_available
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 if is_numpy_available():
     import numpy as np

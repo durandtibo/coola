@@ -3,7 +3,10 @@ from __future__ import annotations
 __all__ = ["get_mapping_allclose", "get_mapping_equality"]
 
 
-from coola.comparators.base import BaseAllCloseOperator, BaseEqualityOperator
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from coola.comparators.base import BaseAllCloseOperator, BaseEqualityOperator
 
 
 def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
