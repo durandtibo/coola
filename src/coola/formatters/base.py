@@ -1,3 +1,5 @@
+r"""Define the formatter base class."""
+
 from __future__ import annotations
 
 __all__ = ["BaseFormatter"]
@@ -78,6 +80,8 @@ class BaseFormatter(ABC, Generic[T]):
         Args:
             summarizer: Specifies the summarizer.
             value: Specifies the value to summarize.
+            depth: Specifies the current depth.
+            max_depth: Specifies the maximum depth.
 
         Returns:
             str: The formatted value.

@@ -1,3 +1,8 @@
+r"""Implement some equality operators for ``numpy.ndarray``.
+
+The operators are registered only if ``numpy`` is available.
+"""
+
 from __future__ import annotations
 
 __all__ = [
@@ -26,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 class ArrayAllCloseOperator(BaseAllCloseOperator[np.ndarray]):
-    r"""Implements an allclose operator for ``numpy.ndarray``.
+    r"""Implement an allclose operator for ``numpy.ndarray``.
 
     Args:
         check_dtype (bool, optional): If ``True``, the data type of
@@ -97,7 +102,7 @@ class ArrayAllCloseOperator(BaseAllCloseOperator[np.ndarray]):
 
 
 class ArrayEqualityOperator(BaseEqualityOperator[np.ndarray]):
-    r"""Implements an equality operator for ``numpy.ndarray``.
+    r"""Implement an equality operator for ``numpy.ndarray``.
 
     Args:
         check_dtype (bool, optional): If ``True``, the data type of
@@ -165,7 +170,7 @@ class ArrayEqualityOperator(BaseEqualityOperator[np.ndarray]):
 
 
 def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
-    r"""Gets a default mapping between the types and the allclose
+    r"""Get a default mapping between the types and the allclose
     operators.
 
     This function returns an empty dictionary if numpy is not
@@ -189,7 +194,7 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
 
 
 def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
-    r"""Gets a default mapping between the types and the equality
+    r"""Get a default mapping between the types and the equality
     operators.
 
     This function returns an empty dictionary if numpy is not

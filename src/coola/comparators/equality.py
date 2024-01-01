@@ -1,3 +1,5 @@
+r"""Implement the equality operators for the python native types."""
+
 from __future__ import annotations
 
 __all__ = [
@@ -20,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class DefaultEqualityOperator(BaseEqualityOperator[Any]):
-    r"""Implements a default equality operator.
+    r"""Implement a default equality operator.
 
     The ``==`` operator is used to test the equality between the
     objects.
@@ -66,7 +68,7 @@ class DefaultEqualityOperator(BaseEqualityOperator[Any]):
 
 
 class MappingEqualityOperator(BaseEqualityOperator[Mapping]):
-    r"""Implements an equality operator for mappings.
+    r"""Implement an equality operator for mappings.
 
     Example usage:
 
@@ -131,7 +133,7 @@ class MappingEqualityOperator(BaseEqualityOperator[Mapping]):
 
 
 class SequenceEqualityOperator(BaseEqualityOperator[Sequence]):
-    r"""Implements an equality operator for sequences.
+    r"""Implement an equality operator for sequences.
 
     Example usage:
 
@@ -186,7 +188,7 @@ class SequenceEqualityOperator(BaseEqualityOperator[Sequence]):
 
 
 def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
-    r"""Gets a default mapping between the types and the equality
+    r"""Get a default mapping between the types and the equality
     operators.
 
     Returns:

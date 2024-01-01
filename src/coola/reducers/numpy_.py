@@ -1,3 +1,8 @@
+r"""Implement a reducer using NumPy functions.
+
+The reducer is registered only if ``numpy`` is available.
+"""
+
 from __future__ import annotations
 
 __all__ = ["NumpyReducer"]

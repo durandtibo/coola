@@ -1,3 +1,5 @@
+r"""Implement some utliity functions for equality operators."""
+
 from __future__ import annotations
 
 __all__ = ["get_mapping_allclose", "get_mapping_equality"]
@@ -10,7 +12,7 @@ if TYPE_CHECKING:
 
 
 def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
-    r"""Gets a default mapping between the types and the allclose
+    r"""Get a default mapping between the types and the allclose
     operators.
 
     Returns:
@@ -57,7 +59,7 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
 
 
 def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
-    r"""Gets a default mapping between the types and the equality
+    r"""Get a default mapping between the types and the equality
     operators.
 
     Returns:

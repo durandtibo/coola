@@ -1,3 +1,5 @@
+r"""Implement some utility functions to manage optional dependencies."""
+
 from __future__ import annotations
 
 __all__ = [
@@ -33,7 +35,7 @@ if TYPE_CHECKING:
 def decorator_package_available(
     fn: Callable[..., Any], condition: Callable[[], bool]
 ) -> Callable[..., Any]:
-    r"""Implements a decorator to execute a function only if a package is
+    r"""Implement a decorator to execute a function only if a package is
     installed.
 
     Args:
@@ -76,7 +78,7 @@ def decorator_package_available(
 
 
 def is_jax_available() -> bool:
-    r"""Indicates if the ``jax`` package is installed or not.
+    r"""Indicate if the ``jax`` package is installed or not.
 
     Returns:
         ``True`` if ``jax`` is available otherwise ``False``.
@@ -93,7 +95,7 @@ def is_jax_available() -> bool:
 
 
 def check_jax() -> None:
-    r"""Checks if the ``jax`` package is installed.
+    r"""Check if the ``jax`` package is installed.
 
     Raises:
         RuntimeError: if the ``jax`` package is not installed.
@@ -116,7 +118,7 @@ def check_jax() -> None:
 
 
 def jax_available(fn: Callable[..., Any]) -> Callable[..., Any]:
-    r"""Implements a decorator to execute a function only if ``jax``
+    r"""Implement a decorator to execute a function only if ``jax``
     package is installed.
 
     Args:
@@ -147,7 +149,7 @@ def jax_available(fn: Callable[..., Any]) -> Callable[..., Any]:
 
 
 def is_numpy_available() -> bool:
-    r"""Indicates if the ``numpy`` package is installed or not.
+    r"""Indicate if the ``numpy`` package is installed or not.
 
     Returns:
         ``True`` if ``numpy`` is available otherwise ``False``.
@@ -164,7 +166,7 @@ def is_numpy_available() -> bool:
 
 
 def check_numpy() -> None:
-    r"""Checks if the ``numpy`` package is installed.
+    r"""Check if the ``numpy`` package is installed.
 
     Raises:
         RuntimeError: if the ``numpy`` package is not installed.
@@ -187,7 +189,7 @@ def check_numpy() -> None:
 
 
 def numpy_available(fn: Callable[..., Any]) -> Callable[..., Any]:
-    r"""Implements a decorator to execute a function only if ``numpy``
+    r"""Implement a decorator to execute a function only if ``numpy``
     package is installed.
 
     Args:
@@ -218,7 +220,7 @@ def numpy_available(fn: Callable[..., Any]) -> Callable[..., Any]:
 
 
 def is_pandas_available() -> bool:
-    r"""Indicates if the ``pandas`` package is installed or not.
+    r"""Indicate if the ``pandas`` package is installed or not.
 
     Returns:
         ``True`` if ``pandas`` is available otherwise ``False``.
@@ -235,7 +237,7 @@ def is_pandas_available() -> bool:
 
 
 def check_pandas() -> None:
-    r"""Checks if the ``pandas`` package is installed.
+    r"""Check if the ``pandas`` package is installed.
 
     Raises:
         RuntimeError: if the ``pandas`` package is not installed.
@@ -258,7 +260,7 @@ def check_pandas() -> None:
 
 
 def pandas_available(fn: Callable[..., Any]) -> Callable[..., Any]:
-    r"""Implements a decorator to execute a function only if ``pandas``
+    r"""Implement a decorator to execute a function only if ``pandas``
     package is installed.
 
     Args:
@@ -289,7 +291,7 @@ def pandas_available(fn: Callable[..., Any]) -> Callable[..., Any]:
 
 
 def is_polars_available() -> bool:
-    r"""Indicates if the ``polars`` package is installed or not.
+    r"""Indicate if the ``polars`` package is installed or not.
 
     Returns:
         ``True`` if ``polars`` is available otherwise ``False``.
@@ -306,7 +308,7 @@ def is_polars_available() -> bool:
 
 
 def check_polars() -> None:
-    r"""Checks if the ``polars`` package is installed.
+    r"""Check if the ``polars`` package is installed.
 
     Raises:
         RuntimeError: if the ``polars`` package is not installed.
@@ -329,7 +331,7 @@ def check_polars() -> None:
 
 
 def polars_available(fn: Callable[..., Any]) -> Callable[..., Any]:
-    r"""Implements a decorator to execute a function only if ``polars``
+    r"""Implement a decorator to execute a function only if ``polars``
     package is installed.
 
     Args:
@@ -360,7 +362,7 @@ def polars_available(fn: Callable[..., Any]) -> Callable[..., Any]:
 
 
 def is_torch_available() -> bool:
-    r"""Indicates if the ``torch`` package is installed or not.
+    r"""Indicate if the ``torch`` package is installed or not.
 
     Returns:
         ``True`` if ``torch`` is available otherwise ``False``.
@@ -377,7 +379,7 @@ def is_torch_available() -> bool:
 
 
 def check_torch() -> None:
-    r"""Checks if the ``torch`` package is installed.
+    r"""Check if the ``torch`` package is installed.
 
     Raises:
         RuntimeError: if the ``torch`` package is not installed.
@@ -400,7 +402,7 @@ def check_torch() -> None:
 
 
 def torch_available(fn: Callable[..., Any]) -> Callable[..., Any]:
-    r"""Implements a decorator to execute a function only if ``torch``
+    r"""Implement a decorator to execute a function only if ``torch``
     package is installed.
 
     Args:
@@ -431,7 +433,7 @@ def torch_available(fn: Callable[..., Any]) -> Callable[..., Any]:
 
 
 def is_xarray_available() -> bool:
-    r"""Indicates if the ``xarray`` package is installed or not.
+    r"""Indicate if the ``xarray`` package is installed or not.
 
     Returns:
         ``True`` if ``xarray`` is available otherwise ``False``.
@@ -448,7 +450,7 @@ def is_xarray_available() -> bool:
 
 
 def check_xarray() -> None:
-    r"""Checks if the ``xarray`` package is installed.
+    r"""Check if the ``xarray`` package is installed.
 
     Raises:
         RuntimeError: if the ``xarray`` package is not installed.
@@ -471,7 +473,7 @@ def check_xarray() -> None:
 
 
 def xarray_available(fn: Callable[..., Any]) -> Callable[..., Any]:
-    r"""Implements a decorator to execute a function only if ``xarray``
+    r"""Implement a decorator to execute a function only if ``xarray``
     package is installed.
 
     Args:

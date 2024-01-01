@@ -1,3 +1,9 @@
+r"""Implement some equality operators for ``polars.DataFrame`` and
+``polars.Series``.
+
+The operators are registered only if ``polars`` is available.
+"""
+
 from __future__ import annotations
 
 __all__ = [
@@ -29,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 
 class DataFrameAllCloseOperator(BaseAllCloseOperator[DataFrame]):
-    r"""Implements an equality operator for ``polars.DataFrame``.
+    r"""Implement an equality operator for ``polars.DataFrame``.
 
     Example usage:
 
@@ -107,7 +113,7 @@ class DataFrameAllCloseOperator(BaseAllCloseOperator[DataFrame]):
 
 
 class DataFrameEqualityOperator(BaseEqualityOperator[DataFrame]):
-    r"""Implements an equality operator for ``polars.DataFrame``.
+    r"""Implement an equality operator for ``polars.DataFrame``.
 
     Example usage:
 
@@ -174,7 +180,7 @@ class DataFrameEqualityOperator(BaseEqualityOperator[DataFrame]):
         return object_equal
 
     def _compare_dataframes(self, df1: DataFrame, df2: DataFrame) -> bool:
-        r"""Indicates if the two DataFrames are equal or not.
+        r"""Indicate if the two DataFrames are equal or not.
 
         Args:
             df1 (``polars.DataFrame``): Specifies the first
@@ -197,7 +203,7 @@ class DataFrameEqualityOperator(BaseEqualityOperator[DataFrame]):
 
 
 class SeriesAllCloseOperator(BaseAllCloseOperator[Series]):
-    r"""Implements an equality operator for ``polars.Series``.
+    r"""Implement an equality operator for ``polars.Series``.
 
     Example usage:
 
@@ -257,7 +263,7 @@ class SeriesAllCloseOperator(BaseAllCloseOperator[Series]):
 
 
 class SeriesEqualityOperator(BaseEqualityOperator[Series]):
-    r"""Implements an equality operator for ``polars.Series``.
+    r"""Implement an equality operator for ``polars.Series``.
 
     Example usage:
 
@@ -306,7 +312,7 @@ class SeriesEqualityOperator(BaseEqualityOperator[Series]):
         return object_equal
 
     def _compare_series(self, series1: Series, series2: Series) -> bool:
-        r"""Indicates if the two series are equal or not.
+        r"""Indicate if the two series are equal or not.
 
         Args:
             series1 (``polars.Series``): Specifies the first series
@@ -329,7 +335,7 @@ class SeriesEqualityOperator(BaseEqualityOperator[Series]):
 
 
 def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
-    r"""Gets a default mapping between the types and the allclose
+    r"""Get a default mapping between the types and the allclose
     operators.
 
     This function returns an empty dictionary if polars is not
@@ -344,7 +350,7 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
 
 
 def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
-    r"""Gets a default mapping between the types and the equality
+    r"""Get a default mapping between the types and the equality
     operators.
 
     This function returns an empty dictionary if polars is not
@@ -359,7 +365,7 @@ def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
 
 
 def has_nan(obj: DataFrame | Series) -> bool:
-    r"""Indicates if a DataFrame or Series has NaN values.
+    r"""Indicate if a DataFrame or Series has NaN values.
 
     Args:
         obj (``polars.DataFrame`` or ``polars.Series``): Specifies the

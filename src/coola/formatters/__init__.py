@@ -1,4 +1,4 @@
-r"""This package contains the formatter implementations."""
+r"""Contain the formatter implementations."""
 
 __all__ = [
     "BaseFormatter",

@@ -1,3 +1,6 @@
+r"""Implement a simple reducer that uses only standard libray
+functions."""
+
 from __future__ import annotations
 
 __all__ = ["BasicReducer"]
@@ -13,7 +16,7 @@ if TYPE_CHECKING:
 
 
 class BasicReducer(BaseBasicReducer):
-    r"""Implements a basic reducer.
+    r"""Implement a basic reducer.
 
     Example usage:
 

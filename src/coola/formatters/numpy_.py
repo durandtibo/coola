@@ -1,3 +1,8 @@
+r"""Implement a formatter for ``numpy.ndarray``.
+
+The formatter is registered only if ``numpy`` is available.
+"""
+
 from __future__ import annotations
 
 __all__ = ["NDArrayFormatter"]
@@ -73,7 +78,7 @@ class NDArrayFormatter(BaseFormatter[np.ndarray]):
         return {"show_data": self._show_data}
 
     def get_show_data(self) -> bool:
-        r"""Indicates if the array data or metadata are shown.
+        r"""Indicate if the array data or metadata are shown.
 
         Returns:
             ``True`` if the array data are shown,

@@ -1,3 +1,8 @@
+r"""Implement a reducer using PyTorch functions.
+
+The reducer is registered only if ``torch`` is available.
+"""
+
 from __future__ import annotations
 
 __all__ = ["TorchReducer"]

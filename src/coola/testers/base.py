@@ -1,3 +1,5 @@
+r"""Define the tester base class."""
+
 from __future__ import annotations
 
 __all__ = ["BaseAllCloseTester", "BaseEqualityTester"]
@@ -10,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class BaseAllCloseTester(ABC):
-    r"""Defines the base class to implement an allclose tester."""
+    r"""Define the base class to implement an allclose tester."""
 
     @abstractmethod
     def allclose(
@@ -22,7 +24,7 @@ class BaseAllCloseTester(ABC):
         equal_nan: bool = False,
         show_difference: bool = False,
     ) -> bool:
-        r"""Indicates if two objects are equal within a tolerance.
+        r"""Indicate if two objects are equal within a tolerance.
 
         Args:
             object1: Specifies the first object to compare.
@@ -72,7 +74,7 @@ class BaseEqualityTester(ABC):
 
     @abstractmethod
     def equal(self, object1: Any, object2: Any, show_difference: bool = False) -> bool:
-        r"""Indicates if two objects are equal or not.
+        r"""Indicate if two objects are equal or not.
 
         Args:
             object1: Specifies the first object to compare.

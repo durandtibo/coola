@@ -1,3 +1,5 @@
+r"""Implement the default formatter for some of the native types."""
+
 from __future__ import annotations
 
 __all__ = [
@@ -21,12 +23,12 @@ T = TypeVar("T")
 
 
 class DefaultFormatter(BaseFormatter[Any]):
-    r"""Implements the default formatter.
+    r"""Implement the default formatter.
 
     Args:
-        max_characters (int, optional): Specifies the maximum number
-            of characters to show. If a negative value is provided,
-            all the characters are shown.
+        max_characters: Specifies the maximum number of characters to
+            show. If a negative value is provided, all the characters
+            are shown.
 
     Example usage:
 
@@ -73,10 +75,10 @@ class DefaultFormatter(BaseFormatter[Any]):
         return {"max_characters": self._max_characters}
 
     def get_max_characters(self) -> int:
-        r"""Gets the maximum number of characters to show.
+        r"""Get the maximum number of characters to show.
 
         Returns:
-            int: The maximum number of characters to show.
+            The maximum number of characters to show.
 
         Example usage:
 
@@ -94,7 +96,7 @@ class DefaultFormatter(BaseFormatter[Any]):
         r"""Set the maximum number of characters to show.
 
         Args:
-            max_characters (int): Specifies the maximum number of
+            max_characters: Specifies the maximum number of
                 characters to show.
 
         Raises:
@@ -172,10 +174,10 @@ class BaseCollectionFormatter(BaseFormatter[T]):
         return {"max_items": self._max_items, "num_spaces": self._num_spaces}
 
     def get_max_items(self) -> int:
-        r"""Gets the maximum number of items to show.
+        r"""Get the maximum number of items to show.
 
         Returns:
-            int: The maximum number of items to show.
+            The maximum number of items to show.
 
         Example usage:
 
@@ -193,8 +195,7 @@ class BaseCollectionFormatter(BaseFormatter[T]):
         r"""Set the maximum number of items to show.
 
         Args:
-            max_characters (int): Specifies the maximum number of
-                items to show.
+            max_items: Specifies the maximum number of items to show.
 
         Raises:
             TypeError: if ``max_items`` is not an integer.
@@ -216,10 +217,10 @@ class BaseCollectionFormatter(BaseFormatter[T]):
         self._max_items = max_items
 
     def get_num_spaces(self) -> int:
-        r"""Gets the number of spaces for indentation.
+        r"""Get the number of spaces for indentation.
 
         Returns:
-            int: The number of spaces for indentation.
+            The number of spaces for indentation.
 
         Example usage:
 
@@ -237,8 +238,7 @@ class BaseCollectionFormatter(BaseFormatter[T]):
         r"""Set the number of spaces for indentation.
 
         Args:
-            max_characters (int): Specifies the number of spaces for
-                indentation.
+            num_spaces: Specifies the number of spaces for indentation.
 
         Raises:
             TypeError: if ``num_spaces`` is not an integer.
@@ -268,7 +268,7 @@ class BaseCollectionFormatter(BaseFormatter[T]):
 
 
 class MappingFormatter(BaseCollectionFormatter[Mapping]):
-    r"""Implements a formatter for ``Mapping``.
+    r"""Implement a formatter for ``Mapping``.
 
     Example usage:
 
@@ -310,7 +310,7 @@ class MappingFormatter(BaseCollectionFormatter[Mapping]):
 
 
 class SequenceFormatter(BaseCollectionFormatter[Sequence]):
-    r"""Implements a formatter for ``Sequence``.
+    r"""Implement a formatter for ``Sequence``.
 
     Example usage:
 
@@ -348,7 +348,7 @@ class SequenceFormatter(BaseCollectionFormatter[Sequence]):
 
 
 class SetFormatter(BaseCollectionFormatter[set]):
-    r"""Implements a formatter for ``set``.
+    r"""Implement a formatter for ``set``.
 
     Example usage:
 

@@ -1,3 +1,5 @@
+r"""Define the reducer base class."""
+
 from __future__ import annotations
 
 __all__ = ["BaseReducer", "BaseBasicReducer", "EmptySequenceError"]
@@ -10,12 +12,12 @@ if TYPE_CHECKING:
 
 
 class EmptySequenceError(Exception):
-    r"""Raised when the sequence is empty because it is not possible to
+    r"""Raise when the sequence is empty because it is not possible to
     reduce an empty sequence."""
 
 
 class BaseReducer(ABC):
-    r"""Defines the base class to implement a reducer.
+    r"""Define the base class to implement a reducer.
 
     Example usage:
 
@@ -34,7 +36,7 @@ class BaseReducer(ABC):
 
     @abstractmethod
     def max(self, values: Sequence[int | float]) -> int | float:
-        r"""Computes the maximum value.
+        r"""Compute the maximum value.
 
         Args:
             values: Specifies the values.
@@ -57,7 +59,7 @@ class BaseReducer(ABC):
 
     @abstractmethod
     def mean(self, values: Sequence[int | float]) -> float:
-        r"""Computes the mean value.
+        r"""Compute the mean value.
 
         Args:
             values: Specifies the values.
@@ -80,7 +82,7 @@ class BaseReducer(ABC):
 
     @abstractmethod
     def median(self, values: Sequence[int | float]) -> int | float:
-        r"""Computes the median value.
+        r"""Compute the median value.
 
         Args:
             values: Specifies the values.
@@ -103,7 +105,7 @@ class BaseReducer(ABC):
 
     @abstractmethod
     def min(self, values: Sequence[int | float]) -> int | float:
-        r"""Computes the minimum value.
+        r"""Compute the minimum value.
 
         Args:
             values: Specifies the values.
@@ -126,7 +128,7 @@ class BaseReducer(ABC):
 
     @abstractmethod
     def quantile(self, values: Sequence[int | float], quantiles: Sequence[float]) -> list[float]:
-        r"""Computes the quantiles.
+        r"""Compute the quantiles.
 
         Args:
             values: Specifies the values.
@@ -174,7 +176,7 @@ class BaseReducer(ABC):
 
     @abstractmethod
     def std(self, values: Sequence[int | float]) -> float:
-        r"""Computes the standard deviation.
+        r"""Compute the standard deviation.
 
         Args:
             values: Specifies the values.
@@ -208,7 +210,7 @@ class BaseBasicReducer(BaseReducer):
 
     @abstractmethod
     def _max(self, values: Sequence[int | float]) -> int | float:
-        r"""Computes the maximum value.
+        r"""Compute the maximum value.
 
         Args:
             values: Specifies the values.
@@ -225,7 +227,7 @@ class BaseBasicReducer(BaseReducer):
 
     @abstractmethod
     def _mean(self, values: Sequence[int | float]) -> float:
-        r"""Computes the mean value.
+        r"""Compute the mean value.
 
         Args:
             values: Specifies the values.
@@ -242,7 +244,7 @@ class BaseBasicReducer(BaseReducer):
 
     @abstractmethod
     def _median(self, values: Sequence[int | float]) -> int | float:
-        r"""Computes the median value.
+        r"""Compute the median value.
 
         Args:
             values: Specifies the values.
@@ -259,7 +261,7 @@ class BaseBasicReducer(BaseReducer):
 
     @abstractmethod
     def _min(self, values: Sequence[int | float]) -> int | float:
-        r"""Computes the minimum value.
+        r"""Compute the minimum value.
 
         Args:
             values: Specifies the values.
@@ -276,7 +278,7 @@ class BaseBasicReducer(BaseReducer):
 
     @abstractmethod
     def _quantile(self, values: Sequence[int | float], quantiles: Sequence[float]) -> list[float]:
-        r"""Computes the quantiles.
+        r"""Compute the quantiles.
 
         Args:
             values: Specifies the values.
@@ -295,7 +297,7 @@ class BaseBasicReducer(BaseReducer):
 
     @abstractmethod
     def _std(self, values: Sequence[int | float]) -> float:
-        r"""Computes the standard deviation.
+        r"""Compute the standard deviation.
 
         Args:
             values: Specifies the values.

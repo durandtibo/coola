@@ -1,3 +1,9 @@
+r"""Implement some equality operators for ``xarray.DataArray``,
+``xarray.Dataset``, and ``xarray.Variable``.
+
+The operators are registered only if ``xarray`` is available.
+"""
+
 from __future__ import annotations
 
 __all__ = [
@@ -30,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 
 class DataArrayAllCloseOperator(BaseAllCloseOperator[DataArray]):
-    r"""Implements an allclose operator for ``xarray.DataArray``.
+    r"""Implement an allclose operator for ``xarray.DataArray``.
 
     Example usage:
 
@@ -104,7 +110,7 @@ class DataArrayAllCloseOperator(BaseAllCloseOperator[DataArray]):
 
 
 class DataArrayEqualityOperator(BaseEqualityOperator[DataArray]):
-    r"""Implements an equality operator for ``xarray.DataArray``.
+    r"""Implement an equality operator for ``xarray.DataArray``.
 
     Example usage:
 
@@ -160,7 +166,7 @@ class DataArrayEqualityOperator(BaseEqualityOperator[DataArray]):
 
 
 class DatasetAllCloseOperator(BaseAllCloseOperator[Dataset]):
-    r"""Implements an allclose operator for ``xarray.Dataset``.
+    r"""Implement an allclose operator for ``xarray.Dataset``.
 
     Example usage:
 
@@ -244,7 +250,7 @@ class DatasetAllCloseOperator(BaseAllCloseOperator[Dataset]):
 
 
 class DatasetEqualityOperator(BaseEqualityOperator[Dataset]):
-    r"""Implements an equality operator for ``xarray.Dataset``.
+    r"""Implement an equality operator for ``xarray.Dataset``.
 
     Example usage:
 
@@ -310,7 +316,7 @@ class DatasetEqualityOperator(BaseEqualityOperator[Dataset]):
 
 
 class VariableAllCloseOperator(BaseAllCloseOperator[Variable]):
-    r"""Implements an allclose operator for ``xarray.Variable``.
+    r"""Implement an allclose operator for ``xarray.Variable``.
 
     Example usage:
 
@@ -382,7 +388,7 @@ class VariableAllCloseOperator(BaseAllCloseOperator[Variable]):
 
 
 class VariableEqualityOperator(BaseEqualityOperator[Variable]):
-    r"""Implements an equality operator for ``xarray.Variable``.
+    r"""Implement an equality operator for ``xarray.Variable``.
 
     Example usage:
 
@@ -436,7 +442,7 @@ class VariableEqualityOperator(BaseEqualityOperator[Variable]):
 
 
 def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
-    r"""Gets a default mapping between the types and the allclose
+    r"""Get a default mapping between the types and the allclose
     operators.
 
     This function returns an empty dictionary if xarray is not
@@ -466,7 +472,7 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
 
 
 def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
-    r"""Gets a default mapping between the types and the equality
+    r"""Get a default mapping between the types and the equality
     operators.
 
     This function returns an empty dictionary if xarray is not

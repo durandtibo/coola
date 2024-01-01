@@ -1,3 +1,5 @@
+r"""Implement utility functions for reducers."""
+
 from __future__ import annotations
 
 __all__ = ["auto_reducer"]
@@ -7,7 +9,7 @@ from coola.utils import is_numpy_available, is_torch_available
 
 
 def auto_reducer() -> BaseReducer:
-    r"""Finds the "best" reducer to used based on the installed packages.
+    r"""Find the "best" reducer to used based on the installed packages.
 
     The "best" reducer is found by using the following rules:
         - If ``torch`` is available, use ``TorchReducer``

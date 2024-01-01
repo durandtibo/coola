@@ -1,4 +1,4 @@
-r"""This package contains the reducer implementations."""
+r"""Contain the reducer implementations."""
 
 __all__ = [
     "BaseBasicReducer",

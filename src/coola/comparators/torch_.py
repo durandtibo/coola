@@ -1,3 +1,9 @@
+r"""Implement some equality operators for ``torch.Tensor`` and
+``torch.nn.utils.rnn.PackedSequence``.
+
+The operators are registered only if ``torch`` is available.
+"""
+
 from __future__ import annotations
 
 __all__ = [
@@ -28,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 
 class PackedSequenceAllCloseOperator(BaseAllCloseOperator[torch.nn.utils.rnn.PackedSequence]):
-    r"""Implements an allclose operator for
+    r"""Implement an allclose operator for
     ``torch.nn.utils.rnn.PackedSequence``.
 
     Example usage:
@@ -127,7 +133,7 @@ class PackedSequenceAllCloseOperator(BaseAllCloseOperator[torch.nn.utils.rnn.Pac
 
 
 class PackedSequenceEqualityOperator(BaseEqualityOperator[torch.nn.utils.rnn.PackedSequence]):
-    r"""Implements an equality operator for
+    r"""Implement an equality operator for
     ``torch.nn.utils.rnn.PackedSequence``.
 
     Example usage:
@@ -195,7 +201,7 @@ class PackedSequenceEqualityOperator(BaseEqualityOperator[torch.nn.utils.rnn.Pac
 
 
 class TensorAllCloseOperator(BaseAllCloseOperator[torch.Tensor]):
-    r"""Implements an allclose operator for ``torch.Tensor``.
+    r"""Implement an allclose operator for ``torch.Tensor``.
 
     Example usage:
 
@@ -261,7 +267,7 @@ class TensorAllCloseOperator(BaseAllCloseOperator[torch.Tensor]):
 
 
 class TensorEqualityOperator(BaseEqualityOperator[torch.Tensor]):
-    r"""Implements an equality operator for ``torch.Tensor``.
+    r"""Implement an equality operator for ``torch.Tensor``.
 
     Example usage:
 
@@ -318,7 +324,7 @@ class TensorEqualityOperator(BaseEqualityOperator[torch.Tensor]):
 
 
 def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
-    r"""Gets a default mapping between the types and the allclose
+    r"""Get a default mapping between the types and the allclose
     operators.
 
     This function returns an empty dictionary if torch is not
@@ -346,7 +352,7 @@ def get_mapping_allclose() -> dict[type[object], BaseAllCloseOperator]:
 
 
 def get_mapping_equality() -> dict[type[object], BaseEqualityOperator]:
-    r"""Gets a default mapping between the types and the equality
+    r"""Get a default mapping between the types and the equality
     operators.
 
     This function returns an empty dictionary if torch is not

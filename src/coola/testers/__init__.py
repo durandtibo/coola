@@ -1,4 +1,4 @@
-r"""This package contains the tester implementations."""
+r"""Contain the tester implementations."""
 
 __all__ = [
     "AllCloseTester",
