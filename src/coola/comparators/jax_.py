@@ -1,3 +1,9 @@
+r"""Implement some equality operators for
+``jax.Array``/``jax.numpy.ndarray``.
+
+The operators are registered only if ``jax`` is available.
+"""
+
 from __future__ import annotations
 
 __all__ = [

@@ -1,3 +1,5 @@
+r"""Contain the main features of the ``coola`` package."""
+
 __all__ = [
     "AllCloseTester",
     "BaseAllCloseOperator",

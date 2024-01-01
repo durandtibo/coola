@@ -1,3 +1,9 @@
+r"""Implement some equality operators for ``pandas.DataFrame`` and
+``pandas.Series``.
+
+The operators are registered only if ``pandas`` is available.
+"""
+
 from __future__ import annotations
 
 __all__ = [

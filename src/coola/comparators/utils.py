@@ -1,3 +1,5 @@
+r"""Implement some utliity functions for equality operators."""
+
 from __future__ import annotations
 
 __all__ = ["get_mapping_allclose", "get_mapping_equality"]

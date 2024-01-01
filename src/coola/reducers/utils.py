@@ -1,3 +1,5 @@
+r"""Implement utility functions for reducers."""
+
 from __future__ import annotations
 
 __all__ = ["auto_reducer"]

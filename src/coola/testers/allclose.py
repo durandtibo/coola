@@ -1,3 +1,5 @@
+r"""Implement the default ``allclose`` equality tester."""
+
 from __future__ import annotations
 
 __all__ = ["AllCloseTester", "LocalAllCloseTester"]

@@ -1,3 +1,5 @@
+r"""Implement the main comparison public features."""
+
 from __future__ import annotations
 
 __all__ = ["objects_are_equal"]

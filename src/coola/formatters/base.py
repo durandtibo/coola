@@ -1,3 +1,5 @@
+r"""Define the formatter base class."""
+
 from __future__ import annotations
 
 __all__ = ["BaseFormatter"]

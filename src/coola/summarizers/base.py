@@ -1,3 +1,5 @@
+r"""Define the summarizer base class."""
+
 from __future__ import annotations
 
 __all__ = ["BaseSummarizer"]
@@ -8,7 +10,7 @@ from typing import Any
 
 
 class BaseSummarizer(ABC):
-    r"""Defines the base class to implement a summarizer.
+    r"""Define the base class to implement a summarizer.
 
     ```pycon
     >>> from coola import Summarizer
@@ -55,7 +57,7 @@ class BaseSummarizer(ABC):
         depth: int = 0,
         max_depth: int = 1,
     ) -> str:
-        r"""Summarizes the input value in a string.
+        r"""Summarize the input value in a string.
 
         Args:
             value: Specifies the value to summarize.

@@ -1,3 +1,8 @@
+r"""Implement some equality operators for ``numpy.ndarray``.
+
+The operators are registered only if ``numpy`` is available.
+"""
+
 from __future__ import annotations
 
 __all__ = [

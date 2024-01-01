@@ -1,3 +1,6 @@
+r"""Implement the ``allclose`` equality operators for the python native
+types."""
+
 from __future__ import annotations
 
 __all__ = [

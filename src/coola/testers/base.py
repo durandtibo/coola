@@ -1,4 +1,4 @@
-r"""Implement the base class to implement an allclose tester."""
+r"""Define the tester base class."""
 
 from __future__ import annotations
 

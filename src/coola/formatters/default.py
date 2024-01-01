@@ -1,3 +1,5 @@
+r"""Implement the default formatter for some of the native types."""
+
 from __future__ import annotations
 
 __all__ = [

@@ -1,3 +1,5 @@
+r"""Implement the default summarizer."""
+
 from __future__ import annotations
 
 __all__ = ["BaseSummarizer", "Summarizer", "summarizer_options"]

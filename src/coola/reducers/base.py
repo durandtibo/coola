@@ -1,3 +1,5 @@
+r"""Define the reducer base class."""
+
 from __future__ import annotations
 
 __all__ = ["BaseReducer", "BaseBasicReducer", "EmptySequenceError"]
@@ -10,12 +12,12 @@ if TYPE_CHECKING:
 
 
 class EmptySequenceError(Exception):
-    r"""Raised when the sequence is empty because it is not possible to
+    r"""Raise when the sequence is empty because it is not possible to
     reduce an empty sequence."""
 
 
 class BaseReducer(ABC):
-    r"""Defines the base class to implement a reducer.
+    r"""Define the base class to implement a reducer.
 
     Example usage:
 

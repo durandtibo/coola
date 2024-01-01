@@ -1,3 +1,8 @@
+r"""Implement a formatter for ``torch.Tensor``.
+
+The formatter is registered only if ``torch`` is available.
+"""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any

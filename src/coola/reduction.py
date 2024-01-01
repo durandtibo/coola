@@ -1,3 +1,5 @@
+r"""Implement the main reduction features."""
+
 from __future__ import annotations
 
 __all__ = ["Reduction"]

@@ -1,3 +1,5 @@
+r"""Define the equality operator base classes."""
+
 from __future__ import annotations
 
 __all__ = ["BaseAllCloseOperator", "BaseEqualityOperator"]

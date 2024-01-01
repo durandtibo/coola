@@ -1,3 +1,9 @@
+r"""Implement some equality operators for ``torch.Tensor`` and
+``torch.nn.utils.rnn.PackedSequence``.
+
+The operators are registered only if ``torch`` is available.
+"""
+
 from __future__ import annotations
 
 __all__ = [

@@ -1,3 +1,9 @@
+r"""Implement some equality operators for ``xarray.DataArray``,
+``xarray.Dataset``, and ``xarray.Variable``.
+
+The operators are registered only if ``xarray`` is available.
+"""
+
 from __future__ import annotations
 
 __all__ = [

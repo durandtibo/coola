@@ -1,3 +1,5 @@
+r"""Implement a registry of reducers."""
+
 __all__ = ["ReducerRegistry"]
 
 from coola.reducers.base import BaseReducer

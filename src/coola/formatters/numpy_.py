@@ -1,3 +1,8 @@
+r"""Implement a formatter for ``numpy.ndarray``.
+
+The formatter is registered only if ``numpy`` is available.
+"""
+
 from __future__ import annotations
 
 __all__ = ["NDArrayFormatter"]
