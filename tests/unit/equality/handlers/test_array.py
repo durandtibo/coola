@@ -68,9 +68,9 @@ def test_array_same_shape_handler_handle_true_ndarray(
 @pytest.mark.parametrize(
     ("object1", "object2"),
     [
-        (np.ones(shape=(2, 3)), np.zeros(shape=(3, 2))),
-        (np.ones(shape=(2, 3)), np.zeros(shape=(2, 1))),
-        (np.ones(shape=(2, 3)), np.zeros(shape=(2, 3, 1))),
+        (np.ones(shape=(2, 3)), np.ones(shape=(3, 2))),
+        (np.ones(shape=(2, 3)), np.ones(shape=(2, 1))),
+        (np.ones(shape=(2, 3)), np.ones(shape=(2, 3, 1))),
     ],
 )
 def test_array_same_shape_handler_handle_false_ndarray(
@@ -98,9 +98,9 @@ def test_array_same_shape_handler_handle_true_tensor(
 @pytest.mark.parametrize(
     ("object1", "object2"),
     [
-        (torch.ones(2, 3), torch.zeros(3, 2)),
-        (torch.ones(2, 3), torch.zeros(2, 1)),
-        (torch.ones(2, 3), torch.zeros(2, 3, 1)),
+        (torch.ones(2, 3), torch.ones(3, 2)),
+        (torch.ones(2, 3), torch.ones(2, 1)),
+        (torch.ones(2, 3), torch.ones(2, 3, 1)),
     ],
 )
 def test_array_same_shape_handler_handle_false_tensor(
@@ -177,9 +177,9 @@ def test_array_same_dtype_handler_handle_true_ndarray(
 @pytest.mark.parametrize(
     ("object1", "object2"),
     [
-        (np.ones(shape=(2, 3), dtype=float), np.zeros(shape=(2, 3), dtype=int)),
-        (np.ones(shape=(2, 3), dtype=int), np.zeros(shape=(2, 3), dtype=bool)),
-        (np.ones(shape=(2, 3), dtype=bool), np.zeros(shape=(2, 3), dtype=float)),
+        (np.ones(shape=(2, 3), dtype=float), np.ones(shape=(2, 3), dtype=int)),
+        (np.ones(shape=(2, 3), dtype=int), np.ones(shape=(2, 3), dtype=bool)),
+        (np.ones(shape=(2, 3), dtype=bool), np.ones(shape=(2, 3), dtype=float)),
     ],
 )
 def test_array_same_dtype_handler_handle_false_ndarray(
@@ -207,9 +207,9 @@ def test_array_same_dtype_handler_handle_true_tensor(
 @pytest.mark.parametrize(
     ("object1", "object2"),
     [
-        (torch.ones(2, 3, dtype=torch.float), torch.zeros(2, 3, dtype=torch.int)),
-        (torch.ones(2, 3, dtype=torch.int), torch.zeros(2, 3, dtype=torch.bool)),
-        (torch.ones(2, 3, dtype=torch.bool), torch.zeros(2, 3, dtype=torch.float)),
+        (torch.ones(2, 3, dtype=torch.float), torch.ones(2, 3, dtype=torch.int)),
+        (torch.ones(2, 3, dtype=torch.int), torch.ones(2, 3, dtype=torch.bool)),
+        (torch.ones(2, 3, dtype=torch.bool), torch.ones(2, 3, dtype=torch.float)),
     ],
 )
 def test_array_same_dtype_handler_handle_false_tensor(
