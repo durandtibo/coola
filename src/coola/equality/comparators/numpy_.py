@@ -2,7 +2,7 @@ r"""Implement an equality comparator for ``numpy.ndarray``s."""
 
 from __future__ import annotations
 
-__all__ = ["ArrayEqualityComparator"]
+__all__ = ["ArrayEqualityComparator", "get_type_comparator_mapping"]
 
 import logging
 from typing import TYPE_CHECKING, Any
@@ -15,7 +15,10 @@ from coola.equality.handlers import (
     SameTypeHandler,
 )
 from coola.equality.handlers.numpy_ import ArrayEqualHandler
-from coola.utils import check_numpy
+from coola.utils import check_numpy, is_numpy_available
+
+if is_numpy_available():
+    import numpy as np
 
 if TYPE_CHECKING:
     from coola.equality import EqualityConfig
@@ -58,3 +61,27 @@ class ArrayEqualityComparator(BaseEqualityComparator[Any]):
 
     def equal(self, object1: Any, object2: Any, config: EqualityConfig) -> bool:
         return self._handler.handle(object1=object1, object2=object2, config=config)
+
+
+def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
+    r"""Get a default mapping between the types and the equality
+    comparators.
+
+    This function returns an empty dictionary if numpy is not
+    installed.
+
+    Returns:
+        The mapping between the types and the equality comparators.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola.equality.comparators.numpy_ import get_type_comparator_mapping
+    >>> get_type_comparator_mapping()
+    {<class 'numpy.ndarray'>: ArrayEqualityComparator()}
+
+    ```
+    """
+    if not is_numpy_available():
+        return {}
+    return {np.ndarray: ArrayEqualityComparator()}

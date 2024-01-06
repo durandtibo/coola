@@ -2,7 +2,7 @@ r"""Implement the default equality comparator."""
 
 from __future__ import annotations
 
-__all__ = ["DefaultEqualityComparator"]
+__all__ = ["DefaultEqualityComparator", "get_type_comparator_mapping"]
 
 import logging
 from typing import TYPE_CHECKING, Any
@@ -54,3 +54,22 @@ class DefaultEqualityComparator(BaseEqualityComparator[Any]):
 
     def equal(self, object1: Any, object2: Any, config: EqualityConfig) -> bool:
         return self._handler.handle(object1=object1, object2=object2, config=config)
+
+
+def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
+    r"""Get a default mapping between the types and the equality
+    comparators.
+
+    Returns:
+        The mapping between the types and the equality comparators.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola.equality.comparators.default import get_type_comparator_mapping
+    >>> get_type_comparator_mapping()
+    {<class 'object'>: DefaultEqualityComparator()}
+
+    ```
+    """
+    return {object: DefaultEqualityComparator()}
