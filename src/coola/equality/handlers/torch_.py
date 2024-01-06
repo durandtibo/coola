@@ -2,13 +2,13 @@ r"""Implement some handlers for ``torch.Tensor``s."""
 
 from __future__ import annotations
 
-__all__ = ["TensorEqualHandler"]
+__all__ = ["TensorEqualHandler", "TensorSameDeviceHandler"]
 
 import logging
 from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
-from coola.equality.handlers.base import BaseEqualityHandler
+from coola.equality.handlers.base import AbstractEqualityHandler, BaseEqualityHandler
 from coola.utils import is_torch_available
 
 if is_torch_available():
@@ -72,3 +72,46 @@ class TensorEqualHandler(BaseEqualityHandler):
 
     def set_next_handler(self, handler: BaseEqualityHandler) -> None:
         pass  # Do nothing because the next handler is never called.
+
+
+class TensorSameDeviceHandler(AbstractEqualityHandler):
+    r"""Check if the two tensors have the same device.
+
+    This handler returns ``False`` if the two objects have different
+    devices, otherwise it passes the inputs to the next handler.
+
+    Example usage:
+
+    ```pycon
+    >>> import torch
+    >>> from coola.equality import EqualityConfig
+    >>> from coola.equality.handlers import TrueHandler
+    >>> from coola.equality.handlers.torch_ import TensorSameDeviceHandler
+    >>> from coola.testers import EqualityTester
+    >>> config = EqualityConfig(tester=EqualityTester())
+    >>> handler = TensorSameDeviceHandler(next_handler=TrueHandler())
+    >>> handler.handle(torch.ones(2, 3), torch.ones(3, 2), config)
+    True
+
+    ```
+    """
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, self.__class__)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__qualname__}()"
+
+    def handle(
+        self,
+        object1: torch.Tensor,
+        object2: torch.Tensor,
+        config: EqualityConfig,
+    ) -> bool | None:
+        if object1.device != object2.device:
+            if config.show_difference:
+                logger.info(
+                    f"torch.Tensors have different devices: {object1.device} vs {object2.device}"
+                )
+            return False
+        return self._handle_next(object1=object1, object2=object2, config=config)
