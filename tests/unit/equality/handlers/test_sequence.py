@@ -113,7 +113,7 @@ def test_sequence_same_value_handler_handle_false_show_difference(
 
 def test_sequence_same_value_handler_handle_without_next_handler(config: EqualityConfig) -> None:
     handler = SequenceSameValueHandler()
-    with pytest.raises(RuntimeError, match="The next handler is not defined"):
+    with pytest.raises(RuntimeError, match="next handler is not defined"):
         handler.handle(object1=[1, 2, 3], object2=[1, 2, 3], config=config)
 
 
