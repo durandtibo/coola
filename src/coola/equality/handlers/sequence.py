@@ -55,11 +55,16 @@ class SequenceSameValueHandler(AbstractEqualityHandler):
     ) -> bool | None:
         for value1, value2 in zip(object1, object2):
             if not config.tester.equal(value1, value2, config.show_difference):
-                if config.show_difference:
-                    logger.info(
-                        f"sequences have at least one different value:\n"
-                        f"first sequence : {object1}\n"
-                        f"second sequence: {object2}"
-                    )
+                self._show_difference(object1=object1, object2=object2, config=config)
                 return False
         return self._handle_next(object1=object1, object2=object2, config=config)
+
+    def _show_difference(
+        self, object1: Sequence, object2: Sequence, config: EqualityConfig
+    ) -> None:
+        if config.show_difference:
+            logger.info(
+                f"sequences have at least one different value:\n"
+                f"first sequence : {object1}\n"
+                f"second sequence: {object2}"
+            )
