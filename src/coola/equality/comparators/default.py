@@ -1,3 +1,5 @@
+r"""Implement the default equality comparator."""
+
 from __future__ import annotations
 
 __all__ = ["DefaultEqualityComparator"]
