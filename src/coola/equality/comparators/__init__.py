@@ -6,11 +6,13 @@ __all__ = [
     "ArrayEqualityComparator",
     "BaseEqualityComparator",
     "DefaultEqualityComparator",
+    "SequenceEqualityComparator",
     "TensorEqualityComparator",
     "get_type_comparator_mapping",
 ]
 
 from coola.equality.comparators.base import BaseEqualityComparator
+from coola.equality.comparators.collection import SequenceEqualityComparator
 from coola.equality.comparators.default import DefaultEqualityComparator
 from coola.equality.comparators.numpy_ import ArrayEqualityComparator
 from coola.equality.comparators.torch_ import TensorEqualityComparator
