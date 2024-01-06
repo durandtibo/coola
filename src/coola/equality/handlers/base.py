@@ -36,6 +36,32 @@ class BaseEqualityHandler(ABC):
     ```
     """
 
+    def chain(self, handler: BaseEqualityHandler) -> BaseEqualityHandler:
+        r"""Chain a handler to the current handler.
+
+        Args:
+            handler: Specifies the handler to chain.
+
+        Returns:
+            The input handler.
+
+        Example usage:
+
+        ```pycon
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.handlers import SameObjectHandler, SameTypeHandler, ObjectEqualHandler
+        >>> from coola.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> handler = SameObjectHandler()
+        >>> handler.chain(SameTypeHandler()).chain(ObjectEqualHandler())
+        >>> handler.handle([1, 2, 3], [1, 2, 3], config)
+        True
+
+        ```
+        """
+        self.set_next_handler(handler)
+        return handler
+
     @abstractmethod
     def handle(self, object1: Any, object2: Any, config: EqualityConfig) -> bool:
         r"""Return the equality result between the two input objects.
