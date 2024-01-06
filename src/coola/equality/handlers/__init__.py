@@ -10,6 +10,7 @@ __all__ = [
     "AbstractEqualityHandler",
     "BaseEqualityHandler",
     "FalseHandler",
+    "ObjectEqualHandler",
     "SameLengthHandler",
     "SameObjectHandler",
     "SameTypeHandler",
@@ -19,6 +20,7 @@ __all__ = [
 from coola.equality.handlers.base import AbstractEqualityHandler, BaseEqualityHandler
 from coola.equality.handlers.native import (
     FalseHandler,
+    ObjectEqualHandler,
     SameLengthHandler,
     SameObjectHandler,
     SameTypeHandler,
