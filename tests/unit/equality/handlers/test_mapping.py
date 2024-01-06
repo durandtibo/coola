@@ -18,9 +18,9 @@ def config() -> EqualityConfig:
     return EqualityConfig(tester=EqualityTester())
 
 
-#####################################
-#     Tests for SameKeysHandler     #
-#####################################
+############################################
+#     Tests for MappingSameKeysHandler     #
+############################################
 
 
 def test_mapping_same_keys_handler_eq_true() -> None:
