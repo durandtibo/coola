@@ -17,6 +17,7 @@ __all__ = [
     "SameLengthHandler",
     "SameObjectHandler",
     "SameTypeHandler",
+    "SequenceSameValueHandler",
     "TensorEqualHandler",
     "TrueHandler",
 ]
@@ -32,4 +33,5 @@ from coola.equality.handlers.native import (
     SameTypeHandler,
     TrueHandler,
 )
+from coola.equality.handlers.sequence import SequenceSameValueHandler
 from coola.equality.handlers.torch_ import TensorEqualHandler
