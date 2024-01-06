@@ -1,12 +1,18 @@
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 import pytest
 
 from coola import EqualityTester
 from coola.equality import EqualityConfig
-from coola.equality.handlers import FalseHandler, SameObjectHandler, TrueHandler
+from coola.equality.handlers import (
+    FalseHandler,
+    SameObjectHandler,
+    SameTypeHandler,
+    TrueHandler,
+)
 
 
 @pytest.fixture()
@@ -91,7 +97,7 @@ def test_same_object_handler_str() -> None:
 def test_same_object_handler_handle_true(
     object1: Any, object2: Any, config: EqualityConfig
 ) -> None:
-    assert SameObjectHandler(next_handler=FalseHandler()).handle(object1, object2, config)
+    assert SameObjectHandler().handle(object1, object2, config)
 
 
 @pytest.mark.parametrize(("object1", "object2"), [(0, 1), (4, 4.0), ("abc", "ABC")])
@@ -115,5 +121,60 @@ def test_same_object_handler_set_next_handler() -> None:
 
 def test_same_object_handler_set_next_handler_incorrect() -> None:
     handler = SameObjectHandler()
+    with pytest.raises(TypeError, match="Incorrect type for `handler`."):
+        handler.set_next_handler(None)
+
+
+#######################################
+#     Tests for SameTypeHandler     #
+#######################################
+
+
+def test_same_type_handler_eq_true() -> None:
+    assert SameTypeHandler() == SameTypeHandler()
+
+
+def test_same_type_handler_eq_false() -> None:
+    assert SameTypeHandler() != FalseHandler()
+
+
+def test_same_type_handler_str() -> None:
+    assert str(SameTypeHandler()).startswith("SameTypeHandler(")
+
+
+@pytest.mark.parametrize(("object1", "object2"), [(0, 0), (4.2, 4.2), ("abc", "abc")])
+def test_same_type_handler_handle_true(object1: Any, object2: Any, config: EqualityConfig) -> None:
+    assert SameTypeHandler(next_handler=TrueHandler()).handle(object1, object2, config)
+
+
+@pytest.mark.parametrize(("object1", "object2"), [(0, "abc"), (4, 4.0), (None, 0)])
+def test_same_type_handler_handle_false(object1: Any, object2: Any, config: EqualityConfig) -> None:
+    assert not SameTypeHandler().handle(object1, object2, config)
+
+
+def test_same_type_handler_handle_false_show_difference(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    config.show_difference = True
+    handler = SameTypeHandler()
+    with caplog.at_level(logging.INFO):
+        assert not handler.handle(object1=0, object2="abc", config=config)
+        assert caplog.messages[0].startswith("The objects have different types:")
+
+
+def test_same_type_handler_handle_without_next_handler(config: EqualityConfig) -> None:
+    handler = SameTypeHandler()
+    with pytest.raises(RuntimeError, match="The next handler is not defined"):
+        handler.handle(object1="abc", object2="ABC", config=config)
+
+
+def test_same_type_handler_set_next_handler() -> None:
+    handler = SameTypeHandler()
+    handler.set_next_handler(FalseHandler())
+    assert handler.next_handler == FalseHandler()
+
+
+def test_same_type_handler_set_next_handler_incorrect() -> None:
+    handler = SameTypeHandler()
     with pytest.raises(TypeError, match="Incorrect type for `handler`."):
         handler.set_next_handler(None)

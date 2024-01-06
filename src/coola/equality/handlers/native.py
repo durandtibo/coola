@@ -5,6 +5,7 @@ from __future__ import annotations
 __all__ = [
     "FalseHandler",
     "SameObjectHandler",
+    "SameTypeHandler",
     "TrueHandler",
 ]
 
@@ -133,4 +134,44 @@ class SameObjectHandler(AbstractEqualityHandler):
     ) -> bool | None:
         if object1 is object2:
             return True
+        return self._handle_next(object1=object1, object2=object2, config=config)
+
+
+class SameTypeHandler(AbstractEqualityHandler):
+    r"""Check if the two objects have the same type.
+
+    This handler returns ``False`` if the two objects have different
+    types, otherwise it passes the inputs to the next handler.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola.equality import EqualityConfig
+    >>> from coola.equality.handlers import SameTypeHandler
+    >>> from coola.testers import EqualityTester
+    >>> config = EqualityConfig(tester=EqualityTester())
+    >>> handler = SameTypeHandler()
+    >>> handler.handle(1, "abc", config)
+    False
+
+
+    ```
+    """
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, self.__class__)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__qualname__}()"
+
+    def handle(
+        self,
+        object1: Any,
+        object2: Any,
+        config: EqualityConfig,
+    ) -> bool | None:
+        if type(object1) is not type(object2):
+            if config.show_difference:
+                logger.info(f"The objects have different types: {type(object1)} vs {type(object2)}")
+            return False
         return self._handle_next(object1=object1, object2=object2, config=config)
