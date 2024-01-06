@@ -9,6 +9,7 @@ from coola import EqualityTester
 from coola.equality import EqualityConfig
 from coola.equality.handlers import (
     FalseHandler,
+    ObjectEqualHandler,
     SameLengthHandler,
     SameObjectHandler,
     SameTypeHandler,
@@ -80,6 +81,51 @@ def test_true_handler_set_next_handler() -> None:
     TrueHandler().set_next_handler(FalseHandler())
 
 
+########################################
+#     Tests for ObjectEqualHandler     #
+########################################
+
+
+def test_object_equal_handler_eq_true() -> None:
+    assert ObjectEqualHandler() == ObjectEqualHandler()
+
+
+def test_object_equal_handler_eq_false() -> None:
+    assert ObjectEqualHandler() != FalseHandler()
+
+
+def test_object_equal_handler_str() -> None:
+    assert str(ObjectEqualHandler()).startswith("ObjectEqualHandler(")
+
+
+@pytest.mark.parametrize(("object1", "object2"), [(0, 0), (4.2, 4.2), ("abc", "abc")])
+def test_object_equal_handler_handle_true(
+    object1: Any, object2: Any, config: EqualityConfig
+) -> None:
+    assert ObjectEqualHandler().handle(object1, object2, config)
+
+
+@pytest.mark.parametrize(("object1", "object2"), [(0, 1), (4, 4.2), ("abc", "ABC")])
+def test_object_equal_handler_handle_false(
+    object1: Any, object2: Any, config: EqualityConfig
+) -> None:
+    assert not ObjectEqualHandler().handle(object1, object2, config)
+
+
+def test_object_equal_handler_handle_false_show_difference(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    config.show_difference = True
+    handler = ObjectEqualHandler()
+    with caplog.at_level(logging.INFO):
+        assert not handler.handle(object1=[1, 2, 3], object2=[1, 2, 3, 4], config=config)
+        assert caplog.messages[0].startswith("objects are different:")
+
+
+def test_object_equal_handler_set_next_handler() -> None:
+    ObjectEqualHandler().set_next_handler(FalseHandler())
+
+
 #######################################
 #     Tests for SameLengthHandler     #
 #######################################
@@ -135,7 +181,7 @@ def test_same_length_handler_handle_false_show_difference(
     handler = SameLengthHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(object1=[1, 2, 3], object2=[1, 2, 3, 4], config=config)
-        assert caplog.messages[0].startswith("The objects have different lengths:")
+        assert caplog.messages[0].startswith("objects have different lengths:")
 
 
 def test_same_length_handler_handle_without_next_handler(config: EqualityConfig) -> None:
@@ -239,7 +285,7 @@ def test_same_type_handler_handle_false_show_difference(
     handler = SameTypeHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(object1=0, object2="abc", config=config)
-        assert caplog.messages[0].startswith("The objects have different types:")
+        assert caplog.messages[0].startswith("objects have different types:")
 
 
 def test_same_type_handler_handle_without_next_handler(config: EqualityConfig) -> None:

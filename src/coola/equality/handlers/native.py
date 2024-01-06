@@ -4,6 +4,7 @@ from __future__ import annotations
 
 __all__ = [
     "FalseHandler",
+    "ObjectEqualHandler",
     "SameLengthHandler",
     "SameObjectHandler",
     "SameTypeHandler",
@@ -27,7 +28,7 @@ class FalseHandler(BaseEqualityHandler):
     r"""Implement a handler that always return ``False``.
 
     This handler is designed to be used at the end of the chain of
-    responsibility.
+    responsibility. This handler does not call the next handler.
 
     Example usage:
 
@@ -67,7 +68,7 @@ class TrueHandler(BaseEqualityHandler):
     r"""Implement a handler that always return ``True``.
 
     This handler is designed to be used at the end of the chain of
-    responsibility.
+    responsibility. This handler does not call the next handler.
 
     Example usage:
 
@@ -98,6 +99,53 @@ class TrueHandler(BaseEqualityHandler):
         config: EqualityConfig,
     ) -> bool | None:
         return True
+
+    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
+        pass  # Do nothing because the next handler is never called.
+
+
+class ObjectEqualHandler(BaseEqualityHandler):
+    r"""Check if the two objects are equal using the default equality
+    operator ``==``.
+
+    This handler returns ``True`` if the two objects are equal,
+    otherwise ``False``. This handler is designed to be used at
+    the end of the chain of responsibility. This handler does
+    not call the next handler.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola.equality import EqualityConfig
+    >>> from coola.equality.handlers import ObjectEqualHandler
+    >>> from coola.testers import EqualityTester
+    >>> config = EqualityConfig(tester=EqualityTester())
+    >>> handler = ObjectEqualHandler()
+    >>> handler.handle(1, 1, config)
+    True
+    >>> handler.handle(1, "abc", config)
+    False
+
+
+    ```
+    """
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, self.__class__)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__qualname__}()"
+
+    def handle(
+        self,
+        object1: Any,
+        object2: Any,
+        config: EqualityConfig,
+    ) -> bool | None:
+        object_equal = object1 == object2
+        if config.show_difference and not object_equal:
+            logger.info(f"objects are different:\nobject1={object1}\nobject2={object2}")
+        return object_equal
 
     def set_next_handler(self, handler: BaseEqualityHandler) -> None:
         pass  # Do nothing because the next handler is never called.
@@ -138,9 +186,7 @@ class SameLengthHandler(AbstractEqualityHandler):
     ) -> bool | None:
         if len(object1) != len(object2):
             if config.show_difference:
-                logger.info(
-                    f"The objects have different lengths: {len(object1):,} vs {len(object2):,}"
-                )
+                logger.info(f"objects have different lengths: {len(object1):,} vs {len(object2):,}")
             return False
         return self._handle_next(object1=object1, object2=object2, config=config)
 
@@ -217,6 +263,6 @@ class SameTypeHandler(AbstractEqualityHandler):
     ) -> bool | None:
         if type(object1) is not type(object2):
             if config.show_difference:
-                logger.info(f"The objects have different types: {type(object1)} vs {type(object2)}")
+                logger.info(f"objects have different types: {type(object1)} vs {type(object2)}")
             return False
         return self._handle_next(object1=object1, object2=object2, config=config)
