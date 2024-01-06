@@ -127,7 +127,6 @@ class ObjectEqualHandler(BaseEqualityHandler):
     >>> handler.handle(1, "abc", config)
     False
 
-
     ```
     """
 
@@ -168,7 +167,6 @@ class SameKeysHandler(AbstractEqualityHandler):
     >>> handler = SameKeysHandler()
     >>> handler.handle({"a": 1, "b": 2}, {"a": 1, "b": 2, "c": 1}, config)
     False
-
 
     ```
     """
@@ -212,7 +210,6 @@ class SameLengthHandler(AbstractEqualityHandler):
     >>> handler = SameLengthHandler()
     >>> handler.handle([1, 2, 3], [1, 2, 3, 4], config)
     False
-
 
     ```
     """
@@ -289,7 +286,6 @@ class SameTypeHandler(AbstractEqualityHandler):
     >>> handler = SameTypeHandler()
     >>> handler.handle(1, "abc", config)
     False
-
 
     ```
     """
