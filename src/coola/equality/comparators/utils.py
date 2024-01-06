@@ -19,8 +19,8 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
         The mapping between the types and the equality comparators.
 
     ```pycon
-    >>> from coola.equality.comparators import get_type_comparator_mapping
-    >>> get_type_comparator_mapping()
+    # >>> from coola.equality.comparators import get_type_comparator_mapping
+    # >>> get_type_comparator_mapping()
     # {<class 'collections.abc.Mapping'>: MappingEqualityOperator(),
     #  <class 'collections.abc.Sequence'>: SequenceEqualityOperator(),
     #  <class 'dict'>: MappingEqualityOperator(),
