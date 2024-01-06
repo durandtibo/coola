@@ -7,7 +7,10 @@ import pytest
 
 from coola import objects_are_equal
 from coola.equality import EqualityConfig
-from coola.equality.comparators import ArrayEqualityComparator
+from coola.equality.comparators.numpy_ import (
+    ArrayEqualityComparator,
+    get_type_comparator_mapping,
+)
 from coola.testers import EqualityTester
 from coola.testing import numpy_available
 from coola.utils.imports import is_numpy_available
@@ -189,3 +192,20 @@ def test_array_equality_comparator_no_numpy() -> None:
         "coola.utils.imports.is_numpy_available", lambda *args, **kwargs: False
     ), pytest.raises(RuntimeError, match="`numpy` package is required but not installed."):
         ArrayEqualityComparator()
+
+
+#################################################
+#     Tests for get_type_comparator_mapping     #
+#################################################
+
+
+@numpy_available
+def test_get_type_comparator_mapping() -> None:
+    assert get_type_comparator_mapping() == {np.ndarray: ArrayEqualityComparator()}
+
+
+def test_get_type_comparator_mapping_no_numpy() -> None:
+    with patch(
+        "coola.equality.comparators.numpy_.is_numpy_available", lambda *args, **kwargs: False
+    ):
+        assert get_type_comparator_mapping() == {}

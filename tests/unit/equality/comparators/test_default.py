@@ -8,6 +8,7 @@ import pytest
 from coola import EqualityTester
 from coola.equality import EqualityConfig
 from coola.equality.comparators import DefaultEqualityComparator
+from coola.equality.comparators.default import get_type_comparator_mapping
 
 
 @pytest.fixture()
@@ -104,3 +105,12 @@ def test_default_equality_comparator_equal_different_type_show_difference(
     with caplog.at_level(logging.INFO):
         assert not comparator.equal(object1=[], object2=(), config=config)
         assert caplog.messages[0].startswith("objects have different types:")
+
+
+#################################################
+#     Tests for get_type_comparator_mapping     #
+#################################################
+
+
+def test_get_type_comparator_mapping() -> None:
+    assert get_type_comparator_mapping() == {object: DefaultEqualityComparator()}
