@@ -50,6 +50,6 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
         | comparators.numpy_.get_type_comparator_mapping()
         # | comparators.pandas_.get_type_comparator_mapping()
         # | comparators.polars_.get_type_comparator_mapping()
-        # | comparators.torch_.get_type_comparator_mapping()
+        | comparators.torch_.get_type_comparator_mapping()
         # | comparators.xarray_.get_type_comparator_mapping()
     )
