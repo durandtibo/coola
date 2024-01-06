@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from unittest.mock import Mock
 
 import pytest
 
@@ -13,6 +14,8 @@ from coola.utils import is_torch_available
 
 if is_torch_available():
     import torch
+else:
+    torch = Mock()
 
 
 @pytest.fixture()
