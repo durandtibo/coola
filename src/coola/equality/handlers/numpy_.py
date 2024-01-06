@@ -59,7 +59,7 @@ class ArrayEqualHandler(BaseEqualityHandler):
         object2: np.ndarray,
         config: EqualityConfig,
     ) -> bool | None:
-        object_equal = np.array_equal(object1, object2)
+        object_equal = np.array_equal(object1, object2, equal_nan=config.equal_nan)
         if config.show_difference and not object_equal:
             logger.info(
                 f"numpy.ndarrays have different elements:\n"

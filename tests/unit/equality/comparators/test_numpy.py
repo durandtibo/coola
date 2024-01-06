@@ -165,6 +165,25 @@ def test_array_equality_comparator_equal_false_different_type_show_difference(
 
 
 @numpy_available
+def test_array_equality_comparator_equal_nan_false(config: EqualityConfig) -> None:
+    assert not ArrayEqualityComparator().equal(
+        object1=np.array([0.0, np.nan, np.nan, 1.2]),
+        object2=np.array([0.0, np.nan, np.nan, 1.2]),
+        config=config,
+    )
+
+
+@numpy_available
+def test_array_equality_comparator_equal_nan_true(config: EqualityConfig) -> None:
+    config.equal_nan = True
+    assert ArrayEqualityComparator().equal(
+        object1=np.array([0.0, np.nan, np.nan, 1.2]),
+        object2=np.array([0.0, np.nan, np.nan, 1.2]),
+        config=config,
+    )
+
+
+@numpy_available
 def test_array_equality_comparator_no_numpy() -> None:
     with patch(
         "coola.utils.imports.is_numpy_available", lambda *args, **kwargs: False
