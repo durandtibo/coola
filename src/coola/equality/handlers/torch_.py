@@ -9,9 +9,9 @@ from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
 from coola.equality.handlers.base import BaseEqualityHandler
-from coola.utils import is_numpy_available
+from coola.utils import is_torch_available
 
-if is_numpy_available():
+if is_torch_available():
     import torch
 else:  # pragma: no cover
     torch = Mock()
