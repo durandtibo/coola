@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -9,10 +9,14 @@ from coola import EqualityTester
 from coola.equality import EqualityConfig
 from coola.equality.handlers import (
     FalseHandler,
+    SameLengthHandler,
     SameObjectHandler,
     SameTypeHandler,
     TrueHandler,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Sized
 
 
 @pytest.fixture()
@@ -77,6 +81,82 @@ def test_true_handler_set_next_handler() -> None:
 
 
 #######################################
+#     Tests for SameLengthHandler     #
+#######################################
+
+
+def test_same_length_handler_eq_true() -> None:
+    assert SameLengthHandler() == SameLengthHandler()
+
+
+def test_same_length_handler_eq_false() -> None:
+    assert SameLengthHandler() != FalseHandler()
+
+
+def test_same_length_handler_str() -> None:
+    assert str(SameLengthHandler()).startswith("SameLengthHandler(")
+
+
+@pytest.mark.parametrize(
+    ("object1", "object2"),
+    [
+        ([], []),
+        ([1, 2, 3], [4, 5, 6]),
+        ((1, 2, 3), (4, 5, 6)),
+        ({1, 2, 3}, {4, 5, 6}),
+        ("abc", "abc"),
+        ({"a": 1, "b": 2}, {"a": 1, "b": 2}),
+    ],
+)
+def test_same_length_handler_handle_true(
+    object1: Sized, object2: Sized, config: EqualityConfig
+) -> None:
+    assert SameLengthHandler(next_handler=TrueHandler()).handle(object1, object2, config)
+
+
+@pytest.mark.parametrize(
+    ("object1", "object2"),
+    [
+        ([1, 2], [1, 2, 3]),
+        ((4, 5), (4, 5, None)),
+        ({"a", "b", "c"}, {"a"}),
+    ],
+)
+def test_same_length_handler_handle_false(
+    object1: Sized, object2: Sized, config: EqualityConfig
+) -> None:
+    assert not SameLengthHandler().handle(object1, object2, config)
+
+
+def test_same_length_handler_handle_false_show_difference(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    config.show_difference = True
+    handler = SameLengthHandler()
+    with caplog.at_level(logging.INFO):
+        assert not handler.handle(object1=[1, 2, 3], object2=[1, 2, 3, 4], config=config)
+        assert caplog.messages[0].startswith("The objects have different lengths:")
+
+
+def test_same_length_handler_handle_without_next_handler(config: EqualityConfig) -> None:
+    handler = SameLengthHandler()
+    with pytest.raises(RuntimeError, match="The next handler is not defined"):
+        handler.handle(object1="abc", object2="ABC", config=config)
+
+
+def test_same_length_handler_set_next_handler() -> None:
+    handler = SameLengthHandler()
+    handler.set_next_handler(FalseHandler())
+    assert handler.next_handler == FalseHandler()
+
+
+def test_same_length_handler_set_next_handler_incorrect() -> None:
+    handler = SameLengthHandler()
+    with pytest.raises(TypeError, match="Incorrect type for `handler`."):
+        handler.set_next_handler(None)
+
+
+#######################################
 #     Tests for SameObjectHandler     #
 #######################################
 
@@ -125,9 +205,9 @@ def test_same_object_handler_set_next_handler_incorrect() -> None:
         handler.set_next_handler(None)
 
 
-#######################################
+#####################################
 #     Tests for SameTypeHandler     #
-#######################################
+#####################################
 
 
 def test_same_type_handler_eq_true() -> None:
