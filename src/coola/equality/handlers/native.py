@@ -4,6 +4,7 @@ from __future__ import annotations
 
 __all__ = [
     "FalseHandler",
+    "SameLengthHandler",
     "SameObjectHandler",
     "SameTypeHandler",
     "TrueHandler",
@@ -15,6 +16,8 @@ from typing import TYPE_CHECKING, Any
 from coola.equality.handlers.base import AbstractEqualityHandler, BaseEqualityHandler
 
 if TYPE_CHECKING:
+    from collections.abc import Sized
+
     from coola.equality.config import EqualityConfig
 
 logger = logging.getLogger(__name__)
@@ -98,6 +101,48 @@ class TrueHandler(BaseEqualityHandler):
 
     def set_next_handler(self, handler: BaseEqualityHandler) -> None:
         pass  # Do nothing because the next handler is never called.
+
+
+class SameLengthHandler(AbstractEqualityHandler):
+    r"""Check if the two objects have the same length.
+
+    This handler returns ``False`` if the two objects have different
+    lengths, otherwise it passes the inputs to the next handler.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola.equality import EqualityConfig
+    >>> from coola.equality.handlers import SameLengthHandler
+    >>> from coola.testers import EqualityTester
+    >>> config = EqualityConfig(tester=EqualityTester())
+    >>> handler = SameLengthHandler()
+    >>> handler.handle([1, 2, 3], [1, 2, 3, 4], config)
+    False
+
+
+    ```
+    """
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, self.__class__)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__qualname__}()"
+
+    def handle(
+        self,
+        object1: Sized,
+        object2: Sized,
+        config: EqualityConfig,
+    ) -> bool | None:
+        if len(object1) != len(object2):
+            if config.show_difference:
+                logger.info(
+                    f"The objects have different lengths: {len(object1):,} vs {len(object2):,}"
+                )
+            return False
+        return self._handle_next(object1=object1, object2=object2, config=config)
 
 
 class SameObjectHandler(AbstractEqualityHandler):
