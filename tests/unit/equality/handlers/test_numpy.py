@@ -71,6 +71,21 @@ def test_array_equal_handler_handle_false(
 
 
 @numpy_available
+def test_array_equal_handler_handle_equal_nan_false(config: EqualityConfig) -> None:
+    assert not ArrayEqualHandler().handle(
+        np.array([0.0, np.nan, np.nan, 1.2]), np.array([0.0, np.nan, np.nan, 1.2]), config
+    )
+
+
+@numpy_available
+def test_array_equal_handler_handle_equal_nan_true(config: EqualityConfig) -> None:
+    config.equal_nan = True
+    assert ArrayEqualHandler().handle(
+        np.array([0.0, np.nan, np.nan, 1.2]), np.array([0.0, np.nan, np.nan, 1.2]), config
+    )
+
+
+@numpy_available
 def test_array_equal_handler_handle_false_show_difference(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
