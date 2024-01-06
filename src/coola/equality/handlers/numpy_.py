@@ -58,7 +58,7 @@ class ArrayEqualHandler(BaseEqualityHandler):
         object1: np.ndarray,
         object2: np.ndarray,
         config: EqualityConfig,
-    ) -> bool | None:
+    ) -> bool:
         object_equal = np.array_equal(object1, object2, equal_nan=config.equal_nan)
         if config.show_difference and not object_equal:
             logger.info(

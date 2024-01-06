@@ -57,7 +57,7 @@ class FalseHandler(BaseEqualityHandler):
         object1: Any,
         object2: Any,
         config: EqualityConfig,
-    ) -> bool | None:
+    ) -> bool:
         return False
 
     def set_next_handler(self, handler: BaseEqualityHandler) -> None:
@@ -97,7 +97,7 @@ class TrueHandler(BaseEqualityHandler):
         object1: Any,
         object2: Any,
         config: EqualityConfig,
-    ) -> bool | None:
+    ) -> bool:
         return True
 
     def set_next_handler(self, handler: BaseEqualityHandler) -> None:
@@ -140,7 +140,7 @@ class ObjectEqualHandler(BaseEqualityHandler):
         object1: Any,
         object2: Any,
         config: EqualityConfig,
-    ) -> bool | None:
+    ) -> bool:
         object_equal = object1 == object2
         if config.show_difference and not object_equal:
             logger.info(f"objects are different:\nobject1={object1}\nobject2={object2}")
@@ -181,7 +181,7 @@ class SameLengthHandler(AbstractEqualityHandler):
         object1: Sized,
         object2: Sized,
         config: EqualityConfig,
-    ) -> bool | None:
+    ) -> bool:
         if len(object1) != len(object2):
             if config.show_difference:
                 logger.info(f"objects have different lengths: {len(object1):,} vs {len(object2):,}")
@@ -257,7 +257,7 @@ class SameTypeHandler(AbstractEqualityHandler):
         object1: Any,
         object2: Any,
         config: EqualityConfig,
-    ) -> bool | None:
+    ) -> bool:
         if type(object1) is not type(object2):
             if config.show_difference:
                 logger.info(f"objects have different types: {type(object1)} vs {type(object2)}")

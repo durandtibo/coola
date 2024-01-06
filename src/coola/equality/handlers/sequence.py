@@ -52,7 +52,7 @@ class SequenceSameValueHandler(AbstractEqualityHandler):
         object1: Sequence,
         object2: Sequence,
         config: EqualityConfig,
-    ) -> bool | None:
+    ) -> bool:
         for value1, value2 in zip(object1, object2):
             if not config.tester.equal(value1, value2, config.show_difference):
                 self._show_difference(object1=object1, object2=object2, config=config)
