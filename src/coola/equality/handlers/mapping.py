@@ -2,7 +2,7 @@ r"""Implement some handlers for native python objects."""
 
 from __future__ import annotations
 
-__all__ = ["SameKeysHandler"]
+__all__ = ["MappingSameKeysHandler"]
 
 import logging
 from typing import TYPE_CHECKING
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class SameKeysHandler(AbstractEqualityHandler):
+class MappingSameKeysHandler(AbstractEqualityHandler):
     r"""Check if the two objects have the same keys.
 
     This handler returns ``False`` if the two objects have different
@@ -27,10 +27,10 @@ class SameKeysHandler(AbstractEqualityHandler):
 
     ```pycon
     >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import SameKeysHandler
+    >>> from coola.equality.handlers import MappingSameKeysHandler
     >>> from coola.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = SameKeysHandler()
+    >>> handler = MappingSameKeysHandler()
     >>> handler.handle({"a": 1, "b": 2}, {"a": 1, "b": 2, "c": 1}, config)
     False
 

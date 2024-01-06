@@ -7,7 +7,7 @@ import pytest
 
 from coola import EqualityTester
 from coola.equality import EqualityConfig
-from coola.equality.handlers import FalseHandler, SameKeysHandler, TrueHandler
+from coola.equality.handlers import FalseHandler, MappingSameKeysHandler, TrueHandler
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -23,16 +23,16 @@ def config() -> EqualityConfig:
 #####################################
 
 
-def test_same_keys_handler_eq_true() -> None:
-    assert SameKeysHandler() == SameKeysHandler()
+def test_mapping_same_keys_handler_eq_true() -> None:
+    assert MappingSameKeysHandler() == MappingSameKeysHandler()
 
 
-def test_same_keys_handler_eq_false() -> None:
-    assert SameKeysHandler() != FalseHandler()
+def test_mapping_same_keys_handler_eq_false() -> None:
+    assert MappingSameKeysHandler() != FalseHandler()
 
 
-def test_same_keys_handler_str() -> None:
-    assert str(SameKeysHandler()).startswith("SameKeysHandler(")
+def test_mapping_same_keys_handler_str() -> None:
+    assert str(MappingSameKeysHandler()).startswith("MappingSameKeysHandler(")
 
 
 @pytest.mark.parametrize(
@@ -42,10 +42,10 @@ def test_same_keys_handler_str() -> None:
         ({"a": 1, "b": 2}, {"a": 1, "b": 2}),
     ],
 )
-def test_same_keys_handler_handle_true(
+def test_mapping_same_keys_handler_handle_true(
     object1: Mapping, object2: Mapping, config: EqualityConfig
 ) -> None:
-    assert SameKeysHandler(next_handler=TrueHandler()).handle(object1, object2, config)
+    assert MappingSameKeysHandler(next_handler=TrueHandler()).handle(object1, object2, config)
 
 
 @pytest.mark.parametrize(
@@ -55,17 +55,17 @@ def test_same_keys_handler_handle_true(
         ({"a": 1, "b": 2}, {"a": 1, "b": 2, "c": 1}),
     ],
 )
-def test_same_keys_handler_handle_false(
+def test_mapping_same_keys_handler_handle_false(
     object1: Mapping, object2: Mapping, config: EqualityConfig
 ) -> None:
-    assert not SameKeysHandler().handle(object1, object2, config)
+    assert not MappingSameKeysHandler().handle(object1, object2, config)
 
 
-def test_same_keys_handler_handle_false_show_difference(
+def test_mapping_same_keys_handler_handle_false_show_difference(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
-    handler = SameKeysHandler()
+    handler = MappingSameKeysHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
             object1={"a": 1, "b": 2}, object2={"a": 1, "b": 2, "c": 1}, config=config
@@ -73,19 +73,19 @@ def test_same_keys_handler_handle_false_show_difference(
         assert caplog.messages[0].startswith("objects have different keys:")
 
 
-def test_same_keys_handler_handle_without_next_handler(config: EqualityConfig) -> None:
-    handler = SameKeysHandler()
+def test_mapping_same_keys_handler_handle_without_next_handler(config: EqualityConfig) -> None:
+    handler = MappingSameKeysHandler()
     with pytest.raises(RuntimeError, match="next handler is not defined"):
         handler.handle(object1={"a": 1, "b": 2}, object2={"a": 1, "b": 2}, config=config)
 
 
-def test_same_keys_handler_set_next_handler() -> None:
-    handler = SameKeysHandler()
+def test_mapping_same_keys_handler_set_next_handler() -> None:
+    handler = MappingSameKeysHandler()
     handler.set_next_handler(FalseHandler())
     assert handler.next_handler == FalseHandler()
 
 
-def test_same_keys_handler_set_next_handler_incorrect() -> None:
-    handler = SameKeysHandler()
+def test_mapping_same_keys_handler_set_next_handler_incorrect() -> None:
+    handler = MappingSameKeysHandler()
     with pytest.raises(TypeError, match="Incorrect type for `handler`."):
         handler.set_next_handler(None)
