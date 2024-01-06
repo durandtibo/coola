@@ -125,7 +125,7 @@ def test_array_same_shape_handler_handle_false_show_difference(
 @numpy_available
 def test_array_same_shape_handler_handle_without_next_handler(config: EqualityConfig) -> None:
     handler = ArraySameShapeHandler()
-    with pytest.raises(RuntimeError, match="The next handler is not defined"):
+    with pytest.raises(RuntimeError, match="next handler is not defined"):
         handler.handle(object1=np.ones(shape=(2, 3)), object2=np.ones(shape=(2, 3)), config=config)
 
 
@@ -236,7 +236,7 @@ def test_array_same_dtype_handler_handle_false_show_difference(
 @numpy_available
 def test_array_same_dtype_handler_handle_without_next_handler(config: EqualityConfig) -> None:
     handler = ArraySameDTypeHandler()
-    with pytest.raises(RuntimeError, match="The next handler is not defined"):
+    with pytest.raises(RuntimeError, match="next handler is not defined"):
         handler.handle(object1=np.ones(shape=(2, 3)), object2=np.ones(shape=(2, 3)), config=config)
 
 

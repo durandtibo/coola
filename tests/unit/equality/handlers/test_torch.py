@@ -165,7 +165,7 @@ def test_tensor_same_device_handler_handle_false_show_difference(
 @torch_available
 def test_tensor_same_device_handler_handle_without_next_handler(config: EqualityConfig) -> None:
     handler = TensorSameDeviceHandler()
-    with pytest.raises(RuntimeError, match="The next handler is not defined"):
+    with pytest.raises(RuntimeError, match="next handler is not defined"):
         handler.handle(object1=torch.ones(2, 3), object2=torch.ones(2, 3), config=config)
 
 

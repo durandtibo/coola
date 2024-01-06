@@ -133,7 +133,7 @@ class AbstractEqualityHandler(BaseEqualityHandler):
             RuntimeError: if the next handler is not defined.
         """
         if not self._next_handler:
-            msg = "The next handler is not defined"
+            msg = "next handler is not defined"
             raise RuntimeError(msg)
         return self._next_handler.handle(object1=object1, object2=object2, config=config)
 
