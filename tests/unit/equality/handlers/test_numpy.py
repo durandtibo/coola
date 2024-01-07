@@ -7,8 +7,7 @@ import pytest
 
 from coola import EqualityTester
 from coola.equality import EqualityConfig
-from coola.equality.handlers import FalseHandler
-from coola.equality.handlers.numpy_ import NumpyArrayEqualHandler
+from coola.equality.handlers import FalseHandler, NumpyArrayEqualHandler
 from coola.testing import numpy_available
 from coola.utils import is_numpy_available
 
@@ -23,9 +22,9 @@ def config() -> EqualityConfig:
     return EqualityConfig(tester=EqualityTester())
 
 
-#######################################
-#     Tests for ArrayEqualHandler     #
-#######################################
+############################################
+#     Tests for NumpyArrayEqualHandler     #
+############################################
 
 
 def test_numpy_array_equal_handler_eq_true() -> None:
