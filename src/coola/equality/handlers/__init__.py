@@ -13,6 +13,7 @@ __all__ = [
     "BaseEqualityHandler",
     "FalseHandler",
     "MappingSameKeysHandler",
+    "MappingSameValuesHandler",
     "ObjectEqualHandler",
     "SameLengthHandler",
     "SameObjectHandler",
@@ -24,7 +25,10 @@ __all__ = [
 
 from coola.equality.handlers.array import ArraySameDTypeHandler, ArraySameShapeHandler
 from coola.equality.handlers.base import AbstractEqualityHandler, BaseEqualityHandler
-from coola.equality.handlers.mapping import MappingSameKeysHandler
+from coola.equality.handlers.mapping import (
+    MappingSameKeysHandler,
+    MappingSameValuesHandler,
+)
 from coola.equality.handlers.native import (
     FalseHandler,
     ObjectEqualHandler,
