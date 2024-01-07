@@ -26,9 +26,9 @@ def config() -> EqualityConfig:
     return EqualityConfig(tester=EqualityTester())
 
 
-#############################################
-#     Tests for ArrayEqualityComparator     #
-#############################################
+##################################################
+#     Tests for NumpyArrayEqualityComparator     #
+##################################################
 
 
 @numpy_available
