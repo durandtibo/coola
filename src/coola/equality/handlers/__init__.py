@@ -8,7 +8,6 @@ from __future__ import annotations
 
 __all__ = [
     "AbstractEqualityHandler",
-    "ArraySameDTypeHandler",
     "BaseEqualityHandler",
     "FalseHandler",
     "JaxArrayEqualHandler",
@@ -16,6 +15,7 @@ __all__ = [
     "MappingSameValuesHandler",
     "NumpyArrayEqualHandler",
     "ObjectEqualHandler",
+    "SameDTypeHandler",
     "SameLengthHandler",
     "SameObjectHandler",
     "SameShapeHandler",
@@ -25,7 +25,7 @@ __all__ = [
     "TrueHandler",
 ]
 
-from coola.equality.handlers.array import ArraySameDTypeHandler
+from coola.equality.handlers.array import SameDTypeHandler
 from coola.equality.handlers.base import AbstractEqualityHandler, BaseEqualityHandler
 from coola.equality.handlers.jax_ import JaxArrayEqualHandler
 from coola.equality.handlers.mapping import (
