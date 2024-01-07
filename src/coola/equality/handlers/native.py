@@ -5,7 +5,6 @@ from __future__ import annotations
 __all__ = [
     "FalseHandler",
     "ObjectEqualHandler",
-    "SameKeysHandler",
     "SameLengthHandler",
     "SameObjectHandler",
     "SameTypeHandler",
@@ -18,7 +17,7 @@ from typing import TYPE_CHECKING, Any
 from coola.equality.handlers.base import AbstractEqualityHandler, BaseEqualityHandler
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sized
+    from collections.abc import Sized
 
     from coola.equality.config import EqualityConfig
 
@@ -58,7 +57,7 @@ class FalseHandler(BaseEqualityHandler):
         object1: Any,
         object2: Any,
         config: EqualityConfig,
-    ) -> bool | None:
+    ) -> bool:
         return False
 
     def set_next_handler(self, handler: BaseEqualityHandler) -> None:
@@ -98,7 +97,7 @@ class TrueHandler(BaseEqualityHandler):
         object1: Any,
         object2: Any,
         config: EqualityConfig,
-    ) -> bool | None:
+    ) -> bool:
         return True
 
     def set_next_handler(self, handler: BaseEqualityHandler) -> None:
@@ -141,7 +140,7 @@ class ObjectEqualHandler(BaseEqualityHandler):
         object1: Any,
         object2: Any,
         config: EqualityConfig,
-    ) -> bool | None:
+    ) -> bool:
         object_equal = object1 == object2
         if config.show_difference and not object_equal:
             logger.info(f"objects are different:\nobject1={object1}\nobject2={object2}")
@@ -149,49 +148,6 @@ class ObjectEqualHandler(BaseEqualityHandler):
 
     def set_next_handler(self, handler: BaseEqualityHandler) -> None:
         pass  # Do nothing because the next handler is never called.
-
-
-class SameKeysHandler(AbstractEqualityHandler):
-    r"""Check if the two objects have the same keys.
-
-    This handler returns ``False`` if the two objects have different
-    keys, otherwise it passes the inputs to the next handler.
-
-    Example usage:
-
-    ```pycon
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import SameKeysHandler
-    >>> from coola.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = SameKeysHandler()
-    >>> handler.handle({"a": 1, "b": 2}, {"a": 1, "b": 2, "c": 1}, config)
-    False
-
-    ```
-    """
-
-    def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
-
-    def handle(
-        self,
-        object1: Mapping,
-        object2: Mapping,
-        config: EqualityConfig,
-    ) -> bool | None:
-        if set(object1.keys()) != set(object2.keys()):
-            if config.show_difference:
-                logger.info(
-                    f"objects have different keys:\n"
-                    f"object1 keys: {sorted(set(object1.keys()))}\n"
-                    f"object2 keys: {sorted(set(object2.keys()))}"
-                )
-            return False
-        return self._handle_next(object1=object1, object2=object2, config=config)
 
 
 class SameLengthHandler(AbstractEqualityHandler):
@@ -225,7 +181,7 @@ class SameLengthHandler(AbstractEqualityHandler):
         object1: Sized,
         object2: Sized,
         config: EqualityConfig,
-    ) -> bool | None:
+    ) -> bool:
         if len(object1) != len(object2):
             if config.show_difference:
                 logger.info(f"objects have different lengths: {len(object1):,} vs {len(object2):,}")
@@ -301,7 +257,7 @@ class SameTypeHandler(AbstractEqualityHandler):
         object1: Any,
         object2: Any,
         config: EqualityConfig,
-    ) -> bool | None:
+    ) -> bool:
         if type(object1) is not type(object2):
             if config.show_difference:
                 logger.info(f"objects have different types: {type(object1)} vs {type(object2)}")

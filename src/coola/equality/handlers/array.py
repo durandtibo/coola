@@ -62,7 +62,7 @@ class ArraySameShapeHandler(AbstractEqualityHandler):
         object1: np.ndarray | torch.Tensor,
         object2: np.ndarray | torch.Tensor,
         config: EqualityConfig,
-    ) -> bool | None:
+    ) -> bool:
         if object1.shape != object2.shape:
             if config.show_difference:
                 logger.info(f"objects have different shapes: {object1.shape} vs {object2.shape}")
@@ -104,7 +104,7 @@ class ArraySameDTypeHandler(AbstractEqualityHandler):
         object1: np.ndarray | torch.Tensor,
         object2: np.ndarray | torch.Tensor,
         config: EqualityConfig,
-    ) -> bool | None:
+    ) -> bool:
         if object1.dtype != object2.dtype:
             if config.show_difference:
                 logger.info(
