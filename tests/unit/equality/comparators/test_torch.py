@@ -8,6 +8,7 @@ import pytest
 from coola import objects_are_equal
 from coola.equality import EqualityConfig
 from coola.equality.comparators.torch_ import (
+    TorchPackedSequenceEqualityComparator,
     TorchTensorEqualityComparator,
     get_type_comparator_mapping,
 )
@@ -26,13 +27,297 @@ def config() -> EqualityConfig:
     return EqualityConfig(tester=EqualityTester())
 
 
+###########################################################
+#     Tests for TorchPackedSequenceEqualityComparator     #
+###########################################################
+
+
+def test_objects_are_equal_packed_sequence() -> None:
+    assert objects_are_equal(
+        torch.nn.utils.rnn.pack_padded_sequence(
+            input=torch.arange(10, dtype=torch.float).view(2, 5),
+            lengths=torch.tensor([5, 3], dtype=torch.long),
+            batch_first=True,
+        ),
+        torch.nn.utils.rnn.pack_padded_sequence(
+            input=torch.arange(10, dtype=torch.float).view(2, 5),
+            lengths=torch.tensor([5, 3], dtype=torch.long),
+            batch_first=True,
+        ),
+    )
+
+
+@torch_available
+def test_tensor_packed_sequence_equality_comparator_str() -> None:
+    assert str(TorchPackedSequenceEqualityComparator()) == "TorchPackedSequenceEqualityComparator()"
+
+
+@torch_available
+def test_tensor_packed_sequence_equality_comparator__eq__true() -> None:
+    assert TorchPackedSequenceEqualityComparator() == TorchPackedSequenceEqualityComparator()
+
+
+@torch_available
+def test_tensor_packed_sequence_equality_comparator__eq__false() -> None:
+    assert TorchPackedSequenceEqualityComparator() != 123
+
+
+@torch_available
+def test_tensor_packed_sequence_equality_comparator_clone() -> None:
+    op = TorchPackedSequenceEqualityComparator()
+    op_cloned = op.clone()
+    assert op is not op_cloned
+    assert op == op_cloned
+
+
+@torch_available
+def test_tensor_packed_sequence_equality_comparator_equal_true(config: EqualityConfig) -> None:
+    assert TorchPackedSequenceEqualityComparator().equal(
+        torch.nn.utils.rnn.pack_padded_sequence(
+            input=torch.arange(10, dtype=torch.float).view(2, 5),
+            lengths=torch.tensor([5, 3], dtype=torch.long),
+            batch_first=True,
+        ),
+        torch.nn.utils.rnn.pack_padded_sequence(
+            input=torch.arange(10, dtype=torch.float).view(2, 5),
+            lengths=torch.tensor([5, 3], dtype=torch.long),
+            batch_first=True,
+        ),
+        config,
+    )
+
+
+@torch_available
+def test_tensor_packed_sequence_equality_comparator_equal_true_same_obj(
+    config: EqualityConfig,
+) -> None:
+    obj = torch.nn.utils.rnn.pack_padded_sequence(
+        input=torch.arange(10, dtype=torch.float).view(2, 5),
+        lengths=torch.tensor([5, 3], dtype=torch.long),
+        batch_first=True,
+    )
+    assert TorchPackedSequenceEqualityComparator().equal(obj, obj, config)
+
+
+@torch_available
+def test_tensor_packed_sequence_equality_comparator_equal_false_data(
+    config: EqualityConfig,
+) -> None:
+    assert not TorchPackedSequenceEqualityComparator().equal(
+        torch.nn.utils.rnn.pack_padded_sequence(
+            input=torch.arange(10, dtype=torch.float).view(2, 5),
+            lengths=torch.tensor([5, 3], dtype=torch.long),
+            batch_first=True,
+        ),
+        torch.nn.utils.rnn.pack_padded_sequence(
+            input=torch.arange(10).view(2, 5).add(1).float(),
+            lengths=torch.tensor([5, 3], dtype=torch.long),
+            batch_first=True,
+        ),
+        config,
+    )
+
+
+@torch_available
+def test_tensor_packed_sequence_equality_comparator_equal_false_data_show_difference(
+    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+) -> None:
+    config.show_difference = True
+    comparator = TorchPackedSequenceEqualityComparator()
+    x1 = torch.nn.utils.rnn.pack_padded_sequence(
+        input=torch.arange(10, dtype=torch.float).view(2, 5),
+        lengths=torch.tensor([5, 3], dtype=torch.long),
+        batch_first=True,
+    )
+    x2 = torch.nn.utils.rnn.pack_padded_sequence(
+        input=torch.arange(10).view(2, 5).add(1).float(),
+        lengths=torch.tensor([5, 3], dtype=torch.long),
+        batch_first=True,
+    )
+    with caplog.at_level(logging.INFO):
+        assert not comparator.equal(x1, x2, config)
+        assert caplog.messages[-1].startswith("objects have different data:")
+
+
+@torch_available
+def test_tensor_packed_sequence_equality_comparator_equal_false_batch_sizes(
+    config: EqualityConfig,
+) -> None:
+    assert not TorchPackedSequenceEqualityComparator().equal(
+        torch.nn.utils.rnn.PackedSequence(
+            data=torch.tensor([0.0, 5.0, 1.0, 6.0, 2.0, 7.0, 3.0, 4.0]),
+            batch_sizes=torch.tensor([2, 2, 2, 1, 1]),
+            sorted_indices=None,
+            unsorted_indices=None,
+        ),
+        torch.nn.utils.rnn.PackedSequence(
+            data=torch.tensor([0.0, 5.0, 1.0, 6.0, 2.0, 7.0, 3.0, 4.0]),
+            batch_sizes=torch.tensor([2, 2, 2, 2, 0]),
+            sorted_indices=None,
+            unsorted_indices=None,
+        ),
+        config,
+    )
+
+
+@torch_available
+def test_tensor_packed_sequence_equality_comparator_equal_false_batch_sizes_show_difference(
+    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+) -> None:
+    config.show_difference = True
+    comparator = TorchPackedSequenceEqualityComparator()
+    x1 = torch.nn.utils.rnn.PackedSequence(
+        data=torch.tensor([0.0, 5.0, 1.0, 6.0, 2.0, 7.0, 3.0, 4.0]),
+        batch_sizes=torch.tensor([2, 2, 2, 1, 1]),
+        sorted_indices=None,
+        unsorted_indices=None,
+    )
+    x2 = torch.nn.utils.rnn.PackedSequence(
+        data=torch.tensor([0.0, 5.0, 1.0, 6.0, 2.0, 7.0, 3.0, 4.0]),
+        batch_sizes=torch.tensor([2, 2, 2, 2, 0]),
+        sorted_indices=None,
+        unsorted_indices=None,
+    )
+    with caplog.at_level(logging.INFO):
+        assert not comparator.equal(x1, x2, config)
+        assert caplog.messages[-1].startswith("objects have different batch_sizes:")
+
+
+@torch_available
+def test_tensor_packed_sequence_equality_comparator_equal_false_sorted_indices(
+    config: EqualityConfig,
+) -> None:
+    assert not TorchPackedSequenceEqualityComparator().equal(
+        torch.nn.utils.rnn.PackedSequence(
+            data=torch.tensor([0.0, 5.0, 1.0, 6.0, 2.0, 7.0, 3.0, 4.0]),
+            batch_sizes=torch.tensor([2, 2, 2, 1, 1]),
+            sorted_indices=torch.tensor([0, 1]),
+            unsorted_indices=None,
+        ),
+        torch.nn.utils.rnn.PackedSequence(
+            data=torch.tensor([0.0, 5.0, 1.0, 6.0, 2.0, 7.0, 3.0, 4.0]),
+            batch_sizes=torch.tensor([2, 2, 2, 1, 1]),
+            sorted_indices=None,
+            unsorted_indices=None,
+        ),
+        config,
+    )
+
+
+@torch_available
+def test_tensor_packed_sequence_equality_comparator_equal_false_sorted_indices_show_difference(
+    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+) -> None:
+    config.show_difference = True
+    comparator = TorchPackedSequenceEqualityComparator()
+    x1 = torch.nn.utils.rnn.PackedSequence(
+        data=torch.tensor([0.0, 5.0, 1.0, 6.0, 2.0, 7.0, 3.0, 4.0]),
+        batch_sizes=torch.tensor([2, 2, 2, 1, 1]),
+        sorted_indices=torch.tensor([0, 1]),
+        unsorted_indices=None,
+    )
+    x2 = torch.nn.utils.rnn.PackedSequence(
+        data=torch.tensor([0.0, 5.0, 1.0, 6.0, 2.0, 7.0, 3.0, 4.0]),
+        batch_sizes=torch.tensor([2, 2, 2, 1, 1]),
+        sorted_indices=None,
+        unsorted_indices=None,
+    )
+    with caplog.at_level(logging.INFO):
+        assert not comparator.equal(x1, x2, config)
+        assert caplog.messages[-1].startswith("objects have different sorted_indices:")
+
+
+@torch_available
+def test_tensor_packed_sequence_equality_comparator_equal_false_unsorted_indices(
+    config: EqualityConfig,
+) -> None:
+    assert not TorchPackedSequenceEqualityComparator().equal(
+        torch.nn.utils.rnn.PackedSequence(
+            data=torch.tensor([0.0, 5.0, 1.0, 6.0, 2.0, 7.0, 3.0, 4.0]),
+            batch_sizes=torch.tensor([2, 2, 2, 1, 1]),
+            sorted_indices=None,
+            unsorted_indices=torch.tensor([0, 1]),
+        ),
+        torch.nn.utils.rnn.PackedSequence(
+            data=torch.tensor([0.0, 5.0, 1.0, 6.0, 2.0, 7.0, 3.0, 4.0]),
+            batch_sizes=torch.tensor([2, 2, 2, 1, 1]),
+            sorted_indices=None,
+            unsorted_indices=None,
+        ),
+        config,
+    )
+
+
+@torch_available
+def test_tensor_packed_sequence_equality_comparator_equal_false_unsorted_indices_show_difference(
+    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+) -> None:
+    config.show_difference = True
+    comparator = TorchPackedSequenceEqualityComparator()
+    x1 = torch.nn.utils.rnn.PackedSequence(
+        data=torch.tensor([0.0, 5.0, 1.0, 6.0, 2.0, 7.0, 3.0, 4.0]),
+        batch_sizes=torch.tensor([2, 2, 2, 1, 1]),
+        sorted_indices=None,
+        unsorted_indices=torch.tensor([0, 1]),
+    )
+    x2 = torch.nn.utils.rnn.PackedSequence(
+        data=torch.tensor([0.0, 5.0, 1.0, 6.0, 2.0, 7.0, 3.0, 4.0]),
+        batch_sizes=torch.tensor([2, 2, 2, 1, 1]),
+        sorted_indices=None,
+        unsorted_indices=None,
+    )
+    with caplog.at_level(logging.INFO):
+        assert not comparator.equal(x1, x2, config)
+        assert caplog.messages[-1].startswith("objects have different unsorted_indices:")
+
+
+@torch_available
+def test_tensor_packed_sequence_equality_comparator_equal_false_different_type(
+    config: EqualityConfig,
+) -> None:
+    assert not TorchPackedSequenceEqualityComparator().equal(
+        torch.nn.utils.rnn.pack_padded_sequence(
+            input=torch.arange(10, dtype=torch.float).view(2, 5),
+            lengths=torch.tensor([5, 3], dtype=torch.long),
+            batch_first=True,
+        ),
+        torch.arange(10, dtype=torch.float).view(2, 5),
+        config,
+    )
+
+
+@torch_available
+def test_tensor_packed_sequence_equality_comparator_equal_false_different_type_show_difference(
+    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+) -> None:
+    config.show_difference = True
+    comparator = TorchPackedSequenceEqualityComparator()
+    x1 = torch.nn.utils.rnn.pack_padded_sequence(
+        input=torch.arange(10, dtype=torch.float).view(2, 5),
+        lengths=torch.tensor([5, 3], dtype=torch.long),
+        batch_first=True,
+    )
+    x2 = torch.arange(10, dtype=torch.float).view(2, 5)
+    with caplog.at_level(logging.INFO):
+        assert not comparator.equal(x1, x2, config)
+        assert caplog.messages[0].startswith("objects have different types:")
+
+
+@torch_available
+def test_tensor_packed_sequence_equality_comparator_no_torch() -> None:
+    with patch(
+        "coola.utils.imports.is_torch_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`torch` package is required but not installed."):
+        TorchPackedSequenceEqualityComparator()
+
+
 ###################################################
 #     Tests for TorchTensorEqualityComparator     #
 ###################################################
 
 
 @torch_available
-def test_objects_are_equal_array() -> None:
+def test_objects_are_equal_tensor() -> None:
     assert objects_are_equal(torch.ones(2, 3), torch.ones(2, 3))
 
 
@@ -234,7 +519,10 @@ def test_torch_tensor_equality_comparator_no_torch() -> None:
 
 @torch_available
 def test_get_type_comparator_mapping() -> None:
-    assert get_type_comparator_mapping() == {torch.Tensor: TorchTensorEqualityComparator()}
+    assert get_type_comparator_mapping() == {
+        torch.nn.utils.rnn.PackedSequence: TorchPackedSequenceEqualityComparator(),
+        torch.Tensor: TorchTensorEqualityComparator(),
+    }
 
 
 def test_get_type_comparator_mapping_no_torch() -> None:

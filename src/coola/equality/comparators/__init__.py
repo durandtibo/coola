@@ -9,6 +9,7 @@ __all__ = [
     "MappingEqualityComparator",
     "NumpyArrayEqualityComparator",
     "SequenceEqualityComparator",
+    "TorchPackedSequenceEqualityComparator",
     "TorchTensorEqualityComparator",
     "get_type_comparator_mapping",
 ]
@@ -21,5 +22,8 @@ from coola.equality.comparators.collection import (
 from coola.equality.comparators.default import DefaultEqualityComparator
 from coola.equality.comparators.jax_ import JaxArrayEqualityComparator
 from coola.equality.comparators.numpy_ import NumpyArrayEqualityComparator
-from coola.equality.comparators.torch_ import TorchTensorEqualityComparator
+from coola.equality.comparators.torch_ import (
+    TorchPackedSequenceEqualityComparator,
+    TorchTensorEqualityComparator,
+)
 from coola.equality.comparators.utils import get_type_comparator_mapping
