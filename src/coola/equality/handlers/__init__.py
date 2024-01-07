@@ -14,6 +14,7 @@ __all__ = [
     "FalseHandler",
     "MappingSameKeysHandler",
     "MappingSameValuesHandler",
+    "NumpyArrayEqualHandler",
     "ObjectEqualHandler",
     "SameLengthHandler",
     "SameObjectHandler",
@@ -21,7 +22,6 @@ __all__ = [
     "SequenceSameValuesHandler",
     "TorchTensorEqualHandler",
     "TrueHandler",
-    "NumpyArrayEqualHandler",
 ]
 
 from coola.equality.handlers.array import ArraySameDTypeHandler, ArraySameShapeHandler
