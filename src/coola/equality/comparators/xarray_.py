@@ -166,7 +166,8 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
     ```pycon
     >>> from coola.equality.comparators.xarray_ import get_type_comparator_mapping
     >>> get_type_comparator_mapping()
-    {<class 'xarray.core.variable.Variable'>: XarrayVariableEqualityComparator()}
+    {<class 'xarray.core.variable.Variable'>: XarrayVariableEqualityComparator(),
+     <class 'xarray.core.dataset.Dataset'>: XarrayDatasetEqualityComparator()}
 
     ```
     """
