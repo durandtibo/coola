@@ -7,19 +7,19 @@ import pytest
 
 from coola import EqualityTester
 from coola.equality import EqualityConfig
-from coola.equality.handlers import ArraySameDTypeHandler, FalseHandler, TrueHandler
-from coola.testing import numpy_available, torch_available
-from coola.utils import is_numpy_available, is_torch_available
+from coola.equality.handlers import FalseHandler, SameDTypeHandler, TrueHandler
+from coola.testing import jax_available, numpy_available, torch_available
+from coola.utils import is_jax_available, is_numpy_available, is_torch_available
 
 if is_numpy_available():
     import numpy as np
 else:
     np = Mock()
 
+if is_jax_available():
+    import jax.numpy as jnp
 if is_torch_available():
     import torch
-else:  # pragma: no cover
-    torch = Mock()
 
 
 @pytest.fixture()
@@ -32,16 +32,16 @@ def config() -> EqualityConfig:
 ###########################################
 
 
-def test_array_same_dtype_handler_eq_true() -> None:
-    assert ArraySameDTypeHandler() == ArraySameDTypeHandler()
+def test_same_dtype_handler_eq_true() -> None:
+    assert SameDTypeHandler() == SameDTypeHandler()
 
 
-def test_array_same_dtype_handler_eq_false() -> None:
-    assert ArraySameDTypeHandler() != FalseHandler()
+def test_same_dtype_handler_eq_false() -> None:
+    assert SameDTypeHandler() != FalseHandler()
 
 
-def test_array_same_dtype_handler_str() -> None:
-    assert str(ArraySameDTypeHandler()).startswith("ArraySameDTypeHandler(")
+def test_same_dtype_handler_str() -> None:
+    assert str(SameDTypeHandler()).startswith("SameDTypeHandler(")
 
 
 @numpy_available
@@ -53,10 +53,10 @@ def test_array_same_dtype_handler_str() -> None:
         (np.ones(shape=(2, 3), dtype=bool), np.zeros(shape=(2, 3), dtype=bool)),
     ],
 )
-def test_array_same_dtype_handler_handle_true_ndarray(
+def test_same_dtype_handler_handle_true_ndarray(
     object1: np.ndarray, object2: np.ndarray, config: EqualityConfig
 ) -> None:
-    assert ArraySameDTypeHandler(next_handler=TrueHandler()).handle(object1, object2, config)
+    assert SameDTypeHandler(next_handler=TrueHandler()).handle(object1, object2, config)
 
 
 @numpy_available
@@ -68,48 +68,18 @@ def test_array_same_dtype_handler_handle_true_ndarray(
         (np.ones(shape=(2, 3), dtype=bool), np.ones(shape=(2, 3), dtype=float)),
     ],
 )
-def test_array_same_dtype_handler_handle_false_ndarray(
+def test_same_dtype_handler_handle_false_ndarray(
     object1: np.ndarray, object2: np.ndarray, config: EqualityConfig
 ) -> None:
-    assert not ArraySameDTypeHandler().handle(object1, object2, config)
-
-
-@torch_available
-@pytest.mark.parametrize(
-    ("object1", "object2"),
-    [
-        (torch.ones(2, 3, dtype=torch.float), torch.zeros(2, 3, dtype=torch.float)),
-        (torch.ones(2, 3, dtype=torch.int), torch.zeros(2, 3, dtype=torch.int)),
-        (torch.ones(2, 3, dtype=torch.bool), torch.zeros(2, 3, dtype=torch.bool)),
-    ],
-)
-def test_array_same_dtype_handler_handle_true_tensor(
-    object1: torch.Tensor, object2: torch.Tensor, config: EqualityConfig
-) -> None:
-    assert ArraySameDTypeHandler(next_handler=TrueHandler()).handle(object1, object2, config)
-
-
-@torch_available
-@pytest.mark.parametrize(
-    ("object1", "object2"),
-    [
-        (torch.ones(2, 3, dtype=torch.float), torch.ones(2, 3, dtype=torch.int)),
-        (torch.ones(2, 3, dtype=torch.int), torch.ones(2, 3, dtype=torch.bool)),
-        (torch.ones(2, 3, dtype=torch.bool), torch.ones(2, 3, dtype=torch.float)),
-    ],
-)
-def test_array_same_dtype_handler_handle_false_tensor(
-    object1: torch.Tensor, object2: torch.Tensor, config: EqualityConfig
-) -> None:
-    assert not ArraySameDTypeHandler().handle(object1, object2, config)
+    assert not SameDTypeHandler().handle(object1, object2, config)
 
 
 @numpy_available
-def test_array_same_dtype_handler_handle_false_show_difference(
+def test_same_dtype_handler_handle_false_show_difference(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
-    handler = ArraySameDTypeHandler()
+    handler = SameDTypeHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
             object1=np.ones(shape=(2, 3), dtype=float),
@@ -120,19 +90,33 @@ def test_array_same_dtype_handler_handle_false_show_difference(
 
 
 @numpy_available
-def test_array_same_dtype_handler_handle_without_next_handler(config: EqualityConfig) -> None:
-    handler = ArraySameDTypeHandler()
+def test_same_dtype_handler_handle_without_next_handler(config: EqualityConfig) -> None:
+    handler = SameDTypeHandler()
     with pytest.raises(RuntimeError, match="next handler is not defined"):
         handler.handle(object1=np.ones(shape=(2, 3)), object2=np.ones(shape=(2, 3)), config=config)
 
 
-def test_array_same_dtype_handler_set_next_handler() -> None:
-    handler = ArraySameDTypeHandler()
+def test_same_dtype_handler_set_next_handler() -> None:
+    handler = SameDTypeHandler()
     handler.set_next_handler(FalseHandler())
     assert handler.next_handler == FalseHandler()
 
 
-def test_array_same_dtype_handler_set_next_handler_incorrect() -> None:
-    handler = ArraySameDTypeHandler()
+def test_same_dtype_handler_set_next_handler_incorrect() -> None:
+    handler = SameDTypeHandler()
     with pytest.raises(TypeError, match="Incorrect type for `handler`."):
         handler.set_next_handler(None)
+
+
+@jax_available
+def test_same_dtype_handler_handle_jax(config: EqualityConfig) -> None:
+    assert SameDTypeHandler(next_handler=TrueHandler()).handle(
+        jnp.ones(shape=(2, 3), dtype=float), jnp.zeros(shape=(2, 3), dtype=float), config
+    )
+
+
+@torch_available
+def test_same_dtype_handler_handle_tensor(config: EqualityConfig) -> None:
+    assert SameDTypeHandler(next_handler=TrueHandler()).handle(
+        torch.ones(2, 3, dtype=torch.float), torch.zeros(2, 3, dtype=torch.float), config
+    )

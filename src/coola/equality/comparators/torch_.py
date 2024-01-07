@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.equality.comparators.base import BaseEqualityComparator
 from coola.equality.handlers import (
-    ArraySameDTypeHandler,
+    SameDTypeHandler,
     SameObjectHandler,
     SameShapeHandler,
     SameTypeHandler,
@@ -52,7 +52,7 @@ class TorchTensorEqualityComparator(BaseEqualityComparator[Any]):
     def __init__(self) -> None:
         check_torch()
         self._handler = SameObjectHandler()
-        self._handler.chain(SameTypeHandler()).chain(ArraySameDTypeHandler()).chain(
+        self._handler.chain(SameTypeHandler()).chain(SameDTypeHandler()).chain(
             SameShapeHandler()
         ).chain(TorchTensorSameDeviceHandler()).chain(TorchTensorEqualHandler())
 

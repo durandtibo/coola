@@ -10,8 +10,8 @@ from typing import TYPE_CHECKING, Any
 
 from coola.equality.comparators.base import BaseEqualityComparator
 from coola.equality.handlers import (
-    ArraySameDTypeHandler,
     JaxArrayEqualHandler,
+    SameDTypeHandler,
     SameObjectHandler,
     SameShapeHandler,
     SameTypeHandler,
@@ -50,7 +50,7 @@ class JaxArrayEqualityComparator(BaseEqualityComparator[Any]):
     def __init__(self) -> None:
         check_jax()
         self._handler = SameObjectHandler()
-        self._handler.chain(SameTypeHandler()).chain(ArraySameDTypeHandler()).chain(
+        self._handler.chain(SameTypeHandler()).chain(SameDTypeHandler()).chain(
             SameShapeHandler()
         ).chain(JaxArrayEqualHandler())
 
