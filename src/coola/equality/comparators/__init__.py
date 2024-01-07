@@ -11,6 +11,7 @@ __all__ = [
     "SequenceEqualityComparator",
     "TorchPackedSequenceEqualityComparator",
     "TorchTensorEqualityComparator",
+    "XarrayVariableEqualityComparator",
     "get_type_comparator_mapping",
 ]
 
@@ -27,3 +28,4 @@ from coola.equality.comparators.torch_ import (
     TorchTensorEqualityComparator,
 )
 from coola.equality.comparators.utils import get_type_comparator_mapping
+from coola.equality.comparators.xarray_ import XarrayVariableEqualityComparator

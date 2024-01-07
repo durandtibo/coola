@@ -67,7 +67,7 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
     r"""Get a default mapping between the types and the equality
     comparators.
 
-    This function returns an empty dictionary if numpy is not
+    This function returns an empty dictionary if ``numpy`` is not
     installed.
 
     Returns:
