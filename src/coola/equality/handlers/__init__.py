@@ -27,7 +27,6 @@ __all__ = [
 ]
 
 from coola.equality.handlers.array import SameDTypeHandler
-from coola.equality.handlers.attribute import SameAttributeHandler
 from coola.equality.handlers.base import AbstractEqualityHandler, BaseEqualityHandler
 from coola.equality.handlers.jax_ import JaxArrayEqualHandler
 from coola.equality.handlers.mapping import (
@@ -37,6 +36,7 @@ from coola.equality.handlers.mapping import (
 from coola.equality.handlers.native import (
     FalseHandler,
     ObjectEqualHandler,
+    SameAttributeHandler,
     SameLengthHandler,
     SameObjectHandler,
     SameTypeHandler,
