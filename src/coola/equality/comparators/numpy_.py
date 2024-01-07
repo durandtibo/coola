@@ -10,9 +10,9 @@ from typing import TYPE_CHECKING, Any
 from coola.equality.comparators.base import BaseEqualityComparator
 from coola.equality.handlers import (
     ArraySameDTypeHandler,
-    ArraySameShapeHandler,
     NumpyArrayEqualHandler,
     SameObjectHandler,
+    SameShapeHandler,
     SameTypeHandler,
 )
 from coola.utils import check_numpy, is_numpy_available
@@ -50,7 +50,7 @@ class NumpyArrayEqualityComparator(BaseEqualityComparator[Any]):
         check_numpy()
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(ArraySameDTypeHandler()).chain(
-            ArraySameShapeHandler()
+            SameShapeHandler()
         ).chain(NumpyArrayEqualHandler())
 
     def __eq__(self, other: object) -> bool:
