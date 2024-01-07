@@ -27,9 +27,9 @@ def config() -> EqualityConfig:
     return EqualityConfig(tester=EqualityTester())
 
 
-###########################################
-#     Tests for ArraySameDTypeHandler     #
-###########################################
+######################################
+#     Tests for SameDTypeHandler     #
+######################################
 
 
 def test_same_dtype_handler_eq_true() -> None:
@@ -53,7 +53,7 @@ def test_same_dtype_handler_str() -> None:
         (np.ones(shape=(2, 3), dtype=bool), np.zeros(shape=(2, 3), dtype=bool)),
     ],
 )
-def test_same_dtype_handler_handle_true_ndarray(
+def test_same_dtype_handler_handle_true(
     object1: np.ndarray, object2: np.ndarray, config: EqualityConfig
 ) -> None:
     assert SameDTypeHandler(next_handler=TrueHandler()).handle(object1, object2, config)
@@ -68,7 +68,7 @@ def test_same_dtype_handler_handle_true_ndarray(
         (np.ones(shape=(2, 3), dtype=bool), np.ones(shape=(2, 3), dtype=float)),
     ],
 )
-def test_same_dtype_handler_handle_false_ndarray(
+def test_same_dtype_handler_handle_false(
     object1: np.ndarray, object2: np.ndarray, config: EqualityConfig
 ) -> None:
     assert not SameDTypeHandler().handle(object1, object2, config)

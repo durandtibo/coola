@@ -26,8 +26,8 @@ __all__ = [
     "TrueHandler",
 ]
 
-from coola.equality.handlers.array import SameDTypeHandler
 from coola.equality.handlers.base import AbstractEqualityHandler, BaseEqualityHandler
+from coola.equality.handlers.dtype import SameDTypeHandler
 from coola.equality.handlers.jax_ import JaxArrayEqualHandler
 from coola.equality.handlers.mapping import (
     MappingSameKeysHandler,

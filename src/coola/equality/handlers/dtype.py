@@ -1,8 +1,8 @@
-r"""Implement some handlers for arrays or similar data."""
+r"""Implement handlers to check the objects have the same data type."""
 
 from __future__ import annotations
 
-__all__ = ["SameDTypeHandler"]
+__all__ = ["SameDTypeHandler", "SupportsDType"]
 
 import logging
 from typing import TYPE_CHECKING, Any, Protocol
@@ -10,20 +10,8 @@ from typing import TYPE_CHECKING, Any, Protocol
 from coola.equality.handlers.base import AbstractEqualityHandler
 
 if TYPE_CHECKING:
-    from unittest.mock import Mock
-
     from coola.equality.config import EqualityConfig
-    from coola.utils import is_numpy_available, is_torch_available
 
-    if is_numpy_available():
-        import numpy as np
-    else:  # pragma: no cover
-        np = Mock()
-
-    if is_torch_available():
-        import torch
-    else:  # pragma: no cover
-        torch = Mock()
 
 logger = logging.getLogger(__name__)
 
