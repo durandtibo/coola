@@ -5,6 +5,7 @@ from __future__ import annotations
 __all__ = [
     "BaseEqualityComparator",
     "DefaultEqualityComparator",
+    "JaxArrayEqualityComparator",
     "MappingEqualityComparator",
     "NumpyArrayEqualityComparator",
     "SequenceEqualityComparator",
@@ -18,6 +19,7 @@ from coola.equality.comparators.collection import (
     SequenceEqualityComparator,
 )
 from coola.equality.comparators.default import DefaultEqualityComparator
+from coola.equality.comparators.jax_ import JaxArrayEqualityComparator
 from coola.equality.comparators.numpy_ import NumpyArrayEqualityComparator
 from coola.equality.comparators.torch_ import TorchTensorEqualityComparator
 from coola.equality.comparators.utils import get_type_comparator_mapping
