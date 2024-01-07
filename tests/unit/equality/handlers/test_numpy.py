@@ -35,6 +35,10 @@ def test_numpy_array_equal_handler_eq_false() -> None:
     assert NumpyArrayEqualHandler() != FalseHandler()
 
 
+def test_numpy_array_equal_handler_repr() -> None:
+    assert repr(NumpyArrayEqualHandler()).startswith("NumpyArrayEqualHandler(")
+
+
 def test_numpy_array_equal_handler_str() -> None:
     assert str(NumpyArrayEqualHandler()).startswith("NumpyArrayEqualHandler(")
 

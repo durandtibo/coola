@@ -38,6 +38,10 @@ def test_same_data_handler_eq_false() -> None:
     assert SameDataHandler() != FalseHandler()
 
 
+def test_same_data_handler_repr() -> None:
+    assert repr(SameDataHandler()).startswith("SameDataHandler(")
+
+
 def test_same_data_handler_str() -> None:
     assert str(SameDataHandler()).startswith("SameDataHandler(")
 

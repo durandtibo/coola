@@ -40,6 +40,10 @@ def test_same_dtype_handler_eq_false() -> None:
     assert SameDTypeHandler() != FalseHandler()
 
 
+def test_same_dtype_handler_repr() -> None:
+    assert repr(SameDTypeHandler()).startswith("SameDTypeHandler(")
+
+
 def test_same_dtype_handler_str() -> None:
     assert str(SameDTypeHandler()).startswith("SameDTypeHandler(")
 
