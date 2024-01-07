@@ -15,6 +15,7 @@ __all__ = [
     "MappingSameValuesHandler",
     "NumpyArrayEqualHandler",
     "ObjectEqualHandler",
+    "SameAttributeHandler",
     "SameDTypeHandler",
     "SameLengthHandler",
     "SameObjectHandler",
@@ -26,6 +27,7 @@ __all__ = [
 ]
 
 from coola.equality.handlers.array import SameDTypeHandler
+from coola.equality.handlers.attribute import SameAttributeHandler
 from coola.equality.handlers.base import AbstractEqualityHandler, BaseEqualityHandler
 from coola.equality.handlers.jax_ import JaxArrayEqualHandler
 from coola.equality.handlers.mapping import (

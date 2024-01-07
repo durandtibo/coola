@@ -126,6 +126,11 @@ class AbstractEqualityHandler(BaseEqualityHandler):
     def _handle_next(self, object1: Any, object2: Any, config: EqualityConfig) -> bool:
         r"""Return the output from the next handler.
 
+        Args:
+            object1: Specifies the first object to compare.
+            object2: Specifies the second object to compare.
+            config: Specifies the equality configuration.
+
         Returns:
             The output from the next handler.
 
