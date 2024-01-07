@@ -100,8 +100,6 @@ class XarrayDatasetEqualityComparator(BaseEqualityComparator[xr.Dataset]):
         return self.__class__()
 
     def equal(self, object1: xr.Dataset, object2: Any, config: EqualityConfig) -> bool:
-        # print(object1.data_vars)
-        # print(object2.data_vars)
         return self._handler.handle(object1=object1, object2=object2, config=config)
 
 
