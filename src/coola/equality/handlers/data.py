@@ -1,8 +1,8 @@
-r"""Implement handlers to check the objects have the same data type."""
+r"""Implement handlers to check the objects have the same data."""
 
 from __future__ import annotations
 
-__all__ = ["SameDTypeHandler", "SupportsDType"]
+__all__ = ["SupportsData", "SameDataHandler"]
 
 import logging
 from typing import TYPE_CHECKING, Any, Protocol
@@ -16,41 +16,41 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class SupportsDType(Protocol):
-    r"""Implement a protocol to represent objects with a ``dtype``
+class SupportsData(Protocol):
+    r"""Implement a protocol to represent objects with a ``data``
     attribute.
 
     This protocol can be used to represent several objects like
     ``jax.numpy.ndarray``s, ``numpy.ndarray``s,  and
     ``torch.Tensor``s.
     """
+    data: Any
 
     @property
-    def dtype(self) -> Any:
+    def data(self) -> Any:
         return  # pragma: no cover
 
 
-class SameDTypeHandler(AbstractEqualityHandler):
-    r"""Check if the two objects have the same data type.
+class SameDataHandler(AbstractEqualityHandler):
+    r"""Check if the two objects have the same data.
 
     This handler returns ``False`` if the two objects have different
-    data types, otherwise it passes the inputs to the next handler.
-    The objects must have a ``dtype`` attribute (e.g. ``object.dtype``)
-    which returns the shape of the object. This handler works on
-    ``numpy.ndarray``s and ``torch.Tensor``s objects.
+    data, otherwise it passes the inputs to the next handler.
+    The objects must have a ``data`` attribute (e.g. ``object.data``)
+    which returns the shape of the object.
 
     Example usage:
 
     ```pycon
     >>> import numpy as np
     >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import SameDTypeHandler, TrueHandler
+    >>> from coola.equality.handlers import SameDataHandler, TrueHandler
     >>> from coola.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = SameDTypeHandler(next_handler=TrueHandler())
+    >>> handler = SameDataHandler(next_handler=TrueHandler())
     >>> handler.handle(np.ones((2, 3)), np.ones((2, 3)), config)
     True
-    >>> handler.handle(np.ones((2, 3), dtype=float), np.ones((2, 3), dtype=int), config)
+    >>> handler.handle(np.ones((2, 3)), np.zeros((2, 3)), config)
     False
 
     ```
@@ -62,13 +62,9 @@ class SameDTypeHandler(AbstractEqualityHandler):
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
-    def handle(
-        self, object1: SupportsDType, object2: SupportsDType, config: EqualityConfig
-    ) -> bool:
-        if object1.dtype != object2.dtype:
+    def handle(self, object1: SupportsData, object2: SupportsData, config: EqualityConfig) -> bool:
+        if not config.tester.equal(object1.data, object2.data, config.show_difference):
             if config.show_difference:
-                logger.info(
-                    f"objects have different data types: {object1.dtype} vs {object2.dtype}"
-                )
+                logger.info(f"objects have different data: {object1.data} vs {object2.data}")
             return False
         return self._handle_next(object1=object1, object2=object2, config=config)

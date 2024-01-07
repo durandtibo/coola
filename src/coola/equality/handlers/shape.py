@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class SupportsShape(Protocol):
     r"""Implement a protocol to represent objects with a ``shape``
-    property.
+    attribute.
 
     This protocol can be used to represent several objects like
     ``jax.numpy.ndarray``s, ``numpy.ndarray``s, ``pandas.DataFrame``,
@@ -35,7 +35,7 @@ class SameShapeHandler(AbstractEqualityHandler):
 
     This handler returns ``False`` if the two objects have different
     shapes, otherwise it passes the inputs to the next handler.
-    The objects must have a ``shape`` property (e.g. ``object.shape``)
+    The objects must have a ``shape`` attribute (e.g. ``object.shape``)
     which returns the shape of the object. This handler works on
     ``jax.numpy.ndarray``s, ``numpy.ndarray``s, ``pandas.DataFrame``,
     ``polars.DataFrame`` and ``torch.Tensor``s objects.
