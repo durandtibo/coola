@@ -47,8 +47,8 @@ class EqualityTester(BaseEqualityTester):
 
         ```pycon
         >>> from coola.equality.testers import EqualityTester
-        >>> from coola.equality.comparators import SequenceEqualityOperator
-        >>> EqualityTester.add_operator(list, SequenceEqualityOperator(), exist_ok=True)
+        >>> from coola.equality.comparators import SequenceEqualityComparator
+        >>> EqualityTester.add_operator(list, SequenceEqualityComparator(), exist_ok=True)
 
         ```
         """
@@ -104,9 +104,9 @@ class EqualityTester(BaseEqualityTester):
         ```pycon
         >>> from coola.equality.testers import EqualityTester
         >>> EqualityTester.find_operator(list)
-        SequenceEqualityOperator()
+        SequenceEqualityComparator()
         >>> EqualityTester.find_operator(str)
-        DefaultEqualityOperator()
+        DefaultEqualityComparator()
 
         ```
         """
@@ -254,9 +254,9 @@ class LocalEqualityTester(BaseEqualityTester):
         >>> from coola.equality.testers import EqualityTester
         >>> tester = EqualityTester.local_copy()
         >>> tester.find_operator(list)
-        SequenceEqualityOperator()
+        SequenceEqualityComparator()
         >>> tester.find_operator(str)
-        DefaultEqualityOperator()
+        DefaultEqualityComparator()
 
         ```
         """
