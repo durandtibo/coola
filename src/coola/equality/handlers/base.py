@@ -7,6 +7,8 @@ __all__ = ["BaseEqualityHandler", "AbstractEqualityHandler"]
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any
 
+from coola.utils import repr_indent, repr_mapping
+
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
 
@@ -117,6 +119,13 @@ class AbstractEqualityHandler(BaseEqualityHandler):
         self._next_handler = None
         if next_handler:
             self.set_next_handler(next_handler)
+
+    def __repr__(self) -> str:
+        args = repr_indent(repr_mapping({"next_handler": self._next_handler}))
+        return f"{self.__class__.__qualname__}(\n  {args}\n)"
+
+    def __str__(self) -> str:
+        return f"{self.__class__.__qualname__}()"
 
     @property
     def next_handler(self) -> BaseEqualityHandler | None:

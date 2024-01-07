@@ -39,6 +39,10 @@ def test_sequence_same_values_handler_eq_false() -> None:
     assert SequenceSameValuesHandler() != FalseHandler()
 
 
+def test_sequence_same_values_handler_repr() -> None:
+    assert repr(SequenceSameValuesHandler()).startswith("SequenceSameValuesHandler(")
+
+
 def test_sequence_same_values_handler_str() -> None:
     assert str(SequenceSameValuesHandler()).startswith("SequenceSameValuesHandler(")
 

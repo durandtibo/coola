@@ -56,6 +56,10 @@ def test_same_shape_handler_eq_false() -> None:
     assert SameShapeHandler() != FalseHandler()
 
 
+def test_same_shape_handler_repr() -> None:
+    assert repr(SameShapeHandler()).startswith("SameShapeHandler(")
+
+
 def test_same_shape_handler_str() -> None:
     assert str(SameShapeHandler()).startswith("SameShapeHandler(")
 

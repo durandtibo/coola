@@ -35,6 +35,10 @@ def test_jax_array_equal_handler_eq_false() -> None:
     assert JaxArrayEqualHandler() != FalseHandler()
 
 
+def test_jax_array_equal_handler_repr() -> None:
+    assert repr(JaxArrayEqualHandler()).startswith("JaxArrayEqualHandler(")
+
+
 def test_jax_array_equal_handler_str() -> None:
     assert str(JaxArrayEqualHandler()).startswith("JaxArrayEqualHandler(")
 

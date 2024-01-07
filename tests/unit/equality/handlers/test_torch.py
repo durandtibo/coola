@@ -39,6 +39,10 @@ def test_torch_tensor_equal_handler_eq_false() -> None:
     assert TorchTensorEqualHandler() != FalseHandler()
 
 
+def test_torch_tensor_equal_handler_repr() -> None:
+    assert repr(TorchTensorEqualHandler()).startswith("TorchTensorEqualHandler(")
+
+
 def test_torch_tensor_equal_handler_str() -> None:
     assert str(TorchTensorEqualHandler()).startswith("TorchTensorEqualHandler(")
 
@@ -118,6 +122,10 @@ def test_torch_tensor_same_device_handler_eq_true() -> None:
 
 def test_torch_tensor_same_device_handler_eq_false() -> None:
     assert TorchTensorSameDeviceHandler() != FalseHandler()
+
+
+def test_torch_tensor_same_device_handler_repr() -> None:
+    assert repr(TorchTensorSameDeviceHandler()).startswith("TorchTensorSameDeviceHandler(")
 
 
 def test_torch_tensor_same_device_handler_str() -> None:

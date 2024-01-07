@@ -59,9 +59,6 @@ class SameDataHandler(AbstractEqualityHandler):
     def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
-
     def handle(self, object1: SupportsData, object2: SupportsData, config: EqualityConfig) -> bool:
         if not config.tester.equal(object1.data, object2.data, config.show_difference):
             if config.show_difference:
