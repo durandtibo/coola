@@ -19,26 +19,8 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
         The mapping between the types and the equality comparators.
 
     ```pycon
-    # >>> from coola.equality.comparators import get_type_comparator_mapping
-    # >>> get_type_comparator_mapping()
-    # {<class 'collections.abc.Mapping'>: MappingEqualityOperator(),
-    #  <class 'collections.abc.Sequence'>: SequenceEqualityOperator(),
-    #  <class 'dict'>: MappingEqualityOperator(),
-    #  <class 'list'>: SequenceEqualityOperator(),
-    #  <class 'object'>: DefaultEqualityOperator(),
-    #  <class 'tuple'>: SequenceEqualityOperator(),
-    #  <class 'jax.Array'>: JaxArrayEqualityOperator(check_dtype=True),
-    #  <class 'jaxlib.xla_extension.ArrayImpl'>: JaxArrayEqualityOperator(check_dtype=True),
-    #  <class 'numpy.ndarray'>: ArrayEqualityOperator(check_dtype=True),
-    #  <class 'pandas.core.frame.DataFrame'>: DataFrameEqualityOperator(nulls_compare_equal=False),
-    #  <class 'pandas.core.series.Series'>: SeriesEqualityOperator(nulls_compare_equal=False),
-    #  <class 'polars.dataframe.frame.DataFrame'>: DataFrameEqualityOperator(),
-    #  <class 'polars.series.series.Series'>: SeriesEqualityOperator(),
-    #  <class 'torch.Tensor'>: TensorEqualityOperator(),
-    #  <class 'torch.nn.utils.rnn.PackedSequence'>: PackedSequenceEqualityOperator(),
-    #  <class 'xarray.core.dataset.Dataset'>: DatasetEqualityOperator(),
-    #  <class 'xarray.core.dataarray.DataArray'>: DataArrayEqualityOperator(),
-    #  <class 'xarray.core.variable.Variable'>: VariableEqualityOperator()}
+    >>> from coola.equality.comparators import get_type_comparator_mapping
+    >>> get_type_comparator_mapping()
 
     ```
     """
@@ -46,6 +28,7 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
 
     return (
         comparators.default.get_type_comparator_mapping()
+        | comparators.collection.get_type_comparator_mapping()
         # | comparators.jax_.get_type_comparator_mapping()
         | comparators.numpy_.get_type_comparator_mapping()
         # | comparators.pandas_.get_type_comparator_mapping()
