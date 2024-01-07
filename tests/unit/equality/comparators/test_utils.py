@@ -3,11 +3,11 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 
 from coola.equality.comparators import (
-    ArrayEqualityComparator,
     DefaultEqualityComparator,
     MappingEqualityComparator,
+    NumpyArrayEqualityComparator,
     SequenceEqualityComparator,
-    TensorEqualityComparator,
+    TorchTensorEqualityComparator,
     get_type_comparator_mapping,
 )
 from coola.testing import torch_available
@@ -38,10 +38,10 @@ def test_get_type_comparator_mapping() -> None:
 @numpy_available
 def test_get_type_comparator_mapping_numpy() -> None:
     mapping = get_type_comparator_mapping()
-    assert isinstance(mapping[np.ndarray], ArrayEqualityComparator)
+    assert isinstance(mapping[np.ndarray], NumpyArrayEqualityComparator)
 
 
 @torch_available
 def test_get_type_comparator_mapping_torch() -> None:
     mapping = get_type_comparator_mapping()
-    assert isinstance(mapping[torch.Tensor], TensorEqualityComparator)
+    assert isinstance(mapping[torch.Tensor], TorchTensorEqualityComparator)
