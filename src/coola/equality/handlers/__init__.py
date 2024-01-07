@@ -15,6 +15,7 @@ __all__ = [
     "MappingSameValuesHandler",
     "NumpyArrayEqualHandler",
     "ObjectEqualHandler",
+    "SameAttributeHandler",
     "SameDTypeHandler",
     "SameLengthHandler",
     "SameObjectHandler",
@@ -35,6 +36,7 @@ from coola.equality.handlers.mapping import (
 from coola.equality.handlers.native import (
     FalseHandler,
     ObjectEqualHandler,
+    SameAttributeHandler,
     SameLengthHandler,
     SameObjectHandler,
     SameTypeHandler,
