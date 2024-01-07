@@ -69,7 +69,7 @@ def test_same_shape_handler_str() -> None:
         (np.ones(shape=(2, 3), dtype=bool), np.zeros(shape=(2, 3), dtype=float)),
     ],
 )
-def test_same_shape_handler_handle_true_ndarray(
+def test_same_shape_handler_handle_true(
     object1: np.ndarray, object2: np.ndarray, config: EqualityConfig
 ) -> None:
     assert SameShapeHandler(next_handler=TrueHandler()).handle(object1, object2, config)
@@ -84,7 +84,7 @@ def test_same_shape_handler_handle_true_ndarray(
         (np.ones(shape=(2, 3)), np.ones(shape=(2, 3, 1))),
     ],
 )
-def test_same_shape_handler_handle_false_ndarray(
+def test_same_shape_handler_handle_false(
     object1: np.ndarray, object2: np.ndarray, config: EqualityConfig
 ) -> None:
     assert not SameShapeHandler().handle(object1, object2, config)
