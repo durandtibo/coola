@@ -32,6 +32,7 @@ def config() -> EqualityConfig:
 ###########################################################
 
 
+@torch_available
 def test_objects_are_equal_packed_sequence() -> None:
     assert objects_are_equal(
         torch.nn.utils.rnn.pack_padded_sequence(
