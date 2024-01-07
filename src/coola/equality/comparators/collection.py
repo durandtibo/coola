@@ -37,9 +37,9 @@ class MappingEqualityComparator(BaseEqualityComparator[Any]):
     >>> from coola.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> comparator = MappingEqualityComparator()
-    >>> comparator.equal([1, 2, 3], [1, 2, 3], config)
+    >>> comparator.equal({"a": 1, "b": 2}, {"a": 1, "b": 2}, config)
     True
-    >>> comparator.equal([1, 2, 3], [1, 2, 4], config)
+    >>> comparator.equal({"a": 1, "b": 2}, {"a": 1, "b": 4}, config)
     False
 
     ```
