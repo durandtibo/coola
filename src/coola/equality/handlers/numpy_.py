@@ -2,7 +2,7 @@ r"""Implement some handlers for ``numpy.ndarray``s."""
 
 from __future__ import annotations
 
-__all__ = ["ArrayEqualHandler"]
+__all__ = ["NumpyArrayEqualHandler"]
 
 import logging
 from typing import TYPE_CHECKING
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class ArrayEqualHandler(BaseEqualityHandler):
+class NumpyArrayEqualHandler(BaseEqualityHandler):
     r"""Check if the two arrays are equal.
 
     This handler returns ``True`` if the two arrays are equal,
@@ -35,10 +35,10 @@ class ArrayEqualHandler(BaseEqualityHandler):
     ```pycon
     >>> import numpy as np
     >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers.numpy_ import ArrayEqualHandler
+    >>> from coola.equality.handlers.numpy_ import NumpyArrayEqualHandler
     >>> from coola.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = ArrayEqualHandler()
+    >>> handler = NumpyArrayEqualHandler()
     >>> handler.handle(np.ones((2, 3)), np.ones((2, 3)), config)
     True
     >>> handler.handle(np.ones((2, 3)), np.zeros((2, 3)), config)

@@ -2,7 +2,7 @@ r"""Implement some handlers for ``torch.Tensor``s."""
 
 from __future__ import annotations
 
-__all__ = ["TensorEqualHandler", "TensorSameDeviceHandler"]
+__all__ = ["TorchTensorEqualHandler", "TorchTensorSameDeviceHandler"]
 
 import logging
 from typing import TYPE_CHECKING
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class TensorEqualHandler(BaseEqualityHandler):
+class TorchTensorEqualHandler(BaseEqualityHandler):
     r"""Check if the two tensors are equal.
 
     This handler returns ``True`` if the two tensors are equal,
@@ -35,10 +35,10 @@ class TensorEqualHandler(BaseEqualityHandler):
     ```pycon
     >>> import torch
     >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers.torch_ import TensorEqualHandler
+    >>> from coola.equality.handlers.torch_ import TorchTensorEqualHandler
     >>> from coola.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = TensorEqualHandler()
+    >>> handler = TorchTensorEqualHandler()
     >>> handler.handle(torch.ones(2, 3), torch.ones(2, 3), config)
     True
     >>> handler.handle(torch.ones(2, 3), torch.zeros(2, 3), config)
@@ -74,7 +74,7 @@ class TensorEqualHandler(BaseEqualityHandler):
         pass  # Do nothing because the next handler is never called.
 
 
-class TensorSameDeviceHandler(AbstractEqualityHandler):
+class TorchTensorSameDeviceHandler(AbstractEqualityHandler):
     r"""Check if the two tensors have the same device.
 
     This handler returns ``False`` if the two objects have different
@@ -86,10 +86,10 @@ class TensorSameDeviceHandler(AbstractEqualityHandler):
     >>> import torch
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import TrueHandler
-    >>> from coola.equality.handlers.torch_ import TensorSameDeviceHandler
+    >>> from coola.equality.handlers.torch_ import TorchTensorSameDeviceHandler
     >>> from coola.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = TensorSameDeviceHandler(next_handler=TrueHandler())
+    >>> handler = TorchTensorSameDeviceHandler(next_handler=TrueHandler())
     >>> handler.handle(torch.ones(2, 3), torch.ones(3, 2), config)
     True
 
