@@ -8,7 +8,7 @@ import pytest
 from coola import EqualityTester
 from coola.equality import EqualityConfig
 from coola.equality.handlers import FalseHandler, JaxArrayEqualHandler
-from coola.testing import numpy_available
+from coola.testing import jax_available
 from coola.utils.imports import is_jax_available
 
 if is_jax_available():
@@ -39,7 +39,7 @@ def test_jax_array_equal_handler_str() -> None:
     assert str(JaxArrayEqualHandler()).startswith("JaxArrayEqualHandler(")
 
 
-@numpy_available
+@jax_available
 @pytest.mark.parametrize(
     ("object1", "object2"),
     [
@@ -54,7 +54,7 @@ def test_jax_array_equal_handler_handle_true(
     assert JaxArrayEqualHandler().handle(object1, object2, config)
 
 
-@numpy_available
+@jax_available
 @pytest.mark.parametrize(
     ("object1", "object2"),
     [
@@ -69,14 +69,14 @@ def test_jax_array_equal_handler_handle_false(
     assert not JaxArrayEqualHandler().handle(object1, object2, config)
 
 
-@numpy_available
+@jax_available
 def test_jax_array_equal_handler_handle_equal_nan_false(config: EqualityConfig) -> None:
     assert not JaxArrayEqualHandler().handle(
         jnp.array([0.0, jnp.nan, jnp.nan, 1.2]), jnp.array([0.0, jnp.nan, jnp.nan, 1.2]), config
     )
 
 
-@numpy_available
+@jax_available
 def test_jax_array_equal_handler_handle_equal_nan_true(config: EqualityConfig) -> None:
     config.equal_nan = True
     assert JaxArrayEqualHandler().handle(
@@ -84,7 +84,7 @@ def test_jax_array_equal_handler_handle_equal_nan_true(config: EqualityConfig) -
     )
 
 
-@numpy_available
+@jax_available
 def test_jax_array_equal_handler_handle_false_show_difference(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
