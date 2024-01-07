@@ -7,6 +7,7 @@ from coola.equality.comparators import (
     MappingEqualityComparator,
     NumpyArrayEqualityComparator,
     SequenceEqualityComparator,
+    TorchPackedSequenceEqualityComparator,
     TorchTensorEqualityComparator,
     get_type_comparator_mapping,
 )
@@ -44,4 +45,7 @@ def test_get_type_comparator_mapping_numpy() -> None:
 @torch_available
 def test_get_type_comparator_mapping_torch() -> None:
     mapping = get_type_comparator_mapping()
+    assert isinstance(
+        mapping[torch.nn.utils.rnn.PackedSequence], TorchPackedSequenceEqualityComparator
+    )
     assert isinstance(mapping[torch.Tensor], TorchTensorEqualityComparator)
