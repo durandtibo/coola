@@ -2,7 +2,7 @@ r"""Implement a handler to check if two objects have the same shape."""
 
 from __future__ import annotations
 
-__all__ = ["SameShapeHandler"]
+__all__ = ["SameShapeHandler", "SupportsShape"]
 
 import logging
 from typing import TYPE_CHECKING, Protocol
