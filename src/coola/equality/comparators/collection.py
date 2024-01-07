@@ -16,7 +16,7 @@ from coola.equality.handlers import (
     SameLengthHandler,
     SameObjectHandler,
     SameTypeHandler,
-    SequenceSameValueHandler,
+    SequenceSameValuesHandler,
     TrueHandler,
 )
 
@@ -83,7 +83,7 @@ class SequenceEqualityComparator(BaseEqualityComparator[Any]):
     def __init__(self) -> None:
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(SameLengthHandler()).chain(
-            SequenceSameValueHandler()
+            SequenceSameValuesHandler()
         ).chain(TrueHandler())
 
     def __eq__(self, other: object) -> bool:

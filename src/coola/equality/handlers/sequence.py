@@ -2,7 +2,7 @@ r"""Implement some handlers for sequence objects."""
 
 from __future__ import annotations
 
-__all__ = ["SequenceSameValueHandler"]
+__all__ = ["SequenceSameValuesHandler"]
 
 import logging
 from typing import TYPE_CHECKING
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class SequenceSameValueHandler(AbstractEqualityHandler):
+class SequenceSameValuesHandler(AbstractEqualityHandler):
     r"""Check if the two sequences have the same values.
 
     This handler returns ``False`` if the two sequences have at least
@@ -29,10 +29,10 @@ class SequenceSameValueHandler(AbstractEqualityHandler):
 
     ```pycon
     >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import SequenceSameValueHandler, TrueHandler
+    >>> from coola.equality.handlers import SequenceSameValuesHandler, TrueHandler
     >>> from coola.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = SequenceSameValueHandler(next_handler=TrueHandler())
+    >>> handler = SequenceSameValuesHandler(next_handler=TrueHandler())
     >>> handler.handle([1, 2, 3], [1, 2, 3], config)
     True
     >>> handler.handle([1, 2, 3], [1, 2, 4], config)

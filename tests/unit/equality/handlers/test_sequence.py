@@ -8,7 +8,7 @@ import pytest
 
 from coola import EqualityTester
 from coola.equality import EqualityConfig
-from coola.equality.handlers import FalseHandler, SequenceSameValueHandler, TrueHandler
+from coola.equality.handlers import FalseHandler, SequenceSameValuesHandler, TrueHandler
 from coola.testing import numpy_available
 from coola.utils import is_numpy_available
 
@@ -26,21 +26,21 @@ def config() -> EqualityConfig:
     return EqualityConfig(tester=EqualityTester())
 
 
-##############################################
-#     Tests for SequenceSameValueHandler     #
-##############################################
+###############################################
+#     Tests for SequenceSameValuesHandler     #
+###############################################
 
 
-def test_sequence_same_value_handler_eq_true() -> None:
-    assert SequenceSameValueHandler() == SequenceSameValueHandler()
+def test_sequence_same_values_handler_eq_true() -> None:
+    assert SequenceSameValuesHandler() == SequenceSameValuesHandler()
 
 
-def test_sequence_same_value_handler_eq_false() -> None:
-    assert SequenceSameValueHandler() != FalseHandler()
+def test_sequence_same_values_handler_eq_false() -> None:
+    assert SequenceSameValuesHandler() != FalseHandler()
 
 
-def test_sequence_same_value_handler_str() -> None:
-    assert str(SequenceSameValueHandler()).startswith("SequenceSameValueHandler(")
+def test_sequence_same_values_handler_str() -> None:
+    assert str(SequenceSameValuesHandler()).startswith("SequenceSameValuesHandler(")
 
 
 @pytest.mark.parametrize(
@@ -53,10 +53,10 @@ def test_sequence_same_value_handler_str() -> None:
         ([0, 1, 2, 3], [0, 1, 2]),
     ],
 )
-def test_sequence_same_value_handler_handle_true(
+def test_sequence_same_values_handler_handle_true(
     object1: Sequence, object2: Sequence, config: EqualityConfig
 ) -> None:
-    assert SequenceSameValueHandler(next_handler=TrueHandler()).handle(object1, object2, config)
+    assert SequenceSameValuesHandler(next_handler=TrueHandler()).handle(object1, object2, config)
 
 
 @numpy_available
@@ -67,10 +67,10 @@ def test_sequence_same_value_handler_handle_true(
         ((np.ones((2, 3)), np.zeros(2)), (np.ones((2, 3)), np.zeros(2))),
     ],
 )
-def test_sequence_same_value_handler_handle_true_numpy(
+def test_sequence_same_values_handler_handle_true_numpy(
     object1: Sequence, object2: Sequence, config: EqualityConfig
 ) -> None:
-    assert SequenceSameValueHandler(next_handler=TrueHandler()).handle(object1, object2, config)
+    assert SequenceSameValuesHandler(next_handler=TrueHandler()).handle(object1, object2, config)
 
 
 @pytest.mark.parametrize(
@@ -81,10 +81,10 @@ def test_sequence_same_value_handler_handle_true_numpy(
         ([0, ("a", "b", "c"), 2], [0, ("a", "b", "d"), 2]),
     ],
 )
-def test_sequence_same_value_handler_handle_false(
+def test_sequence_same_values_handler_handle_false(
     object1: Sequence, object2: Sequence, config: EqualityConfig
 ) -> None:
-    assert not SequenceSameValueHandler().handle(object1, object2, config)
+    assert not SequenceSameValuesHandler().handle(object1, object2, config)
 
 
 @numpy_available
@@ -95,35 +95,37 @@ def test_sequence_same_value_handler_handle_false(
         ((np.ones((2, 3)), np.zeros(2)), (np.ones((2, 3)), np.ones(2))),
     ],
 )
-def test_sequence_same_value_handler_handle_false_numpy(
+def test_sequence_same_values_handler_handle_false_numpy(
     object1: Sequence, object2: Sequence, config: EqualityConfig
 ) -> None:
-    assert not SequenceSameValueHandler(next_handler=TrueHandler()).handle(object1, object2, config)
+    assert not SequenceSameValuesHandler(next_handler=TrueHandler()).handle(
+        object1, object2, config
+    )
 
 
-def test_sequence_same_value_handler_handle_false_show_difference(
+def test_sequence_same_values_handler_handle_false_show_difference(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
-    handler = SequenceSameValueHandler()
+    handler = SequenceSameValuesHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(object1=[1, 2, 3], object2=[1, 2, 4], config=config)
         assert caplog.messages[-1].startswith("sequences have at least one different value:")
 
 
-def test_sequence_same_value_handler_handle_without_next_handler(config: EqualityConfig) -> None:
-    handler = SequenceSameValueHandler()
+def test_sequence_same_values_handler_handle_without_next_handler(config: EqualityConfig) -> None:
+    handler = SequenceSameValuesHandler()
     with pytest.raises(RuntimeError, match="next handler is not defined"):
         handler.handle(object1=[1, 2, 3], object2=[1, 2, 3], config=config)
 
 
-def test_sequence_same_value_handler_set_next_handler() -> None:
-    handler = SequenceSameValueHandler()
+def test_sequence_same_values_handler_set_next_handler() -> None:
+    handler = SequenceSameValuesHandler()
     handler.set_next_handler(FalseHandler())
     assert handler.next_handler == FalseHandler()
 
 
-def test_sequence_same_value_handler_set_next_handler_incorrect() -> None:
-    handler = SequenceSameValueHandler()
+def test_sequence_same_values_handler_set_next_handler_incorrect() -> None:
+    handler = SequenceSameValuesHandler()
     with pytest.raises(TypeError, match="Incorrect type for `handler`."):
         handler.set_next_handler(None)
