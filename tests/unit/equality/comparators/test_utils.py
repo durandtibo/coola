@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
+
 from coola.equality.comparators import (
     ArrayEqualityComparator,
     DefaultEqualityComparator,
+    MappingEqualityComparator,
+    SequenceEqualityComparator,
     TensorEqualityComparator,
     get_type_comparator_mapping,
 )
@@ -22,8 +26,13 @@ if is_torch_available():
 
 def test_get_type_comparator_mapping() -> None:
     mapping = get_type_comparator_mapping()
-    assert len(mapping) >= 1
+    assert len(mapping) >= 6
+    assert isinstance(mapping[Mapping], MappingEqualityComparator)
+    assert isinstance(mapping[Sequence], SequenceEqualityComparator)
+    assert isinstance(mapping[dict], MappingEqualityComparator)
+    assert isinstance(mapping[list], SequenceEqualityComparator)
     assert isinstance(mapping[object], DefaultEqualityComparator)
+    assert isinstance(mapping[tuple], SequenceEqualityComparator)
 
 
 @numpy_available
