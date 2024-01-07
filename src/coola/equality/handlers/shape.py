@@ -1,0 +1,71 @@
+r"""Implement a handler to check if two objects have the same shape."""
+
+from __future__ import annotations
+
+__all__ = ["SameShapeHandler"]
+
+import logging
+from typing import TYPE_CHECKING, Protocol
+
+from coola.equality.handlers.base import AbstractEqualityHandler
+
+if TYPE_CHECKING:
+    from coola.equality.config import EqualityConfig
+
+
+logger = logging.getLogger(__name__)
+
+
+class SupportsShape(Protocol):
+    r"""Implement a protocol to represent objects with a ``shape``
+    property.
+
+    This protocol can be used to represent several objects like
+    ``jax.numpy.ndarray``s, ``numpy.ndarray``s, ``pandas.DataFrame``,
+    ``polars.DataFrame`` and ``torch.Tensor``s.
+    """
+
+    @property
+    def shape(self) -> tuple[int, ...]:
+        return ()  # pragma: no cover
+
+
+class SameShapeHandler(AbstractEqualityHandler):
+    r"""Check if the two objects have the same shape.
+
+    This handler returns ``False`` if the two objects have different
+    shapes, otherwise it passes the inputs to the next handler.
+    The objects must have a ``shape`` property (e.g. ``object.shape``)
+    which returns the shape of the object. This handler works on
+    ``jax.numpy.ndarray``s, ``numpy.ndarray``s, ``pandas.DataFrame``,
+    ``polars.DataFrame`` and ``torch.Tensor``s objects.
+
+    Example usage:
+
+    ```pycon
+    >>> import numpy as np
+    >>> from coola.equality import EqualityConfig
+    >>> from coola.equality.handlers import SameShapeHandler
+    >>> from coola.testers import EqualityTester
+    >>> config = EqualityConfig(tester=EqualityTester())
+    >>> handler = SameShapeHandler()
+    >>> handler.handle(np.ones((2, 3)), np.ones((3, 2)), config)
+    False
+
+    ```
+    """
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, self.__class__)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__qualname__}()"
+
+    def handle(
+        self, object1: SupportsShape, object2: SupportsShape, config: EqualityConfig
+    ) -> bool:
+        if object1.shape != object2.shape:
+            if config.show_difference:
+                logger.info(f"objects have different shapes: {object1.shape} vs {object2.shape}")
+            return False
+        return self._handle_next(object1=object1, object2=object2, config=config)

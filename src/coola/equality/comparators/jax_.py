@@ -11,9 +11,9 @@ from typing import TYPE_CHECKING, Any
 from coola.equality.comparators.base import BaseEqualityComparator
 from coola.equality.handlers import (
     ArraySameDTypeHandler,
-    ArraySameShapeHandler,
     JaxArrayEqualHandler,
     SameObjectHandler,
+    SameShapeHandler,
     SameTypeHandler,
 )
 from coola.utils.imports import check_jax, is_jax_available
@@ -51,7 +51,7 @@ class JaxArrayEqualityComparator(BaseEqualityComparator[Any]):
         check_jax()
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(ArraySameDTypeHandler()).chain(
-            ArraySameShapeHandler()
+            SameShapeHandler()
         ).chain(JaxArrayEqualHandler())
 
     def __eq__(self, other: object) -> bool:
