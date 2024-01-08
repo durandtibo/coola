@@ -11,6 +11,7 @@ from unittest.mock import Mock
 
 from coola.equality.comparators.base import BaseEqualityComparator
 from coola.equality.handlers import (
+    PandasDataFrameEqualHandler,
     PandasSeriesEqualHandler,
     SameObjectHandler,
     SameTypeHandler,
@@ -26,6 +27,49 @@ if TYPE_CHECKING:
     from coola.equality import EqualityConfig
 
 logger = logging.getLogger(__name__)
+
+
+class PandasDataFrameEqualityComparator(BaseEqualityComparator[pandas.DataFrame]):
+    r"""Implement an equality comparator for ``pandas.DataFrame``.
+
+    Example usage:
+
+    ```pycon
+    >>> import pandas as np
+    >>> from coola.equality import EqualityConfig
+    >>> from coola.equality.comparators import PandasDataFrameEqualityComparator
+    >>> from coola.testers import EqualityTester
+    >>> config = EqualityConfig(tester=EqualityTester())
+    >>> comparator = PandasDataFrameEqualityComparator()
+    >>> comparator.equal(
+    ...     pandas.DataFrame({"col": [1, 2, 3]}),
+    ...     pandas.DataFrame({"col": [1, 2, 3]}),
+    ...     config,
+    ... )
+    True
+    >>> comparator.equal(
+    ...     pandas.DataFrame({"col": [1, 2, 3]}),
+    ...     pandas.DataFrame({"col": [1, 2, 4]}),
+    ...     config,
+    ... )
+    False
+
+    ```
+    """
+
+    def __init__(self) -> None:
+        check_pandas()
+        self._handler = SameObjectHandler()
+        self._handler.chain(SameTypeHandler()).chain(PandasDataFrameEqualHandler())
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, self.__class__)
+
+    def clone(self) -> PandasDataFrameEqualityComparator:
+        return self.__class__()
+
+    def equal(self, object1: pandas.DataFrame, object2: Any, config: EqualityConfig) -> bool:
+        return self._handler.handle(object1=object1, object2=object2, config=config)
 
 
 class PandasSeriesEqualityComparator(BaseEqualityComparator[pandas.Series]):
@@ -78,10 +122,14 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
     ```pycon
     >>> from coola.equality.comparators.pandas_ import get_type_comparator_mapping
     >>> get_type_comparator_mapping()
-    {<class 'pandas.core.series.Series'>: PandasSeriesEqualityComparator()}
+    {<class 'pandas.core.frame.DataFrame'>: PandasDataFrameEqualityComparator(),
+     <class 'pandas.core.series.Series'>: PandasSeriesEqualityComparator()}
 
     ```
     """
     if not is_pandas_available():
         return {}
-    return {pandas.Series: PandasSeriesEqualityComparator()}
+    return {
+        pandas.DataFrame: PandasDataFrameEqualityComparator(),
+        pandas.Series: PandasSeriesEqualityComparator(),
+    }

@@ -8,6 +8,7 @@ __all__ = [
     "JaxArrayEqualityComparator",
     "MappingEqualityComparator",
     "NumpyArrayEqualityComparator",
+    "PandasDataFrameEqualityComparator",
     "PandasSeriesEqualityComparator",
     "SequenceEqualityComparator",
     "TorchPackedSequenceEqualityComparator",
@@ -26,7 +27,10 @@ from coola.equality.comparators.collection import (
 from coola.equality.comparators.default import DefaultEqualityComparator
 from coola.equality.comparators.jax_ import JaxArrayEqualityComparator
 from coola.equality.comparators.numpy_ import NumpyArrayEqualityComparator
-from coola.equality.comparators.pandas_ import PandasSeriesEqualityComparator
+from coola.equality.comparators.pandas_ import (
+    PandasDataFrameEqualityComparator,
+    PandasSeriesEqualityComparator,
+)
 from coola.equality.comparators.torch_ import (
     TorchPackedSequenceEqualityComparator,
     TorchTensorEqualityComparator,

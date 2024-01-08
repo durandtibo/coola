@@ -41,11 +41,15 @@ class PandasDataFrameEqualHandler(BaseEqualityHandler):
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> handler = PandasDataFrameEqualHandler()
     >>> handler.handle(
-    ...     pandas.DataFrame([1, 2, 3, 4, 5]), pandas.DataFrame([1, 2, 3, 4, 5]), config
+    ...     pandas.DataFrame({"col": [1, 2, 3]}),
+    ...     pandas.DataFrame({"col": [1, 2, 3]}),
+    ...     config,
     ... )
     True
     >>> handler.handle(
-    ...     pandas.DataFrame([1, 2, 3, 4, 5]), pandas.DataFrame([1, 2, 3, 4, 0]), config
+    ...     pandas.DataFrame({"col": [1, 2, 3]}),
+    ...     pandas.DataFrame({"col": [1, 2, 4]}),
+    ...     config,
     ... )
     False
 
