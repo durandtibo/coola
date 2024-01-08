@@ -3,8 +3,9 @@ r"""Implement an equality comparator for ``xarray`` objects."""
 from __future__ import annotations
 
 __all__ = [
-    "XarrayVariableEqualityComparator",
+    "XarrayDataArrayEqualityComparator",
     "XarrayDatasetEqualityComparator",
+    "XarrayVariableEqualityComparator",
     "get_type_comparator_mapping",
 ]
 
@@ -33,6 +34,52 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+class XarrayDataArrayEqualityComparator(BaseEqualityComparator[xr.DataArray]):
+    r"""Implement an equality comparator for ``xarray.DataArray``.
+
+    Example usage:
+
+    ```pycon
+    >>> import numpy as np
+    >>> import xarray as xr
+    >>> from coola.equality import EqualityConfig
+    >>> from coola.equality.comparators import XarrayDataArrayEqualityComparator
+    >>> from coola.testers import EqualityTester
+    >>> config = EqualityConfig(tester=EqualityTester())
+    >>> comparator = XarrayDataArrayEqualityComparator()
+    >>> comparator.equal(
+    ...     xr.DataArray(np.arange(6), dims=["z"]),
+    ...     xr.DataArray(np.arange(6), dims=["z"]),
+    ...     config,
+    ... )
+    True
+    >>> comparator.equal(
+    ...     xr.DataArray(np.ones(6), dims=["z"]),
+    ...     xr.DataArray(np.zeros(6), dims=["z"]),
+    ...     config,
+    ... )
+    False
+
+    ```
+    """
+
+    def __init__(self) -> None:
+        check_xarray()
+        self._handler = SameObjectHandler()
+        self._handler.chain(SameTypeHandler()).chain(SameAttributeHandler(name="variable")).chain(
+            SameAttributeHandler(name="name")
+        ).chain(SameAttributeHandler(name="_coords")).chain(TrueHandler())
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, self.__class__)
+
+    def clone(self) -> XarrayDataArrayEqualityComparator:
+        return self.__class__()
+
+    def equal(self, object1: xr.DataArray, object2: Any, config: EqualityConfig) -> bool:
+        return self._handler.handle(object1=object1, object2=object2, config=config)
+
+
 class XarrayDatasetEqualityComparator(BaseEqualityComparator[xr.Dataset]):
     r"""Implement an equality comparator for ``xarray.Dataset``.
 
@@ -47,38 +94,14 @@ class XarrayDatasetEqualityComparator(BaseEqualityComparator[xr.Dataset]):
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> comparator = XarrayDatasetEqualityComparator()
     >>> comparator.equal(
-    ...     xr.Dataset(
-    ...         {
-    ...             "x": xr.DataArray(np.arange(6), dims=["z"]),
-    ...         },
-    ...         coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
-    ...         attrs={"global": "this is a global attribute"},
-    ...     ),
-    ...     xr.Dataset(
-    ...         {
-    ...             "x": xr.DataArray(np.arange(6), dims=["z"]),
-    ...         },
-    ...         coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
-    ...         attrs={"global": "this is a global attribute"},
-    ...     ),
+    ...     xr.Dataset({ "x": xr.DataArray(np.arange(6), dims=["z"])}),
+    ...     xr.Dataset({ "x": xr.DataArray(np.arange(6), dims=["z"])}),
     ...     config,
     ... )
     True
     >>> comparator.equal(
-    ...     xr.Dataset(
-    ...         {
-    ...             "x": xr.DataArray(np.zeros(6), dims=["z"]),
-    ...         },
-    ...         coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
-    ...         attrs={"global": "this is a global attribute"},
-    ...     ),
-    ...     xr.Dataset(
-    ...         {
-    ...             "x": xr.DataArray(np.ones(6), dims=["z"]),
-    ...         },
-    ...         coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
-    ...         attrs={"global": "this is a global attribute"},
-    ...     ),
+    ...     xr.Dataset({ "x": xr.DataArray(np.zeros(6), dims=["z"])}),
+    ...     xr.Dataset({ "x": xr.DataArray(np.ones(6), dims=["z"])}),
     ...     config,
     ... )
     False
@@ -164,14 +187,16 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
     ```pycon
     >>> from coola.equality.comparators.xarray_ import get_type_comparator_mapping
     >>> get_type_comparator_mapping()
-    {<class 'xarray.core.variable.Variable'>: XarrayVariableEqualityComparator(),
-     <class 'xarray.core.dataset.Dataset'>: XarrayDatasetEqualityComparator()}
+    {<class 'xarray.core.dataarray.DataArray'>: XarrayDataArrayEqualityComparator(),
+     <class 'xarray.core.dataset.Dataset'>: XarrayDatasetEqualityComparator(),
+     <class 'xarray.core.variable.Variable'>: XarrayVariableEqualityComparator()}
 
     ```
     """
     if not is_xarray_available():
         return {}
     return {
-        xr.Variable: XarrayVariableEqualityComparator(),
+        xr.DataArray: XarrayDataArrayEqualityComparator(),
         xr.Dataset: XarrayDatasetEqualityComparator(),
+        xr.Variable: XarrayVariableEqualityComparator(),
     }
