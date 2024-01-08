@@ -14,6 +14,7 @@ from coola.equality.comparators.numpy_ import (
 from coola.equality.testers import EqualityTester
 from coola.testing import numpy_available
 from coola.utils.imports import is_numpy_available
+from tests.unit.equality.comparators.utils import ExamplePair
 
 if is_numpy_available():
     import numpy as np
@@ -28,39 +29,39 @@ def config() -> EqualityConfig:
 
 NUMPY_ARRAY_EQUAL = [
     pytest.param(
-        np.ones(shape=(2, 3), dtype=float), np.ones(shape=(2, 3), dtype=float), id="float dtype"
+        ExamplePair(np.ones(shape=(2, 3), dtype=float), np.ones(shape=(2, 3), dtype=float)),
+        id="float dtype",
     ),
     pytest.param(
-        np.ones(shape=(2, 3), dtype=int), np.ones(shape=(2, 3), dtype=int), id="int dtype"
+        ExamplePair(np.ones(shape=(2, 3), dtype=int), np.ones(shape=(2, 3), dtype=int)),
+        id="int dtype",
     ),
-    pytest.param(np.ones(shape=6), np.ones(shape=6), id="1d array"),
-    pytest.param(np.ones(shape=(2, 3)), np.ones(shape=(2, 3)), id="2d array"),
+    pytest.param(ExamplePair(np.ones(shape=6), np.ones(shape=6)), id="1d array"),
+    pytest.param(ExamplePair(np.ones(shape=(2, 3)), np.ones(shape=(2, 3))), id="2d array"),
 ]
 
 
 NUMPY_ARRAY_NOT_EQUAL = [
     pytest.param(
-        np.ones(shape=(2, 3), dtype=float),
-        np.ones(shape=(2, 3), dtype=int),
-        "objects have different data types:",
+        ExamplePair(
+            np.ones(shape=(2, 3), dtype=float),
+            np.ones(shape=(2, 3), dtype=int),
+            "objects have different data types:",
+        ),
         id="different data types",
     ),
     pytest.param(
-        np.ones(shape=(2, 3)),
-        np.ones(shape=6),
-        "objects have different shapes:",
+        ExamplePair(np.ones(shape=(2, 3)), np.ones(shape=6), "objects have different shapes:"),
         id="different shapes",
     ),
     pytest.param(
-        np.ones(shape=(2, 3)),
-        np.zeros(shape=(2, 3)),
-        "numpy.ndarrays have different elements:",
+        ExamplePair(
+            np.ones(shape=(2, 3)), np.zeros(shape=(2, 3)), "numpy.ndarrays have different elements:"
+        ),
         id="different values",
     ),
     pytest.param(
-        np.ones(shape=(2, 3)),
-        "meow",
-        "objects have different types:",
+        ExamplePair(np.ones(shape=(2, 3)), "meow", "objects have different types:"),
         id="different types",
     ),
 ]
@@ -68,48 +69,63 @@ NUMPY_ARRAY_NOT_EQUAL = [
 
 NUMPY_MASKED_ARRAY_EQUAL = [
     pytest.param(
-        np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], dtype=float),
-        np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], dtype=float),
+        ExamplePair(
+            np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], dtype=float),
+            np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], dtype=float),
+        ),
         id="float dtype",
     ),
     pytest.param(
-        np.ma.array(data=[0, 1, 2], mask=[0, 1, 0], dtype=int),
-        np.ma.array(data=[0, 1, 2], mask=[0, 1, 0], dtype=int),
+        ExamplePair(
+            np.ma.array(data=[0, 1, 2], mask=[0, 1, 0], dtype=int),
+            np.ma.array(data=[0, 1, 2], mask=[0, 1, 0], dtype=int),
+        ),
         id="int dtype",
     ),
     pytest.param(
-        np.ma.array(data=[0.0, 1.0, 1.2]), np.ma.array(data=[0.0, 1.0, 1.2]), id="1d array"
+        ExamplePair(np.ma.array(data=[0.0, 1.0, 1.2]), np.ma.array(data=[0.0, 1.0, 1.2])),
+        id="1d array",
     ),
     pytest.param(
-        np.ma.array(data=np.ones(shape=(2, 3)), mask=[[0, 1, 0], [1, 0, 0]]),
-        np.ma.array(data=np.ones(shape=(2, 3)), mask=[[0, 1, 0], [1, 0, 0]]),
+        ExamplePair(
+            np.ma.array(data=np.ones(shape=(2, 3)), mask=[[0, 1, 0], [1, 0, 0]]),
+            np.ma.array(data=np.ones(shape=(2, 3)), mask=[[0, 1, 0], [1, 0, 0]]),
+        ),
         id="2d array",
     ),
 ]
 
 NUMPY_MASKED_ARRAY_NOT_EQUAL = [
     pytest.param(
-        np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], dtype=float),
-        np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], dtype=int),
-        "objects have different data types:",
+        ExamplePair(
+            np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], dtype=float),
+            np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], dtype=int),
+            "objects have different data types:",
+        ),
         id="different data types",
     ),
     pytest.param(
-        np.ma.array(data=np.ones(shape=(2, 3)), mask=[[0, 1, 0], [1, 0, 0]]),
-        np.ma.array(data=np.ones(shape=(3, 2)), mask=[[0, 1], [1, 0], [0, 0]]),
-        "objects have different shapes:",
+        ExamplePair(
+            np.ma.array(data=np.ones(shape=(2, 3)), mask=[[0, 1, 0], [1, 0, 0]]),
+            np.ma.array(data=np.ones(shape=(3, 2)), mask=[[0, 1], [1, 0], [0, 0]]),
+            "objects have different shapes:",
+        ),
         id="different shapes",
     ),
     pytest.param(
-        np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
-        np.ma.array(data=[0.0, 1.0, 2.0], mask=[0, 1, 0]),
-        "numpy.ndarrays have different elements:",
+        ExamplePair(
+            np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
+            np.ma.array(data=[0.0, 1.0, 2.0], mask=[0, 1, 0]),
+            "numpy.ndarrays have different elements:",
+        ),
         id="different values",
     ),
     pytest.param(
-        np.ma.array(data=np.ones(shape=(2, 3)), mask=[[0, 1, 0], [1, 0, 0]]),
-        np.ones(shape=(2, 3)),
-        "objects have different types:",
+        ExamplePair(
+            np.ma.array(data=np.ones(shape=(2, 3)), mask=[[0, 1, 0], [1, 0, 0]]),
+            np.ones(shape=(2, 3)),
+            "objects have different types:",
+        ),
         id="different types",
     ),
 ]
@@ -150,63 +166,57 @@ def test_numpy_array_equality_comparator_equal_true_same_object(config: Equality
 
 
 @numpy_available
-@pytest.mark.parametrize(("object1", "object2"), NUMPY_ARRAY_EQUAL)
+@pytest.mark.parametrize("example", NUMPY_ARRAY_EQUAL)
 def test_numpy_array_equality_comparator_equal_yes(
-    object1: np.ndarray,
-    object2: np.ndarray,
+    example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     comparator = NumpyArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=object1, object2=object2, config=config)
+        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
         assert not caplog.messages
 
 
 @numpy_available
-@pytest.mark.parametrize(("object1", "object2"), NUMPY_ARRAY_EQUAL)
+@pytest.mark.parametrize("example", NUMPY_ARRAY_EQUAL)
 def test_numpy_array_equality_comparator_equal_yes_show_difference(
-    object1: np.ndarray,
-    object2: np.ndarray,
+    example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     comparator = NumpyArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=object1, object2=object2, config=config)
+        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
         assert not caplog.messages
 
 
 @numpy_available
-@pytest.mark.parametrize(("object1", "object2", "message"), NUMPY_ARRAY_NOT_EQUAL)
+@pytest.mark.parametrize("example", NUMPY_ARRAY_NOT_EQUAL)
 def test_numpy_array_equality_comparator_equal_false(
-    object1: np.ndarray,
-    object2: np.ndarray,
-    message: str,
+    example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     comparator = NumpyArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=object1, object2=object2, config=config)
+        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
         assert not caplog.messages
 
 
 @numpy_available
-@pytest.mark.parametrize(("object1", "object2", "message"), NUMPY_ARRAY_NOT_EQUAL)
+@pytest.mark.parametrize("example", NUMPY_ARRAY_NOT_EQUAL)
 def test_numpy_array_equality_comparator_equal_false_show_difference(
-    object1: np.ndarray,
-    object2: np.ndarray,
-    message: str,
+    example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     comparator = NumpyArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=object1, object2=object2, config=config)
-        assert caplog.messages[-1].startswith(message)
+        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert caplog.messages[-1].startswith(example.expected_message)
 
 
 @numpy_available
@@ -275,63 +285,57 @@ def test_numpy_masked_array_equality_comparator_equal_true_same_object(
 
 
 @numpy_available
-@pytest.mark.parametrize(("object1", "object2"), NUMPY_MASKED_ARRAY_EQUAL)
+@pytest.mark.parametrize("example", NUMPY_MASKED_ARRAY_EQUAL)
 def test_numpy_masked_array_equality_comparator_equal_yes(
-    object1: np.ma.MaskedArray,
-    object2: np.ma.MaskedArray,
+    example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     comparator = NumpyMaskedArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=object1, object2=object2, config=config)
+        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
         assert not caplog.messages
 
 
 @numpy_available
-@pytest.mark.parametrize(("object1", "object2"), NUMPY_MASKED_ARRAY_EQUAL)
+@pytest.mark.parametrize("example", NUMPY_MASKED_ARRAY_EQUAL)
 def test_numpy_masked_array_equality_comparator_equal_yes_show_difference(
-    object1: np.ma.MaskedArray,
-    object2: np.ma.MaskedArray,
+    example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     comparator = NumpyMaskedArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=object1, object2=object2, config=config)
+        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
         assert not caplog.messages
 
 
 @numpy_available
-@pytest.mark.parametrize(("object1", "object2", "message"), NUMPY_MASKED_ARRAY_NOT_EQUAL)
+@pytest.mark.parametrize("example", NUMPY_MASKED_ARRAY_NOT_EQUAL)
 def test_numpy_masked_array_equality_comparator_equal_false(
-    object1: np.ma.MaskedArray,
-    object2: np.ma.MaskedArray,
-    message: str,
+    example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     comparator = NumpyMaskedArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=object1, object2=object2, config=config)
+        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
         assert not caplog.messages
 
 
 @numpy_available
-@pytest.mark.parametrize(("object1", "object2", "message"), NUMPY_MASKED_ARRAY_NOT_EQUAL)
+@pytest.mark.parametrize("example", NUMPY_MASKED_ARRAY_NOT_EQUAL)
 def test_numpy_masked_array_equality_comparator_equal_false_show_difference(
-    object1: np.ma.MaskedArray,
-    object2: np.ma.MaskedArray,
-    message: str,
+    example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     comparator = NumpyMaskedArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=object1, object2=object2, config=config)
-        assert caplog.messages[-1].startswith(message)
+        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert caplog.messages[-1].startswith(example.expected_message)
 
 
 @numpy_available
