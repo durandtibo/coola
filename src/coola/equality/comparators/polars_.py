@@ -126,8 +126,8 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
     ```pycon
     >>> from coola.equality.comparators.polars_ import get_type_comparator_mapping
     >>> get_type_comparator_mapping()
-    {<class 'polars.dataframe.frame.DataFrame'>: PolarsDataFrameEqualityComparator(),
-     <class 'polars.series.series.Series'>: PolarsSeriesEqualityComparator()}
+    {<class 'polars...DataFrame'>: PolarsDataFrameEqualityComparator(),
+     <class 'polars...Series'>: PolarsSeriesEqualityComparator()}
 
     ```
     """
