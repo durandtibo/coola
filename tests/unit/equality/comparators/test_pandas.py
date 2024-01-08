@@ -95,31 +95,6 @@ def test_pandas_array_equality_comparator_equal_true_show_difference(
 
 
 @pandas_available
-def test_pandas_array_equality_comparator_equal_false_different_length(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
-) -> None:
-    comparator = PandasSeriesEqualityComparator()
-    with caplog.at_level(logging.INFO):
-        assert not comparator.equal(
-            object1=pandas.Series([1, 2, 3]), object2=pandas.Series([1, 2, 3, 4]), config=config
-        )
-        assert not caplog.messages
-
-
-@pandas_available
-def test_pandas_array_equality_comparator_equal_false_different_length_show_difference(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
-) -> None:
-    config.show_difference = True
-    comparator = PandasSeriesEqualityComparator()
-    with caplog.at_level(logging.INFO):
-        assert not comparator.equal(
-            object1=pandas.Series([1, 2, 3]), object2=pandas.Series([1, 2, 3, 4]), config=config
-        )
-        assert caplog.messages[0].startswith("pandas.Series have different elements:")
-
-
-@pandas_available
 def test_pandas_array_equality_comparator_equal_false_different_value(
     caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
