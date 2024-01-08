@@ -36,6 +36,10 @@ def test_mapping_same_keys_handler_eq_false() -> None:
     assert MappingSameKeysHandler() != FalseHandler()
 
 
+def test_mapping_same_keys_handler_repr() -> None:
+    assert repr(MappingSameKeysHandler()).startswith("MappingSameKeysHandler(")
+
+
 def test_mapping_same_keys_handler_str() -> None:
     assert str(MappingSameKeysHandler()).startswith("MappingSameKeysHandler(")
 
@@ -107,6 +111,10 @@ def test_mapping_same_values_handler_eq_true() -> None:
 
 def test_mapping_same_values_handler_eq_false() -> None:
     assert MappingSameValuesHandler() != FalseHandler()
+
+
+def test_mapping_same_values_handler_repr() -> None:
+    assert repr(MappingSameValuesHandler()).startswith("MappingSameValuesHandler(")
 
 
 def test_mapping_same_values_handler_str() -> None:

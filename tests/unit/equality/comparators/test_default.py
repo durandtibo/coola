@@ -5,7 +5,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from coola import EqualityTester
+from coola import EqualityTester, objects_are_equal
 from coola.equality import EqualityConfig
 from coola.equality.comparators import DefaultEqualityComparator
 from coola.equality.comparators.default import get_type_comparator_mapping
@@ -19,6 +19,10 @@ def config() -> EqualityConfig:
 ###############################################
 #     Tests for DefaultEqualityComparator     #
 ###############################################
+
+
+def test_objects_are_equal() -> None:
+    assert objects_are_equal(object1=1, object2=1)
 
 
 def test_default_equality_comparator_str() -> None:
@@ -40,6 +44,11 @@ def test_default_equality_comparator_clone() -> None:
     assert op == op_cloned
 
 
+def test_default_equality_comparator_equal_true_same_object(config: EqualityConfig) -> None:
+    obj = Mock()
+    assert DefaultEqualityComparator().equal(obj, obj, config)
+
+
 @pytest.mark.parametrize(
     ("object1", "object2"),
     [
@@ -54,15 +63,26 @@ def test_default_equality_comparator_clone() -> None:
         (None, None),
     ],
 )
-def test_default_equality_comparator_equal_true_scalar(
-    object1: bool | float | None, object2: bool | float | None, config: EqualityConfig
+def test_default_equality_comparator_equal_true(
+    caplog: pytest.LogCaptureFixture,
+    object1: bool | float | None,
+    object2: bool | float | None,
+    config: EqualityConfig,
 ) -> None:
-    assert DefaultEqualityComparator().equal(object1, object2, config)
+    comparator = DefaultEqualityComparator()
+    with caplog.at_level(logging.INFO):
+        assert comparator.equal(object1, object2, config)
+        assert not caplog.messages
 
 
-def test_default_equality_comparator_equal_true_same_object(config: EqualityConfig) -> None:
-    obj = Mock()
-    assert DefaultEqualityComparator().equal(obj, obj, config)
+def test_default_equality_comparator_equal_true_show_difference(
+    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+) -> None:
+    config.show_difference = True
+    comparator = DefaultEqualityComparator()
+    with caplog.at_level(logging.INFO):
+        assert comparator.equal(object1=1, object2=1, config=config)
+        assert not caplog.messages
 
 
 @pytest.mark.parametrize(
@@ -78,9 +98,15 @@ def test_default_equality_comparator_equal_true_same_object(config: EqualityConf
     ],
 )
 def test_default_equality_comparator_equal_false_scalar(
-    object1: bool | float, object2: bool | float | None, config: EqualityConfig
+    caplog: pytest.LogCaptureFixture,
+    object1: bool | float,
+    object2: bool | float | None,
+    config: EqualityConfig,
 ) -> None:
-    assert not DefaultEqualityComparator().equal(object1, object2, config)
+    comparator = DefaultEqualityComparator()
+    with caplog.at_level(logging.INFO):
+        assert not comparator.equal(object1, object2, config)
+        assert not caplog.messages
 
 
 def test_default_equality_comparator_equal_different_value_show_difference(
@@ -93,8 +119,13 @@ def test_default_equality_comparator_equal_different_value_show_difference(
         assert caplog.messages[0].startswith("objects are different:")
 
 
-def test_default_equality_comparator_equal_different_type(config: EqualityConfig) -> None:
-    assert not DefaultEqualityComparator().equal(object1=[], object2=(), config=config)
+def test_default_equality_comparator_equal_different_type(
+    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+) -> None:
+    comparator = DefaultEqualityComparator()
+    with caplog.at_level(logging.INFO):
+        assert not comparator.equal(object1=[], object2=(), config=config)
+        assert not caplog.messages
 
 
 def test_default_equality_comparator_equal_different_type_show_difference(

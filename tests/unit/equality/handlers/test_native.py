@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from typing import TYPE_CHECKING, Any
+from unittest.mock import Mock
 
 import pytest
 
@@ -10,11 +11,19 @@ from coola.equality import EqualityConfig
 from coola.equality.handlers import (
     FalseHandler,
     ObjectEqualHandler,
+    SameAttributeHandler,
     SameLengthHandler,
     SameObjectHandler,
     SameTypeHandler,
     TrueHandler,
 )
+from coola.testing import numpy_available
+from coola.utils import is_numpy_available
+
+if is_numpy_available():
+    import numpy as np
+else:
+    np = Mock()
 
 if TYPE_CHECKING:
     from collections.abc import Sized
@@ -38,8 +47,12 @@ def test_false_handler_eq_false() -> None:
     assert FalseHandler() != TrueHandler()
 
 
+def test_false_handler_repr() -> None:
+    assert repr(FalseHandler()) == "FalseHandler()"
+
+
 def test_false_handler_str() -> None:
-    assert str(FalseHandler()).startswith("FalseHandler(")
+    assert str(FalseHandler()) == "FalseHandler()"
 
 
 @pytest.mark.parametrize(
@@ -66,8 +79,12 @@ def test_true_handler_eq_false() -> None:
     assert TrueHandler() != FalseHandler()
 
 
+def test_true_handler_repr() -> None:
+    assert repr(TrueHandler()) == "TrueHandler()"
+
+
 def test_true_handler_str() -> None:
-    assert str(TrueHandler()).startswith("TrueHandler(")
+    assert str(TrueHandler()) == "TrueHandler()"
 
 
 @pytest.mark.parametrize(
@@ -94,8 +111,12 @@ def test_object_equal_handler_eq_false() -> None:
     assert ObjectEqualHandler() != FalseHandler()
 
 
+def test_object_equal_handler_repr() -> None:
+    assert str(ObjectEqualHandler()) == "ObjectEqualHandler()"
+
+
 def test_object_equal_handler_str() -> None:
-    assert str(ObjectEqualHandler()).startswith("ObjectEqualHandler(")
+    assert str(ObjectEqualHandler()) == "ObjectEqualHandler()"
 
 
 @pytest.mark.parametrize(("object1", "object2"), [(0, 0), (4.2, 4.2), ("abc", "abc")])
@@ -126,6 +147,111 @@ def test_object_equal_handler_set_next_handler() -> None:
     ObjectEqualHandler().set_next_handler(FalseHandler())
 
 
+##########################################
+#     Tests for SameAttributeHandler     #
+##########################################
+
+
+def test_same_attribute_handler_eq_true() -> None:
+    assert SameAttributeHandler(name="name") == SameAttributeHandler(name="name")
+
+
+def test_same_attribute_handler_eq_false_different_type() -> None:
+    assert SameAttributeHandler(name="data") != FalseHandler()
+
+
+def test_same_attribute_handler_eq_false_different_name() -> None:
+    assert SameAttributeHandler(name="data1") != SameAttributeHandler(name="data2")
+
+
+def test_same_attribute_handler_repr() -> None:
+    assert repr(SameAttributeHandler(name="data")).startswith("SameAttributeHandler(")
+
+
+def test_same_attribute_handler_str() -> None:
+    assert str(SameAttributeHandler(name="data")) == "SameAttributeHandler(name=data)"
+
+
+@pytest.mark.parametrize(
+    ("object1", "object2"),
+    [
+        (Mock(data=1), Mock(data=1)),
+        (Mock(data="abc"), Mock(data="abc")),
+        (Mock(data=[1, 2, 3]), Mock(data=[1, 2, 3])),
+    ],
+)
+def test_same_attribute_handler_handle_true(
+    object1: Any, object2: Any, config: EqualityConfig
+) -> None:
+    assert SameAttributeHandler(name="data", next_handler=TrueHandler()).handle(
+        object1, object2, config
+    )
+
+
+@pytest.mark.parametrize(
+    ("object1", "object2"),
+    [
+        (Mock(data=1), Mock(data=2)),
+        (Mock(data="abc"), Mock(data="abcd")),
+        (Mock(data=[1, 2, 3]), Mock(data=[1, 2, 4])),
+    ],
+)
+def test_same_attribute_handler_handle_false(
+    object1: Any, object2: Any, config: EqualityConfig
+) -> None:
+    assert not SameAttributeHandler(name="data").handle(object1, object2, config)
+
+
+@numpy_available
+def test_same_attribute_handler_handle_false_show_difference(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    config.show_difference = True
+    handler = SameAttributeHandler(name="data")
+    with caplog.at_level(logging.INFO):
+        assert not handler.handle(
+            object1=Mock(data=1),
+            object2=Mock(data=2),
+            config=config,
+        )
+        assert caplog.messages[-1].startswith("objects have different data:")
+
+
+@numpy_available
+def test_same_attribute_handler_handle_without_next_handler(config: EqualityConfig) -> None:
+    handler = SameAttributeHandler(name="data")
+    with pytest.raises(RuntimeError, match="next handler is not defined"):
+        handler.handle(
+            object1=Mock(spec=Any, data=1), object2=Mock(spec=Any, data=1), config=config
+        )
+
+
+def test_same_attribute_handler_set_next_handler() -> None:
+    handler = SameAttributeHandler(name="data")
+    handler.set_next_handler(FalseHandler())
+    assert handler.next_handler == FalseHandler()
+
+
+def test_same_attribute_handler_set_next_handler_incorrect() -> None:
+    handler = SameAttributeHandler(name="data")
+    with pytest.raises(TypeError, match="Incorrect type for `handler`."):
+        handler.set_next_handler(None)
+
+
+@numpy_available
+def test_same_attribute_handler_handle_true_numpy(config: EqualityConfig) -> None:
+    assert SameAttributeHandler(name="dtype", next_handler=TrueHandler()).handle(
+        np.ones(shape=(2, 3)), np.ones(shape=(2, 3)), config
+    )
+
+
+@numpy_available
+def test_same_attribute_handler_handle_false_numpy(config: EqualityConfig) -> None:
+    assert not SameAttributeHandler(name="dtype", next_handler=TrueHandler()).handle(
+        np.ones(shape=(2, 3), dtype=float), np.ones(shape=(2, 3), dtype=int), config
+    )
+
+
 #######################################
 #     Tests for SameLengthHandler     #
 #######################################
@@ -139,8 +265,12 @@ def test_same_length_handler_eq_false() -> None:
     assert SameLengthHandler() != FalseHandler()
 
 
+def test_same_length_handler_repr() -> None:
+    assert repr(SameLengthHandler()).startswith("SameLengthHandler(")
+
+
 def test_same_length_handler_str() -> None:
-    assert str(SameLengthHandler()).startswith("SameLengthHandler(")
+    assert str(SameLengthHandler()) == "SameLengthHandler()"
 
 
 @pytest.mark.parametrize(
@@ -215,8 +345,12 @@ def test_same_object_handler_eq_false() -> None:
     assert SameObjectHandler() != FalseHandler()
 
 
+def test_same_object_handler_repr() -> None:
+    assert repr(SameObjectHandler()).startswith("SameObjectHandler(")
+
+
 def test_same_object_handler_str() -> None:
-    assert str(SameObjectHandler()).startswith("SameObjectHandler(")
+    assert str(SameObjectHandler()) == "SameObjectHandler()"
 
 
 @pytest.mark.parametrize(("object1", "object2"), [(0, 0), (4.2, 4.2), ("abc", "abc")])
@@ -264,8 +398,12 @@ def test_same_type_handler_eq_false() -> None:
     assert SameTypeHandler() != FalseHandler()
 
 
+def test_same_type_handler_repr() -> None:
+    assert repr(SameTypeHandler()).startswith("SameTypeHandler(")
+
+
 def test_same_type_handler_str() -> None:
-    assert str(SameTypeHandler()).startswith("SameTypeHandler(")
+    assert str(SameTypeHandler()) == "SameTypeHandler()"
 
 
 @pytest.mark.parametrize(("object1", "object2"), [(0, 0), (4.2, 4.2), ("abc", "abc")])

@@ -40,9 +40,6 @@ class MappingSameKeysHandler(AbstractEqualityHandler):
     def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
-
     def handle(
         self,
         object1: Mapping,
@@ -92,9 +89,6 @@ class MappingSameValuesHandler(AbstractEqualityHandler):
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def handle(
         self,

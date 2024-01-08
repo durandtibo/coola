@@ -1,20 +1,20 @@
-r"""Implement some handlers for ``numpy.ndarray``s."""
+r"""Implement some handlers for ``jax.numpy.ndarray``s."""
 
 from __future__ import annotations
 
-__all__ = ["NumpyArrayEqualHandler"]
+__all__ = ["JaxArrayEqualHandler"]
 
 import logging
 from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
 from coola.equality.handlers.base import BaseEqualityHandler
-from coola.utils import is_numpy_available
+from coola.utils.imports import is_jax_available
 
-if is_numpy_available():
-    import numpy as np
+if is_jax_available():
+    import jax.numpy as jnp
 else:  # pragma: no cover
-    np = Mock()
+    jnp = Mock()
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -22,8 +22,8 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class NumpyArrayEqualHandler(BaseEqualityHandler):
-    r"""Check if the two NumPy arrays are equal.
+class JaxArrayEqualHandler(BaseEqualityHandler):
+    r"""Check if the two JAX arrays are equal.
 
     This handler returns ``True`` if the two arrays are equal,
     otherwise ``False``. This handler is designed to be used at
@@ -33,15 +33,15 @@ class NumpyArrayEqualHandler(BaseEqualityHandler):
     Example usage:
 
     ```pycon
-    >>> import numpy as np
+    >>> import jax.numpy as jnp
     >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import NumpyArrayEqualHandler
+    >>> from coola.equality.handlers import JaxArrayEqualHandler
     >>> from coola.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = NumpyArrayEqualHandler()
-    >>> handler.handle(np.ones((2, 3)), np.ones((2, 3)), config)
+    >>> handler = JaxArrayEqualHandler()
+    >>> handler.handle(jnp.ones((2, 3)), jnp.ones((2, 3)), config)
     True
-    >>> handler.handle(np.ones((2, 3)), np.zeros((2, 3)), config)
+    >>> handler.handle(jnp.ones((2, 3)), jnp.zeros((2, 3)), config)
     False
 
     ```
@@ -55,15 +55,15 @@ class NumpyArrayEqualHandler(BaseEqualityHandler):
 
     def handle(
         self,
-        object1: np.ndarray,
-        object2: np.ndarray,
+        object1: jnp.ndarray,
+        object2: jnp.ndarray,
         config: EqualityConfig,
     ) -> bool:
-        object_equal = np.array_equal(object1, object2, equal_nan=config.equal_nan)
+        object_equal = jnp.array_equal(object1, object2, equal_nan=config.equal_nan).item()
         if config.show_difference and not object_equal:
             logger.info(
-                f"numpy.ndarrays have different elements:\n"
-                f"object1:\n{object1}\nobject2:\n{object2}"
+                f"jax.numpy.ndarrays have different elements:\n"
+                f"object1=\n{object1}\nobject2=\n{object2}"
             )
         return object_equal
 

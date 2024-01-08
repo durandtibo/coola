@@ -22,7 +22,7 @@ from coola.utils.imports import is_pandas_available
 
 if is_pandas_available():
     import pandas
-else:
+else:  # pragma: no cover
     pandas = Mock()
 
 

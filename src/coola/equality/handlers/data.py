@@ -1,0 +1,67 @@
+r"""Implement handlers to check the objects have the same data."""
+
+from __future__ import annotations
+
+__all__ = ["SupportsData", "SameDataHandler"]
+
+import logging
+from typing import TYPE_CHECKING, Any, Protocol
+
+from coola.equality.handlers.base import AbstractEqualityHandler
+
+if TYPE_CHECKING:
+    from coola.equality.config import EqualityConfig
+
+
+logger = logging.getLogger(__name__)
+
+
+class SupportsData(Protocol):
+    r"""Implement a protocol to represent objects with a ``data``
+    attribute.
+
+    This protocol can be used to represent several objects like
+    ``jax.numpy.ndarray``s, ``numpy.ndarray``s,  and
+    ``torch.Tensor``s.
+    """
+    data: Any
+
+    @property
+    def data(self) -> Any:
+        return  # pragma: no cover
+
+
+class SameDataHandler(AbstractEqualityHandler):
+    r"""Check if the two objects have the same data.
+
+    This handler returns ``False`` if the two objects have different
+    data, otherwise it passes the inputs to the next handler.
+    The objects must have a ``data`` attribute (e.g. ``object.data``)
+    which returns the shape of the object.
+
+    Example usage:
+
+    ```pycon
+    >>> import numpy as np
+    >>> from coola.equality import EqualityConfig
+    >>> from coola.equality.handlers import SameDataHandler, TrueHandler
+    >>> from coola.testers import EqualityTester
+    >>> config = EqualityConfig(tester=EqualityTester())
+    >>> handler = SameDataHandler(next_handler=TrueHandler())
+    >>> handler.handle(np.ones((2, 3)), np.ones((2, 3)), config)
+    True
+    >>> handler.handle(np.ones((2, 3)), np.zeros((2, 3)), config)
+    False
+
+    ```
+    """
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, self.__class__)
+
+    def handle(self, object1: SupportsData, object2: SupportsData, config: EqualityConfig) -> bool:
+        if not config.tester.equal(object1.data, object2.data, config.show_difference):
+            if config.show_difference:
+                logger.info(f"objects have different data: {object1.data} vs {object2.data}")
+            return False
+        return self._handle_next(object1=object1, object2=object2, config=config)

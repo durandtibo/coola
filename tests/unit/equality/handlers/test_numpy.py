@@ -7,8 +7,7 @@ import pytest
 
 from coola import EqualityTester
 from coola.equality import EqualityConfig
-from coola.equality.handlers import FalseHandler
-from coola.equality.handlers.numpy_ import ArrayEqualHandler
+from coola.equality.handlers import FalseHandler, NumpyArrayEqualHandler
 from coola.testing import numpy_available
 from coola.utils import is_numpy_available
 
@@ -23,21 +22,25 @@ def config() -> EqualityConfig:
     return EqualityConfig(tester=EqualityTester())
 
 
-#######################################
-#     Tests for ArrayEqualHandler     #
-#######################################
+############################################
+#     Tests for NumpyArrayEqualHandler     #
+############################################
 
 
-def test_array_equal_handler_eq_true() -> None:
-    assert ArrayEqualHandler() == ArrayEqualHandler()
+def test_numpy_array_equal_handler_eq_true() -> None:
+    assert NumpyArrayEqualHandler() == NumpyArrayEqualHandler()
 
 
-def test_array_equal_handler_eq_false() -> None:
-    assert ArrayEqualHandler() != FalseHandler()
+def test_numpy_array_equal_handler_eq_false() -> None:
+    assert NumpyArrayEqualHandler() != FalseHandler()
 
 
-def test_array_equal_handler_str() -> None:
-    assert str(ArrayEqualHandler()).startswith("ArrayEqualHandler(")
+def test_numpy_array_equal_handler_repr() -> None:
+    assert repr(NumpyArrayEqualHandler()).startswith("NumpyArrayEqualHandler(")
+
+
+def test_numpy_array_equal_handler_str() -> None:
+    assert str(NumpyArrayEqualHandler()).startswith("NumpyArrayEqualHandler(")
 
 
 @numpy_available
@@ -49,10 +52,10 @@ def test_array_equal_handler_str() -> None:
         (np.ones(shape=(2, 3, 4), dtype=bool), np.ones(shape=(2, 3, 4), dtype=bool)),
     ],
 )
-def test_array_equal_handler_handle_true(
+def test_numpy_array_equal_handler_handle_true(
     object1: np.ndarray, object2: np.ndarray, config: EqualityConfig
 ) -> None:
-    assert ArrayEqualHandler().handle(object1, object2, config)
+    assert NumpyArrayEqualHandler().handle(object1, object2, config)
 
 
 @numpy_available
@@ -64,33 +67,33 @@ def test_array_equal_handler_handle_true(
         (np.ones(shape=(2, 3)), np.ones(shape=(2, 3, 1))),
     ],
 )
-def test_array_equal_handler_handle_false(
+def test_numpy_array_equal_handler_handle_false(
     object1: np.ndarray, object2: np.ndarray, config: EqualityConfig
 ) -> None:
-    assert not ArrayEqualHandler().handle(object1, object2, config)
+    assert not NumpyArrayEqualHandler().handle(object1, object2, config)
 
 
 @numpy_available
-def test_array_equal_handler_handle_equal_nan_false(config: EqualityConfig) -> None:
-    assert not ArrayEqualHandler().handle(
+def test_numpy_array_equal_handler_handle_equal_nan_false(config: EqualityConfig) -> None:
+    assert not NumpyArrayEqualHandler().handle(
         np.array([0.0, np.nan, np.nan, 1.2]), np.array([0.0, np.nan, np.nan, 1.2]), config
     )
 
 
 @numpy_available
-def test_array_equal_handler_handle_equal_nan_true(config: EqualityConfig) -> None:
+def test_numpy_array_equal_handler_handle_equal_nan_true(config: EqualityConfig) -> None:
     config.equal_nan = True
-    assert ArrayEqualHandler().handle(
+    assert NumpyArrayEqualHandler().handle(
         np.array([0.0, np.nan, np.nan, 1.2]), np.array([0.0, np.nan, np.nan, 1.2]), config
     )
 
 
 @numpy_available
-def test_array_equal_handler_handle_false_show_difference(
+def test_numpy_array_equal_handler_handle_false_show_difference(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
-    handler = ArrayEqualHandler()
+    handler = NumpyArrayEqualHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
             object1=np.ones(shape=(2, 3)), object2=np.ones(shape=(3, 2)), config=config
@@ -98,5 +101,5 @@ def test_array_equal_handler_handle_false_show_difference(
         assert caplog.messages[0].startswith("numpy.ndarrays have different elements:")
 
 
-def test_array_equal_handler_set_next_handler() -> None:
-    ArrayEqualHandler().set_next_handler(FalseHandler())
+def test_numpy_array_equal_handler_set_next_handler() -> None:
+    NumpyArrayEqualHandler().set_next_handler(FalseHandler())

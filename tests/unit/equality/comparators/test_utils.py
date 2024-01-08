@@ -1,9 +1,15 @@
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
+
 from coola.equality.comparators import (
-    ArrayEqualityComparator,
     DefaultEqualityComparator,
-    TensorEqualityComparator,
+    MappingEqualityComparator,
+    NumpyArrayEqualityComparator,
+    NumpyMaskedArrayEqualityComparator,
+    SequenceEqualityComparator,
+    TorchPackedSequenceEqualityComparator,
+    TorchTensorEqualityComparator,
     get_type_comparator_mapping,
 )
 from coola.testing import torch_available
@@ -22,17 +28,26 @@ if is_torch_available():
 
 def test_get_type_comparator_mapping() -> None:
     mapping = get_type_comparator_mapping()
-    assert len(mapping) >= 1
+    assert len(mapping) >= 6
+    assert isinstance(mapping[Mapping], MappingEqualityComparator)
+    assert isinstance(mapping[Sequence], SequenceEqualityComparator)
+    assert isinstance(mapping[dict], MappingEqualityComparator)
+    assert isinstance(mapping[list], SequenceEqualityComparator)
     assert isinstance(mapping[object], DefaultEqualityComparator)
+    assert isinstance(mapping[tuple], SequenceEqualityComparator)
 
 
 @numpy_available
 def test_get_type_comparator_mapping_numpy() -> None:
     mapping = get_type_comparator_mapping()
-    assert isinstance(mapping[np.ndarray], ArrayEqualityComparator)
+    assert isinstance(mapping[np.ndarray], NumpyArrayEqualityComparator)
+    assert isinstance(mapping[np.ma.MaskedArray], NumpyMaskedArrayEqualityComparator)
 
 
 @torch_available
 def test_get_type_comparator_mapping_torch() -> None:
     mapping = get_type_comparator_mapping()
-    assert isinstance(mapping[torch.Tensor], TensorEqualityComparator)
+    assert isinstance(
+        mapping[torch.nn.utils.rnn.PackedSequence], TorchPackedSequenceEqualityComparator
+    )
+    assert isinstance(mapping[torch.Tensor], TorchTensorEqualityComparator)
