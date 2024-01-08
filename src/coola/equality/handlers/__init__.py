@@ -17,6 +17,8 @@ __all__ = [
     "ObjectEqualHandler",
     "PandasDataFrameEqualHandler",
     "PandasSeriesEqualHandler",
+    "PolarsDataFrameEqualHandler",
+    "PolarsSeriesEqualHandler",
     "SameAttributeHandler",
     "SameDTypeHandler",
     "SameDataHandler",
@@ -50,6 +52,10 @@ from coola.equality.handlers.numpy_ import NumpyArrayEqualHandler
 from coola.equality.handlers.pandas_ import (
     PandasDataFrameEqualHandler,
     PandasSeriesEqualHandler,
+)
+from coola.equality.handlers.polars_ import (
+    PolarsDataFrameEqualHandler,
+    PolarsSeriesEqualHandler,
 )
 from coola.equality.handlers.sequence import SequenceSameValuesHandler
 from coola.equality.handlers.shape import SameShapeHandler
