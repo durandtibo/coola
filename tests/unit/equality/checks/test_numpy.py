@@ -21,11 +21,6 @@ else:
     np = Mock()
 
 
-###################################
-#     Tests for numpy.ndarray     #
-###################################
-
-
 @numpy_available
 @pytest.mark.parametrize(("object1", "object2"), NUMPY_ARRAY_EQUAL + NUMPY_MASKED_ARRAY_EQUAL)
 def test_objects_are_equal_true(
