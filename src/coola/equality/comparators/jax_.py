@@ -39,7 +39,7 @@ class JaxArrayEqualityComparator(BaseEqualityComparator[jnp.ndarray]):
     >>> import jax.numpy as jnp
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import JaxArrayEqualityComparator
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> comparator = JaxArrayEqualityComparator()
     >>> comparator.equal(jnp.ones((2, 3)), jnp.ones((2, 3)), config)

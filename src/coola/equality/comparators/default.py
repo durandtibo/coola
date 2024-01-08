@@ -31,7 +31,7 @@ class DefaultEqualityComparator(BaseEqualityComparator[Any]):
     ```pycon
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import DefaultEqualityComparator
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> comparator = DefaultEqualityComparator()
     >>> comparator.equal(42, 42, config)

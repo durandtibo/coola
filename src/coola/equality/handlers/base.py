@@ -26,7 +26,7 @@ class BaseEqualityHandler(ABC):
     ```pycon
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import SameObjectHandler, FalseHandler
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> handler = SameObjectHandler()
     >>> handler.set_next_handler(FalseHandler())
@@ -52,7 +52,7 @@ class BaseEqualityHandler(ABC):
         ```pycon
         >>> from coola.equality import EqualityConfig
         >>> from coola.equality.handlers import SameObjectHandler, SameTypeHandler, ObjectEqualHandler
-        >>> from coola.testers import EqualityTester
+        >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
         >>> handler = SameObjectHandler()
         >>> handler.chain(SameTypeHandler()).chain(ObjectEqualHandler())
@@ -82,7 +82,7 @@ class BaseEqualityHandler(ABC):
         ```pycon
         >>> from coola.equality import EqualityConfig
         >>> from coola.equality.handlers import SameObjectHandler
-        >>> from coola.testers import EqualityTester
+        >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
         >>> handler = SameObjectHandler()
         >>> handler.handle("abc", "abc", config)

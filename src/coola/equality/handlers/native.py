@@ -37,7 +37,7 @@ class FalseHandler(BaseEqualityHandler):
     ```pycon
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import FalseHandler
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> handler = FalseHandler()
     >>> handler.handle("abc", "abc", config)
@@ -77,7 +77,7 @@ class TrueHandler(BaseEqualityHandler):
     ```pycon
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import TrueHandler
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> handler = TrueHandler()
     >>> handler.handle("abc", "abc", config)
@@ -120,7 +120,7 @@ class ObjectEqualHandler(BaseEqualityHandler):
     ```pycon
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import ObjectEqualHandler
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> handler = ObjectEqualHandler()
     >>> handler.handle(1, 1, config)
@@ -165,7 +165,7 @@ class SameAttributeHandler(AbstractEqualityHandler):
     >>> import numpy as np
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import SameAttributeHandler, TrueHandler
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> handler = SameAttributeHandler(name="shape", next_handler=TrueHandler())
     >>> handler.handle(np.ones((2, 3)), np.ones((2, 3)), config)
@@ -199,7 +199,7 @@ class SameAttributeHandler(AbstractEqualityHandler):
     def handle(self, object1: Any, object2: Any, config: EqualityConfig) -> bool:
         value1 = getattr(object1, self._name)
         value2 = getattr(object2, self._name)
-        if not config.tester.equal(value1, value2, config.show_difference):
+        if not config.tester.equal(value1, value2, config):
             if config.show_difference:
                 logger.info(f"objects have different {self._name}: {value1} vs {value2}")
             return False
@@ -217,7 +217,7 @@ class SameLengthHandler(AbstractEqualityHandler):
     ```pycon
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import SameLengthHandler
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> handler = SameLengthHandler()
     >>> handler.handle([1, 2, 3], [1, 2, 3, 4], config)
@@ -253,7 +253,7 @@ class SameObjectHandler(AbstractEqualityHandler):
     ```pycon
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import SameObjectHandler
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> handler = SameObjectHandler()
     >>> handler.handle("abc", "abc", config)
@@ -287,7 +287,7 @@ class SameTypeHandler(AbstractEqualityHandler):
     ```pycon
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import SameTypeHandler
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> handler = SameTypeHandler()
     >>> handler.handle(1, "abc", config)

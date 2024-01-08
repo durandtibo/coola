@@ -44,7 +44,7 @@ class XarrayDataArrayEqualityComparator(BaseEqualityComparator[xr.DataArray]):
     >>> import xarray as xr
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import XarrayDataArrayEqualityComparator
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> comparator = XarrayDataArrayEqualityComparator()
     >>> comparator.equal(
@@ -90,7 +90,7 @@ class XarrayDatasetEqualityComparator(BaseEqualityComparator[xr.Dataset]):
     >>> import xarray as xr
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import XarrayDatasetEqualityComparator
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> comparator = XarrayDatasetEqualityComparator()
     >>> comparator.equal(
@@ -136,7 +136,7 @@ class XarrayVariableEqualityComparator(BaseEqualityComparator[xr.Variable]):
     >>> import xarray as xr
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import XarrayVariableEqualityComparator
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> comparator = XarrayVariableEqualityComparator()
     >>> comparator.equal(

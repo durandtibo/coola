@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from coola import BaseEqualityTester
+    from coola.equality.testers import BaseEqualityTester
 
 
 @dataclass

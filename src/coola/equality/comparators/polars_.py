@@ -42,7 +42,7 @@ class PolarsDataFrameEqualityComparator(BaseEqualityComparator[polars.DataFrame]
     >>> import polars as np
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import PolarsDataFrameEqualityComparator
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> comparator = PolarsDataFrameEqualityComparator()
     >>> comparator.equal(
@@ -85,7 +85,7 @@ class PolarsSeriesEqualityComparator(BaseEqualityComparator[polars.Series]):
     >>> import polars as np
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import PolarsSeriesEqualityComparator
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> comparator = PolarsSeriesEqualityComparator()
     >>> comparator.equal(polars.Series([1, 2, 3]), polars.Series([1, 2, 3]), config)

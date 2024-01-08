@@ -26,21 +26,21 @@ class EqualityTester(BaseEqualityTester):
         return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(self.registry))}\n)"
 
     @classmethod
-    def add_operator(
-        cls, data_type: type, operator: BaseEqualityComparator, exist_ok: bool = False
+    def add_comparator(
+        cls, data_type: type, comparator: BaseEqualityComparator, exist_ok: bool = False
     ) -> None:
-        r"""Add an equality operator for a given data type.
+        r"""Add an equality comparator for a given data type.
 
         Args:
             data_type: Specifies the data type for this test.
-            operator: Specifies the operator used to test the equality
+            comparator: Specifies the comparator used to test the equality
                 of the specified type.
             exist_ok: If ``False``, ``RuntimeError`` is raised if the
                 data type already exists. This parameter should be set
-                to ``True`` to overwrite the operator for a type.
+                to ``True`` to overwrite the comparator for a type.
 
         Raises:
-            RuntimeError: if an operator is already registered for the
+            RuntimeError: if a comparator is already registered for the
                 data type and ``exist_ok=False``.
 
         Example usage:
@@ -48,41 +48,41 @@ class EqualityTester(BaseEqualityTester):
         ```pycon
         >>> from coola.equality.testers import EqualityTester
         >>> from coola.equality.comparators import SequenceEqualityComparator
-        >>> EqualityTester.add_operator(list, SequenceEqualityComparator(), exist_ok=True)
+        >>> EqualityTester.add_comparator(list, SequenceEqualityComparator(), exist_ok=True)
 
         ```
         """
         if data_type in cls.registry and not exist_ok:
             msg = (
-                f"An operator ({cls.registry[data_type]}) is already registered for the data "
+                f"An comparator ({cls.registry[data_type]}) is already registered for the data "
                 f"type {data_type}. Please use `exist_ok=True` if you want to overwrite the "
-                "operator for this type"
+                "comparator for this type"
             )
             raise RuntimeError(msg)
-        cls.registry[data_type] = operator
+        cls.registry[data_type] = comparator
 
     def equal(self, object1: Any, object2: Any, config: EqualityConfig) -> bool:
-        return self.find_operator(type(object1)).equal(object1, object2, config)
+        return self.find_comparator(type(object1)).equal(object1, object2, config)
 
     @classmethod
-    def has_operator(cls, data_type: type) -> bool:
-        r"""Indicate if an equality operator is registered for the given
-        data type.
+    def has_comparator(cls, data_type: type) -> bool:
+        r"""Indicate if an equality comparator is registered for the
+        given data type.
 
         Args:
             data_type: Specifies the data type to check.
 
         Returns:
-            ``True`` if an equality operator is registered,
+            ``True`` if an equality comparator is registered,
                 otherwise ``False``.
 
         Example usage:
 
         ```pycon
         >>> from coola.equality.testers import EqualityTester
-        >>> EqualityTester.has_operator(list)
+        >>> EqualityTester.has_comparator(list)
         True
-        >>> EqualityTester.has_operator(str)
+        >>> EqualityTester.has_comparator(str)
         False
 
         ```
@@ -90,30 +90,30 @@ class EqualityTester(BaseEqualityTester):
         return data_type in cls.registry
 
     @classmethod
-    def find_operator(cls, data_type: Any) -> BaseEqualityComparator:
-        r"""Find the equality operator associated to an object.
+    def find_comparator(cls, data_type: Any) -> BaseEqualityComparator:
+        r"""Find the equality comparator associated to an object.
 
         Args:
             data_type: Specifies the data type to get.
 
         Returns:
-            The equality operator associated to the data type.
+            The equality comparator associated to the data type.
 
         Example usage:
 
         ```pycon
         >>> from coola.equality.testers import EqualityTester
-        >>> EqualityTester.find_operator(list)
+        >>> EqualityTester.find_comparator(list)
         SequenceEqualityComparator()
-        >>> EqualityTester.find_operator(str)
+        >>> EqualityTester.find_comparator(str)
         DefaultEqualityComparator()
 
         ```
         """
         for object_type in data_type.__mro__:
-            operator = cls.registry.get(object_type, None)
-            if operator is not None:
-                return operator
+            comparator = cls.registry.get(object_type, None)
+            if comparator is not None:
+                return comparator
         msg = f"Incorrect data type: {data_type}"
         raise TypeError(msg)
 
@@ -143,7 +143,7 @@ class LocalEqualityTester(BaseEqualityTester):
 
     Args:
         registry: Specifies the initial registry with the equality
-            operators.
+            comparators.
     """
 
     def __init__(self, registry: dict[type, BaseEqualityComparator] | None = None) -> None:
@@ -157,21 +157,21 @@ class LocalEqualityTester(BaseEqualityTester):
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(self.registry))}\n)"
 
-    def add_operator(
-        self, data_type: type, operator: BaseEqualityComparator, exist_ok: bool = False
+    def add_comparator(
+        self, data_type: type, comparator: BaseEqualityComparator, exist_ok: bool = False
     ) -> None:
-        r"""Add an equality operator for a given data type.
+        r"""Add an equality comparator for a given data type.
 
         Args:
             data_type: Specifies the data type for this test.
-            operator: Specifies the operator used to test the equality
+            comparator: Specifies the comparator used to test the equality
                 of the specified type.
             exist_ok: If ``False``, ``RuntimeError`` is raised if the
                 data type already exists. This parameter should be
-                set to ``True`` to overwrite the operator for a type.
+                set to ``True`` to overwrite the comparator for a type.
 
         Raises:
-            RuntimeError: if an operator is already registered for the
+            RuntimeError: if an comparator is already registered for the
                 data type and ``exist_ok=False``.
 
         Example usage:
@@ -180,19 +180,19 @@ class LocalEqualityTester(BaseEqualityTester):
         >>> from coola.equality.testers import EqualityTester
         >>> from coola.equality.comparators import DefaultEqualityComparator
         >>> tester = EqualityTester.local_copy()
-        >>> tester.add_operator(str, DefaultEqualityComparator())
-        >>> tester.add_operator(str, DefaultEqualityComparator(), exist_ok=True)
+        >>> tester.add_comparator(str, DefaultEqualityComparator())
+        >>> tester.add_comparator(str, DefaultEqualityComparator(), exist_ok=True)
 
         ```
         """
         if data_type in self.registry and not exist_ok:
             msg = (
-                f"An operator ({self.registry[data_type]}) is already registered for the data "
+                f"An comparator ({self.registry[data_type]}) is already registered for the data "
                 f"type {data_type}. Please use `exist_ok=True` if you want to overwrite the "
-                "operator for this type"
+                "comparator for this type"
             )
             raise RuntimeError(msg)
-        self.registry[data_type] = operator
+        self.registry[data_type] = comparator
 
     def clone(self) -> LocalEqualityTester:
         r"""Clones the current tester.
@@ -212,17 +212,17 @@ class LocalEqualityTester(BaseEqualityTester):
         return self.__class__({key: value.clone() for key, value in self.registry.items()})
 
     def equal(self, object1: Any, object2: Any, config: EqualityConfig) -> bool:
-        return self.find_operator(type(object1)).equal(object1, object2, config)
+        return self.find_comparator(type(object1)).equal(object1, object2, config)
 
-    def has_operator(self, data_type: type) -> bool:
-        r"""Indicate if an equality operator is registered for the given
-        data type.
+    def has_comparator(self, data_type: type) -> bool:
+        r"""Indicate if an equality comparator is registered for the
+        given data type.
 
         Args:
             data_type: Specifies the data type to check.
 
         Returns:
-            ``True`` if an equality operator is registered,
+            ``True`` if an equality comparator is registered,
                 otherwise ``False``.
 
         Example usage:
@@ -230,39 +230,39 @@ class LocalEqualityTester(BaseEqualityTester):
         ```pycon
         >>> from coola.equality.testers import EqualityTester
         >>> tester = EqualityTester.local_copy()
-        >>> tester.has_operator(list)
+        >>> tester.has_comparator(list)
         True
-        >>> tester.has_operator(str)
+        >>> tester.has_comparator(str)
         False
 
         ```
         """
         return data_type in self.registry
 
-    def find_operator(self, data_type: Any) -> BaseEqualityComparator:
-        r"""Find the equality operator associated to an object.
+    def find_comparator(self, data_type: Any) -> BaseEqualityComparator:
+        r"""Find the equality comparator associated to an object.
 
         Args:
             data_type: Specifies the data type to get.
 
         Returns:
-            The equality operator associated to the data type.
+            The equality comparator associated to the data type.
 
         Example usage:
 
         ```pycon
         >>> from coola.equality.testers import EqualityTester
         >>> tester = EqualityTester.local_copy()
-        >>> tester.find_operator(list)
+        >>> tester.find_comparator(list)
         SequenceEqualityComparator()
-        >>> tester.find_operator(str)
+        >>> tester.find_comparator(str)
         DefaultEqualityComparator()
 
         ```
         """
         for object_type in data_type.__mro__:
-            operator = self.registry.get(object_type, None)
-            if operator is not None:
-                return operator
+            comparator = self.registry.get(object_type, None)
+            if comparator is not None:
+                return comparator
         msg = f"Incorrect data type: {data_type}"
         raise TypeError(msg)

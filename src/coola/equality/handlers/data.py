@@ -45,7 +45,7 @@ class SameDataHandler(AbstractEqualityHandler):
     >>> import numpy as np
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import SameDataHandler, TrueHandler
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> handler = SameDataHandler(next_handler=TrueHandler())
     >>> handler.handle(np.ones((2, 3)), np.ones((2, 3)), config)
@@ -60,7 +60,7 @@ class SameDataHandler(AbstractEqualityHandler):
         return isinstance(other, self.__class__)
 
     def handle(self, object1: SupportsData, object2: SupportsData, config: EqualityConfig) -> bool:
-        if not config.tester.equal(object1.data, object2.data, config.show_difference):
+        if not config.tester.equal(object1.data, object2.data, config):
             if config.show_difference:
                 logger.info(f"objects have different data: {object1.data} vs {object2.data}")
             return False

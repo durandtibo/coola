@@ -20,6 +20,7 @@ __all__ = [
     "XarrayDatasetEqualityComparator",
     "XarrayVariableEqualityComparator",
     "get_type_comparator_mapping",
+    "register_equality",
 ]
 
 from coola.equality.comparators.base import BaseEqualityComparator
@@ -54,32 +55,33 @@ from coola.equality.comparators.xarray_ import (
 
 
 def register_equality() -> None:
-    r"""Register equality operators to ``EqualityTester``.
+    r"""Register equality comparators to ``EqualityTester``.
 
-    >>> from coola.comparators import register_equality
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.comparators import register_equality
+    >>> from coola.equality.testers import EqualityTester
     >>> register_equality()
     >>> tester = EqualityTester()
     >>> tester
     EqualityTester(
-      (<class 'collections.abc.Mapping'>): MappingEqualityOperator()
-      (<class 'collections.abc.Sequence'>): SequenceEqualityOperator()
-      (<class 'dict'>): MappingEqualityOperator()
-      (<class 'list'>): SequenceEqualityOperator()
-      (<class 'object'>): DefaultEqualityOperator()
-      (<class 'tuple'>): SequenceEqualityOperator()
-      (<class 'jax.Array'>): JaxArrayEqualityOperator(check_dtype=True)
-      (<class 'jaxlib.xla_extension.ArrayImpl'>): JaxArrayEqualityOperator(check_dtype=True)
-      (<class 'numpy.ndarray'>): ArrayEqualityOperator(check_dtype=True)
-      (<class 'pandas...DataFrame'>): DataFrameEqualityOperator(nulls_compare_equal=False)
-      (<class 'pandas...Series'>): SeriesEqualityOperator(nulls_compare_equal=False)
-      (<class 'polars...DataFrame'>): DataFrameEqualityOperator()
-      (<class 'polars.series.series.Series'>): SeriesEqualityOperator()
-      (<class 'torch.Tensor'>): TensorEqualityOperator()
-      (<class 'torch.nn.utils.rnn.PackedSequence'>): PackedSequenceEqualityOperator()
-      (<class 'xarray.core.dataset.Dataset'>): DatasetEqualityOperator()
-      (<class 'xarray.core.dataarray.DataArray'>): DataArrayEqualityOperator()
-      (<class 'xarray.core.variable.Variable'>): VariableEqualityOperator()
+      (<class 'object'>): DefaultEqualityComparator()
+      (<class 'collections.abc.Mapping'>): MappingEqualityComparator()
+      (<class 'collections.abc.Sequence'>): SequenceEqualityComparator()
+      (<class 'dict'>): MappingEqualityComparator()
+      (<class 'list'>): SequenceEqualityComparator()
+      (<class 'tuple'>): SequenceEqualityComparator()
+      (<class 'jax.Array'>): JaxArrayEqualityComparator()
+      (<class 'jaxlib.xla_extension.ArrayImpl'>): JaxArrayEqualityComparator()
+      (<class 'numpy.ndarray'>): NumpyArrayEqualityComparator()
+      (<class 'numpy.ma...MaskedArray'>): NumpyMaskedArrayEqualityComparator()
+      (<class 'pandas...DataFrame'>): PandasDataFrameEqualityComparator()
+      (<class 'pandas...Series'>): PandasSeriesEqualityComparator()
+      (<class 'polars...DataFrame'>): PolarsDataFrameEqualityComparator()
+      (<class 'polars...Series'>): PolarsSeriesEqualityComparator()
+      (<class 'torch.nn.utils.rnn.PackedSequence'>): TorchPackedSequenceEqualityComparator()
+      (<class 'torch.Tensor'>): TorchTensorEqualityComparator()
+      (<class 'xarray...DataArray'>): XarrayDataArrayEqualityComparator()
+      (<class 'xarray...Dataset'>): XarrayDatasetEqualityComparator()
+      (<class 'xarray...Variable'>): XarrayVariableEqualityComparator()
     )
 
     ```
@@ -88,8 +90,8 @@ def register_equality() -> None:
     from coola.equality.testers import EqualityTester
 
     for typ, op in get_type_comparator_mapping().items():
-        if not EqualityTester.has_operator(typ):  # pragma: no cover
-            EqualityTester.add_operator(typ, op)
+        if not EqualityTester.has_comparator(typ):  # pragma: no cover
+            EqualityTester.add_comparator(typ, op)
 
 
 register_equality()

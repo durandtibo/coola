@@ -13,7 +13,7 @@ from coola.equality.comparators.xarray_ import (
     XarrayVariableEqualityComparator,
     get_type_comparator_mapping,
 )
-from coola.testers import EqualityTester
+from coola.equality.testers import EqualityTester
 from coola.testing import xarray_available
 from coola.utils.imports import is_numpy_available, is_xarray_available
 
@@ -302,8 +302,7 @@ def test_xarray_data_array_equality_comparator_equal_nan_false(config: EqualityC
 @xarray_available
 def test_xarray_data_array_equality_comparator_equal_nan_true(config: EqualityConfig) -> None:
     config.equal_nan = True
-    # TODO(TIBO): update after the new version is finished  # noqa: TD003
-    assert not XarrayDataArrayEqualityComparator().equal(
+    assert XarrayDataArrayEqualityComparator().equal(
         xr.DataArray(np.array([0.0, float("nan"), 2.0])),
         xr.DataArray(np.array([0.0, float("nan"), 2.0])),
         config,
@@ -521,8 +520,7 @@ def test_xarray_dataset_equality_comparator_equal_nan_false(config: EqualityConf
 @xarray_available
 def test_xarray_dataset_equality_comparator_equal_nan_true(config: EqualityConfig) -> None:
     config.equal_nan = True
-    # TODO(TIBO): update after the new version is finished  # noqa: TD003
-    assert not XarrayDatasetEqualityComparator().equal(
+    assert XarrayDatasetEqualityComparator().equal(
         xr.Dataset(data_vars={"x": xr.DataArray(np.array([0.0, float("nan"), 2.0]))}),
         xr.Dataset(data_vars={"x": xr.DataArray(np.array([0.0, float("nan"), 2.0]))}),
         config,
@@ -726,8 +724,7 @@ def test_xarray_variable_equality_comparator_equal_nan_false(config: EqualityCon
 @xarray_available
 def test_xarray_variable_equality_comparator_equal_nan_true(config: EqualityConfig) -> None:
     config.equal_nan = True
-    # TODO(TIBO): update after the new version is finished  # noqa: TD003
-    assert not XarrayVariableEqualityComparator().equal(
+    assert XarrayVariableEqualityComparator().equal(
         xr.Variable(dims=["z"], data=np.array([0.0, float("nan"), 2.0])),
         xr.Variable(dims=["z"], data=np.array([0.0, float("nan"), 2.0])),
         config,

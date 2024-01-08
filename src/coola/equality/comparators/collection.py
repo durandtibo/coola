@@ -34,7 +34,7 @@ class MappingEqualityComparator(BaseEqualityComparator[Any]):
     ```pycon
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import MappingEqualityComparator
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> comparator = MappingEqualityComparator()
     >>> comparator.equal({"a": 1, "b": 2}, {"a": 1, "b": 2}, config)
@@ -69,7 +69,7 @@ class SequenceEqualityComparator(BaseEqualityComparator[Any]):
     ```pycon
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import SequenceEqualityComparator
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> comparator = SequenceEqualityComparator()
     >>> comparator.equal([1, 2, 3], [1, 2, 3], config)

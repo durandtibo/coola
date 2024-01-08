@@ -45,7 +45,7 @@ class SameDTypeHandler(AbstractEqualityHandler):
     >>> import numpy as np
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import SameDTypeHandler, TrueHandler
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> handler = SameDTypeHandler(next_handler=TrueHandler())
     >>> handler.handle(np.ones((2, 3)), np.ones((2, 3)), config)

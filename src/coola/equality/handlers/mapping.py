@@ -28,7 +28,7 @@ class MappingSameKeysHandler(AbstractEqualityHandler):
     ```pycon
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import MappingSameKeysHandler
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> handler = MappingSameKeysHandler()
     >>> handler.handle({"a": 1, "b": 2}, {"a": 1, "b": 2, "c": 1}, config)
@@ -76,7 +76,7 @@ class MappingSameValuesHandler(AbstractEqualityHandler):
     ```pycon
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import MappingSameValuesHandler, TrueHandler
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> handler = MappingSameValuesHandler(next_handler=TrueHandler())
     >>> handler.handle({"a": 1, "b": 2}, {"a": 1, "b": 2}, config)
@@ -97,7 +97,7 @@ class MappingSameValuesHandler(AbstractEqualityHandler):
         config: EqualityConfig,
     ) -> bool:
         for key in object1:
-            if not config.tester.equal(object1[key], object2[key], config.show_difference):
+            if not config.tester.equal(object1[key], object2[key], config):
                 self._show_difference(object1=object1, object2=object2, config=config)
                 return False
         return self._handle_next(object1=object1, object2=object2, config=config)

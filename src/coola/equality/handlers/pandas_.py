@@ -37,7 +37,7 @@ class PandasDataFrameEqualHandler(BaseEqualityHandler):
     >>> import pandas
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import PandasDataFrameEqualHandler
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> handler = PandasDataFrameEqualHandler()
     >>> handler.handle(
@@ -115,7 +115,7 @@ class PandasSeriesEqualHandler(BaseEqualityHandler):
     >>> import pandas
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import PandasSeriesEqualHandler
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> handler = PandasSeriesEqualHandler()
     >>> handler.handle(pandas.Series([1, 2, 3]), pandas.Series([1, 2, 3]), config)

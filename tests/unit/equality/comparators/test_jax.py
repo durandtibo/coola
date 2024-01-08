@@ -12,7 +12,7 @@ from coola.equality.comparators.jax_ import (
     get_array_impl_class,
     get_type_comparator_mapping,
 )
-from coola.testers import EqualityTester
+from coola.equality.testers import EqualityTester
 from coola.testing import jax_available
 from coola.utils.imports import is_jax_available
 

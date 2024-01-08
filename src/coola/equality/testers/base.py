@@ -39,7 +39,7 @@ class BaseEqualityTester(ABC):
         >>> config = EqualityConfig(tester=tester)
         >>> tester.equal([np.ones((2, 3)), np.zeros(2)], [np.ones((2, 3)), np.zeros(2)], config)
         True
-        >>> tester.equal([np.ones((2, 3)), np.ones(2)], [np.ones((2, 3)), np.zeros(2)])
+        >>> tester.equal([np.ones((2, 3)), np.ones(2)], [np.ones((2, 3)), np.zeros(2)], config)
         False
 
         ```
