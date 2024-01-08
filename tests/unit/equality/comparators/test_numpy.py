@@ -348,12 +348,8 @@ def test_numpy_masked_array_equality_comparator_equal_false_different_shape_show
     comparator = NumpyMaskedArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
         assert not comparator.equal(
-            object1=np.ma.array(
-                data=np.ones(shape=(2, 3), dtype=float), mask=[[0, 1, 0], [1, 0, 0]]
-            ),
-            object2=np.ma.array(
-                data=np.ones(shape=(3, 2), dtype=int), mask=[[0, 1], [1, 0], [0, 0]]
-            ),
+            object1=np.ma.array(data=np.ones(shape=(2, 3)), mask=[[0, 1, 0], [1, 0, 0]]),
+            object2=np.ma.array(data=np.ones(shape=(3, 2)), mask=[[0, 1], [1, 0], [0, 0]]),
             config=config,
         )
         assert caplog.messages[0].startswith("objects have different shapes:")
