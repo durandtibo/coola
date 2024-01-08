@@ -1,3 +1,5 @@
+r"""Contain the testers to check if two objects are equal or not."""
+
 from __future__ import annotations
 
 __all__ = ["BaseEqualityTester", "EqualityTester", "LocalEqualityTester"]

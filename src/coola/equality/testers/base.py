@@ -32,15 +32,14 @@ class BaseEqualityTester(ABC):
         Example usage:
 
         ```pycon
-        >>> import torch
+        >>> import numpy as np
+        >>> from coola.equality import EqualityConfig
         >>> from coola.equality.testers import EqualityTester
         >>> tester = EqualityTester()
-        >>> tester.equal(
-        ...     [torch.ones(2, 3), torch.zeros(2)],
-        ...     [torch.ones(2, 3), torch.zeros(2)],
-        ... )
+        >>> config = EqualityConfig(tester=tester)
+        >>> tester.equal([np.ones((2, 3)), np.zeros(2)], [np.ones((2, 3)), np.zeros(2)], config)
         True
-        >>> tester.equal([torch.ones(2, 3), torch.ones(2)], [torch.ones(2, 3), torch.zeros(2)])
+        >>> tester.equal([np.ones((2, 3)), np.ones(2)], [np.ones((2, 3)), np.zeros(2)])
         False
 
         ```

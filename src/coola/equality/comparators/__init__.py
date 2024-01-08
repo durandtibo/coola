@@ -51,3 +51,45 @@ from coola.equality.comparators.xarray_ import (
     XarrayDatasetEqualityComparator,
     XarrayVariableEqualityComparator,
 )
+
+
+def register_equality() -> None:
+    r"""Register equality operators to ``EqualityTester``.
+
+    >>> from coola.comparators import register_equality
+    >>> from coola.testers import EqualityTester
+    >>> register_equality()
+    >>> tester = EqualityTester()
+    >>> tester
+    EqualityTester(
+      (<class 'collections.abc.Mapping'>): MappingEqualityOperator()
+      (<class 'collections.abc.Sequence'>): SequenceEqualityOperator()
+      (<class 'dict'>): MappingEqualityOperator()
+      (<class 'list'>): SequenceEqualityOperator()
+      (<class 'object'>): DefaultEqualityOperator()
+      (<class 'tuple'>): SequenceEqualityOperator()
+      (<class 'jax.Array'>): JaxArrayEqualityOperator(check_dtype=True)
+      (<class 'jaxlib.xla_extension.ArrayImpl'>): JaxArrayEqualityOperator(check_dtype=True)
+      (<class 'numpy.ndarray'>): ArrayEqualityOperator(check_dtype=True)
+      (<class 'pandas...DataFrame'>): DataFrameEqualityOperator(nulls_compare_equal=False)
+      (<class 'pandas...Series'>): SeriesEqualityOperator(nulls_compare_equal=False)
+      (<class 'polars...DataFrame'>): DataFrameEqualityOperator()
+      (<class 'polars.series.series.Series'>): SeriesEqualityOperator()
+      (<class 'torch.Tensor'>): TensorEqualityOperator()
+      (<class 'torch.nn.utils.rnn.PackedSequence'>): PackedSequenceEqualityOperator()
+      (<class 'xarray.core.dataset.Dataset'>): DatasetEqualityOperator()
+      (<class 'xarray.core.dataarray.DataArray'>): DataArrayEqualityOperator()
+      (<class 'xarray.core.variable.Variable'>): VariableEqualityOperator()
+    )
+
+    ```
+    """
+    # Local import to avoid cyclic dependency
+    from coola.equality.testers import EqualityTester
+
+    for typ, op in get_type_comparator_mapping().items():
+        if not EqualityTester.has_operator(typ):  # pragma: no cover
+            EqualityTester.add_operator(typ, op)
+
+
+register_equality()
