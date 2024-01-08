@@ -24,7 +24,7 @@ from coola.utils import check_numpy, is_numpy_available
 
 if is_numpy_available():
     import numpy as np
-else:
+else:  # pragma: no cover
     np = Mock()
 
 if TYPE_CHECKING:
