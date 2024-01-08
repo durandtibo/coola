@@ -42,7 +42,7 @@ class PandasDataFrameEqualityComparator(BaseEqualityComparator[pandas.DataFrame]
     >>> import pandas as np
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import PandasDataFrameEqualityComparator
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> comparator = PandasDataFrameEqualityComparator()
     >>> comparator.equal(
@@ -85,7 +85,7 @@ class PandasSeriesEqualityComparator(BaseEqualityComparator[pandas.Series]):
     >>> import pandas as np
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import PandasSeriesEqualityComparator
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> comparator = PandasSeriesEqualityComparator()
     >>> comparator.equal(pandas.Series([1, 2, 3]), pandas.Series([1, 2, 3]), config)

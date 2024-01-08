@@ -51,7 +51,7 @@ class TorchPackedSequenceEqualityComparator(
     >>> import torch
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import TorchPackedSequenceEqualityComparator
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> comparator = TorchTensorEqualityComparator()
     >>> comparator.equal(torch.ones(2, 3), torch.ones(2, 3), config)
@@ -94,7 +94,7 @@ class TorchTensorEqualityComparator(BaseEqualityComparator[torch.Tensor]):
     >>> import torch
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import TorchTensorEqualityComparator
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> comparator = TorchTensorEqualityComparator()
     >>> comparator.equal(torch.ones(2, 3), torch.ones(2, 3), config)

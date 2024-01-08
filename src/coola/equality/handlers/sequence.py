@@ -30,7 +30,7 @@ class SequenceSameValuesHandler(AbstractEqualityHandler):
     ```pycon
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import SequenceSameValuesHandler, TrueHandler
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> handler = SequenceSameValuesHandler(next_handler=TrueHandler())
     >>> handler.handle([1, 2, 3], [1, 2, 3], config)
@@ -51,7 +51,7 @@ class SequenceSameValuesHandler(AbstractEqualityHandler):
         config: EqualityConfig,
     ) -> bool:
         for value1, value2 in zip(object1, object2):
-            if not config.tester.equal(value1, value2, config.show_difference):
+            if not config.tester.equal(value1, value2, config):
                 self._show_difference(object1=object1, object2=object2, config=config)
                 return False
         return self._handle_next(object1=object1, object2=object2, config=config)

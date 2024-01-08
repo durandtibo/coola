@@ -36,7 +36,7 @@ class JaxArrayEqualHandler(BaseEqualityHandler):
     >>> import jax.numpy as jnp
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import JaxArrayEqualHandler
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> handler = JaxArrayEqualHandler()
     >>> handler.handle(jnp.ones((2, 3)), jnp.ones((2, 3)), config)

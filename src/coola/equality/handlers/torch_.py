@@ -36,7 +36,7 @@ class TorchTensorEqualHandler(BaseEqualityHandler):
     >>> import torch
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers.torch_ import TorchTensorEqualHandler
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> handler = TorchTensorEqualHandler()
     >>> handler.handle(torch.ones(2, 3), torch.ones(2, 3), config)
@@ -87,7 +87,7 @@ class TorchTensorSameDeviceHandler(AbstractEqualityHandler):
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import TrueHandler
     >>> from coola.equality.handlers.torch_ import TorchTensorSameDeviceHandler
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> handler = TorchTensorSameDeviceHandler(next_handler=TrueHandler())
     >>> handler.handle(torch.ones(2, 3), torch.ones(3, 2), config)

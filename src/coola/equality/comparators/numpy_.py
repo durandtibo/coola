@@ -42,7 +42,7 @@ class NumpyArrayEqualityComparator(BaseEqualityComparator[np.ndarray]):
     >>> import numpy as np
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import NumpyArrayEqualityComparator
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> comparator = NumpyArrayEqualityComparator()
     >>> comparator.equal(np.ones((2, 3)), np.ones((2, 3)), config)
@@ -79,7 +79,7 @@ class NumpyMaskedArrayEqualityComparator(BaseEqualityComparator[np.ma.MaskedArra
     >>> import numpy as np
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import NumpyMaskedArrayEqualityComparator
-    >>> from coola.testers import EqualityTester
+    >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> comparator = NumpyMaskedArrayEqualityComparator()
     >>> comparator.equal(np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]), np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]), config,)

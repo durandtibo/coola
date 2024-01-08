@@ -12,7 +12,7 @@ from coola.equality.comparators.collection import (
     MappingEqualityComparator,
     get_type_comparator_mapping,
 )
-from coola.testers import EqualityTester
+from coola.equality.testers import EqualityTester
 from coola.testing import numpy_available
 from coola.utils import is_numpy_available
 
