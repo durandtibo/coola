@@ -60,14 +60,23 @@ def test_numpy_array_equality_comparator_clone() -> None:
 
 
 @numpy_available
-def test_numpy_array_equality_comparator_equal_true(config: EqualityConfig) -> None:
-    assert NumpyArrayEqualityComparator().equal(np.ones((2, 3)), np.ones((2, 3)), config)
-
-
-@numpy_available
 def test_numpy_array_equality_comparator_equal_true_same_object(config: EqualityConfig) -> None:
     array = np.ones((2, 3))
     assert NumpyArrayEqualityComparator().equal(array, array, config)
+
+
+@numpy_available
+def test_numpy_array_equality_comparator_equal_true(
+    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+) -> None:
+    comparator = NumpyArrayEqualityComparator()
+    with caplog.at_level(logging.INFO):
+        assert comparator.equal(
+            object1=np.ones((2, 3)),
+            object2=np.ones((2, 3)),
+            config=config,
+        )
+        assert not caplog.messages
 
 
 @numpy_available
@@ -87,11 +96,16 @@ def test_numpy_array_equality_comparator_equal_true_show_difference(
 
 @numpy_available
 def test_numpy_array_equality_comparator_equal_false_different_dtype(
-    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
-    assert not NumpyArrayEqualityComparator().equal(
-        np.ones(shape=(2, 3), dtype=float), np.ones(shape=(2, 3), dtype=int), config
-    )
+    comparator = NumpyArrayEqualityComparator()
+    with caplog.at_level(logging.INFO):
+        assert not comparator.equal(
+            object1=np.ones(shape=(2, 3), dtype=float),
+            object2=np.ones(shape=(2, 3), dtype=int),
+            config=config,
+        )
+        assert not caplog.messages
 
 
 @numpy_available
@@ -111,9 +125,12 @@ def test_numpy_array_equality_comparator_equal_false_different_dtype_show_differ
 
 @numpy_available
 def test_numpy_array_equality_comparator_equal_false_different_shape(
-    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
-    assert not NumpyArrayEqualityComparator().equal(np.ones((2, 3)), np.zeros((6,)), config)
+    comparator = NumpyArrayEqualityComparator()
+    with caplog.at_level(logging.INFO):
+        assert not comparator.equal(object1=np.ones((2, 3)), object2=np.zeros((6,)), config=config)
+        assert not caplog.messages
 
 
 @numpy_available
@@ -123,19 +140,20 @@ def test_numpy_array_equality_comparator_equal_false_different_shape_show_differ
     config.show_difference = True
     comparator = NumpyArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(
-            object1=np.ones((2, 3)),
-            object2=np.zeros((6,)),
-            config=config,
-        )
+        assert not comparator.equal(object1=np.ones((2, 3)), object2=np.zeros((6,)), config=config)
         assert caplog.messages[0].startswith("objects have different shapes:")
 
 
 @numpy_available
 def test_numpy_array_equality_comparator_equal_false_different_value(
-    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
-    assert not NumpyArrayEqualityComparator().equal(np.ones((2, 3)), np.zeros((2, 3)), config)
+    comparator = NumpyArrayEqualityComparator()
+    with caplog.at_level(logging.INFO):
+        assert not comparator.equal(
+            object1=np.ones((2, 3)), object2=np.zeros((2, 3)), config=config
+        )
+        assert not caplog.messages
 
 
 @numpy_available
@@ -146,18 +164,19 @@ def test_numpy_array_equality_comparator_equal_false_different_value_show_differ
     comparator = NumpyArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
         assert not comparator.equal(
-            object1=np.ones((2, 3)),
-            object2=np.zeros((2, 3)),
-            config=config,
+            object1=np.ones((2, 3)), object2=np.zeros((2, 3)), config=config
         )
         assert caplog.messages[0].startswith("numpy.ndarrays have different elements:")
 
 
 @numpy_available
-def test_numpy_array_equality_comparator_equal_false_different_type(config: EqualityConfig) -> None:
-    assert not NumpyArrayEqualityComparator().equal(
-        object1=np.ones((2, 3)), object2=42, config=config
-    )
+def test_numpy_array_equality_comparator_equal_false_different_type(
+    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+) -> None:
+    comparator = NumpyArrayEqualityComparator()
+    with caplog.at_level(logging.INFO):
+        assert not comparator.equal(object1=np.ones((2, 3)), object2=42, config=config)
+        assert not caplog.messages
 
 
 @numpy_available
@@ -167,11 +186,7 @@ def test_numpy_array_equality_comparator_equal_false_different_type_show_differe
     config.show_difference = True
     comparator = NumpyArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(
-            object1=np.ones((2, 3)),
-            object2=42,
-            config=config,
-        )
+        assert not comparator.equal(object1=np.ones((2, 3)), object2=42, config=config)
         assert caplog.messages[0].startswith("objects have different types:")
 
 
