@@ -61,14 +61,23 @@ def test_jax_array_equality_comparator_clone() -> None:
 
 
 @jax_available
-def test_jax_array_equality_comparator_equal_true(config: EqualityConfig) -> None:
-    assert JaxArrayEqualityComparator().equal(jnp.ones((2, 3)), jnp.ones((2, 3)), config)
-
-
-@jax_available
 def test_jax_array_equality_comparator_equal_true_same_object(config: EqualityConfig) -> None:
     array = jnp.ones((2, 3))
     assert JaxArrayEqualityComparator().equal(array, array, config)
+
+
+@jax_available
+def test_jax_array_equality_comparator_equal_true(
+    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+) -> None:
+    comparator = JaxArrayEqualityComparator()
+    with caplog.at_level(logging.INFO):
+        assert comparator.equal(
+            object1=jnp.ones((2, 3)),
+            object2=jnp.ones((2, 3)),
+            config=config,
+        )
+        assert not caplog.messages
 
 
 @jax_available
@@ -88,11 +97,16 @@ def test_jax_array_equality_comparator_equal_true_show_difference(
 
 @jax_available
 def test_jax_array_equality_comparator_equal_false_different_dtype(
-    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
-    assert not JaxArrayEqualityComparator().equal(
-        jnp.ones(shape=(2, 3), dtype=float), jnp.ones(shape=(2, 3), dtype=int), config
-    )
+    comparator = JaxArrayEqualityComparator()
+    with caplog.at_level(logging.INFO):
+        assert not comparator.equal(
+            object1=jnp.ones(shape=(2, 3), dtype=float),
+            object2=jnp.ones(shape=(2, 3), dtype=int),
+            config=config,
+        )
+        assert not caplog.messages
 
 
 @jax_available
@@ -112,9 +126,16 @@ def test_jax_array_equality_comparator_equal_false_different_dtype_show_differen
 
 @jax_available
 def test_jax_array_equality_comparator_equal_false_different_shape(
-    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
-    assert not JaxArrayEqualityComparator().equal(jnp.ones((2, 3)), jnp.zeros((6,)), config)
+    comparator = JaxArrayEqualityComparator()
+    with caplog.at_level(logging.INFO):
+        assert not comparator.equal(
+            object1=jnp.ones((2, 3)),
+            object2=jnp.zeros((6,)),
+            config=config,
+        )
+        assert not caplog.messages
 
 
 @jax_available
@@ -134,9 +155,16 @@ def test_jax_array_equality_comparator_equal_false_different_shape_show_differen
 
 @jax_available
 def test_jax_array_equality_comparator_equal_false_different_value(
-    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
-    assert not JaxArrayEqualityComparator().equal(jnp.ones((2, 3)), jnp.zeros((2, 3)), config)
+    comparator = JaxArrayEqualityComparator()
+    with caplog.at_level(logging.INFO):
+        assert not comparator.equal(
+            object1=jnp.ones((2, 3)),
+            object2=jnp.zeros((2, 3)),
+            config=config,
+        )
+        assert not caplog.messages
 
 
 @jax_available
@@ -155,10 +183,17 @@ def test_jax_array_equality_comparator_equal_false_different_value_show_differen
 
 
 @jax_available
-def test_jax_array_equality_comparator_equal_false_different_type(config: EqualityConfig) -> None:
-    assert not JaxArrayEqualityComparator().equal(
-        object1=jnp.ones((2, 3)), object2=42, config=config
-    )
+def test_jax_array_equality_comparator_equal_false_different_type(
+    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+) -> None:
+    comparator = JaxArrayEqualityComparator()
+    with caplog.at_level(logging.INFO):
+        assert not comparator.equal(
+            object1=jnp.ones((2, 3)),
+            object2=42,
+            config=config,
+        )
+        assert not caplog.messages
 
 
 @jax_available
