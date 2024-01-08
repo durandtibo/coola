@@ -10,6 +10,7 @@ __all__ = [
 
 import logging
 from typing import TYPE_CHECKING, Any
+from unittest.mock import Mock
 
 from coola.equality.comparators.base import BaseEqualityComparator
 from coola.equality.handlers import (
@@ -23,6 +24,8 @@ from coola.utils import check_numpy, is_numpy_available
 
 if is_numpy_available():
     import numpy as np
+else:
+    np = Mock()
 
 if TYPE_CHECKING:
     from coola.equality import EqualityConfig
@@ -30,7 +33,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class NumpyArrayEqualityComparator(BaseEqualityComparator[Any]):
+class NumpyArrayEqualityComparator(BaseEqualityComparator[np.ndarray]):
     r"""Implement an equality comparator for ``numpy.ndarray``.
 
     Example usage:
