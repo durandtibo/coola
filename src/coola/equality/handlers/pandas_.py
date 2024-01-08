@@ -3,7 +3,7 @@ r"""Implement some handlers for ``pandas.DataFrame``s and
 
 from __future__ import annotations
 
-__all__ = ["PandasSeriesEqualHandler"]
+__all__ = ["PandasDataFrameEqualHandler", "PandasSeriesEqualHandler"]
 
 import logging
 from typing import TYPE_CHECKING
@@ -21,6 +21,80 @@ if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
 
 logger = logging.getLogger(__name__)
+
+
+class PandasDataFrameEqualHandler(BaseEqualityHandler):
+    r"""Check if the two ``pandas.DataFrame`` are equal.
+
+    This handler returns ``True`` if the two ``pandas.DataFrame``s
+    equal, otherwise ``False``. This handler is designed to be used
+    at the end of the chain of responsibility. This handler does
+    not call the next handler.
+
+    Example usage:
+
+    ```pycon
+    >>> import pandas
+    >>> from coola.equality import EqualityConfig
+    >>> from coola.equality.handlers import PandasDataFrameEqualHandler
+    >>> from coola.testers import EqualityTester
+    >>> config = EqualityConfig(tester=EqualityTester())
+    >>> handler = PandasDataFrameEqualHandler()
+    >>> handler.handle(
+    ...     pandas.DataFrame([1, 2, 3, 4, 5]), pandas.DataFrame([1, 2, 3, 4, 5]), config
+    ... )
+    True
+    >>> handler.handle(
+    ...     pandas.DataFrame([1, 2, 3, 4, 5]), pandas.DataFrame([1, 2, 3, 4, 0]), config
+    ... )
+    False
+
+    ```
+    """
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, self.__class__)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__qualname__}()"
+
+    def handle(
+        self,
+        object1: pandas.DataFrame,
+        object2: pandas.DataFrame,
+        config: EqualityConfig,
+    ) -> bool:
+        object_equal = self._compare_dataframes(object1, object2, config)
+        if config.show_difference and not object_equal:
+            logger.info(
+                f"pandas.DataFrames have different elements:\n"
+                f"object1:\n{object1}\nobject2:\n{object2}"
+            )
+        return object_equal
+
+    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
+        pass  # Do nothing because the next handler is never called.
+
+    def _compare_dataframes(
+        self, df1: pandas.DataFrame, df2: pandas.DataFrame, config: EqualityConfig
+    ) -> bool:
+        r"""Indicate if the two series are equal or not.
+
+        Args:
+            df1: Specifies the first DataFrame to compare.
+            df2: Specifies the second DataFrame to compare.
+            config: Specifies the equality configuration.
+
+        Returns:
+            ``True``if the two DataFrame are equal, otherwise ``False``.
+        """
+        if not config.equal_nan and df1.isna().any().any():
+            return False
+        try:
+            pandas.testing.assert_frame_equal(df1, df2, check_exact=True)
+        except AssertionError:
+            return False
+        return True
 
 
 class PandasSeriesEqualHandler(BaseEqualityHandler):
