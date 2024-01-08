@@ -291,14 +291,6 @@ def test_xarray_data_array_equality_comparator_equal_false_different_type_show_d
 
 
 @xarray_available
-def test_xarray_data_array_equality_comparator_no_xarray() -> None:
-    with patch(
-        "coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False
-    ), pytest.raises(RuntimeError, match="`xarray` package is required but not installed."):
-        XarrayDataArrayEqualityComparator()
-
-
-@xarray_available
 def test_xarray_data_array_equality_comparator_equal_nan_false(config: EqualityConfig) -> None:
     assert not XarrayDataArrayEqualityComparator().equal(
         xr.DataArray(np.array([0.0, float("nan"), 2.0])),
@@ -316,6 +308,14 @@ def test_xarray_data_array_equality_comparator_equal_nan_true(config: EqualityCo
         xr.DataArray(np.array([0.0, float("nan"), 2.0])),
         config,
     )
+
+
+@xarray_available
+def test_xarray_data_array_equality_comparator_no_xarray() -> None:
+    with patch(
+        "coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`xarray` package is required but not installed."):
+        XarrayDataArrayEqualityComparator()
 
 
 #####################################################
@@ -510,14 +510,6 @@ def test_xarray_dataset_equality_comparator_equal_false_different_type_show_diff
 
 
 @xarray_available
-def test_xarray_dataset_equality_comparator_no_xarray() -> None:
-    with patch(
-        "coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False
-    ), pytest.raises(RuntimeError, match="`xarray` package is required but not installed."):
-        XarrayDatasetEqualityComparator()
-
-
-@xarray_available
 def test_xarray_dataset_equality_comparator_equal_nan_false(config: EqualityConfig) -> None:
     assert not XarrayDatasetEqualityComparator().equal(
         xr.Dataset(data_vars={"x": xr.DataArray(np.array([0.0, float("nan"), 2.0]))}),
@@ -535,6 +527,14 @@ def test_xarray_dataset_equality_comparator_equal_nan_true(config: EqualityConfi
         xr.Dataset(data_vars={"x": xr.DataArray(np.array([0.0, float("nan"), 2.0]))}),
         config,
     )
+
+
+@xarray_available
+def test_xarray_dataset_equality_comparator_no_xarray() -> None:
+    with patch(
+        "coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`xarray` package is required but not installed."):
+        XarrayDatasetEqualityComparator()
 
 
 ######################################################
@@ -715,14 +715,6 @@ def test_xarray_variable_equality_comparator_equal_false_different_type_show_dif
 
 
 @xarray_available
-def test_xarray_variable_equality_comparator_no_xarray() -> None:
-    with patch(
-        "coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False
-    ), pytest.raises(RuntimeError, match="`xarray` package is required but not installed."):
-        XarrayVariableEqualityComparator()
-
-
-@xarray_available
 def test_xarray_variable_equality_comparator_equal_nan_false(config: EqualityConfig) -> None:
     assert not XarrayVariableEqualityComparator().equal(
         xr.Variable(dims=["z"], data=np.array([0.0, float("nan"), 2.0])),
@@ -740,6 +732,14 @@ def test_xarray_variable_equality_comparator_equal_nan_true(config: EqualityConf
         xr.Variable(dims=["z"], data=np.array([0.0, float("nan"), 2.0])),
         config,
     )
+
+
+@xarray_available
+def test_xarray_variable_equality_comparator_no_xarray() -> None:
+    with patch(
+        "coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False
+    ), pytest.raises(RuntimeError, match="`xarray` package is required but not installed."):
+        XarrayVariableEqualityComparator()
 
 
 ##########################################
