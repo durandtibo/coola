@@ -285,6 +285,21 @@ def test_pandas_series_equal_handler_handle_false_different_value(
 
 
 @pandas_available
+def test_pandas_series_equal_handler_handle_false_different_index(
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    handler = PandasSeriesEqualHandler()
+    with caplog.at_level(logging.INFO):
+        assert not handler.handle(
+            pandas.Series(data=[1, 2, 3]),
+            pandas.Series(data=[1, 2, 3], index=pandas.Index([2, 3, 4])),
+            config,
+        )
+        assert not caplog.messages
+
+
+@pandas_available
 def test_pandas_series_equal_handler_handle_false_show_difference(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:

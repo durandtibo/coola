@@ -2,7 +2,11 @@ r"""Implement an equality comparator for ``numpy.ndarray``s."""
 
 from __future__ import annotations
 
-__all__ = ["NumpyArrayEqualityComparator", "get_type_comparator_mapping"]
+__all__ = [
+    "NumpyArrayEqualityComparator",
+    "NumpyMaskedArrayEqualityComparator",
+    "get_type_comparator_mapping",
+]
 
 import logging
 from typing import TYPE_CHECKING, Any
@@ -63,6 +67,43 @@ class NumpyArrayEqualityComparator(BaseEqualityComparator[Any]):
         return self._handler.handle(object1=object1, object2=object2, config=config)
 
 
+class NumpyMaskedArrayEqualityComparator(BaseEqualityComparator[np.ma.MaskedArray]):
+    r"""Implement an equality comparator for ``numpy.ndarray``.
+
+    Example usage:
+
+    ```pycon
+    >>> import numpy as np
+    >>> from coola.equality import EqualityConfig
+    >>> from coola.equality.comparators import NumpyMaskedArrayEqualityComparator
+    >>> from coola.testers import EqualityTester
+    >>> config = EqualityConfig(tester=EqualityTester())
+    >>> comparator = NumpyMaskedArrayEqualityComparator()
+    >>> comparator.equal(np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]), np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]), config,)
+    True
+    >>> comparator.equal(np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]), np.ma.array(data=[0.0, 1.0, 2.0], mask=[0, 1, 0]), config,)
+    False
+
+    ```
+    """
+
+    def __init__(self) -> None:
+        check_numpy()
+        self._handler = SameObjectHandler()
+        self._handler.chain(SameTypeHandler()).chain(SameDTypeHandler()).chain(
+            SameShapeHandler()
+        ).chain(NumpyArrayEqualHandler())
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, self.__class__)
+
+    def clone(self) -> NumpyMaskedArrayEqualityComparator:
+        return self.__class__()
+
+    def equal(self, object1: np.ma.MaskedArray, object2: Any, config: EqualityConfig) -> bool:
+        return self._handler.handle(object1=object1, object2=object2, config=config)
+
+
 def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
     r"""Get a default mapping between the types and the equality
     comparators.
@@ -78,10 +119,14 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
     ```pycon
     >>> from coola.equality.comparators.numpy_ import get_type_comparator_mapping
     >>> get_type_comparator_mapping()
-    {<class 'numpy.ndarray'>: NumpyArrayEqualityComparator()}
+    {<class 'numpy.ndarray'>: NumpyArrayEqualityComparator(),
+     <class 'numpy.ma...MaskedArray'>: NumpyMaskedArrayEqualityComparator()}
 
     ```
     """
     if not is_numpy_available():
         return {}
-    return {np.ndarray: NumpyArrayEqualityComparator()}
+    return {
+        np.ndarray: NumpyArrayEqualityComparator(),
+        np.ma.MaskedArray: NumpyMaskedArrayEqualityComparator(),
+    }
