@@ -21,6 +21,25 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
     ```pycon
     >>> from coola.equality.comparators import get_type_comparator_mapping
     >>> get_type_comparator_mapping()
+    {<class 'object'>: DefaultEqualityComparator(),
+     <class 'collections.abc.Mapping'>: MappingEqualityComparator(),
+     <class 'collections.abc.Sequence'>: SequenceEqualityComparator(),
+     <class 'dict'>: MappingEqualityComparator(),
+     <class 'list'>: SequenceEqualityComparator(),
+     <class 'tuple'>: SequenceEqualityComparator(),
+     <class 'jax.Array'>: JaxArrayEqualityComparator(),
+     <class 'jaxlib.xla_extension.ArrayImpl'>: JaxArrayEqualityComparator(),
+     <class 'numpy.ndarray'>: NumpyArrayEqualityComparator(),
+     <class 'numpy.ma...MaskedArray'>: NumpyMaskedArrayEqualityComparator(),
+     <class 'pandas...DataFrame'>: PandasDataFrameEqualityComparator(),
+     <class 'pandas...Series'>: PandasSeriesEqualityComparator(),
+     <class 'polars...DataFrame'>: PolarsDataFrameEqualityComparator(),
+     <class 'polars...Series'>: PolarsSeriesEqualityComparator(),
+     <class 'torch.nn.utils.rnn.PackedSequence'>: TorchPackedSequenceEqualityComparator(),
+     <class 'torch.Tensor'>: TorchTensorEqualityComparator(),
+     <class 'xarray...DataArray'>: XarrayDataArrayEqualityComparator(),
+     <class 'xarray...Dataset'>: XarrayDatasetEqualityComparator(),
+     <class 'xarray...Variable'>: XarrayVariableEqualityComparator()}
 
     ```
     """
@@ -29,10 +48,10 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
     return (
         comparators.default.get_type_comparator_mapping()
         | comparators.collection.get_type_comparator_mapping()
-        # | comparators.jax_.get_type_comparator_mapping()
+        | comparators.jax_.get_type_comparator_mapping()
         | comparators.numpy_.get_type_comparator_mapping()
-        # | comparators.pandas_.get_type_comparator_mapping()
-        # | comparators.polars_.get_type_comparator_mapping()
+        | comparators.pandas_.get_type_comparator_mapping()
+        | comparators.polars_.get_type_comparator_mapping()
         | comparators.torch_.get_type_comparator_mapping()
-        # | comparators.xarray_.get_type_comparator_mapping()
+        | comparators.xarray_.get_type_comparator_mapping()
     )
