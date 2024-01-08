@@ -64,6 +64,7 @@ def test_pandas_series_equal_handler_handle_true(
         assert not caplog.messages
 
 
+@pandas_available
 def test_pandas_series_equal_handler_handle_true_show_difference(
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
