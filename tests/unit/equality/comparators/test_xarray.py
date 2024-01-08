@@ -315,12 +315,17 @@ def test_variable_equality_comparator_equal_true_show_difference(
 
 
 @xarray_available
-def test_variable_equality_comparator_equal_false_data(config: EqualityConfig) -> None:
-    assert not XarrayVariableEqualityComparator().equal(
-        xr.Variable(dims=["z"], data=np.ones(6)),
-        xr.Variable(dims=["z"], data=np.zeros(6)),
-        config,
-    )
+def test_variable_equality_comparator_equal_false_data(
+    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+) -> None:
+    comparator = XarrayVariableEqualityComparator()
+    with caplog.at_level(logging.INFO):
+        assert not comparator.equal(
+            xr.Variable(dims=["z"], data=np.ones(6)),
+            xr.Variable(dims=["z"], data=np.zeros(6)),
+            config,
+        )
+        assert not caplog.messages
 
 
 @xarray_available
@@ -339,12 +344,17 @@ def test_variable_equality_comparator_equal_false_data_show_difference(
 
 
 @xarray_available
-def test_variable_equality_comparator_equal_false_dims(config: EqualityConfig) -> None:
-    assert not XarrayVariableEqualityComparator().equal(
-        xr.Variable(dims=["z"], data=np.arange(6)),
-        xr.Variable(dims=["x"], data=np.arange(6)),
-        config,
-    )
+def test_variable_equality_comparator_equal_false_dims(
+    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+) -> None:
+    comparator = XarrayVariableEqualityComparator()
+    with caplog.at_level(logging.INFO):
+        assert not comparator.equal(
+            xr.Variable(dims=["z"], data=np.arange(6)),
+            xr.Variable(dims=["x"], data=np.arange(6)),
+            config,
+        )
+        assert not caplog.messages
 
 
 @xarray_available
@@ -363,12 +373,17 @@ def test_variable_equality_comparator_equal_false_dims_show_difference(
 
 
 @xarray_available
-def test_variable_equality_comparator_equal_false_different_attrs(config: EqualityConfig) -> None:
-    assert not XarrayVariableEqualityComparator().equal(
-        xr.Variable(dims=["z"], data=np.arange(6), attrs={"global": "meow"}),
-        xr.Variable(dims=["z"], data=np.arange(6), attrs={"global": "meoowww"}),
-        config,
-    )
+def test_variable_equality_comparator_equal_false_different_attrs(
+    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+) -> None:
+    comparator = XarrayVariableEqualityComparator()
+    with caplog.at_level(logging.INFO):
+        assert not comparator.equal(
+            xr.Variable(dims=["z"], data=np.arange(6), attrs={"global": "meow"}),
+            xr.Variable(dims=["z"], data=np.arange(6), attrs={"global": "meoowww"}),
+            config,
+        )
+        assert not caplog.messages
 
 
 @xarray_available
@@ -387,10 +402,15 @@ def test_variable_equality_comparator_equal_false_attrs_show_difference(
 
 
 @xarray_available
-def test_variable_equality_comparator_equal_false_different_type(config: EqualityConfig) -> None:
-    assert not XarrayVariableEqualityComparator().equal(
-        xr.Variable(dims=["z"], data=np.arange(6)), np.arange(6), config
-    )
+def test_variable_equality_comparator_equal_false_different_type(
+    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+) -> None:
+    comparator = XarrayVariableEqualityComparator()
+    with caplog.at_level(logging.INFO):
+        assert not comparator.equal(
+            xr.Variable(dims=["z"], data=np.arange(6)), np.arange(6), config
+        )
+        assert not caplog.messages
 
 
 @xarray_available
