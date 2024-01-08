@@ -10,6 +10,8 @@ __all__ = [
     "NumpyArrayEqualityComparator",
     "PandasDataFrameEqualityComparator",
     "PandasSeriesEqualityComparator",
+    "PolarsDataFrameEqualityComparator",
+    "PolarsSeriesEqualityComparator",
     "SequenceEqualityComparator",
     "TorchPackedSequenceEqualityComparator",
     "TorchTensorEqualityComparator",
@@ -30,6 +32,10 @@ from coola.equality.comparators.numpy_ import NumpyArrayEqualityComparator
 from coola.equality.comparators.pandas_ import (
     PandasDataFrameEqualityComparator,
     PandasSeriesEqualityComparator,
+)
+from coola.equality.comparators.polars_ import (
+    PolarsDataFrameEqualityComparator,
+    PolarsSeriesEqualityComparator,
 )
 from coola.equality.comparators.torch_ import (
     TorchPackedSequenceEqualityComparator,

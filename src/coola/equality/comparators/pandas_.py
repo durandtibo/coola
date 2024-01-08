@@ -3,7 +3,11 @@ r"""Implement an equality comparator for ``pandas.DataFrame``s and
 
 from __future__ import annotations
 
-__all__ = ["PandasSeriesEqualityComparator", "get_type_comparator_mapping"]
+__all__ = [
+    "PandasDataFrameEqualityComparator",
+    "PandasSeriesEqualityComparator",
+    "get_type_comparator_mapping",
+]
 
 import logging
 from typing import TYPE_CHECKING, Any
