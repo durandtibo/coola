@@ -122,10 +122,14 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
     ```pycon
     >>> from coola.equality.comparators.pandas_ import get_type_comparator_mapping
     >>> get_type_comparator_mapping()
-    {<class 'pandas.core.series.Series'>: PandasSeriesEqualityComparator()}
+    {<class 'pandas.core.frame.DataFrame'>: PandasDataFrameEqualityComparator(),
+     <class 'pandas.core.series.Series'>: PandasSeriesEqualityComparator()}
 
     ```
     """
     if not is_pandas_available():
         return {}
-    return {pandas.Series: PandasSeriesEqualityComparator()}
+    return {
+        pandas.DataFrame: PandasDataFrameEqualityComparator(),
+        pandas.Series: PandasSeriesEqualityComparator(),
+    }

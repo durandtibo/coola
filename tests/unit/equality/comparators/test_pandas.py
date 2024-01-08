@@ -330,7 +330,10 @@ def test_pandas_series_equality_comparator_no_pandas() -> None:
 
 @pandas_available
 def test_get_type_comparator_mapping() -> None:
-    assert get_type_comparator_mapping() == {pandas.Series: PandasSeriesEqualityComparator()}
+    assert get_type_comparator_mapping() == {
+        pandas.DataFrame: PandasDataFrameEqualityComparator(),
+        pandas.Series: PandasSeriesEqualityComparator(),
+    }
 
 
 def test_get_type_comparator_mapping_no_pandas() -> None:
