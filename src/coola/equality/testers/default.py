@@ -266,3 +266,46 @@ class LocalEqualityTester(BaseEqualityTester):
                 return comparator
         msg = f"Incorrect data type: {data_type}"
         raise TypeError(msg)
+
+
+def register_equality() -> None:
+    r"""Register equality comparators to ``EqualityTester``.
+
+    >>> from coola.equality.testers.default import register_equality
+    >>> from coola.equality.testers import EqualityTester
+    >>> register_equality()
+    >>> tester = EqualityTester()
+    >>> tester
+    EqualityTester(
+      (<class 'object'>): DefaultEqualityComparator()
+      (<class 'collections.abc.Mapping'>): MappingEqualityComparator()
+      (<class 'collections.abc.Sequence'>): SequenceEqualityComparator()
+      (<class 'dict'>): MappingEqualityComparator()
+      (<class 'list'>): SequenceEqualityComparator()
+      (<class 'tuple'>): SequenceEqualityComparator()
+      (<class 'jax.Array'>): JaxArrayEqualityComparator()
+      (<class 'jaxlib.xla_extension.ArrayImpl'>): JaxArrayEqualityComparator()
+      (<class 'numpy.ndarray'>): NumpyArrayEqualityComparator()
+      (<class 'numpy.ma...MaskedArray'>): NumpyMaskedArrayEqualityComparator()
+      (<class 'pandas...DataFrame'>): PandasDataFrameEqualityComparator()
+      (<class 'pandas...Series'>): PandasSeriesEqualityComparator()
+      (<class 'polars...DataFrame'>): PolarsDataFrameEqualityComparator()
+      (<class 'polars...Series'>): PolarsSeriesEqualityComparator()
+      (<class 'torch.nn.utils.rnn.PackedSequence'>): TorchPackedSequenceEqualityComparator()
+      (<class 'torch.Tensor'>): TorchTensorEqualityComparator()
+      (<class 'xarray...DataArray'>): XarrayDataArrayEqualityComparator()
+      (<class 'xarray...Dataset'>): XarrayDatasetEqualityComparator()
+      (<class 'xarray...Variable'>): XarrayVariableEqualityComparator()
+    )
+
+    ```
+    """
+    # Local import to avoid cyclic dependency
+    from coola.equality.comparators import get_type_comparator_mapping
+
+    for typ, op in get_type_comparator_mapping().items():
+        if not EqualityTester.has_comparator(typ):  # pragma: no cover
+            EqualityTester.add_comparator(typ, op)
+
+
+register_equality()
