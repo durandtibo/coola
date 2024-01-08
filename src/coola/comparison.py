@@ -6,12 +6,9 @@ __all__ = ["objects_are_equal"]
 
 from typing import Any
 
-from coola.testers import (
-    AllCloseTester,
-    BaseAllCloseTester,
-    BaseEqualityTester,
-    EqualityTester,
-)
+from coola.equality import EqualityConfig
+from coola.equality.testers import EqualityTester
+from coola.testers import AllCloseTester, BaseAllCloseTester, BaseEqualityTester
 
 
 def objects_are_allclose(
@@ -109,4 +106,5 @@ def objects_are_equal(
     ```
     """
     tester = tester or EqualityTester()
-    return tester.equal(object1, object2, show_difference)
+    config = EqualityConfig(tester=tester, show_difference=show_difference)
+    return tester.equal(object1, object2, config)
