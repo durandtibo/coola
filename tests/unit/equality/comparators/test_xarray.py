@@ -346,22 +346,22 @@ def test_objects_are_equal_dataset() -> None:
 
 
 @xarray_available
-def test_dataset_equality_comparator_str() -> None:
+def test_xarray_dataset_equality_comparator_str() -> None:
     assert str(XarrayDatasetEqualityComparator()).startswith("XarrayDatasetEqualityComparator(")
 
 
 @xarray_available
-def test_dataset_equality_comparator__eq__true() -> None:
+def test_xarray_dataset_equality_comparator__eq__true() -> None:
     assert XarrayDatasetEqualityComparator() == XarrayDatasetEqualityComparator()
 
 
 @xarray_available
-def test_dataset_equality_comparator__eq__false() -> None:
+def test_xarray_dataset_equality_comparator__eq__false() -> None:
     assert XarrayDatasetEqualityComparator() != 123
 
 
 @xarray_available
-def test_dataset_equality_comparator_clone() -> None:
+def test_xarray_dataset_equality_comparator_clone() -> None:
     op = XarrayDatasetEqualityComparator()
     op_cloned = op.clone()
     assert op is not op_cloned
@@ -369,13 +369,13 @@ def test_dataset_equality_comparator_clone() -> None:
 
 
 @xarray_available
-def test_dataset_equality_comparator_equal_true_same_object(config: EqualityConfig) -> None:
+def test_xarray_dataset_equality_comparator_equal_true_same_object(config: EqualityConfig) -> None:
     obj = xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6), dims=["z"])})
     assert XarrayDatasetEqualityComparator().equal(obj, obj, config)
 
 
 @xarray_available
-def test_dataset_equality_comparator_equal_true(config: EqualityConfig) -> None:
+def test_xarray_dataset_equality_comparator_equal_true(config: EqualityConfig) -> None:
     assert XarrayDatasetEqualityComparator().equal(
         xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6), dims=["z"])}),
         xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6), dims=["z"])}),
@@ -384,7 +384,7 @@ def test_dataset_equality_comparator_equal_true(config: EqualityConfig) -> None:
 
 
 @xarray_available
-def test_dataset_equality_comparator_equal_true_show_difference(
+def test_xarray_dataset_equality_comparator_equal_true_show_difference(
     caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
     config.show_difference = True
@@ -399,7 +399,7 @@ def test_dataset_equality_comparator_equal_true_show_difference(
 
 
 @xarray_available
-def test_dataset_equality_comparator_equal_false_data_vars(
+def test_xarray_dataset_equality_comparator_equal_false_data_vars(
     caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
     comparator = XarrayDatasetEqualityComparator()
@@ -413,7 +413,7 @@ def test_dataset_equality_comparator_equal_false_data_vars(
 
 
 @xarray_available
-def test_dataset_equality_comparator_equal_false_data_vars_show_difference(
+def test_xarray_dataset_equality_comparator_equal_false_data_vars_show_difference(
     caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
     config.show_difference = True
@@ -428,7 +428,7 @@ def test_dataset_equality_comparator_equal_false_data_vars_show_difference(
 
 
 @xarray_available
-def test_dataset_equality_comparator_equal_false_coords(
+def test_xarray_dataset_equality_comparator_equal_false_coords(
     caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
     comparator = XarrayDatasetEqualityComparator()
@@ -442,7 +442,7 @@ def test_dataset_equality_comparator_equal_false_coords(
 
 
 @xarray_available
-def test_dataset_equality_comparator_equal_false_coords_show_difference(
+def test_xarray_dataset_equality_comparator_equal_false_coords_show_difference(
     caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
     config.show_difference = True
@@ -457,7 +457,7 @@ def test_dataset_equality_comparator_equal_false_coords_show_difference(
 
 
 @xarray_available
-def test_dataset_equality_comparator_equal_false_different_attrs(
+def test_xarray_dataset_equality_comparator_equal_false_different_attrs(
     caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
     comparator = XarrayDatasetEqualityComparator()
@@ -471,7 +471,7 @@ def test_dataset_equality_comparator_equal_false_different_attrs(
 
 
 @xarray_available
-def test_dataset_equality_comparator_equal_false_attrs_show_difference(
+def test_xarray_dataset_equality_comparator_equal_false_attrs_show_difference(
     caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
     config.show_difference = True
@@ -486,14 +486,16 @@ def test_dataset_equality_comparator_equal_false_attrs_show_difference(
 
 
 @xarray_available
-def test_dataset_equality_comparator_equal_false_different_type(config: EqualityConfig) -> None:
+def test_xarray_dataset_equality_comparator_equal_false_different_type(
+    config: EqualityConfig,
+) -> None:
     assert not XarrayDatasetEqualityComparator().equal(
         xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6), dims=["z"])}), np.ones((2, 3)), config
     )
 
 
 @xarray_available
-def test_dataset_equality_comparator_equal_false_different_type_show_difference(
+def test_xarray_dataset_equality_comparator_equal_false_different_type_show_difference(
     caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
     config.show_difference = True
@@ -508,7 +510,7 @@ def test_dataset_equality_comparator_equal_false_different_type_show_difference(
 
 
 @xarray_available
-def test_dataset_equality_comparator_no_xarray() -> None:
+def test_xarray_dataset_equality_comparator_no_xarray() -> None:
     with patch(
         "coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False
     ), pytest.raises(RuntimeError, match="`xarray` package is required but not installed."):
@@ -516,7 +518,7 @@ def test_dataset_equality_comparator_no_xarray() -> None:
 
 
 @xarray_available
-def test_dataset_equality_comparator_equal_nan_false(config: EqualityConfig) -> None:
+def test_xarray_dataset_equality_comparator_equal_nan_false(config: EqualityConfig) -> None:
     assert not XarrayDatasetEqualityComparator().equal(
         xr.Dataset(data_vars={"x": xr.DataArray(np.array([0.0, float("nan"), 2.0]))}),
         xr.Dataset(data_vars={"x": xr.DataArray(np.array([0.0, float("nan"), 2.0]))}),
@@ -525,7 +527,7 @@ def test_dataset_equality_comparator_equal_nan_false(config: EqualityConfig) -> 
 
 
 @xarray_available
-def test_dataset_equality_comparator_equal_nan_true(config: EqualityConfig) -> None:
+def test_xarray_dataset_equality_comparator_equal_nan_true(config: EqualityConfig) -> None:
     config.equal_nan = True
     # TODO(TIBO): update after the new version is finished  # noqa: TD003
     assert not XarrayDatasetEqualityComparator().equal(
@@ -548,22 +550,22 @@ def test_objects_are_equal_variable() -> None:
 
 
 @xarray_available
-def test_variable_equality_comparator_str() -> None:
+def test_xarray_variable_equality_comparator_str() -> None:
     assert str(XarrayVariableEqualityComparator()).startswith("XarrayVariableEqualityComparator(")
 
 
 @xarray_available
-def test_variable_equality_comparator__eq__true() -> None:
+def test_xarray_variable_equality_comparator__eq__true() -> None:
     assert XarrayVariableEqualityComparator() == XarrayVariableEqualityComparator()
 
 
 @xarray_available
-def test_variable_equality_comparator__eq__false() -> None:
+def test_xarray_variable_equality_comparator__eq__false() -> None:
     assert XarrayVariableEqualityComparator() != 123
 
 
 @xarray_available
-def test_variable_equality_comparator_clone() -> None:
+def test_xarray_variable_equality_comparator_clone() -> None:
     op = XarrayVariableEqualityComparator()
     op_cloned = op.clone()
     assert op is not op_cloned
@@ -571,7 +573,7 @@ def test_variable_equality_comparator_clone() -> None:
 
 
 @xarray_available
-def test_variable_equality_comparator_equal_true(config: EqualityConfig) -> None:
+def test_xarray_variable_equality_comparator_equal_true(config: EqualityConfig) -> None:
     assert XarrayVariableEqualityComparator().equal(
         xr.Variable(dims=["z"], data=np.arange(6)),
         xr.Variable(dims=["z"], data=np.arange(6)),
@@ -580,13 +582,13 @@ def test_variable_equality_comparator_equal_true(config: EqualityConfig) -> None
 
 
 @xarray_available
-def test_variable_equality_comparator_equal_true_same_object(config: EqualityConfig) -> None:
+def test_xarray_variable_equality_comparator_equal_true_same_object(config: EqualityConfig) -> None:
     obj = xr.Variable(dims=["z"], data=np.arange(6))
     assert XarrayVariableEqualityComparator().equal(obj, obj, config)
 
 
 @xarray_available
-def test_variable_equality_comparator_equal_true_show_difference(
+def test_xarray_variable_equality_comparator_equal_true_show_difference(
     caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
     config.show_difference = True
@@ -601,7 +603,7 @@ def test_variable_equality_comparator_equal_true_show_difference(
 
 
 @xarray_available
-def test_variable_equality_comparator_equal_false_data(
+def test_xarray_variable_equality_comparator_equal_false_data(
     caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
     comparator = XarrayVariableEqualityComparator()
@@ -615,7 +617,7 @@ def test_variable_equality_comparator_equal_false_data(
 
 
 @xarray_available
-def test_variable_equality_comparator_equal_false_data_show_difference(
+def test_xarray_variable_equality_comparator_equal_false_data_show_difference(
     caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
     config.show_difference = True
@@ -630,7 +632,7 @@ def test_variable_equality_comparator_equal_false_data_show_difference(
 
 
 @xarray_available
-def test_variable_equality_comparator_equal_false_dims(
+def test_xarray_variable_equality_comparator_equal_false_dims(
     caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
     comparator = XarrayVariableEqualityComparator()
@@ -644,7 +646,7 @@ def test_variable_equality_comparator_equal_false_dims(
 
 
 @xarray_available
-def test_variable_equality_comparator_equal_false_dims_show_difference(
+def test_xarray_variable_equality_comparator_equal_false_dims_show_difference(
     caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
     config.show_difference = True
@@ -659,7 +661,7 @@ def test_variable_equality_comparator_equal_false_dims_show_difference(
 
 
 @xarray_available
-def test_variable_equality_comparator_equal_false_different_attrs(
+def test_xarray_variable_equality_comparator_equal_false_different_attrs(
     caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
     comparator = XarrayVariableEqualityComparator()
@@ -673,7 +675,7 @@ def test_variable_equality_comparator_equal_false_different_attrs(
 
 
 @xarray_available
-def test_variable_equality_comparator_equal_false_attrs_show_difference(
+def test_xarray_variable_equality_comparator_equal_false_attrs_show_difference(
     caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
     config.show_difference = True
@@ -688,7 +690,7 @@ def test_variable_equality_comparator_equal_false_attrs_show_difference(
 
 
 @xarray_available
-def test_variable_equality_comparator_equal_false_different_type(
+def test_xarray_variable_equality_comparator_equal_false_different_type(
     caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
     comparator = XarrayVariableEqualityComparator()
@@ -700,7 +702,7 @@ def test_variable_equality_comparator_equal_false_different_type(
 
 
 @xarray_available
-def test_variable_equality_comparator_equal_false_different_type_show_difference(
+def test_xarray_variable_equality_comparator_equal_false_different_type_show_difference(
     caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
     config.show_difference = True
@@ -713,7 +715,7 @@ def test_variable_equality_comparator_equal_false_different_type_show_difference
 
 
 @xarray_available
-def test_variable_equality_comparator_no_xarray() -> None:
+def test_xarray_variable_equality_comparator_no_xarray() -> None:
     with patch(
         "coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False
     ), pytest.raises(RuntimeError, match="`xarray` package is required but not installed."):
@@ -721,7 +723,7 @@ def test_variable_equality_comparator_no_xarray() -> None:
 
 
 @xarray_available
-def test_variable_equality_comparator_equal_nan_false(config: EqualityConfig) -> None:
+def test_xarray_variable_equality_comparator_equal_nan_false(config: EqualityConfig) -> None:
     assert not XarrayVariableEqualityComparator().equal(
         xr.Variable(dims=["z"], data=np.array([0.0, float("nan"), 2.0])),
         xr.Variable(dims=["z"], data=np.array([0.0, float("nan"), 2.0])),
@@ -730,7 +732,7 @@ def test_variable_equality_comparator_equal_nan_false(config: EqualityConfig) ->
 
 
 @xarray_available
-def test_variable_equality_comparator_equal_nan_true(config: EqualityConfig) -> None:
+def test_xarray_variable_equality_comparator_equal_nan_true(config: EqualityConfig) -> None:
     config.equal_nan = True
     # TODO(TIBO): update after the new version is finished  # noqa: TD003
     assert not XarrayVariableEqualityComparator().equal(
