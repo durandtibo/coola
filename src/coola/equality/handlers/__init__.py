@@ -15,6 +15,7 @@ __all__ = [
     "MappingSameValuesHandler",
     "NumpyArrayEqualHandler",
     "ObjectEqualHandler",
+    "PandasSeriesEqualHandler",
     "SameAttributeHandler",
     "SameDTypeHandler",
     "SameDataHandler",
@@ -45,6 +46,7 @@ from coola.equality.handlers.native import (
     TrueHandler,
 )
 from coola.equality.handlers.numpy_ import NumpyArrayEqualHandler
+from coola.equality.handlers.pandas_ import PandasSeriesEqualHandler
 from coola.equality.handlers.sequence import SequenceSameValuesHandler
 from coola.equality.handlers.shape import SameShapeHandler
 from coola.equality.handlers.torch_ import TorchTensorEqualHandler

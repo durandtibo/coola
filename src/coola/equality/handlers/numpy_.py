@@ -63,7 +63,7 @@ class NumpyArrayEqualHandler(BaseEqualityHandler):
         if config.show_difference and not object_equal:
             logger.info(
                 f"numpy.ndarrays have different elements:\n"
-                f"object1=\n{object1}\nobject2=\n{object2}"
+                f"object1:\n{object1}\nobject2:\n{object2}"
             )
         return object_equal
 
