@@ -15,6 +15,7 @@ from coola.equality.comparators.pandas_ import (
 from coola.equality.testers import EqualityTester
 from coola.testing import pandas_available
 from coola.utils.imports import is_pandas_available
+from tests.unit.equality.comparators.utils import ExamplePair
 
 if is_pandas_available():
     import pandas
@@ -26,6 +27,110 @@ else:
 def config() -> EqualityConfig:
     return EqualityConfig(tester=EqualityTester())
 
+
+PANDAS_DATAFRAME_EQUAL = [
+    pytest.param(
+        ExamplePair(
+            object1=pandas.DataFrame({}),
+            object2=pandas.DataFrame({}),
+        ),
+        id="0 column",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=pandas.DataFrame({"col": [1, 2, 3]}),
+            object2=pandas.DataFrame({"col": [1, 2, 3]}),
+        ),
+        id="1 column",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=pandas.DataFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]}),
+            object2=pandas.DataFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]}),
+        ),
+        id="2 columns",
+    ),
+]
+
+PANDAS_DATAFRAME_NOT_EQUAL = [
+    pytest.param(
+        ExamplePair(
+            object1=pandas.DataFrame({"col": [1, 2, 3]}),
+            object2=pandas.DataFrame({"col": [1, 2, 4]}),
+            expected_message="pandas.DataFrames have different elements:",
+        ),
+        id="different values",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=pandas.DataFrame({"col1": [1, 2, 3]}),
+            object2=pandas.DataFrame({"col2": [1, 2, 3]}),
+            expected_message="pandas.DataFrames have different elements:",
+        ),
+        id="different column names",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=pandas.DataFrame({"col1": [1, 2, 3]}),
+            object2=pandas.Series([1, 2, 3]),
+            expected_message="objects have different types:",
+        ),
+        id="different column names",
+    ),
+]
+
+
+PANDAS_SERIES_EQUAL = [
+    pytest.param(
+        ExamplePair(
+            object1=pandas.Series(data=[], dtype=object),
+            object2=pandas.Series(data=[], dtype=object),
+        ),
+        id="empty",
+    ),
+    pytest.param(
+        ExamplePair(object1=pandas.Series([1, 2, 3]), object2=pandas.Series([1, 2, 3])), id="int"
+    ),
+    pytest.param(
+        ExamplePair(object1=pandas.Series(["a", "b", "c"]), object2=pandas.Series(["a", "b", "c"])),
+        id="str",
+    ),
+]
+
+PANDAS_SERIES_NOT_EQUAL = [
+    pytest.param(
+        ExamplePair(
+            object1=pandas.Series([1, 2, 3]),
+            object2=pandas.Series([1, 2, 4]),
+            expected_message="pandas.Series have different elements:",
+        ),
+        id="different value",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=pandas.Series([1, 2, 3]),
+            object2=pandas.Series([1, 2, 3, 4]),
+            expected_message="pandas.Series have different elements:",
+        ),
+        id="different shape",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=pandas.Series([1, 2, 3]),
+            object2=pandas.Series([1.0, 2.0, 3.0]),
+            expected_message="pandas.Series have different elements:",
+        ),
+        id="different data type",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=pandas.Series([1, 2, 3]),
+            object2=42,
+            expected_message="objects have different types:",
+        ),
+        id="different type",
+    ),
+]
 
 #######################################################
 #     Tests for PandasDataFrameEqualityComparator     #
@@ -71,86 +176,57 @@ def test_pandas_dataframe_equality_comparator_equal_true_same_object(
 
 
 @pandas_available
+@pytest.mark.parametrize("example", PANDAS_DATAFRAME_EQUAL)
 def test_pandas_dataframe_equality_comparator_equal_true(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     comparator = PandasDataFrameEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(
-            object1=pandas.DataFrame({"col": [1, 2, 3]}),
-            object2=pandas.DataFrame({"col": [1, 2, 3]}),
-            config=config,
-        )
+        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
         assert not caplog.messages
 
 
 @pandas_available
+@pytest.mark.parametrize("example", PANDAS_DATAFRAME_EQUAL)
 def test_pandas_dataframe_equality_comparator_equal_true_show_difference(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     comparator = PandasDataFrameEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(
-            object1=pandas.DataFrame({"col": [1, 2, 3]}),
-            object2=pandas.DataFrame({"col": [1, 2, 3]}),
-            config=config,
-        )
+        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
         assert not caplog.messages
 
 
 @pandas_available
-def test_pandas_dataframe_equality_comparator_equal_false_different_value(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+@pytest.mark.parametrize("example", PANDAS_DATAFRAME_NOT_EQUAL)
+def test_pandas_dataframe_equality_comparator_equal_false(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     comparator = PandasDataFrameEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(
-            object1=pandas.DataFrame({"col": [1, 2, 3]}),
-            object2=pandas.DataFrame({"col": [1, 2, 4]}),
-            config=config,
-        )
+        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
         assert not caplog.messages
 
 
 @pandas_available
-def test_pandas_dataframe_equality_comparator_equal_false_different_value_show_difference(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+@pytest.mark.parametrize("example", PANDAS_DATAFRAME_NOT_EQUAL)
+def test_pandas_dataframe_equality_comparator_equal_false_show_difference(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     comparator = PandasDataFrameEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(
-            object1=pandas.DataFrame({"col": [1, 2, 3]}),
-            object2=pandas.DataFrame({"col": [1, 2, 4]}),
-            config=config,
-        )
-        assert caplog.messages[0].startswith("pandas.DataFrames have different elements:")
-
-
-@pandas_available
-def test_pandas_dataframe_equality_comparator_equal_false_different_type(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
-) -> None:
-    comparator = PandasDataFrameEqualityComparator()
-    with caplog.at_level(logging.INFO):
-        assert not comparator.equal(
-            object1=pandas.DataFrame({"col": [1, 2, 3]}), object2=42, config=config
-        )
-        assert not caplog.messages
-
-
-@pandas_available
-def test_pandas_dataframe_equality_comparator_equal_false_different_type_show_difference(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
-) -> None:
-    config.show_difference = True
-    comparator = PandasDataFrameEqualityComparator()
-    with caplog.at_level(logging.INFO):
-        assert not comparator.equal(
-            object1=pandas.DataFrame({"col": [1, 2, 3]}), object2=42, config=config
-        )
-        assert caplog.messages[0].startswith("objects have different types:")
+        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert caplog.messages[0].startswith(example.expected_message)
 
 
 @pandas_available
@@ -222,78 +298,57 @@ def test_pandas_series_equality_comparator_equal_true_same_object(config: Equali
 
 
 @pandas_available
+@pytest.mark.parametrize("example", PANDAS_SERIES_EQUAL)
 def test_pandas_series_equality_comparator_equal_true(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     comparator = PandasSeriesEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(
-            object1=pandas.Series([1, 2, 3]),
-            object2=pandas.Series([1, 2, 3]),
-            config=config,
-        )
+        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
         assert not caplog.messages
 
 
 @pandas_available
+@pytest.mark.parametrize("example", PANDAS_SERIES_EQUAL)
 def test_pandas_series_equality_comparator_equal_true_show_difference(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     comparator = PandasSeriesEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(
-            object1=pandas.Series([1, 2, 3]),
-            object2=pandas.Series([1, 2, 3]),
-            config=config,
-        )
+        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
         assert not caplog.messages
 
 
 @pandas_available
-def test_pandas_series_equality_comparator_equal_false_different_value(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+@pytest.mark.parametrize("example", PANDAS_SERIES_NOT_EQUAL)
+def test_pandas_series_equality_comparator_equal_false(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     comparator = PandasSeriesEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(
-            object1=pandas.Series([1, 2, 3]), object2=pandas.Series([1, 2, 4]), config=config
-        )
+        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
         assert not caplog.messages
 
 
 @pandas_available
-def test_pandas_series_equality_comparator_equal_false_different_value_show_difference(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+@pytest.mark.parametrize("example", PANDAS_SERIES_NOT_EQUAL)
+def test_pandas_series_equality_comparator_equal_false_show_difference(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     comparator = PandasSeriesEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(
-            object1=pandas.Series([1, 2, 3]), object2=pandas.Series([1, 2, 4]), config=config
-        )
-        assert caplog.messages[0].startswith("pandas.Series have different elements:")
-
-
-@pandas_available
-def test_pandas_series_equality_comparator_equal_false_different_type(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
-) -> None:
-    comparator = PandasSeriesEqualityComparator()
-    with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=pandas.Series([1, 2, 3]), object2=42, config=config)
-        assert not caplog.messages
-
-
-@pandas_available
-def test_pandas_series_equality_comparator_equal_false_different_type_show_difference(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
-) -> None:
-    config.show_difference = True
-    comparator = PandasSeriesEqualityComparator()
-    with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=pandas.Series([1, 2, 3]), object2=42, config=config)
-        assert caplog.messages[0].startswith("objects have different types:")
+        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert caplog.messages[0].startswith(example.expected_message)
 
 
 @pandas_available
