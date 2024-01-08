@@ -114,9 +114,9 @@ class PandasSeriesEqualHandler(BaseEqualityHandler):
     >>> from coola.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> handler = PandasSeriesEqualHandler()
-    >>> handler.handle(pandas.Series([1, 2, 3, 4, 5]), pandas.Series([1, 2, 3, 4, 5]), config)
+    >>> handler.handle(pandas.Series([1, 2, 3]), pandas.Series([1, 2, 3]), config)
     True
-    >>> handler.handle(pandas.Series([1, 2, 3, 4, 5]), pandas.Series([1, 2, 3, 4, 0]), config)
+    >>> handler.handle(pandas.Series([1, 2, 3]), pandas.Series([1, 2, 4]), config)
     False
 
     ```
