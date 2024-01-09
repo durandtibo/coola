@@ -137,8 +137,80 @@ XARRAY_DATA_ARRAY_NOT_EQUAL = [
     ),
 ]
 
-XARRAY_DATASET_EQUAL = []
-XARRAY_DATASET_NOT_EQUAL = []
+XARRAY_DATASET_EQUAL = [
+    pytest.param(
+        ExamplePair(
+            object1=xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6))}),
+            object2=xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6))}),
+        ),
+        id="data_vars",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=xr.Dataset(coords={"z": np.arange(6)}),
+            object2=xr.Dataset(coords={"z": np.arange(6)}),
+        ),
+        id="coords",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=xr.Dataset(attrs={"global": "meow"}),
+            object2=xr.Dataset(attrs={"global": "meow"}),
+        ),
+        id="attrs",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=xr.Dataset(
+                data_vars={"x": xr.DataArray(np.arange(6))},
+                coords={"z": np.arange(6)},
+                attrs={"global": "meow"},
+            ),
+            object2=xr.Dataset(
+                data_vars={"x": xr.DataArray(np.arange(6))},
+                coords={"z": np.arange(6)},
+                attrs={"global": "meow"},
+            ),
+        ),
+        id="data_vars and coords and attrs",
+    ),
+]
+
+XARRAY_DATASET_NOT_EQUAL = [
+    pytest.param(
+        ExamplePair(
+            object1=xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6) + 1)}),
+            object2=xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6))}),
+            expected_message="objects have different data_vars:",
+        ),
+        id="different data_vars",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=xr.Dataset(coords={"z": np.arange(6)}),
+            object2=xr.Dataset(coords={"z": np.arange(6) + 1}),
+            expected_message="objects have different coords:",
+        ),
+        id="different coords",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=xr.Dataset(attrs={"global": "meow"}),
+            object2=xr.Dataset(attrs={"global": "meowwww"}),
+            expected_message="objects have different attrs:",
+        ),
+        id="different attrs",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6), dims=["z"])}),
+            object2=np.ones((2, 3)),
+            expected_message="objects have different types:",
+        ),
+        id="different types",
+    ),
+]
+
 XARRAY_VARIABLE_EQUAL = [
     pytest.param(
         ExamplePair(
@@ -166,8 +238,8 @@ XARRAY_VARIABLE_NOT_EQUAL = [
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.Variable(dims=["x"], data=np.ones(6)),
-            object2=xr.Variable(dims=["y"], data=np.zeros(6)),
+            object1=xr.Variable(dims=["x"], data=np.arange(6)),
+            object2=xr.Variable(dims=["y"], data=np.arange(6)),
             expected_message="objects have different dims:",
         ),
         id="different dims",
@@ -190,11 +262,11 @@ XARRAY_VARIABLE_NOT_EQUAL = [
     ),
 ]
 
-
 XARRAY_EQUAL = XARRAY_DATA_ARRAY_EQUAL + XARRAY_DATASET_EQUAL + XARRAY_VARIABLE_EQUAL
 XARRAY_NOT_EQUAL = (
     XARRAY_DATA_ARRAY_NOT_EQUAL + XARRAY_DATASET_NOT_EQUAL + XARRAY_VARIABLE_NOT_EQUAL
 )
+
 
 #######################################################
 #     Tests for XarrayDataArrayEqualityComparator     #
@@ -398,114 +470,57 @@ def test_xarray_dataset_equality_comparator_equal_true_show_difference(
 
 
 @xarray_available
-def test_xarray_dataset_equality_comparator_equal_false_data_vars(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
-) -> None:
-    comparator = XarrayDatasetEqualityComparator()
-    with caplog.at_level(logging.INFO):
-        assert not comparator.equal(
-            xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6), dims=["z"])}),
-            xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6) + 1, dims=["z"])}),
-            config,
-        )
-        assert not caplog.messages
-
-
-@xarray_available
-def test_xarray_dataset_equality_comparator_equal_false_data_vars_show_difference(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
-) -> None:
-    config.show_difference = True
-    comparator = XarrayDatasetEqualityComparator()
-    with caplog.at_level(logging.INFO):
-        assert not comparator.equal(
-            xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6) + 1, dims=["z"])}),
-            xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6), dims=["z"])}),
-            config,
-        )
-        assert caplog.messages[-1].startswith("objects have different data_vars:")
-
-
-@xarray_available
-def test_xarray_dataset_equality_comparator_equal_false_coords(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
-) -> None:
-    comparator = XarrayDatasetEqualityComparator()
-    with caplog.at_level(logging.INFO):
-        assert not comparator.equal(
-            xr.Dataset(data_vars={}, coords={"z": np.arange(6)}),
-            xr.Dataset(data_vars={}, coords={"z": np.arange(6) + 1}),
-            config,
-        )
-        assert not caplog.messages
-
-
-@xarray_available
-def test_xarray_dataset_equality_comparator_equal_false_coords_show_difference(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
-) -> None:
-    config.show_difference = True
-    comparator = XarrayDatasetEqualityComparator()
-    with caplog.at_level(logging.INFO):
-        assert not comparator.equal(
-            xr.Dataset(data_vars={}, coords={"z": np.arange(6)}),
-            xr.Dataset(data_vars={}, coords={"z": np.arange(6) + 1}),
-            config,
-        )
-        assert caplog.messages[-1].startswith("objects have different coords:")
-
-
-@xarray_available
-def test_xarray_dataset_equality_comparator_equal_false_different_attrs(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
-) -> None:
-    comparator = XarrayDatasetEqualityComparator()
-    with caplog.at_level(logging.INFO):
-        assert not comparator.equal(
-            xr.Dataset(data_vars={}, coords={}, attrs={"global": "meow"}),
-            xr.Dataset(data_vars={}, coords={}, attrs={"global": "meowwww"}),
-            config,
-        )
-        assert not caplog.messages
-
-
-@xarray_available
-def test_xarray_dataset_equality_comparator_equal_false_attrs_show_difference(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
-) -> None:
-    config.show_difference = True
-    comparator = XarrayDatasetEqualityComparator()
-    with caplog.at_level(logging.INFO):
-        assert not comparator.equal(
-            xr.Dataset(data_vars={}, coords={}, attrs={"global": "meow"}),
-            xr.Dataset(data_vars={}, coords={}, attrs={"global": "meowwww"}),
-            config,
-        )
-        assert caplog.messages[-1].startswith("objects have different attrs:")
-
-
-@xarray_available
-def test_xarray_dataset_equality_comparator_equal_false_different_type(
+@pytest.mark.parametrize("example", XARRAY_DATASET_EQUAL)
+def test_xarray_dataset_equality_comparator_equal_yes(
+    example: ExamplePair,
     config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    assert not XarrayDatasetEqualityComparator().equal(
-        xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6), dims=["z"])}), np.ones((2, 3)), config
-    )
+    comparator = XarrayDatasetEqualityComparator()
+    with caplog.at_level(logging.INFO):
+        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not caplog.messages
 
 
 @xarray_available
-def test_xarray_dataset_equality_comparator_equal_false_different_type_show_difference(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+@pytest.mark.parametrize("example", XARRAY_DATASET_EQUAL)
+def test_xarray_dataset_equality_comparator_equal_yes_show_difference(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     comparator = XarrayDatasetEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(
-            xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6), dims=["z"])}),
-            np.ones((2, 3)),
-            config,
-        )
-        assert caplog.messages[0].startswith("objects have different types:")
+        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not caplog.messages
+
+
+@xarray_available
+@pytest.mark.parametrize("example", XARRAY_DATASET_NOT_EQUAL)
+def test_xarray_dataset_equality_comparator_equal_false(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    comparator = XarrayDatasetEqualityComparator()
+    with caplog.at_level(logging.INFO):
+        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not caplog.messages
+
+
+@xarray_available
+@pytest.mark.parametrize("example", XARRAY_DATASET_NOT_EQUAL)
+def test_xarray_dataset_equality_comparator_equal_false_show_difference(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    config.show_difference = True
+    comparator = XarrayDatasetEqualityComparator()
+    with caplog.at_level(logging.INFO):
+        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert caplog.messages[-1].startswith(example.expected_message)
 
 
 @xarray_available
@@ -574,7 +589,7 @@ def test_xarray_variable_equality_comparator_equal_true_same_object(config: Equa
 
 
 @xarray_available
-@pytest.mark.parametrize("example", XARRAY_DATA_ARRAY_EQUAL)
+@pytest.mark.parametrize("example", XARRAY_VARIABLE_EQUAL)
 def test_xarray_variable_equality_comparator_equal_yes(
     example: ExamplePair,
     config: EqualityConfig,
@@ -587,7 +602,7 @@ def test_xarray_variable_equality_comparator_equal_yes(
 
 
 @xarray_available
-@pytest.mark.parametrize("example", XARRAY_DATA_ARRAY_EQUAL)
+@pytest.mark.parametrize("example", XARRAY_VARIABLE_EQUAL)
 def test_xarray_variable_equality_comparator_equal_yes_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
@@ -601,7 +616,7 @@ def test_xarray_variable_equality_comparator_equal_yes_show_difference(
 
 
 @xarray_available
-@pytest.mark.parametrize("example", XARRAY_DATA_ARRAY_NOT_EQUAL)
+@pytest.mark.parametrize("example", XARRAY_VARIABLE_NOT_EQUAL)
 def test_xarray_variable_equality_comparator_equal_false(
     example: ExamplePair,
     config: EqualityConfig,
@@ -614,7 +629,7 @@ def test_xarray_variable_equality_comparator_equal_false(
 
 
 @xarray_available
-@pytest.mark.parametrize("example", XARRAY_DATA_ARRAY_NOT_EQUAL)
+@pytest.mark.parametrize("example", XARRAY_VARIABLE_NOT_EQUAL)
 def test_xarray_variable_equality_comparator_equal_false_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
