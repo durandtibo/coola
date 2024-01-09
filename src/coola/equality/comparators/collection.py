@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class MappingEqualityComparator(BaseEqualityComparator[Any]):
+class MappingEqualityComparator(BaseEqualityComparator[Mapping]):
     r"""Implement a sequence equality comparator.
 
     Example usage:
@@ -57,11 +57,11 @@ class MappingEqualityComparator(BaseEqualityComparator[Any]):
     def clone(self) -> MappingEqualityComparator:
         return self.__class__()
 
-    def equal(self, object1: Any, object2: Any, config: EqualityConfig) -> bool:
+    def equal(self, object1: Mapping, object2: Any, config: EqualityConfig) -> bool:
         return self._handler.handle(object1=object1, object2=object2, config=config)
 
 
-class SequenceEqualityComparator(BaseEqualityComparator[Any]):
+class SequenceEqualityComparator(BaseEqualityComparator[Sequence]):
     r"""Implement a sequence equality comparator.
 
     Example usage:
@@ -92,7 +92,7 @@ class SequenceEqualityComparator(BaseEqualityComparator[Any]):
     def clone(self) -> SequenceEqualityComparator:
         return self.__class__()
 
-    def equal(self, object1: Any, object2: Any, config: EqualityConfig) -> bool:
+    def equal(self, object1: Sequence, object2: Any, config: EqualityConfig) -> bool:
         return self._handler.handle(object1=object1, object2=object2, config=config)
 
 
