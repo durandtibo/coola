@@ -24,7 +24,6 @@ class SupportsData(Protocol):
     ``jax.numpy.ndarray``s, ``numpy.ndarray``s,  and
     ``torch.Tensor``s.
     """
-    data: Any
 
     @property
     def data(self) -> Any:

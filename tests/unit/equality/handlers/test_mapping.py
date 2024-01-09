@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from coola import EqualityTester
 from coola.equality import EqualityConfig
 from coola.equality.handlers import (
     FalseHandler,
@@ -13,6 +12,7 @@ from coola.equality.handlers import (
     MappingSameValuesHandler,
     TrueHandler,
 )
+from coola.equality.testers import EqualityTester
 
 if TYPE_CHECKING:
     from collections.abc import Mapping

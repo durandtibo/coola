@@ -5,13 +5,13 @@ from unittest.mock import Mock
 
 import pytest
 
-from coola import EqualityTester
 from coola.equality import EqualityConfig
 from coola.equality.handlers import FalseHandler, TrueHandler
 from coola.equality.handlers.torch_ import (
     TorchTensorEqualHandler,
     TorchTensorSameDeviceHandler,
 )
+from coola.equality.testers import EqualityTester
 from coola.testing import torch_available, torch_cuda_available
 from coola.utils import is_torch_available
 
