@@ -230,21 +230,18 @@ def test_pandas_dataframe_equality_comparator_equal_false_show_difference(
 
 
 @pandas_available
-def test_pandas_dataframe_equality_comparator_equal_nan_false(config: EqualityConfig) -> None:
-    assert not PandasDataFrameEqualityComparator().equal(
-        object1=pandas.DataFrame({"col": [1, float("nan"), 3]}),
-        object2=pandas.DataFrame({"col": [1, float("nan"), 3]}),
-        config=config,
-    )
-
-
-@pandas_available
-def test_pandas_dataframe_equality_comparator_equal_nan_true(config: EqualityConfig) -> None:
-    config.equal_nan = True
-    assert PandasDataFrameEqualityComparator().equal(
-        object1=pandas.DataFrame({"col": [1, float("nan"), 3]}),
-        object2=pandas.DataFrame({"col": [1, float("nan"), 3]}),
-        config=config,
+@pytest.mark.parametrize("equal_nan", [False, True])
+def test_pandas_dataframe_equality_comparator_equal_nan(
+    config: EqualityConfig, equal_nan: bool
+) -> None:
+    config.equal_nan = equal_nan
+    assert (
+        PandasDataFrameEqualityComparator().equal(
+            object1=pandas.DataFrame({"col": [1, float("nan"), 3]}),
+            object2=pandas.DataFrame({"col": [1, float("nan"), 3]}),
+            config=config,
+        )
+        == equal_nan
     )
 
 
@@ -352,21 +349,18 @@ def test_pandas_series_equality_comparator_equal_false_show_difference(
 
 
 @pandas_available
-def test_pandas_series_equality_comparator_equal_nan_false(config: EqualityConfig) -> None:
-    assert not PandasSeriesEqualityComparator().equal(
-        object1=pandas.Series([0.0, float("nan"), float("nan"), 1.2]),
-        object2=pandas.Series([0.0, float("nan"), float("nan"), 1.2]),
-        config=config,
-    )
-
-
-@pandas_available
-def test_pandas_series_equality_comparator_equal_nan_true(config: EqualityConfig) -> None:
-    config.equal_nan = True
-    assert PandasSeriesEqualityComparator().equal(
-        object1=pandas.Series([0.0, float("nan"), float("nan"), 1.2]),
-        object2=pandas.Series([0.0, float("nan"), float("nan"), 1.2]),
-        config=config,
+@pytest.mark.parametrize("equal_nan", [False, True])
+def test_pandas_series_equality_comparator_equal_nan(
+    config: EqualityConfig, equal_nan: bool
+) -> None:
+    config.equal_nan = equal_nan
+    assert (
+        PandasSeriesEqualityComparator().equal(
+            object1=pandas.Series([0.0, float("nan"), float("nan"), 1.2]),
+            object2=pandas.Series([0.0, float("nan"), float("nan"), 1.2]),
+            config=config,
+        )
+        == equal_nan
     )
 
 
