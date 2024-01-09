@@ -132,6 +132,9 @@ PANDAS_SERIES_NOT_EQUAL = [
     ),
 ]
 
+PANDAS_EQUAL = PANDAS_SERIES_EQUAL + PANDAS_DATAFRAME_EQUAL
+PANDAS_NOT_EQUAL = PANDAS_SERIES_NOT_EQUAL + PANDAS_DATAFRAME_NOT_EQUAL
+
 #######################################################
 #     Tests for PandasDataFrameEqualityComparator     #
 #######################################################

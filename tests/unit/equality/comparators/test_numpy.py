@@ -131,6 +131,10 @@ NUMPY_MASKED_ARRAY_NOT_EQUAL = [
 ]
 
 
+NUMPY_EQUAL = NUMPY_ARRAY_EQUAL + NUMPY_MASKED_ARRAY_EQUAL
+NUMPY_NOT_EQUAL = NUMPY_ARRAY_NOT_EQUAL + NUMPY_MASKED_ARRAY_NOT_EQUAL
+
+
 ##################################################
 #     Tests for NumpyArrayEqualityComparator     #
 ##################################################
