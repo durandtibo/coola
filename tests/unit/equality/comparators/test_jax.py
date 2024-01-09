@@ -164,21 +164,16 @@ def test_jax_array_equality_comparator_equal_false_show_difference(
 
 
 @jax_available
-def test_jax_array_equality_comparator_equal_nan_false(config: EqualityConfig) -> None:
-    assert not JaxArrayEqualityComparator().equal(
-        object1=jnp.array([0.0, jnp.nan, jnp.nan, 1.2]),
-        object2=jnp.array([0.0, jnp.nan, jnp.nan, 1.2]),
-        config=config,
-    )
-
-
-@jax_available
-def test_jax_array_equality_comparator_equal_nan_true(config: EqualityConfig) -> None:
-    config.equal_nan = True
-    assert JaxArrayEqualityComparator().equal(
-        object1=jnp.array([0.0, jnp.nan, jnp.nan, 1.2]),
-        object2=jnp.array([0.0, jnp.nan, jnp.nan, 1.2]),
-        config=config,
+@pytest.mark.parametrize("equal_nan", [False, True])
+def test_jax_array_equality_comparator_equal_nan(config: EqualityConfig, equal_nan: bool) -> None:
+    config.equal_nan = equal_nan
+    assert (
+        JaxArrayEqualityComparator().equal(
+            object1=jnp.array([0.0, jnp.nan, jnp.nan, 1.2]),
+            object2=jnp.array([0.0, jnp.nan, jnp.nan, 1.2]),
+            config=config,
+        )
+        == equal_nan
     )
 
 

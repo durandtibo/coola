@@ -220,21 +220,18 @@ def test_numpy_array_equality_comparator_equal_false_show_difference(
 
 
 @numpy_available
-def test_numpy_array_equality_comparator_equal_nan_false(config: EqualityConfig) -> None:
-    assert not NumpyArrayEqualityComparator().equal(
-        object1=np.array([0.0, np.nan, np.nan, 1.2]),
-        object2=np.array([0.0, np.nan, np.nan, 1.2]),
-        config=config,
-    )
-
-
-@numpy_available
-def test_numpy_array_equality_comparator_equal_nan_true(config: EqualityConfig) -> None:
-    config.equal_nan = True
-    assert NumpyArrayEqualityComparator().equal(
-        object1=np.array([0.0, np.nan, np.nan, 1.2]),
-        object2=np.array([0.0, np.nan, np.nan, 1.2]),
-        config=config,
+@pytest.mark.parametrize("equal_nan", [False, True])
+def test_numpy_array_equality_comparator_equal_nan_true(
+    config: EqualityConfig, equal_nan: bool
+) -> None:
+    config.equal_nan = equal_nan
+    assert (
+        NumpyArrayEqualityComparator().equal(
+            object1=np.array([0.0, np.nan, np.nan, 1.2]),
+            object2=np.array([0.0, np.nan, np.nan, 1.2]),
+            config=config,
+        )
+        == equal_nan
     )
 
 
@@ -339,21 +336,18 @@ def test_numpy_masked_array_equality_comparator_equal_false_show_difference(
 
 
 @numpy_available
-def test_numpy_masked_array_equality_comparator_equal_nan_false(config: EqualityConfig) -> None:
-    assert not NumpyMaskedArrayEqualityComparator().equal(
-        object1=np.ma.array(data=[0.0, np.nan, np.nan, 1.2], mask=[0, 1, 0, 1]),
-        object2=np.ma.array(data=[0.0, np.nan, np.nan, 1.2], mask=[0, 1, 0, 1]),
-        config=config,
-    )
-
-
-@numpy_available
-def test_numpy_masked_array_equality_comparator_equal_nan_true(config: EqualityConfig) -> None:
-    config.equal_nan = True
-    assert NumpyMaskedArrayEqualityComparator().equal(
-        object1=np.ma.array(data=[0.0, np.nan, np.nan, 1.2], mask=[0, 1, 0, 1]),
-        object2=np.ma.array(data=[0.0, np.nan, np.nan, 1.2], mask=[0, 1, 0, 1]),
-        config=config,
+@pytest.mark.parametrize("equal_nan", [False, True])
+def test_numpy_masked_array_equality_comparator_equal_nan(
+    config: EqualityConfig, equal_nan: bool
+) -> None:
+    config.equal_nan = equal_nan
+    assert (
+        NumpyMaskedArrayEqualityComparator().equal(
+            object1=np.ma.array(data=[0.0, np.nan, np.nan, 1.2], mask=[0, 1, 0, 1]),
+            object2=np.ma.array(data=[0.0, np.nan, np.nan, 1.2], mask=[0, 1, 0, 1]),
+            config=config,
+        )
+        == equal_nan
     )
 
 

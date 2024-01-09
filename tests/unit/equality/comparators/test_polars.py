@@ -230,21 +230,18 @@ def test_polars_dataframe_equality_comparator_equal_false_show_difference(
 
 
 @polars_available
-def test_polars_dataframe_equality_comparator_equal_nan_false(config: EqualityConfig) -> None:
-    assert not PolarsDataFrameEqualityComparator().equal(
-        object1=polars.DataFrame({"col": [1, float("nan"), 3]}),
-        object2=polars.DataFrame({"col": [1, float("nan"), 3]}),
-        config=config,
-    )
-
-
-@polars_available
-def test_polars_dataframe_equality_comparator_equal_nan_true(config: EqualityConfig) -> None:
-    config.equal_nan = True
-    assert PolarsDataFrameEqualityComparator().equal(
-        object1=polars.DataFrame({"col": [1, float("nan"), 3]}),
-        object2=polars.DataFrame({"col": [1, float("nan"), 3]}),
-        config=config,
+@pytest.mark.parametrize("equal_nan", [False, True])
+def test_polars_dataframe_equality_comparator_equal_nan(
+    config: EqualityConfig, equal_nan: bool
+) -> None:
+    config.equal_nan = equal_nan
+    assert (
+        PolarsDataFrameEqualityComparator().equal(
+            object1=polars.DataFrame({"col": [1, float("nan"), 3]}),
+            object2=polars.DataFrame({"col": [1, float("nan"), 3]}),
+            config=config,
+        )
+        == equal_nan
     )
 
 
@@ -352,21 +349,18 @@ def test_polars_series_equality_comparator_equal_false_show_difference(
 
 
 @polars_available
-def test_polars_series_equality_comparator_equal_nan_false(config: EqualityConfig) -> None:
-    assert not PolarsSeriesEqualityComparator().equal(
-        object1=polars.Series([0.0, float("nan"), float("nan"), 1.2]),
-        object2=polars.Series([0.0, float("nan"), float("nan"), 1.2]),
-        config=config,
-    )
-
-
-@polars_available
-def test_polars_series_equality_comparator_equal_nan_true(config: EqualityConfig) -> None:
-    config.equal_nan = True
-    assert PolarsSeriesEqualityComparator().equal(
-        object1=polars.Series([0.0, float("nan"), float("nan"), 1.2]),
-        object2=polars.Series([0.0, float("nan"), float("nan"), 1.2]),
-        config=config,
+@pytest.mark.parametrize("equal_nan", [False, True])
+def test_polars_series_equality_comparator_equal_nan(
+    config: EqualityConfig, equal_nan: bool
+) -> None:
+    config.equal_nan = equal_nan
+    assert (
+        PolarsSeriesEqualityComparator().equal(
+            object1=polars.Series([0.0, float("nan"), float("nan"), 1.2]),
+            object2=polars.Series([0.0, float("nan"), float("nan"), 1.2]),
+            config=config,
+        )
+        == equal_nan
     )
 
 
