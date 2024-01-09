@@ -89,8 +89,8 @@ XARRAY_DATA_ARRAY_EQUAL = [
 XARRAY_DATA_ARRAY_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
-            object1=xr.DataArray(np.arange(6)),
-            object2=xr.DataArray(np.arange(6) + 1),
+            object1=xr.DataArray(np.ones(6)),
+            object2=xr.DataArray(np.zeros(6)),
             expected_message="objects have different variable:",
         ),
         id="different value",
@@ -179,16 +179,16 @@ XARRAY_DATASET_EQUAL = [
 XARRAY_DATASET_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
-            object1=xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6) + 1)}),
-            object2=xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6))}),
+            object1=xr.Dataset(data_vars={"x": xr.DataArray(np.zeros(6))}),
+            object2=xr.Dataset(data_vars={"x": xr.DataArray(np.ones(6))}),
             expected_message="objects have different data_vars:",
         ),
         id="different data_vars",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.Dataset(coords={"z": np.arange(6)}),
-            object2=xr.Dataset(coords={"z": np.arange(6) + 1}),
+            object1=xr.Dataset(coords={"z": [1, 2, 3]}),
+            object2=xr.Dataset(coords={"z": [0, 1, 2]}),
             expected_message="objects have different coords:",
         ),
         id="different coords",
