@@ -15,6 +15,7 @@ from coola.equality.comparators.polars_ import (
 from coola.equality.testers import EqualityTester
 from coola.testing import polars_available
 from coola.utils.imports import is_polars_available
+from tests.unit.equality.comparators.utils import ExamplePair
 
 if is_polars_available():
     import polars
@@ -26,6 +27,110 @@ else:
 def config() -> EqualityConfig:
     return EqualityConfig(tester=EqualityTester())
 
+
+POLARS_DATAFRAME_EQUAL = [
+    pytest.param(
+        ExamplePair(
+            object1=polars.DataFrame({}),
+            object2=polars.DataFrame({}),
+        ),
+        id="0 column",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=polars.DataFrame({"col": [1, 2, 3]}),
+            object2=polars.DataFrame({"col": [1, 2, 3]}),
+        ),
+        id="1 column",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=polars.DataFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]}),
+            object2=polars.DataFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]}),
+        ),
+        id="2 columns",
+    ),
+]
+
+POLARS_DATAFRAME_NOT_EQUAL = [
+    pytest.param(
+        ExamplePair(
+            object1=polars.DataFrame({"col": [1, 2, 3]}),
+            object2=polars.DataFrame({"col": [1, 2, 4]}),
+            expected_message="polars.DataFrames have different elements:",
+        ),
+        id="different values",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=polars.DataFrame({"col1": [1, 2, 3]}),
+            object2=polars.DataFrame({"col2": [1, 2, 3]}),
+            expected_message="polars.DataFrames have different elements:",
+        ),
+        id="different column names",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=polars.DataFrame({"col1": [1, 2, 3]}),
+            object2=polars.Series([1, 2, 3]),
+            expected_message="objects have different types:",
+        ),
+        id="different column names",
+    ),
+]
+
+
+POLARS_SERIES_EQUAL = [
+    pytest.param(
+        ExamplePair(
+            object1=polars.Series([]),
+            object2=polars.Series([]),
+        ),
+        id="empty",
+    ),
+    pytest.param(
+        ExamplePair(object1=polars.Series([1, 2, 3]), object2=polars.Series([1, 2, 3])), id="int"
+    ),
+    pytest.param(
+        ExamplePair(object1=polars.Series(["a", "b", "c"]), object2=polars.Series(["a", "b", "c"])),
+        id="str",
+    ),
+]
+
+POLARS_SERIES_NOT_EQUAL = [
+    pytest.param(
+        ExamplePair(
+            object1=polars.Series([1, 2, 3]),
+            object2=polars.Series([1, 2, 4]),
+            expected_message="polars.Series have different elements:",
+        ),
+        id="different value",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=polars.Series([1, 2, 3]),
+            object2=polars.Series([1, 2, 3, 4]),
+            expected_message="polars.Series have different elements:",
+        ),
+        id="different shape",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=polars.Series([1, 2, 3]),
+            object2=polars.Series([1.0, 2.0, 3.0]),
+            expected_message="polars.Series have different elements:",
+        ),
+        id="different data type",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=polars.Series([1, 2, 3]),
+            object2=42,
+            expected_message="objects have different types:",
+        ),
+        id="different type",
+    ),
+]
 
 #######################################################
 #     Tests for PolarsDataFrameEqualityComparator     #
@@ -71,86 +176,57 @@ def test_polars_dataframe_equality_comparator_equal_true_same_object(
 
 
 @polars_available
+@pytest.mark.parametrize("example", POLARS_DATAFRAME_EQUAL)
 def test_polars_dataframe_equality_comparator_equal_true(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     comparator = PolarsDataFrameEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(
-            object1=polars.DataFrame({"col": [1, 2, 3]}),
-            object2=polars.DataFrame({"col": [1, 2, 3]}),
-            config=config,
-        )
+        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
         assert not caplog.messages
 
 
 @polars_available
+@pytest.mark.parametrize("example", POLARS_DATAFRAME_EQUAL)
 def test_polars_dataframe_equality_comparator_equal_true_show_difference(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     comparator = PolarsDataFrameEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(
-            object1=polars.DataFrame({"col": [1, 2, 3]}),
-            object2=polars.DataFrame({"col": [1, 2, 3]}),
-            config=config,
-        )
+        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
         assert not caplog.messages
 
 
 @polars_available
-def test_polars_dataframe_equality_comparator_equal_false_different_value(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+@pytest.mark.parametrize("example", POLARS_DATAFRAME_NOT_EQUAL)
+def test_polars_dataframe_equality_comparator_equal_false(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     comparator = PolarsDataFrameEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(
-            object1=polars.DataFrame({"col": [1, 2, 3]}),
-            object2=polars.DataFrame({"col": [1, 2, 4]}),
-            config=config,
-        )
+        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
         assert not caplog.messages
 
 
 @polars_available
-def test_polars_dataframe_equality_comparator_equal_false_different_value_show_difference(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+@pytest.mark.parametrize("example", POLARS_DATAFRAME_NOT_EQUAL)
+def test_polars_dataframe_equality_comparator_equal_false_show_difference(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     comparator = PolarsDataFrameEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(
-            object1=polars.DataFrame({"col": [1, 2, 3]}),
-            object2=polars.DataFrame({"col": [1, 2, 4]}),
-            config=config,
-        )
-        assert caplog.messages[0].startswith("polars.DataFrames have different elements:")
-
-
-@polars_available
-def test_polars_dataframe_equality_comparator_equal_false_different_type(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
-) -> None:
-    comparator = PolarsDataFrameEqualityComparator()
-    with caplog.at_level(logging.INFO):
-        assert not comparator.equal(
-            object1=polars.DataFrame({"col": [1, 2, 3]}), object2=42, config=config
-        )
-        assert not caplog.messages
-
-
-@polars_available
-def test_polars_dataframe_equality_comparator_equal_false_different_type_show_difference(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
-) -> None:
-    config.show_difference = True
-    comparator = PolarsDataFrameEqualityComparator()
-    with caplog.at_level(logging.INFO):
-        assert not comparator.equal(
-            object1=polars.DataFrame({"col": [1, 2, 3]}), object2=42, config=config
-        )
-        assert caplog.messages[0].startswith("objects have different types:")
+        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert caplog.messages[0].startswith(example.expected_message)
 
 
 @polars_available
@@ -222,78 +298,57 @@ def test_polars_series_equality_comparator_equal_true_same_object(config: Equali
 
 
 @polars_available
+@pytest.mark.parametrize("example", POLARS_SERIES_EQUAL)
 def test_polars_series_equality_comparator_equal_true(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     comparator = PolarsSeriesEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(
-            object1=polars.Series([1, 2, 3]),
-            object2=polars.Series([1, 2, 3]),
-            config=config,
-        )
+        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
         assert not caplog.messages
 
 
 @polars_available
+@pytest.mark.parametrize("example", POLARS_SERIES_EQUAL)
 def test_polars_series_equality_comparator_equal_true_show_difference(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     comparator = PolarsSeriesEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(
-            object1=polars.Series([1, 2, 3]),
-            object2=polars.Series([1, 2, 3]),
-            config=config,
-        )
+        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
         assert not caplog.messages
 
 
 @polars_available
-def test_polars_series_equality_comparator_equal_false_different_value(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+@pytest.mark.parametrize("example", POLARS_SERIES_NOT_EQUAL)
+def test_polars_series_equality_comparator_equal_false(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     comparator = PolarsSeriesEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(
-            object1=polars.Series([1, 2, 3]), object2=polars.Series([1, 2, 4]), config=config
-        )
+        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
         assert not caplog.messages
 
 
 @polars_available
-def test_polars_series_equality_comparator_equal_false_different_value_show_difference(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+@pytest.mark.parametrize("example", POLARS_SERIES_NOT_EQUAL)
+def test_polars_series_equality_comparator_equal_false_show_difference(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     comparator = PolarsSeriesEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(
-            object1=polars.Series([1, 2, 3]), object2=polars.Series([1, 2, 4]), config=config
-        )
-        assert caplog.messages[0].startswith("polars.Series have different elements:")
-
-
-@polars_available
-def test_polars_series_equality_comparator_equal_false_different_type(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
-) -> None:
-    comparator = PolarsSeriesEqualityComparator()
-    with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=polars.Series([1, 2, 3]), object2=42, config=config)
-        assert not caplog.messages
-
-
-@polars_available
-def test_polars_series_equality_comparator_equal_false_different_type_show_difference(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
-) -> None:
-    config.show_difference = True
-    comparator = PolarsSeriesEqualityComparator()
-    with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=polars.Series([1, 2, 3]), object2=42, config=config)
-        assert caplog.messages[0].startswith("objects have different types:")
+        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert caplog.messages[0].startswith(example.expected_message)
 
 
 @polars_available
