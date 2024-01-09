@@ -20,19 +20,12 @@ if TYPE_CHECKING:
 
 @numpy_available
 @pytest.mark.parametrize("example", NUMPY_ARRAY_EQUAL + NUMPY_MASKED_ARRAY_EQUAL)
-def test_objects_are_equal_true(example: ExamplePair, caplog: pytest.LogCaptureFixture) -> None:
-    with caplog.at_level(logging.INFO):
-        assert objects_are_equal(example.object1, example.object2)
-        assert not caplog.messages
-
-
-@numpy_available
-@pytest.mark.parametrize("example", NUMPY_ARRAY_EQUAL + NUMPY_MASKED_ARRAY_EQUAL)
-def test_objects_are_equal_true_show_difference(
-    example: ExamplePair, caplog: pytest.LogCaptureFixture
+@pytest.mark.parametrize("show_difference", [True, False])
+def test_objects_are_equal_true(
+    example: ExamplePair, show_difference: bool, caplog: pytest.LogCaptureFixture
 ) -> None:
     with caplog.at_level(logging.INFO):
-        assert objects_are_equal(example.object1, example.object2, show_difference=True)
+        assert objects_are_equal(example.object1, example.object2, show_difference)
         assert not caplog.messages
 
 
