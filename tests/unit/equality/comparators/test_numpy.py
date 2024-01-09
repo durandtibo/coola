@@ -29,39 +29,55 @@ def config() -> EqualityConfig:
 
 NUMPY_ARRAY_EQUAL = [
     pytest.param(
-        ExamplePair(np.ones(shape=(2, 3), dtype=float), np.ones(shape=(2, 3), dtype=float)),
+        ExamplePair(
+            object1=np.ones(shape=(2, 3), dtype=float), object2=np.ones(shape=(2, 3), dtype=float)
+        ),
         id="float dtype",
     ),
     pytest.param(
-        ExamplePair(np.ones(shape=(2, 3), dtype=int), np.ones(shape=(2, 3), dtype=int)),
+        ExamplePair(
+            object1=np.ones(shape=(2, 3), dtype=int), object2=np.ones(shape=(2, 3), dtype=int)
+        ),
         id="int dtype",
     ),
-    pytest.param(ExamplePair(np.ones(shape=6), np.ones(shape=6)), id="1d array"),
-    pytest.param(ExamplePair(np.ones(shape=(2, 3)), np.ones(shape=(2, 3))), id="2d array"),
+    pytest.param(ExamplePair(object1=np.ones(shape=6), object2=np.ones(shape=6)), id="1d array"),
+    pytest.param(
+        ExamplePair(object1=np.ones(shape=(2, 3)), object2=np.ones(shape=(2, 3))), id="2d array"
+    ),
 ]
 
 
 NUMPY_ARRAY_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
-            np.ones(shape=(2, 3), dtype=float),
-            np.ones(shape=(2, 3), dtype=int),
-            "objects have different data types:",
+            object1=np.ones(shape=(2, 3), dtype=float),
+            object2=np.ones(shape=(2, 3), dtype=int),
+            expected_message="objects have different data types:",
         ),
         id="different data types",
     ),
     pytest.param(
-        ExamplePair(np.ones(shape=(2, 3)), np.ones(shape=6), "objects have different shapes:"),
+        ExamplePair(
+            object1=np.ones(shape=(2, 3)),
+            object2=np.ones(shape=6),
+            expected_message="objects have different shapes:",
+        ),
         id="different shapes",
     ),
     pytest.param(
         ExamplePair(
-            np.ones(shape=(2, 3)), np.zeros(shape=(2, 3)), "numpy.ndarrays have different elements:"
+            object1=np.ones(shape=(2, 3)),
+            object2=np.zeros(shape=(2, 3)),
+            expected_message="numpy.ndarrays have different elements:",
         ),
         id="different values",
     ),
     pytest.param(
-        ExamplePair(np.ones(shape=(2, 3)), "meow", "objects have different types:"),
+        ExamplePair(
+            object1=np.ones(shape=(2, 3)),
+            object2="meow",
+            expected_message="objects have different types:",
+        ),
         id="different types",
     ),
 ]
@@ -70,26 +86,28 @@ NUMPY_ARRAY_NOT_EQUAL = [
 NUMPY_MASKED_ARRAY_EQUAL = [
     pytest.param(
         ExamplePair(
-            np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], dtype=float),
-            np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], dtype=float),
+            object1=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], dtype=float),
+            object2=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], dtype=float),
         ),
         id="float dtype",
     ),
     pytest.param(
         ExamplePair(
-            np.ma.array(data=[0, 1, 2], mask=[0, 1, 0], dtype=int),
-            np.ma.array(data=[0, 1, 2], mask=[0, 1, 0], dtype=int),
+            object1=np.ma.array(data=[0, 1, 2], mask=[0, 1, 0], dtype=int),
+            object2=np.ma.array(data=[0, 1, 2], mask=[0, 1, 0], dtype=int),
         ),
         id="int dtype",
     ),
     pytest.param(
-        ExamplePair(np.ma.array(data=[0.0, 1.0, 1.2]), np.ma.array(data=[0.0, 1.0, 1.2])),
+        ExamplePair(
+            object1=np.ma.array(data=[0.0, 1.0, 1.2]), object2=np.ma.array(data=[0.0, 1.0, 1.2])
+        ),
         id="1d array",
     ),
     pytest.param(
         ExamplePair(
-            np.ma.array(data=np.ones(shape=(2, 3)), mask=[[0, 1, 0], [1, 0, 0]]),
-            np.ma.array(data=np.ones(shape=(2, 3)), mask=[[0, 1, 0], [1, 0, 0]]),
+            object1=np.ma.array(data=np.ones(shape=(2, 3)), mask=[[0, 1, 0], [1, 0, 0]]),
+            object2=np.ma.array(data=np.ones(shape=(2, 3)), mask=[[0, 1, 0], [1, 0, 0]]),
         ),
         id="2d array",
     ),
@@ -98,37 +116,41 @@ NUMPY_MASKED_ARRAY_EQUAL = [
 NUMPY_MASKED_ARRAY_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
-            np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], dtype=float),
-            np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], dtype=int),
-            "objects have different data types:",
+            object1=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], dtype=float),
+            object2=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], dtype=int),
+            expected_message="objects have different data types:",
         ),
         id="different data types",
     ),
     pytest.param(
         ExamplePair(
-            np.ma.array(data=np.ones(shape=(2, 3)), mask=[[0, 1, 0], [1, 0, 0]]),
-            np.ma.array(data=np.ones(shape=(3, 2)), mask=[[0, 1], [1, 0], [0, 0]]),
-            "objects have different shapes:",
+            object1=np.ma.array(data=np.ones(shape=(2, 3)), mask=[[0, 1, 0], [1, 0, 0]]),
+            object2=np.ma.array(data=np.ones(shape=(3, 2)), mask=[[0, 1], [1, 0], [0, 0]]),
+            expected_message="objects have different shapes:",
         ),
         id="different shapes",
     ),
     pytest.param(
         ExamplePair(
-            np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
-            np.ma.array(data=[0.0, 1.0, 2.0], mask=[0, 1, 0]),
-            "numpy.ndarrays have different elements:",
+            object1=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
+            object2=np.ma.array(data=[0.0, 1.0, 2.0], mask=[0, 1, 0]),
+            expected_message="numpy.ndarrays have different elements:",
         ),
         id="different values",
     ),
     pytest.param(
         ExamplePair(
-            np.ma.array(data=np.ones(shape=(2, 3)), mask=[[0, 1, 0], [1, 0, 0]]),
-            np.ones(shape=(2, 3)),
-            "objects have different types:",
+            object1=np.ma.array(data=np.ones(shape=(2, 3)), mask=[[0, 1, 0], [1, 0, 0]]),
+            object2=np.ones(shape=(2, 3)),
+            expected_message="objects have different types:",
         ),
         id="different types",
     ),
 ]
+
+
+NUMPY_EQUAL = NUMPY_ARRAY_EQUAL + NUMPY_MASKED_ARRAY_EQUAL
+NUMPY_NOT_EQUAL = NUMPY_ARRAY_NOT_EQUAL + NUMPY_MASKED_ARRAY_NOT_EQUAL
 
 
 ##################################################

@@ -30,41 +30,55 @@ def config() -> EqualityConfig:
 
 JAX_ARRAY_EQUAL = [
     pytest.param(
-        ExamplePair(jnp.ones(shape=(2, 3), dtype=float), jnp.ones(shape=(2, 3), dtype=float)),
+        ExamplePair(
+            object1=jnp.ones(shape=(2, 3), dtype=float), object2=jnp.ones(shape=(2, 3), dtype=float)
+        ),
         id="float dtype",
     ),
     pytest.param(
-        ExamplePair(jnp.ones(shape=(2, 3), dtype=int), jnp.ones(shape=(2, 3), dtype=int)),
+        ExamplePair(
+            object1=jnp.ones(shape=(2, 3), dtype=int), object2=jnp.ones(shape=(2, 3), dtype=int)
+        ),
         id="int dtype",
     ),
-    pytest.param(ExamplePair(jnp.ones(shape=6), jnp.ones(shape=6)), id="1d array"),
-    pytest.param(ExamplePair(jnp.ones(shape=(2, 3)), jnp.ones(shape=(2, 3))), id="2d array"),
+    pytest.param(ExamplePair(object1=jnp.ones(shape=6), object2=jnp.ones(shape=6)), id="1d array"),
+    pytest.param(
+        ExamplePair(object1=jnp.ones(shape=(2, 3)), object2=jnp.ones(shape=(2, 3))), id="2d array"
+    ),
 ]
 
 
 JAX_ARRAY_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
-            jnp.ones(shape=(2, 3), dtype=float),
-            jnp.ones(shape=(2, 3), dtype=int),
-            "objects have different data types:",
+            object1=jnp.ones(shape=(2, 3), dtype=float),
+            object2=jnp.ones(shape=(2, 3), dtype=int),
+            expected_message="objects have different data types:",
         ),
         id="different data types",
     ),
     pytest.param(
-        ExamplePair(jnp.ones(shape=(2, 3)), jnp.ones(shape=6), "objects have different shapes:"),
+        ExamplePair(
+            object1=jnp.ones(shape=(2, 3)),
+            object2=jnp.ones(shape=6),
+            expected_message="objects have different shapes:",
+        ),
         id="different shapes",
     ),
     pytest.param(
         ExamplePair(
-            jnp.ones(shape=(2, 3)),
-            jnp.zeros(shape=(2, 3)),
-            "jax.numpy.ndarrays have different elements:",
+            object1=jnp.ones(shape=(2, 3)),
+            object2=jnp.zeros(shape=(2, 3)),
+            expected_message="jax.numpy.ndarrays have different elements:",
         ),
         id="different values",
     ),
     pytest.param(
-        ExamplePair(jnp.ones(shape=(2, 3)), "meow", "objects have different types:"),
+        ExamplePair(
+            object1=jnp.ones(shape=(2, 3)),
+            object2="meow",
+            expected_message="objects have different types:",
+        ),
         id="different types",
     ),
 ]

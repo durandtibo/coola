@@ -132,6 +132,9 @@ POLARS_SERIES_NOT_EQUAL = [
     ),
 ]
 
+POLARS_EQUAL = POLARS_SERIES_EQUAL + POLARS_DATAFRAME_EQUAL
+POLARS_NOT_EQUAL = POLARS_SERIES_NOT_EQUAL + POLARS_DATAFRAME_NOT_EQUAL
+
 #######################################################
 #     Tests for PolarsDataFrameEqualityComparator     #
 #######################################################

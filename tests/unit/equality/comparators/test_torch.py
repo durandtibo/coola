@@ -200,6 +200,9 @@ TORCH_TENSOR_NOT_EQUAL = [
     ),
 ]
 
+TORCH_EQUAL = TORCH_TENSOR_EQUAL + TORCH_PACKED_SEQUENCE_EQUAL
+TORCH_NOT_EQUAL = TORCH_TENSOR_NOT_EQUAL + TORCH_PACKED_SEQUENCE_NOT_EQUAL
+
 
 ###########################################################
 #     Tests for TorchPackedSequenceEqualityComparator     #

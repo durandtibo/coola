@@ -7,19 +7,14 @@ import pytest
 
 from coola import objects_are_equal
 from coola.testing import torch_available
-from tests.unit.equality.comparators.test_torch import (
-    TORCH_PACKED_SEQUENCE_EQUAL,
-    TORCH_PACKED_SEQUENCE_NOT_EQUAL,
-    TORCH_TENSOR_EQUAL,
-    TORCH_TENSOR_NOT_EQUAL,
-)
+from tests.unit.equality.comparators.test_torch import TORCH_EQUAL, TORCH_NOT_EQUAL
 
 if TYPE_CHECKING:
     from tests.unit.equality.comparators.utils import ExamplePair
 
 
 @torch_available
-@pytest.mark.parametrize("example", TORCH_TENSOR_EQUAL + TORCH_PACKED_SEQUENCE_EQUAL)
+@pytest.mark.parametrize("example", TORCH_EQUAL)
 @pytest.mark.parametrize("show_difference", [True, False])
 def test_objects_are_equal_true(
     example: ExamplePair, show_difference: bool, caplog: pytest.LogCaptureFixture
@@ -30,7 +25,7 @@ def test_objects_are_equal_true(
 
 
 @torch_available
-@pytest.mark.parametrize("example", TORCH_TENSOR_NOT_EQUAL + TORCH_PACKED_SEQUENCE_NOT_EQUAL)
+@pytest.mark.parametrize("example", TORCH_NOT_EQUAL)
 def test_objects_are_equal_false(example: ExamplePair, caplog: pytest.LogCaptureFixture) -> None:
     with caplog.at_level(logging.INFO):
         assert not objects_are_equal(example.object1, example.object2)
@@ -38,7 +33,7 @@ def test_objects_are_equal_false(example: ExamplePair, caplog: pytest.LogCapture
 
 
 @torch_available
-@pytest.mark.parametrize("example", TORCH_TENSOR_NOT_EQUAL + TORCH_PACKED_SEQUENCE_NOT_EQUAL)
+@pytest.mark.parametrize("example", TORCH_NOT_EQUAL)
 def test_objects_are_equal_false_show_difference(
     example: ExamplePair, caplog: pytest.LogCaptureFixture
 ) -> None:
