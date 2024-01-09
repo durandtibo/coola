@@ -44,6 +44,21 @@ TORCH_PACKED_SEQUENCE_EQUAL = [
         ),
         id="float dtype",
     ),
+    pytest.param(
+        ExamplePair(
+            object1=torch.nn.utils.rnn.pack_padded_sequence(
+                input=torch.arange(10, dtype=torch.long).view(2, 5),
+                lengths=torch.tensor([5, 3], dtype=torch.long),
+                batch_first=True,
+            ),
+            object2=torch.nn.utils.rnn.pack_padded_sequence(
+                input=torch.arange(10, dtype=torch.long).view(2, 5),
+                lengths=torch.tensor([5, 3], dtype=torch.long),
+                batch_first=True,
+            ),
+        ),
+        id="long dtype",
+    ),
 ]
 
 TORCH_PACKED_SEQUENCE_NOT_EQUAL = [
@@ -141,9 +156,9 @@ TORCH_TENSOR_EQUAL = [
     ),
     pytest.param(
         ExamplePair(
-            object1=torch.ones(2, 3, dtype=torch.int), object2=torch.ones(2, 3, dtype=torch.int)
+            object1=torch.ones(2, 3, dtype=torch.long), object2=torch.ones(2, 3, dtype=torch.long)
         ),
-        id="int dtype",
+        id="long dtype",
     ),
     pytest.param(ExamplePair(object1=torch.ones(6), object2=torch.ones(6)), id="1d tensor"),
     pytest.param(ExamplePair(object1=torch.ones(2, 3), object2=torch.ones(2, 3)), id="2d tensor"),
@@ -154,7 +169,7 @@ TORCH_TENSOR_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
             object1=torch.ones(2, 3, dtype=torch.float),
-            object2=torch.ones(2, 3, dtype=torch.int),
+            object2=torch.ones(2, 3, dtype=torch.long),
             expected_message="objects have different data types:",
         ),
         id="different data types",
