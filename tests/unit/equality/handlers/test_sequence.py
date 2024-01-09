@@ -6,9 +6,9 @@ from unittest.mock import Mock
 
 import pytest
 
-from coola import EqualityTester
 from coola.equality import EqualityConfig
 from coola.equality.handlers import FalseHandler, SequenceSameValuesHandler, TrueHandler
+from coola.equality.testers import EqualityTester
 from coola.testing import numpy_available
 from coola.utils import is_numpy_available
 

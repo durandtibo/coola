@@ -5,9 +5,9 @@ from unittest.mock import Mock
 
 import pytest
 
-from coola import EqualityTester
 from coola.equality import EqualityConfig
 from coola.equality.handlers import FalseHandler, JaxArrayEqualHandler
+from coola.equality.testers import EqualityTester
 from coola.testing import jax_available
 from coola.utils.imports import is_jax_available
 

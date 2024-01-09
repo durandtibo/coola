@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import pytest
 
-from coola import EqualityTester
 from coola.equality import EqualityConfig
 from coola.equality.handlers import (
     ObjectEqualHandler,
@@ -10,6 +9,7 @@ from coola.equality.handlers import (
     SameTypeHandler,
     TrueHandler,
 )
+from coola.equality.testers import EqualityTester
 
 
 @pytest.fixture()

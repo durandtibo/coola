@@ -5,10 +5,11 @@ from unittest.mock import Mock
 
 import pytest
 
-from coola import EqualityTester, objects_are_equal
+from coola import objects_are_equal
 from coola.equality import EqualityConfig
 from coola.equality.comparators import DefaultEqualityComparator
 from coola.equality.comparators.default import get_type_comparator_mapping
+from coola.equality.testers import EqualityTester
 
 
 @pytest.fixture()
