@@ -5,7 +5,6 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola import objects_are_equal
 from coola.equality import EqualityConfig
 from coola.equality.comparators.jax_ import (
     JaxArrayEqualityComparator,
@@ -87,11 +86,6 @@ JAX_ARRAY_NOT_EQUAL = [
 ################################################
 #     Tests for JaxArrayEqualityComparator     #
 ################################################
-
-
-@jax_available
-def test_objects_are_equal_array() -> None:
-    assert objects_are_equal(jnp.ones((2, 3)), jnp.ones((2, 3)))
 
 
 @jax_available

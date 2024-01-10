@@ -5,7 +5,6 @@ from unittest.mock import Mock
 
 import pytest
 
-from coola import objects_are_equal
 from coola.equality import EqualityConfig
 from coola.equality.comparators import DefaultEqualityComparator
 from coola.equality.comparators.default import get_type_comparator_mapping
@@ -20,10 +19,6 @@ def config() -> EqualityConfig:
 ###############################################
 #     Tests for DefaultEqualityComparator     #
 ###############################################
-
-
-def test_objects_are_equal() -> None:
-    assert objects_are_equal(object1=1, object2=1)
 
 
 def test_default_equality_comparator_str() -> None:
