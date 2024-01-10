@@ -15,10 +15,13 @@ from unittest.mock import Mock
 from coola.equality.comparators.base import BaseEqualityComparator
 from coola.equality.handlers import (
     NumpyArrayEqualHandler,
+    SameAttributeHandler,
+    SameDataHandler,
     SameDTypeHandler,
     SameObjectHandler,
     SameShapeHandler,
     SameTypeHandler,
+    TrueHandler,
 )
 from coola.utils import check_numpy, is_numpy_available
 
@@ -95,7 +98,11 @@ class NumpyMaskedArrayEqualityComparator(BaseEqualityComparator[np.ma.MaskedArra
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(SameDTypeHandler()).chain(
             SameShapeHandler()
-        ).chain(NumpyArrayEqualHandler())
+        ).chain(SameDataHandler()).chain(SameAttributeHandler("mask")).chain(
+            SameAttributeHandler("fill_value")
+        ).chain(
+            TrueHandler()
+        )
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
