@@ -49,13 +49,25 @@ class FloatEqualHandler(BaseEqualityHandler):
         return f"{self.__class__.__qualname__}()"
 
     def handle(self, object1: float, object2: Any, config: EqualityConfig) -> bool:
-        if config.equal_nan and math.isnan(object1) and math.isnan(object2):
-            object_equal = True
-        else:
-            object_equal = object1 == object2
+        object_equal = self._compare_objects(object1, object2, config)
         if not object_equal and config.show_difference:
             logger.info(f"numbers are not equal:\nobject1:\n{object1}\nobject2:\n{object2}")
         return object_equal
 
     def set_next_handler(self, handler: BaseEqualityHandler) -> None:
         pass  # Do nothing because the next handler is never called.
+
+    def _compare_objects(self, object1: float, object2: Any, config: EqualityConfig) -> bool:
+        r"""Indicate if the two objects are equal or not.
+
+        Args:
+            object1: Specifies the first object to compare.
+            object2: Specifies the second object to compare.
+            config: Specifies the equality configuration.
+
+        Returns:
+            ``True``if the two objects are equal, otherwise ``False``.
+        """
+        if config.equal_nan and math.isnan(object1) and math.isnan(object2):
+            return True
+        return object1 == object2
