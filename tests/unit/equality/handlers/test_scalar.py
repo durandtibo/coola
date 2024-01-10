@@ -6,8 +6,9 @@ from typing import Any
 import pytest
 
 from coola.equality import EqualityConfig
-from coola.equality.handlers import FalseHandler, FloatEqualHandler
+from coola.equality.handlers import FalseHandler, FloatEqualHandler, ScalarCloseHandler
 from coola.equality.testers import EqualityTester
+from tests.unit.equality.comparators.utils import ExamplePair
 
 
 @pytest.fixture()
@@ -36,7 +37,16 @@ def test_float_equal_handler_str() -> None:
     assert str(FloatEqualHandler()).startswith("FloatEqualHandler(")
 
 
-@pytest.mark.parametrize(("object1", "object2"), [(0, 0), (4.2, 4.2), (-1.0, -1.0)])
+@pytest.mark.parametrize(
+    ("object1", "object2"),
+    [
+        (0, 0),
+        (4.2, 4.2),
+        (-1.0, -1.0),
+        (float("inf"), float("inf")),
+        (float("-inf"), float("-inf")),
+    ],
+)
 def test_float_equal_handler_handle_true(
     object1: float, object2: float, config: EqualityConfig
 ) -> None:
@@ -44,7 +54,8 @@ def test_float_equal_handler_handle_true(
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"), [(0, 1), (4, 4.2), (float("nan"), 1.0), (float("nan"), float("nan"))]
+    ("object1", "object2"),
+    [(0, 1), (4, 4.2), (float("inf"), 1.0), (float("nan"), 1.0), (float("nan"), float("nan"))],
 )
 def test_float_equal_handler_handle_false(
     object1: float, object2: Any, config: EqualityConfig
@@ -70,3 +81,121 @@ def test_float_equal_handler_handle_equal_nan(config: EqualityConfig, equal_nan:
 
 def test_float_equal_handler_set_next_handler() -> None:
     FloatEqualHandler().set_next_handler(FalseHandler())
+
+
+########################################
+#     Tests for ScalarCloseHandler     #
+########################################
+
+
+def test_scalar_close_handler_eq_true() -> None:
+    assert ScalarCloseHandler() == ScalarCloseHandler()
+
+
+def test_scalar_close_handler_eq_false() -> None:
+    assert ScalarCloseHandler() != FalseHandler()
+
+
+def test_scalar_close_handler_repr() -> None:
+    assert repr(ScalarCloseHandler()).startswith("ScalarCloseHandler(")
+
+
+def test_scalar_close_handler_str() -> None:
+    assert str(ScalarCloseHandler()).startswith("ScalarCloseHandler(")
+
+
+@pytest.mark.parametrize(
+    "example",
+    [
+        pytest.param(ExamplePair(object1=4, object2=4), id="int"),
+        pytest.param(ExamplePair(object1=4.2, object2=4.2), id="float"),
+        pytest.param(ExamplePair(object1=-1.0, object2=-1.0), id="negative"),
+        pytest.param(ExamplePair(object1=float("inf"), object2=float("inf")), id="infinity"),
+        pytest.param(ExamplePair(object1=float("-inf"), object2=float("-inf")), id="-infinity"),
+    ],
+)
+def test_scalar_close_handler_handle_true(example: ExamplePair, config: EqualityConfig) -> None:
+    assert ScalarCloseHandler().handle(example.object1, example.object2, config)
+
+
+@pytest.mark.parametrize(
+    "example",
+    [
+        pytest.param(ExamplePair(object1=0, object2=1), id="different values - int"),
+        pytest.param(ExamplePair(object1=4.0, object2=4.2), id="different values - float"),
+        pytest.param(ExamplePair(object1=float("inf"), object2=4.2), id="different values - inf"),
+        pytest.param(
+            ExamplePair(object1=float("inf"), object2=float("-inf")), id="opposite infinity"
+        ),
+        pytest.param(ExamplePair(object1=float("nan"), object2=1.0), id="one nan"),
+        pytest.param(ExamplePair(object1=float("nan"), object2=float("nan")), id="two nans"),
+    ],
+)
+def test_scalar_close_handler_handle_false(example: ExamplePair, config: EqualityConfig) -> None:
+    assert not ScalarCloseHandler().handle(example.object1, example.object2, config)
+
+
+def test_scalar_close_handler_handle_false_show_difference(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    config.show_difference = True
+    handler = ScalarCloseHandler()
+    with caplog.at_level(logging.INFO):
+        assert not handler.handle(object1=1.0, object2=2.0, config=config)
+        assert caplog.messages[0].startswith("numbers are not equal within a tolerance")
+
+
+@pytest.mark.parametrize("equal_nan", [True, False])
+def test_scalar_close_handler_handle_equal_nan(config: EqualityConfig, equal_nan: bool) -> None:
+    config.equal_nan = equal_nan
+    assert ScalarCloseHandler().handle(float("nan"), float("nan"), config) == equal_nan
+
+
+@pytest.mark.parametrize(
+    ("object1", "object2", "atol"),
+    [
+        (0, 1, 1),
+        (1, 0, 1),
+        (1, 2, 1),
+        (1, 5, 10),
+        (1.0, 1.0 + 1e-4, 1e-3),
+        (1.0, 1.0 - 1e-4, 1e-3),
+        (False, True, 1),
+    ],
+)
+def test_scalar_close_handler_handle_true_atol(
+    object1: float,
+    object2: float,
+    atol: float,
+    config: EqualityConfig,
+) -> None:
+    config.atol = atol
+    config.rtol = 0.0
+    assert ScalarCloseHandler().handle(object1, object2, config)
+
+
+@pytest.mark.parametrize(
+    ("object1", "object2", "rtol"),
+    [
+        (0, 1, 1),
+        (1, 0, 1),
+        (1, 2, 1),
+        (1, 5, 10),
+        (1.0, 1.0 + 1e-4, 1e-3),
+        (1.0, 1.0 - 1e-4, 1e-3),
+        (False, True, 1),
+    ],
+)
+def test_scalar_close_handler_handle_true_rtol(
+    object1: float,
+    object2: float,
+    rtol: float,
+    config: EqualityConfig,
+) -> None:
+    config.atol = 0.0
+    config.rtol = rtol
+    assert ScalarCloseHandler().handle(object1, object2, config)
+
+
+def test_scalar_close_handler_set_next_handler() -> None:
+    ScalarCloseHandler().set_next_handler(FalseHandler())
