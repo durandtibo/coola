@@ -11,6 +11,7 @@ __all__ = [
     "BaseEqualityHandler",
     "EqualHandler",
     "FalseHandler",
+    "FloatEqualHandler",
     "JaxArrayEqualHandler",
     "MappingSameKeysHandler",
     "MappingSameValuesHandler",
@@ -59,6 +60,7 @@ from coola.equality.handlers.polars_ import (
     PolarsDataFrameEqualHandler,
     PolarsSeriesEqualHandler,
 )
+from coola.equality.handlers.scalar import FloatEqualHandler
 from coola.equality.handlers.sequence import SequenceSameValuesHandler
 from coola.equality.handlers.shape import SameShapeHandler
 from coola.equality.handlers.torch_ import TorchTensorEqualHandler
