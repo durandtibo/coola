@@ -134,9 +134,25 @@ NUMPY_MASKED_ARRAY_NOT_EQUAL = [
         ExamplePair(
             object1=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
             object2=np.ma.array(data=[0.0, 1.0, 2.0], mask=[0, 1, 0]),
-            expected_message="numpy.ndarrays have different elements:",
+            expected_message="objects have different data:",
         ),
         id="different values",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
+            object2=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 0, 1]),
+            expected_message="objects have different mask:",
+        ),
+        id="different mask",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], fill_value=-1),
+            object2=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], fill_value=42),
+            expected_message="objects have different fill_value:",
+        ),
+        id="different fill_value",
     ),
     pytest.param(
         ExamplePair(
