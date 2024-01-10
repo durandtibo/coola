@@ -54,8 +54,7 @@ class FloatEqualityComparator(BaseEqualityComparator[Any]):
 
 
 def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
-    r"""Get a mapping between the types and the equality
-    comparators.
+    r"""Get a mapping between the types and the equality comparators.
 
     Returns:
         The mapping between the types and the equality comparators.
