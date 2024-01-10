@@ -5,7 +5,6 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola import objects_are_equal
 from coola.equality import EqualityConfig
 from coola.equality.comparators.polars_ import (
     PolarsDataFrameEqualityComparator,
@@ -141,13 +140,6 @@ POLARS_NOT_EQUAL = POLARS_SERIES_NOT_EQUAL + POLARS_DATAFRAME_NOT_EQUAL
 
 
 @polars_available
-def test_objects_are_equal_dataframe() -> None:
-    assert objects_are_equal(
-        polars.DataFrame({"col": [1, 2, 3]}), polars.DataFrame({"col": [1, 2, 3]})
-    )
-
-
-@polars_available
 def test_polars_dataframe_equality_comparator_str() -> None:
     assert str(PolarsDataFrameEqualityComparator()).startswith("PolarsDataFrameEqualityComparator(")
 
@@ -259,13 +251,6 @@ def test_polars_dataframe_equality_comparator_no_polars() -> None:
 ####################################################
 #     Tests for PolarsSeriesEqualityComparator     #
 ####################################################
-
-
-@polars_available
-def test_objects_are_equal_series() -> None:
-    assert objects_are_equal(
-        polars.DataFrame({"col": [1, 2, 3]}), polars.DataFrame({"col": [1, 2, 3]})
-    )
 
 
 @polars_available

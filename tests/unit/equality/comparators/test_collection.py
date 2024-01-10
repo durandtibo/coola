@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from collections import OrderedDict
 from collections.abc import Mapping, Sequence
 from unittest.mock import Mock
 
@@ -15,6 +16,7 @@ from coola.equality.comparators.collection import (
 from coola.equality.testers import EqualityTester
 from coola.testing import numpy_available
 from coola.utils import is_numpy_available
+from tests.unit.equality.comparators.utils import ExamplePair
 
 if is_numpy_available():
     import numpy as np
@@ -25,6 +27,129 @@ else:
 @pytest.fixture()
 def config() -> EqualityConfig:
     return EqualityConfig(tester=EqualityTester())
+
+
+MAPPING_EQUAL = [
+    pytest.param(ExamplePair(object1={}, object2={}), id="empty dict"),
+    pytest.param(ExamplePair(object1={"a": 1, "b": 2}, object2={"a": 1, "b": 2}), id="flat dict"),
+    pytest.param(
+        ExamplePair(object1={"a": 1, "b": {"k": 1}}, object2={"a": 1, "b": {"k": 1}}),
+        id="nested dict",
+    ),
+    pytest.param(
+        ExamplePair(object1=OrderedDict({"a": 1, "b": 2}), object2=OrderedDict({"a": 1, "b": 2})),
+        id="OrderedDict",
+    ),
+]
+
+MAPPING_NOT_EQUAL = [
+    pytest.param(
+        ExamplePair(
+            object1={"a": 1, "b": 2},
+            object2={"a": 1, "c": 2},
+            expected_message="mappings have different keys:",
+        ),
+        id="different keys",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1={"a": 1, "b": 2},
+            object2={"a": 1, "b": 3},
+            expected_message="mappings have at least one different value:",
+        ),
+        id="different values",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1={"a": 1, "b": {"k": 1}},
+            object2={"a": 1, "b": {"k": 2}},
+            expected_message="mappings have at least one different value:",
+        ),
+        id="different values - nested",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1={"a": 1, "b": 2},
+            object2={"a": 1, "b": float("nan")},
+            expected_message="mappings have at least one different value:",
+        ),
+        id="different values - nan",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1={"a": 1, "b": 2},
+            object2={"a": 1, "b": 2, "c": 3},
+            expected_message="objects have different lengths:",
+        ),
+        id="different number of items",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1={}, object2=OrderedDict({}), expected_message="objects have different types:"
+        ),
+        id="different types",
+    ),
+]
+
+SEQUENCE_EQUAL = [
+    pytest.param(ExamplePair(object1=[], object2=[]), id="empty list"),
+    pytest.param(ExamplePair(object1=[1, 2, 3, "abc"], object2=[1, 2, 3, "abc"]), id="flat list"),
+    pytest.param(
+        ExamplePair(object1=[1, 2, [3, 4, 5]], object2=[1, 2, [3, 4, 5]]),
+        id="nested list",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=(1, 2, 3),
+            object2=(1, 2, 3),
+        ),
+        id="flat tuple",
+    ),
+]
+
+SEQUENCE_NOT_EQUAL = [
+    pytest.param(
+        ExamplePair(
+            object1=[1, 2, 3],
+            object2=[1, 2, 4],
+            expected_message="sequences have at least one different value:",
+        ),
+        id="different values",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=[1, 2, [3, 4, 5]],
+            object2=[1, 2, [3, 4, 6]],
+            expected_message="sequences have at least one different value:",
+        ),
+        id="different values - nested",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=[1, 2, 3],
+            object2=[1, 2, float("nan")],
+            expected_message="sequences have at least one different value:",
+        ),
+        id="different values - nan",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=[1, 2, 3],
+            object2=[1, 2],
+            expected_message="objects have different lengths:",
+        ),
+        id="different lengths",
+    ),
+    pytest.param(
+        ExamplePair(object1=[], object2=(), expected_message="objects have different types:"),
+        id="different types",
+    ),
+]
+
+
+COLLECTION_EQUAL = MAPPING_EQUAL + SEQUENCE_EQUAL
+
+COLLECTION_NOT_EQUAL = MAPPING_NOT_EQUAL + SEQUENCE_NOT_EQUAL
 
 
 ###############################################
@@ -54,110 +179,71 @@ def test_mapping_equality_comparator_clone() -> None:
 
 
 def test_mapping_equality_comparator_equal_true_same_object(config: EqualityConfig) -> None:
-    obj = [1, 2, 3]
+    obj = {"a": 1, "b": 2}
     assert MappingEqualityComparator().equal(obj, obj, config)
 
 
-@pytest.mark.parametrize(
-    ("object1", "object2"),
-    [
-        ({}, {}),
-        ({"a": 1, "b": 2}, {"a": 1, "b": 2}),
-        ({"a": 1, "b": {"k": 1}}, {"a": 1, "b": {"k": 1}}),
-    ],
-)
-def test_mapping_equality_comparator_equal_true(
-    caplog: pytest.LogCaptureFixture, object1: Mapping, object2: Mapping, config: EqualityConfig
+@pytest.mark.parametrize("example", MAPPING_EQUAL)
+def test_mapping_equality_comparator_equal_yes(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     comparator = MappingEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1, object2, config)
+        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
         assert not caplog.messages
 
 
-def test_mapping_equality_comparator_equal_true_show_difference(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+@pytest.mark.parametrize("example", MAPPING_EQUAL)
+def test_mapping_equality_comparator_equal_yes_show_difference(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     comparator = MappingEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1={"a": 1, "b": 2}, object2={"a": 1, "b": 2}, config=config)
+        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
         assert not caplog.messages
 
 
-@pytest.mark.parametrize(
-    ("object1", "object2"),
-    [
-        ({"a": 1, "b": 2}, {"a": 1, "b": 3}),
-        ({"a": 1, "b": {"k": 1}}, {"a": 1, "b": {"k": 2}}),
-    ],
-)
-def test_mapping_equality_comparator_equal_false_different_value(
-    caplog: pytest.LogCaptureFixture, object1: Mapping, object2: Mapping, config: EqualityConfig
+@pytest.mark.parametrize("example", MAPPING_NOT_EQUAL)
+def test_mapping_equality_comparator_equal_false(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     comparator = MappingEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1, object2, config)
+        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
         assert not caplog.messages
 
 
-def test_mapping_equality_comparator_equal_false_different_value_show_difference(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+@pytest.mark.parametrize("example", MAPPING_NOT_EQUAL)
+def test_mapping_equality_comparator_equal_false_show_difference(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     comparator = MappingEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(
-            object1={"a": 1, "b": 2}, object2={"a": 1, "b": 3}, config=config
+        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert caplog.messages[-1].startswith(example.expected_message)
+
+
+@pytest.mark.parametrize("equal_nan", [False, True])
+def test_mapping_equality_comparator_equal_nan(config: EqualityConfig, equal_nan: bool) -> None:
+    config.equal_nan = equal_nan
+    assert (
+        MappingEqualityComparator().equal(
+            object1={"a": float("nan"), "b": float("nan")},
+            object2={"a": float("nan"), "b": float("nan")},
+            config=config,
         )
-        assert caplog.messages[-1].startswith("mappings have at least one different value:")
-
-
-@pytest.mark.parametrize(
-    ("object1", "object2"),
-    [
-        ({"a": 1, "b": 2}, {"a": 1, "b": 2, "c": 3}),
-        ({}, {"a": 1, "b": 2}),
-    ],
-)
-def test_mapping_equality_comparator_equal_false_different_length(
-    caplog: pytest.LogCaptureFixture, object1: Mapping, object2: Mapping, config: EqualityConfig
-) -> None:
-    comparator = MappingEqualityComparator()
-    with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1, object2, config)
-        assert not caplog.messages
-
-
-def test_mapping_equality_comparator_equal_false_different_length_show_difference(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
-) -> None:
-    config.show_difference = True
-    comparator = MappingEqualityComparator()
-    with caplog.at_level(logging.INFO):
-        assert not comparator.equal(
-            object1={"a": 1, "b": 2}, object2={"a": 1, "b": 2, "c": 3}, config=config
-        )
-        assert caplog.messages[0].startswith("objects have different lengths:")
-
-
-def test_mapping_equality_comparator_equal_false_different_type(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
-) -> None:
-    comparator = MappingEqualityComparator()
-    with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1={}, object2=(), config=config)
-        assert not caplog.messages
-
-
-def test_mapping_equality_comparator_equal_different_type_show_difference(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
-) -> None:
-    config.show_difference = True
-    comparator = MappingEqualityComparator()
-    with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1={}, object2=(), config=config)
-        assert caplog.messages[0].startswith("objects have different types:")
+        == equal_nan
+    )
 
 
 @numpy_available
@@ -256,72 +342,67 @@ def test_sequence_equality_comparator_equal_true_show_difference(
         assert not caplog.messages
 
 
-@pytest.mark.parametrize(
-    ("object1", "object2"),
-    [
-        ([1, 2, 3], [1, 2, 4]),
-        ((1, 2, 3), (1, 2, 4)),
-        (["abc", "deg"], ["abc", "def"]),
-        (("abc", "deg"), ("abc", "def")),
-        ([0, ("a", "b", "c"), 2], [0, ("a", "b", "d"), 2]),
-    ],
-)
-def test_sequence_equality_comparator_equal_false_different_value(
-    caplog: pytest.LogCaptureFixture, object1: Sequence, object2: Sequence, config: EqualityConfig
+@pytest.mark.parametrize("example", SEQUENCE_EQUAL)
+def test_sequence_equality_comparator_equal_yes(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     comparator = SequenceEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=object1, object2=object2, config=config)
+        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
         assert not caplog.messages
 
 
-def test_sequence_equality_comparator_equal_false_different_value_show_difference(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+@pytest.mark.parametrize("example", SEQUENCE_EQUAL)
+def test_sequence_equality_comparator_equal_yes_show_difference(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     comparator = SequenceEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=[1, 2], object2=[1, 3], config=config)
-        assert caplog.messages[-1].startswith("sequences have at least one different value:")
-
-
-@pytest.mark.parametrize(("object1", "object2"), [([1, 2, 3], [1, 2, 3, 4]), ((), ("abc", "def"))])
-def test_sequence_equality_comparator_equal_false_different_length(
-    caplog: pytest.LogCaptureFixture, object1: Sequence, object2: Sequence, config: EqualityConfig
-) -> None:
-    comparator = SequenceEqualityComparator()
-    with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=object1, object2=object2, config=config)
+        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
         assert not caplog.messages
 
 
-def test_sequence_equality_comparator_equal_false_different_length_show_difference(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+@pytest.mark.parametrize("example", SEQUENCE_NOT_EQUAL)
+def test_sequence_equality_comparator_equal_false(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    comparator = SequenceEqualityComparator()
+    with caplog.at_level(logging.INFO):
+        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not caplog.messages
+
+
+@pytest.mark.parametrize("example", SEQUENCE_NOT_EQUAL)
+def test_sequence_equality_comparator_equal_false_show_difference(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     comparator = SequenceEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=[1, 2, 3], object2=[1, 2], config=config)
-        assert caplog.messages[0].startswith("objects have different lengths:")
+        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert caplog.messages[-1].startswith(example.expected_message)
 
 
-def test_sequence_equality_comparator_equal_false_different_type(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
-) -> None:
-    comparator = SequenceEqualityComparator()
-    with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=[], object2=(), config=config)
-        assert not caplog.messages
-
-
-def test_sequence_equality_comparator_equal_different_type_show_difference(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
-) -> None:
-    config.show_difference = True
-    comparator = SequenceEqualityComparator()
-    with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=[], object2=(), config=config)
-        assert caplog.messages[0].startswith("objects have different types:")
+@pytest.mark.parametrize("equal_nan", [False, True])
+def test_sequence_equality_comparator_equal_nan(config: EqualityConfig, equal_nan: bool) -> None:
+    config.equal_nan = equal_nan
+    assert (
+        SequenceEqualityComparator().equal(
+            object1=[float("nan"), 2, float("nan")],
+            object2=[float("nan"), 2, float("nan")],
+            config=config,
+        )
+        == equal_nan
+    )
 
 
 @numpy_available

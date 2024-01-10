@@ -5,7 +5,6 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola import objects_are_equal
 from coola.equality import EqualityConfig
 from coola.equality.comparators.pandas_ import (
     PandasDataFrameEqualityComparator,
@@ -141,13 +140,6 @@ PANDAS_NOT_EQUAL = PANDAS_SERIES_NOT_EQUAL + PANDAS_DATAFRAME_NOT_EQUAL
 
 
 @pandas_available
-def test_objects_are_equal_dataframe() -> None:
-    assert objects_are_equal(
-        pandas.DataFrame({"col": [1, 2, 3]}), pandas.DataFrame({"col": [1, 2, 3]})
-    )
-
-
-@pandas_available
 def test_pandas_dataframe_equality_comparator_str() -> None:
     assert str(PandasDataFrameEqualityComparator()).startswith("PandasDataFrameEqualityComparator(")
 
@@ -259,13 +251,6 @@ def test_pandas_dataframe_equality_comparator_no_pandas() -> None:
 ####################################################
 #     Tests for PandasSeriesEqualityComparator     #
 ####################################################
-
-
-@pandas_available
-def test_objects_are_equal_series() -> None:
-    assert objects_are_equal(
-        pandas.DataFrame({"col": [1, 2, 3]}), pandas.DataFrame({"col": [1, 2, 3]})
-    )
 
 
 @pandas_available

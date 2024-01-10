@@ -5,7 +5,6 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola import objects_are_equal
 from coola.equality import EqualityConfig
 from coola.equality.comparators.xarray_ import (
     XarrayDataArrayEqualityComparator,
@@ -274,13 +273,6 @@ XARRAY_NOT_EQUAL = (
 
 
 @xarray_available
-def test_objects_are_equal_data_array() -> None:
-    assert objects_are_equal(
-        xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"])
-    )
-
-
-@xarray_available
 def test_xarray_data_array_equality_comparator_str() -> None:
     assert str(XarrayDataArrayEqualityComparator()).startswith("XarrayDataArrayEqualityComparator(")
 
@@ -392,28 +384,6 @@ def test_xarray_data_array_equality_comparator_no_xarray() -> None:
 #####################################################
 #     Tests for XarrayDatasetEqualityComparator     #
 #####################################################
-
-
-@xarray_available
-def test_objects_are_equal_dataset() -> None:
-    assert objects_are_equal(
-        xr.Dataset(
-            data_vars={
-                "x": xr.DataArray(np.arange(6), dims=["z"]),
-                "y": xr.DataArray(np.ones((6, 3)), dims=["z", "t"]),
-            },
-            coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
-            attrs={"global": "this is a global attribute"},
-        ),
-        xr.Dataset(
-            data_vars={
-                "x": xr.DataArray(np.arange(6), dims=["z"]),
-                "y": xr.DataArray(np.ones((6, 3)), dims=["z", "t"]),
-            },
-            coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
-            attrs={"global": "this is a global attribute"},
-        ),
-    )
 
 
 @xarray_available
@@ -550,13 +520,6 @@ def test_xarray_dataset_equality_comparator_no_xarray() -> None:
 ######################################################
 #     Tests for XarrayVariableEqualityComparator     #
 ######################################################
-
-
-@xarray_available
-def test_objects_are_equal_variable() -> None:
-    assert objects_are_equal(
-        xr.Variable(dims=["z"], data=np.arange(6)), xr.Variable(dims=["z"], data=np.arange(6))
-    )
 
 
 @xarray_available

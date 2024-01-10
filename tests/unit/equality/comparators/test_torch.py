@@ -5,7 +5,6 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola import objects_are_equal
 from coola.equality import EqualityConfig
 from coola.equality.comparators.torch_ import (
     TorchPackedSequenceEqualityComparator,
@@ -210,22 +209,6 @@ TORCH_NOT_EQUAL = TORCH_TENSOR_NOT_EQUAL + TORCH_PACKED_SEQUENCE_NOT_EQUAL
 
 
 @torch_available
-def test_objects_are_equal_packed_sequence() -> None:
-    assert objects_are_equal(
-        torch.nn.utils.rnn.pack_padded_sequence(
-            input=torch.arange(10, dtype=torch.float).view(2, 5),
-            lengths=torch.tensor([5, 3], dtype=torch.long),
-            batch_first=True,
-        ),
-        torch.nn.utils.rnn.pack_padded_sequence(
-            input=torch.arange(10, dtype=torch.float).view(2, 5),
-            lengths=torch.tensor([5, 3], dtype=torch.long),
-            batch_first=True,
-        ),
-    )
-
-
-@torch_available
 def test_tensor_packed_sequence_equality_comparator_str() -> None:
     assert str(TorchPackedSequenceEqualityComparator()) == "TorchPackedSequenceEqualityComparator()"
 
@@ -355,11 +338,6 @@ def test_tensor_packed_sequence_equality_comparator_no_torch() -> None:
 ###################################################
 #     Tests for TorchTensorEqualityComparator     #
 ###################################################
-
-
-@torch_available
-def test_objects_are_equal_tensor() -> None:
-    assert objects_are_equal(torch.ones(2, 3), torch.ones(2, 3))
 
 
 @torch_available
