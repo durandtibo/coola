@@ -16,4 +16,6 @@ class EqualityConfig:
     r"""Define the config to control the comparison rules."""
     tester: BaseEqualityTester
     equal_nan: bool = False
+    atol: float = 0.0
+    rtol: float = 0.0
     show_difference: bool = False
