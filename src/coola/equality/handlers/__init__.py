@@ -11,10 +11,10 @@ __all__ = [
     "BaseEqualityHandler",
     "EqualHandler",
     "FalseHandler",
-    "ScalarEqualHandler",
     "JaxArrayEqualHandler",
     "MappingSameKeysHandler",
     "MappingSameValuesHandler",
+    "NanEqualHandler",
     "NumpyArrayEqualHandler",
     "ObjectEqualHandler",
     "PandasDataFrameEqualHandler",
@@ -28,6 +28,7 @@ __all__ = [
     "SameObjectHandler",
     "SameShapeHandler",
     "SameTypeHandler",
+    "ScalarEqualHandler",
     "SequenceSameValuesHandler",
     "TorchTensorEqualHandler",
     "TrueHandler",
@@ -60,7 +61,7 @@ from coola.equality.handlers.polars_ import (
     PolarsDataFrameEqualHandler,
     PolarsSeriesEqualHandler,
 )
-from coola.equality.handlers.scalar import ScalarEqualHandler
+from coola.equality.handlers.scalar import NanEqualHandler, ScalarEqualHandler
 from coola.equality.handlers.sequence import SequenceSameValuesHandler
 from coola.equality.handlers.shape import SameShapeHandler
 from coola.equality.handlers.torch_ import TorchTensorEqualHandler
