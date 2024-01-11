@@ -59,7 +59,7 @@ class NumpyArrayEqualHandler(BaseEqualityHandler):
         object2: np.ndarray,
         config: EqualityConfig,
     ) -> bool:
-        object_equal = np.array_equal(object1, object2, equal_nan=config.equal_nan)
+        object_equal = self._compare_arrays(object1, object2, config)
         if config.show_difference and not object_equal:
             logger.info(
                 f"numpy.ndarrays have different elements:\n"
@@ -69,3 +69,23 @@ class NumpyArrayEqualHandler(BaseEqualityHandler):
 
     def set_next_handler(self, handler: BaseEqualityHandler) -> None:
         pass  # Do nothing because the next handler is never called.
+
+    def _compare_arrays(
+        self, array1: np.ndarray, array2: np.ndarray, config: EqualityConfig
+    ) -> bool:
+        r"""Indicate if the two arrays are equal within a tolerance.
+
+        Args:
+            array1: Specifies the first array to compare.
+            array2: Specifies the second array to compare.
+            config: Specifies the equality configuration.
+
+        Returns:
+            ``True``if the two arrays are equal within a tolerance,
+                otherwise ``False``.
+        """
+        if config.atol > 0 or config.rtol > 0:
+            return np.allclose(
+                array1, array2, rtol=config.rtol, atol=config.atol, equal_nan=config.equal_nan
+            )
+        return np.array_equal(array1, array2, equal_nan=config.equal_nan)

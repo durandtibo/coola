@@ -15,6 +15,7 @@ from coola.equality.testers import EqualityTester
 from coola.testing import numpy_available
 from coola.utils.imports import is_numpy_available
 from tests.unit.equality.comparators.utils import ExamplePair
+from tests.unit.equality.handlers.test_numpy import NUMPY_ARRAY_TOLERANCE
 
 if is_numpy_available():
     import numpy as np
@@ -270,6 +271,18 @@ def test_numpy_array_equality_comparator_equal_nan_true(
             config=config,
         )
         == equal_nan
+    )
+
+
+@numpy_available
+@pytest.mark.parametrize("example", NUMPY_ARRAY_TOLERANCE)
+def test_numpy_array_equality_comparator_equal_true_tolerance(
+    example: ExamplePair, config: EqualityConfig
+) -> None:
+    config.atol = example.atol
+    config.rtol = example.rtol
+    assert NumpyArrayEqualityComparator().equal(
+        object1=example.object1, object2=example.object2, config=config
     )
 
 
