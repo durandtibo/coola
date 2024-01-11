@@ -59,10 +59,7 @@ class TorchTensorEqualHandler(BaseEqualityHandler):
         object2: torch.Tensor,
         config: EqualityConfig,
     ) -> bool:
-        if config.equal_nan:
-            object_equal = object1.allclose(object2, atol=0.0, rtol=0.0, equal_nan=True)
-        else:
-            object_equal = object1.equal(object2)
+        object_equal = self._compare_tensors(object1, object2, config)
         if config.show_difference and not object_equal:
             logger.info(
                 f"torch.Tensors have different elements:\n"
@@ -72,6 +69,26 @@ class TorchTensorEqualHandler(BaseEqualityHandler):
 
     def set_next_handler(self, handler: BaseEqualityHandler) -> None:
         pass  # Do nothing because the next handler is never called.
+
+    def _compare_tensors(
+        self, tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityConfig
+    ) -> bool:
+        r"""Indicate if the two tensors are equal within a tolerance.
+
+        Args:
+            tensor1: Specifies the first tensor to compare.
+            tensor2: Specifies the second tensor to compare.
+            config: Specifies the equality configuration.
+
+        Returns:
+            ``True``if the two tensors are equal within a tolerance,
+                otherwise ``False``.
+        """
+        if config.equal_nan or config.atol > 0 or config.rtol > 0:
+            return tensor1.allclose(
+                tensor2, atol=config.atol, rtol=config.rtol, equal_nan=config.equal_nan
+            )
+        return tensor1.equal(tensor2)
 
 
 class TorchTensorSameDeviceHandler(AbstractEqualityHandler):

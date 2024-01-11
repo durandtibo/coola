@@ -15,6 +15,7 @@ from coola.equality.testers import EqualityTester
 from coola.testing import torch_available, torch_cuda_available, torch_mps_available
 from coola.utils.imports import is_torch_available
 from tests.unit.equality.comparators.utils import ExamplePair
+from tests.unit.equality.handlers.test_torch import TORCH_TENSOR_TOLERANCE
 
 if is_torch_available():
     import torch
@@ -468,6 +469,18 @@ def test_torch_tensor_equality_comparator_equal_nan_true(
             config=config,
         )
         == equal_nan
+    )
+
+
+@torch_available
+@pytest.mark.parametrize("example", TORCH_TENSOR_TOLERANCE)
+def test_torch_tensor_equality_comparator_true_tolerance(
+    example: ExamplePair, config: EqualityConfig
+) -> None:
+    config.atol = example.atol
+    config.rtol = example.rtol
+    assert TorchTensorEqualityComparator().equal(
+        object1=example.object1, object2=example.object2, config=config
     )
 
 

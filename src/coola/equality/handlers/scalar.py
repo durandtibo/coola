@@ -88,7 +88,7 @@ class ScalarEqualHandler(BaseEqualityHandler):
         return f"{self.__class__.__qualname__}()"
 
     def handle(self, object1: float, object2: float, config: EqualityConfig) -> bool:
-        object_equal = self._compare_objects(object1, object2, config)
+        object_equal = self._compare_numbers(object1, object2, config)
         if not object_equal and config.show_difference:
             logger.info(f"numbers are not equal:\nobject1:\n{object1}\nobject2:\n{object2}")
         return object_equal
@@ -96,7 +96,7 @@ class ScalarEqualHandler(BaseEqualityHandler):
     def set_next_handler(self, handler: BaseEqualityHandler) -> None:
         pass  # Do nothing because the next handler is never called.
 
-    def _compare_objects(self, number1: float, number2: float, config: EqualityConfig) -> bool:
+    def _compare_numbers(self, number1: float, number2: float, config: EqualityConfig) -> bool:
         r"""Indicate if the two numbers are equal within a tolerance.
 
         Args:
