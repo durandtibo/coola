@@ -2,19 +2,56 @@ r"""Implement handlers to check the objects are equal."""
 
 from __future__ import annotations
 
-__all__ = ["ScalarEqualHandler"]
+__all__ = ["NanEqualHandler", "ScalarEqualHandler"]
 
 import logging
 import math
 from typing import TYPE_CHECKING
 
-from coola.equality.handlers.base import BaseEqualityHandler
+from coola.equality.handlers.base import AbstractEqualityHandler, BaseEqualityHandler
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
 
 
 logger = logging.getLogger(__name__)
+
+
+class NanEqualHandler(AbstractEqualityHandler):
+    r"""Check if the two NaNs are equal.
+
+    This handler returns ``True`` if the two numbers are NaNs,
+    otherwise it passes the inputs to the next handler.
+
+    Example usage:
+
+    ```pycon
+    >>> from coola.equality import EqualityConfig
+    >>> from coola.equality.handlers import NanEqualHandler
+    >>> from coola.equality.testers import EqualityTester
+    >>> config = EqualityConfig(tester=EqualityTester())
+    >>> handler = NanEqualHandler()
+    >>> handler.handle(float("nan"), float("nan"), config)
+    False
+    >>> config.equal_nan = True
+    >>> handler.handle(float("nan"), float("nan"), config)
+    True
+
+    ```
+    """
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, self.__class__)
+
+    def handle(
+        self,
+        object1: float,
+        object2: float,
+        config: EqualityConfig,
+    ) -> bool:
+        if config.equal_nan and math.isnan(object1) and math.isnan(object2):
+            return True
+        return self._handle_next(object1=object1, object2=object2, config=config)
 
 
 class ScalarEqualHandler(BaseEqualityHandler):
