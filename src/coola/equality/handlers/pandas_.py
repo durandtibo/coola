@@ -95,7 +95,14 @@ class PandasDataFrameEqualHandler(BaseEqualityHandler):
         if not config.equal_nan and df1.isna().any().any():
             return False
         try:
-            pandas.testing.assert_frame_equal(df1, df2, check_exact=True)
+            pandas.testing.assert_frame_equal(
+                df1,
+                df2,
+                check_exact=config.atol == 0 and config.rtol == 0,
+                check_index_type=True,
+                atol=config.atol,
+                rtol=config.rtol,
+            )
         except AssertionError:
             return False
         return True
@@ -165,7 +172,14 @@ class PandasSeriesEqualHandler(BaseEqualityHandler):
         if not config.equal_nan and series1.isna().any():
             return False
         try:
-            pandas.testing.assert_series_equal(series1, series2, check_exact=True)
+            pandas.testing.assert_series_equal(
+                series1,
+                series2,
+                check_exact=config.atol == 0 and config.rtol == 0,
+                check_index_type=True,
+                atol=config.atol,
+                rtol=config.rtol,
+            )
         except AssertionError:
             return False
         return True
