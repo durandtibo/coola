@@ -15,7 +15,10 @@ from coola.equality.handlers import (
 from coola.equality.testers import EqualityTester
 from coola.testing import pandas_available
 from coola.utils import is_pandas_available
-from tests.unit.equality.comparators.test_pandas import PANDAS_SERIES_EQUAL_TOLERANCE
+from tests.unit.equality.comparators.test_pandas import (
+    PANDAS_DATAFRAME_EQUAL_TOLERANCE,
+    PANDAS_SERIES_EQUAL_TOLERANCE,
+)
 
 if TYPE_CHECKING:
     from tests.unit.equality.comparators.utils import ExamplePair
@@ -187,6 +190,18 @@ def test_pandas_dataframe_equal_handler_handle_equal_nan_true(config: EqualityCo
         pandas.DataFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
         pandas.DataFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
         config,
+    )
+
+
+@pandas_available
+@pytest.mark.parametrize("example", PANDAS_DATAFRAME_EQUAL_TOLERANCE)
+def test_pandas_dataframe_equal_handler_handle_true_tolerance(
+    example: ExamplePair, config: EqualityConfig
+) -> None:
+    config.atol = example.atol
+    config.rtol = example.rtol
+    assert PandasDataFrameEqualHandler().handle(
+        object1=example.object1, object2=example.object2, config=config
     )
 
 
