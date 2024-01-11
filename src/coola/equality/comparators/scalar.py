@@ -2,7 +2,7 @@ r"""Implement scalar equality comparators."""
 
 from __future__ import annotations
 
-__all__ = ["FloatEqualityComparator", "get_type_comparator_mapping"]
+__all__ = ["ScalarEqualityComparator", "get_type_comparator_mapping"]
 
 import logging
 from typing import TYPE_CHECKING, Any
@@ -21,17 +21,17 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class FloatEqualityComparator(BaseEqualityComparator[Any]):
+class ScalarEqualityComparator(BaseEqualityComparator[Any]):
     r"""Implement a default equality comparator.
 
     Example usage:
 
     ```pycon
     >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.comparators import FloatEqualityComparator
+    >>> from coola.equality.comparators import ScalarEqualityComparator
     >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
-    >>> comparator = FloatEqualityComparator()
+    >>> comparator = ScalarEqualityComparator()
     >>> comparator.equal(42.0, 42.0, config)
     True
     >>> comparator.equal(42.0, 1.0, config)
@@ -47,7 +47,7 @@ class FloatEqualityComparator(BaseEqualityComparator[Any]):
     def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
-    def clone(self) -> FloatEqualityComparator:
+    def clone(self) -> ScalarEqualityComparator:
         return self.__class__()
 
     def equal(self, object1: Any, object2: Any, config: EqualityConfig) -> bool:
@@ -65,8 +65,8 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
     ```pycon
     >>> from coola.equality.comparators.scalar import get_type_comparator_mapping
     >>> get_type_comparator_mapping()
-    {<class 'float'>: FloatEqualityComparator()}
+    {<class 'float'>: ScalarEqualityComparator()}
 
     ```
     """
-    return {float: FloatEqualityComparator()}
+    return {float: ScalarEqualityComparator(), int: ScalarEqualityComparator()}

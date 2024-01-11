@@ -109,7 +109,7 @@ def test_equality_tester_has_comparator_true() -> None:
 
 
 def test_equality_tester_has_comparator_false() -> None:
-    assert not EqualityTester().has_comparator(int)
+    assert not EqualityTester().has_comparator(type(None))
 
 
 def test_equality_tester_find_comparator_direct() -> None:
@@ -281,7 +281,7 @@ def test_local_equality_tester_has_comparator_true() -> None:
 
 
 def test_local_equality_tester_has_comparator_false() -> None:
-    assert not LocalEqualityTester().has_comparator(int)
+    assert not LocalEqualityTester().has_comparator(type(None))
 
 
 def test_local_equality_tester_find_comparator_direct() -> None:

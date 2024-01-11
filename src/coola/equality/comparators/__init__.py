@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = [
     "BaseEqualityComparator",
     "DefaultEqualityComparator",
-    "FloatEqualityComparator",
+    "ScalarEqualityComparator",
     "JaxArrayEqualityComparator",
     "MappingEqualityComparator",
     "NumpyArrayEqualityComparator",
@@ -42,7 +42,7 @@ from coola.equality.comparators.polars_ import (
     PolarsDataFrameEqualityComparator,
     PolarsSeriesEqualityComparator,
 )
-from coola.equality.comparators.scalar import FloatEqualityComparator
+from coola.equality.comparators.scalar import ScalarEqualityComparator
 from coola.equality.comparators.torch_ import (
     TorchPackedSequenceEqualityComparator,
     TorchTensorEqualityComparator,
