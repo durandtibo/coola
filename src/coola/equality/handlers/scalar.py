@@ -18,9 +18,9 @@ logger = logging.getLogger(__name__)
 
 
 class ScalarEqualHandler(BaseEqualityHandler):
-    r"""Check if the two float numbers are equal or not.
+    r"""Check if the two numbers are equal or not.
 
-    This handler returns ``False`` if the two float numbers are
+    This handler returns ``False`` if the two numbers are
     different, otherwise it returns ``True``. It is possible to
     control the tolerance by using ``atol`` and ``rtol``.
     By default, the tolerances are set to 0.
