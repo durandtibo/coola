@@ -23,7 +23,7 @@ def config() -> EqualityConfig:
     return EqualityConfig(tester=EqualityTester())
 
 
-NUMPY_ARRAY_TOLERANCE = [
+NUMPY_ARRAY_EQUAL_TOLERANCE = [
     # atol
     pytest.param(
         ExamplePair(object1=np.ones((2, 3)), object2=np.full((2, 3), 1.5), atol=1.0),
@@ -132,7 +132,7 @@ def test_numpy_array_equal_handler_handle_false_show_difference(
 
 
 @numpy_available
-@pytest.mark.parametrize("example", NUMPY_ARRAY_TOLERANCE)
+@pytest.mark.parametrize("example", NUMPY_ARRAY_EQUAL_TOLERANCE)
 def test_numpy_array_equal_handler_handle_true_tolerance(
     example: ExamplePair, config: EqualityConfig
 ) -> None:
