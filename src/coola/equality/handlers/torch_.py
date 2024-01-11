@@ -59,8 +59,10 @@ class TorchTensorEqualHandler(BaseEqualityHandler):
         object2: torch.Tensor,
         config: EqualityConfig,
     ) -> bool:
-        if config.equal_nan:
-            object_equal = object1.allclose(object2, atol=0.0, rtol=0.0, equal_nan=True)
+        if config.equal_nan or config.atol > 0 or config.rtol > 0:
+            object_equal = object1.allclose(
+                object2, atol=config.atol, rtol=config.rtol, equal_nan=config.equal_nan
+            )
         else:
             object_equal = object1.equal(object2)
         if config.show_difference and not object_equal:

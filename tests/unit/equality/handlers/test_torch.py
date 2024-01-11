@@ -14,6 +14,7 @@ from coola.equality.handlers.torch_ import (
 from coola.equality.testers import EqualityTester
 from coola.testing import torch_available, torch_cuda_available
 from coola.utils import is_torch_available
+from tests.unit.equality.comparators.utils import ExamplePair
 
 if is_torch_available():
     import torch
@@ -24,6 +25,36 @@ else:
 @pytest.fixture()
 def config() -> EqualityConfig:
     return EqualityConfig(tester=EqualityTester())
+
+
+TORCH_TENSOR_TOLERANCE = [
+    # atol
+    pytest.param(
+        ExamplePair(object1=torch.ones(2, 3), object2=torch.full((2, 3), 1.5), atol=1.0),
+        id="atol=1",
+    ),
+    pytest.param(
+        ExamplePair(object1=torch.ones(2, 3), object2=torch.full((2, 3), 1.05), atol=0.1),
+        id="atol=0.1",
+    ),
+    pytest.param(
+        ExamplePair(object1=torch.ones(2, 3), object2=torch.full((2, 3), 1.005), atol=0.01),
+        id="atol=0.01",
+    ),
+    # rtol
+    pytest.param(
+        ExamplePair(object1=torch.ones(2, 3), object2=torch.full((2, 3), 1.5), rtol=1.0),
+        id="rtol=1",
+    ),
+    pytest.param(
+        ExamplePair(object1=torch.ones(2, 3), object2=torch.full((2, 3), 1.05), rtol=0.1),
+        id="rtol=0.1",
+    ),
+    pytest.param(
+        ExamplePair(object1=torch.ones(2, 3), object2=torch.full((2, 3), 1.005), rtol=0.01),
+        id="rtol=0.01",
+    ),
+]
 
 
 #############################################
@@ -105,6 +136,18 @@ def test_torch_tensor_equal_handler_handle_false_show_difference(
     with caplog.at_level(logging.INFO):
         assert not handler.handle(object1=torch.ones(2, 3), object2=torch.ones(3, 2), config=config)
         assert caplog.messages[0].startswith("torch.Tensors have different elements:")
+
+
+@torch_available
+@pytest.mark.parametrize("example", TORCH_TENSOR_TOLERANCE)
+def test_torch_tensor_equal_handler_handle_true_tolerance(
+    example: ExamplePair, config: EqualityConfig
+) -> None:
+    config.atol = example.atol
+    config.rtol = example.rtol
+    assert TorchTensorEqualHandler().handle(
+        object1=example.object1, object2=example.object2, config=config
+    )
 
 
 def test_torch_tensor_equal_handler_set_next_handler() -> None:
