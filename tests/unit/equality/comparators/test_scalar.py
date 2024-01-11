@@ -38,6 +38,8 @@ FLOAT_NOT_EQUAL = [
     ),
 ]
 
+SCALAR_EQUAL = FLOAT_EQUAL
+SCALAR_NOT_EQUAL = FLOAT_NOT_EQUAL
 
 #############################################
 #     Tests for FloatEqualityComparator     #
