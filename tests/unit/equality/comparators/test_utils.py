@@ -4,7 +4,6 @@ from collections.abc import Mapping, Sequence
 
 from coola.equality.comparators import (
     DefaultEqualityComparator,
-    FloatEqualityComparator,
     JaxArrayEqualityComparator,
     MappingEqualityComparator,
     NumpyArrayEqualityComparator,
@@ -13,6 +12,7 @@ from coola.equality.comparators import (
     PandasSeriesEqualityComparator,
     PolarsDataFrameEqualityComparator,
     PolarsSeriesEqualityComparator,
+    ScalarEqualityComparator,
     SequenceEqualityComparator,
     TorchPackedSequenceEqualityComparator,
     TorchTensorEqualityComparator,
@@ -58,11 +58,12 @@ if is_xarray_available():
 
 def test_get_type_comparator_mapping() -> None:
     mapping = get_type_comparator_mapping()
-    assert len(mapping) >= 7
+    assert len(mapping) >= 8
     assert isinstance(mapping[Mapping], MappingEqualityComparator)
     assert isinstance(mapping[Sequence], SequenceEqualityComparator)
     assert isinstance(mapping[dict], MappingEqualityComparator)
-    assert isinstance(mapping[float], FloatEqualityComparator)
+    assert isinstance(mapping[float], ScalarEqualityComparator)
+    assert isinstance(mapping[int], ScalarEqualityComparator)
     assert isinstance(mapping[list], SequenceEqualityComparator)
     assert isinstance(mapping[object], DefaultEqualityComparator)
     assert isinstance(mapping[tuple], SequenceEqualityComparator)

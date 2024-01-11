@@ -28,10 +28,6 @@ DEFAULT_EQUAL = [
 
 DEFAULT_NOT_EQUAL = [
     pytest.param(
-        ExamplePair(object1=42, object2=1, expected_message="objects are different:"),
-        id="different values - int",
-    ),
-    pytest.param(
         ExamplePair(object1="abc", object2="def", expected_message="objects are different:"),
         id="different values - str",
     ),
