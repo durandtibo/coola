@@ -120,8 +120,8 @@ XARRAY_DATA_ARRAY_NOT_EQUAL = [
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.DataArray(np.arange(6), coords={"z": ["A", "B", "C", "D", "E", "F"]}),
-            object2=xr.DataArray(np.arange(6), coords={"z": ["1", "2", "3", "4", "5", "6"]}),
+            object1=xr.DataArray(np.arange(6), coords={"z": [1, 2, 3, 4, 5, 6]}),
+            object2=xr.DataArray(np.arange(6), coords={"z": [10, 20, 30, 40, 50, 60]}),
             expected_message="objects have different _coords:",
         ),
         id="different coords",
