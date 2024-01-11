@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.equality.comparators.base import BaseEqualityComparator
 from coola.equality.handlers import (
+    NanEqualHandler,
     SameObjectHandler,
     SameTypeHandler,
     ScalarEqualHandler,
@@ -41,7 +42,7 @@ class FloatEqualityComparator(BaseEqualityComparator[Any]):
 
     def __init__(self) -> None:
         self._handler = SameObjectHandler()
-        self._handler.chain(SameTypeHandler()).chain(ScalarEqualHandler())
+        self._handler.chain(SameTypeHandler()).chain(NanEqualHandler()).chain(ScalarEqualHandler())
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)

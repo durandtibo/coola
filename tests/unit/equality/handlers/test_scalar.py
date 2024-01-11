@@ -138,7 +138,7 @@ def test_scalar_equal_handler_handle_false_show_difference(
 @pytest.mark.parametrize("equal_nan", [True, False])
 def test_scalar_equal_handler_handle_equal_nan(config: EqualityConfig, equal_nan: bool) -> None:
     config.equal_nan = equal_nan
-    assert ScalarEqualHandler().handle(float("nan"), float("nan"), config) == equal_nan
+    assert not ScalarEqualHandler().handle(float("nan"), float("nan"), config)
 
 
 @pytest.mark.parametrize(
