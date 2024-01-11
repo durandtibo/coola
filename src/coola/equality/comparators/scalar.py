@@ -65,7 +65,7 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
     ```pycon
     >>> from coola.equality.comparators.scalar import get_type_comparator_mapping
     >>> get_type_comparator_mapping()
-    {<class 'float'>: ScalarEqualityComparator()}
+    {<class 'float'>: ScalarEqualityComparator(), <class 'int'>: ScalarEqualityComparator()}
 
     ```
     """
