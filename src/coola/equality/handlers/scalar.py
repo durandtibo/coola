@@ -27,10 +27,10 @@ class NanEqualHandler(AbstractEqualityHandler):
 
     ```pycon
     >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import NanEqualHandler
+    >>> from coola.equality.handlers import NanEqualHandler, FalseHandler
     >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = NanEqualHandler()
+    >>> handler = NanEqualHandler(next_handler=FalseHandler())
     >>> handler.handle(float("nan"), float("nan"), config)
     False
     >>> config.equal_nan = True
@@ -72,14 +72,11 @@ class ScalarEqualHandler(BaseEqualityHandler):
     >>> handler = ScalarEqualHandler()
     >>> handler.handle(42.0, 42.0, config)
     True
-    >>> handler.handle(float("nan"), float("nan"), config)
-    False
-    >>> config.equal_nan = True
-    >>> handler.handle(float("nan"), float("nan"), config)
-    True
     >>> config.atol = 1e-3
     >>> handler.handle(42.0, 42.0001, config)
     True
+    >>> handler.handle(float("nan"), float("nan"), config)
+    False
 
     ```
     """
@@ -111,8 +108,6 @@ class ScalarEqualHandler(BaseEqualityHandler):
             ``True``if the two numbers are equal within a tolerance,
                 otherwise ``False``.
         """
-        if config.equal_nan and math.isnan(number1) and math.isnan(number2):
-            return True
         if config.atol > 0.0 or config.rtol > 0.0:
             return math.isclose(number1, number2, abs_tol=config.atol, rel_tol=config.rtol)
         return number1 == number2

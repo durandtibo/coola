@@ -41,6 +41,27 @@ FLOAT_NOT_EQUAL = [
 SCALAR_EQUAL = FLOAT_EQUAL
 SCALAR_NOT_EQUAL = FLOAT_NOT_EQUAL
 
+
+SCALAR_TOLERANCE = [
+    # atol
+    pytest.param(ExamplePair(object1=0, object2=1, atol=1.0), id="integer 0 atol=1"),
+    pytest.param(ExamplePair(object1=1, object2=0, atol=1.0), id="integer 1 atol=1"),
+    pytest.param(ExamplePair(object1=1, object2=2, atol=1.0), id="integer 2 atol=1"),
+    pytest.param(ExamplePair(object1=1, object2=5, atol=10.0), id="integer 1 atol=10"),
+    pytest.param(ExamplePair(object1=1.0, object2=1.0001, atol=1e-3), id="float + atol=1e-3"),
+    pytest.param(ExamplePair(object1=1.0, object2=0.9999, atol=1e-3), id="float - atol=1e-3"),
+    pytest.param(ExamplePair(object1=True, object2=False, atol=1.0), id="bool - atol=1"),
+    # rtol
+    pytest.param(ExamplePair(object1=0, object2=1, rtol=1.0), id="integer 0 rtol=1"),
+    pytest.param(ExamplePair(object1=1, object2=0, rtol=1.0), id="integer 1 rtol=1"),
+    pytest.param(ExamplePair(object1=1, object2=2, rtol=1.0), id="integer 2 rtol=1"),
+    pytest.param(ExamplePair(object1=1, object2=5, rtol=10.0), id="integer 1 rtol=10"),
+    pytest.param(ExamplePair(object1=1.0, object2=1.0001, rtol=1e-3), id="float + rtol=1e-3"),
+    pytest.param(ExamplePair(object1=1.0, object2=0.9999, rtol=1e-3), id="float - rtol=1e-3"),
+    pytest.param(ExamplePair(object1=True, object2=False, rtol=1.0), id="bool - rtol=1"),
+]
+
+
 #############################################
 #     Tests for FloatEqualityComparator     #
 #############################################
@@ -130,6 +151,17 @@ def test_float_equality_comparator_equal_nan(config: EqualityConfig, equal_nan: 
             config=config,
         )
         == equal_nan
+    )
+
+
+@pytest.mark.parametrize("example", SCALAR_TOLERANCE)
+def test_scalar_equal_handler_handle_true_tolerance(
+    example: ExamplePair, config: EqualityConfig
+) -> None:
+    config.atol = example.atol
+    config.rtol = example.rtol
+    assert FloatEqualityComparator().equal(
+        object1=example.object1, object2=example.object2, config=config
     )
 
 

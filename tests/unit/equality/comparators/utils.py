@@ -13,3 +13,5 @@ class ExamplePair:
     object1: Any
     object2: Any
     expected_message: str | None = None
+    atol: float = 0.0
+    rtol: float = 0.0
