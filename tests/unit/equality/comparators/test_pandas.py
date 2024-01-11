@@ -78,6 +78,7 @@ PANDAS_DATAFRAME_NOT_EQUAL = [
     ),
 ]
 
+PANDAS_DATAFRAME_EQUAL_TOLERANCE = []
 
 PANDAS_SERIES_EQUAL = [
     pytest.param(
@@ -131,8 +132,62 @@ PANDAS_SERIES_NOT_EQUAL = [
     ),
 ]
 
+PANDAS_SERIES_EQUAL_TOLERANCE = [
+    # atol
+    pytest.param(
+        ExamplePair(
+            object1=pandas.Series([1.0, 1.0, 1.0]),
+            object2=pandas.Series([1.5, 1.5, 1.5]),
+            atol=1.0,
+        ),
+        id="atol=1",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=pandas.Series([1.0, 1.0, 1.0]),
+            object2=pandas.Series([1.05, 1.05, 1.05]),
+            atol=0.1,
+        ),
+        id="atol=0.1",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=pandas.Series([1.0, 1.0, 1.0]),
+            object2=pandas.Series([1.005, 1.005, 1.005]),
+            atol=0.01,
+        ),
+        id="atol=0.01",
+    ),
+    # rtol
+    pytest.param(
+        ExamplePair(
+            object1=pandas.Series([1.0, 1.0, 1.0]),
+            object2=pandas.Series([1.5, 1.5, 1.5]),
+            rtol=1.0,
+        ),
+        id="rtol=1",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=pandas.Series([1.0, 1.0, 1.0]),
+            object2=pandas.Series([1.05, 1.05, 1.05]),
+            rtol=0.1,
+        ),
+        id="rtol=0.1",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=pandas.Series([1.0, 1.0, 1.0]),
+            object2=pandas.Series([1.005, 1.005, 1.005]),
+            rtol=0.01,
+        ),
+        id="rtol=0.01",
+    ),
+]
+
 PANDAS_EQUAL = PANDAS_SERIES_EQUAL + PANDAS_DATAFRAME_EQUAL
 PANDAS_NOT_EQUAL = PANDAS_SERIES_NOT_EQUAL + PANDAS_DATAFRAME_NOT_EQUAL
+PANDAS_EQUAL_TOLERANCE = PANDAS_SERIES_EQUAL_TOLERANCE + PANDAS_DATAFRAME_EQUAL_TOLERANCE
 
 #######################################################
 #     Tests for PandasDataFrameEqualityComparator     #
@@ -349,6 +404,18 @@ def test_pandas_series_equality_comparator_equal_nan(
             config=config,
         )
         == equal_nan
+    )
+
+
+@pandas_available
+@pytest.mark.parametrize("example", PANDAS_SERIES_EQUAL_TOLERANCE)
+def test_pandas_series_equality_comparator_equal_tolerance(
+    example: ExamplePair, config: EqualityConfig
+) -> None:
+    config.atol = example.atol
+    config.rtol = example.rtol
+    assert PandasSeriesEqualityComparator().equal(
+        object1=example.object1, object2=example.object2, config=config
     )
 
 
