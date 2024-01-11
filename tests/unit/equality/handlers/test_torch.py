@@ -27,7 +27,7 @@ def config() -> EqualityConfig:
     return EqualityConfig(tester=EqualityTester())
 
 
-TORCH_TENSOR_TOLERANCE = [
+TORCH_TENSOR_EQUAL_TOLERANCE = [
     # atol
     pytest.param(
         ExamplePair(object1=torch.ones(2, 3), object2=torch.full((2, 3), 1.5), atol=1.0),
@@ -139,7 +139,7 @@ def test_torch_tensor_equal_handler_handle_false_show_difference(
 
 
 @torch_available
-@pytest.mark.parametrize("example", TORCH_TENSOR_TOLERANCE)
+@pytest.mark.parametrize("example", TORCH_TENSOR_EQUAL_TOLERANCE)
 def test_torch_tensor_equal_handler_handle_true_tolerance(
     example: ExamplePair, config: EqualityConfig
 ) -> None:

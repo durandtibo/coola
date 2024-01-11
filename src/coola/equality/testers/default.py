@@ -1,4 +1,4 @@
-r"""Implement the default equality tester."""
+r"""Contain the implementation of the default equality tester."""
 
 from __future__ import annotations
 

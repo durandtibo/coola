@@ -42,7 +42,7 @@ SCALAR_EQUAL = FLOAT_EQUAL
 SCALAR_NOT_EQUAL = FLOAT_NOT_EQUAL
 
 
-SCALAR_TOLERANCE = [
+SCALAR_EQUAL_TOLERANCE = [
     # atol
     pytest.param(ExamplePair(object1=0, object2=1, atol=1.0), id="integer 0 atol=1"),
     pytest.param(ExamplePair(object1=1, object2=0, atol=1.0), id="integer 1 atol=1"),
@@ -154,7 +154,7 @@ def test_scalar_equality_comparator_equal_nan(config: EqualityConfig, equal_nan:
     )
 
 
-@pytest.mark.parametrize("example", SCALAR_TOLERANCE)
+@pytest.mark.parametrize("example", SCALAR_EQUAL_TOLERANCE)
 def test_scalar_equality_comparator_equal_true_tolerance(
     example: ExamplePair, config: EqualityConfig
 ) -> None:

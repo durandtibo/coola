@@ -23,7 +23,7 @@ def config() -> EqualityConfig:
     return EqualityConfig(tester=EqualityTester())
 
 
-JAX_ARRAY_TOLERANCE = [
+JAX_ARRAY_EQUAL_TOLERANCE = [
     # atol
     pytest.param(
         ExamplePair(object1=jnp.ones((2, 3)), object2=jnp.full((2, 3), 1.5), atol=1.0),
@@ -133,7 +133,7 @@ def test_jax_array_equal_handler_handle_false_show_difference(
 
 
 @jax_available
-@pytest.mark.parametrize("example", JAX_ARRAY_TOLERANCE)
+@pytest.mark.parametrize("example", JAX_ARRAY_EQUAL_TOLERANCE)
 def test_jax_array_equal_handler_handle_true_tolerance(
     example: ExamplePair, config: EqualityConfig
 ) -> None:
