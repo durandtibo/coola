@@ -5,6 +5,8 @@ TESTS=tests
 UNIT_TESTS=tests/unit
 INTEGRATION_TESTS=tests/integration
 
+LAST_GIT_TAG := $(shell git tag --sort=taggerdate | grep -o 'v.*' | tail -1)
+
 .PHONY : conda
 conda :
 	conda env create -f environment.yaml --force
@@ -74,4 +76,12 @@ publish-pypi :
 
 .PHONY : publish-doc-dev
 publish-doc-dev :
-	mike deploy --push --update-aliases main dev
+	-mike delete --config-file docs/mkdocs.yml main  # delete previous version
+	mike deploy --config-file docs/mkdocs.yml --push --update-aliases main dev
+
+.PHONY : publish-doc-latest
+publish-doc-latest :
+	export TAG=$(shell echo $(LAST_GIT_TAG) | cut -c 2- | awk -F \. {'print $$1"."$$2'})
+	-mike delete --config-file docs/mkdocs.yml $(TAG)  # delete previous version
+	mike deploy --config-file docs/mkdocs.yml --push --update-aliases $(TAG) latest
+	mike set-default --config-file docs/mkdocs.yml --push latest
