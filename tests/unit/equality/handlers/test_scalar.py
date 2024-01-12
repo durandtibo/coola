@@ -7,6 +7,7 @@ import pytest
 from coola.equality import EqualityConfig
 from coola.equality.handlers import FalseHandler, NanEqualHandler, ScalarEqualHandler
 from coola.equality.testers import EqualityTester
+from tests.unit.equality.comparators.test_scalar import SCALAR_EQUAL_TOLERANCE
 from tests.unit.equality.comparators.utils import ExamplePair
 
 
@@ -141,50 +142,14 @@ def test_scalar_equal_handler_handle_equal_nan(config: EqualityConfig, equal_nan
     assert not ScalarEqualHandler().handle(float("nan"), float("nan"), config)
 
 
-@pytest.mark.parametrize(
-    ("object1", "object2", "atol"),
-    [
-        (0, 1, 1),
-        (1, 0, 1),
-        (1, 2, 1),
-        (1, 5, 10),
-        (1.0, 1.0 + 1e-4, 1e-3),
-        (1.0, 1.0 - 1e-4, 1e-3),
-        (False, True, 1),
-    ],
-)
-def test_scalar_equal_handler_handle_true_atol(
-    object1: float,
-    object2: float,
-    atol: float,
+@pytest.mark.parametrize("example", SCALAR_EQUAL_TOLERANCE)
+def test_scalar_equal_handler_handle_true_tolerance(
+    example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.atol = atol
-    config.rtol = 0.0
-    assert ScalarEqualHandler().handle(object1, object2, config)
-
-
-@pytest.mark.parametrize(
-    ("object1", "object2", "rtol"),
-    [
-        (0, 1, 1),
-        (1, 0, 1),
-        (1, 2, 1),
-        (1, 5, 10),
-        (1.0, 1.0 + 1e-4, 1e-3),
-        (1.0, 1.0 - 1e-4, 1e-3),
-        (False, True, 1),
-    ],
-)
-def test_scalar_equal_handler_handle_true_rtol(
-    object1: float,
-    object2: float,
-    rtol: float,
-    config: EqualityConfig,
-) -> None:
-    config.atol = 0.0
-    config.rtol = rtol
-    assert ScalarEqualHandler().handle(object1, object2, config)
+    config.atol = example.atol
+    config.rtol = example.rtol
+    assert ScalarEqualHandler().handle(example.object1, example.object2, config)
 
 
 def test_scalar_equal_handler_set_next_handler() -> None:

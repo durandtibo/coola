@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
 import pytest
@@ -14,11 +15,18 @@ from coola.equality.handlers import (
 from coola.equality.testers import EqualityTester
 from coola.testing import polars_available
 from coola.utils import is_polars_available
+from tests.unit.equality.comparators.test_polars import (
+    POLARS_DATAFRAME_EQUAL_TOLERANCE,
+    POLARS_SERIES_EQUAL_TOLERANCE,
+)
 
 if is_polars_available():
     import polars
 else:  # pragma: no cover
     polars = Mock()
+
+if TYPE_CHECKING:
+    from tests.unit.equality.comparators.utils import ExamplePair
 
 
 @pytest.fixture()
@@ -185,6 +193,18 @@ def test_polars_dataframe_equal_handler_handle_equal_nan_true(config: EqualityCo
     )
 
 
+@polars_available
+@pytest.mark.parametrize("example", POLARS_DATAFRAME_EQUAL_TOLERANCE)
+def test_polars_dataframe_equal_handler_handle_true_tolerance(
+    example: ExamplePair, config: EqualityConfig
+) -> None:
+    config.atol = example.atol
+    config.rtol = example.rtol
+    assert PolarsDataFrameEqualHandler().handle(
+        object1=example.object1, object2=example.object2, config=config
+    )
+
+
 def test_polars_dataframe_equal_handler_set_next_handler() -> None:
     PolarsDataFrameEqualHandler().set_next_handler(FalseHandler())
 
@@ -311,6 +331,18 @@ def test_polars_series_equal_handler_handle_equal_nan_true(config: EqualityConfi
         polars.Series([0.0, float("nan"), float("nan"), 1.2]),
         polars.Series([0.0, float("nan"), float("nan"), 1.2]),
         config,
+    )
+
+
+@polars_available
+@pytest.mark.parametrize("example", POLARS_SERIES_EQUAL_TOLERANCE)
+def test_polars_series_equal_handler_handle_true_tolerance(
+    example: ExamplePair, config: EqualityConfig
+) -> None:
+    config.atol = example.atol
+    config.rtol = example.rtol
+    assert PolarsSeriesEqualHandler().handle(
+        object1=example.object1, object2=example.object2, config=config
     )
 
 

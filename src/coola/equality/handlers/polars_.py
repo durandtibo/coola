@@ -95,7 +95,13 @@ class PolarsDataFrameEqualHandler(BaseEqualityHandler):
         if not config.equal_nan and has_nan(df1):
             return False
         try:
-            polars.testing.assert_frame_equal(df1, df2, check_exact=True)
+            polars.testing.assert_frame_equal(
+                df1,
+                df2,
+                check_exact=config.atol == 0 and config.rtol == 0,
+                atol=config.atol,
+                rtol=config.rtol,
+            )
         except AssertionError:
             return False
         return True
@@ -165,7 +171,13 @@ class PolarsSeriesEqualHandler(BaseEqualityHandler):
         if not config.equal_nan and has_nan(series1):
             return False
         try:
-            polars.testing.assert_series_equal(series1, series2, check_exact=True)
+            polars.testing.assert_series_equal(
+                series1,
+                series2,
+                check_exact=config.atol == 0 and config.rtol == 0,
+                atol=config.atol,
+                rtol=config.rtol,
+            )
         except AssertionError:
             return False
         return True

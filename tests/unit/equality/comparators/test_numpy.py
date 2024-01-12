@@ -15,7 +15,6 @@ from coola.equality.testers import EqualityTester
 from coola.testing import numpy_available
 from coola.utils.imports import is_numpy_available
 from tests.unit.equality.comparators.utils import ExamplePair
-from tests.unit.equality.handlers.test_numpy import NUMPY_ARRAY_EQUAL_TOLERANCE
 
 if is_numpy_available():
     import numpy as np
@@ -46,8 +45,6 @@ NUMPY_ARRAY_EQUAL = [
         ExamplePair(object1=np.ones(shape=(2, 3)), object2=np.ones(shape=(2, 3))), id="2d array"
     ),
 ]
-
-
 NUMPY_ARRAY_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
@@ -82,7 +79,34 @@ NUMPY_ARRAY_NOT_EQUAL = [
         id="different types",
     ),
 ]
-
+NUMPY_ARRAY_EQUAL_TOLERANCE = [
+    # atol
+    pytest.param(
+        ExamplePair(object1=np.ones((2, 3)), object2=np.full((2, 3), 1.5), atol=1.0),
+        id="atol=1",
+    ),
+    pytest.param(
+        ExamplePair(object1=np.ones((2, 3)), object2=np.full((2, 3), 1.05), atol=0.1),
+        id="atol=0.1",
+    ),
+    pytest.param(
+        ExamplePair(object1=np.ones((2, 3)), object2=np.full((2, 3), 1.005), atol=0.01),
+        id="atol=0.01",
+    ),
+    # rtol
+    pytest.param(
+        ExamplePair(object1=np.ones((2, 3)), object2=np.full((2, 3), 1.5), rtol=1.0),
+        id="rtol=1",
+    ),
+    pytest.param(
+        ExamplePair(object1=np.ones((2, 3)), object2=np.full((2, 3), 1.05), rtol=0.1),
+        id="rtol=0.1",
+    ),
+    pytest.param(
+        ExamplePair(object1=np.ones((2, 3)), object2=np.full((2, 3), 1.005), rtol=0.01),
+        id="rtol=0.01",
+    ),
+]
 
 NUMPY_MASKED_ARRAY_EQUAL = [
     pytest.param(
@@ -113,7 +137,6 @@ NUMPY_MASKED_ARRAY_EQUAL = [
         id="2d array",
     ),
 ]
-
 NUMPY_MASKED_ARRAY_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
@@ -164,10 +187,12 @@ NUMPY_MASKED_ARRAY_NOT_EQUAL = [
         id="different types",
     ),
 ]
+NUMPY_MASKED_ARRAY_EQUAL_TOLERANCE = []
 
 
 NUMPY_EQUAL = NUMPY_ARRAY_EQUAL + NUMPY_MASKED_ARRAY_EQUAL
 NUMPY_NOT_EQUAL = NUMPY_ARRAY_NOT_EQUAL + NUMPY_MASKED_ARRAY_NOT_EQUAL
+NUMPY_EQUAL_TOLERANCE = NUMPY_ARRAY_EQUAL_TOLERANCE + NUMPY_MASKED_ARRAY_EQUAL_TOLERANCE
 
 
 ##################################################

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
 import pytest
@@ -10,47 +11,21 @@ from coola.equality.handlers import FalseHandler, NumpyArrayEqualHandler
 from coola.equality.testers import EqualityTester
 from coola.testing import numpy_available
 from coola.utils import is_numpy_available
-from tests.unit.equality.comparators.utils import ExamplePair
+from tests.unit.equality.comparators.test_numpy import NUMPY_ARRAY_EQUAL_TOLERANCE
 
 if is_numpy_available():
     import numpy as np
 else:
     np = Mock()
 
+if TYPE_CHECKING:
+    from tests.unit.equality.comparators.utils import ExamplePair
+
 
 @pytest.fixture()
 def config() -> EqualityConfig:
     return EqualityConfig(tester=EqualityTester())
 
-
-NUMPY_ARRAY_EQUAL_TOLERANCE = [
-    # atol
-    pytest.param(
-        ExamplePair(object1=np.ones((2, 3)), object2=np.full((2, 3), 1.5), atol=1.0),
-        id="atol=1",
-    ),
-    pytest.param(
-        ExamplePair(object1=np.ones((2, 3)), object2=np.full((2, 3), 1.05), atol=0.1),
-        id="atol=0.1",
-    ),
-    pytest.param(
-        ExamplePair(object1=np.ones((2, 3)), object2=np.full((2, 3), 1.005), atol=0.01),
-        id="atol=0.01",
-    ),
-    # rtol
-    pytest.param(
-        ExamplePair(object1=np.ones((2, 3)), object2=np.full((2, 3), 1.5), rtol=1.0),
-        id="rtol=1",
-    ),
-    pytest.param(
-        ExamplePair(object1=np.ones((2, 3)), object2=np.full((2, 3), 1.05), rtol=0.1),
-        id="rtol=0.1",
-    ),
-    pytest.param(
-        ExamplePair(object1=np.ones((2, 3)), object2=np.full((2, 3), 1.005), rtol=0.01),
-        id="rtol=0.01",
-    ),
-]
 
 ############################################
 #     Tests for NumpyArrayEqualHandler     #
