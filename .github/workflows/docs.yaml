@@ -32,10 +32,6 @@ jobs:
           git config --global user.name ci-docs-bot
           git config --global user.email $CI_BOT_EMAIL
           git fetch origin gh-pages --depth=1 --tags
-      - name: git information
-        run: |
-          git status
-          git branch
       - name: Build and deploy documentation
         run: |
           poetry run make publish-doc-latest
