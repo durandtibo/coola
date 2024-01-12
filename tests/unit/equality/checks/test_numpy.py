@@ -8,8 +8,11 @@ import pytest
 from coola import objects_are_close
 from coola.testing import numpy_available
 from tests.unit.equality.checks.test_default import COMPARATOR_FUNCTIONS
-from tests.unit.equality.comparators.test_numpy import NUMPY_EQUAL, NUMPY_NOT_EQUAL
-from tests.unit.equality.handlers.test_numpy import NUMPY_ARRAY_EQUAL_TOLERANCE
+from tests.unit.equality.comparators.test_numpy import (
+    NUMPY_EQUAL,
+    NUMPY_EQUAL_TOLERANCE,
+    NUMPY_NOT_EQUAL,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -55,7 +58,7 @@ def test_objects_are_equal_false_show_difference(
 
 
 @numpy_available
-@pytest.mark.parametrize("example", NUMPY_ARRAY_EQUAL_TOLERANCE)
+@pytest.mark.parametrize("example", NUMPY_EQUAL_TOLERANCE)
 def test_objects_are_close_true_tolerance(
     example: ExamplePair, caplog: pytest.LogCaptureFixture
 ) -> None:

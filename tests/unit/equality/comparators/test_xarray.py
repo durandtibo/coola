@@ -84,7 +84,6 @@ XARRAY_DATA_ARRAY_EQUAL = [
         id="dims and coords",
     ),
 ]
-
 XARRAY_DATA_ARRAY_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
@@ -135,6 +134,58 @@ XARRAY_DATA_ARRAY_NOT_EQUAL = [
         id="different types",
     ),
 ]
+XARRAY_DATA_ARRAY_EQUAL_TOLERANCE = [
+    # atol
+    pytest.param(
+        ExamplePair(
+            object1=xr.DataArray(np.ones((2, 3))),
+            object2=xr.DataArray(np.full(shape=(2, 3), fill_value=1.5)),
+            atol=1.0,
+        ),
+        id="atol=1",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=xr.DataArray(np.ones((2, 3))),
+            object2=xr.DataArray(np.full(shape=(2, 3), fill_value=1.05)),
+            atol=0.1,
+        ),
+        id="atol=0.1",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=xr.DataArray(np.ones((2, 3))),
+            object2=xr.DataArray(np.full(shape=(2, 3), fill_value=1.005)),
+            atol=0.01,
+        ),
+        id="atol=0.01",
+    ),
+    # rtol
+    pytest.param(
+        ExamplePair(
+            object1=xr.DataArray(np.ones((2, 3))),
+            object2=xr.DataArray(np.full(shape=(2, 3), fill_value=1.5)),
+            rtol=1.0,
+        ),
+        id="rtol=1",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=xr.DataArray(np.ones((2, 3))),
+            object2=xr.DataArray(np.full(shape=(2, 3), fill_value=1.05)),
+            rtol=0.1,
+        ),
+        id="rtol=0.1",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=xr.DataArray(np.ones((2, 3))),
+            object2=xr.DataArray(np.full(shape=(2, 3), fill_value=1.005)),
+            rtol=0.01,
+        ),
+        id="rtol=0.01",
+    ),
+]
 
 XARRAY_DATASET_EQUAL = [
     pytest.param(
@@ -174,7 +225,6 @@ XARRAY_DATASET_EQUAL = [
         id="data_vars and coords and attrs",
     ),
 ]
-
 XARRAY_DATASET_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
@@ -207,6 +257,70 @@ XARRAY_DATASET_NOT_EQUAL = [
             expected_message="objects have different types:",
         ),
         id="different types",
+    ),
+]
+XARRAY_DATASET_EQUAL_TOLERANCE = [
+    # atol
+    pytest.param(
+        ExamplePair(
+            object1=xr.Dataset(data_vars={"x": xr.DataArray(np.ones((2, 3)))}),
+            object2=xr.Dataset(
+                data_vars={"x": xr.DataArray(np.full(shape=(2, 3), fill_value=1.5))}
+            ),
+            atol=1.0,
+        ),
+        id="atol=1",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=xr.Dataset(data_vars={"x": xr.DataArray(np.ones((2, 3)))}),
+            object2=xr.Dataset(
+                data_vars={"x": xr.DataArray(np.full(shape=(2, 3), fill_value=1.05))}
+            ),
+            atol=0.1,
+        ),
+        id="atol=0.1",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=xr.Dataset(data_vars={"x": xr.DataArray(np.ones((2, 3)))}),
+            object2=xr.Dataset(
+                data_vars={"x": xr.DataArray(np.full(shape=(2, 3), fill_value=1.005))}
+            ),
+            atol=0.1,
+        ),
+        id="atol=0.001",
+    ),
+    # rtol
+    pytest.param(
+        ExamplePair(
+            object1=xr.Dataset(data_vars={"x": xr.DataArray(np.ones((2, 3)))}),
+            object2=xr.Dataset(
+                data_vars={"x": xr.DataArray(np.full(shape=(2, 3), fill_value=1.5))}
+            ),
+            rtol=1.0,
+        ),
+        id="rtol=1",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=xr.Dataset(data_vars={"x": xr.DataArray(np.ones((2, 3)))}),
+            object2=xr.Dataset(
+                data_vars={"x": xr.DataArray(np.full(shape=(2, 3), fill_value=1.05))}
+            ),
+            rtol=0.1,
+        ),
+        id="rtol=0.1",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=xr.Dataset(data_vars={"x": xr.DataArray(np.ones((2, 3)))}),
+            object2=xr.Dataset(
+                data_vars={"x": xr.DataArray(np.full(shape=(2, 3), fill_value=1.005))}
+            ),
+            rtol=0.1,
+        ),
+        id="rtol=0.001",
     ),
 ]
 
@@ -260,10 +374,67 @@ XARRAY_VARIABLE_NOT_EQUAL = [
         id="different types",
     ),
 ]
+XARRAY_VARIABLE_EQUAL_TOLERANCE = [
+    # atol
+    pytest.param(
+        ExamplePair(
+            object1=xr.Variable(dims=["z"], data=np.ones(3)),
+            object2=xr.Variable(dims=["z"], data=np.full(shape=3, fill_value=1.5)),
+            atol=1.0,
+        ),
+        id="atol=1",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=xr.Variable(dims=["z"], data=np.ones(3)),
+            object2=xr.Variable(dims=["z"], data=np.full(shape=3, fill_value=1.05)),
+            atol=0.1,
+        ),
+        id="atol=0.1",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=xr.Variable(dims=["z"], data=np.ones(3)),
+            object2=xr.Variable(dims=["z"], data=np.full(shape=3, fill_value=1.005)),
+            atol=0.01,
+        ),
+        id="atol=0.01",
+    ),
+    # rtol
+    pytest.param(
+        ExamplePair(
+            object1=xr.Variable(dims=["z"], data=np.ones(3)),
+            object2=xr.Variable(dims=["z"], data=np.full(shape=3, fill_value=1.5)),
+            rtol=1.0,
+        ),
+        id="rtol=1",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=xr.Variable(dims=["z"], data=np.ones(3)),
+            object2=xr.Variable(dims=["z"], data=np.full(shape=3, fill_value=1.05)),
+            rtol=0.1,
+        ),
+        id="rtol=0.1",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=xr.Variable(dims=["z"], data=np.ones(3)),
+            object2=xr.Variable(dims=["z"], data=np.full(shape=3, fill_value=1.005)),
+            rtol=0.01,
+        ),
+        id="rtol=0.01",
+    ),
+]
 
 XARRAY_EQUAL = XARRAY_DATA_ARRAY_EQUAL + XARRAY_DATASET_EQUAL + XARRAY_VARIABLE_EQUAL
 XARRAY_NOT_EQUAL = (
     XARRAY_DATA_ARRAY_NOT_EQUAL + XARRAY_DATASET_NOT_EQUAL + XARRAY_VARIABLE_NOT_EQUAL
+)
+XARRAY_EQUAL_TOLERANCE = (
+    XARRAY_DATA_ARRAY_EQUAL_TOLERANCE
+    + XARRAY_DATASET_EQUAL_TOLERANCE
+    + XARRAY_VARIABLE_EQUAL_TOLERANCE
 )
 
 
@@ -370,6 +541,18 @@ def test_xarray_data_array_equality_comparator_equal_nan(
             config,
         )
         == equal_nan
+    )
+
+
+@xarray_available
+@pytest.mark.parametrize("example", XARRAY_DATA_ARRAY_EQUAL_TOLERANCE)
+def test_xarray_data_array_equality_comparator_equal_true_tolerance(
+    example: ExamplePair, config: EqualityConfig
+) -> None:
+    config.atol = example.atol
+    config.rtol = example.rtol
+    assert XarrayDataArrayEqualityComparator().equal(
+        object1=example.object1, object2=example.object2, config=config
     )
 
 
@@ -510,6 +693,18 @@ def test_xarray_dataset_equality_comparator_equal_nan(
 
 
 @xarray_available
+@pytest.mark.parametrize("example", XARRAY_DATASET_EQUAL_TOLERANCE)
+def test_xarray_dataset_equality_comparator_equal_true_tolerance(
+    example: ExamplePair, config: EqualityConfig
+) -> None:
+    config.atol = example.atol
+    config.rtol = example.rtol
+    assert XarrayDatasetEqualityComparator().equal(
+        object1=example.object1, object2=example.object2, config=config
+    )
+
+
+@xarray_available
 def test_xarray_dataset_equality_comparator_no_xarray() -> None:
     with patch(
         "coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False
@@ -618,6 +813,18 @@ def test_xarray_variable_equality_comparator_equal_nan(
             config,
         )
         == equal_nan
+    )
+
+
+@xarray_available
+@pytest.mark.parametrize("example", XARRAY_VARIABLE_EQUAL_TOLERANCE)
+def test_xarray_variable_equality_comparator_equal_true_tolerance(
+    example: ExamplePair, config: EqualityConfig
+) -> None:
+    config.atol = example.atol
+    config.rtol = example.rtol
+    assert XarrayVariableEqualityComparator().equal(
+        object1=example.object1, object2=example.object2, config=config
     )
 
 
