@@ -1,4 +1,4 @@
-name: Documentation
+name: Documentation (unstable)
 on:
   workflow_call:
   workflow_dispatch:  # to trigger manually
