@@ -84,4 +84,4 @@ publish-doc-latest :
 	export TAG=$(shell echo $(LAST_GIT_TAG) | cut -c 2- | awk -F \. {'print $$1"."$$2'})
 	-mike delete --config-file docs/mkdocs.yml $(TAG)  # delete previous version
 	mike deploy --config-file docs/mkdocs.yml --push --update-aliases $(TAG) latest
-	mike set-default --config-file docs/mkdocs.yml --push latest
+	mike set-default --config-file docs/mkdocs.yml --push --allow-empty latest
