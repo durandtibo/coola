@@ -20,13 +20,13 @@ from tests.unit.equality.comparators.test_pandas import (
     PANDAS_SERIES_EQUAL_TOLERANCE,
 )
 
-if TYPE_CHECKING:
-    from tests.unit.equality.comparators.utils import ExamplePair
-
 if is_pandas_available():
     import pandas
 else:  # pragma: no cover
     pandas = Mock()
+
+if TYPE_CHECKING:
+    from tests.unit.equality.comparators.utils import ExamplePair
 
 
 @pytest.fixture()

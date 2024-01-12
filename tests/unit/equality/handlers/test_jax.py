@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
 import pytest
@@ -10,7 +11,7 @@ from coola.equality.handlers import FalseHandler, JaxArrayEqualHandler
 from coola.equality.testers import EqualityTester
 from coola.testing import jax_available
 from coola.utils.imports import is_jax_available
-from tests.unit.equality.comparators.utils import ExamplePair
+from tests.unit.equality.comparators.test_jax import JAX_ARRAY_EQUAL_TOLERANCE
 
 if is_jax_available():
     import jax.numpy as jnp
@@ -18,39 +19,13 @@ else:  # pragma: no cover
     jnp = Mock()
 
 
+if TYPE_CHECKING:
+    from tests.unit.equality.comparators.utils import ExamplePair
+
+
 @pytest.fixture()
 def config() -> EqualityConfig:
     return EqualityConfig(tester=EqualityTester())
-
-
-JAX_ARRAY_EQUAL_TOLERANCE = [
-    # atol
-    pytest.param(
-        ExamplePair(object1=jnp.ones((2, 3)), object2=jnp.full((2, 3), 1.5), atol=1.0),
-        id="atol=1",
-    ),
-    pytest.param(
-        ExamplePair(object1=jnp.ones((2, 3)), object2=jnp.full((2, 3), 1.05), atol=0.1),
-        id="atol=0.1",
-    ),
-    pytest.param(
-        ExamplePair(object1=jnp.ones((2, 3)), object2=jnp.full((2, 3), 1.005), atol=0.01),
-        id="atol=0.01",
-    ),
-    # rtol
-    pytest.param(
-        ExamplePair(object1=jnp.ones((2, 3)), object2=jnp.full((2, 3), 1.5), rtol=1.0),
-        id="rtol=1",
-    ),
-    pytest.param(
-        ExamplePair(object1=jnp.ones((2, 3)), object2=jnp.full((2, 3), 1.05), rtol=0.1),
-        id="rtol=0.1",
-    ),
-    pytest.param(
-        ExamplePair(object1=jnp.ones((2, 3)), object2=jnp.full((2, 3), 1.005), rtol=0.01),
-        id="rtol=0.01",
-    ),
-]
 
 
 ##########################################
