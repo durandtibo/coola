@@ -79,6 +79,60 @@ POLARS_DATAFRAME_NOT_EQUAL = [
 ]
 
 
+POLARS_DATAFRAME_EQUAL_TOLERANCE = [
+    # atol
+    pytest.param(
+        ExamplePair(
+            object1=polars.DataFrame({"col": [1.0, 1.0, 1.0]}),
+            object2=polars.DataFrame({"col": [1.5, 1.5, 0.5]}),
+            atol=1.0,
+        ),
+        id="atol=1",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=polars.DataFrame({"col": [1.0, 1.0, 1.0]}),
+            object2=polars.DataFrame({"col": [1.0, 1.05, 0.95]}),
+            atol=0.1,
+        ),
+        id="atol=0.1",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=polars.DataFrame({"col": [1.0, 1.0, 1.0]}),
+            object2=polars.DataFrame({"col": [1.0, 1.005, 0.995]}),
+            atol=0.01,
+        ),
+        id="atol=0.01",
+    ),
+    # rtol
+    pytest.param(
+        ExamplePair(
+            object1=polars.DataFrame({"col": [1.0, 1.0, 1.0]}),
+            object2=polars.DataFrame({"col": [1.0, 1.5, 0.5]}),
+            rtol=1.0,
+        ),
+        id="rtol=1",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=polars.DataFrame({"col": [1.0, 1.0, 1.0]}),
+            object2=polars.DataFrame({"col": [1.0, 1.05, 0.95]}),
+            rtol=0.1,
+        ),
+        id="rtol=0.1",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=polars.DataFrame({"col": [1.0, 1.0, 1.0]}),
+            object2=polars.DataFrame({"col": [1.0, 1.005, 0.995]}),
+            rtol=0.01,
+        ),
+        id="rtol=0.01",
+    ),
+]
+
+
 POLARS_SERIES_EQUAL = [
     pytest.param(
         ExamplePair(
@@ -131,8 +185,62 @@ POLARS_SERIES_NOT_EQUAL = [
     ),
 ]
 
+POLARS_SERIES_EQUAL_TOLERANCE = [
+    # atol
+    pytest.param(
+        ExamplePair(
+            object1=polars.Series([1.0, 1.0, 1.0]),
+            object2=polars.Series([1.0, 1.5, 0.5]),
+            atol=1.0,
+        ),
+        id="atol=1",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=polars.Series([1.0, 1.0, 1.0]),
+            object2=polars.Series([1.0, 1.05, 0.95]),
+            atol=0.1,
+        ),
+        id="atol=0.1",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=polars.Series([1.0, 1.0, 1.0]),
+            object2=polars.Series([1.0, 1.005, 0.995]),
+            atol=0.01,
+        ),
+        id="atol=0.01",
+    ),
+    # rtol
+    pytest.param(
+        ExamplePair(
+            object1=polars.Series([1.0, 1.0, 1.0]),
+            object2=polars.Series([1.0, 1.5, 0.5]),
+            rtol=1.0,
+        ),
+        id="rtol=1",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=polars.Series([1.0, 1.0, 1.0]),
+            object2=polars.Series([1.0, 1.05, 0.95]),
+            rtol=0.1,
+        ),
+        id="rtol=0.1",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=polars.Series([1.0, 1.0, 1.0]),
+            object2=polars.Series([1.0, 1.005, 0.995]),
+            rtol=0.01,
+        ),
+        id="rtol=0.01",
+    ),
+]
+
 POLARS_EQUAL = POLARS_SERIES_EQUAL + POLARS_DATAFRAME_EQUAL
 POLARS_NOT_EQUAL = POLARS_SERIES_NOT_EQUAL + POLARS_DATAFRAME_NOT_EQUAL
+POLARS_EQUAL_TOLERANCE = POLARS_SERIES_EQUAL_TOLERANCE + POLARS_DATAFRAME_EQUAL_TOLERANCE
 
 #######################################################
 #     Tests for PolarsDataFrameEqualityComparator     #
@@ -237,6 +345,18 @@ def test_polars_dataframe_equality_comparator_equal_nan(
             config=config,
         )
         == equal_nan
+    )
+
+
+@polars_available
+@pytest.mark.parametrize("example", POLARS_DATAFRAME_EQUAL_TOLERANCE)
+def test_polars_dataframe_equality_comparator_equal_tolerance(
+    example: ExamplePair, config: EqualityConfig
+) -> None:
+    config.atol = example.atol
+    config.rtol = example.rtol
+    assert PolarsDataFrameEqualityComparator().equal(
+        object1=example.object1, object2=example.object2, config=config
     )
 
 
@@ -349,6 +469,18 @@ def test_polars_series_equality_comparator_equal_nan(
             config=config,
         )
         == equal_nan
+    )
+
+
+@polars_available
+@pytest.mark.parametrize("example", POLARS_SERIES_EQUAL_TOLERANCE)
+def test_polars_series_equality_comparator_equal_tolerance(
+    example: ExamplePair, config: EqualityConfig
+) -> None:
+    config.atol = example.atol
+    config.rtol = example.rtol
+    assert PolarsSeriesEqualityComparator().equal(
+        object1=example.object1, object2=example.object2, config=config
     )
 
 
