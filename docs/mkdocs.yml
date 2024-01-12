@@ -1,4 +1,5 @@
 site_name: coola
+site_url: 'https://durandtibo.github.io/coola/'
 theme:
   name: material
   features:

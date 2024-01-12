@@ -71,3 +71,7 @@ unit-test-cov :
 publish-pypi :
 	poetry config pypi-token.pypi ${PYPI_TOKEN}
 	poetry publish --build
+
+.PHONY : publish-doc-dev
+publish-doc-dev :
+	mike deploy --push --update-aliases main dev
