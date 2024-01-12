@@ -15,7 +15,6 @@ from coola.equality.testers import EqualityTester
 from coola.testing import torch_available, torch_cuda_available, torch_mps_available
 from coola.utils.imports import is_torch_available
 from tests.unit.equality.comparators.utils import ExamplePair
-from tests.unit.equality.handlers.test_torch import TORCH_TENSOR_EQUAL_TOLERANCE
 
 if is_torch_available():
     import torch
@@ -60,7 +59,6 @@ TORCH_PACKED_SEQUENCE_EQUAL = [
         id="long dtype",
     ),
 ]
-
 TORCH_PACKED_SEQUENCE_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
@@ -145,6 +143,7 @@ TORCH_PACKED_SEQUENCE_NOT_EQUAL = [
         id="different types",
     ),
 ]
+TORCH_PACKED_SEQUENCE_EQUAL_TOLERANCE = []
 
 
 TORCH_TENSOR_EQUAL = [
@@ -163,8 +162,6 @@ TORCH_TENSOR_EQUAL = [
     pytest.param(ExamplePair(object1=torch.ones(6), object2=torch.ones(6)), id="1d tensor"),
     pytest.param(ExamplePair(object1=torch.ones(2, 3), object2=torch.ones(2, 3)), id="2d tensor"),
 ]
-
-
 TORCH_TENSOR_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
@@ -199,10 +196,38 @@ TORCH_TENSOR_NOT_EQUAL = [
         id="different types",
     ),
 ]
+TORCH_TENSOR_EQUAL_TOLERANCE = [
+    # atol
+    pytest.param(
+        ExamplePair(object1=torch.ones(2, 3), object2=torch.full((2, 3), 1.5), atol=1.0),
+        id="atol=1",
+    ),
+    pytest.param(
+        ExamplePair(object1=torch.ones(2, 3), object2=torch.full((2, 3), 1.05), atol=0.1),
+        id="atol=0.1",
+    ),
+    pytest.param(
+        ExamplePair(object1=torch.ones(2, 3), object2=torch.full((2, 3), 1.005), atol=0.01),
+        id="atol=0.01",
+    ),
+    # rtol
+    pytest.param(
+        ExamplePair(object1=torch.ones(2, 3), object2=torch.full((2, 3), 1.5), rtol=1.0),
+        id="rtol=1",
+    ),
+    pytest.param(
+        ExamplePair(object1=torch.ones(2, 3), object2=torch.full((2, 3), 1.05), rtol=0.1),
+        id="rtol=0.1",
+    ),
+    pytest.param(
+        ExamplePair(object1=torch.ones(2, 3), object2=torch.full((2, 3), 1.005), rtol=0.01),
+        id="rtol=0.01",
+    ),
+]
 
 TORCH_EQUAL = TORCH_TENSOR_EQUAL + TORCH_PACKED_SEQUENCE_EQUAL
 TORCH_NOT_EQUAL = TORCH_TENSOR_NOT_EQUAL + TORCH_PACKED_SEQUENCE_NOT_EQUAL
-
+TORCH_EQUAL_TOLERANCE = TORCH_TENSOR_EQUAL_TOLERANCE + TORCH_PACKED_SEQUENCE_EQUAL_TOLERANCE
 
 ###########################################################
 #     Tests for TorchPackedSequenceEqualityComparator     #
