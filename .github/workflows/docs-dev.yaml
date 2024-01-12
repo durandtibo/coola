@@ -25,6 +25,13 @@ jobs:
         run: |
           poetry run make config-poetry
           make install-all
+      - name: Setup doc deploy
+        env:
+          CI_BOT_EMAIL: ${{secrets.CI_BOT_EMAIL}}
+        run: |
+          git config --global user.name ci-docs-bot
+          git config --global user.email $CI_BOT_EMAIL
+          git fetch origin gh-pages --depth=1
       - name: Build and deploy documentation
         run: |
           poetry run make publish-doc-dev
