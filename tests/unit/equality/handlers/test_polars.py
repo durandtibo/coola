@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
 import pytest
@@ -18,7 +19,9 @@ from tests.unit.equality.comparators.test_polars import (
     POLARS_DATAFRAME_EQUAL_TOLERANCE,
     POLARS_SERIES_EQUAL_TOLERANCE,
 )
-from tests.unit.equality.comparators.utils import ExamplePair
+
+if TYPE_CHECKING:
+    from tests.unit.equality.comparators.utils import ExamplePair
 
 if is_polars_available():
     import polars
