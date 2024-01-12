@@ -6,6 +6,7 @@ UNIT_TESTS=tests/unit
 INTEGRATION_TESTS=tests/integration
 
 LAST_GIT_TAG := $(shell git tag --sort=taggerdate | grep -o 'v.*' | tail -1)
+DOC_TAG := $(shell echo $(LAST_GIT_TAG) | cut -c 2- | awk -F \. {'print $$1"."$$2'})
 
 .PHONY : conda
 conda :
@@ -76,12 +77,11 @@ publish-pypi :
 
 .PHONY : publish-doc-dev
 publish-doc-dev :
-	-mike delete --config-file docs/mkdocs.yml main  # delete previous version
+	-mike delete --config-file docs/mkdocs.yml main  # delete previous version if it exists
 	mike deploy --config-file docs/mkdocs.yml --push --update-aliases main dev
 
 .PHONY : publish-doc-latest
 publish-doc-latest :
-	export TAG=$(shell echo $(LAST_GIT_TAG) | cut -c 2- | awk -F \. {'print $$1"."$$2'})
-	-mike delete --config-file docs/mkdocs.yml $(TAG)  # delete previous version
-	mike deploy --config-file docs/mkdocs.yml --push --update-aliases $(TAG) latest
+	-mike delete --config-file docs/mkdocs.yml $(DOC_TAG) 	# delete previous version if it exists
+	mike deploy --config-file docs/mkdocs.yml --push --update-aliases $(DOC_TAG) latest;
 	mike set-default --config-file docs/mkdocs.yml --push --allow-empty latest
