@@ -4,11 +4,13 @@ from __future__ import annotations
 
 __all__ = ["objects_are_equal", "objects_are_allclose"]
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from coola.equality import EqualityConfig
 from coola.equality.testers import EqualityTester
-from coola.testers import BaseEqualityTester
+
+if TYPE_CHECKING:
+    from coola.equality.testers import BaseEqualityTester
 
 
 def objects_are_allclose(
