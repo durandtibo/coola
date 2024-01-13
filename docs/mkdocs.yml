@@ -5,6 +5,9 @@ theme:
   features:
     - navigation.tabs
     - navigation.expand
+    - content.code.copy
+    - content.code.select
+    - content.code.annotate
   icon:
     repo: fontawesome/brands/github
   palette:
@@ -41,10 +44,15 @@ repo_url: https://github.com/durandtibo/coola
 repo_name: durandtibo/coola
 
 markdown_extensions:
+  - pymdownx.caret
+  - pymdownx.critic
   - pymdownx.highlight
-  - pymdownx.superfences
-  - pymdownx.snippets
   - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tilde
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
