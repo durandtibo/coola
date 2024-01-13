@@ -14,6 +14,7 @@ from coola.utils import is_polars_available
 
 if is_polars_available():
     import polars
+    from polars.testing import assert_series_equal
 else:  # pragma: no cover
     polars = Mock()
 
@@ -171,7 +172,7 @@ class PolarsSeriesEqualHandler(BaseEqualityHandler):
         if not config.equal_nan and has_nan(series1):
             return False
         try:
-            polars.testing.assert_series_equal(
+            assert_series_equal(
                 series1,
                 series2,
                 check_exact=config.atol == 0 and config.rtol == 0,
