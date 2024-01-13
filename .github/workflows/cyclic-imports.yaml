@@ -36,9 +36,15 @@ jobs:
           poetry run poetry show
           poetry run poetry show --tree
 
-      - name: check coola.comparators
+      - name: check coola.equality
         run: |
-          poetry run python -c "from coola import comparators"
+          poetry run python -c "from coola import equality"
+      - name: check coola.equality.comparators
+        run: |
+          poetry run python -c "from coola.equality import comparators"
+      - name: check coola.equality.testers
+        run: |
+          poetry run python -c "from coola.equality import testers"
       - name: check coola.formatters
         run: |
           poetry run python -c "from coola import formatters"
@@ -48,9 +54,6 @@ jobs:
       - name: check coola.summarizers
         run: |
           poetry run python -c "from coola import summarizers"
-      - name: check coola.testers
-        run: |
-          poetry run python -c "from coola import testers"
       - name: check coola.utils
         run: |
           poetry run python -c "from coola import utils"
