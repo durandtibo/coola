@@ -33,6 +33,8 @@ nav:
       - refs/summarizers.md
       - refs/testers.md
       - refs/utils.md
+  - Upgrade Guide:
+      - upgrade/0.3.md
   - GitHub: https://github.com/durandtibo/coola
 
 repo_url: https://github.com/durandtibo/coola
@@ -42,6 +44,7 @@ markdown_extensions:
   - pymdownx.highlight
   - pymdownx.superfences
   - pymdownx.snippets
+  - pymdownx.inlinehilite
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
