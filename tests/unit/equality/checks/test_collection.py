@@ -29,7 +29,7 @@ def test_objects_are_equal_true(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
-        assert function(example.object1, example.object2, show_difference)
+        assert function(example.object1, example.object2, show_difference=show_difference)
         assert not caplog.messages
 
 
