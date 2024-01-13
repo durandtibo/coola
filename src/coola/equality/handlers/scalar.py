@@ -88,7 +88,7 @@ class ScalarEqualHandler(BaseEqualityHandler):
         return f"{self.__class__.__qualname__}()"
 
     def handle(self, object1: float, object2: float, config: EqualityConfig) -> bool:
-        object_equal = self._compare_numbers(object1, object2, config)
+        object_equal = number_equal(object1, object2, config)
         if not object_equal and config.show_difference:
             logger.info(f"numbers are not equal:\nobject1:\n{object1}\nobject2:\n{object2}")
         return object_equal
@@ -96,18 +96,19 @@ class ScalarEqualHandler(BaseEqualityHandler):
     def set_next_handler(self, handler: BaseEqualityHandler) -> None:
         pass  # Do nothing because the next handler is never called.
 
-    def _compare_numbers(self, number1: float, number2: float, config: EqualityConfig) -> bool:
-        r"""Indicate if the two numbers are equal within a tolerance.
 
-        Args:
-            number1: Specifies the first number to compare.
-            number2: Specifies the second number to compare.
-            config: Specifies the equality configuration.
+def number_equal(number1: float, number2: float, config: EqualityConfig) -> bool:
+    r"""Indicate if the two numbers are equal within a tolerance.
 
-        Returns:
-            ``True``if the two numbers are equal within a tolerance,
-                otherwise ``False``.
-        """
-        if config.atol > 0.0 or config.rtol > 0.0:
-            return math.isclose(number1, number2, abs_tol=config.atol, rel_tol=config.rtol)
-        return number1 == number2
+    Args:
+        number1: Specifies the first number to compare.
+        number2: Specifies the second number to compare.
+        config: Specifies the equality configuration.
+
+    Returns:
+        ``True``if the two numbers are equal within a tolerance,
+            otherwise ``False``.
+    """
+    if config.atol > 0.0 or config.rtol > 0.0:
+        return math.isclose(number1, number2, abs_tol=config.atol, rel_tol=config.rtol)
+    return number1 == number2

@@ -59,7 +59,7 @@ class JaxArrayEqualHandler(BaseEqualityHandler):
         object2: jnp.ndarray,
         config: EqualityConfig,
     ) -> bool:
-        object_equal = self._compare_arrays(object1, object2, config)
+        object_equal = array_equal(object1, object2, config)
         if config.show_difference and not object_equal:
             logger.info(
                 f"jax.numpy.ndarrays have different elements:\n"
@@ -70,22 +70,21 @@ class JaxArrayEqualHandler(BaseEqualityHandler):
     def set_next_handler(self, handler: BaseEqualityHandler) -> None:
         pass  # Do nothing because the next handler is never called.
 
-    def _compare_arrays(
-        self, array1: jnp.ndarray, array2: jnp.ndarray, config: EqualityConfig
-    ) -> bool:
-        r"""Indicate if the two arrays are equal within a tolerance.
 
-        Args:
-            array1: Specifies the first array to compare.
-            array2: Specifies the second array to compare.
-            config: Specifies the equality configuration.
+def array_equal(array1: jnp.ndarray, array2: jnp.ndarray, config: EqualityConfig) -> bool:
+    r"""Indicate if the two arrays are equal within a tolerance.
 
-        Returns:
-            ``True``if the two arrays are equal within a tolerance,
-                otherwise ``False``.
-        """
-        if config.atol > 0 or config.rtol > 0:
-            return jnp.allclose(
-                array1, array2, rtol=config.rtol, atol=config.atol, equal_nan=config.equal_nan
-            ).item()
-        return jnp.array_equal(array1, array2, equal_nan=config.equal_nan).item()
+    Args:
+        array1: Specifies the first array to compare.
+        array2: Specifies the second array to compare.
+        config: Specifies the equality configuration.
+
+    Returns:
+        ``True``if the two arrays are equal within a tolerance,
+            otherwise ``False``.
+    """
+    if config.atol > 0 or config.rtol > 0:
+        return jnp.allclose(
+            array1, array2, rtol=config.rtol, atol=config.atol, equal_nan=config.equal_nan
+        ).item()
+    return jnp.array_equal(array1, array2, equal_nan=config.equal_nan).item()

@@ -68,7 +68,7 @@ class PandasDataFrameEqualHandler(BaseEqualityHandler):
         object2: pandas.DataFrame,
         config: EqualityConfig,
     ) -> bool:
-        object_equal = self._compare_dataframes(object1, object2, config)
+        object_equal = frame_equal(object1, object2, config)
         if config.show_difference and not object_equal:
             logger.info(
                 f"pandas.DataFrames have different elements:\n"
@@ -78,34 +78,6 @@ class PandasDataFrameEqualHandler(BaseEqualityHandler):
 
     def set_next_handler(self, handler: BaseEqualityHandler) -> None:
         pass  # Do nothing because the next handler is never called.
-
-    def _compare_dataframes(
-        self, df1: pandas.DataFrame, df2: pandas.DataFrame, config: EqualityConfig
-    ) -> bool:
-        r"""Indicate if the two series are equal or not.
-
-        Args:
-            df1: Specifies the first DataFrame to compare.
-            df2: Specifies the second DataFrame to compare.
-            config: Specifies the equality configuration.
-
-        Returns:
-            ``True``if the two DataFrame are equal, otherwise ``False``.
-        """
-        if not config.equal_nan and df1.isna().any().any():
-            return False
-        try:
-            pandas.testing.assert_frame_equal(
-                df1,
-                df2,
-                check_exact=config.atol == 0 and config.rtol == 0,
-                check_index_type=True,
-                atol=config.atol,
-                rtol=config.rtol,
-            )
-        except AssertionError:
-            return False
-        return True
 
 
 class PandasSeriesEqualHandler(BaseEqualityHandler):
@@ -145,7 +117,7 @@ class PandasSeriesEqualHandler(BaseEqualityHandler):
         object2: pandas.Series,
         config: EqualityConfig,
     ) -> bool:
-        object_equal = self._compare_series(object1, object2, config)
+        object_equal = series_equal(object1, object2, config)
         if config.show_difference and not object_equal:
             logger.info(
                 f"pandas.Series have different elements:\n"
@@ -156,30 +128,56 @@ class PandasSeriesEqualHandler(BaseEqualityHandler):
     def set_next_handler(self, handler: BaseEqualityHandler) -> None:
         pass  # Do nothing because the next handler is never called.
 
-    def _compare_series(
-        self, series1: pandas.Series, series2: pandas.Series, config: EqualityConfig
-    ) -> bool:
-        r"""Indicate if the two series are equal or not.
 
-        Args:
-            series1: Specifies the first series to compare.
-            series2: Specifies the second series to compare.
-            config: Specifies the equality configuration.
+def frame_equal(df1: pandas.DataFrame, df2: pandas.DataFrame, config: EqualityConfig) -> bool:
+    r"""Indicate if the two DataFrames are equal or not.
 
-        Returns:
-            ``True``if the two series are equal, otherwise ``False``.
-        """
-        if not config.equal_nan and series1.isna().any():
-            return False
-        try:
-            pandas.testing.assert_series_equal(
-                series1,
-                series2,
-                check_exact=config.atol == 0 and config.rtol == 0,
-                check_index_type=True,
-                atol=config.atol,
-                rtol=config.rtol,
-            )
-        except AssertionError:
-            return False
-        return True
+    Args:
+        df1: Specifies the first DataFrame to compare.
+        df2: Specifies the second DataFrame to compare.
+        config: Specifies the equality configuration.
+
+    Returns:
+        ``True``if the two DataFrame are equal, otherwise ``False``.
+    """
+    if not config.equal_nan and df1.isna().any().any():
+        return False
+    try:
+        pandas.testing.assert_frame_equal(
+            df1,
+            df2,
+            check_exact=config.atol == 0 and config.rtol == 0,
+            check_index_type=True,
+            atol=config.atol,
+            rtol=config.rtol,
+        )
+    except AssertionError:
+        return False
+    return True
+
+
+def series_equal(series1: pandas.Series, series2: pandas.Series, config: EqualityConfig) -> bool:
+    r"""Indicate if the two series are equal or not.
+
+    Args:
+        series1: Specifies the first series to compare.
+        series2: Specifies the second series to compare.
+        config: Specifies the equality configuration.
+
+    Returns:
+        ``True``if the two series are equal, otherwise ``False``.
+    """
+    if not config.equal_nan and series1.isna().any():
+        return False
+    try:
+        pandas.testing.assert_series_equal(
+            series1,
+            series2,
+            check_exact=config.atol == 0 and config.rtol == 0,
+            check_index_type=True,
+            atol=config.atol,
+            rtol=config.rtol,
+        )
+    except AssertionError:
+        return False
+    return True

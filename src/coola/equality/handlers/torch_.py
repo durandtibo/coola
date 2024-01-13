@@ -59,7 +59,7 @@ class TorchTensorEqualHandler(BaseEqualityHandler):
         object2: torch.Tensor,
         config: EqualityConfig,
     ) -> bool:
-        object_equal = self._compare_tensors(object1, object2, config)
+        object_equal = tensor_equal(object1, object2, config)
         if config.show_difference and not object_equal:
             logger.info(
                 f"torch.Tensors have different elements:\n"
@@ -69,26 +69,6 @@ class TorchTensorEqualHandler(BaseEqualityHandler):
 
     def set_next_handler(self, handler: BaseEqualityHandler) -> None:
         pass  # Do nothing because the next handler is never called.
-
-    def _compare_tensors(
-        self, tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityConfig
-    ) -> bool:
-        r"""Indicate if the two tensors are equal within a tolerance.
-
-        Args:
-            tensor1: Specifies the first tensor to compare.
-            tensor2: Specifies the second tensor to compare.
-            config: Specifies the equality configuration.
-
-        Returns:
-            ``True``if the two tensors are equal within a tolerance,
-                otherwise ``False``.
-        """
-        if config.equal_nan or config.atol > 0 or config.rtol > 0:
-            return tensor1.allclose(
-                tensor2, atol=config.atol, rtol=config.rtol, equal_nan=config.equal_nan
-            )
-        return tensor1.equal(tensor2)
 
 
 class TorchTensorSameDeviceHandler(AbstractEqualityHandler):
@@ -129,3 +109,22 @@ class TorchTensorSameDeviceHandler(AbstractEqualityHandler):
                 )
             return False
         return self._handle_next(object1=object1, object2=object2, config=config)
+
+
+def tensor_equal(tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityConfig) -> bool:
+    r"""Indicate if the two tensors are equal within a tolerance.
+
+    Args:
+        tensor1: Specifies the first tensor to compare.
+        tensor2: Specifies the second tensor to compare.
+        config: Specifies the equality configuration.
+
+    Returns:
+        ``True``if the two tensors are equal within a tolerance,
+            otherwise ``False``.
+    """
+    if config.equal_nan or config.atol > 0 or config.rtol > 0:
+        return tensor1.allclose(
+            tensor2, atol=config.atol, rtol=config.rtol, equal_nan=config.equal_nan
+        )
+    return tensor1.equal(tensor2)
