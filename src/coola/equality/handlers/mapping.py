@@ -46,12 +46,16 @@ class MappingSameKeysHandler(AbstractEqualityHandler):
         object2: Mapping,
         config: EqualityConfig,
     ) -> bool:
-        if set(object1.keys()) != set(object2.keys()):
+        keys1 = set(object1.keys())
+        keys2 = set(object2.keys())
+        if keys1 != set(object2.keys()):
             if config.show_difference:
+                missing_keys = keys1 - keys2
+                additional_keys = keys2 - keys1
                 logger.info(
                     f"mappings have different keys:\n"
-                    f"object1 keys: {sorted(set(object1.keys()))}\n"
-                    f"object2 keys: {sorted(set(object2.keys()))}"
+                    f"missing keys: {sorted(missing_keys)}\n"
+                    f"additional keys: {sorted(additional_keys)}"
                 )
             return False
         return self._handle_next(object1=object1, object2=object2, config=config)
