@@ -125,6 +125,14 @@ The current supported types are:
 Please check the [quickstart page](https://durandtibo.github.io/coola/quickstart) to learn more on
 how to use `coola`.
 
+## Documentation
+
+- [latest (stable)](https://durandtibo.github.io/coola/): documentation from the latest stable
+  release.
+- [main (unstable)](https://durandtibo.github.io/coola/main/): documentation associated to the main
+  branch of the repo. This documentation may contain a lot of work-in-progress/outdated/missing
+  parts.
+
 ## Installation
 
 We highly recommend installing
