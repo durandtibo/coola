@@ -7,6 +7,7 @@ The current supported types are:
 
 - [`jax.numpy.ndarray`](https://jax.readthedocs.io/en/latest/index.html)
 - [`numpy.ndarray`](https://numpy.org/doc/stable/index.html)
+- [`numpy.ma.MaskedArray`](https://numpy.org/doc/stable/reference/maskedarray.generic.html)
 - [`pandas.DataFrame`](https://pandas.pydata.org/)
 - [`pandas.Series`](https://pandas.pydata.org/)
 - [`polars.DataFrame`](https://www.pola.rs/)
