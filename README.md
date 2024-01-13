@@ -125,6 +125,14 @@ The current supported types are:
 Please check the [quickstart page](https://durandtibo.github.io/coola/quickstart) to learn more on
 how to use `coola`.
 
+## Documentation
+
+- [latest (stable)](https://durandtibo.github.io/coola/): documentation from the latest stable
+  release.
+- [main (unstable)](https://durandtibo.github.io/coola/main/): documentation associated to the main
+  branch of the repo. This documentation may contain a lot of work-in-progress/outdated/missing
+  parts.
+
 ## Installation
 
 We highly recommend installing
@@ -150,6 +158,7 @@ The following is the corresponding `coola` versions and tested dependencies.
 | `coola` | `jax`<sup>*</sup> | `numpy`<sup>*</sup> | `pandas`<sup>*</sup> | `polars`<sup>*</sup> | `torch`<sup>*</sup> | `xarray`<sup>*</sup> | `python`      |
 |---------|-------------------|---------------------|----------------------|----------------------|---------------------|----------------------|---------------|
 | `main`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      | `>=1.3,<2.2`         | `>=0.18.3,<1.0`      | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13` |
+| `0.3.0` | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      | `>=1.3,<2.2`         | `>=0.18.3,<1.0`      | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13` |
 | `0.2.2` | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      | `>=1.3,<2.2`         | `>=0.18.3,<1.0`      | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13` |
 | `0.2.1` | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      | `>=1.3,<2.2`         | `>=0.18.3,<1.0`      | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13` |
 | `0.2.0` | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      | `>=1.3,<2.2`         | `>=0.18.3,<1.0`      | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13` |
