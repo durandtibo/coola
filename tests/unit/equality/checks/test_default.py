@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from coola import objects_are_close, objects_are_equal
+from coola import objects_are_allclose, objects_are_equal
 from tests.unit.equality.comparators.test_default import (
     DEFAULT_EQUAL,
     DEFAULT_NOT_EQUAL,
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
     from tests.unit.equality.comparators.utils import ExamplePair
 
-COMPARATOR_FUNCTIONS = [objects_are_equal, objects_are_close]
+COMPARATOR_FUNCTIONS = [objects_are_equal, objects_are_allclose]
 
 
 @pytest.mark.parametrize("function", COMPARATOR_FUNCTIONS)
