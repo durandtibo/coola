@@ -144,6 +144,7 @@ TORCH_PACKED_SEQUENCE_NOT_EQUAL = [
     ),
 ]
 TORCH_PACKED_SEQUENCE_EQUAL_TOLERANCE = [
+    # atol
     pytest.param(
         ExamplePair(
             object1=torch.nn.utils.rnn.pack_padded_sequence(
@@ -191,6 +192,55 @@ TORCH_PACKED_SEQUENCE_EQUAL_TOLERANCE = [
             atol=0.01,
         ),
         id="atol=0.01",
+    ),
+    # rtol
+    pytest.param(
+        ExamplePair(
+            object1=torch.nn.utils.rnn.pack_padded_sequence(
+                input=torch.ones(2, 5),
+                lengths=torch.tensor([5, 3], dtype=torch.long),
+                batch_first=True,
+            ),
+            object2=torch.nn.utils.rnn.pack_padded_sequence(
+                input=torch.full(size=(2, 5), fill_value=1.5),
+                lengths=torch.tensor([5, 3], dtype=torch.long),
+                batch_first=True,
+            ),
+            rtol=1.0,
+        ),
+        id="rtol=1",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=torch.nn.utils.rnn.pack_padded_sequence(
+                input=torch.ones(2, 5),
+                lengths=torch.tensor([5, 3], dtype=torch.long),
+                batch_first=True,
+            ),
+            object2=torch.nn.utils.rnn.pack_padded_sequence(
+                input=torch.full(size=(2, 5), fill_value=1.05),
+                lengths=torch.tensor([5, 3], dtype=torch.long),
+                batch_first=True,
+            ),
+            rtol=0.1,
+        ),
+        id="rtol=0.1",
+    ),
+    pytest.param(
+        ExamplePair(
+            object1=torch.nn.utils.rnn.pack_padded_sequence(
+                input=torch.ones(2, 5),
+                lengths=torch.tensor([5, 3], dtype=torch.long),
+                batch_first=True,
+            ),
+            object2=torch.nn.utils.rnn.pack_padded_sequence(
+                input=torch.full(size=(2, 5), fill_value=1.005),
+                lengths=torch.tensor([5, 3], dtype=torch.long),
+                batch_first=True,
+            ),
+            rtol=0.01,
+        ),
+        id="rtol=0.01",
     ),
 ]
 
