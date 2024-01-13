@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from coola import objects_are_close
+from coola import objects_are_allclose
 from coola.testing import polars_available
 from tests.unit.equality.checks.test_default import COMPARATOR_FUNCTIONS
 from tests.unit.equality.comparators.test_polars import (
@@ -59,7 +59,9 @@ def test_objects_are_equal_false_show_difference(
 
 @polars_available
 @pytest.mark.parametrize("example", POLARS_EQUAL_TOLERANCE)
-def test_objects_are_close_true_tolerance(
+def test_objects_are_allclose_true_tolerance(
     example: ExamplePair, caplog: pytest.LogCaptureFixture
 ) -> None:
-    assert objects_are_close(example.object1, example.object2, atol=example.atol, rtol=example.rtol)
+    assert objects_are_allclose(
+        example.object1, example.object2, atol=example.atol, rtol=example.rtol
+    )
