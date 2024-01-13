@@ -14,7 +14,7 @@ from coola.utils import is_polars_available
 
 if is_polars_available():
     import polars
-    from polars.testing import assert_series_equal
+    from polars.testing import assert_frame_equal, assert_series_equal
 else:  # pragma: no cover
     polars = Mock()
 
@@ -69,7 +69,7 @@ class PolarsDataFrameEqualHandler(BaseEqualityHandler):
         object2: polars.DataFrame,
         config: EqualityConfig,
     ) -> bool:
-        object_equal = self._compare_dataframes(object1, object2, config)
+        object_equal = frame_equal(object1, object2, config)
         if config.show_difference and not object_equal:
             logger.info(
                 f"polars.DataFrames have different elements:\n"
@@ -79,33 +79,6 @@ class PolarsDataFrameEqualHandler(BaseEqualityHandler):
 
     def set_next_handler(self, handler: BaseEqualityHandler) -> None:
         pass  # Do nothing because the next handler is never called.
-
-    def _compare_dataframes(
-        self, df1: polars.DataFrame, df2: polars.DataFrame, config: EqualityConfig
-    ) -> bool:
-        r"""Indicate if the two series are equal or not.
-
-        Args:
-            df1: Specifies the first DataFrame to compare.
-            df2: Specifies the second DataFrame to compare.
-            config: Specifies the equality configuration.
-
-        Returns:
-            ``True``if the two DataFrame are equal, otherwise ``False``.
-        """
-        if not config.equal_nan and has_nan(df1):
-            return False
-        try:
-            polars.testing.assert_frame_equal(
-                df1,
-                df2,
-                check_exact=config.atol == 0 and config.rtol == 0,
-                atol=config.atol,
-                rtol=config.rtol,
-            )
-        except AssertionError:
-            return False
-        return True
 
 
 class PolarsSeriesEqualHandler(BaseEqualityHandler):
@@ -145,7 +118,7 @@ class PolarsSeriesEqualHandler(BaseEqualityHandler):
         object2: polars.Series,
         config: EqualityConfig,
     ) -> bool:
-        object_equal = self._compare_series(object1, object2, config)
+        object_equal = series_equal(object1, object2, config)
         if config.show_difference and not object_equal:
             logger.info(
                 f"polars.Series have different elements:\n"
@@ -155,33 +128,6 @@ class PolarsSeriesEqualHandler(BaseEqualityHandler):
 
     def set_next_handler(self, handler: BaseEqualityHandler) -> None:
         pass  # Do nothing because the next handler is never called.
-
-    def _compare_series(
-        self, series1: polars.Series, series2: polars.Series, config: EqualityConfig
-    ) -> bool:
-        r"""Indicate if the two series are equal or not.
-
-        Args:
-            series1: Specifies the first series to compare.
-            series2: Specifies the second series to compare.
-            config: Specifies the equality configuration.
-
-        Returns:
-            ``True``if the two series are equal, otherwise ``False``.
-        """
-        if not config.equal_nan and has_nan(series1):
-            return False
-        try:
-            assert_series_equal(
-                series1,
-                series2,
-                check_exact=config.atol == 0 and config.rtol == 0,
-                atol=config.atol,
-                rtol=config.rtol,
-            )
-        except AssertionError:
-            return False
-        return True
 
 
 def has_nan(df_or_series: polars.DataFrame | polars.Series) -> bool:
@@ -197,3 +143,55 @@ def has_nan(df_or_series: polars.DataFrame | polars.Series) -> bool:
     if isinstance(df_or_series, polars.Series):
         return df_or_series.dtype in polars.FLOAT_DTYPES and df_or_series.is_nan().any()
     return any(col.dtype in polars.FLOAT_DTYPES and col.is_nan().any() for col in df_or_series)
+
+
+def frame_equal(df1: polars.DataFrame, df2: polars.DataFrame, config: EqualityConfig) -> bool:
+    r"""Indicate if the two DataFrames are equal or not.
+
+    Args:
+        df1: Specifies the first DataFrame to compare.
+        df2: Specifies the second DataFrame to compare.
+        config: Specifies the equality configuration.
+
+    Returns:
+        ``True``if the two DataFrame are equal, otherwise ``False``.
+    """
+    if not config.equal_nan and has_nan(df1):
+        return False
+    try:
+        assert_frame_equal(
+            df1,
+            df2,
+            check_exact=config.atol == 0 and config.rtol == 0,
+            atol=config.atol,
+            rtol=config.rtol,
+        )
+    except AssertionError:
+        return False
+    return True
+
+
+def series_equal(series1: polars.Series, series2: polars.Series, config: EqualityConfig) -> bool:
+    r"""Indicate if the two series are equal or not.
+
+    Args:
+        series1: Specifies the first series to compare.
+        series2: Specifies the second series to compare.
+        config: Specifies the equality configuration.
+
+    Returns:
+        ``True``if the two series are equal, otherwise ``False``.
+    """
+    if not config.equal_nan and has_nan(series1):
+        return False
+    try:
+        assert_series_equal(
+            series1,
+            series2,
+            check_exact=config.atol == 0 and config.rtol == 0,
+            atol=config.atol,
+            rtol=config.rtol,
+        )
+    except AssertionError:
+        return False
+    return True
