@@ -14,6 +14,7 @@ from coola.testers import AllCloseTester, BaseAllCloseTester, BaseEqualityTester
 def objects_are_allclose(
     object1: Any,
     object2: Any,
+    *,
     rtol: float = 1e-5,
     atol: float = 1e-8,
     equal_nan: bool = False,
@@ -72,11 +73,12 @@ def objects_are_allclose(
 def objects_are_close(
     object1: Any,
     object2: Any,
+    *,
     rtol: float = 1e-5,
     atol: float = 1e-8,
     equal_nan: bool = False,
     show_difference: bool = False,
-    tester: BaseAllCloseTester | None = None,
+    tester: BaseEqualityTester | None = None,
 ) -> bool:
     r"""Indicate if two objects are equal within a tolerance.
 
@@ -133,6 +135,8 @@ def objects_are_close(
 def objects_are_equal(
     object1: Any,
     object2: Any,
+    *,
+    equal_nan: bool = False,
     show_difference: bool = False,
     tester: BaseEqualityTester | None = None,
 ) -> bool:
@@ -141,6 +145,8 @@ def objects_are_equal(
     Args:
         object1: Specifies the first object to compare.
         object2: Specifies the second object to compare.
+        equal_nan: If ``True``, then two ``NaN``s  will be
+            considered as equal.
         show_difference: If ``True``, it shows a difference between
             the two objects if they are different. This parameter is
             useful to find the difference between two objects.
@@ -167,5 +173,5 @@ def objects_are_equal(
     ```
     """
     tester = tester or EqualityTester()
-    config = EqualityConfig(tester=tester, show_difference=show_difference)
+    config = EqualityConfig(tester=tester, show_difference=show_difference, equal_nan=equal_nan)
     return tester.equal(object1, object2, config)
