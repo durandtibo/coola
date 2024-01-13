@@ -6,7 +6,7 @@ __all__ = ["objects_are_equal", "objects_are_allclose"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.equality import EqualityConfig
+from coola.equality.config import EqualityConfig
 from coola.equality.testers import EqualityTester
 
 if TYPE_CHECKING:
