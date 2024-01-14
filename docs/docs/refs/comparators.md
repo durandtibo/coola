@@ -1,1 +1,1 @@
-::: coola.comparators
+::: coola.equality.comparators
