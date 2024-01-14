@@ -12,9 +12,11 @@ The following example shows how to use a custom `BaseEqualityTester`.
 
 ```pycon
 >>> from typing import Any
->>> from coola import BaseEqualityTester, objects_are_equal
+>>> from coola import objects_are_equal
+>>> from coola.equality import EqualityConfig
+>>> from coola.equality.testers import BaseEqualityTester
 >>> class MyCustomEqualityTester(BaseEqualityTester):
-...     def equal(self, object1: Any, object2: Any, show_difference: bool = False) -> bool:
+...     def equal(self, object1: Any, object2: Any, config: EqualityConfig) -> bool:
 ...         return object1 is object2
 ...
 >>> objects_are_equal([1, 2, 3], (1, 2, 3), tester=MyCustomEqualityTester())
@@ -22,7 +24,7 @@ False
 
 ```
 
-Implemented a new `BaseEqualityTester` allows to customize the behavior of `objects_are_equal`.
+Implementing a new `BaseEqualityTester` allows to customize the behavior of `objects_are_equal`.
 
 ## How to customize `EqualityTester`
 
@@ -34,134 +36,111 @@ default `EqualityTester`.
 
 ### Overview
 
-`EqualityTester` has a registry of equality operators with their associated types.
-An equality operator is an object that follows the `BaseEqualityOperator` API.
+`EqualityTester` has a registry of equality comparators with their associated types.
+An equality comparator is an object that follows the `BaseEqualityComparator` interface.
 `EqualityTester` uses the Method Resolution Order (MRO) of the first object to find the equality
-operator to use.
-It uses the most specific equality operator.
-For example, `EqualityTester` has an equality operator registered for `object` and another
+comparator to use.
+It uses the most specific equality comparator.
+For example, `EqualityTester` has an equality comparator registered for `object` and another
 one `list`.
-If the first element to compare is a `list`, `EqualityTester` will use the equality operator
+If the first element to compare is a `list`, `EqualityTester` will use the equality comparator
 associated to `list` to compare the two objects.
-You can use the following code to see the registered equality operators with their associated types.
+You can use the following code to see the registered equality comparators with their associated types.
 
 ```pycon
->>> from coola import EqualityTester
+>>> from coola.equality.testers import EqualityTester
 >>> EqualityTester.registry
-{<class 'collections.abc.Mapping'>: MappingEqualityOperator(),
- <class 'collections.abc.Sequence'>: SequenceEqualityOperator(),
- <class 'dict'>: MappingEqualityOperator(),
- <class 'list'>: SequenceEqualityOperator(),
- <class 'object'>: DefaultEqualityOperator(),
- <class 'tuple'>: SequenceEqualityOperator(),
+{<class 'object'>: DefaultEqualityComparator(),
+ <class 'collections.abc.Mapping'>: MappingEqualityComparator(),
+ <class 'collections.abc.Sequence'>: SequenceEqualityComparator(),
+ <class 'dict'>: MappingEqualityComparator(),
+ <class 'list'>: SequenceEqualityComparator(),
+ <class 'tuple'>: SequenceEqualityComparator(),
  ...}
 
 ```
 
-An equality operator (`DefaultEqualityOperator`) is registered for `object` type, so this equality
-operator is considered like the default equality operator.
+An equality comparator (`DefaultEqualityOperator`) is registered for `object` type, so this equality
+comparator is considered like the default equality comparator.
 For example, it will be used to compare `int` or `float` or `str` because there is no specific
-equality operator for these types.
-Note that the same equality operator can be used for multiple types.
-For example, by default, the same equality operator is used for `list`, `tuple`,
+equality comparator for these types.
+Note that the same equality comparator can be used for multiple types.
+For example, by default, the same equality comparator is used for `list`, `tuple`,
 and `collections.abc.Sequence`.
 The following sections explain how to customize this registry.
 
-### Add an equality operator
+### Add an equality comparator
 
-It is possible to add a new equality operator to the `EqualityTester`.
+It is possible to add a new equality comparator to the `EqualityTester`.
 The following example shows how to define a new behavior for strings.
 Instead of checking if two strings are the same (default behavior), the new behavior is that two
 strings are equal if the first string is a part of the second string.
-It is a two-steps process to add a new equality operator to `EqualityTester`.
-First, you need to implement a new `BaseEqualityOperator` with the expected behavior for the
+It is a two-steps process to add a new equality comparator to `EqualityTester`.
+First, you need to implement a new `BaseEqualityComparator` with the expected behavior for the
 specific type (`str` for this example).
-Then, you need to add the `BaseEqualityOperator` to `EqualityTester`.
+Then, you need to add the `BaseEqualityComparator` to `EqualityTester`.
 
 ```pycon
 >>> from typing import Any
->>> from coola import BaseEqualityOperator, BaseEqualityTester, EqualityTester, objects_are_equal
->>> # Step 1: implementation of a new equality operator
->>> class MyCustomStrEqualityOperator(BaseEqualityOperator):
+>>> from coola import objects_are_equal
+>>> from coola.equality.comparators import BaseEqualityComparator
+>>> from coola.equality.testers import BaseEqualityTester, EqualityTester
+>>> # Step 1: implementation of a new equality comparator
+>>> class MyCustomStrEqualityOperator(BaseEqualityComparator):
 ...     def clone(self) -> "MyCustomStrEqualityOperator":
 ...         return self.__class__()
 ...
-...     def equal(
-...         self,
-...         tester: BaseEqualityTester,
-...         object1: str,
-...         object2: Any,
-...         show_difference: bool = False,
-...     ) -> bool:
+...     def equal(self, object1: str, object2: Any, config: EqualityConfig) -> bool:
 ...         # You can add code to check the type and to log a message to indicate
 ...         # the difference between the objects if any. To keep this example
 ...         # simple, this part is skipped.
 ...         return object1 in object2
 ...
->>> # Step 2: add the new equality operator to EqualityTester
+>>> # Step 2: add the new equality comparator to EqualityTester
 >>> tester = EqualityTester.local_copy()
->>> tester.add_operator(str, MyCustomStrEqualityOperator())
+>>> tester.add_comparator(str, MyCustomStrEqualityOperator())
 >>> objects_are_equal("abc", "abcde", tester=tester)
 True
 >>> objects_are_equal("abc", "cba", tester=tester)
 False
->>> tester.registry
-{<class 'collections.abc.Mapping'>: MappingEqualityOperator(),
- <class 'collections.abc.Sequence'>: SequenceEqualityOperator(),
- <class 'dict'>: MappingEqualityOperator(),
- <class 'list'>: SequenceEqualityOperator(),
- <class 'object'>: DefaultEqualityOperator(),
- <class 'tuple'>: SequenceEqualityOperator(),
- ...
- <class 'str'>: MyCustomStrEqualityOperator()}
-
+>>> tester.registry[str]
+MyCustomStrEqualityOperator()
 
 ```
 
-Once registered, the new equality operator is used automatically when you use
+Once registered, the new equality comparator is used automatically when you use
 the `objects_are_equal` function.
-You can use the `registry` attribute to check the registered equality operators.
-You should see the new added equality operator (last line for this example).
+You can use the `registry` attribute to check the registered equality comparators.
+You should see the new added equality comparator (last line for this example).
 
-### Update the equality operator for a given type
+### Update the equality comparator for a given type
 
-The previous section explains how to add a new equality operator to `EqualityTester`.
-This section explains how to update the equality operator for a specific type.
-To update an equality operator for a given type, you need to add the argument `exist_ok=True` when
-the new equality operator is added.
+The previous section explains how to add a new equality comparator to `EqualityTester`.
+This section explains how to update the equality comparator for a specific type.
+To update an equality comparator for a given type, you need to add the argument `exist_ok=True` when
+the new equality comparator is added.
 
 ```pycon
 >>> from collections.abc import Mapping
->>> from coola import BaseEqualityOperator, EqualityTester
->>> class MyCustomMappingEqualityOperator(BaseEqualityOperator):
-...     def clone(self) -> "MyCustomMappingEqualityOperator":
+>>> from coola.equality.comparators import BaseEqualityComparator
+>>> from coola.equality.testers import EqualityTester
+>>> class MyCustomMappingEqualityComparator(BaseEqualityComparator):
+...     def clone(self) -> "MyCustomMappingEqualityComparator":
 ...         return self.__class__()
 ...
-...     def equal(
-...         self,
-...         tester: BaseEqualityTester,
-...         object1: Mapping,
-...         object2: Any,
-...         show_difference: bool = False,
-...     ) -> bool:
+...     def equal(self, object1: Mapping, object2: Any, config: EqualityConfig) -> bool:
 ...         # You can add code to check the type and to log a message to indicate
 ...         # the difference between the objects if any. To keep this example
 ...         # simple, this part is skipped.
 ...         return object1 is object2
 ...
 >>> tester = EqualityTester.local_copy()
->>> tester.add_operator(
+>>> tester.add_comparator(
 ...     Mapping,
-...     MyCustomMappingEqualityOperator(),
+...     MyCustomMappingEqualityComparator(),
 ...     exist_ok=True,
 ... )
->>> tester.registry
-{<class 'collections.abc.Mapping'>: MyCustomMappingEqualityOperator(),
- <class 'collections.abc.Sequence'>: SequenceEqualityOperator(),
- <class 'dict'>: MappingEqualityOperator(),
- <class 'list'>: SequenceEqualityOperator(),
- <class 'object'>: DefaultEqualityOperator(),
- <class 'tuple'>: SequenceEqualityOperator(),
- ...}
+>>> tester.registry[Mapping]
+MyCustomMappingEqualityComparator()
 
 ```
