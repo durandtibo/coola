@@ -38,11 +38,11 @@ jobs:
       - name: Check imports
         run: |
           python -c "from coola import objects_are_allclose, objects_are_equal, summary"
-          python -c "from coola.comparators import BaseAllCloseOperator, BaseEqualityOperator"
+          python -c "from coola.equality.comparators import BaseEqualityOperator"
+          python -c "from coola.equality.testers import BaseEqualityTester"
           python -c "from coola.formatters import BaseFormatter"
           python -c "from coola.reducers import BaseReducer"
           python -c "from coola.summarizers import BaseSummarizer"
-          python -c "from coola.testers import BaseAllCloseTester, BaseEqualityTester"
 
 
   stable-min:
@@ -75,11 +75,11 @@ jobs:
       - name: Check imports
         run: |
           python -c "from coola import objects_are_allclose, objects_are_equal, summary"
-          python -c "from coola.comparators import BaseAllCloseOperator, BaseEqualityOperator"
+          python -c "from coola.equality.comparators import BaseEqualityOperator"
+          python -c "from coola.equality.testers import BaseEqualityTester"
           python -c "from coola.formatters import BaseFormatter"
           python -c "from coola.reducers import BaseReducer"
           python -c "from coola.summarizers import BaseSummarizer"
-          python -c "from coola.testers import BaseAllCloseTester, BaseEqualityTester"
 
 
   latest-all:
@@ -112,11 +112,11 @@ jobs:
       - name: Check imports
         run: |
           python -c "from coola import objects_are_allclose, objects_are_equal, summary"
-          python -c "from coola.comparators import BaseAllCloseOperator, BaseEqualityOperator"
+          python -c "from coola.equality.comparators import BaseEqualityOperator"
+          python -c "from coola.equality.testers import BaseEqualityTester"
           python -c "from coola.formatters import BaseFormatter"
           python -c "from coola.reducers import BaseReducer"
           python -c "from coola.summarizers import BaseSummarizer"
-          python -c "from coola.testers import BaseAllCloseTester, BaseEqualityTester"
 
 
   latest-min:
@@ -149,11 +149,11 @@ jobs:
       - name: Check imports
         run: |
           python -c "from coola import objects_are_allclose, objects_are_equal, summary"
-          python -c "from coola.comparators import BaseAllCloseOperator, BaseEqualityOperator"
+          python -c "from coola.equality.comparators import BaseEqualityOperator"
+          python -c "from coola.equality.testers import BaseEqualityTester"
           python -c "from coola.formatters import BaseFormatter"
           python -c "from coola.reducers import BaseReducer"
           python -c "from coola.summarizers import BaseSummarizer"
-          python -c "from coola.testers import BaseAllCloseTester, BaseEqualityTester"
 
 
   jax:
