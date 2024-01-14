@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib
 import logging
 
 from coola import objects_are_allclose, objects_are_equal
@@ -32,6 +33,25 @@ if is_xarray_available():
     import xarray as xr
 
 logger = logging.getLogger(__name__)
+
+
+def check_imports() -> None:
+    logger.info("Checking imports...")
+    objects_to_import = [
+        "coola.equality.comparators.BaseEqualityComparator",
+        "coola.equality.testers.BaseEqualityTester",
+        "coola.formatters.BaseFormatter",
+        "coola.objects_are_allclose",
+        "coola.objects_are_equal",
+        "coola.reducers.BaseReducer",
+        "coola.summarizers.BaseSummarizer",
+        "coola.summary",
+    ]
+    for a in objects_to_import:
+        module_path, name = a.rsplit(".", maxsplit=1)
+        module = importlib.import_module(module_path)
+        obj = getattr(module, name)
+        assert obj is not None
 
 
 def check_native_comparators() -> None:
@@ -258,6 +278,7 @@ def check_xarray_comparators() -> None:
 
 
 def main() -> None:
+    check_imports()
     check_native_comparators()
     check_jax_comparators()
     check_numpy_comparators()
