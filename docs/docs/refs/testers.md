@@ -1,1 +1,1 @@
-::: coola.testers
+::: coola.equality.testers

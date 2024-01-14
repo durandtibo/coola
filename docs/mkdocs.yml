@@ -31,10 +31,10 @@ nav:
   - Reference:
       - refs/index.md
       - refs/comparators.md
+      - refs/testers.md
       - refs/formatters.md
       - refs/reducers.md
       - refs/summarizers.md
-      - refs/testers.md
       - refs/utils.md
   - Upgrade Guide:
       - upgrade/0.3.md
