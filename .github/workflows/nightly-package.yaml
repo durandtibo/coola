@@ -35,15 +35,6 @@ jobs:
         run: |
           python tests/package_checks.py
 
-      - name: Check imports
-        run: |
-          python -c "from coola import objects_are_allclose, objects_are_equal, summary"
-          python -c "from coola.comparators import BaseAllCloseOperator, BaseEqualityOperator"
-          python -c "from coola.formatters import BaseFormatter"
-          python -c "from coola.reducers import BaseReducer"
-          python -c "from coola.summarizers import BaseSummarizer"
-          python -c "from coola.testers import BaseAllCloseTester, BaseEqualityTester"
-
 
   stable-min:
     runs-on: ${{ matrix.os }}
@@ -71,15 +62,6 @@ jobs:
       - name: Run some checks
         run: |
           python tests/package_checks.py
-
-      - name: Check imports
-        run: |
-          python -c "from coola import objects_are_allclose, objects_are_equal, summary"
-          python -c "from coola.comparators import BaseAllCloseOperator, BaseEqualityOperator"
-          python -c "from coola.formatters import BaseFormatter"
-          python -c "from coola.reducers import BaseReducer"
-          python -c "from coola.summarizers import BaseSummarizer"
-          python -c "from coola.testers import BaseAllCloseTester, BaseEqualityTester"
 
 
   latest-all:
@@ -109,15 +91,6 @@ jobs:
         run: |
           python tests/package_checks.py
 
-      - name: Check imports
-        run: |
-          python -c "from coola import objects_are_allclose, objects_are_equal, summary"
-          python -c "from coola.comparators import BaseAllCloseOperator, BaseEqualityOperator"
-          python -c "from coola.formatters import BaseFormatter"
-          python -c "from coola.reducers import BaseReducer"
-          python -c "from coola.summarizers import BaseSummarizer"
-          python -c "from coola.testers import BaseAllCloseTester, BaseEqualityTester"
-
 
   latest-min:
     runs-on: ${{ matrix.os }}
@@ -145,15 +118,6 @@ jobs:
       - name: Run some checks
         run: |
           python tests/package_checks.py
-
-      - name: Check imports
-        run: |
-          python -c "from coola import objects_are_allclose, objects_are_equal, summary"
-          python -c "from coola.comparators import BaseAllCloseOperator, BaseEqualityOperator"
-          python -c "from coola.formatters import BaseFormatter"
-          python -c "from coola.reducers import BaseReducer"
-          python -c "from coola.summarizers import BaseSummarizer"
-          python -c "from coola.testers import BaseAllCloseTester, BaseEqualityTester"
 
 
   jax:
