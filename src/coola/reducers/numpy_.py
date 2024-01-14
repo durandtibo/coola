@@ -72,6 +72,8 @@ class NumpyReducer(BaseBasicReducer):
         return array.tolist()
 
     def _std(self, values: Sequence[int | float]) -> float:
+        if len(values) <= 1:
+            return float("nan")
         return np.std(np.asarray(values), ddof=1).item()
 
 
