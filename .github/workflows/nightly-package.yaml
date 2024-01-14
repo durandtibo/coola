@@ -38,7 +38,7 @@ jobs:
       - name: Check imports
         run: |
           python -c "from coola import objects_are_allclose, objects_are_equal, summary"
-          python -c "from coola.equality.comparators import BaseEqualityOperator"
+          python -c "from coola.equality.comparators import BaseEqualityComparator"
           python -c "from coola.equality.testers import BaseEqualityTester"
           python -c "from coola.formatters import BaseFormatter"
           python -c "from coola.reducers import BaseReducer"
@@ -75,7 +75,7 @@ jobs:
       - name: Check imports
         run: |
           python -c "from coola import objects_are_allclose, objects_are_equal, summary"
-          python -c "from coola.equality.comparators import BaseEqualityOperator"
+          python -c "from coola.equality.comparators import BaseEqualityComparator"
           python -c "from coola.equality.testers import BaseEqualityTester"
           python -c "from coola.formatters import BaseFormatter"
           python -c "from coola.reducers import BaseReducer"
@@ -112,7 +112,7 @@ jobs:
       - name: Check imports
         run: |
           python -c "from coola import objects_are_allclose, objects_are_equal, summary"
-          python -c "from coola.equality.comparators import BaseEqualityOperator"
+          python -c "from coola.equality.comparators import BaseEqualityComparator"
           python -c "from coola.equality.testers import BaseEqualityTester"
           python -c "from coola.formatters import BaseFormatter"
           python -c "from coola.reducers import BaseReducer"
@@ -149,7 +149,7 @@ jobs:
       - name: Check imports
         run: |
           python -c "from coola import objects_are_allclose, objects_are_equal, summary"
-          python -c "from coola.equality.comparators import BaseEqualityOperator"
+          python -c "from coola.equality.comparators import BaseEqualityComparator"
           python -c "from coola.equality.testers import BaseEqualityTester"
           python -c "from coola.formatters import BaseFormatter"
           python -c "from coola.reducers import BaseReducer"
