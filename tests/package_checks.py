@@ -217,7 +217,7 @@ def check_xarray_comparators() -> None:
                 "x": xr.DataArray(np.arange(6), dims=["z"]),
                 "y": xr.DataArray(np.ones((6, 3)), dims=["z", "t"]),
             },
-            coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
+            coords={"z": np.arange(6) + 1, "t": [1, 2, 3]},
             attrs={"global": "this is a global attribute"},
         ),
         xr.Dataset(
@@ -225,7 +225,7 @@ def check_xarray_comparators() -> None:
                 "x": xr.DataArray(np.arange(6), dims=["z"]),
                 "y": xr.DataArray(np.ones((6, 3)), dims=["z", "t"]),
             },
-            coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
+            coords={"z": np.arange(6) + 1, "t": [1, 2, 3]},
             attrs={"global": "this is a global attribute"},
         ),
     )
@@ -235,7 +235,7 @@ def check_xarray_comparators() -> None:
                 "x": xr.DataArray(np.arange(6), dims=["z"]),
                 "y": xr.DataArray(np.ones((6, 3)), dims=["z", "t"]),
             },
-            coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
+            coords={"z": np.arange(6) + 1, "t": [1, 2, 3]},
             attrs={"global": "this is a global attribute"},
         ),
         xr.Dataset(
@@ -243,7 +243,7 @@ def check_xarray_comparators() -> None:
                 "x": xr.DataArray(np.arange(6), dims=["z"]),
                 "y": xr.DataArray(np.ones((6, 3)), dims=["z", "t"]),
             },
-            coords={"z": np.arange(6) + 1, "t": ["t1", "t2", "t3"]},
+            coords={"z": np.arange(6) + 1, "t": [1, 2, 3]},
             attrs={"global": "this is a global attribute"},
         ),
     )
