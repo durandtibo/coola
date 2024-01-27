@@ -362,9 +362,10 @@ def test_polars_dataframe_equality_comparator_equal_tolerance(
 
 @polars_available
 def test_polars_dataframe_equality_comparator_no_polars() -> None:
-    with patch(
-        "coola.utils.imports.is_polars_available", lambda *args, **kwargs: False
-    ), pytest.raises(RuntimeError, match="`polars` package is required but not installed."):
+    with (
+        patch("coola.utils.imports.is_polars_available", lambda *args, **kwargs: False),
+        pytest.raises(RuntimeError, match="`polars` package is required but not installed."),
+    ):
         PolarsDataFrameEqualityComparator()
 
 
@@ -486,9 +487,10 @@ def test_polars_series_equality_comparator_equal_tolerance(
 
 @polars_available
 def test_polars_series_equality_comparator_no_polars() -> None:
-    with patch(
-        "coola.utils.imports.is_polars_available", lambda *args, **kwargs: False
-    ), pytest.raises(RuntimeError, match="`polars` package is required but not installed."):
+    with (
+        patch("coola.utils.imports.is_polars_available", lambda *args, **kwargs: False),
+        pytest.raises(RuntimeError, match="`polars` package is required but not installed."),
+    ):
         PolarsSeriesEqualityComparator()
 
 

@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 @dataclass
 class EqualityConfig:
     r"""Define the config to control the comparison rules."""
+
     tester: BaseEqualityTester
     equal_nan: bool = False
     atol: float = 0.0
