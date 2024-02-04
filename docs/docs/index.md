@@ -5,7 +5,7 @@
         <img alt="CI" src="https://github.com/durandtibo/coola/workflows/CI/badge.svg">
     </a>
     <a href="https://durandtibo.github.io/coola/">
-        <img alt="Documentation" src="https://github.com/durandtibo/coola/workflows/Documentation/badge.svg">
+        <img alt="Documentation" src="https://github.com/durandtibo/coola/workflows/Documentation%20(stable)/badge.svg">
     </a>
     <a href="https://github.com/durandtibo/coola/actions">
         <img alt="Nightly Tests" src="https://github.com/durandtibo/coola/workflows/Nightly%20Tests/badge.svg">
