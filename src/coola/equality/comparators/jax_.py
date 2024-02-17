@@ -89,10 +89,8 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
     """
     if not is_jax_available():
         return {}
-    return {
-        jnp.ndarray: JaxArrayEqualityComparator(),
-        get_array_impl_class(): JaxArrayEqualityComparator(),
-    }
+    cmp = JaxArrayEqualityComparator()
+    return {jnp.ndarray: cmp, get_array_impl_class(): cmp}
 
 
 @lru_cache(maxsize=1)
