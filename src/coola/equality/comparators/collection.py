@@ -6,6 +6,7 @@ from __future__ import annotations
 __all__ = ["MappingEqualityComparator", "SequenceEqualityComparator", "get_type_comparator_mapping"]
 
 import logging
+from collections import deque
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any
 
@@ -109,16 +110,20 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
     >>> get_type_comparator_mapping()
     {<class 'collections.abc.Mapping'>: MappingEqualityComparator(),
      <class 'collections.abc.Sequence'>: SequenceEqualityComparator(),
+     <class 'collections.deque'>: SequenceEqualityComparator(),
      <class 'dict'>: MappingEqualityComparator(),
      <class 'list'>: SequenceEqualityComparator(),
      <class 'tuple'>: SequenceEqualityComparator()}
 
     ```
     """
+    map_eq = MappingEqualityComparator()
+    seq_eq = SequenceEqualityComparator()
     return {
-        Mapping: MappingEqualityComparator(),
-        Sequence: SequenceEqualityComparator(),
-        dict: MappingEqualityComparator(),
-        list: SequenceEqualityComparator(),
-        tuple: SequenceEqualityComparator(),
+        Mapping: map_eq,
+        Sequence: seq_eq,
+        deque: seq_eq,
+        dict: map_eq,
+        list: seq_eq,
+        tuple: seq_eq,
     }

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from collections import OrderedDict
+from collections import OrderedDict, deque
 from collections.abc import Mapping, Sequence
 from unittest.mock import Mock
 
@@ -130,6 +130,8 @@ MAPPING_EQUAL_TOLERANCE = [
 
 SEQUENCE_EQUAL = [
     pytest.param(ExamplePair(object1=[], object2=[]), id="empty list"),
+    pytest.param(ExamplePair(object1=(), object2=()), id="empty tuple"),
+    pytest.param(ExamplePair(object1=deque(), object2=deque()), id="empty deque"),
     pytest.param(ExamplePair(object1=[1, 2, 3, "abc"], object2=[1, 2, 3, "abc"]), id="flat list"),
     pytest.param(
         ExamplePair(object1=[1, 2, [3, 4, 5]], object2=[1, 2, [3, 4, 5]]),
@@ -142,6 +144,7 @@ SEQUENCE_EQUAL = [
         ),
         id="flat tuple",
     ),
+    pytest.param(ExamplePair(object1=deque([1, 2, 3]), object2=deque([1, 2, 3])), id="deque"),
 ]
 
 SEQUENCE_NOT_EQUAL = [
@@ -401,6 +404,7 @@ def test_sequence_equality_comparator_equal_true_same_object(config: EqualityCon
         (["abc", "def"], ["abc", "def"]),
         (("abc", "def"), ("abc", "def")),
         ([0, ("a", "b", "c"), 2], [0, ("a", "b", "c"), 2]),
+        (deque([1, 2, 3]), deque([1, 2, 3])),
     ],
 )
 def test_sequence_equality_comparator_equal_true(
@@ -536,4 +540,5 @@ def test_get_type_comparator_mapping() -> None:
         dict: MappingEqualityComparator(),
         list: SequenceEqualityComparator(),
         tuple: SequenceEqualityComparator(),
+        deque: SequenceEqualityComparator(),
     }
