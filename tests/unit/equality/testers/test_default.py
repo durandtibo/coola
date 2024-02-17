@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import deque
 from collections.abc import Mapping, Sequence
 from unittest.mock import Mock, patch
 
@@ -136,9 +137,10 @@ def test_equality_tester_local_copy() -> None:
 
 
 def test_equality_tester_registry_default() -> None:
-    assert len(EqualityTester.registry) >= 6
+    assert len(EqualityTester.registry) >= 7
     assert isinstance(EqualityTester.registry[Mapping], MappingEqualityComparator)
     assert isinstance(EqualityTester.registry[Sequence], SequenceEqualityComparator)
+    assert isinstance(EqualityTester.registry[deque], SequenceEqualityComparator)
     assert isinstance(EqualityTester.registry[dict], MappingEqualityComparator)
     assert isinstance(EqualityTester.registry[list], SequenceEqualityComparator)
     assert isinstance(EqualityTester.registry[object], DefaultEqualityComparator)

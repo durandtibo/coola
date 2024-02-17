@@ -53,6 +53,7 @@ You can use the following code to see the registered equality comparators with t
 {<class 'object'>: DefaultEqualityComparator(),
  <class 'collections.abc.Mapping'>: MappingEqualityComparator(),
  <class 'collections.abc.Sequence'>: SequenceEqualityComparator(),
+ <class 'collections.deque'>: SequenceEqualityComparator(),
  <class 'dict'>: MappingEqualityComparator(),
  <class 'list'>: SequenceEqualityComparator(),
  <class 'tuple'>: SequenceEqualityComparator(),
