@@ -69,4 +69,5 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
 
     ```
     """
-    return {float: ScalarEqualityComparator(), int: ScalarEqualityComparator()}
+    cmp = ScalarEqualityComparator()
+    return {float: cmp, int: cmp}

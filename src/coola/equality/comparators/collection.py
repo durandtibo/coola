@@ -117,13 +117,13 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
 
     ```
     """
-    map_eq = MappingEqualityComparator()
-    seq_eq = SequenceEqualityComparator()
+    map_cmp = MappingEqualityComparator()
+    seq_cmp = SequenceEqualityComparator()
     return {
-        Mapping: map_eq,
-        Sequence: seq_eq,
-        deque: seq_eq,
-        dict: map_eq,
-        list: seq_eq,
-        tuple: seq_eq,
+        Mapping: map_cmp,
+        Sequence: seq_cmp,
+        deque: seq_cmp,
+        dict: map_cmp,
+        list: seq_cmp,
+        tuple: seq_cmp,
     }
