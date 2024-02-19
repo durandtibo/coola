@@ -506,6 +506,7 @@ def test_sequence_equality_comparator_equal_true_tolerance(
     [
         ([np.ones((2, 3)), np.zeros(2)], [np.ones((2, 3)), np.zeros(2)]),
         ((np.ones((2, 3)), np.zeros(2)), (np.ones((2, 3)), np.zeros(2))),
+        (deque([np.ones((2, 3)), np.zeros(2)]), deque([np.ones((2, 3)), np.zeros(2)])),
     ],
 )
 def test_sequence_equality_comparator_equal_true_numpy(
