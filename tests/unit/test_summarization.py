@@ -89,4 +89,4 @@ def test_summary_summarizer(value: Any, max_depth: int) -> None:
     summarizer = Mock(spec=BaseSummarizer)
     summary(value, max_depth=max_depth, summarizer=summarizer)
     summarizer.summary.assert_called_once_with(value=value, depth=0, max_depth=max_depth)
-    assert False
+    assert value == 1
