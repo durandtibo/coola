@@ -31,6 +31,9 @@ jobs:
           poetry run make config-poetry
           poetry run make install-all
 
+      - name: Install pytest plugins
+        run: pip install pytest-github-actions-annotate-failures
+
       - name: Show installed packages
         run: |
           poetry run poetry show
