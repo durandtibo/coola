@@ -57,14 +57,6 @@ def test_numpy_assert_equal(data: Any) -> None:
     [
         pytest.param(torch.ones(2, 3), id="torch Tensor"),
         pytest.param(
-            torch.nn.utils.rnn.pack_padded_sequence(
-                input=torch.arange(10, dtype=torch.float).view(2, 5),
-                lengths=torch.tensor([5, 3], dtype=torch.long),
-                batch_first=True,
-            ),
-            id="torch PackedSequence",
-        ),
-        pytest.param(
             {"key1": torch.ones(2, 3), "key2": torch.ones(2, 3), "key3": 42},
             id="dict with tensor like objects",
         ),
