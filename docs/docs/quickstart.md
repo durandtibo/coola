@@ -352,3 +352,133 @@ True
 False
 True
 ```
+
+## Connection with similar tools
+
+`coola` is not the first tool to provide functions to compare nested objects.
+If you are a PyTorch user, you probably know
+the [`torch.testing.assert_close`](https://pytorch.org/docs/stable/testing.html) function.
+If you are a NumPy user, you probably know
+the [`numpy.testing.assert_equal`](https://numpy.org/doc/stable/reference/generated/numpy.testing.assert_equal.html)
+function.
+However, most of these functions work in a fix scope and are difficult to extend or customize.
+On the opposite side, `coola` is flexible and easy to customize.
+
+Let's take a look to `torch`.
+[`torch.testing.assert_close`](https://pytorch.org/docs/stable/testing.html) allows to easily
+compare `torch.Tensor`s objects:
+
+```pycon
+>>> import torch
+>>> torch.testing.assert_close(torch.ones(2, 3), torch.ones(2, 3))
+
+```
+
+It can also be used on mappings or sequences:
+
+```pycon
+>>> import torch
+>>> torch.testing.assert_close(
+...     [torch.ones(2, 3), torch.zeros(3)],
+...     [torch.ones(2, 3), torch.zeros(3)],
+... )
+>>> torch.testing.assert_close(
+...     {'key1': torch.ones(2, 3), 'key2': torch.zeros(3)},
+...     {'key1': torch.ones(2, 3), 'key2': torch.zeros(3)},
+... )
+>>> torch.testing.assert_close(
+...     {'key1': torch.ones(2, 3), 'key2': {'key3': torch.zeros(3), 'key4': [torch.arange(5)]}},
+...     {'key1': torch.ones(2, 3), 'key2': {'key3': torch.zeros(3), 'key4': [torch.arange(5)]}},
+... )
+
+```
+
+It also works on tensor like objects like NumPy arrays:
+
+```pycon
+>>> import torch
+>>> import numpy as np
+>>> torch.testing.assert_close(
+...     [torch.ones(2, 3), np.zeros(3)],
+...     [torch.ones(2, 3), np.zeros(3)],
+... )
+>>> torch.testing.assert_close([torch.ones(2, 3), 42], [torch.ones(2, 3), 42])
+
+```
+
+However, it does not work if the data structure contains a string:
+
+```pycon
+>>> import torch
+>>> torch.testing.assert_close(
+...     {'key1': torch.ones(2, 3), 'key2': torch.zeros(3), "key3": "abc"},
+...     {'key1': torch.ones(2, 3), 'key2': torch.zeros(3), "key3": "abc"},
+... )
+Traceback (most recent call last):
+...
+TypeError: No comparison pair was able to handle inputs of type <class 'str'> and <class 'str'>.
+The failure occurred for item ['key3']
+
+```
+
+`coola` can compare these objects:
+
+```pycon
+>>> import torch
+>>> import coola
+>>> coola.objects_are_equal(
+...     {'key1': torch.ones(2, 3), 'key2': torch.zeros(3), "key3": "abc"},
+...     {'key1': torch.ones(2, 3), 'key2': torch.zeros(3), "key3": "abc"},
+... )
+True
+
+```
+
+[`numpy.testing.assert_equal`](https://numpy.org/doc/stable/reference/generated/numpy.testing.assert_equal.html)
+has different limitations.
+For example, it can work with strings but can handle only simple sequence and mapping objects
+
+```pycon
+>>> import numpy as np
+>>> from collections import deque
+>>> np.testing.assert_equal(
+...     {'key1': np.ones((2, 3)), 'key2': np.zeros(3)},
+...     {'key1': np.ones((2, 3)), 'key2': np.zeros(3)},
+... )
+>>> np.testing.assert_equal(
+...     {'key1': np.ones((2, 3)), 'key2': np.zeros(3), "key3": "abc"},
+...     {'key1': np.ones((2, 3)), 'key2': np.zeros(3), "key3": "abc"},
+... )
+>>> np.testing.assert_equal(
+...     deque([np.ones((2, 3)), np.zeros(3)]),
+...     deque([np.ones((2, 3)), np.zeros(3)]),
+... )
+Traceback (most recent call last):
+...
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+```
+
+`coola` can compare these objects:
+
+```pycon
+>>> import coola
+>>> import numpy as np
+>>> from collections import deque
+>>> coola.objects_are_equal(
+...     {'key1': np.ones((2, 3)), 'key2': np.zeros(3)},
+...     {'key1': np.ones((2, 3)), 'key2': np.zeros(3)},
+... )
+True
+>>> coola.objects_are_equal(
+...     {'key1': np.ones((2, 3)), 'key2': np.zeros(3), "key3": "abc"},
+...     {'key1': np.ones((2, 3)), 'key2': np.zeros(3), "key3": "abc"},
+... )
+True
+>>> coola.objects_are_equal(
+...     deque([np.ones((2, 3)), np.zeros(3)]),
+...     deque([np.ones((2, 3)), np.zeros(3)]),
+... )
+True
+
+```
