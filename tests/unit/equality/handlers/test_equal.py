@@ -51,17 +51,17 @@ def test_same_data_handler_str() -> None:
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [(MyFloat(42), 42), (MyFloat(0), 0)],
 )
 def test_equal_handler_handle_true(
-    object1: SupportsEqual, object2: Any, config: EqualityConfig
+    actual: SupportsEqual, expected: Any, config: EqualityConfig
 ) -> None:
-    assert EqualHandler().handle(object1, object2, config)
+    assert EqualHandler().handle(actual, expected, config)
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (MyFloat(42), 1),
         (MyFloat(0), float("nan")),
@@ -69,9 +69,9 @@ def test_equal_handler_handle_true(
     ],
 )
 def test_equal_handler_handle_false(
-    object1: SupportsEqual, object2: Any, config: EqualityConfig
+    actual: SupportsEqual, expected: Any, config: EqualityConfig
 ) -> None:
-    assert not EqualHandler().handle(object1, object2, config)
+    assert not EqualHandler().handle(actual, expected, config)
 
 
 def test_equal_handler_handle_false_show_difference(
@@ -80,7 +80,7 @@ def test_equal_handler_handle_false_show_difference(
     config.show_difference = True
     handler = EqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(object1=MyFloat(42), object2=1, config=config)
+        assert not handler.handle(actual=MyFloat(42), expected=1, config=config)
         assert caplog.messages[-1].startswith("objects are not equal:")
 
 

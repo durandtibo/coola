@@ -30,14 +30,14 @@ def config() -> EqualityConfig:
 
 
 MAPPING_EQUAL = [
-    pytest.param(ExamplePair(object1={}, object2={}), id="empty dict"),
-    pytest.param(ExamplePair(object1={"a": 1, "b": 2}, object2={"a": 1, "b": 2}), id="flat dict"),
+    pytest.param(ExamplePair(actual={}, expected={}), id="empty dict"),
+    pytest.param(ExamplePair(actual={"a": 1, "b": 2}, expected={"a": 1, "b": 2}), id="flat dict"),
     pytest.param(
-        ExamplePair(object1={"a": 1, "b": {"k": 1}}, object2={"a": 1, "b": {"k": 1}}),
+        ExamplePair(actual={"a": 1, "b": {"k": 1}}, expected={"a": 1, "b": {"k": 1}}),
         id="nested dict",
     ),
     pytest.param(
-        ExamplePair(object1=OrderedDict({"a": 1, "b": 2}), object2=OrderedDict({"a": 1, "b": 2})),
+        ExamplePair(actual=OrderedDict({"a": 1, "b": 2}), expected=OrderedDict({"a": 1, "b": 2})),
         id="OrderedDict",
     ),
 ]
@@ -45,47 +45,47 @@ MAPPING_EQUAL = [
 MAPPING_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
-            object1={"a": 1, "b": 2},
-            object2={"a": 1, "c": 2},
+            actual={"a": 1, "b": 2},
+            expected={"a": 1, "c": 2},
             expected_message="mappings have different keys:",
         ),
         id="different keys",
     ),
     pytest.param(
         ExamplePair(
-            object1={"a": 1, "b": 2},
-            object2={"a": 1, "b": 3},
+            actual={"a": 1, "b": 2},
+            expected={"a": 1, "b": 3},
             expected_message="mappings have at least one different value:",
         ),
         id="different values",
     ),
     pytest.param(
         ExamplePair(
-            object1={"a": 1, "b": {"k": 1}},
-            object2={"a": 1, "b": {"k": 2}},
+            actual={"a": 1, "b": {"k": 1}},
+            expected={"a": 1, "b": {"k": 2}},
             expected_message="mappings have at least one different value:",
         ),
         id="different values - nested",
     ),
     pytest.param(
         ExamplePair(
-            object1={"a": 1, "b": 2},
-            object2={"a": 1, "b": float("nan")},
+            actual={"a": 1, "b": 2},
+            expected={"a": 1, "b": float("nan")},
             expected_message="mappings have at least one different value:",
         ),
         id="different values - nan",
     ),
     pytest.param(
         ExamplePair(
-            object1={"a": 1, "b": 2},
-            object2={"a": 1, "b": 2, "c": 3},
+            actual={"a": 1, "b": 2},
+            expected={"a": 1, "b": 2, "c": 3},
             expected_message="objects have different lengths:",
         ),
         id="different number of items",
     ),
     pytest.param(
         ExamplePair(
-            object1={}, object2=OrderedDict({}), expected_message="objects have different types:"
+            actual={}, expected=OrderedDict({}), expected_message="objects have different types:"
         ),
         id="different types",
     ),
@@ -94,94 +94,94 @@ MAPPING_NOT_EQUAL = [
 MAPPING_EQUAL_TOLERANCE = [
     # atol
     pytest.param(
-        ExamplePair(object1={"a": 1, "b": 2}, object2={"a": 1, "b": 3}, atol=1.0),
+        ExamplePair(actual={"a": 1, "b": 2}, expected={"a": 1, "b": 3}, atol=1.0),
         id="flat dict atol=1",
     ),
     pytest.param(
-        ExamplePair(object1={"a": 1, "b": {"k": 2}}, object2={"a": 1, "b": {"k": 3}}, atol=1.0),
+        ExamplePair(actual={"a": 1, "b": {"k": 2}}, expected={"a": 1, "b": {"k": 3}}, atol=1.0),
         id="nested dict atol=1",
     ),
     pytest.param(
-        ExamplePair(object1={"a": 1, "b": 2}, object2={"a": 4, "b": -2}, atol=10.0),
+        ExamplePair(actual={"a": 1, "b": 2}, expected={"a": 4, "b": -2}, atol=10.0),
         id="flat dict atol=10",
     ),
     pytest.param(
-        ExamplePair(object1={"a": 1.0, "b": 2.0}, object2={"a": 1.0001, "b": 1.9999}, atol=1e-3),
+        ExamplePair(actual={"a": 1.0, "b": 2.0}, expected={"a": 1.0001, "b": 1.9999}, atol=1e-3),
         id="flat dict atol=1e-3",
     ),
     # rtol
     pytest.param(
-        ExamplePair(object1={"a": 1, "b": 2}, object2={"a": 1, "b": 3}, rtol=1.0),
+        ExamplePair(actual={"a": 1, "b": 2}, expected={"a": 1, "b": 3}, rtol=1.0),
         id="flat dict rtol=1",
     ),
     pytest.param(
-        ExamplePair(object1={"a": 1, "b": {"k": 2}}, object2={"a": 1, "b": {"k": 3}}, rtol=1.0),
+        ExamplePair(actual={"a": 1, "b": {"k": 2}}, expected={"a": 1, "b": {"k": 3}}, rtol=1.0),
         id="nested dict rtol=1",
     ),
     pytest.param(
-        ExamplePair(object1={"a": 1, "b": 2}, object2={"a": 4, "b": -2}, rtol=10.0),
+        ExamplePair(actual={"a": 1, "b": 2}, expected={"a": 4, "b": -2}, rtol=10.0),
         id="flat dict rtol=10",
     ),
     pytest.param(
-        ExamplePair(object1={"a": 1.0, "b": 2.0}, object2={"a": 1.0001, "b": 1.9999}, rtol=1e-3),
+        ExamplePair(actual={"a": 1.0, "b": 2.0}, expected={"a": 1.0001, "b": 1.9999}, rtol=1e-3),
         id="flat dict rtol=1e-3",
     ),
 ]
 
 SEQUENCE_EQUAL = [
-    pytest.param(ExamplePair(object1=[], object2=[]), id="empty list"),
-    pytest.param(ExamplePair(object1=(), object2=()), id="empty tuple"),
-    pytest.param(ExamplePair(object1=deque(), object2=deque()), id="empty deque"),
-    pytest.param(ExamplePair(object1=[1, 2, 3, "abc"], object2=[1, 2, 3, "abc"]), id="flat list"),
+    pytest.param(ExamplePair(actual=[], expected=[]), id="empty list"),
+    pytest.param(ExamplePair(actual=(), expected=()), id="empty tuple"),
+    pytest.param(ExamplePair(actual=deque(), expected=deque()), id="empty deque"),
+    pytest.param(ExamplePair(actual=[1, 2, 3, "abc"], expected=[1, 2, 3, "abc"]), id="flat list"),
     pytest.param(
-        ExamplePair(object1=[1, 2, [3, 4, 5]], object2=[1, 2, [3, 4, 5]]),
+        ExamplePair(actual=[1, 2, [3, 4, 5]], expected=[1, 2, [3, 4, 5]]),
         id="nested list",
     ),
     pytest.param(
         ExamplePair(
-            object1=(1, 2, 3),
-            object2=(1, 2, 3),
+            actual=(1, 2, 3),
+            expected=(1, 2, 3),
         ),
         id="flat tuple",
     ),
-    pytest.param(ExamplePair(object1=deque([1, 2, 3]), object2=deque([1, 2, 3])), id="deque"),
+    pytest.param(ExamplePair(actual=deque([1, 2, 3]), expected=deque([1, 2, 3])), id="deque"),
 ]
 
 SEQUENCE_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
-            object1=[1, 2, 3],
-            object2=[1, 2, 4],
+            actual=[1, 2, 3],
+            expected=[1, 2, 4],
             expected_message="sequences have at least one different value:",
         ),
         id="different values",
     ),
     pytest.param(
         ExamplePair(
-            object1=[1, 2, [3, 4, 5]],
-            object2=[1, 2, [3, 4, 6]],
+            actual=[1, 2, [3, 4, 5]],
+            expected=[1, 2, [3, 4, 6]],
             expected_message="sequences have at least one different value:",
         ),
         id="different values - nested",
     ),
     pytest.param(
         ExamplePair(
-            object1=[1, 2, 3],
-            object2=[1, 2, float("nan")],
+            actual=[1, 2, 3],
+            expected=[1, 2, float("nan")],
             expected_message="sequences have at least one different value:",
         ),
         id="different values - nan",
     ),
     pytest.param(
         ExamplePair(
-            object1=[1, 2, 3],
-            object2=[1, 2],
+            actual=[1, 2, 3],
+            expected=[1, 2],
             expected_message="objects have different lengths:",
         ),
         id="different lengths",
     ),
     pytest.param(
-        ExamplePair(object1=[], object2=(), expected_message="objects have different types:"),
+        ExamplePair(actual=[], expected=(), expected_message="objects have different types:"),
         id="different types",
     ),
 ]
@@ -189,32 +189,32 @@ SEQUENCE_NOT_EQUAL = [
 SEQUENCE_EQUAL_TOLERANCE = [
     # atol
     pytest.param(
-        ExamplePair(object1=[1, 2, 3], object2=[1, 2, 4], atol=1.0), id="flat sequence atol=1"
+        ExamplePair(actual=[1, 2, 3], expected=[1, 2, 4], atol=1.0), id="flat sequence atol=1"
     ),
     pytest.param(
-        ExamplePair(object1=[1, 2, [3, 4, 5]], object2=[1, 2, [4, 5, 6]], atol=1.0),
+        ExamplePair(actual=[1, 2, [3, 4, 5]], expected=[1, 2, [4, 5, 6]], atol=1.0),
         id="nested sequence atol=1",
     ),
     pytest.param(
-        ExamplePair(object1=[1, 2, 3], object2=[-4, 5, 6], atol=10.0), id="flat sequence atol=10"
+        ExamplePair(actual=[1, 2, 3], expected=[-4, 5, 6], atol=10.0), id="flat sequence atol=10"
     ),
     pytest.param(
-        ExamplePair(object1=[1.0, 2.0, 3.0], object2=[1.0001, 1.9999, 3.0001], atol=1e-3),
+        ExamplePair(actual=[1.0, 2.0, 3.0], expected=[1.0001, 1.9999, 3.0001], atol=1e-3),
         id="flat sequence atol=1e-3",
     ),
     # rtol
     pytest.param(
-        ExamplePair(object1=[1, 2, 3], object2=[1, 2, 4], rtol=1.0), id="flat sequence rtol=1"
+        ExamplePair(actual=[1, 2, 3], expected=[1, 2, 4], rtol=1.0), id="flat sequence rtol=1"
     ),
     pytest.param(
-        ExamplePair(object1=[1, 2, [3, 4, 5]], object2=[1, 2, [4, 5, 6]], rtol=1.0),
+        ExamplePair(actual=[1, 2, [3, 4, 5]], expected=[1, 2, [4, 5, 6]], rtol=1.0),
         id="nested sequence rtol=1",
     ),
     pytest.param(
-        ExamplePair(object1=[1, 2, 3], object2=[-4, 5, 6], rtol=10.0), id="flat sequence rtol=10"
+        ExamplePair(actual=[1, 2, 3], expected=[-4, 5, 6], rtol=10.0), id="flat sequence rtol=10"
     ),
     pytest.param(
-        ExamplePair(object1=[1.0, 2.0, 3.0], object2=[1.0001, 1.9999, 3.0001], rtol=1e-3),
+        ExamplePair(actual=[1.0, 2.0, 3.0], expected=[1.0001, 1.9999, 3.0001], rtol=1e-3),
         id="flat sequence rtol=1e-3",
     ),
 ]
@@ -263,7 +263,7 @@ def test_mapping_equality_comparator_equal_yes(
 ) -> None:
     comparator = MappingEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -276,7 +276,7 @@ def test_mapping_equality_comparator_equal_yes_show_difference(
     config.show_difference = True
     comparator = MappingEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -288,7 +288,7 @@ def test_mapping_equality_comparator_equal_false(
 ) -> None:
     comparator = MappingEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -301,7 +301,7 @@ def test_mapping_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = MappingEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
@@ -310,8 +310,8 @@ def test_mapping_equality_comparator_equal_nan(config: EqualityConfig, equal_nan
     config.equal_nan = equal_nan
     assert (
         MappingEqualityComparator().equal(
-            object1={"a": float("nan"), "b": float("nan")},
-            object2={"a": float("nan"), "b": float("nan")},
+            actual={"a": float("nan"), "b": float("nan")},
+            expected={"a": float("nan"), "b": float("nan")},
             config=config,
         )
         == equal_nan
@@ -325,13 +325,13 @@ def test_mapping_equality_comparator_equal_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert MappingEqualityComparator().equal(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.actual, expected=example.expected, config=config
     )
 
 
 @numpy_available
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         ({"a": np.ones((2, 3)), "b": np.zeros(2)}, {"a": np.ones((2, 3)), "b": np.zeros(2)}),
         (
@@ -341,14 +341,14 @@ def test_mapping_equality_comparator_equal_true_tolerance(
     ],
 )
 def test_mapping_equality_comparator_equal_true_numpy(
-    object1: Mapping, object2: Mapping, config: EqualityConfig
+    actual: Mapping, expected: Mapping, config: EqualityConfig
 ) -> None:
-    assert MappingEqualityComparator().equal(object1, object2, config)
+    assert MappingEqualityComparator().equal(actual, expected, config)
 
 
 @numpy_available
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         ({"a": np.ones((2, 3)), "b": np.zeros(2)}, {"a": np.ones((2, 3)), "b": np.ones(2)}),
         (
@@ -358,9 +358,9 @@ def test_mapping_equality_comparator_equal_true_numpy(
     ],
 )
 def test_mapping_equality_comparator_equal_false_numpy(
-    object1: Mapping, object2: Mapping, config: EqualityConfig
+    actual: Mapping, expected: Mapping, config: EqualityConfig
 ) -> None:
-    assert not MappingEqualityComparator().equal(object1, object2, config)
+    assert not MappingEqualityComparator().equal(actual, expected, config)
 
 
 ################################################
@@ -395,7 +395,7 @@ def test_sequence_equality_comparator_equal_true_same_object(config: EqualityCon
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         ([], []),
         ((), ()),
@@ -408,11 +408,11 @@ def test_sequence_equality_comparator_equal_true_same_object(config: EqualityCon
     ],
 )
 def test_sequence_equality_comparator_equal_true(
-    caplog: pytest.LogCaptureFixture, object1: Sequence, object2: Sequence, config: EqualityConfig
+    caplog: pytest.LogCaptureFixture, actual: Sequence, expected: Sequence, config: EqualityConfig
 ) -> None:
     comparator = SequenceEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1, object2, config)
+        assert comparator.equal(actual, expected, config)
         assert not caplog.messages
 
 
@@ -422,7 +422,7 @@ def test_sequence_equality_comparator_equal_true_show_difference(
     config.show_difference = True
     comparator = SequenceEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=[1], object2=[1], config=config)
+        assert comparator.equal(actual=[1], expected=[1], config=config)
         assert not caplog.messages
 
 
@@ -434,7 +434,7 @@ def test_sequence_equality_comparator_equal_yes(
 ) -> None:
     comparator = SequenceEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -447,7 +447,7 @@ def test_sequence_equality_comparator_equal_yes_show_difference(
     config.show_difference = True
     comparator = SequenceEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -459,7 +459,7 @@ def test_sequence_equality_comparator_equal_false(
 ) -> None:
     comparator = SequenceEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -472,7 +472,7 @@ def test_sequence_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = SequenceEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
@@ -481,8 +481,8 @@ def test_sequence_equality_comparator_equal_nan(config: EqualityConfig, equal_na
     config.equal_nan = equal_nan
     assert (
         SequenceEqualityComparator().equal(
-            object1=[float("nan"), 2, float("nan")],
-            object2=[float("nan"), 2, float("nan")],
+            actual=[float("nan"), 2, float("nan")],
+            expected=[float("nan"), 2, float("nan")],
             config=config,
         )
         == equal_nan
@@ -496,13 +496,13 @@ def test_sequence_equality_comparator_equal_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert SequenceEqualityComparator().equal(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.actual, expected=example.expected, config=config
     )
 
 
 @numpy_available
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         ([np.ones((2, 3)), np.zeros(2)], [np.ones((2, 3)), np.zeros(2)]),
         ((np.ones((2, 3)), np.zeros(2)), (np.ones((2, 3)), np.zeros(2))),
@@ -510,23 +510,23 @@ def test_sequence_equality_comparator_equal_true_tolerance(
     ],
 )
 def test_sequence_equality_comparator_equal_true_numpy(
-    object1: Sequence, object2: Sequence, config: EqualityConfig
+    actual: Sequence, expected: Sequence, config: EqualityConfig
 ) -> None:
-    assert SequenceEqualityComparator().equal(object1, object2, config)
+    assert SequenceEqualityComparator().equal(actual, expected, config)
 
 
 @numpy_available
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         ([np.ones((2, 3)), np.zeros(2)], [np.ones((2, 3)), np.ones(2)]),
         ((np.ones((2, 3)), np.zeros(2)), (np.ones((2, 3)), np.ones(2))),
     ],
 )
 def test_sequence_equality_comparator_equal_false_numpy(
-    object1: Sequence, object2: Sequence, config: EqualityConfig
+    actual: Sequence, expected: Sequence, config: EqualityConfig
 ) -> None:
-    assert not SequenceEqualityComparator().equal(object1, object2, config)
+    assert not SequenceEqualityComparator().equal(actual, expected, config)
 
 
 #################################################

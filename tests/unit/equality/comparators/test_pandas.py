@@ -30,22 +30,22 @@ def config() -> EqualityConfig:
 PANDAS_DATAFRAME_EQUAL = [
     pytest.param(
         ExamplePair(
-            object1=pandas.DataFrame({}),
-            object2=pandas.DataFrame({}),
+            actual=pandas.DataFrame({}),
+            expected=pandas.DataFrame({}),
         ),
         id="0 column",
     ),
     pytest.param(
         ExamplePair(
-            object1=pandas.DataFrame({"col": [1, 2, 3]}),
-            object2=pandas.DataFrame({"col": [1, 2, 3]}),
+            actual=pandas.DataFrame({"col": [1, 2, 3]}),
+            expected=pandas.DataFrame({"col": [1, 2, 3]}),
         ),
         id="1 column",
     ),
     pytest.param(
         ExamplePair(
-            object1=pandas.DataFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]}),
-            object2=pandas.DataFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]}),
+            actual=pandas.DataFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]}),
+            expected=pandas.DataFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]}),
         ),
         id="2 columns",
     ),
@@ -54,24 +54,24 @@ PANDAS_DATAFRAME_EQUAL = [
 PANDAS_DATAFRAME_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
-            object1=pandas.DataFrame({"col": [1, 2, 3]}),
-            object2=pandas.DataFrame({"col": [1, 2, 4]}),
+            actual=pandas.DataFrame({"col": [1, 2, 3]}),
+            expected=pandas.DataFrame({"col": [1, 2, 4]}),
             expected_message="pandas.DataFrames have different elements:",
         ),
         id="different values",
     ),
     pytest.param(
         ExamplePair(
-            object1=pandas.DataFrame({"col1": [1, 2, 3]}),
-            object2=pandas.DataFrame({"col2": [1, 2, 3]}),
+            actual=pandas.DataFrame({"col1": [1, 2, 3]}),
+            expected=pandas.DataFrame({"col2": [1, 2, 3]}),
             expected_message="pandas.DataFrames have different elements:",
         ),
         id="different column names",
     ),
     pytest.param(
         ExamplePair(
-            object1=pandas.DataFrame({"col1": [1, 2, 3]}),
-            object2=pandas.Series([1, 2, 3]),
+            actual=pandas.DataFrame({"col1": [1, 2, 3]}),
+            expected=pandas.Series([1, 2, 3]),
             expected_message="objects have different types:",
         ),
         id="different column names",
@@ -82,24 +82,24 @@ PANDAS_DATAFRAME_EQUAL_TOLERANCE = [
     # atol
     pytest.param(
         ExamplePair(
-            object1=pandas.DataFrame({"col": [1.0, 1.0, 1.0]}),
-            object2=pandas.DataFrame({"col": [1.5, 1.5, 0.5]}),
+            actual=pandas.DataFrame({"col": [1.0, 1.0, 1.0]}),
+            expected=pandas.DataFrame({"col": [1.5, 1.5, 0.5]}),
             atol=1.0,
         ),
         id="atol=1",
     ),
     pytest.param(
         ExamplePair(
-            object1=pandas.DataFrame({"col": [1.0, 1.0, 1.0]}),
-            object2=pandas.DataFrame({"col": [1.0, 1.05, 0.95]}),
+            actual=pandas.DataFrame({"col": [1.0, 1.0, 1.0]}),
+            expected=pandas.DataFrame({"col": [1.0, 1.05, 0.95]}),
             atol=0.1,
         ),
         id="atol=0.1",
     ),
     pytest.param(
         ExamplePair(
-            object1=pandas.DataFrame({"col": [1.0, 1.0, 1.0]}),
-            object2=pandas.DataFrame({"col": [1.0, 1.005, 0.995]}),
+            actual=pandas.DataFrame({"col": [1.0, 1.0, 1.0]}),
+            expected=pandas.DataFrame({"col": [1.0, 1.005, 0.995]}),
             atol=0.01,
         ),
         id="atol=0.01",
@@ -107,24 +107,24 @@ PANDAS_DATAFRAME_EQUAL_TOLERANCE = [
     # rtol
     pytest.param(
         ExamplePair(
-            object1=pandas.DataFrame({"col": [1.0, 1.0, 1.0]}),
-            object2=pandas.DataFrame({"col": [1.0, 1.5, 0.5]}),
+            actual=pandas.DataFrame({"col": [1.0, 1.0, 1.0]}),
+            expected=pandas.DataFrame({"col": [1.0, 1.5, 0.5]}),
             rtol=1.0,
         ),
         id="rtol=1",
     ),
     pytest.param(
         ExamplePair(
-            object1=pandas.DataFrame({"col": [1.0, 1.0, 1.0]}),
-            object2=pandas.DataFrame({"col": [1.0, 1.05, 0.95]}),
+            actual=pandas.DataFrame({"col": [1.0, 1.0, 1.0]}),
+            expected=pandas.DataFrame({"col": [1.0, 1.05, 0.95]}),
             rtol=0.1,
         ),
         id="rtol=0.1",
     ),
     pytest.param(
         ExamplePair(
-            object1=pandas.DataFrame({"col": [1.0, 1.0, 1.0]}),
-            object2=pandas.DataFrame({"col": [1.0, 1.005, 0.995]}),
+            actual=pandas.DataFrame({"col": [1.0, 1.0, 1.0]}),
+            expected=pandas.DataFrame({"col": [1.0, 1.005, 0.995]}),
             rtol=0.01,
         ),
         id="rtol=0.01",
@@ -134,16 +134,16 @@ PANDAS_DATAFRAME_EQUAL_TOLERANCE = [
 PANDAS_SERIES_EQUAL = [
     pytest.param(
         ExamplePair(
-            object1=pandas.Series(data=[], dtype=object),
-            object2=pandas.Series(data=[], dtype=object),
+            actual=pandas.Series(data=[], dtype=object),
+            expected=pandas.Series(data=[], dtype=object),
         ),
         id="empty",
     ),
     pytest.param(
-        ExamplePair(object1=pandas.Series([1, 2, 3]), object2=pandas.Series([1, 2, 3])), id="int"
+        ExamplePair(actual=pandas.Series([1, 2, 3]), expected=pandas.Series([1, 2, 3])), id="int"
     ),
     pytest.param(
-        ExamplePair(object1=pandas.Series(["a", "b", "c"]), object2=pandas.Series(["a", "b", "c"])),
+        ExamplePair(actual=pandas.Series(["a", "b", "c"]), expected=pandas.Series(["a", "b", "c"])),
         id="str",
     ),
 ]
@@ -151,32 +151,32 @@ PANDAS_SERIES_EQUAL = [
 PANDAS_SERIES_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
-            object1=pandas.Series([1, 2, 3]),
-            object2=pandas.Series([1, 2, 4]),
+            actual=pandas.Series([1, 2, 3]),
+            expected=pandas.Series([1, 2, 4]),
             expected_message="pandas.Series have different elements:",
         ),
         id="different value",
     ),
     pytest.param(
         ExamplePair(
-            object1=pandas.Series([1, 2, 3]),
-            object2=pandas.Series([1, 2, 3, 4]),
+            actual=pandas.Series([1, 2, 3]),
+            expected=pandas.Series([1, 2, 3, 4]),
             expected_message="pandas.Series have different elements:",
         ),
         id="different shape",
     ),
     pytest.param(
         ExamplePair(
-            object1=pandas.Series([1, 2, 3]),
-            object2=pandas.Series([1.0, 2.0, 3.0]),
+            actual=pandas.Series([1, 2, 3]),
+            expected=pandas.Series([1.0, 2.0, 3.0]),
             expected_message="pandas.Series have different elements:",
         ),
         id="different data type",
     ),
     pytest.param(
         ExamplePair(
-            object1=pandas.Series([1, 2, 3]),
-            object2=42,
+            actual=pandas.Series([1, 2, 3]),
+            expected=42,
             expected_message="objects have different types:",
         ),
         id="different type",
@@ -187,24 +187,24 @@ PANDAS_SERIES_EQUAL_TOLERANCE = [
     # atol
     pytest.param(
         ExamplePair(
-            object1=pandas.Series([1.0, 1.0, 1.0]),
-            object2=pandas.Series([1.0, 1.5, 0.5]),
+            actual=pandas.Series([1.0, 1.0, 1.0]),
+            expected=pandas.Series([1.0, 1.5, 0.5]),
             atol=1.0,
         ),
         id="atol=1",
     ),
     pytest.param(
         ExamplePair(
-            object1=pandas.Series([1.0, 1.0, 1.0]),
-            object2=pandas.Series([1.0, 1.05, 0.95]),
+            actual=pandas.Series([1.0, 1.0, 1.0]),
+            expected=pandas.Series([1.0, 1.05, 0.95]),
             atol=0.1,
         ),
         id="atol=0.1",
     ),
     pytest.param(
         ExamplePair(
-            object1=pandas.Series([1.0, 1.0, 1.0]),
-            object2=pandas.Series([1.0, 1.005, 0.995]),
+            actual=pandas.Series([1.0, 1.0, 1.0]),
+            expected=pandas.Series([1.0, 1.005, 0.995]),
             atol=0.01,
         ),
         id="atol=0.01",
@@ -212,24 +212,24 @@ PANDAS_SERIES_EQUAL_TOLERANCE = [
     # rtol
     pytest.param(
         ExamplePair(
-            object1=pandas.Series([1.0, 1.0, 1.0]),
-            object2=pandas.Series([1.0, 1.5, 0.5]),
+            actual=pandas.Series([1.0, 1.0, 1.0]),
+            expected=pandas.Series([1.0, 1.5, 0.5]),
             rtol=1.0,
         ),
         id="rtol=1",
     ),
     pytest.param(
         ExamplePair(
-            object1=pandas.Series([1.0, 1.0, 1.0]),
-            object2=pandas.Series([1.0, 1.05, 0.95]),
+            actual=pandas.Series([1.0, 1.0, 1.0]),
+            expected=pandas.Series([1.0, 1.05, 0.95]),
             rtol=0.1,
         ),
         id="rtol=0.1",
     ),
     pytest.param(
         ExamplePair(
-            object1=pandas.Series([1.0, 1.0, 1.0]),
-            object2=pandas.Series([1.0, 1.005, 0.995]),
+            actual=pandas.Series([1.0, 1.0, 1.0]),
+            expected=pandas.Series([1.0, 1.005, 0.995]),
             rtol=0.01,
         ),
         id="rtol=0.01",
@@ -285,7 +285,7 @@ def test_pandas_dataframe_equality_comparator_equal_true(
 ) -> None:
     comparator = PandasDataFrameEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -299,7 +299,7 @@ def test_pandas_dataframe_equality_comparator_equal_true_show_difference(
     config.show_difference = True
     comparator = PandasDataFrameEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -312,7 +312,7 @@ def test_pandas_dataframe_equality_comparator_equal_false(
 ) -> None:
     comparator = PandasDataFrameEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -326,7 +326,7 @@ def test_pandas_dataframe_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = PandasDataFrameEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert caplog.messages[0].startswith(example.expected_message)
 
 
@@ -338,8 +338,8 @@ def test_pandas_dataframe_equality_comparator_equal_nan(
     config.equal_nan = equal_nan
     assert (
         PandasDataFrameEqualityComparator().equal(
-            object1=pandas.DataFrame({"col": [1, float("nan"), 3]}),
-            object2=pandas.DataFrame({"col": [1, float("nan"), 3]}),
+            actual=pandas.DataFrame({"col": [1, float("nan"), 3]}),
+            expected=pandas.DataFrame({"col": [1, float("nan"), 3]}),
             config=config,
         )
         == equal_nan
@@ -354,7 +354,7 @@ def test_pandas_dataframe_equality_comparator_equal_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert PandasDataFrameEqualityComparator().equal(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.actual, expected=example.expected, config=config
     )
 
 
@@ -410,7 +410,7 @@ def test_pandas_series_equality_comparator_equal_true(
 ) -> None:
     comparator = PandasSeriesEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -424,7 +424,7 @@ def test_pandas_series_equality_comparator_equal_true_show_difference(
     config.show_difference = True
     comparator = PandasSeriesEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -437,7 +437,7 @@ def test_pandas_series_equality_comparator_equal_false(
 ) -> None:
     comparator = PandasSeriesEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -451,7 +451,7 @@ def test_pandas_series_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = PandasSeriesEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert caplog.messages[0].startswith(example.expected_message)
 
 
@@ -463,8 +463,8 @@ def test_pandas_series_equality_comparator_equal_nan(
     config.equal_nan = equal_nan
     assert (
         PandasSeriesEqualityComparator().equal(
-            object1=pandas.Series([0.0, float("nan"), float("nan"), 1.2]),
-            object2=pandas.Series([0.0, float("nan"), float("nan"), 1.2]),
+            actual=pandas.Series([0.0, float("nan"), float("nan"), 1.2]),
+            expected=pandas.Series([0.0, float("nan"), float("nan"), 1.2]),
             config=config,
         )
         == equal_nan
@@ -479,7 +479,7 @@ def test_pandas_series_equality_comparator_equal_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert PandasSeriesEqualityComparator().equal(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.actual, expected=example.expected, config=config
     )
 
 

@@ -64,15 +64,15 @@ class PandasDataFrameEqualHandler(BaseEqualityHandler):
 
     def handle(
         self,
-        object1: pandas.DataFrame,
-        object2: pandas.DataFrame,
+        actual: pandas.DataFrame,
+        expected: pandas.DataFrame,
         config: EqualityConfig,
     ) -> bool:
-        object_equal = frame_equal(object1, object2, config)
+        object_equal = frame_equal(actual, expected, config)
         if config.show_difference and not object_equal:
             logger.info(
                 f"pandas.DataFrames have different elements:\n"
-                f"object1:\n{object1}\nobject2:\n{object2}"
+                f"actual:\n{actual}\nexpected:\n{expected}"
             )
         return object_equal
 
@@ -113,15 +113,15 @@ class PandasSeriesEqualHandler(BaseEqualityHandler):
 
     def handle(
         self,
-        object1: pandas.Series,
-        object2: pandas.Series,
+        actual: pandas.Series,
+        expected: pandas.Series,
         config: EqualityConfig,
     ) -> bool:
-        object_equal = series_equal(object1, object2, config)
+        object_equal = series_equal(actual, expected, config)
         if config.show_difference and not object_equal:
             logger.info(
                 f"pandas.Series have different elements:\n"
-                f"object1:\n{object1}\nobject2:\n{object2}"
+                f"actual:\n{actual}\nexpected:\n{expected}"
             )
         return object_equal
 

@@ -72,8 +72,8 @@ class PolarsDataFrameEqualityComparator(BaseEqualityComparator[polars.DataFrame]
     def clone(self) -> PolarsDataFrameEqualityComparator:
         return self.__class__()
 
-    def equal(self, object1: polars.DataFrame, object2: Any, config: EqualityConfig) -> bool:
-        return self._handler.handle(object1=object1, object2=object2, config=config)
+    def equal(self, actual: polars.DataFrame, expected: Any, config: EqualityConfig) -> bool:
+        return self._handler.handle(actual=actual, expected=expected, config=config)
 
 
 class PolarsSeriesEqualityComparator(BaseEqualityComparator[polars.Series]):
@@ -107,8 +107,8 @@ class PolarsSeriesEqualityComparator(BaseEqualityComparator[polars.Series]):
     def clone(self) -> PolarsSeriesEqualityComparator:
         return self.__class__()
 
-    def equal(self, object1: polars.Series, object2: Any, config: EqualityConfig) -> bool:
-        return self._handler.handle(object1=object1, object2=object2, config=config)
+    def equal(self, actual: polars.Series, expected: Any, config: EqualityConfig) -> bool:
+        return self._handler.handle(actual=actual, expected=expected, config=config)
 
 
 def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:

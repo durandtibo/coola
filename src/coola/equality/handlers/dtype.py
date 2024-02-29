@@ -60,12 +60,12 @@ class SameDTypeHandler(AbstractEqualityHandler):
         return isinstance(other, self.__class__)
 
     def handle(
-        self, object1: SupportsDType, object2: SupportsDType, config: EqualityConfig
+        self, actual: SupportsDType, expected: SupportsDType, config: EqualityConfig
     ) -> bool:
-        if object1.dtype != object2.dtype:
+        if actual.dtype != expected.dtype:
             if config.show_difference:
                 logger.info(
-                    f"objects have different data types: {object1.dtype} vs {object2.dtype}"
+                    f"objects have different data types: {actual.dtype} vs {expected.dtype}"
                 )
             return False
-        return self._handle_next(object1=object1, object2=object2, config=config)
+        return self._handle_next(actual=actual, expected=expected, config=config)

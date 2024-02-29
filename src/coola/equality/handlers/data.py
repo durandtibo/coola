@@ -58,9 +58,9 @@ class SameDataHandler(AbstractEqualityHandler):
     def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
-    def handle(self, object1: SupportsData, object2: SupportsData, config: EqualityConfig) -> bool:
-        if not config.tester.equal(object1.data, object2.data, config):
+    def handle(self, actual: SupportsData, expected: SupportsData, config: EqualityConfig) -> bool:
+        if not config.tester.equal(actual.data, expected.data, config):
             if config.show_difference:
-                logger.info(f"objects have different data: {object1.data} vs {object2.data}")
+                logger.info(f"objects have different data: {actual.data} vs {expected.data}")
             return False
-        return self._handle_next(object1=object1, object2=object2, config=config)
+        return self._handle_next(actual=actual, expected=expected, config=config)

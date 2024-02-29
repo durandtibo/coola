@@ -34,7 +34,7 @@ def test_objects_are_allclose_false_different_type() -> None:
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (1, 1),
         (0, 0),
@@ -49,9 +49,9 @@ def test_objects_are_allclose_false_different_type() -> None:
     ],
 )
 def test_objects_are_allclose_scalar_true_float(
-    object1: bool | float, object2: bool | float
+    actual: bool | float, expected: bool | float
 ) -> None:
-    assert objects_are_allclose(object1, object2)
+    assert objects_are_allclose(actual, expected)
 
 
 @pytest.mark.parametrize(("value", "atol"), [(1.5, 1.0), (1.05, 1e-1), (1.005, 1e-2)])
@@ -65,7 +65,7 @@ def test_objects_are_allclose_scalar_true_rtol(value: float, rtol: float) -> Non
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (1, 2),
         (1.0, 2.0),
@@ -76,8 +76,8 @@ def test_objects_are_allclose_scalar_true_rtol(value: float, rtol: float) -> Non
         (1.0, True),
     ],
 )
-def test_objects_are_allclose_scalar_false(object1: float, object2: float) -> None:
-    assert not objects_are_allclose(object1, object2, rtol=0.0)
+def test_objects_are_allclose_scalar_false(actual: float, expected: float) -> None:
+    assert not objects_are_allclose(actual, expected, rtol=0.0)
 
 
 @torch_available
@@ -166,14 +166,14 @@ def test_objects_are_allclose_numpy_array_true_rtol(array: np.ndarray, rtol: flo
 
 
 @torch_available
-@pytest.mark.parametrize(("object1", "object2"), [([], []), ((), ()), ([1, 2, 3], [1, 2, 3])])
-def test_objects_are_allclose_sequence_true(object1: Sequence, object2: Sequence) -> None:
-    assert objects_are_allclose(object1, object2)
+@pytest.mark.parametrize(("actual", "expected"), [([], []), ((), ()), ([1, 2, 3], [1, 2, 3])])
+def test_objects_are_allclose_sequence_true(actual: Sequence, expected: Sequence) -> None:
+    assert objects_are_allclose(actual, expected)
 
 
 @torch_available
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         ([torch.ones(2, 3), torch.zeros(2)], [torch.ones(2, 3), torch.zeros(2)]),
         ((torch.ones(2, 3), torch.zeros(2)), (torch.ones(2, 3), torch.zeros(2))),
@@ -183,8 +183,8 @@ def test_objects_are_allclose_sequence_true(object1: Sequence, object2: Sequence
         ),
     ],
 )
-def test_objects_are_allclose_sequence_true_torch(object1: Sequence, object2: Sequence) -> None:
-    assert objects_are_allclose(object1, object2)
+def test_objects_are_allclose_sequence_true_torch(actual: Sequence, expected: Sequence) -> None:
+    assert objects_are_allclose(actual, expected)
 
 
 def test_objects_are_allclose_sequence_false() -> None:
@@ -193,7 +193,7 @@ def test_objects_are_allclose_sequence_false() -> None:
 
 @torch_available
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         ({}, {}),
         (OrderedDict({}), OrderedDict({})),
@@ -211,8 +211,8 @@ def test_objects_are_allclose_sequence_false() -> None:
         ),
     ],
 )
-def test_objects_are_allclose_mapping_true(object1: Mapping, object2: Mapping) -> None:
-    assert objects_are_allclose(object1, object2)
+def test_objects_are_allclose_mapping_true(actual: Mapping, expected: Mapping) -> None:
+    assert objects_are_allclose(actual, expected)
 
 
 def test_objects_are_allclose_mapping_false() -> None:
@@ -220,15 +220,15 @@ def test_objects_are_allclose_mapping_false() -> None:
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [("abc", "abc"), (set(), set()), ({1, 2, 3}, {1, 2, 3})],
 )
-def test_objects_are_allclose_other_types_true(object1: Any, object2: Any) -> None:
-    assert objects_are_allclose(object1, object2)
+def test_objects_are_allclose_other_types_true(actual: Any, expected: Any) -> None:
+    assert objects_are_allclose(actual, expected)
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         ("abc", "abcd"),
         (set(), ()),
@@ -236,24 +236,24 @@ def test_objects_are_allclose_other_types_true(object1: Any, object2: Any) -> No
         ({1, 2, 4}, {1, 2, 3}),
     ],
 )
-def test_objects_are_allclose_other_types_false(object1: Any, object2: Any) -> None:
-    assert not objects_are_allclose(object1, object2)
+def test_objects_are_allclose_other_types_false(actual: Any, expected: Any) -> None:
+    assert not objects_are_allclose(actual, expected)
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (float("nan"), float("nan")),
         ([4.2, 2.3, float("nan")], [4.2, 2.3, float("nan")]),
         ([4.2, 2.3, (float("nan"), 2, 3)], [4.2, 2.3, (float("nan"), 2, 3)]),
     ],
 )
-def test_objects_are_allclose_scalar_equal_nan_true(object1: Any, object2: Any) -> None:
-    assert objects_are_allclose(object1, object2, equal_nan=True)
+def test_objects_are_allclose_scalar_equal_nan_true(actual: Any, expected: Any) -> None:
+    assert objects_are_allclose(actual, expected, equal_nan=True)
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (float("nan"), float("nan")),
         (float("nan"), "abc"),
@@ -261,8 +261,8 @@ def test_objects_are_allclose_scalar_equal_nan_true(object1: Any, object2: Any) 
         ([4.2, 2.3, (float("nan"), 2, 3)], [4.2, 2.3, (float("nan"), 2, 3)]),
     ],
 )
-def test_objects_are_allclose_scalar_equal_nan_false(object1: Any, object2: Any) -> None:
-    assert not objects_are_allclose(object1, object2)
+def test_objects_are_allclose_scalar_equal_nan_false(actual: Any, expected: Any) -> None:
+    assert not objects_are_allclose(actual, expected)
 
 
 @numpy_available
@@ -314,7 +314,7 @@ def test_objects_are_equal_false_different_type() -> None:
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (1, 1),
         (0, 0),
@@ -327,12 +327,12 @@ def test_objects_are_equal_false_different_type() -> None:
         (None, None),
     ],
 )
-def test_objects_are_equal_scalar_true(object1: bool | float, object2: bool | float) -> None:
-    assert objects_are_equal(object1, object2)
+def test_objects_are_equal_scalar_true(actual: bool | float, expected: bool | float) -> None:
+    assert objects_are_equal(actual, expected)
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (1, 2),
         (1.0, 2.0),
@@ -343,8 +343,8 @@ def test_objects_are_equal_scalar_true(object1: bool | float, object2: bool | fl
         (1.0, None),
     ],
 )
-def test_objects_are_equal_scalar_false(object1: bool | float, object2: bool | float) -> None:
-    assert not objects_are_equal(object1, object2)
+def test_objects_are_equal_scalar_false(actual: bool | float, expected: bool | float) -> None:
+    assert not objects_are_equal(actual, expected)
 
 
 @torch_available
@@ -369,7 +369,7 @@ def test_objects_are_equal_numpy_array_false() -> None:
 
 @torch_available
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         ([], []),
         ((), ()),
@@ -381,8 +381,8 @@ def test_objects_are_equal_numpy_array_false() -> None:
         ),
     ],
 )
-def test_objects_are_equal_sequence_true(object1: Sequence, object2: Sequence) -> None:
-    assert objects_are_equal(object1, object2)
+def test_objects_are_equal_sequence_true(actual: Sequence, expected: Sequence) -> None:
+    assert objects_are_equal(actual, expected)
 
 
 def test_objects_are_equal_sequence_false() -> None:
@@ -391,7 +391,7 @@ def test_objects_are_equal_sequence_false() -> None:
 
 @torch_available
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         ({}, {}),
         (
@@ -408,8 +408,8 @@ def test_objects_are_equal_sequence_false() -> None:
         ),
     ],
 )
-def test_objects_are_equal_mapping_true(object1: Mapping, object2: Mapping) -> None:
-    assert objects_are_equal(object1, object2)
+def test_objects_are_equal_mapping_true(actual: Mapping, expected: Mapping) -> None:
+    assert objects_are_equal(actual, expected)
 
 
 def test_objects_are_equal_mapping_false() -> None:
@@ -417,19 +417,19 @@ def test_objects_are_equal_mapping_false() -> None:
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         ("abc", "abc"),
         (set(), set()),
         ({1, 2, 3}, {1, 2, 3}),
     ],
 )
-def test_objects_are_equal_other_types_true(object1: Any, object2: Any) -> None:
-    assert objects_are_equal(object1, object2)
+def test_objects_are_equal_other_types_true(actual: Any, expected: Any) -> None:
+    assert objects_are_equal(actual, expected)
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         ("abc", "abcd"),
         (set(), ()),
@@ -437,8 +437,8 @@ def test_objects_are_equal_other_types_true(object1: Any, object2: Any) -> None:
         ({1, 2, 4}, {1, 2, 3}),
     ],
 )
-def test_objects_are_equal_other_types_false(object1: Any, object2: Any) -> None:
-    assert not objects_are_equal(object1, object2)
+def test_objects_are_equal_other_types_false(actual: Any, expected: Any) -> None:
+    assert not objects_are_equal(actual, expected)
 
 
 @numpy_available

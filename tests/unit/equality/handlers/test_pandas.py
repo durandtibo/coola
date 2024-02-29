@@ -57,7 +57,7 @@ def test_pandas_dataframe_equal_handler_str() -> None:
 
 @pandas_available
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (pandas.DataFrame({}), pandas.DataFrame({})),
         (pandas.DataFrame({"col": [1, 2, 3]}), pandas.DataFrame({"col": [1, 2, 3]})),
@@ -80,14 +80,14 @@ def test_pandas_dataframe_equal_handler_str() -> None:
     ],
 )
 def test_pandas_dataframe_equal_handler_handle_true(
-    object1: pandas.DataFrame,
-    object2: pandas.DataFrame,
+    actual: pandas.DataFrame,
+    expected: pandas.DataFrame,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PandasDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert handler.handle(object1, object2, config)
+        assert handler.handle(actual, expected, config)
         assert not caplog.messages
 
 
@@ -201,7 +201,7 @@ def test_pandas_dataframe_equal_handler_handle_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert PandasDataFrameEqualHandler().handle(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.actual, expected=example.expected, config=config
     )
 
 
@@ -232,7 +232,7 @@ def test_pandas_series_equal_handler_str() -> None:
 
 @pandas_available
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (pandas.Series(data=[], dtype=object), pandas.Series(data=[], dtype=object)),
         (pandas.Series(data=[1, 2, 3]), pandas.Series(data=[1, 2, 3])),
@@ -240,14 +240,14 @@ def test_pandas_series_equal_handler_str() -> None:
     ],
 )
 def test_pandas_series_equal_handler_handle_true(
-    object1: pandas.Series,
-    object2: pandas.Series,
+    actual: pandas.Series,
+    expected: pandas.Series,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PandasSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert handler.handle(object1, object2, config)
+        assert handler.handle(actual, expected, config)
         assert not caplog.messages
 
 
@@ -327,8 +327,8 @@ def test_pandas_series_equal_handler_handle_false_show_difference(
     handler = PandasSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
-            object1=pandas.Series(data=[1, 2, 3]),
-            object2=pandas.Series(data=[1, 2, 3, 4]),
+            actual=pandas.Series(data=[1, 2, 3]),
+            expected=pandas.Series(data=[1, 2, 3, 4]),
             config=config,
         )
         assert caplog.messages[0].startswith("pandas.Series have different elements:")
@@ -361,7 +361,7 @@ def test_pandas_series_equal_handler_handle_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert PandasSeriesEqualHandler().handle(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.actual, expected=example.expected, config=config
     )
 
 

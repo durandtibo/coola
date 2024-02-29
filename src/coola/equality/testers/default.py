@@ -61,8 +61,8 @@ class EqualityTester(BaseEqualityTester):
             raise RuntimeError(msg)
         cls.registry[data_type] = comparator
 
-    def equal(self, object1: Any, object2: Any, config: EqualityConfig) -> bool:
-        return self.find_comparator(type(object1)).equal(object1, object2, config)
+    def equal(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
+        return self.find_comparator(type(actual)).equal(actual, expected, config)
 
     @classmethod
     def has_comparator(cls, data_type: type) -> bool:
@@ -211,8 +211,8 @@ class LocalEqualityTester(BaseEqualityTester):
         """
         return self.__class__({key: value.clone() for key, value in self.registry.items()})
 
-    def equal(self, object1: Any, object2: Any, config: EqualityConfig) -> bool:
-        return self.find_comparator(type(object1)).equal(object1, object2, config)
+    def equal(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
+        return self.find_comparator(type(actual)).equal(actual, expected, config)
 
     def has_comparator(self, data_type: type) -> bool:
         r"""Indicate if an equality comparator is registered for the

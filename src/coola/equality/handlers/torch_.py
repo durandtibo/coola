@@ -55,15 +55,15 @@ class TorchTensorEqualHandler(BaseEqualityHandler):
 
     def handle(
         self,
-        object1: torch.Tensor,
-        object2: torch.Tensor,
+        actual: torch.Tensor,
+        expected: torch.Tensor,
         config: EqualityConfig,
     ) -> bool:
-        object_equal = tensor_equal(object1, object2, config)
+        object_equal = tensor_equal(actual, expected, config)
         if config.show_difference and not object_equal:
             logger.info(
                 f"torch.Tensors have different elements:\n"
-                f"object1=\n{object1}\nobject2=\n{object2}"
+                f"actual=\n{actual}\nexpected=\n{expected}"
             )
         return object_equal
 
@@ -98,17 +98,17 @@ class TorchTensorSameDeviceHandler(AbstractEqualityHandler):
 
     def handle(
         self,
-        object1: torch.Tensor,
-        object2: torch.Tensor,
+        actual: torch.Tensor,
+        expected: torch.Tensor,
         config: EqualityConfig,
     ) -> bool | None:
-        if object1.device != object2.device:
+        if actual.device != expected.device:
             if config.show_difference:
                 logger.info(
-                    f"torch.Tensors have different devices: {object1.device} vs {object2.device}"
+                    f"torch.Tensors have different devices: {actual.device} vs {expected.device}"
                 )
             return False
-        return self._handle_next(object1=object1, object2=object2, config=config)
+        return self._handle_next(actual=actual, expected=expected, config=config)
 
 
 def tensor_equal(tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityConfig) -> bool:

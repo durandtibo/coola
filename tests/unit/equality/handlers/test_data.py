@@ -48,7 +48,7 @@ def test_same_data_handler_str() -> None:
 
 @numpy_available
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (np.ones(shape=(2, 3)), np.ones(shape=(2, 3))),
         (np.zeros(shape=(2, 3)), np.zeros(shape=(2, 3))),
@@ -57,14 +57,14 @@ def test_same_data_handler_str() -> None:
     ],
 )
 def test_same_data_handler_handle_true(
-    object1: np.ndarray, object2: np.ndarray, config: EqualityConfig
+    actual: np.ndarray, expected: np.ndarray, config: EqualityConfig
 ) -> None:
-    assert SameDataHandler(next_handler=TrueHandler()).handle(object1, object2, config)
+    assert SameDataHandler(next_handler=TrueHandler()).handle(actual, expected, config)
 
 
 @numpy_available
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (np.ones(shape=(2, 3)), np.zeros(shape=(2, 3))),
         (np.ones(shape=(2, 3)), np.ones(shape=(2, 3, 1))),
@@ -72,9 +72,9 @@ def test_same_data_handler_handle_true(
     ],
 )
 def test_same_data_handler_handle_false(
-    object1: np.ndarray, object2: np.ndarray, config: EqualityConfig
+    actual: np.ndarray, expected: np.ndarray, config: EqualityConfig
 ) -> None:
-    assert not SameDataHandler().handle(object1, object2, config)
+    assert not SameDataHandler().handle(actual, expected, config)
 
 
 @numpy_available
@@ -85,7 +85,7 @@ def test_same_data_handler_handle_false_show_difference(
     handler = SameDataHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
-            object1=np.ones(shape=(2, 3)), object2=np.zeros(shape=(2, 3)), config=config
+            actual=np.ones(shape=(2, 3)), expected=np.zeros(shape=(2, 3)), config=config
         )
         assert caplog.messages[-1].startswith("objects have different data:")
 
@@ -94,7 +94,7 @@ def test_same_data_handler_handle_false_show_difference(
 def test_same_data_handler_handle_without_next_handler(config: EqualityConfig) -> None:
     handler = SameDataHandler()
     with pytest.raises(RuntimeError, match="next handler is not defined"):
-        handler.handle(object1=np.ones(shape=(2, 3)), object2=np.ones(shape=(2, 3)), config=config)
+        handler.handle(actual=np.ones(shape=(2, 3)), expected=np.ones(shape=(2, 3)), config=config)
 
 
 def test_same_data_handler_set_next_handler() -> None:

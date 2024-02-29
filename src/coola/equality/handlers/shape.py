@@ -61,10 +61,10 @@ class SameShapeHandler(AbstractEqualityHandler):
         return isinstance(other, self.__class__)
 
     def handle(
-        self, object1: SupportsShape, object2: SupportsShape, config: EqualityConfig
+        self, actual: SupportsShape, expected: SupportsShape, config: EqualityConfig
     ) -> bool:
-        if object1.shape != object2.shape:
+        if actual.shape != expected.shape:
             if config.show_difference:
-                logger.info(f"objects have different shapes: {object1.shape} vs {object2.shape}")
+                logger.info(f"objects have different shapes: {actual.shape} vs {expected.shape}")
             return False
-        return self._handle_next(object1=object1, object2=object2, config=config)
+        return self._handle_next(actual=actual, expected=expected, config=config)

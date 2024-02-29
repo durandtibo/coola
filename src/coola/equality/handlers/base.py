@@ -65,12 +65,12 @@ class BaseEqualityHandler(ABC):
         return handler
 
     @abstractmethod
-    def handle(self, object1: Any, object2: Any, config: EqualityConfig) -> bool:
+    def handle(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
         r"""Return the equality result between the two input objects.
 
         Args:
-            object1: Specifies the first object to compare.
-            object2: Specifies the second object to compare.
+            actual: Specifies the actual input.
+            expected: Specifies the expected input.
             config: Specifies the equality configuration.
 
         Returns:
@@ -132,12 +132,12 @@ class AbstractEqualityHandler(BaseEqualityHandler):
         """The next handler."""
         return self._next_handler
 
-    def _handle_next(self, object1: Any, object2: Any, config: EqualityConfig) -> bool:
+    def _handle_next(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
         r"""Return the output from the next handler.
 
         Args:
-            object1: Specifies the first object to compare.
-            object2: Specifies the second object to compare.
+            actual: Specifies the actual input.
+            expected: Specifies the expected input.
             config: Specifies the equality configuration.
 
         Returns:
@@ -149,7 +149,7 @@ class AbstractEqualityHandler(BaseEqualityHandler):
         if not self._next_handler:
             msg = "next handler is not defined"
             raise RuntimeError(msg)
-        return self._next_handler.handle(object1=object1, object2=object2, config=config)
+        return self._next_handler.handle(actual=actual, expected=expected, config=config)
 
     def set_next_handler(self, handler: BaseEqualityHandler) -> None:
         if not isinstance(handler, BaseEqualityHandler):

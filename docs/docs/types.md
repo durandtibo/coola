@@ -25,7 +25,7 @@ The current supported types are:
 By default, two objects are equal if:
 
 - they have the same type
-- they are equal i.e. `object1 == object2` returns `True`
+- they are equal i.e. `actual == expected` returns `True`
 
 **Example**
 
@@ -306,7 +306,7 @@ The tolerance is only used for numbers (see below).
 By default, two objects are equal if:
 
 - they have the same type
-- they are equal i.e. `object1 == object2` returns `True`
+- they are equal i.e. `actual == expected` returns `True`
 
 **Example**
 

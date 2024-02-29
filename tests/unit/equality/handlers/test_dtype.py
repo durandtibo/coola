@@ -50,7 +50,7 @@ def test_same_dtype_handler_str() -> None:
 
 @numpy_available
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (np.ones(shape=(2, 3), dtype=float), np.zeros(shape=(2, 3), dtype=float)),
         (np.ones(shape=(2, 3), dtype=int), np.zeros(shape=(2, 3), dtype=int)),
@@ -58,14 +58,14 @@ def test_same_dtype_handler_str() -> None:
     ],
 )
 def test_same_dtype_handler_handle_true(
-    object1: np.ndarray, object2: np.ndarray, config: EqualityConfig
+    actual: np.ndarray, expected: np.ndarray, config: EqualityConfig
 ) -> None:
-    assert SameDTypeHandler(next_handler=TrueHandler()).handle(object1, object2, config)
+    assert SameDTypeHandler(next_handler=TrueHandler()).handle(actual, expected, config)
 
 
 @numpy_available
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (np.ones(shape=(2, 3), dtype=float), np.ones(shape=(2, 3), dtype=int)),
         (np.ones(shape=(2, 3), dtype=int), np.ones(shape=(2, 3), dtype=bool)),
@@ -73,9 +73,9 @@ def test_same_dtype_handler_handle_true(
     ],
 )
 def test_same_dtype_handler_handle_false(
-    object1: np.ndarray, object2: np.ndarray, config: EqualityConfig
+    actual: np.ndarray, expected: np.ndarray, config: EqualityConfig
 ) -> None:
-    assert not SameDTypeHandler().handle(object1, object2, config)
+    assert not SameDTypeHandler().handle(actual, expected, config)
 
 
 @numpy_available
@@ -86,8 +86,8 @@ def test_same_dtype_handler_handle_false_show_difference(
     handler = SameDTypeHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
-            object1=np.ones(shape=(2, 3), dtype=float),
-            object2=np.ones(shape=(2, 3), dtype=int),
+            actual=np.ones(shape=(2, 3), dtype=float),
+            expected=np.ones(shape=(2, 3), dtype=int),
             config=config,
         )
         assert caplog.messages[0].startswith("objects have different data types:")
@@ -97,7 +97,7 @@ def test_same_dtype_handler_handle_false_show_difference(
 def test_same_dtype_handler_handle_without_next_handler(config: EqualityConfig) -> None:
     handler = SameDTypeHandler()
     with pytest.raises(RuntimeError, match="next handler is not defined"):
-        handler.handle(object1=np.ones(shape=(2, 3)), object2=np.ones(shape=(2, 3)), config=config)
+        handler.handle(actual=np.ones(shape=(2, 3)), expected=np.ones(shape=(2, 3)), config=config)
 
 
 def test_same_dtype_handler_set_next_handler() -> None:

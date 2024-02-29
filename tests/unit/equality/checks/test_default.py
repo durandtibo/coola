@@ -29,7 +29,7 @@ def test_objects_are_equal_true(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
-        assert function(example.object1, example.object2, show_difference=show_difference)
+        assert function(example.actual, example.expected, show_difference=show_difference)
         assert not caplog.messages
 
 
@@ -39,7 +39,7 @@ def test_objects_are_equal_false(
     function: Callable, example: ExamplePair, caplog: pytest.LogCaptureFixture
 ) -> None:
     with caplog.at_level(logging.INFO):
-        assert not function(example.object1, example.object2)
+        assert not function(example.actual, example.expected)
         assert not caplog.messages
 
 
@@ -49,5 +49,5 @@ def test_objects_are_equal_false_show_difference(
     function: Callable, example: ExamplePair, caplog: pytest.LogCaptureFixture
 ) -> None:
     with caplog.at_level(logging.INFO):
-        assert not function(example.object1, example.object2, show_difference=True)
+        assert not function(example.actual, example.expected, show_difference=True)
         assert caplog.messages[-1].startswith(example.expected_message)

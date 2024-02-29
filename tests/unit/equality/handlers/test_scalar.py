@@ -43,7 +43,7 @@ def test_nan_equal_handler_handle_true(config: EqualityConfig) -> None:
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (float("nan"), float("nan")),
         (4.2, 4.2),
@@ -51,15 +51,15 @@ def test_nan_equal_handler_handle_true(config: EqualityConfig) -> None:
     ],
 )
 def test_nan_equal_handler_handle_false(
-    object1: float, object2: float, config: EqualityConfig
+    actual: float, expected: float, config: EqualityConfig
 ) -> None:
-    assert not NanEqualHandler(next_handler=FalseHandler()).handle(object1, object2, config)
+    assert not NanEqualHandler(next_handler=FalseHandler()).handle(actual, expected, config)
 
 
 def test_nan_equal_handler_handle_without_next_handler(config: EqualityConfig) -> None:
     handler = NanEqualHandler()
     with pytest.raises(RuntimeError, match="next handler is not defined"):
-        handler.handle(object1=42, object2=42, config=config)
+        handler.handle(actual=42, expected=42, config=config)
 
 
 def test_nan_equal_handler_set_next_handler() -> None:
@@ -98,32 +98,32 @@ def test_scalar_equal_handler_str() -> None:
 @pytest.mark.parametrize(
     "example",
     [
-        pytest.param(ExamplePair(object1=4, object2=4), id="int"),
-        pytest.param(ExamplePair(object1=4.2, object2=4.2), id="float"),
-        pytest.param(ExamplePair(object1=-1.0, object2=-1.0), id="negative"),
-        pytest.param(ExamplePair(object1=float("inf"), object2=float("inf")), id="infinity"),
-        pytest.param(ExamplePair(object1=float("-inf"), object2=float("-inf")), id="-infinity"),
+        pytest.param(ExamplePair(actual=4, expected=4), id="int"),
+        pytest.param(ExamplePair(actual=4.2, expected=4.2), id="float"),
+        pytest.param(ExamplePair(actual=-1.0, expected=-1.0), id="negative"),
+        pytest.param(ExamplePair(actual=float("inf"), expected=float("inf")), id="infinity"),
+        pytest.param(ExamplePair(actual=float("-inf"), expected=float("-inf")), id="-infinity"),
     ],
 )
 def test_scalar_equal_handler_handle_true(example: ExamplePair, config: EqualityConfig) -> None:
-    assert ScalarEqualHandler().handle(example.object1, example.object2, config)
+    assert ScalarEqualHandler().handle(example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize(
     "example",
     [
-        pytest.param(ExamplePair(object1=0, object2=1), id="different values - int"),
-        pytest.param(ExamplePair(object1=4.0, object2=4.2), id="different values - float"),
-        pytest.param(ExamplePair(object1=float("inf"), object2=4.2), id="different values - inf"),
+        pytest.param(ExamplePair(actual=0, expected=1), id="different values - int"),
+        pytest.param(ExamplePair(actual=4.0, expected=4.2), id="different values - float"),
+        pytest.param(ExamplePair(actual=float("inf"), expected=4.2), id="different values - inf"),
         pytest.param(
-            ExamplePair(object1=float("inf"), object2=float("-inf")), id="opposite infinity"
+            ExamplePair(actual=float("inf"), expected=float("-inf")), id="opposite infinity"
         ),
-        pytest.param(ExamplePair(object1=float("nan"), object2=1.0), id="one nan"),
-        pytest.param(ExamplePair(object1=float("nan"), object2=float("nan")), id="two nans"),
+        pytest.param(ExamplePair(actual=float("nan"), expected=1.0), id="one nan"),
+        pytest.param(ExamplePair(actual=float("nan"), expected=float("nan")), id="two nans"),
     ],
 )
 def test_scalar_equal_handler_handle_false(example: ExamplePair, config: EqualityConfig) -> None:
-    assert not ScalarEqualHandler().handle(example.object1, example.object2, config)
+    assert not ScalarEqualHandler().handle(example.actual, example.expected, config)
 
 
 def test_scalar_equal_handler_handle_false_show_difference(
@@ -132,7 +132,7 @@ def test_scalar_equal_handler_handle_false_show_difference(
     config.show_difference = True
     handler = ScalarEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(object1=1.0, object2=2.0, config=config)
+        assert not handler.handle(actual=1.0, expected=2.0, config=config)
         assert caplog.messages[0].startswith("numbers are not equal:")
 
 
@@ -149,7 +149,7 @@ def test_scalar_equal_handler_handle_true_tolerance(
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
-    assert ScalarEqualHandler().handle(example.object1, example.object2, config)
+    assert ScalarEqualHandler().handle(example.actual, example.expected, config)
 
 
 def test_scalar_equal_handler_set_next_handler() -> None:

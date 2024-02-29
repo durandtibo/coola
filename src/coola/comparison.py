@@ -14,8 +14,8 @@ if TYPE_CHECKING:
 
 
 def objects_are_allclose(
-    object1: Any,
-    object2: Any,
+    actual: Any,
+    expected: Any,
     *,
     rtol: float = 1e-5,
     atol: float = 1e-8,
@@ -26,8 +26,8 @@ def objects_are_allclose(
     r"""Indicate if two objects are equal within a tolerance.
 
     Args:
-        object1: Specifies the first object to compare.
-        object2: Specifies the second object to compare.
+        actual: Specifies the actual input.
+        expected: Specifies the expected input.
         rtol: Specifies the relative tolerance parameter.
         atol: Specifies the absolute tolerance parameter.
         equal_nan: If ``True``, then two ``NaN``s  will be considered
@@ -71,12 +71,12 @@ def objects_are_allclose(
     config = EqualityConfig(
         tester=tester, show_difference=show_difference, equal_nan=equal_nan, atol=atol, rtol=rtol
     )
-    return tester.equal(object1, object2, config)
+    return tester.equal(actual, expected, config)
 
 
 def objects_are_equal(
-    object1: Any,
-    object2: Any,
+    actual: Any,
+    expected: Any,
     *,
     equal_nan: bool = False,
     show_difference: bool = False,
@@ -85,8 +85,8 @@ def objects_are_equal(
     r"""Indicate if two objects are equal or not.
 
     Args:
-        object1: Specifies the first object to compare.
-        object2: Specifies the second object to compare.
+        actual: Specifies the actual input.
+        expected: Specifies the expected input.
         equal_nan: If ``True``, then two ``NaN``s  will be considered
             as equal.
         show_difference: If ``True``, it shows a difference between
@@ -116,4 +116,4 @@ def objects_are_equal(
     """
     tester = tester or EqualityTester()
     config = EqualityConfig(tester=tester, show_difference=show_difference, equal_nan=equal_nan)
-    return tester.equal(object1, object2, config)
+    return tester.equal(actual, expected, config)

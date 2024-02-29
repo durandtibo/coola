@@ -19,21 +19,21 @@ def config() -> EqualityConfig:
 
 
 FLOAT_EQUAL = [
-    pytest.param(ExamplePair(object1=4.2, object2=4.2), id="positive"),
-    pytest.param(ExamplePair(object1=0.0, object2=0.0), id="zero"),
-    pytest.param(ExamplePair(object1=-4.2, object2=-4.2), id="negative"),
-    pytest.param(ExamplePair(object1=float("inf"), object2=float("inf")), id="infinity"),
-    pytest.param(ExamplePair(object1=float("-inf"), object2=float("-inf")), id="-infinity"),
+    pytest.param(ExamplePair(actual=4.2, expected=4.2), id="positive"),
+    pytest.param(ExamplePair(actual=0.0, expected=0.0), id="zero"),
+    pytest.param(ExamplePair(actual=-4.2, expected=-4.2), id="negative"),
+    pytest.param(ExamplePair(actual=float("inf"), expected=float("inf")), id="infinity"),
+    pytest.param(ExamplePair(actual=float("-inf"), expected=float("-inf")), id="-infinity"),
 ]
 
 
 FLOAT_NOT_EQUAL = [
     pytest.param(
-        ExamplePair(object1=4.2, object2=1.0, expected_message="numbers are not equal:"),
+        ExamplePair(actual=4.2, expected=1.0, expected_message="numbers are not equal:"),
         id="different values",
     ),
     pytest.param(
-        ExamplePair(object1=4.2, object2="meow", expected_message="objects have different types:"),
+        ExamplePair(actual=4.2, expected="meow", expected_message="objects have different types:"),
         id="different types",
     ),
 ]
@@ -44,21 +44,21 @@ SCALAR_NOT_EQUAL = FLOAT_NOT_EQUAL
 
 SCALAR_EQUAL_TOLERANCE = [
     # atol
-    pytest.param(ExamplePair(object1=0, object2=1, atol=1.0), id="integer 0 atol=1"),
-    pytest.param(ExamplePair(object1=1, object2=0, atol=1.0), id="integer 1 atol=1"),
-    pytest.param(ExamplePair(object1=1, object2=2, atol=1.0), id="integer 2 atol=1"),
-    pytest.param(ExamplePair(object1=1, object2=5, atol=10.0), id="integer 1 atol=10"),
-    pytest.param(ExamplePair(object1=1.0, object2=1.0001, atol=1e-3), id="float + atol=1e-3"),
-    pytest.param(ExamplePair(object1=1.0, object2=0.9999, atol=1e-3), id="float - atol=1e-3"),
-    pytest.param(ExamplePair(object1=True, object2=False, atol=1.0), id="bool - atol=1"),
+    pytest.param(ExamplePair(actual=0, expected=1, atol=1.0), id="integer 0 atol=1"),
+    pytest.param(ExamplePair(actual=1, expected=0, atol=1.0), id="integer 1 atol=1"),
+    pytest.param(ExamplePair(actual=1, expected=2, atol=1.0), id="integer 2 atol=1"),
+    pytest.param(ExamplePair(actual=1, expected=5, atol=10.0), id="integer 1 atol=10"),
+    pytest.param(ExamplePair(actual=1.0, expected=1.0001, atol=1e-3), id="float + atol=1e-3"),
+    pytest.param(ExamplePair(actual=1.0, expected=0.9999, atol=1e-3), id="float - atol=1e-3"),
+    pytest.param(ExamplePair(actual=True, expected=False, atol=1.0), id="bool - atol=1"),
     # rtol
-    pytest.param(ExamplePair(object1=0, object2=1, rtol=1.0), id="integer 0 rtol=1"),
-    pytest.param(ExamplePair(object1=1, object2=0, rtol=1.0), id="integer 1 rtol=1"),
-    pytest.param(ExamplePair(object1=1, object2=2, rtol=1.0), id="integer 2 rtol=1"),
-    pytest.param(ExamplePair(object1=1, object2=5, rtol=10.0), id="integer 1 rtol=10"),
-    pytest.param(ExamplePair(object1=1.0, object2=1.0001, rtol=1e-3), id="float + rtol=1e-3"),
-    pytest.param(ExamplePair(object1=1.0, object2=0.9999, rtol=1e-3), id="float - rtol=1e-3"),
-    pytest.param(ExamplePair(object1=True, object2=False, rtol=1.0), id="bool - rtol=1"),
+    pytest.param(ExamplePair(actual=0, expected=1, rtol=1.0), id="integer 0 rtol=1"),
+    pytest.param(ExamplePair(actual=1, expected=0, rtol=1.0), id="integer 1 rtol=1"),
+    pytest.param(ExamplePair(actual=1, expected=2, rtol=1.0), id="integer 2 rtol=1"),
+    pytest.param(ExamplePair(actual=1, expected=5, rtol=10.0), id="integer 1 rtol=10"),
+    pytest.param(ExamplePair(actual=1.0, expected=1.0001, rtol=1e-3), id="float + rtol=1e-3"),
+    pytest.param(ExamplePair(actual=1.0, expected=0.9999, rtol=1e-3), id="float - rtol=1e-3"),
+    pytest.param(ExamplePair(actual=True, expected=False, rtol=1.0), id="bool - rtol=1"),
 ]
 
 
@@ -99,7 +99,7 @@ def test_scalar_equality_comparator_equal_yes(
 ) -> None:
     comparator = ScalarEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -112,7 +112,7 @@ def test_scalar_equality_comparator_equal_yes_show_difference(
     config.show_difference = True
     comparator = ScalarEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -124,7 +124,7 @@ def test_scalar_equality_comparator_equal_false(
 ) -> None:
     comparator = ScalarEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -137,7 +137,7 @@ def test_scalar_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = ScalarEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
@@ -146,8 +146,8 @@ def test_scalar_equality_comparator_equal_nan(config: EqualityConfig, equal_nan:
     config.equal_nan = equal_nan
     assert (
         ScalarEqualityComparator().equal(
-            object1=float("nan"),
-            object2=float("nan"),
+            actual=float("nan"),
+            expected=float("nan"),
             config=config,
         )
         == equal_nan
@@ -161,7 +161,7 @@ def test_scalar_equality_comparator_equal_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert ScalarEqualityComparator().equal(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.actual, expected=example.expected, config=config
     )
 
 

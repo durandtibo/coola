@@ -42,13 +42,13 @@ class MappingSameKeysHandler(AbstractEqualityHandler):
 
     def handle(
         self,
-        object1: Mapping,
-        object2: Mapping,
+        actual: Mapping,
+        expected: Mapping,
         config: EqualityConfig,
     ) -> bool:
-        keys1 = set(object1.keys())
-        keys2 = set(object2.keys())
-        if keys1 != set(object2.keys()):
+        keys1 = set(actual.keys())
+        keys2 = set(expected.keys())
+        if keys1 != set(expected.keys()):
             if config.show_difference:
                 missing_keys = keys1 - keys2
                 additional_keys = keys2 - keys1
@@ -58,7 +58,7 @@ class MappingSameKeysHandler(AbstractEqualityHandler):
                     f"additional keys: {sorted(additional_keys)}"
                 )
             return False
-        return self._handle_next(object1=object1, object2=object2, config=config)
+        return self._handle_next(actual=actual, expected=expected, config=config)
 
 
 class MappingSameValuesHandler(AbstractEqualityHandler):
@@ -96,20 +96,20 @@ class MappingSameValuesHandler(AbstractEqualityHandler):
 
     def handle(
         self,
-        object1: Mapping,
-        object2: Mapping,
+        actual: Mapping,
+        expected: Mapping,
         config: EqualityConfig,
     ) -> bool:
-        for key in object1:
-            if not config.tester.equal(object1[key], object2[key], config):
-                self._show_difference(object1=object1, object2=object2, config=config)
+        for key in actual:
+            if not config.tester.equal(actual[key], expected[key], config):
+                self._show_difference(actual=actual, expected=expected, config=config)
                 return False
-        return self._handle_next(object1=object1, object2=object2, config=config)
+        return self._handle_next(actual=actual, expected=expected, config=config)
 
-    def _show_difference(self, object1: Mapping, object2: Mapping, config: EqualityConfig) -> None:
+    def _show_difference(self, actual: Mapping, expected: Mapping, config: EqualityConfig) -> None:
         if config.show_difference:
             logger.info(
                 f"mappings have at least one different value:\n"
-                f"first mapping : {object1}\n"
-                f"second mapping: {object2}"
+                f"first mapping : {actual}\n"
+                f"second mapping: {expected}"
             )

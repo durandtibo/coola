@@ -45,13 +45,13 @@ class NanEqualHandler(AbstractEqualityHandler):
 
     def handle(
         self,
-        object1: float,
-        object2: float,
+        actual: float,
+        expected: float,
         config: EqualityConfig,
     ) -> bool:
-        if config.equal_nan and math.isnan(object1) and math.isnan(object2):
+        if config.equal_nan and math.isnan(actual) and math.isnan(expected):
             return True
-        return self._handle_next(object1=object1, object2=object2, config=config)
+        return self._handle_next(actual=actual, expected=expected, config=config)
 
 
 class ScalarEqualHandler(BaseEqualityHandler):
@@ -87,10 +87,10 @@ class ScalarEqualHandler(BaseEqualityHandler):
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
-    def handle(self, object1: float, object2: float, config: EqualityConfig) -> bool:
-        object_equal = number_equal(object1, object2, config)
+    def handle(self, actual: float, expected: float, config: EqualityConfig) -> bool:
+        object_equal = number_equal(actual, expected, config)
         if not object_equal and config.show_difference:
-            logger.info(f"numbers are not equal:\nobject1:\n{object1}\nobject2:\n{object2}")
+            logger.info(f"numbers are not equal:\nactual:\n{actual}\nexpected:\n{expected}")
         return object_equal
 
     def set_next_handler(self, handler: BaseEqualityHandler) -> None:
