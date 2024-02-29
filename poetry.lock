@@ -740,13 +740,13 @@ mkdocs = ">=1.1"
 
 [[package]]
 name = "mkdocs-material"
-version = "9.5.11"
+version = "9.5.12"
 description = "Documentation that simply works"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "mkdocs_material-9.5.11-py3-none-any.whl", hash = "sha256:788ee0f3e036dca2dc20298d65e480297d348a44c9d7b2ee05c5262983e66072"},
-    {file = "mkdocs_material-9.5.11.tar.gz", hash = "sha256:7af7f8af0dea16175558f3fb9245d26c83a17199baa5f157755e63d7437bf971"},
+    {file = "mkdocs_material-9.5.12-py3-none-any.whl", hash = "sha256:d6f0c269f015e48c76291cdc79efb70f7b33bbbf42d649cfe475522ebee61b1f"},
+    {file = "mkdocs_material-9.5.12.tar.gz", hash = "sha256:5f69cef6a8aaa4050b812f72b1094fda3d079b9a51cf27a247244c03ec455e97"},
 ]
 
 [package.dependencies]
@@ -1260,17 +1260,17 @@ testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "polars"
-version = "0.20.11"
+version = "0.20.12"
 description = "Blazingly fast DataFrame library"
 optional = true
 python-versions = ">=3.8"
 files = [
-    {file = "polars-0.20.11-cp38-abi3-macosx_10_12_x86_64.whl", hash = "sha256:3d8a3fc5ca29daea730806eaac2625446b1a448cf99c2162eef22c9f6d645b52"},
-    {file = "polars-0.20.11-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:ebc75002068308d9bc4242437332c4a91e0c56dee4844952208e481e7bc81db6"},
-    {file = "polars-0.20.11-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a2f8664b0ea1a4e0cfb9594e09b6253078c1d216f1620345ba46b7354af605b0"},
-    {file = "polars-0.20.11-cp38-abi3-manylinux_2_24_aarch64.whl", hash = "sha256:3a78f2a142dbb654c9cc06a99a7c327f881bffc71012c7d9a2c6cd1a0fb228b7"},
-    {file = "polars-0.20.11-cp38-abi3-win_amd64.whl", hash = "sha256:ab742ebb9623a24626c829a58174d2f70e2e9996a3e3449c2c655a978dfc9e34"},
-    {file = "polars-0.20.11.tar.gz", hash = "sha256:7a0b1a566c31925475815aadb4280048aeba740141dd1fe5d673e7621b9a758a"},
+    {file = "polars-0.20.12-cp38-abi3-macosx_10_12_x86_64.whl", hash = "sha256:d3f2d41179de7284e5d27de4d809100f95a15de2ced50d750cf8800468589ff4"},
+    {file = "polars-0.20.12-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:db31580c35a60310381601ace3f0278ebb00674ce28c45a7131271f26ab1acc9"},
+    {file = "polars-0.20.12-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8767f8fc871b15b293593cccff3b44f837ded2b254813394bb29ac4ae6bdbfe9"},
+    {file = "polars-0.20.12-cp38-abi3-manylinux_2_24_aarch64.whl", hash = "sha256:ecde9b8d070432920707c04da6a3c6bdf1d984a5854e11d3c79c2c0f8072f684"},
+    {file = "polars-0.20.12-cp38-abi3-win_amd64.whl", hash = "sha256:58fd7076fc93ca38b83f7d8aa9d1a16f8560b39ba79f757dc6f5474b9e7a0ec0"},
+    {file = "polars-0.20.12.tar.gz", hash = "sha256:f0bf4389c1a46db08d2b2b919b633c87fb08ec9c3c1c9436adc1fe80f0ff21ca"},
 ]
 
 [package.extras]
