@@ -145,7 +145,7 @@ class ObjectEqualHandler(BaseEqualityHandler):
     ) -> bool:
         object_equal = actual == expected
         if config.show_difference and not object_equal:
-            logger.info(f"objects are different:\nobject1={actual}\nobject2={expected}")
+            logger.info(f"objects are different:\nactual={actual}\nexpected={expected}")
         return object_equal
 
     def set_next_handler(self, handler: BaseEqualityHandler) -> None:
@@ -203,7 +203,7 @@ class SameAttributeHandler(AbstractEqualityHandler):
             if config.show_difference:
                 logger.info(f"objects have different {self._name}: {value1} vs {value2}")
             return False
-        return self._handle_next(object1=actual, object2=expected, config=config)
+        return self._handle_next(actual=actual, expected=expected, config=config)
 
 
 class SameLengthHandler(AbstractEqualityHandler):
@@ -239,7 +239,7 @@ class SameLengthHandler(AbstractEqualityHandler):
             if config.show_difference:
                 logger.info(f"objects have different lengths: {len(actual):,} vs {len(expected):,}")
             return False
-        return self._handle_next(object1=actual, object2=expected, config=config)
+        return self._handle_next(actual=actual, expected=expected, config=config)
 
 
 class SameObjectHandler(AbstractEqualityHandler):
@@ -273,7 +273,7 @@ class SameObjectHandler(AbstractEqualityHandler):
     ) -> bool | None:
         if actual is expected:
             return True
-        return self._handle_next(object1=actual, object2=expected, config=config)
+        return self._handle_next(actual=actual, expected=expected, config=config)
 
 
 class SameTypeHandler(AbstractEqualityHandler):
@@ -309,4 +309,4 @@ class SameTypeHandler(AbstractEqualityHandler):
             if config.show_difference:
                 logger.info(f"objects have different types: {type(actual)} vs {type(expected)}")
             return False
-        return self._handle_next(object1=actual, object2=expected, config=config)
+        return self._handle_next(actual=actual, expected=expected, config=config)

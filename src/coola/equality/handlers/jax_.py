@@ -63,7 +63,7 @@ class JaxArrayEqualHandler(BaseEqualityHandler):
         if config.show_difference and not object_equal:
             logger.info(
                 f"jax.numpy.ndarrays have different elements:\n"
-                f"object1=\n{actual}\nobject2=\n{expected}"
+                f"actual=\n{actual}\nexpected=\n{expected}"
             )
         return object_equal
 

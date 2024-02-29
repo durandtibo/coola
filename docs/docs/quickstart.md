@@ -62,10 +62,10 @@ False
 
 ```textmate
 INFO:coola.comparators.torch_:torch.Tensors are different
-object1=
+actual=
 tensor([[1., 1., 1.],
         [1., 1., 1.]])
-object2=
+expected=
 tensor([[0., 0., 0.],
         [0., 0., 0.]])
 INFO:coola.comparators.equality:The mappings have a different value for the key 'torch':
@@ -245,10 +245,10 @@ False
 
 ```textmate
 INFO:coola.comparators.torch_:torch.Tensors are different
-object1=
+actual=
 tensor([[1., 1., 1.],
         [1., 1., 1.]])
-object2=
+expected=
 tensor([[1.0001, 1.0001, 1.0001],
         [1.0001, 1.0001, 1.0001]])
 INFO:coola.comparators.allclose:The mappings have a different value for the key torch:

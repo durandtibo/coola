@@ -48,7 +48,7 @@ def test_same_data_handler_str() -> None:
 
 @numpy_available
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (np.ones(shape=(2, 3)), np.ones(shape=(2, 3))),
         (np.zeros(shape=(2, 3)), np.zeros(shape=(2, 3))),
@@ -57,14 +57,14 @@ def test_same_data_handler_str() -> None:
     ],
 )
 def test_same_data_handler_handle_true(
-    object1: np.ndarray, object2: np.ndarray, config: EqualityConfig
+    actual: np.ndarray, expected: np.ndarray, config: EqualityConfig
 ) -> None:
-    assert SameDataHandler(next_handler=TrueHandler()).handle(object1, object2, config)
+    assert SameDataHandler(next_handler=TrueHandler()).handle(actual, expected, config)
 
 
 @numpy_available
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (np.ones(shape=(2, 3)), np.zeros(shape=(2, 3))),
         (np.ones(shape=(2, 3)), np.ones(shape=(2, 3, 1))),
@@ -72,9 +72,9 @@ def test_same_data_handler_handle_true(
     ],
 )
 def test_same_data_handler_handle_false(
-    object1: np.ndarray, object2: np.ndarray, config: EqualityConfig
+    actual: np.ndarray, expected: np.ndarray, config: EqualityConfig
 ) -> None:
-    assert not SameDataHandler().handle(object1, object2, config)
+    assert not SameDataHandler().handle(actual, expected, config)
 
 
 @numpy_available

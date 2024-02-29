@@ -79,7 +79,7 @@ class EqualHandler(BaseEqualityHandler):
     def handle(self, actual: SupportsEqual, expected: Any, config: EqualityConfig) -> bool:
         if not actual.equal(expected, equal_nan=config.equal_nan):
             if config.show_difference:
-                logger.info(f"objects are not equal:\nobject1:\n{actual}\nobject2:\n{expected}")
+                logger.info(f"objects are not equal:\nactual:\n{actual}\nexpected:\n{expected}")
             return False
         return True
 

@@ -30,50 +30,50 @@ def config() -> EqualityConfig:
 NUMPY_ARRAY_EQUAL = [
     pytest.param(
         ExamplePair(
-            object1=np.ones(shape=(2, 3), dtype=float), object2=np.ones(shape=(2, 3), dtype=float)
+            actual=np.ones(shape=(2, 3), dtype=float), expected=np.ones(shape=(2, 3), dtype=float)
         ),
         id="float dtype",
     ),
     pytest.param(
         ExamplePair(
-            object1=np.ones(shape=(2, 3), dtype=int), object2=np.ones(shape=(2, 3), dtype=int)
+            actual=np.ones(shape=(2, 3), dtype=int), expected=np.ones(shape=(2, 3), dtype=int)
         ),
         id="int dtype",
     ),
-    pytest.param(ExamplePair(object1=np.ones(shape=6), object2=np.ones(shape=6)), id="1d array"),
+    pytest.param(ExamplePair(actual=np.ones(shape=6), expected=np.ones(shape=6)), id="1d array"),
     pytest.param(
-        ExamplePair(object1=np.ones(shape=(2, 3)), object2=np.ones(shape=(2, 3))), id="2d array"
+        ExamplePair(actual=np.ones(shape=(2, 3)), expected=np.ones(shape=(2, 3))), id="2d array"
     ),
 ]
 NUMPY_ARRAY_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
-            object1=np.ones(shape=(2, 3), dtype=float),
-            object2=np.ones(shape=(2, 3), dtype=int),
+            actual=np.ones(shape=(2, 3), dtype=float),
+            expected=np.ones(shape=(2, 3), dtype=int),
             expected_message="objects have different data types:",
         ),
         id="different data types",
     ),
     pytest.param(
         ExamplePair(
-            object1=np.ones(shape=(2, 3)),
-            object2=np.ones(shape=6),
+            actual=np.ones(shape=(2, 3)),
+            expected=np.ones(shape=6),
             expected_message="objects have different shapes:",
         ),
         id="different shapes",
     ),
     pytest.param(
         ExamplePair(
-            object1=np.ones(shape=(2, 3)),
-            object2=np.zeros(shape=(2, 3)),
+            actual=np.ones(shape=(2, 3)),
+            expected=np.zeros(shape=(2, 3)),
             expected_message="numpy.ndarrays have different elements:",
         ),
         id="different values",
     ),
     pytest.param(
         ExamplePair(
-            object1=np.ones(shape=(2, 3)),
-            object2="meow",
+            actual=np.ones(shape=(2, 3)),
+            expected="meow",
             expected_message="objects have different types:",
         ),
         id="different types",
@@ -82,28 +82,28 @@ NUMPY_ARRAY_NOT_EQUAL = [
 NUMPY_ARRAY_EQUAL_TOLERANCE = [
     # atol
     pytest.param(
-        ExamplePair(object1=np.ones((2, 3)), object2=np.full((2, 3), 1.5), atol=1.0),
+        ExamplePair(actual=np.ones((2, 3)), expected=np.full((2, 3), 1.5), atol=1.0),
         id="atol=1",
     ),
     pytest.param(
-        ExamplePair(object1=np.ones((2, 3)), object2=np.full((2, 3), 1.05), atol=0.1),
+        ExamplePair(actual=np.ones((2, 3)), expected=np.full((2, 3), 1.05), atol=0.1),
         id="atol=0.1",
     ),
     pytest.param(
-        ExamplePair(object1=np.ones((2, 3)), object2=np.full((2, 3), 1.005), atol=0.01),
+        ExamplePair(actual=np.ones((2, 3)), expected=np.full((2, 3), 1.005), atol=0.01),
         id="atol=0.01",
     ),
     # rtol
     pytest.param(
-        ExamplePair(object1=np.ones((2, 3)), object2=np.full((2, 3), 1.5), rtol=1.0),
+        ExamplePair(actual=np.ones((2, 3)), expected=np.full((2, 3), 1.5), rtol=1.0),
         id="rtol=1",
     ),
     pytest.param(
-        ExamplePair(object1=np.ones((2, 3)), object2=np.full((2, 3), 1.05), rtol=0.1),
+        ExamplePair(actual=np.ones((2, 3)), expected=np.full((2, 3), 1.05), rtol=0.1),
         id="rtol=0.1",
     ),
     pytest.param(
-        ExamplePair(object1=np.ones((2, 3)), object2=np.full((2, 3), 1.005), rtol=0.01),
+        ExamplePair(actual=np.ones((2, 3)), expected=np.full((2, 3), 1.005), rtol=0.01),
         id="rtol=0.01",
     ),
 ]
@@ -111,28 +111,28 @@ NUMPY_ARRAY_EQUAL_TOLERANCE = [
 NUMPY_MASKED_ARRAY_EQUAL = [
     pytest.param(
         ExamplePair(
-            object1=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], dtype=float),
-            object2=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], dtype=float),
+            actual=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], dtype=float),
+            expected=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], dtype=float),
         ),
         id="float dtype",
     ),
     pytest.param(
         ExamplePair(
-            object1=np.ma.array(data=[0, 1, 2], mask=[0, 1, 0], dtype=int),
-            object2=np.ma.array(data=[0, 1, 2], mask=[0, 1, 0], dtype=int),
+            actual=np.ma.array(data=[0, 1, 2], mask=[0, 1, 0], dtype=int),
+            expected=np.ma.array(data=[0, 1, 2], mask=[0, 1, 0], dtype=int),
         ),
         id="int dtype",
     ),
     pytest.param(
         ExamplePair(
-            object1=np.ma.array(data=[0.0, 1.0, 1.2]), object2=np.ma.array(data=[0.0, 1.0, 1.2])
+            actual=np.ma.array(data=[0.0, 1.0, 1.2]), expected=np.ma.array(data=[0.0, 1.0, 1.2])
         ),
         id="1d array",
     ),
     pytest.param(
         ExamplePair(
-            object1=np.ma.array(data=np.ones(shape=(2, 3)), mask=[[0, 1, 0], [1, 0, 0]]),
-            object2=np.ma.array(data=np.ones(shape=(2, 3)), mask=[[0, 1, 0], [1, 0, 0]]),
+            actual=np.ma.array(data=np.ones(shape=(2, 3)), mask=[[0, 1, 0], [1, 0, 0]]),
+            expected=np.ma.array(data=np.ones(shape=(2, 3)), mask=[[0, 1, 0], [1, 0, 0]]),
         ),
         id="2d array",
     ),
@@ -140,48 +140,48 @@ NUMPY_MASKED_ARRAY_EQUAL = [
 NUMPY_MASKED_ARRAY_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
-            object1=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], dtype=float),
-            object2=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], dtype=int),
+            actual=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], dtype=float),
+            expected=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], dtype=int),
             expected_message="objects have different data types:",
         ),
         id="different data types",
     ),
     pytest.param(
         ExamplePair(
-            object1=np.ma.array(data=np.ones(shape=(2, 3)), mask=[[0, 1, 0], [1, 0, 0]]),
-            object2=np.ma.array(data=np.ones(shape=(3, 2)), mask=[[0, 1], [1, 0], [0, 0]]),
+            actual=np.ma.array(data=np.ones(shape=(2, 3)), mask=[[0, 1, 0], [1, 0, 0]]),
+            expected=np.ma.array(data=np.ones(shape=(3, 2)), mask=[[0, 1], [1, 0], [0, 0]]),
             expected_message="objects have different shapes:",
         ),
         id="different shapes",
     ),
     pytest.param(
         ExamplePair(
-            object1=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
-            object2=np.ma.array(data=[0.0, 1.0, 2.0], mask=[0, 1, 0]),
+            actual=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
+            expected=np.ma.array(data=[0.0, 1.0, 2.0], mask=[0, 1, 0]),
             expected_message="objects have different data:",
         ),
         id="different values",
     ),
     pytest.param(
         ExamplePair(
-            object1=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
-            object2=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 0, 1]),
+            actual=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
+            expected=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 0, 1]),
             expected_message="objects have different mask:",
         ),
         id="different mask",
     ),
     pytest.param(
         ExamplePair(
-            object1=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], fill_value=-1),
-            object2=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], fill_value=42),
+            actual=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], fill_value=-1),
+            expected=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], fill_value=42),
             expected_message="objects have different fill_value:",
         ),
         id="different fill_value",
     ),
     pytest.param(
         ExamplePair(
-            object1=np.ma.array(data=np.ones(shape=(2, 3)), mask=[[0, 1, 0], [1, 0, 0]]),
-            object2=np.ones(shape=(2, 3)),
+            actual=np.ma.array(data=np.ones(shape=(2, 3)), mask=[[0, 1, 0], [1, 0, 0]]),
+            expected=np.ones(shape=(2, 3)),
             expected_message="objects have different types:",
         ),
         id="different types",
@@ -238,7 +238,7 @@ def test_numpy_array_equality_comparator_equal_yes(
 ) -> None:
     comparator = NumpyArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -252,7 +252,7 @@ def test_numpy_array_equality_comparator_equal_yes_show_difference(
     config.show_difference = True
     comparator = NumpyArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -265,7 +265,7 @@ def test_numpy_array_equality_comparator_equal_false(
 ) -> None:
     comparator = NumpyArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -279,7 +279,7 @@ def test_numpy_array_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = NumpyArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
@@ -307,7 +307,7 @@ def test_numpy_array_equality_comparator_equal_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert NumpyArrayEqualityComparator().equal(
-        actual=example.object1, expected=example.object2, config=config
+        actual=example.actual, expected=example.expected, config=config
     )
 
 
@@ -367,7 +367,7 @@ def test_numpy_masked_array_equality_comparator_equal_yes(
 ) -> None:
     comparator = NumpyMaskedArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -381,7 +381,7 @@ def test_numpy_masked_array_equality_comparator_equal_yes_show_difference(
     config.show_difference = True
     comparator = NumpyMaskedArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -394,7 +394,7 @@ def test_numpy_masked_array_equality_comparator_equal_false(
 ) -> None:
     comparator = NumpyMaskedArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -408,7 +408,7 @@ def test_numpy_masked_array_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = NumpyMaskedArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 

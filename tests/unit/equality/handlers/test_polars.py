@@ -57,7 +57,7 @@ def test_polars_dataframe_equal_handler_str() -> None:
 
 @polars_available
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (polars.DataFrame({}), polars.DataFrame({})),
         (polars.DataFrame({"col": [1, 2, 3]}), polars.DataFrame({"col": [1, 2, 3]})),
@@ -80,14 +80,14 @@ def test_polars_dataframe_equal_handler_str() -> None:
     ],
 )
 def test_polars_dataframe_equal_handler_handle_true(
-    object1: polars.DataFrame,
-    object2: polars.DataFrame,
+    actual: polars.DataFrame,
+    expected: polars.DataFrame,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert handler.handle(object1, object2, config)
+        assert handler.handle(actual, expected, config)
         assert not caplog.messages
 
 
@@ -201,7 +201,7 @@ def test_polars_dataframe_equal_handler_handle_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert PolarsDataFrameEqualHandler().handle(
-        actual=example.object1, expected=example.object2, config=config
+        actual=example.actual, expected=example.expected, config=config
     )
 
 
@@ -232,7 +232,7 @@ def test_polars_series_equal_handler_str() -> None:
 
 @polars_available
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (polars.Series([]), polars.Series([])),
         (polars.Series([1, 2, 3]), polars.Series([1, 2, 3])),
@@ -240,14 +240,14 @@ def test_polars_series_equal_handler_str() -> None:
     ],
 )
 def test_polars_series_equal_handler_handle_true(
-    object1: polars.Series,
-    object2: polars.Series,
+    actual: polars.Series,
+    expected: polars.Series,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert handler.handle(object1, object2, config)
+        assert handler.handle(actual, expected, config)
         assert not caplog.messages
 
 
@@ -342,7 +342,7 @@ def test_polars_series_equal_handler_handle_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert PolarsSeriesEqualHandler().handle(
-        actual=example.object1, expected=example.object2, config=config
+        actual=example.actual, expected=example.expected, config=config
     )
 
 

@@ -30,12 +30,12 @@ def config() -> EqualityConfig:
 TORCH_PACKED_SEQUENCE_EQUAL = [
     pytest.param(
         ExamplePair(
-            object1=torch.nn.utils.rnn.pack_padded_sequence(
+            actual=torch.nn.utils.rnn.pack_padded_sequence(
                 input=torch.arange(10, dtype=torch.float).view(2, 5),
                 lengths=torch.tensor([5, 3], dtype=torch.long),
                 batch_first=True,
             ),
-            object2=torch.nn.utils.rnn.pack_padded_sequence(
+            expected=torch.nn.utils.rnn.pack_padded_sequence(
                 input=torch.arange(10, dtype=torch.float).view(2, 5),
                 lengths=torch.tensor([5, 3], dtype=torch.long),
                 batch_first=True,
@@ -45,12 +45,12 @@ TORCH_PACKED_SEQUENCE_EQUAL = [
     ),
     pytest.param(
         ExamplePair(
-            object1=torch.nn.utils.rnn.pack_padded_sequence(
+            actual=torch.nn.utils.rnn.pack_padded_sequence(
                 input=torch.arange(10, dtype=torch.long).view(2, 5),
                 lengths=torch.tensor([5, 3], dtype=torch.long),
                 batch_first=True,
             ),
-            object2=torch.nn.utils.rnn.pack_padded_sequence(
+            expected=torch.nn.utils.rnn.pack_padded_sequence(
                 input=torch.arange(10, dtype=torch.long).view(2, 5),
                 lengths=torch.tensor([5, 3], dtype=torch.long),
                 batch_first=True,
@@ -62,12 +62,12 @@ TORCH_PACKED_SEQUENCE_EQUAL = [
 TORCH_PACKED_SEQUENCE_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
-            object1=torch.nn.utils.rnn.pack_padded_sequence(
+            actual=torch.nn.utils.rnn.pack_padded_sequence(
                 input=torch.arange(10, dtype=torch.float).view(2, 5),
                 lengths=torch.tensor([5, 3], dtype=torch.long),
                 batch_first=True,
             ),
-            object2=torch.nn.utils.rnn.pack_padded_sequence(
+            expected=torch.nn.utils.rnn.pack_padded_sequence(
                 input=torch.arange(10).view(2, 5).add(1).float(),
                 lengths=torch.tensor([5, 3], dtype=torch.long),
                 batch_first=True,
@@ -78,13 +78,13 @@ TORCH_PACKED_SEQUENCE_NOT_EQUAL = [
     ),
     pytest.param(
         ExamplePair(
-            object1=torch.nn.utils.rnn.PackedSequence(
+            actual=torch.nn.utils.rnn.PackedSequence(
                 data=torch.tensor([0.0, 5.0, 1.0, 6.0, 2.0, 7.0, 3.0, 4.0]),
                 batch_sizes=torch.tensor([2, 2, 2, 1, 1]),
                 sorted_indices=None,
                 unsorted_indices=None,
             ),
-            object2=torch.nn.utils.rnn.PackedSequence(
+            expected=torch.nn.utils.rnn.PackedSequence(
                 data=torch.tensor([0.0, 5.0, 1.0, 6.0, 2.0, 7.0, 3.0, 4.0]),
                 batch_sizes=torch.tensor([2, 2, 2, 2, 0]),
                 sorted_indices=None,
@@ -96,13 +96,13 @@ TORCH_PACKED_SEQUENCE_NOT_EQUAL = [
     ),
     pytest.param(
         ExamplePair(
-            object1=torch.nn.utils.rnn.PackedSequence(
+            actual=torch.nn.utils.rnn.PackedSequence(
                 data=torch.tensor([0.0, 5.0, 1.0, 6.0, 2.0, 7.0, 3.0, 4.0]),
                 batch_sizes=torch.tensor([2, 2, 2, 1, 1]),
                 sorted_indices=torch.tensor([0, 1]),
                 unsorted_indices=None,
             ),
-            object2=torch.nn.utils.rnn.PackedSequence(
+            expected=torch.nn.utils.rnn.PackedSequence(
                 data=torch.tensor([0.0, 5.0, 1.0, 6.0, 2.0, 7.0, 3.0, 4.0]),
                 batch_sizes=torch.tensor([2, 2, 2, 1, 1]),
                 sorted_indices=None,
@@ -114,13 +114,13 @@ TORCH_PACKED_SEQUENCE_NOT_EQUAL = [
     ),
     pytest.param(
         ExamplePair(
-            object1=torch.nn.utils.rnn.PackedSequence(
+            actual=torch.nn.utils.rnn.PackedSequence(
                 data=torch.tensor([0.0, 5.0, 1.0, 6.0, 2.0, 7.0, 3.0, 4.0]),
                 batch_sizes=torch.tensor([2, 2, 2, 1, 1]),
                 sorted_indices=None,
                 unsorted_indices=torch.tensor([0, 1]),
             ),
-            object2=torch.nn.utils.rnn.PackedSequence(
+            expected=torch.nn.utils.rnn.PackedSequence(
                 data=torch.tensor([0.0, 5.0, 1.0, 6.0, 2.0, 7.0, 3.0, 4.0]),
                 batch_sizes=torch.tensor([2, 2, 2, 1, 1]),
                 sorted_indices=None,
@@ -132,12 +132,12 @@ TORCH_PACKED_SEQUENCE_NOT_EQUAL = [
     ),
     pytest.param(
         ExamplePair(
-            object1=torch.nn.utils.rnn.pack_padded_sequence(
+            actual=torch.nn.utils.rnn.pack_padded_sequence(
                 input=torch.arange(10, dtype=torch.float).view(2, 5),
                 lengths=torch.tensor([5, 3], dtype=torch.long),
                 batch_first=True,
             ),
-            object2=torch.arange(10, dtype=torch.float).view(2, 5),
+            expected=torch.arange(10, dtype=torch.float).view(2, 5),
             expected_message="objects have different types:",
         ),
         id="different types",
@@ -147,12 +147,12 @@ TORCH_PACKED_SEQUENCE_EQUAL_TOLERANCE = [
     # atol
     pytest.param(
         ExamplePair(
-            object1=torch.nn.utils.rnn.pack_padded_sequence(
+            actual=torch.nn.utils.rnn.pack_padded_sequence(
                 input=torch.ones(2, 5),
                 lengths=torch.tensor([5, 3], dtype=torch.long),
                 batch_first=True,
             ),
-            object2=torch.nn.utils.rnn.pack_padded_sequence(
+            expected=torch.nn.utils.rnn.pack_padded_sequence(
                 input=torch.full(size=(2, 5), fill_value=1.5),
                 lengths=torch.tensor([5, 3], dtype=torch.long),
                 batch_first=True,
@@ -163,12 +163,12 @@ TORCH_PACKED_SEQUENCE_EQUAL_TOLERANCE = [
     ),
     pytest.param(
         ExamplePair(
-            object1=torch.nn.utils.rnn.pack_padded_sequence(
+            actual=torch.nn.utils.rnn.pack_padded_sequence(
                 input=torch.ones(2, 5),
                 lengths=torch.tensor([5, 3], dtype=torch.long),
                 batch_first=True,
             ),
-            object2=torch.nn.utils.rnn.pack_padded_sequence(
+            expected=torch.nn.utils.rnn.pack_padded_sequence(
                 input=torch.full(size=(2, 5), fill_value=1.05),
                 lengths=torch.tensor([5, 3], dtype=torch.long),
                 batch_first=True,
@@ -179,12 +179,12 @@ TORCH_PACKED_SEQUENCE_EQUAL_TOLERANCE = [
     ),
     pytest.param(
         ExamplePair(
-            object1=torch.nn.utils.rnn.pack_padded_sequence(
+            actual=torch.nn.utils.rnn.pack_padded_sequence(
                 input=torch.ones(2, 5),
                 lengths=torch.tensor([5, 3], dtype=torch.long),
                 batch_first=True,
             ),
-            object2=torch.nn.utils.rnn.pack_padded_sequence(
+            expected=torch.nn.utils.rnn.pack_padded_sequence(
                 input=torch.full(size=(2, 5), fill_value=1.005),
                 lengths=torch.tensor([5, 3], dtype=torch.long),
                 batch_first=True,
@@ -196,12 +196,12 @@ TORCH_PACKED_SEQUENCE_EQUAL_TOLERANCE = [
     # rtol
     pytest.param(
         ExamplePair(
-            object1=torch.nn.utils.rnn.pack_padded_sequence(
+            actual=torch.nn.utils.rnn.pack_padded_sequence(
                 input=torch.ones(2, 5),
                 lengths=torch.tensor([5, 3], dtype=torch.long),
                 batch_first=True,
             ),
-            object2=torch.nn.utils.rnn.pack_padded_sequence(
+            expected=torch.nn.utils.rnn.pack_padded_sequence(
                 input=torch.full(size=(2, 5), fill_value=1.5),
                 lengths=torch.tensor([5, 3], dtype=torch.long),
                 batch_first=True,
@@ -212,12 +212,12 @@ TORCH_PACKED_SEQUENCE_EQUAL_TOLERANCE = [
     ),
     pytest.param(
         ExamplePair(
-            object1=torch.nn.utils.rnn.pack_padded_sequence(
+            actual=torch.nn.utils.rnn.pack_padded_sequence(
                 input=torch.ones(2, 5),
                 lengths=torch.tensor([5, 3], dtype=torch.long),
                 batch_first=True,
             ),
-            object2=torch.nn.utils.rnn.pack_padded_sequence(
+            expected=torch.nn.utils.rnn.pack_padded_sequence(
                 input=torch.full(size=(2, 5), fill_value=1.05),
                 lengths=torch.tensor([5, 3], dtype=torch.long),
                 batch_first=True,
@@ -228,12 +228,12 @@ TORCH_PACKED_SEQUENCE_EQUAL_TOLERANCE = [
     ),
     pytest.param(
         ExamplePair(
-            object1=torch.nn.utils.rnn.pack_padded_sequence(
+            actual=torch.nn.utils.rnn.pack_padded_sequence(
                 input=torch.ones(2, 5),
                 lengths=torch.tensor([5, 3], dtype=torch.long),
                 batch_first=True,
             ),
-            object2=torch.nn.utils.rnn.pack_padded_sequence(
+            expected=torch.nn.utils.rnn.pack_padded_sequence(
                 input=torch.full(size=(2, 5), fill_value=1.005),
                 lengths=torch.tensor([5, 3], dtype=torch.long),
                 batch_first=True,
@@ -248,48 +248,48 @@ TORCH_PACKED_SEQUENCE_EQUAL_TOLERANCE = [
 TORCH_TENSOR_EQUAL = [
     pytest.param(
         ExamplePair(
-            object1=torch.ones(2, 3, dtype=torch.float), object2=torch.ones(2, 3, dtype=torch.float)
+            actual=torch.ones(2, 3, dtype=torch.float), expected=torch.ones(2, 3, dtype=torch.float)
         ),
         id="float dtype",
     ),
     pytest.param(
         ExamplePair(
-            object1=torch.ones(2, 3, dtype=torch.long), object2=torch.ones(2, 3, dtype=torch.long)
+            actual=torch.ones(2, 3, dtype=torch.long), expected=torch.ones(2, 3, dtype=torch.long)
         ),
         id="long dtype",
     ),
-    pytest.param(ExamplePair(object1=torch.ones(6), object2=torch.ones(6)), id="1d tensor"),
-    pytest.param(ExamplePair(object1=torch.ones(2, 3), object2=torch.ones(2, 3)), id="2d tensor"),
+    pytest.param(ExamplePair(actual=torch.ones(6), expected=torch.ones(6)), id="1d tensor"),
+    pytest.param(ExamplePair(actual=torch.ones(2, 3), expected=torch.ones(2, 3)), id="2d tensor"),
 ]
 TORCH_TENSOR_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
-            object1=torch.ones(2, 3, dtype=torch.float),
-            object2=torch.ones(2, 3, dtype=torch.long),
+            actual=torch.ones(2, 3, dtype=torch.float),
+            expected=torch.ones(2, 3, dtype=torch.long),
             expected_message="objects have different data types:",
         ),
         id="different data types",
     ),
     pytest.param(
         ExamplePair(
-            object1=torch.ones(2, 3),
-            object2=torch.ones(6),
+            actual=torch.ones(2, 3),
+            expected=torch.ones(6),
             expected_message="objects have different shapes:",
         ),
         id="different shapes",
     ),
     pytest.param(
         ExamplePair(
-            object1=torch.ones(2, 3),
-            object2=torch.zeros(2, 3),
+            actual=torch.ones(2, 3),
+            expected=torch.zeros(2, 3),
             expected_message="torch.Tensors have different elements:",
         ),
         id="different values",
     ),
     pytest.param(
         ExamplePair(
-            object1=torch.ones(2, 3),
-            object2="meow",
+            actual=torch.ones(2, 3),
+            expected="meow",
             expected_message="objects have different types:",
         ),
         id="different types",
@@ -298,28 +298,28 @@ TORCH_TENSOR_NOT_EQUAL = [
 TORCH_TENSOR_EQUAL_TOLERANCE = [
     # atol
     pytest.param(
-        ExamplePair(object1=torch.ones(2, 3), object2=torch.full((2, 3), 1.5), atol=1.0),
+        ExamplePair(actual=torch.ones(2, 3), expected=torch.full((2, 3), 1.5), atol=1.0),
         id="atol=1",
     ),
     pytest.param(
-        ExamplePair(object1=torch.ones(2, 3), object2=torch.full((2, 3), 1.05), atol=0.1),
+        ExamplePair(actual=torch.ones(2, 3), expected=torch.full((2, 3), 1.05), atol=0.1),
         id="atol=0.1",
     ),
     pytest.param(
-        ExamplePair(object1=torch.ones(2, 3), object2=torch.full((2, 3), 1.005), atol=0.01),
+        ExamplePair(actual=torch.ones(2, 3), expected=torch.full((2, 3), 1.005), atol=0.01),
         id="atol=0.01",
     ),
     # rtol
     pytest.param(
-        ExamplePair(object1=torch.ones(2, 3), object2=torch.full((2, 3), 1.5), rtol=1.0),
+        ExamplePair(actual=torch.ones(2, 3), expected=torch.full((2, 3), 1.5), rtol=1.0),
         id="rtol=1",
     ),
     pytest.param(
-        ExamplePair(object1=torch.ones(2, 3), object2=torch.full((2, 3), 1.05), rtol=0.1),
+        ExamplePair(actual=torch.ones(2, 3), expected=torch.full((2, 3), 1.05), rtol=0.1),
         id="rtol=0.1",
     ),
     pytest.param(
-        ExamplePair(object1=torch.ones(2, 3), object2=torch.full((2, 3), 1.005), rtol=0.01),
+        ExamplePair(actual=torch.ones(2, 3), expected=torch.full((2, 3), 1.005), rtol=0.01),
         id="rtol=0.01",
     ),
 ]
@@ -377,7 +377,7 @@ def test_tensor_packed_sequence_equality_comparator_equal_yes(
 ) -> None:
     comparator = TorchPackedSequenceEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -391,7 +391,7 @@ def test_tensor_packed_sequence_equality_comparator_equal_yes_show_difference(
     config.show_difference = True
     comparator = TorchPackedSequenceEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -404,7 +404,7 @@ def test_tensor_packed_sequence_equality_comparator_equal_false(
 ) -> None:
     comparator = TorchPackedSequenceEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -418,7 +418,7 @@ def test_tensor_packed_sequence_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = TorchPackedSequenceEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
@@ -504,7 +504,7 @@ def test_torch_tensor_equality_comparator_equal_yes(
 ) -> None:
     comparator = TorchTensorEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -518,7 +518,7 @@ def test_torch_tensor_equality_comparator_equal_yes_show_difference(
     config.show_difference = True
     comparator = TorchTensorEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -531,7 +531,7 @@ def test_torch_tensor_equality_comparator_equal_false(
 ) -> None:
     comparator = TorchTensorEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -545,7 +545,7 @@ def test_torch_tensor_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = TorchTensorEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
@@ -605,7 +605,7 @@ def test_torch_tensor_equality_comparator_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert TorchTensorEqualityComparator().equal(
-        actual=example.object1, expected=example.object2, config=config
+        actual=example.actual, expected=example.expected, config=config
     )
 
 

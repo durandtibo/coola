@@ -55,7 +55,7 @@ def test_torch_tensor_equal_handler_str() -> None:
 
 @torch_available
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (torch.ones(2, 3, dtype=torch.float), torch.ones(2, 3, dtype=torch.float)),
         (torch.ones(2, 3, dtype=torch.int), torch.ones(2, 3, dtype=torch.int)),
@@ -63,14 +63,14 @@ def test_torch_tensor_equal_handler_str() -> None:
     ],
 )
 def test_torch_tensor_equal_handler_handle_true(
-    object1: torch.Tensor, object2: torch.Tensor, config: EqualityConfig
+    actual: torch.Tensor, expected: torch.Tensor, config: EqualityConfig
 ) -> None:
-    assert TorchTensorEqualHandler().handle(object1, object2, config)
+    assert TorchTensorEqualHandler().handle(actual, expected, config)
 
 
 @torch_available
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (torch.ones(2, 3), torch.ones(3, 2)),
         (torch.ones(2, 3), torch.ones(2, 1)),
@@ -78,9 +78,9 @@ def test_torch_tensor_equal_handler_handle_true(
     ],
 )
 def test_torch_tensor_equal_handler_handle_false(
-    object1: torch.Tensor, object2: torch.Tensor, config: EqualityConfig
+    actual: torch.Tensor, expected: torch.Tensor, config: EqualityConfig
 ) -> None:
-    assert not TorchTensorEqualHandler().handle(object1, object2, config)
+    assert not TorchTensorEqualHandler().handle(actual, expected, config)
 
 
 @torch_available
@@ -121,7 +121,7 @@ def test_torch_tensor_equal_handler_handle_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert TorchTensorEqualHandler().handle(
-        actual=example.object1, expected=example.object2, config=config
+        actual=example.actual, expected=example.expected, config=config
     )
 
 

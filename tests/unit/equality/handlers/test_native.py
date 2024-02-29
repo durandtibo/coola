@@ -56,10 +56,10 @@ def test_false_handler_str() -> None:
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"), [(0, 0), (4.2, 4.2), ("abc", "abc"), (0, 1), (4, 4.0), ("abc", "ABC")]
+    ("actual", "expected"), [(0, 0), (4.2, 4.2), ("abc", "abc"), (0, 1), (4, 4.0), ("abc", "ABC")]
 )
-def test_false_handler_handle(object1: Any, object2: Any, config: EqualityConfig) -> None:
-    assert not FalseHandler().handle(object1, object2, config)
+def test_false_handler_handle(actual: Any, expected: Any, config: EqualityConfig) -> None:
+    assert not FalseHandler().handle(actual, expected, config)
 
 
 def test_false_handler_set_next_handler() -> None:
@@ -88,10 +88,10 @@ def test_true_handler_str() -> None:
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"), [(0, 0), (4.2, 4.2), ("abc", "abc"), (0, 1), (4, 4.0), ("abc", "ABC")]
+    ("actual", "expected"), [(0, 0), (4.2, 4.2), ("abc", "abc"), (0, 1), (4, 4.0), ("abc", "ABC")]
 )
-def test_true_handler_handle(object1: Any, object2: Any, config: EqualityConfig) -> None:
-    assert TrueHandler().handle(object1, object2, config)
+def test_true_handler_handle(actual: Any, expected: Any, config: EqualityConfig) -> None:
+    assert TrueHandler().handle(actual, expected, config)
 
 
 def test_true_handler_set_next_handler() -> None:
@@ -119,18 +119,18 @@ def test_object_equal_handler_str() -> None:
     assert str(ObjectEqualHandler()) == "ObjectEqualHandler()"
 
 
-@pytest.mark.parametrize(("object1", "object2"), [(0, 0), (4.2, 4.2), ("abc", "abc")])
+@pytest.mark.parametrize(("actual", "expected"), [(0, 0), (4.2, 4.2), ("abc", "abc")])
 def test_object_equal_handler_handle_true(
-    object1: Any, object2: Any, config: EqualityConfig
+    actual: Any, expected: Any, config: EqualityConfig
 ) -> None:
-    assert ObjectEqualHandler().handle(object1, object2, config)
+    assert ObjectEqualHandler().handle(actual, expected, config)
 
 
-@pytest.mark.parametrize(("object1", "object2"), [(0, 1), (4, 4.2), ("abc", "ABC")])
+@pytest.mark.parametrize(("actual", "expected"), [(0, 1), (4, 4.2), ("abc", "ABC")])
 def test_object_equal_handler_handle_false(
-    object1: Any, object2: Any, config: EqualityConfig
+    actual: Any, expected: Any, config: EqualityConfig
 ) -> None:
-    assert not ObjectEqualHandler().handle(object1, object2, config)
+    assert not ObjectEqualHandler().handle(actual, expected, config)
 
 
 def test_object_equal_handler_handle_false_show_difference(
@@ -173,7 +173,7 @@ def test_same_attribute_handler_str() -> None:
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (Mock(data=1), Mock(data=1)),
         (Mock(data="abc"), Mock(data="abc")),
@@ -181,15 +181,15 @@ def test_same_attribute_handler_str() -> None:
     ],
 )
 def test_same_attribute_handler_handle_true(
-    object1: Any, object2: Any, config: EqualityConfig
+    actual: Any, expected: Any, config: EqualityConfig
 ) -> None:
     assert SameAttributeHandler(name="data", next_handler=TrueHandler()).handle(
-        object1, object2, config
+        actual, expected, config
     )
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (Mock(data=1), Mock(data=2)),
         (Mock(data="abc"), Mock(data="abcd")),
@@ -197,9 +197,9 @@ def test_same_attribute_handler_handle_true(
     ],
 )
 def test_same_attribute_handler_handle_false(
-    object1: Any, object2: Any, config: EqualityConfig
+    actual: Any, expected: Any, config: EqualityConfig
 ) -> None:
-    assert not SameAttributeHandler(name="data").handle(object1, object2, config)
+    assert not SameAttributeHandler(name="data").handle(actual, expected, config)
 
 
 @numpy_available
@@ -274,7 +274,7 @@ def test_same_length_handler_str() -> None:
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         ([], []),
         ([1, 2, 3], [4, 5, 6]),
@@ -285,13 +285,13 @@ def test_same_length_handler_str() -> None:
     ],
 )
 def test_same_length_handler_handle_true(
-    object1: Sized, object2: Sized, config: EqualityConfig
+    actual: Sized, expected: Sized, config: EqualityConfig
 ) -> None:
-    assert SameLengthHandler(next_handler=TrueHandler()).handle(object1, object2, config)
+    assert SameLengthHandler(next_handler=TrueHandler()).handle(actual, expected, config)
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         ([1, 2], [1, 2, 3]),
         ((4, 5), (4, 5, None)),
@@ -299,9 +299,9 @@ def test_same_length_handler_handle_true(
     ],
 )
 def test_same_length_handler_handle_false(
-    object1: Sized, object2: Sized, config: EqualityConfig
+    actual: Sized, expected: Sized, config: EqualityConfig
 ) -> None:
-    assert not SameLengthHandler().handle(object1, object2, config)
+    assert not SameLengthHandler().handle(actual, expected, config)
 
 
 def test_same_length_handler_handle_false_show_difference(
@@ -353,18 +353,18 @@ def test_same_object_handler_str() -> None:
     assert str(SameObjectHandler()) == "SameObjectHandler()"
 
 
-@pytest.mark.parametrize(("object1", "object2"), [(0, 0), (4.2, 4.2), ("abc", "abc")])
+@pytest.mark.parametrize(("actual", "expected"), [(0, 0), (4.2, 4.2), ("abc", "abc")])
 def test_same_object_handler_handle_true(
-    object1: Any, object2: Any, config: EqualityConfig
+    actual: Any, expected: Any, config: EqualityConfig
 ) -> None:
-    assert SameObjectHandler().handle(object1, object2, config)
+    assert SameObjectHandler().handle(actual, expected, config)
 
 
-@pytest.mark.parametrize(("object1", "object2"), [(0, 1), (4, 4.0), ("abc", "ABC")])
+@pytest.mark.parametrize(("actual", "expected"), [(0, 1), (4, 4.0), ("abc", "ABC")])
 def test_same_object_handler_handle_false(
-    object1: Any, object2: Any, config: EqualityConfig
+    actual: Any, expected: Any, config: EqualityConfig
 ) -> None:
-    assert not SameObjectHandler(next_handler=FalseHandler()).handle(object1, object2, config)
+    assert not SameObjectHandler(next_handler=FalseHandler()).handle(actual, expected, config)
 
 
 def test_same_object_handler_handle_without_next_handler(config: EqualityConfig) -> None:
@@ -406,14 +406,14 @@ def test_same_type_handler_str() -> None:
     assert str(SameTypeHandler()) == "SameTypeHandler()"
 
 
-@pytest.mark.parametrize(("object1", "object2"), [(0, 0), (4.2, 4.2), ("abc", "abc")])
-def test_same_type_handler_handle_true(object1: Any, object2: Any, config: EqualityConfig) -> None:
-    assert SameTypeHandler(next_handler=TrueHandler()).handle(object1, object2, config)
+@pytest.mark.parametrize(("actual", "expected"), [(0, 0), (4.2, 4.2), ("abc", "abc")])
+def test_same_type_handler_handle_true(actual: Any, expected: Any, config: EqualityConfig) -> None:
+    assert SameTypeHandler(next_handler=TrueHandler()).handle(actual, expected, config)
 
 
-@pytest.mark.parametrize(("object1", "object2"), [(0, "abc"), (4, 4.0), (None, 0)])
-def test_same_type_handler_handle_false(object1: Any, object2: Any, config: EqualityConfig) -> None:
-    assert not SameTypeHandler().handle(object1, object2, config)
+@pytest.mark.parametrize(("actual", "expected"), [(0, "abc"), (4, 4.0), (None, 0)])
+def test_same_type_handler_handle_false(actual: Any, expected: Any, config: EqualityConfig) -> None:
+    assert not SameTypeHandler().handle(actual, expected, config)
 
 
 def test_same_type_handler_handle_false_show_difference(

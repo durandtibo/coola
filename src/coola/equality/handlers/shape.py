@@ -67,4 +67,4 @@ class SameShapeHandler(AbstractEqualityHandler):
             if config.show_difference:
                 logger.info(f"objects have different shapes: {actual.shape} vs {expected.shape}")
             return False
-        return self._handle_next(object1=actual, object2=expected, config=config)
+        return self._handle_next(actual=actual, expected=expected, config=config)

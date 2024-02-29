@@ -30,22 +30,22 @@ def config() -> EqualityConfig:
 POLARS_DATAFRAME_EQUAL = [
     pytest.param(
         ExamplePair(
-            object1=polars.DataFrame({}),
-            object2=polars.DataFrame({}),
+            actual=polars.DataFrame({}),
+            expected=polars.DataFrame({}),
         ),
         id="0 column",
     ),
     pytest.param(
         ExamplePair(
-            object1=polars.DataFrame({"col": [1, 2, 3]}),
-            object2=polars.DataFrame({"col": [1, 2, 3]}),
+            actual=polars.DataFrame({"col": [1, 2, 3]}),
+            expected=polars.DataFrame({"col": [1, 2, 3]}),
         ),
         id="1 column",
     ),
     pytest.param(
         ExamplePair(
-            object1=polars.DataFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]}),
-            object2=polars.DataFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]}),
+            actual=polars.DataFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]}),
+            expected=polars.DataFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]}),
         ),
         id="2 columns",
     ),
@@ -54,24 +54,24 @@ POLARS_DATAFRAME_EQUAL = [
 POLARS_DATAFRAME_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
-            object1=polars.DataFrame({"col": [1, 2, 3]}),
-            object2=polars.DataFrame({"col": [1, 2, 4]}),
+            actual=polars.DataFrame({"col": [1, 2, 3]}),
+            expected=polars.DataFrame({"col": [1, 2, 4]}),
             expected_message="polars.DataFrames have different elements:",
         ),
         id="different values",
     ),
     pytest.param(
         ExamplePair(
-            object1=polars.DataFrame({"col1": [1, 2, 3]}),
-            object2=polars.DataFrame({"col2": [1, 2, 3]}),
+            actual=polars.DataFrame({"col1": [1, 2, 3]}),
+            expected=polars.DataFrame({"col2": [1, 2, 3]}),
             expected_message="polars.DataFrames have different elements:",
         ),
         id="different column names",
     ),
     pytest.param(
         ExamplePair(
-            object1=polars.DataFrame({"col1": [1, 2, 3]}),
-            object2=polars.Series([1, 2, 3]),
+            actual=polars.DataFrame({"col1": [1, 2, 3]}),
+            expected=polars.Series([1, 2, 3]),
             expected_message="objects have different types:",
         ),
         id="different column names",
@@ -83,24 +83,24 @@ POLARS_DATAFRAME_EQUAL_TOLERANCE = [
     # atol
     pytest.param(
         ExamplePair(
-            object1=polars.DataFrame({"col": [1.0, 1.0, 1.0]}),
-            object2=polars.DataFrame({"col": [1.5, 1.5, 0.5]}),
+            actual=polars.DataFrame({"col": [1.0, 1.0, 1.0]}),
+            expected=polars.DataFrame({"col": [1.5, 1.5, 0.5]}),
             atol=1.0,
         ),
         id="atol=1",
     ),
     pytest.param(
         ExamplePair(
-            object1=polars.DataFrame({"col": [1.0, 1.0, 1.0]}),
-            object2=polars.DataFrame({"col": [1.0, 1.05, 0.95]}),
+            actual=polars.DataFrame({"col": [1.0, 1.0, 1.0]}),
+            expected=polars.DataFrame({"col": [1.0, 1.05, 0.95]}),
             atol=0.1,
         ),
         id="atol=0.1",
     ),
     pytest.param(
         ExamplePair(
-            object1=polars.DataFrame({"col": [1.0, 1.0, 1.0]}),
-            object2=polars.DataFrame({"col": [1.0, 1.005, 0.995]}),
+            actual=polars.DataFrame({"col": [1.0, 1.0, 1.0]}),
+            expected=polars.DataFrame({"col": [1.0, 1.005, 0.995]}),
             atol=0.01,
         ),
         id="atol=0.01",
@@ -108,24 +108,24 @@ POLARS_DATAFRAME_EQUAL_TOLERANCE = [
     # rtol
     pytest.param(
         ExamplePair(
-            object1=polars.DataFrame({"col": [1.0, 1.0, 1.0]}),
-            object2=polars.DataFrame({"col": [1.0, 1.5, 0.5]}),
+            actual=polars.DataFrame({"col": [1.0, 1.0, 1.0]}),
+            expected=polars.DataFrame({"col": [1.0, 1.5, 0.5]}),
             rtol=1.0,
         ),
         id="rtol=1",
     ),
     pytest.param(
         ExamplePair(
-            object1=polars.DataFrame({"col": [1.0, 1.0, 1.0]}),
-            object2=polars.DataFrame({"col": [1.0, 1.05, 0.95]}),
+            actual=polars.DataFrame({"col": [1.0, 1.0, 1.0]}),
+            expected=polars.DataFrame({"col": [1.0, 1.05, 0.95]}),
             rtol=0.1,
         ),
         id="rtol=0.1",
     ),
     pytest.param(
         ExamplePair(
-            object1=polars.DataFrame({"col": [1.0, 1.0, 1.0]}),
-            object2=polars.DataFrame({"col": [1.0, 1.005, 0.995]}),
+            actual=polars.DataFrame({"col": [1.0, 1.0, 1.0]}),
+            expected=polars.DataFrame({"col": [1.0, 1.005, 0.995]}),
             rtol=0.01,
         ),
         id="rtol=0.01",
@@ -136,16 +136,16 @@ POLARS_DATAFRAME_EQUAL_TOLERANCE = [
 POLARS_SERIES_EQUAL = [
     pytest.param(
         ExamplePair(
-            object1=polars.Series([]),
-            object2=polars.Series([]),
+            actual=polars.Series([]),
+            expected=polars.Series([]),
         ),
         id="empty",
     ),
     pytest.param(
-        ExamplePair(object1=polars.Series([1, 2, 3]), object2=polars.Series([1, 2, 3])), id="int"
+        ExamplePair(actual=polars.Series([1, 2, 3]), expected=polars.Series([1, 2, 3])), id="int"
     ),
     pytest.param(
-        ExamplePair(object1=polars.Series(["a", "b", "c"]), object2=polars.Series(["a", "b", "c"])),
+        ExamplePair(actual=polars.Series(["a", "b", "c"]), expected=polars.Series(["a", "b", "c"])),
         id="str",
     ),
 ]
@@ -153,32 +153,32 @@ POLARS_SERIES_EQUAL = [
 POLARS_SERIES_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
-            object1=polars.Series([1, 2, 3]),
-            object2=polars.Series([1, 2, 4]),
+            actual=polars.Series([1, 2, 3]),
+            expected=polars.Series([1, 2, 4]),
             expected_message="polars.Series have different elements:",
         ),
         id="different value",
     ),
     pytest.param(
         ExamplePair(
-            object1=polars.Series([1, 2, 3]),
-            object2=polars.Series([1, 2, 3, 4]),
+            actual=polars.Series([1, 2, 3]),
+            expected=polars.Series([1, 2, 3, 4]),
             expected_message="polars.Series have different elements:",
         ),
         id="different shape",
     ),
     pytest.param(
         ExamplePair(
-            object1=polars.Series([1, 2, 3]),
-            object2=polars.Series([1.0, 2.0, 3.0]),
+            actual=polars.Series([1, 2, 3]),
+            expected=polars.Series([1.0, 2.0, 3.0]),
             expected_message="polars.Series have different elements:",
         ),
         id="different data type",
     ),
     pytest.param(
         ExamplePair(
-            object1=polars.Series([1, 2, 3]),
-            object2=42,
+            actual=polars.Series([1, 2, 3]),
+            expected=42,
             expected_message="objects have different types:",
         ),
         id="different type",
@@ -189,24 +189,24 @@ POLARS_SERIES_EQUAL_TOLERANCE = [
     # atol
     pytest.param(
         ExamplePair(
-            object1=polars.Series([1.0, 1.0, 1.0]),
-            object2=polars.Series([1.0, 1.5, 0.5]),
+            actual=polars.Series([1.0, 1.0, 1.0]),
+            expected=polars.Series([1.0, 1.5, 0.5]),
             atol=1.0,
         ),
         id="atol=1",
     ),
     pytest.param(
         ExamplePair(
-            object1=polars.Series([1.0, 1.0, 1.0]),
-            object2=polars.Series([1.0, 1.05, 0.95]),
+            actual=polars.Series([1.0, 1.0, 1.0]),
+            expected=polars.Series([1.0, 1.05, 0.95]),
             atol=0.1,
         ),
         id="atol=0.1",
     ),
     pytest.param(
         ExamplePair(
-            object1=polars.Series([1.0, 1.0, 1.0]),
-            object2=polars.Series([1.0, 1.005, 0.995]),
+            actual=polars.Series([1.0, 1.0, 1.0]),
+            expected=polars.Series([1.0, 1.005, 0.995]),
             atol=0.01,
         ),
         id="atol=0.01",
@@ -214,24 +214,24 @@ POLARS_SERIES_EQUAL_TOLERANCE = [
     # rtol
     pytest.param(
         ExamplePair(
-            object1=polars.Series([1.0, 1.0, 1.0]),
-            object2=polars.Series([1.0, 1.5, 0.5]),
+            actual=polars.Series([1.0, 1.0, 1.0]),
+            expected=polars.Series([1.0, 1.5, 0.5]),
             rtol=1.0,
         ),
         id="rtol=1",
     ),
     pytest.param(
         ExamplePair(
-            object1=polars.Series([1.0, 1.0, 1.0]),
-            object2=polars.Series([1.0, 1.05, 0.95]),
+            actual=polars.Series([1.0, 1.0, 1.0]),
+            expected=polars.Series([1.0, 1.05, 0.95]),
             rtol=0.1,
         ),
         id="rtol=0.1",
     ),
     pytest.param(
         ExamplePair(
-            object1=polars.Series([1.0, 1.0, 1.0]),
-            object2=polars.Series([1.0, 1.005, 0.995]),
+            actual=polars.Series([1.0, 1.0, 1.0]),
+            expected=polars.Series([1.0, 1.005, 0.995]),
             rtol=0.01,
         ),
         id="rtol=0.01",
@@ -287,7 +287,7 @@ def test_polars_dataframe_equality_comparator_equal_true(
 ) -> None:
     comparator = PolarsDataFrameEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -301,7 +301,7 @@ def test_polars_dataframe_equality_comparator_equal_true_show_difference(
     config.show_difference = True
     comparator = PolarsDataFrameEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -314,7 +314,7 @@ def test_polars_dataframe_equality_comparator_equal_false(
 ) -> None:
     comparator = PolarsDataFrameEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -328,7 +328,7 @@ def test_polars_dataframe_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = PolarsDataFrameEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert caplog.messages[0].startswith(example.expected_message)
 
 
@@ -356,7 +356,7 @@ def test_polars_dataframe_equality_comparator_equal_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert PolarsDataFrameEqualityComparator().equal(
-        actual=example.object1, expected=example.object2, config=config
+        actual=example.actual, expected=example.expected, config=config
     )
 
 
@@ -412,7 +412,7 @@ def test_polars_series_equality_comparator_equal_true(
 ) -> None:
     comparator = PolarsSeriesEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -426,7 +426,7 @@ def test_polars_series_equality_comparator_equal_true_show_difference(
     config.show_difference = True
     comparator = PolarsSeriesEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -439,7 +439,7 @@ def test_polars_series_equality_comparator_equal_false(
 ) -> None:
     comparator = PolarsSeriesEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -453,7 +453,7 @@ def test_polars_series_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = PolarsSeriesEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert caplog.messages[0].startswith(example.expected_message)
 
 
@@ -481,7 +481,7 @@ def test_polars_series_equality_comparator_equal_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert PolarsSeriesEqualityComparator().equal(
-        actual=example.object1, expected=example.object2, config=config
+        actual=example.actual, expected=example.expected, config=config
     )
 
 

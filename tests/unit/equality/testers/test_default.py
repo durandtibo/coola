@@ -98,11 +98,11 @@ def test_equality_tester_add_comparator_duplicate_exist_ok_false() -> None:
 
 
 def test_equality_tester_equal_true(config: EqualityConfig) -> None:
-    assert EqualityTester().equal(object1=1, object2=1, config=config)
+    assert EqualityTester().equal(actual=1, expected=1, config=config)
 
 
 def test_equality_tester_equal_false(config: EqualityConfig) -> None:
-    assert not EqualityTester().equal(object1=1, object2=2, config=config)
+    assert not EqualityTester().equal(actual=1, expected=2, config=config)
 
 
 def test_equality_tester_has_comparator_true() -> None:
@@ -268,13 +268,13 @@ def test_local_equality_tester_clone() -> None:
 
 def test_local_equality_tester_equal_true(config: EqualityConfig) -> None:
     assert LocalEqualityTester({object: DefaultEqualityComparator()}).equal(
-        object1=1, object2=1, config=config
+        actual=1, expected=1, config=config
     )
 
 
 def test_local_equality_tester_equal_false(config: EqualityConfig) -> None:
     assert not LocalEqualityTester({object: DefaultEqualityComparator()}).equal(
-        object1=1, object2=2, config=config
+        actual=1, expected=2, config=config
     )
 
 

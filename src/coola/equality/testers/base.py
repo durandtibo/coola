@@ -18,12 +18,12 @@ class BaseEqualityTester(ABC):
     r"""Define the base class to implement an equality tester."""
 
     @abstractmethod
-    def equal(self, object1: Any, object2: Any, config: EqualityConfig) -> bool:
+    def equal(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
         r"""Indicate if two objects are equal or not.
 
         Args:
-            object1: Specifies the first object to compare.
-            object2: Specifies the second object to compare.
+            actual: Specifies the first object to compare.
+            expected: Specifies the second object to compare.
             config: Specifies the equality configuration.
 
         Returns:

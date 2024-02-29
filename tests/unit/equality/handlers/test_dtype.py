@@ -50,7 +50,7 @@ def test_same_dtype_handler_str() -> None:
 
 @numpy_available
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (np.ones(shape=(2, 3), dtype=float), np.zeros(shape=(2, 3), dtype=float)),
         (np.ones(shape=(2, 3), dtype=int), np.zeros(shape=(2, 3), dtype=int)),
@@ -58,14 +58,14 @@ def test_same_dtype_handler_str() -> None:
     ],
 )
 def test_same_dtype_handler_handle_true(
-    object1: np.ndarray, object2: np.ndarray, config: EqualityConfig
+    actual: np.ndarray, expected: np.ndarray, config: EqualityConfig
 ) -> None:
-    assert SameDTypeHandler(next_handler=TrueHandler()).handle(object1, object2, config)
+    assert SameDTypeHandler(next_handler=TrueHandler()).handle(actual, expected, config)
 
 
 @numpy_available
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (np.ones(shape=(2, 3), dtype=float), np.ones(shape=(2, 3), dtype=int)),
         (np.ones(shape=(2, 3), dtype=int), np.ones(shape=(2, 3), dtype=bool)),
@@ -73,9 +73,9 @@ def test_same_dtype_handler_handle_true(
     ],
 )
 def test_same_dtype_handler_handle_false(
-    object1: np.ndarray, object2: np.ndarray, config: EqualityConfig
+    actual: np.ndarray, expected: np.ndarray, config: EqualityConfig
 ) -> None:
-    assert not SameDTypeHandler().handle(object1, object2, config)
+    assert not SameDTypeHandler().handle(actual, expected, config)
 
 
 @numpy_available

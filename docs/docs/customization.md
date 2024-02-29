@@ -16,8 +16,8 @@ The following example shows how to use a custom `BaseEqualityTester`.
 >>> from coola.equality import EqualityConfig
 >>> from coola.equality.testers import BaseEqualityTester
 >>> class MyCustomEqualityTester(BaseEqualityTester):
-...     def equal(self, object1: Any, object2: Any, config: EqualityConfig) -> bool:
-...         return object1 is object2
+...     def equal(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
+...         return actual is expected
 ...
 >>> objects_are_equal([1, 2, 3], (1, 2, 3), tester=MyCustomEqualityTester())
 False
@@ -91,11 +91,11 @@ Then, you need to add the `BaseEqualityComparator` to `EqualityTester`.
 ...     def clone(self) -> "MyCustomStrEqualityOperator":
 ...         return self.__class__()
 ...
-...     def equal(self, object1: str, object2: Any, config: EqualityConfig) -> bool:
+...     def equal(self, actual: str, expected: Any, config: EqualityConfig) -> bool:
 ...         # You can add code to check the type and to log a message to indicate
 ...         # the difference between the objects if any. To keep this example
 ...         # simple, this part is skipped.
-...         return object1 in object2
+...         return actual in expected
 ...
 >>> # Step 2: add the new equality comparator to EqualityTester
 >>> tester = EqualityTester.local_copy()
@@ -129,11 +129,11 @@ the new equality comparator is added.
 ...     def clone(self) -> "MyCustomMappingEqualityComparator":
 ...         return self.__class__()
 ...
-...     def equal(self, object1: Mapping, object2: Any, config: EqualityConfig) -> bool:
+...     def equal(self, actual: Mapping, expected: Any, config: EqualityConfig) -> bool:
 ...         # You can add code to check the type and to log a message to indicate
 ...         # the difference between the objects if any. To keep this example
 ...         # simple, this part is skipped.
-...         return object1 is object2
+...         return actual is expected
 ...
 >>> tester = EqualityTester.local_copy()
 >>> tester.add_comparator(

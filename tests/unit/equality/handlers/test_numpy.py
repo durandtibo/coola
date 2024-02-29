@@ -50,7 +50,7 @@ def test_numpy_array_equal_handler_str() -> None:
 
 @numpy_available
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (np.ones(shape=(2, 3), dtype=float), np.ones(shape=(2, 3), dtype=float)),
         (np.ones(shape=(2, 3), dtype=int), np.ones(shape=(2, 3), dtype=int)),
@@ -58,14 +58,14 @@ def test_numpy_array_equal_handler_str() -> None:
     ],
 )
 def test_numpy_array_equal_handler_handle_true(
-    object1: np.ndarray, object2: np.ndarray, config: EqualityConfig
+    actual: np.ndarray, expected: np.ndarray, config: EqualityConfig
 ) -> None:
-    assert NumpyArrayEqualHandler().handle(object1, object2, config)
+    assert NumpyArrayEqualHandler().handle(actual, expected, config)
 
 
 @numpy_available
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (np.ones(shape=(2, 3)), np.ones(shape=(3, 2))),
         (np.ones(shape=(2, 3)), np.ones(shape=(2, 1))),
@@ -73,9 +73,9 @@ def test_numpy_array_equal_handler_handle_true(
     ],
 )
 def test_numpy_array_equal_handler_handle_false(
-    object1: np.ndarray, object2: np.ndarray, config: EqualityConfig
+    actual: np.ndarray, expected: np.ndarray, config: EqualityConfig
 ) -> None:
-    assert not NumpyArrayEqualHandler().handle(object1, object2, config)
+    assert not NumpyArrayEqualHandler().handle(actual, expected, config)
 
 
 @numpy_available
@@ -114,7 +114,7 @@ def test_numpy_array_equal_handler_handle_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert NumpyArrayEqualHandler().handle(
-        actual=example.object1, expected=example.object2, config=config
+        actual=example.actual, expected=example.expected, config=config
     )
 
 

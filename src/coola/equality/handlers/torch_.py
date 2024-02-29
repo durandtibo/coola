@@ -63,7 +63,7 @@ class TorchTensorEqualHandler(BaseEqualityHandler):
         if config.show_difference and not object_equal:
             logger.info(
                 f"torch.Tensors have different elements:\n"
-                f"object1=\n{actual}\nobject2=\n{expected}"
+                f"actual=\n{actual}\nexpected=\n{expected}"
             )
         return object_equal
 
@@ -108,7 +108,7 @@ class TorchTensorSameDeviceHandler(AbstractEqualityHandler):
                     f"torch.Tensors have different devices: {actual.device} vs {expected.device}"
                 )
             return False
-        return self._handle_next(object1=actual, object2=expected, config=config)
+        return self._handle_next(actual=actual, expected=expected, config=config)
 
 
 def tensor_equal(tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityConfig) -> bool:

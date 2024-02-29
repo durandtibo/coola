@@ -45,29 +45,29 @@ def test_mapping_same_keys_handler_str() -> None:
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         ({}, {}),
         ({"a": 1, "b": 2}, {"a": 1, "b": 2}),
     ],
 )
 def test_mapping_same_keys_handler_handle_true(
-    object1: Mapping, object2: Mapping, config: EqualityConfig
+    actual: Mapping, expected: Mapping, config: EqualityConfig
 ) -> None:
-    assert MappingSameKeysHandler(next_handler=TrueHandler()).handle(object1, object2, config)
+    assert MappingSameKeysHandler(next_handler=TrueHandler()).handle(actual, expected, config)
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         ({"a": 1, "b": 2}, {}),
         ({"a": 1, "b": 2}, {"a": 1, "b": 2, "c": 1}),
     ],
 )
 def test_mapping_same_keys_handler_handle_false(
-    object1: Mapping, object2: Mapping, config: EqualityConfig
+    actual: Mapping, expected: Mapping, config: EqualityConfig
 ) -> None:
-    assert not MappingSameKeysHandler().handle(object1, object2, config)
+    assert not MappingSameKeysHandler().handle(actual, expected, config)
 
 
 def test_mapping_same_keys_handler_handle_false_show_difference(
@@ -122,7 +122,7 @@ def test_mapping_same_values_handler_str() -> None:
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         ({}, {}),
         ({}, {"a": 1, "b": 2}),
@@ -132,22 +132,22 @@ def test_mapping_same_values_handler_str() -> None:
     ],
 )
 def test_mapping_same_values_handler_handle_true(
-    object1: Mapping, object2: Mapping, config: EqualityConfig
+    actual: Mapping, expected: Mapping, config: EqualityConfig
 ) -> None:
-    assert MappingSameValuesHandler(next_handler=TrueHandler()).handle(object1, object2, config)
+    assert MappingSameValuesHandler(next_handler=TrueHandler()).handle(actual, expected, config)
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         ({"a": 1, "b": 2}, {"a": 1, "b": 3}),
         ({"a": 1, "b": {"k": 1}}, {"a": 1, "b": {"k": 2}}),
     ],
 )
 def test_mapping_same_values_handler_handle_false(
-    object1: Mapping, object2: Mapping, config: EqualityConfig
+    actual: Mapping, expected: Mapping, config: EqualityConfig
 ) -> None:
-    assert not MappingSameValuesHandler().handle(object1, object2, config)
+    assert not MappingSameValuesHandler().handle(actual, expected, config)
 
 
 def test_mapping_same_values_handler_handle_false_show_difference(

@@ -18,29 +18,29 @@ def config() -> EqualityConfig:
 
 
 DEFAULT_EQUAL = [
-    pytest.param(ExamplePair(object1=4.2, object2=4.2), id="float"),
-    pytest.param(ExamplePair(object1=42, object2=42), id="int"),
-    pytest.param(ExamplePair(object1="abc", object2="abc"), id="str"),
-    pytest.param(ExamplePair(object1=True, object2=True), id="bool"),
-    pytest.param(ExamplePair(object1=None, object2=None), id="none"),
+    pytest.param(ExamplePair(actual=4.2, expected=4.2), id="float"),
+    pytest.param(ExamplePair(actual=42, expected=42), id="int"),
+    pytest.param(ExamplePair(actual="abc", expected="abc"), id="str"),
+    pytest.param(ExamplePair(actual=True, expected=True), id="bool"),
+    pytest.param(ExamplePair(actual=None, expected=None), id="none"),
 ]
 
 
 DEFAULT_NOT_EQUAL = [
     pytest.param(
-        ExamplePair(object1="abc", object2="def", expected_message="objects are different:"),
+        ExamplePair(actual="abc", expected="def", expected_message="objects are different:"),
         id="different values - str",
     ),
     pytest.param(
-        ExamplePair(object1=4.2, object2="meow", expected_message="objects have different types:"),
+        ExamplePair(actual=4.2, expected="meow", expected_message="objects have different types:"),
         id="float vs str",
     ),
     pytest.param(
-        ExamplePair(object1=1.0, object2=1, expected_message="objects have different types:"),
+        ExamplePair(actual=1.0, expected=1, expected_message="objects have different types:"),
         id="float vs int",
     ),
     pytest.param(
-        ExamplePair(object1=1.0, object2=None, expected_message="objects have different types:"),
+        ExamplePair(actual=1.0, expected=None, expected_message="objects have different types:"),
         id="float vs none",
     ),
 ]
@@ -75,7 +75,7 @@ def test_default_equality_comparator_equal_true_same_object(config: EqualityConf
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (1, 1),
         (0, 0),
@@ -90,13 +90,13 @@ def test_default_equality_comparator_equal_true_same_object(config: EqualityConf
 )
 def test_default_equality_comparator_equal_true(
     caplog: pytest.LogCaptureFixture,
-    object1: bool | float | None,
-    object2: bool | float | None,
+    actual: bool | float | None,
+    expected: bool | float | None,
     config: EqualityConfig,
 ) -> None:
     comparator = DefaultEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1, object2, config)
+        assert comparator.equal(actual, expected, config)
         assert not caplog.messages
 
 
@@ -111,7 +111,7 @@ def test_default_equality_comparator_equal_true_show_difference(
 
 
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (1, 2),
         (1.0, 2.0),
@@ -124,13 +124,13 @@ def test_default_equality_comparator_equal_true_show_difference(
 )
 def test_default_equality_comparator_equal_false_scalar(
     caplog: pytest.LogCaptureFixture,
-    object1: bool | float,
-    object2: bool | float | None,
+    actual: bool | float,
+    expected: bool | float | None,
     config: EqualityConfig,
 ) -> None:
     comparator = DefaultEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1, object2, config)
+        assert not comparator.equal(actual, expected, config)
         assert not caplog.messages
 
 
@@ -171,7 +171,7 @@ def test_default_equality_comparator_equal_yes(
 ) -> None:
     comparator = DefaultEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -184,7 +184,7 @@ def test_default_equality_comparator_equal_yes_show_difference(
     config.show_difference = True
     comparator = DefaultEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -196,7 +196,7 @@ def test_default_equality_comparator_equal_false(
 ) -> None:
     comparator = DefaultEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -209,7 +209,7 @@ def test_default_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = DefaultEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 

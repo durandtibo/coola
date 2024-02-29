@@ -36,50 +36,50 @@ def config() -> EqualityConfig:
 XARRAY_DATA_ARRAY_EQUAL = [
     pytest.param(
         ExamplePair(
-            object1=xr.DataArray(np.arange(6)),
-            object2=xr.DataArray(np.arange(6)),
+            actual=xr.DataArray(np.arange(6)),
+            expected=xr.DataArray(np.arange(6)),
         ),
         id="1d without dims",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.DataArray(np.arange(6), dims=["z"]),
-            object2=xr.DataArray(np.arange(6), dims=["z"]),
+            actual=xr.DataArray(np.arange(6), dims=["z"]),
+            expected=xr.DataArray(np.arange(6), dims=["z"]),
         ),
         id="1d with dims",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.DataArray(np.ones((2, 3))),
-            object2=xr.DataArray(np.ones((2, 3))),
+            actual=xr.DataArray(np.ones((2, 3))),
+            expected=xr.DataArray(np.ones((2, 3))),
         ),
         id="2d without dims",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.DataArray(np.ones((2, 3)), dims=["x", "y"]),
-            object2=xr.DataArray(np.ones((2, 3)), dims=["x", "y"]),
+            actual=xr.DataArray(np.ones((2, 3)), dims=["x", "y"]),
+            expected=xr.DataArray(np.ones((2, 3)), dims=["x", "y"]),
         ),
         id="2d with dims",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.DataArray(np.arange(6)),
-            object2=xr.DataArray(np.arange(6)),
+            actual=xr.DataArray(np.arange(6)),
+            expected=xr.DataArray(np.arange(6)),
         ),
         id="int dtype",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.DataArray(np.arange(6, dtype=float)),
-            object2=xr.DataArray(np.arange(6, dtype=float)),
+            actual=xr.DataArray(np.arange(6, dtype=float)),
+            expected=xr.DataArray(np.arange(6, dtype=float)),
         ),
         id="float dtype",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.DataArray(np.arange(6), dims=["x"], coords={"x": np.arange(6)}),
-            object2=xr.DataArray(np.arange(6), dims=["x"], coords={"x": np.arange(6)}),
+            actual=xr.DataArray(np.arange(6), dims=["x"], coords={"x": np.arange(6)}),
+            expected=xr.DataArray(np.arange(6), dims=["x"], coords={"x": np.arange(6)}),
         ),
         id="dims and coords",
     ),
@@ -87,48 +87,48 @@ XARRAY_DATA_ARRAY_EQUAL = [
 XARRAY_DATA_ARRAY_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
-            object1=xr.DataArray(np.ones(6)),
-            object2=xr.DataArray(np.zeros(6)),
+            actual=xr.DataArray(np.ones(6)),
+            expected=xr.DataArray(np.zeros(6)),
             expected_message="objects have different variable:",
         ),
         id="different value",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.DataArray(np.arange(6), dims=["z1"]),
-            object2=xr.DataArray(np.arange(6), dims=["z2"]),
+            actual=xr.DataArray(np.arange(6), dims=["z1"]),
+            expected=xr.DataArray(np.arange(6), dims=["z2"]),
             expected_message="objects have different variable:",
         ),
         id="different dims",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.DataArray(np.arange(6), name="meow"),
-            object2=xr.DataArray(np.arange(6), name="bear"),
+            actual=xr.DataArray(np.arange(6), name="meow"),
+            expected=xr.DataArray(np.arange(6), name="bear"),
             expected_message="objects have different name:",
         ),
         id="different name",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.DataArray(np.arange(6), attrs={"global": "meow"}),
-            object2=xr.DataArray(np.arange(6), attrs={"global": "meoowww"}),
+            actual=xr.DataArray(np.arange(6), attrs={"global": "meow"}),
+            expected=xr.DataArray(np.arange(6), attrs={"global": "meoowww"}),
             expected_message="objects have different variable:",
         ),
         id="different attrs",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.DataArray(np.arange(6), coords={"z": [1, 2, 3, 4, 5, 6]}),
-            object2=xr.DataArray(np.arange(6), coords={"z": [10, 20, 30, 40, 50, 60]}),
+            actual=xr.DataArray(np.arange(6), coords={"z": [1, 2, 3, 4, 5, 6]}),
+            expected=xr.DataArray(np.arange(6), coords={"z": [10, 20, 30, 40, 50, 60]}),
             expected_message="objects have different _coords:",
         ),
         id="different coords",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.DataArray(np.arange(6)),
-            object2=np.arange(6),
+            actual=xr.DataArray(np.arange(6)),
+            expected=np.arange(6),
             expected_message="objects have different types:",
         ),
         id="different types",
@@ -138,24 +138,24 @@ XARRAY_DATA_ARRAY_EQUAL_TOLERANCE = [
     # atol
     pytest.param(
         ExamplePair(
-            object1=xr.DataArray(np.ones((2, 3))),
-            object2=xr.DataArray(np.full(shape=(2, 3), fill_value=1.5)),
+            actual=xr.DataArray(np.ones((2, 3))),
+            expected=xr.DataArray(np.full(shape=(2, 3), fill_value=1.5)),
             atol=1.0,
         ),
         id="atol=1",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.DataArray(np.ones((2, 3))),
-            object2=xr.DataArray(np.full(shape=(2, 3), fill_value=1.05)),
+            actual=xr.DataArray(np.ones((2, 3))),
+            expected=xr.DataArray(np.full(shape=(2, 3), fill_value=1.05)),
             atol=0.1,
         ),
         id="atol=0.1",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.DataArray(np.ones((2, 3))),
-            object2=xr.DataArray(np.full(shape=(2, 3), fill_value=1.005)),
+            actual=xr.DataArray(np.ones((2, 3))),
+            expected=xr.DataArray(np.full(shape=(2, 3), fill_value=1.005)),
             atol=0.01,
         ),
         id="atol=0.01",
@@ -163,24 +163,24 @@ XARRAY_DATA_ARRAY_EQUAL_TOLERANCE = [
     # rtol
     pytest.param(
         ExamplePair(
-            object1=xr.DataArray(np.ones((2, 3))),
-            object2=xr.DataArray(np.full(shape=(2, 3), fill_value=1.5)),
+            actual=xr.DataArray(np.ones((2, 3))),
+            expected=xr.DataArray(np.full(shape=(2, 3), fill_value=1.5)),
             rtol=1.0,
         ),
         id="rtol=1",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.DataArray(np.ones((2, 3))),
-            object2=xr.DataArray(np.full(shape=(2, 3), fill_value=1.05)),
+            actual=xr.DataArray(np.ones((2, 3))),
+            expected=xr.DataArray(np.full(shape=(2, 3), fill_value=1.05)),
             rtol=0.1,
         ),
         id="rtol=0.1",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.DataArray(np.ones((2, 3))),
-            object2=xr.DataArray(np.full(shape=(2, 3), fill_value=1.005)),
+            actual=xr.DataArray(np.ones((2, 3))),
+            expected=xr.DataArray(np.full(shape=(2, 3), fill_value=1.005)),
             rtol=0.01,
         ),
         id="rtol=0.01",
@@ -190,33 +190,33 @@ XARRAY_DATA_ARRAY_EQUAL_TOLERANCE = [
 XARRAY_DATASET_EQUAL = [
     pytest.param(
         ExamplePair(
-            object1=xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6))}),
-            object2=xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6))}),
+            actual=xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6))}),
+            expected=xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6))}),
         ),
         id="data_vars",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.Dataset(coords={"z": np.arange(6)}),
-            object2=xr.Dataset(coords={"z": np.arange(6)}),
+            actual=xr.Dataset(coords={"z": np.arange(6)}),
+            expected=xr.Dataset(coords={"z": np.arange(6)}),
         ),
         id="coords",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.Dataset(attrs={"global": "meow"}),
-            object2=xr.Dataset(attrs={"global": "meow"}),
+            actual=xr.Dataset(attrs={"global": "meow"}),
+            expected=xr.Dataset(attrs={"global": "meow"}),
         ),
         id="attrs",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.Dataset(
+            actual=xr.Dataset(
                 data_vars={"x": xr.DataArray(np.arange(6))},
                 coords={"z": np.arange(6)},
                 attrs={"global": "meow"},
             ),
-            object2=xr.Dataset(
+            expected=xr.Dataset(
                 data_vars={"x": xr.DataArray(np.arange(6))},
                 coords={"z": np.arange(6)},
                 attrs={"global": "meow"},
@@ -228,32 +228,32 @@ XARRAY_DATASET_EQUAL = [
 XARRAY_DATASET_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
-            object1=xr.Dataset(data_vars={"x": xr.DataArray(np.zeros(6))}),
-            object2=xr.Dataset(data_vars={"x": xr.DataArray(np.ones(6))}),
+            actual=xr.Dataset(data_vars={"x": xr.DataArray(np.zeros(6))}),
+            expected=xr.Dataset(data_vars={"x": xr.DataArray(np.ones(6))}),
             expected_message="objects have different data_vars:",
         ),
         id="different data_vars",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.Dataset(coords={"z": [1, 2, 3]}),
-            object2=xr.Dataset(coords={"z": [0, 1, 2]}),
+            actual=xr.Dataset(coords={"z": [1, 2, 3]}),
+            expected=xr.Dataset(coords={"z": [0, 1, 2]}),
             expected_message="objects have different coords:",
         ),
         id="different coords",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.Dataset(attrs={"global": "meow"}),
-            object2=xr.Dataset(attrs={"global": "meowwww"}),
+            actual=xr.Dataset(attrs={"global": "meow"}),
+            expected=xr.Dataset(attrs={"global": "meowwww"}),
             expected_message="objects have different attrs:",
         ),
         id="different attrs",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6), dims=["z"])}),
-            object2=np.ones((2, 3)),
+            actual=xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6), dims=["z"])}),
+            expected=np.ones((2, 3)),
             expected_message="objects have different types:",
         ),
         id="different types",
@@ -263,8 +263,8 @@ XARRAY_DATASET_EQUAL_TOLERANCE = [
     # atol
     pytest.param(
         ExamplePair(
-            object1=xr.Dataset(data_vars={"x": xr.DataArray(np.ones((2, 3)))}),
-            object2=xr.Dataset(
+            actual=xr.Dataset(data_vars={"x": xr.DataArray(np.ones((2, 3)))}),
+            expected=xr.Dataset(
                 data_vars={"x": xr.DataArray(np.full(shape=(2, 3), fill_value=1.5))}
             ),
             atol=1.0,
@@ -273,8 +273,8 @@ XARRAY_DATASET_EQUAL_TOLERANCE = [
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.Dataset(data_vars={"x": xr.DataArray(np.ones((2, 3)))}),
-            object2=xr.Dataset(
+            actual=xr.Dataset(data_vars={"x": xr.DataArray(np.ones((2, 3)))}),
+            expected=xr.Dataset(
                 data_vars={"x": xr.DataArray(np.full(shape=(2, 3), fill_value=1.05))}
             ),
             atol=0.1,
@@ -283,8 +283,8 @@ XARRAY_DATASET_EQUAL_TOLERANCE = [
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.Dataset(data_vars={"x": xr.DataArray(np.ones((2, 3)))}),
-            object2=xr.Dataset(
+            actual=xr.Dataset(data_vars={"x": xr.DataArray(np.ones((2, 3)))}),
+            expected=xr.Dataset(
                 data_vars={"x": xr.DataArray(np.full(shape=(2, 3), fill_value=1.005))}
             ),
             atol=0.1,
@@ -294,8 +294,8 @@ XARRAY_DATASET_EQUAL_TOLERANCE = [
     # rtol
     pytest.param(
         ExamplePair(
-            object1=xr.Dataset(data_vars={"x": xr.DataArray(np.ones((2, 3)))}),
-            object2=xr.Dataset(
+            actual=xr.Dataset(data_vars={"x": xr.DataArray(np.ones((2, 3)))}),
+            expected=xr.Dataset(
                 data_vars={"x": xr.DataArray(np.full(shape=(2, 3), fill_value=1.5))}
             ),
             rtol=1.0,
@@ -304,8 +304,8 @@ XARRAY_DATASET_EQUAL_TOLERANCE = [
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.Dataset(data_vars={"x": xr.DataArray(np.ones((2, 3)))}),
-            object2=xr.Dataset(
+            actual=xr.Dataset(data_vars={"x": xr.DataArray(np.ones((2, 3)))}),
+            expected=xr.Dataset(
                 data_vars={"x": xr.DataArray(np.full(shape=(2, 3), fill_value=1.05))}
             ),
             rtol=0.1,
@@ -314,8 +314,8 @@ XARRAY_DATASET_EQUAL_TOLERANCE = [
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.Dataset(data_vars={"x": xr.DataArray(np.ones((2, 3)))}),
-            object2=xr.Dataset(
+            actual=xr.Dataset(data_vars={"x": xr.DataArray(np.ones((2, 3)))}),
+            expected=xr.Dataset(
                 data_vars={"x": xr.DataArray(np.full(shape=(2, 3), fill_value=1.005))}
             ),
             rtol=0.1,
@@ -327,15 +327,15 @@ XARRAY_DATASET_EQUAL_TOLERANCE = [
 XARRAY_VARIABLE_EQUAL = [
     pytest.param(
         ExamplePair(
-            object1=xr.Variable(dims=["z"], data=np.arange(6)),
-            object2=xr.Variable(dims=["z"], data=np.arange(6)),
+            actual=xr.Variable(dims=["z"], data=np.arange(6)),
+            expected=xr.Variable(dims=["z"], data=np.arange(6)),
         ),
         id="1d",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.Variable(dims=["x", "y"], data=np.ones((2, 3))),
-            object2=xr.Variable(dims=["x", "y"], data=np.ones((2, 3))),
+            actual=xr.Variable(dims=["x", "y"], data=np.ones((2, 3))),
+            expected=xr.Variable(dims=["x", "y"], data=np.ones((2, 3))),
         ),
         id="2d",
     ),
@@ -343,32 +343,32 @@ XARRAY_VARIABLE_EQUAL = [
 XARRAY_VARIABLE_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
-            object1=xr.Variable(dims=["z"], data=np.ones(6)),
-            object2=xr.Variable(dims=["z"], data=np.zeros(6)),
+            actual=xr.Variable(dims=["z"], data=np.ones(6)),
+            expected=xr.Variable(dims=["z"], data=np.zeros(6)),
             expected_message="objects have different data:",
         ),
         id="different data",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.Variable(dims=["x"], data=np.arange(6)),
-            object2=xr.Variable(dims=["y"], data=np.arange(6)),
+            actual=xr.Variable(dims=["x"], data=np.arange(6)),
+            expected=xr.Variable(dims=["y"], data=np.arange(6)),
             expected_message="objects have different dims:",
         ),
         id="different dims",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.Variable(dims=["z"], data=np.arange(6), attrs={"global": "meow"}),
-            object2=xr.Variable(dims=["z"], data=np.arange(6), attrs={"global": "meoowww"}),
+            actual=xr.Variable(dims=["z"], data=np.arange(6), attrs={"global": "meow"}),
+            expected=xr.Variable(dims=["z"], data=np.arange(6), attrs={"global": "meoowww"}),
             expected_message="objects have different attrs:",
         ),
         id="different attrs",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.Variable(dims=["z"], data=np.ones(6)),
-            object2=np.ones(6),
+            actual=xr.Variable(dims=["z"], data=np.ones(6)),
+            expected=np.ones(6),
             expected_message="objects have different types:",
         ),
         id="different types",
@@ -378,24 +378,24 @@ XARRAY_VARIABLE_EQUAL_TOLERANCE = [
     # atol
     pytest.param(
         ExamplePair(
-            object1=xr.Variable(dims=["z"], data=np.ones(3)),
-            object2=xr.Variable(dims=["z"], data=np.full(shape=3, fill_value=1.5)),
+            actual=xr.Variable(dims=["z"], data=np.ones(3)),
+            expected=xr.Variable(dims=["z"], data=np.full(shape=3, fill_value=1.5)),
             atol=1.0,
         ),
         id="atol=1",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.Variable(dims=["z"], data=np.ones(3)),
-            object2=xr.Variable(dims=["z"], data=np.full(shape=3, fill_value=1.05)),
+            actual=xr.Variable(dims=["z"], data=np.ones(3)),
+            expected=xr.Variable(dims=["z"], data=np.full(shape=3, fill_value=1.05)),
             atol=0.1,
         ),
         id="atol=0.1",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.Variable(dims=["z"], data=np.ones(3)),
-            object2=xr.Variable(dims=["z"], data=np.full(shape=3, fill_value=1.005)),
+            actual=xr.Variable(dims=["z"], data=np.ones(3)),
+            expected=xr.Variable(dims=["z"], data=np.full(shape=3, fill_value=1.005)),
             atol=0.01,
         ),
         id="atol=0.01",
@@ -403,24 +403,24 @@ XARRAY_VARIABLE_EQUAL_TOLERANCE = [
     # rtol
     pytest.param(
         ExamplePair(
-            object1=xr.Variable(dims=["z"], data=np.ones(3)),
-            object2=xr.Variable(dims=["z"], data=np.full(shape=3, fill_value=1.5)),
+            actual=xr.Variable(dims=["z"], data=np.ones(3)),
+            expected=xr.Variable(dims=["z"], data=np.full(shape=3, fill_value=1.5)),
             rtol=1.0,
         ),
         id="rtol=1",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.Variable(dims=["z"], data=np.ones(3)),
-            object2=xr.Variable(dims=["z"], data=np.full(shape=3, fill_value=1.05)),
+            actual=xr.Variable(dims=["z"], data=np.ones(3)),
+            expected=xr.Variable(dims=["z"], data=np.full(shape=3, fill_value=1.05)),
             rtol=0.1,
         ),
         id="rtol=0.1",
     ),
     pytest.param(
         ExamplePair(
-            object1=xr.Variable(dims=["z"], data=np.ones(3)),
-            object2=xr.Variable(dims=["z"], data=np.full(shape=3, fill_value=1.005)),
+            actual=xr.Variable(dims=["z"], data=np.ones(3)),
+            expected=xr.Variable(dims=["z"], data=np.full(shape=3, fill_value=1.005)),
             rtol=0.01,
         ),
         id="rtol=0.01",
@@ -483,7 +483,7 @@ def test_xarray_data_array_equality_comparator_equal_yes(
 ) -> None:
     comparator = XarrayDataArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -497,7 +497,7 @@ def test_xarray_data_array_equality_comparator_equal_yes_show_difference(
     config.show_difference = True
     comparator = XarrayDataArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -510,7 +510,7 @@ def test_xarray_data_array_equality_comparator_equal_false(
 ) -> None:
     comparator = XarrayDataArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -524,7 +524,7 @@ def test_xarray_data_array_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = XarrayDataArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
@@ -552,7 +552,7 @@ def test_xarray_data_array_equality_comparator_equal_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert XarrayDataArrayEqualityComparator().equal(
-        actual=example.object1, expected=example.object2, config=config
+        actual=example.actual, expected=example.expected, config=config
     )
 
 
@@ -632,7 +632,7 @@ def test_xarray_dataset_equality_comparator_equal_yes(
 ) -> None:
     comparator = XarrayDatasetEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -646,7 +646,7 @@ def test_xarray_dataset_equality_comparator_equal_yes_show_difference(
     config.show_difference = True
     comparator = XarrayDatasetEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -659,7 +659,7 @@ def test_xarray_dataset_equality_comparator_equal_false(
 ) -> None:
     comparator = XarrayDatasetEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -673,7 +673,7 @@ def test_xarray_dataset_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = XarrayDatasetEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
@@ -701,7 +701,7 @@ def test_xarray_dataset_equality_comparator_equal_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert XarrayDatasetEqualityComparator().equal(
-        actual=example.object1, expected=example.object2, config=config
+        actual=example.actual, expected=example.expected, config=config
     )
 
 
@@ -757,7 +757,7 @@ def test_xarray_variable_equality_comparator_equal_yes(
 ) -> None:
     comparator = XarrayVariableEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -771,7 +771,7 @@ def test_xarray_variable_equality_comparator_equal_yes_show_difference(
     config.show_difference = True
     comparator = XarrayVariableEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -784,7 +784,7 @@ def test_xarray_variable_equality_comparator_equal_false(
 ) -> None:
     comparator = XarrayVariableEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -798,7 +798,7 @@ def test_xarray_variable_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = XarrayVariableEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
@@ -826,7 +826,7 @@ def test_xarray_variable_equality_comparator_equal_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert XarrayVariableEqualityComparator().equal(
-        actual=example.object1, expected=example.object2, config=config
+        actual=example.actual, expected=example.expected, config=config
     )
 
 

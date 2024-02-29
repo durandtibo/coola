@@ -51,7 +51,7 @@ def test_jax_array_equal_handler_str() -> None:
 
 @jax_available
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (jnp.ones(shape=(2, 3), dtype=float), jnp.ones(shape=(2, 3), dtype=float)),
         (jnp.ones(shape=(2, 3), dtype=int), jnp.ones(shape=(2, 3), dtype=int)),
@@ -59,14 +59,14 @@ def test_jax_array_equal_handler_str() -> None:
     ],
 )
 def test_jax_array_equal_handler_handle_true(
-    object1: jnp.ndarray, object2: jnp.ndarray, config: EqualityConfig
+    actual: jnp.ndarray, expected: jnp.ndarray, config: EqualityConfig
 ) -> None:
-    assert JaxArrayEqualHandler().handle(object1, object2, config)
+    assert JaxArrayEqualHandler().handle(actual, expected, config)
 
 
 @jax_available
 @pytest.mark.parametrize(
-    ("object1", "object2"),
+    ("actual", "expected"),
     [
         (jnp.ones(shape=(2, 3)), jnp.ones(shape=(3, 2))),
         (jnp.ones(shape=(2, 3)), jnp.ones(shape=(2, 1))),
@@ -74,9 +74,9 @@ def test_jax_array_equal_handler_handle_true(
     ],
 )
 def test_jax_array_equal_handler_handle_false(
-    object1: jnp.ndarray, object2: jnp.ndarray, config: EqualityConfig
+    actual: jnp.ndarray, expected: jnp.ndarray, config: EqualityConfig
 ) -> None:
-    assert not JaxArrayEqualHandler().handle(object1, object2, config)
+    assert not JaxArrayEqualHandler().handle(actual, expected, config)
 
 
 @jax_available
@@ -115,7 +115,7 @@ def test_jax_array_equal_handler_handle_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert JaxArrayEqualHandler().handle(
-        actual=example.object1, expected=example.object2, config=config
+        actual=example.actual, expected=example.expected, config=config
     )
 
 

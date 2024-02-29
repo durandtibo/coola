@@ -72,7 +72,7 @@ class PandasDataFrameEqualHandler(BaseEqualityHandler):
         if config.show_difference and not object_equal:
             logger.info(
                 f"pandas.DataFrames have different elements:\n"
-                f"object1:\n{actual}\nobject2:\n{expected}"
+                f"actual:\n{actual}\nexpected:\n{expected}"
             )
         return object_equal
 
@@ -121,7 +121,7 @@ class PandasSeriesEqualHandler(BaseEqualityHandler):
         if config.show_difference and not object_equal:
             logger.info(
                 f"pandas.Series have different elements:\n"
-                f"object1:\n{actual}\nobject2:\n{expected}"
+                f"actual:\n{actual}\nexpected:\n{expected}"
             )
         return object_equal
 

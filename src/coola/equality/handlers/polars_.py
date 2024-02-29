@@ -73,7 +73,7 @@ class PolarsDataFrameEqualHandler(BaseEqualityHandler):
         if config.show_difference and not object_equal:
             logger.info(
                 f"polars.DataFrames have different elements:\n"
-                f"object1:\n{actual}\nobject2:\n{expected}"
+                f"actual:\n{actual}\nexpected:\n{expected}"
             )
         return object_equal
 
@@ -122,7 +122,7 @@ class PolarsSeriesEqualHandler(BaseEqualityHandler):
         if config.show_difference and not object_equal:
             logger.info(
                 f"polars.Series have different elements:\n"
-                f"object1:\n{actual}\nobject2:\n{expected}"
+                f"actual:\n{actual}\nexpected:\n{expected}"
             )
         return object_equal
 
