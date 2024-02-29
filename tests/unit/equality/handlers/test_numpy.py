@@ -101,7 +101,7 @@ def test_numpy_array_equal_handler_handle_false_show_difference(
     handler = NumpyArrayEqualHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
-            object1=np.ones(shape=(2, 3)), object2=np.ones(shape=(3, 2)), config=config
+            actual=np.ones(shape=(2, 3)), expected=np.ones(shape=(3, 2)), config=config
         )
         assert caplog.messages[0].startswith("numpy.ndarrays have different elements:")
 
@@ -114,7 +114,7 @@ def test_numpy_array_equal_handler_handle_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert NumpyArrayEqualHandler().handle(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.object1, expected=example.object2, config=config
     )
 
 

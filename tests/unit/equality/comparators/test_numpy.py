@@ -238,7 +238,7 @@ def test_numpy_array_equality_comparator_equal_yes(
 ) -> None:
     comparator = NumpyArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -252,7 +252,7 @@ def test_numpy_array_equality_comparator_equal_yes_show_difference(
     config.show_difference = True
     comparator = NumpyArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -265,7 +265,7 @@ def test_numpy_array_equality_comparator_equal_false(
 ) -> None:
     comparator = NumpyArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -279,7 +279,7 @@ def test_numpy_array_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = NumpyArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
@@ -291,8 +291,8 @@ def test_numpy_array_equality_comparator_equal_nan_true(
     config.equal_nan = equal_nan
     assert (
         NumpyArrayEqualityComparator().equal(
-            object1=np.array([0.0, np.nan, np.nan, 1.2]),
-            object2=np.array([0.0, np.nan, np.nan, 1.2]),
+            actual=np.array([0.0, np.nan, np.nan, 1.2]),
+            expected=np.array([0.0, np.nan, np.nan, 1.2]),
             config=config,
         )
         == equal_nan
@@ -307,7 +307,7 @@ def test_numpy_array_equality_comparator_equal_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert NumpyArrayEqualityComparator().equal(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.object1, expected=example.object2, config=config
     )
 
 
@@ -367,7 +367,7 @@ def test_numpy_masked_array_equality_comparator_equal_yes(
 ) -> None:
     comparator = NumpyMaskedArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -381,7 +381,7 @@ def test_numpy_masked_array_equality_comparator_equal_yes_show_difference(
     config.show_difference = True
     comparator = NumpyMaskedArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -394,7 +394,7 @@ def test_numpy_masked_array_equality_comparator_equal_false(
 ) -> None:
     comparator = NumpyMaskedArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -408,7 +408,7 @@ def test_numpy_masked_array_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = NumpyMaskedArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
@@ -420,8 +420,8 @@ def test_numpy_masked_array_equality_comparator_equal_nan(
     config.equal_nan = equal_nan
     assert (
         NumpyMaskedArrayEqualityComparator().equal(
-            object1=np.ma.array(data=[0.0, np.nan, np.nan, 1.2], mask=[0, 1, 0, 1]),
-            object2=np.ma.array(data=[0.0, np.nan, np.nan, 1.2], mask=[0, 1, 0, 1]),
+            actual=np.ma.array(data=[0.0, np.nan, np.nan, 1.2], mask=[0, 1, 0, 1]),
+            expected=np.ma.array(data=[0.0, np.nan, np.nan, 1.2], mask=[0, 1, 0, 1]),
             config=config,
         )
         == equal_nan

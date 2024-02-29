@@ -60,12 +60,12 @@ class BaseEqualityComparator(ABC, Generic[T]):
         """
 
     @abstractmethod
-    def equal(self, object1: T, object2: Any, config: EqualityConfig) -> bool:
+    def equal(self, actual: T, expected: Any, config: EqualityConfig) -> bool:
         r"""Indicate if two objects are equal or not.
 
         Args:
-            object1: Specifies the first object to compare.
-            object2: Specifies the second object to compare.
+            actual: Specifies the actual input.
+            expected: Specifies the expected input.
             config: Specifies the equality configuration.
 
         Returns:

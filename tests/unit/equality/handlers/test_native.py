@@ -139,7 +139,7 @@ def test_object_equal_handler_handle_false_show_difference(
     config.show_difference = True
     handler = ObjectEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(object1=[1, 2, 3], object2=[1, 2, 3, 4], config=config)
+        assert not handler.handle(actual=[1, 2, 3], expected=[1, 2, 3, 4], config=config)
         assert caplog.messages[0].startswith("objects are different:")
 
 
@@ -210,8 +210,8 @@ def test_same_attribute_handler_handle_false_show_difference(
     handler = SameAttributeHandler(name="data")
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
-            object1=Mock(data=1),
-            object2=Mock(data=2),
+            actual=Mock(data=1),
+            expected=Mock(data=2),
             config=config,
         )
         assert caplog.messages[-1].startswith("objects have different data:")
@@ -222,7 +222,7 @@ def test_same_attribute_handler_handle_without_next_handler(config: EqualityConf
     handler = SameAttributeHandler(name="data")
     with pytest.raises(RuntimeError, match="next handler is not defined"):
         handler.handle(
-            object1=Mock(spec=Any, data=1), object2=Mock(spec=Any, data=1), config=config
+            actual=Mock(spec=Any, data=1), expected=Mock(spec=Any, data=1), config=config
         )
 
 
@@ -310,14 +310,14 @@ def test_same_length_handler_handle_false_show_difference(
     config.show_difference = True
     handler = SameLengthHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(object1=[1, 2, 3], object2=[1, 2, 3, 4], config=config)
+        assert not handler.handle(actual=[1, 2, 3], expected=[1, 2, 3, 4], config=config)
         assert caplog.messages[0].startswith("objects have different lengths:")
 
 
 def test_same_length_handler_handle_without_next_handler(config: EqualityConfig) -> None:
     handler = SameLengthHandler()
     with pytest.raises(RuntimeError, match="next handler is not defined"):
-        handler.handle(object1=[1, 2, 3], object2=[1, 2, 3], config=config)
+        handler.handle(actual=[1, 2, 3], expected=[1, 2, 3], config=config)
 
 
 def test_same_length_handler_set_next_handler() -> None:
@@ -370,7 +370,7 @@ def test_same_object_handler_handle_false(
 def test_same_object_handler_handle_without_next_handler(config: EqualityConfig) -> None:
     handler = SameObjectHandler()
     with pytest.raises(RuntimeError, match="next handler is not defined"):
-        handler.handle(object1="abc", object2="ABC", config=config)
+        handler.handle(actual="abc", expected="ABC", config=config)
 
 
 def test_same_object_handler_set_next_handler() -> None:
@@ -422,14 +422,14 @@ def test_same_type_handler_handle_false_show_difference(
     config.show_difference = True
     handler = SameTypeHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(object1=0, object2="abc", config=config)
+        assert not handler.handle(actual=0, expected="abc", config=config)
         assert caplog.messages[0].startswith("objects have different types:")
 
 
 def test_same_type_handler_handle_without_next_handler(config: EqualityConfig) -> None:
     handler = SameTypeHandler()
     with pytest.raises(RuntimeError, match="next handler is not defined"):
-        handler.handle(object1="abc", object2="ABC", config=config)
+        handler.handle(actual="abc", expected="ABC", config=config)
 
 
 def test_same_type_handler_set_next_handler() -> None:

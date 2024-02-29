@@ -102,7 +102,7 @@ def test_jax_array_equal_handler_handle_false_show_difference(
     handler = JaxArrayEqualHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
-            object1=jnp.ones(shape=(2, 3)), object2=jnp.ones(shape=(3, 2)), config=config
+            actual=jnp.ones(shape=(2, 3)), expected=jnp.ones(shape=(3, 2)), config=config
         )
         assert caplog.messages[0].startswith("jax.numpy.ndarrays have different elements:")
 
@@ -115,7 +115,7 @@ def test_jax_array_equal_handler_handle_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert JaxArrayEqualHandler().handle(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.object1, expected=example.object2, config=config
     )
 
 

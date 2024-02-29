@@ -99,7 +99,7 @@ def test_scalar_equality_comparator_equal_yes(
 ) -> None:
     comparator = ScalarEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -112,7 +112,7 @@ def test_scalar_equality_comparator_equal_yes_show_difference(
     config.show_difference = True
     comparator = ScalarEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -124,7 +124,7 @@ def test_scalar_equality_comparator_equal_false(
 ) -> None:
     comparator = ScalarEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -137,7 +137,7 @@ def test_scalar_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = ScalarEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
@@ -146,8 +146,8 @@ def test_scalar_equality_comparator_equal_nan(config: EqualityConfig, equal_nan:
     config.equal_nan = equal_nan
     assert (
         ScalarEqualityComparator().equal(
-            object1=float("nan"),
-            object2=float("nan"),
+            actual=float("nan"),
+            expected=float("nan"),
             config=config,
         )
         == equal_nan
@@ -161,7 +161,7 @@ def test_scalar_equality_comparator_equal_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert ScalarEqualityComparator().equal(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.object1, expected=example.object2, config=config
     )
 
 

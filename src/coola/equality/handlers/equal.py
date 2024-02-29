@@ -76,10 +76,10 @@ class EqualHandler(BaseEqualityHandler):
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
-    def handle(self, object1: SupportsEqual, object2: Any, config: EqualityConfig) -> bool:
-        if not object1.equal(object2, equal_nan=config.equal_nan):
+    def handle(self, actual: SupportsEqual, expected: Any, config: EqualityConfig) -> bool:
+        if not actual.equal(expected, equal_nan=config.equal_nan):
             if config.show_difference:
-                logger.info(f"objects are not equal:\nobject1:\n{object1}\nobject2:\n{object2}")
+                logger.info(f"objects are not equal:\nobject1:\n{actual}\nobject2:\n{expected}")
             return False
         return True
 

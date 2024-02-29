@@ -59,7 +59,7 @@ def test_nan_equal_handler_handle_false(
 def test_nan_equal_handler_handle_without_next_handler(config: EqualityConfig) -> None:
     handler = NanEqualHandler()
     with pytest.raises(RuntimeError, match="next handler is not defined"):
-        handler.handle(object1=42, object2=42, config=config)
+        handler.handle(actual=42, expected=42, config=config)
 
 
 def test_nan_equal_handler_set_next_handler() -> None:
@@ -132,7 +132,7 @@ def test_scalar_equal_handler_handle_false_show_difference(
     config.show_difference = True
     handler = ScalarEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(object1=1.0, object2=2.0, config=config)
+        assert not handler.handle(actual=1.0, expected=2.0, config=config)
         assert caplog.messages[0].startswith("numbers are not equal:")
 
 

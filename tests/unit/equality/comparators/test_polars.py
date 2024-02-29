@@ -287,7 +287,7 @@ def test_polars_dataframe_equality_comparator_equal_true(
 ) -> None:
     comparator = PolarsDataFrameEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -301,7 +301,7 @@ def test_polars_dataframe_equality_comparator_equal_true_show_difference(
     config.show_difference = True
     comparator = PolarsDataFrameEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -314,7 +314,7 @@ def test_polars_dataframe_equality_comparator_equal_false(
 ) -> None:
     comparator = PolarsDataFrameEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -328,7 +328,7 @@ def test_polars_dataframe_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = PolarsDataFrameEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert caplog.messages[0].startswith(example.expected_message)
 
 
@@ -340,8 +340,8 @@ def test_polars_dataframe_equality_comparator_equal_nan(
     config.equal_nan = equal_nan
     assert (
         PolarsDataFrameEqualityComparator().equal(
-            object1=polars.DataFrame({"col": [1, float("nan"), 3]}),
-            object2=polars.DataFrame({"col": [1, float("nan"), 3]}),
+            actual=polars.DataFrame({"col": [1, float("nan"), 3]}),
+            expected=polars.DataFrame({"col": [1, float("nan"), 3]}),
             config=config,
         )
         == equal_nan
@@ -356,7 +356,7 @@ def test_polars_dataframe_equality_comparator_equal_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert PolarsDataFrameEqualityComparator().equal(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.object1, expected=example.object2, config=config
     )
 
 
@@ -412,7 +412,7 @@ def test_polars_series_equality_comparator_equal_true(
 ) -> None:
     comparator = PolarsSeriesEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -426,7 +426,7 @@ def test_polars_series_equality_comparator_equal_true_show_difference(
     config.show_difference = True
     comparator = PolarsSeriesEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -439,7 +439,7 @@ def test_polars_series_equality_comparator_equal_false(
 ) -> None:
     comparator = PolarsSeriesEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -453,7 +453,7 @@ def test_polars_series_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = PolarsSeriesEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert caplog.messages[0].startswith(example.expected_message)
 
 
@@ -465,8 +465,8 @@ def test_polars_series_equality_comparator_equal_nan(
     config.equal_nan = equal_nan
     assert (
         PolarsSeriesEqualityComparator().equal(
-            object1=polars.Series([0.0, float("nan"), float("nan"), 1.2]),
-            object2=polars.Series([0.0, float("nan"), float("nan"), 1.2]),
+            actual=polars.Series([0.0, float("nan"), float("nan"), 1.2]),
+            expected=polars.Series([0.0, float("nan"), float("nan"), 1.2]),
             config=config,
         )
         == equal_nan
@@ -481,7 +481,7 @@ def test_polars_series_equality_comparator_equal_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert PolarsSeriesEqualityComparator().equal(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.object1, expected=example.object2, config=config
     )
 
 

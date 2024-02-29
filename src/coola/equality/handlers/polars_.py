@@ -65,15 +65,15 @@ class PolarsDataFrameEqualHandler(BaseEqualityHandler):
 
     def handle(
         self,
-        object1: polars.DataFrame,
-        object2: polars.DataFrame,
+        actual: polars.DataFrame,
+        expected: polars.DataFrame,
         config: EqualityConfig,
     ) -> bool:
-        object_equal = frame_equal(object1, object2, config)
+        object_equal = frame_equal(actual, expected, config)
         if config.show_difference and not object_equal:
             logger.info(
                 f"polars.DataFrames have different elements:\n"
-                f"object1:\n{object1}\nobject2:\n{object2}"
+                f"object1:\n{actual}\nobject2:\n{expected}"
             )
         return object_equal
 
@@ -114,15 +114,15 @@ class PolarsSeriesEqualHandler(BaseEqualityHandler):
 
     def handle(
         self,
-        object1: polars.Series,
-        object2: polars.Series,
+        actual: polars.Series,
+        expected: polars.Series,
         config: EqualityConfig,
     ) -> bool:
-        object_equal = series_equal(object1, object2, config)
+        object_equal = series_equal(actual, expected, config)
         if config.show_difference and not object_equal:
             logger.info(
                 f"polars.Series have different elements:\n"
-                f"object1:\n{object1}\nobject2:\n{object2}"
+                f"object1:\n{actual}\nobject2:\n{expected}"
             )
         return object_equal
 

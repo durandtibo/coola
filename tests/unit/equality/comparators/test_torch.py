@@ -377,7 +377,7 @@ def test_tensor_packed_sequence_equality_comparator_equal_yes(
 ) -> None:
     comparator = TorchPackedSequenceEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -391,7 +391,7 @@ def test_tensor_packed_sequence_equality_comparator_equal_yes_show_difference(
     config.show_difference = True
     comparator = TorchPackedSequenceEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -404,7 +404,7 @@ def test_tensor_packed_sequence_equality_comparator_equal_false(
 ) -> None:
     comparator = TorchPackedSequenceEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -418,7 +418,7 @@ def test_tensor_packed_sequence_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = TorchPackedSequenceEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
@@ -504,7 +504,7 @@ def test_torch_tensor_equality_comparator_equal_yes(
 ) -> None:
     comparator = TorchTensorEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -518,7 +518,7 @@ def test_torch_tensor_equality_comparator_equal_yes_show_difference(
     config.show_difference = True
     comparator = TorchTensorEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -531,7 +531,7 @@ def test_torch_tensor_equality_comparator_equal_false(
 ) -> None:
     comparator = TorchTensorEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -545,7 +545,7 @@ def test_torch_tensor_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = TorchTensorEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
@@ -589,8 +589,8 @@ def test_torch_tensor_equality_comparator_equal_nan_true(
     config.equal_nan = equal_nan
     assert (
         TorchTensorEqualityComparator().equal(
-            object1=torch.tensor([0.0, float("nan"), float("nan"), 1.2]),
-            object2=torch.tensor([0.0, float("nan"), float("nan"), 1.2]),
+            actual=torch.tensor([0.0, float("nan"), float("nan"), 1.2]),
+            expected=torch.tensor([0.0, float("nan"), float("nan"), 1.2]),
             config=config,
         )
         == equal_nan
@@ -605,7 +605,7 @@ def test_torch_tensor_equality_comparator_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert TorchTensorEqualityComparator().equal(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.object1, expected=example.object2, config=config
     )
 
 

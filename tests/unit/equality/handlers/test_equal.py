@@ -80,7 +80,7 @@ def test_equal_handler_handle_false_show_difference(
     config.show_difference = True
     handler = EqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(object1=MyFloat(42), object2=1, config=config)
+        assert not handler.handle(actual=MyFloat(42), expected=1, config=config)
         assert caplog.messages[-1].startswith("objects are not equal:")
 
 

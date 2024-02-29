@@ -483,7 +483,7 @@ def test_xarray_data_array_equality_comparator_equal_yes(
 ) -> None:
     comparator = XarrayDataArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -497,7 +497,7 @@ def test_xarray_data_array_equality_comparator_equal_yes_show_difference(
     config.show_difference = True
     comparator = XarrayDataArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -510,7 +510,7 @@ def test_xarray_data_array_equality_comparator_equal_false(
 ) -> None:
     comparator = XarrayDataArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -524,7 +524,7 @@ def test_xarray_data_array_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = XarrayDataArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
@@ -552,7 +552,7 @@ def test_xarray_data_array_equality_comparator_equal_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert XarrayDataArrayEqualityComparator().equal(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.object1, expected=example.object2, config=config
     )
 
 
@@ -632,7 +632,7 @@ def test_xarray_dataset_equality_comparator_equal_yes(
 ) -> None:
     comparator = XarrayDatasetEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -646,7 +646,7 @@ def test_xarray_dataset_equality_comparator_equal_yes_show_difference(
     config.show_difference = True
     comparator = XarrayDatasetEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -659,7 +659,7 @@ def test_xarray_dataset_equality_comparator_equal_false(
 ) -> None:
     comparator = XarrayDatasetEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -673,7 +673,7 @@ def test_xarray_dataset_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = XarrayDatasetEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
@@ -701,7 +701,7 @@ def test_xarray_dataset_equality_comparator_equal_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert XarrayDatasetEqualityComparator().equal(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.object1, expected=example.object2, config=config
     )
 
 
@@ -757,7 +757,7 @@ def test_xarray_variable_equality_comparator_equal_yes(
 ) -> None:
     comparator = XarrayVariableEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -771,7 +771,7 @@ def test_xarray_variable_equality_comparator_equal_yes_show_difference(
     config.show_difference = True
     comparator = XarrayVariableEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -784,7 +784,7 @@ def test_xarray_variable_equality_comparator_equal_false(
 ) -> None:
     comparator = XarrayVariableEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -798,7 +798,7 @@ def test_xarray_variable_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = XarrayVariableEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
@@ -826,7 +826,7 @@ def test_xarray_variable_equality_comparator_equal_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert XarrayVariableEqualityComparator().equal(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.object1, expected=example.object2, config=config
     )
 
 

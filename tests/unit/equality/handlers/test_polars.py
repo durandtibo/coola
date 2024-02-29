@@ -201,7 +201,7 @@ def test_polars_dataframe_equal_handler_handle_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert PolarsDataFrameEqualHandler().handle(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.object1, expected=example.object2, config=config
     )
 
 
@@ -308,8 +308,8 @@ def test_polars_series_equal_handler_handle_false_show_difference(
     handler = PolarsSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
-            object1=polars.Series([1, 2, 3]),
-            object2=polars.Series([1, 2, 3, 4]),
+            actual=polars.Series([1, 2, 3]),
+            expected=polars.Series([1, 2, 3, 4]),
             config=config,
         )
         assert caplog.messages[0].startswith("polars.Series have different elements:")
@@ -342,7 +342,7 @@ def test_polars_series_equal_handler_handle_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert PolarsSeriesEqualHandler().handle(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.object1, expected=example.object2, config=config
     )
 
 

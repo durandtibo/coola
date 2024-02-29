@@ -152,7 +152,7 @@ def test_jax_array_equality_comparator_equal_yes(
 ) -> None:
     comparator = JaxArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -166,7 +166,7 @@ def test_jax_array_equality_comparator_equal_yes_show_difference(
     config.show_difference = True
     comparator = JaxArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -179,7 +179,7 @@ def test_jax_array_equality_comparator_equal_false(
 ) -> None:
     comparator = JaxArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -193,7 +193,7 @@ def test_jax_array_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = JaxArrayEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
@@ -203,8 +203,8 @@ def test_jax_array_equality_comparator_equal_nan(config: EqualityConfig, equal_n
     config.equal_nan = equal_nan
     assert (
         JaxArrayEqualityComparator().equal(
-            object1=jnp.array([0.0, jnp.nan, jnp.nan, 1.2]),
-            object2=jnp.array([0.0, jnp.nan, jnp.nan, 1.2]),
+            actual=jnp.array([0.0, jnp.nan, jnp.nan, 1.2]),
+            expected=jnp.array([0.0, jnp.nan, jnp.nan, 1.2]),
             config=config,
         )
         == equal_nan
@@ -219,7 +219,7 @@ def test_jax_array_equality_comparator_equal_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert JaxArrayEqualityComparator().equal(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.object1, expected=example.object2, config=config
     )
 
 

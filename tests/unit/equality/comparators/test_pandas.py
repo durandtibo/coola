@@ -285,7 +285,7 @@ def test_pandas_dataframe_equality_comparator_equal_true(
 ) -> None:
     comparator = PandasDataFrameEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -299,7 +299,7 @@ def test_pandas_dataframe_equality_comparator_equal_true_show_difference(
     config.show_difference = True
     comparator = PandasDataFrameEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -312,7 +312,7 @@ def test_pandas_dataframe_equality_comparator_equal_false(
 ) -> None:
     comparator = PandasDataFrameEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -326,7 +326,7 @@ def test_pandas_dataframe_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = PandasDataFrameEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert caplog.messages[0].startswith(example.expected_message)
 
 
@@ -338,8 +338,8 @@ def test_pandas_dataframe_equality_comparator_equal_nan(
     config.equal_nan = equal_nan
     assert (
         PandasDataFrameEqualityComparator().equal(
-            object1=pandas.DataFrame({"col": [1, float("nan"), 3]}),
-            object2=pandas.DataFrame({"col": [1, float("nan"), 3]}),
+            actual=pandas.DataFrame({"col": [1, float("nan"), 3]}),
+            expected=pandas.DataFrame({"col": [1, float("nan"), 3]}),
             config=config,
         )
         == equal_nan
@@ -354,7 +354,7 @@ def test_pandas_dataframe_equality_comparator_equal_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert PandasDataFrameEqualityComparator().equal(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.object1, expected=example.object2, config=config
     )
 
 
@@ -410,7 +410,7 @@ def test_pandas_series_equality_comparator_equal_true(
 ) -> None:
     comparator = PandasSeriesEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -424,7 +424,7 @@ def test_pandas_series_equality_comparator_equal_true_show_difference(
     config.show_difference = True
     comparator = PandasSeriesEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -437,7 +437,7 @@ def test_pandas_series_equality_comparator_equal_false(
 ) -> None:
     comparator = PandasSeriesEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -451,7 +451,7 @@ def test_pandas_series_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = PandasSeriesEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert caplog.messages[0].startswith(example.expected_message)
 
 
@@ -463,8 +463,8 @@ def test_pandas_series_equality_comparator_equal_nan(
     config.equal_nan = equal_nan
     assert (
         PandasSeriesEqualityComparator().equal(
-            object1=pandas.Series([0.0, float("nan"), float("nan"), 1.2]),
-            object2=pandas.Series([0.0, float("nan"), float("nan"), 1.2]),
+            actual=pandas.Series([0.0, float("nan"), float("nan"), 1.2]),
+            expected=pandas.Series([0.0, float("nan"), float("nan"), 1.2]),
             config=config,
         )
         == equal_nan
@@ -479,7 +479,7 @@ def test_pandas_series_equality_comparator_equal_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert PandasSeriesEqualityComparator().equal(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.object1, expected=example.object2, config=config
     )
 
 

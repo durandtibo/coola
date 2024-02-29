@@ -85,7 +85,7 @@ def test_same_data_handler_handle_false_show_difference(
     handler = SameDataHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
-            object1=np.ones(shape=(2, 3)), object2=np.zeros(shape=(2, 3)), config=config
+            actual=np.ones(shape=(2, 3)), expected=np.zeros(shape=(2, 3)), config=config
         )
         assert caplog.messages[-1].startswith("objects have different data:")
 
@@ -94,7 +94,7 @@ def test_same_data_handler_handle_false_show_difference(
 def test_same_data_handler_handle_without_next_handler(config: EqualityConfig) -> None:
     handler = SameDataHandler()
     with pytest.raises(RuntimeError, match="next handler is not defined"):
-        handler.handle(object1=np.ones(shape=(2, 3)), object2=np.ones(shape=(2, 3)), config=config)
+        handler.handle(actual=np.ones(shape=(2, 3)), expected=np.ones(shape=(2, 3)), config=config)
 
 
 def test_same_data_handler_set_next_handler() -> None:

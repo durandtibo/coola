@@ -201,7 +201,7 @@ def test_pandas_dataframe_equal_handler_handle_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert PandasDataFrameEqualHandler().handle(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.object1, expected=example.object2, config=config
     )
 
 
@@ -327,8 +327,8 @@ def test_pandas_series_equal_handler_handle_false_show_difference(
     handler = PandasSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
-            object1=pandas.Series(data=[1, 2, 3]),
-            object2=pandas.Series(data=[1, 2, 3, 4]),
+            actual=pandas.Series(data=[1, 2, 3]),
+            expected=pandas.Series(data=[1, 2, 3, 4]),
             config=config,
         )
         assert caplog.messages[0].startswith("pandas.Series have different elements:")
@@ -361,7 +361,7 @@ def test_pandas_series_equal_handler_handle_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert PandasSeriesEqualHandler().handle(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.object1, expected=example.object2, config=config
     )
 
 

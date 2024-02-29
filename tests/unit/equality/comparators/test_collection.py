@@ -263,7 +263,7 @@ def test_mapping_equality_comparator_equal_yes(
 ) -> None:
     comparator = MappingEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -276,7 +276,7 @@ def test_mapping_equality_comparator_equal_yes_show_difference(
     config.show_difference = True
     comparator = MappingEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -288,7 +288,7 @@ def test_mapping_equality_comparator_equal_false(
 ) -> None:
     comparator = MappingEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -301,7 +301,7 @@ def test_mapping_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = MappingEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
@@ -310,8 +310,8 @@ def test_mapping_equality_comparator_equal_nan(config: EqualityConfig, equal_nan
     config.equal_nan = equal_nan
     assert (
         MappingEqualityComparator().equal(
-            object1={"a": float("nan"), "b": float("nan")},
-            object2={"a": float("nan"), "b": float("nan")},
+            actual={"a": float("nan"), "b": float("nan")},
+            expected={"a": float("nan"), "b": float("nan")},
             config=config,
         )
         == equal_nan
@@ -325,7 +325,7 @@ def test_mapping_equality_comparator_equal_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert MappingEqualityComparator().equal(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.object1, expected=example.object2, config=config
     )
 
 
@@ -422,7 +422,7 @@ def test_sequence_equality_comparator_equal_true_show_difference(
     config.show_difference = True
     comparator = SequenceEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=[1], object2=[1], config=config)
+        assert comparator.equal(actual=[1], expected=[1], config=config)
         assert not caplog.messages
 
 
@@ -434,7 +434,7 @@ def test_sequence_equality_comparator_equal_yes(
 ) -> None:
     comparator = SequenceEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -447,7 +447,7 @@ def test_sequence_equality_comparator_equal_yes_show_difference(
     config.show_difference = True
     comparator = SequenceEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -459,7 +459,7 @@ def test_sequence_equality_comparator_equal_false(
 ) -> None:
     comparator = SequenceEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert not caplog.messages
 
 
@@ -472,7 +472,7 @@ def test_sequence_equality_comparator_equal_false_show_difference(
     config.show_difference = True
     comparator = SequenceEqualityComparator()
     with caplog.at_level(logging.INFO):
-        assert not comparator.equal(object1=example.object1, object2=example.object2, config=config)
+        assert not comparator.equal(actual=example.object1, expected=example.object2, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
@@ -481,8 +481,8 @@ def test_sequence_equality_comparator_equal_nan(config: EqualityConfig, equal_na
     config.equal_nan = equal_nan
     assert (
         SequenceEqualityComparator().equal(
-            object1=[float("nan"), 2, float("nan")],
-            object2=[float("nan"), 2, float("nan")],
+            actual=[float("nan"), 2, float("nan")],
+            expected=[float("nan"), 2, float("nan")],
             config=config,
         )
         == equal_nan
@@ -496,7 +496,7 @@ def test_sequence_equality_comparator_equal_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert SequenceEqualityComparator().equal(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.object1, expected=example.object2, config=config
     )
 
 

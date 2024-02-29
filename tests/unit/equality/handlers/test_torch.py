@@ -109,7 +109,7 @@ def test_torch_tensor_equal_handler_handle_false_show_difference(
     config.show_difference = True
     handler = TorchTensorEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(object1=torch.ones(2, 3), object2=torch.ones(3, 2), config=config)
+        assert not handler.handle(actual=torch.ones(2, 3), expected=torch.ones(3, 2), config=config)
         assert caplog.messages[0].startswith("torch.Tensors have different elements:")
 
 
@@ -121,7 +121,7 @@ def test_torch_tensor_equal_handler_handle_true_tolerance(
     config.atol = example.atol
     config.rtol = example.rtol
     assert TorchTensorEqualHandler().handle(
-        object1=example.object1, object2=example.object2, config=config
+        actual=example.object1, expected=example.object2, config=config
     )
 
 
@@ -184,8 +184,8 @@ def test_torch_tensor_same_device_handler_handle_false_show_difference(
     handler = TorchTensorSameDeviceHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
-            object1=Mock(spec=torch.Tensor, device=torch.device("cpu")),
-            object2=Mock(spec=torch.Tensor, device=torch.device("cuda:0")),
+            actual=Mock(spec=torch.Tensor, device=torch.device("cpu")),
+            expected=Mock(spec=torch.Tensor, device=torch.device("cuda:0")),
             config=config,
         )
         assert caplog.messages[0].startswith("torch.Tensors have different devices:")
@@ -197,7 +197,7 @@ def test_torch_tensor_same_device_handler_handle_without_next_handler(
 ) -> None:
     handler = TorchTensorSameDeviceHandler()
     with pytest.raises(RuntimeError, match="next handler is not defined"):
-        handler.handle(object1=torch.ones(2, 3), object2=torch.ones(2, 3), config=config)
+        handler.handle(actual=torch.ones(2, 3), expected=torch.ones(2, 3), config=config)
 
 
 def test_torch_tensor_same_device_handler_set_next_handler() -> None:

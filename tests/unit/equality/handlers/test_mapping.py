@@ -77,7 +77,7 @@ def test_mapping_same_keys_handler_handle_false_show_difference(
     handler = MappingSameKeysHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
-            object1={"a": 1, "b": 2}, object2={"a": 1, "b": 2, "c": 1}, config=config
+            actual={"a": 1, "b": 2}, expected={"a": 1, "b": 2, "c": 1}, config=config
         )
         assert caplog.messages[0].startswith("mappings have different keys:")
 
@@ -85,7 +85,7 @@ def test_mapping_same_keys_handler_handle_false_show_difference(
 def test_mapping_same_keys_handler_handle_without_next_handler(config: EqualityConfig) -> None:
     handler = MappingSameKeysHandler()
     with pytest.raises(RuntimeError, match="next handler is not defined"):
-        handler.handle(object1={"a": 1, "b": 2}, object2={"a": 1, "b": 2}, config=config)
+        handler.handle(actual={"a": 1, "b": 2}, expected={"a": 1, "b": 2}, config=config)
 
 
 def test_mapping_same_keys_handler_set_next_handler() -> None:
@@ -156,14 +156,14 @@ def test_mapping_same_values_handler_handle_false_show_difference(
     config.show_difference = True
     handler = MappingSameValuesHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(object1={"a": 1, "b": 2}, object2={"a": 1, "b": 3}, config=config)
+        assert not handler.handle(actual={"a": 1, "b": 2}, expected={"a": 1, "b": 3}, config=config)
         assert caplog.messages[-1].startswith("mappings have at least one different value:")
 
 
 def test_mapping_same_values_handler_handle_without_next_handler(config: EqualityConfig) -> None:
     handler = MappingSameValuesHandler()
     with pytest.raises(RuntimeError, match="next handler is not defined"):
-        handler.handle(object1={"a": 1, "b": 2}, object2={"a": 1, "b": 2}, config=config)
+        handler.handle(actual={"a": 1, "b": 2}, expected={"a": 1, "b": 2}, config=config)
 
 
 def test_mapping_same_values_handler_set_next_handler() -> None:

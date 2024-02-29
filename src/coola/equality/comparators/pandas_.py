@@ -72,8 +72,8 @@ class PandasDataFrameEqualityComparator(BaseEqualityComparator[pandas.DataFrame]
     def clone(self) -> PandasDataFrameEqualityComparator:
         return self.__class__()
 
-    def equal(self, object1: pandas.DataFrame, object2: Any, config: EqualityConfig) -> bool:
-        return self._handler.handle(object1=object1, object2=object2, config=config)
+    def equal(self, actual: pandas.DataFrame, expected: Any, config: EqualityConfig) -> bool:
+        return self._handler.handle(actual=actual, expected=expected, config=config)
 
 
 class PandasSeriesEqualityComparator(BaseEqualityComparator[pandas.Series]):
@@ -107,8 +107,8 @@ class PandasSeriesEqualityComparator(BaseEqualityComparator[pandas.Series]):
     def clone(self) -> PandasSeriesEqualityComparator:
         return self.__class__()
 
-    def equal(self, object1: pandas.Series, object2: Any, config: EqualityConfig) -> bool:
-        return self._handler.handle(object1=object1, object2=object2, config=config)
+    def equal(self, actual: pandas.Series, expected: Any, config: EqualityConfig) -> bool:
+        return self._handler.handle(actual=actual, expected=expected, config=config)
 
 
 def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:

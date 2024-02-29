@@ -46,15 +46,15 @@ class SequenceSameValuesHandler(AbstractEqualityHandler):
 
     def handle(
         self,
-        object1: Sequence,
-        object2: Sequence,
+        actual: Sequence,
+        expected: Sequence,
         config: EqualityConfig,
     ) -> bool:
-        for value1, value2 in zip(object1, object2):
+        for value1, value2 in zip(actual, expected):
             if not config.tester.equal(value1, value2, config):
-                self._show_difference(object1=object1, object2=object2, config=config)
+                self._show_difference(object1=actual, object2=expected, config=config)
                 return False
-        return self._handle_next(object1=object1, object2=object2, config=config)
+        return self._handle_next(object1=actual, object2=expected, config=config)
 
     def _show_difference(
         self, object1: Sequence, object2: Sequence, config: EqualityConfig

@@ -55,15 +55,15 @@ class JaxArrayEqualHandler(BaseEqualityHandler):
 
     def handle(
         self,
-        object1: jnp.ndarray,
-        object2: jnp.ndarray,
+        actual: jnp.ndarray,
+        expected: jnp.ndarray,
         config: EqualityConfig,
     ) -> bool:
-        object_equal = array_equal(object1, object2, config)
+        object_equal = array_equal(actual, expected, config)
         if config.show_difference and not object_equal:
             logger.info(
                 f"jax.numpy.ndarrays have different elements:\n"
-                f"object1=\n{object1}\nobject2=\n{object2}"
+                f"object1=\n{actual}\nobject2=\n{expected}"
             )
         return object_equal
 

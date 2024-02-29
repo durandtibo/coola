@@ -56,8 +56,8 @@ class FalseHandler(BaseEqualityHandler):
 
     def handle(
         self,
-        object1: Any,
-        object2: Any,
+        actual: Any,
+        expected: Any,
         config: EqualityConfig,
     ) -> bool:
         return False
@@ -96,8 +96,8 @@ class TrueHandler(BaseEqualityHandler):
 
     def handle(
         self,
-        object1: Any,
-        object2: Any,
+        actual: Any,
+        expected: Any,
         config: EqualityConfig,
     ) -> bool:
         return True
@@ -139,13 +139,13 @@ class ObjectEqualHandler(BaseEqualityHandler):
 
     def handle(
         self,
-        object1: Any,
-        object2: Any,
+        actual: Any,
+        expected: Any,
         config: EqualityConfig,
     ) -> bool:
-        object_equal = object1 == object2
+        object_equal = actual == expected
         if config.show_difference and not object_equal:
-            logger.info(f"objects are different:\nobject1={object1}\nobject2={object2}")
+            logger.info(f"objects are different:\nobject1={actual}\nobject2={expected}")
         return object_equal
 
     def set_next_handler(self, handler: BaseEqualityHandler) -> None:
@@ -196,14 +196,14 @@ class SameAttributeHandler(AbstractEqualityHandler):
     def name(self) -> str:
         return self._name
 
-    def handle(self, object1: Any, object2: Any, config: EqualityConfig) -> bool:
-        value1 = getattr(object1, self._name)
-        value2 = getattr(object2, self._name)
+    def handle(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
+        value1 = getattr(actual, self._name)
+        value2 = getattr(expected, self._name)
         if not config.tester.equal(value1, value2, config):
             if config.show_difference:
                 logger.info(f"objects have different {self._name}: {value1} vs {value2}")
             return False
-        return self._handle_next(object1=object1, object2=object2, config=config)
+        return self._handle_next(object1=actual, object2=expected, config=config)
 
 
 class SameLengthHandler(AbstractEqualityHandler):
@@ -231,15 +231,15 @@ class SameLengthHandler(AbstractEqualityHandler):
 
     def handle(
         self,
-        object1: Sized,
-        object2: Sized,
+        actual: Sized,
+        expected: Sized,
         config: EqualityConfig,
     ) -> bool:
-        if len(object1) != len(object2):
+        if len(actual) != len(expected):
             if config.show_difference:
-                logger.info(f"objects have different lengths: {len(object1):,} vs {len(object2):,}")
+                logger.info(f"objects have different lengths: {len(actual):,} vs {len(expected):,}")
             return False
-        return self._handle_next(object1=object1, object2=object2, config=config)
+        return self._handle_next(object1=actual, object2=expected, config=config)
 
 
 class SameObjectHandler(AbstractEqualityHandler):
@@ -267,13 +267,13 @@ class SameObjectHandler(AbstractEqualityHandler):
 
     def handle(
         self,
-        object1: Any,
-        object2: Any,
+        actual: Any,
+        expected: Any,
         config: EqualityConfig,
     ) -> bool | None:
-        if object1 is object2:
+        if actual is expected:
             return True
-        return self._handle_next(object1=object1, object2=object2, config=config)
+        return self._handle_next(object1=actual, object2=expected, config=config)
 
 
 class SameTypeHandler(AbstractEqualityHandler):
@@ -301,12 +301,12 @@ class SameTypeHandler(AbstractEqualityHandler):
 
     def handle(
         self,
-        object1: Any,
-        object2: Any,
+        actual: Any,
+        expected: Any,
         config: EqualityConfig,
     ) -> bool:
-        if type(object1) is not type(object2):
+        if type(actual) is not type(expected):
             if config.show_difference:
-                logger.info(f"objects have different types: {type(object1)} vs {type(object2)}")
+                logger.info(f"objects have different types: {type(actual)} vs {type(expected)}")
             return False
-        return self._handle_next(object1=object1, object2=object2, config=config)
+        return self._handle_next(object1=actual, object2=expected, config=config)
