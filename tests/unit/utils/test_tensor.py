@@ -6,19 +6,24 @@ from unittest.mock import Mock, patch
 import pytest
 
 from coola.testing import numpy_available, torch_available
-from coola.utils import is_numpy_available
+from coola.utils import is_numpy_available, is_torch_available
 from coola.utils.tensor import (
     get_available_devices,
     is_cuda_available,
     is_mps_available,
     to_tensor,
-    torch,
 )
 
 if is_numpy_available():
     import numpy as np
 else:
     np = Mock()  # pragma: no cover
+
+if is_torch_available():
+    import torch
+else:  # pragma: no cover
+    torch = Mock()
+
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
