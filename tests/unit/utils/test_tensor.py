@@ -1,16 +1,27 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 from unittest.mock import Mock, patch
 
 import pytest
 
-from coola.testing import torch_available
+from coola.testing import numpy_available, torch_available
+from coola.utils import is_numpy_available
 from coola.utils.tensor import (
     get_available_devices,
     is_cuda_available,
     is_mps_available,
+    to_tensor,
     torch,
 )
+
+if is_numpy_available():
+    import numpy as np
+else:
+    np = Mock()  # pragma: no cover
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 @pytest.fixture(autouse=True)
@@ -109,3 +120,41 @@ def test_is_mps_available_without_mps() -> None:
 @patch("coola.utils.tensor.is_torch_available", lambda: False)
 def test_is_mps_available_no_torch() -> None:
     assert not is_mps_available()
+
+
+###############################
+#     Tests for to_tensor     #
+###############################
+
+
+@torch_available
+@pytest.mark.parametrize(
+    "data",
+    [
+        torch.tensor([3, 1, 2, 0, 1]),
+        [3, 1, 2, 0, 1],
+        (3, 1, 2, 0, 1),
+    ],
+)
+def test_to_tensor_long(data: Sequence | torch.Tensor) -> None:
+    assert to_tensor(data).equal(torch.tensor([3, 1, 2, 0, 1], dtype=torch.long))
+
+
+@torch_available
+@pytest.mark.parametrize(
+    "data",
+    [
+        torch.tensor([3.0, 1.0, 2.0, 0.0, 1.0]),
+        [3.0, 1.0, 2.0, 0.0, 1.0],
+        (3.0, 1.0, 2.0, 0.0, 1.0),
+    ],
+)
+def test_to_tensor_float(data: Sequence | torch.Tensor) -> None:
+    assert to_tensor(data).equal(torch.tensor([3.0, 1.0, 2.0, 0.0, 1.0], dtype=torch.float))
+
+
+@numpy_available
+def test_to_tensor_numpy() -> None:
+    assert to_tensor(np.array([3, 1, 2, 0, 1])).equal(
+        torch.tensor([3, 1, 2, 0, 1], dtype=torch.long)
+    )
