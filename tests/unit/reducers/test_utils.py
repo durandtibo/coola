@@ -15,13 +15,13 @@ def test_auto_reducer_torch() -> None:
 
 @numpy_available
 def test_auto_reducer_numpy() -> None:
-    with patch("coola.reducers.utils.is_torch_available", lambda *args, **kwargs: False):
+    with patch("coola.reducers.utils.is_torch_available", lambda: False):
         assert isinstance(auto_reducer(), NumpyReducer)
 
 
 def test_auto_reducer_basic() -> None:
     with (
-        patch("coola.reducers.utils.is_torch_available", lambda *args, **kwargs: False),
-        patch("coola.reducers.utils.is_numpy_available", lambda *args, **kwargs: False),
+        patch("coola.reducers.utils.is_torch_available", lambda: False),
+        patch("coola.reducers.utils.is_numpy_available", lambda: False),
     ):
         assert isinstance(auto_reducer(), BasicReducer)

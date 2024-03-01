@@ -56,9 +56,9 @@ class FalseHandler(BaseEqualityHandler):
 
     def handle(
         self,
-        actual: Any,
-        expected: Any,
-        config: EqualityConfig,
+        actual: Any,  # noqa: ARG002
+        expected: Any,  # noqa: ARG002
+        config: EqualityConfig,  # noqa: ARG002
     ) -> bool:
         return False
 
@@ -96,13 +96,13 @@ class TrueHandler(BaseEqualityHandler):
 
     def handle(
         self,
-        actual: Any,
-        expected: Any,
-        config: EqualityConfig,
+        actual: Any,  # noqa: ARG002
+        expected: Any,  # noqa: ARG002
+        config: EqualityConfig,  # noqa: ARG002
     ) -> bool:
         return True
 
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
+    def set_next_handler(self, handler: BaseEqualityHandler) -> None:  # noqa: ARG002
         pass  # Do nothing because the next handler is never called.
 
 

@@ -8,6 +8,7 @@ import pytest
 
 from coola.reducers import EmptySequenceError, NumpyReducer, ReducerRegistry
 from coola.testing import numpy_available
+from tests.unit.reducers.test_basic import EMPTY_SEQUENCES
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -47,12 +48,12 @@ def test_numpy_reducer_max_float(values: Sequence[int | float]) -> None:
 
 
 @numpy_available
-@pytest.mark.parametrize("values", [[], ()])
+@pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_numpy_reducer_max_empty(values: Sequence[int | float]) -> None:
     with pytest.raises(
         EmptySequenceError, match="Cannot compute the maximum because the summary is empty"
     ):
-        NumpyReducer().max([])
+        NumpyReducer().max(values)
 
 
 @numpy_available
@@ -74,12 +75,12 @@ def test_numpy_reducer_mean_float(values: Sequence[int | float]) -> None:
 
 
 @numpy_available
-@pytest.mark.parametrize("values", [[], ()])
+@pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_numpy_reducer_mean_empty(values: Sequence[int | float]) -> None:
     with pytest.raises(
         EmptySequenceError, match="Cannot compute the mean because the summary is empty"
     ):
-        NumpyReducer().mean([])
+        NumpyReducer().mean(values)
 
 
 @numpy_available
@@ -97,12 +98,12 @@ def test_numpy_reducer_median_float(values: Sequence[int | float]) -> None:
 
 
 @numpy_available
-@pytest.mark.parametrize("values", [[], ()])
+@pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_numpy_reducer_median_empty(values: Sequence[int | float]) -> None:
     with pytest.raises(
         EmptySequenceError, match="Cannot compute the median because the summary is empty"
     ):
-        NumpyReducer().median([])
+        NumpyReducer().median(values)
 
 
 @numpy_available
@@ -124,12 +125,12 @@ def test_numpy_reducer_min_float(values: Sequence[int | float]) -> None:
 
 
 @numpy_available
-@pytest.mark.parametrize("values", [[], ()])
+@pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_numpy_reducer_min_empty(values: Sequence[int | float]) -> None:
     with pytest.raises(
         EmptySequenceError, match="Cannot compute the minimum because the summary is empty"
     ):
-        NumpyReducer().min([])
+        NumpyReducer().min(values)
 
 
 @numpy_available
@@ -153,12 +154,12 @@ def test_numpy_reducer_quantile_float(values: Sequence[int | float]) -> None:
 
 
 @numpy_available
-@pytest.mark.parametrize("values", [[], ()])
+@pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_numpy_reducer_quantile_empty(values: Sequence[int | float]) -> None:
     with pytest.raises(
         EmptySequenceError, match="Cannot compute the quantiles because the summary is empty"
     ):
-        NumpyReducer().quantile([], [0.5])
+        NumpyReducer().quantile(values, [0.5])
 
 
 @numpy_available
@@ -180,9 +181,9 @@ def test_numpy_reducer_sort_descending(values: Sequence[int | float]) -> None:
 
 
 @numpy_available
-@pytest.mark.parametrize("values", [[], ()])
+@pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_numpy_reducer_sort_empty(values: Sequence[int | float]) -> None:
-    assert NumpyReducer().sort([]) == []
+    assert NumpyReducer().sort(values) == []
 
 
 @numpy_available
@@ -204,19 +205,19 @@ def test_numpy_reducer_std_one(values: Sequence[int | float]) -> None:
 
 
 @numpy_available
-@pytest.mark.parametrize("values", [[], ()])
+@pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_numpy_reducer_std_empty(values: Sequence[int | float]) -> None:
     with pytest.raises(
         EmptySequenceError,
         match="Cannot compute the standard deviation because the summary is empty",
     ):
-        NumpyReducer().std([])
+        NumpyReducer().std(values)
 
 
 @numpy_available
 def test_numpy_reducer_no_numpy() -> None:
     with (
-        patch("coola.utils.imports.is_numpy_available", lambda *args, **kwargs: False),
+        patch("coola.utils.imports.is_numpy_available", lambda: False),
         pytest.raises(RuntimeError, match="`numpy` package is required but not installed."),
     ):
         NumpyReducer()

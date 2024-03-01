@@ -57,7 +57,11 @@ class TensorFormatter(BaseFormatter[torch.Tensor]):
         return self._show_data == other._show_data
 
     def format(
-        self, summarizer: BaseSummarizer, value: torch.Tensor, depth: int = 0, max_depth: int = 1
+        self,
+        summarizer: BaseSummarizer,  # noqa: ARG002
+        value: torch.Tensor,
+        depth: int = 0,  # noqa: ARG002
+        max_depth: int = 1,  # noqa: ARG002
     ) -> str:
         if self._show_data:
             return repr(value)

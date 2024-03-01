@@ -314,7 +314,7 @@ def test_numpy_array_equality_comparator_equal_true_tolerance(
 @numpy_available
 def test_numpy_array_equality_comparator_no_numpy() -> None:
     with (
-        patch("coola.utils.imports.is_numpy_available", lambda *args, **kwargs: False),
+        patch("coola.utils.imports.is_numpy_available", lambda: False),
         pytest.raises(RuntimeError, match="`numpy` package is required but not installed."),
     ):
         NumpyArrayEqualityComparator()
@@ -431,7 +431,7 @@ def test_numpy_masked_array_equality_comparator_equal_nan(
 @numpy_available
 def test_numpy_masked_array_equality_comparator_no_numpy() -> None:
     with (
-        patch("coola.utils.imports.is_numpy_available", lambda *args, **kwargs: False),
+        patch("coola.utils.imports.is_numpy_available", lambda: False),
         pytest.raises(RuntimeError, match="`numpy` package is required but not installed."),
     ):
         NumpyMaskedArrayEqualityComparator()
@@ -451,7 +451,5 @@ def test_get_type_comparator_mapping() -> None:
 
 
 def test_get_type_comparator_mapping_no_numpy() -> None:
-    with patch(
-        "coola.equality.comparators.numpy_.is_numpy_available", lambda *args, **kwargs: False
-    ):
+    with patch("coola.equality.comparators.numpy_.is_numpy_available", lambda: False):
         assert get_type_comparator_mapping() == {}

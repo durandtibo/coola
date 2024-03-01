@@ -26,31 +26,31 @@ def _reset() -> None:
 
 
 @torch_available
-@patch("torch.cuda.is_available", lambda *args, **kwargs: False)
-@patch("coola.utils.tensor.is_mps_available", lambda *args, **kwargs: False)
+@patch("torch.cuda.is_available", lambda: False)
+@patch("coola.utils.tensor.is_mps_available", lambda: False)
 def test_get_available_devices_cpu() -> None:
     assert get_available_devices() == ("cpu",)
 
 
 @torch_available
-@patch("torch.cuda.is_available", lambda *args, **kwargs: True)
-@patch("torch.cuda.device_count", lambda *args, **kwargs: 1)
-@patch("coola.utils.tensor.is_mps_available", lambda *args, **kwargs: False)
+@patch("torch.cuda.is_available", lambda: True)
+@patch("torch.cuda.device_count", lambda: 1)
+@patch("coola.utils.tensor.is_mps_available", lambda: False)
 def test_get_available_devices_cpu_and_gpu() -> None:
     assert get_available_devices() == ("cpu", "cuda:0")
 
 
 @torch_available
-@patch("torch.cuda.is_available", lambda *args, **kwargs: False)
-@patch("coola.utils.tensor.is_mps_available", lambda *args, **kwargs: True)
+@patch("torch.cuda.is_available", lambda: False)
+@patch("coola.utils.tensor.is_mps_available", lambda: True)
 def test_get_available_devices_cpu_and_mps() -> None:
     assert get_available_devices() == ("cpu", "mps:0")
 
 
 @torch_available
-@patch("torch.cuda.is_available", lambda *args, **kwargs: True)
-@patch("torch.cuda.device_count", lambda *args, **kwargs: 1)
-@patch("coola.utils.tensor.is_mps_available", lambda *args, **kwargs: True)
+@patch("torch.cuda.is_available", lambda: True)
+@patch("torch.cuda.device_count", lambda: 1)
+@patch("coola.utils.tensor.is_mps_available", lambda: True)
 def test_get_available_devices_cpu_and_gpu_and_mps() -> None:
     assert get_available_devices() == ("cpu", "cuda:0", "mps:0")
 
@@ -66,18 +66,18 @@ def test_is_cuda_available() -> None:
 
 
 @torch_available
-@patch("torch.cuda.is_available", lambda *args, **kwargs: True)
+@patch("torch.cuda.is_available", lambda: True)
 def test_is_cuda_available_true() -> None:
     assert is_cuda_available()
 
 
 @torch_available
-@patch("torch.cuda.is_available", lambda *args, **kwargs: False)
+@patch("torch.cuda.is_available", lambda: False)
 def test_is_cuda_available_false() -> None:
     assert not is_cuda_available()
 
 
-@patch("coola.utils.tensor.is_torch_available", lambda *args, **kwargs: False)
+@patch("coola.utils.tensor.is_torch_available", lambda: False)
 def test_is_cuda_available_no_torch() -> None:
     assert not is_cuda_available()
 
@@ -93,19 +93,19 @@ def test_is_mps_available() -> None:
 
 
 @torch_available
-@patch("coola.utils.tensor.is_torch_available", lambda *args, **kwargs: True)
+@patch("coola.utils.tensor.is_torch_available", lambda: True)
 def test_is_mps_available_with_mps() -> None:
     with patch("coola.utils.tensor.torch.ones", Mock(return_value=torch.ones(1))):
         assert is_mps_available()
 
 
 @torch_available
-@patch("coola.utils.tensor.is_torch_available", lambda *args, **kwargs: True)
+@patch("coola.utils.tensor.is_torch_available", lambda: True)
 def test_is_mps_available_without_mps() -> None:
     with patch("coola.utils.tensor.torch.ones", Mock(side_effect=RuntimeError)):
         assert not is_mps_available()
 
 
-@patch("coola.utils.tensor.is_torch_available", lambda *args, **kwargs: False)
+@patch("coola.utils.tensor.is_torch_available", lambda: False)
 def test_is_mps_available_no_torch() -> None:
     assert not is_mps_available()

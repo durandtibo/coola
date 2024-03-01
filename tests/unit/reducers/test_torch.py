@@ -8,6 +8,7 @@ import pytest
 
 from coola.reducers import EmptySequenceError, ReducerRegistry, TorchReducer
 from coola.testing import torch_available
+from tests.unit.reducers.test_basic import EMPTY_SEQUENCES
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -47,12 +48,12 @@ def test_torch_reducer_max_float(values: Sequence[int | float]) -> None:
 
 
 @torch_available
-@pytest.mark.parametrize("values", [[], ()])
+@pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_torch_reducer_max_empty(values: Sequence[int | float]) -> None:
     with pytest.raises(
         EmptySequenceError, match="Cannot compute the maximum because the summary is empty"
     ):
-        TorchReducer().max([])
+        TorchReducer().max(values)
 
 
 @torch_available
@@ -74,12 +75,12 @@ def test_torch_reducer_mean_float(values: Sequence[int | float]) -> None:
 
 
 @torch_available
-@pytest.mark.parametrize("values", [[], ()])
+@pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_torch_reducer_mean_empty(values: Sequence[int | float]) -> None:
     with pytest.raises(
         EmptySequenceError, match="Cannot compute the mean because the summary is empty"
     ):
-        TorchReducer().mean([])
+        TorchReducer().mean(values)
 
 
 @torch_available
@@ -101,12 +102,12 @@ def test_torch_reducer_median_float(values: Sequence[int | float]) -> None:
 
 
 @torch_available
-@pytest.mark.parametrize("values", [[], ()])
+@pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_torch_reducer_median_empty(values: Sequence[int | float]) -> None:
     with pytest.raises(
         EmptySequenceError, match="Cannot compute the median because the summary is empty"
     ):
-        TorchReducer().median([])
+        TorchReducer().median(values)
 
 
 @torch_available
@@ -128,12 +129,12 @@ def test_torch_reducer_min_float(values: Sequence[int | float]) -> None:
 
 
 @torch_available
-@pytest.mark.parametrize("values", [[], ()])
+@pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_torch_reducer_min_empty(values: Sequence[int | float]) -> None:
     with pytest.raises(
         EmptySequenceError, match="Cannot compute the minimum because the summary is empty"
     ):
-        TorchReducer().min([])
+        TorchReducer().min(values)
 
 
 @torch_available
@@ -157,12 +158,12 @@ def test_torch_reducer_quantile_float(values: Sequence[int | float]) -> None:
 
 
 @torch_available
-@pytest.mark.parametrize("values", [[], ()])
+@pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_torch_reducer_quantile_empty(values: Sequence[int | float]) -> None:
     with pytest.raises(
         EmptySequenceError, match="Cannot compute the quantiles because the summary is empty"
     ):
-        TorchReducer().quantile([], [0.5])
+        TorchReducer().quantile(values, [0.5])
 
 
 @torch_available
@@ -184,9 +185,9 @@ def test_torch_reducer_sort_descending(values: Sequence[int | float]) -> None:
 
 
 @torch_available
-@pytest.mark.parametrize("values", [[], ()])
+@pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_torch_reducer_sort_empty(values: Sequence[int | float]) -> None:
-    assert TorchReducer().sort([]) == []
+    assert TorchReducer().sort(values) == []
 
 
 @torch_available
@@ -208,19 +209,19 @@ def test_torch_reducer_std_one(values: Sequence[int | float]) -> None:
 
 
 @torch_available
-@pytest.mark.parametrize("values", [[], ()])
+@pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_torch_reducer_std_empty(values: Sequence[int | float]) -> None:
     with pytest.raises(
         EmptySequenceError,
         match="Cannot compute the standard deviation because the summary is empty",
     ):
-        TorchReducer().std([])
+        TorchReducer().std(values)
 
 
 @torch_available
 def test_torch_reducer_no_torch() -> None:
     with (
-        patch("coola.utils.imports.is_torch_available", lambda *args, **kwargs: False),
+        patch("coola.utils.imports.is_torch_available", lambda: False),
         pytest.raises(RuntimeError, match="`torch` package is required but not installed."),
     ):
         TorchReducer()
