@@ -21,7 +21,7 @@ else:
     np = Mock()  # pragma: no cover
 
 
-T = TypeVar("T", bound=Sequence[Union[int, float]])
+T = TypeVar("T", Sequence[Union[int, float]], np.ndarray)
 
 
 class NumpyReducer(BaseBasicReducer[T]):
@@ -52,6 +52,8 @@ class NumpyReducer(BaseBasicReducer[T]):
         return f"{self.__class__.__qualname__}()"
 
     def _is_empty(self, values: T) -> bool:
+        if isinstance(values, np.ndarray):
+            return values.size == 0
         return not values
 
     def _max(self, values: T) -> int | float:
