@@ -57,7 +57,11 @@ class DefaultFormatter(BaseFormatter[Any]):
         return self._max_characters == other._max_characters
 
     def format(
-        self, summarizer: BaseSummarizer, value: Any, depth: int = 0, max_depth: int = 1
+        self,
+        summarizer: BaseSummarizer,  # noqa: ARG002
+        value: Any,
+        depth: int = 0,
+        max_depth: int = 1,
     ) -> str:
         if depth >= max_depth:
             return self._format(str(value))

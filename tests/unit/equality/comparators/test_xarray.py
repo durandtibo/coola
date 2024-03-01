@@ -559,7 +559,7 @@ def test_xarray_data_array_equality_comparator_equal_true_tolerance(
 @xarray_available
 def test_xarray_data_array_equality_comparator_no_xarray() -> None:
     with (
-        patch("coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False),
+        patch("coola.utils.imports.is_xarray_available", lambda: False),
         pytest.raises(RuntimeError, match="`xarray` package is required but not installed."),
     ):
         XarrayDataArrayEqualityComparator()
@@ -708,7 +708,7 @@ def test_xarray_dataset_equality_comparator_equal_true_tolerance(
 @xarray_available
 def test_xarray_dataset_equality_comparator_no_xarray() -> None:
     with (
-        patch("coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False),
+        patch("coola.utils.imports.is_xarray_available", lambda: False),
         pytest.raises(RuntimeError, match="`xarray` package is required but not installed."),
     ):
         XarrayDatasetEqualityComparator()
@@ -833,7 +833,7 @@ def test_xarray_variable_equality_comparator_equal_true_tolerance(
 @xarray_available
 def test_xarray_variable_equality_comparator_no_xarray() -> None:
     with (
-        patch("coola.utils.imports.is_xarray_available", lambda *args, **kwargs: False),
+        patch("coola.utils.imports.is_xarray_available", lambda: False),
         pytest.raises(RuntimeError, match="`xarray` package is required but not installed."),
     ):
         XarrayVariableEqualityComparator()
@@ -854,7 +854,5 @@ def test_get_type_comparator_mapping() -> None:
 
 
 def test_get_type_comparator_mapping_no_xarray() -> None:
-    with patch(
-        "coola.equality.comparators.xarray_.is_xarray_available", lambda *args, **kwargs: False
-    ):
+    with patch("coola.equality.comparators.xarray_.is_xarray_available", lambda: False):
         assert get_type_comparator_mapping() == {}

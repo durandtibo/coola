@@ -22,8 +22,8 @@ class BaseEqualityTester(ABC):
         r"""Indicate if two objects are equal or not.
 
         Args:
-            actual: Specifies the first object to compare.
-            expected: Specifies the second object to compare.
+            actual: Specifies the actual input.
+            expected: Specifies the expected input.
             config: Specifies the equality configuration.
 
         Returns:

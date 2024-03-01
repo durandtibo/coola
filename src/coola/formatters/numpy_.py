@@ -59,7 +59,11 @@ class NDArrayFormatter(BaseFormatter[np.ndarray]):
         return self._show_data == other._show_data
 
     def format(
-        self, summarizer: BaseSummarizer, value: np.ndarray, depth: int = 0, max_depth: int = 1
+        self,
+        summarizer: BaseSummarizer,  # noqa: ARG002
+        value: np.ndarray,
+        depth: int = 0,  # noqa: ARG002
+        max_depth: int = 1,  # noqa: ARG002
     ) -> str:
         if self._show_data:
             return repr(value)
