@@ -5,7 +5,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from coola.testing import torch_available
+from coola.testing import numpy_available, torch_available
 from coola.utils import is_numpy_available, is_torch_available
 from coola.utils.array import to_array
 
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 ##############################
 
 
-@torch_available
+@numpy_available
 @pytest.mark.parametrize(
     "data",
     [
@@ -42,7 +42,7 @@ def test_to_array_int(data: Sequence | np.ndarray) -> None:
     assert np.array_equal(to_array(data), np.array([3, 1, 2, 0, 1], dtype=int))
 
 
-@torch_available
+@numpy_available
 @pytest.mark.parametrize(
     "data",
     [
