@@ -38,6 +38,7 @@ nav:
       - refs/utils.md
   - Upgrade Guide:
       - upgrade/0.3.md
+      - upgrade/0.4.md
   - GitHub: https://github.com/durandtibo/coola
 
 repo_url: https://github.com/durandtibo/coola

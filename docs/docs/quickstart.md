@@ -434,6 +434,26 @@ True
 
 ```
 
+Internally, [`torch.testing.assert_close`](https://pytorch.org/docs/stable/testing.html) tries to
+convert some values to tensors to compare them, which can lead to surprising results like:
+
+```pycon
+>>> import torch
+>>> torch.testing.assert_close((1, 2, 3), [1, 2, 3])
+
+```
+
+The inputs have different types: the left input is a tuple, whereas the right is a list.
+`coola` has a strict type checking and will indicate the two inputs are different:
+
+```pycon
+>>> import torch
+>>> import coola
+>>> coola.objects_are_equal((1, 2, 3), [1, 2, 3])
+False
+
+```
+
 [`numpy.testing.assert_equal`](https://numpy.org/doc/stable/reference/generated/numpy.testing.assert_equal.html)
 has different limitations.
 For example, it can work with strings but can handle only simple sequence and mapping objects
