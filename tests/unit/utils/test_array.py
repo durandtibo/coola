@@ -55,6 +55,7 @@ def test_to_array_float(data: Sequence | np.ndarray) -> None:
     assert np.array_equal(to_array(data), np.array([3.0, 1.0, 2.0, 0.0, 1.0], dtype=float))
 
 
+@numpy_available
 @torch_available
 def test_to_array_numpy() -> None:
     assert np.array_equal(
