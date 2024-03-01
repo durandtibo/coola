@@ -59,9 +59,7 @@ def test_objects_are_equal_false_show_difference(
 
 @pandas_available
 @pytest.mark.parametrize("example", PANDAS_EQUAL_TOLERANCE)
-def test_objects_are_allclose_true_tolerance(
-    example: ExamplePair, caplog: pytest.LogCaptureFixture
-) -> None:
+def test_objects_are_allclose_true_tolerance(example: ExamplePair) -> None:
     assert objects_are_allclose(
         example.actual, example.expected, atol=example.atol, rtol=example.rtol
     )

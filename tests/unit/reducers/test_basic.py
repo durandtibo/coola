@@ -11,6 +11,9 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
+EMPTY_SEQUENCES = [[], ()]
+
+
 def test_reducer_registry_available_reducers() -> None:
     assert isinstance(ReducerRegistry.registry["basic"], BasicReducer)
 
@@ -40,12 +43,12 @@ def test_basic_reducer_max_float(values: Sequence[int | float]) -> None:
     assert val == 2.5
 
 
-@pytest.mark.parametrize("values", [[], ()])
+@pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_basic_reducer_max_empty(values: Sequence[int | float]) -> None:
     with pytest.raises(
         EmptySequenceError, match="Cannot compute the maximum because the summary is empty"
     ):
-        BasicReducer().max([])
+        BasicReducer().max(values)
 
 
 @pytest.mark.parametrize("values", [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2), [0]])
@@ -64,12 +67,12 @@ def test_basic_reducer_mean_float(values: Sequence[int | float]) -> None:
     assert val == 0.5
 
 
-@pytest.mark.parametrize("values", [[], ()])
+@pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_basic_reducer_mean_empty(values: Sequence[int | float]) -> None:
     with pytest.raises(
         EmptySequenceError, match="Cannot compute the mean because the summary is empty"
     ):
-        BasicReducer().mean([])
+        BasicReducer().mean(values)
 
 
 @pytest.mark.parametrize("values", [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2), [0]])
@@ -88,12 +91,12 @@ def test_basic_reducer_median_float(values: Sequence[int | float]) -> None:
     assert val == 0.5
 
 
-@pytest.mark.parametrize("values", [[], ()])
+@pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_basic_reducer_median_empty(values: Sequence[int | float]) -> None:
     with pytest.raises(
         EmptySequenceError, match="Cannot compute the median because the summary is empty"
     ):
-        BasicReducer().median([])
+        BasicReducer().median(values)
 
 
 @pytest.mark.parametrize("values", [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2), [-2], [-2, 1, 2, 3]])
@@ -112,12 +115,12 @@ def test_basic_reducer_min_float(values: Sequence[int | float]) -> None:
     assert val == -2.5
 
 
-@pytest.mark.parametrize("values", [[], ()])
+@pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_basic_reducer_min_empty(values: Sequence[int | float]) -> None:
     with pytest.raises(
         EmptySequenceError, match="Cannot compute the minimum because the summary is empty"
     ):
-        BasicReducer().min([])
+        BasicReducer().min(values)
 
 
 @pytest.mark.parametrize(
@@ -138,12 +141,12 @@ def test_basic_reducer_quantile_float(values: Sequence[int | float]) -> None:
     assert BasicReducer().quantile(values, (0.0, 0.1, 0.4, 0.9)) == [0.5, 1.5, 4.5, 9.5]
 
 
-@pytest.mark.parametrize("values", [[], ()])
+@pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_basic_reducer_quantile_empty(values: Sequence[int | float]) -> None:
     with pytest.raises(
         EmptySequenceError, match="Cannot compute the quantiles because the summary is empty"
     ):
-        BasicReducer().quantile([], [0.5])
+        BasicReducer().quantile(values, [0.5])
 
 
 @pytest.mark.parametrize("values", [[2, 1, -2, 3, 0], (2, 1, -2, 3, 0)])
@@ -161,9 +164,9 @@ def test_basic_reducer_sort_descending(values: Sequence[int | float]) -> None:
     assert BasicReducer().sort(values, descending=True) == [3, 2, 1, 0, -2]
 
 
-@pytest.mark.parametrize("values", [[], ()])
+@pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_basic_reducer_sort_empty(values: Sequence[int | float]) -> None:
-    assert BasicReducer().sort([]) == []
+    assert BasicReducer().sort(values) == []
 
 
 @pytest.mark.parametrize("values", [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2)])
@@ -181,10 +184,10 @@ def test_basic_reducer_std_one(values: Sequence[int | float]) -> None:
     assert math.isnan(BasicReducer().std(values))
 
 
-@pytest.mark.parametrize("values", [[], ()])
+@pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_basic_reducer_std_empty(values: Sequence[int | float]) -> None:
     with pytest.raises(
         EmptySequenceError,
         match="Cannot compute the standard deviation because the summary is empty",
     ):
-        BasicReducer().std([])
+        BasicReducer().std(values)

@@ -123,6 +123,7 @@ syntax = "google"
 lint.select = [
     "A", # builtins
     "ANN", # annotations
+    "ARG", # flake8-unused-arguments
     "B", # bugbear
     "BLE", # flake8-blind-except
     "C4", # flake8-comprehensions
@@ -181,6 +182,7 @@ lint.ignore = [
 lint.fixable = [
     "A",
     "ANN",
+    "ARG",
     "B",
     "BLE",
     "C4",
