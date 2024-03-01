@@ -7,23 +7,24 @@ from __future__ import annotations
 
 __all__ = ["TorchReducer"]
 
-from typing import TYPE_CHECKING
+from collections.abc import Sequence
+from typing import TypeVar, Union
 from unittest.mock import Mock
 
 from coola.reducers.base import BaseBasicReducer
 from coola.reducers.registry import ReducerRegistry
 from coola.utils import check_torch, is_torch_available
-
-if TYPE_CHECKING:
-    from collections.abc import Sequence
+from coola.utils.tensor import to_tensor
 
 if is_torch_available():
     import torch
 else:
     torch = Mock()  # pragma: no cover
 
+T = TypeVar("T", Sequence[Union[int, float]], torch.Tensor)
 
-class TorchReducer(BaseBasicReducer):
+
+class TorchReducer(BaseBasicReducer[T]):
     r"""Implement a reducer based on torch functions.
 
     Raises:
@@ -50,29 +51,37 @@ class TorchReducer(BaseBasicReducer):
     def __str__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
-    def _max(self, values: Sequence[int | float]) -> int | float:
-        return torch.as_tensor(values).max().item()
+    def _is_empty(self, values: T) -> bool:
+        if torch.is_tensor(values):
+            return values.numel() == 0
+        return not values
 
-    def _mean(self, values: Sequence[int | float]) -> float:
-        return torch.as_tensor(values, dtype=torch.float).mean().item()
+    def _max(self, values: T) -> int | float:
+        return to_tensor(values).max().item()
 
-    def _median(self, values: Sequence[int | float]) -> int | float:
-        return torch.as_tensor(values).median().item()
+    def _mean(self, values: T) -> float:
+        return to_tensor(values).float().mean().item()
 
-    def _min(self, values: Sequence[int | float]) -> int | float:
-        return torch.as_tensor(values).min().item()
+    def _median(self, values: T) -> int | float:
+        return to_tensor(values).median().item()
 
-    def _quantile(self, values: Sequence[int | float], quantiles: Sequence[float]) -> list[float]:
+    def _min(self, values: T) -> int | float:
+        return to_tensor(values).min().item()
+
+    def _quantile(self, values: T, quantiles: Sequence[float]) -> list[float]:
         return torch.quantile(
-            torch.as_tensor(values, dtype=torch.float),
-            torch.as_tensor(quantiles, dtype=torch.float),
+            to_tensor(values).float(),
+            to_tensor(quantiles).float(),
         ).tolist()
 
-    def sort(self, values: Sequence[int | float], descending: bool = False) -> list[int | float]:
-        return torch.sort(torch.as_tensor(values), descending=descending)[0].tolist()
+    def sort(self, values: T, descending: bool = False) -> list[int | float]:
+        return torch.sort(to_tensor(values), descending=descending)[0].tolist()
 
-    def _std(self, values: Sequence[int | float]) -> float:
-        return torch.as_tensor(values, dtype=torch.float).std().item()
+    def _std(self, values: T) -> float:
+        values = to_tensor(values).float()
+        if values.numel() == 1:
+            return float("nan")
+        return values.std().item()
 
 
 if is_torch_available() and not ReducerRegistry.has_reducer("torch"):  # pragma: no cover

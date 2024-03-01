@@ -5,10 +5,10 @@ from __future__ import annotations
 __all__ = ["BaseReducer", "BaseBasicReducer", "EmptySequenceError"]
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from collections.abc import Sequence
+from typing import Generic, TypeVar, Union
 
-if TYPE_CHECKING:
-    from collections.abc import Sequence
+T = TypeVar("T", bound=Sequence[Union[int, float]])
 
 
 class EmptySequenceError(Exception):
@@ -16,7 +16,7 @@ class EmptySequenceError(Exception):
     reduce an empty sequence."""
 
 
-class BaseReducer(ABC):
+class BaseReducer(ABC, Generic[T]):
     r"""Define the base class to implement a reducer.
 
     Example usage:
@@ -35,7 +35,7 @@ class BaseReducer(ABC):
     """
 
     @abstractmethod
-    def max(self, values: Sequence[int | float]) -> int | float:
+    def max(self, values: T) -> int | float:
         r"""Compute the maximum value.
 
         Args:
@@ -58,7 +58,7 @@ class BaseReducer(ABC):
         """
 
     @abstractmethod
-    def mean(self, values: Sequence[int | float]) -> float:
+    def mean(self, values: T) -> float:
         r"""Compute the mean value.
 
         Args:
@@ -81,7 +81,7 @@ class BaseReducer(ABC):
         """
 
     @abstractmethod
-    def median(self, values: Sequence[int | float]) -> int | float:
+    def median(self, values: T) -> int | float:
         r"""Compute the median value.
 
         Args:
@@ -104,7 +104,7 @@ class BaseReducer(ABC):
         """
 
     @abstractmethod
-    def min(self, values: Sequence[int | float]) -> int | float:
+    def min(self, values: T) -> int | float:
         r"""Compute the minimum value.
 
         Args:
@@ -127,7 +127,7 @@ class BaseReducer(ABC):
         """
 
     @abstractmethod
-    def quantile(self, values: Sequence[int | float], quantiles: Sequence[float]) -> list[float]:
+    def quantile(self, values: T, quantiles: Sequence[float]) -> list[float]:
         r"""Compute the quantiles.
 
         Args:
@@ -152,7 +152,7 @@ class BaseReducer(ABC):
         """
 
     @abstractmethod
-    def sort(self, values: Sequence[int | float], descending: bool = False) -> list[int | float]:
+    def sort(self, values: T, descending: bool = False) -> list[int | float]:
         r"""Sorts the values.
 
         Args:
@@ -175,7 +175,7 @@ class BaseReducer(ABC):
         """
 
     @abstractmethod
-    def std(self, values: Sequence[int | float]) -> float:
+    def std(self, values: T) -> float:
         r"""Compute the standard deviation.
 
         Args:
@@ -198,18 +198,26 @@ class BaseReducer(ABC):
         """
 
 
-class BaseBasicReducer(BaseReducer):
+class BaseBasicReducer(BaseReducer[T]):
     r"""Extension of ``BaseReducer`` to check if the input sequence is
     empty before to call the reduction methods."""
 
-    def max(self, values: Sequence[int | float]) -> int | float:
-        if not values:
+    @abstractmethod
+    def _is_empty(self, values: T) -> bool:
+        r"""Return ``True`` if the values are empty.
+
+        Returns:
+            ``True`` if the values are empty, ``False`` otherwise.
+        """
+
+    def max(self, values: T) -> int | float:
+        if self._is_empty(values):
             msg = "Cannot compute the maximum because the summary is empty"
             raise EmptySequenceError(msg)
         return self._max(values)
 
     @abstractmethod
-    def _max(self, values: Sequence[int | float]) -> int | float:
+    def _max(self, values: T) -> int | float:
         r"""Compute the maximum value.
 
         Args:
@@ -219,14 +227,14 @@ class BaseBasicReducer(BaseReducer):
             The maximum value.
         """
 
-    def mean(self, values: Sequence[int | float]) -> int | float:
-        if not values:
+    def mean(self, values: T) -> int | float:
+        if self._is_empty(values):
             msg = "Cannot compute the mean because the summary is empty"
             raise EmptySequenceError(msg)
         return self._mean(values)
 
     @abstractmethod
-    def _mean(self, values: Sequence[int | float]) -> float:
+    def _mean(self, values: T) -> float:
         r"""Compute the mean value.
 
         Args:
@@ -236,14 +244,14 @@ class BaseBasicReducer(BaseReducer):
             The mean value.
         """
 
-    def median(self, values: Sequence[int | float]) -> int | float:
-        if not values:
+    def median(self, values: T) -> int | float:
+        if self._is_empty(values):
             msg = "Cannot compute the median because the summary is empty"
             raise EmptySequenceError(msg)
         return self._median(values)
 
     @abstractmethod
-    def _median(self, values: Sequence[int | float]) -> int | float:
+    def _median(self, values: T) -> int | float:
         r"""Compute the median value.
 
         Args:
@@ -253,14 +261,14 @@ class BaseBasicReducer(BaseReducer):
             The median value.
         """
 
-    def min(self, values: Sequence[int | float]) -> int | float:
-        if not values:
+    def min(self, values: T) -> int | float:
+        if self._is_empty(values):
             msg = "Cannot compute the minimum because the summary is empty"
             raise EmptySequenceError(msg)
         return self._min(values)
 
     @abstractmethod
-    def _min(self, values: Sequence[int | float]) -> int | float:
+    def _min(self, values: T) -> int | float:
         r"""Compute the minimum value.
 
         Args:
@@ -270,14 +278,14 @@ class BaseBasicReducer(BaseReducer):
             The minimum value.
         """
 
-    def quantile(self, values: Sequence[int | float], quantiles: Sequence[float]) -> list[float]:
-        if not values:
+    def quantile(self, values: T, quantiles: Sequence[float]) -> list[float]:
+        if self._is_empty(values):
             msg = "Cannot compute the quantiles because the summary is empty"
             raise EmptySequenceError(msg)
         return self._quantile(values, quantiles)
 
     @abstractmethod
-    def _quantile(self, values: Sequence[int | float], quantiles: Sequence[float]) -> list[float]:
+    def _quantile(self, values: T, quantiles: Sequence[float]) -> list[float]:
         r"""Compute the quantiles.
 
         Args:
@@ -289,14 +297,14 @@ class BaseBasicReducer(BaseReducer):
             The quantiles.
         """
 
-    def std(self, values: Sequence[int | float]) -> float:
-        if not values:
+    def std(self, values: T) -> float:
+        if self._is_empty(values):
             msg = "Cannot compute the standard deviation because the summary is empty"
             raise EmptySequenceError(msg)
         return self._std(values)
 
     @abstractmethod
-    def _std(self, values: Sequence[int | float]) -> float:
+    def _std(self, values: T) -> float:
         r"""Compute the standard deviation.
 
         Args:
