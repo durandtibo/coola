@@ -55,4 +55,4 @@ repos:
     rev: v0.3.0
     hooks:
       - id: ruff
-        args: [--fix]
+        args: [ --fix, --unsafe-fixes ]
