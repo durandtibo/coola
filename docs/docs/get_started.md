@@ -75,3 +75,21 @@ install it. Finally, you can test the installation with the following command:
 ```shell
 make unit-test-cov
 ```
+
+## Testing
+
+The last version of `coola` is tested for the following package versions:
+
+| package  | tested versions    |
+|----------|--------------------|
+| `jax`    | `>=0.4,<0.5`       |
+| `numpy`  | `>=1.21,<1.27`     |
+| `pandas` | `>=1.3,<2.3`       |
+| `polars` | `>=0.18.3,<0.21`   |
+| `torch`  | `>=1.10,<2.3`      |
+| `xarray` | `>=2023.2,<2024.3` |
+
+- More information can be found in the CI workflow configuration.
+- `coola` relies on the semantic versioning (SemVer) of the packages to test the range of versions.
+- `xarray` uses [calendar versioning (CalVer)](https://calver.org/) and `coola` is tested on the
+  versions for the last year.
