@@ -51,7 +51,7 @@ class NanEqualHandler(AbstractEqualityHandler):
     ) -> bool:
         if config.equal_nan and math.isnan(actual) and math.isnan(expected):
             return True
-        return self._handle_next(actual=actual, expected=expected, config=config)
+        return self._handle_next(actual, expected, config=config)
 
 
 class ScalarEqualHandler(BaseEqualityHandler):

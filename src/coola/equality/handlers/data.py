@@ -63,4 +63,4 @@ class SameDataHandler(AbstractEqualityHandler):
             if config.show_difference:
                 logger.info(f"objects have different data: {actual.data} vs {expected.data}")
             return False
-        return self._handle_next(actual=actual, expected=expected, config=config)
+        return self._handle_next(actual, expected, config=config)

@@ -53,7 +53,7 @@ class DefaultEqualityComparator(BaseEqualityComparator[Any]):
         return self.__class__()
 
     def equal(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
-        return self._handler.handle(actual=actual, expected=expected, config=config)
+        return self._handler.handle(actual, expected, config=config)
 
 
 def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:

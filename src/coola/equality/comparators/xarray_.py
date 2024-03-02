@@ -77,7 +77,7 @@ class XarrayDataArrayEqualityComparator(BaseEqualityComparator[xr.DataArray]):
         return self.__class__()
 
     def equal(self, actual: xr.DataArray, expected: Any, config: EqualityConfig) -> bool:
-        return self._handler.handle(actual=actual, expected=expected, config=config)
+        return self._handler.handle(actual, expected, config=config)
 
 
 class XarrayDatasetEqualityComparator(BaseEqualityComparator[xr.Dataset]):
@@ -123,7 +123,7 @@ class XarrayDatasetEqualityComparator(BaseEqualityComparator[xr.Dataset]):
         return self.__class__()
 
     def equal(self, actual: xr.Dataset, expected: Any, config: EqualityConfig) -> bool:
-        return self._handler.handle(actual=actual, expected=expected, config=config)
+        return self._handler.handle(actual, expected, config=config)
 
 
 class XarrayVariableEqualityComparator(BaseEqualityComparator[xr.Variable]):
@@ -169,7 +169,7 @@ class XarrayVariableEqualityComparator(BaseEqualityComparator[xr.Variable]):
         return self.__class__()
 
     def equal(self, actual: xr.Variable, expected: Any, config: EqualityConfig) -> bool:
-        return self._handler.handle(actual=actual, expected=expected, config=config)
+        return self._handler.handle(actual, expected, config=config)
 
 
 def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:

@@ -68,4 +68,4 @@ class SameDTypeHandler(AbstractEqualityHandler):
                     f"objects have different data types: {actual.dtype} vs {expected.dtype}"
                 )
             return False
-        return self._handle_next(actual=actual, expected=expected, config=config)
+        return self._handle_next(actual, expected, config=config)

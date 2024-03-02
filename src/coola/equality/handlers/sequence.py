@@ -52,9 +52,9 @@ class SequenceSameValuesHandler(AbstractEqualityHandler):
     ) -> bool:
         for value1, value2 in zip(actual, expected):
             if not config.tester.equal(value1, value2, config):
-                self._show_difference(actual=actual, expected=expected, config=config)
+                self._show_difference(actual, expected, config=config)
                 return False
-        return self._handle_next(actual=actual, expected=expected, config=config)
+        return self._handle_next(actual, expected, config=config)
 
     def _show_difference(
         self, actual: Sequence, expected: Sequence, config: EqualityConfig
