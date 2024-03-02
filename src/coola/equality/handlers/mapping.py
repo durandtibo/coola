@@ -58,7 +58,7 @@ class MappingSameKeysHandler(AbstractEqualityHandler):
                     f"additional keys: {sorted(additional_keys)}"
                 )
             return False
-        return self._handle_next(actual=actual, expected=expected, config=config)
+        return self._handle_next(actual, expected, config=config)
 
 
 class MappingSameValuesHandler(AbstractEqualityHandler):
@@ -102,9 +102,9 @@ class MappingSameValuesHandler(AbstractEqualityHandler):
     ) -> bool:
         for key in actual:
             if not config.tester.equal(actual[key], expected[key], config):
-                self._show_difference(actual=actual, expected=expected, config=config)
+                self._show_difference(actual, expected, config=config)
                 return False
-        return self._handle_next(actual=actual, expected=expected, config=config)
+        return self._handle_next(actual, expected, config=config)
 
     def _show_difference(self, actual: Mapping, expected: Mapping, config: EqualityConfig) -> None:
         if config.show_difference:

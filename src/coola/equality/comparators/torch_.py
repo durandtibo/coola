@@ -82,7 +82,7 @@ class TorchPackedSequenceEqualityComparator(
     def equal(
         self, actual: torch.nn.utils.rnn.PackedSequence, expected: Any, config: EqualityConfig
     ) -> bool:
-        return self._handler.handle(actual=actual, expected=expected, config=config)
+        return self._handler.handle(actual, expected, config=config)
 
 
 class TorchTensorEqualityComparator(BaseEqualityComparator[torch.Tensor]):
@@ -119,7 +119,7 @@ class TorchTensorEqualityComparator(BaseEqualityComparator[torch.Tensor]):
         return self.__class__()
 
     def equal(self, actual: torch.Tensor, expected: Any, config: EqualityConfig) -> bool:
-        return self._handler.handle(actual=actual, expected=expected, config=config)
+        return self._handler.handle(actual, expected, config=config)
 
 
 def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:

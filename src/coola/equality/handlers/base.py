@@ -149,7 +149,7 @@ class AbstractEqualityHandler(BaseEqualityHandler):
         if not self._next_handler:
             msg = "next handler is not defined"
             raise RuntimeError(msg)
-        return self._next_handler.handle(actual=actual, expected=expected, config=config)
+        return self._next_handler.handle(actual, expected, config=config)
 
     def set_next_handler(self, handler: BaseEqualityHandler) -> None:
         if not isinstance(handler, BaseEqualityHandler):

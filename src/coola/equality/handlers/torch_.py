@@ -108,7 +108,7 @@ class TorchTensorSameDeviceHandler(AbstractEqualityHandler):
                     f"torch.Tensors have different devices: {actual.device} vs {expected.device}"
                 )
             return False
-        return self._handle_next(actual=actual, expected=expected, config=config)
+        return self._handle_next(actual, expected, config=config)
 
 
 def tensor_equal(tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityConfig) -> bool:

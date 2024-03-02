@@ -59,7 +59,7 @@ class MappingEqualityComparator(BaseEqualityComparator[Mapping]):
         return self.__class__()
 
     def equal(self, actual: Mapping, expected: Any, config: EqualityConfig) -> bool:
-        return self._handler.handle(actual=actual, expected=expected, config=config)
+        return self._handler.handle(actual, expected, config=config)
 
 
 class SequenceEqualityComparator(BaseEqualityComparator[Sequence]):
@@ -94,7 +94,7 @@ class SequenceEqualityComparator(BaseEqualityComparator[Sequence]):
         return self.__class__()
 
     def equal(self, actual: Sequence, expected: Any, config: EqualityConfig) -> bool:
-        return self._handler.handle(actual=actual, expected=expected, config=config)
+        return self._handler.handle(actual, expected, config=config)
 
 
 def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
