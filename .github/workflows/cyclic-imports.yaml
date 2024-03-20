@@ -29,6 +29,9 @@ jobs:
           poetry run poetry show
           poetry run poetry show --tree
 
+      - name: check coola
+        run: |
+          poetry run python -c "import coola"
       - name: check coola.equality
         run: |
           poetry run python -c "from coola import equality"
@@ -41,6 +44,9 @@ jobs:
       - name: check coola.formatters
         run: |
           poetry run python -c "from coola import formatters"
+      - name: check coola.random
+        run: |
+          poetry run python -c "from coola import random"
       - name: check coola.reducers
         run: |
           poetry run python -c "from coola import reducers"
