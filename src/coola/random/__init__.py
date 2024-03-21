@@ -6,10 +6,10 @@ __all__ = [
     "BaseRandomSeedSetter",
     "NumpyRandomSeedSetter",
     "RandomRandomSeedSetter",
-    "TorchRandomSeedSetter",
+    "TorchRandomNumberGenerator",
 ]
 
 from coola.random.base import BaseRandomSeedSetter
 from coola.random.numpy_ import NumpyRandomSeedSetter
 from coola.random.random_ import RandomRandomSeedSetter
-from coola.random.torch_ import TorchRandomSeedSetter
+from coola.random.torch_ import TorchRandomNumberGenerator
