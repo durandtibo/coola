@@ -3,14 +3,14 @@ r"""Implement a random seed setter for the python standard library
 
 from __future__ import annotations
 
-__all__ = ["RandomRandomSeedSetter"]
+__all__ = ["RandomRandomManager"]
 
 import random
 
-from coola.random.base import BaseRandomSeedSetter
+from coola.random.base import BaseRandomManager
 
 
-class RandomRandomSeedSetter(BaseRandomSeedSetter):
+class RandomRandomManager(BaseRandomManager):
     r"""Implement a random seed setter for the python standard library
     ``random``.
 
@@ -18,8 +18,8 @@ class RandomRandomSeedSetter(BaseRandomSeedSetter):
 
     ```pycon
 
-    >>> from coola.random import RandomRandomSeedSetter
-    >>> setter = RandomRandomSeedSetter()
+    >>> from coola.random import RandomRandomManager
+    >>> setter = RandomRandomManager()
     >>> setter.manual_seed(42)
 
     ```
@@ -28,5 +28,11 @@ class RandomRandomSeedSetter(BaseRandomSeedSetter):
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
+    def get_rng_state(self) -> tuple:
+        return random.getstate()
+
     def manual_seed(self, seed: int) -> None:
         random.seed(seed)
+
+    def set_rng_state(self, state: tuple) -> None:
+        random.setstate(state)

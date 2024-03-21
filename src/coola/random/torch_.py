@@ -6,7 +6,7 @@ __all__ = ["TorchRandomManager"]
 
 from unittest.mock import Mock
 
-from coola.random.base import BaseRandomSeedSetter
+from coola.random.base import BaseRandomManager
 from coola.utils import check_torch, is_torch_available
 
 if is_torch_available():
@@ -15,7 +15,7 @@ else:  # pragma: no cover
     torch = Mock()
 
 
-class TorchRandomManager(BaseRandomSeedSetter):
+class TorchRandomManager(BaseRandomManager):
     r"""Implements a random number generator for the library ``torch``.
 
     Example usage:

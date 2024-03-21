@@ -6,7 +6,7 @@ __all__ = ["NumpyRandomManager"]
 
 from unittest.mock import Mock
 
-from coola.random.base import BaseRandomSeedSetter
+from coola.random.base import BaseRandomManager
 from coola.utils import check_numpy, is_numpy_available
 
 if is_numpy_available():
@@ -15,7 +15,7 @@ else:  # pragma: no cover
     np = Mock()
 
 
-class NumpyRandomManager(BaseRandomSeedSetter):
+class NumpyRandomManager(BaseRandomManager):
     r"""Implement a random seed setter for the library ``numpy``.
 
     The seed must be between ``0`` and ``2**32 - 1``, so a modulo

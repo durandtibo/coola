@@ -3,13 +3,13 @@ r"""Contain functionalities to manage randomness."""
 from __future__ import annotations
 
 __all__ = [
-    "BaseRandomSeedSetter",
+    "BaseRandomManager",
     "NumpyRandomManager",
-    "RandomRandomSeedSetter",
+    "RandomRandomManager",
     "TorchRandomManager",
 ]
 
-from coola.random.base import BaseRandomSeedSetter
+from coola.random.base import BaseRandomManager
 from coola.random.numpy_ import NumpyRandomManager
-from coola.random.random_ import RandomRandomSeedSetter
+from coola.random.random_ import RandomRandomManager
 from coola.random.torch_ import TorchRandomManager
