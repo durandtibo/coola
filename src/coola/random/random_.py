@@ -25,7 +25,7 @@ class RandomRandomSeedSetter(BaseRandomSeedSetter):
     ```
     """
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
     def manual_seed(self, seed: int) -> None:
