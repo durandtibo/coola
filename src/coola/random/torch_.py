@@ -2,7 +2,7 @@ r"""Implement a random seed setter for PyTorch."""
 
 from __future__ import annotations
 
-__all__ = ["TorchRandomNumberGenerator"]
+__all__ = ["TorchRandomManager"]
 
 from unittest.mock import Mock
 
@@ -15,15 +15,15 @@ else:  # pragma: no cover
     torch = Mock()
 
 
-class TorchRandomNumberGenerator(BaseRandomSeedSetter):
-    r"""Implements a random seed setter for the library ``torch``.
+class TorchRandomManager(BaseRandomSeedSetter):
+    r"""Implements a random number generator for the library ``torch``.
 
     Example usage:
 
     ```pycon
 
-    >>> from coola.random import TorchRandomNumberGenerator
-    >>> setter = TorchRandomNumberGenerator()
+    >>> from coola.random import TorchRandomManager
+    >>> setter = TorchRandomManager()
     >>> setter.manual_seed(42)
 
     ```
