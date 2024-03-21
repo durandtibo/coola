@@ -2,7 +2,7 @@ r"""Implement a random seed setter for NumPy."""
 
 from __future__ import annotations
 
-__all__ = ["NumpyRandomSeedSetter"]
+__all__ = ["NumpyRandomManager"]
 
 from unittest.mock import Mock
 
@@ -15,7 +15,7 @@ else:  # pragma: no cover
     np = Mock()
 
 
-class NumpyRandomSeedSetter(BaseRandomSeedSetter):
+class NumpyRandomManager(BaseRandomSeedSetter):
     r"""Implement a random seed setter for the library ``numpy``.
 
     The seed must be between ``0`` and ``2**32 - 1``, so a modulo
@@ -26,8 +26,8 @@ class NumpyRandomSeedSetter(BaseRandomSeedSetter):
 
     ```pycon
 
-    >>> from coola.random import NumpyRandomSeedSetter
-    >>> setter = NumpyRandomSeedSetter()
+    >>> from coola.random import NumpyRandomManager
+    >>> setter = NumpyRandomManager()
     >>> setter.manual_seed(42)
 
     ```
@@ -39,5 +39,11 @@ class NumpyRandomSeedSetter(BaseRandomSeedSetter):
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
+    def get_rng_state(self) -> dict | tuple:
+        return np.random.get_state()
+
     def manual_seed(self, seed: int) -> None:
         np.random.seed(seed % 2**32)
+
+    def set_rng_state(self, state: dict | tuple) -> None:
+        np.random.set_state(state)
