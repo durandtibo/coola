@@ -21,8 +21,8 @@ class BaseRandomManager(ABC):
     ```pycon
 
     >>> from coola.random import TorchRandomManager
-    >>> setter = TorchRandomManager()
-    >>> setter.manual_seed(42)
+    >>> manager = TorchRandomManager()
+    >>> manager.manual_seed(42)
 
     ```
     """
@@ -39,8 +39,8 @@ class BaseRandomManager(ABC):
         ```pycon
 
         >>> from coola.random import TorchRandomManager
-        >>> setter = TorchRandomManager()
-        >>> state = setter.get_rng_state()
+        >>> manager = TorchRandomManager()
+        >>> state = manager.get_rng_state()
         >>> state
         {'torch': tensor([...], dtype=torch.uint8), 'torch.cuda': ...}
 
@@ -59,8 +59,8 @@ class BaseRandomManager(ABC):
         ```pycon
 
         >>> from coola.random import TorchRandomManager
-        >>> setter = TorchRandomManager()
-        >>> setter.manual_seed(42)
+        >>> manager = TorchRandomManager()
+        >>> manager.manual_seed(42)
 
         ```
         """
@@ -78,9 +78,9 @@ class BaseRandomManager(ABC):
 
         >>> import torch
         >>> from coola.random import TorchRandomManager
-        >>> setter = TorchRandomManager()
-        >>> state = setter.get_rng_state()
-        >>> setter.set_rng_state(state)
+        >>> manager = TorchRandomManager()
+        >>> state = manager.get_rng_state()
+        >>> manager.set_rng_state(state)
 
         ```
         """
