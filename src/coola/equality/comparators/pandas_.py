@@ -39,21 +39,21 @@ class PandasDataFrameEqualityComparator(BaseEqualityComparator[pd.DataFrame]):
     Example usage:
 
     ```pycon
-    >>> import pandas as np
+    >>> import pandas as pd
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import PandasDataFrameEqualityComparator
     >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> comparator = PandasDataFrameEqualityComparator()
     >>> comparator.equal(
-    ...     pandas.DataFrame({"col": [1, 2, 3]}),
-    ...     pandas.DataFrame({"col": [1, 2, 3]}),
+    ...     pd.DataFrame({"col": [1, 2, 3]}),
+    ...     pd.DataFrame({"col": [1, 2, 3]}),
     ...     config,
     ... )
     True
     >>> comparator.equal(
-    ...     pandas.DataFrame({"col": [1, 2, 3]}),
-    ...     pandas.DataFrame({"col": [1, 2, 4]}),
+    ...     pd.DataFrame({"col": [1, 2, 3]}),
+    ...     pd.DataFrame({"col": [1, 2, 4]}),
     ...     config,
     ... )
     False
@@ -82,15 +82,15 @@ class PandasSeriesEqualityComparator(BaseEqualityComparator[pd.Series]):
     Example usage:
 
     ```pycon
-    >>> import pandas as np
+    >>> import pandas as pd
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import PandasSeriesEqualityComparator
     >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> comparator = PandasSeriesEqualityComparator()
-    >>> comparator.equal(pandas.Series([1, 2, 3]), pandas.Series([1, 2, 3]), config)
+    >>> comparator.equal(pd.Series([1, 2, 3]), pd.Series([1, 2, 3]), config)
     True
-    >>> comparator.equal(pandas.Series([1, 2, 3]), pandas.Series([1, 2, 4]), config)
+    >>> comparator.equal(pd.Series([1, 2, 3]), pd.Series([1, 2, 4]), config)
     False
 
     ```
