@@ -31,7 +31,7 @@ else:  # pragma: no cover
 if is_jax_available():
     import jax.numpy as jnp
 if is_pandas_available():
-    import pandas
+    import pandas as pd
 if is_polars_available():
     import polars
 if is_torch_available():
@@ -136,14 +136,14 @@ def test_same_shape_handler_handle_jax(config: EqualityConfig) -> None:
 @pandas_available
 def test_same_shape_handler_handle_pandas(config: EqualityConfig) -> None:
     assert SameShapeHandler(next_handler=TrueHandler()).handle(
-        pandas.DataFrame(
+        pd.DataFrame(
             {
                 "col1": [1, 2, 3, 4, 5],
                 "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
             }
         ),
-        pandas.DataFrame(
+        pd.DataFrame(
             {
                 "col1": [1, 2, 3, 4, 5],
                 "col2": [1.1, 2.2, 3.3, 4.4, 5.5],

@@ -43,7 +43,7 @@ if is_jax_available():
 if is_numpy_available():
     import numpy as np
 if is_pandas_available():
-    import pandas
+    import pandas as pd
 if is_polars_available():
     import polars
 if is_torch_available():
@@ -85,8 +85,8 @@ def test_get_type_comparator_mapping_numpy() -> None:
 @pandas_available
 def test_get_type_comparator_mapping_pandas() -> None:
     mapping = get_type_comparator_mapping()
-    assert isinstance(mapping[pandas.DataFrame], PandasDataFrameEqualityComparator)
-    assert isinstance(mapping[pandas.Series], PandasSeriesEqualityComparator)
+    assert isinstance(mapping[pd.DataFrame], PandasDataFrameEqualityComparator)
+    assert isinstance(mapping[pd.Series], PandasSeriesEqualityComparator)
 
 
 @polars_available

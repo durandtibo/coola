@@ -128,8 +128,10 @@ lint.select = [
     "BLE", # flake8-blind-except
     "C4", # flake8-comprehensions
     "D", # pydocstyle
+    "DTZ", # flake8-datetimez
     "E", # pycodestyle (Error)
     "EM", # flake8-errmsg
+    "EXE", # flake8-executable
     "F", # pyflakes
     "FA", # flake8-future-annotations
     "FURB", # refurb
@@ -149,6 +151,7 @@ lint.select = [
     "Q", # flake8-quotes
     "RET", # flake8-return
     "RSE", # flake8-raise
+    "RUF", # Ruff-specific rules
     "S", # flake8-bandit
     "SIM", # flake8-simplify
     "T20", # flake8-print
@@ -187,8 +190,10 @@ lint.fixable = [
     "BLE",
     "C4",
     "D",
+    "DTZ",
     "E",
     "EM",
+    "EXE",
     "F",
     "FA",
     "FURB",
@@ -207,6 +212,7 @@ lint.fixable = [
     "Q",
     "RET",
     "RSE",
+    "RUF",
     "S",
     "SIM",
     "T20",
@@ -272,3 +278,5 @@ known-first-party = ["src"]
 [tool.ruff.lint.flake8-import-conventions]
 [tool.ruff.lint.flake8-import-conventions.aliases]
 numpy = "np"
+pandas = "pd"
+xarray = "xr"

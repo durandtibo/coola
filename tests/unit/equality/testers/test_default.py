@@ -48,7 +48,7 @@ if is_jax_available():
 if is_numpy_available():
     import numpy as np
 if is_pandas_available():
-    import pandas
+    import pandas as pd
 if is_polars_available():
     import polars
 if is_torch_available():
@@ -162,8 +162,8 @@ def test_equality_tester_registry_numpy() -> None:
 
 @pandas_available
 def test_equality_tester_registry_pandas() -> None:
-    assert isinstance(EqualityTester.registry[pandas.DataFrame], PandasDataFrameEqualityComparator)
-    assert isinstance(EqualityTester.registry[pandas.Series], PandasSeriesEqualityComparator)
+    assert isinstance(EqualityTester.registry[pd.DataFrame], PandasDataFrameEqualityComparator)
+    assert isinstance(EqualityTester.registry[pd.Series], PandasSeriesEqualityComparator)
 
 
 @polars_available
