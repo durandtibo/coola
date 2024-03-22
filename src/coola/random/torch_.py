@@ -2,12 +2,17 @@ r"""Implement a random manager for PyTorch."""
 
 from __future__ import annotations
 
-__all__ = ["TorchRandomManager", "get_random_managers"]
+__all__ = ["TorchRandomManager", "get_random_managers", "torch_seed"]
 
+from contextlib import contextmanager
+from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
 from coola.random.base import BaseRandomManager
 from coola.utils import check_torch, is_torch_available
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 if is_torch_available():
     import torch
@@ -75,3 +80,41 @@ def get_random_managers() -> dict[str, BaseRandomManager]:
     if not is_torch_available():
         return {}
     return {"torch": TorchRandomManager()}
+
+
+@contextmanager
+def torch_seed(seed: int) -> Generator[None, None, None]:
+    r"""Implement a context manager to manage the PyTorch random seed and
+    random number generator (RNG) state.
+
+    The context manager sets the specified random seed and
+    restores the original RNG state afterward.
+
+    Args:
+        seed: The random number generator seed to use while using
+            this context manager.
+
+    Example usage:
+
+    ```pycon
+
+    >>> import torch
+    >>> from coola.random import torch_seed
+    >>> with torch_seed(42):
+    ...     print(torch.randn(2, 4))
+    ...
+    tensor([[...]])
+    >>> with torch_seed(42):
+    ...     print(torch.randn(2, 4))
+    ...
+    tensor([[...]])
+
+    ```
+    """
+    manager = TorchRandomManager()
+    state = manager.get_rng_state()
+    try:
+        manager.manual_seed(seed)
+        yield
+    finally:
+        manager.set_rng_state(state)

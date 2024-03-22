@@ -6,7 +6,7 @@ import pytest
 
 from coola import objects_are_equal
 from coola.random import NumpyRandomManager
-from coola.random.numpy_ import get_random_managers
+from coola.random.numpy_ import get_random_managers, numpy_seed
 from coola.testing import numpy_available
 from coola.utils import is_numpy_available
 
@@ -90,3 +90,35 @@ def test_get_random_managers() -> None:
 def test_get_random_managers_no_numpy() -> None:
     with patch("coola.random.numpy_.is_numpy_available", lambda: False):
         assert objects_are_equal(get_random_managers(), {})
+
+
+################################
+#     Tests for numpy_seed     #
+################################
+
+
+@numpy_available
+def test_numpy_seed_restore_random_seed() -> None:
+    state = np.random.get_state()
+    with numpy_seed(42):
+        np.random.randn(4, 6)
+    assert objects_are_equal(state, np.random.get_state())
+
+
+@numpy_available
+def test_numpy_seed_restore_random_seed_with_exception() -> None:
+    state = np.random.get_state()
+    with pytest.raises(RuntimeError, match="Exception"), numpy_seed(42):  # noqa: PT012
+        np.random.randn(4, 6)
+        msg = "Exception"
+        raise RuntimeError(msg)
+    assert objects_are_equal(state, np.random.get_state())
+
+
+@numpy_available
+def test_numpy_seed_same_random_seed() -> None:
+    with numpy_seed(42):
+        x1 = np.random.randn(4, 6)
+    with numpy_seed(42):
+        x2 = np.random.randn(4, 6)
+    assert np.array_equal(x1, x2)
