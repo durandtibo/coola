@@ -30,9 +30,10 @@ nav:
       - customization.md
   - Reference:
       - refs/index.md
-      - refs/comparators.md
+      - refs/equality.md
       - refs/testers.md
       - refs/formatters.md
+      - refs/random.md
       - refs/reducers.md
       - refs/summarizers.md
       - refs/utils.md
