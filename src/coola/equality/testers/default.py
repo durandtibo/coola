@@ -271,6 +271,10 @@ class LocalEqualityTester(BaseEqualityTester):
 def register_equality() -> None:
     r"""Register equality comparators to ``EqualityTester``.
 
+    Example usage:
+
+    ```pycon
+
     >>> from coola.equality.testers.default import register_equality
     >>> from coola.equality.testers import EqualityTester
     >>> register_equality()
