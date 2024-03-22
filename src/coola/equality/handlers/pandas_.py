@@ -13,9 +13,9 @@ from coola.equality.handlers.base import BaseEqualityHandler
 from coola.utils import is_pandas_available
 
 if is_pandas_available():
-    import pandas
+    import pandas as pd
 else:  # pragma: no cover
-    pandas = Mock()
+    pd = Mock()
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -64,8 +64,8 @@ class PandasDataFrameEqualHandler(BaseEqualityHandler):
 
     def handle(
         self,
-        actual: pandas.DataFrame,
-        expected: pandas.DataFrame,
+        actual: pd.DataFrame,
+        expected: pd.DataFrame,
         config: EqualityConfig,
     ) -> bool:
         object_equal = frame_equal(actual, expected, config)
@@ -113,8 +113,8 @@ class PandasSeriesEqualHandler(BaseEqualityHandler):
 
     def handle(
         self,
-        actual: pandas.Series,
-        expected: pandas.Series,
+        actual: pd.Series,
+        expected: pd.Series,
         config: EqualityConfig,
     ) -> bool:
         object_equal = series_equal(actual, expected, config)
@@ -129,7 +129,7 @@ class PandasSeriesEqualHandler(BaseEqualityHandler):
         pass  # Do nothing because the next handler is never called.
 
 
-def frame_equal(df1: pandas.DataFrame, df2: pandas.DataFrame, config: EqualityConfig) -> bool:
+def frame_equal(df1: pd.DataFrame, df2: pd.DataFrame, config: EqualityConfig) -> bool:
     r"""Indicate if the two DataFrames are equal or not.
 
     Args:
@@ -143,7 +143,7 @@ def frame_equal(df1: pandas.DataFrame, df2: pandas.DataFrame, config: EqualityCo
     if not config.equal_nan and df1.isna().any().any():
         return False
     try:
-        pandas.testing.assert_frame_equal(
+        pd.testing.assert_frame_equal(
             df1,
             df2,
             check_exact=config.atol == 0 and config.rtol == 0,
@@ -156,7 +156,7 @@ def frame_equal(df1: pandas.DataFrame, df2: pandas.DataFrame, config: EqualityCo
     return True
 
 
-def series_equal(series1: pandas.Series, series2: pandas.Series, config: EqualityConfig) -> bool:
+def series_equal(series1: pd.Series, series2: pd.Series, config: EqualityConfig) -> bool:
     r"""Indicate if the two series are equal or not.
 
     Args:
@@ -170,7 +170,7 @@ def series_equal(series1: pandas.Series, series2: pandas.Series, config: Equalit
     if not config.equal_nan and series1.isna().any():
         return False
     try:
-        pandas.testing.assert_series_equal(
+        pd.testing.assert_series_equal(
             series1,
             series2,
             check_exact=config.atol == 0 and config.rtol == 0,

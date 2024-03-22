@@ -23,9 +23,9 @@ from coola.equality.handlers import (
 from coola.utils import check_pandas, is_pandas_available
 
 if is_pandas_available():
-    import pandas
+    import pandas as pd
 else:  # pragma: no cover
-    pandas = Mock()
+    pd = Mock()
 
 if TYPE_CHECKING:
     from coola.equality import EqualityConfig
@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class PandasDataFrameEqualityComparator(BaseEqualityComparator[pandas.DataFrame]):
+class PandasDataFrameEqualityComparator(BaseEqualityComparator[pd.DataFrame]):
     r"""Implement an equality comparator for ``pandas.DataFrame``.
 
     Example usage:
@@ -72,11 +72,11 @@ class PandasDataFrameEqualityComparator(BaseEqualityComparator[pandas.DataFrame]
     def clone(self) -> PandasDataFrameEqualityComparator:
         return self.__class__()
 
-    def equal(self, actual: pandas.DataFrame, expected: Any, config: EqualityConfig) -> bool:
+    def equal(self, actual: pd.DataFrame, expected: Any, config: EqualityConfig) -> bool:
         return self._handler.handle(actual, expected, config=config)
 
 
-class PandasSeriesEqualityComparator(BaseEqualityComparator[pandas.Series]):
+class PandasSeriesEqualityComparator(BaseEqualityComparator[pd.Series]):
     r"""Implement an equality comparator for ``pandas.Series``.
 
     Example usage:
@@ -107,7 +107,7 @@ class PandasSeriesEqualityComparator(BaseEqualityComparator[pandas.Series]):
     def clone(self) -> PandasSeriesEqualityComparator:
         return self.__class__()
 
-    def equal(self, actual: pandas.Series, expected: Any, config: EqualityConfig) -> bool:
+    def equal(self, actual: pd.Series, expected: Any, config: EqualityConfig) -> bool:
         return self._handler.handle(actual, expected, config=config)
 
 
@@ -134,6 +134,6 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
     if not is_pandas_available():
         return {}
     return {
-        pandas.DataFrame: PandasDataFrameEqualityComparator(),
-        pandas.Series: PandasSeriesEqualityComparator(),
+        pd.DataFrame: PandasDataFrameEqualityComparator(),
+        pd.Series: PandasSeriesEqualityComparator(),
     }

@@ -6,7 +6,7 @@ __all__ = ["BaseSummarizer", "Summarizer", "summarizer_options"]
 
 from collections.abc import Mapping, Sequence
 from contextlib import contextmanager
-from typing import Any
+from typing import Any, ClassVar
 
 from coola.formatters import (
     BaseFormatter,
@@ -69,7 +69,7 @@ class Summarizer(BaseSummarizer):
     ```
     """
 
-    registry: dict[type[object], BaseFormatter] = {
+    registry: ClassVar[dict[type[object], BaseFormatter]] = {
         Mapping: MappingFormatter(),
         Sequence: SequenceFormatter(),
         dict: MappingFormatter(),

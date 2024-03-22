@@ -102,7 +102,7 @@ class TrueHandler(BaseEqualityHandler):
     ) -> bool:
         return True
 
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:  # noqa: ARG002
+    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
         pass  # Do nothing because the next handler is never called.
 
 

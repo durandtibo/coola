@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["RandomManager", "random_seed", "register_random_managers"]
 
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from coola.random.base import BaseRandomManager
 from coola.utils import repr_indent, repr_mapping, str_indent, str_mapping
@@ -34,7 +34,7 @@ class RandomManager(BaseRandomManager):
     ```
     """
 
-    registry: dict[str, BaseRandomManager] = {}
+    registry: ClassVar[dict[str, BaseRandomManager]] = {}
 
     def __repr__(self) -> str:
         managers = dict(self.registry.items())

@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["EqualityTester", "LocalEqualityTester"]
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from coola.equality.testers.base import BaseEqualityTester
 from coola.utils.format import str_indent, str_mapping
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 class EqualityTester(BaseEqualityTester):
     """Implement the default equality tester."""
 
-    registry: dict[type, BaseEqualityComparator] = {}
+    registry: ClassVar[dict[type, BaseEqualityComparator]] = {}
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(self.registry))}\n)"

@@ -21,9 +21,9 @@ from tests.unit.equality.comparators.test_pandas import (
 )
 
 if is_pandas_available():
-    import pandas
+    import pandas as pd
 else:  # pragma: no cover
-    pandas = Mock()
+    pd = Mock()
 
 if TYPE_CHECKING:
     from tests.unit.equality.comparators.utils import ExamplePair
@@ -59,17 +59,17 @@ def test_pandas_dataframe_equal_handler_str() -> None:
 @pytest.mark.parametrize(
     ("actual", "expected"),
     [
-        (pandas.DataFrame({}), pandas.DataFrame({})),
-        (pandas.DataFrame({"col": [1, 2, 3]}), pandas.DataFrame({"col": [1, 2, 3]})),
+        (pd.DataFrame({}), pd.DataFrame({})),
+        (pd.DataFrame({"col": [1, 2, 3]}), pd.DataFrame({"col": [1, 2, 3]})),
         (
-            pandas.DataFrame(
+            pd.DataFrame(
                 {
                     "col1": [1, 2, 3, 4, 5],
                     "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                     "col3": ["a", "b", "c", "d", "e"],
                 }
             ),
-            pandas.DataFrame(
+            pd.DataFrame(
                 {
                     "col1": [1, 2, 3, 4, 5],
                     "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
@@ -80,8 +80,8 @@ def test_pandas_dataframe_equal_handler_str() -> None:
     ],
 )
 def test_pandas_dataframe_equal_handler_handle_true(
-    actual: pandas.DataFrame,
-    expected: pandas.DataFrame,
+    actual: pd.DataFrame,
+    expected: pd.DataFrame,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
@@ -100,7 +100,7 @@ def test_pandas_dataframe_equal_handler_handle_true_show_difference(
     handler = PandasDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
         assert handler.handle(
-            pandas.DataFrame({"col": [1, 2, 3]}), pandas.DataFrame({"col": [1, 2, 3]}), config
+            pd.DataFrame({"col": [1, 2, 3]}), pd.DataFrame({"col": [1, 2, 3]}), config
         )
         assert not caplog.messages
 
@@ -112,9 +112,7 @@ def test_pandas_dataframe_equal_handler_handle_false(
 ) -> None:
     handler = PandasDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
-            pandas.DataFrame({}), pandas.DataFrame({"col": [1, 2, 3]}), config
-        )
+        assert not handler.handle(pd.DataFrame({}), pd.DataFrame({"col": [1, 2, 3]}), config)
         assert not caplog.messages
 
 
@@ -126,7 +124,7 @@ def test_pandas_dataframe_equal_handler_handle_false_different_column(
     handler = PandasDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
-            pandas.DataFrame({"col1": [1, 2, 3]}), pandas.DataFrame({"col2": [1, 2, 3]}), config
+            pd.DataFrame({"col1": [1, 2, 3]}), pd.DataFrame({"col2": [1, 2, 3]}), config
         )
         assert not caplog.messages
 
@@ -139,7 +137,7 @@ def test_pandas_dataframe_equal_handler_handle_false_different_value(
     handler = PandasDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
-            pandas.DataFrame({"col": [1, 2, 3]}), pandas.DataFrame({"col": [1, 2, 4]}), config
+            pd.DataFrame({"col": [1, 2, 3]}), pd.DataFrame({"col": [1, 2, 4]}), config
         )
         assert not caplog.messages
 
@@ -152,8 +150,8 @@ def test_pandas_dataframe_equal_handler_handle_false_different_dtype(
     handler = PandasDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
-            pandas.DataFrame(data={"col": [1, 2, 3]}, dtype=float),
-            pandas.DataFrame(data={"col": [1, 2, 3]}, dtype=int),
+            pd.DataFrame(data={"col": [1, 2, 3]}, dtype=float),
+            pd.DataFrame(data={"col": [1, 2, 3]}, dtype=int),
             config,
         )
         assert not caplog.messages
@@ -167,8 +165,8 @@ def test_pandas_dataframe_equal_handler_handle_false_show_difference(
     handler = PandasDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
-            pandas.DataFrame({"col": [1, 2, 3]}),
-            pandas.DataFrame({"col": [1, 2, 4]}),
+            pd.DataFrame({"col": [1, 2, 3]}),
+            pd.DataFrame({"col": [1, 2, 4]}),
             config=config,
         )
         assert caplog.messages[0].startswith("pandas.DataFrames have different elements:")
@@ -177,8 +175,8 @@ def test_pandas_dataframe_equal_handler_handle_false_show_difference(
 @pandas_available
 def test_pandas_dataframe_equal_handler_handle_equal_nan_false(config: EqualityConfig) -> None:
     assert not PandasDataFrameEqualHandler().handle(
-        pandas.DataFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
-        pandas.DataFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
+        pd.DataFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
+        pd.DataFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
         config,
     )
 
@@ -187,8 +185,8 @@ def test_pandas_dataframe_equal_handler_handle_equal_nan_false(config: EqualityC
 def test_pandas_dataframe_equal_handler_handle_equal_nan_true(config: EqualityConfig) -> None:
     config.equal_nan = True
     assert PandasDataFrameEqualHandler().handle(
-        pandas.DataFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
-        pandas.DataFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
+        pd.DataFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
+        pd.DataFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
         config,
     )
 
@@ -234,14 +232,14 @@ def test_pandas_series_equal_handler_str() -> None:
 @pytest.mark.parametrize(
     ("actual", "expected"),
     [
-        (pandas.Series(data=[], dtype=object), pandas.Series(data=[], dtype=object)),
-        (pandas.Series(data=[1, 2, 3]), pandas.Series(data=[1, 2, 3])),
-        (pandas.Series(data=["a", "b", "c"]), pandas.Series(data=["a", "b", "c"])),
+        (pd.Series(data=[], dtype=object), pd.Series(data=[], dtype=object)),
+        (pd.Series(data=[1, 2, 3]), pd.Series(data=[1, 2, 3])),
+        (pd.Series(data=["a", "b", "c"]), pd.Series(data=["a", "b", "c"])),
     ],
 )
 def test_pandas_series_equal_handler_handle_true(
-    actual: pandas.Series,
-    expected: pandas.Series,
+    actual: pd.Series,
+    expected: pd.Series,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
@@ -259,7 +257,7 @@ def test_pandas_series_equal_handler_handle_true_show_difference(
     config.show_difference = True
     handler = PandasSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert handler.handle(pandas.Series(data=[1, 2, 3]), pandas.Series(data=[1, 2, 3]), config)
+        assert handler.handle(pd.Series(data=[1, 2, 3]), pd.Series(data=[1, 2, 3]), config)
         assert not caplog.messages
 
 
@@ -270,9 +268,7 @@ def test_pandas_series_equal_handler_handle_false_different_shape(
 ) -> None:
     handler = PandasSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
-            pandas.Series(data=[1, 2, 3]), pandas.Series(data=[1, 2, 3, 4]), config
-        )
+        assert not handler.handle(pd.Series(data=[1, 2, 3]), pd.Series(data=[1, 2, 3, 4]), config)
         assert not caplog.messages
 
 
@@ -284,8 +280,8 @@ def test_pandas_series_equal_handler_handle_false_different_dtype(
     handler = PandasSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
-            pandas.Series(data=[1, 2, 3], dtype=int),
-            pandas.Series(data=[1, 2, 3], dtype=float),
+            pd.Series(data=[1, 2, 3], dtype=int),
+            pd.Series(data=[1, 2, 3], dtype=float),
             config,
         )
         assert not caplog.messages
@@ -298,9 +294,7 @@ def test_pandas_series_equal_handler_handle_false_different_value(
 ) -> None:
     handler = PandasSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
-            pandas.Series(data=[1, 2, 3]), pandas.Series(data=[1, 2, 4]), config
-        )
+        assert not handler.handle(pd.Series(data=[1, 2, 3]), pd.Series(data=[1, 2, 4]), config)
         assert not caplog.messages
 
 
@@ -312,8 +306,8 @@ def test_pandas_series_equal_handler_handle_false_different_index(
     handler = PandasSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
-            pandas.Series(data=[1, 2, 3]),
-            pandas.Series(data=[1, 2, 3], index=pandas.Index([2, 3, 4])),
+            pd.Series(data=[1, 2, 3]),
+            pd.Series(data=[1, 2, 3], index=pd.Index([2, 3, 4])),
             config,
         )
         assert not caplog.messages
@@ -327,8 +321,8 @@ def test_pandas_series_equal_handler_handle_false_show_difference(
     handler = PandasSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
-            actual=pandas.Series(data=[1, 2, 3]),
-            expected=pandas.Series(data=[1, 2, 3, 4]),
+            actual=pd.Series(data=[1, 2, 3]),
+            expected=pd.Series(data=[1, 2, 3, 4]),
             config=config,
         )
         assert caplog.messages[0].startswith("pandas.Series have different elements:")
@@ -337,8 +331,8 @@ def test_pandas_series_equal_handler_handle_false_show_difference(
 @pandas_available
 def test_pandas_series_equal_handler_handle_equal_nan_false(config: EqualityConfig) -> None:
     assert not PandasSeriesEqualHandler().handle(
-        pandas.Series([0.0, float("nan"), float("nan"), 1.2]),
-        pandas.Series([0.0, float("nan"), float("nan"), 1.2]),
+        pd.Series([0.0, float("nan"), float("nan"), 1.2]),
+        pd.Series([0.0, float("nan"), float("nan"), 1.2]),
         config,
     )
 
@@ -347,8 +341,8 @@ def test_pandas_series_equal_handler_handle_equal_nan_false(config: EqualityConf
 def test_pandas_series_equal_handler_handle_equal_nan_true(config: EqualityConfig) -> None:
     config.equal_nan = True
     assert PandasSeriesEqualHandler().handle(
-        pandas.Series([0.0, float("nan"), float("nan"), 1.2]),
-        pandas.Series([0.0, float("nan"), float("nan"), 1.2]),
+        pd.Series([0.0, float("nan"), float("nan"), 1.2]),
+        pd.Series([0.0, float("nan"), float("nan"), 1.2]),
         config,
     )
 

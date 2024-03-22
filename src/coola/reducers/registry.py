@@ -2,6 +2,8 @@ r"""Implement a registry of reducers."""
 
 __all__ = ["ReducerRegistry"]
 
+from typing import ClassVar
+
 from coola.reducers.base import BaseReducer
 from coola.reducers.basic import BasicReducer
 from coola.utils.format import str_indent, str_mapping
@@ -14,7 +16,7 @@ class ReducerRegistry:
     instances of this class.
     """
 
-    registry: dict[str, BaseReducer] = {"basic": BasicReducer()}
+    registry: ClassVar[dict[str, BaseReducer]] = {"basic": BasicReducer()}
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(self.registry))}\n)"
