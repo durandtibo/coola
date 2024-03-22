@@ -5,7 +5,13 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola.random import BaseRandomManager, RandomManager, RandomRandomManager
+from coola import objects_are_equal
+from coola.random import (
+    BaseRandomManager,
+    RandomManager,
+    RandomRandomManager,
+    random_seed,
+)
 
 ###################################
 #     Tests for RandomManager     #
@@ -84,3 +90,33 @@ def test_random_manager_has_manager_false() -> None:
 def test_random_manager_registered_managers() -> None:
     assert len(RandomManager.registry) >= 1
     assert isinstance(RandomManager.registry["random"], RandomRandomManager)
+
+
+#################################
+#     Tests for random_seed     #
+#################################
+
+
+def test_random_seed_restore_random_seed() -> None:
+    state = random.getstate()
+    with random_seed(42):
+        random.uniform(0, 1)  # noqa: S311
+        assert not objects_are_equal(state, random.getstate())
+    assert objects_are_equal(state, random.getstate())
+
+
+def test_random_seed_restore_random_seed_with_exception() -> None:
+    state = random.getstate()
+    with pytest.raises(RuntimeError, match="Exception"), random_seed(42):  # noqa: PT012
+        random.uniform(0, 1)  # noqa: S311
+        msg = "Exception"
+        raise RuntimeError(msg)
+    assert objects_are_equal(state, random.getstate())
+
+
+def test_random_seed_same_random_seed() -> None:
+    with random_seed(42):
+        x1 = random.uniform(0, 1)  # noqa: S311
+    with random_seed(42):
+        x2 = random.uniform(0, 1)  # noqa: S311
+    assert objects_are_equal(x1, x2)
