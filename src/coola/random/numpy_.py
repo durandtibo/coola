@@ -4,10 +4,15 @@ from __future__ import annotations
 
 __all__ = ["NumpyRandomManager", "get_random_managers"]
 
+from contextlib import contextmanager
+from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
 from coola.random.base import BaseRandomManager
 from coola.utils import check_numpy, is_numpy_available
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 if is_numpy_available():
     import numpy as np
@@ -73,3 +78,41 @@ def get_random_managers() -> dict[str, BaseRandomManager]:
     if not is_numpy_available():
         return {}
     return {"numpy": NumpyRandomManager()}
+
+
+@contextmanager
+def numpy_seed(seed: int) -> Generator[None, None, None]:
+    r"""Implement a context manager to manage the NumPy random seed and
+    random number generator (RNG) state.
+
+    The context manager sets the specified random seed and
+    restores the original RNG state afterward.
+
+    Args:
+        seed: The random number generator seed to use while using
+            this context manager.
+
+    Example usage:
+
+    ```pycon
+
+    >>> import numpy
+    >>> from coola.random import numpy_seed
+    >>> with numpy_seed(42):
+    ...     print(numpy.random.randn(2, 4))
+    ...
+    [[...]]
+    >>> with numpy_seed(42):
+    ...     print(numpy.random.randn(2, 4))
+    ...
+    [[...]]
+
+    ```
+    """
+    manager = NumpyRandomManager()
+    state = manager.get_rng_state()
+    try:
+        manager.manual_seed(seed)
+        yield
+    finally:
+        manager.set_rng_state(state)

@@ -6,7 +6,7 @@ import pytest
 
 from coola import objects_are_equal
 from coola.random import TorchRandomManager
-from coola.random.torch_ import get_random_managers
+from coola.random.torch_ import get_random_managers, torch_seed
 from coola.testing import torch_available
 from coola.utils import is_torch_available
 
@@ -102,3 +102,40 @@ def test_get_random_managers() -> None:
 def test_get_random_managers_no_torch() -> None:
     with patch("coola.random.torch_.is_torch_available", lambda: False):
         assert objects_are_equal(get_random_managers(), {})
+
+
+################################
+#     Tests for torch_seed     #
+################################
+
+
+def test_torch_seed_restore_random_seed() -> None:
+    state = torch.get_rng_state()
+    with torch_seed(42):
+        torch.randn(4, 6)
+    assert objects_are_equal(state, torch.get_rng_state())
+
+
+def test_torch_seed_restore_random_seed_with_exception() -> None:
+    state = torch.get_rng_state()
+    with pytest.raises(RuntimeError, match="Exception"), torch_seed(42):  # noqa: PT012
+        torch.randn(4, 6)
+        msg = "Exception"
+        raise RuntimeError(msg)
+    assert objects_are_equal(state, torch.get_rng_state())
+
+
+def test_torch_seed_same_random_seed() -> None:
+    with torch_seed(42):
+        x1 = torch.randn(4, 6)
+    with torch_seed(42):
+        x2 = torch.randn(4, 6)
+    assert x1.equal(x2)
+
+
+def test_torch_seed_different_random_seeds() -> None:
+    with torch_seed(42):
+        x1 = torch.randn(4, 6)
+    with torch_seed(142):
+        x2 = torch.randn(4, 6)
+    assert not x1.equal(x2)
