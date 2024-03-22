@@ -2,12 +2,16 @@ r"""Implement the default random manager."""
 
 from __future__ import annotations
 
-__all__ = ["RandomManager"]
+__all__ = ["RandomManager", "random_seed", "register_random_managers"]
 
-from typing import Any
+from contextlib import contextmanager
+from typing import TYPE_CHECKING, Any
 
 from coola.random.base import BaseRandomManager
 from coola.utils import repr_indent, repr_mapping, str_indent, str_mapping
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 
 class RandomManager(BaseRandomManager):
@@ -121,6 +125,44 @@ class RandomManager(BaseRandomManager):
         ```
         """
         return name in cls.registry
+
+
+@contextmanager
+def random_seed(seed: int) -> Generator[None, None, None]:
+    r"""Implement a context manager to manage the random seed and random
+    number generator (RNG) state.
+
+    The context manager sets the specified random seed and
+    restores the original RNG state afterward.
+
+    Args:
+        seed: The random number generator seed to use while using
+            this context manager.
+
+    Example usage:
+
+    ```pycon
+
+    >>> import numpy
+    >>> from coola.random import random_seed
+    >>> with random_seed(42):
+    ...     print(numpy.random.randn(2, 4))
+    ...
+    [[...]]
+    >>> with random_seed(42):
+    ...     print(numpy.random.randn(2, 4))
+    ...
+    [[...]]
+
+    ```
+    """
+    manager = RandomManager()
+    state = manager.get_rng_state()
+    try:
+        manager.manual_seed(seed)
+        yield
+    finally:
+        manager.set_rng_state(state)
 
 
 def register_random_managers() -> None:
