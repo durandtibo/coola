@@ -109,6 +109,7 @@ def test_get_random_managers_no_torch() -> None:
 ################################
 
 
+@torch_available
 def test_torch_seed_restore_random_seed() -> None:
     state = torch.get_rng_state()
     with torch_seed(42):
@@ -116,6 +117,7 @@ def test_torch_seed_restore_random_seed() -> None:
     assert objects_are_equal(state, torch.get_rng_state())
 
 
+@torch_available
 def test_torch_seed_restore_random_seed_with_exception() -> None:
     state = torch.get_rng_state()
     with pytest.raises(RuntimeError, match="Exception"), torch_seed(42):  # noqa: PT012
@@ -125,6 +127,7 @@ def test_torch_seed_restore_random_seed_with_exception() -> None:
     assert objects_are_equal(state, torch.get_rng_state())
 
 
+@torch_available
 def test_torch_seed_same_random_seed() -> None:
     with torch_seed(42):
         x1 = torch.randn(4, 6)
@@ -133,6 +136,7 @@ def test_torch_seed_same_random_seed() -> None:
     assert x1.equal(x2)
 
 
+@torch_available
 def test_torch_seed_different_random_seeds() -> None:
     with torch_seed(42):
         x1 = torch.randn(4, 6)

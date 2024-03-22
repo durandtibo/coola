@@ -97,6 +97,7 @@ def test_get_random_managers_no_numpy() -> None:
 ################################
 
 
+@numpy_available
 def test_numpy_seed_restore_random_seed() -> None:
     state = np.random.get_state()
     with numpy_seed(42):
@@ -104,6 +105,7 @@ def test_numpy_seed_restore_random_seed() -> None:
     assert objects_are_equal(state, np.random.get_state())
 
 
+@numpy_available
 def test_numpy_seed_restore_random_seed_with_exception() -> None:
     state = np.random.get_state()
     with pytest.raises(RuntimeError, match="Exception"), numpy_seed(42):  # noqa: PT012
@@ -113,6 +115,7 @@ def test_numpy_seed_restore_random_seed_with_exception() -> None:
     assert objects_are_equal(state, np.random.get_state())
 
 
+@numpy_available
 def test_numpy_seed_same_random_seed() -> None:
     with numpy_seed(42):
         x1 = np.random.randn(4, 6)
