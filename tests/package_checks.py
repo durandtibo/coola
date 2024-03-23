@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import importlib
 import logging
+import random
 
 from coola import objects_are_allclose, objects_are_equal
+from coola.random import manual_seed
+from coola.reducers import BasicReducer
 from coola.utils.imports import (
     is_jax_available,
     is_numpy_available,
@@ -277,6 +280,25 @@ def check_xarray_comparators() -> None:
     )
 
 
+def check_random() -> None:
+    logger.info("Checking random managers...")
+    manual_seed(42)
+    x1 = random.uniform(0, 1)  # noqa: S311
+    x2 = random.uniform(0, 1)  # noqa: S311
+    manual_seed(42)
+    x3 = random.uniform(0, 1)  # noqa: S311
+    assert x1 == x3
+    assert x1 != x2
+
+
+def check_reduction() -> None:
+    logger.info("Checking reduction...")
+    reducer = BasicReducer()
+    assert reducer.max([-2, -1, 0, 1, 2]) == 2
+    assert reducer.median([-2, -1, 0, 1, 2]) == 0
+    assert reducer.sort([2, 1, -2, 3, 0]) == [-2, 0, 1, 2, 3]
+
+
 def main() -> None:
     check_imports()
     check_native_comparators()
@@ -286,6 +308,9 @@ def main() -> None:
     check_polars_comparators()
     check_torch_comparators()
     check_xarray_comparators()
+
+    check_random()
+    check_reduction()
 
 
 if __name__ == "__main__":
