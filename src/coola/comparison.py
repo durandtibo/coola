@@ -12,6 +12,8 @@ from coola.equality.testers import EqualityTester
 if TYPE_CHECKING:
     from coola.equality.testers import BaseEqualityTester
 
+_tester = EqualityTester()
+
 
 def objects_are_allclose(
     actual: Any,
@@ -67,7 +69,7 @@ def objects_are_allclose(
 
     ```
     """
-    tester = tester or EqualityTester()
+    tester = tester or _tester
     config = EqualityConfig(
         tester=tester, show_difference=show_difference, equal_nan=equal_nan, atol=atol, rtol=rtol
     )
@@ -114,6 +116,6 @@ def objects_are_equal(
 
     ```
     """
-    tester = tester or EqualityTester()
+    tester = tester or _tester
     config = EqualityConfig(tester=tester, show_difference=show_difference, equal_nan=equal_nan)
     return tester.equal(actual, expected, config)
