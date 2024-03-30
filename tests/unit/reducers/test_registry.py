@@ -26,7 +26,7 @@ def test_reducer_registry_str() -> None:
 
 def test_reducer_registry_default() -> None:
     assert len(ReducerRegistry.registry) >= 1
-    assert isinstance(ReducerRegistry.registry["basic"], NativeReducer)
+    assert isinstance(ReducerRegistry.registry["native"], NativeReducer)
 
 
 @patch.dict(ReducerRegistry.registry, {}, clear=True)
@@ -53,11 +53,11 @@ def test_summarizer_add_reducer_duplicate_exist_ok_false() -> None:
 
 
 def test_summarizer_available_reducers() -> None:
-    assert "basic" in ReducerRegistry.available_reducers()
+    assert "native" in ReducerRegistry.available_reducers()
 
 
 def test_summarizer_has_reducer_true() -> None:
-    assert ReducerRegistry.has_reducer("basic")
+    assert ReducerRegistry.has_reducer("native")
 
 
 def test_summarizer_has_reducer_false() -> None:

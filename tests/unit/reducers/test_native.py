@@ -15,7 +15,7 @@ EMPTY_SEQUENCES = [[], ()]
 
 
 def test_reducer_registry_available_reducers() -> None:
-    assert isinstance(ReducerRegistry.registry["basic"], NativeReducer)
+    assert isinstance(ReducerRegistry.registry["native"], NativeReducer)
 
 
 ##################################
