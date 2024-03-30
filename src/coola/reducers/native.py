@@ -3,7 +3,7 @@ functions."""
 
 from __future__ import annotations
 
-__all__ = ["BasicReducer"]
+__all__ = ["NativeReducer"]
 
 from collections.abc import Sequence
 from statistics import mean, median, stdev
@@ -15,14 +15,14 @@ from coola.utils.stats import quantile
 T = TypeVar("T", bound=Sequence[Union[int, float]])
 
 
-class BasicReducer(BaseBasicReducer[T]):
-    r"""Implement a basic reducer.
+class NativeReducer(BaseBasicReducer[T]):
+    r"""Implement a native reducer.
 
     Example usage:
 
     ```pycon
-    >>> from coola.reducers import BasicReducer
-    >>> reducer = BasicReducer()
+    >>> from coola.reducers import NativeReducer
+    >>> reducer = NativeReducer()
     >>> reducer.max([-2, -1, 0, 1, 2])
     2
     >>> reducer.median([-2, -1, 0, 1, 2])

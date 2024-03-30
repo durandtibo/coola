@@ -6,7 +6,7 @@ import random
 
 from coola import objects_are_allclose, objects_are_equal
 from coola.random import manual_seed
-from coola.reducers import BasicReducer
+from coola.reducers import NativeReducer
 from coola.utils.imports import (
     is_jax_available,
     is_numpy_available,
@@ -293,7 +293,7 @@ def check_random() -> None:
 
 def check_reduction() -> None:
     logger.info("Checking reduction...")
-    reducer = BasicReducer()
+    reducer = NativeReducer()
     assert reducer.max([-2, -1, 0, 1, 2]) == 2
     assert reducer.median([-2, -1, 0, 1, 2]) == 0
     assert reducer.sort([2, 1, -2, 3, 0]) == [-2, 0, 1, 2, 3]

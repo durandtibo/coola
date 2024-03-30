@@ -4,7 +4,7 @@ from __future__ import annotations
 
 __all__ = ["auto_reducer"]
 
-from coola.reducers import BaseReducer, BasicReducer, NumpyReducer, TorchReducer
+from coola.reducers import BaseReducer, NativeReducer, NumpyReducer, TorchReducer
 from coola.utils import is_numpy_available, is_torch_available
 
 
@@ -31,4 +31,4 @@ def auto_reducer() -> BaseReducer:
         return TorchReducer()
     if is_numpy_available():
         return NumpyReducer()
-    return BasicReducer()
+    return NativeReducer()
