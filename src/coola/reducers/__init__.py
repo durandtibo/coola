@@ -3,7 +3,7 @@ r"""Contain the reducer implementations."""
 __all__ = [
     "BaseBasicReducer",
     "BaseReducer",
-    "BasicReducer",
+    "NativeReducer",
     "EmptySequenceError",
     "NumpyReducer",
     "ReducerRegistry",
@@ -12,7 +12,7 @@ __all__ = [
 ]
 
 from coola.reducers.base import BaseBasicReducer, BaseReducer, EmptySequenceError
-from coola.reducers.basic import BasicReducer
+from coola.reducers.native import NativeReducer
 from coola.reducers.numpy_ import NumpyReducer
 from coola.reducers.registry import ReducerRegistry
 from coola.reducers.torch_ import TorchReducer

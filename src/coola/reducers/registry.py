@@ -5,7 +5,7 @@ __all__ = ["ReducerRegistry"]
 from typing import ClassVar
 
 from coola.reducers.base import BaseReducer
-from coola.reducers.basic import BasicReducer
+from coola.reducers.native import NativeReducer
 from coola.utils.format import str_indent, str_mapping
 
 
@@ -16,7 +16,7 @@ class ReducerRegistry:
     instances of this class.
     """
 
-    registry: ClassVar[dict[str, BaseReducer]] = {"basic": BasicReducer()}
+    registry: ClassVar[dict[str, BaseReducer]] = {"native": NativeReducer()}
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(self.registry))}\n)"
@@ -39,8 +39,8 @@ class ReducerRegistry:
         Example usage:
 
         ```pycon
-        >>> from coola.reducers import ReducerRegistry, BasicReducer
-        >>> ReducerRegistry.add_reducer("basic", BasicReducer(), exist_ok=True)
+        >>> from coola.reducers import ReducerRegistry, NativeReducer
+        >>> ReducerRegistry.add_reducer("native", NativeReducer(), exist_ok=True)
 
         ```
         """
@@ -65,7 +65,7 @@ class ReducerRegistry:
         ```pycon
         >>> from coola.reducers import ReducerRegistry
         >>> ReducerRegistry.available_reducers()
-        ('basic', 'numpy', 'torch')
+        ('native', 'numpy', 'torch')
 
         ```
         """
@@ -86,7 +86,7 @@ class ReducerRegistry:
 
         ```pycon
         >>> from coola.reducers import ReducerRegistry
-        >>> ReducerRegistry.has_reducer("basic")
+        >>> ReducerRegistry.has_reducer("native")
         True
         >>> ReducerRegistry.has_reducer("missing")
         False

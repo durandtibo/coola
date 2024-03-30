@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from coola.reducers import BasicReducer, NumpyReducer, TorchReducer, auto_reducer
+from coola.reducers import NativeReducer, NumpyReducer, TorchReducer, auto_reducer
 from coola.testing import numpy_available, torch_available
 
 ##################################
@@ -24,4 +24,4 @@ def test_auto_reducer_basic() -> None:
         patch("coola.reducers.utils.is_torch_available", lambda: False),
         patch("coola.reducers.utils.is_numpy_available", lambda: False),
     ):
-        assert isinstance(auto_reducer(), BasicReducer)
+        assert isinstance(auto_reducer(), NativeReducer)

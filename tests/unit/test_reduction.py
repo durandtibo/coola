@@ -1,7 +1,7 @@
 import pytest
 
 from coola import Reduction
-from coola.reducers import BaseReducer, BasicReducer, TorchReducer
+from coola.reducers import BaseReducer, NativeReducer, TorchReducer
 from coola.testing import torch_available
 
 ###############################
@@ -19,11 +19,11 @@ def test_reduction_reducer_torch() -> None:
 
 
 def test_available_reducers() -> None:
-    assert "basic" in Reduction.available_reducers()
+    assert "native" in Reduction.available_reducers()
 
 
 def test_check_reducer() -> None:
-    Reduction.check_reducer("basic")
+    Reduction.check_reducer("native")
 
 
 def test_check_reducer_missing() -> None:
@@ -32,8 +32,8 @@ def test_check_reducer_missing() -> None:
 
 
 def test_initialize_basic() -> None:
-    Reduction.initialize("basic")
-    assert isinstance(Reduction.reducer, BasicReducer)
+    Reduction.initialize("native")
+    assert isinstance(Reduction.reducer, NativeReducer)
 
 
 @torch_available
