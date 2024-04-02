@@ -1,11 +1,23 @@
 from __future__ import annotations
 
-import numpy as np
+from unittest.mock import Mock
+
 import pytest
-import torch
 
 from coola import objects_are_equal
 from coola.nested import get_first_value, to_flat_dict
+from coola.testing import numpy_available, torch_available
+from coola.utils import is_numpy_available, is_torch_available
+
+if is_numpy_available():
+    import numpy as np
+else:  # pragma: no cover
+    np = Mock()
+
+if is_torch_available():
+    import torch
+else:  # pragma: no cover
+    torch = Mock()
 
 #####################################
 #     Tests for get_first_value     #
@@ -248,11 +260,13 @@ def test_to_flat_dict_to_str_tuple_and_list() -> None:
     }
 
 
+@torch_available
 def test_to_flat_dict_tensor() -> None:
     assert objects_are_equal(
         to_flat_dict({"tensor": torch.ones(2, 3)}), {"tensor": torch.ones(2, 3)}
     )
 
 
+@numpy_available
 def test_to_flat_dict_numpy_ndarray() -> None:
     assert objects_are_equal(to_flat_dict(np.zeros((2, 3))), {None: np.zeros((2, 3))})
