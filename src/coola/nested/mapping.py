@@ -2,7 +2,7 @@ r"""Contain some utility functions to manipulate mappings."""
 
 from __future__ import annotations
 
-__all__ = ["get_first_value", "to_flat_dict"]
+__all__ = ["get_first_value", "to_flat_dict", "remove_keys_starting_with"]
 
 from typing import TYPE_CHECKING, Any
 
@@ -119,3 +119,34 @@ def to_flat_dict(
     else:
         flat_dict[prefix] = data
     return flat_dict
+
+
+def remove_keys_starting_with(mapping: Mapping, prefix: str) -> dict:
+    r"""Remove the keys that start with a given prefix.
+
+    Args:
+        mapping: The original mapping.
+        prefix: The prefix used to filter the keys.
+
+    Returns:
+        A new dict without the removed keys.
+
+    Example usage:
+
+    ```pycon
+
+    >>> from coola.nested import remove_keys_starting_with
+    >>> remove_keys_starting_with(
+    ...     {"key": 1, "key.abc": 2, "abc": 3, "abc.key": 4, 1: 5, (2, 3): 6},
+    ...     "key",
+    ... )
+    {'abc': 3, 'abc.key': 4, 1: 5, (2, 3): 6}
+
+    ```
+    """
+    out = {}
+    for key, value in mapping.items():
+        if isinstance(key, str) and key.startswith(prefix):
+            continue
+        out[key] = value
+    return out
