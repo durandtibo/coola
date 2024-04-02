@@ -5,7 +5,7 @@ from unittest.mock import Mock
 import pytest
 
 from coola import objects_are_equal
-from coola.nested import get_first_value, to_flat_dict
+from coola.nested import get_first_value, remove_keys_starting_with, to_flat_dict
 from coola.testing import numpy_available, torch_available
 from coola.utils import is_numpy_available, is_torch_available
 
@@ -270,3 +270,35 @@ def test_to_flat_dict_tensor() -> None:
 @numpy_available
 def test_to_flat_dict_numpy_ndarray() -> None:
     assert objects_are_equal(to_flat_dict(np.zeros((2, 3))), {None: np.zeros((2, 3))})
+
+
+###############################################
+#     Tests for remove_keys_starting_with     #
+###############################################
+
+
+def test_remove_keys_starting_with_empty() -> None:
+    assert remove_keys_starting_with({}, "key") == {}
+
+
+def test_remove_keys_starting_with() -> None:
+    assert remove_keys_starting_with(
+        {"key": 1, "key.abc": 2, "abc": 3, "abc.key": 4, 1: 5, (2, 3): 6}, "key"
+    ) == {
+        "abc": 3,
+        "abc.key": 4,
+        1: 5,
+        (2, 3): 6,
+    }
+
+
+def test_remove_keys_starting_with_another_key() -> None:
+    assert remove_keys_starting_with(
+        {"key": 1, "key.abc": 2, "abc": 3, "abc.key": 4, 1: 5, (2, 3): 6}, "key."
+    ) == {
+        "key": 1,
+        "abc": 3,
+        "abc.key": 4,
+        1: 5,
+        (2, 3): 6,
+    }
