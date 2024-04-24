@@ -44,6 +44,9 @@ jobs:
       - name: check coola.formatters
         run: |
           poetry run python -c "from coola import formatters"
+      - name: check coola.nested
+        run: |
+          poetry run python -c "from coola import nested"
       - name: check coola.random
         run: |
           poetry run python -c "from coola import random"
