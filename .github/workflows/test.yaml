@@ -20,6 +20,8 @@ jobs:
         include:
           - os: macos-13
             python-version: '3.9'
+          - os: macos-12
+            python-version: '3.9'
 
     steps:
       - name: Checkout
