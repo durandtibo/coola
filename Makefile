@@ -10,7 +10,7 @@ DOC_TAG := $(shell echo $(LAST_GIT_TAG) | cut -c 2- | awk -F \. {'print $$1"."$$
 
 .PHONY : conda
 conda :
-	conda env create -f environment.yaml --force
+	conda env create -f environment.yaml --yes
 
 .PHONY : config-poetry
 config-poetry :
