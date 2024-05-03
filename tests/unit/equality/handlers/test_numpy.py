@@ -128,12 +128,14 @@ def test_numpy_array_equal_handler_set_next_handler() -> None:
 #################################
 
 
+@numpy_available
 def test_array_equal_string(config: EqualityConfig) -> None:
     assert array_equal(
         np.array(["polar", "bear", "meow"]), np.array(["polar", "bear", "meow"]), config=config
     )
 
 
+@numpy_available
 def test_array_equal_string_atol(config: EqualityConfig) -> None:
     config.atol = 1e-6
     assert array_equal(
@@ -141,6 +143,7 @@ def test_array_equal_string_atol(config: EqualityConfig) -> None:
     )
 
 
+@numpy_available
 def test_array_equal_string_rtol(config: EqualityConfig) -> None:
     config.rtol = 1e-3
     assert array_equal(
@@ -153,6 +156,7 @@ def test_array_equal_string_rtol(config: EqualityConfig) -> None:
 ######################################
 
 
+@numpy_available
 @pytest.mark.parametrize(
     "array",
     [
@@ -172,6 +176,7 @@ def test_is_numeric_array_true(array: np.ndarray) -> None:
     assert is_numeric_array(array)
 
 
+@numpy_available
 @pytest.mark.parametrize(
     "array",
     [
