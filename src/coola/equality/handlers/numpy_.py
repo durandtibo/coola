@@ -80,11 +80,52 @@ def array_equal(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) 
         config: Specifies the equality configuration.
 
     Returns:
-        ``True``if the two arrays are equal within a tolerance,
+        ``True` `if the two arrays are equal within a tolerance,
             otherwise ``False``.
+
+    Example usage:
+
+    ```pycon
+
+    >>> import numpy as np
+    >>> from coola.equality import EqualityConfig
+    >>> from coola.equality.handlers.numpy_ import array_equal
+    >>> from coola.equality.testers import EqualityTester
+    >>> config = EqualityConfig(tester=EqualityTester())
+    >>> array_equal(np.ones((2, 3)), np.ones((2, 3)), config)
+    True
+    >>> array_equal(np.ones((2, 3)), np.zeros((2, 3)), config)
+    False
+
+    ```
     """
-    if config.atol > 0 or config.rtol > 0:
+    if (config.atol > 0 or config.rtol > 0) and is_numeric_array(array1):
         return np.allclose(
             array1, array2, rtol=config.rtol, atol=config.atol, equal_nan=config.equal_nan
         )
     return np.array_equal(array1, array2, equal_nan=config.equal_nan)
+
+
+def is_numeric_array(array: np.ndarray) -> bool:
+    r"""Indicate if the input array is a numeric array or not.
+
+    Args:
+        array: The input array.
+
+    Returns:
+        ``True`` if the input array is a numeric array, otherwise ``False``.
+
+    Example usage:
+
+    ```pycon
+
+    >>> import numpy as np
+    >>> from coola.equality.handlers.numpy_ import is_numeric_array
+    >>> is_numeric_array(np.ones((2, 3)))
+    True
+    >>> is_numeric_array(np.array(["polar", "bear", "meow"]))
+    False
+
+    ```
+    """
+    return array.dtype.kind in {"?", "b", "B", "i", "u", "f", "c"}

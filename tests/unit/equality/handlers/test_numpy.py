@@ -8,6 +8,7 @@ import pytest
 
 from coola.equality import EqualityConfig
 from coola.equality.handlers import FalseHandler, NumpyArrayEqualHandler
+from coola.equality.handlers.numpy_ import array_equal, is_numeric_array
 from coola.equality.testers import EqualityTester
 from coola.testing import numpy_available
 from coola.utils import is_numpy_available
@@ -120,3 +121,70 @@ def test_numpy_array_equal_handler_handle_true_tolerance(
 
 def test_numpy_array_equal_handler_set_next_handler() -> None:
     NumpyArrayEqualHandler().set_next_handler(FalseHandler())
+
+
+#################################
+#     Tests for array_equal     #
+#################################
+
+
+def test_array_equal_string(config: EqualityConfig) -> None:
+    assert array_equal(
+        np.array(["polar", "bear", "meow"]), np.array(["polar", "bear", "meow"]), config=config
+    )
+
+
+def test_array_equal_string_atol(config: EqualityConfig) -> None:
+    config.atol = 1e-6
+    assert array_equal(
+        np.array(["polar", "bear", "meow"]), np.array(["polar", "bear", "meow"]), config=config
+    )
+
+
+def test_array_equal_string_rtol(config: EqualityConfig) -> None:
+    config.rtol = 1e-3
+    assert array_equal(
+        np.array(["polar", "bear", "meow"]), np.array(["polar", "bear", "meow"]), config=config
+    )
+
+
+######################################
+#     Tests for is_numeric_array     #
+######################################
+
+
+@pytest.mark.parametrize(
+    "array",
+    [
+        pytest.param(np.array([True, False, True], dtype=np.bool_), id="boolean"),
+        pytest.param(np.array([1, 0, 1], dtype=np.byte), id="signed byte"),
+        pytest.param(np.array([1, 0, 1], dtype=np.ubyte), id="unsigned byte"),
+        pytest.param(np.array([1, 0, 1], dtype=np.int32), id="int32"),
+        pytest.param(np.array([1, 0, 1], dtype=np.int64), id="int64"),
+        pytest.param(np.array([1, 0, 1], dtype=np.uint32), id="uint32"),
+        pytest.param(np.array([1, 0, 1], dtype=np.uint64), id="uint64"),
+        pytest.param(np.array([1, 0, 1], dtype=np.float32), id="float32"),
+        pytest.param(np.array([1, 0, 1], dtype=np.float64), id="float64"),
+        pytest.param(np.array([1, 0, 1], dtype=np.complex128), id="complex128"),
+    ],
+)
+def test_is_numeric_array_true(array: np.ndarray) -> None:
+    assert is_numeric_array(array)
+
+
+@pytest.mark.parametrize(
+    "array",
+    [
+        pytest.param(
+            np.array([np.timedelta64(1, "D"), np.timedelta64(2, "D")], dtype=np.timedelta64),
+            id="timedelta64",
+        ),
+        pytest.param(np.array(["2005-02-25", "2007-07-13"], dtype=np.datetime64), id="datetime64"),
+        pytest.param(np.array(["polar", "bear", "meow"], dtype=np.dtype("U")), id="unicode string"),
+        pytest.param(
+            np.array([np.void(b"abcd"), np.void(b"efg")], dtype=np.dtype("V10")), id="raw data"
+        ),
+    ],
+)
+def test_is_numeric_array_false(array: np.ndarray) -> None:
+    assert not is_numeric_array(array)
