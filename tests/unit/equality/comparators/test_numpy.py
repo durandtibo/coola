@@ -40,6 +40,19 @@ NUMPY_ARRAY_EQUAL = [
         ),
         id="int dtype",
     ),
+    pytest.param(
+        ExamplePair(
+            actual=np.array(["polar", "bear", "meow"]), expected=np.array(["polar", "bear", "meow"])
+        ),
+        id="string dtype",
+    ),
+    pytest.param(
+        ExamplePair(
+            actual=np.array(["2005-02-25", "2007-07-13"], dtype=np.datetime64),
+            expected=np.array(["2005-02-25", "2007-07-13"], dtype=np.datetime64),
+        ),
+        id="datetime dtype",
+    ),
     pytest.param(ExamplePair(actual=np.ones(shape=6), expected=np.ones(shape=6)), id="1d array"),
     pytest.param(
         ExamplePair(actual=np.ones(shape=(2, 3)), expected=np.ones(shape=(2, 3))), id="2d array"
@@ -93,6 +106,22 @@ NUMPY_ARRAY_EQUAL_TOLERANCE = [
         ExamplePair(actual=np.ones((2, 3)), expected=np.full((2, 3), 1.005), atol=0.01),
         id="atol=0.01",
     ),
+    pytest.param(
+        ExamplePair(
+            actual=np.array(["polar", "bear", "meow"]),
+            expected=np.array(["polar", "bear", "meow"]),
+            atol=0.01,
+        ),
+        id="string atol",
+    ),
+    pytest.param(
+        ExamplePair(
+            actual=np.array(["2005-02-25", "2007-07-13"], dtype=np.datetime64),
+            expected=np.array(["2005-02-25", "2007-07-13"], dtype=np.datetime64),
+            atol=0.01,
+        ),
+        id="datetime atol",
+    ),
     # rtol
     pytest.param(
         ExamplePair(actual=np.ones((2, 3)), expected=np.full((2, 3), 1.5), rtol=1.0),
@@ -105,6 +134,22 @@ NUMPY_ARRAY_EQUAL_TOLERANCE = [
     pytest.param(
         ExamplePair(actual=np.ones((2, 3)), expected=np.full((2, 3), 1.005), rtol=0.01),
         id="rtol=0.01",
+    ),
+    pytest.param(
+        ExamplePair(
+            actual=np.array(["polar", "bear", "meow"]),
+            expected=np.array(["polar", "bear", "meow"]),
+            rtol=0.01,
+        ),
+        id="string rtol",
+    ),
+    pytest.param(
+        ExamplePair(
+            actual=np.array(["2005-02-25", "2007-07-13"], dtype=np.datetime64),
+            expected=np.array(["2005-02-25", "2007-07-13"], dtype=np.datetime64),
+            rtol=0.01,
+        ),
+        id="datetime rtol",
     ),
 ]
 
