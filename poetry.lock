@@ -2058,4 +2058,4 @@ all = ["jax", "jaxlib", "numpy", "pandas", "polars", "torch", "xarray"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.13"
-content-hash = "56e28138d7903dcca807755b59b7549c5433b58346ad4ff3de39bdfc58fe5b48"
+content-hash = "e77e2fc8ad77398f7515e04e8d11779bf3523511b332f06256b4a6351925ff3a"
