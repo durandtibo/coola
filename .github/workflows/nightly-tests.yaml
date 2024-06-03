@@ -18,3 +18,5 @@ jobs:
     uses: ./.github/workflows/test.yaml
   test-deps:
     uses: ./.github/workflows/test-deps.yaml
+  test-nighlty-deps:
+    uses: ./.github/workflows/test-nighlty-deps.yaml
