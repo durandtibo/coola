@@ -2,10 +2,16 @@ r"""Contain path utility functions."""
 
 from __future__ import annotations
 
-__all__ = ["sanitize_path"]
+__all__ = ["sanitize_path", "working_directory"]
 
+import contextlib
+import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 from urllib.parse import unquote, urlparse
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 
 def sanitize_path(path: Path | str) -> Path:
@@ -40,3 +46,33 @@ def sanitize_path(path: Path | str) -> Path:
         # source: https://stackoverflow.com/a/15048213
         path = Path(unquote(urlparse(path).path))
     return path.expanduser().resolve()
+
+
+@contextlib.contextmanager
+def working_directory(path: Path) -> Generator[None, None, None]:
+    r"""Context manager to change the working directory to the given
+    path, and then changes it back to its previous value on exit.
+
+    source: https://gist.github.com/nottrobin/3d675653244f8814838a
+
+    Args:
+        path: The path to the temporary working directory.
+
+    Example usage:
+
+    ```pycon
+
+    >>> from coola.utils.path import working_directory
+    >>> with working_directory(Path("src")):
+    ...     x = 1
+    ...
+
+    ```
+    """
+    path = sanitize_path(path)
+    prev_cwd = Path.cwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(prev_cwd)
