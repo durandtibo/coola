@@ -11,6 +11,7 @@ __all__ = [
     "str_mapping",
     "str_sequence",
     "str_time_human",
+    "str_human_byte_size",
 ]
 
 import datetime
@@ -18,6 +19,14 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
+
+BYTE_UNITS = {
+    "B": 1,
+    "KB": 1024,
+    "MB": 1024 * 1024,
+    "GB": 1024 * 1024 * 1024,
+    "TB": 1024 * 1024 * 1024 * 1024,
+}
 
 
 def repr_indent(original: Any, num_spaces: int = 2) -> str:
@@ -243,3 +252,45 @@ def str_time_human(seconds: float) -> str:
     ```
     """
     return str(datetime.timedelta(seconds=seconds))
+
+
+def str_human_byte_size(size: int, unit: str | None = None) -> str:
+    r"""Get a human-readable representation of the byte size.
+
+    Args:
+        size: The size in bytes.
+        unit: The unit to use to show the byte size. If ``None``, the
+            best unit is found automatically. The supported units
+            are: ``'B'``, ``'KB'``, ``'MB'``, ``'GB'``, ``'TB'``.
+
+    Returns:
+        The byte size in a human-readable format.
+
+    Example usage:
+
+    ```pycon
+
+    >>> from coola.utils.format import str_human_byte_size
+    >>> str_human_byte_size(2)
+    '2.00 B'
+    >>> str_human_byte_size(2048)
+    '2.00 KB'
+    >>> str_human_byte_size(2097152)
+    '2.00 MB'
+    >>> str_human_byte_size(2048, unit="B")
+    '2,048.00 B'
+
+    ```
+    """
+    if unit is None:  # Find the best unit.
+        best_unit = "B"
+        for unit, multiplier in BYTE_UNITS.items():
+            if (size / multiplier) > 1:
+                best_unit = unit
+        unit = best_unit
+
+    if unit not in BYTE_UNITS:
+        msg = f"Incorrect unit '{unit}'. The available units are {list(BYTE_UNITS.keys())}"
+        raise ValueError(msg)
+
+    return f"{size / BYTE_UNITS.get(unit, 1):,.2f} {unit}"
