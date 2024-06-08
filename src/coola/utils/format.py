@@ -10,8 +10,10 @@ __all__ = [
     "str_indent",
     "str_mapping",
     "str_sequence",
+    "str_time_human",
 ]
 
+import datetime
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -212,3 +214,32 @@ def str_sequence(sequence: Sequence, num_spaces: int = 2) -> str:
     for i, item in enumerate(sequence):
         lines.append(f"({i}): {str_indent(item, num_spaces=num_spaces)}")
     return "\n".join(lines)
+
+
+def str_time_human(seconds: float) -> str:
+    r"""Return a number of seconds in an easier format to read
+    ``hh:mm:ss``.
+
+    If the number of seconds is bigger than 1 day, this representation
+    also encodes the number of days.
+
+    Args:
+        seconds: The number of seconds.
+
+    Returns:
+        The number of seconds in a string format (``hh:mm:ss``).
+
+    Example usage:
+
+    ```pycon
+    >>> from coola.utils.format import str_time_human
+    >>> str_time_human(1.2)
+    '0:00:01.200000'
+    >>> str_time_human(61.2)
+    '0:01:01.200000'
+    >>> str_time_human(3661.2)
+    '1:01:01.200000'
+
+    ```
+    """
+    return str(datetime.timedelta(seconds=seconds))
