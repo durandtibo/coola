@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from coola.utils.format import (
+    find_best_byte_unit,
     repr_indent,
     repr_mapping,
     repr_sequence,
@@ -246,3 +247,13 @@ def test_str_human_byte_size_auto(size: int, output: str) -> None:
 def test_str_human_byte_size_incorrect_unit() -> None:
     with pytest.raises(ValueError, match="Incorrect unit ''. The available units are"):
         assert str_human_byte_size(1, "")
+
+
+#########################################
+#     Tests for find_best_byte_unit     #
+#########################################
+
+
+@pytest.mark.parametrize(("size", "unit"), [(2, "B"), (1023, "B"), (2048, "KB"), (2097152, "MB")])
+def test_find_best_byte_unit(size: int, unit: str) -> None:
+    assert find_best_byte_unit(size) == unit

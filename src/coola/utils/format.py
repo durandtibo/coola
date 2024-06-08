@@ -4,14 +4,15 @@ of objects."""
 from __future__ import annotations
 
 __all__ = [
+    "find_best_byte_unit",
     "repr_indent",
     "repr_mapping",
     "repr_sequence",
+    "str_human_byte_size",
     "str_indent",
     "str_mapping",
     "str_sequence",
     "str_time_human",
-    "str_human_byte_size",
 ]
 
 import datetime
@@ -283,14 +284,39 @@ def str_human_byte_size(size: int, unit: str | None = None) -> str:
     ```
     """
     if unit is None:  # Find the best unit.
-        best_unit = "B"
-        for unit, multiplier in BYTE_UNITS.items():
-            if (size / multiplier) > 1:
-                best_unit = unit
-        unit = best_unit
-
+        unit = find_best_byte_unit(size)
     if unit not in BYTE_UNITS:
         msg = f"Incorrect unit '{unit}'. The available units are {list(BYTE_UNITS.keys())}"
         raise ValueError(msg)
-
     return f"{size / BYTE_UNITS.get(unit, 1):,.2f} {unit}"
+
+
+def find_best_byte_unit(size: int) -> str:
+    r"""Return the best byte unit given the byte size.
+
+    Args:
+        size: The size in bytes.
+
+    Returns:
+        The best unit. The supported units are: ``'B'``, ``'KB'``,
+            ``'MB'``, ``'GB'``, ``'TB'``.
+
+    Example usage:
+
+    ```pycon
+
+    >>> from coola.utils.format import find_best_byte_unit
+    >>> find_best_byte_unit(2)
+    'B'
+    >>> find_best_byte_unit(2048)
+    'KB'
+    >>> find_best_byte_unit(2097152)
+    'MB'
+
+    ```
+    """
+    best_unit = "B"
+    for unit, multiplier in BYTE_UNITS.items():
+        if (size / multiplier) > 1:
+            best_unit = unit
+    return best_unit
