@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from coola.utils.path import sanitize_path
+import pytest
+
+from coola.utils.path import sanitize_path, working_directory
 
 ###################################
 #     Tests for sanitize_path     #
@@ -27,3 +29,29 @@ def test_sanitize_path_resolve() -> None:
 
 def test_sanitize_path_uri() -> None:
     assert sanitize_path("file:///my/path/something/./../") == Path("/my/path")
+
+
+#######################################
+#     Tests for working_directory     #
+#######################################
+
+
+def test_working_directory() -> None:
+    cwd_before = Path.cwd()
+    new_path = cwd_before.parent
+    with working_directory(new_path):
+        assert Path.cwd() == new_path
+
+    assert Path.cwd() == cwd_before
+
+
+def test_working_directory_error() -> None:
+    cwd_before = Path.cwd()
+    with (  # noqa: PT012
+        pytest.raises(RuntimeError, match="Exception"),
+        working_directory(cwd_before.parent),
+    ):
+        msg = "Exception"
+        raise RuntimeError(msg)
+
+    assert Path.cwd() == cwd_before
