@@ -3,9 +3,11 @@ from __future__ import annotations
 import pytest
 
 from coola.utils.format import (
+    find_best_byte_unit,
     repr_indent,
     repr_mapping,
     repr_sequence,
+    str_human_byte_size,
     str_indent,
     str_mapping,
     str_sequence,
@@ -197,3 +199,61 @@ def test_str_sequence_2_items_multiple_line() -> None:
 )
 def test_str_time_human(seconds: float, human: str) -> None:
     assert str_time_human(seconds) == human
+
+
+#########################################
+#     Tests for str_human_byte_size     #
+#########################################
+
+
+@pytest.mark.parametrize(
+    ("size", "output"), [(2, "2.00 B"), (2048, "2,048.00 B"), (2097152, "2,097,152.00 B")]
+)
+def test_str_human_byte_size_b(size: int, output: str) -> None:
+    assert str_human_byte_size(size, "B") == output
+
+
+@pytest.mark.parametrize(
+    ("size", "output"),
+    [(2048, "2.00 KB"), (2097152, "2,048.00 KB"), (2147483648, "2,097,152.00 KB")],
+)
+def test_str_human_byte_size_kb(size: int, output: str) -> None:
+    assert str_human_byte_size(size, "KB") == output
+
+
+@pytest.mark.parametrize(
+    ("size", "output"),
+    [(2048, "0.00 MB"), (2097152, "2.00 MB"), (2147483648, "2,048.00 MB")],
+)
+def test_str_human_byte_size_mb(size: int, output: str) -> None:
+    assert str_human_byte_size(size, "MB") == output
+
+
+@pytest.mark.parametrize(
+    ("size", "output"), [(2048, "0.00 GB"), (2097152, "0.00 GB"), (2147483648, "2.00 GB")]
+)
+def test_str_human_byte_size_gb(size: int, output: str) -> None:
+    assert str_human_byte_size(size, "GB") == output
+
+
+@pytest.mark.parametrize(
+    ("size", "output"),
+    [(2, "2.00 B"), (1023, "1,023.00 B"), (2048, "2.00 KB"), (2097152, "2.00 MB")],
+)
+def test_str_human_byte_size_auto(size: int, output: str) -> None:
+    assert str_human_byte_size(size) == output
+
+
+def test_str_human_byte_size_incorrect_unit() -> None:
+    with pytest.raises(ValueError, match="Incorrect unit ''. The available units are"):
+        assert str_human_byte_size(1, "")
+
+
+#########################################
+#     Tests for find_best_byte_unit     #
+#########################################
+
+
+@pytest.mark.parametrize(("size", "unit"), [(2, "B"), (1023, "B"), (2048, "KB"), (2097152, "MB")])
+def test_find_best_byte_unit(size: int, unit: str) -> None:
+    assert find_best_byte_unit(size) == unit
