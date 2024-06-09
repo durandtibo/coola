@@ -9,7 +9,7 @@ from __future__ import annotations
 __all__ = [
     "AbstractEqualityHandler",
     "BaseEqualityHandler",
-    "EqualHandler",
+    "EqualNanHandler",
     "FalseHandler",
     "JaxArrayEqualHandler",
     "MappingSameKeysHandler",
@@ -37,7 +37,7 @@ __all__ = [
 from coola.equality.handlers.base import AbstractEqualityHandler, BaseEqualityHandler
 from coola.equality.handlers.data import SameDataHandler
 from coola.equality.handlers.dtype import SameDTypeHandler
-from coola.equality.handlers.equal import EqualHandler
+from coola.equality.handlers.equal import EqualNanHandler
 from coola.equality.handlers.jax_ import JaxArrayEqualHandler
 from coola.equality.handlers.mapping import (
     MappingSameKeysHandler,
