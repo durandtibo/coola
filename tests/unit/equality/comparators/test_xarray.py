@@ -476,7 +476,7 @@ def test_xarray_data_array_equality_comparator_equal_true_same_object(
 
 @xarray_available
 @pytest.mark.parametrize("example", XARRAY_DATA_ARRAY_EQUAL)
-def test_xarray_data_array_equality_comparator_equal_yes(
+def test_xarray_data_array_equality_comparator_equal_true(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
@@ -489,7 +489,7 @@ def test_xarray_data_array_equality_comparator_equal_yes(
 
 @xarray_available
 @pytest.mark.parametrize("example", XARRAY_DATA_ARRAY_EQUAL)
-def test_xarray_data_array_equality_comparator_equal_yes_show_difference(
+def test_xarray_data_array_equality_comparator_equal_true_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
@@ -600,32 +600,8 @@ def test_xarray_dataset_equality_comparator_equal_true_same_object(config: Equal
 
 
 @xarray_available
-def test_xarray_dataset_equality_comparator_equal_true(config: EqualityConfig) -> None:
-    assert XarrayDatasetEqualityComparator().equal(
-        xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6), dims=["z"])}),
-        xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6), dims=["z"])}),
-        config,
-    )
-
-
-@xarray_available
-def test_xarray_dataset_equality_comparator_equal_true_show_difference(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
-) -> None:
-    config.show_difference = True
-    comparator = XarrayDatasetEqualityComparator()
-    with caplog.at_level(logging.INFO):
-        assert comparator.equal(
-            xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6), dims=["z"])}),
-            xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6), dims=["z"])}),
-            config,
-        )
-        assert not caplog.messages
-
-
-@xarray_available
 @pytest.mark.parametrize("example", XARRAY_DATASET_EQUAL)
-def test_xarray_dataset_equality_comparator_equal_yes(
+def test_xarray_dataset_equality_comparator_equal_true(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
@@ -638,7 +614,7 @@ def test_xarray_dataset_equality_comparator_equal_yes(
 
 @xarray_available
 @pytest.mark.parametrize("example", XARRAY_DATASET_EQUAL)
-def test_xarray_dataset_equality_comparator_equal_yes_show_difference(
+def test_xarray_dataset_equality_comparator_equal_true_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
@@ -750,7 +726,7 @@ def test_xarray_variable_equality_comparator_equal_true_same_object(config: Equa
 
 @xarray_available
 @pytest.mark.parametrize("example", XARRAY_VARIABLE_EQUAL)
-def test_xarray_variable_equality_comparator_equal_yes(
+def test_xarray_variable_equality_comparator_equal_true(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
@@ -763,7 +739,7 @@ def test_xarray_variable_equality_comparator_equal_yes(
 
 @xarray_available
 @pytest.mark.parametrize("example", XARRAY_VARIABLE_EQUAL)
-def test_xarray_variable_equality_comparator_equal_yes_show_difference(
+def test_xarray_variable_equality_comparator_equal_true_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,

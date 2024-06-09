@@ -276,7 +276,7 @@ def test_numpy_array_equality_comparator_equal_true_same_object(config: Equality
 
 @numpy_available
 @pytest.mark.parametrize("example", NUMPY_ARRAY_EQUAL)
-def test_numpy_array_equality_comparator_equal_yes(
+def test_numpy_array_equality_comparator_equal_true(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
@@ -289,7 +289,7 @@ def test_numpy_array_equality_comparator_equal_yes(
 
 @numpy_available
 @pytest.mark.parametrize("example", NUMPY_ARRAY_EQUAL)
-def test_numpy_array_equality_comparator_equal_yes_show_difference(
+def test_numpy_array_equality_comparator_equal_true_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
@@ -405,7 +405,7 @@ def test_numpy_masked_array_equality_comparator_equal_true_same_object(
 
 @numpy_available
 @pytest.mark.parametrize("example", NUMPY_MASKED_ARRAY_EQUAL)
-def test_numpy_masked_array_equality_comparator_equal_yes(
+def test_numpy_masked_array_equality_comparator_equal_true(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
@@ -418,7 +418,7 @@ def test_numpy_masked_array_equality_comparator_equal_yes(
 
 @numpy_available
 @pytest.mark.parametrize("example", NUMPY_MASKED_ARRAY_EQUAL)
-def test_numpy_masked_array_equality_comparator_equal_yes_show_difference(
+def test_numpy_masked_array_equality_comparator_equal_true_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,

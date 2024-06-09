@@ -92,7 +92,7 @@ def test_scalar_equality_comparator_equal_true_same_object(config: EqualityConfi
 
 
 @pytest.mark.parametrize("example", FLOAT_EQUAL)
-def test_scalar_equality_comparator_equal_yes(
+def test_scalar_equality_comparator_equal_true(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
@@ -104,7 +104,7 @@ def test_scalar_equality_comparator_equal_yes(
 
 
 @pytest.mark.parametrize("example", FLOAT_EQUAL)
-def test_scalar_equality_comparator_equal_yes_show_difference(
+def test_scalar_equality_comparator_equal_true_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
