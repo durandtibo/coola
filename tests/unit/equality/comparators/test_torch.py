@@ -370,7 +370,7 @@ def test_tensor_packed_sequence_equality_comparator_equal_true_same_obj(
 
 @torch_available
 @pytest.mark.parametrize("example", TORCH_PACKED_SEQUENCE_EQUAL)
-def test_tensor_packed_sequence_equality_comparator_equal_yes(
+def test_tensor_packed_sequence_equality_comparator_equal_true(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
@@ -383,7 +383,7 @@ def test_tensor_packed_sequence_equality_comparator_equal_yes(
 
 @torch_available
 @pytest.mark.parametrize("example", TORCH_PACKED_SEQUENCE_EQUAL)
-def test_tensor_packed_sequence_equality_comparator_equal_yes_show_difference(
+def test_tensor_packed_sequence_equality_comparator_equal_true_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
@@ -497,7 +497,7 @@ def test_torch_tensor_equality_comparator_equal_true_same_object(config: Equalit
 
 @torch_available
 @pytest.mark.parametrize("example", TORCH_TENSOR_EQUAL)
-def test_torch_tensor_equality_comparator_equal_yes(
+def test_torch_tensor_equality_comparator_equal_true(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
@@ -510,7 +510,7 @@ def test_torch_tensor_equality_comparator_equal_yes(
 
 @torch_available
 @pytest.mark.parametrize("example", TORCH_TENSOR_EQUAL)
-def test_torch_tensor_equality_comparator_equal_yes_show_difference(
+def test_torch_tensor_equality_comparator_equal_true_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,

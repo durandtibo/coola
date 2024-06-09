@@ -145,7 +145,7 @@ def test_jax_array_equality_comparator_equal_true_same_object(config: EqualityCo
 
 @jax_available
 @pytest.mark.parametrize("example", JAX_ARRAY_EQUAL)
-def test_jax_array_equality_comparator_equal_yes(
+def test_jax_array_equality_comparator_equal_true(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
@@ -158,7 +158,7 @@ def test_jax_array_equality_comparator_equal_yes(
 
 @jax_available
 @pytest.mark.parametrize("example", JAX_ARRAY_EQUAL)
-def test_jax_array_equality_comparator_equal_yes_show_difference(
+def test_jax_array_equality_comparator_equal_true_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,

@@ -256,7 +256,7 @@ def test_mapping_equality_comparator_equal_true_same_object(config: EqualityConf
 
 
 @pytest.mark.parametrize("example", MAPPING_EQUAL)
-def test_mapping_equality_comparator_equal_yes(
+def test_mapping_equality_comparator_equal_true(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
@@ -268,7 +268,7 @@ def test_mapping_equality_comparator_equal_yes(
 
 
 @pytest.mark.parametrize("example", MAPPING_EQUAL)
-def test_mapping_equality_comparator_equal_yes_show_difference(
+def test_mapping_equality_comparator_equal_true_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
@@ -394,40 +394,8 @@ def test_sequence_equality_comparator_equal_true_same_object(config: EqualityCon
     assert SequenceEqualityComparator().equal(obj, obj, config)
 
 
-@pytest.mark.parametrize(
-    ("actual", "expected"),
-    [
-        ([], []),
-        ((), ()),
-        ([1, 2, 3], [1, 2, 3]),
-        ((1, 2, 3), (1, 2, 3)),
-        (["abc", "def"], ["abc", "def"]),
-        (("abc", "def"), ("abc", "def")),
-        ([0, ("a", "b", "c"), 2], [0, ("a", "b", "c"), 2]),
-        (deque([1, 2, 3]), deque([1, 2, 3])),
-    ],
-)
-def test_sequence_equality_comparator_equal_true(
-    caplog: pytest.LogCaptureFixture, actual: Sequence, expected: Sequence, config: EqualityConfig
-) -> None:
-    comparator = SequenceEqualityComparator()
-    with caplog.at_level(logging.INFO):
-        assert comparator.equal(actual, expected, config)
-        assert not caplog.messages
-
-
-def test_sequence_equality_comparator_equal_true_show_difference(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
-) -> None:
-    config.show_difference = True
-    comparator = SequenceEqualityComparator()
-    with caplog.at_level(logging.INFO):
-        assert comparator.equal(actual=[1], expected=[1], config=config)
-        assert not caplog.messages
-
-
 @pytest.mark.parametrize("example", SEQUENCE_EQUAL)
-def test_sequence_equality_comparator_equal_yes(
+def test_sequence_equality_comparator_equal_true(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
@@ -439,7 +407,7 @@ def test_sequence_equality_comparator_equal_yes(
 
 
 @pytest.mark.parametrize("example", SEQUENCE_EQUAL)
-def test_sequence_equality_comparator_equal_yes_show_difference(
+def test_sequence_equality_comparator_equal_true_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
