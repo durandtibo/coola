@@ -2,7 +2,7 @@ r"""Implement handlers to check the objects are equal."""
 
 from __future__ import annotations
 
-__all__ = ["SupportsEqual", "EqualHandler"]
+__all__ = ["SupportsEqualNan", "EqualNanHandler"]
 
 import logging
 from typing import TYPE_CHECKING, Any, Protocol
@@ -16,9 +16,9 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class SupportsEqual(Protocol):
+class SupportsEqualNan(Protocol):
     r"""Implement a protocol to represent objects with a ``equal``
-    method."""
+    method with an option compare NaNs."""
 
     def equal(self, other: Any, equal_nan: bool = False) -> bool:
         r"""Return ``True`` if the two objects are equal, otherwise
@@ -34,7 +34,7 @@ class SupportsEqual(Protocol):
         """
 
 
-class EqualHandler(BaseEqualityHandler):
+class EqualNanHandler(BaseEqualityHandler):
     r"""Check if the two objects have the same data.
 
     This handler returns ``False`` if the two objects are different
@@ -47,7 +47,7 @@ class EqualHandler(BaseEqualityHandler):
     ```pycon
     >>> import math
     >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import EqualHandler
+    >>> from coola.equality.handlers import EqualNanHandler
     >>> from coola.equality.testers import EqualityTester
     >>> class MyFloat:
     ...     def __init__(self, value: float) -> None:
@@ -58,7 +58,7 @@ class EqualHandler(BaseEqualityHandler):
     ...         return self._value == other
     ...
     >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = EqualHandler()
+    >>> handler = EqualNanHandler()
     >>> handler.handle(MyFloat(42), 42, config)
     True
     >>> handler.handle(MyFloat(float("nan")), float("nan"), config)
@@ -76,7 +76,7 @@ class EqualHandler(BaseEqualityHandler):
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
-    def handle(self, actual: SupportsEqual, expected: Any, config: EqualityConfig) -> bool:
+    def handle(self, actual: SupportsEqualNan, expected: Any, config: EqualityConfig) -> bool:
         if not actual.equal(expected, equal_nan=config.equal_nan):
             if config.show_difference:
                 logger.info(f"objects are not equal:\nactual:\n{actual}\nexpected:\n{expected}")
