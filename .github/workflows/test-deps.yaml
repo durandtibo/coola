@@ -147,7 +147,7 @@ jobs:
 
       - name: Install pandas
         run: |
-          poetry run pip install pandas==${{ matrix.pandas-version }}
+          poetry run pip install pandas==${{ matrix.pandas-version }} numpy
 
       - name: Show installed packages
         run: |
