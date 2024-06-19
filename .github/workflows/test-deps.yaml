@@ -173,9 +173,9 @@ jobs:
           - pandas: 2.2.2
             numpy: ""
           - pandas: 2.1.4
-            dep: "numpy<2.0"
+            dep: ""numpy<2.0""
           - pandas: 2.0.3
-            dep: "numpy<2.0"
+            dep: ""numpy<2.0""
 #        exclude:
 #          # python 3.12
 #          - pandas-version: 1.4.4
