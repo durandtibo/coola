@@ -173,9 +173,9 @@ jobs:
           - pandas: 2.2.2
             numpy: ""
           - pandas: 2.1.4
-            numpy-dep: "\<2.0"
+            dep: "numpy<2.0"
           - pandas: 2.0.3
-            numpy-dep: "\<2.0"
+            dep: "numpy<2.0"
 #        exclude:
 #          # python 3.12
 #          - pandas-version: 1.4.4
@@ -210,7 +210,7 @@ jobs:
 
       - name: Install pandas
         run: |
-          poetry run pip install --upgrade pandas==${{ matrix.version.pandas }} numpy${{ matrix.version.numpy-dep }}
+          poetry run pip install --upgrade pandas==${{ matrix.version.pandas }} ${{ matrix.version.dep }}
 
       - name: Show installed packages
         run: |
