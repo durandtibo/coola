@@ -32,8 +32,30 @@ def _install_pandas(version: str) -> None:
     run_bash_command(f"pip install -U pandas=={version}{deps}")
 
 
+def _install_torch(version: str) -> None:
+    r"""Install the torch package and associated packages.
+
+    Args:
+        version: The target version to install.
+    """
+    deps = "" if Version(version) >= Version("2.3.0") else " numpy==1.26.4"
+    run_bash_command(f"pip install -U torch=={version}{deps}")
+
+
+def _install_xarray(version: str) -> None:
+    r"""Install the xarray package and associated packages.
+
+    Args:
+        version: The target version to install.
+    """
+    deps = "" if Version(version) >= Version("2023.9") else " numpy==1.26.4"
+    run_bash_command(f"pip install -U xarray=={version}{deps}")
+
+
 _REGISTRY = {
     "pandas": _install_pandas,
+    "torch": _install_torch,
+    "xarray": _install_xarray,
 }
 
 
