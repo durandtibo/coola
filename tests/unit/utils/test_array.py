@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import suppress
 from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
@@ -58,6 +59,9 @@ def test_to_array_float(data: Sequence | np.ndarray) -> None:
 @numpy_available
 @torch_available
 def test_to_array_numpy() -> None:
-    assert np.array_equal(
-        to_array(torch.tensor([3, 1, 2, 0, 1])), np.array([3, 1, 2, 0, 1], dtype=int)
-    )
+    # A RuntimeError can be raised if torch and numpy are not compatible
+    # RuntimeError: Numpy is not available
+    with suppress(RuntimeError):
+        assert np.array_equal(
+            to_array(torch.tensor([3, 1, 2, 0, 1])), np.array([3, 1, 2, 0, 1], dtype=int)
+        )

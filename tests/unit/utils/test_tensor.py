@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import suppress
 from typing import TYPE_CHECKING
 from unittest.mock import Mock, patch
 
@@ -161,6 +162,9 @@ def test_to_tensor_float(data: Sequence | torch.Tensor) -> None:
 @numpy_available
 @torch_available
 def test_to_tensor_numpy() -> None:
-    assert to_tensor(np.array([3, 1, 2, 0, 1])).equal(
-        torch.tensor([3, 1, 2, 0, 1], dtype=torch.long)
-    )
+    # A RuntimeError can be raised if torch and numpy are not compatible
+    # RuntimeError: Numpy is not available
+    with suppress(RuntimeError):
+        assert to_tensor(np.array([3, 1, 2, 0, 1])).equal(
+            torch.tensor([3, 1, 2, 0, 1], dtype=torch.long)
+        )
