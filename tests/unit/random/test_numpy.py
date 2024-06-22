@@ -49,10 +49,10 @@ def test_numpy_random_manager_get_rng_state() -> None:
 def test_numpy_random_manager_manual_seed() -> None:
     rng = NumpyRandomManager()
     rng.manual_seed(42)
-    x1 = np.random.randn(4, 6)
-    x2 = np.random.randn(4, 6)
+    x1 = np.random.randn(4, 6)  # noqa: NPY002
+    x2 = np.random.randn(4, 6)  # noqa: NPY002
     rng.manual_seed(42)
-    x3 = np.random.randn(4, 6)
+    x3 = np.random.randn(4, 6)  # noqa: NPY002
     assert np.array_equal(x1, x3)
     assert not np.array_equal(x1, x2)
 
@@ -61,10 +61,10 @@ def test_numpy_random_manager_manual_seed() -> None:
 def test_numpy_random_manager_set_rng_state() -> None:
     rng = NumpyRandomManager()
     state = rng.get_rng_state()
-    x1 = np.random.randn(4, 6)
-    x2 = np.random.randn(4, 6)
+    x1 = np.random.randn(4, 6)  # noqa: NPY002
+    x2 = np.random.randn(4, 6)  # noqa: NPY002
     rng.set_rng_state(state)
-    x3 = np.random.randn(4, 6)
+    x3 = np.random.randn(4, 6)  # noqa: NPY002
     assert np.array_equal(x1, x3)
     assert not np.array_equal(x1, x2)
 
@@ -99,26 +99,26 @@ def test_get_random_managers_no_numpy() -> None:
 
 @numpy_available
 def test_numpy_seed_restore_random_seed() -> None:
-    state = np.random.get_state()
+    state = np.random.get_state()  # noqa: NPY002
     with numpy_seed(42):
-        np.random.randn(4, 6)
-    assert objects_are_equal(state, np.random.get_state())
+        np.random.randn(4, 6)  # noqa: NPY002
+    assert objects_are_equal(state, np.random.get_state())  # noqa: NPY002
 
 
 @numpy_available
 def test_numpy_seed_restore_random_seed_with_exception() -> None:
-    state = np.random.get_state()
+    state = np.random.get_state()  # noqa: NPY002
     with pytest.raises(RuntimeError, match="Exception"), numpy_seed(42):  # noqa: PT012
-        np.random.randn(4, 6)
+        np.random.randn(4, 6)  # noqa: NPY002
         msg = "Exception"
         raise RuntimeError(msg)
-    assert objects_are_equal(state, np.random.get_state())
+    assert objects_are_equal(state, np.random.get_state())  # noqa: NPY002
 
 
 @numpy_available
 def test_numpy_seed_same_random_seed() -> None:
     with numpy_seed(42):
-        x1 = np.random.randn(4, 6)
+        x1 = np.random.randn(4, 6)  # noqa: NPY002
     with numpy_seed(42):
-        x2 = np.random.randn(4, 6)
+        x2 = np.random.randn(4, 6)  # noqa: NPY002
     assert np.array_equal(x1, x2)
