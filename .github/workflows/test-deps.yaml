@@ -147,7 +147,7 @@ jobs:
 
       - name: Install pandas
         run: |
-          poetry run python -c "from dev.install import install; install('pandas', '${{ matrix.pandas-version }}')"
+          poetry run python -c "from feu import install_package; install_package('pandas', '${{ matrix.pandas-version }}')"
 
       - name: Show installed packages
         run: |
@@ -297,7 +297,7 @@ jobs:
 
       - name: Install xarray
         run: |
-          poetry run python -c "from dev.install import install; install('xarray', '${{ matrix.xarray-version }}')"
+          poetry run python -c "from feu import install_package; install_package('xarray', '${{ matrix.xarray-version }}')"
 
       - name: Show installed packages
         run: |
