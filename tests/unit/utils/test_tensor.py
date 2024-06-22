@@ -156,15 +156,14 @@ def test_to_tensor_long(data: Sequence | torch.Tensor) -> None:
     ],
 )
 def test_to_tensor_float(data: Sequence | torch.Tensor) -> None:
-    # A RuntimeError can be raised if torch and numpy are not compatible
-    with suppress(RuntimeError):
-        assert to_tensor(data).equal(torch.tensor([3.0, 1.0, 2.0, 0.0, 1.0], dtype=torch.float))
+    assert to_tensor(data).equal(torch.tensor([3.0, 1.0, 2.0, 0.0, 1.0], dtype=torch.float))
 
 
 @numpy_available
 @torch_available
 def test_to_tensor_numpy() -> None:
     # A RuntimeError can be raised if torch and numpy are not compatible
+    # RuntimeError: Numpy is not available
     with suppress(RuntimeError):
         assert to_tensor(np.array([3, 1, 2, 0, 1])).equal(
             torch.tensor([3, 1, 2, 0, 1], dtype=torch.long)
