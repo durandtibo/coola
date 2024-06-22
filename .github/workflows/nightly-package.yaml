@@ -230,7 +230,7 @@ jobs:
       - name: Install package
         run: |
           pip install coola
-          poetry run python -c "from dev.install import install; install('pandas', '${{ matrix.pandas-version }}')"
+          python -c "from dev.install import install; install('pandas', '${{ matrix.pandas-version }}')"
 
       - name: Run some checks
         run: |
@@ -342,7 +342,7 @@ jobs:
       - name: Install package
         run: |
           pip install coola
-          poetry run python -c "from dev.install import install; install('xarray', '${{ matrix.xarray-version }}')"
+          python -c "from dev.install import install; install('xarray', '${{ matrix.xarray-version }}')"
 
       - name: Run some checks
         run: |
