@@ -129,7 +129,7 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         python-version: [ '3.12', '3.11', '3.10', '3.9' ]
-        jax-version: [ 0.4.30, 0.4.1 ]
+        jax-version: [ 0.4.30 ]
 
     steps:
       - name: Checkout
