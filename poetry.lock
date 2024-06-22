@@ -318,6 +318,20 @@ files = [
 test = ["pytest (>=6)"]
 
 [[package]]
+name = "feu"
+version = "0.0.4"
+description = "A light library to help to manage packages"
+optional = false
+python-versions = "<3.13,>=3.9"
+files = [
+    {file = "feu-0.0.4-py3-none-any.whl", hash = "sha256:600fc324becbd8ac6ee89b179062e14cebbdc37b580b2923bc0ffbc2491aaa21"},
+    {file = "feu-0.0.4.tar.gz", hash = "sha256:13644ae047822c11a60cfadd8b36fbeaf43be3153fa35178866d128f3f9d0c8f"},
+]
+
+[package.dependencies]
+packaging = ">=21.0,<25.0"
+
+[[package]]
 name = "filelock"
 version = "3.15.3"
 description = "A platform independent file lock."
@@ -2027,13 +2041,13 @@ test = ["coverage", "flake8 (>=3.7)", "mypy", "pretend", "pytest"]
 
 [[package]]
 name = "virtualenv"
-version = "20.26.2"
+version = "20.26.3"
 description = "Virtual Python Environment builder"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "virtualenv-20.26.2-py3-none-any.whl", hash = "sha256:a624db5e94f01ad993d476b9ee5346fdf7b9de43ccaee0e0197012dc838a0e9b"},
-    {file = "virtualenv-20.26.2.tar.gz", hash = "sha256:82bf0f4eebbb78d36ddaee0283d43fe5736b53880b8a8cdcd37390a07ac3741c"},
+    {file = "virtualenv-20.26.3-py3-none-any.whl", hash = "sha256:8cc4a31139e796e9a7de2cd5cf2489de1217193116a8fd42328f1bd65f434589"},
+    {file = "virtualenv-20.26.3.tar.gz", hash = "sha256:4c43a2a236279d9ea36a0d76f98d84bd6ca94ac4e0f4a3b9d46d05e10fea542a"},
 ]
 
 [package.dependencies]
@@ -2157,4 +2171,4 @@ all = ["jax", "jaxlib", "numpy", "pandas", "polars", "torch", "torch", "xarray"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.13"
-content-hash = "c8cd60b46208e0e09f8b6c02bdb8f3d49db231a60a69df908ee1544bb40a503d"
+content-hash = "55ad2d67c0a3b26304a4a5c9f8d23c4d3767cb01731fb6448b51c7e5bfebfdab"
