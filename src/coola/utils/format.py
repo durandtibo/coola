@@ -49,6 +49,7 @@ def repr_indent(original: Any, num_spaces: int = 2) -> str:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.format import repr_indent
     >>> print(repr_indent("string1\nstring2\n  string3", 4))
     string1
@@ -83,6 +84,7 @@ def repr_mapping(mapping: Mapping, sorted_keys: bool = False, num_spaces: int = 
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.format import repr_mapping
     >>> print(repr_mapping({"key1": "abc", "key2": "something\nelse"}))
     (key1): abc
@@ -111,6 +113,7 @@ def repr_sequence(sequence: Sequence, num_spaces: int = 2) -> str:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.format import repr_indent
     >>> print(repr_sequence(["abc", "something\nelse"]))
     (0): abc
@@ -144,6 +147,7 @@ def str_indent(original: Any, num_spaces: int = 2) -> str:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.format import str_indent
     >>> print(str_indent("string1\nstring2\n  string3", 4))
     string1
@@ -184,6 +188,7 @@ def str_mapping(mapping: Mapping, sorted_keys: bool = False, num_spaces: int = 2
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.format import str_mapping
     >>> print(str_mapping({"key1": "abc", "key2": "something\nelse"}))
     (key1): abc
@@ -212,6 +217,7 @@ def str_sequence(sequence: Sequence, num_spaces: int = 2) -> str:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.format import str_sequence
     >>> print(str_sequence(["abc", "something\nelse"]))
     (0): abc
@@ -242,6 +248,7 @@ def str_time_human(seconds: float) -> str:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.format import str_time_human
     >>> str_time_human(1.2)
     '0:00:01.200000'

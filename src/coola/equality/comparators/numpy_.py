@@ -42,6 +42,7 @@ class NumpyArrayEqualityComparator(BaseEqualityComparator[np.ndarray]):
     Example usage:
 
     ```pycon
+
     >>> import numpy as np
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import NumpyArrayEqualityComparator
@@ -79,6 +80,7 @@ class NumpyMaskedArrayEqualityComparator(BaseEqualityComparator[np.ma.MaskedArra
     Example usage:
 
     ```pycon
+
     >>> import numpy as np
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import NumpyMaskedArrayEqualityComparator
@@ -127,6 +129,7 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
     Example usage:
 
     ```pycon
+
     >>> from coola.equality.comparators.numpy_ import get_type_comparator_mapping
     >>> get_type_comparator_mapping()
     {<class 'numpy.ndarray'>: NumpyArrayEqualityComparator(),

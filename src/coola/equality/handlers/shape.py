@@ -43,6 +43,7 @@ class SameShapeHandler(AbstractEqualityHandler):
     Example usage:
 
     ```pycon
+
     >>> import numpy as np
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import SameShapeHandler, TrueHandler

@@ -34,6 +34,7 @@ class PandasDataFrameEqualHandler(BaseEqualityHandler):
     Example usage:
 
     ```pycon
+
     >>> import pandas
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import PandasDataFrameEqualHandler
@@ -91,6 +92,7 @@ class PandasSeriesEqualHandler(BaseEqualityHandler):
     Example usage:
 
     ```pycon
+
     >>> import pandas
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import PandasSeriesEqualHandler

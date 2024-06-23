@@ -33,6 +33,7 @@ class JaxArrayEqualHandler(BaseEqualityHandler):
     Example usage:
 
     ```pycon
+
     >>> import jax.numpy as jnp
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import JaxArrayEqualHandler

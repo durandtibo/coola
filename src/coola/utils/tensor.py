@@ -34,6 +34,7 @@ def get_available_devices() -> tuple[str, ...]:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.tensor import get_available_devices
     >>> get_available_devices()
     ('cpu'...)
@@ -58,6 +59,7 @@ def is_cuda_available() -> bool:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.tensor import is_cuda_available
     >>> is_cuda_available()
 
@@ -76,6 +78,7 @@ def is_mps_available() -> bool:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.tensor import is_mps_available
     >>> is_mps_available()
 
@@ -102,6 +105,7 @@ def to_tensor(data: Sequence | torch.Tensor | np.ndarray) -> torch.Tensor:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.tensor import to_tensor
     >>> x = to_tensor([1, 2, 3, 4, 5])
     >>> x

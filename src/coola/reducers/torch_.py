@@ -33,6 +33,7 @@ class TorchReducer(BaseBasicReducer[T]):
     Example usage:
 
     ```pycon
+
     >>> from coola.reducers import TorchReducer
     >>> reducer = TorchReducer()
     >>> reducer.max([-2, -1, 0, 1, 2])

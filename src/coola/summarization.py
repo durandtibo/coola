@@ -29,6 +29,7 @@ def summary(value: Any, max_depth: int = 1, summarizer: BaseSummarizer | None = 
     Example usage:
 
     ```pycon
+
     >>> from coola import summary
     >>> print(summary(1))
     <class 'int'> 1

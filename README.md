@@ -88,6 +88,7 @@ The `coola` library was developed to fill this gap. `coola` provides a function 
 that can indicate if two complex/nested objects are equal or not.
 
 ```pycon
+
 >>> import numpy
 >>> import torch
 >>> from coola import objects_are_equal
@@ -102,6 +103,7 @@ False
 objects are equal within a tolerance or not.
 
 ```pycon
+
 >>> import numpy
 >>> import torch
 >>> from coola import objects_are_allclose

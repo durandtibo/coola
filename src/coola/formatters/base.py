@@ -19,6 +19,7 @@ class BaseFormatter(ABC, Generic[T]):
     Example usage:
 
     ```pycon
+
     >>> from coola import Summarizer
     >>> from coola.formatters import DefaultFormatter
     >>> formatter = DefaultFormatter()

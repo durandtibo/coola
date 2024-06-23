@@ -22,6 +22,7 @@ class BaseReducer(ABC, Generic[T]):
     Example usage:
 
     ```pycon
+
     >>> from coola.reducers import NumpyReducer
     >>> reducer = NumpyReducer()
     >>> reducer.max([-2, -1, 0, 1, 2])

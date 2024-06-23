@@ -65,6 +65,7 @@ class EqualHandler(BaseEqualityHandler):
     Example usage:
 
     ```pycon
+
     >>> import math
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import EqualHandler
@@ -113,6 +114,7 @@ class EqualNanHandler(BaseEqualityHandler):
     Example usage:
 
     ```pycon
+
     >>> import math
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import EqualNanHandler

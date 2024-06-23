@@ -11,6 +11,7 @@ implement a custom `BaseEqualityTester` to check if two objects are equal.
 The following example shows how to use a custom `BaseEqualityTester`.
 
 ```pycon
+
 >>> from typing import Any
 >>> from coola import objects_are_equal
 >>> from coola.equality import EqualityConfig
@@ -48,6 +49,7 @@ associated to `list` to compare the two objects.
 You can use the following code to see the registered equality comparators with their associated types.
 
 ```pycon
+
 >>> from coola.equality.testers import EqualityTester
 >>> EqualityTester.registry
 {<class 'object'>: DefaultEqualityComparator(),
@@ -82,6 +84,7 @@ specific type (`str` for this example).
 Then, you need to add the `BaseEqualityComparator` to `EqualityTester`.
 
 ```pycon
+
 >>> from typing import Any
 >>> from coola import objects_are_equal
 >>> from coola.equality.comparators import BaseEqualityComparator
@@ -122,6 +125,7 @@ To update an equality comparator for a given type, you need to add the argument 
 the new equality comparator is added.
 
 ```pycon
+
 >>> from collections.abc import Mapping
 >>> from coola.equality.comparators import BaseEqualityComparator
 >>> from coola.equality.testers import EqualityTester

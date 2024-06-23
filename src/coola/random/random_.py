@@ -50,6 +50,7 @@ def get_random_managers() -> dict[str, BaseRandomManager]:
     Example usage:
 
     ```pycon
+
     >>> from coola.random.random_ import get_random_managers
     >>> get_random_managers()
     {'random': RandomRandomManager()}

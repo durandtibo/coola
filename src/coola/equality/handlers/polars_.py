@@ -35,6 +35,7 @@ class PolarsDataFrameEqualHandler(BaseEqualityHandler):
     Example usage:
 
     ```pycon
+
     >>> import polars
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import PolarsDataFrameEqualHandler
@@ -92,6 +93,7 @@ class PolarsSeriesEqualHandler(BaseEqualityHandler):
     Example usage:
 
     ```pycon
+
     >>> import polars
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import PolarsSeriesEqualHandler

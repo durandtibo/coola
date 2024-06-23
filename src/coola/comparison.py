@@ -47,6 +47,7 @@ def objects_are_allclose(
     Example usage:
 
     ```pycon
+
     >>> import torch
     >>> from coola import objects_are_allclose
     >>> objects_are_allclose(
@@ -104,6 +105,7 @@ def objects_are_equal(
     Example usage:
 
     ```pycon
+
     >>> import torch
     >>> from coola import objects_are_equal
     >>> objects_are_equal(

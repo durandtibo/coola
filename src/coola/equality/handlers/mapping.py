@@ -26,6 +26,7 @@ class MappingSameKeysHandler(AbstractEqualityHandler):
     Example usage:
 
     ```pycon
+
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import MappingSameKeysHandler
     >>> from coola.equality.testers import EqualityTester
@@ -78,6 +79,7 @@ class MappingSameValuesHandler(AbstractEqualityHandler):
     Example usage:
 
     ```pycon
+
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import MappingSameValuesHandler, TrueHandler
     >>> from coola.equality.testers import EqualityTester
