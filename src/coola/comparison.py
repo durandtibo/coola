@@ -28,16 +28,16 @@ def objects_are_allclose(
     r"""Indicate if two objects are equal within a tolerance.
 
     Args:
-        actual: Specifies the actual input.
-        expected: Specifies the expected input.
-        rtol: Specifies the relative tolerance parameter.
-        atol: Specifies the absolute tolerance parameter.
+        actual: The actual input.
+        expected: The expected input.
+        rtol: The relative tolerance parameter.
+        atol: The absolute tolerance parameter.
         equal_nan: If ``True``, then two ``NaN``s  will be considered
             as equal.
         show_difference: If ``True``, it shows a difference between
             the two objects if they are different. This parameter is
             useful to find the difference between two objects.
-        tester: Specifies an equality tester. If ``None``,
+        tester: The equality tester. If ``None``,
             ``EqualityTester`` is used.
 
     Returns:
@@ -88,14 +88,14 @@ def objects_are_equal(
     r"""Indicate if two objects are equal or not.
 
     Args:
-        actual: Specifies the actual input.
-        expected: Specifies the expected input.
+        actual: The actual input.
+        expected: The expected input.
         equal_nan: If ``True``, then two ``NaN``s  will be considered
             as equal.
         show_difference: If ``True``, it shows a difference between
             the two objects if they are different. This parameter is
             useful to find the difference between two objects.
-        tester: Specifies an equality tester. If ``None``,
+        tester: The equality tester. If ``None``,
             ``EqualityTester`` is used.
 
     Returns:

@@ -29,7 +29,7 @@ class SupportsEqual(Protocol):
         ``False``.
 
         Args:
-            other: Specifies the value to compare with.
+            other: The value to compare with.
 
         Returns:
             ``True`` if the two objects are equal, otherwise ``False``
@@ -45,7 +45,7 @@ class SupportsEqualNan(Protocol):
         ``False``.
 
         Args:
-            other: Specifies the value to compare with.
+            other: The value to compare with.
             equal_nan: Whether to compare NaN's as equal. If ``True``,
                 NaN's in both objects will be considered equal.
 

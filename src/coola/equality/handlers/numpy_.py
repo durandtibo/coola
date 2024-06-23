@@ -76,9 +76,9 @@ def array_equal(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) 
     r"""Indicate if the two arrays are equal within a tolerance.
 
     Args:
-        array1: Specifies the first array to compare.
-        array2: Specifies the second array to compare.
-        config: Specifies the equality configuration.
+        array1: The first array to compare.
+        array2: The second array to compare.
+        config: The equality configuration.
 
     Returns:
         ``True` `if the two arrays are equal within a tolerance,

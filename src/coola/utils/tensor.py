@@ -97,7 +97,7 @@ def to_tensor(data: Sequence | torch.Tensor | np.ndarray) -> torch.Tensor:
     r"""Convert the input to a ``torch.Tensor``.
 
     Args:
-        data: Specifies the data to convert to a tensor.
+        data: The data to convert to a tensor.
 
     Returns:
         A tensor.

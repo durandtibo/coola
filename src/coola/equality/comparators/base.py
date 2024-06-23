@@ -65,9 +65,9 @@ class BaseEqualityComparator(ABC, Generic[T]):
         r"""Indicate if two objects are equal or not.
 
         Args:
-            actual: Specifies the actual input.
-            expected: Specifies the expected input.
-            config: Specifies the equality configuration.
+            actual: The actual input.
+            expected: The expected input.
+            config: The equality configuration.
 
         Returns:
             ``True`` if the two objects are equal, otherwise ``False``.

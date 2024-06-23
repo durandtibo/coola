@@ -27,7 +27,7 @@ def to_array(data: Sequence | torch.Tensor | np.ndarray) -> np.ndarray:
     r"""Convert the input to a ``numpy.ndarray``.
 
     Args:
-        data: Specifies the data to convert to a NumPy array.
+        data: The data to convert to a NumPy array.
 
     Returns:
         A NumPy array.

@@ -117,9 +117,9 @@ def tensor_equal(tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityC
     r"""Indicate if the two tensors are equal within a tolerance.
 
     Args:
-        tensor1: Specifies the first tensor to compare.
-        tensor2: Specifies the second tensor to compare.
-        config: Specifies the equality configuration.
+        tensor1: The first tensor to compare.
+        tensor2: The second tensor to compare.
+        config: The equality configuration.
 
     Returns:
         ``True``if the two tensors are equal within a tolerance,

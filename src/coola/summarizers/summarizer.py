@@ -103,8 +103,8 @@ class Summarizer(BaseSummarizer):
         r"""Add a formatter for a given data type.
 
         Args:
-            data_type: Specifies the data type for this test.
-            formatter: Specifies the formatter to use for the
+            data_type: The data type for this test.
+            formatter: The formatter to use for the
                 specified type.
             exist_ok: If ``False``, ``RuntimeError`` is raised if the
                 data type already exists. This parameter should be set
@@ -139,7 +139,7 @@ class Summarizer(BaseSummarizer):
         type.
 
         Args:
-            data_type: Specifies the data type to check.
+            data_type: The data type to check.
 
         Returns:
             ``True`` if a formatter is registered,
@@ -164,7 +164,7 @@ class Summarizer(BaseSummarizer):
         r"""Find the formatter associated to an object.
 
         Args:
-            data_type: Specifies the data type to get.
+            data_type: The data type to get.
 
         Returns:
             The formatter associated to the data type.
@@ -246,7 +246,7 @@ class Summarizer(BaseSummarizer):
         ``set_max_characters``.
 
         Args:
-            max_characters: Specifies the maximum of characters.
+            max_characters: The maximum of characters.
 
         Example usage:
 
@@ -276,7 +276,7 @@ class Summarizer(BaseSummarizer):
         ``set_max_items``.
 
         Args:
-            max_items: Specifies the maximum number of items to show.
+            max_items: The maximum number of items to show.
 
         Example usage:
 
@@ -306,7 +306,7 @@ class Summarizer(BaseSummarizer):
         ``set_num_spaces``.
 
         Args:
-            num_spaces: Specifies the number of spaces for indentation.
+            num_spaces: The number of spaces for indentation.
 
         Example usage:
 
@@ -337,12 +337,12 @@ def set_summarizer_options(
     this function.
 
     Args:
-        max_characters: Specifies the maximum number of characters
+        max_characters: The maximum number of characters
             to show. If ``None``, the maximum number of characters
             is unchanged.
-        max_items: Specifies the maximum number of items to show.
+        max_items: The maximum number of items to show.
             If ``None``, the maximum number of items is unchanged.
-        num_spaces: Specifies the number of spaces for indentation.
+        num_spaces: The number of spaces for indentation.
             If ``None``, the number of  spaces for indentation is
             unchanged.
 

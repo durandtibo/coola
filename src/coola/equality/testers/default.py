@@ -32,8 +32,8 @@ class EqualityTester(BaseEqualityTester):
         r"""Add an equality comparator for a given data type.
 
         Args:
-            data_type: Specifies the data type for this test.
-            comparator: Specifies the comparator used to test the equality
+            data_type: The data type for this test.
+            comparator: The comparator used to test the equality
                 of the specified type.
             exist_ok: If ``False``, ``RuntimeError`` is raised if the
                 data type already exists. This parameter should be set
@@ -70,7 +70,7 @@ class EqualityTester(BaseEqualityTester):
         given data type.
 
         Args:
-            data_type: Specifies the data type to check.
+            data_type: The data type to check.
 
         Returns:
             ``True`` if an equality comparator is registered,
@@ -94,7 +94,7 @@ class EqualityTester(BaseEqualityTester):
         r"""Find the equality comparator associated to an object.
 
         Args:
-            data_type: Specifies the data type to get.
+            data_type: The data type to get.
 
         Returns:
             The equality comparator associated to the data type.
@@ -142,7 +142,7 @@ class LocalEqualityTester(BaseEqualityTester):
     """Implement an equality tester that can be easily customized.
 
     Args:
-        registry: Specifies the initial registry with the equality
+        registry: The initial registry with the equality
             comparators.
     """
 
@@ -163,8 +163,8 @@ class LocalEqualityTester(BaseEqualityTester):
         r"""Add an equality comparator for a given data type.
 
         Args:
-            data_type: Specifies the data type for this test.
-            comparator: Specifies the comparator used to test the equality
+            data_type: The data type for this test.
+            comparator: The comparator used to test the equality
                 of the specified type.
             exist_ok: If ``False``, ``RuntimeError`` is raised if the
                 data type already exists. This parameter should be
@@ -219,7 +219,7 @@ class LocalEqualityTester(BaseEqualityTester):
         given data type.
 
         Args:
-            data_type: Specifies the data type to check.
+            data_type: The data type to check.
 
         Returns:
             ``True`` if an equality comparator is registered,
@@ -243,7 +243,7 @@ class LocalEqualityTester(BaseEqualityTester):
         r"""Find the equality comparator associated to an object.
 
         Args:
-            data_type: Specifies the data type to get.
+            data_type: The data type to get.
 
         Returns:
             The equality comparator associated to the data type.
