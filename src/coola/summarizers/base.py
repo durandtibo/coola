@@ -61,9 +61,9 @@ class BaseSummarizer(ABC):
         r"""Summarize the input value in a string.
 
         Args:
-            value: Specifies the value to summarize.
-            depth: Specifies the current depth.
-            max_depth: Specifies the maximum depth to summarize if the
+            value: The value to summarize.
+            depth: The current depth.
+            max_depth: The maximum depth to summarize if the
                 input is nested.
 
         Returns:

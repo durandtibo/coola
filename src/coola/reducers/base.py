@@ -40,7 +40,7 @@ class BaseReducer(ABC, Generic[T]):
         r"""Compute the maximum value.
 
         Args:
-            values: Specifies the values.
+            values: The values.
 
         Returns:
             The maximum value.
@@ -63,7 +63,7 @@ class BaseReducer(ABC, Generic[T]):
         r"""Compute the mean value.
 
         Args:
-            values: Specifies the values.
+            values: The values.
 
         Returns:
             The mean value.
@@ -86,7 +86,7 @@ class BaseReducer(ABC, Generic[T]):
         r"""Compute the median value.
 
         Args:
-            values: Specifies the values.
+            values: The values.
 
         Returns:
             The median value.
@@ -109,7 +109,7 @@ class BaseReducer(ABC, Generic[T]):
         r"""Compute the minimum value.
 
         Args:
-            values: Specifies the values.
+            values: The values.
 
         Returns:
             The minimum value.
@@ -132,8 +132,8 @@ class BaseReducer(ABC, Generic[T]):
         r"""Compute the quantiles.
 
         Args:
-            values: Specifies the values.
-            quantiles (sequence of float): Specifies the quantile
+            values: The values.
+            quantiles (sequence of float): The quantile
                 values in the range ``[0, 1]``.
 
         Returns:
@@ -157,8 +157,8 @@ class BaseReducer(ABC, Generic[T]):
         r"""Sorts the values.
 
         Args:
-            values: Specifies the values.
-            descending: Specifies the sorting order.
+            values: The values.
+            descending: The sorting order.
 
         Returns:
             The sorted values.
@@ -180,7 +180,7 @@ class BaseReducer(ABC, Generic[T]):
         r"""Compute the standard deviation.
 
         Args:
-            values: Specifies the values.
+            values: The values.
 
         Returns:
             The standard deviation.
@@ -222,7 +222,7 @@ class BaseBasicReducer(BaseReducer[T]):
         r"""Compute the maximum value.
 
         Args:
-            values: Specifies the values.
+            values: The values.
 
         Returns:
             The maximum value.
@@ -239,7 +239,7 @@ class BaseBasicReducer(BaseReducer[T]):
         r"""Compute the mean value.
 
         Args:
-            values: Specifies the values.
+            values: The values.
 
         Returns:
             The mean value.
@@ -256,7 +256,7 @@ class BaseBasicReducer(BaseReducer[T]):
         r"""Compute the median value.
 
         Args:
-            values: Specifies the values.
+            values: The values.
 
         Returns:
             The median value.
@@ -273,7 +273,7 @@ class BaseBasicReducer(BaseReducer[T]):
         r"""Compute the minimum value.
 
         Args:
-            values: Specifies the values.
+            values: The values.
 
         Returns:
             The minimum value.
@@ -290,8 +290,8 @@ class BaseBasicReducer(BaseReducer[T]):
         r"""Compute the quantiles.
 
         Args:
-            values: Specifies the values.
-            quantiles: Specifies the quantile values in the
+            values: The values.
+            quantiles: The quantile values in the
                 range ``[0, 1]``.
 
         Returns:
@@ -309,7 +309,7 @@ class BaseBasicReducer(BaseReducer[T]):
         r"""Compute the standard deviation.
 
         Args:
-            values: Specifies the values.
+            values: The values.
 
         Returns:
             The standard deviation.

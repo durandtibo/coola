@@ -37,7 +37,7 @@ class Reduction:
         r"""Check if the reducer is available.
 
         Args:
-            reducer: Specifies the reducer name.
+            reducer: The reducer name.
 
         Raises:
             RuntimeError: if the reducer is not available.
@@ -59,7 +59,7 @@ class Reduction:
         r"""Initialize the reduction strategy.
 
         Args:
-            reducer: Specifies the name of the reducer to use.
+            reducer: The name of the reducer to use.
 
         Example usage:
 

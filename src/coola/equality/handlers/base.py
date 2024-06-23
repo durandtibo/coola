@@ -43,7 +43,7 @@ class BaseEqualityHandler(ABC):
         r"""Chain a handler to the current handler.
 
         Args:
-            handler: Specifies the handler to chain.
+            handler: The handler to chain.
 
         Returns:
             The input handler.
@@ -70,9 +70,9 @@ class BaseEqualityHandler(ABC):
         r"""Return the equality result between the two input objects.
 
         Args:
-            actual: Specifies the actual input.
-            expected: Specifies the expected input.
-            config: Specifies the equality configuration.
+            actual: The actual input.
+            expected: The expected input.
+            config: The equality configuration.
 
         Returns:
             ``True`` if the input objects are equal, and ``False``
@@ -137,9 +137,9 @@ class AbstractEqualityHandler(BaseEqualityHandler):
         r"""Return the output from the next handler.
 
         Args:
-            actual: Specifies the actual input.
-            expected: Specifies the expected input.
-            config: Specifies the equality configuration.
+            actual: The actual input.
+            expected: The expected input.
+            config: The equality configuration.
 
         Returns:
             The output from the next handler.

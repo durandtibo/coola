@@ -17,10 +17,10 @@ def summary(value: Any, max_depth: int = 1, summarizer: BaseSummarizer | None = 
     r"""Summarize the input value in a string.
 
     Args:
-        value: Specifies the value to summarize.
-        max_depth: Specifies the maximum depth to summarize if the
+        value: The value to summarize.
+        max_depth: The maximum depth to summarize if the
             input is nested.
-        summarizer: Specifies the summarization strategy. If ``None``,
+        summarizer: The summarization strategy. If ``None``,
             the default ``Summarizer`` is used.
 
     Returns:

@@ -135,9 +135,9 @@ def frame_equal(df1: pd.DataFrame, df2: pd.DataFrame, config: EqualityConfig) ->
     r"""Indicate if the two DataFrames are equal or not.
 
     Args:
-        df1: Specifies the first DataFrame to compare.
-        df2: Specifies the second DataFrame to compare.
-        config: Specifies the equality configuration.
+        df1: The first DataFrame to compare.
+        df2: The second DataFrame to compare.
+        config: The equality configuration.
 
     Returns:
         ``True``if the two DataFrame are equal, otherwise ``False``.
@@ -162,9 +162,9 @@ def series_equal(series1: pd.Series, series2: pd.Series, config: EqualityConfig)
     r"""Indicate if the two series are equal or not.
 
     Args:
-        series1: Specifies the first series to compare.
-        series2: Specifies the second series to compare.
-        config: Specifies the equality configuration.
+        series1: The first series to compare.
+        series2: The second series to compare.
+        config: The equality configuration.
 
     Returns:
         ``True``if the two series are equal, otherwise ``False``.

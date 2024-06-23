@@ -136,7 +136,7 @@ def has_nan(df_or_series: polars.DataFrame | polars.Series) -> bool:
     r"""Indicate if a DataFrame or Series has NaN values.
 
     Args:
-        df_or_series: Specifies the DataFrame or series to check.
+        df_or_series: The DataFrame or series to check.
 
     Returns:
         ``True`` if the DataFrame or Series has NaN values,
@@ -151,9 +151,9 @@ def frame_equal(df1: polars.DataFrame, df2: polars.DataFrame, config: EqualityCo
     r"""Indicate if the two DataFrames are equal or not.
 
     Args:
-        df1: Specifies the first DataFrame to compare.
-        df2: Specifies the second DataFrame to compare.
-        config: Specifies the equality configuration.
+        df1: The first DataFrame to compare.
+        df2: The second DataFrame to compare.
+        config: The equality configuration.
 
     Returns:
         ``True``if the two DataFrame are equal, otherwise ``False``.
@@ -177,9 +177,9 @@ def series_equal(series1: polars.Series, series2: polars.Series, config: Equalit
     r"""Indicate if the two series are equal or not.
 
     Args:
-        series1: Specifies the first series to compare.
-        series2: Specifies the second series to compare.
-        config: Specifies the equality configuration.
+        series1: The first series to compare.
+        series2: The second series to compare.
+        config: The equality configuration.
 
     Returns:
         ``True``if the two series are equal, otherwise ``False``.

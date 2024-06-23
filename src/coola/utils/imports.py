@@ -39,8 +39,8 @@ def decorator_package_available(
     installed.
 
     Args:
-        fn: Specifies the function to execute.
-        condition: Specifies the condition to
+        fn: The function to execute.
+        condition: The condition to
             check if a package is installed or not.
 
     Returns:
@@ -125,7 +125,7 @@ def jax_available(fn: Callable[..., Any]) -> Callable[..., Any]:
     package is installed.
 
     Args:
-        fn: Specifies the function to execute.
+        fn: The function to execute.
 
     Returns:
         A wrapper around ``fn`` if ``jax`` package is installed,
@@ -199,7 +199,7 @@ def numpy_available(fn: Callable[..., Any]) -> Callable[..., Any]:
     package is installed.
 
     Args:
-        fn: Specifies the function to execute.
+        fn: The function to execute.
 
     Returns:
         A wrapper around ``fn`` if ``numpy`` package is installed,
@@ -273,7 +273,7 @@ def pandas_available(fn: Callable[..., Any]) -> Callable[..., Any]:
     package is installed.
 
     Args:
-        fn: Specifies the function to execute.
+        fn: The function to execute.
 
     Returns:
         A wrapper around ``fn`` if ``pandas`` package is installed,
@@ -347,7 +347,7 @@ def polars_available(fn: Callable[..., Any]) -> Callable[..., Any]:
     package is installed.
 
     Args:
-        fn: Specifies the function to execute.
+        fn: The function to execute.
 
     Returns:
         A wrapper around ``fn`` if ``polars`` package is installed,
@@ -421,7 +421,7 @@ def torch_available(fn: Callable[..., Any]) -> Callable[..., Any]:
     package is installed.
 
     Args:
-        fn: Specifies the function to execute.
+        fn: The function to execute.
 
     Returns:
         A wrapper around ``fn`` if ``torch`` package is installed,
@@ -495,7 +495,7 @@ def xarray_available(fn: Callable[..., Any]) -> Callable[..., Any]:
     package is installed.
 
     Args:
-        fn: Specifies the function to execute.
+        fn: The function to execute.
 
     Returns:
         A wrapper around ``fn`` if ``xarray`` package is installed,

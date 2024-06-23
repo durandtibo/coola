@@ -103,9 +103,9 @@ def number_equal(number1: float, number2: float, config: EqualityConfig) -> bool
     r"""Indicate if the two numbers are equal within a tolerance.
 
     Args:
-        number1: Specifies the first number to compare.
-        number2: Specifies the second number to compare.
-        config: Specifies the equality configuration.
+        number1: The first number to compare.
+        number2: The second number to compare.
+        config: The equality configuration.
 
     Returns:
         ``True``if the two numbers are equal within a tolerance,

@@ -26,8 +26,8 @@ class ReducerRegistry:
         r"""Add a reducer to the registry.
 
         Args:
-            name: Specifies the name of the reducer.
-            reducer: Specifies the reducer.
+            name: The name of the reducer.
+            reducer: The reducer.
             exist_ok: If ``False``, ``RuntimeError`` is raised if the
                 name already exists. This parameter should be set to
                 ``True`` to overwrite the existing reducer.
@@ -76,7 +76,7 @@ class ReducerRegistry:
         r"""Indicate if a reducer is registered for the given name.
 
         Args:
-            name: Specifies the name to check.
+            name: The name to check.
 
         Returns:
             ``True`` if a reducer is registered,

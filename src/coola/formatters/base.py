@@ -56,7 +56,7 @@ class BaseFormatter(ABC, Generic[T]):
         r"""Indicate if the other object is equal to the self object.
 
         Args:
-            other: Specifies the other object to compare.
+            other: The other object to compare.
 
         Returns:
             ``True`` if the objects are equal, otherwise ``False``.
@@ -79,10 +79,10 @@ class BaseFormatter(ABC, Generic[T]):
         r"""Format a value.
 
         Args:
-            summarizer: Specifies the summarizer.
-            value: Specifies the value to summarize.
-            depth: Specifies the current depth.
-            max_depth: Specifies the maximum depth.
+            summarizer: The summarizer.
+            value: The value to summarize.
+            depth: The current depth.
+            max_depth: The maximum depth.
 
         Returns:
             str: The formatted value.
