@@ -40,6 +40,7 @@ class XarrayDataArrayEqualityComparator(BaseEqualityComparator[xr.DataArray]):
     Example usage:
 
     ```pycon
+
     >>> import numpy as np
     >>> import xarray as xr
     >>> from coola.equality import EqualityConfig
@@ -86,6 +87,7 @@ class XarrayDatasetEqualityComparator(BaseEqualityComparator[xr.Dataset]):
     Example usage:
 
     ```pycon
+
     >>> import numpy as np
     >>> import xarray as xr
     >>> from coola.equality import EqualityConfig
@@ -132,6 +134,7 @@ class XarrayVariableEqualityComparator(BaseEqualityComparator[xr.Variable]):
     Example usage:
 
     ```pycon
+
     >>> import numpy as np
     >>> import xarray as xr
     >>> from coola.equality import EqualityConfig
@@ -185,6 +188,7 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
     Example usage:
 
     ```pycon
+
     >>> from coola.equality.comparators.xarray_ import get_type_comparator_mapping
     >>> get_type_comparator_mapping()
     {<class 'xarray...DataArray'>: XarrayDataArrayEqualityComparator(),

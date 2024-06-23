@@ -21,6 +21,7 @@ class NativeReducer(BaseBasicReducer[T]):
     Example usage:
 
     ```pycon
+
     >>> from coola.reducers import NativeReducer
     >>> reducer = NativeReducer()
     >>> reducer.max([-2, -1, 0, 1, 2])

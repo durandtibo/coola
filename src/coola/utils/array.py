@@ -35,6 +35,7 @@ def to_array(data: Sequence | torch.Tensor | np.ndarray) -> np.ndarray:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.array import to_array
     >>> x = to_array([1, 2, 3, 4, 5])
     >>> x

@@ -27,6 +27,7 @@ class ScalarEqualityComparator(BaseEqualityComparator[Any]):
     Example usage:
 
     ```pycon
+
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import ScalarEqualityComparator
     >>> from coola.equality.testers import EqualityTester
@@ -63,6 +64,7 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
     Example usage:
 
     ```pycon
+
     >>> from coola.equality.comparators.scalar import get_type_comparator_mapping
     >>> get_type_comparator_mapping()
     {<class 'float'>: ScalarEqualityComparator(), <class 'int'>: ScalarEqualityComparator()}

@@ -33,6 +33,7 @@ class MappingEqualityComparator(BaseEqualityComparator[Mapping]):
     Example usage:
 
     ```pycon
+
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import MappingEqualityComparator
     >>> from coola.equality.testers import EqualityTester
@@ -68,6 +69,7 @@ class SequenceEqualityComparator(BaseEqualityComparator[Sequence]):
     Example usage:
 
     ```pycon
+
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import SequenceEqualityComparator
     >>> from coola.equality.testers import EqualityTester
@@ -106,6 +108,7 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
     Example usage:
 
     ```pycon
+
     >>> from coola.equality.comparators.collection import get_type_comparator_mapping
     >>> get_type_comparator_mapping()
     {<class 'collections.abc.Mapping'>: MappingEqualityComparator(),

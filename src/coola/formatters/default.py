@@ -33,6 +33,7 @@ class DefaultFormatter(BaseFormatter[Any]):
     Example usage:
 
     ```pycon
+
     >>> from coola import Summarizer
     >>> from coola.formatters import DefaultFormatter
     >>> formatter = DefaultFormatter()
@@ -140,6 +141,7 @@ class BaseCollectionFormatter(BaseFormatter[T]):
     Example usage:
 
     ```pycon
+
     >>> from coola import Summarizer
     >>> from coola.formatters import MappingFormatter
     >>> formatter = MappingFormatter()
@@ -277,6 +279,7 @@ class MappingFormatter(BaseCollectionFormatter[Mapping]):
     Example usage:
 
     ```pycon
+
     >>> from coola import Summarizer
     >>> from coola.formatters import MappingFormatter
     >>> formatter = MappingFormatter()
@@ -319,6 +322,7 @@ class SequenceFormatter(BaseCollectionFormatter[Sequence]):
     Example usage:
 
     ```pycon
+
     >>> from coola import Summarizer
     >>> from coola.formatters import SequenceFormatter
     >>> formatter = SequenceFormatter()
@@ -357,6 +361,7 @@ class SetFormatter(BaseCollectionFormatter[set]):
     Example usage:
 
     ```pycon
+
     >>> from coola import Summarizer
     >>> from coola.formatters import SetFormatter
     >>> formatter = SetFormatter()

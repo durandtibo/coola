@@ -24,6 +24,7 @@ class BaseEqualityHandler(ABC):
     Example usage:
 
     ```pycon
+
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import SameObjectHandler, FalseHandler
     >>> from coola.equality.testers import EqualityTester

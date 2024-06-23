@@ -33,6 +33,7 @@ class NumpyArrayEqualHandler(BaseEqualityHandler):
     Example usage:
 
     ```pycon
+
     >>> import numpy as np
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import NumpyArrayEqualHandler

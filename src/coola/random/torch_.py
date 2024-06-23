@@ -71,6 +71,7 @@ def get_random_managers() -> dict[str, BaseRandomManager]:
     Example usage:
 
     ```pycon
+
     >>> from coola.random.torch_ import get_random_managers
     >>> get_random_managers()
     {'torch': TorchRandomManager()}

@@ -13,6 +13,7 @@ class BaseSummarizer(ABC):
     r"""Define the base class to implement a summarizer.
 
     ```pycon
+
     >>> from coola import Summarizer
     >>> summarizer = Summarizer()
     >>> summarizer

@@ -22,6 +22,7 @@ def auto_reducer() -> BaseReducer:
     Example usage:
 
     ```pycon
+
     >>> from coola.reducers import auto_reducer
     >>> reducer = auto_reducer()
 

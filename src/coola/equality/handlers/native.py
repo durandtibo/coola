@@ -35,6 +35,7 @@ class FalseHandler(BaseEqualityHandler):
     Example usage:
 
     ```pycon
+
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import FalseHandler
     >>> from coola.equality.testers import EqualityTester
@@ -75,6 +76,7 @@ class TrueHandler(BaseEqualityHandler):
     Example usage:
 
     ```pycon
+
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import TrueHandler
     >>> from coola.equality.testers import EqualityTester
@@ -118,6 +120,7 @@ class ObjectEqualHandler(BaseEqualityHandler):
     Example usage:
 
     ```pycon
+
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import ObjectEqualHandler
     >>> from coola.equality.testers import EqualityTester
@@ -162,6 +165,7 @@ class SameAttributeHandler(AbstractEqualityHandler):
     Example usage:
 
     ```pycon
+
     >>> import numpy as np
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import SameAttributeHandler, TrueHandler
@@ -215,6 +219,7 @@ class SameLengthHandler(AbstractEqualityHandler):
     Example usage:
 
     ```pycon
+
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import SameLengthHandler
     >>> from coola.equality.testers import EqualityTester
@@ -251,6 +256,7 @@ class SameObjectHandler(AbstractEqualityHandler):
     Example usage:
 
     ```pycon
+
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import SameObjectHandler
     >>> from coola.equality.testers import EqualityTester
@@ -285,6 +291,7 @@ class SameTypeHandler(AbstractEqualityHandler):
     Example usage:
 
     ```pycon
+
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import SameTypeHandler
     >>> from coola.equality.testers import EqualityTester

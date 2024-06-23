@@ -39,6 +39,7 @@ class PandasDataFrameEqualityComparator(BaseEqualityComparator[pd.DataFrame]):
     Example usage:
 
     ```pycon
+
     >>> import pandas as pd
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import PandasDataFrameEqualityComparator
@@ -82,6 +83,7 @@ class PandasSeriesEqualityComparator(BaseEqualityComparator[pd.Series]):
     Example usage:
 
     ```pycon
+
     >>> import pandas as pd
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import PandasSeriesEqualityComparator
@@ -124,6 +126,7 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
     Example usage:
 
     ```pycon
+
     >>> from coola.equality.comparators.pandas_ import get_type_comparator_mapping
     >>> get_type_comparator_mapping()
     {<class 'pandas...DataFrame'>: PandasDataFrameEqualityComparator(),

@@ -50,6 +50,7 @@ def decorator_package_available(
     Example usage:
 
     ```pycon
+
     >>> from functools import partial
     >>> from coola.utils.imports import decorator_package_available
     >>> decorator = partial(decorator_package_available, condition=is_numpy_available)
@@ -86,6 +87,7 @@ def is_jax_available() -> bool:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.imports import is_jax_available
     >>> is_jax_available()
 
@@ -103,6 +105,7 @@ def check_jax() -> None:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.imports import check_jax
     >>> check_jax()
 
@@ -131,6 +134,7 @@ def jax_available(fn: Callable[..., Any]) -> Callable[..., Any]:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.imports import jax_available
     >>> @jax_available
     ... def my_function(n: int = 0) -> int:
@@ -157,6 +161,7 @@ def is_numpy_available() -> bool:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.imports import is_numpy_available
     >>> is_numpy_available()
 
@@ -174,6 +179,7 @@ def check_numpy() -> None:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.imports import check_numpy
     >>> check_numpy()
 
@@ -202,6 +208,7 @@ def numpy_available(fn: Callable[..., Any]) -> Callable[..., Any]:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.imports import numpy_available
     >>> @numpy_available
     ... def my_function(n: int = 0) -> int:
@@ -228,6 +235,7 @@ def is_pandas_available() -> bool:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.imports import is_pandas_available
     >>> is_pandas_available()
 
@@ -245,6 +253,7 @@ def check_pandas() -> None:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.imports import check_pandas
     >>> check_pandas()
 
@@ -273,6 +282,7 @@ def pandas_available(fn: Callable[..., Any]) -> Callable[..., Any]:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.imports import pandas_available
     >>> @pandas_available
     ... def my_function(n: int = 0) -> int:
@@ -299,6 +309,7 @@ def is_polars_available() -> bool:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.imports import is_polars_available
     >>> is_polars_available()
 
@@ -316,6 +327,7 @@ def check_polars() -> None:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.imports import check_polars
     >>> check_polars()
 
@@ -344,6 +356,7 @@ def polars_available(fn: Callable[..., Any]) -> Callable[..., Any]:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.imports import polars_available
     >>> @polars_available
     ... def my_function(n: int = 0) -> int:
@@ -370,6 +383,7 @@ def is_torch_available() -> bool:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.imports import is_torch_available
     >>> is_torch_available()
 
@@ -387,6 +401,7 @@ def check_torch() -> None:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.imports import check_torch
     >>> check_torch()
 
@@ -415,6 +430,7 @@ def torch_available(fn: Callable[..., Any]) -> Callable[..., Any]:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.imports import torch_available
     >>> @torch_available
     ... def my_function(n: int = 0) -> int:
@@ -441,6 +457,7 @@ def is_xarray_available() -> bool:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.imports import is_xarray_available
     >>> is_xarray_available()
 
@@ -458,6 +475,7 @@ def check_xarray() -> None:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.imports import check_xarray
     >>> check_xarray()
 
@@ -486,6 +504,7 @@ def xarray_available(fn: Callable[..., Any]) -> Callable[..., Any]:
     Example usage:
 
     ```pycon
+
     >>> from coola.utils.imports import xarray_available
     >>> @xarray_available
     ... def my_function(n: int = 0) -> int:

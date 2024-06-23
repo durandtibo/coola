@@ -33,6 +33,7 @@ class NDArrayFormatter(BaseFormatter[np.ndarray]):
     Example usage:
 
     ```pycon
+
     >>> import numpy as np
     >>> from coola import Summarizer
     >>> from coola.formatters import NDArrayFormatter

@@ -36,6 +36,7 @@ class JaxArrayEqualityComparator(BaseEqualityComparator[jnp.ndarray]):
     Example usage:
 
     ```pycon
+
     >>> import jax.numpy as jnp
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import JaxArrayEqualityComparator
@@ -80,6 +81,7 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
     Example usage:
 
     ```pycon
+
     >>> from coola.equality.comparators.jax_ import get_type_comparator_mapping
     >>> get_type_comparator_mapping()
     {<class 'jax.Array'>: JaxArrayEqualityComparator(),

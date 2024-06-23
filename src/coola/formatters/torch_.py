@@ -31,6 +31,7 @@ class TensorFormatter(BaseFormatter[torch.Tensor]):
     Example usage:
 
     ```pycon
+
     >>> import torch
     >>> from coola import Summarizer
     >>> from coola.formatters import TensorFormatter
