@@ -319,13 +319,13 @@ test = ["pytest (>=6)"]
 
 [[package]]
 name = "feu"
-version = "0.0.4"
+version = "0.0.6"
 description = "A light library to help to manage packages"
 optional = false
 python-versions = "<3.13,>=3.9"
 files = [
-    {file = "feu-0.0.4-py3-none-any.whl", hash = "sha256:600fc324becbd8ac6ee89b179062e14cebbdc37b580b2923bc0ffbc2491aaa21"},
-    {file = "feu-0.0.4.tar.gz", hash = "sha256:13644ae047822c11a60cfadd8b36fbeaf43be3153fa35178866d128f3f9d0c8f"},
+    {file = "feu-0.0.6-py3-none-any.whl", hash = "sha256:12ab0e4cd2d8f360d07b6b72b732d8a7d59357de0718587423328358a3c5b495"},
+    {file = "feu-0.0.6.tar.gz", hash = "sha256:62cec3aab71df7f8ce0f78a67b7277c53700ff230817c808835df897c92ad8f1"},
 ]
 
 [package.dependencies]
