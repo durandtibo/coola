@@ -17,14 +17,16 @@ __all__ = [
     "is_torch_available",
     "is_xarray_available",
     "jax_available",
+    "module_available",
     "numpy_available",
+    "package_available",
     "pandas_available",
     "polars_available",
     "torch_available",
     "xarray_available",
-    "package_available",
 ]
 
+import importlib
 from contextlib import suppress
 from functools import lru_cache, wraps
 from importlib.util import find_spec
@@ -57,6 +59,35 @@ def package_available(name: str) -> bool:
     """
     with suppress(ModuleNotFoundError):
         return find_spec(name) is not None
+    return False
+
+
+@lru_cache
+def module_available(name: str) -> bool:
+    """Indicate if a module is available or not.
+
+    Args:
+        name: The module name to check.
+
+    Returns:
+        ``True`` if the module is available, otherwise ``False``.
+
+    Example usage:
+
+    ```pycon
+
+    >>> module_available('os')
+    True
+    >>> module_available('os.missing')
+    False
+    >>> module_available('missing.module')
+    False
+
+    ```
+    """
+    with suppress(ImportError):
+        importlib.import_module(name)
+        return True
     return False
 
 

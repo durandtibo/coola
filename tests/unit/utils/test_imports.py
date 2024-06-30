@@ -21,6 +21,7 @@ from coola.utils.imports import (
     is_torch_available,
     is_xarray_available,
     jax_available,
+    module_available,
     numpy_available,
     package_available,
     pandas_available,
@@ -51,6 +52,23 @@ def test_package_available_false() -> None:
 
 def test_package_available_false_subpackage() -> None:
     assert not package_available("missing.package")
+
+
+######################################
+#     Tests for module_available     #
+######################################
+
+
+def test_module_available_true() -> None:
+    assert module_available("os")
+
+
+def test_module_available_false() -> None:
+    assert not module_available("os.missing")
+
+
+def test_module_available_false_submodule() -> None:
+    assert not module_available("missing.module")
 
 
 #################################################

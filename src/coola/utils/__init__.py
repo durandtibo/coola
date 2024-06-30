@@ -14,6 +14,8 @@ __all__ = [
     "is_polars_available",
     "is_torch_available",
     "is_xarray_available",
+    "module_available",
+    "package_available",
     "repr_indent",
     "repr_mapping",
     "repr_sequence",
@@ -42,4 +44,6 @@ from coola.utils.imports import (
     is_polars_available,
     is_torch_available,
     is_xarray_available,
+    module_available,
+    package_available,
 )
