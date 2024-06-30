@@ -106,6 +106,7 @@ def decorator_package_available(
 ###############
 
 
+@lru_cache
 def is_jax_available() -> bool:
     r"""Indicate if the ``jax`` package is installed or not.
 
@@ -121,7 +122,7 @@ def is_jax_available() -> bool:
 
     ```
     """
-    return find_spec("jax") is not None
+    return package_available("jax")
 
 
 def check_jax() -> None:
@@ -180,6 +181,7 @@ def jax_available(fn: Callable[..., Any]) -> Callable[..., Any]:
 #################
 
 
+@lru_cache
 def is_numpy_available() -> bool:
     r"""Indicate if the ``numpy`` package is installed or not.
 
@@ -195,7 +197,7 @@ def is_numpy_available() -> bool:
 
     ```
     """
-    return find_spec("numpy") is not None
+    return package_available("numpy")
 
 
 def check_numpy() -> None:
@@ -254,6 +256,7 @@ def numpy_available(fn: Callable[..., Any]) -> Callable[..., Any]:
 ##################
 
 
+@lru_cache
 def is_pandas_available() -> bool:
     r"""Indicate if the ``pandas`` package is installed or not.
 
@@ -269,7 +272,7 @@ def is_pandas_available() -> bool:
 
     ```
     """
-    return find_spec("pandas") is not None
+    return package_available("pandas")
 
 
 def check_pandas() -> None:
@@ -328,6 +331,7 @@ def pandas_available(fn: Callable[..., Any]) -> Callable[..., Any]:
 ##################
 
 
+@lru_cache
 def is_polars_available() -> bool:
     r"""Indicate if the ``polars`` package is installed or not.
 
@@ -343,7 +347,7 @@ def is_polars_available() -> bool:
 
     ```
     """
-    return find_spec("polars") is not None
+    return package_available("polars")
 
 
 def check_polars() -> None:
@@ -402,6 +406,7 @@ def polars_available(fn: Callable[..., Any]) -> Callable[..., Any]:
 #################
 
 
+@lru_cache
 def is_torch_available() -> bool:
     r"""Indicate if the ``torch`` package is installed or not.
 
@@ -417,7 +422,7 @@ def is_torch_available() -> bool:
 
     ```
     """
-    return find_spec("torch") is not None
+    return package_available("torch")
 
 
 def check_torch() -> None:
@@ -476,6 +481,7 @@ def torch_available(fn: Callable[..., Any]) -> Callable[..., Any]:
 ##################
 
 
+@lru_cache
 def is_xarray_available() -> bool:
     r"""Indicate if the ``xarray`` package is installed or not.
 
@@ -491,7 +497,7 @@ def is_xarray_available() -> bool:
 
     ```
     """
-    return find_spec("xarray") is not None
+    return package_available("xarray")
 
 
 def check_xarray() -> None:
