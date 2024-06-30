@@ -22,6 +22,7 @@ from coola.utils.imports import (
     is_xarray_available,
     jax_available,
     numpy_available,
+    package_available,
     pandas_available,
     polars_available,
     torch_available,
@@ -33,6 +34,23 @@ logger = logging.getLogger(__name__)
 
 def my_function(n: int = 0) -> int:
     return 42 + n
+
+
+#######################################
+#     Tests for package_available     #
+#######################################
+
+
+def test_package_available_true() -> None:
+    assert package_available("os")
+
+
+def test_package_available_false() -> None:
+    assert not package_available("missing_package")
+
+
+def test_package_available_false_subpackage() -> None:
+    assert not package_available("missing.package")
 
 
 #################################################
