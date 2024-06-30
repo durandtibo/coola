@@ -22,14 +22,42 @@ __all__ = [
     "polars_available",
     "torch_available",
     "xarray_available",
+    "package_available",
 ]
 
-from functools import wraps
+from contextlib import suppress
+from functools import lru_cache, wraps
 from importlib.util import find_spec
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+
+@lru_cache
+def package_available(name: str) -> bool:
+    """Indicate if a package is available or not.
+
+    Args:
+        name: The package name to check.
+
+    Returns:
+        ``True`` if the package is available, otherwise ``False``.
+
+    Example usage:
+
+    ```pycon
+
+    >>> package_available("os")
+    True
+    >>> package_available("missing_package")
+    False
+
+    ```
+    """
+    with suppress(ModuleNotFoundError):
+        return find_spec(name) is not None
+    return False
 
 
 def decorator_package_available(
