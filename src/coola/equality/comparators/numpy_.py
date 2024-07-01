@@ -87,9 +87,17 @@ class NumpyMaskedArrayEqualityComparator(BaseEqualityComparator[np.ma.MaskedArra
     >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> comparator = NumpyMaskedArrayEqualityComparator()
-    >>> comparator.equal(np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]), np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]), config,)
+    >>> comparator.equal(
+    ...     np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
+    ...     np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
+    ...     config,
+    ... )
     True
-    >>> comparator.equal(np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]), np.ma.array(data=[0.0, 1.0, 2.0], mask=[0, 1, 0]), config,)
+    >>> comparator.equal(
+    ...     np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
+    ...     np.ma.array(data=[0.0, 1.0, 2.0], mask=[0, 1, 0]),
+    ...     config,
+    ... )
     False
 
     ```

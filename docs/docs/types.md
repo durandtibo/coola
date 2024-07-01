@@ -244,9 +244,13 @@ You can use `objects_are_allclose` to compare objects with NaNs.
 >>> import numpy as np
 >>> import xarray as xr
 >>> from coola import objects_are_equal
->>> objects_are_equal(xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"]))
+>>> objects_are_equal(
+...     xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"])
+... )
 True
->>> objects_are_equal(xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.zeros(6), dims=["z"]))
+>>> objects_are_equal(
+...     xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.zeros(6), dims=["z"])
+... )
 False
 
 ```
@@ -604,9 +608,13 @@ You can use `objects_are_allclose` to compare objects with NaNs.
 >>> import numpy as np
 >>> import xarray as xr
 >>> from coola import objects_are_allclose
->>> objects_are_allclose(xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"]))
+>>> objects_are_allclose(
+...     xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"])
+... )
 True
->>> objects_are_allclose(xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.zeros(6), dims=["z"]))
+>>> objects_are_allclose(
+...     xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.zeros(6), dims=["z"])
+... )
 False
 
 ```

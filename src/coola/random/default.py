@@ -78,10 +78,8 @@ class RandomManager(BaseRandomManager):
         >>> class OtherRandomManager(BaseRandomManager):
         ...     def get_rng_state(self) -> dict:
         ...         return {}
-        ...
         ...     def manual_seed(self, seed: int) -> None:
         ...         pass
-        ...
         ...     def set_rng_state(self, state: dict) -> dict:
         ...         pass
         ...

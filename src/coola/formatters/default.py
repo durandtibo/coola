@@ -145,7 +145,7 @@ class BaseCollectionFormatter(BaseFormatter[T]):
     >>> from coola import Summarizer
     >>> from coola.formatters import MappingFormatter
     >>> formatter = MappingFormatter()
-    >>> print(formatter.format(Summarizer(), {'key1': 1.2, 'key2': 'abc', 'key3': 42}))
+    >>> print(formatter.format(Summarizer(), {"key1": 1.2, "key2": "abc", "key3": 42}))
     <class 'dict'> (length=3)
       (key1): 1.2
       (key2): abc
@@ -283,7 +283,7 @@ class MappingFormatter(BaseCollectionFormatter[Mapping]):
     >>> from coola import Summarizer
     >>> from coola.formatters import MappingFormatter
     >>> formatter = MappingFormatter()
-    >>> print(formatter.format(Summarizer(), {'key1': 1.2, 'key2': 'abc', 'key3': 42}))
+    >>> print(formatter.format(Summarizer(), {"key1": 1.2, "key2": "abc", "key3": 42}))
     <class 'dict'> (length=3)
       (key1): 1.2
       (key2): abc

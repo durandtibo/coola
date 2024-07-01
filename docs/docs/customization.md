@@ -93,7 +93,6 @@ Then, you need to add the `BaseEqualityComparator` to `EqualityTester`.
 >>> class MyCustomStrEqualityOperator(BaseEqualityComparator):
 ...     def clone(self) -> "MyCustomStrEqualityOperator":
 ...         return self.__class__()
-...
 ...     def equal(self, actual: str, expected: Any, config: EqualityConfig) -> bool:
 ...         # You can add code to check the type and to log a message to indicate
 ...         # the difference between the objects if any. To keep this example
@@ -132,7 +131,6 @@ the new equality comparator is added.
 >>> class MyCustomMappingEqualityComparator(BaseEqualityComparator):
 ...     def clone(self) -> "MyCustomMappingEqualityComparator":
 ...         return self.__class__()
-...
 ...     def equal(self, actual: Mapping, expected: Any, config: EqualityConfig) -> bool:
 ...         # You can add code to check the type and to log a message to indicate
 ...         # the difference between the objects if any. To keep this example
