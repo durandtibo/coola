@@ -340,8 +340,8 @@ def test_polars_dataframe_equality_comparator_equal_nan(
     config.equal_nan = equal_nan
     assert (
         PolarsDataFrameEqualityComparator().equal(
-            actual=polars.DataFrame({"col": [1, float("nan"), 3]}),
-            expected=polars.DataFrame({"col": [1, float("nan"), 3]}),
+            actual=polars.DataFrame({"col": [1.0, float("nan"), 3.0]}),
+            expected=polars.DataFrame({"col": [1.0, float("nan"), 3.0]}),
             config=config,
         )
         == equal_nan
