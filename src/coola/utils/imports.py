@@ -76,11 +76,11 @@ def module_available(name: str) -> bool:
 
     ```pycon
 
-    >>> module_available('os')
+    >>> module_available("os")
     True
-    >>> module_available('os.missing')
+    >>> module_available("os.missing")
     False
-    >>> module_available('missing.module')
+    >>> module_available("missing.module")
     False
 
     ```

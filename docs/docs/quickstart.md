@@ -125,7 +125,6 @@ It is also possible to test more complex objects
 ...     "dict": {"torch": torch.arange(5), "str": "abcd"},
 ...     "int": 1,
 ... }
-...
 >>> objects_are_equal(data1, data2)
 False
 
@@ -398,12 +397,18 @@ It can also be used on mappings or sequences:
 ...     [torch.ones(2, 3), torch.zeros(3)],
 ... )
 >>> torch.testing.assert_close(
-...     {'key1': torch.ones(2, 3), 'key2': torch.zeros(3)},
-...     {'key1': torch.ones(2, 3), 'key2': torch.zeros(3)},
+...     {"key1": torch.ones(2, 3), "key2": torch.zeros(3)},
+...     {"key1": torch.ones(2, 3), "key2": torch.zeros(3)},
 ... )
 >>> torch.testing.assert_close(
-...     {'key1': torch.ones(2, 3), 'key2': {'key3': torch.zeros(3), 'key4': [torch.arange(5)]}},
-...     {'key1': torch.ones(2, 3), 'key2': {'key3': torch.zeros(3), 'key4': [torch.arange(5)]}},
+...     {
+...         "key1": torch.ones(2, 3),
+...         "key2": {"key3": torch.zeros(3), "key4": [torch.arange(5)]},
+...     },
+...     {
+...         "key1": torch.ones(2, 3),
+...         "key2": {"key3": torch.zeros(3), "key4": [torch.arange(5)]},
+...     },
 ... )
 
 ```
@@ -428,8 +433,8 @@ However, it does not work if the data structure contains a string:
 
 >>> import torch
 >>> torch.testing.assert_close(
-...     {'key1': torch.ones(2, 3), 'key2': torch.zeros(3), "key3": "abc"},
-...     {'key1': torch.ones(2, 3), 'key2': torch.zeros(3), "key3": "abc"},
+...     {"key1": torch.ones(2, 3), "key2": torch.zeros(3), "key3": "abc"},
+...     {"key1": torch.ones(2, 3), "key2": torch.zeros(3), "key3": "abc"},
 ... )
 Traceback (most recent call last):
 ...
@@ -445,8 +450,8 @@ The failure occurred for item ['key3']
 >>> import torch
 >>> import coola
 >>> coola.objects_are_equal(
-...     {'key1': torch.ones(2, 3), 'key2': torch.zeros(3), "key3": "abc"},
-...     {'key1': torch.ones(2, 3), 'key2': torch.zeros(3), "key3": "abc"},
+...     {"key1": torch.ones(2, 3), "key2": torch.zeros(3), "key3": "abc"},
+...     {"key1": torch.ones(2, 3), "key2": torch.zeros(3), "key3": "abc"},
 ... )
 True
 
@@ -483,12 +488,12 @@ For example, it can work with strings but can handle only simple sequence and ma
 >>> import numpy as np
 >>> from collections import deque
 >>> np.testing.assert_equal(
-...     {'key1': np.ones((2, 3)), 'key2': np.zeros(3)},
-...     {'key1': np.ones((2, 3)), 'key2': np.zeros(3)},
+...     {"key1": np.ones((2, 3)), "key2": np.zeros(3)},
+...     {"key1": np.ones((2, 3)), "key2": np.zeros(3)},
 ... )
 >>> np.testing.assert_equal(
-...     {'key1': np.ones((2, 3)), 'key2': np.zeros(3), "key3": "abc"},
-...     {'key1': np.ones((2, 3)), 'key2': np.zeros(3), "key3": "abc"},
+...     {"key1": np.ones((2, 3)), "key2": np.zeros(3), "key3": "abc"},
+...     {"key1": np.ones((2, 3)), "key2": np.zeros(3), "key3": "abc"},
 ... )
 >>> np.testing.assert_equal(
 ...     deque([np.ones((2, 3)), np.zeros(3)]),
@@ -508,13 +513,13 @@ ValueError: The truth value of an array with more than one element is ambiguous.
 >>> import numpy as np
 >>> from collections import deque
 >>> coola.objects_are_equal(
-...     {'key1': np.ones((2, 3)), 'key2': np.zeros(3)},
-...     {'key1': np.ones((2, 3)), 'key2': np.zeros(3)},
+...     {"key1": np.ones((2, 3)), "key2": np.zeros(3)},
+...     {"key1": np.ones((2, 3)), "key2": np.zeros(3)},
 ... )
 True
 >>> coola.objects_are_equal(
-...     {'key1': np.ones((2, 3)), 'key2': np.zeros(3), "key3": "abc"},
-...     {'key1': np.ones((2, 3)), 'key2': np.zeros(3), "key3": "abc"},
+...     {"key1": np.ones((2, 3)), "key2": np.zeros(3), "key3": "abc"},
+...     {"key1": np.ones((2, 3)), "key2": np.zeros(3), "key3": "abc"},
 ... )
 True
 >>> coola.objects_are_equal(

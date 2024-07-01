@@ -96,14 +96,14 @@ class XarrayDatasetEqualityComparator(BaseEqualityComparator[xr.Dataset]):
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> comparator = XarrayDatasetEqualityComparator()
     >>> comparator.equal(
-    ...     xr.Dataset({ "x": xr.DataArray(np.arange(6), dims=["z"])}),
-    ...     xr.Dataset({ "x": xr.DataArray(np.arange(6), dims=["z"])}),
+    ...     xr.Dataset({"x": xr.DataArray(np.arange(6), dims=["z"])}),
+    ...     xr.Dataset({"x": xr.DataArray(np.arange(6), dims=["z"])}),
     ...     config,
     ... )
     True
     >>> comparator.equal(
-    ...     xr.Dataset({ "x": xr.DataArray(np.zeros(6), dims=["z"])}),
-    ...     xr.Dataset({ "x": xr.DataArray(np.ones(6), dims=["z"])}),
+    ...     xr.Dataset({"x": xr.DataArray(np.zeros(6), dims=["z"])}),
+    ...     xr.Dataset({"x": xr.DataArray(np.ones(6), dims=["z"])}),
     ...     config,
     ... )
     False
