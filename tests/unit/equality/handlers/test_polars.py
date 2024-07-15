@@ -356,6 +356,7 @@ def test_polars_series_equal_handler_set_next_handler() -> None:
 #############################
 
 
+@polars_available
 @pytest.mark.parametrize(
     "df_or_series",
     [
@@ -374,6 +375,7 @@ def test_has_nan_true(df_or_series: polars.DataFrame | polars.Series) -> None:
     assert not has_nan(df_or_series)
 
 
+@polars_available
 @pytest.mark.parametrize(
     "df_or_series",
     [
