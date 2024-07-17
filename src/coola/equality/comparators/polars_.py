@@ -40,21 +40,21 @@ class PolarsDataFrameEqualityComparator(BaseEqualityComparator[pl.DataFrame]):
 
     ```pycon
 
-    >>> import polars as np
+    >>> import polars as pl
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import PolarsDataFrameEqualityComparator
     >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> comparator = PolarsDataFrameEqualityComparator()
     >>> comparator.equal(
-    ...     polars.DataFrame({"col": [1, 2, 3]}),
-    ...     polars.DataFrame({"col": [1, 2, 3]}),
+    ...     pl.DataFrame({"col": [1, 2, 3]}),
+    ...     pl.DataFrame({"col": [1, 2, 3]}),
     ...     config,
     ... )
     True
     >>> comparator.equal(
-    ...     polars.DataFrame({"col": [1, 2, 3]}),
-    ...     polars.DataFrame({"col": [1, 2, 4]}),
+    ...     pl.DataFrame({"col": [1, 2, 3]}),
+    ...     pl.DataFrame({"col": [1, 2, 4]}),
     ...     config,
     ... )
     False
@@ -84,15 +84,15 @@ class PolarsSeriesEqualityComparator(BaseEqualityComparator[pl.Series]):
 
     ```pycon
 
-    >>> import polars as np
+    >>> import polars as pl
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import PolarsSeriesEqualityComparator
     >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> comparator = PolarsSeriesEqualityComparator()
-    >>> comparator.equal(polars.Series([1, 2, 3]), polars.Series([1, 2, 3]), config)
+    >>> comparator.equal(pl.Series([1, 2, 3]), pl.Series([1, 2, 3]), config)
     True
-    >>> comparator.equal(polars.Series([1, 2, 3]), polars.Series([1, 2, 4]), config)
+    >>> comparator.equal(pl.Series([1, 2, 3]), pl.Series([1, 2, 4]), config)
     False
 
     ```
