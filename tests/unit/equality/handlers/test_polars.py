@@ -358,18 +358,18 @@ def test_polars_series_equal_handler_set_next_handler() -> None:
 @pytest.mark.parametrize(
     "df_or_series",
     [
-        polars.Series(["A", "B", "C"]),
-        polars.Series([1, 2, 3]),
-        polars.Series([1, 2, 3], dtype=polars.Int64),
-        polars.Series([1, 2, 3], dtype=polars.Float64),
-        polars.Series([True]),
-        polars.DataFrame({"col": [1, 2, 3]}),
-        polars.DataFrame({"col": [1, 2, 3]}, schema={"col": polars.Int64}),
-        polars.DataFrame({"col": [1, 2, 3]}, schema={"col": polars.Float64}),
-        polars.DataFrame({"col": ["A", "B", "C"]}, schema={"col": polars.String}),
+        pl.Series(["A", "B", "C"]),
+        pl.Series([1, 2, 3]),
+        pl.Series([1, 2, 3], dtype=pl.Int64),
+        pl.Series([1, 2, 3], dtype=pl.Float64),
+        pl.Series([True]),
+        pl.DataFrame({"col": [1, 2, 3]}),
+        pl.DataFrame({"col": [1, 2, 3]}, schema={"col": pl.Int64}),
+        pl.DataFrame({"col": [1, 2, 3]}, schema={"col": pl.Float64}),
+        pl.DataFrame({"col": ["A", "B", "C"]}, schema={"col": pl.String}),
     ],
 )
-def test_has_nan_true(df_or_series: polars.DataFrame | polars.Series) -> None:
+def test_has_nan_true(df_or_series: pl.DataFrame | pl.Series) -> None:
     assert not has_nan(df_or_series)
 
 
@@ -377,11 +377,11 @@ def test_has_nan_true(df_or_series: polars.DataFrame | polars.Series) -> None:
 @pytest.mark.parametrize(
     "df_or_series",
     [
-        polars.Series([1.0, 2.0, float("nan")]),
-        polars.Series([1.0, float("nan"), 3.0], dtype=polars.Float64),
-        polars.DataFrame({"col": [1.0, 2.0, float("nan")]}),
-        polars.DataFrame({"col": [1.0, 2.0, float("nan")]}, schema={"col": polars.Float64}),
+        pl.Series([1.0, 2.0, float("nan")]),
+        pl.Series([1.0, float("nan"), 3.0], dtype=pl.Float64),
+        pl.DataFrame({"col": [1.0, 2.0, float("nan")]}),
+        pl.DataFrame({"col": [1.0, 2.0, float("nan")]}, schema={"col": pl.Float64}),
     ],
 )
-def test_has_nan_false(df_or_series: polars.DataFrame | polars.Series) -> None:
+def test_has_nan_false(df_or_series: pl.DataFrame | pl.Series) -> None:
     assert has_nan(df_or_series)
