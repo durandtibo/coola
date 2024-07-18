@@ -33,7 +33,7 @@ if is_jax_available():
 if is_pandas_available():
     import pandas as pd
 if is_polars_available():
-    import polars
+    import polars as pl
 if is_torch_available():
     import torch
 
@@ -157,14 +157,14 @@ def test_same_shape_handler_handle_pandas(config: EqualityConfig) -> None:
 @polars_available
 def test_same_shape_handler_handle_polars(config: EqualityConfig) -> None:
     assert SameShapeHandler(next_handler=TrueHandler()).handle(
-        polars.DataFrame(
+        pl.DataFrame(
             {
                 "col1": [1, 2, 3, 4, 5],
                 "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
             }
         ),
-        polars.DataFrame(
+        pl.DataFrame(
             {
                 "col1": [1, 2, 3, 4, 5],
                 "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
