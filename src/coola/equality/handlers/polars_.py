@@ -146,7 +146,7 @@ def has_nan(df_or_series: pl.DataFrame | pl.Series) -> bool:
     if isinstance(df_or_series, pl.Series):
         return df_or_series.dtype.is_numeric() and df_or_series.is_nan().any()
     frame = df_or_series.select(cs.numeric())
-    if frame.shape == (0, 0):
+    if frame.is_empty():
         return False
     return frame.select(pl.any_horizontal(pl.all().is_nan().any())).item()
 

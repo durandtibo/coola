@@ -366,7 +366,7 @@ def test_polars_series_equal_handler_set_next_handler() -> None:
         pl.DataFrame({"col": [1, 2, 3]}),
         pl.DataFrame({"col": [1, 2, 3]}, schema={"col": pl.Int64}),
         pl.DataFrame({"col": [1, 2, 3]}, schema={"col": pl.Float64}),
-        pl.DataFrame({"col": ["A", "B", "C"]}, schema={"col": pl.String}),
+        pl.DataFrame({"col": ["A", "B", "C"]}),
     ],
 )
 def test_has_nan_true(df_or_series: pl.DataFrame | pl.Series) -> None:
