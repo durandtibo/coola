@@ -45,7 +45,7 @@ if is_numpy_available():
 if is_pandas_available():
     import pandas as pd
 if is_polars_available():
-    import polars
+    import polars as pl
 if is_torch_available():
     import torch
 if is_xarray_available():
@@ -92,8 +92,8 @@ def test_get_type_comparator_mapping_pandas() -> None:
 @polars_available
 def test_get_type_comparator_mapping_polars() -> None:
     mapping = get_type_comparator_mapping()
-    assert isinstance(mapping[polars.DataFrame], PolarsDataFrameEqualityComparator)
-    assert isinstance(mapping[polars.Series], PolarsSeriesEqualityComparator)
+    assert isinstance(mapping[pl.DataFrame], PolarsDataFrameEqualityComparator)
+    assert isinstance(mapping[pl.Series], PolarsSeriesEqualityComparator)
 
 
 @torch_available

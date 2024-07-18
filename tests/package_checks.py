@@ -29,7 +29,7 @@ if is_numpy_available():
 if is_pandas_available():
     import pandas as pd
 if is_polars_available():
-    import polars
+    import polars as pl
 if is_torch_available():
     import torch
 if is_xarray_available():
@@ -141,44 +141,44 @@ def check_polars_comparators() -> None:
     logger.info("Checking polars comparators...")
     assert is_polars_available()
     assert objects_are_allclose(
-        polars.DataFrame(
+        pl.DataFrame(
             {
                 "col1": [1, 2, 3, 4, 5],
                 "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
-                "col4": polars.Series(
+                "col4": pl.Series(
                     ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
                 ).str.to_datetime(),
             }
         ),
-        polars.DataFrame(
+        pl.DataFrame(
             {
                 "col1": [1, 2, 3, 4, 5],
                 "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
-                "col4": polars.Series(
+                "col4": pl.Series(
                     ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
                 ).str.to_datetime(),
             }
         ),
     )
     assert objects_are_equal(
-        polars.DataFrame(
+        pl.DataFrame(
             {
                 "col1": [1, 2, 3, 4, 5],
                 "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
-                "col4": polars.Series(
+                "col4": pl.Series(
                     ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
                 ).str.to_datetime(),
             }
         ),
-        polars.DataFrame(
+        pl.DataFrame(
             {
                 "col1": [1, 2, 3, 4, 5],
                 "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                 "col3": ["a", "b", "c", "d", "e"],
-                "col4": polars.Series(
+                "col4": pl.Series(
                     ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
                 ).str.to_datetime(),
             }
