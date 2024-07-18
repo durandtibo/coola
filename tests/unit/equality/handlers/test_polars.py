@@ -12,6 +12,7 @@ from coola.equality.handlers import (
     PolarsDataFrameEqualHandler,
     PolarsSeriesEqualHandler,
 )
+from coola.equality.handlers.polars_ import has_nan
 from coola.equality.testers import EqualityTester
 from coola.testing import polars_available
 from coola.utils import is_polars_available
@@ -346,3 +347,41 @@ def test_polars_series_equal_handler_handle_true_tolerance(
 
 def test_polars_series_equal_handler_set_next_handler() -> None:
     PolarsSeriesEqualHandler().set_next_handler(FalseHandler())
+
+
+#############################
+#     Tests for has_nan     #
+#############################
+
+
+@polars_available
+@pytest.mark.parametrize(
+    "df_or_series",
+    [
+        pl.Series(["A", "B", "C"]),
+        pl.Series([1, 2, 3]),
+        pl.Series([1, 2, 3], dtype=pl.Int64),
+        pl.Series([1, 2, 3], dtype=pl.Float64),
+        pl.Series([True]),
+        pl.DataFrame({"col": [1, 2, 3]}),
+        pl.DataFrame({"col": [1, 2, 3]}, schema={"col": pl.Int64}),
+        pl.DataFrame({"col": [1, 2, 3]}, schema={"col": pl.Float64}),
+        pl.DataFrame({"col": ["A", "B", "C"]}),
+    ],
+)
+def test_has_nan_true(df_or_series: pl.DataFrame | pl.Series) -> None:
+    assert not has_nan(df_or_series)
+
+
+@polars_available
+@pytest.mark.parametrize(
+    "df_or_series",
+    [
+        pl.Series([1.0, 2.0, float("nan")]),
+        pl.Series([1.0, float("nan"), 3.0], dtype=pl.Float64),
+        pl.DataFrame({"col": [1.0, 2.0, float("nan")]}),
+        pl.DataFrame({"col": [1.0, 2.0, float("nan")]}, schema={"col": pl.Float64}),
+    ],
+)
+def test_has_nan_false(df_or_series: pl.DataFrame | pl.Series) -> None:
+    assert has_nan(df_or_series)
