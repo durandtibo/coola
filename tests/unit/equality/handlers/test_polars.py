@@ -22,9 +22,9 @@ from tests.unit.equality.comparators.test_polars import (
 )
 
 if is_polars_available():
-    import polars
+    import polars as pl
 else:  # pragma: no cover
-    polars = Mock()
+    pl = Mock()
 
 if TYPE_CHECKING:
     from tests.unit.equality.comparators.utils import ExamplePair
@@ -60,17 +60,17 @@ def test_polars_dataframe_equal_handler_str() -> None:
 @pytest.mark.parametrize(
     ("actual", "expected"),
     [
-        (polars.DataFrame({}), polars.DataFrame({})),
-        (polars.DataFrame({"col": [1, 2, 3]}), polars.DataFrame({"col": [1, 2, 3]})),
+        (pl.DataFrame({}), pl.DataFrame({})),
+        (pl.DataFrame({"col": [1, 2, 3]}), pl.DataFrame({"col": [1, 2, 3]})),
         (
-            polars.DataFrame(
+            pl.DataFrame(
                 {
                     "col1": [1, 2, 3, 4, 5],
                     "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
                     "col3": ["a", "b", "c", "d", "e"],
                 }
             ),
-            polars.DataFrame(
+            pl.DataFrame(
                 {
                     "col1": [1, 2, 3, 4, 5],
                     "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
@@ -81,8 +81,8 @@ def test_polars_dataframe_equal_handler_str() -> None:
     ],
 )
 def test_polars_dataframe_equal_handler_handle_true(
-    actual: polars.DataFrame,
-    expected: polars.DataFrame,
+    actual: pl.DataFrame,
+    expected: pl.DataFrame,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
@@ -101,7 +101,7 @@ def test_polars_dataframe_equal_handler_handle_true_show_difference(
     handler = PolarsDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
         assert handler.handle(
-            polars.DataFrame({"col": [1, 2, 3]}), polars.DataFrame({"col": [1, 2, 3]}), config
+            pl.DataFrame({"col": [1, 2, 3]}), pl.DataFrame({"col": [1, 2, 3]}), config
         )
         assert not caplog.messages
 
@@ -113,9 +113,7 @@ def test_polars_dataframe_equal_handler_handle_false(
 ) -> None:
     handler = PolarsDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
-            polars.DataFrame({}), polars.DataFrame({"col": [1, 2, 3]}), config
-        )
+        assert not handler.handle(pl.DataFrame({}), pl.DataFrame({"col": [1, 2, 3]}), config)
         assert not caplog.messages
 
 
@@ -127,7 +125,7 @@ def test_polars_dataframe_equal_handler_handle_false_different_column(
     handler = PolarsDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
-            polars.DataFrame({"col1": [1, 2, 3]}), polars.DataFrame({"col2": [1, 2, 3]}), config
+            pl.DataFrame({"col1": [1, 2, 3]}), pl.DataFrame({"col2": [1, 2, 3]}), config
         )
         assert not caplog.messages
 
@@ -140,7 +138,7 @@ def test_polars_dataframe_equal_handler_handle_false_different_value(
     handler = PolarsDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
-            polars.DataFrame({"col": [1, 2, 3]}), polars.DataFrame({"col": [1, 2, 4]}), config
+            pl.DataFrame({"col": [1, 2, 3]}), pl.DataFrame({"col": [1, 2, 4]}), config
         )
         assert not caplog.messages
 
@@ -153,8 +151,8 @@ def test_polars_dataframe_equal_handler_handle_false_different_dtype(
     handler = PolarsDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
-            polars.DataFrame(data={"col": [1, 2, 3]}),
-            polars.DataFrame(data={"col": [1.0, 2.0, 3.0]}),
+            pl.DataFrame(data={"col": [1, 2, 3]}),
+            pl.DataFrame(data={"col": [1.0, 2.0, 3.0]}),
             config,
         )
         assert not caplog.messages
@@ -168,8 +166,8 @@ def test_polars_dataframe_equal_handler_handle_false_show_difference(
     handler = PolarsDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
-            polars.DataFrame({"col": [1, 2, 3]}),
-            polars.DataFrame({"col": [1, 2, 4]}),
+            pl.DataFrame({"col": [1, 2, 3]}),
+            pl.DataFrame({"col": [1, 2, 4]}),
             config=config,
         )
         assert caplog.messages[0].startswith("polars.DataFrames have different elements:")
@@ -178,8 +176,8 @@ def test_polars_dataframe_equal_handler_handle_false_show_difference(
 @polars_available
 def test_polars_dataframe_equal_handler_handle_equal_nan_false(config: EqualityConfig) -> None:
     assert not PolarsDataFrameEqualHandler().handle(
-        polars.DataFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
-        polars.DataFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
+        pl.DataFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
+        pl.DataFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
         config,
     )
 
@@ -188,8 +186,8 @@ def test_polars_dataframe_equal_handler_handle_equal_nan_false(config: EqualityC
 def test_polars_dataframe_equal_handler_handle_equal_nan_true(config: EqualityConfig) -> None:
     config.equal_nan = True
     assert PolarsDataFrameEqualHandler().handle(
-        polars.DataFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
-        polars.DataFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
+        pl.DataFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
+        pl.DataFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
         config,
     )
 
@@ -235,14 +233,14 @@ def test_polars_series_equal_handler_str() -> None:
 @pytest.mark.parametrize(
     ("actual", "expected"),
     [
-        (polars.Series([]), polars.Series([])),
-        (polars.Series([1, 2, 3]), polars.Series([1, 2, 3])),
-        (polars.Series(["a", "b", "c"]), polars.Series(["a", "b", "c"])),
+        (pl.Series([]), pl.Series([])),
+        (pl.Series([1, 2, 3]), pl.Series([1, 2, 3])),
+        (pl.Series(["a", "b", "c"]), pl.Series(["a", "b", "c"])),
     ],
 )
 def test_polars_series_equal_handler_handle_true(
-    actual: polars.Series,
-    expected: polars.Series,
+    actual: pl.Series,
+    expected: pl.Series,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
@@ -260,7 +258,7 @@ def test_polars_series_equal_handler_handle_true_show_difference(
     config.show_difference = True
     handler = PolarsSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert handler.handle(polars.Series([1, 2, 3]), polars.Series([1, 2, 3]), config)
+        assert handler.handle(pl.Series([1, 2, 3]), pl.Series([1, 2, 3]), config)
         assert not caplog.messages
 
 
@@ -271,7 +269,7 @@ def test_polars_series_equal_handler_handle_false_different_shape(
 ) -> None:
     handler = PolarsSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(polars.Series([1, 2, 3]), polars.Series([1, 2, 3, 4]), config)
+        assert not handler.handle(pl.Series([1, 2, 3]), pl.Series([1, 2, 3, 4]), config)
         assert not caplog.messages
 
 
@@ -283,8 +281,8 @@ def test_polars_series_equal_handler_handle_false_different_dtype(
     handler = PolarsSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
-            polars.Series([1, 2, 3]),
-            polars.Series([1.0, 2.0, 3.0]),
+            pl.Series([1, 2, 3]),
+            pl.Series([1.0, 2.0, 3.0]),
             config,
         )
         assert not caplog.messages
@@ -297,7 +295,7 @@ def test_polars_series_equal_handler_handle_false_different_value(
 ) -> None:
     handler = PolarsSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(polars.Series([1, 2, 3]), polars.Series([1, 2, 4]), config)
+        assert not handler.handle(pl.Series([1, 2, 3]), pl.Series([1, 2, 4]), config)
         assert not caplog.messages
 
 
@@ -309,8 +307,8 @@ def test_polars_series_equal_handler_handle_false_show_difference(
     handler = PolarsSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(
-            actual=polars.Series([1, 2, 3]),
-            expected=polars.Series([1, 2, 3, 4]),
+            actual=pl.Series([1, 2, 3]),
+            expected=pl.Series([1, 2, 3, 4]),
             config=config,
         )
         assert caplog.messages[0].startswith("polars.Series have different elements:")
@@ -319,8 +317,8 @@ def test_polars_series_equal_handler_handle_false_show_difference(
 @polars_available
 def test_polars_series_equal_handler_handle_equal_nan_false(config: EqualityConfig) -> None:
     assert not PolarsSeriesEqualHandler().handle(
-        polars.Series([0.0, float("nan"), float("nan"), 1.2]),
-        polars.Series([0.0, float("nan"), float("nan"), 1.2]),
+        pl.Series([0.0, float("nan"), float("nan"), 1.2]),
+        pl.Series([0.0, float("nan"), float("nan"), 1.2]),
         config,
     )
 
@@ -329,8 +327,8 @@ def test_polars_series_equal_handler_handle_equal_nan_false(config: EqualityConf
 def test_polars_series_equal_handler_handle_equal_nan_true(config: EqualityConfig) -> None:
     config.equal_nan = True
     assert PolarsSeriesEqualHandler().handle(
-        polars.Series([0.0, float("nan"), float("nan"), 1.2]),
-        polars.Series([0.0, float("nan"), float("nan"), 1.2]),
+        pl.Series([0.0, float("nan"), float("nan"), 1.2]),
+        pl.Series([0.0, float("nan"), float("nan"), 1.2]),
         config,
     )
 

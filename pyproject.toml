@@ -289,4 +289,5 @@ known-first-party = ["src"]
 [tool.ruff.lint.flake8-import-conventions.aliases]
 numpy = "np"
 pandas = "pd"
+polars = "pl"
 xarray = "xr"

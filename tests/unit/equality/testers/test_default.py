@@ -50,7 +50,7 @@ if is_numpy_available():
 if is_pandas_available():
     import pandas as pd
 if is_polars_available():
-    import polars
+    import polars as pl
 if is_torch_available():
     import torch
 if is_xarray_available():
@@ -168,8 +168,8 @@ def test_equality_tester_registry_pandas() -> None:
 
 @polars_available
 def test_equality_tester_registry_polars() -> None:
-    assert isinstance(EqualityTester.registry[polars.DataFrame], PolarsDataFrameEqualityComparator)
-    assert isinstance(EqualityTester.registry[polars.Series], PolarsSeriesEqualityComparator)
+    assert isinstance(EqualityTester.registry[pl.DataFrame], PolarsDataFrameEqualityComparator)
+    assert isinstance(EqualityTester.registry[pl.Series], PolarsSeriesEqualityComparator)
 
 
 @torch_available
