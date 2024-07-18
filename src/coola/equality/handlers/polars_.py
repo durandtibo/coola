@@ -14,9 +14,10 @@ from coola.utils import is_polars_available
 
 if is_polars_available():
     import polars as pl
+    from polars import NUMERIC_DTYPES
     from polars.testing import assert_frame_equal, assert_series_equal
 else:  # pragma: no cover
-    pl = Mock()
+    polars = Mock()
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -36,21 +37,21 @@ class PolarsDataFrameEqualHandler(BaseEqualityHandler):
 
     ```pycon
 
-    >>> import polars
+    >>> import polars as pl
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import PolarsDataFrameEqualHandler
     >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> handler = PolarsDataFrameEqualHandler()
     >>> handler.handle(
-    ...     polars.DataFrame({"col": [1, 2, 3]}),
-    ...     polars.DataFrame({"col": [1, 2, 3]}),
+    ...     pl.DataFrame({"col": [1, 2, 3]}),
+    ...     pl.DataFrame({"col": [1, 2, 3]}),
     ...     config,
     ... )
     True
     >>> handler.handle(
-    ...     polars.DataFrame({"col": [1, 2, 3]}),
-    ...     polars.DataFrame({"col": [1, 2, 4]}),
+    ...     pl.DataFrame({"col": [1, 2, 3]}),
+    ...     pl.DataFrame({"col": [1, 2, 4]}),
     ...     config,
     ... )
     False
@@ -94,15 +95,15 @@ class PolarsSeriesEqualHandler(BaseEqualityHandler):
 
     ```pycon
 
-    >>> import polars
+    >>> import polars as pl
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers import PolarsSeriesEqualHandler
     >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> handler = PolarsSeriesEqualHandler()
-    >>> handler.handle(polars.Series([1, 2, 3]), polars.Series([1, 2, 3]), config)
+    >>> handler.handle(pl.Series([1, 2, 3]), pl.Series([1, 2, 3]), config)
     True
-    >>> handler.handle(polars.Series([1, 2, 3]), polars.Series([1, 2, 4]), config)
+    >>> handler.handle(pl.Series([1, 2, 3]), pl.Series([1, 2, 4]), config)
     False
 
     ```
@@ -143,8 +144,12 @@ def has_nan(df_or_series: pl.DataFrame | pl.Series) -> bool:
             otherwise ``False``.
     """
     if isinstance(df_or_series, pl.Series):
-        return df_or_series.dtype in pl.FLOAT_DTYPES and df_or_series.is_nan().any()
-    return any(col.dtype in pl.FLOAT_DTYPES and col.is_nan().any() for col in df_or_series)
+        return df_or_series.dtype in NUMERIC_DTYPES and df_or_series.is_nan().any()
+    # polars.selectors is not used because it is not available in 0.18 and 0.19
+    frame = df_or_series.select(pl.col(NUMERIC_DTYPES))
+    if frame.is_empty():
+        return False
+    return frame.select(pl.any_horizontal(pl.all().is_nan().any())).item()
 
 
 def frame_equal(df1: pl.DataFrame, df2: pl.DataFrame, config: EqualityConfig) -> bool:
