@@ -15,6 +15,17 @@ files = [
 dev = ["freezegun (>=1.0,<2.0)", "pytest (>=6.0)", "pytest-cov"]
 
 [[package]]
+name = "backports-strenum"
+version = "1.3.1"
+description = "Base class for creating enumerated constants that are also subclasses of str"
+optional = false
+python-versions = ">=3.8.6,<3.11"
+files = [
+    {file = "backports_strenum-1.3.1-py3-none-any.whl", hash = "sha256:cdcfe36dc897e2615dc793b7d3097f54d359918fc448754a517e6f23044ccf83"},
+    {file = "backports_strenum-1.3.1.tar.gz", hash = "sha256:77c52407342898497714f0596e86188bb7084f89063226f4ba66863482f42414"},
+]
+
+[[package]]
 name = "black"
 version = "24.4.2"
 description = "The uncompromising code formatter."
@@ -305,13 +316,13 @@ tomli = ["tomli (>=2.0.0,<3.0.0)"]
 
 [[package]]
 name = "exceptiongroup"
-version = "1.2.1"
+version = "1.2.2"
 description = "Backport of PEP 654 (exception groups)"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "exceptiongroup-1.2.1-py3-none-any.whl", hash = "sha256:5258b9ed329c5bbdd31a309f53cbfb0b155341807f6ff7606a1e801a891b29ad"},
-    {file = "exceptiongroup-1.2.1.tar.gz", hash = "sha256:a4785e48b045528f5bfe627b6ad554ff32def154f42372786903b7abcfe1aa16"},
+    {file = "exceptiongroup-1.2.2-py3-none-any.whl", hash = "sha256:3111b9d131c238bec2f8f516e123e14ba243563fb135d3fe885990585aa7795b"},
+    {file = "exceptiongroup-1.2.2.tar.gz", hash = "sha256:47c2edf7c6738fafb49fd34290706d1a1a2f4d1c6df275526b62cbb4aa5393cc"},
 ]
 
 [package.extras]
@@ -405,27 +416,28 @@ dev = ["flake8", "markdown", "twine", "wheel"]
 
 [[package]]
 name = "griffe"
-version = "0.47.0"
+version = "0.48.0"
 description = "Signatures for entire Python programs. Extract the structure, the frame, the skeleton of your project, to generate API documentation or find breaking changes in your API."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "griffe-0.47.0-py3-none-any.whl", hash = "sha256:07a2fd6a8c3d21d0bbb0decf701d62042ccc8a576645c7f8799fe1f10de2b2de"},
-    {file = "griffe-0.47.0.tar.gz", hash = "sha256:95119a440a3c932b13293538bdbc405bee4c36428547553dc6b327e7e7d35e5a"},
+    {file = "griffe-0.48.0-py3-none-any.whl", hash = "sha256:f944c6ff7bd31cf76f264adcd6ab8f3d00a2f972ae5cc8db2d7b6dcffeff65a2"},
+    {file = "griffe-0.48.0.tar.gz", hash = "sha256:f099461c02f016b6be4af386d5aa92b01fb4efe6c1c2c360dda9a5d0a863bb7f"},
 ]
 
 [package.dependencies]
+backports-strenum = {version = ">=1.3", markers = "python_version < \"3.11\""}
 colorama = ">=0.4"
 
 [[package]]
 name = "identify"
-version = "2.5.36"
+version = "2.6.0"
 description = "File identification library for Python"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "identify-2.5.36-py2.py3-none-any.whl", hash = "sha256:37d93f380f4de590500d9dba7db359d0d3da95ffe7f9de1753faa159e71e7dfa"},
-    {file = "identify-2.5.36.tar.gz", hash = "sha256:e5e00f54165f9047fbebeb4a560f9acfb8af4c88232be60a488e9b68d122745d"},
+    {file = "identify-2.6.0-py2.py3-none-any.whl", hash = "sha256:e79ae4406387a9d300332b5fd366d8994f1525e8414984e1a59e058b2eda2dd0"},
+    {file = "identify-2.6.0.tar.gz", hash = "sha256:cb171c685bdc31bcc4c1734698736a7d5b6c8bf2e0c15117f4d469c8640ae5cf"},
 ]
 
 [package.extras]
@@ -520,14 +532,14 @@ importlib-metadata = {version = ">=4.6", markers = "python_version < \"3.10\""}
 jaxlib = ">=0.4.27,<=0.4.30"
 ml-dtypes = ">=0.2.0"
 numpy = [
-    {version = ">=1.22", markers = "python_version < \"3.11\""},
-    {version = ">=1.23.2", markers = "python_version >= \"3.11\" and python_version < \"3.12\""},
     {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
+    {version = ">=1.23.2", markers = "python_version >= \"3.11\" and python_version < \"3.12\""},
+    {version = ">=1.22", markers = "python_version < \"3.11\""},
 ]
 opt-einsum = "*"
 scipy = [
-    {version = ">=1.9", markers = "python_version < \"3.12\""},
     {version = ">=1.11.1", markers = "python_version >= \"3.12\""},
+    {version = ">=1.9", markers = "python_version < \"3.12\""},
 ]
 
 [package.extras]
@@ -572,8 +584,8 @@ files = [
 ml-dtypes = ">=0.2.0"
 numpy = ">=1.22"
 scipy = [
-    {version = ">=1.9", markers = "python_version < \"3.12\""},
     {version = ">=1.11.1", markers = "python_version >= \"3.12\""},
+    {version = ">=1.9", markers = "python_version < \"3.12\""},
 ]
 
 [[package]]
@@ -910,10 +922,10 @@ files = [
 
 [package.dependencies]
 numpy = [
+    {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
+    {version = ">=1.23.3", markers = "python_version >= \"3.11\" and python_version < \"3.12\""},
     {version = ">=1.21.2", markers = "python_version >= \"3.10\" and python_version < \"3.11\""},
     {version = ">1.20", markers = "python_version < \"3.10\""},
-    {version = ">=1.23.3", markers = "python_version >= \"3.11\" and python_version < \"3.12\""},
-    {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
 ]
 
 [package.extras]
@@ -1261,9 +1273,9 @@ files = [
 
 [package.dependencies]
 numpy = [
-    {version = ">=1.22.4", markers = "python_version < \"3.11\""},
-    {version = ">=1.23.2", markers = "python_version == \"3.11\""},
     {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
+    {version = ">=1.23.2", markers = "python_version == \"3.11\""},
+    {version = ">=1.22.4", markers = "python_version < \"3.11\""},
 ]
 python-dateutil = ">=2.8.2"
 pytz = ">=2020.1"
@@ -1826,17 +1838,20 @@ files = [
 
 [[package]]
 name = "sympy"
-version = "1.12.1"
+version = "1.13.0"
 description = "Computer algebra system (CAS) in Python"
 optional = true
 python-versions = ">=3.8"
 files = [
-    {file = "sympy-1.12.1-py3-none-any.whl", hash = "sha256:9b2cbc7f1a640289430e13d2a56f02f867a1da0190f2f99d8968c2f74da0e515"},
-    {file = "sympy-1.12.1.tar.gz", hash = "sha256:2877b03f998cd8c08f07cd0de5b767119cd3ef40d09f41c30d722f6686b0fb88"},
+    {file = "sympy-1.13.0-py3-none-any.whl", hash = "sha256:6b0b32a4673fb91bd3cac3b55406c8e01d53ae22780be467301cc452f6680c92"},
+    {file = "sympy-1.13.0.tar.gz", hash = "sha256:3b6af8f4d008b9a1a6a4268b335b984b23835f26d1d60b0526ebc71d48a25f57"},
 ]
 
 [package.dependencies]
-mpmath = ">=1.1.0,<1.4.0"
+mpmath = ">=1.1.0,<1.4"
+
+[package.extras]
+dev = ["hypothesis (>=6.70.0)", "pytest (>=7.1.0)"]
 
 [[package]]
 name = "tbb"
@@ -2215,4 +2230,4 @@ all = ["jax", "jaxlib", "numpy", "pandas", "polars", "torch", "torch", "xarray"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.13"
-content-hash = "a274ce7495eeb606c33272b934d252e412de56a453a5899632ac7d61eb4c5d22"
+content-hash = "2e8811f9da885af463c50b8c0f41a5b460237bebb2e2c2b30633b4f1ca455eac"
