@@ -7,6 +7,7 @@ __all__ = [
     "check_numpy",
     "check_pandas",
     "check_polars",
+    "check_pyarrow",
     "check_torch",
     "check_xarray",
     "decorator_package_available",
@@ -14,6 +15,7 @@ __all__ = [
     "is_numpy_available",
     "is_pandas_available",
     "is_polars_available",
+    "is_pyarrow_available",
     "is_torch_available",
     "is_xarray_available",
     "jax_available",
@@ -22,6 +24,7 @@ __all__ = [
     "package_available",
     "pandas_available",
     "polars_available",
+    "pyarrow_available",
     "torch_available",
     "xarray_available",
 ]
@@ -430,6 +433,81 @@ def polars_available(fn: Callable[..., Any]) -> Callable[..., Any]:
     ```
     """
     return decorator_package_available(fn, is_polars_available)
+
+
+##################
+#     pyarrow     #
+##################
+
+
+@lru_cache
+def is_pyarrow_available() -> bool:
+    r"""Indicate if the ``pyarrow`` package is installed or not.
+
+    Returns:
+        ``True`` if ``pyarrow`` is available otherwise ``False``.
+
+    Example usage:
+
+    ```pycon
+
+    >>> from coola.utils.imports import is_pyarrow_available
+    >>> is_pyarrow_available()
+
+    ```
+    """
+    return package_available("pyarrow")
+
+
+def check_pyarrow() -> None:
+    r"""Check if the ``pyarrow`` package is installed.
+
+    Raises:
+        RuntimeError: if the ``pyarrow`` package is not installed.
+
+    Example usage:
+
+    ```pycon
+
+    >>> from coola.utils.imports import check_pyarrow
+    >>> check_pyarrow()
+
+    ```
+    """
+    if not is_pyarrow_available():
+        msg = (
+            "`pyarrow` package is required but not installed. "
+            "You can install `pyarrow` package with the command:\n\n"
+            "pip install pyarrow\n"
+        )
+        raise RuntimeError(msg)
+
+
+def pyarrow_available(fn: Callable[..., Any]) -> Callable[..., Any]:
+    r"""Implement a decorator to execute a function only if ``pyarrow``
+    package is installed.
+
+    Args:
+        fn: The function to execute.
+
+    Returns:
+        A wrapper around ``fn`` if ``pyarrow`` package is installed,
+            otherwise ``None``.
+
+    Example usage:
+
+    ```pycon
+
+    >>> from coola.utils.imports import pyarrow_available
+    >>> @pyarrow_available
+    ... def my_function(n: int = 0) -> int:
+    ...     return 42 + n
+    ...
+    >>> my_function()
+
+    ```
+    """
+    return decorator_package_available(fn, is_pyarrow_available)
 
 
 #################
