@@ -11,6 +11,7 @@ from coola.utils.imports import (
     check_numpy,
     check_pandas,
     check_polars,
+    check_pyarrow,
     check_torch,
     check_xarray,
     decorator_package_available,
@@ -18,6 +19,7 @@ from coola.utils.imports import (
     is_numpy_available,
     is_pandas_available,
     is_polars_available,
+    is_pyarrow_available,
     is_torch_available,
     is_xarray_available,
     jax_available,
@@ -26,6 +28,7 @@ from coola.utils.imports import (
     package_available,
     pandas_available,
     polars_available,
+    pyarrow_available,
     torch_available,
     xarray_available,
 )
@@ -331,6 +334,60 @@ def test_polars_available_decorator_without_package() -> None:
     with patch("coola.utils.imports.is_polars_available", lambda: False):
 
         @polars_available
+        def fn(n: int = 0) -> int:
+            return 42 + n
+
+        assert fn(2) is None
+
+
+###################
+#     pyarrow     #
+###################
+
+
+def test_check_pyarrow_with_package() -> None:
+    with patch("coola.utils.imports.is_pyarrow_available", lambda: True):
+        check_pyarrow()
+
+
+def test_check_pyarrow_without_package() -> None:
+    with (
+        patch("coola.utils.imports.is_pyarrow_available", lambda: False),
+        pytest.raises(RuntimeError, match="`pyarrow` package is required but not installed."),
+    ):
+        check_pyarrow()
+
+
+def test_is_pyarrow_available() -> None:
+    assert isinstance(is_pyarrow_available(), bool)
+
+
+def test_pyarrow_available_with_package() -> None:
+    with patch("coola.utils.imports.is_pyarrow_available", lambda: True):
+        fn = pyarrow_available(my_function)
+        assert fn(2) == 44
+
+
+def test_pyarrow_available_without_package() -> None:
+    with patch("coola.utils.imports.is_pyarrow_available", lambda: False):
+        fn = pyarrow_available(my_function)
+        assert fn(2) is None
+
+
+def test_pyarrow_available_decorator_with_package() -> None:
+    with patch("coola.utils.imports.is_pyarrow_available", lambda: True):
+
+        @pyarrow_available
+        def fn(n: int = 0) -> int:
+            return 42 + n
+
+        assert fn(2) == 44
+
+
+def test_pyarrow_available_decorator_without_package() -> None:
+    with patch("coola.utils.imports.is_pyarrow_available", lambda: False):
+
+        @pyarrow_available
         def fn(n: int = 0) -> int:
             return 42 + n
 
