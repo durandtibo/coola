@@ -52,7 +52,7 @@ repos:
         additional_dependencies:
           - black>=24.4.1
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.5.3
+    rev: v0.5.4
     hooks:
       - id: ruff
         args: [ --fix, --unsafe-fixes ]
