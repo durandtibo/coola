@@ -7,6 +7,7 @@ __all__ = [
     "numpy_available",
     "pandas_available",
     "polars_available",
+    "pyarrow_available",
     "torch_available",
     "torch_cuda_available",
     "torch_mps_available",
@@ -20,6 +21,7 @@ from coola.utils.imports import (
     is_numpy_available,
     is_pandas_available,
     is_polars_available,
+    is_pyarrow_available,
     is_torch_available,
     is_xarray_available,
 )
@@ -35,3 +37,4 @@ torch_cuda_available = pytest.mark.skipif(
 )
 torch_mps_available = pytest.mark.skipif(not is_mps_available(), reason="Requires PyTorch and MPS")
 xarray_available = pytest.mark.skipif(not is_xarray_available(), reason="Requires xarray")
+pyarrow_available = pytest.mark.skipif(not is_pyarrow_available(), reason="Requires pyarrow")
