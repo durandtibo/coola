@@ -14,7 +14,7 @@ from coola.utils import is_polars_available
 
 if is_polars_available():
     import polars as pl
-    from polars import NUMERIC_DTYPES
+    import polars.selectors as cs
     from polars.testing import assert_frame_equal, assert_series_equal
 else:  # pragma: no cover
     polars = Mock()
@@ -144,8 +144,29 @@ def has_nan(df_or_series: pl.DataFrame | pl.Series) -> bool:
             otherwise ``False``.
     """
     if isinstance(df_or_series, pl.Series):
+        return df_or_series.dtype.is_numeric() and df_or_series.is_nan().any()
+    frame = df_or_series.select(cs.numeric())
+    if frame.is_empty():
+        return False
+    return frame.select(pl.any_horizontal(pl.all().is_nan().any())).item()
+
+
+def _has_nan_old(df_or_series: pl.DataFrame | pl.Series) -> bool:
+    r"""Indicate if a DataFrame or Series has NaN values.
+
+    polars.selectors cannot be used because it is not available in 0.18 and 0.19
+
+    Args:
+        df_or_series: The DataFrame or series to check.
+
+    Returns:
+        ``True`` if the DataFrame or Series has NaN values,
+            otherwise ``False``.
+    """
+    from polars import NUMERIC_DTYPES
+
+    if isinstance(df_or_series, pl.Series):
         return df_or_series.dtype in NUMERIC_DTYPES and df_or_series.is_nan().any()
-    # polars.selectors is not used because it is not available in 0.18 and 0.19
     frame = df_or_series.select(pl.col(NUMERIC_DTYPES))
     if frame.is_empty():
         return False
