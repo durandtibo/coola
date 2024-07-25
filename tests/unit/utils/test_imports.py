@@ -9,6 +9,7 @@ import pytest
 from coola.utils.imports import (
     check_jax,
     check_numpy,
+    check_packaging,
     check_pandas,
     check_polars,
     check_pyarrow,
@@ -17,6 +18,7 @@ from coola.utils.imports import (
     decorator_package_available,
     is_jax_available,
     is_numpy_available,
+    is_packaging_available,
     is_pandas_available,
     is_polars_available,
     is_pyarrow_available,
@@ -26,6 +28,7 @@ from coola.utils.imports import (
     module_available,
     numpy_available,
     package_available,
+    packaging_available,
     pandas_available,
     polars_available,
     pyarrow_available,
@@ -226,6 +229,60 @@ def test_numpy_available_decorator_without_package() -> None:
     with patch("coola.utils.imports.is_numpy_available", lambda: False):
 
         @numpy_available
+        def fn(n: int = 0) -> int:
+            return 42 + n
+
+        assert fn(2) is None
+
+
+#####################
+#     packaging     #
+#####################
+
+
+def test_check_packaging_with_package() -> None:
+    with patch("coola.utils.imports.is_packaging_available", lambda: True):
+        check_packaging()
+
+
+def test_check_packaging_without_package() -> None:
+    with (
+        patch("coola.utils.imports.is_packaging_available", lambda: False),
+        pytest.raises(RuntimeError, match="`packaging` package is required but not installed."),
+    ):
+        check_packaging()
+
+
+def test_is_packaging_available() -> None:
+    assert isinstance(is_packaging_available(), bool)
+
+
+def test_packaging_available_with_package() -> None:
+    with patch("coola.utils.imports.is_packaging_available", lambda: True):
+        fn = packaging_available(my_function)
+        assert fn(2) == 44
+
+
+def test_packaging_available_without_package() -> None:
+    with patch("coola.utils.imports.is_packaging_available", lambda: False):
+        fn = packaging_available(my_function)
+        assert fn(2) is None
+
+
+def test_packaging_available_decorator_with_package() -> None:
+    with patch("coola.utils.imports.is_packaging_available", lambda: True):
+
+        @packaging_available
+        def fn(n: int = 0) -> int:
+            return 42 + n
+
+        assert fn(2) == 44
+
+
+def test_packaging_available_decorator_without_package() -> None:
+    with patch("coola.utils.imports.is_packaging_available", lambda: False):
+
+        @packaging_available
         def fn(n: int = 0) -> int:
             return 42 + n
 
