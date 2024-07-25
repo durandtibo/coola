@@ -12,6 +12,7 @@ from unittest.mock import Mock
 
 from coola.equality.handlers.base import BaseEqualityHandler
 from coola.utils import is_polars_available
+from coola.utils.imports import is_packaging_available
 from coola.utils.version import compare_version
 
 POLARS_GREATER_EQUAL_0_20_0 = False
@@ -20,10 +21,12 @@ if is_polars_available():
     from polars.testing import assert_frame_equal, assert_series_equal
 
     FLOAT_DTYPES = {pl.Float32, pl.Float64}
-    POLARS_GREATER_EQUAL_0_20_0 = compare_version("polars", op=operator.ge, version="0.20.0")
-    if POLARS_GREATER_EQUAL_0_20_0:
-        import polars.selectors as cs
-
+    if is_packaging_available():
+        POLARS_GREATER_EQUAL_0_20_0 = compare_version(
+            package="polars", op=operator.ge, version="0.20.0"
+        )
+        if POLARS_GREATER_EQUAL_0_20_0:
+            import polars.selectors as cs
 
 else:  # pragma: no cover
     pl = Mock()

@@ -12,9 +12,9 @@ from coola.equality.handlers import (
     PolarsDataFrameEqualHandler,
     PolarsSeriesEqualHandler,
 )
-from coola.equality.handlers.polars_ import POLARS_GREATER_EQUAL_0_20_0, has_nan
+from coola.equality.handlers.polars_ import has_nan
 from coola.equality.testers import EqualityTester
-from coola.testing import polars_available
+from coola.testing import polars_available, polars_greater_equal_0_20_0
 from coola.utils import is_polars_available
 from tests.unit.equality.comparators.test_polars import (
     POLARS_DATAFRAME_EQUAL_TOLERANCE,
@@ -28,14 +28,6 @@ else:  # pragma: no cover
 
 if TYPE_CHECKING:
     from tests.unit.equality.comparators.utils import ExamplePair
-
-
-polars_greater_equal_0_20_0 = pytest.mark.skipif(
-    not POLARS_GREATER_EQUAL_0_20_0, reason="Requires polars>=0.20.0"
-)
-polars_lower_0_20_0 = pytest.mark.skipif(
-    POLARS_GREATER_EQUAL_0_20_0, reason="Requires polars<0.20.0"
-)
 
 
 @pytest.fixture()

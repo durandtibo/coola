@@ -8,6 +8,7 @@ __all__ = [
     "packaging_available",
     "pandas_available",
     "polars_available",
+    "polars_greater_equal_0_20_0",
     "torch_available",
     "torch_cuda_available",
     "torch_mps_available",
@@ -16,6 +17,7 @@ __all__ = [
 
 import pytest
 
+from coola.equality.handlers.polars_ import POLARS_GREATER_EQUAL_0_20_0
 from coola.utils.imports import (
     is_jax_available,
     is_numpy_available,
@@ -38,3 +40,7 @@ torch_cuda_available = pytest.mark.skipif(
 )
 torch_mps_available = pytest.mark.skipif(not is_mps_available(), reason="Requires PyTorch and MPS")
 xarray_available = pytest.mark.skipif(not is_xarray_available(), reason="Requires xarray")
+
+polars_greater_equal_0_20_0 = pytest.mark.skipif(
+    not POLARS_GREATER_EQUAL_0_20_0, reason="Requires polars>=0.20.0"
+)
