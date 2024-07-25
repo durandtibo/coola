@@ -292,4 +292,5 @@ known-first-party = ["src"]
 numpy = "np"
 pandas = "pd"
 polars = "pl"
+pyarrow = "pa"
 xarray = "xr"
