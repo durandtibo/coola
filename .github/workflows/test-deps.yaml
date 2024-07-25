@@ -286,7 +286,7 @@ jobs:
 
       - name: Install pyarrow
         run: |
-          poetry run pip install pyarrow==${{ matrix.pyarrow-version }}
+          poetry run python -c "from feu import install_package; install_package('pyarrow', '${{ matrix.pyarrow-version }}')"
 
       - name: Show installed packages
         run: |
