@@ -103,6 +103,48 @@ jobs:
           poetry run make unit-test-cov
 
 
+  packaging:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ '3.12', '3.11', '3.10', '3.9' ]
+        packaging-version: [ '24.1', '23.2', '22.0', '21.3' ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Install packages
+        run: |
+          poetry run make config-poetry
+          poetry run make install
+
+      - name: Install packaging
+        run: |
+          poetry run pip install packaging==${{ matrix.packaging-version }}
+
+      - name: Show installed packages
+        run: |
+          poetry run poetry show
+          poetry run poetry show --tree
+
+      - name: Run unit tests
+        run: |
+          poetry run make unit-test-cov
+
+
   pandas:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
@@ -265,7 +307,7 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         python-version: [ '3.12', '3.11', '3.10', '3.9' ]
-        torch-version: [ 2.3.1, 2.2.2, 2.1.2, 2.0.1, 1.13.1, 1.12.1, 1.11.0 ]
+        torch-version: [ 2.4.0, 2.3.1, 2.2.2, 2.1.2, 2.0.1, 1.13.1, 1.12.1, 1.11.0 ]
         exclude:
           # python 3.11
           - torch-version: 1.11.0
