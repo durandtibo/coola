@@ -193,6 +193,35 @@ jobs:
           python tests/package_checks.py
 
 
+  packaging:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ '3.12', '3.11', '3.10', '3.9' ]
+        packaging-version: [ '24.1', '23.2', '22.0', '21.3' ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package
+        run: |
+          pip install coola packaging==${{ matrix.packaging-version }}
+
+      - name: Run some checks
+        run: |
+          python tests/package_checks.py
+
+
   pandas:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
@@ -301,7 +330,8 @@ jobs:
 
       - name: Install package
         run: |
-          pip install coola pyarrow==${{ matrix.pyarrow-version }}
+          pip install coola feu
+          python -c "from feu import install_package; install_package('pyarrow', '${{ matrix.pyarrow-version }}')"
 
       - name: Run some checks
         run: |
@@ -317,7 +347,7 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         python-version: [ '3.12', '3.11', '3.10', '3.9' ]
-        torch-version: [ 2.3.1, 2.2.2, 2.1.2, 2.0.1, 1.13.1, 1.12.1, 1.11.0 ]
+        torch-version: [ 2.4.0, 2.3.1, 2.2.2, 2.1.2, 2.0.1, 1.13.1, 1.12.1, 1.11.0 ]
         exclude:
           # python 3.11
           - torch-version: 1.11.0

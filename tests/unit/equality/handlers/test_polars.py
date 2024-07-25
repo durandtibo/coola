@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from typing import TYPE_CHECKING
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -14,7 +14,7 @@ from coola.equality.handlers import (
 )
 from coola.equality.handlers.polars_ import has_nan
 from coola.equality.testers import EqualityTester
-from coola.testing import polars_available
+from coola.testing import polars_available, polars_greater_equal_0_20_0
 from coola.utils import is_polars_available
 from tests.unit.equality.comparators.test_polars import (
     POLARS_DATAFRAME_EQUAL_TOLERANCE,
@@ -353,35 +353,60 @@ def test_polars_series_equal_handler_set_next_handler() -> None:
 #     Tests for has_nan     #
 #############################
 
+HAS_NAN_TRUE = [
+    pl.Series(["A", "B", "C"]),
+    pl.Series([1, 2, 3]),
+    pl.Series([1, 2, 3], dtype=pl.Int64),
+    pl.Series([1, 2, 3], dtype=pl.Float64),
+    pl.Series([True]),
+    pl.DataFrame({"col": [1, 2, 3]}),
+    pl.DataFrame({"col": [1, 2, 3]}, schema={"col": pl.Int64}),
+    pl.DataFrame({"col": [1, 2, 3]}, schema={"col": pl.Float64}),
+    pl.DataFrame({"col": ["A", "B", "C"]}),
+]
+HAS_NAN_FALSE = [
+    pl.Series([1.0, 2.0, float("nan")]),
+    pl.Series([1.0, float("nan"), 3.0], dtype=pl.Float64),
+    pl.DataFrame({"col": [1.0, 2.0, float("nan")]}),
+    pl.DataFrame({"col": [1.0, 2.0, float("nan")]}, schema={"col": pl.Float64}),
+]
+
 
 @polars_available
-@pytest.mark.parametrize(
-    "df_or_series",
-    [
-        pl.Series(["A", "B", "C"]),
-        pl.Series([1, 2, 3]),
-        pl.Series([1, 2, 3], dtype=pl.Int64),
-        pl.Series([1, 2, 3], dtype=pl.Float64),
-        pl.Series([True]),
-        pl.DataFrame({"col": [1, 2, 3]}),
-        pl.DataFrame({"col": [1, 2, 3]}, schema={"col": pl.Int64}),
-        pl.DataFrame({"col": [1, 2, 3]}, schema={"col": pl.Float64}),
-        pl.DataFrame({"col": ["A", "B", "C"]}),
-    ],
-)
+@pytest.mark.parametrize("df_or_series", HAS_NAN_TRUE)
 def test_has_nan_true(df_or_series: pl.DataFrame | pl.Series) -> None:
     assert not has_nan(df_or_series)
 
 
 @polars_available
-@pytest.mark.parametrize(
-    "df_or_series",
-    [
-        pl.Series([1.0, 2.0, float("nan")]),
-        pl.Series([1.0, float("nan"), 3.0], dtype=pl.Float64),
-        pl.DataFrame({"col": [1.0, 2.0, float("nan")]}),
-        pl.DataFrame({"col": [1.0, 2.0, float("nan")]}, schema={"col": pl.Float64}),
-    ],
-)
+@pytest.mark.parametrize("df_or_series", HAS_NAN_FALSE)
 def test_has_nan_false(df_or_series: pl.DataFrame | pl.Series) -> None:
     assert has_nan(df_or_series)
+
+
+@polars_available
+@polars_greater_equal_0_20_0
+@pytest.mark.parametrize("df_or_series", HAS_NAN_TRUE)
+def test_has_nan_new_true(df_or_series: pl.DataFrame | pl.Series) -> None:
+    assert not has_nan(df_or_series)
+
+
+@polars_available
+@polars_greater_equal_0_20_0
+@pytest.mark.parametrize("df_or_series", HAS_NAN_FALSE)
+def test_has_nan_new_false(df_or_series: pl.DataFrame | pl.Series) -> None:
+    assert has_nan(df_or_series)
+
+
+@polars_available
+@pytest.mark.parametrize("df_or_series", HAS_NAN_TRUE)
+def test_has_nan_old_true(df_or_series: pl.DataFrame | pl.Series) -> None:
+    with patch("coola.equality.handlers.polars_.POLARS_GREATER_EQUAL_0_20_0", False):
+        assert not has_nan(df_or_series)
+
+
+@polars_available
+@pytest.mark.parametrize("df_or_series", HAS_NAN_FALSE)
+def test_has_nan_old_false(df_or_series: pl.DataFrame | pl.Series) -> None:
+    with patch("coola.equality.handlers.polars_.POLARS_GREATER_EQUAL_0_20_0", False):
+        assert has_nan(df_or_series)
