@@ -5,6 +5,7 @@ from __future__ import annotations
 __all__ = [
     "jax_available",
     "numpy_available",
+    "packaging_available",
     "pandas_available",
     "polars_available",
     "torch_available",
@@ -18,6 +19,7 @@ import pytest
 from coola.utils.imports import (
     is_jax_available,
     is_numpy_available,
+    is_packaging_available,
     is_pandas_available,
     is_polars_available,
     is_torch_available,
@@ -27,6 +29,7 @@ from coola.utils.tensor import is_cuda_available, is_mps_available
 
 jax_available = pytest.mark.skipif(not is_jax_available(), reason="Requires JAX")
 numpy_available = pytest.mark.skipif(not is_numpy_available(), reason="Requires NumPy")
+packaging_available = pytest.mark.skipif(not is_packaging_available(), reason="Requires packaging")
 pandas_available = pytest.mark.skipif(not is_pandas_available(), reason="Requires pandas")
 polars_available = pytest.mark.skipif(not is_polars_available(), reason="Requires polars")
 torch_available = pytest.mark.skipif(not is_torch_available(), reason="Requires PyTorch")
