@@ -14,14 +14,14 @@ from coola.equality.handlers.base import BaseEqualityHandler
 from coola.utils import is_polars_available
 from coola.utils.version import compare_version
 
-_POLARS_GREATER_EQUAL_0_20_0 = False
+POLARS_GREATER_EQUAL_0_20_0 = False
 if is_polars_available():
     import polars as pl
-    from polars.datatypes.group import NUMERIC_DTYPES
     from polars.testing import assert_frame_equal, assert_series_equal
 
-    _POLARS_GREATER_EQUAL_0_20_0 = compare_version("polars", op=operator.ge, version="0.20.0")
-    if _POLARS_GREATER_EQUAL_0_20_0:
+    FLOAT_DTYPES = {pl.Float32, pl.Float64}
+    POLARS_GREATER_EQUAL_0_20_0 = compare_version("polars", op=operator.ge, version="0.20.0")
+    if POLARS_GREATER_EQUAL_0_20_0:
         import polars.selectors as cs
 
 
@@ -152,7 +152,7 @@ def has_nan(df_or_series: pl.DataFrame | pl.Series) -> bool:
         ``True`` if the DataFrame or Series has NaN values,
             otherwise ``False``.
     """
-    if _POLARS_GREATER_EQUAL_0_20_0:
+    if POLARS_GREATER_EQUAL_0_20_0:
         return _has_nan_new(df_or_series)
     return _has_nan_old(df_or_series)
 
@@ -192,11 +192,8 @@ def _has_nan_old(df_or_series: pl.DataFrame | pl.Series) -> bool:
             otherwise ``False``.
     """
     if isinstance(df_or_series, pl.Series):
-        return df_or_series.dtype in NUMERIC_DTYPES and df_or_series.is_nan().any()
-    frame = df_or_series.select(pl.col(NUMERIC_DTYPES))
-    if frame.is_empty():
-        return False
-    return frame.select(pl.any_horizontal(pl.all().is_nan().any())).item()
+        return df_or_series.dtype in FLOAT_DTYPES and df_or_series.is_nan().any()
+    return any(col.dtype in FLOAT_DTYPES and col.is_nan().any() for col in df_or_series)
 
 
 def frame_equal(df1: pl.DataFrame, df2: pl.DataFrame, config: EqualityConfig) -> bool:

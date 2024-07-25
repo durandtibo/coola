@@ -12,7 +12,7 @@ from coola.equality.handlers import (
     PolarsDataFrameEqualHandler,
     PolarsSeriesEqualHandler,
 )
-from coola.equality.handlers.polars_ import _POLARS_GREATER_EQUAL_0_20_0, has_nan
+from coola.equality.handlers.polars_ import POLARS_GREATER_EQUAL_0_20_0, has_nan
 from coola.equality.testers import EqualityTester
 from coola.testing import polars_available
 from coola.utils import is_polars_available
@@ -31,10 +31,10 @@ if TYPE_CHECKING:
 
 
 polars_greater_equal_0_20_0 = pytest.mark.skipif(
-    not _POLARS_GREATER_EQUAL_0_20_0, reason="Requires polars>=0.20.0"
+    not POLARS_GREATER_EQUAL_0_20_0, reason="Requires polars>=0.20.0"
 )
 polars_lower_0_20_0 = pytest.mark.skipif(
-    _POLARS_GREATER_EQUAL_0_20_0, reason="Requires polars<0.20.0"
+    POLARS_GREATER_EQUAL_0_20_0, reason="Requires polars<0.20.0"
 )
 
 
@@ -409,12 +409,12 @@ def test_has_nan_new_false(df_or_series: pl.DataFrame | pl.Series) -> None:
 @polars_available
 @pytest.mark.parametrize("df_or_series", HAS_NAN_TRUE)
 def test_has_nan_old_true(df_or_series: pl.DataFrame | pl.Series) -> None:
-    with patch("coola.equality.handlers.polars_._POLARS_GREATER_EQUAL_0_20_0", False):
+    with patch("coola.equality.handlers.polars_.POLARS_GREATER_EQUAL_0_20_0", False):
         assert not has_nan(df_or_series)
 
 
 @polars_available
 @pytest.mark.parametrize("df_or_series", HAS_NAN_FALSE)
 def test_has_nan_old_false(df_or_series: pl.DataFrame | pl.Series) -> None:
-    with patch("coola.equality.handlers.polars_._POLARS_GREATER_EQUAL_0_20_0", False):
+    with patch("coola.equality.handlers.polars_.POLARS_GREATER_EQUAL_0_20_0", False):
         assert has_nan(df_or_series)
