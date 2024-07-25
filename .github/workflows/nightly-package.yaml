@@ -330,7 +330,8 @@ jobs:
 
       - name: Install package
         run: |
-          pip install coola pyarrow==${{ matrix.pyarrow-version }}
+          pip install coola feu
+          python -c "from feu import install_package; install_package('pyarrow', '${{ matrix.pyarrow-version }}')"
 
       - name: Run some checks
         run: |
