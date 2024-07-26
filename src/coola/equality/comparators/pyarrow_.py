@@ -32,6 +32,9 @@ class PyarrowEqualityComparator(BaseEqualityComparator[pa.Array]):
     r"""Implement an equality comparator for ```pyarrow.Array``s and
     ``pyarrow.Table``s.
 
+    Note that ``config.equal_nan``, ``config.atol`` and ``config.rtol``
+    arguments are ignored.
+
     Example usage:
 
     ```pycon
