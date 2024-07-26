@@ -32,6 +32,9 @@ class PyarrowEqualHandler(BaseEqualityHandler):
     the end of the chain of responsibility. This handler does
     not call the next handler.
 
+    Note that ``config.equal_nan``, ``config.atol`` and ``config.rtol``
+    arguments are ignored.
+
     Example usage:
 
     ```pycon
@@ -76,6 +79,9 @@ def object_equal(
 ) -> bool:
     r"""Indicate if the two arrays or tables are equal within a
     tolerance.
+
+    ``config.equal_nan``, ``config.atol`` and ``config.rtol``
+    arguments are ignored.
 
     Args:
         obj1: The first array or table to compare.

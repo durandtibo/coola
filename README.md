@@ -114,7 +114,7 @@ False
 
 ```
 
-The current supported types are:
+`coola` supports the following types:
 
 - [`jax.numpy.ndarray`](https://jax.readthedocs.io/en/latest/index.html)
 - [`numpy.ndarray`](https://numpy.org/doc/stable/index.html)
