@@ -84,6 +84,7 @@ def test_pyarrow_equal_handler_handle_equal_nan_false(config: EqualityConfig) ->
 def test_pyarrow_equal_handler_handle_equal_nan_true(config: EqualityConfig) -> None:
     config.equal_nan = True
     with warnings.catch_warnings(record=True) as w:
+        # Not equal because equal_nan is ignored
         assert not PyarrowEqualHandler().handle(
             pa.array([0.0, float("nan"), float("nan"), 1.2]),
             pa.array([0.0, float("nan"), float("nan"), 1.2]),
@@ -107,7 +108,7 @@ def test_pyarrow_equal_handler_handle_false_show_difference(
             expected=pa.array([1.0, 2.0, 4.0], type=pa.float64()),
             config=config,
         )
-        assert caplog.messages[0].startswith("pyarrow.Arrays have different elements:")
+        assert caplog.messages[0].startswith("objects are different")
 
 
 @pyarrow_available
