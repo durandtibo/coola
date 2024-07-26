@@ -2,7 +2,7 @@ r"""Implement some handlers for ``pyarrow`` objects."""
 
 from __future__ import annotations
 
-__all__ = ["PyarrowArrayEqualHandler"]
+__all__ = ["PyarrowEqualHandler"]
 
 import logging
 import warnings
@@ -24,11 +24,11 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class PyarrowArrayEqualHandler(BaseEqualityHandler):
-    r"""Check if the two pyarrow arrays are equal.
+class PyarrowEqualHandler(BaseEqualityHandler):
+    r"""Check if the two pyarrow arrays or tables are equal.
 
-    This handler returns ``True`` if the two arrays are equal,
-    otherwise ``False``. This handler is designed to be used at
+    This handler returns ``True`` if the two arrays or tables are
+    equal, otherwise ``False``. This handler is designed to be used at
     the end of the chain of responsibility. This handler does
     not call the next handler.
 
@@ -38,10 +38,10 @@ class PyarrowArrayEqualHandler(BaseEqualityHandler):
 
     >>> import pyarrow
     >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import PyarrowArrayEqualHandler
+    >>> from coola.equality.handlers import PyarrowEqualHandler
     >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = PyarrowArrayEqualHandler()
+    >>> handler = PyarrowEqualHandler()
     >>> handler.handle(pyarrow.array([1, 2, 3]), pyarrow.array([1, 2, 3]), config)
     True
     >>> handler.handle(pyarrow.array([1, 2, 3]), pyarrow.array([1, 2, 4]), config)
@@ -58,33 +58,36 @@ class PyarrowArrayEqualHandler(BaseEqualityHandler):
 
     def handle(
         self,
-        actual: pa.Array,
-        expected: pa.Array,
+        actual: pa.Array | pa.Table,
+        expected: pa.Array | pa.Table,
         config: EqualityConfig,
     ) -> bool:
-        object_equal = array_equal(actual, expected, config)
-        if config.show_difference and not object_equal:
+        equal = object_equal(actual, expected, config)
+        if config.show_difference and not equal:
             logger.info(
                 f"pyarrow.Arrays have different elements:\n"
                 f"actual:\n{actual}\nexpected:\n{expected}"
             )
-        return object_equal
+        return equal
 
     def set_next_handler(self, handler: BaseEqualityHandler) -> None:
         pass  # Do nothing because the next handler is never called.
 
 
-def array_equal(array1: pa.Array, array2: pa.Array, config: EqualityConfig) -> bool:
-    r"""Indicate if the two arrays are equal within a tolerance.
+def object_equal(
+    obj1: pa.Array | pa.Table, obj2: pa.Array | pa.Table, config: EqualityConfig
+) -> bool:
+    r"""Indicate if the two arrays or tables are equal within a
+    tolerance.
 
     Args:
-        array1: The first array to compare.
-        array2: The second array to compare.
+        obj1: The first array or table to compare.
+        obj2: The second array or table to compare.
         config: The equality configuration.
 
     Returns:
-        ``True` `if the two arrays are equal within a tolerance,
-            otherwise ``False``.
+        ``True` `if the two arrays or tables are equal within a
+            tolerance, otherwise ``False``.
 
     Example usage:
 
@@ -92,34 +95,34 @@ def array_equal(array1: pa.Array, array2: pa.Array, config: EqualityConfig) -> b
 
     >>> import pyarrow
     >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers.pyarrow_ import array_equal
+    >>> from coola.equality.handlers.pyarrow_ import object_equal
     >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
-    >>> array_equal(pyarrow.array([1, 2, 3]), pyarrow.array([1, 2, 3]), config)
+    >>> object_equal(pyarrow.array([1, 2, 3]), pyarrow.array([1, 2, 3]), config)
     True
-    >>> array_equal(pyarrow.array([1, 2, 3]), pyarrow.array([1, 2, 4]), config)
+    >>> object_equal(pyarrow.array([1, 2, 3]), pyarrow.array([1, 2, 4]), config)
     False
 
     ```
     """
     if config.equal_nan:
         warnings.warn(
-            f"equal_nan is ignored because it is not supported for {type(array1)}",
+            f"equal_nan is ignored because it is not supported for {type(obj1)}",
             RuntimeWarning,
             stacklevel=3,
         )
     if config.atol > 0:
         warnings.warn(
-            f"atol is ignored because it is not supported for {type(array1)}",
+            f"atol is ignored because it is not supported for {type(obj1)}",
             RuntimeWarning,
             stacklevel=3,
         )
     if config.rtol > 0:
         warnings.warn(
-            f"rtol is ignored because it is not supported for {type(array1)}",
+            f"rtol is ignored because it is not supported for {type(obj1)}",
             RuntimeWarning,
             stacklevel=3,
         )
     with suppress(TypeError):
-        return array1.equals(array2)
+        return obj1.equals(obj2)
     return False

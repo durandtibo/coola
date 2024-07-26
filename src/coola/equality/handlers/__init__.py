@@ -22,7 +22,7 @@ __all__ = [
     "PandasSeriesEqualHandler",
     "PolarsDataFrameEqualHandler",
     "PolarsSeriesEqualHandler",
-    "PyarrowArrayEqualHandler",
+    "PyarrowEqualHandler",
     "SameAttributeHandler",
     "SameDTypeHandler",
     "SameDataHandler",
@@ -63,7 +63,7 @@ from coola.equality.handlers.polars_ import (
     PolarsDataFrameEqualHandler,
     PolarsSeriesEqualHandler,
 )
-from coola.equality.handlers.pyarrow_ import PyarrowArrayEqualHandler
+from coola.equality.handlers.pyarrow_ import PyarrowEqualHandler
 from coola.equality.handlers.scalar import NanEqualHandler, ScalarEqualHandler
 from coola.equality.handlers.sequence import SequenceSameValuesHandler
 from coola.equality.handlers.shape import SameShapeHandler
