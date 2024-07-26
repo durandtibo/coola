@@ -14,10 +14,10 @@ from coola.equality.testers import EqualityTester
 from coola.testing import pyarrow_available
 from coola.utils.imports import is_pyarrow_available
 from tests.unit.equality.comparators.test_pyarrow import (
-    PYARROW_ARRAY_EQUAL,
-    PYARROW_ARRAY_EQUAL_TOLERANCE,
-    PYARROW_ARRAY_NOT_EQUAL,
-    PYARROW_ARRAY_NOT_EQUAL_TOLERANCE,
+    PYARROW_EQUAL,
+    PYARROW_EQUAL_TOLERANCE,
+    PYARROW_NOT_EQUAL,
+    PYARROW_NOT_EQUAL_TOLERANCE,
 )
 
 if TYPE_CHECKING:
@@ -56,7 +56,7 @@ def test_pyarrow_array_equal_handler_str() -> None:
 
 
 @pyarrow_available
-@pytest.mark.parametrize("example", PYARROW_ARRAY_EQUAL)
+@pytest.mark.parametrize("example", PYARROW_EQUAL)
 def test_pyarrow_array_equal_handler_handle_true(
     example: ExamplePair, config: EqualityConfig
 ) -> None:
@@ -66,7 +66,7 @@ def test_pyarrow_array_equal_handler_handle_true(
 
 
 @pyarrow_available
-@pytest.mark.parametrize("example", PYARROW_ARRAY_NOT_EQUAL)
+@pytest.mark.parametrize("example", PYARROW_NOT_EQUAL)
 def test_pyarrow_array_equal_handler_handle_false(
     example: ExamplePair, config: EqualityConfig
 ) -> None:
@@ -115,7 +115,7 @@ def test_pyarrow_array_equal_handler_handle_false_show_difference(
 
 
 @pyarrow_available
-@pytest.mark.parametrize("example", PYARROW_ARRAY_EQUAL_TOLERANCE)
+@pytest.mark.parametrize("example", PYARROW_EQUAL_TOLERANCE)
 def test_pyarrow_array_equal_handler_handle_true_tolerance(
     example: ExamplePair, config: EqualityConfig
 ) -> None:
@@ -131,7 +131,7 @@ def test_pyarrow_array_equal_handler_handle_true_tolerance(
 
 
 @pyarrow_available
-@pytest.mark.parametrize("example", PYARROW_ARRAY_NOT_EQUAL_TOLERANCE)
+@pytest.mark.parametrize("example", PYARROW_NOT_EQUAL_TOLERANCE)
 def test_pyarrow_array_equal_handler_handle_false_tolerance(
     example: ExamplePair, config: EqualityConfig
 ) -> None:
@@ -156,12 +156,12 @@ def test_pyarrow_array_equal_handler_set_next_handler() -> None:
 
 
 @pyarrow_available
-@pytest.mark.parametrize("example", PYARROW_ARRAY_EQUAL)
+@pytest.mark.parametrize("example", PYARROW_EQUAL)
 def test_array_equal_true(example: ExamplePair, config: EqualityConfig) -> None:
     assert array_equal(example.actual, example.expected, config=config)
 
 
 @pyarrow_available
-@pytest.mark.parametrize("example", PYARROW_ARRAY_NOT_EQUAL)
+@pytest.mark.parametrize("example", PYARROW_NOT_EQUAL)
 def test_array_equal_false(example: ExamplePair, config: EqualityConfig) -> None:
     assert not array_equal(example.actual, example.expected, config=config)
