@@ -12,6 +12,7 @@ from coola.equality.comparators import (
     PandasSeriesEqualityComparator,
     PolarsDataFrameEqualityComparator,
     PolarsSeriesEqualityComparator,
+    PyarrowEqualityComparator,
     ScalarEqualityComparator,
     SequenceEqualityComparator,
     TorchPackedSequenceEqualityComparator,
@@ -26,6 +27,7 @@ from coola.testing import (
     numpy_available,
     pandas_available,
     polars_available,
+    pyarrow_available,
     torch_available,
     xarray_available,
 )
@@ -34,6 +36,7 @@ from coola.utils.imports import (
     is_numpy_available,
     is_pandas_available,
     is_polars_available,
+    is_pyarrow_available,
     is_torch_available,
     is_xarray_available,
 )
@@ -46,6 +49,8 @@ if is_pandas_available():
     import pandas as pd
 if is_polars_available():
     import polars as pl
+if is_pyarrow_available():
+    import pyarrow as pa
 if is_torch_available():
     import torch
 if is_xarray_available():
@@ -94,6 +99,13 @@ def test_get_type_comparator_mapping_polars() -> None:
     mapping = get_type_comparator_mapping()
     assert isinstance(mapping[pl.DataFrame], PolarsDataFrameEqualityComparator)
     assert isinstance(mapping[pl.Series], PolarsSeriesEqualityComparator)
+
+
+@pyarrow_available
+def test_get_type_comparator_mapping_pyarrow() -> None:
+    mapping = get_type_comparator_mapping()
+    assert isinstance(mapping[pa.Array], PyarrowEqualityComparator)
+    assert isinstance(mapping[pa.Table], PyarrowEqualityComparator)
 
 
 @torch_available
