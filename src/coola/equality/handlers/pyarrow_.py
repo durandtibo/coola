@@ -104,12 +104,22 @@ def array_equal(array1: pa.Array, array2: pa.Array, config: EqualityConfig) -> b
     """
     if config.equal_nan:
         warnings.warn(
-            f"equal_nan is not supported for {type(array1)}", RuntimeWarning, stacklevel=3
+            f"equal_nan is ignored because it is not supported for {type(array1)}",
+            RuntimeWarning,
+            stacklevel=3,
         )
     if config.atol > 0:
-        warnings.warn(f"atol is not supported for {type(array1)}", RuntimeWarning, stacklevel=3)
+        warnings.warn(
+            f"atol is ignored because it is not supported for {type(array1)}",
+            RuntimeWarning,
+            stacklevel=3,
+        )
     if config.rtol > 0:
-        warnings.warn(f"rtol is not supported for {type(array1)}", RuntimeWarning, stacklevel=3)
+        warnings.warn(
+            f"rtol is ignored because it is not supported for {type(array1)}",
+            RuntimeWarning,
+            stacklevel=3,
+        )
     with suppress(TypeError):
         return array1.equals(array2)
     return False
