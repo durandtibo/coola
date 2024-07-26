@@ -96,7 +96,7 @@ def test_pyarrow_array_equal_handler_handle_equal_nan_true(config: EqualityConfi
 
         assert len(w) == 1
         assert issubclass(w[-1].category, RuntimeWarning)
-        assert "equal_nan is not supported" in str(w[-1].message)
+        assert "equal_nan is ignored because it is not supported" in str(w[-1].message)
 
 
 @pyarrow_available
@@ -127,7 +127,7 @@ def test_pyarrow_array_equal_handler_handle_true_tolerance(
         )
         assert len(w) == 1
         assert issubclass(w[-1].category, RuntimeWarning)
-        assert "tol is not supported" in str(w[-1].message)
+        assert "tol is ignored because it is not supported" in str(w[-1].message)
 
 
 @pyarrow_available
@@ -143,7 +143,7 @@ def test_pyarrow_array_equal_handler_handle_false_tolerance(
         )
         assert len(w) == 1
         assert issubclass(w[-1].category, RuntimeWarning)
-        assert "tol is not supported" in str(w[-1].message)
+        assert "tol is ignored because it is not supported" in str(w[-1].message)
 
 
 def test_pyarrow_array_equal_handler_set_next_handler() -> None:

@@ -27,28 +27,28 @@ PYARROW_ARRAY_EQUAL = [
             actual=pa.array([1.0, 2.0, 3.0], type=pa.float64()),
             expected=pa.array([1.0, 2.0, 3.0], type=pa.float64()),
         ),
-        id="float dtype",
+        id="array float dtype",
     ),
     pytest.param(
         ExamplePair(
             actual=pa.array([1, 2, 3], type=pa.int64()),
             expected=pa.array([1, 2, 3], type=pa.int64()),
         ),
-        id="int dtype",
+        id="array int dtype",
     ),
     pytest.param(
         ExamplePair(
             actual=pa.array([True, False, True], type=pa.bool_()),
             expected=pa.array([True, False, True], type=pa.bool_()),
         ),
-        id="bool dtype",
+        id="array bool dtype",
     ),
     pytest.param(
         ExamplePair(
             actual=pa.array(["polar", "bear", "meow"], type=pa.string()),
             expected=pa.array(["polar", "bear", "meow"], type=pa.string()),
         ),
-        id="string dtype",
+        id="array string dtype",
     ),
     pytest.param(
         ExamplePair(
@@ -67,7 +67,7 @@ PYARROW_ARRAY_EQUAL = [
                 type=pa.date64(),
             ),
         ),
-        id="date64 dtype",
+        id="array date64 dtype",
     ),
 ]
 PYARROW_ARRAY_NOT_EQUAL = [
@@ -77,7 +77,7 @@ PYARROW_ARRAY_NOT_EQUAL = [
             expected=pa.array([1, 2, 3], type=pa.int64()),
             expected_message="objects have different data types:",
         ),
-        id="different data types",
+        id="array different data types",
     ),
     pytest.param(
         ExamplePair(
@@ -85,7 +85,7 @@ PYARROW_ARRAY_NOT_EQUAL = [
             expected=pa.array([1, 2, 3], type=pa.int64()),
             expected_message="pyarrow.Arrays have different elements:",
         ),
-        id="different values",
+        id="array different values",
     ),
     pytest.param(
         ExamplePair(
@@ -93,7 +93,7 @@ PYARROW_ARRAY_NOT_EQUAL = [
             expected="meow",
             expected_message="objects have different types:",
         ),
-        id="different types",
+        id="array different types",
     ),
 ]
 PYARROW_ARRAY_EQUAL_TOLERANCE = [
@@ -104,7 +104,7 @@ PYARROW_ARRAY_EQUAL_TOLERANCE = [
             expected=pa.array([1.0, 2.0, 3.0], type=pa.float64()),
             atol=1.0,
         ),
-        id="atol=1",
+        id="array atol=1",
     ),
     pytest.param(
         ExamplePair(
@@ -112,7 +112,7 @@ PYARROW_ARRAY_EQUAL_TOLERANCE = [
             expected=pa.array([1.0, 2.0, 3.0], type=pa.float64()),
             atol=0.1,
         ),
-        id="atol=0.1",
+        id="array atol=0.1",
     ),
     pytest.param(
         ExamplePair(
@@ -120,7 +120,7 @@ PYARROW_ARRAY_EQUAL_TOLERANCE = [
             expected=pa.array([1.0, 2.0, 3.0], type=pa.float64()),
             atol=0.01,
         ),
-        id="atol=0.01",
+        id="array atol=0.01",
     ),
     pytest.param(
         ExamplePair(
@@ -128,7 +128,7 @@ PYARROW_ARRAY_EQUAL_TOLERANCE = [
             expected=pa.array(["polar", "bear", "meow"], type=pa.string()),
             atol=0.01,
         ),
-        id="string atol",
+        id="array string atol",
     ),
     pytest.param(
         ExamplePair(
@@ -148,7 +148,7 @@ PYARROW_ARRAY_EQUAL_TOLERANCE = [
             ),
             atol=0.01,
         ),
-        id="date64 atol",
+        id="array date64 atol",
     ),
     # rtol
     pytest.param(
@@ -157,7 +157,7 @@ PYARROW_ARRAY_EQUAL_TOLERANCE = [
             expected=pa.array([1.0, 2.0, 3.0], type=pa.float64()),
             rtol=1.0,
         ),
-        id="rtol=1",
+        id="array rtol=1",
     ),
     pytest.param(
         ExamplePair(
@@ -165,7 +165,7 @@ PYARROW_ARRAY_EQUAL_TOLERANCE = [
             expected=pa.array([1.0, 2.0, 3.0], type=pa.float64()),
             rtol=0.1,
         ),
-        id="rtol=0.1",
+        id="array rtol=0.1",
     ),
     pytest.param(
         ExamplePair(
@@ -173,7 +173,7 @@ PYARROW_ARRAY_EQUAL_TOLERANCE = [
             expected=pa.array([1.0, 2.0, 3.0], type=pa.float64()),
             rtol=0.01,
         ),
-        id="rtol=0.01",
+        id="array rtol=0.01",
     ),
     pytest.param(
         ExamplePair(
@@ -181,7 +181,7 @@ PYARROW_ARRAY_EQUAL_TOLERANCE = [
             expected=pa.array(["polar", "bear", "meow"], type=pa.string()),
             rtol=0.01,
         ),
-        id="string rtol",
+        id="array string rtol",
     ),
     pytest.param(
         ExamplePair(
@@ -201,10 +201,9 @@ PYARROW_ARRAY_EQUAL_TOLERANCE = [
             ),
             rtol=0.01,
         ),
-        id="date64 rtol",
+        id="array date64 rtol",
     ),
 ]
-
 PYARROW_ARRAY_NOT_EQUAL_TOLERANCE = [
     # atol
     pytest.param(
@@ -213,7 +212,7 @@ PYARROW_ARRAY_NOT_EQUAL_TOLERANCE = [
             expected=pa.array([1.5, 1.5, 1.5], type=pa.float64()),
             atol=1.0,
         ),
-        id="atol=1",
+        id="array atol=1",
     ),
     pytest.param(
         ExamplePair(
@@ -221,7 +220,7 @@ PYARROW_ARRAY_NOT_EQUAL_TOLERANCE = [
             expected=pa.array([1.05, 1.05, 1.05], type=pa.float64()),
             atol=0.1,
         ),
-        id="atol=0.1",
+        id="array atol=0.1",
     ),
     pytest.param(
         ExamplePair(
@@ -229,7 +228,7 @@ PYARROW_ARRAY_NOT_EQUAL_TOLERANCE = [
             expected=pa.array([1.005, 1.005, 1.005], type=pa.float64()),
             atol=0.01,
         ),
-        id="atol=0.01",
+        id="array atol=0.01",
     ),
     # rtol
     pytest.param(
@@ -238,7 +237,7 @@ PYARROW_ARRAY_NOT_EQUAL_TOLERANCE = [
             expected=pa.array([1.5, 1.5, 1.5], type=pa.float64()),
             rtol=1.0,
         ),
-        id="rtol=1",
+        id="array rtol=1",
     ),
     pytest.param(
         ExamplePair(
@@ -246,7 +245,7 @@ PYARROW_ARRAY_NOT_EQUAL_TOLERANCE = [
             expected=pa.array([1.05, 1.05, 1.05], type=pa.float64()),
             rtol=0.1,
         ),
-        id="rtol=0.1",
+        id="array rtol=0.1",
     ),
     pytest.param(
         ExamplePair(
@@ -254,7 +253,7 @@ PYARROW_ARRAY_NOT_EQUAL_TOLERANCE = [
             expected=pa.array([1.005, 1.005, 1.005], type=pa.float64()),
             rtol=0.01,
         ),
-        id="rtol=0.01",
+        id="array rtol=0.01",
     ),
 ]
 
