@@ -64,10 +64,7 @@ class PyarrowEqualHandler(BaseEqualityHandler):
     ) -> bool:
         equal = object_equal(actual, expected, config)
         if config.show_difference and not equal:
-            logger.info(
-                f"pyarrow.Arrays have different elements:\n"
-                f"actual:\n{actual}\nexpected:\n{expected}"
-            )
+            logger.info(f"objects are different:\nactual:\n{actual}\nexpected:\n{expected}")
         return equal
 
     def set_next_handler(self, handler: BaseEqualityHandler) -> None:
@@ -93,14 +90,14 @@ def object_equal(
 
     ```pycon
 
-    >>> import pyarrow
+    >>> import pyarrow as pa
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.handlers.pyarrow_ import object_equal
     >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
-    >>> object_equal(pyarrow.array([1, 2, 3]), pyarrow.array([1, 2, 3]), config)
+    >>> object_equal(pa.array([1, 2, 3]), pa.array([1, 2, 3]), config)
     True
-    >>> object_equal(pyarrow.array([1, 2, 3]), pyarrow.array([1, 2, 4]), config)
+    >>> object_equal(pa.array([1, 2, 3]), pa.array([1, 2, 4]), config)
     False
 
     ```
