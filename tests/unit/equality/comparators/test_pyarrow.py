@@ -205,6 +205,7 @@ PYARROW_ARRAY_EQUAL_TOLERANCE = [
     ),
 ]
 PYARROW_ARRAY_NOT_EQUAL_TOLERANCE = [
+    # The arrays are not equal because the atol and rtol arguments are ignored.
     # atol
     pytest.param(
         ExamplePair(
@@ -257,6 +258,103 @@ PYARROW_ARRAY_NOT_EQUAL_TOLERANCE = [
     ),
 ]
 
-PYARROW_EQUAL = PYARROW_ARRAY_EQUAL
-PYARROW_NOT_EQUAL = PYARROW_ARRAY_NOT_EQUAL
+PYARROW_TABLE_EQUAL = [
+    pytest.param(
+        ExamplePair(
+            actual=pa.table({"nums": [1, 2, 3, 4, 5]}, schema=pa.schema({"nums": pa.int64()})),
+            expected=pa.table({"nums": [1, 2, 3, 4, 5]}, schema=pa.schema({"nums": pa.int64()})),
+        ),
+        id="table 1 column",
+    ),
+    pytest.param(
+        ExamplePair(
+            actual=pa.table(
+                {"nums": [1, 2, 3, 4, 5], "chars": ["a", "b", "c", "d", "e"]},
+                schema=pa.schema({"nums": pa.int64(), "chars": pa.string()}),
+            ),
+            expected=pa.table(
+                {"nums": [1, 2, 3, 4, 5], "chars": ["a", "b", "c", "d", "e"]},
+                schema=pa.schema({"nums": pa.int64(), "chars": pa.string()}),
+            ),
+        ),
+        id="table 2 columns",
+    ),
+    pytest.param(
+        ExamplePair(
+            actual=pa.table(
+                {
+                    "nums": [1, 2, 3, 4, 5],
+                    "float": [1.0, 2.0, 3.0, 4.0, 5.0],
+                    "chars": ["a", "b", "c", "d", "e"],
+                },
+                schema=pa.schema({"nums": pa.int64(), "float": pa.float64(), "chars": pa.string()}),
+            ),
+            expected=pa.table(
+                {
+                    "nums": [1, 2, 3, 4, 5],
+                    "float": [1.0, 2.0, 3.0, 4.0, 5.0],
+                    "chars": ["a", "b", "c", "d", "e"],
+                },
+                schema=pa.schema({"nums": pa.int64(), "float": pa.float64(), "chars": pa.string()}),
+            ),
+        ),
+        id="table 3 columns",
+    ),
+]
+
+PYARROW_TABLE_NOT_EQUAL = [
+    pytest.param(
+        ExamplePair(
+            actual=pa.table(
+                {"nums": [1, 2, 3, 4, 5], "chars": ["a", "b", "c", "d", "e"]},
+                schema=pa.schema({"nums": pa.int64(), "chars": pa.string()}),
+            ),
+            expected=pa.table(
+                {"nums": [1.0, 2.0, 3.0, 4.0, 5.0], "chars": ["a", "b", "c", "d", "e"]},
+                schema=pa.schema({"nums": pa.float64(), "chars": pa.string()}),
+            ),
+        ),
+        id="table different dtypes",
+    ),
+    pytest.param(
+        ExamplePair(
+            actual=pa.table(
+                {"nums": [1, 2, 3, 4, 5], "chars": ["a", "b", "c", "d", "e"]},
+                schema=pa.schema({"nums": pa.int64(), "chars": pa.string()}),
+            ),
+            expected=pa.table(
+                {"nums": [1, 2, 3, 4, 6], "chars": ["a", "b", "c", "d", "e"]},
+                schema=pa.schema({"nums": pa.int64(), "chars": pa.string()}),
+            ),
+        ),
+        id="table different values",
+    ),
+    pytest.param(
+        ExamplePair(
+            actual=pa.table(
+                {"nums": [1, 2, 3, 4, 5], "chars": ["a", "b", "c", "d", "e"]},
+                schema=pa.schema({"nums": pa.int64(), "chars": pa.string()}),
+            ),
+            expected=pa.table(
+                {"nums2": [1, 2, 3, 4, 5], "chars": ["a", "b", "c", "d", "e"]},
+                schema=pa.schema({"nums2": pa.int64(), "chars": pa.string()}),
+            ),
+        ),
+        id="table different columns",
+    ),
+    pytest.param(
+        ExamplePair(
+            actual=pa.table(
+                {"nums": [1, 2, 3, 4, 5], "chars": ["a", "b", "c", "d", "e"]},
+                schema=pa.schema({"nums": pa.int64(), "chars": pa.string()}),
+            ),
+            expected=pa.array([1.0, 1.0, 1.0], type=pa.float64()),
+        ),
+        id="table different types",
+    ),
+]
+
+PYARROW_EQUAL = PYARROW_ARRAY_EQUAL + PYARROW_TABLE_EQUAL
+PYARROW_NOT_EQUAL = PYARROW_ARRAY_NOT_EQUAL + PYARROW_TABLE_NOT_EQUAL
 PYARROW_EQUAL_TOLERANCE = PYARROW_ARRAY_EQUAL_TOLERANCE
+PYARROW_NOT_EQUAL_TOLERANCE = PYARROW_ARRAY_NOT_EQUAL_TOLERANCE
