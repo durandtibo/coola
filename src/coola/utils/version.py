@@ -24,9 +24,9 @@ def compare_version(package: str, op: Callable, version: str) -> bool:
     r"""Compare a package version to a given version.
 
     Args:
-        package: Specifies the package to check.
-        op: Specifies the comparison operator.
-        version: Specifies the version to compare with.
+        package: The package to check.
+        op: The comparison operator.
+        version: The version to compare with.
 
     Returns:
         The comparison status.
@@ -54,7 +54,7 @@ def get_package_version(package: str) -> Version | None:
     r"""Get the package version.
 
     Args:
-        package: Specifies the package name.
+        package: The package name.
 
     Returns:
         The package version.
