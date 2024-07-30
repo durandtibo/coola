@@ -37,6 +37,7 @@ import importlib
 from contextlib import suppress
 from functools import lru_cache, wraps
 from importlib.util import find_spec
+from types import ModuleType
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -763,3 +764,50 @@ def xarray_available(fn: Callable[..., Any]) -> Callable[..., Any]:
     ```
     """
     return decorator_package_available(fn, is_xarray_available)
+
+
+# The implementation of LazyModule is based on
+# https://github.com/Lightning-AI/utilities/blob/b4232544a6e974fee2bebeb029849bd53916bbda/src/lightning_utilities/core/imports.py#L254C1-L292C52
+# License: https://github.com/Lightning-AI/utilities/blob/main/LICENSE
+class LazyModule(ModuleType):
+    """Define a proxy module that lazily imports a module the first time
+    it is actually used.
+
+    Args:
+        name: The fully-qualified module name to import.
+
+    Example usage:
+
+    ```pycon
+
+    >>> from coola.utils.imports import LazyModule
+    >>> # Lazy version of import numpy as np
+    >>> np = LazyModule("numpy")
+    >>> # The module is imported the first time it is actually used.
+    >>> np.ones((2, 3))
+    array([[1., 1., 1.],
+           [1., 1., 1.]])
+
+    ```
+    """
+
+    def __init__(self, name: str) -> None:
+        super().__init__(name)
+        self._module: Any = None
+
+    def __getattr__(self, item: str) -> Any:
+        if self._module is None:
+            self._import_module()
+        return getattr(self._module, item)
+
+    def __dir__(self) -> list[str]:
+        if self._module is None:
+            self._import_module()
+        return dir(self._module)
+
+    def _import_module(self) -> None:
+        self._module = importlib.import_module(self.__name__)
+
+        # Update this object's dict so that attribute references are efficient
+        # (__getattr__ is only called on lookups that fail)
+        self.__dict__.update(self._module.__dict__)
