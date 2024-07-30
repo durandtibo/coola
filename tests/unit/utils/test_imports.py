@@ -93,15 +93,15 @@ def test_check_package_exist() -> None:
 def test_check_package_missing() -> None:
     with (
         patch("coola.utils.imports.package_available", lambda name: name != "missing"),
-        pytest.raises(RuntimeError, match="missing package is required but not installed."),
+        pytest.raises(RuntimeError, match="'missing' package is required but not installed."),
     ):
         check_package("missing")
 
 
 def test_check_package_missing_with_command() -> None:
     msg = (
-        "missing package is required but not installed. "
-        "You can install missing package with the command:\n\npip install missing"
+        "'missing' package is required but not installed. "
+        "You can install 'missing' package with the command:\n\npip install missing"
     )
     with (
         patch("coola.utils.imports.package_available", lambda name: name != "missing"),
