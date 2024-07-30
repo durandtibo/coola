@@ -9,6 +9,7 @@ import pytest
 from coola.utils.imports import (
     check_jax,
     check_numpy,
+    check_package,
     check_packaging,
     check_pandas,
     check_polars,
@@ -75,6 +76,36 @@ def test_module_available_false() -> None:
 
 def test_module_available_false_submodule() -> None:
     assert not module_available("missing.module")
+
+
+###################################
+#     Tests for check_package     #
+###################################
+
+
+def test_check_package_exist() -> None:
+    with patch("coola.utils.imports.package_available", lambda name: name != "missing"):
+        check_package("exist")
+
+
+def test_check_package_missing() -> None:
+    with (
+        patch("coola.utils.imports.package_available", lambda name: name != "missing"),
+        pytest.raises(RuntimeError, match="missing package is required but not installed."),
+    ):
+        check_package("missing")
+
+
+def test_check_package_missing_with_command() -> None:
+    msg = (
+        "missing package is required but not installed. "
+        "You can install missing package with the command:\n\npip install missing"
+    )
+    with (
+        patch("coola.utils.imports.package_available", lambda name: name != "missing"),
+        pytest.raises(RuntimeError, match=msg),
+    ):
+        check_package("missing", command="pip install missing")
 
 
 #################################################

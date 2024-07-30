@@ -5,6 +5,7 @@ from __future__ import annotations
 __all__ = [
     "check_jax",
     "check_numpy",
+    "check_package",
     "check_packaging",
     "check_pandas",
     "check_polars",
@@ -95,6 +96,32 @@ def module_available(name: str) -> bool:
         importlib.import_module(name)
         return True
     return False
+
+
+def check_package(package: str, command: str | None = None) -> None:
+    r"""Check if the given package is installed.
+
+    Args:
+        package: The package name.
+        command: The command to install the package.
+
+    Raises:
+        RuntimeError: if the package is not installed.
+
+    Example usage:
+
+    ```pycon
+
+    >>> from coola.utils.imports import check_package
+    >>> check_package("numpy")
+
+    ```
+    """
+    if not package_available(package):
+        msg = f"{package} package is required but not installed."
+        if command is not None:
+            msg += f" You can install {package} package with the command:\n\n{command}"
+        raise RuntimeError(msg)
 
 
 def decorator_package_available(
