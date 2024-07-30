@@ -13,6 +13,7 @@ keywords = [
     "numpy",
     "pandas",
     "polars",
+    "pyarrow",
     "pytorch",
     "xarray",
 ]
