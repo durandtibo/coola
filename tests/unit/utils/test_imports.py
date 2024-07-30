@@ -27,6 +27,7 @@ from coola.utils.imports import (
     is_torch_available,
     is_xarray_available,
     jax_available,
+    lazy_import,
     module_available,
     numpy_available,
     package_available,
@@ -625,3 +626,39 @@ def test_lazy_module_missing_attribute_first() -> None:
 def test_lazy_module_missing() -> None:
     with pytest.raises(ModuleNotFoundError, match="No module named 'missing'"):
         str(LazyModule("missing"))
+
+
+#######################
+#     lazy_import     #
+#######################
+
+
+def test_lazy_import() -> None:
+    os = lazy_import("os")
+    assert isinstance(os.getcwd(), str)
+    assert isinstance(os.cpu_count(), int)
+    with pytest.raises(AttributeError, match="module 'os' has no attribute 'missing'"):
+        os.missing()
+
+
+def test_lazy_import_getattr_first() -> None:
+    pathlib = lazy_import("pathlib")
+    assert isinstance(pathlib.Path.cwd().as_posix(), str)
+    assert "Path" in dir(pathlib)
+
+
+def test_lazy_import_dir_first() -> None:
+    pathlib = lazy_import("pathlib")
+    assert "Path" in dir(pathlib)
+    assert isinstance(pathlib.Path.cwd().as_posix(), str)
+
+
+def test_lazy_import_missing_attribute_first() -> None:
+    os = lazy_import("os")
+    with pytest.raises(AttributeError, match="module 'os' has no attribute 'missing'"):
+        os.missing()
+
+
+def test_lazy_import_missing() -> None:
+    with pytest.raises(ModuleNotFoundError, match="No module named 'missing'"):
+        str(lazy_import("missing"))

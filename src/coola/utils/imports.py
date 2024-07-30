@@ -3,6 +3,7 @@ r"""Implement some utility functions to manage optional dependencies."""
 from __future__ import annotations
 
 __all__ = [
+    "LazyModule",
     "check_jax",
     "check_numpy",
     "check_package",
@@ -22,6 +23,7 @@ __all__ = [
     "is_torch_available",
     "is_xarray_available",
     "jax_available",
+    "lazy_import",
     "module_available",
     "numpy_available",
     "package_available",
@@ -811,3 +813,30 @@ class LazyModule(ModuleType):
         # Update this object's dict so that attribute references are efficient
         # (__getattr__ is only called on lookups that fail)
         self.__dict__.update(self._module.__dict__)
+
+
+def lazy_import(name: str) -> LazyModule:
+    r"""Return a proxy of the module/package to lazily import.
+
+    Args:
+        name: The fully-qualified module name to import.
+
+    Returns:
+        A proxy module that lazily imports a module the first time
+            it is actually used.
+
+    Example usage:
+
+    ```pycon
+
+    >>> from coola.utils.imports import lazy_import
+    >>> # Lazy version of import numpy as np
+    >>> np = lazy_import("numpy")
+    >>> # The module is imported the first time it is actually used.
+    >>> np.ones((2, 3))
+    array([[1., 1., 1.],
+           [1., 1., 1.]])
+
+    ```
+    """
+    return LazyModule(name)
