@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from coola.utils.imports import (
+    LazyModule,
     check_jax,
     check_numpy,
     check_package,
@@ -26,6 +27,7 @@ from coola.utils.imports import (
     is_torch_available,
     is_xarray_available,
     jax_available,
+    lazy_import,
     module_available,
     numpy_available,
     package_available,
@@ -588,3 +590,75 @@ def test_xarray_available_decorator_without_package() -> None:
             return 42 + n
 
         assert fn(2) is None
+
+
+######################
+#     LazyModule     #
+######################
+
+
+def test_lazy_module() -> None:
+    os = LazyModule("os")
+    assert isinstance(os.getcwd(), str)
+    assert isinstance(os.cpu_count(), int)
+    with pytest.raises(AttributeError, match="module 'os' has no attribute 'missing'"):
+        os.missing()
+
+
+def test_lazy_module_getattr_first() -> None:
+    pathlib = LazyModule("pathlib")
+    assert isinstance(pathlib.Path.cwd().as_posix(), str)
+    assert "Path" in dir(pathlib)
+
+
+def test_lazy_module_dir_first() -> None:
+    pathlib = LazyModule("pathlib")
+    assert "Path" in dir(pathlib)
+    assert isinstance(pathlib.Path.cwd().as_posix(), str)
+
+
+def test_lazy_module_missing_attribute_first() -> None:
+    os = LazyModule("os")
+    with pytest.raises(AttributeError, match="module 'os' has no attribute 'missing'"):
+        os.missing()
+
+
+def test_lazy_module_missing() -> None:
+    with pytest.raises(ModuleNotFoundError, match="No module named 'missing'"):
+        str(LazyModule("missing"))
+
+
+#######################
+#     lazy_import     #
+#######################
+
+
+def test_lazy_import() -> None:
+    os = lazy_import("os")
+    assert isinstance(os.getcwd(), str)
+    assert isinstance(os.cpu_count(), int)
+    with pytest.raises(AttributeError, match="module 'os' has no attribute 'missing'"):
+        os.missing()
+
+
+def test_lazy_import_getattr_first() -> None:
+    pathlib = lazy_import("pathlib")
+    assert isinstance(pathlib.Path.cwd().as_posix(), str)
+    assert "Path" in dir(pathlib)
+
+
+def test_lazy_import_dir_first() -> None:
+    pathlib = lazy_import("pathlib")
+    assert "Path" in dir(pathlib)
+    assert isinstance(pathlib.Path.cwd().as_posix(), str)
+
+
+def test_lazy_import_missing_attribute_first() -> None:
+    os = lazy_import("os")
+    with pytest.raises(AttributeError, match="module 'os' has no attribute 'missing'"):
+        os.missing()
+
+
+def test_lazy_import_missing() -> None:
+    with pytest.raises(ModuleNotFoundError, match="No module named 'missing'"):
+        str(lazy_import("missing"))
