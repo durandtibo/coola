@@ -121,9 +121,9 @@ def check_package(package: str, command: str | None = None) -> None:
     ```
     """
     if not package_available(package):
-        msg = f"{package} package is required but not installed."
+        msg = f"'{package}' package is required but not installed."
         if command is not None:
-            msg += f" You can install {package} package with the command:\n\n{command}"
+            msg += f" You can install '{package}' package with the command:\n\n{command}"
         raise RuntimeError(msg)
 
 
