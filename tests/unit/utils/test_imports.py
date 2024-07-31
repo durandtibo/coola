@@ -173,7 +173,7 @@ def test_check_jax_with_package() -> None:
 def test_check_jax_without_package() -> None:
     with (
         patch("coola.utils.imports.is_jax_available", lambda: False),
-        pytest.raises(RuntimeError, match="`jax` package is required but not installed."),
+        pytest.raises(RuntimeError, match="'jax' package is required but not installed."),
     ):
         check_jax()
 
@@ -227,7 +227,7 @@ def test_check_numpy_with_package() -> None:
 def test_check_numpy_without_package() -> None:
     with (
         patch("coola.utils.imports.is_numpy_available", lambda: False),
-        pytest.raises(RuntimeError, match="`numpy` package is required but not installed."),
+        pytest.raises(RuntimeError, match="'numpy' package is required but not installed."),
     ):
         check_numpy()
 
@@ -281,7 +281,7 @@ def test_check_packaging_with_package() -> None:
 def test_check_packaging_without_package() -> None:
     with (
         patch("coola.utils.imports.is_packaging_available", lambda: False),
-        pytest.raises(RuntimeError, match="`packaging` package is required but not installed."),
+        pytest.raises(RuntimeError, match="'packaging' package is required but not installed."),
     ):
         check_packaging()
 
@@ -335,7 +335,7 @@ def test_check_pandas_with_package() -> None:
 def test_check_pandas_without_package() -> None:
     with (
         patch("coola.utils.imports.is_pandas_available", lambda: False),
-        pytest.raises(RuntimeError, match="`pandas` package is required but not installed."),
+        pytest.raises(RuntimeError, match="'pandas' package is required but not installed."),
     ):
         check_pandas()
 
@@ -389,7 +389,7 @@ def test_check_polars_with_package() -> None:
 def test_check_polars_without_package() -> None:
     with (
         patch("coola.utils.imports.is_polars_available", lambda: False),
-        pytest.raises(RuntimeError, match="`polars` package is required but not installed."),
+        pytest.raises(RuntimeError, match="'polars' package is required but not installed."),
     ):
         check_polars()
 
@@ -443,7 +443,7 @@ def test_check_pyarrow_with_package() -> None:
 def test_check_pyarrow_without_package() -> None:
     with (
         patch("coola.utils.imports.is_pyarrow_available", lambda: False),
-        pytest.raises(RuntimeError, match="`pyarrow` package is required but not installed."),
+        pytest.raises(RuntimeError, match="'pyarrow' package is required but not installed."),
     ):
         check_pyarrow()
 
@@ -497,7 +497,7 @@ def test_check_torch_with_package() -> None:
 def test_check_torch_without_package() -> None:
     with (
         patch("coola.utils.imports.is_torch_available", lambda: False),
-        pytest.raises(RuntimeError, match="`torch` package is required but not installed."),
+        pytest.raises(RuntimeError, match="'torch' package is required but not installed."),
     ):
         check_torch()
 
@@ -551,7 +551,7 @@ def test_check_xarray_with_package() -> None:
 def test_check_xarray_without_package() -> None:
     with (
         patch("coola.utils.imports.is_xarray_available", lambda: False),
-        pytest.raises(RuntimeError, match="`xarray` package is required but not installed."),
+        pytest.raises(RuntimeError, match="'xarray' package is required but not installed."),
     ):
         check_xarray()
 

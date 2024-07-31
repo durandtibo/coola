@@ -60,6 +60,7 @@ def package_available(name: str) -> bool:
 
     ```pycon
 
+    >>> from coola.utils.imports import package_available
     >>> package_available("os")
     True
     >>> package_available("missing_package")
@@ -86,6 +87,7 @@ def module_available(name: str) -> bool:
 
     ```pycon
 
+    >>> from coola.utils.imports import module_available
     >>> module_available("os")
     True
     >>> module_available("os.missing")
@@ -209,8 +211,8 @@ def check_jax() -> None:
     """
     if not is_jax_available():
         msg = (
-            "`jax` package is required but not installed. "
-            "You can install `jax` package with the command:\n\n"
+            "'jax' package is required but not installed. "
+            "You can install 'jax' package with the command:\n\n"
             "pip install jax\n"
         )
         raise RuntimeError(msg)
@@ -284,8 +286,8 @@ def check_numpy() -> None:
     """
     if not is_numpy_available():
         msg = (
-            "`numpy` package is required but not installed. "
-            "You can install `numpy` package with the command:\n\n"
+            "'numpy' package is required but not installed. "
+            "You can install 'numpy' package with the command:\n\n"
             "pip install numpy\n"
         )
         raise RuntimeError(msg)
@@ -359,8 +361,8 @@ def check_packaging() -> None:
     """
     if not is_packaging_available():
         msg = (
-            "`packaging` package is required but not installed. "
-            "You can install `packaging` package with the command:\n\n"
+            "'packaging' package is required but not installed. "
+            "You can install 'packaging' package with the command:\n\n"
             "pip install packaging\n"
         )
         raise RuntimeError(msg)
@@ -434,8 +436,8 @@ def check_pandas() -> None:
     """
     if not is_pandas_available():
         msg = (
-            "`pandas` package is required but not installed. "
-            "You can install `pandas` package with the command:\n\n"
+            "'pandas' package is required but not installed. "
+            "You can install 'pandas' package with the command:\n\n"
             "pip install pandas\n"
         )
         raise RuntimeError(msg)
@@ -509,8 +511,8 @@ def check_polars() -> None:
     """
     if not is_polars_available():
         msg = (
-            "`polars` package is required but not installed. "
-            "You can install `polars` package with the command:\n\n"
+            "'polars' package is required but not installed. "
+            "You can install 'polars' package with the command:\n\n"
             "pip install polars\n"
         )
         raise RuntimeError(msg)
@@ -584,8 +586,8 @@ def check_pyarrow() -> None:
     """
     if not is_pyarrow_available():
         msg = (
-            "`pyarrow` package is required but not installed. "
-            "You can install `pyarrow` package with the command:\n\n"
+            "'pyarrow' package is required but not installed. "
+            "You can install 'pyarrow' package with the command:\n\n"
             "pip install pyarrow\n"
         )
         raise RuntimeError(msg)
@@ -659,8 +661,8 @@ def check_torch() -> None:
     """
     if not is_torch_available():
         msg = (
-            "`torch` package is required but not installed. "
-            "You can install `torch` package with the command:\n\n"
+            "'torch' package is required but not installed. "
+            "You can install 'torch' package with the command:\n\n"
             "pip install torch\n"
         )
         raise RuntimeError(msg)
@@ -734,8 +736,8 @@ def check_xarray() -> None:
     """
     if not is_xarray_available():
         msg = (
-            "`xarray` package is required but not installed. "
-            "You can install `xarray` package with the command:\n\n"
+            "'xarray' package is required but not installed. "
+            "You can install 'xarray' package with the command:\n\n"
             "pip install xarray\n"
         )
         raise RuntimeError(msg)

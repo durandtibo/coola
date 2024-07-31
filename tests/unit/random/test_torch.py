@@ -84,7 +84,7 @@ def test_torch_random_manager_set_rng_state() -> None:
 def test_torch_random_manager_no_torch() -> None:
     with (
         patch("coola.utils.imports.is_torch_available", lambda: False),
-        pytest.raises(RuntimeError, match="`torch` package is required but not installed."),
+        pytest.raises(RuntimeError, match="'torch' package is required but not installed."),
     ):
         TorchRandomManager()
 

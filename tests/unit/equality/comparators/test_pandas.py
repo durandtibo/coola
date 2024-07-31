@@ -360,7 +360,7 @@ def test_pandas_dataframe_equality_comparator_equal_tolerance(
 def test_pandas_dataframe_equality_comparator_no_pandas() -> None:
     with (
         patch("coola.utils.imports.is_pandas_available", lambda: False),
-        pytest.raises(RuntimeError, match="`pandas` package is required but not installed."),
+        pytest.raises(RuntimeError, match="'pandas' package is required but not installed."),
     ):
         PandasDataFrameEqualityComparator()
 
@@ -485,7 +485,7 @@ def test_pandas_series_equality_comparator_equal_tolerance(
 def test_pandas_series_equality_comparator_no_pandas() -> None:
     with (
         patch("coola.utils.imports.is_pandas_available", lambda: False),
-        pytest.raises(RuntimeError, match="`pandas` package is required but not installed."),
+        pytest.raises(RuntimeError, match="'pandas' package is required but not installed."),
     ):
         PandasSeriesEqualityComparator()
 

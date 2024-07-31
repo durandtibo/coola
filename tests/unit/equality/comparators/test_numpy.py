@@ -360,7 +360,7 @@ def test_numpy_array_equality_comparator_equal_true_tolerance(
 def test_numpy_array_equality_comparator_no_numpy() -> None:
     with (
         patch("coola.utils.imports.is_numpy_available", lambda: False),
-        pytest.raises(RuntimeError, match="`numpy` package is required but not installed."),
+        pytest.raises(RuntimeError, match="'numpy' package is required but not installed."),
     ):
         NumpyArrayEqualityComparator()
 
@@ -477,7 +477,7 @@ def test_numpy_masked_array_equality_comparator_equal_nan(
 def test_numpy_masked_array_equality_comparator_no_numpy() -> None:
     with (
         patch("coola.utils.imports.is_numpy_available", lambda: False),
-        pytest.raises(RuntimeError, match="`numpy` package is required but not installed."),
+        pytest.raises(RuntimeError, match="'numpy' package is required but not installed."),
     ):
         NumpyMaskedArrayEqualityComparator()
 
