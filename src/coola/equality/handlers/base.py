@@ -2,7 +2,7 @@ r"""Define the equality handler base classes."""
 
 from __future__ import annotations
 
-__all__ = ["BaseEqualityHandler", "AbstractEqualityHandler"]
+__all__ = ["AbstractEqualityHandler", "BaseEqualityHandler"]
 
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any

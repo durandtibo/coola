@@ -2,7 +2,7 @@ r"""Contain some utility functions to manipulate mappings."""
 
 from __future__ import annotations
 
-__all__ = ["get_first_value", "to_flat_dict", "remove_keys_starting_with"]
+__all__ = ["get_first_value", "remove_keys_starting_with", "to_flat_dict"]
 
 from typing import TYPE_CHECKING, Any
 

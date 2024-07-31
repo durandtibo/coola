@@ -3,10 +3,10 @@ r"""Implement handlers to check the objects are equal."""
 from __future__ import annotations
 
 __all__ = [
-    "SupportsEqual",
-    "SupportsEqualNan",
     "EqualHandler",
     "EqualNanHandler",
+    "SupportsEqual",
+    "SupportsEqualNan",
 ]
 
 import logging
