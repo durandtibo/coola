@@ -121,7 +121,7 @@ class DefaultFormatter(BaseFormatter[Any]):
         if not isinstance(max_characters, int):
             msg = (
                 "Incorrect type for max_characters. Expected int value but "
-                "received {max_characters}"
+                f"received {max_characters}"
             )
             raise TypeError(msg)
         self._max_characters = max_characters

@@ -3,8 +3,8 @@ r"""Contain the reducer implementations."""
 __all__ = [
     "BaseBasicReducer",
     "BaseReducer",
-    "NativeReducer",
     "EmptySequenceError",
+    "NativeReducer",
     "NumpyReducer",
     "ReducerRegistry",
     "TorchReducer",

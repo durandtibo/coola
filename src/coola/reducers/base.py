@@ -2,7 +2,7 @@ r"""Define the reducer base class."""
 
 from __future__ import annotations
 
-__all__ = ["BaseReducer", "BaseBasicReducer", "EmptySequenceError"]
+__all__ = ["BaseBasicReducer", "BaseReducer", "EmptySequenceError"]
 
 from abc import ABC, abstractmethod
 from collections.abc import Sequence

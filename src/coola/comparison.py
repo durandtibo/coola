@@ -2,7 +2,7 @@ r"""Implement the main comparison public features."""
 
 from __future__ import annotations
 
-__all__ = ["objects_are_equal", "objects_are_allclose"]
+__all__ = ["objects_are_allclose", "objects_are_equal"]
 
 from typing import TYPE_CHECKING, Any
 

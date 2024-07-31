@@ -2,7 +2,7 @@ r"""Implement handlers to check the objects have the same data."""
 
 from __future__ import annotations
 
-__all__ = ["SupportsData", "SameDataHandler"]
+__all__ = ["SameDataHandler", "SupportsData"]
 
 import logging
 from typing import TYPE_CHECKING, Any, Protocol
