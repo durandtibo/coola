@@ -49,7 +49,7 @@ def sanitize_path(path: Path | str) -> Path:
 
 
 @contextlib.contextmanager
-def working_directory(path: Path) -> Generator[None, None, None]:
+def working_directory(path: Path) -> Generator[None]:
     r"""Context manager to change the working directory to the given
     path, and then changes it back to its previous value on exit.
 

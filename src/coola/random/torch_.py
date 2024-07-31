@@ -84,7 +84,7 @@ def get_random_managers() -> dict[str, BaseRandomManager]:
 
 
 @contextmanager
-def torch_seed(seed: int) -> Generator[None, None, None]:
+def torch_seed(seed: int) -> Generator[None]:
     r"""Implement a context manager to manage the PyTorch random seed and
     random number generator (RNG) state.
 

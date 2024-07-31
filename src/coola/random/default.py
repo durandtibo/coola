@@ -126,7 +126,7 @@ class RandomManager(BaseRandomManager):
 
 
 @contextmanager
-def random_seed(seed: int) -> Generator[None, None, None]:
+def random_seed(seed: int) -> Generator[None]:
     r"""Implement a context manager to manage the random seed and random
     number generator (RNG) state.
 
