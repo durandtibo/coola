@@ -772,7 +772,8 @@ def xarray_available(fn: Callable[..., Any]) -> Callable[..., Any]:
 
 # The implementation of LazyModule is based on
 # https://github.com/Lightning-AI/utilities/blob/b4232544a6e974fee2bebeb029849bd53916bbda/src/lightning_utilities/core/imports.py#L254C1-L292C52
-# License: https://github.com/Lightning-AI/utilities/blob/main/LICENSE
+# with license found in the licenses/LICENSE_lightning_utilities or at
+# https://github.com/Lightning-AI/utilities/blob/main/LICENSE
 class LazyModule(ModuleType):
     """Define a proxy module that lazily imports a module the first time
     it is actually used.
