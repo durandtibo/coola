@@ -12,6 +12,7 @@ __all__ = [
     "check_polars",
     "check_pyarrow",
     "check_torch",
+    "check_torch_numpy",
     "check_xarray",
     "decorator_package_available",
     "is_jax_available",
@@ -21,6 +22,7 @@ __all__ = [
     "is_polars_available",
     "is_pyarrow_available",
     "is_torch_available",
+    "is_torch_numpy_available",
     "is_xarray_available",
     "jax_available",
     "lazy_import",
@@ -32,6 +34,7 @@ __all__ = [
     "polars_available",
     "pyarrow_available",
     "torch_available",
+    "torch_numpy_available",
     "xarray_available",
 ]
 
@@ -41,6 +44,7 @@ from functools import lru_cache, wraps
 from importlib.util import find_spec
 from types import ModuleType
 from typing import TYPE_CHECKING, Any
+from unittest.mock import Mock
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -693,6 +697,98 @@ def torch_available(fn: Callable[..., Any]) -> Callable[..., Any]:
     ```
     """
     return decorator_package_available(fn, is_torch_available)
+
+
+#######################
+#     torch+numpy     #
+#######################
+
+# import is here because is_torch_available is defined above
+if is_torch_available():
+    import torch
+else:  # pragma: no cover
+    torch = Mock()
+
+
+@lru_cache
+def is_torch_numpy_available() -> bool:
+    r"""Indicate if the ``torch`` and ``numpy`` packages are installed
+    and are compatible.
+
+    Returns:
+        ``True`` if both packages are available and compatible,
+            otherwise ``False``.
+
+    Example usage:
+
+    ```pycon
+
+    >>> from coola.utils.imports import is_torch_numpy_available
+    >>> is_torch_numpy_available()
+
+    ```
+    """
+    if not is_torch_available():
+        return False
+    if not is_numpy_available():
+        return False
+    with suppress(RuntimeError):
+
+        torch.tensor([1.0]).numpy()  # Check if the libraries are compatible
+        return True
+    return False
+
+
+def check_torch_numpy() -> None:
+    r"""Check if the ``torch`` and ``numpy`` packages are installed and
+    are compatible.
+
+    Raises:
+        RuntimeError: if one of the packages is not installed or if
+            they are not compatible.
+
+    Example usage:
+
+    ```pycon
+
+    >>> from coola.utils.imports import check_torch_numpy
+    >>> check_torch_numpy()
+
+    ```
+    """
+    if not is_torch_numpy_available():
+        msg = (
+            "'torch' and 'numpy' packages are required but one of the package is not "
+            "installed or they are not compatible. "
+        )
+        raise RuntimeError(msg)
+
+
+def torch_numpy_available(fn: Callable[..., Any]) -> Callable[..., Any]:
+    r"""Implement a decorator to execute a function only if ``torch`` and
+    ``numpy`` packages are installed and are compatible.
+
+    Args:
+        fn: The function to execute.
+
+    Returns:
+        A wrapper around ``fn`` if ``torch`` and ``numpy`` packages
+            are installed and are compatible., otherwise ``None``.
+
+    Example usage:
+
+    ```pycon
+
+    >>> from coola.utils.imports import torch_numpy_available
+    >>> @torch_numpy_available
+    ... def my_function(n: int = 0) -> int:
+    ...     return 42 + n
+    ...
+    >>> my_function()
+
+    ```
+    """
+    return decorator_package_available(fn, is_torch_numpy_available)
 
 
 ##################
