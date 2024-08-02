@@ -8,6 +8,7 @@ from coola.utils.format import (
     repr_mapping,
     repr_mapping_line,
     repr_sequence,
+    repr_sequence_line,
     str_human_byte_size,
     str_indent,
     str_mapping,
@@ -106,6 +107,13 @@ def test_repr_mapping_line_sorted_keys_false() -> None:
     assert repr_mapping_line({"key2": "value2", "key1": "value1"}) == "key2='value2', key1='value1'"
 
 
+def test_repr_mapping_line_separator() -> None:
+    assert (
+        repr_mapping_line({"key1": "abc", "key2": "meow", "key3": 42}, separator=" ")
+        == "key1='abc' key2='meow' key3=42"
+    )
+
+
 ###################################
 #     Tests for repr_sequence     #
 ###################################
@@ -125,6 +133,27 @@ def test_repr_sequence_2_items() -> None:
 
 def test_repr_sequence_2_items_multiple_line() -> None:
     assert repr_sequence(["abc", "something\nelse"]) == "(0): abc\n(1): something\n  else"
+
+
+########################################
+#     Tests for repr_sequence_line     #
+########################################
+
+
+def test_repr_sequence_line_empty() -> None:
+    assert repr_sequence_line([]) == ""
+
+
+def test_repr_sequence_line_1_item() -> None:
+    assert repr_sequence_line(["abc"]) == "'abc'"
+
+
+def test_repr_sequence_line_2_items() -> None:
+    assert repr_sequence_line(["abc", 123]) == "'abc', 123"
+
+
+def test_repr_sequence_line_2_items_separator() -> None:
+    assert repr_sequence_line(["abc", "meow", 42], separator="|") == "'abc'|'meow'|42"
 
 
 ################################
@@ -215,6 +244,13 @@ def test_str_mapping_line_sorted_keys_true() -> None:
 
 def test_str_mapping_line_sorted_keys_false() -> None:
     assert str_mapping_line({"key2": "value2", "key1": "value1"}) == "key2=value2, key1=value1"
+
+
+def test_str_mapping_line_separator() -> None:
+    assert (
+        str_mapping_line({"key1": "abc", "key2": "meow", "key3": 42}, separator=" ")
+        == "key1=abc key2=meow key3=42"
+    )
 
 
 ##################################
