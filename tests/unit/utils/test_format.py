@@ -6,6 +6,7 @@ from coola.utils.format import (
     find_best_byte_unit,
     repr_indent,
     repr_mapping,
+    repr_mapping_line,
     repr_sequence,
     str_human_byte_size,
     str_indent,
@@ -75,6 +76,34 @@ def test_repr_mapping_sorted_keys_true() -> None:
 
 def test_repr_mapping_sorted_keys_false() -> None:
     assert repr_mapping({"key2": "value2", "key1": "value1"}) == "(key2): value2\n(key1): value1"
+
+
+#######################################
+#     Tests for repr_mapping_line     #
+#######################################
+
+
+def test_repr_mapping_line_empty() -> None:
+    assert repr_mapping_line({}) == ""
+
+
+def test_repr_mapping_line_1_item() -> None:
+    assert repr_mapping_line({"key": "value"}) == "key='value'"
+
+
+def test_repr_mapping_line_2_items() -> None:
+    assert repr_mapping_line({"key1": "value1", "key2": "value2"}) == "key1='value1', key2='value2'"
+
+
+def test_repr_mapping_line_sorted_keys_true() -> None:
+    assert (
+        repr_mapping_line({"key2": "value2", "key1": "value1"}, sorted_keys=True)
+        == "key1='value1', key2='value2'"
+    )
+
+
+def test_repr_mapping_line_sorted_keys_false() -> None:
+    assert repr_mapping_line({"key2": "value2", "key1": "value1"}) == "key2='value2', key1='value1'"
 
 
 ###################################

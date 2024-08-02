@@ -7,6 +7,7 @@ __all__ = [
     "find_best_byte_unit",
     "repr_indent",
     "repr_mapping",
+    "repr_mapping_line",
     "repr_sequence",
     "str_human_byte_size",
     "str_indent",
@@ -98,6 +99,37 @@ def repr_mapping(mapping: Mapping, sorted_keys: bool = False, num_spaces: int = 
     for key, value in sorted(mapping.items()) if sorted_keys else mapping.items():
         lines.append(f"({key}): {repr_indent(value, num_spaces=num_spaces)}")
     return "\n".join(lines)
+
+
+def repr_mapping_line(mapping: Mapping, sorted_keys: bool = False, separator: str = ", ") -> str:
+    r"""Compute a single line string representation of the given mapping.
+
+    This function is designed for flat dictionary. If you have a
+    nested dictionary, you may consider other functions. Note that
+    this function works for nested dict but the output may not be
+    nice.
+
+    Args:
+        mapping: The mapping.
+        sorted_keys: If ``True``, the keys in the mapping are sorted
+            before to compute the string representation.
+        separator: The separator to use between each key-value pair.
+
+    Returns:
+        The string representation of the mapping.
+
+    Example usage:
+
+    ```pycon
+
+    >>> from coola.utils.format import repr_mapping_line
+    >>> repr_mapping_line({"key1": "abc", "key2": "meow", "key3": 42})
+    key1='abc', key2='meow', key3=42
+
+    ```
+    """
+    mapping = sorted(mapping.items()) if sorted_keys else mapping.items()
+    return separator.join(f"{key}={value!r}" for key, value in mapping)
 
 
 def repr_sequence(sequence: Sequence, num_spaces: int = 2) -> str:
