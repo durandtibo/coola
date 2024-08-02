@@ -17,6 +17,7 @@ __all__ = [
     "str_sequence",
     "str_sequence_line",
     "str_time_human",
+    "repr_sequence_line",
 ]
 
 import datetime
