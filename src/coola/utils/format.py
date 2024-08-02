@@ -15,6 +15,7 @@ __all__ = [
     "str_mapping_line",
     "str_sequence",
     "str_time_human",
+    "repr_sequence_line",
 ]
 
 import datetime
@@ -159,6 +160,29 @@ def repr_sequence(sequence: Sequence, num_spaces: int = 2) -> str:
     for i, item in enumerate(sequence):
         lines.append(f"({i}): {repr_indent(item, num_spaces=num_spaces)}")
     return "\n".join(lines)
+
+
+def repr_sequence_line(sequence: Sequence, separator: str = ", ") -> str:
+    r"""Compute a single line string representation of a sequence.
+
+    Args:
+        sequence: The sequence.
+        separator: The separator to use between each item.
+
+    Returns:
+        The string representation of the sequence.
+
+    Example usage:
+
+    ```pycon
+
+    >>> from coola.utils.format import repr_sequence_line
+    >>> repr_sequence_line(["abc", "meow", 42])
+    'abc', 'meow', 42
+
+    ```
+    """
+    return separator.join(map(repr, sequence))
 
 
 def str_indent(original: Any, num_spaces: int = 2) -> str:
