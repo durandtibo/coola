@@ -10,6 +10,7 @@ from coola.utils.format import (
     str_human_byte_size,
     str_indent,
     str_mapping,
+    str_mapping_line,
     str_sequence,
     str_time_human,
 )
@@ -65,14 +66,14 @@ def test_repr_mapping_2_items() -> None:
     assert repr_mapping({"key1": "value1", "key2": "value2"}) == "(key1): value1\n(key2): value2"
 
 
-def test_repr_mapping_sorted_values_true() -> None:
+def test_repr_mapping_sorted_keys_true() -> None:
     assert (
         repr_mapping({"key2": "value2", "key1": "value1"}, sorted_keys=True)
         == "(key1): value1\n(key2): value2"
     )
 
 
-def test_repr_mapping_sorted_values_false() -> None:
+def test_repr_mapping_sorted_keys_false() -> None:
     assert repr_mapping({"key2": "value2", "key1": "value1"}) == "(key2): value2\n(key1): value1"
 
 
@@ -148,15 +149,43 @@ def test_str_mapping_2_items() -> None:
     assert str_mapping({"key1": "value1", "key2": "value2"}) == "(key1): value1\n(key2): value2"
 
 
-def test_str_mapping_sorted_values_true() -> None:
+def test_str_mapping_sorted_keys_true() -> None:
     assert (
         str_mapping({"key2": "value2", "key1": "value1"}, sorted_keys=True)
         == "(key1): value1\n(key2): value2"
     )
 
 
-def test_str_mapping_sorted_values_false() -> None:
+def test_str_mapping_sorted_keys_false() -> None:
     assert str_mapping({"key2": "value2", "key1": "value1"}) == "(key2): value2\n(key1): value1"
+
+
+######################################
+#     Tests for str_mapping_line     #
+######################################
+
+
+def test_str_mapping_line_empty() -> None:
+    assert str_mapping_line({}) == ""
+
+
+def test_str_mapping_line_1_item() -> None:
+    assert str_mapping_line({"key": "value"}) == "key=value"
+
+
+def test_str_mapping_line_2_items() -> None:
+    assert str_mapping_line({"key1": "value1", "key2": "value2"}) == "key1=value1, key2=value2"
+
+
+def test_str_mapping_line_sorted_keys_true() -> None:
+    assert (
+        str_mapping_line({"key2": "value2", "key1": "value1"}, sorted_keys=True)
+        == "key1=value1, key2=value2"
+    )
+
+
+def test_str_mapping_line_sorted_keys_false() -> None:
+    assert str_mapping_line({"key2": "value2", "key1": "value1"}) == "key2=value2, key1=value1"
 
 
 ##################################
