@@ -14,6 +14,7 @@ from coola.utils.format import (
     str_mapping,
     str_mapping_line,
     str_sequence,
+    str_sequence_line,
     str_time_human,
 )
 
@@ -272,6 +273,27 @@ def test_str_sequence_2_items() -> None:
 
 def test_str_sequence_2_items_multiple_line() -> None:
     assert str_sequence(["abc", "something\nelse"]) == "(0): abc\n(1): something\n  else"
+
+
+#######################################
+#     Tests for str_sequence_line     #
+#######################################
+
+
+def test_str_sequence_line_empty() -> None:
+    assert str_sequence_line([]) == ""
+
+
+def test_str_sequence_line_1_item() -> None:
+    assert str_sequence_line(["abc"]) == "abc"
+
+
+def test_str_sequence_line_2_items() -> None:
+    assert str_sequence_line(["abc", 123]) == "abc, 123"
+
+
+def test_str_sequence_line_2_items_separator() -> None:
+    assert str_sequence_line(["abc", "meow", 42], separator="|") == "abc|meow|42"
 
 
 ####################################
