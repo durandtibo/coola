@@ -23,7 +23,7 @@ def sort_by_keys(mapping: Mapping) -> dict:
 
     ```pycon
 
-    >>> from flamme.utils.mapping import sort_by_keys
+    >>> from coola.utils.mapping import sort_by_keys
     >>> sort_by_keys({"dog": 1, "cat": 5, "fish": 2})
     {'cat': 5, 'dog': 1, 'fish': 2}
 
@@ -45,7 +45,7 @@ def sort_by_values(mapping: Mapping) -> dict:
 
     ```pycon
 
-    >>> from flamme.utils.mapping import sort_by_values
+    >>> from coola.utils.mapping import sort_by_values
     >>> sort_by_values({"dog": 1, "cat": 5, "fish": 2})
     {'dog': 1, 'fish': 2, 'cat': 5}
 
