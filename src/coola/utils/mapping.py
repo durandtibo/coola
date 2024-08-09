@@ -4,6 +4,7 @@ from __future__ import annotations
 
 __all__ = ["sort_by_keys", "sort_by_values"]
 
+import operator
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -51,4 +52,4 @@ def sort_by_values(mapping: Mapping) -> dict:
 
     ```
     """
-    return dict(sorted(mapping.items(), key=lambda item: item[1]))
+    return dict(sorted(mapping.items(), key=operator.itemgetter(1)))
