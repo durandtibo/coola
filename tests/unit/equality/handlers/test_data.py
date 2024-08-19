@@ -20,7 +20,7 @@ if is_torch_available():
     import torch
 
 
-@pytest.fixture()
+@pytest.fixture
 def config() -> EqualityConfig:
     return EqualityConfig(tester=EqualityTester())
 

@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from collections.abc import Sized
 
 
-@pytest.fixture()
+@pytest.fixture
 def config() -> EqualityConfig:
     return EqualityConfig(tester=EqualityTester())
 

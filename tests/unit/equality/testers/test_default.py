@@ -57,7 +57,7 @@ if is_xarray_available():
     import xarray as xr
 
 
-@pytest.fixture()
+@pytest.fixture
 def config() -> EqualityConfig:
     return EqualityConfig(tester=EqualityTester())
 
