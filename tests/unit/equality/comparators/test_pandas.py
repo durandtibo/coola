@@ -22,7 +22,7 @@ else:
     pd = Mock()
 
 
-@pytest.fixture()
+@pytest.fixture
 def config() -> EqualityConfig:
     return EqualityConfig(tester=EqualityTester())
 

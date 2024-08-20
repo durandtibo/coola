@@ -11,7 +11,7 @@ from tests.unit.equality.comparators.test_scalar import SCALAR_EQUAL_TOLERANCE
 from tests.unit.equality.comparators.utils import ExamplePair
 
 
-@pytest.fixture()
+@pytest.fixture
 def config() -> EqualityConfig:
     return EqualityConfig(tester=EqualityTester())
 

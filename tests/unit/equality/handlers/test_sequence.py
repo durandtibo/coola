@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-@pytest.fixture()
+@pytest.fixture
 def config() -> EqualityConfig:
     return EqualityConfig(tester=EqualityTester())
 

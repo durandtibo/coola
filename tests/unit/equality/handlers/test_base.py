@@ -12,7 +12,7 @@ from coola.equality.handlers import (
 from coola.equality.testers import EqualityTester
 
 
-@pytest.fixture()
+@pytest.fixture
 def config() -> EqualityConfig:
     return EqualityConfig(tester=EqualityTester())
 

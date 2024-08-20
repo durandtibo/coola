@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from coola.equality.handlers.equal import SupportsEqual, SupportsEqualNan
 
 
-@pytest.fixture()
+@pytest.fixture
 def config() -> EqualityConfig:
     return EqualityConfig(tester=EqualityTester())
 
