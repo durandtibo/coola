@@ -157,7 +157,8 @@ jobs:
 
       - name: Install package
         run: |
-          pip install coola jax==${{ matrix.jax-version }} jaxlib==${{ matrix.jax-version }}
+          pip install coola feu
+          python -c "from feu import install_package; install_package('jax', '${{ matrix.jax-version }}')"
 
       - name: Run some checks
         run: |
