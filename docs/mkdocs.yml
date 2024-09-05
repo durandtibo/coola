@@ -63,6 +63,8 @@ markdown_extensions:
 
 plugins:
   - search
+  - autorefs:
+      resolve_closest: true
   - mkdocstrings:
       default_handler: python
       handlers:
