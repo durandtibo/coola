@@ -349,6 +349,7 @@ files = [
 ]
 
 [package.dependencies]
+fire = {version = ">=0.6.0,<1.0", optional = true, markers = "extra == \"all\" or extra == \"fire\""}
 packaging = ">=21.0,<25.0"
 
 [package.extras]
@@ -370,6 +371,20 @@ files = [
 docs = ["furo (>=2024.8.6)", "sphinx (>=8.0.2)", "sphinx-autodoc-typehints (>=2.4)"]
 testing = ["covdefaults (>=2.3)", "coverage (>=7.6.1)", "diff-cover (>=9.1.1)", "pytest (>=8.3.2)", "pytest-asyncio (>=0.24)", "pytest-cov (>=5)", "pytest-mock (>=3.14)", "pytest-timeout (>=2.3.1)", "virtualenv (>=20.26.3)"]
 typing = ["typing-extensions (>=4.12.2)"]
+
+[[package]]
+name = "fire"
+version = "0.6.0"
+description = "A library for automatically generating command line interfaces."
+optional = false
+python-versions = "*"
+files = [
+    {file = "fire-0.6.0.tar.gz", hash = "sha256:54ec5b996ecdd3c0309c800324a0703d6da512241bc73b553db959d98de0aa66"},
+]
+
+[package.dependencies]
+six = "*"
+termcolor = "*"
 
 [[package]]
 name = "fsspec"
@@ -1967,6 +1982,20 @@ mpmath = ">=1.1.0,<1.4"
 dev = ["hypothesis (>=6.70.0)", "pytest (>=7.1.0)"]
 
 [[package]]
+name = "termcolor"
+version = "2.4.0"
+description = "ANSI color formatting for output in terminal"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "termcolor-2.4.0-py3-none-any.whl", hash = "sha256:9297c0df9c99445c2412e832e882a7884038a25617c60cea2ad69488d4040d63"},
+    {file = "termcolor-2.4.0.tar.gz", hash = "sha256:aab9e56047c8ac41ed798fa36d892a37aca6b3e9159f3e0c24bc64a9b3ac7b7a"},
+]
+
+[package.extras]
+tests = ["pytest", "pytest-cov"]
+
+[[package]]
 name = "tomli"
 version = "2.0.1"
 description = "A lil' TOML parser"
@@ -2340,4 +2369,4 @@ all = ["jax", "jaxlib", "numpy", "packaging", "pandas", "polars", "pyarrow", "to
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.13"
-content-hash = "a6822daeb0c0a53fa3449a790c5131698c3d3d214449730ddf740b93269e3b40"
+content-hash = "1bf9e8d0de45f66fcce443b4d06471aec022f9e8e5777a807727c6c1992214c2"
