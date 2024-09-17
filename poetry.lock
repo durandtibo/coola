@@ -339,17 +339,21 @@ test = ["pytest (>=6)"]
 
 [[package]]
 name = "feu"
-version = "0.0.7"
+version = "0.1.0"
 description = "A light library to help to manage packages"
 optional = false
 python-versions = "<3.13,>=3.9"
 files = [
-    {file = "feu-0.0.7-py3-none-any.whl", hash = "sha256:2f0832e6a75ed61479adaa30786da57ba8ed23a7bb6b5ed0bbfc46121dfb7c00"},
-    {file = "feu-0.0.7.tar.gz", hash = "sha256:e5e4e12d283fb9f27c7b93f65c56e6cd0a3303e28d259906179fdba6a7c0d233"},
+    {file = "feu-0.1.0-py3-none-any.whl", hash = "sha256:a87f5da11a3b515c55c2a4397241a443a9d7cc0a07318898e2b1f0c5899c0076"},
+    {file = "feu-0.1.0.tar.gz", hash = "sha256:78180f01ee6faef13f2f09c50c1ce3e6fa35b30aed18db6c8653af0029fe34f9"},
 ]
 
 [package.dependencies]
 packaging = ">=21.0,<25.0"
+
+[package.extras]
+all = ["fire (>=0.6.0,<1.0)"]
+fire = ["fire (>=0.6.0,<1.0)"]
 
 [[package]]
 name = "filelock"
