@@ -40,8 +40,8 @@ jobs:
         uses: durandtibo/pip-install-package@v0.1.0
         with:
           package-name: 'jax'
-          package-version: ${{ matrix.jax-version }}
-          python-version: ${{ matrix.python-version }}
+          package-version: '${{ matrix.jax-version }}'
+          python-version: '${{ matrix.python-version }}'
 
       - name: Show installed packages
         run: |
@@ -85,8 +85,8 @@ jobs:
         uses: durandtibo/pip-install-package@v0.1.0
         with:
           package-name: 'numpy'
-          package-version: ${{ matrix.numpy-version }}
-          python-version: ${{ matrix.python-version }}
+          package-version: '${{ matrix.numpy-version }}'
+          python-version: '${{ matrix.python-version }}'
 
       - name: Show installed packages
         run: |
@@ -130,8 +130,8 @@ jobs:
         uses: durandtibo/pip-install-package@v0.1.0
         with:
           package-name: 'packaging'
-          package-version: ${{ matrix.packaging-version }}
-          python-version: ${{ matrix.python-version }}
+          package-version: '${{ matrix.packaging-version }}'
+          python-version: '${{ matrix.python-version }}'
 
       - name: Show installed packages
         run: |
@@ -175,8 +175,8 @@ jobs:
         uses: durandtibo/pip-install-package@v0.1.0
         with:
           package-name: 'pandas'
-          package-version: ${{ matrix.pandas-version }}
-          python-version: ${{ matrix.python-version }}
+          package-version: '${{ matrix.pandas-version }}'
+          python-version: '${{ matrix.python-version }}'
 
       - name: Show installed packages
         run: |
@@ -220,8 +220,8 @@ jobs:
         uses: durandtibo/pip-install-package@v0.1.0
         with:
           package-name: 'polars'
-          package-version: ${{ matrix.polars-version }}
-          python-version: ${{ matrix.python-version }}
+          package-version: '${{ matrix.polars-version }}'
+          python-version: '${{ matrix.python-version }}'
 
       - name: Show installed packages
         run: |
@@ -265,8 +265,8 @@ jobs:
         uses: durandtibo/pip-install-package@v0.1.0
         with:
           package-name: 'pyarrow'
-          package-version: ${{ matrix.pyarrow-version }}
-          python-version: ${{ matrix.python-version }}
+          package-version: '${{ matrix.pyarrow-version }}'
+          python-version: '${{ matrix.python-version }}'
 
       - name: Show installed packages
         run: |
@@ -310,8 +310,8 @@ jobs:
         uses: durandtibo/pip-install-package@v0.1.0
         with:
           package-name: 'torch'
-          package-version: ${{ matrix.torch-version }}
-          python-version: ${{ matrix.python-version }}
+          package-version: '${{ matrix.torch-version }}'
+          python-version: '${{ matrix.python-version }}'
 
       - name: Show installed packages
         run: |
