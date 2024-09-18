@@ -387,8 +387,8 @@ jobs:
         uses: durandtibo/pip-install-package@v0.1.0
         with:
           package-name: 'xarray'
-          package-version: ${{ matrix.xarray-version }}
-          python-version: ${{ matrix.python-version }}
+          package-version: '${{ matrix.xarray-version }}'
+          python-version: '${{ matrix.python-version }}'
 
       - name: Install packages
         run: |
