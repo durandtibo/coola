@@ -144,21 +144,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Find closest valid version
-        id: python-package
-        uses: durandtibo/python-package-action@v0.2.0
+      - name: Install valid package version
+        uses: durandtibo/pip-install-package@v0.1.0
         with:
           package-name: 'jax'
           package-version: ${{ matrix.jax-version }}
           python-version: ${{ matrix.python-version }}
 
-      - name: Print closest valid version
-        run: echo '${{ toJSON(steps.python-package.outputs) }}'
-
       - name: Install package
         run: |
-          pip install coola feu
-          python -m feu install --package=jax --version=${{ steps.python-package.outputs.closest-valid-version }}
+          pip install coola
 
       - name: Run some checks
         run: |
@@ -185,20 +180,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Find closest valid version
-        id: python-package
-        uses: durandtibo/python-package-action@v0.2.0
+      - name: Install valid package version
+        uses: durandtibo/pip-install-package@v0.1.0
         with:
           package-name: 'numpy'
           package-version: ${{ matrix.numpy-version }}
           python-version: ${{ matrix.python-version }}
 
-      - name: Print closest valid version
-        run: echo '${{ toJSON(steps.python-package.outputs) }}'
-
       - name: Install packages
         run: |
-          pip install coola numpy==${{ steps.python-package.outputs.closest-valid-version }}
+          pip install coola
 
       - name: Run some checks
         run: |
@@ -254,21 +245,17 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Find closest valid version
+      - name: Install valid package version
         id: python-package
-        uses: durandtibo/python-package-action@v0.2.0
+        uses: durandtibo/pip-install-package@v0.1.0
         with:
           package-name: 'pandas'
           package-version: ${{ matrix.pandas-version }}
           python-version: ${{ matrix.python-version }}
 
-      - name: Print closest valid version
-        run: echo '${{ toJSON(steps.python-package.outputs) }}'
-
       - name: Install packages
         run: |
-          pip install coola feu
-          python -m feu install --package=pandas --version=${{ steps.python-package.outputs.closest-valid-version }}
+          pip install coola
 
       - name: Run some checks
         run: |
@@ -324,21 +311,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Find closest valid version
-        id: python-package
-        uses: durandtibo/python-package-action@v0.2.0
+      - name: Install valid package version
+        uses: durandtibo/pip-install-package@v0.1.0
         with:
           package-name: 'pyarrow'
           package-version: ${{ matrix.pyarrow-version }}
           python-version: ${{ matrix.python-version }}
 
-      - name: Print closest valid version
-        run: echo '${{ toJSON(steps.python-package.outputs) }}'
-
       - name: Install packages
         run: |
-          pip install coola feu
-          python -m feu install --package=pyarrow --version=${{ steps.python-package.outputs.closest-valid-version }}
+          pip install coola
 
       - name: Run some checks
         run: |
@@ -365,21 +347,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Find closest valid version
-        id: python-package
-        uses: durandtibo/python-package-action@v0.2.0
+      - name: Install valid package version
+        uses: durandtibo/pip-install-package@v0.1.0
         with:
           package-name: 'torch'
           package-version: ${{ matrix.torch-version }}
           python-version: ${{ matrix.python-version }}
 
-      - name: Print closest valid version
-        run: echo '${{ toJSON(steps.python-package.outputs) }}'
-
       - name: Install packages
         run: |
-          pip install coola feu
-          python -m feu install --package=torch --version=${{ steps.python-package.outputs.closest-valid-version }}
+          pip install coola
 
       - name: Run some checks
         run: |
@@ -406,10 +383,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Install valid package version
+        uses: durandtibo/pip-install-package@v0.1.0
+        with:
+          package-name: 'xarray'
+          package-version: ${{ matrix.xarray-version }}
+          python-version: ${{ matrix.python-version }}
+
       - name: Install packages
         run: |
-          pip install coola feu
-          python -m feu install --package=xarray --version=${{ matrix.xarray-version }}
+          pip install coola
 
       - name: Run some checks
         run: |

@@ -36,20 +36,12 @@ jobs:
           poetry run make config-poetry
           poetry run make install
 
-      - name: Find closest valid version
-        id: python-package
-        uses: durandtibo/python-package-action@v0.2.0
+      - name: Install valid package version
+        uses: durandtibo/pip-install-package@v0.1.0
         with:
           package-name: 'jax'
           package-version: ${{ matrix.jax-version }}
           python-version: ${{ matrix.python-version }}
-
-      - name: Print closest valid version
-        run: echo '${{ toJSON(steps.python-package.outputs) }}'
-
-      - name: Install jax
-        run: |
-          poetry run python -m feu install --package=jax --version=${{ steps.python-package.outputs.closest-valid-version }}
 
       - name: Show installed packages
         run: |
@@ -89,20 +81,12 @@ jobs:
           poetry run make config-poetry
           poetry run make install
 
-      - name: Find closest valid version
-        id: python-package
-        uses: durandtibo/python-package-action@v0.2.0
+      - name: Install valid package version
+        uses: durandtibo/pip-install-package@v0.1.0
         with:
           package-name: 'numpy'
           package-version: ${{ matrix.numpy-version }}
           python-version: ${{ matrix.python-version }}
-
-      - name: Print closest valid version
-        run: echo '${{ toJSON(steps.python-package.outputs) }}'
-
-      - name: Install NumPy
-        run: |
-          poetry run pip install numpy==${{ steps.python-package.outputs.closest-valid-version }}
 
       - name: Show installed packages
         run: |
@@ -142,9 +126,12 @@ jobs:
           poetry run make config-poetry
           poetry run make install
 
-      - name: Install packaging
-        run: |
-          poetry run pip install packaging==${{ matrix.packaging-version }}
+      - name: Install valid package version
+        uses: durandtibo/pip-install-package@v0.1.0
+        with:
+          package-name: 'packaging'
+          package-version: ${{ matrix.packaging-version }}
+          python-version: ${{ matrix.python-version }}
 
       - name: Show installed packages
         run: |
@@ -184,20 +171,12 @@ jobs:
           poetry run make config-poetry
           poetry run make install
 
-      - name: Find closest valid version
-        id: python-package
-        uses: durandtibo/python-package-action@v0.2.0
+      - name: Install valid package version
+        uses: durandtibo/pip-install-package@v0.1.0
         with:
           package-name: 'pandas'
           package-version: ${{ matrix.pandas-version }}
           python-version: ${{ matrix.python-version }}
-
-      - name: Print closest valid version
-        run: echo '${{ toJSON(steps.python-package.outputs) }}'
-
-      - name: Install packages
-        run: |
-          poetry run python -m feu install --package=pandas --version=${{ steps.python-package.outputs.closest-valid-version }}
 
       - name: Show installed packages
         run: |
@@ -237,9 +216,12 @@ jobs:
           poetry run make config-poetry
           poetry run make install
 
-      - name: Install polars
-        run: |
-          poetry run pip install polars==${{ matrix.polars-version }}
+      - name: Install valid package version
+        uses: durandtibo/pip-install-package@v0.1.0
+        with:
+          package-name: 'polars'
+          package-version: ${{ matrix.polars-version }}
+          python-version: ${{ matrix.python-version }}
 
       - name: Show installed packages
         run: |
@@ -279,20 +261,12 @@ jobs:
           poetry run make config-poetry
           poetry run make install
 
-      - name: Find closest valid version
-        id: python-package
-        uses: durandtibo/python-package-action@v0.2.0
+      - name: Install valid package version
+        uses: durandtibo/pip-install-package@v0.1.0
         with:
           package-name: 'pyarrow'
           package-version: ${{ matrix.pyarrow-version }}
           python-version: ${{ matrix.python-version }}
-
-      - name: Print closest valid version
-        run: echo '${{ toJSON(steps.python-package.outputs) }}'
-
-      - name: Install packages
-        run: |
-          poetry run python -m feu install --package=pyarrow --version=${{ steps.python-package.outputs.closest-valid-version }}
 
       - name: Show installed packages
         run: |
@@ -332,20 +306,12 @@ jobs:
           poetry run make config-poetry
           poetry run make install
 
-      - name: Find closest valid version
-        id: python-package
-        uses: durandtibo/python-package-action@v0.2.0
+      - name: Install valid package version
+        uses: durandtibo/pip-install-package@v0.1.0
         with:
           package-name: 'torch'
           package-version: ${{ matrix.torch-version }}
           python-version: ${{ matrix.python-version }}
-
-      - name: Print closest valid version
-        run: echo '${{ toJSON(steps.python-package.outputs) }}'
-
-      - name: Install packages
-        run: |
-          poetry run python -m feu install --package=torch --version=${{ steps.python-package.outputs.closest-valid-version }}
 
       - name: Show installed packages
         run: |
@@ -385,9 +351,12 @@ jobs:
           poetry run make config-poetry
           poetry run make install
 
-      - name: Install xarray
-        run: |
-          poetry run python -m feu install --package=xarray --version=${{ matrix.xarray-version }}
+      - name: Install valid package version
+        uses: durandtibo/pip-install-package@v0.1.0
+        with:
+          package-name: 'xarray'
+          package-version: ${{ matrix.xarray-version }}
+          python-version: ${{ matrix.python-version }}
 
       - name: Show installed packages
         run: |
