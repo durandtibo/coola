@@ -145,7 +145,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install valid package version
-        uses: durandtibo/pip-install-package@v0.1.0
+        uses: durandtibo/pip-install-package-action@v0.2.0
         with:
           package-name: 'jax'
           package-version: ${{ matrix.jax-version }}
@@ -181,7 +181,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install valid package version
-        uses: durandtibo/pip-install-package@v0.1.0
+        uses: durandtibo/pip-install-package-action@v0.2.0
         with:
           package-name: 'numpy'
           package-version: ${{ matrix.numpy-version }}
@@ -216,9 +216,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Install valid package version
+        uses: durandtibo/pip-install-package-action@v0.2.0
+        with:
+          package-name: 'packaging'
+          package-version: ${{ matrix.packaging-version }}
+          python-version: ${{ matrix.python-version }}
+
       - name: Install packages
         run: |
-          pip install coola packaging==${{ matrix.packaging-version }}
+          pip install coola
 
       - name: Run some checks
         run: |
@@ -246,8 +253,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install valid package version
-        id: python-package
-        uses: durandtibo/pip-install-package@v0.1.0
+        uses: durandtibo/pip-install-package-action@v0.2.0
         with:
           package-name: 'pandas'
           package-version: ${{ matrix.pandas-version }}
@@ -312,7 +318,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install valid package version
-        uses: durandtibo/pip-install-package@v0.1.0
+        uses: durandtibo/pip-install-package-action@v0.2.0
         with:
           package-name: 'pyarrow'
           package-version: ${{ matrix.pyarrow-version }}
@@ -348,7 +354,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install valid package version
-        uses: durandtibo/pip-install-package@v0.1.0
+        uses: durandtibo/pip-install-package-action@v0.2.0
         with:
           package-name: 'torch'
           package-version: ${{ matrix.torch-version }}
@@ -384,7 +390,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install valid package version
-        uses: durandtibo/pip-install-package@v0.1.0
+        uses: durandtibo/pip-install-package-action@v0.2.0
         with:
           package-name: 'xarray'
           package-version: '${{ matrix.xarray-version }}'
