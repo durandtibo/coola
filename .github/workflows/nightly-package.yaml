@@ -144,16 +144,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Install packages
+        run: |
+          pip install coola
+
       - name: Install valid package version
         uses: durandtibo/pip-install-package-action@v0.2.1
         with:
           package-name: 'jax'
           package-version: ${{ matrix.jax-version }}
           python-version: ${{ matrix.python-version }}
-
-      - name: Install package
-        run: |
-          pip install coola
 
       - name: Run some checks
         run: |
@@ -180,16 +180,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Install packages
+        run: |
+          pip install coola
+
       - name: Install valid package version
         uses: durandtibo/pip-install-package-action@v0.2.1
         with:
           package-name: 'numpy'
           package-version: ${{ matrix.numpy-version }}
           python-version: ${{ matrix.python-version }}
-
-      - name: Install packages
-        run: |
-          pip install coola
 
       - name: Run some checks
         run: |
@@ -216,16 +216,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Install packages
+        run: |
+          pip install coola
+
       - name: Install valid package version
         uses: durandtibo/pip-install-package-action@v0.2.1
         with:
           package-name: 'packaging'
           package-version: ${{ matrix.packaging-version }}
           python-version: ${{ matrix.python-version }}
-
-      - name: Install packages
-        run: |
-          pip install coola
 
       - name: Run some checks
         run: |
@@ -252,16 +252,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Install packages
+        run: |
+          pip install coola
+
       - name: Install valid package version
         uses: durandtibo/pip-install-package-action@v0.2.1
         with:
           package-name: 'pandas'
           package-version: ${{ matrix.pandas-version }}
           python-version: ${{ matrix.python-version }}
-
-      - name: Install packages
-        run: |
-          pip install coola
 
       - name: Run some checks
         run: |
@@ -290,7 +290,14 @@ jobs:
 
       - name: Install packages
         run: |
-          pip install coola polars==${{ matrix.polars-version }}
+          pip install coola
+
+      - name: Install valid package version
+        uses: durandtibo/pip-install-package-action@v0.2.0
+        with:
+          package-name: 'polars'
+          package-version: ${{ matrix.polars-version }}
+          python-version: ${{ matrix.python-version }}
 
       - name: Run some checks
         run: |
@@ -317,16 +324,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Install packages
+        run: |
+          pip install coola
+
       - name: Install valid package version
         uses: durandtibo/pip-install-package-action@v0.2.1
         with:
           package-name: 'pyarrow'
           package-version: ${{ matrix.pyarrow-version }}
           python-version: ${{ matrix.python-version }}
-
-      - name: Install packages
-        run: |
-          pip install coola
 
       - name: Run some checks
         run: |
@@ -353,16 +360,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Install packages
+        run: |
+          pip install coola
+
       - name: Install valid package version
         uses: durandtibo/pip-install-package-action@v0.2.1
         with:
           package-name: 'torch'
           package-version: ${{ matrix.torch-version }}
           python-version: ${{ matrix.python-version }}
-
-      - name: Install packages
-        run: |
-          pip install coola
 
       - name: Run some checks
         run: |
@@ -389,16 +396,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Install packages
+        run: |
+          pip install coola
+
       - name: Install valid package version
         uses: durandtibo/pip-install-package-action@v0.2.1
         with:
           package-name: 'xarray'
           package-version: '${{ matrix.xarray-version }}'
           python-version: '${{ matrix.python-version }}'
-
-      - name: Install packages
-        run: |
-          pip install coola
 
       - name: Run some checks
         run: |
