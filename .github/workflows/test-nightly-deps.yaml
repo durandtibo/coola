@@ -26,24 +26,28 @@ jobs:
       - name: Install Poetry
         uses: snok/install-poetry@v1
 
+      - name: Set environment variable
+        run: |
+          echo $(poetry run poetry env info --path)/bin >> $GITHUB_PATH
+
       - name: Install packages
         run: |
-          poetry run make config-poetry
-          poetry run make install
+          make config-poetry
+          make install
 
       - name: Install jax
         run: |
-          poetry run pip install -U --pre jaxlib -f https://storage.googleapis.com/jax-releases/jaxlib_nightly_releases.html
-          poetry run pip install -U --pre jax-cuda12-pjrt jax-cuda12-plugin -f https://storage.googleapis.com/jax-releases/jax_cuda_plugin_nightly_releases.html
+          pip install -U --pre jaxlib -f https://storage.googleapis.com/jax-releases/jaxlib_nightly_releases.html
+          pip install -U --pre jax-cuda12-pjrt jax-cuda12-plugin -f https://storage.googleapis.com/jax-releases/jax_cuda_plugin_nightly_releases.html
 
       - name: Show installed packages
         run: |
-          poetry run poetry show
-          poetry run poetry show --tree
+          poetry show
+          poetry show --tree
 
       - name: Run unit tests
         run: |
-          poetry run make unit-test-cov
+          make unit-test-cov
 
 
   numpy:
@@ -68,23 +72,27 @@ jobs:
       - name: Install Poetry
         uses: snok/install-poetry@v1
 
+      - name: Set environment variable
+        run: |
+          echo $(poetry run poetry env info --path)/bin >> $GITHUB_PATH
+
       - name: Install packages
         run: |
-          poetry run make config-poetry
-          poetry run make install
+          make config-poetry
+          make install
 
       - name: Install NumPy
         run: |
-          poetry run pip install -U --pre --only-binary :all: -i https://pypi.anaconda.org/scientific-python-nightly-wheels/simple numpy
+          pip install -U --pre --only-binary :all: -i https://pypi.anaconda.org/scientific-python-nightly-wheels/simple numpy
 
       - name: Show installed packages
         run: |
-          poetry run poetry show
-          poetry run poetry show --tree
+          poetry show
+          poetry show --tree
 
       - name: Run unit tests
         run: |
-          poetry run make unit-test-cov
+          make unit-test-cov
 
 
   pandas:
@@ -109,23 +117,27 @@ jobs:
       - name: Install Poetry
         uses: snok/install-poetry@v1
 
+      - name: Set environment variable
+        run: |
+          echo $(poetry run poetry env info --path)/bin >> $GITHUB_PATH
+
       - name: Install packages
         run: |
-          poetry run make config-poetry
-          poetry run make install
+          make config-poetry
+          make install
 
       - name: Install pandas
         run: |
-          poetry run pip install --pre --extra-index https://pypi.anaconda.org/scientific-python-nightly-wheels/simple pandas
+          pip install --pre --extra-index https://pypi.anaconda.org/scientific-python-nightly-wheels/simple pandas
 
       - name: Show installed packages
         run: |
-          poetry run poetry show
-          poetry run poetry show --tree
+          poetry show
+          poetry show --tree
 
       - name: Run unit tests
         run: |
-          poetry run make unit-test-cov
+          make unit-test-cov
 
 
   torch:
@@ -150,23 +162,27 @@ jobs:
       - name: Install Poetry
         uses: snok/install-poetry@v1
 
+      - name: Set environment variable
+        run: |
+          echo $(poetry run poetry env info --path)/bin >> $GITHUB_PATH
+
       - name: Install packages
         run: |
-          poetry run make config-poetry
-          poetry run make install
+          make config-poetry
+          make install
 
       - name: Install PyTorch
         run: |
-          poetry run pip install --pre torch --index-url https://download.pytorch.org/whl/nightly/cu124
+          pip install --pre torch --index-url https://download.pytorch.org/whl/nightly/cu124
 
       - name: Show installed packages
         run: |
-          poetry run poetry show
-          poetry run poetry show --tree
+          poetry show
+          poetry show --tree
 
       - name: Run unit tests
         run: |
-          poetry run make unit-test-cov
+          make unit-test-cov
 
 
   xarray:
@@ -191,20 +207,24 @@ jobs:
       - name: Install Poetry
         uses: snok/install-poetry@v1
 
+      - name: Set environment variable
+        run: |
+          echo $(poetry run poetry env info --path)/bin >> $GITHUB_PATH
+
       - name: Install packages
         run: |
-          poetry run make config-poetry
-          poetry run make install
+          make config-poetry
+          make install
 
       - name: Install xarray
         run: |
-          poetry run pip install --index-url https://test.pypi.org/simple --extra-index-url https://pypi.org/simple --pre xarray
+          pip install --index-url https://test.pypi.org/simple --extra-index-url https://pypi.org/simple --pre xarray
 
       - name: Show installed packages
         run: |
-          poetry run poetry show
-          poetry run poetry show --tree
+          poetry show
+          poetry show --tree
 
       - name: Run unit tests
         run: |
-          poetry run make unit-test-cov
+          make unit-test-cov
