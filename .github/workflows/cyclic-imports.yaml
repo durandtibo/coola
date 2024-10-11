@@ -19,43 +19,47 @@ jobs:
       - name: Install Poetry
         uses: snok/install-poetry@v1
 
+      - name: Set environment variable
+        run: |
+          echo $(poetry run poetry env info --path)/bin >> $GITHUB_PATH
+
       - name: Install packages
         run: |
-          poetry run make config-poetry
-          poetry run make install-all
+          make config-poetry
+          make install-all
 
       - name: Show installed packages
         run: |
-          poetry run poetry show
-          poetry run poetry show --tree
+          poetry show
+          poetry show --tree
 
       - name: check coola
         run: |
-          poetry run python -c "import coola"
+          python -c "import coola"
       - name: check coola.equality
         run: |
-          poetry run python -c "from coola import equality"
+          python -c "from coola import equality"
       - name: check coola.equality.comparators
         run: |
-          poetry run python -c "from coola.equality import comparators"
+          python -c "from coola.equality import comparators"
       - name: check coola.equality.testers
         run: |
-          poetry run python -c "from coola.equality import testers"
+          python -c "from coola.equality import testers"
       - name: check coola.formatters
         run: |
-          poetry run python -c "from coola import formatters"
+          python -c "from coola import formatters"
       - name: check coola.nested
         run: |
-          poetry run python -c "from coola import nested"
+          python -c "from coola import nested"
       - name: check coola.random
         run: |
-          poetry run python -c "from coola import random"
+          python -c "from coola import random"
       - name: check coola.reducers
         run: |
-          poetry run python -c "from coola import reducers"
+          python -c "from coola import reducers"
       - name: check coola.summarizers
         run: |
-          poetry run python -c "from coola import summarizers"
+          python -c "from coola import summarizers"
       - name: check coola.utils
         run: |
-          poetry run python -c "from coola import utils"
+          python -c "from coola import utils"
