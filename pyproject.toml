@@ -40,7 +40,7 @@ packages = [
 
 [tool.poetry.dependencies]
 # Core dependencies
-python = ">=3.9,<3.13"
+python = ">=3.9,<3.14"
 
 # Optional dependencies
 jax = { version = ">=0.4.1,<1.0", optional = true }
