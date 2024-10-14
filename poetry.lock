@@ -2385,4 +2385,4 @@ all = ["jax", "jaxlib", "numpy", "packaging", "pandas", "polars", "pyarrow", "to
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.14"
-content-hash = "13f0d90b27b7cb515dc6483cac99d9e41e0d7410447f1e31558dd9f7c0f785d5"
+content-hash = "88181244c3969e1215fa17fff88a0f352639c80de4a529889a39486c795ad91a"
