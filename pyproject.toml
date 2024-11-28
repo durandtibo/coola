@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "coola"
-version = "0.8.5"
+version = "0.8.6a0"
 description = "Library to check equality between two complex/nested objects"
 readme = "README.md"
 authors = ["Thibaut Durand <durand.tibo+gh@gmail.com>"]
@@ -91,7 +91,7 @@ pygments = "^2.18"
 pytest = "^8.3"
 pytest-cov = ">=6,<7"
 pytest-timeout = "^2.3"
-ruff = ">=0.7,<1.0"
+ruff = ">=0.8,<1.0"
 xdoctest = "^1.2"
 
 
