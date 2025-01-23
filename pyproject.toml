@@ -185,8 +185,6 @@ lint.select = [
 ]
 lint.ignore = [
     "A003", # Class attribute `{name}` is shadowing a python builtin
-    "ANN101", # Missing type annotation for `self` in method
-    "ANN102", # Missing type annotation for `cls` in classmethod
     "ANN401", # Dynamically typed expressions (typing.Any) are disallowed.
     "B905", # `zip()` without an explicit strict= parameter set. The `strict=` argument was added in Python 3.10
     "E501", # Line lengths are recommended to be no greater than 79 characters.
