@@ -284,6 +284,7 @@ jobs:
         os: [ ubuntu-latest ]
         python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
         polars-version: [
+          1.20.0,
           1.19.0,
           1.18.0,
           1.17.1,
@@ -344,6 +345,7 @@ jobs:
         os: [ ubuntu-latest ]
         python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
         pyarrow-version: [
+          19.0.0,
           18.1.0,
           17.0.0,
           16.1.0,
