@@ -1,3 +1,4 @@
+# noqa: A005
 r"""Define some types."""
 
 from __future__ import annotations
