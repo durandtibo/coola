@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from typing import TYPE_CHECKING
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 
@@ -14,7 +14,7 @@ from coola.equality.handlers import (
 )
 from coola.equality.handlers.polars_ import has_nan
 from coola.equality.testers import EqualityTester
-from coola.testing import polars_available, polars_greater_equal_0_20_0
+from coola.testing import polars_available
 from coola.utils import is_polars_available
 from tests.unit.equality.comparators.test_polars import (
     POLARS_DATAFRAME_EQUAL_TOLERANCE,
@@ -382,31 +382,3 @@ def test_has_nan_true(df_or_series: pl.DataFrame | pl.Series) -> None:
 @pytest.mark.parametrize("df_or_series", HAS_NAN_FALSE)
 def test_has_nan_false(df_or_series: pl.DataFrame | pl.Series) -> None:
     assert has_nan(df_or_series)
-
-
-@polars_available
-@polars_greater_equal_0_20_0
-@pytest.mark.parametrize("df_or_series", HAS_NAN_TRUE)
-def test_has_nan_new_true(df_or_series: pl.DataFrame | pl.Series) -> None:
-    assert not has_nan(df_or_series)
-
-
-@polars_available
-@polars_greater_equal_0_20_0
-@pytest.mark.parametrize("df_or_series", HAS_NAN_FALSE)
-def test_has_nan_new_false(df_or_series: pl.DataFrame | pl.Series) -> None:
-    assert has_nan(df_or_series)
-
-
-@polars_available
-@pytest.mark.parametrize("df_or_series", HAS_NAN_TRUE)
-def test_has_nan_old_true(df_or_series: pl.DataFrame | pl.Series) -> None:
-    with patch("coola.equality.handlers.polars_.POLARS_GREATER_EQUAL_0_20_0", False):
-        assert not has_nan(df_or_series)
-
-
-@polars_available
-@pytest.mark.parametrize("df_or_series", HAS_NAN_FALSE)
-def test_has_nan_old_false(df_or_series: pl.DataFrame | pl.Series) -> None:
-    with patch("coola.equality.handlers.polars_.POLARS_GREATER_EQUAL_0_20_0", False):
-        assert has_nan(df_or_series)
