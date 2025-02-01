@@ -6,27 +6,17 @@ from __future__ import annotations
 __all__ = ["PolarsDataFrameEqualHandler", "PolarsSeriesEqualHandler"]
 
 import logging
-import operator
 from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
 from coola.equality.handlers.base import BaseEqualityHandler
 from coola.utils import is_polars_available
-from coola.utils.imports import is_packaging_available
-from coola.utils.version import compare_version
 
-POLARS_GREATER_EQUAL_0_20_0 = False
 if is_polars_available():
     import polars as pl
+    import polars.selectors as cs
     from polars.testing import assert_frame_equal, assert_series_equal
 
-    FLOAT_DTYPES = {pl.Float32, pl.Float64}
-    if is_packaging_available():
-        POLARS_GREATER_EQUAL_0_20_0 = compare_version(
-            package="polars", op=operator.ge, version="0.20.0"
-        )
-        if POLARS_GREATER_EQUAL_0_20_0:
-            import polars.selectors as cs
 
 else:  # pragma: no cover
     pl = Mock()
@@ -155,48 +145,12 @@ def has_nan(df_or_series: pl.DataFrame | pl.Series) -> bool:
         ``True`` if the DataFrame or Series has NaN values,
             otherwise ``False``.
     """
-    if POLARS_GREATER_EQUAL_0_20_0:
-        return _has_nan_new(df_or_series)
-    return _has_nan_old(df_or_series)
-
-
-def _has_nan_new(df_or_series: pl.DataFrame | pl.Series) -> bool:
-    r"""Indicate if a DataFrame or Series has NaN values.
-
-    This function only works for recent versions of ``polars``
-    (``>=0.20.0``).
-
-    Args:
-        df_or_series: The DataFrame or series to check.
-
-    Returns:
-        ``True`` if the DataFrame or Series has NaN values,
-            otherwise ``False``.
-    """
     if isinstance(df_or_series, pl.Series):
         return df_or_series.dtype.is_numeric() and df_or_series.is_nan().any()
     frame = df_or_series.select(cs.numeric())
     if frame.is_empty():
         return False
     return frame.select(pl.any_horizontal(pl.all().is_nan().any())).item()
-
-
-def _has_nan_old(df_or_series: pl.DataFrame | pl.Series) -> bool:
-    r"""Indicate if a DataFrame or Series has NaN values.
-
-    ``polars.selectors`` cannot be used because it is not available in
-    ``0.18`` and ``0.19``.
-
-    Args:
-        df_or_series: The DataFrame or series to check.
-
-    Returns:
-        ``True`` if the DataFrame or Series has NaN values,
-            otherwise ``False``.
-    """
-    if isinstance(df_or_series, pl.Series):
-        return df_or_series.dtype in FLOAT_DTYPES and df_or_series.is_nan().any()
-    return any(col.dtype in FLOAT_DTYPES and col.is_nan().any() for col in df_or_series)
 
 
 def frame_equal(df1: pl.DataFrame, df2: pl.DataFrame, config: EqualityConfig) -> bool:
