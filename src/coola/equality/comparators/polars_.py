@@ -16,6 +16,7 @@ from unittest.mock import Mock
 from coola.equality.comparators.base import BaseEqualityComparator
 from coola.equality.handlers import (
     PolarsDataFrameEqualHandler,
+    PolarsLazyFrameEqualHandler,
     PolarsSeriesEqualHandler,
     SameObjectHandler,
     SameTypeHandler,
@@ -74,6 +75,50 @@ class PolarsDataFrameEqualityComparator(BaseEqualityComparator[pl.DataFrame]):
         return self.__class__()
 
     def equal(self, actual: pl.DataFrame, expected: Any, config: EqualityConfig) -> bool:
+        return self._handler.handle(actual, expected, config=config)
+
+
+class PolarsLazyFrameEqualityComparator(BaseEqualityComparator[pl.LazyFrame]):
+    r"""Implement an equality comparator for ``polars.LazyFrame``.
+
+    Example usage:
+
+    ```pycon
+
+    >>> import polars as pl
+    >>> from coola.equality import EqualityConfig
+    >>> from coola.equality.comparators import PolarsLazyFrameEqualityComparator
+    >>> from coola.equality.testers import EqualityTester
+    >>> config = EqualityConfig(tester=EqualityTester())
+    >>> comparator = PolarsLazyFrameEqualityComparator()
+    >>> comparator.equal(
+    ...     pl.LazyFrame({"col": [1, 2, 3]}),
+    ...     pl.LazyFrame({"col": [1, 2, 3]}),
+    ...     config,
+    ... )
+    True
+    >>> comparator.equal(
+    ...     pl.LazyFrame({"col": [1, 2, 3]}),
+    ...     pl.LazyFrame({"col": [1, 2, 4]}),
+    ...     config,
+    ... )
+    False
+
+    ```
+    """
+
+    def __init__(self) -> None:
+        check_polars()
+        self._handler = SameObjectHandler()
+        self._handler.chain(SameTypeHandler()).chain(PolarsLazyFrameEqualHandler())
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, self.__class__)
+
+    def clone(self) -> PolarsLazyFrameEqualityComparator:
+        return self.__class__()
+
+    def equal(self, actual: pl.LazyFrame, expected: Any, config: EqualityConfig) -> bool:
         return self._handler.handle(actual, expected, config=config)
 
 
@@ -138,5 +183,6 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
         return {}
     return {
         pl.DataFrame: PolarsDataFrameEqualityComparator(),
+        pl.LazyFrame: PolarsLazyFrameEqualityComparator(),
         pl.Series: PolarsSeriesEqualityComparator(),
     }
