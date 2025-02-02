@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from typing import TYPE_CHECKING
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 
@@ -12,12 +12,13 @@ from coola.equality.handlers import (
     PolarsDataFrameEqualHandler,
     PolarsSeriesEqualHandler,
 )
-from coola.equality.handlers.polars_ import has_nan
+from coola.equality.handlers.polars_ import PolarsLazyFrameEqualHandler, has_nan
 from coola.equality.testers import EqualityTester
-from coola.testing import polars_available, polars_greater_equal_0_20_0
+from coola.testing import polars_available
 from coola.utils import is_polars_available
 from tests.unit.equality.comparators.test_polars import (
     POLARS_DATAFRAME_EQUAL_TOLERANCE,
+    POLARS_LAZYFRAME_EQUAL_TOLERANCE,
     POLARS_SERIES_EQUAL_TOLERANCE,
 )
 
@@ -208,6 +209,179 @@ def test_polars_dataframe_equal_handler_set_next_handler() -> None:
     PolarsDataFrameEqualHandler().set_next_handler(FalseHandler())
 
 
+#################################################
+#     Tests for PolarsLazyFrameEqualHandler     #
+#################################################
+
+
+def test_polars_lazyframe_equal_handler_eq_true() -> None:
+    assert PolarsLazyFrameEqualHandler() == PolarsLazyFrameEqualHandler()
+
+
+def test_polars_lazyframe_equal_handler_eq_false() -> None:
+    assert PolarsLazyFrameEqualHandler() != FalseHandler()
+
+
+def test_polars_lazyframe_equal_handler_repr() -> None:
+    assert repr(PolarsLazyFrameEqualHandler()).startswith("PolarsLazyFrameEqualHandler(")
+
+
+def test_polars_lazyframe_equal_handler_str() -> None:
+    assert str(PolarsLazyFrameEqualHandler()).startswith("PolarsLazyFrameEqualHandler(")
+
+
+@polars_available
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [
+        (pl.LazyFrame({}), pl.LazyFrame({})),
+        (pl.LazyFrame({"col": [1, 2, 3]}), pl.LazyFrame({"col": [1, 2, 3]})),
+        (
+            pl.LazyFrame(
+                {
+                    "col1": [1, 2, 3, 4, 5],
+                    "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+                    "col3": ["a", "b", "c", "d", "e"],
+                }
+            ),
+            pl.LazyFrame(
+                {
+                    "col1": [1, 2, 3, 4, 5],
+                    "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+                    "col3": ["a", "b", "c", "d", "e"],
+                }
+            ),
+        ),
+    ],
+)
+def test_polars_lazyframe_equal_handler_handle_true(
+    actual: pl.LazyFrame,
+    expected: pl.LazyFrame,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    handler = PolarsLazyFrameEqualHandler()
+    with caplog.at_level(logging.INFO):
+        assert handler.handle(actual, expected, config)
+        assert not caplog.messages
+
+
+@polars_available
+def test_polars_lazyframe_equal_handler_handle_true_show_difference(
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    config.show_difference = True
+    handler = PolarsLazyFrameEqualHandler()
+    with caplog.at_level(logging.INFO):
+        assert handler.handle(
+            pl.LazyFrame({"col": [1, 2, 3]}), pl.LazyFrame({"col": [1, 2, 3]}), config
+        )
+        assert not caplog.messages
+
+
+@polars_available
+def test_polars_lazyframe_equal_handler_handle_false(
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    handler = PolarsLazyFrameEqualHandler()
+    with caplog.at_level(logging.INFO):
+        assert not handler.handle(pl.LazyFrame({}), pl.LazyFrame({"col": [1, 2, 3]}), config)
+        assert not caplog.messages
+
+
+@polars_available
+def test_polars_lazyframe_equal_handler_handle_false_different_column(
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    handler = PolarsLazyFrameEqualHandler()
+    with caplog.at_level(logging.INFO):
+        assert not handler.handle(
+            pl.LazyFrame({"col1": [1, 2, 3]}), pl.LazyFrame({"col2": [1, 2, 3]}), config
+        )
+        assert not caplog.messages
+
+
+@polars_available
+def test_polars_lazyframe_equal_handler_handle_false_different_value(
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    handler = PolarsLazyFrameEqualHandler()
+    with caplog.at_level(logging.INFO):
+        assert not handler.handle(
+            pl.LazyFrame({"col": [1, 2, 3]}), pl.LazyFrame({"col": [1, 2, 4]}), config
+        )
+        assert not caplog.messages
+
+
+@polars_available
+def test_polars_lazyframe_equal_handler_handle_false_different_dtype(
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    handler = PolarsLazyFrameEqualHandler()
+    with caplog.at_level(logging.INFO):
+        assert not handler.handle(
+            pl.LazyFrame(data={"col": [1, 2, 3]}),
+            pl.LazyFrame(data={"col": [1.0, 2.0, 3.0]}),
+            config,
+        )
+        assert not caplog.messages
+
+
+@polars_available
+def test_polars_lazyframe_equal_handler_handle_false_show_difference(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    config.show_difference = True
+    handler = PolarsLazyFrameEqualHandler()
+    with caplog.at_level(logging.INFO):
+        assert not handler.handle(
+            pl.LazyFrame({"col": [1, 2, 3]}),
+            pl.LazyFrame({"col": [1, 2, 4]}),
+            config=config,
+        )
+        assert caplog.messages[0].startswith("polars.LazyFrames have different elements:")
+
+
+@polars_available
+def test_polars_lazyframe_equal_handler_handle_equal_nan_false(config: EqualityConfig) -> None:
+    assert not PolarsLazyFrameEqualHandler().handle(
+        pl.LazyFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
+        pl.LazyFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
+        config,
+    )
+
+
+@polars_available
+def test_polars_lazyframe_equal_handler_handle_equal_nan_true(config: EqualityConfig) -> None:
+    config.equal_nan = True
+    assert PolarsLazyFrameEqualHandler().handle(
+        pl.LazyFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
+        pl.LazyFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
+        config,
+    )
+
+
+@polars_available
+@pytest.mark.parametrize("example", POLARS_LAZYFRAME_EQUAL_TOLERANCE)
+def test_polars_lazyframe_equal_handler_handle_true_tolerance(
+    example: ExamplePair, config: EqualityConfig
+) -> None:
+    config.atol = example.atol
+    config.rtol = example.rtol
+    assert PolarsLazyFrameEqualHandler().handle(
+        actual=example.actual, expected=example.expected, config=config
+    )
+
+
+def test_polars_lazyframe_equal_handler_set_next_handler() -> None:
+    PolarsLazyFrameEqualHandler().set_next_handler(FalseHandler())
+
+
 ##############################################
 #     Tests for PolarsSeriesEqualHandler     #
 ##############################################
@@ -359,10 +533,12 @@ HAS_NAN_TRUE = [
     pl.Series([1, 2, 3], dtype=pl.Int64),
     pl.Series([1, 2, 3], dtype=pl.Float64),
     pl.Series([True]),
+    pl.Series([], dtype=pl.Float32),
     pl.DataFrame({"col": [1, 2, 3]}),
     pl.DataFrame({"col": [1, 2, 3]}, schema={"col": pl.Int64}),
     pl.DataFrame({"col": [1, 2, 3]}, schema={"col": pl.Float64}),
     pl.DataFrame({"col": ["A", "B", "C"]}),
+    pl.DataFrame({}),
 ]
 HAS_NAN_FALSE = [
     pl.Series([1.0, 2.0, float("nan")]),
@@ -382,31 +558,3 @@ def test_has_nan_true(df_or_series: pl.DataFrame | pl.Series) -> None:
 @pytest.mark.parametrize("df_or_series", HAS_NAN_FALSE)
 def test_has_nan_false(df_or_series: pl.DataFrame | pl.Series) -> None:
     assert has_nan(df_or_series)
-
-
-@polars_available
-@polars_greater_equal_0_20_0
-@pytest.mark.parametrize("df_or_series", HAS_NAN_TRUE)
-def test_has_nan_new_true(df_or_series: pl.DataFrame | pl.Series) -> None:
-    assert not has_nan(df_or_series)
-
-
-@polars_available
-@polars_greater_equal_0_20_0
-@pytest.mark.parametrize("df_or_series", HAS_NAN_FALSE)
-def test_has_nan_new_false(df_or_series: pl.DataFrame | pl.Series) -> None:
-    assert has_nan(df_or_series)
-
-
-@polars_available
-@pytest.mark.parametrize("df_or_series", HAS_NAN_TRUE)
-def test_has_nan_old_true(df_or_series: pl.DataFrame | pl.Series) -> None:
-    with patch("coola.equality.handlers.polars_.POLARS_GREATER_EQUAL_0_20_0", False):
-        assert not has_nan(df_or_series)
-
-
-@polars_available
-@pytest.mark.parametrize("df_or_series", HAS_NAN_FALSE)
-def test_has_nan_old_false(df_or_series: pl.DataFrame | pl.Series) -> None:
-    with patch("coola.equality.handlers.polars_.POLARS_GREATER_EQUAL_0_20_0", False):
-        assert has_nan(df_or_series)
