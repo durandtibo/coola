@@ -12,6 +12,7 @@ __all__ = [
     "PandasDataFrameEqualityComparator",
     "PandasSeriesEqualityComparator",
     "PolarsDataFrameEqualityComparator",
+    "PolarsLazyFrameEqualityComparator",
     "PolarsSeriesEqualityComparator",
     "PyarrowEqualityComparator",
     "ScalarEqualityComparator",
@@ -41,6 +42,7 @@ from coola.equality.comparators.pandas_ import (
 )
 from coola.equality.comparators.polars_ import (
     PolarsDataFrameEqualityComparator,
+    PolarsLazyFrameEqualityComparator,
     PolarsSeriesEqualityComparator,
 )
 from coola.equality.comparators.pyarrow_ import PyarrowEqualityComparator

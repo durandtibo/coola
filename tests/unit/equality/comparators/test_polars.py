@@ -8,6 +8,7 @@ import pytest
 from coola.equality import EqualityConfig
 from coola.equality.comparators.polars_ import (
     PolarsDataFrameEqualityComparator,
+    PolarsLazyFrameEqualityComparator,
     PolarsSeriesEqualityComparator,
     get_type_comparator_mapping,
 )
@@ -341,14 +342,12 @@ POLARS_SERIES_EQUAL_TOLERANCE = [
     ),
 ]
 
-POLARS_EQUAL = POLARS_SERIES_EQUAL + POLARS_DATAFRAME_EQUAL  # + POLARS_LAZYFRAME_EQUAL
-POLARS_NOT_EQUAL = (
-    POLARS_SERIES_NOT_EQUAL + POLARS_DATAFRAME_NOT_EQUAL
-)  # + POLARS_LAZYFRAME_NOT_EQUAL
+POLARS_EQUAL = POLARS_SERIES_EQUAL + POLARS_DATAFRAME_EQUAL + POLARS_LAZYFRAME_EQUAL
+POLARS_NOT_EQUAL = POLARS_SERIES_NOT_EQUAL + POLARS_DATAFRAME_NOT_EQUAL + POLARS_LAZYFRAME_NOT_EQUAL
 POLARS_EQUAL_TOLERANCE = (
     POLARS_SERIES_EQUAL_TOLERANCE
     + POLARS_DATAFRAME_EQUAL_TOLERANCE
-    # + POLARS_LAZYFRAME_EQUAL_TOLERANCE
+    + POLARS_LAZYFRAME_EQUAL_TOLERANCE
 )
 
 #######################################################
@@ -476,6 +475,133 @@ def test_polars_dataframe_equality_comparator_no_polars() -> None:
         pytest.raises(RuntimeError, match="'polars' package is required but not installed."),
     ):
         PolarsDataFrameEqualityComparator()
+
+
+#######################################################
+#     Tests for PolarsLazyFrameEqualityComparator     #
+#######################################################
+
+
+@polars_available
+def test_polars_lazyframe_equality_comparator_str() -> None:
+    assert str(PolarsLazyFrameEqualityComparator()).startswith("PolarsLazyFrameEqualityComparator(")
+
+
+@polars_available
+def test_polars_lazyframe_equality_comparator__eq__true() -> None:
+    assert PolarsLazyFrameEqualityComparator() == PolarsLazyFrameEqualityComparator()
+
+
+@polars_available
+def test_polars_lazyframe_equality_comparator__eq__false_different_type() -> None:
+    assert PolarsLazyFrameEqualityComparator() != 123
+
+
+@polars_available
+def test_polars_lazyframe_equality_comparator_clone() -> None:
+    op = PolarsLazyFrameEqualityComparator()
+    op_cloned = op.clone()
+    assert op is not op_cloned
+    assert op == op_cloned
+
+
+@polars_available
+def test_polars_lazyframe_equality_comparator_equal_true_same_object(
+    config: EqualityConfig,
+) -> None:
+    val = pl.LazyFrame({"col": [1, 2, 3]})
+    assert PolarsLazyFrameEqualityComparator().equal(val, val, config)
+
+
+@polars_available
+@pytest.mark.parametrize("example", POLARS_LAZYFRAME_EQUAL)
+def test_polars_lazyframe_equality_comparator_equal_true(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    comparator = PolarsLazyFrameEqualityComparator()
+    with caplog.at_level(logging.INFO):
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
+        assert not caplog.messages
+
+
+@polars_available
+@pytest.mark.parametrize("example", POLARS_LAZYFRAME_EQUAL)
+def test_polars_lazyframe_equality_comparator_equal_true_show_difference(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    config.show_difference = True
+    comparator = PolarsLazyFrameEqualityComparator()
+    with caplog.at_level(logging.INFO):
+        assert comparator.equal(actual=example.actual, expected=example.expected, config=config)
+        assert not caplog.messages
+
+
+@polars_available
+@pytest.mark.parametrize("example", POLARS_LAZYFRAME_NOT_EQUAL)
+def test_polars_lazyframe_equality_comparator_equal_false(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    comparator = PolarsLazyFrameEqualityComparator()
+    with caplog.at_level(logging.INFO):
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
+        assert not caplog.messages
+
+
+@polars_available
+@pytest.mark.parametrize("example", POLARS_LAZYFRAME_NOT_EQUAL)
+def test_polars_lazyframe_equality_comparator_equal_false_show_difference(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    config.show_difference = True
+    comparator = PolarsLazyFrameEqualityComparator()
+    with caplog.at_level(logging.INFO):
+        assert not comparator.equal(actual=example.actual, expected=example.expected, config=config)
+        assert caplog.messages[0].startswith(example.expected_message)
+
+
+@polars_available
+@pytest.mark.parametrize("equal_nan", [False, True])
+def test_polars_lazyframe_equality_comparator_equal_nan(
+    config: EqualityConfig, equal_nan: bool
+) -> None:
+    config.equal_nan = equal_nan
+    assert (
+        PolarsLazyFrameEqualityComparator().equal(
+            actual=pl.LazyFrame({"col": [1.0, float("nan"), 3.0]}),
+            expected=pl.LazyFrame({"col": [1.0, float("nan"), 3.0]}),
+            config=config,
+        )
+        == equal_nan
+    )
+
+
+@polars_available
+@pytest.mark.parametrize("example", POLARS_LAZYFRAME_EQUAL_TOLERANCE)
+def test_polars_lazyframe_equality_comparator_equal_tolerance(
+    example: ExamplePair, config: EqualityConfig
+) -> None:
+    config.atol = example.atol
+    config.rtol = example.rtol
+    assert PolarsLazyFrameEqualityComparator().equal(
+        actual=example.actual, expected=example.expected, config=config
+    )
+
+
+@polars_available
+def test_polars_lazyframe_equality_comparator_no_polars() -> None:
+    with (
+        patch("coola.utils.imports.is_polars_available", lambda: False),
+        pytest.raises(RuntimeError, match="'polars' package is required but not installed."),
+    ):
+        PolarsLazyFrameEqualityComparator()
 
 
 ####################################################
@@ -612,6 +738,7 @@ def test_polars_series_equality_comparator_no_polars() -> None:
 def test_get_type_comparator_mapping() -> None:
     assert get_type_comparator_mapping() == {
         pl.DataFrame: PolarsDataFrameEqualityComparator(),
+        pl.LazyFrame: PolarsLazyFrameEqualityComparator(),
         pl.Series: PolarsSeriesEqualityComparator(),
     }
 
