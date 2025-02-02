@@ -3,7 +3,7 @@ r"""Implement some handlers for ``polars.DataFrame``s and
 
 from __future__ import annotations
 
-__all__ = ["PolarsDataFrameEqualHandler", "PolarsSeriesEqualHandler"]
+__all__ = ["PolarsDataFrameEqualHandler", "PolarsLazyFrameEqualHandler", "PolarsSeriesEqualHandler"]
 
 import logging
 from typing import TYPE_CHECKING
@@ -16,8 +16,6 @@ if is_polars_available():
     import polars as pl
     import polars.selectors as cs
     from polars.testing import assert_frame_equal, assert_series_equal
-
-
 else:  # pragma: no cover
     pl = Mock()
 
@@ -77,6 +75,64 @@ class PolarsDataFrameEqualHandler(BaseEqualityHandler):
         if config.show_difference and not object_equal:
             logger.info(
                 f"polars.DataFrames have different elements:\n"
+                f"actual:\n{actual}\nexpected:\n{expected}"
+            )
+        return object_equal
+
+    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
+        pass  # Do nothing because the next handler is never called.
+
+
+class PolarsLazyFrameEqualHandler(BaseEqualityHandler):
+    r"""Check if the two ``polars.LazyFrame`` are equal.
+
+    This handler returns ``True`` if the two ``polars.LazyFrame``s
+    equal, otherwise ``False``. This handler is designed to be used
+    at the end of the chain of responsibility. This handler does
+    not call the next handler.
+
+    Example usage:
+
+    ```pycon
+
+    >>> import polars as pl
+    >>> from coola.equality import EqualityConfig
+    >>> from coola.equality.handlers import PolarsLazyFrameEqualHandler
+    >>> from coola.equality.testers import EqualityTester
+    >>> config = EqualityConfig(tester=EqualityTester())
+    >>> handler = PolarsLazyFrameEqualHandler()
+    >>> handler.handle(
+    ...     pl.LazyFrame({"col": [1, 2, 3]}),
+    ...     pl.LazyFrame({"col": [1, 2, 3]}),
+    ...     config,
+    ... )
+    True
+    >>> handler.handle(
+    ...     pl.LazyFrame({"col": [1, 2, 3]}),
+    ...     pl.LazyFrame({"col": [1, 2, 4]}),
+    ...     config,
+    ... )
+    False
+
+    ```
+    """
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, self.__class__)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__qualname__}()"
+
+    def handle(
+        self,
+        actual: pl.LazyFrame,
+        expected: pl.LazyFrame,
+        config: EqualityConfig,
+    ) -> bool:
+        object_equal = frame_equal(actual.collect(), expected.collect(), config)
+        if config.show_difference and not object_equal:
+            logger.info(
+                f"polars.LazyFrames have different elements:\n"
                 f"actual:\n{actual}\nexpected:\n{expected}"
             )
         return object_equal
@@ -148,7 +204,7 @@ def has_nan(df_or_series: pl.DataFrame | pl.Series) -> bool:
     if isinstance(df_or_series, pl.Series):
         return df_or_series.dtype.is_numeric() and df_or_series.is_nan().any()
     frame = df_or_series.select(cs.numeric())
-    if frame.is_empty():
+    if frame.is_empty():  # This if is necessary for previous polars version (1.0)
         return False
     return frame.select(pl.any_horizontal(pl.all().is_nan().any())).item()
 

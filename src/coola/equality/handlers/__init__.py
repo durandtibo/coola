@@ -21,6 +21,7 @@ __all__ = [
     "PandasDataFrameEqualHandler",
     "PandasSeriesEqualHandler",
     "PolarsDataFrameEqualHandler",
+    "PolarsLazyFrameEqualHandler",
     "PolarsSeriesEqualHandler",
     "PyarrowEqualHandler",
     "SameAttributeHandler",
@@ -61,6 +62,7 @@ from coola.equality.handlers.pandas_ import (
 )
 from coola.equality.handlers.polars_ import (
     PolarsDataFrameEqualHandler,
+    PolarsLazyFrameEqualHandler,
     PolarsSeriesEqualHandler,
 )
 from coola.equality.handlers.pyarrow_ import PyarrowEqualHandler

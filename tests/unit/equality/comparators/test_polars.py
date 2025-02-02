@@ -133,6 +133,111 @@ POLARS_DATAFRAME_EQUAL_TOLERANCE = [
 ]
 
 
+POLARS_LAZYFRAME_EQUAL = [
+    pytest.param(
+        ExamplePair(
+            actual=pl.LazyFrame({}),
+            expected=pl.LazyFrame({}),
+        ),
+        id="0 column",
+    ),
+    pytest.param(
+        ExamplePair(
+            actual=pl.LazyFrame({"col": [1, 2, 3]}),
+            expected=pl.LazyFrame({"col": [1, 2, 3]}),
+        ),
+        id="1 column",
+    ),
+    pytest.param(
+        ExamplePair(
+            actual=pl.LazyFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]}),
+            expected=pl.LazyFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]}),
+        ),
+        id="2 columns",
+    ),
+]
+
+POLARS_LAZYFRAME_NOT_EQUAL = [
+    pytest.param(
+        ExamplePair(
+            actual=pl.LazyFrame({"col": [1, 2, 3]}),
+            expected=pl.LazyFrame({"col": [1, 2, 4]}),
+            expected_message="polars.LazyFrames have different elements:",
+        ),
+        id="different values",
+    ),
+    pytest.param(
+        ExamplePair(
+            actual=pl.LazyFrame({"col1": [1, 2, 3]}),
+            expected=pl.LazyFrame({"col2": [1, 2, 3]}),
+            expected_message="polars.LazyFrames have different elements:",
+        ),
+        id="different column names",
+    ),
+    pytest.param(
+        ExamplePair(
+            actual=pl.LazyFrame({"col1": [1, 2, 3]}),
+            expected=pl.Series([1, 2, 3]),
+            expected_message="objects have different types:",
+        ),
+        id="different column names",
+    ),
+]
+
+
+POLARS_LAZYFRAME_EQUAL_TOLERANCE = [
+    # atol
+    pytest.param(
+        ExamplePair(
+            actual=pl.LazyFrame({"col": [1.0, 1.0, 1.0]}),
+            expected=pl.LazyFrame({"col": [1.5, 1.5, 0.5]}),
+            atol=1.0,
+        ),
+        id="atol=1",
+    ),
+    pytest.param(
+        ExamplePair(
+            actual=pl.LazyFrame({"col": [1.0, 1.0, 1.0]}),
+            expected=pl.LazyFrame({"col": [1.0, 1.05, 0.95]}),
+            atol=0.1,
+        ),
+        id="atol=0.1",
+    ),
+    pytest.param(
+        ExamplePair(
+            actual=pl.LazyFrame({"col": [1.0, 1.0, 1.0]}),
+            expected=pl.LazyFrame({"col": [1.0, 1.005, 0.995]}),
+            atol=0.01,
+        ),
+        id="atol=0.01",
+    ),
+    # rtol
+    pytest.param(
+        ExamplePair(
+            actual=pl.LazyFrame({"col": [1.0, 1.0, 1.0]}),
+            expected=pl.LazyFrame({"col": [1.0, 1.5, 0.5]}),
+            rtol=1.0,
+        ),
+        id="rtol=1",
+    ),
+    pytest.param(
+        ExamplePair(
+            actual=pl.LazyFrame({"col": [1.0, 1.0, 1.0]}),
+            expected=pl.LazyFrame({"col": [1.0, 1.05, 0.95]}),
+            rtol=0.1,
+        ),
+        id="rtol=0.1",
+    ),
+    pytest.param(
+        ExamplePair(
+            actual=pl.LazyFrame({"col": [1.0, 1.0, 1.0]}),
+            expected=pl.LazyFrame({"col": [1.0, 1.005, 0.995]}),
+            rtol=0.01,
+        ),
+        id="rtol=0.01",
+    ),
+]
+
 POLARS_SERIES_EQUAL = [
     pytest.param(
         ExamplePair(
@@ -236,9 +341,15 @@ POLARS_SERIES_EQUAL_TOLERANCE = [
     ),
 ]
 
-POLARS_EQUAL = POLARS_SERIES_EQUAL + POLARS_DATAFRAME_EQUAL
-POLARS_NOT_EQUAL = POLARS_SERIES_NOT_EQUAL + POLARS_DATAFRAME_NOT_EQUAL
-POLARS_EQUAL_TOLERANCE = POLARS_SERIES_EQUAL_TOLERANCE + POLARS_DATAFRAME_EQUAL_TOLERANCE
+POLARS_EQUAL = POLARS_SERIES_EQUAL + POLARS_DATAFRAME_EQUAL  # + POLARS_LAZYFRAME_EQUAL
+POLARS_NOT_EQUAL = (
+    POLARS_SERIES_NOT_EQUAL + POLARS_DATAFRAME_NOT_EQUAL
+)  # + POLARS_LAZYFRAME_NOT_EQUAL
+POLARS_EQUAL_TOLERANCE = (
+    POLARS_SERIES_EQUAL_TOLERANCE
+    + POLARS_DATAFRAME_EQUAL_TOLERANCE
+    # + POLARS_LAZYFRAME_EQUAL_TOLERANCE
+)
 
 #######################################################
 #     Tests for PolarsDataFrameEqualityComparator     #
