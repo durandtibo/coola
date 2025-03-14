@@ -1,4 +1,3 @@
-# noqa: A005
 r"""Implement some utility functions for ``numpy.ndarray``s."""
 
 from __future__ import annotations
