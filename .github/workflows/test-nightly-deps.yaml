@@ -1,5 +1,7 @@
 name: Test - Nightly Dependencies
 on:
+  schedule:
+    - cron: '0 9 * * *' # run at 9 AM UTC
   workflow_call:
   workflow_dispatch:  # to trigger manually
 
