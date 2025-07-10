@@ -85,7 +85,7 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
     >>> from coola.equality.comparators.jax_ import get_type_comparator_mapping
     >>> get_type_comparator_mapping()
     {<class 'jax.Array'>: JaxArrayEqualityComparator(),
-     <class 'jaxlib.xla_extension.ArrayImpl'>: JaxArrayEqualityComparator()}
+     <class 'jaxlib...ArrayImpl'>: JaxArrayEqualityComparator()}
 
     ```
     """
