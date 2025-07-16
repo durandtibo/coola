@@ -290,7 +290,7 @@ def register_equality() -> None:
     ```
     """
     # Local import to avoid cyclic dependency
-    from coola.equality.comparators import get_type_comparator_mapping
+    from coola.equality.comparators import get_type_comparator_mapping  # noqa: PLC0415
 
     for typ, op in get_type_comparator_mapping().items():
         if not EqualityTester.has_comparator(typ):  # pragma: no cover

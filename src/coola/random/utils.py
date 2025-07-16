@@ -26,7 +26,8 @@ def get_random_managers() -> dict[str, BaseRandomManager]:
 
     ```
     """
-    from coola import random  # Local import to avoid cyclic dependencies
+    # Local import to avoid cyclic dependencies
+    from coola import random  # noqa: PLC0415
 
     return (
         random.random_.get_random_managers()
