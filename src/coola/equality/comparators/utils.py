@@ -28,7 +28,8 @@ def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
 
     ```
     """
-    from coola.equality import comparators  # Local import to avoid cyclic dependencies
+    # Local import to avoid cyclic dependencies
+    from coola.equality import comparators  # noqa: PLC0415
 
     return (
         comparators.default.get_type_comparator_mapping()

@@ -183,7 +183,7 @@ def register_random_managers() -> None:
     ```
     """
     # Local import to avoid cyclic dependency
-    from coola.random.utils import get_random_managers
+    from coola.random.utils import get_random_managers  # noqa: PLC0415
 
     for name, manager in get_random_managers().items():
         if not RandomManager.has_manager(name):  # pragma: no cover
