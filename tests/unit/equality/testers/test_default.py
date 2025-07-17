@@ -223,6 +223,20 @@ def test_local_equality_tester__eq__false_different_type() -> None:
     assert LocalEqualityTester() != 1
 
 
+def test_local_equality_tester_hash() -> None:
+    assert isinstance(hash(LocalEqualityTester({})), int)
+
+
+def test_local_equality_tester_hash_same() -> None:
+    assert hash(LocalEqualityTester({})) == hash(LocalEqualityTester({}))
+
+
+def test_local_equality_tester_hash_different() -> None:
+    assert hash(LocalEqualityTester({})) != hash(
+        LocalEqualityTester({int: DefaultEqualityComparator()})
+    )
+
+
 def test_local_equality_tester_registry_default() -> None:
     assert LocalEqualityTester().registry == {}
 
