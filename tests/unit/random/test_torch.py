@@ -39,6 +39,16 @@ def test_torch_random_manager_eq_false() -> None:
 
 
 @torch_available
+def test_torch_random_manager_hash() -> None:
+    assert isinstance(hash(TorchRandomManager()), int)
+
+
+@torch_available
+def test_torch_random_manager_hash_same() -> None:
+    assert hash(TorchRandomManager()) == hash(TorchRandomManager())
+
+
+@torch_available
 def test_torch_random_manager_get_rng_state() -> None:
     rng = TorchRandomManager()
     state = rng.get_rng_state()

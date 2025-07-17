@@ -27,6 +27,14 @@ def test_random_random_manager_eq_false() -> None:
     assert RandomRandomManager() != 42
 
 
+def test_random_random_manager_hash() -> None:
+    assert isinstance(hash(RandomRandomManager()), int)
+
+
+def test_random_random_manager_hash_same() -> None:
+    assert hash(RandomRandomManager()) == hash(RandomRandomManager())
+
+
 def test_random_random_manager_get_rng_state() -> None:
     rng = RandomRandomManager()
     state = rng.get_rng_state()

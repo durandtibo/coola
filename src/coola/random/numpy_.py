@@ -44,6 +44,9 @@ class NumpyRandomManager(BaseRandomManager):
     def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)
 
+    def __hash__(self) -> int:
+        return 0
+
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 

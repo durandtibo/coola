@@ -39,6 +39,16 @@ def test_numpy_random_manager_eq_false() -> None:
 
 
 @numpy_available
+def test_numpy_random_manager_hash() -> None:
+    assert isinstance(hash(NumpyRandomManager()), int)
+
+
+@numpy_available
+def test_numpy_random_manager_hash_same() -> None:
+    assert hash(NumpyRandomManager()) == hash(NumpyRandomManager())
+
+
+@numpy_available
 def test_numpy_random_manager_get_rng_state() -> None:
     rng = NumpyRandomManager()
     state = rng.get_rng_state()
