@@ -146,6 +146,8 @@ class LocalEqualityTester(BaseEqualityTester):
             comparators.
     """
 
+    __hash__ = None
+
     def __init__(self, registry: dict[type, BaseEqualityComparator] | None = None) -> None:
         self.registry = registry or {}
 
@@ -153,9 +155,6 @@ class LocalEqualityTester(BaseEqualityTester):
         if not isinstance(other, self.__class__):
             return False
         return self.registry == other.registry
-
-    def __hash__(self) -> int:
-        return hash(self.registry)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(self.registry))}\n)"
