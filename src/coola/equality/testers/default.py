@@ -146,8 +146,6 @@ class LocalEqualityTester(BaseEqualityTester):
             comparators.
     """
 
-    __hash__ = None
-
     def __init__(self, registry: dict[type, BaseEqualityComparator] | None = None) -> None:
         self.registry = registry or {}
 
