@@ -30,7 +30,7 @@ class SupportsDType(Protocol):
         return  # pragma: no cover
 
 
-class SameDTypeHandler(AbstractEqualityHandler):
+class SameDTypeHandler(AbstractEqualityHandler):  # noqa: PLW1641
     r"""Check if the two objects have the same data type.
 
     This handler returns ``False`` if the two objects have different

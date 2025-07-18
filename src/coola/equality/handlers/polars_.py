@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class PolarsDataFrameEqualHandler(BaseEqualityHandler):
+class PolarsDataFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     r"""Check if the two ``polars.DataFrame`` are equal.
 
     This handler returns ``True`` if the two ``polars.DataFrame``s
@@ -83,7 +83,7 @@ class PolarsDataFrameEqualHandler(BaseEqualityHandler):
         pass  # Do nothing because the next handler is never called.
 
 
-class PolarsLazyFrameEqualHandler(BaseEqualityHandler):
+class PolarsLazyFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     r"""Check if the two ``polars.LazyFrame`` are equal.
 
     This handler returns ``True`` if the two ``polars.LazyFrame``s
@@ -141,7 +141,7 @@ class PolarsLazyFrameEqualHandler(BaseEqualityHandler):
         pass  # Do nothing because the next handler is never called.
 
 
-class PolarsSeriesEqualHandler(BaseEqualityHandler):
+class PolarsSeriesEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     r"""Check if the two ``polars.Series`` are equal.
 
     This handler returns ``True`` if the two arrays ``polars.Series``

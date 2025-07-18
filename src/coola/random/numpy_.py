@@ -20,7 +20,7 @@ else:  # pragma: no cover
     np = Mock()
 
 
-class NumpyRandomManager(BaseRandomManager):
+class NumpyRandomManager(BaseRandomManager):  # noqa: PLW1641
     r"""Implement a random manager for the library ``numpy``.
 
     The seed must be between ``0`` and ``2**32 - 1``, so a modulo

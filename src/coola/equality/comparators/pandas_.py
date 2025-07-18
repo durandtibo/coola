@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class PandasDataFrameEqualityComparator(BaseEqualityComparator[pd.DataFrame]):
+class PandasDataFrameEqualityComparator(BaseEqualityComparator[pd.DataFrame]):  # noqa: PLW1641
     r"""Implement an equality comparator for ``pandas.DataFrame``.
 
     Example usage:
@@ -77,7 +77,7 @@ class PandasDataFrameEqualityComparator(BaseEqualityComparator[pd.DataFrame]):
         return self._handler.handle(actual, expected, config=config)
 
 
-class PandasSeriesEqualityComparator(BaseEqualityComparator[pd.Series]):
+class PandasSeriesEqualityComparator(BaseEqualityComparator[pd.Series]):  # noqa: PLW1641
     r"""Implement an equality comparator for ``pandas.Series``.
 
     Example usage:

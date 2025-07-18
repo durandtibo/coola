@@ -30,7 +30,7 @@ class SupportsShape(Protocol):
         return ()  # pragma: no cover
 
 
-class SameShapeHandler(AbstractEqualityHandler):
+class SameShapeHandler(AbstractEqualityHandler):  # noqa: PLW1641
     r"""Check if the two objects have the same shape.
 
     This handler returns ``False`` if the two objects have different

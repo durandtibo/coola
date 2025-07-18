@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class JaxArrayEqualHandler(BaseEqualityHandler):
+class JaxArrayEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     r"""Check if the two JAX arrays are equal.
 
     This handler returns ``True`` if the two arrays are equal,

@@ -36,7 +36,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class NumpyArrayEqualityComparator(BaseEqualityComparator[np.ndarray]):
+class NumpyArrayEqualityComparator(BaseEqualityComparator[np.ndarray]):  # noqa: PLW1641
     r"""Implement an equality comparator for ``numpy.ndarray``.
 
     Example usage:
@@ -74,7 +74,9 @@ class NumpyArrayEqualityComparator(BaseEqualityComparator[np.ndarray]):
         return self._handler.handle(actual, expected, config=config)
 
 
-class NumpyMaskedArrayEqualityComparator(BaseEqualityComparator[np.ma.MaskedArray]):
+class NumpyMaskedArrayEqualityComparator(  # noqa: PLW1641
+    BaseEqualityComparator[np.ma.MaskedArray]
+):
     r"""Implement an equality comparator for ``numpy.ndarray``.
 
     Example usage:

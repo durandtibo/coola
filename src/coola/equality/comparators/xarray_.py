@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class XarrayDataArrayEqualityComparator(BaseEqualityComparator[xr.DataArray]):
+class XarrayDataArrayEqualityComparator(BaseEqualityComparator[xr.DataArray]):  # noqa: PLW1641
     r"""Implement an equality comparator for ``xarray.DataArray``.
 
     Example usage:
@@ -81,7 +81,7 @@ class XarrayDataArrayEqualityComparator(BaseEqualityComparator[xr.DataArray]):
         return self._handler.handle(actual, expected, config=config)
 
 
-class XarrayDatasetEqualityComparator(BaseEqualityComparator[xr.Dataset]):
+class XarrayDatasetEqualityComparator(BaseEqualityComparator[xr.Dataset]):  # noqa: PLW1641
     r"""Implement an equality comparator for ``xarray.Dataset``.
 
     Example usage:
@@ -128,7 +128,7 @@ class XarrayDatasetEqualityComparator(BaseEqualityComparator[xr.Dataset]):
         return self._handler.handle(actual, expected, config=config)
 
 
-class XarrayVariableEqualityComparator(BaseEqualityComparator[xr.Variable]):
+class XarrayVariableEqualityComparator(BaseEqualityComparator[xr.Variable]):  # noqa: PLW1641
     r"""Implement an equality comparator for ``xarray.Variable``.
 
     Example usage:

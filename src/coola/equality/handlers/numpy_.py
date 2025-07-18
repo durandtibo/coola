@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class NumpyArrayEqualHandler(BaseEqualityHandler):
+class NumpyArrayEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     r"""Check if the two NumPy arrays are equal.
 
     This handler returns ``True`` if the two arrays are equal,

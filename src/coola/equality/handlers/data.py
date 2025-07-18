@@ -30,7 +30,7 @@ class SupportsData(Protocol):
         return  # pragma: no cover
 
 
-class SameDataHandler(AbstractEqualityHandler):
+class SameDataHandler(AbstractEqualityHandler):  # noqa: PLW1641
     r"""Check if the two objects have the same data.
 
     This handler returns ``False`` if the two objects have different

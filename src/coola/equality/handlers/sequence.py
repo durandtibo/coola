@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class SequenceSameValuesHandler(AbstractEqualityHandler):
+class SequenceSameValuesHandler(AbstractEqualityHandler):  # noqa: PLW1641
     r"""Check if the two sequences have the same values.
 
     This handler returns ``False`` if the two sequences have at least
