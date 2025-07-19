@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class NanEqualHandler(AbstractEqualityHandler):
+class NanEqualHandler(AbstractEqualityHandler):  # noqa: PLW1641
     r"""Check if the two NaNs are equal.
 
     This handler returns ``True`` if the two numbers are NaNs,
@@ -55,7 +55,7 @@ class NanEqualHandler(AbstractEqualityHandler):
         return self._handle_next(actual, expected, config=config)
 
 
-class ScalarEqualHandler(BaseEqualityHandler):
+class ScalarEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     r"""Check if the two numbers are equal or not.
 
     This handler returns ``False`` if the two numbers are

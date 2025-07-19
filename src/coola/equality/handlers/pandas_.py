@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class PandasDataFrameEqualHandler(BaseEqualityHandler):
+class PandasDataFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     r"""Check if the two ``pandas.DataFrame`` are equal.
 
     This handler returns ``True`` if the two ``pandas.DataFrame``s
@@ -81,7 +81,7 @@ class PandasDataFrameEqualHandler(BaseEqualityHandler):
         pass  # Do nothing because the next handler is never called.
 
 
-class PandasSeriesEqualHandler(BaseEqualityHandler):
+class PandasSeriesEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     r"""Check if the two ``pandas.Series`` are equal.
 
     This handler returns ``True`` if the two arrays ``pandas.Series``

@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class PyarrowEqualHandler(BaseEqualityHandler):
+class PyarrowEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     r"""Check if the two pyarrow arrays or tables are equal.
 
     This handler returns ``True`` if the two arrays or tables are

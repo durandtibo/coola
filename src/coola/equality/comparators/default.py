@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class DefaultEqualityComparator(BaseEqualityComparator[Any]):
+class DefaultEqualityComparator(BaseEqualityComparator[Any]):  # noqa: PLW1641
     r"""Implement a default equality comparator.
 
     The ``==`` operator is used to test the equality between the

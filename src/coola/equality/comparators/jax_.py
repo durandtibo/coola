@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class JaxArrayEqualityComparator(BaseEqualityComparator[jnp.ndarray]):
+class JaxArrayEqualityComparator(BaseEqualityComparator[jnp.ndarray]):  # noqa: PLW1641
     r"""Implement an equality comparator for ``jax.numpy.ndarray``.
 
     Example usage:

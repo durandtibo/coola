@@ -54,7 +54,7 @@ class SupportsEqualNan(Protocol):
         """
 
 
-class EqualHandler(BaseEqualityHandler):
+class EqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     r"""Check if the two objects have the same data.
 
     This handler returns ``False`` if the two objects are different
@@ -103,7 +103,7 @@ class EqualHandler(BaseEqualityHandler):
         pass  # Do nothing because the next handler is never called.
 
 
-class EqualNanHandler(BaseEqualityHandler):
+class EqualNanHandler(BaseEqualityHandler):  # noqa: PLW1641
     r"""Check if the two objects have the same data.
 
     This handler returns ``False`` if the two objects are different

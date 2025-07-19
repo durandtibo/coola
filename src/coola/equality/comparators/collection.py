@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class MappingEqualityComparator(BaseEqualityComparator[Mapping]):
+class MappingEqualityComparator(BaseEqualityComparator[Mapping]):  # noqa: PLW1641
     r"""Implement a sequence equality comparator.
 
     Example usage:
@@ -63,7 +63,7 @@ class MappingEqualityComparator(BaseEqualityComparator[Mapping]):
         return self._handler.handle(actual, expected, config=config)
 
 
-class SequenceEqualityComparator(BaseEqualityComparator[Sequence]):
+class SequenceEqualityComparator(BaseEqualityComparator[Sequence]):  # noqa: PLW1641
     r"""Implement a sequence equality comparator.
 
     Example usage:

@@ -20,7 +20,7 @@ else:  # pragma: no cover
     torch = Mock()
 
 
-class TorchRandomManager(BaseRandomManager):
+class TorchRandomManager(BaseRandomManager):  # noqa: PLW1641
     r"""Implements a random number generator for the library ``torch``.
 
     Example usage:

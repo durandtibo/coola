@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class ScalarEqualityComparator(BaseEqualityComparator[Any]):
+class ScalarEqualityComparator(BaseEqualityComparator[Any]):  # noqa: PLW1641
     r"""Implement a default equality comparator.
 
     Example usage:

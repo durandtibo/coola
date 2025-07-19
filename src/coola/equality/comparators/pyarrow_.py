@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class PyarrowEqualityComparator(BaseEqualityComparator[pa.Array]):
+class PyarrowEqualityComparator(BaseEqualityComparator[pa.Array]):  # noqa: PLW1641
     r"""Implement an equality comparator for ```pyarrow.Array``s and
     ``pyarrow.Table``s.
 

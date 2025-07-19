@@ -138,7 +138,7 @@ class EqualityTester(BaseEqualityTester):
         return LocalEqualityTester({key: value.clone() for key, value in cls.registry.items()})
 
 
-class LocalEqualityTester(BaseEqualityTester):
+class LocalEqualityTester(BaseEqualityTester):  # noqa: PLW1641
     """Implement an equality tester that can be easily customized.
 
     Args:

@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class PolarsDataFrameEqualityComparator(BaseEqualityComparator[pl.DataFrame]):
+class PolarsDataFrameEqualityComparator(BaseEqualityComparator[pl.DataFrame]):  # noqa: PLW1641
     r"""Implement an equality comparator for ``polars.DataFrame``.
 
     Example usage:
@@ -78,7 +78,7 @@ class PolarsDataFrameEqualityComparator(BaseEqualityComparator[pl.DataFrame]):
         return self._handler.handle(actual, expected, config=config)
 
 
-class PolarsLazyFrameEqualityComparator(BaseEqualityComparator[pl.LazyFrame]):
+class PolarsLazyFrameEqualityComparator(BaseEqualityComparator[pl.LazyFrame]):  # noqa: PLW1641
     r"""Implement an equality comparator for ``polars.LazyFrame``.
 
     Example usage:
@@ -122,7 +122,7 @@ class PolarsLazyFrameEqualityComparator(BaseEqualityComparator[pl.LazyFrame]):
         return self._handler.handle(actual, expected, config=config)
 
 
-class PolarsSeriesEqualityComparator(BaseEqualityComparator[pl.Series]):
+class PolarsSeriesEqualityComparator(BaseEqualityComparator[pl.Series]):  # noqa: PLW1641
     r"""Implement an equality comparator for ``polars.Series``.
 
     Example usage:

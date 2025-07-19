@@ -10,7 +10,7 @@ import random
 from coola.random.base import BaseRandomManager
 
 
-class RandomRandomManager(BaseRandomManager):
+class RandomRandomManager(BaseRandomManager):  # noqa: PLW1641
     r"""Implement a random manager for the python standard library
     ``random``.
 

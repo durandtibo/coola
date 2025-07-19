@@ -26,8 +26,8 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class FalseHandler(BaseEqualityHandler):
-    r"""Implement a handler that always return ``False``.
+class FalseHandler(BaseEqualityHandler):  # noqa: PLW1641
+    r"""Implement a handler that always returns ``False``.
 
     This handler is designed to be used at the end of the chain of
     responsibility. This handler does not call the next handler.
@@ -67,8 +67,8 @@ class FalseHandler(BaseEqualityHandler):
         pass  # Do nothing because the next handler is never called.
 
 
-class TrueHandler(BaseEqualityHandler):
-    r"""Implement a handler that always return ``True``.
+class TrueHandler(BaseEqualityHandler):  # noqa: PLW1641
+    r"""Implement a handler that always returns ``True``.
 
     This handler is designed to be used at the end of the chain of
     responsibility. This handler does not call the next handler.
@@ -108,7 +108,7 @@ class TrueHandler(BaseEqualityHandler):
         pass  # Do nothing because the next handler is never called.
 
 
-class ObjectEqualHandler(BaseEqualityHandler):
+class ObjectEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     r"""Check if the two objects are equal using the default equality
     operator ``==``.
 
@@ -155,7 +155,7 @@ class ObjectEqualHandler(BaseEqualityHandler):
         pass  # Do nothing because the next handler is never called.
 
 
-class SameAttributeHandler(AbstractEqualityHandler):
+class SameAttributeHandler(AbstractEqualityHandler):  # noqa: PLW1641
     r"""Check if the two objects have the same attribute.
 
     This handler returns ``False`` if the two objects have different
@@ -210,7 +210,7 @@ class SameAttributeHandler(AbstractEqualityHandler):
         return self._handle_next(actual, expected, config=config)
 
 
-class SameLengthHandler(AbstractEqualityHandler):
+class SameLengthHandler(AbstractEqualityHandler):  # noqa: PLW1641
     r"""Check if the two objects have the same length.
 
     This handler returns ``False`` if the two objects have different
@@ -247,7 +247,7 @@ class SameLengthHandler(AbstractEqualityHandler):
         return self._handle_next(actual, expected, config=config)
 
 
-class SameObjectHandler(AbstractEqualityHandler):
+class SameObjectHandler(AbstractEqualityHandler):  # noqa: PLW1641
     r"""Check if the two objects refer to the same object.
 
     This handler returns ``True`` if the two objects refer to the
@@ -282,7 +282,7 @@ class SameObjectHandler(AbstractEqualityHandler):
         return self._handle_next(actual, expected, config=config)
 
 
-class SameTypeHandler(AbstractEqualityHandler):
+class SameTypeHandler(AbstractEqualityHandler):  # noqa: PLW1641
     r"""Check if the two objects have the same type.
 
     This handler returns ``False`` if the two objects have different
