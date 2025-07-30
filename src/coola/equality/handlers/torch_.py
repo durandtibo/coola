@@ -63,8 +63,7 @@ class TorchTensorEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         object_equal = tensor_equal(actual, expected, config)
         if config.show_difference and not object_equal:
             logger.info(
-                f"torch.Tensors have different elements:\n"
-                f"actual=\n{actual}\nexpected=\n{expected}"
+                f"torch.Tensors have different elements:\nactual=\n{actual}\nexpected=\n{expected}"
             )
         return object_equal
 

@@ -733,7 +733,6 @@ def is_torch_numpy_available() -> bool:
     if not is_numpy_available():
         return False
     with suppress(RuntimeError):
-
         torch.tensor([1.0]).numpy()  # Check if the libraries are compatible
         return True
     return False
