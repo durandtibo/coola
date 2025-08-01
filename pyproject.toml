@@ -69,7 +69,6 @@ jaxlib = [
 numpy = { version = ">=1.24,<3.0", optional = true }
 packaging = { version = ">=21.0,<26.0", optional = true }
 pandas = { version = ">=2.0,<3.0", optional = true }
-# polars: 0.18.3 is the minimal version because of https://github.com/pola-rs/polars/issues/9358
 polars = { version = ">=1.0,<2.0", optional = true }
 pyarrow = { version = ">=11.0,<22.0", optional = true }
 torch = [
