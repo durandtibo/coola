@@ -122,8 +122,7 @@ class PandasSeriesEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         object_equal = series_equal(actual, expected, config)
         if config.show_difference and not object_equal:
             logger.info(
-                f"pandas.Series have different elements:\n"
-                f"actual:\n{actual}\nexpected:\n{expected}"
+                f"pandas.Series have different elements:\nactual:\n{actual}\nexpected:\n{expected}"
             )
         return object_equal
 

@@ -63,8 +63,7 @@ class NumpyArrayEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         object_equal = array_equal(actual, expected, config)
         if config.show_difference and not object_equal:
             logger.info(
-                f"numpy.ndarrays have different elements:\n"
-                f"actual:\n{actual}\nexpected:\n{expected}"
+                f"numpy.ndarrays have different elements:\nactual:\n{actual}\nexpected:\n{expected}"
             )
         return object_equal
 

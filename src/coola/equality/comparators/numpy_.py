@@ -112,9 +112,7 @@ class NumpyMaskedArrayEqualityComparator(  # noqa: PLW1641
             SameShapeHandler()
         ).chain(SameDataHandler()).chain(SameAttributeHandler("mask")).chain(
             SameAttributeHandler("fill_value")
-        ).chain(
-            TrueHandler()
-        )
+        ).chain(TrueHandler())
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)

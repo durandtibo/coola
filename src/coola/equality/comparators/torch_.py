@@ -70,9 +70,7 @@ class TorchPackedSequenceEqualityComparator(  # noqa: PLW1641
             SameAttributeHandler(name="batch_sizes")
         ).chain(SameAttributeHandler(name="sorted_indices")).chain(
             SameAttributeHandler(name="unsorted_indices")
-        ).chain(
-            TrueHandler()
-        )
+        ).chain(TrueHandler())
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__)

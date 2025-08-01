@@ -248,13 +248,7 @@ def test_mapping_formatter_format_length_10_max_items_5_max_depth_2() -> None:
 def test_mapping_formatter_format_max_items_3() -> None:
     assert MappingFormatter(max_items=3).format(
         Summarizer(), {f"key{i}": f"value{i}" for i in range(10)}
-    ) == (
-        "<class 'dict'> (length=10)\n"
-        "  (key0): value0\n"
-        "  (key1): value1\n"
-        "  (key2): value2\n"
-        "  ..."
-    )
+    ) == ("<class 'dict'> (length=10)\n  (key0): value0\n  (key1): value1\n  (key2): value2\n  ...")
 
 
 def test_mapping_formatter_format_nested_dict() -> None:
@@ -451,13 +445,7 @@ def test_sequence_formatter_format_length_5() -> None:
 
 def test_sequence_formatter_format_length_10() -> None:
     assert SequenceFormatter().format(Summarizer(), list(range(10))) == (
-        "<class 'list'> (length=10)\n"
-        "  (0): 0\n"
-        "  (1): 1\n"
-        "  (2): 2\n"
-        "  (3): 3\n"
-        "  (4): 4\n"
-        "  ..."
+        "<class 'list'> (length=10)\n  (0): 0\n  (1): 1\n  (2): 2\n  (3): 3\n  (4): 4\n  ..."
     )
 
 

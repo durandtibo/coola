@@ -10,22 +10,15 @@
     <a href="https://github.com/durandtibo/coola/actions">
         <img alt="Nightly Package Tests" src="https://github.com/durandtibo/coola/workflows/Nightly%20Package%20Tests/badge.svg">
     </a>
+    <a href="https://codecov.io/gh/durandtibo/coola">
+        <img alt="Codecov" src="https://codecov.io/gh/durandtibo/coola/branch/main/graph/badge.svg">
+    </a>
     <br/>
     <a href="https://durandtibo.github.io/coola/">
         <img alt="Documentation" src="https://github.com/durandtibo/coola/workflows/Documentation%20(stable)/badge.svg">
     </a>
     <a href="https://durandtibo.github.io/coola/">
         <img alt="Documentation" src="https://github.com/durandtibo/coola/workflows/Documentation%20(unstable)/badge.svg">
-    </a>
-    <br/>
-    <a href="https://codecov.io/gh/durandtibo/coola">
-        <img alt="Codecov" src="https://codecov.io/gh/durandtibo/coola/branch/main/graph/badge.svg">
-    </a>
-    <a href="https://codeclimate.com/github/durandtibo/coola/maintainability">
-        <img src="https://api.codeclimate.com/v1/badges/83ebb50e6c6f67b0570d/maintainability" />
-    </a>
-    <a href="https://codeclimate.com/github/durandtibo/coola/test_coverage">
-        <img src="https://api.codeclimate.com/v1/badges/83ebb50e6c6f67b0570d/test_coverage" />
     </a>
     <br/>
     <a href="https://github.com/psf/black">
