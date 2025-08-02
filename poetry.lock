@@ -3224,4 +3224,4 @@ all = ["jax", "jax", "jax", "jax", "jax", "jax", "jax", "jaxlib", "jaxlib", "jax
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9,<3.14"
-content-hash = "1ea8f4ea419d7ab94c9fc6491a755f41b81dd5f892a1e0f225b1669cacc249fb"
+content-hash = "744cbb22bd4d4d5a9493b1a685126da3c0e004ab1c514e2e26cfbbf2f4e276dc"
