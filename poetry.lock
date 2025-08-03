@@ -226,15 +226,15 @@ colorama = {version = "*", markers = "platform_system == \"Windows\""}
 
 [[package]]
 name = "click"
-version = "8.2.1"
+version = "8.2.2"
 description = "Composable command line interface toolkit"
 optional = false
 python-versions = ">=3.10"
 groups = ["dev", "docs"]
 markers = "python_version >= \"3.10\""
 files = [
-    {file = "click-8.2.1-py3-none-any.whl", hash = "sha256:61a3265b914e850b85317d0b3109c7f8cd35a670f963866005d6ef1d5175a12b"},
-    {file = "click-8.2.1.tar.gz", hash = "sha256:27c491cc05d968d271d5a1db13e3b5a184636d9d930f148c50b038f0d0646202"},
+    {file = "click-8.2.2-py3-none-any.whl", hash = "sha256:52e1e9f5d3db8c85aa76968c7c67ed41ddbacb167f43201511c8fd61eb5ba2ca"},
+    {file = "click-8.2.2.tar.gz", hash = "sha256:068616e6ef9705a07b6db727cb9c248f4eb9dae437a30239f56fa94b18b852ef"},
 ]
 
 [package.dependencies]
@@ -410,14 +410,14 @@ test = ["pytest (>=6)"]
 
 [[package]]
 name = "feu"
-version = "0.3.3"
+version = "0.3.4"
 description = "A light library to help to manage packages"
 optional = false
 python-versions = "<3.14,>=3.9"
 groups = ["dev"]
 files = [
-    {file = "feu-0.3.3-py3-none-any.whl", hash = "sha256:c2cf3e2fbebced3b7232f1dd594b5349ff44c3735b2ab95f90f5038a1f9ce0d3"},
-    {file = "feu-0.3.3.tar.gz", hash = "sha256:7f34612ad39548615547ea6cbcda9919cf2b09a0d5180873a45eaacd56d97c19"},
+    {file = "feu-0.3.4-py3-none-any.whl", hash = "sha256:2b475ad1ab2826d5aece14cbc1581b22d387822e31dd38ca609736bd00ce6c81"},
+    {file = "feu-0.3.4.tar.gz", hash = "sha256:6c044cf32c4a75d94f384ee88fe38a58b5ef56f9e7428fb266edae567c8a7410"},
 ]
 
 [package.dependencies]
@@ -3224,4 +3224,4 @@ all = ["jax", "jax", "jax", "jax", "jax", "jax", "jax", "jaxlib", "jaxlib", "jax
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9,<3.14"
-content-hash = "6aaa4004384aa2ac729399b0d30f969c5540693687524ab459b230b1a124a291"
+content-hash = "744cbb22bd4d4d5a9493b1a685126da3c0e004ab1c514e2e26cfbbf2f4e276dc"
