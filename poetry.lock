@@ -1350,7 +1350,7 @@ files = [
 name = "numpy"
 version = "2.0.2"
 description = "Fundamental package for array computing in Python"
-optional = false
+optional = true
 python-versions = ">=3.9"
 groups = ["main"]
 markers = "python_version == \"3.9\" and extra == \"all\""
@@ -1406,7 +1406,7 @@ files = [
 name = "numpy"
 version = "2.2.6"
 description = "Fundamental package for array computing in Python"
-optional = false
+optional = true
 python-versions = ">=3.10"
 groups = ["main"]
 markers = "python_version == \"3.10\" and extra == \"all\""
@@ -1472,7 +1472,7 @@ files = [
 name = "numpy"
 version = "2.3.2"
 description = "Fundamental package for array computing in Python"
-optional = false
+optional = true
 python-versions = ">=3.11"
 groups = ["main"]
 markers = "python_version >= \"3.11\" and extra == \"all\""
@@ -3212,4 +3212,4 @@ all = ["jax", "jax", "jax", "jax", "jax", "jax", "jax", "jaxlib", "jaxlib", "jax
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9,<3.14"
-content-hash = "601c106473b444199d168c10b13c9bd0256d12867a99790034d1eb24747cbc55"
+content-hash = "236b4b8b7403c3a170b91bc39171c3226378471f4fb82c7976271c5c24d9a4b1"
