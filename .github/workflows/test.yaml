@@ -51,41 +51,41 @@ jobs:
           make unit-test-cov
 
 
-  min:
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
-    strategy:
-      max-parallel: 8
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-latest, ubuntu-24.04, ubuntu-22.04, macos-latest, macos-15, macos-14, macos-13 ]
-        python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-
-      - name: Set environment variable
-        run: |
-          echo $(poetry run poetry env info --path)/bin >> $GITHUB_PATH
-
-      - name: Install packages
-        run: |
-          make install
-
-      - name: Show installed packages
-        run: |
-          poetry show
-          poetry show --tree
-
-      - name: Run unit tests
-        run: |
-          make unit-test-cov
+#  min:
+#    runs-on: ${{ matrix.os }}
+#    timeout-minutes: 10
+#    strategy:
+#      max-parallel: 8
+#      fail-fast: false
+#      matrix:
+#        os: [ ubuntu-latest, ubuntu-24.04, ubuntu-22.04, macos-latest, macos-15, macos-14, macos-13 ]
+#        python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
+#
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#
+#      - name: Set up Python
+#        uses: actions/setup-python@v5
+#        with:
+#          python-version: ${{ matrix.python-version }}
+#
+#      - name: Install Poetry
+#        uses: snok/install-poetry@v1
+#
+#      - name: Set environment variable
+#        run: |
+#          echo $(poetry run poetry env info --path)/bin >> $GITHUB_PATH
+#
+#      - name: Install packages
+#        run: |
+#          make install
+#
+#      - name: Show installed packages
+#        run: |
+#          poetry show
+#          poetry show --tree
+#
+#      - name: Run unit tests
+#        run: |
+#          make unit-test-cov
