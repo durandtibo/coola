@@ -75,6 +75,7 @@ pandas = { version = ">=2.0,<3.0", optional = true }
 polars = { version = ">=1.0,<2.0", optional = true }
 pyarrow = { version = ">=11.0,<22.0", optional = true }
 torch = [
+    # Linux and Apple Silicon
     { version = ">=2.0,<3.0", optional = true, markers = "sys_platform == 'linux' or (sys_platform == 'darwin' and platform_machine == 'arm64')" },
     # macOS x86_64 binaries do not exist after pytorch 2.2
     # https://dev-discuss.pytorch.org/t/pytorch-macos-x86-builds-deprecation-starting-january-2024/1690
