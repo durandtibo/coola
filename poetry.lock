@@ -450,7 +450,7 @@ files = [
     {file = "filelock-3.18.0-py3-none-any.whl", hash = "sha256:c401f4f8377c4464e6db25fff06205fd89bdd83b65eb0488ed1b160f780e21de"},
     {file = "filelock-3.18.0.tar.gz", hash = "sha256:adbc88eabb99d2fec8c9c1b229b171f18afa655400173ddc653d5d01501fb9f2"},
 ]
-markers = {main = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and extra == \"all\" and (python_version == \"3.13\" or sys_platform == \"darwin\" or sys_platform == \"linux\") and (platform_machine == \"arm64\" or python_version == \"3.12\" or python_version == \"3.10\" or python_version == \"3.11\" or sys_platform == \"linux\" or python_version == \"3.9\")", dev = "python_version != \"3.9\" or sys_platform == \"linux\" or sys_platform == \"darwin\" or sys_platform != \"linux\" and sys_platform != \"darwin\""}
+markers = {main = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and extra == \"all\" and (platform_machine == \"arm64\" or python_version == \"3.12\" or python_version == \"3.10\" or python_version == \"3.11\" or sys_platform == \"linux\" or python_version == \"3.9\")", dev = "python_version != \"3.9\" or sys_platform == \"linux\" or sys_platform == \"darwin\" or sys_platform != \"linux\" and sys_platform != \"darwin\""}
 
 [package.extras]
 docs = ["furo (>=2024.8.6)", "sphinx (>=8.1.3)", "sphinx-autodoc-typehints (>=3)"]
@@ -464,7 +464,7 @@ description = "File-system specification"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and extra == \"all\" and (python_version == \"3.13\" or sys_platform == \"darwin\" or sys_platform == \"linux\") and (platform_machine == \"arm64\" or python_version == \"3.12\" or python_version == \"3.10\" or python_version == \"3.11\" or sys_platform == \"linux\" or python_version == \"3.9\")"
+markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and extra == \"all\" and (platform_machine == \"arm64\" or python_version == \"3.12\" or python_version == \"3.10\" or python_version == \"3.11\" or sys_platform == \"linux\" or python_version == \"3.9\")"
 files = [
     {file = "fsspec-2025.7.0-py3-none-any.whl", hash = "sha256:8b012e39f63c7d5f10474de957f3ab793b47b45ae7d39f2fb735f8bbe25c0e21"},
     {file = "fsspec-2025.7.0.tar.gz", hash = "sha256:786120687ffa54b8283d942929540d8bc5ccfa820deb555a2b5d0ed2b737bf58"},
@@ -907,7 +907,7 @@ files = [
     {file = "jinja2-3.1.6-py3-none-any.whl", hash = "sha256:85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67"},
     {file = "jinja2-3.1.6.tar.gz", hash = "sha256:0137fb05990d35f1275a587e9aee6d56da821fc83491a0fb838183be43f66d6d"},
 ]
-markers = {main = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and extra == \"all\" and (python_version == \"3.13\" or sys_platform == \"darwin\" or sys_platform == \"linux\") and (platform_machine == \"arm64\" or python_version == \"3.12\" or python_version == \"3.10\" or python_version == \"3.11\" or sys_platform == \"linux\" or python_version == \"3.9\")", docs = "python_version != \"3.9\" or sys_platform == \"linux\" or sys_platform == \"darwin\" or sys_platform != \"linux\" and sys_platform != \"darwin\""}
+markers = {main = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and extra == \"all\" and (platform_machine == \"arm64\" or python_version == \"3.12\" or python_version == \"3.10\" or python_version == \"3.11\" or sys_platform == \"linux\" or python_version == \"3.9\")", docs = "python_version != \"3.9\" or sys_platform == \"linux\" or sys_platform == \"darwin\" or sys_platform != \"linux\" and sys_platform != \"darwin\""}
 
 [package.dependencies]
 MarkupSafe = ">=2.0"
@@ -1005,7 +1005,7 @@ files = [
     {file = "MarkupSafe-3.0.2-cp39-cp39-win_amd64.whl", hash = "sha256:6e296a513ca3d94054c2c881cc913116e90fd030ad1c656b3869762b754f5f8a"},
     {file = "markupsafe-3.0.2.tar.gz", hash = "sha256:ee55d3edf80167e48ea11a923c7386f4669df67d7994554387f84e7d8b0a2bf0"},
 ]
-markers = {main = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and extra == \"all\" and (python_version == \"3.13\" or sys_platform == \"darwin\" or sys_platform == \"linux\") and (platform_machine == \"arm64\" or python_version == \"3.12\" or python_version == \"3.10\" or python_version == \"3.11\" or sys_platform == \"linux\" or python_version == \"3.9\")", docs = "python_version != \"3.9\" or sys_platform == \"linux\" or sys_platform == \"darwin\" or sys_platform != \"linux\" and sys_platform != \"darwin\""}
+markers = {main = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and extra == \"all\" and (platform_machine == \"arm64\" or python_version == \"3.12\" or python_version == \"3.10\" or python_version == \"3.11\" or sys_platform == \"linux\" or python_version == \"3.9\")", docs = "python_version != \"3.9\" or sys_platform == \"linux\" or sys_platform == \"darwin\" or sys_platform != \"linux\" and sys_platform != \"darwin\""}
 
 [[package]]
 name = "mergedeep"
@@ -1119,20 +1119,21 @@ pyyaml = ">=5.1"
 
 [[package]]
 name = "mkdocs-material"
-version = "9.6.16"
+version = "9.6.17"
 description = "Documentation that simply works"
 optional = false
 python-versions = ">=3.8"
 groups = ["docs"]
 markers = "python_version != \"3.9\" or sys_platform == \"linux\" or sys_platform == \"darwin\" or sys_platform != \"linux\" and sys_platform != \"darwin\""
 files = [
-    {file = "mkdocs_material-9.6.16-py3-none-any.whl", hash = "sha256:8d1a1282b892fe1fdf77bfeb08c485ba3909dd743c9ba69a19a40f637c6ec18c"},
-    {file = "mkdocs_material-9.6.16.tar.gz", hash = "sha256:d07011df4a5c02ee0877496d9f1bfc986cfb93d964799b032dd99fe34c0e9d19"},
+    {file = "mkdocs_material-9.6.17-py3-none-any.whl", hash = "sha256:221dd8b37a63f52e580bcab4a7e0290e4a6f59bd66190be9c3d40767e05f9417"},
+    {file = "mkdocs_material-9.6.17.tar.gz", hash = "sha256:48ae7aec72a3f9f501a70be3fbd329c96ff5f5a385b67a1563e5ed5ce064affe"},
 ]
 
 [package.dependencies]
 babel = ">=2.10,<3.0"
 backrefs = ">=5.7.post1,<6.0"
+click = "<8.2.2"
 colorama = ">=0.4,<1.0"
 jinja2 = ">=3.1,<4.0"
 markdown = ">=3.2,<4.0"
@@ -1273,7 +1274,7 @@ description = "Python library for arbitrary-precision floating-point arithmetic"
 optional = true
 python-versions = "*"
 groups = ["main"]
-markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and extra == \"all\" and (python_version == \"3.13\" or sys_platform == \"darwin\" or sys_platform == \"linux\") and (platform_machine == \"arm64\" or python_version == \"3.12\" or python_version == \"3.10\" or python_version == \"3.11\" or sys_platform == \"linux\" or python_version == \"3.9\")"
+markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and extra == \"all\" and (platform_machine == \"arm64\" or python_version == \"3.12\" or python_version == \"3.10\" or python_version == \"3.11\" or sys_platform == \"linux\" or python_version == \"3.9\")"
 files = [
     {file = "mpmath-1.3.0-py3-none-any.whl", hash = "sha256:a0b2b9fe80bbcd81a6647ff13108738cfb482d481d826cc0e02f5b35e5c88d2c"},
     {file = "mpmath-1.3.0.tar.gz", hash = "sha256:7a28eb2a9774d00c7bc92411c19a89209d5da7c4c9a9e227be8330a23a25b91f"},
@@ -2756,7 +2757,7 @@ description = "Computer algebra system (CAS) in Python"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and extra == \"all\" and (python_version == \"3.13\" or sys_platform == \"darwin\" or sys_platform == \"linux\") and (platform_machine == \"arm64\" or python_version == \"3.12\" or python_version == \"3.10\" or python_version == \"3.11\" or sys_platform == \"linux\" or python_version == \"3.9\")"
+markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and extra == \"all\" and (platform_machine == \"arm64\" or python_version == \"3.12\" or python_version == \"3.10\" or python_version == \"3.11\" or sys_platform == \"linux\" or python_version == \"3.9\")"
 files = [
     {file = "sympy-1.14.0-py3-none-any.whl", hash = "sha256:e091cc3e99d2141a0ba2847328f5479b05d94a6635cb96148ccb3f34671bd8f5"},
     {file = "sympy-1.14.0.tar.gz", hash = "sha256:d3d3fe8df1e5a0b42f0e7bdf50541697dbe7d23746e894990c030e2b05e72517"},
@@ -2997,7 +2998,7 @@ files = [
     {file = "typing_extensions-4.14.1-py3-none-any.whl", hash = "sha256:d1e1e3b58374dc93031d6eda2420a48ea44a36c2b4766a4fdeb3710755731d76"},
     {file = "typing_extensions-4.14.1.tar.gz", hash = "sha256:38b39f4aeeab64884ce9f74c94263ef78f3c22467c8724005483154c26648d36"},
 ]
-markers = {main = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and extra == \"all\" and (python_version == \"3.13\" or sys_platform == \"darwin\" or sys_platform == \"linux\") and (platform_machine == \"arm64\" or python_version == \"3.12\" or python_version == \"3.10\" or python_version == \"3.11\" or sys_platform == \"linux\" or python_version == \"3.9\")", dev = "python_version <= \"3.10\" and (sys_platform == \"linux\" or sys_platform == \"darwin\" or sys_platform != \"linux\" and sys_platform != \"darwin\" or python_version != \"3.9\")", docs = "python_version <= \"3.10\" and (sys_platform == \"linux\" or sys_platform == \"darwin\" or sys_platform != \"linux\" and sys_platform != \"darwin\" or python_version != \"3.9\")"}
+markers = {main = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and extra == \"all\" and (platform_machine == \"arm64\" or python_version == \"3.12\" or python_version == \"3.10\" or python_version == \"3.11\" or sys_platform == \"linux\" or python_version == \"3.9\")", dev = "python_version <= \"3.10\" and (sys_platform == \"linux\" or sys_platform == \"darwin\" or sys_platform != \"linux\" and sys_platform != \"darwin\" or python_version != \"3.9\")", docs = "python_version <= \"3.10\" and (sys_platform == \"linux\" or sys_platform == \"darwin\" or sys_platform != \"linux\" and sys_platform != \"darwin\" or python_version != \"3.9\")"}
 
 [[package]]
 name = "tzdata"
