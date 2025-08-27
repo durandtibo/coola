@@ -55,7 +55,7 @@ jobs:
           make install
 
       - name: Install valid package version
-        uses: durandtibo/pip-install-package-action@v0.3.3
+        uses: durandtibo/pip-install-package-action@v0.3.4
         with:
           package-name: 'jax'
           package-version: ${{ matrix.jax-version }}
@@ -111,7 +111,7 @@ jobs:
           make install
 
       - name: Install valid package version
-        uses: durandtibo/pip-install-package-action@v0.3.3
+        uses: durandtibo/pip-install-package-action@v0.3.4
         with:
           package-name: 'numpy'
           package-version: ${{ matrix.numpy-version }}
@@ -159,7 +159,7 @@ jobs:
           make install
 
       - name: Install valid package version
-        uses: durandtibo/pip-install-package-action@v0.3.3
+        uses: durandtibo/pip-install-package-action@v0.3.4
         with:
           package-name: 'packaging'
           package-version: ${{ matrix.packaging-version }}
@@ -212,7 +212,7 @@ jobs:
           make install
 
       - name: Install valid package version
-        uses: durandtibo/pip-install-package-action@v0.3.3
+        uses: durandtibo/pip-install-package-action@v0.3.4
         with:
           package-name: 'pandas'
           package-version: ${{ matrix.pandas-version }}
@@ -260,7 +260,7 @@ jobs:
           make install
 
       - name: Install valid package version
-        uses: durandtibo/pip-install-package-action@v0.3.3
+        uses: durandtibo/pip-install-package-action@v0.3.4
         with:
           package-name: 'polars'
           package-version: ${{ matrix.polars-version }}
@@ -320,7 +320,7 @@ jobs:
           make install
 
       - name: Install valid package version
-        uses: durandtibo/pip-install-package-action@v0.3.3
+        uses: durandtibo/pip-install-package-action@v0.3.4
         with:
           package-name: 'pyarrow'
           package-version: ${{ matrix.pyarrow-version }}
@@ -378,7 +378,7 @@ jobs:
           make install
 
       - name: Install valid package version
-        uses: durandtibo/pip-install-package-action@v0.3.3
+        uses: durandtibo/pip-install-package-action@v0.3.4
         with:
           package-name: 'torch'
           package-version: ${{ matrix.torch-version }}
@@ -438,7 +438,7 @@ jobs:
           make install
 
       - name: Install valid package version
-        uses: durandtibo/pip-install-package-action@v0.3.3
+        uses: durandtibo/pip-install-package-action@v0.3.4
         with:
           package-name: 'xarray'
           package-version: ${{ matrix.xarray-version }}
