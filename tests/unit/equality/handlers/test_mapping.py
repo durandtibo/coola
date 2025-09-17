@@ -84,7 +84,7 @@ def test_mapping_same_keys_handler_handle_false_show_difference(
 
 def test_mapping_same_keys_handler_handle_without_next_handler(config: EqualityConfig) -> None:
     handler = MappingSameKeysHandler()
-    with pytest.raises(RuntimeError, match="next handler is not defined"):
+    with pytest.raises(RuntimeError, match=r"next handler is not defined"):
         handler.handle(actual={"a": 1, "b": 2}, expected={"a": 1, "b": 2}, config=config)
 
 
@@ -96,7 +96,7 @@ def test_mapping_same_keys_handler_set_next_handler() -> None:
 
 def test_mapping_same_keys_handler_set_next_handler_incorrect() -> None:
     handler = MappingSameKeysHandler()
-    with pytest.raises(TypeError, match="Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
         handler.set_next_handler(None)
 
 
@@ -162,7 +162,7 @@ def test_mapping_same_values_handler_handle_false_show_difference(
 
 def test_mapping_same_values_handler_handle_without_next_handler(config: EqualityConfig) -> None:
     handler = MappingSameValuesHandler()
-    with pytest.raises(RuntimeError, match="next handler is not defined"):
+    with pytest.raises(RuntimeError, match=r"next handler is not defined"):
         handler.handle(actual={"a": 1, "b": 2}, expected={"a": 1, "b": 2}, config=config)
 
 
@@ -174,5 +174,5 @@ def test_mapping_same_values_handler_set_next_handler() -> None:
 
 def test_mapping_same_values_handler_set_next_handler_incorrect() -> None:
     handler = MappingSameValuesHandler()
-    with pytest.raises(TypeError, match="Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
         handler.set_next_handler(None)

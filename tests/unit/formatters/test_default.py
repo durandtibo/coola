@@ -138,7 +138,7 @@ def test_default_formatter_set_max_characters_int(max_characters: int) -> None:
 
 def test_default_formatter_set_max_characters_incorrect_type() -> None:
     formatter = DefaultFormatter()
-    with pytest.raises(TypeError, match="Incorrect type for max_characters. Expected int value"):
+    with pytest.raises(TypeError, match=r"Incorrect type for max_characters. Expected int value"):
         formatter.set_max_characters(4.2)
 
 
@@ -355,7 +355,7 @@ def test_mapping_formatter_set_max_items_int(max_items: int) -> None:
 
 def test_mapping_formatter_set_max_items_incorrect_type() -> None:
     formatter = MappingFormatter()
-    with pytest.raises(TypeError, match="Incorrect type for max_items. Expected int value"):
+    with pytest.raises(TypeError, match=r"Incorrect type for max_items. Expected int value"):
         formatter.set_max_items(4.2)
 
 
@@ -373,7 +373,7 @@ def test_mapping_formatter_set_num_spaces_int(num_spaces: int) -> None:
 
 def test_mapping_formatter_set_num_spaces_incorrect_type() -> None:
     formatter = MappingFormatter()
-    with pytest.raises(TypeError, match="Incorrect type for num_spaces. Expected int value"):
+    with pytest.raises(TypeError, match=r"Incorrect type for num_spaces. Expected int value"):
         formatter.set_num_spaces(4.2)
 
 
@@ -381,7 +381,7 @@ def test_mapping_formatter_set_num_spaces_incorrect_type() -> None:
 def test_mapping_formatter_set_num_spaces_incorrect_value(num_spaces: int) -> None:
     formatter = MappingFormatter()
     with pytest.raises(
-        ValueError, match="Incorrect value for num_spaces. Expected a positive integer"
+        ValueError, match=r"Incorrect value for num_spaces. Expected a positive integer"
     ):
         formatter.set_num_spaces(num_spaces)
 
@@ -562,7 +562,7 @@ def test_sequence_formatter_set_max_items_int(max_items: int) -> None:
 
 def test_sequence_formatter_set_max_items_incorrect_type() -> None:
     formatter = SequenceFormatter()
-    with pytest.raises(TypeError, match="Incorrect type for max_items. Expected int value"):
+    with pytest.raises(TypeError, match=r"Incorrect type for max_items. Expected int value"):
         formatter.set_max_items(4.2)
 
 
@@ -580,7 +580,7 @@ def test_sequence_formatter_set_num_spaces_int(num_spaces: int) -> None:
 
 def test_sequence_formatter_set_num_spaces_incorrect_type() -> None:
     formatter = SequenceFormatter()
-    with pytest.raises(TypeError, match="Incorrect type for num_spaces. Expected int value"):
+    with pytest.raises(TypeError, match=r"Incorrect type for num_spaces. Expected int value"):
         formatter.set_num_spaces(4.2)
 
 
@@ -588,7 +588,7 @@ def test_sequence_formatter_set_num_spaces_incorrect_type() -> None:
 def test_sequence_formatter_set_num_spaces_incorrect_value(num_spaces: int) -> None:
     formatter = SequenceFormatter()
     with pytest.raises(
-        ValueError, match="Incorrect value for num_spaces. Expected a positive integer"
+        ValueError, match=r"Incorrect value for num_spaces. Expected a positive integer"
     ):
         formatter.set_num_spaces(num_spaces)
 
@@ -767,7 +767,7 @@ def test_set_formatter_set_max_items_int(max_items: int) -> None:
 
 def test_set_formatter_set_max_items_incorrect_type() -> None:
     formatter = SetFormatter()
-    with pytest.raises(TypeError, match="Incorrect type for max_items. Expected int value"):
+    with pytest.raises(TypeError, match=r"Incorrect type for max_items. Expected int value"):
         formatter.set_max_items(4.2)
 
 
@@ -785,7 +785,7 @@ def test_set_formatter_set_num_spaces_int(num_spaces: int) -> None:
 
 def test_set_formatter_set_num_spaces_incorrect_type() -> None:
     formatter = SetFormatter()
-    with pytest.raises(TypeError, match="Incorrect type for num_spaces. Expected int value"):
+    with pytest.raises(TypeError, match=r"Incorrect type for num_spaces. Expected int value"):
         formatter.set_num_spaces(4.2)
 
 
@@ -793,6 +793,6 @@ def test_set_formatter_set_num_spaces_incorrect_type() -> None:
 def test_set_formatter_set_num_spaces_incorrect_value(num_spaces: int) -> None:
     formatter = SetFormatter()
     with pytest.raises(
-        ValueError, match="Incorrect value for num_spaces. Expected a positive integer"
+        ValueError, match=r"Incorrect value for num_spaces. Expected a positive integer"
     ):
         formatter.set_num_spaces(num_spaces)

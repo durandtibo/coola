@@ -109,5 +109,5 @@ def test_ndarray_formatter_set_show_data_int(show_data: bool) -> None:
 @numpy_available
 def test_ndarray_formatter_set_show_data_incorrect_type() -> None:
     formatter = NDArrayFormatter()
-    with pytest.raises(TypeError, match="Incorrect type for show_data. Expected bool value"):
+    with pytest.raises(TypeError, match=r"Incorrect type for show_data. Expected bool value"):
         formatter.set_show_data(4.2)

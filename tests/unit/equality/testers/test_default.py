@@ -93,7 +93,7 @@ def test_equality_tester_add_comparator_duplicate_exist_ok_false() -> None:
     tester = EqualityTester()
     comparator = Mock(spec=BaseEqualityComparator)
     tester.add_comparator(int, Mock(spec=BaseEqualityComparator))
-    with pytest.raises(RuntimeError, match="An comparator (.*) is already registered"):
+    with pytest.raises(RuntimeError, match=r"An comparator (.*) is already registered"):
         tester.add_comparator(int, comparator)
 
 
@@ -122,7 +122,7 @@ def test_equality_tester_find_comparator_indirect() -> None:
 
 
 def test_equality_tester_find_comparator_incorrect_type() -> None:
-    with pytest.raises(TypeError, match="Incorrect data type:"):
+    with pytest.raises(TypeError, match=r"Incorrect data type:"):
         EqualityTester().find_comparator(Mock(__mro__=[]))
 
 
@@ -246,7 +246,7 @@ def test_local_equality_tester_add_comparator_duplicate_exist_ok_false() -> None
     tester = LocalEqualityTester()
     comparator = Mock(spec=BaseEqualityComparator)
     tester.add_comparator(int, Mock(spec=BaseEqualityComparator))
-    with pytest.raises(RuntimeError, match="An comparator (.*) is already registered"):
+    with pytest.raises(RuntimeError, match=r"An comparator (.*) is already registered"):
         tester.add_comparator(int, comparator)
 
 
@@ -303,5 +303,5 @@ def test_local_equality_tester_find_comparator_indirect() -> None:
 
 
 def test_local_equality_tester_find_comparator_incorrect_type() -> None:
-    with pytest.raises(TypeError, match="Incorrect data type:"):
+    with pytest.raises(TypeError, match=r"Incorrect data type:"):
         LocalEqualityTester().find_comparator(Mock(__mro__=[]))

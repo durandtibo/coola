@@ -102,7 +102,7 @@ def test_summarizer_add_formatter_duplicate_exist_ok_true() -> None:
 def test_summarizer_add_formatter_duplicate_exist_ok_false() -> None:
     formatter = Mock(spec=BaseFormatter)
     Summarizer.add_formatter(int, Mock(spec=BaseFormatter))
-    with pytest.raises(RuntimeError, match="A formatter (.*) is already registered"):
+    with pytest.raises(RuntimeError, match=r"A formatter (.*) is already registered"):
         Summarizer.add_formatter(int, formatter)
 
 
@@ -123,7 +123,7 @@ def test_summarizer_find_formatter_indirect() -> None:
 
 
 def test_summarizer_find_formatter_incorrect_type() -> None:
-    with pytest.raises(TypeError, match="Incorrect data type:"):
+    with pytest.raises(TypeError, match=r"Incorrect data type:"):
         Summarizer.find_formatter(Mock(__mro__=[]))
 
 

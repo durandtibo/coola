@@ -120,5 +120,5 @@ def test_tensor_formatter_set_show_data_int(show_data: bool) -> None:
 @torch_available
 def test_tensor_formatter_set_show_data_incorrect_type() -> None:
     formatter = TensorFormatter()
-    with pytest.raises(TypeError, match="Incorrect type for show_data. Expected bool value"):
+    with pytest.raises(TypeError, match=r"Incorrect type for show_data. Expected bool value"):
         formatter.set_show_data(4.2)

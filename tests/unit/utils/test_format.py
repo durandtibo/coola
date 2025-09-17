@@ -361,7 +361,7 @@ def test_str_human_byte_size_auto(size: int, output: str) -> None:
 
 
 def test_str_human_byte_size_incorrect_unit() -> None:
-    with pytest.raises(ValueError, match="Incorrect unit ''. The available units are"):
+    with pytest.raises(ValueError, match=r"Incorrect unit ''. The available units are"):
         assert str_human_byte_size(1, "")
 
 

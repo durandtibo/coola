@@ -48,7 +48,7 @@ def test_summarizer_add_reducer_duplicate_exist_ok_true() -> None:
 def test_summarizer_add_reducer_duplicate_exist_ok_false() -> None:
     reducer = Mock(spec=NativeReducer)
     ReducerRegistry.add_reducer("my_reducer", Mock(spec=NativeReducer))
-    with pytest.raises(RuntimeError, match="A reducer (.*) is already registered"):
+    with pytest.raises(RuntimeError, match=r"A reducer (.*) is already registered"):
         ReducerRegistry.add_reducer("my_reducer", reducer)
 
 
