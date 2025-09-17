@@ -2140,20 +2140,20 @@ testing = ["coverage", "pytest", "pytest-benchmark"]
 
 [[package]]
 name = "polars"
-version = "1.33.0"
+version = "1.33.1"
 description = "Blazingly fast DataFrame library"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
 markers = "extra == \"all\" and (python_version != \"3.9\" or sys_platform == \"linux\" or sys_platform == \"darwin\" or sys_platform != \"linux\" and sys_platform != \"darwin\")"
 files = [
-    {file = "polars-1.33.0-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:664ef1c0988e4098518c6acfdd5477f2e11611f4ac8a269db55b94ea4978d0e5"},
-    {file = "polars-1.33.0-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:2477b720c466914549f0f2cfc69f617a602d91e9d90205b64d795ed1ecf99b3c"},
-    {file = "polars-1.33.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:bd9b76abc22fdb20a005c629ee8c056b0545433f18854b929fb54e351d1b98ee"},
-    {file = "polars-1.33.0-cp39-abi3-manylinux_2_24_aarch64.whl", hash = "sha256:6e78026c2ece38c45c6ee0416e2594980652d89deee13a15bd9f83743ec8fa8d"},
-    {file = "polars-1.33.0-cp39-abi3-win_amd64.whl", hash = "sha256:7973568178117667871455d7969c1929abb890597964ca89290bfd89e4366980"},
-    {file = "polars-1.33.0-cp39-abi3-win_arm64.whl", hash = "sha256:c7d614644eda028907965f8203ac54b9a4f5b90303de2723bf1c1087433a0914"},
-    {file = "polars-1.33.0.tar.gz", hash = "sha256:50ad2ab96c701be2c6ac9b584d9aa6a385f228f6c06de15b88c5d10df7990d56"},
+    {file = "polars-1.33.1-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:3881c444b0f14778ba94232f077a709d435977879c1b7d7bd566b55bd1830bb5"},
+    {file = "polars-1.33.1-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:29200b89c9a461e6f06fc1660bc9c848407640ee30fe0e5ef4947cfd49d55337"},
+    {file = "polars-1.33.1-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:444940646e76342abaa47f126c70e3e40b56e8e02a9e89e5c5d1c24b086db58a"},
+    {file = "polars-1.33.1-cp39-abi3-manylinux_2_24_aarch64.whl", hash = "sha256:094a37d06789286649f654f229ec4efb9376630645ba8963b70cb9c0b008b3e1"},
+    {file = "polars-1.33.1-cp39-abi3-win_amd64.whl", hash = "sha256:c9781c704432a2276a185ee25898aa427f39a904fbe8fde4ae779596cdbd7a9e"},
+    {file = "polars-1.33.1-cp39-abi3-win_arm64.whl", hash = "sha256:c3cfddb3b78eae01a218222bdba8048529fef7e14889a71e33a5198644427642"},
+    {file = "polars-1.33.1.tar.gz", hash = "sha256:fa3fdc34eab52a71498264d6ff9b0aa6955eb4b0ae8add5d3cb43e4b84644007"},
 ]
 
 [package.extras]
@@ -2339,24 +2339,24 @@ dev = ["argcomplete", "attrs (>=19.2)", "hypothesis (>=3.56)", "mock", "requests
 
 [[package]]
 name = "pytest-cov"
-version = "6.3.0"
+version = "7.0.0"
 description = "Pytest plugin for measuring coverage."
 optional = false
 python-versions = ">=3.9"
 groups = ["dev"]
 markers = "python_version != \"3.9\" or sys_platform == \"linux\" or sys_platform == \"darwin\" or sys_platform != \"linux\" and sys_platform != \"darwin\""
 files = [
-    {file = "pytest_cov-6.3.0-py3-none-any.whl", hash = "sha256:440db28156d2468cafc0415b4f8e50856a0d11faefa38f30906048fe490f1749"},
-    {file = "pytest_cov-6.3.0.tar.gz", hash = "sha256:35c580e7800f87ce892e687461166e1ac2bcb8fb9e13aea79032518d6e503ff2"},
+    {file = "pytest_cov-7.0.0-py3-none-any.whl", hash = "sha256:3b8e9558b16cc1479da72058bdecf8073661c7f57f7d3c5f22a1c23507f2d861"},
+    {file = "pytest_cov-7.0.0.tar.gz", hash = "sha256:33c97eda2e049a0c5298e91f519302a1334c26ac65c1a483d6206fd458361af1"},
 ]
 
 [package.dependencies]
-coverage = {version = ">=7.5", extras = ["toml"]}
+coverage = {version = ">=7.10.6", extras = ["toml"]}
 pluggy = ">=1.2"
-pytest = ">=6.2.5"
+pytest = ">=7"
 
 [package.extras]
-testing = ["fields", "hunter", "process-tests", "pytest-xdist", "virtualenv"]
+testing = ["process-tests", "pytest-xdist", "virtualenv"]
 
 [[package]]
 name = "pytest-timeout"
@@ -3212,4 +3212,4 @@ all = ["jax", "jax", "jax", "jax", "jax", "jax", "jax", "jaxlib", "jaxlib", "jax
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9,<3.14"
-content-hash = "8c0406e1910d479d7383ee585099f92aaf680ccf4d4d353713e7be0f26e11959"
+content-hash = "e34bb77d99086507108278e576cbd96b45579b36d65b89cd8db4880202ff65b8"
