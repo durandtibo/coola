@@ -196,7 +196,7 @@ def test_torch_tensor_same_device_handler_handle_without_next_handler(
     config: EqualityConfig,
 ) -> None:
     handler = TorchTensorSameDeviceHandler()
-    with pytest.raises(RuntimeError, match="next handler is not defined"):
+    with pytest.raises(RuntimeError, match=r"next handler is not defined"):
         handler.handle(actual=torch.ones(2, 3), expected=torch.ones(2, 3), config=config)
 
 
@@ -208,5 +208,5 @@ def test_torch_tensor_same_device_handler_set_next_handler() -> None:
 
 def test_torch_tensor_same_device_handler_set_next_handler_incorrect() -> None:
     handler = TorchTensorSameDeviceHandler()
-    with pytest.raises(TypeError, match="Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
         handler.set_next_handler(None)

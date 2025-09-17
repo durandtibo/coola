@@ -96,7 +96,7 @@ def test_same_dtype_handler_handle_false_show_difference(
 @numpy_available
 def test_same_dtype_handler_handle_without_next_handler(config: EqualityConfig) -> None:
     handler = SameDTypeHandler()
-    with pytest.raises(RuntimeError, match="next handler is not defined"):
+    with pytest.raises(RuntimeError, match=r"next handler is not defined"):
         handler.handle(actual=np.ones(shape=(2, 3)), expected=np.ones(shape=(2, 3)), config=config)
 
 
@@ -108,7 +108,7 @@ def test_same_dtype_handler_set_next_handler() -> None:
 
 def test_same_dtype_handler_set_next_handler_incorrect() -> None:
     handler = SameDTypeHandler()
-    with pytest.raises(TypeError, match="Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
         handler.set_next_handler(None)
 
 

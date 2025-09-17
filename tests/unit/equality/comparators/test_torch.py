@@ -456,7 +456,7 @@ def test_tensor_packed_sequence_equality_comparator_equal_nan_false(
 def test_tensor_packed_sequence_equality_comparator_no_torch() -> None:
     with (
         patch("coola.utils.imports.is_torch_available", lambda: False),
-        pytest.raises(RuntimeError, match="'torch' package is required but not installed."),
+        pytest.raises(RuntimeError, match=r"'torch' package is required but not installed."),
     ):
         TorchPackedSequenceEqualityComparator()
 
@@ -613,7 +613,7 @@ def test_torch_tensor_equality_comparator_true_tolerance(
 def test_torch_tensor_equality_comparator_no_torch() -> None:
     with (
         patch("coola.utils.imports.is_torch_available", lambda: False),
-        pytest.raises(RuntimeError, match="'torch' package is required but not installed."),
+        pytest.raises(RuntimeError, match=r"'torch' package is required but not installed."),
     ):
         TorchTensorEqualityComparator()
 

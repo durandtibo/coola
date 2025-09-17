@@ -72,7 +72,7 @@ def test_numpy_random_manager_set_rng_state() -> None:
 def test_numpy_random_manager_no_numpy() -> None:
     with (
         patch("coola.utils.imports.is_numpy_available", lambda: False),
-        pytest.raises(RuntimeError, match="'numpy' package is required but not installed."),
+        pytest.raises(RuntimeError, match=r"'numpy' package is required but not installed."),
     ):
         NumpyRandomManager()
 
@@ -108,7 +108,7 @@ def test_numpy_seed_restore_random_seed() -> None:
 @numpy_available
 def test_numpy_seed_restore_random_seed_with_exception() -> None:
     state = np.random.get_state()  # noqa: NPY002
-    with pytest.raises(RuntimeError, match="Exception"), numpy_seed(42):  # noqa: PT012
+    with pytest.raises(RuntimeError, match=r"Exception"), numpy_seed(42):  # noqa: PT012
         np.random.randn(4, 6)  # noqa: NPY002
         msg = "Exception"
         raise RuntimeError(msg)

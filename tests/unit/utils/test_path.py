@@ -48,7 +48,7 @@ def test_working_directory() -> None:
 def test_working_directory_error() -> None:
     cwd_before = Path.cwd()
     with (  # noqa: PT012
-        pytest.raises(RuntimeError, match="Exception"),
+        pytest.raises(RuntimeError, match=r"Exception"),
         working_directory(cwd_before.parent),
     ):
         msg = "Exception"

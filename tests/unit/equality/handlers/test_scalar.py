@@ -58,7 +58,7 @@ def test_nan_equal_handler_handle_false(
 
 def test_nan_equal_handler_handle_without_next_handler(config: EqualityConfig) -> None:
     handler = NanEqualHandler()
-    with pytest.raises(RuntimeError, match="next handler is not defined"):
+    with pytest.raises(RuntimeError, match=r"next handler is not defined"):
         handler.handle(actual=42, expected=42, config=config)
 
 
@@ -70,7 +70,7 @@ def test_nan_equal_handler_set_next_handler() -> None:
 
 def test_nan_equal_handler_set_next_handler_incorrect() -> None:
     handler = NanEqualHandler()
-    with pytest.raises(TypeError, match="Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
         handler.set_next_handler(None)
 
 

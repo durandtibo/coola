@@ -220,7 +220,7 @@ def test_same_attribute_handler_handle_false_show_difference(
 @numpy_available
 def test_same_attribute_handler_handle_without_next_handler(config: EqualityConfig) -> None:
     handler = SameAttributeHandler(name="data")
-    with pytest.raises(RuntimeError, match="next handler is not defined"):
+    with pytest.raises(RuntimeError, match=r"next handler is not defined"):
         handler.handle(
             actual=Mock(spec=Any, data=1), expected=Mock(spec=Any, data=1), config=config
         )
@@ -234,7 +234,7 @@ def test_same_attribute_handler_set_next_handler() -> None:
 
 def test_same_attribute_handler_set_next_handler_incorrect() -> None:
     handler = SameAttributeHandler(name="data")
-    with pytest.raises(TypeError, match="Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
         handler.set_next_handler(None)
 
 
@@ -316,7 +316,7 @@ def test_same_length_handler_handle_false_show_difference(
 
 def test_same_length_handler_handle_without_next_handler(config: EqualityConfig) -> None:
     handler = SameLengthHandler()
-    with pytest.raises(RuntimeError, match="next handler is not defined"):
+    with pytest.raises(RuntimeError, match=r"next handler is not defined"):
         handler.handle(actual=[1, 2, 3], expected=[1, 2, 3], config=config)
 
 
@@ -328,7 +328,7 @@ def test_same_length_handler_set_next_handler() -> None:
 
 def test_same_length_handler_set_next_handler_incorrect() -> None:
     handler = SameLengthHandler()
-    with pytest.raises(TypeError, match="Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
         handler.set_next_handler(None)
 
 
@@ -369,7 +369,7 @@ def test_same_object_handler_handle_false(
 
 def test_same_object_handler_handle_without_next_handler(config: EqualityConfig) -> None:
     handler = SameObjectHandler()
-    with pytest.raises(RuntimeError, match="next handler is not defined"):
+    with pytest.raises(RuntimeError, match=r"next handler is not defined"):
         handler.handle(actual="abc", expected="ABC", config=config)
 
 
@@ -381,7 +381,7 @@ def test_same_object_handler_set_next_handler() -> None:
 
 def test_same_object_handler_set_next_handler_incorrect() -> None:
     handler = SameObjectHandler()
-    with pytest.raises(TypeError, match="Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
         handler.set_next_handler(None)
 
 
@@ -428,7 +428,7 @@ def test_same_type_handler_handle_false_show_difference(
 
 def test_same_type_handler_handle_without_next_handler(config: EqualityConfig) -> None:
     handler = SameTypeHandler()
-    with pytest.raises(RuntimeError, match="next handler is not defined"):
+    with pytest.raises(RuntimeError, match=r"next handler is not defined"):
         handler.handle(actual="abc", expected="ABC", config=config)
 
 
@@ -440,5 +440,5 @@ def test_same_type_handler_set_next_handler() -> None:
 
 def test_same_type_handler_set_next_handler_incorrect() -> None:
     handler = SameTypeHandler()
-    with pytest.raises(TypeError, match="Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
         handler.set_next_handler(None)

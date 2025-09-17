@@ -119,7 +119,7 @@ def test_sequence_same_values_handler_handle_false_show_difference(
 
 def test_sequence_same_values_handler_handle_without_next_handler(config: EqualityConfig) -> None:
     handler = SequenceSameValuesHandler()
-    with pytest.raises(RuntimeError, match="next handler is not defined"):
+    with pytest.raises(RuntimeError, match=r"next handler is not defined"):
         handler.handle(actual=[1, 2, 3], expected=[1, 2, 3], config=config)
 
 
@@ -131,5 +131,5 @@ def test_sequence_same_values_handler_set_next_handler() -> None:
 
 def test_sequence_same_values_handler_set_next_handler_incorrect() -> None:
     handler = SequenceSameValuesHandler()
-    with pytest.raises(TypeError, match="Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
         handler.set_next_handler(None)

@@ -109,7 +109,7 @@ def test_check_package_exist() -> None:
 def test_check_package_missing() -> None:
     with (
         patch("coola.utils.imports.package_available", lambda name: name != "missing"),
-        pytest.raises(RuntimeError, match="'missing' package is required but not installed."),
+        pytest.raises(RuntimeError, match=r"'missing' package is required but not installed."),
     ):
         check_package("missing")
 
@@ -189,7 +189,7 @@ def test_check_jax_with_package() -> None:
 def test_check_jax_without_package() -> None:
     with (
         patch("coola.utils.imports.is_jax_available", lambda: False),
-        pytest.raises(RuntimeError, match="'jax' package is required but not installed."),
+        pytest.raises(RuntimeError, match=r"'jax' package is required but not installed."),
     ):
         check_jax()
 
@@ -243,7 +243,7 @@ def test_check_numpy_with_package() -> None:
 def test_check_numpy_without_package() -> None:
     with (
         patch("coola.utils.imports.is_numpy_available", lambda: False),
-        pytest.raises(RuntimeError, match="'numpy' package is required but not installed."),
+        pytest.raises(RuntimeError, match=r"'numpy' package is required but not installed."),
     ):
         check_numpy()
 
@@ -297,7 +297,7 @@ def test_check_packaging_with_package() -> None:
 def test_check_packaging_without_package() -> None:
     with (
         patch("coola.utils.imports.is_packaging_available", lambda: False),
-        pytest.raises(RuntimeError, match="'packaging' package is required but not installed."),
+        pytest.raises(RuntimeError, match=r"'packaging' package is required but not installed."),
     ):
         check_packaging()
 
@@ -351,7 +351,7 @@ def test_check_pandas_with_package() -> None:
 def test_check_pandas_without_package() -> None:
     with (
         patch("coola.utils.imports.is_pandas_available", lambda: False),
-        pytest.raises(RuntimeError, match="'pandas' package is required but not installed."),
+        pytest.raises(RuntimeError, match=r"'pandas' package is required but not installed."),
     ):
         check_pandas()
 
@@ -405,7 +405,7 @@ def test_check_polars_with_package() -> None:
 def test_check_polars_without_package() -> None:
     with (
         patch("coola.utils.imports.is_polars_available", lambda: False),
-        pytest.raises(RuntimeError, match="'polars' package is required but not installed."),
+        pytest.raises(RuntimeError, match=r"'polars' package is required but not installed."),
     ):
         check_polars()
 
@@ -459,7 +459,7 @@ def test_check_pyarrow_with_package() -> None:
 def test_check_pyarrow_without_package() -> None:
     with (
         patch("coola.utils.imports.is_pyarrow_available", lambda: False),
-        pytest.raises(RuntimeError, match="'pyarrow' package is required but not installed."),
+        pytest.raises(RuntimeError, match=r"'pyarrow' package is required but not installed."),
     ):
         check_pyarrow()
 
@@ -513,7 +513,7 @@ def test_check_torch_with_package() -> None:
 def test_check_torch_without_package() -> None:
     with (
         patch("coola.utils.imports.is_torch_available", lambda: False),
-        pytest.raises(RuntimeError, match="'torch' package is required but not installed."),
+        pytest.raises(RuntimeError, match=r"'torch' package is required but not installed."),
     ):
         check_torch()
 
@@ -567,7 +567,7 @@ def test_check_torch_numpy() -> None:
 def test_check_torch_numpy_missing() -> None:
     with (
         patch("coola.utils.imports.is_torch_numpy_available", lambda: False),
-        pytest.raises(RuntimeError, match="'torch' and 'numpy' packages are required"),
+        pytest.raises(RuntimeError, match=r"'torch' and 'numpy' packages are required"),
     ):
         check_torch_numpy()
 
@@ -643,7 +643,7 @@ def test_check_xarray_with_package() -> None:
 def test_check_xarray_without_package() -> None:
     with (
         patch("coola.utils.imports.is_xarray_available", lambda: False),
-        pytest.raises(RuntimeError, match="'xarray' package is required but not installed."),
+        pytest.raises(RuntimeError, match=r"'xarray' package is required but not installed."),
     ):
         check_xarray()
 
@@ -693,7 +693,7 @@ def test_lazy_module() -> None:
     os = LazyModule("os")
     assert isinstance(os.getcwd(), str)
     assert isinstance(os.cpu_count(), int)
-    with pytest.raises(AttributeError, match="module 'os' has no attribute 'missing'"):
+    with pytest.raises(AttributeError, match=r"module 'os' has no attribute 'missing'"):
         os.missing()
 
 
@@ -711,12 +711,12 @@ def test_lazy_module_dir_first() -> None:
 
 def test_lazy_module_missing_attribute_first() -> None:
     os = LazyModule("os")
-    with pytest.raises(AttributeError, match="module 'os' has no attribute 'missing'"):
+    with pytest.raises(AttributeError, match=r"module 'os' has no attribute 'missing'"):
         os.missing()
 
 
 def test_lazy_module_missing() -> None:
-    with pytest.raises(ModuleNotFoundError, match="No module named 'missing'"):
+    with pytest.raises(ModuleNotFoundError, match=r"No module named 'missing'"):
         str(LazyModule("missing"))
 
 
@@ -729,7 +729,7 @@ def test_lazy_import() -> None:
     os = lazy_import("os")
     assert isinstance(os.getcwd(), str)
     assert isinstance(os.cpu_count(), int)
-    with pytest.raises(AttributeError, match="module 'os' has no attribute 'missing'"):
+    with pytest.raises(AttributeError, match=r"module 'os' has no attribute 'missing'"):
         os.missing()
 
 
@@ -747,10 +747,10 @@ def test_lazy_import_dir_first() -> None:
 
 def test_lazy_import_missing_attribute_first() -> None:
     os = lazy_import("os")
-    with pytest.raises(AttributeError, match="module 'os' has no attribute 'missing'"):
+    with pytest.raises(AttributeError, match=r"module 'os' has no attribute 'missing'"):
         os.missing()
 
 
 def test_lazy_import_missing() -> None:
-    with pytest.raises(ModuleNotFoundError, match="No module named 'missing'"):
+    with pytest.raises(ModuleNotFoundError, match=r"No module named 'missing'"):
         str(lazy_import("missing"))

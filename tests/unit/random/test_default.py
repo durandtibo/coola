@@ -66,7 +66,7 @@ def test_random_manager_add_manager_exist_ok_false() -> None:
     assert len(RandomManager.registry) == 0
     RandomManager.add_manager("random", RandomRandomManager())
     with pytest.raises(
-        RuntimeError, match="A random manager .* is already registered for the name 'random'."
+        RuntimeError, match=r"A random manager .* is already registered for the name 'random'."
     ):
         RandomManager.add_manager("random", RandomRandomManager())
 
@@ -107,7 +107,7 @@ def test_random_seed_restore_random_seed() -> None:
 
 def test_random_seed_restore_random_seed_with_exception() -> None:
     state = random.getstate()
-    with pytest.raises(RuntimeError, match="Exception"), random_seed(42):  # noqa: PT012
+    with pytest.raises(RuntimeError, match=r"Exception"), random_seed(42):  # noqa: PT012
         random.uniform(0, 1)  # noqa: S311
         msg = "Exception"
         raise RuntimeError(msg)

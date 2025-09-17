@@ -26,7 +26,7 @@ else:  # pragma: no cover
 
 def test_get_first_value_empty() -> None:
     with pytest.raises(
-        ValueError, match="First value cannot be returned because the mapping is empty"
+        ValueError, match=r"First value cannot be returned because the mapping is empty"
     ):
         get_first_value({})
 

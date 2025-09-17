@@ -27,7 +27,7 @@ def test_check_reducer() -> None:
 
 
 def test_check_reducer_missing() -> None:
-    with pytest.raises(RuntimeError, match="Incorrect reducer"):
+    with pytest.raises(RuntimeError, match=r"Incorrect reducer"):
         Reduction.check_reducer("missing")
 
 
