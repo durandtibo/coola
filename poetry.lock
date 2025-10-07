@@ -414,14 +414,14 @@ test = ["pytest (>=6)"]
 
 [[package]]
 name = "feu"
-version = "0.3.5"
+version = "0.4.0"
 description = "A light library to help to manage packages"
 optional = false
 python-versions = "<3.14,>=3.9"
 groups = ["dev"]
 files = [
-    {file = "feu-0.3.5-py3-none-any.whl", hash = "sha256:b112dd5336eb6bf7d130dc8fce4a70572ee98e557fe4fa1d8fc3dd283e8e5823"},
-    {file = "feu-0.3.5.tar.gz", hash = "sha256:103073a8fcb16124901736e4223e4c3d55a020e78a7551623725b70ecb61ad2d"},
+    {file = "feu-0.4.0-py3-none-any.whl", hash = "sha256:d85e850b95474a5a1fc59110d6e5bd2c0294fa265183d50bef72a6dbd9d9e532"},
+    {file = "feu-0.4.0.tar.gz", hash = "sha256:4a9bd84e614161d2978fd191922c62eb539a4afe7c5ab1920faeef32283dcd02"},
 ]
 
 [package.dependencies]
@@ -430,11 +430,13 @@ click = [
     {version = ">=8.1,<8.2", optional = true, markers = "python_version == \"3.9\" and (extra == \"all\" or extra == \"cli\")"},
 ]
 packaging = ">=21.0,<26.0"
+typing_extensions = {version = ">=4.10,<5.0", markers = "python_version >= \"3.9\" and python_version < \"3.11\""}
 
 [package.extras]
-all = ["click (>=8.1,<8.2) ; python_version == \"3.9\"", "click (>=8.1,<9.0)"]
+all = ["click (>=8.1,<8.2) ; python_version == \"3.9\"", "click (>=8.1,<9.0)", "requests (>=2.30.0,<3.0)"]
 cli = ["click (>=8.1,<8.2) ; python_version == \"3.9\"", "click (>=8.1,<9.0)"]
 git = ["gitpython (>=3.1.41,<4.0)"]
+requests = ["requests (>=2.30.0,<3.0)"]
 
 [[package]]
 name = "filelock"
