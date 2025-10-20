@@ -2108,7 +2108,7 @@ description = "Python library for Apache Arrow"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"all\""
+markers = "extra == \"all\" and python_version < \"3.14\""
 files = [
     {file = "pyarrow-21.0.0-cp310-cp310-macosx_12_0_arm64.whl", hash = "sha256:e563271e2c5ff4d4a4cbeb2c83d5cf0d4938b891518e676025f7268c6fe5fe26"},
     {file = "pyarrow-21.0.0-cp310-cp310-macosx_12_0_x86_64.whl", hash = "sha256:fee33b0ca46f4c85443d6c450357101e47d53e6c3f008d658c27a2d020d44c79"},
@@ -3139,4 +3139,4 @@ all = ["jax", "jax", "jax", "jax", "jax", "jax", "jax", "jaxlib", "jaxlib", "jax
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.15"
-content-hash = "99b657c30edbde3b7bd63ded0dfcd9b5e5b4a7b8fa2b0378a1bca1fd7aaa8023"
+content-hash = "c1891191ad3741f4d1e20f31a2661a3e33b9f9f19fad470401c47323abe761bb"
