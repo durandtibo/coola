@@ -229,6 +229,7 @@ files = [
     {file = "charset_normalizer-3.4.4-py3-none-any.whl", hash = "sha256:7a32c560861a02ff789ad905a2fe94e3f840803362c84fecf1851cb4cf3dc37f"},
     {file = "charset_normalizer-3.4.4.tar.gz", hash = "sha256:94537985111c35f28720e43603b8e7b43a6ecfb2ce1d3058bbe955b73404e21a"},
 ]
+markers = {dev = "python_version < \"3.14\""}
 
 [[package]]
 name = "click"
@@ -385,6 +386,7 @@ description = "Formats docstrings to follow PEP 257"
 optional = false
 python-versions = "<4.0,>=3.9"
 groups = ["dev"]
+markers = "python_version < \"3.14\""
 files = [
     {file = "docformatter-1.7.7-py3-none-any.whl", hash = "sha256:7af49f8a46346a77858f6651f431b882c503c2f4442c8b4524b920c863277834"},
     {file = "docformatter-1.7.7.tar.gz", hash = "sha256:ea0e1e8867e5af468dfc3f9e947b92230a55be9ec17cd1609556387bffac7978"},
@@ -2926,6 +2928,7 @@ description = "Transforms tokens into original source code (while preserving whi
 optional = false
 python-versions = "*"
 groups = ["dev"]
+markers = "python_version < \"3.14\""
 files = [
     {file = "untokenize-0.1.1.tar.gz", hash = "sha256:3865dbbbb8efb4bb5eaa72f1be7f3e0be00ea8b7f125c69cbd1f5fda926f37a2"},
 ]
@@ -3136,4 +3139,4 @@ all = ["jax", "jax", "jax", "jax", "jax", "jax", "jax", "jaxlib", "jaxlib", "jax
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.15"
-content-hash = "e424a6698f185ec1e8077cf1ca61c8239be1fb5d2f77da21833716749a6b0cf4"
+content-hash = "99b657c30edbde3b7bd63ded0dfcd9b5e5b4a7b8fa2b0378a1bca1fd7aaa8023"
