@@ -8,7 +8,7 @@ from __future__ import annotations
 __all__ = ["NumpyReducer"]
 
 from collections.abc import Sequence
-from typing import TypeVar, Union
+from typing import TypeVar
 from unittest.mock import Mock
 
 from coola.reducers.base import BaseBasicReducer
@@ -21,7 +21,7 @@ else:
     np = Mock()  # pragma: no cover
 
 
-T = TypeVar("T", Sequence[Union[int, float]], np.ndarray)
+T = TypeVar("T", Sequence[int | float], np.ndarray)
 
 
 class NumpyReducer(BaseBasicReducer[T]):

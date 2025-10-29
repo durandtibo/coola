@@ -136,7 +136,7 @@ addopts = "--color yes --durations 10 -rf"
 
 [tool.black]
 line-length = 100
-target-version = ["py39", "py310", "py311", "py312", "py313"]
+target-version = ["py310", "py311", "py312", "py313", "py314"]
 include = '\.pyi?$'
 
 [tool.pylint.FORMAT]
@@ -285,7 +285,7 @@ lint.exclude = [
 lint.extend-select = ["D400", "D401", "D404"]
 
 line-length = 100
-target-version = "py39"
+target-version = "py310"
 src = ["src"]
 
 [tool.ruff.lint.per-file-ignores]

@@ -7,12 +7,12 @@ __all__ = ["NativeReducer"]
 
 from collections.abc import Sequence
 from statistics import mean, median, stdev
-from typing import TypeVar, Union
+from typing import TypeVar
 
 from coola.reducers.base import BaseBasicReducer
 from coola.utils.stats import quantile
 
-T = TypeVar("T", bound=Sequence[Union[int, float]])
+T = TypeVar("T", bound=Sequence[int | float])
 
 
 class NativeReducer(BaseBasicReducer[T]):
