@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "coola"
-version = "0.9.1a0"
+version = "0.9.1a1"
 description = "Library to check equality between two complex/nested objects"
 readme = "README.md"
 authors = ["Thibaut Durand <durand.tibo+gh@gmail.com>"]
@@ -68,16 +68,14 @@ python = ">=3.10,<3.15"
 #]
 
 jax = [
-    { version = ">=0.4.6,<1.0", markers = "sys_platform == 'linux' or (sys_platform == 'darwin' and platform_machine == 'arm64')", optional = true },
     # macOS x86_64 binaries do not exist after JAX 0.5
     # https://github.com/jax-ml/jax/releases/tag/jax-v0.5.0
-    { version = ">=0.4.6,<0.5", python = "<3.14", markers = "sys_platform == 'darwin' and platform_machine == 'x86_64'", optional = true },
+    { version = "^0.5", markers = "sys_platform == 'linux' or (sys_platform == 'darwin' and platform_machine == 'arm64')", optional = true },
 ]
 jaxlib = [
-    { version = ">=0.4.6,<1.0", markers = "sys_platform == 'linux' or (sys_platform == 'darwin' and platform_machine == 'arm64')", optional = true },
     # macOS x86_64 binaries do not exist after JAX 0.5
     # https://github.com/jax-ml/jax/releases/tag/jax-v0.5.0
-    { version = ">=0.4.6,<0.5", python = "<3.14", markers = "sys_platform == 'darwin' and platform_machine == 'x86_64'", optional = true },
+    { version = "^0.5", markers = "sys_platform == 'linux' or (sys_platform == 'darwin' and platform_machine == 'arm64')", optional = true },
 ]
 numpy = [
     { version = ">=1.24,<3.0", optional = true },
