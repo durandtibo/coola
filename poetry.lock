@@ -457,15 +457,15 @@ markers = {main = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and
 
 [[package]]
 name = "fsspec"
-version = "2025.9.0"
+version = "2025.10.0"
 description = "File-system specification"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
 markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (sys_platform == \"linux\" or platform_machine == \"arm64\" or python_version <= \"3.12\") and extra == \"all\""
 files = [
-    {file = "fsspec-2025.9.0-py3-none-any.whl", hash = "sha256:530dc2a2af60a414a832059574df4a6e10cce927f6f4a78209390fe38955cfb7"},
-    {file = "fsspec-2025.9.0.tar.gz", hash = "sha256:19fd429483d25d28b65ec68f9f4adc16c17ea2c7c7bf54ec61360d478fb19c19"},
+    {file = "fsspec-2025.10.0-py3-none-any.whl", hash = "sha256:7c7712353ae7d875407f97715f0e1ffcc21e33d5b24556cb1e090ae9409ec61d"},
+    {file = "fsspec-2025.10.0.tar.gz", hash = "sha256:b6789427626f068f9a83ca4e8a3cc050850b6c0f71f99ddb4f542b8266a26a59"},
 ]
 
 [package.extras]
@@ -617,70 +617,139 @@ files = [
 
 [[package]]
 name = "jax"
-version = "0.5.3"
+version = "0.6.2"
 description = "Differentiate, compile, and transform Numpy code."
 optional = true
 python-versions = ">=3.10"
 groups = ["main"]
-markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (sys_platform == \"linux\" or platform_machine == \"arm64\") and extra == \"all\""
+markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (sys_platform == \"linux\" or platform_machine == \"arm64\") and python_version == \"3.10\" and extra == \"all\""
 files = [
-    {file = "jax-0.5.3-py3-none-any.whl", hash = "sha256:1483dc237b4f47e41755d69429e8c3c138736716147cd43bb2b99b259d4e3c41"},
-    {file = "jax-0.5.3.tar.gz", hash = "sha256:f17fcb0fd61dc289394af6ce4de2dada2312f2689bb0d73642c6f026a95fbb2c"},
+    {file = "jax-0.6.2-py3-none-any.whl", hash = "sha256:bb24a82dc60ccf704dcaf6dbd07d04957f68a6c686db19630dd75260d1fb788c"},
+    {file = "jax-0.6.2.tar.gz", hash = "sha256:a437d29038cbc8300334119692744704ca7941490867b9665406b7f90665cd96"},
 ]
 
 [package.dependencies]
-jaxlib = "0.5.3"
-ml_dtypes = ">=0.4.0"
-numpy = [
-    {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
-    {version = ">=1.25", markers = "python_version < \"3.12\""},
-]
+jaxlib = "0.6.2"
+ml_dtypes = ">=0.5.0"
+numpy = ">=1.26"
 opt_einsum = "*"
-scipy = ">=1.11.1"
+scipy = ">=1.12"
 
 [package.extras]
-ci = ["jaxlib (==0.5.1)"]
-cuda = ["jax-cuda12-plugin[with-cuda] (==0.5.3)", "jaxlib (==0.5.3)"]
-cuda12 = ["jax-cuda12-plugin[with-cuda] (==0.5.3)", "jaxlib (==0.5.3)"]
-cuda12-local = ["jax-cuda12-plugin (==0.5.3)", "jaxlib (==0.5.3)"]
-cuda12-pip = ["jax-cuda12-plugin[with-cuda] (==0.5.3)", "jaxlib (==0.5.3)"]
+ci = ["jaxlib (==0.6.1)"]
+cuda = ["jax-cuda12-plugin[with-cuda] (==0.6.2)", "jaxlib (==0.6.2)"]
+cuda12 = ["jax-cuda12-plugin[with-cuda] (==0.6.2)", "jaxlib (==0.6.2)"]
+cuda12-local = ["jax-cuda12-plugin (==0.6.2)", "jaxlib (==0.6.2)"]
 k8s = ["kubernetes"]
-minimum-jaxlib = ["jaxlib (==0.5.3)"]
-rocm = ["jax-rocm60-plugin (==0.5.3)", "jaxlib (==0.5.3)"]
-tpu = ["jaxlib (==0.5.3)", "libtpu (==0.0.11.*)", "requests"]
+minimum-jaxlib = ["jaxlib (==0.6.2)"]
+rocm = ["jax-rocm60-plugin (==0.6.2)", "jaxlib (==0.6.2)"]
+tpu = ["jaxlib (==0.6.2)", "libtpu (==0.0.17.*)", "requests"]
+xprof = ["xprof"]
+
+[[package]]
+name = "jax"
+version = "0.8.0"
+description = "Differentiate, compile, and transform Numpy code."
+optional = true
+python-versions = ">=3.11"
+groups = ["main"]
+markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (sys_platform == \"linux\" or platform_machine == \"arm64\") and python_version >= \"3.11\" and extra == \"all\""
+files = [
+    {file = "jax-0.8.0-py3-none-any.whl", hash = "sha256:d190158bc019756c6a0f6b3d5fc8783471fb407e6deaff559eaac60dd5ee850a"},
+    {file = "jax-0.8.0.tar.gz", hash = "sha256:0ea5a7be7068c25934450dfd87d7d80a18a5d30e0a53454e7aade525b23accd5"},
+]
+
+[package.dependencies]
+jaxlib = "0.8.0"
+ml_dtypes = ">=0.5.0"
+numpy = ">=2.0"
+opt_einsum = "*"
+scipy = ">=1.13"
+
+[package.extras]
+ci = ["jaxlib (==0.7.2)"]
+cuda = ["jax-cuda12-plugin[with-cuda] (==0.8.0)", "jaxlib (==0.8.0)"]
+cuda12 = ["jax-cuda12-plugin[with-cuda] (==0.8.0)", "jaxlib (==0.8.0)"]
+cuda12-local = ["jax-cuda12-plugin (==0.8.0)", "jaxlib (==0.8.0)"]
+cuda13 = ["jax-cuda13-plugin[with-cuda] (==0.8.0)", "jaxlib (==0.8.0)"]
+cuda13-local = ["jax-cuda13-plugin (==0.8.0)", "jaxlib (==0.8.0)"]
+k8s = ["kubernetes"]
+minimum-jaxlib = ["jaxlib (==0.8.0)"]
+rocm = ["jax-rocm60-plugin (==0.8.0)", "jaxlib (==0.8.0)"]
+tpu = ["jaxlib (==0.8.0)", "libtpu (==0.0.24.*)", "requests"]
+xprof = ["xprof"]
 
 [[package]]
 name = "jaxlib"
-version = "0.5.3"
+version = "0.6.2"
 description = "XLA library for JAX"
 optional = true
 python-versions = ">=3.10"
 groups = ["main"]
-markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (sys_platform == \"linux\" or platform_machine == \"arm64\") and extra == \"all\""
+markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (sys_platform == \"linux\" or platform_machine == \"arm64\") and python_version == \"3.10\" and extra == \"all\""
 files = [
-    {file = "jaxlib-0.5.3-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:48ff5c89fb8a0fe04d475e9ddc074b4879a91d7ab68a51cec5cd1e87f81e6c47"},
-    {file = "jaxlib-0.5.3-cp310-cp310-manylinux2014_aarch64.whl", hash = "sha256:972400db4af6e85270d81db5e6e620d31395f0472e510c50dfcd4cb3f72b7220"},
-    {file = "jaxlib-0.5.3-cp310-cp310-manylinux2014_x86_64.whl", hash = "sha256:52be6c9775aff738a61170d8c047505c75bb799a45518e66a7a0908127b11785"},
-    {file = "jaxlib-0.5.3-cp310-cp310-win_amd64.whl", hash = "sha256:b41a6fcaeb374fabc4ee7e74cfed60843bdab607cd54f60a68b7f7655cde2b66"},
-    {file = "jaxlib-0.5.3-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:b62bd8b29e5a4f9bfaa57c8daf6e04820b2c994f448f3dec602d64255545e9f2"},
-    {file = "jaxlib-0.5.3-cp311-cp311-manylinux2014_aarch64.whl", hash = "sha256:a4666f81d72c060ed3e581ded116a9caa9b0a70a148a54cb12a1d3afca3624b5"},
-    {file = "jaxlib-0.5.3-cp311-cp311-manylinux2014_x86_64.whl", hash = "sha256:29e1530fc81833216f1e28b578d0c59697654f72ee31c7a44ed7753baf5ac466"},
-    {file = "jaxlib-0.5.3-cp311-cp311-win_amd64.whl", hash = "sha256:8eb54e38d789557579f900ea3d70f104a440f8555a9681ed45f4a122dcbfd92e"},
-    {file = "jaxlib-0.5.3-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:d394dbde4a1c6bd67501cfb29d3819a10b900cb534cc0fc603319f7092f24cfa"},
-    {file = "jaxlib-0.5.3-cp312-cp312-manylinux2014_aarch64.whl", hash = "sha256:bddf6360377aa1c792e47fd87f307c342e331e5ff3582f940b1bca00f6b4bc73"},
-    {file = "jaxlib-0.5.3-cp312-cp312-manylinux2014_x86_64.whl", hash = "sha256:5a5e88ab1cd6fdf78d69abe3544e8f09cce200dd339bb85fbe3c2ea67f2a5e68"},
-    {file = "jaxlib-0.5.3-cp312-cp312-win_amd64.whl", hash = "sha256:520665929649f29f7d948d4070dbaf3e032a4c1f7c11f2863eac73320fcee784"},
-    {file = "jaxlib-0.5.3-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:31321c25282a06a6dfc940507bc14d0a0ac838d8ced6c07aa00a7fae34ce7b3f"},
-    {file = "jaxlib-0.5.3-cp313-cp313-manylinux2014_aarch64.whl", hash = "sha256:e904b92dedfbc7e545725a8d7676987030ae9c069001d94701bc109c6dab4100"},
-    {file = "jaxlib-0.5.3-cp313-cp313-manylinux2014_x86_64.whl", hash = "sha256:bb7593cb7fffcb13963f22fa5229ed960b8fb4ae5ec3b0820048cbd67f1e8e31"},
-    {file = "jaxlib-0.5.3-cp313-cp313-win_amd64.whl", hash = "sha256:8019f73a10b1290f988dd3768c684f3a8a147239091c3b790ce7e47e3bbc00bd"},
-    {file = "jaxlib-0.5.3-cp313-cp313t-manylinux2014_x86_64.whl", hash = "sha256:4c9a9d4cda091a3ef068ace8379fff9e98eea2fc51dbdd7c3386144a1bdf715d"},
+    {file = "jaxlib-0.6.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:da4601b2b5dc8c23d6afb293eacfb9aec4e1d1871cb2f29c5a151d103e73b0f8"},
+    {file = "jaxlib-0.6.2-cp310-cp310-manylinux2014_aarch64.whl", hash = "sha256:4205d098ce8efb5f7fe2fe5098bae6036094dc8d8829f5e0e0d7a9b155326336"},
+    {file = "jaxlib-0.6.2-cp310-cp310-manylinux2014_x86_64.whl", hash = "sha256:c087a0eb6fb7f6f8f54d56f4730328dfde5040dd3b5ddfa810e7c28ea7102b42"},
+    {file = "jaxlib-0.6.2-cp310-cp310-win_amd64.whl", hash = "sha256:153eaa51f778b60851720729d4f461a91edd9ba3932f6f3bc598d4413870038b"},
+    {file = "jaxlib-0.6.2-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:a208ff61c58128d306bb4e5ad0858bd2b0960f2c1c10ad42c548f74a60c0020e"},
+    {file = "jaxlib-0.6.2-cp311-cp311-manylinux2014_aarch64.whl", hash = "sha256:11eae7e05bc5a79875da36324afb9eddd4baeaef2a0386caf6d4f3720b9aef28"},
+    {file = "jaxlib-0.6.2-cp311-cp311-manylinux2014_x86_64.whl", hash = "sha256:335d7e3515ce78b52a410136f46aa4a7ea14d0e7d640f34e1e137409554ad0ac"},
+    {file = "jaxlib-0.6.2-cp311-cp311-win_amd64.whl", hash = "sha256:c6815509997d6b05e5c9daa7994b9ad473ce3e8c8a17bdbbcacc3c744f76f7a0"},
+    {file = "jaxlib-0.6.2-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:34d8a684a8be949dd87dd4acc97101b4106a0dc9ad151ec891da072319a57b99"},
+    {file = "jaxlib-0.6.2-cp312-cp312-manylinux2014_aarch64.whl", hash = "sha256:87ec2dc9c3ed9ab936eec8535160c5fbd2c849948559f1c5daa75f63fabe5942"},
+    {file = "jaxlib-0.6.2-cp312-cp312-manylinux2014_x86_64.whl", hash = "sha256:f1dd09b481a93c1d4c750013f467f74194493ba7bd29fcd4d1cec16e3a214f65"},
+    {file = "jaxlib-0.6.2-cp312-cp312-win_amd64.whl", hash = "sha256:921dbd4db214eba19a29ba9f2450d880e08b2b2c7b968f28cc89da3e62366af4"},
+    {file = "jaxlib-0.6.2-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:bff67b188133ce1f0111c7b163ac321fd646b59ed221ea489063e2e0f85cb967"},
+    {file = "jaxlib-0.6.2-cp313-cp313-manylinux2014_aarch64.whl", hash = "sha256:70498837caf538bd458ff6858c8bfd404db82015aba8f663670197fa9900ff02"},
+    {file = "jaxlib-0.6.2-cp313-cp313-manylinux2014_x86_64.whl", hash = "sha256:f94163f14c8fd3ba93ae14b631abacf14cb031bba0b59138869984b4d10375f8"},
+    {file = "jaxlib-0.6.2-cp313-cp313-win_amd64.whl", hash = "sha256:b977604cd36c74b174d25ed685017379468138eb747d865f75e466cb273c801d"},
+    {file = "jaxlib-0.6.2-cp313-cp313t-manylinux2014_aarch64.whl", hash = "sha256:39cf9555f85ae1ce2e2c1a59fc71f2eca4f9867a7cb934fef881ba56b11371d1"},
+    {file = "jaxlib-0.6.2-cp313-cp313t-manylinux2014_x86_64.whl", hash = "sha256:3abd536e44b05fb1657507e3ff1fc3691f99613bae3921ecab9e82f27255f784"},
 ]
 
 [package.dependencies]
-ml_dtypes = ">=0.2.0"
-numpy = ">=1.25"
-scipy = ">=1.11.1"
+ml_dtypes = ">=0.5.0"
+numpy = ">=1.26"
+scipy = ">=1.12"
+
+[[package]]
+name = "jaxlib"
+version = "0.8.0"
+description = "XLA library for JAX"
+optional = true
+python-versions = ">=3.11"
+groups = ["main"]
+markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (sys_platform == \"linux\" or platform_machine == \"arm64\") and python_version >= \"3.11\" and extra == \"all\""
+files = [
+    {file = "jaxlib-0.8.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:bb602a8c24c614cb8ca6eeed3e70a733d9399c6a2f88900a0252623cd67276b5"},
+    {file = "jaxlib-0.8.0-cp311-cp311-manylinux_2_27_aarch64.whl", hash = "sha256:41aebddef67a555a6de17427a4e66ce60a528a815847e2dd96dabce579f7acf8"},
+    {file = "jaxlib-0.8.0-cp311-cp311-manylinux_2_27_x86_64.whl", hash = "sha256:ff53e8baf978f6b7c4076215af78f0ba969cac434ed2f72565d87e38c23f00e7"},
+    {file = "jaxlib-0.8.0-cp311-cp311-win_amd64.whl", hash = "sha256:9cd4c7a8acc5b3dee4ad28a5d101264d89754e29553b0cdb92c79f5b460a511b"},
+    {file = "jaxlib-0.8.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:f60aac0f64e9e70a5cef341fe292684518695514c71ad00036774bbed5f7312e"},
+    {file = "jaxlib-0.8.0-cp312-cp312-manylinux_2_27_aarch64.whl", hash = "sha256:d83ff8cf1b070299639cda4f8427707f69051dc8421e59fbb73305523937570d"},
+    {file = "jaxlib-0.8.0-cp312-cp312-manylinux_2_27_x86_64.whl", hash = "sha256:2c8675bf86e391afe4f8d863080be1a024d734dfd3dd137f7aa8e7f22091adcd"},
+    {file = "jaxlib-0.8.0-cp312-cp312-win_amd64.whl", hash = "sha256:659d894d93876e3675c2132d13c3d241f204b21172a58f928b96f654f603f6dc"},
+    {file = "jaxlib-0.8.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:5fcf33a5639f8f164a473a9c78a1fa0b2e15ac3fcbecd6d96aa0f88bf25ea6bb"},
+    {file = "jaxlib-0.8.0-cp313-cp313-manylinux_2_27_aarch64.whl", hash = "sha256:b3eac503b90ffecc68f11fa122133eef2c62c536db28e801e436d7e7a9b67bf8"},
+    {file = "jaxlib-0.8.0-cp313-cp313-manylinux_2_27_x86_64.whl", hash = "sha256:66c6f576f54a63ed052f5c469bef4db723f5f050b839ec0c429573011341bd58"},
+    {file = "jaxlib-0.8.0-cp313-cp313-win_amd64.whl", hash = "sha256:72759ebbfb40a717349f174712207d306aa28630359f05cd69b091bd4efa0603"},
+    {file = "jaxlib-0.8.0-cp313-cp313t-macosx_11_0_arm64.whl", hash = "sha256:df2781e0fc93fb6f42111b385b90126b9571eafe0e860f033615ff7156b76817"},
+    {file = "jaxlib-0.8.0-cp313-cp313t-manylinux_2_27_aarch64.whl", hash = "sha256:7eb3be931de77bfcde27df659ada432719aa1e19a2fa5b835638e7404c74cb63"},
+    {file = "jaxlib-0.8.0-cp313-cp313t-manylinux_2_27_x86_64.whl", hash = "sha256:accebe89a36e28306a4db3f68f527a0f87b8a0fd253b3c1556fbd24f16bec22c"},
+    {file = "jaxlib-0.8.0-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:ba7e8a2231e4138ccbd8e096debdbbcd82edc5fc1b13c66f32a51bc240651349"},
+    {file = "jaxlib-0.8.0-cp314-cp314-manylinux_2_27_aarch64.whl", hash = "sha256:a9bfca27ae597804db08694a2bf7e1cf7fc3fac4ac2e65ace83be8effaa927ea"},
+    {file = "jaxlib-0.8.0-cp314-cp314-manylinux_2_27_x86_64.whl", hash = "sha256:bd3219a4d2bfe4b72605900fde395b62126a053c0b99643eb931b7c20e577bf2"},
+    {file = "jaxlib-0.8.0-cp314-cp314-win_amd64.whl", hash = "sha256:3320a72d532713c2a31eb20d02c342540a0dec28603a3ac2be0fc0631f086cf2"},
+    {file = "jaxlib-0.8.0-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:248f1ac3acee1fe2cc81e8a668311f3ccb8f28090404391c276869cae8a95daf"},
+    {file = "jaxlib-0.8.0-cp314-cp314t-manylinux_2_27_aarch64.whl", hash = "sha256:a5f0656bbbb3f135a360ce0fde55bf34faf73fbc62ab887941e85f0014b3f476"},
+    {file = "jaxlib-0.8.0-cp314-cp314t-manylinux_2_27_x86_64.whl", hash = "sha256:61cb2fde154e5a399db2880d560e3443cfa97bda9f074b545c886232ac8fe024"},
+]
+
+[package.dependencies]
+ml_dtypes = ">=0.5.0"
+numpy = ">=2.0"
+scipy = ">=1.13"
 
 [[package]]
 name = "jinja2"
@@ -1055,9 +1124,9 @@ files = [
 [package.dependencies]
 numpy = [
     {version = ">=2.1.0", markers = "python_version >= \"3.13\""},
-    {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
     {version = ">=1.21.2", markers = "python_version >= \"3.10\""},
     {version = ">=1.23.3", markers = "python_version >= \"3.11\""},
+    {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
 ]
 
 [package.extras]
@@ -1122,7 +1191,7 @@ description = "Python package for creating and manipulating graphs and networks"
 optional = true
 python-versions = ">=3.11"
 groups = ["main"]
-markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and python_version >= \"3.11\" and extra == \"all\" and (sys_platform == \"linux\" or platform_machine == \"arm64\" or python_version < \"3.13\")"
+markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (sys_platform == \"linux\" or platform_machine == \"arm64\" or python_version < \"3.13\") and python_version >= \"3.11\" and extra == \"all\""
 files = [
     {file = "networkx-3.5-py3-none-any.whl", hash = "sha256:0030d386a9a06dee3565298b4a734b68589749a544acbb6c412dc9e2489ec6ec"},
     {file = "networkx-3.5.tar.gz", hash = "sha256:d4c6f9cf81f52d69230866796b82afbccdec3db7ae4fbd1b65ea750feed50037"},
@@ -1320,7 +1389,7 @@ description = "CUBLAS native runtime libraries"
 optional = true
 python-versions = ">=3"
 groups = ["main"]
-markers = "sys_platform == \"linux\" and extra == \"all\" and platform_machine == \"x86_64\" and platform_system == \"Linux\""
+markers = "sys_platform == \"linux\" and extra == \"all\" and platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_cublas_cu12-12.8.4.1-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:b86f6dd8935884615a0683b663891d43781b819ac4f2ba2b0c9604676af346d0"},
     {file = "nvidia_cublas_cu12-12.8.4.1-py3-none-manylinux_2_27_x86_64.whl", hash = "sha256:8ac4e771d5a348c551b2a426eda6193c19aa630236b418086020df5ba9667142"},
@@ -1347,7 +1416,7 @@ description = "CUDA profiling tools runtime libs."
 optional = true
 python-versions = ">=3"
 groups = ["main"]
-markers = "sys_platform == \"linux\" and extra == \"all\" and platform_machine == \"x86_64\" and platform_system == \"Linux\""
+markers = "sys_platform == \"linux\" and extra == \"all\" and platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_cuda_cupti_cu12-12.8.90-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:4412396548808ddfed3f17a467b104ba7751e6b58678a4b840675c56d21cf7ed"},
     {file = "nvidia_cuda_cupti_cu12-12.8.90-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:ea0cb07ebda26bb9b29ba82cda34849e73c166c18162d3913575b0c9db9a6182"},
@@ -1374,7 +1443,7 @@ description = "NVRTC native runtime libraries"
 optional = true
 python-versions = ">=3"
 groups = ["main"]
-markers = "sys_platform == \"linux\" and extra == \"all\" and platform_machine == \"x86_64\" and platform_system == \"Linux\""
+markers = "sys_platform == \"linux\" and extra == \"all\" and platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_cuda_nvrtc_cu12-12.8.93-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl", hash = "sha256:a7756528852ef889772a84c6cd89d41dfa74667e24cca16bb31f8f061e3e9994"},
     {file = "nvidia_cuda_nvrtc_cu12-12.8.93-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:fc1fec1e1637854b4c0a65fb9a8346b51dd9ee69e61ebaccc82058441f15bce8"},
@@ -1401,7 +1470,7 @@ description = "CUDA Runtime native Libraries"
 optional = true
 python-versions = ">=3"
 groups = ["main"]
-markers = "sys_platform == \"linux\" and extra == \"all\" and platform_machine == \"x86_64\" and platform_system == \"Linux\""
+markers = "sys_platform == \"linux\" and extra == \"all\" and platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_cuda_runtime_cu12-12.8.90-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:52bf7bbee900262ffefe5e9d5a2a69a30d97e2bc5bb6cc866688caa976966e3d"},
     {file = "nvidia_cuda_runtime_cu12-12.8.90-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:adade8dcbd0edf427b7204d480d6066d33902cab2a4707dcfc48a2d0fd44ab90"},
@@ -1430,7 +1499,7 @@ description = "cuDNN runtime libraries"
 optional = true
 python-versions = ">=3"
 groups = ["main"]
-markers = "sys_platform == \"linux\" and extra == \"all\" and platform_machine == \"x86_64\" and platform_system == \"Linux\""
+markers = "sys_platform == \"linux\" and extra == \"all\" and platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_cudnn_cu12-9.10.2.21-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:c9132cc3f8958447b4910a1720036d9eff5928cc3179b0a51fb6d167c6cc87d8"},
     {file = "nvidia_cudnn_cu12-9.10.2.21-py3-none-manylinux_2_27_x86_64.whl", hash = "sha256:949452be657fa16687d0930933f032835951ef0892b37d2d53824d1a84dc97a8"},
@@ -1460,7 +1529,7 @@ description = "CUFFT native runtime libraries"
 optional = true
 python-versions = ">=3"
 groups = ["main"]
-markers = "sys_platform == \"linux\" and extra == \"all\" and platform_machine == \"x86_64\" and platform_system == \"Linux\""
+markers = "sys_platform == \"linux\" and extra == \"all\" and platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_cufft_cu12-11.3.3.83-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:848ef7224d6305cdb2a4df928759dca7b1201874787083b6e7550dd6765ce69a"},
     {file = "nvidia_cufft_cu12-11.3.3.83-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:4d2dd21ec0b88cf61b62e6b43564355e5222e4a3fb394cac0db101f2dd0d4f74"},
@@ -1477,7 +1546,7 @@ description = "cuFile GPUDirect libraries"
 optional = true
 python-versions = ">=3"
 groups = ["main"]
-markers = "sys_platform == \"linux\" and extra == \"all\" and platform_machine == \"x86_64\" and platform_system == \"Linux\""
+markers = "sys_platform == \"linux\" and extra == \"all\" and platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_cufile_cu12-1.13.1.3-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:1d069003be650e131b21c932ec3d8969c1715379251f8d23a1860554b1cb24fc"},
     {file = "nvidia_cufile_cu12-1.13.1.3-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:4beb6d4cce47c1a0f1013d72e02b0994730359e17801d395bdcbf20cfb3bb00a"},
@@ -1503,7 +1572,7 @@ description = "CURAND native runtime libraries"
 optional = true
 python-versions = ">=3"
 groups = ["main"]
-markers = "sys_platform == \"linux\" and extra == \"all\" and platform_machine == \"x86_64\" and platform_system == \"Linux\""
+markers = "sys_platform == \"linux\" and extra == \"all\" and platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_curand_cu12-10.3.9.90-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:dfab99248034673b779bc6decafdc3404a8a6f502462201f2f31f11354204acd"},
     {file = "nvidia_curand_cu12-10.3.9.90-py3-none-manylinux_2_27_x86_64.whl", hash = "sha256:b32331d4f4df5d6eefa0554c565b626c7216f87a06a4f56fab27c3b68a830ec9"},
@@ -1535,7 +1604,7 @@ description = "CUDA solver native runtime libraries"
 optional = true
 python-versions = ">=3"
 groups = ["main"]
-markers = "sys_platform == \"linux\" and extra == \"all\" and platform_machine == \"x86_64\" and platform_system == \"Linux\""
+markers = "sys_platform == \"linux\" and extra == \"all\" and platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_cusolver_cu12-11.7.3.90-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:db9ed69dbef9715071232caa9b69c52ac7de3a95773c2db65bdba85916e4e5c0"},
     {file = "nvidia_cusolver_cu12-11.7.3.90-py3-none-manylinux_2_27_x86_64.whl", hash = "sha256:4376c11ad263152bd50ea295c05370360776f8c3427b30991df774f9fb26c450"},
@@ -1570,7 +1639,7 @@ description = "CUSPARSE native runtime libraries"
 optional = true
 python-versions = ">=3"
 groups = ["main"]
-markers = "sys_platform == \"linux\" and extra == \"all\" and platform_machine == \"x86_64\" and platform_system == \"Linux\""
+markers = "sys_platform == \"linux\" and extra == \"all\" and platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_cusparse_cu12-12.5.8.93-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:9b6c161cb130be1a07a27ea6923df8141f3c295852f4b260c65f18f3e0a091dc"},
     {file = "nvidia_cusparse_cu12-12.5.8.93-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:1ec05d76bbbd8b61b06a80e1eaf8cf4959c3d4ce8e711b65ebd0443bb0ebb13b"},
@@ -1587,7 +1656,7 @@ description = "NVIDIA cuSPARSELt"
 optional = true
 python-versions = "*"
 groups = ["main"]
-markers = "sys_platform == \"linux\" and extra == \"all\" and platform_machine == \"x86_64\" and platform_system == \"Linux\""
+markers = "sys_platform == \"linux\" and extra == \"all\" and platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_cusparselt_cu12-0.7.1-py3-none-manylinux2014_aarch64.whl", hash = "sha256:8878dce784d0fac90131b6817b607e803c36e629ba34dc5b433471382196b6a5"},
     {file = "nvidia_cusparselt_cu12-0.7.1-py3-none-manylinux2014_x86_64.whl", hash = "sha256:f1bb701d6b930d5a7cea44c19ceb973311500847f81b634d802b7b539dc55623"},
@@ -1613,7 +1682,7 @@ description = "NVIDIA Collective Communication Library (NCCL) Runtime"
 optional = true
 python-versions = ">=3"
 groups = ["main"]
-markers = "sys_platform == \"linux\" and extra == \"all\" and platform_machine == \"x86_64\" and platform_system == \"Linux\""
+markers = "sys_platform == \"linux\" and extra == \"all\" and platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_nccl_cu12-2.27.5-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:31432ad4d1fb1004eb0c56203dc9bc2178a1ba69d1d9e02d64a6938ab5e40e7a"},
     {file = "nvidia_nccl_cu12-2.27.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:ad730cf15cb5d25fe849c6e6ca9eb5b76db16a80f13f425ac68d8e2e55624457"},
@@ -1626,7 +1695,7 @@ description = "Nvidia JIT LTO Library"
 optional = true
 python-versions = ">=3"
 groups = ["main"]
-markers = "sys_platform == \"linux\" and extra == \"all\" and platform_machine == \"x86_64\" and platform_system == \"Linux\""
+markers = "sys_platform == \"linux\" and extra == \"all\" and platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_nvjitlink_cu12-12.8.93-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl", hash = "sha256:81ff63371a7ebd6e6451970684f916be2eab07321b73c9d244dc2b4da7f73b88"},
     {file = "nvidia_nvjitlink_cu12-12.8.93-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:adccd7161ace7261e01bb91e44e88da350895c270d23f744f0820c818b7229e7"},
@@ -1654,7 +1723,7 @@ description = "NVSHMEM creates a global address space that provides efficient an
 optional = true
 python-versions = ">=3"
 groups = ["main"]
-markers = "sys_platform == \"linux\" and extra == \"all\" and platform_machine == \"x86_64\" and platform_system == \"Linux\""
+markers = "sys_platform == \"linux\" and extra == \"all\" and platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_nvshmem_cu12-3.3.20-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:0b0b960da3842212758e4fa4696b94f129090b30e5122fea3c5345916545cff0"},
     {file = "nvidia_nvshmem_cu12-3.3.20-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:d00f26d3f9b2e3c3065be895e3059d6479ea5c638a3f38c9fec49b1b9dd7c1e5"},
@@ -1680,7 +1749,7 @@ description = "NVIDIA Tools Extension"
 optional = true
 python-versions = ">=3"
 groups = ["main"]
-markers = "sys_platform == \"linux\" and extra == \"all\" and platform_machine == \"x86_64\" and platform_system == \"Linux\""
+markers = "sys_platform == \"linux\" and extra == \"all\" and platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_nvtx_cu12-12.8.90-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:d7ad891da111ebafbf7e015d34879f7112832fc239ff0d7d776b6cb685274615"},
     {file = "nvidia_nvtx_cu12-12.8.90-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:5b17e2001cc0d751a5bc2c6ec6d26ad95913324a4adb86788c944f8ce9ba441f"},
@@ -2387,7 +2456,7 @@ description = "Fundamental algorithms for scientific computing in Python"
 optional = true
 python-versions = ">=3.11"
 groups = ["main"]
-markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (sys_platform == \"linux\" or platform_machine == \"arm64\") and extra == \"all\" and python_version >= \"3.11\""
+markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (sys_platform == \"linux\" or platform_machine == \"arm64\") and python_version >= \"3.11\" and extra == \"all\""
 files = [
     {file = "scipy-1.16.3-cp311-cp311-macosx_10_14_x86_64.whl", hash = "sha256:40be6cf99e68b6c4321e9f8782e7d5ff8265af28ef2cd56e9c9b2638fa08ad97"},
     {file = "scipy-1.16.3-cp311-cp311-macosx_12_0_arm64.whl", hash = "sha256:8be1ca9170fcb6223cc7c27f4305d680ded114a1567c0bd2bfcbf947d1b17511"},
@@ -2467,7 +2536,7 @@ description = "Easily download, build, install, upgrade, and uninstall Python pa
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (sys_platform == \"linux\" or platform_machine == \"arm64\") and extra == \"all\" and python_version >= \"3.12\""
+markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (sys_platform == \"linux\" or platform_machine == \"arm64\") and python_version >= \"3.12\" and extra == \"all\""
 files = [
     {file = "setuptools-80.9.0-py3-none-any.whl", hash = "sha256:062d34222ad13e0cc312a4c02d73f059e86a4acbfbdea8f8f76b28c99f306922"},
     {file = "setuptools-80.9.0.tar.gz", hash = "sha256:f36b47402ecde768dbfafc46e8e4207b4360c654f1f3bb84475f0a28628fb19c"},
@@ -2728,7 +2797,7 @@ description = "A language and compiler for custom Deep Learning operations"
 optional = true
 python-versions = "<3.15,>=3.10"
 groups = ["main"]
-markers = "sys_platform == \"linux\" and extra == \"all\" and platform_machine == \"x86_64\" and platform_system == \"Linux\""
+markers = "sys_platform == \"linux\" and extra == \"all\" and platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "triton-3.5.0-cp310-cp310-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:6f90de6a6566bb619b4c0adc9855729e1b1b5e26533fca1bf6206e96b6d277a3"},
     {file = "triton-3.5.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:d5d3b3d480debf24eaa739623c9a42446b0b77f95593d30eb1f64cd2278cc1f0"},
@@ -2990,9 +3059,9 @@ test = ["big-O", "jaraco.functools", "jaraco.itertools", "jaraco.test", "more_it
 type = ["pytest-mypy"]
 
 [extras]
-all = ["jax", "jaxlib", "numpy", "numpy", "packaging", "pandas", "polars", "pyarrow", "torch", "torch", "xarray"]
+all = ["jax", "jax", "jaxlib", "jaxlib", "numpy", "numpy", "packaging", "pandas", "polars", "pyarrow", "torch", "torch", "xarray"]
 
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.15"
-content-hash = "ad899bbe3b8a22e609ac90c53206bd145efe542895f67be0d11d4e614f253d68"
+content-hash = "d71dec263e651acec2441ae3a72b2436877cfb240a777673468ff7a90f348e80"
