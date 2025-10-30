@@ -6,9 +6,9 @@ __all__ = ["BaseBasicReducer", "BaseReducer", "EmptySequenceError"]
 
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
-from typing import Generic, TypeVar, Union
+from typing import Generic, TypeVar
 
-T = TypeVar("T", bound=Sequence[Union[int, float]])
+T = TypeVar("T", bound=Sequence[int | float])
 
 
 class EmptySequenceError(Exception):

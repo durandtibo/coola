@@ -30,7 +30,7 @@ jobs:
           macos-14,
           macos-15-intel,
         ]
-        python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
+        python-version: [ '3.14', '3.13', '3.12', '3.11', '3.10' ]
 
     steps:
       - name: Checkout
@@ -69,7 +69,7 @@ jobs:
           macos-14,
           macos-15-intel,
         ]
-        python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
+        python-version: [ '3.14', '3.13', '3.12', '3.11', '3.10' ]
 
     steps:
       - name: Checkout
@@ -108,7 +108,7 @@ jobs:
           macos-14,
           macos-15-intel,
         ]
-        python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
+        python-version: [ '3.14', '3.13', '3.12', '3.11', '3.10' ]
 
     steps:
       - name: Checkout
@@ -147,7 +147,7 @@ jobs:
           macos-14,
           macos-15-intel,
         ]
-        python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
+        python-version: [ '3.14', '3.13', '3.12', '3.11', '3.10' ]
 
     steps:
       - name: Checkout
@@ -175,7 +175,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
+        python-version: [ '3.14', '3.13', '3.12', '3.11', '3.10' ]
         jax-version: [
           0.8.0,
           0.7.2,
@@ -224,7 +224,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
+        python-version: [ '3.14', '3.13', '3.12', '3.11', '3.10' ]
         numpy-version: [
           2.3.2,
           2.2.6,
@@ -268,7 +268,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
+        python-version: [ '3.14', '3.13', '3.12', '3.11', '3.10' ]
         packaging-version: [ '25.0', '24.2', '23.2', '22.0', '21.3' ]
 
     steps:
@@ -304,7 +304,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
+        python-version: [ '3.14', '3.13', '3.12', '3.11', '3.10' ]
         pandas-version: [
           2.3.1,
           2.2.3,
@@ -345,7 +345,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
+        python-version: [ '3.14', '3.13', '3.12', '3.11', '3.10' ]
         polars-version: [ 1.32.0, 1.0.0 ]
 
     steps:
@@ -381,7 +381,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
+        python-version: [ '3.13', '3.12', '3.11', '3.10' ]
         pyarrow-version: [
           21.0.0,
           20.0.0,
@@ -429,7 +429,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
+        python-version: [ '3.14', '3.13', '3.12', '3.11', '3.10' ]
         torch-version: [
           2.9.0,
           2.8.0,
@@ -476,7 +476,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
+        python-version: [ '3.14', '3.13', '3.12', '3.11', '3.10' ]
         xarray-version: [
           '2025.7.1',
           '2025.4.0',

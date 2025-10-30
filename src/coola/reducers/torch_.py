@@ -8,7 +8,7 @@ from __future__ import annotations
 __all__ = ["TorchReducer"]
 
 from collections.abc import Sequence
-from typing import TypeVar, Union
+from typing import TypeVar
 from unittest.mock import Mock
 
 from coola.reducers.base import BaseBasicReducer
@@ -21,7 +21,7 @@ if is_torch_available():
 else:
     torch = Mock()  # pragma: no cover
 
-T = TypeVar("T", Sequence[Union[int, float]], torch.Tensor)
+T = TypeVar("T", Sequence[int | float], torch.Tensor)
 
 
 class TorchReducer(BaseBasicReducer[T]):
