@@ -453,7 +453,7 @@ files = [
     {file = "filelock-3.20.0-py3-none-any.whl", hash = "sha256:339b4732ffda5cd79b13f4e2711a31b0365ce445d95d243bb996273d072546a2"},
     {file = "filelock-3.20.0.tar.gz", hash = "sha256:711e943b4ec6be42e1d4e6690b48dc175c822967466bb31c0c293f34334c13f4"},
 ]
-markers = {main = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (platform_machine == \"arm64\" or sys_platform == \"linux\" or python_version <= \"3.12\") and extra == \"all\" and (sys_platform == \"darwin\" or sys_platform == \"linux\" or python_version >= \"3.13\")"}
+markers = {main = "sys_platform == \"darwin\" and platform_machine != \"arm64\" and python_version <= \"3.12\" and extra == \"all\" or (sys_platform == \"linux\" or platform_machine == \"arm64\") and (sys_platform == \"linux\" or sys_platform == \"darwin\") and extra == \"all\""}
 
 [[package]]
 name = "fsspec"
@@ -462,7 +462,7 @@ description = "File-system specification"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (platform_machine == \"arm64\" or sys_platform == \"linux\" or python_version <= \"3.12\") and extra == \"all\" and (sys_platform == \"darwin\" or sys_platform == \"linux\" or python_version >= \"3.13\")"
+markers = "sys_platform == \"darwin\" and platform_machine != \"arm64\" and python_version <= \"3.12\" and extra == \"all\" or (sys_platform == \"linux\" or platform_machine == \"arm64\") and (sys_platform == \"linux\" or sys_platform == \"darwin\") and extra == \"all\""
 files = [
     {file = "fsspec-2025.9.0-py3-none-any.whl", hash = "sha256:530dc2a2af60a414a832059574df4a6e10cce927f6f4a78209390fe38955cfb7"},
     {file = "fsspec-2025.9.0.tar.gz", hash = "sha256:19fd429483d25d28b65ec68f9f4adc16c17ea2c7c7bf54ec61360d478fb19c19"},
@@ -622,7 +622,7 @@ description = "Differentiate, compile, and transform Numpy code."
 optional = true
 python-versions = ">=3.10"
 groups = ["main"]
-markers = "sys_platform == \"darwin\" and platform_machine != \"arm64\" and extra == \"all\" and python_version < \"3.14\""
+markers = "sys_platform == \"darwin\" and platform_machine != \"arm64\" and extra == \"all\""
 files = [
     {file = "jax-0.4.38-py3-none-any.whl", hash = "sha256:78987306f7041ea8500d99df1a17c33ed92620c2268c4c3677fb24e06712be64"},
     {file = "jax-0.4.38.tar.gz", hash = "sha256:43bae65881628319e0a2148e8f81a202fbc2b8d048e35c7cb1df2416672fa4a8"},
@@ -633,7 +633,7 @@ jaxlib = "0.4.38"
 ml_dtypes = ">=0.4.0"
 numpy = [
     {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
-    {version = ">=1.24"},
+    {version = ">=1.24", markers = "python_version < \"3.12\""},
 ]
 opt_einsum = "*"
 scipy = [
@@ -658,7 +658,7 @@ description = "Differentiate, compile, and transform Numpy code."
 optional = true
 python-versions = ">=3.10"
 groups = ["main"]
-markers = "python_version == \"3.10\" and (sys_platform != \"darwin\" or platform_machine == \"arm64\") and extra == \"all\""
+markers = "(sys_platform != \"darwin\" or platform_machine == \"arm64\") and python_version == \"3.10\" and extra == \"all\""
 files = [
     {file = "jax-0.6.2-py3-none-any.whl", hash = "sha256:bb24a82dc60ccf704dcaf6dbd07d04957f68a6c686db19630dd75260d1fb788c"},
     {file = "jax-0.6.2.tar.gz", hash = "sha256:a437d29038cbc8300334119692744704ca7941490867b9665406b7f90665cd96"},
@@ -689,7 +689,7 @@ description = "Differentiate, compile, and transform Numpy code."
 optional = true
 python-versions = ">=3.11"
 groups = ["main"]
-markers = "python_version >= \"3.11\" and (sys_platform != \"darwin\" or platform_machine == \"arm64\" or python_version == \"3.14\") and extra == \"all\""
+markers = "(sys_platform != \"darwin\" or platform_machine == \"arm64\") and python_version >= \"3.11\" and extra == \"all\""
 files = [
     {file = "jax-0.8.0-py3-none-any.whl", hash = "sha256:d190158bc019756c6a0f6b3d5fc8783471fb407e6deaff559eaac60dd5ee850a"},
     {file = "jax-0.8.0.tar.gz", hash = "sha256:0ea5a7be7068c25934450dfd87d7d80a18a5d30e0a53454e7aade525b23accd5"},
@@ -722,7 +722,7 @@ description = "XLA library for JAX"
 optional = true
 python-versions = ">=3.10"
 groups = ["main"]
-markers = "sys_platform == \"darwin\" and platform_machine != \"arm64\" and extra == \"all\" and python_version < \"3.14\""
+markers = "sys_platform == \"darwin\" and platform_machine != \"arm64\" and extra == \"all\""
 files = [
     {file = "jaxlib-0.4.38-cp310-cp310-macosx_10_14_x86_64.whl", hash = "sha256:55c19b9d3f33a6fc59f644aa5a21fba02639ccdd776cb4a9b5526625f57839ff"},
     {file = "jaxlib-0.4.38-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:30b2f52cb50d74734af2f477c2533a7a583e3bb7b2c8acdeb361ee77d940577a"},
@@ -761,7 +761,7 @@ description = "XLA library for JAX"
 optional = true
 python-versions = ">=3.10"
 groups = ["main"]
-markers = "python_version == \"3.10\" and (sys_platform != \"darwin\" or platform_machine == \"arm64\") and extra == \"all\""
+markers = "(sys_platform != \"darwin\" or platform_machine == \"arm64\") and python_version == \"3.10\" and extra == \"all\""
 files = [
     {file = "jaxlib-0.6.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:da4601b2b5dc8c23d6afb293eacfb9aec4e1d1871cb2f29c5a151d103e73b0f8"},
     {file = "jaxlib-0.6.2-cp310-cp310-manylinux2014_aarch64.whl", hash = "sha256:4205d098ce8efb5f7fe2fe5098bae6036094dc8d8829f5e0e0d7a9b155326336"},
@@ -795,7 +795,7 @@ description = "XLA library for JAX"
 optional = true
 python-versions = ">=3.11"
 groups = ["main"]
-markers = "python_version >= \"3.11\" and (sys_platform != \"darwin\" or platform_machine == \"arm64\" or python_version == \"3.14\") and extra == \"all\""
+markers = "(sys_platform != \"darwin\" or platform_machine == \"arm64\") and python_version >= \"3.11\" and extra == \"all\""
 files = [
     {file = "jaxlib-0.8.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:bb602a8c24c614cb8ca6eeed3e70a733d9399c6a2f88900a0252623cd67276b5"},
     {file = "jaxlib-0.8.0-cp311-cp311-manylinux_2_27_aarch64.whl", hash = "sha256:41aebddef67a555a6de17427a4e66ce60a528a815847e2dd96dabce579f7acf8"},
@@ -837,7 +837,7 @@ files = [
     {file = "jinja2-3.1.6-py3-none-any.whl", hash = "sha256:85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67"},
     {file = "jinja2-3.1.6.tar.gz", hash = "sha256:0137fb05990d35f1275a587e9aee6d56da821fc83491a0fb838183be43f66d6d"},
 ]
-markers = {main = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (platform_machine == \"arm64\" or sys_platform == \"linux\" or python_version <= \"3.12\") and extra == \"all\" and (sys_platform == \"darwin\" or sys_platform == \"linux\" or python_version >= \"3.13\")"}
+markers = {main = "sys_platform == \"darwin\" and platform_machine != \"arm64\" and python_version <= \"3.12\" and extra == \"all\" or (sys_platform == \"linux\" or platform_machine == \"arm64\") and (sys_platform == \"linux\" or sys_platform == \"darwin\") and extra == \"all\""}
 
 [package.dependencies]
 MarkupSafe = ">=2.0"
@@ -959,7 +959,7 @@ files = [
     {file = "markupsafe-3.0.3-cp39-cp39-win_arm64.whl", hash = "sha256:38664109c14ffc9e7437e86b4dceb442b0096dfe3541d7864d9cbe1da4cf36c8"},
     {file = "markupsafe-3.0.3.tar.gz", hash = "sha256:722695808f4b6457b320fdc131280796bdceb04ab50fe1795cd540799ebe1698"},
 ]
-markers = {main = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (platform_machine == \"arm64\" or sys_platform == \"linux\" or python_version <= \"3.12\") and extra == \"all\" and (sys_platform == \"darwin\" or sys_platform == \"linux\" or python_version >= \"3.13\")"}
+markers = {main = "sys_platform == \"darwin\" and platform_machine != \"arm64\" and python_version <= \"3.12\" and extra == \"all\" or (sys_platform == \"linux\" or platform_machine == \"arm64\") and (sys_platform == \"linux\" or sys_platform == \"darwin\") and extra == \"all\""}
 
 [[package]]
 name = "mergedeep"
@@ -1214,7 +1214,7 @@ description = "Python library for arbitrary-precision floating-point arithmetic"
 optional = true
 python-versions = "*"
 groups = ["main"]
-markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (platform_machine == \"arm64\" or sys_platform == \"linux\" or python_version <= \"3.12\") and extra == \"all\" and (sys_platform == \"darwin\" or sys_platform == \"linux\" or python_version >= \"3.13\")"
+markers = "sys_platform == \"darwin\" and platform_machine != \"arm64\" and python_version <= \"3.12\" and extra == \"all\" or (sys_platform == \"linux\" or platform_machine == \"arm64\") and (sys_platform == \"linux\" or sys_platform == \"darwin\") and extra == \"all\""
 files = [
     {file = "mpmath-1.3.0-py3-none-any.whl", hash = "sha256:a0b2b9fe80bbcd81a6647ff13108738cfb482d481d826cc0e02f5b35e5c88d2c"},
     {file = "mpmath-1.3.0.tar.gz", hash = "sha256:7a28eb2a9774d00c7bc92411c19a89209d5da7c4c9a9e227be8330a23a25b91f"},
@@ -1245,7 +1245,7 @@ description = "Python package for creating and manipulating graphs and networks"
 optional = true
 python-versions = ">=3.10"
 groups = ["main"]
-markers = "python_version == \"3.10\" and (sys_platform == \"darwin\" or sys_platform == \"linux\") and extra == \"all\""
+markers = "(sys_platform == \"darwin\" or sys_platform == \"linux\") and python_version == \"3.10\" and extra == \"all\""
 files = [
     {file = "networkx-3.4.2-py3-none-any.whl", hash = "sha256:df5d4365b724cf81b8c6a7312509d0c22386097011ad1abe274afd5e9d3bbc5f"},
     {file = "networkx-3.4.2.tar.gz", hash = "sha256:307c3669428c5362aab27c8a1260aa8f47c4e91d3891f48be0141738d8d053e1"},
@@ -1266,7 +1266,7 @@ description = "Python package for creating and manipulating graphs and networks"
 optional = true
 python-versions = ">=3.11"
 groups = ["main"]
-markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (platform_machine == \"arm64\" or sys_platform == \"linux\" or python_version >= \"3.11\" and python_version < \"3.13\") and extra == \"all\" and python_version >= \"3.11\" and (sys_platform == \"darwin\" or sys_platform == \"linux\" or python_version >= \"3.13\")"
+markers = "sys_platform == \"darwin\" and platform_machine != \"arm64\" and python_version < \"3.13\" and python_version >= \"3.11\" and extra == \"all\" or (sys_platform == \"linux\" or platform_machine == \"arm64\") and (sys_platform == \"linux\" or sys_platform == \"darwin\") and python_version >= \"3.11\" and extra == \"all\""
 files = [
     {file = "networkx-3.5-py3-none-any.whl", hash = "sha256:0030d386a9a06dee3565298b4a734b68589749a544acbb6c412dc9e2489ec6ec"},
     {file = "networkx-3.5.tar.gz", hash = "sha256:d4c6f9cf81f52d69230866796b82afbccdec3db7ae4fbd1b65ea750feed50037"},
@@ -1451,7 +1451,7 @@ description = "CUBLAS native runtime libraries"
 optional = true
 python-versions = ">=3"
 groups = ["main"]
-markers = "python_version <= \"3.12\" and sys_platform == \"darwin\" and platform_machine == \"x86_64\" and extra == \"all\" and platform_system == \"Linux\""
+markers = "sys_platform == \"darwin\" and platform_machine == \"x86_64\" and python_version <= \"3.12\" and extra == \"all\" and platform_system == \"Linux\""
 files = [
     {file = "nvidia_cublas_cu12-12.1.3.1-py3-none-manylinux1_x86_64.whl", hash = "sha256:ee53ccca76a6fc08fb9701aa95b6ceb242cdaab118c3bb152af4e579af792728"},
     {file = "nvidia_cublas_cu12-12.1.3.1-py3-none-win_amd64.whl", hash = "sha256:2b964d60e8cf11b5e1073d179d85fa340c120e99b3067558f3cf98dd69d02906"},
@@ -1478,7 +1478,7 @@ description = "CUDA profiling tools runtime libs."
 optional = true
 python-versions = ">=3"
 groups = ["main"]
-markers = "python_version <= \"3.12\" and sys_platform == \"darwin\" and platform_machine == \"x86_64\" and extra == \"all\" and platform_system == \"Linux\""
+markers = "sys_platform == \"darwin\" and platform_machine == \"x86_64\" and python_version <= \"3.12\" and extra == \"all\" and platform_system == \"Linux\""
 files = [
     {file = "nvidia_cuda_cupti_cu12-12.1.105-py3-none-manylinux1_x86_64.whl", hash = "sha256:e54fde3983165c624cb79254ae9818a456eb6e87a7fd4d56a2352c24ee542d7e"},
     {file = "nvidia_cuda_cupti_cu12-12.1.105-py3-none-win_amd64.whl", hash = "sha256:bea8236d13a0ac7190bd2919c3e8e6ce1e402104276e6f9694479e48bb0eb2a4"},
@@ -1505,7 +1505,7 @@ description = "NVRTC native runtime libraries"
 optional = true
 python-versions = ">=3"
 groups = ["main"]
-markers = "python_version <= \"3.12\" and sys_platform == \"darwin\" and platform_machine == \"x86_64\" and extra == \"all\" and platform_system == \"Linux\""
+markers = "sys_platform == \"darwin\" and platform_machine == \"x86_64\" and python_version <= \"3.12\" and extra == \"all\" and platform_system == \"Linux\""
 files = [
     {file = "nvidia_cuda_nvrtc_cu12-12.1.105-py3-none-manylinux1_x86_64.whl", hash = "sha256:339b385f50c309763ca65456ec75e17bbefcbbf2893f462cb8b90584cd27a1c2"},
     {file = "nvidia_cuda_nvrtc_cu12-12.1.105-py3-none-win_amd64.whl", hash = "sha256:0a98a522d9ff138b96c010a65e145dc1b4850e9ecb75a0172371793752fd46ed"},
@@ -1532,7 +1532,7 @@ description = "CUDA Runtime native Libraries"
 optional = true
 python-versions = ">=3"
 groups = ["main"]
-markers = "python_version <= \"3.12\" and sys_platform == \"darwin\" and platform_machine == \"x86_64\" and extra == \"all\" and platform_system == \"Linux\""
+markers = "sys_platform == \"darwin\" and platform_machine == \"x86_64\" and python_version <= \"3.12\" and extra == \"all\" and platform_system == \"Linux\""
 files = [
     {file = "nvidia_cuda_runtime_cu12-12.1.105-py3-none-manylinux1_x86_64.whl", hash = "sha256:6e258468ddf5796e25f1dc591a31029fa317d97a0a94ed93468fc86301d61e40"},
     {file = "nvidia_cuda_runtime_cu12-12.1.105-py3-none-win_amd64.whl", hash = "sha256:dfb46ef84d73fababab44cf03e3b83f80700d27ca300e537f85f636fac474344"},
@@ -1559,7 +1559,7 @@ description = "cuDNN runtime libraries"
 optional = true
 python-versions = ">=3"
 groups = ["main"]
-markers = "python_version <= \"3.12\" and sys_platform == \"darwin\" and platform_machine == \"x86_64\" and extra == \"all\" and platform_system == \"Linux\""
+markers = "sys_platform == \"darwin\" and platform_machine == \"x86_64\" and python_version <= \"3.12\" and extra == \"all\" and platform_system == \"Linux\""
 files = [
     {file = "nvidia_cudnn_cu12-8.9.2.26-py3-none-manylinux1_x86_64.whl", hash = "sha256:5ccb288774fdfb07a7e7025ffec286971c06d8d7b4fb162525334616d7629ff9"},
 ]
@@ -1591,7 +1591,7 @@ description = "CUFFT native runtime libraries"
 optional = true
 python-versions = ">=3"
 groups = ["main"]
-markers = "python_version <= \"3.12\" and sys_platform == \"darwin\" and platform_machine == \"x86_64\" and extra == \"all\" and platform_system == \"Linux\""
+markers = "sys_platform == \"darwin\" and platform_machine == \"x86_64\" and python_version <= \"3.12\" and extra == \"all\" and platform_system == \"Linux\""
 files = [
     {file = "nvidia_cufft_cu12-11.0.2.54-py3-none-manylinux1_x86_64.whl", hash = "sha256:794e3948a1aa71fd817c3775866943936774d1c14e7628c74f6f7417224cdf56"},
     {file = "nvidia_cufft_cu12-11.0.2.54-py3-none-win_amd64.whl", hash = "sha256:d9ac353f78ff89951da4af698f80870b1534ed69993f10a4cf1d96f21357e253"},
@@ -1634,7 +1634,7 @@ description = "CURAND native runtime libraries"
 optional = true
 python-versions = ">=3"
 groups = ["main"]
-markers = "python_version <= \"3.12\" and sys_platform == \"darwin\" and platform_machine == \"x86_64\" and extra == \"all\" and platform_system == \"Linux\""
+markers = "sys_platform == \"darwin\" and platform_machine == \"x86_64\" and python_version <= \"3.12\" and extra == \"all\" and platform_system == \"Linux\""
 files = [
     {file = "nvidia_curand_cu12-10.3.2.106-py3-none-manylinux1_x86_64.whl", hash = "sha256:9d264c5036dde4e64f1de8c50ae753237c12e0b1348738169cd0f8a536c0e1e0"},
     {file = "nvidia_curand_cu12-10.3.2.106-py3-none-win_amd64.whl", hash = "sha256:75b6b0c574c0037839121317e17fd01f8a69fd2ef8e25853d826fec30bdba74a"},
@@ -1661,7 +1661,7 @@ description = "CUDA solver native runtime libraries"
 optional = true
 python-versions = ">=3"
 groups = ["main"]
-markers = "python_version <= \"3.12\" and sys_platform == \"darwin\" and platform_machine == \"x86_64\" and extra == \"all\" and platform_system == \"Linux\""
+markers = "sys_platform == \"darwin\" and platform_machine == \"x86_64\" and python_version <= \"3.12\" and extra == \"all\" and platform_system == \"Linux\""
 files = [
     {file = "nvidia_cusolver_cu12-11.4.5.107-py3-none-manylinux1_x86_64.whl", hash = "sha256:8a7ec542f0412294b15072fa7dab71d31334014a69f953004ea7a118206fe0dd"},
     {file = "nvidia_cusolver_cu12-11.4.5.107-py3-none-win_amd64.whl", hash = "sha256:74e0c3a24c78612192a74fcd90dd117f1cf21dea4822e66d89e8ea80e3cd2da5"},
@@ -1698,7 +1698,7 @@ description = "CUSPARSE native runtime libraries"
 optional = true
 python-versions = ">=3"
 groups = ["main"]
-markers = "python_version <= \"3.12\" and sys_platform == \"darwin\" and platform_machine == \"x86_64\" and extra == \"all\" and platform_system == \"Linux\""
+markers = "sys_platform == \"darwin\" and platform_machine == \"x86_64\" and python_version <= \"3.12\" and extra == \"all\" and platform_system == \"Linux\""
 files = [
     {file = "nvidia_cusparse_cu12-12.1.0.106-py3-none-manylinux1_x86_64.whl", hash = "sha256:f3b50f42cf363f86ab21f720998517a659a48131e8d538dc02f8768237bd884c"},
     {file = "nvidia_cusparse_cu12-12.1.0.106-py3-none-win_amd64.whl", hash = "sha256:b798237e81b9719373e8fae8d4f091b70a0cf09d9d85c95a557e11df2d8e9a5a"},
@@ -1745,7 +1745,7 @@ description = "NVIDIA Collective Communication Library (NCCL) Runtime"
 optional = true
 python-versions = ">=3"
 groups = ["main"]
-markers = "python_version <= \"3.12\" and sys_platform == \"darwin\" and platform_machine == \"x86_64\" and extra == \"all\" and platform_system == \"Linux\""
+markers = "sys_platform == \"darwin\" and platform_machine == \"x86_64\" and python_version <= \"3.12\" and extra == \"all\" and platform_system == \"Linux\""
 files = [
     {file = "nvidia_nccl_cu12-2.19.3-py3-none-manylinux1_x86_64.whl", hash = "sha256:a9734707a2c96443331c1e48c717024aa6678a0e2a4cb66b2c364d18cee6b48d"},
 ]
@@ -1784,7 +1784,7 @@ description = "Nvidia JIT LTO Library"
 optional = true
 python-versions = ">=3"
 groups = ["main"]
-markers = "python_version <= \"3.12\" and sys_platform == \"darwin\" and platform_machine == \"x86_64\" and extra == \"all\" and platform_system == \"Linux\""
+markers = "sys_platform == \"darwin\" and platform_machine == \"x86_64\" and python_version <= \"3.12\" and extra == \"all\" and platform_system == \"Linux\""
 files = [
     {file = "nvidia_nvjitlink_cu12-12.9.86-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl", hash = "sha256:e3f1171dbdc83c5932a45f0f4c99180a70de9bd2718c1ab77d14104f6d7147f9"},
     {file = "nvidia_nvjitlink_cu12-12.9.86-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:994a05ef08ef4b0b299829cde613a424382aff7efb08a7172c1fa616cc3af2ca"},
@@ -1811,7 +1811,7 @@ description = "NVIDIA Tools Extension"
 optional = true
 python-versions = ">=3"
 groups = ["main"]
-markers = "python_version <= \"3.12\" and sys_platform == \"darwin\" and platform_machine == \"x86_64\" and extra == \"all\" and platform_system == \"Linux\""
+markers = "sys_platform == \"darwin\" and platform_machine == \"x86_64\" and python_version <= \"3.12\" and extra == \"all\" and platform_system == \"Linux\""
 files = [
     {file = "nvidia_nvtx_cu12-12.1.105-py3-none-manylinux1_x86_64.whl", hash = "sha256:dc21cf308ca5691e7c04d962e213f8a4aa9bbfa23d95412f452254c2caeb09e5"},
     {file = "nvidia_nvtx_cu12-12.1.105-py3-none-win_amd64.whl", hash = "sha256:65f4d98982b31b60026e0e6de73fbdfc09d08a96f4656dd3665ca616a11e1e82"},
@@ -2108,7 +2108,7 @@ description = "Python library for Apache Arrow"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"all\" and python_version < \"3.14\""
+markers = "python_version < \"3.14\" and extra == \"all\""
 files = [
     {file = "pyarrow-21.0.0-cp310-cp310-macosx_12_0_arm64.whl", hash = "sha256:e563271e2c5ff4d4a4cbeb2c83d5cf0d4938b891518e676025f7268c6fe5fe26"},
     {file = "pyarrow-21.0.0-cp310-cp310-macosx_12_0_x86_64.whl", hash = "sha256:fee33b0ca46f4c85443d6c450357101e47d53e6c3f008d658c27a2d020d44c79"},
@@ -2611,7 +2611,7 @@ description = "Easily download, build, install, upgrade, and uninstall Python pa
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (platform_machine == \"arm64\" or sys_platform == \"linux\") and extra == \"all\" and python_version >= \"3.12\""
+markers = "(sys_platform == \"linux\" or platform_machine == \"arm64\") and python_version >= \"3.12\" and (sys_platform == \"linux\" or sys_platform == \"darwin\") and extra == \"all\""
 files = [
     {file = "setuptools-80.9.0-py3-none-any.whl", hash = "sha256:062d34222ad13e0cc312a4c02d73f059e86a4acbfbdea8f8f76b28c99f306922"},
     {file = "setuptools-80.9.0.tar.gz", hash = "sha256:f36b47402ecde768dbfafc46e8e4207b4360c654f1f3bb84475f0a28628fb19c"},
@@ -2646,7 +2646,7 @@ description = "Computer algebra system (CAS) in Python"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (platform_machine == \"arm64\" or sys_platform == \"linux\" or python_version <= \"3.12\") and extra == \"all\" and (sys_platform == \"darwin\" or sys_platform == \"linux\" or python_version >= \"3.13\")"
+markers = "sys_platform == \"darwin\" and platform_machine != \"arm64\" and python_version <= \"3.12\" and extra == \"all\" or (sys_platform == \"linux\" or platform_machine == \"arm64\") and (sys_platform == \"linux\" or sys_platform == \"darwin\") and extra == \"all\""
 files = [
     {file = "sympy-1.14.0-py3-none-any.whl", hash = "sha256:e091cc3e99d2141a0ba2847328f5479b05d94a6635cb96148ccb3f34671bd8f5"},
     {file = "sympy-1.14.0.tar.gz", hash = "sha256:d3d3fe8df1e5a0b42f0e7bdf50541697dbe7d23746e894990c030e2b05e72517"},
@@ -2718,7 +2718,7 @@ description = "Tensors and Dynamic neural networks in Python with strong GPU acc
 optional = true
 python-versions = ">=3.8.0"
 groups = ["main"]
-markers = "python_version <= \"3.12\" and sys_platform == \"darwin\" and platform_machine != \"arm64\" and extra == \"all\""
+markers = "sys_platform == \"darwin\" and platform_machine != \"arm64\" and python_version <= \"3.12\" and extra == \"all\""
 files = [
     {file = "torch-2.2.2-cp310-cp310-manylinux1_x86_64.whl", hash = "sha256:bc889d311a855dd2dfd164daf8cc903a6b7273a747189cebafdd89106e4ad585"},
     {file = "torch-2.2.2-cp310-cp310-manylinux2014_aarch64.whl", hash = "sha256:15dffa4cc3261fa73d02f0ed25f5fa49ecc9e12bf1ae0a4c1e7a88bbfaad9030"},
@@ -2778,7 +2778,7 @@ description = "Tensors and Dynamic neural networks in Python with strong GPU acc
 optional = true
 python-versions = ">=3.10"
 groups = ["main"]
-markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (platform_machine == \"arm64\" or sys_platform == \"linux\") and extra == \"all\""
+markers = "(sys_platform == \"linux\" or platform_machine == \"arm64\") and (sys_platform == \"linux\" or sys_platform == \"darwin\") and extra == \"all\""
 files = [
     {file = "torch-2.9.0-cp310-cp310-manylinux_2_28_aarch64.whl", hash = "sha256:030bbfe367379ae6a4ae4042b6c44da25383343b8b3c68abaa9c7231efbaf2dd"},
     {file = "torch-2.9.0-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:51cb63902182a78e90886e8068befd8ea102af4b00e420263591a3d70c7d3c6c"},
@@ -2847,7 +2847,7 @@ description = "A language and compiler for custom Deep Learning operations"
 optional = true
 python-versions = "*"
 groups = ["main"]
-markers = "python_version < \"3.12\" and sys_platform == \"darwin\" and platform_machine == \"x86_64\" and extra == \"all\" and platform_system == \"Linux\""
+markers = "sys_platform == \"darwin\" and platform_machine == \"x86_64\" and python_version < \"3.12\" and extra == \"all\" and platform_system == \"Linux\""
 files = [
     {file = "triton-2.2.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a2294514340cfe4e8f4f9e5c66c702744c4a117d25e618bd08469d0bfed1e2e5"},
     {file = "triton-2.2.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:da58a152bddb62cafa9a857dd2bc1f886dbf9f9c90a2b5da82157cd2b34392b0"},
@@ -2906,7 +2906,7 @@ files = [
     {file = "typing_extensions-4.15.0-py3-none-any.whl", hash = "sha256:f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548"},
     {file = "typing_extensions-4.15.0.tar.gz", hash = "sha256:0cea48d173cc12fa28ecabc3b837ea3cf6f38c6d1136f85cbaaf598984861466"},
 ]
-markers = {main = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (platform_machine == \"arm64\" or sys_platform == \"linux\" or python_version <= \"3.12\") and extra == \"all\" and (sys_platform == \"darwin\" or sys_platform == \"linux\" or python_version >= \"3.13\")", dev = "python_version == \"3.10\"", docs = "python_version == \"3.10\""}
+markers = {main = "sys_platform == \"darwin\" and platform_machine != \"arm64\" and python_version <= \"3.12\" and extra == \"all\" or (sys_platform == \"linux\" or platform_machine == \"arm64\") and (sys_platform == \"linux\" or sys_platform == \"darwin\") and extra == \"all\"", dev = "python_version == \"3.10\"", docs = "python_version == \"3.10\""}
 
 [[package]]
 name = "tzdata"
@@ -3134,9 +3134,9 @@ test = ["big-O", "jaraco.functools", "jaraco.itertools", "jaraco.test", "more_it
 type = ["pytest-mypy"]
 
 [extras]
-all = ["jax", "jax", "jax", "jax", "jax", "jax", "jax", "jaxlib", "jaxlib", "jaxlib", "jaxlib", "jaxlib", "jaxlib", "jaxlib", "numpy", "numpy", "packaging", "pandas", "polars", "pyarrow", "torch", "torch", "xarray"]
+all = ["jax", "jax", "jaxlib", "jaxlib", "numpy", "numpy", "packaging", "pandas", "polars", "pyarrow", "torch", "torch", "xarray"]
 
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.15"
-content-hash = "f7dc9343b4b3d159c912ad63549ba275273e211de9e6e37441c849c33e0efc90"
+content-hash = "b86e03d96d37e3abe818c3e1c4acf2b7a488b6702e668523c771ac4e5cd58329"
