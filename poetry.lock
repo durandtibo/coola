@@ -653,7 +653,7 @@ description = "Differentiate, compile, and transform Numpy code."
 optional = true
 python-versions = ">=3.11"
 groups = ["main"]
-markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (sys_platform == \"linux\" or platform_machine == \"arm64\") and python_version >= \"3.11\" and extra == \"all\""
+markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (sys_platform == \"linux\" or platform_machine == \"arm64\") and extra == \"all\" and python_version >= \"3.11\""
 files = [
     {file = "jax-0.8.0-py3-none-any.whl", hash = "sha256:d190158bc019756c6a0f6b3d5fc8783471fb407e6deaff559eaac60dd5ee850a"},
     {file = "jax-0.8.0.tar.gz", hash = "sha256:0ea5a7be7068c25934450dfd87d7d80a18a5d30e0a53454e7aade525b23accd5"},
@@ -720,7 +720,7 @@ description = "XLA library for JAX"
 optional = true
 python-versions = ">=3.11"
 groups = ["main"]
-markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (sys_platform == \"linux\" or platform_machine == \"arm64\") and python_version >= \"3.11\" and extra == \"all\""
+markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (sys_platform == \"linux\" or platform_machine == \"arm64\") and extra == \"all\" and python_version >= \"3.11\""
 files = [
     {file = "jaxlib-0.8.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:bb602a8c24c614cb8ca6eeed3e70a733d9399c6a2f88900a0252623cd67276b5"},
     {file = "jaxlib-0.8.0-cp311-cp311-manylinux_2_27_aarch64.whl", hash = "sha256:41aebddef67a555a6de17427a4e66ce60a528a815847e2dd96dabce579f7acf8"},
@@ -2456,7 +2456,7 @@ description = "Fundamental algorithms for scientific computing in Python"
 optional = true
 python-versions = ">=3.11"
 groups = ["main"]
-markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (sys_platform == \"linux\" or platform_machine == \"arm64\") and python_version >= \"3.11\" and extra == \"all\""
+markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (sys_platform == \"linux\" or platform_machine == \"arm64\") and extra == \"all\" and python_version >= \"3.11\""
 files = [
     {file = "scipy-1.16.3-cp311-cp311-macosx_10_14_x86_64.whl", hash = "sha256:40be6cf99e68b6c4321e9f8782e7d5ff8265af28ef2cd56e9c9b2638fa08ad97"},
     {file = "scipy-1.16.3-cp311-cp311-macosx_12_0_arm64.whl", hash = "sha256:8be1ca9170fcb6223cc7c27f4305d680ded114a1567c0bd2bfcbf947d1b17511"},
@@ -2536,7 +2536,7 @@ description = "Easily download, build, install, upgrade, and uninstall Python pa
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (sys_platform == \"linux\" or platform_machine == \"arm64\") and python_version >= \"3.12\" and extra == \"all\""
+markers = "(sys_platform == \"linux\" or sys_platform == \"darwin\") and (sys_platform == \"linux\" or platform_machine == \"arm64\") and extra == \"all\" and python_version >= \"3.12\""
 files = [
     {file = "setuptools-80.9.0-py3-none-any.whl", hash = "sha256:062d34222ad13e0cc312a4c02d73f059e86a4acbfbdea8f8f76b28c99f306922"},
     {file = "setuptools-80.9.0.tar.gz", hash = "sha256:f36b47402ecde768dbfafc46e8e4207b4360c654f1f3bb84475f0a28628fb19c"},
@@ -3064,4 +3064,4 @@ all = ["jax", "jax", "jaxlib", "jaxlib", "numpy", "numpy", "packaging", "pandas"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.15"
-content-hash = "d71dec263e651acec2441ae3a72b2436877cfb240a777673468ff7a90f348e80"
+content-hash = "b5759a71806af7cd4e05a8078941c1bda7485b66bfd6834c671429e2f256db01"

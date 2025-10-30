@@ -70,13 +70,13 @@ python = ">=3.10,<3.15"
 jax = [
     # macOS x86_64 binaries do not exist after JAX 0.5
     # https://github.com/jax-ml/jax/releases/tag/jax-v0.5.0
-    { version = ">=0.5.0,<1.0", markers = "sys_platform == 'linux' or (sys_platform == 'darwin' and platform_machine == 'arm64')", optional = true },
+    { version = ">=0.5.0,<1.0", markers = "sys_platform == 'linux' or (sys_platform == 'darwin' and platform_machine == 'arm64')", python = "<3.14", optional = true },
     { version = ">=0.7.1,<1.0", markers = "sys_platform == 'linux' or (sys_platform == 'darwin' and platform_machine == 'arm64')", python = ">=3.14", optional = true },
 ]
 jaxlib = [
     # macOS x86_64 binaries do not exist after JAX 0.5
     # https://github.com/jax-ml/jax/releases/tag/jax-v0.5.0
-    { version = ">=0.5.0,<1.0", markers = "sys_platform == 'linux' or (sys_platform == 'darwin' and platform_machine == 'arm64')", optional = true },
+    { version = ">=0.5.0,<1.0", markers = "sys_platform == 'linux' or (sys_platform == 'darwin' and platform_machine == 'arm64')", python = "<3.14", optional = true },
     { version = ">=0.7.1,<1.0", markers = "sys_platform == 'linux' or (sys_platform == 'darwin' and platform_machine == 'arm64')", python = ">=3.14", optional = true },
 ]
 numpy = [
