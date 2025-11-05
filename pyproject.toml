@@ -63,7 +63,7 @@ numpy = [
 packaging = { version = ">=22.0,<26.0", optional = true }
 pandas = { version = ">=2.0,<3.0", optional = true }
 polars = { version = ">=1.0,<2.0", optional = true }
-pyarrow = { version = ">=11.0,<22.0", python = "<3.14", optional = true }
+pyarrow = { version = ">=11.0,<23.0", python = "<3.14", optional = true }
 torch = [
     # Linux and Apple Silicon
     { version = ">=2.0,<3.0", markers = "sys_platform == 'linux' or (sys_platform == 'darwin' and platform_machine == 'arm64')", optional = true },
