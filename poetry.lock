@@ -421,14 +421,14 @@ test = ["pytest (>=6)"]
 
 [[package]]
 name = "feu"
-version = "0.4.1"
+version = "0.4.2"
 description = "A light library to help to manage packages"
 optional = false
 python-versions = "<3.15,>=3.10"
 groups = ["dev"]
 files = [
-    {file = "feu-0.4.1-py3-none-any.whl", hash = "sha256:9dd97635be027a199921bf6062f4b5ae300cc42ca7005f69de136e88a68c098b"},
-    {file = "feu-0.4.1.tar.gz", hash = "sha256:0f1d77a3e6f38e7e8c1878ff95bf719c4cf2c031ed67a1e071e84ff046e21b5b"},
+    {file = "feu-0.4.2-py3-none-any.whl", hash = "sha256:0d30ee2bf24a92b9e3bcf22e480d8b01e97b4635bb877da539bbcfc8cafd93cc"},
+    {file = "feu-0.4.2.tar.gz", hash = "sha256:fd5611349a2b943af998c06f13bb9ebd277b84094c746832689b2b9ae062a470"},
 ]
 
 [package.dependencies]
@@ -2963,7 +2963,7 @@ description = "N-D labeled arrays and datasets in Python"
 optional = true
 python-versions = ">=3.10"
 groups = ["main"]
-markers = "python_version == \"3.10\" and extra == \"all\""
+markers = "extra == \"all\""
 files = [
     {file = "xarray-2025.6.1-py3-none-any.whl", hash = "sha256:8b988b47f67a383bdc3b04c5db475cd165e580134c1f1943d52aee4a9c97651b"},
     {file = "xarray-2025.6.1.tar.gz", hash = "sha256:a84f3f07544634a130d7dc615ae44175419f4c77957a7255161ed99c69c7c8b0"},
@@ -2982,33 +2982,6 @@ io = ["cftime", "fsspec", "h5netcdf", "netCDF4", "pooch", "pydap ; python_versio
 parallel = ["dask[complete]"]
 types = ["pandas-stubs", "scipy-stubs", "types-PyYAML", "types-Pygments", "types-colorama", "types-decorator", "types-defusedxml", "types-docutils", "types-networkx", "types-openpyxl", "types-pexpect", "types-psutil", "types-pycurl", "types-python-dateutil", "types-pytz", "types-setuptools"]
 viz = ["cartopy", "matplotlib", "nc-time-axis", "seaborn"]
-
-[[package]]
-name = "xarray"
-version = "2025.10.1"
-description = "N-D labeled arrays and datasets in Python"
-optional = true
-python-versions = ">=3.11"
-groups = ["main"]
-markers = "python_version >= \"3.11\" and extra == \"all\""
-files = [
-    {file = "xarray-2025.10.1-py3-none-any.whl", hash = "sha256:a4e699433b87a7fac340951bc36648645eeef72bdd915ff055ac2fd99865a73d"},
-    {file = "xarray-2025.10.1.tar.gz", hash = "sha256:3c2b5ad7389825bd624ada5ff26b01ac54b1aae72e2fe0d724d81d40a2bf5785"},
-]
-
-[package.dependencies]
-numpy = ">=1.26"
-packaging = ">=24.1"
-pandas = ">=2.2"
-
-[package.extras]
-accel = ["bottleneck", "flox (>=0.9)", "numba (>=0.62)", "numbagg (>=0.8)", "opt_einsum", "scipy (>=1.13)"]
-complete = ["xarray[accel,etc,io,parallel,viz]"]
-etc = ["sparse (>=0.15)"]
-io = ["cftime", "fsspec", "h5netcdf", "netCDF4 (>=1.6.0)", "pooch", "pydap", "scipy (>=1.13)", "zarr (>=2.18)"]
-parallel = ["dask[complete]"]
-types = ["pandas-stubs", "scipy-stubs", "types-PyYAML", "types-Pygments", "types-colorama", "types-decorator", "types-defusedxml", "types-docutils", "types-networkx", "types-openpyxl", "types-pexpect", "types-psutil", "types-pycurl", "types-python-dateutil", "types-pytz", "types-requests", "types-setuptools"]
-viz = ["cartopy (>=0.23)", "matplotlib", "nc-time-axis", "seaborn"]
 
 [[package]]
 name = "xdoctest"
