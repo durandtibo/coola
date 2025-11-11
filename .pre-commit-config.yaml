@@ -4,11 +4,6 @@ default_language_version:
 default_stages: [ pre-commit ]
 
 repos:
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.21.1
-    hooks:
-      - id: pyupgrade
-        args: [--py310-plus]
   - repo: local
     hooks:
       - id: docformatter

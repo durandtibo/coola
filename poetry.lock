@@ -3075,4 +3075,4 @@ all = ["jax", "jax", "jaxlib", "jaxlib", "numpy", "numpy", "packaging", "pandas"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.15"
-content-hash = "93a548de539de27f6c7e42bebe85a7b8b232b45f93e0c3d65da3621fda0bf803"
+content-hash = "43517341f60680faaa7bf4dea0944b93b209dc84cb3f947584b8fa00505da742"
