@@ -7,10 +7,9 @@ __all__ = ["PolarsDataFrameEqualHandler", "PolarsLazyFrameEqualHandler", "Polars
 
 import inspect
 import logging
+from functools import lru_cache
 from typing import TYPE_CHECKING
 from unittest.mock import Mock
-
-from black.strings import lru_cache
 
 from coola.equality.handlers.base import BaseEqualityHandler
 from coola.utils import is_polars_available
