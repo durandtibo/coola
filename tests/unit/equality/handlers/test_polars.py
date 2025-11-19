@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from typing import TYPE_CHECKING
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -12,7 +12,13 @@ from coola.equality.handlers import (
     PolarsDataFrameEqualHandler,
     PolarsSeriesEqualHandler,
 )
-from coola.equality.handlers.polars_ import PolarsLazyFrameEqualHandler, has_nan
+from coola.equality.handlers.polars_ import (
+    PolarsLazyFrameEqualHandler,
+    assert_frame_equal,
+    assert_series_equal,
+    has_nan,
+    is_new_naming,
+)
 from coola.equality.testers import EqualityTester
 from coola.testing import polars_available
 from coola.utils import is_polars_available
@@ -558,3 +564,61 @@ def test_has_nan_true(df_or_series: pl.DataFrame | pl.Series) -> None:
 @pytest.mark.parametrize("df_or_series", HAS_NAN_FALSE)
 def test_has_nan_false(df_or_series: pl.DataFrame | pl.Series) -> None:
     assert has_nan(df_or_series)
+
+
+########################################
+#     Tests for assert_frame_equal     #
+########################################
+
+
+@polars_available
+def test_assert_frame_equal_new_naming() -> None:
+    is_new_naming.cache_clear()
+    with (
+        patch("coola.equality.handlers.polars_.is_new_naming", lambda: True),
+        patch("polars.testing.assert_frame_equal") as mock,
+    ):
+        assert_frame_equal(
+            df1=pl.DataFrame({"col": [1, 2, 3]}), df2=pl.DataFrame({"col": [1, 2, 3]})
+        )
+        assert mock.call_args.kwargs == {"abs_tol": 1e-8, "rel_tol": 1e-5, "check_exact": False}
+
+
+@polars_available
+def test_assert_frame_equal_old_naming() -> None:
+    is_new_naming.cache_clear()
+    with (
+        patch("coola.equality.handlers.polars_.is_new_naming", lambda: False),
+        patch("polars.testing.assert_frame_equal") as mock,
+    ):
+        assert_frame_equal(
+            df1=pl.DataFrame({"col": [1, 2, 3]}), df2=pl.DataFrame({"col": [1, 2, 3]})
+        )
+        assert mock.call_args.kwargs == {"atol": 1e-8, "rtol": 1e-5, "check_exact": False}
+
+
+#########################################
+#     Tests for assert_series_equal     #
+#########################################
+
+
+@polars_available
+def test_assert_series_equal_new_naming() -> None:
+    is_new_naming.cache_clear()
+    with (
+        patch("coola.equality.handlers.polars_.is_new_naming", lambda: True),
+        patch("polars.testing.assert_series_equal") as mock,
+    ):
+        assert_series_equal(series1=pl.Series([1, 2, 3]), series2=pl.Series([1, 2, 3]))
+        assert mock.call_args.kwargs == {"abs_tol": 1e-8, "rel_tol": 1e-5, "check_exact": False}
+
+
+@polars_available
+def test_assert_series_equal_old_naming() -> None:
+    is_new_naming.cache_clear()
+    with (
+        patch("coola.equality.handlers.polars_.is_new_naming", lambda: False),
+        patch("polars.testing.assert_series_equal") as mock,
+    ):
+        assert_series_equal(series1=pl.Series([1, 2, 3]), series2=pl.Series([1, 2, 3]))
+        assert mock.call_args.kwargs == {"atol": 1e-8, "rtol": 1e-5, "check_exact": False}

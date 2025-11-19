@@ -5,9 +5,12 @@ from __future__ import annotations
 
 __all__ = ["PolarsDataFrameEqualHandler", "PolarsLazyFrameEqualHandler", "PolarsSeriesEqualHandler"]
 
+import inspect
 import logging
 from typing import TYPE_CHECKING
 from unittest.mock import Mock
+
+from black.strings import lru_cache
 
 from coola.equality.handlers.base import BaseEqualityHandler
 from coola.utils import is_polars_available
@@ -15,7 +18,7 @@ from coola.utils import is_polars_available
 if is_polars_available():
     import polars as pl
     import polars.selectors as cs
-    from polars.testing import assert_frame_equal, assert_series_equal
+    from polars import testing
 else:  # pragma: no cover
     pl = Mock()
 
@@ -222,13 +225,7 @@ def frame_equal(df1: pl.DataFrame, df2: pl.DataFrame, config: EqualityConfig) ->
     if not config.equal_nan and has_nan(df1):
         return False
     try:
-        assert_frame_equal(
-            df1,
-            df2,
-            check_exact=config.atol == 0 and config.rtol == 0,
-            atol=config.atol,
-            rtol=config.rtol,
-        )
+        assert_frame_equal(df1, df2, atol=config.atol, rtol=config.rtol)
     except AssertionError:
         return False
     return True
@@ -251,10 +248,67 @@ def series_equal(series1: pl.Series, series2: pl.Series, config: EqualityConfig)
         assert_series_equal(
             series1,
             series2,
-            check_exact=config.atol == 0 and config.rtol == 0,
             atol=config.atol,
             rtol=config.rtol,
         )
     except AssertionError:
         return False
     return True
+
+
+def assert_frame_equal(
+    df1: pl.DataFrame,
+    df2: pl.DataFrame,
+    rtol: float = 1e-5,
+    atol: float = 1e-8,
+) -> None:
+    """Compare two polars DataFrames with tolerance, supporting multiple
+    polars versions.
+
+    Args:
+        df1: The first DataFrame to compare.
+        df2: The second DataFrame to compare.
+        rtol: The relative tolerance parameter.
+        atol: The absolute tolerance parameter.
+    """
+    check_exact = atol == 0 and rtol == 0
+    if is_new_naming():
+        testing.assert_frame_equal(df1, df2, abs_tol=atol, rel_tol=rtol, check_exact=check_exact)
+    else:
+        testing.assert_frame_equal(df1, df2, atol=atol, rtol=rtol, check_exact=check_exact)
+
+
+def assert_series_equal(
+    series1: pl.Series,
+    series2: pl.Series,
+    rtol: float = 1e-5,
+    atol: float = 1e-8,
+) -> None:
+    """Compare two polars Series with tolerance, supporting multiple
+    polars versions.
+
+    Args:
+        series1: The first series to compare.
+        series2: The second series to compare.
+        rtol: The relative tolerance parameter.
+        atol: The absolute tolerance parameter.
+    """
+    check_exact = atol == 0 and rtol == 0
+    if is_new_naming():
+        testing.assert_series_equal(
+            series1, series2, abs_tol=atol, rel_tol=rtol, check_exact=check_exact
+        )
+    else:
+        testing.assert_series_equal(series1, series2, atol=atol, rtol=rtol, check_exact=check_exact)
+
+
+@lru_cache
+def is_new_naming() -> bool:
+    r"""Indicate if polars uses the new naming for ``abs_tol`` and
+    ``rel_tol``.
+
+    Returns:
+        ``True`` if ``abs_tol`` and ``rel_tol`` are used,
+            otherwise ``atol`` and ``rtol`` are used.
+    """
+    return "abs_tol" in inspect.signature(pl.testing.assert_frame_equal).parameters
