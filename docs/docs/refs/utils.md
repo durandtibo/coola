@@ -1,1 +1,10 @@
 ::: coola.utils
+::: coola.utils.array
+::: coola.utils.format
+::: coola.utils.imports
+::: coola.utils.introspection
+::: coola.utils.mapping
+::: coola.utils.path
+::: coola.utils.stats
+::: coola.utils.tensor
+::: coola.utils.version
