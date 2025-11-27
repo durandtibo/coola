@@ -134,7 +134,7 @@ class AbstractEqualityHandler(BaseEqualityHandler):
 
     @property
     def next_handler(self) -> BaseEqualityHandler | None:
-        """The next handler."""
+        r"""The next handler."""
         return self._next_handler
 
     def _handle_next(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
