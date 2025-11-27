@@ -52,7 +52,7 @@ if TYPE_CHECKING:
 
 @lru_cache
 def package_available(name: str) -> bool:
-    """Indicate if a package is available or not.
+    r"""Indicate if a package is available or not.
 
     Args:
         name: The package name to check.
@@ -79,7 +79,7 @@ def package_available(name: str) -> bool:
 
 @lru_cache
 def module_available(name: str) -> bool:
-    """Indicate if a module is available or not.
+    r"""Indicate if a module is available or not.
 
     Args:
         name: The module name to check.
@@ -869,8 +869,9 @@ def xarray_available(fn: Callable[..., Any]) -> Callable[..., Any]:
 # https://github.com/Lightning-AI/utilities/blob/b4232544a6e974fee2bebeb029849bd53916bbda/src/lightning_utilities/core/imports.py#L254C1-L292C52
 # with license found in the licenses/LICENSE_lightning_utilities
 class LazyModule(ModuleType):
-    """Define a proxy module that lazily imports a module the first time
-    it is actually used.
+    r"""Define a proxy module that lazily imports a module.
+
+    The module is imported the first time it is actually used.
 
     Args:
         name: The fully-qualified module name to import.

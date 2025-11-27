@@ -16,7 +16,7 @@ class Reduction:
 
     @classmethod
     def available_reducers(cls) -> tuple[str, ...]:
-        """Get the available reducers.
+        r"""Get the available reducers.
 
         Returns:
             The available reducers.

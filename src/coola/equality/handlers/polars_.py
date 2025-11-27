@@ -261,8 +261,9 @@ def assert_frame_equal(
     rtol: float = 1e-5,
     atol: float = 1e-8,
 ) -> None:
-    """Compare two polars DataFrames with tolerance, supporting multiple
-    polars versions.
+    r"""Compare two polars DataFrames with tolerance.
+
+    This function supports multiple polars versions.
 
     Args:
         df1: The first DataFrame to compare.
@@ -283,8 +284,9 @@ def assert_series_equal(
     rtol: float = 1e-5,
     atol: float = 1e-8,
 ) -> None:
-    """Compare two polars Series with tolerance, supporting multiple
-    polars versions.
+    r"""Compare two polars Series with tolerance.
+
+    This function supports multiple polars versions.
 
     Args:
         series1: The first series to compare.

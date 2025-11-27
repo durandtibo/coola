@@ -10,7 +10,7 @@ from coola.utils.format import str_indent, str_mapping
 
 
 class ReducerRegistry:
-    """Implement the reducer registry.
+    r"""Implement the reducer registry.
 
     The registry is a class variable, so it is shared with all the
     instances of this class.
@@ -55,7 +55,7 @@ class ReducerRegistry:
 
     @classmethod
     def available_reducers(cls) -> tuple[str, ...]:
-        """Get the available reducers.
+        r"""Get the available reducers.
 
         Returns:
             The available reducers.

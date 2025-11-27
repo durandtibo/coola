@@ -24,7 +24,7 @@ from coola.utils.format import str_indent, str_mapping
 
 
 class Summarizer(BaseSummarizer):
-    """Implement the default summarizer.
+    r"""Implement the default summarizer.
 
     The registry is a class variable, so it is shared with all the
     instances of this class.

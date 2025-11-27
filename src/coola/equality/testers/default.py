@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class EqualityTester(BaseEqualityTester):
-    """Implement the default equality tester."""
+    r"""Implement the default equality tester."""
 
     registry: ClassVar[dict[type, BaseEqualityComparator]] = {}
 
@@ -139,7 +139,7 @@ class EqualityTester(BaseEqualityTester):
 
 
 class LocalEqualityTester(BaseEqualityTester):  # noqa: PLW1641
-    """Implement an equality tester that can be easily customized.
+    r"""Implement an equality tester that can be easily customized.
 
     Args:
         registry: The initial registry with the equality
