@@ -36,6 +36,11 @@ jobs:
             run_id=$(echo $run | jq -r '.id')
             created_at=$(echo $run | jq -r '.created_at')
 
+            # Skip if run_id or created_at are empty
+            if [ -z "$run_id" ] || [ -z "$created_at" ]; then
+              continue
+            fi
+
             # Compute age in hours
             age_hours=$(( ($(date -u +%s) - $(date -d "$created_at" -u +%s)) / 3600 ))
 
