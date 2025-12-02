@@ -43,9 +43,9 @@ jobs:
 
             if [ "$age_hours" -gt 24 ]; then
               echo "Cancelling run $run_id..."
-                gh api \
-                  -X POST \
-                  -H "Accept: application/vnd.github+json" \
-                  /repos/$REPO/actions/runs/$run_id/cancel
+              gh api \
+                -X POST \
+                -H "Accept: application/vnd.github+json" \
+                /repos/$REPO/actions/runs/$run_id/cancel
             fi
           done
