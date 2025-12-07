@@ -69,6 +69,8 @@ to [support other data structures](https://durandtibo.github.io/coola/customizat
 - [Contributing](#contributing)
 - [API stability](#api-stability)
 - [License](#license)
+- [Changelog](CHANGELOG.md)
+- [Security](SECURITY.md)
 
 ## Motivation
 
@@ -124,6 +126,7 @@ False
 
 Please check the [quickstart page](https://durandtibo.github.io/coola/quickstart) to learn more on
 how to use `coola`.
+If you encounter any issues, see the [troubleshooting guide](https://durandtibo.github.io/coola/troubleshooting) or [FAQ](https://durandtibo.github.io/coola/faq).
 
 ## Documentation
 
@@ -214,6 +217,11 @@ Everyone is welcome to contribute to the community.
 If you have any questions or suggestions, you can
 submit [Github Issues](https://github.com/durandtibo/coola/issues).
 We will reply to you as soon as possible. Thank you very much.
+
+## Contributors
+
+Thanks to all the contributors who have helped make `coola` better! 
+See the [contributors page](https://github.com/durandtibo/coola/graphs/contributors) for the full list.
 
 ## API stability
 

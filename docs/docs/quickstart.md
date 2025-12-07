@@ -295,7 +295,7 @@ True
 
 `objects_are_allclose` supports a lot of types and nested structure.
 Feel free to try any complex nested structure that you want. You can find the currently supported
-types [here](types.md#equal-within-a-tolerance--allclose-).
+types [here](types.md#equal-within-a-tolerance-allclose).
 
 ### Not A Number (NaN)
 
