@@ -28,6 +28,10 @@ nav:
       - quickstart.md
       - types.md
       - customization.md
+      - examples.md
+      - performance.md
+      - troubleshooting.md
+      - faq.md
   - Reference:
       - refs/index.md
       - refs/equality.md

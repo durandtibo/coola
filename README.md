@@ -69,6 +69,8 @@ to [support other data structures](https://durandtibo.github.io/coola/customizat
 - [Contributing](#contributing)
 - [API stability](#api-stability)
 - [License](#license)
+- [Changelog](CHANGELOG.md)
+- [Security](SECURITY.md)
 
 ## Motivation
 
@@ -124,6 +126,7 @@ False
 
 Please check the [quickstart page](https://durandtibo.github.io/coola/quickstart) to learn more on
 how to use `coola`.
+If you encounter any issues, see the [troubleshooting guide](https://durandtibo.github.io/coola/troubleshooting) or [FAQ](https://durandtibo.github.io/coola/faq).
 
 ## Documentation
 
