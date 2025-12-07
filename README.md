@@ -218,6 +218,11 @@ If you have any questions or suggestions, you can
 submit [Github Issues](https://github.com/durandtibo/coola/issues).
 We will reply to you as soon as possible. Thank you very much.
 
+## Contributors
+
+Thanks to all the contributors who have helped make `coola` better! 
+See the [contributors page](https://github.com/durandtibo/coola/graphs/contributors) for the full list.
+
 ## API stability
 
 :warning: While `coola` is in development stage, no API is guaranteed to be stable from one

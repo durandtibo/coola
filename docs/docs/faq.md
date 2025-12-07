@@ -34,7 +34,7 @@ pip install coola numpy
 
 ### What Python versions are supported?
 
-`coola` supports Python 3.10 and above. See the [compatibility table](README.md#installation) in the README for detailed version support.
+`coola` supports Python 3.10 and above. See the [compatibility table](https://github.com/durandtibo/coola#installation) for detailed version support.
 
 ## Usage Questions
 
@@ -248,7 +248,7 @@ objects_are_equal(config1, config2)  # Returns True
 
 ### How can I contribute to `coola`?
 
-Please read the [contributing guide](.github/CONTRIBUTING.md) for information on:
+Please read the [contributing guide](https://github.com/durandtibo/coola/blob/main/.github/CONTRIBUTING.md) for information on:
 - Reporting bugs
 - Suggesting features
 - Submitting pull requests

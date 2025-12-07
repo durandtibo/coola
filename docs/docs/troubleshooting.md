@@ -460,4 +460,4 @@ result = objects_are_equal(obj1, obj2, show_difference=True)
 print(f"Result: {result}")
 ```
 
-See the [contributing guide](.github/CONTRIBUTING.md) for more information on reporting issues.
+See the [contributing guide](https://github.com/durandtibo/coola/blob/main/.github/CONTRIBUTING.md) for more information on reporting issues.

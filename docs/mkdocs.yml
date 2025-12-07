@@ -30,6 +30,7 @@ nav:
       - customization.md
       - examples.md
       - performance.md
+      - architecture.md
       - troubleshooting.md
       - faq.md
   - Reference:
@@ -41,6 +42,9 @@ nav:
       - refs/reducers.md
       - refs/summarizers.md
       - refs/utils.md
+  - Developer Guide:
+      - development.md
+      - architecture.md
   - Upgrade Guide:
       - upgrade/0.3.md
       - upgrade/0.4.md

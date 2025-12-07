@@ -92,9 +92,9 @@ make unit-test-cov
 | `xarray`    | `>=2023.1`            |
 
 For the most up-to-date compatibility information, see:
-- The [README.md compatibility table](../../README.md#installation)
-- The [CI workflow configuration](.github/workflows/)
-- The [pyproject.toml](../../pyproject.toml) file
+- The [GitHub README compatibility table](https://github.com/durandtibo/coola#installation)
+- The [CI workflow configuration](https://github.com/durandtibo/coola/tree/main/.github/workflows/)
+- The [pyproject.toml file](https://github.com/durandtibo/coola/blob/main/pyproject.toml)
 
 **Note**: 
 - `coola` relies on semantic versioning (SemVer) for most packages.
