@@ -30,7 +30,6 @@ nav:
       - customization.md
       - examples.md
       - performance.md
-      - architecture.md
       - troubleshooting.md
       - faq.md
   - Reference:

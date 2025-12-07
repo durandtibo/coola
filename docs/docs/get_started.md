@@ -46,8 +46,10 @@ Then, you can clone the git repository:
 git clone git@github.com:durandtibo/coola.git
 ```
 
-It is recommended to create a Python 3.10+ virtual environment. This step is optional so you
-can skip it. To create a virtual environment, you can use the following command:
+**Note**: `coola` requires Python 3.10 or higher.
+
+It is recommended to create a virtual environment (this step is optional). 
+To create a virtual environment, you can use the following command:
 
 ```shell
 make conda
