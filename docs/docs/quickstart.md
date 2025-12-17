@@ -371,7 +371,8 @@ True
 If you are a PyTorch user, you probably know
 the [`torch.testing.assert_close`](https://pytorch.org/docs/stable/testing.html) function.
 If you are a NumPy user, you probably know
-the [`numpy.testing.assert_equal`](https://numpy.org/doc/stable/reference/generated/numpy.testing.assert_equal.html)
+the [
+`numpy.testing.assert_equal`](https://numpy.org/doc/stable/reference/generated/numpy.testing.assert_equal.html)
 function.
 However, most of these functions work in a fix scope and are difficult to extend or customize.
 On the opposite side, `coola` is flexible and easy to customize.
@@ -479,7 +480,8 @@ False
 
 ```
 
-[`numpy.testing.assert_equal`](https://numpy.org/doc/stable/reference/generated/numpy.testing.assert_equal.html)
+[
+`numpy.testing.assert_equal`](https://numpy.org/doc/stable/reference/generated/numpy.testing.assert_equal.html)
 has different limitations.
 For example, it can work with strings but can handle only simple sequence and mapping objects
 

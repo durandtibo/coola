@@ -4,7 +4,8 @@ This document describes the internal architecture and design principles of `cool
 
 ## Overview
 
-`coola` is designed around a flexible, extensible comparison framework that can handle various data types through a plugin-like architecture. The core design follows these principles:
+`coola` is designed around a flexible, extensible comparison framework that can handle various data
+types through a plugin-like architecture. The core design follows these principles:
 
 1. **Separation of concerns**: Comparison logic is separated from data type handling
 2. **Extensibility**: New data types can be added without modifying core code
@@ -46,6 +47,7 @@ The default implementation that uses a registry of comparators:
 - Delegates comparison to the appropriate comparator
 
 **Key Features:**
+
 - Type-based dispatch
 - Support for inheritance hierarchies
 - Extensible through registration
@@ -133,15 +135,18 @@ Returns boolean result
 
 ### 1. Strategy Pattern
 
-Comparators implement different comparison strategies for different types, allowing the algorithm to vary independently from the clients that use it.
+Comparators implement different comparison strategies for different types, allowing the algorithm to
+vary independently from the clients that use it.
 
 ### 2. Chain of Responsibility
 
-The MRO-based comparator lookup implements a chain of responsibility, trying more specific comparators before falling back to general ones.
+The MRO-based comparator lookup implements a chain of responsibility, trying more specific
+comparators before falling back to general ones.
 
 ### 3. Template Method
 
 Many comparators follow a template:
+
 1. Check types match
 2. Check metadata (shape, dtype, etc.)
 3. Check values
@@ -192,6 +197,7 @@ To add support for a custom type:
 ### Strict Type Checking
 
 `coola` enforces strict type checking:
+
 - `1` (int) ≠ `1.0` (float) ≠ `True` (bool)
 - `list` ≠ `tuple`
 - `dict` ≠ `OrderedDict`
@@ -201,6 +207,7 @@ This prevents subtle bugs from type coercion.
 ### Type Hierarchy Support
 
 Through MRO-based lookup, `coola` supports inheritance:
+
 - A comparator for `Sequence` applies to `list`, `tuple`, etc.
 - More specific comparators override general ones
 - Custom subclasses inherit parent comparators
@@ -210,6 +217,7 @@ Through MRO-based lookup, `coola` supports inheritance:
 ### Early Exit
 
 Comparators check fast properties first:
+
 1. Type check (very fast)
 2. Metadata checks (fast: shape, dtype, device)
 3. Value comparison (potentially slow)
@@ -224,13 +232,15 @@ The tester caches comparator lookups by type for performance.
 
 ### Recursive Depth
 
-For deeply nested structures, comparison is recursive. Very deep nesting may hit recursion limits (typically ~1000 levels in Python).
+For deeply nested structures, comparison is recursive. Very deep nesting may hit recursion limits (
+typically ~1000 levels in Python).
 
 ## Error Handling
 
 ### Graceful Degradation
 
 When a specific comparator is not available, `coola` falls back to:
+
 1. More general comparator (via MRO)
 2. Default comparator (for `object`)
 3. Native equality check as last resort
@@ -238,6 +248,7 @@ When a specific comparator is not available, `coola` falls back to:
 ### Informative Messages
 
 When `show_difference=True`, comparators log:
+
 - What objects differ
 - Where in the structure the difference is
 - The actual values that differ
@@ -295,19 +306,22 @@ coola/
 
 ### Why Strict Type Checking?
 
-**Rationale**: Prevents subtle bugs from implicit type coercion. In scientific computing, knowing that `1` (int) and `1.0` (float) are treated differently can catch numerical issues.
+**Rationale**: Prevents subtle bugs from implicit type coercion. In scientific computing, knowing
+that `1` (int) and `1.0` (float) are treated differently can catch numerical issues.
 
 **Trade-off**: Less convenient for some use cases, but more explicit and safe.
 
 ### Why Registry-Based Dispatch?
 
-**Rationale**: Allows extensibility without modifying core code. Users can add support for their own types.
+**Rationale**: Allows extensibility without modifying core code. Users can add support for their own
+types.
 
 **Trade-off**: Slightly more complex than if/else chains, but much more maintainable.
 
 ### Why Separate Testers and Comparators?
 
-**Rationale**: Separation of concerns. Testers handle dispatch and orchestration, comparators handle type-specific logic.
+**Rationale**: Separation of concerns. Testers handle dispatch and orchestration, comparators handle
+type-specific logic.
 
 **Trade-off**: More classes/files, but better modularity.
 
@@ -323,7 +337,8 @@ Potential areas for enhancement:
 
 1. **Parallel comparison**: For large independent comparisons
 2. **Streaming comparison**: For very large objects that don't fit in memory
-3. **Approximate structural matching**: For comparing objects with similar but not identical structure
+3. **Approximate structural matching**: For comparing objects with similar but not identical
+   structure
 4. **Diff generation**: Not just boolean result, but detailed diff
 5. **Performance optimizations**: Cython/Numba for hot paths
 
@@ -344,4 +359,5 @@ To contribute to `coola`'s architecture:
 4. Write tests for new components
 5. Update this document for significant changes
 
-See the [contributing guide](https://github.com/durandtibo/coola/blob/main/.github/CONTRIBUTING.md) for more details.
+See the [contributing guide](https://github.com/durandtibo/coola/blob/main/.github/CONTRIBUTING.md)
+for more details.

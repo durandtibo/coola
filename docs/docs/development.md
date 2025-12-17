@@ -28,6 +28,7 @@ curl -sSL https://install.python-poetry.org | python3 -
 ```
 
 Verify installation:
+
 ```shell
 poetry --version
 ```
@@ -43,6 +44,7 @@ make install
 ```
 
 To install with docs dependencies:
+
 ```shell
 poetry install --with docs
 # Or
@@ -62,26 +64,31 @@ This will automatically run code quality checks before each commit.
 ### Running Tests
 
 **Run all unit tests:**
+
 ```shell
 make unit-test
 ```
 
 **Run tests with coverage:**
+
 ```shell
 make unit-test-cov
 ```
 
 **Run specific test file:**
+
 ```shell
 poetry run pytest tests/unit/test_comparison.py
 ```
 
 **Run specific test:**
+
 ```shell
 poetry run pytest tests/unit/test_comparison.py::test_objects_are_equal
 ```
 
 **Run tests with verbose output:**
+
 ```shell
 poetry run pytest -v tests/unit/
 ```
@@ -89,6 +96,7 @@ poetry run pytest -v tests/unit/
 ### Code Quality
 
 **Format code with Black:**
+
 ```shell
 poetry run black .
 # Or
@@ -96,16 +104,19 @@ make format
 ```
 
 **Run linter (Ruff):**
+
 ```shell
 make lint
 ```
 
 **Format docstrings:**
+
 ```shell
 make docformat
 ```
 
 **Run all pre-commit checks:**
+
 ```shell
 poetry run pre-commit run --all-files
 ```
@@ -113,6 +124,7 @@ poetry run pre-commit run --all-files
 ### Documentation
 
 **Build documentation locally:**
+
 ```shell
 poetry run mkdocs serve -f docs/mkdocs.yml
 ```
@@ -120,11 +132,13 @@ poetry run mkdocs serve -f docs/mkdocs.yml
 Then open http://127.0.0.1:8000 in your browser.
 
 **Build documentation without serving:**
+
 ```shell
 poetry run mkdocs build -f docs/mkdocs.yml
 ```
 
 **Run doctests:**
+
 ```shell
 make doctest-src
 ```
@@ -177,9 +191,9 @@ coola/
    ```
 
 2. **Implement the feature:**
-   - Write code in `src/coola/`
-   - Add tests in `tests/unit/`
-   - Update documentation in `docs/docs/`
+    - Write code in `src/coola/`
+    - Add tests in `tests/unit/`
+    - Update documentation in `docs/docs/`
 
 3. **Run tests:**
    ```shell
@@ -278,8 +292,8 @@ coola/
    ```
 
 4. **Update documentation:**
-   - Add to `docs/docs/types.md`
-   - Add examples to `docs/docs/examples.md`
+    - Add to `docs/docs/types.md`
+    - Add examples to `docs/docs/examples.md`
 
 ### Updating Dependencies
 
@@ -307,10 +321,10 @@ poetry self update
    ```
 
 2. **Test edge cases:**
-   - Empty collections
-   - None values
-   - Large data
-   - Deeply nested structures
+    - Empty collections
+    - None values
+    - Large data
+    - Deeply nested structures
 
 3. **Use fixtures for common data:**
    ```python
@@ -337,21 +351,25 @@ poetry self update
 ### Running Tests with Different Configurations
 
 **Run tests for a specific module:**
+
 ```shell
 poetry run pytest tests/unit/equality/
 ```
 
 **Run tests matching a pattern:**
+
 ```shell
 poetry run pytest -k "tensor"
 ```
 
 **Run tests with markers:**
+
 ```shell
 poetry run pytest -m "slow"
 ```
 
 **Run tests in parallel:**
+
 ```shell
 poetry run pytest -n auto
 ```
@@ -361,17 +379,17 @@ poetry run pytest -n auto
 The project uses GitHub Actions for CI. Workflows are in `.github/workflows/`:
 
 - **CI**: Runs on every push and PR
-  - Linting
-  - Tests
-  - Coverage
+    - Linting
+    - Tests
+    - Coverage
 
 - **Documentation**: Builds and deploys docs
-  - Builds on every push
-  - Deploys on release
+    - Builds on every push
+    - Deploys on release
 
 - **Nightly Tests**: Tests against latest dependencies
-  - Runs daily
-  - Tests multiple Python versions
+    - Runs daily
+    - Tests multiple Python versions
 
 ## Release Process
 
@@ -386,7 +404,8 @@ Releases are managed by the maintainers:
 
 - **Documentation**: https://durandtibo.github.io/coola/
 - **GitHub Issues**: https://github.com/durandtibo/coola/issues
-- **Contributing Guide**: [CONTRIBUTING.md](https://github.com/durandtibo/coola/blob/main/.github/CONTRIBUTING.md)
+- **Contributing Guide
+  **: [CONTRIBUTING.md](https://github.com/durandtibo/coola/blob/main/.github/CONTRIBUTING.md)
 
 ## Best Practices
 
@@ -404,6 +423,7 @@ Releases are managed by the maintainers:
 ### Test Issues
 
 **Tests fail after pulling changes:**
+
 ```shell
 # Update dependencies
 poetry install
@@ -412,6 +432,7 @@ make unit-test
 ```
 
 **Import errors in tests:**
+
 ```shell
 # Make sure package is installed in development mode
 poetry install
@@ -420,6 +441,7 @@ poetry install
 ### Pre-commit Issues
 
 **Pre-commit hooks fail:**
+
 ```shell
 # Update pre-commit hooks
 poetry run pre-commit autoupdate

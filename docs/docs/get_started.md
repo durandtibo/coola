@@ -82,23 +82,25 @@ make unit-test-cov
 
 `coola` is continuously tested with the following package versions:
 
-| package     | tested versions       |
-|-------------|-----------------------|
-| `jax`       | `>=0.5.0,<1.0`        |
-| `numpy`     | `>=1.24,<3.0`         |
-| `packaging` | `>=22.0,<26.0`        |
-| `pandas`    | `>=2.0,<3.0`          |
-| `polars`    | `>=1.0,<2.0`          |
-| `pyarrow`   | `>=11.0,<23.0`        |
-| `torch`     | `>=2.0,<3.0`          |
-| `xarray`    | `>=2023.1`            |
+| package     | tested versions |
+|-------------|-----------------|
+| `jax`       | `>=0.5.0,<1.0`  |
+| `numpy`     | `>=1.24,<3.0`   |
+| `packaging` | `>=22.0,<26.0`  |
+| `pandas`    | `>=2.0,<3.0`    |
+| `polars`    | `>=1.0,<2.0`    |
+| `pyarrow`   | `>=11.0,<23.0`  |
+| `torch`     | `>=2.0,<3.0`    |
+| `xarray`    | `>=2023.1`      |
 
 For the most up-to-date compatibility information, see:
+
 - The [GitHub README compatibility table](https://github.com/durandtibo/coola#installation)
 - The [CI workflow configuration](https://github.com/durandtibo/coola/tree/main/.github/workflows/)
 - The [pyproject.toml file](https://github.com/durandtibo/coola/blob/main/pyproject.toml)
 
 **Note**:
+
 - `coola` relies on semantic versioning (SemVer) for most packages.
 - `xarray` uses [calendar versioning (CalVer)](https://calver.org/).
 - Version constraints are designed to be flexible while ensuring compatibility.

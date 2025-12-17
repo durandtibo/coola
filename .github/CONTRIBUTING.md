@@ -329,7 +329,6 @@ Follow these conventions:
 - `Add: Support for custom comparators`
 - `Fix: Handle NaN values correctly in numpy arrays`
 - `Update: Improve error messages for type mismatches`
-- `Docs: Add troubleshooting guide`
 
 ## Community
 
