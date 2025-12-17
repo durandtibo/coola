@@ -158,7 +158,6 @@ We actively welcome your pull requests.
 - **Description:** Clear explanation of what you changed and why
 - **Tests:** Unit tests that cover your changes
 - **Documentation:** Updates to docs if you changed behavior
-- **Changelog:** Add entry to CHANGELOG.md under "Unreleased" section
 
 ## Issues
 

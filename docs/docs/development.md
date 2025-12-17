@@ -175,7 +175,6 @@ coola/
 │   └── integration/    # Integration tests
 ├── pyproject.toml      # Project configuration
 ├── poetry.lock         # Locked dependencies
-├── CHANGELOG.md        # Version history
 ├── LICENSE             # License file
 ├── README.md           # Project README
 └── SECURITY.md         # Security policy
