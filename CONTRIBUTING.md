@@ -333,7 +333,7 @@ Follow these conventions:
 
 ### Code of Conduct
 
-Please note that this project is released with a [Code of Conduct](../CODE_OF_CONDUCT.md).
+Please note that this project is released with a [Code of Conduct](CODE_OF_CONDUCT.md).
 By participating in this project you agree to abide by its terms.
 
 ### Getting Help
@@ -352,7 +352,7 @@ Contributors will be:
 ## License
 
 By contributing to `coola`, you agree that your contributions will be licensed under the
-BSD 3-Clause License as specified in the [LICENSE](../LICENSE) file in the root directory
+BSD 3-Clause License as specified in the [LICENSE](LICENSE) file in the root directory
 of this source tree.
 
 ## Questions?
