@@ -63,7 +63,7 @@ class BaseEqualityComparator:
     def equal(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
         """Compare two objects of a specific type."""
         ...
-    
+
     def clone(self) -> BaseEqualityComparator:
         """Create a copy of this comparator."""
         ...
@@ -168,10 +168,10 @@ To add support for a custom type:
            # Type check
            if type(actual) is not type(expected):
                return False
-           
+
            # Custom comparison logic
            return actual.compare_to(expected)
-       
+
        def clone(self):
            return MyTypeComparator()
    ```

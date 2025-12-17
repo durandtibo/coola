@@ -48,7 +48,7 @@ git clone git@github.com:durandtibo/coola.git
 
 **Note**: `coola` requires Python 3.10 or higher.
 
-It is recommended to create a virtual environment (this step is optional). 
+It is recommended to create a virtual environment (this step is optional).
 To create a virtual environment, you can use the following command:
 
 ```shell
@@ -98,7 +98,7 @@ For the most up-to-date compatibility information, see:
 - The [CI workflow configuration](https://github.com/durandtibo/coola/tree/main/.github/workflows/)
 - The [pyproject.toml file](https://github.com/durandtibo/coola/blob/main/pyproject.toml)
 
-**Note**: 
+**Note**:
 - `coola` relies on semantic versioning (SemVer) for most packages.
 - `xarray` uses [calendar versioning (CalVer)](https://calver.org/).
 - Version constraints are designed to be flexible while ensuring compatibility.

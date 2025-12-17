@@ -38,7 +38,7 @@ Once you implement and test your feature or bug-fix, please submit a Pull Reques
    make conda
    conda activate coola
    ```
-   
+
    Or using venv:
    ```shell
    python -m venv venv
@@ -242,20 +242,20 @@ For feature requests, please include:
 ```python
 def my_function(param1: int, param2: str) -> bool:
     """Brief description of the function.
-    
+
     Longer description if needed. Explain what the function does,
     any important notes, etc.
-    
+
     Args:
         param1: Description of param1.
         param2: Description of param2.
-    
+
     Returns:
         Description of return value.
-    
+
     Raises:
         ValueError: When param1 is negative.
-    
+
     Example:
         ```python
         result = my_function(42, "hello")
@@ -281,11 +281,13 @@ def my_function(param1: int, param2: str) -> bool:
 import pytest
 from coola import objects_are_equal
 
+
 def test_objects_are_equal_with_identical_dicts_returns_true():
     """Test that objects_are_equal returns True for identical dictionaries."""
     dict1 = {"a": 1, "b": 2}
     dict2 = {"a": 1, "b": 2}
     assert objects_are_equal(dict1, dict2)
+
 
 def test_objects_are_equal_with_different_dicts_returns_false():
     """Test that objects_are_equal returns False for different dictionaries."""
@@ -333,7 +335,7 @@ Follow these conventions:
 
 ### Code of Conduct
 
-Please note that this project is released with a [Code of Conduct](../CODE_OF_CONDUCT.md). 
+Please note that this project is released with a [Code of Conduct](../CODE_OF_CONDUCT.md).
 By participating in this project you agree to abide by its terms.
 
 ### Getting Help
@@ -351,8 +353,8 @@ Contributors will be:
 
 ## License
 
-By contributing to `coola`, you agree that your contributions will be licensed under the 
-BSD 3-Clause License as specified in the [LICENSE](../LICENSE) file in the root directory 
+By contributing to `coola`, you agree that your contributions will be licensed under the
+BSD 3-Clause License as specified in the [LICENSE](../LICENSE) file in the root directory
 of this source tree.
 
 ## Questions?

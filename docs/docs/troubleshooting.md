@@ -70,10 +70,11 @@ result = objects_are_equal(obj1, obj2, show_difference=True)
 2. **Device mismatch** (PyTorch):
    ```python
    import torch
+
    tensor_cpu = torch.ones(2, 3)
-   tensor_gpu = torch.ones(2, 3, device='cuda')
+   tensor_gpu = torch.ones(2, 3, device="cuda")
    objects_are_equal(tensor_cpu, tensor_gpu)  # False - different devices
-   
+
    # Solution: Move to same device
    objects_are_equal(tensor_cpu, tensor_gpu.cpu())  # True
    ```
@@ -81,6 +82,7 @@ result = objects_are_equal(obj1, obj2, show_difference=True)
 3. **Data type mismatch**:
    ```python
    import torch
+
    tensor_float = torch.ones(2, 3, dtype=torch.float32)
    tensor_int = torch.ones(2, 3, dtype=torch.int64)
    objects_are_equal(tensor_float, tensor_int)  # False - different dtypes
@@ -89,12 +91,14 @@ result = objects_are_equal(obj1, obj2, show_difference=True)
 4. **NaN handling**:
    ```python
    import numpy as np
-   arr1 = np.array([1.0, float('nan')])
-   arr2 = np.array([1.0, float('nan')])
+
+   arr1 = np.array([1.0, float("nan")])
+   arr2 = np.array([1.0, float("nan")])
    objects_are_equal(arr1, arr2)  # False - NaN != NaN by default
-   
+
    # Solution: Use equal_nan parameter
    from coola import objects_are_allclose
+
    objects_are_allclose(arr1, arr2, equal_nan=True)  # True
    ```
 
@@ -171,10 +175,11 @@ print(f"Comparison took {time.time() - start:.2f} seconds")
    ```python
    # Instead of comparing entire objects
    objects_are_equal(obj1, obj2)
-   
+
    # Compare specific fields
-   objects_are_equal(obj1.data, obj2.data) and \
-   objects_are_equal(obj1.metadata, obj2.metadata)
+   objects_are_equal(obj1.data, obj2.data) and objects_are_equal(
+       obj1.metadata, obj2.metadata
+   )
    ```
 
 2. **Use early exit** with custom comparators:
@@ -190,13 +195,10 @@ print(f"Comparison took {time.time() - start:.2f} seconds")
    ```python
    import numpy as np
    from coola import objects_are_equal
-   
+
    # For very large arrays, sample them
    sample_indices = np.random.choice(len(large_array), size=1000)
-   objects_are_equal(
-       large_array1[sample_indices],
-       large_array2[sample_indices]
-   )
+   objects_are_equal(large_array1[sample_indices], large_array2[sample_indices])
    ```
 
 ### Memory Issues
@@ -209,8 +211,8 @@ print(f"Comparison took {time.time() - start:.2f} seconds")
    ```python
    def compare_in_chunks(arr1, arr2, chunk_size=1000):
        for i in range(0, len(arr1), chunk_size):
-           chunk1 = arr1[i:i+chunk_size]
-           chunk2 = arr2[i:i+chunk_size]
+           chunk1 = arr1[i : i + chunk_size]
+           chunk2 = arr2[i : i + chunk_size]
            if not objects_are_equal(chunk1, chunk2):
                return False
        return True
@@ -225,14 +227,15 @@ print(f"Comparison took {time.time() - start:.2f} seconds")
 3. **Check object size before comparison**:
    ```python
    import sys
-   
+
+
    def safe_compare(obj1, obj2, max_size=100_000_000):
        size1 = sys.getsizeof(obj1)
        size2 = sys.getsizeof(obj2)
-       
+
        if size1 > max_size or size2 > max_size:
            raise ValueError(f"Objects too large: {size1}, {size2}")
-       
+
        return objects_are_equal(obj1, obj2)
    ```
 
@@ -257,18 +260,23 @@ from coola.equality import EqualityConfig
 from coola.equality.comparators import BaseEqualityComparator
 from coola.equality.testers import EqualityTester
 
+
 class MyCustomType:
     def __init__(self, value):
         self.value = value
 
+
 class MyCustomComparator(BaseEqualityComparator):
     def clone(self):
         return self.__class__()
-    
-    def equal(self, actual: MyCustomType, expected: Any, config: EqualityConfig) -> bool:
+
+    def equal(
+        self, actual: MyCustomType, expected: Any, config: EqualityConfig
+    ) -> bool:
         if type(actual) is not type(expected):
             return False
         return actual.value == expected.value
+
 
 # Register the comparator
 tester = EqualityTester.local_copy()
@@ -312,8 +320,7 @@ import logging
 
 # Configure logging to see INFO level messages
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(name)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
 )
 
 from coola import objects_are_equal
@@ -334,11 +341,8 @@ logging.basicConfig(level=logging.DEBUG)
 
 # Use show_difference to see the path to differences
 from coola import objects_are_equal
-result = objects_are_equal(
-    nested_obj1,
-    nested_obj2,
-    show_difference=True
-)
+
+result = objects_are_equal(nested_obj1, nested_obj2, show_difference=True)
 ```
 
 ## Testing Issues
@@ -353,17 +357,14 @@ result = objects_are_equal(
 # In tests
 from coola import objects_are_allclose
 
+
 def test_my_function():
     result = my_function()
     expected = get_expected_result()
-    
+
     # Use allclose with appropriate tolerance
     assert objects_are_allclose(
-        result,
-        expected,
-        atol=1e-6,
-        rtol=1e-5,
-        show_difference=True
+        result, expected, atol=1e-6, rtol=1e-5, show_difference=True
     )
 ```
 
@@ -378,12 +379,13 @@ import numpy as np
 import torch
 import random
 
+
 def test_with_fixed_seed():
     # Fix all random seeds
     random.seed(42)
     np.random.seed(42)
     torch.manual_seed(42)
-    
+
     # Now run your test
     result = my_function_with_random()
     expected = get_expected_result()
@@ -446,7 +448,9 @@ When reporting bugs, please include:
 import coola
 import sys
 
-print(f"coola version: {coola.__version__ if hasattr(coola, '__version__') else 'unknown'}")
+print(
+    f"coola version: {coola.__version__ if hasattr(coola, '__version__') else 'unknown'}"
+)
 print(f"Python version: {sys.version}")
 print(f"Platform: {sys.platform}")
 

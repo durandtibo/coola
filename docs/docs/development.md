@@ -238,10 +238,11 @@ coola/
    from coola.equality import EqualityConfig
    from coola.equality.comparators.base import BaseEqualityComparator
 
+
    class MyTypeComparator(BaseEqualityComparator):
        def clone(self) -> "MyTypeComparator":
            return self.__class__()
-       
+
        def equal(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
            # Type check
            if type(actual) is not type(expected):
@@ -249,7 +250,7 @@ coola/
                    # Log difference
                    pass
                return False
-           
+
            # Implement comparison logic
            return actual == expected
    ```
@@ -259,7 +260,7 @@ coola/
    # In the appropriate __init__.py
    from coola.equality.testers import EqualityTester
    from coola.equality.comparators.mytype_ import MyTypeComparator
-   
+
    EqualityTester.registry[MyType] = MyTypeComparator()
    ```
 
@@ -268,7 +269,8 @@ coola/
    # tests/unit/equality/comparators/test_mytype_.py
    import pytest
    from coola import objects_are_equal
-   
+
+
    def test_mytype_equal():
        obj1 = MyType(...)
        obj2 = MyType(...)
@@ -298,11 +300,10 @@ poetry self update
 
 1. **Use descriptive names:**
    ```python
-   def test_objects_are_equal_with_identical_dicts_returns_true():
-       ...
-   
-   def test_objects_are_equal_with_different_types_returns_false():
-       ...
+   def test_objects_are_equal_with_identical_dicts_returns_true(): ...
+
+
+   def test_objects_are_equal_with_different_types_returns_false(): ...
    ```
 
 2. **Test edge cases:**
@@ -316,7 +317,8 @@ poetry self update
    @pytest.fixture
    def sample_tensor():
        return torch.randn(10, 10)
-   
+
+
    def test_tensor_comparison(sample_tensor):
        result = objects_are_equal(sample_tensor, sample_tensor)
        assert result is True
@@ -326,7 +328,8 @@ poetry self update
    ```python
    def test_success_case():
        assert objects_are_equal(obj1, obj2)
-   
+
+
    def test_failure_case():
        assert not objects_are_equal(obj1, obj3)
    ```
@@ -353,75 +356,6 @@ poetry run pytest -m "slow"
 poetry run pytest -n auto
 ```
 
-## Debugging
-
-### Using pdb
-
-```python
-import pdb
-
-def my_function():
-    x = 42
-    pdb.set_trace()  # Debugger will stop here
-    return x * 2
-```
-
-### Using pytest debugging
-
-```shell
-# Stop at first failure
-poetry run pytest -x
-
-# Drop into pdb on failure
-poetry run pytest --pdb
-
-# Show local variables on failure
-poetry run pytest -l
-```
-
-### Logging
-
-Enable debug logging:
-```python
-import logging
-
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-```
-
-## Performance Profiling
-
-### Using cProfile
-
-```python
-import cProfile
-import pstats
-from coola import objects_are_equal
-
-profiler = cProfile.Profile()
-profiler.enable()
-
-# Your code here
-objects_are_equal(obj1, obj2)
-
-profiler.disable()
-stats = pstats.Stats(profiler)
-stats.sort_stats('cumulative')
-stats.print_stats(20)  # Top 20 functions
-```
-
-### Using memory_profiler
-
-```shell
-# Install memory_profiler
-pip install memory-profiler
-
-# Profile memory usage
-python -m memory_profiler script.py
-```
-
 ## Continuous Integration
 
 The project uses GitHub Actions for CI. Workflows are in `.github/workflows/`:
@@ -444,10 +378,9 @@ The project uses GitHub Actions for CI. Workflows are in `.github/workflows/`:
 Releases are managed by the maintainers:
 
 1. Update version in `pyproject.toml`
-2. Update `CHANGELOG.md`
-3. Create and push a git tag
-4. GitHub Actions automatically publishes to PyPI
-5. Documentation is automatically deployed
+2. Create and push a git tag
+3. GitHub Actions automatically publishes to PyPI
+4. Documentation is automatically deployed
 
 ## Getting Help
 
@@ -467,23 +400,6 @@ Releases are managed by the maintainers:
 8. **Follow existing code style**
 
 ## Troubleshooting Development Issues
-
-### Poetry Issues
-
-**Poetry install fails:**
-```shell
-# Clear cache
-poetry cache clear pypi --all
-rm poetry.lock
-poetry install
-```
-
-**Wrong Python version:**
-```shell
-# Tell poetry which Python to use
-poetry env use python3.10
-poetry install
-```
 
 ### Test Issues
 
@@ -520,7 +436,6 @@ Before submitting a PR, ensure:
 - [ ] Pre-commit hooks pass
 - [ ] Documentation is updated
 - [ ] Commit messages are clear
-- [ ] CHANGELOG.md is updated
 - [ ] Code follows project style
 - [ ] No unnecessary dependencies added
 - [ ] Examples are provided for new features
