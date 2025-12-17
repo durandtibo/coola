@@ -69,6 +69,7 @@ to [support other data structures](https://durandtibo.github.io/coola/customizat
 - [Contributing](#contributing)
 - [API stability](#api-stability)
 - [License](#license)
+- [Security](SECURITY.md)
 
 ## Motivation
 

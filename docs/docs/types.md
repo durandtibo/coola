@@ -20,8 +20,10 @@ The current supported types are:
 
 `coola` also provides experimental/partial support for the following types:
 
-- [`pyarrow.Array`](https://arrow.apache.org/docs/python/generated/pyarrow.Array.html) (`equal_nan`, `atol` and `rtol` arguments are ignored)
-- [`pyarrow.Table`](https://arrow.apache.org/docs/python/generated/pyarrow.Table.html) (`equal_nan`, `atol` and `rtol` arguments are ignored)
+- [`pyarrow.Array`](https://arrow.apache.org/docs/python/generated/pyarrow.Array.html) (`equal_nan`,
+  `atol` and `rtol` arguments are ignored)
+- [`pyarrow.Table`](https://arrow.apache.org/docs/python/generated/pyarrow.Table.html) (`equal_nan`,
+  `atol` and `rtol` arguments are ignored)
 
 ## Equal
 

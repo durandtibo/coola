@@ -46,7 +46,8 @@ For example, `EqualityTester` has an equality comparator registered for `object`
 one `list`.
 If the first element to compare is a `list`, `EqualityTester` will use the equality comparator
 associated to `list` to compare the two objects.
-You can use the following code to see the registered equality comparators with their associated types.
+You can use the following code to see the registered equality comparators with their associated
+types.
 
 ```pycon
 
