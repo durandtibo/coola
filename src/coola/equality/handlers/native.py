@@ -276,7 +276,7 @@ class SameObjectHandler(AbstractEqualityHandler):  # noqa: PLW1641
         actual: Any,
         expected: Any,
         config: EqualityConfig,
-    ) -> bool | None:
+    ) -> bool:
         if actual is expected:
             return True
         return self._handle_next(actual, expected, config=config)
