@@ -1,3 +1,7 @@
+# Documentation testing workflow.
+# Runs doctests on code examples in docstrings to ensure they work correctly.
+# Also validates that the documentation can be built without errors.
+
 name: Documentation Tests
 on:
   workflow_call:
@@ -7,68 +11,47 @@ permissions:
   contents: read
 
 jobs:
+  # Run doctests embedded in source code docstrings
   doctest:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.13'
+      - name: Setup python environment
+        uses: durandtibo/setup-venv-uv-action@v0.0.1
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-
-      - name: Set environment variable
-        run: |
-          echo $(poetry run poetry env info --path)/bin >> $GITHUB_PATH
-
-      - name: Install packages
-        run: |
-          make install-all
-
-      - name: Show installed packages
-        run: |
-          poetry show
-          poetry show --tree
-
+      # Run doctest to validate code examples in docstrings
       - name: Run doctest on source code
         run: |
-          make doctest-src
+          inv doctest-src
 
+  # Verify documentation can be built without errors
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      # Install dependencies including documentation tools (mkdocs, mike, etc.)
+      - name: Setup python environment
+        uses: durandtibo/setup-venv-uv-action@v0.0.1
         with:
-          python-version: '3.13'
+          install-args: '--docs-deps'
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-
-      - name: Set environment variable
-        run: |
-          echo $(poetry run poetry env info --path)/bin >> $GITHUB_PATH
-
-      - name: Install packages
-        run: |
-          make install-all
-
+      # Configure git for mike (documentation versioning tool)
       - name: Setup doc deploy
         env:
           CI_BOT_EMAIL: ${{secrets.CI_BOT_EMAIL}}
         run: |
           git config --global user.name ci-docs-bot
-          git config --global user.email $CI_BOT_EMAIL
+          git config --global user.email "$CI_BOT_EMAIL"
 
+      # Build documentation to a temporary branch to verify no errors
       - name: Build documentation
         run: |
           mike deploy --config-file docs/mkdocs.yml --branch tmp-doc-build-1234 dev

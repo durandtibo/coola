@@ -1,9 +1,13 @@
+# PyPI package publishing workflow.
+# Builds and publishes the package to PyPI when a new version is released.
+# Triggered by version tags or can be run manually.
+
 name: Publish PyPI package
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Allow manual trigger
   push:
     tags:
-      - "v*.*.*"
+      - "v*.*.*"  # Trigger on version tags (e.g., v1.0.0)
 
 permissions:
   contents: read
@@ -12,20 +16,24 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      # Install uv package manager
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
-          python-version: '3.13'
+          activate-environment: true
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
+      # Install invoke task runner
+      - name: Install invoke
+        run: |
+          make install-invoke
 
+      # Build and publish package to PyPI using token from secrets
       - name: Publish
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
-          make publish-pypi
+          inv publish-pypi

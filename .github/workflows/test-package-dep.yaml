@@ -43,7 +43,7 @@ jobs:
       # Install the package from PyPI
       - name: Install package
         run: |
-          uv pip install objectory
+          uv pip install coola
 
       # Install specific version of dependency for compatibility testing
       - name: Install valid package version
