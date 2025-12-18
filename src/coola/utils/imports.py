@@ -753,8 +753,10 @@ def torch_available(fn: Callable[..., Any]) -> Callable[..., Any]:
 #######################
 
 # import is here because is_torch_available is defined above
-if is_torch_available():  # pragma: no cover
+if is_torch_available():
     import torch
+else:  # pragma: no cover
+    torch: ModuleType = ModuleType("torch")
 
 
 @lru_cache
