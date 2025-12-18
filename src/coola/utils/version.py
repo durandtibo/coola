@@ -7,7 +7,6 @@ __all__ = ["compare_version", "get_package_version"]
 from functools import lru_cache
 from importlib.metadata import PackageNotFoundError, version
 from typing import TYPE_CHECKING
-from unittest.mock import Mock
 
 from coola.utils.imports import check_packaging, is_packaging_available
 
@@ -17,7 +16,7 @@ if TYPE_CHECKING:
 if is_packaging_available():
     from packaging.version import Version
 else:  # pragma: no cover
-    Version = Mock()
+    from coola.utils.fallback.packaging import Version
 
 
 def compare_version(package: str, op: Callable, version: str) -> bool:

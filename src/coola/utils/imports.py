@@ -33,6 +33,14 @@ __all__ = [
     "pandas_available",
     "polars_available",
     "pyarrow_available",
+    "raise_error_jax_missing",
+    "raise_error_numpy_missing",
+    "raise_error_packaging_missing",
+    "raise_error_pandas_missing",
+    "raise_error_polars_missing",
+    "raise_error_pyarrow_missing",
+    "raise_error_torch_missing",
+    "raise_error_xarray_missing",
     "torch_available",
     "torch_numpy_available",
     "xarray_available",
@@ -43,7 +51,7 @@ from contextlib import suppress
 from functools import lru_cache, wraps
 from importlib.util import find_spec
 from types import ModuleType
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, NoReturn
 from unittest.mock import Mock
 
 if TYPE_CHECKING:
@@ -214,12 +222,18 @@ def check_jax() -> None:
     ```
     """
     if not is_jax_available():
-        msg = (
-            "'jax' package is required but not installed. "
-            "You can install 'jax' package with the command:\n\n"
-            "pip install jax\n"
-        )
-        raise RuntimeError(msg)
+        raise_error_jax_missing()
+
+
+def raise_error_jax_missing() -> NoReturn:
+    r"""Raise a RuntimeError to indicate the ``jax`` package is
+    missing."""
+    msg = (
+        "'jax' package is required but not installed. "
+        "You can install 'jax' package with the command:\n\n"
+        "pip install jax\n"
+    )
+    raise RuntimeError(msg)
 
 
 def jax_available(fn: Callable[..., Any]) -> Callable[..., Any]:
@@ -289,12 +303,18 @@ def check_numpy() -> None:
     ```
     """
     if not is_numpy_available():
-        msg = (
-            "'numpy' package is required but not installed. "
-            "You can install 'numpy' package with the command:\n\n"
-            "pip install numpy\n"
-        )
-        raise RuntimeError(msg)
+        raise_error_numpy_missing()
+
+
+def raise_error_numpy_missing() -> NoReturn:
+    r"""Raise a RuntimeError to indicate the ``numpy`` package is
+    missing."""
+    msg = (
+        "'numpy' package is required but not installed. "
+        "You can install 'numpy' package with the command:\n\n"
+        "pip install numpy\n"
+    )
+    raise RuntimeError(msg)
 
 
 def numpy_available(fn: Callable[..., Any]) -> Callable[..., Any]:
@@ -364,12 +384,18 @@ def check_packaging() -> None:
     ```
     """
     if not is_packaging_available():
-        msg = (
-            "'packaging' package is required but not installed. "
-            "You can install 'packaging' package with the command:\n\n"
-            "pip install packaging\n"
-        )
-        raise RuntimeError(msg)
+        raise_error_packaging_missing()
+
+
+def raise_error_packaging_missing() -> NoReturn:
+    r"""Raise a RuntimeError to indicate the ``packaging`` package is
+    missing."""
+    msg = (
+        "'packaging' package is required but not installed. "
+        "You can install 'packaging' package with the command:\n\n"
+        "pip install packaging\n"
+    )
+    raise RuntimeError(msg)
 
 
 def packaging_available(fn: Callable[..., Any]) -> Callable[..., Any]:
@@ -439,12 +465,18 @@ def check_pandas() -> None:
     ```
     """
     if not is_pandas_available():
-        msg = (
-            "'pandas' package is required but not installed. "
-            "You can install 'pandas' package with the command:\n\n"
-            "pip install pandas\n"
-        )
-        raise RuntimeError(msg)
+        raise_error_pandas_missing()
+
+
+def raise_error_pandas_missing() -> NoReturn:
+    r"""Raise a RuntimeError to indicate the ``pandas`` package is
+    missing."""
+    msg = (
+        "'pandas' package is required but not installed. "
+        "You can install 'pandas' package with the command:\n\n"
+        "pip install pandas\n"
+    )
+    raise RuntimeError(msg)
 
 
 def pandas_available(fn: Callable[..., Any]) -> Callable[..., Any]:
@@ -514,12 +546,18 @@ def check_polars() -> None:
     ```
     """
     if not is_polars_available():
-        msg = (
-            "'polars' package is required but not installed. "
-            "You can install 'polars' package with the command:\n\n"
-            "pip install polars\n"
-        )
-        raise RuntimeError(msg)
+        raise_error_polars_missing()
+
+
+def raise_error_polars_missing() -> NoReturn:
+    r"""Raise a RuntimeError to indicate the ``polars`` package is
+    missing."""
+    msg = (
+        "'polars' package is required but not installed. "
+        "You can install 'polars' package with the command:\n\n"
+        "pip install polars\n"
+    )
+    raise RuntimeError(msg)
 
 
 def polars_available(fn: Callable[..., Any]) -> Callable[..., Any]:
@@ -589,12 +627,18 @@ def check_pyarrow() -> None:
     ```
     """
     if not is_pyarrow_available():
-        msg = (
-            "'pyarrow' package is required but not installed. "
-            "You can install 'pyarrow' package with the command:\n\n"
-            "pip install pyarrow\n"
-        )
-        raise RuntimeError(msg)
+        raise_error_pyarrow_missing()
+
+
+def raise_error_pyarrow_missing() -> NoReturn:
+    r"""Raise a RuntimeError to indicate the ``pyarrow`` package is
+    missing."""
+    msg = (
+        "'pyarrow' package is required but not installed. "
+        "You can install 'pyarrow' package with the command:\n\n"
+        "pip install pyarrow\n"
+    )
+    raise RuntimeError(msg)
 
 
 def pyarrow_available(fn: Callable[..., Any]) -> Callable[..., Any]:
@@ -664,12 +708,18 @@ def check_torch() -> None:
     ```
     """
     if not is_torch_available():
-        msg = (
-            "'torch' package is required but not installed. "
-            "You can install 'torch' package with the command:\n\n"
-            "pip install torch\n"
-        )
-        raise RuntimeError(msg)
+        raise_error_torch_missing()
+
+
+def raise_error_torch_missing() -> NoReturn:
+    r"""Raise a RuntimeError to indicate the ``torch`` package is
+    missing."""
+    msg = (
+        "'torch' package is required but not installed. "
+        "You can install 'torch' package with the command:\n\n"
+        "pip install torch\n"
+    )
+    raise RuntimeError(msg)
 
 
 def torch_available(fn: Callable[..., Any]) -> Callable[..., Any]:
@@ -830,12 +880,18 @@ def check_xarray() -> None:
     ```
     """
     if not is_xarray_available():
-        msg = (
-            "'xarray' package is required but not installed. "
-            "You can install 'xarray' package with the command:\n\n"
-            "pip install xarray\n"
-        )
-        raise RuntimeError(msg)
+        raise_error_xarray_missing()
+
+
+def raise_error_xarray_missing() -> NoReturn:
+    r"""Raise a RuntimeError to indicate the ``xarray`` package is
+    missing."""
+    msg = (
+        "'xarray' package is required but not installed. "
+        "You can install 'xarray' package with the command:\n\n"
+        "pip install xarray\n"
+    )
+    raise RuntimeError(msg)
 
 
 def xarray_available(fn: Callable[..., Any]) -> Callable[..., Any]:
