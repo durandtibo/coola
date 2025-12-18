@@ -7,7 +7,7 @@ on:
   workflow_call:
     inputs:
       install-cmd:
-        default: "uv pip install objectory"
+        default: "uv pip install coola"
         description: "Command to install the package"
         required: false
         type: string

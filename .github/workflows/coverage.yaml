@@ -1,3 +1,7 @@
+# Code coverage workflow.
+# Runs tests with coverage tracking and uploads results to Codecov.
+# Only uploads coverage for the main repository to avoid spam from forks.
+
 name: Code Coverage
 on:
   workflow_call:
@@ -10,35 +14,24 @@ jobs:
   coverage:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.13'
+      - name: Setup python environment
+        uses: durandtibo/setup-venv-uv-action@v0.0.1
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-
-      - name: Set environment variable
-        run: |
-          echo $(poetry run poetry env info --path)/bin >> $GITHUB_PATH
-
-      - name: Install packages
-        run: |
-          make install-all
-
-      - name: Show installed packages
-        run: |
-          poetry show
-          poetry show --tree
-
+      # Run unit tests with coverage tracking
       - name: Run unit tests
         run: |
-          make unit-test-cov
+          inv unit-test --cov
 
+      # Run integration tests with coverage tracking
+      - name: Run integration tests
+        run: |
+          inv integration-test --cov
+
+      # Upload coverage report to Codecov (only for main repository)
       - name: Upload coverage to Codecov
         if: github.repository == 'durandtibo/coola' && (github.event_name == 'push' || github.event_name == 'pull_request')
         uses: codecov/codecov-action@v5

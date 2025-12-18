@@ -1,3 +1,7 @@
+# Comprehensive test suite workflow.
+# Runs unit and integration tests across multiple Python versions and operating systems.
+# Tests both with all dependencies and with minimal dependencies.
+
 name: Tests
 on:
   workflow_call:
@@ -7,6 +11,7 @@ permissions:
   contents: read
 
 jobs:
+  # Test with all dependencies across multiple Python versions and operating systems
   all:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
@@ -26,38 +31,27 @@ jobs:
           macos-14,
           macos-15-intel,
         ]
-        python-version: [ '3.14', '3.13', '3.12', '3.11', '3.10' ]
+        # Test all supported Python versions including free-threaded builds (t suffix)
+        python-version: [ '3.14', '3.14t', '3.13', '3.13t', '3.12', '3.11', '3.10' ]
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Setup python environment
+        uses: durandtibo/setup-venv-uv-action@v0.0.1
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-
-      - name: Set environment variable
-        run: |
-          echo $(poetry run poetry env info --path)/bin >> $GITHUB_PATH
-
-      - name: Install packages
-        run: |
-          make install-all
-
-      - name: Show installed packages
-        run: |
-          poetry show
-          poetry show --tree
-
       - name: Run unit tests
         run: |
-          make unit-test-cov
+          inv unit-test --cov
 
+      - name: Run integration tests
+        run: |
+          inv integration-test --cov
 
+  # Test with minimal dependencies to ensure optional dependencies are truly optional
   min:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
@@ -77,33 +71,23 @@ jobs:
           macos-14,
           macos-15-intel,
         ]
-        python-version: [ '3.14', '3.13', '3.12', '3.11', '3.10' ]
+        python-version: [ '3.14', '3.14t', '3.13', '3.13t', '3.12', '3.11', '3.10' ]
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      # Install only required dependencies, not optional ones
+      - name: Setup python environment
+        uses: durandtibo/setup-venv-uv-action@v0.0.1
         with:
           python-version: ${{ matrix.python-version }}
-
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-
-      - name: Set environment variable
-        run: |
-          echo $(poetry run poetry env info --path)/bin >> $GITHUB_PATH
-
-      - name: Install packages
-        run: |
-          make install
-
-      - name: Show installed packages
-        run: |
-          poetry show
-          poetry show --tree
+          install-args: '--no-optional-deps'
 
       - name: Run unit tests
         run: |
-          make unit-test-cov
+          inv unit-test --cov
+
+      - name: Run integration tests
+        run: |
+          inv integration-test --cov
