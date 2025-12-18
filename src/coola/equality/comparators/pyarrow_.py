@@ -38,15 +38,15 @@ class PyarrowEqualityComparator(BaseEqualityComparator[pa.Array]):  # noqa: PLW1
 
     ```pycon
 
-    >>> import pyarrow
+    >>> import pyarrow as pa
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import PyarrowEqualityComparator
     >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> comparator = PyarrowEqualityComparator()
-    >>> comparator.equal(pyarrow.array([1, 2, 3]), pyarrow.array([1, 2, 3]), config)
+    >>> comparator.equal(pa.array([1, 2, 3]), pa.array([1, 2, 3]), config)
     True
-    >>> comparator.equal(pyarrow.array([1, 2, 3]), pyarrow.array([1, 2, 4]), config)
+    >>> comparator.equal(pa.array([1, 2, 3]), pa.array([1, 2, 4]), config)
     False
 
     ```

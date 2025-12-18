@@ -20,7 +20,7 @@ SOURCE = f"src/{NAME}"
 TESTS = "tests"
 UNIT_TESTS = f"{TESTS}/unit"
 INTEGRATION_TESTS = f"{TESTS}/integration"
-PYTHON_VERSION = "3.14"
+PYTHON_VERSION = "3.13"
 
 
 @task
