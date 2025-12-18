@@ -6,15 +6,14 @@ __all__ = ["NumpyArrayEqualHandler"]
 
 import logging
 from typing import TYPE_CHECKING
-from unittest.mock import Mock
 
 from coola.equality.handlers.base import BaseEqualityHandler
 from coola.utils import is_numpy_available
 
-if is_numpy_available():
+if TYPE_CHECKING or is_numpy_available():
     import numpy as np
 else:  # pragma: no cover
-    np = Mock()
+    from coola.utils.fallback.numpy import numpy as np
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig

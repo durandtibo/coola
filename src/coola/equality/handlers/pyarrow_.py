@@ -8,18 +8,14 @@ import logging
 import warnings
 from contextlib import suppress
 from typing import TYPE_CHECKING
-from unittest.mock import Mock
 
 from coola.equality.handlers.base import BaseEqualityHandler
-from coola.utils.imports import is_pyarrow_available
-
-if is_pyarrow_available():
-    import pyarrow as pa
-else:  # pragma: no cover
-    pa = Mock()
 
 if TYPE_CHECKING:
+    import pyarrow as pa
+
     from coola.equality.config import EqualityConfig
+
 
 logger: logging.Logger = logging.getLogger(__name__)
 

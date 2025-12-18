@@ -11,7 +11,6 @@ __all__ = [
 
 import logging
 from typing import TYPE_CHECKING, Any
-from unittest.mock import Mock
 
 from coola.equality.comparators.base import BaseEqualityComparator
 from coola.equality.handlers import (
@@ -23,10 +22,10 @@ from coola.equality.handlers import (
 )
 from coola.utils import check_xarray, is_xarray_available
 
-if is_xarray_available():
+if TYPE_CHECKING or is_xarray_available():
     import xarray as xr
 else:  # pragma: no cover
-    xr = Mock()
+    from coola.utils.fallback.xarray import xarray as xr
 
 if TYPE_CHECKING:
     from coola.equality import EqualityConfig

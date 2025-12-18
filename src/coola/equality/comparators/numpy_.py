@@ -10,7 +10,6 @@ __all__ = [
 
 import logging
 from typing import TYPE_CHECKING, Any
-from unittest.mock import Mock
 
 from coola.equality.comparators.base import BaseEqualityComparator
 from coola.equality.handlers import (
@@ -25,10 +24,10 @@ from coola.equality.handlers import (
 )
 from coola.utils import check_numpy, is_numpy_available
 
-if is_numpy_available():
+if TYPE_CHECKING or is_numpy_available():
     import numpy as np
 else:  # pragma: no cover
-    np = Mock()
+    from coola.utils.fallback.numpy import numpy as np
 
 if TYPE_CHECKING:
     from coola.equality import EqualityConfig

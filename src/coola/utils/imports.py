@@ -52,7 +52,6 @@ from functools import lru_cache, wraps
 from importlib.util import find_spec
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, NoReturn
-from unittest.mock import Mock
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -757,7 +756,7 @@ def torch_available(fn: Callable[..., Any]) -> Callable[..., Any]:
 if is_torch_available():
     import torch
 else:  # pragma: no cover
-    torch = Mock()
+    from coola.utils.fallback.torch import torch
 
 
 @lru_cache

@@ -11,7 +11,6 @@ __all__ = [
 
 import logging
 from typing import TYPE_CHECKING, Any
-from unittest.mock import Mock
 
 from coola.equality.comparators.base import BaseEqualityComparator
 from coola.equality.handlers import (
@@ -22,10 +21,10 @@ from coola.equality.handlers import (
 )
 from coola.utils import check_pandas, is_pandas_available
 
-if is_pandas_available():
+if TYPE_CHECKING or is_pandas_available():
     import pandas as pd
 else:  # pragma: no cover
-    pd = Mock()
+    from coola.utils.fallback.pandas import pandas as pd
 
 if TYPE_CHECKING:
     from coola.equality import EqualityConfig
