@@ -20,7 +20,6 @@ from coola.testing import (
     xarray_available,
     xarray_not_available,
 )
-from coola.utils import is_jax_available
 from coola.utils.imports import (
     check_jax,
     check_numpy,
@@ -30,6 +29,7 @@ from coola.utils.imports import (
     check_pyarrow,
     check_torch,
     check_xarray,
+    is_jax_available,
     is_numpy_available,
     is_packaging_available,
     is_pandas_available,
