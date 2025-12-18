@@ -12,7 +12,16 @@ from coola.utils.imports import raise_error_pyarrow_missing
 
 
 class Array:
-    r"""Fake Array class."""
+    r"""Fake Array class that raises an error because pyarrow is not
+    installed.
+
+    Args:
+        *args: Positional arguments.
+        **kwargs: Keyword arguments.
+
+    Raises:
+        RuntimeError: pyarrow is required for this functionality.
+    """
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:  # noqa: ARG002
         raise_error_pyarrow_missing()
