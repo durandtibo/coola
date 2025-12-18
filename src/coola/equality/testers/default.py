@@ -22,7 +22,7 @@ logger: logging.Logger = logging.getLogger(__name__)
 class EqualityTester(BaseEqualityTester):
     r"""Implement the default equality tester."""
 
-    registry: ClassVar[dict[type, BaseEqualityComparator[Any]]] = {}
+    registry: ClassVar[dict[type[object], BaseEqualityComparator[Any]]] = {}
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(self.registry))}\n)"
@@ -148,8 +148,10 @@ class LocalEqualityTester(BaseEqualityTester):  # noqa: PLW1641
             comparators.
     """
 
-    def __init__(self, registry: dict[type, BaseEqualityComparator[Any]] | None = None) -> None:
-        self.registry: dict[type, BaseEqualityComparator[Any]] = registry or {}
+    def __init__(
+        self, registry: dict[type[object], BaseEqualityComparator[Any]] | None = None
+    ) -> None:
+        self.registry: dict[type[object], BaseEqualityComparator[Any]] = registry or {}
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, self.__class__):
