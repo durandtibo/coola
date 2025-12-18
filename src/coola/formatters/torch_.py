@@ -6,7 +6,6 @@ The formatter is registered only if ``torch`` is available.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
-from unittest.mock import Mock
 
 from coola.formatters.base import BaseFormatter
 from coola.utils import check_torch, is_torch_available
@@ -14,10 +13,10 @@ from coola.utils import check_torch, is_torch_available
 if TYPE_CHECKING:
     from coola.summarizers.base import BaseSummarizer
 
-if is_torch_available():
+if TYPE_CHECKING or is_torch_available():
     import torch
-else:
-    torch = Mock()  # pragma: no cover
+else:  # pragma: no cover
+    from coola.utils.fallback.torch import torch
 
 
 class TensorFormatter(BaseFormatter[torch.Tensor]):
@@ -75,10 +74,10 @@ class TensorFormatter(BaseFormatter[torch.Tensor]):
             ]
         )
 
-    def load_state_dict(self, state: dict) -> None:
+    def load_state_dict(self, state: dict[str, Any]) -> None:
         self._show_data = state["show_data"]
 
-    def state_dict(self) -> dict:
+    def state_dict(self) -> dict[str, Any]:
         return {"show_data": self._show_data}
 
     def get_show_data(self) -> bool:

@@ -5,8 +5,7 @@ from __future__ import annotations
 __all__ = ["NumpyRandomManager", "get_random_managers"]
 
 from contextlib import contextmanager
-from typing import TYPE_CHECKING
-from unittest.mock import Mock
+from typing import TYPE_CHECKING, Any
 
 from coola.random.base import BaseRandomManager
 from coola.utils import check_numpy, is_numpy_available
@@ -17,7 +16,7 @@ if TYPE_CHECKING:
 if is_numpy_available():
     import numpy as np
 else:  # pragma: no cover
-    np = Mock()
+    from coola.utils.fallback.numpy import numpy as np
 
 
 class NumpyRandomManager(BaseRandomManager):  # noqa: PLW1641
@@ -47,13 +46,13 @@ class NumpyRandomManager(BaseRandomManager):  # noqa: PLW1641
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
-    def get_rng_state(self) -> dict | tuple:
+    def get_rng_state(self) -> tuple[Any, ...]:
         return np.random.get_state()
 
     def manual_seed(self, seed: int) -> None:
         np.random.seed(seed % 2**32)
 
-    def set_rng_state(self, state: dict | tuple) -> None:
+    def set_rng_state(self, state: tuple[Any, ...]) -> None:
         np.random.set_state(state)
 
 

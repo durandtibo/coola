@@ -4,13 +4,15 @@ from __future__ import annotations
 
 __all__ = ["convert_to_dict_of_lists", "convert_to_list_of_dicts"]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from collections.abc import Hashable, Mapping, Sequence
 
 
-def convert_to_dict_of_lists(seq_of_mappings: Sequence[Mapping]) -> dict[Hashable, list]:
+def convert_to_dict_of_lists(
+    seq_of_mappings: Sequence[Mapping[Hashable, Any]],
+) -> dict[Hashable, list[Any]]:
     r"""Convert a sequence of mappings to a dictionary of lists.
 
     All the dictionaries should have the same keys. The first
@@ -39,7 +41,9 @@ def convert_to_dict_of_lists(seq_of_mappings: Sequence[Mapping]) -> dict[Hashabl
     return {}
 
 
-def convert_to_list_of_dicts(mapping_of_seqs: Mapping[Hashable, Sequence]) -> list[dict]:
+def convert_to_list_of_dicts(
+    mapping_of_seqs: Mapping[Hashable, Sequence[Any]],
+) -> list[dict[Hashable, Any]]:
     r"""Convert a mapping of sequences to a list of dictionaries.
 
     All the sequences should have the same length.

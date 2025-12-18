@@ -5,8 +5,7 @@ from __future__ import annotations
 __all__ = ["TorchRandomManager", "get_random_managers", "torch_seed"]
 
 from contextlib import contextmanager
-from typing import TYPE_CHECKING
-from unittest.mock import Mock
+from typing import TYPE_CHECKING, Any
 
 from coola.random.base import BaseRandomManager
 from coola.utils import check_torch, is_torch_available
@@ -17,7 +16,7 @@ if TYPE_CHECKING:
 if is_torch_available():
     import torch
 else:  # pragma: no cover
-    torch = Mock()
+    from coola.utils.fallback.torch import torch
 
 
 class TorchRandomManager(BaseRandomManager):  # noqa: PLW1641
@@ -43,7 +42,7 @@ class TorchRandomManager(BaseRandomManager):  # noqa: PLW1641
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
-    def get_rng_state(self) -> dict:
+    def get_rng_state(self) -> dict[str, Any]:
         return {
             "torch": torch.get_rng_state(),
             "torch.cuda": torch.cuda.get_rng_state_all(),
@@ -54,7 +53,7 @@ class TorchRandomManager(BaseRandomManager):  # noqa: PLW1641
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(seed)
 
-    def set_rng_state(self, state: dict) -> None:
+    def set_rng_state(self, state: dict[str, Any]) -> None:
         torch.set_rng_state(state["torch"])
         torch.cuda.set_rng_state_all(state["torch.cuda"])
 

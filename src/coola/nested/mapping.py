@@ -7,10 +7,10 @@ __all__ = ["get_first_value", "remove_keys_starting_with", "to_flat_dict"]
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Hashable, Mapping
 
 
-def get_first_value(data: Mapping) -> Any:
+def get_first_value(data: Mapping[str, Any]) -> Any:
     r"""Get the first value of a mapping.
 
     Args:
@@ -42,7 +42,7 @@ def to_flat_dict(
     data: Any,
     prefix: str | None = None,
     separator: str = ".",
-    to_str: type[object] | tuple[type[object], ...] | None = None,
+    to_str: type[Any] | tuple[type[Any], ...] | None = None,
 ) -> dict[str, Any]:
     r"""Return a flat representation of a nested dict with the dot
     format.
@@ -121,7 +121,7 @@ def to_flat_dict(
     return flat_dict
 
 
-def remove_keys_starting_with(mapping: Mapping, prefix: str) -> dict:
+def remove_keys_starting_with(mapping: Mapping[Hashable, Any], prefix: str) -> dict[Hashable, Any]:
     r"""Remove the keys that start with a given prefix.
 
     Args:
