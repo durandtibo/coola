@@ -5,13 +5,13 @@ from __future__ import annotations
 __all__ = ["get_type_comparator_mapping"]
 
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from coola.equality.comparators.base import BaseEqualityComparator
 
 
-def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
+def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator[Any]]:
     r"""Get a default mapping between the types and the equality
     comparators.
 

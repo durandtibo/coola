@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["EqualityTester", "LocalEqualityTester"]
 
 import logging
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
 from coola.equality.testers.base import BaseEqualityTester
 from coola.utils.format import str_indent, str_mapping
@@ -14,20 +14,22 @@ if TYPE_CHECKING:
     from coola.equality import EqualityConfig
     from coola.equality.comparators.base import BaseEqualityComparator
 
+T = TypeVar("T")
+
 logger: logging.Logger = logging.getLogger(__name__)
 
 
 class EqualityTester(BaseEqualityTester):
     r"""Implement the default equality tester."""
 
-    registry: ClassVar[dict[type, BaseEqualityComparator]] = {}
+    registry: ClassVar[dict[type, BaseEqualityComparator[Any]]] = {}
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(self.registry))}\n)"
 
     @classmethod
     def add_comparator(
-        cls, data_type: type, comparator: BaseEqualityComparator, exist_ok: bool = False
+        cls, data_type: type[T], comparator: BaseEqualityComparator[T], exist_ok: bool = False
     ) -> None:
         r"""Add an equality comparator for a given data type.
 
@@ -90,7 +92,7 @@ class EqualityTester(BaseEqualityTester):
         return data_type in cls.registry
 
     @classmethod
-    def find_comparator(cls, data_type: Any) -> BaseEqualityComparator:
+    def find_comparator(cls, data_type: type[T]) -> BaseEqualityComparator[T]:
         r"""Find the equality comparator associated to an object.
 
         Args:
@@ -146,8 +148,8 @@ class LocalEqualityTester(BaseEqualityTester):  # noqa: PLW1641
             comparators.
     """
 
-    def __init__(self, registry: dict[type, BaseEqualityComparator] | None = None) -> None:
-        self.registry = registry or {}
+    def __init__(self, registry: dict[type, BaseEqualityComparator[Any]] | None = None) -> None:
+        self.registry: dict[type, BaseEqualityComparator[Any]] = registry or {}
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, self.__class__):
@@ -158,7 +160,7 @@ class LocalEqualityTester(BaseEqualityTester):  # noqa: PLW1641
         return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(self.registry))}\n)"
 
     def add_comparator(
-        self, data_type: type, comparator: BaseEqualityComparator, exist_ok: bool = False
+        self, data_type: type[T], comparator: BaseEqualityComparator[T], exist_ok: bool = False
     ) -> None:
         r"""Add an equality comparator for a given data type.
 
@@ -239,7 +241,7 @@ class LocalEqualityTester(BaseEqualityTester):  # noqa: PLW1641
         """
         return data_type in self.registry
 
-    def find_comparator(self, data_type: Any) -> BaseEqualityComparator:
+    def find_comparator(self, data_type: type[T]) -> BaseEqualityComparator[T]:
         r"""Find the equality comparator associated to an object.
 
         Args:

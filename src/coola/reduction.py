@@ -5,14 +5,19 @@ from __future__ import annotations
 __all__ = ["Reduction"]
 
 
-from coola.reducers import auto_reducer
+from typing import TYPE_CHECKING
+
+from coola.reducers import BaseReducer, auto_reducer
 from coola.reducers.registry import ReducerRegistry
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 class Reduction:
     r"""Implement the class that defines the reduction strategy."""
 
-    reducer = auto_reducer()
+    reducer: BaseReducer[Sequence[int | float]] = auto_reducer()
 
     @classmethod
     def available_reducers(cls) -> tuple[str, ...]:

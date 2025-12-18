@@ -273,7 +273,7 @@ class BaseCollectionFormatter(BaseFormatter[T]):
         self._num_spaces = num_spaces
 
 
-class MappingFormatter(BaseCollectionFormatter[Mapping[Hashable, Any]]):
+class MappingFormatter(BaseCollectionFormatter[Mapping[Any, Any]]):
     r"""Implement a formatter for ``Mapping``.
 
     Example usage:
@@ -295,7 +295,7 @@ class MappingFormatter(BaseCollectionFormatter[Mapping[Hashable, Any]]):
     def format(
         self,
         summarizer: BaseSummarizer,
-        value: Mapping[Hashable, Any],
+        value: Mapping[Any, Any],
         depth: int = 0,
         max_depth: int = 1,
     ) -> str:

@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 def convert_to_dict_of_lists(
-    seq_of_mappings: Sequence[Mapping[Hashable, Any]],
+    seq_of_mappings: Sequence[Mapping[Any, Any]],
 ) -> dict[Hashable, list[Any]]:
     r"""Convert a sequence of mappings to a dictionary of lists.
 
@@ -43,7 +43,7 @@ def convert_to_dict_of_lists(
 
 def convert_to_list_of_dicts(
     mapping_of_seqs: Mapping[Hashable, Sequence[Any]],
-) -> list[dict[Hashable, Any]]:
+) -> list[dict[Any, Any]]:
     r"""Convert a mapping of sequences to a list of dictionaries.
 
     All the sequences should have the same length.

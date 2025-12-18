@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class MappingEqualityComparator(BaseEqualityComparator[Mapping]):  # noqa: PLW1641
+class MappingEqualityComparator(BaseEqualityComparator[Mapping[Any, Any]]):  # noqa: PLW1641
     r"""Implement a sequence equality comparator.
 
     Example usage:
@@ -59,11 +59,13 @@ class MappingEqualityComparator(BaseEqualityComparator[Mapping]):  # noqa: PLW16
     def clone(self) -> MappingEqualityComparator:
         return self.__class__()
 
-    def equal(self, actual: Mapping, expected: Any, config: EqualityConfig) -> bool:
+    def equal(
+        self, actual: Mapping[Any, Any], expected: Any[Any, Any], config: EqualityConfig
+    ) -> bool:
         return self._handler.handle(actual, expected, config=config)
 
 
-class SequenceEqualityComparator(BaseEqualityComparator[Sequence]):  # noqa: PLW1641
+class SequenceEqualityComparator(BaseEqualityComparator[Sequence[Any]]):  # noqa: PLW1641
     r"""Implement a sequence equality comparator.
 
     Example usage:
@@ -95,11 +97,11 @@ class SequenceEqualityComparator(BaseEqualityComparator[Sequence]):  # noqa: PLW
     def clone(self) -> SequenceEqualityComparator:
         return self.__class__()
 
-    def equal(self, actual: Sequence, expected: Any, config: EqualityConfig) -> bool:
+    def equal(self, actual: Sequence[Any], expected: Any, config: EqualityConfig) -> bool:
         return self._handler.handle(actual, expected, config=config)
 
 
-def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator]:
+def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator[Any]]:
     r"""Get a mapping between the types and the equality comparators.
 
     Returns:

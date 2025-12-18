@@ -6,7 +6,7 @@ __all__ = ["BaseSummarizer", "Summarizer", "summarizer_options"]
 
 from collections.abc import Mapping, Sequence
 from contextlib import contextmanager
-from typing import Any, ClassVar
+from typing import Any, ClassVar, TypeVar
 
 from coola.formatters import (
     BaseFormatter,
@@ -21,6 +21,8 @@ from coola.summarizers.base import BaseSummarizer
 from coola.types import Tensor, ndarray
 from coola.utils import is_numpy_available, is_torch_available
 from coola.utils.format import str_indent, str_mapping
+
+T = TypeVar("T")
 
 
 class Summarizer(BaseSummarizer):
@@ -70,7 +72,7 @@ class Summarizer(BaseSummarizer):
     ```
     """
 
-    registry: ClassVar[dict[type[object], BaseFormatter]] = {
+    registry: ClassVar[dict[type[object], BaseFormatter[Any]]] = {
         Mapping: MappingFormatter(),
         Sequence: SequenceFormatter(),
         dict: MappingFormatter(),
@@ -98,7 +100,7 @@ class Summarizer(BaseSummarizer):
 
     @classmethod
     def add_formatter(
-        cls, data_type: type[object], formatter: BaseFormatter, exist_ok: bool = False
+        cls, data_type: type[T], formatter: BaseFormatter[T], exist_ok: bool = False
     ) -> None:
         r"""Add a formatter for a given data type.
 
@@ -160,7 +162,7 @@ class Summarizer(BaseSummarizer):
         return data_type in cls.registry
 
     @classmethod
-    def find_formatter(cls, data_type: Any) -> BaseFormatter:
+    def find_formatter(cls, data_type: type[T]) -> BaseFormatter[T]:
         r"""Find the formatter associated to an object.
 
         Args:
@@ -193,7 +195,7 @@ class Summarizer(BaseSummarizer):
         raise TypeError(msg)
 
     @classmethod
-    def load_state_dict(cls, state: dict) -> None:
+    def load_state_dict(cls, state: dict[type[object], Any]) -> None:
         r"""Load the state values from a dict.
 
         Args:
@@ -219,7 +221,7 @@ class Summarizer(BaseSummarizer):
                 formatter.load_state_dict(s)
 
     @classmethod
-    def state_dict(cls) -> dict:
+    def state_dict(cls) -> dict[type[object], dict[Any, Any]]:
         r"""Return a dictionary containing state values.
 
         Returns:
