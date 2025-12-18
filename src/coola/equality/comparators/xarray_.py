@@ -174,7 +174,7 @@ class XarrayVariableEqualityComparator(BaseEqualityComparator[xr.Variable]):  # 
         return self._handler.handle(actual, expected, config=config)
 
 
-def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator[Any]]:
+def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[Any]]:
     r"""Get a default mapping between the types and the equality
     comparators.
 

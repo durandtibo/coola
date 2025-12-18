@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from coola.equality.comparators.base import BaseEqualityComparator
 
 
-def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator[Any]]:
+def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[Any]]:
     r"""Get a default mapping between the types and the equality
     comparators.
 

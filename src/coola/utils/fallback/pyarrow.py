@@ -9,3 +9,10 @@ from types import ModuleType
 
 # Create a fake pyarrow package
 pyarrow: ModuleType = ModuleType("pyarrow")
+
+
+class Array:
+    r"""Fake Array class."""
+
+
+pyarrow.Array = Array

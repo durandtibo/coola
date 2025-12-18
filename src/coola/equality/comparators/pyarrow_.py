@@ -38,15 +38,15 @@ class PyarrowEqualityComparator(BaseEqualityComparator[pa.Array]):  # noqa: PLW1
 
     ```pycon
 
-    >>> import pyarrow as pa
+    >>> import pyarrow
     >>> from coola.equality import EqualityConfig
     >>> from coola.equality.comparators import PyarrowEqualityComparator
     >>> from coola.equality.testers import EqualityTester
     >>> config = EqualityConfig(tester=EqualityTester())
     >>> comparator = PyarrowEqualityComparator()
-    >>> comparator.equal(pa.array([1, 2, 3]), pa.array([1, 2, 3]), config)
+    >>> comparator.equal(pyarrow.array([1, 2, 3]), pyarrow.array([1, 2, 3]), config)
     True
-    >>> comparator.equal(pa.array([1, 2, 3]), pa.array([1, 2, 4]), config)
+    >>> comparator.equal(pyarrow.array([1, 2, 3]), pyarrow.array([1, 2, 4]), config)
     False
 
     ```
@@ -67,7 +67,7 @@ class PyarrowEqualityComparator(BaseEqualityComparator[pa.Array]):  # noqa: PLW1
         return self._handler.handle(actual, expected, config=config)
 
 
-def get_type_comparator_mapping() -> dict[type, BaseEqualityComparator[Any]]:
+def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[Any]]:
     r"""Get a default mapping between the types and the equality
     comparators.
 
