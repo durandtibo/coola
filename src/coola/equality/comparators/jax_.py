@@ -21,7 +21,8 @@ from coola.utils.imports import check_jax, is_jax_available
 if TYPE_CHECKING or is_jax_available():
     import jax.numpy as jnp
 else:  # pragma: no cover
-    from coola.utils.fallback.jax import jax as jnp
+    from coola.utils.fallback.jax import jnp
+
 
 if TYPE_CHECKING:
     from coola.equality import EqualityConfig

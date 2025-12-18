@@ -11,9 +11,8 @@ from typing import Any
 from coola.utils.imports import raise_error_pyarrow_missing
 
 
-class Array:
-    r"""Fake Array class that raises an error because pyarrow is not
-    installed.
+class FakeClass:
+    r"""Fake class that raises an error because pyarrow is not installed.
 
     Args:
         *args: Positional arguments.
@@ -29,4 +28,4 @@ class Array:
 
 # Create a fake pyarrow package
 pyarrow: ModuleType = ModuleType("pyarrow")
-pyarrow.Array = Array
+pyarrow.Array = FakeClass
