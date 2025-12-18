@@ -11,7 +11,7 @@ from typing import Any
 from coola.utils.imports import raise_error_xarray_missing
 
 
-class FakeJaxClass:
+class FakeClass:
     r"""Fake class that raises an error because xarray is not installed.
 
     Args:
@@ -28,6 +28,6 @@ class FakeJaxClass:
 
 # Create a fake xarray package
 xarray: ModuleType = ModuleType("xarray")
-xarray.DataArray = FakeJaxClass
-xarray.Dataset = FakeJaxClass
-xarray.Variable = FakeJaxClass
+xarray.DataArray = FakeClass
+xarray.Dataset = FakeClass
+xarray.Variable = FakeClass

@@ -3,7 +3,7 @@ available."""
 
 from __future__ import annotations
 
-__all__ = ["jax"]
+__all__ = ["jax", "jnp"]
 
 from types import ModuleType
 from typing import Any
@@ -11,7 +11,7 @@ from typing import Any
 from coola.utils.imports import raise_error_jax_missing
 
 
-class FakeJaxClass:
+class FakeClass:
     r"""Fake class that raises an error because jax is not installed.
 
     Args:
@@ -29,7 +29,7 @@ class FakeJaxClass:
 # Create a fake jax package
 jax: ModuleType = ModuleType("jax")
 jax.numpy = ModuleType("jax.numpy")
-jax.numpy.ndarray = FakeJaxClass
+jax.numpy.ndarray = FakeClass
 
 # Export jnp as an alias for convenience
 jnp = jax.numpy
