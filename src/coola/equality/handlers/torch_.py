@@ -6,17 +6,12 @@ __all__ = ["TorchTensorEqualHandler", "TorchTensorSameDeviceHandler"]
 
 import logging
 from typing import TYPE_CHECKING
-from unittest.mock import Mock
 
 from coola.equality.handlers.base import AbstractEqualityHandler, BaseEqualityHandler
-from coola.utils import is_torch_available
-
-if is_torch_available():
-    import torch
-else:  # pragma: no cover
-    torch = Mock()
 
 if TYPE_CHECKING:
+    import torch
+
     from coola.equality.config import EqualityConfig
 
 logger: logging.Logger = logging.getLogger(__name__)

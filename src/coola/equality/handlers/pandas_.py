@@ -7,15 +7,14 @@ __all__ = ["PandasDataFrameEqualHandler", "PandasSeriesEqualHandler"]
 
 import logging
 from typing import TYPE_CHECKING
-from unittest.mock import Mock
 
 from coola.equality.handlers.base import BaseEqualityHandler
 from coola.utils import is_pandas_available
 
-if is_pandas_available():
+if TYPE_CHECKING or is_pandas_available():
     import pandas as pd
 else:  # pragma: no cover
-    pd = Mock()
+    from coola.utils.fallback.pandas import pandas as pd
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig

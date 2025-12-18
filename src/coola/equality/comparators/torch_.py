@@ -11,7 +11,6 @@ __all__ = [
 
 import logging
 from typing import TYPE_CHECKING, Any
-from unittest.mock import Mock
 
 from coola.equality.comparators.base import BaseEqualityComparator
 from coola.equality.handlers import (
@@ -29,10 +28,10 @@ from coola.equality.handlers.torch_ import (
 )
 from coola.utils import check_torch, is_torch_available
 
-if is_torch_available():
+if TYPE_CHECKING or is_torch_available():
     import torch
 else:  # pragma: no cover
-    torch = Mock()
+    from coola.utils.fallback.torch import torch
 
 if TYPE_CHECKING:
     from coola.equality import EqualityConfig

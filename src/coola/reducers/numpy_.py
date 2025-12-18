@@ -9,7 +9,6 @@ __all__ = ["NumpyReducer"]
 
 from collections.abc import Sequence
 from typing import TypeVar
-from unittest.mock import Mock
 
 from coola.reducers.base import BaseBasicReducer
 from coola.reducers.registry import ReducerRegistry
@@ -17,8 +16,8 @@ from coola.utils import check_numpy, is_numpy_available
 
 if is_numpy_available():
     import numpy as np
-else:
-    np = Mock()  # pragma: no cover
+else:  # pragma: no cover
+    from coola.utils.fallback.numpy import numpy as np
 
 
 T = TypeVar("T", Sequence[int | float], np.ndarray)

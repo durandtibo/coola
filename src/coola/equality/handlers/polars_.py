@@ -9,17 +9,16 @@ import inspect
 import logging
 from functools import lru_cache
 from typing import TYPE_CHECKING
-from unittest.mock import Mock
 
 from coola.equality.handlers.base import BaseEqualityHandler
 from coola.utils import is_polars_available
 
-if is_polars_available():
+if TYPE_CHECKING or is_polars_available():
     import polars as pl
     import polars.selectors as cs
     from polars import testing
 else:  # pragma: no cover
-    pl = Mock()
+    from coola.utils.fallback.polars import polars as pl
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig

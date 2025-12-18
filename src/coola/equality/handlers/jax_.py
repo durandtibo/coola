@@ -6,15 +6,14 @@ __all__ = ["JaxArrayEqualHandler"]
 
 import logging
 from typing import TYPE_CHECKING
-from unittest.mock import Mock
 
 from coola.equality.handlers.base import BaseEqualityHandler
 from coola.utils.imports import is_jax_available
 
-if is_jax_available():
+if TYPE_CHECKING or is_jax_available():
     import jax.numpy as jnp
 else:  # pragma: no cover
-    jnp = Mock()
+    from coola.utils.fallback.jax import jax as jnp
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig

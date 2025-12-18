@@ -7,7 +7,6 @@ __all__ = ["JaxArrayEqualityComparator", "get_type_comparator_mapping"]
 import logging
 from functools import lru_cache
 from typing import TYPE_CHECKING, Any
-from unittest.mock import Mock
 
 from coola.equality.comparators.base import BaseEqualityComparator
 from coola.equality.handlers import (
@@ -19,10 +18,10 @@ from coola.equality.handlers import (
 )
 from coola.utils.imports import check_jax, is_jax_available
 
-if is_jax_available():
+if TYPE_CHECKING or is_jax_available():
     import jax.numpy as jnp
 else:  # pragma: no cover
-    jnp = Mock()
+    from coola.utils.fallback.jax import jax as jnp
 
 if TYPE_CHECKING:
     from coola.equality import EqualityConfig

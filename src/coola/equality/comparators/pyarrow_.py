@@ -7,7 +7,6 @@ __all__ = ["PyarrowEqualityComparator", "get_type_comparator_mapping"]
 
 import logging
 from typing import TYPE_CHECKING, Any
-from unittest.mock import Mock
 
 from coola.equality.comparators.base import BaseEqualityComparator
 from coola.equality.handlers import (
@@ -17,10 +16,10 @@ from coola.equality.handlers import (
 )
 from coola.utils.imports import check_pyarrow, is_pyarrow_available
 
-if is_pyarrow_available():
+if TYPE_CHECKING or is_pyarrow_available():
     import pyarrow as pa
 else:  # pragma: no cover
-    pa = Mock()
+    from coola.utils.fallback.pyarrow import pyarrow as pa
 
 if TYPE_CHECKING:
     from coola.equality import EqualityConfig
