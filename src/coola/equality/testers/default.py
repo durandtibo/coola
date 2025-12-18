@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from coola.equality import EqualityConfig
     from coola.equality.comparators.base import BaseEqualityComparator
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 class EqualityTester(BaseEqualityTester):

@@ -24,7 +24,7 @@ import datetime
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Hashable, Mapping, Sequence
 
 BYTE_UNITS = {
     "B": 1,
@@ -68,7 +68,9 @@ def repr_indent(original: Any, num_spaces: int = 2) -> str:
     return str_indent(original, num_spaces)
 
 
-def repr_mapping(mapping: Mapping, sorted_keys: bool = False, num_spaces: int = 2) -> str:
+def repr_mapping(
+    mapping: Mapping[Hashable, Any], sorted_keys: bool = False, num_spaces: int = 2
+) -> str:
     r"""Compute a string representation of a mapping.
 
     This function was designed for flat dictionary. If you have a
@@ -104,7 +106,9 @@ def repr_mapping(mapping: Mapping, sorted_keys: bool = False, num_spaces: int = 
     return "\n".join(lines)
 
 
-def repr_mapping_line(mapping: Mapping, sorted_keys: bool = False, separator: str = ", ") -> str:
+def repr_mapping_line(
+    mapping: Mapping[Hashable, Any], sorted_keys: bool = False, separator: str = ", "
+) -> str:
     r"""Compute a single line string representation of the given mapping.
 
     This function is designed for flat dictionary. If you have a
@@ -135,7 +139,7 @@ def repr_mapping_line(mapping: Mapping, sorted_keys: bool = False, separator: st
     return separator.join(f"{key}={value!r}" for key, value in mapping)
 
 
-def repr_sequence(sequence: Sequence, num_spaces: int = 2) -> str:
+def repr_sequence(sequence: Sequence[Any], num_spaces: int = 2) -> str:
     r"""Compute a string representation of a sequence.
 
     Args:
@@ -164,7 +168,7 @@ def repr_sequence(sequence: Sequence, num_spaces: int = 2) -> str:
     return "\n".join(lines)
 
 
-def repr_sequence_line(sequence: Sequence, separator: str = ", ") -> str:
+def repr_sequence_line(sequence: Sequence[Any], separator: str = ", ") -> str:
     r"""Compute a single line string representation of a sequence.
 
     Args:
@@ -226,7 +230,9 @@ def str_indent(original: Any, num_spaces: int = 2) -> str:
     return first + "\n" + formatted
 
 
-def str_mapping(mapping: Mapping, sorted_keys: bool = False, num_spaces: int = 2) -> str:
+def str_mapping(
+    mapping: Mapping[Hashable, Any], sorted_keys: bool = False, num_spaces: int = 2
+) -> str:
     r"""Compute a string representation of a mapping.
 
     This function was designed for flat dictionary. If you have a
@@ -262,7 +268,9 @@ def str_mapping(mapping: Mapping, sorted_keys: bool = False, num_spaces: int = 2
     return "\n".join(lines)
 
 
-def str_mapping_line(mapping: Mapping, sorted_keys: bool = False, separator: str = ", ") -> str:
+def str_mapping_line(
+    mapping: Mapping[Hashable, Any], sorted_keys: bool = False, separator: str = ", "
+) -> str:
     r"""Compute a single line string representation of the given mapping.
 
     This function is designed for flat dictionary. If you have a
@@ -293,7 +301,7 @@ def str_mapping_line(mapping: Mapping, sorted_keys: bool = False, separator: str
     return separator.join(f"{key}={value!s}" for key, value in mapping)
 
 
-def str_sequence(sequence: Sequence, num_spaces: int = 2) -> str:
+def str_sequence(sequence: Sequence[Any], num_spaces: int = 2) -> str:
     r"""Compute a string representation of a sequence.
 
     Args:
@@ -322,7 +330,7 @@ def str_sequence(sequence: Sequence, num_spaces: int = 2) -> str:
     return "\n".join(lines)
 
 
-def str_sequence_line(sequence: Sequence, separator: str = ", ") -> str:
+def str_sequence_line(sequence: Sequence[Any], separator: str = ", ") -> str:
     r"""Compute a single line string representation of a sequence.
 
     Args:
