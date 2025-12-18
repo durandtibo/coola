@@ -9,7 +9,7 @@ __all__ = [
     "SetFormatter",
 ]
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Hashable, Mapping, Sequence
 from itertools import islice
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -73,10 +73,10 @@ class DefaultFormatter(BaseFormatter[Any]):
             value = value[: self._max_characters] + "..."
         return value
 
-    def load_state_dict(self, state: dict) -> None:
+    def load_state_dict(self, state: dict[str, Any]) -> None:
         self._max_characters = state["max_characters"]
 
-    def state_dict(self) -> dict:
+    def state_dict(self) -> dict[str, Any]:
         return {"max_characters": self._max_characters}
 
     def get_max_characters(self) -> int:
@@ -164,7 +164,7 @@ class BaseCollectionFormatter(BaseFormatter[T]):
             f"num_spaces={self._num_spaces})"
         )
 
-    def clone(self) -> BaseCollectionFormatter:
+    def clone(self) -> BaseCollectionFormatter[T]:
         return self.__class__(max_items=self._max_items, num_spaces=self._num_spaces)
 
     def equal(self, other: Any) -> bool:
@@ -172,11 +172,11 @@ class BaseCollectionFormatter(BaseFormatter[T]):
             return False
         return self._max_items == other._max_items and self._num_spaces == other._num_spaces
 
-    def load_state_dict(self, state: dict) -> None:
+    def load_state_dict(self, state: dict[str, Any]) -> None:
         self._max_items = state["max_items"]
         self._num_spaces = state["num_spaces"]
 
-    def state_dict(self) -> dict:
+    def state_dict(self) -> dict[str, Any]:
         return {"max_items": self._max_items, "num_spaces": self._num_spaces}
 
     def get_max_items(self) -> int:
@@ -273,7 +273,7 @@ class BaseCollectionFormatter(BaseFormatter[T]):
         self._num_spaces = num_spaces
 
 
-class MappingFormatter(BaseCollectionFormatter[Mapping]):
+class MappingFormatter(BaseCollectionFormatter[Mapping[Hashable, Any]]):
     r"""Implement a formatter for ``Mapping``.
 
     Example usage:
@@ -293,7 +293,11 @@ class MappingFormatter(BaseCollectionFormatter[Mapping]):
     """
 
     def format(
-        self, summarizer: BaseSummarizer, value: Mapping, depth: int = 0, max_depth: int = 1
+        self,
+        summarizer: BaseSummarizer,
+        value: Mapping[Hashable, Any],
+        depth: int = 0,
+        max_depth: int = 1,
     ) -> str:
         if depth >= max_depth:
             return summarizer.summary(str(value), depth=depth + 1, max_depth=max_depth)
@@ -316,7 +320,7 @@ class MappingFormatter(BaseCollectionFormatter[Mapping]):
         return str_indent(f"{typ} {value}", num_spaces=self._num_spaces)
 
 
-class SequenceFormatter(BaseCollectionFormatter[Sequence]):
+class SequenceFormatter(BaseCollectionFormatter[Sequence[Any]]):
     r"""Implement a formatter for ``Sequence``.
 
     Example usage:
@@ -336,7 +340,7 @@ class SequenceFormatter(BaseCollectionFormatter[Sequence]):
     """
 
     def format(
-        self, summarizer: BaseSummarizer, value: Sequence, depth: int = 0, max_depth: int = 1
+        self, summarizer: BaseSummarizer, value: Sequence[Any], depth: int = 0, max_depth: int = 1
     ) -> str:
         if depth >= max_depth:
             return summarizer.summary(str(value), depth=depth + 1, max_depth=max_depth)
@@ -355,7 +359,7 @@ class SequenceFormatter(BaseCollectionFormatter[Sequence]):
         return str_indent(f"{typ} {value}", num_spaces=self._num_spaces)
 
 
-class SetFormatter(BaseCollectionFormatter[set]):
+class SetFormatter(BaseCollectionFormatter[set[Hashable]]):
     r"""Implement a formatter for ``set``.
 
     Example usage:
@@ -372,7 +376,7 @@ class SetFormatter(BaseCollectionFormatter[set]):
     """
 
     def format(
-        self, summarizer: BaseSummarizer, value: set, depth: int = 0, max_depth: int = 1
+        self, summarizer: BaseSummarizer, value: set[Hashable], depth: int = 0, max_depth: int = 1
     ) -> str:
         if depth >= max_depth:
             return summarizer.summary(str(value), depth=depth + 1, max_depth=max_depth)

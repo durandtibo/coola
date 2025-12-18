@@ -9,7 +9,6 @@ __all__ = ["TorchReducer"]
 
 from collections.abc import Sequence
 from typing import TypeVar
-from unittest.mock import Mock
 
 from coola.reducers.base import BaseBasicReducer
 from coola.reducers.registry import ReducerRegistry
@@ -18,8 +17,8 @@ from coola.utils.tensor import to_tensor
 
 if is_torch_available():
     import torch
-else:
-    torch = Mock()  # pragma: no cover
+else:  # pragma: no cover
+    from coola.utils.fallback.torch import torch
 
 T = TypeVar("T", Sequence[int | float], torch.Tensor)
 

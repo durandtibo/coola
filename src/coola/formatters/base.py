@@ -30,7 +30,7 @@ class BaseFormatter(ABC, Generic[T]):
     """
 
     @abstractmethod
-    def clone(self) -> BaseFormatter:
+    def clone(self) -> BaseFormatter[T]:
         r"""Return a copy of the formatter.
 
         Returns:
@@ -100,7 +100,7 @@ class BaseFormatter(ABC, Generic[T]):
         """
 
     @abstractmethod
-    def load_state_dict(self, state_dict: dict) -> None:
+    def load_state_dict(self, state_dict: dict[str, Any]) -> None:
         r"""Load the state values from a dict.
 
         Args:
@@ -121,7 +121,7 @@ class BaseFormatter(ABC, Generic[T]):
         """
 
     @abstractmethod
-    def state_dict(self) -> dict:
+    def state_dict(self) -> dict[str, Any]:
         r"""Return a dictionary containing state values.
 
         Returns:

@@ -2,6 +2,7 @@ r"""Implement a registry of reducers."""
 
 __all__ = ["ReducerRegistry"]
 
+from collections.abc import Sequence
 from typing import ClassVar
 
 from coola.reducers.base import BaseReducer
@@ -16,13 +17,15 @@ class ReducerRegistry:
     instances of this class.
     """
 
-    registry: ClassVar[dict[str, BaseReducer]] = {"native": NativeReducer()}
+    registry: ClassVar[dict[str, BaseReducer[Sequence[int | float]]]] = {"native": NativeReducer()}
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(self.registry))}\n)"
 
     @classmethod
-    def add_reducer(cls, name: str, reducer: BaseReducer, exist_ok: bool = False) -> None:
+    def add_reducer(
+        cls, name: str, reducer: BaseReducer[Sequence[int | float]], exist_ok: bool = False
+    ) -> None:
         r"""Add a reducer to the registry.
 
         Args:

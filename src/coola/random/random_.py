@@ -6,6 +6,7 @@ from __future__ import annotations
 __all__ = ["RandomRandomManager", "get_random_managers"]
 
 import random
+from typing import Any
 
 from coola.random.base import BaseRandomManager
 
@@ -31,13 +32,13 @@ class RandomRandomManager(BaseRandomManager):  # noqa: PLW1641
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
-    def get_rng_state(self) -> tuple:
+    def get_rng_state(self) -> tuple[Any, ...]:
         return random.getstate()
 
     def manual_seed(self, seed: int) -> None:
         random.seed(seed)
 
-    def set_rng_state(self, state: tuple) -> None:
+    def set_rng_state(self, state: tuple[Any, ...]) -> None:
         random.setstate(state)
 
 
