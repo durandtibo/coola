@@ -1,24 +1,24 @@
 # coola
 
 <p align="center">
-    <a href="https://github.com/durandtibo/coola/actions">
-        <img alt="CI" src="https://github.com/durandtibo/coola/workflows/CI/badge.svg">
+    <a href="https://github.com/durandtibo/coola/actions/workflows/ci.yaml">
+        <img alt="CI" src="https://github.com/durandtibo/coola/actions/workflows/ci.yaml/badge.svg">
     </a>
-    <a href="https://github.com/durandtibo/coola/actions">
-        <img alt="Nightly Tests" src="https://github.com/durandtibo/coola/workflows/Nightly%20Tests/badge.svg">
+    <a href="https://github.com/durandtibo/coola/actions/workflows/nightly-tests.yaml">
+        <img alt="Nightly Tests" src="https://github.com/durandtibo/coola/actions/workflows/nightly-tests.yaml/badge.svg">
     </a>
-    <a href="https://github.com/durandtibo/coola/actions">
-        <img alt="Nightly Package Tests" src="https://github.com/durandtibo/coola/workflows/Nightly%20Package%20Tests/badge.svg">
+    <a href="https://github.com/durandtibo/coola/actions/workflows/nightly-package.yaml">
+        <img alt="Nightly Package Tests" src="https://github.com/durandtibo/coola/actions/workflows/nightly-package.yaml/badge.svg">
     </a>
     <a href="https://codecov.io/gh/durandtibo/coola">
         <img alt="Codecov" src="https://codecov.io/gh/durandtibo/coola/branch/main/graph/badge.svg">
     </a>
     <br/>
     <a href="https://durandtibo.github.io/coola/">
-        <img alt="Documentation" src="https://github.com/durandtibo/coola/workflows/Documentation%20(stable)/badge.svg">
+        <img alt="Documentation" src="https://github.com/durandtibo/coola/actions/workflows/docs.yaml/badge.svg">
     </a>
-    <a href="https://durandtibo.github.io/coola/">
-        <img alt="Documentation" src="https://github.com/durandtibo/coola/workflows/Documentation%20(unstable)/badge.svg">
+    <a href="https://durandtibo.github.io/coola/dev/">
+        <img alt="Documentation" src="https://github.com/durandtibo/coola/actions/workflows/docs-dev.yaml/badge.svg">
     </a>
     <br/>
     <a href="https://github.com/psf/black">
@@ -158,7 +158,7 @@ The following is the corresponding `coola` versions and tested dependencies.
 
 | `coola` | `jax`<sup>*</sup> | `numpy`<sup>*</sup> | `packaging`<sup>*</sup> | `pandas`<sup>*</sup> | `polars`<sup>*</sup> | `pyarrow`<sup>*</sup> | `torch`<sup>*</sup> | `xarray`<sup>*</sup> | `python`       |
 |---------|-------------------|---------------------|-------------------------|----------------------|----------------------|-----------------------|---------------------|----------------------|----------------|
-| `main`  | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0,<26.0`          | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<22.0`        | `>=2.0,<3.0`        | `>=2023.1`           | `>=3.10,<3.15` |
+| `main`  | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0,<26.0`          | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<22.0`        | `>=2.0,<3.0`        | `>=2023.1`           | `>=3.10` |
 | `0.9.1` | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0,<26.0`          | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<22.0`        | `>=2.0,<3.0`        | `>=2023.1`           | `>=3.10,<3.15` |
 | `0.9.0` | `>=0.4.6,<1.0`    | `>=1.24,<3.0`       | `>=22.0,<26.0`          | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<20.0`        | `>=2.0,<3.0`        | `>=2023.1`           | `>=3.9,<3.14`  |
 | `0.8.7` | `>=0.4.6,<1.0`    | `>=1.22,<3.0`       | `>=21.0,<26.0`          | `>=1.5,<3.0`         | `>=1.0,<2.0`         | `>=10.0,<20.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.14`  |
