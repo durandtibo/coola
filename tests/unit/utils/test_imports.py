@@ -37,6 +37,14 @@ from coola.utils.imports import (
     pandas_available,
     polars_available,
     pyarrow_available,
+    raise_error_jax_missing,
+    raise_error_numpy_missing,
+    raise_error_packaging_missing,
+    raise_error_pandas_missing,
+    raise_error_polars_missing,
+    raise_error_pyarrow_missing,
+    raise_error_torch_missing,
+    raise_error_xarray_missing,
     torch_available,
     torch_numpy_available,
     xarray_available,
@@ -230,6 +238,11 @@ def test_jax_available_decorator_without_package() -> None:
         assert fn(2) is None
 
 
+def test_raise_error_jax_missing() -> None:
+    with pytest.raises(RuntimeError, match=r"'jax' package is required but not installed."):
+        raise_error_jax_missing()
+
+
 #################
 #     numpy     #
 #################
@@ -282,6 +295,11 @@ def test_numpy_available_decorator_without_package() -> None:
             return 42 + n
 
         assert fn(2) is None
+
+
+def test_raise_error_numpy_missing() -> None:
+    with pytest.raises(RuntimeError, match=r"'numpy' package is required but not installed."):
+        raise_error_numpy_missing()
 
 
 #####################
@@ -338,6 +356,11 @@ def test_packaging_available_decorator_without_package() -> None:
         assert fn(2) is None
 
 
+def test_raise_error_packaging_missing() -> None:
+    with pytest.raises(RuntimeError, match=r"'packaging' package is required but not installed."):
+        raise_error_packaging_missing()
+
+
 ##################
 #     pandas     #
 ##################
@@ -390,6 +413,11 @@ def test_pandas_available_decorator_without_package() -> None:
             return 42 + n
 
         assert fn(2) is None
+
+
+def test_raise_error_pandas_missing() -> None:
+    with pytest.raises(RuntimeError, match=r"'pandas' package is required but not installed."):
+        raise_error_pandas_missing()
 
 
 ##################
@@ -446,6 +474,11 @@ def test_polars_available_decorator_without_package() -> None:
         assert fn(2) is None
 
 
+def test_raise_error_polars_missing() -> None:
+    with pytest.raises(RuntimeError, match=r"'polars' package is required but not installed."):
+        raise_error_polars_missing()
+
+
 ###################
 #     pyarrow     #
 ###################
@@ -500,6 +533,11 @@ def test_pyarrow_available_decorator_without_package() -> None:
         assert fn(2) is None
 
 
+def test_raise_error_pyarrow_missing() -> None:
+    with pytest.raises(RuntimeError, match=r"'pyarrow' package is required but not installed."):
+        raise_error_pyarrow_missing()
+
+
 #################
 #     torch     #
 #################
@@ -552,6 +590,11 @@ def test_torch_available_decorator_without_package() -> None:
             return 42 + n
 
         assert fn(2) is None
+
+
+def test_raise_error_torch_missing() -> None:
+    with pytest.raises(RuntimeError, match=r"'torch' package is required but not installed."):
+        raise_error_torch_missing()
 
 
 #######################
@@ -682,6 +725,11 @@ def test_xarray_available_decorator_without_package() -> None:
             return 42 + n
 
         assert fn(2) is None
+
+
+def test_raise_error_xarray_missing() -> None:
+    with pytest.raises(RuntimeError, match=r"'xarray' package is required but not installed."):
+        raise_error_xarray_missing()
 
 
 ######################
