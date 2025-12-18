@@ -31,7 +31,7 @@ else:  # pragma: no cover
 if TYPE_CHECKING:
     from coola.equality import EqualityConfig
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 class XarrayDataArrayEqualityComparator(BaseEqualityComparator[xr.DataArray]):  # noqa: PLW1641

@@ -24,7 +24,7 @@ from coola.equality.handlers import (
 if TYPE_CHECKING:
     from coola.equality import EqualityConfig
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 class MappingEqualityComparator(BaseEqualityComparator[Mapping]):  # noqa: PLW1641

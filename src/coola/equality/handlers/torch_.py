@@ -19,7 +19,7 @@ else:  # pragma: no cover
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 class TorchTensorEqualHandler(BaseEqualityHandler):  # noqa: PLW1641

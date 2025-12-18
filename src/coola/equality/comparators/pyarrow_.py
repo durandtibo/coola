@@ -25,7 +25,7 @@ else:  # pragma: no cover
 if TYPE_CHECKING:
     from coola.equality import EqualityConfig
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 class PyarrowEqualityComparator(BaseEqualityComparator[pa.Array]):  # noqa: PLW1641
