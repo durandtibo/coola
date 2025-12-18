@@ -40,7 +40,7 @@ class BaseEqualityComparator(ABC, Generic[T]):
         return f"{self.__class__.__qualname__}()"
 
     @abstractmethod
-    def clone(self) -> BaseEqualityComparator:
+    def clone(self) -> BaseEqualityComparator[T]:
         r"""Return a copy of the equality operator.
 
         Returns:

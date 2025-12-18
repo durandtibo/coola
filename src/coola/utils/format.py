@@ -24,7 +24,7 @@ import datetime
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from collections.abc import Hashable, Mapping, Sequence
+    from collections.abc import Mapping, Sequence
 
 BYTE_UNITS = {
     "B": 1,
@@ -68,9 +68,7 @@ def repr_indent(original: Any, num_spaces: int = 2) -> str:
     return str_indent(original, num_spaces)
 
 
-def repr_mapping(
-    mapping: Mapping[Hashable, Any], sorted_keys: bool = False, num_spaces: int = 2
-) -> str:
+def repr_mapping(mapping: Mapping[Any, Any], sorted_keys: bool = False, num_spaces: int = 2) -> str:
     r"""Compute a string representation of a mapping.
 
     This function was designed for flat dictionary. If you have a
@@ -107,7 +105,7 @@ def repr_mapping(
 
 
 def repr_mapping_line(
-    mapping: Mapping[Hashable, Any], sorted_keys: bool = False, separator: str = ", "
+    mapping: Mapping[Any, Any], sorted_keys: bool = False, separator: str = ", "
 ) -> str:
     r"""Compute a single line string representation of the given mapping.
 
@@ -230,9 +228,7 @@ def str_indent(original: Any, num_spaces: int = 2) -> str:
     return first + "\n" + formatted
 
 
-def str_mapping(
-    mapping: Mapping[Hashable, Any], sorted_keys: bool = False, num_spaces: int = 2
-) -> str:
+def str_mapping(mapping: Mapping[Any, Any], sorted_keys: bool = False, num_spaces: int = 2) -> str:
     r"""Compute a string representation of a mapping.
 
     This function was designed for flat dictionary. If you have a
@@ -269,7 +265,7 @@ def str_mapping(
 
 
 def str_mapping_line(
-    mapping: Mapping[Hashable, Any], sorted_keys: bool = False, separator: str = ", "
+    mapping: Mapping[Any, Any], sorted_keys: bool = False, separator: str = ", "
 ) -> str:
     r"""Compute a single line string representation of the given mapping.
 

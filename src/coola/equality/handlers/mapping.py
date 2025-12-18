@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["MappingSameKeysHandler", "MappingSameValuesHandler"]
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.equality.handlers.base import AbstractEqualityHandler
 
@@ -43,8 +43,8 @@ class MappingSameKeysHandler(AbstractEqualityHandler):  # noqa: PLW1641
 
     def handle(
         self,
-        actual: Mapping,
-        expected: Mapping,
+        actual: Mapping[Any, Any],
+        expected: Mapping[Any, Any],
         config: EqualityConfig,
     ) -> bool:
         keys1 = set(actual.keys())
@@ -98,8 +98,8 @@ class MappingSameValuesHandler(AbstractEqualityHandler):  # noqa: PLW1641
 
     def handle(
         self,
-        actual: Mapping,
-        expected: Mapping,
+        actual: Mapping[Any, Any],
+        expected: Mapping[Any, Any],
         config: EqualityConfig,
     ) -> bool:
         for key in actual:
@@ -108,7 +108,9 @@ class MappingSameValuesHandler(AbstractEqualityHandler):  # noqa: PLW1641
                 return False
         return self._handle_next(actual, expected, config=config)
 
-    def _show_difference(self, actual: Mapping, expected: Mapping, config: EqualityConfig) -> None:
+    def _show_difference(
+        self, actual: Mapping[Any, Any], expected: Mapping[Any, Any], config: EqualityConfig
+    ) -> None:
         if config.show_difference:
             logger.info(
                 f"mappings have at least one different value:\n"

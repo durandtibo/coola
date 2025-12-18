@@ -7,7 +7,7 @@ __all__ = ["get_first_value", "remove_keys_starting_with", "to_flat_dict"]
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from collections.abc import Hashable, Mapping
+    from collections.abc import Mapping
 
 
 def get_first_value(data: Mapping[str, Any]) -> Any:
@@ -121,7 +121,7 @@ def to_flat_dict(
     return flat_dict
 
 
-def remove_keys_starting_with(mapping: Mapping[Hashable, Any], prefix: str) -> dict[Hashable, Any]:
+def remove_keys_starting_with(mapping: Mapping[Any, Any], prefix: str) -> dict[Any, Any]:
     r"""Remove the keys that start with a given prefix.
 
     Args:

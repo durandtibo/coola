@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["SequenceSameValuesHandler"]
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.equality.handlers.base import AbstractEqualityHandler
 
@@ -47,8 +47,8 @@ class SequenceSameValuesHandler(AbstractEqualityHandler):  # noqa: PLW1641
 
     def handle(
         self,
-        actual: Sequence,
-        expected: Sequence,
+        actual: Sequence[Any],
+        expected: Sequence[Any],
         config: EqualityConfig,
     ) -> bool:
         for value1, value2 in zip(actual, expected):

@@ -8,10 +8,10 @@ import operator
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from collections.abc import Hashable, Mapping
+    from collections.abc import Mapping
 
 
-def sort_by_keys(mapping: Mapping[Hashable, Any]) -> dict[Hashable, Any]:
+def sort_by_keys(mapping: Mapping[Any, Any]) -> dict[Any, Any]:
     r"""Sort a dictionary by keys.
 
     Args:
@@ -33,7 +33,7 @@ def sort_by_keys(mapping: Mapping[Hashable, Any]) -> dict[Hashable, Any]:
     return dict(sorted(mapping.items()))
 
 
-def sort_by_values(mapping: Mapping[Hashable, Any]) -> dict[Hashable, Any]:
+def sort_by_values(mapping: Mapping[Any, Any]) -> dict[Any, Any]:
     r"""Sort a dictionary by keys.
 
     Args:
