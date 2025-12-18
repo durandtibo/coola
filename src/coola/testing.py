@@ -14,11 +14,14 @@ __all__ = [
     "polars_available",
     "polars_not_available",
     "pyarrow_available",
+    "pyarrow_not_available",
     "torch_available",
     "torch_cuda_available",
     "torch_mps_available",
+    "torch_not_available",
     "torch_numpy_available",
     "xarray_available",
+    "xarray_not_available",
 ]
 
 import pytest
@@ -61,22 +64,28 @@ pandas_available: pytest.MarkDecorator = pytest.mark.skipif(
     not is_pandas_available(), reason="Requires pandas"
 )
 pandas_not_available: pytest.MarkDecorator = pytest.mark.skipif(
-    is_pandas_available(), reason="Requires pandas"
+    is_pandas_available(), reason="Skip if pandas is available"
 )
 
 polars_available: pytest.MarkDecorator = pytest.mark.skipif(
     not is_polars_available(), reason="Requires polars"
 )
 polars_not_available: pytest.MarkDecorator = pytest.mark.skipif(
-    is_polars_available(), reason="Requires polars"
+    is_polars_available(), reason="Skip if polars is available"
 )
 
 pyarrow_available: pytest.MarkDecorator = pytest.mark.skipif(
     not is_pyarrow_available(), reason="Requires pyarrow"
 )
+pyarrow_not_available: pytest.MarkDecorator = pytest.mark.skipif(
+    is_pyarrow_available(), reason="Skip if pyarrow is available"
+)
 
 torch_available: pytest.MarkDecorator = pytest.mark.skipif(
     not is_torch_available(), reason="Requires PyTorch"
+)
+torch_not_available: pytest.MarkDecorator = pytest.mark.skipif(
+    is_torch_available(), reason="Skip if PyTorch is available"
 )
 torch_cuda_available: pytest.MarkDecorator = pytest.mark.skipif(
     not is_cuda_available(), reason="Requires PyTorch and CUDA"
@@ -90,4 +99,7 @@ torch_mps_available: pytest.MarkDecorator = pytest.mark.skipif(
 
 xarray_available: pytest.MarkDecorator = pytest.mark.skipif(
     not is_xarray_available(), reason="Requires xarray"
+)
+xarray_not_available: pytest.MarkDecorator = pytest.mark.skipif(
+    is_xarray_available(), reason="Skip if xarray is available"
 )
