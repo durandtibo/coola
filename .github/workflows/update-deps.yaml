@@ -16,7 +16,7 @@ permissions:
 jobs:
   update-deps:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
 
     steps:
       - uses: actions/checkout@v6
