@@ -1,16 +1,13 @@
 [build-system]
-requires = ["hatchling>=1.27", "hatchling-autoextras-hook>=0.1"]
+requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
 name = "coola"
-version = "0.9.2a0"
+version = "0.10.0a0"
 description = "Library to check equality between two complex/nested objects"
 readme = "README.md"
 authors = [
-    { name = "Thibaut Durand", email = "durand.tibo+gh@gmail.com" },
-]
-maintainers = [
     { name = "Thibaut Durand", email = "durand.tibo+gh@gmail.com" },
 ]
 keywords = [
@@ -58,12 +55,7 @@ Issues = "https://github.com/durandtibo/coola/issues"
 sources = ["src"]
 
 [tool.hatch.build.targets.sdist]
-only-include = ["src", "LICENSE", "README.md"]
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/coola"]
-
-[tool.hatch.metadata.hooks.autoextras]
+only-include = ["src"]
 
 [dependency-groups]
 # Core optional dependencies
@@ -73,11 +65,8 @@ packaging = ["packaging>=22.0"]
 pandas = ["pandas>=2.0,<3.0"]
 polars = ["polars>=1.0,<2.0"]
 pyarrow = ["pyarrow>=11.0,<23.0; python_version < '3.14'"]
-torch = [
-    "torch>=2.0,<3.0; sys_platform == 'linux' or (sys_platform == 'darwin' and platform_machine == 'arm64')",
-    "torch>=2.0,<2.3; sys_platform == 'darwin' and platform_machine != 'arm64' and python_version >= '3.9' and python_version < '3.13'",
-]
-xarray = ["xarray>=2023.1,<2026.0"]
+torch = ["torch>=2.0,<3.0"]
+xarray = ["xarray>=2023.1"]
 
 # Development dependencies
 dev = [

@@ -185,7 +185,7 @@ def install(
     logger.info("📦 Installing project dependencies...")
     cmd = ["uv sync --frozen"]
     if optional_deps:
-        cmd.append("--all-extras")
+        cmd.append("--group all")
     if dev_deps:
         cmd.append("--group dev")
     if docs_deps:
