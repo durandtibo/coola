@@ -21,8 +21,8 @@ keywords = [
     "pytorch",
     "xarray",
 ]
-license = { text = "BSD-3-Clause" }
-license-files = { paths = ["LICENSE"] }
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
 
 classifiers = [
     "Development Status :: 4 - Beta",
