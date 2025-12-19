@@ -32,4 +32,4 @@ jax.numpy = ModuleType("jax.numpy")
 jax.numpy.ndarray = FakeClass
 
 # Export jnp as an alias for convenience
-jnp = jax.numpy
+jnp: ModuleType = jax.numpy
