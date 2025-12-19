@@ -14,7 +14,7 @@
 #   - No age threshold specified (uses action's default)
 #
 # Uses:
-#   - durandtibo/cancel-queued-runs-action@v1.7
+#   - durandtibo/cancel-queued-runs-action@v1.9
 #     Specialized action for managing workflow run queue
 #
 # Purpose:
@@ -43,7 +43,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - uses: durandtibo/cancel-queued-runs-action@v1.7
+      - uses: durandtibo/cancel-queued-runs-action@v1.9
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           repo: ${{ github.repository }}
