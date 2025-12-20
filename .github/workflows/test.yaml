@@ -14,7 +14,7 @@ jobs:
   # Test with all dependencies across multiple Python versions and operating systems
   all:
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
+    timeout-minutes: 5
     strategy:
       max-parallel: 8
       fail-fast: false
@@ -54,7 +54,7 @@ jobs:
   # Test with minimal dependencies to ensure optional dependencies are truly optional
   min:
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
+    timeout-minutes: 5
     strategy:
       max-parallel: 8
       fail-fast: false
