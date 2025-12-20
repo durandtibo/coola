@@ -217,41 +217,7 @@ name = "coola"
 version = "0.10.0a0"
 source = { editable = "." }
 
-[package.dev-dependencies]
-all = [
-    { name = "jax", version = "0.6.2", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.11' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.11' and sys_platform == 'linux')" },
-    { name = "jax", version = "0.8.2", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.11' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.11' and sys_platform == 'linux')" },
-    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "numpy", version = "2.3.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "packaging" },
-    { name = "pandas" },
-    { name = "polars" },
-    { name = "pyarrow", marker = "python_full_version < '3.14'" },
-    { name = "torch", marker = "(platform_machine == 'arm64' and sys_platform == 'darwin') or sys_platform == 'linux'" },
-    { name = "xarray", version = "2025.6.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "xarray", version = "2025.12.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-]
-dev = [
-    { name = "black" },
-    { name = "coverage", extra = ["toml"] },
-    { name = "docformatter", extra = ["tomli"], marker = "python_full_version < '3.14'" },
-    { name = "feu", extra = ["all"] },
-    { name = "invoke" },
-    { name = "pre-commit" },
-    { name = "pygments" },
-    { name = "pyright" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "pytest-timeout" },
-    { name = "ruff" },
-    { name = "xdoctest" },
-]
-docs = [
-    { name = "mike" },
-    { name = "mkdocs-include-markdown-plugin" },
-    { name = "mkdocs-material" },
-    { name = "mkdocstrings", extra = ["python"] },
-]
+[package.optional-dependencies]
 jax = [
     { name = "jax", version = "0.6.2", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.11' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.11' and sys_platform == 'linux')" },
     { name = "jax", version = "0.8.2", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.11' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.11' and sys_platform == 'linux')" },
@@ -280,28 +246,52 @@ xarray = [
     { name = "xarray", version = "2025.12.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "black" },
+    { name = "coverage", extra = ["toml"] },
+    { name = "docformatter", extra = ["tomli"], marker = "python_full_version < '3.14'" },
+    { name = "feu", extra = ["all"] },
+    { name = "invoke" },
+    { name = "pre-commit" },
+    { name = "pygments" },
+    { name = "pyright" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "pytest-timeout" },
+    { name = "ruff" },
+    { name = "xdoctest" },
+]
+docs = [
+    { name = "mike" },
+    { name = "mkdocs-include-markdown-plugin" },
+    { name = "mkdocs-material" },
+    { name = "mkdocstrings", extra = ["python"] },
+]
+
 [package.metadata]
+requires-dist = [
+    { name = "jax", marker = "(platform_machine == 'arm64' and sys_platform == 'darwin' and extra == 'jax') or (sys_platform == 'linux' and extra == 'jax')", specifier = ">=0.5.0,<1.0" },
+    { name = "numpy", marker = "extra == 'numpy'", specifier = ">=1.24,<3.0" },
+    { name = "packaging", marker = "extra == 'packaging'", specifier = ">=22.0" },
+    { name = "pandas", marker = "extra == 'pandas'", specifier = ">=2.0,<3.0" },
+    { name = "polars", marker = "extra == 'polars'", specifier = ">=1.0,<2.0" },
+    { name = "pyarrow", marker = "python_full_version < '3.14' and extra == 'pyarrow'", specifier = ">=11.0,<23.0" },
+    { name = "torch", marker = "(platform_machine == 'arm64' and sys_platform == 'darwin' and extra == 'torch') or (sys_platform == 'linux' and extra == 'torch')", specifier = ">=2.0,<3.0" },
+    { name = "xarray", marker = "extra == 'xarray'", specifier = ">=2023.1" },
+]
+provides-extras = ["jax", "numpy", "packaging", "pandas", "polars", "pyarrow", "torch", "xarray"]
 
 [package.metadata.requires-dev]
-all = [
-    { name = "jax", marker = "(platform_machine == 'arm64' and sys_platform == 'darwin') or sys_platform == 'linux'", specifier = ">=0.5.0,<1.0" },
-    { name = "numpy", specifier = ">=1.24,<3.0" },
-    { name = "packaging", specifier = ">=22.0" },
-    { name = "pandas", specifier = ">=2.0,<3.0" },
-    { name = "polars", specifier = ">=1.0,<2.0" },
-    { name = "pyarrow", marker = "python_full_version < '3.14'", specifier = ">=11.0,<23.0" },
-    { name = "torch", marker = "(platform_machine == 'arm64' and sys_platform == 'darwin') or sys_platform == 'linux'", specifier = ">=2.0,<3.0" },
-    { name = "xarray", specifier = ">=2023.1" },
-]
 dev = [
     { name = "black", specifier = ">=25.12" },
     { name = "coverage", extras = ["toml"], specifier = ">=7.11,<8.0" },
     { name = "docformatter", extras = ["tomli"], marker = "python_full_version < '3.14'", specifier = ">=1.7,<2.0" },
-    { name = "feu", extras = ["all"], specifier = ">=0.6.0,<1.0" },
+    { name = "feu", extras = ["all"], specifier = ">=0.5.0,<1.0" },
     { name = "invoke", specifier = ">=2.2.0,<3.0" },
     { name = "pre-commit", specifier = ">=4.4,<5.0" },
     { name = "pygments", specifier = ">=2.19,<3.0" },
-    { name = "pyright", specifier = ">=1.1.407" },
+    { name = "pyright", specifier = ">=1.1.407,<2.0" },
     { name = "pytest", specifier = ">=9.0,<10.0" },
     { name = "pytest-cov", specifier = ">=7.0,<8.0" },
     { name = "pytest-timeout", specifier = ">=2.4,<3.0" },
@@ -314,14 +304,6 @@ docs = [
     { name = "mkdocs-material", specifier = ">=9.7,<10.0" },
     { name = "mkdocstrings", extras = ["python"], specifier = ">=1.0,<2.0" },
 ]
-jax = [{ name = "jax", marker = "(platform_machine == 'arm64' and sys_platform == 'darwin') or sys_platform == 'linux'", specifier = ">=0.5.0,<1.0" }]
-numpy = [{ name = "numpy", specifier = ">=1.24,<3.0" }]
-packaging = [{ name = "packaging", specifier = ">=22.0" }]
-pandas = [{ name = "pandas", specifier = ">=2.0,<3.0" }]
-polars = [{ name = "polars", specifier = ">=1.0,<2.0" }]
-pyarrow = [{ name = "pyarrow", marker = "python_full_version < '3.14'", specifier = ">=11.0,<23.0" }]
-torch = [{ name = "torch", marker = "(platform_machine == 'arm64' and sys_platform == 'darwin') or sys_platform == 'linux'", specifier = ">=2.0,<3.0" }]
-xarray = [{ name = "xarray", specifier = ">=2023.1" }]
 
 [[package]]
 name = "coverage"
