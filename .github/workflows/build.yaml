@@ -52,7 +52,7 @@ jobs:
           python tests/package_checks.py
           echo "✅ Package checks passed"
 
-      - name: Check if package is installed
+      - name: Check package installation
         if: matrix.package-extra != 'all' && matrix.package-extra != ''
         shell: bash
         run: |
