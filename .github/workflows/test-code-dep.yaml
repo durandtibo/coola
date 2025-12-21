@@ -41,6 +41,7 @@ jobs:
           package-name: ${{ inputs.package-name }}
           package-version: ${{ matrix.package-version }}
           python-version: ${{ matrix.python-version }}
+          install-args: '--upgrade'
 
       # Run unit tests to verify compatibility
       - name: Run unit tests
