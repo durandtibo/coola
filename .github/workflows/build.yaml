@@ -21,7 +21,6 @@ jobs:
         dist-type: [ "sdist", "wheel" ]
         package-extra: [
           "",
-          "all",
           'jax',
           'numpy',
           'packaging',
@@ -36,24 +35,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Verify Build (Standard)
+      - name: Verify Build
         uses: durandtibo/verify-uv-build-action@v0.0.7
-        if: ${{ matrix.dist-type != 'sdist' || matrix.package-extra != 'all' }}
         with:
           package-name: coola
           package-extra: ${{ matrix.package-extra }}
           package-dependencies: ""
           dist-type: ${{ matrix.dist-type }}
-
-      - name: Verify Build (SDist All - No Extra Verification)
-        uses: durandtibo/verify-uv-build-action@v0.0.7
-        if: ${{ matrix.dist-type == 'sdist' && matrix.package-extra == 'all' }}
-        with:
-          package-name: coola
-          package-extra: ${{ matrix.package-extra }}
-          package-dependencies: ""
-          dist-type: ${{ matrix.dist-type }}
-          verify-sdist-extra: false
 
       - name: Run package checks
         shell: bash
@@ -64,7 +52,7 @@ jobs:
           echo "✅ Package checks passed"
 
       - name: Check optional packages installation
-        if: matrix.package-extra != 'all' && matrix.package-extra != ''
+        if: ${{ matrix.package-extra != '' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -77,8 +65,36 @@ jobs:
           fi
           echo "✅ Package '${{ matrix.package-extra }}' is installed"
 
+  build-all:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        dist-type: [ "sdist", "wheel" ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Verify Build
+        uses: durandtibo/verify-uv-build-action@v0.0.7
+        with:
+          package-name: coola
+          package-extra: all
+          package-dependencies: ""
+          dist-type: ${{ matrix.dist-type }}
+          verify-sdist-extra: false
+
+      - name: Run package checks
+        run: |
+          set -euo pipefail
+          echo "🔍 Running package checks..."
+          python tests/package_checks.py
+          echo "✅ Package checks passed"
+
       - name: Check optional packages installation
-        if: ${{ matrix.package-extra == 'all' }}
         run: |
           set -euo pipefail
           echo "🔍 Verifying if all optional packages are installed..."
