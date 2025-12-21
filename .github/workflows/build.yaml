@@ -21,7 +21,6 @@ jobs:
         dist-type: [ "sdist", "wheel" ]
         package-extra: [
           "",
-          "all",
           'jax',
           'numpy',
           'packaging',
@@ -37,7 +36,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Verify Build
-        uses: durandtibo/verify-uv-build-action@v0.0.6
+        uses: durandtibo/verify-uv-build-action@v0.0.7
         with:
           package-name: coola
           package-extra: ${{ matrix.package-extra }}
@@ -46,6 +45,49 @@ jobs:
 
       - name: Run package checks
         shell: bash
+        run: |
+          set -euo pipefail
+          echo "🔍 Running package checks..."
+          python tests/package_checks.py
+          echo "✅ Package checks passed"
+
+      - name: Check optional packages installation
+        if: ${{ matrix.package-extra != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "🔍 Verifying if ${{ matrix.package-extra }} is installed..."
+          if ! uv pip list | grep -qE "^${{ matrix.package-extra }}\s"; then
+            echo "❌ Error: Package '${{ matrix.package-extra }}' not found in installed packages"
+            echo "Installed packages:"
+            uv pip list
+            exit 1
+          fi
+          echo "✅ Package '${{ matrix.package-extra }}' is installed"
+
+  build-all:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        dist-type: [ "sdist", "wheel" ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Verify Build
+        uses: durandtibo/verify-uv-build-action@v0.0.7
+        with:
+          package-name: coola
+          package-extra: all
+          package-dependencies: ""
+          dist-type: ${{ matrix.dist-type }}
+          verify-sdist-extra: false
+
+      - name: Run package checks
         run: |
           set -euo pipefail
           echo "🔍 Running package checks..."
