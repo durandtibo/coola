@@ -52,7 +52,7 @@ jobs:
           python tests/package_checks.py
           echo "✅ Package checks passed"
 
-      - name: Check package installation
+      - name: Check optional packages installation
         if: matrix.package-extra != 'all' && matrix.package-extra != ''
         shell: bash
         run: |
@@ -65,3 +65,16 @@ jobs:
             exit 1
           fi
           echo "✅ Package '${{ matrix.package-extra }}' is installed"
+
+      - name: Check optional packages installation
+        if: matrix.package-extra == 'all'
+        run: |
+          set -euo pipefail
+          echo "🔍 Verifying if all optional packages are installed..."
+          if ! uv pip list | grep -qE "(jax|numpy|packaging|pandas|polars|pyarrow|torch|xarray)"; then
+            echo "❌ Error: Package '${{ matrix.package-extra }}' not found in installed packages"
+            echo "Installed packages:"
+            uv pip list
+            exit 1
+          fi
+          echo "✅ All optional packages are is installed"
