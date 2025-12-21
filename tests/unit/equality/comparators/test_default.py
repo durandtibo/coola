@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 from unittest.mock import Mock
 
 import pytest
@@ -17,12 +18,22 @@ def config() -> EqualityConfig:
     return EqualityConfig(tester=EqualityTester())
 
 
+@dataclass
+class Person:
+    name: str
+    age: int
+
+
 DEFAULT_EQUAL = [
     pytest.param(ExamplePair(actual=4.2, expected=4.2), id="float"),
     pytest.param(ExamplePair(actual=42, expected=42), id="int"),
     pytest.param(ExamplePair(actual="abc", expected="abc"), id="str"),
     pytest.param(ExamplePair(actual=True, expected=True), id="bool"),
     pytest.param(ExamplePair(actual=None, expected=None), id="none"),
+    pytest.param(
+        ExamplePair(actual=Person(name="Alice", age=30), expected=Person(name="Alice", age=30)),
+        id="dataclass",
+    ),
 ]
 
 
@@ -42,6 +53,14 @@ DEFAULT_NOT_EQUAL = [
     pytest.param(
         ExamplePair(actual=1.0, expected=None, expected_message="objects have different types:"),
         id="float vs none",
+    ),
+    pytest.param(
+        ExamplePair(
+            actual=Person(name="Alice", age=30),
+            expected=Person(name="Bob", age=30),
+            expected_message="objects are different:",
+        ),
+        id="dataclass with different values",
     ),
 ]
 
