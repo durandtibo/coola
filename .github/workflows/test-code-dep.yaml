@@ -36,11 +36,13 @@ jobs:
 
       # Install specific version of dependency for compatibility testing
       - name: Setup python environment
-        uses: durandtibo/setup-venv-uv-action@v0.0.1
+        uses: durandtibo/setup-venv-uv-action@v0.0.2
         with:
           package-name: ${{ inputs.package-name }}
           package-version: ${{ matrix.package-version }}
           python-version: ${{ matrix.python-version }}
+          install-args: '--no-optional-deps'
+          package-install-args: '--upgrade'
 
       # Run unit tests to verify compatibility
       - name: Run unit tests
