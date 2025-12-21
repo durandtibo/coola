@@ -50,12 +50,14 @@ class BaseReducer(ABC, Generic[T]):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
 
-            >>> from coola.reducers import TorchReducer
-            >>> reducer = TorchReducer()
-            >>> reducer.max([-2, -1, 0, 1, 2])
-            2
+        >>> from coola.reducers import TorchReducer
+        >>> reducer = TorchReducer()
+        >>> reducer.max([-2, -1, 0, 1, 2])
+        2
+
+        ```
         """
 
     @abstractmethod
@@ -73,12 +75,14 @@ class BaseReducer(ABC, Generic[T]):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
 
-            >>> from coola.reducers import TorchReducer
-            >>> reducer = TorchReducer()
-            >>> reducer.mean([-2, -1, 0, 1, 2])
-            0.0
+        >>> from coola.reducers import TorchReducer
+        >>> reducer = TorchReducer()
+        >>> reducer.mean([-2, -1, 0, 1, 2])
+        0.0
+
+        ```
         """
 
     @abstractmethod
@@ -96,12 +100,14 @@ class BaseReducer(ABC, Generic[T]):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
 
-            >>> from coola.reducers import TorchReducer
-            >>> reducer = TorchReducer()
-            >>> reducer.median([-2, -1, 0, 1, 2])
-            0
+        >>> from coola.reducers import TorchReducer
+        >>> reducer = TorchReducer()
+        >>> reducer.median([-2, -1, 0, 1, 2])
+        0
+
+        ```
         """
 
     @abstractmethod
@@ -119,12 +125,14 @@ class BaseReducer(ABC, Generic[T]):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
 
-            >>> from coola.reducers import TorchReducer
-            >>> reducer = TorchReducer()
-            >>> reducer.min([-2, -1, 0, 1, 2])
-            -2
+        >>> from coola.reducers import TorchReducer
+        >>> reducer = TorchReducer()
+        >>> reducer.min([-2, -1, 0, 1, 2])
+        -2
+
+        ```
         """
 
     @abstractmethod
@@ -144,12 +152,14 @@ class BaseReducer(ABC, Generic[T]):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
 
-            >>> from coola.reducers import TorchReducer
-            >>> reducer = TorchReducer()
-            >>> reducer.quantile([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], (0.2, 0.5, 0.9))
-            [2.0, 5.0, 9.0]
+        >>> from coola.reducers import TorchReducer
+        >>> reducer = TorchReducer()
+        >>> reducer.quantile([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], (0.2, 0.5, 0.9))
+        [2.0, 5.0, 9.0]
+
+        ```
         """
 
     @abstractmethod
@@ -165,14 +175,16 @@ class BaseReducer(ABC, Generic[T]):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
 
-            >>> from coola.reducers import TorchReducer
-            >>> reducer = TorchReducer()
-            >>> reducer.sort([2, 1, -2, 3, 0])
-            [-2, 0, 1, 2, 3]
-            >>> reducer.sort([2, 1, -2, 3, 0], descending=True)
-            [3, 2, 1, 0, -2]
+        >>> from coola.reducers import TorchReducer
+        >>> reducer = TorchReducer()
+        >>> reducer.sort([2, 1, -2, 3, 0])
+        [-2, 0, 1, 2, 3]
+        >>> reducer.sort([2, 1, -2, 3, 0], descending=True)
+        [3, 2, 1, 0, -2]
+
+        ```
         """
 
     @abstractmethod
@@ -190,12 +202,14 @@ class BaseReducer(ABC, Generic[T]):
 
         Example usage:
 
-        .. code-block:: pycon
+        ```pycon
 
-            >>> from coola.reducers import TorchReducer
-            >>> reducer = TorchReducer()
-            >>> reducer.std([-2, -1, 0, 1, 2])
-            1.581138...
+        >>> from coola.reducers import TorchReducer
+        >>> reducer = TorchReducer()
+        >>> reducer.std([-2, -1, 0, 1, 2])
+        1.581138...
+
+        ```
         """
 
 
