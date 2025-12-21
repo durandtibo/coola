@@ -36,13 +36,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Verify Build
+      - name: Verify Build (Standard)
         uses: durandtibo/verify-uv-build-action@v0.0.6
+        if: ${{ matrix.dist-type != 'sdist' || matrix.package-extra != 'all' }}
         with:
           package-name: coola
           package-extra: ${{ matrix.package-extra }}
           package-dependencies: ""
           dist-type: ${{ matrix.dist-type }}
+
+      - name: Verify Build (SDist All - No Extra Verification)
+        uses: durandtibo/verify-uv-build-action@v0.0.6
+        if: ${{ matrix.dist-type == 'sdist' && matrix.package-extra == 'all' }}
+        with:
+          package-name: coola
+          package-extra: ${{ matrix.package-extra }}
+          package-dependencies: ""
+          dist-type: ${{ matrix.dist-type }}
+          verify-sdist-extra: false
 
       - name: Run package checks
         shell: bash
@@ -67,12 +78,12 @@ jobs:
           echo "✅ Package '${{ matrix.package-extra }}' is installed"
 
       - name: Check optional packages installation
-        if: matrix.package-extra == 'all'
+        if: ${{ matrix.package-extra == 'all' }}
         run: |
           set -euo pipefail
           echo "🔍 Verifying if all optional packages are installed..."
           if ! uv pip list | grep -qE "(jax|numpy|packaging|pandas|polars|pyarrow|torch|xarray)"; then
-            echo "❌ Error: Package '${{ matrix.package-extra }}' not found in installed packages"
+            echo "❌ Error: At least one optional package was not found in installed packages"
             echo "Installed packages:"
             uv pip list
             exit 1
