@@ -11,12 +11,7 @@ from coola.iterator.dfs import (
     IteratorRegistry,
     MappingIterator,
 )
-from tests.unit.iterator.dfs.test_default import DEFAULT_SAMPLES
-
-
-class CustomList(list):
-    r"""Create a custom class that inherits from list."""
-
+from tests.unit.iterator.dfs.helpers import DEFAULT_SAMPLES, CustomList
 
 ######################################
 #     Tests for IteratorRegistry     #
