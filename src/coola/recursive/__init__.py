@@ -10,15 +10,27 @@ This design is inspired by the DFS array iterator pattern and provides:
 from __future__ import annotations
 
 __all__ = [
+    "BaseTransformer",
+    "ConditionalTransformer",
+    "DefaultTransformer",
+    "MappingTransformer",
+    "SequenceTransformer",
+    "SetTransformer",
     "TransformerRegistry",
     "get_default_registry",
     "recursive_apply",
     "register_transformers",
 ]
 
+from coola.recursive.base import BaseTransformer
+from coola.recursive.conditional import ConditionalTransformer
+from coola.recursive.default import DefaultTransformer
 from coola.recursive.interface import (
     get_default_registry,
     recursive_apply,
     register_transformers,
 )
+from coola.recursive.mapping import MappingTransformer
 from coola.recursive.registry import TransformerRegistry
+from coola.recursive.sequence import SequenceTransformer
+from coola.recursive.set import SetTransformer

@@ -7,7 +7,7 @@ __all__ = ["ConditionalTransformer"]
 
 from typing import TYPE_CHECKING, Any, TypeVar
 
-from coola.recursive.transformer.base import BaseTransformer
+from coola.recursive.base import BaseTransformer
 from coola.utils import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:
@@ -41,8 +41,11 @@ class ConditionalTransformer(BaseTransformer[T]):
     Example usage:
 
     ```pycon
-    >>> from coola.recursive.transformer import DefaultTransformer, ConditionalTransformer
-    >>> from coola.recursive import TransformerRegistry
+    >>> from coola.recursive import (
+    ...     DefaultTransformer,
+    ...     ConditionalTransformer,
+    ...     TransformerRegistry,
+    ... )
     >>> registry = TransformerRegistry()
     >>> # Create a transformer that only processes positive numbers
     >>> transformer = ConditionalTransformer(

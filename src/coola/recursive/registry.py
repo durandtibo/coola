@@ -11,13 +11,13 @@ __all__ = ["TransformerRegistry"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.recursive.transformer import DefaultTransformer
+from coola.recursive.default import DefaultTransformer
 from coola.utils import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
 
-    from coola.recursive.transformer import BaseTransformer
+    from coola.recursive.base import BaseTransformer
 
 
 class TransformerRegistry:
@@ -45,8 +45,7 @@ class TransformerRegistry:
         Basic usage with a sequence transformer:
 
         ```pycon
-        >>> from coola.recursive import TransformerRegistry
-        >>> from coola.recursive.transformer import SequenceTransformer
+        >>> from coola.recursive import TransformerRegistry, SequenceTransformer
         >>> registry = TransformerRegistry({list: SequenceTransformer()})
         >>> registry
         TransformerRegistry(
@@ -60,8 +59,7 @@ class TransformerRegistry:
         Registering custom transformers:
 
         ```pycon
-        >>> from coola.recursive import TransformerRegistry
-        >>> from coola.recursive.transformer import SequenceTransformer
+        >>> from coola.recursive import TransformerRegistry, SequenceTransformer
         >>> registry = TransformerRegistry()
         >>> registry.register(list, SequenceTransformer())
         >>> registry.transform([1, 2, 3], lambda x: x * 2)
@@ -117,8 +115,7 @@ class TransformerRegistry:
 
         Example:
         ```pycon
-        >>> from coola.recursive import TransformerRegistry
-        >>> from coola.recursive.transformer import SequenceTransformer
+        >>> from coola.recursive import TransformerRegistry, SequenceTransformer
         >>> registry = TransformerRegistry()
         >>> registry.register(list, SequenceTransformer())
         >>> registry.has_transformer(list)
@@ -156,8 +153,7 @@ class TransformerRegistry:
 
         Example:
         ```pycon
-        >>> from coola.recursive import TransformerRegistry
-        >>> from coola.recursive.transformer import SequenceTransformer, MappingTransformer
+        >>> from coola.recursive import TransformerRegistry, SequenceTransformer, MappingTransformer
         >>> registry = TransformerRegistry()
         >>> registry.register_many(
         ...     {
@@ -193,8 +189,7 @@ class TransformerRegistry:
 
         Example:
         ```pycon
-        >>> from coola.recursive import TransformerRegistry
-        >>> from coola.recursive.transformer import SequenceTransformer
+        >>> from coola.recursive import TransformerRegistry, SequenceTransformer
         >>> registry = TransformerRegistry()
         >>> registry.register(list, SequenceTransformer())
         >>> registry.has_transformer(list)
@@ -252,8 +247,7 @@ class TransformerRegistry:
         Example:
         ```pycon
         >>> from collections.abc import Sequence
-        >>> from coola.recursive import TransformerRegistry
-        >>> from coola.recursive.transformer import SequenceTransformer
+        >>> from coola.recursive import TransformerRegistry, SequenceTransformer
         >>> registry = TransformerRegistry()
         >>> registry.register(Sequence, SequenceTransformer())
         >>> # list does not inherit from Sequence, so it uses DefaultTransformer
