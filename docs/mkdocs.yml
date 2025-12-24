@@ -33,11 +33,12 @@ nav:
   - Reference:
       - refs/index.md
       - refs/equality.md
-      - refs/testers.md
       - refs/formatters.md
       - refs/random.md
+      - refs/recursive.md
       - refs/reducers.md
       - refs/summarizers.md
+      - refs/testers.md
       - refs/utils.md
   - Developer Guide:
       - development.md
