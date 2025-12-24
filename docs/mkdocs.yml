@@ -30,6 +30,12 @@ nav:
       - customization.md
       - examples.md
       - faq.md
+  - Developer Guide:
+      - development.md
+      - architecture.md
+  - Upgrade Guide:
+      - upgrade/0.3.md
+      - upgrade/0.4.md
   - Reference:
       - refs/index.md
       - refs/equality.md
@@ -41,12 +47,6 @@ nav:
       - refs/summarizers.md
       - refs/testers.md
       - refs/utils.md
-  - Developer Guide:
-      - development.md
-      - architecture.md
-  - Upgrade Guide:
-      - upgrade/0.3.md
-      - upgrade/0.4.md
   - GitHub: https://github.com/durandtibo/coola
 
 repo_url: https://github.com/durandtibo/coola
