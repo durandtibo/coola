@@ -81,12 +81,6 @@ class SequenceTransformer(BaseTransformer[Sequence[Any]]):
         transformed = [registry.transform(item, func) for item in data]
 
         # Rebuild with original type
-        if isinstance(data, tuple):
-            # Handle named tuples - preserve field structure
-            if hasattr(data, "_fields"):
-                return type(data)(*transformed)
-            # Regular tuple
-            return tuple(transformed)
-
-        # For lists and other sequence types
+        if isinstance(data, tuple) and hasattr(data, "_fields"):  # namedtuple special case
+            return type(data)(*transformed)
         return type(data)(transformed)
