@@ -5,7 +5,7 @@ from __future__ import annotations
 
 __all__ = ["IterableIterator"]
 
-from collections.abc import Generator, Iterable
+from collections.abc import Iterable, Iterator
 from typing import TYPE_CHECKING, Any
 
 from coola.iterator.dfs.base import BaseIterator
@@ -43,6 +43,6 @@ class IterableIterator(BaseIterator[Iterable[Any]]):
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
-    def iterate(self, data: Iterable[Any], registry: IteratorRegistry) -> Generator[Any]:
+    def iterate(self, data: Iterable[Any], registry: IteratorRegistry) -> Iterator[Any]:
         for item in data:
             yield from registry.iterate(item)
