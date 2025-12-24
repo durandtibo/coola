@@ -106,7 +106,10 @@ class IteratorRegistry:
         ```
         """
         if data_type in self._registry and not exist_ok:
-            msg = f"Iterator {self._registry[data_type]} already registered for {data_type}. Use exist_ok=True to overwrite."
+            msg = (
+                f"Iterator {self._registry[data_type]} already registered for {data_type}. "
+                f"Use exist_ok=True to overwrite."
+            )
             raise RuntimeError(msg)
         self._registry[data_type] = iterator
         self._iterator_cache.clear()
