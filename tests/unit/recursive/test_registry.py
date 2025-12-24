@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 from coola import objects_are_equal
 from coola.recursive import TransformerRegistry
 from coola.recursive.transformer import (
+    BaseTransformer,
     DefaultTransformer,
     MappingTransformer,
     SequenceTransformer,
@@ -29,7 +32,7 @@ def test_transformer_registry_init_empty() -> None:
 
 def test_transformer_registry_init_with_registry() -> None:
     transformer = SequenceTransformer()
-    initial_registry = {list: transformer}
+    initial_registry: dict[type, BaseTransformer[Any]] = {list: transformer}
     registry = TransformerRegistry(initial_registry)
 
     assert list in registry._registry
@@ -40,15 +43,11 @@ def test_transformer_registry_init_with_registry() -> None:
 
 
 def test_transformer_registry_repr() -> None:
-    assert repr(TransformerRegistry({list: SequenceTransformer()})).startswith(
-        "TransformerRegistry("
-    )
+    assert repr(TransformerRegistry()).startswith("TransformerRegistry(")
 
 
 def test_transformer_registry_str() -> None:
-    assert str(TransformerRegistry({list: SequenceTransformer()})).startswith(
-        "TransformerRegistry("
-    )
+    assert str(TransformerRegistry()).startswith("TransformerRegistry(")
 
 
 def test_transformer_registry_register_new_type() -> None:
