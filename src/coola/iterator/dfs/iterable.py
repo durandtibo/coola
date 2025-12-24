@@ -23,7 +23,6 @@ class IterableIterator(BaseIterator[Iterable[Any]]):
     `Iterable` interface, yielding elements one by one.
 
     Examples:
-
     ```pycon
     >>> from coola.iterator.dfs import IteratorRegistry, IterableIterator
     >>> iterator = IterableIterator()

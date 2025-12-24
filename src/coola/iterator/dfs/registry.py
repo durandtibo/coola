@@ -1,4 +1,5 @@
-r"""Define the iterator registry."""
+r"""Define the iterator registry for managing iterators based on data
+types."""
 
 from __future__ import annotations
 
@@ -16,25 +17,23 @@ if TYPE_CHECKING:
 
 
 class IteratorRegistry:
-    """Registry that manages and dispatches iterators based on data
-    type.
+    r"""Registry that manages iterators for different data types.
 
-    This registry maintains a mapping from Python types to iterator instances
-    and uses the Method Resolution Order (MRO) for type lookup. When iterating
-    over data, it automatically selects the most specific registered iterator for
-    the data's type, falling back to parent types or a default iterator if needed.
-
-    The registry includes a cache for type lookups to optimize performance
-    in applications that repeatedly iterate over similar data structures.
+    This registry stores iterators for various data types and handles
+    the dispatching of the appropriate iterator based on the data
+    type during iteration. It uses Method Resolution Order (MRO) to
+    resolve the most specific iterator for a given data type.
+    It also supports caching of iterators for performance optimization
+    in repetitive iteration tasks.
 
     Args:
-        registry: Optional initial mapping of types to iterators. If provided,
-            the registry is copied to prevent external mutations.
+        registry: An optional dictionary mapping types to iterators.
+            If provided, the registry is initialized with this mapping.
 
     Attributes:
-        _registry: Internal mapping of registered types to iterators
-        _default_iterator: Fallback iterator for unregistered types
-        _iterator_cache: Cache for type lookups to improve performance
+        _registry: Internal mapping of registered data types to iterators.
+        _default_iterator: The fallback iterator used for types not explicitly registered.
+        _iterator_cache: Cache to speed up iterator lookups.
 
     Example:
         Basic usage:
@@ -66,8 +65,6 @@ class IteratorRegistry:
     def __init__(self, registry: dict[type, BaseIterator[Any]] | None = None) -> None:
         self._registry: dict[type, BaseIterator[Any]] = registry.copy() if registry else {}
         self._default_iterator: BaseIterator[Any] = DefaultIterator()
-
-        # Cache for type lookups - improves performance for repeated iterations
         self._iterator_cache: dict[type, BaseIterator[Any]] = {}
 
     def __repr__(self) -> str:
@@ -82,20 +79,21 @@ class IteratorRegistry:
         iterator: BaseIterator[Any],
         exist_ok: bool = False,
     ) -> None:
-        """Register an iterator for a given data type.
+        r"""Register an iterator for a given data type.
 
-        This method associates an iterator instance with a specific Python type.
-        When data of this type is iterated over, the registered iterator will be used.
-        The cache is automatically cleared after registration to ensure consistency.
+        This method associates a specific iterator with a type.
+        If data of this type is iterated, the registered iterator
+        will be used. The cache is cleared after a registration to
+        ensure consistency.
 
         Args:
-            data_type: The Python type to register (e.g., list, dict, custom classes)
-            iterator: The iterator instance that handles this type
-            exist_ok: If False (default), raises an error if the type is already
-                registered. If True, overwrites the existing registration silently.
+            data_type: The Python type to register (e.g., `list`, `dict`, custom types).
+            iterator: The iterator instance that handles this type.
+            exist_ok: If `True`, allows overwriting an existing registration.
+                If `False`, raises an error.
 
         Raises:
-            RuntimeError: If the type is already registered and exist_ok is False
+            RuntimeError: If the type is already registered and `exist_ok` is `False`.
 
         Example:
         ```pycon
@@ -108,13 +106,9 @@ class IteratorRegistry:
         ```
         """
         if data_type in self._registry and not exist_ok:
-            msg = (
-                f"Iterator {self._registry[data_type]} already registered "
-                f"for {data_type}. Use exist_ok=True to overwrite."
-            )
+            msg = f"Iterator {self._registry[data_type]} already registered for {data_type}. Use exist_ok=True to overwrite."
             raise RuntimeError(msg)
         self._registry[data_type] = iterator
-        # Clear cache when registry changes to ensure new registrations are used
         self._iterator_cache.clear()
 
     def register_many(
@@ -122,18 +116,16 @@ class IteratorRegistry:
         mapping: Mapping[type, BaseIterator[Any]],
         exist_ok: bool = False,
     ) -> None:
-        """Register multiple iterators at once.
+        r"""Register multiple iterators at once.
 
-        This is a convenience method for bulk registration that internally calls
-        register() for each type-iterator pair.
+        This method allows for bulk registration of iterators for multiple data types.
 
         Args:
-            mapping: Dictionary mapping Python types to iterator instances
-            exist_ok: If False (default), raises an error if any type is already
-                registered. If True, overwrites existing registrations silently.
+            mapping: A dictionary mapping Python types to their respective iterators.
+            exist_ok: If `True`, allows overwriting existing registrations.
 
         Raises:
-            RuntimeError: If any type is already registered and exist_ok is False
+            RuntimeError: If any type is already registered and `exist_ok` is `False`.
 
         Example:
         ```pycon
@@ -152,19 +144,16 @@ class IteratorRegistry:
             self.register(typ, iterator, exist_ok=exist_ok)
 
     def has_iterator(self, data_type: type) -> bool:
-        """Check if an iterator is explicitly registered for the given
-        type.
+        r"""Check if an iterator is registered for a given data type.
 
-        Note that this only checks for direct registration. Even if this returns
-        False, find_iterator() may still return an iterator via MRO lookup
-        or the default iterator.
+        This method checks for direct registration. Even if this method returns `False`,
+        a suitable iterator might still be found using the MRO lookup.
 
         Args:
-            data_type: The type to check
+            data_type: The type to check.
 
         Returns:
-            True if an iterator is explicitly registered for this type,
-            False otherwise
+            `True` if an iterator is registered for the type, `False` otherwise.
 
         Example:
         ```pycon
@@ -180,47 +169,37 @@ class IteratorRegistry:
         return data_type in self._registry
 
     def _find_iterator_uncached(self, data_type: type) -> BaseIterator[Any]:
-        """Find iterator using MRO (uncached version).
+        r"""Find the iterator for a data type without using cache.
 
-        This is the internal implementation that performs the actual lookup.
-        It first checks for a direct match, then walks the MRO to find the
-        most specific registered iterator, and finally falls back to the
-        default iterator.
+        This method looks up the most specific iterator for the given type, starting
+        with direct matches and then walking up the MRO to find an appropriate iterator.
 
         Args:
-            data_type: The type to find an iterator for
+            data_type: The data type for which to find an iterator.
 
         Returns:
-            The appropriate iterator instance
+            The matching iterator instance for the type or a fallback iterator.
         """
-        # Direct lookup first (most common case, O(1))
         if data_type in self._registry:
             return self._registry[data_type]
 
-        # MRO lookup for inheritance - finds the most specific parent type
         for base_type in data_type.__mro__:
             if base_type in self._registry:
                 return self._registry[base_type]
 
-        # Fall back to default iterator for unregistered types
         return self._default_iterator
 
     def find_iterator(self, data_type: type) -> BaseIterator[Any]:
-        """Find the appropriate iterator for a given type.
+        r"""Find the appropriate iterator for a given type.
 
-        Uses the Method Resolution Order (MRO) to find the most specific
-        registered iterator. For example, if you register an iterator
-        for Sequence but not for list, lists will use the Sequence iterator.
-
-        Results are cached for performance, as iterator lookup is a hot path
-        during iteration operations.
+        This method uses the MRO to find the most specific iterator. It caches the result
+        for performance, so subsequent lookups are faster.
 
         Args:
-            data_type: The Python type to find an iterator for
+            data_type: The data type for which to find an iterator.
 
         Returns:
-            The most specific registered iterator for this type, a parent
-            type's iterator via MRO, or the default iterator
+            The appropriate iterator for the data type.
 
         Example:
         ```pycon
@@ -238,18 +217,18 @@ class IteratorRegistry:
         return self._iterator_cache[data_type]
 
     def iterate(self, data: Any) -> Generator[Any]:
-        """Perform depth-first iteration over a data structure.
+        r"""Perform depth-first iteration over a data structure.
 
-        This method finds the appropriate iterator for the data's type and
-        delegates to it. The iterator will recursively traverse the data
-        structure, yielding elements according to the iterator's implementation.
+        This method uses the appropriate iterator for the data type, which may be
+        retrieved via the registry. The iterator will recursively traverse the data
+        structure, yielding elements based on its specific implementation.
 
         Args:
-            data: The data structure to iterate over. Can be any type with
-                a registered iterator.
+            data: The data structure to iterate over.
 
         Yields:
-            Elements from the data structure as determined by the registered iterator.
+            The elements of the data structure according to the
+                appropriate iterator's traversal logic.
 
         Example:
         ```pycon
