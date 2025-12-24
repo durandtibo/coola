@@ -6,20 +6,7 @@ import pytest
 
 from coola import objects_are_equal
 from coola.iterator.dfs import DefaultIterator, IteratorRegistry
-
-DEFAULT_SAMPLES = [
-    pytest.param("abc", ["abc"], id="str"),
-    pytest.param(42, [42], id="int"),
-    pytest.param({"key": "value"}, [{"key": "value"}], id="dict"),
-    pytest.param({}, [{}], id="empty dict"),
-    pytest.param([1, 2, 3], [[1, 2, 3]], id="list"),
-    pytest.param([], [[]], id="empty list"),
-    pytest.param((1, 2, 3, 4), [(1, 2, 3, 4)], id="tuple"),
-    pytest.param((), [()], id="empty tuple"),
-    pytest.param({1, 2, 3}, [{1, 2, 3}], id="set"),
-    pytest.param(set(), [set()], id="empty set"),
-]
-
+from tests.unit.iterator.dfs.helpers import DEFAULT_SAMPLES
 
 #####################################
 #     Tests for DefaultIterator     #

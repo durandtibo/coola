@@ -237,8 +237,7 @@ class IteratorRegistry:
         ```pycon
         >>> from coola.iterator.dfs import IteratorRegistry, IterableIterator, MappingIterator
         >>> registry = IteratorRegistry({list: IterableIterator(), dict: MappingIterator()})
-        >>> data = {"a": [1, 2], "b": [3, 4]}
-        >>> list(registry.iterate(data))
+        >>> list(registry.iterate({"a": [1, 2], "b": [3, 4]}))
         [1, 2, 3, 4]
 
         ```
