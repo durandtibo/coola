@@ -97,8 +97,8 @@ def get_default_registry() -> IteratorRegistry:
 
     ```pycon
     >>> from coola.iterator.dfs import get_default_registry
-    >>> registry = get_default_registry()
-    >>> list(registry.iterate([1, 2, 3]))
+    >>> reg = get_default_registry()
+    >>> list(reg.iterate([1, 2, 3]))
     [1, 2, 3]
 
     ```
@@ -142,7 +142,7 @@ def _register_default_iterators(registry: IteratorRegistry) -> None:
             tuple: iterable_iterator,
             range: iterable_iterator,
             Iterable: iterable_iterator,
-            # Sets - recursive iteration (sets, frozensets)
+            # Sets - recursive iteration (sets, frozenset)
             set: iterable_iterator,
             frozenset: iterable_iterator,
             # Mappings - recursive iteration (dictionaries)
