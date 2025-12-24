@@ -16,9 +16,9 @@ __all__ = [
     "register_transformers",
 ]
 
-from batcharray.recursive2.interface import (
+from coola.recursive.interface import (
     get_default_registry,
     recursive_apply,
     register_transformers,
 )
-from batcharray.recursive2.registry import TransformerRegistry
+from coola.recursive.registry import TransformerRegistry
