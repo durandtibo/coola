@@ -9,7 +9,7 @@ class CustomList(list):
     r"""Create a custom class that inherits from list."""
 
 
-SAMPLES: pytest.ParameterSet = [
+SAMPLES: pytest.mark.ParameterSet = [
     pytest.param("abc", ["abc"], id="str"),
     pytest.param(42, [42], id="int"),
     pytest.param("", [""], id="empty string"),
@@ -35,7 +35,7 @@ SAMPLES: pytest.ParameterSet = [
 ]
 
 
-DEFAULT_SAMPLES: pytest.ParameterSet = [
+DEFAULT_SAMPLES: pytest.mark.ParameterSet = [
     pytest.param("abc", ["abc"], id="str"),
     pytest.param(42, [42], id="int"),
     pytest.param({"key": "value"}, [{"key": "value"}], id="dict"),
