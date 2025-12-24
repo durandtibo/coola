@@ -50,7 +50,7 @@ class BaseIterator(ABC, Generic[T]):
     """
 
     @abstractmethod
-    def iterate(self, data: Any, registry: IteratorRegistry) -> Iterator[Any]:
+    def iterate(self, data: T, registry: IteratorRegistry) -> Iterator[Any]:
         r"""Traverse the data structure and yield elements depth-first.
 
         This method defines how the iterator traverses its associated data type.
@@ -59,7 +59,7 @@ class BaseIterator(ABC, Generic[T]):
         iterators. For leaf types, it should yield the data directly.
 
         Args:
-            data: The data structure to traverse. While typed as ``Any`` for
+            data: The data structure to traverse. While typed as ``T`` for
                 flexibility, implementations typically expect a specific type
                 corresponding to the iterator's purpose.
             registry: The iterator registry used to resolve and dispatch
