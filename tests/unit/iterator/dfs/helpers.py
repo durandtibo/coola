@@ -4,7 +4,12 @@ from collections import OrderedDict
 
 import pytest
 
-SAMPLES = [
+
+class CustomList(list):
+    r"""Create a custom class that inherits from list."""
+
+
+SAMPLES: pytest.ParameterSet = [
     pytest.param("abc", ["abc"], id="str"),
     pytest.param(42, [42], id="int"),
     pytest.param("", [""], id="empty string"),
@@ -30,11 +35,7 @@ SAMPLES = [
 ]
 
 
-class CustomList(list):
-    r"""Create a custom class that inherits from list."""
-
-
-DEFAULT_SAMPLES = [
+DEFAULT_SAMPLES: pytest.ParameterSet = [
     pytest.param("abc", ["abc"], id="str"),
     pytest.param(42, [42], id="int"),
     pytest.param({"key": "value"}, [{"key": "value"}], id="dict"),
