@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any
 from coola.iterator.dfs.base import BaseIterator
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
+    from collections.abc import Iterator
 
     from coola.iterator.dfs.registry import IteratorRegistry
 
@@ -47,5 +47,5 @@ class DefaultIterator(BaseIterator[Any]):
         self,
         data: Any,
         registry: IteratorRegistry,  # noqa: ARG002
-    ) -> Generator[Any]:
+    ) -> Iterator[Any]:
         yield data

@@ -5,7 +5,7 @@ from __future__ import annotations
 
 __all__ = ["MappingIterator"]
 
-from collections.abc import Generator, Mapping
+from collections.abc import Iterator, Mapping
 from typing import TYPE_CHECKING, Any
 
 from coola.iterator.dfs.base import BaseIterator
@@ -44,6 +44,6 @@ class MappingIterator(BaseIterator[Mapping[Any, Any]]):
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
-    def iterate(self, data: Mapping[Any, Any], registry: IteratorRegistry) -> Generator[Any]:
+    def iterate(self, data: Mapping[Any, Any], registry: IteratorRegistry) -> Iterator[Any]:
         for value in data.values():
             yield from registry.iterate(value)

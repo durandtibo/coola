@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
+    from collections.abc import Iterator
 
     from coola.iterator.dfs.registry import IteratorRegistry
 
@@ -50,7 +50,7 @@ class BaseIterator(ABC, Generic[T]):
     """
 
     @abstractmethod
-    def iterate(self, data: Any, registry: IteratorRegistry) -> Generator[Any]:
+    def iterate(self, data: Any, registry: IteratorRegistry) -> Iterator[Any]:
         r"""Traverse the data structure and yield elements depth-first.
 
         This method defines how the iterator traverses its associated data type.

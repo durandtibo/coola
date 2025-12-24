@@ -11,7 +11,7 @@ from coola.iterator.dfs.default import DefaultIterator
 from coola.utils import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:
-    from collections.abc import Generator, Mapping
+    from collections.abc import Iterator, Mapping
 
     from coola.iterator.dfs.base import BaseIterator
 
@@ -219,7 +219,7 @@ class IteratorRegistry:
             self._iterator_cache[data_type] = self._find_iterator_uncached(data_type)
         return self._iterator_cache[data_type]
 
-    def iterate(self, data: Any) -> Generator[Any]:
+    def iterate(self, data: Any) -> Iterator[Any]:
         r"""Perform depth-first iteration over a data structure.
 
         This method uses the appropriate iterator for the data type, which may be

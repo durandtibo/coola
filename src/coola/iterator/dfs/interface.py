@@ -5,7 +5,7 @@ from __future__ import annotations
 
 __all__ = ["dfs_iterate", "get_default_registry", "register_iterators"]
 
-from collections.abc import Generator, Iterable, Mapping
+from collections.abc import Iterable, Iterator, Mapping
 from typing import TYPE_CHECKING, Any
 
 from coola.iterator.dfs.default import DefaultIterator
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from coola.iterator.dfs.base import BaseIterator
 
 
-def dfs_iterate(data: Any, registry: IteratorRegistry | None = None) -> Generator[Any]:
+def dfs_iterate(data: Any, registry: IteratorRegistry | None = None) -> Iterator[Any]:
     """Perform Depth-First Search (DFS) iteration over nested data
     structures (lists, dicts, tuples, sets, etc.).
 
