@@ -1,4 +1,5 @@
-r"""Define the abstract base class for breadth-first search iterators."""
+r"""Define the abstract base class for breadth-first search
+iterators."""
 
 from __future__ import annotations
 
@@ -8,7 +9,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 if TYPE_CHECKING:
-    from collections.abc import ChildFinder, Iterator
+    from collections.abc import Iterator
 
     from coola.iterator.bfs.registry import ChildFinderRegistry
 
@@ -37,7 +38,6 @@ class BaseChildFinder(ABC, Generic[T]):
         - For leaf types, simply yield the data directly.
 
     Examples:
-
     ```pycon
     >>> from coola.iterator.bfs import ChildFinderRegistry, DefaultChildFinder
     >>> iterator = DefaultChildFinder()

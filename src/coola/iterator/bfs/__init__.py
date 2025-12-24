@@ -3,6 +3,8 @@ r"""Contain code to iterate over nested data with a Breath-First Search
 
 from __future__ import annotations
 
-__all__ = ['BaseChildFinder']
+__all__ = ["BaseChildFinder", "ChildFinderRegistry", "DefaultChildFinder"]
 
 from coola.iterator.bfs.base import BaseChildFinder
+from coola.iterator.bfs.default import DefaultChildFinder
+from coola.iterator.bfs.registry import ChildFinderRegistry
