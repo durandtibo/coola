@@ -7,7 +7,7 @@ __all__ = ["MappingTransformer"]
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
-from coola.recursive.transformer.base import BaseTransformer
+from coola.recursive.base import BaseTransformer
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -37,8 +37,7 @@ class MappingTransformer(BaseTransformer[Mapping[Any, Any]]):
     Example usage:
 
     ```pycon
-    >>> from coola.recursive.transformer import MappingTransformer
-    >>> from coola.recursive import TransformerRegistry
+    >>> from coola.recursive import MappingTransformer, TransformerRegistry
     >>> registry = TransformerRegistry()
     >>> transformer = MappingTransformer()
     >>> transformer

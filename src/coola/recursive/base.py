@@ -33,8 +33,7 @@ class BaseTransformer(ABC, Generic[T]):
     Example usage:
 
     ```pycon
-    >>> from coola.recursive.transformer import DefaultTransformer
-    >>> from coola.recursive import TransformerRegistry
+    >>> from coola.recursive import DefaultTransformer, TransformerRegistry
     >>> registry = TransformerRegistry()
     >>> transformer = DefaultTransformer()
     >>> transformer
@@ -74,8 +73,7 @@ class BaseTransformer(ABC, Generic[T]):
         Example usage:
 
         ```pycon
-        >>> from coola.recursive.transformer import DefaultTransformer, SequenceTransformer
-        >>> from coola.recursive import TransformerRegistry
+        >>> from coola.recursive import DefaultTransformer, SequenceTransformer, TransformerRegistry
         >>> registry = TransformerRegistry()
         >>> transformer = DefaultTransformer()
         >>> # Convert numeric values to strings

@@ -7,7 +7,7 @@ __all__ = ["SetTransformer"]
 from collections.abc import Set as AbstractSet
 from typing import TYPE_CHECKING, Any
 
-from coola.recursive.transformer.base import BaseTransformer
+from coola.recursive.base import BaseTransformer
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -44,8 +44,7 @@ class SetTransformer(BaseTransformer[AbstractSet[Any]]):
     Example usage:
 
     ```pycon
-    >>> from coola.recursive.transformer import SetTransformer
-    >>> from coola.recursive import TransformerRegistry
+    >>> from coola.recursive import SetTransformer, TransformerRegistry
     >>> registry = TransformerRegistry()
     >>> transformer = SetTransformer()
     >>> transformer

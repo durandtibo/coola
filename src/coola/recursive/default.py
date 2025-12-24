@@ -6,7 +6,7 @@ __all__ = ["DefaultTransformer"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.recursive.transformer.base import BaseTransformer
+from coola.recursive.base import BaseTransformer
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -35,8 +35,7 @@ class DefaultTransformer(BaseTransformer[Any]):
     Example usage:
 
     ```pycon
-    >>> from coola.recursive.transformer import DefaultTransformer
-    >>> from coola.recursive import TransformerRegistry
+    >>> from coola.recursive import DefaultTransformer, TransformerRegistry
     >>> registry = TransformerRegistry()
     >>> transformer = DefaultTransformer()
     >>> transformer

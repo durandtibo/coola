@@ -6,12 +6,13 @@ import pytest
 
 from coola import objects_are_equal
 from coola.recursive import (
+    SequenceTransformer,
+    SetTransformer,
     TransformerRegistry,
     get_default_registry,
     recursive_apply,
     register_transformers,
 )
-from coola.recursive.transformer import SequenceTransformer, SetTransformer
 
 
 @pytest.fixture(autouse=True)

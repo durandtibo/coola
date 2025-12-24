@@ -8,18 +8,18 @@ __all__ = ["get_default_registry", "recursive_apply", "register_transformers"]
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any
 
-from coola.recursive.registry import TransformerRegistry
-from coola.recursive.transformer import (
+from coola.recursive.default import (
     DefaultTransformer,
-    MappingTransformer,
-    SequenceTransformer,
-    SetTransformer,
 )
+from coola.recursive.mapping import MappingTransformer
+from coola.recursive.registry import TransformerRegistry
+from coola.recursive.sequence import SequenceTransformer
+from coola.recursive.set import SetTransformer
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from coola.recursive.transformer import BaseTransformer
+    from coola.recursive.base import BaseTransformer
 
 
 def recursive_apply(
@@ -70,8 +70,7 @@ def register_transformers(
     Example usage:
 
     ```pycon
-    >>> from coola.recursive import register_transformers
-    >>> from coola.recursive.transformer import BaseTransformer
+    >>> from coola.recursive import register_transformers, BaseTransformer
     >>> class MyType:
     ...     def __init__(self, value):
     ...         self.value = value

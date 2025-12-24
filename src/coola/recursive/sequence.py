@@ -7,7 +7,7 @@ __all__ = ["SequenceTransformer"]
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any
 
-from coola.recursive.transformer.base import BaseTransformer
+from coola.recursive.base import BaseTransformer
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -41,8 +41,7 @@ class SequenceTransformer(BaseTransformer[Sequence[Any]]):
     Example usage:
 
     ```pycon
-    >>> from coola.recursive.transformer import SequenceTransformer
-    >>> from coola.recursive import TransformerRegistry
+    >>> from coola.recursive import SequenceTransformer, TransformerRegistry
     >>> transformer = SequenceTransformer()
     >>> transformer
     SequenceTransformer()

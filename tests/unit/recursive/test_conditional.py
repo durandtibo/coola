@@ -3,8 +3,11 @@ from __future__ import annotations
 from typing import Any
 
 from coola import objects_are_equal
-from coola.recursive import TransformerRegistry
-from coola.recursive.transformer import ConditionalTransformer, DefaultTransformer
+from coola.recursive import (
+    ConditionalTransformer,
+    DefaultTransformer,
+    TransformerRegistry,
+)
 
 
 def is_string(obj: Any) -> bool:
