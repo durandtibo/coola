@@ -5,13 +5,13 @@ from typing import Any
 import pytest
 
 from coola import objects_are_equal
-from coola.recursive import TransformerRegistry
-from coola.recursive.transformer import (
+from coola.recursive import (
     BaseTransformer,
     DefaultTransformer,
     MappingTransformer,
     SequenceTransformer,
     SetTransformer,
+    TransformerRegistry,
 )
 
 

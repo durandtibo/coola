@@ -5,8 +5,7 @@ from typing import TYPE_CHECKING, Any, NoReturn
 import pytest
 
 from coola import objects_are_equal
-from coola.recursive import TransformerRegistry
-from coola.recursive.transformer import SetTransformer
+from coola.recursive import SetTransformer, TransformerRegistry
 
 if TYPE_CHECKING:
     from collections.abc import Callable
