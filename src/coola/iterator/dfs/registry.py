@@ -8,7 +8,7 @@ __all__ = ["IteratorRegistry"]
 from typing import TYPE_CHECKING, Any
 
 from coola.iterator.dfs.default import DefaultIterator
-from coola.utils import repr_indent, repr_mapping, str_indent, str_mapping
+from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:
     from collections.abc import Iterator, Mapping

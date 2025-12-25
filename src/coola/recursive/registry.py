@@ -12,7 +12,7 @@ __all__ = ["TransformerRegistry"]
 from typing import TYPE_CHECKING, Any
 
 from coola.recursive.default import DefaultTransformer
-from coola.utils import repr_indent, repr_mapping, str_indent, str_mapping
+from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
