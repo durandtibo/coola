@@ -9,6 +9,7 @@ from coola import objects_are_equal
 from coola.iterator import bfs_iterate
 from coola.iterator.bfs import (
     ChildFinderRegistry,
+    DefaultChildFinder,
     IterableChildFinder,
     MappingChildFinder,
     get_default_registry,
@@ -87,46 +88,37 @@ def test_get_default_registry_returns_singleton() -> None:
     assert registry1 is registry2
 
 
-def test_get_default_registry_scalar_types() -> None:
+@pytest.mark.parametrize("data_type", [int, float, complex, bool, str, bytes])
+def test_get_default_registry_scalar_types(data_type: type) -> None:
     """Test that scalar types are registered with DefaultChildFinder."""
     registry = get_default_registry()
-    assert registry.has_child_finder(int)
-    assert registry.has_child_finder(float)
-    assert registry.has_child_finder(complex)
-    assert registry.has_child_finder(bool)
-    assert registry.has_child_finder(str)
-    assert registry.has_child_finder(bytes)
+    assert registry.has_child_finder(data_type)
+    assert isinstance(registry.find_child_finder(data_type), DefaultChildFinder)
 
 
-def test_get_default_registry_sequences() -> None:
-    """Test that sequence types are registered with
+@pytest.mark.parametrize("data_type", [list, tuple, range, Iterable, set, frozenset])
+def test_get_default_registry_iterable(data_type: type) -> None:
+    """Test that iterable types are registered with
     IterableChildFinder."""
     registry = get_default_registry()
-    assert registry.has_child_finder(list)
-    assert registry.has_child_finder(tuple)
-    assert registry.has_child_finder(range)
-    assert registry.has_child_finder(Iterable)
+    assert registry.has_child_finder(data_type)
+    assert isinstance(registry.find_child_finder(data_type), IterableChildFinder)
 
 
-def test_get_default_registry_sets() -> None:
-    """Test that set types are registered with SetChildFinder."""
-    registry = get_default_registry()
-    assert registry.has_child_finder(set)
-    assert registry.has_child_finder(frozenset)
-
-
-def test_register_default_child_finders_registers_mappings() -> None:
+@pytest.mark.parametrize("data_type", [dict, Mapping])
+def test_register_default_child_finders_registers_mappings(data_type: type) -> None:
     """Test that mapping types are registered with
     MappingChildFinder."""
     registry = get_default_registry()
-    assert registry.has_child_finder(dict)
-    assert registry.has_child_finder(Mapping)
+    assert registry.has_child_finder(data_type)
+    assert isinstance(registry.find_child_finder(data_type), MappingChildFinder)
 
 
 def test_register_default_child_finders_registers_object() -> None:
     """Test that object type is registered as catch-all."""
     registry = get_default_registry()
     assert registry.has_child_finder(object)
+    assert isinstance(registry.find_child_finder(object), DefaultChildFinder)
 
 
 @pytest.mark.parametrize(("data", "expected"), ITERATE_SAMPLES)
