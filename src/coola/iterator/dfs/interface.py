@@ -133,6 +133,7 @@ def _register_default_iterators(registry: IteratorRegistry) -> None:
             # Scalar types - no recursion needed
             object: default_iterator,
             str: default_iterator,  # Strings should not be iterated character by character
+            bytes: default_iterator,
             int: default_iterator,
             float: default_iterator,
             complex: default_iterator,

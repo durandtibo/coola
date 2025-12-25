@@ -8,6 +8,7 @@ import pytest
 from coola import objects_are_equal
 from coola.iterator import dfs_iterate
 from coola.iterator.dfs import (
+    DefaultIterator,
     IterableIterator,
     IteratorRegistry,
     MappingIterator,
@@ -83,43 +84,35 @@ def test_get_default_registry_returns_singleton() -> None:
     assert registry1 is registry2
 
 
-def test_get_default_registry_scalar_types() -> None:
+@pytest.mark.parametrize("data_type", [int, float, complex, bool, str, bytes])
+def test_get_default_registry_scalar_types(data_type: type) -> None:
     """Test that scalar types are registered with DefaultIterator."""
     registry = get_default_registry()
-    assert registry.has_iterator(int)
-    assert registry.has_iterator(float)
-    assert registry.has_iterator(complex)
-    assert registry.has_iterator(bool)
-    assert registry.has_iterator(str)
+    assert registry.has_iterator(data_type)
+    assert isinstance(registry.find_iterator(data_type), DefaultIterator)
 
 
-def test_get_default_registry_sequences() -> None:
-    """Test that sequence types are registered with IterableIterator."""
+@pytest.mark.parametrize("data_type", [list, tuple, range, Iterable, set, frozenset])
+def test_get_default_registry_iterables(data_type: type) -> None:
+    """Test that iterable types are registered with IterableIterator."""
     registry = get_default_registry()
-    assert registry.has_iterator(list)
-    assert registry.has_iterator(tuple)
-    assert registry.has_iterator(range)
-    assert registry.has_iterator(Iterable)
+    assert registry.has_iterator(data_type)
+    assert isinstance(registry.find_iterator(data_type), IterableIterator)
 
 
-def test_get_default_registry_sets() -> None:
-    """Test that set types are registered with SetIterator."""
-    registry = get_default_registry()
-    assert registry.has_iterator(set)
-    assert registry.has_iterator(frozenset)
-
-
-def test_register_default_iterators_registers_mappings() -> None:
+@pytest.mark.parametrize("data_type", [dict, Mapping])
+def test_register_default_iterators_registers_mappings(data_type: type) -> None:
     """Test that mapping types are registered with MappingIterator."""
     registry = get_default_registry()
-    assert registry.has_iterator(dict)
-    assert registry.has_iterator(Mapping)
+    assert registry.has_iterator(data_type)
+    assert isinstance(registry.find_iterator(data_type), MappingIterator)
 
 
 def test_register_default_iterators_registers_object() -> None:
     """Test that object type is registered as catch-all."""
     registry = get_default_registry()
     assert registry.has_iterator(object)
+    assert isinstance(registry.find_iterator(object), DefaultIterator)
 
 
 @pytest.mark.parametrize(("data", "expected"), SAMPLES)
