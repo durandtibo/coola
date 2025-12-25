@@ -11,8 +11,6 @@ from typing import TYPE_CHECKING, Any, Generic, TypeVar
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
-    from coola.iterator.bfs.registry import ChildFinderRegistry
-
 T = TypeVar("T")
 
 
@@ -39,33 +37,26 @@ class BaseChildFinder(ABC, Generic[T]):
 
     Examples:
     ```pycon
-    >>> from coola.iterator.bfs import ChildFinderRegistry, DefaultChildFinder
-    >>> iterator = DefaultChildFinder()
-    >>> registry = ChildFinderRegistry()
-    >>> list(iterator.iterate(42, registry))
-    [42]
-    >>> list(iterator.iterate("hello", registry))
-    ['hello']
+    >>> from coola.iterator.bfs import DefaultChildFinder
+    >>> child_finder = DefaultChildFinder()
+    >>> list(child_finder.find_children(42))
+    []
+    >>> list(child_finder.find_children("hello"))
+    []
 
     ```
     """
 
     @abstractmethod
-    def find_children(self, data: T, registry: ChildFinderRegistry) -> Iterator[Any]:
+    def find_children(self, data: T) -> Iterator[Any]:
         r"""Traverse the data structure and yield elements breadth-first.
 
         This method defines how the iterator traverses its associated data type.
-        For container or composite types, it should recursively traverse nested
-        elements using ``registry.find_children()`` to delegate to appropriate
-        iterators. For leaf types, it should yield the data directly.
 
         Args:
             data: The data structure to traverse. While typed as ``T`` for
                 flexibility, implementations typically expect a specific type
                 corresponding to the iterator's purpose.
-            registry: The iterator registry used to resolve and dispatch
-                iterators for nested data structures. Use ``registry.find_children()``
-                to recursively traverse nested elements.
 
         Yields:
             Elements found during breadth-first traversal. The exact type and
