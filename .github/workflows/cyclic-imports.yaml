@@ -32,6 +32,17 @@ jobs:
       - name: check coola.formatters
         run: |
           python -c "from coola import formatters"
+
+      - name: check coola.iterator
+        run: |
+          python -c "from coola import iterator"
+      - name: check coola.iterator.bfs
+        run: |
+          python -c "from coola.iterator import bfs"
+      - name: check coola.iterator.dfs
+        run: |
+          python -c "from coola.iterator import dfs"
+
       - name: check coola.nested
         run: |
           python -c "from coola import nested"
