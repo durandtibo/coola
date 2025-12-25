@@ -24,10 +24,10 @@ class MappingChildFinder(BaseChildFinder[Mapping[Any, Any]]):
     ```pycon
     >>> from coola.iterator.bfs import MappingChildFinder
     >>> child_finder = MappingChildFinder()
-    >>> list(child_finder.find_children((4, 2, 1)))
-    [4, 2, 1]
-    >>> list(child_finder.find_children("hello"))
-    ['h', 'e', 'l', 'l', 'o']
+    >>> list(child_finder.find_children({"a": 1, "b": 2}))
+    [1, 2]
+    >>> list(child_finder.find_children({"a": {"b": 1, "c": 2}, "d": 3}))
+    [{'b': 1, 'c': 2}, 3]
 
     ```
     """

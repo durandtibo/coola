@@ -31,8 +31,7 @@ class MappingIterator(BaseIterator[Mapping[Any, Any]]):
     >>> list(iterator.iterate({"a": 1, "b": 2}, registry))
     [1, 2]
     >>> # Nested dictionary with scalar values
-    >>> data = {"a": {"b": 1, "c": 2}, "d": 3}
-    >>> list(iterator.iterate(data, registry))
+    >>> list(iterator.iterate({"a": {"b": 1, "c": 2}, "d": 3}, registry))
     [1, 2, 3]
     >>> # Dictionary with list values
     >>> list(iterator.iterate({"x": [1, 2], "y": [3, 4]}, registry))
