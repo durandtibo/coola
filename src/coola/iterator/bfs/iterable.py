@@ -14,18 +14,11 @@ if TYPE_CHECKING:
 
 
 class IterableChildFinder(BaseChildFinder[Iterable[Any]]):
-    r"""Iterable child finder for breadth-first search traversal.
+    r"""Child finder for iterable objects.
 
-    This child finder handles iterable objects during breadth-first search
-    traversal by yielding each element of the iterable as a direct child.
-    It allows the BFS algorithm to explore each item in the iterable at
-    the current depth level before moving deeper into the tree structure.
-
-    The IterableChildFinder is used for:
-    - Lists, tuples, and other sequence types
-    - Sets and other collection types
-    - Any object implementing the Iterable protocol
-    - Strings (which yield individual characters)
+    This child finder handles iterable objects by yielding each element
+    of the iterable. It works with lists, tuples, sets, strings, and any
+    object implementing the Iterable protocol.
 
     Examples:
     ```pycon

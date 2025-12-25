@@ -1,5 +1,5 @@
-r"""Define the abstract base class for breadth-first search
-iterators."""
+r"""Define the abstract base class for child finders used in breadth-
+first search."""
 
 from __future__ import annotations
 
@@ -15,25 +15,23 @@ T = TypeVar("T")
 
 
 class BaseChildFinder(ABC, Generic[T]):
-    r"""Abstract base class for breadth-first search iterators.
+    r"""Abstract base class for child finders used in breadth-first
+    search.
 
-    This class defines the interface that all BFS iterators must implement.
-    ChildFinders are responsible for traversing specific data types and yielding
-    their elements during breadth-first search traversal. Custom iterators can
-    be registered with an ``ChildFinderRegistry`` to handle specific data types.
+    This class defines the interface that all child finders must implement.
+    Child finders are responsible for finding and yielding the immediate children
+    of a given data structure. Custom child finders can be registered with a
+    ``ChildFinderRegistry`` to handle specific data types during BFS traversal.
 
-    The generic type parameter ``T`` indicates the type of data this iterator
-    is designed to handle, though the ``iterate`` method accepts ``Any`` for
-    flexibility.
+    The generic type parameter ``T`` indicates the type of data this child finder
+    is designed to handle.
 
     Type Parameters:
-        T: The primary type of data this iterator is designed to handle.
+        T: The primary type of data this child finder is designed to handle.
 
     Notes:
-        - Subclasses must implement the ``iterate`` method.
-        - For container types, use ``registry.iterate()`` to recursively
-          traverse nested structures.
-        - For leaf types, simply yield the data directly.
+        - Subclasses must implement the ``find_children`` method.
+        - For leaf types (types with no children), simply return without yielding.
 
     Examples:
     ```pycon
@@ -49,23 +47,21 @@ class BaseChildFinder(ABC, Generic[T]):
 
     @abstractmethod
     def find_children(self, data: T) -> Iterator[Any]:
-        r"""Traverse the data structure and yield elements breadth-first.
+        r"""Find and yield the immediate children of the given data
+        structure.
 
-        This method defines how the iterator traverses its associated data type.
+        This method defines how to extract children from the data structure.
+        For container types, this typically means yielding the contained elements.
+        For leaf types, this method should return without yielding anything.
 
         Args:
-            data: The data structure to traverse. While typed as ``T`` for
-                flexibility, implementations typically expect a specific type
-                corresponding to the iterator's purpose.
+            data: The data structure whose children should be found.
 
         Yields:
-            Elements found during breadth-first traversal. The exact type and
-            nature of yielded elements depends on the specific iterator
-            implementation and traversal strategy.
+            The immediate children of the data structure. The type of yielded
+            elements depends on the specific data structure being processed.
 
         Notes:
-            - The registry parameter should be used to maintain consistent
-              traversal behavior across different data types.
-            - Implementations should handle the specific structure of their
-              target data type appropriately.
+            - This method should only yield direct children, not recurse deeply.
+            - The BFS traversal logic handles visiting children recursively.
         """

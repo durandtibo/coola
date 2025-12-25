@@ -1,5 +1,4 @@
-r"""Define the default BFS iterator class for handling leaf nodes in
-traversal."""
+r"""Define the default child finder class for BFS traversal."""
 
 from __future__ import annotations
 
@@ -14,17 +13,16 @@ if TYPE_CHECKING:
 
 
 class DefaultChildFinder(BaseChildFinder[Any]):
-    r"""Default iterator for breadth-first search traversal of leaf
-    nodes.
+    r"""Default child finder for breadth-first search traversal.
 
-    This iterator serves as the fallback handler for objects that don't have
-    a specialized iterator registered. It treats the input data as a leaf node
-    and yields it directly without further traversal.
+        This child finder serves as the fallback handler for objects that don't have
+        a specialized child finder registered. It treats the input data as a leaf node
+        with no children, so it yields nothing during traversal.
 
-    The DefaultChildFinder is typically used for:
-    - Primitive types (int, float, str, bool, None)
-    - Objects without internal structure to traverse
-    - Terminal nodes in a data structure
+        The DefaultChildFinder is typically used for:
+        - Primitive types (int, float, str, bool, None)
+        - Objects without internal structure to traverse
+        - Terminal nodes in a data structure
 
     Examples:
     ```pycon
@@ -42,5 +40,16 @@ class DefaultChildFinder(BaseChildFinder[Any]):
         return f"{self.__class__.__qualname__}()"
 
     def find_children(self, data: Any) -> Iterator[Any]:  # noqa: ARG002
+        r"""Find children of the given data.
+
+        Since this is the default handler for leaf nodes, this method
+        returns an empty iterator (yields nothing).
+
+        Args:
+            data: The data to find children for (unused, treated as leaf).
+
+        Yields:
+            Nothing - this is a leaf node with no children.
+        """
         return
         yield
