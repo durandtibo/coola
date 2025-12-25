@@ -30,10 +30,10 @@ class IterableChildFinder(BaseChildFinder[Iterable[Any]]):
     Examples:
     ```pycon
     >>> from coola.iterator.bfs import IterableChildFinder
-    >>> iterator = IterableChildFinder()
-    >>> list(iterator.find_children((4, 2, 1)))
+    >>> child_finder = IterableChildFinder()
+    >>> list(child_finder.find_children((4, 2, 1)))
     [4, 2, 1]
-    >>> list(iterator.find_children("hello"))
+    >>> list(child_finder.find_children("hello"))
     ['h', 'e', 'l', 'l', 'o']
 
     ```

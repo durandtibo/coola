@@ -12,8 +12,6 @@ from coola.iterator.bfs.base import BaseChildFinder
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
-    from coola.iterator.bfs.registry import ChildFinderRegistry
-
 
 class DefaultChildFinder(BaseChildFinder[Any]):
     r"""Default iterator for breadth-first search traversal of leaf
@@ -30,12 +28,11 @@ class DefaultChildFinder(BaseChildFinder[Any]):
 
     Examples:
     ```pycon
-    >>> from coola.iterator.bfs import ChildFinderRegistry, DefaultChildFinder
-    >>> iterator = DefaultChildFinder()
-    >>> registry = ChildFinderRegistry()
-    >>> list(iterator.find_children(42, registry))
+    >>> from coola.iterator.bfs import DefaultChildFinder
+    >>> child_finder = DefaultChildFinder()
+    >>> list(child_finder.find_children(42))
     []
-    >>> list(iterator.find_children("hello", registry))
+    >>> list(child_finder.find_children("hello"))
     []
 
     ```
@@ -44,10 +41,6 @@ class DefaultChildFinder(BaseChildFinder[Any]):
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
-    def find_children(
-        self,
-        data: Any,  # noqa: ARG002
-        registry: ChildFinderRegistry,  # noqa: ARG002
-    ) -> Iterator[Any]:
+    def find_children(self, data: Any) -> Iterator[Any]:  # noqa: ARG002
         return
         yield
