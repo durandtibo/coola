@@ -32,7 +32,7 @@ def bfs_iterate(data: Any, registry: ChildFinderRegistry | None = None) -> Itera
             registry is used.
 
     Yields:
-        The elements from the nested data structure in DFS order.
+        Atomic leaf values in BFS order (excludes containers even if empty)
 
     Example usage:
 
@@ -137,6 +137,7 @@ def _register_default_child_finders(registry: ChildFinderRegistry) -> None:
             # Scalar types - no recursion needed
             object: default_child_finder,
             str: default_child_finder,  # Strings should not be iterated character by character
+            bytes: default_child_finder,
             int: default_child_finder,
             float: default_child_finder,
             complex: default_child_finder,

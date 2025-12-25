@@ -95,6 +95,7 @@ def test_get_default_registry_scalar_types() -> None:
     assert registry.has_child_finder(complex)
     assert registry.has_child_finder(bool)
     assert registry.has_child_finder(str)
+    assert registry.has_child_finder(bytes)
 
 
 def test_get_default_registry_sequences() -> None:

@@ -267,8 +267,7 @@ class ChildFinderRegistry:
             data: The data structure to iterate over.
 
         Yields:
-            The elements of the data structure according to the
-                appropriate child finder's traversal logic.
+            Atomic leaf values in BFS order (excludes containers even if empty)
 
         Example:
         ```pycon
@@ -290,6 +289,6 @@ class ChildFinderRegistry:
         while queue:
             current = queue.popleft()
             children = list(self.find_children(current))
-            if len(children) == 0:
-                yield current
             queue.extend(children)
+            if not children:
+                yield current

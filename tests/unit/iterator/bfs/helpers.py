@@ -55,6 +55,11 @@ ITERATE_SAMPLES: pytest.mark.ParameterSet = [
     pytest.param(
         {"a": {"b": 2, "c": {"d": 1, "e": 4}}, "d": 3}, [3, 2, 1, 4], id="deeply nested dict"
     ),
+    pytest.param(
+        {"a": [1, 2, 3], "b": {"c": 4, "d": [5, 6]}, "e": 7},
+        [7, 1, 2, 3, 4, 5, 6],
+        id="deeply nested dict",
+    ),
     pytest.param([[1, 2, 3], [4, 5, 6]], [1, 2, 3, 4, 5, 6], id="nested list"),
     pytest.param(
         [[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
