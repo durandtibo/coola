@@ -290,6 +290,6 @@ class ChildFinderRegistry:
         while queue:
             current = queue.popleft()
             children = list(self.find_children(current))
-            if not children:
+            if len(children) == 0:
                 yield current
             queue.extend(children)

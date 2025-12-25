@@ -1,13 +1,12 @@
 from __future__ import annotations
 
+from collections import OrderedDict
+
 import pytest
 
 
 class CustomList(list):
     r"""Create a custom class that inherits from list."""
-
-
-SAMPLES: pytest.mark.ParameterSet = []
 
 
 DEFAULT_FIND_CHILDREN_SAMPLES: pytest.mark.ParameterSet = [
@@ -50,4 +49,17 @@ ITERATE_SAMPLES: pytest.mark.ParameterSet = [
     pytest.param({1, 2, 3}, [1, 2, 3], id="set"),
     pytest.param(set(), [], id="empty set"),
     pytest.param(None, [None], id="none"),
+    pytest.param({"a": {"b": 1, "c": 2}, "d": 3}, [3, 1, 2], id="nested dict"),
+    pytest.param({"x": [1, 2], "y": [3, 4]}, [1, 2, 3, 4], id="dict list"),
+    pytest.param(OrderedDict({"a": 1, "b": 2}), [1, 2], id="ordered dict"),
+    pytest.param(
+        {"a": {"b": 2, "c": {"d": 1, "e": 4}}, "d": 3}, [3, 2, 1, 4], id="deeply nested dict"
+    ),
+    pytest.param([[1, 2, 3], [4, 5, 6]], [1, 2, 3, 4, 5, 6], id="nested list"),
+    pytest.param(
+        [[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
+        [1, 2, 3, 4, 5, 6, 7, 8],
+        id="deeply nested list",
+    ),
+    pytest.param(range(3), [0, 1, 2], id="range"),
 ]
