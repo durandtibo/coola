@@ -1,5 +1,5 @@
-r"""Define the child finder registry for managing iterators based on
-data types."""
+r"""Define the child finder registry for managing child finders used for
+breadth-first traversal of nested data structures."""
 
 from __future__ import annotations
 
@@ -19,40 +19,41 @@ if TYPE_CHECKING:
 
 
 class ChildFinderRegistry:
-    r"""Registry that manages iterators for different data types.
+    r"""Registry that manages child finders for breadth-first traversal
+    of nested data structures.
 
-    This registry stores iterators for various data types and handles
-    the dispatching of the appropriate iterator based on the data
-    type during iteration. It uses Method Resolution Order (MRO) to
-    resolve the most specific iterator for a given data type.
-    It also supports caching of iterators for performance optimization
-    in repetitive iteration tasks.
+    This registry maps Python data types to ``BaseChildFinder`` instances.
+    During traversal, the registry selects the most specific child finder
+    for a given object using Method Resolution Order (MRO). If no match
+    is found, a default child finder is used.
+
+    The registry also caches resolved child finders to speed up repeated
+    lookups.
 
     Args:
-        registry: An optional dictionary mapping types to iterators.
-            If provided, the registry is initialized with this mapping.
+        registry: An optional dictionary mapping Python types to
+            ``BaseChildFinder`` instances. If provided, the registry
+            is initialized with this mapping.
 
     Attributes:
-        _registry: Internal mapping of registered data types to iterators.
-        _default_child_finder: The fallback iterator used for types not explicitly registered.
-        _iterator_cache: Cache to speed up iterator lookups.
+        _registry: Mapping of registered data types to child finders.
+        _default_child_finder: Fallback child finder used when no match
+            is found in the registry.
+        _child_finder_cache: Cache mapping data types to resolved child
+            finders (after MRO lookup).
 
-    Example:
-        Basic usage:
+    Examples:
+        Basic usage with a flat iterable:
 
         ```pycon
         >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
         >>> registry = ChildFinderRegistry({list: IterableChildFinder()})
-        >>> registry
-        ChildFinderRegistry(
-          (<class 'list'>): IterableChildFinder()
-        )
         >>> list(registry.iterate([1, 2, 3]))
         [1, 2, 3]
 
         ```
 
-        Working with nested structures:
+        Working with nested structures using the default registry:
 
         ```pycon
         >>> from coola.iterator.bfs import get_default_registry
@@ -60,6 +61,23 @@ class ChildFinderRegistry:
         >>> data = {"a": [1, 2], "b": [3, 4]}
         >>> list(registry.iterate(data))
         [1, 2, 3, 4]
+
+        ```
+
+        Breadth-first traversal over mixed nested data:
+
+        ```pycon
+        >>> from coola.iterator.bfs import (
+        ...     ChildFinderRegistry,
+        ...     IterableChildFinder,
+        ...     MappingChildFinder,
+        ... )
+        >>> registry = ChildFinderRegistry(
+        ...     {list: IterableChildFinder(), dict: MappingChildFinder()}
+        ... )
+        >>> data = {"a": [1, 2], "b": [3, 4], "c": 5, "d": {"e": 6}}
+        >>> list(registry.iterate(data))
+        [5, 1, 2, 3, 4, 6]
 
         ```
     """
@@ -81,23 +99,29 @@ class ChildFinderRegistry:
         child_finder: BaseChildFinder[Any],
         exist_ok: bool = False,
     ) -> None:
-        r"""Register an iterator for a given data type.
+        r"""Register a child finder for a given data type.
 
-        This method associates a specific iterator with a type.
-        If data of this type is iterated, the registered iterator
-        will be used. The cache is cleared after a registration to
-        ensure consistency.
+        This method associates a specific ``BaseChildFinder`` with a
+        Python type. When an object of this type (or a subclass) is
+        encountered during traversal, the registered child finder
+        will be used.
+
+        The internal cache is cleared after registration to ensure
+        consistency.
 
         Args:
-            data_type: The Python type to register (e.g., `list`, `dict`, custom types).
-            child_finder: The child finder instance that handles this type.
-            exist_ok: If `True`, allows overwriting an existing registration.
-                If `False`, raises an error.
+            data_type: The Python type to register (e.g., ``list``,
+                ``dict``, or a custom class).
+            child_finder: The child finder instance responsible for
+                extracting children from objects of this type.
+            exist_ok: If ``True``, allows overwriting an existing
+                registration. If ``False``, raises an error.
 
         Raises:
-            RuntimeError: If the type is already registered and `exist_ok` is `False`.
+            RuntimeError: If the type is already registered and
+                ``exist_ok`` is ``False``.
 
-        Example:
+        Examples:
         ```pycon
         >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
         >>> registry = ChildFinderRegistry()
@@ -123,16 +147,17 @@ class ChildFinderRegistry:
     ) -> None:
         r"""Register multiple child finders at once.
 
-        This method allows for bulk registration of child finders for multiple data types.
-
         Args:
-            mapping: A dictionary mapping Python types to their respective child finders.
-            exist_ok: If `True`, allows overwriting existing registrations.
+            mapping: A mapping from Python types to their corresponding
+                child finders.
+            exist_ok: If ``True``, allows overwriting existing
+                registrations.
 
         Raises:
-            RuntimeError: If any type is already registered and `exist_ok` is `False`.
+            RuntimeError: If any type is already registered and
+                ``exist_ok`` is ``False``.
 
-        Example:
+        Examples:
         ```pycon
         >>> from coola.iterator.bfs import (
         ...     ChildFinderRegistry,
@@ -141,11 +166,8 @@ class ChildFinderRegistry:
         ... )
         >>> registry = ChildFinderRegistry()
         >>> registry.register_many({list: IterableChildFinder(), dict: MappingChildFinder()})
-        >>> registry
-        ChildFinderRegistry(
-          (<class 'list'>): IterableChildFinder()
-          (<class 'dict'>): MappingChildFinder()
-        )
+        >>> registry.has_child_finder(list), registry.has_child_finder(dict)
+        (True, True)
 
         ```
         """
@@ -153,18 +175,21 @@ class ChildFinderRegistry:
             self.register(typ, child_finder, exist_ok=exist_ok)
 
     def has_child_finder(self, data_type: type) -> bool:
-        r"""Check if a child finder is registered for a given data type.
+        r"""Check if a child finder is directly registered for a data
+        type.
 
-        This method checks for direct registration. Even if this method returns `False`,
-        a suitable child finder might still be found using the MRO lookup.
+        This method only checks for an exact type match in the registry.
+        Even if this returns ``False``, a suitable child finder may still
+        be resolved via MRO lookup.
 
         Args:
             data_type: The type to check.
 
         Returns:
-            `True` if an child finder is registered for the type, `False` otherwise.
+            ``True`` if a child finder is directly registered for the
+                type, ``False`` otherwise.
 
-        Example:
+        Examples:
         ```pycon
         >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
         >>> registry = ChildFinderRegistry({list: IterableChildFinder()})
@@ -178,16 +203,19 @@ class ChildFinderRegistry:
         return data_type in self._registry
 
     def _find_child_finder_uncached(self, data_type: type) -> BaseChildFinder[Any]:
-        r"""Find the child_finder for a data type without using cache.
+        r"""Resolve a child finder for a data type without using the
+        cache.
 
-        This method looks up the most specific child finder for the given type, starting
-        with direct matches and then walking up the MRO to find an appropriate child finder.
+        Resolution is performed by first checking for an exact match,
+        then walking the type's Method Resolution Order (MRO) to find
+        the most specific registered base class. If no match is found,
+        the default child finder is returned.
 
         Args:
-            data_type: The data type for which to find a child finder.
+            data_type: The data type for which to resolve a child finder.
 
         Returns:
-            The matching child finder instance for the type or a fallback child finder.
+            A ``BaseChildFinder`` instance.
         """
         if data_type in self._registry:
             return self._registry[data_type]
@@ -199,18 +227,18 @@ class ChildFinderRegistry:
         return self._default_child_finder
 
     def find_child_finder(self, data_type: type) -> BaseChildFinder[Any]:
-        r"""Find the appropriate child finder for a given type.
+        r"""Find the appropriate child finder for a given data type.
 
-        This method uses the MRO to find the most specific child finder. It caches the result
-        for performance, so subsequent lookups are faster.
+        This method resolves the child finder using MRO lookup and
+        caches the result for faster subsequent access.
 
         Args:
             data_type: The data type for which to find a child finder.
 
         Returns:
-            The appropriate child finder for the data type.
+            The resolved child finder instance.
 
-        Example:
+        Examples:
         ```pycon
         >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
         >>> registry = ChildFinderRegistry({list: IterableChildFinder()})
@@ -226,31 +254,24 @@ class ChildFinderRegistry:
         return self._child_finder_cache[data_type]
 
     def find_children(self, data: Any) -> Iterator[Any]:
-        r"""Perform breath-first iteration over a data structure.
+        r"""Return the immediate children of an object using its child
+        finder.
 
-        This method uses the appropriate child finder for the data type, which may be
-        retrieved via the registry. The child finder will recursively traverse the data
-        structure, yielding elements based on its specific implementation.
+        This method does not perform traversal by itself. It delegates
+        to the appropriate child finder for the object's type.
 
         Args:
-            data: The data structure to iterate over.
+            data: The object whose children should be extracted.
 
         Yields:
-            The elements of the data structure according to the
-                appropriate child finder's traversal logic.
+            Child objects as defined by the resolved child finder.
 
-        Example:
+        Examples:
         ```pycon
-        >>> from coola.iterator.bfs import (
-        ...     ChildFinderRegistry,
-        ...     IterableChildFinder,
-        ...     MappingChildFinder,
-        ... )
-        >>> registry = ChildFinderRegistry(
-        ...     {list: IterableChildFinder(), dict: MappingChildFinder()}
-        ... )
-        >>> list(registry.iterate({"a": [1, 2], "b": [3, 4]}))
-        [1, 2, 3, 4]
+        >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
+        >>> registry = ChildFinderRegistry({list: IterableChildFinder()})
+        >>> list(registry.find_children([1, 2, 3]))
+        [1, 2, 3]
 
         ```
         """
@@ -258,19 +279,23 @@ class ChildFinderRegistry:
         yield from child_finder.find_children(data)
 
     def iterate(self, data: Any) -> Iterator[Any]:
-        r"""Perform depth-first iteration over a data structure.
+        r"""Perform a breadth-first traversal over a nested data
+        structure.
 
-        This method uses the appropriate child finder for the data type, which may be
-        retrieved via the registry. The child finder will recursively traverse the data
-        structure, yielding elements based on its specific implementation.
+        This method traverses the input data using breadth-first search
+        (BFS). Container objects (mappings and iterables, excluding
+        strings and bytes) are expanded using registered child finders.
+        Only non-container (leaf) values are yielded.
+
+        Containers themselves are never yielded, even if they are empty.
 
         Args:
-            data: The data structure to iterate over.
+            data: The data structure to traverse.
 
         Yields:
-            Atomic leaf values in BFS order (excludes containers even if empty)
+            Atomic (non-container) values in breadth-first order.
 
-        Example:
+        Examples:
         ```pycon
         >>> from coola.iterator.bfs import (
         ...     ChildFinderRegistry,
@@ -293,6 +318,6 @@ class ChildFinderRegistry:
                 current, (str, bytes)
             )
             if is_container:
-                queue.extend(list(self.find_children(current)))
+                queue.extend(self.find_children(current))
             else:
                 yield current
