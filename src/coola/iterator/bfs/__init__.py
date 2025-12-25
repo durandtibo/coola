@@ -9,10 +9,18 @@ __all__ = [
     "DefaultChildFinder",
     "IterableChildFinder",
     "MappingChildFinder",
+    "bfs_iterate",
+    "get_default_registry",
+    "register_child_finders",
 ]
 
 from coola.iterator.bfs.base import BaseChildFinder
 from coola.iterator.bfs.default import DefaultChildFinder
+from coola.iterator.bfs.interface import (
+    bfs_iterate,
+    get_default_registry,
+    register_child_finders,
+)
 from coola.iterator.bfs.iterable import IterableChildFinder
 from coola.iterator.bfs.mapping import MappingChildFinder
 from coola.iterator.bfs.registry import ChildFinderRegistry

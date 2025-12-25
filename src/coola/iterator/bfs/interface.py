@@ -3,21 +3,21 @@ data."""
 
 from __future__ import annotations
 
-__all__ = ["dfs_iterate", "get_default_registry", "register_iterators"]
+__all__ = ["bfs_iterate", "get_default_registry", "register_child_finders"]
 
 from collections.abc import Iterable, Iterator, Mapping
 from typing import TYPE_CHECKING, Any
 
-from coola.iterator.dfs.default import DefaultIterator
-from coola.iterator.dfs.iterable import IterableIterator
-from coola.iterator.dfs.mapping import MappingIterator
-from coola.iterator.dfs.registry import IteratorRegistry
+from coola.iterator.bfs.default import DefaultChildFinder
+from coola.iterator.bfs.iterable import IterableChildFinder
+from coola.iterator.bfs.mapping import MappingChildFinder
+from coola.iterator.bfs.registry import ChildFinderRegistry
 
 if TYPE_CHECKING:
-    from coola.iterator.dfs.base import BaseIterator
+    from coola.iterator.bfs import BaseChildFinder
 
 
-def dfs_iterate(data: Any, registry: IteratorRegistry | None = None) -> Iterator[Any]:
+def bfs_iterate(data: Any, registry: ChildFinderRegistry | None = None) -> Iterator[Any]:
     """Perform Depth-First Search (DFS) iteration over nested data
     structures (lists, dicts, tuples, sets, etc.).
 
@@ -32,15 +32,15 @@ def dfs_iterate(data: Any, registry: IteratorRegistry | None = None) -> Iterator
             registry is used.
 
     Yields:
-        The elements from the nested data structure in DFS order.
+        Atomic leaf values in BFS order (excludes containers even if empty)
 
     Example usage:
 
     ```pycon
-    >>> from coola.iterator import dfs_iterate
-    >>> list(dfs_iterate({"a": 1, "b": "abc"}))
+    >>> from coola.iterator import bfs_iterate
+    >>> list(bfs_iterate({"a": 1, "b": "abc"}))
     [1, 'abc']
-    >>> list(dfs_iterate([1, [2, 3], {"x": 4}]))
+    >>> list(bfs_iterate([1, [2, 3], {"x": 4}]))
     [1, 2, 3, 4]
 
     ```
@@ -50,8 +50,8 @@ def dfs_iterate(data: Any, registry: IteratorRegistry | None = None) -> Iterator
     yield from registry.iterate(data)
 
 
-def register_iterators(
-    mapping: Mapping[type, BaseIterator[Any]],
+def register_child_finders(
+    mapping: Mapping[type, BaseChildFinder[Any]],
     exist_ok: bool = False,
 ) -> None:
     """Register custom iterators to the default global registry.
@@ -66,8 +66,12 @@ def register_iterators(
     Example usage:
 
     ```pycon
-    >>> from coola.iterator.dfs import register_iterators, IterableIterator, IteratorRegistry
-    >>> register_iterators({list: IterableIterator()}, exist_ok=True)
+    >>> from coola.iterator.bfs import (
+    ...     register_child_finders,
+    ...     IterableChildFinder,
+    ...     ChildFinderRegistry,
+    ... )
+    >>> register_child_finders({list: IterableChildFinder()}, exist_ok=True)
     >>> registry = get_default_registry()
     >>> list(registry.iterate([1, 2, 3]))
     [1, 2, 3]
@@ -77,26 +81,26 @@ def register_iterators(
     get_default_registry().register_many(mapping, exist_ok=exist_ok)
 
 
-def get_default_registry() -> IteratorRegistry:
+def get_default_registry() -> ChildFinderRegistry:
     """Get or create the default global registry for iterators.
 
-    This function returns a singleton instance of the `IteratorRegistry`, which is
+    This function returns a singleton instance of the `ChildFinderRegistry`, which is
     pre-configured with iterators for common Python types, including iterables (lists,
     tuples), mappings (dicts), sets, and scalars (int, float, str, bool). The registry
     is used to look up the appropriate iterator for a given data structure during iteration.
 
     Returns:
-        An `IteratorRegistry` instance with iterators registered for common Python types.
+        An `ChildFinderRegistry` instance with iterators registered for common Python types.
 
     Note:
         The singleton pattern means any changes to the returned registry affect all future
-        calls to this function. If an isolated registry is needed, create a new `IteratorRegistry`
+        calls to this function. If an isolated registry is needed, create a new `ChildFinderRegistry`
         instance directly.
 
     Example usage:
 
     ```pycon
-    >>> from coola.iterator.dfs import get_default_registry
+    >>> from coola.iterator.bfs import get_default_registry
     >>> reg = get_default_registry()
     >>> list(reg.iterate([1, 2, 3]))
     [1, 2, 3]
@@ -104,13 +108,13 @@ def get_default_registry() -> IteratorRegistry:
     ```
     """
     if not hasattr(get_default_registry, "_registry"):
-        registry = IteratorRegistry()
-        _register_default_iterators(registry)
+        registry = ChildFinderRegistry()
+        _register_default_child_finders(registry)
         get_default_registry._registry = registry
     return get_default_registry._registry
 
 
-def _register_default_iterators(registry: IteratorRegistry) -> None:
+def _register_default_child_finders(registry: ChildFinderRegistry) -> None:
     """Register default iterators for common Python types.
 
     This internal function registers the standard type-to-iterator mappings that are used
@@ -118,35 +122,36 @@ def _register_default_iterators(registry: IteratorRegistry) -> None:
     during iteration, including handling nested structures.
 
     Args:
-        registry: The `IteratorRegistry` to populate with default iterators.
+        registry: The `ChildFinderRegistry` to populate with default iterators.
 
     Note:
         This function is automatically called by `get_default_registry()` and should not
         be called directly by users.
     """
-    default_iterator = DefaultIterator()
-    iterable_iterator = IterableIterator()
-    mapping_iterator = MappingIterator()
+    default_child_finder = DefaultChildFinder()
+    iterable_child_finder = IterableChildFinder()
+    mapping_child_finder = MappingChildFinder()
 
     registry.register_many(
         {
             # Scalar types - no recursion needed
-            object: default_iterator,
-            str: default_iterator,  # Strings should not be iterated character by character
-            int: default_iterator,
-            float: default_iterator,
-            complex: default_iterator,
-            bool: default_iterator,
+            object: default_child_finder,
+            str: default_child_finder,  # Strings should not be iterated character by character
+            bytes: default_child_finder,
+            int: default_child_finder,
+            float: default_child_finder,
+            complex: default_child_finder,
+            bool: default_child_finder,
             # Iterables - recursive iteration (lists, tuples, etc.)
-            list: iterable_iterator,
-            tuple: iterable_iterator,
-            range: iterable_iterator,
-            Iterable: iterable_iterator,
+            list: iterable_child_finder,
+            tuple: iterable_child_finder,
+            range: iterable_child_finder,
+            Iterable: iterable_child_finder,
             # Sets - recursive iteration (sets, frozenset)
-            set: iterable_iterator,
-            frozenset: iterable_iterator,
+            set: iterable_child_finder,
+            frozenset: iterable_child_finder,
             # Mappings - recursive iteration (dictionaries)
-            dict: mapping_iterator,
-            Mapping: mapping_iterator,
+            dict: mapping_child_finder,
+            Mapping: mapping_child_finder,
         }
     )

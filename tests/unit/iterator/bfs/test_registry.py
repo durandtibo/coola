@@ -181,10 +181,11 @@ def test_child_finder_registry_iterate(data: Any, expected: Any) -> None:
         list(
             ChildFinderRegistry(
                 {
-                    list: iterable_child_finder,
-                    tuple: iterable_child_finder,
-                    set: iterable_child_finder,
                     dict: mapping_child_finder,
+                    list: iterable_child_finder,
+                    range: iterable_child_finder,
+                    set: iterable_child_finder,
+                    tuple: iterable_child_finder,
                 }
             ).iterate(data)
         )
