@@ -16,13 +16,14 @@ if TYPE_CHECKING:
 
 
 class DefaultChildFinder(BaseChildFinder[Any]):
-    r"""Default iterator for breath-first search traversal of leaf nodes.
+    r"""Default iterator for breadth-first search traversal of leaf
+    nodes.
 
     This iterator serves as the fallback handler for objects that don't have
     a specialized iterator registered. It treats the input data as a leaf node
     and yields it directly without further traversal.
 
-    The DefaultIterator is typically used for:
+    The DefaultChildFinder is typically used for:
     - Primitive types (int, float, str, bool, None)
     - Objects without internal structure to traverse
     - Terminal nodes in a data structure
