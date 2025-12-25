@@ -6,7 +6,7 @@ import pytest
 
 from coola import objects_are_equal
 from coola.iterator.bfs import DefaultChildFinder
-from tests.unit.iterator.bfs.helpers import DEFAULT_SAMPLES
+from tests.unit.iterator.bfs.helpers import DEFAULT_FIND_CHILDREN_SAMPLES
 
 ########################################
 #     Tests for DefaultChildFinder     #
@@ -21,6 +21,6 @@ def test_default_child_finder_str() -> None:
     assert str(DefaultChildFinder()) == "DefaultChildFinder()"
 
 
-@pytest.mark.parametrize(("data", "expected"), DEFAULT_SAMPLES)
+@pytest.mark.parametrize(("data", "expected"), DEFAULT_FIND_CHILDREN_SAMPLES)
 def test_default_child_finder_find_children(data: Any, expected: Any) -> None:
     assert objects_are_equal(list(DefaultChildFinder().find_children(data)), expected)
