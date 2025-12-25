@@ -21,6 +21,7 @@ DEFAULT_FIND_CHILDREN_SAMPLES: pytest.mark.ParameterSet = [
     pytest.param((), [], id="empty tuple"),
     pytest.param({1, 2, 3}, [], id="set"),
     pytest.param(set(), [], id="empty set"),
+    pytest.param(None, [], id="none"),
 ]
 
 DEFAULT_ITERATE_SAMPLES: pytest.mark.ParameterSet = [
@@ -34,6 +35,7 @@ DEFAULT_ITERATE_SAMPLES: pytest.mark.ParameterSet = [
     pytest.param((), [()], id="empty tuple"),
     pytest.param({1, 2, 3}, [{1, 2, 3}], id="set"),
     pytest.param(set(), [set()], id="empty set"),
+    pytest.param(None, [None], id="none"),
 ]
 
 ITERATE_SAMPLES: pytest.mark.ParameterSet = [
@@ -47,4 +49,5 @@ ITERATE_SAMPLES: pytest.mark.ParameterSet = [
     pytest.param((), [], id="empty tuple"),
     pytest.param({1, 2, 3}, [1, 2, 3], id="set"),
     pytest.param(set(), [], id="empty set"),
+    pytest.param(None, [None], id="none"),
 ]
