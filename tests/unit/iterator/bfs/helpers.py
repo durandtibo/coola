@@ -35,3 +35,16 @@ DEFAULT_ITERATE_SAMPLES: pytest.mark.ParameterSet = [
     pytest.param({1, 2, 3}, [{1, 2, 3}], id="set"),
     pytest.param(set(), [set()], id="empty set"),
 ]
+
+ITERATE_SAMPLES: pytest.mark.ParameterSet = [
+    pytest.param("abc", ["abc"], id="str"),
+    pytest.param(42, [42], id="int"),
+    pytest.param({"key": "value"}, ["value"], id="dict"),
+    pytest.param({}, [], id="empty dict"),
+    pytest.param([1, 2, 3], [1, 2, 3], id="list"),
+    pytest.param([], [], id="empty list"),
+    pytest.param((1, 2, 3, 4), [1, 2, 3, 4], id="tuple"),
+    pytest.param((), [], id="empty tuple"),
+    pytest.param({1, 2, 3}, [1, 2, 3], id="set"),
+    pytest.param(set(), [], id="empty set"),
+]

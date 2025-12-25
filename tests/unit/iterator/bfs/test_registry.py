@@ -14,6 +14,7 @@ from coola.iterator.bfs import (
 from tests.unit.iterator.bfs.helpers import (
     DEFAULT_FIND_CHILDREN_SAMPLES,
     DEFAULT_ITERATE_SAMPLES,
+    ITERATE_SAMPLES,
     CustomList,
 )
 
@@ -153,9 +154,42 @@ def test_child_finder_registry_find_child_finder_most_specific() -> None:
     assert registry.find_child_finder(CustomList) is specific_child_finder
 
 
+def test_child_finder_registry_find_child_finder_cache() -> None:
+    child_finder = IterableChildFinder()
+    registry = ChildFinderRegistry({list: child_finder})
+
+    assert registry.find_child_finder(CustomList) is child_finder
+    assert registry._child_finder_cache == {CustomList: child_finder}
+
+    assert registry.find_child_finder(CustomList) is child_finder
+    assert registry._child_finder_cache == {CustomList: child_finder}
+
+    assert registry.find_child_finder(list) is child_finder
+    assert registry._child_finder_cache == {CustomList: child_finder, list: child_finder}
+
+
 @pytest.mark.parametrize(("data", "expected"), DEFAULT_FIND_CHILDREN_SAMPLES)
 def test_child_finder_registry_find_children_default(data: Any, expected: Any) -> None:
     assert list(ChildFinderRegistry().find_children(data)) == expected
+
+
+@pytest.mark.parametrize(("data", "expected"), ITERATE_SAMPLES)
+def test_child_finder_registry_iterate(data: Any, expected: Any) -> None:
+    iterable_child_finder = IterableChildFinder()
+    mapping_child_finder = MappingChildFinder()
+    assert (
+        list(
+            ChildFinderRegistry(
+                {
+                    list: iterable_child_finder,
+                    tuple: iterable_child_finder,
+                    set: iterable_child_finder,
+                    dict: mapping_child_finder,
+                }
+            ).iterate(data)
+        )
+        == expected
+    )
 
 
 @pytest.mark.parametrize(("data", "expected"), DEFAULT_ITERATE_SAMPLES)
