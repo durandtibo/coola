@@ -8,7 +8,7 @@ __all__ = ["ConditionalTransformer"]
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from coola.recursive.base import BaseTransformer
-from coola.utils import repr_indent, repr_mapping, str_indent, str_mapping
+from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:
     from collections.abc import Callable
