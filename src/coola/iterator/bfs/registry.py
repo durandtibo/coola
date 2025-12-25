@@ -6,13 +6,14 @@ from __future__ import annotations
 __all__ = ["ChildFinderRegistry"]
 
 from collections import deque
+from collections.abc import Iterable, Mapping
 from typing import TYPE_CHECKING, Any
 
 from coola.iterator.bfs.default import DefaultChildFinder
 from coola.utils import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator, Mapping
+    from collections.abc import Iterator
 
     from coola.iterator.bfs.base import BaseChildFinder
 
@@ -288,7 +289,10 @@ class ChildFinderRegistry:
 
         while queue:
             current = queue.popleft()
-            children = list(self.find_children(current))
-            queue.extend(children)
-            if not children:
+            is_container = isinstance(current, (Mapping, Iterable)) and not isinstance(
+                current, (str, bytes)
+            )
+            if is_container:
+                queue.extend(list(self.find_children(current)))
+            else:
                 yield current
