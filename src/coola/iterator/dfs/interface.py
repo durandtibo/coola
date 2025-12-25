@@ -142,10 +142,9 @@ def _register_default_iterators(registry: IteratorRegistry) -> None:
             list: iterable_iterator,
             tuple: iterable_iterator,
             range: iterable_iterator,
-            Iterable: iterable_iterator,
-            # Sets - recursive iteration (sets, frozenset)
             set: iterable_iterator,
             frozenset: iterable_iterator,
+            Iterable: iterable_iterator,
             # Mappings - recursive iteration (dictionaries)
             dict: mapping_iterator,
             Mapping: mapping_iterator,
