@@ -16,8 +16,7 @@ T = TypeVar("T")
 class BaseFormatter(ABC, Generic[T]):
     r"""Define the base class to implement a formatter.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola import Summarizer
@@ -36,8 +35,7 @@ class BaseFormatter(ABC, Generic[T]):
         Returns:
             A copy of the formatter.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.formatters import DefaultFormatter
         >>> formatter = DefaultFormatter()
@@ -61,8 +59,7 @@ class BaseFormatter(ABC, Generic[T]):
         Returns:
             ``True`` if the objects are equal, otherwise ``False``.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.formatters import DefaultFormatter
         >>> formatter = DefaultFormatter()
@@ -87,8 +84,7 @@ class BaseFormatter(ABC, Generic[T]):
         Returns:
             str: The formatted value.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola import Summarizer
         >>> from coola.formatters import DefaultFormatter
@@ -106,8 +102,7 @@ class BaseFormatter(ABC, Generic[T]):
         Args:
             state_dict: a dict with parameters
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.formatters import DefaultFormatter
         >>> formatter = DefaultFormatter()
@@ -127,8 +122,7 @@ class BaseFormatter(ABC, Generic[T]):
         Returns:
             The state values in a dict.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.formatters import DefaultFormatter
         >>> formatter = DefaultFormatter()

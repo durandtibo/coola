@@ -25,31 +25,20 @@ class DefaultChildFinder(BaseChildFinder[Any]):
         - Terminal nodes in a data structure
 
     Examples:
-    ```pycon
-    >>> from coola.iterator.bfs import DefaultChildFinder
-    >>> child_finder = DefaultChildFinder()
-    >>> list(child_finder.find_children(42))
-    []
-    >>> list(child_finder.find_children("hello"))
-    []
+        ```pycon
+        >>> from coola.iterator.bfs import DefaultChildFinder
+        >>> child_finder = DefaultChildFinder()
+        >>> list(child_finder.find_children(42))
+        []
+        >>> list(child_finder.find_children("hello"))
+        []
 
-    ```
+        ```
     """
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
     def find_children(self, data: Any) -> Iterator[Any]:  # noqa: ARG002
-        r"""Find children of the given data.
-
-        Since this is the default handler for leaf nodes, this method
-        returns an empty iterator (yields nothing).
-
-        Args:
-            data: The data to find children for (unused, treated as leaf).
-
-        Yields:
-            Nothing - this is a leaf node with no children.
-        """
         return
         yield

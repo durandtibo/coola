@@ -18,8 +18,7 @@ T = TypeVar("T", bound=Sequence[int | float])
 class NativeReducer(BaseBasicReducer[T]):
     r"""Implement a native reducer.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.reducers import NativeReducer

@@ -26,23 +26,20 @@ class BaseChildFinder(ABC, Generic[T]):
     The generic type parameter ``T`` indicates the type of data this child finder
     is designed to handle.
 
-    Type Parameters:
-        T: The primary type of data this child finder is designed to handle.
-
     Notes:
         - Subclasses must implement the ``find_children`` method.
         - For leaf types (types with no children), simply return without yielding.
 
     Examples:
-    ```pycon
-    >>> from coola.iterator.bfs import DefaultChildFinder
-    >>> child_finder = DefaultChildFinder()
-    >>> list(child_finder.find_children(42))
-    []
-    >>> list(child_finder.find_children("hello"))
-    []
+        ```pycon
+        >>> from coola.iterator.bfs import DefaultChildFinder
+        >>> child_finder = DefaultChildFinder()
+        >>> list(child_finder.find_children(42))
+        []
+        >>> list(child_finder.find_children("hello"))
+        []
 
-    ```
+        ```
     """
 
     @abstractmethod
@@ -64,4 +61,15 @@ class BaseChildFinder(ABC, Generic[T]):
         Notes:
             - This method should only yield direct children, not recurse deeply.
             - The BFS traversal logic handles visiting children recursively.
+
+        Examples:
+            ```pycon
+            >>> from coola.iterator.bfs import DefaultChildFinder
+            >>> child_finder = DefaultChildFinder()
+            >>> list(child_finder.find_children(42))
+            []
+            >>> list(child_finder.find_children("hello"))
+            []
+
+            ```
         """

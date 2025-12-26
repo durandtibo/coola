@@ -51,17 +51,15 @@ def repr_indent(original: Any, num_spaces: int = 2) -> str:
     Raises:
         RuntimeError: if num_spaces is not a positive integer.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.utils.format import repr_indent
+        >>> print(repr_indent("string1\nstring2\n  string3", 4))
+        string1
+        string2
+          string3
 
-    ```pycon
-
-    >>> from coola.utils.format import repr_indent
-    >>> print(repr_indent("string1\nstring2\n  string3", 4))
-    string1
-    string2
-      string3
-
-    ```
+        ```
     """
     if not isinstance(original, str):
         original = repr(original)
@@ -86,17 +84,15 @@ def repr_mapping(mapping: Mapping[Any, Any], sorted_keys: bool = False, num_spac
     Returns:
         The string representation of the mapping.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.utils.format import repr_mapping
+        >>> print(repr_mapping({"key1": "abc", "key2": "something\nelse"}))
+        (key1): abc
+        (key2): something
+          else
 
-    ```pycon
-
-    >>> from coola.utils.format import repr_mapping
-    >>> print(repr_mapping({"key1": "abc", "key2": "something\nelse"}))
-    (key1): abc
-    (key2): something
-      else
-
-    ```
+        ```
     """
     lines = []
     for key, value in sorted(mapping.items()) if sorted_keys else mapping.items():
@@ -123,15 +119,13 @@ def repr_mapping_line(
     Returns:
         The string representation of the mapping.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.utils.format import repr_mapping_line
+        >>> repr_mapping_line({"key1": "abc", "key2": "meow", "key3": 42})
+        key1='abc', key2='meow', key3=42
 
-    ```pycon
-
-    >>> from coola.utils.format import repr_mapping_line
-    >>> repr_mapping_line({"key1": "abc", "key2": "meow", "key3": 42})
-    key1='abc', key2='meow', key3=42
-
-    ```
+        ```
     """
     mapping = sorted(mapping.items()) if sorted_keys else mapping.items()
     return separator.join(f"{key}={value!r}" for key, value in mapping)
@@ -148,17 +142,15 @@ def repr_sequence(sequence: Sequence[Any], num_spaces: int = 2) -> str:
     Returns:
         The string representation of the sequence.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.utils.format import repr_indent
+        >>> print(repr_sequence(["abc", "something\nelse"]))
+        (0): abc
+        (1): something
+          else
 
-    ```pycon
-
-    >>> from coola.utils.format import repr_indent
-    >>> print(repr_sequence(["abc", "something\nelse"]))
-    (0): abc
-    (1): something
-      else
-
-    ```
+        ```
     """
     lines = []
     for i, item in enumerate(sequence):
@@ -176,15 +168,13 @@ def repr_sequence_line(sequence: Sequence[Any], separator: str = ", ") -> str:
     Returns:
         The string representation of the sequence.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.utils.format import repr_sequence_line
+        >>> repr_sequence_line(["abc", "meow", 42])
+        'abc', 'meow', 42
 
-    ```pycon
-
-    >>> from coola.utils.format import repr_sequence_line
-    >>> repr_sequence_line(["abc", "meow", 42])
-    'abc', 'meow', 42
-
-    ```
+        ```
     """
     return separator.join(map(repr, sequence))
 
@@ -205,17 +195,15 @@ def str_indent(original: Any, num_spaces: int = 2) -> str:
     Raises:
         RuntimeError: if num_spaces is not a positive integer.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.utils.format import str_indent
+        >>> print(str_indent("string1\nstring2\n  string3", 4))
+        string1
+        string2
+          string3
 
-    ```pycon
-
-    >>> from coola.utils.format import str_indent
-    >>> print(str_indent("string1\nstring2\n  string3", 4))
-    string1
-    string2
-      string3
-
-    ```
+        ```
     """
     if num_spaces < 0:
         msg = f"Incorrect num_spaces. Expected a positive integer but received {num_spaces}"
@@ -246,17 +234,15 @@ def str_mapping(mapping: Mapping[Any, Any], sorted_keys: bool = False, num_space
     Returns:
         The string representation of the mapping.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.utils.format import str_mapping
+        >>> print(str_mapping({"key1": "abc", "key2": "something\nelse"}))
+        (key1): abc
+        (key2): something
+          else
 
-    ```pycon
-
-    >>> from coola.utils.format import str_mapping
-    >>> print(str_mapping({"key1": "abc", "key2": "something\nelse"}))
-    (key1): abc
-    (key2): something
-      else
-
-    ```
+        ```
     """
     lines = []
     for key, value in sorted(mapping.items()) if sorted_keys else mapping.items():
@@ -283,15 +269,13 @@ def str_mapping_line(
     Returns:
         The string representation of the mapping.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.utils.format import str_mapping_line
+        >>> str_mapping_line({"key1": "abc", "key2": "meow", "key3": 42})
+        key1=abc, key2=meow, key3=42
 
-    ```pycon
-
-    >>> from coola.utils.format import str_mapping_line
-    >>> str_mapping_line({"key1": "abc", "key2": "meow", "key3": 42})
-    key1=abc, key2=meow, key3=42
-
-    ```
+        ```
     """
     mapping = sorted(mapping.items()) if sorted_keys else mapping.items()
     return separator.join(f"{key}={value!s}" for key, value in mapping)
@@ -308,17 +292,15 @@ def str_sequence(sequence: Sequence[Any], num_spaces: int = 2) -> str:
     Returns:
         The string representation of the sequence.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.utils.format import str_sequence
+        >>> print(str_sequence(["abc", "something\nelse"]))
+        (0): abc
+        (1): something
+          else
 
-    ```pycon
-
-    >>> from coola.utils.format import str_sequence
-    >>> print(str_sequence(["abc", "something\nelse"]))
-    (0): abc
-    (1): something
-      else
-
-    ```
+        ```
     """
     lines = []
     for i, item in enumerate(sequence):
@@ -336,15 +318,13 @@ def str_sequence_line(sequence: Sequence[Any], separator: str = ", ") -> str:
     Returns:
         The string representation of the sequence.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.utils.format import str_sequence_line
+        >>> str_sequence_line(["abc", "meow", 42])
+        abc, meow, 42
 
-    ```pycon
-
-    >>> from coola.utils.format import str_sequence_line
-    >>> str_sequence_line(["abc", "meow", 42])
-    abc, meow, 42
-
-    ```
+        ```
     """
     return separator.join(map(str, sequence))
 
@@ -362,19 +342,17 @@ def str_time_human(seconds: float) -> str:
     Returns:
         The number of seconds in a string format (``hh:mm:ss``).
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.utils.format import str_time_human
+        >>> str_time_human(1.2)
+        '0:00:01.200000'
+        >>> str_time_human(61.2)
+        '0:01:01.200000'
+        >>> str_time_human(3661.2)
+        '1:01:01.200000'
 
-    ```pycon
-
-    >>> from coola.utils.format import str_time_human
-    >>> str_time_human(1.2)
-    '0:00:01.200000'
-    >>> str_time_human(61.2)
-    '0:01:01.200000'
-    >>> str_time_human(3661.2)
-    '1:01:01.200000'
-
-    ```
+        ```
     """
     return str(datetime.timedelta(seconds=seconds))
 
@@ -391,21 +369,19 @@ def str_human_byte_size(size: int, unit: str | None = None) -> str:
     Returns:
         The byte size in a human-readable format.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.utils.format import str_human_byte_size
+        >>> str_human_byte_size(2)
+        '2.00 B'
+        >>> str_human_byte_size(2048)
+        '2.00 KB'
+        >>> str_human_byte_size(2097152)
+        '2.00 MB'
+        >>> str_human_byte_size(2048, unit="B")
+        '2,048.00 B'
 
-    ```pycon
-
-    >>> from coola.utils.format import str_human_byte_size
-    >>> str_human_byte_size(2)
-    '2.00 B'
-    >>> str_human_byte_size(2048)
-    '2.00 KB'
-    >>> str_human_byte_size(2097152)
-    '2.00 MB'
-    >>> str_human_byte_size(2048, unit="B")
-    '2,048.00 B'
-
-    ```
+        ```
     """
     if unit is None:  # Find the best unit.
         unit = find_best_byte_unit(size)
@@ -425,19 +401,17 @@ def find_best_byte_unit(size: int) -> str:
         The best unit. The supported units are: ``'B'``, ``'KB'``,
             ``'MB'``, ``'GB'``, ``'TB'``.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.utils.format import find_best_byte_unit
+        >>> find_best_byte_unit(2)
+        'B'
+        >>> find_best_byte_unit(2048)
+        'KB'
+        >>> find_best_byte_unit(2097152)
+        'MB'
 
-    ```pycon
-
-    >>> from coola.utils.format import find_best_byte_unit
-    >>> find_best_byte_unit(2)
-    'B'
-    >>> find_best_byte_unit(2048)
-    'KB'
-    >>> find_best_byte_unit(2097152)
-    'MB'
-
-    ```
+        ```
     """
     best_unit = "B"
     for unit, multiplier in BYTE_UNITS.items():

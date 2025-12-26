@@ -20,23 +20,21 @@ def get_fully_qualified_name(obj: Any) -> str:
     Returns:
         The fully qualified name.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.utils.introspection import get_fully_qualified_name
+        >>> import collections
+        >>> get_fully_qualified_name(collections.Counter)
+        'collections.Counter'
+        >>> class MyClass:
+        ...     pass
+        ...
+        >>> get_fully_qualified_name(MyClass)
+        '....MyClass'
+        >>> get_fully_qualified_name(map)
+        'builtins.map'
 
-    ```pycon
-
-    >>> from coola.utils.introspection import get_fully_qualified_name
-    >>> import collections
-    >>> get_fully_qualified_name(collections.Counter)
-    'collections.Counter'
-    >>> class MyClass:
-    ...     pass
-    ...
-    >>> get_fully_qualified_name(MyClass)
-    '....MyClass'
-    >>> get_fully_qualified_name(map)
-    'builtins.map'
-
-    ```
+        ```
     """
     module = getattr(obj, "__module__", None)
     qualname = getattr(obj, "__qualname__", None)

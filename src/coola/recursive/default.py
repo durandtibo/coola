@@ -23,37 +23,32 @@ class DefaultTransformer(BaseTransformer[Any]):
     This transformer is typically used as the terminal case in recursive
     transformations when a leaf value (non-container) is encountered.
 
-    Type Parameters:
-        The type parameter is Any, indicating this transformer can handle
-        any data type as a leaf node.
-
     Notes:
         Unlike container-specific transformers (e.g., list, dict), this
         transformer does not traverse nested structures. It treats all
         input as atomic values and applies the function directly.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.recursive import DefaultTransformer, TransformerRegistry
+        >>> registry = TransformerRegistry()
+        >>> transformer = DefaultTransformer()
+        >>> transformer
+        DefaultTransformer()
+        >>> # Transform a simple value directly
+        >>> transformer.transform(42, func=str, registry=registry)
+        '42'
+        >>> # Transform a string
+        >>> transformer.transform("hello", func=str.upper, registry=registry)
+        'HELLO'
+        >>> # Apply a mathematical operation
+        >>> transformer.transform(10, func=lambda x: x * 2, registry=registry)
+        20
+        >>> # Even container types are treated as atomic values
+        >>> transformer.transform([1, 2, 3], func=str, registry=registry)
+        '[1, 2, 3]'
 
-    ```pycon
-    >>> from coola.recursive import DefaultTransformer, TransformerRegistry
-    >>> registry = TransformerRegistry()
-    >>> transformer = DefaultTransformer()
-    >>> transformer
-    DefaultTransformer()
-    >>> # Transform a simple value directly
-    >>> transformer.transform(42, func=str, registry=registry)
-    '42'
-    >>> # Transform a string
-    >>> transformer.transform("hello", func=str.upper, registry=registry)
-    'HELLO'
-    >>> # Apply a mathematical operation
-    >>> transformer.transform(10, func=lambda x: x * 2, registry=registry)
-    20
-    >>> # Even container types are treated as atomic values
-    >>> transformer.transform([1, 2, 3], func=str, registry=registry)
-    '[1, 2, 3]'
-
-    ```
+        ```
     """
 
     def __repr__(self) -> str:

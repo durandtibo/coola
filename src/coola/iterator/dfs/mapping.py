@@ -23,21 +23,21 @@ class MappingIterator(BaseIterator[Mapping[Any, Any]]):
     those are recursively iterated as well.
 
     Examples:
-    ```pycon
-    >>> from coola.iterator.dfs import IteratorRegistry, MappingIterator, IterableIterator
-    >>> iterator = MappingIterator()
-    >>> registry = IteratorRegistry({dict: iterator, list: IterableIterator()})
-    >>> # Simple dictionary with scalar values
-    >>> list(iterator.iterate({"a": 1, "b": 2}, registry))
-    [1, 2]
-    >>> # Nested dictionary with scalar values
-    >>> list(iterator.iterate({"a": {"b": 1, "c": 2}, "d": 3}, registry))
-    [1, 2, 3]
-    >>> # Dictionary with list values
-    >>> list(iterator.iterate({"x": [1, 2], "y": [3, 4]}, registry))
-    [1, 2, 3, 4]
+        ```pycon
+        >>> from coola.iterator.dfs import IteratorRegistry, MappingIterator, IterableIterator
+        >>> iterator = MappingIterator()
+        >>> registry = IteratorRegistry({dict: iterator, list: IterableIterator()})
+        >>> # Simple dictionary with scalar values
+        >>> list(iterator.iterate({"a": 1, "b": 2}, registry))
+        [1, 2]
+        >>> # Nested dictionary with scalar values
+        >>> list(iterator.iterate({"a": {"b": 1, "c": 2}, "d": 3}, registry))
+        [1, 2, 3]
+        >>> # Dictionary with list values
+        >>> list(iterator.iterate({"x": [1, 2], "y": [3, 4]}, registry))
+        [1, 2, 3, 4]
 
-    ```
+        ```
     """
 
     def __repr__(self) -> str:

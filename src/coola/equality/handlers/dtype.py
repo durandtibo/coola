@@ -39,8 +39,7 @@ class SameDTypeHandler(AbstractEqualityHandler):  # noqa: PLW1641
     which returns the shape of the object. This handler works on
     ``numpy.ndarray``s and ``torch.Tensor``s objects.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import numpy as np

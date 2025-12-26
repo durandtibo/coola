@@ -30,16 +30,14 @@ def compare_version(package: str, op: Callable, version: str) -> bool:
     Returns:
         The comparison status.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> import operator
+        >>> from coola.utils.version import compare_version
+        >>> compare_version("pytest", op=operator.ge, version="7.3.0")
+        True
 
-    ```pycon
-
-    >>> import operator
-    >>> from coola.utils.version import compare_version
-    >>> compare_version("pytest", op=operator.ge, version="7.3.0")
-    True
-
-    ```
+        ```
     """
     check_packaging()
     pkg_version = get_package_version(package)
@@ -58,15 +56,13 @@ def get_package_version(package: str) -> Version | None:
     Returns:
         The package version.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.utils.version import get_package_version
+        >>> get_package_version("pytest")
+        <Version('...')>
 
-    ```pycon
-
-    >>> from coola.utils.version import get_package_version
-    >>> get_package_version("pytest")
-    <Version('...')>
-
-    ```
+        ```
     """
     check_packaging()
     try:

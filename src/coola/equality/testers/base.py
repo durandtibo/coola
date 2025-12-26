@@ -29,8 +29,7 @@ class BaseEqualityTester(ABC):
         Returns:
             ``True`` if the two objects are equal, otherwise ``False``.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> import numpy as np
         >>> from coola.equality import EqualityConfig

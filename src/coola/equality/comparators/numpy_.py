@@ -38,8 +38,7 @@ logger: logging.Logger = logging.getLogger(__name__)
 class NumpyArrayEqualityComparator(BaseEqualityComparator[np.ndarray]):  # noqa: PLW1641
     r"""Implement an equality comparator for ``numpy.ndarray``.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import numpy as np
@@ -78,8 +77,7 @@ class NumpyMaskedArrayEqualityComparator(  # noqa: PLW1641
 ):
     r"""Implement an equality comparator for ``numpy.ndarray``.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import numpy as np
@@ -133,8 +131,7 @@ def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[A
     Returns:
         The mapping between the types and the equality comparators.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality.comparators.numpy_ import get_type_comparator_mapping

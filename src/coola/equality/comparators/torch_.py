@@ -44,8 +44,7 @@ class TorchPackedSequenceEqualityComparator(  # noqa: PLW1641
 ):
     r"""Implement an equality comparator for ``torch.Tensor``.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import torch
@@ -86,8 +85,7 @@ class TorchPackedSequenceEqualityComparator(  # noqa: PLW1641
 class TorchTensorEqualityComparator(BaseEqualityComparator[torch.Tensor]):  # noqa: PLW1641
     r"""Implement an equality comparator for ``torch.Tensor``.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import torch
@@ -131,8 +129,7 @@ def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[A
     Returns:
         The mapping between the types and the equality comparators.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality.comparators.torch_ import get_type_comparator_mapping

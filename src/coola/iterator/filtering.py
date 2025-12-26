@@ -55,7 +55,7 @@ def filter_by_type(iterator: Iterable[Any], types: type[T] | tuple[type, ...]) -
 
         ```
 
-    Note:
+    Notes:
         - This function uses isinstance() internally, so subclass relationships
           are respected (e.g., bool values will match int type).
         - The input iterator is consumed as items are yielded.

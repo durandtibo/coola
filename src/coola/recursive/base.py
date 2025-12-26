@@ -23,25 +23,21 @@ class BaseTransformer(ABC, Generic[T]):
     transformer implementation handles a specific data type and knows how
     to reconstruct that type after transforming its nested elements.
 
-    Type Parameters:
-        T: The type of data this transformer handles
-
     Notes:
         Subclasses must implement the `transform` method to define how
         their specific type should be traversed and reconstructed.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.recursive import DefaultTransformer, TransformerRegistry
+        >>> registry = TransformerRegistry()
+        >>> transformer = DefaultTransformer()
+        >>> transformer
+        DefaultTransformer()
+        >>> transformer.transform([1, 2, 3], func=str, registry=registry)
+        '[1, 2, 3]'
 
-    ```pycon
-    >>> from coola.recursive import DefaultTransformer, TransformerRegistry
-    >>> registry = TransformerRegistry()
-    >>> transformer = DefaultTransformer()
-    >>> transformer
-    DefaultTransformer()
-    >>> transformer.transform([1, 2, 3], func=str, registry=registry)
-    '[1, 2, 3]'
-
-    ```
+        ```
     """
 
     @abstractmethod
@@ -70,18 +66,17 @@ class BaseTransformer(ABC, Generic[T]):
             The transformed data structure, maintaining the original type
             and structure but with leaf values transformed by func.
 
-        Example usage:
+        Example:
+            ```pycon
+            >>> from coola.recursive import DefaultTransformer, SequenceTransformer, TransformerRegistry
+            >>> registry = TransformerRegistry()
+            >>> transformer = DefaultTransformer()
+            >>> # Convert numeric values to strings
+            >>> transformer.transform([1, 2, 3], func=str, registry=registry)
+            '[1, 2, 3]'
+            >>> # Apply a mathematical operation
+            >>> transformer.transform([1, 2, 3], func=lambda x: x * 2, registry=registry)
+            [1, 2, 3, 1, 2, 3]
 
-        ```pycon
-        >>> from coola.recursive import DefaultTransformer, SequenceTransformer, TransformerRegistry
-        >>> registry = TransformerRegistry()
-        >>> transformer = DefaultTransformer()
-        >>> # Convert numeric values to strings
-        >>> transformer.transform([1, 2, 3], func=str, registry=registry)
-        '[1, 2, 3]'
-        >>> # Apply a mathematical operation
-        >>> transformer.transform([1, 2, 3], func=lambda x: x * 2, registry=registry)
-        [1, 2, 3, 1, 2, 3]
-
-        ```
+            ```
         """

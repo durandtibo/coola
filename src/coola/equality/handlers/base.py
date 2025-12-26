@@ -21,8 +21,7 @@ class BaseEqualityHandler(ABC):
     - ``handle``
     - ``set_next_handler``
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality import EqualityConfig
@@ -48,8 +47,7 @@ class BaseEqualityHandler(ABC):
         Returns:
             The input handler.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.equality import EqualityConfig
         >>> from coola.equality.handlers import (
@@ -82,8 +80,7 @@ class BaseEqualityHandler(ABC):
             ``True`` if the input objects are equal, and ``False``
                 otherwise.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.equality import EqualityConfig
         >>> from coola.equality.handlers import SameObjectHandler
@@ -103,8 +100,7 @@ class BaseEqualityHandler(ABC):
         Args:
             handler: The next handler.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.equality.handlers import SameObjectHandler, TrueHandler
         >>> handler = SameObjectHandler()

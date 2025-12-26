@@ -26,8 +26,7 @@ class DefaultEqualityComparator(BaseEqualityComparator[Any]):  # noqa: PLW1641
     The ``==`` operator is used to test the equality between the
     objects.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality import EqualityConfig
@@ -64,8 +63,7 @@ def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[A
     Returns:
         The mapping between the types and the equality comparators.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality.comparators.default import get_type_comparator_mapping

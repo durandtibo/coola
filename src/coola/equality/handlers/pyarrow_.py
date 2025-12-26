@@ -31,8 +31,7 @@ class PyarrowEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     Note that ``config.equal_nan``, ``config.atol`` and ``config.rtol``
     arguments are ignored.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import pyarrow
@@ -88,8 +87,7 @@ def object_equal(
         ``True` `if the two arrays or tables are equal within a
             tolerance, otherwise ``False``.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import pyarrow as pa

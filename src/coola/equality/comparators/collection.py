@@ -30,8 +30,7 @@ logger: logging.Logger = logging.getLogger(__name__)
 class MappingEqualityComparator(BaseEqualityComparator[Mapping[Any, Any]]):  # noqa: PLW1641
     r"""Implement a sequence equality comparator.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality import EqualityConfig
@@ -68,8 +67,7 @@ class MappingEqualityComparator(BaseEqualityComparator[Mapping[Any, Any]]):  # n
 class SequenceEqualityComparator(BaseEqualityComparator[Sequence[Any]]):  # noqa: PLW1641
     r"""Implement a sequence equality comparator.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality import EqualityConfig
@@ -107,8 +105,7 @@ def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[A
     Returns:
         The mapping between the types and the equality comparators.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality.comparators.collection import get_type_comparator_mapping

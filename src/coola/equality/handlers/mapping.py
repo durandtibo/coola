@@ -23,8 +23,7 @@ class MappingSameKeysHandler(AbstractEqualityHandler):  # noqa: PLW1641
     This handler returns ``False`` if the two objects have different
     keys, otherwise it passes the inputs to the next handler.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality import EqualityConfig
@@ -76,8 +75,7 @@ class MappingSameValuesHandler(AbstractEqualityHandler):  # noqa: PLW1641
         keys. To check if two mappings are equal, you can combine this
         handler with ``MappingSameKeysHandler``.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality import EqualityConfig

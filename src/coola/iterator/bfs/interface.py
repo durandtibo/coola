@@ -34,16 +34,15 @@ def bfs_iterate(data: Any, registry: ChildFinderRegistry | None = None) -> Itera
     Yields:
         Atomic leaf values in BFS order (excludes containers even if empty)
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.iterator import bfs_iterate
+        >>> list(bfs_iterate({"a": 1, "b": "abc"}))
+        [1, 'abc']
+        >>> list(bfs_iterate([1, [2, 3], {"x": 4}]))
+        [1, 2, 3, 4]
 
-    ```pycon
-    >>> from coola.iterator import bfs_iterate
-    >>> list(bfs_iterate({"a": 1, "b": "abc"}))
-    [1, 'abc']
-    >>> list(bfs_iterate([1, [2, 3], {"x": 4}]))
-    [1, 2, 3, 4]
-
-    ```
+        ```
     """
     if registry is None:
         registry = get_default_registry()
@@ -63,20 +62,19 @@ def register_child_finders(
         exist_ok: If `True`, existing registrations for types will be overwritten.
             If `False`, an error is raised when a type is already registered.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.iterator.bfs import (
+        ...     register_child_finders,
+        ...     IterableChildFinder,
+        ...     ChildFinderRegistry,
+        ... )
+        >>> register_child_finders({list: IterableChildFinder()}, exist_ok=True)
+        >>> registry = get_default_registry()
+        >>> list(registry.iterate([1, 2, 3]))
+        [1, 2, 3]
 
-    ```pycon
-    >>> from coola.iterator.bfs import (
-    ...     register_child_finders,
-    ...     IterableChildFinder,
-    ...     ChildFinderRegistry,
-    ... )
-    >>> register_child_finders({list: IterableChildFinder()}, exist_ok=True)
-    >>> registry = get_default_registry()
-    >>> list(registry.iterate([1, 2, 3]))
-    [1, 2, 3]
-
-    ```
+        ```
     """
     get_default_registry().register_many(mapping, exist_ok=exist_ok)
 
@@ -92,20 +90,19 @@ def get_default_registry() -> ChildFinderRegistry:
     Returns:
         An `ChildFinderRegistry` instance with iterators registered for common Python types.
 
-    Note:
+    Notes:
         The singleton pattern means any changes to the returned registry affect all future
         calls to this function. If an isolated registry is needed, create a new `ChildFinderRegistry`
         instance directly.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.iterator.bfs import get_default_registry
+        >>> reg = get_default_registry()
+        >>> list(reg.iterate([1, 2, 3]))
+        [1, 2, 3]
 
-    ```pycon
-    >>> from coola.iterator.bfs import get_default_registry
-    >>> reg = get_default_registry()
-    >>> list(reg.iterate([1, 2, 3]))
-    [1, 2, 3]
-
-    ```
+        ```
     """
     if not hasattr(get_default_registry, "_registry"):
         registry = ChildFinderRegistry()
@@ -124,7 +121,7 @@ def _register_default_child_finders(registry: ChildFinderRegistry) -> None:
     Args:
         registry: The `ChildFinderRegistry` to populate with default iterators.
 
-    Note:
+    Notes:
         This function is automatically called by `get_default_registry()` and should not
         be called directly by users.
     """

@@ -26,14 +26,13 @@ class Reduction:
         Returns:
             The available reducers.
 
-        Example usage:
+        Example:
+            ```pycon
+            >>> from coola import Reduction
+            >>> Reduction.available_reducers()
+            (...)
 
-        ```pycon
-        >>> from coola import Reduction
-        >>> Reduction.available_reducers()
-        (...)
-
-        ```
+            ```
         """
         return ReducerRegistry.available_reducers()
 
@@ -47,13 +46,12 @@ class Reduction:
         Raises:
             RuntimeError: if the reducer is not available.
 
-        Example usage:
+        Example:
+            ```pycon
+            >>> from coola import Reduction
+            >>> Reduction.check_reducer("torch")
 
-        ```pycon
-        >>> from coola import Reduction
-        >>> Reduction.check_reducer("torch")
-
-        ```
+            ```
         """
         if reducer not in (reducers := cls.available_reducers()):
             msg = f"Incorrect reducer {reducer}. Reducer should be one of {reducers}"
@@ -66,13 +64,12 @@ class Reduction:
         Args:
             reducer: The name of the reducer to use.
 
-        Example usage:
+        Example:
+            ```pycon
+            >>> from coola import Reduction
+            >>> Reduction.initialize("torch")
 
-        ```pycon
-        >>> from coola import Reduction
-        >>> Reduction.initialize("torch")
-
-        ```
+            ```
         """
         cls.check_reducer(reducer)
         cls.reducer = ReducerRegistry.registry[reducer]

@@ -22,8 +22,7 @@ else:  # pragma: no cover
 class TorchRandomManager(BaseRandomManager):  # noqa: PLW1641
     r"""Implements a random number generator for the library ``torch``.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.random import TorchRandomManager
@@ -67,8 +66,7 @@ def get_random_managers() -> dict[str, BaseRandomManager]:
     Returns:
         The mapping between the name and random managers.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.random.torch_ import get_random_managers
@@ -94,8 +92,7 @@ def torch_seed(seed: int) -> Generator[None]:
         seed: The random number generator seed to use while using
             this context manager.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import torch

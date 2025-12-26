@@ -23,10 +23,6 @@ class SetTransformer(BaseTransformer[AbstractSet[Any]]):
     transformation, it reconstructs the set using its original type. Sets
     maintain their unordered, unique-element properties.
 
-    Type Parameters:
-        Handles AbstractSet[Any], supporting set and frozenset types with
-        arbitrary element types.
-
     Important:
         **HASHABILITY REQUIREMENT**: All transformed values MUST remain hashable
         (i.e., immutable and hashable) since sets can only contain hashable
@@ -41,25 +37,24 @@ class SetTransformer(BaseTransformer[AbstractSet[Any]]):
         - Empty sets are preserved as empty sets of the same type
         - If transformation produces unhashable values, a TypeError will be raised
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.recursive import SetTransformer, TransformerRegistry
+        >>> registry = TransformerRegistry()
+        >>> transformer = SetTransformer()
+        >>> transformer
+        SetTransformer()
+        >>> # Transform set elements (order may vary in output)
+        >>> transformer.transform({1}, func=str, registry=registry)
+        {'1'}
+        >>> # Frozenset type is preserved
+        >>> transformer.transform(frozenset([1, 2, 3]), func=lambda x: x * 2, registry=registry)
+        frozenset({2, 4, 6})
+        >>> # Duplicate values after transformation are automatically deduplicated
+        >>> transformer.transform({1, 2, 3}, func=lambda x: x // 4, registry=registry)
+        {0}
 
-    ```pycon
-    >>> from coola.recursive import SetTransformer, TransformerRegistry
-    >>> registry = TransformerRegistry()
-    >>> transformer = SetTransformer()
-    >>> transformer
-    SetTransformer()
-    >>> # Transform set elements (order may vary in output)
-    >>> transformer.transform({1}, func=str, registry=registry)
-    {'1'}
-    >>> # Frozenset type is preserved
-    >>> transformer.transform(frozenset([1, 2, 3]), func=lambda x: x * 2, registry=registry)
-    frozenset({2, 4, 6})
-    >>> # Duplicate values after transformation are automatically deduplicated
-    >>> transformer.transform({1, 2, 3}, func=lambda x: x // 4, registry=registry)
-    {0}
-
-    ```
+        ```
     """
 
     def __repr__(self) -> str:

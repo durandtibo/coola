@@ -27,9 +27,6 @@ class BaseIterator(ABC, Generic[T]):
     is designed to handle, though the ``iterate`` method accepts ``Any`` for
     flexibility.
 
-    Type Parameters:
-        T: The primary type of data this iterator is designed to handle.
-
     Notes:
         - Subclasses must implement the ``iterate`` method.
         - For container types, use ``registry.iterate()`` to recursively
@@ -37,16 +34,16 @@ class BaseIterator(ABC, Generic[T]):
         - For leaf types, simply yield the data directly.
 
     Examples:
-    ```pycon
-    >>> from coola.iterator.dfs import IteratorRegistry, DefaultIterator
-    >>> iterator = DefaultIterator()
-    >>> registry = IteratorRegistry()
-    >>> list(iterator.iterate(42, registry))
-    [42]
-    >>> list(iterator.iterate("hello", registry))
-    ['hello']
+        ```pycon
+        >>> from coola.iterator.dfs import IteratorRegistry, DefaultIterator
+        >>> iterator = DefaultIterator()
+        >>> registry = IteratorRegistry()
+        >>> list(iterator.iterate(42, registry))
+        [42]
+        >>> list(iterator.iterate("hello", registry))
+        ['hello']
 
-    ```
+        ```
     """
 
     @abstractmethod
@@ -76,4 +73,16 @@ class BaseIterator(ABC, Generic[T]):
               traversal behavior across different data types.
             - Implementations should handle the specific structure of their
               target data type appropriately.
+
+        Examples:
+            ```pycon
+            >>> from coola.iterator.dfs import IteratorRegistry, DefaultIterator
+            >>> iterator = DefaultIterator()
+            >>> registry = IteratorRegistry()
+            >>> list(iterator.iterate(42, registry))
+            [42]
+            >>> list(iterator.iterate("hello", registry))
+            ['hello']
+
+            ```
         """

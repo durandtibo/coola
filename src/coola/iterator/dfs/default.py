@@ -28,16 +28,16 @@ class DefaultIterator(BaseIterator[Any]):
     - Terminal nodes in a data structure
 
     Examples:
-    ```pycon
-    >>> from coola.iterator.dfs import IteratorRegistry, DefaultIterator
-    >>> iterator = DefaultIterator()
-    >>> registry = IteratorRegistry()
-    >>> list(iterator.iterate(42, registry))
-    [42]
-    >>> list(iterator.iterate("hello", registry))
-    ['hello']
+        ```pycon
+        >>> from coola.iterator.dfs import IteratorRegistry, DefaultIterator
+        >>> iterator = DefaultIterator()
+        >>> registry = IteratorRegistry()
+        >>> list(iterator.iterate(42, registry))
+        [42]
+        >>> list(iterator.iterate("hello", registry))
+        ['hello']
 
-    ```
+        ```
     """
 
     def __repr__(self) -> str:

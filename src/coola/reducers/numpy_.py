@@ -29,8 +29,7 @@ class NumpyReducer(BaseBasicReducer[T]):
     Raises:
         RuntimeError: if ``numpy`` is not installed.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.reducers import NumpyReducer

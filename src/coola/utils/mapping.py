@@ -20,15 +20,13 @@ def sort_by_keys(mapping: Mapping[Any, Any]) -> dict[Any, Any]:
     Returns:
         dict: The sorted dictionary.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.utils.mapping import sort_by_keys
+        >>> sort_by_keys({"dog": 1, "cat": 5, "fish": 2})
+        {'cat': 5, 'dog': 1, 'fish': 2}
 
-    ```pycon
-
-    >>> from coola.utils.mapping import sort_by_keys
-    >>> sort_by_keys({"dog": 1, "cat": 5, "fish": 2})
-    {'cat': 5, 'dog': 1, 'fish': 2}
-
-    ```
+        ```
     """
     return dict(sorted(mapping.items()))
 
@@ -42,14 +40,12 @@ def sort_by_values(mapping: Mapping[Any, Any]) -> dict[Any, Any]:
     Returns:
         dict: The sorted dictionary.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.utils.mapping import sort_by_values
+        >>> sort_by_values({"dog": 1, "cat": 5, "fish": 2})
+        {'dog': 1, 'fish': 2, 'cat': 5}
 
-    ```pycon
-
-    >>> from coola.utils.mapping import sort_by_values
-    >>> sort_by_values({"dog": 1, "cat": 5, "fish": 2})
-    {'dog': 1, 'fish': 2, 'cat': 5}
-
-    ```
+        ```
     """
     return dict(sorted(mapping.items(), key=operator.itemgetter(1)))

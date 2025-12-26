@@ -33,7 +33,7 @@ def temp_env_vars(env_vars: dict[str, Any]) -> Generator[None, None, None]:
         - Thread-safe for the current process (but note that os.environ affects
           the entire process, not just the current thread)
 
-    Examples:
+    Example:
         ```pycon
         >>> from coola.utils.env_vars import temp_env_vars
         >>> # Temporarily override an existing variable
@@ -51,7 +51,7 @@ def temp_env_vars(env_vars: dict[str, Any]) -> Generator[None, None, None]:
 
         ```
 
-    Note:
+    Notes:
         Changes to os.environ affect the entire Python process, not just the
         current thread. Use with caution in multi-threaded applications.
     """

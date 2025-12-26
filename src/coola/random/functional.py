@@ -17,8 +17,7 @@ def get_rng_state() -> dict[str, Any]:
     Returns:
         The current RNG state.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.random import get_rng_state
@@ -37,8 +36,7 @@ def manual_seed(seed: int) -> None:
     Args:
         seed: The desired random seed.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import torch
@@ -63,8 +61,7 @@ def set_rng_state(state: dict[str, Any]) -> None:
     Args:
         state: The new RNG state.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import torch

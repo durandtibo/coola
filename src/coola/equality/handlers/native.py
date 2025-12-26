@@ -32,8 +32,7 @@ class FalseHandler(BaseEqualityHandler):  # noqa: PLW1641
     This handler is designed to be used at the end of the chain of
     responsibility. This handler does not call the next handler.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality import EqualityConfig
@@ -73,8 +72,7 @@ class TrueHandler(BaseEqualityHandler):  # noqa: PLW1641
     This handler is designed to be used at the end of the chain of
     responsibility. This handler does not call the next handler.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality import EqualityConfig
@@ -117,8 +115,7 @@ class ObjectEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     the end of the chain of responsibility. This handler does
     not call the next handler.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality import EqualityConfig
@@ -162,8 +159,7 @@ class SameAttributeHandler(AbstractEqualityHandler):  # noqa: PLW1641
     attributes, otherwise it passes the inputs to the next handler.
     The objects must have the attribute.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import numpy as np
@@ -216,8 +212,7 @@ class SameLengthHandler(AbstractEqualityHandler):  # noqa: PLW1641
     This handler returns ``False`` if the two objects have different
     lengths, otherwise it passes the inputs to the next handler.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality import EqualityConfig
@@ -253,8 +248,7 @@ class SameObjectHandler(AbstractEqualityHandler):  # noqa: PLW1641
     This handler returns ``True`` if the two objects refer to the
     same object, otherwise it passes the inputs to the next handler.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality import EqualityConfig
@@ -288,8 +282,7 @@ class SameTypeHandler(AbstractEqualityHandler):  # noqa: PLW1641
     This handler returns ``False`` if the two objects have different
     types, otherwise it passes the inputs to the next handler.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality import EqualityConfig

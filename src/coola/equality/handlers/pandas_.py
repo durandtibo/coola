@@ -30,8 +30,7 @@ class PandasDataFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     at the end of the chain of responsibility. This handler does
     not call the next handler.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import pandas
@@ -88,8 +87,7 @@ class PandasSeriesEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     at the end of the chain of responsibility. This handler does
     not call the next handler.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import pandas

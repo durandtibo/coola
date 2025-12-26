@@ -29,8 +29,7 @@ class NDArrayFormatter(BaseFormatter[np.ndarray]):
             string representation (``repr``). If ``False``,
             the returned string only contains the tensor metadata.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import numpy as np
@@ -88,8 +87,7 @@ class NDArrayFormatter(BaseFormatter[np.ndarray]):
             ``True`` if the array data are shown,
                 ``False`` if the array metadata are shown.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.formatters import NDArrayFormatter
         >>> formatter = NDArrayFormatter()
@@ -110,8 +108,7 @@ class NDArrayFormatter(BaseFormatter[np.ndarray]):
         Raises:
             TypeError: if ``show_data`` is not a boolean.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.formatters import NDArrayFormatter
         >>> formatter = NDArrayFormatter()

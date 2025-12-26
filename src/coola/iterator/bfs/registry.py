@@ -122,14 +122,14 @@ class ChildFinderRegistry:
                 ``exist_ok`` is ``False``.
 
         Examples:
-        ```pycon
-        >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
-        >>> registry = ChildFinderRegistry()
-        >>> registry.register(list, IterableChildFinder())
-        >>> registry.has_child_finder(list)
-        True
+            ```pycon
+            >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
+            >>> registry = ChildFinderRegistry()
+            >>> registry.register(list, IterableChildFinder())
+            >>> registry.has_child_finder(list)
+            True
 
-        ```
+            ```
         """
         if data_type in self._registry and not exist_ok:
             msg = (
@@ -158,18 +158,18 @@ class ChildFinderRegistry:
                 ``exist_ok`` is ``False``.
 
         Examples:
-        ```pycon
-        >>> from coola.iterator.bfs import (
-        ...     ChildFinderRegistry,
-        ...     IterableChildFinder,
-        ...     MappingChildFinder,
-        ... )
-        >>> registry = ChildFinderRegistry()
-        >>> registry.register_many({list: IterableChildFinder(), dict: MappingChildFinder()})
-        >>> registry.has_child_finder(list), registry.has_child_finder(dict)
-        (True, True)
+            ```pycon
+            >>> from coola.iterator.bfs import (
+            ...     ChildFinderRegistry,
+            ...     IterableChildFinder,
+            ...     MappingChildFinder,
+            ... )
+            >>> registry = ChildFinderRegistry()
+            >>> registry.register_many({list: IterableChildFinder(), dict: MappingChildFinder()})
+            >>> registry.has_child_finder(list), registry.has_child_finder(dict)
+            (True, True)
 
-        ```
+            ```
         """
         for typ, child_finder in mapping.items():
             self.register(typ, child_finder, exist_ok=exist_ok)
@@ -190,15 +190,15 @@ class ChildFinderRegistry:
                 type, ``False`` otherwise.
 
         Examples:
-        ```pycon
-        >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
-        >>> registry = ChildFinderRegistry({list: IterableChildFinder()})
-        >>> registry.has_child_finder(list)
-        True
-        >>> registry.has_child_finder(tuple)
-        False
+            ```pycon
+            >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
+            >>> registry = ChildFinderRegistry({list: IterableChildFinder()})
+            >>> registry.has_child_finder(list)
+            True
+            >>> registry.has_child_finder(tuple)
+            False
 
-        ```
+            ```
         """
         return data_type in self._registry
 
@@ -239,15 +239,15 @@ class ChildFinderRegistry:
             The resolved child finder instance.
 
         Examples:
-        ```pycon
-        >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
-        >>> registry = ChildFinderRegistry({list: IterableChildFinder()})
-        >>> registry.find_child_finder(list)
-        IterableChildFinder()
-        >>> registry.find_child_finder(tuple)
-        DefaultChildFinder()
+            ```pycon
+            >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
+            >>> registry = ChildFinderRegistry({list: IterableChildFinder()})
+            >>> registry.find_child_finder(list)
+            IterableChildFinder()
+            >>> registry.find_child_finder(tuple)
+            DefaultChildFinder()
 
-        ```
+            ```
         """
         if data_type not in self._child_finder_cache:
             self._child_finder_cache[data_type] = self._find_child_finder_uncached(data_type)
@@ -267,13 +267,13 @@ class ChildFinderRegistry:
             Child objects as defined by the resolved child finder.
 
         Examples:
-        ```pycon
-        >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
-        >>> registry = ChildFinderRegistry({list: IterableChildFinder()})
-        >>> list(registry.find_children([1, 2, 3]))
-        [1, 2, 3]
+            ```pycon
+            >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
+            >>> registry = ChildFinderRegistry({list: IterableChildFinder()})
+            >>> list(registry.find_children([1, 2, 3]))
+            [1, 2, 3]
 
-        ```
+            ```
         """
         child_finder = self.find_child_finder(type(data))
         yield from child_finder.find_children(data)
@@ -296,19 +296,19 @@ class ChildFinderRegistry:
             Atomic (non-container) values in breadth-first order.
 
         Examples:
-        ```pycon
-        >>> from coola.iterator.bfs import (
-        ...     ChildFinderRegistry,
-        ...     IterableChildFinder,
-        ...     MappingChildFinder,
-        ... )
-        >>> registry = ChildFinderRegistry(
-        ...     {list: IterableChildFinder(), dict: MappingChildFinder()}
-        ... )
-        >>> list(registry.iterate({"a": [1, 2], "b": [3, 4], "c": 5, "d": {"e": 6}}))
-        [5, 1, 2, 3, 4, 6]
+            ```pycon
+            >>> from coola.iterator.bfs import (
+            ...     ChildFinderRegistry,
+            ...     IterableChildFinder,
+            ...     MappingChildFinder,
+            ... )
+            >>> registry = ChildFinderRegistry(
+            ...     {list: IterableChildFinder(), dict: MappingChildFinder()}
+            ... )
+            >>> list(registry.iterate({"a": [1, 2], "b": [3, 4], "c": 5, "d": {"e": 6}}))
+            [5, 1, 2, 3, 4, 6]
 
-        ```
+            ```
         """
         queue = deque([data])
 

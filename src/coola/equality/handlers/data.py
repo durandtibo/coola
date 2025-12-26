@@ -38,8 +38,7 @@ class SameDataHandler(AbstractEqualityHandler):  # noqa: PLW1641
     The objects must have a ``data`` attribute (e.g. ``object.data``)
     which returns the shape of the object.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import numpy as np

@@ -19,8 +19,7 @@ T = TypeVar("T")
 class BaseEqualityComparator(ABC, Generic[T]):
     r"""Define the base class to implement an equality operator.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality import EqualityConfig
@@ -46,8 +45,7 @@ class BaseEqualityComparator(ABC, Generic[T]):
         Returns:
             A copy of the equality operator.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.equality.comparators import DefaultEqualityComparator
         >>> op = DefaultEqualityComparator()
@@ -72,8 +70,7 @@ class BaseEqualityComparator(ABC, Generic[T]):
         Returns:
             ``True`` if the two objects are equal, otherwise ``False``.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.equality import EqualityConfig
         >>> from coola.equality.comparators import DefaultEqualityComparator

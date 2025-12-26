@@ -21,15 +21,15 @@ class MappingChildFinder(BaseChildFinder[Mapping[Any, Any]]):
     object implementing the Mapping protocol.
 
     Examples:
-    ```pycon
-    >>> from coola.iterator.bfs import MappingChildFinder
-    >>> child_finder = MappingChildFinder()
-    >>> list(child_finder.find_children({"a": 1, "b": 2}))
-    [1, 2]
-    >>> list(child_finder.find_children({"a": {"b": 1, "c": 2}, "d": 3}))
-    [{'b': 1, 'c': 2}, 3]
+        ```pycon
+        >>> from coola.iterator.bfs import MappingChildFinder
+        >>> child_finder = MappingChildFinder()
+        >>> list(child_finder.find_children({"a": 1, "b": 2}))
+        [1, 2]
+        >>> list(child_finder.find_children({"a": {"b": 1, "c": 2}, "d": 3}))
+        [{'b': 1, 'c': 2}, 3]
 
-    ```
+        ```
     """
 
     def __repr__(self) -> str:

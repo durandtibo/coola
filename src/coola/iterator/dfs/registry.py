@@ -96,14 +96,14 @@ class IteratorRegistry:
             RuntimeError: If the type is already registered and `exist_ok` is `False`.
 
         Example:
-        ```pycon
-        >>> from coola.iterator.dfs import IteratorRegistry, IterableIterator
-        >>> registry = IteratorRegistry()
-        >>> registry.register(list, IterableIterator())
-        >>> registry.has_iterator(list)
-        True
+            ```pycon
+            >>> from coola.iterator.dfs import IteratorRegistry, IterableIterator
+            >>> registry = IteratorRegistry()
+            >>> registry.register(list, IterableIterator())
+            >>> registry.has_iterator(list)
+            True
 
-        ```
+            ```
         """
         if data_type in self._registry and not exist_ok:
             msg = (
@@ -131,17 +131,17 @@ class IteratorRegistry:
             RuntimeError: If any type is already registered and `exist_ok` is `False`.
 
         Example:
-        ```pycon
-        >>> from coola.iterator.dfs import IteratorRegistry, IterableIterator, MappingIterator
-        >>> registry = IteratorRegistry()
-        >>> registry.register_many({list: IterableIterator(), dict: MappingIterator()})
-        >>> registry
-        IteratorRegistry(
-          (<class 'list'>): IterableIterator()
-          (<class 'dict'>): MappingIterator()
-        )
+            ```pycon
+            >>> from coola.iterator.dfs import IteratorRegistry, IterableIterator, MappingIterator
+            >>> registry = IteratorRegistry()
+            >>> registry.register_many({list: IterableIterator(), dict: MappingIterator()})
+            >>> registry
+            IteratorRegistry(
+              (<class 'list'>): IterableIterator()
+              (<class 'dict'>): MappingIterator()
+            )
 
-        ```
+            ```
         """
         for typ, iterator in mapping.items():
             self.register(typ, iterator, exist_ok=exist_ok)
@@ -159,15 +159,15 @@ class IteratorRegistry:
             `True` if an iterator is registered for the type, `False` otherwise.
 
         Example:
-        ```pycon
-        >>> from coola.iterator.dfs import IteratorRegistry, IterableIterator
-        >>> registry = IteratorRegistry({list: IterableIterator()})
-        >>> registry.has_iterator(list)
-        True
-        >>> registry.has_iterator(tuple)
-        False
+            ```pycon
+            >>> from coola.iterator.dfs import IteratorRegistry, IterableIterator
+            >>> registry = IteratorRegistry({list: IterableIterator()})
+            >>> registry.has_iterator(list)
+            True
+            >>> registry.has_iterator(tuple)
+            False
 
-        ```
+            ```
         """
         return data_type in self._registry
 
@@ -205,15 +205,15 @@ class IteratorRegistry:
             The appropriate iterator for the data type.
 
         Example:
-        ```pycon
-        >>> from coola.iterator.dfs import IteratorRegistry, IterableIterator
-        >>> registry = IteratorRegistry({list: IterableIterator()})
-        >>> registry.find_iterator(list)
-        IterableIterator()
-        >>> registry.find_iterator(tuple)
-        DefaultIterator()
+            ```pycon
+            >>> from coola.iterator.dfs import IteratorRegistry, IterableIterator
+            >>> registry = IteratorRegistry({list: IterableIterator()})
+            >>> registry.find_iterator(list)
+            IterableIterator()
+            >>> registry.find_iterator(tuple)
+            DefaultIterator()
 
-        ```
+            ```
         """
         if data_type not in self._iterator_cache:
             self._iterator_cache[data_type] = self._find_iterator_uncached(data_type)
@@ -234,13 +234,13 @@ class IteratorRegistry:
                 appropriate iterator's traversal logic.
 
         Example:
-        ```pycon
-        >>> from coola.iterator.dfs import IteratorRegistry, IterableIterator, MappingIterator
-        >>> registry = IteratorRegistry({list: IterableIterator(), dict: MappingIterator()})
-        >>> list(registry.iterate({"a": [1, 2], "b": [3, 4]}))
-        [1, 2, 3, 4]
+            ```pycon
+            >>> from coola.iterator.dfs import IteratorRegistry, IterableIterator, MappingIterator
+            >>> registry = IteratorRegistry({list: IterableIterator(), dict: MappingIterator()})
+            >>> list(registry.iterate({"a": [1, 2], "b": [3, 4]}))
+            [1, 2, 3, 4]
 
-        ```
+            ```
         """
         iterator = self.find_iterator(type(data))
         yield from iterator.iterate(data, self)

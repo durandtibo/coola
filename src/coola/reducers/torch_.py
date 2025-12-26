@@ -29,8 +29,7 @@ class TorchReducer(BaseBasicReducer[T]):
     Raises:
         RuntimeError: if ``torch`` is not installed.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.reducers import TorchReducer

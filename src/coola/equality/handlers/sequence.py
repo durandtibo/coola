@@ -25,8 +25,7 @@ class SequenceSameValuesHandler(AbstractEqualityHandler):  # noqa: PLW1641
     handler. If the sequences have different length, this handler
     checks only the values of the shortest sequence.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality import EqualityConfig
