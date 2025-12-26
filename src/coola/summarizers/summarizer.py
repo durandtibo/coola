@@ -18,7 +18,6 @@ from coola.formatters import (
     TensorFormatter,
 )
 from coola.summarizers.base import BaseSummarizer
-from coola.types import Tensor, ndarray
 from coola.utils import is_numpy_available, is_torch_available
 from coola.utils.format import str_indent, str_mapping
 
@@ -391,8 +390,14 @@ def summarizer_options(**kwargs: Any) -> None:
         Summarizer.load_state_dict(state)
 
 
-if is_numpy_available() and not Summarizer.has_formatter(ndarray):  # pragma: no cover
-    Summarizer.add_formatter(ndarray, NDArrayFormatter())
+if is_numpy_available():  # pragma: no cover
+    import numpy as np
 
-if is_torch_available() and not Summarizer.has_formatter(Tensor):  # pragma: no cover
-    Summarizer.add_formatter(Tensor, TensorFormatter())
+    if not Summarizer.has_formatter(np.ndarray):
+        Summarizer.add_formatter(np.ndarray, NDArrayFormatter())
+
+if is_torch_available():  # pragma: no cover
+    import torch
+
+    if not Summarizer.has_formatter(torch.Tensor):
+        Summarizer.add_formatter(torch.Tensor, TensorFormatter())
