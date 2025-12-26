@@ -30,7 +30,7 @@ class BaseChildFinder(ABC, Generic[T]):
         - Subclasses must implement the ``find_children`` method.
         - For leaf types (types with no children), simply return without yielding.
 
-    Examples:
+    Example:
         ```pycon
         >>> from coola.iterator.bfs import DefaultChildFinder
         >>> child_finder = DefaultChildFinder()
@@ -62,7 +62,7 @@ class BaseChildFinder(ABC, Generic[T]):
             - This method should only yield direct children, not recurse deeply.
             - The BFS traversal logic handles visiting children recursively.
 
-        Examples:
+        Example:
             ```pycon
             >>> from coola.iterator.bfs import DefaultChildFinder
             >>> child_finder = DefaultChildFinder()

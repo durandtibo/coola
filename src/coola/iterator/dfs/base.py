@@ -33,7 +33,7 @@ class BaseIterator(ABC, Generic[T]):
           traverse nested structures.
         - For leaf types, simply yield the data directly.
 
-    Examples:
+    Example:
         ```pycon
         >>> from coola.iterator.dfs import IteratorRegistry, DefaultIterator
         >>> iterator = DefaultIterator()
@@ -74,7 +74,7 @@ class BaseIterator(ABC, Generic[T]):
             - Implementations should handle the specific structure of their
               target data type appropriately.
 
-        Examples:
+        Example:
             ```pycon
             >>> from coola.iterator.dfs import IteratorRegistry, DefaultIterator
             >>> iterator = DefaultIterator()

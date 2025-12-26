@@ -22,7 +22,7 @@ class IterableIterator(BaseIterator[Iterable[Any]]):
     such as lists, tuples, or other collections that implement the
     `Iterable` interface, yielding elements one by one.
 
-    Examples:
+    Example:
         ```pycon
         >>> from coola.iterator.dfs import IteratorRegistry, IterableIterator
         >>> iterator = IterableIterator()

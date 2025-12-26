@@ -42,7 +42,7 @@ class ChildFinderRegistry:
         _child_finder_cache: Cache mapping data types to resolved child
             finders (after MRO lookup).
 
-    Examples:
+    Example:
         Basic usage with a flat iterable:
 
         ```pycon
@@ -121,7 +121,7 @@ class ChildFinderRegistry:
             RuntimeError: If the type is already registered and
                 ``exist_ok`` is ``False``.
 
-        Examples:
+        Example:
             ```pycon
             >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
             >>> registry = ChildFinderRegistry()
@@ -157,7 +157,7 @@ class ChildFinderRegistry:
             RuntimeError: If any type is already registered and
                 ``exist_ok`` is ``False``.
 
-        Examples:
+        Example:
             ```pycon
             >>> from coola.iterator.bfs import (
             ...     ChildFinderRegistry,
@@ -189,7 +189,7 @@ class ChildFinderRegistry:
             ``True`` if a child finder is directly registered for the
                 type, ``False`` otherwise.
 
-        Examples:
+        Example:
             ```pycon
             >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
             >>> registry = ChildFinderRegistry({list: IterableChildFinder()})
@@ -238,7 +238,7 @@ class ChildFinderRegistry:
         Returns:
             The resolved child finder instance.
 
-        Examples:
+        Example:
             ```pycon
             >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
             >>> registry = ChildFinderRegistry({list: IterableChildFinder()})
@@ -266,7 +266,7 @@ class ChildFinderRegistry:
         Yields:
             Child objects as defined by the resolved child finder.
 
-        Examples:
+        Example:
             ```pycon
             >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
             >>> registry = ChildFinderRegistry({list: IterableChildFinder()})
@@ -295,7 +295,7 @@ class ChildFinderRegistry:
         Yields:
             Atomic (non-container) values in breadth-first order.
 
-        Examples:
+        Example:
             ```pycon
             >>> from coola.iterator.bfs import (
             ...     ChildFinderRegistry,

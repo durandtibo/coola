@@ -27,7 +27,7 @@ class DefaultIterator(BaseIterator[Any]):
     - Objects without internal structure to traverse
     - Terminal nodes in a data structure
 
-    Examples:
+    Example:
         ```pycon
         >>> from coola.iterator.dfs import IteratorRegistry, DefaultIterator
         >>> iterator = DefaultIterator()

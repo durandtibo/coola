@@ -22,7 +22,7 @@ class MappingIterator(BaseIterator[Mapping[Any, Any]]):
     are traversed. If values contain nested structures (lists, dicts, etc.),
     those are recursively iterated as well.
 
-    Examples:
+    Example:
         ```pycon
         >>> from coola.iterator.dfs import IteratorRegistry, MappingIterator, IterableIterator
         >>> iterator = MappingIterator()

@@ -20,7 +20,7 @@ class MappingChildFinder(BaseChildFinder[Mapping[Any, Any]]):
     of the iterable. It works with lists, tuples, sets, strings, and any
     object implementing the Mapping protocol.
 
-    Examples:
+    Example:
         ```pycon
         >>> from coola.iterator.bfs import MappingChildFinder
         >>> child_finder = MappingChildFinder()
