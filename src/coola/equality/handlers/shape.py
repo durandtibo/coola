@@ -40,8 +40,7 @@ class SameShapeHandler(AbstractEqualityHandler):  # noqa: PLW1641
     ``jax.numpy.ndarray``s, ``numpy.ndarray``s, ``pandas.DataFrame``,
     ``polars.DataFrame`` and ``torch.Tensor``s objects.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import numpy as np

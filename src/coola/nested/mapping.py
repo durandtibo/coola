@@ -22,8 +22,7 @@ def get_first_value(data: Mapping[str, Any]) -> Any:
     Raises:
         ValueError: if the mapping is empty.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.nested import get_first_value
@@ -59,8 +58,7 @@ def to_flat_dict(
     Returns:
         The flatted dictionary.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.nested import to_flat_dict
@@ -131,8 +129,7 @@ def remove_keys_starting_with(mapping: Mapping[Any, Any], prefix: str) -> dict[A
     Returns:
         A new dict without the removed keys.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.nested import remove_keys_starting_with

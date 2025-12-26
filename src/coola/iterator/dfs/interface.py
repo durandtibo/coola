@@ -34,16 +34,15 @@ def dfs_iterate(data: Any, registry: IteratorRegistry | None = None) -> Iterator
     Yields:
         The elements from the nested data structure in DFS order.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.iterator import dfs_iterate
+        >>> list(dfs_iterate({"a": 1, "b": "abc"}))
+        [1, 'abc']
+        >>> list(dfs_iterate([1, [2, 3], {"x": 4}]))
+        [1, 2, 3, 4]
 
-    ```pycon
-    >>> from coola.iterator import dfs_iterate
-    >>> list(dfs_iterate({"a": 1, "b": "abc"}))
-    [1, 'abc']
-    >>> list(dfs_iterate([1, [2, 3], {"x": 4}]))
-    [1, 2, 3, 4]
-
-    ```
+        ```
     """
     if registry is None:
         registry = get_default_registry()
@@ -63,16 +62,15 @@ def register_iterators(
         exist_ok: If `True`, existing registrations for types will be overwritten.
             If `False`, an error is raised when a type is already registered.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.iterator.dfs import register_iterators, IterableIterator, IteratorRegistry
+        >>> register_iterators({list: IterableIterator()}, exist_ok=True)
+        >>> registry = get_default_registry()
+        >>> list(registry.iterate([1, 2, 3]))
+        [1, 2, 3]
 
-    ```pycon
-    >>> from coola.iterator.dfs import register_iterators, IterableIterator, IteratorRegistry
-    >>> register_iterators({list: IterableIterator()}, exist_ok=True)
-    >>> registry = get_default_registry()
-    >>> list(registry.iterate([1, 2, 3]))
-    [1, 2, 3]
-
-    ```
+        ```
     """
     get_default_registry().register_many(mapping, exist_ok=exist_ok)
 
@@ -88,20 +86,19 @@ def get_default_registry() -> IteratorRegistry:
     Returns:
         An `IteratorRegistry` instance with iterators registered for common Python types.
 
-    Note:
+    Notes:
         The singleton pattern means any changes to the returned registry affect all future
         calls to this function. If an isolated registry is needed, create a new `IteratorRegistry`
         instance directly.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.iterator.dfs import get_default_registry
+        >>> reg = get_default_registry()
+        >>> list(reg.iterate([1, 2, 3]))
+        [1, 2, 3]
 
-    ```pycon
-    >>> from coola.iterator.dfs import get_default_registry
-    >>> reg = get_default_registry()
-    >>> list(reg.iterate([1, 2, 3]))
-    [1, 2, 3]
-
-    ```
+        ```
     """
     if not hasattr(get_default_registry, "_registry"):
         registry = IteratorRegistry()
@@ -120,7 +117,7 @@ def _register_default_iterators(registry: IteratorRegistry) -> None:
     Args:
         registry: The `IteratorRegistry` to populate with default iterators.
 
-    Note:
+    Notes:
         This function is automatically called by `get_default_registry()` and should not
         be called directly by users.
     """

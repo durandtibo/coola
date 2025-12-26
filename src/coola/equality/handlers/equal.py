@@ -62,8 +62,7 @@ class EqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     a ``equal`` attribute which indicates if the two objects are
     equal or not.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import math
@@ -111,8 +110,7 @@ class EqualNanHandler(BaseEqualityHandler):  # noqa: PLW1641
     a ``equal`` attribute which indicates if the two objects are
     equal or not.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import math

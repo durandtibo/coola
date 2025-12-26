@@ -35,7 +35,7 @@ def filter_by_type(iterator: Iterable[Any], types: type[T] | tuple[type, ...]) -
         Values from the input iterator that are instances of any of the specified
         types, preserving the original order of elements.
 
-    Examples:
+    Example:
         Filter mixed-type list to get only integers:
 
         ```pycon
@@ -55,7 +55,7 @@ def filter_by_type(iterator: Iterable[Any], types: type[T] | tuple[type, ...]) -
 
         ```
 
-    Note:
+    Notes:
         - This function uses isinstance() internally, so subclass relationships
           are respected (e.g., bool values will match int type).
         - The input iterator is consumed as items are yielded.

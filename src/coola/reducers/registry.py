@@ -39,8 +39,7 @@ class ReducerRegistry:
             RuntimeError: if a reducer is already registered for the
                 name and ``exist_ok=False``.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.reducers import ReducerRegistry, NativeReducer
         >>> ReducerRegistry.add_reducer("native", NativeReducer(), exist_ok=True)
@@ -63,8 +62,7 @@ class ReducerRegistry:
         Returns:
             The available reducers.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.reducers import ReducerRegistry
         >>> ReducerRegistry.available_reducers()
@@ -85,8 +83,7 @@ class ReducerRegistry:
             ``True`` if a reducer is registered,
                 otherwise ``False``.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.reducers import ReducerRegistry
         >>> ReducerRegistry.has_reducer("native")

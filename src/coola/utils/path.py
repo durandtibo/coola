@@ -24,22 +24,20 @@ def sanitize_path(path: Path | str) -> Path:
     Returns:
         The sanitized path as a ``pathlib.Path`` object.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from pathlib import Path
+        >>> from coola.utils.path import sanitize_path
+        >>> sanitize_path("something")
+        PosixPath('.../something')
+        >>> sanitize_path("")
+        PosixPath('...')
+        >>> sanitize_path(Path("something"))
+        PosixPath('.../something')
+        >>> sanitize_path(Path("something/./../"))
+        PosixPath('...')
 
-    ```pycon
-
-    >>> from pathlib import Path
-    >>> from coola.utils.path import sanitize_path
-    >>> sanitize_path("something")
-    PosixPath('.../something')
-    >>> sanitize_path("")
-    PosixPath('...')
-    >>> sanitize_path(Path("something"))
-    PosixPath('.../something')
-    >>> sanitize_path(Path("something/./../"))
-    PosixPath('...')
-
-    ```
+        ```
     """
     if isinstance(path, str):
         # use urlparse to parse file URI
@@ -58,16 +56,14 @@ def working_directory(path: Path) -> Generator[None]:
     Args:
         path: The path to the temporary working directory.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.utils.path import working_directory
+        >>> with working_directory(Path("src")):
+        ...     x = 1
+        ...
 
-    ```pycon
-
-    >>> from coola.utils.path import working_directory
-    >>> with working_directory(Path("src")):
-    ...     x = 1
-    ...
-
-    ```
+        ```
     """
     path = sanitize_path(path)
     prev_cwd = Path.cwd()

@@ -69,8 +69,7 @@ class BaseSummarizer(ABC):
         Returns:
             The summary as a string.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola import Summarizer
         >>> summarizer = Summarizer()

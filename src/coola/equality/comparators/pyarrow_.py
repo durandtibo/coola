@@ -34,8 +34,7 @@ class PyarrowEqualityComparator(BaseEqualityComparator[pa.Array]):  # noqa: PLW1
     Note that ``config.equal_nan``, ``config.atol`` and ``config.rtol``
     arguments are ignored.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import pyarrow as pa
@@ -77,8 +76,7 @@ def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[A
     Returns:
         The mapping between the types and the equality comparators.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality.comparators.pyarrow_ import get_type_comparator_mapping

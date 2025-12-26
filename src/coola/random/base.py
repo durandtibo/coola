@@ -16,8 +16,7 @@ class BaseRandomManager(ABC):
     - ``manual_seed``.
     - ``set_rng_state``.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.random import TorchRandomManager
@@ -34,10 +33,8 @@ class BaseRandomManager(ABC):
         Returns:
             The current RNG state.
 
-        Example usage:
-
+        Example:
         ```pycon
-
         >>> from coola.random import TorchRandomManager
         >>> manager = TorchRandomManager()
         >>> state = manager.get_rng_state()
@@ -54,10 +51,8 @@ class BaseRandomManager(ABC):
         Args:
             seed: The desired seed.
 
-        Example usage:
-
+        Example:
         ```pycon
-
         >>> from coola.random import TorchRandomManager
         >>> manager = TorchRandomManager()
         >>> manager.manual_seed(42)
@@ -72,10 +67,8 @@ class BaseRandomManager(ABC):
         Args:
             state: The new RNG state.
 
-        Example usage:
-
+        Example:
         ```pycon
-
         >>> import torch
         >>> from coola.random import TorchRandomManager
         >>> manager = TorchRandomManager()

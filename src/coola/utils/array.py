@@ -31,20 +31,18 @@ def to_array(data: Sequence[int | float] | torch.Tensor | np.ndarray) -> np.ndar
     Returns:
         A NumPy array.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.utils.array import to_array
+        >>> x = to_array([1, 2, 3, 4, 5])
+        >>> x
+        array([1, 2, 3, 4, 5])
+        >>> import torch
+        >>> x = to_array(torch.tensor([1, 2, 3, 4, 5]))
+        >>> x
+        array([1, 2, 3, 4, 5])
 
-    ```pycon
-
-    >>> from coola.utils.array import to_array
-    >>> x = to_array([1, 2, 3, 4, 5])
-    >>> x
-    array([1, 2, 3, 4, 5])
-    >>> import torch
-    >>> x = to_array(torch.tensor([1, 2, 3, 4, 5]))
-    >>> x
-    array([1, 2, 3, 4, 5])
-
-    ```
+        ```
     """
     if is_torch_available() and torch.is_tensor(data):
         return data.numpy()

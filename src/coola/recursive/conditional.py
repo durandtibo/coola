@@ -28,9 +28,6 @@ class ConditionalTransformer(BaseTransformer[T]):
     based on runtime checks without modifying the underlying transformer
     or core architecture.
 
-    Type Parameters:
-        T: The type of data this transformer handles
-
     Args:
         transformer: The underlying transformer to apply when the condition
             is met. This can be any BaseTransformer implementation.
@@ -38,36 +35,35 @@ class ConditionalTransformer(BaseTransformer[T]):
             the transformation. Should accept the data as input and return
             True to transform or False to pass through unchanged.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.recursive import (
+        ...     DefaultTransformer,
+        ...     ConditionalTransformer,
+        ...     TransformerRegistry,
+        ... )
+        >>> registry = TransformerRegistry()
+        >>> # Create a transformer that only processes positive numbers
+        >>> transformer = ConditionalTransformer(
+        ...     transformer=DefaultTransformer(),
+        ...     condition=lambda x: isinstance(x, (int, float)) and x > 0,
+        ... )
+        >>> transformer
+        ConditionalTransformer(
+          (transformer): DefaultTransformer()
+          (condition): <function <lambda> at 0x...>
+        )
+        >>> # Positive number: condition passes, transformation applied
+        >>> transformer.transform(5, func=lambda x: x * 2, registry=registry)
+        10
+        >>> # Negative number: condition fails, returned unchanged
+        >>> transformer.transform(-5, func=lambda x: x * 2, registry=registry)
+        -5
+        >>> # Non-numeric: condition fails, returned unchanged
+        >>> transformer.transform("text", func=lambda x: x * 2, registry=registry)
+        'text'
 
-    ```pycon
-    >>> from coola.recursive import (
-    ...     DefaultTransformer,
-    ...     ConditionalTransformer,
-    ...     TransformerRegistry,
-    ... )
-    >>> registry = TransformerRegistry()
-    >>> # Create a transformer that only processes positive numbers
-    >>> transformer = ConditionalTransformer(
-    ...     transformer=DefaultTransformer(),
-    ...     condition=lambda x: isinstance(x, (int, float)) and x > 0,
-    ... )
-    >>> transformer
-    ConditionalTransformer(
-      (transformer): DefaultTransformer()
-      (condition): <function <lambda> at 0x...>
-    )
-    >>> # Positive number: condition passes, transformation applied
-    >>> transformer.transform(5, func=lambda x: x * 2, registry=registry)
-    10
-    >>> # Negative number: condition fails, returned unchanged
-    >>> transformer.transform(-5, func=lambda x: x * 2, registry=registry)
-    -5
-    >>> # Non-numeric: condition fails, returned unchanged
-    >>> transformer.transform("text", func=lambda x: x * 2, registry=registry)
-    'text'
-
-    ```
+        ```
     """
 
     def __init__(

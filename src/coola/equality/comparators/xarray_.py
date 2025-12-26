@@ -36,8 +36,7 @@ logger: logging.Logger = logging.getLogger(__name__)
 class XarrayDataArrayEqualityComparator(BaseEqualityComparator[xr.DataArray]):  # noqa: PLW1641
     r"""Implement an equality comparator for ``xarray.DataArray``.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import numpy as np
@@ -83,8 +82,7 @@ class XarrayDataArrayEqualityComparator(BaseEqualityComparator[xr.DataArray]):  
 class XarrayDatasetEqualityComparator(BaseEqualityComparator[xr.Dataset]):  # noqa: PLW1641
     r"""Implement an equality comparator for ``xarray.Dataset``.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import numpy as np
@@ -130,8 +128,7 @@ class XarrayDatasetEqualityComparator(BaseEqualityComparator[xr.Dataset]):  # no
 class XarrayVariableEqualityComparator(BaseEqualityComparator[xr.Variable]):  # noqa: PLW1641
     r"""Implement an equality comparator for ``xarray.Variable``.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import numpy as np
@@ -184,8 +181,7 @@ def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[A
     Returns:
         The mapping between the types and the equality comparators.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality.comparators.xarray_ import get_type_comparator_mapping

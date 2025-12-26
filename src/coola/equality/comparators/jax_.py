@@ -33,8 +33,7 @@ logger: logging.Logger = logging.getLogger(__name__)
 class JaxArrayEqualityComparator(BaseEqualityComparator[jnp.ndarray]):  # noqa: PLW1641
     r"""Implement an equality comparator for ``jax.numpy.ndarray``.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import jax.numpy as jnp
@@ -78,8 +77,7 @@ def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[A
     Returns:
         The mapping between the types and the equality comparators.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality.comparators.jax_ import get_type_comparator_mapping

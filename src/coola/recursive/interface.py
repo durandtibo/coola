@@ -38,16 +38,15 @@ def recursive_apply(
     Returns:
         Transformed data with same structure as input
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.recursive import recursive_apply
+        >>> recursive_apply({"a": 1, "b": "abc"}, str)
+        {'a': '1', 'b': 'abc'}
+        >>> recursive_apply([1, [2, 3], {"x": 4}], lambda x: x * 2)
+        [2, [4, 6], {'x': 8}]
 
-    ```pycon
-    >>> from coola.recursive import recursive_apply
-    >>> recursive_apply({"a": 1, "b": "abc"}, str)
-    {'a': '1', 'b': 'abc'}
-    >>> recursive_apply([1, [2, 3], {"x": 4}], lambda x: x * 2)
-    [2, [4, 6], {'x': 8}]
-
-    ```
+        ```
     """
     if registry is None:
         registry = get_default_registry()
@@ -67,21 +66,20 @@ def register_transformers(
         mapping: Dictionary mapping types to transformer instances
         exist_ok: If False, raises error if any type already registered
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.recursive import register_transformers, BaseTransformer
+        >>> class MyType:
+        ...     def __init__(self, value):
+        ...         self.value = value
+        ...
+        >>> class MyTransformer(BaseTransformer):
+        ...     def transform(self, data, func, registry):
+        ...         return MyType(func(data.value))
+        ...
+        >>> register_transformers({MyType: MyTransformer()})
 
-    ```pycon
-    >>> from coola.recursive import register_transformers, BaseTransformer
-    >>> class MyType:
-    ...     def __init__(self, value):
-    ...         self.value = value
-    ...
-    >>> class MyTransformer(BaseTransformer):
-    ...     def transform(self, data, func, registry):
-    ...         return MyType(func(data.value))
-    ...
-    >>> register_transformers({MyType: MyTransformer()})
-
-    ```
+        ```
     """
     get_default_registry().register_many(mapping, exist_ok=exist_ok)
 
@@ -105,22 +103,22 @@ def get_default_registry() -> TransformerRegistry:
             - Sets (set, frozenset)
             - Mappings (dict, Mapping ABC)
 
-    Note:
+    Notes:
         The singleton pattern means modifications to the returned registry
         affect all future calls to this function. If you need an isolated
         registry, create a new TransformerRegistry instance directly.
 
     Example:
-    ```pycon
-    >>> from coola.recursive import get_default_registry
-    >>> registry = get_default_registry()
-    >>> # Registry is ready to use with common Python types
-    >>> registry.transform([1, 2, 3], str)
-    ['1', '2', '3']
-    >>> registry.transform({"a": 1, "b": 2}, lambda x: x * 10)
-    {'a': 10, 'b': 20}
+        ```pycon
+        >>> from coola.recursive import get_default_registry
+        >>> registry = get_default_registry()
+        >>> # Registry is ready to use with common Python types
+        >>> registry.transform([1, 2, 3], str)
+        ['1', '2', '3']
+        >>> registry.transform({"a": 1, "b": 2}, lambda x: x * 10)
+        {'a': 10, 'b': 20}
 
-    ```
+        ```
     """
     if not hasattr(get_default_registry, "_registry"):
         registry = TransformerRegistry()
@@ -146,7 +144,7 @@ def _register_default_transformers(registry: TransformerRegistry) -> None:
     Args:
         registry: The registry to populate with default transformers
 
-    Note:
+    Notes:
         This function is called internally by get_default_registry() and should
         not typically be called directly by users.
     """

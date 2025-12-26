@@ -23,8 +23,7 @@ class NanEqualHandler(AbstractEqualityHandler):  # noqa: PLW1641
     This handler returns ``True`` if the two numbers are NaNs,
     otherwise it passes the inputs to the next handler.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality import EqualityConfig
@@ -63,8 +62,7 @@ class ScalarEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     control the tolerance by using ``atol`` and ``rtol``.
     By default, the tolerances are set to 0.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality import EqualityConfig

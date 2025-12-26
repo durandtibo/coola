@@ -114,14 +114,14 @@ class TransformerRegistry:
             RuntimeError: If the type is already registered and exist_ok is False
 
         Example:
-        ```pycon
-        >>> from coola.recursive import TransformerRegistry, SequenceTransformer
-        >>> registry = TransformerRegistry()
-        >>> registry.register(list, SequenceTransformer())
-        >>> registry.has_transformer(list)
-        True
+            ```pycon
+            >>> from coola.recursive import TransformerRegistry, SequenceTransformer
+            >>> registry = TransformerRegistry()
+            >>> registry.register(list, SequenceTransformer())
+            >>> registry.has_transformer(list)
+            True
 
-        ```
+            ```
         """
         if data_type in self._registry and not exist_ok:
             msg = (
@@ -152,22 +152,22 @@ class TransformerRegistry:
             RuntimeError: If any type is already registered and exist_ok is False
 
         Example:
-        ```pycon
-        >>> from coola.recursive import TransformerRegistry, SequenceTransformer, MappingTransformer
-        >>> registry = TransformerRegistry()
-        >>> registry.register_many(
-        ...     {
-        ...         list: SequenceTransformer(),
-        ...         dict: MappingTransformer(),
-        ...     }
-        ... )
-        >>> registry
-        TransformerRegistry(
-          (<class 'list'>): SequenceTransformer()
-          (<class 'dict'>): MappingTransformer()
-        )
+            ```pycon
+            >>> from coola.recursive import TransformerRegistry, SequenceTransformer, MappingTransformer
+            >>> registry = TransformerRegistry()
+            >>> registry.register_many(
+            ...     {
+            ...         list: SequenceTransformer(),
+            ...         dict: MappingTransformer(),
+            ...     }
+            ... )
+            >>> registry
+            TransformerRegistry(
+              (<class 'list'>): SequenceTransformer()
+              (<class 'dict'>): MappingTransformer()
+            )
 
-        ```
+            ```
         """
         for typ, transformer in mapping.items():
             self.register(typ, transformer, exist_ok=exist_ok)
@@ -188,16 +188,16 @@ class TransformerRegistry:
             False otherwise
 
         Example:
-        ```pycon
-        >>> from coola.recursive import TransformerRegistry, SequenceTransformer
-        >>> registry = TransformerRegistry()
-        >>> registry.register(list, SequenceTransformer())
-        >>> registry.has_transformer(list)
-        True
-        >>> registry.has_transformer(tuple)
-        False
+            ```pycon
+            >>> from coola.recursive import TransformerRegistry, SequenceTransformer
+            >>> registry = TransformerRegistry()
+            >>> registry.register(list, SequenceTransformer())
+            >>> registry.has_transformer(list)
+            True
+            >>> registry.has_transformer(tuple)
+            False
 
-        ```
+            ```
         """
         return data_type in self._registry
 
@@ -245,17 +245,17 @@ class TransformerRegistry:
             type's transformer via MRO, or the default transformer
 
         Example:
-        ```pycon
-        >>> from collections.abc import Sequence
-        >>> from coola.recursive import TransformerRegistry, SequenceTransformer
-        >>> registry = TransformerRegistry()
-        >>> registry.register(Sequence, SequenceTransformer())
-        >>> # list does not inherit from Sequence, so it uses DefaultTransformer
-        >>> transformer = registry.find_transformer(list)
-        >>> transformer
-        DefaultTransformer()
+            ```pycon
+            >>> from collections.abc import Sequence
+            >>> from coola.recursive import TransformerRegistry, SequenceTransformer
+            >>> registry = TransformerRegistry()
+            >>> registry.register(Sequence, SequenceTransformer())
+            >>> # list does not inherit from Sequence, so it uses DefaultTransformer
+            >>> transformer = registry.find_transformer(list)
+            >>> transformer
+            DefaultTransformer()
 
-        ```
+            ```
         """
         if data_type not in self._transformer_cache:
             self._transformer_cache[data_type] = self._find_transformer_uncached(data_type)

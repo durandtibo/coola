@@ -24,8 +24,7 @@ def auto_reducer() -> BaseReducer[Sequence[int | float]]:
     Returns:
         The "best" reducer.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.reducers import auto_reducer

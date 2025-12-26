@@ -29,8 +29,7 @@ class NumpyArrayEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     the end of the chain of responsibility. This handler does
     not call the next handler.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import numpy as np
@@ -82,8 +81,7 @@ def array_equal(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) 
         ``True` `if the two arrays are equal within a tolerance,
             otherwise ``False``.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import numpy as np
@@ -114,8 +112,7 @@ def is_numeric_array(array: np.ndarray) -> bool:
     Returns:
         ``True`` if the input array is a numeric array, otherwise ``False``.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import numpy as np

@@ -25,8 +25,7 @@ class TorchTensorEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     the end of the chain of responsibility. This handler does
     not call the next handler.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import torch
@@ -72,8 +71,7 @@ class TorchTensorSameDeviceHandler(AbstractEqualityHandler):  # noqa: PLW1641
     This handler returns ``False`` if the two objects have different
     devices, otherwise it passes the inputs to the next handler.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import torch

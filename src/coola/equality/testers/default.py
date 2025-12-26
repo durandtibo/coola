@@ -45,8 +45,7 @@ class EqualityTester(BaseEqualityTester):
             RuntimeError: if a comparator is already registered for the
                 data type and ``exist_ok=False``.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.equality.testers import EqualityTester
         >>> from coola.equality.comparators import SequenceEqualityComparator
@@ -78,8 +77,7 @@ class EqualityTester(BaseEqualityTester):
             ``True`` if an equality comparator is registered,
                 otherwise ``False``.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.equality.testers import EqualityTester
         >>> EqualityTester.has_comparator(list)
@@ -101,8 +99,7 @@ class EqualityTester(BaseEqualityTester):
         Returns:
             The equality comparator associated to the data type.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.equality.testers import EqualityTester
         >>> EqualityTester.find_comparator(list)
@@ -127,8 +124,7 @@ class EqualityTester(BaseEqualityTester):
         Returns:
             A "local" copy of ``EqualityTester``.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.equality.testers import EqualityTester
         >>> tester = EqualityTester.local_copy()
@@ -178,8 +174,7 @@ class LocalEqualityTester(BaseEqualityTester):  # noqa: PLW1641
             RuntimeError: if an comparator is already registered for the
                 data type and ``exist_ok=False``.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.equality.testers import EqualityTester
         >>> from coola.equality.comparators import DefaultEqualityComparator
@@ -204,8 +199,7 @@ class LocalEqualityTester(BaseEqualityTester):  # noqa: PLW1641
         Returns:
              A deep copy of the current tester.
 
-         Example usage:
-
+        Example:
          ```pycon
          >>> from coola.equality.testers import EqualityTester
          >>> tester = EqualityTester.local_copy()
@@ -229,8 +223,7 @@ class LocalEqualityTester(BaseEqualityTester):  # noqa: PLW1641
             ``True`` if an equality comparator is registered,
                 otherwise ``False``.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.equality.testers import EqualityTester
         >>> tester = EqualityTester.local_copy()
@@ -252,8 +245,7 @@ class LocalEqualityTester(BaseEqualityTester):  # noqa: PLW1641
         Returns:
             The equality comparator associated to the data type.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.equality.testers import EqualityTester
         >>> tester = EqualityTester.local_copy()
@@ -275,8 +267,7 @@ class LocalEqualityTester(BaseEqualityTester):  # noqa: PLW1641
 def register_equality() -> None:
     r"""Register equality comparators to ``EqualityTester``.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality.testers.default import register_equality

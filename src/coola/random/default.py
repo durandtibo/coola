@@ -23,8 +23,7 @@ class RandomManager(BaseRandomManager):
     - ``'numpy'``: ``NumpyRandomManager`` if ``numpy`` is available
     - ``'torch'``: ``TorchRandomManager`` if ``torch`` is available
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.random import RandomManager
@@ -70,10 +69,8 @@ class RandomManager(BaseRandomManager):
             RuntimeError: if a random manager is already registered
                 for the name and ``exist_ok=False``.
 
-        Example usage:
-
+        Example:
         ```pycon
-
         >>> from coola.random import BaseRandomManager, RandomManager
         >>> class OtherRandomManager(BaseRandomManager):
         ...     def get_rng_state(self) -> dict:
@@ -110,10 +107,8 @@ class RandomManager(BaseRandomManager):
             ``True`` if a random manager is registered,
                 otherwise ``False``.
 
-        Example usage:
-
+        Example:
         ```pycon
-
         >>> from coola.random import RandomManager
         >>> RandomManager.has_manager("random")
         True
@@ -137,8 +132,7 @@ def random_seed(seed: int) -> Generator[None]:
         seed: The random number generator seed to use while using
             this context manager.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import numpy
@@ -166,8 +160,7 @@ def random_seed(seed: int) -> Generator[None]:
 def register_random_managers() -> None:
     r"""Register randomness managers to ``RandomManager``.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.random import RandomManager

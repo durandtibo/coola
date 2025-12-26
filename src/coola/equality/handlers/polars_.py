@@ -34,8 +34,7 @@ class PolarsDataFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     at the end of the chain of responsibility. This handler does
     not call the next handler.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import polars as pl
@@ -92,8 +91,7 @@ class PolarsLazyFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     at the end of the chain of responsibility. This handler does
     not call the next handler.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import polars as pl
@@ -150,8 +148,7 @@ class PolarsSeriesEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     at the end of the chain of responsibility. This handler does
     not call the next handler.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import polars as pl

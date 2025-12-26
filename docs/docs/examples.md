@@ -536,5 +536,4 @@ def efficient_compare(obj1, obj2):
 ## See Also
 
 - [Quickstart Guide](quickstart.md) - Basic usage examples
-- [Performance Guide](performance.md) - Optimization tips
 - [FAQ](faq.md) - Frequently asked questions

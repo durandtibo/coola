@@ -26,8 +26,7 @@ def summary(value: Any, max_depth: int = 1, summarizer: BaseSummarizer | None = 
     Returns:
         The summary as a string.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola import summary

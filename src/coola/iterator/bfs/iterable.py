@@ -20,16 +20,16 @@ class IterableChildFinder(BaseChildFinder[Iterable[Any]]):
     of the iterable. It works with lists, tuples, sets, strings, and any
     object implementing the Iterable protocol.
 
-    Examples:
-    ```pycon
-    >>> from coola.iterator.bfs import IterableChildFinder
-    >>> child_finder = IterableChildFinder()
-    >>> list(child_finder.find_children((4, 2, 1)))
-    [4, 2, 1]
-    >>> list(child_finder.find_children("hello"))
-    ['h', 'e', 'l', 'l', 'o']
+    Example:
+        ```pycon
+        >>> from coola.iterator.bfs import IterableChildFinder
+        >>> child_finder = IterableChildFinder()
+        >>> list(child_finder.find_children((4, 2, 1)))
+        [4, 2, 1]
+        >>> list(child_finder.find_children("hello"))
+        ['h', 'e', 'l', 'l', 'o']
 
-    ```
+        ```
     """
 
     def __repr__(self) -> str:

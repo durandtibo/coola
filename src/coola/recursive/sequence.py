@@ -25,10 +25,6 @@ class SequenceTransformer(BaseTransformer[Sequence[Any]]):
     sequence using its original type, with special handling for named tuples
     to preserve their field structure.
 
-    Type Parameters:
-        Handles Sequence[Any], supporting any sequence type with arbitrary
-        element types.
-
     Notes:
         - All elements are transformed recursively through the registry
         - The original sequence type is preserved (list remains list, tuple remains tuple)
@@ -38,33 +34,32 @@ class SequenceTransformer(BaseTransformer[Sequence[Any]]):
         - String sequences (str) should typically use a different transformer
           as they are often treated as atomic values
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.recursive import SequenceTransformer, TransformerRegistry
+        >>> transformer = SequenceTransformer()
+        >>> transformer
+        SequenceTransformer()
+        >>> registry = TransformerRegistry({list: transformer})
+        >>> # Transform list elements
+        >>> transformer.transform([1, 2, 3], func=str, registry=registry)
+        ['1', '2', '3']
+        >>> # Tuple type is preserved
+        >>> transformer.transform((1, 2, 3), func=lambda x: x * 2, registry=registry)
+        (2, 4, 6)
+        >>> # Nested sequences are handled recursively
+        >>> transformer.transform([[1, 2], [3, 4]], func=str, registry=registry)
+        [['1', '2'], ['3', '4']]
+        >>> # Empty sequences are preserved
+        >>> transformer.transform([], func=str, registry=registry)
+        []
+        >>> # Named tuples preserve their structure
+        >>> from collections import namedtuple
+        >>> Point = namedtuple("Point", ["x", "y"])
+        >>> transformer.transform(Point(1, 2), func=str, registry=registry)
+        Point(x='1', y='2')
 
-    ```pycon
-    >>> from coola.recursive import SequenceTransformer, TransformerRegistry
-    >>> transformer = SequenceTransformer()
-    >>> transformer
-    SequenceTransformer()
-    >>> registry = TransformerRegistry({list: transformer})
-    >>> # Transform list elements
-    >>> transformer.transform([1, 2, 3], func=str, registry=registry)
-    ['1', '2', '3']
-    >>> # Tuple type is preserved
-    >>> transformer.transform((1, 2, 3), func=lambda x: x * 2, registry=registry)
-    (2, 4, 6)
-    >>> # Nested sequences are handled recursively
-    >>> transformer.transform([[1, 2], [3, 4]], func=str, registry=registry)
-    [['1', '2'], ['3', '4']]
-    >>> # Empty sequences are preserved
-    >>> transformer.transform([], func=str, registry=registry)
-    []
-    >>> # Named tuples preserve their structure
-    >>> from collections import namedtuple
-    >>> Point = namedtuple("Point", ["x", "y"])
-    >>> transformer.transform(Point(1, 2), func=str, registry=registry)
-    Point(x='1', y='2')
-
-    ```
+        ```
     """
 
     def __repr__(self) -> str:

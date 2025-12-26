@@ -24,8 +24,7 @@ logger: logging.Logger = logging.getLogger(__name__)
 class ScalarEqualityComparator(BaseEqualityComparator[Any]):  # noqa: PLW1641
     r"""Implement a default equality comparator.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality import EqualityConfig
@@ -61,8 +60,7 @@ def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[A
     Returns:
         The mapping between the types and the equality comparators.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality.comparators.scalar import get_type_comparator_mapping

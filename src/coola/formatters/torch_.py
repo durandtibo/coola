@@ -27,8 +27,7 @@ class TensorFormatter(BaseFormatter[torch.Tensor]):
             string representation (``repr``). If ``False``,
             the returned string only contains the tensor metadata.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import torch
@@ -87,8 +86,7 @@ class TensorFormatter(BaseFormatter[torch.Tensor]):
             ``True`` if the tensor data are shown,
                 ``False`` if the tensor metadata are shown.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.formatters import TensorFormatter
         >>> formatter = TensorFormatter()
@@ -109,8 +107,7 @@ class TensorFormatter(BaseFormatter[torch.Tensor]):
         Raises:
             TypeError: if ``show_data`` is not an boolean.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.formatters import TensorFormatter
         >>> formatter = TensorFormatter()

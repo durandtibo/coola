@@ -30,15 +30,13 @@ def get_available_devices() -> tuple[str, ...]:
     Returns:
         The available devices.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.utils.tensor import get_available_devices
+        >>> get_available_devices()
+        ('cpu'...)
 
-    ```pycon
-
-    >>> from coola.utils.tensor import get_available_devices
-    >>> get_available_devices()
-    ('cpu'...)
-
-    ```
+        ```
     """
     devices = ["cpu"]
     if is_cuda_available():
@@ -55,14 +53,12 @@ def is_cuda_available() -> bool:
     Returns:
         A boolean indicating if CUDA is currently available.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.utils.tensor import is_cuda_available
+        >>> is_cuda_available()
 
-    ```pycon
-
-    >>> from coola.utils.tensor import is_cuda_available
-    >>> is_cuda_available()
-
-    ```
+        ```
     """
     return is_torch_available() and torch.cuda.is_available()
 
@@ -74,14 +70,12 @@ def is_mps_available() -> bool:
     Returns:
         A boolean indicating if MPS is currently available.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.utils.tensor import is_mps_available
+        >>> is_mps_available()
 
-    ```pycon
-
-    >>> from coola.utils.tensor import is_mps_available
-    >>> is_mps_available()
-
-    ```
+        ```
     """
     if not is_torch_available():
         return False
@@ -101,20 +95,18 @@ def to_tensor(data: Sequence[int | float] | torch.Tensor | np.ndarray) -> torch.
     Returns:
         A tensor.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from coola.utils.tensor import to_tensor
+        >>> x = to_tensor([1, 2, 3, 4, 5])
+        >>> x
+        tensor([1, 2, 3, 4, 5])
+        >>> import numpy as np
+        >>> x = to_tensor(np.array([1, 2, 3, 4, 5]))
+        >>> x
+        tensor([1, 2, 3, 4, 5])
 
-    ```pycon
-
-    >>> from coola.utils.tensor import to_tensor
-    >>> x = to_tensor([1, 2, 3, 4, 5])
-    >>> x
-    tensor([1, 2, 3, 4, 5])
-    >>> import numpy as np
-    >>> x = to_tensor(np.array([1, 2, 3, 4, 5]))
-    >>> x
-    tensor([1, 2, 3, 4, 5])
-
-    ```
+        ```
     """
     if is_numpy_available() and isinstance(data, np.ndarray):
         return torch.from_numpy(data)

@@ -42,7 +42,7 @@ class ChildFinderRegistry:
         _child_finder_cache: Cache mapping data types to resolved child
             finders (after MRO lookup).
 
-    Examples:
+    Example:
         Basic usage with a flat iterable:
 
         ```pycon
@@ -121,15 +121,15 @@ class ChildFinderRegistry:
             RuntimeError: If the type is already registered and
                 ``exist_ok`` is ``False``.
 
-        Examples:
-        ```pycon
-        >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
-        >>> registry = ChildFinderRegistry()
-        >>> registry.register(list, IterableChildFinder())
-        >>> registry.has_child_finder(list)
-        True
+        Example:
+            ```pycon
+            >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
+            >>> registry = ChildFinderRegistry()
+            >>> registry.register(list, IterableChildFinder())
+            >>> registry.has_child_finder(list)
+            True
 
-        ```
+            ```
         """
         if data_type in self._registry and not exist_ok:
             msg = (
@@ -157,19 +157,19 @@ class ChildFinderRegistry:
             RuntimeError: If any type is already registered and
                 ``exist_ok`` is ``False``.
 
-        Examples:
-        ```pycon
-        >>> from coola.iterator.bfs import (
-        ...     ChildFinderRegistry,
-        ...     IterableChildFinder,
-        ...     MappingChildFinder,
-        ... )
-        >>> registry = ChildFinderRegistry()
-        >>> registry.register_many({list: IterableChildFinder(), dict: MappingChildFinder()})
-        >>> registry.has_child_finder(list), registry.has_child_finder(dict)
-        (True, True)
+        Example:
+            ```pycon
+            >>> from coola.iterator.bfs import (
+            ...     ChildFinderRegistry,
+            ...     IterableChildFinder,
+            ...     MappingChildFinder,
+            ... )
+            >>> registry = ChildFinderRegistry()
+            >>> registry.register_many({list: IterableChildFinder(), dict: MappingChildFinder()})
+            >>> registry.has_child_finder(list), registry.has_child_finder(dict)
+            (True, True)
 
-        ```
+            ```
         """
         for typ, child_finder in mapping.items():
             self.register(typ, child_finder, exist_ok=exist_ok)
@@ -189,16 +189,16 @@ class ChildFinderRegistry:
             ``True`` if a child finder is directly registered for the
                 type, ``False`` otherwise.
 
-        Examples:
-        ```pycon
-        >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
-        >>> registry = ChildFinderRegistry({list: IterableChildFinder()})
-        >>> registry.has_child_finder(list)
-        True
-        >>> registry.has_child_finder(tuple)
-        False
+        Example:
+            ```pycon
+            >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
+            >>> registry = ChildFinderRegistry({list: IterableChildFinder()})
+            >>> registry.has_child_finder(list)
+            True
+            >>> registry.has_child_finder(tuple)
+            False
 
-        ```
+            ```
         """
         return data_type in self._registry
 
@@ -238,16 +238,16 @@ class ChildFinderRegistry:
         Returns:
             The resolved child finder instance.
 
-        Examples:
-        ```pycon
-        >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
-        >>> registry = ChildFinderRegistry({list: IterableChildFinder()})
-        >>> registry.find_child_finder(list)
-        IterableChildFinder()
-        >>> registry.find_child_finder(tuple)
-        DefaultChildFinder()
+        Example:
+            ```pycon
+            >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
+            >>> registry = ChildFinderRegistry({list: IterableChildFinder()})
+            >>> registry.find_child_finder(list)
+            IterableChildFinder()
+            >>> registry.find_child_finder(tuple)
+            DefaultChildFinder()
 
-        ```
+            ```
         """
         if data_type not in self._child_finder_cache:
             self._child_finder_cache[data_type] = self._find_child_finder_uncached(data_type)
@@ -266,14 +266,14 @@ class ChildFinderRegistry:
         Yields:
             Child objects as defined by the resolved child finder.
 
-        Examples:
-        ```pycon
-        >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
-        >>> registry = ChildFinderRegistry({list: IterableChildFinder()})
-        >>> list(registry.find_children([1, 2, 3]))
-        [1, 2, 3]
+        Example:
+            ```pycon
+            >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
+            >>> registry = ChildFinderRegistry({list: IterableChildFinder()})
+            >>> list(registry.find_children([1, 2, 3]))
+            [1, 2, 3]
 
-        ```
+            ```
         """
         child_finder = self.find_child_finder(type(data))
         yield from child_finder.find_children(data)
@@ -295,20 +295,20 @@ class ChildFinderRegistry:
         Yields:
             Atomic (non-container) values in breadth-first order.
 
-        Examples:
-        ```pycon
-        >>> from coola.iterator.bfs import (
-        ...     ChildFinderRegistry,
-        ...     IterableChildFinder,
-        ...     MappingChildFinder,
-        ... )
-        >>> registry = ChildFinderRegistry(
-        ...     {list: IterableChildFinder(), dict: MappingChildFinder()}
-        ... )
-        >>> list(registry.iterate({"a": [1, 2], "b": [3, 4], "c": 5, "d": {"e": 6}}))
-        [5, 1, 2, 3, 4, 6]
+        Example:
+            ```pycon
+            >>> from coola.iterator.bfs import (
+            ...     ChildFinderRegistry,
+            ...     IterableChildFinder,
+            ...     MappingChildFinder,
+            ... )
+            >>> registry = ChildFinderRegistry(
+            ...     {list: IterableChildFinder(), dict: MappingChildFinder()}
+            ... )
+            >>> list(registry.iterate({"a": [1, 2], "b": [3, 4], "c": 5, "d": {"e": 6}}))
+            [5, 1, 2, 3, 4, 6]
 
-        ```
+            ```
         """
         queue = deque([data])
 

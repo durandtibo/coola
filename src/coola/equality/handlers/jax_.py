@@ -29,8 +29,7 @@ class JaxArrayEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     the end of the chain of responsibility. This handler does
     not call the next handler.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import jax.numpy as jnp

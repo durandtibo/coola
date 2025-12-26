@@ -15,8 +15,7 @@ class RandomRandomManager(BaseRandomManager):  # noqa: PLW1641
     r"""Implement a random manager for the python standard library
     ``random``.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.random import RandomRandomManager
@@ -48,8 +47,7 @@ def get_random_managers() -> dict[str, BaseRandomManager]:
     Returns:
         The mapping between the name and random managers.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.random.random_ import get_random_managers

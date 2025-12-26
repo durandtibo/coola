@@ -31,8 +31,7 @@ class Summarizer(BaseSummarizer):
     The registry is a class variable, so it is shared with all the
     instances of this class.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola import Summarizer
@@ -116,10 +115,8 @@ class Summarizer(BaseSummarizer):
             RuntimeError: if a formatter is already registered for the
                 data type and ``exist_ok=False``.
 
-        Example usage:
-
+        Example:
         ```pycon
-
         >>> from coola import Summarizer
         >>> from coola.formatters import MappingFormatter
         >>> Summarizer.add_formatter(dict, MappingFormatter(), exist_ok=True)
@@ -147,10 +144,8 @@ class Summarizer(BaseSummarizer):
             ``True`` if a formatter is registered,
                 otherwise ``False``.
 
-        Example usage:
-
+        Example:
         ```pycon
-
         >>> from coola import Summarizer
         >>> Summarizer.has_formatter(list)
         True
@@ -175,10 +170,8 @@ class Summarizer(BaseSummarizer):
             TypeError: if a formatter cannot be found for this data
                 type.
 
-        Example usage:
-
+        Example:
         ```pycon
-
         >>> from coola import Summarizer
         >>> Summarizer.find_formatter(list)
         SequenceFormatter(max_items=5, num_spaces=2)
@@ -201,10 +194,8 @@ class Summarizer(BaseSummarizer):
         Args:
             state: A dictionary with state values.
 
-        Example usage:
-
+        Example:
         ```pycon
-
         >>> from coola import Summarizer
         >>> Summarizer.load_state_dict({object: {"max_characters": 10}})
         >>> summarizer = Summarizer()
@@ -227,10 +218,8 @@ class Summarizer(BaseSummarizer):
         Returns:
             The state values in a dict.
 
-        Example usage:
-
+        Example:
         ```pycon
-
         >>> from coola import Summarizer
         >>> Summarizer.state_dict()
         {<class 'collections.abc.Mapping'>: {'max_items': 5, 'num_spaces': 2},...}
@@ -250,10 +239,8 @@ class Summarizer(BaseSummarizer):
         Args:
             max_characters: The maximum of characters.
 
-        Example usage:
-
+        Example:
         ```pycon
-
         >>> from coola import Summarizer
         >>> Summarizer.set_max_characters(10)
         >>> summarizer = Summarizer()
@@ -280,10 +267,8 @@ class Summarizer(BaseSummarizer):
         Args:
             max_items: The maximum number of items to show.
 
-        Example usage:
-
+        Example:
         ```pycon
-
         >>> from coola import Summarizer
         >>> Summarizer.set_max_items(10)
         >>> summarizer = Summarizer()
@@ -310,10 +295,8 @@ class Summarizer(BaseSummarizer):
         Args:
             num_spaces: The number of spaces for indentation.
 
-        Example usage:
-
+        Example:
         ```pycon
-
         >>> from coola import Summarizer
         >>> Summarizer.set_num_spaces(4)
         >>> summarizer = Summarizer()
@@ -335,9 +318,6 @@ def set_summarizer_options(
 ) -> None:
     r"""Set the ``Summarizer`` options.
 
-    Note: It is recommended to use ``summarizer_options`` rather than
-    this function.
-
     Args:
         max_characters: The maximum number of characters
             to show. If ``None``, the maximum number of characters
@@ -348,8 +328,11 @@ def set_summarizer_options(
             If ``None``, the number of  spaces for indentation is
             unchanged.
 
-    Example usage:
+    Notes:
+        It  is recommended to use ``summarizer_options`` rather than
+            this function.
 
+    Example:
     ```pycon
 
     >>> from coola import set_summarizer_options, summary
@@ -385,8 +368,7 @@ def summarizer_options(**kwargs: Any) -> None:
         **kwargs: Accepted arguments are same as
             ``set_summarizer_options``.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola import summarizer_options, summary

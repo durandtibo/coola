@@ -16,8 +16,7 @@ def get_random_managers() -> dict[str, BaseRandomManager]:
     Returns:
         The mapping between the name and random managers.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.random import get_random_managers

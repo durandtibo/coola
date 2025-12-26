@@ -26,8 +26,7 @@ class NumpyRandomManager(BaseRandomManager):  # noqa: PLW1641
     operator to convert an integer to an integer between ``0`` and
     ``2**32 - 1``.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.random import NumpyRandomManager
@@ -65,8 +64,7 @@ def get_random_managers() -> dict[str, BaseRandomManager]:
     Returns:
         The mapping between the name and random managers.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.random.numpy_ import get_random_managers
@@ -92,8 +90,7 @@ def numpy_seed(seed: int) -> Generator[None]:
         seed: The random number generator seed to use while using
             this context manager.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import numpy

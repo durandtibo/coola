@@ -36,8 +36,7 @@ logger: logging.Logger = logging.getLogger(__name__)
 class PolarsDataFrameEqualityComparator(BaseEqualityComparator[pl.DataFrame]):  # noqa: PLW1641
     r"""Implement an equality comparator for ``polars.DataFrame``.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import polars as pl
@@ -80,8 +79,7 @@ class PolarsDataFrameEqualityComparator(BaseEqualityComparator[pl.DataFrame]):  
 class PolarsLazyFrameEqualityComparator(BaseEqualityComparator[pl.LazyFrame]):  # noqa: PLW1641
     r"""Implement an equality comparator for ``polars.LazyFrame``.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import polars as pl
@@ -124,8 +122,7 @@ class PolarsLazyFrameEqualityComparator(BaseEqualityComparator[pl.LazyFrame]):  
 class PolarsSeriesEqualityComparator(BaseEqualityComparator[pl.Series]):  # noqa: PLW1641
     r"""Implement an equality comparator for ``polars.Series``.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> import polars as pl
@@ -167,8 +164,7 @@ def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[A
     Returns:
         The mapping between the types and the equality comparators.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.equality.comparators.polars_ import get_type_comparator_mapping

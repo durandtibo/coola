@@ -24,8 +24,7 @@ def convert_to_dict_of_lists(
     Returns:
         A dictionary of lists.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.nested import convert_to_dict_of_lists
@@ -54,8 +53,7 @@ def convert_to_list_of_dicts(
     Returns:
         A dictionary of lists.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola.nested import convert_to_list_of_dicts

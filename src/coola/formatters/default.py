@@ -30,8 +30,7 @@ class DefaultFormatter(BaseFormatter[Any]):
             show. If a negative value is provided, all the characters
             are shown.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola import Summarizer
@@ -85,8 +84,7 @@ class DefaultFormatter(BaseFormatter[Any]):
         Returns:
             The maximum number of characters to show.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.formatters import DefaultFormatter
         >>> formatter = DefaultFormatter()
@@ -107,8 +105,7 @@ class DefaultFormatter(BaseFormatter[Any]):
         Raises:
             TypeError: if ``max_characters`` is not an integer.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.formatters import DefaultFormatter
         >>> formatter = DefaultFormatter()
@@ -138,8 +135,7 @@ class BaseCollectionFormatter(BaseFormatter[T]):
         num_spaces (int, optional): The number of spaces
             used for the indentation.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola import Summarizer
@@ -185,8 +181,7 @@ class BaseCollectionFormatter(BaseFormatter[T]):
         Returns:
             The maximum number of items to show.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.formatters import MappingFormatter
         >>> formatter = MappingFormatter()
@@ -206,8 +201,7 @@ class BaseCollectionFormatter(BaseFormatter[T]):
         Raises:
             TypeError: if ``max_items`` is not an integer.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.formatters import MappingFormatter
         >>> formatter = MappingFormatter()
@@ -228,8 +222,7 @@ class BaseCollectionFormatter(BaseFormatter[T]):
         Returns:
             The number of spaces for indentation.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.formatters import MappingFormatter
         >>> formatter = MappingFormatter()
@@ -250,8 +243,7 @@ class BaseCollectionFormatter(BaseFormatter[T]):
             TypeError: if ``num_spaces`` is not an integer.
             ValueError: if ``num_spaces`` is not a positive integer.
 
-        Example usage:
-
+        Example:
         ```pycon
         >>> from coola.formatters import MappingFormatter
         >>> formatter = MappingFormatter()
@@ -276,8 +268,7 @@ class BaseCollectionFormatter(BaseFormatter[T]):
 class MappingFormatter(BaseCollectionFormatter[Mapping[Any, Any]]):
     r"""Implement a formatter for ``Mapping``.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola import Summarizer
@@ -323,8 +314,7 @@ class MappingFormatter(BaseCollectionFormatter[Mapping[Any, Any]]):
 class SequenceFormatter(BaseCollectionFormatter[Sequence[Any]]):
     r"""Implement a formatter for ``Sequence``.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola import Summarizer
@@ -362,8 +352,7 @@ class SequenceFormatter(BaseCollectionFormatter[Sequence[Any]]):
 class SetFormatter(BaseCollectionFormatter[set[Hashable]]):
     r"""Implement a formatter for ``set``.
 
-    Example usage:
-
+    Example:
     ```pycon
 
     >>> from coola import Summarizer
