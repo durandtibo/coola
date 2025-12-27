@@ -63,26 +63,25 @@ class EqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     equal or not.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import math
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.handlers import EqualHandler
+        >>> from coola.equality.testers import EqualityTester
+        >>> class MyFloat:
+        ...     def __init__(self, value: float) -> None:
+        ...         self._value = value
+        ...     def equal(self, other: float) -> bool:
+        ...         return self._value == other
+        ...
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> handler = EqualHandler()
+        >>> handler.handle(MyFloat(42), 42, config)
+        True
+        >>> handler.handle(MyFloat(42), float("nan"), config)
+        False
 
-    >>> import math
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import EqualHandler
-    >>> from coola.equality.testers import EqualityTester
-    >>> class MyFloat:
-    ...     def __init__(self, value: float) -> None:
-    ...         self._value = value
-    ...     def equal(self, other: float) -> bool:
-    ...         return self._value == other
-    ...
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = EqualHandler()
-    >>> handler.handle(MyFloat(42), 42, config)
-    True
-    >>> handler.handle(MyFloat(42), float("nan"), config)
-    False
-
-    ```
+        ```
     """
 
     def __eq__(self, other: object) -> bool:
@@ -111,31 +110,30 @@ class EqualNanHandler(BaseEqualityHandler):  # noqa: PLW1641
     equal or not.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import math
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.handlers import EqualNanHandler
+        >>> from coola.equality.testers import EqualityTester
+        >>> class MyFloat:
+        ...     def __init__(self, value: float) -> None:
+        ...         self._value = value
+        ...     def equal(self, other: float, equal_nan: bool = False) -> bool:
+        ...         if equal_nan and math.isnan(self._value) and math.isnan(other):
+        ...             return True
+        ...         return self._value == other
+        ...
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> handler = EqualNanHandler()
+        >>> handler.handle(MyFloat(42), 42, config)
+        True
+        >>> handler.handle(MyFloat(float("nan")), float("nan"), config)
+        False
+        >>> config.equal_nan = True
+        >>> handler.handle(MyFloat(float("nan")), float("nan"), config)
+        True
 
-    >>> import math
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import EqualNanHandler
-    >>> from coola.equality.testers import EqualityTester
-    >>> class MyFloat:
-    ...     def __init__(self, value: float) -> None:
-    ...         self._value = value
-    ...     def equal(self, other: float, equal_nan: bool = False) -> bool:
-    ...         if equal_nan and math.isnan(self._value) and math.isnan(other):
-    ...             return True
-    ...         return self._value == other
-    ...
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = EqualNanHandler()
-    >>> handler.handle(MyFloat(42), 42, config)
-    True
-    >>> handler.handle(MyFloat(float("nan")), float("nan"), config)
-    False
-    >>> config.equal_nan = True
-    >>> handler.handle(MyFloat(float("nan")), float("nan"), config)
-    True
-
-    ```
+        ```
     """
 
     def __eq__(self, other: object) -> bool:

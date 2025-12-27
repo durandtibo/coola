@@ -37,28 +37,27 @@ class PolarsDataFrameEqualityComparator(BaseEqualityComparator[pl.DataFrame]):  
     r"""Implement an equality comparator for ``polars.DataFrame``.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import polars as pl
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.comparators import PolarsDataFrameEqualityComparator
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> comparator = PolarsDataFrameEqualityComparator()
+        >>> comparator.equal(
+        ...     pl.DataFrame({"col": [1, 2, 3]}),
+        ...     pl.DataFrame({"col": [1, 2, 3]}),
+        ...     config,
+        ... )
+        True
+        >>> comparator.equal(
+        ...     pl.DataFrame({"col": [1, 2, 3]}),
+        ...     pl.DataFrame({"col": [1, 2, 4]}),
+        ...     config,
+        ... )
+        False
 
-    >>> import polars as pl
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.comparators import PolarsDataFrameEqualityComparator
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> comparator = PolarsDataFrameEqualityComparator()
-    >>> comparator.equal(
-    ...     pl.DataFrame({"col": [1, 2, 3]}),
-    ...     pl.DataFrame({"col": [1, 2, 3]}),
-    ...     config,
-    ... )
-    True
-    >>> comparator.equal(
-    ...     pl.DataFrame({"col": [1, 2, 3]}),
-    ...     pl.DataFrame({"col": [1, 2, 4]}),
-    ...     config,
-    ... )
-    False
-
-    ```
+        ```
     """
 
     def __init__(self) -> None:
@@ -80,28 +79,27 @@ class PolarsLazyFrameEqualityComparator(BaseEqualityComparator[pl.LazyFrame]):  
     r"""Implement an equality comparator for ``polars.LazyFrame``.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import polars as pl
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.comparators import PolarsLazyFrameEqualityComparator
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> comparator = PolarsLazyFrameEqualityComparator()
+        >>> comparator.equal(
+        ...     pl.LazyFrame({"col": [1, 2, 3]}),
+        ...     pl.LazyFrame({"col": [1, 2, 3]}),
+        ...     config,
+        ... )
+        True
+        >>> comparator.equal(
+        ...     pl.LazyFrame({"col": [1, 2, 3]}),
+        ...     pl.LazyFrame({"col": [1, 2, 4]}),
+        ...     config,
+        ... )
+        False
 
-    >>> import polars as pl
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.comparators import PolarsLazyFrameEqualityComparator
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> comparator = PolarsLazyFrameEqualityComparator()
-    >>> comparator.equal(
-    ...     pl.LazyFrame({"col": [1, 2, 3]}),
-    ...     pl.LazyFrame({"col": [1, 2, 3]}),
-    ...     config,
-    ... )
-    True
-    >>> comparator.equal(
-    ...     pl.LazyFrame({"col": [1, 2, 3]}),
-    ...     pl.LazyFrame({"col": [1, 2, 4]}),
-    ...     config,
-    ... )
-    False
-
-    ```
+        ```
     """
 
     def __init__(self) -> None:
@@ -123,20 +121,19 @@ class PolarsSeriesEqualityComparator(BaseEqualityComparator[pl.Series]):  # noqa
     r"""Implement an equality comparator for ``polars.Series``.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import polars as pl
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.comparators import PolarsSeriesEqualityComparator
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> comparator = PolarsSeriesEqualityComparator()
+        >>> comparator.equal(pl.Series([1, 2, 3]), pl.Series([1, 2, 3]), config)
+        True
+        >>> comparator.equal(pl.Series([1, 2, 3]), pl.Series([1, 2, 4]), config)
+        False
 
-    >>> import polars as pl
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.comparators import PolarsSeriesEqualityComparator
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> comparator = PolarsSeriesEqualityComparator()
-    >>> comparator.equal(pl.Series([1, 2, 3]), pl.Series([1, 2, 3]), config)
-    True
-    >>> comparator.equal(pl.Series([1, 2, 3]), pl.Series([1, 2, 4]), config)
-    False
-
-    ```
+        ```
     """
 
     def __init__(self) -> None:
@@ -165,14 +162,13 @@ def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[A
         The mapping between the types and the equality comparators.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality.comparators.polars_ import get_type_comparator_mapping
+        >>> get_type_comparator_mapping()
+        {<class 'polars...DataFrame'>: PolarsDataFrameEqualityComparator(),
+         <class 'polars...Series'>: PolarsSeriesEqualityComparator()}
 
-    >>> from coola.equality.comparators.polars_ import get_type_comparator_mapping
-    >>> get_type_comparator_mapping()
-    {<class 'polars...DataFrame'>: PolarsDataFrameEqualityComparator(),
-     <class 'polars...Series'>: PolarsSeriesEqualityComparator()}
-
-    ```
+        ```
     """
     if not is_polars_available():
         return {}

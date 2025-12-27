@@ -25,19 +25,18 @@ class ScalarEqualityComparator(BaseEqualityComparator[Any]):  # noqa: PLW1641
     r"""Implement a default equality comparator.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.comparators import ScalarEqualityComparator
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> comparator = ScalarEqualityComparator()
+        >>> comparator.equal(42.0, 42.0, config)
+        True
+        >>> comparator.equal(42.0, 1.0, config)
+        False
 
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.comparators import ScalarEqualityComparator
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> comparator = ScalarEqualityComparator()
-    >>> comparator.equal(42.0, 42.0, config)
-    True
-    >>> comparator.equal(42.0, 1.0, config)
-    False
-
-    ```
+        ```
     """
 
     def __init__(self) -> None:
@@ -61,13 +60,12 @@ def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[A
         The mapping between the types and the equality comparators.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality.comparators.scalar import get_type_comparator_mapping
+        >>> get_type_comparator_mapping()
+        {<class 'float'>: ScalarEqualityComparator(), <class 'int'>: ScalarEqualityComparator()}
 
-    >>> from coola.equality.comparators.scalar import get_type_comparator_mapping
-    >>> get_type_comparator_mapping()
-    {<class 'float'>: ScalarEqualityComparator(), <class 'int'>: ScalarEqualityComparator()}
-
-    ```
+        ```
     """
     cmp = ScalarEqualityComparator()
     return {float: cmp, int: cmp}

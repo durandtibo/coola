@@ -25,15 +25,14 @@ def convert_to_dict_of_lists(
         A dictionary of lists.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.nested import convert_to_dict_of_lists
+        >>> convert_to_dict_of_lists(
+        ...     [{"key1": 1, "key2": 10}, {"key1": 2, "key2": 20}, {"key1": 3, "key2": 30}]
+        ... )
+        {'key1': [1, 2, 3], 'key2': [10, 20, 30]}
 
-    >>> from coola.nested import convert_to_dict_of_lists
-    >>> convert_to_dict_of_lists(
-    ...     [{"key1": 1, "key2": 10}, {"key1": 2, "key2": 20}, {"key1": 3, "key2": 30}]
-    ... )
-    {'key1': [1, 2, 3], 'key2': [10, 20, 30]}
-
-    ```
+        ```
     """
     if seq_of_mappings:
         return {key: [dic[key] for dic in seq_of_mappings] for key in seq_of_mappings[0]}
@@ -54,12 +53,11 @@ def convert_to_list_of_dicts(
         A dictionary of lists.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.nested import convert_to_list_of_dicts
+        >>> convert_to_list_of_dicts({"key1": [1, 2, 3], "key2": [10, 20, 30]})
+        [{'key1': 1, 'key2': 10}, {'key1': 2, 'key2': 20}, {'key1': 3, 'key2': 30}]
 
-    >>> from coola.nested import convert_to_list_of_dicts
-    >>> convert_to_list_of_dicts({"key1": [1, 2, 3], "key2": [10, 20, 30]})
-    [{'key1': 1, 'key2': 10}, {'key1': 2, 'key2': 20}, {'key1': 3, 'key2': 30}]
-
-    ```
+        ```
     """
     return [dict(zip(mapping_of_seqs, seqs)) for seqs in zip(*mapping_of_seqs.values())]

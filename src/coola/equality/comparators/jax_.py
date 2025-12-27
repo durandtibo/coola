@@ -34,20 +34,19 @@ class JaxArrayEqualityComparator(BaseEqualityComparator[jnp.ndarray]):  # noqa: 
     r"""Implement an equality comparator for ``jax.numpy.ndarray``.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import jax.numpy as jnp
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.comparators import JaxArrayEqualityComparator
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> comparator = JaxArrayEqualityComparator()
+        >>> comparator.equal(jnp.ones((2, 3)), jnp.ones((2, 3)), config)
+        True
+        >>> comparator.equal(jnp.ones((2, 3)), jnp.zeros((2, 3)), config)
+        False
 
-    >>> import jax.numpy as jnp
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.comparators import JaxArrayEqualityComparator
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> comparator = JaxArrayEqualityComparator()
-    >>> comparator.equal(jnp.ones((2, 3)), jnp.ones((2, 3)), config)
-    True
-    >>> comparator.equal(jnp.ones((2, 3)), jnp.zeros((2, 3)), config)
-    False
-
-    ```
+        ```
     """
 
     def __init__(self) -> None:
@@ -78,14 +77,13 @@ def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[A
         The mapping between the types and the equality comparators.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality.comparators.jax_ import get_type_comparator_mapping
+        >>> get_type_comparator_mapping()
+        {<class 'jax.Array'>: JaxArrayEqualityComparator(),
+         <class 'jaxlib...ArrayImpl'>: JaxArrayEqualityComparator()}
 
-    >>> from coola.equality.comparators.jax_ import get_type_comparator_mapping
-    >>> get_type_comparator_mapping()
-    {<class 'jax.Array'>: JaxArrayEqualityComparator(),
-     <class 'jaxlib...ArrayImpl'>: JaxArrayEqualityComparator()}
-
-    ```
+        ```
     """
     if not is_jax_available():
         return {}

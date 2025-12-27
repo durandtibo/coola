@@ -33,19 +33,18 @@ class FalseHandler(BaseEqualityHandler):  # noqa: PLW1641
     responsibility. This handler does not call the next handler.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.handlers import FalseHandler
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> handler = FalseHandler()
+        >>> handler.handle("abc", "abc", config)
+        False
+        >>> handler.handle("abc", "ABC", config)
+        False
 
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import FalseHandler
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = FalseHandler()
-    >>> handler.handle("abc", "abc", config)
-    False
-    >>> handler.handle("abc", "ABC", config)
-    False
-
-    ```
+        ```
     """
 
     def __eq__(self, other: object) -> bool:
@@ -73,19 +72,18 @@ class TrueHandler(BaseEqualityHandler):  # noqa: PLW1641
     responsibility. This handler does not call the next handler.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.handlers import TrueHandler
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> handler = TrueHandler()
+        >>> handler.handle("abc", "abc", config)
+        True
+        >>> handler.handle("abc", "ABC", config)
+        True
 
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import TrueHandler
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = TrueHandler()
-    >>> handler.handle("abc", "abc", config)
-    True
-    >>> handler.handle("abc", "ABC", config)
-    True
-
-    ```
+        ```
     """
 
     def __eq__(self, other: object) -> bool:
@@ -116,19 +114,18 @@ class ObjectEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     not call the next handler.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.handlers import ObjectEqualHandler
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> handler = ObjectEqualHandler()
+        >>> handler.handle(1, 1, config)
+        True
+        >>> handler.handle(1, "abc", config)
+        False
 
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import ObjectEqualHandler
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = ObjectEqualHandler()
-    >>> handler.handle(1, 1, config)
-    True
-    >>> handler.handle(1, "abc", config)
-    False
-
-    ```
+        ```
     """
 
     def __eq__(self, other: object) -> bool:
@@ -160,20 +157,19 @@ class SameAttributeHandler(AbstractEqualityHandler):  # noqa: PLW1641
     The objects must have the attribute.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import numpy as np
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.handlers import SameAttributeHandler, TrueHandler
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> handler = SameAttributeHandler(name="shape", next_handler=TrueHandler())
+        >>> handler.handle(np.ones((2, 3)), np.ones((2, 3)), config)
+        True
+        >>> handler.handle(np.ones((2, 3)), np.ones((3, 2)), config)
+        False
 
-    >>> import numpy as np
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import SameAttributeHandler, TrueHandler
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = SameAttributeHandler(name="shape", next_handler=TrueHandler())
-    >>> handler.handle(np.ones((2, 3)), np.ones((2, 3)), config)
-    True
-    >>> handler.handle(np.ones((2, 3)), np.ones((3, 2)), config)
-    False
-
-    ```
+        ```
     """
 
     def __init__(self, name: str, next_handler: BaseEqualityHandler | None = None) -> None:
@@ -213,17 +209,16 @@ class SameLengthHandler(AbstractEqualityHandler):  # noqa: PLW1641
     lengths, otherwise it passes the inputs to the next handler.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.handlers import SameLengthHandler
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> handler = SameLengthHandler()
+        >>> handler.handle([1, 2, 3], [1, 2, 3, 4], config)
+        False
 
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import SameLengthHandler
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = SameLengthHandler()
-    >>> handler.handle([1, 2, 3], [1, 2, 3, 4], config)
-    False
-
-    ```
+        ```
     """
 
     def __eq__(self, other: object) -> bool:
@@ -249,17 +244,16 @@ class SameObjectHandler(AbstractEqualityHandler):  # noqa: PLW1641
     same object, otherwise it passes the inputs to the next handler.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.handlers import SameObjectHandler
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> handler = SameObjectHandler()
+        >>> handler.handle("abc", "abc", config)
+        True
 
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import SameObjectHandler
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = SameObjectHandler()
-    >>> handler.handle("abc", "abc", config)
-    True
-
-    ```
+        ```
     """
 
     def __eq__(self, other: object) -> bool:
@@ -283,17 +277,16 @@ class SameTypeHandler(AbstractEqualityHandler):  # noqa: PLW1641
     types, otherwise it passes the inputs to the next handler.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.handlers import SameTypeHandler
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> handler = SameTypeHandler()
+        >>> handler.handle(1, "abc", config)
+        False
 
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import SameTypeHandler
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = SameTypeHandler()
-    >>> handler.handle(1, "abc", config)
-    False
-
-    ```
+        ```
     """
 
     def __eq__(self, other: object) -> bool:

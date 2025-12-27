@@ -28,16 +28,15 @@ class TensorFormatter(BaseFormatter[torch.Tensor]):
             the returned string only contains the tensor metadata.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import torch
+        >>> from coola import Summarizer
+        >>> from coola.formatters import TensorFormatter
+        >>> formatter = TensorFormatter()
+        >>> formatter.format(Summarizer(), torch.arange(21))
+        <class 'torch.Tensor'> | shape=torch.Size([21]) | dtype=torch.int64 | device=cpu
 
-    >>> import torch
-    >>> from coola import Summarizer
-    >>> from coola.formatters import TensorFormatter
-    >>> formatter = TensorFormatter()
-    >>> formatter.format(Summarizer(), torch.arange(21))
-    <class 'torch.Tensor'> | shape=torch.Size([21]) | dtype=torch.int64 | device=cpu
-
-    ```
+        ```
     """
 
     def __init__(self, show_data: bool = False) -> None:
@@ -87,13 +86,13 @@ class TensorFormatter(BaseFormatter[torch.Tensor]):
                 ``False`` if the tensor metadata are shown.
 
         Example:
-        ```pycon
-        >>> from coola.formatters import TensorFormatter
-        >>> formatter = TensorFormatter()
-        >>> formatter.get_show_data()
-        False
+            ```pycon
+            >>> from coola.formatters import TensorFormatter
+            >>> formatter = TensorFormatter()
+            >>> formatter.get_show_data()
+            False
 
-        ```
+            ```
         """
         return self._show_data
 
@@ -108,14 +107,14 @@ class TensorFormatter(BaseFormatter[torch.Tensor]):
             TypeError: if ``show_data`` is not an boolean.
 
         Example:
-        ```pycon
-        >>> from coola.formatters import TensorFormatter
-        >>> formatter = TensorFormatter()
-        >>> formatter.set_show_data(True)
-        >>> formatter.get_show_data()
-        True
+            ```pycon
+            >>> from coola.formatters import TensorFormatter
+            >>> formatter = TensorFormatter()
+            >>> formatter.set_show_data(True)
+            >>> formatter.get_show_data()
+            True
 
-        ```
+            ```
         """
         if not isinstance(show_data, bool):
             msg = f"Incorrect type for show_data. Expected bool value but received {show_data}"

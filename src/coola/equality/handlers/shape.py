@@ -41,20 +41,19 @@ class SameShapeHandler(AbstractEqualityHandler):  # noqa: PLW1641
     ``polars.DataFrame`` and ``torch.Tensor``s objects.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import numpy as np
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.handlers import SameShapeHandler, TrueHandler
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> handler = SameShapeHandler(next_handler=TrueHandler())
+        >>> handler.handle(np.ones((2, 3)), np.ones((2, 3)), config)
+        True
+        >>> handler.handle(np.ones((2, 3)), np.ones((3, 2)), config)
+        False
 
-    >>> import numpy as np
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import SameShapeHandler, TrueHandler
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = SameShapeHandler(next_handler=TrueHandler())
-    >>> handler.handle(np.ones((2, 3)), np.ones((2, 3)), config)
-    True
-    >>> handler.handle(np.ones((2, 3)), np.ones((3, 2)), config)
-    False
-
-    ```
+        ```
     """
 
     def __eq__(self, other: object) -> bool:

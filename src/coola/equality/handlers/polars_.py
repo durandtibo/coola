@@ -35,28 +35,27 @@ class PolarsDataFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     not call the next handler.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import polars as pl
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.handlers import PolarsDataFrameEqualHandler
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> handler = PolarsDataFrameEqualHandler()
+        >>> handler.handle(
+        ...     pl.DataFrame({"col": [1, 2, 3]}),
+        ...     pl.DataFrame({"col": [1, 2, 3]}),
+        ...     config,
+        ... )
+        True
+        >>> handler.handle(
+        ...     pl.DataFrame({"col": [1, 2, 3]}),
+        ...     pl.DataFrame({"col": [1, 2, 4]}),
+        ...     config,
+        ... )
+        False
 
-    >>> import polars as pl
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import PolarsDataFrameEqualHandler
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = PolarsDataFrameEqualHandler()
-    >>> handler.handle(
-    ...     pl.DataFrame({"col": [1, 2, 3]}),
-    ...     pl.DataFrame({"col": [1, 2, 3]}),
-    ...     config,
-    ... )
-    True
-    >>> handler.handle(
-    ...     pl.DataFrame({"col": [1, 2, 3]}),
-    ...     pl.DataFrame({"col": [1, 2, 4]}),
-    ...     config,
-    ... )
-    False
-
-    ```
+        ```
     """
 
     def __eq__(self, other: object) -> bool:
@@ -92,28 +91,27 @@ class PolarsLazyFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     not call the next handler.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import polars as pl
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.handlers import PolarsLazyFrameEqualHandler
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> handler = PolarsLazyFrameEqualHandler()
+        >>> handler.handle(
+        ...     pl.LazyFrame({"col": [1, 2, 3]}),
+        ...     pl.LazyFrame({"col": [1, 2, 3]}),
+        ...     config,
+        ... )
+        True
+        >>> handler.handle(
+        ...     pl.LazyFrame({"col": [1, 2, 3]}),
+        ...     pl.LazyFrame({"col": [1, 2, 4]}),
+        ...     config,
+        ... )
+        False
 
-    >>> import polars as pl
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import PolarsLazyFrameEqualHandler
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = PolarsLazyFrameEqualHandler()
-    >>> handler.handle(
-    ...     pl.LazyFrame({"col": [1, 2, 3]}),
-    ...     pl.LazyFrame({"col": [1, 2, 3]}),
-    ...     config,
-    ... )
-    True
-    >>> handler.handle(
-    ...     pl.LazyFrame({"col": [1, 2, 3]}),
-    ...     pl.LazyFrame({"col": [1, 2, 4]}),
-    ...     config,
-    ... )
-    False
-
-    ```
+        ```
     """
 
     def __eq__(self, other: object) -> bool:
@@ -149,20 +147,19 @@ class PolarsSeriesEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     not call the next handler.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import polars as pl
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.handlers import PolarsSeriesEqualHandler
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> handler = PolarsSeriesEqualHandler()
+        >>> handler.handle(pl.Series([1, 2, 3]), pl.Series([1, 2, 3]), config)
+        True
+        >>> handler.handle(pl.Series([1, 2, 3]), pl.Series([1, 2, 4]), config)
+        False
 
-    >>> import polars as pl
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import PolarsSeriesEqualHandler
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = PolarsSeriesEqualHandler()
-    >>> handler.handle(pl.Series([1, 2, 3]), pl.Series([1, 2, 3]), config)
-    True
-    >>> handler.handle(pl.Series([1, 2, 3]), pl.Series([1, 2, 4]), config)
-    False
-
-    ```
+        ```
     """
 
     def __eq__(self, other: object) -> bool:

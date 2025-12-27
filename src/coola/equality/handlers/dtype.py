@@ -40,20 +40,19 @@ class SameDTypeHandler(AbstractEqualityHandler):  # noqa: PLW1641
     ``numpy.ndarray``s and ``torch.Tensor``s objects.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import numpy as np
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.handlers import SameDTypeHandler, TrueHandler
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> handler = SameDTypeHandler(next_handler=TrueHandler())
+        >>> handler.handle(np.ones((2, 3)), np.ones((2, 3)), config)
+        True
+        >>> handler.handle(np.ones((2, 3), dtype=float), np.ones((2, 3), dtype=int), config)
+        False
 
-    >>> import numpy as np
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import SameDTypeHandler, TrueHandler
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = SameDTypeHandler(next_handler=TrueHandler())
-    >>> handler.handle(np.ones((2, 3)), np.ones((2, 3)), config)
-    True
-    >>> handler.handle(np.ones((2, 3), dtype=float), np.ones((2, 3), dtype=int), config)
-    False
-
-    ```
+        ```
     """
 
     def __eq__(self, other: object) -> bool:

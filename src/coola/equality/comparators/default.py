@@ -27,19 +27,18 @@ class DefaultEqualityComparator(BaseEqualityComparator[Any]):  # noqa: PLW1641
     objects.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.comparators import DefaultEqualityComparator
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> comparator = DefaultEqualityComparator()
+        >>> comparator.equal(42, 42, config)
+        True
+        >>> comparator.equal("meow", "meov", config)
+        False
 
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.comparators import DefaultEqualityComparator
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> comparator = DefaultEqualityComparator()
-    >>> comparator.equal(42, 42, config)
-    True
-    >>> comparator.equal("meow", "meov", config)
-    False
-
-    ```
+        ```
     """
 
     def __init__(self) -> None:
@@ -64,12 +63,11 @@ def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[A
         The mapping between the types and the equality comparators.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality.comparators.default import get_type_comparator_mapping
+        >>> get_type_comparator_mapping()
+        {<class 'object'>: DefaultEqualityComparator()}
 
-    >>> from coola.equality.comparators.default import get_type_comparator_mapping
-    >>> get_type_comparator_mapping()
-    {<class 'object'>: DefaultEqualityComparator()}
-
-    ```
+        ```
     """
     return {object: DefaultEqualityComparator()}

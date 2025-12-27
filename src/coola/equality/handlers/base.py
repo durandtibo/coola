@@ -22,20 +22,19 @@ class BaseEqualityHandler(ABC):
     - ``set_next_handler``
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.handlers import SameObjectHandler, FalseHandler
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> handler = SameObjectHandler()
+        >>> handler.set_next_handler(FalseHandler())
+        >>> handler.handle("abc", "abc", config)
+        True
+        >>> handler.handle("abc", "ABC", config)
+        False
 
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import SameObjectHandler, FalseHandler
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = SameObjectHandler()
-    >>> handler.set_next_handler(FalseHandler())
-    >>> handler.handle("abc", "abc", config)
-    True
-    >>> handler.handle("abc", "ABC", config)
-    False
-
-    ```
+        ```
     """
 
     def chain(self, handler: BaseEqualityHandler) -> BaseEqualityHandler:
@@ -48,21 +47,21 @@ class BaseEqualityHandler(ABC):
             The input handler.
 
         Example:
-        ```pycon
-        >>> from coola.equality import EqualityConfig
-        >>> from coola.equality.handlers import (
-        ...     SameObjectHandler,
-        ...     SameTypeHandler,
-        ...     ObjectEqualHandler,
-        ... )
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
-        >>> handler = SameObjectHandler()
-        >>> handler.chain(SameTypeHandler()).chain(ObjectEqualHandler())
-        >>> handler.handle([1, 2, 3], [1, 2, 3], config)
-        True
+            ```pycon
+            >>> from coola.equality import EqualityConfig
+            >>> from coola.equality.handlers import (
+            ...     SameObjectHandler,
+            ...     SameTypeHandler,
+            ...     ObjectEqualHandler,
+            ... )
+            >>> from coola.equality.testers import EqualityTester
+            >>> config = EqualityConfig(tester=EqualityTester())
+            >>> handler = SameObjectHandler()
+            >>> handler.chain(SameTypeHandler()).chain(ObjectEqualHandler())
+            >>> handler.handle([1, 2, 3], [1, 2, 3], config)
+            True
 
-        ```
+            ```
         """
         self.set_next_handler(handler)
         return handler
@@ -81,16 +80,16 @@ class BaseEqualityHandler(ABC):
                 otherwise.
 
         Example:
-        ```pycon
-        >>> from coola.equality import EqualityConfig
-        >>> from coola.equality.handlers import SameObjectHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
-        >>> handler = SameObjectHandler()
-        >>> handler.handle("abc", "abc", config)
-        True
+            ```pycon
+            >>> from coola.equality import EqualityConfig
+            >>> from coola.equality.handlers import SameObjectHandler
+            >>> from coola.equality.testers import EqualityTester
+            >>> config = EqualityConfig(tester=EqualityTester())
+            >>> handler = SameObjectHandler()
+            >>> handler.handle("abc", "abc", config)
+            True
 
-        ```
+            ```
         """
 
     @abstractmethod
@@ -101,12 +100,12 @@ class BaseEqualityHandler(ABC):
             handler: The next handler.
 
         Example:
-        ```pycon
-        >>> from coola.equality.handlers import SameObjectHandler, TrueHandler
-        >>> handler = SameObjectHandler()
-        >>> handler.set_next_handler(TrueHandler())
+            ```pycon
+            >>> from coola.equality.handlers import SameObjectHandler, TrueHandler
+            >>> handler = SameObjectHandler()
+            >>> handler.set_next_handler(TrueHandler())
 
-        ```
+            ```
         """
 
 

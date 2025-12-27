@@ -26,19 +26,18 @@ class SequenceSameValuesHandler(AbstractEqualityHandler):  # noqa: PLW1641
     checks only the values of the shortest sequence.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.handlers import SequenceSameValuesHandler, TrueHandler
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> handler = SequenceSameValuesHandler(next_handler=TrueHandler())
+        >>> handler.handle([1, 2, 3], [1, 2, 3], config)
+        True
+        >>> handler.handle([1, 2, 3], [1, 2, 4], config)
+        False
 
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import SequenceSameValuesHandler, TrueHandler
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = SequenceSameValuesHandler(next_handler=TrueHandler())
-    >>> handler.handle([1, 2, 3], [1, 2, 3], config)
-    True
-    >>> handler.handle([1, 2, 3], [1, 2, 4], config)
-    False
-
-    ```
+        ```
     """
 
     def __eq__(self, other: object) -> bool:
