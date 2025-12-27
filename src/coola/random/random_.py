@@ -16,13 +16,12 @@ class RandomRandomManager(BaseRandomManager):  # noqa: PLW1641
     ``random``.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.random import RandomRandomManager
+        >>> manager = RandomRandomManager()
+        >>> manager.manual_seed(42)
 
-    >>> from coola.random import RandomRandomManager
-    >>> manager = RandomRandomManager()
-    >>> manager.manual_seed(42)
-
-    ```
+        ```
     """
 
     def __eq__(self, other: object) -> bool:
@@ -48,12 +47,11 @@ def get_random_managers() -> dict[str, BaseRandomManager]:
         The mapping between the name and random managers.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.random.random_ import get_random_managers
+        >>> get_random_managers()
+        {'random': RandomRandomManager()}
 
-    >>> from coola.random.random_ import get_random_managers
-    >>> get_random_managers()
-    {'random': RandomRandomManager()}
-
-    ```
+        ```
     """
     return {"random": RandomRandomManager()}

@@ -30,18 +30,17 @@ class TorchReducer(BaseBasicReducer[T]):
         RuntimeError: if ``torch`` is not installed.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.reducers import TorchReducer
+        >>> reducer = TorchReducer()
+        >>> reducer.max([-2, -1, 0, 1, 2])
+        2
+        >>> reducer.median([-2, -1, 0, 1, 2])
+        0
+        >>> reducer.sort([2, 1, -2, 3, 0])
+        [-2, 0, 1, 2, 3]
 
-    >>> from coola.reducers import TorchReducer
-    >>> reducer = TorchReducer()
-    >>> reducer.max([-2, -1, 0, 1, 2])
-    2
-    >>> reducer.median([-2, -1, 0, 1, 2])
-    0
-    >>> reducer.sort([2, 1, -2, 3, 0])
-    [-2, 0, 1, 2, 3]
-
-    ```
+        ```
     """
 
     def __init__(self) -> None:

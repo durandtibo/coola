@@ -4,7 +4,7 @@ from __future__ import annotations
 
 __all__ = ["BaseSummarizer", "Summarizer", "summarizer_options"]
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Generator, Mapping, Sequence
 from contextlib import contextmanager
 from typing import Any, ClassVar, TypeVar
 
@@ -355,7 +355,7 @@ def set_summarizer_options(
 
 
 @contextmanager
-def summarizer_options(**kwargs: Any) -> None:
+def summarizer_options(**kwargs: Any) -> Generator[None, None, None]:
     r"""Context manager that temporarily changes the summarizer options.
 
     Accepted arguments are same as ``set_summarizer_options``.

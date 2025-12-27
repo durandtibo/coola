@@ -17,13 +17,12 @@ def get_random_managers() -> dict[str, BaseRandomManager]:
         The mapping between the name and random managers.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.random import get_random_managers
+        >>> get_random_managers()
+        {'random': RandomRandomManager()...}
 
-    >>> from coola.random import get_random_managers
-    >>> get_random_managers()
-    {'random': RandomRandomManager()...}
-
-    ```
+        ```
     """
     # Local import to avoid cyclic dependencies
     from coola import random  # noqa: PLC0415
