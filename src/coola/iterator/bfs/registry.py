@@ -317,7 +317,8 @@ class ChildFinderRegistry:
             is_container = isinstance(current, (Mapping, Iterable)) and not isinstance(
                 current, (str, bytes)
             )
-            if is_container:
-                queue.extend(self.find_children(current))
+            children = list(self.find_children(current))
+            if is_container or children:
+                queue.extend(children)
             else:
                 yield current
