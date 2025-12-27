@@ -31,19 +31,18 @@ class MappingEqualityComparator(BaseEqualityComparator[Mapping[Any, Any]]):  # n
     r"""Implement a sequence equality comparator.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.comparators import MappingEqualityComparator
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> comparator = MappingEqualityComparator()
+        >>> comparator.equal({"a": 1, "b": 2}, {"a": 1, "b": 2}, config)
+        True
+        >>> comparator.equal({"a": 1, "b": 2}, {"a": 1, "b": 4}, config)
+        False
 
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.comparators import MappingEqualityComparator
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> comparator = MappingEqualityComparator()
-    >>> comparator.equal({"a": 1, "b": 2}, {"a": 1, "b": 2}, config)
-    True
-    >>> comparator.equal({"a": 1, "b": 2}, {"a": 1, "b": 4}, config)
-    False
-
-    ```
+        ```
     """
 
     def __init__(self) -> None:
@@ -68,19 +67,18 @@ class SequenceEqualityComparator(BaseEqualityComparator[Sequence[Any]]):  # noqa
     r"""Implement a sequence equality comparator.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.comparators import SequenceEqualityComparator
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> comparator = SequenceEqualityComparator()
+        >>> comparator.equal([1, 2, 3], [1, 2, 3], config)
+        True
+        >>> comparator.equal([1, 2, 3], [1, 2, 4], config)
+        False
 
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.comparators import SequenceEqualityComparator
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> comparator = SequenceEqualityComparator()
-    >>> comparator.equal([1, 2, 3], [1, 2, 3], config)
-    True
-    >>> comparator.equal([1, 2, 3], [1, 2, 4], config)
-    False
-
-    ```
+        ```
     """
 
     def __init__(self) -> None:
@@ -106,18 +104,17 @@ def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[A
         The mapping between the types and the equality comparators.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality.comparators.collection import get_type_comparator_mapping
+        >>> get_type_comparator_mapping()
+        {<class 'collections.abc.Mapping'>: MappingEqualityComparator(),
+         <class 'collections.abc.Sequence'>: SequenceEqualityComparator(),
+         <class 'collections.deque'>: SequenceEqualityComparator(),
+         <class 'dict'>: MappingEqualityComparator(),
+         <class 'list'>: SequenceEqualityComparator(),
+         <class 'tuple'>: SequenceEqualityComparator()}
 
-    >>> from coola.equality.comparators.collection import get_type_comparator_mapping
-    >>> get_type_comparator_mapping()
-    {<class 'collections.abc.Mapping'>: MappingEqualityComparator(),
-     <class 'collections.abc.Sequence'>: SequenceEqualityComparator(),
-     <class 'collections.deque'>: SequenceEqualityComparator(),
-     <class 'dict'>: MappingEqualityComparator(),
-     <class 'list'>: SequenceEqualityComparator(),
-     <class 'tuple'>: SequenceEqualityComparator()}
-
-    ```
+        ```
     """
     map_cmp = MappingEqualityComparator()
     seq_cmp = SequenceEqualityComparator()

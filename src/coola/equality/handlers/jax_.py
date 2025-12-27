@@ -30,20 +30,19 @@ class JaxArrayEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     not call the next handler.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import jax.numpy as jnp
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.handlers import JaxArrayEqualHandler
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> handler = JaxArrayEqualHandler()
+        >>> handler.handle(jnp.ones((2, 3)), jnp.ones((2, 3)), config)
+        True
+        >>> handler.handle(jnp.ones((2, 3)), jnp.zeros((2, 3)), config)
+        False
 
-    >>> import jax.numpy as jnp
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import JaxArrayEqualHandler
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = JaxArrayEqualHandler()
-    >>> handler.handle(jnp.ones((2, 3)), jnp.ones((2, 3)), config)
-    True
-    >>> handler.handle(jnp.ones((2, 3)), jnp.zeros((2, 3)), config)
-    False
-
-    ```
+        ```
     """
 
     def __eq__(self, other: object) -> bool:

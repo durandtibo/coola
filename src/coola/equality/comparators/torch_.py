@@ -45,20 +45,19 @@ class TorchPackedSequenceEqualityComparator(  # noqa: PLW1641
     r"""Implement an equality comparator for ``torch.Tensor``.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import torch
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.comparators import TorchPackedSequenceEqualityComparator
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> comparator = TorchTensorEqualityComparator()
+        >>> comparator.equal(torch.ones(2, 3), torch.ones(2, 3), config)
+        True
+        >>> comparator.equal(torch.ones(2, 3), torch.zeros(2, 3), config)
+        False
 
-    >>> import torch
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.comparators import TorchPackedSequenceEqualityComparator
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> comparator = TorchTensorEqualityComparator()
-    >>> comparator.equal(torch.ones(2, 3), torch.ones(2, 3), config)
-    True
-    >>> comparator.equal(torch.ones(2, 3), torch.zeros(2, 3), config)
-    False
-
-    ```
+        ```
     """
 
     def __init__(self) -> None:
@@ -86,20 +85,19 @@ class TorchTensorEqualityComparator(BaseEqualityComparator[torch.Tensor]):  # no
     r"""Implement an equality comparator for ``torch.Tensor``.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import torch
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.comparators import TorchTensorEqualityComparator
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> comparator = TorchTensorEqualityComparator()
+        >>> comparator.equal(torch.ones(2, 3), torch.ones(2, 3), config)
+        True
+        >>> comparator.equal(torch.ones(2, 3), torch.zeros(2, 3), config)
+        False
 
-    >>> import torch
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.comparators import TorchTensorEqualityComparator
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> comparator = TorchTensorEqualityComparator()
-    >>> comparator.equal(torch.ones(2, 3), torch.ones(2, 3), config)
-    True
-    >>> comparator.equal(torch.ones(2, 3), torch.zeros(2, 3), config)
-    False
-
-    ```
+        ```
     """
 
     def __init__(self) -> None:
@@ -130,14 +128,13 @@ def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[A
         The mapping between the types and the equality comparators.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality.comparators.torch_ import get_type_comparator_mapping
+        >>> get_type_comparator_mapping()
+        {<class 'torch.nn.utils.rnn.PackedSequence'>: TorchPackedSequenceEqualityComparator(),
+         <class 'torch.Tensor'>: TorchTensorEqualityComparator()}
 
-    >>> from coola.equality.comparators.torch_ import get_type_comparator_mapping
-    >>> get_type_comparator_mapping()
-    {<class 'torch.nn.utils.rnn.PackedSequence'>: TorchPackedSequenceEqualityComparator(),
-     <class 'torch.Tensor'>: TorchTensorEqualityComparator()}
-
-    ```
+        ```
     """
     if not is_torch_available():
         return {}

@@ -36,28 +36,27 @@ class PandasDataFrameEqualityComparator(BaseEqualityComparator[pd.DataFrame]):  
     r"""Implement an equality comparator for ``pandas.DataFrame``.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import pandas as pd
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.comparators import PandasDataFrameEqualityComparator
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> comparator = PandasDataFrameEqualityComparator()
+        >>> comparator.equal(
+        ...     pd.DataFrame({"col": [1, 2, 3]}),
+        ...     pd.DataFrame({"col": [1, 2, 3]}),
+        ...     config,
+        ... )
+        True
+        >>> comparator.equal(
+        ...     pd.DataFrame({"col": [1, 2, 3]}),
+        ...     pd.DataFrame({"col": [1, 2, 4]}),
+        ...     config,
+        ... )
+        False
 
-    >>> import pandas as pd
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.comparators import PandasDataFrameEqualityComparator
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> comparator = PandasDataFrameEqualityComparator()
-    >>> comparator.equal(
-    ...     pd.DataFrame({"col": [1, 2, 3]}),
-    ...     pd.DataFrame({"col": [1, 2, 3]}),
-    ...     config,
-    ... )
-    True
-    >>> comparator.equal(
-    ...     pd.DataFrame({"col": [1, 2, 3]}),
-    ...     pd.DataFrame({"col": [1, 2, 4]}),
-    ...     config,
-    ... )
-    False
-
-    ```
+        ```
     """
 
     def __init__(self) -> None:
@@ -79,20 +78,19 @@ class PandasSeriesEqualityComparator(BaseEqualityComparator[pd.Series]):  # noqa
     r"""Implement an equality comparator for ``pandas.Series``.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import pandas as pd
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.comparators import PandasSeriesEqualityComparator
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> comparator = PandasSeriesEqualityComparator()
+        >>> comparator.equal(pd.Series([1, 2, 3]), pd.Series([1, 2, 3]), config)
+        True
+        >>> comparator.equal(pd.Series([1, 2, 3]), pd.Series([1, 2, 4]), config)
+        False
 
-    >>> import pandas as pd
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.comparators import PandasSeriesEqualityComparator
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> comparator = PandasSeriesEqualityComparator()
-    >>> comparator.equal(pd.Series([1, 2, 3]), pd.Series([1, 2, 3]), config)
-    True
-    >>> comparator.equal(pd.Series([1, 2, 3]), pd.Series([1, 2, 4]), config)
-    False
-
-    ```
+        ```
     """
 
     def __init__(self) -> None:
@@ -121,14 +119,13 @@ def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[A
         The mapping between the types and the equality comparators.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality.comparators.pandas_ import get_type_comparator_mapping
+        >>> get_type_comparator_mapping()
+        {<class 'pandas...DataFrame'>: PandasDataFrameEqualityComparator(),
+         <class 'pandas...Series'>: PandasSeriesEqualityComparator()}
 
-    >>> from coola.equality.comparators.pandas_ import get_type_comparator_mapping
-    >>> get_type_comparator_mapping()
-    {<class 'pandas...DataFrame'>: PandasDataFrameEqualityComparator(),
-     <class 'pandas...Series'>: PandasSeriesEqualityComparator()}
-
-    ```
+        ```
     """
     if not is_pandas_available():
         return {}

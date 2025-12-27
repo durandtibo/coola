@@ -24,17 +24,16 @@ class MappingSameKeysHandler(AbstractEqualityHandler):  # noqa: PLW1641
     keys, otherwise it passes the inputs to the next handler.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.handlers import MappingSameKeysHandler
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> handler = MappingSameKeysHandler()
+        >>> handler.handle({"a": 1, "b": 2}, {"a": 1, "b": 2, "c": 1}, config)
+        False
 
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import MappingSameKeysHandler
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = MappingSameKeysHandler()
-    >>> handler.handle({"a": 1, "b": 2}, {"a": 1, "b": 2, "c": 1}, config)
-    False
-
-    ```
+        ```
     """
 
     def __eq__(self, other: object) -> bool:
@@ -48,7 +47,7 @@ class MappingSameKeysHandler(AbstractEqualityHandler):  # noqa: PLW1641
     ) -> bool:
         keys1 = set(actual.keys())
         keys2 = set(expected.keys())
-        if keys1 != set(expected.keys()):
+        if keys1 != keys2:
             if config.show_difference:
                 missing_keys = keys1 - keys2
                 additional_keys = keys2 - keys1
@@ -76,19 +75,18 @@ class MappingSameValuesHandler(AbstractEqualityHandler):  # noqa: PLW1641
         handler with ``MappingSameKeysHandler``.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.handlers import MappingSameValuesHandler, TrueHandler
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> handler = MappingSameValuesHandler(next_handler=TrueHandler())
+        >>> handler.handle({"a": 1, "b": 2}, {"a": 1, "b": 2}, config)
+        True
+        >>> handler.handle({"a": 1, "b": 2}, {"a": 1, "b": 3}, config)
+        False
 
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import MappingSameValuesHandler, TrueHandler
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = MappingSameValuesHandler(next_handler=TrueHandler())
-    >>> handler.handle({"a": 1, "b": 2}, {"a": 1, "b": 2}, config)
-    True
-    >>> handler.handle({"a": 1, "b": 2}, {"a": 1, "b": 3}, config)
-    False
-
-    ```
+        ```
     """
 
     def __eq__(self, other: object) -> bool:

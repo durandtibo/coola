@@ -24,20 +24,19 @@ class NanEqualHandler(AbstractEqualityHandler):  # noqa: PLW1641
     otherwise it passes the inputs to the next handler.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.handlers import NanEqualHandler, FalseHandler
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> handler = NanEqualHandler(next_handler=FalseHandler())
+        >>> handler.handle(float("nan"), float("nan"), config)
+        False
+        >>> config.equal_nan = True
+        >>> handler.handle(float("nan"), float("nan"), config)
+        True
 
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import NanEqualHandler, FalseHandler
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = NanEqualHandler(next_handler=FalseHandler())
-    >>> handler.handle(float("nan"), float("nan"), config)
-    False
-    >>> config.equal_nan = True
-    >>> handler.handle(float("nan"), float("nan"), config)
-    True
-
-    ```
+        ```
     """
 
     def __eq__(self, other: object) -> bool:
@@ -63,22 +62,21 @@ class ScalarEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     By default, the tolerances are set to 0.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.handlers import ScalarEqualHandler
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> handler = ScalarEqualHandler()
+        >>> handler.handle(42.0, 42.0, config)
+        True
+        >>> config.atol = 1e-3
+        >>> handler.handle(42.0, 42.0001, config)
+        True
+        >>> handler.handle(float("nan"), float("nan"), config)
+        False
 
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import ScalarEqualHandler
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = ScalarEqualHandler()
-    >>> handler.handle(42.0, 42.0, config)
-    True
-    >>> config.atol = 1e-3
-    >>> handler.handle(42.0, 42.0001, config)
-    True
-    >>> handler.handle(float("nan"), float("nan"), config)
-    False
-
-    ```
+        ```
     """
 
     def __eq__(self, other: object) -> bool:

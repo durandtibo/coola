@@ -30,16 +30,15 @@ class NDArrayFormatter(BaseFormatter[np.ndarray]):
             the returned string only contains the tensor metadata.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import numpy as np
+        >>> from coola import Summarizer
+        >>> from coola.formatters import NDArrayFormatter
+        >>> formatter = NDArrayFormatter()
+        >>> formatter.format(Summarizer(), np.arange(21))
+        <class 'numpy.ndarray'> | shape=(21,) | dtype=int64
 
-    >>> import numpy as np
-    >>> from coola import Summarizer
-    >>> from coola.formatters import NDArrayFormatter
-    >>> formatter = NDArrayFormatter()
-    >>> formatter.format(Summarizer(), np.arange(21))
-    <class 'numpy.ndarray'> | shape=(21,) | dtype=int64
-
-    ```
+        ```
     """
 
     def __init__(self, show_data: bool = False) -> None:
@@ -88,13 +87,13 @@ class NDArrayFormatter(BaseFormatter[np.ndarray]):
                 ``False`` if the array metadata are shown.
 
         Example:
-        ```pycon
-        >>> from coola.formatters import NDArrayFormatter
-        >>> formatter = NDArrayFormatter()
-        >>> formatter.get_show_data()
-        False
+            ```pycon
+            >>> from coola.formatters import NDArrayFormatter
+            >>> formatter = NDArrayFormatter()
+            >>> formatter.get_show_data()
+            False
 
-        ```
+            ```
         """
         return self._show_data
 
@@ -109,14 +108,14 @@ class NDArrayFormatter(BaseFormatter[np.ndarray]):
             TypeError: if ``show_data`` is not a boolean.
 
         Example:
-        ```pycon
-        >>> from coola.formatters import NDArrayFormatter
-        >>> formatter = NDArrayFormatter()
-        >>> formatter.set_show_data(True)
-        >>> formatter.get_show_data()
-        True
+            ```pycon
+            >>> from coola.formatters import NDArrayFormatter
+            >>> formatter = NDArrayFormatter()
+            >>> formatter.set_show_data(True)
+            >>> formatter.get_show_data()
+            True
 
-        ```
+            ```
         """
         if not isinstance(show_data, bool):
             msg = f"Incorrect type for show_data. Expected bool value but received {show_data}"

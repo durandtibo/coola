@@ -17,15 +17,14 @@ class BaseFormatter(ABC, Generic[T]):
     r"""Define the base class to implement a formatter.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola import Summarizer
+        >>> from coola.formatters import DefaultFormatter
+        >>> formatter = DefaultFormatter()
+        >>> formatter.format(Summarizer(), 1)
+        <class 'int'> 1
 
-    >>> from coola import Summarizer
-    >>> from coola.formatters import DefaultFormatter
-    >>> formatter = DefaultFormatter()
-    >>> formatter.format(Summarizer(), 1)
-    <class 'int'> 1
-
-    ```
+        ```
     """
 
     @abstractmethod
@@ -36,17 +35,17 @@ class BaseFormatter(ABC, Generic[T]):
             A copy of the formatter.
 
         Example:
-        ```pycon
-        >>> from coola.formatters import DefaultFormatter
-        >>> formatter = DefaultFormatter()
-        >>> formatter2 = formatter.clone()
-        >>> formatter.set_max_characters(10)
-        >>> formatter
-        DefaultFormatter(max_characters=10)
-        >>> formatter2
-        DefaultFormatter(max_characters=-1)
+            ```pycon
+            >>> from coola.formatters import DefaultFormatter
+            >>> formatter = DefaultFormatter()
+            >>> formatter2 = formatter.clone()
+            >>> formatter.set_max_characters(10)
+            >>> formatter
+            DefaultFormatter(max_characters=10)
+            >>> formatter2
+            DefaultFormatter(max_characters=-1)
 
-        ```
+            ```
         """
 
     @abstractmethod
@@ -60,15 +59,15 @@ class BaseFormatter(ABC, Generic[T]):
             ``True`` if the objects are equal, otherwise ``False``.
 
         Example:
-        ```pycon
-        >>> from coola.formatters import DefaultFormatter
-        >>> formatter = DefaultFormatter()
-        >>> formatter.equal(DefaultFormatter())
-        True
-        >>> formatter.equal(DefaultFormatter(max_characters=10))
-        False
+            ```pycon
+            >>> from coola.formatters import DefaultFormatter
+            >>> formatter = DefaultFormatter()
+            >>> formatter.equal(DefaultFormatter())
+            True
+            >>> formatter.equal(DefaultFormatter(max_characters=10))
+            False
 
-        ```
+            ```
         """
 
     @abstractmethod
@@ -85,14 +84,14 @@ class BaseFormatter(ABC, Generic[T]):
             str: The formatted value.
 
         Example:
-        ```pycon
-        >>> from coola import Summarizer
-        >>> from coola.formatters import DefaultFormatter
-        >>> formatter = DefaultFormatter()
-        >>> formatter.format(Summarizer(), 1)
-        <class 'int'> 1
+            ```pycon
+            >>> from coola import Summarizer
+            >>> from coola.formatters import DefaultFormatter
+            >>> formatter = DefaultFormatter()
+            >>> formatter.format(Summarizer(), 1)
+            <class 'int'> 1
 
-        ```
+            ```
         """
 
     @abstractmethod
@@ -103,16 +102,16 @@ class BaseFormatter(ABC, Generic[T]):
             state_dict: a dict with parameters
 
         Example:
-        ```pycon
-        >>> from coola.formatters import DefaultFormatter
-        >>> formatter = DefaultFormatter()
-        >>> # Please take a look to the implementation of the state_dict
-        >>> # function to know the expected structure
-        >>> formatter.load_state_dict({"max_characters": 10})
-        >>> formatter
-        DefaultFormatter(max_characters=10)
+            ```pycon
+            >>> from coola.formatters import DefaultFormatter
+            >>> formatter = DefaultFormatter()
+            >>> # Please take a look to the implementation of the state_dict
+            >>> # function to know the expected structure
+            >>> formatter.load_state_dict({"max_characters": 10})
+            >>> formatter
+            DefaultFormatter(max_characters=10)
 
-        ```
+            ```
         """
 
     @abstractmethod
@@ -123,11 +122,11 @@ class BaseFormatter(ABC, Generic[T]):
             The state values in a dict.
 
         Example:
-        ```pycon
-        >>> from coola.formatters import DefaultFormatter
-        >>> formatter = DefaultFormatter()
-        >>> formatter.state_dict()
-        {'max_characters': -1}
+            ```pycon
+            >>> from coola.formatters import DefaultFormatter
+            >>> formatter = DefaultFormatter()
+            >>> formatter.state_dict()
+            {'max_characters': -1}
 
-        ```
+            ```
         """

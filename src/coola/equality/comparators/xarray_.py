@@ -37,29 +37,28 @@ class XarrayDataArrayEqualityComparator(BaseEqualityComparator[xr.DataArray]):  
     r"""Implement an equality comparator for ``xarray.DataArray``.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import numpy as np
+        >>> import xarray as xr
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.comparators import XarrayDataArrayEqualityComparator
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> comparator = XarrayDataArrayEqualityComparator()
+        >>> comparator.equal(
+        ...     xr.DataArray(np.arange(6), dims=["z"]),
+        ...     xr.DataArray(np.arange(6), dims=["z"]),
+        ...     config,
+        ... )
+        True
+        >>> comparator.equal(
+        ...     xr.DataArray(np.ones(6), dims=["z"]),
+        ...     xr.DataArray(np.zeros(6), dims=["z"]),
+        ...     config,
+        ... )
+        False
 
-    >>> import numpy as np
-    >>> import xarray as xr
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.comparators import XarrayDataArrayEqualityComparator
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> comparator = XarrayDataArrayEqualityComparator()
-    >>> comparator.equal(
-    ...     xr.DataArray(np.arange(6), dims=["z"]),
-    ...     xr.DataArray(np.arange(6), dims=["z"]),
-    ...     config,
-    ... )
-    True
-    >>> comparator.equal(
-    ...     xr.DataArray(np.ones(6), dims=["z"]),
-    ...     xr.DataArray(np.zeros(6), dims=["z"]),
-    ...     config,
-    ... )
-    False
-
-    ```
+        ```
     """
 
     def __init__(self) -> None:
@@ -83,29 +82,28 @@ class XarrayDatasetEqualityComparator(BaseEqualityComparator[xr.Dataset]):  # no
     r"""Implement an equality comparator for ``xarray.Dataset``.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import numpy as np
+        >>> import xarray as xr
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.comparators import XarrayDatasetEqualityComparator
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> comparator = XarrayDatasetEqualityComparator()
+        >>> comparator.equal(
+        ...     xr.Dataset({"x": xr.DataArray(np.arange(6), dims=["z"])}),
+        ...     xr.Dataset({"x": xr.DataArray(np.arange(6), dims=["z"])}),
+        ...     config,
+        ... )
+        True
+        >>> comparator.equal(
+        ...     xr.Dataset({"x": xr.DataArray(np.zeros(6), dims=["z"])}),
+        ...     xr.Dataset({"x": xr.DataArray(np.ones(6), dims=["z"])}),
+        ...     config,
+        ... )
+        False
 
-    >>> import numpy as np
-    >>> import xarray as xr
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.comparators import XarrayDatasetEqualityComparator
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> comparator = XarrayDatasetEqualityComparator()
-    >>> comparator.equal(
-    ...     xr.Dataset({"x": xr.DataArray(np.arange(6), dims=["z"])}),
-    ...     xr.Dataset({"x": xr.DataArray(np.arange(6), dims=["z"])}),
-    ...     config,
-    ... )
-    True
-    >>> comparator.equal(
-    ...     xr.Dataset({"x": xr.DataArray(np.zeros(6), dims=["z"])}),
-    ...     xr.Dataset({"x": xr.DataArray(np.ones(6), dims=["z"])}),
-    ...     config,
-    ... )
-    False
-
-    ```
+        ```
     """
 
     def __init__(self) -> None:
@@ -129,29 +127,28 @@ class XarrayVariableEqualityComparator(BaseEqualityComparator[xr.Variable]):  # 
     r"""Implement an equality comparator for ``xarray.Variable``.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import numpy as np
+        >>> import xarray as xr
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.comparators import XarrayVariableEqualityComparator
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> comparator = XarrayVariableEqualityComparator()
+        >>> comparator.equal(
+        ...     xr.Variable(dims=["z"], data=np.arange(6)),
+        ...     xr.Variable(dims=["z"], data=np.arange(6)),
+        ...     config,
+        ... )
+        True
+        >>> comparator.equal(
+        ...     xr.Variable(dims=["z"], data=np.zeros(6)),
+        ...     xr.Variable(dims=["z"], data=np.ones(6)),
+        ...     config,
+        ... )
+        False
 
-    >>> import numpy as np
-    >>> import xarray as xr
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.comparators import XarrayVariableEqualityComparator
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> comparator = XarrayVariableEqualityComparator()
-    >>> comparator.equal(
-    ...     xr.Variable(dims=["z"], data=np.arange(6)),
-    ...     xr.Variable(dims=["z"], data=np.arange(6)),
-    ...     config,
-    ... )
-    True
-    >>> comparator.equal(
-    ...     xr.Variable(dims=["z"], data=np.zeros(6)),
-    ...     xr.Variable(dims=["z"], data=np.ones(6)),
-    ...     config,
-    ... )
-    False
-
-    ```
+        ```
     """
 
     def __init__(self) -> None:
@@ -182,15 +179,14 @@ def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[A
         The mapping between the types and the equality comparators.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality.comparators.xarray_ import get_type_comparator_mapping
+        >>> get_type_comparator_mapping()
+        {<class 'xarray...DataArray'>: XarrayDataArrayEqualityComparator(),
+         <class 'xarray...Dataset'>: XarrayDatasetEqualityComparator(),
+         <class 'xarray...Variable'>: XarrayVariableEqualityComparator()}
 
-    >>> from coola.equality.comparators.xarray_ import get_type_comparator_mapping
-    >>> get_type_comparator_mapping()
-    {<class 'xarray...DataArray'>: XarrayDataArrayEqualityComparator(),
-     <class 'xarray...Dataset'>: XarrayDatasetEqualityComparator(),
-     <class 'xarray...Variable'>: XarrayVariableEqualityComparator()}
-
-    ```
+        ```
     """
     if not is_xarray_available():
         return {}

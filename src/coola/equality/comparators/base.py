@@ -20,19 +20,18 @@ class BaseEqualityComparator(ABC, Generic[T]):
     r"""Define the base class to implement an equality operator.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.comparators import DefaultEqualityComparator
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> comparator = DefaultEqualityComparator()
+        >>> comparator.equal(42, 42, config)
+        True
+        >>> comparator.equal("meow", "meov", config)
+        False
 
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.comparators import DefaultEqualityComparator
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> comparator = DefaultEqualityComparator()
-    >>> comparator.equal(42, 42, config)
-    True
-    >>> comparator.equal("meow", "meov", config)
-    False
-
-    ```
+        ```
     """
 
     def __repr__(self) -> str:
@@ -46,16 +45,16 @@ class BaseEqualityComparator(ABC, Generic[T]):
             A copy of the equality operator.
 
         Example:
-        ```pycon
-        >>> from coola.equality.comparators import DefaultEqualityComparator
-        >>> op = DefaultEqualityComparator()
-        >>> op_cloned = op.clone()
-        >>> op_cloned
-        DefaultEqualityComparator()
-        >>> op is op_cloned
-        False
+            ```pycon
+            >>> from coola.equality.comparators import DefaultEqualityComparator
+            >>> op = DefaultEqualityComparator()
+            >>> op_cloned = op.clone()
+            >>> op_cloned
+            DefaultEqualityComparator()
+            >>> op is op_cloned
+            False
 
-        ```
+            ```
         """
 
     @abstractmethod
@@ -71,16 +70,16 @@ class BaseEqualityComparator(ABC, Generic[T]):
             ``True`` if the two objects are equal, otherwise ``False``.
 
         Example:
-        ```pycon
-        >>> from coola.equality import EqualityConfig
-        >>> from coola.equality.comparators import DefaultEqualityComparator
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
-        >>> comparator = DefaultEqualityComparator()
-        >>> comparator.equal(42, 42, config)
-        True
-        >>> comparator.equal("meow", "meov", config)
-        False
+            ```pycon
+            >>> from coola.equality import EqualityConfig
+            >>> from coola.equality.comparators import DefaultEqualityComparator
+            >>> from coola.equality.testers import EqualityTester
+            >>> config = EqualityConfig(tester=EqualityTester())
+            >>> comparator = DefaultEqualityComparator()
+            >>> comparator.equal(42, 42, config)
+            True
+            >>> comparator.equal("meow", "meov", config)
+            False
 
-        ```
+            ```
         """

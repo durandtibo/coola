@@ -133,7 +133,6 @@ def random_seed(seed: int) -> Generator[None]:
 
     Example:
     ```pycon
-
     >>> import numpy
     >>> from coola.random import random_seed
     >>> with random_seed(42):
@@ -161,7 +160,6 @@ def register_random_managers() -> None:
 
     Example:
     ```pycon
-
     >>> from coola.random import RandomManager
     >>> from coola.random.default import register_random_managers
     >>> register_random_managers()

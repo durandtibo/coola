@@ -32,7 +32,6 @@ class Summarizer(BaseSummarizer):
 
     Example:
     ```pycon
-
     >>> from coola import Summarizer
     >>> summarizer = Summarizer()
     >>> summarizer
@@ -333,7 +332,6 @@ def set_summarizer_options(
 
     Example:
     ```pycon
-
     >>> from coola import set_summarizer_options, summary
     >>> print(summary("abcdefghijklmnopqrstuvwxyz"))
     <class 'str'> abcdefghijklmnopqrstuvwxyz
@@ -369,7 +367,6 @@ def summarizer_options(**kwargs: Any) -> Generator[None, None, None]:
 
     Example:
     ```pycon
-
     >>> from coola import summarizer_options, summary
     >>> print(summary("abcdefghijklmnopqrstuvwxyz"))
     <class 'str'> abcdefghijklmnopqrstuvwxyz

@@ -35,20 +35,19 @@ class PyarrowEqualityComparator(BaseEqualityComparator[pa.Array]):  # noqa: PLW1
     arguments are ignored.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import pyarrow as pa
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.comparators import PyarrowEqualityComparator
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> comparator = PyarrowEqualityComparator()
+        >>> comparator.equal(pa.array([1, 2, 3]), pa.array([1, 2, 3]), config)
+        True
+        >>> comparator.equal(pa.array([1, 2, 3]), pa.array([1, 2, 4]), config)
+        False
 
-    >>> import pyarrow as pa
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.comparators import PyarrowEqualityComparator
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> comparator = PyarrowEqualityComparator()
-    >>> comparator.equal(pa.array([1, 2, 3]), pa.array([1, 2, 3]), config)
-    True
-    >>> comparator.equal(pa.array([1, 2, 3]), pa.array([1, 2, 4]), config)
-    False
-
-    ```
+        ```
     """
 
     def __init__(self) -> None:
@@ -77,14 +76,13 @@ def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[A
         The mapping between the types and the equality comparators.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality.comparators.pyarrow_ import get_type_comparator_mapping
+        >>> get_type_comparator_mapping()
+        {<class 'pyarrow.lib.Array'>: PyarrowEqualityComparator(),
+         <class 'pyarrow.lib.Table'>: PyarrowEqualityComparator()}
 
-    >>> from coola.equality.comparators.pyarrow_ import get_type_comparator_mapping
-    >>> get_type_comparator_mapping()
-    {<class 'pyarrow.lib.Array'>: PyarrowEqualityComparator(),
-     <class 'pyarrow.lib.Table'>: PyarrowEqualityComparator()}
-
-    ```
+        ```
     """
     if not is_pyarrow_available():
         return {}

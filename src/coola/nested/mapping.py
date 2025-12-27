@@ -23,13 +23,12 @@ def get_first_value(data: Mapping[str, Any]) -> Any:
         ValueError: if the mapping is empty.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.nested import get_first_value
+        >>> get_first_value({"key1": 1, "key2": 2})
+        1
 
-    >>> from coola.nested import get_first_value
-    >>> get_first_value({"key1": 1, "key2": 2})
-    1
-
-    ```
+        ```
     """
     if not data:
         msg = "First value cannot be returned because the mapping is empty"
@@ -59,36 +58,35 @@ def to_flat_dict(
         The flatted dictionary.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.nested import to_flat_dict
+        >>> data = {
+        ...     "str": "def",
+        ...     "module": {
+        ...         "component": {
+        ...             "float": 3.5,
+        ...             "int": 2,
+        ...         },
+        ...     },
+        ... }
+        >>> to_flat_dict(data)
+        {'str': 'def', 'module.component.float': 3.5, 'module.component.int': 2}
+        >>> # Example with lists (also works with tuple)
+        >>> data = {
+        ...     "module": [[1, 2, 3], {"bool": True}],
+        ...     "str": "abc",
+        ... }
+        >>> to_flat_dict(data)
+        {'module.0.0': 1, 'module.0.1': 2, 'module.0.2': 3, 'module.1.bool': True, 'str': 'abc'}
+        >>> # Example with lists with to_str=(list) (also works with tuple)
+        >>> data = {
+        ...     "module": [[1, 2, 3], {"bool": True}],
+        ...     "str": "abc",
+        ... }
+        >>> to_flat_dict(data)
+        {'module.0.0': 1, 'module.0.1': 2, 'module.0.2': 3, 'module.1.bool': True, 'str': 'abc'}
 
-    >>> from coola.nested import to_flat_dict
-    >>> data = {
-    ...     "str": "def",
-    ...     "module": {
-    ...         "component": {
-    ...             "float": 3.5,
-    ...             "int": 2,
-    ...         },
-    ...     },
-    ... }
-    >>> to_flat_dict(data)
-    {'str': 'def', 'module.component.float': 3.5, 'module.component.int': 2}
-    >>> # Example with lists (also works with tuple)
-    >>> data = {
-    ...     "module": [[1, 2, 3], {"bool": True}],
-    ...     "str": "abc",
-    ... }
-    >>> to_flat_dict(data)
-    {'module.0.0': 1, 'module.0.1': 2, 'module.0.2': 3, 'module.1.bool': True, 'str': 'abc'}
-    >>> # Example with lists with to_str=(list) (also works with tuple)
-    >>> data = {
-    ...     "module": [[1, 2, 3], {"bool": True}],
-    ...     "str": "abc",
-    ... }
-    >>> to_flat_dict(data)
-    {'module.0.0': 1, 'module.0.1': 2, 'module.0.2': 3, 'module.1.bool': True, 'str': 'abc'}
-
-    ```
+        ```
     """
     flat_dict = {}
     to_str = to_str or ()
@@ -130,16 +128,15 @@ def remove_keys_starting_with(mapping: Mapping[Any, Any], prefix: str) -> dict[A
         A new dict without the removed keys.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.nested import remove_keys_starting_with
+        >>> remove_keys_starting_with(
+        ...     {"key": 1, "key.abc": 2, "abc": 3, "abc.key": 4, 1: 5, (2, 3): 6},
+        ...     "key",
+        ... )
+        {'abc': 3, 'abc.key': 4, 1: 5, (2, 3): 6}
 
-    >>> from coola.nested import remove_keys_starting_with
-    >>> remove_keys_starting_with(
-    ...     {"key": 1, "key.abc": 2, "abc": 3, "abc.key": 4, 1: 5, (2, 3): 6},
-    ...     "key",
-    ... )
-    {'abc': 3, 'abc.key': 4, 1: 5, (2, 3): 6}
-
-    ```
+        ```
     """
     out = {}
     for key, value in mapping.items():

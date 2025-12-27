@@ -46,12 +46,12 @@ class EqualityTester(BaseEqualityTester):
                 data type and ``exist_ok=False``.
 
         Example:
-        ```pycon
-        >>> from coola.equality.testers import EqualityTester
-        >>> from coola.equality.comparators import SequenceEqualityComparator
-        >>> EqualityTester.add_comparator(list, SequenceEqualityComparator(), exist_ok=True)
+            ```pycon
+            >>> from coola.equality.testers import EqualityTester
+            >>> from coola.equality.comparators import SequenceEqualityComparator
+            >>> EqualityTester.add_comparator(list, SequenceEqualityComparator(), exist_ok=True)
 
-        ```
+            ```
         """
         if data_type in cls.registry and not exist_ok:
             msg = (
@@ -78,14 +78,14 @@ class EqualityTester(BaseEqualityTester):
                 otherwise ``False``.
 
         Example:
-        ```pycon
-        >>> from coola.equality.testers import EqualityTester
-        >>> EqualityTester.has_comparator(list)
-        True
-        >>> EqualityTester.has_comparator(str)
-        False
+            ```pycon
+            >>> from coola.equality.testers import EqualityTester
+            >>> EqualityTester.has_comparator(list)
+            True
+            >>> EqualityTester.has_comparator(str)
+            False
 
-        ```
+            ```
         """
         return data_type in cls.registry
 
@@ -100,14 +100,14 @@ class EqualityTester(BaseEqualityTester):
             The equality comparator associated to the data type.
 
         Example:
-        ```pycon
-        >>> from coola.equality.testers import EqualityTester
-        >>> EqualityTester.find_comparator(list)
-        SequenceEqualityComparator()
-        >>> EqualityTester.find_comparator(str)
-        DefaultEqualityComparator()
+            ```pycon
+            >>> from coola.equality.testers import EqualityTester
+            >>> EqualityTester.find_comparator(list)
+            SequenceEqualityComparator()
+            >>> EqualityTester.find_comparator(str)
+            DefaultEqualityComparator()
 
-        ```
+            ```
         """
         for object_type in data_type.__mro__:
             comparator = cls.registry.get(object_type, None)
@@ -125,13 +125,13 @@ class EqualityTester(BaseEqualityTester):
             A "local" copy of ``EqualityTester``.
 
         Example:
-        ```pycon
-        >>> from coola.equality.testers import EqualityTester
-        >>> tester = EqualityTester.local_copy()
-        >>> tester
-        LocalEqualityTester(...)
+            ```pycon
+            >>> from coola.equality.testers import EqualityTester
+            >>> tester = EqualityTester.local_copy()
+            >>> tester
+            LocalEqualityTester(...)
 
-        ```
+            ```
         """
         return LocalEqualityTester({key: value.clone() for key, value in cls.registry.items()})
 
@@ -175,14 +175,14 @@ class LocalEqualityTester(BaseEqualityTester):  # noqa: PLW1641
                 data type and ``exist_ok=False``.
 
         Example:
-        ```pycon
-        >>> from coola.equality.testers import EqualityTester
-        >>> from coola.equality.comparators import DefaultEqualityComparator
-        >>> tester = EqualityTester.local_copy()
-        >>> tester.add_comparator(str, DefaultEqualityComparator())
-        >>> tester.add_comparator(str, DefaultEqualityComparator(), exist_ok=True)
+            ```pycon
+            >>> from coola.equality.testers import EqualityTester
+            >>> from coola.equality.comparators import DefaultEqualityComparator
+            >>> tester = EqualityTester.local_copy()
+            >>> tester.add_comparator(str, DefaultEqualityComparator())
+            >>> tester.add_comparator(str, DefaultEqualityComparator(), exist_ok=True)
 
-        ```
+            ```
         """
         if data_type in self.registry and not exist_ok:
             msg = (
@@ -200,12 +200,12 @@ class LocalEqualityTester(BaseEqualityTester):  # noqa: PLW1641
              A deep copy of the current tester.
 
         Example:
-         ```pycon
-         >>> from coola.equality.testers import EqualityTester
-         >>> tester = EqualityTester.local_copy()
-         >>> tester_cloned = tester.clone()
+             ```pycon
+             >>> from coola.equality.testers import EqualityTester
+             >>> tester = EqualityTester.local_copy()
+             >>> tester_cloned = tester.clone()
 
-        ```
+            ```
         """
         return self.__class__({key: value.clone() for key, value in self.registry.items()})
 
@@ -224,15 +224,15 @@ class LocalEqualityTester(BaseEqualityTester):  # noqa: PLW1641
                 otherwise ``False``.
 
         Example:
-        ```pycon
-        >>> from coola.equality.testers import EqualityTester
-        >>> tester = EqualityTester.local_copy()
-        >>> tester.has_comparator(list)
-        True
-        >>> tester.has_comparator(str)
-        False
+            ```pycon
+            >>> from coola.equality.testers import EqualityTester
+            >>> tester = EqualityTester.local_copy()
+            >>> tester.has_comparator(list)
+            True
+            >>> tester.has_comparator(str)
+            False
 
-        ```
+            ```
         """
         return data_type in self.registry
 
@@ -246,15 +246,15 @@ class LocalEqualityTester(BaseEqualityTester):  # noqa: PLW1641
             The equality comparator associated to the data type.
 
         Example:
-        ```pycon
-        >>> from coola.equality.testers import EqualityTester
-        >>> tester = EqualityTester.local_copy()
-        >>> tester.find_comparator(list)
-        SequenceEqualityComparator()
-        >>> tester.find_comparator(str)
-        DefaultEqualityComparator()
+            ```pycon
+            >>> from coola.equality.testers import EqualityTester
+            >>> tester = EqualityTester.local_copy()
+            >>> tester.find_comparator(list)
+            SequenceEqualityComparator()
+            >>> tester.find_comparator(str)
+            DefaultEqualityComparator()
 
-        ```
+            ```
         """
         for object_type in data_type.__mro__:
             comparator = self.registry.get(object_type, None)
@@ -268,21 +268,20 @@ def register_equality() -> None:
     r"""Register equality comparators to ``EqualityTester``.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.equality.testers.default import register_equality
+        >>> from coola.equality.testers import EqualityTester
+        >>> register_equality()
+        >>> tester = EqualityTester()
+        >>> tester
+        EqualityTester(
+          (<class 'object'>): DefaultEqualityComparator()
+          (<class 'collections.abc.Mapping'>): MappingEqualityComparator()
+          (<class 'collections.abc.Sequence'>): SequenceEqualityComparator()
+          ...
+        )
 
-    >>> from coola.equality.testers.default import register_equality
-    >>> from coola.equality.testers import EqualityTester
-    >>> register_equality()
-    >>> tester = EqualityTester()
-    >>> tester
-    EqualityTester(
-      (<class 'object'>): DefaultEqualityComparator()
-      (<class 'collections.abc.Mapping'>): MappingEqualityComparator()
-      (<class 'collections.abc.Sequence'>): SequenceEqualityComparator()
-      ...
-    )
-
-    ```
+        ```
     """
     # Local import to avoid cyclic dependency
     from coola.equality.comparators import get_type_comparator_mapping  # noqa: PLC0415

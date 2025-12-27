@@ -32,20 +32,19 @@ class PyarrowEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     arguments are ignored.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import pyarrow
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.handlers import PyarrowEqualHandler
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> handler = PyarrowEqualHandler()
+        >>> handler.handle(pyarrow.array([1, 2, 3]), pyarrow.array([1, 2, 3]), config)
+        True
+        >>> handler.handle(pyarrow.array([1, 2, 3]), pyarrow.array([1, 2, 4]), config)
+        False
 
-    >>> import pyarrow
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers import PyarrowEqualHandler
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> handler = PyarrowEqualHandler()
-    >>> handler.handle(pyarrow.array([1, 2, 3]), pyarrow.array([1, 2, 3]), config)
-    True
-    >>> handler.handle(pyarrow.array([1, 2, 3]), pyarrow.array([1, 2, 4]), config)
-    False
-
-    ```
+        ```
     """
 
     def __eq__(self, other: object) -> bool:
@@ -88,19 +87,18 @@ def object_equal(
             tolerance, otherwise ``False``.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import pyarrow as pa
+        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.handlers.pyarrow_ import object_equal
+        >>> from coola.equality.testers import EqualityTester
+        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> object_equal(pa.array([1, 2, 3]), pa.array([1, 2, 3]), config)
+        True
+        >>> object_equal(pa.array([1, 2, 3]), pa.array([1, 2, 4]), config)
+        False
 
-    >>> import pyarrow as pa
-    >>> from coola.equality import EqualityConfig
-    >>> from coola.equality.handlers.pyarrow_ import object_equal
-    >>> from coola.equality.testers import EqualityTester
-    >>> config = EqualityConfig(tester=EqualityTester())
-    >>> object_equal(pa.array([1, 2, 3]), pa.array([1, 2, 3]), config)
-    True
-    >>> object_equal(pa.array([1, 2, 3]), pa.array([1, 2, 4]), config)
-    False
-
-    ```
+        ```
     """
     if config.equal_nan:
         warnings.warn(

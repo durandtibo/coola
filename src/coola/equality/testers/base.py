@@ -30,16 +30,16 @@ class BaseEqualityTester(ABC):
             ``True`` if the two objects are equal, otherwise ``False``.
 
         Example:
-        ```pycon
-        >>> import numpy as np
-        >>> from coola.equality import EqualityConfig
-        >>> from coola.equality.testers import EqualityTester
-        >>> tester = EqualityTester()
-        >>> config = EqualityConfig(tester=tester)
-        >>> tester.equal([np.ones((2, 3)), np.zeros(2)], [np.ones((2, 3)), np.zeros(2)], config)
-        True
-        >>> tester.equal([np.ones((2, 3)), np.ones(2)], [np.ones((2, 3)), np.zeros(2)], config)
-        False
+            ```pycon
+            >>> import numpy as np
+            >>> from coola.equality import EqualityConfig
+            >>> from coola.equality.testers import EqualityTester
+            >>> tester = EqualityTester()
+            >>> config = EqualityConfig(tester=tester)
+            >>> tester.equal([np.ones((2, 3)), np.zeros(2)], [np.ones((2, 3)), np.zeros(2)], config)
+            True
+            >>> tester.equal([np.ones((2, 3)), np.ones(2)], [np.ones((2, 3)), np.zeros(2)], config)
+            False
 
-        ```
+            ```
         """

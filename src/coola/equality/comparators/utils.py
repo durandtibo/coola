@@ -18,15 +18,15 @@ def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[A
     Returns:
         The mapping between the types and the equality comparators.
 
-    ```pycon
+    Example:
+        ```pycon
+        >>> from coola.equality.comparators import get_type_comparator_mapping
+        >>> get_type_comparator_mapping()
+        {<class 'object'>: DefaultEqualityComparator(),
+         <class 'collections.abc.Mapping'>: MappingEqualityComparator(),
+         <class 'collections.abc.Sequence'>: SequenceEqualityComparator(), ...}
 
-    >>> from coola.equality.comparators import get_type_comparator_mapping
-    >>> get_type_comparator_mapping()
-    {<class 'object'>: DefaultEqualityComparator(),
-     <class 'collections.abc.Mapping'>: MappingEqualityComparator(),
-     <class 'collections.abc.Sequence'>: SequenceEqualityComparator(), ...}
-
-    ```
+        ```
     """
     # Local import to avoid cyclic dependencies
     from coola.equality import comparators  # noqa: PLC0415
