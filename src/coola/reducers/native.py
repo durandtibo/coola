@@ -19,18 +19,17 @@ class NativeReducer(BaseBasicReducer[T]):
     r"""Implement a native reducer.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.reducers import NativeReducer
+        >>> reducer = NativeReducer()
+        >>> reducer.max([-2, -1, 0, 1, 2])
+        2
+        >>> reducer.median([-2, -1, 0, 1, 2])
+        0
+        >>> reducer.sort([2, 1, -2, 3, 0])
+        [-2, 0, 1, 2, 3]
 
-    >>> from coola.reducers import NativeReducer
-    >>> reducer = NativeReducer()
-    >>> reducer.max([-2, -1, 0, 1, 2])
-    2
-    >>> reducer.median([-2, -1, 0, 1, 2])
-    0
-    >>> reducer.sort([2, 1, -2, 3, 0])
-    [-2, 0, 1, 2, 3]
-
-    ```
+        ```
     """
 
     def __str__(self) -> str:

@@ -25,12 +25,11 @@ def auto_reducer() -> BaseReducer[Sequence[int | float]]:
         The "best" reducer.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.reducers import auto_reducer
+        >>> reducer = auto_reducer()
 
-    >>> from coola.reducers import auto_reducer
-    >>> reducer = auto_reducer()
-
-    ```
+        ```
     """
     if is_torch_available():
         return TorchReducer()

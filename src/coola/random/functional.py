@@ -18,14 +18,13 @@ def get_rng_state() -> dict[str, Any]:
         The current RNG state.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.random import get_rng_state
+        >>> state = get_rng_state()
+        >>> state
+        {'random': ...}
 
-    >>> from coola.random import get_rng_state
-    >>> state = get_rng_state()
-    >>> state
-    {'random': ...}
-
-    ```
+        ```
     """
     return _rng_manager.get_rng_state()
 
@@ -37,20 +36,19 @@ def manual_seed(seed: int) -> None:
         seed: The desired random seed.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import torch
+        >>> from coola.random import manual_seed
+        >>> manual_seed(42)
+        >>> torch.randn(3)
+        tensor([...])
+        >>> torch.randn(3)
+        tensor([...])
+        >>> manual_seed(42)
+        >>> torch.randn(3)
+        tensor([...])
 
-    >>> import torch
-    >>> from coola.random import manual_seed
-    >>> manual_seed(42)
-    >>> torch.randn(3)
-    tensor([...])
-    >>> torch.randn(3)
-    tensor([...])
-    >>> manual_seed(42)
-    >>> torch.randn(3)
-    tensor([...])
-
-    ```
+        ```
     """
     _rng_manager.manual_seed(seed)
 
@@ -62,13 +60,12 @@ def set_rng_state(state: dict[str, Any]) -> None:
         state: The new RNG state.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import torch
+        >>> from coola.random import get_rng_state, set_rng_state
+        >>> st = get_rng_state()
+        >>> set_rng_state(st)
 
-    >>> import torch
-    >>> from coola.random import get_rng_state, set_rng_state
-    >>> st = get_rng_state()
-    >>> set_rng_state(st)
-
-    ```
+        ```
     """
     _rng_manager.set_rng_state(state)

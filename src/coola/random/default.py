@@ -24,13 +24,12 @@ class RandomManager(BaseRandomManager):
     - ``'torch'``: ``TorchRandomManager`` if ``torch`` is available
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.random import RandomManager
+        >>> manager = RandomManager()
+        >>> manager.manual_seed(42)
 
-    >>> from coola.random import RandomManager
-    >>> manager = RandomManager()
-    >>> manager.manual_seed(42)
-
-    ```
+        ```
     """
 
     registry: ClassVar[dict[str, BaseRandomManager]] = {}

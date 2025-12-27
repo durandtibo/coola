@@ -17,13 +17,12 @@ class BaseRandomManager(ABC):
     - ``set_rng_state``.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.random import TorchRandomManager
+        >>> manager = TorchRandomManager()
+        >>> manager.manual_seed(42)
 
-    >>> from coola.random import TorchRandomManager
-    >>> manager = TorchRandomManager()
-    >>> manager.manual_seed(42)
-
-    ```
+        ```
     """
 
     @abstractmethod
@@ -34,14 +33,14 @@ class BaseRandomManager(ABC):
             The current RNG state.
 
         Example:
-        ```pycon
-        >>> from coola.random import TorchRandomManager
-        >>> manager = TorchRandomManager()
-        >>> state = manager.get_rng_state()
-        >>> state
-        {'torch': tensor([...], dtype=torch.uint8), 'torch.cuda': ...}
+            ```pycon
+            >>> from coola.random import TorchRandomManager
+            >>> manager = TorchRandomManager()
+            >>> state = manager.get_rng_state()
+            >>> state
+            {'torch': tensor([...], dtype=torch.uint8), 'torch.cuda': ...}
 
-        ```
+            ```
         """
 
     @abstractmethod
@@ -52,12 +51,12 @@ class BaseRandomManager(ABC):
             seed: The desired seed.
 
         Example:
-        ```pycon
-        >>> from coola.random import TorchRandomManager
-        >>> manager = TorchRandomManager()
-        >>> manager.manual_seed(42)
+            ```pycon
+            >>> from coola.random import TorchRandomManager
+            >>> manager = TorchRandomManager()
+            >>> manager.manual_seed(42)
 
-        ```
+            ```
         """
 
     @abstractmethod
@@ -68,12 +67,12 @@ class BaseRandomManager(ABC):
             state: The new RNG state.
 
         Example:
-        ```pycon
-        >>> import torch
-        >>> from coola.random import TorchRandomManager
-        >>> manager = TorchRandomManager()
-        >>> state = manager.get_rng_state()
-        >>> manager.set_rng_state(state)
+            ```pycon
+            >>> import torch
+            >>> from coola.random import TorchRandomManager
+            >>> manager = TorchRandomManager()
+            >>> state = manager.get_rng_state()
+            >>> manager.set_rng_state(state)
 
-        ```
+            ```
         """

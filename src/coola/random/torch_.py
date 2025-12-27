@@ -23,13 +23,12 @@ class TorchRandomManager(BaseRandomManager):  # noqa: PLW1641
     r"""Implements a random number generator for the library ``torch``.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.random import TorchRandomManager
+        >>> manager = TorchRandomManager()
+        >>> manager.manual_seed(42)
 
-    >>> from coola.random import TorchRandomManager
-    >>> manager = TorchRandomManager()
-    >>> manager.manual_seed(42)
-
-    ```
+        ```
     """
 
     def __init__(self) -> None:
@@ -67,13 +66,12 @@ def get_random_managers() -> dict[str, BaseRandomManager]:
         The mapping between the name and random managers.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.random.torch_ import get_random_managers
+        >>> get_random_managers()
+        {'torch': TorchRandomManager()}
 
-    >>> from coola.random.torch_ import get_random_managers
-    >>> get_random_managers()
-    {'torch': TorchRandomManager()}
-
-    ```
+        ```
     """
     if not is_torch_available():
         return {}
@@ -93,20 +91,19 @@ def torch_seed(seed: int) -> Generator[None]:
             this context manager.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import torch
+        >>> from coola.random import torch_seed
+        >>> with torch_seed(42):
+        ...     print(torch.randn(2, 4))
+        ...
+        tensor([[...]])
+        >>> with torch_seed(42):
+        ...     print(torch.randn(2, 4))
+        ...
+        tensor([[...]])
 
-    >>> import torch
-    >>> from coola.random import torch_seed
-    >>> with torch_seed(42):
-    ...     print(torch.randn(2, 4))
-    ...
-    tensor([[...]])
-    >>> with torch_seed(42):
-    ...     print(torch.randn(2, 4))
-    ...
-    tensor([[...]])
-
-    ```
+        ```
     """
     manager = TorchRandomManager()
     state = manager.get_rng_state()

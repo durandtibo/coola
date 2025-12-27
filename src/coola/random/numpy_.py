@@ -27,13 +27,12 @@ class NumpyRandomManager(BaseRandomManager):  # noqa: PLW1641
     ``2**32 - 1``.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.random import NumpyRandomManager
+        >>> manager = NumpyRandomManager()
+        >>> manager.manual_seed(42)
 
-    >>> from coola.random import NumpyRandomManager
-    >>> manager = NumpyRandomManager()
-    >>> manager.manual_seed(42)
-
-    ```
+        ```
     """
 
     def __init__(self) -> None:
@@ -65,13 +64,12 @@ def get_random_managers() -> dict[str, BaseRandomManager]:
         The mapping between the name and random managers.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> from coola.random.numpy_ import get_random_managers
+        >>> get_random_managers()
+        {'numpy': NumpyRandomManager()}
 
-    >>> from coola.random.numpy_ import get_random_managers
-    >>> get_random_managers()
-    {'numpy': NumpyRandomManager()}
-
-    ```
+        ```
     """
     if not is_numpy_available():
         return {}
@@ -91,20 +89,19 @@ def numpy_seed(seed: int) -> Generator[None]:
             this context manager.
 
     Example:
-    ```pycon
+        ```pycon
+        >>> import numpy
+        >>> from coola.random import numpy_seed
+        >>> with numpy_seed(42):
+        ...     print(numpy.random.randn(2, 4))
+        ...
+        [[...]]
+        >>> with numpy_seed(42):
+        ...     print(numpy.random.randn(2, 4))
+        ...
+        [[...]]
 
-    >>> import numpy
-    >>> from coola.random import numpy_seed
-    >>> with numpy_seed(42):
-    ...     print(numpy.random.randn(2, 4))
-    ...
-    [[...]]
-    >>> with numpy_seed(42):
-    ...     print(numpy.random.randn(2, 4))
-    ...
-    [[...]]
-
-    ```
+        ```
     """
     manager = NumpyRandomManager()
     state = manager.get_rng_state()

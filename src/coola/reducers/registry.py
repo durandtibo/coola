@@ -40,11 +40,11 @@ class ReducerRegistry:
                 name and ``exist_ok=False``.
 
         Example:
-        ```pycon
-        >>> from coola.reducers import ReducerRegistry, NativeReducer
-        >>> ReducerRegistry.add_reducer("native", NativeReducer(), exist_ok=True)
+            ```pycon
+            >>> from coola.reducers import ReducerRegistry, NativeReducer
+            >>> ReducerRegistry.add_reducer("native", NativeReducer(), exist_ok=True)
 
-        ```
+            ```
         """
         if name in cls.registry and not exist_ok:
             msg = (
@@ -63,12 +63,12 @@ class ReducerRegistry:
             The available reducers.
 
         Example:
-        ```pycon
-        >>> from coola.reducers import ReducerRegistry
-        >>> ReducerRegistry.available_reducers()
-        ('native', 'numpy', 'torch')
+            ```pycon
+            >>> from coola.reducers import ReducerRegistry
+            >>> ReducerRegistry.available_reducers()
+            ('native', 'numpy', 'torch')
 
-        ```
+            ```
         """
         return tuple(cls.registry.keys())
 
@@ -84,13 +84,13 @@ class ReducerRegistry:
                 otherwise ``False``.
 
         Example:
-        ```pycon
-        >>> from coola.reducers import ReducerRegistry
-        >>> ReducerRegistry.has_reducer("native")
-        True
-        >>> ReducerRegistry.has_reducer("missing")
-        False
+            ```pycon
+            >>> from coola.reducers import ReducerRegistry
+            >>> ReducerRegistry.has_reducer("native")
+            True
+            >>> ReducerRegistry.has_reducer("missing")
+            False
 
-        ```
+            ```
         """
         return name in cls.registry
