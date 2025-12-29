@@ -3,7 +3,7 @@ available."""
 
 from __future__ import annotations
 
-__all__ = ["jax", "jnp"]
+__all__ = ["jax", "jnp", "numpy"]
 
 from types import ModuleType
 from typing import Any
@@ -26,10 +26,12 @@ class FakeClass:
         raise_error_jax_missing()
 
 
+numpy: ModuleType = ModuleType("jax.numpy")
+numpy.ndarray = FakeClass
+
 # Create a fake jax package
 jax: ModuleType = ModuleType("jax")
-jax.numpy = ModuleType("jax.numpy")
-jax.numpy.ndarray = FakeClass
+jax.numpy = numpy
 
 # Export jnp as an alias for convenience
 jnp: ModuleType = jax.numpy

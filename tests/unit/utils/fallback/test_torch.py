@@ -16,9 +16,20 @@ def test_torch_module_name() -> None:
 
 
 def test_torch_nested_module_access() -> None:
+    assert hasattr(torch, "cuda")
     assert hasattr(torch, "nn")
     assert hasattr(torch.nn, "utils")
     assert hasattr(torch.nn.utils, "rnn")
+
+
+def test_torch_cuda_is_available_call() -> None:
+    with pytest.raises(RuntimeError, match=r"'torch' package is required but not installed."):
+        torch.cuda.is_available()
+
+
+def test_torch_cuda_synchronize_call() -> None:
+    with pytest.raises(RuntimeError, match=r"'torch' package is required but not installed."):
+        torch.cuda.synchronize()
 
 
 def test_torch_packed_sequence_class_exists() -> None:
@@ -47,6 +58,6 @@ def test_torch_tensor_class_instantiation() -> None:
         torch.Tensor()
 
 
-def test_torch_tensor_instantiation() -> None:
+def test_torch_tensor_call() -> None:
     with pytest.raises(RuntimeError, match=r"'torch' package is required but not installed."):
         torch.tensor()

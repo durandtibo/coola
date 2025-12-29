@@ -3,7 +3,7 @@ not available."""
 
 from __future__ import annotations
 
-__all__ = ["torch"]
+__all__ = ["cuda", "nn", "torch"]
 
 from types import ModuleType
 from typing import Any, NoReturn
@@ -40,11 +40,19 @@ def fake_function(*args: Any, **kwargs: Any) -> NoReturn:  # noqa: ARG001
     raise_error_torch_missing()
 
 
+cuda: ModuleType = ModuleType("torch.cuda")
+cuda.is_available = fake_function
+cuda.synchronize = fake_function
+
+nn: ModuleType = ModuleType("torch.nn")
+nn.utils = ModuleType("torch.nn.utils")
+nn.utils.rnn = ModuleType("torch.nn.utils.rnn")
+nn.utils.rnn.PackedSequence = FakeClass
+
 # Create a fake torch package
 torch: ModuleType = ModuleType("torch")
-torch.nn = ModuleType("torch.nn")
-torch.nn.utils = ModuleType("torch.nn.utils")
-torch.nn.utils.rnn = ModuleType("torch.nn.utils.rnn")
-torch.nn.utils.rnn.PackedSequence = FakeClass
+torch.cuda = cuda
+torch.nn = nn
+
 torch.Tensor = FakeClass
 torch.tensor = fake_function
