@@ -38,6 +38,8 @@ def test_iterable_child_finder_str() -> None:
             [[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
             id="deeply nested",
         ),
+        pytest.param([[]], [[]], id="empty list"),
+        pytest.param([None], [None], id="list none"),
         pytest.param([1, "a", 2.5, None, True], [1, "a", 2.5, None, True], id="mixed types"),
         pytest.param(range(3), [0, 1, 2], id="range"),
     ],
