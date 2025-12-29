@@ -62,7 +62,7 @@ pandas = ["pandas>=2.0,<3.0"]
 polars = ["polars>=1.0,<2.0"]
 pyarrow = ["pyarrow>=11.0,<23.0; python_version < '3.14'"]
 torch = ["torch>=2.0,<3.0; (sys_platform == 'linux' or (sys_platform == 'darwin' and platform_machine == 'arm64'))"]
-xarray = ["xarray>=2023.1"]
+xarray = ["xarray>=2024.1"]
 
 [dependency-groups]
 dev = [

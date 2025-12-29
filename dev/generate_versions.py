@@ -26,7 +26,7 @@ def fetch_package_versions() -> dict[str, list[str]]:
         A dictionary with the versions for each package.
     """
     polars_verions = fetch_latest_minor_versions("polars", lower="1.0")
-    xarray_verions = fetch_latest_minor_versions("xarray", lower="2023.1")
+    xarray_verions = fetch_latest_minor_versions("xarray", lower="2024.1")
     return {
         "jax": list(fetch_latest_minor_versions("jax", lower="0.5")),
         "numpy": list(fetch_latest_minor_versions("numpy", lower="1.24")),
