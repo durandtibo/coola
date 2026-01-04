@@ -1,3 +1,5 @@
+r"""Experimental package with registry implementations."""
+
 from __future__ import annotations
 
 __all__ = ["Registry"]

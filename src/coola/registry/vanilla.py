@@ -4,8 +4,9 @@ from __future__ import annotations
 
 __all__ = ["Registry"]
 
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
+from coola.comparison import objects_are_equal
 from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:
@@ -16,12 +17,25 @@ V = TypeVar("V")  # Value type
 
 
 class Registry(Generic[K, V]):
-    r"""Define a simple registry.
+    r"""A generic key-value registry for storing and managing typed
+    mappings.
+
+    The Registry class provides a type-safe container for registering and
+    retrieving values by key. It supports all standard dictionary operations
+    through operator overloading and provides additional methods for safe
+    registration and querying.
 
     Args:
-        initial_state: Optional dictionary representing the initial state.
+        initial_state: An optional dictionary to initialize the registry with.
+            If provided, a copy is made to prevent external modifications.
+            Defaults to None, which creates an empty registry.
 
-    Example:
+    Attributes:
+        _registry: Internal dictionary storing the key-value pairs.
+
+    Examples:
+        Basic usage with registration and retrieval:
+
         ```pycon
         >>> from coola.registry import Registry
         >>> registry = Registry[str, int]()
@@ -32,6 +46,28 @@ class Registry(Generic[K, V]):
         Registry(
           (key1): 42
         )
+
+        ```
+
+        Using dictionary-style operations:
+
+        ```pycon
+        >>> from coola.registry import Registry
+        >>> registry = Registry[str, int]()
+        >>> registry["key2"] = 100
+        >>> "key2" in registry
+        True
+        >>> del registry["key2"]
+
+        ```
+
+        Initializing with existing data:
+
+        ```pycon
+        >>> from coola.registry import Registry
+        >>> registry = Registry[str, int](initial_state={"a": 1, "b": 2})
+        >>> len(registry)
+        2
 
         ```
     """
@@ -63,14 +99,20 @@ class Registry(Generic[K, V]):
     def clear(self) -> None:
         """Remove all entries from the registry.
 
-        Example:
+        This method empties the registry, leaving it in the same state as a
+        newly created empty registry. This operation cannot be undone.
+
+        Examples:
             ```pycon
             >>> from coola.registry import Registry
             >>> registry = Registry[str, int]()
             >>> registry.register("key1", 42)
-            >>> registry.has("key1")
-            True
+            >>> registry.register("key2", 100)
+            >>> len(registry)
+            2
             >>> registry.clear()
+            >>> len(registry)
+            0
             >>> registry.has("key1")
             False
 
@@ -78,25 +120,37 @@ class Registry(Generic[K, V]):
         """
         self._registry.clear()
 
+    def equal(self, other: Any, equal_nan: bool = False) -> bool:
+        if type(other) is not type(self):
+            return False
+        return objects_are_equal(self._registry, other._registry, equal_nan=equal_nan)
+
     def get(self, key: K) -> V:
-        """Get the value for the given key.
+        """Retrieve the value associated with a key.
+
+        This method performs a lookup in the registry and returns the
+        corresponding value. If the key doesn't exist, a KeyError is raised
+        with a descriptive message.
 
         Args:
-            key: The key to retrieve
+            key: The key whose value should be retrieved.
 
         Returns:
-            The value associated with the key
+            The value associated with the specified key.
 
         Raises:
-            KeyError: If the key is not registered
+            KeyError: If the key has not been registered. The error message
+                includes the key that was not found.
 
-        Example:
+        Examples:
             ```pycon
             >>> from coola.registry import Registry
             >>> registry = Registry[str, int]()
             >>> registry.register("key1", 42)
             >>> registry.get("key1")
             42
+            >>> registry.get("missing")  # doctest: +SKIP
+            KeyError: "Key 'missing' is not registered"
 
             ```
         """
@@ -106,42 +160,75 @@ class Registry(Generic[K, V]):
         return self._registry[key]
 
     def has(self, key: K) -> bool:
-        """Check if a value is registered for the given key.
+        """Check whether a key is registered in the registry.
+
+        This method provides a safe way to test for key existence without
+        risking a KeyError exception.
 
         Args:
-            key: The key to check
+            key: The key to check for existence.
 
         Returns:
-            ``True`` if the key exists in the registry, ``False`` otherwise.
+            True if the key exists in the registry, False otherwise.
 
-        Example:
+        Examples:
             ```pycon
             >>> from coola.registry import Registry
             >>> registry = Registry[str, int]()
             >>> registry.register("key1", 42)
             >>> registry.has("key1")
             True
+            >>> registry.has("missing")
+            False
 
             ```
         """
         return key in self._registry
 
     def register(self, key: K, value: V, exist_ok: bool = False) -> None:
-        """Register a new value for the given key.
+        """Register a new key-value pair in the registry.
+
+        By default, this method raises an error if you try to register a key
+        that already exists. This prevents accidental overwriting of values.
+        Set exist_ok=True to allow overwriting.
 
         Args:
-            key: The key to register
-            value: The value to associate with the key
-            exist_ok: If False (default), raises an error if the key is already
-                registered. If True, overwrites the existing registration silently.
+            key: The key to register. Must be hashable.
+            value: The value to associate with the key.
+            exist_ok: Controls behavior when the key already exists.
+                If False (default), raises RuntimeError for duplicate keys.
+                If True, silently overwrites the existing value.
 
-        Example:
+        Raises:
+            RuntimeError: If the key is already registered and exist_ok is False.
+                The error message provides guidance on how to resolve the conflict.
+
+        Examples:
+            Basic registration:
+
             ```pycon
             >>> from coola.registry import Registry
             >>> registry = Registry[str, int]()
             >>> registry.register("key1", 42)
             >>> registry.get("key1")
             42
+
+            ```
+
+            Attempting to register a duplicate key:
+
+            ```pycon
+            >>> registry.register("key1", 100)  # doctest: +SKIP
+            RuntimeError: A value is already registered for 'key1'...
+
+            ```
+
+            Overwriting with exist_ok:
+
+            ```pycon
+            >>> registry.register("key1", 100, exist_ok=True)
+            >>> registry.get("key1")
+            100
 
             ```
         """
@@ -154,21 +241,49 @@ class Registry(Generic[K, V]):
         self._registry[key] = value
 
     def register_many(self, mapping: Mapping[K, V], exist_ok: bool = False) -> None:
-        """Register multiple key-value pairs at once.
+        """Register multiple key-value pairs in a single operation.
+
+        This is a convenience method for bulk registration. It iterates through
+        the provided mapping and registers each key-value pair individually.
+        All registrations follow the same exist_ok policy.
 
         Args:
-            mapping: Dictionary of keys and values to register
-            exist_ok: If False, raises error if any key already exists
+            mapping: A dictionary or mapping containing the key-value pairs
+                to register. The keys and values must match the registry's
+                type parameters.
+            exist_ok: Controls behavior when any key already exists.
+                If False (default), raises error on the first duplicate key.
+                If True, overwrites all existing values without error.
 
-        Example:
+        Raises:
+            RuntimeError: If exist_ok is False and any key in the mapping
+                is already registered. The error occurs on the first duplicate
+                encountered, and no partial registration occurs.
+
+        Examples:
+            Registering multiple entries at once:
+
             ```pycon
             >>> from coola.registry import Registry
             >>> registry = Registry[str, int]()
-            >>> registry.register_many({"key1": 42, "key2": 1})
+            >>> registry.register_many({"key1": 42, "key2": 100, "key3": 7})
             >>> registry.get("key1")
             42
             >>> registry.get("key2")
+            100
+            >>> len(registry)
+            3
+
+            ```
+
+            Bulk update with exist_ok:
+
+            ```pycon
+            >>> registry.register_many({"key1": 1, "key4": 4}, exist_ok=True)
+            >>> registry.get("key1")
             1
+            >>> registry.get("key4")
+            4
 
             ```
         """
@@ -176,18 +291,24 @@ class Registry(Generic[K, V]):
             self.register(key, value, exist_ok=exist_ok)
 
     def unregister(self, key: K) -> V:
-        """Unregister the value for the given key.
+        """Remove a key-value pair from the registry and return the
+        value.
+
+        This method removes the specified key from the registry and returns
+        the value that was associated with it. This allows you to retrieve
+        the value one last time before it's removed.
 
         Args:
-            key: The key to unregister
+            key: The key to unregister and remove from the registry.
 
         Returns:
-            The value that was unregistered
+            The value that was associated with the key before removal.
 
         Raises:
-            KeyError: If the key is not registered
+            KeyError: If the key is not registered. The error message
+                includes the key that was not found.
 
-        Example:
+        Examples:
             ```pycon
             >>> from coola.registry import Registry
             >>> registry = Registry[str, int]()
@@ -199,6 +320,8 @@ class Registry(Generic[K, V]):
             42
             >>> registry.has("key1")
             False
+            >>> registry.unregister("key1")  # doctest: +SKIP
+            KeyError: "Key 'key1' is not registered"
 
             ```
         """
