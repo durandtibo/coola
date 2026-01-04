@@ -68,8 +68,7 @@ class LinkedListChildFinder(BaseChildFinder):
 
 def test_bfs_iterate_with_linked_list() -> None:
     # Test custom iterator for linked list
-    registry = get_default_registry()
-    registry.register(LinkedListNode, LinkedListChildFinder())
+    get_default_registry().register(LinkedListNode, LinkedListChildFinder())
 
     # Create linked list: [1] -> [2, 3] -> [4]
     node3 = LinkedListNode(4)

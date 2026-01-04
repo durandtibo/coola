@@ -7,7 +7,6 @@ import pytest
 from coola import objects_are_equal
 from coola.iterator.dfs import (
     BaseIterator,
-    IterableIterator,
     IteratorRegistry,
     dfs_iterate,
     get_default_registry,
@@ -61,9 +60,9 @@ class LinkedListIterator(BaseIterator):
 def test_dfs_iterate_with_custom_iterator() -> None:
     """Test that users can easily extend the system with custom data
     structures."""
-    registry = IteratorRegistry({LinkedListNode: LinkedListIterator(), list: IterableIterator()})
+    get_default_registry().register(LinkedListNode, LinkedListIterator())
     data = LinkedListNode(1, LinkedListNode(2, LinkedListNode([3, 4])))
-    assert objects_are_equal(list(dfs_iterate(data, registry=registry)), [1, 2, 3, 4])
+    assert objects_are_equal(list(dfs_iterate(data)), [1, 2, 3, 4])
 
 
 def test_dfs_iterate_performance_wide_shallow() -> None:
