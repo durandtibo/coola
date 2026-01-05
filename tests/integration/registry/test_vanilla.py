@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import threading
-from collections import Counter
+from collections import defaultdict, deque
 from typing import TYPE_CHECKING
 
 from coola.registry import Registry
@@ -132,7 +132,7 @@ def test_registry_concurrent_get() -> None:
     registry = Registry[str, int]()
     registry.register("key", 42)
     num_threads = 10
-    results = []
+    results = deque()
 
     def read_key() -> None:
         value = registry.get("key")
@@ -151,7 +151,7 @@ def test_registry_concurrent_has() -> None:
     registry = Registry[str, int]()
     registry.register("existing_key", 100)
     num_threads = 10
-    results = Counter()
+    results = defaultdict(int)
 
     def check_keys() -> None:
         exists = registry.has("existing_key")
@@ -171,9 +171,8 @@ def test_registry_concurrent_unregister_operations() -> None:
     num_keys = 10
     registry = Registry[str, int]({f"key_{i}": i for i in range(num_keys)})
 
-    threads = []
-    unregistered_values = []
-    errors = []
+    unregistered_values = deque()
+    errors = deque()
 
     def unregister_key(key: str) -> None:
         try:
@@ -183,15 +182,13 @@ def test_registry_concurrent_unregister_operations() -> None:
             errors.append(key)
 
     # Try to unregister each key from two threads
+    threads = []
     for i in range(num_keys):
         thread1 = threading.Thread(target=unregister_key, args=(f"key_{i}",))
         thread2 = threading.Thread(target=unregister_key, args=(f"key_{i}",))
         threads.extend([thread1, thread2])
-        thread1.start()
-        thread2.start()
 
-    for thread in threads:
-        thread.join()
+    run_threads(threads)
 
     # Each key should be unregistered exactly once
     assert len(unregistered_values) == num_keys
@@ -281,7 +278,7 @@ def test_registry_concurrent_equal_operations() -> None:
     registry1 = Registry[str, int]({"a": 1, "b": 2})
     registry2 = Registry[str, int]({"a": 1, "b": 2})
     num_threads = 10
-    results = []
+    results = deque()
 
     def check_equality() -> None:
         result = registry1.equal(registry2)
@@ -297,8 +294,7 @@ def test_registry_stress_test_high_contention() -> None:
     """Stress test with high contention on a single key."""
     registry = Registry[str, int]()
     num_threads = 100
-    counter = {"value": 0}
-    lock = threading.Lock()
+    counter = defaultdict(int)
 
     def stress_operations(thread_id: int) -> None:
         for i in range(10):
@@ -307,8 +303,7 @@ def test_registry_stress_test_high_contention() -> None:
             registry.register(key, thread_id, exist_ok=True)
             if registry.has(key):
                 registry.get(key)
-            with lock:
-                counter["value"] += 1
+            counter["value"] += 1
 
     run_threads([threading.Thread(target=stress_operations, args=(i,)) for i in range(num_threads)])
 
