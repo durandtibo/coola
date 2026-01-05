@@ -1,9 +1,10 @@
-r"""Define a simple registry."""
+r"""Define a thread-safe registry."""
 
 from __future__ import annotations
 
 __all__ = ["Registry"]
 
+import threading
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from coola.comparison import objects_are_equal
@@ -17,13 +18,14 @@ V = TypeVar("V")  # Value type
 
 
 class Registry(Generic[K, V]):
-    r"""A generic key-value registry for storing and managing typed
-    mappings.
+    r"""A thread-safe generic key-value registry for storing and managing
+    typed mappings.
 
     The Registry class provides a type-safe container for registering and
     retrieving values by key. It supports all standard dictionary operations
     through operator overloading and provides additional methods for safe
-    registration and querying.
+    registration and querying. All operations are protected by a lock to
+    ensure thread safety in concurrent environments.
 
     Args:
         initial_state: An optional dictionary to initialize the registry with.
@@ -32,6 +34,7 @@ class Registry(Generic[K, V]):
 
     Attributes:
         _registry: Internal dictionary storing the key-value pairs.
+        _lock: Threading lock for synchronizing access to the registry.
 
     Examples:
         Basic usage with registration and retrieval:
@@ -74,6 +77,7 @@ class Registry(Generic[K, V]):
 
     def __init__(self, initial_state: dict[K, V] | None = None) -> None:
         self._registry: dict[K, V] = initial_state.copy() if initial_state else {}
+        self._lock = threading.RLock()  # RLock allows re-entrant locking
 
     def __contains__(self, key: K) -> bool:
         return self.has(key)
@@ -88,13 +92,18 @@ class Registry(Generic[K, V]):
         self.unregister(key)
 
     def __len__(self) -> int:
-        return len(self._registry)
+        with self._lock:
+            return len(self._registry)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}(\n  {repr_indent(repr_mapping(self._registry))}\n)"
+        with self._lock:
+            snapshot = self._registry.copy()
+        return f"{self.__class__.__qualname__}(\n  {repr_indent(repr_mapping(snapshot))}\n)"
 
     def __str__(self) -> str:
-        return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(self._registry))}\n)"
+        with self._lock:
+            snapshot = self._registry.copy()
+        return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(snapshot))}\n)"
 
     def clear(self) -> None:
         """Remove all entries from the registry.
@@ -118,12 +127,14 @@ class Registry(Generic[K, V]):
 
             ```
         """
-        self._registry.clear()
+        with self._lock:
+            self._registry.clear()
 
     def equal(self, other: Any, equal_nan: bool = False) -> bool:
         if type(other) is not type(self):
             return False
-        return objects_are_equal(self._registry, other._registry, equal_nan=equal_nan)
+        with self._lock, other._lock:
+            return objects_are_equal(self._registry, other._registry, equal_nan=equal_nan)
 
     def get(self, key: K) -> V:
         """Retrieve the value associated with a key.
@@ -154,10 +165,11 @@ class Registry(Generic[K, V]):
 
             ```
         """
-        if key not in self._registry:
-            msg = f"Key '{key}' is not registered"
-            raise KeyError(msg)
-        return self._registry[key]
+        with self._lock:
+            if key not in self._registry:
+                msg = f"Key '{key}' is not registered"
+                raise KeyError(msg)
+            return self._registry[key]
 
     def has(self, key: K) -> bool:
         """Check whether a key is registered in the registry.
@@ -183,7 +195,8 @@ class Registry(Generic[K, V]):
 
             ```
         """
-        return key in self._registry
+        with self._lock:
+            return key in self._registry
 
     def register(self, key: K, value: V, exist_ok: bool = False) -> None:
         """Register a new key-value pair in the registry.
@@ -232,20 +245,22 @@ class Registry(Generic[K, V]):
 
             ```
         """
-        if key in self._registry and not exist_ok:
-            msg = (
-                f"A value is already registered for '{key}'. "
-                "Use a different key or set exist_ok=True to override."
-            )
-            raise RuntimeError(msg)
-        self._registry[key] = value
+        with self._lock:
+            if key in self._registry and not exist_ok:
+                msg = (
+                    f"A value is already registered for '{key}'. "
+                    "Use a different key or set exist_ok=True to override."
+                )
+                raise RuntimeError(msg)
+            self._registry[key] = value
 
     def register_many(self, mapping: Mapping[K, V], exist_ok: bool = False) -> None:
         """Register multiple key-value pairs in a single operation.
 
         This is a convenience method for bulk registration. It iterates through
-        the provided mapping and registers each key-value pair individually.
-        All registrations follow the same exist_ok policy.
+        the provided mapping and registers each key-value pair. All registrations
+        follow the same exist_ok policy. The operation is atomic when exist_ok
+        is False - if any key already exists, no changes are made.
 
         Args:
             mapping: A dictionary or mapping containing the key-value pairs
@@ -287,8 +302,15 @@ class Registry(Generic[K, V]):
 
             ```
         """
-        for key, value in mapping.items():
-            self.register(key, value, exist_ok=exist_ok)
+        with self._lock:
+            # Check all keys first if exist_ok is False
+            if not exist_ok and (duplicates := set(mapping) & set(self._registry)):
+                msg = (
+                    f"Keys already registered: {', '.join(map(str, duplicates))}"
+                    "Use different keys or set exist_ok=True to override."
+                )
+                raise RuntimeError(msg)
+            self._registry.update(mapping)
 
     def unregister(self, key: K) -> V:
         """Remove a key-value pair from the registry and return the
@@ -325,7 +347,8 @@ class Registry(Generic[K, V]):
 
             ```
         """
-        if key not in self._registry:
-            msg = f"Key '{key}' is not registered"
-            raise KeyError(msg)
-        return self._registry.pop(key)
+        with self._lock:
+            if key not in self._registry:
+                msg = f"Key '{key}' is not registered"
+                raise KeyError(msg)
+            return self._registry.pop(key)

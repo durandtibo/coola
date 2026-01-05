@@ -157,7 +157,7 @@ def test_registry_register_many_duplicate_raises_error() -> None:
     exist_ok."""
     registry = Registry[str, int]()
     registry.register("a", 1)
-    with pytest.raises(RuntimeError, match="A value is already registered for 'a'"):
+    with pytest.raises(RuntimeError, match="Keys already registered"):
         registry.register_many({"a": 10, "b": 2})
 
 
