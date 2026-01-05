@@ -33,7 +33,7 @@ class Registry(Generic[K, V]):
             Defaults to None, which creates an empty registry.
 
     Attributes:
-        _registry: Internal dictionary storing the key-value pairs.
+        _state: Internal dictionary storing the key-value pairs.
         _lock: Threading lock for synchronizing access to the registry.
 
     Examples:
@@ -76,7 +76,7 @@ class Registry(Generic[K, V]):
     """
 
     def __init__(self, initial_state: dict[K, V] | None = None) -> None:
-        self._registry: dict[K, V] = initial_state.copy() if initial_state else {}
+        self._state: dict[K, V] = initial_state.copy() if initial_state else {}
         self._lock = threading.RLock()  # RLock allows re-entrant locking
 
     def __contains__(self, key: K) -> bool:
@@ -93,16 +93,16 @@ class Registry(Generic[K, V]):
 
     def __len__(self) -> int:
         with self._lock:
-            return len(self._registry)
+            return len(self._state)
 
     def __repr__(self) -> str:
         with self._lock:
-            snapshot = self._registry.copy()
+            snapshot = self._state.copy()
         return f"{self.__class__.__qualname__}(\n  {repr_indent(repr_mapping(snapshot))}\n)"
 
     def __str__(self) -> str:
         with self._lock:
-            snapshot = self._registry.copy()
+            snapshot = self._state.copy()
         return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(snapshot))}\n)"
 
     def clear(self) -> None:
@@ -128,13 +128,13 @@ class Registry(Generic[K, V]):
             ```
         """
         with self._lock:
-            self._registry.clear()
+            self._state.clear()
 
     def equal(self, other: Any, equal_nan: bool = False) -> bool:
         if type(other) is not type(self):
             return False
         with self._lock, other._lock:
-            return objects_are_equal(self._registry, other._registry, equal_nan=equal_nan)
+            return objects_are_equal(self._state, other._state, equal_nan=equal_nan)
 
     def get(self, key: K) -> V:
         """Retrieve the value associated with a key.
@@ -166,10 +166,10 @@ class Registry(Generic[K, V]):
             ```
         """
         with self._lock:
-            if key not in self._registry:
+            if key not in self._state:
                 msg = f"Key '{key}' is not registered"
                 raise KeyError(msg)
-            return self._registry[key]
+            return self._state[key]
 
     def has(self, key: K) -> bool:
         """Check whether a key is registered in the registry.
@@ -196,7 +196,7 @@ class Registry(Generic[K, V]):
             ```
         """
         with self._lock:
-            return key in self._registry
+            return key in self._state
 
     def register(self, key: K, value: V, exist_ok: bool = False) -> None:
         """Register a new key-value pair in the registry.
@@ -246,13 +246,13 @@ class Registry(Generic[K, V]):
             ```
         """
         with self._lock:
-            if key in self._registry and not exist_ok:
+            if key in self._state and not exist_ok:
                 msg = (
                     f"A value is already registered for '{key}'. "
                     "Use a different key or set exist_ok=True to override."
                 )
                 raise RuntimeError(msg)
-            self._registry[key] = value
+            self._state[key] = value
 
     def register_many(self, mapping: Mapping[K, V], exist_ok: bool = False) -> None:
         """Register multiple key-value pairs in a single operation.
@@ -304,13 +304,13 @@ class Registry(Generic[K, V]):
         """
         with self._lock:
             # Check all keys first if exist_ok is False
-            if not exist_ok and (duplicates := set(mapping) & set(self._registry)):
+            if not exist_ok and (duplicates := set(mapping) & set(self._state)):
                 msg = (
                     f"Keys already registered: {', '.join(map(str, duplicates))}"
                     "Use different keys or set exist_ok=True to override."
                 )
                 raise RuntimeError(msg)
-            self._registry.update(mapping)
+            self._state.update(mapping)
 
     def unregister(self, key: K) -> V:
         """Remove a key-value pair from the registry and return the
@@ -348,7 +348,7 @@ class Registry(Generic[K, V]):
             ```
         """
         with self._lock:
-            if key not in self._registry:
+            if key not in self._state:
                 msg = f"Key '{key}' is not registered"
                 raise KeyError(msg)
-            return self._registry.pop(key)
+            return self._state.pop(key)
