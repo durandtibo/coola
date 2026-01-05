@@ -18,6 +18,9 @@ def run_threads(threads: Sequence[threading.Thread]) -> None:
         thread.join()
 
 
+# Note: the following tests are using ``deque`` and ``defaultdict(int)``
+# because they are thread-safe.
+
 ##############################
 #     Tests for Registry     #
 ##############################
@@ -102,8 +105,8 @@ def test_registry_concurrent_register_same_key_without_exist_ok() -> None:
     raises errors correctly."""
     registry = Registry[str, int]()
     num_threads = 10
-    errors = []
-    successes = []
+    errors = deque()
+    successes = deque()
 
     def register_with_error_handling(value: int) -> None:
         try:
