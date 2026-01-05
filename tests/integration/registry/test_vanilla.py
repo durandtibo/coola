@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import threading
-from collections import defaultdict
+from collections import Counter
 from typing import TYPE_CHECKING
 
 from coola.registry import Registry
@@ -151,7 +151,7 @@ def test_registry_concurrent_has() -> None:
     registry = Registry[str, int]()
     registry.register("existing_key", 100)
     num_threads = 10
-    results = defaultdict(int)
+    results = Counter()
 
     def check_keys() -> None:
         exists = registry.has("existing_key")
