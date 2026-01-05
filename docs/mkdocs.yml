@@ -43,6 +43,7 @@ nav:
       - refs/iterator.md
       - refs/random.md
       - refs/recursive.md
+      - refs/registry.md
       - refs/reducers.md
       - refs/summarizers.md
       - refs/testers.md
