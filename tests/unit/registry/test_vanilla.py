@@ -22,7 +22,7 @@ def test_registry_init_with_initial_state() -> None:
     assert registry.get("a") == 1
     assert registry.get("b") == 2
     assert registry.get("c") == 3
-    assert registry._registry == {"a": 1, "b": 2, "c": 3}
+    assert registry._state == {"a": 1, "b": 2, "c": 3}
 
 
 def test_registry_init_copies_initial_state() -> None:
@@ -32,7 +32,7 @@ def test_registry_init_copies_initial_state() -> None:
     initial["b"] = 2
     assert len(registry) == 1
     assert not registry.has("b")
-    assert registry._registry == {"a": 1}
+    assert registry._state == {"a": 1}
 
 
 def test_registry_repr() -> None:
