@@ -60,7 +60,7 @@ complex/nested objects are equal or not.
 `coola` was initially designed to work
 with [PyTorch `Tensor`s](https://pytorch.org/docs/stable/tensors.html)
 and [NumPy `ndarray`](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html), but it
-is possible to extend it to [support other data structures](customization.md).
+is possible to extend it to [support other data structures](uguide/customization.md).
 
 ## Motivation
 
