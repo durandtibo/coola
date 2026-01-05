@@ -138,7 +138,7 @@ def test_registry_concurrent_get() -> None:
         value = registry.get("key")
         results.append(value)
 
-    run_threads([threading.Thread(target=read_key) for i in range(num_threads)])
+    run_threads([threading.Thread(target=read_key) for _ in range(num_threads)])
 
     # All threads should have read the correct value
     assert len(results) == num_threads
@@ -159,7 +159,7 @@ def test_registry_concurrent_has() -> None:
         results["exists"] += 1 if exists else 0
         results["not_exists"] += 1 if not not_exists else 0
 
-    run_threads([threading.Thread(target=check_keys) for i in range(num_threads)])
+    run_threads([threading.Thread(target=check_keys) for _ in range(num_threads)])
 
     assert results["exists"] == num_threads
     assert results["not_exists"] == num_threads
@@ -207,7 +207,7 @@ def test_registry_concurrent_clear_operations() -> None:
     def clear_registry() -> None:
         registry.clear()
 
-    run_threads([threading.Thread(target=clear_registry) for i in range(num_threads)])
+    run_threads([threading.Thread(target=clear_registry) for _ in range(num_threads)])
 
     assert len(registry) == 0
     assert registry.equal(Registry[str, int]())
@@ -287,7 +287,7 @@ def test_registry_concurrent_equal_operations() -> None:
         result = registry1.equal(registry2)
         results.append(result)
 
-    run_threads([threading.Thread(target=check_equality) for i in range(num_threads)])
+    run_threads([threading.Thread(target=check_equality) for _ in range(num_threads)])
 
     assert len(results) == num_threads
     assert all(result is True for result in results)
