@@ -7,14 +7,11 @@ from typing import TYPE_CHECKING
 from coola.registry import Registry
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Sequence
 
 
-def run_multiple_threads(func: Callable[[int], None], num_threads: int) -> None:
-    threads = []
-    for i in range(num_threads):
-        thread = threading.Thread(target=func, args=(i,))
-        threads.append(thread)
+def run_threads(threads: Sequence[threading.Thread]) -> None:
+    for thread in threads:
         thread.start()
 
     for thread in threads:
@@ -61,7 +58,7 @@ def test_registry_concurrent_register_different_keys() -> None:
     def register_key(index: int) -> None:
         registry.register(f"key_{index}", index)
 
-    run_multiple_threads(register_key, num_threads=10)
+    run_threads([threading.Thread(target=register_key, args=(i,)) for i in range(10)])
 
     # Verify all keys were registered
     assert registry.equal(
@@ -91,7 +88,9 @@ def test_registry_concurrent_register_same_key_with_exist_ok() -> None:
     def register_shared_key(value: int) -> None:
         registry.register("key", value, exist_ok=True)
 
-    run_multiple_threads(register_shared_key, num_threads=num_threads)
+    run_threads(
+        [threading.Thread(target=register_shared_key, args=(i,)) for i in range(num_threads)]
+    )
 
     # The key should exist with one of the values
     assert registry.has("key")
@@ -113,7 +112,12 @@ def test_registry_concurrent_register_same_key_without_exist_ok() -> None:
         except RuntimeError:
             errors.append(value)
 
-    run_multiple_threads(register_with_error_handling, num_threads=num_threads)
+    run_threads(
+        [
+            threading.Thread(target=register_with_error_handling, args=(i,))
+            for i in range(num_threads)
+        ]
+    )
 
     # Exactly one thread should succeed, others should fail
     assert len(successes) == 1
@@ -130,11 +134,11 @@ def test_registry_concurrent_get() -> None:
     num_threads = 10
     results = []
 
-    def read_key(index: int) -> None:  # noqa: ARG001
+    def read_key() -> None:
         value = registry.get("key")
         results.append(value)
 
-    run_multiple_threads(read_key, num_threads=num_threads)
+    run_threads([threading.Thread(target=read_key) for i in range(num_threads)])
 
     # All threads should have read the correct value
     assert len(results) == num_threads
@@ -149,13 +153,13 @@ def test_registry_concurrent_has() -> None:
     num_threads = 10
     results = defaultdict(int)
 
-    def check_keys(thread_id: int) -> None:  # noqa: ARG001
+    def check_keys() -> None:
         exists = registry.has("existing_key")
         not_exists = registry.has("missing_key")
         results["exists"] += 1 if exists else 0
         results["not_exists"] += 1 if not not_exists else 0
 
-    run_multiple_threads(check_keys, num_threads=num_threads)
+    run_threads([threading.Thread(target=check_keys) for i in range(num_threads)])
 
     assert results["exists"] == num_threads
     assert results["not_exists"] == num_threads
@@ -200,10 +204,10 @@ def test_registry_concurrent_clear_operations() -> None:
     registry = Registry[str, int]({f"key_{i}": i for i in range(20)})
     num_threads = 10
 
-    def clear_registry(thread_id: int) -> None:  # noqa: ARG001
+    def clear_registry() -> None:
         registry.clear()
 
-    run_multiple_threads(clear_registry, num_threads=num_threads)
+    run_threads([threading.Thread(target=clear_registry) for i in range(num_threads)])
 
     assert len(registry) == 0
     assert registry.equal(Registry[str, int]())
@@ -218,7 +222,7 @@ def test_registry_concurrent_register_many() -> None:
         batch = {f"key_{offset}_{i}": offset * 100 + i for i in range(10)}
         registry.register_many(batch)
 
-    run_multiple_threads(register_batch, num_threads=num_threads)
+    run_threads([threading.Thread(target=register_batch, args=(i,)) for i in range(num_threads)])
 
     # All keys should be registered
     assert len(registry) == num_threads * 10
@@ -240,7 +244,7 @@ def test_registry_concurrent_mixed_operations() -> None:
         # Update existing keys
         registry[f"thread_{thread_id}"] = thread_id * 2
 
-    run_multiple_threads(mixed_operations, num_threads=num_threads)
+    run_threads([threading.Thread(target=mixed_operations, args=(i,)) for i in range(num_threads)])
 
     # Verify final state
     assert len(registry) >= 10  # At least the initial keys
@@ -265,7 +269,7 @@ def test_registry_concurrent_dict_style_operations() -> None:
         # Update
         registry[f"key_{index}"] = index * 2
 
-    run_multiple_threads(dict_operations, num_threads=num_threads)
+    run_threads([threading.Thread(target=dict_operations, args=(i,)) for i in range(num_threads)])
 
     assert len(registry) == num_threads
     for i in range(num_threads):
@@ -279,11 +283,11 @@ def test_registry_concurrent_equal_operations() -> None:
     num_threads = 10
     results = []
 
-    def check_equality(thread_id: int) -> None:  # noqa: ARG001
+    def check_equality() -> None:
         result = registry1.equal(registry2)
         results.append(result)
 
-    run_multiple_threads(check_equality, num_threads=num_threads)
+    run_threads([threading.Thread(target=check_equality) for i in range(num_threads)])
 
     assert len(results) == num_threads
     assert all(result is True for result in results)
@@ -306,7 +310,7 @@ def test_registry_stress_test_high_contention() -> None:
             with lock:
                 counter["value"] += 1
 
-    run_multiple_threads(stress_operations, num_threads=num_threads)
+    run_threads([threading.Thread(target=stress_operations, args=(i,)) for i in range(num_threads)])
 
     # Just verify no crashes occurred and operations completed
     assert counter["value"] == num_threads * 10
