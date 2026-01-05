@@ -107,7 +107,7 @@ False
 ### PyTorch
 
 You need to install `coola` with PyTorch to check if some PyTorch objects are equal or not. Please
-check the [get started page](get_started.md) for more information. `coola` currently support the
+check the [get started page](../get_started.md) for more information. `coola` currently support the
 following PyTorch objects:
 
 - `torch.Tensor`
@@ -200,7 +200,7 @@ False
 ### `numpy.ndarray`
 
 You need to install `coola` with NumPy to check if some NumPy ndarrays are equal or not. Please
-check the [get started page](get_started.md) for more information.
+check the [get started page](../get_started.md) for more information.
 
 Two NumPy `ndarray`s are equal if:
 
@@ -226,7 +226,7 @@ False
 ### xarray
 
 You need to install `coola` with PyTorch to check if some xarray objects are equal or not. Please
-check the [get started page](get_started.md) for more information. `coola` currently support the
+check the [get started page](../get_started.md) for more information. `coola` currently support the
 following xarray objects:
 
 - `xarray.DataArray`
@@ -449,7 +449,7 @@ False
 ### PyTorch
 
 You need to install `coola` with PyTorch to check if some PyTorch objects are equal within a
-tolerance or not. Please check the [get started page](get_started.md) for more information. `coola`
+tolerance or not. Please check the [get started page](../get_started.md) for more information. `coola`
 currently support the following PyTorch objects:
 
 - `torch.Tensor`
@@ -560,7 +560,7 @@ False
 ### `numpy.ndarray`
 
 You need to install `coola` with NumPy to check if some NumPy ndarrays are equal or not. Please
-check the [get started page](get_started.md) for more information.
+check the [get started page](../get_started.md) for more information.
 
 Two NumPy `ndarray`s are equal within a tolerance if:
 
@@ -590,7 +590,7 @@ False
 ### xarray
 
 You need to install `coola` with PyTorch to check if some xarray objects are equal or not. Please
-check the [get started page](get_started.md) for more information. `coola` currently support the
+check the [get started page](../get_started.md) for more information. `coola` currently support the
 following xarray objects:
 
 - `xarray.DataArray`

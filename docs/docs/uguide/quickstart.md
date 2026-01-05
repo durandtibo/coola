@@ -3,7 +3,7 @@
 :book: This page is a quick overview of the two main functions of `coola`: `objects_are_equal`
 and `objects_are_allclose`.
 These functions can be used to check if two complex/nested objects are equal or not.
-The motivation of the library is explained [here](index.md#motivation).
+The motivation of the library is explained [here](../index.md#motivation).
 You should read this page if you want to learn how to use these functions.
 This page does not explain the internal behavior of these functions.
 
