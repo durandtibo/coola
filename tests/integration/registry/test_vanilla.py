@@ -18,8 +18,8 @@ def run_threads(threads: Sequence[threading.Thread]) -> None:
         thread.join()
 
 
-# Note: the following tests are using ``deque`` and ``defaultdict(int)``
-# because they are thread-safe.
+# Note: the following tests are using ``deque`` instead of ``list`` because
+# ``deque`` is thread-safe.
 
 ##############################
 #     Tests for Registry     #
@@ -154,13 +154,15 @@ def test_registry_concurrent_has() -> None:
     registry = Registry[str, int]()
     registry.register("existing_key", 100)
     num_threads = 10
+    lock = threading.Lock()
     results = defaultdict(int)
 
     def check_keys() -> None:
         exists = registry.has("existing_key")
         not_exists = registry.has("missing_key")
-        results["exists"] += 1 if exists else 0
-        results["not_exists"] += 1 if not not_exists else 0
+        with lock:
+            results["exists"] += 1 if exists else 0
+            results["not_exists"] += 1 if not not_exists else 0
 
     run_threads([threading.Thread(target=check_keys) for _ in range(num_threads)])
 
@@ -298,6 +300,7 @@ def test_registry_stress_test_high_contention() -> None:
     registry = Registry[str, int]()
     num_threads = 100
     counter = defaultdict(int)
+    lock = threading.Lock()
 
     def stress_operations(thread_id: int) -> None:
         for i in range(10):
@@ -306,7 +309,8 @@ def test_registry_stress_test_high_contention() -> None:
             registry.register(key, thread_id, exist_ok=True)
             if registry.has(key):
                 registry.get(key)
-            counter["value"] += 1
+            with lock:
+                counter["value"] += 1
 
     run_threads([threading.Thread(target=stress_operations, args=(i,)) for i in range(num_threads)])
 
