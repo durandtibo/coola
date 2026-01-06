@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import threading
-from collections import defaultdict, deque
+from collections import defaultdict
 from typing import TYPE_CHECKING
 
 from coola.registry import Registry
@@ -17,9 +17,6 @@ def run_threads(threads: Sequence[threading.Thread]) -> None:
     for thread in threads:
         thread.join()
 
-
-# Note: the following tests are using ``deque`` instead of ``list`` because
-# ``deque`` is thread-safe.
 
 ##############################
 #     Tests for Registry     #
@@ -105,8 +102,8 @@ def test_registry_concurrent_register_same_key_without_exist_ok() -> None:
     raises errors correctly."""
     registry = Registry[str, int]()
     num_threads = 10
-    errors = deque()
-    successes = deque()
+    errors = []
+    successes = []
 
     def register_with_error_handling(value: int) -> None:
         try:
@@ -135,7 +132,7 @@ def test_registry_concurrent_get() -> None:
     registry = Registry[str, int]()
     registry.register("key", 42)
     num_threads = 10
-    results = deque()
+    results = []
 
     def read_key() -> None:
         value = registry.get("key")
@@ -176,8 +173,8 @@ def test_registry_concurrent_unregister_operations() -> None:
     num_keys = 10
     registry = Registry[str, int]({f"key_{i}": i for i in range(num_keys)})
 
-    unregistered_values = deque()
-    errors = deque()
+    unregistered_values = []
+    errors = []
 
     def unregister_key(key: str) -> None:
         try:
@@ -283,7 +280,7 @@ def test_registry_concurrent_equal_operations() -> None:
     registry1 = Registry[str, int]({"a": 1, "b": 2})
     registry2 = Registry[str, int]({"a": 1, "b": 2})
     num_threads = 10
-    results = deque()
+    results = []
 
     def check_equality() -> None:
         result = registry1.equal(registry2)
