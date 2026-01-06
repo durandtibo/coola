@@ -88,11 +88,10 @@ def test_registry_get_existing_key() -> None:
     assert registry.get("key1") == 42
 
 
-def test_registry_get_missing_key_raises_error() -> None:
-    """Test that getting a missing key raises KeyError."""
+def test_registry_get_missing_key_return_none() -> None:
+    """Test that getting a missing key returns None."""
     registry = Registry[str, int]()
-    with pytest.raises(KeyError, match="Key 'missing' is not registered"):
-        registry.get("missing")
+    assert registry.get("missing") is None
 
 
 def test_registry_has_existing_key() -> None:

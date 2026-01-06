@@ -145,6 +145,25 @@ def test_registry_concurrent_get() -> None:
     assert all(value == 42 for value in results)
 
 
+def test_registry_concurrent_getitem() -> None:
+    """Test that multiple threads can read the same key
+    simultaneously."""
+    registry = Registry[str, int]()
+    registry.register("key", 42)
+    num_threads = 10
+    results = []
+
+    def read_key() -> None:
+        value = registry["key"]
+        results.append(value)
+
+    run_threads([threading.Thread(target=read_key) for _ in range(num_threads)])
+
+    # All threads should have read the correct value
+    assert len(results) == num_threads
+    assert all(value == 42 for value in results)
+
+
 def test_registry_concurrent_has() -> None:
     """Test that multiple threads can check key existence
     simultaneously."""
