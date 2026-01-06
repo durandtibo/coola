@@ -13,7 +13,7 @@ from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mappin
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-T = TypeVar("T")  # Value type
+T = TypeVar("T")
 
 
 class TypeRegistry(Generic[T]):
@@ -353,6 +353,12 @@ class TypeRegistry(Generic[T]):
             # Clear cache when registry changes to ensure new registrations are used
             self._cache.clear()
 
+    def resolve(self, dtype: type) -> T:
+        with self._lock_cache:
+            if dtype not in self._cache:
+                self._cache[dtype] = self._resolve_uncached(dtype)
+            return self._cache[dtype]
+
     def unregister(self, dtype: type) -> T:
         """Remove a data type-value pair from the registry and return
         the value.
@@ -392,3 +398,30 @@ class TypeRegistry(Generic[T]):
             # Clear cache when registry changes to ensure new registrations are used
             self._cache.clear()
             return self._state.pop(dtype)
+
+    def _resolve_uncached(self, dtype: type) -> T:
+        """Find value using MRO (uncached version).
+
+        This is the internal implementation that performs the actual lookup.
+        It first checks for a direct match, then walks the MRO to find the
+        most specific registered transformer, and finally falls back to the
+        default transformer.
+
+        Args:
+            dtype: The type to find a transformer for
+
+        Returns:
+            The appropriate transformer instance
+        """
+        with self._lock_state:
+            # Direct lookup first (most common case, O(1))
+            if dtype in self._state:
+                return self._state[dtype]
+
+            # MRO lookup for inheritance - finds the most specific parent type
+            for base_type in dtype.__mro__:
+                if base_type in self._state:
+                    return self._state[base_type]
+
+        msg = "Could not find a registered type"
+        raise KeyError(msg)
