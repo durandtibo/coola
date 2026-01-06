@@ -40,8 +40,7 @@ class TypeRegistry(Generic[T]):
     Attributes:
         _state: Internal dictionary storing the type-value pairs.
         _cache: Cached version of type resolution lookups for performance.
-        _lock_state: Threading lock for synchronizing access to the state.
-        _lock_cache: Threading lock for synchronizing access to the cache.
+        _lock: Threading lock for synchronizing access to both state and cache.
 
     Example:
         Basic usage with registration and retrieval:
@@ -125,8 +124,7 @@ class TypeRegistry(Generic[T]):
         # cache for type lookups - improves performance for repeated transforms
         self._cache: dict[type, T] = {}
 
-        self._lock_state = threading.RLock()  # RLock allows re-entrant locking
-        self._lock_cache = threading.RLock()  # RLock allows re-entrant locking
+        self._lock = threading.RLock()  # RLock allows re-entrant locking
 
     def __contains__(self, dtype: type) -> bool:
         return self.has(dtype)
@@ -141,16 +139,16 @@ class TypeRegistry(Generic[T]):
         self.unregister(dtype)
 
     def __len__(self) -> int:
-        with self._lock_state:
+        with self._lock:
             return len(self._state)
 
     def __repr__(self) -> str:
-        with self._lock_state:
+        with self._lock:
             snapshot = self._state.copy()
         return f"{self.__class__.__qualname__}(\n  {repr_indent(repr_mapping(snapshot))}\n)"
 
     def __str__(self) -> str:
-        with self._lock_state:
+        with self._lock:
             snapshot = self._state.copy()
         return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(snapshot))}\n)"
 
@@ -176,7 +174,7 @@ class TypeRegistry(Generic[T]):
 
             ```
         """
-        with self._lock_state, self._lock_cache:
+        with self._lock:
             self._state.clear()
             self._cache.clear()
 
@@ -213,7 +211,7 @@ class TypeRegistry(Generic[T]):
 
         # Acquire locks in a consistent order based on object id to avoid deadlock
         first, second = (self, other) if id(self) < id(other) else (other, self)
-        with first._lock_state, second._lock_state:
+        with first._lock, second._lock:
             return objects_are_equal(self._state, other._state, equal_nan=equal_nan)
 
     def get(self, dtype: type) -> T:
@@ -246,7 +244,7 @@ class TypeRegistry(Generic[T]):
 
             ```
         """
-        with self._lock_state:
+        with self._lock:
             if dtype not in self._state:
                 msg = f"Type '{dtype}' is not registered"
                 raise KeyError(msg)
@@ -277,7 +275,7 @@ class TypeRegistry(Generic[T]):
 
             ```
         """
-        with self._lock_state:
+        with self._lock:
             return dtype in self._state
 
     def register(self, dtype: type, value: T, exist_ok: bool = False) -> None:
@@ -330,7 +328,7 @@ class TypeRegistry(Generic[T]):
 
             ```
         """
-        with self._lock_state, self._lock_cache:
+        with self._lock:
             if dtype in self._state and not exist_ok:
                 msg = (
                     f"A value is already registered for '{dtype}'. "
@@ -392,7 +390,7 @@ class TypeRegistry(Generic[T]):
 
             ```
         """
-        with self._lock_state, self._lock_cache:
+        with self._lock:
             # Check all keys first if exist_ok is False
             if not exist_ok and (duplicates := set(mapping) & set(self._state)):
                 msg = (
@@ -469,7 +467,7 @@ class TypeRegistry(Generic[T]):
 
             ```
         """
-        with self._lock_cache:
+        with self._lock:
             if dtype not in self._cache:
                 self._cache[dtype] = self._resolve_uncached(dtype)
             return self._cache[dtype]
@@ -509,7 +507,7 @@ class TypeRegistry(Generic[T]):
 
             ```
         """
-        with self._lock_state, self._lock_cache:
+        with self._lock:
             if dtype not in self._state:
                 msg = f"Type '{dtype}' is not registered"
                 raise KeyError(msg)
@@ -524,6 +522,8 @@ class TypeRegistry(Generic[T]):
         resolution. It first checks for a direct match, then walks the MRO
         to find the most specific registered parent type.
 
+        This method should only be called while holding self._lock.
+
         Args:
             dtype: The type to find a value for.
 
@@ -533,15 +533,14 @@ class TypeRegistry(Generic[T]):
         Raises:
             KeyError: If no matching type is found in the registry.
         """
-        with self._lock_state:
-            # Direct lookup first (most common case, O(1))
-            if dtype in self._state:
-                return self._state[dtype]
+        # Direct lookup first (most common case, O(1))
+        if dtype in self._state:
+            return self._state[dtype]
 
-            # MRO lookup for inheritance - finds the most specific parent type
-            for base_type in dtype.__mro__:
-                if base_type in self._state:
-                    return self._state[base_type]
+        # MRO lookup for inheritance - finds the most specific parent type
+        for base_type in dtype.__mro__:
+            if base_type in self._state:
+                return self._state[base_type]
 
         msg = "Could not find a registered type"
         raise KeyError(msg)
