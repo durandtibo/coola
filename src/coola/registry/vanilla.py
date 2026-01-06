@@ -36,7 +36,7 @@ class Registry(Generic[K, V]):
         _state: Internal dictionary storing the key-value pairs.
         _lock: Threading lock for synchronizing access to the registry.
 
-    Examples:
+    Example:
         Basic usage with registration and retrieval:
 
         ```pycon
@@ -111,12 +111,10 @@ class Registry(Generic[K, V]):
         This method empties the registry, leaving it in the same state as a
         newly created empty registry. This operation cannot be undone.
 
-        Examples:
+        Example:
             ```pycon
             >>> from coola.registry import Registry
-            >>> registry = Registry[str, int]()
-            >>> registry.register("key1", 42)
-            >>> registry.register("key2", 100)
+            >>> registry = Registry[str, int]({"key1": 42, "key2": 100})
             >>> len(registry)
             2
             >>> registry.clear()
@@ -131,6 +129,29 @@ class Registry(Generic[K, V]):
             self._state.clear()
 
     def equal(self, other: Any, equal_nan: bool = False) -> bool:
+        r"""Indicate if two objects are equal or not.
+
+        Args:
+            other: The object to compare with.
+            equal_nan: If ``True``, then two ``NaN``s will be
+                considered equal.
+
+        Returns:
+            ``True`` if the two objects are equal, otherwise ``False``.
+
+        Example:
+            ```pycon
+            >>> from coola.registry import Registry
+            >>> registry1 = Registry[str, int]({"key1": 42, "key2": 100})
+            >>> registry2 = Registry[str, int]({"key1": 42, "key2": 100})
+            >>> registry3 = Registry[str, int]({"key1": 42})
+            >>> registry1.equal(registry2)
+            True
+            >>> registry1.equal(registry3)
+            False
+
+            ```
+        """
         if type(other) is not type(self):
             return False
         with self._lock, other._lock:
@@ -153,11 +174,10 @@ class Registry(Generic[K, V]):
             KeyError: If the key has not been registered. The error message
                 includes the key that was not found.
 
-        Examples:
+        Example:
             ```pycon
             >>> from coola.registry import Registry
-            >>> registry = Registry[str, int]()
-            >>> registry.register("key1", 42)
+            >>> registry = Registry[str, int]({"key1": 42, "key2": 100})
             >>> registry.get("key1")
             42
             >>> registry.get("missing")  # doctest: +SKIP
@@ -183,11 +203,10 @@ class Registry(Generic[K, V]):
         Returns:
             True if the key exists in the registry, False otherwise.
 
-        Examples:
+        Example:
             ```pycon
             >>> from coola.registry import Registry
-            >>> registry = Registry[str, int]()
-            >>> registry.register("key1", 42)
+            >>> registry = Registry[str, int]({"key1": 42, "key2": 100})
             >>> registry.has("key1")
             True
             >>> registry.has("missing")
@@ -216,7 +235,7 @@ class Registry(Generic[K, V]):
             RuntimeError: If the key is already registered and exist_ok is False.
                 The error message provides guidance on how to resolve the conflict.
 
-        Examples:
+        Example:
             Basic registration:
 
             ```pycon
@@ -275,7 +294,7 @@ class Registry(Generic[K, V]):
                 is already registered. The error occurs on the first duplicate
                 encountered, and no partial registration occurs.
 
-        Examples:
+        Example:
             Registering multiple entries at once:
 
             ```pycon
@@ -330,11 +349,10 @@ class Registry(Generic[K, V]):
             KeyError: If the key is not registered. The error message
                 includes the key that was not found.
 
-        Examples:
+        Example:
             ```pycon
             >>> from coola.registry import Registry
-            >>> registry = Registry[str, int]()
-            >>> registry.register("key1", 42)
+            >>> registry = Registry[str, int]({"key1": 42, "key2": 100})
             >>> registry.has("key1")
             True
             >>> value = registry.unregister("key1")
@@ -342,8 +360,6 @@ class Registry(Generic[K, V]):
             42
             >>> registry.has("key1")
             False
-            >>> registry.unregister("key1")  # doctest: +SKIP
-            KeyError: "Key 'key1' is not registered"
 
             ```
         """
