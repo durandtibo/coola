@@ -154,7 +154,10 @@ class Registry(Generic[K, V]):
         """
         if type(other) is not type(self):
             return False
-        with self._lock, other._lock:
+
+        # Acquire locks in a consistent order based on object id to avoid deadlock
+        first, second = (self, other) if id(self) < id(other) else (other, self)
+        with first._lock, second._lock:
             return objects_are_equal(self._state, other._state, equal_nan=equal_nan)
 
     def get(self, key: K) -> V:
