@@ -210,10 +210,13 @@ class TypeRegistry(Generic[T]):
         """
         if type(other) is not type(self):
             return False
-        with self._lock_state, other._lock_state:
+
+        # Acquire locks in a consistent order based on object id to avoid deadlock
+        first, second = (self, other) if id(self) < id(other) else (other, self)
+        with first._lock_state, second._lock_state:
             return objects_are_equal(self._state, other._state, equal_nan=equal_nan)
 
-    def get(self, key: type) -> T:
+    def get(self, dtype: type) -> T:
         """Retrieve the value associated with a type.
 
         This method performs a direct lookup in the registry and returns the
@@ -222,7 +225,7 @@ class TypeRegistry(Generic[T]):
         `resolve()` method instead.
 
         Args:
-            key: The type whose value should be retrieved.
+            dtype: The type whose value should be retrieved.
 
         Returns:
             The value associated with the specified type.
@@ -244,10 +247,10 @@ class TypeRegistry(Generic[T]):
             ```
         """
         with self._lock_state:
-            if key not in self._state:
-                msg = f"Key '{key}' is not registered"
+            if dtype not in self._state:
+                msg = f"Type '{dtype}' is not registered"
                 raise KeyError(msg)
-            return self._state[key]
+            return self._state[dtype]
 
     def has(self, dtype: type) -> bool:
         """Check whether a type is registered in the registry.
@@ -277,7 +280,7 @@ class TypeRegistry(Generic[T]):
         with self._lock_state:
             return dtype in self._state
 
-    def register(self, key: type, value: T, exist_ok: bool = False) -> None:
+    def register(self, dtype: type, value: T, exist_ok: bool = False) -> None:
         """Register a new type-value pair in the registry.
 
         By default, this method raises an error if you try to register a type
@@ -288,7 +291,7 @@ class TypeRegistry(Generic[T]):
         that subsequent `resolve()` calls use the updated registry state.
 
         Args:
-            key: The type to register. Must be a Python type object.
+            dtype: The type to register. Must be a Python type object.
             value: The value to associate with the type.
             exist_ok: Controls behavior when the type already exists.
                 If False (default), raises RuntimeError for duplicate types.
@@ -328,13 +331,13 @@ class TypeRegistry(Generic[T]):
             ```
         """
         with self._lock_state, self._lock_cache:
-            if key in self._state and not exist_ok:
+            if dtype in self._state and not exist_ok:
                 msg = (
-                    f"A value is already registered for '{key}'. "
-                    "Use a different key or set exist_ok=True to override."
+                    f"A value is already registered for '{dtype}'. "
+                    "Use a different type or set exist_ok=True to override."
                 )
                 raise RuntimeError(msg)
-            self._state[key] = value
+            self._state[dtype] = value
             # Clear cache when registry changes to ensure new registrations are used
             self._cache.clear()
 
