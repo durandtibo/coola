@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["Registry"]
 
 import threading
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Generic, TypeVar
 
 from coola.comparison import objects_are_equal
 from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
@@ -83,7 +83,11 @@ class Registry(Generic[K, V]):
         return self.has(key)
 
     def __getitem__(self, key: K) -> V:
-        return self.get(key)
+        with self._lock:
+            if key not in self._state:
+                msg = f"Key '{key}' is not registered"
+                raise KeyError(msg)
+            return self._state[key]
 
     def __setitem__(self, key: K, value: V) -> None:
         self.register(key, value, exist_ok=True)
@@ -128,7 +132,7 @@ class Registry(Generic[K, V]):
         with self._lock:
             self._state.clear()
 
-    def equal(self, other: Any, equal_nan: bool = False) -> bool:
+    def equal(self, other: object, equal_nan: bool = False) -> bool:
         r"""Indicate if two objects are equal or not.
 
         Args:
@@ -160,22 +164,18 @@ class Registry(Generic[K, V]):
         with first._lock, second._lock:
             return objects_are_equal(self._state, other._state, equal_nan=equal_nan)
 
-    def get(self, key: K) -> V:
+    def get(self, key: K, default: V | None = None) -> V | None:
         """Retrieve the value associated with a key.
 
         This method performs a lookup in the registry and returns the
-        corresponding value. If the key doesn't exist, a KeyError is raised
-        with a descriptive message.
+        corresponding value.
 
         Args:
             key: The key whose value should be retrieved.
+            default: Value to return if the key does not exist.
 
         Returns:
             The value associated with the specified key.
-
-        Raises:
-            KeyError: If the key has not been registered. The error message
-                includes the key that was not found.
 
         Example:
             ```pycon
@@ -183,16 +183,13 @@ class Registry(Generic[K, V]):
             >>> registry = Registry[str, int]({"key1": 42, "key2": 100})
             >>> registry.get("key1")
             42
-            >>> registry.get("missing")  # doctest: +SKIP
-            KeyError: "Key 'missing' is not registered"
+            >>> registry.get("missing")
+            None
 
             ```
         """
         with self._lock:
-            if key not in self._state:
-                msg = f"Key '{key}' is not registered"
-                raise KeyError(msg)
-            return self._state[key]
+            return self._state.get(key, default)
 
     def has(self, key: K) -> bool:
         """Check whether a key is registered in the registry.
@@ -328,7 +325,7 @@ class Registry(Generic[K, V]):
             # Check all keys first if exist_ok is False
             if not exist_ok and (duplicates := set(mapping) & set(self._state)):
                 msg = (
-                    f"Keys already registered: {', '.join(map(str, duplicates))}"
+                    f"Keys already registered: {', '.join(map(str, duplicates))}. "
                     "Use different keys or set exist_ok=True to override."
                 )
                 raise RuntimeError(msg)
