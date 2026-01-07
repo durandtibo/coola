@@ -124,7 +124,7 @@ class TypeRegistry(Generic[T]):
         # cache for type lookups - improves performance for repeated transforms
         self._cache: dict[type, T] = {}
 
-        self._lock = threading.RLock()  # RLock allows re-entrant locking
+        self._lock: threading.RLock = threading.RLock()  # RLock allows re-entrant locking
 
     def __contains__(self, dtype: type) -> bool:
         return self.has(dtype)
