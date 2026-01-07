@@ -6,10 +6,15 @@ from typing import TYPE_CHECKING, Any, NoReturn
 import pytest
 
 from coola import objects_are_equal
-from coola.recursive import MappingTransformer, TransformerRegistry
+from coola.recursive import DefaultTransformer, MappingTransformer, TransformerRegistry
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+
+@pytest.fixture
+def registry() -> TransformerRegistry:
+    return TransformerRegistry({object: DefaultTransformer()})
 
 
 def test_mapping_transformer_repr() -> None:
@@ -37,64 +42,67 @@ def test_mapping_transformer_str() -> None:
     ],
 )
 def test_mapping_transformer_transform_parametrized(
-    data: Any, func: Callable, expected: Any
+    data: Any, func: Callable, expected: Any, registry: TransformerRegistry
 ) -> None:
     assert objects_are_equal(
-        MappingTransformer().transform(data, func=func, registry=TransformerRegistry()), expected
+        MappingTransformer().transform(data, func=func, registry=registry), expected
     )
 
 
-def test_mapping_transformer_transform_nested_dict() -> None:
+def test_mapping_transformer_transform_nested_dict(registry: TransformerRegistry) -> None:
     assert objects_are_equal(
         MappingTransformer().transform(
-            {"a": 1, "b": {"x": 3, "y": 4}}, func=str, registry=TransformerRegistry()
+            {"a": 1, "b": {"x": 3, "y": 4}}, func=str, registry=registry
         ),
         {"a": "1", "b": "{'x': 3, 'y': 4}"},
     )
 
 
-def test_mapping_transformer_transform_with_custom_function() -> None:
+def test_mapping_transformer_transform_with_custom_function(registry: TransformerRegistry) -> None:
     def custom_func(x: Any) -> str:
         return f"processed: {x}"
 
     assert objects_are_equal(
-        MappingTransformer().transform(
-            {"a": 1, "b": 2}, func=custom_func, registry=TransformerRegistry()
-        ),
+        MappingTransformer().transform({"a": 1, "b": 2}, func=custom_func, registry=registry),
         {"a": "processed: 1", "b": "processed: 2"},
     )
 
 
-def test_mapping_transformer_transform_with_identity_function() -> None:
+def test_mapping_transformer_transform_with_identity_function(
+    registry: TransformerRegistry,
+) -> None:
     data = {"a": 1, "b": 2}
-    result = MappingTransformer().transform(data, func=lambda x: x, registry=TransformerRegistry())
+    result = MappingTransformer().transform(data, func=lambda x: x, registry=registry)
     assert result is not data
 
 
-def test_mapping_transformer_transform_with_exception_in_function() -> None:
+def test_mapping_transformer_transform_with_exception_in_function(
+    registry: TransformerRegistry,
+) -> None:
     def failing_func(x: Any) -> NoReturn:
         msg = f"Test error {x}"
         raise ValueError(msg)
 
     transformer = MappingTransformer()
-    registry = TransformerRegistry()
     with pytest.raises(ValueError, match="Test error"):
         transformer.transform({"a": 1, "b": 2}, func=failing_func, registry=registry)
 
 
-def test_mapping_transformer_transform_preserves_function_behavior() -> None:
+def test_mapping_transformer_transform_preserves_function_behavior(
+    registry: TransformerRegistry,
+) -> None:
     def create_list(x: Any) -> list:
         return [x, x + 1, x + 2]
 
     assert objects_are_equal(
-        MappingTransformer().transform(
-            {"a": 1, "b": 2}, func=create_list, registry=TransformerRegistry()
-        ),
+        MappingTransformer().transform({"a": 1, "b": 2}, func=create_list, registry=registry),
         {"a": [1, 2, 3], "b": [2, 3, 4]},
     )
 
 
-def test_mapping_transformer_transform_with_stateful_function() -> None:
+def test_mapping_transformer_transform_with_stateful_function(
+    registry: TransformerRegistry,
+) -> None:
     counter = {"count": 0}
 
     def stateful_func(x: Any) -> Any:
@@ -102,7 +110,6 @@ def test_mapping_transformer_transform_with_stateful_function() -> None:
         return x * counter["count"]
 
     transformer = MappingTransformer()
-    registry = TransformerRegistry()
     assert transformer.transform({"a": 1, "b": 2}, func=stateful_func, registry=registry) == {
         "a": 1,
         "b": 4,
@@ -113,12 +120,12 @@ def test_mapping_transformer_transform_with_stateful_function() -> None:
     }
 
 
-def test_mapping_transformer_transform_with_closure() -> None:
+def test_mapping_transformer_transform_with_closure(registry: TransformerRegistry) -> None:
     multiplier = 3
 
     def multiply_by(x: Any) -> Any:
         return x * multiplier
 
     assert MappingTransformer().transform(
-        {"a": 1, "b": 2}, func=multiply_by, registry=TransformerRegistry()
+        {"a": 1, "b": 2}, func=multiply_by, registry=registry
     ) == {"a": 3, "b": 6}
