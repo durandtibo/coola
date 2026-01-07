@@ -130,7 +130,11 @@ class TypeRegistry(Generic[T]):
         return self.has(dtype)
 
     def __getitem__(self, dtype: type) -> T:
-        return self.get(dtype)
+        with self._lock:
+            if dtype not in self._state:
+                msg = f"Type '{dtype}' is not registered"
+                raise KeyError(msg)
+            return self._state[dtype]
 
     def __setitem__(self, dtype: type, value: T) -> None:
         self.register(dtype, value, exist_ok=True)
@@ -214,7 +218,7 @@ class TypeRegistry(Generic[T]):
         with first._lock, second._lock:
             return objects_are_equal(self._state, other._state, equal_nan=equal_nan)
 
-    def get(self, dtype: type) -> T:
+    def get(self, dtype: type, default: T | None = None) -> T:
         """Retrieve the value associated with a type.
 
         This method performs a direct lookup in the registry and returns the
@@ -224,13 +228,10 @@ class TypeRegistry(Generic[T]):
 
         Args:
             dtype: The type whose value should be retrieved.
+            default: Value to return if the key does not exist.
 
         Returns:
             The value associated with the specified type.
-
-        Raises:
-            KeyError: If the type has not been registered. The error message
-                includes the type that was not found.
 
         Example:
             ```pycon
@@ -245,10 +246,7 @@ class TypeRegistry(Generic[T]):
             ```
         """
         with self._lock:
-            if dtype not in self._state:
-                msg = f"Type '{dtype}' is not registered"
-                raise KeyError(msg)
-            return self._state[dtype]
+            return self._state.get(dtype, default)
 
     def has(self, dtype: type) -> bool:
         """Check whether a type is registered in the registry.
@@ -331,7 +329,7 @@ class TypeRegistry(Generic[T]):
         with self._lock:
             if dtype in self._state and not exist_ok:
                 msg = (
-                    f"A value is already registered for '{dtype}'. "
+                    f"A value is already registered for {dtype}. "
                     "Use a different type or set exist_ok=True to override."
                 )
                 raise RuntimeError(msg)
@@ -509,7 +507,7 @@ class TypeRegistry(Generic[T]):
         """
         with self._lock:
             if dtype not in self._state:
-                msg = f"Type '{dtype}' is not registered"
+                msg = f"Type {dtype} is not registered"
                 raise KeyError(msg)
             # Clear cache when registry changes to ensure new registrations are used
             self._cache.clear()
