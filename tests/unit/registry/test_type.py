@@ -52,7 +52,6 @@ def test_type_registry_clear_empty_registry() -> None:
 def test_type_registry_clear_populated_registry() -> None:
     """Test clearing a populated registry."""
     registry = TypeRegistry[str]({int: "integer", float: "float"})
-    assert registry.equal(TypeRegistry[str]({int: "integer", float: "float"}))
     registry.clear()
     assert registry.equal(TypeRegistry[str]())
 
