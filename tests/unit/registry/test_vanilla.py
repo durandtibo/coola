@@ -52,9 +52,7 @@ def test_registry_clear_empty_registry() -> None:
 
 def test_registry_clear_populated_registry() -> None:
     """Test clearing a populated registry."""
-    registry = Registry[str, int]()
-    registry.register_many({"a": 1, "b": 2, "c": 3})
-    assert registry.equal(Registry[str, int]({"a": 1, "b": 2, "c": 3}))
+    registry = Registry[str, int]({"a": 1, "b": 2, "c": 3})
     registry.clear()
     assert registry.equal(Registry[str, int]())
 
@@ -125,7 +123,7 @@ def test_registry_register_duplicate_with_exist_ok() -> None:
     registry = Registry[str, int]()
     registry.register("key1", 42)
     registry.register("key1", 100, exist_ok=True)
-    assert registry.get("key1") == 100
+    assert registry.equal(Registry[str, int]({"key1": 100}))
 
 
 def test_registry_register_multiple_keys() -> None:
@@ -154,16 +152,14 @@ def test_registry_register_many_empty_mapping() -> None:
 def test_registry_register_many_duplicate_raises_error() -> None:
     """Test that register_many raises error on duplicate without
     exist_ok."""
-    registry = Registry[str, int]()
-    registry.register("a", 1)
+    registry = Registry[str, int]({"a": 1})
     with pytest.raises(RuntimeError, match="Keys already registered"):
         registry.register_many({"a": 10, "b": 2})
 
 
 def test_registry_register_many_with_exist_ok() -> None:
     """Test register_many with exist_ok=True allows overwriting."""
-    registry = Registry[str, int]()
-    registry.register("a", 1)
+    registry = Registry[str, int]({"a": 1})
     registry.register_many({"a": 10, "b": 2}, exist_ok=True)
     assert registry.equal(Registry[str, int]({"a": 10, "b": 2}))
 
@@ -186,12 +182,11 @@ def test_registry_unregister_missing_key_raises_error() -> None:
 
 def test_registry_unregister_reduces_length() -> None:
     """Test that unregister reduces registry length."""
-    registry = Registry[str, int]()
-    registry.register("a", 1)
-    registry.register("b", 2)
+    registry = Registry[str, int]({"a": 1, "b": 2})
     assert len(registry) == 2
     registry.unregister("a")
     assert len(registry) == 1
+    assert registry.equal(Registry[str, int]({"b": 2}))
 
 
 # Test operator overloading
