@@ -351,7 +351,7 @@ def test_type_registry_concurrent_resolve_same_type() -> None:
         try:
             result = registry.resolve(int)
             results.append(result)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             errors.append(e)
 
     run_threads([threading.Thread(target=resolve_type) for _ in range(num_threads)])
