@@ -77,7 +77,7 @@ class Registry(Generic[K, V]):
 
     def __init__(self, initial_state: dict[K, V] | None = None) -> None:
         self._state: dict[K, V] = initial_state.copy() if initial_state else {}
-        self._lock = threading.RLock()  # RLock allows re-entrant locking
+        self._lock: threading.RLock = threading.RLock()  # RLock allows re-entrant locking
 
     def __contains__(self, key: K) -> bool:
         return self.has(key)
