@@ -1,10 +1,28 @@
 from __future__ import annotations
 
 import threading
+import time
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from coola.registry import TypeRegistry
 from tests.integration.registry.test_vanilla import run_threads
+
+
+class Animal:
+    """Base animal class for testing inheritance."""
+
+
+class Dog(Animal):
+    """Dog class inheriting from Animal."""
+
+
+class Cat(Animal):
+    """Cat class inheriting from Animal."""
+
+
+class Poodle(Dog):
+    """Poodle class inheriting from Dog."""
 
 
 def create_classes(num_classes: int) -> list[type]:
@@ -319,6 +337,129 @@ def test_type_registry_concurrent_equal_operations() -> None:
 
     assert len(results) == num_threads
     assert all(result is True for result in results)
+
+
+def test_type_registry_concurrent_resolve_same_type() -> None:
+    """Test that concurrent resolve calls for the same type are thread-
+    safe."""
+    registry = TypeRegistry[str]({object: "base", int: "integer"})
+    num_threads = 10
+    results = []
+    errors = []
+
+    def resolve_type() -> None:
+        try:
+            result = registry.resolve(int)
+            results.append(result)
+        except Exception as e:
+            errors.append(e)
+
+    run_threads([threading.Thread(target=resolve_type) for _ in range(num_threads)])
+
+    assert not errors, f"Errors occurred: {errors}"
+    assert len(results) == num_threads
+    assert all(r == "integer" for r in results)
+
+
+def test_type_registry_concurrent_resolve_different_types() -> None:
+    """Test thread safety when resolving different types
+    concurrently."""
+    registry = TypeRegistry[str]({Animal: "animal", Dog: "dog", Cat: "cat"})
+    num_threads = 100
+    results = defaultdict(list)
+    lock = threading.Lock()
+
+    def resolve_type(dtype: type, expected: type) -> None:
+        result = registry.resolve(dtype)
+        with lock:
+            results[dtype].append((result, expected))
+
+    # Execute concurrent resolves with mixed types
+    threads = []
+    for i in range(num_threads):
+        if i % 3 == 0:
+            t = threading.Thread(target=resolve_type, args=(Dog, "dog"))
+        elif i % 3 == 1:
+            t = threading.Thread(target=resolve_type, args=(Cat, "cat"))
+        else:
+            t = threading.Thread(target=resolve_type, args=(Animal, "animal"))
+        threads.append(t)
+
+    run_threads(threads)
+
+    for result_list in results.values():
+        for result, expected in result_list:
+            assert result == expected
+
+
+def test_type_registry_cache_consistency_under_concurrent_access() -> None:
+    """Test that cache remains consistent under concurrent access."""
+    registry = TypeRegistry[str]({object: "base", Dog: "dog"})
+    num_threads = 100
+    cache_results = []
+
+    def resolve_and_check() -> None:
+        # First resolution (might trigger cache population)
+        first = registry.resolve(Poodle)
+        time.sleep(0.0001)  # Small delay to encourage race conditions
+        # Second resolution (should use cache)
+        second = registry.resolve(Poodle)
+        cache_results.append((first, second))
+
+    # Execute
+    with ThreadPoolExecutor(max_workers=20) as executor:
+        futures = [executor.submit(resolve_and_check) for _ in range(num_threads)]
+        for future in as_completed(futures):
+            future.result()  # Raise any exceptions
+
+    # Assert
+    assert len(cache_results) == num_threads
+    for first, second in cache_results:
+        assert first == "dog"
+        assert second == "dog"
+        assert first == second
+
+
+def test_type_registry_concurrent_resolve_with_cache_miss() -> None:
+    """Test thread safety when multiple threads trigger cache miss
+    simultaneously."""
+    registry = TypeRegistry[str]({Animal: "animal", Dog: "dog"})
+    num_threads = 10
+    results = []
+    barrier = threading.Barrier(num_threads)  # Synchronize thread start
+
+    def resolve_with_barrier() -> None:
+        barrier.wait()  # All threads start at once
+        result = registry.resolve(Poodle)
+        results.append(result)
+
+    run_threads([threading.Thread(target=resolve_with_barrier) for _ in range(num_threads)])
+
+    assert len(results) == num_threads
+    assert all(r == "dog" for r in results)
+
+
+def test_type_registry_no_race_condition_on_cache_population() -> None:
+    """Test that cache population doesn't create race conditions."""
+    registry = TypeRegistry[str]({object: "base", Animal: "animal"})
+    types_to_resolve = [Dog, Cat, Poodle, bool, str, int]
+    num_iterations = 5
+    all_results = {dtype: [] for dtype in types_to_resolve}
+    lock = threading.Lock()
+
+    def resolve_all_types() -> None:
+        for dtype in types_to_resolve:
+            result = registry.resolve(dtype)
+            with lock:
+                all_results[dtype].append(result)
+
+    # Execute multiple iterations
+    for _ in range(num_iterations):
+        run_threads([threading.Thread(target=resolve_all_types) for _ in range(10)])
+
+    # Assert - all resolutions of same type should return same result
+    for results in all_results.values():
+        assert len(set(results)) == 1
 
 
 def test_type_registry_stress_test_high_contention() -> None:
