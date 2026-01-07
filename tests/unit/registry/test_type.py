@@ -47,7 +47,7 @@ def test_type_registry_clear_empty_registry() -> None:
     registry = TypeRegistry[str]()
     registry.clear()
     assert registry.equal(TypeRegistry[str]())
-    assert registry._cache == {}
+    assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
 def test_type_registry_clear_populated_registry() -> None:
@@ -55,7 +55,7 @@ def test_type_registry_clear_populated_registry() -> None:
     registry = TypeRegistry[str]({int: "integer", float: "float"})
     registry.clear()
     assert registry.equal(TypeRegistry[str]())
-    assert registry._cache == {}
+    assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
 def test_type_registry_equal_true() -> None:
@@ -112,7 +112,7 @@ def test_type_registry_register_basic() -> None:
     registry = TypeRegistry[str]()
     registry.register(int, "integer")
     assert registry.equal(TypeRegistry[str]({int: "integer"}))
-    assert registry._cache == {}
+    assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
 def test_type_registry_register_duplicate_raises_error() -> None:
@@ -128,7 +128,7 @@ def test_type_registry_register_duplicate_with_exist_ok() -> None:
     registry.register(int, "integer")
     registry.register(int, "int", exist_ok=True)
     assert registry.equal(TypeRegistry[str]({int: "int"}))
-    assert registry._cache == {}
+    assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
 def test_type_registry_register_multiple_keys() -> None:
@@ -137,7 +137,7 @@ def test_type_registry_register_multiple_keys() -> None:
     registry.register(int, "integer")
     registry.register(float, "float")
     assert registry.equal(TypeRegistry[str]({int: "integer", float: "float"}))
-    assert registry._cache == {}
+    assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
 def test_type_registry_register_many_basic() -> None:
@@ -145,7 +145,7 @@ def test_type_registry_register_many_basic() -> None:
     registry = TypeRegistry[str]()
     registry.register_many({int: "integer", float: "float"})
     assert registry.equal(TypeRegistry[str]({int: "integer", float: "float"}))
-    assert registry._cache == {}
+    assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
 def test_type_registry_register_many_empty_mapping() -> None:
@@ -153,7 +153,7 @@ def test_type_registry_register_many_empty_mapping() -> None:
     registry = TypeRegistry[str]()
     registry.register_many({})
     assert registry.equal(TypeRegistry[str]())
-    assert registry._cache == {}
+    assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
 def test_type_registry_register_many_duplicate_raises_error() -> None:
@@ -169,7 +169,7 @@ def test_type_registry_register_many_with_exist_ok() -> None:
     registry = TypeRegistry[str]({int: "integer"})
     registry.register_many({int: "int", float: "float"}, exist_ok=True)
     assert registry.equal(TypeRegistry[str]({int: "int", float: "float"}))
-    assert registry._cache == {}
+    assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
 def test_type_registry_resolve_direct_match() -> None:
@@ -209,7 +209,6 @@ def test_type_registry_resolve_missing_type_raises_keyerror() -> None:
 
 def test_type_registry_resolve_uses_cache() -> None:
     registry = TypeRegistry[str]({object: "object"})
-
     # First resolve populates cache
     result1 = registry.resolve(int)
     assert registry._cache == {int: "object"}
@@ -231,7 +230,7 @@ def test_type_registry_unregister_existing_key() -> None:
     value = registry.unregister(int)
     assert value == "integer"
     assert registry.equal(TypeRegistry[str]())
-    assert registry._cache == {}
+    assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
 def test_type_registry_unregister_missing_key_raises_error() -> None:
@@ -248,7 +247,7 @@ def test_type_registry_unregister_reduces_length() -> None:
     registry.unregister(int)
     assert len(registry) == 1
     assert registry.equal(TypeRegistry[str]({float: "float"}))
-    assert registry._cache == {}
+    assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
 # Test operator overloading
@@ -279,6 +278,7 @@ def test_type_registry_setitem_operator() -> None:
     registry = TypeRegistry[str]()
     registry[int] = "integer"
     assert registry.equal(TypeRegistry[str]({int: "integer"}))
+    assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
 def test_type_registry_setitem_overwrites() -> None:
@@ -287,6 +287,7 @@ def test_type_registry_setitem_overwrites() -> None:
     registry[int] = "int"
     registry[int] = "integer"
     assert registry.equal(TypeRegistry[str]({int: "integer"}))
+    assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
 def test_type_registry_delitem_operator() -> None:
@@ -294,6 +295,7 @@ def test_type_registry_delitem_operator() -> None:
     registry = TypeRegistry[str]({int: "integer"})
     del registry[int]
     assert registry.equal(TypeRegistry[str]())
+    assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
 def test_type_registry_delitem_missing_raises_error() -> None:
