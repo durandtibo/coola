@@ -47,6 +47,7 @@ def test_type_registry_clear_empty_registry() -> None:
     registry = TypeRegistry[str]()
     registry.clear()
     assert registry.equal(TypeRegistry[str]())
+    assert registry._cache == {}
 
 
 def test_type_registry_clear_populated_registry() -> None:
@@ -54,6 +55,7 @@ def test_type_registry_clear_populated_registry() -> None:
     registry = TypeRegistry[str]({int: "integer", float: "float"})
     registry.clear()
     assert registry.equal(TypeRegistry[str]())
+    assert registry._cache == {}
 
 
 def test_type_registry_equal_true() -> None:
@@ -110,6 +112,7 @@ def test_type_registry_register_basic() -> None:
     registry = TypeRegistry[str]()
     registry.register(int, "integer")
     assert registry.equal(TypeRegistry[str]({int: "integer"}))
+    assert registry._cache == {}
 
 
 def test_type_registry_register_duplicate_raises_error() -> None:
@@ -125,6 +128,7 @@ def test_type_registry_register_duplicate_with_exist_ok() -> None:
     registry.register(int, "integer")
     registry.register(int, "int", exist_ok=True)
     assert registry.equal(TypeRegistry[str]({int: "int"}))
+    assert registry._cache == {}
 
 
 def test_type_registry_register_multiple_keys() -> None:
@@ -133,6 +137,7 @@ def test_type_registry_register_multiple_keys() -> None:
     registry.register(int, "integer")
     registry.register(float, "float")
     assert registry.equal(TypeRegistry[str]({int: "integer", float: "float"}))
+    assert registry._cache == {}
 
 
 def test_type_registry_register_many_basic() -> None:
@@ -140,6 +145,7 @@ def test_type_registry_register_many_basic() -> None:
     registry = TypeRegistry[str]()
     registry.register_many({int: "integer", float: "float"})
     assert registry.equal(TypeRegistry[str]({int: "integer", float: "float"}))
+    assert registry._cache == {}
 
 
 def test_type_registry_register_many_empty_mapping() -> None:
@@ -147,6 +153,7 @@ def test_type_registry_register_many_empty_mapping() -> None:
     registry = TypeRegistry[str]()
     registry.register_many({})
     assert registry.equal(TypeRegistry[str]())
+    assert registry._cache == {}
 
 
 def test_type_registry_register_many_duplicate_raises_error() -> None:
@@ -162,6 +169,60 @@ def test_type_registry_register_many_with_exist_ok() -> None:
     registry = TypeRegistry[str]({int: "integer"})
     registry.register_many({int: "int", float: "float"}, exist_ok=True)
     assert registry.equal(TypeRegistry[str]({int: "int", float: "float"}))
+    assert registry._cache == {}
+
+
+def test_type_registry_resolve_direct_match() -> None:
+    registry = TypeRegistry[str]({int: "integer", float: "float"})
+    assert registry.resolve(int) == "integer"
+    assert registry.resolve(float) == "float"
+
+
+def test_type_registry_resolve_via_mro() -> None:
+    registry = TypeRegistry[str]({object: "object", int: "integer"})
+    # bool inherits from int
+    assert registry.resolve(bool) == "integer"
+    # str inherits from object
+    assert registry.resolve(str) == "object"
+    assert registry._cache == {bool: "integer", str: "object"}
+
+
+def test_type_registry_resolve_custom_class_hierarchy() -> None:
+    class Animal: ...
+
+    class Dog(Animal): ...
+
+    class Poodle(Dog): ...
+
+    registry = TypeRegistry[str]({Animal: "animal", Dog: "dog"})
+    assert registry.resolve(Dog) == "dog"
+    assert registry.resolve(Poodle) == "dog"
+    assert registry.resolve(Animal) == "animal"
+    assert registry._cache == {Animal: "animal", Poodle: "dog", Dog: "dog"}
+
+
+def test_type_registry_resolve_missing_type_raises_keyerror() -> None:
+    registry = TypeRegistry[str]()
+    with pytest.raises(KeyError, match="Could not find a registered type"):
+        registry.resolve(int)
+
+
+def test_type_registry_resolve_uses_cache() -> None:
+    registry = TypeRegistry[str]({object: "object"})
+
+    # First resolve populates cache
+    result1 = registry.resolve(int)
+    assert registry._cache == {int: "object"}
+    # Second resolve uses cache
+    result2 = registry.resolve(int)
+    assert result1 == result2 == "object"
+
+
+def test_type_registry_resolve_most_specific_type() -> None:
+    registry = TypeRegistry[str]({object: "object", int: "int", float: "float"})
+    # Should get most specific match
+    assert registry.resolve(bool) == "int"
+    assert registry.resolve(int) == "int"
 
 
 def test_type_registry_unregister_existing_key() -> None:
@@ -170,6 +231,7 @@ def test_type_registry_unregister_existing_key() -> None:
     value = registry.unregister(int)
     assert value == "integer"
     assert registry.equal(TypeRegistry[str]())
+    assert registry._cache == {}
 
 
 def test_type_registry_unregister_missing_key_raises_error() -> None:
@@ -186,6 +248,7 @@ def test_type_registry_unregister_reduces_length() -> None:
     registry.unregister(int)
     assert len(registry) == 1
     assert registry.equal(TypeRegistry[str]({float: "float"}))
+    assert registry._cache == {}
 
 
 # Test operator overloading
