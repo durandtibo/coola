@@ -84,7 +84,7 @@ class TransformerRegistry:
     """
 
     def __init__(self, initial_state: dict[type, BaseTransformer[Any]] | None = None) -> None:
-        self._state = TypeRegistry[BaseTransformer](initial_state)
+        self._state: TypeRegistry[BaseTransformer] = TypeRegistry[BaseTransformer](initial_state)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}(\n  {repr_indent(self._state)}\n)"
