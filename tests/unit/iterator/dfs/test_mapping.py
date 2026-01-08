@@ -6,7 +6,12 @@ from typing import Any
 import pytest
 
 from coola import objects_are_equal
-from coola.iterator.dfs import IterableIterator, IteratorRegistry, MappingIterator
+from coola.iterator.dfs import (
+    DefaultIterator,
+    IterableIterator,
+    IteratorRegistry,
+    MappingIterator,
+)
 
 #####################################
 #     Tests for MappingIterator     #
@@ -40,7 +45,10 @@ def test_mapping_iterator_iterate(data: Any, expected: Any) -> None:
     assert objects_are_equal(
         list(
             iterator.iterate(
-                data, registry=IteratorRegistry({list: IterableIterator(), dict: iterator})
+                data,
+                registry=IteratorRegistry(
+                    {object: DefaultIterator(), list: IterableIterator(), dict: iterator}
+                ),
             )
         ),
         expected,

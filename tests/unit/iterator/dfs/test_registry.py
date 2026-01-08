@@ -20,8 +20,7 @@ from tests.unit.iterator.dfs.helpers import DEFAULT_SAMPLES, CustomList
 
 def test_iterator_registry_init_empty() -> None:
     registry = IteratorRegistry()
-    assert registry._registry == {}
-    assert isinstance(registry._default_iterator, DefaultIterator)
+    assert len(registry._registry) == 0
 
 
 def test_iterator_registry_init_with_registry() -> None:
@@ -106,18 +105,6 @@ def test_iterator_registry_register_many_with_exist_ok() -> None:
     assert registry._registry[list] is iterator2
 
 
-def test_iterator_registry_register_clears_cache() -> None:
-    """Test that registering a new iterator clears the cache."""
-    registry = IteratorRegistry()
-    # Access find_iterator to potentially populate cache
-    assert isinstance(registry.find_iterator(list), DefaultIterator)
-    # Register should clear cache
-    iterator = IterableIterator()
-    registry.register(list, iterator)
-    # Verify the new iterator is found
-    assert registry.find_iterator(list) is iterator
-
-
 def test_iterator_registry_has_iterator_true() -> None:
     assert IteratorRegistry({list: IterableIterator()}).has_iterator(list)
 
@@ -138,10 +125,6 @@ def test_iterator_registry_find_iterator_mro_lookup() -> None:
     assert registry.find_iterator(CustomList) is iterator
 
 
-def test_iterator_registry_find_iterator_default() -> None:
-    assert isinstance(IteratorRegistry().find_iterator(str), DefaultIterator)
-
-
 def test_iterator_registry_find_iterator_most_specific() -> None:
     base_iterator = IterableIterator()
     specific_iterator = MappingIterator()
@@ -152,7 +135,7 @@ def test_iterator_registry_find_iterator_most_specific() -> None:
 
 @pytest.mark.parametrize(("data", "expected"), DEFAULT_SAMPLES)
 def test_iterator_registry_iterate_default(data: Any, expected: Any) -> None:
-    assert list(IteratorRegistry().iterate(data)) == expected
+    assert list(IteratorRegistry({object: DefaultIterator()}).iterate(data)) == expected
 
 
 def test_iterator_registry_registry_isolation() -> None:

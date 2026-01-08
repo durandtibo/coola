@@ -24,9 +24,9 @@ class IterableIterator(BaseIterator[Iterable[Any]]):
 
     Example:
         ```pycon
-        >>> from coola.iterator.dfs import IteratorRegistry, IterableIterator
+        >>> from coola.iterator.dfs import IteratorRegistry, IterableIterator, DefaultIterator
         >>> iterator = IterableIterator()
-        >>> registry = IteratorRegistry({list: iterator})
+        >>> registry = IteratorRegistry({object: DefaultIterator(), list: iterator})
         >>> # Iterating over a simple list
         >>> list(iterator.iterate([1, 2, 3], registry))
         [1, 2, 3]
