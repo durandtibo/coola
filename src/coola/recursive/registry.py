@@ -44,11 +44,16 @@ class TransformerRegistry:
         Basic usage with a sequence transformer:
 
         ```pycon
-        >>> from coola.recursive import TransformerRegistry, SequenceTransformer
-        >>> registry = TransformerRegistry({list: SequenceTransformer()})
+        >>> from coola.recursive import TransformerRegistry, SequenceTransformer, DefaultTransformer
+        >>> registry = TransformerRegistry(
+        ...     {object: DefaultTransformer(), list: SequenceTransformer()}
+        ... )
         >>> registry
         TransformerRegistry(
-          (<class 'list'>): SequenceTransformer()
+          TypeRegistry(
+            (<class 'object'>): DefaultTransformer()
+            (<class 'list'>): SequenceTransformer()
+          )
         )
         >>> registry.transform([1, 2, 3], str)
         ['1', '2', '3']
@@ -59,7 +64,7 @@ class TransformerRegistry:
 
         ```pycon
         >>> from coola.recursive import TransformerRegistry, SequenceTransformer
-        >>> registry = TransformerRegistry()
+        >>> registry = TransformerRegistry({object: DefaultTransformer()})
         >>> registry.register(list, SequenceTransformer())
         >>> registry.transform([1, 2, 3], lambda x: x * 2)
         [2, 4, 6]
@@ -150,8 +155,10 @@ class TransformerRegistry:
             ... )
             >>> registry
             TransformerRegistry(
-              (<class 'list'>): SequenceTransformer()
-              (<class 'dict'>): MappingTransformer()
+              TypeRegistry(
+                (<class 'list'>): SequenceTransformer()
+                (<class 'dict'>): MappingTransformer()
+              )
             )
 
             ```
@@ -207,8 +214,8 @@ class TransformerRegistry:
         Example:
             ```pycon
             >>> from collections.abc import Sequence
-            >>> from coola.recursive import TransformerRegistry, SequenceTransformer
-            >>> registry = TransformerRegistry()
+            >>> from coola.recursive import TransformerRegistry, SequenceTransformer, DefaultTransformer
+            >>> registry = TransformerRegistry({object: DefaultTransformer()})
             >>> registry.register(Sequence, SequenceTransformer())
             >>> # list does not inherit from Sequence, so it uses DefaultTransformer
             >>> transformer = registry.find_transformer(list)

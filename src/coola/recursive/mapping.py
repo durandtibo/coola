@@ -32,8 +32,8 @@ class MappingTransformer(BaseTransformer[Mapping[Any, Any]]):
 
     Example:
         ```pycon
-        >>> from coola.recursive import MappingTransformer, TransformerRegistry
-        >>> registry = TransformerRegistry()
+        >>> from coola.recursive import MappingTransformer, TransformerRegistry, DefaultTransformer
+        >>> registry = TransformerRegistry({object: DefaultTransformer()})
         >>> transformer = MappingTransformer()
         >>> transformer
         MappingTransformer()
