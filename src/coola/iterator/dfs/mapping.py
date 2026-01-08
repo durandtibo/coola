@@ -24,9 +24,16 @@ class MappingIterator(BaseIterator[Mapping[Any, Any]]):
 
     Example:
         ```pycon
-        >>> from coola.iterator.dfs import IteratorRegistry, MappingIterator, IterableIterator
+        >>> from coola.iterator.dfs import (
+        ...     IteratorRegistry,
+        ...     MappingIterator,
+        ...     IterableIterator,
+        ...     DefaultIterator,
+        ... )
         >>> iterator = MappingIterator()
-        >>> registry = IteratorRegistry({dict: iterator, list: IterableIterator()})
+        >>> registry = IteratorRegistry(
+        ...     {object: DefaultIterator(), dict: iterator, list: IterableIterator()}
+        ... )
         >>> # Simple dictionary with scalar values
         >>> list(iterator.iterate({"a": 1, "b": 2}, registry))
         [1, 2]

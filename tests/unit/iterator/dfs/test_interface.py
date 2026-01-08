@@ -40,7 +40,9 @@ def test_dfs_iterate(data: Any, expected: Any) -> None:
 
 @pytest.mark.parametrize(("data", "expected"), DEFAULT_SAMPLES)
 def test_dfs_iterate_custom_registry(data: Any, expected: Any) -> None:
-    assert objects_are_equal(list(dfs_iterate(data, registry=IteratorRegistry())), expected)
+    assert objects_are_equal(
+        list(dfs_iterate(data, registry=IteratorRegistry({object: DefaultIterator()}))), expected
+    )
 
 
 ########################################
