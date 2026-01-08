@@ -23,8 +23,14 @@ def test_random_random_manager_eq_true() -> None:
     assert RandomRandomManager() == RandomRandomManager()
 
 
-def test_random_random_manager_eq_false() -> None:
+def test_random_random_manager_eq_false_different_type() -> None:
     assert RandomRandomManager() != 42
+
+
+def test_random_random_manager_eq_false_different_type_child() -> None:
+    class Child(RandomRandomManager): ...
+
+    assert RandomRandomManager() != Child()
 
 
 def test_random_random_manager_get_rng_state() -> None:
