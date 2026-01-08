@@ -20,7 +20,7 @@ from tests.unit.iterator.dfs.helpers import DEFAULT_SAMPLES, CustomList
 
 def test_iterator_registry_init_empty() -> None:
     registry = IteratorRegistry()
-    assert len(registry._registry) == 0
+    assert len(registry._state) == 0
 
 
 def test_iterator_registry_init_with_registry() -> None:
@@ -28,11 +28,11 @@ def test_iterator_registry_init_with_registry() -> None:
     initial_registry: dict[type, BaseIterator[Any]] = {list: iterator}
     registry = IteratorRegistry(initial_registry)
 
-    assert list in registry._registry
-    assert registry._registry[list] is iterator
+    assert list in registry._state
+    assert registry._state[list] is iterator
     # Verify it's a copy
     initial_registry[tuple] = iterator
-    assert tuple not in registry._registry
+    assert tuple not in registry._state
 
 
 def test_iterator_registry_repr() -> None:
@@ -48,7 +48,7 @@ def test_iterator_registry_register_new_type() -> None:
     iterator = IterableIterator()
     registry.register(list, iterator)
     assert registry.has_iterator(list)
-    assert registry._registry[list] is iterator
+    assert registry._state[list] is iterator
 
 
 def test_iterator_registry_register_existing_type_without_exist_ok() -> None:
@@ -68,7 +68,7 @@ def test_iterator_registry_register_existing_type_with_exist_ok() -> None:
     registry.register(list, iterator1)
     registry.register(list, iterator2, exist_ok=True)
 
-    assert registry._registry[list] is iterator2
+    assert registry._state[list] is iterator2
 
 
 def test_iterator_registry_register_many() -> None:
@@ -102,7 +102,7 @@ def test_iterator_registry_register_many_with_exist_ok() -> None:
     iterators = {list: iterator2, dict: MappingIterator()}
 
     registry.register_many(iterators, exist_ok=True)
-    assert registry._registry[list] is iterator2
+    assert registry._state[list] is iterator2
 
 
 def test_iterator_registry_has_iterator_true() -> None:
@@ -145,5 +145,5 @@ def test_iterator_registry_registry_isolation() -> None:
     registry1 = IteratorRegistry({list: iterator1})
     registry2 = IteratorRegistry({list: iterator2})
 
-    assert registry1._registry[list] is iterator1
-    assert registry2._registry[list] is iterator2
+    assert registry1._state[list] is iterator1
+    assert registry2._state[list] is iterator2

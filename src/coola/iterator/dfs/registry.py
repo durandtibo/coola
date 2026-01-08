@@ -26,11 +26,11 @@ class IteratorRegistry:
     in repetitive iteration tasks.
 
     Args:
-        registry: An optional dictionary mapping types to iterators.
+        initial_state: An optional dictionary mapping types to iterators.
             If provided, the registry is initialized with this mapping.
 
     Attributes:
-        _registry: Internal mapping of registered data types to iterators.
+        _state: Internal mapping of registered data types to iterators.
         _default_iterator: The fallback iterator used for types not explicitly registered.
         _iterator_cache: Cache to speed up iterator lookups.
 
@@ -64,14 +64,14 @@ class IteratorRegistry:
         ```
     """
 
-    def __init__(self, registry: dict[type, BaseIterator[Any]] | None = None) -> None:
-        self._registry: TypeRegistry[BaseIterator] = TypeRegistry[BaseIterator](registry)
+    def __init__(self, initial_state: dict[type, BaseIterator[Any]] | None = None) -> None:
+        self._state: TypeRegistry[BaseIterator] = TypeRegistry[BaseIterator](initial_state)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}(\n  {repr_indent(self._registry)}\n)"
+        return f"{self.__class__.__qualname__}(\n  {repr_indent(self._state)}\n)"
 
     def __str__(self) -> str:
-        return f"{self.__class__.__qualname__}(\n  {str_indent(self._registry)}\n)"
+        return f"{self.__class__.__qualname__}(\n  {str_indent(self._state)}\n)"
 
     def register(
         self,
@@ -105,7 +105,7 @@ class IteratorRegistry:
 
             ```
         """
-        self._registry.register(data_type, iterator, exist_ok=exist_ok)
+        self._state.register(data_type, iterator, exist_ok=exist_ok)
 
     def register_many(
         self,
@@ -144,7 +144,7 @@ class IteratorRegistry:
 
             ```
         """
-        self._registry.register_many(mapping, exist_ok=exist_ok)
+        self._state.register_many(mapping, exist_ok=exist_ok)
 
     def has_iterator(self, data_type: type) -> bool:
         r"""Check if an iterator is registered for a given data type.
@@ -169,7 +169,7 @@ class IteratorRegistry:
 
             ```
         """
-        return data_type in self._registry
+        return data_type in self._state
 
     def find_iterator(self, data_type: type) -> BaseIterator[Any]:
         r"""Find the appropriate iterator for a given type.
@@ -194,7 +194,7 @@ class IteratorRegistry:
 
             ```
         """
-        return self._registry.resolve(data_type)
+        return self._state.resolve(data_type)
 
     def iterate(self, data: Any) -> Iterator[Any]:
         r"""Perform depth-first iteration over a data structure.
