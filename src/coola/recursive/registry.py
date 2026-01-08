@@ -32,11 +32,11 @@ class TransformerRegistry:
     in applications that repeatedly transform similar data structures.
 
     Args:
-        registry: Optional initial mapping of types to transformers. If provided,
-            the registry is copied to prevent external mutations.
+        initial_state: Optional initial mapping of types to transformers.
+            If provided, the state is copied to prevent external mutations.
 
     Attributes:
-        _registry: Internal mapping of registered types to transformers
+        _state: Internal mapping of registered types to transformers
         _default_transformer: Fallback transformer for unregistered types
         _find_transformer_cached: Cached version of transformer lookup
 
@@ -83,14 +83,14 @@ class TransformerRegistry:
         ```
     """
 
-    def __init__(self, registry: dict[type, BaseTransformer[Any]] | None = None) -> None:
-        self._registry = TypeRegistry[BaseTransformer](registry)
+    def __init__(self, initial_state: dict[type, BaseTransformer[Any]] | None = None) -> None:
+        self._state = TypeRegistry[BaseTransformer](initial_state)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}(\n  {repr_indent(self._registry)}\n)"
+        return f"{self.__class__.__qualname__}(\n  {repr_indent(self._state)}\n)"
 
     def __str__(self) -> str:
-        return f"{self.__class__.__qualname__}(\n  {str_indent(self._registry)}\n)"
+        return f"{self.__class__.__qualname__}(\n  {str_indent(self._state)}\n)"
 
     def register(
         self,
@@ -123,7 +123,7 @@ class TransformerRegistry:
 
             ```
         """
-        self._registry.register(data_type, transformer, exist_ok=exist_ok)
+        self._state.register(data_type, transformer, exist_ok=exist_ok)
 
     def register_many(
         self,
@@ -163,7 +163,7 @@ class TransformerRegistry:
 
             ```
         """
-        self._registry.register_many(mapping, exist_ok=exist_ok)
+        self._state.register_many(mapping, exist_ok=exist_ok)
 
     def has_transformer(self, data_type: type) -> bool:
         """Check if a transformer is explicitly registered for the given
@@ -192,7 +192,7 @@ class TransformerRegistry:
 
             ```
         """
-        return data_type in self._registry
+        return data_type in self._state
 
     def find_transformer(self, data_type: type) -> BaseTransformer[Any]:
         """Find the appropriate transformer for a given type.
@@ -224,7 +224,7 @@ class TransformerRegistry:
 
             ```
         """
-        return self._registry.resolve(data_type)
+        return self._state.resolve(data_type)
 
     def transform(self, data: Any, func: Callable[[Any], Any]) -> Any:
         """Transform data by applying a function recursively through the

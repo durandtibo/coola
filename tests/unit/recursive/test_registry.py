@@ -26,7 +26,7 @@ class CustomList(list):
 
 def test_transformer_registry_init_empty() -> None:
     registry = TransformerRegistry()
-    assert len(registry._registry) == 0
+    assert len(registry._state) == 0
 
 
 def test_transformer_registry_init_with_registry() -> None:
@@ -34,11 +34,11 @@ def test_transformer_registry_init_with_registry() -> None:
     initial_registry: dict[type, BaseTransformer[Any]] = {list: transformer}
     registry = TransformerRegistry(initial_registry)
 
-    assert list in registry._registry
-    assert registry._registry[list] is transformer
+    assert list in registry._state
+    assert registry._state[list] is transformer
     # Verify it's a copy
     initial_registry[tuple] = SetTransformer()
-    assert tuple not in registry._registry
+    assert tuple not in registry._state
 
 
 def test_transformer_registry_repr() -> None:
@@ -54,7 +54,7 @@ def test_transformer_registry_register_new_type() -> None:
     transformer = SequenceTransformer()
     registry.register(list, transformer)
     assert registry.has_transformer(list)
-    assert registry._registry[list] is transformer
+    assert registry._state[list] is transformer
 
 
 def test_transformer_registry_register_existing_type_without_exist_ok() -> None:
@@ -74,7 +74,7 @@ def test_transformer_registry_register_existing_type_with_exist_ok() -> None:
     registry.register(list, transformer1)
     registry.register(list, transformer2, exist_ok=True)
 
-    assert registry._registry[list] is transformer2
+    assert registry._state[list] is transformer2
 
 
 def test_transformer_registry_register_many() -> None:
@@ -114,7 +114,7 @@ def test_transformer_registry_register_many_with_exist_ok() -> None:
     }
 
     registry.register_many(transformers, exist_ok=True)
-    assert registry._registry[list] is transformer2
+    assert registry._state[list] is transformer2
 
 
 def test_transformer_registry_has_transformer_true() -> None:
@@ -198,8 +198,8 @@ def test_transformer_registry_registry_isolation() -> None:
     registry1 = TransformerRegistry({list: transformer1})
     registry2 = TransformerRegistry({list: transformer2})
 
-    assert registry1._registry[list] is transformer1
-    assert registry2._registry[list] is transformer2
+    assert registry1._state[list] is transformer1
+    assert registry2._state[list] is transformer2
 
 
 def test_transformer_registry_transform_empty_list() -> None:
