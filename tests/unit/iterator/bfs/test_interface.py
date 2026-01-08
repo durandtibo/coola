@@ -44,7 +44,10 @@ def test_bfs_iterate(data: Any, expected: Any) -> None:
 
 @pytest.mark.parametrize(("data", "expected"), DEFAULT_ITERATE_SAMPLES)
 def test_bfs_iterate_custom_registry(data: Any, expected: Any) -> None:
-    assert objects_are_equal(list(bfs_iterate(data, registry=ChildFinderRegistry())), expected)
+    assert objects_are_equal(
+        list(bfs_iterate(data, registry=ChildFinderRegistry({object: DefaultChildFinder()}))),
+        expected,
+    )
 
 
 ############################################
