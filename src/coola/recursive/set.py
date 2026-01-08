@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["SetTransformer"]
 
 from collections.abc import Set as AbstractSet
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from coola.recursive.base import BaseTransformer
 
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from coola.recursive.registry import TransformerRegistry
 
 
-class SetTransformer(BaseTransformer[AbstractSet[Any]]):
+class SetTransformer(BaseTransformer[AbstractSet[object]]):
     r"""Transformer for set types that recursively transforms elements.
 
     This transformer handles set structures (set, frozenset) by recursively
@@ -62,10 +62,10 @@ class SetTransformer(BaseTransformer[AbstractSet[Any]]):
 
     def transform(
         self,
-        data: AbstractSet[Any],
-        func: Callable[[Any], Any],
+        data: AbstractSet[object],
+        func: Callable[[object], object],
         registry: TransformerRegistry,
-    ) -> AbstractSet[Any]:
+    ) -> AbstractSet[object]:
         # Transform all elements recursively using the registry
         # Note: This will raise TypeError if transformed values are not hashable
         transformed = {registry.transform(item, func) for item in data}

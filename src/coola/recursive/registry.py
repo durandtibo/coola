@@ -9,7 +9,7 @@ from __future__ import annotations
 
 __all__ = ["TransformerRegistry"]
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from coola.recursive.base import BaseTransformer
 from coola.registry import TypeRegistry
@@ -81,7 +81,7 @@ class TransformerRegistry:
         ```
     """
 
-    def __init__(self, initial_state: dict[type, BaseTransformer[Any]] | None = None) -> None:
+    def __init__(self, initial_state: dict[type, BaseTransformer[object]] | None = None) -> None:
         self._state: TypeRegistry[BaseTransformer] = TypeRegistry[BaseTransformer](initial_state)
 
     def __repr__(self) -> str:
@@ -93,7 +93,7 @@ class TransformerRegistry:
     def register(
         self,
         data_type: type,
-        transformer: BaseTransformer[Any],
+        transformer: BaseTransformer[object],
         exist_ok: bool = False,
     ) -> None:
         """Register a transformer for a given data type.
@@ -125,7 +125,7 @@ class TransformerRegistry:
 
     def register_many(
         self,
-        mapping: Mapping[type, BaseTransformer[Any]],
+        mapping: Mapping[type, BaseTransformer[object]],
         exist_ok: bool = False,
     ) -> None:
         """Register multiple transformers at once.
@@ -192,7 +192,7 @@ class TransformerRegistry:
         """
         return data_type in self._state
 
-    def find_transformer(self, data_type: type) -> BaseTransformer[Any]:
+    def find_transformer(self, data_type: type) -> BaseTransformer[object]:
         """Find the appropriate transformer for a given type.
 
         Uses the Method Resolution Order (MRO) to find the most specific
@@ -224,7 +224,7 @@ class TransformerRegistry:
         """
         return self._state.resolve(data_type)
 
-    def transform(self, data: Any, func: Callable[[Any], Any]) -> Any:
+    def transform(self, data: object, func: Callable[[object], object]) -> object:
         """Transform data by applying a function recursively through the
         structure.
 

@@ -59,7 +59,7 @@ class MappingTransformer(BaseTransformer[Mapping[Any, Any]]):
     def transform(
         self,
         data: Mapping[Any, Any],
-        func: Callable[[Any], Any],
+        func: Callable[[object], object],
         registry: TransformerRegistry,
     ) -> Mapping[Any, Any]:
         # Transform all values recursively using the registry

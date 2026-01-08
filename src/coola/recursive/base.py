@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["BaseTransformer"]
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Generic, TypeVar
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -44,9 +44,9 @@ class BaseTransformer(ABC, Generic[T]):
     def transform(
         self,
         data: T,
-        func: Callable[[Any], Any],
+        func: Callable[[object], object],
         registry: TransformerRegistry,
-    ) -> Any:
+    ) -> object:
         r"""Transform data by recursively applying a function.
 
         This method traverses the data structure, applies the given function

@@ -6,7 +6,7 @@ from __future__ import annotations
 __all__ = ["get_default_registry", "recursive_apply", "register_transformers"]
 
 from collections.abc import Mapping, Sequence
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from coola.recursive.default import (
     DefaultTransformer,
@@ -23,8 +23,8 @@ if TYPE_CHECKING:
 
 
 def recursive_apply(
-    data: Any, func: Callable[[Any], Any], registry: TransformerRegistry | None = None
-) -> Any:
+    data: object, func: Callable[[object], object], registry: TransformerRegistry | None = None
+) -> object:
     """Recursively apply a function to all items in nested data.
 
     This is the main public interface that maintains compatibility
@@ -54,7 +54,7 @@ def recursive_apply(
 
 
 def register_transformers(
-    mapping: Mapping[type, BaseTransformer[Any]],
+    mapping: Mapping[type, BaseTransformer[object]],
     exist_ok: bool = False,
 ) -> None:
     """Register custom transformers to the default global registry.

@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["SequenceTransformer"]
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from coola.recursive.base import BaseTransformer
 
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from coola.recursive.registry import TransformerRegistry
 
 
-class SequenceTransformer(BaseTransformer[Sequence[Any]]):
+class SequenceTransformer(BaseTransformer[Sequence[object]]):
     r"""Transformer for sequence types that recursively transforms
     elements.
 
@@ -67,10 +67,10 @@ class SequenceTransformer(BaseTransformer[Sequence[Any]]):
 
     def transform(
         self,
-        data: Sequence[Any],
-        func: Callable[[Any], Any],
+        data: Sequence[object],
+        func: Callable[[object], object],
         registry: TransformerRegistry,
-    ) -> Sequence[Any]:
+    ) -> Sequence[object]:
         # Transform all elements recursively using the registry
         transformed = [registry.transform(item, func) for item in data]
 

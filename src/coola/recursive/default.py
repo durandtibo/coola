@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from coola.recursive.registry import TransformerRegistry
 
 
-class DefaultTransformer(BaseTransformer[Any]):
+class DefaultTransformer(BaseTransformer[object]):
     r"""Transformer for leaf nodes that directly applies the function.
 
     This is the default transformer used for values that don't require
@@ -57,7 +57,7 @@ class DefaultTransformer(BaseTransformer[Any]):
     def transform(
         self,
         data: Any,
-        func: Callable[[Any], Any],
+        func: Callable[[object], object],
         registry: TransformerRegistry,  # noqa: ARG002
-    ) -> Any:
+    ) -> object:
         return func(data)

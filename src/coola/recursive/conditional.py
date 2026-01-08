@@ -85,9 +85,9 @@ class ConditionalTransformer(BaseTransformer[T]):
     def transform(
         self,
         data: T,
-        func: Callable[[Any], Any],
+        func: Callable[[object], object],
         registry: TransformerRegistry,
-    ) -> Any:
+    ) -> object:
         if self._condition(data):
             return self._transformer.transform(data, func, registry)
         return data
