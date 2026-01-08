@@ -31,8 +31,6 @@ class IteratorRegistry:
 
     Attributes:
         _state: Internal mapping of registered data types to iterators.
-        _default_iterator: The fallback iterator used for types not explicitly registered.
-        _iterator_cache: Cache to speed up iterator lookups.
 
     Example:
         Basic usage:
