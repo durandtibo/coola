@@ -30,16 +30,12 @@ class ChildFinderRegistry:
     lookups.
 
     Args:
-        registry: An optional dictionary mapping Python types to
+        initial_state: An optional dictionary mapping Python types to
             ``BaseChildFinder`` instances. If provided, the registry
             is initialized with this mapping.
 
     Attributes:
-        _registry: Mapping of registered data types to child finders.
-        _default_child_finder: Fallback child finder used when no match
-            is found in the registry.
-        _child_finder_cache: Cache mapping data types to resolved child
-            finders (after MRO lookup).
+        _state: Mapping of registered data types to child finders.
 
     Example:
         Basic usage with a flat iterable:
@@ -91,14 +87,14 @@ class ChildFinderRegistry:
         ```
     """
 
-    def __init__(self, registry: dict[type, BaseChildFinder[Any]] | None = None) -> None:
-        self._registry: TypeRegistry[BaseChildFinder] = TypeRegistry[BaseChildFinder](registry)
+    def __init__(self, initial_state: dict[type, BaseChildFinder[Any]] | None = None) -> None:
+        self._state: TypeRegistry[BaseChildFinder] = TypeRegistry[BaseChildFinder](initial_state)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}(\n  {repr_indent(self._registry)}\n)"
+        return f"{self.__class__.__qualname__}(\n  {repr_indent(self._state)}\n)"
 
     def __str__(self) -> str:
-        return f"{self.__class__.__qualname__}(\n  {str_indent(self._registry)}\n)"
+        return f"{self.__class__.__qualname__}(\n  {str_indent(self._state)}\n)"
 
     def register(
         self,
@@ -138,7 +134,7 @@ class ChildFinderRegistry:
 
             ```
         """
-        self._registry.register(data_type, child_finder, exist_ok)
+        self._state.register(data_type, child_finder, exist_ok)
 
     def register_many(
         self,
@@ -171,7 +167,7 @@ class ChildFinderRegistry:
 
             ```
         """
-        self._registry.register_many(mapping, exist_ok)
+        self._state.register_many(mapping, exist_ok)
 
     def has_child_finder(self, data_type: type) -> bool:
         r"""Check if a child finder is directly registered for a data
@@ -199,7 +195,7 @@ class ChildFinderRegistry:
 
             ```
         """
-        return data_type in self._registry
+        return data_type in self._state
 
     def find_child_finder(self, data_type: type) -> BaseChildFinder[Any]:
         r"""Find the appropriate child finder for a given data type.
@@ -230,7 +226,7 @@ class ChildFinderRegistry:
 
             ```
         """
-        return self._registry.resolve(data_type)
+        return self._state.resolve(data_type)
 
     def find_children(self, data: Any) -> Iterator[Any]:
         r"""Return the immediate children of an object using its child

@@ -23,7 +23,7 @@ from tests.unit.iterator.bfs.helpers import (
 
 def test_child_finder_registry_init_empty() -> None:
     registry = ChildFinderRegistry()
-    assert len(registry._registry) == 0
+    assert len(registry._state) == 0
 
 
 def test_child_finder_registry_init_with_registry() -> None:
@@ -31,11 +31,11 @@ def test_child_finder_registry_init_with_registry() -> None:
     initial_registry: dict[type, BaseChildFinder[Any]] = {list: child_finder}
     registry = ChildFinderRegistry(initial_registry)
 
-    assert list in registry._registry
-    assert registry._registry[list] is child_finder
+    assert list in registry._state
+    assert registry._state[list] is child_finder
     # Verify it's a copy
     initial_registry[tuple] = child_finder
-    assert tuple not in registry._registry
+    assert tuple not in registry._state
 
 
 def test_child_finder_registry_repr() -> None:
@@ -51,7 +51,7 @@ def test_child_finder_registry_register_new_type() -> None:
     child_finder = IterableChildFinder()
     registry.register(list, child_finder)
     assert registry.has_child_finder(list)
-    assert registry._registry[list] is child_finder
+    assert registry._state[list] is child_finder
 
 
 def test_child_finder_registry_register_existing_type_without_exist_ok() -> None:
@@ -71,7 +71,7 @@ def test_child_finder_registry_register_existing_type_with_exist_ok() -> None:
     registry.register(list, child_finder1)
     registry.register(list, child_finder2, exist_ok=True)
 
-    assert registry._registry[list] is child_finder2
+    assert registry._state[list] is child_finder2
 
 
 def test_child_finder_registry_register_many() -> None:
@@ -104,7 +104,7 @@ def test_child_finder_registry_register_many_with_exist_ok() -> None:
     child_finders = {list: child_finder2, dict: MappingChildFinder()}
 
     registry.register_many(child_finders, exist_ok=True)
-    assert registry._registry[list] is child_finder2
+    assert registry._state[list] is child_finder2
 
 
 def test_child_finder_registry_has_child_finder_true() -> None:
@@ -162,5 +162,5 @@ def test_child_finder_registry_registry_isolation() -> None:
     registry1 = ChildFinderRegistry({list: child_finder1})
     registry2 = ChildFinderRegistry({list: child_finder2})
 
-    assert registry1._registry[list] is child_finder1
-    assert registry2._registry[list] is child_finder2
+    assert registry1._state[list] is child_finder1
+    assert registry2._state[list] is child_finder2
