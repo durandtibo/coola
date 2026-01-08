@@ -9,7 +9,7 @@ __all__ = [
     "SetFormatter",
 ]
 
-from collections.abc import Hashable, Mapping, Sequence
+from collections.abc import Mapping, Sequence
 from itertools import islice
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -345,7 +345,7 @@ class SequenceFormatter(BaseCollectionFormatter[Sequence[Any]]):
         return str_indent(f"{typ} {value}", num_spaces=self._num_spaces)
 
 
-class SetFormatter(BaseCollectionFormatter[set[Hashable]]):
+class SetFormatter(BaseCollectionFormatter[set[Any]]):
     r"""Implement a formatter for ``set``.
 
     Example:
@@ -360,7 +360,7 @@ class SetFormatter(BaseCollectionFormatter[set[Hashable]]):
     """
 
     def format(
-        self, summarizer: BaseSummarizer, value: set[Hashable], depth: int = 0, max_depth: int = 1
+        self, summarizer: BaseSummarizer, value: set[Any], depth: int = 0, max_depth: int = 1
     ) -> str:
         if depth >= max_depth:
             return summarizer.summary(str(value), depth=depth + 1, max_depth=max_depth)
