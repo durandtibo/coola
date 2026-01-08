@@ -37,8 +37,6 @@ class TransformerRegistry:
 
     Attributes:
         _state: Internal mapping of registered types to transformers
-        _default_transformer: Fallback transformer for unregistered types
-        _find_transformer_cached: Cached version of transformer lookup
 
     Example:
         Basic usage with a sequence transformer:
