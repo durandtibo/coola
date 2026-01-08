@@ -6,6 +6,7 @@ import pytest
 
 from coola import objects_are_equal
 from coola.recursive import (
+    DefaultTransformer,
     SequenceTransformer,
     SetTransformer,
     TransformerRegistry,
@@ -74,7 +75,9 @@ def test_recursive_apply_converts_types() -> None:
 
 def test_recursive_apply_with_custom_registry() -> None:
     assert objects_are_equal(
-        recursive_apply([1, 2, 3], lambda x: x * 2, registry=TransformerRegistry()),
+        recursive_apply(
+            [1, 2, 3], lambda x: x * 2, registry=TransformerRegistry({object: DefaultTransformer()})
+        ),
         [1, 2, 3, 1, 2, 3],
     )
 

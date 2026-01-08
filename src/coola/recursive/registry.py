@@ -11,13 +11,12 @@ __all__ = ["TransformerRegistry"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.recursive.default import DefaultTransformer
-from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
+from coola.recursive.base import BaseTransformer
+from coola.registry import TypeRegistry
+from coola.utils.format import repr_indent, str_indent
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
-
-    from coola.recursive.base import BaseTransformer
 
 
 class TransformerRegistry:
@@ -45,11 +44,16 @@ class TransformerRegistry:
         Basic usage with a sequence transformer:
 
         ```pycon
-        >>> from coola.recursive import TransformerRegistry, SequenceTransformer
-        >>> registry = TransformerRegistry({list: SequenceTransformer()})
+        >>> from coola.recursive import TransformerRegistry, SequenceTransformer, DefaultTransformer
+        >>> registry = TransformerRegistry(
+        ...     {object: DefaultTransformer(), list: SequenceTransformer()}
+        ... )
         >>> registry
         TransformerRegistry(
-          (<class 'list'>): SequenceTransformer()
+          TypeRegistry(
+            (<class 'object'>): DefaultTransformer()
+            (<class 'list'>): SequenceTransformer()
+          )
         )
         >>> registry.transform([1, 2, 3], str)
         ['1', '2', '3']
@@ -60,7 +64,7 @@ class TransformerRegistry:
 
         ```pycon
         >>> from coola.recursive import TransformerRegistry, SequenceTransformer
-        >>> registry = TransformerRegistry()
+        >>> registry = TransformerRegistry({object: DefaultTransformer()})
         >>> registry.register(list, SequenceTransformer())
         >>> registry.transform([1, 2, 3], lambda x: x * 2)
         [2, 4, 6]
@@ -80,17 +84,13 @@ class TransformerRegistry:
     """
 
     def __init__(self, registry: dict[type, BaseTransformer[Any]] | None = None) -> None:
-        self._registry: dict[type, BaseTransformer[Any]] = registry.copy() if registry else {}
-        self._default_transformer: BaseTransformer[Any] = DefaultTransformer()
-
-        # cache for type lookups - improves performance for repeated transforms
-        self._transformer_cache: dict[type, BaseTransformer[Any]] = {}
+        self._registry = TypeRegistry[BaseTransformer](registry)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}(\n  {repr_indent(repr_mapping(self._registry))}\n)"
+        return f"{self.__class__.__qualname__}(\n  {repr_indent(self._registry)}\n)"
 
     def __str__(self) -> str:
-        return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(self._registry))}\n)"
+        return f"{self.__class__.__qualname__}(\n  {str_indent(self._registry)}\n)"
 
     def register(
         self,
@@ -123,15 +123,7 @@ class TransformerRegistry:
 
             ```
         """
-        if data_type in self._registry and not exist_ok:
-            msg = (
-                f"Transformer {self._registry[data_type]} already registered "
-                f"for {data_type}. Use exist_ok=True to overwrite."
-            )
-            raise RuntimeError(msg)
-        self._registry[data_type] = transformer
-        # Clear cache when registry changes to ensure new registrations are used
-        self._transformer_cache.clear()
+        self._registry.register(data_type, transformer, exist_ok=exist_ok)
 
     def register_many(
         self,
@@ -163,14 +155,15 @@ class TransformerRegistry:
             ... )
             >>> registry
             TransformerRegistry(
-              (<class 'list'>): SequenceTransformer()
-              (<class 'dict'>): MappingTransformer()
+              TypeRegistry(
+                (<class 'list'>): SequenceTransformer()
+                (<class 'dict'>): MappingTransformer()
+              )
             )
 
             ```
         """
-        for typ, transformer in mapping.items():
-            self.register(typ, transformer, exist_ok=exist_ok)
+        self._registry.register_many(mapping, exist_ok=exist_ok)
 
     def has_transformer(self, data_type: type) -> bool:
         """Check if a transformer is explicitly registered for the given
@@ -201,32 +194,6 @@ class TransformerRegistry:
         """
         return data_type in self._registry
 
-    def _find_transformer_uncached(self, data_type: type) -> BaseTransformer[Any]:
-        """Find transformer using MRO (uncached version).
-
-        This is the internal implementation that performs the actual lookup.
-        It first checks for a direct match, then walks the MRO to find the
-        most specific registered transformer, and finally falls back to the
-        default transformer.
-
-        Args:
-            data_type: The type to find a transformer for
-
-        Returns:
-            The appropriate transformer instance
-        """
-        # Direct lookup first (most common case, O(1))
-        if data_type in self._registry:
-            return self._registry[data_type]
-
-        # MRO lookup for inheritance - finds the most specific parent type
-        for base_type in data_type.__mro__:
-            if base_type in self._registry:
-                return self._registry[base_type]
-
-        # Fall back to default transformer for unregistered types
-        return self._default_transformer
-
     def find_transformer(self, data_type: type) -> BaseTransformer[Any]:
         """Find the appropriate transformer for a given type.
 
@@ -247,8 +214,8 @@ class TransformerRegistry:
         Example:
             ```pycon
             >>> from collections.abc import Sequence
-            >>> from coola.recursive import TransformerRegistry, SequenceTransformer
-            >>> registry = TransformerRegistry()
+            >>> from coola.recursive import TransformerRegistry, SequenceTransformer, DefaultTransformer
+            >>> registry = TransformerRegistry({object: DefaultTransformer()})
             >>> registry.register(Sequence, SequenceTransformer())
             >>> # list does not inherit from Sequence, so it uses DefaultTransformer
             >>> transformer = registry.find_transformer(list)
@@ -257,9 +224,7 @@ class TransformerRegistry:
 
             ```
         """
-        if data_type not in self._transformer_cache:
-            self._transformer_cache[data_type] = self._find_transformer_uncached(data_type)
-        return self._transformer_cache[data_type]
+        return self._registry.resolve(data_type)
 
     def transform(self, data: Any, func: Callable[[Any], Any]) -> Any:
         """Transform data by applying a function recursively through the

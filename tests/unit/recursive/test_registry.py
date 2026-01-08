@@ -26,8 +26,7 @@ class CustomList(list):
 
 def test_transformer_registry_init_empty() -> None:
     registry = TransformerRegistry()
-    assert registry._registry == {}
-    assert isinstance(registry._default_transformer, DefaultTransformer)
+    assert len(registry._registry) == 0
 
 
 def test_transformer_registry_init_with_registry() -> None:
@@ -118,18 +117,6 @@ def test_transformer_registry_register_many_with_exist_ok() -> None:
     assert registry._registry[list] is transformer2
 
 
-def test_transformer_registry_register_clears_cache() -> None:
-    """Test that registering a new transformer clears the cache."""
-    registry = TransformerRegistry()
-    # Access find_transformer to potentially populate cache
-    assert isinstance(registry.find_transformer(list), DefaultTransformer)
-    # Register should clear cache
-    transformer = SequenceTransformer()
-    registry.register(list, transformer)
-    # Verify the new transformer is found
-    assert registry.find_transformer(list) is transformer
-
-
 def test_transformer_registry_has_transformer_true() -> None:
     assert TransformerRegistry({list: SequenceTransformer()}).has_transformer(list)
 
@@ -150,28 +137,28 @@ def test_transformer_registry_find_transformer_mro_lookup() -> None:
     assert registry.find_transformer(CustomList) is transformer
 
 
-def test_transformer_registry_find_transformer_default() -> None:
-    assert isinstance(TransformerRegistry().find_transformer(str), DefaultTransformer)
-
-
 def test_transformer_registry_find_transformer_most_specific() -> None:
     base_transformer = SequenceTransformer()
     specific_transformer = MappingTransformer()
-    registry = TransformerRegistry({list: base_transformer, CustomList: specific_transformer})
+    registry = TransformerRegistry(
+        {object: DefaultTransformer(), list: base_transformer, CustomList: specific_transformer}
+    )
 
     assert registry.find_transformer(CustomList) is specific_transformer
 
 
 def test_transformer_registry_transform_with_list() -> None:
     assert objects_are_equal(
-        TransformerRegistry({list: SequenceTransformer()}).transform([1, 2, 3], str),
+        TransformerRegistry({object: DefaultTransformer(), list: SequenceTransformer()}).transform(
+            [1, 2, 3], str
+        ),
         ["1", "2", "3"],
     )
 
 
 def test_transformer_registry_transform_with_dict() -> None:
     assert objects_are_equal(
-        TransformerRegistry({dict: MappingTransformer()}).transform(
+        TransformerRegistry({object: DefaultTransformer(), dict: MappingTransformer()}).transform(
             {"a": 1, "b": 2}, lambda x: x * 2
         ),
         {"a": 2, "b": 4},
@@ -181,6 +168,7 @@ def test_transformer_registry_transform_with_dict() -> None:
 def test_transformer_registry_transform_with_nested_structure() -> None:
     registry = TransformerRegistry(
         {
+            object: DefaultTransformer(),
             list: SequenceTransformer(),
             dict: MappingTransformer(),
         }
@@ -191,16 +179,14 @@ def test_transformer_registry_transform_with_nested_structure() -> None:
     )
 
 
-def test_transformer_registry_transform_with_default_transformer() -> None:
-    assert TransformerRegistry().transform(5, lambda x: x * 2) == 10
-
-
 def test_transformer_registry_transform_with_custom_function() -> None:
     def custom_func(x: int) -> int:
         return x**2
 
     assert objects_are_equal(
-        TransformerRegistry({list: SequenceTransformer()}).transform([2, 3, 4], custom_func),
+        TransformerRegistry({object: DefaultTransformer(), list: SequenceTransformer()}).transform(
+            [2, 3, 4], custom_func
+        ),
         [4, 9, 16],
     )
 

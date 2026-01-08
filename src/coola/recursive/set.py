@@ -39,8 +39,8 @@ class SetTransformer(BaseTransformer[AbstractSet[Any]]):
 
     Example:
         ```pycon
-        >>> from coola.recursive import SetTransformer, TransformerRegistry
-        >>> registry = TransformerRegistry()
+        >>> from coola.recursive import SetTransformer, TransformerRegistry, DefaultTransformer
+        >>> registry = TransformerRegistry({object: DefaultTransformer()})
         >>> transformer = SetTransformer()
         >>> transformer
         SetTransformer()

@@ -11,6 +11,11 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
+@pytest.fixture
+def registry() -> TransformerRegistry:
+    return TransformerRegistry({object: DefaultTransformer()})
+
+
 def test_default_transformer_repr() -> None:
     assert repr(DefaultTransformer()) == "DefaultTransformer()"
 

@@ -36,11 +36,11 @@ class SequenceTransformer(BaseTransformer[Sequence[Any]]):
 
     Example:
         ```pycon
-        >>> from coola.recursive import SequenceTransformer, TransformerRegistry
+        >>> from coola.recursive import SequenceTransformer, TransformerRegistry, DefaultTransformer
         >>> transformer = SequenceTransformer()
         >>> transformer
         SequenceTransformer()
-        >>> registry = TransformerRegistry({list: transformer})
+        >>> registry = TransformerRegistry({object: DefaultTransformer(), list: transformer})
         >>> # Transform list elements
         >>> transformer.transform([1, 2, 3], func=str, registry=registry)
         ['1', '2', '3']
