@@ -7,12 +7,12 @@ __all__ = ["convert_to_dict_of_lists", "convert_to_list_of_dicts"]
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from collections.abc import Hashable, Mapping, Sequence
+    from collections.abc import Mapping, Sequence
 
 
 def convert_to_dict_of_lists(
     seq_of_mappings: Sequence[Mapping[Any, Any]],
-) -> dict[Hashable, list[Any]]:
+) -> dict[Any, list[Any]]:
     r"""Convert a sequence of mappings to a dictionary of lists.
 
     All the dictionaries should have the same keys. The first
@@ -40,7 +40,7 @@ def convert_to_dict_of_lists(
 
 
 def convert_to_list_of_dicts(
-    mapping_of_seqs: Mapping[Hashable, Sequence[Any]],
+    mapping_of_seqs: Mapping[Any, Sequence[Any]],
 ) -> list[dict[Any, Any]]:
     r"""Convert a mapping of sequences to a list of dictionaries.
 
