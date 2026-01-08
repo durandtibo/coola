@@ -9,13 +9,12 @@ from collections import deque
 from collections.abc import Iterable, Mapping
 from typing import TYPE_CHECKING, Any
 
-from coola.iterator.bfs.default import DefaultChildFinder
-from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
+from coola.iterator.bfs.base import BaseChildFinder
+from coola.registry import TypeRegistry
+from coola.utils.format import repr_indent, str_indent
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
-
-    from coola.iterator.bfs.base import BaseChildFinder
 
 
 class ChildFinderRegistry:
@@ -46,8 +45,14 @@ class ChildFinderRegistry:
         Basic usage with a flat iterable:
 
         ```pycon
-        >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
-        >>> registry = ChildFinderRegistry({list: IterableChildFinder()})
+        >>> from coola.iterator.bfs import (
+        ...     ChildFinderRegistry,
+        ...     IterableChildFinder,
+        ...     DefaultChildFinder,
+        ... )
+        >>> registry = ChildFinderRegistry(
+        ...     {object: DefaultChildFinder(), list: IterableChildFinder()}
+        ... )
         >>> list(registry.iterate([1, 2, 3]))
         [1, 2, 3]
 
@@ -73,7 +78,11 @@ class ChildFinderRegistry:
         ...     MappingChildFinder,
         ... )
         >>> registry = ChildFinderRegistry(
-        ...     {list: IterableChildFinder(), dict: MappingChildFinder()}
+        ...     {
+        ...         object: DefaultChildFinder(),
+        ...         list: IterableChildFinder(),
+        ...         dict: MappingChildFinder(),
+        ...     }
         ... )
         >>> data = {"a": [1, 2], "b": [3, 4], "c": 5, "d": {"e": 6}}
         >>> list(registry.iterate(data))
@@ -83,15 +92,13 @@ class ChildFinderRegistry:
     """
 
     def __init__(self, registry: dict[type, BaseChildFinder[Any]] | None = None) -> None:
-        self._registry: dict[type, BaseChildFinder[Any]] = registry.copy() if registry else {}
-        self._default_child_finder: BaseChildFinder[Any] = DefaultChildFinder()
-        self._child_finder_cache: dict[type, BaseChildFinder[Any]] = {}
+        self._registry: TypeRegistry[BaseChildFinder] = TypeRegistry[BaseChildFinder](registry)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}(\n  {repr_indent(repr_mapping(self._registry))}\n)"
+        return f"{self.__class__.__qualname__}(\n  {repr_indent(self._registry)}\n)"
 
     def __str__(self) -> str:
-        return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(self._registry))}\n)"
+        return f"{self.__class__.__qualname__}(\n  {str_indent(self._registry)}\n)"
 
     def register(
         self,
@@ -131,14 +138,7 @@ class ChildFinderRegistry:
 
             ```
         """
-        if data_type in self._registry and not exist_ok:
-            msg = (
-                f"Child finder {self._registry[data_type]} already registered for {data_type}. "
-                f"Use exist_ok=True to overwrite."
-            )
-            raise RuntimeError(msg)
-        self._registry[data_type] = child_finder
-        self._child_finder_cache.clear()
+        self._registry.register(data_type, child_finder, exist_ok)
 
     def register_many(
         self,
@@ -171,8 +171,7 @@ class ChildFinderRegistry:
 
             ```
         """
-        for typ, child_finder in mapping.items():
-            self.register(typ, child_finder, exist_ok=exist_ok)
+        self._registry.register_many(mapping, exist_ok)
 
     def has_child_finder(self, data_type: type) -> bool:
         r"""Check if a child finder is directly registered for a data
@@ -202,30 +201,6 @@ class ChildFinderRegistry:
         """
         return data_type in self._registry
 
-    def _find_child_finder_uncached(self, data_type: type) -> BaseChildFinder[Any]:
-        r"""Resolve a child finder for a data type without using the
-        cache.
-
-        Resolution is performed by first checking for an exact match,
-        then walking the type's Method Resolution Order (MRO) to find
-        the most specific registered base class. If no match is found,
-        the default child finder is returned.
-
-        Args:
-            data_type: The data type for which to resolve a child finder.
-
-        Returns:
-            A ``BaseChildFinder`` instance.
-        """
-        if data_type in self._registry:
-            return self._registry[data_type]
-
-        for base_type in data_type.__mro__:
-            if base_type in self._registry:
-                return self._registry[base_type]
-
-        return self._default_child_finder
-
     def find_child_finder(self, data_type: type) -> BaseChildFinder[Any]:
         r"""Find the appropriate child finder for a given data type.
 
@@ -240,8 +215,14 @@ class ChildFinderRegistry:
 
         Example:
             ```pycon
-            >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
-            >>> registry = ChildFinderRegistry({list: IterableChildFinder()})
+            >>> from coola.iterator.bfs import (
+            ...     ChildFinderRegistry,
+            ...     IterableChildFinder,
+            ...     DefaultChildFinder,
+            ... )
+            >>> registry = ChildFinderRegistry(
+            ...     {object: DefaultChildFinder(), list: IterableChildFinder()}
+            ... )
             >>> registry.find_child_finder(list)
             IterableChildFinder()
             >>> registry.find_child_finder(tuple)
@@ -249,9 +230,7 @@ class ChildFinderRegistry:
 
             ```
         """
-        if data_type not in self._child_finder_cache:
-            self._child_finder_cache[data_type] = self._find_child_finder_uncached(data_type)
-        return self._child_finder_cache[data_type]
+        return self._registry.resolve(data_type)
 
     def find_children(self, data: Any) -> Iterator[Any]:
         r"""Return the immediate children of an object using its child
@@ -268,8 +247,14 @@ class ChildFinderRegistry:
 
         Example:
             ```pycon
-            >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
-            >>> registry = ChildFinderRegistry({list: IterableChildFinder()})
+            >>> from coola.iterator.bfs import (
+            ...     ChildFinderRegistry,
+            ...     IterableChildFinder,
+            ...     DefaultChildFinder,
+            ... )
+            >>> registry = ChildFinderRegistry(
+            ...     {object: DefaultChildFinder(), list: IterableChildFinder()}
+            ... )
             >>> list(registry.find_children([1, 2, 3]))
             [1, 2, 3]
 
@@ -301,9 +286,14 @@ class ChildFinderRegistry:
             ...     ChildFinderRegistry,
             ...     IterableChildFinder,
             ...     MappingChildFinder,
+            ...     DefaultChildFinder,
             ... )
             >>> registry = ChildFinderRegistry(
-            ...     {list: IterableChildFinder(), dict: MappingChildFinder()}
+            ...     {
+            ...         object: DefaultChildFinder(),
+            ...         list: IterableChildFinder(),
+            ...         dict: MappingChildFinder(),
+            ...     }
             ... )
             >>> list(registry.iterate({"a": [1, 2], "b": [3, 4], "c": 5, "d": {"e": 6}}))
             [5, 1, 2, 3, 4, 6]
