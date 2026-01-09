@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
 
-class RandomManagerRegistry:
+class RandomManagerRegistry(BaseRandomManager):
     """Registry that manages random number generator managers.
 
     This registry maintains a mapping from string keys to random manager instances,
