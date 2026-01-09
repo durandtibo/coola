@@ -3,8 +3,9 @@ items in nested data."""
 
 from __future__ import annotations
 
-__all__ = ["get_default_registry", "register_managers"]
+__all__ = ["get_default_registry", "random_seed", "register_managers"]
 
+from contextlib import contextmanager
 from typing import TYPE_CHECKING
 
 from coola.random.numpy_ import NumpyRandomManager
@@ -14,9 +15,49 @@ from coola.random.torch_ import TorchRandomManager
 from coola.utils.imports import is_numpy_available, is_torch_available
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Generator, Mapping
 
     from coola.random.base import BaseRandomManager
+
+
+@contextmanager
+def random_seed(
+    seed: int, manager: RandomManagerRegistry | None = None
+) -> Generator[None, None, None]:
+    r"""Implement a context manager to manage the random seed and random
+    number generator (RNG) state.
+
+    The context manager sets the specified random seed and
+    restores the original RNG state afterward.
+
+    Args:
+        seed: The random number generator seed to use while using
+            this context manager.
+        manager: An optional RandomManagerRegistry instance to use.
+            If not provided, the default random manager will be used.
+
+    Example:
+        ```pycon
+        >>> import numpy
+        >>> from coola.random import random_seed
+        >>> with random_seed(42):
+        ...     print(numpy.random.randn(2, 4))
+        ...
+        [[...]]
+        >>> with random_seed(42):
+        ...     print(numpy.random.randn(2, 4))
+        ...
+        [[...]]
+
+        ```
+    """
+    manager = manager if manager else get_default_registry()
+    state = manager.get_rng_state()
+    try:
+        manager.manual_seed(seed)
+        yield
+    finally:
+        manager.set_rng_state(state)
 
 
 def register_managers(mapping: Mapping[str, BaseRandomManager], exist_ok: bool = False) -> None:

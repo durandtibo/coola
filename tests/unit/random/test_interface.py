@@ -1,15 +1,19 @@
 from __future__ import annotations
 
+import random
 from typing import TYPE_CHECKING
+from unittest.mock import Mock
 
 import pytest
 
+from coola import objects_are_equal
 from coola.random import (
     RandomManagerRegistry,
     RandomRandomManager,
     get_default_registry,
     register_managers,
 )
+from coola.random.interface import random_seed
 from coola.testing import (
     numpy_available,
     numpy_not_available,
@@ -34,6 +38,58 @@ def _reset_default_registry() -> Generator[None, None, None]:
 
 class CustomList(list):
     r"""Custom list subclass for testing purposes."""
+
+
+#################################
+#     Tests for random_seed     #
+#################################
+
+
+def test_random_seed_restore_random_seed() -> None:
+    state = random.getstate()
+    with random_seed(42):
+        random.uniform(0, 1)  # noqa: S311
+        assert not objects_are_equal(state, random.getstate())
+    assert objects_are_equal(state, random.getstate())
+
+
+def test_random_seed_restore_random_seed_with_exception() -> None:
+    state = random.getstate()
+    with pytest.raises(RuntimeError, match=r"Exception"), random_seed(42):  # noqa: PT012
+        random.uniform(0, 1)  # noqa: S311
+        msg = "Exception"
+        raise RuntimeError(msg)
+    assert objects_are_equal(state, random.getstate())
+
+
+def test_random_seed_same_random_seed() -> None:
+    with random_seed(42):
+        x1 = random.uniform(0, 1)  # noqa: S311
+    with random_seed(42):
+        x2 = random.uniform(0, 1)  # noqa: S311
+    assert objects_are_equal(x1, x2)
+
+
+def test_random_seed_different_random_seeds() -> None:
+    with random_seed(42):
+        x1 = random.uniform(0, 1)  # noqa: S311
+    with random_seed(420):
+        x2 = random.uniform(0, 1)  # noqa: S311
+    assert not objects_are_equal(x1, x2)
+
+
+def test_random_seed_uses_custom_manager() -> None:
+    """Test that random_seed uses a custom manager when provided."""
+    mock_manager = Mock()
+    mock_state = Mock()
+    mock_manager.get_rng_state.return_value = mock_state
+
+    with random_seed(42, manager=mock_manager):
+        pass
+
+    mock_manager.get_rng_state.assert_called_once()
+    mock_manager.manual_seed.assert_called_once_with(42)
+    mock_manager.set_rng_state.assert_called_once_with(mock_state)
 
 
 #######################################
