@@ -50,7 +50,7 @@ class DefaultFormatter(BaseFormatter[Any]):
     def clone(self) -> DefaultFormatter:
         return self.__class__(max_characters=self._max_characters)
 
-    def equal(self, other: Any) -> bool:
+    def equal(self, other: object) -> bool:
         if not isinstance(other, self.__class__):
             return False
         return self._max_characters == other._max_characters
@@ -161,7 +161,7 @@ class BaseCollectionFormatter(BaseFormatter[T]):
     def clone(self) -> BaseCollectionFormatter[T]:
         return self.__class__(max_items=self._max_items, num_spaces=self._num_spaces)
 
-    def equal(self, other: Any) -> bool:
+    def equal(self, other: object) -> bool:
         if not isinstance(other, self.__class__):
             return False
         return self._max_items == other._max_items and self._num_spaces == other._num_spaces
