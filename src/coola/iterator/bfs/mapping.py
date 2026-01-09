@@ -14,10 +14,10 @@ if TYPE_CHECKING:
 
 
 class MappingChildFinder(BaseChildFinder[Mapping[Any, Any]]):
-    r"""Child finder for iterable objects.
+    r"""Child finder for mapping objects.
 
-    This child finder handles iterable objects by yielding each element
-    of the iterable. It works with lists, tuples, sets, strings, and any
+    This child finder handles mapping objects by yielding the values
+    from the mapping. It works with dictionaries and any
     object implementing the Mapping protocol.
 
     Example:

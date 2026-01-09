@@ -18,11 +18,11 @@ if TYPE_CHECKING:
 
 
 def bfs_iterate(data: Any, registry: ChildFinderRegistry | None = None) -> Iterator[Any]:
-    """Perform Depth-First Search (DFS) iteration over nested data
+    """Perform Breadth-First Search (BFS) iteration over nested data
     structures (lists, dicts, tuples, sets, etc.).
 
-    This function yields elements from the data structure in a DFS manner, recursively
-    traversing all levels of nested structures. It uses the appropriate iterators registered
+    This function yields elements from the data structure in a BFS manner, recursively
+    traversing all levels of nested structures. It uses the appropriate child finders registered
     for the data types (e.g., lists, dictionaries, etc.).
 
     Args:
@@ -53,12 +53,12 @@ def register_child_finders(
     mapping: Mapping[type, BaseChildFinder[Any]],
     exist_ok: bool = False,
 ) -> None:
-    """Register custom iterators to the default global registry.
+    """Register custom child finders to the default global registry.
 
     This allows users to add support for custom types without modifying global state directly.
 
     Args:
-        mapping: A dictionary mapping Python types to their corresponding iterator instances.
+        mapping: A dictionary mapping Python types to their corresponding child finder instances.
         exist_ok: If `True`, existing registrations for types will be overwritten.
             If `False`, an error is raised when a type is already registered.
 
@@ -80,15 +80,15 @@ def register_child_finders(
 
 
 def get_default_registry() -> ChildFinderRegistry:
-    """Get or create the default global registry for iterators.
+    """Get or create the default global registry for child finders.
 
     This function returns a singleton instance of the `ChildFinderRegistry`, which is
-    pre-configured with iterators for common Python types, including iterables (lists,
+    pre-configured with child finders for common Python types, including iterables (lists,
     tuples), mappings (dicts), sets, and scalars (int, float, str, bool). The registry
-    is used to look up the appropriate iterator for a given data structure during iteration.
+    is used to look up the appropriate child finder for a given data structure during iteration.
 
     Returns:
-        An `ChildFinderRegistry` instance with iterators registered for common Python types.
+        An `ChildFinderRegistry` instance with child finders registered for common Python types.
 
     Notes:
         The singleton pattern means any changes to the returned registry affect all future
@@ -112,14 +112,14 @@ def get_default_registry() -> ChildFinderRegistry:
 
 
 def _register_default_child_finders(registry: ChildFinderRegistry) -> None:
-    """Register default iterators for common Python types.
+    """Register default child finders for common Python types.
 
-    This internal function registers the standard type-to-iterator mappings that are used
+    This internal function registers the standard type-to-child-finder mappings that are used
     by the default registry. The registration ensures that each type is handled appropriately
     during iteration, including handling nested structures.
 
     Args:
-        registry: The `ChildFinderRegistry` to populate with default iterators.
+        registry: The `ChildFinderRegistry` to populate with default child finders.
 
     Notes:
         This function is automatically called by `get_default_registry()` and should not
