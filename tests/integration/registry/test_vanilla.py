@@ -300,6 +300,24 @@ def test_registry_concurrent_values_access() -> None:
         assert result == target
 
 
+def test_registry_concurrent_iteration() -> None:
+    """Test that concurrent iteration doesn't cause errors."""
+    num_threads = 10
+    registry = Registry[str, int]({str(i): i for i in range(100)})
+    results = []
+
+    def iterate_registry() -> None:
+        keys = list(registry)
+        results.append(keys)
+
+    run_threads([threading.Thread(target=iterate_registry) for _ in range(num_threads)])
+
+    assert len(results) == num_threads
+    target = list(map(str, range(100)))
+    for result in results:
+        assert result == target
+
+
 def test_registry_concurrent_mixed_operations() -> None:
     """Test a realistic scenario with mixed read/write operations."""
     registry = Registry[str, int]({f"initial_{i}": i for i in range(10)})
