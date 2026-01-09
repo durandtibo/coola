@@ -24,7 +24,7 @@ class SupportsEqual(Protocol):
     r"""Implement a protocol to represent objects with a ``equal``
     method."""
 
-    def equal(self, other: Any) -> bool:
+    def equal(self, other: object) -> bool:
         r"""Return ``True`` if the two objects are equal, otherwise
         ``False``.
 

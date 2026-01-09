@@ -49,7 +49,7 @@ class BaseFormatter(ABC, Generic[T]):
         """
 
     @abstractmethod
-    def equal(self, other: Any) -> bool:
+    def equal(self, other: object) -> bool:
         r"""Indicate if the other object is equal to the self object.
 
         Args:
