@@ -3,9 +3,8 @@ state across different libraries.
 
 This module provides a unified interface for controlling random number
 generators (RNGs) from multiple libraries like Python's random module,
-NumPy, and PyTorch. It includes functions for setting seeds, getting
-and restoring RNG states, and managing a global registry of random
-managers.
+NumPy, and PyTorch. It includes functions for setting seeds, getting and
+restoring RNG states, and managing a global registry of random managers.
 """
 
 from __future__ import annotations
