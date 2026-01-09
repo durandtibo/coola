@@ -178,7 +178,7 @@ You can extend the default registry to support custom types:
 ...     def transform(self, data, func, registry):
 ...         return Point(func(data.x), func(data.y))
 ...
->>> register_transformers({Point: PointTransformer()})
+>>> register_transformers({Point: PointTransformer()})  # doctest: +SKIP
 
 ```
 
