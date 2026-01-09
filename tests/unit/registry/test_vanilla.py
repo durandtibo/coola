@@ -17,7 +17,7 @@ def test_registry_init_empty() -> None:
 
 def test_registry_init_with_initial_state() -> None:
     """Test creating a registry with initial state."""
-    registry = Registry[str, int](initial_state={"a": 1, "b": 2, "c": 3})
+    registry = Registry[str, int]({"a": 1, "b": 2, "c": 3})
     assert len(registry) == 3
     assert registry.get("a") == 1
     assert registry.get("b") == 2
@@ -28,7 +28,7 @@ def test_registry_init_with_initial_state() -> None:
 def test_registry_init_copies_initial_state() -> None:
     """Test that initial state is copied, not referenced."""
     initial = {"a": 1}
-    registry = Registry[str, int](initial_state=initial)
+    registry = Registry[str, int](initial)
     initial["b"] = 2
     assert len(registry) == 1
     assert not registry.has("b")
@@ -189,6 +189,53 @@ def test_registry_unregister_reduces_length() -> None:
     assert registry.equal(Registry[str, int]({"b": 2}))
 
 
+def test_registry_items() -> None:
+    """Test items() method returns key-value pairs."""
+    registry = Registry[str, int]({"a": 1, "b": 2})
+    items = registry.items()
+    assert dict(items) == {"a": 1, "b": 2}
+
+
+def test_registry_items_returns_copy() -> None:
+    """Test that items() returns a copy, not a view of internal
+    state."""
+    registry = Registry[str, int]({"a": 1})
+    items = list(registry.items())
+    registry._state["b"] = 2
+    assert len(items) == 1
+
+
+def test_registry_keys() -> None:
+    """Test keys() method returns all keys."""
+    registry = Registry[str, int]({"a": 1, "b": 2, "c": 3})
+    keys = registry.keys()
+    assert set(keys) == {"a", "b", "c"}
+
+
+def test_registry_keys_returns_copy() -> None:
+    """Test that keys() returns a copy, not a view of internal state."""
+    registry = Registry[str, int]({"a": 1})
+    keys = list(registry.keys())
+    registry._state["b"] = 2
+    assert len(keys) == 1
+
+
+def test_registry_values() -> None:
+    """Test values() method returns all values."""
+    registry = Registry[str, int]({"a": 1, "b": 2, "c": 3})
+    values = registry.values()
+    assert set(values) == {1, 2, 3}
+
+
+def test_registry_values_returns_copy() -> None:
+    """Test that values() returns a copy, not a view of internal
+    state."""
+    registry = Registry[str, int]({"a": 1})
+    values = list(registry.values())
+    registry._state["b"] = 2
+    assert len(values) == 1
+
+
 # Test operator overloading
 
 
@@ -241,6 +288,23 @@ def test_registry_delitem_missing_raises_error() -> None:
         del registry["missing"]
 
 
+def test_registry_iter() -> None:
+    """Test iterating over registry yields keys."""
+    registry = Registry[str, int](initial_state={"a": 1, "b": 2, "c": 3})
+    keys = list(registry)
+    assert set(keys) == {"a", "b", "c"}
+
+
+def test_registry_iter_returns_copy() -> None:
+    """Test that iteration uses a snapshot of keys."""
+    registry = Registry[str, int](initial_state={"a": 1})
+    iterator = iter(registry)
+    registry._state["b"] = 2
+    keys = list(iterator)
+    # Should only have the original key since we iterate over a copy
+    assert len(keys) == 1
+
+
 def test_registry_len_operator() -> None:
     """Test the len() function."""
     registry = Registry[str, int]()
@@ -254,7 +318,7 @@ def test_registry_len_operator() -> None:
 # Test with different types
 
 
-def test_registry_registry_with_int_keys() -> None:
+def test_registry_with_int_keys() -> None:
     """Test registry with integer keys."""
     registry = Registry[int, str]()
     registry.register(1, "one")
@@ -263,14 +327,14 @@ def test_registry_registry_with_int_keys() -> None:
     assert registry.get(2) == "two"
 
 
-def test_registry_registry_with_tuple_keys() -> None:
+def test_registry_with_tuple_keys() -> None:
     """Test registry with tuple keys."""
     registry = Registry[tuple, str]()
     registry.register((1, 2), "pair")
     assert registry.get((1, 2)) == "pair"
 
 
-def test_registry_registry_with_complex_values() -> None:
+def test_registry_with_complex_values() -> None:
     """Test registry with complex value types."""
     registry = Registry[str, list]()
     registry.register("list1", [1, 2, 3])

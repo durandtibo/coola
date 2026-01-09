@@ -11,7 +11,7 @@ from coola.comparison import objects_are_equal
 from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import ItemsView, Iterator, KeysView, Mapping, ValuesView
 
 K = TypeVar("K")  # Key type
 V = TypeVar("V")  # Value type
@@ -94,6 +94,10 @@ class Registry(Generic[K, V]):
 
     def __delitem__(self, key: K) -> None:
         self.unregister(key)
+
+    def __iter__(self) -> Iterator[K]:
+        with self._lock:
+            return iter(self._state.copy())
 
     def __len__(self) -> int:
         with self._lock:
@@ -368,3 +372,57 @@ class Registry(Generic[K, V]):
                 msg = f"Key '{key}' is not registered"
                 raise KeyError(msg)
             return self._state.pop(key)
+
+    def items(self) -> ItemsView[K, V]:
+        """Return key-value pairs.
+
+        Returns:
+            The key-value pairs.
+
+        Example:
+            ```pycon
+            >>> from coola.registry import Registry
+            >>> registry = Registry[str, int](initial_state={"a": 1, "b": 2})
+            >>> registry.items()
+            dict_items([('a', 1), ('b', 2)])
+
+            ```
+        """
+        with self._lock:
+            return self._state.copy().items()
+
+    def keys(self) -> KeysView[K]:
+        """Return registered keys.
+
+        Returns:
+            The registered keys.
+
+        Example:
+            ```pycon
+            >>> from coola.registry import Registry
+            >>> registry = Registry[str, int](initial_state={"a": 1, "b": 2})
+            >>> registry.keys()
+            dict_keys(['a', 'b'])
+
+            ```
+        """
+        with self._lock:
+            return self._state.copy().keys()
+
+    def values(self) -> ValuesView[V]:
+        """Return registered values.
+
+        Returns:
+            The registered values.
+
+        Example:
+            ```pycon
+            >>> from coola.registry import Registry
+            >>> registry = Registry[str, int](initial_state={"a": 1, "b": 2})
+            >>> registry.values()
+            dict_values([1, 2])
+
+            ```
+        """
+        with self._lock:
+            return self._state.copy().values()
