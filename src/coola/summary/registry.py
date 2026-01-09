@@ -16,7 +16,7 @@ from coola.summary.base import BaseSummarizer
 from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Mapping
+    from collections.abc import Mapping
 
 # TODO(tibo): update docstrings and examples
 
@@ -226,50 +226,84 @@ class SummarizerRegistry:
         """
         return self._state.resolve(data_type)
 
-    def summary(self, data: Any, func: Callable[[Any], Any]) -> Any:
-        """Transform data by applying a function recursively through the
-        structure.
+    def summary(self, data: Any, depth: int = 0, max_depth: int = 1) -> str:
+        r"""Generate a formatted string summary of the provided data.
 
-        This is the main entry point for transformation. It automatically:
-        1. Determines the data's type
-        2. Finds the appropriate summarizer
-        3. Delegates to that summarizer's transform method
-        4. The summarizer recursively processes nested structures
-
-        The original structure of the data is preserved - only the leaf values
-        are transformed by the provided function.
+        This method creates a human-readable representation of the input data,
+        with support for nested structures up to a specified depth. When the
+        current depth exceeds max_depth, nested structures are typically shown
+        in a compact form without further expansion.
 
         Args:
-            data: The data to transform (can be nested: lists, dicts, tuples, etc.)
-            func: Function to apply to leaf values. Should accept one argument
-                and return a transformed value.
+            data: The data object to summarize. Can be any Python object,
+                though behavior depends on the concrete implementation.
+            depth: The current nesting level in the data structure. Used
+                internally during recursive summarization. Typically starts
+                at 0 for top-level calls. Must be non-negative.
+            max_depth: The maximum nesting level to expand when summarizing.
+                Structures deeper than this level are shown in compact form.
+                Must be non-negative. Default is 1, which expands only the
+                top level of nested structures.
 
         Returns:
-            Transformed data with the same structure as the input but with
-            leaf values transformed by func
+            A formatted string representation of the data. The exact format
+            depends on the concrete implementation, but typically includes
+            type information, size/length metadata, and indented content for
+            nested structures.
+
+        Raises:
+            The base class doesn't specify exceptions, but implementations
+            may raise ValueError for invalid depth parameters or other
+            exceptions based on the data type being summarized.
+
+        Notes:
+            - The depth parameter is primarily for internal use during recursion.
+              Most external callers should use the default value of 0.
+            - Setting max_depth=0 typically shows only top-level information
+              without expanding any nested structures.
+            - Higher max_depth values provide more detail but can produce
+              very long output for deeply nested data.
 
         Example:
-            Converting all numbers to strings in a nested structure:
-
             ```pycon
-            >>> from coola.summary import get_default_registry
-            >>> registry = get_default_registry()
-            >>> registry.transform({"scores": [95, 87, 92], "name": "test"}, str)
-            {'scores': ['95', '87', '92'], 'name': 'test'}
+            >>> from coola.summary import Summarizer
+            >>> summarizer = Summarizer()
 
-            ```
+            >>> # Simple value
+            >>> print(summarizer.summary(1))
+            <class 'int'> 1
 
-            Doubling all numeric values:
+            >>> # List with default depth (expands first level only)
+            >>> print(summarizer.summary(["abc", "def"]))
+            <class 'list'> (length=2)
+              (0): abc
+              (1): def
 
-            ```pycon
-            >>> from coola.summary import get_default_registry
-            >>> registry = get_default_registry()
-            >>> registry.transform(
-            ...     [1, [2, 3], {"a": 4}], lambda x: x * 2 if isinstance(x, (int, float)) else x
-            ... )
-            [2, [4, 6], {'a': 8}]
+            >>> # Nested list, default max_depth=1 (inner list not expanded)
+            >>> print(summarizer.summary([[0, 1, 2], {"key1": "abc", "key2": "def"}]))
+            <class 'list'> (length=2)
+              (0): [0, 1, 2]
+              (1): {'key1': 'abc', 'key2': 'def'}
+
+            >>> # Nested list with max_depth=2 (expands both levels)
+            >>> print(summarizer.summary([[0, 1, 2], {"key1": "abc", "key2": "def"}], max_depth=2))
+            <class 'list'> (length=2)
+              (0): <class 'list'> (length=3)
+                  (0): 0
+                  (1): 1
+                  (2): 2
+              (1): <class 'dict'> (length=2)
+                  (key1): abc
+                  (key2): def
+
+            >>> # Control depth for very nested structures
+            >>> deeply_nested = [[[1, 2], [3, 4]], [[5, 6], [7, 8]]]
+            >>> print(summarizer.summary(deeply_nested, max_depth=1))
+            <class 'list'> (length=2)
+              (0): [[1, 2], [3, 4]]
+              (1): [[5, 6], [7, 8]]
 
             ```
         """
         summarizer = self.find_summarizer(type(data))
-        return summarizer.transform(data, func, self)
+        return summarizer.summary(data=data, depth=depth, max_depth=max_depth, registry=self)
