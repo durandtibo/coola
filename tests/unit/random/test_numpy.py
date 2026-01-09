@@ -5,8 +5,7 @@ from unittest.mock import patch
 import pytest
 
 from coola import objects_are_equal
-from coola.random import NumpyRandomManager
-from coola.random.numpy_ import get_random_managers, numpy_seed
+from coola.random import NumpyRandomManager, numpy_seed
 from coola.testing import numpy_available
 from coola.utils import is_numpy_available
 
@@ -82,21 +81,6 @@ def test_numpy_random_manager_no_numpy() -> None:
         pytest.raises(RuntimeError, match=r"'numpy' package is required but not installed."),
     ):
         NumpyRandomManager()
-
-
-#########################################
-#     Tests for get_random_managers     #
-#########################################
-
-
-@numpy_available
-def test_get_random_managers() -> None:
-    assert objects_are_equal(get_random_managers(), {"numpy": NumpyRandomManager()})
-
-
-def test_get_random_managers_no_numpy() -> None:
-    with patch("coola.random.numpy_.is_numpy_available", lambda: False):
-        assert objects_are_equal(get_random_managers(), {})
 
 
 ################################

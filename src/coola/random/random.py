@@ -3,7 +3,7 @@ r"""Implement a random manager for the python standard library
 
 from __future__ import annotations
 
-__all__ = ["RandomRandomManager", "get_random_managers"]
+__all__ = ["RandomRandomManager"]
 
 import random
 from typing import Any
@@ -38,20 +38,3 @@ class RandomRandomManager(BaseRandomManager):  # noqa: PLW1641
 
     def set_rng_state(self, state: tuple[Any, ...]) -> None:
         random.setstate(state)
-
-
-def get_random_managers() -> dict[str, BaseRandomManager]:
-    r"""Get the random managers and their default name.
-
-    Returns:
-        The mapping between the name and random managers.
-
-    Example:
-        ```pycon
-        >>> from coola.random.random_ import get_random_managers
-        >>> get_random_managers()
-        {'random': RandomRandomManager()}
-
-        ```
-    """
-    return {"random": RandomRandomManager()}
