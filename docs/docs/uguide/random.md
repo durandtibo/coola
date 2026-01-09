@@ -296,7 +296,7 @@ Seed all libraries at once for consistent results:
 >>> manual_seed(42)
 >>> # All libraries use the same seed
 >>> random.random()
-0.6394267984578837
+0.6394...
 >>> np.random.rand()
 0.3745401188473625
 >>> torch.rand(1).item()
