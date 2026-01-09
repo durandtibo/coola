@@ -58,7 +58,7 @@ You can initialize a registry with existing data:
 ```pycon
 
 >>> from coola.registry import Registry
->>> registry = Registry[str, int](initial_state={"a": 1, "b": 2})
+>>> registry = Registry[str, int]({"a": 1, "b": 2})
 >>> len(registry)
 2
 >>> registry.get("a")
@@ -166,7 +166,7 @@ Access keys, values, and items:
 ```pycon
 
 >>> from coola.registry import Registry
->>> registry = Registry[str, int](initial_state={"a": 1, "b": 2})
+>>> registry = Registry[str, int]({"a": 1, "b": 2})
 >>> list(registry.keys())
 ['a', 'b']
 >>> list(registry.values())
@@ -256,7 +256,7 @@ Initialize with type mappings:
 ```pycon
 
 >>> from coola.registry import TypeRegistry
->>> registry = TypeRegistry[int](initial_state={str: 100, float: 200})
+>>> registry = TypeRegistry[int]({str: 100, float: 200})
 >>> len(registry)
 2
 >>> registry.get(str)
