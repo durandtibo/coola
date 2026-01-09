@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.random.base import BaseRandomManager
 from coola.registry import Registry
-from coola.utils.format import repr_indent, str_indent
+from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -44,9 +44,9 @@ class RandomManagerRegistry(BaseRandomManager):
         >>> registry = RandomManagerRegistry({"random": RandomRandomManager()})
         >>> registry
         RandomManagerRegistry(
-          Registry(
-            (random): RandomRandomManager()
-          )
+          (state): Registry(
+              (random): RandomRandomManager()
+            )
         )
         >>> registry.manual_seed(42)
 
@@ -59,10 +59,12 @@ class RandomManagerRegistry(BaseRandomManager):
         )
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}(\n  {repr_indent(self._state)}\n)"
+        state = repr_indent(repr_mapping({"state": self._state}))
+        return f"{self.__class__.__qualname__}(\n  {state}\n)"
 
     def __str__(self) -> str:
-        return f"{self.__class__.__qualname__}(\n  {str_indent(self._state)}\n)"
+        state = str_indent(str_mapping({"state": self._state}))
+        return f"{self.__class__.__qualname__}(\n  {state}\n)"
 
     def register(
         self,
@@ -131,10 +133,10 @@ class RandomManagerRegistry(BaseRandomManager):
             ... )
             >>> registry
             RandomManagerRegistry(
-              Registry(
-                (random): RandomRandomManager()
-                (torch): TorchRandomManager()
-              )
+              (state): Registry(
+                  (random): RandomRandomManager()
+                  (torch): TorchRandomManager()
+                )
             )
 
             ```

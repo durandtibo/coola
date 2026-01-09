@@ -528,7 +528,7 @@ class TypeRegistry(Generic[T]):
             >>> from coola.registry import TypeRegistry
             >>> registry = TypeRegistry[str]({int: "I am an integer", float: "I am a float"})
             >>> registry.items()
-            dict_items([('a', 1), ('b', 2)])
+            dict_items([(<class 'int'>, 'I am an integer'), (<class 'float'>, 'I am a float')])
 
             ```
         """
@@ -546,7 +546,7 @@ class TypeRegistry(Generic[T]):
             >>> from coola.registry import TypeRegistry
             >>> registry = TypeRegistry[str]({int: "I am an integer", float: "I am a float"})
             >>> registry.keys()
-            dict_keys(['a', 'b'])
+            dict_keys([<class 'int'>, <class 'float'>])
 
             ```
         """
@@ -564,7 +564,7 @@ class TypeRegistry(Generic[T]):
             >>> from coola.registry import TypeRegistry
             >>> registry = TypeRegistry[str]({int: "I am an integer", float: "I am a float"})
             >>> registry.values()
-            dict_values([1, 2])
+            dict_values(['I am an integer', 'I am a float'])
 
             ```
         """

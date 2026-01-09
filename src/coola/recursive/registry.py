@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.recursive.base import BaseTransformer
 from coola.registry import TypeRegistry
-from coola.utils.format import repr_indent, str_indent
+from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
@@ -48,10 +48,10 @@ class TransformerRegistry:
         ... )
         >>> registry
         TransformerRegistry(
-          TypeRegistry(
-            (<class 'object'>): DefaultTransformer()
-            (<class 'list'>): SequenceTransformer()
-          )
+          (state): TypeRegistry(
+              (<class 'object'>): DefaultTransformer()
+              (<class 'list'>): SequenceTransformer()
+            )
         )
         >>> registry.transform([1, 2, 3], str)
         ['1', '2', '3']
@@ -85,10 +85,12 @@ class TransformerRegistry:
         self._state: TypeRegistry[BaseTransformer] = TypeRegistry[BaseTransformer](initial_state)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}(\n  {repr_indent(self._state)}\n)"
+        state = repr_indent(repr_mapping({"state": self._state}))
+        return f"{self.__class__.__qualname__}(\n  {state}\n)"
 
     def __str__(self) -> str:
-        return f"{self.__class__.__qualname__}(\n  {str_indent(self._state)}\n)"
+        state = str_indent(str_mapping({"state": self._state}))
+        return f"{self.__class__.__qualname__}(\n  {state}\n)"
 
     def register(
         self,
@@ -153,10 +155,10 @@ class TransformerRegistry:
             ... )
             >>> registry
             TransformerRegistry(
-              TypeRegistry(
-                (<class 'list'>): SequenceTransformer()
-                (<class 'dict'>): MappingTransformer()
-              )
+              (state): TypeRegistry(
+                  (<class 'list'>): SequenceTransformer()
+                  (<class 'dict'>): MappingTransformer()
+                )
             )
 
             ```
