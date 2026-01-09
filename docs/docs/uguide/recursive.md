@@ -85,7 +85,7 @@ You can use `recursive_apply` with different data structures:
 ...     "value": 8,
 ... }
 >>> recursive_apply(data, lambda x: x + 100)
-{'list': [101, 102, 103], 'dict': {'a': 104, 'b': 105}, 'set': {106, 107}, 'value': 108}
+{'list': [101, 102, 103], 'dict': {'a': 104, 'b': 105}, 'value': 108}
 
 ```
 
