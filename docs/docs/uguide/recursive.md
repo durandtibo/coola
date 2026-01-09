@@ -90,7 +90,7 @@ extending `BaseTransformer`:
 
 ```pycon
 
->>> from coola.recursive import BaseTransformer, register_transformers
+>>> from coola.recursive import BaseTransformer, TransformerRegistry
 >>> class MyType:
 ...     def __init__(self, value):
 ...         self.value = value
@@ -101,7 +101,8 @@ extending `BaseTransformer`:
 ...     def transform(self, data, func, registry):
 ...         return MyType(func(data.value))
 ...
->>> register_transformers({MyType: MyTransformer()})
+>>> registry = TransformerRegistry()
+>>> registry.register(MyType, MyTransformer())
 
 ```
 
