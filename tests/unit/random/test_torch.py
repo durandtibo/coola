@@ -34,8 +34,15 @@ def test_torch_random_manager_eq_true() -> None:
 
 
 @torch_available
-def test_torch_random_manager_eq_false() -> None:
+def test_torch_random_manager_eq_false_different_type() -> None:
     assert TorchRandomManager() != 42
+
+
+@torch_available
+def test_torch_random_manager_eq_false_different_type_child() -> None:
+    class Child(TorchRandomManager): ...
+
+    assert TorchRandomManager() != Child()
 
 
 @torch_available
