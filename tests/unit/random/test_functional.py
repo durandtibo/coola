@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from coola.random import get_rng_state, manual_seed, set_rng_state
+from coola.random.functional import get_rng_state, manual_seed, set_rng_state
 from coola.testing import torch_available
 from coola.utils import is_torch_available
 

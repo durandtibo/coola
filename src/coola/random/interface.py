@@ -6,7 +6,7 @@ from __future__ import annotations
 __all__ = ["get_default_registry", "random_seed", "register_managers"]
 
 from contextlib import contextmanager
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.random.numpy_ import NumpyRandomManager
 from coola.random.random_ import RandomRandomManager
@@ -58,6 +58,66 @@ def random_seed(
         yield
     finally:
         manager.set_rng_state(state)
+
+
+def get_rng_state() -> dict[str, Any]:
+    r"""Get the current RNG state.
+
+    Returns:
+        The current RNG state.
+
+    Example:
+        ```pycon
+        >>> from coola.random import get_rng_state
+        >>> state = get_rng_state()
+        >>> state
+        {'random': ...}
+
+        ```
+    """
+    return get_default_registry().get_rng_state()
+
+
+def manual_seed(seed: int) -> None:
+    r"""Set the seed for generating random numbers.
+
+    Args:
+        seed: The desired random seed.
+
+    Example:
+        ```pycon
+        >>> import torch
+        >>> from coola.random import manual_seed
+        >>> manual_seed(42)
+        >>> torch.randn(3)
+        tensor([...])
+        >>> torch.randn(3)
+        tensor([...])
+        >>> manual_seed(42)
+        >>> torch.randn(3)
+        tensor([...])
+
+        ```
+    """
+    get_default_registry().manual_seed(seed)
+
+
+def set_rng_state(state: dict[str, Any]) -> None:
+    r"""Set the RNG state.
+
+    Args:
+        state: The new RNG state.
+
+    Example:
+        ```pycon
+        >>> import torch
+        >>> from coola.random import get_rng_state, set_rng_state
+        >>> st = get_rng_state()
+        >>> set_rng_state(st)
+
+        ```
+    """
+    get_default_registry().set_rng_state(state)
 
 
 def register_managers(mapping: Mapping[str, BaseRandomManager], exist_ok: bool = False) -> None:

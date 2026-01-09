@@ -13,16 +13,25 @@ from coola.random import (
     get_default_registry,
     register_managers,
 )
-from coola.random.interface import random_seed
+from coola.random.interface import (
+    get_rng_state,
+    manual_seed,
+    random_seed,
+    set_rng_state,
+)
 from coola.testing import (
     numpy_available,
     numpy_not_available,
     torch_available,
     torch_not_available,
 )
+from coola.utils import is_torch_available
 
 if TYPE_CHECKING:
     from collections.abc import Generator
+
+if is_torch_available():
+    import torch
 
 
 @pytest.fixture(autouse=True)
@@ -90,6 +99,49 @@ def test_random_seed_uses_custom_manager() -> None:
     mock_manager.get_rng_state.assert_called_once()
     mock_manager.manual_seed.assert_called_once_with(42)
     mock_manager.set_rng_state.assert_called_once_with(mock_state)
+
+
+###################################
+#     Tests for get_rng_state     #
+###################################
+
+
+def test_get_rng_state() -> None:
+    state = get_rng_state()
+    assert isinstance(state, dict)
+    assert len(state) >= 1
+
+
+#################################
+#     Tests for manual_seed     #
+#################################
+
+
+@torch_available
+def test_manual_seed() -> None:
+    manual_seed(42)
+    x1 = torch.randn(4, 6)
+    x2 = torch.randn(4, 6)
+    manual_seed(42)
+    x3 = torch.randn(4, 6)
+    assert x1.equal(x3)
+    assert not x1.equal(x2)
+
+
+###################################
+#     Tests for set_rng_state     #
+###################################
+
+
+@torch_available
+def test_set_rng_state() -> None:
+    state = get_rng_state()
+    x1 = torch.randn(4, 6)
+    x2 = torch.randn(4, 6)
+    set_rng_state(state)
+    x3 = torch.randn(4, 6)
+    assert x1.equal(x3)
+    assert not x1.equal(x2)
 
 
 #######################################
