@@ -27,6 +27,10 @@ nav:
   - User Guide:
       - uguide/quickstart.md
       - uguide/types.md
+      - uguide/recursive.md
+      - uguide/iterator.md
+      - uguide/registry.md
+      - uguide/random.md
       - uguide/customization.md
       - uguide/examples.md
   - Developer Guide:
