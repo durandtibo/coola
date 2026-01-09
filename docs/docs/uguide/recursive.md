@@ -63,14 +63,6 @@ You can use `recursive_apply` with different data structures:
 
 ```
 
-**Sets:**
-
-```pycon
-
->>> from coola.recursive import recursive_apply
->>> recursive_apply({1, 2, 3}, lambda x: x**2)
-{1, 4, 9}
-
 ```
 
 **Mixed nested structures:**
