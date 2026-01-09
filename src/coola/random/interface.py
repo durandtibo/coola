@@ -19,23 +19,20 @@ if TYPE_CHECKING:
     from coola.random.base import BaseRandomManager
 
 
-def register_managers(
-    mapping: Mapping[str, BaseRandomManager],
-    exist_ok: bool = False,
-) -> None:
+def register_managers(mapping: Mapping[str, BaseRandomManager], exist_ok: bool = False) -> None:
     """Register custom managers to the default global registry.
 
-    This allows users to add support for custom types without modifying
-    global state directly.
+    This allows users to add support for custom random number generators
+    without modifying global state directly.
 
     Args:
-        mapping: Dictionary mapping types to manager instances
-        exist_ok: If False, raises error if any type already registered
+        mapping: Dictionary mapping manager names to manager instances
+        exist_ok: If False, raises error if any manager name already registered
 
     Example:
         ```pycon
         >>> from coola.random import register_managers, RandomRandomManager
-        >>> register_managers({"default": RandomRandomManager()})
+        >>> register_managers({"custom": RandomRandomManager()})  # doctest: +SKIP
 
         ```
     """
@@ -43,12 +40,12 @@ def register_managers(
 
 
 def get_default_registry() -> RandomManagerRegistry:
-    """Get or create the default global registry with common Python
-    types.
+    """Get or create the default global registry with common random
+    managers.
 
     Returns a singleton registry instance that is pre-configured with managers
-    for Python's built-in types including sequences (list, tuple), mappings (dict),
-    sets, and scalar types (int, float, str, bool).
+    for common random number generation libraries including Python's random module,
+    NumPy (if available), and PyTorch (if available).
 
     This function uses a singleton pattern to ensure the same registry instance
     is returned on subsequent calls, which is efficient and maintains consistency
@@ -56,10 +53,9 @@ def get_default_registry() -> RandomManagerRegistry:
 
     Returns:
         A RandomManagerRegistry instance with managers registered for:
-            - Scalar types (int, float, complex, bool, str)
-            - Sequences (list, tuple, Sequence ABC)
-            - Sets (set, frozenset)
-            - Mappings (dict, Mapping ABC)
+            - "random": Python's random module (always available)
+            - "numpy": NumPy random (if NumPy is installed)
+            - "torch": PyTorch random (if PyTorch is installed)
 
     Notes:
         The singleton pattern means modifications to the returned registry
@@ -70,11 +66,15 @@ def get_default_registry() -> RandomManagerRegistry:
         ```pycon
         >>> from coola.random import get_default_registry
         >>> registry = get_default_registry()
-        >>> # Registry is ready to use with common Python types
-        >>> registry.transform([1, 2, 3], str)
-        ['1', '2', '3']
-        >>> registry.transform({"a": 1, "b": 2}, lambda x: x * 10)
-        {'a': 10, 'b': 20}
+        >>> # Registry is ready to use with available random managers
+        >>> registry
+        RandomManagerRegistry(
+          Registry(
+            (random): RandomRandomManager()
+            (numpy): NumpyRandomManager()
+            (torch): TorchRandomManager()
+          )
+        )
 
         ```
     """
@@ -86,18 +86,17 @@ def get_default_registry() -> RandomManagerRegistry:
 
 
 def _register_default_managers(registry: RandomManagerRegistry) -> None:
-    """Register default managers for common Python types.
+    """Register default managers for common random number generators.
 
-    This internal function sets up the standard type-to-manager mappings
-    used by the default registry. It registers managers in a specific order
-    to ensure proper inheritance handling via MRO.
+    This internal function sets up the standard manager mappings
+    used by the default registry. It registers managers for Python's
+    random module and conditionally registers NumPy and PyTorch managers
+    if those libraries are available.
 
     The registration strategy:
-        - Scalar types use DefaultTransformer (no recursion)
-        - Strings use DefaultTransformer to prevent character-by-character iteration
-        - Sequences use SequenceTransformer for random list/tuple processing
-        - Sets use SetTransformer for random set processing
-        - Mappings use MappingTransformer for random dict processing
+        - "random": RandomRandomManager (always registered)
+        - "numpy": NumpyRandomManager (registered if NumPy is available)
+        - "torch": TorchRandomManager (registered if PyTorch is available)
 
     Args:
         registry: The registry to populate with default managers
@@ -111,5 +110,4 @@ def _register_default_managers(registry: RandomManagerRegistry) -> None:
         managers["numpy"] = NumpyRandomManager()
     if is_torch_available():
         managers["torch"] = TorchRandomManager()
-
     registry.register_many(managers)
