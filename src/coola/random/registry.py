@@ -20,8 +20,7 @@ if TYPE_CHECKING:
 
 
 class RandomManagerRegistry:
-    """Registry that manages and dispatches managers based on data
-    type.
+    """Registry that manages and dispatches managers based on data type.
 
     This registry maintains a mapping from Python types to manager instances
     and uses the Method Resolution Order (MRO) for type lookup. When transforming
@@ -42,13 +41,8 @@ class RandomManagerRegistry:
         Basic usage with a random manager:
 
         ```pycon
-        >>> from coola.random import (
-        ...     RandomManagerRegistry,
-        ...     RandomRandomManager
-        ... )
-        >>> registry = RandomManagerRegistry(
-        ...     {"random": RandomRandomManager()}
-        ... )
+        >>> from coola.random import RandomManagerRegistry, RandomRandomManager
+        >>> registry = RandomManagerRegistry({"random": RandomRandomManager()})
         >>> registry
         RandomManagerRegistry(
           Registry(
@@ -72,10 +66,10 @@ class RandomManagerRegistry:
         return f"{self.__class__.__qualname__}(\n  {str_indent(self._state)}\n)"
 
     def register(
-            self,
-            key: str,
-            manager: BaseRandomManager[Any],
-            exist_ok: bool = False,
+        self,
+        key: str,
+        manager: BaseRandomManager,
+        exist_ok: bool = False,
     ) -> None:
         """Register a manager for a given data type.
 
@@ -84,7 +78,7 @@ class RandomManagerRegistry:
         The cache is automatically cleared after registration to ensure consistency.
 
         Args:
-            data_type: The Python type to register (e.g., list, dict, custom classes)
+            key: The key to register.
             manager: The manager instance that handles this type
             exist_ok: If False (default), raises an error if the type is already
                 registered. If True, overwrites the existing registration silently.
@@ -94,10 +88,10 @@ class RandomManagerRegistry:
 
         Example:
             ```pycon
-            >>> from coola.random import RandomManagerRegistry, SequenceRandomManager
+            >>> from coola.random import RandomManagerRegistry, RandomRandomManager
             >>> registry = RandomManagerRegistry()
-            >>> registry.register(list, SequenceRandomManager())
-            >>> registry.has_random_manager(list)
+            >>> registry.register("random", RandomRandomManager())
+            >>> registry.has_manager("random")
             True
 
             ```
@@ -105,9 +99,9 @@ class RandomManagerRegistry:
         self._state.register(key, manager, exist_ok=exist_ok)
 
     def register_many(
-            self,
-            mapping: Mapping[str, BaseRandomManager],
-            exist_ok: bool = False,
+        self,
+        mapping: Mapping[str, BaseRandomManager],
+        exist_ok: bool = False,
     ) -> None:
         """Register multiple managers at once.
 
@@ -126,21 +120,21 @@ class RandomManagerRegistry:
             ```pycon
             >>> from coola.random import (
             ...     RandomManagerRegistry,
-            ...     SequenceRandomManager,
-            ...     MappingRandomManager,
+            ...     RandomRandomManager,
+            ...     TorchRandomManager,
             ... )
             >>> registry = RandomManagerRegistry()
             >>> registry.register_many(
             ...     {
-            ...         list: SequenceRandomManager(),
-            ...         dict: MappingRandomManager(),
+            ...         "random": RandomRandomManager(),
+            ...         "torch": TorchRandomManager(),
             ...     }
             ... )
             >>> registry
             RandomManagerRegistry(
-              TypeRegistry(
-                (<class 'list'>): SequenceRandomManager()
-                (<class 'dict'>): MappingRandomManager()
+              Registry(
+                (random): RandomRandomManager()
+                (torch): TorchRandomManager()
               )
             )
 
@@ -149,8 +143,8 @@ class RandomManagerRegistry:
         self._state.register_many(mapping, exist_ok=exist_ok)
 
     def has_manager(self, key: str) -> bool:
-        """Check if a random manager is explicitly registered for the given
-        type.
+        """Check if a random manager is explicitly registered for the
+        given type.
 
         Args:
             key: The key to check
