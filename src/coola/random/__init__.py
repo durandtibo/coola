@@ -6,6 +6,7 @@ __all__ = [
     "BaseRandomManager",
     "NumpyRandomManager",
     "RandomManager",
+    "RandomManagerRegistry",
     "RandomRandomManager",
     "TorchRandomManager",
     "get_random_managers",
@@ -23,6 +24,7 @@ from coola.random.default import RandomManager, random_seed, register_random_man
 from coola.random.functional import get_rng_state, manual_seed, set_rng_state
 from coola.random.numpy_ import NumpyRandomManager, numpy_seed
 from coola.random.random_ import RandomRandomManager
+from coola.random.registry import RandomManagerRegistry
 from coola.random.torch_ import TorchRandomManager, torch_seed
 from coola.random.utils import get_random_managers
 

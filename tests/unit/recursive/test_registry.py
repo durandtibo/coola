@@ -92,8 +92,7 @@ def test_transformer_registry_register_many() -> None:
 
 
 def test_transformer_registry_register_many_with_existing_type() -> None:
-    registry = TransformerRegistry()
-    registry.register(list, SequenceTransformer())
+    registry = TransformerRegistry({list: SequenceTransformer()})
     transformers = {
         list: MappingTransformer(),
         dict: MappingTransformer(),
@@ -104,17 +103,16 @@ def test_transformer_registry_register_many_with_existing_type() -> None:
 
 def test_transformer_registry_register_many_with_exist_ok() -> None:
     registry = TransformerRegistry()
-    transformer1 = SequenceTransformer()
-    registry.register(list, transformer1)
+    registry.register(list, SequenceTransformer())
 
-    transformer2 = MappingTransformer()
+    transformer = MappingTransformer()
     transformers = {
-        list: transformer2,
+        list: transformer,
         dict: MappingTransformer(),
     }
 
     registry.register_many(transformers, exist_ok=True)
-    assert registry._state[list] is transformer2
+    assert registry._state[list] is transformer
 
 
 def test_transformer_registry_has_transformer_true() -> None:
