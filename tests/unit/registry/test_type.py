@@ -250,6 +250,68 @@ def test_type_registry_unregister_reduces_length() -> None:
     assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
+def test_type_registry_items() -> None:
+    """Test items() method returns key-value pairs."""
+    registry = TypeRegistry[str]({int: "integer", float: "float"})
+    assert list(registry.items()) == [(int, "integer"), (float, "float")]
+
+
+def test_type_registry_items_returns_copy() -> None:
+    """Test that items() returns a copy, not a view of internal
+    state."""
+    registry = TypeRegistry[str]({int: "integer"})
+    items = iter(registry.items())
+    registry[float] = "float"
+    assert list(items) == [(int, "integer")]
+
+
+def test_type_registry_items_empty() -> None:
+    """Test items() on empty registry."""
+    registry = TypeRegistry[str]()
+    assert list(registry.items()) == []
+
+
+def test_type_registry_keys() -> None:
+    """Test keys() method returns all keys."""
+    registry = TypeRegistry[str]({int: "integer", float: "float"})
+    assert list(registry.keys()) == [int, float]
+
+
+def test_type_registry_keys_returns_copy() -> None:
+    """Test that keys() returns a copy, not a view of internal state."""
+    registry = TypeRegistry[str]({int: "integer"})
+    keys = list(registry.keys())
+    registry[float] = "float"
+    assert len(keys) == 1
+
+
+def test_type_registry_keys_empty() -> None:
+    """Test keys() on empty registry."""
+    registry = TypeRegistry[str]()
+    assert list(registry.keys()) == []
+
+
+def test_type_registry_values() -> None:
+    """Test values() method returns all values."""
+    registry = TypeRegistry[str]({int: "integer", float: "float"})
+    assert list(registry.values()) == ["integer", "float"]
+
+
+def test_type_registry_values_returns_copy() -> None:
+    """Test that values() returns a copy, not a view of internal
+    state."""
+    registry = TypeRegistry[str]({int: "integer"})
+    values = list(registry.values())
+    registry[float] = "float"
+    assert len(values) == 1
+
+
+def test_type_registry_values_empty() -> None:
+    """Test values() on empty registry."""
+    registry = TypeRegistry[str]()
+    assert list(registry.values()) == []
+
+
 # Test operator overloading
 
 
@@ -303,6 +365,27 @@ def test_type_registry_delitem_missing_raises_error() -> None:
     registry = TypeRegistry[str]()
     with pytest.raises(KeyError):
         del registry[int]
+
+
+def test_type_registry_iter() -> None:
+    """Test iterating over registry yields keys."""
+    registry = TypeRegistry[str]({int: "integer", float: "float"})
+    assert list(registry) == [int, float]
+
+
+def test_type_registry_iter_returns_copy() -> None:
+    """Test that iteration uses a snapshot of keys."""
+    registry = TypeRegistry[str]({int: "integer"})
+    iterator = iter(registry)
+    registry[float] = "float"
+    keys = list(iterator)
+    assert keys == [int]
+
+
+def test_type_registry_iter_empty() -> None:
+    """Test iterating over an empty registry."""
+    registry = TypeRegistry[str]()
+    assert list(registry) == []
 
 
 def test_type_registry_len_operator() -> None:

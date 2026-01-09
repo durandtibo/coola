@@ -11,7 +11,7 @@ from coola.comparison import objects_are_equal
 from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import ItemsView, Iterator, KeysView, Mapping, ValuesView
 
 T = TypeVar("T")
 
@@ -141,6 +141,10 @@ class TypeRegistry(Generic[T]):
 
     def __delitem__(self, dtype: type) -> None:
         self.unregister(dtype)
+
+    def __iter__(self) -> Iterator[type]:
+        with self._lock:
+            return iter(self._state.copy())
 
     def __len__(self) -> int:
         with self._lock:
@@ -512,6 +516,60 @@ class TypeRegistry(Generic[T]):
             # Clear cache when registry changes to ensure new registrations are used
             self._cache.clear()
             return self._state.pop(dtype)
+
+    def items(self) -> ItemsView[type, T]:
+        """Return key-value pairs.
+
+        Returns:
+            The key-value pairs.
+
+        Example:
+            ```pycon
+            >>> from coola.registry import TypeRegistry
+            >>> registry = TypeRegistry[str]({int: "I am an integer", float: "I am a float"})
+            >>> registry.items()
+            dict_items([('a', 1), ('b', 2)])
+
+            ```
+        """
+        with self._lock:
+            return self._state.copy().items()
+
+    def keys(self) -> KeysView[type]:
+        """Return registered keys.
+
+        Returns:
+            The registered keys.
+
+        Example:
+            ```pycon
+            >>> from coola.registry import TypeRegistry
+            >>> registry = TypeRegistry[str]({int: "I am an integer", float: "I am a float"})
+            >>> registry.keys()
+            dict_keys(['a', 'b'])
+
+            ```
+        """
+        with self._lock:
+            return self._state.copy().keys()
+
+    def values(self) -> ValuesView[T]:
+        """Return registered values.
+
+        Returns:
+            The registered values.
+
+        Example:
+            ```pycon
+            >>> from coola.registry import TypeRegistry
+            >>> registry = TypeRegistry[str]({int: "I am an integer", float: "I am a float"})
+            >>> registry.values()
+            dict_values([1, 2])
+
+            ```
+        """
+        with self._lock:
+            return self._state.copy().values()
 
     def _resolve_uncached(self, dtype: type) -> T:
         """Find value using MRO lookup (uncached version).

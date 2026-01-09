@@ -305,14 +305,13 @@ def test_registry_delitem_missing_raises_error() -> None:
 
 def test_registry_iter() -> None:
     """Test iterating over registry yields keys."""
-    registry = Registry[str, int](initial_state={"a": 1, "b": 2, "c": 3})
-    keys = list(registry)
-    assert keys == ["a", "b", "c"]
+    registry = Registry[str, int]({"a": 1, "b": 2, "c": 3})
+    assert list(registry) == ["a", "b", "c"]
 
 
 def test_registry_iter_returns_copy() -> None:
     """Test that iteration uses a snapshot of keys."""
-    registry = Registry[str, int](initial_state={"a": 1})
+    registry = Registry[str, int]({"a": 1})
     iterator = iter(registry)
     registry["b"] = 2
     keys = list(iterator)
@@ -322,8 +321,7 @@ def test_registry_iter_returns_copy() -> None:
 def test_registry_iter_empty() -> None:
     """Test iterating over an empty registry."""
     registry = Registry[str, int]()
-    keys = list(registry)
-    assert keys == []
+    assert list(registry) == []
 
 
 def test_registry_len_operator() -> None:
