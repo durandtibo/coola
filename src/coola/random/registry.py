@@ -1,8 +1,10 @@
-r"""Define the manager registry for recursive data transformation.
+r"""Define the manager registry for random number generator state
+management.
 
-This module provides a registry system that manages and dispatches
-managers based on data types, enabling recursive transformation of
-nested data structures while preserving their original structure.
+This module provides a registry system that manages random number
+generator managers, allowing coordinated control of multiple RNG states
+across different libraries (e.g., Python's random module, PyTorch,
+NumPy).
 """
 
 from __future__ import annotations
@@ -20,22 +22,19 @@ if TYPE_CHECKING:
 
 
 class RandomManagerRegistry:
-    """Registry that manages and dispatches managers based on data type.
+    """Registry that manages random number generator managers.
 
-    This registry maintains a mapping from Python types to manager instances
-    and uses the Method Resolution Order (MRO) for type lookup. When transforming
-    data, it automatically selects the most specific registered manager for
-    the data's type, falling back to parent types or a default manager if needed.
-
-    The registry includes an LRU cache for type lookups to optimize performance
-    in applications that repeatedly transform similar data structures.
+    This registry maintains a mapping from string keys to random manager instances,
+    enabling centralized control of random number generator states across multiple
+    libraries. It provides methods to seed all managers, get and set their states,
+    and check for registered managers.
 
     Args:
-        initial_state: Optional initial mapping of types to managers.
+        initial_state: Optional initial mapping of string keys to managers.
             If provided, the state is copied to prevent external mutations.
 
     Attributes:
-        _state: Internal mapping of registered types to managers
+        _state: Internal registry mapping keys to random managers
 
     Example:
         Basic usage with a random manager:
@@ -71,20 +70,20 @@ class RandomManagerRegistry:
         manager: BaseRandomManager,
         exist_ok: bool = False,
     ) -> None:
-        """Register a manager for a given data type.
+        """Register a random manager with a given key.
 
-        This method associates a manager instance with a specific Python type.
-        When data of this type is transformed, the registered manager will be used.
-        The cache is automatically cleared after registration to ensure consistency.
+        This method associates a manager instance with a specific string key.
+        The manager will be used to control the random number generator state
+        for its corresponding library.
 
         Args:
-            key: The key to register.
-            manager: The manager instance that handles this type
-            exist_ok: If False (default), raises an error if the type is already
+            key: The string key to register (e.g., "random", "torch", "numpy")
+            manager: The random manager instance that handles RNG state
+            exist_ok: If False (default), raises an error if the key is already
                 registered. If True, overwrites the existing registration silently.
 
         Raises:
-            RuntimeError: If the type is already registered and exist_ok is False
+            RuntimeError: If the key is already registered and exist_ok is False
 
         Example:
             ```pycon
@@ -103,18 +102,18 @@ class RandomManagerRegistry:
         mapping: Mapping[str, BaseRandomManager],
         exist_ok: bool = False,
     ) -> None:
-        """Register multiple managers at once.
+        """Register multiple random managers at once.
 
         This is a convenience method for bulk registration that internally calls
-        register() for each type-manager pair.
+        register() for each key-manager pair.
 
         Args:
-            mapping: Dictionary mapping Python types to manager instances
-            exist_ok: If False (default), raises an error if any type is already
+            mapping: Dictionary mapping string keys to random manager instances
+            exist_ok: If False (default), raises an error if any key is already
                 registered. If True, overwrites existing registrations silently.
 
         Raises:
-            RuntimeError: If any type is already registered and exist_ok is False
+            RuntimeError: If any key is already registered and exist_ok is False
 
         Example:
             ```pycon
@@ -143,15 +142,13 @@ class RandomManagerRegistry:
         self._state.register_many(mapping, exist_ok=exist_ok)
 
     def has_manager(self, key: str) -> bool:
-        """Check if a random manager is explicitly registered for the
-        given type.
+        """Check if a random manager is registered for the given key.
 
         Args:
-            key: The key to check
+            key: The string key to check
 
         Returns:
-            True if a manager is explicitly registered for this type,
-            False otherwise
+            True if a manager is registered for this key, False otherwise
 
         Example:
             ```pycon
