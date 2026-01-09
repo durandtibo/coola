@@ -192,39 +192,48 @@ def test_registry_unregister_reduces_length() -> None:
 def test_registry_items() -> None:
     """Test items() method returns key-value pairs."""
     registry = Registry[str, int]({"a": 1, "b": 2})
-    items = registry.items()
-    assert dict(items) == {"a": 1, "b": 2}
+    assert list(registry.items()) == [("a", 1), ("b", 2)]
 
 
 def test_registry_items_returns_copy() -> None:
     """Test that items() returns a copy, not a view of internal
     state."""
     registry = Registry[str, int]({"a": 1})
-    items = list(registry.items())
-    registry._state["b"] = 2
-    assert len(items) == 1
+    items = iter(registry.items())
+    registry["b"] = 2
+    assert list(items) == [("a", 1)]
+
+
+def test_registry_items_empty() -> None:
+    """Test items() on empty registry."""
+    registry = Registry[str, int]()
+    assert list(registry.items()) == []
 
 
 def test_registry_keys() -> None:
     """Test keys() method returns all keys."""
     registry = Registry[str, int]({"a": 1, "b": 2, "c": 3})
-    keys = registry.keys()
-    assert set(keys) == {"a", "b", "c"}
+    assert list(registry.keys()) == ["a", "b", "c"]
 
 
 def test_registry_keys_returns_copy() -> None:
     """Test that keys() returns a copy, not a view of internal state."""
     registry = Registry[str, int]({"a": 1})
     keys = list(registry.keys())
-    registry._state["b"] = 2
+    registry["b"] = 2
     assert len(keys) == 1
+
+
+def test_registry_keys_empty() -> None:
+    """Test keys() on empty registry."""
+    registry = Registry[str, int]()
+    assert list(registry.keys()) == []
 
 
 def test_registry_values() -> None:
     """Test values() method returns all values."""
     registry = Registry[str, int]({"a": 1, "b": 2, "c": 3})
-    values = registry.values()
-    assert set(values) == {1, 2, 3}
+    assert list(registry.values()) == [1, 2, 3]
 
 
 def test_registry_values_returns_copy() -> None:
@@ -232,8 +241,14 @@ def test_registry_values_returns_copy() -> None:
     state."""
     registry = Registry[str, int]({"a": 1})
     values = list(registry.values())
-    registry._state["b"] = 2
+    registry["b"] = 2
     assert len(values) == 1
+
+
+def test_registry_values_empty() -> None:
+    """Test values() on empty registry."""
+    registry = Registry[str, int]()
+    assert list(registry.values()) == []
 
 
 # Test operator overloading
@@ -292,17 +307,23 @@ def test_registry_iter() -> None:
     """Test iterating over registry yields keys."""
     registry = Registry[str, int](initial_state={"a": 1, "b": 2, "c": 3})
     keys = list(registry)
-    assert set(keys) == {"a", "b", "c"}
+    assert keys == ["a", "b", "c"]
 
 
 def test_registry_iter_returns_copy() -> None:
     """Test that iteration uses a snapshot of keys."""
     registry = Registry[str, int](initial_state={"a": 1})
     iterator = iter(registry)
-    registry._state["b"] = 2
+    registry["b"] = 2
     keys = list(iterator)
-    # Should only have the original key since we iterate over a copy
-    assert len(keys) == 1
+    assert keys == ["a"]
+
+
+def test_registry_iter_empty() -> None:
+    """Test iterating over an empty registry."""
+    registry = Registry[str, int]()
+    keys = list(registry)
+    assert keys == []
 
 
 def test_registry_len_operator() -> None:
