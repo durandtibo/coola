@@ -51,7 +51,7 @@ class NDArrayFormatter(BaseFormatter[np.ndarray]):
     def clone(self) -> NDArrayFormatter:
         return self.__class__(show_data=self._show_data)
 
-    def equal(self, other: Any) -> bool:
+    def equal(self, other: object) -> bool:
         if not isinstance(other, self.__class__):
             return False
         return self._show_data == other._show_data

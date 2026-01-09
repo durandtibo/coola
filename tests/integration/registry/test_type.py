@@ -462,6 +462,78 @@ def test_type_registry_no_race_condition_on_cache_population() -> None:
         assert len(set(results)) == 1
 
 
+def test_type_registry_concurrent_items_access() -> None:
+    """Test that concurrent items() calls don't interfere."""
+    num_threads = 10
+    mapping = dict(zip(create_classes(num_classes=50), range(50), strict=True))
+    registry = TypeRegistry[str](mapping)
+    results = []
+
+    def access_items() -> None:
+        items = dict(registry.items())
+        results.append(items)
+
+    run_threads([threading.Thread(target=access_items) for _ in range(num_threads)])
+
+    assert len(results) == num_threads
+    for result in results:
+        assert result == mapping
+
+
+def test_type_registry_concurrent_keys_access() -> None:
+    """Test that concurrent keys() calls don't interfere."""
+    num_threads = 10
+    classes = create_classes(num_classes=50)
+    registry = TypeRegistry[str](dict(zip(classes, range(len(classes)), strict=True)))
+    results = []
+
+    def access_keys() -> None:
+        keys = list(registry.keys())
+        results.append(keys)
+
+    run_threads([threading.Thread(target=access_keys) for _ in range(num_threads)])
+
+    assert len(results) == num_threads
+    for result in results:
+        assert result == classes
+
+
+def test_type_registry_concurrent_values_access() -> None:
+    """Test that concurrent values() calls don't interfere."""
+    num_threads = 10
+    registry = TypeRegistry[str](dict(zip(create_classes(num_classes=50), range(50), strict=True)))
+    results = []
+
+    def access_values() -> None:
+        values = list(registry.values())
+        results.append(values)
+
+    run_threads([threading.Thread(target=access_values) for _ in range(num_threads)])
+
+    assert len(results) == num_threads
+    target = list(range(50))
+    for result in results:
+        assert result == target
+
+
+def test_type_registry_concurrent_iteration() -> None:
+    """Test that concurrent iteration doesn't cause errors."""
+    num_threads = 10
+    classes = create_classes(num_classes=50)
+    registry = TypeRegistry[str](dict(zip(classes, range(len(classes)), strict=True)))
+    results = []
+
+    def iterate_registry() -> None:
+        keys = list(registry)
+        results.append(keys)
+
+    run_threads([threading.Thread(target=iterate_registry) for _ in range(num_threads)])
+
+    assert len(results) == num_threads
+    for result in results:
+        assert result == classes
+
+
 def test_type_registry_stress_test_high_contention() -> None:
     """Stress test with high contention on a single key."""
     registry = TypeRegistry[int]()
