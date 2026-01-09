@@ -73,7 +73,6 @@ You can use `recursive_apply` with different data structures:
 >>> data = {
 ...     "list": [1, 2, 3],
 ...     "dict": {"a": 4, "b": 5},
-...     "set": {6, 7},
 ...     "value": 8,
 ... }
 >>> recursive_apply(data, lambda x: x + 100)
