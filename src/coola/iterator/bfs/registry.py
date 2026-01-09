@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.iterator.bfs.base import BaseChildFinder
 from coola.registry import TypeRegistry
-from coola.utils.format import repr_indent, str_indent
+from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -91,10 +91,12 @@ class ChildFinderRegistry:
         self._state: TypeRegistry[BaseChildFinder] = TypeRegistry[BaseChildFinder](initial_state)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}(\n  {repr_indent(self._state)}\n)"
+        state = repr_indent(repr_mapping({"state": self._state}))
+        return f"{self.__class__.__qualname__}(\n  {state}\n)"
 
     def __str__(self) -> str:
-        return f"{self.__class__.__qualname__}(\n  {str_indent(self._state)}\n)"
+        state = str_indent(str_mapping({"state": self._state}))
+        return f"{self.__class__.__qualname__}(\n  {state}\n)"
 
     def register(
         self,
