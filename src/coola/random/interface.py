@@ -1,0 +1,113 @@
+r"""Define the public interface to randomly apply a function to all
+items in nested data."""
+
+from __future__ import annotations
+
+__all__ = ["get_default_registry", "register_managers"]
+
+from typing import TYPE_CHECKING
+
+from coola.random.numpy_ import NumpyRandomManager
+from coola.random.random_ import RandomRandomManager
+from coola.random.registry import RandomManagerRegistry
+from coola.random.torch_ import TorchRandomManager
+from coola.utils.imports import is_numpy_available, is_torch_available
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from coola.random.base import BaseRandomManager
+
+
+def register_managers(mapping: Mapping[str, BaseRandomManager], exist_ok: bool = False) -> None:
+    """Register custom managers to the default global registry.
+
+    This allows users to add support for custom random number generators
+    without modifying global state directly.
+
+    Args:
+        mapping: Dictionary mapping manager names to manager instances
+        exist_ok: If False, raises error if any manager name already registered
+
+    Example:
+        ```pycon
+        >>> from coola.random import register_managers, RandomRandomManager
+        >>> register_managers({"custom": RandomRandomManager()})  # doctest: +SKIP
+
+        ```
+    """
+    get_default_registry().register_many(mapping, exist_ok=exist_ok)
+
+
+def get_default_registry() -> RandomManagerRegistry:
+    """Get or create the default global registry with common random
+    managers.
+
+    Returns a singleton registry instance that is pre-configured with managers
+    for common random number generation libraries including Python's random module,
+    NumPy (if available), and PyTorch (if available).
+
+    This function uses a singleton pattern to ensure the same registry instance
+    is returned on subsequent calls, which is efficient and maintains consistency
+    across an application.
+
+    Returns:
+        A RandomManagerRegistry instance with managers registered for:
+            - "random": Python's random module (always available)
+            - "numpy": NumPy random (if NumPy is installed)
+            - "torch": PyTorch random (if PyTorch is installed)
+
+    Notes:
+        The singleton pattern means modifications to the returned registry
+        affect all future calls to this function. If you need an isolated
+        registry, create a new RandomManagerRegistry instance directly.
+
+    Example:
+        ```pycon
+        >>> from coola.random import get_default_registry
+        >>> registry = get_default_registry()
+        >>> # Registry is ready to use with available random managers
+        >>> registry
+        RandomManagerRegistry(
+          Registry(
+            (random): RandomRandomManager()
+            (numpy): NumpyRandomManager()
+            (torch): TorchRandomManager()
+          )
+        )
+
+        ```
+    """
+    if not hasattr(get_default_registry, "_registry"):
+        registry = RandomManagerRegistry()
+        _register_default_managers(registry)
+        get_default_registry._registry = registry
+    return get_default_registry._registry
+
+
+def _register_default_managers(registry: RandomManagerRegistry) -> None:
+    """Register default managers for common random number generators.
+
+    This internal function sets up the standard manager mappings
+    used by the default registry. It registers managers for Python's
+    random module and conditionally registers NumPy and PyTorch managers
+    if those libraries are available.
+
+    The registration strategy:
+        - "random": RandomRandomManager (always registered)
+        - "numpy": NumpyRandomManager (registered if NumPy is available)
+        - "torch": TorchRandomManager (registered if PyTorch is available)
+
+    Args:
+        registry: The registry to populate with default managers
+
+    Notes:
+        This function is called internally by get_default_registry() and should
+        not typically be called directly by users.
+    """
+    managers: dict[str, BaseRandomManager] = {"random": RandomRandomManager()}
+    if is_numpy_available():  # pragma: no cover
+        managers["numpy"] = NumpyRandomManager()
+    if is_torch_available():  # pragma: no cover
+        managers["torch"] = TorchRandomManager()
+    registry.register_many(managers)
