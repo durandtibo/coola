@@ -2,9 +2,7 @@ from __future__ import annotations
 
 import random
 
-from coola import objects_are_equal
 from coola.random import RandomRandomManager
-from coola.random.random_ import get_random_managers
 
 ############################################
 #     Tests for RandomRandomSeedSetter     #
@@ -59,12 +57,3 @@ def test_random_random_manager_set_rng_state() -> None:
     x3 = random.uniform(0, 1)  # noqa: S311
     assert x1 == x3
     assert x1 != x2
-
-
-#########################################
-#     Tests for get_random_managers     #
-#########################################
-
-
-def test_get_random_managers() -> None:
-    assert objects_are_equal(get_random_managers(), {"random": RandomRandomManager()})

@@ -8,10 +8,10 @@ __all__ = ["get_default_registry", "random_seed", "register_managers"]
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
 
-from coola.random.numpy_ import NumpyRandomManager
-from coola.random.random_ import RandomRandomManager
+from coola.random.numpy import NumpyRandomManager
+from coola.random.random import RandomRandomManager
 from coola.random.registry import RandomManagerRegistry
-from coola.random.torch_ import TorchRandomManager
+from coola.random.torch import TorchRandomManager
 from coola.utils.imports import is_numpy_available, is_torch_available
 
 if TYPE_CHECKING:

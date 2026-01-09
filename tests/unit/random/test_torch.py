@@ -5,8 +5,7 @@ from unittest.mock import patch
 import pytest
 
 from coola import objects_are_equal
-from coola.random import TorchRandomManager
-from coola.random.torch_ import get_random_managers, torch_seed
+from coola.random import TorchRandomManager, torch_seed
 from coola.testing import torch_available
 from coola.utils import is_torch_available
 
@@ -94,21 +93,6 @@ def test_torch_random_manager_no_torch() -> None:
         pytest.raises(RuntimeError, match=r"'torch' package is required but not installed."),
     ):
         TorchRandomManager()
-
-
-#########################################
-#     Tests for get_random_managers     #
-#########################################
-
-
-@torch_available
-def test_get_random_managers() -> None:
-    assert objects_are_equal(get_random_managers(), {"torch": TorchRandomManager()})
-
-
-def test_get_random_managers_no_torch() -> None:
-    with patch("coola.random.torch_.is_torch_available", lambda: False):
-        assert objects_are_equal(get_random_managers(), {})
 
 
 ################################

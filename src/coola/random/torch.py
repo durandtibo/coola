@@ -2,7 +2,7 @@ r"""Implement a random manager for PyTorch."""
 
 from __future__ import annotations
 
-__all__ = ["TorchRandomManager", "get_random_managers", "torch_seed"]
+__all__ = ["TorchRandomManager", "torch_seed"]
 
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
@@ -54,28 +54,6 @@ class TorchRandomManager(BaseRandomManager):  # noqa: PLW1641
     def set_rng_state(self, state: dict[str, Any]) -> None:
         torch.set_rng_state(state["torch"])
         torch.cuda.set_rng_state_all(state["torch.cuda"])
-
-
-def get_random_managers() -> dict[str, BaseRandomManager]:
-    r"""Get the random managers and their default name.
-
-    This function returns an empty dictionary if ``torch`` is not
-    installed.
-
-    Returns:
-        The mapping between the name and random managers.
-
-    Example:
-        ```pycon
-        >>> from coola.random.torch_ import get_random_managers
-        >>> get_random_managers()
-        {'torch': TorchRandomManager()}
-
-        ```
-    """
-    if not is_torch_available():
-        return {}
-    return {"torch": TorchRandomManager()}
 
 
 @contextmanager

@@ -2,7 +2,7 @@ r"""Implement a random manager for NumPy."""
 
 from __future__ import annotations
 
-__all__ = ["NumpyRandomManager", "get_random_managers"]
+__all__ = ["NumpyRandomManager"]
 
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
@@ -52,28 +52,6 @@ class NumpyRandomManager(BaseRandomManager):  # noqa: PLW1641
 
     def set_rng_state(self, state: tuple[Any, ...]) -> None:
         np.random.set_state(state)
-
-
-def get_random_managers() -> dict[str, BaseRandomManager]:
-    r"""Get the random managers and their default name.
-
-    This function returns an empty dictionary if ``numpy`` is not
-    installed.
-
-    Returns:
-        The mapping between the name and random managers.
-
-    Example:
-        ```pycon
-        >>> from coola.random.numpy_ import get_random_managers
-        >>> get_random_managers()
-        {'numpy': NumpyRandomManager()}
-
-        ```
-    """
-    if not is_numpy_available():
-        return {}
-    return {"numpy": NumpyRandomManager()}
 
 
 @contextmanager
