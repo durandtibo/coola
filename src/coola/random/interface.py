@@ -3,7 +3,14 @@ items in nested data."""
 
 from __future__ import annotations
 
-__all__ = ["get_default_registry", "random_seed", "register_managers"]
+__all__ = [
+    "get_default_registry",
+    "get_rng_state",
+    "manual_seed",
+    "random_seed",
+    "register_managers",
+    "set_rng_state",
+]
 
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any

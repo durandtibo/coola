@@ -20,7 +20,7 @@ else:  # pragma: no cover
 
 
 class TorchRandomManager(BaseRandomManager):  # noqa: PLW1641
-    r"""Implements a random number generator for the library ``torch``.
+    r"""Implement a random manager for the library ``torch``.
 
     Example:
         ```pycon

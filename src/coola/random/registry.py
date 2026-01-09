@@ -165,12 +165,66 @@ class RandomManagerRegistry(BaseRandomManager):
         return key in self._state
 
     def get_rng_state(self) -> dict[str, Any]:
+        """Get the current RNG state for all registered managers.
+
+        This method collects the RNG states from all registered managers
+        and returns them as a dictionary keyed by manager name.
+
+        Returns:
+            A dictionary mapping manager keys to their RNG states.
+                Each value's type depends on the corresponding manager.
+
+        Example:
+            ```pycon
+            >>> from coola.random import RandomManagerRegistry, RandomRandomManager
+            >>> registry = RandomManagerRegistry({"random": RandomRandomManager()})
+            >>> state = registry.get_rng_state()
+            >>> "random" in state
+            True
+
+            ```
+        """
         return {key: value.get_rng_state() for key, value in self._state.items()}
 
     def manual_seed(self, seed: int) -> None:
+        """Set the seed for all registered random managers.
+
+        This method calls manual_seed on each registered manager with
+        the same seed value, ensuring all RNGs are synchronized.
+
+        Args:
+            seed: The desired seed value to set for all managers.
+
+        Example:
+            ```pycon
+            >>> from coola.random import RandomManagerRegistry, RandomRandomManager
+            >>> registry = RandomManagerRegistry({"random": RandomRandomManager()})
+            >>> registry.manual_seed(42)
+
+            ```
+        """
         for value in self._state.values():
             value.manual_seed(seed)
 
     def set_rng_state(self, state: dict[str, Any]) -> None:
+        """Set the RNG state for all registered managers.
+
+        This method restores the RNG state for each registered manager
+        from the provided state dictionary.
+
+        Args:
+            state: A dictionary mapping manager keys to their RNG states.
+                The state for each manager should be compatible with that
+                manager's set_rng_state method.
+
+        Example:
+            ```pycon
+            >>> from coola.random import RandomManagerRegistry, RandomRandomManager
+            >>> registry = RandomManagerRegistry({"random": RandomRandomManager()})
+            >>> state = registry.get_rng_state()
+            >>> registry.set_rng_state(state)
+
+            ```
+        """
         for key, value in state.items():
             self._state[key].set_rng_state(value)
