@@ -33,6 +33,7 @@ Use `manual_seed()` to set the seed for all available random number generators:
 ```
 
 This sets the seed for:
+
 - Python's `random` module
 - NumPy's random generator (if NumPy is available)
 - PyTorch's random generator (if PyTorch is available)
@@ -58,6 +59,7 @@ previous RNG state afterward:
 ```
 
 The context manager ensures that:
+
 1. The RNG state is saved before setting the seed
 2. The specified seed is applied
 3. The original RNG state is restored after the context exits
@@ -265,9 +267,8 @@ Make a specific code block reproducible without affecting the global state:
 
 ```
 
-### State Management for Testing
-
-Save and restore RNG state in tests:
+Internally, the context manager saves and restores RNG state before and after the block.
+It is equivalent to this code.
 
 ```pycon
 
@@ -276,7 +277,7 @@ Save and restore RNG state in tests:
 >>> initial_state = get_rng_state()
 >>> # Run test with specific seed
 >>> manual_seed(42)
->>> # ... test code ...
+>>> # ... make code reproducible. ...
 >>> # Restore initial state
 >>> set_rng_state(initial_state)
 
@@ -332,6 +333,7 @@ The `coola.random` package provides the following random managers:
 - **`TorchRandomManager`**: For PyTorch's random module (registered if PyTorch is available)
 
 Each manager implements the `BaseRandomManager` interface with three methods:
+
 - `manual_seed(seed)`: Set the random seed
 - `get_rng_state()`: Get the current RNG state
 - `set_rng_state(state)`: Restore a previous RNG state
