@@ -188,7 +188,7 @@ The `coola.recursive` package design is inspired by the DFS pattern and provides
 
 1. **Memory-efficient traversal**: Uses generators to avoid loading entire structures into memory
 2. **Type dispatch**: Automatically selects the right transformer based on data type
-4. **Extensibility**: Easy to add support for new types via the registry pattern
+3. **Extensibility**: Easy to add support for new types via the registry pattern
 
 ## Common Use Cases
 
