@@ -55,7 +55,7 @@ class NumpyRandomManager(BaseRandomManager):  # noqa: PLW1641
 
 
 @contextmanager
-def numpy_seed(seed: int) -> Generator[None]:
+def numpy_seed(seed: int) -> Generator[None, None, None]:
     r"""Implement a context manager to manage the NumPy random seed and
     random number generator (RNG) state.
 

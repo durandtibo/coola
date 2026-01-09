@@ -20,7 +20,7 @@ else:  # pragma: no cover
 
 
 class TorchRandomManager(BaseRandomManager):  # noqa: PLW1641
-    r"""Implements a random number generator for the library ``torch``.
+    r"""Implement a random manager for the library ``torch``.
 
     Example:
         ```pycon
@@ -57,7 +57,7 @@ class TorchRandomManager(BaseRandomManager):  # noqa: PLW1641
 
 
 @contextmanager
-def torch_seed(seed: int) -> Generator[None]:
+def torch_seed(seed: int) -> Generator[None, None, None]:
     r"""Implement a context manager to manage the PyTorch random seed and
     random number generator (RNG) state.
 

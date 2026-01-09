@@ -1,9 +1,22 @@
-r"""Define the public interface to randomly apply a function to all
-items in nested data."""
+r"""Define the public interface for managing random number generator
+state across different libraries.
+
+This module provides a unified interface for controlling random number
+generators (RNGs) from multiple libraries like Python's random module,
+NumPy, and PyTorch. It includes functions for setting seeds, getting and
+restoring RNG states, and managing a global registry of random managers.
+"""
 
 from __future__ import annotations
 
-__all__ = ["get_default_registry", "random_seed", "register_managers"]
+__all__ = [
+    "get_default_registry",
+    "get_rng_state",
+    "manual_seed",
+    "random_seed",
+    "register_managers",
+    "set_rng_state",
+]
 
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
