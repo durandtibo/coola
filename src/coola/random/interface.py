@@ -106,8 +106,8 @@ def _register_default_managers(registry: RandomManagerRegistry) -> None:
         not typically be called directly by users.
     """
     managers: dict[str, BaseRandomManager] = {"random": RandomRandomManager()}
-    if is_numpy_available():
+    if is_numpy_available():  # pragma: no cover
         managers["numpy"] = NumpyRandomManager()
-    if is_torch_available():
+    if is_torch_available():  # pragma: no cover
         managers["torch"] = TorchRandomManager()
     registry.register_many(managers)
