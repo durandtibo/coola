@@ -117,8 +117,9 @@ Set the seed only for NumPy's random module:
 
 >>> import numpy as np
 >>> from coola.random import numpy_seed
->>> numpy_seed(42)
->>> np.random.rand(3)
+>>> with numpy_seed(42):
+...     np.random.rand(3)
+...
 array([...])
 
 ```
@@ -144,8 +145,9 @@ Set the seed only for PyTorch's random module:
 
 >>> import torch
 >>> from coola.random import torch_seed
->>> torch_seed(42)
->>> torch.rand(3)
+>>> with torch_seed(42):
+...     torch.rand(3)
+...
 tensor([...])
 
 ```
