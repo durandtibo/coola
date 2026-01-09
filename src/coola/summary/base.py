@@ -12,8 +12,7 @@ __all__ = ["BaseSummarizer"]
 
 
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar, TYPE_CHECKING
-
+from typing import TYPE_CHECKING, Generic, TypeVar
 
 if TYPE_CHECKING:
     from coola.summary.registry import SummarizerRegistry

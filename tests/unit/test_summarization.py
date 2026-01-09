@@ -3,7 +3,8 @@ from unittest.mock import Mock
 
 import pytest
 
-from coola import BaseSummarizer, summary
+from coola import BaseSummarizer
+from coola.summarization import summary
 
 #############################
 #     Tests for summary     #
