@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 from coola.reducers import NativeReducer, NumpyReducer, TorchReducer, auto_reducer
-from coola.testing import numpy_available, torch_available
+from coola.testing.fixtures import numpy_available, torch_available
 
 ##################################
 #     Tests for auto_reducer     #

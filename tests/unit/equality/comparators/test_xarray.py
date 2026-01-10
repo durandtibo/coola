@@ -13,7 +13,7 @@ from coola.equality.comparators.xarray_ import (
     get_type_comparator_mapping,
 )
 from coola.equality.testers import EqualityTester
-from coola.testing import xarray_available
+from coola.testing.fixtures import xarray_available
 from coola.utils.imports import is_numpy_available, is_xarray_available
 from tests.unit.equality.comparators.utils import ExamplePair
 

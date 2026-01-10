@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from coola import objects_are_allclose
-from coola.testing import xarray_available
+from coola.testing.fixtures import xarray_available
 from tests.unit.equality.checks.test_default import COMPARATOR_FUNCTIONS
 from tests.unit.equality.comparators.test_xarray import (
     XARRAY_EQUAL,

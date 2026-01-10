@@ -12,7 +12,7 @@ from coola.equality.comparators.pandas_ import (
     get_type_comparator_mapping,
 )
 from coola.equality.testers import EqualityTester
-from coola.testing import pandas_available
+from coola.testing.fixtures import pandas_available
 from coola.utils.imports import is_pandas_available
 from tests.unit.equality.comparators.utils import ExamplePair
 

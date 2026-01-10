@@ -11,7 +11,7 @@ from coola.equality import EqualityConfig
 from coola.equality.comparators import PyarrowEqualityComparator
 from coola.equality.comparators.pyarrow_ import get_type_comparator_mapping
 from coola.equality.testers import EqualityTester
-from coola.testing import pyarrow_available
+from coola.testing.fixtures import pyarrow_available
 from coola.utils.imports import is_pyarrow_available
 from tests.unit.equality.comparators.utils import ExamplePair
 

@@ -1,4 +1,7 @@
-r"""Define some utility functions for testing."""
+r"""Define some pytest fixtures for testing.
+
+`pytest` is required to use these fixtures.
+"""
 
 from __future__ import annotations
 

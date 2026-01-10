@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from coola.testing import (
+from coola.testing.fixtures import (
     jax_available,
     jax_not_available,
     numpy_available,

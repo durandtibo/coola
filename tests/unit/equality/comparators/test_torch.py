@@ -12,7 +12,11 @@ from coola.equality.comparators.torch_ import (
     get_type_comparator_mapping,
 )
 from coola.equality.testers import EqualityTester
-from coola.testing import torch_available, torch_cuda_available, torch_mps_available
+from coola.testing.fixtures import (
+    torch_available,
+    torch_cuda_available,
+    torch_mps_available,
+)
 from coola.utils.imports import is_torch_available
 from tests.unit.equality.comparators.utils import ExamplePair
 

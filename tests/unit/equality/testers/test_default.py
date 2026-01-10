@@ -26,7 +26,7 @@ from coola.equality.comparators import (
     XarrayVariableEqualityComparator,
 )
 from coola.equality.testers import EqualityTester, LocalEqualityTester
-from coola.testing import (
+from coola.testing.fixtures import (
     jax_available,
     numpy_available,
     pandas_available,

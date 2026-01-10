@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola.testing import numpy_available, torch_available
+from coola.testing.fixtures import numpy_available, torch_available
 from coola.utils import is_numpy_available, is_torch_available
 from coola.utils.tensor import (
     get_available_devices,
