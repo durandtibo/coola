@@ -94,33 +94,30 @@ def test_mapping_summarizer_equal_false_none() -> None:
 
 
 def test_mapping_summarizer_summary_empty(registry: SummarizerRegistry) -> None:
-    result = MappingSummarizer().summary({}, registry, depth=0, max_depth=1)
+    result = MappingSummarizer().summary({}, registry)
     assert result == "<class 'dict'> {}"
 
 
 def test_mapping_summarizer_summary_single_item(registry: SummarizerRegistry) -> None:
-    result = MappingSummarizer().summary({"key1": "value1"}, registry, depth=0, max_depth=1)
+    result = MappingSummarizer().summary({"key1": "value1"}, registry)
     assert result == "<class 'dict'> (length=1)\n  (key1): value1"
 
 
 def test_mapping_summarizer_summary_multiple_items(registry: SummarizerRegistry) -> None:
-    result = MappingSummarizer().summary(
-        {"key1": 1.2, "key2": "abc", "key3": 42}, registry, depth=0, max_depth=1
-    )
+    result = MappingSummarizer().summary({"key1": 1.2, "key2": "abc", "key3": 42}, registry)
     assert result == "<class 'dict'> (length=3)\n  (key1): 1.2\n  (key2): abc\n  (key3): 42"
 
 
 def test_mapping_summarizer_summary_max_items_exceeded(registry: SummarizerRegistry) -> None:
     result = MappingSummarizer(max_items=2).summary(
-        {"key1": 1, "key2": 2, "key3": 3, "key4": 4}, registry, depth=0, max_depth=1
+        {"key1": 1, "key2": 2, "key3": 3, "key4": 4}, registry
     )
     assert result == "<class 'dict'> (length=4)\n  (key1): 1\n  (key2): 2\n  ..."
 
 
 def test_mapping_summarizer_summary_max_items_negative(registry: SummarizerRegistry) -> None:
     data = {f"key{i}": i for i in range(10)}
-    result = MappingSummarizer(max_items=-1).summary(data, registry, depth=0, max_depth=1)
-
+    result = MappingSummarizer(max_items=-1).summary(data, registry)
     assert result == (
         "<class 'dict'> (length=10)\n"
         "  (key0): 0\n"
@@ -142,15 +139,13 @@ def test_mapping_summarizer_summary_depth_exceeds_max_depth(registry: Summarizer
 
 
 def test_mapping_summarizer_summary_custom_num_spaces(registry: SummarizerRegistry) -> None:
-    result = MappingSummarizer(num_spaces=4).summary(
-        {"key1": "value1"}, registry, depth=0, max_depth=1
-    )
+    result = MappingSummarizer(num_spaces=4).summary({"key1": "value1"}, registry)
     assert result == "<class 'dict'> (length=1)\n    (key1): value1"
 
 
 def test_mapping_summarizer_summary_ordered_dict(registry: SummarizerRegistry) -> None:
     data = OrderedDict([("key1", 1), ("key2", 2), ("key3", 3)])
-    result = MappingSummarizer().summary(data, registry, depth=0, max_depth=1)
+    result = MappingSummarizer().summary(data, registry)
     assert (
         result == "<class 'collections.OrderedDict'> (length=3)\n"
         "  (key1): 1\n"
@@ -187,9 +182,9 @@ def test_mapping_summarizer_summary_nested_data_2(registry: SummarizerRegistry) 
 
 def test_mapping_summarizer_summary_max_items_equal_length(registry: SummarizerRegistry) -> None:
     result = MappingSummarizer(max_items=3).summary({"key1": 1, "key2": 2, "key3": 3}, registry)
-    assert result == ("<class 'dict'> (length=3)\n  (key1): 1\n  (key2): 2\n  (key3): 3")
+    assert result == "<class 'dict'> (length=3)\n  (key1): 1\n  (key2): 2\n  (key3): 3"
 
 
 def test_mapping_summarizer_summary_max_items_zero(registry: SummarizerRegistry) -> None:
     result = MappingSummarizer(max_items=0).summary({"key1": 1, "key2": 2, "key3": 3}, registry)
-    assert result == ("<class 'dict'> (length=3)\n  \n  ...")
+    assert result == "<class 'dict'> (length=3) ..."

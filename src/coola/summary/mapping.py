@@ -60,18 +60,21 @@ class MappingSummarizer(BaseCollectionSummarizer[Mapping[Any, Any]]):
             return registry.summary(str(data), depth=depth + 1, max_depth=max_depth)
         typ = type(data)
         length = len(data)
-        if length > 0:
-            items = data.items()
-            if self._max_items >= 0:
-                items = islice(data.items(), self._max_items)
-            data = str_mapping(
-                {
-                    key: registry.summary(val, depth=depth + 1, max_depth=max_depth)
-                    for key, val in items
-                },
-                num_spaces=self._num_spaces,
-            )
-            if length > self._max_items and self._max_items >= 0:
-                data = f"{data}\n..."
-            data = f"(length={length:,})\n{data}"
-        return str_indent(f"{typ} {data}", num_spaces=self._num_spaces)
+        if length == 0:
+            return str_indent(f"{typ} {data}", num_spaces=self._num_spaces)
+        if self._max_items == 0:
+            return str_indent(f"{typ} (length={length:,}) ...", num_spaces=self._num_spaces)
+
+        items = data.items()
+        if self._max_items > 0:
+            items = islice(items, self._max_items)
+        data = str_mapping(
+            {
+                key: registry.summary(val, depth=depth + 1, max_depth=max_depth)
+                for key, val in items
+            },
+            num_spaces=self._num_spaces,
+        )
+        if length > self._max_items and self._max_items > 0:
+            data = f"{data}\n..."
+        return str_indent(f"{typ} (length={length:,})\n{data}", num_spaces=self._num_spaces)
