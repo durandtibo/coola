@@ -25,7 +25,7 @@ class DefaultSummarizer(BaseSummarizer[object]):
         >>> from coola.summary import SummarizerRegistry, DefaultSummarizer
         >>> registry = SummarizerRegistry()
         >>> summarizer = DefaultSummarizer()
-        >>> summarizer.summary(1, registry)
+        >>> summarizer.summarize(1, registry)
         <class 'int'> 1
 
         ```
@@ -45,7 +45,7 @@ class DefaultSummarizer(BaseSummarizer[object]):
             return False
         return self._max_characters == other._max_characters
 
-    def summary(
+    def summarize(
         self,
         data: object,
         registry: SummarizerRegistry,  # noqa: ARG002
@@ -53,10 +53,10 @@ class DefaultSummarizer(BaseSummarizer[object]):
         max_depth: int = 1,
     ) -> str:
         if depth >= max_depth:
-            return self._format(str(data))
-        return f"{type(data)} {self._format(str(data))}"
+            return self._summarize(str(data))
+        return f"{type(data)} {self._summarize(str(data))}"
 
-    def _format(self, value: str) -> str:
+    def _summarize(self, value: str) -> str:
         if self._max_characters >= 0 and len(value) > self._max_characters:
             value = value[: self._max_characters] + "..."
         return value

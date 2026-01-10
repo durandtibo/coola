@@ -38,44 +38,82 @@ class BaseSummarizer(ABC, Generic[T]):
         preventing overwhelming output for deeply nested data.
 
     Example:
-        ```pycon
-        >>> from coola.summary import Summarizer
-        >>> summarizer = Summarizer()
-        >>> summarizer
-        Summarizer()
+            ```pycon
+            >>> from coola.summary import (
+            ...     SummarizerRegistry,
+            ...     DefaultSummarizer,
+            ...     MappingSummarizer,
+            ...     SequenceSummarizer,
+            ... )
+            >>> registry = SummarizerRegistry(
+            ...     {
+            ...         object: DefaultSummarizer(),
+            ...         dict: MappingSummarizer(),
+            ...         list: SequenceSummarizer(),
+            ...     }
+            ... )
+            >>> summarizer = DefaultSummarizer()
+            >>> # Simple value
+            >>> print(summarizer.summarize(1, registry))
+            <class 'int'> 1
+            >>> # List with default depth (expands first level only)
+            >>> print(summarizer.summarize(["abc", "def"], registry))
+            <class 'list'> (length=2)
+              (0): abc
+              (1): def
+            >>> # Nested list, default max_depth=1 (inner list not expanded)
+            >>> print(summarizer.summarize([[0, 1, 2], {"key1": "abc", "key2": "def"}], registry))
+            <class 'list'> (length=2)
+              (0): [0, 1, 2]
+              (1): {'key1': 'abc', 'key2': 'def'}
+            >>> # Increase max_depth to expand nested structures
+            >>> print(
+            ...     summarizer.summarize(
+            ...         [[0, 1, 2], {"key1": "abc", "key2": "def"}], registry, max_depth=2
+            ...     )
+            ... )
+            <class 'list'> (length=2)
+              (0): <class 'list'> (length=3)
+                  (0): 0
+                  (1): 1
+                  (2): 2
+              (1): <class 'dict'> (length=2)
+                  (key1): abc
+                  (key2): def
 
-        >>> # Summarize a simple integer
-        >>> print(summarizer.summary(1))
-        <class 'int'> 1
-
-        >>> # Summarize a list (shallow, default max_depth=1)
-        >>> print(summarizer.summary(["abc", "def"]))
-        <class 'list'> (length=2)
-          (0): abc
-          (1): def
-
-        >>> # Nested structures shown compactly at depth 1
-        >>> print(summarizer.summary([[0, 1, 2], {"key1": "abc", "key2": "def"}]))
-        <class 'list'> (length=2)
-          (0): [0, 1, 2]
-          (1): {'key1': 'abc', 'key2': 'def'}
-
-        >>> # Increase max_depth to expand nested structures
-        >>> print(summarizer.summary([[0, 1, 2], {"key1": "abc", "key2": "def"}], max_depth=2))
-        <class 'list'> (length=2)
-          (0): <class 'list'> (length=3)
-              (0): 0
-              (1): 1
-              (2): 2
-          (1): <class 'dict'> (length=2)
-              (key1): abc
-              (key2): def
-
-        ```
+            ```
     """
 
     @abstractmethod
-    def summary(
+    def equal(self, other: object) -> bool:
+        """Check equality between this summarizer and another object.
+
+        Two summarizers are considered equal if they are of the exact same type
+        and have identical configuration parameters.
+
+        Args:
+            other: The object to compare with this summarizer.
+
+        Returns:
+            ``True`` if the objects are equal, otherwise ``False``.
+
+        Example:
+            ```pycon
+            >>> from coola.summary import SummarizerRegistry, DefaultSummarizer, MappingSummarizer
+            >>> registry = SummarizerRegistry()
+            >>> summarizer1 = DefaultSummarizer()
+            >>> summarizer2 = DefaultSummarizer()
+            >>> summarizer3 = MappingSummarizer()
+            >>> summarizer1.equal(summarizer2)
+            True
+            >>> summarizer1.equal(summarizer3)
+            False
+
+            ```
+        """
+
+    @abstractmethod
+    def summarize(
         self,
         data: T,
         registry: SummarizerRegistry,
@@ -123,27 +161,39 @@ class BaseSummarizer(ABC, Generic[T]):
 
         Example:
             ```pycon
-            >>> from coola.summary import Summarizer
-            >>> summarizer = Summarizer()
-
+            >>> from coola.summary import (
+            ...     SummarizerRegistry,
+            ...     DefaultSummarizer,
+            ...     MappingSummarizer,
+            ...     SequenceSummarizer,
+            ... )
+            >>> registry = SummarizerRegistry(
+            ...     {
+            ...         object: DefaultSummarizer(),
+            ...         dict: MappingSummarizer(),
+            ...         list: SequenceSummarizer(),
+            ...     }
+            ... )
+            >>> summarizer = DefaultSummarizer()
             >>> # Simple value
-            >>> print(summarizer.summary(1))
+            >>> print(summarizer.summarize(1, registry))
             <class 'int'> 1
-
             >>> # List with default depth (expands first level only)
-            >>> print(summarizer.summary(["abc", "def"]))
+            >>> print(summarizer.summarize(["abc", "def"], registry))
             <class 'list'> (length=2)
               (0): abc
               (1): def
-
             >>> # Nested list, default max_depth=1 (inner list not expanded)
-            >>> print(summarizer.summary([[0, 1, 2], {"key1": "abc", "key2": "def"}]))
+            >>> print(summarizer.summarize([[0, 1, 2], {"key1": "abc", "key2": "def"}], registry))
             <class 'list'> (length=2)
               (0): [0, 1, 2]
               (1): {'key1': 'abc', 'key2': 'def'}
-
-            >>> # Nested list with max_depth=2 (expands both levels)
-            >>> print(summarizer.summary([[0, 1, 2], {"key1": "abc", "key2": "def"}], max_depth=2))
+            >>> # Increase max_depth to expand nested structures
+            >>> print(
+            ...     summarizer.summarize(
+            ...         [[0, 1, 2], {"key1": "abc", "key2": "def"}], registry, max_depth=2
+            ...     )
+            ... )
             <class 'list'> (length=2)
               (0): <class 'list'> (length=3)
                   (0): 0
@@ -152,13 +202,6 @@ class BaseSummarizer(ABC, Generic[T]):
               (1): <class 'dict'> (length=2)
                   (key1): abc
                   (key2): def
-
-            >>> # Control depth for very nested structures
-            >>> deeply_nested = [[[1, 2], [3, 4]], [[5, 6], [7, 8]]]
-            >>> print(summarizer.summary(deeply_nested, max_depth=1))
-            <class 'list'> (length=2)
-              (0): [[1, 2], [3, 4]]
-              (1): [[5, 6], [7, 8]]
 
             ```
         """

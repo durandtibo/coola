@@ -94,92 +94,92 @@ def test_default_summarizer_equal_none() -> None:
     assert not DefaultSummarizer().equal(None)
 
 
-def test_default_summarizer_summary_integer(registry: SummarizerRegistry) -> None:
+def test_default_summarizer_summarize_integer(registry: SummarizerRegistry) -> None:
     summarizer = DefaultSummarizer()
-    result = summarizer.summary(1, registry)
+    result = summarizer.summarize(1, registry)
     assert result == "<class 'int'> 1"
 
 
-def test_default_summarizer_summary_string(registry: SummarizerRegistry) -> None:
+def test_default_summarizer_summarize_string(registry: SummarizerRegistry) -> None:
     summarizer = DefaultSummarizer()
-    result = summarizer.summary("hello", registry)
+    result = summarizer.summarize("hello", registry)
     assert result == "<class 'str'> hello"
 
 
-def test_default_summarizer_summary_list(registry: SummarizerRegistry) -> None:
+def test_default_summarizer_summarize_list(registry: SummarizerRegistry) -> None:
     summarizer = DefaultSummarizer()
-    result = summarizer.summary([1, 2, 3], registry)
+    result = summarizer.summarize([1, 2, 3], registry)
     assert result == "<class 'list'> [1, 2, 3]"
 
 
-def test_default_summarizer_summary_depth_zero(registry: SummarizerRegistry) -> None:
+def test_default_summarizer_summarize_depth_zero(registry: SummarizerRegistry) -> None:
     summarizer = DefaultSummarizer()
-    result = summarizer.summary("test", registry, depth=0, max_depth=1)
+    result = summarizer.summarize("test", registry, depth=0, max_depth=1)
     assert result == "<class 'str'> test"
 
 
-def test_default_summarizer_summary_depth_at_max(registry: SummarizerRegistry) -> None:
+def test_default_summarizer_summarize_depth_at_max(registry: SummarizerRegistry) -> None:
     summarizer = DefaultSummarizer()
-    result = summarizer.summary("test", registry, depth=1, max_depth=1)
+    result = summarizer.summarize("test", registry, depth=1, max_depth=1)
     assert result == "test"
 
 
-def test_default_summarizer_summary_depth_exceeds_max(registry: SummarizerRegistry) -> None:
+def test_default_summarizer_summarize_depth_exceeds_max(registry: SummarizerRegistry) -> None:
     summarizer = DefaultSummarizer()
-    result = summarizer.summary("test", registry, depth=2, max_depth=1)
+    result = summarizer.summarize("test", registry, depth=2, max_depth=1)
     assert result == "test"
 
 
-def test_default_summarizer_summary_with_max_characters_no_truncation(
+def test_default_summarizer_summarize_with_max_characters_no_truncation(
     registry: SummarizerRegistry,
 ) -> None:
     summarizer = DefaultSummarizer(max_characters=20)
-    result = summarizer.summary("short", registry)
+    result = summarizer.summarize("short", registry)
     assert result == "<class 'str'> short"
 
 
-def test_default_summarizer_summary_with_max_characters_truncation(
+def test_default_summarizer_summarize_with_max_characters_truncation(
     registry: SummarizerRegistry,
 ) -> None:
     summarizer = DefaultSummarizer(max_characters=10)
-    result = summarizer.summary("this is a very long string", registry)
+    result = summarizer.summarize("this is a very long string", registry)
     assert result == "<class 'str'> this is a ..."
 
 
-def test_default_summarizer_summary_with_max_characters_exact_length(
+def test_default_summarizer_summarize_with_max_characters_exact_length(
     registry: SummarizerRegistry,
 ) -> None:
     summarizer = DefaultSummarizer(max_characters=5)
-    result = summarizer.summary("hello", registry)
+    result = summarizer.summarize("hello", registry)
     assert result == "<class 'str'> hello"
 
 
-def test_default_summarizer_summary_with_max_characters_one_over(
+def test_default_summarizer_summarize_with_max_characters_one_over(
     registry: SummarizerRegistry,
 ) -> None:
     summarizer = DefaultSummarizer(max_characters=5)
-    result = summarizer.summary("hello!", registry)
+    result = summarizer.summarize("hello!", registry)
     assert result == "<class 'str'> hello..."
 
 
-def test_default_summarizer_summary_none(registry: SummarizerRegistry) -> None:
+def test_default_summarizer_summarize_none(registry: SummarizerRegistry) -> None:
     summarizer = DefaultSummarizer()
-    result = summarizer.summary(None, registry)
+    result = summarizer.summarize(None, registry)
     assert result == "<class 'NoneType'> None"
 
 
-def test_default_summarizer_summary_custom_object(registry: SummarizerRegistry) -> None:
+def test_default_summarizer_summarize_custom_object(registry: SummarizerRegistry) -> None:
     class CustomObj:
         def __str__(self) -> str:
             return "custom_representation"
 
     summarizer = DefaultSummarizer()
-    result = summarizer.summary(CustomObj(), registry)
+    result = summarizer.summarize(CustomObj(), registry)
     assert result.endswith(".CustomObj'> custom_representation")
 
 
-def test_default_summarizer_summary_with_negative_max_characters(
+def test_default_summarizer_summarize_with_negative_max_characters(
     registry: SummarizerRegistry,
 ) -> None:
     summarizer = DefaultSummarizer(max_characters=-100)
-    assert summarizer.summary("test string", registry) == "<class 'str'> test string"
+    assert summarizer.summarize("test string", registry) == "<class 'str'> test string"

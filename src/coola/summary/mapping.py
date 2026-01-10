@@ -39,7 +39,7 @@ class MappingSummarizer(BaseCollectionSummarizer[Mapping[Any, Any]]):
         >>> from coola.summary import SummarizerRegistry, MappingSummarizer, DefaultSummarizer
         >>> registry = SummarizerRegistry({object: DefaultSummarizer()})
         >>> summarizer = MappingSummarizer()
-        >>> output = summarizer.summary({"key1": 1.2, "key2": "abc", "key3": 42}, registry)
+        >>> output = summarizer.summarize({"key1": 1.2, "key2": "abc", "key3": 42}, registry)
         >>> print(output)
         <class 'dict'> (length=3)
           (key1): 1.2
@@ -49,7 +49,7 @@ class MappingSummarizer(BaseCollectionSummarizer[Mapping[Any, Any]]):
         ```
     """
 
-    def summary(
+    def summarize(
         self,
         data: Mapping[Any, Any],
         registry: SummarizerRegistry,
@@ -57,7 +57,7 @@ class MappingSummarizer(BaseCollectionSummarizer[Mapping[Any, Any]]):
         max_depth: int = 1,
     ) -> str:
         if depth >= max_depth:
-            return registry.summary(str(data), depth=depth + 1, max_depth=max_depth)
+            return registry.summarize(str(data), depth=depth + 1, max_depth=max_depth)
         typ = type(data)
         length = len(data)
         if length == 0:
@@ -70,7 +70,7 @@ class MappingSummarizer(BaseCollectionSummarizer[Mapping[Any, Any]]):
             items = islice(items, self._max_items)
         data = str_mapping(
             {
-                key: registry.summary(val, depth=depth + 1, max_depth=max_depth)
+                key: registry.summarize(val, depth=depth + 1, max_depth=max_depth)
                 for key, val in items
             },
             num_spaces=self._num_spaces,

@@ -97,53 +97,53 @@ def test_sequence_summarizer_equal_false_none() -> None:
     assert not SequenceSummarizer().equal(None)
 
 
-def test_sequence_summarizer_summary_empty_list(registry: SummarizerRegistry) -> None:
+def test_sequence_summarizer_summarize_empty_list(registry: SummarizerRegistry) -> None:
     """Test summarizing an empty list."""
     summarizer = SequenceSummarizer()
-    result = summarizer.summary([], registry)
+    result = summarizer.summarize([], registry)
     assert result == "<class 'list'> []"
 
 
-def test_sequence_summarizer_summary_empty_tuple(registry: SummarizerRegistry) -> None:
+def test_sequence_summarizer_summarize_empty_tuple(registry: SummarizerRegistry) -> None:
     """Test summarizing an empty tuple."""
     summarizer = SequenceSummarizer()
-    result = summarizer.summary((), registry)
+    result = summarizer.summarize((), registry)
     assert result == "<class 'tuple'> ()"
 
 
-def test_sequence_summarizer_summary_simple_list(registry: SummarizerRegistry) -> None:
+def test_sequence_summarizer_summarize_simple_list(registry: SummarizerRegistry) -> None:
     """Test summarizing a simple list with few items."""
     summarizer = SequenceSummarizer()
-    result = summarizer.summary([1, 2, 3], registry)
+    result = summarizer.summarize([1, 2, 3], registry)
     assert result == "<class 'list'> (length=3)\n  (0): 1\n  (1): 2\n  (2): 3"
 
 
-def test_sequence_summarizer_summary_simple_tuple(registry: SummarizerRegistry) -> None:
+def test_sequence_summarizer_summarize_simple_tuple(registry: SummarizerRegistry) -> None:
     """Test summarizing a simple tuple."""
     summarizer = SequenceSummarizer()
-    result = summarizer.summary((1, 2, 3), registry)
+    result = summarizer.summarize((1, 2, 3), registry)
     assert result == "<class 'tuple'> (length=3)\n  (0): 1\n  (1): 2\n  (2): 3"
 
 
-def test_sequence_summarizer_summary_respects_max_items(registry: SummarizerRegistry) -> None:
+def test_sequence_summarizer_summarize_respects_max_items(registry: SummarizerRegistry) -> None:
     """Test that summary respects max_items limit."""
     summarizer = SequenceSummarizer(max_items=3)
-    result = summarizer.summary([1, 2, 3, 4, 5], registry)
+    result = summarizer.summarize([1, 2, 3, 4, 5], registry)
     assert result == "<class 'list'> (length=5)\n  (0): 1\n  (1): 2\n  (2): 3\n  ..."
 
 
-def test_sequence_summarizer_summary_max_items_zero(registry: SummarizerRegistry) -> None:
+def test_sequence_summarizer_summarize_max_items_zero(registry: SummarizerRegistry) -> None:
     """Test summary with max_items=0 shows only type and length."""
     summarizer = SequenceSummarizer(max_items=0)
-    result = summarizer.summary([1, 2, 3], registry)
+    result = summarizer.summarize([1, 2, 3], registry)
     assert result == "<class 'list'> (length=3) ..."
 
 
-def test_sequence_summarizer_summary_max_items_negative_shows_all(
+def test_sequence_summarizer_summarize_max_items_negative_shows_all(
     registry: SummarizerRegistry,
 ) -> None:
     """Test that negative max_items shows all items."""
-    result = SequenceSummarizer(max_items=-1).summary(list(range(10)), registry)
+    result = SequenceSummarizer(max_items=-1).summarize(list(range(10)), registry)
     assert result == (
         "<class 'list'> (length=10)\n"
         "  (0): 0\n"
@@ -159,16 +159,18 @@ def test_sequence_summarizer_summary_max_items_negative_shows_all(
     )
 
 
-def test_sequence_summarizer_summary_depth_limit_reached(registry: SummarizerRegistry) -> None:
+def test_sequence_summarizer_summarize_depth_limit_reached(registry: SummarizerRegistry) -> None:
     """Test that depth limit causes fallback to string
     representation."""
-    result = SequenceSummarizer().summary([1, 2, 3], registry, depth=1, max_depth=1)
+    result = SequenceSummarizer().summarize([1, 2, 3], registry, depth=1, max_depth=1)
     assert result == "[1, 2, 3]"
 
 
-def test_sequence_summarizer_summary_depth_limit_not_reached(registry: SummarizerRegistry) -> None:
+def test_sequence_summarizer_summarize_depth_limit_not_reached(
+    registry: SummarizerRegistry,
+) -> None:
     """Test normal behavior when depth limit is not reached."""
-    result = SequenceSummarizer().summary([1, 2, 3], registry, depth=0, max_depth=2)
+    result = SequenceSummarizer().summarize([1, 2, 3], registry, depth=0, max_depth=2)
     assert result == (
         "<class 'list'> (length=3)\n"
         "  (0): <class 'int'> 1\n"
@@ -177,9 +179,9 @@ def test_sequence_summarizer_summary_depth_limit_not_reached(registry: Summarize
     )
 
 
-def test_sequence_summarizer_summary_nested_structures(registry: SummarizerRegistry) -> None:
+def test_sequence_summarizer_summarize_nested_structures(registry: SummarizerRegistry) -> None:
     """Test summarizing nested structures."""
-    result = SequenceSummarizer().summary([[1, 2], [3, 4]], registry, max_depth=2)
+    result = SequenceSummarizer().summarize([[1, 2], [3, 4]], registry, max_depth=2)
     assert result == (
         "<class 'list'> (length=2)\n"
         "  (0): <class 'list'> (length=2)\n"
@@ -191,27 +193,31 @@ def test_sequence_summarizer_summary_nested_structures(registry: SummarizerRegis
     )
 
 
-def test_sequence_summarizer_summary_large_length_formatting(registry: SummarizerRegistry) -> None:
+def test_sequence_summarizer_summarize_large_length_formatting(
+    registry: SummarizerRegistry,
+) -> None:
     """Test that large lengths are formatted with commas."""
-    result = SequenceSummarizer(max_items=2).summary(list(range(1000)), registry)
+    result = SequenceSummarizer(max_items=2).summarize(list(range(1000)), registry)
     assert result == "<class 'list'> (length=1,000)\n  (0): 0\n  (1): 1\n  ..."
 
 
-def test_sequence_summarizer_summary_string_sequence(registry: SummarizerRegistry) -> None:
+def test_sequence_summarizer_summarize_string_sequence(registry: SummarizerRegistry) -> None:
     """Test summarizing a list of strings."""
-    result = SequenceSummarizer().summary(["a", "b", "c"], registry)
+    result = SequenceSummarizer().summarize(["a", "b", "c"], registry)
     assert result == "<class 'list'> (length=3)\n  (0): a\n  (1): b\n  (2): c"
 
 
-def test_sequence_summarizer_summary_mixed_types(registry: SummarizerRegistry) -> None:
+def test_sequence_summarizer_summarize_mixed_types(registry: SummarizerRegistry) -> None:
     """Test summarizing a list with mixed types."""
-    result = SequenceSummarizer().summary([1, "two", 3.0, None], registry)
+    result = SequenceSummarizer().summarize([1, "two", 3.0, None], registry)
     assert result == "<class 'list'> (length=4)\n  (0): 1\n  (1): two\n  (2): 3.0\n  (3): None"
 
 
-def test_sequence_summarizer_summary_mixed_types_max_depth_2(registry: SummarizerRegistry) -> None:
+def test_sequence_summarizer_summarize_mixed_types_max_depth_2(
+    registry: SummarizerRegistry,
+) -> None:
     """Test summarizing a list with mixed types."""
-    result = SequenceSummarizer().summary([1, "two", 3.0, None], registry, max_depth=2)
+    result = SequenceSummarizer().summarize([1, "two", 3.0, None], registry, max_depth=2)
     assert result == (
         "<class 'list'> (length=4)\n"
         "  (0): <class 'int'> 1\n"
@@ -221,27 +227,29 @@ def test_sequence_summarizer_summary_mixed_types_max_depth_2(registry: Summarize
     )
 
 
-def test_sequence_summarizer_summary_exactly_max_items(registry: SummarizerRegistry) -> None:
+def test_sequence_summarizer_summarize_exactly_max_items(registry: SummarizerRegistry) -> None:
     """Test when sequence length equals max_items (no truncation)."""
-    result = SequenceSummarizer(max_items=3).summary([1, 2, 3], registry)
+    result = SequenceSummarizer(max_items=3).summarize([1, 2, 3], registry)
     assert result == "<class 'list'> (length=3)\n  (0): 1\n  (1): 2\n  (2): 3"
 
 
-def test_sequence_summarizer_summary_one_more_than_max_items(registry: SummarizerRegistry) -> None:
+def test_sequence_summarizer_summarize_one_more_than_max_items(
+    registry: SummarizerRegistry,
+) -> None:
     """Test when sequence has one more item than max_items."""
-    result = SequenceSummarizer(max_items=3).summary([1, 2, 3, 4], registry)
+    result = SequenceSummarizer(max_items=3).summarize([1, 2, 3, 4], registry)
     assert result == "<class 'list'> (length=4)\n  (0): 1\n  (1): 2\n  (2): 3\n  ..."
 
 
-def test_sequence_summarizer_summary_custom_num_spaces_indentation(
+def test_sequence_summarizer_summarize_custom_num_spaces_indentation(
     registry: SummarizerRegistry,
 ) -> None:
     """Test that custom num_spaces affects indentation."""
-    result = SequenceSummarizer(num_spaces=4).summary([1, 2], registry)
+    result = SequenceSummarizer(num_spaces=4).summarize([1, 2], registry)
     assert result == "<class 'list'> (length=2)\n    (0): 1\n    (1): 2"
 
 
-def test_sequence_summarizer_summary_single_item_list(registry: SummarizerRegistry) -> None:
+def test_sequence_summarizer_summarize_single_item_list(registry: SummarizerRegistry) -> None:
     """Test summarizing a list with a single item."""
-    result = SequenceSummarizer().summary([42], registry)
+    result = SequenceSummarizer().summarize([42], registry)
     assert result == "<class 'list'> (length=1)\n  (0): 42"

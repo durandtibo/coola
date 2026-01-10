@@ -35,7 +35,7 @@ class BaseCollectionSummarizer(BaseSummarizer[T]):
         >>> from coola.summary import SummarizerRegistry, MappingSummarizer, DefaultSummarizer
         >>> registry = SummarizerRegistry({object: DefaultSummarizer()})
         >>> summarizer = MappingSummarizer()
-        >>> output = summarizer.summary({"key1": 1.2, "key2": "abc", "key3": 42}, registry)
+        >>> output = summarizer.summarize({"key1": 1.2, "key2": "abc", "key3": 42}, registry)
         >>> print(output)
         <class 'dict'> (length=3)
           (key1): 1.2
