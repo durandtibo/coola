@@ -37,9 +37,6 @@ class DefaultSummarizer(BaseSummarizer[object]):
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}(max_characters={self._max_characters:,})"
 
-    def clone(self) -> DefaultSummarizer:
-        return self.__class__(max_characters=self._max_characters)
-
     def equal(self, other: object) -> bool:
         if type(other) is not type(self):
             return False

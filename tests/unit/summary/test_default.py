@@ -49,20 +49,6 @@ def test_default_summarizer_str_with_max_characters() -> None:
     )
 
 
-def test_default_summarizer_clone_default() -> None:
-    summarizer = DefaultSummarizer()
-    cloned = summarizer.clone()
-    assert cloned is not summarizer
-    assert cloned._max_characters == -1
-
-
-def test_default_summarizer_clone_with_max_characters() -> None:
-    summarizer = DefaultSummarizer(max_characters=75)
-    cloned = summarizer.clone()
-    assert cloned is not summarizer
-    assert cloned._max_characters == 75
-
-
 def test_default_summarizer_equal_true_same_instance() -> None:
     summarizer = DefaultSummarizer()
     assert summarizer.equal(summarizer)
