@@ -38,50 +38,14 @@ class BaseSummarizer(ABC, Generic[T]):
         preventing overwhelming output for deeply nested data.
 
     Example:
-            ```pycon
-            >>> from coola.summary import (
-            ...     SummarizerRegistry,
-            ...     DefaultSummarizer,
-            ...     MappingSummarizer,
-            ...     SequenceSummarizer,
-            ... )
-            >>> registry = SummarizerRegistry(
-            ...     {
-            ...         object: DefaultSummarizer(),
-            ...         dict: MappingSummarizer(),
-            ...         list: SequenceSummarizer(),
-            ...     }
-            ... )
-            >>> summarizer = DefaultSummarizer()
-            >>> # Simple value
-            >>> print(summarizer.summarize(1, registry))
-            <class 'int'> 1
-            >>> # List with default depth (expands first level only)
-            >>> print(summarizer.summarize(["abc", "def"], registry))
-            <class 'list'> (length=2)
-              (0): abc
-              (1): def
-            >>> # Nested list, default max_depth=1 (inner list not expanded)
-            >>> print(summarizer.summarize([[0, 1, 2], {"key1": "abc", "key2": "def"}], registry))
-            <class 'list'> (length=2)
-              (0): [0, 1, 2]
-              (1): {'key1': 'abc', 'key2': 'def'}
-            >>> # Increase max_depth to expand nested structures
-            >>> print(
-            ...     summarizer.summarize(
-            ...         [[0, 1, 2], {"key1": "abc", "key2": "def"}], registry, max_depth=2
-            ...     )
-            ... )
-            <class 'list'> (length=2)
-              (0): <class 'list'> (length=3)
-                  (0): 0
-                  (1): 1
-                  (2): 2
-              (1): <class 'dict'> (length=2)
-                  (key1): abc
-                  (key2): def
+        ```pycon
+        >>> from coola.summary import SummarizerRegistry, DefaultSummarizer
+        >>> registry = SummarizerRegistry()
+        >>> summarizer = DefaultSummarizer()
+        >>> summarizer.summarize(1, registry)
+        <class 'int'> 1
 
-            ```
+        ```
     """
 
     @abstractmethod
@@ -161,47 +125,11 @@ class BaseSummarizer(ABC, Generic[T]):
 
         Example:
             ```pycon
-            >>> from coola.summary import (
-            ...     SummarizerRegistry,
-            ...     DefaultSummarizer,
-            ...     MappingSummarizer,
-            ...     SequenceSummarizer,
-            ... )
-            >>> registry = SummarizerRegistry(
-            ...     {
-            ...         object: DefaultSummarizer(),
-            ...         dict: MappingSummarizer(),
-            ...         list: SequenceSummarizer(),
-            ...     }
-            ... )
+            >>> from coola.summary import SummarizerRegistry, DefaultSummarizer
+            >>> registry = SummarizerRegistry()
             >>> summarizer = DefaultSummarizer()
-            >>> # Simple value
-            >>> print(summarizer.summarize(1, registry))
+            >>> summarizer.summarize(1, registry)
             <class 'int'> 1
-            >>> # List with default depth (expands first level only)
-            >>> print(summarizer.summarize(["abc", "def"], registry))
-            <class 'list'> (length=2)
-              (0): abc
-              (1): def
-            >>> # Nested list, default max_depth=1 (inner list not expanded)
-            >>> print(summarizer.summarize([[0, 1, 2], {"key1": "abc", "key2": "def"}], registry))
-            <class 'list'> (length=2)
-              (0): [0, 1, 2]
-              (1): {'key1': 'abc', 'key2': 'def'}
-            >>> # Increase max_depth to expand nested structures
-            >>> print(
-            ...     summarizer.summarize(
-            ...         [[0, 1, 2], {"key1": "abc", "key2": "def"}], registry, max_depth=2
-            ...     )
-            ... )
-            <class 'list'> (length=2)
-              (0): <class 'list'> (length=3)
-                  (0): 0
-                  (1): 1
-                  (2): 2
-              (1): <class 'dict'> (length=2)
-                  (key1): abc
-                  (key2): def
 
             ```
         """
