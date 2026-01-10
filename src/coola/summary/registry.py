@@ -24,12 +24,12 @@ class SummarizerRegistry:
     type.
 
     This registry maintains a mapping from Python types to summarizer instances
-    and uses the Method Resolution Order (MRO) for type lookup. When transforming
+    and uses the Method Resolution Order (MRO) for type lookup. When summarizing
     data, it automatically selects the most specific registered summarizer for
     the data's type, falling back to parent types or a default summarizer if needed.
 
     The registry includes an LRU cache for type lookups to optimize performance
-    in applications that repeatedly transform similar data structures.
+    in applications that repeatedly summarize similar data structures.
 
     Args:
         initial_state: Optional initial mapping of types to summarizers.
@@ -106,7 +106,7 @@ class SummarizerRegistry:
         """Register a summarizer for a given data type.
 
         This method associates a summarizer instance with a specific Python type.
-        When data of this type is transformed, the registered summarizer will be used.
+        When data of this type is summarized, the registered summarizer will be used.
         The cache is automatically cleared after registration to ensure consistency.
 
         Args:
@@ -206,7 +206,7 @@ class SummarizerRegistry:
         for Sequence but not for list, lists will use the Sequence summarizer.
 
         Results are cached using an LRU cache (256 entries) for performance,
-        as summarizer lookup is a hot path in recursive transformations.
+        as summarizer lookup is a hot path in recursive summarizations.
 
         Args:
             data_type: The Python type to find a summarizer for
@@ -237,7 +237,7 @@ class SummarizerRegistry:
 
         Args:
             data: The data object to summarize. Can be any Python object,
-                though behavior depends on the concrete implementation.
+                though behavior depends on the registered summarizers.
             depth: The current nesting level in the data structure. Used
                 internally during recursive summarization. Typically starts
                 at 0 for top-level calls. Must be non-negative.
@@ -248,14 +248,14 @@ class SummarizerRegistry:
 
         Returns:
             A formatted string representation of the data. The exact format
-            depends on the concrete implementation, but typically includes
+            depends on the registered summarizer, but typically includes
             type information, size/length metadata, and indented content for
             nested structures.
 
         Raises:
-            The base class doesn't specify exceptions, but implementations
-            may raise ValueError for invalid depth parameters or other
-            exceptions based on the data type being summarized.
+            The registry itself doesn't raise exceptions for invalid depth
+            parameters, but individual summarizers may raise ValueError or
+            other exceptions based on the data type being summarized.
 
         Notes:
             - The depth parameter is primarily for internal use during recursion.
