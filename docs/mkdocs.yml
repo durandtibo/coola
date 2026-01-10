@@ -48,7 +48,6 @@ nav:
       - refs/recursive.md
       - refs/registry.md
       - refs/reducers.md
-      - refs/summarizers.md
       - refs/summary.md
       - refs/testers.md
       - refs/utils.md
