@@ -226,7 +226,7 @@ class SummarizerRegistry:
         """
         return self._state.resolve(data_type)
 
-    def summary(self, data: Any, depth: int = 0, max_depth: int = 1) -> str:
+    def summarize(self, data: Any, depth: int = 0, max_depth: int = 1) -> str:
         r"""Generate a formatted string summary of the provided data.
 
         This method creates a human-readable representation of the input data,
@@ -306,4 +306,4 @@ class SummarizerRegistry:
             ```
         """
         summarizer = self.find_summarizer(type(data))
-        return summarizer.summary(data=data, depth=depth, max_depth=max_depth, registry=self)
+        return summarizer.summarize(data=data, depth=depth, max_depth=max_depth, registry=self)

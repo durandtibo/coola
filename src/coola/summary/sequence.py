@@ -40,7 +40,7 @@ class SequenceSummarizer(BaseCollectionSummarizer[Sequence[Any]]):
         >>> from coola.summary import SummarizerRegistry, SequenceSummarizer, DefaultSummarizer
         >>> registry = SummarizerRegistry({object: DefaultSummarizer()})
         >>> summarizer = SequenceSummarizer()
-        >>> output = summarizer.summary([1, 2, 3], registry)
+        >>> output = summarizer.summarize([1, 2, 3], registry)
         >>> print(output)
         <class 'list'> (length=3)
           (0): 1
@@ -50,7 +50,7 @@ class SequenceSummarizer(BaseCollectionSummarizer[Sequence[Any]]):
         ```
     """
 
-    def summary(
+    def summarize(
         self,
         data: Sequence[Any],
         registry: SummarizerRegistry,
@@ -58,7 +58,7 @@ class SequenceSummarizer(BaseCollectionSummarizer[Sequence[Any]]):
         max_depth: int = 1,
     ) -> str:
         if depth >= max_depth:
-            return registry.summary(str(data), depth=depth + 1, max_depth=max_depth)
+            return registry.summarize(str(data), depth=depth + 1, max_depth=max_depth)
         typ = type(data)
         length = len(data)
         if length == 0:
@@ -69,7 +69,7 @@ class SequenceSummarizer(BaseCollectionSummarizer[Sequence[Any]]):
         if self._max_items > 0:
             data = islice(data, self._max_items)
         data = str_sequence(
-            [registry.summary(value, depth=depth + 1, max_depth=max_depth) for value in data],
+            [registry.summarize(value, depth=depth + 1, max_depth=max_depth) for value in data],
             num_spaces=self._num_spaces,
         )
         if length > self._max_items and self._max_items > 0:
