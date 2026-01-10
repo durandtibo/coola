@@ -19,7 +19,7 @@ from coola.random.interface import (
     random_seed,
     set_rng_state,
 )
-from coola.testing import (
+from coola.testing.fixtures import (
     numpy_available,
     numpy_not_available,
     torch_available,

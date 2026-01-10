@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from coola.testing import packaging_available
+from coola.testing.fixtures import packaging_available
 from coola.utils.imports import is_packaging_available
 from coola.utils.version import compare_version, get_package_version
 

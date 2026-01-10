@@ -9,7 +9,7 @@ import pytest
 from coola.equality import EqualityConfig
 from coola.equality.handlers import FalseHandler, JaxArrayEqualHandler
 from coola.equality.testers import EqualityTester
-from coola.testing import jax_available
+from coola.testing.fixtures import jax_available
 from coola.utils.imports import is_jax_available
 from tests.unit.equality.comparators.test_jax import JAX_ARRAY_EQUAL_TOLERANCE
 

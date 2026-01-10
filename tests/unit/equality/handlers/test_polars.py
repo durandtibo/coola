@@ -20,7 +20,7 @@ from coola.equality.handlers.polars_ import (
     is_new_naming,
 )
 from coola.equality.testers import EqualityTester
-from coola.testing import polars_available
+from coola.testing.fixtures import polars_available
 from coola.utils import is_polars_available
 from tests.unit.equality.comparators.test_polars import (
     POLARS_DATAFRAME_EQUAL_TOLERANCE,

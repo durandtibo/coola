@@ -10,7 +10,7 @@ from coola.equality import EqualityConfig
 from coola.equality.handlers import FalseHandler, NumpyArrayEqualHandler
 from coola.equality.handlers.numpy_ import array_equal, is_numeric_array
 from coola.equality.testers import EqualityTester
-from coola.testing import numpy_available
+from coola.testing.fixtures import numpy_available
 from coola.utils import is_numpy_available
 from tests.unit.equality.comparators.test_numpy import NUMPY_ARRAY_EQUAL_TOLERANCE
 

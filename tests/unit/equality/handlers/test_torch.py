@@ -13,7 +13,7 @@ from coola.equality.handlers.torch_ import (
     TorchTensorSameDeviceHandler,
 )
 from coola.equality.testers import EqualityTester
-from coola.testing import torch_available, torch_cuda_available
+from coola.testing.fixtures import torch_available, torch_cuda_available
 from coola.utils import is_torch_available
 from tests.unit.equality.comparators.test_torch import TORCH_TENSOR_EQUAL_TOLERANCE
 

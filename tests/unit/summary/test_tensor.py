@@ -5,7 +5,7 @@ from unittest.mock import Mock
 import pytest
 
 from coola.summary import SummarizerRegistry, TensorSummarizer
-from coola.testing import torch_available
+from coola.testing.fixtures import torch_available
 from coola.utils import is_torch_available
 
 if is_torch_available():

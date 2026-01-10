@@ -14,7 +14,7 @@ from coola.equality.comparators.collection import (
     get_type_comparator_mapping,
 )
 from coola.equality.testers import EqualityTester
-from coola.testing import numpy_available
+from coola.testing.fixtures import numpy_available
 from coola.utils import is_numpy_available
 from tests.unit.equality.comparators.utils import ExamplePair
 

@@ -22,7 +22,7 @@ from coola.equality.comparators import (
     XarrayVariableEqualityComparator,
     get_type_comparator_mapping,
 )
-from coola.testing import (
+from coola.testing.fixtures import (
     jax_available,
     numpy_available,
     pandas_available,

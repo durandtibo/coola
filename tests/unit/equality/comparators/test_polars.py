@@ -13,7 +13,7 @@ from coola.equality.comparators.polars_ import (
     get_type_comparator_mapping,
 )
 from coola.equality.testers import EqualityTester
-from coola.testing import polars_available
+from coola.testing.fixtures import polars_available
 from coola.utils.imports import is_polars_available
 from tests.unit.equality.comparators.utils import ExamplePair
 

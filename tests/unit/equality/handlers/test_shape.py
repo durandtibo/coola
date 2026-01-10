@@ -8,7 +8,7 @@ import pytest
 from coola.equality import EqualityConfig
 from coola.equality.handlers import FalseHandler, SameShapeHandler, TrueHandler
 from coola.equality.testers import EqualityTester
-from coola.testing import (
+from coola.testing.fixtures import (
     jax_available,
     numpy_available,
     pandas_available,

@@ -6,7 +6,7 @@ import pytest
 
 from coola import objects_are_equal
 from coola.nested import get_first_value, remove_keys_starting_with, to_flat_dict
-from coola.testing import numpy_available, torch_available
+from coola.testing.fixtures import numpy_available, torch_available
 from coola.utils import is_numpy_available, is_torch_available
 
 if is_numpy_available():

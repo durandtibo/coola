@@ -7,7 +7,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from coola.testing import numpy_available, torch_available
+from coola.testing.fixtures import numpy_available, torch_available
 from coola.utils import is_numpy_available, is_torch_available
 
 if is_numpy_available():
