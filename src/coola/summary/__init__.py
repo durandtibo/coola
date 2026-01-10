@@ -9,6 +9,7 @@ __all__ = [
     "DefaultSummarizer",
     "MappingSummarizer",
     "SequenceSummarizer",
+    "SetSummarizer",
     "SummarizerRegistry",
 ]
 
@@ -18,3 +19,4 @@ from coola.summary.default import DefaultSummarizer
 from coola.summary.mapping import MappingSummarizer
 from coola.summary.registry import SummarizerRegistry
 from coola.summary.sequence import SequenceSummarizer
+from coola.summary.set import SetSummarizer
