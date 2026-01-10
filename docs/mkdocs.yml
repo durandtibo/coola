@@ -42,7 +42,6 @@ nav:
   - Reference:
       - refs/index.md
       - refs/equality.md
-      - refs/formatters.md
       - refs/iterator.md
       - refs/random.md
       - refs/recursive.md
