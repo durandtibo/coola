@@ -54,7 +54,7 @@ class TensorSummarizer(BaseSummarizer[torch.Tensor]):
         <class 'torch.Tensor'> | shape=torch.Size([11]) | dtype=torch.int64 | device=cpu | requires_grad=False
 
         >>> # Works with tensors of any shape and dtype
-        >>> summarizer.summarize(registry, torch.randn(2, 3, 4))
+        >>> summarizer.summarize(registry, torch.ones(2, 3, 4))
         <class 'torch.Tensor'> | shape=torch.Size([2, 3, 4]) | dtype=torch.float32 | device=cpu | requires_grad=False
 
         >>> # Show full tensor data

@@ -162,16 +162,14 @@ def test_tensor_summarizer_summarize_dtype_bool(registry: SummarizerRegistry) ->
 def test_tensor_summarizer_summarize_show_data_true(registry: SummarizerRegistry) -> None:
     """Test summarizing with show_data=True returns full tensor
     representation."""
-    tensor = torch.arange(5)
-    result = TensorSummarizer(show_data=True).summarize(registry, tensor)
+    result = TensorSummarizer(show_data=True).summarize(registry, torch.arange(5))
     assert result == "tensor([0, 1, 2, 3, 4])"
 
 
 @torch_available
 def test_tensor_summarizer_summarize_empty_tensor(registry: SummarizerRegistry) -> None:
     """Test summarizing an empty tensor."""
-    tensor = torch.tensor([])
-    result = TensorSummarizer().summarize(registry, tensor)
+    result = TensorSummarizer().summarize(registry, torch.tensor([]))
     assert (
         result == "<class 'torch.Tensor'> | shape=torch.Size([0]) | dtype=torch.float32 | "
         "device=cpu | requires_grad=False"
@@ -181,8 +179,7 @@ def test_tensor_summarizer_summarize_empty_tensor(registry: SummarizerRegistry) 
 @torch_available
 def test_tensor_summarizer_summarize_scalar_tensor(registry: SummarizerRegistry) -> None:
     """Test summarizing a scalar tensor (0-dimensional)."""
-    tensor = torch.tensor(42)
-    result = TensorSummarizer().summarize(registry, tensor)
+    result = TensorSummarizer().summarize(registry, torch.tensor(42))
     assert (
         result == "<class 'torch.Tensor'> | shape=torch.Size([]) | dtype=torch.int64 | "
         "device=cpu | requires_grad=False"
