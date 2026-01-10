@@ -49,6 +49,7 @@ nav:
       - refs/registry.md
       - refs/reducers.md
       - refs/summarizers.md
+      - refs/summary.md
       - refs/testers.md
       - refs/utils.md
   - GitHub: https://github.com/durandtibo/coola

@@ -83,7 +83,7 @@ containers themselves even if they're empty.
 >>> from coola.iterator import dfs_iterate
 >>> list(dfs_iterate((1, (2, 3))))
 [1, 2, 3]
->>> sorted(dfs_iterate({1, 2, {3, 4}}))  # sorted for consistent output
+>>> list(dfs_iterate((1, (2, (3, 4)))))
 [1, 2, 3, 4]
 
 ```
@@ -226,9 +226,9 @@ You can combine type filtering with nested iteration:
 ```pycon
 
 >>> from coola.iterator import bfs_iterate, filter_by_type
->>> data = {"nums": [1, 2.5, 3], "text": "hello", "flag": True}
+>>> data = {"nums": [1, 2.5, 3], "text": "hello", "value": 2}
 >>> list(filter_by_type(bfs_iterate(data), int))
-[1, 3, True]
+[2, 1, 3]
 
 ```
 
@@ -303,7 +303,6 @@ Count specific types in a nested structure:
 >>> data = {
 ...     "scores": [95, 87, 92],
 ...     "names": ["Alice", "Bob", "Charlie"],
-...     "passed": True,
 ... }
 >>> len(list(filter_by_type(dfs_iterate(data), int)))
 3

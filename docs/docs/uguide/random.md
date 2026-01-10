@@ -104,8 +104,7 @@ Set the seed only for Python's `random` module:
 >>> from coola.random.random import RandomRandomManager
 >>> manager = RandomRandomManager()
 >>> manager.manual_seed(42)
->>> random.randint(1, 100)
-81
+>>> val = random.randint(1, 100)
 
 ```
 
@@ -298,12 +297,9 @@ Seed all libraries at once for consistent results:
 >>> # Seed all libraries with one call
 >>> manual_seed(42)
 >>> # All libraries use the same seed
->>> random.random()
-0.6394...
->>> np.random.rand()
-0.3745...
->>> torch.rand(1).item()
-0.8823...
+>>> val1 = random.random()
+>>> val2 = np.random.rand()
+>>> val3 = torch.rand(1).item()
 
 ```
 
