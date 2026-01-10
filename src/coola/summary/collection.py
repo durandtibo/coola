@@ -2,29 +2,34 @@ r"""Implement summarizers for ``Collection`` data."""
 
 from __future__ import annotations
 
-__all__ = ["BaseCollectionSummarizer", "MappingSummarizer"]
+__all__ = ["BaseCollectionSummarizer"]
 
-from collections.abc import Mapping
-from itertools import islice
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TypeVar
 
 from coola.summary.base import BaseSummarizer
-from coola.utils import str_indent, str_mapping
-
-if TYPE_CHECKING:
-    from coola.summary.registry import SummarizerRegistry
 
 T = TypeVar("T")
 TBaseCollectionSummarizer = TypeVar("TBaseCollectionSummarizer", bound="BaseCollectionSummarizer")
 
 
 class BaseCollectionSummarizer(BaseSummarizer[T]):
-    r"""Implement the default summarizer.
+    r"""Base class for summarizing collection-based data structures.
+
+    This class provides the foundation for summarizing various collection types with
+    configurable formatting options. It handles item limiting and indentation for
+    readable output.
 
     Args:
-        max_items: The maximum number of items to show.
-            If a negative value is provided, all the items are shown.
-        num_spaces: The number of spaces used for the indentation.
+        max_items: The maximum number of items to display in the summary.
+            If set to a negative value (e.g., -1), all items in the collection
+            will be shown without truncation. Defaults to 5.
+        num_spaces: The number of spaces to use for indentation in the formatted
+            output. This affects the visual structure of nested summaries.
+            Defaults to 2.
+
+    Attributes:
+        _max_items: Stores the maximum number of items to display.
+        _num_spaces: Stores the number of spaces for indentation.
 
     Example:
         ```pycon
@@ -58,49 +63,3 @@ class BaseCollectionSummarizer(BaseSummarizer[T]):
         if type(other) is not type(self):
             return False
         return self._max_items == other._max_items and self._num_spaces == other._num_spaces
-
-
-class MappingSummarizer(BaseCollectionSummarizer[Mapping[Any, Any]]):
-    r"""Implement a formatter for ``Mapping``.
-
-    Example:
-        ```pycon
-        >>> from coola.summary import SummarizerRegistry, MappingSummarizer, DefaultSummarizer
-        >>> registry = SummarizerRegistry({object: DefaultSummarizer()})
-        >>> summarizer = MappingSummarizer()
-        >>> output = summarizer.summary({"key1": 1.2, "key2": "abc", "key3": 42}, registry)
-        >>> print(output)
-        <class 'dict'> (length=3)
-          (key1): 1.2
-          (key2): abc
-          (key3): 42
-
-        ```
-    """
-
-    def summary(
-        self,
-        data: Mapping[Any, Any],
-        registry: SummarizerRegistry,
-        depth: int = 0,
-        max_depth: int = 1,
-    ) -> str:
-        if depth >= max_depth:
-            return registry.summary(str(data), depth=depth + 1, max_depth=max_depth)
-        typ = type(data)
-        length = len(data)
-        if length > 0:
-            items = data.items()
-            if self._max_items >= 0:
-                items = islice(data.items(), self._max_items)
-            data = str_mapping(
-                {
-                    key: registry.summary(val, depth=depth + 1, max_depth=max_depth)
-                    for key, val in items
-                },
-                num_spaces=self._num_spaces,
-            )
-            if length > self._max_items and self._max_items >= 0:
-                data = f"{data}\n..."
-            data = f"(length={length:,})\n{data}"
-        return str_indent(f"{typ} {data}", num_spaces=self._num_spaces)
