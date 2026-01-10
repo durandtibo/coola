@@ -11,6 +11,7 @@ __all__ = [
     "SequenceSummarizer",
     "SetSummarizer",
     "SummarizerRegistry",
+    "TensorSummarizer",
 ]
 
 from coola.summary.base import BaseSummarizer
@@ -20,3 +21,4 @@ from coola.summary.mapping import MappingSummarizer
 from coola.summary.registry import SummarizerRegistry
 from coola.summary.sequence import SequenceSummarizer
 from coola.summary.set import SetSummarizer
+from coola.summary.torch import TensorSummarizer
