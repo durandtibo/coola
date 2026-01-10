@@ -18,20 +18,18 @@ from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mappin
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-# TODO(tibo): update docstrings and examples
-
 
 class SummarizerRegistry:
     """Registry that manages and dispatches summarizers based on data
     type.
 
     This registry maintains a mapping from Python types to summarizer instances
-    and uses the Method Resolution Order (MRO) for type lookup. When transforming
+    and uses the Method Resolution Order (MRO) for type lookup. When summarizing
     data, it automatically selects the most specific registered summarizer for
     the data's type, falling back to parent types or a default summarizer if needed.
 
     The registry includes an LRU cache for type lookups to optimize performance
-    in applications that repeatedly transform similar data structures.
+    in applications that repeatedly summarize similar data structures.
 
     Args:
         initial_state: Optional initial mapping of types to summarizers.
@@ -49,12 +47,15 @@ class SummarizerRegistry:
         >>> registry
         SummarizerRegistry(
           (state): TypeRegistry(
-              (<class 'object'>): DefaultSummarizer()
-              (<class 'list'>): SequenceSummarizer()
+              (<class 'object'>): DefaultSummarizer(max_characters=-1)
+              (<class 'list'>): SequenceSummarizer(max_items=5, num_spaces=2)
             )
         )
-        >>> registry.transform([1, 2, 3], str)
-        ['1', '2', '3']
+        >>> print(registry.summarize([1, 2, 3]))
+        <class 'list'> (length=3)
+          (0): 1
+          (1): 2
+          (2): 3
 
         ```
 
@@ -63,9 +64,12 @@ class SummarizerRegistry:
         ```pycon
         >>> from coola.summary import SummarizerRegistry, SequenceSummarizer
         >>> registry = SummarizerRegistry({object: DefaultSummarizer()})
-        >>> registry.register(list, SequenceSummarizer())
-        >>> registry.transform([1, 2, 3], lambda x: x * 2)
-        [2, 4, 6]
+        >>> registry.register(tuple, SequenceSummarizer())
+        >>> print(registry.summarize((1, 2, 3)))
+        <class 'tuple'> (length=3)
+          (0): 1
+          (1): 2
+          (2): 3
 
         ```
 
@@ -74,9 +78,10 @@ class SummarizerRegistry:
         ```pycon
         >>> from coola.summary import get_default_registry
         >>> registry = get_default_registry()
-        >>> data = {"a": [1, 2], "b": [3, 4]}
-        >>> registry.transform(data, str)
-        {'a': ['1', '2'], 'b': ['3', '4']}
+        >>> print(registry.summarize({"a": [1, 2], "b": [3, 4]}))
+        <class 'dict'> (length=2)
+          (a): [1, 2]
+          (b): [3, 4]
 
         ```
     """
@@ -101,7 +106,7 @@ class SummarizerRegistry:
         """Register a summarizer for a given data type.
 
         This method associates a summarizer instance with a specific Python type.
-        When data of this type is transformed, the registered summarizer will be used.
+        When data of this type is summarized, the registered summarizer will be used.
         The cache is automatically cleared after registration to ensure consistency.
 
         Args:
@@ -156,8 +161,8 @@ class SummarizerRegistry:
             >>> registry
             SummarizerRegistry(
               (state): TypeRegistry(
-                  (<class 'list'>): SequenceSummarizer()
-                  (<class 'dict'>): MappingSummarizer()
+                  (<class 'list'>): SequenceSummarizer(max_items=5, num_spaces=2)
+                  (<class 'dict'>): MappingSummarizer(max_items=5, num_spaces=2)
                 )
             )
 
@@ -183,8 +188,7 @@ class SummarizerRegistry:
         Example:
             ```pycon
             >>> from coola.summary import SummarizerRegistry, SequenceSummarizer
-            >>> registry = SummarizerRegistry()
-            >>> registry.register(list, SequenceSummarizer())
+            >>> registry = SummarizerRegistry({list: SequenceSummarizer()})
             >>> registry.has_summarizer(list)
             True
             >>> registry.has_summarizer(tuple)
@@ -202,7 +206,7 @@ class SummarizerRegistry:
         for Sequence but not for list, lists will use the Sequence summarizer.
 
         Results are cached using an LRU cache (256 entries) for performance,
-        as summarizer lookup is a hot path in recursive transformations.
+        as summarizer lookup is a hot path in recursive summarizations.
 
         Args:
             data_type: The Python type to find a summarizer for
@@ -213,14 +217,11 @@ class SummarizerRegistry:
 
         Example:
             ```pycon
-            >>> from collections.abc import Sequence
-            >>> from coola.summary import SummarizerRegistry, SequenceSummarizer, DefaultSummarizer
-            >>> registry = SummarizerRegistry({object: DefaultSummarizer()})
-            >>> registry.register(Sequence, SequenceSummarizer())
-            >>> # list does not inherit from Sequence, so it uses DefaultSummarizer
+            >>> from coola.summary import get_default_registry
+            >>> registry = get_default_registry()
             >>> summarizer = registry.find_summarizer(list)
             >>> summarizer
-            DefaultSummarizer()
+            SequenceSummarizer(max_items=5, num_spaces=2)
 
             ```
         """
@@ -236,7 +237,7 @@ class SummarizerRegistry:
 
         Args:
             data: The data object to summarize. Can be any Python object,
-                though behavior depends on the concrete implementation.
+                though behavior depends on the registered summarizers.
             depth: The current nesting level in the data structure. Used
                 internally during recursive summarization. Typically starts
                 at 0 for top-level calls. Must be non-negative.
@@ -247,14 +248,14 @@ class SummarizerRegistry:
 
         Returns:
             A formatted string representation of the data. The exact format
-            depends on the concrete implementation, but typically includes
+            depends on the registered summarizer, but typically includes
             type information, size/length metadata, and indented content for
             nested structures.
 
         Raises:
-            The base class doesn't specify exceptions, but implementations
-            may raise ValueError for invalid depth parameters or other
-            exceptions based on the data type being summarized.
+            The registry itself doesn't raise exceptions for invalid depth
+            parameters, but individual summarizers may raise ValueError or
+            other exceptions based on the data type being summarized.
 
         Notes:
             - The depth parameter is primarily for internal use during recursion.
@@ -266,27 +267,27 @@ class SummarizerRegistry:
 
         Example:
             ```pycon
-            >>> from coola.summary import Summarizer
-            >>> summarizer = Summarizer()
+            >>> from coola.summary import get_default_registry
+            >>> registry = get_default_registry()
 
             >>> # Simple value
-            >>> print(summarizer.summary(1))
+            >>> print(registry.summarize(1))
             <class 'int'> 1
 
             >>> # List with default depth (expands first level only)
-            >>> print(summarizer.summary(["abc", "def"]))
+            >>> print(registry.summarize(["abc", "def"]))
             <class 'list'> (length=2)
               (0): abc
               (1): def
 
             >>> # Nested list, default max_depth=1 (inner list not expanded)
-            >>> print(summarizer.summary([[0, 1, 2], {"key1": "abc", "key2": "def"}]))
+            >>> print(registry.summarize([[0, 1, 2], {"key1": "abc", "key2": "def"}]))
             <class 'list'> (length=2)
               (0): [0, 1, 2]
               (1): {'key1': 'abc', 'key2': 'def'}
 
             >>> # Nested list with max_depth=2 (expands both levels)
-            >>> print(summarizer.summary([[0, 1, 2], {"key1": "abc", "key2": "def"}], max_depth=2))
+            >>> print(registry.summarize([[0, 1, 2], {"key1": "abc", "key2": "def"}], max_depth=2))
             <class 'list'> (length=2)
               (0): <class 'list'> (length=3)
                   (0): 0
@@ -298,7 +299,7 @@ class SummarizerRegistry:
 
             >>> # Control depth for very nested structures
             >>> deeply_nested = [[[1, 2], [3, 4]], [[5, 6], [7, 8]]]
-            >>> print(summarizer.summary(deeply_nested, max_depth=1))
+            >>> print(registry.summarize(deeply_nested))
             <class 'list'> (length=2)
               (0): [[1, 2], [3, 4]]
               (1): [[5, 6], [7, 8]]
