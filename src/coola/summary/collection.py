@@ -9,7 +9,6 @@ from typing import TypeVar
 from coola.summary.base import BaseSummarizer
 
 T = TypeVar("T")
-TBaseCollectionSummarizer = TypeVar("TBaseCollectionSummarizer", bound="BaseCollectionSummarizer")
 
 
 class BaseCollectionSummarizer(BaseSummarizer[T]):
@@ -55,9 +54,6 @@ class BaseCollectionSummarizer(BaseSummarizer[T]):
             f"{self.__class__.__qualname__}(max_items={self._max_items:,}, "
             f"num_spaces={self._num_spaces})"
         )
-
-    def clone(self) -> TBaseCollectionSummarizer:
-        return self.__class__(max_items=self._max_items, num_spaces=self._num_spaces)
 
     def equal(self, other: object) -> bool:
         if type(other) is not type(self):

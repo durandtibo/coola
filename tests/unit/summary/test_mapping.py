@@ -57,14 +57,6 @@ def test_mapping_summarizer_str_large_max_items() -> None:
     assert str(summarizer) == "MappingSummarizer(max_items=1,000, num_spaces=2)"
 
 
-def test_mapping_summarizer_clone() -> None:
-    summarizer = MappingSummarizer(max_items=10, num_spaces=4)
-    cloned = summarizer.clone()
-    assert cloned is not summarizer
-    assert cloned._max_items == 10
-    assert cloned._num_spaces == 4
-
-
 def test_mapping_summarizer_equal_true() -> None:
     assert MappingSummarizer(max_items=10, num_spaces=4).equal(
         MappingSummarizer(max_items=10, num_spaces=4)
