@@ -18,9 +18,9 @@ def registry() -> SummarizerRegistry:
     )
 
 
-#######################################
+###################################
 #     Tests for SetSummarizer     #
-#######################################
+###################################
 
 
 def test_set_summarizer_init_default() -> None:
@@ -96,151 +96,105 @@ def test_set_summarizer_equal_false_none() -> None:
     assert not SetSummarizer().equal(None)
 
 
-def test_set_summarizer_summary_empty_list(registry: SummarizerRegistry) -> None:
-    """Test summarizing an empty list."""
-    summarizer = SetSummarizer()
-    result = summarizer.summary([], registry)
-    assert result == "<class 'list'> []"
+def test_set_summarizer_empty_set(registry: SummarizerRegistry) -> None:
+    result = SetSummarizer().summary(set(), registry)
+    assert result == "<class 'set'> set()"
 
 
-def test_set_summarizer_summary_empty_tuple(registry: SummarizerRegistry) -> None:
-    """Test summarizing an empty tuple."""
-    summarizer = SetSummarizer()
-    result = summarizer.summary((), registry)
-    assert result == "<class 'tuple'> ()"
+def test_set_summarizer_single_item(registry: SummarizerRegistry) -> None:
+    result = SetSummarizer().summary({1}, registry)
+    assert result == "<class 'set'> (length=1)\n  (0): 1"
 
 
-def test_set_summarizer_summary_simple_list(registry: SummarizerRegistry) -> None:
-    """Test summarizing a simple list with few items."""
-    summarizer = SetSummarizer()
-    result = summarizer.summary([1, 2, 3], registry)
-    assert result == "<class 'list'> (length=3)\n  (0): 1\n  (1): 2\n  (2): 3"
+def test_set_summarizer_multiple_items(registry: SummarizerRegistry) -> None:
+    result = SetSummarizer().summary({1, 2, 3}, registry)
+    # Since sets are unordered, check all possible orderings
+    possible_results = [
+        "<class 'set'> (length=3)\n  (0): 1\n  (1): 2\n  (2): 3",
+        "<class 'set'> (length=3)\n  (0): 1\n  (1): 3\n  (2): 2",
+        "<class 'set'> (length=3)\n  (0): 2\n  (1): 1\n  (2): 3",
+        "<class 'set'> (length=3)\n  (0): 2\n  (1): 3\n  (2): 1",
+        "<class 'set'> (length=3)\n  (0): 3\n  (1): 1\n  (2): 2",
+        "<class 'set'> (length=3)\n  (0): 3\n  (1): 2\n  (2): 1",
+    ]
+    assert result in possible_results
 
 
-def test_set_summarizer_summary_simple_tuple(registry: SummarizerRegistry) -> None:
-    """Test summarizing a simple tuple."""
-    summarizer = SetSummarizer()
-    result = summarizer.summary((1, 2, 3), registry)
-    assert result == "<class 'tuple'> (length=3)\n  (0): 1\n  (1): 2\n  (2): 3"
+def test_set_summarizer_max_items_default(registry: SummarizerRegistry) -> None:
+    result = SetSummarizer().summary({1, 2, 3, 4, 5, 6, 7}, registry)
+    # Check that it starts correctly and ends with ellipsis
+    assert result.startswith("<class 'set'> (length=7)\n")
+    assert result.endswith("\n  ...")
+    # Check that there are exactly 5 items shown (default max_items)
+    assert result.count("\n  (") == 5
 
 
-def test_set_summarizer_summary_respects_max_items(registry: SummarizerRegistry) -> None:
-    """Test that summary respects max_items limit."""
-    summarizer = SetSummarizer(max_items=3)
-    result = summarizer.summary([1, 2, 3, 4, 5], registry)
-    assert result == "<class 'list'> (length=5)\n  (0): 1\n  (1): 2\n  (2): 3\n  ..."
+def test_set_summarizer_max_items_custom(registry: SummarizerRegistry) -> None:
+    result = SetSummarizer(max_items=2).summary({1, 2, 3, 4, 5}, registry)
+    assert result.startswith("<class 'set'> (length=5)\n")
+    assert result.endswith("\n  ...")
+    assert result.count("\n  (") == 2
 
 
-def test_set_summarizer_summary_max_items_zero(registry: SummarizerRegistry) -> None:
-    """Test summary with max_items=0 shows only type and length."""
-    summarizer = SetSummarizer(max_items=0)
-    result = summarizer.summary([1, 2, 3], registry)
-    assert result == "<class 'list'> (length=3) ..."
+def test_set_summarizer_max_items_zero(registry: SummarizerRegistry) -> None:
+    result = SetSummarizer(max_items=0).summary({1, 2, 3}, registry)
+    assert result == "<class 'set'> (length=3) ..."
 
 
-def test_set_summarizer_summary_max_items_negative_shows_all(
-    registry: SummarizerRegistry,
-) -> None:
-    """Test that negative max_items shows all items."""
-    result = SetSummarizer(max_items=-1).summary(list(range(10)), registry)
-    assert result == (
-        "<class 'list'> (length=10)\n"
-        "  (0): 0\n"
-        "  (1): 1\n"
-        "  (2): 2\n"
-        "  (3): 3\n"
-        "  (4): 4\n"
-        "  (5): 5\n"
-        "  (6): 6\n"
-        "  (7): 7\n"
-        "  (8): 8\n"
-        "  (9): 9"
-    )
+def test_set_summarizer_max_items_negative(registry: SummarizerRegistry) -> None:
+    result = SetSummarizer(max_items=-1).summary({1, 2, 3, 4, 5, 6, 7}, registry)
+    assert result.startswith("<class 'set'> (length=7)\n")
+    assert not result.endswith("\n...")
+    assert result.count("\n  (") == 7
 
 
-def test_set_summarizer_summary_depth_limit_reached(registry: SummarizerRegistry) -> None:
-    """Test that depth limit causes fallback to string
-    representation."""
-    result = SetSummarizer().summary([1, 2, 3], registry, depth=1, max_depth=1)
-    assert result == "[1, 2, 3]"
+def test_set_summarizer_frozenset(registry: SummarizerRegistry) -> None:
+    result = SetSummarizer().summary(frozenset({1, 2}), registry)
+    # Check both possible orderings
+    assert result in [
+        "<class 'frozenset'> (length=2)\n  (0): 1\n  (1): 2",
+        "<class 'frozenset'> (length=2)\n  (0): 2\n  (1): 1",
+    ]
 
 
-def test_set_summarizer_summary_depth_limit_not_reached(registry: SummarizerRegistry) -> None:
-    """Test normal behavior when depth limit is not reached."""
-    result = SetSummarizer().summary([1, 2, 3], registry, depth=0, max_depth=2)
-    assert result == (
-        "<class 'list'> (length=3)\n"
-        "  (0): <class 'int'> 1\n"
-        "  (1): <class 'int'> 2\n"
-        "  (2): <class 'int'> 3"
-    )
+def test_set_summarizer_nested_sets(registry: SummarizerRegistry) -> None:
+    result = SetSummarizer().summary({frozenset({1, 2}), frozenset({3, 4})}, registry)
+    assert result.startswith("<class 'set'> (length=2)\n")
+    assert "frozenset" in result
+    assert result.count("frozenset") == 2
 
 
-def test_set_summarizer_summary_nested_structures(registry: SummarizerRegistry) -> None:
-    """Test summarizing nested structures."""
-    result = SetSummarizer().summary([[1, 2], [3, 4]], registry, max_depth=2)
-    assert result == (
-        "<class 'list'> (length=2)\n"
-        "  (0): <class 'list'> (length=2)\n"
-        "      (0): 1\n"
-        "      (1): 2\n"
-        "  (1): <class 'list'> (length=2)\n"
-        "      (0): 3\n"
-        "      (1): 4"
-    )
+def test_set_summarizer_depth_limit(registry: SummarizerRegistry) -> None:
+    result = SetSummarizer().summary({1, 2, 3}, registry, depth=1, max_depth=1)
+    # At max depth, it should return the string representation
+    assert result in ["{1, 2, 3}", "{1, 3, 2}", "{2, 1, 3}", "{2, 3, 1}", "{3, 2, 1}", "{3, 1, 2}"]
 
 
-def test_set_summarizer_summary_large_length_formatting(registry: SummarizerRegistry) -> None:
-    """Test that large lengths are formatted with commas."""
-    result = SetSummarizer(max_items=2).summary(list(range(1000)), registry)
-    assert result == "<class 'list'> (length=1,000)\n  (0): 0\n  (1): 1\n  ..."
+def test_set_summarizer_num_spaces(registry: SummarizerRegistry) -> None:
+    result = SetSummarizer(num_spaces=4).summary({1}, registry)
+    assert result == "<class 'set'> (length=1)\n    (0): 1"
 
 
-def test_set_summarizer_summary_string_set(registry: SummarizerRegistry) -> None:
-    """Test summarizing a list of strings."""
-    result = SetSummarizer().summary(["a", "b", "c"], registry)
-    assert result == "<class 'list'> (length=3)\n  (0): a\n  (1): b\n  (2): c"
+def test_set_summarizer_string_items(registry: SummarizerRegistry) -> None:
+    result = SetSummarizer().summary({"a"}, registry)
+    assert result == "<class 'set'> (length=1)\n  (0): a"
 
 
-def test_set_summarizer_summary_mixed_types(registry: SummarizerRegistry) -> None:
-    """Test summarizing a list with mixed types."""
-    result = SetSummarizer().summary([1, "two", 3.0, None], registry)
-    assert result == "<class 'list'> (length=4)\n  (0): 1\n  (1): two\n  (2): 3.0\n  (3): None"
+def test_set_summarizer_large_length_formatting(registry: SummarizerRegistry) -> None:
+    result = SetSummarizer(max_items=2).summary(set(range(1000)), registry)
+    assert result.startswith("<class 'set'> (length=1,000)\n")
+    assert result.endswith("\n  ...")
 
 
-def test_set_summarizer_summary_mixed_types_max_depth_2(registry: SummarizerRegistry) -> None:
-    """Test summarizing a list with mixed types."""
-    result = SetSummarizer().summary([1, "two", 3.0, None], registry, max_depth=2)
-    assert result == (
-        "<class 'list'> (length=4)\n"
-        "  (0): <class 'int'> 1\n"
-        "  (1): <class 'str'> two\n"
-        "  (2): <class 'float'> 3.0\n"
-        "  (3): <class 'NoneType'> None"
-    )
+def test_set_summarizer_max_items_equals_length(registry: SummarizerRegistry) -> None:
+    result = SetSummarizer(max_items=3).summary({1, 2, 3}, registry)
+    assert result.startswith("<class 'set'> (length=3)\n")
+    assert not result.endswith("\n  ...")
+    assert result.count("\n  (") == 3
 
 
-def test_set_summarizer_summary_exactly_max_items(registry: SummarizerRegistry) -> None:
-    """Test when set length equals max_items (no truncation)."""
-    result = SetSummarizer(max_items=3).summary([1, 2, 3], registry)
-    assert result == "<class 'list'> (length=3)\n  (0): 1\n  (1): 2\n  (2): 3"
-
-
-def test_set_summarizer_summary_one_more_than_max_items(registry: SummarizerRegistry) -> None:
-    """Test when set has one more item than max_items."""
-    result = SetSummarizer(max_items=3).summary([1, 2, 3, 4], registry)
-    assert result == "<class 'list'> (length=4)\n  (0): 1\n  (1): 2\n  (2): 3\n  ..."
-
-
-def test_set_summarizer_summary_custom_num_spaces_indentation(
-    registry: SummarizerRegistry,
-) -> None:
-    """Test that custom num_spaces affects indentation."""
-    result = SetSummarizer(num_spaces=4).summary([1, 2], registry)
-    assert result == "<class 'list'> (length=2)\n    (0): 1\n    (1): 2"
-
-
-def test_set_summarizer_summary_single_item_list(registry: SummarizerRegistry) -> None:
-    """Test summarizing a list with a single item."""
-    result = SetSummarizer().summary([42], registry)
-    assert result == "<class 'list'> (length=1)\n  (0): 42"
+def test_set_summarizer_max_items_greater_than_length(registry: SummarizerRegistry) -> None:
+    result = SetSummarizer(max_items=10).summary({1, 2, 3}, registry)
+    assert result.startswith("<class 'set'> (length=3)\n")
+    assert not result.endswith("\n...")
+    assert result.count("\n  (") == 3

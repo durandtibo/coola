@@ -16,10 +16,10 @@ if TYPE_CHECKING:
 
 
 class SetSummarizer(BaseCollectionSummarizer[AbstractSet[Any]]):
-    r"""Summarizer for set-based data structures like lists and tuples.
+    r"""Summarizer for set-based data structures.
 
-    This class formats set types (list, tuple, etc.) into readable
-    summaries that display the type, length, and indexed items with proper
+    This class formats set types (set, frozenset, etc.) into readable
+    summaries that display the type, length, and items with proper
     indentation. It respects the max_items limit and handles nested structures
     through the registry system.
 
