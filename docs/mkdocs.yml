@@ -45,10 +45,11 @@ nav:
       - refs/iterator.md
       - refs/random.md
       - refs/recursive.md
-      - refs/registry.md
       - refs/reducers.md
+      - refs/registry.md
       - refs/summary.md
       - refs/testers.md
+      - refs/testing.md
       - refs/utils.md
   - GitHub: https://github.com/durandtibo/coola
 
