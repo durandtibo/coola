@@ -26,14 +26,13 @@ jobs:
           python -c "from coola.equality import comparators"
           python -c "from coola.equality import handlers"
           python -c "from coola.equality import testers"
-      - name: check coola.formatters
-        run: |
-          python -c "from coola import formatters"
+
       - name: check coola.iterator
         run: |
           python -c "from coola import iterator"
           python -c "from coola.iterator import bfs"
           python -c "from coola.iterator import dfs"
+
       - name: check coola.nested
         run: |
           python -c "from coola import nested"
@@ -49,9 +48,9 @@ jobs:
       - name: check coola.registry
         run: |
           python -c "from coola import registry"
-      - name: check coola.summarizers
+      - name: check coola.summary
         run: |
-          python -c "from coola import summarizers"
+          python -c "from coola import summary"
       - name: check coola.utils
         run: |
           python -c "from coola import utils"
