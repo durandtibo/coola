@@ -37,7 +37,7 @@ class MappingSameKeysHandler(AbstractEqualityHandler):  # noqa: PLW1641
     """
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def handle(
         self,
@@ -90,7 +90,7 @@ class MappingSameValuesHandler(AbstractEqualityHandler):  # noqa: PLW1641
     """
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def handle(
         self,

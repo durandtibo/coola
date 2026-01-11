@@ -55,7 +55,7 @@ class PandasDataFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     """
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
@@ -103,7 +103,7 @@ class PandasSeriesEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     """
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"

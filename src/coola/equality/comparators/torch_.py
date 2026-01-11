@@ -70,7 +70,7 @@ class TorchPackedSequenceEqualityComparator(  # noqa: PLW1641
         ).chain(TrueHandler())  # fmt: skip
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def clone(self) -> TorchPackedSequenceEqualityComparator:
         return self.__class__()
@@ -108,7 +108,7 @@ class TorchTensorEqualityComparator(BaseEqualityComparator[torch.Tensor]):  # no
         ).chain(TorchTensorSameDeviceHandler()).chain(TorchTensorEqualHandler())
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def clone(self) -> TorchTensorEqualityComparator:
         return self.__class__()

@@ -150,7 +150,7 @@ class LocalEqualityTester(BaseEqualityTester):  # noqa: PLW1641
         self.registry: dict[type[object], BaseEqualityComparator[Any]] = registry or {}
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, self.__class__):
+        if type(other) is not type(self):
             return False
         return self.registry == other.registry
 
