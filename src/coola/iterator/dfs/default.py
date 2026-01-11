@@ -1,5 +1,5 @@
-r"""Define the default DFS iterator class for handling leaf nodes in traversal."""
-
+r"""Define the default DFS iterator class for handling leaf nodes in
+traversal."""
 
 from __future__ import annotations
 

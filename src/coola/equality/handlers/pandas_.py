@@ -1,5 +1,5 @@
-r"""Implement some handlers for ``pandas.DataFrame``s and ``pandas.Series``s."""
-
+r"""Implement some handlers for ``pandas.DataFrame``s and
+``pandas.Series``s."""
 
 from __future__ import annotations
 

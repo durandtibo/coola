@@ -20,7 +20,8 @@ if TYPE_CHECKING:
 
 
 class SummarizerRegistry:
-    """Registry that manages and dispatches summarizers based on data type.
+    """Registry that manages and dispatches summarizers based on data
+    type.
 
     This registry maintains a mapping from Python types to summarizer instances
     and uses the Method Resolution Order (MRO) for type lookup. When summarizing
@@ -170,7 +171,8 @@ class SummarizerRegistry:
         self._state.register_many(mapping, exist_ok=exist_ok)
 
     def has_summarizer(self, data_type: type) -> bool:
-        """Check if a summarizer is explicitly registered for the given type.
+        """Check if a summarizer is explicitly registered for the given
+        type.
 
         Note that this only checks for direct registration. Even if this returns
         False, find_summarizer() may still return a summarizer via MRO lookup

@@ -61,7 +61,8 @@ class MappingSameKeysHandler(AbstractEqualityHandler):  # noqa: PLW1641
 
 
 class MappingSameValuesHandler(AbstractEqualityHandler):  # noqa: PLW1641
-    r"""Check if the key-value pairs in the first mapping are in the second mapping.
+    r"""Check if the key-value pairs in the first mapping are in the
+    second mapping.
 
     This handler returns ``False`` if the one of the key-value pair in
     the first mapping is not in the second mapping, otherwise it

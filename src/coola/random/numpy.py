@@ -59,8 +59,6 @@ def numpy_seed(seed: int) -> Generator[None, None, None]:
     r"""Implement a context manager to manage the NumPy random seed and
     random number generator (RNG) state.
 
-
-
     The context manager sets the specified random seed and
     restores the original RNG state afterward.
 

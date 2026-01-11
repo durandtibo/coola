@@ -67,7 +67,8 @@ class EqualityTester(BaseEqualityTester):
 
     @classmethod
     def has_comparator(cls, data_type: type) -> bool:
-        r"""Indicate if an equality comparator is registered for the given data type.
+        r"""Indicate if an equality comparator is registered for the
+        given data type.
 
         Args:
             data_type: The data type to check.
@@ -119,8 +120,6 @@ class EqualityTester(BaseEqualityTester):
     def local_copy(cls) -> LocalEqualityTester:
         r"""Return a copy of ``EqualityTester`` that can easily be
         customized without changind ``EqualityTester``.
-
-
 
         Returns:
             A "local" copy of ``EqualityTester``.

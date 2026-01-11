@@ -1,5 +1,5 @@
-r"""Define a conditional transformer to add filtering without changing the core design."""
-
+r"""Define a conditional transformer to add filtering without changing
+the core design."""
 
 from __future__ import annotations
 

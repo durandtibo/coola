@@ -42,7 +42,8 @@ def to_flat_dict(
     separator: str = ".",
     to_str: type[Any] | tuple[type[Any], ...] | None = None,
 ) -> dict[str, Any]:
-    r"""Return a flat representation of a nested dict with the dot format.
+    r"""Return a flat representation of a nested dict with the dot
+    format.
 
     Args:
         data: The nested dict to flat.

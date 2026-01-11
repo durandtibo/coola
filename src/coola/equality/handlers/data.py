@@ -17,7 +17,8 @@ logger: logging.Logger = logging.getLogger(__name__)
 
 
 class SupportsData(Protocol):
-    r"""Implement a protocol to represent objects with a ``data`` attribute.
+    r"""Implement a protocol to represent objects with a ``data``
+    attribute.
 
     This protocol can be used to represent several objects like
     ``jax.numpy.ndarray``s, ``numpy.ndarray``s,  and

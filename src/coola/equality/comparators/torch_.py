@@ -1,5 +1,5 @@
-r"""Implement an equality comparator for ``torch.Tensor``s and ``torch.nn.utils.rnn.PackedSequence``s."""
-
+r"""Implement an equality comparator for ``torch.Tensor``s and
+``torch.nn.utils.rnn.PackedSequence``s."""
 
 from __future__ import annotations
 
@@ -118,7 +118,8 @@ class TorchTensorEqualityComparator(BaseEqualityComparator[torch.Tensor]):  # no
 
 
 def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[Any]]:
-    r"""Get a default mapping between the types and the equality comparators.
+    r"""Get a default mapping between the types and the equality
+    comparators.
 
     This function returns an empty dictionary if ``torch`` is not
     installed.

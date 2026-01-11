@@ -20,7 +20,8 @@ if TYPE_CHECKING:
 
 
 class TransformerRegistry:
-    """Registry that manages and dispatches transformers based on data type.
+    """Registry that manages and dispatches transformers based on data
+    type.
 
     This registry maintains a mapping from Python types to transformer instances
     and uses the Method Resolution Order (MRO) for type lookup. When transforming
@@ -165,7 +166,8 @@ class TransformerRegistry:
         self._state.register_many(mapping, exist_ok=exist_ok)
 
     def has_transformer(self, data_type: type) -> bool:
-        """Check if a transformer is explicitly registered for the given type.
+        """Check if a transformer is explicitly registered for the given
+        type.
 
         Note that this only checks for direct registration. Even if this returns
         False, find_transformer() may still return a transformer via MRO lookup
@@ -225,7 +227,8 @@ class TransformerRegistry:
         return self._state.resolve(data_type)
 
     def transform(self, data: Any, func: Callable[[Any], Any]) -> Any:
-        """Transform data by applying a function recursively through the structure.
+        """Transform data by applying a function recursively through the
+        structure.
 
         This is the main entry point for transformation. It automatically:
         1. Determines the data's type

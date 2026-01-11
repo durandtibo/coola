@@ -17,7 +17,8 @@ logger: logging.Logger = logging.getLogger(__name__)
 
 
 class SupportsShape(Protocol):
-    r"""Implement a protocol to represent objects with a ``shape`` attribute.
+    r"""Implement a protocol to represent objects with a ``shape``
+    attribute.
 
     This protocol can be used to represent several objects like
     ``jax.numpy.ndarray``s, ``numpy.ndarray``s, ``pandas.DataFrame``,

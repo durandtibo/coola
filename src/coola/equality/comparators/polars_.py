@@ -1,5 +1,5 @@
-r"""Implement an equality comparator for ``polars.DataFrame``s and ``polars.Series``s."""
-
+r"""Implement an equality comparator for ``polars.DataFrame``s and
+``polars.Series``s."""
 
 from __future__ import annotations
 
@@ -152,7 +152,8 @@ class PolarsSeriesEqualityComparator(BaseEqualityComparator[pl.Series]):  # noqa
 
 
 def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[Any]]:
-    r"""Get a default mapping between the types and the equality comparators.
+    r"""Get a default mapping between the types and the equality
+    comparators.
 
     This function returns an empty dictionary if ``polars`` is not
     installed.

@@ -1,8 +1,5 @@
 r"""Define the child finder registry for managing child finders used for
-breadth-first traversal of nested data structures.
-
-"""
-
+breadth-first traversal of nested data structures."""
 
 from __future__ import annotations
 

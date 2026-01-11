@@ -1,5 +1,5 @@
-r"""Implement some handlers for ``polars.DataFrame``s and ``polars.Series``s."""
-
+r"""Implement some handlers for ``polars.DataFrame``s and
+``polars.Series``s."""
 
 from __future__ import annotations
 
@@ -298,7 +298,8 @@ def assert_series_equal(
 
 @lru_cache
 def is_new_naming() -> bool:
-    r"""Indicate if polars uses the new naming for ``abs_tol`` and ``rel_tol``.
+    r"""Indicate if polars uses the new naming for ``abs_tol`` and
+    ``rel_tol``.
 
     Returns:
         ``True`` if ``abs_tol`` and ``rel_tol`` are used,

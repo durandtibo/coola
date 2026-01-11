@@ -1,5 +1,5 @@
-r"""Contain fallback implementations used when ``numpy`` dependency is not available."""
-
+r"""Contain fallback implementations used when ``numpy`` dependency is
+not available."""
 
 from __future__ import annotations
 

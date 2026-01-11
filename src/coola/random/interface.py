@@ -1,8 +1,6 @@
 r"""Define the public interface for managing random number generator
 state across different libraries.
 
-
-
 This module provides a unified interface for controlling random number
 generators (RNGs) from multiple libraries like Python's random module,
 NumPy, and PyTorch. It includes functions for setting seeds, getting and

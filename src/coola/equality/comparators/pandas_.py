@@ -1,5 +1,5 @@
-r"""Implement an equality comparator for ``pandas.DataFrame``s and ``pandas.Series``s."""
-
+r"""Implement an equality comparator for ``pandas.DataFrame``s and
+``pandas.Series``s."""
 
 from __future__ import annotations
 
@@ -109,7 +109,8 @@ class PandasSeriesEqualityComparator(BaseEqualityComparator[pd.Series]):  # noqa
 
 
 def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[Any]]:
-    r"""Get a default mapping between the types and the equality comparators.
+    r"""Get a default mapping between the types and the equality
+    comparators.
 
     This function returns an empty dictionary if ``pandas`` is not
     installed.

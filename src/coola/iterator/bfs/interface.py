@@ -1,5 +1,5 @@
-r"""Define the public interface to recursively iterate over nested data."""
-
+r"""Define the public interface to recursively iterate over nested
+data."""
 
 from __future__ import annotations
 
@@ -20,7 +20,6 @@ if TYPE_CHECKING:
 def bfs_iterate(data: Any, registry: ChildFinderRegistry | None = None) -> Iterator[Any]:
     """Perform Breadth-First Search (BFS) iteration over nested data
     structures (lists, dicts, tuples, sets, etc.).
-
 
     This function yields elements from the data structure in a BFS manner, recursively
     traversing all levels of nested structures. It uses the appropriate child finders registered
