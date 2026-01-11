@@ -12,7 +12,7 @@ from typing import TypeVar
 from coola.reducer.base import BaseBasicReducer
 from coola.utils.stats import quantile
 
-T = TypeVar("T", bound=Sequence[int | float])
+T = TypeVar("T", bound=Sequence[float])
 
 
 class NativeReducer(BaseBasicReducer[T]):

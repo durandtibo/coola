@@ -6,7 +6,6 @@ __all__ = [
     "EmptySequenceError",
     "NativeReducer",
     "NumpyReducer",
-    "ReducerRegistry",
     "TorchReducer",
     "auto_reducer",
 ]
@@ -14,6 +13,5 @@ __all__ = [
 from coola.reducer.base import BaseBasicReducer, BaseReducer, EmptySequenceError
 from coola.reducer.native import NativeReducer
 from coola.reducer.numpy import NumpyReducer
-from coola.reducer.registry import ReducerRegistry
 from coola.reducer.torch import TorchReducer
 from coola.reducer.utils import auto_reducer
