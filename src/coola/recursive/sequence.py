@@ -16,8 +16,7 @@ if TYPE_CHECKING:
 
 
 class SequenceTransformer(BaseTransformer[Sequence[Any]]):
-    r"""Transformer for sequence types that recursively transforms
-    elements.
+    r"""Transformer for sequence types that recursively transforms elements.
 
     This transformer handles sequence structures (list, tuple, namedtuple, etc.)
     by recursively transforming all elements while preserving the original

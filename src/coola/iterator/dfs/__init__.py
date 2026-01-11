@@ -1,5 +1,7 @@
 r"""Contain code to iterate over nested data with a Depth-First Search
-(DFS) strategy."""
+(DFS) strategy.
+"""
+
 
 from __future__ import annotations
 

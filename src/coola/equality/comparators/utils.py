@@ -12,8 +12,7 @@ if TYPE_CHECKING:
 
 
 def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[Any]]:
-    r"""Get a default mapping between the types and the equality
-    comparators.
+    r"""Get a default mapping between the types and the equality comparators.
 
     Returns:
         The mapping between the types and the equality comparators.

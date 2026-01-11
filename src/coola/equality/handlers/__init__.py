@@ -1,5 +1,4 @@
-r"""Contain the handlers to help to check if two objects are equal or
-not.
+r"""Contain the handlers to help to check if two objects are equal or not.
 
 The handlers are designed to work with Chain of Responsibility pattern.
 """

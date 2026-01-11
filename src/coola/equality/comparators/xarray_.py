@@ -169,8 +169,7 @@ class XarrayVariableEqualityComparator(BaseEqualityComparator[xr.Variable]):  # 
 
 
 def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[Any]]:
-    r"""Get a default mapping between the types and the equality
-    comparators.
+    r"""Get a default mapping between the types and the equality comparators.
 
     This function returns an empty dictionary if ``xarray`` is not
     installed.

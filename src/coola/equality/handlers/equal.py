@@ -21,8 +21,8 @@ logger: logging.Logger = logging.getLogger(__name__)
 
 
 class SupportsEqual(Protocol):
-    r"""Implement a protocol to represent objects with a ``equal``
-    method."""
+    r"""Implement a protocol to represent objects with a ``equal`` method. """
+
 
     def equal(self, other: object) -> bool:
         r"""Return ``True`` if the two objects are equal, otherwise
@@ -38,7 +38,8 @@ class SupportsEqual(Protocol):
 
 class SupportsEqualNan(Protocol):
     r"""Implement a protocol to represent objects with a ``equal``
-    method with an option compare NaNs."""
+    method with an option compare NaNs.
+    """
 
     def equal(self, other: Any, equal_nan: bool = False) -> bool:
         r"""Return ``True`` if the two objects are equal, otherwise

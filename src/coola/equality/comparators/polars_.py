@@ -1,5 +1,7 @@
 r"""Implement an equality comparator for ``polars.DataFrame``s and
-``polars.Series``s."""
+``polars.Series``s.
+"""
+
 
 from __future__ import annotations
 

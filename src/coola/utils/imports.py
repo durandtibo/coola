@@ -137,8 +137,7 @@ def check_package(package: str, command: str | None = None) -> None:
 def decorator_package_available(
     fn: Callable[..., Any], condition: Callable[[], bool]
 ) -> Callable[..., Any]:
-    r"""Implement a decorator to execute a function only if a package is
-    installed.
+    r"""Implement a decorator to execute a function only if a package is installed.
 
     Args:
         fn: The function to execute.
@@ -213,8 +212,7 @@ def check_jax() -> None:
 
 
 def raise_error_jax_missing() -> NoReturn:
-    r"""Raise a RuntimeError to indicate the ``jax`` package is
-    missing."""
+    r"""Raise a RuntimeError to indicate the ``jax`` package is missing."""
     msg = (
         "'jax' package is required but not installed. "
         "You can install 'jax' package with the command:\n\n"
@@ -224,8 +222,7 @@ def raise_error_jax_missing() -> NoReturn:
 
 
 def jax_available(fn: Callable[..., Any]) -> Callable[..., Any]:
-    r"""Implement a decorator to execute a function only if ``jax``
-    package is installed.
+    r"""Implement a decorator to execute a function only if ``jax`` package is installed.
 
     Args:
         fn: The function to execute.
@@ -288,8 +285,7 @@ def check_numpy() -> None:
 
 
 def raise_error_numpy_missing() -> NoReturn:
-    r"""Raise a RuntimeError to indicate the ``numpy`` package is
-    missing."""
+    r"""Raise a RuntimeError to indicate the ``numpy`` package is missing."""
     msg = (
         "'numpy' package is required but not installed. "
         "You can install 'numpy' package with the command:\n\n"
@@ -299,8 +295,7 @@ def raise_error_numpy_missing() -> NoReturn:
 
 
 def numpy_available(fn: Callable[..., Any]) -> Callable[..., Any]:
-    r"""Implement a decorator to execute a function only if ``numpy``
-    package is installed.
+    r"""Implement a decorator to execute a function only if ``numpy`` package is installed.
 
     Args:
         fn: The function to execute.
@@ -363,8 +358,7 @@ def check_packaging() -> None:
 
 
 def raise_error_packaging_missing() -> NoReturn:
-    r"""Raise a RuntimeError to indicate the ``packaging`` package is
-    missing."""
+    r"""Raise a RuntimeError to indicate the ``packaging`` package is missing."""
     msg = (
         "'packaging' package is required but not installed. "
         "You can install 'packaging' package with the command:\n\n"
@@ -374,8 +368,7 @@ def raise_error_packaging_missing() -> NoReturn:
 
 
 def packaging_available(fn: Callable[..., Any]) -> Callable[..., Any]:
-    r"""Implement a decorator to execute a function only if ``packaging``
-    package is installed.
+    r"""Implement a decorator to execute a function only if ``packaging`` package is installed.
 
     Args:
         fn: The function to execute.
@@ -438,8 +431,7 @@ def check_pandas() -> None:
 
 
 def raise_error_pandas_missing() -> NoReturn:
-    r"""Raise a RuntimeError to indicate the ``pandas`` package is
-    missing."""
+    r"""Raise a RuntimeError to indicate the ``pandas`` package is missing."""
     msg = (
         "'pandas' package is required but not installed. "
         "You can install 'pandas' package with the command:\n\n"
@@ -449,8 +441,7 @@ def raise_error_pandas_missing() -> NoReturn:
 
 
 def pandas_available(fn: Callable[..., Any]) -> Callable[..., Any]:
-    r"""Implement a decorator to execute a function only if ``pandas``
-    package is installed.
+    r"""Implement a decorator to execute a function only if ``pandas`` package is installed.
 
     Args:
         fn: The function to execute.
@@ -513,8 +504,7 @@ def check_polars() -> None:
 
 
 def raise_error_polars_missing() -> NoReturn:
-    r"""Raise a RuntimeError to indicate the ``polars`` package is
-    missing."""
+    r"""Raise a RuntimeError to indicate the ``polars`` package is missing."""
     msg = (
         "'polars' package is required but not installed. "
         "You can install 'polars' package with the command:\n\n"
@@ -524,8 +514,7 @@ def raise_error_polars_missing() -> NoReturn:
 
 
 def polars_available(fn: Callable[..., Any]) -> Callable[..., Any]:
-    r"""Implement a decorator to execute a function only if ``polars``
-    package is installed.
+    r"""Implement a decorator to execute a function only if ``polars`` package is installed.
 
     Args:
         fn: The function to execute.
@@ -588,8 +577,7 @@ def check_pyarrow() -> None:
 
 
 def raise_error_pyarrow_missing() -> NoReturn:
-    r"""Raise a RuntimeError to indicate the ``pyarrow`` package is
-    missing."""
+    r"""Raise a RuntimeError to indicate the ``pyarrow`` package is missing."""
     msg = (
         "'pyarrow' package is required but not installed. "
         "You can install 'pyarrow' package with the command:\n\n"
@@ -599,8 +587,7 @@ def raise_error_pyarrow_missing() -> NoReturn:
 
 
 def pyarrow_available(fn: Callable[..., Any]) -> Callable[..., Any]:
-    r"""Implement a decorator to execute a function only if ``pyarrow``
-    package is installed.
+    r"""Implement a decorator to execute a function only if ``pyarrow`` package is installed.
 
     Args:
         fn: The function to execute.
@@ -663,8 +650,7 @@ def check_torch() -> None:
 
 
 def raise_error_torch_missing() -> NoReturn:
-    r"""Raise a RuntimeError to indicate the ``torch`` package is
-    missing."""
+    r"""Raise a RuntimeError to indicate the ``torch`` package is missing."""
     msg = (
         "'torch' package is required but not installed. "
         "You can install 'torch' package with the command:\n\n"
@@ -674,8 +660,7 @@ def raise_error_torch_missing() -> NoReturn:
 
 
 def torch_available(fn: Callable[..., Any]) -> Callable[..., Any]:
-    r"""Implement a decorator to execute a function only if ``torch``
-    package is installed.
+    r"""Implement a decorator to execute a function only if ``torch`` package is installed.
 
     Args:
         fn: The function to execute.
@@ -711,8 +696,7 @@ else:  # pragma: no cover
 
 @lru_cache
 def is_torch_numpy_available() -> bool:
-    r"""Indicate if the ``torch`` and ``numpy`` packages are installed
-    and are compatible.
+    r"""Indicate if the ``torch`` and ``numpy`` packages are installed and are compatible.
 
     Returns:
         ``True`` if both packages are available and compatible,
@@ -736,8 +720,7 @@ def is_torch_numpy_available() -> bool:
 
 
 def check_torch_numpy() -> None:
-    r"""Check if the ``torch`` and ``numpy`` packages are installed and
-    are compatible.
+    r"""Check if the ``torch`` and ``numpy`` packages are installed and are compatible.
 
     Raises:
         RuntimeError: if one of the packages is not installed or if
@@ -759,8 +742,7 @@ def check_torch_numpy() -> None:
 
 
 def torch_numpy_available(fn: Callable[..., Any]) -> Callable[..., Any]:
-    r"""Implement a decorator to execute a function only if ``torch`` and
-    ``numpy`` packages are installed and are compatible.
+    r"""Implement a decorator to execute a function only if ``torch`` and ``numpy`` packages are installed and are compatible.
 
     Args:
         fn: The function to execute.
@@ -823,8 +805,7 @@ def check_xarray() -> None:
 
 
 def raise_error_xarray_missing() -> NoReturn:
-    r"""Raise a RuntimeError to indicate the ``xarray`` package is
-    missing."""
+    r"""Raise a RuntimeError to indicate the ``xarray`` package is missing."""
     msg = (
         "'xarray' package is required but not installed. "
         "You can install 'xarray' package with the command:\n\n"
@@ -834,8 +815,7 @@ def raise_error_xarray_missing() -> NoReturn:
 
 
 def xarray_available(fn: Callable[..., Any]) -> Callable[..., Any]:
-    r"""Implement a decorator to execute a function only if ``xarray``
-    package is installed.
+    r"""Implement a decorator to execute a function only if ``xarray`` package is installed.
 
     Args:
         fn: The function to execute.

@@ -1,5 +1,4 @@
-r"""Implement equality comparators for ``collections`` objects like
-``Sequence`` and ``Mapping``."""
+r"""Implement equality comparators for ``collections`` objects like ``Sequence`` and ``Mapping``."""
 
 from __future__ import annotations
 

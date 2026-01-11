@@ -16,8 +16,7 @@ if TYPE_CHECKING:
 
 
 class SequenceSummarizer(BaseCollectionSummarizer[Sequence[Any]]):
-    r"""Summarizer for sequence-based data structures like lists and
-    tuples.
+    r"""Summarizer for sequence-based data structures like lists and tuples.
 
     This class formats sequence types (list, tuple, etc.) into readable
     summaries that display the type, length, and indexed items with proper

@@ -1,5 +1,5 @@
-r"""Implement some handlers for ``polars.DataFrame``s and
-``polars.Series``s."""
+r"""Implement some handlers for ``polars.DataFrame``s and ``polars.Series``s. """
+
 
 from __future__ import annotations
 

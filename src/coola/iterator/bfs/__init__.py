@@ -1,5 +1,7 @@
 r"""Contain code to iterate over nested data with a Breadth-First Search
-(BFS) strategy."""
+(BFS) strategy.
+"""
+
 
 from __future__ import annotations
 

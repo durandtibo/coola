@@ -1,5 +1,7 @@
 r"""Implement an equality comparator for ``torch.Tensor``s and
-``torch.nn.utils.rnn.PackedSequence``s."""
+``torch.nn.utils.rnn.PackedSequence``s.
+"""
+
 
 from __future__ import annotations
 

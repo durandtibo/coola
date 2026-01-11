@@ -14,8 +14,7 @@ if TYPE_CHECKING:
 
 @contextmanager
 def temp_env_vars(env_vars: dict[str, Any]) -> Generator[None, None, None]:
-    r"""Context manager to temporarily set or modify environment
-    variables.
+    r"""Context manager to temporarily set or modify environment variables.
 
     This context manager allows you to temporarily change environment variables
     within a specific scope. All changes are automatically reverted when exiting

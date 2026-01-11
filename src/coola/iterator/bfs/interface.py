@@ -1,5 +1,5 @@
-r"""Define the public interface to recursively iterate over nested
-data."""
+r"""Define the public interface to recursively iterate over nested data. """
+
 
 from __future__ import annotations
 

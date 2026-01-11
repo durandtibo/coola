@@ -1,5 +1,7 @@
 r"""Implement an equality comparator for ``pyarrow.Array``s and
-``pyarrow.Table``s."""
+``pyarrow.Table``s.
+"""
+
 
 from __future__ import annotations
 

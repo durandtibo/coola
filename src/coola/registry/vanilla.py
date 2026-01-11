@@ -21,6 +21,7 @@ class Registry(Generic[K, V]):
     r"""A thread-safe generic key-value registry for storing and managing
     typed mappings.
 
+
     The Registry class provides a type-safe container for registering and
     retrieving values by key. It supports all standard dictionary operations
     through operator overloading and provides additional methods for safe

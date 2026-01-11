@@ -105,8 +105,7 @@ class TrueHandler(BaseEqualityHandler):  # noqa: PLW1641
 
 
 class ObjectEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
-    r"""Check if the two objects are equal using the default equality
-    operator ``==``.
+    r"""Check if the two objects are equal using the default equality operator ``==``.
 
     This handler returns ``True`` if the two objects are equal,
     otherwise ``False``. This handler is designed to be used at

@@ -1,5 +1,7 @@
 r"""Contain fallback implementations used when ``jax`` dependency is not
-available."""
+available.
+"""
+
 
 from __future__ import annotations
 

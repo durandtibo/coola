@@ -1,5 +1,7 @@
 r"""Implement an equality comparator for ``pandas.DataFrame``s and
-``pandas.Series``s."""
+``pandas.Series``s.
+"""
+
 
 from __future__ import annotations
 
