@@ -637,25 +637,46 @@ Summarize complex API responses:
 
 ### Comparing Data Structures
 
-Get a quick overview to compare different data structures:
+Get a quick overview to compare different data structures. Note that with default `max_depth=1`,
+nested structures are shown as raw strings without truncation:
 
 ```pycon
 
 >>> from coola.summary import summarize
->>> data1 = {"users": list(range(100)), "version": "1.0"}
->>> data2 = {"users": list(range(50)), "version": "2.0"}
+>>> data1 = {"users": [1, 2, 3, 4, 5], "version": "1.0"}
+>>> data2 = {"users": [1, 2, 3], "version": "2.0"}
 >>> print("Data 1:")
 >>> print(summarize(data1))
 Data 1:
 <class 'dict'> (length=2)
-  (users): [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99]
+  (users): [1, 2, 3, 4, 5]
   (version): 1.0
 >>> print("Data 2:")
 >>> print(summarize(data2))
 Data 2:
 <class 'dict'> (length=2)
-  (users): [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49]
+  (users): [1, 2, 3]
   (version): 2.0
+
+```
+
+For deeper inspection with truncation, increase `max_depth`:
+
+```pycon
+
+>>> from coola.summary import get_default_registry
+>>> registry = get_default_registry()
+>>> data = {"users": list(range(20)), "version": "1.0"}
+>>> print(registry.summarize(data, max_depth=2))
+<class 'dict'> (length=2)
+  (users): <class 'list'> (length=20)
+      (0): 0
+      (1): 1
+      (2): 2
+      (3): 3
+      (4): 4
+      ...
+  (version): 1.0
 
 ```
 
