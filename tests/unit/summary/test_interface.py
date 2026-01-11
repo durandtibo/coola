@@ -61,6 +61,32 @@ def test_summarize_with_list() -> None:
     assert summarize([1, 2, 3]) == "<class 'list'> (length=3)\n  (0): 1\n  (1): 2\n  (2): 3"
 
 
+def test_summarize_with_max_depth_1() -> None:
+    assert (
+        summarize({"level1": {"level2": {"level3": [1, 2, 3]}}})
+        == "<class 'dict'> (length=1)\n  (level1): {'level2': {'level3': [1, 2, 3]}}"
+    )
+
+
+def test_summarize_with_max_depth_2() -> None:
+    assert (
+        summarize({"level1": {"level2": {"level3": [1, 2, 3]}}}, max_depth=2)
+        == "<class 'dict'> (length=1)\n"
+        "  (level1): <class 'dict'> (length=1)\n"
+        "      (level2): {'level3': [1, 2, 3]}"
+    )
+
+
+def test_summarize_with_max_depth_3() -> None:
+    assert (
+        summarize({"level1": {"level2": {"level3": [1, 2, 3]}}}, max_depth=3)
+        == "<class 'dict'> (length=1)\n"
+        "  (level1): <class 'dict'> (length=1)\n"
+        "      (level2): <class 'dict'> (length=1)\n"
+        "          (level3): [1, 2, 3]"
+    )
+
+
 def test_summarize_with_custom_registry() -> None:
     assert (
         summarize({"a": 1, "b": 2}, registry=SummarizerRegistry({object: DefaultSummarizer()}))
