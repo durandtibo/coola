@@ -39,6 +39,6 @@ class DefaultChildFinder(BaseChildFinder[Any]):
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
-    def find_children(self, data: Any) -> Iterator[Any]:  # noqa: ARG002
+    def find_children(self, data: object) -> Iterator[Any]:  # noqa: ARG002
         return
         yield

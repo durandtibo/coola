@@ -5,10 +5,8 @@ from __future__ import annotations
 
 __all__ = ["get_fully_qualified_name"]
 
-from typing import Any
 
-
-def get_fully_qualified_name(obj: Any) -> str:
+def get_fully_qualified_name(obj: object) -> str:
     r"""Return the fully qualified name of a Python object.
 
     Supports functions, classes, methods, and instances.

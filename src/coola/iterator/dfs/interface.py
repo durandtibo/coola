@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from coola.iterator.dfs.base import BaseIterator
 
 
-def dfs_iterate(data: Any, registry: IteratorRegistry | None = None) -> Iterator[Any]:
+def dfs_iterate(data: object, registry: IteratorRegistry | None = None) -> Iterator[Any]:
     """Perform Depth-First Search (DFS) iteration over nested data
     structures (lists, dicts, tuples, sets, etc.).
 

@@ -74,7 +74,7 @@ class XarrayDataArrayEqualityComparator(BaseEqualityComparator[xr.DataArray]):  
     def clone(self) -> XarrayDataArrayEqualityComparator:
         return self.__class__()
 
-    def equal(self, actual: xr.DataArray, expected: Any, config: EqualityConfig) -> bool:
+    def equal(self, actual: xr.DataArray, expected: object, config: EqualityConfig) -> bool:
         return self._handler.handle(actual, expected, config=config)
 
 
@@ -119,7 +119,7 @@ class XarrayDatasetEqualityComparator(BaseEqualityComparator[xr.Dataset]):  # no
     def clone(self) -> XarrayDatasetEqualityComparator:
         return self.__class__()
 
-    def equal(self, actual: xr.Dataset, expected: Any, config: EqualityConfig) -> bool:
+    def equal(self, actual: xr.Dataset, expected: object, config: EqualityConfig) -> bool:
         return self._handler.handle(actual, expected, config=config)
 
 
@@ -164,7 +164,7 @@ class XarrayVariableEqualityComparator(BaseEqualityComparator[xr.Variable]):  # 
     def clone(self) -> XarrayVariableEqualityComparator:
         return self.__class__()
 
-    def equal(self, actual: xr.Variable, expected: Any, config: EqualityConfig) -> bool:
+    def equal(self, actual: xr.Variable, expected: object, config: EqualityConfig) -> bool:
         return self._handler.handle(actual, expected, config=config)
 
 

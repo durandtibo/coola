@@ -13,7 +13,7 @@ __all__ = [
 ]
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from coola.equality.handlers.base import AbstractEqualityHandler, BaseEqualityHandler
 from coola.utils.format import repr_indent, repr_mapping
@@ -55,8 +55,8 @@ class FalseHandler(BaseEqualityHandler):  # noqa: PLW1641
 
     def handle(
         self,
-        actual: Any,  # noqa: ARG002
-        expected: Any,  # noqa: ARG002
+        actual: object,  # noqa: ARG002
+        expected: object,  # noqa: ARG002
         config: EqualityConfig,  # noqa: ARG002
     ) -> bool:
         return False
@@ -94,8 +94,8 @@ class TrueHandler(BaseEqualityHandler):  # noqa: PLW1641
 
     def handle(
         self,
-        actual: Any,  # noqa: ARG002
-        expected: Any,  # noqa: ARG002
+        actual: object,  # noqa: ARG002
+        expected: object,  # noqa: ARG002
         config: EqualityConfig,  # noqa: ARG002
     ) -> bool:
         return True
@@ -136,8 +136,8 @@ class ObjectEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
 
     def handle(
         self,
-        actual: Any,
-        expected: Any,
+        actual: object,
+        expected: object,
         config: EqualityConfig,
     ) -> bool:
         object_equal = actual == expected
@@ -192,7 +192,7 @@ class SameAttributeHandler(AbstractEqualityHandler):  # noqa: PLW1641
     def name(self) -> str:
         return self._name
 
-    def handle(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
+    def handle(self, actual: object, expected: object, config: EqualityConfig) -> bool:
         value1 = getattr(actual, self._name)
         value2 = getattr(expected, self._name)
         if not config.tester.equal(value1, value2, config):
@@ -261,8 +261,8 @@ class SameObjectHandler(AbstractEqualityHandler):  # noqa: PLW1641
 
     def handle(
         self,
-        actual: Any,
-        expected: Any,
+        actual: object,
+        expected: object,
         config: EqualityConfig,
     ) -> bool:
         if actual is expected:
@@ -294,8 +294,8 @@ class SameTypeHandler(AbstractEqualityHandler):  # noqa: PLW1641
 
     def handle(
         self,
-        actual: Any,
-        expected: Any,
+        actual: object,
+        expected: object,
         config: EqualityConfig,
     ) -> bool:
         if type(actual) is not type(expected):

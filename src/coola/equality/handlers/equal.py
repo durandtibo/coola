@@ -10,7 +10,7 @@ __all__ = [
 ]
 
 import logging
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Protocol
 
 from coola.equality.handlers.base import BaseEqualityHandler
 
@@ -40,7 +40,7 @@ class SupportsEqualNan(Protocol):
     r"""Implement a protocol to represent objects with a ``equal``
     method with an option compare NaNs."""
 
-    def equal(self, other: Any, equal_nan: bool = False) -> bool:
+    def equal(self, other: object, equal_nan: bool = False) -> bool:
         r"""Return ``True`` if the two objects are equal, otherwise
         ``False``.
 
@@ -90,7 +90,7 @@ class EqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
-    def handle(self, actual: SupportsEqual, expected: Any, config: EqualityConfig) -> bool:
+    def handle(self, actual: SupportsEqual, expected: object, config: EqualityConfig) -> bool:
         if not actual.equal(expected):
             if config.show_difference:
                 logger.info(f"objects are not equal:\nactual:\n{actual}\nexpected:\n{expected}")
@@ -142,7 +142,7 @@ class EqualNanHandler(BaseEqualityHandler):  # noqa: PLW1641
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
-    def handle(self, actual: SupportsEqualNan, expected: Any, config: EqualityConfig) -> bool:
+    def handle(self, actual: SupportsEqualNan, expected: object, config: EqualityConfig) -> bool:
         if not actual.equal(expected, equal_nan=config.equal_nan):
             if config.show_difference:
                 logger.info(f"objects are not equal:\nactual:\n{actual}\nexpected:\n{expected}")

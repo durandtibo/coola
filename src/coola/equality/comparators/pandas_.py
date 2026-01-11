@@ -70,7 +70,7 @@ class PandasDataFrameEqualityComparator(BaseEqualityComparator[pd.DataFrame]):  
     def clone(self) -> PandasDataFrameEqualityComparator:
         return self.__class__()
 
-    def equal(self, actual: pd.DataFrame, expected: Any, config: EqualityConfig) -> bool:
+    def equal(self, actual: pd.DataFrame, expected: object, config: EqualityConfig) -> bool:
         return self._handler.handle(actual, expected, config=config)
 
 
@@ -104,7 +104,7 @@ class PandasSeriesEqualityComparator(BaseEqualityComparator[pd.Series]):  # noqa
     def clone(self) -> PandasSeriesEqualityComparator:
         return self.__class__()
 
-    def equal(self, actual: pd.Series, expected: Any, config: EqualityConfig) -> bool:
+    def equal(self, actual: pd.Series, expected: object, config: EqualityConfig) -> bool:
         return self._handler.handle(actual, expected, config=config)
 
 

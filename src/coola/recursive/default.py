@@ -56,7 +56,7 @@ class DefaultTransformer(BaseTransformer[Any]):
 
     def transform(
         self,
-        data: Any,
+        data: object,
         func: Callable[[Any], Any],
         registry: TransformerRegistry,  # noqa: ARG002
     ) -> Any:

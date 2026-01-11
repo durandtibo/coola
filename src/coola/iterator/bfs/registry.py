@@ -230,7 +230,7 @@ class ChildFinderRegistry:
         """
         return self._state.resolve(data_type)
 
-    def find_children(self, data: Any) -> Iterator[Any]:
+    def find_children(self, data: object) -> Iterator[Any]:
         r"""Return the immediate children of an object using its child
         finder.
 
@@ -261,7 +261,7 @@ class ChildFinderRegistry:
         child_finder = self.find_child_finder(type(data))
         yield from child_finder.find_children(data)
 
-    def iterate(self, data: Any) -> Iterator[Any]:
+    def iterate(self, data: object) -> Iterator[Any]:
         r"""Perform a breadth-first traversal over a nested data
         structure.
 

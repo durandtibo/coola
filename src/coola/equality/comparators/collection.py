@@ -58,7 +58,7 @@ class MappingEqualityComparator(BaseEqualityComparator[Mapping[Any, Any]]):  # n
         return self.__class__()
 
     def equal(
-        self, actual: Mapping[Any, Any], expected: Any[Any, Any], config: EqualityConfig
+        self, actual: Mapping[Any, Any], expected: object[Any, Any], config: EqualityConfig
     ) -> bool:
         return self._handler.handle(actual, expected, config=config)
 
@@ -93,7 +93,7 @@ class SequenceEqualityComparator(BaseEqualityComparator[Sequence[Any]]):  # noqa
     def clone(self) -> SequenceEqualityComparator:
         return self.__class__()
 
-    def equal(self, actual: Sequence[Any], expected: Any, config: EqualityConfig) -> bool:
+    def equal(self, actual: Sequence[Any], expected: object, config: EqualityConfig) -> bool:
         return self._handler.handle(actual, expected, config=config)
 
 

@@ -45,7 +45,7 @@ class DefaultIterator(BaseIterator[Any]):
 
     def iterate(
         self,
-        data: Any,
+        data: object,
         registry: IteratorRegistry,  # noqa: ARG002
     ) -> Iterator[Any]:
         yield data

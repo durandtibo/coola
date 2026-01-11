@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from coola.iterator.bfs import BaseChildFinder
 
 
-def bfs_iterate(data: Any, registry: ChildFinderRegistry | None = None) -> Iterator[Any]:
+def bfs_iterate(data: object, registry: ChildFinderRegistry | None = None) -> Iterator[Any]:
     """Perform Breadth-First Search (BFS) iteration over nested data
     structures (lists, dicts, tuples, sets, etc.).
 

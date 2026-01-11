@@ -6,7 +6,7 @@ __all__ = ["BaseEqualityTester"]
 
 import logging
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -18,7 +18,7 @@ class BaseEqualityTester(ABC):
     r"""Define the base class to implement an equality tester."""
 
     @abstractmethod
-    def equal(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
+    def equal(self, actual: object, expected: object, config: EqualityConfig) -> bool:
         r"""Indicate if two objects are equal or not.
 
         Args:
