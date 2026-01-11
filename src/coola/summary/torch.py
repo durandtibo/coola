@@ -50,16 +50,16 @@ class TensorSummarizer(BaseSummarizer[torch.Tensor]):
 
         >>> # Default behavior: show metadata only
         >>> summarizer = TensorSummarizer()
-        >>> summarizer.summarize(torch.arange(11), registry)
+        >>> print(summarizer.summarize(torch.arange(11), registry))  # doctest: +ELLIPSIS
         <class 'torch.Tensor'> | shape=torch.Size([11]) | dtype=torch.int64 | device=cpu | requires_grad=False
 
         >>> # Works with tensors of any shape and dtype
-        >>> summarizer.summarize(torch.ones(2, 3, 4), registry)
+        >>> print(summarizer.summarize(torch.ones(2, 3, 4), registry))  # doctest: +ELLIPSIS
         <class 'torch.Tensor'> | shape=torch.Size([2, 3, 4]) | dtype=torch.float32 | device=cpu | requires_grad=False
 
         >>> # Show full tensor data
         >>> summarizer = TensorSummarizer(show_data=True)
-        >>> summarizer.summarize(torch.arange(11), registry)
+        >>> print(summarizer.summarize(torch.arange(11), registry))  # doctest: +ELLIPSIS
         tensor([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10])
 
         ```

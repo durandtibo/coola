@@ -50,16 +50,16 @@ class NDArraySummarizer(BaseSummarizer[np.ndarray]):
 
         >>> # Default behavior: show metadata only
         >>> summarizer = NDArraySummarizer()
-        >>> summarizer.summarize(np.arange(11), registry)
+        >>> print(summarizer.summarize(np.arange(11), registry))
         <class 'numpy.ndarray'> | shape=(11,) | dtype=int64
 
         >>> # Works with arrays of any shape and dtype
-        >>> summarizer.summarize(np.ones((2, 3, 4)), registry)
+        >>> print(summarizer.summarize(np.ones((2, 3, 4)), registry))
         <class 'numpy.ndarray'> | shape=(2, 3, 4) | dtype=float64
 
         >>> # Show full array data
         >>> summarizer = NDArraySummarizer(show_data=True)
-        >>> summarizer.summarize(np.arange(11), registry)
+        >>> print(summarizer.summarize(np.arange(11), registry))
         array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10])
 
         ```

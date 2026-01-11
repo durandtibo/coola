@@ -42,7 +42,7 @@ class BaseSummarizer(ABC, Generic[T]):
         >>> from coola.summary import SummarizerRegistry, DefaultSummarizer
         >>> registry = SummarizerRegistry()
         >>> summarizer = DefaultSummarizer()
-        >>> summarizer.summarize(1, registry)
+        >>> print(summarizer.summarize(1, registry))
         <class 'int'> 1
 
         ```
@@ -128,7 +128,7 @@ class BaseSummarizer(ABC, Generic[T]):
             >>> from coola.summary import SummarizerRegistry, DefaultSummarizer
             >>> registry = SummarizerRegistry()
             >>> summarizer = DefaultSummarizer()
-            >>> summarizer.summarize(1, registry)
+            >>> print(summarizer.summarize(1, registry))
             <class 'int'> 1
 
             ```

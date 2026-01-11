@@ -25,7 +25,7 @@ class DefaultSummarizer(BaseSummarizer[object]):
         >>> from coola.summary import SummarizerRegistry, DefaultSummarizer
         >>> registry = SummarizerRegistry()
         >>> summarizer = DefaultSummarizer()
-        >>> summarizer.summarize(1, registry)
+        >>> print(summarizer.summarize(1, registry))
         <class 'int'> 1
 
         ```
