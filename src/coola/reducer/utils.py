@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-def auto_reducer() -> BaseReducer[Sequence[int | float]]:
+def auto_reducer() -> BaseReducer[Sequence[float]]:
     r"""Find the "best" reducer to used based on the installed packages.
 
     The "best" reducer is found by using the following rules:

@@ -11,8 +11,7 @@ from collections.abc import Sequence
 from typing import TypeVar
 
 from coola.reducer.base import BaseBasicReducer
-from coola.reducer.registry import ReducerRegistry
-from coola.utils import check_torch, is_torch_available
+from coola.utils.imports import check_torch, is_torch_available
 from coola.utils.tensor import to_tensor
 
 if is_torch_available():
@@ -20,7 +19,7 @@ if is_torch_available():
 else:  # pragma: no cover
     from coola.utils.fallback.torch import torch
 
-T = TypeVar("T", Sequence[int | float], torch.Tensor)
+T = TypeVar("T", Sequence[float], torch.Tensor)
 
 
 class TorchReducer(BaseBasicReducer[T]):
@@ -80,7 +79,3 @@ class TorchReducer(BaseBasicReducer[T]):
         if values.numel() == 1:
             return float("nan")
         return values.std().item()
-
-
-if is_torch_available() and not ReducerRegistry.has_reducer("torch"):  # pragma: no cover
-    ReducerRegistry.add_reducer("torch", TorchReducer())

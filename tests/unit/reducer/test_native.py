@@ -5,17 +5,13 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from coola.reducer import EmptySequenceError, NativeReducer, ReducerRegistry
+from coola.reducer import EmptySequenceError, NativeReducer
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
 EMPTY_SEQUENCES = [[], ()]
-
-
-def test_reducer_registry_available_reducers() -> None:
-    assert isinstance(ReducerRegistry.registry["native"], NativeReducer)
 
 
 ##################################
