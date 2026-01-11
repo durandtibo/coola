@@ -6,7 +6,7 @@ import random
 
 from coola import objects_are_allclose, objects_are_equal
 from coola.random import manual_seed
-from coola.reducers import NativeReducer
+from coola.reducer import NativeReducer
 from coola.utils.imports import (
     is_jax_available,
     is_numpy_available,
@@ -43,12 +43,12 @@ def check_imports() -> None:
     objects_to_import = [
         "coola.equality.comparators.BaseEqualityComparator",
         "coola.equality.testers.BaseEqualityTester",
-        "coola.formatters.BaseFormatter",
         "coola.objects_are_allclose",
         "coola.objects_are_equal",
-        "coola.reducers.BaseReducer",
-        "coola.summarizers.BaseSummarizer",
-        "coola.summary",
+        "coola.reducer.BaseReducer",
+        "coola.summary.summarize",
+        "coola.summary.BaseSummarizer",
+        "coola.summary.SummarizerRegistry",
     ]
     for a in objects_to_import:
         module_path, name = a.rsplit(".", maxsplit=1)

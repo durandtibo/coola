@@ -1,7 +1,7 @@
 import pytest
 
 from coola import Reduction
-from coola.reducers import BaseReducer, NativeReducer, TorchReducer
+from coola.reducer import BaseReducer, NativeReducer, TorchReducer
 from coola.testing.fixtures import torch_available
 
 ###############################

@@ -1,12 +1,12 @@
-r"""Implement a registry of reducers."""
+r"""Implement a registry of reducer."""
 
 __all__ = ["ReducerRegistry"]
 
 from collections.abc import Sequence
 from typing import ClassVar
 
-from coola.reducers.base import BaseReducer
-from coola.reducers.native import NativeReducer
+from coola.reducer.base import BaseReducer
+from coola.reducer.native import NativeReducer
 from coola.utils.format import str_indent, str_mapping
 
 
@@ -41,7 +41,7 @@ class ReducerRegistry:
 
         Example:
             ```pycon
-            >>> from coola.reducers import ReducerRegistry, NativeReducer
+            >>> from coola.reducer import ReducerRegistry, NativeReducer
             >>> ReducerRegistry.add_reducer("native", NativeReducer(), exist_ok=True)
 
             ```
@@ -57,14 +57,14 @@ class ReducerRegistry:
 
     @classmethod
     def available_reducers(cls) -> tuple[str, ...]:
-        r"""Get the available reducers.
+        r"""Get the available reducer.
 
         Returns:
-            The available reducers.
+            The available reducer.
 
         Example:
             ```pycon
-            >>> from coola.reducers import ReducerRegistry
+            >>> from coola.reducer import ReducerRegistry
             >>> ReducerRegistry.available_reducers()
             ('native', 'numpy', 'torch')
 
@@ -85,7 +85,7 @@ class ReducerRegistry:
 
         Example:
             ```pycon
-            >>> from coola.reducers import ReducerRegistry
+            >>> from coola.reducer import ReducerRegistry
             >>> ReducerRegistry.has_reducer("native")
             True
             >>> ReducerRegistry.has_reducer("missing")

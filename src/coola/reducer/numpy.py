@@ -10,8 +10,8 @@ __all__ = ["NumpyReducer"]
 from collections.abc import Sequence
 from typing import TypeVar
 
-from coola.reducers.base import BaseBasicReducer
-from coola.reducers.registry import ReducerRegistry
+from coola.reducer.base import BaseBasicReducer
+from coola.reducer.registry import ReducerRegistry
 from coola.utils import check_numpy, is_numpy_available
 
 if is_numpy_available():
@@ -31,7 +31,7 @@ class NumpyReducer(BaseBasicReducer[T]):
 
     Example:
         ```pycon
-        >>> from coola.reducers import NumpyReducer
+        >>> from coola.reducer import NumpyReducer
         >>> reducer = NumpyReducer()
         >>> reducer.max([-2, -1, 0, 1, 2])
         2

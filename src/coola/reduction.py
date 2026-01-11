@@ -7,8 +7,8 @@ __all__ = ["Reduction"]
 
 from typing import TYPE_CHECKING
 
-from coola.reducers import BaseReducer, auto_reducer
-from coola.reducers.registry import ReducerRegistry
+from coola.reducer import BaseReducer, auto_reducer
+from coola.reducer.registry import ReducerRegistry
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
