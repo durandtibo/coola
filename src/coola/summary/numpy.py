@@ -12,7 +12,7 @@ __all__ = ["NDArraySummarizer"]
 from typing import TYPE_CHECKING
 
 from coola.summary.base import BaseSummarizer
-from coola.utils import check_torch, is_numpy_available
+from coola.utils import check_numpy, is_numpy_available
 
 if TYPE_CHECKING:
     from coola.summary.registry import SummarizerRegistry
@@ -24,7 +24,7 @@ else:  # pragma: no cover
 
 
 class NDArraySummarizer(BaseSummarizer[np.ndarray]):
-    r"""Implement a summarizer for ``torch.NDArray`` objects.
+    r"""Implement a summarizer for ``numpy.NDArray`` objects.
 
     This summarizer generates compact string representations of PyTorch
     tensors. By default, it displays metadata (type, shape, dtype, device)
@@ -66,7 +66,7 @@ class NDArraySummarizer(BaseSummarizer[np.ndarray]):
     """
 
     def __init__(self, show_data: bool = False) -> None:
-        check_torch()
+        check_numpy()
         self._show_data = bool(show_data)
 
     def __repr__(self) -> str:
