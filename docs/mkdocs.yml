@@ -31,6 +31,7 @@ nav:
       - uguide/iterator.md
       - uguide/registry.md
       - uguide/random.md
+      - uguide/summary.md
       - uguide/customization.md
       - uguide/examples.md
   - Developer Guide:
