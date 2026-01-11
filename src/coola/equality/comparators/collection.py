@@ -57,9 +57,7 @@ class MappingEqualityComparator(BaseEqualityComparator[Mapping[Any, Any]]):  # n
     def clone(self) -> MappingEqualityComparator:
         return self.__class__()
 
-    def equal(
-        self, actual: Mapping[Any, Any], expected: object[Any, Any], config: EqualityConfig
-    ) -> bool:
+    def equal(self, actual: Mapping[Any, Any], expected: object, config: EqualityConfig) -> bool:
         return self._handler.handle(actual, expected, config=config)
 
 
