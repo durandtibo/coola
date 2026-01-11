@@ -76,7 +76,7 @@ class TorchPackedSequenceEqualityComparator(  # noqa: PLW1641
         return self.__class__()
 
     def equal(
-        self, actual: torch.nn.utils.rnn.PackedSequence, expected: Any, config: EqualityConfig
+        self, actual: torch.nn.utils.rnn.PackedSequence, expected: object, config: EqualityConfig
     ) -> bool:
         return self._handler.handle(actual, expected, config=config)
 
@@ -113,7 +113,7 @@ class TorchTensorEqualityComparator(BaseEqualityComparator[torch.Tensor]):  # no
     def clone(self) -> TorchTensorEqualityComparator:
         return self.__class__()
 
-    def equal(self, actual: torch.Tensor, expected: Any, config: EqualityConfig) -> bool:
+    def equal(self, actual: torch.Tensor, expected: object, config: EqualityConfig) -> bool:
         return self._handler.handle(actual, expected, config=config)
 
 

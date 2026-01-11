@@ -4,7 +4,7 @@ from __future__ import annotations
 
 __all__ = ["objects_are_allclose", "objects_are_equal"]
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from coola.equality.config import EqualityConfig
 from coola.equality.testers import EqualityTester
@@ -16,8 +16,8 @@ _tester = EqualityTester()
 
 
 def objects_are_allclose(
-    actual: Any,
-    expected: Any,
+    actual: object,
+    expected: object,
     *,
     rtol: float = 1e-5,
     atol: float = 1e-8,
@@ -77,8 +77,8 @@ def objects_are_allclose(
 
 
 def objects_are_equal(
-    actual: Any,
-    expected: Any,
+    actual: object,
+    expected: object,
     *,
     equal_nan: bool = False,
     show_difference: bool = False,

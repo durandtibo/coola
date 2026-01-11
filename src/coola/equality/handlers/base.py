@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["AbstractEqualityHandler", "BaseEqualityHandler"]
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from coola.utils.format import repr_indent, repr_mapping
 
@@ -67,7 +67,7 @@ class BaseEqualityHandler(ABC):
         return handler
 
     @abstractmethod
-    def handle(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
+    def handle(self, actual: object, expected: object, config: EqualityConfig) -> bool:
         r"""Return the equality result between the two input objects.
 
         Args:
@@ -132,7 +132,7 @@ class AbstractEqualityHandler(BaseEqualityHandler):
         r"""The next handler."""
         return self._next_handler
 
-    def _handle_next(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
+    def _handle_next(self, actual: object, expected: object, config: EqualityConfig) -> bool:
         r"""Return the output from the next handler.
 
         Args:

@@ -37,7 +37,7 @@ def get_first_value(data: Mapping[str, Any]) -> Any:
 
 
 def to_flat_dict(
-    data: Any,
+    data: object,
     prefix: str | None = None,
     separator: str = ".",
     to_str: type[Any] | tuple[type[Any], ...] | None = None,

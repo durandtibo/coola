@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 
 def recursive_apply(
-    data: Any, func: Callable[[Any], Any], registry: TransformerRegistry | None = None
+    data: object, func: Callable[[Any], Any], registry: TransformerRegistry | None = None
 ) -> Any:
     """Recursively apply a function to all items in nested data.
 

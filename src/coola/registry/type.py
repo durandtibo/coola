@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["TypeRegistry"]
 
 import threading
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Generic, TypeVar
 
 from coola.comparison import objects_are_equal
 from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
@@ -186,7 +186,7 @@ class TypeRegistry(Generic[T]):
             self._state.clear()
             self._cache.clear()
 
-    def equal(self, other: Any, equal_nan: bool = False) -> bool:
+    def equal(self, other: object, equal_nan: bool = False) -> bool:
         r"""Indicate if two registries are equal.
 
         Two registries are considered equal if they contain the same type-value

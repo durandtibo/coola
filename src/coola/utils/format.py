@@ -35,7 +35,7 @@ BYTE_UNITS = {
 }
 
 
-def repr_indent(original: Any, num_spaces: int = 2) -> str:
+def repr_indent(original: object, num_spaces: int = 2) -> str:
     r"""Add indentations if the original string is a multi-lines string.
 
     Args:
@@ -179,7 +179,7 @@ def repr_sequence_line(sequence: Sequence[Any], separator: str = ", ") -> str:
     return separator.join(map(repr, sequence))
 
 
-def str_indent(original: Any, num_spaces: int = 2) -> str:
+def str_indent(original: object, num_spaces: int = 2) -> str:
     r"""Add indentations if the original string is a multi-lines string.
 
     Args:

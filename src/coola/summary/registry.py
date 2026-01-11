@@ -227,7 +227,7 @@ class SummarizerRegistry:
         """
         return self._state.resolve(data_type)
 
-    def summarize(self, data: Any, depth: int = 0, max_depth: int = 1) -> str:
+    def summarize(self, data: object, depth: int = 0, max_depth: int = 1) -> str:
         r"""Generate a formatted string summary of the provided data.
 
         This method creates a human-readable representation of the input data,

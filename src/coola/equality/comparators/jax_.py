@@ -62,7 +62,7 @@ class JaxArrayEqualityComparator(BaseEqualityComparator[jnp.ndarray]):  # noqa: 
     def clone(self) -> JaxArrayEqualityComparator:
         return self.__class__()
 
-    def equal(self, actual: jnp.ndarray, expected: Any, config: EqualityConfig) -> bool:
+    def equal(self, actual: jnp.ndarray, expected: object, config: EqualityConfig) -> bool:
         return self._handler.handle(actual, expected, config=config)
 
 

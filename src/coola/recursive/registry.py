@@ -226,7 +226,7 @@ class TransformerRegistry:
         """
         return self._state.resolve(data_type)
 
-    def transform(self, data: Any, func: Callable[[Any], Any]) -> Any:
+    def transform(self, data: object, func: Callable[[Any], Any]) -> Any:
         """Transform data by applying a function recursively through the
         structure.
 

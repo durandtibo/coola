@@ -196,7 +196,7 @@ class IteratorRegistry:
         """
         return self._state.resolve(data_type)
 
-    def iterate(self, data: Any) -> Iterator[Any]:
+    def iterate(self, data: object) -> Iterator[Any]:
         r"""Perform depth-first iteration over a data structure.
 
         This method uses the appropriate iterator for the data type, which may be

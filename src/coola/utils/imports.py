@@ -884,7 +884,7 @@ class LazyModule(ModuleType):
 
     def __init__(self, name: str) -> None:
         super().__init__(name)
-        self._module: Any = None
+        self._module: object = None
 
     def __getattr__(self, item: str) -> Any:
         if self._module is None:

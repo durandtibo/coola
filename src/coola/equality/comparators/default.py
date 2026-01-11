@@ -51,7 +51,7 @@ class DefaultEqualityComparator(BaseEqualityComparator[Any]):  # noqa: PLW1641
     def clone(self) -> DefaultEqualityComparator:
         return self.__class__()
 
-    def equal(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
+    def equal(self, actual: object, expected: object, config: EqualityConfig) -> bool:
         return self._handler.handle(actual, expected, config=config)
 
 

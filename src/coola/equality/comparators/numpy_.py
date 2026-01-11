@@ -67,7 +67,7 @@ class NumpyArrayEqualityComparator(BaseEqualityComparator[np.ndarray]):  # noqa:
     def clone(self) -> NumpyArrayEqualityComparator:
         return self.__class__()
 
-    def equal(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
+    def equal(self, actual: object, expected: object, config: EqualityConfig) -> bool:
         return self._handler.handle(actual, expected, config=config)
 
 
@@ -115,7 +115,7 @@ class NumpyMaskedArrayEqualityComparator(  # noqa: PLW1641
     def clone(self) -> NumpyMaskedArrayEqualityComparator:
         return self.__class__()
 
-    def equal(self, actual: np.ma.MaskedArray, expected: Any, config: EqualityConfig) -> bool:
+    def equal(self, actual: np.ma.MaskedArray, expected: object, config: EqualityConfig) -> bool:
         return self._handler.handle(actual, expected, config=config)
 
 
