@@ -15,7 +15,7 @@ from coola.equality.comparators.collection import (
 )
 from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import numpy_available
-from coola.utils import is_numpy_available
+from coola.utils.imports import is_numpy_available
 from tests.unit.equality.comparators.utils import ExamplePair
 
 if is_numpy_available():

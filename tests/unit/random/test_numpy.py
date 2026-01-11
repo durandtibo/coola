@@ -7,7 +7,7 @@ import pytest
 from coola import objects_are_equal
 from coola.random import NumpyRandomManager, numpy_seed
 from coola.testing.fixtures import numpy_available
-from coola.utils import is_numpy_available
+from coola.utils.imports import is_numpy_available
 
 if is_numpy_available():
     import numpy as np

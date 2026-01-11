@@ -15,13 +15,13 @@ from coola.testing.fixtures import (
     polars_available,
     torch_available,
 )
-from coola.utils import (
+from coola.utils.imports import (
+    is_jax_available,
     is_numpy_available,
     is_pandas_available,
     is_polars_available,
     is_torch_available,
 )
-from coola.utils.imports import is_jax_available
 
 if is_numpy_available():
     import numpy as np

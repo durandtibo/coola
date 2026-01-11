@@ -7,7 +7,7 @@ __all__ = ["auto_reducer"]
 from typing import TYPE_CHECKING
 
 from coola.reducer import BaseReducer, NativeReducer, NumpyReducer, TorchReducer
-from coola.utils import is_numpy_available, is_torch_available
+from coola.utils.imports import is_numpy_available, is_torch_available
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

@@ -19,7 +19,7 @@ from coola.equality.handlers import (
     SameObjectHandler,
     SameTypeHandler,
 )
-from coola.utils import check_pandas, is_pandas_available
+from coola.utils.imports import check_pandas, is_pandas_available
 
 if TYPE_CHECKING or is_pandas_available():
     import pandas as pd

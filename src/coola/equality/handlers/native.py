@@ -16,7 +16,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from coola.equality.handlers.base import AbstractEqualityHandler, BaseEqualityHandler
-from coola.utils import repr_indent, repr_mapping
+from coola.utils.format import repr_indent, repr_mapping
 
 if TYPE_CHECKING:
     from collections.abc import Sized

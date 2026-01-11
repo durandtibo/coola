@@ -22,7 +22,7 @@ from coola.equality.handlers import (
     SameTypeHandler,
     TrueHandler,
 )
-from coola.utils import check_numpy, is_numpy_available
+from coola.utils.imports import check_numpy, is_numpy_available
 
 if TYPE_CHECKING or is_numpy_available():
     import numpy as np

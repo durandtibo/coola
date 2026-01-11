@@ -7,7 +7,7 @@ __all__ = ["AbstractEqualityHandler", "BaseEqualityHandler"]
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any
 
-from coola.utils import repr_indent, repr_mapping
+from coola.utils.format import repr_indent, repr_mapping
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig

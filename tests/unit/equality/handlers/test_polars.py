@@ -21,7 +21,7 @@ from coola.equality.handlers.polars_ import (
 )
 from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import polars_available
-from coola.utils import is_polars_available
+from coola.utils.imports import is_polars_available
 from tests.unit.equality.comparators.test_polars import (
     POLARS_DATAFRAME_EQUAL_TOLERANCE,
     POLARS_LAZYFRAME_EQUAL_TOLERANCE,

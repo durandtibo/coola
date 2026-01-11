@@ -9,7 +9,7 @@ from itertools import islice
 from typing import TYPE_CHECKING, Any
 
 from coola.summary.collection import BaseCollectionSummarizer
-from coola.utils import str_indent, str_mapping
+from coola.utils.format import str_indent, str_mapping
 
 if TYPE_CHECKING:
     from coola.summary.registry import SummarizerRegistry

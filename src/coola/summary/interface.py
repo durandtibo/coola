@@ -14,7 +14,7 @@ from coola.summary.registry import SummarizerRegistry
 from coola.summary.sequence import SequenceSummarizer
 from coola.summary.set import SetSummarizer
 from coola.summary.torch import TensorSummarizer
-from coola.utils import is_numpy_available, is_torch_available
+from coola.utils.imports import is_numpy_available, is_torch_available
 
 if TYPE_CHECKING:
     from coola.summary.base import BaseSummarizer

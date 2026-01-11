@@ -20,7 +20,7 @@ from coola.equality.handlers import (
     SameTypeHandler,
     TrueHandler,
 )
-from coola.utils import check_xarray, is_xarray_available
+from coola.utils.imports import check_xarray, is_xarray_available
 
 if TYPE_CHECKING or is_xarray_available():
     import xarray as xr

@@ -11,7 +11,7 @@ from functools import lru_cache
 from typing import TYPE_CHECKING
 
 from coola.equality.handlers.base import BaseEqualityHandler
-from coola.utils import is_polars_available
+from coola.utils.imports import is_polars_available
 
 if TYPE_CHECKING or is_polars_available():
     import polars as pl

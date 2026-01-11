@@ -25,7 +25,7 @@ from coola.testing.fixtures import (
     torch_available,
     torch_not_available,
 )
-from coola.utils import is_torch_available
+from coola.utils.imports import is_torch_available
 
 if TYPE_CHECKING:
     from collections.abc import Generator
