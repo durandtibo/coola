@@ -4,13 +4,11 @@ __all__ = [
     "__version__",
     "objects_are_allclose",
     "objects_are_equal",
-    "summarize",
 ]
 
 from importlib.metadata import PackageNotFoundError, version
 
 from coola.comparison import objects_are_allclose, objects_are_equal
-from coola.summary import summarize
 
 try:
     __version__ = version(__name__)
