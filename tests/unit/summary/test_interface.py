@@ -7,13 +7,23 @@ import pytest
 from coola.summary import (
     DefaultSummarizer,
     MappingSummarizer,
+    NDArraySummarizer,
     SequenceSummarizer,
     SetSummarizer,
     SummarizerRegistry,
+    TensorSummarizer,
     get_default_registry,
     register_summarizers,
     summarize,
 )
+from coola.testing.fixtures import numpy_available, torch_available
+from coola.utils.imports import is_numpy_available, is_torch_available
+
+if is_torch_available():  # pragma: no cover
+    import torch
+
+if is_numpy_available():  # pragma: no cover
+    import numpy as np
 
 
 @pytest.fixture(autouse=True)
@@ -130,6 +140,20 @@ def test_register_default_summarizers_registers_mappings(dtype: type) -> None:
     registry = get_default_registry()
     assert registry.has_summarizer(dtype)
     assert isinstance(registry.find_summarizer(dtype), MappingSummarizer)
+
+
+@numpy_available
+def test_register_default_summarizers_registers_ndarray() -> None:
+    registry = get_default_registry()
+    assert registry.has_summarizer(np.ndarray)
+    assert isinstance(registry.find_summarizer(np.ndarray), NDArraySummarizer)
+
+
+@torch_available
+def test_register_default_summarizers_registers_tensor() -> None:
+    registry = get_default_registry()
+    assert registry.has_summarizer(torch.Tensor)
+    assert isinstance(registry.find_summarizer(torch.Tensor), TensorSummarizer)
 
 
 def test_default_registry_can_summarize_list() -> None:

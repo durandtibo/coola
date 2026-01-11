@@ -9,12 +9,21 @@ from typing import TYPE_CHECKING, Any
 
 from coola.summary.default import DefaultSummarizer
 from coola.summary.mapping import MappingSummarizer
+from coola.summary.numpy import NDArraySummarizer
 from coola.summary.registry import SummarizerRegistry
 from coola.summary.sequence import SequenceSummarizer
 from coola.summary.set import SetSummarizer
+from coola.summary.torch import TensorSummarizer
+from coola.utils import is_numpy_available, is_torch_available
 
 if TYPE_CHECKING:
     from coola.summary.base import BaseSummarizer
+
+if is_torch_available():  # pragma: no cover
+    import torch
+
+if is_numpy_available():  # pragma: no cover
+    import numpy as np
 
 
 def summarize(data: object, registry: SummarizerRegistry | None = None) -> str:
@@ -151,11 +160,27 @@ def _register_default_summarizers(registry: SummarizerRegistry) -> None:
         This function is called internally by get_default_registry() and should
         not typically be called directly by users.
     """
+    summarizers: dict[type, BaseSummarizer[Any]] = _get_native_summarizers()
+    summarizers.update(_get_numpy_summarizers())
+    summarizers.update(_get_torch_summarizers())
+    registry.register_many(summarizers)
+
+
+def _get_native_summarizers() -> dict[type, BaseSummarizer[Any]]:
+    r"""Get the native summarizers for common Python types.
+
+    Returns:
+        The native summarizers for common Python types.
+
+    Notes:
+        This function is called internally by get_default_registry() and should
+        not typically be called directly by users.
+    """
     default_summarizer = DefaultSummarizer()
     sequence_summarizer = SequenceSummarizer()
     set_summarizer = SetSummarizer()
     mapping_summarizer = MappingSummarizer()
-    summarizers = {
+    return {
         # Object is the catch-all base for unregistered types
         object: default_summarizer,
         # Strings should not be iterated character by character
@@ -177,4 +202,32 @@ def _register_default_summarizers(registry: SummarizerRegistry) -> None:
         Mapping: mapping_summarizer,
     }
 
-    registry.register_many(summarizers)
+
+def _get_numpy_summarizers() -> dict[type, BaseSummarizer[Any]]:
+    r"""Get the native summarizers for common Python types.
+
+    Returns:
+        The native summarizers for common Python types.
+
+    Notes:
+        This function is called internally by get_default_registry() and should
+        not typically be called directly by users.
+    """
+    if not is_numpy_available():  # pragma: no cover
+        return {}
+    return {np.ndarray: NDArraySummarizer()}
+
+
+def _get_torch_summarizers() -> dict[type, BaseSummarizer[Any]]:
+    r"""Get the native summarizers for common Python types.
+
+    Returns:
+        The native summarizers for common Python types.
+
+    Notes:
+        This function is called internally by get_default_registry() and should
+        not typically be called directly by users.
+    """
+    if not is_torch_available():  # pragma: no cover
+        return {}
+    return {torch.Tensor: TensorSummarizer()}
