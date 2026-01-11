@@ -9,7 +9,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from coola.equality.handlers.base import BaseEqualityHandler
-from coola.utils import is_pandas_available
+from coola.utils.imports import is_pandas_available
 
 if TYPE_CHECKING or is_pandas_available():
     import pandas as pd

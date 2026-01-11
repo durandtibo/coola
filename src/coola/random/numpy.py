@@ -8,7 +8,7 @@ from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
 
 from coola.random.base import BaseRandomManager
-from coola.utils import check_numpy, is_numpy_available
+from coola.utils.imports import check_numpy, is_numpy_available
 
 if TYPE_CHECKING:
     from collections.abc import Generator

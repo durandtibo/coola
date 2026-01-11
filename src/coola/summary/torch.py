@@ -12,7 +12,7 @@ __all__ = ["TensorSummarizer"]
 from typing import TYPE_CHECKING
 
 from coola.summary.base import BaseSummarizer
-from coola.utils import check_torch, is_torch_available
+from coola.utils.imports import check_torch, is_torch_available
 
 if TYPE_CHECKING:
     from coola.summary.registry import SummarizerRegistry

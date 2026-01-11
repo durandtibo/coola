@@ -12,7 +12,7 @@ __all__ = ["NDArraySummarizer"]
 from typing import TYPE_CHECKING
 
 from coola.summary.base import BaseSummarizer
-from coola.utils import check_numpy, is_numpy_available
+from coola.utils.imports import check_numpy, is_numpy_available
 
 if TYPE_CHECKING:
     from coola.summary.registry import SummarizerRegistry

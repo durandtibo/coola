@@ -26,7 +26,7 @@ from coola.equality.handlers.torch_ import (
     TorchTensorEqualHandler,
     TorchTensorSameDeviceHandler,
 )
-from coola.utils import check_torch, is_torch_available
+from coola.utils.imports import check_torch, is_torch_available
 
 if TYPE_CHECKING or is_torch_available():
     import torch

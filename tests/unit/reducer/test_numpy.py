@@ -8,7 +8,7 @@ import pytest
 
 from coola.reducer import EmptySequenceError, NumpyReducer
 from coola.testing.fixtures import numpy_available
-from coola.utils import is_numpy_available
+from coola.utils.imports import is_numpy_available
 
 if is_numpy_available():
     import numpy as np

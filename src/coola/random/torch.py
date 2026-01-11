@@ -8,7 +8,7 @@ from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
 
 from coola.random.base import BaseRandomManager
-from coola.utils import check_torch, is_torch_available
+from coola.utils.imports import check_torch, is_torch_available
 
 if TYPE_CHECKING:
     from collections.abc import Generator

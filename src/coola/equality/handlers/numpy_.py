@@ -8,7 +8,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from coola.equality.handlers.base import BaseEqualityHandler
-from coola.utils import is_numpy_available
+from coola.utils.imports import is_numpy_available
 
 if TYPE_CHECKING or is_numpy_available():
     import numpy as np

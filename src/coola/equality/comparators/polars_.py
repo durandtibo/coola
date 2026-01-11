@@ -20,7 +20,7 @@ from coola.equality.handlers import (
     SameObjectHandler,
     SameTypeHandler,
 )
-from coola.utils import check_polars, is_polars_available
+from coola.utils.imports import check_polars, is_polars_available
 
 if TYPE_CHECKING or is_polars_available():
     import polars as pl
