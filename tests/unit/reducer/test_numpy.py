@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola.reducers import EmptySequenceError, NumpyReducer, ReducerRegistry
+from coola.reducer import EmptySequenceError, NumpyReducer, ReducerRegistry
 from coola.testing.fixtures import numpy_available
 from coola.utils import is_numpy_available
 

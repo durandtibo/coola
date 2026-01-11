@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola.reducers import NativeReducer, ReducerRegistry
+from coola.reducer import NativeReducer, ReducerRegistry
 
 
 @pytest.fixture(autouse=True)

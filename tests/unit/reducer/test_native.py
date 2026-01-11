@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from coola.reducers import EmptySequenceError, NativeReducer, ReducerRegistry
+from coola.reducer import EmptySequenceError, NativeReducer, ReducerRegistry
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

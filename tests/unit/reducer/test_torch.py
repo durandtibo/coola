@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola.reducers import EmptySequenceError, ReducerRegistry, TorchReducer
+from coola.reducer import EmptySequenceError, ReducerRegistry, TorchReducer
 from coola.testing.fixtures import torch_available
 from coola.utils import is_torch_available
 

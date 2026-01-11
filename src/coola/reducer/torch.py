@@ -10,8 +10,8 @@ __all__ = ["TorchReducer"]
 from collections.abc import Sequence
 from typing import TypeVar
 
-from coola.reducers.base import BaseBasicReducer
-from coola.reducers.registry import ReducerRegistry
+from coola.reducer.base import BaseBasicReducer
+from coola.reducer.registry import ReducerRegistry
 from coola.utils import check_torch, is_torch_available
 from coola.utils.tensor import to_tensor
 
@@ -31,7 +31,7 @@ class TorchReducer(BaseBasicReducer[T]):
 
     Example:
         ```pycon
-        >>> from coola.reducers import TorchReducer
+        >>> from coola.reducer import TorchReducer
         >>> reducer = TorchReducer()
         >>> reducer.max([-2, -1, 0, 1, 2])
         2
