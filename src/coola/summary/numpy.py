@@ -1,8 +1,8 @@
-r"""Implement the tensor summarizer for PyTorch tensors.
+r"""Implement the NDArray summarizer for NumPy arrays.
 
 This module provides a summarizer that creates compact, informative
-string representations of PyTorch tensors, showing metadata like shape,
-dtype, and device instead of the full data by default.
+string representations of NumPy ndarrays, showing metadata like shape
+and dtype instead of the full data by default.
 """
 
 from __future__ import annotations
@@ -24,23 +24,23 @@ else:  # pragma: no cover
 
 
 class NDArraySummarizer(BaseSummarizer[np.ndarray]):
-    r"""Implement a summarizer for ``numpy.NDArray`` objects.
+    r"""Implement a summarizer for ``numpy.ndarray`` objects.
 
-    This summarizer generates compact string representations of PyTorch
-    tensors. By default, it displays metadata (type, shape, dtype, device)
-    rather than tensor values, making it suitable for logging and debugging
-    large tensors. Optionally, it can show the full tensor representation.
+    This summarizer generates compact string representations of NumPy
+    arrays. By default, it displays metadata (type, shape, dtype)
+    rather than array values, making it suitable for logging and debugging
+    large arrays. Optionally, it can show the full array representation.
 
     Args:
-        show_data: If ``True``, returns the default tensor string
-            representation (same as ``repr(tensor)``), displaying
+        show_data: If ``True``, returns the default array string
+            representation (same as ``repr(array)``), displaying
             actual values. If ``False`` (default), returns only
             metadata in a compact format:
-            ``<class> | shape=<shape> | dtype=<dtype> | device=<device>``.
+            ``<class> | shape=<shape> | dtype=<dtype>``.
             Default: ``False``
 
     Raises:
-        RuntimeError: If PyTorch is not installed or available.
+        RuntimeError: If NumPy is not installed or available.
 
     Example:
         ```pycon
@@ -50,16 +50,16 @@ class NDArraySummarizer(BaseSummarizer[np.ndarray]):
 
         >>> # Default behavior: show metadata only
         >>> summarizer = NDArraySummarizer()
-        >>> summarizer.summarize(registry, np.arange(11))
+        >>> summarizer.summarize(np.arange(11), registry)
         <class 'numpy.ndarray'> | shape=(11,) | dtype=int64
 
-        >>> # Works with tensors of any shape and dtype
-        >>> summarizer.summarize(registry, np.ones((2, 3, 4)))
+        >>> # Works with arrays of any shape and dtype
+        >>> summarizer.summarize(np.ones((2, 3, 4)), registry)
         <class 'numpy.ndarray'> | shape=(2, 3, 4) | dtype=float64
 
-        >>> # Show full tensor data
+        >>> # Show full array data
         >>> summarizer = NDArraySummarizer(show_data=True)
-        >>> summarizer.summarize(registry, np.arange(11))
+        >>> summarizer.summarize(np.arange(11), registry)
         array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10])
 
         ```
@@ -79,8 +79,8 @@ class NDArraySummarizer(BaseSummarizer[np.ndarray]):
 
     def summarize(
         self,
-        registry: SummarizerRegistry,  # noqa: ARG002
         data: np.ndarray,
+        registry: SummarizerRegistry,  # noqa: ARG002
         depth: int = 0,  # noqa: ARG002
         max_depth: int = 1,  # noqa: ARG002
     ) -> str:

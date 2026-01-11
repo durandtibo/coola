@@ -50,16 +50,16 @@ class TensorSummarizer(BaseSummarizer[torch.Tensor]):
 
         >>> # Default behavior: show metadata only
         >>> summarizer = TensorSummarizer()
-        >>> summarizer.summarize(registry, torch.arange(11))
+        >>> summarizer.summarize(torch.arange(11), registry)
         <class 'torch.Tensor'> | shape=torch.Size([11]) | dtype=torch.int64 | device=cpu | requires_grad=False
 
         >>> # Works with tensors of any shape and dtype
-        >>> summarizer.summarize(registry, torch.ones(2, 3, 4))
+        >>> summarizer.summarize(torch.ones(2, 3, 4), registry)
         <class 'torch.Tensor'> | shape=torch.Size([2, 3, 4]) | dtype=torch.float32 | device=cpu | requires_grad=False
 
         >>> # Show full tensor data
         >>> summarizer = TensorSummarizer(show_data=True)
-        >>> summarizer.summarize(registry, torch.arange(11))
+        >>> summarizer.summarize(torch.arange(11), registry)
         tensor([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10])
 
         ```
@@ -79,8 +79,8 @@ class TensorSummarizer(BaseSummarizer[torch.Tensor]):
 
     def summarize(
         self,
-        registry: SummarizerRegistry,  # noqa: ARG002
         data: torch.Tensor,
+        registry: SummarizerRegistry,  # noqa: ARG002
         depth: int = 0,  # noqa: ARG002
         max_depth: int = 1,  # noqa: ARG002
     ) -> str:

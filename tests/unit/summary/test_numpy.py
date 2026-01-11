@@ -109,7 +109,7 @@ def test_ndarray_summarizer_equal_different_type_child() -> None:
 def test_ndarray_summarizer_summarize_1d_ndarray_default(registry: SummarizerRegistry) -> None:
     """Test summarizing a 1D ndarray with default settings (metadata
     only)."""
-    result = NDArraySummarizer().summarize(registry, np.arange(11))
+    result = NDArraySummarizer().summarize(np.arange(11), registry)
     assert result == "<class 'numpy.ndarray'> | shape=(11,) | dtype=int64"
 
 
@@ -118,25 +118,25 @@ def test_ndarray_summarizer_summarize_multidimensional_ndarray(
     registry: SummarizerRegistry,
 ) -> None:
     """Test summarizing a multi-dimensional ndarray."""
-    result = NDArraySummarizer().summarize(registry, np.ones((2, 3, 4)))
+    result = NDArraySummarizer().summarize(np.ones((2, 3, 4)), registry)
     assert result == "<class 'numpy.ndarray'> | shape=(2, 3, 4) | dtype=float64"
 
 
 @numpy_available
 def test_ndarray_summarizer_summarize_dtype_int32(registry: SummarizerRegistry) -> None:
-    result = NDArraySummarizer().summarize(registry, np.array([1, 2, 3], dtype=np.int32))
+    result = NDArraySummarizer().summarize(np.array([1, 2, 3], dtype=np.int32), registry)
     assert result == "<class 'numpy.ndarray'> | shape=(3,) | dtype=int32"
 
 
 @numpy_available
 def test_ndarray_summarizer_summarize_dtype_float64(registry: SummarizerRegistry) -> None:
-    result = NDArraySummarizer().summarize(registry, np.array([1.0, 2.0], dtype=np.float32))
+    result = NDArraySummarizer().summarize(np.array([1.0, 2.0], dtype=np.float32), registry)
     assert result == "<class 'numpy.ndarray'> | shape=(2,) | dtype=float32"
 
 
 @numpy_available
 def test_ndarray_summarizer_summarize_dtype_bool(registry: SummarizerRegistry) -> None:
-    result = NDArraySummarizer().summarize(registry, np.array([True, False], dtype=bool))
+    result = NDArraySummarizer().summarize(np.array([True, False], dtype=bool), registry)
     assert result == "<class 'numpy.ndarray'> | shape=(2,) | dtype=bool"
 
 
@@ -144,21 +144,21 @@ def test_ndarray_summarizer_summarize_dtype_bool(registry: SummarizerRegistry) -
 def test_ndarray_summarizer_summarize_show_data_true(registry: SummarizerRegistry) -> None:
     """Test summarizing with show_data=True returns full ndarray
     representation."""
-    result = NDArraySummarizer(show_data=True).summarize(registry, np.arange(5))
+    result = NDArraySummarizer(show_data=True).summarize(np.arange(5), registry)
     assert result == "array([0, 1, 2, 3, 4])"
 
 
 @numpy_available
 def test_ndarray_summarizer_summarize_empty_ndarray(registry: SummarizerRegistry) -> None:
     """Test summarizing an empty ndarray."""
-    result = NDArraySummarizer().summarize(registry, np.array([]))
+    result = NDArraySummarizer().summarize(np.array([]), registry)
     assert result == "<class 'numpy.ndarray'> | shape=(0,) | dtype=float64"
 
 
 @numpy_available
 def test_ndarray_summarizer_summarize_scalar_ndarray(registry: SummarizerRegistry) -> None:
     """Test summarizing a scalar ndarray (0-dimensional)."""
-    result = NDArraySummarizer().summarize(registry, np.array(42))
+    result = NDArraySummarizer().summarize(np.array(42), registry)
     assert result == "<class 'numpy.ndarray'> | shape=() | dtype=int64"
 
 
@@ -167,8 +167,8 @@ def test_ndarray_summarizer_summarize_depth_ignored(registry: SummarizerRegistry
     """Test that depth parameter is ignored."""
     summarizer = NDArraySummarizer()
     ndarray = np.arange(5)
-    result1 = summarizer.summarize(registry, ndarray, depth=0)
-    result2 = summarizer.summarize(registry, ndarray, depth=5)
+    result1 = summarizer.summarize(ndarray, registry, depth=0)
+    result2 = summarizer.summarize(ndarray, registry, depth=5)
     assert result1 == result2
 
 
@@ -177,8 +177,8 @@ def test_ndarray_summarizer_summarize_max_depth_ignored(registry: SummarizerRegi
     """Test that max_depth parameter is ignored."""
     summarizer = NDArraySummarizer()
     ndarray = np.arange(5)
-    result1 = summarizer.summarize(registry, ndarray, max_depth=1)
-    result2 = summarizer.summarize(registry, ndarray, max_depth=10)
+    result1 = summarizer.summarize(ndarray, registry, max_depth=1)
+    result2 = summarizer.summarize(ndarray, registry, max_depth=10)
     assert result1 == result2
 
 
@@ -187,5 +187,5 @@ def test_ndarray_summarizer_summarize_large_ndarray(registry: SummarizerRegistry
     """Test summarizing a very large ndarray (metadata should still be
     compact)."""
     array = np.ones((1000, 1000, 10))
-    result = NDArraySummarizer().summarize(registry, array)
+    result = NDArraySummarizer().summarize(array, registry)
     assert result == "<class 'numpy.ndarray'> | shape=(1000, 1000, 10) | dtype=float64"
