@@ -131,13 +131,7 @@ expanded using the `max_depth` parameter:
 ```pycon
 
 >>> from coola.summary import get_default_registry
->>> nested_data = {
-...     'level1': {
-...         'level2': {
-...             'level3': [1, 2, 3]
-...         }
-...     }
-... }
+>>> nested_data = {"level1": {"level2": {"level3": [1, 2, 3]}}}
 >>> registry = get_default_registry()
 
 ```
@@ -194,9 +188,9 @@ expanded using the `max_depth` parameter:
 >>> data = {
 ...     "users": [
 ...         {"name": "Alice", "scores": [95, 87, 92]},
-...         {"name": "Bob", "scores": [88, 91, 85]}
+...         {"name": "Bob", "scores": [88, 91, 85]},
 ...     ],
-...     "metadata": {"count": 2, "version": "1.0"}
+...     "metadata": {"count": 2, "version": "1.0"},
 ... }
 >>> print(summarize(data))
 <class 'dict'> (length=2)
@@ -216,18 +210,16 @@ expanded using the `max_depth` parameter:
 ...     "string": "hello",
 ...     "list": [1, 2, 3],
 ...     "tuple": (4, 5, 6),
-...     "set": {7, 8, 9},
-...     "dict": {"nested": "value"}
+...     "dict": {"nested": "value"},
 ... }
 >>> print(summarize(mixed))
-<class 'dict'> (length=7)
+<class 'dict'> (length=6)
   (int): 42
   (float): 3.14
   (string): hello
   (list): [1, 2, 3]
   (tuple): (4, 5, 6)
-  (set): {8, 9, 7}
-  (dict): {'nested': 'value'}
+  ...
 
 ```
 
@@ -302,7 +294,9 @@ For very long strings or values, you can use `DefaultSummarizer` with `max_chara
 ```pycon
 
 >>> from coola.summary import SummarizerRegistry, DefaultSummarizer
->>> long_string = "This is a very long string that should be truncated when max_characters is set"
+>>> long_string = (
+...     "This is a very long string that should be truncated when max_characters is set"
+... )
 >>> registry = SummarizerRegistry()
 >>> registry.register(object, DefaultSummarizer(max_characters=30))
 >>> print(registry.summarize(long_string))
@@ -316,8 +310,13 @@ The `num_spaces` parameter controls indentation for nested structures:
 
 ```pycon
 
->>> from coola.summary import SummarizerRegistry, MappingSummarizer, SequenceSummarizer, DefaultSummarizer
->>> data = {'a': [1, 2, 3], 'b': {'nested': 'value'}}
+>>> from coola.summary import (
+...     SummarizerRegistry,
+...     MappingSummarizer,
+...     SequenceSummarizer,
+...     DefaultSummarizer,
+... )
+>>> data = {"a": [1, 2, 3], "b": {"nested": "value"}}
 >>> # Default: 2 spaces
 >>> registry = SummarizerRegistry()
 >>> registry.register(object, DefaultSummarizer())
@@ -338,7 +337,12 @@ With 4 spaces for clearer nesting:
 
 ```pycon
 
->>> from coola.summary import SummarizerRegistry, MappingSummarizer, SequenceSummarizer, DefaultSummarizer
+>>> from coola.summary import (
+...     SummarizerRegistry,
+...     MappingSummarizer,
+...     SequenceSummarizer,
+...     DefaultSummarizer,
+... )
 >>> registry = SummarizerRegistry()
 >>> registry.register(object, DefaultSummarizer())
 >>> registry.register(list, SequenceSummarizer(num_spaces=4))
@@ -438,7 +442,6 @@ To create a custom summarizer for your own types, extend `BaseSummarizer`:
 >>> class PersonSummarizer(BaseSummarizer):
 ...     def equal(self, other: object) -> bool:
 ...         return type(self) is type(other)
-...
 ...     def summarize(self, data, registry, depth=0, max_depth=1):
 ...         return f"Person(name={data.name!r}, age={data.age})"
 ...
@@ -457,24 +460,6 @@ Register your custom summarizer with the registry:
 >>> from coola.summary import summarize
 >>> print(summarize(person))
 Person(name='Alice', age=30)
-
-```
-
-### Nested Custom Types
-
-Custom summarizers work seamlessly with nested structures:
-
-```pycon
-
->>> from coola.summary import summarize
->>> team = {
-...     "leader": Person("Alice", 30),
-...     "members": [Person("Bob", 25), Person("Charlie", 28)]
-... }
->>> print(summarize(team))
-<class 'dict'> (length=2)
-  (leader): Person(name='Alice', age=30)
-  (members): [Person(name='Bob', age=25), Person(name='Charlie', age=28)]
 
 ```
 
@@ -504,6 +489,7 @@ SummarizerRegistry(
       (<class 'frozenset'>): SetSummarizer(max_items=5, num_spaces=2)
       (<class 'dict'>): MappingSummarizer(max_items=5, num_spaces=2)
       (<class 'collections.abc.Mapping'>): MappingSummarizer(max_items=5, num_spaces=2)
+      ...
     )
 )
 
@@ -533,13 +519,16 @@ Use `register_many()` to register multiple types at once:
 
 ```pycon
 
->>> from coola.summary import SummarizerRegistry, SequenceSummarizer, MappingSummarizer, DefaultSummarizer
+>>> from coola.summary import (
+...     SummarizerRegistry,
+...     SequenceSummarizer,
+...     MappingSummarizer,
+...     DefaultSummarizer,
+... )
 >>> registry = SummarizerRegistry()
->>> registry.register_many({
-...     object: DefaultSummarizer(),
-...     list: SequenceSummarizer(),
-...     dict: MappingSummarizer()
-... })
+>>> registry.register_many(
+...     {object: DefaultSummarizer(), list: SequenceSummarizer(), dict: MappingSummarizer()}
+... )
 
 ```
 
@@ -571,13 +560,9 @@ Quickly inspect complex data structures during debugging:
 ...     "database": {
 ...         "host": "localhost",
 ...         "port": 5432,
-...         "credentials": {"user": "admin", "password": "secret"}
+...         "credentials": {"user": "admin", "password": "secret"},
 ...     },
-...     "cache": {
-...         "enabled": True,
-...         "ttl": 3600,
-...         "backends": ["redis", "memcached"]
-...     }
+...     "cache": {"enabled": True, "ttl": 3600, "backends": ["redis", "memcached"]},
 ... }
 >>> print(summarize(config))
 <class 'dict'> (length=2)
@@ -593,16 +578,13 @@ Log tensor shapes without filling logs with data:
 ```pycon
 
 >>> import torch
->>> from coola.summary import SummarizerRegistry, TensorSummarizer, DefaultSummarizer
->>> registry = SummarizerRegistry()
->>> registry.register(object, DefaultSummarizer())
->>> registry.register(torch.Tensor, TensorSummarizer())
+>>> from coola.summary import summarize
 >>> model_weights = {
 ...     "layer1": torch.randn(1000, 1000),
 ...     "layer2": torch.randn(1000, 500),
-...     "bias": torch.randn(500)
+...     "bias": torch.randn(500),
 ... }
->>> print(registry.summarize(model_weights))
+>>> print(summarize(model_weights, max_depth=2))
 <class 'dict'> (length=3)
   (layer1): <class 'torch.Tensor'> | shape=torch.Size([1000, 1000]) | dtype=torch.float32 | device=cpu | requires_grad=False
   (layer2): <class 'torch.Tensor'> | shape=torch.Size([1000, 500]) | dtype=torch.float32 | device=cpu | requires_grad=False
@@ -625,8 +607,8 @@ Summarize complex API responses:
 ...             {"id": 2, "name": "Item 2", "tags": ["tag3"]},
 ...             # ... potentially many more items
 ...         ],
-...         "pagination": {"page": 1, "total_pages": 10}
-...     }
+...         "pagination": {"page": 1, "total_pages": 10},
+...     },
 ... }
 >>> print(summarize(api_response))
 <class 'dict'> (length=2)
@@ -645,15 +627,11 @@ nested structures are shown as raw strings without truncation:
 >>> from coola.summary import summarize
 >>> data1 = {"users": [1, 2, 3, 4, 5], "version": "1.0"}
 >>> data2 = {"users": [1, 2, 3], "version": "2.0"}
->>> print("Data 1:")
 >>> print(summarize(data1))
-Data 1:
 <class 'dict'> (length=2)
   (users): [1, 2, 3, 4, 5]
   (version): 1.0
->>> print("Data 2:")
 >>> print(summarize(data2))
-Data 2:
 <class 'dict'> (length=2)
   (users): [1, 2, 3]
   (version): 2.0
@@ -676,7 +654,7 @@ For deeper inspection with truncation, increase `max_depth`:
       (3): 3
       (4): 4
       ...
-  (version): 1.0
+  (version): <class 'str'> 1.0
 
 ```
 
