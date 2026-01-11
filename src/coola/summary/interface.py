@@ -26,11 +26,15 @@ if is_numpy_available():  # pragma: no cover
     import numpy as np
 
 
-def summarize(data: object, registry: SummarizerRegistry | None = None) -> str:
+def summarize(data: object, max_depth: int = 1, registry: SummarizerRegistry | None = None) -> str:
     r"""Create a summary string representation of nested data.
 
     Args:
         data: Input data (can be nested)
+        max_depth: The maximum nesting level to expand when summarizing.
+            Structures deeper than this level are shown in compact form.
+            Must be non-negative. Default is 1, which expands only the
+            top level of nested structures.
         registry: Registry to resolve summarizers for nested data.
             If None, uses the default registry.
 
@@ -49,7 +53,7 @@ def summarize(data: object, registry: SummarizerRegistry | None = None) -> str:
     """
     if registry is None:
         registry = get_default_registry()
-    return registry.summarize(data)
+    return registry.summarize(data, max_depth=max_depth)
 
 
 def register_summarizers(
