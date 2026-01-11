@@ -136,7 +136,7 @@ def test_ndarray_summarizer_summarize_dtype_float64(registry: SummarizerRegistry
 
 @numpy_available
 def test_ndarray_summarizer_summarize_dtype_bool(registry: SummarizerRegistry) -> None:
-    result = NDArraySummarizer().summarize(registry, np.array([True, False], dtype=np.bool))
+    result = NDArraySummarizer().summarize(registry, np.array([True, False], dtype=bool))
     assert result == "<class 'numpy.ndarray'> | shape=(2,) | dtype=bool"
 
 
