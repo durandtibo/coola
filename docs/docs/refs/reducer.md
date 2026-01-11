@@ -1,1 +1,1 @@
-::: coola.reducers
+::: coola.reducer
