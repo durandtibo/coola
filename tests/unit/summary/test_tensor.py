@@ -114,7 +114,7 @@ def test_tensor_summarizer_equal_different_type_child() -> None:
 def test_tensor_summarizer_summarize_1d_tensor_default(registry: SummarizerRegistry) -> None:
     """Test summarizing a 1D tensor with default settings (metadata
     only)."""
-    result = TensorSummarizer().summarize(registry, torch.arange(11))
+    result = TensorSummarizer().summarize(torch.arange(11), registry)
     assert (
         result == "<class 'torch.Tensor'> | shape=torch.Size([11]) | dtype=torch.int64 | "
         "device=cpu | requires_grad=False"
@@ -124,7 +124,7 @@ def test_tensor_summarizer_summarize_1d_tensor_default(registry: SummarizerRegis
 @torch_available
 def test_tensor_summarizer_summarize_multidimensional_tensor(registry: SummarizerRegistry) -> None:
     """Test summarizing a multi-dimensional tensor."""
-    result = TensorSummarizer().summarize(registry, torch.randn(2, 3, 4))
+    result = TensorSummarizer().summarize(torch.randn(2, 3, 4), registry)
     assert (
         result == "<class 'torch.Tensor'> | shape=torch.Size([2, 3, 4]) | dtype=torch.float32 | "
         "device=cpu | requires_grad=False"
@@ -133,7 +133,7 @@ def test_tensor_summarizer_summarize_multidimensional_tensor(registry: Summarize
 
 @torch_available
 def test_tensor_summarizer_summarize_dtype_int32(registry: SummarizerRegistry) -> None:
-    result = TensorSummarizer().summarize(registry, torch.tensor([1, 2, 3], dtype=torch.int32))
+    result = TensorSummarizer().summarize(torch.tensor([1, 2, 3], dtype=torch.int32), registry)
     assert (
         result == "<class 'torch.Tensor'> | shape=torch.Size([3]) | dtype=torch.int32 | "
         "device=cpu | requires_grad=False"
@@ -142,7 +142,7 @@ def test_tensor_summarizer_summarize_dtype_int32(registry: SummarizerRegistry) -
 
 @torch_available
 def test_tensor_summarizer_summarize_dtype_float64(registry: SummarizerRegistry) -> None:
-    result = TensorSummarizer().summarize(registry, torch.tensor([1.0, 2.0], dtype=torch.float64))
+    result = TensorSummarizer().summarize(torch.tensor([1.0, 2.0], dtype=torch.float64), registry)
     assert (
         result == "<class 'torch.Tensor'> | shape=torch.Size([2]) | dtype=torch.float64 | "
         "device=cpu | requires_grad=False"
@@ -151,7 +151,7 @@ def test_tensor_summarizer_summarize_dtype_float64(registry: SummarizerRegistry)
 
 @torch_available
 def test_tensor_summarizer_summarize_dtype_bool(registry: SummarizerRegistry) -> None:
-    result = TensorSummarizer().summarize(registry, torch.tensor([True, False], dtype=torch.bool))
+    result = TensorSummarizer().summarize(torch.tensor([True, False], dtype=torch.bool), registry)
     assert (
         result == "<class 'torch.Tensor'> | shape=torch.Size([2]) | dtype=torch.bool | "
         "device=cpu | requires_grad=False"
@@ -162,14 +162,14 @@ def test_tensor_summarizer_summarize_dtype_bool(registry: SummarizerRegistry) ->
 def test_tensor_summarizer_summarize_show_data_true(registry: SummarizerRegistry) -> None:
     """Test summarizing with show_data=True returns full tensor
     representation."""
-    result = TensorSummarizer(show_data=True).summarize(registry, torch.arange(5))
+    result = TensorSummarizer(show_data=True).summarize(torch.arange(5), registry)
     assert result == "tensor([0, 1, 2, 3, 4])"
 
 
 @torch_available
 def test_tensor_summarizer_summarize_empty_tensor(registry: SummarizerRegistry) -> None:
     """Test summarizing an empty tensor."""
-    result = TensorSummarizer().summarize(registry, torch.tensor([]))
+    result = TensorSummarizer().summarize(torch.tensor([]), registry)
     assert (
         result == "<class 'torch.Tensor'> | shape=torch.Size([0]) | dtype=torch.float32 | "
         "device=cpu | requires_grad=False"
@@ -179,7 +179,7 @@ def test_tensor_summarizer_summarize_empty_tensor(registry: SummarizerRegistry) 
 @torch_available
 def test_tensor_summarizer_summarize_scalar_tensor(registry: SummarizerRegistry) -> None:
     """Test summarizing a scalar tensor (0-dimensional)."""
-    result = TensorSummarizer().summarize(registry, torch.tensor(42))
+    result = TensorSummarizer().summarize(torch.tensor(42), registry)
     assert (
         result == "<class 'torch.Tensor'> | shape=torch.Size([]) | dtype=torch.int64 | "
         "device=cpu | requires_grad=False"
@@ -191,8 +191,8 @@ def test_tensor_summarizer_summarize_depth_ignored(registry: SummarizerRegistry)
     """Test that depth parameter is ignored."""
     summarizer = TensorSummarizer()
     tensor = torch.arange(5)
-    result1 = summarizer.summarize(registry, tensor, depth=0)
-    result2 = summarizer.summarize(registry, tensor, depth=5)
+    result1 = summarizer.summarize(tensor, registry, depth=0)
+    result2 = summarizer.summarize(tensor, registry, depth=5)
     assert result1 == result2
 
 
@@ -201,8 +201,8 @@ def test_tensor_summarizer_summarize_max_depth_ignored(registry: SummarizerRegis
     """Test that max_depth parameter is ignored."""
     summarizer = TensorSummarizer()
     tensor = torch.arange(5)
-    result1 = summarizer.summarize(registry, tensor, max_depth=1)
-    result2 = summarizer.summarize(registry, tensor, max_depth=10)
+    result1 = summarizer.summarize(tensor, registry, max_depth=1)
+    result2 = summarizer.summarize(tensor, registry, max_depth=10)
     assert result1 == result2
 
 
@@ -211,7 +211,7 @@ def test_tensor_summarizer_summarize_max_depth_ignored(registry: SummarizerRegis
 def test_tensor_summarizer_summarize_cuda_tensor(registry: SummarizerRegistry) -> None:
     """Test summarizing a tensor on CUDA device."""
     tensor = torch.arange(5).cuda()
-    result = TensorSummarizer().summarize(registry, tensor)
+    result = TensorSummarizer().summarize(tensor, registry)
     assert (
         result == "<class 'torch.Tensor'> | shape=torch.Size([3, 3]) | dtype=torch.float32 | "
         "device=cuda:0 | requires_grad=False"
@@ -223,7 +223,7 @@ def test_tensor_summarizer_summarize_large_tensor(registry: SummarizerRegistry) 
     """Test summarizing a very large tensor (metadata should still be
     compact)."""
     tensor = torch.randn(1000, 1000, 10)
-    result = TensorSummarizer().summarize(registry, tensor)
+    result = TensorSummarizer().summarize(tensor, registry)
     assert (
         result
         == "<class 'torch.Tensor'> | shape=torch.Size([1000, 1000, 10]) | dtype=torch.float32 | "
@@ -235,7 +235,7 @@ def test_tensor_summarizer_summarize_large_tensor(registry: SummarizerRegistry) 
 def test_tensor_summarizer_summarize_requires_grad_tensor(registry: SummarizerRegistry) -> None:
     """Test summarizing a tensor with requires_grad=True."""
     tensor = torch.randn(3, 3, requires_grad=True)
-    result = TensorSummarizer().summarize(registry, tensor)
+    result = TensorSummarizer().summarize(tensor, registry)
     assert (
         result == "<class 'torch.Tensor'> | shape=torch.Size([3, 3]) | dtype=torch.float32 | "
         "device=cpu | requires_grad=True"

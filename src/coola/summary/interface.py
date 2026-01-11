@@ -208,10 +208,10 @@ def _get_native_summarizers() -> dict[type, BaseSummarizer[Any]]:
 
 
 def _get_numpy_summarizers() -> dict[type, BaseSummarizer[Any]]:
-    r"""Get the native summarizers for common Python types.
+    r"""Get the native summarizers for NumPy types.
 
     Returns:
-        The native summarizers for common Python types.
+        The summarizers for NumPy array types.
 
     Notes:
         This function is called internally by get_default_registry() and should
@@ -223,10 +223,10 @@ def _get_numpy_summarizers() -> dict[type, BaseSummarizer[Any]]:
 
 
 def _get_torch_summarizers() -> dict[type, BaseSummarizer[Any]]:
-    r"""Get the native summarizers for common Python types.
+    r"""Get the native summarizers for PyTorch types.
 
     Returns:
-        The native summarizers for common Python types.
+        The summarizers for PyTorch tensor types.
 
     Notes:
         This function is called internally by get_default_registry() and should
