@@ -1,4 +1,4 @@
-r"""Implement a simple reducer that uses only standard libray functions. """
+r"""Implement a simple reducer that uses only standard library functions."""
 
 
 from __future__ import annotations
