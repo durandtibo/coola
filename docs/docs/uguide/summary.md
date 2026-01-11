@@ -689,6 +689,6 @@ The `coola.summary` package is designed with the following principles:
 
 ## See Also
 
-- [`coola.recursive`](recursive.md): For transforming nested data while preserving structure
-- [`coola.iterator`](iterator.md): For iterating over nested data structures
-- [`coola.registry`](registry.md): For understanding the registry pattern used internally
+- [Recursive Data Transformation](recursive.md): For transforming nested data while preserving structure
+- [Iterating Over Nested Data](iterator.md): For iterating over nested data structures
+- [Registry System](registry.md): For understanding the registry pattern used internally
