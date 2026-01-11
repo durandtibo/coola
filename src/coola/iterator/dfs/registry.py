@@ -1,4 +1,4 @@
-r"""Define the iterator registry for managing iterators based on data types. """
+r"""Define the iterator registry for managing iterators based on data types."""
 
 
 from __future__ import annotations

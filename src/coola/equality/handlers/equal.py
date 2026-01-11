@@ -21,7 +21,7 @@ logger: logging.Logger = logging.getLogger(__name__)
 
 
 class SupportsEqual(Protocol):
-    r"""Implement a protocol to represent objects with a ``equal`` method. """
+    r"""Implement a protocol to represent objects with a ``equal`` method."""
 
 
     def equal(self, other: object) -> bool:
