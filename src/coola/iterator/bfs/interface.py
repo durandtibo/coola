@@ -21,6 +21,7 @@ def bfs_iterate(data: Any, registry: ChildFinderRegistry | None = None) -> Itera
     """Perform Breadth-First Search (BFS) iteration over nested data
     structures (lists, dicts, tuples, sets, etc.).
 
+
     This function yields elements from the data structure in a BFS manner, recursively
     traversing all levels of nested structures. It uses the appropriate child finders registered
     for the data types (e.g., lists, dictionaries, etc.).

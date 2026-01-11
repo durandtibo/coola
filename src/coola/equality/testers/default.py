@@ -121,6 +121,7 @@ class EqualityTester(BaseEqualityTester):
         customized without changind ``EqualityTester``.
 
 
+
         Returns:
             A "local" copy of ``EqualityTester``.
 

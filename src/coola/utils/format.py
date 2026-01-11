@@ -1,6 +1,4 @@
-r"""Implement some utility functions to compute string representations
-of objects.
-"""
+r"""Implement some utility functions to compute string representations of objects."""
 
 
 from __future__ import annotations

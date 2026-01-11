@@ -60,6 +60,7 @@ def numpy_seed(seed: int) -> Generator[None, None, None]:
     random number generator (RNG) state.
 
 
+
     The context manager sets the specified random seed and
     restores the original RNG state afterward.
 

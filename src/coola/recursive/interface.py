@@ -1,6 +1,4 @@
-r"""Define the public interface to recursively apply a function to all
-items in nested data.
-"""
+r"""Define the public interface to recursively apply a function to all items in nested data."""
 
 
 from __future__ import annotations

@@ -1,6 +1,4 @@
-r"""Utilities for introspecting Python objects and retrieving their
-fully qualified names.
-"""
+r"""Utilities for introspecting Python objects and retrieving their fully qualified names."""
 
 
 from __future__ import annotations

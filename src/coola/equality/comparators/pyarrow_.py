@@ -1,6 +1,4 @@
-r"""Implement an equality comparator for ``pyarrow.Array``s and
-``pyarrow.Table``s.
-"""
+r"""Implement an equality comparator for ``pyarrow.Array``s and ``pyarrow.Table``s."""
 
 
 from __future__ import annotations
@@ -30,8 +28,7 @@ logger: logging.Logger = logging.getLogger(__name__)
 
 
 class PyarrowEqualityComparator(BaseEqualityComparator[pa.Array]):  # noqa: PLW1641
-    r"""Implement an equality comparator for ```pyarrow.Array``s and
-    ``pyarrow.Table``s.
+    r"""Implement an equality comparator for ```pyarrow.Array``s and ``pyarrow.Table``s.
 
     Note that ``config.equal_nan``, ``config.atol`` and ``config.rtol``
     arguments are ignored.
@@ -68,8 +65,7 @@ class PyarrowEqualityComparator(BaseEqualityComparator[pa.Array]):  # noqa: PLW1
 
 
 def get_type_comparator_mapping() -> dict[type[object], BaseEqualityComparator[Any]]:
-    r"""Get a default mapping between the types and the equality
-    comparators.
+    r"""Get a default mapping between the types and the equality comparators.
 
     This function returns an empty dictionary if ``pyarrow`` is not
     installed.

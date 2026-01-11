@@ -1,6 +1,4 @@
-r"""Define the abstract base class for child finders used in breadth-
-first search.
-"""
+r"""Define the abstract base class for child finders used in breadth- first search."""
 
 
 from __future__ import annotations

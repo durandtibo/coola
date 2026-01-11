@@ -12,9 +12,7 @@ T = TypeVar("T", bound=Sequence[float])
 
 
 class EmptySequenceError(Exception):
-    r"""Raise when the sequence is empty because it is not possible to
-    reduce an empty sequence.
-    """
+    r"""Raise when the sequence is empty because it is not possible to reduce an empty sequence."""
 
 
 

@@ -12,8 +12,7 @@ from coola.random.base import BaseRandomManager
 
 
 class RandomRandomManager(BaseRandomManager):  # noqa: PLW1641
-    r"""Implement a random manager for the python standard library
-    ``random``.
+    r"""Implement a random manager for the python standard library ``random``.
 
     Example:
         ```pycon

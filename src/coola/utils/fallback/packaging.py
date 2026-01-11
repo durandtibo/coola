@@ -1,6 +1,4 @@
-r"""Contain fallback implementations used when ``packaging`` dependency
-is not available.
-"""
+r"""Contain fallback implementations used when ``packaging`` dependency is not available."""
 
 
 from __future__ import annotations

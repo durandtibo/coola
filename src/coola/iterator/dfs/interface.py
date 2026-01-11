@@ -21,6 +21,7 @@ def dfs_iterate(data: Any, registry: IteratorRegistry | None = None) -> Iterator
     """Perform Depth-First Search (DFS) iteration over nested data
     structures (lists, dicts, tuples, sets, etc.).
 
+
     This function yields elements from the data structure in a DFS manner, recursively
     traversing all levels of nested structures. It uses the appropriate iterators registered
     for the data types (e.g., lists, dictionaries, etc.).

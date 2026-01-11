@@ -18,9 +18,7 @@ V = TypeVar("V")  # Value type
 
 
 class Registry(Generic[K, V]):
-    r"""A thread-safe generic key-value registry for storing and managing
-    typed mappings.
-
+    r"""A thread-safe generic key-value registry for storing and managing typed mappings.
 
     The Registry class provides a type-safe container for registering and
     retrieving values by key. It supports all standard dictionary operations
@@ -337,8 +335,7 @@ class Registry(Generic[K, V]):
             self._state.update(mapping)
 
     def unregister(self, key: K) -> V:
-        """Remove a key-value pair from the registry and return the
-        value.
+        """Remove a key-value pair from the registry and return the value.
 
         This method removes the specified key from the registry and returns
         the value that was associated with it. This allows you to retrieve
