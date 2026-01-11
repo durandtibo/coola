@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola.reducers import EmptySequenceError, NumpyReducer, ReducerRegistry
+from coola.reducer import EmptySequenceError, NumpyReducer
 from coola.testing.fixtures import numpy_available
 from coola.utils import is_numpy_available
 
@@ -20,11 +20,6 @@ if TYPE_CHECKING:
 
 
 EMPTY_SEQUENCES = [[], (), np.array([])]
-
-
-@numpy_available
-def test_reducer_registry_available_reducers() -> None:
-    assert isinstance(ReducerRegistry.registry["numpy"], NumpyReducer)
 
 
 ##################################

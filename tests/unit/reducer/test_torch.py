@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola.reducers import EmptySequenceError, ReducerRegistry, TorchReducer
+from coola.reducer import EmptySequenceError, TorchReducer
 from coola.testing.fixtures import torch_available
 from coola.utils import is_torch_available
 
@@ -21,11 +21,6 @@ if TYPE_CHECKING:
 
 
 EMPTY_SEQUENCES = [[], (), torch.tensor([])]
-
-
-@torch_available
-def test_reducer_registry_available_reducers() -> None:
-    assert isinstance(ReducerRegistry.registry["torch"], TorchReducer)
 
 
 ##################################

@@ -9,10 +9,10 @@ from collections.abc import Sequence
 from statistics import mean, median, stdev
 from typing import TypeVar
 
-from coola.reducers.base import BaseBasicReducer
+from coola.reducer.base import BaseBasicReducer
 from coola.utils.stats import quantile
 
-T = TypeVar("T", bound=Sequence[int | float])
+T = TypeVar("T", bound=Sequence[float])
 
 
 class NativeReducer(BaseBasicReducer[T]):
@@ -20,7 +20,7 @@ class NativeReducer(BaseBasicReducer[T]):
 
     Example:
         ```pycon
-        >>> from coola.reducers import NativeReducer
+        >>> from coola.reducer import NativeReducer
         >>> reducer = NativeReducer()
         >>> reducer.max([-2, -1, 0, 1, 2])
         2

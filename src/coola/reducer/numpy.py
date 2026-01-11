@@ -10,9 +10,8 @@ __all__ = ["NumpyReducer"]
 from collections.abc import Sequence
 from typing import TypeVar
 
-from coola.reducers.base import BaseBasicReducer
-from coola.reducers.registry import ReducerRegistry
-from coola.utils import check_numpy, is_numpy_available
+from coola.reducer.base import BaseBasicReducer
+from coola.utils.imports import check_numpy, is_numpy_available
 
 if is_numpy_available():
     import numpy as np
@@ -20,7 +19,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.numpy import numpy as np
 
 
-T = TypeVar("T", Sequence[int | float], np.ndarray)
+T = TypeVar("T", Sequence[float], np.ndarray)
 
 
 class NumpyReducer(BaseBasicReducer[T]):
@@ -31,7 +30,7 @@ class NumpyReducer(BaseBasicReducer[T]):
 
     Example:
         ```pycon
-        >>> from coola.reducers import NumpyReducer
+        >>> from coola.reducer import NumpyReducer
         >>> reducer = NumpyReducer()
         >>> reducer.max([-2, -1, 0, 1, 2])
         2
@@ -79,7 +78,3 @@ class NumpyReducer(BaseBasicReducer[T]):
         if len(values) <= 1:
             return float("nan")
         return np.std(np.asarray(values), ddof=1).item()
-
-
-if is_numpy_available() and not ReducerRegistry.has_reducer("numpy"):  # pragma: no cover
-    ReducerRegistry.add_reducer("numpy", NumpyReducer())

@@ -42,9 +42,9 @@ jobs:
       - name: check coola.recursive
         run: |
           python -c "from coola import recursive"
-      - name: check coola.reducers
+      - name: check coola.reducer
         run: |
-          python -c "from coola import reducers"
+          python -c "from coola import reducer"
       - name: check coola.registry
         run: |
           python -c "from coola import registry"

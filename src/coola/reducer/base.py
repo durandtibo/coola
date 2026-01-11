@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from typing import Generic, TypeVar
 
-T = TypeVar("T", bound=Sequence[int | float])
+T = TypeVar("T", bound=Sequence[float])
 
 
 class EmptySequenceError(Exception):
@@ -21,7 +21,7 @@ class BaseReducer(ABC, Generic[T]):
 
     Example:
         ```pycon
-        >>> from coola.reducers import NumpyReducer
+        >>> from coola.reducer import NumpyReducer
         >>> reducer = NumpyReducer()
         >>> reducer.max([-2, -1, 0, 1, 2])
         2
@@ -48,7 +48,7 @@ class BaseReducer(ABC, Generic[T]):
 
         Example:
             ```pycon
-            >>> from coola.reducers import TorchReducer
+            >>> from coola.reducer import TorchReducer
             >>> reducer = TorchReducer()
             >>> reducer.max([-2, -1, 0, 1, 2])
             2
@@ -71,7 +71,7 @@ class BaseReducer(ABC, Generic[T]):
 
         Example:
             ```pycon
-            >>> from coola.reducers import TorchReducer
+            >>> from coola.reducer import TorchReducer
             >>> reducer = TorchReducer()
             >>> reducer.mean([-2, -1, 0, 1, 2])
             0.0
@@ -94,7 +94,7 @@ class BaseReducer(ABC, Generic[T]):
 
         Example:
             ```pycon
-            >>> from coola.reducers import TorchReducer
+            >>> from coola.reducer import TorchReducer
             >>> reducer = TorchReducer()
             >>> reducer.median([-2, -1, 0, 1, 2])
             0
@@ -117,7 +117,7 @@ class BaseReducer(ABC, Generic[T]):
 
         Example:
             ```pycon
-            >>> from coola.reducers import TorchReducer
+            >>> from coola.reducer import TorchReducer
             >>> reducer = TorchReducer()
             >>> reducer.min([-2, -1, 0, 1, 2])
             -2
@@ -142,7 +142,7 @@ class BaseReducer(ABC, Generic[T]):
 
         Example:
             ```pycon
-            >>> from coola.reducers import TorchReducer
+            >>> from coola.reducer import TorchReducer
             >>> reducer = TorchReducer()
             >>> reducer.quantile([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], (0.2, 0.5, 0.9))
             [2.0, 5.0, 9.0]
@@ -163,7 +163,7 @@ class BaseReducer(ABC, Generic[T]):
 
         Example:
             ```pycon
-            >>> from coola.reducers import TorchReducer
+            >>> from coola.reducer import TorchReducer
             >>> reducer = TorchReducer()
             >>> reducer.sort([2, 1, -2, 3, 0])
             [-2, 0, 1, 2, 3]
@@ -188,7 +188,7 @@ class BaseReducer(ABC, Generic[T]):
 
         Example:
             ```pycon
-            >>> from coola.reducers import TorchReducer
+            >>> from coola.reducer import TorchReducer
             >>> reducer = TorchReducer()
             >>> reducer.std([-2, -1, 0, 1, 2])
             1.581138...

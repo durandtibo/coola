@@ -1,4 +1,4 @@
-r"""Implement utility functions for reducers."""
+r"""Implement utility functions for reducer."""
 
 from __future__ import annotations
 
@@ -6,14 +6,14 @@ __all__ = ["auto_reducer"]
 
 from typing import TYPE_CHECKING
 
-from coola.reducers import BaseReducer, NativeReducer, NumpyReducer, TorchReducer
+from coola.reducer import BaseReducer, NativeReducer, NumpyReducer, TorchReducer
 from coola.utils import is_numpy_available, is_torch_available
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-def auto_reducer() -> BaseReducer[Sequence[int | float]]:
+def auto_reducer() -> BaseReducer[Sequence[float]]:
     r"""Find the "best" reducer to used based on the installed packages.
 
     The "best" reducer is found by using the following rules:
@@ -26,7 +26,7 @@ def auto_reducer() -> BaseReducer[Sequence[int | float]]:
 
     Example:
         ```pycon
-        >>> from coola.reducers import auto_reducer
+        >>> from coola.reducer import auto_reducer
         >>> reducer = auto_reducer()
 
         ```
