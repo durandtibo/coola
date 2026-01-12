@@ -41,7 +41,6 @@ nav:
       - upgrade/0.3.md
       - upgrade/0.4.md
   - Reference:
-      - refs/index.md
       - refs/equality.md
       - refs/iterator.md
       - refs/random.md
