@@ -83,14 +83,14 @@ def object_equal(
         config: The equality configuration.
 
     Returns:
-        ``True` `if the two arrays or tables are equal within a
+        ``True`` if the two arrays or tables are equal within a
             tolerance, otherwise ``False``.
 
     Example:
         ```pycon
         >>> import pyarrow as pa
         >>> from coola.equality import EqualityConfig
-        >>> from coola.equality.handler.pyarrow_ import object_equal
+        >>> from coola.equality.handler.pyarrow import object_equal
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
         >>> object_equal(pa.array([1, 2, 3]), pa.array([1, 2, 3]), config)

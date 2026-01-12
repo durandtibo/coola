@@ -36,7 +36,7 @@ class SameDTypeHandler(AbstractEqualityHandler):  # noqa: PLW1641
     This handler returns ``False`` if the two objects have different
     data types, otherwise it passes the inputs to the next handler.
     The objects must have a ``dtype`` attribute (e.g. ``object.dtype``)
-    which returns the shape of the object. This handler works on
+    which returns the data type of the object. This handler works on
     ``numpy.ndarray``s and ``torch.Tensor``s objects.
 
     Example:

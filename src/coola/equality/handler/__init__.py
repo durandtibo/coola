@@ -1,6 +1,6 @@
 r"""Contain the handler to help to check if two objects are equal or not.
 
-The handler are designed to work with Chain of Responsibility pattern.
+The handlers are designed to work with the Chain of Responsibility pattern.
 """
 
 from __future__ import annotations
