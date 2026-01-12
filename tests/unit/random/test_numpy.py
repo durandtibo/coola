@@ -28,17 +28,17 @@ def test_numpy_random_manager_str() -> None:
 
 
 @numpy_available
-def test_numpy_random_manager_eq_true() -> None:
+def test_numpy_random_manager__eq__true() -> None:
     assert NumpyRandomManager() == NumpyRandomManager()
 
 
 @numpy_available
-def test_numpy_random_manager_eq_false_different_type() -> None:
+def test_numpy_random_manager__eq__false_different_type() -> None:
     assert NumpyRandomManager() != 42
 
 
 @numpy_available
-def test_numpy_random_manager_eq_false_different_type_child() -> None:
+def test_numpy_random_manager__eq__false_different_type_child() -> None:
     class Child(NumpyRandomManager): ...
 
     assert NumpyRandomManager() != Child()

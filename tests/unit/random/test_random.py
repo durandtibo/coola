@@ -17,15 +17,15 @@ def test_random_random_manager_str() -> None:
     assert str(RandomRandomManager()).startswith("RandomRandomManager(")
 
 
-def test_random_random_manager_eq_true() -> None:
+def test_random_random_manager__eq__true() -> None:
     assert RandomRandomManager() == RandomRandomManager()
 
 
-def test_random_random_manager_eq_false_different_type() -> None:
+def test_random_random_manager__eq__false_different_type() -> None:
     assert RandomRandomManager() != 42
 
 
-def test_random_random_manager_eq_false_different_type_child() -> None:
+def test_random_random_manager__eq__false_different_type_child() -> None:
     class Child(RandomRandomManager): ...
 
     assert RandomRandomManager() != Child()
