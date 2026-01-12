@@ -37,9 +37,6 @@ nav:
   - Developer Guide:
       - dev/development.md
       - dev/architecture.md
-  - Upgrade Guide:
-      - upgrade/0.3.md
-      - upgrade/0.4.md
   - Reference:
       - refs/equality.md
       - refs/iterator.md
