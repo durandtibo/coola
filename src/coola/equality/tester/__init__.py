@@ -21,6 +21,9 @@ __all__ = [
     "SequenceEqualityTester",
     "TorchPackedSequenceEqualityTester",
     "TorchTensorEqualityTester",
+    "XarrayDataArrayEqualityTester",
+    "XarrayDatasetEqualityTester",
+    "XarrayVariableEqualityTester",
     "get_default_registry",
     "register_equality_testers",
 ]
@@ -55,4 +58,9 @@ from coola.equality.tester.scalar import ScalarEqualityTester
 from coola.equality.tester.torch import (
     TorchPackedSequenceEqualityTester,
     TorchTensorEqualityTester,
+)
+from coola.equality.tester.xarray import (
+    XarrayDataArrayEqualityTester,
+    XarrayDatasetEqualityTester,
+    XarrayVariableEqualityTester,
 )
