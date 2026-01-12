@@ -8,7 +8,7 @@ import pytest
 
 from coola import objects_are_allclose
 from coola.testing.fixtures import pyarrow_available
-from tests.unit.equality.checks.test_default import COMPARATOR_FUNCTIONS
+from tests.unit.equality.checks.test_default import EQUALITY_TESTER_FUNCTIONS
 from tests.unit.equality.comparators.test_pyarrow import (
     PYARROW_EQUAL,
     PYARROW_EQUAL_TOLERANCE,
@@ -33,7 +33,7 @@ def _filter_warning() -> None:
 
 
 @pyarrow_available
-@pytest.mark.parametrize("function", COMPARATOR_FUNCTIONS)
+@pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
 @pytest.mark.parametrize("example", PYARROW_EQUAL)
 @pytest.mark.parametrize("show_difference", [True, False])
 def test_objects_are_equal_true(
@@ -48,7 +48,7 @@ def test_objects_are_equal_true(
 
 
 @pyarrow_available
-@pytest.mark.parametrize("function", COMPARATOR_FUNCTIONS)
+@pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
 @pytest.mark.parametrize("example", PYARROW_NOT_EQUAL)
 def test_objects_are_equal_false(
     function: Callable, example: ExamplePair, caplog: pytest.LogCaptureFixture
@@ -59,7 +59,7 @@ def test_objects_are_equal_false(
 
 
 @pyarrow_available
-@pytest.mark.parametrize("function", COMPARATOR_FUNCTIONS)
+@pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
 @pytest.mark.parametrize("example", PYARROW_NOT_EQUAL)
 def test_objects_are_equal_false_show_difference(
     function: Callable, example: ExamplePair, caplog: pytest.LogCaptureFixture

@@ -7,7 +7,7 @@ import pytest
 
 from coola import objects_are_allclose
 from coola.testing.fixtures import polars_available
-from tests.unit.equality.checks.test_default import COMPARATOR_FUNCTIONS
+from tests.unit.equality.checks.test_default import EQUALITY_TESTER_FUNCTIONS
 from tests.unit.equality.comparators.test_polars import (
     POLARS_EQUAL,
     POLARS_EQUAL_TOLERANCE,
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 
 @polars_available
-@pytest.mark.parametrize("function", COMPARATOR_FUNCTIONS)
+@pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
 @pytest.mark.parametrize("example", POLARS_EQUAL)
 @pytest.mark.parametrize("show_difference", [True, False])
 def test_objects_are_equal_true(
@@ -36,7 +36,7 @@ def test_objects_are_equal_true(
 
 
 @polars_available
-@pytest.mark.parametrize("function", COMPARATOR_FUNCTIONS)
+@pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
 @pytest.mark.parametrize("example", POLARS_NOT_EQUAL)
 def test_objects_are_equal_false(
     function: Callable, example: ExamplePair, caplog: pytest.LogCaptureFixture
@@ -47,7 +47,7 @@ def test_objects_are_equal_false(
 
 
 @polars_available
-@pytest.mark.parametrize("function", COMPARATOR_FUNCTIONS)
+@pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
 @pytest.mark.parametrize("example", POLARS_NOT_EQUAL)
 def test_objects_are_equal_false_show_difference(
     function: Callable, example: ExamplePair, caplog: pytest.LogCaptureFixture

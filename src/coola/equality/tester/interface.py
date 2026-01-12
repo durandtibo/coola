@@ -8,7 +8,6 @@ __all__ = ["get_default_registry", "register_equality_testers"]
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any
 
-from coola.equality.tester.pyarrow import PyarrowEqualityTester
 from coola.equality.tester.collection import (
     MappingEqualityTester,
     SequenceEqualityTester,
@@ -28,6 +27,7 @@ from coola.equality.tester.polars import (
     PolarsLazyFrameEqualityTester,
     PolarsSeriesEqualityTester,
 )
+from coola.equality.tester.pyarrow import PyarrowEqualityTester
 from coola.equality.tester.registry import EqualityTesterRegistry
 from coola.equality.tester.scalar import ScalarEqualityTester
 from coola.equality.tester.torch import (
