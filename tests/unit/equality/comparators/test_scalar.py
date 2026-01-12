@@ -4,11 +4,11 @@ import logging
 
 import pytest
 
-from coola.equality import EqualityConfig
 from coola.equality.comparators.scalar import (
     ScalarEqualityComparator,
     get_type_comparator_mapping,
 )
+from coola.equality.config import EqualityConfig
 from coola.equality.testers import EqualityTester
 from tests.unit.equality.utils import ExamplePair
 

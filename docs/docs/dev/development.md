@@ -248,7 +248,7 @@ coola/
    ```python
    # src/coola/equality/comparators/mytype_.py
    from typing import Any
-   from coola.equality import EqualityConfig
+   from coola.equality.config import EqualityConfig
    from coola.equality.comparators.base import BaseEqualityComparator
 
 

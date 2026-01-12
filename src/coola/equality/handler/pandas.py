@@ -33,7 +33,7 @@ class PandasDataFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import pandas
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import PandasDataFrameEqualHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
@@ -89,7 +89,7 @@ class PandasSeriesEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import pandas
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import PandasSeriesEqualHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())

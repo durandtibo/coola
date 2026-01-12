@@ -4,7 +4,7 @@ import logging
 
 import pytest
 
-from coola.equality import EqualityConfig2
+from coola.equality.config import EqualityConfig2
 from coola.equality.tester import ScalarEqualityTester
 from tests.unit.equality.utils import ExamplePair
 

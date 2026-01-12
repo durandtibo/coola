@@ -6,7 +6,6 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola.equality import EqualityConfig
 from coola.equality.comparators import (
     BaseEqualityComparator,
     DefaultEqualityComparator,
@@ -25,6 +24,7 @@ from coola.equality.comparators import (
     XarrayDatasetEqualityComparator,
     XarrayVariableEqualityComparator,
 )
+from coola.equality.config import EqualityConfig
 from coola.equality.testers import EqualityTester, LocalEqualityTester
 from coola.testing.fixtures import (
     jax_available,

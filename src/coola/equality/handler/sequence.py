@@ -27,7 +27,7 @@ class SequenceSameValuesHandler(AbstractEqualityHandler):  # noqa: PLW1641
 
     Example:
         ```pycon
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import SequenceSameValuesHandler, TrueHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())

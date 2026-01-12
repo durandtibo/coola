@@ -32,7 +32,7 @@ class NumpyArrayEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import numpy as np
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import NumpyArrayEqualHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
@@ -83,7 +83,7 @@ def array_equal(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) 
     Example:
         ```pycon
         >>> import numpy as np
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler.numpy import array_equal
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())

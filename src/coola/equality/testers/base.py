@@ -32,7 +32,7 @@ class BaseEqualityTester(ABC):
         Example:
             ```pycon
             >>> import numpy as np
-            >>> from coola.equality import EqualityConfig
+            >>> from coola.equality.config import EqualityConfig
             >>> from coola.equality.testers import EqualityTester
             >>> tester = EqualityTester()
             >>> config = EqualityConfig(tester=tester)

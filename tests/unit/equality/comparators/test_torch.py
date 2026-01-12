@@ -5,12 +5,12 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola.equality import EqualityConfig
 from coola.equality.comparators.torch_ import (
     TorchPackedSequenceEqualityComparator,
     TorchTensorEqualityComparator,
     get_type_comparator_mapping,
 )
+from coola.equality.config import EqualityConfig
 from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import (
     torch_available,

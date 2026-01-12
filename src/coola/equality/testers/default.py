@@ -11,8 +11,8 @@ from coola.equality.testers.base import BaseEqualityTester
 from coola.utils.format import str_indent, str_mapping
 
 if TYPE_CHECKING:
-    from coola.equality import EqualityConfig
     from coola.equality.comparators.base import BaseEqualityComparator
+    from coola.equality.config import EqualityConfig
 
 T = TypeVar("T")
 

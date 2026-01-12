@@ -7,12 +7,12 @@ from unittest.mock import Mock
 
 import pytest
 
-from coola.equality import EqualityConfig
 from coola.equality.comparators import SequenceEqualityComparator
 from coola.equality.comparators.collection import (
     MappingEqualityComparator,
     get_type_comparator_mapping,
 )
+from coola.equality.config import EqualityConfig
 from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available

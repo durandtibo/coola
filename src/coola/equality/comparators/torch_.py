@@ -34,7 +34,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.torch import torch
 
 if TYPE_CHECKING:
-    from coola.equality import EqualityConfig
+    from coola.equality.config import EqualityConfig
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -47,7 +47,7 @@ class TorchPackedSequenceEqualityComparator(  # noqa: PLW1641
     Example:
         ```pycon
         >>> import torch
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.comparators import TorchPackedSequenceEqualityComparator
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
@@ -87,7 +87,7 @@ class TorchTensorEqualityComparator(BaseEqualityComparator[torch.Tensor]):  # no
     Example:
         ```pycon
         >>> import torch
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.comparators import TorchTensorEqualityComparator
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())

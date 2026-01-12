@@ -27,7 +27,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.pandas import pandas as pd
 
 if TYPE_CHECKING:
-    from coola.equality import EqualityConfig
+    from coola.equality.config import EqualityConfig
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ class PandasDataFrameEqualityComparator(BaseEqualityComparator[pd.DataFrame]):  
     Example:
         ```pycon
         >>> import pandas as pd
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.comparators import PandasDataFrameEqualityComparator
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
@@ -80,7 +80,7 @@ class PandasSeriesEqualityComparator(BaseEqualityComparator[pd.Series]):  # noqa
     Example:
         ```pycon
         >>> import pandas as pd
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.comparators import PandasSeriesEqualityComparator
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())

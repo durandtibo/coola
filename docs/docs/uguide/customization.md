@@ -14,7 +14,7 @@ The following example shows how to use a custom `BaseEqualityTester`.
 
 >>> from typing import Any
 >>> from coola import objects_are_equal
->>> from coola.equality import EqualityConfig
+>>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.testers import BaseEqualityTester
 >>> class MyCustomEqualityTester(BaseEqualityTester):
 ...     def equal(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:

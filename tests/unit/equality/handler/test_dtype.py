@@ -5,7 +5,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from coola.equality import EqualityConfig
+from coola.equality.config import EqualityConfig
 from coola.equality.handler import FalseHandler, SameDTypeHandler, TrueHandler
 from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import jax_available, numpy_available, torch_available

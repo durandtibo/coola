@@ -65,7 +65,7 @@ class EqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import math
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import EqualHandler
         >>> from coola.equality.testers import EqualityTester
         >>> class MyFloat:
@@ -112,7 +112,7 @@ class EqualNanHandler(BaseEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import math
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import EqualNanHandler
         >>> from coola.equality.testers import EqualityTester
         >>> class MyFloat:

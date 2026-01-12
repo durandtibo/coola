@@ -42,7 +42,7 @@ class SameDTypeHandler(AbstractEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import numpy as np
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import SameDTypeHandler, TrueHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())

@@ -14,7 +14,7 @@ from coola.equality.handler import (
 from coola.equality.tester.base import BaseEqualityTester
 
 if TYPE_CHECKING:
-    from coola.equality import EqualityConfig2
+    from coola.equality.config import EqualityConfig2
 
 
 class DefaultEqualityTester(BaseEqualityTester[object]):
@@ -25,7 +25,7 @@ class DefaultEqualityTester(BaseEqualityTester[object]):
 
     Example:
         ```pycon
-        >>> from coola.equality import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.tester import DefaultEqualityTester
         >>> config = EqualityConfig2()
         >>> tester = DefaultEqualityTester()

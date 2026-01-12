@@ -21,7 +21,7 @@ class BaseEqualityComparator(ABC, Generic[T]):
 
     Example:
         ```pycon
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.comparators import DefaultEqualityComparator
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
@@ -71,7 +71,7 @@ class BaseEqualityComparator(ABC, Generic[T]):
 
         Example:
             ```pycon
-            >>> from coola.equality import EqualityConfig
+            >>> from coola.equality.config import EqualityConfig
             >>> from coola.equality.comparators import DefaultEqualityComparator
             >>> from coola.equality.testers import EqualityTester
             >>> config = EqualityConfig(tester=EqualityTester())
