@@ -5,15 +5,15 @@ from __future__ import annotations
 
 __all__ = ["get_default_registry", "register_equality_testers"]
 
+from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any
 
+from coola.equality.tester import MappingEqualityTester, SequenceEqualityTester
 from coola.equality.tester.default import DefaultEqualityTester
 from coola.equality.tester.registry import EqualityTesterRegistry
 from coola.equality.tester.scalar import ScalarEqualityTester
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
-
     from coola.equality.tester.base import BaseEqualityTester
 
 
@@ -131,5 +131,28 @@ def _get_native_equality_testers() -> dict[type, BaseEqualityTester]:
         This function is called internally by get_default_registry() and should
         not typically be called directly by users.
     """
+    default = DefaultEqualityTester()
     scalar = ScalarEqualityTester()
-    return {object: DefaultEqualityTester(), int: scalar, float: scalar}
+    mapping = MappingEqualityTester()
+    sequence = SequenceEqualityTester()
+    return {
+        # Object is the catch-all base for unregistered types
+        object: default,
+        # Strings should not be iterated character by character
+        str: default,
+        # Numeric types - no recursion needed
+        int: scalar,
+        float: scalar,
+        complex: default,
+        bool: scalar,
+        # Sequences - recursive transformation preserving order
+        list: sequence,
+        tuple: sequence,
+        Sequence: sequence,
+        # Sets - recursive transformation without order
+        set: default,
+        frozenset: default,
+        # Mappings - recursive transformation of keys and values
+        dict: mapping,
+        Mapping: mapping,
+    }
