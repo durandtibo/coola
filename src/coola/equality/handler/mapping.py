@@ -1,4 +1,4 @@
-r"""Implement some handlers for native python objects."""
+r"""Implement some handler for native python objects."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ __all__ = ["MappingSameKeysHandler", "MappingSameValuesHandler"]
 import logging
 from typing import TYPE_CHECKING, Any
 
-from coola.equality.handlers.base import AbstractEqualityHandler
+from coola.equality.handler.base import AbstractEqualityHandler
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -26,7 +26,7 @@ class MappingSameKeysHandler(AbstractEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> from coola.equality import EqualityConfig
-        >>> from coola.equality.handlers import MappingSameKeysHandler
+        >>> from coola.equality.handler import MappingSameKeysHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
         >>> handler = MappingSameKeysHandler()
@@ -77,7 +77,7 @@ class MappingSameValuesHandler(AbstractEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> from coola.equality import EqualityConfig
-        >>> from coola.equality.handlers import MappingSameValuesHandler, TrueHandler
+        >>> from coola.equality.handler import MappingSameValuesHandler, TrueHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
         >>> handler = MappingSameValuesHandler(next_handler=TrueHandler())

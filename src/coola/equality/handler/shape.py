@@ -7,7 +7,7 @@ __all__ = ["SameShapeHandler", "SupportsShape"]
 import logging
 from typing import TYPE_CHECKING, Protocol
 
-from coola.equality.handlers.base import AbstractEqualityHandler
+from coola.equality.handler.base import AbstractEqualityHandler
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -44,7 +44,7 @@ class SameShapeHandler(AbstractEqualityHandler):  # noqa: PLW1641
         ```pycon
         >>> import numpy as np
         >>> from coola.equality import EqualityConfig
-        >>> from coola.equality.handlers import SameShapeHandler, TrueHandler
+        >>> from coola.equality.handler import SameShapeHandler, TrueHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
         >>> handler = SameShapeHandler(next_handler=TrueHandler())

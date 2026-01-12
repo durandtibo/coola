@@ -1,4 +1,4 @@
-r"""Implement some handlers for ``torch.Tensor``s."""
+r"""Implement some handler for ``torch.Tensor``s."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ __all__ = ["TorchTensorEqualHandler", "TorchTensorSameDeviceHandler"]
 import logging
 from typing import TYPE_CHECKING
 
-from coola.equality.handlers.base import AbstractEqualityHandler, BaseEqualityHandler
+from coola.equality.handler.base import AbstractEqualityHandler, BaseEqualityHandler
 
 if TYPE_CHECKING:
     import torch
@@ -29,7 +29,7 @@ class TorchTensorEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```pycon
         >>> import torch
         >>> from coola.equality import EqualityConfig
-        >>> from coola.equality.handlers.torch_ import TorchTensorEqualHandler
+        >>> from coola.equality.handler.torch_ import TorchTensorEqualHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
         >>> handler = TorchTensorEqualHandler()
@@ -74,8 +74,8 @@ class TorchTensorSameDeviceHandler(AbstractEqualityHandler):  # noqa: PLW1641
         ```pycon
         >>> import torch
         >>> from coola.equality import EqualityConfig
-        >>> from coola.equality.handlers import TrueHandler
-        >>> from coola.equality.handlers.torch_ import TorchTensorSameDeviceHandler
+        >>> from coola.equality.handler import TrueHandler
+        >>> from coola.equality.handler.torch_ import TorchTensorSameDeviceHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
         >>> handler = TorchTensorSameDeviceHandler(next_handler=TrueHandler())

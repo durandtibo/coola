@@ -1,4 +1,4 @@
-r"""Implement handlers to check the objects have the same data."""
+r"""Implement handler to check the objects have the same data."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ __all__ = ["SameDataHandler", "SupportsData"]
 import logging
 from typing import TYPE_CHECKING, Any, Protocol
 
-from coola.equality.handlers.base import AbstractEqualityHandler
+from coola.equality.handler.base import AbstractEqualityHandler
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -42,7 +42,7 @@ class SameDataHandler(AbstractEqualityHandler):  # noqa: PLW1641
         ```pycon
         >>> import numpy as np
         >>> from coola.equality import EqualityConfig
-        >>> from coola.equality.handlers import SameDataHandler, TrueHandler
+        >>> from coola.equality.handler import SameDataHandler, TrueHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
         >>> handler = SameDataHandler(next_handler=TrueHandler())

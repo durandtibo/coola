@@ -13,7 +13,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from coola.equality.comparators.base import BaseEqualityComparator
-from coola.equality.handlers import (
+from coola.equality.handler import (
     SameAttributeHandler,
     SameDataHandler,
     SameDTypeHandler,
@@ -22,7 +22,7 @@ from coola.equality.handlers import (
     SameTypeHandler,
     TrueHandler,
 )
-from coola.equality.handlers.torch_ import (
+from coola.equality.handler.torch import (
     TorchTensorEqualHandler,
     TorchTensorSameDeviceHandler,
 )

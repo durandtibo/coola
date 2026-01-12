@@ -7,12 +7,12 @@ from typing import TYPE_CHECKING, Any
 import pytest
 
 from coola.equality import EqualityConfig
-from coola.equality.handlers import EqualNanHandler, FalseHandler, TrueHandler
-from coola.equality.handlers.equal import EqualHandler
+from coola.equality.handler import EqualNanHandler, FalseHandler, TrueHandler
+from coola.equality.handler.equal import EqualHandler
 from coola.equality.testers import EqualityTester
 
 if TYPE_CHECKING:
-    from coola.equality.handlers.equal import SupportsEqual, SupportsEqualNan
+    from coola.equality.handler.equal import SupportsEqual, SupportsEqualNan
 
 
 @pytest.fixture

@@ -7,8 +7,8 @@ from unittest.mock import Mock
 import pytest
 
 from coola.equality import EqualityConfig
-from coola.equality.handlers import FalseHandler, TrueHandler
-from coola.equality.handlers.torch_ import (
+from coola.equality.handler import FalseHandler, TrueHandler
+from coola.equality.handler.torch import (
     TorchTensorEqualHandler,
     TorchTensorSameDeviceHandler,
 )

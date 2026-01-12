@@ -7,7 +7,7 @@ from unittest.mock import Mock
 import pytest
 
 from coola.equality import EqualityConfig
-from coola.equality.handlers import (
+from coola.equality.handler import (
     FalseHandler,
     ObjectEqualHandler,
     SameAttributeHandler,

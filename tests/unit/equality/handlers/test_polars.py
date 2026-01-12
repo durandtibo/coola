@@ -7,12 +7,12 @@ from unittest.mock import Mock, patch
 import pytest
 
 from coola.equality import EqualityConfig
-from coola.equality.handlers import (
+from coola.equality.handler import (
     FalseHandler,
     PolarsDataFrameEqualHandler,
     PolarsSeriesEqualHandler,
 )
-from coola.equality.handlers.polars_ import (
+from coola.equality.handler.polars import (
     PolarsLazyFrameEqualHandler,
     assert_frame_equal,
     assert_series_equal,
@@ -593,7 +593,7 @@ def test_has_nan_false(df_or_series: pl.DataFrame | pl.Series) -> None:
 def test_assert_frame_equal_new_naming() -> None:
     is_new_naming.cache_clear()
     with (
-        patch("coola.equality.handlers.polars_.is_new_naming", lambda: True),
+        patch("coola.equality.handler.polars.is_new_naming", lambda: True),
         patch("polars.testing.assert_frame_equal") as mock,
     ):
         assert_frame_equal(
@@ -606,7 +606,7 @@ def test_assert_frame_equal_new_naming() -> None:
 def test_assert_frame_equal_old_naming() -> None:
     is_new_naming.cache_clear()
     with (
-        patch("coola.equality.handlers.polars_.is_new_naming", lambda: False),
+        patch("coola.equality.handler.polars.is_new_naming", lambda: False),
         patch("polars.testing.assert_frame_equal") as mock,
     ):
         assert_frame_equal(
@@ -624,7 +624,7 @@ def test_assert_frame_equal_old_naming() -> None:
 def test_assert_series_equal_new_naming() -> None:
     is_new_naming.cache_clear()
     with (
-        patch("coola.equality.handlers.polars_.is_new_naming", lambda: True),
+        patch("coola.equality.handler.polars.is_new_naming", lambda: True),
         patch("polars.testing.assert_series_equal") as mock,
     ):
         assert_series_equal(series1=pl.Series([1, 2, 3]), series2=pl.Series([1, 2, 3]))
@@ -635,7 +635,7 @@ def test_assert_series_equal_new_naming() -> None:
 def test_assert_series_equal_old_naming() -> None:
     is_new_naming.cache_clear()
     with (
-        patch("coola.equality.handlers.polars_.is_new_naming", lambda: False),
+        patch("coola.equality.handler.polars.is_new_naming", lambda: False),
         patch("polars.testing.assert_series_equal") as mock,
     ):
         assert_series_equal(series1=pl.Series([1, 2, 3]), series2=pl.Series([1, 2, 3]))
