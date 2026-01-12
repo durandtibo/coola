@@ -37,7 +37,7 @@ class PolarsDataFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import polars as pl
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import PolarsDataFrameEqualHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
@@ -93,7 +93,7 @@ class PolarsLazyFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import polars as pl
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import PolarsLazyFrameEqualHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
@@ -149,7 +149,7 @@ class PolarsSeriesEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import polars as pl
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import PolarsSeriesEqualHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())

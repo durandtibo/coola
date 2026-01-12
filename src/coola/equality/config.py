@@ -29,7 +29,7 @@ class EqualityConfig:
 
     Example:
         ```pycon
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
         >>> config
@@ -69,7 +69,7 @@ class EqualityConfig2:
 
     Example:
         ```pycon
-        >>> from coola.equality import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig2
         >>> config = EqualityConfig2()
         >>> config
         EqualityConfig2(registry=EqualityTesterRegistry(...), equal_nan=False, atol=0.0, rtol=0.0, show_difference=False)

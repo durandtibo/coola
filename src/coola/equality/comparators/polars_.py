@@ -28,7 +28,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.polars import polars as pl
 
 if TYPE_CHECKING:
-    from coola.equality import EqualityConfig
+    from coola.equality.config import EqualityConfig
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ class PolarsDataFrameEqualityComparator(BaseEqualityComparator[pl.DataFrame]):  
     Example:
         ```pycon
         >>> import polars as pl
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.comparators import PolarsDataFrameEqualityComparator
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
@@ -81,7 +81,7 @@ class PolarsLazyFrameEqualityComparator(BaseEqualityComparator[pl.LazyFrame]):  
     Example:
         ```pycon
         >>> import polars as pl
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.comparators import PolarsLazyFrameEqualityComparator
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
@@ -123,7 +123,7 @@ class PolarsSeriesEqualityComparator(BaseEqualityComparator[pl.Series]):  # noqa
     Example:
         ```pycon
         >>> import polars as pl
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.comparators import PolarsSeriesEqualityComparator
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())

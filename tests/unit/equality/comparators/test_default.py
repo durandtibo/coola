@@ -6,9 +6,9 @@ from unittest.mock import Mock
 
 import pytest
 
-from coola.equality import EqualityConfig
 from coola.equality.comparators import DefaultEqualityComparator
 from coola.equality.comparators.default import get_type_comparator_mapping
+from coola.equality.config import EqualityConfig
 from coola.equality.testers import EqualityTester
 from tests.unit.equality.utils import ExamplePair
 

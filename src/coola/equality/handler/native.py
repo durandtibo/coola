@@ -34,7 +34,7 @@ class FalseHandler(BaseEqualityHandler):  # noqa: PLW1641
 
     Example:
         ```pycon
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import FalseHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
@@ -73,7 +73,7 @@ class TrueHandler(BaseEqualityHandler):  # noqa: PLW1641
 
     Example:
         ```pycon
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import TrueHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
@@ -115,7 +115,7 @@ class ObjectEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
 
     Example:
         ```pycon
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import ObjectEqualHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
@@ -159,7 +159,7 @@ class SameAttributeHandler(AbstractEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import numpy as np
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import SameAttributeHandler, TrueHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
@@ -210,7 +210,7 @@ class SameLengthHandler(AbstractEqualityHandler):  # noqa: PLW1641
 
     Example:
         ```pycon
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import SameLengthHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
@@ -245,7 +245,7 @@ class SameObjectHandler(AbstractEqualityHandler):  # noqa: PLW1641
 
     Example:
         ```pycon
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import SameObjectHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
@@ -278,7 +278,7 @@ class SameTypeHandler(AbstractEqualityHandler):  # noqa: PLW1641
 
     Example:
         ```pycon
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import SameTypeHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())

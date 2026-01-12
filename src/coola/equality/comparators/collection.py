@@ -22,7 +22,7 @@ from coola.equality.handler import (
 )
 
 if TYPE_CHECKING:
-    from coola.equality import EqualityConfig
+    from coola.equality.config import EqualityConfig
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ class MappingEqualityComparator(BaseEqualityComparator[Mapping[Any, Any]]):  # n
 
     Example:
         ```pycon
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.comparators import MappingEqualityComparator
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
@@ -66,7 +66,7 @@ class SequenceEqualityComparator(BaseEqualityComparator[Sequence[Any]]):  # noqa
 
     Example:
         ```pycon
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.comparators import SequenceEqualityComparator
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())

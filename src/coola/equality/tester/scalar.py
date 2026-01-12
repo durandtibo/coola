@@ -15,7 +15,7 @@ from coola.equality.handler import (
 from coola.equality.tester.base import BaseEqualityTester
 
 if TYPE_CHECKING:
-    from coola.equality import EqualityConfig2
+    from coola.equality.config import EqualityConfig2
 
 
 class ScalarEqualityTester(BaseEqualityTester[float]):
@@ -23,7 +23,7 @@ class ScalarEqualityTester(BaseEqualityTester[float]):
 
     Example:
         ```pycon
-        >>> from coola.equality import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.tester import ScalarEqualityTester
         >>> config = EqualityConfig2()
         >>> tester = ScalarEqualityTester()

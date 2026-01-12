@@ -5,12 +5,12 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola.equality import EqualityConfig
 from coola.equality.comparators.numpy_ import (
     NumpyArrayEqualityComparator,
     NumpyMaskedArrayEqualityComparator,
     get_type_comparator_mapping,
 )
+from coola.equality.config import EqualityConfig
 from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available

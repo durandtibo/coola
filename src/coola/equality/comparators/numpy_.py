@@ -30,7 +30,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.numpy import numpy as np
 
 if TYPE_CHECKING:
-    from coola.equality import EqualityConfig
+    from coola.equality.config import EqualityConfig
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ class NumpyArrayEqualityComparator(BaseEqualityComparator[np.ndarray]):  # noqa:
     Example:
         ```pycon
         >>> import numpy as np
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.comparators import NumpyArrayEqualityComparator
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
@@ -79,7 +79,7 @@ class NumpyMaskedArrayEqualityComparator(  # noqa: PLW1641
     Example:
         ```pycon
         >>> import numpy as np
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.comparators import NumpyMaskedArrayEqualityComparator
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())

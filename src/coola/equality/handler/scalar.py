@@ -25,7 +25,7 @@ class NanEqualHandler(AbstractEqualityHandler):  # noqa: PLW1641
 
     Example:
         ```pycon
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import NanEqualHandler, FalseHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
@@ -63,7 +63,7 @@ class ScalarEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
 
     Example:
         ```pycon
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import ScalarEqualHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())

@@ -28,7 +28,7 @@ class TorchTensorEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import torch
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import TorchTensorEqualHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
@@ -73,7 +73,7 @@ class TorchTensorSameDeviceHandler(AbstractEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import torch
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import TrueHandler
         >>> from coola.equality.handler.torch import TorchTensorSameDeviceHandler
         >>> from coola.equality.testers import EqualityTester

@@ -16,7 +16,7 @@ from coola.equality.handler import (
 )
 
 if TYPE_CHECKING:
-    from coola.equality import EqualityConfig
+    from coola.equality.config import EqualityConfig
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class ScalarEqualityComparator(BaseEqualityComparator[Any]):  # noqa: PLW1641
 
     Example:
         ```pycon
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.comparators import ScalarEqualityComparator
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())

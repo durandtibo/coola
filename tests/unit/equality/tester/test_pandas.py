@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola.equality import EqualityConfig2
+from coola.equality.config import EqualityConfig2
 from coola.equality.tester import (
     PandasDataFrameEqualityTester,
     PandasSeriesEqualityTester,

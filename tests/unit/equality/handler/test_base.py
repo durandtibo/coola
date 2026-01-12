@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from coola.equality import EqualityConfig
+from coola.equality.config import EqualityConfig
 from coola.equality.handler import (
     ObjectEqualHandler,
     SameObjectHandler,

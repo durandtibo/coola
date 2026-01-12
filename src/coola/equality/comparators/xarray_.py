@@ -28,7 +28,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.xarray import xarray as xr
 
 if TYPE_CHECKING:
-    from coola.equality import EqualityConfig
+    from coola.equality.config import EqualityConfig
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class XarrayDataArrayEqualityComparator(BaseEqualityComparator[xr.DataArray]):  
         ```pycon
         >>> import numpy as np
         >>> import xarray as xr
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.comparators import XarrayDataArrayEqualityComparator
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
@@ -85,7 +85,7 @@ class XarrayDatasetEqualityComparator(BaseEqualityComparator[xr.Dataset]):  # no
         ```pycon
         >>> import numpy as np
         >>> import xarray as xr
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.comparators import XarrayDatasetEqualityComparator
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
@@ -130,7 +130,7 @@ class XarrayVariableEqualityComparator(BaseEqualityComparator[xr.Variable]):  # 
         ```pycon
         >>> import numpy as np
         >>> import xarray as xr
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.comparators import XarrayVariableEqualityComparator
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())

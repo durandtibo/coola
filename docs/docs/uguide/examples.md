@@ -288,7 +288,7 @@ class TestDataProcessing(unittest.TestCase):
 ```python
 from typing import Any
 from coola import objects_are_equal
-from coola.equality import EqualityConfig
+from coola.equality.config import EqualityConfig
 from coola.equality.comparators import BaseEqualityComparator
 from coola.equality.testers import EqualityTester
 

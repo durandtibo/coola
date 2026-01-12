@@ -22,7 +22,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.pandas import pandas as pd
 
 if TYPE_CHECKING:
-    from coola.equality import EqualityConfig2
+    from coola.equality.config import EqualityConfig2
 
 
 class PandasDataFrameEqualityTester(BaseEqualityTester[pd.DataFrame]):
@@ -31,7 +31,7 @@ class PandasDataFrameEqualityTester(BaseEqualityTester[pd.DataFrame]):
     Example:
         ```pycon
         >>> import pandas as pd
-        >>> from coola.equality import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.tester import PandasDataFrameEqualityTester
         >>> config = EqualityConfig2()
         >>> tester = PandasDataFrameEqualityTester()
@@ -74,7 +74,7 @@ class PandasSeriesEqualityTester(BaseEqualityTester[pd.Series]):
     Example:
         ```pycon
         >>> import pandas as pd
-        >>> from coola.equality import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.tester import PandasSeriesEqualityTester
         >>> config = EqualityConfig2()
         >>> tester = PandasSeriesEqualityTester()

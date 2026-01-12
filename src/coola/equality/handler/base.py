@@ -23,7 +23,7 @@ class BaseEqualityHandler(ABC):
 
     Example:
         ```pycon
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import SameObjectHandler, FalseHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
@@ -48,7 +48,7 @@ class BaseEqualityHandler(ABC):
 
         Example:
             ```pycon
-            >>> from coola.equality import EqualityConfig
+            >>> from coola.equality.config import EqualityConfig
             >>> from coola.equality.handler import (
             ...     SameObjectHandler,
             ...     SameTypeHandler,
@@ -81,7 +81,7 @@ class BaseEqualityHandler(ABC):
 
         Example:
             ```pycon
-            >>> from coola.equality import EqualityConfig
+            >>> from coola.equality.config import EqualityConfig
             >>> from coola.equality.handler import SameObjectHandler
             >>> from coola.equality.testers import EqualityTester
             >>> config = EqualityConfig(tester=EqualityTester())
