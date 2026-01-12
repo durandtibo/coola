@@ -223,6 +223,12 @@ def test_local_equality_tester__eq__false_different_type() -> None:
     assert LocalEqualityTester() != 1
 
 
+def test_local_equality_tester__eq__false_different_type_child() -> None:
+    class Child(LocalEqualityTester): ...
+
+    assert LocalEqualityTester() != Child()
+
+
 def test_local_equality_tester_registry_default() -> None:
     assert LocalEqualityTester().registry == {}
 
