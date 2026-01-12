@@ -48,12 +48,18 @@ def config() -> EqualityConfig:
 ######################################
 
 
-def test_same_shape_handler_eq_true() -> None:
+def test_same_shape_handler__eq__true() -> None:
     assert SameShapeHandler() == SameShapeHandler()
 
 
-def test_same_shape_handler_eq_false() -> None:
+def test_same_shape_handler__eq__false_different_type() -> None:
     assert SameShapeHandler() != FalseHandler()
+
+
+def test_same_shape_handler__eq__false_different_type_child() -> None:
+    class Child(SameShapeHandler): ...
+
+    assert SameShapeHandler() != Child()
 
 
 def test_same_shape_handler_repr() -> None:
