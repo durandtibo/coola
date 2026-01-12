@@ -56,7 +56,7 @@ class PyarrowEqualityComparator(BaseEqualityComparator[pa.Array]):  # noqa: PLW1
         self._handler.chain(SameTypeHandler()).chain(PyarrowEqualHandler())
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def clone(self) -> PyarrowEqualityComparator:
         return self.__class__()

@@ -8,7 +8,9 @@ from unittest.mock import Mock, patch
 import pytest
 
 from coola.equality import EqualityConfig
-from coola.equality.comparators import PyarrowEqualityComparator
+from coola.equality.comparators import (
+    PyarrowEqualityComparator,
+)
 from coola.equality.comparators.pyarrow_ import get_type_comparator_mapping
 from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import pyarrow_available
@@ -386,6 +388,13 @@ def test_pyarrow_equality_comparator__eq__true() -> None:
 @pyarrow_available
 def test_pyarrow_equality_comparator__eq__false_different_type() -> None:
     assert PyarrowEqualityComparator() != 123
+
+
+@pyarrow_available
+def test_pyarrow_equality_comparator__eq__false_different_type_child() -> None:
+    class Child(PyarrowEqualityComparator): ...
+
+    assert PyarrowEqualityComparator() != Child()
 
 
 @pyarrow_available

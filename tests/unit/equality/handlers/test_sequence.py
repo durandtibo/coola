@@ -31,12 +31,18 @@ def config() -> EqualityConfig:
 ###############################################
 
 
-def test_sequence_same_values_handler_eq_true() -> None:
+def test_sequence_same_values_handler__eq__true() -> None:
     assert SequenceSameValuesHandler() == SequenceSameValuesHandler()
 
 
-def test_sequence_same_values_handler_eq_false() -> None:
+def test_sequence_same_values_handler__eq__false_different_type() -> None:
     assert SequenceSameValuesHandler() != FalseHandler()
+
+
+def test_sequence_same_values_handler__eq__false_different_type_child() -> None:
+    class Child(SequenceSameValuesHandler): ...
+
+    assert SequenceSameValuesHandler() != Child()
 
 
 def test_sequence_same_values_handler_repr() -> None:

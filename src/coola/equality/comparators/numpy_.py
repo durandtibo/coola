@@ -62,7 +62,7 @@ class NumpyArrayEqualityComparator(BaseEqualityComparator[np.ndarray]):  # noqa:
         ).chain(NumpyArrayEqualHandler())
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def clone(self) -> NumpyArrayEqualityComparator:
         return self.__class__()
@@ -110,7 +110,7 @@ class NumpyMaskedArrayEqualityComparator(  # noqa: PLW1641
         ).chain(TrueHandler())  # fmt: skip
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def clone(self) -> NumpyMaskedArrayEqualityComparator:
         return self.__class__()

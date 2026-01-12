@@ -261,6 +261,13 @@ def test_numpy_array_equality_comparator__eq__false_different_type() -> None:
 
 
 @numpy_available
+def test_numpy_array_equality_comparator__eq__false_different_type_child() -> None:
+    class Child(NumpyArrayEqualityComparator): ...
+
+    assert NumpyArrayEqualityComparator() != Child()
+
+
+@numpy_available
 def test_numpy_array_equality_comparator_clone() -> None:
     op = NumpyArrayEqualityComparator()
     op_cloned = op.clone()
@@ -385,6 +392,13 @@ def test_numpy_masked_array_equality_comparator__eq__true() -> None:
 @numpy_available
 def test_numpy_masked_array_equality_comparator__eq__false_different_type() -> None:
     assert NumpyMaskedArrayEqualityComparator() != 123
+
+
+@numpy_available
+def test_numpy_masked_array_equality_comparator__eq__false_different_type_child() -> None:
+    class Child(NumpyMaskedArrayEqualityComparator): ...
+
+    assert NumpyMaskedArrayEqualityComparator() != Child()
 
 
 @numpy_available

@@ -371,6 +371,13 @@ def test_polars_dataframe_equality_comparator__eq__false_different_type() -> Non
 
 
 @polars_available
+def test_polars_dataframe_equality_comparator__eq__false_different_type_child() -> None:
+    class Child(PolarsDataFrameEqualityComparator): ...
+
+    assert PolarsDataFrameEqualityComparator() != Child()
+
+
+@polars_available
 def test_polars_dataframe_equality_comparator_clone() -> None:
     op = PolarsDataFrameEqualityComparator()
     op_cloned = op.clone()
@@ -498,6 +505,13 @@ def test_polars_lazyframe_equality_comparator__eq__false_different_type() -> Non
 
 
 @polars_available
+def test_polars_lazyframe_equality_comparator__eq__false_different_type_child() -> None:
+    class Child(PolarsLazyFrameEqualityComparator): ...
+
+    assert PolarsLazyFrameEqualityComparator() != Child()
+
+
+@polars_available
 def test_polars_lazyframe_equality_comparator_clone() -> None:
     op = PolarsLazyFrameEqualityComparator()
     op_cloned = op.clone()
@@ -622,6 +636,13 @@ def test_polars_series_equality_comparator__eq__true() -> None:
 @polars_available
 def test_polars_series_equality_comparator__eq__false_different_type() -> None:
     assert PolarsSeriesEqualityComparator() != 123
+
+
+@polars_available
+def test_polars_series_equality_comparator__eq__false_different_type_child() -> None:
+    class Child(PolarsSeriesEqualityComparator): ...
+
+    assert PolarsSeriesEqualityComparator() != Child()
 
 
 @polars_available

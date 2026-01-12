@@ -21,12 +21,18 @@ def config() -> EqualityConfig:
 #####################################
 
 
-def test_nan_equal_handler_eq_true() -> None:
+def test_nan_equal_handler__eq__true() -> None:
     assert NanEqualHandler() == NanEqualHandler()
 
 
-def test_nan_equal_handler_eq_false() -> None:
+def test_nan_equal_handler__eq__false_different_type() -> None:
     assert NanEqualHandler() != FalseHandler()
+
+
+def test_nan_equal_handler__eq__false_different_type_child() -> None:
+    class Child(NanEqualHandler): ...
+
+    assert NanEqualHandler() != Child()
 
 
 def test_nan_equal_handler_repr() -> None:
@@ -79,12 +85,18 @@ def test_nan_equal_handler_set_next_handler_incorrect() -> None:
 ########################################
 
 
-def test_scalar_equal_handler_eq_true() -> None:
+def test_scalar_equal_handler__eq__true() -> None:
     assert ScalarEqualHandler() == ScalarEqualHandler()
 
 
-def test_scalar_equal_handler_eq_false() -> None:
+def test_scalar_equal_handler__eq__false_different_type() -> None:
     assert ScalarEqualHandler() != FalseHandler()
+
+
+def test_scalar_equal_handler__eq__false_different_type_child() -> None:
+    class Child(ScalarEqualHandler): ...
+
+    assert ScalarEqualHandler() != Child()
 
 
 def test_scalar_equal_handler_repr() -> None:

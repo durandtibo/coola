@@ -28,12 +28,18 @@ def config() -> EqualityConfig:
 ############################################
 
 
-def test_mapping_same_keys_handler_eq_true() -> None:
+def test_mapping_same_keys_handler__eq__true() -> None:
     assert MappingSameKeysHandler() == MappingSameKeysHandler()
 
 
-def test_mapping_same_keys_handler_eq_false() -> None:
+def test_mapping_same_keys_handler__eq__false_different_type() -> None:
     assert MappingSameKeysHandler() != FalseHandler()
+
+
+def test_mapping_same_keys_handler__eq__false_different_type_child() -> None:
+    class Child(MappingSameKeysHandler): ...
+
+    assert MappingSameKeysHandler() != Child()
 
 
 def test_mapping_same_keys_handler_repr() -> None:
@@ -105,12 +111,18 @@ def test_mapping_same_keys_handler_set_next_handler_incorrect() -> None:
 ###############################################
 
 
-def test_mapping_same_values_handler_eq_true() -> None:
+def test_mapping_same_values_handler__eq__true() -> None:
     assert MappingSameValuesHandler() == MappingSameValuesHandler()
 
 
-def test_mapping_same_values_handler_eq_false() -> None:
+def test_mapping_same_values_handler__eq__false_different_type() -> None:
     assert MappingSameValuesHandler() != FalseHandler()
+
+
+def test_mapping_same_values_handler__eq__false_different_type_child() -> None:
+    class Child(MappingSameValuesHandler): ...
+
+    assert MappingSameValuesHandler() != Child()
 
 
 def test_mapping_same_values_handler_repr() -> None:

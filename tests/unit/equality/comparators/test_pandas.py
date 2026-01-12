@@ -259,6 +259,13 @@ def test_pandas_dataframe_equality_comparator__eq__false_different_type() -> Non
 
 
 @pandas_available
+def test_pandas_dataframe_equality_comparator__eq__false_different_type_child() -> None:
+    class Child(PandasDataFrameEqualityComparator): ...
+
+    assert PandasDataFrameEqualityComparator() != Child()
+
+
+@pandas_available
 def test_pandas_dataframe_equality_comparator_clone() -> None:
     op = PandasDataFrameEqualityComparator()
     op_cloned = op.clone()
@@ -383,6 +390,13 @@ def test_pandas_series_equality_comparator__eq__true() -> None:
 @pandas_available
 def test_pandas_series_equality_comparator__eq__false_different_type() -> None:
     assert PandasSeriesEqualityComparator() != 123
+
+
+@pandas_available
+def test_pandas_series_equality_comparator__eq__false_different_type_child() -> None:
+    class Child(PandasSeriesEqualityComparator): ...
+
+    assert PandasSeriesEqualityComparator() != Child()
 
 
 @pandas_available

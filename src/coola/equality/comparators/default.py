@@ -46,7 +46,7 @@ class DefaultEqualityComparator(BaseEqualityComparator[Any]):  # noqa: PLW1641
         self._handler.chain(SameTypeHandler()).chain(ObjectEqualHandler())
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def clone(self) -> DefaultEqualityComparator:
         return self.__class__()

@@ -57,7 +57,7 @@ class JaxArrayEqualityComparator(BaseEqualityComparator[jnp.ndarray]):  # noqa: 
         ).chain(JaxArrayEqualHandler())
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def clone(self) -> JaxArrayEqualityComparator:
         return self.__class__()

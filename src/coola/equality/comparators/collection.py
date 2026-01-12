@@ -52,7 +52,7 @@ class MappingEqualityComparator(BaseEqualityComparator[Mapping[Any, Any]]):  # n
         ).chain(MappingSameValuesHandler()).chain(TrueHandler())
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def clone(self) -> MappingEqualityComparator:
         return self.__class__()
@@ -86,7 +86,7 @@ class SequenceEqualityComparator(BaseEqualityComparator[Sequence[Any]]):  # noqa
         ).chain(TrueHandler())
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def clone(self) -> SequenceEqualityComparator:
         return self.__class__()

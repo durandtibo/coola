@@ -39,12 +39,18 @@ def config() -> EqualityConfig:
 ##################################
 
 
-def test_false_handler_eq_true() -> None:
+def test_false_handler__eq__true() -> None:
     assert FalseHandler() == FalseHandler()
 
 
-def test_false_handler_eq_false() -> None:
+def test_false_handler__eq__false_different_type() -> None:
     assert FalseHandler() != TrueHandler()
+
+
+def test_false_handler__eq__false_different_type_child() -> None:
+    class Child(FalseHandler): ...
+
+    assert FalseHandler() != Child()
 
 
 def test_false_handler_repr() -> None:
@@ -71,12 +77,18 @@ def test_false_handler_set_next_handler() -> None:
 ##################################
 
 
-def test_true_handler_eq_true() -> None:
+def test_true_handler__eq__true() -> None:
     assert TrueHandler() == TrueHandler()
 
 
-def test_true_handler_eq_false() -> None:
+def test_true_handler__eq__false_different_type() -> None:
     assert TrueHandler() != FalseHandler()
+
+
+def test_true_handler__eq__false_different_type_child() -> None:
+    class Child(TrueHandler): ...
+
+    assert TrueHandler() != Child()
 
 
 def test_true_handler_repr() -> None:
@@ -103,12 +115,18 @@ def test_true_handler_set_next_handler() -> None:
 ########################################
 
 
-def test_object_equal_handler_eq_true() -> None:
+def test_object_equal_handler__eq__true() -> None:
     assert ObjectEqualHandler() == ObjectEqualHandler()
 
 
-def test_object_equal_handler_eq_false() -> None:
+def test_object_equal_handler__eq__false_different_type() -> None:
     assert ObjectEqualHandler() != FalseHandler()
+
+
+def test_object_equal_handler__eq__false_different_type_child() -> None:
+    class Child(ObjectEqualHandler): ...
+
+    assert ObjectEqualHandler() != Child()
 
 
 def test_object_equal_handler_repr() -> None:
@@ -152,15 +170,21 @@ def test_object_equal_handler_set_next_handler() -> None:
 ##########################################
 
 
-def test_same_attribute_handler_eq_true() -> None:
+def test_same_attribute_handler__eq__true() -> None:
     assert SameAttributeHandler(name="name") == SameAttributeHandler(name="name")
 
 
-def test_same_attribute_handler_eq_false_different_type() -> None:
+def test_same_attribute_handler__eq__false_different_type() -> None:
     assert SameAttributeHandler(name="data") != FalseHandler()
 
 
-def test_same_attribute_handler_eq_false_different_name() -> None:
+def test_same_attribute_handler__eq__false_different_type_child() -> None:
+    class Child(SameAttributeHandler): ...
+
+    assert SameAttributeHandler(name="data") != Child(name="data")
+
+
+def test_same_attribute_handler__eq__false_different_name() -> None:
     assert SameAttributeHandler(name="data1") != SameAttributeHandler(name="data2")
 
 
@@ -257,12 +281,18 @@ def test_same_attribute_handler_handle_false_numpy(config: EqualityConfig) -> No
 #######################################
 
 
-def test_same_length_handler_eq_true() -> None:
+def test_same_length_handler__eq__true() -> None:
     assert SameLengthHandler() == SameLengthHandler()
 
 
-def test_same_length_handler_eq_false() -> None:
+def test_same_length_handler__eq__false_different_type() -> None:
     assert SameLengthHandler() != FalseHandler()
+
+
+def test_same_length_handler__eq__false_different_type_child() -> None:
+    class Child(SameLengthHandler): ...
+
+    assert SameLengthHandler() != Child()
 
 
 def test_same_length_handler_repr() -> None:
@@ -337,12 +367,18 @@ def test_same_length_handler_set_next_handler_incorrect() -> None:
 #######################################
 
 
-def test_same_object_handler_eq_true() -> None:
+def test_same_object_handler__eq__true() -> None:
     assert SameObjectHandler() == SameObjectHandler()
 
 
-def test_same_object_handler_eq_false() -> None:
+def test_same_object_handler__eq__false_different_type() -> None:
     assert SameObjectHandler() != FalseHandler()
+
+
+def test_same_object_handler__eq__false_different_type_child() -> None:
+    class Child(SameObjectHandler): ...
+
+    assert SameObjectHandler() != Child()
 
 
 def test_same_object_handler_repr() -> None:
@@ -390,12 +426,18 @@ def test_same_object_handler_set_next_handler_incorrect() -> None:
 #####################################
 
 
-def test_same_type_handler_eq_true() -> None:
+def test_same_type_handler__eq__true() -> None:
     assert SameTypeHandler() == SameTypeHandler()
 
 
-def test_same_type_handler_eq_false() -> None:
+def test_same_type_handler__eq__false_different_type() -> None:
     assert SameTypeHandler() != FalseHandler()
+
+
+def test_same_type_handler__eq__false_different_type_child() -> None:
+    class Child(SameTypeHandler): ...
+
+    assert SameTypeHandler() != Child()
 
 
 def test_same_type_handler_repr() -> None:

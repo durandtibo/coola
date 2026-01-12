@@ -79,6 +79,12 @@ def test_scalar_equality_comparator__eq__false_different_type() -> None:
     assert ScalarEqualityComparator() != 123
 
 
+def test_scalar_equality_comparator__eq__false_different_type_child() -> None:
+    class Child(ScalarEqualityComparator): ...
+
+    assert ScalarEqualityComparator() != Child()
+
+
 def test_scalar_equality_comparator_clone() -> None:
     op = ScalarEqualityComparator()
     op_cloned = op.clone()

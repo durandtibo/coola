@@ -48,7 +48,7 @@ class FalseHandler(BaseEqualityHandler):  # noqa: PLW1641
     """
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
@@ -87,7 +87,7 @@ class TrueHandler(BaseEqualityHandler):  # noqa: PLW1641
     """
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
@@ -129,7 +129,7 @@ class ObjectEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     """
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
@@ -177,7 +177,7 @@ class SameAttributeHandler(AbstractEqualityHandler):  # noqa: PLW1641
         self._name = name
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, self.__class__):
+        if type(other) is not type(self):
             return False
         return self.name == other.name
 
@@ -222,7 +222,7 @@ class SameLengthHandler(AbstractEqualityHandler):  # noqa: PLW1641
     """
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def handle(
         self,
@@ -257,7 +257,7 @@ class SameObjectHandler(AbstractEqualityHandler):  # noqa: PLW1641
     """
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def handle(
         self,
@@ -290,7 +290,7 @@ class SameTypeHandler(AbstractEqualityHandler):  # noqa: PLW1641
     """
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def handle(
         self,

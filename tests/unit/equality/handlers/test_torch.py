@@ -37,12 +37,18 @@ def config() -> EqualityConfig:
 #############################################
 
 
-def test_torch_tensor_equal_handler_eq_true() -> None:
+def test_torch_tensor_equal_handler__eq__true() -> None:
     assert TorchTensorEqualHandler() == TorchTensorEqualHandler()
 
 
-def test_torch_tensor_equal_handler_eq_false() -> None:
+def test_torch_tensor_equal_handler__eq__false_different_type() -> None:
     assert TorchTensorEqualHandler() != FalseHandler()
+
+
+def test_torch_tensor_equal_handler__eq__false_different_type_child() -> None:
+    class Child(TorchTensorEqualHandler): ...
+
+    assert TorchTensorEqualHandler() != Child()
 
 
 def test_torch_tensor_equal_handler_repr() -> None:
@@ -134,12 +140,18 @@ def test_torch_tensor_equal_handler_set_next_handler() -> None:
 ##################################################
 
 
-def test_torch_tensor_same_device_handler_eq_true() -> None:
+def test_torch_tensor_same_device_handler__eq__true() -> None:
     assert TorchTensorSameDeviceHandler() == TorchTensorSameDeviceHandler()
 
 
-def test_torch_tensor_same_device_handler_eq_false() -> None:
+def test_torch_tensor_same_device_handler__eq__false_different_type() -> None:
     assert TorchTensorSameDeviceHandler() != FalseHandler()
+
+
+def test_torch_tensor_same_device_handler__eq__false_different_type_child() -> None:
+    class Child(TorchTensorSameDeviceHandler): ...
+
+    assert TorchTensorSameDeviceHandler() != Child()
 
 
 def test_torch_tensor_same_device_handler_repr() -> None:

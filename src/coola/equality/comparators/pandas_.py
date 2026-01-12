@@ -65,7 +65,7 @@ class PandasDataFrameEqualityComparator(BaseEqualityComparator[pd.DataFrame]):  
         self._handler.chain(SameTypeHandler()).chain(PandasDataFrameEqualHandler())
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def clone(self) -> PandasDataFrameEqualityComparator:
         return self.__class__()
@@ -99,7 +99,7 @@ class PandasSeriesEqualityComparator(BaseEqualityComparator[pd.Series]):  # noqa
         self._handler.chain(SameTypeHandler()).chain(PandasSeriesEqualHandler())
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def clone(self) -> PandasSeriesEqualityComparator:
         return self.__class__()

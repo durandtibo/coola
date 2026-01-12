@@ -66,7 +66,7 @@ class PolarsDataFrameEqualityComparator(BaseEqualityComparator[pl.DataFrame]):  
         self._handler.chain(SameTypeHandler()).chain(PolarsDataFrameEqualHandler())
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def clone(self) -> PolarsDataFrameEqualityComparator:
         return self.__class__()
@@ -108,7 +108,7 @@ class PolarsLazyFrameEqualityComparator(BaseEqualityComparator[pl.LazyFrame]):  
         self._handler.chain(SameTypeHandler()).chain(PolarsLazyFrameEqualHandler())
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def clone(self) -> PolarsLazyFrameEqualityComparator:
         return self.__class__()
@@ -142,7 +142,7 @@ class PolarsSeriesEqualityComparator(BaseEqualityComparator[pl.Series]):  # noqa
         self._handler.chain(SameTypeHandler()).chain(PolarsSeriesEqualHandler())
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def clone(self) -> PolarsSeriesEqualityComparator:
         return self.__class__()

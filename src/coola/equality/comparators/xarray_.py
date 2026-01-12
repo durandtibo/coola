@@ -69,7 +69,7 @@ class XarrayDataArrayEqualityComparator(BaseEqualityComparator[xr.DataArray]):  
         ).chain(SameAttributeHandler(name="_coords")).chain(TrueHandler())
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def clone(self) -> XarrayDataArrayEqualityComparator:
         return self.__class__()
@@ -114,7 +114,7 @@ class XarrayDatasetEqualityComparator(BaseEqualityComparator[xr.Dataset]):  # no
         ).chain(SameAttributeHandler(name="attrs")).chain(TrueHandler())
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def clone(self) -> XarrayDatasetEqualityComparator:
         return self.__class__()
@@ -159,7 +159,7 @@ class XarrayVariableEqualityComparator(BaseEqualityComparator[xr.Variable]):  # 
         ).chain(SameAttributeHandler(name="attrs")).chain(TrueHandler())
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__)
+        return type(other) is type(self)
 
     def clone(self) -> XarrayVariableEqualityComparator:
         return self.__class__()
