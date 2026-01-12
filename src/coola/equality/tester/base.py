@@ -33,9 +33,6 @@ class BaseEqualityTester(ABC, Generic[T]):
         ```
     """
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
-
     @abstractmethod
     def objects_are_equal(
         self,

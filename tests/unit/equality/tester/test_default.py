@@ -67,6 +67,10 @@ DEFAULT_NOT_EQUAL = [
 ###########################################
 
 
+def test_default_equality_tester_repr() -> None:
+    assert repr(DefaultEqualityTester()) == "DefaultEqualityTester()"
+
+
 def test_default_equality_tester_str() -> None:
     assert str(DefaultEqualityTester()) == "DefaultEqualityTester()"
 

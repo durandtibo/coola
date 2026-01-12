@@ -236,9 +236,15 @@ PANDAS_EQUAL = PANDAS_SERIES_EQUAL + PANDAS_DATAFRAME_EQUAL
 PANDAS_NOT_EQUAL = PANDAS_SERIES_NOT_EQUAL + PANDAS_DATAFRAME_NOT_EQUAL
 PANDAS_EQUAL_TOLERANCE = PANDAS_SERIES_EQUAL_TOLERANCE + PANDAS_DATAFRAME_EQUAL_TOLERANCE
 
+
 ###################################################
 #     Tests for PandasDataFrameEqualityTester     #
 ###################################################
+
+
+@pandas_available
+def test_pandas_dataframe_equality_tester_repr() -> None:
+    assert repr(PandasDataFrameEqualityTester()).startswith("PandasDataFrameEqualityTester(")
 
 
 @pandas_available
@@ -373,6 +379,11 @@ def test_pandas_dataframe_equality_tester_no_pandas() -> None:
 ################################################
 #     Tests for PandasSeriesEqualityTester     #
 ################################################
+
+
+@pandas_available
+def test_pandas_series_equality_tester_repr() -> None:
+    assert repr(PandasSeriesEqualityTester()).startswith("PandasSeriesEqualityTester(")
 
 
 @pandas_available

@@ -39,6 +39,9 @@ class ScalarEqualityTester(BaseEqualityTester[float]):
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(NanEqualHandler()).chain(ScalarEqualHandler())
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__qualname__}()"
+
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
