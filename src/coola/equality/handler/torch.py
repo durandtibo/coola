@@ -75,7 +75,7 @@ class TorchTensorSameDeviceHandler(AbstractEqualityHandler):  # noqa: PLW1641
         >>> import torch
         >>> from coola.equality import EqualityConfig
         >>> from coola.equality.handler import TrueHandler
-        >>> from coola.equality.handler import TorchTensorSameDeviceHandler
+        >>> from coola.equality.handler.torch import TorchTensorSameDeviceHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
         >>> handler = TorchTensorSameDeviceHandler(next_handler=TrueHandler())
