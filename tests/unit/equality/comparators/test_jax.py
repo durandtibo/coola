@@ -130,6 +130,13 @@ def test_jax_array_equality_comparator__eq__false_different_type() -> None:
 
 
 @jax_available
+def test_jax_array_equality_comparator__eq__false_different_type_child() -> None:
+    class Child(JaxArrayEqualityComparator): ...
+
+    assert JaxArrayEqualityComparator() != Child()
+
+
+@jax_available
 def test_jax_array_equality_comparator_clone() -> None:
     op = JaxArrayEqualityComparator()
     op_cloned = op.clone()

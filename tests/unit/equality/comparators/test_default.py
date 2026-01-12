@@ -77,8 +77,14 @@ def test_default_equality_comparator__eq__true() -> None:
     assert DefaultEqualityComparator() == DefaultEqualityComparator()
 
 
-def test_default_equality_comparator__eq__false() -> None:
+def test_default_equality_comparator__eq__false_different_type() -> None:
     assert DefaultEqualityComparator() != 123
+
+
+def test_default_equality_comparator__eq__false_different_type_child() -> None:
+    class Child(DefaultEqualityComparator): ...
+
+    assert DefaultEqualityComparator() != Child()
 
 
 def test_default_equality_comparator_clone() -> None:
