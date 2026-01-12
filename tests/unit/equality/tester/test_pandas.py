@@ -258,12 +258,12 @@ def test_pandas_dataframe_equality_tester_equal_true() -> None:
 
 
 @pandas_available
-def test_pandas_dataframe_equality_tester__eq__false_different_type() -> None:
+def test_pandas_dataframe_equality_tester_equal_false_different_type() -> None:
     assert not PandasDataFrameEqualityTester().equal(123)
 
 
 @pandas_available
-def test_pandas_dataframe_equality_tester__eq__false_different_type_child() -> None:
+def test_pandas_dataframe_equality_tester_equal_false_different_type_child() -> None:
     class Child(PandasDataFrameEqualityTester): ...
 
     assert not PandasDataFrameEqualityTester().equal(Child())
@@ -392,17 +392,17 @@ def test_pandas_series_equality_tester_str() -> None:
 
 
 @pandas_available
-def test_pandas_series_equality_tester__eq__true() -> None:
+def test_pandas_series_equality_tester_equal_true() -> None:
     assert PandasSeriesEqualityTester().equal(PandasSeriesEqualityTester())
 
 
 @pandas_available
-def test_pandas_series_equality_tester__eq__false_different_type() -> None:
+def test_pandas_series_equality_tester_equal_false_different_type() -> None:
     assert not PandasSeriesEqualityTester().equal(123)
 
 
 @pandas_available
-def test_pandas_series_equality_tester__eq__false_different_type_child() -> None:
+def test_pandas_series_equality_tester_equal_false_different_type_child() -> None:
     class Child(PandasSeriesEqualityTester): ...
 
     assert not PandasSeriesEqualityTester().equal(Child())
