@@ -291,6 +291,4 @@ class EqualityTesterRegistry:
             ```
         """
         equality_tester = self.find_equality_tester(type(actual))
-        return equality_tester.objects_are_equal(
-            actual=actual, expected=expected, registry=self, config=config
-        )
+        return equality_tester.objects_are_equal(actual=actual, expected=expected, config=config)
