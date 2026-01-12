@@ -14,7 +14,7 @@ from coola.equality.comparators.pandas_ import (
 from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import pandas_available
 from coola.utils.imports import is_pandas_available
-from tests.unit.equality.comparators.utils import ExamplePair
+from tests.unit.equality.utils import ExamplePair
 
 if is_pandas_available():
     import pandas as pd

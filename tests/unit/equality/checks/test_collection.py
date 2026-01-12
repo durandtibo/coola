@@ -16,7 +16,7 @@ from tests.unit.equality.comparators.test_collection import (
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from tests.unit.equality.comparators.utils import ExamplePair
+    from tests.unit.equality.utils import ExamplePair
 
 
 @pytest.mark.parametrize("function", COMPARATOR_FUNCTIONS)

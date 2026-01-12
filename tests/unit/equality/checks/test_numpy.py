@@ -17,7 +17,7 @@ from tests.unit.equality.comparators.test_numpy import (
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from tests.unit.equality.comparators.utils import ExamplePair
+    from tests.unit.equality.utils import ExamplePair
 
 
 @numpy_available

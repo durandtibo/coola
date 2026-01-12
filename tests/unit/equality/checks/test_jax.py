@@ -12,12 +12,12 @@ from tests.unit.equality.comparators.test_jax import (
     JAX_ARRAY_EQUAL,
     JAX_ARRAY_NOT_EQUAL,
 )
-from tests.unit.equality.handlers.test_jax import JAX_ARRAY_EQUAL_TOLERANCE
+from tests.unit.equality.handler.test_jax import JAX_ARRAY_EQUAL_TOLERANCE
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from tests.unit.equality.comparators.utils import ExamplePair
+    from tests.unit.equality.utils import ExamplePair
 
 
 @jax_available

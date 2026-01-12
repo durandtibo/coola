@@ -15,7 +15,7 @@ from coola.equality.comparators.polars_ import (
 from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import polars_available
 from coola.utils.imports import is_polars_available
-from tests.unit.equality.comparators.utils import ExamplePair
+from tests.unit.equality.utils import ExamplePair
 
 if is_polars_available():
     import polars as pl

@@ -10,7 +10,7 @@ from coola.equality.comparators.scalar import (
     get_type_comparator_mapping,
 )
 from coola.equality.testers import EqualityTester
-from tests.unit.equality.comparators.utils import ExamplePair
+from tests.unit.equality.utils import ExamplePair
 
 
 @pytest.fixture

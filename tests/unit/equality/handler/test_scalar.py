@@ -8,7 +8,7 @@ from coola.equality import EqualityConfig
 from coola.equality.handler import FalseHandler, NanEqualHandler, ScalarEqualHandler
 from coola.equality.testers import EqualityTester
 from tests.unit.equality.comparators.test_scalar import SCALAR_EQUAL_TOLERANCE
-from tests.unit.equality.comparators.utils import ExamplePair
+from tests.unit.equality.utils import ExamplePair
 
 
 @pytest.fixture
