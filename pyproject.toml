@@ -52,9 +52,7 @@ classifiers = [
 ]
 
 requires-python = ">=3.10"
-dependencies = [
-    "pandas-stubs~=2.3.3",
-]
+dependencies = []
 
 [project.optional-dependencies]
 jax = ["jax>=0.5.0,<1.0; (sys_platform == 'linux' or (sys_platform == 'darwin' and platform_machine == 'arm64'))"]
