@@ -181,7 +181,7 @@ def test_same_attribute_handler__eq__false_different_type() -> None:
 def test_same_attribute_handler__eq__false_different_type_child() -> None:
     class Child(SameAttributeHandler): ...
 
-    assert SameAttributeHandler(name="data") != Child()
+    assert SameAttributeHandler(name="data") != Child(name="data")
 
 
 def test_same_attribute_handler__eq__false_different_name() -> None:

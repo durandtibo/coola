@@ -39,12 +39,18 @@ def config() -> EqualityConfig:
 #########################################
 
 
-def test_pyarrow_equal_handler_eq_true() -> None:
+def test_pyarrow_equal_handler__eq__true() -> None:
     assert PyarrowEqualHandler() == PyarrowEqualHandler()
 
 
-def test_pyarrow_equal_handler_eq_false() -> None:
+def test_pyarrow_equal_handler__eq__false_different_type() -> None:
     assert PyarrowEqualHandler() != FalseHandler()
+
+
+def test_pyarrow_equal_handler__eq__false_different_type_child() -> None:
+    class Child(PyarrowEqualHandler): ...
+
+    assert PyarrowEqualHandler() != Child()
 
 
 def test_pyarrow_equal_handler_repr() -> None:
