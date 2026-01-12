@@ -47,8 +47,14 @@ def test_equal_handler_eq_true() -> None:
     assert EqualHandler() == EqualHandler()
 
 
-def test_equal_handler_eq_false() -> None:
+def test_equal_handler_eq_false_different_type() -> None:
     assert EqualHandler() != FalseHandler()
+
+
+def test_equal_handler_eq_false_different_type_child() -> None:
+    class Child(EqualHandler): ...
+
+    assert EqualHandler() != Child()
 
 
 def test_equal_handler_repr() -> None:

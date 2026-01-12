@@ -36,8 +36,14 @@ def test_same_dtype_handler_eq_true() -> None:
     assert SameDTypeHandler() == SameDTypeHandler()
 
 
-def test_same_dtype_handler_eq_false() -> None:
+def test_same_dtype_handler_eq_false_different_type() -> None:
     assert SameDTypeHandler() != FalseHandler()
+
+
+def test_same_dtype_handler_eq_false_different_type_child() -> None:
+    class Child(SameDTypeHandler): ...
+
+    assert SameDTypeHandler() != Child()
 
 
 def test_same_dtype_handler_repr() -> None:
