@@ -454,8 +454,15 @@ def test_xarray_data_array_equality_comparator__eq__true() -> None:
 
 
 @xarray_available
-def test_xarray_data_array_equality_comparator__eq__false() -> None:
+def test_xarray_data_array_equality_comparator__eq__false_different_type() -> None:
     assert XarrayDataArrayEqualityComparator() != 123
+
+
+@xarray_available
+def test_xarray_data_array_equality_comparator__eq__false_different_type_child() -> None:
+    class Child(XarrayDataArrayEqualityComparator): ...
+
+    assert XarrayDataArrayEqualityComparator() != Child()
 
 
 @xarray_available
@@ -581,8 +588,15 @@ def test_xarray_dataset_equality_comparator__eq__true() -> None:
 
 
 @xarray_available
-def test_xarray_dataset_equality_comparator__eq__false() -> None:
+def test_xarray_dataset_equality_comparator__eq__false_different_type() -> None:
     assert XarrayDatasetEqualityComparator() != 123
+
+
+@xarray_available
+def test_xarray_dataset_equality_comparator__eq__false_different_type_child() -> None:
+    class Child(XarrayDatasetEqualityComparator): ...
+
+    assert XarrayDatasetEqualityComparator() != Child()
 
 
 @xarray_available
@@ -706,8 +720,15 @@ def test_xarray_variable_equality_comparator__eq__true() -> None:
 
 
 @xarray_available
-def test_xarray_variable_equality_comparator__eq__false() -> None:
+def test_xarray_variable_equality_comparator__eq__false_different_type() -> None:
     assert XarrayVariableEqualityComparator() != 123
+
+
+@xarray_available
+def test_xarray_variable_equality_comparator__eq__false_different_type_child() -> None:
+    class Child(XarrayVariableEqualityComparator): ...
+
+    assert XarrayVariableEqualityComparator() != Child()
 
 
 @xarray_available

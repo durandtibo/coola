@@ -348,8 +348,15 @@ def test_tensor_packed_sequence_equality_comparator__eq__true() -> None:
 
 
 @torch_available
-def test_tensor_packed_sequence_equality_comparator__eq__false() -> None:
+def test_tensor_packed_sequence_equality_comparator__eq__false_different_type() -> None:
     assert TorchPackedSequenceEqualityComparator() != 123
+
+
+@torch_available
+def test_tensor_packed_sequence_equality_comparator__eq__false_different_type_child() -> None:
+    class Child(TorchPackedSequenceEqualityComparator): ...
+
+    assert TorchPackedSequenceEqualityComparator() != Child()
 
 
 @torch_available
@@ -483,6 +490,13 @@ def test_torch_tensor_equality_comparator__eq__true() -> None:
 @torch_available
 def test_torch_tensor_equality_comparator__eq__false_different_type() -> None:
     assert TorchTensorEqualityComparator() != 123
+
+
+@torch_available
+def test_torch_tensor_equality_comparator__eq__false_different_type_child() -> None:
+    class Child(TorchTensorEqualityComparator): ...
+
+    assert TorchTensorEqualityComparator() != Child()
 
 
 @torch_available
