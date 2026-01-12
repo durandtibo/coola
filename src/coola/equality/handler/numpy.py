@@ -77,14 +77,14 @@ def array_equal(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) 
         config: The equality configuration.
 
     Returns:
-        ``True` `if the two arrays are equal within a tolerance,
+        ``True`` if the two arrays are equal within a tolerance,
             otherwise ``False``.
 
     Example:
         ```pycon
         >>> import numpy as np
         >>> from coola.equality import EqualityConfig
-        >>> from coola.equality.handler.numpy_ import array_equal
+        >>> from coola.equality.handler.numpy import array_equal
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
         >>> array_equal(np.ones((2, 3)), np.ones((2, 3)), config)
@@ -113,7 +113,7 @@ def is_numeric_array(array: np.ndarray) -> bool:
     Example:
         ```pycon
         >>> import numpy as np
-        >>> from coola.equality.handler.numpy_ import is_numeric_array
+        >>> from coola.equality.handler.numpy import is_numeric_array
         >>> is_numeric_array(np.ones((2, 3)))
         True
         >>> is_numeric_array(np.array(["polar", "bear", "meow"]))

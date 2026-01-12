@@ -134,7 +134,7 @@ def frame_equal(df1: pd.DataFrame, df2: pd.DataFrame, config: EqualityConfig) ->
         config: The equality configuration.
 
     Returns:
-        ``True``if the two DataFrame are equal, otherwise ``False``.
+        ``True`` if the two DataFrames are equal, otherwise ``False``.
     """
     if not config.equal_nan and df1.isna().any().any():
         return False
@@ -161,7 +161,7 @@ def series_equal(series1: pd.Series, series2: pd.Series, config: EqualityConfig)
         config: The equality configuration.
 
     Returns:
-        ``True``if the two series are equal, otherwise ``False``.
+        ``True`` if the two series are equal, otherwise ``False``.
     """
     if not config.equal_nan and series1.isna().any():
         return False

@@ -36,7 +36,7 @@ class SameDataHandler(AbstractEqualityHandler):  # noqa: PLW1641
     This handler returns ``False`` if the two objects have different
     data, otherwise it passes the inputs to the next handler.
     The objects must have a ``data`` attribute (e.g. ``object.data``)
-    which returns the shape of the object.
+    which returns the data of the object.
 
     Example:
         ```pycon

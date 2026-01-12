@@ -29,7 +29,7 @@ class TorchTensorEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```pycon
         >>> import torch
         >>> from coola.equality import EqualityConfig
-        >>> from coola.equality.handler.torch_ import TorchTensorEqualHandler
+        >>> from coola.equality.handler import TorchTensorEqualHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
         >>> handler = TorchTensorEqualHandler()
@@ -75,7 +75,7 @@ class TorchTensorSameDeviceHandler(AbstractEqualityHandler):  # noqa: PLW1641
         >>> import torch
         >>> from coola.equality import EqualityConfig
         >>> from coola.equality.handler import TrueHandler
-        >>> from coola.equality.handler.torch_ import TorchTensorSameDeviceHandler
+        >>> from coola.equality.handler.torch import TorchTensorSameDeviceHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
         >>> handler = TorchTensorSameDeviceHandler(next_handler=TrueHandler())
@@ -112,7 +112,7 @@ def tensor_equal(tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityC
         config: The equality configuration.
 
     Returns:
-        ``True``if the two tensors are equal within a tolerance,
+        ``True`` if the two tensors are equal within a tolerance,
             otherwise ``False``.
     """
     if config.equal_nan or config.atol > 0 or config.rtol > 0:

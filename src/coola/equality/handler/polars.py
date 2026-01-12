@@ -212,7 +212,7 @@ def frame_equal(df1: pl.DataFrame, df2: pl.DataFrame, config: EqualityConfig) ->
         config: The equality configuration.
 
     Returns:
-        ``True``if the two DataFrame are equal, otherwise ``False``.
+        ``True`` if the two DataFrames are equal, otherwise ``False``.
     """
     if not config.equal_nan and has_nan(df1):
         return False
@@ -232,7 +232,7 @@ def series_equal(series1: pl.Series, series2: pl.Series, config: EqualityConfig)
         config: The equality configuration.
 
     Returns:
-        ``True``if the two series are equal, otherwise ``False``.
+        ``True`` if the two series are equal, otherwise ``False``.
     """
     if not config.equal_nan and has_nan(series1):
         return False

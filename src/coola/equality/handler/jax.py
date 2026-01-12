@@ -78,7 +78,7 @@ def array_equal(array1: jnp.ndarray, array2: jnp.ndarray, config: EqualityConfig
         config: The equality configuration.
 
     Returns:
-        ``True``if the two arrays are equal within a tolerance,
+        ``True`` if the two arrays are equal within a tolerance,
             otherwise ``False``.
     """
     if config.atol > 0 or config.rtol > 0:
