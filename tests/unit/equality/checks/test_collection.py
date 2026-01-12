@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from coola import objects_are_allclose
-from tests.unit.equality.checks.test_default import COMPARATOR_FUNCTIONS
+from tests.unit.equality.checks.test_default import EQUALITY_TESTER_FUNCTIONS
 from tests.unit.equality.comparators.test_collection import (
     COLLECTION_EQUAL,
     COLLECTION_EQUAL_TOLERANCE,
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from tests.unit.equality.utils import ExamplePair
 
 
-@pytest.mark.parametrize("function", COMPARATOR_FUNCTIONS)
+@pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
 @pytest.mark.parametrize("example", COLLECTION_EQUAL)
 @pytest.mark.parametrize("show_difference", [True, False])
 def test_objects_are_equal_true(
@@ -33,7 +33,7 @@ def test_objects_are_equal_true(
         assert not caplog.messages
 
 
-@pytest.mark.parametrize("function", COMPARATOR_FUNCTIONS)
+@pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
 @pytest.mark.parametrize("example", COLLECTION_NOT_EQUAL)
 def test_objects_are_equal_false(
     function: Callable, example: ExamplePair, caplog: pytest.LogCaptureFixture
@@ -43,7 +43,7 @@ def test_objects_are_equal_false(
         assert not caplog.messages
 
 
-@pytest.mark.parametrize("function", COMPARATOR_FUNCTIONS)
+@pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
 @pytest.mark.parametrize("example", COLLECTION_NOT_EQUAL)
 def test_objects_are_equal_false_show_difference(
     function: Callable, example: ExamplePair, caplog: pytest.LogCaptureFixture

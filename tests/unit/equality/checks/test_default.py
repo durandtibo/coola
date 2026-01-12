@@ -16,10 +16,10 @@ if TYPE_CHECKING:
 
     from tests.unit.equality.utils import ExamplePair
 
-COMPARATOR_FUNCTIONS = [objects_are_equal, objects_are_allclose]
+EQUALITY_TESTER_FUNCTIONS = [objects_are_equal, objects_are_allclose]
 
 
-@pytest.mark.parametrize("function", COMPARATOR_FUNCTIONS)
+@pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
 @pytest.mark.parametrize("example", DEFAULT_EQUAL)
 @pytest.mark.parametrize("show_difference", [True, False])
 def test_objects_are_equal_true(
@@ -33,7 +33,7 @@ def test_objects_are_equal_true(
         assert not caplog.messages
 
 
-@pytest.mark.parametrize("function", COMPARATOR_FUNCTIONS)
+@pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
 @pytest.mark.parametrize("example", DEFAULT_NOT_EQUAL)
 def test_objects_are_equal_false(
     function: Callable, example: ExamplePair, caplog: pytest.LogCaptureFixture
@@ -43,7 +43,7 @@ def test_objects_are_equal_false(
         assert not caplog.messages
 
 
-@pytest.mark.parametrize("function", COMPARATOR_FUNCTIONS)
+@pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
 @pytest.mark.parametrize("example", DEFAULT_NOT_EQUAL)
 def test_objects_are_equal_false_show_difference(
     function: Callable, example: ExamplePair, caplog: pytest.LogCaptureFixture

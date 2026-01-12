@@ -7,7 +7,7 @@ import pytest
 
 from coola import objects_are_allclose
 from coola.testing.fixtures import pandas_available
-from tests.unit.equality.checks.test_default import COMPARATOR_FUNCTIONS
+from tests.unit.equality.checks.test_default import EQUALITY_TESTER_FUNCTIONS
 from tests.unit.equality.comparators.test_pandas import (
     PANDAS_EQUAL,
     PANDAS_EQUAL_TOLERANCE,
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 
 @pandas_available
-@pytest.mark.parametrize("function", COMPARATOR_FUNCTIONS)
+@pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
 @pytest.mark.parametrize("example", PANDAS_EQUAL)
 @pytest.mark.parametrize("show_difference", [True, False])
 def test_objects_are_equal_true(
@@ -36,7 +36,7 @@ def test_objects_are_equal_true(
 
 
 @pandas_available
-@pytest.mark.parametrize("function", COMPARATOR_FUNCTIONS)
+@pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
 @pytest.mark.parametrize("example", PANDAS_NOT_EQUAL)
 def test_objects_are_equal_false(
     function: Callable, example: ExamplePair, caplog: pytest.LogCaptureFixture
@@ -47,7 +47,7 @@ def test_objects_are_equal_false(
 
 
 @pandas_available
-@pytest.mark.parametrize("function", COMPARATOR_FUNCTIONS)
+@pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
 @pytest.mark.parametrize("example", PANDAS_NOT_EQUAL)
 def test_objects_are_equal_false_show_difference(
     function: Callable, example: ExamplePair, caplog: pytest.LogCaptureFixture
