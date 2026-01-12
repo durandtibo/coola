@@ -1,4 +1,4 @@
-r"""Implement handlers to check the objects are equal."""
+r"""Implement handler to check the objects are equal."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ import logging
 import math
 from typing import TYPE_CHECKING
 
-from coola.equality.handlers.base import AbstractEqualityHandler, BaseEqualityHandler
+from coola.equality.handler.base import AbstractEqualityHandler, BaseEqualityHandler
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -26,7 +26,7 @@ class NanEqualHandler(AbstractEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> from coola.equality import EqualityConfig
-        >>> from coola.equality.handlers import NanEqualHandler, FalseHandler
+        >>> from coola.equality.handler import NanEqualHandler, FalseHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
         >>> handler = NanEqualHandler(next_handler=FalseHandler())
@@ -64,7 +64,7 @@ class ScalarEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> from coola.equality import EqualityConfig
-        >>> from coola.equality.handlers import ScalarEqualHandler
+        >>> from coola.equality.handler import ScalarEqualHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
         >>> handler = ScalarEqualHandler()

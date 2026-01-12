@@ -6,7 +6,7 @@ from unittest.mock import Mock
 import pytest
 
 from coola.equality import EqualityConfig
-from coola.equality.handlers import FalseHandler, SameShapeHandler, TrueHandler
+from coola.equality.handler import FalseHandler, SameShapeHandler, TrueHandler
 from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import (
     jax_available,

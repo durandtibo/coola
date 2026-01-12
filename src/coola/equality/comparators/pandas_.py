@@ -13,7 +13,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from coola.equality.comparators.base import BaseEqualityComparator
-from coola.equality.handlers import (
+from coola.equality.handler import (
     PandasDataFrameEqualHandler,
     PandasSeriesEqualHandler,
     SameObjectHandler,

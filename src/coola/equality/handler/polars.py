@@ -1,4 +1,4 @@
-r"""Implement some handlers for ``polars.DataFrame``s and
+r"""Implement some handler for ``polars.DataFrame``s and
 ``polars.Series``s."""
 
 from __future__ import annotations
@@ -10,7 +10,7 @@ import logging
 from functools import lru_cache
 from typing import TYPE_CHECKING
 
-from coola.equality.handlers.base import BaseEqualityHandler
+from coola.equality.handler.base import BaseEqualityHandler
 from coola.utils.imports import is_polars_available
 
 if TYPE_CHECKING or is_polars_available():
@@ -38,7 +38,7 @@ class PolarsDataFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```pycon
         >>> import polars as pl
         >>> from coola.equality import EqualityConfig
-        >>> from coola.equality.handlers import PolarsDataFrameEqualHandler
+        >>> from coola.equality.handler import PolarsDataFrameEqualHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
         >>> handler = PolarsDataFrameEqualHandler()
@@ -94,7 +94,7 @@ class PolarsLazyFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```pycon
         >>> import polars as pl
         >>> from coola.equality import EqualityConfig
-        >>> from coola.equality.handlers import PolarsLazyFrameEqualHandler
+        >>> from coola.equality.handler import PolarsLazyFrameEqualHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
         >>> handler = PolarsLazyFrameEqualHandler()
@@ -150,7 +150,7 @@ class PolarsSeriesEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```pycon
         >>> import polars as pl
         >>> from coola.equality import EqualityConfig
-        >>> from coola.equality.handlers import PolarsSeriesEqualHandler
+        >>> from coola.equality.handler import PolarsSeriesEqualHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
         >>> handler = PolarsSeriesEqualHandler()

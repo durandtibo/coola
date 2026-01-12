@@ -1,4 +1,4 @@
-r"""Implement some handlers for ``pandas.DataFrame``s and
+r"""Implement some handler for ``pandas.DataFrame``s and
 ``pandas.Series``s."""
 
 from __future__ import annotations
@@ -8,7 +8,7 @@ __all__ = ["PandasDataFrameEqualHandler", "PandasSeriesEqualHandler"]
 import logging
 from typing import TYPE_CHECKING
 
-from coola.equality.handlers.base import BaseEqualityHandler
+from coola.equality.handler.base import BaseEqualityHandler
 from coola.utils.imports import is_pandas_available
 
 if TYPE_CHECKING or is_pandas_available():
@@ -34,7 +34,7 @@ class PandasDataFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```pycon
         >>> import pandas
         >>> from coola.equality import EqualityConfig
-        >>> from coola.equality.handlers import PandasDataFrameEqualHandler
+        >>> from coola.equality.handler import PandasDataFrameEqualHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
         >>> handler = PandasDataFrameEqualHandler()
@@ -90,7 +90,7 @@ class PandasSeriesEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```pycon
         >>> import pandas
         >>> from coola.equality import EqualityConfig
-        >>> from coola.equality.handlers import PandasSeriesEqualHandler
+        >>> from coola.equality.handler import PandasSeriesEqualHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
         >>> handler = PandasSeriesEqualHandler()

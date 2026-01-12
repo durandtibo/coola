@@ -1,4 +1,4 @@
-r"""Implement some handlers for ``jax.numpy.ndarray``s."""
+r"""Implement some handler for ``jax.numpy.ndarray``s."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ __all__ = ["JaxArrayEqualHandler"]
 import logging
 from typing import TYPE_CHECKING
 
-from coola.equality.handlers.base import BaseEqualityHandler
+from coola.equality.handler.base import BaseEqualityHandler
 from coola.utils.imports import is_jax_available
 
 if TYPE_CHECKING or is_jax_available():
@@ -33,7 +33,7 @@ class JaxArrayEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```pycon
         >>> import jax.numpy as jnp
         >>> from coola.equality import EqualityConfig
-        >>> from coola.equality.handlers import JaxArrayEqualHandler
+        >>> from coola.equality.handler import JaxArrayEqualHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
         >>> handler = JaxArrayEqualHandler()

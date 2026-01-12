@@ -1,4 +1,4 @@
-r"""Implement some handlers for ``pyarrow`` objects."""
+r"""Implement some handler for ``pyarrow`` objects."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import warnings
 from contextlib import suppress
 from typing import TYPE_CHECKING
 
-from coola.equality.handlers.base import BaseEqualityHandler
+from coola.equality.handler.base import BaseEqualityHandler
 
 if TYPE_CHECKING:
     import pyarrow as pa
@@ -35,7 +35,7 @@ class PyarrowEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```pycon
         >>> import pyarrow
         >>> from coola.equality import EqualityConfig
-        >>> from coola.equality.handlers import PyarrowEqualHandler
+        >>> from coola.equality.handler import PyarrowEqualHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
         >>> handler = PyarrowEqualHandler()
@@ -90,7 +90,7 @@ def object_equal(
         ```pycon
         >>> import pyarrow as pa
         >>> from coola.equality import EqualityConfig
-        >>> from coola.equality.handlers.pyarrow_ import object_equal
+        >>> from coola.equality.handler.pyarrow_ import object_equal
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
         >>> object_equal(pa.array([1, 2, 3]), pa.array([1, 2, 3]), config)

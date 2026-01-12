@@ -1,4 +1,4 @@
-r"""Implement some handlers for ``numpy.ndarray``s."""
+r"""Implement some handler for ``numpy.ndarray``s."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ __all__ = ["NumpyArrayEqualHandler"]
 import logging
 from typing import TYPE_CHECKING
 
-from coola.equality.handlers.base import BaseEqualityHandler
+from coola.equality.handler.base import BaseEqualityHandler
 from coola.utils.imports import is_numpy_available
 
 if TYPE_CHECKING or is_numpy_available():
@@ -33,7 +33,7 @@ class NumpyArrayEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```pycon
         >>> import numpy as np
         >>> from coola.equality import EqualityConfig
-        >>> from coola.equality.handlers import NumpyArrayEqualHandler
+        >>> from coola.equality.handler import NumpyArrayEqualHandler
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
         >>> handler = NumpyArrayEqualHandler()
@@ -84,7 +84,7 @@ def array_equal(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) 
         ```pycon
         >>> import numpy as np
         >>> from coola.equality import EqualityConfig
-        >>> from coola.equality.handlers.numpy_ import array_equal
+        >>> from coola.equality.handler.numpy_ import array_equal
         >>> from coola.equality.testers import EqualityTester
         >>> config = EqualityConfig(tester=EqualityTester())
         >>> array_equal(np.ones((2, 3)), np.ones((2, 3)), config)
@@ -113,7 +113,7 @@ def is_numeric_array(array: np.ndarray) -> bool:
     Example:
         ```pycon
         >>> import numpy as np
-        >>> from coola.equality.handlers.numpy_ import is_numeric_array
+        >>> from coola.equality.handler.numpy_ import is_numeric_array
         >>> is_numeric_array(np.ones((2, 3)))
         True
         >>> is_numeric_array(np.array(["polar", "bear", "meow"]))

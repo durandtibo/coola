@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from coola.equality import EqualityConfig
-from coola.equality.handlers import (
+from coola.equality.handler import (
     FalseHandler,
     MappingSameKeysHandler,
     MappingSameValuesHandler,
