@@ -9,6 +9,9 @@ __all__ = [
     "EqualityTesterRegistry",
     "PandasDataFrameEqualityTester",
     "PandasSeriesEqualityTester",
+    "PolarsDataFrameEqualityTester",
+    "PolarsLazyFrameEqualityTester",
+    "PolarsSeriesEqualityTester",
     "ScalarEqualityTester",
     "get_default_registry",
     "register_equality_testers",
@@ -23,6 +26,11 @@ from coola.equality.tester.interface import (
 from coola.equality.tester.pandas import (
     PandasDataFrameEqualityTester,
     PandasSeriesEqualityTester,
+)
+from coola.equality.tester.polars import (
+    PolarsDataFrameEqualityTester,
+    PolarsLazyFrameEqualityTester,
+    PolarsSeriesEqualityTester,
 )
 from coola.equality.tester.registry import EqualityTesterRegistry
 from coola.equality.tester.scalar import ScalarEqualityTester
