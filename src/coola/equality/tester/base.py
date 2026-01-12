@@ -1,4 +1,4 @@
-r"""Define the equality comparator base class."""
+r"""Define the equality tester base class."""
 
 from __future__ import annotations
 
@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING, Generic, TypeVar
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig2
-    from coola.equality.tester.registry import EqualityTesterRegistry
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -22,13 +21,13 @@ class BaseEqualityTester(ABC, Generic[T]):
 
     Example:
         ```pycon
-        >>> from coola.equality import EqualityConfig
+        >>> from coola.equality import EqualityConfig2
         >>> from coola.equality.tester import DefaultEqualityTester
         >>> config = EqualityConfig2()
-        >>> comparator = DefaultEqualityTester()
-        >>> comparator.equal(42, 42, config)
+        >>> tester = DefaultEqualityTester()
+        >>> tester.objects_are_equal(42, 42, config)
         True
-        >>> comparator.equal("meow", "meov", config)
+        >>> tester.objects_are_equal("meow", "meov", config)
         False
 
         ```
@@ -42,7 +41,6 @@ class BaseEqualityTester(ABC, Generic[T]):
         self,
         actual: T,
         expected: object,
-        registry: EqualityTesterRegistry,
         config: EqualityConfig2,
     ) -> bool:
         r"""Indicate if two objects are equal or not.
@@ -50,7 +48,6 @@ class BaseEqualityTester(ABC, Generic[T]):
         Args:
             actual: The actual object.
             expected: The expected object.
-            registry: The registry with the equality tester to use.
             config: The equality configuration.
 
         Returns:
@@ -61,10 +58,10 @@ class BaseEqualityTester(ABC, Generic[T]):
             >>> from coola.equality import EqualityConfig2
             >>> from coola.equality.tester import DefaultEqualityTester
             >>> config = EqualityConfig2()
-            >>> comparator = DefaultEqualityTester()
-            >>> comparator.equal(42, 42, config)
+            >>> tester = DefaultEqualityTester()
+            >>> tester.objects_are_equal(42, 42, config)
             True
-            >>> comparator.equal("meow", "meov", config)
+            >>> tester.objects_are_equal("meow", "meov", config)
             False
 
             ```
