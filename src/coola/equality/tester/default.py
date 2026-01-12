@@ -1,0 +1,56 @@
+r"""Implement the default equality tester."""
+
+from __future__ import annotations
+
+__all__ = ["DefaultEqualityTester"]
+
+import logging
+from typing import TYPE_CHECKING
+
+from coola.equality.handler import (
+    ObjectEqualHandler,
+    SameObjectHandler,
+    SameTypeHandler,
+)
+from coola.equality.tester.base import BaseEqualityTester
+
+if TYPE_CHECKING:
+    from coola.equality import EqualityConfig2
+
+logger: logging.Logger = logging.getLogger(__name__)
+
+
+class DefaultEqualityTester(BaseEqualityTester[object]):
+    r"""Implement a default equality tester.
+
+    The ``==`` operator is used to test the equality between the
+    objects.
+
+    Example:
+        ```pycon
+        >>> from coola.equality import EqualityConfig2
+        >>> from coola.equality.tester import DefaultEqualityTester
+        >>> config = EqualityConfig2()
+        >>> tester = DefaultEqualityTester()
+        >>> tester.objects_are_equal(42, 42, config=config)
+        True
+        >>> tester.objects_are_equal("meow", "meov", config)
+        False
+
+        ```
+    """
+
+    def __init__(self) -> None:
+        self._handler = SameObjectHandler()
+        self._handler.chain(SameTypeHandler()).chain(ObjectEqualHandler())
+
+    def equal(self, other: object) -> bool:
+        return type(other) is type(self)
+
+    def objects_are_equal(
+        self,
+        actual: object,
+        expected: object,
+        config: EqualityConfig2,
+    ) -> bool:
+        return self._handler.handle(actual, expected, config=config)
