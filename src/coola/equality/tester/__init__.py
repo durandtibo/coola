@@ -9,6 +9,8 @@ __all__ = [
     "EqualityTesterRegistry",
     "JaxArrayEqualityTester",
     "MappingEqualityTester",
+    "NumpyArrayEqualityTester",
+    "NumpyMaskedArrayEqualityTester",
     "PandasDataFrameEqualityTester",
     "PandasSeriesEqualityTester",
     "PolarsDataFrameEqualityTester",
@@ -32,6 +34,10 @@ from coola.equality.tester.interface import (
     register_equality_testers,
 )
 from coola.equality.tester.jax import JaxArrayEqualityTester
+from coola.equality.tester.numpy import (
+    NumpyArrayEqualityTester,
+    NumpyMaskedArrayEqualityTester,
+)
 from coola.equality.tester.pandas import (
     PandasDataFrameEqualityTester,
     PandasSeriesEqualityTester,
