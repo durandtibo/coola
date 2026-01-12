@@ -12,6 +12,7 @@ __all__ = [
     "PolarsDataFrameEqualityTester",
     "PolarsLazyFrameEqualityTester",
     "PolarsSeriesEqualityTester",
+    "PyarrowEqualityTester",
     "ScalarEqualityTester",
     "get_default_registry",
     "register_equality_testers",
@@ -32,5 +33,6 @@ from coola.equality.tester.polars import (
     PolarsLazyFrameEqualityTester,
     PolarsSeriesEqualityTester,
 )
+from coola.equality.tester.pyarrow import PyarrowEqualityTester
 from coola.equality.tester.registry import EqualityTesterRegistry
 from coola.equality.tester.scalar import ScalarEqualityTester
