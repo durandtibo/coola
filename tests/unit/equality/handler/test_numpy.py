@@ -20,7 +20,7 @@ else:
     np = Mock()
 
 if TYPE_CHECKING:
-    from tests.unit.equality.comparators.utils import ExamplePair
+    from tests.unit.equality.utils import ExamplePair
 
 
 @pytest.fixture

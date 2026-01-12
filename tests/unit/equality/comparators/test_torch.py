@@ -18,7 +18,7 @@ from coola.testing.fixtures import (
     torch_mps_available,
 )
 from coola.utils.imports import is_torch_available
-from tests.unit.equality.comparators.utils import ExamplePair
+from tests.unit.equality.utils import ExamplePair
 
 if is_torch_available():
     import torch

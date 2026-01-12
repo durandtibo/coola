@@ -8,7 +8,7 @@ import pytest
 
 from coola.equality import EqualityConfig2
 from coola.equality.tester import DefaultEqualityTester
-from tests.unit.equality.comparators.utils import ExamplePair
+from tests.unit.equality.utils import ExamplePair
 
 
 @pytest.fixture

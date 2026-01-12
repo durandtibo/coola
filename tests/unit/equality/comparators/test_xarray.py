@@ -15,7 +15,7 @@ from coola.equality.comparators.xarray_ import (
 from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import xarray_available
 from coola.utils.imports import is_numpy_available, is_xarray_available
-from tests.unit.equality.comparators.utils import ExamplePair
+from tests.unit.equality.utils import ExamplePair
 
 if is_numpy_available():
     import numpy as np

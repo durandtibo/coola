@@ -14,7 +14,7 @@ from tests.unit.equality.comparators.test_default import (
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from tests.unit.equality.comparators.utils import ExamplePair
+    from tests.unit.equality.utils import ExamplePair
 
 COMPARATOR_FUNCTIONS = [objects_are_equal, objects_are_allclose]
 

@@ -14,7 +14,7 @@ from coola.equality.comparators.jax_ import (
 from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import jax_available
 from coola.utils.imports import is_jax_available
-from tests.unit.equality.comparators.utils import ExamplePair
+from tests.unit.equality.utils import ExamplePair
 
 if is_jax_available():
     import jax.numpy as jnp

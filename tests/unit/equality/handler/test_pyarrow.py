@@ -21,7 +21,7 @@ from tests.unit.equality.comparators.test_pyarrow import (
 )
 
 if TYPE_CHECKING:
-    from tests.unit.equality.comparators.utils import ExamplePair
+    from tests.unit.equality.utils import ExamplePair
 
 if is_pyarrow_available():
     import pyarrow as pa
