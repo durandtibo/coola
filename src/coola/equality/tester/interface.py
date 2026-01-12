@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.equality.tester.default import DefaultEqualityTester
 from coola.equality.tester.registry import EqualityTesterRegistry
+from coola.equality.tester.scalar import ScalarEqualityTester
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -116,5 +117,19 @@ def _register_default_equality_testers(registry: EqualityTesterRegistry) -> None
         not typically be called directly by users.
     """
     # TODO(tibo): after the other equality testers are implemented
-    equality_testers = {object: DefaultEqualityTester()}
+    equality_testers = _get_native_equality_testers()
     registry.register_many(equality_testers)
+
+
+def _get_native_equality_testers() -> dict[type, BaseEqualityTester]:
+    r"""Get native equality testers and their associated type.
+
+    Returns:
+        A dict of native equality testers and their associated type.
+
+    Notes:
+        This function is called internally by get_default_registry() and should
+        not typically be called directly by users.
+    """
+    scalar = ScalarEqualityTester()
+    return {object: DefaultEqualityTester(), int: scalar, float: scalar}
