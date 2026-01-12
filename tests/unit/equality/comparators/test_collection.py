@@ -233,14 +233,18 @@ def test_mapping_equality_comparator_str() -> None:
     assert str(MappingEqualityComparator()) == "MappingEqualityComparator()"
 
 
-@numpy_available
 def test_mapping_equality_comparator__eq__true() -> None:
     assert MappingEqualityComparator() == MappingEqualityComparator()
 
 
-@numpy_available
-def test_mapping_equality_comparator__eq__false() -> None:
+def test_mapping_equality_comparator__eq__false_different_type() -> None:
     assert MappingEqualityComparator() != 123
+
+
+def test_mapping_equality_comparator__eq__false_different_type_child() -> None:
+    class Child(MappingEqualityComparator): ...
+
+    assert MappingEqualityComparator() != Child()
 
 
 def test_mapping_equality_comparator_clone() -> None:
@@ -372,14 +376,18 @@ def test_sequence_equality_comparator_str() -> None:
     assert str(SequenceEqualityComparator()) == "SequenceEqualityComparator()"
 
 
-@numpy_available
 def test_sequence_equality_comparator__eq__true() -> None:
     assert SequenceEqualityComparator() == SequenceEqualityComparator()
 
 
-@numpy_available
-def test_sequence_equality_comparator__eq__false() -> None:
+def test_sequence_equality_comparator__eq__false_different_type() -> None:
     assert SequenceEqualityComparator() != 123
+
+
+def test_sequence_equality_comparator__eq__false_different_type_child() -> None:
+    class Child(SequenceEqualityComparator): ...
+
+    assert SequenceEqualityComparator() != Child()
 
 
 def test_sequence_equality_comparator_clone() -> None:
