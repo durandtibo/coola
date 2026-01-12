@@ -235,15 +235,15 @@ def test_mapping_equality_tester_str() -> None:
     assert str(MappingEqualityTester()) == "MappingEqualityTester()"
 
 
-def test_mapping_equality_tester__eq__true() -> None:
+def test_mapping_equality_tester_equal_true() -> None:
     assert MappingEqualityTester().equal(MappingEqualityTester())
 
 
-def test_mapping_equality_tester__eq__false_different_type() -> None:
+def test_mapping_equality_tester_equal_false_different_type() -> None:
     assert not MappingEqualityTester().equal(123)
 
 
-def test_mapping_equality_tester__eq__false_different_type_child() -> None:
+def test_mapping_equality_tester_equal_false_different_type_child() -> None:
     class Child(MappingEqualityTester): ...
 
     assert not MappingEqualityTester().equal(Child())
@@ -387,15 +387,15 @@ def test_sequence_equality_tester_str() -> None:
     assert str(SequenceEqualityTester()) == "SequenceEqualityTester()"
 
 
-def test_sequence_equality_tester__eq__true() -> None:
+def test_sequence_equality_tester_equal_true() -> None:
     assert SequenceEqualityTester().equal(SequenceEqualityTester())
 
 
-def test_sequence_equality_tester__eq__false_different_type() -> None:
+def test_sequence_equality_tester_equal_false_different_type() -> None:
     assert not SequenceEqualityTester().equal(123)
 
 
-def test_sequence_equality_tester__eq__false_different_type_child() -> None:
+def test_sequence_equality_tester_equal_false_different_type_child() -> None:
     class Child(SequenceEqualityTester): ...
 
     assert not SequenceEqualityTester().equal(Child())

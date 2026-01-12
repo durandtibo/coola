@@ -248,17 +248,17 @@ def test_numpy_array_equality_tester_str() -> None:
 
 
 @numpy_available
-def test_numpy_array_equality_tester__eq__true() -> None:
+def test_numpy_array_equality_tester_equal_true() -> None:
     assert NumpyArrayEqualityTester().equal(NumpyArrayEqualityTester())
 
 
 @numpy_available
-def test_numpy_array_equality_tester__eq__false_different_type() -> None:
+def test_numpy_array_equality_tester_equal_false_different_type() -> None:
     assert not NumpyArrayEqualityTester().equal(123)
 
 
 @numpy_available
-def test_numpy_array_equality_tester__eq__false_different_type_child() -> None:
+def test_numpy_array_equality_tester_equal_false_different_type_child() -> None:
     class Child(NumpyArrayEqualityTester): ...
 
     assert not NumpyArrayEqualityTester().equal(Child())
@@ -387,17 +387,17 @@ def test_numpy_masked_array_equality_tester_str() -> None:
 
 
 @numpy_available
-def test_numpy_masked_array_equality_tester__eq__true() -> None:
+def test_numpy_masked_array_equality_tester_equal_true() -> None:
     assert NumpyMaskedArrayEqualityTester().equal(NumpyMaskedArrayEqualityTester())
 
 
 @numpy_available
-def test_numpy_masked_array_equality_tester__eq__false_different_type() -> None:
+def test_numpy_masked_array_equality_tester_equal_false_different_type() -> None:
     assert not NumpyMaskedArrayEqualityTester().equal(123)
 
 
 @numpy_available
-def test_numpy_masked_array_equality_tester__eq__false_different_type_child() -> None:
+def test_numpy_masked_array_equality_tester_equal_false_different_type_child() -> None:
     class Child(NumpyMaskedArrayEqualityTester): ...
 
     assert not NumpyMaskedArrayEqualityTester().equal(Child())
