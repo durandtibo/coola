@@ -41,6 +41,9 @@ class DefaultEqualityTester(BaseEqualityTester[object]):
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(ObjectEqualHandler())
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__qualname__}()"
+
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 

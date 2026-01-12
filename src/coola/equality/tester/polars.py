@@ -61,6 +61,9 @@ class PolarsDataFrameEqualityTester(BaseEqualityTester[pl.DataFrame]):
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(PolarsDataFrameEqualHandler())
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__qualname__}()"
+
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
@@ -104,6 +107,9 @@ class PolarsLazyFrameEqualityTester(BaseEqualityTester[pl.LazyFrame]):
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(PolarsLazyFrameEqualHandler())
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__qualname__}()"
+
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
@@ -138,6 +144,9 @@ class PolarsSeriesEqualityTester(BaseEqualityTester[pl.Series]):
         check_polars()
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(PolarsSeriesEqualHandler())
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__qualname__}()"
 
     def equal(self, other: object) -> bool:
         return type(other) is type(self)

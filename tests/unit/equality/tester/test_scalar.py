@@ -22,7 +22,6 @@ FLOAT_EQUAL = [
     pytest.param(ExamplePair(actual=float("-inf"), expected=float("-inf")), id="-infinity"),
 ]
 
-
 FLOAT_NOT_EQUAL = [
     pytest.param(
         ExamplePair(actual=4.2, expected=1.0, expected_message="numbers are not equal:"),
@@ -36,7 +35,6 @@ FLOAT_NOT_EQUAL = [
 
 SCALAR_EQUAL = FLOAT_EQUAL
 SCALAR_NOT_EQUAL = FLOAT_NOT_EQUAL
-
 
 SCALAR_EQUAL_TOLERANCE = [
     # atol
@@ -61,6 +59,10 @@ SCALAR_EQUAL_TOLERANCE = [
 ##########################################
 #     Tests for ScalarEqualityTester     #
 ##########################################
+
+
+def test_scalar_equality_tester_repr() -> None:
+    assert repr(ScalarEqualityTester()).startswith("ScalarEqualityTester(")
 
 
 def test_scalar_equality_tester_str() -> None:

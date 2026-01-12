@@ -77,7 +77,6 @@ POLARS_DATAFRAME_NOT_EQUAL = [
     ),
 ]
 
-
 POLARS_DATAFRAME_EQUAL_TOLERANCE = [
     # atol
     pytest.param(
@@ -131,7 +130,6 @@ POLARS_DATAFRAME_EQUAL_TOLERANCE = [
     ),
 ]
 
-
 POLARS_LAZYFRAME_EQUAL = [
     pytest.param(
         ExamplePair(
@@ -182,7 +180,6 @@ POLARS_LAZYFRAME_NOT_EQUAL = [
         id="different column names",
     ),
 ]
-
 
 POLARS_LAZYFRAME_EQUAL_TOLERANCE = [
     # atol
@@ -348,9 +345,15 @@ POLARS_EQUAL_TOLERANCE = (
     + POLARS_LAZYFRAME_EQUAL_TOLERANCE
 )
 
-#######################################################
+
+###################################################
 #     Tests for PolarsDataFrameEqualityTester     #
-#######################################################
+###################################################
+
+
+@polars_available
+def test_polars_dataframe_equality_tester_repr() -> None:
+    assert repr(PolarsDataFrameEqualityTester()).startswith("PolarsDataFrameEqualityTester(")
 
 
 @polars_available
@@ -487,6 +490,11 @@ def test_polars_dataframe_equality_tester_no_polars() -> None:
 
 
 @polars_available
+def test_polars_lazyframe_equality_tester_repr() -> None:
+    assert repr(PolarsLazyFrameEqualityTester()).startswith("PolarsLazyFrameEqualityTester(")
+
+
+@polars_available
 def test_polars_lazyframe_equality_tester_str() -> None:
     assert str(PolarsLazyFrameEqualityTester()).startswith("PolarsLazyFrameEqualityTester(")
 
@@ -617,6 +625,11 @@ def test_polars_lazyframe_equality_tester_no_polars() -> None:
 ################################################
 #     Tests for PolarsSeriesEqualityTester     #
 ################################################
+
+
+@polars_available
+def test_polars_series_equality_tester_repr() -> None:
+    assert repr(PolarsSeriesEqualityTester()).startswith("PolarsSeriesEqualityTester(")
 
 
 @polars_available

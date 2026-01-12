@@ -56,6 +56,9 @@ class PandasDataFrameEqualityTester(BaseEqualityTester[pd.DataFrame]):
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(PandasDataFrameEqualHandler())
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__qualname__}()"
+
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
@@ -90,6 +93,9 @@ class PandasSeriesEqualityTester(BaseEqualityTester[pd.Series]):
         check_pandas()
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(PandasSeriesEqualHandler())
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__qualname__}()"
 
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
