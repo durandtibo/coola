@@ -1,4 +1,4 @@
-r"""Implement scalar equality comparators."""
+r"""Implement scalar equality testers."""
 
 from __future__ import annotations
 
@@ -19,17 +19,17 @@ if TYPE_CHECKING:
 
 
 class ScalarEqualityTester(BaseEqualityTester[float]):
-    r"""Implement a default equality comparator.
+    r"""Implement a default equality tester.
 
     Example:
         ```pycon
         >>> from coola.equality import EqualityConfig2
         >>> from coola.equality.tester import ScalarEqualityTester
         >>> config = EqualityConfig2()
-        >>> comparator = ScalarEqualityTester()
-        >>> comparator.objects_are_equal(42.0, 42.0, config)
+        >>> tester = ScalarEqualityTester()
+        >>> tester.objects_are_equal(42.0, 42.0, config)
         True
-        >>> comparator.objects_are_equal(42.0, 1.0, config)
+        >>> tester.objects_are_equal(42.0, 1.0, config)
         False
 
         ```

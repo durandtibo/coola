@@ -7,6 +7,8 @@ __all__ = [
     "BaseEqualityTester",
     "DefaultEqualityTester",
     "EqualityTesterRegistry",
+    "PandasDataFrameEqualityTester",
+    "PandasSeriesEqualityTester",
     "ScalarEqualityTester",
     "get_default_registry",
     "register_equality_testers",
@@ -17,6 +19,10 @@ from coola.equality.tester.default import DefaultEqualityTester
 from coola.equality.tester.interface import (
     get_default_registry,
     register_equality_testers,
+)
+from coola.equality.tester.pandas import (
+    PandasDataFrameEqualityTester,
+    PandasSeriesEqualityTester,
 )
 from coola.equality.tester.registry import EqualityTesterRegistry
 from coola.equality.tester.scalar import ScalarEqualityTester
