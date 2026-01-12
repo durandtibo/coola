@@ -63,25 +63,25 @@ SCALAR_EQUAL_TOLERANCE = [
 ##########################################
 
 
-def test_scalar_equality_comparator_str() -> None:
+def test_scalar_equality_tester_str() -> None:
     assert str(ScalarEqualityTester()).startswith("ScalarEqualityTester(")
 
 
-def test_scalar_equality_comparator_equal_true() -> None:
+def test_scalar_equality_tester_equal_true() -> None:
     assert ScalarEqualityTester().equal(ScalarEqualityTester())
 
 
-def test_scalar_equality_comparator_equal_false_different_type() -> None:
+def test_scalar_equality_tester_equal_false_different_type() -> None:
     assert not ScalarEqualityTester().equal(123)
 
 
-def test_scalar_equality_comparator_equal_false_different_type_child() -> None:
+def test_scalar_equality_tester_equal_false_different_type_child() -> None:
     class Child(ScalarEqualityTester): ...
 
     assert not ScalarEqualityTester().equal(Child())
 
 
-def test_scalar_equality_comparator_objects_are_equal_true_same_object(
+def test_scalar_equality_tester_objects_are_equal_true_same_object(
     config: EqualityConfig2,
 ) -> None:
     x = 4.2
@@ -89,65 +89,65 @@ def test_scalar_equality_comparator_objects_are_equal_true_same_object(
 
 
 @pytest.mark.parametrize("example", FLOAT_EQUAL)
-def test_scalar_equality_comparator_objects_are_equal_true(
+def test_scalar_equality_tester_objects_are_equal_true(
     example: ExamplePair,
     config: EqualityConfig2,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    comparator = ScalarEqualityTester()
+    tester = ScalarEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert comparator.objects_are_equal(
+        assert tester.objects_are_equal(
             actual=example.actual, expected=example.expected, config=config
         )
         assert not caplog.messages
 
 
 @pytest.mark.parametrize("example", FLOAT_EQUAL)
-def test_scalar_equality_comparator_objects_are_equal_true_show_difference(
+def test_scalar_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
     config: EqualityConfig2,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
-    comparator = ScalarEqualityTester()
+    tester = ScalarEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert comparator.objects_are_equal(
+        assert tester.objects_are_equal(
             actual=example.actual, expected=example.expected, config=config
         )
         assert not caplog.messages
 
 
 @pytest.mark.parametrize("example", FLOAT_NOT_EQUAL)
-def test_scalar_equality_comparator_objects_are_equal_false(
+def test_scalar_equality_tester_objects_are_equal_false(
     example: ExamplePair,
     config: EqualityConfig2,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    comparator = ScalarEqualityTester()
+    tester = ScalarEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert not comparator.objects_are_equal(
+        assert not tester.objects_are_equal(
             actual=example.actual, expected=example.expected, config=config
         )
         assert not caplog.messages
 
 
 @pytest.mark.parametrize("example", FLOAT_NOT_EQUAL)
-def test_scalar_equality_comparator_objects_are_equal_false_show_difference(
+def test_scalar_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
     config: EqualityConfig2,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
-    comparator = ScalarEqualityTester()
+    tester = ScalarEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert not comparator.objects_are_equal(
+        assert not tester.objects_are_equal(
             actual=example.actual, expected=example.expected, config=config
         )
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
 @pytest.mark.parametrize("equal_nan", [False, True])
-def test_scalar_equality_comparator_objects_are_equal_nan(
+def test_scalar_equality_tester_objects_are_equal_nan(
     config: EqualityConfig2, equal_nan: bool
 ) -> None:
     config.equal_nan = equal_nan
@@ -162,7 +162,7 @@ def test_scalar_equality_comparator_objects_are_equal_nan(
 
 
 @pytest.mark.parametrize("example", SCALAR_EQUAL_TOLERANCE)
-def test_scalar_equality_comparator_objects_are_equal_true_tolerance(
+def test_scalar_equality_tester_objects_are_equal_true_tolerance(
     example: ExamplePair, config: EqualityConfig2
 ) -> None:
     config.atol = example.atol
