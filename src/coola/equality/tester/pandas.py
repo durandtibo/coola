@@ -5,7 +5,6 @@ from __future__ import annotations
 
 __all__ = ["PandasDataFrameEqualityTester", "PandasSeriesEqualityTester"]
 
-import logging
 from typing import TYPE_CHECKING
 
 from coola.equality.handler import (
@@ -24,8 +23,6 @@ else:  # pragma: no cover
 
 if TYPE_CHECKING:
     from coola.equality import EqualityConfig2
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 
 class PandasDataFrameEqualityTester(BaseEqualityTester[pd.DataFrame]):
