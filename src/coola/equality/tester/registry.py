@@ -13,7 +13,6 @@ __all__ = ["EqualityTesterRegistry"]
 from typing import TYPE_CHECKING, Any
 
 from coola.equality.tester.base import BaseEqualityTester
-from coola.registry import TypeRegistry
 from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:
@@ -69,6 +68,9 @@ class EqualityTesterRegistry:
     """
 
     def __init__(self, initial_state: dict[type, BaseEqualityTester[Any]] | None = None) -> None:
+        # local import to avoid cyclic imports as TypeRegistry uses objects_are_equal
+        from coola.registry.type import TypeRegistry  # noqa: PLC0415
+
         self._state: TypeRegistry[BaseEqualityTester] = TypeRegistry[BaseEqualityTester](
             initial_state
         )
