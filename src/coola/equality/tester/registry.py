@@ -21,9 +21,6 @@ if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
 
 
-# TODO(tibo): update everything, including implementation and docstrings.
-
-
 class EqualityTesterRegistry:
     """Registry that manages and dispatches transformers based on data
     type.
@@ -44,14 +41,15 @@ class EqualityTesterRegistry:
         _state: Internal mapping of registered types to transformers
 
     Example:
-        Basic usage with a sequence transformer:
+        Basic usage:
 
         ```pycon
-        >>> from coola.recursive import (
+        >>> from coola.equality.tester import (
         ...     EqualityTesterRegistry,
         ...     SequenceEqualityTester,
         ...     DefaultEqualityTester,
         ... )
+        >>> from coola.equality.config import EqualityConfig
         >>> registry = EqualityTesterRegistry(
         ...     {object: DefaultEqualityTester(), list: SequenceEqualityTester()}
         ... )
@@ -62,30 +60,9 @@ class EqualityTesterRegistry:
               (<class 'list'>): SequenceEqualityTester()
             )
         )
-        >>> registry.transform([1, 2, 3], str)
-        ['1', '2', '3']
-
-        ```
-
-        Registering custom transformers:
-
-        ```pycon
-        >>> from coola.recursive import EqualityTesterRegistry, SequenceEqualityTester
-        >>> registry = EqualityTesterRegistry({object: DefaultEqualityTester()})
-        >>> registry.register(list, SequenceEqualityTester())
-        >>> registry.transform([1, 2, 3], lambda x: x * 2)
-        [2, 4, 6]
-
-        ```
-
-        Working with nested structures:
-
-        ```pycon
-        >>> from coola.recursive import get_default_registry
-        >>> registry = get_default_registry()
-        >>> data = {"a": [1, 2], "b": [3, 4]}
-        >>> registry.transform(data, str)
-        {'a': ['1', '2'], 'b': ['3', '4']}
+        >>> config = EqualityConfig()
+        >>> registry.objects_are_equal([1, 2, 3], [1, 2, 3], config=config)
+        True
 
         ```
     """
@@ -126,7 +103,7 @@ class EqualityTesterRegistry:
 
         Example:
             ```pycon
-            >>> from coola.recursive import EqualityTesterRegistry, SequenceEqualityTester
+            >>> from coola.equality.tester import EqualityTesterRegistry, SequenceEqualityTester
             >>> registry = EqualityTesterRegistry()
             >>> registry.register(list, SequenceEqualityTester())
             >>> registry.has_equality_tester(list)
@@ -156,7 +133,7 @@ class EqualityTesterRegistry:
 
         Example:
             ```pycon
-            >>> from coola.recursive import (
+            >>> from coola.equality.tester import (
             ...     EqualityTesterRegistry,
             ...     SequenceEqualityTester,
             ...     MappingEqualityTester,
@@ -197,7 +174,7 @@ class EqualityTesterRegistry:
 
         Example:
             ```pycon
-            >>> from coola.recursive import EqualityTesterRegistry, SequenceEqualityTester
+            >>> from coola.equality.tester import EqualityTesterRegistry, SequenceEqualityTester
             >>> registry = EqualityTesterRegistry()
             >>> registry.register(list, SequenceEqualityTester())
             >>> registry.has_equality_tester(list)
@@ -229,7 +206,7 @@ class EqualityTesterRegistry:
         Example:
             ```pycon
             >>> from collections.abc import Sequence
-            >>> from coola.recursive import (
+            >>> from coola.equality.tester import (
             ...     EqualityTesterRegistry,
             ...     SequenceEqualityTester,
             ...     DefaultEqualityTester,
@@ -268,27 +245,34 @@ class EqualityTesterRegistry:
             leaf values transformed by func
 
         Example:
-            Converting all numbers to strings in a nested structure:
+            Checking if two lists of integers are equal:
 
             ```pycon
-            >>> from coola.recursive import get_default_registry
+            >>> from coola.equality.config import EqualityConfig
+            >>> from coola.equality.tester import get_default_registry
             >>> registry = get_default_registry()
-            >>> registry.transform({"scores": [95, 87, 92], "name": "test"}, str)
-            {'scores': ['95', '87', '92'], 'name': 'test'}
+            >>> config = EqualityConfig()
+            >>> registry.objects_are_equal([1, 2, 3], [1, 2, 3], config=config)
+            True
 
             ```
 
-            Doubling all numeric values:
+            Checking if two lists of tensors are equal:
 
             ```pycon
-            >>> from coola.recursive import get_default_registry
+            >>> import torch
+            >>> from coola.equality.config import EqualityConfig
+            >>> from coola.equality.tester import get_default_registry
             >>> registry = get_default_registry()
-            >>> registry.transform(
-            ...     [1, [2, 3], {"a": 4}], lambda x: x * 2 if isinstance(x, (int, float)) else x
+            >>> config = EqualityConfig()
+            >>> registry.objects_are_equal(
+            ...     [torch.ones(2, 3), torch.zeros(2)],
+            ...     [torch.ones(2, 3), torch.zeros(2)],
+            ...     config=config,
             ... )
-            [2, [4, 6], {'a': 8}]
+            True
 
             ```
         """
-        equality_tester = self.find_equality_tester(type(actual))
-        return equality_tester.objects_are_equal(actual=actual, expected=expected, config=config)
+        tester = self.find_equality_tester(type(actual))
+        return tester.objects_are_equal(actual=actual, expected=expected, config=config)
