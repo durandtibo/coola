@@ -7,6 +7,7 @@ from unittest.mock import Mock
 import pytest
 
 from coola.equality import objects_are_allclose, objects_are_equal
+from coola.equality.tester import DefaultEqualityTester, EqualityTesterRegistry
 from coola.testing.fixtures import numpy_available, torch_available
 from coola.utils.imports import is_numpy_available, is_torch_available
 
@@ -304,6 +305,11 @@ def test_objects_are_allclose_true_complex_objects() -> None:
     )
 
 
+def test_objects_are_allclose_custom_registry() -> None:
+    registry = EqualityTesterRegistry({object: DefaultEqualityTester()})
+    assert not objects_are_allclose([], (), registry=registry)
+
+
 #######################################
 #     Tests for objects_are_equal     #
 #######################################
@@ -466,3 +472,8 @@ def test_objects_are_equal_true_complex_objects() -> None:
             "numpy": np.ones(4),
         },
     )
+
+
+def test_objects_are_equal_custom_registry() -> None:
+    registry = EqualityTesterRegistry({object: DefaultEqualityTester()})
+    assert not objects_are_equal([], (), registry=registry)

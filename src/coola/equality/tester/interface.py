@@ -52,19 +52,19 @@ from coola.utils.imports import (
 if TYPE_CHECKING:
     from coola.equality.tester.base import BaseEqualityTester
 
-if is_jax_available():
+if is_jax_available():  # pragma: no cover
     import jax.numpy as jnp
-if is_numpy_available():
+if is_numpy_available():  # pragma: no cover
     import numpy as np
-if is_pandas_available():
+if is_pandas_available():  # pragma: no cover
     import pandas as pd
-if is_polars_available():
+if is_polars_available():  # pragma: no cover
     import polars as pl
-if is_pyarrow_available():
+if is_pyarrow_available():  # pragma: no cover
     import pyarrow as pa
-if is_torch_available():
+if is_torch_available():  # pragma: no cover
     import torch
-if is_xarray_available():
+if is_xarray_available():  # pragma: no cover
     import xarray as xr
 
 
