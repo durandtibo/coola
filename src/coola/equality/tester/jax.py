@@ -4,7 +4,6 @@ from __future__ import annotations
 
 __all__ = ["JaxArrayEqualityTester"]
 
-import logging
 from functools import lru_cache
 from typing import TYPE_CHECKING
 
@@ -26,8 +25,6 @@ else:  # pragma: no cover
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 
 class JaxArrayEqualityTester(BaseEqualityTester[jnp.ndarray]):
@@ -63,7 +60,7 @@ class JaxArrayEqualityTester(BaseEqualityTester[jnp.ndarray]):
 
     def objects_are_equal(
         self,
-        actual: object,
+        actual: jnp.ndarray,
         expected: object,
         config: EqualityConfig,
     ) -> bool:

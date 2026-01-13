@@ -5,7 +5,6 @@ from __future__ import annotations
 
 __all__ = ["TorchPackedSequenceEqualityTester", "TorchTensorEqualityTester"]
 
-import logging
 from typing import TYPE_CHECKING
 
 from coola.equality.handler import (
@@ -31,8 +30,6 @@ else:  # pragma: no cover
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 
 class TorchPackedSequenceEqualityTester(BaseEqualityTester[torch.nn.utils.rnn.PackedSequence]):
@@ -70,7 +67,7 @@ class TorchPackedSequenceEqualityTester(BaseEqualityTester[torch.nn.utils.rnn.Pa
 
     def objects_are_equal(
         self,
-        actual: object,
+        actual: torch.nn.utils.rnn.PackedSequence,
         expected: object,
         config: EqualityConfig,
     ) -> bool:
@@ -110,7 +107,7 @@ class TorchTensorEqualityTester(BaseEqualityTester[torch.Tensor]):
 
     def objects_are_equal(
         self,
-        actual: object,
+        actual: torch.Tensor,
         expected: object,
         config: EqualityConfig,
     ) -> bool:

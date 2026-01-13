@@ -4,14 +4,12 @@ from __future__ import annotations
 
 __all__ = ["BaseEqualityTester"]
 
-import logging
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Generic, TypeVar
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
 
-logger: logging.Logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
