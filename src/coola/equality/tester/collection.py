@@ -35,9 +35,9 @@ class MappingEqualityTester(BaseEqualityTester[Mapping[Any, Any]]):
         >>> from coola.equality.tester import MappingEqualityTester
         >>> config = EqualityConfig()
         >>> tester = MappingEqualityTester()
-        >>> tester.equal({"a": 1, "b": 2}, {"a": 1, "b": 2}, config)
+        >>> tester.objects_are_equal({"a": 1, "b": 2}, {"a": 1, "b": 2}, config)
         True
-        >>> tester.equal({"a": 1, "b": 2}, {"a": 1, "b": 4}, config)
+        >>> tester.objects_are_equal({"a": 1, "b": 2}, {"a": 1, "b": 4}, config)
         False
 
         ```
@@ -73,9 +73,9 @@ class SequenceEqualityTester(BaseEqualityTester[Sequence[Any]]):
         >>> from coola.equality.tester import SequenceEqualityTester
         >>> config = EqualityConfig()
         >>> tester = SequenceEqualityTester()
-        >>> tester.equal([1, 2, 3], [1, 2, 3], config)
+        >>> tester.objects_are_equal([1, 2, 3], [1, 2, 3], config)
         True
-        >>> tester.equal([1, 2, 3], [1, 2, 4], config)
+        >>> tester.objects_are_equal([1, 2, 3], [1, 2, 4], config)
         False
 
         ```

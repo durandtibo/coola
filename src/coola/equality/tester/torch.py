@@ -45,9 +45,9 @@ class TorchPackedSequenceEqualityTester(BaseEqualityTester[torch.nn.utils.rnn.Pa
         >>> from coola.equality.tester import TorchPackedSequenceEqualityTester
         >>> config = EqualityConfig()
         >>> tester = TorchTensorEqualityTester()
-        >>> tester.equal(torch.ones(2, 3), torch.ones(2, 3), config)
+        >>> tester.objects_are_equal(torch.ones(2, 3), torch.ones(2, 3), config)
         True
-        >>> tester.equal(torch.ones(2, 3), torch.zeros(2, 3), config)
+        >>> tester.objects_are_equal(torch.ones(2, 3), torch.zeros(2, 3), config)
         False
 
         ```
@@ -87,9 +87,9 @@ class TorchTensorEqualityTester(BaseEqualityTester[torch.Tensor]):
         >>> from coola.equality.tester import TorchTensorEqualityTester
         >>> config = EqualityConfig()
         >>> tester = TorchTensorEqualityTester()
-        >>> tester.equal(torch.ones(2, 3), torch.ones(2, 3), config)
+        >>> tester.objects_are_equal(torch.ones(2, 3), torch.ones(2, 3), config)
         True
-        >>> tester.equal(torch.ones(2, 3), torch.zeros(2, 3), config)
+        >>> tester.objects_are_equal(torch.ones(2, 3), torch.zeros(2, 3), config)
         False
 
         ```

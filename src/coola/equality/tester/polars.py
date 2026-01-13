@@ -40,13 +40,13 @@ class PolarsDataFrameEqualityTester(BaseEqualityTester[pl.DataFrame]):
         >>> from coola.equality.tester import PolarsDataFrameEqualityTester
         >>> config = EqualityConfig()
         >>> tester = PolarsDataFrameEqualityTester()
-        >>> tester.equal(
+        >>> tester.objects_are_equal(
         ...     pl.DataFrame({"col": [1, 2, 3]}),
         ...     pl.DataFrame({"col": [1, 2, 3]}),
         ...     config,
         ... )
         True
-        >>> tester.equal(
+        >>> tester.objects_are_equal(
         ...     pl.DataFrame({"col": [1, 2, 3]}),
         ...     pl.DataFrame({"col": [1, 2, 4]}),
         ...     config,
@@ -86,13 +86,13 @@ class PolarsLazyFrameEqualityTester(BaseEqualityTester[pl.LazyFrame]):
         >>> from coola.equality.tester import PolarsLazyFrameEqualityTester
         >>> config = EqualityConfig()
         >>> tester = PolarsLazyFrameEqualityTester()
-        >>> tester.equal(
+        >>> tester.objects_are_equal(
         ...     pl.LazyFrame({"col": [1, 2, 3]}),
         ...     pl.LazyFrame({"col": [1, 2, 3]}),
         ...     config,
         ... )
         True
-        >>> tester.equal(
+        >>> tester.objects_are_equal(
         ...     pl.LazyFrame({"col": [1, 2, 3]}),
         ...     pl.LazyFrame({"col": [1, 2, 4]}),
         ...     config,
@@ -132,9 +132,9 @@ class PolarsSeriesEqualityTester(BaseEqualityTester[pl.Series]):
         >>> from coola.equality.tester import PolarsSeriesEqualityTester
         >>> config = EqualityConfig()
         >>> tester = PolarsSeriesEqualityTester()
-        >>> tester.equal(pl.Series([1, 2, 3]), pl.Series([1, 2, 3]), config)
+        >>> tester.objects_are_equal(pl.Series([1, 2, 3]), pl.Series([1, 2, 3]), config)
         True
-        >>> tester.equal(pl.Series([1, 2, 3]), pl.Series([1, 2, 4]), config)
+        >>> tester.objects_are_equal(pl.Series([1, 2, 3]), pl.Series([1, 2, 4]), config)
         False
 
         ```

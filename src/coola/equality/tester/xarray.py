@@ -43,13 +43,13 @@ class XarrayDataArrayEqualityTester(BaseEqualityTester[xr.DataArray]):
         >>> from coola.equality.tester import XarrayDataArrayEqualityTester
         >>> config = EqualityConfig()
         >>> tester = XarrayDataArrayEqualityTester()
-        >>> tester.equal(
+        >>> tester.objects_are_equal(
         ...     xr.DataArray(np.arange(6), dims=["z"]),
         ...     xr.DataArray(np.arange(6), dims=["z"]),
         ...     config,
         ... )
         True
-        >>> tester.equal(
+        >>> tester.objects_are_equal(
         ...     xr.DataArray(np.ones(6), dims=["z"]),
         ...     xr.DataArray(np.zeros(6), dims=["z"]),
         ...     config,
@@ -92,13 +92,13 @@ class XarrayDatasetEqualityTester(BaseEqualityTester[xr.Dataset]):
         >>> from coola.equality.tester import XarrayDatasetEqualityTester
         >>> config = EqualityConfig()
         >>> tester = XarrayDatasetEqualityTester()
-        >>> tester.equal(
+        >>> tester.objects_are_equal(
         ...     xr.Dataset({"x": xr.DataArray(np.arange(6), dims=["z"])}),
         ...     xr.Dataset({"x": xr.DataArray(np.arange(6), dims=["z"])}),
         ...     config,
         ... )
         True
-        >>> tester.equal(
+        >>> tester.objects_are_equal(
         ...     xr.Dataset({"x": xr.DataArray(np.zeros(6), dims=["z"])}),
         ...     xr.Dataset({"x": xr.DataArray(np.ones(6), dims=["z"])}),
         ...     config,
@@ -141,13 +141,13 @@ class XarrayVariableEqualityTester(BaseEqualityTester[xr.Variable]):
         >>> from coola.equality.tester import XarrayVariableEqualityTester
         >>> config = EqualityConfig()
         >>> tester = XarrayVariableEqualityTester()
-        >>> tester.equal(
+        >>> tester.objects_are_equal(
         ...     xr.Variable(dims=["z"], data=np.arange(6)),
         ...     xr.Variable(dims=["z"], data=np.arange(6)),
         ...     config,
         ... )
         True
-        >>> tester.equal(
+        >>> tester.objects_are_equal(
         ...     xr.Variable(dims=["z"], data=np.zeros(6)),
         ...     xr.Variable(dims=["z"], data=np.ones(6)),
         ...     config,
