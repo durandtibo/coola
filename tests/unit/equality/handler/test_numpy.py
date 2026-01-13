@@ -11,7 +11,7 @@ from coola.equality.handler import FalseHandler, NumpyArrayEqualHandler
 from coola.equality.handler.numpy import array_equal, is_numeric_array
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
-from tests.unit.equality.comparators.test_numpy import NUMPY_ARRAY_EQUAL_TOLERANCE
+from tests.unit.equality.tester.test_numpy import NUMPY_ARRAY_EQUAL_TOLERANCE
 
 if is_numpy_available():
     import numpy as np

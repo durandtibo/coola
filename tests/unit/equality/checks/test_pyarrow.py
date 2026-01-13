@@ -6,10 +6,10 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from coola import objects_are_allclose
+from coola.equality import objects_are_allclose
 from coola.testing.fixtures import pyarrow_available
 from tests.unit.equality.checks.test_default import EQUALITY_TESTER_FUNCTIONS
-from tests.unit.equality.comparators.test_pyarrow import (
+from tests.unit.equality.tester.test_pyarrow import (
     PYARROW_EQUAL,
     PYARROW_EQUAL_TOLERANCE,
     PYARROW_NOT_EQUAL,

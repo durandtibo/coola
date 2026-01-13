@@ -5,10 +5,10 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from coola import objects_are_allclose
+from coola.equality import objects_are_allclose
 from coola.testing.fixtures import torch_available
 from tests.unit.equality.checks.test_default import EQUALITY_TESTER_FUNCTIONS
-from tests.unit.equality.comparators.test_torch import (
+from tests.unit.equality.tester.test_torch import (
     TORCH_EQUAL,
     TORCH_EQUAL_TOLERANCE,
     TORCH_NOT_EQUAL,

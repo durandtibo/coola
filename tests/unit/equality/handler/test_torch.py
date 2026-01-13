@@ -14,7 +14,7 @@ from coola.equality.handler.torch import (
 )
 from coola.testing.fixtures import torch_available, torch_cuda_available
 from coola.utils.imports import is_torch_available
-from tests.unit.equality.comparators.test_torch import TORCH_TENSOR_EQUAL_TOLERANCE
+from tests.unit.equality.tester.test_torch import TORCH_TENSOR_EQUAL_TOLERANCE
 
 if is_torch_available():
     import torch

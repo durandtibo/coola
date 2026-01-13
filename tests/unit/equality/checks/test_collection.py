@@ -5,9 +5,9 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from coola import objects_are_allclose
+from coola.equality import objects_are_allclose
 from tests.unit.equality.checks.test_default import EQUALITY_TESTER_FUNCTIONS
-from tests.unit.equality.comparators.test_collection import (
+from tests.unit.equality.tester.test_collection import (
     COLLECTION_EQUAL,
     COLLECTION_EQUAL_TOLERANCE,
     COLLECTION_NOT_EQUAL,

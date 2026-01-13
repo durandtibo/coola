@@ -5,10 +5,10 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from coola import objects_are_allclose
+from coola.equality import objects_are_allclose
 from coola.testing.fixtures import pandas_available
 from tests.unit.equality.checks.test_default import EQUALITY_TESTER_FUNCTIONS
-from tests.unit.equality.comparators.test_pandas import (
+from tests.unit.equality.tester.test_pandas import (
     PANDAS_EQUAL,
     PANDAS_EQUAL_TOLERANCE,
     PANDAS_NOT_EQUAL,

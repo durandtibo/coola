@@ -10,7 +10,7 @@ from coola.equality.config import EqualityConfig
 from coola.equality.handler import FalseHandler, JaxArrayEqualHandler
 from coola.testing.fixtures import jax_available
 from coola.utils.imports import is_jax_available
-from tests.unit.equality.comparators.test_jax import JAX_ARRAY_EQUAL_TOLERANCE
+from tests.unit.equality.tester.test_jax import JAX_ARRAY_EQUAL_TOLERANCE
 
 if is_jax_available():
     import jax.numpy as jnp
