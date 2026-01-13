@@ -63,14 +63,14 @@ False
 *Log output*:
 
 ```textmate
-INFO:coola.comparators.torch_:torch.Tensors are different
+torch.Tensors are different
 actual=
 tensor([[1., 1., 1.],
         [1., 1., 1.]])
 expected=
 tensor([[0., 0., 0.],
         [0., 0., 0.]])
-INFO:coola.comparators.equality:The mappings have a different value for the key 'torch':
+The mappings have a different value for the key 'torch':
 first mapping  = {'torch': tensor([[1., 1., 1.],
         [1., 1., 1.]]), 'numpy': array([[0., 0., 0.],
        [0., 0., 0.]])}
@@ -131,7 +131,7 @@ False
 ```
 
 Feel free to try any complex nested structure that you want. You can find the currently supported
-types [here](types.md#equal).
+types [here](equality_types.md#equal).
 
 ### Strict type checking
 
@@ -295,7 +295,7 @@ True
 
 `objects_are_allclose` supports a lot of types and nested structure.
 Feel free to try any complex nested structure that you want. You can find the currently supported
-types [here](types.md#equal-within-a-tolerance-allclose).
+types [here](equality_types.md#equal-within-a-tolerance-allclose).
 
 ### Not A Number (NaN)
 
@@ -449,8 +449,8 @@ The failure occurred for item ['key3']
 ```pycon
 
 >>> import torch
->>> import coola
->>> coola.objects_are_equal(
+>>> from coola.equality import objects_are_equal
+>>> objects_are_equal(
 ...     {"key1": torch.ones(2, 3), "key2": torch.zeros(3), "key3": "abc"},
 ...     {"key1": torch.ones(2, 3), "key2": torch.zeros(3), "key3": "abc"},
 ... )
@@ -474,8 +474,8 @@ The inputs have different types: the left input is a tuple, whereas the right is
 ```pycon
 
 >>> import torch
->>> import coola
->>> coola.objects_are_equal((1, 2, 3), [1, 2, 3])
+>>> from coola.equality import objects_are_equal
+>>> objects_are_equal((1, 2, 3), [1, 2, 3])
 False
 
 ```
@@ -511,20 +511,20 @@ ValueError: The truth value of an array with more than one element is ambiguous.
 
 ```pycon
 
->>> import coola
+>>> from coola.equality import objects_are_equal
 >>> import numpy as np
 >>> from collections import deque
->>> coola.objects_are_equal(
+>>> objects_are_equal(
 ...     {"key1": np.ones((2, 3)), "key2": np.zeros(3)},
 ...     {"key1": np.ones((2, 3)), "key2": np.zeros(3)},
 ... )
 True
->>> coola.objects_are_equal(
+>>> objects_are_equal(
 ...     {"key1": np.ones((2, 3)), "key2": np.zeros(3), "key3": "abc"},
 ...     {"key1": np.ones((2, 3)), "key2": np.zeros(3), "key3": "abc"},
 ... )
 True
->>> coola.objects_are_equal(
+>>> objects_are_equal(
 ...     deque([np.ones((2, 3)), np.zeros(3)]),
 ...     deque([np.ones((2, 3)), np.zeros(3)]),
 ... )
