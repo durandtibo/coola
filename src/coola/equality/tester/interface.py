@@ -5,6 +5,7 @@ from __future__ import annotations
 
 __all__ = ["get_default_registry", "register_equality_testers"]
 
+from collections import deque
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any
 
@@ -199,20 +200,14 @@ def _get_native_equality_testers() -> dict[type, BaseEqualityTester]:
     return {
         # Object is the catch-all base for unregistered types
         object: default,
-        # Strings should not be iterated character by character
-        str: default,
         # Numeric types - no recursion needed
         int: scalar,
         float: scalar,
-        complex: default,
-        bool: scalar,
         # Sequences - recursive transformation preserving order
+        deque: sequence,
         list: sequence,
         tuple: sequence,
         Sequence: sequence,
-        # Sets - recursive transformation without order
-        set: default,
-        frozenset: default,
         # Mappings - recursive transformation of keys and values
         dict: mapping,
         Mapping: mapping,
