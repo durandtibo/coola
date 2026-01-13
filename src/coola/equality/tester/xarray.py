@@ -8,7 +8,6 @@ __all__ = [
     "XarrayVariableEqualityTester",
 ]
 
-import logging
 from typing import TYPE_CHECKING
 
 from coola.equality.handler import (
@@ -28,8 +27,6 @@ else:  # pragma: no cover
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 
 class XarrayDataArrayEqualityTester(BaseEqualityTester[xr.DataArray]):

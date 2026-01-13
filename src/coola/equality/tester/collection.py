@@ -5,7 +5,6 @@ from __future__ import annotations
 
 __all__ = ["MappingEqualityTester", "SequenceEqualityTester"]
 
-import logging
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any
 
@@ -22,8 +21,6 @@ from coola.equality.tester.base import BaseEqualityTester
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 
 class MappingEqualityTester(BaseEqualityTester[Mapping[Any, Any]]):
@@ -57,7 +54,7 @@ class MappingEqualityTester(BaseEqualityTester[Mapping[Any, Any]]):
 
     def objects_are_equal(
         self,
-        actual: object,
+        actual: Mapping[Any, Any],
         expected: object,
         config: EqualityConfig,
     ) -> bool:
@@ -95,7 +92,7 @@ class SequenceEqualityTester(BaseEqualityTester[Sequence[Any]]):
 
     def objects_are_equal(
         self,
-        actual: object,
+        actual: Sequence[Any],
         expected: object,
         config: EqualityConfig,
     ) -> bool:
