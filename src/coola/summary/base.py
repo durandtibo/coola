@@ -63,8 +63,7 @@ class BaseSummarizer(ABC, Generic[T]):
 
         Example:
             ```pycon
-            >>> from coola.summary import SummarizerRegistry, DefaultSummarizer, MappingSummarizer
-            >>> registry = SummarizerRegistry()
+            >>> from coola.summary import DefaultSummarizer, MappingSummarizer
             >>> summarizer1 = DefaultSummarizer()
             >>> summarizer2 = DefaultSummarizer()
             >>> summarizer3 = MappingSummarizer()

@@ -32,6 +32,30 @@ class BaseEqualityTester(ABC, Generic[T]):
     """
 
     @abstractmethod
+    def equal(self, other: object) -> bool:
+        r"""Indicate if two objects are equal or not.
+
+        Args:
+            other: The other object.
+
+        Returns:
+            ``True`` if the two objects are equal, otherwise ``False``.
+
+        Example:
+            ```pycon
+            >>> from coola.equality.tester import DefaultEqualityTester, MappingEqualityTester
+            >>> tester1 = DefaultEqualityTester()
+            >>> tester2 = DefaultEqualityTester()
+            >>> tester3 = MappingEqualityTester()
+            >>> tester1.equal(tester2)
+            True
+            >>> tester1.equal(tester3)
+            False
+
+            ```
+        """
+
+    @abstractmethod
     def objects_are_equal(
         self,
         actual: T,
