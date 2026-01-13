@@ -20,6 +20,16 @@ class MyFloat:
     def __init__(self, value: float) -> None:
         self._value = float(value)
 
+    def equal(self, other: object) -> bool:
+        if type(other) is not type(self):
+            return False
+        return self._value == other._value
+
+
+class MyFloatNan:
+    def __init__(self, value: float) -> None:
+        self._value = float(value)
+
     def equal(self, other: object, equal_nan: bool = False) -> bool:
         if type(other) is not type(self):
             return False
@@ -28,13 +38,53 @@ class MyFloat:
         return self._value == other._value
 
 
-EQUAL_EQUAL = [
-    pytest.param(ExamplePair(actual=MyFloat(4.2), expected=MyFloat(4.2)), id="float"),
-    pytest.param(ExamplePair(actual=MyFloat(42), expected=MyFloat(42)), id="int"),
+CUSTOM_EQUAL_NAN_EQUAL = [
+    pytest.param(ExamplePair(actual=MyFloatNan(4.2), expected=MyFloatNan(4.2)), id="float"),
+    pytest.param(ExamplePair(actual=MyFloatNan(42), expected=MyFloatNan(42)), id="int"),
 ]
 
 
-EQUAL_NOT_EQUAL = [
+CUSTOM_EQUAL_NAN_NOT_EQUAL = [
+    pytest.param(
+        ExamplePair(
+            actual=MyFloatNan(4.2),
+            expected=MyFloatNan(1),
+            expected_message="objects are not equal:",
+        ),
+        id="different values",
+    ),
+    pytest.param(
+        ExamplePair(
+            actual=MyFloatNan(4.2),
+            expected=MyFloatNan(float("nan")),
+            expected_message="objects are not equal:",
+        ),
+        id="different values - NaN",
+    ),
+    pytest.param(
+        ExamplePair(
+            actual=MyFloatNan(4.2),
+            expected="meow",
+            expected_message="objects have different types:",
+        ),
+        id="float vs str",
+    ),
+    pytest.param(
+        ExamplePair(
+            actual=MyFloatNan(4.2), expected=None, expected_message="objects have different types:"
+        ),
+        id="float vs none",
+    ),
+]
+
+CUSTOM_EQUAL_EQUAL = [
+    pytest.param(ExamplePair(actual=MyFloat(4.2), expected=MyFloat(4.2)), id="float"),
+    pytest.param(ExamplePair(actual=MyFloat(42), expected=MyFloat(42)), id="int"),
+    *CUSTOM_EQUAL_NAN_EQUAL,
+]
+
+
+CUSTOM_EQUAL_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
             actual=MyFloat(4.2), expected=MyFloat(1), expected_message="objects are not equal:"
@@ -53,6 +103,7 @@ EQUAL_NOT_EQUAL = [
         ),
         id="float vs none",
     ),
+    *CUSTOM_EQUAL_NAN_NOT_EQUAL,
 ]
 
 #########################################
@@ -89,7 +140,7 @@ def test_equal_equality_tester_objects_are_equal_true_same_object(
     assert EqualEqualityTester().objects_are_equal(obj, obj, config)
 
 
-@pytest.mark.parametrize("example", EQUAL_EQUAL)
+@pytest.mark.parametrize("example", CUSTOM_EQUAL_EQUAL)
 def test_equal_equality_tester_objects_are_equal_true(
     example: ExamplePair,
     config: EqualityConfig,
@@ -103,7 +154,7 @@ def test_equal_equality_tester_objects_are_equal_true(
         assert not caplog.messages
 
 
-@pytest.mark.parametrize("example", EQUAL_EQUAL)
+@pytest.mark.parametrize("example", CUSTOM_EQUAL_EQUAL)
 def test_equal_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
@@ -118,7 +169,7 @@ def test_equal_equality_tester_objects_are_equal_true_show_difference(
         assert not caplog.messages
 
 
-@pytest.mark.parametrize("example", EQUAL_NOT_EQUAL)
+@pytest.mark.parametrize("example", CUSTOM_EQUAL_NOT_EQUAL)
 def test_equal_equality_tester_objects_are_equal_false(
     example: ExamplePair,
     config: EqualityConfig,
@@ -132,7 +183,7 @@ def test_equal_equality_tester_objects_are_equal_false(
         assert not caplog.messages
 
 
-@pytest.mark.parametrize("example", EQUAL_NOT_EQUAL)
+@pytest.mark.parametrize("example", CUSTOM_EQUAL_NOT_EQUAL)
 def test_equal_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
@@ -194,7 +245,7 @@ def test_equal_nan_equality_tester_objects_are_equal_true_same_object(
     assert EqualNanEqualityTester().objects_are_equal(obj, obj, config)
 
 
-@pytest.mark.parametrize("example", EQUAL_EQUAL)
+@pytest.mark.parametrize("example", CUSTOM_EQUAL_NAN_EQUAL)
 def test_equal_nan_equality_tester_objects_are_equal_true(
     example: ExamplePair,
     config: EqualityConfig,
@@ -208,7 +259,7 @@ def test_equal_nan_equality_tester_objects_are_equal_true(
         assert not caplog.messages
 
 
-@pytest.mark.parametrize("example", EQUAL_EQUAL)
+@pytest.mark.parametrize("example", CUSTOM_EQUAL_NAN_EQUAL)
 def test_equal_nan_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
@@ -223,7 +274,7 @@ def test_equal_nan_equality_tester_objects_are_equal_true_show_difference(
         assert not caplog.messages
 
 
-@pytest.mark.parametrize("example", EQUAL_NOT_EQUAL)
+@pytest.mark.parametrize("example", CUSTOM_EQUAL_NAN_NOT_EQUAL)
 def test_equal_nan_equality_tester_objects_are_equal_false(
     example: ExamplePair,
     config: EqualityConfig,
@@ -237,7 +288,7 @@ def test_equal_nan_equality_tester_objects_are_equal_false(
         assert not caplog.messages
 
 
-@pytest.mark.parametrize("example", EQUAL_NOT_EQUAL)
+@pytest.mark.parametrize("example", CUSTOM_EQUAL_NAN_NOT_EQUAL)
 def test_equal_nan_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
@@ -255,11 +306,11 @@ def test_equal_nan_equality_tester_objects_are_equal_false_show_difference(
 def test_equal_nan_equality_tester_objects_are_equal_true_nan(config: EqualityConfig) -> None:
     config.equal_nan = True
     assert EqualNanEqualityTester().objects_are_equal(
-        actual=MyFloat(float("nan")), expected=MyFloat(float("nan")), config=config
+        actual=MyFloatNan(float("nan")), expected=MyFloatNan(float("nan")), config=config
     )
 
 
 def test_equal_nan_equality_tester_objects_are_equal_false_nan(config: EqualityConfig) -> None:
     assert not EqualNanEqualityTester().objects_are_equal(
-        actual=MyFloat(float("nan")), expected=MyFloat(float("nan")), config=config
+        actual=MyFloatNan(float("nan")), expected=MyFloatNan(float("nan")), config=config
     )
