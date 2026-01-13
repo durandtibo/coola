@@ -35,13 +35,13 @@ class PandasDataFrameEqualityTester(BaseEqualityTester[pd.DataFrame]):
         >>> from coola.equality.tester import PandasDataFrameEqualityTester
         >>> config = EqualityConfig()
         >>> tester = PandasDataFrameEqualityTester()
-        >>> tester.equal(
+        >>> tester.objects_are_equal(
         ...     pd.DataFrame({"col": [1, 2, 3]}),
         ...     pd.DataFrame({"col": [1, 2, 3]}),
         ...     config,
         ... )
         True
-        >>> tester.equal(
+        >>> tester.objects_are_equal(
         ...     pd.DataFrame({"col": [1, 2, 3]}),
         ...     pd.DataFrame({"col": [1, 2, 4]}),
         ...     config,
@@ -81,9 +81,9 @@ class PandasSeriesEqualityTester(BaseEqualityTester[pd.Series]):
         >>> from coola.equality.tester import PandasSeriesEqualityTester
         >>> config = EqualityConfig()
         >>> tester = PandasSeriesEqualityTester()
-        >>> tester.equal(pd.Series([1, 2, 3]), pd.Series([1, 2, 3]), config)
+        >>> tester.objects_are_equal(pd.Series([1, 2, 3]), pd.Series([1, 2, 3]), config)
         True
-        >>> tester.equal(pd.Series([1, 2, 3]), pd.Series([1, 2, 4]), config)
+        >>> tester.objects_are_equal(pd.Series([1, 2, 3]), pd.Series([1, 2, 4]), config)
         False
 
         ```

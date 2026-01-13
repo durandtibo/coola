@@ -41,9 +41,9 @@ class NumpyArrayEqualityTester(BaseEqualityTester[np.ndarray]):
         >>> from coola.equality.tester import NumpyArrayEqualityTester
         >>> config = EqualityConfig()
         >>> tester = NumpyArrayEqualityTester()
-        >>> tester.equal(np.ones((2, 3)), np.ones((2, 3)), config)
+        >>> tester.objects_are_equal(np.ones((2, 3)), np.ones((2, 3)), config)
         True
-        >>> tester.equal(np.ones((2, 3)), np.zeros((2, 3)), config)
+        >>> tester.objects_are_equal(np.ones((2, 3)), np.zeros((2, 3)), config)
         False
 
         ```
@@ -81,13 +81,13 @@ class NumpyMaskedArrayEqualityTester(BaseEqualityTester[np.ma.MaskedArray]):
         >>> from coola.equality.tester import NumpyMaskedArrayEqualityTester
         >>> config = EqualityConfig()
         >>> tester = NumpyMaskedArrayEqualityTester()
-        >>> tester.equal(
+        >>> tester.objects_are_equal(
         ...     np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
         ...     np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
         ...     config,
         ... )
         True
-        >>> tester.equal(
+        >>> tester.objects_are_equal(
         ...     np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
         ...     np.ma.array(data=[0.0, 1.0, 2.0], mask=[0, 1, 0]),
         ...     config,

@@ -40,9 +40,9 @@ class JaxArrayEqualityTester(BaseEqualityTester[jnp.ndarray]):
         >>> from coola.equality.tester import JaxArrayEqualityTester
         >>> config = EqualityConfig()
         >>> tester = JaxArrayEqualityTester()
-        >>> tester.equal(jnp.ones((2, 3)), jnp.ones((2, 3)), config)
+        >>> tester.objects_are_equal(jnp.ones((2, 3)), jnp.ones((2, 3)), config)
         True
-        >>> tester.equal(jnp.ones((2, 3)), jnp.zeros((2, 3)), config)
+        >>> tester.objects_are_equal(jnp.ones((2, 3)), jnp.zeros((2, 3)), config)
         False
 
         ```

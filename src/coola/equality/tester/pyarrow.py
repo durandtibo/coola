@@ -41,9 +41,9 @@ class PyarrowEqualityTester(BaseEqualityTester[pa.Array]):
         >>> from coola.equality.tester import PyarrowEqualityTester
         >>> config = EqualityConfig()
         >>> tester = PyarrowEqualityTester()
-        >>> tester.equal(pa.array([1, 2, 3]), pa.array([1, 2, 3]), config)
+        >>> tester.objects_are_equal(pa.array([1, 2, 3]), pa.array([1, 2, 3]), config)
         True
-        >>> tester.equal(pa.array([1, 2, 3]), pa.array([1, 2, 4]), config)
+        >>> tester.objects_are_equal(pa.array([1, 2, 3]), pa.array([1, 2, 4]), config)
         False
 
         ```
