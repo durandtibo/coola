@@ -6,12 +6,11 @@ from typing import TYPE_CHECKING
 import pytest
 
 from coola.equality import objects_are_allclose
-from coola.testing.fixtures import polars_available
-from tests.unit.equality.checks.test_default import EQUALITY_TESTER_FUNCTIONS
-from tests.unit.equality.tester.test_polars import (
-    POLARS_EQUAL,
-    POLARS_EQUAL_TOLERANCE,
-    POLARS_NOT_EQUAL,
+from tests.integration.equality.checks.utils import EQUALITY_TESTER_FUNCTIONS
+from tests.unit.equality.tester.test_scalar import (
+    SCALAR_EQUAL,
+    SCALAR_EQUAL_TOLERANCE,
+    SCALAR_NOT_EQUAL,
 )
 
 if TYPE_CHECKING:
@@ -20,9 +19,8 @@ if TYPE_CHECKING:
     from tests.unit.equality.utils import ExamplePair
 
 
-@polars_available
 @pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
-@pytest.mark.parametrize("example", POLARS_EQUAL)
+@pytest.mark.parametrize("example", SCALAR_EQUAL)
 @pytest.mark.parametrize("show_difference", [True, False])
 def test_objects_are_equal_true(
     function: Callable,
@@ -35,9 +33,8 @@ def test_objects_are_equal_true(
         assert not caplog.messages
 
 
-@polars_available
 @pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
-@pytest.mark.parametrize("example", POLARS_NOT_EQUAL)
+@pytest.mark.parametrize("example", SCALAR_NOT_EQUAL)
 def test_objects_are_equal_false(
     function: Callable, example: ExamplePair, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -46,9 +43,8 @@ def test_objects_are_equal_false(
         assert not caplog.messages
 
 
-@polars_available
 @pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
-@pytest.mark.parametrize("example", POLARS_NOT_EQUAL)
+@pytest.mark.parametrize("example", SCALAR_NOT_EQUAL)
 def test_objects_are_equal_false_show_difference(
     function: Callable, example: ExamplePair, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -57,8 +53,7 @@ def test_objects_are_equal_false_show_difference(
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
-@polars_available
-@pytest.mark.parametrize("example", POLARS_EQUAL_TOLERANCE)
+@pytest.mark.parametrize("example", SCALAR_EQUAL_TOLERANCE)
 def test_objects_are_allclose_true_tolerance(example: ExamplePair) -> None:
     assert objects_are_allclose(
         example.actual, example.expected, atol=example.atol, rtol=example.rtol
