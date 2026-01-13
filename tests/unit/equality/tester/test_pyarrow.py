@@ -8,9 +8,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from coola.equality.config import EqualityConfig
-from coola.equality.tester import (
-    PyarrowEqualityTester,
-)
+from coola.equality.tester import PyarrowEqualityTester
 from coola.testing.fixtures import pyarrow_available
 from coola.utils.imports import is_pyarrow_available
 from tests.unit.equality.utils import ExamplePair
