@@ -89,6 +89,8 @@ def register_equality_testers(
         ...         self.value = value
         ...
         >>> class MyEqualityTester(BaseEqualityTester[MyType]):
+        ...     def equal(self, other: object) -> bool:
+        ...         return type(other) is type(self)
         ...     def objects_are_equal(
         ...         self, actual: MyType, expected: object, config: EqualityConfig
         ...     ) -> bool:
