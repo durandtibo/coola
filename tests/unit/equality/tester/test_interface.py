@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import OrderedDict, deque
 from collections.abc import Generator, Mapping, Sequence
+from unittest.mock import Mock
 
 import pytest
 
@@ -50,18 +51,38 @@ from coola.utils.imports import (
 
 if is_jax_available():
     import jax.numpy as jnp
+else:
+    jnp = Mock()
+
 if is_numpy_available():
     import numpy as np
+else:
+    np = Mock()
+
 if is_pandas_available():
     import pandas as pd
+else:
+    pd = Mock()
+
 if is_polars_available():
     import polars as pl
+else:
+    pl = Mock()
+
 if is_pyarrow_available():
     import pyarrow as pa
+else:
+    pa = Mock()
+
 if is_torch_available():
     import torch
+else:
+    torch = Mock()
+
 if is_xarray_available():
     import xarray as xr
+else:
+    xr = Mock()
 
 
 @pytest.fixture(autouse=True)
