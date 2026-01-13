@@ -1,7 +1,5 @@
 ::: coola.equality
 
-::: coola.equality.comparators
-
+::: coola.equality.config
 ::: coola.equality.handler
-
-::: coola.equality.testers
+::: coola.equality.tester
