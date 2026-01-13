@@ -32,15 +32,15 @@ def config() -> EqualityConfig:
 ############################################
 
 
-def test_numpy_array_equal_handler__eq__true() -> None:
+def test_numpy_array_equal_handler_equal_true() -> None:
     assert NumpyArrayEqualHandler() == NumpyArrayEqualHandler()
 
 
-def test_numpy_array_equal_handler__eq__false_different_type() -> None:
+def test_numpy_array_equal_handler_equal_false_different_type() -> None:
     assert NumpyArrayEqualHandler() != FalseHandler()
 
 
-def test_numpy_array_equal_handler__eq__false_different_type_child() -> None:
+def test_numpy_array_equal_handler_equal_false_different_type_child() -> None:
     class Child(NumpyArrayEqualHandler): ...
 
     assert NumpyArrayEqualHandler() != Child()

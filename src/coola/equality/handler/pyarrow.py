@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class PyarrowEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
+class PyarrowEqualHandler(BaseEqualityHandler):
     r"""Check if the two pyarrow arrays or tables are equal.
 
     This handler returns ``True`` if the two arrays or tables are
@@ -46,11 +46,11 @@ class PyarrowEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
-        return type(other) is type(self)
-
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
+
+    def equal(self, other: object) -> bool:
+        return type(other) is type(self)
 
     def handle(
         self,

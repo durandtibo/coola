@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class PolarsDataFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
+class PolarsDataFrameEqualHandler(BaseEqualityHandler):
     r"""Check if the two ``polars.DataFrame`` are equal.
 
     This handler returns ``True`` if the two ``polars.DataFrame``s
@@ -57,11 +57,11 @@ class PolarsDataFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
-        return type(other) is type(self)
-
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
+
+    def equal(self, other: object) -> bool:
+        return type(other) is type(self)
 
     def handle(
         self,
@@ -81,7 +81,7 @@ class PolarsDataFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         pass  # Do nothing because the next handler is never called.
 
 
-class PolarsLazyFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
+class PolarsLazyFrameEqualHandler(BaseEqualityHandler):
     r"""Check if the two ``polars.LazyFrame`` are equal.
 
     This handler returns ``True`` if the two ``polars.LazyFrame``s
@@ -112,11 +112,11 @@ class PolarsLazyFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
-        return type(other) is type(self)
-
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
+
+    def equal(self, other: object) -> bool:
+        return type(other) is type(self)
 
     def handle(
         self,
@@ -136,7 +136,7 @@ class PolarsLazyFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         pass  # Do nothing because the next handler is never called.
 
 
-class PolarsSeriesEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
+class PolarsSeriesEqualHandler(BaseEqualityHandler):
     r"""Check if the two ``polars.Series`` are equal.
 
     This handler returns ``True`` if the two arrays ``polars.Series``
@@ -159,11 +159,11 @@ class PolarsSeriesEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
-        return type(other) is type(self)
-
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
+
+    def equal(self, other: object) -> bool:
+        return type(other) is type(self)
 
     def handle(
         self,

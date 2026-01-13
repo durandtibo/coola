@@ -32,15 +32,15 @@ def config() -> EqualityConfig:
 ##########################################
 
 
-def test_jax_array_equal_handler__eq__true() -> None:
+def test_jax_array_equal_handler_equal_true() -> None:
     assert JaxArrayEqualHandler() == JaxArrayEqualHandler()
 
 
-def test_jax_array_equal_handler__eq__false_different_type() -> None:
+def test_jax_array_equal_handler_equal_false_different_type() -> None:
     assert JaxArrayEqualHandler() != FalseHandler()
 
 
-def test_jax_array_equal_handler__eq__false_different_type_child() -> None:
+def test_jax_array_equal_handler_equal_false_different_type_child() -> None:
     class Child(JaxArrayEqualHandler): ...
 
     assert JaxArrayEqualHandler() != Child()

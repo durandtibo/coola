@@ -30,7 +30,7 @@ class SupportsDType(Protocol):
         return  # pragma: no cover
 
 
-class SameDTypeHandler(AbstractEqualityHandler):  # noqa: PLW1641
+class SameDTypeHandler(AbstractEqualityHandler):
     r"""Check if the two objects have the same data type.
 
     This handler returns ``False`` if the two objects have different
@@ -54,7 +54,7 @@ class SameDTypeHandler(AbstractEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
+    def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
     def handle(

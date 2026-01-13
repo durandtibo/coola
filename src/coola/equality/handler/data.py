@@ -30,7 +30,7 @@ class SupportsData(Protocol):
         return  # pragma: no cover
 
 
-class SameDataHandler(AbstractEqualityHandler):  # noqa: PLW1641
+class SameDataHandler(AbstractEqualityHandler):
     r"""Check if the two objects have the same data.
 
     This handler returns ``False`` if the two objects have different
@@ -53,7 +53,7 @@ class SameDataHandler(AbstractEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
+    def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
     def handle(self, actual: SupportsData, expected: SupportsData, config: EqualityConfig) -> bool:

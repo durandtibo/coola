@@ -42,15 +42,15 @@ class MyFloatNan:
 ##################################
 
 
-def test_equal_handler__eq__true() -> None:
+def test_equal_handler_equal_true() -> None:
     assert EqualHandler() == EqualHandler()
 
 
-def test_equal_handler__eq__false_different_type() -> None:
+def test_equal_handler_equal_false_different_type() -> None:
     assert EqualHandler() != FalseHandler()
 
 
-def test_equal_handler__eq__false_different_type_child() -> None:
+def test_equal_handler_equal_false_different_type_child() -> None:
     class Child(EqualHandler): ...
 
     assert EqualHandler() != Child()
@@ -113,15 +113,15 @@ def test_equal_handler_set_next_handler() -> None:
 #####################################
 
 
-def test_equal_nan_handler__eq__true() -> None:
+def test_equal_nan_handler_equal_true() -> None:
     assert EqualNanHandler() == EqualNanHandler()
 
 
-def test_equal_nan_handler__eq__false_different_type() -> None:
+def test_equal_nan_handler_equal_false_different_type() -> None:
     assert EqualNanHandler() != FalseHandler()
 
 
-def test_equal_nan_handler__eq__false_different_type_child() -> None:
+def test_equal_nan_handler_equal_false_different_type_child() -> None:
     class Child(EqualNanHandler): ...
 
     assert EqualNanHandler() != Child()
