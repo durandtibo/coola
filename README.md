@@ -85,7 +85,7 @@ that can indicate if two complex/nested objects are equal or not.
 
 >>> import numpy
 >>> import torch
->>> from coola import objects_are_equal
+>>> from coola.equality import objects_are_equal
 >>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
 >>> data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
 >>> objects_are_equal(data1, data2)
@@ -100,7 +100,7 @@ objects are equal within a tolerance or not.
 
 >>> import numpy
 >>> import torch
->>> from coola import objects_are_allclose
+>>> from coola.equality import objects_are_allclose
 >>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
 >>> data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
 >>> objects_are_allclose(data1, data2, atol=1e-6)

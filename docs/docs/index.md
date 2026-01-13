@@ -1,24 +1,24 @@
 # Home
 
 <p align="center">
-    <a href="https://github.com/durandtibo/coola/actions">
-        <img alt="CI" src="https://github.com/durandtibo/coola/workflows/CI/badge.svg">
+    <a href="https://github.com/durandtibo/coola/actions/workflows/ci.yaml">
+        <img alt="CI" src="https://github.com/durandtibo/coola/actions/workflows/ci.yaml/badge.svg">
     </a>
-    <a href="https://github.com/durandtibo/coola/actions">
-        <img alt="Nightly Tests" src="https://github.com/durandtibo/coola/workflows/Nightly%20Tests/badge.svg">
+    <a href="https://github.com/durandtibo/coola/actions/workflows/nightly-tests.yaml">
+        <img alt="Nightly Tests" src="https://github.com/durandtibo/coola/actions/workflows/nightly-tests.yaml/badge.svg">
     </a>
-    <a href="https://github.com/durandtibo/coola/actions">
-        <img alt="Nightly Package Tests" src="https://github.com/durandtibo/coola/workflows/Nightly%20Package%20Tests/badge.svg">
+    <a href="https://github.com/durandtibo/coola/actions/workflows/nightly-package.yaml">
+        <img alt="Nightly Package Tests" src="https://github.com/durandtibo/coola/actions/workflows/nightly-package.yaml/badge.svg">
     </a>
     <a href="https://codecov.io/gh/durandtibo/coola">
         <img alt="Codecov" src="https://codecov.io/gh/durandtibo/coola/branch/main/graph/badge.svg">
     </a>
     <br/>
     <a href="https://durandtibo.github.io/coola/">
-        <img alt="Documentation" src="https://github.com/durandtibo/coola/workflows/Documentation%20(stable)/badge.svg">
+        <img alt="Documentation" src="https://github.com/durandtibo/coola/actions/workflows/docs.yaml/badge.svg">
     </a>
-    <a href="https://durandtibo.github.io/coola/">
-        <img alt="Documentation" src="https://github.com/durandtibo/coola/workflows/Documentation%20(unstable)/badge.svg">
+    <a href="https://durandtibo.github.io/coola/dev/">
+        <img alt="Documentation" src="https://github.com/durandtibo/coola/actions/workflows/docs-dev.yaml/badge.svg">
     </a>
     <br/>
     <a href="https://github.com/psf/black">
@@ -76,7 +76,7 @@ that can indicate if two complex/nested objects are equal or not.
 
 >>> import numpy
 >>> import torch
->>> from coola import objects_are_equal
+>>> from coola.equality import objects_are_equal
 >>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
 >>> data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
 >>> objects_are_equal(data1, data2)
@@ -91,7 +91,7 @@ objects are equal within a tolerance or not.
 
 >>> import numpy
 >>> import torch
->>> from coola import objects_are_allclose
+>>> from coola.equality import objects_are_allclose
 >>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
 >>> data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
 >>> objects_are_allclose(data1, data2, atol=1e-6)

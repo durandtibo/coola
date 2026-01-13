@@ -26,7 +26,7 @@ The objects to compare are dictionaries containing a PyTorch `Tensor` and a NumP
 
 >>> import numpy
 >>> import torch
->>> from coola import objects_are_equal
+>>> from coola.equality import objects_are_equal
 >>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
 >>> data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
 >>> data3 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
@@ -52,7 +52,7 @@ and `data2`, you will see at least one element that is different:
 
 >>> import numpy
 >>> import torch
->>> from coola import objects_are_equal
+>>> from coola.equality import objects_are_equal
 >>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
 >>> data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
 >>> objects_are_equal(data1, data2, show_difference=True)
@@ -97,7 +97,7 @@ The previous examples use dictionary, but it is possible to use other types like
 
 >>> import numpy
 >>> import torch
->>> from coola import objects_are_equal
+>>> from coola.equality import objects_are_equal
 >>> data1 = [torch.ones(2, 3), numpy.zeros((2, 3))]
 >>> data2 = [torch.zeros(2, 3), numpy.ones((2, 3))]
 >>> data3 = (torch.ones(2, 3), numpy.zeros((2, 3)))
@@ -114,7 +114,7 @@ It is also possible to test more complex objects
 
 >>> import numpy
 >>> import torch
->>> from coola import objects_are_equal
+>>> from coola.equality import objects_are_equal
 >>> data1 = {
 ...     "list": [torch.ones(2, 3), numpy.zeros((2, 3))],
 ...     "dict": {"torch": torch.arange(5), "str": "abc"},
@@ -144,7 +144,7 @@ following example to see some differences.
 
 ```pycon
 
->>> from coola import objects_are_equal
+>>> from coola.equality import objects_are_equal
 >>> objects_are_equal(1, 1)
 True
 >>> objects_are_equal(1, 1.0)
@@ -166,7 +166,7 @@ different objects even if they have the same keys and values.
 ```pycon
 
 >>> from collections import OrderedDict
->>> from coola import objects_are_equal
+>>> from coola.equality import objects_are_equal
 >>> objects_are_equal({"key1": 1, "key2": "abc"}, OrderedDict({"key1": 1, "key2": "abc"}))
 False
 >>> {"key1": 1, "key2": "abc"} == OrderedDict({"key1": 1, "key2": "abc"})
@@ -193,7 +193,7 @@ The objects to compare are dictionaries containing a PyTorch Tensor and a NumPy 
 
 >>> import numpy
 >>> import torch
->>> from coola import objects_are_allclose, objects_are_equal
+>>> from coola.equality import objects_are_allclose, objects_are_equal
 >>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
 >>> data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
 >>> data3 = {"torch": torch.ones(2, 3) + 1e-9, "numpy": numpy.zeros((2, 3)) - 1e-9}
@@ -219,7 +219,7 @@ absolute tolerance and `rtol` controls the relative tolerance.
 
 >>> import numpy
 >>> import torch
->>> from coola import objects_are_allclose
+>>> from coola.equality import objects_are_allclose
 >>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
 >>> data2 = {"torch": torch.ones(2, 3) + 1e-4, "numpy": numpy.zeros((2, 3)) - 1e-4}
 >>> objects_are_allclose(data1, data2)
@@ -241,7 +241,7 @@ which shows the first difference found between the two objects.
 
 >>> import numpy
 >>> import torch
->>> from coola import objects_are_allclose
+>>> from coola.equality import objects_are_allclose
 >>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
 >>> data2 = {"torch": torch.ones(2, 3) + 1e-4, "numpy": numpy.zeros((2, 3)) - 1e-4}
 >>> objects_are_allclose(data1, data2, show_difference=True)
@@ -277,7 +277,7 @@ complex/nested objects.
 
 >>> import numpy
 >>> import torch
->>> from coola import objects_are_allclose
+>>> from coola.equality import objects_are_allclose
 >>> data1 = {
 ...     "list": [torch.ones(2, 3), numpy.zeros((2, 3))],
 ...     "dict": {"torch": torch.arange(5), "str": "abc"},
@@ -303,7 +303,7 @@ By default, `NaN` is not considered close to any other value, including `NaN`.
 
 ```pycon
 
->>> from coola import objects_are_allclose
+>>> from coola.equality import objects_are_allclose
 >>> objects_are_allclose(float("nan"), 0.0)
 False
 >>> objects_are_allclose(float("nan"), float("nan"))
@@ -316,7 +316,7 @@ considered equal.
 
 ```pycon
 
->>> from coola import objects_are_allclose
+>>> from coola.equality import objects_are_allclose
 >>> objects_are_allclose(float("nan"), float("nan"), equal_nan=True)
 True
 
@@ -330,7 +330,7 @@ It is possible to use the `equal_nan=True` option to compare two tensors with `N
 
 >>> import numpy
 >>> import torch
->>> from coola import objects_are_allclose
+>>> from coola.equality import objects_are_allclose
 >>> objects_are_allclose(
 ...     torch.tensor([0.0, 1.0, float("nan")]),
 ...     torch.tensor([0.0, 1.0, float("nan")]),

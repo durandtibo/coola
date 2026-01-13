@@ -38,7 +38,7 @@ By default, two objects are equal if:
 
 ```pycon
 
->>> from coola import objects_are_equal
+>>> from coola.equality import objects_are_equal
 >>> objects_are_equal(1, 1)
 True
 >>> objects_are_equal(1, 2)
@@ -65,7 +65,7 @@ Two `Mapping`s are equal if:
 ```pycon
 
 >>> from collections import OrderedDict
->>> from coola import objects_are_equal
+>>> from coola.equality import objects_are_equal
 >>> objects_are_equal({"int": 1, "str": "abc"}, {"int": 1, "str": "abc"})
 True
 >>> objects_are_equal({"int": 1, "str": "abc"}, OrderedDict({"int": 1, "str": "abc"}))
@@ -92,7 +92,7 @@ Two `Sequence`s are equal if:
 
 ```pycon
 
->>> from coola import objects_are_equal
+>>> from coola.equality import objects_are_equal
 >>> objects_are_equal([1, 2, "abc"], [1, 2, "abc"])
 True
 >>> objects_are_equal([1, 2, "abc"], (1, 2, "abc"))
@@ -127,7 +127,7 @@ Two PyTorch `Tensor`s are equal if:
 ```pycon
 
 >>> import torch
->>> from coola import objects_are_equal
+>>> from coola.equality import objects_are_equal
 >>> objects_are_equal(torch.ones(2, 3), torch.ones(2, 3))
 True
 >>> objects_are_equal(torch.ones(2, 3), torch.ones(2, 3, dtype=torch.long))
@@ -154,7 +154,7 @@ Two PyTorch `PackedSequence`s are equal if:
 
 >>> import torch
 >>> from torch.nn.utils.rnn import pack_padded_sequence
->>> from coola import objects_are_equal
+>>> from coola.equality import objects_are_equal
 >>> objects_are_equal(
 ...     pack_padded_sequence(
 ...         input=torch.arange(10).view(2, 5).float(),
@@ -211,7 +211,7 @@ Two NumPy `ndarray`s are equal if:
 ```pycon
 
 >>> import numpy
->>> from coola import objects_are_equal
+>>> from coola.equality import objects_are_equal
 >>> objects_are_equal(numpy.ones((2, 3)), numpy.ones((2, 3)))
 True
 >>> objects_are_equal(numpy.ones((2, 3)), numpy.ones((2, 3), dtype=int))
@@ -250,7 +250,7 @@ You can use `objects_are_allclose` to compare objects with NaNs.
 
 >>> import numpy as np
 >>> import xarray as xr
->>> from coola import objects_are_equal
+>>> from coola.equality import objects_are_equal
 >>> objects_are_equal(
 ...     xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"])
 ... )
@@ -272,7 +272,7 @@ if both objects have NaNs in the same positions.
 
 >>> import numpy as np
 >>> import xarray as xr
->>> from coola import objects_are_equal
+>>> from coola.equality import objects_are_equal
 >>> ds1 = xr.Dataset(
 ...     {
 ...         "x": xr.DataArray(
@@ -331,7 +331,7 @@ By default, two objects are equal if:
 
 ```pycon
 
->>> from coola import objects_are_allclose
+>>> from coola.equality import objects_are_allclose
 >>> objects_are_allclose("abc", "abc")
 True
 >>> objects_are_allclose("abc", "abcd")
@@ -350,7 +350,7 @@ Two numbers are equal within a tolerance if:
 
 ```pycon
 
->>> from coola import objects_are_allclose
+>>> from coola.equality import objects_are_allclose
 >>> objects_are_allclose(1, 2)
 False
 >>> objects_are_allclose(1, 2, atol=1)
@@ -373,7 +373,7 @@ booleans:
 
 ```pycon
 
->>> from coola import objects_are_allclose
+>>> from coola.equality import objects_are_allclose
 >>> objects_are_allclose(True, False)
 False
 >>> objects_are_allclose(True, False, atol=1)
@@ -399,7 +399,7 @@ Two `Mapping`s are equal within a tolerance if:
 ```pycon
 
 >>> from collections import OrderedDict
->>> from coola import objects_are_allclose
+>>> from coola.equality import objects_are_allclose
 >>> objects_are_allclose({"int": 1, "str": "abc"}, {"int": 1, "str": "abc"})
 True
 >>> objects_are_allclose({"int": 1, "str": "abc"}, {"int": 2, "str": "abc"}, atol=2)
@@ -430,7 +430,7 @@ Two `Sequence`s are equal within a tolerance if:
 
 ```pycon
 
->>> from coola import objects_are_allclose
+>>> from coola.equality import objects_are_allclose
 >>> objects_are_allclose([1, 2, "abc"], [1, 2, "abc"])
 True
 >>> objects_are_allclose([1, 2, "abc"], [1, 3, "abc"], atol=2)
@@ -469,7 +469,7 @@ Two PyTorch `Tensor`s are equal if:
 ```pycon
 
 >>> import torch
->>> from coola import objects_are_allclose
+>>> from coola.equality import objects_are_allclose
 >>> objects_are_allclose(torch.ones(2, 3), torch.ones(2, 3))
 True
 >>> objects_are_allclose(torch.ones(2, 3), torch.ones(2, 3) + 1, atol=2)
@@ -500,7 +500,7 @@ Two PyTorch `PackedSequence`s are equal within a tolerance if:
 
 >>> import torch
 >>> from torch.nn.utils.rnn import pack_padded_sequence
->>> from coola import objects_are_allclose
+>>> from coola.equality import objects_are_allclose
 >>> objects_are_allclose(
 ...     pack_padded_sequence(
 ...         input=torch.arange(10).view(2, 5).float(),
@@ -571,7 +571,7 @@ Two NumPy `ndarray`s are equal within a tolerance if:
 ```pycon
 
 >>> import numpy
->>> from coola import objects_are_allclose
+>>> from coola.equality import objects_are_allclose
 >>> objects_are_allclose(numpy.ones((2, 3)), numpy.ones((2, 3)))
 True
 >>> objects_are_allclose(numpy.ones((2, 3)), numpy.ones((2, 3)) + 1, atol=2)
@@ -614,7 +614,7 @@ You can use `objects_are_allclose` to compare objects with NaNs.
 
 >>> import numpy as np
 >>> import xarray as xr
->>> from coola import objects_are_allclose
+>>> from coola.equality import objects_are_allclose
 >>> objects_are_allclose(
 ...     xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"])
 ... )
