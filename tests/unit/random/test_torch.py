@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from coola import objects_are_equal
+from coola.equality import objects_are_equal
 from coola.random import TorchRandomManager, torch_seed
 from coola.testing.fixtures import torch_available
 from coola.utils.imports import is_torch_available

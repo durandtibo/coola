@@ -6,7 +6,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from coola import objects_are_equal
+from coola.equality import objects_are_equal
 from coola.random import (
     RandomManagerRegistry,
     RandomRandomManager,
