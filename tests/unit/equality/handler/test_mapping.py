@@ -28,17 +28,17 @@ def config() -> EqualityConfig:
 
 
 def test_mapping_same_keys_handler_equal_true() -> None:
-    assert MappingSameKeysHandler() == MappingSameKeysHandler()
+    assert MappingSameKeysHandler().equal(MappingSameKeysHandler())
 
 
 def test_mapping_same_keys_handler_equal_false_different_type() -> None:
-    assert MappingSameKeysHandler() != FalseHandler()
+    assert not MappingSameKeysHandler().equal(FalseHandler())
 
 
 def test_mapping_same_keys_handler_equal_false_different_type_child() -> None:
     class Child(MappingSameKeysHandler): ...
 
-    assert MappingSameKeysHandler() != Child()
+    assert not MappingSameKeysHandler().equal(Child())
 
 
 def test_mapping_same_keys_handler_repr() -> None:
@@ -111,17 +111,17 @@ def test_mapping_same_keys_handler_set_next_handler_incorrect() -> None:
 
 
 def test_mapping_same_values_handler_equal_true() -> None:
-    assert MappingSameValuesHandler() == MappingSameValuesHandler()
+    assert MappingSameValuesHandler().equal(MappingSameValuesHandler())
 
 
 def test_mapping_same_values_handler_equal_false_different_type() -> None:
-    assert MappingSameValuesHandler() != FalseHandler()
+    assert not MappingSameValuesHandler().equal(FalseHandler())
 
 
 def test_mapping_same_values_handler_equal_false_different_type_child() -> None:
     class Child(MappingSameValuesHandler): ...
 
-    assert MappingSameValuesHandler() != Child()
+    assert not MappingSameValuesHandler().equal(Child())
 
 
 def test_mapping_same_values_handler_repr() -> None:

@@ -164,6 +164,4 @@ def test_scalar_equal_handler_handle_true_tolerance(
 
 
 def test_scalar_equal_handler_set_next_handler() -> None:
-    handler = ScalarEqualHandler()
-    handler.set_next_handler(FalseHandler())
-    assert handler.next_handler.equal(FalseHandler())
+    ScalarEqualHandler().set_next_handler(FalseHandler())

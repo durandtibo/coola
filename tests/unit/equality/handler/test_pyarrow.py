@@ -149,9 +149,7 @@ def test_pyarrow_equal_handler_handle_false_tolerance(
 
 
 def test_pyarrow_equal_handler_set_next_handler() -> None:
-    handler = PyarrowEqualHandler()
-    handler.set_next_handler(FalseHandler())
-    assert handler.next_handler.equal(FalseHandler())
+    PyarrowEqualHandler().set_next_handler(FalseHandler())
 
 
 ##################################

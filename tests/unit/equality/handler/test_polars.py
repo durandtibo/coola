@@ -47,17 +47,17 @@ def config() -> EqualityConfig:
 
 
 def test_polars_dataframe_equal_handler_equal_true() -> None:
-    assert PolarsDataFrameEqualHandler() == PolarsDataFrameEqualHandler()
+    assert PolarsDataFrameEqualHandler().equal(PolarsDataFrameEqualHandler())
 
 
 def test_polars_dataframe_equal_handler_equal_false_different_type() -> None:
-    assert PolarsDataFrameEqualHandler() != FalseHandler()
+    assert not PolarsDataFrameEqualHandler().equal(FalseHandler())
 
 
 def test_polars_dataframe_equal_handler_equal_false_different_type_child() -> None:
     class Child(PolarsDataFrameEqualHandler): ...
 
-    assert PolarsDataFrameEqualHandler() != Child()
+    assert not PolarsDataFrameEqualHandler().equal(Child())
 
 
 def test_polars_dataframe_equal_handler_repr() -> None:
@@ -226,17 +226,17 @@ def test_polars_dataframe_equal_handler_set_next_handler() -> None:
 
 
 def test_polars_lazyframe_equal_handler_equal_true() -> None:
-    assert PolarsLazyFrameEqualHandler() == PolarsLazyFrameEqualHandler()
+    assert PolarsLazyFrameEqualHandler().equal(PolarsLazyFrameEqualHandler())
 
 
 def test_polars_lazyframe_equal_handler_equal_false_different_type() -> None:
-    assert PolarsLazyFrameEqualHandler() != FalseHandler()
+    assert not PolarsLazyFrameEqualHandler().equal(FalseHandler())
 
 
 def test_polars_lazyframe_equal_handler_equal_false_different_type_child() -> None:
     class Child(PolarsLazyFrameEqualHandler): ...
 
-    assert PolarsLazyFrameEqualHandler() != Child()
+    assert not PolarsLazyFrameEqualHandler().equal(Child())
 
 
 def test_polars_lazyframe_equal_handler_repr() -> None:
@@ -405,17 +405,17 @@ def test_polars_lazyframe_equal_handler_set_next_handler() -> None:
 
 
 def test_polars_series_equal_handler_equal_true() -> None:
-    assert PolarsSeriesEqualHandler() == PolarsSeriesEqualHandler()
+    assert PolarsSeriesEqualHandler().equal(PolarsSeriesEqualHandler())
 
 
 def test_polars_series_equal_handler_equal_false_different_type() -> None:
-    assert PolarsSeriesEqualHandler() != FalseHandler()
+    assert not PolarsSeriesEqualHandler().equal(FalseHandler())
 
 
 def test_polars_series_equal_handler_equal_false_different_type_child() -> None:
     class Child(PolarsSeriesEqualHandler): ...
 
-    assert PolarsSeriesEqualHandler() != Child()
+    assert not PolarsSeriesEqualHandler().equal(Child())
 
 
 def test_polars_series_equal_handler_repr() -> None:

@@ -26,5 +26,5 @@ def test_chain_1(config: EqualityConfig) -> None:
 def test_chain_multiple(config: EqualityConfig) -> None:
     handler = SameObjectHandler()
     handler.chain(SameTypeHandler()).chain(ObjectEqualHandler())
-    assert handler.next_handler == SameTypeHandler()
+    assert handler.next_handler.equal(SameTypeHandler())
     assert handler.handle(actual=[1, 2, 3], expected=[1, 2, 3], config=config)
