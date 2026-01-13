@@ -13,7 +13,7 @@ The following example shows how to use a custom `BaseEqualityTester`.
 ```pycon
 
 >>> from typing import Any
->>> from coola import objects_are_equal
+>>> from coola.equality import objects_are_equal
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.testers import BaseEqualityTester
 >>> class MyCustomEqualityTester(BaseEqualityTester):
@@ -87,7 +87,7 @@ Then, you need to add the `BaseEqualityComparator` to `EqualityTester`.
 ```pycon
 
 >>> from typing import Any
->>> from coola import objects_are_equal
+>>> from coola.equality import objects_are_equal
 >>> from coola.equality.comparators import BaseEqualityComparator
 >>> from coola.equality.testers import BaseEqualityTester, EqualityTester
 >>> # Step 1: implementation of a new equality comparator

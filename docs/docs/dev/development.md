@@ -281,7 +281,7 @@ coola/
    ```python
    # tests/unit/equality/comparators/test_mytype_.py
    import pytest
-   from coola import objects_are_equal
+   from coola.equality import objects_are_equal
 
 
    def test_mytype_equal():

@@ -8,7 +8,7 @@ This page provides practical examples of using `coola` in real-world scenarios.
 
 ```python
 import yaml
-from coola import objects_are_equal
+from coola.equality import objects_are_equal
 
 # Load configuration files
 with open("config1.yaml") as f:
@@ -28,7 +28,7 @@ else:
 
 ```python
 import torch
-from coola import objects_are_allclose
+from coola.equality import objects_are_allclose
 
 
 def test_model_inference():
@@ -53,7 +53,7 @@ def test_model_inference():
 
 ```python
 import torch
-from coola import objects_are_equal
+from coola.equality import objects_are_equal
 
 
 def compare_checkpoints(checkpoint1_path, checkpoint2_path):
@@ -90,7 +90,7 @@ def compare_checkpoints(checkpoint1_path, checkpoint2_path):
 
 ```python
 import numpy as np
-from coola import objects_are_allclose
+from coola.equality import objects_are_allclose
 
 
 def test_preprocessing_pipeline():
@@ -112,7 +112,7 @@ def test_preprocessing_pipeline():
 
 ```python
 import torch
-from coola import objects_are_allclose
+from coola.equality import objects_are_allclose
 
 
 def compare_model_versions(model_v1, model_v2, test_data):
@@ -145,7 +145,7 @@ def compare_model_versions(model_v1, model_v2, test_data):
 
 ```python
 import pandas as pd
-from coola import objects_are_equal
+from coola.equality import objects_are_equal
 
 
 def compare_dataframes(df1, df2, ignore_index=False):
@@ -170,7 +170,7 @@ if compare_dataframes(df1, df2):
 ```python
 import numpy as np
 import pandas as pd
-from coola import objects_are_allclose
+from coola.equality import objects_are_allclose
 
 
 def test_data_transformation():
@@ -194,7 +194,7 @@ def test_data_transformation():
 ```python
 import pandas as pd
 import numpy as np
-from coola import objects_are_allclose
+from coola.equality import objects_are_allclose
 
 
 def compare_time_series(series1, series2, tolerance=1e-6):
@@ -220,7 +220,7 @@ def compare_time_series(series1, series2, tolerance=1e-6):
 ```python
 import pytest
 import torch
-from coola import objects_are_equal, objects_are_allclose
+from coola.equality import objects_are_equal, objects_are_allclose
 
 
 @pytest.fixture
@@ -254,7 +254,7 @@ def test_data_equality(sample_tensor):
 ```python
 import unittest
 import numpy as np
-from coola import objects_are_equal, objects_are_allclose
+from coola.equality import objects_are_equal, objects_are_allclose
 
 
 class TestDataProcessing(unittest.TestCase):
@@ -287,7 +287,7 @@ class TestDataProcessing(unittest.TestCase):
 
 ```python
 from typing import Any
-from coola import objects_are_equal
+from coola.equality import objects_are_equal
 from coola.equality.config import EqualityConfig
 from coola.equality.comparators import BaseEqualityComparator
 from coola.equality.testers import EqualityTester
@@ -347,7 +347,7 @@ print(objects_are_equal(v1, v3, tester=tester, show_difference=True))  # False
 import torch
 import numpy as np
 import pandas as pd
-from coola import objects_are_equal
+from coola.equality import objects_are_equal
 
 
 def compare_ml_experiment_results(result1, result2):
@@ -403,7 +403,7 @@ def compare_ml_experiment_results(result1, result2):
 ```python
 import torch
 import numpy as np
-from coola import objects_are_equal, objects_are_allclose
+from coola.equality import objects_are_equal, objects_are_allclose
 
 
 def smart_compare(obj1, obj2, numeric_tolerance=1e-6):
@@ -441,7 +441,7 @@ def smart_compare(obj1, obj2, numeric_tolerance=1e-6):
 
 ```python
 import logging
-from coola import objects_are_equal
+from coola.equality import objects_are_equal
 
 # Configure logging
 logging.basicConfig(
@@ -470,7 +470,7 @@ def compare_with_logging(obj1, obj2, context=""):
 ```python
 import time
 from contextlib import contextmanager
-from coola import objects_are_equal
+from coola.equality import objects_are_equal
 
 
 @contextmanager
@@ -495,7 +495,7 @@ with timed_comparison("model checkpoints"):
 ### 2. Use Appropriate Tolerance for Numerical Data
 
 ```python
-from coola import objects_are_allclose
+from coola.equality import objects_are_allclose
 
 # For single-precision floats
 objects_are_allclose(float32_data1, float32_data2, atol=1e-6, rtol=1e-5)
@@ -507,7 +507,7 @@ objects_are_allclose(float64_data1, float64_data2, atol=1e-12, rtol=1e-10)
 ### 3. Handle NaN Values Explicitly
 
 ```python
-from coola import objects_are_allclose
+from coola.equality import objects_are_allclose
 
 # Explicitly decide how to handle NaN
 result = objects_are_allclose(
@@ -521,7 +521,7 @@ result = objects_are_allclose(
 ### 4. Compare Metadata Before Large Data
 
 ```python
-from coola import objects_are_equal
+from coola.equality import objects_are_equal
 
 
 def efficient_compare(obj1, obj2):
