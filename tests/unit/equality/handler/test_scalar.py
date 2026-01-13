@@ -20,18 +20,18 @@ def config() -> EqualityConfig:
 #####################################
 
 
-def test_nan_equal_handler__eq__true() -> None:
-    assert NanEqualHandler() == NanEqualHandler()
+def test_nan_equal_handler_equal_true() -> None:
+    assert NanEqualHandler().equal(NanEqualHandler())
 
 
-def test_nan_equal_handler__eq__false_different_type() -> None:
-    assert NanEqualHandler() != FalseHandler()
+def test_nan_equal_handler_equal_false_different_type() -> None:
+    assert not NanEqualHandler().equal(FalseHandler())
 
 
-def test_nan_equal_handler__eq__false_different_type_child() -> None:
+def test_nan_equal_handler_equal_false_different_type_child() -> None:
     class Child(NanEqualHandler): ...
 
-    assert NanEqualHandler() != Child()
+    assert not NanEqualHandler().equal(Child())
 
 
 def test_nan_equal_handler_repr() -> None:
@@ -70,7 +70,7 @@ def test_nan_equal_handler_handle_without_next_handler(config: EqualityConfig) -
 def test_nan_equal_handler_set_next_handler() -> None:
     handler = NanEqualHandler()
     handler.set_next_handler(FalseHandler())
-    assert handler.next_handler == FalseHandler()
+    assert handler.next_handler.equal(FalseHandler())
 
 
 def test_nan_equal_handler_set_next_handler_incorrect() -> None:
@@ -84,18 +84,18 @@ def test_nan_equal_handler_set_next_handler_incorrect() -> None:
 ########################################
 
 
-def test_scalar_equal_handler__eq__true() -> None:
-    assert ScalarEqualHandler() == ScalarEqualHandler()
+def test_scalar_equal_handler_equal_true() -> None:
+    assert ScalarEqualHandler().equal(ScalarEqualHandler())
 
 
-def test_scalar_equal_handler__eq__false_different_type() -> None:
-    assert ScalarEqualHandler() != FalseHandler()
+def test_scalar_equal_handler_equal_false_different_type() -> None:
+    assert not ScalarEqualHandler().equal(FalseHandler())
 
 
-def test_scalar_equal_handler__eq__false_different_type_child() -> None:
+def test_scalar_equal_handler_equal_false_different_type_child() -> None:
     class Child(ScalarEqualHandler): ...
 
-    assert ScalarEqualHandler() != Child()
+    assert not ScalarEqualHandler().equal(Child())
 
 
 def test_scalar_equal_handler_repr() -> None:

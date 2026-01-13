@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class NanEqualHandler(AbstractEqualityHandler):  # noqa: PLW1641
+class NanEqualHandler(AbstractEqualityHandler):
     r"""Check if the two NaNs are equal.
 
     This handler returns ``True`` if the two numbers are NaNs,
@@ -38,7 +38,7 @@ class NanEqualHandler(AbstractEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
+    def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
     def handle(
@@ -52,7 +52,7 @@ class NanEqualHandler(AbstractEqualityHandler):  # noqa: PLW1641
         return self._handle_next(actual, expected, config=config)
 
 
-class ScalarEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
+class ScalarEqualHandler(BaseEqualityHandler):
     r"""Check if the two numbers are equal or not.
 
     This handler returns ``False`` if the two numbers are
@@ -77,11 +77,11 @@ class ScalarEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
-        return type(other) is type(self)
-
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
+
+    def equal(self, other: object) -> bool:
+        return type(other) is type(self)
 
     def handle(self, actual: float, expected: float, config: EqualityConfig) -> bool:
         object_equal = number_equal(actual, expected, config)

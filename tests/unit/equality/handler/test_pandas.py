@@ -38,18 +38,18 @@ def config() -> EqualityConfig:
 #################################################
 
 
-def test_pandas_dataframe_equal_handler__eq__true() -> None:
-    assert PandasDataFrameEqualHandler() == PandasDataFrameEqualHandler()
+def test_pandas_dataframe_equal_handler_equal_true() -> None:
+    assert PandasDataFrameEqualHandler().equal(PandasDataFrameEqualHandler())
 
 
-def test_pandas_dataframe_equal_handler__eq__false_different_type() -> None:
-    assert PandasDataFrameEqualHandler() != FalseHandler()
+def test_pandas_dataframe_equal_handler_equal_false_different_type() -> None:
+    assert not PandasDataFrameEqualHandler().equal(FalseHandler())
 
 
-def test_pandas_dataframe_equal_handler__eq__false_different_type_child() -> None:
+def test_pandas_dataframe_equal_handler_equal_false_different_type_child() -> None:
     class Child(PandasDataFrameEqualHandler): ...
 
-    assert PandasDataFrameEqualHandler() != Child()
+    assert not PandasDataFrameEqualHandler().equal(Child())
 
 
 def test_pandas_dataframe_equal_handler_repr() -> None:
@@ -217,18 +217,18 @@ def test_pandas_dataframe_equal_handler_set_next_handler() -> None:
 ##############################################
 
 
-def test_pandas_series_equal_handler__eq__true() -> None:
-    assert PandasSeriesEqualHandler() == PandasSeriesEqualHandler()
+def test_pandas_series_equal_handler_equal_true() -> None:
+    assert PandasSeriesEqualHandler().equal(PandasSeriesEqualHandler())
 
 
-def test_pandas_series_equal_handler__eq__false_different_type() -> None:
-    assert PandasSeriesEqualHandler() != FalseHandler()
+def test_pandas_series_equal_handler_equal_false_different_type() -> None:
+    assert not PandasSeriesEqualHandler().equal(FalseHandler())
 
 
-def test_pandas_series_equal_handler__eq__false_different_type_child() -> None:
+def test_pandas_series_equal_handler_equal_false_different_type_child() -> None:
     class Child(PandasSeriesEqualHandler): ...
 
-    assert PandasSeriesEqualHandler() != Child()
+    assert not PandasSeriesEqualHandler().equal(Child())
 
 
 def test_pandas_series_equal_handler_repr() -> None:

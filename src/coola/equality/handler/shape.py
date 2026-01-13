@@ -30,7 +30,7 @@ class SupportsShape(Protocol):
         return ()  # pragma: no cover
 
 
-class SameShapeHandler(AbstractEqualityHandler):  # noqa: PLW1641
+class SameShapeHandler(AbstractEqualityHandler):
     r"""Check if the two objects have the same shape.
 
     This handler returns ``False`` if the two objects have different
@@ -55,7 +55,7 @@ class SameShapeHandler(AbstractEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
+    def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
     def handle(

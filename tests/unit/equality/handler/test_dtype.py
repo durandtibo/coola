@@ -31,18 +31,18 @@ def config() -> EqualityConfig:
 ######################################
 
 
-def test_same_dtype_handler__eq__true() -> None:
-    assert SameDTypeHandler() == SameDTypeHandler()
+def test_same_dtype_handler_equal_true() -> None:
+    assert SameDTypeHandler().equal(SameDTypeHandler())
 
 
-def test_same_dtype_handler__eq__false_different_type() -> None:
-    assert SameDTypeHandler() != FalseHandler()
+def test_same_dtype_handler_equal_false_different_type() -> None:
+    assert not SameDTypeHandler().equal(FalseHandler())
 
 
-def test_same_dtype_handler__eq__false_different_type_child() -> None:
+def test_same_dtype_handler_equal_false_different_type_child() -> None:
     class Child(SameDTypeHandler): ...
 
-    assert SameDTypeHandler() != Child()
+    assert not SameDTypeHandler().equal(Child())
 
 
 def test_same_dtype_handler_repr() -> None:
@@ -108,7 +108,7 @@ def test_same_dtype_handler_handle_without_next_handler(config: EqualityConfig) 
 def test_same_dtype_handler_set_next_handler() -> None:
     handler = SameDTypeHandler()
     handler.set_next_handler(FalseHandler())
-    assert handler.next_handler == FalseHandler()
+    assert handler.next_handler.equal(FalseHandler())
 
 
 def test_same_dtype_handler_set_next_handler_incorrect() -> None:

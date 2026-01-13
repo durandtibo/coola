@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class FalseHandler(BaseEqualityHandler):  # noqa: PLW1641
+class FalseHandler(BaseEqualityHandler):
     r"""Implement a handler that always returns ``False``.
 
     This handler is designed to be used at the end of the chain of
@@ -46,7 +46,7 @@ class FalseHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
+    def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
     def __repr__(self) -> str:
@@ -64,7 +64,7 @@ class FalseHandler(BaseEqualityHandler):  # noqa: PLW1641
         pass  # Do nothing because the next handler is never called.
 
 
-class TrueHandler(BaseEqualityHandler):  # noqa: PLW1641
+class TrueHandler(BaseEqualityHandler):
     r"""Implement a handler that always returns ``True``.
 
     This handler is designed to be used at the end of the chain of
@@ -84,11 +84,11 @@ class TrueHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
-        return type(other) is type(self)
-
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
+
+    def equal(self, other: object) -> bool:
+        return type(other) is type(self)
 
     def handle(
         self,
@@ -102,7 +102,7 @@ class TrueHandler(BaseEqualityHandler):  # noqa: PLW1641
         pass  # Do nothing because the next handler is never called.
 
 
-class ObjectEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
+class ObjectEqualHandler(BaseEqualityHandler):
     r"""Check if the two objects are equal using the default equality
     operator ``==``.
 
@@ -125,11 +125,11 @@ class ObjectEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
-        return type(other) is type(self)
-
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
+
+    def equal(self, other: object) -> bool:
+        return type(other) is type(self)
 
     def handle(
         self,
@@ -146,7 +146,7 @@ class ObjectEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         pass  # Do nothing because the next handler is never called.
 
 
-class SameAttributeHandler(AbstractEqualityHandler):  # noqa: PLW1641
+class SameAttributeHandler(AbstractEqualityHandler):
     r"""Check if the two objects have the same attribute.
 
     This handler returns ``False`` if the two objects have different
@@ -172,17 +172,17 @@ class SameAttributeHandler(AbstractEqualityHandler):  # noqa: PLW1641
         super().__init__(next_handler=next_handler)
         self._name = name
 
-    def __eq__(self, other: object) -> bool:
-        if type(other) is not type(self):
-            return False
-        return self.name == other.name
-
     def __repr__(self) -> str:
         args = repr_indent(repr_mapping({"name": self._name, "next_handler": self._next_handler}))
         return f"{self.__class__.__qualname__}(\n  {args}\n)"
 
     def __str__(self) -> str:
         return f"{self.__class__.__qualname__}(name={self._name})"
+
+    def equal(self, other: object) -> bool:
+        if type(other) is not type(self):
+            return False
+        return self.name == other.name
 
     @property
     def name(self) -> str:
@@ -198,7 +198,7 @@ class SameAttributeHandler(AbstractEqualityHandler):  # noqa: PLW1641
         return self._handle_next(actual, expected, config=config)
 
 
-class SameLengthHandler(AbstractEqualityHandler):  # noqa: PLW1641
+class SameLengthHandler(AbstractEqualityHandler):
     r"""Check if the two objects have the same length.
 
     This handler returns ``False`` if the two objects have different
@@ -216,7 +216,7 @@ class SameLengthHandler(AbstractEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
+    def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
     def handle(
@@ -232,7 +232,7 @@ class SameLengthHandler(AbstractEqualityHandler):  # noqa: PLW1641
         return self._handle_next(actual, expected, config=config)
 
 
-class SameObjectHandler(AbstractEqualityHandler):  # noqa: PLW1641
+class SameObjectHandler(AbstractEqualityHandler):
     r"""Check if the two objects refer to the same object.
 
     This handler returns ``True`` if the two objects refer to the
@@ -250,7 +250,7 @@ class SameObjectHandler(AbstractEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
+    def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
     def handle(
@@ -264,7 +264,7 @@ class SameObjectHandler(AbstractEqualityHandler):  # noqa: PLW1641
         return self._handle_next(actual, expected, config=config)
 
 
-class SameTypeHandler(AbstractEqualityHandler):  # noqa: PLW1641
+class SameTypeHandler(AbstractEqualityHandler):
     r"""Check if the two objects have the same type.
 
     This handler returns ``False`` if the two objects have different
@@ -282,7 +282,7 @@ class SameTypeHandler(AbstractEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
+    def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
     def handle(

@@ -54,7 +54,7 @@ class SupportsEqualNan(Protocol):
         """
 
 
-class EqualHandler(BaseEqualityHandler):  # noqa: PLW1641
+class EqualHandler(BaseEqualityHandler):
     r"""Check if the two objects have the same data.
 
     This handler returns ``False`` if the two objects are different
@@ -83,11 +83,11 @@ class EqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
-        return type(other) is type(self)
-
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
+
+    def equal(self, other: object) -> bool:
+        return type(other) is type(self)
 
     def handle(self, actual: SupportsEqual, expected: object, config: EqualityConfig) -> bool:
         if not actual.equal(expected):
@@ -100,7 +100,7 @@ class EqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         pass  # Do nothing because the next handler is never called.
 
 
-class EqualNanHandler(BaseEqualityHandler):  # noqa: PLW1641
+class EqualNanHandler(BaseEqualityHandler):
     r"""Check if the two objects have the same data.
 
     This handler returns ``False`` if the two objects are different
@@ -134,11 +134,11 @@ class EqualNanHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
-        return type(other) is type(self)
-
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
+
+    def equal(self, other: object) -> bool:
+        return type(other) is type(self)
 
     def handle(self, actual: SupportsEqualNan, expected: object, config: EqualityConfig) -> bool:
         if not actual.equal(expected, equal_nan=config.equal_nan):

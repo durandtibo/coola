@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class MappingSameKeysHandler(AbstractEqualityHandler):  # noqa: PLW1641
+class MappingSameKeysHandler(AbstractEqualityHandler):
     r"""Check if the two objects have the same keys.
 
     This handler returns ``False`` if the two objects have different
@@ -35,7 +35,7 @@ class MappingSameKeysHandler(AbstractEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
+    def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
     def handle(
@@ -59,7 +59,7 @@ class MappingSameKeysHandler(AbstractEqualityHandler):  # noqa: PLW1641
         return self._handle_next(actual, expected, config=config)
 
 
-class MappingSameValuesHandler(AbstractEqualityHandler):  # noqa: PLW1641
+class MappingSameValuesHandler(AbstractEqualityHandler):
     r"""Check if the key-value pairs in the first mapping are in the
     second mapping.
 
@@ -87,7 +87,7 @@ class MappingSameValuesHandler(AbstractEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
+    def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
     def handle(

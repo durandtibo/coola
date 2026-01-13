@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class TorchTensorEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
+class TorchTensorEqualHandler(BaseEqualityHandler):
     r"""Check if the two tensors are equal.
 
     This handler returns ``True`` if the two tensors are equal,
@@ -40,11 +40,11 @@ class TorchTensorEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
-        return type(other) is type(self)
-
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
+
+    def equal(self, other: object) -> bool:
+        return type(other) is type(self)
 
     def handle(
         self,
@@ -63,7 +63,7 @@ class TorchTensorEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         pass  # Do nothing because the next handler is never called.
 
 
-class TorchTensorSameDeviceHandler(AbstractEqualityHandler):  # noqa: PLW1641
+class TorchTensorSameDeviceHandler(AbstractEqualityHandler):
     r"""Check if the two tensors have the same device.
 
     This handler returns ``False`` if the two objects have different
@@ -82,7 +82,7 @@ class TorchTensorSameDeviceHandler(AbstractEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
+    def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
     def handle(

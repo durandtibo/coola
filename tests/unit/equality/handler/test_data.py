@@ -29,18 +29,18 @@ def config() -> EqualityConfig:
 #####################################
 
 
-def test_same_data_handler__eq__true() -> None:
-    assert SameDataHandler() == SameDataHandler()
+def test_same_data_handler_equal_true() -> None:
+    assert SameDataHandler().equal(SameDataHandler())
 
 
-def test_same_data_handler__eq__false_different_type() -> None:
-    assert SameDataHandler() != FalseHandler()
+def test_same_data_handler_equal_false_different_type() -> None:
+    assert not SameDataHandler().equal(FalseHandler())
 
 
-def test_same_data_handler__eq__false_different_type_child() -> None:
+def test_same_data_handler_equal_false_different_type_child() -> None:
     class Child(SameDataHandler): ...
 
-    assert SameDataHandler() != Child()
+    assert not SameDataHandler().equal(Child())
 
 
 def test_same_data_handler_repr() -> None:
@@ -105,7 +105,7 @@ def test_same_data_handler_handle_without_next_handler(config: EqualityConfig) -
 def test_same_data_handler_set_next_handler() -> None:
     handler = SameDataHandler()
     handler.set_next_handler(FalseHandler())
-    assert handler.next_handler == FalseHandler()
+    assert handler.next_handler.equal(FalseHandler())
 
 
 def test_same_data_handler_set_next_handler_incorrect() -> None:
