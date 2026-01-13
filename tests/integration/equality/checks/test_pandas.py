@@ -6,12 +6,12 @@ from typing import TYPE_CHECKING
 import pytest
 
 from coola.equality import objects_are_allclose
-from coola.testing.fixtures import xarray_available
-from tests.unit.equality.checks.test_default import EQUALITY_TESTER_FUNCTIONS
-from tests.unit.equality.tester.test_xarray import (
-    XARRAY_EQUAL,
-    XARRAY_EQUAL_TOLERANCE,
-    XARRAY_NOT_EQUAL,
+from coola.testing.fixtures import pandas_available
+from tests.integration.equality.checks.utils import EQUALITY_TESTER_FUNCTIONS
+from tests.unit.equality.tester.test_pandas import (
+    PANDAS_EQUAL,
+    PANDAS_EQUAL_TOLERANCE,
+    PANDAS_NOT_EQUAL,
 )
 
 if TYPE_CHECKING:
@@ -20,9 +20,9 @@ if TYPE_CHECKING:
     from tests.unit.equality.utils import ExamplePair
 
 
-@xarray_available
+@pandas_available
 @pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
-@pytest.mark.parametrize("example", XARRAY_EQUAL)
+@pytest.mark.parametrize("example", PANDAS_EQUAL)
 @pytest.mark.parametrize("show_difference", [True, False])
 def test_objects_are_equal_true(
     function: Callable,
@@ -35,9 +35,9 @@ def test_objects_are_equal_true(
         assert not caplog.messages
 
 
-@xarray_available
+@pandas_available
 @pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
-@pytest.mark.parametrize("example", XARRAY_NOT_EQUAL)
+@pytest.mark.parametrize("example", PANDAS_NOT_EQUAL)
 def test_objects_are_equal_false(
     function: Callable, example: ExamplePair, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -46,9 +46,9 @@ def test_objects_are_equal_false(
         assert not caplog.messages
 
 
-@xarray_available
+@pandas_available
 @pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
-@pytest.mark.parametrize("example", XARRAY_NOT_EQUAL)
+@pytest.mark.parametrize("example", PANDAS_NOT_EQUAL)
 def test_objects_are_equal_false_show_difference(
     function: Callable, example: ExamplePair, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -57,8 +57,8 @@ def test_objects_are_equal_false_show_difference(
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
-@xarray_available
-@pytest.mark.parametrize("example", XARRAY_EQUAL_TOLERANCE)
+@pandas_available
+@pytest.mark.parametrize("example", PANDAS_EQUAL_TOLERANCE)
 def test_objects_are_allclose_true_tolerance(example: ExamplePair) -> None:
     assert objects_are_allclose(
         example.actual, example.expected, atol=example.atol, rtol=example.rtol
