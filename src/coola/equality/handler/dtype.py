@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any, Protocol
 from coola.equality.handler.base import AbstractEqualityHandler
 
 if TYPE_CHECKING:
-    from coola.equality.config import EqualityConfig
+    from coola.equality.config import EqualityConfig2
 
 
 logger: logging.Logger = logging.getLogger(__name__)
@@ -42,10 +42,9 @@ class SameDTypeHandler(AbstractEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import numpy as np
-        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.handler import SameDTypeHandler, TrueHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig2()
         >>> handler = SameDTypeHandler(next_handler=TrueHandler())
         >>> handler.handle(np.ones((2, 3)), np.ones((2, 3)), config)
         True
@@ -59,7 +58,7 @@ class SameDTypeHandler(AbstractEqualityHandler):  # noqa: PLW1641
         return type(other) is type(self)
 
     def handle(
-        self, actual: SupportsDType, expected: SupportsDType, config: EqualityConfig
+        self, actual: SupportsDType, expected: SupportsDType, config: EqualityConfig2
     ) -> bool:
         if actual.dtype != expected.dtype:
             if config.show_difference:

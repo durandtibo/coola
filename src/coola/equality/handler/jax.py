@@ -16,7 +16,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.jax import jnp
 
 if TYPE_CHECKING:
-    from coola.equality.config import EqualityConfig
+    from coola.equality.config import EqualityConfig2
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -32,10 +32,9 @@ class JaxArrayEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import jax.numpy as jnp
-        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.handler import JaxArrayEqualHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig2()
         >>> handler = JaxArrayEqualHandler()
         >>> handler.handle(jnp.ones((2, 3)), jnp.ones((2, 3)), config)
         True
@@ -55,7 +54,7 @@ class JaxArrayEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         self,
         actual: jnp.ndarray,
         expected: jnp.ndarray,
-        config: EqualityConfig,
+        config: EqualityConfig2,
     ) -> bool:
         object_equal = array_equal(actual, expected, config)
         if config.show_difference and not object_equal:
@@ -69,7 +68,7 @@ class JaxArrayEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         pass  # Do nothing because the next handler is never called.
 
 
-def array_equal(array1: jnp.ndarray, array2: jnp.ndarray, config: EqualityConfig) -> bool:
+def array_equal(array1: jnp.ndarray, array2: jnp.ndarray, config: EqualityConfig2) -> bool:
     r"""Indicate if the two arrays are equal within a tolerance.
 
     Args:

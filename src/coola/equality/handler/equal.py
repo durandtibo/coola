@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Protocol
 from coola.equality.handler.base import BaseEqualityHandler
 
 if TYPE_CHECKING:
-    from coola.equality.config import EqualityConfig
+    from coola.equality.config import EqualityConfig2
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -65,16 +65,15 @@ class EqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import math
-        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.handler import EqualHandler
-        >>> from coola.equality.testers import EqualityTester
         >>> class MyFloat:
         ...     def __init__(self, value: float) -> None:
         ...         self._value = value
         ...     def equal(self, other: float) -> bool:
         ...         return self._value == other
         ...
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig2()
         >>> handler = EqualHandler()
         >>> handler.handle(MyFloat(42), 42, config)
         True
@@ -90,7 +89,7 @@ class EqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
-    def handle(self, actual: SupportsEqual, expected: object, config: EqualityConfig) -> bool:
+    def handle(self, actual: SupportsEqual, expected: object, config: EqualityConfig2) -> bool:
         if not actual.equal(expected):
             if config.show_difference:
                 logger.info(f"objects are not equal:\nactual:\n{actual}\nexpected:\n{expected}")
@@ -112,9 +111,8 @@ class EqualNanHandler(BaseEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import math
-        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.handler import EqualNanHandler
-        >>> from coola.equality.testers import EqualityTester
         >>> class MyFloat:
         ...     def __init__(self, value: float) -> None:
         ...         self._value = value
@@ -123,7 +121,7 @@ class EqualNanHandler(BaseEqualityHandler):  # noqa: PLW1641
         ...             return True
         ...         return self._value == other
         ...
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig2()
         >>> handler = EqualNanHandler()
         >>> handler.handle(MyFloat(42), 42, config)
         True
@@ -142,7 +140,7 @@ class EqualNanHandler(BaseEqualityHandler):  # noqa: PLW1641
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
-    def handle(self, actual: SupportsEqualNan, expected: object, config: EqualityConfig) -> bool:
+    def handle(self, actual: SupportsEqualNan, expected: object, config: EqualityConfig2) -> bool:
         if not actual.equal(expected, equal_nan=config.equal_nan):
             if config.show_difference:
                 logger.info(f"objects are not equal:\nactual:\n{actual}\nexpected:\n{expected}")

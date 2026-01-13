@@ -21,7 +21,7 @@ from coola.utils.format import repr_indent, repr_mapping
 if TYPE_CHECKING:
     from collections.abc import Sized
 
-    from coola.equality.config import EqualityConfig
+    from coola.equality.config import EqualityConfig2
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -34,10 +34,9 @@ class FalseHandler(BaseEqualityHandler):  # noqa: PLW1641
 
     Example:
         ```pycon
-        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.handler import FalseHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig2()
         >>> handler = FalseHandler()
         >>> handler.handle("abc", "abc", config)
         False
@@ -57,7 +56,7 @@ class FalseHandler(BaseEqualityHandler):  # noqa: PLW1641
         self,
         actual: object,  # noqa: ARG002
         expected: object,  # noqa: ARG002
-        config: EqualityConfig,  # noqa: ARG002
+        config: EqualityConfig2,  # noqa: ARG002
     ) -> bool:
         return False
 
@@ -73,10 +72,9 @@ class TrueHandler(BaseEqualityHandler):  # noqa: PLW1641
 
     Example:
         ```pycon
-        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.handler import TrueHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig2()
         >>> handler = TrueHandler()
         >>> handler.handle("abc", "abc", config)
         True
@@ -96,7 +94,7 @@ class TrueHandler(BaseEqualityHandler):  # noqa: PLW1641
         self,
         actual: object,  # noqa: ARG002
         expected: object,  # noqa: ARG002
-        config: EqualityConfig,  # noqa: ARG002
+        config: EqualityConfig2,  # noqa: ARG002
     ) -> bool:
         return True
 
@@ -115,10 +113,9 @@ class ObjectEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
 
     Example:
         ```pycon
-        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.handler import ObjectEqualHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig2()
         >>> handler = ObjectEqualHandler()
         >>> handler.handle(1, 1, config)
         True
@@ -138,7 +135,7 @@ class ObjectEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         self,
         actual: object,
         expected: object,
-        config: EqualityConfig,
+        config: EqualityConfig2,
     ) -> bool:
         object_equal = actual == expected
         if config.show_difference and not object_equal:
@@ -159,10 +156,9 @@ class SameAttributeHandler(AbstractEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import numpy as np
-        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.handler import SameAttributeHandler, TrueHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig2()
         >>> handler = SameAttributeHandler(name="shape", next_handler=TrueHandler())
         >>> handler.handle(np.ones((2, 3)), np.ones((2, 3)), config)
         True
@@ -192,10 +188,10 @@ class SameAttributeHandler(AbstractEqualityHandler):  # noqa: PLW1641
     def name(self) -> str:
         return self._name
 
-    def handle(self, actual: object, expected: object, config: EqualityConfig) -> bool:
+    def handle(self, actual: object, expected: object, config: EqualityConfig2) -> bool:
         value1 = getattr(actual, self._name)
         value2 = getattr(expected, self._name)
-        if not config.tester.equal(value1, value2, config):
+        if not config.registry.objects_are_equal(value1, value2, config):
             if config.show_difference:
                 logger.info(f"objects have different {self._name}: {value1} vs {value2}")
             return False
@@ -210,10 +206,9 @@ class SameLengthHandler(AbstractEqualityHandler):  # noqa: PLW1641
 
     Example:
         ```pycon
-        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.handler import SameLengthHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig2()
         >>> handler = SameLengthHandler()
         >>> handler.handle([1, 2, 3], [1, 2, 3, 4], config)
         False
@@ -228,7 +223,7 @@ class SameLengthHandler(AbstractEqualityHandler):  # noqa: PLW1641
         self,
         actual: Sized,
         expected: Sized,
-        config: EqualityConfig,
+        config: EqualityConfig2,
     ) -> bool:
         if len(actual) != len(expected):
             if config.show_difference:
@@ -245,10 +240,9 @@ class SameObjectHandler(AbstractEqualityHandler):  # noqa: PLW1641
 
     Example:
         ```pycon
-        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.handler import SameObjectHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig2()
         >>> handler = SameObjectHandler()
         >>> handler.handle("abc", "abc", config)
         True
@@ -263,7 +257,7 @@ class SameObjectHandler(AbstractEqualityHandler):  # noqa: PLW1641
         self,
         actual: object,
         expected: object,
-        config: EqualityConfig,
+        config: EqualityConfig2,
     ) -> bool:
         if actual is expected:
             return True
@@ -278,10 +272,9 @@ class SameTypeHandler(AbstractEqualityHandler):  # noqa: PLW1641
 
     Example:
         ```pycon
-        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.handler import SameTypeHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig2()
         >>> handler = SameTypeHandler()
         >>> handler.handle(1, "abc", config)
         False
@@ -296,7 +289,7 @@ class SameTypeHandler(AbstractEqualityHandler):  # noqa: PLW1641
         self,
         actual: object,
         expected: object,
-        config: EqualityConfig,
+        config: EqualityConfig2,
     ) -> bool:
         if type(actual) is not type(expected):
             if config.show_difference:

@@ -5,9 +5,8 @@ from unittest.mock import Mock
 
 import pytest
 
-from coola.equality.config import EqualityConfig
+from coola.equality.config import EqualityConfig2
 from coola.equality.handler import FalseHandler, SameDataHandler, TrueHandler
-from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import numpy_available, torch_available
 from coola.utils.imports import is_numpy_available, is_torch_available
 
@@ -21,8 +20,8 @@ if is_torch_available():
 
 
 @pytest.fixture
-def config() -> EqualityConfig:
-    return EqualityConfig(tester=EqualityTester())
+def config() -> EqualityConfig2:
+    return EqualityConfig2()
 
 
 #####################################
@@ -63,7 +62,7 @@ def test_same_data_handler_str() -> None:
     ],
 )
 def test_same_data_handler_handle_true(
-    actual: np.ndarray, expected: np.ndarray, config: EqualityConfig
+    actual: np.ndarray, expected: np.ndarray, config: EqualityConfig2
 ) -> None:
     assert SameDataHandler(next_handler=TrueHandler()).handle(actual, expected, config)
 
@@ -78,14 +77,14 @@ def test_same_data_handler_handle_true(
     ],
 )
 def test_same_data_handler_handle_false(
-    actual: np.ndarray, expected: np.ndarray, config: EqualityConfig
+    actual: np.ndarray, expected: np.ndarray, config: EqualityConfig2
 ) -> None:
     assert not SameDataHandler().handle(actual, expected, config)
 
 
 @numpy_available
 def test_same_data_handler_handle_false_show_difference(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+    config: EqualityConfig2, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = SameDataHandler()
@@ -97,7 +96,7 @@ def test_same_data_handler_handle_false_show_difference(
 
 
 @numpy_available
-def test_same_data_handler_handle_without_next_handler(config: EqualityConfig) -> None:
+def test_same_data_handler_handle_without_next_handler(config: EqualityConfig2) -> None:
     handler = SameDataHandler()
     with pytest.raises(RuntimeError, match=r"next handler is not defined"):
         handler.handle(actual=np.ones(shape=(2, 3)), expected=np.ones(shape=(2, 3)), config=config)
@@ -116,14 +115,14 @@ def test_same_data_handler_set_next_handler_incorrect() -> None:
 
 
 @torch_available
-def test_same_data_handler_handle_tensor(config: EqualityConfig) -> None:
+def test_same_data_handler_handle_tensor(config: EqualityConfig2) -> None:
     handler = SameDataHandler(next_handler=TrueHandler())
     assert handler.handle(torch.ones(2, 3), torch.ones(2, 3), config)
     assert not handler.handle(torch.ones(2, 3), torch.zeros(2, 3), config)
 
 
 @torch_available
-def test_same_data_handler_handle_padded_sequence(config: EqualityConfig) -> None:
+def test_same_data_handler_handle_padded_sequence(config: EqualityConfig2) -> None:
     handler = SameDataHandler(next_handler=TrueHandler())
     assert handler.handle(
         torch.nn.utils.rnn.pack_padded_sequence(

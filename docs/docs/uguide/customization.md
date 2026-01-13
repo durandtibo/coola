@@ -14,10 +14,10 @@ The following example shows how to use a custom `BaseEqualityTester`.
 
 >>> from typing import Any
 >>> from coola import objects_are_equal
->>> from coola.equality.config import EqualityConfig
+>>> from coola.equality.config import EqualityConfig2
 >>> from coola.equality.testers import BaseEqualityTester
 >>> class MyCustomEqualityTester(BaseEqualityTester):
-...     def equal(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
+...     def equal(self, actual: Any, expected: Any, config: EqualityConfig2) -> bool:
 ...         return actual is expected
 ...
 >>> objects_are_equal([1, 2, 3], (1, 2, 3), tester=MyCustomEqualityTester())
@@ -94,7 +94,7 @@ Then, you need to add the `BaseEqualityComparator` to `EqualityTester`.
 >>> class MyCustomStrEqualityOperator(BaseEqualityComparator):
 ...     def clone(self) -> "MyCustomStrEqualityOperator":
 ...         return self.__class__()
-...     def equal(self, actual: str, expected: Any, config: EqualityConfig) -> bool:
+...     def equal(self, actual: str, expected: Any, config: EqualityConfig2) -> bool:
 ...         # You can add code to check the type and to log a message to indicate
 ...         # the difference between the objects if any. To keep this example
 ...         # simple, this part is skipped.
@@ -132,7 +132,7 @@ the new equality comparator is added.
 >>> class MyCustomMappingEqualityComparator(BaseEqualityComparator):
 ...     def clone(self) -> "MyCustomMappingEqualityComparator":
 ...         return self.__class__()
-...     def equal(self, actual: Mapping, expected: Any, config: EqualityConfig) -> bool:
+...     def equal(self, actual: Mapping, expected: Any, config: EqualityConfig2) -> bool:
 ...         # You can add code to check the type and to log a message to indicate
 ...         # the difference between the objects if any. To keep this example
 ...         # simple, this part is skipped.

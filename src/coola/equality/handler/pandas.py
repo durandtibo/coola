@@ -17,7 +17,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.pandas import pandas as pd
 
 if TYPE_CHECKING:
-    from coola.equality.config import EqualityConfig
+    from coola.equality.config import EqualityConfig2
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -33,10 +33,9 @@ class PandasDataFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import pandas
-        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.handler import PandasDataFrameEqualHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig2()
         >>> handler = PandasDataFrameEqualHandler()
         >>> handler.handle(
         ...     pandas.DataFrame({"col": [1, 2, 3]}),
@@ -64,7 +63,7 @@ class PandasDataFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         self,
         actual: pd.DataFrame,
         expected: pd.DataFrame,
-        config: EqualityConfig,
+        config: EqualityConfig2,
     ) -> bool:
         object_equal = frame_equal(actual, expected, config)
         if config.show_difference and not object_equal:
@@ -89,10 +88,9 @@ class PandasSeriesEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import pandas
-        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.handler import PandasSeriesEqualHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig2()
         >>> handler = PandasSeriesEqualHandler()
         >>> handler.handle(pandas.Series([1, 2, 3]), pandas.Series([1, 2, 3]), config)
         True
@@ -112,7 +110,7 @@ class PandasSeriesEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         self,
         actual: pd.Series,
         expected: pd.Series,
-        config: EqualityConfig,
+        config: EqualityConfig2,
     ) -> bool:
         object_equal = series_equal(actual, expected, config)
         if config.show_difference and not object_equal:
@@ -125,7 +123,7 @@ class PandasSeriesEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         pass  # Do nothing because the next handler is never called.
 
 
-def frame_equal(df1: pd.DataFrame, df2: pd.DataFrame, config: EqualityConfig) -> bool:
+def frame_equal(df1: pd.DataFrame, df2: pd.DataFrame, config: EqualityConfig2) -> bool:
     r"""Indicate if the two DataFrames are equal or not.
 
     Args:
@@ -152,7 +150,7 @@ def frame_equal(df1: pd.DataFrame, df2: pd.DataFrame, config: EqualityConfig) ->
     return True
 
 
-def series_equal(series1: pd.Series, series2: pd.Series, config: EqualityConfig) -> bool:
+def series_equal(series1: pd.Series, series2: pd.Series, config: EqualityConfig2) -> bool:
     r"""Indicate if the two series are equal or not.
 
     Args:

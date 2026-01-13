@@ -5,22 +5,21 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from coola.equality.config import EqualityConfig
+from coola.equality.config import EqualityConfig2
 from coola.equality.handler import (
     FalseHandler,
     MappingSameKeysHandler,
     MappingSameValuesHandler,
     TrueHandler,
 )
-from coola.equality.testers import EqualityTester
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
 
 @pytest.fixture
-def config() -> EqualityConfig:
-    return EqualityConfig(tester=EqualityTester())
+def config() -> EqualityConfig2:
+    return EqualityConfig2()
 
 
 ############################################
@@ -58,7 +57,7 @@ def test_mapping_same_keys_handler_str() -> None:
     ],
 )
 def test_mapping_same_keys_handler_handle_true(
-    actual: Mapping, expected: Mapping, config: EqualityConfig
+    actual: Mapping, expected: Mapping, config: EqualityConfig2
 ) -> None:
     assert MappingSameKeysHandler(next_handler=TrueHandler()).handle(actual, expected, config)
 
@@ -71,13 +70,13 @@ def test_mapping_same_keys_handler_handle_true(
     ],
 )
 def test_mapping_same_keys_handler_handle_false(
-    actual: Mapping, expected: Mapping, config: EqualityConfig
+    actual: Mapping, expected: Mapping, config: EqualityConfig2
 ) -> None:
     assert not MappingSameKeysHandler().handle(actual, expected, config)
 
 
 def test_mapping_same_keys_handler_handle_false_show_difference(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+    config: EqualityConfig2, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = MappingSameKeysHandler()
@@ -88,7 +87,7 @@ def test_mapping_same_keys_handler_handle_false_show_difference(
         assert caplog.messages[0].startswith("mappings have different keys:")
 
 
-def test_mapping_same_keys_handler_handle_without_next_handler(config: EqualityConfig) -> None:
+def test_mapping_same_keys_handler_handle_without_next_handler(config: EqualityConfig2) -> None:
     handler = MappingSameKeysHandler()
     with pytest.raises(RuntimeError, match=r"next handler is not defined"):
         handler.handle(actual={"a": 1, "b": 2}, expected={"a": 1, "b": 2}, config=config)
@@ -144,7 +143,7 @@ def test_mapping_same_values_handler_str() -> None:
     ],
 )
 def test_mapping_same_values_handler_handle_true(
-    actual: Mapping, expected: Mapping, config: EqualityConfig
+    actual: Mapping, expected: Mapping, config: EqualityConfig2
 ) -> None:
     assert MappingSameValuesHandler(next_handler=TrueHandler()).handle(actual, expected, config)
 
@@ -157,13 +156,13 @@ def test_mapping_same_values_handler_handle_true(
     ],
 )
 def test_mapping_same_values_handler_handle_false(
-    actual: Mapping, expected: Mapping, config: EqualityConfig
+    actual: Mapping, expected: Mapping, config: EqualityConfig2
 ) -> None:
     assert not MappingSameValuesHandler().handle(actual, expected, config)
 
 
 def test_mapping_same_values_handler_handle_false_show_difference(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+    config: EqualityConfig2, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = MappingSameValuesHandler()
@@ -172,7 +171,7 @@ def test_mapping_same_values_handler_handle_false_show_difference(
         assert caplog.messages[-1].startswith("mappings have at least one different value:")
 
 
-def test_mapping_same_values_handler_handle_without_next_handler(config: EqualityConfig) -> None:
+def test_mapping_same_values_handler_handle_without_next_handler(config: EqualityConfig2) -> None:
     handler = MappingSameValuesHandler()
     with pytest.raises(RuntimeError, match=r"next handler is not defined"):
         handler.handle(actual={"a": 1, "b": 2}, expected={"a": 1, "b": 2}, config=config)

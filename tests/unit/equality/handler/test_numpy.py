@@ -6,10 +6,9 @@ from unittest.mock import Mock
 
 import pytest
 
-from coola.equality.config import EqualityConfig
+from coola.equality.config import EqualityConfig2
 from coola.equality.handler import FalseHandler, NumpyArrayEqualHandler
 from coola.equality.handler.numpy import array_equal, is_numeric_array
-from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
 from tests.unit.equality.comparators.test_numpy import NUMPY_ARRAY_EQUAL_TOLERANCE
@@ -24,8 +23,8 @@ if TYPE_CHECKING:
 
 
 @pytest.fixture
-def config() -> EqualityConfig:
-    return EqualityConfig(tester=EqualityTester())
+def config() -> EqualityConfig2:
+    return EqualityConfig2()
 
 
 ############################################
@@ -65,7 +64,7 @@ def test_numpy_array_equal_handler_str() -> None:
     ],
 )
 def test_numpy_array_equal_handler_handle_true(
-    actual: np.ndarray, expected: np.ndarray, config: EqualityConfig
+    actual: np.ndarray, expected: np.ndarray, config: EqualityConfig2
 ) -> None:
     assert NumpyArrayEqualHandler().handle(actual, expected, config)
 
@@ -80,20 +79,20 @@ def test_numpy_array_equal_handler_handle_true(
     ],
 )
 def test_numpy_array_equal_handler_handle_false(
-    actual: np.ndarray, expected: np.ndarray, config: EqualityConfig
+    actual: np.ndarray, expected: np.ndarray, config: EqualityConfig2
 ) -> None:
     assert not NumpyArrayEqualHandler().handle(actual, expected, config)
 
 
 @numpy_available
-def test_numpy_array_equal_handler_handle_equal_nan_false(config: EqualityConfig) -> None:
+def test_numpy_array_equal_handler_handle_equal_nan_false(config: EqualityConfig2) -> None:
     assert not NumpyArrayEqualHandler().handle(
         np.array([0.0, np.nan, np.nan, 1.2]), np.array([0.0, np.nan, np.nan, 1.2]), config
     )
 
 
 @numpy_available
-def test_numpy_array_equal_handler_handle_equal_nan_true(config: EqualityConfig) -> None:
+def test_numpy_array_equal_handler_handle_equal_nan_true(config: EqualityConfig2) -> None:
     config.equal_nan = True
     assert NumpyArrayEqualHandler().handle(
         np.array([0.0, np.nan, np.nan, 1.2]), np.array([0.0, np.nan, np.nan, 1.2]), config
@@ -102,7 +101,7 @@ def test_numpy_array_equal_handler_handle_equal_nan_true(config: EqualityConfig)
 
 @numpy_available
 def test_numpy_array_equal_handler_handle_false_show_difference(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+    config: EqualityConfig2, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = NumpyArrayEqualHandler()
@@ -116,7 +115,7 @@ def test_numpy_array_equal_handler_handle_false_show_difference(
 @numpy_available
 @pytest.mark.parametrize("example", NUMPY_ARRAY_EQUAL_TOLERANCE)
 def test_numpy_array_equal_handler_handle_true_tolerance(
-    example: ExamplePair, config: EqualityConfig
+    example: ExamplePair, config: EqualityConfig2
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
@@ -159,20 +158,20 @@ ARRAY_EQUAL = [
 
 @numpy_available
 @pytest.mark.parametrize("array", ARRAY_EQUAL)
-def test_array_equal_true(array: np.ndarray, config: EqualityConfig) -> None:
+def test_array_equal_true(array: np.ndarray, config: EqualityConfig2) -> None:
     assert array_equal(array, array.copy(), config=config)
 
 
 @numpy_available
 @pytest.mark.parametrize("array", ARRAY_EQUAL)
-def test_array_equal_true_atol(array: np.ndarray, config: EqualityConfig) -> None:
+def test_array_equal_true_atol(array: np.ndarray, config: EqualityConfig2) -> None:
     config.atol = 1e-6
     assert array_equal(array, array.copy(), config=config)
 
 
 @numpy_available
 @pytest.mark.parametrize("array", ARRAY_EQUAL)
-def test_array_equal_true_rtol(array: np.ndarray, config: EqualityConfig) -> None:
+def test_array_equal_true_rtol(array: np.ndarray, config: EqualityConfig2) -> None:
     config.rtol = 1e-3
     assert array_equal(array, array.copy(), config=config)
 

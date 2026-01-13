@@ -6,9 +6,8 @@ from unittest.mock import Mock
 
 import pytest
 
-from coola.equality.config import EqualityConfig
+from coola.equality.config import EqualityConfig2
 from coola.equality.handler import FalseHandler, SequenceSameValuesHandler, TrueHandler
-from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
 
@@ -22,8 +21,8 @@ if TYPE_CHECKING:
 
 
 @pytest.fixture
-def config() -> EqualityConfig:
-    return EqualityConfig(tester=EqualityTester())
+def config() -> EqualityConfig2:
+    return EqualityConfig2()
 
 
 ###############################################
@@ -64,7 +63,7 @@ def test_sequence_same_values_handler_str() -> None:
     ],
 )
 def test_sequence_same_values_handler_handle_true(
-    actual: Sequence, expected: Sequence, config: EqualityConfig
+    actual: Sequence, expected: Sequence, config: EqualityConfig2
 ) -> None:
     assert SequenceSameValuesHandler(next_handler=TrueHandler()).handle(actual, expected, config)
 
@@ -78,7 +77,7 @@ def test_sequence_same_values_handler_handle_true(
     ],
 )
 def test_sequence_same_values_handler_handle_true_numpy(
-    actual: Sequence, expected: Sequence, config: EqualityConfig
+    actual: Sequence, expected: Sequence, config: EqualityConfig2
 ) -> None:
     assert SequenceSameValuesHandler(next_handler=TrueHandler()).handle(actual, expected, config)
 
@@ -92,7 +91,7 @@ def test_sequence_same_values_handler_handle_true_numpy(
     ],
 )
 def test_sequence_same_values_handler_handle_false(
-    actual: Sequence, expected: Sequence, config: EqualityConfig
+    actual: Sequence, expected: Sequence, config: EqualityConfig2
 ) -> None:
     assert not SequenceSameValuesHandler().handle(actual, expected, config)
 
@@ -106,7 +105,7 @@ def test_sequence_same_values_handler_handle_false(
     ],
 )
 def test_sequence_same_values_handler_handle_false_numpy(
-    actual: Sequence, expected: Sequence, config: EqualityConfig
+    actual: Sequence, expected: Sequence, config: EqualityConfig2
 ) -> None:
     assert not SequenceSameValuesHandler(next_handler=TrueHandler()).handle(
         actual, expected, config
@@ -114,7 +113,7 @@ def test_sequence_same_values_handler_handle_false_numpy(
 
 
 def test_sequence_same_values_handler_handle_false_show_difference(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+    config: EqualityConfig2, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = SequenceSameValuesHandler()
@@ -123,7 +122,7 @@ def test_sequence_same_values_handler_handle_false_show_difference(
         assert caplog.messages[-1].startswith("sequences have at least one different value:")
 
 
-def test_sequence_same_values_handler_handle_without_next_handler(config: EqualityConfig) -> None:
+def test_sequence_same_values_handler_handle_without_next_handler(config: EqualityConfig2) -> None:
     handler = SequenceSameValuesHandler()
     with pytest.raises(RuntimeError, match=r"next handler is not defined"):
         handler.handle(actual=[1, 2, 3], expected=[1, 2, 3], config=config)

@@ -21,7 +21,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.polars import polars as pl
 
 if TYPE_CHECKING:
-    from coola.equality.config import EqualityConfig
+    from coola.equality.config import EqualityConfig2
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -37,10 +37,9 @@ class PolarsDataFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import polars as pl
-        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.handler import PolarsDataFrameEqualHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig2()
         >>> handler = PolarsDataFrameEqualHandler()
         >>> handler.handle(
         ...     pl.DataFrame({"col": [1, 2, 3]}),
@@ -68,7 +67,7 @@ class PolarsDataFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         self,
         actual: pl.DataFrame,
         expected: pl.DataFrame,
-        config: EqualityConfig,
+        config: EqualityConfig2,
     ) -> bool:
         object_equal = frame_equal(actual, expected, config)
         if config.show_difference and not object_equal:
@@ -93,10 +92,9 @@ class PolarsLazyFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import polars as pl
-        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.handler import PolarsLazyFrameEqualHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig2()
         >>> handler = PolarsLazyFrameEqualHandler()
         >>> handler.handle(
         ...     pl.LazyFrame({"col": [1, 2, 3]}),
@@ -124,7 +122,7 @@ class PolarsLazyFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         self,
         actual: pl.LazyFrame,
         expected: pl.LazyFrame,
-        config: EqualityConfig,
+        config: EqualityConfig2,
     ) -> bool:
         object_equal = frame_equal(actual.collect(), expected.collect(), config)
         if config.show_difference and not object_equal:
@@ -149,10 +147,9 @@ class PolarsSeriesEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import polars as pl
-        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.handler import PolarsSeriesEqualHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig2()
         >>> handler = PolarsSeriesEqualHandler()
         >>> handler.handle(pl.Series([1, 2, 3]), pl.Series([1, 2, 3]), config)
         True
@@ -172,7 +169,7 @@ class PolarsSeriesEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         self,
         actual: pl.Series,
         expected: pl.Series,
-        config: EqualityConfig,
+        config: EqualityConfig2,
     ) -> bool:
         object_equal = series_equal(actual, expected, config)
         if config.show_difference and not object_equal:
@@ -203,7 +200,7 @@ def has_nan(df_or_series: pl.DataFrame | pl.Series) -> bool:
     return frame.select(pl.any_horizontal(pl.all().is_nan().any())).item()
 
 
-def frame_equal(df1: pl.DataFrame, df2: pl.DataFrame, config: EqualityConfig) -> bool:
+def frame_equal(df1: pl.DataFrame, df2: pl.DataFrame, config: EqualityConfig2) -> bool:
     r"""Indicate if the two DataFrames are equal or not.
 
     Args:
@@ -223,7 +220,7 @@ def frame_equal(df1: pl.DataFrame, df2: pl.DataFrame, config: EqualityConfig) ->
     return True
 
 
-def series_equal(series1: pl.Series, series2: pl.Series, config: EqualityConfig) -> bool:
+def series_equal(series1: pl.Series, series2: pl.Series, config: EqualityConfig2) -> bool:
     r"""Indicate if the two series are equal or not.
 
     Args:

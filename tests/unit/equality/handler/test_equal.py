@@ -6,18 +6,17 @@ from typing import TYPE_CHECKING, Any
 
 import pytest
 
-from coola.equality.config import EqualityConfig
+from coola.equality.config import EqualityConfig2
 from coola.equality.handler import EqualNanHandler, FalseHandler, TrueHandler
 from coola.equality.handler.equal import EqualHandler
-from coola.equality.testers import EqualityTester
 
 if TYPE_CHECKING:
     from coola.equality.handler.equal import SupportsEqual, SupportsEqualNan
 
 
 @pytest.fixture
-def config() -> EqualityConfig:
-    return EqualityConfig(tester=EqualityTester())
+def config() -> EqualityConfig2:
+    return EqualityConfig2()
 
 
 class MyFloat:
@@ -70,7 +69,7 @@ def test_equal_handler_str() -> None:
     [(MyFloat(42), 42), (MyFloat(0), 0)],
 )
 def test_equal_handler_handle_true(
-    actual: SupportsEqual, expected: Any, config: EqualityConfig
+    actual: SupportsEqual, expected: Any, config: EqualityConfig2
 ) -> None:
     assert EqualHandler().handle(actual, expected, config)
 
@@ -84,13 +83,13 @@ def test_equal_handler_handle_true(
     ],
 )
 def test_equal_handler_handle_false(
-    actual: SupportsEqual, expected: Any, config: EqualityConfig
+    actual: SupportsEqual, expected: Any, config: EqualityConfig2
 ) -> None:
     assert not EqualHandler().handle(actual, expected, config)
 
 
 def test_equal_handler_handle_false_show_difference(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+    config: EqualityConfig2, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = EqualHandler()
@@ -100,7 +99,7 @@ def test_equal_handler_handle_false_show_difference(
 
 
 @pytest.mark.parametrize("equal_nan", [True, False])
-def test_equal_handler_handle_equal_nan(config: EqualityConfig, equal_nan: bool) -> None:
+def test_equal_handler_handle_equal_nan(config: EqualityConfig2, equal_nan: bool) -> None:
     config.equal_nan = equal_nan
     assert not EqualHandler().handle(MyFloat(float("nan")), float("nan"), config)
 
@@ -141,7 +140,7 @@ def test_equal_nan_handler_str() -> None:
     [(MyFloatNan(42), 42), (MyFloatNan(0), 0)],
 )
 def test_equal_nan_handler_handle_true(
-    actual: SupportsEqualNan, expected: Any, config: EqualityConfig
+    actual: SupportsEqualNan, expected: Any, config: EqualityConfig2
 ) -> None:
     assert EqualNanHandler().handle(actual, expected, config)
 
@@ -155,13 +154,13 @@ def test_equal_nan_handler_handle_true(
     ],
 )
 def test_equal_nan_handler_handle_false(
-    actual: SupportsEqualNan, expected: Any, config: EqualityConfig
+    actual: SupportsEqualNan, expected: Any, config: EqualityConfig2
 ) -> None:
     assert not EqualNanHandler().handle(actual, expected, config)
 
 
 def test_equal_nan_handler_handle_false_show_difference(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+    config: EqualityConfig2, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = EqualNanHandler()
@@ -171,7 +170,7 @@ def test_equal_nan_handler_handle_false_show_difference(
 
 
 @pytest.mark.parametrize("equal_nan", [True, False])
-def test_equal_nan_handler_handle_equal_nan(config: EqualityConfig, equal_nan: bool) -> None:
+def test_equal_nan_handler_handle_equal_nan(config: EqualityConfig2, equal_nan: bool) -> None:
     config.equal_nan = equal_nan
     assert EqualNanHandler().handle(MyFloatNan(float("nan")), float("nan"), config) == equal_nan
 
