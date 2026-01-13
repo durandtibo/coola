@@ -243,6 +243,11 @@ NUMPY_EQUAL_TOLERANCE = NUMPY_ARRAY_EQUAL_TOLERANCE + NUMPY_MASKED_ARRAY_EQUAL_T
 
 
 @numpy_available
+def test_numpy_array_equality_tester_repr() -> None:
+    assert repr(NumpyArrayEqualityTester()).startswith("NumpyArrayEqualityTester(")
+
+
+@numpy_available
 def test_numpy_array_equality_tester_str() -> None:
     assert str(NumpyArrayEqualityTester()).startswith("NumpyArrayEqualityTester(")
 
@@ -362,7 +367,6 @@ def test_numpy_array_equality_tester_objects_are_equal_true_tolerance(
     )
 
 
-@numpy_available
 def test_numpy_array_equality_tester_no_numpy() -> None:
     with (
         patch("coola.utils.imports.is_numpy_available", lambda: False),
@@ -489,7 +493,6 @@ def test_numpy_masked_array_equality_tester_objects_are_equal_nan(
     )
 
 
-@numpy_available
 def test_numpy_masked_array_equality_tester_no_numpy() -> None:
     with (
         patch("coola.utils.imports.is_numpy_available", lambda: False),

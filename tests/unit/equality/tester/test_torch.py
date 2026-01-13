@@ -466,7 +466,6 @@ def test_tensor_packed_sequence_equality_tester_objects_are_equal_nan_false(
     )
 
 
-@torch_available
 def test_tensor_packed_sequence_equality_tester_no_torch() -> None:
     with (
         patch("coola.utils.imports.is_torch_available", lambda: False),
@@ -637,7 +636,6 @@ def test_torch_tensor_equality_tester_true_tolerance(
     )
 
 
-@torch_available
 def test_torch_tensor_equality_tester_no_torch() -> None:
     with (
         patch("coola.utils.imports.is_torch_available", lambda: False),

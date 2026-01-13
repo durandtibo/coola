@@ -566,7 +566,6 @@ def test_xarray_data_array_equality_tester_objects_are_equal_true_tolerance(
     )
 
 
-@xarray_available
 def test_xarray_data_array_equality_tester_no_xarray() -> None:
     with (
         patch("coola.utils.imports.is_xarray_available", lambda: False),
@@ -705,7 +704,6 @@ def test_xarray_dataset_equality_tester_objects_are_equal_true_tolerance(
     )
 
 
-@xarray_available
 def test_xarray_dataset_equality_tester_no_xarray() -> None:
     with (
         patch("coola.utils.imports.is_xarray_available", lambda: False),
@@ -844,7 +842,6 @@ def test_xarray_variable_equality_tester_objects_are_equal_true_tolerance(
     )
 
 
-@xarray_available
 def test_xarray_variable_equality_tester_no_xarray() -> None:
     with (
         patch("coola.utils.imports.is_xarray_available", lambda: False),

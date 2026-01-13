@@ -110,6 +110,11 @@ JAX_ARRAY_EQUAL_TOLERANCE = [
 
 
 @jax_available
+def test_jax_array_equality_tester_repr() -> None:
+    assert repr(JaxArrayEqualityTester()).startswith("JaxArrayEqualityTester(")
+
+
+@jax_available
 def test_jax_array_equality_tester_str() -> None:
     assert str(JaxArrayEqualityTester()).startswith("JaxArrayEqualityTester(")
 
@@ -229,7 +234,6 @@ def test_jax_array_equality_tester_objects_are_equal_true_tolerance(
     )
 
 
-@jax_available
 def test_jax_array_equality_tester_no_jax() -> None:
     with (
         patch("coola.utils.imports.is_jax_available", lambda: False),
