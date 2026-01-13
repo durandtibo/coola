@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import OrderedDict, deque
 from collections.abc import Generator, Mapping, Sequence
 
 import pytest
@@ -123,54 +124,49 @@ def test_get_default_registry_returns_singleton() -> None:
     assert registry1 is registry2
 
 
-@pytest.mark.parametrize("dtype", [object, str, complex, set, frozenset])
-def test_get_default_registry_default(dtype: type) -> None:
-    """Test that scalar types are registered with
-    DefaultEqualityTester."""
+@pytest.mark.parametrize(
+    ("dtype", "tester_class", "is_registered"),
+    [
+        # Default
+        (object, DefaultEqualityTester, True),
+        (str, DefaultEqualityTester, False),
+        (complex, DefaultEqualityTester, False),
+        (set, DefaultEqualityTester, False),
+        (frozenset, DefaultEqualityTester, False),
+        # Scalar
+        (int, ScalarEqualityTester, True),
+        (float, ScalarEqualityTester, True),
+        (bool, ScalarEqualityTester, False),
+        # Sequence
+        (list, SequenceEqualityTester, True),
+        (tuple, SequenceEqualityTester, True),
+        (Sequence, SequenceEqualityTester, True),
+        (deque, SequenceEqualityTester, True),
+        # Mapping
+        (dict, MappingEqualityTester, True),
+        (Mapping, MappingEqualityTester, True),
+        (OrderedDict, MappingEqualityTester, False),
+    ],
+)
+def test_get_default_registry_native(dtype: type, tester_class: type, is_registered: bool) -> None:
     registry = get_default_registry()
-    assert registry.has_equality_tester(dtype)
-    assert isinstance(registry.find_equality_tester(dtype), DefaultEqualityTester)
-
-
-@pytest.mark.parametrize("dtype", [int, float, bool])
-def test_get_default_registry_scalars(dtype: type) -> None:
-    """Test that scalar types are registered with
-    DefaultEqualityTester."""
-    registry = get_default_registry()
-    assert registry.has_equality_tester(dtype)
-    assert isinstance(registry.find_equality_tester(dtype), ScalarEqualityTester)
-
-
-@pytest.mark.parametrize("dtype", [list, tuple, Sequence])
-def test_get_default_registry_sequences(dtype: type) -> None:
-    """Test that sequence types are registered with
-    SequenceEqualityTester."""
-    registry = get_default_registry()
-    assert registry.has_equality_tester(dtype)
-    assert isinstance(registry.find_equality_tester(dtype), SequenceEqualityTester)
-
-
-@pytest.mark.parametrize("dtype", [dict, Mapping])
-def test_get_default_registry_mappings(dtype: type) -> None:
-    """Test that mapping types are registered with
-    MappingEqualityTester."""
-    registry = get_default_registry()
-    assert registry.has_equality_tester(dtype)
-    assert isinstance(registry.find_equality_tester(dtype), MappingEqualityTester)
+    if is_registered:
+        assert registry.has_equality_tester(dtype)
+    assert isinstance(registry.find_equality_tester(dtype), tester_class)
 
 
 @jax_available
-def test_get_default_registry_jax_ndarray() -> None:
+@pytest.mark.parametrize(
+    ("dtype", "tester_class"),
+    [
+        (jnp.ndarray, JaxArrayEqualityTester),
+        (get_array_impl_class(), JaxArrayEqualityTester),
+    ],
+)
+def test_get_default_registry_jax(dtype: type, tester_class: type) -> None:
     registry = get_default_registry()
-    assert registry.has_equality_tester(jnp.ndarray)
-    assert isinstance(registry.find_equality_tester(jnp.ndarray), JaxArrayEqualityTester)
-
-
-@jax_available
-def test_get_default_registry_jax_array() -> None:
-    registry = get_default_registry()
-    assert registry.has_equality_tester(get_array_impl_class())
-    assert isinstance(registry.find_equality_tester(get_array_impl_class()), JaxArrayEqualityTester)
+    assert registry.has_equality_tester(dtype)
+    assert isinstance(registry.find_equality_tester(dtype), tester_class)
 
 
 @numpy_available
@@ -181,90 +177,75 @@ def test_get_default_registry_numpy_ndarray() -> None:
 
 
 @pandas_available
-def test_get_default_registry_pandas_dataframe() -> None:
+@pytest.mark.parametrize(
+    ("dtype", "tester_class"),
+    [
+        (pd.DataFrame, PandasDataFrameEqualityTester),
+        (pd.Series, PandasSeriesEqualityTester),
+    ],
+)
+def test_get_default_registry_pandas(dtype: type, tester_class: type) -> None:
     registry = get_default_registry()
-    assert registry.has_equality_tester(pd.DataFrame)
-    assert isinstance(registry.find_equality_tester(pd.DataFrame), PandasDataFrameEqualityTester)
-
-
-@pandas_available
-def test_get_default_registry_pandas_series() -> None:
-    registry = get_default_registry()
-    assert registry.has_equality_tester(pd.Series)
-    assert isinstance(registry.find_equality_tester(pd.Series), PandasSeriesEqualityTester)
+    assert registry.has_equality_tester(dtype)
+    assert isinstance(registry.find_equality_tester(dtype), tester_class)
 
 
 @polars_available
-def test_get_default_registry_polars_dataframe() -> None:
+@pytest.mark.parametrize(
+    ("dtype", "tester_class"),
+    [
+        (pl.DataFrame, PolarsDataFrameEqualityTester),
+        (pl.LazyFrame, PolarsLazyFrameEqualityTester),
+        (pl.Series, PolarsSeriesEqualityTester),
+    ],
+)
+def test_get_default_registry_polars(dtype: type, tester_class: type) -> None:
     registry = get_default_registry()
-    assert registry.has_equality_tester(pl.DataFrame)
-    assert isinstance(registry.find_equality_tester(pl.DataFrame), PolarsDataFrameEqualityTester)
-
-
-@polars_available
-def test_get_default_registry_polars_lazyframe() -> None:
-    registry = get_default_registry()
-    assert registry.has_equality_tester(pl.LazyFrame)
-    assert isinstance(registry.find_equality_tester(pl.LazyFrame), PolarsLazyFrameEqualityTester)
-
-
-@polars_available
-def test_get_default_registry_polars_series() -> None:
-    registry = get_default_registry()
-    assert registry.has_equality_tester(pl.Series)
-    assert isinstance(registry.find_equality_tester(pl.Series), PolarsSeriesEqualityTester)
+    assert registry.has_equality_tester(dtype)
+    assert isinstance(registry.find_equality_tester(dtype), tester_class)
 
 
 @pyarrow_available
-def test_get_default_registry_pyarrow_array() -> None:
+@pytest.mark.parametrize(
+    ("dtype", "tester_class"),
+    [
+        (pa.Array, PyarrowEqualityTester),
+        (pa.Table, PyarrowEqualityTester),
+    ],
+)
+def test_get_default_registry_pyarrow(dtype: type, tester_class: type) -> None:
     registry = get_default_registry()
-    assert registry.has_equality_tester(pa.Array)
-    assert isinstance(registry.find_equality_tester(pa.Array), PyarrowEqualityTester)
-
-
-@pyarrow_available
-def test_get_default_registry_pyarrow_table() -> None:
-    registry = get_default_registry()
-    assert registry.has_equality_tester(pa.Table)
-    assert isinstance(registry.find_equality_tester(pa.Table), PyarrowEqualityTester)
+    assert registry.has_equality_tester(dtype)
+    assert isinstance(registry.find_equality_tester(dtype), tester_class)
 
 
 @torch_available
-def test_get_default_registry_torch_packed_sequence() -> None:
+@pytest.mark.parametrize(
+    ("dtype", "tester_class"),
+    [
+        (torch.nn.utils.rnn.PackedSequence, TorchPackedSequenceEqualityTester),
+        (torch.Tensor, TorchTensorEqualityTester),
+    ],
+)
+def test_get_default_registry_torch(dtype: type, tester_class: type) -> None:
     registry = get_default_registry()
-    assert registry.has_equality_tester(torch.nn.utils.rnn.PackedSequence)
-    assert isinstance(
-        registry.find_equality_tester(torch.nn.utils.rnn.PackedSequence),
-        TorchPackedSequenceEqualityTester,
-    )
-
-
-@torch_available
-def test_get_default_registry_torch_tensor() -> None:
-    registry = get_default_registry()
-    assert registry.has_equality_tester(torch.Tensor)
-    assert isinstance(registry.find_equality_tester(torch.Tensor), TorchTensorEqualityTester)
+    assert registry.has_equality_tester(dtype)
+    assert isinstance(registry.find_equality_tester(dtype), tester_class)
 
 
 @xarray_available
-def test_get_default_registry_xarray_data_array() -> None:
+@pytest.mark.parametrize(
+    ("dtype", "tester_class"),
+    [
+        (xr.DataArray, XarrayDataArrayEqualityTester),
+        (xr.Dataset, XarrayDatasetEqualityTester),
+        (xr.Variable, XarrayVariableEqualityTester),
+    ],
+)
+def test_get_default_registry_xarray(dtype: type, tester_class: type) -> None:
     registry = get_default_registry()
-    assert registry.has_equality_tester(xr.DataArray)
-    assert isinstance(registry.find_equality_tester(xr.DataArray), XarrayDataArrayEqualityTester)
-
-
-@xarray_available
-def test_get_default_registry_xarray_dataset() -> None:
-    registry = get_default_registry()
-    assert registry.has_equality_tester(xr.Dataset)
-    assert isinstance(registry.find_equality_tester(xr.Dataset), XarrayDatasetEqualityTester)
-
-
-@xarray_available
-def test_get_default_registry_xarray_variable() -> None:
-    registry = get_default_registry()
-    assert registry.has_equality_tester(xr.Variable)
-    assert isinstance(registry.find_equality_tester(xr.Variable), XarrayVariableEqualityTester)
+    assert registry.has_equality_tester(dtype)
+    assert isinstance(registry.find_equality_tester(dtype), tester_class)
 
 
 def test_get_default_registry_objects_are_equal_true(config: EqualityConfig) -> None:
