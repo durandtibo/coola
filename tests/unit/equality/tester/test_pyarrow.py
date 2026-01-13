@@ -374,6 +374,11 @@ PYARROW_NOT_EQUAL_TOLERANCE = PYARROW_ARRAY_NOT_EQUAL_TOLERANCE
 
 
 @pyarrow_available
+def test_pyarrow_equality_tester_repr() -> None:
+    assert str(PyarrowEqualityTester()).startswith("PyarrowEqualityTester(")
+
+
+@pyarrow_available
 def test_pyarrow_equality_tester_str() -> None:
     assert str(PyarrowEqualityTester()).startswith("PyarrowEqualityTester(")
 
@@ -505,7 +510,6 @@ def test_pyarrow_equality_tester_objects_are_equal_true_tolerance(
         assert "tol is ignored because it is not supported" in str(w[-1].message)
 
 
-@pyarrow_available
 def test_pyarrow_equality_tester_no_pyarrow() -> None:
     with (
         patch("coola.utils.imports.is_pyarrow_available", lambda: False),

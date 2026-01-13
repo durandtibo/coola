@@ -367,7 +367,6 @@ def test_pandas_dataframe_equality_tester_objects_are_equal_tolerance(
     )
 
 
-@pandas_available
 def test_pandas_dataframe_equality_tester_no_pandas() -> None:
     with (
         patch("coola.utils.imports.is_pandas_available", lambda: False),
@@ -506,7 +505,6 @@ def test_pandas_series_equality_tester_objects_are_equal_tolerance(
     )
 
 
-@pandas_available
 def test_pandas_series_equality_tester_no_pandas() -> None:
     with (
         patch("coola.utils.imports.is_pandas_available", lambda: False),
