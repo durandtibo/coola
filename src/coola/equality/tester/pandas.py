@@ -22,7 +22,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.pandas import pandas as pd
 
 if TYPE_CHECKING:
-    from coola.equality.config import EqualityConfig2
+    from coola.equality.config import EqualityConfig
 
 
 class PandasDataFrameEqualityTester(BaseEqualityTester[pd.DataFrame]):
@@ -31,9 +31,9 @@ class PandasDataFrameEqualityTester(BaseEqualityTester[pd.DataFrame]):
     Example:
         ```pycon
         >>> import pandas as pd
-        >>> from coola.equality.config import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.tester import PandasDataFrameEqualityTester
-        >>> config = EqualityConfig2()
+        >>> config = EqualityConfig()
         >>> tester = PandasDataFrameEqualityTester()
         >>> tester.equal(
         ...     pd.DataFrame({"col": [1, 2, 3]}),
@@ -66,7 +66,7 @@ class PandasDataFrameEqualityTester(BaseEqualityTester[pd.DataFrame]):
         self,
         actual: pd.DataFrame,
         expected: object,
-        config: EqualityConfig2,
+        config: EqualityConfig,
     ) -> bool:
         return self._handler.handle(actual, expected, config=config)
 
@@ -77,9 +77,9 @@ class PandasSeriesEqualityTester(BaseEqualityTester[pd.Series]):
     Example:
         ```pycon
         >>> import pandas as pd
-        >>> from coola.equality.config import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.tester import PandasSeriesEqualityTester
-        >>> config = EqualityConfig2()
+        >>> config = EqualityConfig()
         >>> tester = PandasSeriesEqualityTester()
         >>> tester.equal(pd.Series([1, 2, 3]), pd.Series([1, 2, 3]), config)
         True
@@ -104,6 +104,6 @@ class PandasSeriesEqualityTester(BaseEqualityTester[pd.Series]):
         self,
         actual: pd.Series,
         expected: object,
-        config: EqualityConfig2,
+        config: EqualityConfig,
     ) -> bool:
         return self._handler.handle(actual, expected, config=config)

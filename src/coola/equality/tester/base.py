@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Generic, TypeVar
 
 if TYPE_CHECKING:
-    from coola.equality.config import EqualityConfig2
+    from coola.equality.config import EqualityConfig
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -21,9 +21,9 @@ class BaseEqualityTester(ABC, Generic[T]):
 
     Example:
         ```pycon
-        >>> from coola.equality.config import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.tester import DefaultEqualityTester
-        >>> config = EqualityConfig2()
+        >>> config = EqualityConfig()
         >>> tester = DefaultEqualityTester()
         >>> tester.objects_are_equal(42, 42, config)
         True
@@ -38,7 +38,7 @@ class BaseEqualityTester(ABC, Generic[T]):
         self,
         actual: T,
         expected: object,
-        config: EqualityConfig2,
+        config: EqualityConfig,
     ) -> bool:
         r"""Indicate if two objects are equal or not.
 
@@ -52,9 +52,9 @@ class BaseEqualityTester(ABC, Generic[T]):
 
         Example:
             ```pycon
-            >>> from coola.equality.config import EqualityConfig2
+            >>> from coola.equality.config import EqualityConfig
             >>> from coola.equality.tester import DefaultEqualityTester
-            >>> config = EqualityConfig2()
+            >>> config = EqualityConfig()
             >>> tester = DefaultEqualityTester()
             >>> tester.objects_are_equal(42, 42, config)
             True

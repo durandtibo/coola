@@ -14,7 +14,7 @@ from coola.equality.handler.base import BaseEqualityHandler
 if TYPE_CHECKING:
     import pyarrow as pa
 
-    from coola.equality.config import EqualityConfig2
+    from coola.equality.config import EqualityConfig
 
 
 logger: logging.Logger = logging.getLogger(__name__)
@@ -34,9 +34,9 @@ class PyarrowEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import pyarrow
-        >>> from coola.equality.config import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import PyarrowEqualHandler
-        >>> config = EqualityConfig2()
+        >>> config = EqualityConfig()
         >>> handler = PyarrowEqualHandler()
         >>> handler.handle(pyarrow.array([1, 2, 3]), pyarrow.array([1, 2, 3]), config)
         True
@@ -56,7 +56,7 @@ class PyarrowEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         self,
         actual: pa.Array | pa.Table,
         expected: pa.Array | pa.Table,
-        config: EqualityConfig2,
+        config: EqualityConfig,
     ) -> bool:
         equal = object_equal(actual, expected, config)
         if config.show_difference and not equal:
@@ -68,7 +68,7 @@ class PyarrowEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
 
 
 def object_equal(
-    obj1: pa.Array | pa.Table, obj2: pa.Array | pa.Table, config: EqualityConfig2
+    obj1: pa.Array | pa.Table, obj2: pa.Array | pa.Table, config: EqualityConfig
 ) -> bool:
     r"""Indicate if the two arrays or tables are equal within a
     tolerance.
@@ -88,9 +88,9 @@ def object_equal(
     Example:
         ```pycon
         >>> import pyarrow as pa
-        >>> from coola.equality.config import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler.pyarrow import object_equal
-        >>> config = EqualityConfig2()
+        >>> config = EqualityConfig()
         >>> object_equal(pa.array([1, 2, 3]), pa.array([1, 2, 3]), config)
         True
         >>> object_equal(pa.array([1, 2, 3]), pa.array([1, 2, 4]), config)

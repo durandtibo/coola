@@ -21,7 +21,7 @@ from coola.equality.handler import (
 from coola.equality.tester.base import BaseEqualityTester
 
 if TYPE_CHECKING:
-    from coola.equality.config import EqualityConfig2
+    from coola.equality.config import EqualityConfig
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -31,9 +31,9 @@ class MappingEqualityTester(BaseEqualityTester[Mapping[Any, Any]]):
 
     Example:
         ```pycon
-        >>> from coola.equality.config import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.tester import MappingEqualityTester
-        >>> config = EqualityConfig2()
+        >>> config = EqualityConfig()
         >>> tester = MappingEqualityTester()
         >>> tester.equal({"a": 1, "b": 2}, {"a": 1, "b": 2}, config)
         True
@@ -59,7 +59,7 @@ class MappingEqualityTester(BaseEqualityTester[Mapping[Any, Any]]):
         self,
         actual: object,
         expected: object,
-        config: EqualityConfig2,
+        config: EqualityConfig,
     ) -> bool:
         return self._handler.handle(actual, expected, config=config)
 
@@ -69,9 +69,9 @@ class SequenceEqualityTester(BaseEqualityTester[Sequence[Any]]):
 
     Example:
         ```pycon
-        >>> from coola.equality.config import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.tester import SequenceEqualityTester
-        >>> config = EqualityConfig2()
+        >>> config = EqualityConfig()
         >>> tester = SequenceEqualityTester()
         >>> tester.equal([1, 2, 3], [1, 2, 3], config)
         True
@@ -97,6 +97,6 @@ class SequenceEqualityTester(BaseEqualityTester[Sequence[Any]]):
         self,
         actual: object,
         expected: object,
-        config: EqualityConfig2,
+        config: EqualityConfig,
     ) -> bool:
         return self._handler.handle(actual, expected, config=config)

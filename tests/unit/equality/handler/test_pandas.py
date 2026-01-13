@@ -6,7 +6,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from coola.equality.config import EqualityConfig2
+from coola.equality.config import EqualityConfig
 from coola.equality.handler import (
     FalseHandler,
     PandasDataFrameEqualHandler,
@@ -29,8 +29,8 @@ if TYPE_CHECKING:
 
 
 @pytest.fixture
-def config() -> EqualityConfig2:
-    return EqualityConfig2()
+def config() -> EqualityConfig:
+    return EqualityConfig()
 
 
 #################################################
@@ -87,7 +87,7 @@ def test_pandas_dataframe_equal_handler_str() -> None:
 def test_pandas_dataframe_equal_handler_handle_true(
     actual: pd.DataFrame,
     expected: pd.DataFrame,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PandasDataFrameEqualHandler()
@@ -98,7 +98,7 @@ def test_pandas_dataframe_equal_handler_handle_true(
 
 @pandas_available
 def test_pandas_dataframe_equal_handler_handle_true_show_difference(
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -112,7 +112,7 @@ def test_pandas_dataframe_equal_handler_handle_true_show_difference(
 
 @pandas_available
 def test_pandas_dataframe_equal_handler_handle_false(
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PandasDataFrameEqualHandler()
@@ -123,7 +123,7 @@ def test_pandas_dataframe_equal_handler_handle_false(
 
 @pandas_available
 def test_pandas_dataframe_equal_handler_handle_false_different_column(
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PandasDataFrameEqualHandler()
@@ -136,7 +136,7 @@ def test_pandas_dataframe_equal_handler_handle_false_different_column(
 
 @pandas_available
 def test_pandas_dataframe_equal_handler_handle_false_different_value(
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PandasDataFrameEqualHandler()
@@ -149,7 +149,7 @@ def test_pandas_dataframe_equal_handler_handle_false_different_value(
 
 @pandas_available
 def test_pandas_dataframe_equal_handler_handle_false_different_dtype(
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PandasDataFrameEqualHandler()
@@ -164,7 +164,7 @@ def test_pandas_dataframe_equal_handler_handle_false_different_dtype(
 
 @pandas_available
 def test_pandas_dataframe_equal_handler_handle_false_show_difference(
-    config: EqualityConfig2, caplog: pytest.LogCaptureFixture
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = PandasDataFrameEqualHandler()
@@ -178,7 +178,7 @@ def test_pandas_dataframe_equal_handler_handle_false_show_difference(
 
 
 @pandas_available
-def test_pandas_dataframe_equal_handler_handle_equal_nan_false(config: EqualityConfig2) -> None:
+def test_pandas_dataframe_equal_handler_handle_equal_nan_false(config: EqualityConfig) -> None:
     assert not PandasDataFrameEqualHandler().handle(
         pd.DataFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
         pd.DataFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
@@ -187,7 +187,7 @@ def test_pandas_dataframe_equal_handler_handle_equal_nan_false(config: EqualityC
 
 
 @pandas_available
-def test_pandas_dataframe_equal_handler_handle_equal_nan_true(config: EqualityConfig2) -> None:
+def test_pandas_dataframe_equal_handler_handle_equal_nan_true(config: EqualityConfig) -> None:
     config.equal_nan = True
     assert PandasDataFrameEqualHandler().handle(
         pd.DataFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
@@ -199,7 +199,7 @@ def test_pandas_dataframe_equal_handler_handle_equal_nan_true(config: EqualityCo
 @pandas_available
 @pytest.mark.parametrize("example", PANDAS_DATAFRAME_EQUAL_TOLERANCE)
 def test_pandas_dataframe_equal_handler_handle_true_tolerance(
-    example: ExamplePair, config: EqualityConfig2
+    example: ExamplePair, config: EqualityConfig
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
@@ -251,7 +251,7 @@ def test_pandas_series_equal_handler_str() -> None:
 def test_pandas_series_equal_handler_handle_true(
     actual: pd.Series,
     expected: pd.Series,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PandasSeriesEqualHandler()
@@ -262,7 +262,7 @@ def test_pandas_series_equal_handler_handle_true(
 
 @pandas_available
 def test_pandas_series_equal_handler_handle_true_show_difference(
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -274,7 +274,7 @@ def test_pandas_series_equal_handler_handle_true_show_difference(
 
 @pandas_available
 def test_pandas_series_equal_handler_handle_false_different_shape(
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PandasSeriesEqualHandler()
@@ -285,7 +285,7 @@ def test_pandas_series_equal_handler_handle_false_different_shape(
 
 @pandas_available
 def test_pandas_series_equal_handler_handle_false_different_dtype(
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PandasSeriesEqualHandler()
@@ -300,7 +300,7 @@ def test_pandas_series_equal_handler_handle_false_different_dtype(
 
 @pandas_available
 def test_pandas_series_equal_handler_handle_false_different_value(
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PandasSeriesEqualHandler()
@@ -311,7 +311,7 @@ def test_pandas_series_equal_handler_handle_false_different_value(
 
 @pandas_available
 def test_pandas_series_equal_handler_handle_false_different_index(
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PandasSeriesEqualHandler()
@@ -326,7 +326,7 @@ def test_pandas_series_equal_handler_handle_false_different_index(
 
 @pandas_available
 def test_pandas_series_equal_handler_handle_false_show_difference(
-    config: EqualityConfig2, caplog: pytest.LogCaptureFixture
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = PandasSeriesEqualHandler()
@@ -340,7 +340,7 @@ def test_pandas_series_equal_handler_handle_false_show_difference(
 
 
 @pandas_available
-def test_pandas_series_equal_handler_handle_equal_nan_false(config: EqualityConfig2) -> None:
+def test_pandas_series_equal_handler_handle_equal_nan_false(config: EqualityConfig) -> None:
     assert not PandasSeriesEqualHandler().handle(
         pd.Series([0.0, float("nan"), float("nan"), 1.2]),
         pd.Series([0.0, float("nan"), float("nan"), 1.2]),
@@ -349,7 +349,7 @@ def test_pandas_series_equal_handler_handle_equal_nan_false(config: EqualityConf
 
 
 @pandas_available
-def test_pandas_series_equal_handler_handle_equal_nan_true(config: EqualityConfig2) -> None:
+def test_pandas_series_equal_handler_handle_equal_nan_true(config: EqualityConfig) -> None:
     config.equal_nan = True
     assert PandasSeriesEqualHandler().handle(
         pd.Series([0.0, float("nan"), float("nan"), 1.2]),
@@ -361,7 +361,7 @@ def test_pandas_series_equal_handler_handle_equal_nan_true(config: EqualityConfi
 @pandas_available
 @pytest.mark.parametrize("example", PANDAS_SERIES_EQUAL_TOLERANCE)
 def test_pandas_series_equal_handler_handle_true_tolerance(
-    example: ExamplePair, config: EqualityConfig2
+    example: ExamplePair, config: EqualityConfig
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol

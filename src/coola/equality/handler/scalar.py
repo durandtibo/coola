@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from coola.equality.handler.base import AbstractEqualityHandler, BaseEqualityHandler
 
 if TYPE_CHECKING:
-    from coola.equality.config import EqualityConfig2
+    from coola.equality.config import EqualityConfig
 
 
 logger: logging.Logger = logging.getLogger(__name__)
@@ -25,9 +25,9 @@ class NanEqualHandler(AbstractEqualityHandler):  # noqa: PLW1641
 
     Example:
         ```pycon
-        >>> from coola.equality.config import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import NanEqualHandler, FalseHandler
-        >>> config = EqualityConfig2()
+        >>> config = EqualityConfig()
         >>> handler = NanEqualHandler(next_handler=FalseHandler())
         >>> handler.handle(float("nan"), float("nan"), config)
         False
@@ -45,7 +45,7 @@ class NanEqualHandler(AbstractEqualityHandler):  # noqa: PLW1641
         self,
         actual: float,
         expected: float,
-        config: EqualityConfig2,
+        config: EqualityConfig,
     ) -> bool:
         if config.equal_nan and math.isnan(actual) and math.isnan(expected):
             return True
@@ -62,9 +62,9 @@ class ScalarEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
 
     Example:
         ```pycon
-        >>> from coola.equality.config import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import ScalarEqualHandler
-        >>> config = EqualityConfig2()
+        >>> config = EqualityConfig()
         >>> handler = ScalarEqualHandler()
         >>> handler.handle(42.0, 42.0, config)
         True
@@ -83,7 +83,7 @@ class ScalarEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
-    def handle(self, actual: float, expected: float, config: EqualityConfig2) -> bool:
+    def handle(self, actual: float, expected: float, config: EqualityConfig) -> bool:
         object_equal = number_equal(actual, expected, config)
         if not object_equal and config.show_difference:
             logger.info(f"numbers are not equal:\nactual:\n{actual}\nexpected:\n{expected}")
@@ -93,7 +93,7 @@ class ScalarEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         pass  # Do nothing because the next handler is never called.
 
 
-def number_equal(number1: float, number2: float, config: EqualityConfig2) -> bool:
+def number_equal(number1: float, number2: float, config: EqualityConfig) -> bool:
     r"""Indicate if the two numbers are equal within a tolerance.
 
     Args:

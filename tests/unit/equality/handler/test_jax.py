@@ -6,7 +6,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from coola.equality.config import EqualityConfig2
+from coola.equality.config import EqualityConfig
 from coola.equality.handler import FalseHandler, JaxArrayEqualHandler
 from coola.testing.fixtures import jax_available
 from coola.utils.imports import is_jax_available
@@ -23,8 +23,8 @@ if TYPE_CHECKING:
 
 
 @pytest.fixture
-def config() -> EqualityConfig2:
-    return EqualityConfig2()
+def config() -> EqualityConfig:
+    return EqualityConfig()
 
 
 ##########################################
@@ -64,7 +64,7 @@ def test_jax_array_equal_handler_str() -> None:
     ],
 )
 def test_jax_array_equal_handler_handle_true(
-    actual: jnp.ndarray, expected: jnp.ndarray, config: EqualityConfig2
+    actual: jnp.ndarray, expected: jnp.ndarray, config: EqualityConfig
 ) -> None:
     assert JaxArrayEqualHandler().handle(actual, expected, config)
 
@@ -79,20 +79,20 @@ def test_jax_array_equal_handler_handle_true(
     ],
 )
 def test_jax_array_equal_handler_handle_false(
-    actual: jnp.ndarray, expected: jnp.ndarray, config: EqualityConfig2
+    actual: jnp.ndarray, expected: jnp.ndarray, config: EqualityConfig
 ) -> None:
     assert not JaxArrayEqualHandler().handle(actual, expected, config)
 
 
 @jax_available
-def test_jax_array_equal_handler_handle_equal_nan_false(config: EqualityConfig2) -> None:
+def test_jax_array_equal_handler_handle_equal_nan_false(config: EqualityConfig) -> None:
     assert not JaxArrayEqualHandler().handle(
         jnp.array([0.0, jnp.nan, jnp.nan, 1.2]), jnp.array([0.0, jnp.nan, jnp.nan, 1.2]), config
     )
 
 
 @jax_available
-def test_jax_array_equal_handler_handle_equal_nan_true(config: EqualityConfig2) -> None:
+def test_jax_array_equal_handler_handle_equal_nan_true(config: EqualityConfig) -> None:
     config.equal_nan = True
     assert JaxArrayEqualHandler().handle(
         jnp.array([0.0, jnp.nan, jnp.nan, 1.2]), jnp.array([0.0, jnp.nan, jnp.nan, 1.2]), config
@@ -101,7 +101,7 @@ def test_jax_array_equal_handler_handle_equal_nan_true(config: EqualityConfig2) 
 
 @jax_available
 def test_jax_array_equal_handler_handle_false_show_difference(
-    config: EqualityConfig2, caplog: pytest.LogCaptureFixture
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = JaxArrayEqualHandler()
@@ -115,7 +115,7 @@ def test_jax_array_equal_handler_handle_false_show_difference(
 @jax_available
 @pytest.mark.parametrize("example", JAX_ARRAY_EQUAL_TOLERANCE)
 def test_jax_array_equal_handler_handle_true_tolerance(
-    example: ExamplePair, config: EqualityConfig2
+    example: ExamplePair, config: EqualityConfig
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol

@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola.equality.config import EqualityConfig2
+from coola.equality.config import EqualityConfig
 from coola.equality.tester import (
     PolarsDataFrameEqualityTester,
     PolarsLazyFrameEqualityTester,
@@ -22,8 +22,8 @@ else:
 
 
 @pytest.fixture
-def config() -> EqualityConfig2:
-    return EqualityConfig2()
+def config() -> EqualityConfig:
+    return EqualityConfig()
 
 
 POLARS_DATAFRAME_EQUAL = [
@@ -380,7 +380,7 @@ def test_polars_dataframe_equality_tester_equal_false_different_type_child() -> 
 
 @polars_available
 def test_polars_dataframe_equality_tester_objects_are_equal_true_same_object(
-    config: EqualityConfig2,
+    config: EqualityConfig,
 ) -> None:
     val = pl.DataFrame({"col": [1, 2, 3]})
     assert PolarsDataFrameEqualityTester().objects_are_equal(val, val, config)
@@ -390,7 +390,7 @@ def test_polars_dataframe_equality_tester_objects_are_equal_true_same_object(
 @pytest.mark.parametrize("example", POLARS_DATAFRAME_EQUAL)
 def test_polars_dataframe_equality_tester_objects_are_equal_true(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = PolarsDataFrameEqualityTester()
@@ -405,7 +405,7 @@ def test_polars_dataframe_equality_tester_objects_are_equal_true(
 @pytest.mark.parametrize("example", POLARS_DATAFRAME_EQUAL)
 def test_polars_dataframe_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -421,7 +421,7 @@ def test_polars_dataframe_equality_tester_objects_are_equal_true_show_difference
 @pytest.mark.parametrize("example", POLARS_DATAFRAME_NOT_EQUAL)
 def test_polars_dataframe_equality_tester_objects_are_equal_false(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = PolarsDataFrameEqualityTester()
@@ -436,7 +436,7 @@ def test_polars_dataframe_equality_tester_objects_are_equal_false(
 @pytest.mark.parametrize("example", POLARS_DATAFRAME_NOT_EQUAL)
 def test_polars_dataframe_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -451,7 +451,7 @@ def test_polars_dataframe_equality_tester_objects_are_equal_false_show_differenc
 @polars_available
 @pytest.mark.parametrize("equal_nan", [False, True])
 def test_polars_dataframe_equality_tester_objects_are_equal_nan(
-    config: EqualityConfig2, equal_nan: bool
+    config: EqualityConfig, equal_nan: bool
 ) -> None:
     config.equal_nan = equal_nan
     assert (
@@ -467,7 +467,7 @@ def test_polars_dataframe_equality_tester_objects_are_equal_nan(
 @polars_available
 @pytest.mark.parametrize("example", POLARS_DATAFRAME_EQUAL_TOLERANCE)
 def test_polars_dataframe_equality_tester_objects_are_equal_tolerance(
-    example: ExamplePair, config: EqualityConfig2
+    example: ExamplePair, config: EqualityConfig
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
@@ -518,7 +518,7 @@ def test_polars_lazyframe_equality_tester_equal_false_different_type_child() -> 
 
 @polars_available
 def test_polars_lazyframe_equality_tester_objects_are_equal_true_same_object(
-    config: EqualityConfig2,
+    config: EqualityConfig,
 ) -> None:
     val = pl.LazyFrame({"col": [1, 2, 3]})
     assert PolarsLazyFrameEqualityTester().objects_are_equal(val, val, config)
@@ -528,7 +528,7 @@ def test_polars_lazyframe_equality_tester_objects_are_equal_true_same_object(
 @pytest.mark.parametrize("example", POLARS_LAZYFRAME_EQUAL)
 def test_polars_lazyframe_equality_tester_objects_are_equal_true(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = PolarsLazyFrameEqualityTester()
@@ -543,7 +543,7 @@ def test_polars_lazyframe_equality_tester_objects_are_equal_true(
 @pytest.mark.parametrize("example", POLARS_LAZYFRAME_EQUAL)
 def test_polars_lazyframe_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -559,7 +559,7 @@ def test_polars_lazyframe_equality_tester_objects_are_equal_true_show_difference
 @pytest.mark.parametrize("example", POLARS_LAZYFRAME_NOT_EQUAL)
 def test_polars_lazyframe_equality_tester_objects_are_equal_false(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = PolarsLazyFrameEqualityTester()
@@ -574,7 +574,7 @@ def test_polars_lazyframe_equality_tester_objects_are_equal_false(
 @pytest.mark.parametrize("example", POLARS_LAZYFRAME_NOT_EQUAL)
 def test_polars_lazyframe_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -589,7 +589,7 @@ def test_polars_lazyframe_equality_tester_objects_are_equal_false_show_differenc
 @polars_available
 @pytest.mark.parametrize("equal_nan", [False, True])
 def test_polars_lazyframe_equality_tester_objects_are_equal_nan(
-    config: EqualityConfig2, equal_nan: bool
+    config: EqualityConfig, equal_nan: bool
 ) -> None:
     config.equal_nan = equal_nan
     assert (
@@ -605,7 +605,7 @@ def test_polars_lazyframe_equality_tester_objects_are_equal_nan(
 @polars_available
 @pytest.mark.parametrize("example", POLARS_LAZYFRAME_EQUAL_TOLERANCE)
 def test_polars_lazyframe_equality_tester_objects_are_equal_tolerance(
-    example: ExamplePair, config: EqualityConfig2
+    example: ExamplePair, config: EqualityConfig
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
@@ -656,7 +656,7 @@ def test_polars_series_equality_tester_equal_false_different_type_child() -> Non
 
 @polars_available
 def test_polars_series_equality_tester_objects_are_equal_true_same_object(
-    config: EqualityConfig2,
+    config: EqualityConfig,
 ) -> None:
     series = pl.Series([1, 2, 3])
     assert PolarsSeriesEqualityTester().objects_are_equal(series, series, config)
@@ -666,7 +666,7 @@ def test_polars_series_equality_tester_objects_are_equal_true_same_object(
 @pytest.mark.parametrize("example", POLARS_SERIES_EQUAL)
 def test_polars_series_equality_tester_objects_are_equal_true(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = PolarsSeriesEqualityTester()
@@ -681,7 +681,7 @@ def test_polars_series_equality_tester_objects_are_equal_true(
 @pytest.mark.parametrize("example", POLARS_SERIES_EQUAL)
 def test_polars_series_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -697,7 +697,7 @@ def test_polars_series_equality_tester_objects_are_equal_true_show_difference(
 @pytest.mark.parametrize("example", POLARS_SERIES_NOT_EQUAL)
 def test_polars_series_equality_tester_objects_are_equal_false(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = PolarsSeriesEqualityTester()
@@ -712,7 +712,7 @@ def test_polars_series_equality_tester_objects_are_equal_false(
 @pytest.mark.parametrize("example", POLARS_SERIES_NOT_EQUAL)
 def test_polars_series_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -727,7 +727,7 @@ def test_polars_series_equality_tester_objects_are_equal_false_show_difference(
 @polars_available
 @pytest.mark.parametrize("equal_nan", [False, True])
 def test_polars_series_equality_tester_objects_are_equal_nan(
-    config: EqualityConfig2, equal_nan: bool
+    config: EqualityConfig, equal_nan: bool
 ) -> None:
     config.equal_nan = equal_nan
     assert (
@@ -743,7 +743,7 @@ def test_polars_series_equality_tester_objects_are_equal_nan(
 @polars_available
 @pytest.mark.parametrize("example", POLARS_SERIES_EQUAL_TOLERANCE)
 def test_polars_series_equality_tester_objects_are_equal_tolerance(
-    example: ExamplePair, config: EqualityConfig2
+    example: ExamplePair, config: EqualityConfig
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol

@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola.equality.config import EqualityConfig2
+from coola.equality.config import EqualityConfig
 from coola.equality.tester import JaxArrayEqualityTester
 from coola.testing.fixtures import jax_available
 from coola.utils.imports import is_jax_available
@@ -18,8 +18,8 @@ else:
 
 
 @pytest.fixture
-def config() -> EqualityConfig2:
-    return EqualityConfig2()
+def config() -> EqualityConfig:
+    return EqualityConfig()
 
 
 JAX_ARRAY_EQUAL = [
@@ -133,7 +133,7 @@ def test_jax_array_equality_tester_equal_false_different_type_child() -> None:
 
 @jax_available
 def test_jax_array_equality_tester_objects_are_equal_true_same_object(
-    config: EqualityConfig2,
+    config: EqualityConfig,
 ) -> None:
     array = jnp.ones((2, 3))
     assert JaxArrayEqualityTester().objects_are_equal(array, array, config)
@@ -143,7 +143,7 @@ def test_jax_array_equality_tester_objects_are_equal_true_same_object(
 @pytest.mark.parametrize("example", JAX_ARRAY_EQUAL)
 def test_jax_array_equality_tester_objects_are_equal_true(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = JaxArrayEqualityTester()
@@ -158,7 +158,7 @@ def test_jax_array_equality_tester_objects_are_equal_true(
 @pytest.mark.parametrize("example", JAX_ARRAY_EQUAL)
 def test_jax_array_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -174,7 +174,7 @@ def test_jax_array_equality_tester_objects_are_equal_true_show_difference(
 @pytest.mark.parametrize("example", JAX_ARRAY_NOT_EQUAL)
 def test_jax_array_equality_tester_objects_are_equal_false(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = JaxArrayEqualityTester()
@@ -189,7 +189,7 @@ def test_jax_array_equality_tester_objects_are_equal_false(
 @pytest.mark.parametrize("example", JAX_ARRAY_NOT_EQUAL)
 def test_jax_array_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -204,7 +204,7 @@ def test_jax_array_equality_tester_objects_are_equal_false_show_difference(
 @jax_available
 @pytest.mark.parametrize("equal_nan", [False, True])
 def test_jax_array_equality_tester_objects_are_equal_nan(
-    config: EqualityConfig2, equal_nan: bool
+    config: EqualityConfig, equal_nan: bool
 ) -> None:
     config.equal_nan = equal_nan
     assert (
@@ -220,7 +220,7 @@ def test_jax_array_equality_tester_objects_are_equal_nan(
 @jax_available
 @pytest.mark.parametrize("example", JAX_ARRAY_EQUAL_TOLERANCE)
 def test_jax_array_equality_tester_objects_are_equal_true_tolerance(
-    example: ExamplePair, config: EqualityConfig2
+    example: ExamplePair, config: EqualityConfig
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol

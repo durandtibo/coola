@@ -25,7 +25,7 @@ else:  # pragma: no cover
 
 
 if TYPE_CHECKING:
-    from coola.equality.config import EqualityConfig2
+    from coola.equality.config import EqualityConfig
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -36,9 +36,9 @@ class JaxArrayEqualityTester(BaseEqualityTester[jnp.ndarray]):
     Example:
         ```pycon
         >>> import jax.numpy as jnp
-        >>> from coola.equality.config import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.tester import JaxArrayEqualityTester
-        >>> config = EqualityConfig2()
+        >>> config = EqualityConfig()
         >>> tester = JaxArrayEqualityTester()
         >>> tester.equal(jnp.ones((2, 3)), jnp.ones((2, 3)), config)
         True
@@ -65,7 +65,7 @@ class JaxArrayEqualityTester(BaseEqualityTester[jnp.ndarray]):
         self,
         actual: object,
         expected: object,
-        config: EqualityConfig2,
+        config: EqualityConfig,
     ) -> bool:
         return self._handler.handle(actual, expected, config=config)
 

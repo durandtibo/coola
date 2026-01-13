@@ -27,7 +27,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.polars import polars as pl
 
 if TYPE_CHECKING:
-    from coola.equality.config import EqualityConfig2
+    from coola.equality.config import EqualityConfig
 
 
 class PolarsDataFrameEqualityTester(BaseEqualityTester[pl.DataFrame]):
@@ -36,9 +36,9 @@ class PolarsDataFrameEqualityTester(BaseEqualityTester[pl.DataFrame]):
     Example:
         ```pycon
         >>> import polars as pl
-        >>> from coola.equality.config import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.tester import PolarsDataFrameEqualityTester
-        >>> config = EqualityConfig2()
+        >>> config = EqualityConfig()
         >>> tester = PolarsDataFrameEqualityTester()
         >>> tester.equal(
         ...     pl.DataFrame({"col": [1, 2, 3]}),
@@ -71,7 +71,7 @@ class PolarsDataFrameEqualityTester(BaseEqualityTester[pl.DataFrame]):
         self,
         actual: pl.DataFrame,
         expected: object,
-        config: EqualityConfig2,
+        config: EqualityConfig,
     ) -> bool:
         return self._handler.handle(actual, expected, config=config)
 
@@ -82,9 +82,9 @@ class PolarsLazyFrameEqualityTester(BaseEqualityTester[pl.LazyFrame]):
     Example:
         ```pycon
         >>> import polars as pl
-        >>> from coola.equality.config import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.tester import PolarsLazyFrameEqualityTester
-        >>> config = EqualityConfig2()
+        >>> config = EqualityConfig()
         >>> tester = PolarsLazyFrameEqualityTester()
         >>> tester.equal(
         ...     pl.LazyFrame({"col": [1, 2, 3]}),
@@ -117,7 +117,7 @@ class PolarsLazyFrameEqualityTester(BaseEqualityTester[pl.LazyFrame]):
         self,
         actual: pl.LazyFrame,
         expected: object,
-        config: EqualityConfig2,
+        config: EqualityConfig,
     ) -> bool:
         return self._handler.handle(actual, expected, config=config)
 
@@ -128,9 +128,9 @@ class PolarsSeriesEqualityTester(BaseEqualityTester[pl.Series]):
     Example:
         ```pycon
         >>> import polars as pl
-        >>> from coola.equality.config import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.tester import PolarsSeriesEqualityTester
-        >>> config = EqualityConfig2()
+        >>> config = EqualityConfig()
         >>> tester = PolarsSeriesEqualityTester()
         >>> tester.equal(pl.Series([1, 2, 3]), pl.Series([1, 2, 3]), config)
         True
@@ -155,6 +155,6 @@ class PolarsSeriesEqualityTester(BaseEqualityTester[pl.Series]):
         self,
         actual: pl.Series,
         expected: object,
-        config: EqualityConfig2,
+        config: EqualityConfig,
     ) -> bool:
         return self._handler.handle(actual, expected, config=config)

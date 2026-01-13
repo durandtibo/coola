@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from coola.equality.config import EqualityConfig2
+from coola.equality.config import EqualityConfig
 from coola.equality.tester import (
     BaseEqualityTester,
     DefaultEqualityTester,
@@ -19,8 +19,8 @@ class CustomList(list):
 
 
 @pytest.fixture
-def config() -> EqualityConfig2:
-    return EqualityConfig2()
+def config() -> EqualityConfig:
+    return EqualityConfig()
 
 
 ############################################
@@ -152,7 +152,7 @@ def test_equality_tester_registry_find_equality_tester_most_specific() -> None:
     assert registry.find_equality_tester(CustomList) is tester
 
 
-def test_equality_tester_registry_objects_are_equal_true(config: EqualityConfig2) -> None:
+def test_equality_tester_registry_objects_are_equal_true(config: EqualityConfig) -> None:
     registry = EqualityTesterRegistry(
         {object: DefaultEqualityTester(), list: SequenceEqualityTester()}
     )
@@ -163,11 +163,11 @@ def test_equality_tester_registry_objects_are_equal_true_atol() -> None:
     registry = EqualityTesterRegistry(
         {object: DefaultEqualityTester(), list: SequenceEqualityTester()}
     )
-    config = EqualityConfig2(atol=1.1)
+    config = EqualityConfig(atol=1.1)
     assert registry.objects_are_equal([1, 2, 3], [0, 1, 2], config)
 
 
-def test_equality_tester_registry_objects_are_equal_false(config: EqualityConfig2) -> None:
+def test_equality_tester_registry_objects_are_equal_false(config: EqualityConfig) -> None:
     registry = EqualityTesterRegistry(
         {object: DefaultEqualityTester(), list: SequenceEqualityTester()}
     )
