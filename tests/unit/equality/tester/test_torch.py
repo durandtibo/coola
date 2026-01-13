@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola.equality.config import EqualityConfig2
+from coola.equality.config import EqualityConfig
 from coola.equality.tester import (
     TorchPackedSequenceEqualityTester,
     TorchTensorEqualityTester,
@@ -25,8 +25,8 @@ else:
 
 
 @pytest.fixture
-def config() -> EqualityConfig2:
-    return EqualityConfig2()
+def config() -> EqualityConfig:
+    return EqualityConfig()
 
 
 TORCH_PACKED_SEQUENCE_EQUAL = [
@@ -364,7 +364,7 @@ def test_tensor_packed_sequence_equality_tester_equal_false_different_type_child
 
 @torch_available
 def test_tensor_packed_sequence_equality_tester_objects_are_equal_true_same_obj(
-    config: EqualityConfig2,
+    config: EqualityConfig,
 ) -> None:
     obj = torch.nn.utils.rnn.pack_padded_sequence(
         input=torch.arange(10, dtype=torch.float).view(2, 5),
@@ -378,7 +378,7 @@ def test_tensor_packed_sequence_equality_tester_objects_are_equal_true_same_obj(
 @pytest.mark.parametrize("example", TORCH_PACKED_SEQUENCE_EQUAL)
 def test_tensor_packed_sequence_equality_tester_objects_are_equal_true(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = TorchPackedSequenceEqualityTester()
@@ -393,7 +393,7 @@ def test_tensor_packed_sequence_equality_tester_objects_are_equal_true(
 @pytest.mark.parametrize("example", TORCH_PACKED_SEQUENCE_EQUAL)
 def test_tensor_packed_sequence_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -409,7 +409,7 @@ def test_tensor_packed_sequence_equality_tester_objects_are_equal_true_show_diff
 @pytest.mark.parametrize("example", TORCH_PACKED_SEQUENCE_NOT_EQUAL)
 def test_tensor_packed_sequence_equality_tester_objects_are_equal_false(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = TorchPackedSequenceEqualityTester()
@@ -424,7 +424,7 @@ def test_tensor_packed_sequence_equality_tester_objects_are_equal_false(
 @pytest.mark.parametrize("example", TORCH_PACKED_SEQUENCE_NOT_EQUAL)
 def test_tensor_packed_sequence_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -439,7 +439,7 @@ def test_tensor_packed_sequence_equality_tester_objects_are_equal_false_show_dif
 @torch_available
 @pytest.mark.parametrize("equal_nan", [False, True])
 def test_tensor_packed_sequence_equality_tester_objects_are_equal_nan_false(
-    config: EqualityConfig2, equal_nan: bool
+    config: EqualityConfig, equal_nan: bool
 ) -> None:
     config.equal_nan = equal_nan
     assert (
@@ -509,7 +509,7 @@ def test_torch_tensor_equality_tester_equal_false_different_type_child() -> None
 
 @torch_available
 def test_torch_tensor_equality_tester_objects_are_equal_true_same_object(
-    config: EqualityConfig2,
+    config: EqualityConfig,
 ) -> None:
     tensor = torch.ones(2, 3)
     assert TorchTensorEqualityTester().objects_are_equal(tensor, tensor, config)
@@ -519,7 +519,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_true_same_object(
 @pytest.mark.parametrize("example", TORCH_TENSOR_EQUAL)
 def test_torch_tensor_equality_tester_objects_are_equal_true(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = TorchTensorEqualityTester()
@@ -534,7 +534,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_true(
 @pytest.mark.parametrize("example", TORCH_TENSOR_EQUAL)
 def test_torch_tensor_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -550,7 +550,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_true_show_difference(
 @pytest.mark.parametrize("example", TORCH_TENSOR_NOT_EQUAL)
 def test_torch_tensor_equality_tester_objects_are_equal_false(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = TorchTensorEqualityTester()
@@ -565,7 +565,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_false(
 @pytest.mark.parametrize("example", TORCH_TENSOR_NOT_EQUAL)
 def test_torch_tensor_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -580,7 +580,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_false_show_difference(
 @torch_available
 @torch_cuda_available
 def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_cuda(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig2
+    caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
     config.show_difference = True
     tester = TorchTensorEqualityTester()
@@ -596,7 +596,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_c
 @torch_available
 @torch_mps_available
 def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_mps(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig2
+    caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
     config.show_difference = True
     tester = TorchTensorEqualityTester()
@@ -612,7 +612,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_m
 @torch_available
 @pytest.mark.parametrize("equal_nan", [False, True])
 def test_torch_tensor_equality_tester_objects_are_equal_nan_true(
-    config: EqualityConfig2, equal_nan: bool
+    config: EqualityConfig, equal_nan: bool
 ) -> None:
     config.equal_nan = equal_nan
     assert (
@@ -628,7 +628,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_nan_true(
 @torch_available
 @pytest.mark.parametrize("example", TORCH_TENSOR_EQUAL_TOLERANCE)
 def test_torch_tensor_equality_tester_true_tolerance(
-    example: ExamplePair, config: EqualityConfig2
+    example: ExamplePair, config: EqualityConfig
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol

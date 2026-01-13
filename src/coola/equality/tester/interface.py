@@ -90,7 +90,7 @@ def register_equality_testers(
         ...
         >>> class MyEqualityTester(BaseEqualityTester):
         ...     def objects_are_equal(
-        ...         self, actual: object, expected: object, config: EqualityConfig2
+        ...         self, actual: object, expected: object, config: EqualityConfig
         ...     ) -> bool:
         ...         if type(other) is not type(self):
         ...             return False
@@ -130,10 +130,10 @@ def get_default_registry() -> EqualityTesterRegistry:
     Example:
         ```pycon
         >>> from coola.equality.tester import get_default_registry
-        >>> from coola.equality.config import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig
         >>> registry = get_default_registry()
         >>> # Registry is ready to use with common Python types
-        >>> config = EqualityConfig2()
+        >>> config = EqualityConfig()
         >>> registry.objects_are_equal([1, 2, 3], [1, 2, 3], config)
         True
         >>> registry.objects_are_equal([1, 2, 3], [1, 1], config)

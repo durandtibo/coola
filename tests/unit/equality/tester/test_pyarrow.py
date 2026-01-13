@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola.equality.config import EqualityConfig2
+from coola.equality.config import EqualityConfig
 from coola.equality.tester import (
     PyarrowEqualityTester,
 )
@@ -22,8 +22,8 @@ else:
 
 
 @pytest.fixture
-def config() -> EqualityConfig2:
-    return EqualityConfig2()
+def config() -> EqualityConfig:
+    return EqualityConfig()
 
 
 PYARROW_ARRAY_EQUAL = [
@@ -397,7 +397,7 @@ def test_pyarrow_equality_tester_equal_false_different_type_child() -> None:
 
 @pyarrow_available
 def test_pyarrow_equality_tester_objects_are_equal_true_same_object(
-    config: EqualityConfig2,
+    config: EqualityConfig,
 ) -> None:
     array = pa.array([1.0, 2.0, 3.0], type=pa.float64())
     assert PyarrowEqualityTester().objects_are_equal(array, array, config)
@@ -407,7 +407,7 @@ def test_pyarrow_equality_tester_objects_are_equal_true_same_object(
 @pytest.mark.parametrize("example", PYARROW_EQUAL)
 def test_pyarrow_equality_tester_objects_are_equal_true(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = PyarrowEqualityTester()
@@ -422,7 +422,7 @@ def test_pyarrow_equality_tester_objects_are_equal_true(
 @pytest.mark.parametrize("example", PYARROW_EQUAL)
 def test_pyarrow_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -438,7 +438,7 @@ def test_pyarrow_equality_tester_objects_are_equal_true_show_difference(
 @pytest.mark.parametrize("example", PYARROW_NOT_EQUAL)
 def test_pyarrow_equality_tester_objects_are_equal_false(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = PyarrowEqualityTester()
@@ -453,7 +453,7 @@ def test_pyarrow_equality_tester_objects_are_equal_false(
 @pytest.mark.parametrize("example", PYARROW_NOT_EQUAL)
 def test_pyarrow_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -466,7 +466,7 @@ def test_pyarrow_equality_tester_objects_are_equal_false_show_difference(
 
 
 @pyarrow_available
-def test_pyarrow_equality_tester_objects_are_equal_nan_false(config: EqualityConfig2) -> None:
+def test_pyarrow_equality_tester_objects_are_equal_nan_false(config: EqualityConfig) -> None:
     assert not PyarrowEqualityTester().objects_are_equal(
         actual=pa.array([0.0, float("nan"), float("nan"), 1.2]),
         expected=pa.array([0.0, float("nan"), float("nan"), 1.2]),
@@ -475,7 +475,7 @@ def test_pyarrow_equality_tester_objects_are_equal_nan_false(config: EqualityCon
 
 
 @pyarrow_available
-def test_pyarrow_equality_tester_objects_are_equal_nan_true(config: EqualityConfig2) -> None:
+def test_pyarrow_equality_tester_objects_are_equal_nan_true(config: EqualityConfig) -> None:
     config.equal_nan = True
     with warnings.catch_warnings(record=True) as w:
         # Not equal because equal_nan is ignored
@@ -492,7 +492,7 @@ def test_pyarrow_equality_tester_objects_are_equal_nan_true(config: EqualityConf
 @pyarrow_available
 @pytest.mark.parametrize("example", PYARROW_EQUAL_TOLERANCE)
 def test_pyarrow_equality_tester_objects_are_equal_true_tolerance(
-    example: ExamplePair, config: EqualityConfig2
+    example: ExamplePair, config: EqualityConfig
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol

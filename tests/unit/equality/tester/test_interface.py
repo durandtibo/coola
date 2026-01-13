@@ -4,7 +4,7 @@ from collections.abc import Generator, Mapping, Sequence
 
 import pytest
 
-from coola.equality.config import EqualityConfig2
+from coola.equality.config import EqualityConfig
 from coola.equality.tester import (
     DefaultEqualityTester,
     EqualityTesterRegistry,
@@ -74,8 +74,8 @@ def _reset_default_registry() -> Generator[None, None, None]:
 
 
 @pytest.fixture
-def config() -> EqualityConfig2:
-    return EqualityConfig2()
+def config() -> EqualityConfig:
+    return EqualityConfig()
 
 
 class CustomList(list):
@@ -267,13 +267,13 @@ def test_get_default_registry_xarray_variable() -> None:
     assert isinstance(registry.find_equality_tester(xr.Variable), XarrayVariableEqualityTester)
 
 
-def test_get_default_registry_objects_are_equal_true(config: EqualityConfig2) -> None:
+def test_get_default_registry_objects_are_equal_true(config: EqualityConfig) -> None:
     """Test that default registry can transform a list."""
     registry = get_default_registry()
     assert registry.objects_are_equal([1, 2, 3], [1, 2, 3], config=config)
 
 
-def test_get_default_registry_objects_are_equal_false(config: EqualityConfig2) -> None:
+def test_get_default_registry_objects_are_equal_false(config: EqualityConfig) -> None:
     """Test that default registry can transform a list."""
     registry = get_default_registry()
     assert not registry.objects_are_equal([1, 2, 3], [1, 1], config=config)

@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola.equality.config import EqualityConfig2
+from coola.equality.config import EqualityConfig
 from coola.equality.tester import (
     XarrayDataArrayEqualityTester,
     XarrayDatasetEqualityTester,
@@ -27,8 +27,8 @@ else:
 
 
 @pytest.fixture
-def config() -> EqualityConfig2:
-    return EqualityConfig2()
+def config() -> EqualityConfig:
+    return EqualityConfig()
 
 
 XARRAY_DATA_ARRAY_EQUAL = [
@@ -470,7 +470,7 @@ def test_xarray_data_array_equality_tester_equal_false_different_type_child() ->
 
 @xarray_available
 def test_xarray_data_array_equality_tester_objects_are_equal_true_same_object(
-    config: EqualityConfig2,
+    config: EqualityConfig,
 ) -> None:
     obj = xr.DataArray(np.arange(6))
     assert XarrayDataArrayEqualityTester().objects_are_equal(obj, obj, config)
@@ -480,7 +480,7 @@ def test_xarray_data_array_equality_tester_objects_are_equal_true_same_object(
 @pytest.mark.parametrize("example", XARRAY_DATA_ARRAY_EQUAL)
 def test_xarray_data_array_equality_tester_objects_are_equal_true(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = XarrayDataArrayEqualityTester()
@@ -495,7 +495,7 @@ def test_xarray_data_array_equality_tester_objects_are_equal_true(
 @pytest.mark.parametrize("example", XARRAY_DATA_ARRAY_EQUAL)
 def test_xarray_data_array_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -511,7 +511,7 @@ def test_xarray_data_array_equality_tester_objects_are_equal_true_show_differenc
 @pytest.mark.parametrize("example", XARRAY_DATA_ARRAY_NOT_EQUAL)
 def test_xarray_data_array_equality_tester_objects_are_equal_false(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = XarrayDataArrayEqualityTester()
@@ -526,7 +526,7 @@ def test_xarray_data_array_equality_tester_objects_are_equal_false(
 @pytest.mark.parametrize("example", XARRAY_DATA_ARRAY_NOT_EQUAL)
 def test_xarray_data_array_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -541,7 +541,7 @@ def test_xarray_data_array_equality_tester_objects_are_equal_false_show_differen
 @xarray_available
 @pytest.mark.parametrize("equal_nan", [False, True])
 def test_xarray_data_array_equality_tester_objects_are_equal_nan(
-    config: EqualityConfig2, equal_nan: bool
+    config: EqualityConfig, equal_nan: bool
 ) -> None:
     config.equal_nan = equal_nan
     assert (
@@ -557,7 +557,7 @@ def test_xarray_data_array_equality_tester_objects_are_equal_nan(
 @xarray_available
 @pytest.mark.parametrize("example", XARRAY_DATA_ARRAY_EQUAL_TOLERANCE)
 def test_xarray_data_array_equality_tester_objects_are_equal_true_tolerance(
-    example: ExamplePair, config: EqualityConfig2
+    example: ExamplePair, config: EqualityConfig
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
@@ -609,7 +609,7 @@ def test_xarray_dataset_equality_tester_equal_false_different_type_child() -> No
 
 @xarray_available
 def test_xarray_dataset_equality_tester_objects_are_equal_true_same_object(
-    config: EqualityConfig2,
+    config: EqualityConfig,
 ) -> None:
     obj = xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6), dims=["z"])})
     assert XarrayDatasetEqualityTester().objects_are_equal(obj, obj, config)
@@ -619,7 +619,7 @@ def test_xarray_dataset_equality_tester_objects_are_equal_true_same_object(
 @pytest.mark.parametrize("example", XARRAY_DATASET_EQUAL)
 def test_xarray_dataset_equality_tester_objects_are_equal_true(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = XarrayDatasetEqualityTester()
@@ -634,7 +634,7 @@ def test_xarray_dataset_equality_tester_objects_are_equal_true(
 @pytest.mark.parametrize("example", XARRAY_DATASET_EQUAL)
 def test_xarray_dataset_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -650,7 +650,7 @@ def test_xarray_dataset_equality_tester_objects_are_equal_true_show_difference(
 @pytest.mark.parametrize("example", XARRAY_DATASET_NOT_EQUAL)
 def test_xarray_dataset_equality_tester_objects_are_equal_false(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = XarrayDatasetEqualityTester()
@@ -665,7 +665,7 @@ def test_xarray_dataset_equality_tester_objects_are_equal_false(
 @pytest.mark.parametrize("example", XARRAY_DATASET_NOT_EQUAL)
 def test_xarray_dataset_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -680,7 +680,7 @@ def test_xarray_dataset_equality_tester_objects_are_equal_false_show_difference(
 @xarray_available
 @pytest.mark.parametrize("equal_nan", [False, True])
 def test_xarray_dataset_equality_tester_objects_are_equal_nan(
-    config: EqualityConfig2, equal_nan: bool
+    config: EqualityConfig, equal_nan: bool
 ) -> None:
     config.equal_nan = equal_nan
     assert (
@@ -696,7 +696,7 @@ def test_xarray_dataset_equality_tester_objects_are_equal_nan(
 @xarray_available
 @pytest.mark.parametrize("example", XARRAY_DATASET_EQUAL_TOLERANCE)
 def test_xarray_dataset_equality_tester_objects_are_equal_true_tolerance(
-    example: ExamplePair, config: EqualityConfig2
+    example: ExamplePair, config: EqualityConfig
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
@@ -748,7 +748,7 @@ def test_xarray_variable_equality_tester_equal_false_different_type_child() -> N
 
 @xarray_available
 def test_xarray_variable_equality_tester_objects_are_equal_true_same_object(
-    config: EqualityConfig2,
+    config: EqualityConfig,
 ) -> None:
     obj = xr.Variable(dims=["z"], data=np.arange(6))
     assert XarrayVariableEqualityTester().objects_are_equal(obj, obj, config)
@@ -758,7 +758,7 @@ def test_xarray_variable_equality_tester_objects_are_equal_true_same_object(
 @pytest.mark.parametrize("example", XARRAY_VARIABLE_EQUAL)
 def test_xarray_variable_equality_tester_objects_are_equal_true(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = XarrayVariableEqualityTester()
@@ -773,7 +773,7 @@ def test_xarray_variable_equality_tester_objects_are_equal_true(
 @pytest.mark.parametrize("example", XARRAY_VARIABLE_EQUAL)
 def test_xarray_variable_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -789,7 +789,7 @@ def test_xarray_variable_equality_tester_objects_are_equal_true_show_difference(
 @pytest.mark.parametrize("example", XARRAY_VARIABLE_NOT_EQUAL)
 def test_xarray_variable_equality_tester_objects_are_equal_false(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = XarrayVariableEqualityTester()
@@ -804,7 +804,7 @@ def test_xarray_variable_equality_tester_objects_are_equal_false(
 @pytest.mark.parametrize("example", XARRAY_VARIABLE_NOT_EQUAL)
 def test_xarray_variable_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -819,7 +819,7 @@ def test_xarray_variable_equality_tester_objects_are_equal_false_show_difference
 @xarray_available
 @pytest.mark.parametrize("equal_nan", [False, True])
 def test_xarray_variable_equality_tester_objects_are_equal_nan(
-    config: EqualityConfig2, equal_nan: bool
+    config: EqualityConfig, equal_nan: bool
 ) -> None:
     config.equal_nan = equal_nan
     assert (
@@ -835,7 +835,7 @@ def test_xarray_variable_equality_tester_objects_are_equal_nan(
 @xarray_available
 @pytest.mark.parametrize("example", XARRAY_VARIABLE_EQUAL_TOLERANCE)
 def test_xarray_variable_equality_tester_objects_are_equal_true_tolerance(
-    example: ExamplePair, config: EqualityConfig2
+    example: ExamplePair, config: EqualityConfig
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol

@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola.equality.config import EqualityConfig2
+from coola.equality.config import EqualityConfig
 from coola.equality.handler import (
     FalseHandler,
     PolarsDataFrameEqualHandler,
@@ -37,8 +37,8 @@ if TYPE_CHECKING:
 
 
 @pytest.fixture
-def config() -> EqualityConfig2:
-    return EqualityConfig2()
+def config() -> EqualityConfig:
+    return EqualityConfig()
 
 
 #################################################
@@ -95,7 +95,7 @@ def test_polars_dataframe_equal_handler_str() -> None:
 def test_polars_dataframe_equal_handler_handle_true(
     actual: pl.DataFrame,
     expected: pl.DataFrame,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsDataFrameEqualHandler()
@@ -106,7 +106,7 @@ def test_polars_dataframe_equal_handler_handle_true(
 
 @polars_available
 def test_polars_dataframe_equal_handler_handle_true_show_difference(
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -120,7 +120,7 @@ def test_polars_dataframe_equal_handler_handle_true_show_difference(
 
 @polars_available
 def test_polars_dataframe_equal_handler_handle_false(
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsDataFrameEqualHandler()
@@ -131,7 +131,7 @@ def test_polars_dataframe_equal_handler_handle_false(
 
 @polars_available
 def test_polars_dataframe_equal_handler_handle_false_different_column(
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsDataFrameEqualHandler()
@@ -144,7 +144,7 @@ def test_polars_dataframe_equal_handler_handle_false_different_column(
 
 @polars_available
 def test_polars_dataframe_equal_handler_handle_false_different_value(
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsDataFrameEqualHandler()
@@ -157,7 +157,7 @@ def test_polars_dataframe_equal_handler_handle_false_different_value(
 
 @polars_available
 def test_polars_dataframe_equal_handler_handle_false_different_dtype(
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsDataFrameEqualHandler()
@@ -172,7 +172,7 @@ def test_polars_dataframe_equal_handler_handle_false_different_dtype(
 
 @polars_available
 def test_polars_dataframe_equal_handler_handle_false_show_difference(
-    config: EqualityConfig2, caplog: pytest.LogCaptureFixture
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = PolarsDataFrameEqualHandler()
@@ -186,7 +186,7 @@ def test_polars_dataframe_equal_handler_handle_false_show_difference(
 
 
 @polars_available
-def test_polars_dataframe_equal_handler_handle_equal_nan_false(config: EqualityConfig2) -> None:
+def test_polars_dataframe_equal_handler_handle_equal_nan_false(config: EqualityConfig) -> None:
     assert not PolarsDataFrameEqualHandler().handle(
         pl.DataFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
         pl.DataFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
@@ -195,7 +195,7 @@ def test_polars_dataframe_equal_handler_handle_equal_nan_false(config: EqualityC
 
 
 @polars_available
-def test_polars_dataframe_equal_handler_handle_equal_nan_true(config: EqualityConfig2) -> None:
+def test_polars_dataframe_equal_handler_handle_equal_nan_true(config: EqualityConfig) -> None:
     config.equal_nan = True
     assert PolarsDataFrameEqualHandler().handle(
         pl.DataFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
@@ -207,7 +207,7 @@ def test_polars_dataframe_equal_handler_handle_equal_nan_true(config: EqualityCo
 @polars_available
 @pytest.mark.parametrize("example", POLARS_DATAFRAME_EQUAL_TOLERANCE)
 def test_polars_dataframe_equal_handler_handle_true_tolerance(
-    example: ExamplePair, config: EqualityConfig2
+    example: ExamplePair, config: EqualityConfig
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
@@ -274,7 +274,7 @@ def test_polars_lazyframe_equal_handler_str() -> None:
 def test_polars_lazyframe_equal_handler_handle_true(
     actual: pl.LazyFrame,
     expected: pl.LazyFrame,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsLazyFrameEqualHandler()
@@ -285,7 +285,7 @@ def test_polars_lazyframe_equal_handler_handle_true(
 
 @polars_available
 def test_polars_lazyframe_equal_handler_handle_true_show_difference(
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -299,7 +299,7 @@ def test_polars_lazyframe_equal_handler_handle_true_show_difference(
 
 @polars_available
 def test_polars_lazyframe_equal_handler_handle_false(
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsLazyFrameEqualHandler()
@@ -310,7 +310,7 @@ def test_polars_lazyframe_equal_handler_handle_false(
 
 @polars_available
 def test_polars_lazyframe_equal_handler_handle_false_different_column(
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsLazyFrameEqualHandler()
@@ -323,7 +323,7 @@ def test_polars_lazyframe_equal_handler_handle_false_different_column(
 
 @polars_available
 def test_polars_lazyframe_equal_handler_handle_false_different_value(
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsLazyFrameEqualHandler()
@@ -336,7 +336,7 @@ def test_polars_lazyframe_equal_handler_handle_false_different_value(
 
 @polars_available
 def test_polars_lazyframe_equal_handler_handle_false_different_dtype(
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsLazyFrameEqualHandler()
@@ -351,7 +351,7 @@ def test_polars_lazyframe_equal_handler_handle_false_different_dtype(
 
 @polars_available
 def test_polars_lazyframe_equal_handler_handle_false_show_difference(
-    config: EqualityConfig2, caplog: pytest.LogCaptureFixture
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = PolarsLazyFrameEqualHandler()
@@ -365,7 +365,7 @@ def test_polars_lazyframe_equal_handler_handle_false_show_difference(
 
 
 @polars_available
-def test_polars_lazyframe_equal_handler_handle_equal_nan_false(config: EqualityConfig2) -> None:
+def test_polars_lazyframe_equal_handler_handle_equal_nan_false(config: EqualityConfig) -> None:
     assert not PolarsLazyFrameEqualHandler().handle(
         pl.LazyFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
         pl.LazyFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
@@ -374,7 +374,7 @@ def test_polars_lazyframe_equal_handler_handle_equal_nan_false(config: EqualityC
 
 
 @polars_available
-def test_polars_lazyframe_equal_handler_handle_equal_nan_true(config: EqualityConfig2) -> None:
+def test_polars_lazyframe_equal_handler_handle_equal_nan_true(config: EqualityConfig) -> None:
     config.equal_nan = True
     assert PolarsLazyFrameEqualHandler().handle(
         pl.LazyFrame({"col": [0.0, float("nan"), float("nan"), 1.2]}),
@@ -386,7 +386,7 @@ def test_polars_lazyframe_equal_handler_handle_equal_nan_true(config: EqualityCo
 @polars_available
 @pytest.mark.parametrize("example", POLARS_LAZYFRAME_EQUAL_TOLERANCE)
 def test_polars_lazyframe_equal_handler_handle_true_tolerance(
-    example: ExamplePair, config: EqualityConfig2
+    example: ExamplePair, config: EqualityConfig
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
@@ -438,7 +438,7 @@ def test_polars_series_equal_handler_str() -> None:
 def test_polars_series_equal_handler_handle_true(
     actual: pl.Series,
     expected: pl.Series,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsSeriesEqualHandler()
@@ -449,7 +449,7 @@ def test_polars_series_equal_handler_handle_true(
 
 @polars_available
 def test_polars_series_equal_handler_handle_true_show_difference(
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -461,7 +461,7 @@ def test_polars_series_equal_handler_handle_true_show_difference(
 
 @polars_available
 def test_polars_series_equal_handler_handle_false_different_shape(
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsSeriesEqualHandler()
@@ -472,7 +472,7 @@ def test_polars_series_equal_handler_handle_false_different_shape(
 
 @polars_available
 def test_polars_series_equal_handler_handle_false_different_dtype(
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsSeriesEqualHandler()
@@ -487,7 +487,7 @@ def test_polars_series_equal_handler_handle_false_different_dtype(
 
 @polars_available
 def test_polars_series_equal_handler_handle_false_different_value(
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsSeriesEqualHandler()
@@ -498,7 +498,7 @@ def test_polars_series_equal_handler_handle_false_different_value(
 
 @polars_available
 def test_polars_series_equal_handler_handle_false_show_difference(
-    config: EqualityConfig2, caplog: pytest.LogCaptureFixture
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = PolarsSeriesEqualHandler()
@@ -512,7 +512,7 @@ def test_polars_series_equal_handler_handle_false_show_difference(
 
 
 @polars_available
-def test_polars_series_equal_handler_handle_equal_nan_false(config: EqualityConfig2) -> None:
+def test_polars_series_equal_handler_handle_equal_nan_false(config: EqualityConfig) -> None:
     assert not PolarsSeriesEqualHandler().handle(
         pl.Series([0.0, float("nan"), float("nan"), 1.2]),
         pl.Series([0.0, float("nan"), float("nan"), 1.2]),
@@ -521,7 +521,7 @@ def test_polars_series_equal_handler_handle_equal_nan_false(config: EqualityConf
 
 
 @polars_available
-def test_polars_series_equal_handler_handle_equal_nan_true(config: EqualityConfig2) -> None:
+def test_polars_series_equal_handler_handle_equal_nan_true(config: EqualityConfig) -> None:
     config.equal_nan = True
     assert PolarsSeriesEqualHandler().handle(
         pl.Series([0.0, float("nan"), float("nan"), 1.2]),
@@ -533,7 +533,7 @@ def test_polars_series_equal_handler_handle_equal_nan_true(config: EqualityConfi
 @polars_available
 @pytest.mark.parametrize("example", POLARS_SERIES_EQUAL_TOLERANCE)
 def test_polars_series_equal_handler_handle_true_tolerance(
-    example: ExamplePair, config: EqualityConfig2
+    example: ExamplePair, config: EqualityConfig
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol

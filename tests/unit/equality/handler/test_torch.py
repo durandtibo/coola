@@ -6,7 +6,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from coola.equality.config import EqualityConfig2
+from coola.equality.config import EqualityConfig
 from coola.equality.handler import FalseHandler, TrueHandler
 from coola.equality.handler.torch import (
     TorchTensorEqualHandler,
@@ -27,8 +27,8 @@ if TYPE_CHECKING:
 
 
 @pytest.fixture
-def config() -> EqualityConfig2:
-    return EqualityConfig2()
+def config() -> EqualityConfig:
+    return EqualityConfig()
 
 
 #############################################
@@ -68,7 +68,7 @@ def test_torch_tensor_equal_handler_str() -> None:
     ],
 )
 def test_torch_tensor_equal_handler_handle_true(
-    actual: torch.Tensor, expected: torch.Tensor, config: EqualityConfig2
+    actual: torch.Tensor, expected: torch.Tensor, config: EqualityConfig
 ) -> None:
     assert TorchTensorEqualHandler().handle(actual, expected, config)
 
@@ -83,13 +83,13 @@ def test_torch_tensor_equal_handler_handle_true(
     ],
 )
 def test_torch_tensor_equal_handler_handle_false(
-    actual: torch.Tensor, expected: torch.Tensor, config: EqualityConfig2
+    actual: torch.Tensor, expected: torch.Tensor, config: EqualityConfig
 ) -> None:
     assert not TorchTensorEqualHandler().handle(actual, expected, config)
 
 
 @torch_available
-def test_torch_tensor_equal_handler_handle_equal_nan_false(config: EqualityConfig2) -> None:
+def test_torch_tensor_equal_handler_handle_equal_nan_false(config: EqualityConfig) -> None:
     assert not TorchTensorEqualHandler().handle(
         torch.tensor([0.0, float("nan"), float("nan"), 1.2]),
         torch.tensor([0.0, float("nan"), float("nan"), 1.2]),
@@ -98,7 +98,7 @@ def test_torch_tensor_equal_handler_handle_equal_nan_false(config: EqualityConfi
 
 
 @torch_available
-def test_torch_tensor_equal_handler_handle_equal_nan_true(config: EqualityConfig2) -> None:
+def test_torch_tensor_equal_handler_handle_equal_nan_true(config: EqualityConfig) -> None:
     config.equal_nan = True
     assert TorchTensorEqualHandler().handle(
         torch.tensor([0.0, float("nan"), float("nan"), 1.2]),
@@ -109,7 +109,7 @@ def test_torch_tensor_equal_handler_handle_equal_nan_true(config: EqualityConfig
 
 @torch_available
 def test_torch_tensor_equal_handler_handle_false_show_difference(
-    config: EqualityConfig2, caplog: pytest.LogCaptureFixture
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = TorchTensorEqualHandler()
@@ -121,7 +121,7 @@ def test_torch_tensor_equal_handler_handle_false_show_difference(
 @torch_available
 @pytest.mark.parametrize("example", TORCH_TENSOR_EQUAL_TOLERANCE)
 def test_torch_tensor_equal_handler_handle_true_tolerance(
-    example: ExamplePair, config: EqualityConfig2
+    example: ExamplePair, config: EqualityConfig
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
@@ -162,7 +162,7 @@ def test_torch_tensor_same_device_handler_str() -> None:
 
 
 @torch_available
-def test_torch_tensor_same_device_handler_handle_true(config: EqualityConfig2) -> None:
+def test_torch_tensor_same_device_handler_handle_true(config: EqualityConfig) -> None:
     assert TorchTensorSameDeviceHandler(next_handler=TrueHandler()).handle(
         torch.ones(2, 3), torch.zeros(2, 3), config
     )
@@ -170,7 +170,7 @@ def test_torch_tensor_same_device_handler_handle_true(config: EqualityConfig2) -
 
 @torch_available
 @torch_cuda_available
-def test_torch_tensor_same_device_handler_handle_false(config: EqualityConfig2) -> None:
+def test_torch_tensor_same_device_handler_handle_false(config: EqualityConfig) -> None:
     assert not TorchTensorSameDeviceHandler().handle(
         torch.ones(2, 3, device=torch.device("cpu")),
         torch.zeros(2, 3, device=torch.device("cuda:0")),
@@ -179,7 +179,7 @@ def test_torch_tensor_same_device_handler_handle_false(config: EqualityConfig2) 
 
 
 @torch_available
-def test_torch_tensor_same_device_handler_handle_false_mock(config: EqualityConfig2) -> None:
+def test_torch_tensor_same_device_handler_handle_false_mock(config: EqualityConfig) -> None:
     assert not TorchTensorSameDeviceHandler().handle(
         Mock(spec=torch.Tensor, device=torch.device("cpu")),
         Mock(spec=torch.Tensor, device=torch.device("cuda:0")),
@@ -189,7 +189,7 @@ def test_torch_tensor_same_device_handler_handle_false_mock(config: EqualityConf
 
 @torch_available
 def test_torch_tensor_same_device_handler_handle_false_show_difference(
-    config: EqualityConfig2, caplog: pytest.LogCaptureFixture
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = TorchTensorSameDeviceHandler()
@@ -204,7 +204,7 @@ def test_torch_tensor_same_device_handler_handle_false_show_difference(
 
 @torch_available
 def test_torch_tensor_same_device_handler_handle_without_next_handler(
-    config: EqualityConfig2,
+    config: EqualityConfig,
 ) -> None:
     handler = TorchTensorSameDeviceHandler()
     with pytest.raises(RuntimeError, match=r"next handler is not defined"):

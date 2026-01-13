@@ -26,7 +26,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.numpy import numpy as np
 
 if TYPE_CHECKING:
-    from coola.equality.config import EqualityConfig2
+    from coola.equality.config import EqualityConfig
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -37,9 +37,9 @@ class NumpyArrayEqualityTester(BaseEqualityTester[np.ndarray]):
     Example:
         ```pycon
         >>> import numpy as np
-        >>> from coola.equality.config import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.tester import NumpyArrayEqualityTester
-        >>> config = EqualityConfig2()
+        >>> config = EqualityConfig()
         >>> tester = NumpyArrayEqualityTester()
         >>> tester.equal(np.ones((2, 3)), np.ones((2, 3)), config)
         True
@@ -66,7 +66,7 @@ class NumpyArrayEqualityTester(BaseEqualityTester[np.ndarray]):
         self,
         actual: object,
         expected: object,
-        config: EqualityConfig2,
+        config: EqualityConfig,
     ) -> bool:
         return self._handler.handle(actual, expected, config=config)
 
@@ -77,9 +77,9 @@ class NumpyMaskedArrayEqualityTester(BaseEqualityTester[np.ma.MaskedArray]):
     Example:
         ```pycon
         >>> import numpy as np
-        >>> from coola.equality.config import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.tester import NumpyMaskedArrayEqualityTester
-        >>> config = EqualityConfig2()
+        >>> config = EqualityConfig()
         >>> tester = NumpyMaskedArrayEqualityTester()
         >>> tester.equal(
         ...     np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
@@ -116,6 +116,6 @@ class NumpyMaskedArrayEqualityTester(BaseEqualityTester[np.ma.MaskedArray]):
         self,
         actual: object,
         expected: object,
-        config: EqualityConfig2,
+        config: EqualityConfig,
     ) -> bool:
         return self._handler.handle(actual, expected, config=config)

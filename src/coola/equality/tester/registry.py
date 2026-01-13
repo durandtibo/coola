@@ -18,7 +18,7 @@ from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mappin
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from coola.equality.config import EqualityConfig2
+    from coola.equality.config import EqualityConfig
 
 
 # TODO(tibo): update everything, including implementation and docstrings.
@@ -245,7 +245,7 @@ class EqualityTesterRegistry:
         """
         return self._state.resolve(data_type)
 
-    def objects_are_equal(self, actual: object, expected: object, config: EqualityConfig2) -> bool:
+    def objects_are_equal(self, actual: object, expected: object, config: EqualityConfig) -> bool:
         """Transform data by applying a function recursively through the
         structure.
 

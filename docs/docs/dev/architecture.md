@@ -33,7 +33,7 @@ Abstract base class defining the tester interface:
 
 ```python
 class BaseEqualityTester:
-    def equal(self, actual: Any, expected: Any, config: EqualityConfig2) -> bool:
+    def equal(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
         """Check if two objects are equal."""
         ...
 ```
@@ -62,7 +62,7 @@ Abstract base class for comparators:
 
 ```python
 class BaseEqualityComparator:
-    def equal(self, actual: Any, expected: Any, config: EqualityConfig2) -> bool:
+    def equal(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
         """Compare two objects of a specific type."""
         ...
 
@@ -83,13 +83,13 @@ class BaseEqualityComparator:
 
 ### 4. Configuration
 
-#### `EqualityConfig2`
+#### `EqualityConfig`
 
 Configuration object that carries comparison settings through the comparison tree:
 
 ```python
 @dataclasses.dataclass
-class EqualityConfig2:
+class EqualityConfig:
     tester: BaseEqualityTester
     show_difference: bool = False
     # Additional settings...
@@ -116,7 +116,7 @@ Here's how a comparison flows through the system:
 ```
 User calls objects_are_equal(obj1, obj2)
     ↓
-Creates EqualityConfig2 with settings
+Creates EqualityConfig with settings
     ↓
 Calls tester.equal(obj1, obj2, config)
     ↓
@@ -169,7 +169,7 @@ To add support for a custom type:
 1. **Implement a Comparator:**
    ```python
    class MyTypeComparator(BaseEqualityComparator):
-       def equal(self, actual: MyType, expected: Any, config: EqualityConfig2) -> bool:
+       def equal(self, actual: MyType, expected: Any, config: EqualityConfig) -> bool:
            # Type check
            if type(actual) is not type(expected):
                return False

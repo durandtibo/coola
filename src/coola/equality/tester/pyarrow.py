@@ -22,7 +22,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.pyarrow import pyarrow as pa
 
 if TYPE_CHECKING:
-    from coola.equality.config import EqualityConfig2
+    from coola.equality.config import EqualityConfig
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -37,9 +37,9 @@ class PyarrowEqualityTester(BaseEqualityTester[pa.Array]):
     Example:
         ```pycon
         >>> import pyarrow as pa
-        >>> from coola.equality.config import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.tester import PyarrowEqualityTester
-        >>> config = EqualityConfig2()
+        >>> config = EqualityConfig()
         >>> tester = PyarrowEqualityTester()
         >>> tester.equal(pa.array([1, 2, 3]), pa.array([1, 2, 3]), config)
         True
@@ -64,6 +64,6 @@ class PyarrowEqualityTester(BaseEqualityTester[pa.Array]):
         self,
         actual: object,
         expected: object,
-        config: EqualityConfig2,
+        config: EqualityConfig,
     ) -> bool:
         return self._handler.handle(actual, expected, config=config)

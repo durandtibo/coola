@@ -27,7 +27,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.xarray import xarray as xr
 
 if TYPE_CHECKING:
-    from coola.equality.config import EqualityConfig2
+    from coola.equality.config import EqualityConfig
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -39,9 +39,9 @@ class XarrayDataArrayEqualityTester(BaseEqualityTester[xr.DataArray]):
         ```pycon
         >>> import numpy as np
         >>> import xarray as xr
-        >>> from coola.equality.config import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.tester import XarrayDataArrayEqualityTester
-        >>> config = EqualityConfig2()
+        >>> config = EqualityConfig()
         >>> tester = XarrayDataArrayEqualityTester()
         >>> tester.equal(
         ...     xr.DataArray(np.arange(6), dims=["z"]),
@@ -76,7 +76,7 @@ class XarrayDataArrayEqualityTester(BaseEqualityTester[xr.DataArray]):
         self,
         actual: xr.DataArray,
         expected: object,
-        config: EqualityConfig2,
+        config: EqualityConfig,
     ) -> bool:
         return self._handler.handle(actual, expected, config=config)
 
@@ -88,9 +88,9 @@ class XarrayDatasetEqualityTester(BaseEqualityTester[xr.Dataset]):
         ```pycon
         >>> import numpy as np
         >>> import xarray as xr
-        >>> from coola.equality.config import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.tester import XarrayDatasetEqualityTester
-        >>> config = EqualityConfig2()
+        >>> config = EqualityConfig()
         >>> tester = XarrayDatasetEqualityTester()
         >>> tester.equal(
         ...     xr.Dataset({"x": xr.DataArray(np.arange(6), dims=["z"])}),
@@ -125,7 +125,7 @@ class XarrayDatasetEqualityTester(BaseEqualityTester[xr.Dataset]):
         self,
         actual: xr.Dataset,
         expected: object,
-        config: EqualityConfig2,
+        config: EqualityConfig,
     ) -> bool:
         return self._handler.handle(actual, expected, config=config)
 
@@ -137,9 +137,9 @@ class XarrayVariableEqualityTester(BaseEqualityTester[xr.Variable]):
         ```pycon
         >>> import numpy as np
         >>> import xarray as xr
-        >>> from coola.equality.config import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.tester import XarrayVariableEqualityTester
-        >>> config = EqualityConfig2()
+        >>> config = EqualityConfig()
         >>> tester = XarrayVariableEqualityTester()
         >>> tester.equal(
         ...     xr.Variable(dims=["z"], data=np.arange(6)),
@@ -174,6 +174,6 @@ class XarrayVariableEqualityTester(BaseEqualityTester[xr.Variable]):
         self,
         actual: xr.Variable,
         expected: object,
-        config: EqualityConfig2,
+        config: EqualityConfig,
     ) -> bool:
         return self._handler.handle(actual, expected, config=config)

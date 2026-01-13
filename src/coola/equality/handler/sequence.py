@@ -12,7 +12,7 @@ from coola.equality.handler.base import AbstractEqualityHandler
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from coola.equality.config import EqualityConfig2
+    from coola.equality.config import EqualityConfig
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -27,9 +27,9 @@ class SequenceSameValuesHandler(AbstractEqualityHandler):  # noqa: PLW1641
 
     Example:
         ```pycon
-        >>> from coola.equality.config import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import SequenceSameValuesHandler, TrueHandler
-        >>> config = EqualityConfig2()
+        >>> config = EqualityConfig()
         >>> handler = SequenceSameValuesHandler(next_handler=TrueHandler())
         >>> handler.handle([1, 2, 3], [1, 2, 3], config)
         True
@@ -46,7 +46,7 @@ class SequenceSameValuesHandler(AbstractEqualityHandler):  # noqa: PLW1641
         self,
         actual: Sequence[Any],
         expected: Sequence[Any],
-        config: EqualityConfig2,
+        config: EqualityConfig,
     ) -> bool:
         for value1, value2 in zip(actual, expected):
             if not config.registry.objects_are_equal(value1, value2, config):
@@ -55,7 +55,7 @@ class SequenceSameValuesHandler(AbstractEqualityHandler):  # noqa: PLW1641
         return self._handle_next(actual, expected, config=config)
 
     def _show_difference(
-        self, actual: Sequence, expected: Sequence, config: EqualityConfig2
+        self, actual: Sequence, expected: Sequence, config: EqualityConfig
     ) -> None:
         if config.show_difference:
             logger.info(

@@ -12,7 +12,7 @@ from coola.equality.handler.base import AbstractEqualityHandler, BaseEqualityHan
 if TYPE_CHECKING:
     import torch
 
-    from coola.equality.config import EqualityConfig2
+    from coola.equality.config import EqualityConfig
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -28,9 +28,9 @@ class TorchTensorEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import torch
-        >>> from coola.equality.config import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import TorchTensorEqualHandler
-        >>> config = EqualityConfig2()
+        >>> config = EqualityConfig()
         >>> handler = TorchTensorEqualHandler()
         >>> handler.handle(torch.ones(2, 3), torch.ones(2, 3), config)
         True
@@ -50,7 +50,7 @@ class TorchTensorEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         self,
         actual: torch.Tensor,
         expected: torch.Tensor,
-        config: EqualityConfig2,
+        config: EqualityConfig,
     ) -> bool:
         object_equal = tensor_equal(actual, expected, config)
         if config.show_difference and not object_equal:
@@ -72,9 +72,9 @@ class TorchTensorSameDeviceHandler(AbstractEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import torch
-        >>> from coola.equality.config import EqualityConfig2
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import TrueHandler, TorchTensorSameDeviceHandler
-        >>> config = EqualityConfig2()
+        >>> config = EqualityConfig()
         >>> handler = TorchTensorSameDeviceHandler(next_handler=TrueHandler())
         >>> handler.handle(torch.ones(2, 3), torch.ones(3, 2), config)
         True
@@ -89,7 +89,7 @@ class TorchTensorSameDeviceHandler(AbstractEqualityHandler):  # noqa: PLW1641
         self,
         actual: torch.Tensor,
         expected: torch.Tensor,
-        config: EqualityConfig2,
+        config: EqualityConfig,
     ) -> bool | None:
         if actual.device != expected.device:
             if config.show_difference:
@@ -100,7 +100,7 @@ class TorchTensorSameDeviceHandler(AbstractEqualityHandler):  # noqa: PLW1641
         return self._handle_next(actual, expected, config=config)
 
 
-def tensor_equal(tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityConfig2) -> bool:
+def tensor_equal(tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityConfig) -> bool:
     r"""Indicate if the two tensors are equal within a tolerance.
 
     Args:

@@ -4,15 +4,15 @@ import logging
 
 import pytest
 
-from coola.equality.config import EqualityConfig2
+from coola.equality.config import EqualityConfig
 from coola.equality.handler import FalseHandler, NanEqualHandler, ScalarEqualHandler
 from tests.unit.equality.comparators.test_scalar import SCALAR_EQUAL_TOLERANCE
 from tests.unit.equality.utils import ExamplePair
 
 
 @pytest.fixture
-def config() -> EqualityConfig2:
-    return EqualityConfig2()
+def config() -> EqualityConfig:
+    return EqualityConfig()
 
 
 #####################################
@@ -42,7 +42,7 @@ def test_nan_equal_handler_str() -> None:
     assert str(NanEqualHandler()) == "NanEqualHandler()"
 
 
-def test_nan_equal_handler_handle_true(config: EqualityConfig2) -> None:
+def test_nan_equal_handler_handle_true(config: EqualityConfig) -> None:
     config.equal_nan = True
     assert NanEqualHandler().handle(float("nan"), float("nan"), config)
 
@@ -56,12 +56,12 @@ def test_nan_equal_handler_handle_true(config: EqualityConfig2) -> None:
     ],
 )
 def test_nan_equal_handler_handle_false(
-    actual: float, expected: float, config: EqualityConfig2
+    actual: float, expected: float, config: EqualityConfig
 ) -> None:
     assert not NanEqualHandler(next_handler=FalseHandler()).handle(actual, expected, config)
 
 
-def test_nan_equal_handler_handle_without_next_handler(config: EqualityConfig2) -> None:
+def test_nan_equal_handler_handle_without_next_handler(config: EqualityConfig) -> None:
     handler = NanEqualHandler()
     with pytest.raises(RuntimeError, match=r"next handler is not defined"):
         handler.handle(actual=42, expected=42, config=config)
@@ -116,7 +116,7 @@ def test_scalar_equal_handler_str() -> None:
         pytest.param(ExamplePair(actual=float("-inf"), expected=float("-inf")), id="-infinity"),
     ],
 )
-def test_scalar_equal_handler_handle_true(example: ExamplePair, config: EqualityConfig2) -> None:
+def test_scalar_equal_handler_handle_true(example: ExamplePair, config: EqualityConfig) -> None:
     assert ScalarEqualHandler().handle(example.actual, example.expected, config)
 
 
@@ -133,12 +133,12 @@ def test_scalar_equal_handler_handle_true(example: ExamplePair, config: Equality
         pytest.param(ExamplePair(actual=float("nan"), expected=float("nan")), id="two nans"),
     ],
 )
-def test_scalar_equal_handler_handle_false(example: ExamplePair, config: EqualityConfig2) -> None:
+def test_scalar_equal_handler_handle_false(example: ExamplePair, config: EqualityConfig) -> None:
     assert not ScalarEqualHandler().handle(example.actual, example.expected, config)
 
 
 def test_scalar_equal_handler_handle_false_show_difference(
-    config: EqualityConfig2, caplog: pytest.LogCaptureFixture
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = ScalarEqualHandler()
@@ -148,7 +148,7 @@ def test_scalar_equal_handler_handle_false_show_difference(
 
 
 @pytest.mark.parametrize("equal_nan", [True, False])
-def test_scalar_equal_handler_handle_equal_nan(config: EqualityConfig2, equal_nan: bool) -> None:
+def test_scalar_equal_handler_handle_equal_nan(config: EqualityConfig, equal_nan: bool) -> None:
     config.equal_nan = equal_nan
     assert not ScalarEqualHandler().handle(float("nan"), float("nan"), config)
 
@@ -156,7 +156,7 @@ def test_scalar_equal_handler_handle_equal_nan(config: EqualityConfig2, equal_na
 @pytest.mark.parametrize("example", SCALAR_EQUAL_TOLERANCE)
 def test_scalar_equal_handler_handle_true_tolerance(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol

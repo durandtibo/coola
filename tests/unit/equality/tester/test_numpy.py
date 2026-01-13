@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola.equality.config import EqualityConfig2
+from coola.equality.config import EqualityConfig
 from coola.equality.tester import (
     NumpyArrayEqualityTester,
     NumpyMaskedArrayEqualityTester,
@@ -21,8 +21,8 @@ else:
 
 
 @pytest.fixture
-def config() -> EqualityConfig2:
-    return EqualityConfig2()
+def config() -> EqualityConfig:
+    return EqualityConfig()
 
 
 NUMPY_ARRAY_EQUAL = [
@@ -266,7 +266,7 @@ def test_numpy_array_equality_tester_equal_false_different_type_child() -> None:
 
 @numpy_available
 def test_numpy_array_equality_tester_objects_are_equal_true_same_object(
-    config: EqualityConfig2,
+    config: EqualityConfig,
 ) -> None:
     array = np.ones((2, 3))
     assert NumpyArrayEqualityTester().objects_are_equal(array, array, config)
@@ -276,7 +276,7 @@ def test_numpy_array_equality_tester_objects_are_equal_true_same_object(
 @pytest.mark.parametrize("example", NUMPY_ARRAY_EQUAL)
 def test_numpy_array_equality_tester_objects_are_equal_true(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = NumpyArrayEqualityTester()
@@ -291,7 +291,7 @@ def test_numpy_array_equality_tester_objects_are_equal_true(
 @pytest.mark.parametrize("example", NUMPY_ARRAY_EQUAL)
 def test_numpy_array_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -307,7 +307,7 @@ def test_numpy_array_equality_tester_objects_are_equal_true_show_difference(
 @pytest.mark.parametrize("example", NUMPY_ARRAY_NOT_EQUAL)
 def test_numpy_array_equality_tester_objects_are_equal_false(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = NumpyArrayEqualityTester()
@@ -322,7 +322,7 @@ def test_numpy_array_equality_tester_objects_are_equal_false(
 @pytest.mark.parametrize("example", NUMPY_ARRAY_NOT_EQUAL)
 def test_numpy_array_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -337,7 +337,7 @@ def test_numpy_array_equality_tester_objects_are_equal_false_show_difference(
 @numpy_available
 @pytest.mark.parametrize("equal_nan", [False, True])
 def test_numpy_array_equality_tester_objects_are_equal_nan_true(
-    config: EqualityConfig2, equal_nan: bool
+    config: EqualityConfig, equal_nan: bool
 ) -> None:
     config.equal_nan = equal_nan
     assert (
@@ -353,7 +353,7 @@ def test_numpy_array_equality_tester_objects_are_equal_nan_true(
 @numpy_available
 @pytest.mark.parametrize("example", NUMPY_ARRAY_EQUAL_TOLERANCE)
 def test_numpy_array_equality_tester_objects_are_equal_true_tolerance(
-    example: ExamplePair, config: EqualityConfig2
+    example: ExamplePair, config: EqualityConfig
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
@@ -405,7 +405,7 @@ def test_numpy_masked_array_equality_tester_equal_false_different_type_child() -
 
 @numpy_available
 def test_numpy_masked_array_equality_tester_objects_are_equal_true_same_object(
-    config: EqualityConfig2,
+    config: EqualityConfig,
 ) -> None:
     array = np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0])
     assert NumpyMaskedArrayEqualityTester().objects_are_equal(array, array, config)
@@ -415,7 +415,7 @@ def test_numpy_masked_array_equality_tester_objects_are_equal_true_same_object(
 @pytest.mark.parametrize("example", NUMPY_MASKED_ARRAY_EQUAL)
 def test_numpy_masked_array_equality_tester_objects_are_equal_true(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = NumpyMaskedArrayEqualityTester()
@@ -430,7 +430,7 @@ def test_numpy_masked_array_equality_tester_objects_are_equal_true(
 @pytest.mark.parametrize("example", NUMPY_MASKED_ARRAY_EQUAL)
 def test_numpy_masked_array_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -446,7 +446,7 @@ def test_numpy_masked_array_equality_tester_objects_are_equal_true_show_differen
 @pytest.mark.parametrize("example", NUMPY_MASKED_ARRAY_NOT_EQUAL)
 def test_numpy_masked_array_equality_tester_objects_are_equal_false(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = NumpyMaskedArrayEqualityTester()
@@ -461,7 +461,7 @@ def test_numpy_masked_array_equality_tester_objects_are_equal_false(
 @pytest.mark.parametrize("example", NUMPY_MASKED_ARRAY_NOT_EQUAL)
 def test_numpy_masked_array_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -476,7 +476,7 @@ def test_numpy_masked_array_equality_tester_objects_are_equal_false_show_differe
 @numpy_available
 @pytest.mark.parametrize("equal_nan", [False, True])
 def test_numpy_masked_array_equality_tester_objects_are_equal_nan(
-    config: EqualityConfig2, equal_nan: bool
+    config: EqualityConfig, equal_nan: bool
 ) -> None:
     config.equal_nan = equal_nan
     assert (

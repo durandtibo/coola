@@ -2,7 +2,7 @@ r"""Define the equality configuration."""
 
 from __future__ import annotations
 
-__all__ = ["EqualityConfig2"]
+__all__ = ["EqualityConfig"]
 
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
@@ -19,7 +19,7 @@ def create_default_registry() -> EqualityTesterRegistry:
 
 
 @dataclass
-class EqualityConfig2:
+class EqualityConfig:
     r"""Define the config to control the comparison rules.
 
     Args:
@@ -35,10 +35,10 @@ class EqualityConfig2:
 
     Example:
         ```pycon
-        >>> from coola.equality.config import EqualityConfig2
-        >>> config = EqualityConfig2()
+        >>> from coola.equality.config import EqualityConfig
+        >>> config = EqualityConfig()
         >>> config
-        EqualityConfig2(registry=EqualityTesterRegistry(...), equal_nan=False, atol=0.0, rtol=0.0, show_difference=False)
+        EqualityConfig(registry=EqualityTesterRegistry(...), equal_nan=False, atol=0.0, rtol=0.0, show_difference=False)
 
         ```
     """

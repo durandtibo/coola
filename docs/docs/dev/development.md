@@ -248,7 +248,7 @@ coola/
    ```python
    # src/coola/equality/comparators/mytype_.py
    from typing import Any
-   from coola.equality.config import EqualityConfig2
+   from coola.equality.config import EqualityConfig
    from coola.equality.comparators.base import BaseEqualityComparator
 
 
@@ -256,7 +256,7 @@ coola/
        def clone(self) -> "MyTypeComparator":
            return self.__class__()
 
-       def equal(self, actual: Any, expected: Any, config: EqualityConfig2) -> bool:
+       def equal(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
            # Type check
            if type(actual) is not type(expected):
                if config.show_difference:
