@@ -5,7 +5,6 @@ from __future__ import annotations
 
 __all__ = ["PyarrowEqualityTester"]
 
-import logging
 from typing import TYPE_CHECKING
 
 from coola.equality.handler import (
@@ -23,8 +22,6 @@ else:  # pragma: no cover
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 
 class PyarrowEqualityTester(BaseEqualityTester[pa.Array]):
@@ -62,7 +59,7 @@ class PyarrowEqualityTester(BaseEqualityTester[pa.Array]):
 
     def objects_are_equal(
         self,
-        actual: object,
+        actual: pa.Array,
         expected: object,
         config: EqualityConfig,
     ) -> bool:
