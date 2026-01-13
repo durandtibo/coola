@@ -16,7 +16,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.numpy import numpy as np
 
 if TYPE_CHECKING:
-    from coola.equality.config import EqualityConfig
+    from coola.equality.config import EqualityConfig2
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -32,10 +32,9 @@ class NumpyArrayEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import numpy as np
-        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.handler import NumpyArrayEqualHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig2()
         >>> handler = NumpyArrayEqualHandler()
         >>> handler.handle(np.ones((2, 3)), np.ones((2, 3)), config)
         True
@@ -55,7 +54,7 @@ class NumpyArrayEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         self,
         actual: np.ndarray,
         expected: np.ndarray,
-        config: EqualityConfig,
+        config: EqualityConfig2,
     ) -> bool:
         object_equal = array_equal(actual, expected, config)
         if config.show_difference and not object_equal:
@@ -68,7 +67,7 @@ class NumpyArrayEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         pass  # Do nothing because the next handler is never called.
 
 
-def array_equal(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) -> bool:
+def array_equal(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig2) -> bool:
     r"""Indicate if the two arrays are equal within a tolerance.
 
     Args:
@@ -83,10 +82,9 @@ def array_equal(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) 
     Example:
         ```pycon
         >>> import numpy as np
-        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.handler.numpy import array_equal
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig2()
         >>> array_equal(np.ones((2, 3)), np.ones((2, 3)), config)
         True
         >>> array_equal(np.ones((2, 3)), np.zeros((2, 3)), config)

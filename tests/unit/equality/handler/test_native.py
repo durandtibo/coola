@@ -6,7 +6,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from coola.equality.config import EqualityConfig
+from coola.equality.config import EqualityConfig2
 from coola.equality.handler import (
     FalseHandler,
     ObjectEqualHandler,
@@ -16,7 +16,6 @@ from coola.equality.handler import (
     SameTypeHandler,
     TrueHandler,
 )
-from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
 
@@ -30,8 +29,8 @@ if TYPE_CHECKING:
 
 
 @pytest.fixture
-def config() -> EqualityConfig:
-    return EqualityConfig(tester=EqualityTester())
+def config() -> EqualityConfig2:
+    return EqualityConfig2()
 
 
 ##################################
@@ -64,7 +63,7 @@ def test_false_handler_str() -> None:
 @pytest.mark.parametrize(
     ("actual", "expected"), [(0, 0), (4.2, 4.2), ("abc", "abc"), (0, 1), (4, 4.0), ("abc", "ABC")]
 )
-def test_false_handler_handle(actual: Any, expected: Any, config: EqualityConfig) -> None:
+def test_false_handler_handle(actual: Any, expected: Any, config: EqualityConfig2) -> None:
     assert not FalseHandler().handle(actual, expected, config)
 
 
@@ -102,7 +101,7 @@ def test_true_handler_str() -> None:
 @pytest.mark.parametrize(
     ("actual", "expected"), [(0, 0), (4.2, 4.2), ("abc", "abc"), (0, 1), (4, 4.0), ("abc", "ABC")]
 )
-def test_true_handler_handle(actual: Any, expected: Any, config: EqualityConfig) -> None:
+def test_true_handler_handle(actual: Any, expected: Any, config: EqualityConfig2) -> None:
     assert TrueHandler().handle(actual, expected, config)
 
 
@@ -139,20 +138,20 @@ def test_object_equal_handler_str() -> None:
 
 @pytest.mark.parametrize(("actual", "expected"), [(0, 0), (4.2, 4.2), ("abc", "abc")])
 def test_object_equal_handler_handle_true(
-    actual: Any, expected: Any, config: EqualityConfig
+    actual: Any, expected: Any, config: EqualityConfig2
 ) -> None:
     assert ObjectEqualHandler().handle(actual, expected, config)
 
 
 @pytest.mark.parametrize(("actual", "expected"), [(0, 1), (4, 4.2), ("abc", "ABC")])
 def test_object_equal_handler_handle_false(
-    actual: Any, expected: Any, config: EqualityConfig
+    actual: Any, expected: Any, config: EqualityConfig2
 ) -> None:
     assert not ObjectEqualHandler().handle(actual, expected, config)
 
 
 def test_object_equal_handler_handle_false_show_difference(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+    config: EqualityConfig2, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = ObjectEqualHandler()
@@ -205,7 +204,7 @@ def test_same_attribute_handler_str() -> None:
     ],
 )
 def test_same_attribute_handler_handle_true(
-    actual: Any, expected: Any, config: EqualityConfig
+    actual: Any, expected: Any, config: EqualityConfig2
 ) -> None:
     assert SameAttributeHandler(name="data", next_handler=TrueHandler()).handle(
         actual, expected, config
@@ -221,14 +220,14 @@ def test_same_attribute_handler_handle_true(
     ],
 )
 def test_same_attribute_handler_handle_false(
-    actual: Any, expected: Any, config: EqualityConfig
+    actual: Any, expected: Any, config: EqualityConfig2
 ) -> None:
     assert not SameAttributeHandler(name="data").handle(actual, expected, config)
 
 
 @numpy_available
 def test_same_attribute_handler_handle_false_show_difference(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+    config: EqualityConfig2, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = SameAttributeHandler(name="data")
@@ -242,7 +241,7 @@ def test_same_attribute_handler_handle_false_show_difference(
 
 
 @numpy_available
-def test_same_attribute_handler_handle_without_next_handler(config: EqualityConfig) -> None:
+def test_same_attribute_handler_handle_without_next_handler(config: EqualityConfig2) -> None:
     handler = SameAttributeHandler(name="data")
     with pytest.raises(RuntimeError, match=r"next handler is not defined"):
         handler.handle(
@@ -263,14 +262,14 @@ def test_same_attribute_handler_set_next_handler_incorrect() -> None:
 
 
 @numpy_available
-def test_same_attribute_handler_handle_true_numpy(config: EqualityConfig) -> None:
+def test_same_attribute_handler_handle_true_numpy(config: EqualityConfig2) -> None:
     assert SameAttributeHandler(name="dtype", next_handler=TrueHandler()).handle(
         np.ones(shape=(2, 3)), np.ones(shape=(2, 3)), config
     )
 
 
 @numpy_available
-def test_same_attribute_handler_handle_false_numpy(config: EqualityConfig) -> None:
+def test_same_attribute_handler_handle_false_numpy(config: EqualityConfig2) -> None:
     assert not SameAttributeHandler(name="dtype", next_handler=TrueHandler()).handle(
         np.ones(shape=(2, 3), dtype=float), np.ones(shape=(2, 3), dtype=int), config
     )
@@ -315,7 +314,7 @@ def test_same_length_handler_str() -> None:
     ],
 )
 def test_same_length_handler_handle_true(
-    actual: Sized, expected: Sized, config: EqualityConfig
+    actual: Sized, expected: Sized, config: EqualityConfig2
 ) -> None:
     assert SameLengthHandler(next_handler=TrueHandler()).handle(actual, expected, config)
 
@@ -329,13 +328,13 @@ def test_same_length_handler_handle_true(
     ],
 )
 def test_same_length_handler_handle_false(
-    actual: Sized, expected: Sized, config: EqualityConfig
+    actual: Sized, expected: Sized, config: EqualityConfig2
 ) -> None:
     assert not SameLengthHandler().handle(actual, expected, config)
 
 
 def test_same_length_handler_handle_false_show_difference(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+    config: EqualityConfig2, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = SameLengthHandler()
@@ -344,7 +343,7 @@ def test_same_length_handler_handle_false_show_difference(
         assert caplog.messages[0].startswith("objects have different lengths:")
 
 
-def test_same_length_handler_handle_without_next_handler(config: EqualityConfig) -> None:
+def test_same_length_handler_handle_without_next_handler(config: EqualityConfig2) -> None:
     handler = SameLengthHandler()
     with pytest.raises(RuntimeError, match=r"next handler is not defined"):
         handler.handle(actual=[1, 2, 3], expected=[1, 2, 3], config=config)
@@ -391,19 +390,19 @@ def test_same_object_handler_str() -> None:
 
 @pytest.mark.parametrize(("actual", "expected"), [(0, 0), (4.2, 4.2), ("abc", "abc")])
 def test_same_object_handler_handle_true(
-    actual: Any, expected: Any, config: EqualityConfig
+    actual: Any, expected: Any, config: EqualityConfig2
 ) -> None:
     assert SameObjectHandler().handle(actual, expected, config)
 
 
 @pytest.mark.parametrize(("actual", "expected"), [(0, 1), (4, 4.0), ("abc", "ABC")])
 def test_same_object_handler_handle_false(
-    actual: Any, expected: Any, config: EqualityConfig
+    actual: Any, expected: Any, config: EqualityConfig2
 ) -> None:
     assert not SameObjectHandler(next_handler=FalseHandler()).handle(actual, expected, config)
 
 
-def test_same_object_handler_handle_without_next_handler(config: EqualityConfig) -> None:
+def test_same_object_handler_handle_without_next_handler(config: EqualityConfig2) -> None:
     handler = SameObjectHandler()
     with pytest.raises(RuntimeError, match=r"next handler is not defined"):
         handler.handle(actual="abc", expected="ABC", config=config)
@@ -449,17 +448,19 @@ def test_same_type_handler_str() -> None:
 
 
 @pytest.mark.parametrize(("actual", "expected"), [(0, 0), (4.2, 4.2), ("abc", "abc")])
-def test_same_type_handler_handle_true(actual: Any, expected: Any, config: EqualityConfig) -> None:
+def test_same_type_handler_handle_true(actual: Any, expected: Any, config: EqualityConfig2) -> None:
     assert SameTypeHandler(next_handler=TrueHandler()).handle(actual, expected, config)
 
 
 @pytest.mark.parametrize(("actual", "expected"), [(0, "abc"), (4, 4.0), (None, 0)])
-def test_same_type_handler_handle_false(actual: Any, expected: Any, config: EqualityConfig) -> None:
+def test_same_type_handler_handle_false(
+    actual: Any, expected: Any, config: EqualityConfig2
+) -> None:
     assert not SameTypeHandler().handle(actual, expected, config)
 
 
 def test_same_type_handler_handle_false_show_difference(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+    config: EqualityConfig2, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = SameTypeHandler()
@@ -468,7 +469,7 @@ def test_same_type_handler_handle_false_show_difference(
         assert caplog.messages[0].startswith("objects have different types:")
 
 
-def test_same_type_handler_handle_without_next_handler(config: EqualityConfig) -> None:
+def test_same_type_handler_handle_without_next_handler(config: EqualityConfig2) -> None:
     handler = SameTypeHandler()
     with pytest.raises(RuntimeError, match=r"next handler is not defined"):
         handler.handle(actual="abc", expected="ABC", config=config)

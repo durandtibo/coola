@@ -288,7 +288,7 @@ class TestDataProcessing(unittest.TestCase):
 ```python
 from typing import Any
 from coola import objects_are_equal
-from coola.equality.config import EqualityConfig
+from coola.equality.config import EqualityConfig2
 from coola.equality.comparators import BaseEqualityComparator
 from coola.equality.testers import EqualityTester
 
@@ -308,7 +308,7 @@ class Vector3DComparator(BaseEqualityComparator):
     def clone(self):
         return self.__class__()
 
-    def equal(self, actual: Vector3D, expected: Any, config: EqualityConfig) -> bool:
+    def equal(self, actual: Vector3D, expected: Any, config: EqualityConfig2) -> bool:
         if not isinstance(expected, Vector3D):
             if config.show_difference:
                 print(f"Types differ: {type(actual)} vs {type(expected)}")

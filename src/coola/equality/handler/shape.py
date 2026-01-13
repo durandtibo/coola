@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Protocol
 from coola.equality.handler.base import AbstractEqualityHandler
 
 if TYPE_CHECKING:
-    from coola.equality.config import EqualityConfig
+    from coola.equality.config import EqualityConfig2
 
 
 logger: logging.Logger = logging.getLogger(__name__)
@@ -43,10 +43,9 @@ class SameShapeHandler(AbstractEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import numpy as np
-        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.handler import SameShapeHandler, TrueHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig2()
         >>> handler = SameShapeHandler(next_handler=TrueHandler())
         >>> handler.handle(np.ones((2, 3)), np.ones((2, 3)), config)
         True
@@ -60,7 +59,7 @@ class SameShapeHandler(AbstractEqualityHandler):  # noqa: PLW1641
         return type(other) is type(self)
 
     def handle(
-        self, actual: SupportsShape, expected: SupportsShape, config: EqualityConfig
+        self, actual: SupportsShape, expected: SupportsShape, config: EqualityConfig2
     ) -> bool:
         if actual.shape != expected.shape:
             if config.show_difference:

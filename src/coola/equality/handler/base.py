@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 from coola.utils.format import repr_indent, repr_mapping
 
 if TYPE_CHECKING:
-    from coola.equality.config import EqualityConfig
+    from coola.equality.config import EqualityConfig2
 
 
 class BaseEqualityHandler(ABC):
@@ -23,10 +23,9 @@ class BaseEqualityHandler(ABC):
 
     Example:
         ```pycon
-        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.handler import SameObjectHandler, FalseHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig2()
         >>> handler = SameObjectHandler()
         >>> handler.set_next_handler(FalseHandler())
         >>> handler.handle("abc", "abc", config)
@@ -48,14 +47,14 @@ class BaseEqualityHandler(ABC):
 
         Example:
             ```pycon
-            >>> from coola.equality.config import EqualityConfig
+            >>> from coola.equality.config import EqualityConfig2
             >>> from coola.equality.handler import (
             ...     SameObjectHandler,
             ...     SameTypeHandler,
             ...     ObjectEqualHandler,
             ... )
             >>> from coola.equality.testers import EqualityTester
-            >>> config = EqualityConfig(tester=EqualityTester())
+            >>> config = EqualityConfig2()
             >>> handler = SameObjectHandler()
             >>> handler.chain(SameTypeHandler()).chain(ObjectEqualHandler())
             >>> handler.handle([1, 2, 3], [1, 2, 3], config)
@@ -67,7 +66,7 @@ class BaseEqualityHandler(ABC):
         return handler
 
     @abstractmethod
-    def handle(self, actual: object, expected: object, config: EqualityConfig) -> bool:
+    def handle(self, actual: object, expected: object, config: EqualityConfig2) -> bool:
         r"""Return the equality result between the two input objects.
 
         Args:
@@ -81,10 +80,10 @@ class BaseEqualityHandler(ABC):
 
         Example:
             ```pycon
-            >>> from coola.equality.config import EqualityConfig
+            >>> from coola.equality.config import EqualityConfig2
             >>> from coola.equality.handler import SameObjectHandler
             >>> from coola.equality.testers import EqualityTester
-            >>> config = EqualityConfig(tester=EqualityTester())
+            >>> config = EqualityConfig2()
             >>> handler = SameObjectHandler()
             >>> handler.handle("abc", "abc", config)
             True
@@ -132,7 +131,7 @@ class AbstractEqualityHandler(BaseEqualityHandler):
         r"""The next handler."""
         return self._next_handler
 
-    def _handle_next(self, actual: object, expected: object, config: EqualityConfig) -> bool:
+    def _handle_next(self, actual: object, expected: object, config: EqualityConfig2) -> bool:
         r"""Return the output from the next handler.
 
         Args:

@@ -37,9 +37,9 @@ class PyarrowEqualityTester(BaseEqualityTester[pa.Array]):
     Example:
         ```pycon
         >>> import pyarrow as pa
-        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.tester import PyarrowEqualityTester
-        >>> config = EqualityConfig()
+        >>> config = EqualityConfig2()
         >>> tester = PyarrowEqualityTester()
         >>> tester.equal(pa.array([1, 2, 3]), pa.array([1, 2, 3]), config)
         True

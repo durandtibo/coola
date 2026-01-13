@@ -12,7 +12,7 @@ from coola.equality.handler.base import AbstractEqualityHandler
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from coola.equality.config import EqualityConfig
+    from coola.equality.config import EqualityConfig2
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -25,10 +25,9 @@ class MappingSameKeysHandler(AbstractEqualityHandler):  # noqa: PLW1641
 
     Example:
         ```pycon
-        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.handler import MappingSameKeysHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig2()
         >>> handler = MappingSameKeysHandler()
         >>> handler.handle({"a": 1, "b": 2}, {"a": 1, "b": 2, "c": 1}, config)
         False
@@ -43,7 +42,7 @@ class MappingSameKeysHandler(AbstractEqualityHandler):  # noqa: PLW1641
         self,
         actual: Mapping[Any, Any],
         expected: Mapping[Any, Any],
-        config: EqualityConfig,
+        config: EqualityConfig2,
     ) -> bool:
         keys1 = set(actual.keys())
         keys2 = set(expected.keys())
@@ -76,10 +75,9 @@ class MappingSameValuesHandler(AbstractEqualityHandler):  # noqa: PLW1641
 
     Example:
         ```pycon
-        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.handler import MappingSameValuesHandler, TrueHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig2()
         >>> handler = MappingSameValuesHandler(next_handler=TrueHandler())
         >>> handler.handle({"a": 1, "b": 2}, {"a": 1, "b": 2}, config)
         True
@@ -96,16 +94,16 @@ class MappingSameValuesHandler(AbstractEqualityHandler):  # noqa: PLW1641
         self,
         actual: Mapping[Any, Any],
         expected: Mapping[Any, Any],
-        config: EqualityConfig,
+        config: EqualityConfig2,
     ) -> bool:
         for key in actual:
-            if not config.tester.equal(actual[key], expected[key], config):
+            if not config.registry.objects_are_equal(actual[key], expected[key], config):
                 self._show_difference(actual, expected, config=config)
                 return False
         return self._handle_next(actual, expected, config=config)
 
     def _show_difference(
-        self, actual: Mapping[Any, Any], expected: Mapping[Any, Any], config: EqualityConfig
+        self, actual: Mapping[Any, Any], expected: Mapping[Any, Any], config: EqualityConfig2
     ) -> None:
         if config.show_difference:
             logger.info(

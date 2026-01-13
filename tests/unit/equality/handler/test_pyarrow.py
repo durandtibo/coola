@@ -7,10 +7,9 @@ from unittest.mock import Mock
 
 import pytest
 
-from coola.equality.config import EqualityConfig
+from coola.equality.config import EqualityConfig2
 from coola.equality.handler import FalseHandler, PyarrowEqualHandler
 from coola.equality.handler.pyarrow import object_equal
-from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import pyarrow_available
 from coola.utils.imports import is_pyarrow_available
 from tests.unit.equality.comparators.test_pyarrow import (
@@ -30,8 +29,8 @@ else:
 
 
 @pytest.fixture
-def config() -> EqualityConfig:
-    return EqualityConfig(tester=EqualityTester())
+def config() -> EqualityConfig2:
+    return EqualityConfig2()
 
 
 #########################################
@@ -63,7 +62,7 @@ def test_pyarrow_equal_handler_str() -> None:
 
 @pyarrow_available
 @pytest.mark.parametrize("example", PYARROW_EQUAL)
-def test_pyarrow_equal_handler_handle_true(example: ExamplePair, config: EqualityConfig) -> None:
+def test_pyarrow_equal_handler_handle_true(example: ExamplePair, config: EqualityConfig2) -> None:
     assert PyarrowEqualHandler().handle(
         actual=example.actual, expected=example.expected, config=config
     )
@@ -71,14 +70,14 @@ def test_pyarrow_equal_handler_handle_true(example: ExamplePair, config: Equalit
 
 @pyarrow_available
 @pytest.mark.parametrize("example", PYARROW_NOT_EQUAL)
-def test_pyarrow_equal_handler_handle_false(example: ExamplePair, config: EqualityConfig) -> None:
+def test_pyarrow_equal_handler_handle_false(example: ExamplePair, config: EqualityConfig2) -> None:
     assert not PyarrowEqualHandler().handle(
         actual=example.actual, expected=example.expected, config=config
     )
 
 
 @pyarrow_available
-def test_pyarrow_equal_handler_handle_equal_nan_false(config: EqualityConfig) -> None:
+def test_pyarrow_equal_handler_handle_equal_nan_false(config: EqualityConfig2) -> None:
     assert not PyarrowEqualHandler().handle(
         pa.array([0.0, float("nan"), float("nan"), 1.2]),
         pa.array([0.0, float("nan"), float("nan"), 1.2]),
@@ -87,7 +86,7 @@ def test_pyarrow_equal_handler_handle_equal_nan_false(config: EqualityConfig) ->
 
 
 @pyarrow_available
-def test_pyarrow_equal_handler_handle_equal_nan_true(config: EqualityConfig) -> None:
+def test_pyarrow_equal_handler_handle_equal_nan_true(config: EqualityConfig2) -> None:
     config.equal_nan = True
     with warnings.catch_warnings(record=True) as w:
         # Not equal because equal_nan is ignored
@@ -104,7 +103,7 @@ def test_pyarrow_equal_handler_handle_equal_nan_true(config: EqualityConfig) -> 
 
 @pyarrow_available
 def test_pyarrow_equal_handler_handle_false_show_difference(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+    config: EqualityConfig2, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = PyarrowEqualHandler()
@@ -120,7 +119,7 @@ def test_pyarrow_equal_handler_handle_false_show_difference(
 @pyarrow_available
 @pytest.mark.parametrize("example", PYARROW_EQUAL_TOLERANCE)
 def test_pyarrow_equal_handler_handle_true_tolerance(
-    example: ExamplePair, config: EqualityConfig
+    example: ExamplePair, config: EqualityConfig2
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
@@ -136,7 +135,7 @@ def test_pyarrow_equal_handler_handle_true_tolerance(
 @pyarrow_available
 @pytest.mark.parametrize("example", PYARROW_NOT_EQUAL_TOLERANCE)
 def test_pyarrow_equal_handler_handle_false_tolerance(
-    example: ExamplePair, config: EqualityConfig
+    example: ExamplePair, config: EqualityConfig2
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
@@ -160,11 +159,11 @@ def test_pyarrow_equal_handler_set_next_handler() -> None:
 
 @pyarrow_available
 @pytest.mark.parametrize("example", PYARROW_EQUAL)
-def test_object_equal_true(example: ExamplePair, config: EqualityConfig) -> None:
+def test_object_equal_true(example: ExamplePair, config: EqualityConfig2) -> None:
     assert object_equal(example.actual, example.expected, config=config)
 
 
 @pyarrow_available
 @pytest.mark.parametrize("example", PYARROW_NOT_EQUAL)
-def test_object_equal_false(example: ExamplePair, config: EqualityConfig) -> None:
+def test_object_equal_false(example: ExamplePair, config: EqualityConfig2) -> None:
     assert not object_equal(example.actual, example.expected, config=config)

@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any, Protocol
 from coola.equality.handler.base import AbstractEqualityHandler
 
 if TYPE_CHECKING:
-    from coola.equality.config import EqualityConfig
+    from coola.equality.config import EqualityConfig2
 
 
 logger: logging.Logger = logging.getLogger(__name__)
@@ -41,10 +41,9 @@ class SameDataHandler(AbstractEqualityHandler):  # noqa: PLW1641
     Example:
         ```pycon
         >>> import numpy as np
-        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.config import EqualityConfig2
         >>> from coola.equality.handler import SameDataHandler, TrueHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig2()
         >>> handler = SameDataHandler(next_handler=TrueHandler())
         >>> handler.handle(np.ones((2, 3)), np.ones((2, 3)), config)
         True
@@ -57,8 +56,8 @@ class SameDataHandler(AbstractEqualityHandler):  # noqa: PLW1641
     def __eq__(self, other: object) -> bool:
         return type(other) is type(self)
 
-    def handle(self, actual: SupportsData, expected: SupportsData, config: EqualityConfig) -> bool:
-        if not config.tester.equal(actual.data, expected.data, config):
+    def handle(self, actual: SupportsData, expected: SupportsData, config: EqualityConfig2) -> bool:
+        if not config.registry.objects_are_equal(actual.data, expected.data, config):
             if config.show_difference:
                 logger.info(f"objects have different data: {actual.data} vs {expected.data}")
             return False
