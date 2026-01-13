@@ -6,6 +6,7 @@ from __future__ import annotations
 __all__ = [
     "BaseEqualityTester",
     "DefaultEqualityTester",
+    "EqualEqualityTester",
     "EqualityTesterRegistry",
     "JaxArrayEqualityTester",
     "MappingEqualityTester",
@@ -34,6 +35,7 @@ from coola.equality.tester.collection import (
     SequenceEqualityTester,
 )
 from coola.equality.tester.default import DefaultEqualityTester
+from coola.equality.tester.equal import EqualEqualityTester
 from coola.equality.tester.interface import (
     get_default_registry,
     register_equality_testers,

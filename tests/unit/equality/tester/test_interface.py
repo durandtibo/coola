@@ -7,7 +7,9 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.tester import (
+    BaseEqualityTester,
     DefaultEqualityTester,
+    EqualEqualityTester,
     EqualityTesterRegistry,
     JaxArrayEqualityTester,
     MappingEqualityTester,
@@ -94,6 +96,8 @@ TESTER_TYPES: list[tuple[type, type, bool]] = [
     (dict, MappingEqualityTester, True),
     (Mapping, MappingEqualityTester, True),
     (OrderedDict, MappingEqualityTester, False),
+    # coola types
+    (BaseEqualityTester, EqualEqualityTester, True),
 ]
 if is_jax_available():
     TESTER_TYPES.extend(
@@ -141,6 +145,7 @@ if is_xarray_available():
             (xr.Variable, XarrayVariableEqualityTester, True),
         ]
     )
+
 
 ###############################################
 #     Tests for register_equality_testers     #

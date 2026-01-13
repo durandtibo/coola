@@ -7,13 +7,15 @@ __all__ = ["get_default_registry", "register_equality_testers"]
 
 from collections import deque
 from collections.abc import Mapping, Sequence
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
+from coola.equality.tester.base import BaseEqualityTester
 from coola.equality.tester.collection import (
     MappingEqualityTester,
     SequenceEqualityTester,
 )
 from coola.equality.tester.default import DefaultEqualityTester
+from coola.equality.tester.equal import EqualEqualityTester
 from coola.equality.tester.jax import JaxArrayEqualityTester, get_array_impl_class
 from coola.equality.tester.numpy import (
     NumpyArrayEqualityTester,
@@ -49,9 +51,6 @@ from coola.utils.imports import (
     is_torch_available,
     is_xarray_available,
 )
-
-if TYPE_CHECKING:
-    from coola.equality.tester.base import BaseEqualityTester
 
 if is_jax_available():  # pragma: no cover
     import jax.numpy as jnp
@@ -89,9 +88,9 @@ def register_equality_testers(
         ...     def __init__(self, value):
         ...         self.value = value
         ...
-        >>> class MyEqualityTester(BaseEqualityTester):
+        >>> class MyEqualityTester(BaseEqualityTester[MyType]):
         ...     def objects_are_equal(
-        ...         self, actual: object, expected: object, config: EqualityConfig
+        ...         self, actual: MyType, expected: object, config: EqualityConfig
         ...     ) -> bool:
         ...         if type(other) is not type(self):
         ...             return False
@@ -197,6 +196,7 @@ def _get_native_equality_testers() -> dict[type, BaseEqualityTester]:
     scalar = ScalarEqualityTester()
     mapping = MappingEqualityTester()
     sequence = SequenceEqualityTester()
+    equal = EqualEqualityTester()
     return {
         # Object is the catch-all base for unregistered types
         object: default,
@@ -211,6 +211,8 @@ def _get_native_equality_testers() -> dict[type, BaseEqualityTester]:
         # Mappings - recursive transformation of keys and values
         dict: mapping,
         Mapping: mapping,
+        # coola types
+        BaseEqualityTester: equal,
     }
 
 
