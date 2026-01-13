@@ -42,7 +42,7 @@ def test_pandas_dataframe_equality_tester_without_pandas() -> None:
 ################################################
 
 
-@pandas_not_available
+@pandas_available
 def test_pandas_series_equality_tester_with_pandas(config: EqualityConfig) -> None:
     assert PandasSeriesEqualityTester().objects_are_equal(
         pd.Series([1, 2, 3]), pd.Series([1, 2, 3]), config=config
