@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import logging
+import math
 from unittest.mock import Mock
 
 import pytest
 
 from coola.equality.config import EqualityConfig
-from coola.equality.tester import EqualEqualityTester
+from coola.equality.tester import EqualEqualityTester, EqualNanEqualityTester
 from tests.unit.equality.utils import ExamplePair
 
 
@@ -19,9 +20,11 @@ class MyFloat:
     def __init__(self, value: float) -> None:
         self._value = float(value)
 
-    def equal(self, other: object) -> bool:
+    def equal(self, other: object, equal_nan: bool = False) -> bool:
         if type(other) is not type(self):
             return False
+        if equal_nan and math.isnan(self._value) and math.isnan(other._value):
+            return True
         return self._value == other._value
 
 
@@ -142,3 +145,121 @@ def test_equal_equality_tester_objects_are_equal_false_show_difference(
             actual=example.actual, expected=example.expected, config=config
         )
         assert caplog.messages[-1].startswith(example.expected_message)
+
+
+def test_equal_equality_tester_objects_are_equal_true_nan(config: EqualityConfig) -> None:
+    config.equal_nan = True
+    assert not EqualEqualityTester().objects_are_equal(
+        actual=MyFloat(float("nan")), expected=MyFloat(float("nan")), config=config
+    )
+
+
+def test_equal_equality_tester_objects_are_equal_false_nan(config: EqualityConfig) -> None:
+    assert not EqualEqualityTester().objects_are_equal(
+        actual=MyFloat(float("nan")), expected=MyFloat(float("nan")), config=config
+    )
+
+
+############################################
+#     Tests for EqualNanEqualityTester     #
+############################################
+
+
+def test_equal_nan_equality_tester_repr() -> None:
+    assert repr(EqualNanEqualityTester()) == "EqualNanEqualityTester()"
+
+
+def test_equal_nan_equality_tester_str() -> None:
+    assert str(EqualNanEqualityTester()) == "EqualNanEqualityTester()"
+
+
+def test_equal_nan_equality_tester_equal_true() -> None:
+    assert EqualNanEqualityTester().equal(EqualNanEqualityTester())
+
+
+def test_equal_nan_equality_tester_equal_false_different_type() -> None:
+    assert not EqualNanEqualityTester().equal(42)
+
+
+def test_equal_nan_equality_tester_equal_false_different_type_child() -> None:
+    class Child(EqualNanEqualityTester): ...
+
+    assert not EqualNanEqualityTester().equal(Child())
+
+
+def test_equal_nan_equality_tester_objects_are_equal_true_same_object(
+    config: EqualityConfig,
+) -> None:
+    obj = Mock()
+    assert EqualNanEqualityTester().objects_are_equal(obj, obj, config)
+
+
+@pytest.mark.parametrize("example", EQUAL_EQUAL)
+def test_equal_nan_equality_tester_objects_are_equal_true(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    tester = EqualNanEqualityTester()
+    with caplog.at_level(logging.INFO):
+        assert tester.objects_are_equal(
+            actual=example.actual, expected=example.expected, config=config
+        )
+        assert not caplog.messages
+
+
+@pytest.mark.parametrize("example", EQUAL_EQUAL)
+def test_equal_nan_equality_tester_objects_are_equal_true_show_difference(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    config.show_difference = True
+    tester = EqualNanEqualityTester()
+    with caplog.at_level(logging.INFO):
+        assert tester.objects_are_equal(
+            actual=example.actual, expected=example.expected, config=config
+        )
+        assert not caplog.messages
+
+
+@pytest.mark.parametrize("example", EQUAL_NOT_EQUAL)
+def test_equal_nan_equality_tester_objects_are_equal_false(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    tester = EqualNanEqualityTester()
+    with caplog.at_level(logging.INFO):
+        assert not tester.objects_are_equal(
+            actual=example.actual, expected=example.expected, config=config
+        )
+        assert not caplog.messages
+
+
+@pytest.mark.parametrize("example", EQUAL_NOT_EQUAL)
+def test_equal_nan_equality_tester_objects_are_equal_false_show_difference(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    config.show_difference = True
+    tester = EqualNanEqualityTester()
+    with caplog.at_level(logging.INFO):
+        assert not tester.objects_are_equal(
+            actual=example.actual, expected=example.expected, config=config
+        )
+        assert caplog.messages[-1].startswith(example.expected_message)
+
+
+def test_equal_nan_equality_tester_objects_are_equal_true_nan(config: EqualityConfig) -> None:
+    config.equal_nan = True
+    assert EqualNanEqualityTester().objects_are_equal(
+        actual=MyFloat(float("nan")), expected=MyFloat(float("nan")), config=config
+    )
+
+
+def test_equal_nan_equality_tester_objects_are_equal_false_nan(config: EqualityConfig) -> None:
+    assert not EqualNanEqualityTester().objects_are_equal(
+        actual=MyFloat(float("nan")), expected=MyFloat(float("nan")), config=config
+    )
