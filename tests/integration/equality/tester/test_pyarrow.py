@@ -3,9 +3,7 @@ from __future__ import annotations
 import pytest
 
 from coola.equality.config import EqualityConfig
-from coola.equality.tester import (
-    PyarrowEqualityTester,
-)
+from coola.equality.tester import PyarrowEqualityTester
 from coola.testing.fixtures import pyarrow_available, pyarrow_not_available
 from coola.utils.imports import is_pyarrow_available
 

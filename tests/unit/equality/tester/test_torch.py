@@ -336,34 +336,34 @@ TORCH_EQUAL_TOLERANCE = TORCH_TENSOR_EQUAL_TOLERANCE + TORCH_PACKED_SEQUENCE_EQU
 
 
 @torch_available
-def test_tensor_packed_sequence_equality_tester_repr() -> None:
+def test_torch_packed_sequence_equality_tester_repr() -> None:
     assert repr(TorchPackedSequenceEqualityTester()) == "TorchPackedSequenceEqualityTester()"
 
 
 @torch_available
-def test_tensor_packed_sequence_equality_tester_str() -> None:
+def test_torch_packed_sequence_equality_tester_str() -> None:
     assert str(TorchPackedSequenceEqualityTester()) == "TorchPackedSequenceEqualityTester()"
 
 
 @torch_available
-def test_tensor_packed_sequence_equality_tester_equal_true() -> None:
+def test_torch_packed_sequence_equality_tester_equal_true() -> None:
     assert TorchPackedSequenceEqualityTester().equal(TorchPackedSequenceEqualityTester())
 
 
 @torch_available
-def test_tensor_packed_sequence_equality_tester_equal_false_different_type() -> None:
+def test_torch_packed_sequence_equality_tester_equal_false_different_type() -> None:
     assert not TorchPackedSequenceEqualityTester().equal(123)
 
 
 @torch_available
-def test_tensor_packed_sequence_equality_tester_equal_false_different_type_child() -> None:
+def test_torch_packed_sequence_equality_tester_equal_false_different_type_child() -> None:
     class Child(TorchPackedSequenceEqualityTester): ...
 
     assert not TorchPackedSequenceEqualityTester().equal(Child())
 
 
 @torch_available
-def test_tensor_packed_sequence_equality_tester_objects_are_equal_true_same_obj(
+def test_torch_packed_sequence_equality_tester_objects_are_equal_true_same_obj(
     config: EqualityConfig,
 ) -> None:
     obj = torch.nn.utils.rnn.pack_padded_sequence(
@@ -376,7 +376,7 @@ def test_tensor_packed_sequence_equality_tester_objects_are_equal_true_same_obj(
 
 @torch_available
 @pytest.mark.parametrize("example", TORCH_PACKED_SEQUENCE_EQUAL)
-def test_tensor_packed_sequence_equality_tester_objects_are_equal_true(
+def test_torch_packed_sequence_equality_tester_objects_are_equal_true(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
@@ -391,7 +391,7 @@ def test_tensor_packed_sequence_equality_tester_objects_are_equal_true(
 
 @torch_available
 @pytest.mark.parametrize("example", TORCH_PACKED_SEQUENCE_EQUAL)
-def test_tensor_packed_sequence_equality_tester_objects_are_equal_true_show_difference(
+def test_torch_packed_sequence_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
@@ -407,7 +407,7 @@ def test_tensor_packed_sequence_equality_tester_objects_are_equal_true_show_diff
 
 @torch_available
 @pytest.mark.parametrize("example", TORCH_PACKED_SEQUENCE_NOT_EQUAL)
-def test_tensor_packed_sequence_equality_tester_objects_are_equal_false(
+def test_torch_packed_sequence_equality_tester_objects_are_equal_false(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
@@ -422,7 +422,7 @@ def test_tensor_packed_sequence_equality_tester_objects_are_equal_false(
 
 @torch_available
 @pytest.mark.parametrize("example", TORCH_PACKED_SEQUENCE_NOT_EQUAL)
-def test_tensor_packed_sequence_equality_tester_objects_are_equal_false_show_difference(
+def test_torch_packed_sequence_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
@@ -438,7 +438,7 @@ def test_tensor_packed_sequence_equality_tester_objects_are_equal_false_show_dif
 
 @torch_available
 @pytest.mark.parametrize("equal_nan", [False, True])
-def test_tensor_packed_sequence_equality_tester_objects_are_equal_nan_false(
+def test_torch_packed_sequence_equality_tester_objects_are_equal_nan_false(
     config: EqualityConfig, equal_nan: bool
 ) -> None:
     config.equal_nan = equal_nan
@@ -466,7 +466,7 @@ def test_tensor_packed_sequence_equality_tester_objects_are_equal_nan_false(
     )
 
 
-def test_tensor_packed_sequence_equality_tester_no_torch() -> None:
+def test_torch_packed_sequence_equality_tester_no_torch() -> None:
     with (
         patch("coola.utils.imports.is_torch_available", lambda: False),
         pytest.raises(RuntimeError, match=r"'torch' package is required but not installed."),
