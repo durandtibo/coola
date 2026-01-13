@@ -27,7 +27,7 @@ def config() -> EqualityConfig:
 @numpy_available
 def test_numpy_array_equality_tester_with_numpy(config: EqualityConfig) -> None:
     assert NumpyArrayEqualityTester().objects_are_equal(
-        np.ones(shape=(2, 3), dtype=float), np.ones(shape=(2, 3), dtype=float), config=config
+        np.ones((2, 3)), np.ones((2, 3)), config=config
     )
 
 
@@ -45,8 +45,8 @@ def test_numpy_array_equality_tester_without_numpy() -> None:
 @numpy_available
 def test_numpy_masked_array_equality_tester_with_numpy(config: EqualityConfig) -> None:
     assert NumpyMaskedArrayEqualityTester().objects_are_equal(
-        np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], dtype=float),
-        np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], dtype=float),
+        np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
+        np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
         config=config,
     )
 

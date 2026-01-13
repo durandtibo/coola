@@ -19,7 +19,7 @@ def config() -> EqualityConfig:
 @jax_available
 def test_jax_array_equality_tester_with_jax(config: EqualityConfig) -> None:
     assert JaxArrayEqualityTester().objects_are_equal(
-        jnp.ones(shape=(2, 3), dtype=float), jnp.ones(shape=(2, 3), dtype=float), config=config
+        jnp.ones((2, 3)), jnp.ones((2, 3)), config=config
     )
 
 
