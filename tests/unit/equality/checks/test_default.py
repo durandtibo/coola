@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from coola import objects_are_allclose, objects_are_equal
-from tests.unit.equality.comparators.test_default import (
+from coola.equality import objects_are_allclose, objects_are_equal
+from tests.unit.equality.tester.test_default import (
     DEFAULT_EQUAL,
     DEFAULT_NOT_EQUAL,
 )

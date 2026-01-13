@@ -5,10 +5,10 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from coola import objects_are_allclose
+from coola.equality import objects_are_allclose
 from coola.testing.fixtures import numpy_available
 from tests.unit.equality.checks.test_default import EQUALITY_TESTER_FUNCTIONS
-from tests.unit.equality.comparators.test_numpy import (
+from tests.unit.equality.tester.test_numpy import (
     NUMPY_EQUAL,
     NUMPY_EQUAL_TOLERANCE,
     NUMPY_NOT_EQUAL,

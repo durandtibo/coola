@@ -5,10 +5,10 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from coola import objects_are_allclose
+from coola.equality import objects_are_allclose
 from coola.testing.fixtures import polars_available
 from tests.unit.equality.checks.test_default import EQUALITY_TESTER_FUNCTIONS
-from tests.unit.equality.comparators.test_polars import (
+from tests.unit.equality.tester.test_polars import (
     POLARS_EQUAL,
     POLARS_EQUAL_TOLERANCE,
     POLARS_NOT_EQUAL,

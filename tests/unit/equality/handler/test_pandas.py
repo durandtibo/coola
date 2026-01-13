@@ -14,7 +14,7 @@ from coola.equality.handler import (
 )
 from coola.testing.fixtures import pandas_available
 from coola.utils.imports import is_pandas_available
-from tests.unit.equality.comparators.test_pandas import (
+from tests.unit.equality.tester.test_pandas import (
     PANDAS_DATAFRAME_EQUAL_TOLERANCE,
     PANDAS_SERIES_EQUAL_TOLERANCE,
 )

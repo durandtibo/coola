@@ -5,14 +5,14 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from coola import objects_are_allclose
+from coola.equality import objects_are_allclose
 from coola.testing.fixtures import jax_available
 from tests.unit.equality.checks.test_default import EQUALITY_TESTER_FUNCTIONS
-from tests.unit.equality.comparators.test_jax import (
+from tests.unit.equality.handler.test_jax import JAX_ARRAY_EQUAL_TOLERANCE
+from tests.unit.equality.tester.test_jax import (
     JAX_ARRAY_EQUAL,
     JAX_ARRAY_NOT_EQUAL,
 )
-from tests.unit.equality.handler.test_jax import JAX_ARRAY_EQUAL_TOLERANCE
 
 if TYPE_CHECKING:
     from collections.abc import Callable

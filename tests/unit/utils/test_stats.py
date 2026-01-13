@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from coola import objects_are_allclose, objects_are_equal
+from coola.equality import objects_are_allclose, objects_are_equal
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
 from coola.utils.stats import quantile
