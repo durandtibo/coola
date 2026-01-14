@@ -55,12 +55,46 @@ def test_same_shape_handler_str() -> None:
     assert str(SameShapeHandler()) == "SameShapeHandler()"
 
 
-def test_same_shape_handler_equal_true() -> None:
-    assert SameShapeHandler().equal(SameShapeHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(SameShapeHandler(), SameShapeHandler(), id="without next handler"),
+        pytest.param(
+            SameShapeHandler(FalseHandler()),
+            SameShapeHandler(FalseHandler()),
+            id="with next handler",
+        ),
+    ],
+)
+def test_same_shape_handler_equal_true(
+    handler1: SameShapeHandler, handler2: SameShapeHandler
+) -> None:
+    assert handler1.equal(handler2)
 
 
-def test_same_shape_handler_equal_false_different_type() -> None:
-    assert not SameShapeHandler().equal(FalseHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(
+            SameShapeHandler(TrueHandler()),
+            SameShapeHandler(FalseHandler()),
+            id="different next handler",
+        ),
+        pytest.param(
+            SameShapeHandler(),
+            SameShapeHandler(FalseHandler()),
+            id="next handler is none",
+        ),
+        pytest.param(
+            SameShapeHandler(FalseHandler()),
+            SameShapeHandler(),
+            id="other next handler is none",
+        ),
+        pytest.param(SameShapeHandler(), FalseHandler(), id="different type"),
+    ],
+)
+def test_same_shape_handler_equal_false(handler1: SameShapeHandler, handler2: object) -> None:
+    assert not handler1.equal(handler2)
 
 
 def test_same_shape_handler_equal_false_different_type_child() -> None:
