@@ -27,11 +27,14 @@ class EqualityConfig:
         equal_nan: If ``True``, NaN values will be considered equal.
             Defaults to ``False``.
         atol: The absolute tolerance parameter for floating-point
-            comparisons. Defaults to 0.0.
+            comparisons. Must be non-negative. Defaults to 0.0.
         rtol: The relative tolerance parameter for floating-point
-            comparisons. Defaults to 0.0.
+            comparisons. Must be non-negative. Defaults to 0.0.
         show_difference: If ``True``, shows differences between
             non-equal objects. Defaults to ``False``.
+
+    Raises:
+        ValueError: if ``atol`` or ``rtol`` is negative.
 
     Example:
         ```pycon
@@ -48,3 +51,12 @@ class EqualityConfig:
     atol: float = 0.0
     rtol: float = 0.0
     show_difference: bool = False
+
+    def __post_init__(self) -> None:
+        """Validate configuration parameters after initialization."""
+        if self.atol < 0:
+            msg = f"atol must be non-negative, but got {self.atol}"
+            raise ValueError(msg)
+        if self.rtol < 0:
+            msg = f"rtol must be non-negative, but got {self.rtol}"
+            raise ValueError(msg)

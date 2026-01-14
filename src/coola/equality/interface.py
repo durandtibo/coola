@@ -29,8 +29,8 @@ def objects_are_allclose(
     Args:
         actual: The actual input.
         expected: The expected input.
-        rtol: The relative tolerance parameter.
-        atol: The absolute tolerance parameter.
+        rtol: The relative tolerance parameter. Must be non-negative.
+        atol: The absolute tolerance parameter. Must be non-negative.
         equal_nan: If ``True``, then two ``NaN``s  will be considered
             as equal.
         show_difference: If ``True``, it shows a difference between
@@ -41,6 +41,9 @@ def objects_are_allclose(
     Returns:
         ``True`` if the two objects are (element-wise) equal within a
             tolerance, otherwise ``False``
+
+    Raises:
+        ValueError: if ``rtol`` or ``atol`` is negative.
 
     Example:
         ```pycon
@@ -67,6 +70,12 @@ def objects_are_allclose(
 
         ```
     """
+    if rtol < 0:
+        msg = f"rtol must be non-negative, but got {rtol}"
+        raise ValueError(msg)
+    if atol < 0:
+        msg = f"atol must be non-negative, but got {atol}"
+        raise ValueError(msg)
     if registry is None:
         registry = get_default_registry()
     config = EqualityConfig(

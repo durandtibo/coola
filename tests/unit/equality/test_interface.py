@@ -310,6 +310,16 @@ def test_objects_are_allclose_custom_registry() -> None:
     assert not objects_are_allclose([], (), registry=registry)
 
 
+def test_objects_are_allclose_negative_atol() -> None:
+    with pytest.raises(ValueError, match="atol must be non-negative"):
+        objects_are_allclose([1, 2, 3], [1, 2, 3], atol=-1.0)
+
+
+def test_objects_are_allclose_negative_rtol() -> None:
+    with pytest.raises(ValueError, match="rtol must be non-negative"):
+        objects_are_allclose([1, 2, 3], [1, 2, 3], rtol=-0.5)
+
+
 #######################################
 #     Tests for objects_are_equal     #
 #######################################
