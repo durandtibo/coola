@@ -54,7 +54,11 @@ class SameDataHandler(BaseEqualityHandler):
     """
 
     def equal(self, other: object) -> bool:
-        return type(other) is type(self)
+        if type(other) is not type(self):
+            return False
+        if self.next_handler is None:
+            return self.next_handler == other.next_handler
+        return self.next_handler.equal(other.next_handler)
 
     def handle(self, actual: SupportsData, expected: SupportsData, config: EqualityConfig) -> bool:
         if not config.registry.objects_are_equal(actual.data, expected.data, config):

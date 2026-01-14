@@ -41,6 +41,10 @@ def test_same_data_handler_equal_true() -> None:
     assert SameDataHandler().equal(SameDataHandler())
 
 
+def test_same_data_handler_equal_false_different_next_handler() -> None:
+    assert not SameDataHandler().equal(SameDataHandler(next_handler=FalseHandler()))
+
+
 def test_same_data_handler_equal_false_different_type() -> None:
     assert not SameDataHandler().equal(FalseHandler())
 
