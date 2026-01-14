@@ -7,7 +7,6 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.handler import (
-    BaseEqualityHandler,
     FalseHandler,
     SameDataHandler,
     TrueHandler,
@@ -53,9 +52,7 @@ def test_same_data_handler_str() -> None:
         ),
     ],
 )
-def test_same_data_handler_equal_true(
-    handler1: BaseEqualityHandler, handler2: BaseEqualityHandler
-) -> None:
+def test_same_data_handler_equal_true(handler1: SameDataHandler, handler2: SameDataHandler) -> None:
     assert handler1.equal(handler2)
 
 
@@ -80,7 +77,7 @@ def test_same_data_handler_equal_true(
         pytest.param(SameDataHandler(), FalseHandler(), id="different type"),
     ],
 )
-def test_same_data_handler_equal_false(handler1: BaseEqualityHandler, handler2: object) -> None:
+def test_same_data_handler_equal_false(handler1: SameDataHandler, handler2: object) -> None:
     assert not handler1.equal(handler2)
 
 

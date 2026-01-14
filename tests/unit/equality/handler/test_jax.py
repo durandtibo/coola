@@ -7,7 +7,7 @@ from unittest.mock import Mock
 import pytest
 
 from coola.equality.config import EqualityConfig
-from coola.equality.handler import FalseHandler, JaxArrayEqualHandler
+from coola.equality.handler import FalseHandler, JaxArrayEqualHandler, TrueHandler
 from coola.testing.fixtures import jax_available
 from coola.utils.imports import is_jax_available
 from tests.unit.equality.tester.test_jax import JAX_ARRAY_EQUAL_TOLERANCE
@@ -40,12 +40,46 @@ def test_jax_array_equal_handler_str() -> None:
     assert str(JaxArrayEqualHandler()) == "JaxArrayEqualHandler()"
 
 
-def test_jax_array_equal_handler_equal_true() -> None:
-    assert JaxArrayEqualHandler().equal(JaxArrayEqualHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(JaxArrayEqualHandler(), JaxArrayEqualHandler(), id="without next handler"),
+        pytest.param(
+            JaxArrayEqualHandler(FalseHandler()),
+            JaxArrayEqualHandler(FalseHandler()),
+            id="with next handler",
+        ),
+    ],
+)
+def test_jax_array_equal_true(
+    handler1: JaxArrayEqualHandler, handler2: JaxArrayEqualHandler
+) -> None:
+    assert handler1.equal(handler2)
 
 
-def test_jax_array_equal_handler_equal_false_different_type() -> None:
-    assert not JaxArrayEqualHandler().equal(FalseHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(
+            JaxArrayEqualHandler(TrueHandler()),
+            JaxArrayEqualHandler(FalseHandler()),
+            id="different next handler",
+        ),
+        pytest.param(
+            JaxArrayEqualHandler(),
+            JaxArrayEqualHandler(FalseHandler()),
+            id="next handler is none",
+        ),
+        pytest.param(
+            JaxArrayEqualHandler(FalseHandler()),
+            JaxArrayEqualHandler(),
+            id="other next handler is none",
+        ),
+        pytest.param(JaxArrayEqualHandler(), FalseHandler(), id="different type"),
+    ],
+)
+def test_jax_array_equal_false(handler1: JaxArrayEqualHandler, handler2: object) -> None:
+    assert not handler1.equal(handler2)
 
 
 def test_jax_array_equal_handler_equal_false_different_type_child() -> None:
