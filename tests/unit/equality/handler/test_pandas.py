@@ -222,7 +222,7 @@ def test_pandas_dataframe_equal_handle_set_next_handler_none() -> None:
 
 def test_pandas_dataframe_equal_handle_set_next_handler_incorrect() -> None:
     handler = PandasDataFrameEqualHandler()
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)
 
 
@@ -398,5 +398,5 @@ def test_pandas_series_equal_handle_set_next_handler_none() -> None:
 
 def test_pandas_series_equal_handle_set_next_handler_incorrect() -> None:
     handler = PandasSeriesEqualHandler()
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)

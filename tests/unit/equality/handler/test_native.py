@@ -81,7 +81,7 @@ def test_false_handler_equal_handle_set_next_handler_none() -> None:
 
 def test_false_handler_equal_handle_set_next_handler_incorrect() -> None:
     handler = FalseHandler()
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)
 
 
@@ -137,7 +137,7 @@ def test_true_handler_equal_handle_set_next_handler_none() -> None:
 
 def test_true_handler_equal_handle_set_next_handler_incorrect() -> None:
     handler = TrueHandler()
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)
 
 
@@ -206,7 +206,7 @@ def test_object_equal_handler_equal_handle_set_next_handler_none() -> None:
 
 def test_object_equal_handler_equal_handle_set_next_handler_incorrect() -> None:
     handler = ObjectEqualHandler()
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)
 
 
@@ -323,7 +323,7 @@ def test_same_attribute_handler_set_next_handler_none() -> None:
 
 def test_same_attribute_handler_set_next_handler_incorrect() -> None:
     handler = SameAttributeHandler(name="data")
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)
 
 
@@ -415,7 +415,7 @@ def test_same_length_handler_set_next_handler_none() -> None:
 
 def test_same_length_handler_set_next_handler_incorrect() -> None:
     handler = SameLengthHandler()
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)
 
 
@@ -480,7 +480,7 @@ def test_same_object_handler_set_next_handler_none() -> None:
 
 def test_same_object_handler_set_next_handler_incorrect() -> None:
     handler = SameObjectHandler()
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)
 
 
@@ -551,5 +551,5 @@ def test_same_type_handler_set_next_handler_none() -> None:
 
 def test_same_type_handler_set_next_handler_incorrect() -> None:
     handler = SameTypeHandler()
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)
