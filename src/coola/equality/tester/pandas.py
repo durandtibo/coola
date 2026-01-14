@@ -1,7 +1,7 @@
 r"""Implement equality testers for pandas DataFrames and Series.
 
-This module provides equality testers for pandas.DataFrame and pandas.Series
-using pandas' built-in equality testing methods.
+This module provides equality testers for pandas.DataFrame and
+pandas.Series using pandas' built-in equality testing methods.
 """
 
 from __future__ import annotations

@@ -1,7 +1,8 @@
 r"""Implement equality testers for xarray objects.
 
-This module provides equality testers for xarray.DataArray, xarray.Dataset,
-and xarray.Variable with recursive comparison of data, coordinates, and attributes.
+This module provides equality testers for xarray.DataArray,
+xarray.Dataset, and xarray.Variable with recursive comparison of data,
+coordinates, and attributes.
 """
 
 from __future__ import annotations

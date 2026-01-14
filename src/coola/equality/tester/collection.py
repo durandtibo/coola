@@ -1,8 +1,9 @@
 r"""Implement equality testers for collection types.
 
-This module provides equality testers for Python's built-in collection types:
-sequences (list, tuple, deque) and mappings (dict). These testers recursively
-compare nested structures using the equality tester registry.
+This module provides equality testers for Python's built-in collection
+types: sequences (list, tuple, deque) and mappings (dict). These testers
+recursively compare nested structures using the equality tester
+registry.
 """
 
 from __future__ import annotations

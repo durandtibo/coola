@@ -1,7 +1,8 @@
 r"""Implement the default equality tester.
 
-This module provides a fallback equality tester for types that don't have
-a specialized tester registered. It uses Python's built-in equality operator.
+This module provides a fallback equality tester for types that don't
+have a specialized tester registered. It uses Python's built-in equality
+operator.
 """
 
 from __future__ import annotations

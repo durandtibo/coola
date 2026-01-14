@@ -1,7 +1,8 @@
 r"""Implement equality testers for NumPy arrays.
 
-This module provides equality testers for numpy.ndarray and numpy.ma.MaskedArray
-with support for NaN equality, tolerance-based comparisons, and dtype/shape checking.
+This module provides equality testers for numpy.ndarray and
+numpy.ma.MaskedArray with support for NaN equality, tolerance-based
+comparisons, and dtype/shape checking.
 """
 
 from __future__ import annotations

@@ -1,4 +1,5 @@
-r"""Contain the equality testers to check if two objects are equal or not.
+r"""Contain the equality testers to check if two objects are equal or
+not.
 
 This module provides a comprehensive system for comparing objects of different types
 using a registry-based approach with specialized equality testers. The testers use

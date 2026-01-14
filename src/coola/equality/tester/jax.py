@@ -1,7 +1,7 @@
 r"""Implement equality testers for JAX arrays.
 
-This module provides equality testers for jax.numpy.ndarray with support for
-NaN equality, tolerance-based comparisons, and dtype/shape checking.
+This module provides equality testers for jax.numpy.ndarray with support
+for NaN equality, tolerance-based comparisons, and dtype/shape checking.
 """
 
 from __future__ import annotations
