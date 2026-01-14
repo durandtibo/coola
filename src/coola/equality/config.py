@@ -22,6 +22,11 @@ def create_default_registry() -> EqualityTesterRegistry:
 class EqualityConfig:
     r"""Define the config to control the comparison rules.
 
+    Note:
+        This class is **not thread-safe**. Each comparison should create
+        its own config instance. Do not share config instances between
+        threads as the internal depth counter is not protected by locks.
+
     Args:
         registry: The registry with the equality tester to use.
         equal_nan: If ``True``, NaN values will be considered equal.

@@ -8,7 +8,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler.base import BaseEqualityHandler
-from coola.equality.handler.utils import handlers_are_equal
+from coola.equality.handler.utils import check_recursion_depth, handlers_are_equal
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -101,21 +101,12 @@ class MappingSameValuesHandler(BaseEqualityHandler):
         expected: Mapping[Any, Any],
         config: EqualityConfig,
     ) -> bool:
-        if config._current_depth >= config.max_depth:
-            msg = (
-                f"Maximum recursion depth ({config.max_depth}) exceeded. "
-                f"Consider increasing max_depth parameter or simplifying the data structure."
-            )
-            raise RecursionError(msg)
-        config._current_depth += 1
-        try:
+        with check_recursion_depth(config):
             for key in actual:
                 if not config.registry.objects_are_equal(actual[key], expected[key], config):
                     self._show_difference(actual, expected, config=config)
                     return False
             return self._handle_next(actual, expected, config=config)
-        finally:
-            config._current_depth -= 1
 
     def _show_difference(
         self, actual: Mapping[Any, Any], expected: Mapping[Any, Any], config: EqualityConfig
