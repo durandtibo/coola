@@ -20,6 +20,14 @@ def config() -> EqualityConfig:
 #####################################
 
 
+def test_nan_equal_handler_repr() -> None:
+    assert repr(NanEqualHandler()) == "NanEqualHandler()"
+
+
+def test_nan_equal_handler_str() -> None:
+    assert str(NanEqualHandler()) == "NanEqualHandler()"
+
+
 def test_nan_equal_handler_equal_true() -> None:
     assert NanEqualHandler().equal(NanEqualHandler())
 
@@ -32,14 +40,6 @@ def test_nan_equal_handler_equal_false_different_type_child() -> None:
     class Child(NanEqualHandler): ...
 
     assert not NanEqualHandler().equal(Child())
-
-
-def test_nan_equal_handler_repr() -> None:
-    assert repr(NanEqualHandler()).startswith("NanEqualHandler(")
-
-
-def test_nan_equal_handler_str() -> None:
-    assert str(NanEqualHandler()) == "NanEqualHandler()"
 
 
 def test_nan_equal_handler_handle_true(config: EqualityConfig) -> None:
@@ -73,15 +73,29 @@ def test_nan_equal_handler_set_next_handler() -> None:
     assert handler.next_handler.equal(FalseHandler())
 
 
+def test_nan_equal_handler_set_next_handler_none() -> None:
+    handler = NanEqualHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
+
+
 def test_nan_equal_handler_set_next_handler_incorrect() -> None:
     handler = NanEqualHandler()
     with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
-        handler.set_next_handler(None)
+        handler.set_next_handler(42)
 
 
 ########################################
 #     Tests for ScalarEqualHandler     #
 ########################################
+
+
+def test_scalar_equal_handler_repr() -> None:
+    assert repr(ScalarEqualHandler()) == "ScalarEqualHandler()"
+
+
+def test_scalar_equal_handler_str() -> None:
+    assert str(ScalarEqualHandler()) == "ScalarEqualHandler()"
 
 
 def test_scalar_equal_handler_equal_true() -> None:
@@ -96,14 +110,6 @@ def test_scalar_equal_handler_equal_false_different_type_child() -> None:
     class Child(ScalarEqualHandler): ...
 
     assert not ScalarEqualHandler().equal(Child())
-
-
-def test_scalar_equal_handler_repr() -> None:
-    assert repr(ScalarEqualHandler()).startswith("ScalarEqualHandler(")
-
-
-def test_scalar_equal_handler_str() -> None:
-    assert str(ScalarEqualHandler()).startswith("ScalarEqualHandler(")
 
 
 @pytest.mark.parametrize(
@@ -164,4 +170,18 @@ def test_scalar_equal_handler_handle_true_tolerance(
 
 
 def test_scalar_equal_handler_set_next_handler() -> None:
-    ScalarEqualHandler().set_next_handler(FalseHandler())
+    handler = ScalarEqualHandler()
+    handler.set_next_handler(FalseHandler())
+    assert handler.next_handler.equal(FalseHandler())
+
+
+def test_scalar_equal_handler_set_next_handler_none() -> None:
+    handler = ScalarEqualHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
+
+
+def test_scalar_equal_handler_set_next_handler_incorrect() -> None:
+    handler = ScalarEqualHandler()
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+        handler.set_next_handler(42)

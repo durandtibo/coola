@@ -53,9 +53,6 @@ class PandasDataFrameEqualHandler(BaseEqualityHandler):
         ```
     """
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
-
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
@@ -72,9 +69,6 @@ class PandasDataFrameEqualHandler(BaseEqualityHandler):
                 f"actual:\n{actual}\nexpected:\n{expected}"
             )
         return object_equal
-
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
-        pass  # Do nothing because the next handler is never called.
 
 
 class PandasSeriesEqualHandler(BaseEqualityHandler):
@@ -100,9 +94,6 @@ class PandasSeriesEqualHandler(BaseEqualityHandler):
         ```
     """
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
-
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
@@ -118,9 +109,6 @@ class PandasSeriesEqualHandler(BaseEqualityHandler):
                 f"pandas.Series have different elements:\nactual:\n{actual}\nexpected:\n{expected}"
             )
         return object_equal
-
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
-        pass  # Do nothing because the next handler is never called.
 
 
 def frame_equal(df1: pd.DataFrame, df2: pd.DataFrame, config: EqualityConfig) -> bool:

@@ -33,7 +33,8 @@ if TYPE_CHECKING:
 
 
 class TorchPackedSequenceEqualityTester(BaseEqualityTester[torch.nn.utils.rnn.PackedSequence]):
-    r"""Implement an equality tester for ``torch.nn.utils.rnn.PackedSequence``.
+    r"""Implement an equality tester for
+    ``torch.nn.utils.rnn.PackedSequence``.
 
     Example:
         ```pycon
