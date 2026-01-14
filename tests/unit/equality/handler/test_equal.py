@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any
 import pytest
 
 from coola.equality.config import EqualityConfig
-from coola.equality.handler import EqualNanHandler, FalseHandler, TrueHandler
+from coola.equality.handler import EqualNanHandler, FalseHandler
 from coola.equality.handler.equal import EqualHandler
 
 if TYPE_CHECKING:
@@ -42,6 +42,14 @@ class MyFloatNan:
 ##################################
 
 
+def test_equal_handler_repr() -> None:
+    assert repr(EqualHandler()) == "EqualHandler()"
+
+
+def test_equal_handler_str() -> None:
+    assert str(EqualHandler()) == "EqualHandler()"
+
+
 def test_equal_handler_equal_true() -> None:
     assert EqualHandler().equal(EqualHandler())
 
@@ -54,14 +62,6 @@ def test_equal_handler_equal_false_different_type_child() -> None:
     class Child(EqualHandler): ...
 
     assert not EqualHandler().equal(Child())
-
-
-def test_equal_handler_repr() -> None:
-    assert repr(EqualHandler()).startswith("EqualHandler(")
-
-
-def test_equal_handler_str() -> None:
-    assert str(EqualHandler()).startswith("EqualHandler(")
 
 
 @pytest.mark.parametrize(
@@ -105,12 +105,34 @@ def test_equal_handler_handle_equal_nan(config: EqualityConfig, equal_nan: bool)
 
 
 def test_equal_handler_set_next_handler() -> None:
-    EqualHandler().set_next_handler(TrueHandler())
+    handler = EqualHandler()
+    handler.set_next_handler(FalseHandler())
+    assert handler.next_handler.equal(FalseHandler())
+
+
+def test_equal_handler_set_next_handler_none() -> None:
+    handler = EqualHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
+
+
+def test_equal_handler_set_next_handler_incorrect() -> None:
+    handler = EqualHandler()
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+        handler.set_next_handler(42)
 
 
 #####################################
 #     Tests for EqualNanHandler     #
 #####################################
+
+
+def test_equal_nan_handler_repr() -> None:
+    assert repr(EqualNanHandler()) == "EqualNanHandler()"
+
+
+def test_equal_nan_handler_str() -> None:
+    assert str(EqualNanHandler()) == "EqualNanHandler()"
 
 
 def test_equal_nan_handler_equal_true() -> None:
@@ -125,14 +147,6 @@ def test_equal_nan_handler_equal_false_different_type_child() -> None:
     class Child(EqualNanHandler): ...
 
     assert not EqualNanHandler().equal(Child())
-
-
-def test_equal_nan_handler_repr() -> None:
-    assert repr(EqualNanHandler()).startswith("EqualNanHandler(")
-
-
-def test_equal_nan_handler_str() -> None:
-    assert str(EqualNanHandler()).startswith("EqualNanHandler(")
 
 
 @pytest.mark.parametrize(
@@ -176,4 +190,18 @@ def test_equal_nan_handler_handle_equal_nan(config: EqualityConfig, equal_nan: b
 
 
 def test_equal_nan_handler_set_next_handler() -> None:
-    EqualNanHandler().set_next_handler(TrueHandler())
+    handler = EqualNanHandler()
+    handler.set_next_handler(FalseHandler())
+    assert handler.next_handler.equal(FalseHandler())
+
+
+def test_equal_nan_handler_set_next_handler_none() -> None:
+    handler = EqualNanHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
+
+
+def test_equal_nan_handler_set_next_handler_incorrect() -> None:
+    handler = EqualNanHandler()
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+        handler.set_next_handler(42)

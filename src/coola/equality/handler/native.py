@@ -49,9 +49,6 @@ class FalseHandler(BaseEqualityHandler):
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
-
     def handle(
         self,
         actual: object,  # noqa: ARG002
@@ -59,9 +56,6 @@ class FalseHandler(BaseEqualityHandler):
         config: EqualityConfig,  # noqa: ARG002
     ) -> bool:
         return False
-
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
-        pass  # Do nothing because the next handler is never called.
 
 
 class TrueHandler(BaseEqualityHandler):
@@ -84,9 +78,6 @@ class TrueHandler(BaseEqualityHandler):
         ```
     """
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
-
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
@@ -97,9 +88,6 @@ class TrueHandler(BaseEqualityHandler):
         config: EqualityConfig,  # noqa: ARG002
     ) -> bool:
         return True
-
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
-        pass  # Do nothing because the next handler is never called.
 
 
 class ObjectEqualHandler(BaseEqualityHandler):
@@ -125,9 +113,6 @@ class ObjectEqualHandler(BaseEqualityHandler):
         ```
     """
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
-
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
@@ -141,9 +126,6 @@ class ObjectEqualHandler(BaseEqualityHandler):
         if config.show_difference and not object_equal:
             logger.info(f"objects are different:\nactual={actual}\nexpected={expected}")
         return object_equal
-
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
-        pass  # Do nothing because the next handler is never called.
 
 
 class SameAttributeHandler(BaseEqualityHandler):

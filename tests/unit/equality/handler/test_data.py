@@ -29,6 +29,14 @@ def config() -> EqualityConfig:
 #####################################
 
 
+def test_same_data_handler_repr() -> None:
+    assert repr(SameDataHandler()) == "SameDataHandler()"
+
+
+def test_same_data_handler_str() -> None:
+    assert str(SameDataHandler()) == "SameDataHandler()"
+
+
 def test_same_data_handler_equal_true() -> None:
     assert SameDataHandler().equal(SameDataHandler())
 
@@ -41,14 +49,6 @@ def test_same_data_handler_equal_false_different_type_child() -> None:
     class Child(SameDataHandler): ...
 
     assert not SameDataHandler().equal(Child())
-
-
-def test_same_data_handler_repr() -> None:
-    assert repr(SameDataHandler()).startswith("SameDataHandler(")
-
-
-def test_same_data_handler_str() -> None:
-    assert str(SameDataHandler()).startswith("SameDataHandler(")
 
 
 @numpy_available
@@ -102,18 +102,6 @@ def test_same_data_handler_handle_without_next_handler(config: EqualityConfig) -
         handler.handle(actual=np.ones(shape=(2, 3)), expected=np.ones(shape=(2, 3)), config=config)
 
 
-def test_same_data_handler_set_next_handler() -> None:
-    handler = SameDataHandler()
-    handler.set_next_handler(FalseHandler())
-    assert handler.next_handler.equal(FalseHandler())
-
-
-def test_same_data_handler_set_next_handler_incorrect() -> None:
-    handler = SameDataHandler()
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
-        handler.set_next_handler(None)
-
-
 @torch_available
 def test_same_data_handler_handle_tensor(config: EqualityConfig) -> None:
     handler = SameDataHandler(next_handler=TrueHandler())
@@ -137,3 +125,21 @@ def test_same_data_handler_handle_padded_sequence(config: EqualityConfig) -> Non
         ),
         config,
     )
+
+
+def test_same_data_handler_set_next_handler() -> None:
+    handler = SameDataHandler()
+    handler.set_next_handler(FalseHandler())
+    assert handler.next_handler.equal(FalseHandler())
+
+
+def test_same_data_handler_set_next_handler_none() -> None:
+    handler = SameDataHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
+
+
+def test_same_data_handler_set_next_handler_incorrect() -> None:
+    handler = SameDataHandler()
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+        handler.set_next_handler(42)
