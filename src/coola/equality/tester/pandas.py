@@ -1,5 +1,8 @@
-r"""Implement an equality tester for ``pandas.DataFrame``s and
-``pandas.Series``s."""
+r"""Implement equality testers for pandas DataFrames and Series.
+
+This module provides equality testers for pandas.DataFrame and pandas.Series
+using pandas' built-in equality testing methods.
+"""
 
 from __future__ import annotations
 
@@ -28,7 +31,19 @@ if TYPE_CHECKING:
 class PandasDataFrameEqualityTester(BaseEqualityTester[pd.DataFrame]):
     r"""Implement an equality tester for ``pandas.DataFrame``.
 
+    This tester uses pandas' DataFrame equality testing which compares shape,
+    column names, data types, index, and values. The handler chain:
+    1. SameObjectHandler: Check for object identity
+    2. SameTypeHandler: Verify both are pandas DataFrames
+    3. PandasDataFrameEqualHandler: Use pandas' assert_frame_equal internally
+
+    Note:
+        The tester uses pandas' internal comparison logic which handles NaN values
+        and performs comprehensive DataFrame equality checking.
+
     Example:
+        Basic DataFrame comparison:
+
         ```pycon
         >>> import pandas as pd
         >>> from coola.equality.config import EqualityConfig
@@ -44,6 +59,23 @@ class PandasDataFrameEqualityTester(BaseEqualityTester[pd.DataFrame]):
         >>> tester.objects_are_equal(
         ...     pd.DataFrame({"col": [1, 2, 3]}),
         ...     pd.DataFrame({"col": [1, 2, 4]}),
+        ...     config,
+        ... )
+        False
+
+        ```
+
+        Different column names are not equal:
+
+        ```pycon
+        >>> import pandas as pd
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.tester import PandasDataFrameEqualityTester
+        >>> config = EqualityConfig()
+        >>> tester = PandasDataFrameEqualityTester()
+        >>> tester.objects_are_equal(
+        ...     pd.DataFrame({"col1": [1, 2, 3]}),
+        ...     pd.DataFrame({"col2": [1, 2, 3]}),
         ...     config,
         ... )
         False
@@ -74,7 +106,19 @@ class PandasDataFrameEqualityTester(BaseEqualityTester[pd.DataFrame]):
 class PandasSeriesEqualityTester(BaseEqualityTester[pd.Series]):
     r"""Implement an equality tester for ``pandas.Series``.
 
+    This tester uses pandas' Series equality testing which compares length,
+    data type, index, and values. The handler chain:
+    1. SameObjectHandler: Check for object identity
+    2. SameTypeHandler: Verify both are pandas Series
+    3. PandasSeriesEqualHandler: Use pandas' assert_series_equal internally
+
+    Note:
+        The tester uses pandas' internal comparison logic which handles NaN values
+        and performs comprehensive Series equality checking.
+
     Example:
+        Basic Series comparison:
+
         ```pycon
         >>> import pandas as pd
         >>> from coola.equality.config import EqualityConfig
@@ -84,6 +128,23 @@ class PandasSeriesEqualityTester(BaseEqualityTester[pd.Series]):
         >>> tester.objects_are_equal(pd.Series([1, 2, 3]), pd.Series([1, 2, 3]), config)
         True
         >>> tester.objects_are_equal(pd.Series([1, 2, 3]), pd.Series([1, 2, 4]), config)
+        False
+
+        ```
+
+        Different index values are not equal:
+
+        ```pycon
+        >>> import pandas as pd
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.tester import PandasSeriesEqualityTester
+        >>> config = EqualityConfig()
+        >>> tester = PandasSeriesEqualityTester()
+        >>> tester.objects_are_equal(
+        ...     pd.Series([1, 2, 3], index=["a", "b", "c"]),
+        ...     pd.Series([1, 2, 3], index=["x", "y", "z"]),
+        ...     config,
+        ... )
         False
 
         ```

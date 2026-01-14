@@ -1,5 +1,8 @@
-r"""Implement an equality tester for ``polars.DataFrame``s and
-``polars.Series``s."""
+r"""Implement equality testers for Polars DataFrames, LazyFrames, and Series.
+
+This module provides equality testers for polars.DataFrame, polars.LazyFrame,
+and polars.Series using Polars' built-in equality testing methods.
+"""
 
 from __future__ import annotations
 
@@ -33,7 +36,14 @@ if TYPE_CHECKING:
 class PolarsDataFrameEqualityTester(BaseEqualityTester[pl.DataFrame]):
     r"""Implement an equality tester for ``polars.DataFrame``.
 
+    This tester uses Polars' DataFrame equality testing. The handler chain:
+    1. SameObjectHandler: Check for object identity
+    2. SameTypeHandler: Verify both are polars DataFrames
+    3. PolarsDataFrameEqualHandler: Use Polars' internal equality testing
+
     Example:
+        Basic DataFrame comparison:
+
         ```pycon
         >>> import polars as pl
         >>> from coola.equality.config import EqualityConfig
@@ -79,7 +89,18 @@ class PolarsDataFrameEqualityTester(BaseEqualityTester[pl.DataFrame]):
 class PolarsLazyFrameEqualityTester(BaseEqualityTester[pl.LazyFrame]):
     r"""Implement an equality tester for ``polars.LazyFrame``.
 
+    This tester uses Polars' LazyFrame equality testing. The handler chain:
+    1. SameObjectHandler: Check for object identity
+    2. SameTypeHandler: Verify both are polars LazyFrames
+    3. PolarsLazyFrameEqualHandler: Use Polars' internal equality testing
+
+    Note:
+        LazyFrames represent query plans and are collected (materialized) for
+        comparison, which may have performance implications for large datasets.
+
     Example:
+        Basic LazyFrame comparison:
+
         ```pycon
         >>> import polars as pl
         >>> from coola.equality.config import EqualityConfig
@@ -125,7 +146,14 @@ class PolarsLazyFrameEqualityTester(BaseEqualityTester[pl.LazyFrame]):
 class PolarsSeriesEqualityTester(BaseEqualityTester[pl.Series]):
     r"""Implement an equality tester for ``polars.Series``.
 
+    This tester uses Polars' Series equality testing. The handler chain:
+    1. SameObjectHandler: Check for object identity
+    2. SameTypeHandler: Verify both are polars Series
+    3. PolarsSeriesEqualHandler: Use Polars' internal equality testing
+
     Example:
+        Basic Series comparison:
+
         ```pycon
         >>> import polars as pl
         >>> from coola.equality.config import EqualityConfig

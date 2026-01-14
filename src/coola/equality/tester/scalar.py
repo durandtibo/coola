@@ -1,4 +1,8 @@
-r"""Implement scalar equality testers."""
+r"""Implement scalar equality testers.
+
+This module provides equality testers for scalar numeric types (int, float)
+with support for NaN equality and tolerance-based comparisons.
+"""
 
 from __future__ import annotations
 
@@ -21,7 +25,18 @@ if TYPE_CHECKING:
 class ScalarEqualityTester(BaseEqualityTester[float]):
     r"""Implement a scalar equality tester.
 
+    This tester handles numeric scalar types (int, float) with support for
+    NaN equality and tolerance-based comparisons. The handler chain:
+    1. SameObjectHandler: Check for object identity
+    2. SameTypeHandler: Verify same type
+    3. NanEqualHandler: Handle NaN comparisons based on config.equal_nan
+    4. ScalarEqualHandler: Compare values with tolerance (config.atol, config.rtol)
+
+    This tester is registered for both int and float types in the default registry.
+
     Example:
+        Basic scalar comparison:
+
         ```pycon
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.tester import ScalarEqualityTester
@@ -31,6 +46,30 @@ class ScalarEqualityTester(BaseEqualityTester[float]):
         True
         >>> tester.objects_are_equal(42.0, 1.0, config)
         False
+
+        ```
+
+        NaN comparison with equal_nan enabled:
+
+        ```pycon
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.tester import ScalarEqualityTester
+        >>> config = EqualityConfig(equal_nan=True)
+        >>> tester = ScalarEqualityTester()
+        >>> tester.objects_are_equal(float("nan"), float("nan"), config)
+        True
+
+        ```
+
+        Tolerance-based comparison:
+
+        ```pycon
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.tester import ScalarEqualityTester
+        >>> config = EqualityConfig(atol=1e-6)
+        >>> tester = ScalarEqualityTester()
+        >>> tester.objects_are_equal(1.0, 1.0000001, config)
+        True
 
         ```
     """

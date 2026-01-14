@@ -1,4 +1,8 @@
-r"""Implement an equality tester for ``numpy.ndarray``s."""
+r"""Implement equality testers for NumPy arrays.
+
+This module provides equality testers for numpy.ndarray and numpy.ma.MaskedArray
+with support for NaN equality, tolerance-based comparisons, and dtype/shape checking.
+"""
 
 from __future__ import annotations
 
@@ -31,7 +35,20 @@ if TYPE_CHECKING:
 class NumpyArrayEqualityTester(BaseEqualityTester[np.ndarray]):
     r"""Implement an equality tester for ``numpy.ndarray``.
 
+    This tester compares NumPy arrays element-wise with support for NaN equality
+    and tolerance-based comparisons. The handler chain:
+    1. SameObjectHandler: Check for object identity
+    2. SameTypeHandler: Verify both are numpy arrays
+    3. SameDTypeHandler: Check arrays have the same dtype
+    4. SameShapeHandler: Verify arrays have the same shape
+    5. NumpyArrayEqualHandler: Element-wise comparison with tolerance support
+
+    The tester respects config.equal_nan for NaN comparisons and config.atol/rtol
+    for floating-point tolerance.
+
     Example:
+        Basic array comparison:
+
         ```pycon
         >>> import numpy as np
         >>> from coola.equality.config import EqualityConfig
@@ -42,6 +59,23 @@ class NumpyArrayEqualityTester(BaseEqualityTester[np.ndarray]):
         True
         >>> tester.objects_are_equal(np.ones((2, 3)), np.zeros((2, 3)), config)
         False
+
+        ```
+
+        NaN comparison with equal_nan:
+
+        ```pycon
+        >>> import numpy as np
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.tester import NumpyArrayEqualityTester
+        >>> config = EqualityConfig(equal_nan=True)
+        >>> tester = NumpyArrayEqualityTester()
+        >>> tester.objects_are_equal(
+        ...     np.array([1.0, float("nan")]),
+        ...     np.array([1.0, float("nan")]),
+        ...     config,
+        ... )
+        True
 
         ```
     """
@@ -71,7 +105,20 @@ class NumpyArrayEqualityTester(BaseEqualityTester[np.ndarray]):
 class NumpyMaskedArrayEqualityTester(BaseEqualityTester[np.ma.MaskedArray]):
     r"""Implement an equality tester for ``numpy.ma.MaskedArray``.
 
+    This tester compares NumPy masked arrays by checking data, mask, and fill_value.
+    The handler chain:
+    1. SameObjectHandler: Check for object identity
+    2. SameTypeHandler: Verify both are masked arrays
+    3. SameDTypeHandler: Check arrays have the same dtype
+    4. SameShapeHandler: Verify arrays have the same shape
+    5. SameDataHandler: Compare the underlying data arrays
+    6. SameAttributeHandler("mask"): Compare the mask arrays
+    7. SameAttributeHandler("fill_value"): Compare fill values
+    8. TrueHandler: Return True if all checks pass
+
     Example:
+        Basic masked array comparison:
+
         ```pycon
         >>> import numpy as np
         >>> from coola.equality.config import EqualityConfig
@@ -87,6 +134,23 @@ class NumpyMaskedArrayEqualityTester(BaseEqualityTester[np.ma.MaskedArray]):
         >>> tester.objects_are_equal(
         ...     np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
         ...     np.ma.array(data=[0.0, 1.0, 2.0], mask=[0, 1, 0]),
+        ...     config,
+        ... )
+        False
+
+        ```
+
+        Different masks are not equal:
+
+        ```pycon
+        >>> import numpy as np
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.tester import NumpyMaskedArrayEqualityTester
+        >>> config = EqualityConfig()
+        >>> tester = NumpyMaskedArrayEqualityTester()
+        >>> tester.objects_are_equal(
+        ...     np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
+        ...     np.ma.array(data=[0.0, 1.0, 1.2], mask=[1, 1, 0]),
         ...     config,
         ... )
         False

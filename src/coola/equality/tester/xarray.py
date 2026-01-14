@@ -1,4 +1,8 @@
-r"""Implement an equality tester for ``xarray`` objects."""
+r"""Implement equality testers for xarray objects.
+
+This module provides equality testers for xarray.DataArray, xarray.Dataset,
+and xarray.Variable with recursive comparison of data, coordinates, and attributes.
+"""
 
 from __future__ import annotations
 
@@ -32,7 +36,18 @@ if TYPE_CHECKING:
 class XarrayDataArrayEqualityTester(BaseEqualityTester[xr.DataArray]):
     r"""Implement an equality tester for ``xarray.DataArray``.
 
+    This tester compares xarray DataArrays by checking their variable, name,
+    and coordinates. The handler chain:
+    1. SameObjectHandler: Check for object identity
+    2. SameTypeHandler: Verify both are xarray DataArrays
+    3. SameAttributeHandler("variable"): Compare the underlying Variable
+    4. SameAttributeHandler("name"): Compare the DataArray names
+    5. SameAttributeHandler("_coords"): Compare the coordinate mappings
+    6. TrueHandler: Return True if all checks pass
+
     Example:
+        Basic DataArray comparison:
+
         ```pycon
         >>> import numpy as np
         >>> import xarray as xr
@@ -81,7 +96,18 @@ class XarrayDataArrayEqualityTester(BaseEqualityTester[xr.DataArray]):
 class XarrayDatasetEqualityTester(BaseEqualityTester[xr.Dataset]):
     r"""Implement an equality tester for ``xarray.Dataset``.
 
+    This tester compares xarray Datasets by checking their data variables,
+    coordinates, and attributes. The handler chain:
+    1. SameObjectHandler: Check for object identity
+    2. SameTypeHandler: Verify both are xarray Datasets
+    3. SameAttributeHandler("data_vars"): Compare data variable dictionaries
+    4. SameAttributeHandler("coords"): Compare coordinate dictionaries
+    5. SameAttributeHandler("attrs"): Compare attribute dictionaries
+    6. TrueHandler: Return True if all checks pass
+
     Example:
+        Basic Dataset comparison:
+
         ```pycon
         >>> import numpy as np
         >>> import xarray as xr
@@ -130,7 +156,18 @@ class XarrayDatasetEqualityTester(BaseEqualityTester[xr.Dataset]):
 class XarrayVariableEqualityTester(BaseEqualityTester[xr.Variable]):
     r"""Implement an equality tester for ``xarray.Variable``.
 
+    This tester compares xarray Variables by checking their data, dimensions,
+    and attributes. The handler chain:
+    1. SameObjectHandler: Check for object identity
+    2. SameTypeHandler: Verify both are xarray Variables
+    3. SameDataHandler: Compare the underlying data arrays
+    4. SameAttributeHandler("dims"): Compare the dimension names
+    5. SameAttributeHandler("attrs"): Compare attribute dictionaries
+    6. TrueHandler: Return True if all checks pass
+
     Example:
+        Basic Variable comparison:
+
         ```pycon
         >>> import numpy as np
         >>> import xarray as xr
