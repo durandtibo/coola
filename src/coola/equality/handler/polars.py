@@ -11,6 +11,7 @@ from functools import lru_cache
 from typing import TYPE_CHECKING
 
 from coola.equality.handler.base import BaseEqualityHandler
+from coola.equality.handler.utils import handlers_are_equal
 from coola.utils.imports import is_polars_available
 
 if TYPE_CHECKING or is_polars_available():
@@ -58,7 +59,9 @@ class PolarsDataFrameEqualHandler(BaseEqualityHandler):
     """
 
     def equal(self, other: object) -> bool:
-        return type(other) is type(self)
+        if type(other) is not type(self):
+            return False
+        return handlers_are_equal(self.next_handler, other.next_handler)
 
     def handle(
         self,
@@ -107,7 +110,9 @@ class PolarsLazyFrameEqualHandler(BaseEqualityHandler):
     """
 
     def equal(self, other: object) -> bool:
-        return type(other) is type(self)
+        if type(other) is not type(self):
+            return False
+        return handlers_are_equal(self.next_handler, other.next_handler)
 
     def handle(
         self,
@@ -148,7 +153,9 @@ class PolarsSeriesEqualHandler(BaseEqualityHandler):
     """
 
     def equal(self, other: object) -> bool:
-        return type(other) is type(self)
+        if type(other) is not type(self):
+            return False
+        return handlers_are_equal(self.next_handler, other.next_handler)
 
     def handle(
         self,

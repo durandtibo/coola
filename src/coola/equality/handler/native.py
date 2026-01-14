@@ -16,6 +16,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from coola.equality.handler.base import BaseEqualityHandler
+from coola.equality.handler.utils import handlers_are_equal
 from coola.utils.format import repr_indent, repr_mapping
 
 if TYPE_CHECKING:
@@ -47,7 +48,9 @@ class FalseHandler(BaseEqualityHandler):
     """
 
     def equal(self, other: object) -> bool:
-        return type(other) is type(self)
+        if type(other) is not type(self):
+            return False
+        return handlers_are_equal(self.next_handler, other.next_handler)
 
     def handle(
         self,
@@ -79,7 +82,9 @@ class TrueHandler(BaseEqualityHandler):
     """
 
     def equal(self, other: object) -> bool:
-        return type(other) is type(self)
+        if type(other) is not type(self):
+            return False
+        return handlers_are_equal(self.next_handler, other.next_handler)
 
     def handle(
         self,
@@ -114,7 +119,9 @@ class ObjectEqualHandler(BaseEqualityHandler):
     """
 
     def equal(self, other: object) -> bool:
-        return type(other) is type(self)
+        if type(other) is not type(self):
+            return False
+        return handlers_are_equal(self.next_handler, other.next_handler)
 
     def handle(
         self,
@@ -164,7 +171,9 @@ class SameAttributeHandler(BaseEqualityHandler):
     def equal(self, other: object) -> bool:
         if type(other) is not type(self):
             return False
-        return self.name == other.name
+        if self.name != other.name:
+            return False
+        return handlers_are_equal(self.next_handler, other.next_handler)
 
     @property
     def name(self) -> str:
@@ -199,7 +208,9 @@ class SameLengthHandler(BaseEqualityHandler):
     """
 
     def equal(self, other: object) -> bool:
-        return type(other) is type(self)
+        if type(other) is not type(self):
+            return False
+        return handlers_are_equal(self.next_handler, other.next_handler)
 
     def handle(
         self,
@@ -233,7 +244,9 @@ class SameObjectHandler(BaseEqualityHandler):
     """
 
     def equal(self, other: object) -> bool:
-        return type(other) is type(self)
+        if type(other) is not type(self):
+            return False
+        return handlers_are_equal(self.next_handler, other.next_handler)
 
     def handle(
         self,
@@ -265,7 +278,9 @@ class SameTypeHandler(BaseEqualityHandler):
     """
 
     def equal(self, other: object) -> bool:
-        return type(other) is type(self)
+        if type(other) is not type(self):
+            return False
+        return handlers_are_equal(self.next_handler, other.next_handler)
 
     def handle(
         self,
