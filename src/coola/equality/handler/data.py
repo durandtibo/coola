@@ -8,6 +8,7 @@ import logging
 from typing import TYPE_CHECKING, Any, Protocol
 
 from coola.equality.handler.base import BaseEqualityHandler
+from coola.equality.handler.utils import handlers_are_equal
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -56,9 +57,7 @@ class SameDataHandler(BaseEqualityHandler):
     def equal(self, other: object) -> bool:
         if type(other) is not type(self):
             return False
-        if self.next_handler is None:
-            return self.next_handler == other.next_handler
-        return self.next_handler.equal(other.next_handler)
+        return handlers_are_equal(self.next_handler, other.next_handler)
 
     def handle(self, actual: SupportsData, expected: SupportsData, config: EqualityConfig) -> bool:
         if not config.registry.objects_are_equal(actual.data, expected.data, config):
