@@ -1,4 +1,4 @@
-r"""Implement handler to check the objects are equal."""
+r"""Implement handler to check if the objects are equal."""
 
 from __future__ import annotations
 
