@@ -339,7 +339,7 @@ def test_objects_are_equal_exceeds_max_depth() -> None:
     for _ in range(depth):
         nested1 = [nested1]
         nested2 = [nested2]
-    with pytest.raises(RecursionError, match="Maximum recursion depth.*exceeded"):
+    with pytest.raises(RecursionError, match=r"Maximum recursion depth.*exceeded"):
         objects_are_equal(nested1, nested2, max_depth=10)
 
 
@@ -362,7 +362,7 @@ def test_objects_are_allclose_exceeds_max_depth() -> None:
     for _ in range(depth):
         nested1 = [nested1]
         nested2 = [nested2]
-    with pytest.raises(RecursionError, match="Maximum recursion depth.*exceeded"):
+    with pytest.raises(RecursionError, match=r"Maximum recursion depth.*exceeded"):
         objects_are_allclose(nested1, nested2, max_depth=10)
 
 
