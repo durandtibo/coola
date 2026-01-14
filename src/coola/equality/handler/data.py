@@ -7,7 +7,7 @@ __all__ = ["SameDataHandler", "SupportsData"]
 import logging
 from typing import TYPE_CHECKING, Any, Protocol
 
-from coola.equality.handler.base import AbstractEqualityHandler
+from coola.equality.handler.base import BaseEqualityHandler
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -30,7 +30,7 @@ class SupportsData(Protocol):
         return  # pragma: no cover
 
 
-class SameDataHandler(AbstractEqualityHandler):
+class SameDataHandler(BaseEqualityHandler):
     r"""Check if the two objects have the same data.
 
     This handler returns ``False`` if the two objects have different

@@ -15,7 +15,7 @@ __all__ = [
 import logging
 from typing import TYPE_CHECKING
 
-from coola.equality.handler.base import AbstractEqualityHandler, BaseEqualityHandler
+from coola.equality.handler.base import BaseEqualityHandler
 from coola.utils.format import repr_indent, repr_mapping
 
 if TYPE_CHECKING:
@@ -146,7 +146,7 @@ class ObjectEqualHandler(BaseEqualityHandler):
         pass  # Do nothing because the next handler is never called.
 
 
-class SameAttributeHandler(AbstractEqualityHandler):
+class SameAttributeHandler(BaseEqualityHandler):
     r"""Check if the two objects have the same attribute.
 
     This handler returns ``False`` if the two objects have different
@@ -198,7 +198,7 @@ class SameAttributeHandler(AbstractEqualityHandler):
         return self._handle_next(actual, expected, config=config)
 
 
-class SameLengthHandler(AbstractEqualityHandler):
+class SameLengthHandler(BaseEqualityHandler):
     r"""Check if the two objects have the same length.
 
     This handler returns ``False`` if the two objects have different
@@ -232,7 +232,7 @@ class SameLengthHandler(AbstractEqualityHandler):
         return self._handle_next(actual, expected, config=config)
 
 
-class SameObjectHandler(AbstractEqualityHandler):
+class SameObjectHandler(BaseEqualityHandler):
     r"""Check if the two objects refer to the same object.
 
     This handler returns ``True`` if the two objects refer to the
@@ -264,7 +264,7 @@ class SameObjectHandler(AbstractEqualityHandler):
         return self._handle_next(actual, expected, config=config)
 
 
-class SameTypeHandler(AbstractEqualityHandler):
+class SameTypeHandler(BaseEqualityHandler):
     r"""Check if the two objects have the same type.
 
     This handler returns ``False`` if the two objects have different

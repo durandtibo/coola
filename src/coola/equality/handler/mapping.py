@@ -7,7 +7,7 @@ __all__ = ["MappingSameKeysHandler", "MappingSameValuesHandler"]
 import logging
 from typing import TYPE_CHECKING, Any
 
-from coola.equality.handler.base import AbstractEqualityHandler
+from coola.equality.handler.base import BaseEqualityHandler
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class MappingSameKeysHandler(AbstractEqualityHandler):
+class MappingSameKeysHandler(BaseEqualityHandler):
     r"""Check if the two objects have the same keys.
 
     This handler returns ``False`` if the two objects have different
@@ -59,7 +59,7 @@ class MappingSameKeysHandler(AbstractEqualityHandler):
         return self._handle_next(actual, expected, config=config)
 
 
-class MappingSameValuesHandler(AbstractEqualityHandler):
+class MappingSameValuesHandler(BaseEqualityHandler):
     r"""Check if the key-value pairs in the first mapping are in the
     second mapping.
 

@@ -7,7 +7,7 @@ __all__ = ["SequenceSameValuesHandler"]
 import logging
 from typing import TYPE_CHECKING, Any
 
-from coola.equality.handler.base import AbstractEqualityHandler
+from coola.equality.handler.base import BaseEqualityHandler
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class SequenceSameValuesHandler(AbstractEqualityHandler):
+class SequenceSameValuesHandler(BaseEqualityHandler):
     r"""Check if the two sequences have the same values.
 
     This handler returns ``False`` if the two sequences have at least

@@ -2,7 +2,7 @@ r"""Define the equality handler base classes."""
 
 from __future__ import annotations
 
-__all__ = ["AbstractEqualityHandler", "BaseEqualityHandler"]
+__all__ = ["BaseEqualityHandler"]
 
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, TypeVar
@@ -207,10 +207,3 @@ class BaseEqualityHandler(ABC):
 
     def __str__(self) -> str:
         return f"{self.__class__.__qualname__}()"
-
-
-class AbstractEqualityHandler(BaseEqualityHandler):
-    r"""Implement a base class with the default chaining behavior.
-
-    A child class needs to implement the following method: ``handle``.
-    """
