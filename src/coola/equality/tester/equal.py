@@ -1,4 +1,8 @@
-r"""Implement an equality tester."""
+r"""Implement equality testers for objects with equal methods.
+
+This module provides specialized testers for objects that implement an ``equal``
+method, supporting both standard equality and NaN-aware equality comparisons.
+"""
 
 from __future__ import annotations
 
@@ -21,7 +25,18 @@ if TYPE_CHECKING:
 class EqualEqualityTester(BaseEqualityTester[object]):
     r"""Implement an equality tester for objects with equal method.
 
+    This tester is designed for objects that implement an ``equal(other)`` method
+    for equality comparison. It uses a handler chain that checks:
+    1. SameObjectHandler: Check for object identity
+    2. SameTypeHandler: Verify same type
+    3. EqualHandler: Call the object's equal() method
+
+    This tester is used for comparing BaseEqualityTester instances themselves
+    in the default registry.
+
     Example:
+        Custom class with equal method:
+
         ```pycon
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.tester import EqualEqualityTester
@@ -44,6 +59,13 @@ class EqualEqualityTester(BaseEqualityTester[object]):
     """
 
     def __init__(self) -> None:
+        """Initialize the tester with its handler chain.
+
+        The handler chain performs checks in this order:
+        1. SameObjectHandler: Quick check for object identity
+        2. SameTypeHandler: Verify both objects have the same type
+        3. EqualHandler: Call the object's equal() method
+        """
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(EqualHandler())
 
@@ -63,9 +85,18 @@ class EqualEqualityTester(BaseEqualityTester[object]):
 
 
 class EqualNanEqualityTester(BaseEqualityTester[object]):
-    r"""Implement an equality tester for objects with equal method.
+    r"""Implement an equality tester for objects with NaN-aware equal method.
+
+    This tester is designed for objects that implement an ``equal(other, equal_nan)``
+    method that supports NaN equality. When config.equal_nan is True, NaN values
+    are considered equal to each other. The handler chain:
+    1. SameObjectHandler: Check for object identity
+    2. SameTypeHandler: Verify same type
+    3. EqualNanHandler: Call object's equal() with equal_nan parameter
 
     Example:
+        Custom class with NaN-aware equal method:
+
         ```pycon
         >>> import math
         >>> from coola.equality.config import EqualityConfig
@@ -94,6 +125,13 @@ class EqualNanEqualityTester(BaseEqualityTester[object]):
     """
 
     def __init__(self) -> None:
+        """Initialize the tester with its handler chain.
+
+        The handler chain performs checks in this order:
+        1. SameObjectHandler: Quick check for object identity
+        2. SameTypeHandler: Verify both objects have the same type
+        3. EqualNanHandler: Call object's equal() method with equal_nan parameter
+        """
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(EqualNanHandler())
 
