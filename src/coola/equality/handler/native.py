@@ -15,7 +15,7 @@ __all__ = [
 import logging
 from typing import TYPE_CHECKING
 
-from coola.equality.handler.base import AbstractEqualityHandler, BaseEqualityHandler
+from coola.equality.handler.base import BaseEqualityHandler
 from coola.utils.format import repr_indent, repr_mapping
 
 if TYPE_CHECKING:
@@ -49,9 +49,6 @@ class FalseHandler(BaseEqualityHandler):
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
-
     def handle(
         self,
         actual: object,  # noqa: ARG002
@@ -59,9 +56,6 @@ class FalseHandler(BaseEqualityHandler):
         config: EqualityConfig,  # noqa: ARG002
     ) -> bool:
         return False
-
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
-        pass  # Do nothing because the next handler is never called.
 
 
 class TrueHandler(BaseEqualityHandler):
@@ -84,9 +78,6 @@ class TrueHandler(BaseEqualityHandler):
         ```
     """
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
-
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
@@ -97,9 +88,6 @@ class TrueHandler(BaseEqualityHandler):
         config: EqualityConfig,  # noqa: ARG002
     ) -> bool:
         return True
-
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
-        pass  # Do nothing because the next handler is never called.
 
 
 class ObjectEqualHandler(BaseEqualityHandler):
@@ -125,9 +113,6 @@ class ObjectEqualHandler(BaseEqualityHandler):
         ```
     """
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
-
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
@@ -142,11 +127,8 @@ class ObjectEqualHandler(BaseEqualityHandler):
             logger.info(f"objects are different:\nactual={actual}\nexpected={expected}")
         return object_equal
 
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
-        pass  # Do nothing because the next handler is never called.
 
-
-class SameAttributeHandler(AbstractEqualityHandler):
+class SameAttributeHandler(BaseEqualityHandler):
     r"""Check if the two objects have the same attribute.
 
     This handler returns ``False`` if the two objects have different
@@ -198,7 +180,7 @@ class SameAttributeHandler(AbstractEqualityHandler):
         return self._handle_next(actual, expected, config=config)
 
 
-class SameLengthHandler(AbstractEqualityHandler):
+class SameLengthHandler(BaseEqualityHandler):
     r"""Check if the two objects have the same length.
 
     This handler returns ``False`` if the two objects have different
@@ -232,7 +214,7 @@ class SameLengthHandler(AbstractEqualityHandler):
         return self._handle_next(actual, expected, config=config)
 
 
-class SameObjectHandler(AbstractEqualityHandler):
+class SameObjectHandler(BaseEqualityHandler):
     r"""Check if the two objects refer to the same object.
 
     This handler returns ``True`` if the two objects refer to the
@@ -264,7 +246,7 @@ class SameObjectHandler(AbstractEqualityHandler):
         return self._handle_next(actual, expected, config=config)
 
 
-class SameTypeHandler(AbstractEqualityHandler):
+class SameTypeHandler(BaseEqualityHandler):
     r"""Check if the two objects have the same type.
 
     This handler returns ``False`` if the two objects have different

@@ -30,6 +30,14 @@ def config() -> EqualityConfig:
 ###############################################
 
 
+def test_sequence_same_values_handler_repr() -> None:
+    assert repr(SequenceSameValuesHandler()) == "SequenceSameValuesHandler()"
+
+
+def test_sequence_same_values_handler_str() -> None:
+    assert str(SequenceSameValuesHandler()) == "SequenceSameValuesHandler()"
+
+
 def test_sequence_same_values_handler_equal_true() -> None:
     assert SequenceSameValuesHandler().equal(SequenceSameValuesHandler())
 
@@ -42,14 +50,6 @@ def test_sequence_same_values_handler_equal_false_different_type_child() -> None
     class Child(SequenceSameValuesHandler): ...
 
     assert not SequenceSameValuesHandler().equal(Child())
-
-
-def test_sequence_same_values_handler_repr() -> None:
-    assert repr(SequenceSameValuesHandler()).startswith("SequenceSameValuesHandler(")
-
-
-def test_sequence_same_values_handler_str() -> None:
-    assert str(SequenceSameValuesHandler()).startswith("SequenceSameValuesHandler(")
 
 
 @pytest.mark.parametrize(
@@ -134,7 +134,13 @@ def test_sequence_same_values_handler_set_next_handler() -> None:
     assert handler.next_handler.equal(FalseHandler())
 
 
+def test_sequence_same_values_handler_set_next_handler_none() -> None:
+    handler = SequenceSameValuesHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
+
+
 def test_sequence_same_values_handler_set_next_handler_incorrect() -> None:
     handler = SequenceSameValuesHandler()
     with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
-        handler.set_next_handler(None)
+        handler.set_next_handler(42)

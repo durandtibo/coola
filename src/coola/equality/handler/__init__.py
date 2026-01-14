@@ -7,7 +7,6 @@ pattern.
 from __future__ import annotations
 
 __all__ = [
-    "AbstractEqualityHandler",
     "BaseEqualityHandler",
     "EqualHandler",
     "EqualNanHandler",
@@ -38,7 +37,7 @@ __all__ = [
     "TrueHandler",
 ]
 
-from coola.equality.handler.base import AbstractEqualityHandler, BaseEqualityHandler
+from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.data import SameDataHandler
 from coola.equality.handler.dtype import SameDTypeHandler
 from coola.equality.handler.equal import EqualHandler, EqualNanHandler

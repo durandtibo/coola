@@ -8,7 +8,7 @@ import logging
 import math
 from typing import TYPE_CHECKING
 
-from coola.equality.handler.base import AbstractEqualityHandler, BaseEqualityHandler
+from coola.equality.handler.base import BaseEqualityHandler
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class NanEqualHandler(AbstractEqualityHandler):
+class NanEqualHandler(BaseEqualityHandler):
     r"""Check if the two NaNs are equal.
 
     This handler returns ``True`` if the two numbers are NaNs,
@@ -77,9 +77,6 @@ class ScalarEqualHandler(BaseEqualityHandler):
         ```
     """
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
-
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
@@ -88,9 +85,6 @@ class ScalarEqualHandler(BaseEqualityHandler):
         if not object_equal and config.show_difference:
             logger.info(f"numbers are not equal:\nactual:\n{actual}\nexpected:\n{expected}")
         return object_equal
-
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
-        pass  # Do nothing because the next handler is never called.
 
 
 def number_equal(number1: float, number2: float, config: EqualityConfig) -> bool:

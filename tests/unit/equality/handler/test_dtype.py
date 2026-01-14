@@ -31,6 +31,14 @@ def config() -> EqualityConfig:
 ######################################
 
 
+def test_same_dtype_handler_repr() -> None:
+    assert repr(SameDTypeHandler()) == "SameDTypeHandler()"
+
+
+def test_same_dtype_handler_str() -> None:
+    assert str(SameDTypeHandler()) == "SameDTypeHandler()"
+
+
 def test_same_dtype_handler_equal_true() -> None:
     assert SameDTypeHandler().equal(SameDTypeHandler())
 
@@ -43,14 +51,6 @@ def test_same_dtype_handler_equal_false_different_type_child() -> None:
     class Child(SameDTypeHandler): ...
 
     assert not SameDTypeHandler().equal(Child())
-
-
-def test_same_dtype_handler_repr() -> None:
-    assert repr(SameDTypeHandler()).startswith("SameDTypeHandler(")
-
-
-def test_same_dtype_handler_str() -> None:
-    assert str(SameDTypeHandler()).startswith("SameDTypeHandler(")
 
 
 @numpy_available
@@ -105,18 +105,6 @@ def test_same_dtype_handler_handle_without_next_handler(config: EqualityConfig) 
         handler.handle(actual=np.ones(shape=(2, 3)), expected=np.ones(shape=(2, 3)), config=config)
 
 
-def test_same_dtype_handler_set_next_handler() -> None:
-    handler = SameDTypeHandler()
-    handler.set_next_handler(FalseHandler())
-    assert handler.next_handler.equal(FalseHandler())
-
-
-def test_same_dtype_handler_set_next_handler_incorrect() -> None:
-    handler = SameDTypeHandler()
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
-        handler.set_next_handler(None)
-
-
 @jax_available
 def test_same_dtype_handler_handle_jax(config: EqualityConfig) -> None:
     assert SameDTypeHandler(next_handler=TrueHandler()).handle(
@@ -129,3 +117,21 @@ def test_same_dtype_handler_handle_tensor(config: EqualityConfig) -> None:
     assert SameDTypeHandler(next_handler=TrueHandler()).handle(
         torch.ones(2, 3, dtype=torch.float), torch.zeros(2, 3, dtype=torch.float), config
     )
+
+
+def test_same_dtype_handler_set_next_handler() -> None:
+    handler = SameDTypeHandler()
+    handler.set_next_handler(FalseHandler())
+    assert handler.next_handler.equal(FalseHandler())
+
+
+def test_same_dtype_handler_set_next_handler_none() -> None:
+    handler = SameDTypeHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
+
+
+def test_same_dtype_handler_set_next_handler_incorrect() -> None:
+    handler = SameDTypeHandler()
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+        handler.set_next_handler(42)

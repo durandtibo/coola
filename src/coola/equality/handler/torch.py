@@ -7,7 +7,7 @@ __all__ = ["TorchTensorEqualHandler", "TorchTensorSameDeviceHandler"]
 import logging
 from typing import TYPE_CHECKING
 
-from coola.equality.handler.base import AbstractEqualityHandler, BaseEqualityHandler
+from coola.equality.handler.base import BaseEqualityHandler
 
 if TYPE_CHECKING:
     import torch
@@ -40,9 +40,6 @@ class TorchTensorEqualHandler(BaseEqualityHandler):
         ```
     """
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
-
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
@@ -59,11 +56,8 @@ class TorchTensorEqualHandler(BaseEqualityHandler):
             )
         return object_equal
 
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
-        pass  # Do nothing because the next handler is never called.
 
-
-class TorchTensorSameDeviceHandler(AbstractEqualityHandler):
+class TorchTensorSameDeviceHandler(BaseEqualityHandler):
     r"""Check if the two tensors have the same device.
 
     This handler returns ``False`` if the two objects have different

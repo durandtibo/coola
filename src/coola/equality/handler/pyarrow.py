@@ -46,9 +46,6 @@ class PyarrowEqualHandler(BaseEqualityHandler):
         ```
     """
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
-
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
@@ -62,9 +59,6 @@ class PyarrowEqualHandler(BaseEqualityHandler):
         if config.show_difference and not equal:
             logger.info(f"objects are different:\nactual:\n{actual}\nexpected:\n{expected}")
         return equal
-
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
-        pass  # Do nothing because the next handler is never called.
 
 
 def object_equal(

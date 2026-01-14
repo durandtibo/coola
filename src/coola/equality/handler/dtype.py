@@ -7,7 +7,7 @@ __all__ = ["SameDTypeHandler", "SupportsDType"]
 import logging
 from typing import TYPE_CHECKING, Any, Protocol
 
-from coola.equality.handler.base import AbstractEqualityHandler
+from coola.equality.handler.base import BaseEqualityHandler
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -30,7 +30,7 @@ class SupportsDType(Protocol):
         return  # pragma: no cover
 
 
-class SameDTypeHandler(AbstractEqualityHandler):
+class SameDTypeHandler(BaseEqualityHandler):
     r"""Check if the two objects have the same data type.
 
     This handler returns ``False`` if the two objects have different

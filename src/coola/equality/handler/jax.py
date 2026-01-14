@@ -44,9 +44,6 @@ class JaxArrayEqualHandler(BaseEqualityHandler):
         ```
     """
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
-
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
@@ -63,9 +60,6 @@ class JaxArrayEqualHandler(BaseEqualityHandler):
                 f"actual=\n{actual}\nexpected=\n{expected}"
             )
         return object_equal
-
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
-        pass  # Do nothing because the next handler is never called.
 
 
 def array_equal(array1: jnp.ndarray, array2: jnp.ndarray, config: EqualityConfig) -> bool:

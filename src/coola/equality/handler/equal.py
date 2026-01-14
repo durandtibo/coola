@@ -83,9 +83,6 @@ class EqualHandler(BaseEqualityHandler):
         ```
     """
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
-
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
@@ -95,9 +92,6 @@ class EqualHandler(BaseEqualityHandler):
                 logger.info(f"objects are not equal:\nactual:\n{actual}\nexpected:\n{expected}")
             return False
         return True
-
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
-        pass  # Do nothing because the next handler is never called.
 
 
 class EqualNanHandler(BaseEqualityHandler):
@@ -134,9 +128,6 @@ class EqualNanHandler(BaseEqualityHandler):
         ```
     """
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
-
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
@@ -146,6 +137,3 @@ class EqualNanHandler(BaseEqualityHandler):
                 logger.info(f"objects are not equal:\nactual:\n{actual}\nexpected:\n{expected}")
             return False
         return True
-
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
-        pass  # Do nothing because the next handler is never called.
