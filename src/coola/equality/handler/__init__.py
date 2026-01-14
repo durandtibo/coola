@@ -35,6 +35,7 @@ __all__ = [
     "TorchTensorEqualHandler",
     "TorchTensorSameDeviceHandler",
     "TrueHandler",
+    "handlers_are_equal",
 ]
 
 from coola.equality.handler.base import BaseEqualityHandler
@@ -73,3 +74,4 @@ from coola.equality.handler.torch import (
     TorchTensorEqualHandler,
     TorchTensorSameDeviceHandler,
 )
+from coola.equality.handler.utils import handlers_are_equal
