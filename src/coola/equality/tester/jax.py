@@ -1,4 +1,8 @@
-r"""Implement an equality tester for ``jax.numpy.ndarray``s."""
+r"""Implement equality testers for JAX arrays.
+
+This module provides equality testers for jax.numpy.ndarray with support for
+NaN equality, tolerance-based comparisons, and dtype/shape checking.
+"""
 
 from __future__ import annotations
 
@@ -30,7 +34,20 @@ if TYPE_CHECKING:
 class JaxArrayEqualityTester(BaseEqualityTester[jnp.ndarray]):
     r"""Implement an equality tester for ``jax.numpy.ndarray``.
 
+    This tester compares JAX arrays element-wise with support for NaN equality
+    and tolerance-based comparisons. The handler chain:
+    1. SameObjectHandler: Check for object identity
+    2. SameTypeHandler: Verify both are JAX arrays
+    3. SameDTypeHandler: Check arrays have the same dtype
+    4. SameShapeHandler: Verify arrays have the same shape
+    5. JaxArrayEqualHandler: Element-wise comparison with tolerance support
+
+    The tester respects config.equal_nan for NaN comparisons and config.atol/rtol
+    for floating-point tolerance.
+
     Example:
+        Basic array comparison:
+
         ```pycon
         >>> import jax.numpy as jnp
         >>> from coola.equality.config import EqualityConfig
@@ -46,6 +63,18 @@ class JaxArrayEqualityTester(BaseEqualityTester[jnp.ndarray]):
     """
 
     def __init__(self) -> None:
+        """Initialize the JAX array equality tester.
+
+        The handler chain performs checks in this order:
+        1. SameObjectHandler: Quick check for object identity
+        2. SameTypeHandler: Verify both are JAX arrays
+        3. SameDTypeHandler: Ensure arrays have matching data types
+        4. SameShapeHandler: Verify arrays have the same dimensions
+        5. JaxArrayEqualHandler: Element-wise equality with tolerance
+
+        Raises:
+            RuntimeError: If JAX is not installed.
+        """
         check_jax()
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(SameDTypeHandler()).chain(
@@ -69,9 +98,17 @@ class JaxArrayEqualityTester(BaseEqualityTester[jnp.ndarray]):
 
 @lru_cache(maxsize=1)
 def get_array_impl_class() -> type:
-    r"""Get the array implementation class.
+    r"""Get the JAX array implementation class.
+
+    JAX uses different concrete array implementations depending on the backend
+    and compilation status. This function creates a simple array and returns
+    its class, which is then registered in the equality tester registry.
 
     Returns:
-        The array implementation class.
+        The JAX array implementation class (e.g., ArrayImpl).
+
+    Note:
+        This function is cached to avoid creating arrays repeatedly. The result
+        is used to register the concrete JAX array type in the default registry.
     """
     return jnp.ones(1).__class__

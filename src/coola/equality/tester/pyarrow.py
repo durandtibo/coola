@@ -1,5 +1,8 @@
-r"""Implement an equality tester for ``pyarrow.Array``s and
-``pyarrow.Table``s."""
+r"""Implement equality testers for PyArrow arrays and tables.
+
+This module provides equality testers for pyarrow.Array and pyarrow.Table
+using PyArrow's built-in equals() method.
+"""
 
 from __future__ import annotations
 
@@ -28,10 +31,19 @@ class PyarrowEqualityTester(BaseEqualityTester[pa.Array]):
     r"""Implement an equality tester for ``pyarrow.Array``s and
     ``pyarrow.Table``s.
 
-    Note that ``config.equal_nan``, ``config.atol`` and ``config.rtol``
-    arguments are ignored.
+    This tester uses PyArrow's equals() method for comparison. The handler chain:
+    1. SameObjectHandler: Check for object identity
+    2. SameTypeHandler: Verify both are pyarrow objects
+    3. PyarrowEqualHandler: Use PyArrow's equals() method
+
+    Note:
+        The ``config.equal_nan``, ``config.atol``, and ``config.rtol`` arguments
+        are ignored as PyArrow's equals() method does not support these parameters.
+        PyArrow performs its own equality checking logic.
 
     Example:
+        Basic array comparison:
+
         ```pycon
         >>> import pyarrow as pa
         >>> from coola.equality.config import EqualityConfig
@@ -44,9 +56,34 @@ class PyarrowEqualityTester(BaseEqualityTester[pa.Array]):
         False
 
         ```
+
+        Table comparison:
+
+        ```pycon
+        >>> import pyarrow as pa
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.tester import PyarrowEqualityTester
+        >>> config = EqualityConfig()
+        >>> tester = PyarrowEqualityTester()
+        >>> table1 = pa.table({"col": [1, 2, 3]})
+        >>> table2 = pa.table({"col": [1, 2, 3]})
+        >>> tester.objects_are_equal(table1, table2, config)
+        True
+
+        ```
     """
 
     def __init__(self) -> None:
+        """Initialize the PyArrow equality tester.
+
+        The handler chain performs checks in this order:
+        1. SameObjectHandler: Quick check for object identity
+        2. SameTypeHandler: Verify both are PyArrow objects
+        3. PyarrowEqualHandler: Use PyArrow's equals() method
+
+        Raises:
+            RuntimeError: If PyArrow is not installed.
+        """
         check_pyarrow()
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(PyarrowEqualHandler())
