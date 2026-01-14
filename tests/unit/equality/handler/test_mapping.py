@@ -107,7 +107,7 @@ def test_mapping_same_keys_handler_set_next_handler_none() -> None:
 
 def test_mapping_same_keys_handler_set_next_handler_incorrect() -> None:
     handler = MappingSameKeysHandler()
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)
 
 
@@ -197,5 +197,5 @@ def test_mapping_same_values_handler_set_next_handler_none() -> None:
 
 def test_mapping_same_values_handler_set_next_handler_incorrect() -> None:
     handler = MappingSameValuesHandler()
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)

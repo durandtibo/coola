@@ -166,7 +166,7 @@ def test_pyarrow_equal_handle_set_next_handler_none() -> None:
 
 def test_pyarrow_equal_handle_set_next_handler_incorrect() -> None:
     handler = PyarrowEqualHandler()
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)
 
 

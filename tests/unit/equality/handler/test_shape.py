@@ -133,7 +133,7 @@ def test_same_shape_handler_set_next_handler_none() -> None:
 
 def test_same_shape_handler_set_next_handler_incorrect() -> None:
     handler = SameShapeHandler()
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)
 
 

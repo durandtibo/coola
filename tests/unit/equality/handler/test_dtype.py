@@ -133,5 +133,5 @@ def test_same_dtype_handler_set_next_handler_none() -> None:
 
 def test_same_dtype_handler_set_next_handler_incorrect() -> None:
     handler = SameDTypeHandler()
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)

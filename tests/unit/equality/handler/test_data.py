@@ -141,5 +141,5 @@ def test_same_data_handler_set_next_handler_none() -> None:
 
 def test_same_data_handler_set_next_handler_incorrect() -> None:
     handler = SameDataHandler()
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)
