@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class PolarsDataFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
+class PolarsDataFrameEqualHandler(BaseEqualityHandler):
     r"""Check if the two ``polars.DataFrame`` are equal.
 
     This handler returns ``True`` if the two ``polars.DataFrame``s
@@ -39,8 +39,7 @@ class PolarsDataFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         >>> import polars as pl
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import PolarsDataFrameEqualHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig()
         >>> handler = PolarsDataFrameEqualHandler()
         >>> handler.handle(
         ...     pl.DataFrame({"col": [1, 2, 3]}),
@@ -58,11 +57,8 @@ class PolarsDataFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
+    def equal(self, other: object) -> bool:
         return type(other) is type(self)
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def handle(
         self,
@@ -78,11 +74,8 @@ class PolarsDataFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
             )
         return object_equal
 
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
-        pass  # Do nothing because the next handler is never called.
 
-
-class PolarsLazyFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
+class PolarsLazyFrameEqualHandler(BaseEqualityHandler):
     r"""Check if the two ``polars.LazyFrame`` are equal.
 
     This handler returns ``True`` if the two ``polars.LazyFrame``s
@@ -95,8 +88,7 @@ class PolarsLazyFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         >>> import polars as pl
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import PolarsLazyFrameEqualHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig()
         >>> handler = PolarsLazyFrameEqualHandler()
         >>> handler.handle(
         ...     pl.LazyFrame({"col": [1, 2, 3]}),
@@ -114,11 +106,8 @@ class PolarsLazyFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
+    def equal(self, other: object) -> bool:
         return type(other) is type(self)
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def handle(
         self,
@@ -134,11 +123,8 @@ class PolarsLazyFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
             )
         return object_equal
 
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
-        pass  # Do nothing because the next handler is never called.
 
-
-class PolarsSeriesEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
+class PolarsSeriesEqualHandler(BaseEqualityHandler):
     r"""Check if the two ``polars.Series`` are equal.
 
     This handler returns ``True`` if the two arrays ``polars.Series``
@@ -151,8 +137,7 @@ class PolarsSeriesEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         >>> import polars as pl
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import PolarsSeriesEqualHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig()
         >>> handler = PolarsSeriesEqualHandler()
         >>> handler.handle(pl.Series([1, 2, 3]), pl.Series([1, 2, 3]), config)
         True
@@ -162,11 +147,8 @@ class PolarsSeriesEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
+    def equal(self, other: object) -> bool:
         return type(other) is type(self)
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def handle(
         self,
@@ -180,9 +162,6 @@ class PolarsSeriesEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
                 f"polars.Series have different elements:\nactual:\n{actual}\nexpected:\n{expected}"
             )
         return object_equal
-
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
-        pass  # Do nothing because the next handler is never called.
 
 
 def has_nan(df_or_series: pl.DataFrame | pl.Series) -> bool:

@@ -10,10 +10,9 @@ import pytest
 from coola.equality.config import EqualityConfig
 from coola.equality.handler import FalseHandler, PyarrowEqualHandler
 from coola.equality.handler.pyarrow import object_equal
-from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import pyarrow_available
 from coola.utils.imports import is_pyarrow_available
-from tests.unit.equality.comparators.test_pyarrow import (
+from tests.unit.equality.tester.test_pyarrow import (
     PYARROW_EQUAL,
     PYARROW_EQUAL_TOLERANCE,
     PYARROW_NOT_EQUAL,
@@ -31,7 +30,7 @@ else:
 
 @pytest.fixture
 def config() -> EqualityConfig:
-    return EqualityConfig(tester=EqualityTester())
+    return EqualityConfig()
 
 
 #########################################
@@ -39,26 +38,26 @@ def config() -> EqualityConfig:
 #########################################
 
 
-def test_pyarrow_equal_handler__eq__true() -> None:
-    assert PyarrowEqualHandler() == PyarrowEqualHandler()
-
-
-def test_pyarrow_equal_handler__eq__false_different_type() -> None:
-    assert PyarrowEqualHandler() != FalseHandler()
-
-
-def test_pyarrow_equal_handler__eq__false_different_type_child() -> None:
-    class Child(PyarrowEqualHandler): ...
-
-    assert PyarrowEqualHandler() != Child()
-
-
 def test_pyarrow_equal_handler_repr() -> None:
-    assert repr(PyarrowEqualHandler()).startswith("PyarrowEqualHandler(")
+    assert repr(PyarrowEqualHandler()) == "PyarrowEqualHandler()"
 
 
 def test_pyarrow_equal_handler_str() -> None:
-    assert str(PyarrowEqualHandler()).startswith("PyarrowEqualHandler(")
+    assert str(PyarrowEqualHandler()) == "PyarrowEqualHandler()"
+
+
+def test_pyarrow_equal_handler_equal_true() -> None:
+    assert PyarrowEqualHandler().equal(PyarrowEqualHandler())
+
+
+def test_pyarrow_equal_handler_equal_false_different_type() -> None:
+    assert not PyarrowEqualHandler().equal(FalseHandler())
+
+
+def test_pyarrow_equal_handler_equal_false_different_type_child() -> None:
+    class Child(PyarrowEqualHandler): ...
+
+    assert not PyarrowEqualHandler().equal(Child())
 
 
 @pyarrow_available
@@ -151,6 +150,24 @@ def test_pyarrow_equal_handler_handle_false_tolerance(
 
 def test_pyarrow_equal_handler_set_next_handler() -> None:
     PyarrowEqualHandler().set_next_handler(FalseHandler())
+
+
+def test_pyarrow_equal_handle_set_next_handler() -> None:
+    handler = PyarrowEqualHandler()
+    handler.set_next_handler(FalseHandler())
+    assert handler.next_handler.equal(FalseHandler())
+
+
+def test_pyarrow_equal_handle_set_next_handler_none() -> None:
+    handler = PyarrowEqualHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
+
+
+def test_pyarrow_equal_handle_set_next_handler_incorrect() -> None:
+    handler = PyarrowEqualHandler()
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+        handler.set_next_handler(42)
 
 
 ##################################

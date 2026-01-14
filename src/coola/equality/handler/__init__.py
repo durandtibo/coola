@@ -7,7 +7,6 @@ pattern.
 from __future__ import annotations
 
 __all__ = [
-    "AbstractEqualityHandler",
     "BaseEqualityHandler",
     "EqualHandler",
     "EqualNanHandler",
@@ -34,10 +33,11 @@ __all__ = [
     "ScalarEqualHandler",
     "SequenceSameValuesHandler",
     "TorchTensorEqualHandler",
+    "TorchTensorSameDeviceHandler",
     "TrueHandler",
 ]
 
-from coola.equality.handler.base import AbstractEqualityHandler, BaseEqualityHandler
+from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.data import SameDataHandler
 from coola.equality.handler.dtype import SameDTypeHandler
 from coola.equality.handler.equal import EqualHandler, EqualNanHandler
@@ -69,4 +69,7 @@ from coola.equality.handler.pyarrow import PyarrowEqualHandler
 from coola.equality.handler.scalar import NanEqualHandler, ScalarEqualHandler
 from coola.equality.handler.sequence import SequenceSameValuesHandler
 from coola.equality.handler.shape import SameShapeHandler
-from coola.equality.handler.torch import TorchTensorEqualHandler
+from coola.equality.handler.torch import (
+    TorchTensorEqualHandler,
+    TorchTensorSameDeviceHandler,
+)

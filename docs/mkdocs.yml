@@ -26,14 +26,12 @@ nav:
   - get_started.md
   - User Guide:
       - uguide/quickstart.md
-      - uguide/types.md
-      - uguide/recursive.md
+      - uguide/equality_types.md
       - uguide/iterator.md
-      - uguide/registry.md
       - uguide/random.md
+      - uguide/recursive.md
+      - uguide/registry.md
       - uguide/summary.md
-      - uguide/customization.md
-      - uguide/examples.md
   - Developer Guide:
       - dev/development.md
       - dev/architecture.md
@@ -45,7 +43,6 @@ nav:
       - refs/reducer.md
       - refs/registry.md
       - refs/summary.md
-      - refs/testers.md
       - refs/testing.md
       - refs/utils.md
   - GitHub: https://github.com/durandtibo/coola

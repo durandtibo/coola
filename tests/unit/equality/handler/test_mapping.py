@@ -12,7 +12,6 @@ from coola.equality.handler import (
     MappingSameValuesHandler,
     TrueHandler,
 )
-from coola.equality.testers import EqualityTester
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -20,7 +19,7 @@ if TYPE_CHECKING:
 
 @pytest.fixture
 def config() -> EqualityConfig:
-    return EqualityConfig(tester=EqualityTester())
+    return EqualityConfig()
 
 
 ############################################
@@ -28,26 +27,26 @@ def config() -> EqualityConfig:
 ############################################
 
 
-def test_mapping_same_keys_handler__eq__true() -> None:
-    assert MappingSameKeysHandler() == MappingSameKeysHandler()
-
-
-def test_mapping_same_keys_handler__eq__false_different_type() -> None:
-    assert MappingSameKeysHandler() != FalseHandler()
-
-
-def test_mapping_same_keys_handler__eq__false_different_type_child() -> None:
-    class Child(MappingSameKeysHandler): ...
-
-    assert MappingSameKeysHandler() != Child()
-
-
 def test_mapping_same_keys_handler_repr() -> None:
-    assert repr(MappingSameKeysHandler()).startswith("MappingSameKeysHandler(")
+    assert repr(MappingSameKeysHandler()) == "MappingSameKeysHandler()"
 
 
 def test_mapping_same_keys_handler_str() -> None:
-    assert str(MappingSameKeysHandler()).startswith("MappingSameKeysHandler(")
+    assert str(MappingSameKeysHandler()) == "MappingSameKeysHandler()"
+
+
+def test_mapping_same_keys_handler_equal_true() -> None:
+    assert MappingSameKeysHandler().equal(MappingSameKeysHandler())
+
+
+def test_mapping_same_keys_handler_equal_false_different_type() -> None:
+    assert not MappingSameKeysHandler().equal(FalseHandler())
+
+
+def test_mapping_same_keys_handler_equal_false_different_type_child() -> None:
+    class Child(MappingSameKeysHandler): ...
+
+    assert not MappingSameKeysHandler().equal(Child())
 
 
 @pytest.mark.parametrize(
@@ -97,13 +96,19 @@ def test_mapping_same_keys_handler_handle_without_next_handler(config: EqualityC
 def test_mapping_same_keys_handler_set_next_handler() -> None:
     handler = MappingSameKeysHandler()
     handler.set_next_handler(FalseHandler())
-    assert handler.next_handler == FalseHandler()
+    assert handler.next_handler.equal(FalseHandler())
+
+
+def test_mapping_same_keys_handler_set_next_handler_none() -> None:
+    handler = MappingSameKeysHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
 
 
 def test_mapping_same_keys_handler_set_next_handler_incorrect() -> None:
     handler = MappingSameKeysHandler()
     with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
-        handler.set_next_handler(None)
+        handler.set_next_handler(42)
 
 
 ###############################################
@@ -111,26 +116,26 @@ def test_mapping_same_keys_handler_set_next_handler_incorrect() -> None:
 ###############################################
 
 
-def test_mapping_same_values_handler__eq__true() -> None:
-    assert MappingSameValuesHandler() == MappingSameValuesHandler()
-
-
-def test_mapping_same_values_handler__eq__false_different_type() -> None:
-    assert MappingSameValuesHandler() != FalseHandler()
-
-
-def test_mapping_same_values_handler__eq__false_different_type_child() -> None:
-    class Child(MappingSameValuesHandler): ...
-
-    assert MappingSameValuesHandler() != Child()
-
-
 def test_mapping_same_values_handler_repr() -> None:
-    assert repr(MappingSameValuesHandler()).startswith("MappingSameValuesHandler(")
+    assert repr(MappingSameValuesHandler()) == "MappingSameValuesHandler()"
 
 
 def test_mapping_same_values_handler_str() -> None:
-    assert str(MappingSameValuesHandler()).startswith("MappingSameValuesHandler(")
+    assert str(MappingSameValuesHandler()) == "MappingSameValuesHandler()"
+
+
+def test_mapping_same_values_handler_equal_true() -> None:
+    assert MappingSameValuesHandler().equal(MappingSameValuesHandler())
+
+
+def test_mapping_same_values_handler_equal_false_different_type() -> None:
+    assert not MappingSameValuesHandler().equal(FalseHandler())
+
+
+def test_mapping_same_values_handler_equal_false_different_type_child() -> None:
+    class Child(MappingSameValuesHandler): ...
+
+    assert not MappingSameValuesHandler().equal(Child())
 
 
 @pytest.mark.parametrize(
@@ -181,10 +186,16 @@ def test_mapping_same_values_handler_handle_without_next_handler(config: Equalit
 def test_mapping_same_values_handler_set_next_handler() -> None:
     handler = MappingSameValuesHandler()
     handler.set_next_handler(FalseHandler())
-    assert handler.next_handler == FalseHandler()
+    assert handler.next_handler.equal(FalseHandler())
+
+
+def test_mapping_same_values_handler_set_next_handler_none() -> None:
+    handler = MappingSameValuesHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
 
 
 def test_mapping_same_values_handler_set_next_handler_incorrect() -> None:
     handler = MappingSameValuesHandler()
     with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
-        handler.set_next_handler(None)
+        handler.set_next_handler(42)

@@ -7,7 +7,7 @@ __all__ = ["Registry"]
 import threading
 from typing import TYPE_CHECKING, Generic, TypeVar
 
-from coola.comparison import objects_are_equal
+from coola.equality.interface import objects_are_equal
 from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:

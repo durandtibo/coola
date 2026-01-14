@@ -7,7 +7,7 @@ __all__ = ["TorchTensorEqualHandler", "TorchTensorSameDeviceHandler"]
 import logging
 from typing import TYPE_CHECKING
 
-from coola.equality.handler.base import AbstractEqualityHandler, BaseEqualityHandler
+from coola.equality.handler.base import BaseEqualityHandler
 
 if TYPE_CHECKING:
     import torch
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class TorchTensorEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
+class TorchTensorEqualHandler(BaseEqualityHandler):
     r"""Check if the two tensors are equal.
 
     This handler returns ``True`` if the two tensors are equal,
@@ -30,8 +30,7 @@ class TorchTensorEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         >>> import torch
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import TorchTensorEqualHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig()
         >>> handler = TorchTensorEqualHandler()
         >>> handler.handle(torch.ones(2, 3), torch.ones(2, 3), config)
         True
@@ -41,11 +40,8 @@ class TorchTensorEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
+    def equal(self, other: object) -> bool:
         return type(other) is type(self)
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def handle(
         self,
@@ -60,11 +56,8 @@ class TorchTensorEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
             )
         return object_equal
 
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
-        pass  # Do nothing because the next handler is never called.
 
-
-class TorchTensorSameDeviceHandler(AbstractEqualityHandler):  # noqa: PLW1641
+class TorchTensorSameDeviceHandler(BaseEqualityHandler):
     r"""Check if the two tensors have the same device.
 
     This handler returns ``False`` if the two objects have different
@@ -74,10 +67,8 @@ class TorchTensorSameDeviceHandler(AbstractEqualityHandler):  # noqa: PLW1641
         ```pycon
         >>> import torch
         >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.handler import TrueHandler
-        >>> from coola.equality.handler.torch import TorchTensorSameDeviceHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> from coola.equality.handler import TrueHandler, TorchTensorSameDeviceHandler
+        >>> config = EqualityConfig()
         >>> handler = TorchTensorSameDeviceHandler(next_handler=TrueHandler())
         >>> handler.handle(torch.ones(2, 3), torch.ones(3, 2), config)
         True
@@ -85,7 +76,7 @@ class TorchTensorSameDeviceHandler(AbstractEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
+    def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
     def handle(

@@ -7,7 +7,6 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.handler import FalseHandler, SameShapeHandler, TrueHandler
-from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import (
     jax_available,
     numpy_available,
@@ -40,7 +39,7 @@ if is_torch_available():
 
 @pytest.fixture
 def config() -> EqualityConfig:
-    return EqualityConfig(tester=EqualityTester())
+    return EqualityConfig()
 
 
 ######################################
@@ -48,26 +47,26 @@ def config() -> EqualityConfig:
 ######################################
 
 
-def test_same_shape_handler__eq__true() -> None:
-    assert SameShapeHandler() == SameShapeHandler()
-
-
-def test_same_shape_handler__eq__false_different_type() -> None:
-    assert SameShapeHandler() != FalseHandler()
-
-
-def test_same_shape_handler__eq__false_different_type_child() -> None:
-    class Child(SameShapeHandler): ...
-
-    assert SameShapeHandler() != Child()
-
-
 def test_same_shape_handler_repr() -> None:
-    assert repr(SameShapeHandler()).startswith("SameShapeHandler(")
+    assert repr(SameShapeHandler()) == "SameShapeHandler()"
 
 
 def test_same_shape_handler_str() -> None:
-    assert str(SameShapeHandler()).startswith("SameShapeHandler(")
+    assert str(SameShapeHandler()) == "SameShapeHandler()"
+
+
+def test_same_shape_handler_equal_true() -> None:
+    assert SameShapeHandler().equal(SameShapeHandler())
+
+
+def test_same_shape_handler_equal_false_different_type() -> None:
+    assert not SameShapeHandler().equal(FalseHandler())
+
+
+def test_same_shape_handler_equal_false_different_type_child() -> None:
+    class Child(SameShapeHandler): ...
+
+    assert not SameShapeHandler().equal(Child())
 
 
 @numpy_available
@@ -123,13 +122,19 @@ def test_same_shape_handler_handle_without_next_handler(config: EqualityConfig) 
 def test_same_shape_handler_set_next_handler() -> None:
     handler = SameShapeHandler()
     handler.set_next_handler(FalseHandler())
-    assert handler.next_handler == FalseHandler()
+    assert handler.next_handler.equal(FalseHandler())
+
+
+def test_same_shape_handler_set_next_handler_none() -> None:
+    handler = SameShapeHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
 
 
 def test_same_shape_handler_set_next_handler_incorrect() -> None:
     handler = SameShapeHandler()
     with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
-        handler.set_next_handler(None)
+        handler.set_next_handler(42)
 
 
 @jax_available

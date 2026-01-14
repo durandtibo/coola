@@ -8,7 +8,6 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.handler import FalseHandler, SequenceSameValuesHandler, TrueHandler
-from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
 
@@ -23,7 +22,7 @@ if TYPE_CHECKING:
 
 @pytest.fixture
 def config() -> EqualityConfig:
-    return EqualityConfig(tester=EqualityTester())
+    return EqualityConfig()
 
 
 ###############################################
@@ -31,26 +30,26 @@ def config() -> EqualityConfig:
 ###############################################
 
 
-def test_sequence_same_values_handler__eq__true() -> None:
-    assert SequenceSameValuesHandler() == SequenceSameValuesHandler()
-
-
-def test_sequence_same_values_handler__eq__false_different_type() -> None:
-    assert SequenceSameValuesHandler() != FalseHandler()
-
-
-def test_sequence_same_values_handler__eq__false_different_type_child() -> None:
-    class Child(SequenceSameValuesHandler): ...
-
-    assert SequenceSameValuesHandler() != Child()
-
-
 def test_sequence_same_values_handler_repr() -> None:
-    assert repr(SequenceSameValuesHandler()).startswith("SequenceSameValuesHandler(")
+    assert repr(SequenceSameValuesHandler()) == "SequenceSameValuesHandler()"
 
 
 def test_sequence_same_values_handler_str() -> None:
-    assert str(SequenceSameValuesHandler()).startswith("SequenceSameValuesHandler(")
+    assert str(SequenceSameValuesHandler()) == "SequenceSameValuesHandler()"
+
+
+def test_sequence_same_values_handler_equal_true() -> None:
+    assert SequenceSameValuesHandler().equal(SequenceSameValuesHandler())
+
+
+def test_sequence_same_values_handler_equal_false_different_type() -> None:
+    assert not SequenceSameValuesHandler().equal(FalseHandler())
+
+
+def test_sequence_same_values_handler_equal_false_different_type_child() -> None:
+    class Child(SequenceSameValuesHandler): ...
+
+    assert not SequenceSameValuesHandler().equal(Child())
 
 
 @pytest.mark.parametrize(
@@ -132,10 +131,16 @@ def test_sequence_same_values_handler_handle_without_next_handler(config: Equali
 def test_sequence_same_values_handler_set_next_handler() -> None:
     handler = SequenceSameValuesHandler()
     handler.set_next_handler(FalseHandler())
-    assert handler.next_handler == FalseHandler()
+    assert handler.next_handler.equal(FalseHandler())
+
+
+def test_sequence_same_values_handler_set_next_handler_none() -> None:
+    handler = SequenceSameValuesHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
 
 
 def test_sequence_same_values_handler_set_next_handler_incorrect() -> None:
     handler = SequenceSameValuesHandler()
     with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
-        handler.set_next_handler(None)
+        handler.set_next_handler(42)

@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class NumpyArrayEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
+class NumpyArrayEqualHandler(BaseEqualityHandler):
     r"""Check if the two NumPy arrays are equal.
 
     This handler returns ``True`` if the two arrays are equal,
@@ -34,8 +34,7 @@ class NumpyArrayEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         >>> import numpy as np
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import NumpyArrayEqualHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig()
         >>> handler = NumpyArrayEqualHandler()
         >>> handler.handle(np.ones((2, 3)), np.ones((2, 3)), config)
         True
@@ -45,11 +44,8 @@ class NumpyArrayEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
+    def equal(self, other: object) -> bool:
         return type(other) is type(self)
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def handle(
         self,
@@ -63,9 +59,6 @@ class NumpyArrayEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
                 f"numpy.ndarrays have different elements:\nactual:\n{actual}\nexpected:\n{expected}"
             )
         return object_equal
-
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
-        pass  # Do nothing because the next handler is never called.
 
 
 def array_equal(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) -> bool:
@@ -85,8 +78,7 @@ def array_equal(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) 
         >>> import numpy as np
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler.numpy import array_equal
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig()
         >>> array_equal(np.ones((2, 3)), np.ones((2, 3)), config)
         True
         >>> array_equal(np.ones((2, 3)), np.zeros((2, 3)), config)

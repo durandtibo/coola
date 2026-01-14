@@ -4,7 +4,7 @@ import importlib
 import logging
 import random
 
-from coola import objects_are_allclose, objects_are_equal
+from coola.equality import objects_are_allclose, objects_are_equal
 from coola.random import manual_seed
 from coola.reducer import NativeReducer
 from coola.utils.imports import (

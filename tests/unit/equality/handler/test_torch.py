@@ -12,16 +12,14 @@ from coola.equality.handler.torch import (
     TorchTensorEqualHandler,
     TorchTensorSameDeviceHandler,
 )
-from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import torch_available, torch_cuda_available
 from coola.utils.imports import is_torch_available
-from tests.unit.equality.comparators.test_torch import TORCH_TENSOR_EQUAL_TOLERANCE
+from tests.unit.equality.tester.test_torch import TORCH_TENSOR_EQUAL_TOLERANCE
 
 if is_torch_available():
     import torch
 else:
     torch = Mock()
-
 
 if TYPE_CHECKING:
     from tests.unit.equality.utils import ExamplePair
@@ -29,7 +27,7 @@ if TYPE_CHECKING:
 
 @pytest.fixture
 def config() -> EqualityConfig:
-    return EqualityConfig(tester=EqualityTester())
+    return EqualityConfig()
 
 
 #############################################
@@ -37,26 +35,26 @@ def config() -> EqualityConfig:
 #############################################
 
 
-def test_torch_tensor_equal_handler__eq__true() -> None:
-    assert TorchTensorEqualHandler() == TorchTensorEqualHandler()
-
-
-def test_torch_tensor_equal_handler__eq__false_different_type() -> None:
-    assert TorchTensorEqualHandler() != FalseHandler()
-
-
-def test_torch_tensor_equal_handler__eq__false_different_type_child() -> None:
-    class Child(TorchTensorEqualHandler): ...
-
-    assert TorchTensorEqualHandler() != Child()
-
-
 def test_torch_tensor_equal_handler_repr() -> None:
-    assert repr(TorchTensorEqualHandler()).startswith("TorchTensorEqualHandler(")
+    assert repr(TorchTensorEqualHandler()) == "TorchTensorEqualHandler()"
 
 
 def test_torch_tensor_equal_handler_str() -> None:
-    assert str(TorchTensorEqualHandler()).startswith("TorchTensorEqualHandler(")
+    assert str(TorchTensorEqualHandler()) == "TorchTensorEqualHandler()"
+
+
+def test_torch_tensor_equal_handler_equal_true() -> None:
+    assert TorchTensorEqualHandler().equal(TorchTensorEqualHandler())
+
+
+def test_torch_tensor_equal_handler_equal_false_different_type() -> None:
+    assert not TorchTensorEqualHandler().equal(FalseHandler())
+
+
+def test_torch_tensor_equal_handler_equal_false_different_type_child() -> None:
+    class Child(TorchTensorEqualHandler): ...
+
+    assert not TorchTensorEqualHandler().equal(Child())
 
 
 @torch_available
@@ -140,26 +138,26 @@ def test_torch_tensor_equal_handler_set_next_handler() -> None:
 ##################################################
 
 
-def test_torch_tensor_same_device_handler__eq__true() -> None:
-    assert TorchTensorSameDeviceHandler() == TorchTensorSameDeviceHandler()
-
-
-def test_torch_tensor_same_device_handler__eq__false_different_type() -> None:
-    assert TorchTensorSameDeviceHandler() != FalseHandler()
-
-
-def test_torch_tensor_same_device_handler__eq__false_different_type_child() -> None:
-    class Child(TorchTensorSameDeviceHandler): ...
-
-    assert TorchTensorSameDeviceHandler() != Child()
-
-
 def test_torch_tensor_same_device_handler_repr() -> None:
-    assert repr(TorchTensorSameDeviceHandler()).startswith("TorchTensorSameDeviceHandler(")
+    assert repr(TorchTensorSameDeviceHandler()) == "TorchTensorSameDeviceHandler()"
 
 
 def test_torch_tensor_same_device_handler_str() -> None:
-    assert str(TorchTensorSameDeviceHandler()).startswith("TorchTensorSameDeviceHandler(")
+    assert str(TorchTensorSameDeviceHandler()) == "TorchTensorSameDeviceHandler()"
+
+
+def test_torch_tensor_same_device_handler_equal_true() -> None:
+    assert TorchTensorSameDeviceHandler().equal(TorchTensorSameDeviceHandler())
+
+
+def test_torch_tensor_same_device_handler_equal_false_different_type() -> None:
+    assert not TorchTensorSameDeviceHandler().equal(FalseHandler())
+
+
+def test_torch_tensor_same_device_handler_equal_false_different_type_child() -> None:
+    class Child(TorchTensorSameDeviceHandler): ...
+
+    assert not TorchTensorSameDeviceHandler().equal(Child())
 
 
 @torch_available
@@ -215,10 +213,16 @@ def test_torch_tensor_same_device_handler_handle_without_next_handler(
 def test_torch_tensor_same_device_handler_set_next_handler() -> None:
     handler = TorchTensorSameDeviceHandler()
     handler.set_next_handler(FalseHandler())
-    assert handler.next_handler == FalseHandler()
+    assert handler.next_handler.equal(FalseHandler())
+
+
+def test_torch_tensor_same_device_handler_set_next_handler_none() -> None:
+    handler = TorchTensorSameDeviceHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
 
 
 def test_torch_tensor_same_device_handler_set_next_handler_incorrect() -> None:
     handler = TorchTensorSameDeviceHandler()
     with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
-        handler.set_next_handler(None)
+        handler.set_next_handler(42)

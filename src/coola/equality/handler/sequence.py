@@ -7,7 +7,7 @@ __all__ = ["SequenceSameValuesHandler"]
 import logging
 from typing import TYPE_CHECKING, Any
 
-from coola.equality.handler.base import AbstractEqualityHandler
+from coola.equality.handler.base import BaseEqualityHandler
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class SequenceSameValuesHandler(AbstractEqualityHandler):  # noqa: PLW1641
+class SequenceSameValuesHandler(BaseEqualityHandler):
     r"""Check if the two sequences have the same values.
 
     This handler returns ``False`` if the two sequences have at least
@@ -29,8 +29,7 @@ class SequenceSameValuesHandler(AbstractEqualityHandler):  # noqa: PLW1641
         ```pycon
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import SequenceSameValuesHandler, TrueHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig()
         >>> handler = SequenceSameValuesHandler(next_handler=TrueHandler())
         >>> handler.handle([1, 2, 3], [1, 2, 3], config)
         True
@@ -40,7 +39,7 @@ class SequenceSameValuesHandler(AbstractEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
+    def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
     def handle(
@@ -50,7 +49,7 @@ class SequenceSameValuesHandler(AbstractEqualityHandler):  # noqa: PLW1641
         config: EqualityConfig,
     ) -> bool:
         for value1, value2 in zip(actual, expected):
-            if not config.tester.equal(value1, value2, config):
+            if not config.registry.objects_are_equal(value1, value2, config):
                 self._show_difference(actual, expected, config=config)
                 return False
         return self._handle_next(actual, expected, config=config)

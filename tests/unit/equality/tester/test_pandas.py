@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola.equality.config import EqualityConfig2
+from coola.equality.config import EqualityConfig
 from coola.equality.tester import (
     PandasDataFrameEqualityTester,
     PandasSeriesEqualityTester,
@@ -21,8 +21,8 @@ else:
 
 
 @pytest.fixture
-def config() -> EqualityConfig2:
-    return EqualityConfig2()
+def config() -> EqualityConfig:
+    return EqualityConfig()
 
 
 PANDAS_DATAFRAME_EQUAL = [
@@ -258,12 +258,12 @@ def test_pandas_dataframe_equality_tester_equal_true() -> None:
 
 
 @pandas_available
-def test_pandas_dataframe_equality_tester__eq__false_different_type() -> None:
+def test_pandas_dataframe_equality_tester_equal_false_different_type() -> None:
     assert not PandasDataFrameEqualityTester().equal(123)
 
 
 @pandas_available
-def test_pandas_dataframe_equality_tester__eq__false_different_type_child() -> None:
+def test_pandas_dataframe_equality_tester_equal_false_different_type_child() -> None:
     class Child(PandasDataFrameEqualityTester): ...
 
     assert not PandasDataFrameEqualityTester().equal(Child())
@@ -271,7 +271,7 @@ def test_pandas_dataframe_equality_tester__eq__false_different_type_child() -> N
 
 @pandas_available
 def test_pandas_dataframe_equality_tester_objects_are_equal_true_same_object(
-    config: EqualityConfig2,
+    config: EqualityConfig,
 ) -> None:
     val = pd.DataFrame({"col": [1, 2, 3]})
     assert PandasDataFrameEqualityTester().objects_are_equal(val, val, config)
@@ -281,7 +281,7 @@ def test_pandas_dataframe_equality_tester_objects_are_equal_true_same_object(
 @pytest.mark.parametrize("example", PANDAS_DATAFRAME_EQUAL)
 def test_pandas_dataframe_equality_tester_objects_are_equal_true(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = PandasDataFrameEqualityTester()
@@ -296,7 +296,7 @@ def test_pandas_dataframe_equality_tester_objects_are_equal_true(
 @pytest.mark.parametrize("example", PANDAS_DATAFRAME_EQUAL)
 def test_pandas_dataframe_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -312,7 +312,7 @@ def test_pandas_dataframe_equality_tester_objects_are_equal_true_show_difference
 @pytest.mark.parametrize("example", PANDAS_DATAFRAME_NOT_EQUAL)
 def test_pandas_dataframe_equality_tester_objects_are_equal_false(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = PandasDataFrameEqualityTester()
@@ -327,7 +327,7 @@ def test_pandas_dataframe_equality_tester_objects_are_equal_false(
 @pytest.mark.parametrize("example", PANDAS_DATAFRAME_NOT_EQUAL)
 def test_pandas_dataframe_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -342,7 +342,7 @@ def test_pandas_dataframe_equality_tester_objects_are_equal_false_show_differenc
 @pandas_available
 @pytest.mark.parametrize("equal_nan", [False, True])
 def test_pandas_dataframe_equality_tester_objects_are_equal_nan(
-    config: EqualityConfig2, equal_nan: bool
+    config: EqualityConfig, equal_nan: bool
 ) -> None:
     config.equal_nan = equal_nan
     assert (
@@ -358,7 +358,7 @@ def test_pandas_dataframe_equality_tester_objects_are_equal_nan(
 @pandas_available
 @pytest.mark.parametrize("example", PANDAS_DATAFRAME_EQUAL_TOLERANCE)
 def test_pandas_dataframe_equality_tester_objects_are_equal_tolerance(
-    example: ExamplePair, config: EqualityConfig2
+    example: ExamplePair, config: EqualityConfig
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
@@ -367,7 +367,6 @@ def test_pandas_dataframe_equality_tester_objects_are_equal_tolerance(
     )
 
 
-@pandas_available
 def test_pandas_dataframe_equality_tester_no_pandas() -> None:
     with (
         patch("coola.utils.imports.is_pandas_available", lambda: False),
@@ -392,17 +391,17 @@ def test_pandas_series_equality_tester_str() -> None:
 
 
 @pandas_available
-def test_pandas_series_equality_tester__eq__true() -> None:
+def test_pandas_series_equality_tester_equal_true() -> None:
     assert PandasSeriesEqualityTester().equal(PandasSeriesEqualityTester())
 
 
 @pandas_available
-def test_pandas_series_equality_tester__eq__false_different_type() -> None:
+def test_pandas_series_equality_tester_equal_false_different_type() -> None:
     assert not PandasSeriesEqualityTester().equal(123)
 
 
 @pandas_available
-def test_pandas_series_equality_tester__eq__false_different_type_child() -> None:
+def test_pandas_series_equality_tester_equal_false_different_type_child() -> None:
     class Child(PandasSeriesEqualityTester): ...
 
     assert not PandasSeriesEqualityTester().equal(Child())
@@ -410,7 +409,7 @@ def test_pandas_series_equality_tester__eq__false_different_type_child() -> None
 
 @pandas_available
 def test_pandas_series_equality_tester_objects_are_equal_true_same_object(
-    config: EqualityConfig2,
+    config: EqualityConfig,
 ) -> None:
     series = pd.Series([1, 2, 3])
     assert PandasSeriesEqualityTester().objects_are_equal(series, series, config)
@@ -420,7 +419,7 @@ def test_pandas_series_equality_tester_objects_are_equal_true_same_object(
 @pytest.mark.parametrize("example", PANDAS_SERIES_EQUAL)
 def test_pandas_series_equality_tester_objects_are_equal_true(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = PandasSeriesEqualityTester()
@@ -435,7 +434,7 @@ def test_pandas_series_equality_tester_objects_are_equal_true(
 @pytest.mark.parametrize("example", PANDAS_SERIES_EQUAL)
 def test_pandas_series_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -451,7 +450,7 @@ def test_pandas_series_equality_tester_objects_are_equal_true_show_difference(
 @pytest.mark.parametrize("example", PANDAS_SERIES_NOT_EQUAL)
 def test_pandas_series_equality_tester_objects_are_equal_false(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = PandasSeriesEqualityTester()
@@ -466,7 +465,7 @@ def test_pandas_series_equality_tester_objects_are_equal_false(
 @pytest.mark.parametrize("example", PANDAS_SERIES_NOT_EQUAL)
 def test_pandas_series_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -481,7 +480,7 @@ def test_pandas_series_equality_tester_objects_are_equal_false_show_difference(
 @pandas_available
 @pytest.mark.parametrize("equal_nan", [False, True])
 def test_pandas_series_equality_tester_objects_are_equal_nan(
-    config: EqualityConfig2, equal_nan: bool
+    config: EqualityConfig, equal_nan: bool
 ) -> None:
     config.equal_nan = equal_nan
     assert (
@@ -497,7 +496,7 @@ def test_pandas_series_equality_tester_objects_are_equal_nan(
 @pandas_available
 @pytest.mark.parametrize("example", PANDAS_SERIES_EQUAL_TOLERANCE)
 def test_pandas_series_equality_tester_objects_are_equal_tolerance(
-    example: ExamplePair, config: EqualityConfig2
+    example: ExamplePair, config: EqualityConfig
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
@@ -506,7 +505,6 @@ def test_pandas_series_equality_tester_objects_are_equal_tolerance(
     )
 
 
-@pandas_available
 def test_pandas_series_equality_tester_no_pandas() -> None:
     with (
         patch("coola.utils.imports.is_pandas_available", lambda: False),

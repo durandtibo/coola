@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from coola import objects_are_equal
+from coola.equality import objects_are_equal
 from coola.iterator.dfs import DefaultIterator, IteratorRegistry
 from tests.unit.iterator.dfs.helpers import DEFAULT_SAMPLES
 

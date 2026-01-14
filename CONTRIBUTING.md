@@ -189,7 +189,7 @@ When reporting bugs, please include:
 
 **Code to reproduce:**
 \`\`\`python
-from coola import objects_are_equal
+from coola.equality import objects_are_equal
 
 class MyClass:
     def __init__(self, value):
@@ -278,7 +278,7 @@ def my_function(param1: int, param2: str) -> bool:
 
 ```python
 import pytest
-from coola import objects_are_equal
+from coola.equality import objects_are_equal
 
 
 def test_objects_are_equal_with_identical_dicts_returns_true():

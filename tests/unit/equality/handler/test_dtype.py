@@ -7,7 +7,6 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.handler import FalseHandler, SameDTypeHandler, TrueHandler
-from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import jax_available, numpy_available, torch_available
 from coola.utils.imports import is_jax_available, is_numpy_available, is_torch_available
 
@@ -24,7 +23,7 @@ if is_torch_available():
 
 @pytest.fixture
 def config() -> EqualityConfig:
-    return EqualityConfig(tester=EqualityTester())
+    return EqualityConfig()
 
 
 ######################################
@@ -32,26 +31,26 @@ def config() -> EqualityConfig:
 ######################################
 
 
-def test_same_dtype_handler__eq__true() -> None:
-    assert SameDTypeHandler() == SameDTypeHandler()
-
-
-def test_same_dtype_handler__eq__false_different_type() -> None:
-    assert SameDTypeHandler() != FalseHandler()
-
-
-def test_same_dtype_handler__eq__false_different_type_child() -> None:
-    class Child(SameDTypeHandler): ...
-
-    assert SameDTypeHandler() != Child()
-
-
 def test_same_dtype_handler_repr() -> None:
-    assert repr(SameDTypeHandler()).startswith("SameDTypeHandler(")
+    assert repr(SameDTypeHandler()) == "SameDTypeHandler()"
 
 
 def test_same_dtype_handler_str() -> None:
-    assert str(SameDTypeHandler()).startswith("SameDTypeHandler(")
+    assert str(SameDTypeHandler()) == "SameDTypeHandler()"
+
+
+def test_same_dtype_handler_equal_true() -> None:
+    assert SameDTypeHandler().equal(SameDTypeHandler())
+
+
+def test_same_dtype_handler_equal_false_different_type() -> None:
+    assert not SameDTypeHandler().equal(FalseHandler())
+
+
+def test_same_dtype_handler_equal_false_different_type_child() -> None:
+    class Child(SameDTypeHandler): ...
+
+    assert not SameDTypeHandler().equal(Child())
 
 
 @numpy_available
@@ -106,18 +105,6 @@ def test_same_dtype_handler_handle_without_next_handler(config: EqualityConfig) 
         handler.handle(actual=np.ones(shape=(2, 3)), expected=np.ones(shape=(2, 3)), config=config)
 
 
-def test_same_dtype_handler_set_next_handler() -> None:
-    handler = SameDTypeHandler()
-    handler.set_next_handler(FalseHandler())
-    assert handler.next_handler == FalseHandler()
-
-
-def test_same_dtype_handler_set_next_handler_incorrect() -> None:
-    handler = SameDTypeHandler()
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
-        handler.set_next_handler(None)
-
-
 @jax_available
 def test_same_dtype_handler_handle_jax(config: EqualityConfig) -> None:
     assert SameDTypeHandler(next_handler=TrueHandler()).handle(
@@ -130,3 +117,21 @@ def test_same_dtype_handler_handle_tensor(config: EqualityConfig) -> None:
     assert SameDTypeHandler(next_handler=TrueHandler()).handle(
         torch.ones(2, 3, dtype=torch.float), torch.zeros(2, 3, dtype=torch.float), config
     )
+
+
+def test_same_dtype_handler_set_next_handler() -> None:
+    handler = SameDTypeHandler()
+    handler.set_next_handler(FalseHandler())
+    assert handler.next_handler.equal(FalseHandler())
+
+
+def test_same_dtype_handler_set_next_handler_none() -> None:
+    handler = SameDTypeHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
+
+
+def test_same_dtype_handler_set_next_handler_incorrect() -> None:
+    handler = SameDTypeHandler()
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+        handler.set_next_handler(42)

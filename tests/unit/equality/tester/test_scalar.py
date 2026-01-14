@@ -4,14 +4,14 @@ import logging
 
 import pytest
 
-from coola.equality.config import EqualityConfig2
+from coola.equality.config import EqualityConfig
 from coola.equality.tester import ScalarEqualityTester
 from tests.unit.equality.utils import ExamplePair
 
 
 @pytest.fixture
-def config() -> EqualityConfig2:
-    return EqualityConfig2()
+def config() -> EqualityConfig:
+    return EqualityConfig()
 
 
 FLOAT_EQUAL = [
@@ -84,7 +84,7 @@ def test_scalar_equality_tester_equal_false_different_type_child() -> None:
 
 
 def test_scalar_equality_tester_objects_are_equal_true_same_object(
-    config: EqualityConfig2,
+    config: EqualityConfig,
 ) -> None:
     x = 4.2
     assert ScalarEqualityTester().objects_are_equal(x, x, config)
@@ -93,7 +93,7 @@ def test_scalar_equality_tester_objects_are_equal_true_same_object(
 @pytest.mark.parametrize("example", FLOAT_EQUAL)
 def test_scalar_equality_tester_objects_are_equal_true(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = ScalarEqualityTester()
@@ -107,7 +107,7 @@ def test_scalar_equality_tester_objects_are_equal_true(
 @pytest.mark.parametrize("example", FLOAT_EQUAL)
 def test_scalar_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -122,7 +122,7 @@ def test_scalar_equality_tester_objects_are_equal_true_show_difference(
 @pytest.mark.parametrize("example", FLOAT_NOT_EQUAL)
 def test_scalar_equality_tester_objects_are_equal_false(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = ScalarEqualityTester()
@@ -136,7 +136,7 @@ def test_scalar_equality_tester_objects_are_equal_false(
 @pytest.mark.parametrize("example", FLOAT_NOT_EQUAL)
 def test_scalar_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
-    config: EqualityConfig2,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
@@ -150,7 +150,7 @@ def test_scalar_equality_tester_objects_are_equal_false_show_difference(
 
 @pytest.mark.parametrize("equal_nan", [False, True])
 def test_scalar_equality_tester_objects_are_equal_nan(
-    config: EqualityConfig2, equal_nan: bool
+    config: EqualityConfig, equal_nan: bool
 ) -> None:
     config.equal_nan = equal_nan
     assert (
@@ -165,7 +165,7 @@ def test_scalar_equality_tester_objects_are_equal_nan(
 
 @pytest.mark.parametrize("example", SCALAR_EQUAL_TOLERANCE)
 def test_scalar_equality_tester_objects_are_equal_true_tolerance(
-    example: ExamplePair, config: EqualityConfig2
+    example: ExamplePair, config: EqualityConfig
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol

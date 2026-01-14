@@ -7,7 +7,7 @@ __all__ = ["SameShapeHandler", "SupportsShape"]
 import logging
 from typing import TYPE_CHECKING, Protocol
 
-from coola.equality.handler.base import AbstractEqualityHandler
+from coola.equality.handler.base import BaseEqualityHandler
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -30,7 +30,7 @@ class SupportsShape(Protocol):
         return ()  # pragma: no cover
 
 
-class SameShapeHandler(AbstractEqualityHandler):  # noqa: PLW1641
+class SameShapeHandler(BaseEqualityHandler):
     r"""Check if the two objects have the same shape.
 
     This handler returns ``False`` if the two objects have different
@@ -45,8 +45,7 @@ class SameShapeHandler(AbstractEqualityHandler):  # noqa: PLW1641
         >>> import numpy as np
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import SameShapeHandler, TrueHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig()
         >>> handler = SameShapeHandler(next_handler=TrueHandler())
         >>> handler.handle(np.ones((2, 3)), np.ones((2, 3)), config)
         True
@@ -56,7 +55,7 @@ class SameShapeHandler(AbstractEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
+    def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
     def handle(

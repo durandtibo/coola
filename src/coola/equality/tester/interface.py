@@ -1,33 +1,84 @@
-r"""Define the public interface to recursively apply a function to all
-items in nested data."""
+r"""Define the public interface for equality testers and registry
+management."""
 
 from __future__ import annotations
 
 __all__ = ["get_default_registry", "register_equality_testers"]
 
-from typing import TYPE_CHECKING, Any
+from collections import deque
+from collections.abc import Mapping, Sequence
+from typing import Any
 
+from coola.equality.tester.base import BaseEqualityTester
+from coola.equality.tester.collection import (
+    MappingEqualityTester,
+    SequenceEqualityTester,
+)
 from coola.equality.tester.default import DefaultEqualityTester
+from coola.equality.tester.equal import EqualEqualityTester
+from coola.equality.tester.jax import JaxArrayEqualityTester, get_array_impl_class
+from coola.equality.tester.numpy import (
+    NumpyArrayEqualityTester,
+    NumpyMaskedArrayEqualityTester,
+)
+from coola.equality.tester.pandas import (
+    PandasDataFrameEqualityTester,
+    PandasSeriesEqualityTester,
+)
+from coola.equality.tester.polars import (
+    PolarsDataFrameEqualityTester,
+    PolarsLazyFrameEqualityTester,
+    PolarsSeriesEqualityTester,
+)
+from coola.equality.tester.pyarrow import PyarrowEqualityTester
 from coola.equality.tester.registry import EqualityTesterRegistry
 from coola.equality.tester.scalar import ScalarEqualityTester
+from coola.equality.tester.torch import (
+    TorchPackedSequenceEqualityTester,
+    TorchTensorEqualityTester,
+)
+from coola.equality.tester.xarray import (
+    XarrayDataArrayEqualityTester,
+    XarrayDatasetEqualityTester,
+    XarrayVariableEqualityTester,
+)
+from coola.utils.imports import (
+    is_jax_available,
+    is_numpy_available,
+    is_pandas_available,
+    is_polars_available,
+    is_pyarrow_available,
+    is_torch_available,
+    is_xarray_available,
+)
 
-if TYPE_CHECKING:
-    from collections.abc import Mapping
-
-    from coola.equality.tester.base import BaseEqualityTester
+if is_jax_available():  # pragma: no cover
+    import jax.numpy as jnp
+if is_numpy_available():  # pragma: no cover
+    import numpy as np
+if is_pandas_available():  # pragma: no cover
+    import pandas as pd
+if is_polars_available():  # pragma: no cover
+    import polars as pl
+if is_pyarrow_available():  # pragma: no cover
+    import pyarrow as pa
+if is_torch_available():  # pragma: no cover
+    import torch
+if is_xarray_available():  # pragma: no cover
+    import xarray as xr
 
 
 def register_equality_testers(
     mapping: Mapping[type, BaseEqualityTester[Any]],
     exist_ok: bool = False,
 ) -> None:
-    """Register custom transformers to the default global registry.
+    """Register custom equality testers to the default global registry.
 
     This allows users to add support for custom types without modifying
     global state directly.
 
     Args:
-        mapping: Dictionary mapping types to transformer instances
+        mapping: Dictionary mapping types to equality tester instances
         exist_ok: If False, raises error if any type already registered
 
     Example:
@@ -37,9 +88,11 @@ def register_equality_testers(
         ...     def __init__(self, value):
         ...         self.value = value
         ...
-        >>> class MyEqualityTester(BaseEqualityTester):
+        >>> class MyEqualityTester(BaseEqualityTester[MyType]):
+        ...     def equal(self, other: object) -> bool:
+        ...         return type(other) is type(self)
         ...     def objects_are_equal(
-        ...         self, actual: object, expected: object, config: EqualityConfig2
+        ...         self, actual: MyType, expected: object, config: EqualityConfig
         ...     ) -> bool:
         ...         if type(other) is not type(self):
         ...             return False
@@ -56,20 +109,20 @@ def get_default_registry() -> EqualityTesterRegistry:
     """Get or create the default global registry with common Python
     types.
 
-    Returns a singleton registry instance that is pre-configured with transformers
+    Returns a singleton registry instance that is pre-configured with equality testers
     for Python's built-in types including sequences (list, tuple), mappings (dict),
-    sets, and scalar types (int, float, str, bool).
+    and scalar types (int, float).
 
     This function uses a singleton pattern to ensure the same registry instance
     is returned on subsequent calls, which is efficient and maintains consistency
     across an application.
 
     Returns:
-        A EqualityTesterRegistry instance with transformers registered for:
-            - Scalar types (int, float, complex, bool, str)
-            - Sequences (list, tuple, Sequence ABC)
-            - Sets (set, frozenset)
+        A EqualityTesterRegistry instance with equality testers registered for:
+            - Scalar types (int, float)
+            - Sequences (list, tuple, deque, Sequence ABC)
             - Mappings (dict, Mapping ABC)
+            - Third-party library types (numpy, torch, pandas, polars, jax, xarray, pyarrow)
 
     Notes:
         The singleton pattern means modifications to the returned registry
@@ -78,13 +131,15 @@ def get_default_registry() -> EqualityTesterRegistry:
 
     Example:
         ```pycon
-        >>> from coola.recursive import get_default_registry
+        >>> from coola.equality.tester import get_default_registry
+        >>> from coola.equality.config import EqualityConfig
         >>> registry = get_default_registry()
         >>> # Registry is ready to use with common Python types
-        >>> registry.transform([1, 2, 3], str)
-        ['1', '2', '3']
-        >>> registry.transform({"a": 1, "b": 2}, lambda x: x * 10)
-        {'a': 10, 'b': 20}
+        >>> config = EqualityConfig()
+        >>> registry.objects_are_equal([1, 2, 3], [1, 2, 3], config)
+        True
+        >>> registry.objects_are_equal([1, 2, 3], [1, 1], config)
+        False
 
         ```
     """
@@ -96,29 +151,36 @@ def get_default_registry() -> EqualityTesterRegistry:
 
 
 def _register_default_equality_testers(registry: EqualityTesterRegistry) -> None:
-    """Register default transformers for common Python types.
+    """Register default equality testers for common Python types.
 
-    This internal function sets up the standard type-to-transformer mappings
-    used by the default registry. It registers transformers in a specific order
+    This internal function sets up the standard type-to-equality tester mappings
+    used by the default registry. It registers equality testers in a specific order
     to ensure proper inheritance handling via MRO.
 
     The registration strategy:
-        - Scalar types use DefaultTransformer (no recursion)
-        - Strings use DefaultTransformer to prevent character-by-character iteration
-        - Sequences use SequenceTransformer for recursive list/tuple processing
-        - Sets use SetTransformer for recursive set processing
-        - Mappings use MappingTransformer for recursive dict processing
+        - Scalar types use ScalarEqualityTester (supports NaN equality)
+        - Sequences use SequenceEqualityTester for recursive list/tuple processing
+        - Mappings use MappingEqualityTester for recursive dict processing
+        - Object type uses DefaultEqualityTester as catch-all for unregistered types
 
     Args:
-        registry: The registry to populate with default transformers
+        registry: The registry to populate with default equality testers
 
     Notes:
         This function is called internally by get_default_registry() and should
         not typically be called directly by users.
     """
-    # TODO(tibo): after the other equality testers are implemented
-    equality_testers = _get_native_equality_testers()
-    registry.register_many(equality_testers)
+    testers = (
+        _get_native_equality_testers()
+        | _get_jax_equality_testers()
+        | _get_numpy_equality_testers()
+        | _get_pandas_equality_testers()
+        | _get_polars_equality_testers()
+        | _get_pyarrow_equality_testers()
+        | _get_torch_equality_testers()
+        | _get_xarray_equality_testers()
+    )
+    registry.register_many(testers)
 
 
 def _get_native_equality_testers() -> dict[type, BaseEqualityTester]:
@@ -131,5 +193,156 @@ def _get_native_equality_testers() -> dict[type, BaseEqualityTester]:
         This function is called internally by get_default_registry() and should
         not typically be called directly by users.
     """
+    default = DefaultEqualityTester()
     scalar = ScalarEqualityTester()
-    return {object: DefaultEqualityTester(), int: scalar, float: scalar}
+    mapping = MappingEqualityTester()
+    sequence = SequenceEqualityTester()
+    equal = EqualEqualityTester()
+    return {
+        # Object is the catch-all base for unregistered types
+        object: default,
+        # Numeric types - no recursion needed
+        int: scalar,
+        float: scalar,
+        # Sequences - recursive transformation preserving order
+        deque: sequence,
+        list: sequence,
+        tuple: sequence,
+        Sequence: sequence,
+        # Mappings - recursive transformation of keys and values
+        dict: mapping,
+        Mapping: mapping,
+        # coola types
+        BaseEqualityTester: equal,
+    }
+
+
+def _get_jax_equality_testers() -> dict[type, BaseEqualityTester]:
+    r"""Get the equality testers for jax objects.
+
+    Returns:
+        A dict of equality testers for jax objects.
+
+    Notes:
+        This function is called internally by get_default_registry() and should
+        not typically be called directly by users.
+    """
+    if not is_jax_available():  # pragma: no cover
+        return {}
+
+    tester = JaxArrayEqualityTester()
+    return {jnp.ndarray: tester, get_array_impl_class(): tester}
+
+
+def _get_numpy_equality_testers() -> dict[type, BaseEqualityTester]:
+    r"""Get the equality testers for NumPy objects.
+
+    Returns:
+        A dict of equality testers for NumPy objects.
+
+    Notes:
+        This function is called internally by get_default_registry() and should
+        not typically be called directly by users.
+    """
+    if not is_numpy_available():  # pragma: no cover
+        return {}
+
+    return {
+        np.ndarray: NumpyArrayEqualityTester(),
+        np.ma.MaskedArray: NumpyMaskedArrayEqualityTester(),
+    }
+
+
+def _get_pandas_equality_testers() -> dict[type, BaseEqualityTester]:
+    r"""Get the equality testers for pandas objects.
+
+    Returns:
+        A dict of equality testers for pandas objects.
+
+    Notes:
+        This function is called internally by get_default_registry() and should
+        not typically be called directly by users.
+    """
+    if not is_pandas_available():  # pragma: no cover
+        return {}
+
+    return {
+        pd.DataFrame: PandasDataFrameEqualityTester(),
+        pd.Series: PandasSeriesEqualityTester(),
+    }
+
+
+def _get_polars_equality_testers() -> dict[type, BaseEqualityTester]:
+    r"""Get the equality testers for polars objects.
+
+    Returns:
+        A dict of equality testers for polars objects.
+
+    Notes:
+        This function is called internally by get_default_registry() and should
+        not typically be called directly by users.
+    """
+    if not is_polars_available():  # pragma: no cover
+        return {}
+
+    return {
+        pl.DataFrame: PolarsDataFrameEqualityTester(),
+        pl.LazyFrame: PolarsLazyFrameEqualityTester(),
+        pl.Series: PolarsSeriesEqualityTester(),
+    }
+
+
+def _get_pyarrow_equality_testers() -> dict[type, BaseEqualityTester]:
+    r"""Get the equality testers for pyarrow objects.
+
+    Returns:
+        A dict of equality testers for pyarrow objects.
+
+    Notes:
+        This function is called internally by get_default_registry() and should
+        not typically be called directly by users.
+    """
+    if not is_pyarrow_available():  # pragma: no cover
+        return {}
+
+    tester = PyarrowEqualityTester()
+    return {pa.Array: tester, pa.Table: tester}
+
+
+def _get_torch_equality_testers() -> dict[type, BaseEqualityTester]:
+    r"""Get the equality testers for PyTorch objects.
+
+    Returns:
+        A dict of equality testers for PyTorch objects.
+
+    Notes:
+        This function is called internally by get_default_registry() and should
+        not typically be called directly by users.
+    """
+    if not is_torch_available():  # pragma: no cover
+        return {}
+
+    return {
+        torch.nn.utils.rnn.PackedSequence: TorchPackedSequenceEqualityTester(),
+        torch.Tensor: TorchTensorEqualityTester(),
+    }
+
+
+def _get_xarray_equality_testers() -> dict[type, BaseEqualityTester]:
+    r"""Get the equality testers for xarray objects.
+
+    Returns:
+        A dict of equality testers for xarray objects.
+
+    Notes:
+        This function is called internally by get_default_registry() and should
+        not typically be called directly by users.
+    """
+    if not is_xarray_available():  # pragma: no cover
+        return {}
+
+    return {
+        xr.DataArray: XarrayDataArrayEqualityTester(),
+        xr.Dataset: XarrayDatasetEqualityTester(),
+        xr.Variable: XarrayVariableEqualityTester(),
+    }

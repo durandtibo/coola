@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from coola import objects_are_equal
+from coola.equality import objects_are_equal
 from coola.iterator.bfs import DefaultChildFinder
 from tests.unit.iterator.bfs.helpers import DEFAULT_FIND_CHILDREN_SAMPLES
 

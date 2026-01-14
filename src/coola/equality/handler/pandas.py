@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class PandasDataFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
+class PandasDataFrameEqualHandler(BaseEqualityHandler):
     r"""Check if the two ``pandas.DataFrame`` are equal.
 
     This handler returns ``True`` if the two ``pandas.DataFrame``s
@@ -35,8 +35,7 @@ class PandasDataFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         >>> import pandas
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import PandasDataFrameEqualHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig()
         >>> handler = PandasDataFrameEqualHandler()
         >>> handler.handle(
         ...     pandas.DataFrame({"col": [1, 2, 3]}),
@@ -54,11 +53,8 @@ class PandasDataFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
+    def equal(self, other: object) -> bool:
         return type(other) is type(self)
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def handle(
         self,
@@ -74,11 +70,8 @@ class PandasDataFrameEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
             )
         return object_equal
 
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
-        pass  # Do nothing because the next handler is never called.
 
-
-class PandasSeriesEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
+class PandasSeriesEqualHandler(BaseEqualityHandler):
     r"""Check if the two ``pandas.Series`` are equal.
 
     This handler returns ``True`` if the two arrays ``pandas.Series``
@@ -91,8 +84,7 @@ class PandasSeriesEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         >>> import pandas
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import PandasSeriesEqualHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig()
         >>> handler = PandasSeriesEqualHandler()
         >>> handler.handle(pandas.Series([1, 2, 3]), pandas.Series([1, 2, 3]), config)
         True
@@ -102,11 +94,8 @@ class PandasSeriesEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
+    def equal(self, other: object) -> bool:
         return type(other) is type(self)
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def handle(
         self,
@@ -120,9 +109,6 @@ class PandasSeriesEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
                 f"pandas.Series have different elements:\nactual:\n{actual}\nexpected:\n{expected}"
             )
         return object_equal
-
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
-        pass  # Do nothing because the next handler is never called.
 
 
 def frame_equal(df1: pd.DataFrame, df2: pd.DataFrame, config: EqualityConfig) -> bool:

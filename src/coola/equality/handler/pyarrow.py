@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class PyarrowEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
+class PyarrowEqualHandler(BaseEqualityHandler):
     r"""Check if the two pyarrow arrays or tables are equal.
 
     This handler returns ``True`` if the two arrays or tables are
@@ -36,8 +36,7 @@ class PyarrowEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         >>> import pyarrow
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import PyarrowEqualHandler
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig()
         >>> handler = PyarrowEqualHandler()
         >>> handler.handle(pyarrow.array([1, 2, 3]), pyarrow.array([1, 2, 3]), config)
         True
@@ -47,11 +46,8 @@ class PyarrowEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
+    def equal(self, other: object) -> bool:
         return type(other) is type(self)
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def handle(
         self,
@@ -63,9 +59,6 @@ class PyarrowEqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         if config.show_difference and not equal:
             logger.info(f"objects are different:\nactual:\n{actual}\nexpected:\n{expected}")
         return equal
-
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
-        pass  # Do nothing because the next handler is never called.
 
 
 def object_equal(
@@ -91,8 +84,7 @@ def object_equal(
         >>> import pyarrow as pa
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler.pyarrow import object_equal
-        >>> from coola.equality.testers import EqualityTester
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig()
         >>> object_equal(pa.array([1, 2, 3]), pa.array([1, 2, 3]), config)
         True
         >>> object_equal(pa.array([1, 2, 3]), pa.array([1, 2, 4]), config)

@@ -9,10 +9,9 @@ import pytest
 from coola.equality.config import EqualityConfig
 from coola.equality.handler import FalseHandler, NumpyArrayEqualHandler
 from coola.equality.handler.numpy import array_equal, is_numeric_array
-from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
-from tests.unit.equality.comparators.test_numpy import NUMPY_ARRAY_EQUAL_TOLERANCE
+from tests.unit.equality.tester.test_numpy import NUMPY_ARRAY_EQUAL_TOLERANCE
 
 if is_numpy_available():
     import numpy as np
@@ -25,7 +24,7 @@ if TYPE_CHECKING:
 
 @pytest.fixture
 def config() -> EqualityConfig:
-    return EqualityConfig(tester=EqualityTester())
+    return EqualityConfig()
 
 
 ############################################
@@ -33,26 +32,26 @@ def config() -> EqualityConfig:
 ############################################
 
 
-def test_numpy_array_equal_handler__eq__true() -> None:
-    assert NumpyArrayEqualHandler() == NumpyArrayEqualHandler()
-
-
-def test_numpy_array_equal_handler__eq__false_different_type() -> None:
-    assert NumpyArrayEqualHandler() != FalseHandler()
-
-
-def test_numpy_array_equal_handler__eq__false_different_type_child() -> None:
-    class Child(NumpyArrayEqualHandler): ...
-
-    assert NumpyArrayEqualHandler() != Child()
-
-
 def test_numpy_array_equal_handler_repr() -> None:
-    assert repr(NumpyArrayEqualHandler()).startswith("NumpyArrayEqualHandler(")
+    assert repr(NumpyArrayEqualHandler()) == "NumpyArrayEqualHandler()"
 
 
 def test_numpy_array_equal_handler_str() -> None:
-    assert str(NumpyArrayEqualHandler()).startswith("NumpyArrayEqualHandler(")
+    assert str(NumpyArrayEqualHandler()) == "NumpyArrayEqualHandler()"
+
+
+def test_numpy_array_equal_handler_equal_true() -> None:
+    assert NumpyArrayEqualHandler().equal(NumpyArrayEqualHandler())
+
+
+def test_numpy_array_equal_handler_equal_false_different_type() -> None:
+    assert not NumpyArrayEqualHandler().equal(FalseHandler())
+
+
+def test_numpy_array_equal_handler_equal_false_different_type_child() -> None:
+    class Child(NumpyArrayEqualHandler): ...
+
+    assert not NumpyArrayEqualHandler().equal(Child())
 
 
 @numpy_available
@@ -125,8 +124,22 @@ def test_numpy_array_equal_handler_handle_true_tolerance(
     )
 
 
-def test_numpy_array_equal_handler_set_next_handler() -> None:
-    NumpyArrayEqualHandler().set_next_handler(FalseHandler())
+def test_numpy_array_equal_handle_set_next_handler() -> None:
+    handler = NumpyArrayEqualHandler()
+    handler.set_next_handler(FalseHandler())
+    assert handler.next_handler.equal(FalseHandler())
+
+
+def test_numpy_array_equal_handle_set_next_handler_none() -> None:
+    handler = NumpyArrayEqualHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
+
+
+def test_numpy_array_equal_handle_set_next_handler_incorrect() -> None:
+    handler = NumpyArrayEqualHandler()
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+        handler.set_next_handler(42)
 
 
 #################################

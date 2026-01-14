@@ -54,7 +54,7 @@ class SupportsEqualNan(Protocol):
         """
 
 
-class EqualHandler(BaseEqualityHandler):  # noqa: PLW1641
+class EqualHandler(BaseEqualityHandler):
     r"""Check if the two objects have the same data.
 
     This handler returns ``False`` if the two objects are different
@@ -67,14 +67,13 @@ class EqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         >>> import math
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import EqualHandler
-        >>> from coola.equality.testers import EqualityTester
         >>> class MyFloat:
         ...     def __init__(self, value: float) -> None:
         ...         self._value = value
         ...     def equal(self, other: float) -> bool:
         ...         return self._value == other
         ...
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig()
         >>> handler = EqualHandler()
         >>> handler.handle(MyFloat(42), 42, config)
         True
@@ -84,11 +83,8 @@ class EqualHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
+    def equal(self, other: object) -> bool:
         return type(other) is type(self)
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def handle(self, actual: SupportsEqual, expected: object, config: EqualityConfig) -> bool:
         if not actual.equal(expected):
@@ -97,11 +93,8 @@ class EqualHandler(BaseEqualityHandler):  # noqa: PLW1641
             return False
         return True
 
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
-        pass  # Do nothing because the next handler is never called.
 
-
-class EqualNanHandler(BaseEqualityHandler):  # noqa: PLW1641
+class EqualNanHandler(BaseEqualityHandler):
     r"""Check if the two objects have the same data.
 
     This handler returns ``False`` if the two objects are different
@@ -114,7 +107,6 @@ class EqualNanHandler(BaseEqualityHandler):  # noqa: PLW1641
         >>> import math
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import EqualNanHandler
-        >>> from coola.equality.testers import EqualityTester
         >>> class MyFloat:
         ...     def __init__(self, value: float) -> None:
         ...         self._value = value
@@ -123,7 +115,7 @@ class EqualNanHandler(BaseEqualityHandler):  # noqa: PLW1641
         ...             return True
         ...         return self._value == other
         ...
-        >>> config = EqualityConfig(tester=EqualityTester())
+        >>> config = EqualityConfig()
         >>> handler = EqualNanHandler()
         >>> handler.handle(MyFloat(42), 42, config)
         True
@@ -136,11 +128,8 @@ class EqualNanHandler(BaseEqualityHandler):  # noqa: PLW1641
         ```
     """
 
-    def __eq__(self, other: object) -> bool:
+    def equal(self, other: object) -> bool:
         return type(other) is type(self)
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def handle(self, actual: SupportsEqualNan, expected: object, config: EqualityConfig) -> bool:
         if not actual.equal(expected, equal_nan=config.equal_nan):
@@ -148,6 +137,3 @@ class EqualNanHandler(BaseEqualityHandler):  # noqa: PLW1641
                 logger.info(f"objects are not equal:\nactual:\n{actual}\nexpected:\n{expected}")
             return False
         return True
-
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
-        pass  # Do nothing because the next handler is never called.

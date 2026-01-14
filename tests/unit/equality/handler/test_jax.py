@@ -8,10 +8,9 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.handler import FalseHandler, JaxArrayEqualHandler
-from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import jax_available
 from coola.utils.imports import is_jax_available
-from tests.unit.equality.comparators.test_jax import JAX_ARRAY_EQUAL_TOLERANCE
+from tests.unit.equality.tester.test_jax import JAX_ARRAY_EQUAL_TOLERANCE
 
 if is_jax_available():
     import jax.numpy as jnp
@@ -25,7 +24,7 @@ if TYPE_CHECKING:
 
 @pytest.fixture
 def config() -> EqualityConfig:
-    return EqualityConfig(tester=EqualityTester())
+    return EqualityConfig()
 
 
 ##########################################
@@ -33,26 +32,26 @@ def config() -> EqualityConfig:
 ##########################################
 
 
-def test_jax_array_equal_handler__eq__true() -> None:
-    assert JaxArrayEqualHandler() == JaxArrayEqualHandler()
-
-
-def test_jax_array_equal_handler__eq__false_different_type() -> None:
-    assert JaxArrayEqualHandler() != FalseHandler()
-
-
-def test_jax_array_equal_handler__eq__false_different_type_child() -> None:
-    class Child(JaxArrayEqualHandler): ...
-
-    assert JaxArrayEqualHandler() != Child()
-
-
 def test_jax_array_equal_handler_repr() -> None:
-    assert repr(JaxArrayEqualHandler()).startswith("JaxArrayEqualHandler(")
+    assert repr(JaxArrayEqualHandler()) == "JaxArrayEqualHandler()"
 
 
 def test_jax_array_equal_handler_str() -> None:
-    assert str(JaxArrayEqualHandler()).startswith("JaxArrayEqualHandler(")
+    assert str(JaxArrayEqualHandler()) == "JaxArrayEqualHandler()"
+
+
+def test_jax_array_equal_handler_equal_true() -> None:
+    assert JaxArrayEqualHandler().equal(JaxArrayEqualHandler())
+
+
+def test_jax_array_equal_handler_equal_false_different_type() -> None:
+    assert not JaxArrayEqualHandler().equal(FalseHandler())
+
+
+def test_jax_array_equal_handler_equal_false_different_type_child() -> None:
+    class Child(JaxArrayEqualHandler): ...
+
+    assert not JaxArrayEqualHandler().equal(Child())
 
 
 @jax_available
@@ -126,4 +125,18 @@ def test_jax_array_equal_handler_handle_true_tolerance(
 
 
 def test_jax_array_equal_handler_set_next_handler() -> None:
-    JaxArrayEqualHandler().set_next_handler(FalseHandler())
+    handler = JaxArrayEqualHandler()
+    handler.set_next_handler(FalseHandler())
+    assert handler.next_handler.equal(FalseHandler())
+
+
+def test_jax_array_equal_handler_set_next_handler_none() -> None:
+    handler = JaxArrayEqualHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
+
+
+def test_jax_array_equal_handler_set_next_handler_incorrect() -> None:
+    handler = JaxArrayEqualHandler()
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+        handler.set_next_handler(42)

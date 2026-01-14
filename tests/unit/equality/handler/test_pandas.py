@@ -12,10 +12,9 @@ from coola.equality.handler import (
     PandasDataFrameEqualHandler,
     PandasSeriesEqualHandler,
 )
-from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import pandas_available
 from coola.utils.imports import is_pandas_available
-from tests.unit.equality.comparators.test_pandas import (
+from tests.unit.equality.tester.test_pandas import (
     PANDAS_DATAFRAME_EQUAL_TOLERANCE,
     PANDAS_SERIES_EQUAL_TOLERANCE,
 )
@@ -31,7 +30,7 @@ if TYPE_CHECKING:
 
 @pytest.fixture
 def config() -> EqualityConfig:
-    return EqualityConfig(tester=EqualityTester())
+    return EqualityConfig()
 
 
 #################################################
@@ -39,26 +38,26 @@ def config() -> EqualityConfig:
 #################################################
 
 
-def test_pandas_dataframe_equal_handler__eq__true() -> None:
-    assert PandasDataFrameEqualHandler() == PandasDataFrameEqualHandler()
-
-
-def test_pandas_dataframe_equal_handler__eq__false_different_type() -> None:
-    assert PandasDataFrameEqualHandler() != FalseHandler()
-
-
-def test_pandas_dataframe_equal_handler__eq__false_different_type_child() -> None:
-    class Child(PandasDataFrameEqualHandler): ...
-
-    assert PandasDataFrameEqualHandler() != Child()
-
-
 def test_pandas_dataframe_equal_handler_repr() -> None:
-    assert repr(PandasDataFrameEqualHandler()).startswith("PandasDataFrameEqualHandler(")
+    assert repr(PandasDataFrameEqualHandler()) == "PandasDataFrameEqualHandler()"
 
 
 def test_pandas_dataframe_equal_handler_str() -> None:
-    assert str(PandasDataFrameEqualHandler()).startswith("PandasDataFrameEqualHandler(")
+    assert str(PandasDataFrameEqualHandler()) == "PandasDataFrameEqualHandler()"
+
+
+def test_pandas_dataframe_equal_handler_equal_true() -> None:
+    assert PandasDataFrameEqualHandler().equal(PandasDataFrameEqualHandler())
+
+
+def test_pandas_dataframe_equal_handler_equal_false_different_type() -> None:
+    assert not PandasDataFrameEqualHandler().equal(FalseHandler())
+
+
+def test_pandas_dataframe_equal_handler_equal_false_different_type_child() -> None:
+    class Child(PandasDataFrameEqualHandler): ...
+
+    assert not PandasDataFrameEqualHandler().equal(Child())
 
 
 @pandas_available
@@ -209,8 +208,22 @@ def test_pandas_dataframe_equal_handler_handle_true_tolerance(
     )
 
 
-def test_pandas_dataframe_equal_handler_set_next_handler() -> None:
-    PandasDataFrameEqualHandler().set_next_handler(FalseHandler())
+def test_pandas_dataframe_equal_handle_set_next_handler() -> None:
+    handler = PandasDataFrameEqualHandler()
+    handler.set_next_handler(FalseHandler())
+    assert handler.next_handler.equal(FalseHandler())
+
+
+def test_pandas_dataframe_equal_handle_set_next_handler_none() -> None:
+    handler = PandasDataFrameEqualHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
+
+
+def test_pandas_dataframe_equal_handle_set_next_handler_incorrect() -> None:
+    handler = PandasDataFrameEqualHandler()
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+        handler.set_next_handler(42)
 
 
 ##############################################
@@ -218,26 +231,26 @@ def test_pandas_dataframe_equal_handler_set_next_handler() -> None:
 ##############################################
 
 
-def test_pandas_series_equal_handler__eq__true() -> None:
-    assert PandasSeriesEqualHandler() == PandasSeriesEqualHandler()
-
-
-def test_pandas_series_equal_handler__eq__false_different_type() -> None:
-    assert PandasSeriesEqualHandler() != FalseHandler()
-
-
-def test_pandas_series_equal_handler__eq__false_different_type_child() -> None:
-    class Child(PandasSeriesEqualHandler): ...
-
-    assert PandasSeriesEqualHandler() != Child()
-
-
 def test_pandas_series_equal_handler_repr() -> None:
-    assert repr(PandasSeriesEqualHandler()).startswith("PandasSeriesEqualHandler(")
+    assert repr(PandasSeriesEqualHandler()) == "PandasSeriesEqualHandler()"
 
 
 def test_pandas_series_equal_handler_str() -> None:
-    assert str(PandasSeriesEqualHandler()).startswith("PandasSeriesEqualHandler(")
+    assert str(PandasSeriesEqualHandler()) == "PandasSeriesEqualHandler()"
+
+
+def test_pandas_series_equal_handler_equal_true() -> None:
+    assert PandasSeriesEqualHandler().equal(PandasSeriesEqualHandler())
+
+
+def test_pandas_series_equal_handler_equal_false_different_type() -> None:
+    assert not PandasSeriesEqualHandler().equal(FalseHandler())
+
+
+def test_pandas_series_equal_handler_equal_false_different_type_child() -> None:
+    class Child(PandasSeriesEqualHandler): ...
+
+    assert not PandasSeriesEqualHandler().equal(Child())
 
 
 @pandas_available
@@ -371,5 +384,19 @@ def test_pandas_series_equal_handler_handle_true_tolerance(
     )
 
 
-def test_pandas_series_equal_handler_set_next_handler() -> None:
-    PandasSeriesEqualHandler().set_next_handler(FalseHandler())
+def test_pandas_series_equal_handle_set_next_handler() -> None:
+    handler = PandasSeriesEqualHandler()
+    handler.set_next_handler(FalseHandler())
+    assert handler.next_handler.equal(FalseHandler())
+
+
+def test_pandas_series_equal_handle_set_next_handler_none() -> None:
+    handler = PandasSeriesEqualHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
+
+
+def test_pandas_series_equal_handle_set_next_handler_incorrect() -> None:
+    handler = PandasSeriesEqualHandler()
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+        handler.set_next_handler(42)

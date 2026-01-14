@@ -16,7 +16,6 @@ from coola.equality.handler import (
     SameTypeHandler,
     TrueHandler,
 )
-from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
 
@@ -31,26 +30,12 @@ if TYPE_CHECKING:
 
 @pytest.fixture
 def config() -> EqualityConfig:
-    return EqualityConfig(tester=EqualityTester())
+    return EqualityConfig()
 
 
 ##################################
 #     Tests for FalseHandler     #
 ##################################
-
-
-def test_false_handler__eq__true() -> None:
-    assert FalseHandler() == FalseHandler()
-
-
-def test_false_handler__eq__false_different_type() -> None:
-    assert FalseHandler() != TrueHandler()
-
-
-def test_false_handler__eq__false_different_type_child() -> None:
-    class Child(FalseHandler): ...
-
-    assert FalseHandler() != Child()
 
 
 def test_false_handler_repr() -> None:
@@ -61,6 +46,20 @@ def test_false_handler_str() -> None:
     assert str(FalseHandler()) == "FalseHandler()"
 
 
+def test_false_handler_equal_true() -> None:
+    assert FalseHandler().equal(FalseHandler())
+
+
+def test_false_handler_equal_false_different_type() -> None:
+    assert not FalseHandler().equal(TrueHandler())
+
+
+def test_false_handler_equal_false_different_type_child() -> None:
+    class Child(FalseHandler): ...
+
+    assert not FalseHandler().equal(Child())
+
+
 @pytest.mark.parametrize(
     ("actual", "expected"), [(0, 0), (4.2, 4.2), ("abc", "abc"), (0, 1), (4, 4.0), ("abc", "ABC")]
 )
@@ -68,27 +67,27 @@ def test_false_handler_handle(actual: Any, expected: Any, config: EqualityConfig
     assert not FalseHandler().handle(actual, expected, config)
 
 
-def test_false_handler_set_next_handler() -> None:
-    FalseHandler().set_next_handler(TrueHandler())
+def test_false_handler_equal_handle_set_next_handler() -> None:
+    handler = FalseHandler()
+    handler.set_next_handler(FalseHandler())
+    assert handler.next_handler.equal(FalseHandler())
 
 
-##################################
+def test_false_handler_equal_handle_set_next_handler_none() -> None:
+    handler = FalseHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
+
+
+def test_false_handler_equal_handle_set_next_handler_incorrect() -> None:
+    handler = FalseHandler()
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+        handler.set_next_handler(42)
+
+
+#################################
 #     Tests for TrueHandler     #
-##################################
-
-
-def test_true_handler__eq__true() -> None:
-    assert TrueHandler() == TrueHandler()
-
-
-def test_true_handler__eq__false_different_type() -> None:
-    assert TrueHandler() != FalseHandler()
-
-
-def test_true_handler__eq__false_different_type_child() -> None:
-    class Child(TrueHandler): ...
-
-    assert TrueHandler() != Child()
+#################################
 
 
 def test_true_handler_repr() -> None:
@@ -97,6 +96,20 @@ def test_true_handler_repr() -> None:
 
 def test_true_handler_str() -> None:
     assert str(TrueHandler()) == "TrueHandler()"
+
+
+def test_true_handler_equal_true() -> None:
+    assert TrueHandler().equal(TrueHandler())
+
+
+def test_true_handler_equal_false_different_type() -> None:
+    assert not TrueHandler().equal(FalseHandler())
+
+
+def test_true_handler_equal_false_different_type_child() -> None:
+    class Child(TrueHandler): ...
+
+    assert not TrueHandler().equal(Child())
 
 
 @pytest.mark.parametrize(
@@ -110,23 +123,27 @@ def test_true_handler_set_next_handler() -> None:
     TrueHandler().set_next_handler(FalseHandler())
 
 
+def test_true_handler_equal_handle_set_next_handler() -> None:
+    handler = TrueHandler()
+    handler.set_next_handler(FalseHandler())
+    assert handler.next_handler.equal(FalseHandler())
+
+
+def test_true_handler_equal_handle_set_next_handler_none() -> None:
+    handler = TrueHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
+
+
+def test_true_handler_equal_handle_set_next_handler_incorrect() -> None:
+    handler = TrueHandler()
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+        handler.set_next_handler(42)
+
+
 ########################################
 #     Tests for ObjectEqualHandler     #
 ########################################
-
-
-def test_object_equal_handler__eq__true() -> None:
-    assert ObjectEqualHandler() == ObjectEqualHandler()
-
-
-def test_object_equal_handler__eq__false_different_type() -> None:
-    assert ObjectEqualHandler() != FalseHandler()
-
-
-def test_object_equal_handler__eq__false_different_type_child() -> None:
-    class Child(ObjectEqualHandler): ...
-
-    assert ObjectEqualHandler() != Child()
 
 
 def test_object_equal_handler_repr() -> None:
@@ -135,6 +152,20 @@ def test_object_equal_handler_repr() -> None:
 
 def test_object_equal_handler_str() -> None:
     assert str(ObjectEqualHandler()) == "ObjectEqualHandler()"
+
+
+def test_object_equal_handler_equal_true() -> None:
+    assert ObjectEqualHandler().equal(ObjectEqualHandler())
+
+
+def test_object_equal_handler_equal_false_different_type() -> None:
+    assert not ObjectEqualHandler().equal(FalseHandler())
+
+
+def test_object_equal_handler_equal_false_different_type_child() -> None:
+    class Child(ObjectEqualHandler): ...
+
+    assert not ObjectEqualHandler().equal(Child())
 
 
 @pytest.mark.parametrize(("actual", "expected"), [(0, 0), (4.2, 4.2), ("abc", "abc")])
@@ -161,31 +192,27 @@ def test_object_equal_handler_handle_false_show_difference(
         assert caplog.messages[0].startswith("objects are different:")
 
 
-def test_object_equal_handler_set_next_handler() -> None:
-    ObjectEqualHandler().set_next_handler(FalseHandler())
+def test_object_equal_handler_equal_handle_set_next_handler() -> None:
+    handler = ObjectEqualHandler()
+    handler.set_next_handler(FalseHandler())
+    assert handler.next_handler.equal(FalseHandler())
+
+
+def test_object_equal_handler_equal_handle_set_next_handler_none() -> None:
+    handler = ObjectEqualHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
+
+
+def test_object_equal_handler_equal_handle_set_next_handler_incorrect() -> None:
+    handler = ObjectEqualHandler()
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+        handler.set_next_handler(42)
 
 
 ##########################################
 #     Tests for SameAttributeHandler     #
 ##########################################
-
-
-def test_same_attribute_handler__eq__true() -> None:
-    assert SameAttributeHandler(name="name") == SameAttributeHandler(name="name")
-
-
-def test_same_attribute_handler__eq__false_different_type() -> None:
-    assert SameAttributeHandler(name="data") != FalseHandler()
-
-
-def test_same_attribute_handler__eq__false_different_type_child() -> None:
-    class Child(SameAttributeHandler): ...
-
-    assert SameAttributeHandler(name="data") != Child(name="data")
-
-
-def test_same_attribute_handler__eq__false_different_name() -> None:
-    assert SameAttributeHandler(name="data1") != SameAttributeHandler(name="data2")
 
 
 def test_same_attribute_handler_repr() -> None:
@@ -194,6 +221,24 @@ def test_same_attribute_handler_repr() -> None:
 
 def test_same_attribute_handler_str() -> None:
     assert str(SameAttributeHandler(name="data")) == "SameAttributeHandler(name=data)"
+
+
+def test_same_attribute_handler_equal_true() -> None:
+    assert SameAttributeHandler(name="name").equal(SameAttributeHandler(name="name"))
+
+
+def test_same_attribute_handler_equal_false_different_type() -> None:
+    assert not SameAttributeHandler(name="data").equal(FalseHandler())
+
+
+def test_same_attribute_handler_equal_false_different_type_child() -> None:
+    class Child(SameAttributeHandler): ...
+
+    assert not SameAttributeHandler(name="data").equal(Child(name="data"))
+
+
+def test_same_attribute_handler_equal_false_different_name() -> None:
+    assert SameAttributeHandler(name="data1") != SameAttributeHandler(name="data2")
 
 
 @pytest.mark.parametrize(
@@ -250,18 +295,6 @@ def test_same_attribute_handler_handle_without_next_handler(config: EqualityConf
         )
 
 
-def test_same_attribute_handler_set_next_handler() -> None:
-    handler = SameAttributeHandler(name="data")
-    handler.set_next_handler(FalseHandler())
-    assert handler.next_handler == FalseHandler()
-
-
-def test_same_attribute_handler_set_next_handler_incorrect() -> None:
-    handler = SameAttributeHandler(name="data")
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
-        handler.set_next_handler(None)
-
-
 @numpy_available
 def test_same_attribute_handler_handle_true_numpy(config: EqualityConfig) -> None:
     assert SameAttributeHandler(name="dtype", next_handler=TrueHandler()).handle(
@@ -276,31 +309,49 @@ def test_same_attribute_handler_handle_false_numpy(config: EqualityConfig) -> No
     )
 
 
+def test_same_attribute_handler_set_next_handler() -> None:
+    handler = SameAttributeHandler(name="data")
+    handler.set_next_handler(FalseHandler())
+    assert handler.next_handler.equal(FalseHandler())
+
+
+def test_same_attribute_handler_set_next_handler_none() -> None:
+    handler = SameAttributeHandler(name="data")
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
+
+
+def test_same_attribute_handler_set_next_handler_incorrect() -> None:
+    handler = SameAttributeHandler(name="data")
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+        handler.set_next_handler(42)
+
+
 #######################################
 #     Tests for SameLengthHandler     #
 #######################################
 
 
-def test_same_length_handler__eq__true() -> None:
-    assert SameLengthHandler() == SameLengthHandler()
-
-
-def test_same_length_handler__eq__false_different_type() -> None:
-    assert SameLengthHandler() != FalseHandler()
-
-
-def test_same_length_handler__eq__false_different_type_child() -> None:
-    class Child(SameLengthHandler): ...
-
-    assert SameLengthHandler() != Child()
-
-
 def test_same_length_handler_repr() -> None:
-    assert repr(SameLengthHandler()).startswith("SameLengthHandler(")
+    assert repr(SameLengthHandler()) == "SameLengthHandler()"
 
 
 def test_same_length_handler_str() -> None:
     assert str(SameLengthHandler()) == "SameLengthHandler()"
+
+
+def test_same_length_handler_equal_true() -> None:
+    assert SameLengthHandler().equal(SameLengthHandler())
+
+
+def test_same_length_handler_equal_false_different_type() -> None:
+    assert not SameLengthHandler().equal(FalseHandler())
+
+
+def test_same_length_handler_equal_false_different_type_child() -> None:
+    class Child(SameLengthHandler): ...
+
+    assert not SameLengthHandler().equal(Child())
 
 
 @pytest.mark.parametrize(
@@ -353,13 +404,19 @@ def test_same_length_handler_handle_without_next_handler(config: EqualityConfig)
 def test_same_length_handler_set_next_handler() -> None:
     handler = SameLengthHandler()
     handler.set_next_handler(FalseHandler())
-    assert handler.next_handler == FalseHandler()
+    assert handler.next_handler.equal(FalseHandler())
+
+
+def test_same_length_handler_set_next_handler_none() -> None:
+    handler = SameLengthHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
 
 
 def test_same_length_handler_set_next_handler_incorrect() -> None:
     handler = SameLengthHandler()
     with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
-        handler.set_next_handler(None)
+        handler.set_next_handler(42)
 
 
 #######################################
@@ -367,26 +424,26 @@ def test_same_length_handler_set_next_handler_incorrect() -> None:
 #######################################
 
 
-def test_same_object_handler__eq__true() -> None:
-    assert SameObjectHandler() == SameObjectHandler()
-
-
-def test_same_object_handler__eq__false_different_type() -> None:
-    assert SameObjectHandler() != FalseHandler()
-
-
-def test_same_object_handler__eq__false_different_type_child() -> None:
-    class Child(SameObjectHandler): ...
-
-    assert SameObjectHandler() != Child()
-
-
 def test_same_object_handler_repr() -> None:
-    assert repr(SameObjectHandler()).startswith("SameObjectHandler(")
+    assert repr(SameObjectHandler()) == "SameObjectHandler()"
 
 
 def test_same_object_handler_str() -> None:
     assert str(SameObjectHandler()) == "SameObjectHandler()"
+
+
+def test_same_object_handler_equal_true() -> None:
+    assert SameObjectHandler().equal(SameObjectHandler())
+
+
+def test_same_object_handler_equal_false_different_type() -> None:
+    assert not SameObjectHandler().equal(FalseHandler())
+
+
+def test_same_object_handler_equal_false_different_type_child() -> None:
+    class Child(SameObjectHandler): ...
+
+    assert not SameObjectHandler().equal(Child())
 
 
 @pytest.mark.parametrize(("actual", "expected"), [(0, 0), (4.2, 4.2), ("abc", "abc")])
@@ -412,13 +469,19 @@ def test_same_object_handler_handle_without_next_handler(config: EqualityConfig)
 def test_same_object_handler_set_next_handler() -> None:
     handler = SameObjectHandler()
     handler.set_next_handler(FalseHandler())
-    assert handler.next_handler == FalseHandler()
+    assert handler.next_handler.equal(FalseHandler())
+
+
+def test_same_object_handler_set_next_handler_none() -> None:
+    handler = SameObjectHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
 
 
 def test_same_object_handler_set_next_handler_incorrect() -> None:
     handler = SameObjectHandler()
     with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
-        handler.set_next_handler(None)
+        handler.set_next_handler(42)
 
 
 #####################################
@@ -426,26 +489,26 @@ def test_same_object_handler_set_next_handler_incorrect() -> None:
 #####################################
 
 
-def test_same_type_handler__eq__true() -> None:
-    assert SameTypeHandler() == SameTypeHandler()
-
-
-def test_same_type_handler__eq__false_different_type() -> None:
-    assert SameTypeHandler() != FalseHandler()
-
-
-def test_same_type_handler__eq__false_different_type_child() -> None:
-    class Child(SameTypeHandler): ...
-
-    assert SameTypeHandler() != Child()
-
-
 def test_same_type_handler_repr() -> None:
-    assert repr(SameTypeHandler()).startswith("SameTypeHandler(")
+    assert repr(SameTypeHandler()) == "SameTypeHandler()"
 
 
 def test_same_type_handler_str() -> None:
     assert str(SameTypeHandler()) == "SameTypeHandler()"
+
+
+def test_same_type_handler_equal_true() -> None:
+    assert SameTypeHandler().equal(SameTypeHandler())
+
+
+def test_same_type_handler_equal_false_different_type() -> None:
+    assert not SameTypeHandler().equal(FalseHandler())
+
+
+def test_same_type_handler_equal_false_different_type_child() -> None:
+    class Child(SameTypeHandler): ...
+
+    assert not SameTypeHandler().equal(Child())
 
 
 @pytest.mark.parametrize(("actual", "expected"), [(0, 0), (4.2, 4.2), ("abc", "abc")])
@@ -477,10 +540,16 @@ def test_same_type_handler_handle_without_next_handler(config: EqualityConfig) -
 def test_same_type_handler_set_next_handler() -> None:
     handler = SameTypeHandler()
     handler.set_next_handler(FalseHandler())
-    assert handler.next_handler == FalseHandler()
+    assert handler.next_handler.equal(FalseHandler())
+
+
+def test_same_type_handler_set_next_handler_none() -> None:
+    handler = SameTypeHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
 
 
 def test_same_type_handler_set_next_handler_incorrect() -> None:
     handler = SameTypeHandler()
     with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
-        handler.set_next_handler(None)
+        handler.set_next_handler(42)

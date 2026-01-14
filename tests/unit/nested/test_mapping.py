@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from coola import objects_are_equal
+from coola.equality import objects_are_equal
 from coola.nested import get_first_value, remove_keys_starting_with, to_flat_dict
 from coola.testing.fixtures import numpy_available, torch_available
 from coola.utils.imports import is_numpy_available, is_torch_available

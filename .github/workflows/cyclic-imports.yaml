@@ -23,9 +23,8 @@ jobs:
       - name: check coola.equality
         run: |
           python -c "from coola import equality"
-          python -c "from coola.equality import comparators"
-          python -c "from coola.equality import handlers"
-          python -c "from coola.equality import testers"
+          python -c "from coola.equality import handler"
+          python -c "from coola.equality import tester"
 
       - name: check coola.iterator
         run: |

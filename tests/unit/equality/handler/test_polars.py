@@ -19,10 +19,9 @@ from coola.equality.handler.polars import (
     has_nan,
     is_new_naming,
 )
-from coola.equality.testers import EqualityTester
 from coola.testing.fixtures import polars_available
 from coola.utils.imports import is_polars_available
-from tests.unit.equality.comparators.test_polars import (
+from tests.unit.equality.tester.test_polars import (
     POLARS_DATAFRAME_EQUAL_TOLERANCE,
     POLARS_LAZYFRAME_EQUAL_TOLERANCE,
     POLARS_SERIES_EQUAL_TOLERANCE,
@@ -39,7 +38,7 @@ if TYPE_CHECKING:
 
 @pytest.fixture
 def config() -> EqualityConfig:
-    return EqualityConfig(tester=EqualityTester())
+    return EqualityConfig()
 
 
 #################################################
@@ -47,26 +46,26 @@ def config() -> EqualityConfig:
 #################################################
 
 
-def test_polars_dataframe_equal_handler__eq__true() -> None:
-    assert PolarsDataFrameEqualHandler() == PolarsDataFrameEqualHandler()
-
-
-def test_polars_dataframe_equal_handler__eq__false_different_type() -> None:
-    assert PolarsDataFrameEqualHandler() != FalseHandler()
-
-
-def test_polars_dataframe_equal_handler__eq__false_different_type_child() -> None:
-    class Child(PolarsDataFrameEqualHandler): ...
-
-    assert PolarsDataFrameEqualHandler() != Child()
-
-
 def test_polars_dataframe_equal_handler_repr() -> None:
-    assert repr(PolarsDataFrameEqualHandler()).startswith("PolarsDataFrameEqualHandler(")
+    assert repr(PolarsDataFrameEqualHandler()) == "PolarsDataFrameEqualHandler()"
 
 
 def test_polars_dataframe_equal_handler_str() -> None:
-    assert str(PolarsDataFrameEqualHandler()).startswith("PolarsDataFrameEqualHandler(")
+    assert str(PolarsDataFrameEqualHandler()) == "PolarsDataFrameEqualHandler()"
+
+
+def test_polars_dataframe_equal_handler_equal_true() -> None:
+    assert PolarsDataFrameEqualHandler().equal(PolarsDataFrameEqualHandler())
+
+
+def test_polars_dataframe_equal_handler_equal_false_different_type() -> None:
+    assert not PolarsDataFrameEqualHandler().equal(FalseHandler())
+
+
+def test_polars_dataframe_equal_handler_equal_false_different_type_child() -> None:
+    class Child(PolarsDataFrameEqualHandler): ...
+
+    assert not PolarsDataFrameEqualHandler().equal(Child())
 
 
 @polars_available
@@ -217,8 +216,22 @@ def test_polars_dataframe_equal_handler_handle_true_tolerance(
     )
 
 
-def test_polars_dataframe_equal_handler_set_next_handler() -> None:
-    PolarsDataFrameEqualHandler().set_next_handler(FalseHandler())
+def test_polars_dataframe_equal_handle_set_next_handler() -> None:
+    handler = PolarsDataFrameEqualHandler()
+    handler.set_next_handler(FalseHandler())
+    assert handler.next_handler.equal(FalseHandler())
+
+
+def test_polars_dataframe_equal_handle_set_next_handler_none() -> None:
+    handler = PolarsDataFrameEqualHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
+
+
+def test_polars_dataframe_equal_handle_set_next_handler_incorrect() -> None:
+    handler = PolarsDataFrameEqualHandler()
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+        handler.set_next_handler(42)
 
 
 #################################################
@@ -226,26 +239,26 @@ def test_polars_dataframe_equal_handler_set_next_handler() -> None:
 #################################################
 
 
-def test_polars_lazyframe_equal_handler__eq__true() -> None:
-    assert PolarsLazyFrameEqualHandler() == PolarsLazyFrameEqualHandler()
-
-
-def test_polars_lazyframe_equal_handler__eq__false_different_type() -> None:
-    assert PolarsLazyFrameEqualHandler() != FalseHandler()
-
-
-def test_polars_lazyframe_equal_handler__eq__false_different_type_child() -> None:
-    class Child(PolarsLazyFrameEqualHandler): ...
-
-    assert PolarsLazyFrameEqualHandler() != Child()
-
-
 def test_polars_lazyframe_equal_handler_repr() -> None:
-    assert repr(PolarsLazyFrameEqualHandler()).startswith("PolarsLazyFrameEqualHandler(")
+    assert repr(PolarsLazyFrameEqualHandler()) == "PolarsLazyFrameEqualHandler()"
 
 
 def test_polars_lazyframe_equal_handler_str() -> None:
-    assert str(PolarsLazyFrameEqualHandler()).startswith("PolarsLazyFrameEqualHandler(")
+    assert str(PolarsLazyFrameEqualHandler()) == "PolarsLazyFrameEqualHandler()"
+
+
+def test_polars_lazyframe_equal_handler_equal_true() -> None:
+    assert PolarsLazyFrameEqualHandler().equal(PolarsLazyFrameEqualHandler())
+
+
+def test_polars_lazyframe_equal_handler_equal_false_different_type() -> None:
+    assert not PolarsLazyFrameEqualHandler().equal(FalseHandler())
+
+
+def test_polars_lazyframe_equal_handler_equal_false_different_type_child() -> None:
+    class Child(PolarsLazyFrameEqualHandler): ...
+
+    assert not PolarsLazyFrameEqualHandler().equal(Child())
 
 
 @polars_available
@@ -396,8 +409,22 @@ def test_polars_lazyframe_equal_handler_handle_true_tolerance(
     )
 
 
-def test_polars_lazyframe_equal_handler_set_next_handler() -> None:
-    PolarsLazyFrameEqualHandler().set_next_handler(FalseHandler())
+def test_polars_lazyframe_equal_handle_set_next_handler() -> None:
+    handler = PolarsLazyFrameEqualHandler()
+    handler.set_next_handler(FalseHandler())
+    assert handler.next_handler.equal(FalseHandler())
+
+
+def test_polars_lazyframe_equal_handle_set_next_handler_none() -> None:
+    handler = PolarsLazyFrameEqualHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
+
+
+def test_polars_lazyframe_equal_handle_set_next_handler_incorrect() -> None:
+    handler = PolarsLazyFrameEqualHandler()
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+        handler.set_next_handler(42)
 
 
 ##############################################
@@ -405,18 +432,18 @@ def test_polars_lazyframe_equal_handler_set_next_handler() -> None:
 ##############################################
 
 
-def test_polars_series_equal_handler__eq__true() -> None:
-    assert PolarsSeriesEqualHandler() == PolarsSeriesEqualHandler()
+def test_polars_series_equal_handler_equal_true() -> None:
+    assert PolarsSeriesEqualHandler().equal(PolarsSeriesEqualHandler())
 
 
-def test_polars_series_equal_handler__eq__false_different_type() -> None:
-    assert PolarsSeriesEqualHandler() != FalseHandler()
+def test_polars_series_equal_handler_equal_false_different_type() -> None:
+    assert not PolarsSeriesEqualHandler().equal(FalseHandler())
 
 
-def test_polars_series_equal_handler__eq__false_different_type_child() -> None:
+def test_polars_series_equal_handler_equal_false_different_type_child() -> None:
     class Child(PolarsSeriesEqualHandler): ...
 
-    assert PolarsSeriesEqualHandler() != Child()
+    assert not PolarsSeriesEqualHandler().equal(Child())
 
 
 def test_polars_series_equal_handler_repr() -> None:
@@ -543,8 +570,22 @@ def test_polars_series_equal_handler_handle_true_tolerance(
     )
 
 
-def test_polars_series_equal_handler_set_next_handler() -> None:
-    PolarsSeriesEqualHandler().set_next_handler(FalseHandler())
+def test_polars_series_equal_handle_set_next_handler() -> None:
+    handler = PolarsSeriesEqualHandler()
+    handler.set_next_handler(FalseHandler())
+    assert handler.next_handler.equal(FalseHandler())
+
+
+def test_polars_series_equal_handle_set_next_handler_none() -> None:
+    handler = PolarsSeriesEqualHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
+
+
+def test_polars_series_equal_handle_set_next_handler_incorrect() -> None:
+    handler = PolarsSeriesEqualHandler()
+    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+        handler.set_next_handler(42)
 
 
 #############################

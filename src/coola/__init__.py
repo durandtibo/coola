@@ -1,10 +1,8 @@
 r"""Contain the main features of the ``coola`` package."""
 
-__all__ = ["__version__", "objects_are_allclose", "objects_are_equal"]
+__all__ = ["__version__"]
 
 from importlib.metadata import PackageNotFoundError, version
-
-from coola.comparison import objects_are_allclose, objects_are_equal
 
 try:
     __version__ = version(__name__)
