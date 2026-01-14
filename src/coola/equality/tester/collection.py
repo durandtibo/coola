@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 
 class MappingEqualityTester(BaseEqualityTester[Mapping[Any, Any]]):
-    r"""Implement a sequence equality tester.
+    r"""Implement a mapping equality tester.
 
     Example:
         ```pycon

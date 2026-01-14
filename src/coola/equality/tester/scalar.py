@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 
 class ScalarEqualityTester(BaseEqualityTester[float]):
-    r"""Implement a default equality tester.
+    r"""Implement a scalar equality tester.
 
     Example:
         ```pycon
