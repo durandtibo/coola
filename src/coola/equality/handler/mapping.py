@@ -101,11 +101,21 @@ class MappingSameValuesHandler(BaseEqualityHandler):
         expected: Mapping[Any, Any],
         config: EqualityConfig,
     ) -> bool:
-        for key in actual:
-            if not config.registry.objects_are_equal(actual[key], expected[key], config):
-                self._show_difference(actual, expected, config=config)
-                return False
-        return self._handle_next(actual, expected, config=config)
+        if config._current_depth >= config.max_depth:
+            msg = (
+                f"Maximum recursion depth ({config.max_depth}) exceeded. "
+                f"Consider increasing max_depth parameter or simplifying the data structure."
+            )
+            raise RecursionError(msg)
+        config._current_depth += 1
+        try:
+            for key in actual:
+                if not config.registry.objects_are_equal(actual[key], expected[key], config):
+                    self._show_difference(actual, expected, config=config)
+                    return False
+            return self._handle_next(actual, expected, config=config)
+        finally:
+            config._current_depth -= 1
 
     def _show_difference(
         self, actual: Mapping[Any, Any], expected: Mapping[Any, Any], config: EqualityConfig

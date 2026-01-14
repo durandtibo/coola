@@ -320,6 +320,52 @@ def test_objects_are_allclose_negative_rtol() -> None:
         objects_are_allclose([1, 2, 3], [1, 2, 3], rtol=-0.5)
 
 
+def test_objects_are_equal_deep_nesting() -> None:
+    # Create a deeply nested structure
+    depth = 50
+    nested1 = [1]
+    nested2 = [1]
+    for _ in range(depth):
+        nested1 = [nested1]
+        nested2 = [nested2]
+    assert objects_are_equal(nested1, nested2)
+
+
+def test_objects_are_equal_exceeds_max_depth() -> None:
+    # Create a structure that exceeds max_depth
+    depth = 15
+    nested1 = [1]
+    nested2 = [1]
+    for _ in range(depth):
+        nested1 = [nested1]
+        nested2 = [nested2]
+    with pytest.raises(RecursionError, match="Maximum recursion depth.*exceeded"):
+        objects_are_equal(nested1, nested2, max_depth=10)
+
+
+def test_objects_are_allclose_deep_nesting() -> None:
+    # Create a deeply nested structure
+    depth = 50
+    nested1 = [1.0]
+    nested2 = [1.0 + 1e-9]
+    for _ in range(depth):
+        nested1 = [nested1]
+        nested2 = [nested2]
+    assert objects_are_allclose(nested1, nested2)
+
+
+def test_objects_are_allclose_exceeds_max_depth() -> None:
+    # Create a structure that exceeds max_depth
+    depth = 15
+    nested1 = [1.0]
+    nested2 = [1.0]
+    for _ in range(depth):
+        nested1 = [nested1]
+        nested2 = [nested2]
+    with pytest.raises(RecursionError, match="Maximum recursion depth.*exceeded"):
+        objects_are_allclose(nested1, nested2, max_depth=10)
+
+
 #######################################
 #     Tests for objects_are_equal     #
 #######################################

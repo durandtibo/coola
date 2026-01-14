@@ -35,3 +35,23 @@ def test_equality_config_zero_tolerances() -> None:
     config = EqualityConfig(atol=0.0, rtol=0.0)
     assert config.atol == 0.0
     assert config.rtol == 0.0
+
+
+def test_equality_config_max_depth_default() -> None:
+    config = EqualityConfig()
+    assert config.max_depth == 1000
+
+
+def test_equality_config_max_depth_custom() -> None:
+    config = EqualityConfig(max_depth=100)
+    assert config.max_depth == 100
+
+
+def test_equality_config_max_depth_zero() -> None:
+    with pytest.raises(ValueError, match="max_depth must be positive"):
+        EqualityConfig(max_depth=0)
+
+
+def test_equality_config_max_depth_negative() -> None:
+    with pytest.raises(ValueError, match="max_depth must be positive"):
+        EqualityConfig(max_depth=-1)

@@ -22,6 +22,7 @@ def objects_are_allclose(
     atol: float = 1e-8,
     equal_nan: bool = False,
     show_difference: bool = False,
+    max_depth: int = 1000,
     registry: EqualityTesterRegistry | None = None,
 ) -> bool:
     r"""Indicate if two objects are equal within a tolerance.
@@ -36,6 +37,8 @@ def objects_are_allclose(
         show_difference: If ``True``, it shows a difference between
             the two objects if they are different. This parameter is
             useful to find the difference between two objects.
+        max_depth: Maximum recursion depth for nested comparisons.
+            Must be positive. Defaults to 1000.
         registry: The registry with the equality tester to use.
 
     Returns:
@@ -44,6 +47,7 @@ def objects_are_allclose(
 
     Raises:
         ValueError: if ``rtol`` or ``atol`` is negative.
+        RecursionError: if recursion depth exceeds ``max_depth``.
 
     Example:
         ```pycon
@@ -84,6 +88,7 @@ def objects_are_allclose(
         equal_nan=equal_nan,
         atol=atol,
         rtol=rtol,
+        max_depth=max_depth,
     )
     return registry.objects_are_equal(actual, expected, config)
 
@@ -94,6 +99,7 @@ def objects_are_equal(
     *,
     equal_nan: bool = False,
     show_difference: bool = False,
+    max_depth: int = 1000,
     registry: EqualityTesterRegistry | None = None,
 ) -> bool:
     r"""Indicate if two objects are equal or not.
@@ -106,11 +112,16 @@ def objects_are_equal(
         show_difference: If ``True``, it shows a difference between
             the two objects if they are different. This parameter is
             useful to find the difference between two objects.
+        max_depth: Maximum recursion depth for nested comparisons.
+            Must be positive. Defaults to 1000.
         registry: The registry with the equality tester to use.
 
     Returns:
         ``True`` if the two nested data are equal, otherwise
             ``False``.
+
+    Raises:
+        RecursionError: if recursion depth exceeds ``max_depth``.
 
     Example:
         ```pycon
@@ -129,5 +140,10 @@ def objects_are_equal(
     """
     if registry is None:
         registry = get_default_registry()
-    config = EqualityConfig(registry=registry, show_difference=show_difference, equal_nan=equal_nan)
+    config = EqualityConfig(
+        registry=registry,
+        show_difference=show_difference,
+        equal_nan=equal_nan,
+        max_depth=max_depth,
+    )
     return registry.objects_are_equal(actual, expected, config)

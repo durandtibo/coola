@@ -51,11 +51,21 @@ class SequenceSameValuesHandler(BaseEqualityHandler):
         expected: Sequence[Any],
         config: EqualityConfig,
     ) -> bool:
-        for value1, value2 in zip(actual, expected):
-            if not config.registry.objects_are_equal(value1, value2, config):
-                self._show_difference(actual, expected, config=config)
-                return False
-        return self._handle_next(actual, expected, config=config)
+        if config._current_depth >= config.max_depth:
+            msg = (
+                f"Maximum recursion depth ({config.max_depth}) exceeded. "
+                f"Consider increasing max_depth parameter or simplifying the data structure."
+            )
+            raise RecursionError(msg)
+        config._current_depth += 1
+        try:
+            for value1, value2 in zip(actual, expected):
+                if not config.registry.objects_are_equal(value1, value2, config):
+                    self._show_difference(actual, expected, config=config)
+                    return False
+            return self._handle_next(actual, expected, config=config)
+        finally:
+            config._current_depth -= 1
 
     def _show_difference(
         self, actual: Sequence, expected: Sequence, config: EqualityConfig

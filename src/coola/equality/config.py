@@ -32,16 +32,21 @@ class EqualityConfig:
             comparisons. Must be non-negative. Defaults to 0.0.
         show_difference: If ``True``, shows differences between
             non-equal objects. Defaults to ``False``.
+        max_depth: Maximum recursion depth for nested object
+            comparisons. Must be positive. Defaults to 1000.
+            Set to a lower value to protect against stack overflow
+            with extremely deeply nested structures.
 
     Raises:
-        ValueError: if ``atol`` or ``rtol`` is negative.
+        ValueError: if ``atol`` or ``rtol`` is negative, or if
+            ``max_depth`` is not positive.
 
     Example:
         ```pycon
         >>> from coola.equality.config import EqualityConfig
         >>> config = EqualityConfig()
         >>> config
-        EqualityConfig(registry=EqualityTesterRegistry(...), equal_nan=False, atol=0.0, rtol=0.0, show_difference=False)
+        EqualityConfig(registry=EqualityTesterRegistry(...), equal_nan=False, atol=0.0, rtol=0.0, show_difference=False, max_depth=1000)
 
         ```
     """
@@ -51,6 +56,8 @@ class EqualityConfig:
     atol: float = 0.0
     rtol: float = 0.0
     show_difference: bool = False
+    max_depth: int = 1000
+    _current_depth: int = field(default=0, init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
         """Validate configuration parameters after initialization."""
@@ -59,4 +66,7 @@ class EqualityConfig:
             raise ValueError(msg)
         if self.rtol < 0:
             msg = f"rtol must be non-negative, but got {self.rtol}"
+            raise ValueError(msg)
+        if self.max_depth <= 0:
+            msg = f"max_depth must be positive, but got {self.max_depth}"
             raise ValueError(msg)
