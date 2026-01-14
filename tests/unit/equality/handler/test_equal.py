@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any
 import pytest
 
 from coola.equality.config import EqualityConfig
-from coola.equality.handler import EqualNanHandler, FalseHandler
+from coola.equality.handler import EqualNanHandler, FalseHandler, TrueHandler
 from coola.equality.handler.equal import EqualHandler
 
 if TYPE_CHECKING:
@@ -50,12 +50,44 @@ def test_equal_handler_str() -> None:
     assert str(EqualHandler()) == "EqualHandler()"
 
 
-def test_equal_handler_equal_true() -> None:
-    assert EqualHandler().equal(EqualHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(EqualHandler(), EqualHandler(), id="without next handler"),
+        pytest.param(
+            EqualHandler(FalseHandler()),
+            EqualHandler(FalseHandler()),
+            id="with next handler",
+        ),
+    ],
+)
+def test_equal_handler_equal_true(handler1: EqualHandler, handler2: EqualHandler) -> None:
+    assert handler1.equal(handler2)
 
 
-def test_equal_handler_equal_false_different_type() -> None:
-    assert not EqualHandler().equal(FalseHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(
+            EqualHandler(TrueHandler()),
+            EqualHandler(FalseHandler()),
+            id="different next handler",
+        ),
+        pytest.param(
+            EqualHandler(),
+            EqualHandler(FalseHandler()),
+            id="next handler is none",
+        ),
+        pytest.param(
+            EqualHandler(FalseHandler()),
+            EqualHandler(),
+            id="other next handler is none",
+        ),
+        pytest.param(EqualHandler(), FalseHandler(), id="different type"),
+    ],
+)
+def test_equal_handler_equal_false(handler1: EqualHandler, handler2: object) -> None:
+    assert not handler1.equal(handler2)
 
 
 def test_equal_handler_equal_false_different_type_child() -> None:
@@ -135,12 +167,44 @@ def test_equal_nan_handler_str() -> None:
     assert str(EqualNanHandler()) == "EqualNanHandler()"
 
 
-def test_equal_nan_handler_equal_true() -> None:
-    assert EqualNanHandler().equal(EqualNanHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(EqualNanHandler(), EqualNanHandler(), id="without next handler"),
+        pytest.param(
+            EqualNanHandler(FalseHandler()),
+            EqualNanHandler(FalseHandler()),
+            id="with next handler",
+        ),
+    ],
+)
+def test_equal_nan_handler_equal_true(handler1: EqualNanHandler, handler2: EqualNanHandler) -> None:
+    assert handler1.equal(handler2)
 
 
-def test_equal_nan_handler_equal_false_different_type() -> None:
-    assert not EqualNanHandler().equal(FalseHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(
+            EqualNanHandler(TrueHandler()),
+            EqualNanHandler(FalseHandler()),
+            id="different next handler",
+        ),
+        pytest.param(
+            EqualNanHandler(),
+            EqualNanHandler(FalseHandler()),
+            id="next handler is none",
+        ),
+        pytest.param(
+            EqualNanHandler(FalseHandler()),
+            EqualNanHandler(),
+            id="other next handler is none",
+        ),
+        pytest.param(EqualNanHandler(), FalseHandler(), id="different type"),
+    ],
+)
+def test_equal_nan_handler_equal_false(handler1: EqualNanHandler, handler2: object) -> None:
+    assert not handler1.equal(handler2)
 
 
 def test_equal_nan_handler_equal_false_different_type_child() -> None:

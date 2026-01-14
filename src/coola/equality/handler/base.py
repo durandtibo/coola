@@ -256,6 +256,15 @@ class BaseEqualityHandler(ABC):
         return self._next_handler.handle(actual, expected, config=config)
 
     def _verify_next_handler(self, handler: BaseEqualityHandler | None) -> None:
+        r"""Verify the next handler is valid.
+
+        Args:
+            handler: The next handler.
+
+        Raises:
+            RuntimeError: if the next handler is self.
+            TypeError: if the next handler is not a BaseEqualityHandler.
+        """
         if not handler:
             return
         if handler is self:

@@ -74,8 +74,8 @@ def test_chain_1_handler(config: EqualityConfig) -> None:
 def test_chain_multiple_handlers(config: EqualityConfig) -> None:
     handler = SameObjectHandler()
     handler.chain(SameTypeHandler()).chain(SameLengthHandler()).chain(ObjectEqualHandler())
-    assert handler.next_handler.equal(SameTypeHandler())
-    assert handler.next_handler.next_handler.equal(SameLengthHandler())
+    assert handler.next_handler.equal(SameTypeHandler(SameLengthHandler(ObjectEqualHandler())))
+    assert handler.next_handler.next_handler.equal(SameLengthHandler(ObjectEqualHandler()))
     assert handler.next_handler.next_handler.next_handler.equal(ObjectEqualHandler())
     assert handler.next_handler.next_handler.next_handler.next_handler is None
     assert handler.handle(actual=[1, 2, 3], expected=[1, 2, 3], config=config)
@@ -112,8 +112,8 @@ def test_chain_all_1_handler(config: EqualityConfig) -> None:
 def test_chain_all_multiple_handlers(config: EqualityConfig) -> None:
     handler = SameObjectHandler()
     handler.chain_all(SameTypeHandler(), SameLengthHandler(), ObjectEqualHandler())
-    assert handler.next_handler.equal(SameTypeHandler())
-    assert handler.next_handler.next_handler.equal(SameLengthHandler())
+    assert handler.next_handler.equal(SameTypeHandler(SameLengthHandler(ObjectEqualHandler())))
+    assert handler.next_handler.next_handler.equal(SameLengthHandler(ObjectEqualHandler()))
     assert handler.next_handler.next_handler.next_handler.equal(ObjectEqualHandler())
     assert handler.next_handler.next_handler.next_handler.next_handler is None
     assert handler.handle(actual=[1, 2, 3], expected=[1, 2, 3], config=config)

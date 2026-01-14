@@ -35,12 +35,48 @@ def test_mapping_same_keys_handler_str() -> None:
     assert str(MappingSameKeysHandler()) == "MappingSameKeysHandler()"
 
 
-def test_mapping_same_keys_handler_equal_true() -> None:
-    assert MappingSameKeysHandler().equal(MappingSameKeysHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(MappingSameKeysHandler(), MappingSameKeysHandler(), id="without next handler"),
+        pytest.param(
+            MappingSameKeysHandler(FalseHandler()),
+            MappingSameKeysHandler(FalseHandler()),
+            id="with next handler",
+        ),
+    ],
+)
+def test_mapping_same_keys_handler_equal_true(
+    handler1: MappingSameKeysHandler, handler2: MappingSameKeysHandler
+) -> None:
+    assert handler1.equal(handler2)
 
 
-def test_mapping_same_keys_handler_equal_false_different_type() -> None:
-    assert not MappingSameKeysHandler().equal(FalseHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(
+            MappingSameKeysHandler(TrueHandler()),
+            MappingSameKeysHandler(FalseHandler()),
+            id="different next handler",
+        ),
+        pytest.param(
+            MappingSameKeysHandler(),
+            MappingSameKeysHandler(FalseHandler()),
+            id="next handler is none",
+        ),
+        pytest.param(
+            MappingSameKeysHandler(FalseHandler()),
+            MappingSameKeysHandler(),
+            id="other next handler is none",
+        ),
+        pytest.param(MappingSameKeysHandler(), FalseHandler(), id="different type"),
+    ],
+)
+def test_mapping_same_keys_handler_equal_false(
+    handler1: MappingSameKeysHandler, handler2: object
+) -> None:
+    assert not handler1.equal(handler2)
 
 
 def test_mapping_same_keys_handler_equal_false_different_type_child() -> None:
@@ -124,12 +160,50 @@ def test_mapping_same_values_handler_str() -> None:
     assert str(MappingSameValuesHandler()) == "MappingSameValuesHandler()"
 
 
-def test_mapping_same_values_handler_equal_true() -> None:
-    assert MappingSameValuesHandler().equal(MappingSameValuesHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(
+            MappingSameValuesHandler(), MappingSameValuesHandler(), id="without next handler"
+        ),
+        pytest.param(
+            MappingSameValuesHandler(FalseHandler()),
+            MappingSameValuesHandler(FalseHandler()),
+            id="with next handler",
+        ),
+    ],
+)
+def test_mapping_same_values_handler_equal_true(
+    handler1: MappingSameValuesHandler, handler2: MappingSameValuesHandler
+) -> None:
+    assert handler1.equal(handler2)
 
 
-def test_mapping_same_values_handler_equal_false_different_type() -> None:
-    assert not MappingSameValuesHandler().equal(FalseHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(
+            MappingSameValuesHandler(TrueHandler()),
+            MappingSameValuesHandler(FalseHandler()),
+            id="different next handler",
+        ),
+        pytest.param(
+            MappingSameValuesHandler(),
+            MappingSameValuesHandler(FalseHandler()),
+            id="next handler is none",
+        ),
+        pytest.param(
+            MappingSameValuesHandler(FalseHandler()),
+            MappingSameValuesHandler(),
+            id="other next handler is none",
+        ),
+        pytest.param(MappingSameValuesHandler(), FalseHandler(), id="different type"),
+    ],
+)
+def test_mapping_same_values_handler_equal_false(
+    handler1: MappingSameValuesHandler, handler2: object
+) -> None:
+    assert not handler1.equal(handler2)
 
 
 def test_mapping_same_values_handler_equal_false_different_type_child() -> None:
