@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 
 
 class TorchPackedSequenceEqualityTester(BaseEqualityTester[torch.nn.utils.rnn.PackedSequence]):
-    r"""Implement an equality tester for ``torch.Tensor``.
+    r"""Implement an equality tester for ``torch.nn.utils.rnn.PackedSequence``.
 
     Example:
         ```pycon
@@ -41,11 +41,21 @@ class TorchPackedSequenceEqualityTester(BaseEqualityTester[torch.nn.utils.rnn.Pa
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.tester import TorchPackedSequenceEqualityTester
         >>> config = EqualityConfig()
-        >>> tester = TorchTensorEqualityTester()
-        >>> tester.objects_are_equal(torch.ones(2, 3), torch.ones(2, 3), config)
+        >>> tester = TorchPackedSequenceEqualityTester()
+        >>> seq1 = torch.nn.utils.rnn.pack_padded_sequence(
+        ...     torch.tensor([[1.0, 2.0], [3.0, 4.0]]),
+        ...     lengths=torch.tensor([2, 1]),
+        ...     batch_first=True,
+        ...     enforce_sorted=False,
+        ... )
+        >>> seq2 = torch.nn.utils.rnn.pack_padded_sequence(
+        ...     torch.tensor([[1.0, 2.0], [3.0, 4.0]]),
+        ...     lengths=torch.tensor([2, 1]),
+        ...     batch_first=True,
+        ...     enforce_sorted=False,
+        ... )
+        >>> tester.objects_are_equal(seq1, seq2, config)
         True
-        >>> tester.objects_are_equal(torch.ones(2, 3), torch.zeros(2, 3), config)
-        False
 
         ```
     """

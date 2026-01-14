@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 
 class PyarrowEqualityTester(BaseEqualityTester[pa.Array]):
-    r"""Implement an equality tester for ```pyarrow.Array``s and
+    r"""Implement an equality tester for ``pyarrow.Array``s and
     ``pyarrow.Table``s.
 
     Note that ``config.equal_nan``, ``config.atol`` and ``config.rtol``

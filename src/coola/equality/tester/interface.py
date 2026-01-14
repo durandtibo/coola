@@ -1,5 +1,5 @@
-r"""Define the public interface to recursively apply a function to all
-items in nested data."""
+r"""Define the public interface for equality testers and registry
+management."""
 
 from __future__ import annotations
 
@@ -72,13 +72,13 @@ def register_equality_testers(
     mapping: Mapping[type, BaseEqualityTester[Any]],
     exist_ok: bool = False,
 ) -> None:
-    """Register custom transformers to the default global registry.
+    """Register custom equality testers to the default global registry.
 
     This allows users to add support for custom types without modifying
     global state directly.
 
     Args:
-        mapping: Dictionary mapping types to transformer instances
+        mapping: Dictionary mapping types to equality tester instances
         exist_ok: If False, raises error if any type already registered
 
     Example:
@@ -109,20 +109,20 @@ def get_default_registry() -> EqualityTesterRegistry:
     """Get or create the default global registry with common Python
     types.
 
-    Returns a singleton registry instance that is pre-configured with transformers
+    Returns a singleton registry instance that is pre-configured with equality testers
     for Python's built-in types including sequences (list, tuple), mappings (dict),
-    sets, and scalar types (int, float, str, bool).
+    and scalar types (int, float).
 
     This function uses a singleton pattern to ensure the same registry instance
     is returned on subsequent calls, which is efficient and maintains consistency
     across an application.
 
     Returns:
-        A EqualityTesterRegistry instance with transformers registered for:
-            - Scalar types (int, float, complex, bool, str)
-            - Sequences (list, tuple, Sequence ABC)
-            - Sets (set, frozenset)
+        A EqualityTesterRegistry instance with equality testers registered for:
+            - Scalar types (int, float)
+            - Sequences (list, tuple, deque, Sequence ABC)
             - Mappings (dict, Mapping ABC)
+            - Third-party library types (numpy, torch, pandas, polars, jax, xarray, pyarrow)
 
     Notes:
         The singleton pattern means modifications to the returned registry
@@ -151,21 +151,20 @@ def get_default_registry() -> EqualityTesterRegistry:
 
 
 def _register_default_equality_testers(registry: EqualityTesterRegistry) -> None:
-    """Register default transformers for common Python types.
+    """Register default equality testers for common Python types.
 
-    This internal function sets up the standard type-to-transformer mappings
-    used by the default registry. It registers transformers in a specific order
+    This internal function sets up the standard type-to-equality tester mappings
+    used by the default registry. It registers equality testers in a specific order
     to ensure proper inheritance handling via MRO.
 
     The registration strategy:
-        - Scalar types use DefaultTransformer (no recursion)
-        - Strings use DefaultTransformer to prevent character-by-character iteration
-        - Sequences use SequenceTransformer for recursive list/tuple processing
-        - Sets use SetTransformer for recursive set processing
-        - Mappings use MappingTransformer for recursive dict processing
+        - Scalar types use ScalarEqualityTester (supports NaN equality)
+        - Sequences use SequenceEqualityTester for recursive list/tuple processing
+        - Mappings use MappingEqualityTester for recursive dict processing
+        - Object type uses DefaultEqualityTester as catch-all for unregistered types
 
     Args:
-        registry: The registry to populate with default transformers
+        registry: The registry to populate with default equality testers
 
     Notes:
         This function is called internally by get_default_registry() and should
@@ -330,10 +329,10 @@ def _get_torch_equality_testers() -> dict[type, BaseEqualityTester]:
 
 
 def _get_xarray_equality_testers() -> dict[type, BaseEqualityTester]:
-    r"""Get the equality testers for PyTorch objects.
+    r"""Get the equality testers for xarray objects.
 
     Returns:
-        A dict of equality testers for PyTorch objects.
+        A dict of equality testers for xarray objects.
 
     Notes:
         This function is called internally by get_default_registry() and should

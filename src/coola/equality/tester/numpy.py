@@ -69,7 +69,7 @@ class NumpyArrayEqualityTester(BaseEqualityTester[np.ndarray]):
 
 
 class NumpyMaskedArrayEqualityTester(BaseEqualityTester[np.ma.MaskedArray]):
-    r"""Implement an equality tester for ``numpy.ndarray``.
+    r"""Implement an equality tester for ``numpy.ma.MaskedArray``.
 
     Example:
         ```pycon
