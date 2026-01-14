@@ -40,9 +40,6 @@ class TorchTensorEqualHandler(BaseEqualityHandler):
         ```
     """
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
-
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
@@ -58,9 +55,6 @@ class TorchTensorEqualHandler(BaseEqualityHandler):
                 f"torch.Tensors have different elements:\nactual=\n{actual}\nexpected=\n{expected}"
             )
         return object_equal
-
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
-        pass  # Do nothing because the next handler is never called.
 
 
 class TorchTensorSameDeviceHandler(AbstractEqualityHandler):

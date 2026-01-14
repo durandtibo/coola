@@ -47,6 +47,14 @@ def config() -> EqualityConfig:
 ######################################
 
 
+def test_same_shape_handler_repr() -> None:
+    assert repr(SameShapeHandler()) == "SameShapeHandler()"
+
+
+def test_same_shape_handler_str() -> None:
+    assert str(SameShapeHandler()) == "SameShapeHandler()"
+
+
 def test_same_shape_handler_equal_true() -> None:
     assert SameShapeHandler().equal(SameShapeHandler())
 
@@ -59,14 +67,6 @@ def test_same_shape_handler_equal_false_different_type_child() -> None:
     class Child(SameShapeHandler): ...
 
     assert not SameShapeHandler().equal(Child())
-
-
-def test_same_shape_handler_repr() -> None:
-    assert repr(SameShapeHandler()).startswith("SameShapeHandler(")
-
-
-def test_same_shape_handler_str() -> None:
-    assert str(SameShapeHandler()).startswith("SameShapeHandler(")
 
 
 @numpy_available
@@ -125,10 +125,16 @@ def test_same_shape_handler_set_next_handler() -> None:
     assert handler.next_handler.equal(FalseHandler())
 
 
+def test_same_shape_handler_set_next_handler_none() -> None:
+    handler = SameShapeHandler()
+    handler.set_next_handler(None)
+    assert handler.next_handler is None
+
+
 def test_same_shape_handler_set_next_handler_incorrect() -> None:
     handler = SameShapeHandler()
     with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
-        handler.set_next_handler(None)
+        handler.set_next_handler(42)
 
 
 @jax_available

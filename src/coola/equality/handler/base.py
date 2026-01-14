@@ -5,12 +5,12 @@ from __future__ import annotations
 __all__ = ["AbstractEqualityHandler", "BaseEqualityHandler"]
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
-
-from coola.utils.format import repr_indent, repr_mapping
+from typing import TYPE_CHECKING, TypeVar
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
+
+T = TypeVar("T", bound="BaseEqualityHandler")
 
 
 class BaseEqualityHandler(ABC):
@@ -19,7 +19,8 @@ class BaseEqualityHandler(ABC):
     A child class needs to implement the following methods:
 
     - ``handle``
-    - ``set_next_handler``
+
+    A terminal handler has its next handler set to ``None``.
 
     Example:
         ```pycon
@@ -36,7 +37,65 @@ class BaseEqualityHandler(ABC):
         ```
     """
 
-    def chain(self, handler: BaseEqualityHandler) -> BaseEqualityHandler:
+    def __init__(self, next_handler: BaseEqualityHandler | None = None) -> None:
+        self._verify_next_handler(next_handler)
+        self._next_handler = next_handler
+
+    @property
+    def next_handler(self) -> BaseEqualityHandler | None:
+        r"""The next handler."""
+        return self._next_handler
+
+    @abstractmethod
+    def equal(self, other: object) -> bool:
+        r"""Indicate if two objects are equal or not.
+
+        Args:
+            other: The other object.
+
+        Returns:
+            ``True`` if the two objects are equal, otherwise ``False``.
+
+        Example:
+            ```pycon
+            >>> from coola.equality.handler import SameObjectHandler, TrueHandler
+            >>> handler1 = SameObjectHandler()
+            >>> handler2 = SameObjectHandler()
+            >>> handler3 = TrueHandler()
+            >>> handler1.equal(handler2)
+            True
+            >>> handler1.equal(handler3)
+            False
+
+            ```
+        """
+
+    @abstractmethod
+    def handle(self, actual: object, expected: object, config: EqualityConfig) -> bool:
+        r"""Return the equality result between the two input objects.
+
+        Args:
+            actual: The actual input.
+            expected: The expected input.
+            config: The equality configuration.
+
+        Returns:
+            ``True`` if the input objects are equal, and ``False``
+                otherwise.
+
+        Example:
+            ```pycon
+            >>> from coola.equality.config import EqualityConfig
+            >>> from coola.equality.handler import SameObjectHandler
+            >>> config = EqualityConfig()
+            >>> handler = SameObjectHandler()
+            >>> handler.handle("abc", "abc", config)
+            True
+
+            ```
+        """
+
+    def chain(self, handler: T) -> T:
         r"""Chain a handler to the current handler.
 
         Args:
@@ -64,37 +123,39 @@ class BaseEqualityHandler(ABC):
         self.set_next_handler(handler)
         return handler
 
-    @abstractmethod
-    def handle(self, actual: object, expected: object, config: EqualityConfig) -> bool:
-        r"""Return the equality result between the two input objects.
+    def chain_all(self, *handlers: BaseEqualityHandler) -> BaseEqualityHandler:
+        r"""Chain multiple handlers in sequence.
 
         Args:
-            actual: The actual input.
-            expected: The expected input.
-            config: The equality configuration.
+            *handlers: Variable number of handlers to chain.
 
         Returns:
-            ``True`` if the input objects are equal, and ``False``
-                otherwise.
+            The last handler in the chain.
 
         Example:
             ```pycon
-            >>> from coola.equality.config import EqualityConfig
-            >>> from coola.equality.handler import SameObjectHandler
-            >>> config = EqualityConfig()
+            >>> from coola.equality.handler import (
+            ...     SameObjectHandler,
+            ...     SameTypeHandler,
+            ...     SameLengthHandler,
+            ...     ObjectEqualHandler,
+            ... )
             >>> handler = SameObjectHandler()
-            >>> handler.handle("abc", "abc", config)
-            True
+            >>> handler.chain_all(SameTypeHandler(), SameLengthHandler(), ObjectEqualHandler())
 
             ```
         """
+        current = self
+        for handler in handlers:
+            current = current.chain(handler)
+        return current
 
-    @abstractmethod
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
+    def set_next_handler(self, handler: BaseEqualityHandler | None) -> None:
         r"""Set the next handler.
 
         Args:
-            handler: The next handler.
+            handler: The next handler. ``None`` means it is a terminal handler
+                and there is no next handler.
 
         Example:
             ```pycon
@@ -104,30 +165,8 @@ class BaseEqualityHandler(ABC):
 
             ```
         """
-
-
-class AbstractEqualityHandler(BaseEqualityHandler):
-    r"""Implement a base class with the default chaining behavior.
-
-    A child class needs to implement the following method: ``handle``.
-    """
-
-    def __init__(self, next_handler: BaseEqualityHandler | None = None) -> None:
-        self._next_handler = None
-        if next_handler:
-            self.set_next_handler(next_handler)
-
-    def __repr__(self) -> str:
-        args = repr_indent(repr_mapping({"next_handler": self._next_handler}))
-        return f"{self.__class__.__qualname__}(\n  {args}\n)"
-
-    def __str__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
-
-    @property
-    def next_handler(self) -> BaseEqualityHandler | None:
-        r"""The next handler."""
-        return self._next_handler
+        self._verify_next_handler(handler)
+        self._next_handler = handler
 
     def _handle_next(self, actual: object, expected: object, config: EqualityConfig) -> bool:
         r"""Return the output from the next handler.
@@ -148,11 +187,30 @@ class AbstractEqualityHandler(BaseEqualityHandler):
             raise RuntimeError(msg)
         return self._next_handler.handle(actual, expected, config=config)
 
-    def set_next_handler(self, handler: BaseEqualityHandler) -> None:
+    def _verify_next_handler(self, handler: BaseEqualityHandler | None) -> None:
+        if handler is None:
+            return
+        if handler is self:
+            msg = "The current handler cannot be its next handler because it creates a cycle"
+            raise RuntimeError(msg)
         if not isinstance(handler, BaseEqualityHandler):
             msg = (
                 f"Incorrect type for `handler`. Expected "
-                f"{BaseEqualityHandler} but received {type(handler)}"
+                f"{BaseEqualityHandler.__qualname__} but received {type(handler)}"
             )
             raise TypeError(msg)
-        self._next_handler = handler
+
+    def __repr__(self) -> str:
+        if self.next_handler:
+            return f"{self.__class__.__qualname__}(next_handler={self.next_handler})"
+        return f"{self.__class__.__qualname__}()"
+
+    def __str__(self) -> str:
+        return f"{self.__class__.__qualname__}()"
+
+
+class AbstractEqualityHandler(BaseEqualityHandler):
+    r"""Implement a base class with the default chaining behavior.
+
+    A child class needs to implement the following method: ``handle``.
+    """
