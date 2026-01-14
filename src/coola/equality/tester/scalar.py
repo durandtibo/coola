@@ -1,7 +1,7 @@
 r"""Implement scalar equality testers.
 
-This module provides equality testers for scalar numeric types (int, float)
-with support for NaN equality and tolerance-based comparisons.
+This module provides equality testers for scalar numeric types (int,
+float) with support for NaN equality and tolerance-based comparisons.
 """
 
 from __future__ import annotations

@@ -1,7 +1,9 @@
-r"""Implement equality testers for Polars DataFrames, LazyFrames, and Series.
+r"""Implement equality testers for Polars DataFrames, LazyFrames, and
+Series.
 
-This module provides equality testers for polars.DataFrame, polars.LazyFrame,
-and polars.Series using Polars' built-in equality testing methods.
+This module provides equality testers for polars.DataFrame,
+polars.LazyFrame, and polars.Series using Polars' built-in equality
+testing methods.
 """
 
 from __future__ import annotations

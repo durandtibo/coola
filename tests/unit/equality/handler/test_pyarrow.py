@@ -8,7 +8,7 @@ from unittest.mock import Mock
 import pytest
 
 from coola.equality.config import EqualityConfig
-from coola.equality.handler import FalseHandler, PyarrowEqualHandler
+from coola.equality.handler import FalseHandler, PyarrowEqualHandler, TrueHandler
 from coola.equality.handler.pyarrow import object_equal
 from coola.testing.fixtures import pyarrow_available
 from coola.utils.imports import is_pyarrow_available
@@ -46,12 +46,46 @@ def test_pyarrow_equal_handler_str() -> None:
     assert str(PyarrowEqualHandler()) == "PyarrowEqualHandler()"
 
 
-def test_pyarrow_equal_handler_equal_true() -> None:
-    assert PyarrowEqualHandler().equal(PyarrowEqualHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(PyarrowEqualHandler(), PyarrowEqualHandler(), id="without next handler"),
+        pytest.param(
+            PyarrowEqualHandler(FalseHandler()),
+            PyarrowEqualHandler(FalseHandler()),
+            id="with next handler",
+        ),
+    ],
+)
+def test_pyarrow_equal_handler_equal_true(
+    handler1: PyarrowEqualHandler, handler2: PyarrowEqualHandler
+) -> None:
+    assert handler1.equal(handler2)
 
 
-def test_pyarrow_equal_handler_equal_false_different_type() -> None:
-    assert not PyarrowEqualHandler().equal(FalseHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(
+            PyarrowEqualHandler(TrueHandler()),
+            PyarrowEqualHandler(FalseHandler()),
+            id="different next handler",
+        ),
+        pytest.param(
+            PyarrowEqualHandler(),
+            PyarrowEqualHandler(FalseHandler()),
+            id="next handler is none",
+        ),
+        pytest.param(
+            PyarrowEqualHandler(FalseHandler()),
+            PyarrowEqualHandler(),
+            id="other next handler is none",
+        ),
+        pytest.param(PyarrowEqualHandler(), FalseHandler(), id="different type"),
+    ],
+)
+def test_pyarrow_equal_handler_equal_false(handler1: PyarrowEqualHandler, handler2: object) -> None:
+    assert not handler1.equal(handler2)
 
 
 def test_pyarrow_equal_handler_equal_false_different_type_child() -> None:
@@ -166,7 +200,7 @@ def test_pyarrow_equal_handle_set_next_handler_none() -> None:
 
 def test_pyarrow_equal_handle_set_next_handler_incorrect() -> None:
     handler = PyarrowEqualHandler()
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)
 
 

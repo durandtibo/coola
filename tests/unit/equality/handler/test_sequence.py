@@ -38,12 +38,50 @@ def test_sequence_same_values_handler_str() -> None:
     assert str(SequenceSameValuesHandler()) == "SequenceSameValuesHandler()"
 
 
-def test_sequence_same_values_handler_equal_true() -> None:
-    assert SequenceSameValuesHandler().equal(SequenceSameValuesHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(
+            SequenceSameValuesHandler(), SequenceSameValuesHandler(), id="without next handler"
+        ),
+        pytest.param(
+            SequenceSameValuesHandler(FalseHandler()),
+            SequenceSameValuesHandler(FalseHandler()),
+            id="with next handler",
+        ),
+    ],
+)
+def test_sequence_same_values_handler_equal_true(
+    handler1: SequenceSameValuesHandler, handler2: SequenceSameValuesHandler
+) -> None:
+    assert handler1.equal(handler2)
 
 
-def test_sequence_same_values_handler_equal_false_different_type() -> None:
-    assert not SequenceSameValuesHandler().equal(FalseHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(
+            SequenceSameValuesHandler(TrueHandler()),
+            SequenceSameValuesHandler(FalseHandler()),
+            id="different next handler",
+        ),
+        pytest.param(
+            SequenceSameValuesHandler(),
+            SequenceSameValuesHandler(FalseHandler()),
+            id="next handler is none",
+        ),
+        pytest.param(
+            SequenceSameValuesHandler(FalseHandler()),
+            SequenceSameValuesHandler(),
+            id="other next handler is none",
+        ),
+        pytest.param(SequenceSameValuesHandler(), FalseHandler(), id="different type"),
+    ],
+)
+def test_sequence_same_values_handler_equal_false(
+    handler1: SequenceSameValuesHandler, handler2: object
+) -> None:
+    assert not handler1.equal(handler2)
 
 
 def test_sequence_same_values_handler_equal_false_different_type_child() -> None:
@@ -142,5 +180,5 @@ def test_sequence_same_values_handler_set_next_handler_none() -> None:
 
 def test_sequence_same_values_handler_set_next_handler_incorrect() -> None:
     handler = SequenceSameValuesHandler()
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)

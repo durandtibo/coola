@@ -1,7 +1,7 @@
 r"""Implement equality testers for PyArrow arrays and tables.
 
-This module provides equality testers for pyarrow.Array and pyarrow.Table
-using PyArrow's built-in equals() method.
+This module provides equality testers for pyarrow.Array and
+pyarrow.Table using PyArrow's built-in equals() method.
 """
 
 from __future__ import annotations

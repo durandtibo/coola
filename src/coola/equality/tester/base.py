@@ -1,9 +1,10 @@
 r"""Define the equality tester base class.
 
-This module provides the base class for implementing custom equality testers
-that use a chain of responsibility pattern with handlers to check if two objects
-are equal. Equality testers are the core abstraction in coola's equality checking
-system, providing type-specific comparison logic.
+This module provides the base class for implementing custom equality
+testers that use a chain of responsibility pattern with handlers to
+check if two objects are equal. Equality testers are the core
+abstraction in coola's equality checking system, providing type-specific
+comparison logic.
 """
 
 from __future__ import annotations

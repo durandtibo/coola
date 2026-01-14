@@ -9,6 +9,7 @@ from collections import deque
 from collections.abc import Mapping, Sequence
 from typing import Any
 
+from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.tester.base import BaseEqualityTester
 from coola.equality.tester.collection import (
     MappingEqualityTester,
@@ -213,6 +214,7 @@ def _get_native_equality_testers() -> dict[type, BaseEqualityTester]:
         dict: mapping,
         Mapping: mapping,
         # coola types
+        BaseEqualityHandler: equal,
         BaseEqualityTester: equal,
     }
 

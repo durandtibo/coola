@@ -11,6 +11,7 @@ from coola.equality.handler import (
     FalseHandler,
     PandasDataFrameEqualHandler,
     PandasSeriesEqualHandler,
+    TrueHandler,
 )
 from coola.testing.fixtures import pandas_available
 from coola.utils.imports import is_pandas_available
@@ -46,12 +47,50 @@ def test_pandas_dataframe_equal_handler_str() -> None:
     assert str(PandasDataFrameEqualHandler()) == "PandasDataFrameEqualHandler()"
 
 
-def test_pandas_dataframe_equal_handler_equal_true() -> None:
-    assert PandasDataFrameEqualHandler().equal(PandasDataFrameEqualHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(
+            PandasDataFrameEqualHandler(), PandasDataFrameEqualHandler(), id="without next handler"
+        ),
+        pytest.param(
+            PandasDataFrameEqualHandler(FalseHandler()),
+            PandasDataFrameEqualHandler(FalseHandler()),
+            id="with next handler",
+        ),
+    ],
+)
+def test_pandas_dataframe_equal_handler_equal_true(
+    handler1: PandasDataFrameEqualHandler, handler2: PandasDataFrameEqualHandler
+) -> None:
+    assert handler1.equal(handler2)
 
 
-def test_pandas_dataframe_equal_handler_equal_false_different_type() -> None:
-    assert not PandasDataFrameEqualHandler().equal(FalseHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(
+            PandasDataFrameEqualHandler(TrueHandler()),
+            PandasDataFrameEqualHandler(FalseHandler()),
+            id="different next handler",
+        ),
+        pytest.param(
+            PandasDataFrameEqualHandler(),
+            PandasDataFrameEqualHandler(FalseHandler()),
+            id="next handler is none",
+        ),
+        pytest.param(
+            PandasDataFrameEqualHandler(FalseHandler()),
+            PandasDataFrameEqualHandler(),
+            id="other next handler is none",
+        ),
+        pytest.param(PandasDataFrameEqualHandler(), FalseHandler(), id="different type"),
+    ],
+)
+def test_pandas_dataframe_equal_handler_equal_false(
+    handler1: PandasDataFrameEqualHandler, handler2: object
+) -> None:
+    assert not handler1.equal(handler2)
 
 
 def test_pandas_dataframe_equal_handler_equal_false_different_type_child() -> None:
@@ -222,7 +261,7 @@ def test_pandas_dataframe_equal_handle_set_next_handler_none() -> None:
 
 def test_pandas_dataframe_equal_handle_set_next_handler_incorrect() -> None:
     handler = PandasDataFrameEqualHandler()
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)
 
 
@@ -239,12 +278,50 @@ def test_pandas_series_equal_handler_str() -> None:
     assert str(PandasSeriesEqualHandler()) == "PandasSeriesEqualHandler()"
 
 
-def test_pandas_series_equal_handler_equal_true() -> None:
-    assert PandasSeriesEqualHandler().equal(PandasSeriesEqualHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(
+            PandasSeriesEqualHandler(), PandasSeriesEqualHandler(), id="without next handler"
+        ),
+        pytest.param(
+            PandasSeriesEqualHandler(FalseHandler()),
+            PandasSeriesEqualHandler(FalseHandler()),
+            id="with next handler",
+        ),
+    ],
+)
+def test_pandas_series_equal_handler_equal_true(
+    handler1: PandasSeriesEqualHandler, handler2: PandasSeriesEqualHandler
+) -> None:
+    assert handler1.equal(handler2)
 
 
-def test_pandas_series_equal_handler_equal_false_different_type() -> None:
-    assert not PandasSeriesEqualHandler().equal(FalseHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(
+            PandasSeriesEqualHandler(TrueHandler()),
+            PandasSeriesEqualHandler(FalseHandler()),
+            id="different next handler",
+        ),
+        pytest.param(
+            PandasSeriesEqualHandler(),
+            PandasSeriesEqualHandler(FalseHandler()),
+            id="next handler is none",
+        ),
+        pytest.param(
+            PandasSeriesEqualHandler(FalseHandler()),
+            PandasSeriesEqualHandler(),
+            id="other next handler is none",
+        ),
+        pytest.param(PandasSeriesEqualHandler(), FalseHandler(), id="different type"),
+    ],
+)
+def test_pandas_series_equal_handler_equal_false(
+    handler1: PandasSeriesEqualHandler, handler2: object
+) -> None:
+    assert not handler1.equal(handler2)
 
 
 def test_pandas_series_equal_handler_equal_false_different_type_child() -> None:
@@ -398,5 +475,5 @@ def test_pandas_series_equal_handle_set_next_handler_none() -> None:
 
 def test_pandas_series_equal_handle_set_next_handler_incorrect() -> None:
     handler = PandasSeriesEqualHandler()
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)

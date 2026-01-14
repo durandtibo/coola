@@ -7,7 +7,7 @@ from unittest.mock import Mock
 import pytest
 
 from coola.equality.config import EqualityConfig
-from coola.equality.handler import FalseHandler, NumpyArrayEqualHandler
+from coola.equality.handler import FalseHandler, NumpyArrayEqualHandler, TrueHandler
 from coola.equality.handler.numpy import array_equal, is_numeric_array
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
@@ -40,12 +40,48 @@ def test_numpy_array_equal_handler_str() -> None:
     assert str(NumpyArrayEqualHandler()) == "NumpyArrayEqualHandler()"
 
 
-def test_numpy_array_equal_handler_equal_true() -> None:
-    assert NumpyArrayEqualHandler().equal(NumpyArrayEqualHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(NumpyArrayEqualHandler(), NumpyArrayEqualHandler(), id="without next handler"),
+        pytest.param(
+            NumpyArrayEqualHandler(FalseHandler()),
+            NumpyArrayEqualHandler(FalseHandler()),
+            id="with next handler",
+        ),
+    ],
+)
+def test_numpy_array_equal_handler_equal_true(
+    handler1: NumpyArrayEqualHandler, handler2: NumpyArrayEqualHandler
+) -> None:
+    assert handler1.equal(handler2)
 
 
-def test_numpy_array_equal_handler_equal_false_different_type() -> None:
-    assert not NumpyArrayEqualHandler().equal(FalseHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(
+            NumpyArrayEqualHandler(TrueHandler()),
+            NumpyArrayEqualHandler(FalseHandler()),
+            id="different next handler",
+        ),
+        pytest.param(
+            NumpyArrayEqualHandler(),
+            NumpyArrayEqualHandler(FalseHandler()),
+            id="next handler is none",
+        ),
+        pytest.param(
+            NumpyArrayEqualHandler(FalseHandler()),
+            NumpyArrayEqualHandler(),
+            id="other next handler is none",
+        ),
+        pytest.param(NumpyArrayEqualHandler(), FalseHandler(), id="different type"),
+    ],
+)
+def test_numpy_array_equal_handler_equal_false(
+    handler1: NumpyArrayEqualHandler, handler2: object
+) -> None:
+    assert not handler1.equal(handler2)
 
 
 def test_numpy_array_equal_handler_equal_false_different_type_child() -> None:
@@ -138,7 +174,7 @@ def test_numpy_array_equal_handle_set_next_handler_none() -> None:
 
 def test_numpy_array_equal_handle_set_next_handler_incorrect() -> None:
     handler = NumpyArrayEqualHandler()
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)
 
 

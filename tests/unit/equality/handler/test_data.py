@@ -6,7 +6,11 @@ from unittest.mock import Mock
 import pytest
 
 from coola.equality.config import EqualityConfig
-from coola.equality.handler import FalseHandler, SameDataHandler, TrueHandler
+from coola.equality.handler import (
+    FalseHandler,
+    SameDataHandler,
+    TrueHandler,
+)
 from coola.testing.fixtures import numpy_available, torch_available
 from coola.utils.imports import is_numpy_available, is_torch_available
 
@@ -37,12 +41,44 @@ def test_same_data_handler_str() -> None:
     assert str(SameDataHandler()) == "SameDataHandler()"
 
 
-def test_same_data_handler_equal_true() -> None:
-    assert SameDataHandler().equal(SameDataHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(SameDataHandler(), SameDataHandler(), id="without next handler"),
+        pytest.param(
+            SameDataHandler(FalseHandler()),
+            SameDataHandler(FalseHandler()),
+            id="with next handler",
+        ),
+    ],
+)
+def test_same_data_handler_equal_true(handler1: SameDataHandler, handler2: SameDataHandler) -> None:
+    assert handler1.equal(handler2)
 
 
-def test_same_data_handler_equal_false_different_type() -> None:
-    assert not SameDataHandler().equal(FalseHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(
+            SameDataHandler(TrueHandler()),
+            SameDataHandler(FalseHandler()),
+            id="different next handler",
+        ),
+        pytest.param(
+            SameDataHandler(),
+            SameDataHandler(FalseHandler()),
+            id="next handler is none",
+        ),
+        pytest.param(
+            SameDataHandler(FalseHandler()),
+            SameDataHandler(),
+            id="other next handler is none",
+        ),
+        pytest.param(SameDataHandler(), FalseHandler(), id="different type"),
+    ],
+)
+def test_same_data_handler_equal_false(handler1: SameDataHandler, handler2: object) -> None:
+    assert not handler1.equal(handler2)
 
 
 def test_same_data_handler_equal_false_different_type_child() -> None:
@@ -141,5 +177,5 @@ def test_same_data_handler_set_next_handler_none() -> None:
 
 def test_same_data_handler_set_next_handler_incorrect() -> None:
     handler = SameDataHandler()
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)

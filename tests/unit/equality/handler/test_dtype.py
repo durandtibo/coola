@@ -39,12 +39,46 @@ def test_same_dtype_handler_str() -> None:
     assert str(SameDTypeHandler()) == "SameDTypeHandler()"
 
 
-def test_same_dtype_handler_equal_true() -> None:
-    assert SameDTypeHandler().equal(SameDTypeHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(SameDTypeHandler(), SameDTypeHandler(), id="without next handler"),
+        pytest.param(
+            SameDTypeHandler(FalseHandler()),
+            SameDTypeHandler(FalseHandler()),
+            id="with next handler",
+        ),
+    ],
+)
+def test_same_dtype_handler_equal_true(
+    handler1: SameDTypeHandler, handler2: SameDTypeHandler
+) -> None:
+    assert handler1.equal(handler2)
 
 
-def test_same_dtype_handler_equal_false_different_type() -> None:
-    assert not SameDTypeHandler().equal(FalseHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(
+            SameDTypeHandler(TrueHandler()),
+            SameDTypeHandler(FalseHandler()),
+            id="different next handler",
+        ),
+        pytest.param(
+            SameDTypeHandler(),
+            SameDTypeHandler(FalseHandler()),
+            id="next handler is none",
+        ),
+        pytest.param(
+            SameDTypeHandler(FalseHandler()),
+            SameDTypeHandler(),
+            id="other next handler is none",
+        ),
+        pytest.param(SameDTypeHandler(), FalseHandler(), id="different type"),
+    ],
+)
+def test_same_dtype_handler_equal_false(handler1: SameDTypeHandler, handler2: object) -> None:
+    assert not handler1.equal(handler2)
 
 
 def test_same_dtype_handler_equal_false_different_type_child() -> None:
@@ -133,5 +167,5 @@ def test_same_dtype_handler_set_next_handler_none() -> None:
 
 def test_same_dtype_handler_set_next_handler_incorrect() -> None:
     handler = SameDTypeHandler()
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)

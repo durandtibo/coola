@@ -43,12 +43,50 @@ def test_torch_tensor_equal_handler_str() -> None:
     assert str(TorchTensorEqualHandler()) == "TorchTensorEqualHandler()"
 
 
-def test_torch_tensor_equal_handler_equal_true() -> None:
-    assert TorchTensorEqualHandler().equal(TorchTensorEqualHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(
+            TorchTensorEqualHandler(), TorchTensorEqualHandler(), id="without next handler"
+        ),
+        pytest.param(
+            TorchTensorEqualHandler(FalseHandler()),
+            TorchTensorEqualHandler(FalseHandler()),
+            id="with next handler",
+        ),
+    ],
+)
+def test_torch_tensor_equal_handler_equal_true(
+    handler1: TorchTensorEqualHandler, handler2: TorchTensorEqualHandler
+) -> None:
+    assert handler1.equal(handler2)
 
 
-def test_torch_tensor_equal_handler_equal_false_different_type() -> None:
-    assert not TorchTensorEqualHandler().equal(FalseHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(
+            TorchTensorEqualHandler(TrueHandler()),
+            TorchTensorEqualHandler(FalseHandler()),
+            id="different next handler",
+        ),
+        pytest.param(
+            TorchTensorEqualHandler(),
+            TorchTensorEqualHandler(FalseHandler()),
+            id="next handler is none",
+        ),
+        pytest.param(
+            TorchTensorEqualHandler(FalseHandler()),
+            TorchTensorEqualHandler(),
+            id="other next handler is none",
+        ),
+        pytest.param(TorchTensorEqualHandler(), FalseHandler(), id="different type"),
+    ],
+)
+def test_torch_tensor_equal_handler_equal_false(
+    handler1: TorchTensorEqualHandler, handler2: object
+) -> None:
+    assert not handler1.equal(handler2)
 
 
 def test_torch_tensor_equal_handler_equal_false_different_type_child() -> None:
@@ -146,12 +184,52 @@ def test_torch_tensor_same_device_handler_str() -> None:
     assert str(TorchTensorSameDeviceHandler()) == "TorchTensorSameDeviceHandler()"
 
 
-def test_torch_tensor_same_device_handler_equal_true() -> None:
-    assert TorchTensorSameDeviceHandler().equal(TorchTensorSameDeviceHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(
+            TorchTensorSameDeviceHandler(),
+            TorchTensorSameDeviceHandler(),
+            id="without next handler",
+        ),
+        pytest.param(
+            TorchTensorSameDeviceHandler(FalseHandler()),
+            TorchTensorSameDeviceHandler(FalseHandler()),
+            id="with next handler",
+        ),
+    ],
+)
+def test_torch_tensor_same_device_handler_equal_true(
+    handler1: TorchTensorSameDeviceHandler, handler2: TorchTensorSameDeviceHandler
+) -> None:
+    assert handler1.equal(handler2)
 
 
-def test_torch_tensor_same_device_handler_equal_false_different_type() -> None:
-    assert not TorchTensorSameDeviceHandler().equal(FalseHandler())
+@pytest.mark.parametrize(
+    ("handler1", "handler2"),
+    [
+        pytest.param(
+            TorchTensorSameDeviceHandler(TrueHandler()),
+            TorchTensorSameDeviceHandler(FalseHandler()),
+            id="different next handler",
+        ),
+        pytest.param(
+            TorchTensorSameDeviceHandler(),
+            TorchTensorSameDeviceHandler(FalseHandler()),
+            id="next handler is none",
+        ),
+        pytest.param(
+            TorchTensorSameDeviceHandler(FalseHandler()),
+            TorchTensorSameDeviceHandler(),
+            id="other next handler is none",
+        ),
+        pytest.param(TorchTensorSameDeviceHandler(), FalseHandler(), id="different type"),
+    ],
+)
+def test_torch_tensor_same_device_handler_equal_false(
+    handler1: TorchTensorSameDeviceHandler, handler2: object
+) -> None:
+    assert not handler1.equal(handler2)
 
 
 def test_torch_tensor_same_device_handler_equal_false_different_type_child() -> None:
@@ -224,5 +302,5 @@ def test_torch_tensor_same_device_handler_set_next_handler_none() -> None:
 
 def test_torch_tensor_same_device_handler_set_next_handler_incorrect() -> None:
     handler = TorchTensorSameDeviceHandler()
-    with pytest.raises(TypeError, match=r"Incorrect type for `handler`."):
+    with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)
