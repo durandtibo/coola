@@ -72,11 +72,6 @@ class XarrayDataArrayEqualityTester(BaseEqualityTester[xr.DataArray]):
     """
 
     def __init__(self) -> None:
-        """Initialize the xarray DataArray equality tester.
-
-        Raises:
-            RuntimeError: If xarray is not installed.
-        """
         check_xarray()
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(SameAttributeHandler(name="variable")).chain(
@@ -137,11 +132,6 @@ class XarrayDatasetEqualityTester(BaseEqualityTester[xr.Dataset]):
     """
 
     def __init__(self) -> None:
-        """Initialize the xarray Dataset equality tester.
-
-        Raises:
-            RuntimeError: If xarray is not installed.
-        """
         check_xarray()
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(SameAttributeHandler(name="data_vars")).chain(
@@ -202,11 +192,6 @@ class XarrayVariableEqualityTester(BaseEqualityTester[xr.Variable]):
     """
 
     def __init__(self) -> None:
-        """Initialize the xarray Variable equality tester.
-
-        Raises:
-            RuntimeError: If xarray is not installed.
-        """
         check_xarray()
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(SameDataHandler()).chain(

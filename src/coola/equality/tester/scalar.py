@@ -75,14 +75,6 @@ class ScalarEqualityTester(BaseEqualityTester[float]):
     """
 
     def __init__(self) -> None:
-        """Initialize the scalar equality tester with its handler chain.
-
-        The handler chain performs checks in this order:
-        1. SameObjectHandler: Quick check for object identity
-        2. SameTypeHandler: Verify both objects have the same type
-        3. NanEqualHandler: Handle NaN equality based on config.equal_nan
-        4. ScalarEqualHandler: Compare numeric values with tolerance
-        """
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(NanEqualHandler()).chain(ScalarEqualHandler())
 

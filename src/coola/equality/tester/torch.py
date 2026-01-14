@@ -77,20 +77,6 @@ class TorchPackedSequenceEqualityTester(BaseEqualityTester[torch.nn.utils.rnn.Pa
     """
 
     def __init__(self) -> None:
-        """Initialize the PyTorch packed sequence equality tester.
-
-        The handler chain performs checks in this order:
-        1. SameObjectHandler: Quick check for object identity
-        2. SameTypeHandler: Verify both are PackedSequence objects
-        3. SameDataHandler: Compare the underlying data tensors
-        4. SameAttributeHandler("batch_sizes"): Compare batch size tensors
-        5. SameAttributeHandler("sorted_indices"): Compare sorted indices
-        6. SameAttributeHandler("unsorted_indices"): Compare unsorted indices
-        7. TrueHandler: Return True if all previous checks passed
-
-        Raises:
-            RuntimeError: If PyTorch is not installed.
-        """
         check_torch()
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(SameDataHandler()).chain(
@@ -183,19 +169,6 @@ class TorchTensorEqualityTester(BaseEqualityTester[torch.Tensor]):
     """
 
     def __init__(self) -> None:
-        """Initialize the PyTorch tensor equality tester.
-
-        The handler chain performs checks in this order:
-        1. SameObjectHandler: Quick check for object identity
-        2. SameTypeHandler: Verify both are torch tensors
-        3. SameDTypeHandler: Ensure tensors have matching data types
-        4. SameShapeHandler: Verify tensors have the same dimensions
-        5. TorchTensorSameDeviceHandler: Check tensors are on the same device
-        6. TorchTensorEqualHandler: Element-wise equality with tolerance
-
-        Raises:
-            RuntimeError: If PyTorch is not installed.
-        """
         check_torch()
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(SameDTypeHandler()).chain(

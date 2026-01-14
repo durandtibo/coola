@@ -74,16 +74,6 @@ class PyarrowEqualityTester(BaseEqualityTester[pa.Array]):
     """
 
     def __init__(self) -> None:
-        """Initialize the PyArrow equality tester.
-
-        The handler chain performs checks in this order:
-        1. SameObjectHandler: Quick check for object identity
-        2. SameTypeHandler: Verify both are PyArrow objects
-        3. PyarrowEqualHandler: Use PyArrow's equals() method
-
-        Raises:
-            RuntimeError: If PyArrow is not installed.
-        """
         check_pyarrow()
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(PyarrowEqualHandler())

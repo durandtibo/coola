@@ -81,18 +81,6 @@ class NumpyArrayEqualityTester(BaseEqualityTester[np.ndarray]):
     """
 
     def __init__(self) -> None:
-        """Initialize the NumPy array equality tester.
-
-        The handler chain performs checks in this order:
-        1. SameObjectHandler: Quick check for object identity
-        2. SameTypeHandler: Verify both are numpy arrays
-        3. SameDTypeHandler: Ensure arrays have matching data types
-        4. SameShapeHandler: Verify arrays have the same dimensions
-        5. NumpyArrayEqualHandler: Element-wise equality with tolerance
-
-        Raises:
-            RuntimeError: If numpy is not installed.
-        """
         check_numpy()
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(SameDTypeHandler()).chain(
@@ -171,21 +159,6 @@ class NumpyMaskedArrayEqualityTester(BaseEqualityTester[np.ma.MaskedArray]):
     """
 
     def __init__(self) -> None:
-        """Initialize the NumPy masked array equality tester.
-
-        The handler chain performs checks in this order:
-        1. SameObjectHandler: Quick check for object identity
-        2. SameTypeHandler: Verify both are masked arrays
-        3. SameDTypeHandler: Ensure arrays have matching data types
-        4. SameShapeHandler: Verify arrays have the same dimensions
-        5. SameDataHandler: Compare the underlying data arrays
-        6. SameAttributeHandler("mask"): Compare the mask arrays
-        7. SameAttributeHandler("fill_value"): Compare fill values
-        8. TrueHandler: Return True if all previous checks passed
-
-        Raises:
-            RuntimeError: If numpy is not installed.
-        """
         check_numpy()
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(SameDTypeHandler()).chain(

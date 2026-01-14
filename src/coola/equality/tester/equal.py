@@ -59,13 +59,6 @@ class EqualEqualityTester(BaseEqualityTester[object]):
     """
 
     def __init__(self) -> None:
-        """Initialize the tester with its handler chain.
-
-        The handler chain performs checks in this order:
-        1. SameObjectHandler: Quick check for object identity
-        2. SameTypeHandler: Verify both objects have the same type
-        3. EqualHandler: Call the object's equal() method
-        """
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(EqualHandler())
 
@@ -125,13 +118,6 @@ class EqualNanEqualityTester(BaseEqualityTester[object]):
     """
 
     def __init__(self) -> None:
-        """Initialize the tester with its handler chain.
-
-        The handler chain performs checks in this order:
-        1. SameObjectHandler: Quick check for object identity
-        2. SameTypeHandler: Verify both objects have the same type
-        3. EqualNanHandler: Call object's equal() method with equal_nan parameter
-        """
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(EqualNanHandler())
 

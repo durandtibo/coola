@@ -67,11 +67,6 @@ class PolarsDataFrameEqualityTester(BaseEqualityTester[pl.DataFrame]):
     """
 
     def __init__(self) -> None:
-        """Initialize the Polars DataFrame equality tester.
-
-        Raises:
-            RuntimeError: If Polars is not installed.
-        """
         check_polars()
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(PolarsDataFrameEqualHandler())
@@ -129,11 +124,6 @@ class PolarsLazyFrameEqualityTester(BaseEqualityTester[pl.LazyFrame]):
     """
 
     def __init__(self) -> None:
-        """Initialize the Polars LazyFrame equality tester.
-
-        Raises:
-            RuntimeError: If Polars is not installed.
-        """
         check_polars()
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(PolarsLazyFrameEqualHandler())
@@ -179,11 +169,6 @@ class PolarsSeriesEqualityTester(BaseEqualityTester[pl.Series]):
     """
 
     def __init__(self) -> None:
-        """Initialize the Polars Series equality tester.
-
-        Raises:
-            RuntimeError: If Polars is not installed.
-        """
         check_polars()
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(PolarsSeriesEqualHandler())

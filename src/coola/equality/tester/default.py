@@ -63,13 +63,6 @@ class DefaultEqualityTester(BaseEqualityTester[object]):
     """
 
     def __init__(self) -> None:
-        """Initialize the default equality tester with its handler chain.
-
-        The handler chain performs checks in this order:
-        1. SameObjectHandler: Quick check for object identity
-        2. SameTypeHandler: Verify both objects have the same type
-        3. ObjectEqualHandler: Use Python's == operator for comparison
-        """
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(ObjectEqualHandler())
 

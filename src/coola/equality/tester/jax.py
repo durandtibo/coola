@@ -63,18 +63,6 @@ class JaxArrayEqualityTester(BaseEqualityTester[jnp.ndarray]):
     """
 
     def __init__(self) -> None:
-        """Initialize the JAX array equality tester.
-
-        The handler chain performs checks in this order:
-        1. SameObjectHandler: Quick check for object identity
-        2. SameTypeHandler: Verify both are JAX arrays
-        3. SameDTypeHandler: Ensure arrays have matching data types
-        4. SameShapeHandler: Verify arrays have the same dimensions
-        5. JaxArrayEqualHandler: Element-wise equality with tolerance
-
-        Raises:
-            RuntimeError: If JAX is not installed.
-        """
         check_jax()
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(SameDTypeHandler()).chain(

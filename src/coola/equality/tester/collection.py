@@ -75,16 +75,6 @@ class MappingEqualityTester(BaseEqualityTester[Mapping[Any, Any]]):
     """
 
     def __init__(self) -> None:
-        """Initialize the mapping equality tester with its handler chain.
-
-        The handler chain performs checks in this order:
-        1. SameObjectHandler: Quick check for object identity
-        2. SameTypeHandler: Verify both objects have the same type
-        3. SameLengthHandler: Check both mappings have the same number of items
-        4. MappingSameKeysHandler: Verify both have the exact same keys
-        5. MappingSameValuesHandler: Recursively compare values for each key
-        6. TrueHandler: Return True if all previous checks passed
-        """
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(SameLengthHandler()).chain(
             MappingSameKeysHandler()
@@ -152,15 +142,6 @@ class SequenceEqualityTester(BaseEqualityTester[Sequence[Any]]):
     """
 
     def __init__(self) -> None:
-        """Initialize the sequence equality tester with its handler chain.
-
-        The handler chain performs checks in this order:
-        1. SameObjectHandler: Quick check for object identity
-        2. SameTypeHandler: Verify both objects have the same type
-        3. SameLengthHandler: Check both sequences have the same length
-        4. SequenceSameValuesHandler: Recursively compare elements in order
-        5. TrueHandler: Return True if all previous checks passed
-        """
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(SameLengthHandler()).chain(
             SequenceSameValuesHandler()

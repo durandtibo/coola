@@ -84,16 +84,6 @@ class PandasDataFrameEqualityTester(BaseEqualityTester[pd.DataFrame]):
     """
 
     def __init__(self) -> None:
-        """Initialize the pandas DataFrame equality tester.
-
-        The handler chain performs checks in this order:
-        1. SameObjectHandler: Quick check for object identity
-        2. SameTypeHandler: Verify both are pandas DataFrames
-        3. PandasDataFrameEqualHandler: Use pandas' internal equality testing
-
-        Raises:
-            RuntimeError: If pandas is not installed.
-        """
         check_pandas()
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(PandasDataFrameEqualHandler())
@@ -161,16 +151,6 @@ class PandasSeriesEqualityTester(BaseEqualityTester[pd.Series]):
     """
 
     def __init__(self) -> None:
-        """Initialize the pandas Series equality tester.
-
-        The handler chain performs checks in this order:
-        1. SameObjectHandler: Quick check for object identity
-        2. SameTypeHandler: Verify both are pandas Series
-        3. PandasSeriesEqualHandler: Use pandas' internal equality testing
-
-        Raises:
-            RuntimeError: If pandas is not installed.
-        """
         check_pandas()
         self._handler = SameObjectHandler()
         self._handler.chain(SameTypeHandler()).chain(PandasSeriesEqualHandler())
