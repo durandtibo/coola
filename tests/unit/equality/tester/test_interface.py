@@ -6,6 +6,7 @@ from collections.abc import Generator, Mapping, Sequence
 import pytest
 
 from coola.equality.config import EqualityConfig
+from coola.equality.handler import BaseEqualityHandler
 from coola.equality.tester import (
     BaseEqualityTester,
     DefaultEqualityTester,
@@ -98,6 +99,7 @@ TESTER_TYPES: list[tuple[type, type, bool]] = [
     (OrderedDict, MappingEqualityTester, False),
     # coola types
     (BaseEqualityTester, EqualEqualityTester, True),
+    (BaseEqualityHandler, EqualEqualityTester, True),
 ]
 if is_jax_available():
     TESTER_TYPES.extend(
