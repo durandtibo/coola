@@ -21,20 +21,24 @@ def config() -> EqualityConfig:
 
 class MyFloat:
     def __init__(self, value: float) -> None:
-        self._value = value
+        self._value = float(value)
 
-    def equal(self, other: float) -> bool:
-        return self._value == other
+    def equal(self, other: object) -> bool:
+        if type(other) is not type(self):
+            return False
+        return self._value == other._value
 
 
 class MyFloatNan:
     def __init__(self, value: float) -> None:
-        self._value = value
+        self._value = float(value)
 
-    def equal(self, other: float, equal_nan: bool = False) -> bool:
-        if equal_nan and math.isnan(self._value) and math.isnan(other):
+    def equal(self, other: object, equal_nan: bool = False) -> bool:
+        if type(other) is not type(self):
+            return False
+        if equal_nan and math.isnan(self._value) and math.isnan(other._value):
             return True
-        return self._value == other
+        return self._value == other._value
 
 
 ##################################
@@ -106,7 +110,7 @@ def test_equal_handler_equal_false_different_type_child() -> None:
 
 @pytest.mark.parametrize(
     ("actual", "expected"),
-    [(MyFloat(42), 42), (MyFloat(0), 0)],
+    [(MyFloat(42), MyFloat(42)), (MyFloat(0), MyFloat(0))],
 )
 def test_equal_handler_handle_true(
     actual: SupportsEqual, expected: Any, config: EqualityConfig
@@ -117,9 +121,10 @@ def test_equal_handler_handle_true(
 @pytest.mark.parametrize(
     ("actual", "expected"),
     [
-        (MyFloat(42), 1),
-        (MyFloat(0), float("nan")),
-        (MyFloat(float("nan")), float("nan")),
+        (MyFloat(42), MyFloat(1)),
+        (MyFloat(42), 42),
+        (MyFloat(0), MyFloat(float("nan"))),
+        (MyFloat(float("nan")), MyFloat(float("nan"))),
     ],
 )
 def test_equal_handler_handle_false(
@@ -231,7 +236,7 @@ def test_equal_nan_handler_equal_false_different_type_child() -> None:
 
 @pytest.mark.parametrize(
     ("actual", "expected"),
-    [(MyFloatNan(42), 42), (MyFloatNan(0), 0)],
+    [(MyFloatNan(42), MyFloatNan(42)), (MyFloatNan(0), MyFloatNan(0))],
 )
 def test_equal_nan_handler_handle_true(
     actual: SupportsEqualNan, expected: Any, config: EqualityConfig
@@ -242,9 +247,10 @@ def test_equal_nan_handler_handle_true(
 @pytest.mark.parametrize(
     ("actual", "expected"),
     [
-        (MyFloatNan(42), 1),
-        (MyFloatNan(0), float("nan")),
-        (MyFloatNan(float("nan")), float("nan")),
+        (MyFloatNan(42), MyFloatNan(1)),
+        (MyFloatNan(42), 42),
+        (MyFloatNan(0), MyFloatNan(float("nan"))),
+        (MyFloatNan(float("nan")), MyFloatNan(float("nan"))),
     ],
 )
 def test_equal_nan_handler_handle_false(
@@ -266,7 +272,10 @@ def test_equal_nan_handler_handle_false_show_difference(
 @pytest.mark.parametrize("equal_nan", [True, False])
 def test_equal_nan_handler_handle_equal_nan(config: EqualityConfig, equal_nan: bool) -> None:
     config.equal_nan = equal_nan
-    assert EqualNanHandler().handle(MyFloatNan(float("nan")), float("nan"), config) == equal_nan
+    assert (
+        EqualNanHandler().handle(MyFloatNan(float("nan")), MyFloatNan(float("nan")), config)
+        == equal_nan
+    )
 
 
 def test_equal_nan_handler_set_next_handler() -> None:
