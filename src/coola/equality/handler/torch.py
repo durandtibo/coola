@@ -1,4 +1,4 @@
-r"""Implement some handler for ``torch.Tensor``s."""
+r"""Implement handlers for ``torch.Tensor``s."""
 
 from __future__ import annotations
 
@@ -89,7 +89,7 @@ class TorchTensorSameDeviceHandler(BaseEqualityHandler):
         actual: torch.Tensor,
         expected: torch.Tensor,
         config: EqualityConfig,
-    ) -> bool | None:
+    ) -> bool:
         if actual.device != expected.device:
             if config.show_difference:
                 logger.info(

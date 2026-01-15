@@ -1,4 +1,4 @@
-r"""Implement some handler for ``jax.numpy.ndarray``s."""
+r"""Implement handlers for ``jax.numpy.ndarray``s."""
 
 from __future__ import annotations
 

@@ -160,7 +160,7 @@ class BaseEqualityHandler(ABC):
         return current
 
     def get_chain_length(self) -> int:
-        """Get the total number of handlers in the chain.
+        r"""Get the total number of handlers in the chain.
 
         Returns:
             The total number of handlers in the chain.

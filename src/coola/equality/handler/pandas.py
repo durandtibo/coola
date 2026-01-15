@@ -1,4 +1,4 @@
-r"""Implement some handler for ``pandas.DataFrame``s and
+r"""Implement handlers for ``pandas.DataFrame``s and
 ``pandas.Series``s."""
 
 from __future__ import annotations
@@ -24,9 +24,9 @@ logger: logging.Logger = logging.getLogger(__name__)
 
 
 class PandasDataFrameEqualHandler(BaseEqualityHandler):
-    r"""Check if the two ``pandas.DataFrame`` are equal.
+    r"""Check if the two ``pandas.DataFrame``s are equal.
 
-    This handler returns ``True`` if the two ``pandas.DataFrame``s
+    This handler returns ``True`` if the two ``pandas.DataFrame``s are
     equal, otherwise ``False``. This handler is designed to be used
     at the end of the chain of responsibility. This handler does
     not call the next handler.
@@ -75,9 +75,9 @@ class PandasDataFrameEqualHandler(BaseEqualityHandler):
 
 
 class PandasSeriesEqualHandler(BaseEqualityHandler):
-    r"""Check if the two ``pandas.Series`` are equal.
+    r"""Check if the two ``pandas.Series``es are equal.
 
-    This handler returns ``True`` if the two arrays ``pandas.Series``
+    This handler returns ``True`` if the two ``pandas.Series``es are
     equal, otherwise ``False``. This handler is designed to be used
     at the end of the chain of responsibility. This handler does
     not call the next handler.
