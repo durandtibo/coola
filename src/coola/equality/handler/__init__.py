@@ -35,6 +35,8 @@ __all__ = [
     "TorchTensorEqualHandler",
     "TorchTensorSameDeviceHandler",
     "TrueHandler",
+    "check_recursion_depth",
+    "create_chain",
     "handlers_are_equal",
 ]
 
@@ -74,4 +76,8 @@ from coola.equality.handler.torch import (
     TorchTensorEqualHandler,
     TorchTensorSameDeviceHandler,
 )
-from coola.equality.handler.utils import handlers_are_equal
+from coola.equality.handler.utils import (
+    check_recursion_depth,
+    create_chain,
+    handlers_are_equal,
+)
