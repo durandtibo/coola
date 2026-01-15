@@ -18,10 +18,10 @@ T = TypeVar("T", bound="BaseEqualityHandler")
 class BaseEqualityHandler(ABC):
     r"""Define the base class to implement an equality handler.
 
-    A child class needs to implement the following methods:
-
-    - ``equal``
-    - ``handle``
+    A child class needs to implement the ``handle`` method.
+    The ``equal`` method has a default implementation that can be
+    overridden for custom equality comparison (e.g., when handlers
+    have additional state that needs to be compared).
 
     A terminal handler has its next handler set to ``None``.
 
@@ -79,6 +79,7 @@ class BaseEqualityHandler(ABC):
 
             ```
         """
+        # Import here to avoid circular import at module level
         from coola.equality.handler.utils import handlers_are_equal
 
         if type(other) is not type(self):
