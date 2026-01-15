@@ -108,7 +108,7 @@ behavior):
 
 >>> import numpy as np
 >>> from coola.equality import objects_are_equal
->>> objects_are_equal(np.array([1.0, float('nan')]), np.array([1.0, float('nan')]))
+>>> objects_are_equal(np.array([1.0, float("nan")]), np.array([1.0, float("nan")]))
 False
 
 ```
@@ -120,8 +120,8 @@ You can change this behavior with the `equal_nan` parameter:
 >>> import numpy as np
 >>> from coola.equality import objects_are_equal
 >>> objects_are_equal(
-...     np.array([1.0, float('nan')]),
-...     np.array([1.0, float('nan')]),
+...     np.array([1.0, float("nan")]),
+...     np.array([1.0, float("nan")]),
 ...     equal_nan=True,
 ... )
 True
@@ -135,8 +135,8 @@ The same parameter works with `objects_are_allclose()`:
 >>> import numpy as np
 >>> from coola.equality import objects_are_allclose
 >>> objects_are_allclose(
-...     np.array([1.0, float('nan')]),
-...     np.array([1.0, float('nan')]),
+...     np.array([1.0, float("nan")]),
+...     np.array([1.0, float("nan")]),
 ...     equal_nan=True,
 ... )
 True

@@ -402,11 +402,13 @@ You can create a custom registry with specific testers:
 ...     DefaultEqualityTester,
 ... )
 >>> from coola.equality.config import EqualityConfig
->>> registry = EqualityTesterRegistry({
-...     list: SequenceEqualityTester(),
-...     dict: MappingEqualityTester(),
-...     object: DefaultEqualityTester(),
-... })
+>>> registry = EqualityTesterRegistry(
+...     {
+...         list: SequenceEqualityTester(),
+...         dict: MappingEqualityTester(),
+...         object: DefaultEqualityTester(),
+...     }
+... )
 >>> config = EqualityConfig(registry=registry)
 >>> registry.objects_are_equal([1, 2], [1, 2], config)
 True
@@ -430,7 +432,6 @@ To create a custom tester, inherit from `BaseEqualityTester`:
 ... )
 >>> class MyObjectEqualityTester(BaseEqualityTester):
 ...     """Tester for objects with a 'value' attribute."""
-...
 ...     def __init__(self):
 ...         self._handler = create_chain(
 ...             SameObjectHandler(),
@@ -438,10 +439,8 @@ To create a custom tester, inherit from `BaseEqualityTester`:
 ...             SameAttributeHandler("value"),
 ...             TrueHandler(),
 ...         )
-...
 ...     def equal(self, other: object) -> bool:
 ...         return type(other) is type(self)
-...
 ...     def objects_are_equal(self, actual, expected, config: EqualityConfig) -> bool:
 ...         return self._handler.handle(actual, expected, config)
 ...
@@ -583,7 +582,6 @@ Add support for your custom types:
 ...     def __init__(self, x, y):
 ...         self.x = x
 ...         self.y = y
-...
 ...     def __eq__(self, other):
 ...         return isinstance(other, Point) and self.x == other.x and self.y == other.y
 ...
@@ -594,10 +592,8 @@ Add support for your custom types:
 ...             SameTypeHandler(),
 ...             ObjectEqualHandler(),
 ...         )
-...
 ...     def equal(self, other):
 ...         return type(other) is type(self)
-...
 ...     def objects_are_equal(self, actual, expected, config):
 ...         return self._handler.handle(actual, expected, config)
 ...

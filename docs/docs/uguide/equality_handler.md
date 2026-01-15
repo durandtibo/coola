@@ -238,10 +238,10 @@ Special handler for comparing NaN values:
 >>> from coola.equality.handler import NanEqualHandler
 >>> config = EqualityConfig(equal_nan=True)
 >>> handler = NanEqualHandler()
->>> handler.handle(float('nan'), float('nan'), config)
+>>> handler.handle(float("nan"), float("nan"), config)
 True
 >>> config2 = EqualityConfig(equal_nan=False)
->>> handler.handle(float('nan'), float('nan'), config2)
+>>> handler.handle(float("nan"), float("nan"), config2)
 False
 
 ```
@@ -426,13 +426,11 @@ You can create custom handlers by inheriting from `BaseEqualityHandler`:
 >>> class CustomHandler(BaseEqualityHandler):
 ...     def equal(self, other: object) -> bool:
 ...         return type(other) is type(self)
-...
 ...     def handle(self, actual: object, expected: object, config: EqualityConfig) -> bool:
 ...         # Custom comparison logic
 ...         if self._meets_condition(actual, expected):
 ...             return self._handle_next(actual, expected, config)
 ...         return False
-...
 ...     def _meets_condition(self, actual: object, expected: object) -> bool:
 ...         # Implement your condition
 ...         return True
@@ -470,7 +468,11 @@ Handlers can be compared for equality:
 
 ```pycon
 
->>> from coola.equality.handler import SameTypeHandler, SameObjectHandler, handlers_are_equal
+>>> from coola.equality.handler import (
+...     SameTypeHandler,
+...     SameObjectHandler,
+...     handlers_are_equal,
+... )
 >>> handler1 = SameTypeHandler()
 >>> handler2 = SameTypeHandler()
 >>> handler3 = SameObjectHandler()
