@@ -28,7 +28,7 @@ def get_fully_qualified_name(obj: object) -> str:
         ...     pass
         ...
         >>> get_fully_qualified_name(MyClass)
-        'MyClass'
+        'coola.utils.introspection.MyClass'
         >>> get_fully_qualified_name(map)
         'builtins.map'
 
