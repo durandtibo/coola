@@ -51,7 +51,7 @@ provides more numerical stability.
 >>> reducer.mean([1, 2, 3, 4, 5])
 3.0
 >>> reducer.std([1, 2, 3, 4, 5])
-1.4142135623730951
+1.58113...
 
 ```
 
@@ -69,7 +69,7 @@ working with PyTorch tensors.
 >>> reducer.mean([1, 2, 3, 4, 5])
 3.0
 >>> reducer.median([1, 2, 3, 4, 5])
-3.0
+3
 
 ```
 
@@ -214,7 +214,7 @@ This is useful when writing library code that should work with whatever the user
 ...     }
 ...
 >>> compute_statistics([1, 2, 3, 4, 5])
-{'mean': 3.0, 'std': 1.5811388300841898, 'median': 3}
+{'mean': 3.0, 'std': 1.58113..., 'median': 3}
 
 ```
 
@@ -309,31 +309,6 @@ Sort values to find top performers:
 >>> top_3 = reducer.sort(scores, descending=True)[:3]
 >>> print(f"Top 3 scores: {top_3}")
 Top 3 scores: [95, 92, 91]
-
-```
-
-### Comparing Backends
-
-Compare performance of different backends:
-
-```pycon
-
->>> from coola.reducer import NativeReducer, NumpyReducer
->>> import time
->>> data = list(range(10000))
->>> # Using native Python
->>> native = NativeReducer()
->>> start = time.time()
->>> result1 = native.mean(data)
->>> native_time = time.time() - start
->>> # Using NumPy (if available)
->>> numpy = NumpyReducer()
->>> start = time.time()
->>> result2 = numpy.mean(data)
->>> numpy_time = time.time() - start
->>> print(
-...     f"Native: {native_time*1000:.3f}ms, NumPy: {numpy_time*1000:.3f}ms"
-... )  # doctest: +SKIP
 
 ```
 

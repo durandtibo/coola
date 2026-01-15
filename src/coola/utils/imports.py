@@ -152,7 +152,7 @@ def decorator_package_available(
     Example:
         ```pycon
         >>> from functools import partial
-        >>> from coola.utils.imports import decorator_package_available
+        >>> from coola.utils.imports import decorator_package_available, is_numpy_available
         >>> decorator = partial(decorator_package_available, condition=is_numpy_available)
         >>> @decorator
         ... def my_function(n: int = 0) -> int:

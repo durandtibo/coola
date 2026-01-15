@@ -122,9 +122,10 @@ Available check functions (raise `RuntimeError` if package is missing):
 Use `decorator_package_available()` to skip function execution if a package is not available:
 
 ```pycon
-
->>> from coola.utils.imports import decorator_package_available
->>> @decorator_package_available("numpy")
+>>> from functools import partial
+>>> from coola.utils.imports import decorator_package_available, is_numpy_available
+>>> decorator = partial(decorator_package_available, condition=is_numpy_available)
+>>> @decorator
 ... def process_with_numpy(data):
 ...     import numpy as np
 ...     return np.array(data).sum()
@@ -182,7 +183,7 @@ For single-line formatting, use `str_sequence_line()`:
 
 >>> from coola.utils.format import str_sequence_line
 >>> str_sequence_line([1, 2, 3, 4, 5])
-'(1, 2, 3, 4, 5)'
+'1, 2, 3, 4, 5'
 
 ```
 
@@ -224,7 +225,7 @@ For single-line formatting, use `str_mapping_line()`:
 
 >>> from coola.utils.format import str_mapping_line
 >>> str_mapping_line({"a": 1, "b": 2})
-'{"a": 1, "b": 2}'
+'a=1, b=2'
 
 ```
 
@@ -250,12 +251,10 @@ Use `str_human_byte_size()` to convert byte sizes to human-readable format:
 ```pycon
 
 >>> from coola.utils.format import str_human_byte_size
->>> str_human_byte_size(1024)
-'1.00 KB'
->>> str_human_byte_size(1048576)
-'1.00 MB'
->>> str_human_byte_size(1536)
-'1.50 KB'
+>>> str_human_byte_size(512)
+'512.00 B'
+>>> str_human_byte_size(23456)
+'22.91 KB'
 
 ```
 
@@ -264,9 +263,9 @@ Find the best byte unit for a size:
 ```pycon
 
 >>> from coola.utils.format import find_best_byte_unit
->>> find_best_byte_unit(1024)
-'KB'
->>> find_best_byte_unit(1048576)
+>>> find_best_byte_unit(100)
+'B'
+>>> find_best_byte_unit(2000000)
 'MB'
 
 ```
@@ -279,9 +278,9 @@ Use `str_time_human()` to format time durations:
 
 >>> from coola.utils.format import str_time_human
 >>> import datetime
->>> str_time_human(datetime.timedelta(seconds=90))
+>>> str_time_human(datetime.timedelta(seconds=90).seconds)
 '0:01:30'
->>> str_time_human(datetime.timedelta(hours=2, minutes=30))
+>>> str_time_human(datetime.timedelta(hours=2, minutes=30).seconds)
 '2:30:00'
 
 ```
@@ -335,12 +334,12 @@ The `coola.utils.introspection` module provides utilities for introspecting Pyth
 Write library code that works with optional dependencies:
 
 ```pycon
-
+>>> from collections.abc import Sequence
 >>> from coola.utils.imports import is_numpy_available
->>> def process_data(data):
+>>> def process_data(data: Sequence[float]) -> float:
 ...     if is_numpy_available():
 ...         import numpy as np
-...         return np.array(data).sum()
+...         return np.array(data).sum().item()
 ...     else:
 ...         return sum(data)
 ...

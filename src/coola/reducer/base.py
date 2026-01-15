@@ -211,7 +211,7 @@ class BaseBasicReducer(BaseReducer[T]):
 
     def max(self, values: T) -> int | float:
         if self._is_empty(values):
-            msg = "Cannot compute the maximum because the summary is empty"
+            msg = "Cannot compute the maximum because the sequence is empty"
             raise EmptySequenceError(msg)
         return self._max(values)
 
@@ -228,7 +228,7 @@ class BaseBasicReducer(BaseReducer[T]):
 
     def mean(self, values: T) -> int | float:
         if self._is_empty(values):
-            msg = "Cannot compute the mean because the summary is empty"
+            msg = "Cannot compute the mean because the sequence is empty"
             raise EmptySequenceError(msg)
         return self._mean(values)
 
@@ -245,7 +245,7 @@ class BaseBasicReducer(BaseReducer[T]):
 
     def median(self, values: T) -> int | float:
         if self._is_empty(values):
-            msg = "Cannot compute the median because the summary is empty"
+            msg = "Cannot compute the median because the sequence is empty"
             raise EmptySequenceError(msg)
         return self._median(values)
 
@@ -262,7 +262,7 @@ class BaseBasicReducer(BaseReducer[T]):
 
     def min(self, values: T) -> int | float:
         if self._is_empty(values):
-            msg = "Cannot compute the minimum because the summary is empty"
+            msg = "Cannot compute the minimum because the sequence is empty"
             raise EmptySequenceError(msg)
         return self._min(values)
 
@@ -279,7 +279,7 @@ class BaseBasicReducer(BaseReducer[T]):
 
     def quantile(self, values: T, quantiles: Sequence[float]) -> list[float]:
         if self._is_empty(values):
-            msg = "Cannot compute the quantiles because the summary is empty"
+            msg = "Cannot compute the quantiles because the sequence is empty"
             raise EmptySequenceError(msg)
         return self._quantile(values, quantiles)
 
@@ -298,7 +298,7 @@ class BaseBasicReducer(BaseReducer[T]):
 
     def std(self, values: T) -> float:
         if self._is_empty(values):
-            msg = "Cannot compute the standard deviation because the summary is empty"
+            msg = "Cannot compute the standard deviation because the sequence is empty"
             raise EmptySequenceError(msg)
         return self._std(values)
 
