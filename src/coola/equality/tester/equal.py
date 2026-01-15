@@ -15,6 +15,7 @@ from coola.equality.handler import (
     EqualNanHandler,
     SameObjectHandler,
     SameTypeHandler,
+    create_chain,
 )
 from coola.equality.tester.base import BaseEqualityTester
 
@@ -59,8 +60,7 @@ class EqualEqualityTester(BaseEqualityTester[object]):
     """
 
     def __init__(self) -> None:
-        self._handler = SameObjectHandler()
-        self._handler.chain(SameTypeHandler()).chain(EqualHandler())
+        self._handler = create_chain(SameObjectHandler(), SameTypeHandler(), EqualHandler())
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
@@ -119,8 +119,7 @@ class EqualNanEqualityTester(BaseEqualityTester[object]):
     """
 
     def __init__(self) -> None:
-        self._handler = SameObjectHandler()
-        self._handler.chain(SameTypeHandler()).chain(EqualNanHandler())
+        self._handler = create_chain(SameObjectHandler(), SameTypeHandler(), EqualNanHandler())
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"

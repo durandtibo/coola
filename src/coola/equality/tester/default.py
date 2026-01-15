@@ -15,6 +15,7 @@ from coola.equality.handler import (
     ObjectEqualHandler,
     SameObjectHandler,
     SameTypeHandler,
+    create_chain,
 )
 from coola.equality.tester.base import BaseEqualityTester
 
@@ -64,8 +65,7 @@ class DefaultEqualityTester(BaseEqualityTester[object]):
     """
 
     def __init__(self) -> None:
-        self._handler = SameObjectHandler()
-        self._handler.chain(SameTypeHandler()).chain(ObjectEqualHandler())
+        self._handler = create_chain(SameObjectHandler(), SameTypeHandler(), ObjectEqualHandler())
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"

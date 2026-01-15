@@ -22,6 +22,7 @@ from coola.equality.handler import (
     PolarsSeriesEqualHandler,
     SameObjectHandler,
     SameTypeHandler,
+    create_chain,
 )
 from coola.equality.tester.base import BaseEqualityTester
 from coola.utils.imports import check_polars, is_polars_available
@@ -70,8 +71,9 @@ class PolarsDataFrameEqualityTester(BaseEqualityTester[pl.DataFrame]):
 
     def __init__(self) -> None:
         check_polars()
-        self._handler = SameObjectHandler()
-        self._handler.chain(SameTypeHandler()).chain(PolarsDataFrameEqualHandler())
+        self._handler = create_chain(
+            SameObjectHandler(), SameTypeHandler(), PolarsDataFrameEqualHandler()
+        )
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
@@ -127,8 +129,9 @@ class PolarsLazyFrameEqualityTester(BaseEqualityTester[pl.LazyFrame]):
 
     def __init__(self) -> None:
         check_polars()
-        self._handler = SameObjectHandler()
-        self._handler.chain(SameTypeHandler()).chain(PolarsLazyFrameEqualHandler())
+        self._handler = create_chain(
+            SameObjectHandler(), SameTypeHandler(), PolarsLazyFrameEqualHandler()
+        )
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
@@ -172,8 +175,9 @@ class PolarsSeriesEqualityTester(BaseEqualityTester[pl.Series]):
 
     def __init__(self) -> None:
         check_polars()
-        self._handler = SameObjectHandler()
-        self._handler.chain(SameTypeHandler()).chain(PolarsSeriesEqualHandler())
+        self._handler = create_chain(
+            SameObjectHandler(), SameTypeHandler(), PolarsSeriesEqualHandler()
+        )
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"

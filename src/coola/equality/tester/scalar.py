@@ -15,6 +15,7 @@ from coola.equality.handler import (
     SameObjectHandler,
     SameTypeHandler,
     ScalarEqualHandler,
+    create_chain,
 )
 from coola.equality.tester.base import BaseEqualityTester
 
@@ -75,8 +76,9 @@ class ScalarEqualityTester(BaseEqualityTester[float]):
     """
 
     def __init__(self) -> None:
-        self._handler = SameObjectHandler()
-        self._handler.chain(SameTypeHandler()).chain(NanEqualHandler()).chain(ScalarEqualHandler())
+        self._handler = create_chain(
+            SameObjectHandler(), SameTypeHandler(), NanEqualHandler(), ScalarEqualHandler()
+        )
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"

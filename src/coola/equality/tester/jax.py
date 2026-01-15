@@ -17,6 +17,7 @@ from coola.equality.handler import (
     SameObjectHandler,
     SameShapeHandler,
     SameTypeHandler,
+    create_chain,
 )
 from coola.equality.tester.base import BaseEqualityTester
 from coola.utils.imports import check_jax, is_jax_available
@@ -64,10 +65,13 @@ class JaxArrayEqualityTester(BaseEqualityTester[jnp.ndarray]):
 
     def __init__(self) -> None:
         check_jax()
-        self._handler = SameObjectHandler()
-        self._handler.chain(SameTypeHandler()).chain(SameDTypeHandler()).chain(
-            SameShapeHandler()
-        ).chain(JaxArrayEqualHandler())
+        self._handler = create_chain(
+            SameObjectHandler(),
+            SameTypeHandler(),
+            SameDTypeHandler(),
+            SameShapeHandler(),
+            JaxArrayEqualHandler(),
+        )
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
