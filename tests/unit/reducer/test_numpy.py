@@ -64,7 +64,7 @@ def test_numpy_reducer_max_float(values: Sequence[int | float]) -> None:
 @pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_numpy_reducer_max_empty(values: Sequence[int | float]) -> None:
     with pytest.raises(
-        EmptySequenceError, match=r"Cannot compute the maximum because the summary is empty"
+        EmptySequenceError, match=r"Cannot compute the maximum because the sequence is empty"
     ):
         NumpyReducer().max(values)
 
@@ -99,7 +99,7 @@ def test_numpy_reducer_mean_float(values: Sequence[int | float]) -> None:
 @pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_numpy_reducer_mean_empty(values: Sequence[int | float]) -> None:
     with pytest.raises(
-        EmptySequenceError, match=r"Cannot compute the mean because the summary is empty"
+        EmptySequenceError, match=r"Cannot compute the mean because the sequence is empty"
     ):
         NumpyReducer().mean(values)
 
@@ -130,7 +130,7 @@ def test_numpy_reducer_median_float(values: Sequence[int | float]) -> None:
 @pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_numpy_reducer_median_empty(values: Sequence[int | float]) -> None:
     with pytest.raises(
-        EmptySequenceError, match=r"Cannot compute the median because the summary is empty"
+        EmptySequenceError, match=r"Cannot compute the median because the sequence is empty"
     ):
         NumpyReducer().median(values)
 
@@ -167,7 +167,7 @@ def test_numpy_reducer_min_float(values: Sequence[int | float]) -> None:
 @pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_numpy_reducer_min_empty(values: Sequence[int | float]) -> None:
     with pytest.raises(
-        EmptySequenceError, match=r"Cannot compute the minimum because the summary is empty"
+        EmptySequenceError, match=r"Cannot compute the minimum because the sequence is empty"
     ):
         NumpyReducer().min(values)
 
@@ -202,7 +202,7 @@ def test_numpy_reducer_quantile_float(values: Sequence[int | float]) -> None:
 @pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_numpy_reducer_quantile_empty(values: Sequence[int | float]) -> None:
     with pytest.raises(
-        EmptySequenceError, match=r"Cannot compute the quantiles because the summary is empty"
+        EmptySequenceError, match=r"Cannot compute the quantiles because the sequence is empty"
     ):
         NumpyReducer().quantile(values, [0.5])
 
@@ -266,7 +266,7 @@ def test_numpy_reducer_std_one(values: Sequence[int | float]) -> None:
 def test_numpy_reducer_std_empty(values: Sequence[int | float]) -> None:
     with pytest.raises(
         EmptySequenceError,
-        match=r"Cannot compute the standard deviation because the summary is empty",
+        match=r"Cannot compute the standard deviation because the sequence is empty",
     ):
         NumpyReducer().std(values)
 
