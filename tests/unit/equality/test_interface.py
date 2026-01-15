@@ -24,6 +24,10 @@ if is_torch_available():
 else:
     torch = Mock()
 
+# Test constants for recursion depth tests
+SAFE_NESTING_DEPTH = 50  # Depth that should work within default max_depth
+EXCESSIVE_NESTING_DEPTH = 15  # Depth to test with a lower max_depth limit
+
 
 ##########################################
 #     Tests for objects_are_allclose     #
@@ -308,6 +312,58 @@ def test_objects_are_allclose_true_complex_objects() -> None:
 def test_objects_are_allclose_custom_registry() -> None:
     registry = EqualityTesterRegistry({object: DefaultEqualityTester()})
     assert not objects_are_allclose([], (), registry=registry)
+
+
+def test_objects_are_allclose_negative_atol() -> None:
+    with pytest.raises(ValueError, match="atol must be non-negative"):
+        objects_are_allclose([1, 2, 3], [1, 2, 3], atol=-1.0)
+
+
+def test_objects_are_allclose_negative_rtol() -> None:
+    with pytest.raises(ValueError, match="rtol must be non-negative"):
+        objects_are_allclose([1, 2, 3], [1, 2, 3], rtol=-0.5)
+
+
+def test_objects_are_equal_deep_nesting() -> None:
+    # Create a deeply nested structure
+    nested1 = [1]
+    nested2 = [1]
+    for _ in range(SAFE_NESTING_DEPTH):
+        nested1 = [nested1]
+        nested2 = [nested2]
+    assert objects_are_equal(nested1, nested2)
+
+
+def test_objects_are_equal_exceeds_max_depth() -> None:
+    # Create a structure that exceeds max_depth
+    nested1 = [1]
+    nested2 = [1]
+    for _ in range(EXCESSIVE_NESTING_DEPTH):
+        nested1 = [nested1]
+        nested2 = [nested2]
+    with pytest.raises(RecursionError, match=r"Maximum recursion depth.*exceeded"):
+        objects_are_equal(nested1, nested2, max_depth=10)
+
+
+def test_objects_are_allclose_deep_nesting() -> None:
+    # Create a deeply nested structure
+    nested1 = [1.0]
+    nested2 = [1.0 + 1e-9]
+    for _ in range(SAFE_NESTING_DEPTH):
+        nested1 = [nested1]
+        nested2 = [nested2]
+    assert objects_are_allclose(nested1, nested2)
+
+
+def test_objects_are_allclose_exceeds_max_depth() -> None:
+    # Create a structure that exceeds max_depth
+    nested1 = [1.0]
+    nested2 = [1.0]
+    for _ in range(EXCESSIVE_NESTING_DEPTH):
+        nested1 = [nested1]
+        nested2 = [nested2]
+    with pytest.raises(RecursionError, match=r"Maximum recursion depth.*exceeded"):
+        objects_are_allclose(nested1, nested2, max_depth=10)
 
 
 #######################################
