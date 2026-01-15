@@ -1,4 +1,4 @@
-r"""Implement some handler for sequence objects."""
+r"""Implement handlers for sequence objects."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler.base import BaseEqualityHandler
-from coola.equality.handler.utils import handlers_are_equal
+from coola.equality.handler.utils import check_recursion_depth, handlers_are_equal
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -51,11 +51,12 @@ class SequenceSameValuesHandler(BaseEqualityHandler):
         expected: Sequence[Any],
         config: EqualityConfig,
     ) -> bool:
-        for value1, value2 in zip(actual, expected):
-            if not config.registry.objects_are_equal(value1, value2, config):
-                self._show_difference(actual, expected, config=config)
-                return False
-        return self._handle_next(actual, expected, config=config)
+        with check_recursion_depth(config):
+            for value1, value2 in zip(actual, expected):
+                if not config.registry.objects_are_equal(value1, value2, config):
+                    self._show_difference(actual, expected, config=config)
+                    return False
+            return self._handle_next(actual, expected, config=config)
 
     def _show_difference(
         self, actual: Sequence, expected: Sequence, config: EqualityConfig

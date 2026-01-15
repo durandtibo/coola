@@ -1,4 +1,4 @@
-r"""Implement some handler for native python objects."""
+r"""Implement handlers for mapping objects."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler.base import BaseEqualityHandler
-from coola.equality.handler.utils import handlers_are_equal
+from coola.equality.handler.utils import check_recursion_depth, handlers_are_equal
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -101,11 +101,12 @@ class MappingSameValuesHandler(BaseEqualityHandler):
         expected: Mapping[Any, Any],
         config: EqualityConfig,
     ) -> bool:
-        for key in actual:
-            if not config.registry.objects_are_equal(actual[key], expected[key], config):
-                self._show_difference(actual, expected, config=config)
-                return False
-        return self._handle_next(actual, expected, config=config)
+        with check_recursion_depth(config):
+            for key in actual:
+                if not config.registry.objects_are_equal(actual[key], expected[key], config):
+                    self._show_difference(actual, expected, config=config)
+                    return False
+            return self._handle_next(actual, expected, config=config)
 
     def _show_difference(
         self, actual: Mapping[Any, Any], expected: Mapping[Any, Any], config: EqualityConfig

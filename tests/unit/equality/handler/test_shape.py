@@ -51,8 +51,16 @@ def test_same_shape_handler_repr() -> None:
     assert repr(SameShapeHandler()) == "SameShapeHandler()"
 
 
+def test_same_shape_handler_repr_with_next_handler() -> None:
+    assert repr(SameShapeHandler(FalseHandler())) == "SameShapeHandler(next_handler=FalseHandler())"
+
+
 def test_same_shape_handler_str() -> None:
     assert str(SameShapeHandler()) == "SameShapeHandler()"
+
+
+def test_same_shape_handler_str_with_next_handler() -> None:
+    assert str(SameShapeHandler(FalseHandler())) == "SameShapeHandler()"
 
 
 @pytest.mark.parametrize(

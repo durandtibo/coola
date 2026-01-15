@@ -1,5 +1,5 @@
-r"""Implement some handler for ``polars.DataFrame``s and
-``polars.Series``s."""
+r"""Implement handlers for ``polars.DataFrame``s, ``polars.LazyFrame``s,
+and ``polars.Series``es."""
 
 from __future__ import annotations
 
@@ -28,9 +28,9 @@ logger: logging.Logger = logging.getLogger(__name__)
 
 
 class PolarsDataFrameEqualHandler(BaseEqualityHandler):
-    r"""Check if the two ``polars.DataFrame`` are equal.
+    r"""Check if the two ``polars.DataFrame``s are equal.
 
-    This handler returns ``True`` if the two ``polars.DataFrame``s
+    This handler returns ``True`` if the two ``polars.DataFrame``s are
     equal, otherwise ``False``. This handler is designed to be used
     at the end of the chain of responsibility. This handler does
     not call the next handler.
@@ -79,9 +79,9 @@ class PolarsDataFrameEqualHandler(BaseEqualityHandler):
 
 
 class PolarsLazyFrameEqualHandler(BaseEqualityHandler):
-    r"""Check if the two ``polars.LazyFrame`` are equal.
+    r"""Check if the two ``polars.LazyFrame``s are equal.
 
-    This handler returns ``True`` if the two ``polars.LazyFrame``s
+    This handler returns ``True`` if the two ``polars.LazyFrame``s are
     equal, otherwise ``False``. This handler is designed to be used
     at the end of the chain of responsibility. This handler does
     not call the next handler.
@@ -130,9 +130,9 @@ class PolarsLazyFrameEqualHandler(BaseEqualityHandler):
 
 
 class PolarsSeriesEqualHandler(BaseEqualityHandler):
-    r"""Check if the two ``polars.Series`` are equal.
+    r"""Check if the two ``polars.Series``es are equal.
 
-    This handler returns ``True`` if the two arrays ``polars.Series``
+    This handler returns ``True`` if the two ``polars.Series``es are
     equal, otherwise ``False``. This handler is designed to be used
     at the end of the chain of responsibility. This handler does
     not call the next handler.

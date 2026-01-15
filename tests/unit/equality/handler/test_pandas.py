@@ -43,8 +43,19 @@ def test_pandas_dataframe_equal_handler_repr() -> None:
     assert repr(PandasDataFrameEqualHandler()) == "PandasDataFrameEqualHandler()"
 
 
+def test_pandas_dataframe_equal_handler_repr_with_next_handler() -> None:
+    assert (
+        repr(PandasDataFrameEqualHandler(FalseHandler()))
+        == "PandasDataFrameEqualHandler(next_handler=FalseHandler())"
+    )
+
+
 def test_pandas_dataframe_equal_handler_str() -> None:
     assert str(PandasDataFrameEqualHandler()) == "PandasDataFrameEqualHandler()"
+
+
+def test_pandas_dataframe_equal_handler_str_with_next_handler() -> None:
+    assert str(PandasDataFrameEqualHandler(FalseHandler())) == "PandasDataFrameEqualHandler()"
 
 
 @pytest.mark.parametrize(
@@ -274,8 +285,19 @@ def test_pandas_series_equal_handler_repr() -> None:
     assert repr(PandasSeriesEqualHandler()) == "PandasSeriesEqualHandler()"
 
 
+def test_pandas_series_equal_handler_repr_with_next_handler() -> None:
+    assert (
+        repr(PandasSeriesEqualHandler(FalseHandler()))
+        == "PandasSeriesEqualHandler(next_handler=FalseHandler())"
+    )
+
+
 def test_pandas_series_equal_handler_str() -> None:
     assert str(PandasSeriesEqualHandler()) == "PandasSeriesEqualHandler()"
+
+
+def test_pandas_series_equal_handler_str_with_next_handler() -> None:
+    assert str(PandasSeriesEqualHandler(FalseHandler())) == "PandasSeriesEqualHandler()"
 
 
 @pytest.mark.parametrize(

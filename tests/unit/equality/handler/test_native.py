@@ -42,8 +42,16 @@ def test_false_handler_repr() -> None:
     assert repr(FalseHandler()) == "FalseHandler()"
 
 
+def test_false_handler_repr_with_next_handler() -> None:
+    assert repr(FalseHandler(TrueHandler())) == "FalseHandler(next_handler=TrueHandler())"
+
+
 def test_false_handler_str() -> None:
     assert str(FalseHandler()) == "FalseHandler()"
+
+
+def test_false_handler_str_with_next_handler() -> None:
+    assert str(FalseHandler(TrueHandler())) == "FalseHandler()"
 
 
 @pytest.mark.parametrize(
@@ -126,8 +134,16 @@ def test_true_handler_repr() -> None:
     assert repr(TrueHandler()) == "TrueHandler()"
 
 
+def test_true_handler_repr_with_next_handler() -> None:
+    assert repr(TrueHandler(FalseHandler())) == "TrueHandler(next_handler=FalseHandler())"
+
+
 def test_true_handler_str() -> None:
     assert str(TrueHandler()) == "TrueHandler()"
+
+
+def test_true_handler_str_with_next_handler() -> None:
+    assert str(TrueHandler(FalseHandler())) == "TrueHandler()"
 
 
 @pytest.mark.parametrize(
@@ -211,11 +227,22 @@ def test_true_handler_equal_handle_set_next_handler_incorrect() -> None:
 
 
 def test_object_equal_handler_repr() -> None:
-    assert str(ObjectEqualHandler()) == "ObjectEqualHandler()"
+    assert repr(ObjectEqualHandler()) == "ObjectEqualHandler()"
+
+
+def test_object_equal_handler_repr_with_next_handler() -> None:
+    assert (
+        repr(ObjectEqualHandler(FalseHandler()))
+        == "ObjectEqualHandler(next_handler=FalseHandler())"
+    )
 
 
 def test_object_equal_handler_str() -> None:
     assert str(ObjectEqualHandler()) == "ObjectEqualHandler()"
+
+
+def test_object_equal_handler_str_with_next_handler() -> None:
+    assert str(ObjectEqualHandler(FalseHandler())) == "ObjectEqualHandler()"
 
 
 @pytest.mark.parametrize(
@@ -314,11 +341,25 @@ def test_object_equal_handler_equal_handle_set_next_handler_incorrect() -> None:
 
 
 def test_same_attribute_handler_repr() -> None:
-    assert repr(SameAttributeHandler(name="data")).startswith("SameAttributeHandler(")
+    assert repr(SameAttributeHandler(name="data")) == "SameAttributeHandler(name=data)"
+
+
+def test_same_attribute_handler_repr_with_next_handler() -> None:
+    assert (
+        repr(SameAttributeHandler(name="data", next_handler=FalseHandler()))
+        == "SameAttributeHandler(name=data, next_handler=FalseHandler())"
+    )
 
 
 def test_same_attribute_handler_str() -> None:
     assert str(SameAttributeHandler(name="data")) == "SameAttributeHandler(name=data)"
+
+
+def test_same_attribute_handler_str_with_next_handler() -> None:
+    assert (
+        str(SameAttributeHandler(name="data", next_handler=FalseHandler()))
+        == "SameAttributeHandler(name=data)"
+    )
 
 
 @pytest.mark.parametrize(
@@ -473,8 +514,18 @@ def test_same_length_handler_repr() -> None:
     assert repr(SameLengthHandler()) == "SameLengthHandler()"
 
 
+def test_same_length_handler_repr_with_next_handler() -> None:
+    assert (
+        repr(SameLengthHandler(FalseHandler())) == "SameLengthHandler(next_handler=FalseHandler())"
+    )
+
+
 def test_same_length_handler_str() -> None:
     assert str(SameLengthHandler()) == "SameLengthHandler()"
+
+
+def test_same_length_handler_str_with_next_handler() -> None:
+    assert str(SameLengthHandler(FalseHandler())) == "SameLengthHandler()"
 
 
 @pytest.mark.parametrize(
@@ -599,8 +650,18 @@ def test_same_object_handler_repr() -> None:
     assert repr(SameObjectHandler()) == "SameObjectHandler()"
 
 
+def test_same_object_handler_repr_with_next_handler() -> None:
+    assert (
+        repr(SameObjectHandler(FalseHandler())) == "SameObjectHandler(next_handler=FalseHandler())"
+    )
+
+
 def test_same_object_handler_str() -> None:
     assert str(SameObjectHandler()) == "SameObjectHandler()"
+
+
+def test_same_object_handler_str_with_next_handler() -> None:
+    assert str(SameObjectHandler(FalseHandler())) == "SameObjectHandler()"
 
 
 @pytest.mark.parametrize(
@@ -698,8 +759,16 @@ def test_same_type_handler_repr() -> None:
     assert repr(SameTypeHandler()) == "SameTypeHandler()"
 
 
+def test_same_type_handler_repr_with_next_handler() -> None:
+    assert repr(SameTypeHandler(FalseHandler())) == "SameTypeHandler(next_handler=FalseHandler())"
+
+
 def test_same_type_handler_str() -> None:
     assert str(SameTypeHandler()) == "SameTypeHandler()"
+
+
+def test_same_type_handler_str_with_next_handler() -> None:
+    assert str(SameTypeHandler(FalseHandler())) == "SameTypeHandler()"
 
 
 @pytest.mark.parametrize(

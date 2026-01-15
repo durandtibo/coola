@@ -1,4 +1,4 @@
-r"""Implement some handler for ``pyarrow`` objects."""
+r"""Implement handlers for ``pyarrow`` objects."""
 
 from __future__ import annotations
 

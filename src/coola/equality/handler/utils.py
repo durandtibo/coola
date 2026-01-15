@@ -2,11 +2,15 @@ r"""Contain utilities for handlers."""
 
 from __future__ import annotations
 
-__all__ = ["handlers_are_equal"]
+__all__ = ["check_recursion_depth", "handlers_are_equal"]
 
+from contextlib import contextmanager
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    from coola.equality.config import EqualityConfig
     from coola.equality.handler.base import BaseEqualityHandler
 
 
@@ -41,3 +45,42 @@ def handlers_are_equal(
     if handler1 is None:
         return handler1 == handler2
     return handler1.equal(handler2)
+
+
+@contextmanager
+def check_recursion_depth(config: EqualityConfig) -> Generator[None, None, None]:
+    r"""Context manager to track and enforce recursion depth limits.
+
+    This context manager increments the recursion depth counter on entry
+    and decrements it on exit (even if an exception occurs). It raises
+    a RecursionError if the maximum depth is exceeded.
+
+    Args:
+        config: The equality configuration containing depth settings.
+
+    Raises:
+        RecursionError: if the current depth exceeds max_depth.
+
+    Example:
+        ```pycon
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.handler.utils import check_recursion_depth
+        >>> config = EqualityConfig(max_depth=5)
+        >>> with check_recursion_depth(config):
+        ...     print(config._current_depth)
+        ...
+        1
+
+        ```
+    """
+    if config.depth >= config.max_depth:
+        msg = (
+            f"Maximum recursion depth ({config.max_depth}) exceeded. "
+            f"Consider increasing max_depth parameter or simplifying the data structure."
+        )
+        raise RecursionError(msg)
+    config.increment_depth()
+    try:
+        yield
+    finally:
+        config.decrement_depth()
