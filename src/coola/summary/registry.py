@@ -253,9 +253,11 @@ class SummarizerRegistry:
             nested structures.
 
         Raises:
-            The registry itself doesn't raise exceptions for invalid depth
-            parameters, but individual summarizers may raise ValueError or
-            other exceptions based on the data type being summarized.
+            ValueError: May be raised by individual summarizers for invalid
+                depth parameters or other issues based on the data type being
+                summarized. The registry itself doesn't raise exceptions, but
+                delegates to registered summarizers which may raise this or
+                other exceptions.
 
         Notes:
             - The depth parameter is primarily for internal use during recursion.

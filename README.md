@@ -61,7 +61,7 @@ complex/nested objects are equal or not.
 with [PyTorch `Tensor`s](https://pytorch.org/docs/stable/tensors.html)
 and [NumPy `ndarray`](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html), but it
 is possible to extend it
-to [support other data structures](https://durandtibo.github.io/coola/customization).
+to [support other data structures](https://durandtibo.github.io/coola/uguide/equality_handler).
 
 - [Motivation](#motivation)
 - [Documentation](https://durandtibo.github.io/coola/)
