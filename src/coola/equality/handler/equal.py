@@ -70,14 +70,18 @@ class EqualHandler(BaseEqualityHandler):
         >>> from coola.equality.handler import EqualHandler
         >>> class MyFloat:
         ...     def __init__(self, value: float) -> None:
-        ...         self._value = value
-        ...     def equal(self, other: float) -> bool:
-        ...         return self._value == other
+        ...         self._value = float(value)
+        ...     def equal(self, other: object) -> bool:
+        ...         if type(other) is not type(self):
+        ...             return False
+        ...         return self._value == other._value
         ...
         >>> config = EqualityConfig()
         >>> handler = EqualHandler()
-        >>> handler.handle(MyFloat(42), 42, config)
+        >>> handler.handle(MyFloat(42), MyFloat(42), config)
         True
+        >>> handler.handle(MyFloat(42), 42, config)
+        False
         >>> handler.handle(MyFloat(42), float("nan"), config)
         False
 
@@ -112,20 +116,24 @@ class EqualNanHandler(BaseEqualityHandler):
         >>> from coola.equality.handler import EqualNanHandler
         >>> class MyFloat:
         ...     def __init__(self, value: float) -> None:
-        ...         self._value = value
-        ...     def equal(self, other: float, equal_nan: bool = False) -> bool:
-        ...         if equal_nan and math.isnan(self._value) and math.isnan(other):
+        ...         self._value = float(value)
+        ...     def equal(self, other: object, equal_nan: bool = False) -> bool:
+        ...         if type(other) is not type(self):
+        ...             return False
+        ...         if equal_nan and math.isnan(self._value) and math.isnan(other._value):
         ...             return True
-        ...         return self._value == other
+        ...         return self._value == other._value
         ...
         >>> config = EqualityConfig()
         >>> handler = EqualNanHandler()
-        >>> handler.handle(MyFloat(42), 42, config)
+        >>> handler.handle(MyFloat(42), MyFloat(42), config)
         True
-        >>> handler.handle(MyFloat(float("nan")), float("nan"), config)
+        >>> handler.handle(MyFloat(42), 42, config)
+        False
+        >>> handler.handle(MyFloat(float("nan")), MyFloat(float("nan")), config)
         False
         >>> config.equal_nan = True
-        >>> handler.handle(MyFloat(float("nan")), float("nan"), config)
+        >>> handler.handle(MyFloat(float("nan")), MyFloat(float("nan")), config)
         True
 
         ```
