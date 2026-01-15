@@ -37,8 +37,16 @@ def test_same_data_handler_repr() -> None:
     assert repr(SameDataHandler()) == "SameDataHandler()"
 
 
+def test_same_data_handler_repr_with_next_handler() -> None:
+    assert repr(SameDataHandler(FalseHandler())) == "SameDataHandler(next_handler=FalseHandler())"
+
+
 def test_same_data_handler_str() -> None:
     assert str(SameDataHandler()) == "SameDataHandler()"
+
+
+def test_same_data_handler_str_with_next_handler() -> None:
+    assert str(SameDataHandler(FalseHandler())) == "SameDataHandler()"
 
 
 @pytest.mark.parametrize(

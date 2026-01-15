@@ -39,8 +39,19 @@ def test_torch_tensor_equal_handler_repr() -> None:
     assert repr(TorchTensorEqualHandler()) == "TorchTensorEqualHandler()"
 
 
+def test_torch_tensor_equal_handler_repr_with_next_handler() -> None:
+    assert (
+        repr(TorchTensorEqualHandler(FalseHandler()))
+        == "TorchTensorEqualHandler(next_handler=FalseHandler())"
+    )
+
+
 def test_torch_tensor_equal_handler_str() -> None:
     assert str(TorchTensorEqualHandler()) == "TorchTensorEqualHandler()"
+
+
+def test_torch_tensor_equal_handler_str_with_next_handler() -> None:
+    assert str(TorchTensorEqualHandler(FalseHandler())) == "TorchTensorEqualHandler()"
 
 
 @pytest.mark.parametrize(
@@ -180,8 +191,19 @@ def test_torch_tensor_same_device_handler_repr() -> None:
     assert repr(TorchTensorSameDeviceHandler()) == "TorchTensorSameDeviceHandler()"
 
 
+def test_torch_tensor_same_device_handler_repr_with_next_handler() -> None:
+    assert (
+        repr(TorchTensorSameDeviceHandler(FalseHandler()))
+        == "TorchTensorSameDeviceHandler(next_handler=FalseHandler())"
+    )
+
+
 def test_torch_tensor_same_device_handler_str() -> None:
     assert str(TorchTensorSameDeviceHandler()) == "TorchTensorSameDeviceHandler()"
+
+
+def test_torch_tensor_same_device_handler_str_with_next_handler() -> None:
+    assert str(TorchTensorSameDeviceHandler(FalseHandler())) == "TorchTensorSameDeviceHandler()"
 
 
 @pytest.mark.parametrize(

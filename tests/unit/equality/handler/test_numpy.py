@@ -36,8 +36,19 @@ def test_numpy_array_equal_handler_repr() -> None:
     assert repr(NumpyArrayEqualHandler()) == "NumpyArrayEqualHandler()"
 
 
+def test_numpy_array_equal_handler_repr_with_next_handler() -> None:
+    assert (
+        repr(NumpyArrayEqualHandler(FalseHandler()))
+        == "NumpyArrayEqualHandler(next_handler=FalseHandler())"
+    )
+
+
 def test_numpy_array_equal_handler_str() -> None:
     assert str(NumpyArrayEqualHandler()) == "NumpyArrayEqualHandler()"
+
+
+def test_numpy_array_equal_handler_str_with_next_handler() -> None:
+    assert str(NumpyArrayEqualHandler(FalseHandler())) == "NumpyArrayEqualHandler()"
 
 
 @pytest.mark.parametrize(

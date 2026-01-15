@@ -17,7 +17,6 @@ from typing import TYPE_CHECKING
 
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.utils import handlers_are_equal
-from coola.utils.format import repr_indent, repr_mapping
 
 if TYPE_CHECKING:
     from collections.abc import Sized
@@ -162,11 +161,17 @@ class SameAttributeHandler(BaseEqualityHandler):
         self._name = name
 
     def __repr__(self) -> str:
-        args = repr_indent(repr_mapping({"name": self._name, "next_handler": self._next_handler}))
-        return f"{self.__class__.__qualname__}(\n  {args}\n)"
+        args = ""
+        if self.next_handler:
+            args += f", next_handler={self.next_handler}"
+        return f"{self.__class__.__qualname__}(name={self._name}{args})"
 
     def __str__(self) -> str:
         return f"{self.__class__.__qualname__}(name={self._name})"
+
+    @property
+    def name(self) -> str:
+        return self._name
 
     def equal(self, other: object) -> bool:
         if type(other) is not type(self):
@@ -174,10 +179,6 @@ class SameAttributeHandler(BaseEqualityHandler):
         if self.name != other.name:
             return False
         return handlers_are_equal(self.next_handler, other.next_handler)
-
-    @property
-    def name(self) -> str:
-        return self._name
 
     def handle(self, actual: object, expected: object, config: EqualityConfig) -> bool:
         value1 = getattr(actual, self._name)

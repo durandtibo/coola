@@ -29,8 +29,16 @@ def test_nan_equal_handler_repr() -> None:
     assert repr(NanEqualHandler()) == "NanEqualHandler()"
 
 
+def test_nan_equal_handler_repr_with_next_handler() -> None:
+    assert repr(NanEqualHandler(FalseHandler())) == "NanEqualHandler(next_handler=FalseHandler())"
+
+
 def test_nan_equal_handler_str() -> None:
     assert str(NanEqualHandler()) == "NanEqualHandler()"
+
+
+def test_nan_equal_handler_str_with_next_handler() -> None:
+    assert str(NanEqualHandler(FalseHandler())) == "NanEqualHandler()"
 
 
 @pytest.mark.parametrize(
@@ -131,8 +139,19 @@ def test_scalar_equal_handler_repr() -> None:
     assert repr(ScalarEqualHandler()) == "ScalarEqualHandler()"
 
 
+def test_scalar_equal_handler_repr_with_next_handler() -> None:
+    assert (
+        repr(ScalarEqualHandler(FalseHandler()))
+        == "ScalarEqualHandler(next_handler=FalseHandler())"
+    )
+
+
 def test_scalar_equal_handler_str() -> None:
     assert str(ScalarEqualHandler()) == "ScalarEqualHandler()"
+
+
+def test_scalar_equal_handler_str_with_next_handler() -> None:
+    assert str(ScalarEqualHandler(FalseHandler())) == "ScalarEqualHandler()"
 
 
 @pytest.mark.parametrize(

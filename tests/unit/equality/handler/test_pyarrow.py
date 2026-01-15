@@ -42,8 +42,19 @@ def test_pyarrow_equal_handler_repr() -> None:
     assert repr(PyarrowEqualHandler()) == "PyarrowEqualHandler()"
 
 
+def test_pyarrow_equal_handler_repr_with_next_handler() -> None:
+    assert (
+        repr(PyarrowEqualHandler(FalseHandler()))
+        == "PyarrowEqualHandler(next_handler=FalseHandler())"
+    )
+
+
 def test_pyarrow_equal_handler_str() -> None:
     assert str(PyarrowEqualHandler()) == "PyarrowEqualHandler()"
+
+
+def test_pyarrow_equal_handler_str_with_next_handler() -> None:
+    assert str(PyarrowEqualHandler(FalseHandler())) == "PyarrowEqualHandler()"
 
 
 @pytest.mark.parametrize(
