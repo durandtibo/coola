@@ -353,6 +353,5 @@ The `coola.equality` package is designed around several key principles:
 ## See Also
 
 - [Supported Types](equality_types.md): Detailed rules for each supported type
-- [`coola.equality.handler`](equality_handler.md): Learn about the handler system for implementing
-  custom comparisons
+- [`coola.equality.handler`](equality_handler.md): Learn about the handler system for implementing custom comparisons
 - [`coola.equality.tester`](equality_tester.md): Learn about the tester registry system

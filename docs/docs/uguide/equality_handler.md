@@ -586,5 +586,4 @@ False
 
 - [`coola.equality`](equality.md): Main equality comparison functions
 - [`coola.equality.tester`](equality_tester.md): Equality tester registry system
-- [Chain of Responsibility Pattern](https://en.wikipedia.org/wiki/Chain-of-responsibility_pattern):
-  Design pattern used by handlers
+- [Chain of Responsibility Pattern](https://en.wikipedia.org/wiki/Chain-of-responsibility_pattern): Design pattern used by handlers
