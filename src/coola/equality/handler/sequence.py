@@ -1,4 +1,4 @@
-r"""Implement some handler for sequence objects."""
+r"""Implement handlers for sequence objects."""
 
 from __future__ import annotations
 

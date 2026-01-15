@@ -1,4 +1,4 @@
-r"""Implement some handler for native python objects."""
+r"""Implement handlers for native Python objects."""
 
 from __future__ import annotations
 

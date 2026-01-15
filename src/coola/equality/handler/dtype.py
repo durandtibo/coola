@@ -1,4 +1,5 @@
-r"""Implement handler to check the objects have the same data type."""
+r"""Implement handler to check if the objects have the same data
+type."""
 
 from __future__ import annotations
 

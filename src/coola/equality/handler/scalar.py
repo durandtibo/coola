@@ -1,4 +1,4 @@
-r"""Implement handler to check the objects are equal."""
+r"""Implement handlers to check if the objects are equal."""
 
 from __future__ import annotations
 
@@ -101,7 +101,7 @@ def number_equal(number1: float, number2: float, config: EqualityConfig) -> bool
         config: The equality configuration.
 
     Returns:
-        ``True``if the two numbers are equal within a tolerance,
+        ``True`` if the two numbers are equal within a tolerance,
             otherwise ``False``.
     """
     if config.atol > 0.0 or config.rtol > 0.0:

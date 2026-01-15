@@ -1,4 +1,4 @@
-r"""Implement some handler for ``numpy.ndarray``s."""
+r"""Implement handlers for ``numpy.ndarray``s."""
 
 from __future__ import annotations
 
