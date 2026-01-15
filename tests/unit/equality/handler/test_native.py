@@ -341,12 +341,13 @@ def test_object_equal_handler_equal_handle_set_next_handler_incorrect() -> None:
 
 
 def test_same_attribute_handler_repr() -> None:
-    assert repr(SameAttributeHandler(name="data")).startswith("SameAttributeHandler(")
+    assert repr(SameAttributeHandler(name="data")) == "SameAttributeHandler(name=data)"
 
 
 def test_same_attribute_handler_repr_with_next_handler() -> None:
-    assert repr(SameAttributeHandler(name="data", next_handler=FalseHandler())).startswith(
-        "SameAttributeHandler("
+    assert (
+        repr(SameAttributeHandler(name="data", next_handler=FalseHandler()))
+        == "SameAttributeHandler(name=data, next_handler=FalseHandler())"
     )
 
 
@@ -355,8 +356,9 @@ def test_same_attribute_handler_str() -> None:
 
 
 def test_same_attribute_handler_str_with_next_handler() -> None:
-    assert str(SameAttributeHandler(name="data", next_handler=FalseHandler())).startswith(
-        "SameAttributeHandler("
+    assert (
+        str(SameAttributeHandler(name="data", next_handler=FalseHandler()))
+        == "SameAttributeHandler(name=data)"
     )
 
 
