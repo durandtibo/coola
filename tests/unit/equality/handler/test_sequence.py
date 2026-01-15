@@ -34,8 +34,19 @@ def test_sequence_same_values_handler_repr() -> None:
     assert repr(SequenceSameValuesHandler()) == "SequenceSameValuesHandler()"
 
 
+def test_sequence_same_values_handler_repr_with_next_handler() -> None:
+    assert (
+        repr(SequenceSameValuesHandler(FalseHandler()))
+        == "SequenceSameValuesHandler(next_handler=FalseHandler())"
+    )
+
+
 def test_sequence_same_values_handler_str() -> None:
     assert str(SequenceSameValuesHandler()) == "SequenceSameValuesHandler()"
+
+
+def test_sequence_same_values_handler_str_with_next_handler() -> None:
+    assert str(SequenceSameValuesHandler(FalseHandler())) == "SequenceSameValuesHandler()"
 
 
 @pytest.mark.parametrize(
