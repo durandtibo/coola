@@ -26,7 +26,10 @@ nav:
   - get_started.md
   - User Guide:
       - uguide/quickstart.md
+      - uguide/equality.md
       - uguide/equality_types.md
+      - uguide/equality_handler.md
+      - uguide/equality_tester.md
       - uguide/iterator.md
       - uguide/random.md
       - uguide/recursive.md
