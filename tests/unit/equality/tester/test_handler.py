@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from coola.equality.config import EqualityConfig2
+from coola.equality.config import EqualityConfig
 from coola.equality.handler import (
     BaseEqualityHandler,
     ObjectEqualHandler,
@@ -13,8 +13,8 @@ from coola.equality.tester import HandlerEqualityTester
 
 
 @pytest.fixture
-def config() -> EqualityConfig2:
-    return EqualityConfig2()
+def config() -> EqualityConfig:
+    return EqualityConfig()
 
 
 @pytest.fixture
@@ -54,14 +54,14 @@ def test_handler_equality_tester_equal_false_different_type_child(
 
 
 def test_handler_equality_tester_objects_are_equal_true(
-    handler: BaseEqualityHandler, config: EqualityConfig2
+    handler: BaseEqualityHandler, config: EqualityConfig
 ) -> None:
     tester = HandlerEqualityTester(handler)
     assert tester.objects_are_equal(actual=42, expected=42, config=config)
 
 
 def test_handler_equality_tester_objects_are_equal_false(
-    handler: BaseEqualityHandler, config: EqualityConfig2
+    handler: BaseEqualityHandler, config: EqualityConfig
 ) -> None:
     tester = HandlerEqualityTester(handler)
     assert not tester.objects_are_equal(42, 1, config)
