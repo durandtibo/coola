@@ -35,6 +35,7 @@ __all__ = [
     "EqualEqualityTester",
     "EqualNanEqualityTester",
     "EqualityTesterRegistry",
+    "HandlerEqualityTester",
     "JaxArrayEqualityTester",
     "MappingEqualityTester",
     "NumpyArrayEqualityTester",
@@ -63,6 +64,7 @@ from coola.equality.tester.collection import (
 )
 from coola.equality.tester.default import DefaultEqualityTester
 from coola.equality.tester.equal import EqualEqualityTester, EqualNanEqualityTester
+from coola.equality.tester.handler import HandlerEqualityTester
 from coola.equality.tester.interface import (
     get_default_registry,
     register_equality_testers,
