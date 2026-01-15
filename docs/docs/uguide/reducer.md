@@ -197,7 +197,7 @@ packages:
 
 The selection follows this priority order:
 1. **TorchReducer** if PyTorch is available
-2. **NumpyReducer** if NumPy is available  
+2. **NumpyReducer** if NumPy is available
 3. **NativeReducer** as fallback (always available)
 
 This is useful when writing library code that should work with whatever the user has installed:
@@ -331,7 +331,9 @@ Compare performance of different backends:
 >>> start = time.time()
 >>> result2 = numpy.mean(data)
 >>> numpy_time = time.time() - start
->>> print(f"Native: {native_time*1000:.3f}ms, NumPy: {numpy_time*1000:.3f}ms")  # doctest: +SKIP
+>>> print(
+...     f"Native: {native_time*1000:.3f}ms, NumPy: {numpy_time*1000:.3f}ms"
+... )  # doctest: +SKIP
 
 ```
 

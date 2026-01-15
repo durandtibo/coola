@@ -401,7 +401,7 @@ Provide fallback behavior when optional packages are not available:
 ...     # Fallback to pure Python
 ...     mean = sum(data) / len(data)
 ...     variance = sum((x - mean) ** 2 for x in data) / len(data)
-...     return {"mean": mean, "std": variance ** 0.5}
+...     return {"mean": mean, "std": variance**0.5}
 ...
 
 ```
