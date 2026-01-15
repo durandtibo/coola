@@ -31,16 +31,21 @@ nav:
       - uguide/equality_handler.md
       - uguide/equality_tester.md
       - uguide/iterator.md
+      - uguide/nested.md
       - uguide/random.md
       - uguide/recursive.md
+      - uguide/reducer.md
       - uguide/registry.md
       - uguide/summary.md
+      - uguide/testing.md
+      - uguide/utils.md
   - Developer Guide:
       - dev/development.md
       - dev/architecture.md
   - Reference:
       - refs/equality.md
       - refs/iterator.md
+      - refs/nested.md
       - refs/random.md
       - refs/recursive.md
       - refs/reducer.md

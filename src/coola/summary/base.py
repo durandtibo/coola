@@ -110,9 +110,10 @@ class BaseSummarizer(ABC, Generic[T]):
             nested structures.
 
         Raises:
-            The base class doesn't specify exceptions, but implementations
-            may raise ValueError for invalid depth parameters or other
-            exceptions based on the data type being summarized.
+            ValueError: May be raised by implementations for invalid depth
+                parameters or other issues based on the data type being
+                summarized. The base class doesn't specify exceptions, but
+                implementations may raise this or other exceptions.
 
         Notes:
             - The depth parameter is primarily for internal use during recursion.
