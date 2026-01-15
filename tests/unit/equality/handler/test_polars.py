@@ -51,8 +51,19 @@ def test_polars_dataframe_equal_handler_repr() -> None:
     assert repr(PolarsDataFrameEqualHandler()) == "PolarsDataFrameEqualHandler()"
 
 
+def test_polars_dataframe_equal_handler_repr_with_next_handler() -> None:
+    assert (
+        repr(PolarsDataFrameEqualHandler(FalseHandler()))
+        == "PolarsDataFrameEqualHandler(next_handler=FalseHandler())"
+    )
+
+
 def test_polars_dataframe_equal_handler_str() -> None:
     assert str(PolarsDataFrameEqualHandler()) == "PolarsDataFrameEqualHandler()"
+
+
+def test_polars_dataframe_equal_handler_str_with_next_handler() -> None:
+    assert str(PolarsDataFrameEqualHandler(FalseHandler())) == "PolarsDataFrameEqualHandler()"
 
 
 @pytest.mark.parametrize(
@@ -282,8 +293,19 @@ def test_polars_lazyframe_equal_handler_repr() -> None:
     assert repr(PolarsLazyFrameEqualHandler()) == "PolarsLazyFrameEqualHandler()"
 
 
+def test_polars_lazyframe_equal_handler_repr_with_next_handler() -> None:
+    assert (
+        repr(PolarsLazyFrameEqualHandler(FalseHandler()))
+        == "PolarsLazyFrameEqualHandler(next_handler=FalseHandler())"
+    )
+
+
 def test_polars_lazyframe_equal_handler_str() -> None:
     assert str(PolarsLazyFrameEqualHandler()) == "PolarsLazyFrameEqualHandler()"
+
+
+def test_polars_lazyframe_equal_handler_str_with_next_handler() -> None:
+    assert str(PolarsLazyFrameEqualHandler(FalseHandler())) == "PolarsLazyFrameEqualHandler()"
 
 
 @pytest.mark.parametrize(
@@ -513,8 +535,19 @@ def test_polars_series_equal_handler_repr() -> None:
     assert repr(PolarsSeriesEqualHandler()) == "PolarsSeriesEqualHandler()"
 
 
+def test_polars_series_equal_handler_repr_with_next_handler() -> None:
+    assert (
+        repr(PolarsSeriesEqualHandler(FalseHandler()))
+        == "PolarsSeriesEqualHandler(next_handler=FalseHandler())"
+    )
+
+
 def test_polars_series_equal_handler_str() -> None:
     assert str(PolarsSeriesEqualHandler()) == "PolarsSeriesEqualHandler()"
+
+
+def test_polars_series_equal_handler_str_with_next_handler() -> None:
+    assert str(PolarsSeriesEqualHandler(FalseHandler())) == "PolarsSeriesEqualHandler()"
 
 
 @pytest.mark.parametrize(

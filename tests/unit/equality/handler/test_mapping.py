@@ -31,8 +31,19 @@ def test_mapping_same_keys_handler_repr() -> None:
     assert repr(MappingSameKeysHandler()) == "MappingSameKeysHandler()"
 
 
+def test_mapping_same_keys_handler_repr_with_next_handler() -> None:
+    assert (
+        repr(MappingSameKeysHandler(FalseHandler()))
+        == "MappingSameKeysHandler(next_handler=FalseHandler())"
+    )
+
+
 def test_mapping_same_keys_handler_str() -> None:
     assert str(MappingSameKeysHandler()) == "MappingSameKeysHandler()"
+
+
+def test_mapping_same_keys_handler_str_with_next_handler() -> None:
+    assert str(MappingSameKeysHandler(FalseHandler())) == "MappingSameKeysHandler()"
 
 
 @pytest.mark.parametrize(
@@ -156,8 +167,19 @@ def test_mapping_same_values_handler_repr() -> None:
     assert repr(MappingSameValuesHandler()) == "MappingSameValuesHandler()"
 
 
+def test_mapping_same_values_handler_repr_with_next_handler() -> None:
+    assert (
+        repr(MappingSameValuesHandler(FalseHandler()))
+        == "MappingSameValuesHandler(next_handler=FalseHandler())"
+    )
+
+
 def test_mapping_same_values_handler_str() -> None:
     assert str(MappingSameValuesHandler()) == "MappingSameValuesHandler()"
+
+
+def test_mapping_same_values_handler_str_with_next_handler() -> None:
+    assert str(MappingSameValuesHandler(FalseHandler())) == "MappingSameValuesHandler()"
 
 
 @pytest.mark.parametrize(

@@ -17,7 +17,6 @@ if is_jax_available():
 else:  # pragma: no cover
     jnp = Mock()
 
-
 if TYPE_CHECKING:
     from tests.unit.equality.utils import ExamplePair
 
@@ -36,8 +35,19 @@ def test_jax_array_equal_handler_repr() -> None:
     assert repr(JaxArrayEqualHandler()) == "JaxArrayEqualHandler()"
 
 
+def test_jax_array_equal_handler_repr_with_next_handler() -> None:
+    assert (
+        repr(JaxArrayEqualHandler(FalseHandler()))
+        == "JaxArrayEqualHandler(next_handler=FalseHandler())"
+    )
+
+
 def test_jax_array_equal_handler_str() -> None:
     assert str(JaxArrayEqualHandler()) == "JaxArrayEqualHandler()"
+
+
+def test_jax_array_equal_handler_str_with_next_handler() -> None:
+    assert str(JaxArrayEqualHandler(FalseHandler())) == "JaxArrayEqualHandler()"
 
 
 @pytest.mark.parametrize(

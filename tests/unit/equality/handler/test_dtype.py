@@ -35,8 +35,16 @@ def test_same_dtype_handler_repr() -> None:
     assert repr(SameDTypeHandler()) == "SameDTypeHandler()"
 
 
+def test_same_dtype_handler_repr_with_next_handler() -> None:
+    assert repr(SameDTypeHandler(FalseHandler())) == "SameDTypeHandler(next_handler=FalseHandler())"
+
+
 def test_same_dtype_handler_str() -> None:
     assert str(SameDTypeHandler()) == "SameDTypeHandler()"
+
+
+def test_same_dtype_handler_str_with_next_handler() -> None:
+    assert str(SameDTypeHandler(FalseHandler())) == "SameDTypeHandler()"
 
 
 @pytest.mark.parametrize(
