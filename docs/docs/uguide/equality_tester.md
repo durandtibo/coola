@@ -380,12 +380,14 @@ You can register custom testers for your own types:
 ...     def __init__(self, value):
 ...         self.value = value
 ...
->>> # Register a tester for MyClass
+>>> # Register a tester for MyClass (modifies the global default registry)
+>>> # Note: This is skipped in doctests to avoid side effects on the global state
 >>> register_equality_testers({MyClass: DefaultEqualityTester()})  # doctest: +SKIP
 
 ```
 
-For more complex types, you would create a custom tester class.
+For more complex types, you would create a custom tester class (see "Creating Custom Testers"
+section below).
 
 ### Creating Custom Registries
 
@@ -491,11 +493,14 @@ The registry uses Python's Method Resolution Order (MRO) to find testers:
 >>> from collections import OrderedDict
 >>> registry = get_default_registry()
 >>> config = EqualityConfig()
->>> # OrderedDict inherits from dict
->>> # Registry will use MappingEqualityTester
+>>> # OrderedDict inherits from dict, so MappingEqualityTester is used
+>>> # But the tester checks that both objects have the same type
 >>> od = OrderedDict([("a", 1), ("b", 2)])
 >>> registry.objects_are_equal(od, {"a": 1, "b": 2}, config)
 False
+>>> # Comparing two OrderedDicts works (same type)
+>>> registry.objects_are_equal(od, OrderedDict([("a", 1), ("b", 2)]), config)
+True
 
 ```
 
@@ -596,6 +601,7 @@ Add support for your custom types:
 ...     def objects_are_equal(self, actual, expected, config):
 ...         return self._handler.handle(actual, expected, config)
 ...
+>>> # Register the tester (modifies global state, so skipped in doctests)
 >>> register_equality_testers({Point: PointEqualityTester()})  # doctest: +SKIP
 
 ```

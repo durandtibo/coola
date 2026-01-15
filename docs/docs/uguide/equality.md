@@ -167,25 +167,27 @@ debugging.
 ### Controlling Recursion Depth
 
 For deeply nested structures, you can control the maximum recursion depth to prevent stack
-overflow:
+overflow. The `max_depth` parameter sets the maximum nesting level that will be compared:
 
 ```pycon
 
 >>> from coola.equality import objects_are_equal
->>> # Create a deeply nested structure
->>> nested = {"level": 1}
->>> current = nested
->>> for i in range(2, 100):
-...     current["next"] = {"level": i}
-...     current = current["next"]
-...
->>> # Compare with controlled depth
->>> objects_are_equal(nested, nested, max_depth=50)  # doctest: +SKIP
+>>> # Simple nested structure
+>>> nested1 = {"a": {"b": {"c": 1}}}
+>>> nested2 = {"a": {"b": {"c": 1}}}
+>>> objects_are_equal(nested1, nested2, max_depth=10)
+True
+>>> # Comparing lists of nested dicts
+>>> data1 = [{"items": [{"value": i} for i in range(5)]}]
+>>> data2 = [{"items": [{"value": i} for i in range(5)]}]
+>>> objects_are_equal(data1, data2, max_depth=100)
 True
 
 ```
 
-The default `max_depth` is 1000, which should be sufficient for most use cases.
+The default `max_depth` is 1000, which should be sufficient for most use cases. If you have
+extremely deeply nested structures (e.g., recursive data structures built programmatically), you
+can increase this limit to avoid `RecursionError`.
 
 ### Using Custom Registries
 

@@ -37,9 +37,10 @@ Handlers are chained together to perform multiple checks in sequence:
 ...     ObjectEqualHandler,
 ... )
 >>> config = EqualityConfig()
->>> # Build a handler chain
+>>> # Build a handler chain (returns the last handler in chain)
 >>> handler = SameObjectHandler()
 >>> handler.chain(SameTypeHandler()).chain(SameLengthHandler()).chain(ObjectEqualHandler())
+ObjectEqualHandler(...)
 >>> # Use the chain
 >>> handler.handle([1, 2, 3], [1, 2, 3], config)
 True
