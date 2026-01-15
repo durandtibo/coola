@@ -369,6 +369,9 @@ def str_human_byte_size(size: int, unit: str | None = None) -> str:
     Returns:
         The byte size in a human-readable format.
 
+    Raises:
+        ValueError: if size is negative or unit is not supported.
+
     Example:
         ```pycon
         >>> from coola.utils.format import str_human_byte_size
@@ -383,6 +386,9 @@ def str_human_byte_size(size: int, unit: str | None = None) -> str:
 
         ```
     """
+    if size < 0:
+        msg = f"Size must be non-negative, got {size}"
+        raise ValueError(msg)
     if unit is None:  # Find the best unit.
         unit = find_best_byte_unit(size)
     if unit not in BYTE_UNITS:
@@ -401,6 +407,9 @@ def find_best_byte_unit(size: int) -> str:
         The best unit. The supported units are: ``'B'``, ``'KB'``,
             ``'MB'``, ``'GB'``, ``'TB'``.
 
+    Raises:
+        ValueError: if size is negative.
+
     Example:
         ```pycon
         >>> from coola.utils.format import find_best_byte_unit
@@ -413,6 +422,9 @@ def find_best_byte_unit(size: int) -> str:
 
         ```
     """
+    if size < 0:
+        msg = f"Size must be non-negative, got {size}"
+        raise ValueError(msg)
     best_unit = "B"
     for unit, multiplier in BYTE_UNITS.items():
         if (size / multiplier) > 1:

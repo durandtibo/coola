@@ -365,6 +365,11 @@ def test_str_human_byte_size_incorrect_unit() -> None:
         assert str_human_byte_size(1, "")
 
 
+def test_str_human_byte_size_negative_size() -> None:
+    with pytest.raises(ValueError, match=r"Size must be non-negative"):
+        assert str_human_byte_size(-1)
+
+
 #########################################
 #     Tests for find_best_byte_unit     #
 #########################################
@@ -373,3 +378,8 @@ def test_str_human_byte_size_incorrect_unit() -> None:
 @pytest.mark.parametrize(("size", "unit"), [(2, "B"), (1023, "B"), (2048, "KB"), (2097152, "MB")])
 def test_find_best_byte_unit(size: int, unit: str) -> None:
     assert find_best_byte_unit(size) == unit
+
+
+def test_find_best_byte_unit_negative_size() -> None:
+    with pytest.raises(ValueError, match=r"Size must be non-negative"):
+        assert find_best_byte_unit(-1)
