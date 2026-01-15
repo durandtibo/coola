@@ -15,6 +15,7 @@ from coola.equality.handler import (
     PandasSeriesEqualHandler,
     SameObjectHandler,
     SameTypeHandler,
+    create_chain,
 )
 from coola.equality.tester.base import BaseEqualityTester
 from coola.utils.imports import check_pandas, is_pandas_available
@@ -85,8 +86,9 @@ class PandasDataFrameEqualityTester(BaseEqualityTester[pd.DataFrame]):
 
     def __init__(self) -> None:
         check_pandas()
-        self._handler = SameObjectHandler()
-        self._handler.chain(SameTypeHandler()).chain(PandasDataFrameEqualHandler())
+        self._handler = create_chain(
+            SameObjectHandler(), SameTypeHandler(), PandasDataFrameEqualHandler()
+        )
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
@@ -152,8 +154,9 @@ class PandasSeriesEqualityTester(BaseEqualityTester[pd.Series]):
 
     def __init__(self) -> None:
         check_pandas()
-        self._handler = SameObjectHandler()
-        self._handler.chain(SameTypeHandler()).chain(PandasSeriesEqualHandler())
+        self._handler = create_chain(
+            SameObjectHandler(), SameTypeHandler(), PandasSeriesEqualHandler()
+        )
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"

@@ -21,6 +21,7 @@ from coola.equality.handler import (
     SameTypeHandler,
     SequenceSameValuesHandler,
     TrueHandler,
+    create_chain,
 )
 from coola.equality.tester.base import BaseEqualityTester
 
@@ -76,10 +77,14 @@ class MappingEqualityTester(BaseEqualityTester[Mapping[Any, Any]]):
     """
 
     def __init__(self) -> None:
-        self._handler = SameObjectHandler()
-        self._handler.chain(SameTypeHandler()).chain(SameLengthHandler()).chain(
-            MappingSameKeysHandler()
-        ).chain(MappingSameValuesHandler()).chain(TrueHandler())
+        self._handler = create_chain(
+            SameObjectHandler(),
+            SameTypeHandler(),
+            SameLengthHandler(),
+            MappingSameKeysHandler(),
+            MappingSameValuesHandler(),
+            TrueHandler(),
+        )
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
@@ -143,10 +148,13 @@ class SequenceEqualityTester(BaseEqualityTester[Sequence[Any]]):
     """
 
     def __init__(self) -> None:
-        self._handler = SameObjectHandler()
-        self._handler.chain(SameTypeHandler()).chain(SameLengthHandler()).chain(
-            SequenceSameValuesHandler()
-        ).chain(TrueHandler())
+        self._handler = create_chain(
+            SameObjectHandler(),
+            SameTypeHandler(),
+            SameLengthHandler(),
+            SequenceSameValuesHandler(),
+            TrueHandler(),
+        )
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"

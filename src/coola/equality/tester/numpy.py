@@ -20,6 +20,7 @@ from coola.equality.handler import (
     SameShapeHandler,
     SameTypeHandler,
     TrueHandler,
+    create_chain,
 )
 from coola.equality.tester.base import BaseEqualityTester
 from coola.utils.imports import check_numpy, is_numpy_available
@@ -83,10 +84,13 @@ class NumpyArrayEqualityTester(BaseEqualityTester[np.ndarray]):
 
     def __init__(self) -> None:
         check_numpy()
-        self._handler = SameObjectHandler()
-        self._handler.chain(SameTypeHandler()).chain(SameDTypeHandler()).chain(
-            SameShapeHandler()
-        ).chain(NumpyArrayEqualHandler())
+        self._handler = create_chain(
+            SameObjectHandler(),
+            SameTypeHandler(),
+            SameDTypeHandler(),
+            SameShapeHandler(),
+            NumpyArrayEqualHandler(),
+        )
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
@@ -161,12 +165,16 @@ class NumpyMaskedArrayEqualityTester(BaseEqualityTester[np.ma.MaskedArray]):
 
     def __init__(self) -> None:
         check_numpy()
-        self._handler = SameObjectHandler()
-        self._handler.chain(SameTypeHandler()).chain(SameDTypeHandler()).chain(
-            SameShapeHandler()
-        ).chain(SameDataHandler()).chain(SameAttributeHandler("mask")).chain(
-            SameAttributeHandler("fill_value")
-        ).chain(TrueHandler())  # fmt: skip
+        self._handler = create_chain(
+            SameObjectHandler(),
+            SameTypeHandler(),
+            SameDTypeHandler(),
+            SameShapeHandler(),
+            SameDataHandler(),
+            SameAttributeHandler("mask"),
+            SameAttributeHandler("fill_value"),
+            TrueHandler(),
+        )
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"

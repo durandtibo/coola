@@ -32,7 +32,7 @@ def test_handler_equality_tester_repr(handler: BaseEqualityHandler) -> None:
     assert (
         repr(HandlerEqualityTester(handler))
         == "HandlerEqualityTester(handler=SameObjectHandler(next_handler="
-           "SameTypeHandler(next_handler=ObjectEqualHandler())))"
+        "SameTypeHandler(next_handler=ObjectEqualHandler())))"
     )
 
 

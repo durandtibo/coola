@@ -14,6 +14,7 @@ from coola.equality.handler import (
     PyarrowEqualHandler,
     SameObjectHandler,
     SameTypeHandler,
+    create_chain,
 )
 from coola.equality.tester.base import BaseEqualityTester
 from coola.utils.imports import check_pyarrow, is_pyarrow_available
@@ -75,8 +76,7 @@ class PyarrowEqualityTester(BaseEqualityTester[pa.Array]):
 
     def __init__(self) -> None:
         check_pyarrow()
-        self._handler = SameObjectHandler()
-        self._handler.chain(SameTypeHandler()).chain(PyarrowEqualHandler())
+        self._handler = create_chain(SameObjectHandler(), SameTypeHandler(), PyarrowEqualHandler())
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"

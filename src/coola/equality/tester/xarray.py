@@ -21,6 +21,7 @@ from coola.equality.handler import (
     SameObjectHandler,
     SameTypeHandler,
     TrueHandler,
+    create_chain,
 )
 from coola.equality.tester.base import BaseEqualityTester
 from coola.utils.imports import check_xarray, is_xarray_available
@@ -74,10 +75,14 @@ class XarrayDataArrayEqualityTester(BaseEqualityTester[xr.DataArray]):
 
     def __init__(self) -> None:
         check_xarray()
-        self._handler = SameObjectHandler()
-        self._handler.chain(SameTypeHandler()).chain(SameAttributeHandler(name="variable")).chain(
-            SameAttributeHandler(name="name")
-        ).chain(SameAttributeHandler(name="_coords")).chain(TrueHandler())
+        self._handler = create_chain(
+            SameObjectHandler(),
+            SameTypeHandler(),
+            SameAttributeHandler(name="variable"),
+            SameAttributeHandler(name="name"),
+            SameAttributeHandler(name="_coords"),
+            TrueHandler(),
+        )
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
@@ -134,10 +139,14 @@ class XarrayDatasetEqualityTester(BaseEqualityTester[xr.Dataset]):
 
     def __init__(self) -> None:
         check_xarray()
-        self._handler = SameObjectHandler()
-        self._handler.chain(SameTypeHandler()).chain(SameAttributeHandler(name="data_vars")).chain(
-            SameAttributeHandler(name="coords")
-        ).chain(SameAttributeHandler(name="attrs")).chain(TrueHandler())
+        self._handler = create_chain(
+            SameObjectHandler(),
+            SameTypeHandler(),
+            SameAttributeHandler(name="data_vars"),
+            SameAttributeHandler(name="coords"),
+            SameAttributeHandler(name="attrs"),
+            TrueHandler(),
+        )
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
@@ -194,10 +203,14 @@ class XarrayVariableEqualityTester(BaseEqualityTester[xr.Variable]):
 
     def __init__(self) -> None:
         check_xarray()
-        self._handler = SameObjectHandler()
-        self._handler.chain(SameTypeHandler()).chain(SameDataHandler()).chain(
-            SameAttributeHandler(name="dims")
-        ).chain(SameAttributeHandler(name="attrs")).chain(TrueHandler())
+        self._handler = create_chain(
+            SameObjectHandler(),
+            SameTypeHandler(),
+            SameDataHandler(),
+            SameAttributeHandler(name="dims"),
+            SameAttributeHandler(name="attrs"),
+            TrueHandler(),
+        )
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"

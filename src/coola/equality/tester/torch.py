@@ -19,6 +19,7 @@ from coola.equality.handler import (
     SameShapeHandler,
     SameTypeHandler,
     TrueHandler,
+    create_chain,
 )
 from coola.equality.handler.torch import (
     TorchTensorEqualHandler,
@@ -79,12 +80,15 @@ class TorchPackedSequenceEqualityTester(BaseEqualityTester[torch.nn.utils.rnn.Pa
 
     def __init__(self) -> None:
         check_torch()
-        self._handler = SameObjectHandler()
-        self._handler.chain(SameTypeHandler()).chain(SameDataHandler()).chain(
-            SameAttributeHandler(name="batch_sizes")
-        ).chain(SameAttributeHandler(name="sorted_indices")).chain(
-            SameAttributeHandler(name="unsorted_indices")
-        ).chain(TrueHandler())  # fmt: skip
+        self._handler = create_chain(
+            SameObjectHandler(),
+            SameTypeHandler(),
+            SameDataHandler(),
+            SameAttributeHandler(name="batch_sizes"),
+            SameAttributeHandler(name="sorted_indices"),
+            SameAttributeHandler(name="unsorted_indices"),
+            TrueHandler(),
+        )
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
@@ -171,10 +175,14 @@ class TorchTensorEqualityTester(BaseEqualityTester[torch.Tensor]):
 
     def __init__(self) -> None:
         check_torch()
-        self._handler = SameObjectHandler()
-        self._handler.chain(SameTypeHandler()).chain(SameDTypeHandler()).chain(
-            SameShapeHandler()
-        ).chain(TorchTensorSameDeviceHandler()).chain(TorchTensorEqualHandler())
+        self._handler = create_chain(
+            SameObjectHandler(),
+            SameTypeHandler(),
+            SameDTypeHandler(),
+            SameShapeHandler(),
+            TorchTensorSameDeviceHandler(),
+            TorchTensorEqualHandler(),
+        )
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
