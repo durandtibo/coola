@@ -28,7 +28,7 @@ def get_fully_qualified_name(obj: object) -> str:
         ...     pass
         ...
         >>> get_fully_qualified_name(MyClass)
-        '....MyClass'
+        'MyClass'
         >>> get_fully_qualified_name(map)
         'builtins.map'
 
@@ -42,6 +42,10 @@ def get_fully_qualified_name(obj: object) -> str:
         cls = obj.__class__
         module = getattr(cls, "__module__", None)
         qualname = getattr(cls, "__qualname__", None)
+
+    # Ensure we always have a qualname, fall back to type name if needed
+    if qualname is None:
+        qualname = type(obj).__name__
 
     if module and module != "__main__":
         return f"{module}.{qualname}"
