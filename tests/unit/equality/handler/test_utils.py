@@ -5,11 +5,38 @@ from typing import TYPE_CHECKING
 import pytest
 
 from coola.equality.config import EqualityConfig
-from coola.equality.handler import FalseHandler, SameObjectHandler, handlers_are_equal
-from coola.equality.handler.utils import check_recursion_depth
+from coola.equality.handler import (
+    FalseHandler,
+    ObjectEqualHandler,
+    SameObjectHandler,
+    SameTypeHandler,
+    check_recursion_depth,
+    create_chain,
+    handlers_are_equal,
+)
 
 if TYPE_CHECKING:
     from coola.equality.handler.base import BaseEqualityHandler
+
+
+##################################
+#     Tests for create_chain     #
+##################################
+
+
+def test_create_chain_1_item() -> None:
+    handler = create_chain(SameObjectHandler())
+    assert handler.equal(SameObjectHandler())
+
+
+def test_create_chain_multiple_items() -> None:
+    handler = create_chain(SameObjectHandler(), SameTypeHandler(), ObjectEqualHandler())
+    assert handler.equal(SameObjectHandler(SameTypeHandler(ObjectEqualHandler())))
+
+
+def test_create_chain_0_item() -> None:
+    with pytest.raises(ValueError, match="At least one handler is required to create a chain"):
+        create_chain()
 
 
 ########################################
