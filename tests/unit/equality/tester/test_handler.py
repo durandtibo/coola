@@ -8,6 +8,7 @@ from coola.equality.handler import (
     ObjectEqualHandler,
     SameObjectHandler,
     SameTypeHandler,
+    create_chain,
 )
 from coola.equality.tester import HandlerEqualityTester
 
@@ -19,9 +20,7 @@ def config() -> EqualityConfig:
 
 @pytest.fixture
 def handler() -> BaseEqualityHandler:
-    handler = SameObjectHandler()
-    handler.chain(SameTypeHandler()).chain(ObjectEqualHandler())
-    return handler
+    return create_chain(SameObjectHandler(), SameTypeHandler(), ObjectEqualHandler())
 
 
 ###########################################
@@ -30,11 +29,21 @@ def handler() -> BaseEqualityHandler:
 
 
 def test_handler_equality_tester_repr(handler: BaseEqualityHandler) -> None:
-    assert repr(HandlerEqualityTester(handler)) == "HandlerEqualityTester()"
+    assert (
+        repr(HandlerEqualityTester(handler))
+        == "HandlerEqualityTester(handler=SameObjectHandler(next_handler="
+           "SameTypeHandler(next_handler=ObjectEqualHandler())))"
+    )
 
 
 def test_handler_equality_tester_str(handler: BaseEqualityHandler) -> None:
-    assert str(HandlerEqualityTester(handler)) == "HandlerEqualityTester()"
+    assert str(HandlerEqualityTester(handler)) == (
+        "HandlerEqualityTester(\n"
+        "  (0): SameObjectHandler()\n"
+        "  (1): SameTypeHandler()\n"
+        "  (2): ObjectEqualHandler()\n"
+        ")"
+    )
 
 
 def test_handler_equality_tester_equal_true(handler: BaseEqualityHandler) -> None:
