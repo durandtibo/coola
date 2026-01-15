@@ -70,9 +70,9 @@ Use `objects_are_allclose()` to check if two objects are equal within a toleranc
 >>> from coola.equality import objects_are_allclose
 >>> objects_are_allclose(1.0, 1.0000001, atol=1e-6)
 True
->>> objects_are_allclose(1.0, 1.1, atol=0.1)
+>>> objects_are_allclose(1.0, 1.05, atol=0.1)
 True
->>> objects_are_allclose(1.0, 1.1, rtol=0.1)
+>>> objects_are_allclose(1.0, 1.05, rtol=0.1)
 True
 
 ```

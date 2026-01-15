@@ -154,11 +154,15 @@ Generic tester that uses Python's `==` operator:
 
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.tester import EqualEqualityTester
+>>> class MyList(list):
+...     def equal(self, other: object) -> bool:
+...         return self == other
+...
 >>> config = EqualityConfig()
 >>> tester = EqualEqualityTester()
->>> tester.objects_are_equal("hello", "hello", config)
+>>> tester.objects_are_equal(MyList([1, 2, 3]), MyList([1, 2, 3]), config)
 True
->>> tester.objects_are_equal("hello", "world", config)
+>>> tester.objects_are_equal(MyList([1, 2, 3]), MyList([1, 2, 4]), config)
 False
 
 ```
@@ -213,7 +217,7 @@ Handles NumPy masked arrays:
 >>> arr1 = np.ma.array([1, 2, 3], mask=[0, 0, 1])
 >>> arr2 = np.ma.array([1, 2, 99], mask=[0, 0, 1])  # Masked value differs
 >>> tester.objects_are_equal(arr1, arr2, config)
-True
+False
 
 ```
 

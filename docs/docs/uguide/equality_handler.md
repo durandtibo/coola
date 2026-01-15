@@ -40,7 +40,7 @@ Handlers are chained together to perform multiple checks in sequence:
 >>> # Build a handler chain (returns the last handler in chain)
 >>> handler = SameObjectHandler()
 >>> handler.chain(SameTypeHandler()).chain(SameLengthHandler()).chain(ObjectEqualHandler())
-ObjectEqualHandler(...)
+ObjectEqualHandler()
 >>> # Use the chain
 >>> handler.handle([1, 2, 3], [1, 2, 3], config)
 True
@@ -80,8 +80,7 @@ Checks if both objects are the same object (identity check using `is`):
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.handler import SameObjectHandler, FalseHandler
 >>> config = EqualityConfig()
->>> handler = SameObjectHandler()
->>> handler.set_next_handler(FalseHandler())
+>>> handler = SameObjectHandler(FalseHandler())
 >>> # Same object
 >>> obj = [1, 2, 3]
 >>> handler.handle(obj, obj, config)
@@ -103,8 +102,7 @@ Checks if both objects have the same type:
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.handler import SameTypeHandler, TrueHandler, FalseHandler
 >>> config = EqualityConfig()
->>> handler = SameTypeHandler()
->>> handler.chain(TrueHandler())
+>>> handler = SameTypeHandler(TrueHandler())
 >>> handler.handle([1, 2, 3], [1, 2, 3], config)
 True
 >>> handler.handle([1, 2, 3], (1, 2, 3), config)
@@ -123,8 +121,7 @@ Checks if both objects have the same length (for sized objects):
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.handler import SameLengthHandler, TrueHandler
 >>> config = EqualityConfig()
->>> handler = SameLengthHandler()
->>> handler.chain(TrueHandler())
+>>> handler = SameLengthHandler(TrueHandler())
 >>> handler.handle([1, 2, 3], [4, 5, 6], config)
 True
 >>> handler.handle([1, 2, 3], [4, 5], config)
@@ -142,8 +139,7 @@ Checks if both objects have the same shape (for arrays/tensors):
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.handler import SameShapeHandler, TrueHandler
 >>> config = EqualityConfig()
->>> handler = SameShapeHandler()
->>> handler.chain(TrueHandler())
+>>> handler = SameShapeHandler(TrueHandler())
 >>> handler.handle(np.ones((2, 3)), np.zeros((2, 3)), config)
 True
 >>> handler.handle(np.ones((2, 3)), np.zeros((3, 2)), config)
@@ -161,8 +157,7 @@ Checks if both objects have the same data type (for arrays/tensors):
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.handler import SameDTypeHandler, TrueHandler
 >>> config = EqualityConfig()
->>> handler = SameDTypeHandler()
->>> handler.chain(TrueHandler())
+>>> handler = SameDTypeHandler(TrueHandler())
 >>> handler.handle(np.array([1, 2, 3], dtype=int), np.array([1, 2, 3], dtype=int), config)
 True
 >>> handler.handle(np.array([1, 2, 3], dtype=int), np.array([1, 2, 3], dtype=float), config)
@@ -199,11 +194,15 @@ Recursively checks if objects are equal using the equality registry:
 
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.handler import EqualHandler
+>>> class MyList(list):
+...     def equal(self, other: object) -> bool:
+...         return self == other
+...
 >>> config = EqualityConfig()
 >>> handler = EqualHandler()
->>> handler.handle([1, 2, 3], [1, 2, 3], config)
+>>> handler.handle(MyList([1, 2, 3]), MyList([1, 2, 3]), config)
 True
->>> handler.handle([1, 2, 3], [1, 2, 4], config)
+>>> handler.handle(MyList([1, 2, 3]), MyList([1, 2, 4]), config)
 False
 
 ```
@@ -237,7 +236,7 @@ Special handler for comparing NaN values:
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.handler import NanEqualHandler
 >>> config = EqualityConfig(equal_nan=True)
->>> handler = NanEqualHandler()
+>>> handler = NanEqualHandler(FalseHandler())
 >>> handler.handle(float("nan"), float("nan"), config)
 True
 >>> config2 = EqualityConfig(equal_nan=False)
@@ -257,9 +256,9 @@ Compares sequence values element by element:
 ```pycon
 
 >>> from coola.equality.config import EqualityConfig
->>> from coola.equality.handler import SequenceSameValuesHandler
+>>> from coola.equality.handler import SequenceSameValuesHandler, create_chain
 >>> config = EqualityConfig()
->>> handler = SequenceSameValuesHandler()
+>>> handler = create_chain(SequenceSameValuesHandler(), TrueHandler())
 >>> handler.handle([1, 2, 3], [1, 2, 3], config)
 True
 >>> handler.handle([1, 2, 3], [1, 2, 4], config)
@@ -274,10 +273,9 @@ Checks if two mappings have the same keys:
 ```pycon
 
 >>> from coola.equality.config import EqualityConfig
->>> from coola.equality.handler import MappingSameKeysHandler, TrueHandler
+>>> from coola.equality.handler import MappingSameKeysHandler, TrueHandler, create_chain
 >>> config = EqualityConfig()
->>> handler = MappingSameKeysHandler()
->>> handler.chain(TrueHandler())
+>>> handler = create_chain(MappingSameKeysHandler(), TrueHandler())
 >>> handler.handle({"a": 1, "b": 2}, {"a": 3, "b": 4}, config)
 True
 >>> handler.handle({"a": 1, "b": 2}, {"a": 3, "c": 4}, config)
@@ -292,9 +290,9 @@ Compares mapping values for the same keys:
 ```pycon
 
 >>> from coola.equality.config import EqualityConfig
->>> from coola.equality.handler import MappingSameValuesHandler
+>>> from coola.equality.handler import MappingSameValuesHandler, TrueHandler, create_chain
 >>> config = EqualityConfig()
->>> handler = MappingSameValuesHandler()
+>>> handler = create_chain(MappingSameValuesHandler(), TrueHandler())
 >>> handler.handle({"a": 1, "b": 2}, {"a": 1, "b": 2}, config)
 True
 >>> handler.handle({"a": 1, "b": 2}, {"a": 1, "b": 3}, config)
@@ -366,6 +364,7 @@ You can build chains manually using the `chain()` method:
 ... )
 >>> handler = SameObjectHandler()
 >>> handler.chain(SameTypeHandler()).chain(SameLengthHandler()).chain(ObjectEqualHandler())
+ObjectEqualHandler()
 >>> print(handler.visualize_chain())
 (0): SameObjectHandler()
 (1): SameTypeHandler()
@@ -388,6 +387,7 @@ Build chains with multiple handlers at once:
 ... )
 >>> handler = SameObjectHandler()
 >>> handler.chain_all(SameTypeHandler(), SameLengthHandler(), ObjectEqualHandler())
+ObjectEqualHandler()
 >>> handler.get_chain_length()
 4
 
