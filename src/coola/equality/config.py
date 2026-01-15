@@ -75,3 +75,16 @@ class EqualityConfig:
         if self.max_depth <= 0:
             msg = f"max_depth must be positive, but got {self.max_depth}"
             raise ValueError(msg)
+
+    @property
+    def depth(self) -> int:
+        r"""Get the current depth counter."""
+        return self._current_depth
+
+    def increment_depth(self) -> None:
+        """Increment the current depth counter."""
+        self._current_depth += 1
+
+    def decrement_depth(self) -> None:
+        """Increment the current depth counter."""
+        self._current_depth -= 1

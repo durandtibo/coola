@@ -4,6 +4,10 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 
+####################################
+#     Tests for EqualityConfig     #
+####################################
+
 
 def test_equality_config_default() -> None:
     config = EqualityConfig()
@@ -55,3 +59,60 @@ def test_equality_config_max_depth_zero() -> None:
 def test_equality_config_max_depth_negative() -> None:
     with pytest.raises(ValueError, match="max_depth must be positive"):
         EqualityConfig(max_depth=-1)
+
+
+def test_equality_config_depth() -> None:
+    config = EqualityConfig()
+    assert config.depth == 0
+
+
+def test_equality_config_increment_depth() -> None:
+    config = EqualityConfig()
+    config.increment_depth()
+    assert config.depth == 1
+    config.increment_depth()
+    assert config.depth == 2
+
+
+def test_equality_config_decrement_depth() -> None:
+    config = EqualityConfig()
+    config.decrement_depth()
+    assert config.depth == -1
+    config.decrement_depth()
+    assert config.depth == -2
+
+
+def test_equality_config_eq_true() -> None:
+    assert EqualityConfig() == EqualityConfig()
+
+
+def test_equality_config_eq_true_with_parameters() -> None:
+    assert EqualityConfig(
+        equal_nan=True, atol=1e-6, rtol=1e-5, show_difference=True
+    ) == EqualityConfig(equal_nan=True, atol=1e-6, rtol=1e-5, show_difference=True)
+
+
+def test_equality_config_eq_true_different_depth() -> None:
+    config = EqualityConfig()
+    config._current_depth = 42
+    assert config == EqualityConfig()
+
+
+def test_equality_config_eq_false_different_equal_nan() -> None:
+    assert EqualityConfig() != EqualityConfig(equal_nan=True)
+
+
+def test_equality_config_eq_false_different_atol() -> None:
+    assert EqualityConfig() != EqualityConfig(atol=1e-6)
+
+
+def test_equality_config_eq_false_different_rtol() -> None:
+    assert EqualityConfig() != EqualityConfig(rtol=1e-6)
+
+
+def test_equality_config_eq_false_different_show_difference() -> None:
+    assert EqualityConfig() != EqualityConfig(show_difference=True)
+
+
+def test_equality_config_eq_false_different_max_depth() -> None:
+    assert EqualityConfig() != EqualityConfig(max_depth=100)

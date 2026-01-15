@@ -68,18 +68,19 @@ def check_recursion_depth(config: EqualityConfig) -> Generator[None, None, None]
         >>> config = EqualityConfig(max_depth=5)
         >>> with check_recursion_depth(config):
         ...     print(config._current_depth)
+        ...
         1
 
         ```
     """
-    if config._current_depth >= config.max_depth:
+    if config.depth >= config.max_depth:
         msg = (
             f"Maximum recursion depth ({config.max_depth}) exceeded. "
             f"Consider increasing max_depth parameter or simplifying the data structure."
         )
         raise RecursionError(msg)
-    config._current_depth += 1
+    config.increment_depth()
     try:
         yield
     finally:
-        config._current_depth -= 1
+        config.decrement_depth()
