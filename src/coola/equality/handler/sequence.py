@@ -40,10 +40,6 @@ class SequenceSameValuesHandler(BaseEqualityHandler):
         ```
     """
 
-    def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
-            return False
-        return handlers_are_equal(self.next_handler, other.next_handler)
 
     def handle(
         self,

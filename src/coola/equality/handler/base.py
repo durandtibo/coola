@@ -52,9 +52,13 @@ class BaseEqualityHandler(ABC):
         r"""The next handler."""
         return self._next_handler
 
-    @abstractmethod
     def equal(self, other: object) -> bool:
         r"""Indicate if two objects are equal or not.
+
+        This default implementation checks if both handlers are of the same
+        type and have equal next handlers. Subclasses can override this
+        method to add additional equality checks (e.g., comparing handler
+        parameters).
 
         Args:
             other: The other object.
@@ -75,6 +79,11 @@ class BaseEqualityHandler(ABC):
 
             ```
         """
+        from coola.equality.handler.utils import handlers_are_equal
+
+        if type(other) is not type(self):
+            return False
+        return handlers_are_equal(self.next_handler, other.next_handler)
 
     @abstractmethod
     def handle(self, actual: object, expected: object, config: EqualityConfig) -> bool:
