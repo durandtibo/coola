@@ -1,4 +1,4 @@
-# coola quickstart
+# Quickstart
 
 :book: This page is a quick overview of the two main functions of `coola`: `objects_are_equal`
 and `objects_are_allclose`.
