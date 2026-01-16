@@ -49,8 +49,8 @@ Tests should be grouped logically within files using section headers:
 #     Tests for ClassName        #
 ##################################
 
-def test_class_name_method_name_scenario() -> None:
-    ...
+
+def test_class_name_method_name_scenario() -> None: ...
 ```
 
 ## Test File Naming
@@ -70,7 +70,7 @@ Test functions should clearly describe what is being tested and under what condi
 
 ### Pattern
 
-```python
+```
 test_<class_or_function>_<specific_behavior>_<condition>
 ```
 
@@ -81,13 +81,16 @@ test_<class_or_function>_<specific_behavior>_<condition>
 def test_numpy_reducer_max_empty() -> None:
     """Test max() with empty sequence."""
 
+
 # Testing initialization with specific parameters
 def test_ndarray_summarizer_init_show_data_true() -> None:
     """Test NDArraySummarizer initialization with show_data=True."""
 
+
 # Testing equality conditions
 def test_scalar_equal_handler_equal_true() -> None:
     """Test equal() returns True for identical handlers."""
+
 
 # Testing error conditions
 def test_quantile_invalid_quantiles() -> None:
@@ -189,32 +192,6 @@ else:
     np = Mock()  # pragma: no cover
 ```
 
-### Import Order
-
-1. `from __future__ import annotations`
-2. Standard library imports
-3. Third-party imports (pytest, etc.)
-4. Local imports (from coola)
-5. Test utilities (from tests)
-
-Example:
-
-```python
-from __future__ import annotations
-
-import logging
-from typing import TYPE_CHECKING
-
-import pytest
-
-from coola.equality import objects_are_equal
-from coola.equality.config import EqualityConfig
-from tests.unit.equality.utils import ExamplePair
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-```
-
 ## Fixtures
 
 ### Defining Fixtures
@@ -251,15 +228,17 @@ def _reset_default_registry() -> Generator[None, None, None]:
 
 ### Shared Test Data
 
-Create helper files (`helpers.py` or `utils.py`) for shared test data:
+Create helper files for shared test data:
 
 ```python
 # tests/unit/equality/utils.py
 from dataclasses import dataclass
 
+
 @dataclass
 class ExamplePair:
     """A pair of objects for equality testing."""
+
     actual: object
     expected: object
 
@@ -389,6 +368,7 @@ DEFAULT_SAMPLES = [
     pytest.param(None, [None], id="none"),
 ]
 
+
 # In test file
 @pytest.mark.parametrize(("data", "expected"), DEFAULT_SAMPLES)
 def test_function(data: object, expected: object) -> None:
@@ -409,10 +389,12 @@ Use custom markers for tests requiring optional dependencies:
 ```python
 from coola.testing.fixtures import numpy_available
 
+
 @numpy_available
 def test_numpy_feature() -> None:
     """Test feature that requires NumPy."""
     import numpy as np
+
     array = np.array([1, 2, 3])
     assert len(array) == 3
 ```
@@ -501,6 +483,7 @@ def test_class_equal_different_type() -> None:
 ```python
 def test_class_equal_false_different_type_child() -> None:
     """Test equal() returns False for child classes."""
+
     class Child(ClassName):
         pass
 
@@ -626,12 +609,6 @@ pytest tests/unit/equality/
 pytest tests/ --cov=coola --cov-report=html
 ```
 
-### Run Tests in Parallel
-
-```bash
-pytest tests/ -n auto
-```
-
 ## Best Practices
 
 1. **Keep tests focused**: Each test should verify one specific behavior
@@ -644,64 +621,3 @@ pytest tests/ -n auto
 8. **Keep tests maintainable**: Use helper functions and shared test data
 9. **Follow existing patterns**: Maintain consistency with the existing test suite
 10. **Document complex tests**: Add docstrings when the test logic isn't immediately obvious
-
-## Examples
-
-### Complete Test File Example
-
-```python
-from __future__ import annotations
-
-import pytest
-
-from coola.utils.format import str_human_byte_size
-
-
-###################################
-#     Tests for str_human_byte_size     #
-###################################
-
-
-@pytest.mark.parametrize(
-    ("size", "expected"),
-    [
-        pytest.param(0, "0.00 B", id="zero"),
-        pytest.param(1, "1.00 B", id="one byte"),
-        pytest.param(1023, "1,023.00 B", id="just under 1 KB"),
-        pytest.param(1024, "1.00 KB", id="exactly 1 KB"),
-        pytest.param(1536, "1.50 KB", id="1.5 KB"),
-        pytest.param(1048576, "1.00 MB", id="exactly 1 MB"),
-        pytest.param(1073741824, "1.00 GB", id="exactly 1 GB"),
-    ],
-)
-def test_str_human_byte_size(size: int, expected: str) -> None:
-    """Test str_human_byte_size with various sizes."""
-    assert str_human_byte_size(size) == expected
-
-
-def test_str_human_byte_size_invalid_unit() -> None:
-    """Test str_human_byte_size raises ValueError for invalid unit."""
-    with pytest.raises(ValueError, match="Incorrect unit"):
-        str_human_byte_size(1024, unit="XB")
-
-
-@pytest.mark.parametrize("size", [-1, -100, -1024])
-def test_str_human_byte_size_negative(size: int) -> None:
-    """Test str_human_byte_size with negative sizes."""
-    result = str_human_byte_size(size)
-    assert result.startswith("-")
-```
-
-## Contributing
-
-When adding new tests:
-
-1. Follow the naming conventions outlined in this guide
-2. Use the appropriate test organization (unit vs integration)
-3. Add docstrings for complex or important tests
-4. Use parametrization to reduce code duplication
-5. Test edge cases and error conditions
-6. Ensure tests are independent and can run in any order
-7. Run the test suite locally before submitting
-
-For questions or suggestions about testing practices, please open an issue on the GitHub repository.

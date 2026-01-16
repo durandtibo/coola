@@ -34,7 +34,8 @@ def test_conditional_transformer_str() -> None:
 
 
 def test_conditional_transformer_transform_condition_true(registry: TransformerRegistry) -> None:
-    """Test ConditionalTransformer applies transformation when condition is True."""
+    """Test ConditionalTransformer applies transformation when condition
+    is True."""
     assert objects_are_equal(
         ConditionalTransformer(transformer=DefaultTransformer(), condition=is_string).transform(
             "abc", func=str.upper, registry=registry
@@ -44,7 +45,8 @@ def test_conditional_transformer_transform_condition_true(registry: TransformerR
 
 
 def test_conditional_transformer_transform_condition_false(registry: TransformerRegistry) -> None:
-    """Test ConditionalTransformer skips transformation when condition is False."""
+    """Test ConditionalTransformer skips transformation when condition
+    is False."""
     assert objects_are_equal(
         ConditionalTransformer(transformer=DefaultTransformer(), condition=is_string).transform(
             1, func=str.upper, registry=registry
@@ -64,7 +66,8 @@ def test_conditional_transformer_transform_with_none(registry: TransformerRegist
 
 
 def test_conditional_transformer_transform_complex_condition(registry: TransformerRegistry) -> None:
-    """Test ConditionalTransformer with complex condition (string length > 5)."""
+    """Test ConditionalTransformer with complex condition (string length
+    > 5)."""
 
     def is_long_string(obj: Any) -> bool:
         return isinstance(obj, str) and len(obj) > 5

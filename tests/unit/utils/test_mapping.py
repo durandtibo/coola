@@ -71,7 +71,8 @@ def test_sort_by_values_negative_values() -> None:
 
 
 def test_sort_by_values_identical_values() -> None:
-    """Test sort_by_values with identical values (order undefined but stable)."""
+    """Test sort_by_values with identical values (order undefined but
+    stable)."""
     data = sort_by_values({"a": 1, "b": 1, "c": 1})
     assert all(v == 1 for v in data.values())
     assert len(data) == 3

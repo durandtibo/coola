@@ -8,7 +8,8 @@ from coola.nested import convert_to_dict_of_lists, convert_to_list_of_dicts
 
 
 def test_convert_to_dict_of_lists_empty_list() -> None:
-    """Test convert_to_dict_of_lists with empty list returns empty dict."""
+    """Test convert_to_dict_of_lists with empty list returns empty
+    dict."""
     assert convert_to_dict_of_lists([]) == {}
 
 
@@ -37,9 +38,7 @@ def test_convert_to_dict_of_lists_single_item() -> None:
 
 def test_convert_to_dict_of_lists_different_types() -> None:
     """Test convert_to_dict_of_lists with different value types."""
-    assert convert_to_dict_of_lists(
-        [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
-    ) == {
+    assert convert_to_dict_of_lists([{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]) == {
         "name": ["Alice", "Bob"],
         "age": [30, 25],
     }
@@ -51,7 +50,8 @@ def test_convert_to_dict_of_lists_different_types() -> None:
 
 
 def test_convert_to_list_of_dicts_empty_dict() -> None:
-    """Test convert_to_list_of_dicts with empty dict returns empty list."""
+    """Test convert_to_list_of_dicts with empty dict returns empty
+    list."""
     assert convert_to_list_of_dicts({}) == []
 
 
