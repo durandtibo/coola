@@ -49,9 +49,11 @@ Several modules have been renamed or reorganized:
 |---------|-------|------|--------|
 | Equality functions module | `coola.comparison` (internal) | `coola.equality` | Renamed |
 | Comparators | `coola.equality.comparators` | `coola.equality.tester` | Renamed |
-| Formatters | `coola.formatters` | ❌ Removed | Use `coola.summary` instead |
+| Formatters | `coola.formatters` | N/A | Removed* |
 | Summarizers | `coola.summarizers` | `coola.summary` | Renamed |
 | Reduction | `coola.reduction` | `coola.reducer` | Renamed |
+
+*Use `coola.summary` instead of the removed `formatters` module.
 
 **Note:** In v0.11, equality functions were available both at the top level (`from coola import`) and in `coola.comparison` module. In v1.0, they are only in `coola.equality`.
 
@@ -214,17 +216,21 @@ The reduction module has been renamed from `reduction` to `reducer`.
 ```python
 from coola.reduction import Reduction
 
-Reduction.reducer = some_reducer
+# Use the global reducer
+Reduction.reducer  # Access current reducer
 ```
 
 **After (v1.0):**
 
 ```python
-from coola.reducer import auto_reducer, BaseReducer, NativeReducer
+from coola.reducer import auto_reducer, NativeReducer, NumpyReducer
 
-reducer = auto_reducer()
+# Create reducer instances directly
+reducer = auto_reducer()  # Automatically selects best available backend
 # Or use specific reducers:
-# NativeReducer(), NumpyReducer(), TorchReducer()
+# reducer = NativeReducer()    # Pure Python
+# reducer = NumpyReducer()     # NumPy backend  
+# reducer = TorchReducer()     # PyTorch backend
 ```
 
 **Migration:**
@@ -375,7 +381,7 @@ If you encounter issues during migration:
 
 ## API Stability Note
 
-⚠️ **Important**: This migration guide is for the 1.0 release series. The current version is `1.0.0a0` (alpha release).
+⚠️ **Important**: This migration guide is for the 1.0 release series. The current version is an alpha/pre-release.
 
 - The API structure described in this guide reflects the 1.0 design
 - The changes from v0.11 documented here are stable and will remain in the 1.0 series
