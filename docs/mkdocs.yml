@@ -42,6 +42,8 @@ nav:
   - Developer Guide:
       - dev/development.md
       - dev/architecture.md
+  - Migration:
+      - migration/v0.11_to_v1.0.md
   - Reference:
       - refs/equality.md
       - refs/iterator.md
