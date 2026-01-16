@@ -31,7 +31,7 @@
         <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff" style="max-width:100%;">
     </a>
     <a href="https://github.com/guilatrova/tryceratops">
-        <img  alt="Doc style: google" src="https://img.shields.io/badge/try%2Fexcept%20style-tryceratops%20%F0%9F%A6%96%E2%9C%A8-black">
+        <img  alt="try/except style: tryceratops" src="https://img.shields.io/badge/try%2Fexcept%20style-tryceratops%20%F0%9F%A6%96%E2%9C%A8-black">
     </a>
     <br/>
     <a href="https://pypi.org/project/coola/">
@@ -55,11 +55,11 @@
 
 ## Overview
 
-`coola` is a lightweight Python library for comparing complex and nested data structures.
+`coola` is a lightweight Python library that makes it easy to compare complex and nested data structures.
 It provides simple, extensible functions to check equality between objects containing
 [PyTorch tensors](https://pytorch.org/docs/stable/tensors.html),
 [NumPy arrays](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html),
-pandas/polars DataFrames, and other scientific computing objects.
+[pandas](https://pandas.pydata.org/)/[polars](https://www.pola.rs/) DataFrames, and other scientific computing objects.
 
 **Quick Links:**
 
@@ -71,8 +71,11 @@ pandas/polars DataFrames, and other scientific computing objects.
 
 ## Why coola?
 
-Python's native equality operator `==` doesn't work well with complex nested structures
-containing tensors, arrays, or DataFrames. `coola` solves this with simple comparison functions:
+Python's native equality operator (`==`) doesn't work well with complex nested structures
+containing tensors, arrays, or DataFrames. You'll often encounter errors or unexpected behavior.
+`coola` solves this with intuitive comparison functions:
+
+**Check exact equality:**
 
 ```pycon
 >>> import numpy as np
@@ -85,7 +88,7 @@ True
 
 ```
 
-For numerical comparisons with tolerance:
+**Compare with numerical tolerance:**
 
 ```pycon
 >>> from coola.equality import objects_are_allclose
@@ -104,12 +107,13 @@ See the [quickstart guide](https://durandtibo.github.io/coola/quickstart) for de
 
 ### 🔍 **Equality Comparison**
 
-Compare complex nested objects with support for multiple data types.
+Compare complex nested objects with support for multiple data types:
 
 - **Exact equality**: `objects_are_equal()` for strict comparison
 - **Approximate equality**: `objects_are_allclose()` for numerical tolerance
 - **Extensible**: Add custom comparators for your own types
-- [Learn more →](https://durandtibo.github.io/coola/uguide/equality)
+
+[Learn more →](https://durandtibo.github.io/coola/uguide/equality)
 
 **Supported types:**
 [JAX](https://jax.readthedocs.io/) •
@@ -121,56 +125,62 @@ Compare complex nested objects with support for multiple data types.
 [xarray](https://docs.xarray.dev/) •
 Python built-ins (dict, list, tuple, set, etc.)
 
-See the [full list of supported types →](https://durandtibo.github.io/coola/uguide/equality_types)
+[See the full list of supported types →](https://durandtibo.github.io/coola/uguide/equality_types)
 
 ### 📊 **Data Summarization**
 
-Generate human-readable summaries of nested data structures for debugging and logging.
+Generate human-readable summaries of nested data structures for debugging and logging:
 
 - Configurable depth control
 - Type-specific formatting
 - Truncation for large collections
-- [Learn more →](https://durandtibo.github.io/coola/uguide/summary)
+
+[Learn more →](https://durandtibo.github.io/coola/uguide/summary)
 
 ### 🔄 **Data Conversion**
 
-Transform data between different nested structures.
+Transform data between different nested structures:
 
 - Convert between list-of-dicts and dict-of-lists formats
 - Useful for working with tabular data and different data representations
-- [Learn more →](https://durandtibo.github.io/coola/uguide/nested)
+
+[Learn more →](https://durandtibo.github.io/coola/uguide/nested)
 
 ### 🗂️ **Mapping Utilities**
 
-Work with nested dictionaries efficiently.
+Work with nested dictionaries efficiently:
 
 - Flatten nested dictionaries into flat key-value pairs
 - Extract specific values from complex nested structures
 - Filter dictionary keys based on patterns or criteria
-- [Learn more →](https://durandtibo.github.io/coola/uguide/nested)
+
+[Learn more →](https://durandtibo.github.io/coola/uguide/nested)
 
 ### 🔁 **Iteration**
 
-Traverse nested data structures systematically.
+Traverse nested data structures systematically:
 
 - Depth-first search (DFS) traversal for nested containers
 - Breadth-first search (BFS) traversal for level-by-level processing
 - Filter and extract specific types from heterogeneous collections
-- [Learn more →](https://durandtibo.github.io/coola/uguide/iterator)
+
+[Learn more →](https://durandtibo.github.io/coola/uguide/iterator)
 
 ### 📈 **Reduction**
 
-Compute statistics on sequences with flexible backends.
+Compute statistics on sequences with flexible backends:
 
 - Calculate min, max, mean, median, quantile, std on numeric sequences
 - Support for multiple backends: native Python, NumPy, PyTorch
 - Consistent API regardless of backend choice
-- [Learn more →](https://durandtibo.github.io/coola/uguide/reducer)
+
+[Learn more →](https://durandtibo.github.io/coola/uguide/reducer)
 
 ## Installation
 
-We highly recommend installing in a
-[virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/).
+We highly recommend installing
+`coola` in a [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
+to avoid dependency conflicts.
 
 ### Using uv (recommended)
 
@@ -180,13 +190,13 @@ We highly recommend installing in a
 uv pip install coola
 ```
 
-To include all optional dependencies:
+**Install with all optional dependencies:**
 
 ```shell
 uv pip install coola[all]
 ```
 
-Or install specific optional dependencies:
+**Install with specific optional dependencies:**
 
 ```shell
 uv pip install coola[numpy,torch]  # with NumPy and PyTorch
@@ -200,13 +210,13 @@ Alternatively, you can use `pip`:
 pip install coola
 ```
 
-To include all optional dependencies:
+**Install with all optional dependencies:**
 
 ```shell
 pip install coola[all]
 ```
 
-Or install specific optional dependencies:
+**Install with specific optional dependencies:**
 
 ```shell
 pip install coola[numpy,torch]  # with NumPy and PyTorch
@@ -215,9 +225,9 @@ pip install coola[numpy,torch]  # with NumPy and PyTorch
 ### Requirements
 
 - **Python**: 3.10 or higher
-- **Dependencies**: No required dependencies (all are optional)
+- **Core dependencies**: None (fully optional dependencies)
 
-**Optional dependencies** (installed with `coola[all]`):
+**Optional dependencies** (install with `coola[all]`):
 [JAX](https://jax.readthedocs.io/) •
 [NumPy](https://numpy.org/) •
 [pandas](https://pandas.pydata.org/) •
@@ -228,7 +238,8 @@ pip install coola[numpy,torch]  # with NumPy and PyTorch
 
 For detailed installation instructions, compatibility information, and alternative installation
 methods, see the [installation guide](https://durandtibo.github.io/coola/get_started).
-The following is the corresponding `coola` versions and tested dependencies.
+
+### Compatibility Matrix
 
 | `coola`  | `jax`<sup>*</sup> | `numpy`<sup>*</sup> | `packaging`<sup>*</sup> | `pandas`<sup>*</sup> | `polars`<sup>*</sup> | `pyarrow`<sup>*</sup> | `torch`<sup>*</sup> | `xarray`<sup>*</sup> | `python`       |
 |----------|-------------------|---------------------|-------------------------|----------------------|----------------------|-----------------------|---------------------|----------------------|----------------|
@@ -284,20 +295,21 @@ The following is the corresponding `coola` versions and tested dependencies.
 
 ## Contributing
 
-Contributions are welcome! Please check the [contributing guidelines](CONTRIBUTING.md) for details
-on:
+Contributions are welcome! We appreciate bug fixes, feature additions, documentation improvements,
+and more. Please check the [contributing guidelines](CONTRIBUTING.md) for details on:
 
 - Setting up the development environment
 - Code style and testing requirements
 - Submitting pull requests
 
+Whether you're fixing a bug or proposing a new feature, please open an issue first to discuss
+your changes.
+
 ## API Stability
 
-:warning: While `coola` is in development stage, no API is guaranteed to be stable from one
-release to the next.
-In fact, it is very likely that the API will change multiple times before a stable 1.0.0 release.
-In practice, this means that upgrading `coola` to a new version will possibly break any code that
-was using the old version of `coola`.
+:warning: **Important**: While `coola` is in active development, the API may change between releases
+before reaching version 1.0.0. We recommend pinning to a specific version in your project's
+dependencies to avoid unexpected breaking changes when upgrading.
 
 ## License
 
