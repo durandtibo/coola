@@ -125,29 +125,27 @@ Generate human-readable summaries of nested data structures for debugging and lo
 - Truncation for large collections
 - [Learn more →](https://durandtibo.github.io/coola/uguide/summary)
 
-### 🔧 **Nested Data Operations**
-
-#### Data Conversion
+### 🔄 **Data Conversion**
 Transform data between different nested structures.
 - Convert between list-of-dicts and dict-of-lists formats
 - Useful for working with tabular data and different data representations
 - [Learn more →](https://durandtibo.github.io/coola/uguide/nested)
 
-#### Mapping Utilities
+### 🗂️ **Mapping Utilities**
 Work with nested dictionaries efficiently.
 - Flatten nested dictionaries into flat key-value pairs
 - Extract specific values from complex nested structures
 - Filter dictionary keys based on patterns or criteria
 - [Learn more →](https://durandtibo.github.io/coola/uguide/nested)
 
-#### Iteration
+### 🔁 **Iteration**
 Traverse nested data structures systematically.
 - Depth-first search (DFS) traversal for nested containers
 - Breadth-first search (BFS) traversal for level-by-level processing
 - Filter and extract specific types from heterogeneous collections
 - [Learn more →](https://durandtibo.github.io/coola/uguide/iterator)
 
-#### Reduction
+### 📈 **Reduction**
 Compute statistics on sequences with flexible backends.
 - Calculate min, max, mean, median, quantile, std on numeric sequences
 - Support for multiple backends: native Python, NumPy, PyTorch
