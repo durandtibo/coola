@@ -4,6 +4,7 @@ from __future__ import annotations
 
 __all__ = ["EqualityConfig"]
 
+import warnings
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -80,8 +81,6 @@ class EqualityConfig:
             raise ValueError(msg)
         # Warn about unreasonably large tolerances
         if self.atol > 1e10 or self.rtol > 1e10:
-            import warnings  # noqa: PLC0415
-
             warnings.warn(
                 f"Very large tolerance values detected (atol={self.atol}, rtol={self.rtol}). "
                 "This may lead to unexpected equality results.",

@@ -9,10 +9,16 @@ from typing import TYPE_CHECKING
 
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.utils import handlers_are_equal
+from coola.utils.imports import is_torch_available
+
+if TYPE_CHECKING or is_torch_available():
+    import torch
+else:  # pragma: no cover
+    from unittest.mock import Mock
+
+    torch = Mock()
 
 if TYPE_CHECKING:
-    import torch
-
     from coola.equality.config import EqualityConfig
 
 logger: logging.Logger = logging.getLogger(__name__)
@@ -52,9 +58,6 @@ class TorchTensorEqualHandler(BaseEqualityHandler):
         expected: torch.Tensor,
         config: EqualityConfig,
     ) -> bool:
-        # Import torch here to handle optional dependency
-        import torch  # noqa: PLC0415
-
         # Validate that both inputs are actually torch.Tensor
         if not isinstance(actual, torch.Tensor) or not isinstance(expected, torch.Tensor):
             msg = (
@@ -109,9 +112,6 @@ class TorchTensorSameDeviceHandler(BaseEqualityHandler):
         expected: torch.Tensor,
         config: EqualityConfig,
     ) -> bool:
-        # Import torch here to handle optional dependency
-        import torch  # noqa: PLC0415
-
         # Validate that both inputs are actually torch.Tensor
         if not isinstance(actual, torch.Tensor) or not isinstance(expected, torch.Tensor):
             msg = (

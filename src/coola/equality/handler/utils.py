@@ -48,7 +48,7 @@ def create_chain(*handlers: BaseEqualityHandler) -> BaseEqualityHandler:
     # Validate that no handler is None
     for i, h in enumerate(handlers):
         if h is None:
-            msg = f"Handler at position {i} is None. All handlers must be valid instances."
+            msg = f"Handler at position {i} is None"
             raise ValueError(msg)
     handler = handlers[0]
     handler.chain_all(*handlers[1:])
