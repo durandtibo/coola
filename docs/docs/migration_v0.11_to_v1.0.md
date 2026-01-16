@@ -47,11 +47,13 @@ Several modules have been renamed or reorganized:
 
 | Feature | v0.11 | v1.0 | Status |
 |---------|-------|------|--------|
-| Equality comparisons | `coola.comparison` | `coola.equality` | Renamed |
+| Equality functions module | `coola.comparison` (internal) | `coola.equality` | Renamed |
 | Comparators | `coola.equality.comparators` | `coola.equality.tester` | Renamed |
 | Formatters | `coola.formatters` | ❌ Removed | Use `coola.summary` instead |
 | Summarizers | `coola.summarizers` | `coola.summary` | Renamed |
 | Reduction | `coola.reduction` | `coola.reducer` | Renamed |
+
+**Note:** In v0.11, equality functions were available both at the top level (`from coola import`) and in `coola.comparison` module. In v1.0, they are only in `coola.equality`.
 
 ### 3. Equality Comparison System
 
@@ -185,7 +187,6 @@ The summarization module has been renamed from `summarizers` to `summary`.
 
 ```python
 from coola import summary
-from coola.summarizers import Summarizer, BaseSummarizer
 
 summary_text = summary(value, max_depth=2)
 ```
@@ -193,7 +194,7 @@ summary_text = summary(value, max_depth=2)
 **After (v1.0):**
 
 ```python
-from coola.summary import summarize, BaseSummarizer, SummarizerRegistry
+from coola.summary import summarize
 
 summary_text = summarize(value, max_depth=2)
 ```
@@ -374,10 +375,9 @@ If you encounter issues during migration:
 
 ## API Stability Note
 
-⚠️ **Important**: While `coola` is approaching a stable 1.0 release, the API may still change before the final 1.0.0 release. The current version is `1.0.0a0` (alpha), which means:
+⚠️ **Important**: This migration guide is for the 1.0 release series. The current version is `1.0.0a0` (alpha release).
 
-- The API structure described in this guide is the intended final structure
-- Minor changes may still occur before the stable 1.0.0 release
-- Breaking changes are not expected, but refinements are possible
-
-For production use, consider pinning to a specific version in your requirements.
+- The API structure described in this guide reflects the 1.0 design
+- The changes from v0.11 documented here are stable and will remain in the 1.0 series
+- Minor refinements may occur before the final 1.0.0 stable release
+- For production use, monitor the [releases page](https://github.com/durandtibo/coola/releases) and consider pinning to a specific version
