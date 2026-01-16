@@ -18,10 +18,13 @@ T = TypeVar("T", bound="BaseEqualityHandler")
 class BaseEqualityHandler(ABC):
     r"""Define the base class to implement an equality handler.
 
-    A child class needs to implement the following methods:
+    A child class needs to implement the following method:
 
-    - ``equal``
     - ``handle``
+
+    The ``equal`` method has a default implementation that compares
+    handler types and their next handlers. Child classes can override
+    this method if they need custom equality logic.
 
     A terminal handler has its next handler set to ``None``.
 
