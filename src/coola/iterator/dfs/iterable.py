@@ -1,5 +1,4 @@
-r"""Define an iterator class for handling iterable data in depth-first
-traversal."""
+r"""Define an iterator class for handling iterable data in depth-first traversal."""
 
 from __future__ import annotations
 
@@ -15,8 +14,7 @@ if TYPE_CHECKING:
 
 
 class IterableIterator(BaseIterator[Iterable[Any]]):
-    r"""Iterator for performing a depth-first traversal over iterable
-    data structures.
+    r"""Iterator for performing a depth-first traversal over iterable data structures.
 
     This iterator recursively traverses through iterable structures
     such as lists, tuples, or other collections that implement the

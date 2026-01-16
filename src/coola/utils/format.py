@@ -1,5 +1,4 @@
-r"""Implement some utility functions to compute string representations
-of objects."""
+r"""Implement some utility functions to compute string representations of objects."""
 
 from __future__ import annotations
 
@@ -330,8 +329,7 @@ def str_sequence_line(sequence: Sequence[Any], separator: str = ", ") -> str:
 
 
 def str_time_human(seconds: float) -> str:
-    r"""Return a number of seconds in an easier format to read
-    ``hh:mm:ss``.
+    r"""Return a number of seconds in an easier format to read ``hh:mm:ss``.
 
     If the number of seconds is bigger than 1 day, this representation
     also encodes the number of days.

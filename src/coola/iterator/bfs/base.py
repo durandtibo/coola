@@ -1,5 +1,4 @@
-r"""Define the abstract base class for child finders used in breadth-
-first search."""
+r"""Define the abstract base class for child finders used in breadth- first search."""
 
 from __future__ import annotations
 
@@ -15,8 +14,7 @@ T = TypeVar("T")
 
 
 class BaseChildFinder(ABC, Generic[T]):
-    r"""Abstract base class for child finders used in breadth-first
-    search.
+    r"""Abstract base class for child finders used in breadth-first search.
 
     This class defines the interface that all child finders must implement.
     Child finders are responsible for finding and yielding the immediate children
@@ -44,8 +42,7 @@ class BaseChildFinder(ABC, Generic[T]):
 
     @abstractmethod
     def find_children(self, data: T) -> Iterator[Any]:
-        r"""Find and yield the immediate children of the given data
-        structure.
+        r"""Find and yield the immediate children of the given data structure.
 
         This method defines how to extract children from the data structure.
         For container types, this typically means yielding the contained elements.
