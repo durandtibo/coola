@@ -360,6 +360,52 @@ def test_str_human_byte_size_auto(size: int, output: str) -> None:
     assert str_human_byte_size(size) == output
 
 
+def test_str_human_byte_size_zero() -> None:
+    """Test str_human_byte_size with size of zero."""
+    assert str_human_byte_size(0) == "0.00 B"
+
+
+def test_str_human_byte_size_exact_kb_boundary() -> None:
+    """Test str_human_byte_size at exact KB boundary (1024 bytes).
+
+    Note: At exactly 1024 bytes, 1024/1024 = 1.0, which is not > 1,
+    so the function keeps the unit as 'B' rather than upgrading to 'KB'.
+    """
+    assert str_human_byte_size(1024) == "1,024.00 B"
+
+
+def test_str_human_byte_size_just_over_kb() -> None:
+    """Test str_human_byte_size just over KB boundary (1025 bytes)."""
+    assert str_human_byte_size(1025) == "1.00 KB"
+
+
+def test_str_human_byte_size_just_under_kb() -> None:
+    """Test str_human_byte_size just under KB boundary (1023 bytes)."""
+    assert str_human_byte_size(1023) == "1,023.00 B"
+
+
+def test_str_human_byte_size_exact_mb_boundary() -> None:
+    """Test str_human_byte_size at exact MB boundary (1048576 bytes).
+
+    Note: At exactly 1048576 bytes, 1048576/1048576 = 1.0, which is not > 1,
+    so the function keeps the unit as 'KB' rather than upgrading to 'MB'.
+    """
+    assert str_human_byte_size(1048576) == "1,024.00 KB"
+
+
+def test_str_human_byte_size_just_over_mb() -> None:
+    """Test str_human_byte_size just over MB boundary."""
+    assert str_human_byte_size(1048577) == "1.00 MB"
+
+
+def test_str_human_byte_size_exact_gb_boundary() -> None:
+    """Test str_human_byte_size at exact GB boundary (1073741824 bytes).
+
+    Note: At exactly 1073741824 bytes, the function keeps the unit as 'MB'.
+    """
+    assert str_human_byte_size(1073741824) == "1,024.00 MB"
+
+
 def test_str_human_byte_size_incorrect_unit() -> None:
     with pytest.raises(ValueError, match=r"Incorrect unit ''. The available units are"):
         assert str_human_byte_size(1, "")
@@ -378,6 +424,46 @@ def test_str_human_byte_size_negative_size() -> None:
 @pytest.mark.parametrize(("size", "unit"), [(2, "B"), (1023, "B"), (2048, "KB"), (2097152, "MB")])
 def test_find_best_byte_unit(size: int, unit: str) -> None:
     assert find_best_byte_unit(size) == unit
+
+
+def test_find_best_byte_unit_zero() -> None:
+    """Test find_best_byte_unit with size of zero."""
+    assert find_best_byte_unit(0) == "B"
+
+
+def test_find_best_byte_unit_exact_kb_boundary() -> None:
+    """Test find_best_byte_unit at exact KB boundary (1024 bytes).
+
+    Note: At exactly 1024 bytes, 1024/1024 = 1.0, which is not > 1,
+    so the function returns 'B' rather than 'KB'.
+    """
+    assert find_best_byte_unit(1024) == "B"
+
+
+def test_find_best_byte_unit_just_over_kb() -> None:
+    """Test find_best_byte_unit just over KB boundary (1025 bytes)."""
+    assert find_best_byte_unit(1025) == "KB"
+
+
+def test_find_best_byte_unit_exact_mb_boundary() -> None:
+    """Test find_best_byte_unit at exact MB boundary (1048576 bytes).
+
+    Note: At exactly 1048576 bytes, the function returns 'KB'.
+    """
+    assert find_best_byte_unit(1048576) == "KB"
+
+
+def test_find_best_byte_unit_just_over_mb() -> None:
+    """Test find_best_byte_unit just over MB boundary."""
+    assert find_best_byte_unit(1048577) == "MB"
+
+
+def test_find_best_byte_unit_exact_gb_boundary() -> None:
+    """Test find_best_byte_unit at exact GB boundary (1073741824 bytes).
+
+    Note: At exactly 1073741824 bytes, the function returns 'MB'.
+    """
+    assert find_best_byte_unit(1073741824) == "MB"
 
 
 def test_find_best_byte_unit_negative_size() -> None:
