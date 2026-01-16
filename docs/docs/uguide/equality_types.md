@@ -1,4 +1,4 @@
-# Supported Types
+# Equality Supported Types
 
 :book: This page describes what types are currently supported and what rules are used to check if
 two objects are equal or not.
