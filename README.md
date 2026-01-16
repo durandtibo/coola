@@ -186,6 +186,12 @@ To include all optional dependencies:
 uv pip install coola[all]
 ```
 
+Or install specific optional dependencies:
+
+```shell
+uv pip install coola[numpy,torch]  # with NumPy and PyTorch
+```
+
 ### Using pip
 
 Alternatively, you can use `pip`:
@@ -203,7 +209,6 @@ pip install coola[all]
 Or install specific optional dependencies:
 
 ```shell
-pip install coola  # minimal installation
 pip install coola[numpy,torch]  # with NumPy and PyTorch
 ```
 
