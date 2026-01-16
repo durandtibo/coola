@@ -1,1 +1,9 @@
 ::: coola.recursive
+::: coola.recursive.base
+::: coola.recursive.conditional
+::: coola.recursive.default
+::: coola.recursive.interface
+::: coola.recursive.mapping
+::: coola.recursive.registry
+::: coola.recursive.sequence
+::: coola.recursive.set

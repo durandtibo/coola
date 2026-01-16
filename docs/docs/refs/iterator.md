@@ -1,3 +1,16 @@
 ::: coola.iterator
+::: coola.iterator.filtering
 ::: coola.iterator.bfs
+::: coola.iterator.bfs.base
+::: coola.iterator.bfs.default
+::: coola.iterator.bfs.interface
+::: coola.iterator.bfs.iterable
+::: coola.iterator.bfs.mapping
+::: coola.iterator.bfs.registry
 ::: coola.iterator.dfs
+::: coola.iterator.dfs.base
+::: coola.iterator.dfs.default
+::: coola.iterator.dfs.interface
+::: coola.iterator.dfs.iterable
+::: coola.iterator.dfs.mapping
+::: coola.iterator.dfs.registry

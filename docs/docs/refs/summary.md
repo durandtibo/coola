@@ -1,1 +1,11 @@
 ::: coola.summary
+::: coola.summary.base
+::: coola.summary.collection
+::: coola.summary.default
+::: coola.summary.interface
+::: coola.summary.mapping
+::: coola.summary.numpy
+::: coola.summary.registry
+::: coola.summary.sequence
+::: coola.summary.set
+::: coola.summary.torch

@@ -1,6 +1,15 @@
 ::: coola.utils
 ::: coola.utils.array
 ::: coola.utils.env_vars
+::: coola.utils.fallback
+::: coola.utils.fallback.jax
+::: coola.utils.fallback.numpy
+::: coola.utils.fallback.packaging
+::: coola.utils.fallback.pandas
+::: coola.utils.fallback.polars
+::: coola.utils.fallback.pyarrow
+::: coola.utils.fallback.torch
+::: coola.utils.fallback.xarray
 ::: coola.utils.format
 ::: coola.utils.imports
 ::: coola.utils.introspection
