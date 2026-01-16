@@ -346,8 +346,8 @@ True
 
 ```
 
-In arrays or tensors, `NaN` are sometimes to indicate some values are not valid.
-However, it may be interested to check if the non-`NaN` values are equal.
+In arrays or tensors, `NaN` are sometimes used to indicate some values are not valid.
+However, it may be interesting to check if the non-`NaN` values are equal.
 It is possible to use the `equal_nan=True` option to compare two tensors with `NaN` values.
 
 ```pycon
@@ -404,7 +404,7 @@ If you are a NumPy user, you probably know
 the [
 `numpy.testing.assert_equal`](https://numpy.org/doc/stable/reference/generated/numpy.testing.assert_equal.html)
 function.
-However, most of these functions work in a fix scope and are difficult to extend or customize.
+However, most of these functions work in a fixed scope and are difficult to extend or customize.
 On the opposite side, `coola` is flexible and easy to customize.
 
 Let's take a look to `torch`.
