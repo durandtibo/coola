@@ -214,7 +214,8 @@ def check_jax() -> None:
 
 def raise_error_jax_missing() -> NoReturn:
     r"""Raise a RuntimeError to indicate the ``jax`` package is
-    missing."""
+    missing.
+    """
     msg = (
         "'jax' package is required but not installed. "
         "You can install 'jax' package with the command:\n\n"
@@ -289,7 +290,8 @@ def check_numpy() -> None:
 
 def raise_error_numpy_missing() -> NoReturn:
     r"""Raise a RuntimeError to indicate the ``numpy`` package is
-    missing."""
+    missing.
+    """
     msg = (
         "'numpy' package is required but not installed. "
         "You can install 'numpy' package with the command:\n\n"
@@ -364,7 +366,8 @@ def check_packaging() -> None:
 
 def raise_error_packaging_missing() -> NoReturn:
     r"""Raise a RuntimeError to indicate the ``packaging`` package is
-    missing."""
+    missing.
+    """
     msg = (
         "'packaging' package is required but not installed. "
         "You can install 'packaging' package with the command:\n\n"
@@ -439,7 +442,8 @@ def check_pandas() -> None:
 
 def raise_error_pandas_missing() -> NoReturn:
     r"""Raise a RuntimeError to indicate the ``pandas`` package is
-    missing."""
+    missing.
+    """
     msg = (
         "'pandas' package is required but not installed. "
         "You can install 'pandas' package with the command:\n\n"
@@ -514,7 +518,8 @@ def check_polars() -> None:
 
 def raise_error_polars_missing() -> NoReturn:
     r"""Raise a RuntimeError to indicate the ``polars`` package is
-    missing."""
+    missing.
+    """
     msg = (
         "'polars' package is required but not installed. "
         "You can install 'polars' package with the command:\n\n"
@@ -589,7 +594,8 @@ def check_pyarrow() -> None:
 
 def raise_error_pyarrow_missing() -> NoReturn:
     r"""Raise a RuntimeError to indicate the ``pyarrow`` package is
-    missing."""
+    missing.
+    """
     msg = (
         "'pyarrow' package is required but not installed. "
         "You can install 'pyarrow' package with the command:\n\n"
@@ -664,7 +670,8 @@ def check_torch() -> None:
 
 def raise_error_torch_missing() -> NoReturn:
     r"""Raise a RuntimeError to indicate the ``torch`` package is
-    missing."""
+    missing.
+    """
     msg = (
         "'torch' package is required but not installed. "
         "You can install 'torch' package with the command:\n\n"
@@ -824,7 +831,8 @@ def check_xarray() -> None:
 
 def raise_error_xarray_missing() -> NoReturn:
     r"""Raise a RuntimeError to indicate the ``xarray`` package is
-    missing."""
+    missing.
+    """
     msg = (
         "'xarray' package is required but not installed. "
         "You can install 'xarray' package with the command:\n\n"

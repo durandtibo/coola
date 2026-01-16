@@ -1,5 +1,6 @@
 r"""Implement a random manager for the python standard library
-``random``."""
+``random``.
+"""
 
 from __future__ import annotations
 

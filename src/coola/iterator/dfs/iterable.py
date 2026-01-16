@@ -1,5 +1,6 @@
 r"""Define an iterator class for handling iterable data in depth-first
-traversal."""
+traversal.
+"""
 
 from __future__ import annotations
 

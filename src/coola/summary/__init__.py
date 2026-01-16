@@ -1,5 +1,6 @@
 r"""Contain functionalities to compute a text summary of nested data
-based on the type of data."""
+based on the type of data.
+"""
 
 from __future__ import annotations
 

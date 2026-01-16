@@ -1,5 +1,6 @@
 r"""Contain fallback implementations used when ``torch`` dependency is
-not available."""
+not available.
+"""
 
 from __future__ import annotations
 

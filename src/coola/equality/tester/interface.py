@@ -1,5 +1,6 @@
 r"""Define the public interface for equality testers and registry
-management."""
+management.
+"""
 
 from __future__ import annotations
 

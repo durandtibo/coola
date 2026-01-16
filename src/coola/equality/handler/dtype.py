@@ -1,5 +1,6 @@
 r"""Implement handler to check if the objects have the same data
-type."""
+type.
+"""
 
 from __future__ import annotations
 

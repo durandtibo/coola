@@ -1,5 +1,6 @@
 r"""Implement handlers for ``polars.DataFrame``s, ``polars.LazyFrame``s,
-and ``polars.Series``es."""
+and ``polars.Series``es.
+"""
 
 from __future__ import annotations
 

@@ -13,7 +13,8 @@ T = TypeVar("T", bound=Sequence[float])
 
 class EmptySequenceError(Exception):
     r"""Raise when the sequence is empty because it is not possible to
-    reduce an empty sequence."""
+    reduce an empty sequence.
+    """
 
 
 class BaseReducer(ABC, Generic[T]):
@@ -199,7 +200,8 @@ class BaseReducer(ABC, Generic[T]):
 
 class BaseBasicReducer(BaseReducer[T]):
     r"""Extension of ``BaseReducer`` to check if the input sequence is
-    empty before to call the reduction methods."""
+    empty before to call the reduction methods.
+    """
 
     @abstractmethod
     def _is_empty(self, values: T) -> bool:

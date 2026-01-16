@@ -1,5 +1,6 @@
 r"""Define the iterator registry for managing iterators based on data
-types."""
+types.
+"""
 
 from __future__ import annotations
 

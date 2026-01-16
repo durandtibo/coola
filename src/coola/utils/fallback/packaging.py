@@ -1,5 +1,6 @@
 r"""Contain fallback implementations used when ``packaging`` dependency
-is not available."""
+is not available.
+"""
 
 from __future__ import annotations
 
