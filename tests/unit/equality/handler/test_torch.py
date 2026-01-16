@@ -344,7 +344,7 @@ def test_torch_tensor_equal_handler_type_validation_invalid_second(config: Equal
 
 @torch_available
 def test_torch_tensor_equal_handler_large_tensor_logging(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     config = EqualityConfig(show_difference=True)
     handler = TorchTensorEqualHandler()

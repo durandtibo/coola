@@ -13,13 +13,12 @@ from coola.utils.imports import is_torch_available
 
 if TYPE_CHECKING or is_torch_available():
     import torch
+
+    from coola.equality.config import EqualityConfig
 else:  # pragma: no cover
     from unittest.mock import Mock
 
     torch = Mock()
-
-if TYPE_CHECKING:
-    from coola.equality.config import EqualityConfig
 
 logger: logging.Logger = logging.getLogger(__name__)
 
