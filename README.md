@@ -82,6 +82,7 @@ containing tensors, arrays, or DataFrames. `coola` solves this with simple compa
 >>> data2 = {"torch": torch.ones(2, 3), "numpy": np.zeros((2, 3))}
 >>> objects_are_equal(data1, data2)
 True
+
 ```
 
 For numerical comparisons with tolerance:
@@ -92,6 +93,7 @@ For numerical comparisons with tolerance:
 >>> data2 = {"value": 1.0 + 1e-9}
 >>> objects_are_allclose(data1, data2)
 True
+
 ```
 
 See the [quickstart guide](https://durandtibo.github.io/coola/quickstart) for detailed examples.
