@@ -62,6 +62,7 @@ It provides simple, extensible functions to check equality between objects conta
 pandas/polars DataFrames, and other scientific computing objects.
 
 **Quick Links:**
+
 - [Documentation](https://durandtibo.github.io/coola/) | [Quickstart](https://durandtibo.github.io/coola/quickstart)
 - [Installation](#installation)
 - [Features](#features)
@@ -100,7 +101,9 @@ See the [quickstart guide](https://durandtibo.github.io/coola/quickstart) for de
 `coola` provides a comprehensive set of utilities for working with complex data structures:
 
 ### 🔍 **Equality Comparison**
+
 Compare complex nested objects with support for multiple data types.
+
 - **Exact equality**: `objects_are_equal()` for strict comparison
 - **Approximate equality**: `objects_are_allclose()` for numerical tolerance
 - **Extensible**: Add custom comparators for your own types
@@ -119,34 +122,44 @@ Python built-ins (dict, list, tuple, set, etc.)
 See the [full list of supported types →](https://durandtibo.github.io/coola/uguide/equality_types)
 
 ### 📊 **Data Summarization**
+
 Generate human-readable summaries of nested data structures for debugging and logging.
+
 - Configurable depth control
 - Type-specific formatting
 - Truncation for large collections
 - [Learn more →](https://durandtibo.github.io/coola/uguide/summary)
 
 ### 🔄 **Data Conversion**
+
 Transform data between different nested structures.
+
 - Convert between list-of-dicts and dict-of-lists formats
 - Useful for working with tabular data and different data representations
 - [Learn more →](https://durandtibo.github.io/coola/uguide/nested)
 
 ### 🗂️ **Mapping Utilities**
+
 Work with nested dictionaries efficiently.
+
 - Flatten nested dictionaries into flat key-value pairs
 - Extract specific values from complex nested structures
 - Filter dictionary keys based on patterns or criteria
 - [Learn more →](https://durandtibo.github.io/coola/uguide/nested)
 
 ### 🔁 **Iteration**
+
 Traverse nested data structures systematically.
+
 - Depth-first search (DFS) traversal for nested containers
 - Breadth-first search (BFS) traversal for level-by-level processing
 - Filter and extract specific types from heterogeneous collections
 - [Learn more →](https://durandtibo.github.io/coola/uguide/iterator)
 
 ### 📈 **Reduction**
+
 Compute statistics on sequences with flexible backends.
+
 - Calculate min, max, mean, median, quantile, std on numeric sequences
 - Support for multiple backends: native Python, NumPy, PyTorch
 - Consistent API regardless of backend choice
@@ -208,10 +221,65 @@ pip install coola[numpy,torch]  # with NumPy and PyTorch
 
 For detailed installation instructions, compatibility information, and alternative installation
 methods, see the [installation guide](https://durandtibo.github.io/coola/get_started).
+The following is the corresponding `coola` versions and tested dependencies.
+
+| `coola`  | `jax`<sup>*</sup> | `numpy`<sup>*</sup> | `packaging`<sup>*</sup> | `pandas`<sup>*</sup> | `polars`<sup>*</sup> | `pyarrow`<sup>*</sup> | `torch`<sup>*</sup> | `xarray`<sup>*</sup> | `python`       |
+|----------|-------------------|---------------------|-------------------------|----------------------|----------------------|-----------------------|---------------------|----------------------|----------------|
+| `main`   | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<22.0`        | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10`       |
+| `0.11.1` | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<22.0`        | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10`       |
+| `0.11.0` | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<22.0`        | `>=2.0,<3.0`        | `>=2023.1`           | `>=3.10`       |
+| `0.10.0` | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<22.0`        | `>=2.0,<3.0`        | `>=2023.1`           | `>=3.10`       |
+| `0.9.1`  | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0,<26.0`          | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<22.0`        | `>=2.0,<3.0`        | `>=2023.1`           | `>=3.10,<3.15` |
+| `0.9.0`  | `>=0.4.6,<1.0`    | `>=1.24,<3.0`       | `>=22.0,<26.0`          | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<20.0`        | `>=2.0,<3.0`        | `>=2023.1`           | `>=3.9,<3.14`  |
+
+<sup>*</sup> indicates an optional dependency
+
+<details>
+    <summary>older versions</summary>
+
+| `coola`  | `jax`<sup>*</sup> | `numpy`<sup>*</sup> | `packaging`<sup>*</sup> | `pandas`<sup>*</sup> | `polars`<sup>*</sup> | `pyarrow`<sup>*</sup> | `torch`<sup>*</sup> | `xarray`<sup>*</sup> | `python`      |
+|----------|-------------------|---------------------|-------------------------|----------------------|----------------------|-----------------------|---------------------|----------------------|---------------|
+| `0.8.7`  | `>=0.4.6,<1.0`    | `>=1.22,<3.0`       | `>=21.0,<26.0`          | `>=1.5,<3.0`         | `>=1.0,<2.0`         | `>=10.0,<20.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.14` |
+| `0.8.6`  | `>=0.4.6,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      | `>=10.0,<20.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.14` |
+| `0.8.5`  | `>=0.4.6,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      | `>=10.0,<19.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.14` |
+| `0.8.4`  | `>=0.4.6,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      | `>=10.0,<18.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.14` |
+| `0.8.3`  | `>=0.4.1,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      | `>=10.0,<18.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.13` |
+| `0.8.2`  | `>=0.4.1,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      | `>=10.0,<18.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.13` |
+| `0.8.1`  | `>=0.4.1,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      | `>=10.0,<18.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.13` |
+| `0.8.0`  | `>=0.4.1,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      | `>=10.0,<18.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.13` |
+| `0.7.4`  | `>=0.4.1,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      | `>=10.0,<18.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.13` |
+| `0.7.3`  | `>=0.4.1,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      |                       | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.13` |
+| `0.7.2`  | `>=0.4.1,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      |                       | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.13` |
+| `0.7.1`  | `>=0.4.1,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<3.0`       | `>=2023.1`           | `>=3.9,<3.13` |
+| `0.7.0`  | `>=0.4.1,<1.0`    | `>=1.21,<2.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<3.0`       | `>=2023.1`           | `>=3.9,<3.13` |
+| `0.6.2`  | `>=0.4.1,<1.0`    | `>=1.21,<2.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<3.0`       | `>=2023.1`           | `>=3.9,<3.13` |
+| `0.6.1`  | `>=0.4.1,<1.0`    | `>=1.21,<2.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<3.0`       | `>=2023.1`           | `>=3.9,<3.13` |
+| `0.6.0`  | `>=0.4.1,<1.0`    | `>=1.21,<2.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<3.0`       | `>=2023.1`           | `>=3.9,<3.13` |
+| `0.5.0`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13` |
+| `0.4.0`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13` |
+| `0.3.1`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13` |
+| `0.3.0`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13` |
+| `0.2.2`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13` |
+| `0.2.1`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13` |
+| `0.2.0`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13` |
+| `0.1.2`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<0.21`     |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13` |
+| `0.1.1`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<0.20`     |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13` |
+| `0.1.0`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<0.20`     |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.12` |
+| `0.0.26` | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<0.20`     |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.12` |
+| `0.0.25` | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<0.20`     |                       | `>=1.10,<2.2`       | `>=2023.4,<2023.11`  | `>=3.9,<3.12` |
+| `0.0.24` | `>=0.3,<0.5`      | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<0.20`     |                       | `>=1.10,<2.2`       | `>=2023.3,<2023.9`   | `>=3.9,<3.12` |
+| `0.0.23` | `>=0.3,<0.5`      | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<0.20`     |                       | `>=1.10,<2.1`       | `>=2023.3,<2023.9`   | `>=3.9,<3.12` |
+| `0.0.22` | `>=0.3,<0.5`      | `>=1.20,<1.26`      |                         | `>=1.3,<2.1`         | `>=0.18.3,<0.19`     |                       | `>=1.10,<2.1`       | `>=2023.3,<2023.9`   | `>=3.9,<3.12` |
+| `0.0.21` | `>=0.3,<0.5`      | `>=1.20,<1.26`      |                         | `>=1.3,<2.1`         | `>=0.18.3,<0.19`     |                       | `>=1.10,<2.1`       | `>=2023.3,<2023.8`   | `>=3.9,<3.12` |
+| `0.0.20` | `>=0.3,<0.5`      | `>=1.20,<1.26`      |                         | `>=1.3,<2.1`         | `>=0.18.3,<0.19`     |                       | `>=1.10,<2.1`       | `>=2023.3,<2023.8`   | `>=3.9`       |
+
+</details>
 
 ## Contributing
 
-Contributions are welcome! Please check the [contributing guidelines](CONTRIBUTING.md) for details on:
+Contributions are welcome! Please check the [contributing guidelines](CONTRIBUTING.md) for details
+on:
+
 - Setting up the development environment
 - Code style and testing requirements
 - Submitting pull requests
