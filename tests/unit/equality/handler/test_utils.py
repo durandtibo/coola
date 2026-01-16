@@ -39,6 +39,16 @@ def test_create_chain_0_item() -> None:
         create_chain()
 
 
+def test_create_chain_with_none_handler() -> None:
+    with pytest.raises(ValueError, match="Handler at position 0 is None"):
+        create_chain(None)
+
+
+def test_create_chain_with_none_handler_in_middle() -> None:
+    with pytest.raises(ValueError, match="Handler at position 1 is None"):
+        create_chain(SameObjectHandler(), None, ObjectEqualHandler())
+
+
 ########################################
 #     Tests for handlers_are_equal     #
 ########################################

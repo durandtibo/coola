@@ -56,11 +56,27 @@ class NumpyArrayEqualHandler(BaseEqualityHandler):
         expected: np.ndarray,
         config: EqualityConfig,
     ) -> bool:
+        # Validate that both inputs are actually numpy arrays
+        if not isinstance(actual, np.ndarray) or not isinstance(expected, np.ndarray):
+            msg = (
+                f"Expected both inputs to be numpy.ndarray, but got "
+                f"{type(actual).__name__} and {type(expected).__name__}"
+            )
+            raise TypeError(msg)
+
         object_equal = array_equal(actual, expected, config)
         if config.show_difference and not object_equal:
-            logger.info(
-                f"numpy.ndarrays have different elements:\nactual:\n{actual}\nexpected:\n{expected}"
-            )
+            # Avoid printing very large arrays
+            if actual.size > 10000 or expected.size > 10000:
+                logger.info(
+                    f"numpy.ndarrays have different elements (arrays too large to display, "
+                    f"shapes: {actual.shape} vs {expected.shape})"
+                )
+            else:
+                logger.info(
+                    f"numpy.ndarrays have different elements:\n"
+                    f"actual:\n{actual}\nexpected:\n{expected}"
+                )
         return object_equal
 
 

@@ -51,12 +51,20 @@ class SequenceSameValuesHandler(BaseEqualityHandler):
         expected: Sequence[Any],
         config: EqualityConfig,
     ) -> bool:
+        # Check for circular references before proceeding
+        if config.is_visited(actual, expected):
+            return True  # Already comparing these objects, assume equal to break cycle
+
         with check_recursion_depth(config):
-            for value1, value2 in zip(actual, expected):
-                if not config.registry.objects_are_equal(value1, value2, config):
-                    self._show_difference(actual, expected, config=config)
-                    return False
-            return self._handle_next(actual, expected, config=config)
+            config.mark_visited(actual, expected)
+            try:
+                for value1, value2 in zip(actual, expected):
+                    if not config.registry.objects_are_equal(value1, value2, config):
+                        self._show_difference(actual, expected, config=config)
+                        return False
+                return self._handle_next(actual, expected, config=config)
+            finally:
+                config.unmark_visited(actual, expected)
 
     def _show_difference(
         self, actual: Sequence, expected: Sequence, config: EqualityConfig

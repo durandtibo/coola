@@ -116,3 +116,49 @@ def test_equality_config_eq_false_different_show_difference() -> None:
 
 def test_equality_config_eq_false_different_max_depth() -> None:
     assert EqualityConfig() != EqualityConfig(max_depth=100)
+
+
+def test_equality_config_large_tolerance_warning() -> None:
+    with pytest.warns(UserWarning, match="Very large tolerance values detected"):
+        EqualityConfig(atol=1e11)
+
+
+def test_equality_config_large_rtol_warning() -> None:
+    with pytest.warns(UserWarning, match="Very large tolerance values detected"):
+        EqualityConfig(rtol=1e15)
+
+
+def test_equality_config_is_visited_false() -> None:
+    config = EqualityConfig()
+    obj1 = {"key": "value"}
+    obj2 = {"key": "value"}
+    assert not config.is_visited(obj1, obj2)
+
+
+def test_equality_config_mark_visited() -> None:
+    config = EqualityConfig()
+    obj1 = {"key": "value"}
+    obj2 = {"key": "value"}
+    config.mark_visited(obj1, obj2)
+    assert config.is_visited(obj1, obj2)
+
+
+def test_equality_config_unmark_visited() -> None:
+    config = EqualityConfig()
+    obj1 = {"key": "value"}
+    obj2 = {"key": "value"}
+    config.mark_visited(obj1, obj2)
+    assert config.is_visited(obj1, obj2)
+    config.unmark_visited(obj1, obj2)
+    assert not config.is_visited(obj1, obj2)
+
+
+def test_equality_config_visited_different_pairs() -> None:
+    config = EqualityConfig()
+    obj1 = {"key": "value1"}
+    obj2 = {"key": "value2"}
+    obj3 = {"key": "value3"}
+    config.mark_visited(obj1, obj2)
+    assert config.is_visited(obj1, obj2)
+    assert not config.is_visited(obj1, obj3)
+    assert not config.is_visited(obj2, obj3)

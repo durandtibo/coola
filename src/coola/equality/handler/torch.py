@@ -52,11 +52,30 @@ class TorchTensorEqualHandler(BaseEqualityHandler):
         expected: torch.Tensor,
         config: EqualityConfig,
     ) -> bool:
+        # Import torch here to handle optional dependency
+        import torch  # noqa: PLC0415
+
+        # Validate that both inputs are actually torch.Tensor
+        if not isinstance(actual, torch.Tensor) or not isinstance(expected, torch.Tensor):
+            msg = (
+                f"Expected both inputs to be torch.Tensor, but got "
+                f"{type(actual).__name__} and {type(expected).__name__}"
+            )
+            raise TypeError(msg)
+
         object_equal = tensor_equal(actual, expected, config)
         if config.show_difference and not object_equal:
-            logger.info(
-                f"torch.Tensors have different elements:\nactual=\n{actual}\nexpected=\n{expected}"
-            )
+            # Avoid printing very large tensors
+            if actual.numel() > 10000 or expected.numel() > 10000:
+                logger.info(
+                    f"torch.Tensors have different elements (tensors too large to display, "
+                    f"shapes: {actual.shape} vs {expected.shape})"
+                )
+            else:
+                logger.info(
+                    f"torch.Tensors have different elements:\n"
+                    f"actual=\n{actual}\nexpected=\n{expected}"
+                )
         return object_equal
 
 
@@ -90,6 +109,17 @@ class TorchTensorSameDeviceHandler(BaseEqualityHandler):
         expected: torch.Tensor,
         config: EqualityConfig,
     ) -> bool:
+        # Import torch here to handle optional dependency
+        import torch  # noqa: PLC0415
+
+        # Validate that both inputs are actually torch.Tensor
+        if not isinstance(actual, torch.Tensor) or not isinstance(expected, torch.Tensor):
+            msg = (
+                f"Expected both inputs to be torch.Tensor, but got "
+                f"{type(actual).__name__} and {type(expected).__name__}"
+            )
+            raise TypeError(msg)
+
         if actual.device != expected.device:
             if config.show_difference:
                 logger.info(

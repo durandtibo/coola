@@ -193,3 +193,25 @@ def test_sequence_same_values_handler_set_next_handler_incorrect() -> None:
     handler = SequenceSameValuesHandler()
     with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)
+
+
+def test_sequence_same_values_handler_circular_reference() -> None:
+    config = EqualityConfig()
+    handler = SequenceSameValuesHandler(TrueHandler())
+    # Create a circular reference - list containing itself
+    obj = []
+    obj.append(obj)
+    # Should not hang or raise RecursionError
+    assert handler.handle(obj, obj, config)
+
+
+def test_sequence_same_values_handler_nested_circular_reference() -> None:
+    config = EqualityConfig()
+    handler = SequenceSameValuesHandler(TrueHandler())
+    # Create nested circular references
+    obj1 = [1, 2]
+    obj2 = [3, 4]
+    obj1.append(obj2)
+    obj2.append(obj1)
+    # Should not hang or raise RecursionError
+    assert handler.handle(obj1, obj1, config)

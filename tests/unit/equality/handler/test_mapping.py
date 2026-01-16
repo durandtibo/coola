@@ -295,3 +295,25 @@ def test_mapping_same_values_handler_set_next_handler_incorrect() -> None:
     handler = MappingSameValuesHandler()
     with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)
+
+
+def test_mapping_same_values_handler_circular_reference() -> None:
+    config = EqualityConfig()
+    handler = MappingSameValuesHandler(TrueHandler())
+    # Create a circular reference
+    obj = {}
+    obj["self"] = obj
+    # Should not hang or raise RecursionError
+    assert handler.handle(obj, obj, config)
+
+
+def test_mapping_same_values_handler_nested_circular_reference() -> None:
+    config = EqualityConfig()
+    handler = MappingSameValuesHandler(TrueHandler())
+    # Create nested circular references
+    obj1 = {"a": 1}
+    obj2 = {"b": 2}
+    obj1["ref"] = obj2
+    obj2["ref"] = obj1
+    # Should not hang or raise RecursionError
+    assert handler.handle(obj1, obj1, config)

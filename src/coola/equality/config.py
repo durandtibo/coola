@@ -63,6 +63,9 @@ class EqualityConfig:
     show_difference: bool = False
     max_depth: int = 1000
     _current_depth: int = field(default=0, init=False, repr=False, compare=False)
+    _visited_ids: set[tuple[int, int]] = field(
+        default_factory=set, init=False, repr=False, compare=False
+    )
 
     def __post_init__(self) -> None:
         """Validate configuration parameters after initialization."""
@@ -75,6 +78,16 @@ class EqualityConfig:
         if self.max_depth <= 0:
             msg = f"max_depth must be positive, but got {self.max_depth}"
             raise ValueError(msg)
+        # Warn about unreasonably large tolerances
+        if self.atol > 1e10 or self.rtol > 1e10:
+            import warnings  # noqa: PLC0415
+
+            warnings.warn(
+                f"Very large tolerance values detected (atol={self.atol}, rtol={self.rtol}). "
+                "This may lead to unexpected equality results.",
+                UserWarning,
+                stacklevel=2,
+            )
 
     @property
     def depth(self) -> int:
@@ -88,3 +101,37 @@ class EqualityConfig:
     def decrement_depth(self) -> None:
         """Increment the current depth counter."""
         self._current_depth -= 1
+
+    def is_visited(self, obj1: object, obj2: object) -> bool:
+        r"""Check if a pair of objects has been visited.
+
+        Args:
+            obj1: The first object to check.
+            obj2: The second object to check.
+
+        Returns:
+            ``True`` if the object pair has been visited, otherwise
+                ``False``.
+        """
+        # Use object IDs to track visited objects
+        pair = (id(obj1), id(obj2))
+        return pair in self._visited_ids
+
+    def mark_visited(self, obj1: object, obj2: object) -> None:
+        r"""Mark a pair of objects as visited.
+
+        Args:
+            obj1: The first object to mark.
+            obj2: The second object to mark.
+        """
+        self._visited_ids.add((id(obj1), id(obj2)))
+
+    def unmark_visited(self, obj1: object, obj2: object) -> None:
+        r"""Unmark a pair of objects as visited.
+
+        Args:
+            obj1: The first object to unmark.
+            obj2: The second object to unmark.
+        """
+        pair = (id(obj1), id(obj2))
+        self._visited_ids.discard(pair)

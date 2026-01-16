@@ -23,6 +23,9 @@ def create_chain(*handlers: BaseEqualityHandler) -> BaseEqualityHandler:
     Returns:
         The first handler of the chain.
 
+    Raises:
+        ValueError: If no handlers are provided or if any handler is None.
+
     Example:
         ```pycon
         >>> from coola.equality.handler import (
@@ -42,6 +45,11 @@ def create_chain(*handlers: BaseEqualityHandler) -> BaseEqualityHandler:
     if not handlers:
         msg = "At least one handler is required to create a chain."
         raise ValueError(msg)
+    # Validate that no handler is None
+    for i, h in enumerate(handlers):
+        if h is None:
+            msg = f"Handler at position {i} is None. All handlers must be valid instances."
+            raise ValueError(msg)
     handler = handlers[0]
     handler.chain_all(*handlers[1:])
     return handler
