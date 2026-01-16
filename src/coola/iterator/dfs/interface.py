@@ -1,6 +1,4 @@
-r"""Define the public interface to recursively iterate over nested
-data.
-"""
+r"""Define the public interface to recursively iterate over nested data."""
 
 from __future__ import annotations
 
@@ -19,8 +17,7 @@ if TYPE_CHECKING:
 
 
 def dfs_iterate(data: object, registry: IteratorRegistry | None = None) -> Iterator[Any]:
-    """Perform Depth-First Search (DFS) iteration over nested data
-    structures (lists, dicts, tuples, sets, etc.).
+    """Perform Depth-First Search (DFS) iteration over nested data structures (lists, dicts, tuples, sets, etc.).
 
     This function yields elements from the data structure in a DFS manner, recursively
     traversing all levels of nested structures. It uses the appropriate iterators registered

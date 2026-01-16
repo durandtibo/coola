@@ -1,6 +1,4 @@
-r"""Contain fallback implementations used when ``torch`` dependency is
-not available.
-"""
+r"""Contain fallback implementations used when ``torch`` dependency is not available."""
 
 from __future__ import annotations
 
@@ -28,8 +26,7 @@ class FakeClass:
 
 
 def fake_function(*args: Any, **kwargs: Any) -> NoReturn:  # noqa: ARG001
-    r"""Fake function that raises an error because torch is not
-    installed.
+    r"""Fake function that raises an error because torch is not installed.
 
     Args:
         *args: Positional arguments.

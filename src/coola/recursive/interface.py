@@ -1,6 +1,4 @@
-r"""Define the public interface to recursively apply a function to all
-items in nested data.
-"""
+r"""Define the public interface to recursively apply a function to all items in nested data."""
 
 from __future__ import annotations
 
@@ -86,8 +84,7 @@ def register_transformers(
 
 
 def get_default_registry() -> TransformerRegistry:
-    """Get or create the default global registry with common Python
-    types.
+    """Get or create the default global registry with common Python types.
 
     Returns a singleton registry instance that is pre-configured with transformers
     for Python's built-in types including sequences (list, tuple), mappings (dict),

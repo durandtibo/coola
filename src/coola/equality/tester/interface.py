@@ -1,6 +1,4 @@
-r"""Define the public interface for equality testers and registry
-management.
-"""
+r"""Define the public interface for equality testers and registry management."""
 
 from __future__ import annotations
 
@@ -108,8 +106,7 @@ def register_equality_testers(
 
 
 def get_default_registry() -> EqualityTesterRegistry:
-    """Get or create the default global registry with common Python
-    types.
+    """Get or create the default global registry with common Python types.
 
     Returns a singleton registry instance that is pre-configured with equality testers
     for Python's built-in types including sequences (list, tuple), mappings (dict),
