@@ -8,7 +8,6 @@ import logging
 from typing import TYPE_CHECKING, Protocol
 
 from coola.equality.handler.base import BaseEqualityHandler
-from coola.equality.handler.utils import handlers_are_equal
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -56,10 +55,6 @@ class SameShapeHandler(BaseEqualityHandler):
         ```
     """
 
-    def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
-            return False
-        return handlers_are_equal(self.next_handler, other.next_handler)
 
     def handle(
         self, actual: SupportsShape, expected: SupportsShape, config: EqualityConfig
