@@ -44,7 +44,8 @@ logger = logging.getLogger(__name__)
 
 
 def check_imports() -> None:
-    r"""Check that all main package objects can be imported correctly."""
+    r"""Check that all main package objects can be imported
+    correctly."""
     logger.info("Checking imports...")
     objects_to_import = [
         "coola.equality.config.EqualityConfig",
@@ -187,7 +188,8 @@ def check_equality_torch() -> None:
 
 @xarray_available
 def check_equality_xarray() -> None:
-    r"""Check equality operations for xarray DataArrays, Datasets, and Variables."""
+    r"""Check equality operations for xarray DataArrays, Datasets, and
+    Variables."""
     logger.info("Checking xarray equality testers...")
     assert is_xarray_available()
     # DataArray
@@ -300,9 +302,9 @@ def check_registry() -> None:
     registry.register("a", 1)
     registry.register("b", 2)
     registry.register("c", 3)
-    assert registry.equal(
-        Registry[str, int]({"a": 1, "b": 2, "c": 3})
-    ), "Registry equality check failed"
+    assert registry.equal(Registry[str, int]({"a": 1, "b": 2, "c": 3})), (
+        "Registry equality check failed"
+    )
 
 
 def check_summary() -> None:
@@ -314,7 +316,8 @@ def check_summary() -> None:
 
 
 def main() -> None:
-    r"""Run all package checks to validate installation and functionality."""
+    r"""Run all package checks to validate installation and
+    functionality."""
     try:
         check_imports()
         check_equality_native()
