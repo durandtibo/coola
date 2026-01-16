@@ -1,4 +1,5 @@
-r"""Define the public interface for managing random number generator state across different libraries.
+r"""Define the public interface for managing random number generator
+state across different libraries.
 
 This module provides a unified interface for controlling random number
 generators (RNGs) from multiple libraries like Python's random module,
@@ -36,7 +37,8 @@ if TYPE_CHECKING:
 def random_seed(
     seed: int, manager: RandomManagerRegistry | None = None
 ) -> Generator[None, None, None]:
-    r"""Implement a context manager to manage the random seed and random number generator (RNG) state.
+    r"""Implement a context manager to manage the random seed and random
+    number generator (RNG) state.
 
     The context manager sets the specified random seed and
     restores the original RNG state afterward.
@@ -152,7 +154,8 @@ def register_managers(mapping: Mapping[str, BaseRandomManager], exist_ok: bool =
 
 
 def get_default_registry() -> RandomManagerRegistry:
-    """Get or create the default global registry with common random managers.
+    """Get or create the default global registry with common random
+    managers.
 
     Returns a singleton registry instance that is pre-configured with managers
     for common random number generation libraries including Python's random module,

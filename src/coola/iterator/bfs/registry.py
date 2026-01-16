@@ -1,4 +1,5 @@
-r"""Define the child finder registry for managing child finders used for breadth-first traversal of nested data structures."""
+r"""Define the child finder registry for managing child finders used for
+breadth-first traversal of nested data structures."""
 
 from __future__ import annotations
 
@@ -17,7 +18,8 @@ if TYPE_CHECKING:
 
 
 class ChildFinderRegistry:
-    r"""Registry that manages child finders for breadth-first traversal of nested data structures.
+    r"""Registry that manages child finders for breadth-first traversal
+    of nested data structures.
 
     This registry maps Python data types to ``BaseChildFinder`` instances.
     During traversal, the registry selects the most specific child finder
@@ -170,7 +172,8 @@ class ChildFinderRegistry:
         self._state.register_many(mapping, exist_ok)
 
     def has_child_finder(self, data_type: type) -> bool:
-        r"""Check if a child finder is directly registered for a data type.
+        r"""Check if a child finder is directly registered for a data
+        type.
 
         This method only checks for an exact type match in the registry.
         Even if this returns ``False``, a suitable child finder may still
@@ -228,7 +231,8 @@ class ChildFinderRegistry:
         return self._state.resolve(data_type)
 
     def find_children(self, data: object) -> Iterator[Any]:
-        r"""Return the immediate children of an object using its child finder.
+        r"""Return the immediate children of an object using its child
+        finder.
 
         This method does not perform traversal by itself. It delegates
         to the appropriate child finder for the object's type.
@@ -258,7 +262,8 @@ class ChildFinderRegistry:
         yield from child_finder.find_children(data)
 
     def iterate(self, data: object) -> Iterator[Any]:
-        r"""Perform a breadth-first traversal over a nested data structure.
+        r"""Perform a breadth-first traversal over a nested data
+        structure.
 
         This method traverses the input data using breadth-first search
         (BFS). Container objects (mappings and iterables, excluding

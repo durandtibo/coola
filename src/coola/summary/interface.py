@@ -96,7 +96,8 @@ def register_summarizers(
 
 
 def get_default_registry() -> SummarizerRegistry:
-    """Get or create the default global registry with common Python types.
+    """Get or create the default global registry with common Python
+    types.
 
     Returns a singleton registry instance that is pre-configured with summarizers
     for Python's built-in types including sequences (list, tuple), mappings (dict),

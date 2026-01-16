@@ -78,7 +78,8 @@ class EqualEqualityTester(BaseEqualityTester[object]):
 
 
 class EqualNanEqualityTester(BaseEqualityTester[object]):
-    r"""Implement an equality tester for objects with NaN-aware equal method.
+    r"""Implement an equality tester for objects with NaN-aware equal
+    method.
 
     This tester is designed for objects that implement an ``equal(other, equal_nan)``
     method that supports NaN equality. When config.equal_nan is True, NaN values

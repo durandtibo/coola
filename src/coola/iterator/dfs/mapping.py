@@ -1,4 +1,5 @@
-r"""Define a DFS iterator class for handling mapping data in traversal."""
+r"""Define a DFS iterator class for handling mapping data in
+traversal."""
 
 from __future__ import annotations
 
