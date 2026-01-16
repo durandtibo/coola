@@ -55,171 +55,130 @@
 
 ## Overview
 
-`coola` is a Python library that provides simple functions to check in a single line if two
-complex/nested objects are equal or not.
-`coola` was initially designed to work
-with [PyTorch `Tensor`s](https://pytorch.org/docs/stable/tensors.html)
-and [NumPy `ndarray`](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html), but it
-is possible to extend it
-to [support other data structures](https://durandtibo.github.io/coola/uguide/equality_handler).
+`coola` is a lightweight Python library for comparing complex and nested data structures.
+It provides simple, extensible functions to check equality between objects containing
+[PyTorch tensors](https://pytorch.org/docs/stable/tensors.html),
+[NumPy arrays](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html),
+pandas/polars DataFrames, and other scientific computing objects.
 
-- [Motivation](#motivation)
-- [Documentation](https://durandtibo.github.io/coola/)
+**Quick Links:**
+- [Documentation](https://durandtibo.github.io/coola/) | [Quickstart](https://durandtibo.github.io/coola/quickstart)
 - [Installation](#installation)
+- [Features](#features)
 - [Contributing](#contributing)
-- [API stability](#api-stability)
-- [License](#license)
-- [Security](SECURITY.md)
+- [License](#license) | [Security](SECURITY.md)
 
-## Motivation
+## Why coola?
 
-Let's imagine you have the following dictionaries that contain both a PyTorch `Tensor` and a
-NumPy `ndarray`.
-You want to check if the two dictionaries are equal or not.
-By default, Python does not provide an easy way to check if the two dictionaries are equal or not.
-It is not possible to use the default equality operator `==` because it will raise an error.
-The `coola` library was developed to fill this gap. `coola` provides a function `objects_are_equal`
-that can indicate if two complex/nested objects are equal or not.
+Python's native equality operator `==` doesn't work well with complex nested structures
+containing tensors, arrays, or DataFrames. `coola` solves this with simple comparison functions:
 
 ```pycon
-
->>> import numpy
+>>> import numpy as np
 >>> import torch
 >>> from coola.equality import objects_are_equal
->>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
->>> data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
+>>> data1 = {"torch": torch.ones(2, 3), "numpy": np.zeros((2, 3))}
+>>> data2 = {"torch": torch.ones(2, 3), "numpy": np.zeros((2, 3))}
 >>> objects_are_equal(data1, data2)
-False
-
+True
 ```
 
-`coola` also provides a function `objects_are_allclose` that can indicate if two complex/nested
-objects are equal within a tolerance or not.
+For numerical comparisons with tolerance:
 
 ```pycon
-
->>> import numpy
->>> import torch
 >>> from coola.equality import objects_are_allclose
->>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
->>> data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
->>> objects_are_allclose(data1, data2, atol=1e-6)
-False
-
+>>> data1 = {"value": 1.0}
+>>> data2 = {"value": 1.0 + 1e-9}
+>>> objects_are_allclose(data1, data2)
+True
 ```
 
-`coola` supports the following types:
+See the [quickstart guide](https://durandtibo.github.io/coola/quickstart) for detailed examples.
 
-- [`jax.numpy.ndarray`](https://jax.readthedocs.io/en/latest/index.html)
-- [`numpy.ndarray`](https://numpy.org/doc/stable/index.html)
-- [`numpy.ma.MaskedArray`](https://numpy.org/doc/stable/reference/maskedarray.generic.html)
-- [`pandas.DataFrame`](https://pandas.pydata.org/)
-- [`pandas.Series`](https://pandas.pydata.org/)
-- [`polars.DataFrame`](https://www.pola.rs/)
-- [`polars.Series`](https://www.pola.rs/)
-- [`torch.Tensor`](https://pytorch.org/)
-- [`torch.nn.utils.rnn.PackedSequence`](https://pytorch.org/)
-- [`xarray.DataArray`](https://docs.xarray.dev/en/stable/)
-- [`xarray.Dataset`](https://docs.xarray.dev/en/stable/)
-- [`xarray.Variable`](https://docs.xarray.dev/en/stable/)
+## Features
 
-Please check the [quickstart page](https://durandtibo.github.io/coola/quickstart) to learn more on
-how to use `coola`.
+`coola` provides a comprehensive set of utilities for working with complex data structures:
 
-## Documentation
+### 🔍 **Equality Comparison**
+Compare complex nested objects with support for multiple data types.
+- **Exact equality**: `objects_are_equal()` for strict comparison
+- **Approximate equality**: `objects_are_allclose()` for numerical tolerance
+- **Extensible**: Add custom comparators for your own types
+- [Learn more →](https://durandtibo.github.io/coola/uguide/equality)
 
-- [latest (stable)](https://durandtibo.github.io/coola/): documentation from the latest stable
-  release.
-- [main (unstable)](https://durandtibo.github.io/coola/main/): documentation associated to the main
-  branch of the repo. This documentation may contain a lot of work-in-progress/outdated/missing
-  parts.
+**Supported types:**
+[JAX](https://jax.readthedocs.io/) •
+[NumPy](https://numpy.org/) •
+[pandas](https://pandas.pydata.org/) •
+[polars](https://www.pola.rs/) •
+[PyArrow](https://arrow.apache.org/docs/python/) •
+[PyTorch](https://pytorch.org/) •
+[xarray](https://docs.xarray.dev/) •
+Python built-ins
+
+See the [full list of supported types →](https://durandtibo.github.io/coola/uguide/equality_types)
+
+### 📊 **Data Summarization**
+Generate human-readable summaries of nested data structures for debugging and logging.
+- Configurable depth control
+- Type-specific formatting
+- Truncation for large collections
+- [Learn more →](https://durandtibo.github.io/coola/uguide/summary)
+
+### 🧪 **Testing Utilities**
+Pytest fixtures and markers for handling optional dependencies in your tests.
+- [Learn more →](https://durandtibo.github.io/coola/uguide/testing)
+
+### 🔧 **Additional Utilities**
+- **Nested operations**: Work with deeply nested data structures ([docs](https://durandtibo.github.io/coola/uguide/nested))
+- **Iterators**: Traverse nested structures ([docs](https://durandtibo.github.io/coola/uguide/iterator))
+- **Reducers**: Aggregate values in nested structures ([docs](https://durandtibo.github.io/coola/uguide/reducer))
+- **Random utilities**: Generate random data structures ([docs](https://durandtibo.github.io/coola/uguide/random))
+- **Recursive utilities**: Apply functions recursively ([docs](https://durandtibo.github.io/coola/uguide/recursive))
 
 ## Installation
 
-We highly recommend installing
-a [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/).
-`coola` can be installed from pip using the following command:
+We highly recommend installing in a
+[virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/).
+
+### Using pip (recommended)
 
 ```shell
 pip install coola
 ```
 
-To make the package as slim as possible, only the minimal packages required to use `coola` are
-installed.
-To include all the dependencies, you can use the following command:
+This installs the minimal required dependencies. To include all optional dependencies:
 
 ```shell
 pip install coola[all]
 ```
 
-Please check the [get started page](https://durandtibo.github.io/coola/get_started) to see how to
-install only some specific dependencies or other alternatives to install the library.
-The following is the corresponding `coola` versions and tested dependencies.
+Or install specific optional dependencies:
 
-| `coola`  | `jax`<sup>*</sup> | `numpy`<sup>*</sup> | `packaging`<sup>*</sup> | `pandas`<sup>*</sup> | `polars`<sup>*</sup> | `pyarrow`<sup>*</sup> | `torch`<sup>*</sup> | `xarray`<sup>*</sup> | `python`       |
-|----------|-------------------|---------------------|-------------------------|----------------------|----------------------|-----------------------|---------------------|----------------------|----------------|
-| `main`   | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<22.0`        | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10`       |
-| `0.11.1` | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<22.0`        | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10`       |
-| `0.11.0` | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<22.0`        | `>=2.0,<3.0`        | `>=2023.1`           | `>=3.10`       |
-| `0.10.0` | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<22.0`        | `>=2.0,<3.0`        | `>=2023.1`           | `>=3.10`       |
-| `0.9.1`  | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0,<26.0`          | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<22.0`        | `>=2.0,<3.0`        | `>=2023.1`           | `>=3.10,<3.15` |
-| `0.9.0`  | `>=0.4.6,<1.0`    | `>=1.24,<3.0`       | `>=22.0,<26.0`          | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<20.0`        | `>=2.0,<3.0`        | `>=2023.1`           | `>=3.9,<3.14`  |
+```shell
+pip install coola  # minimal installation
+pip install coola[numpy,torch]  # with NumPy and PyTorch
+```
 
-<sup>*</sup> indicates an optional dependency
+### Requirements
 
-<details>
-    <summary>older versions</summary>
+- **Python**: 3.10 or higher
+- **Dependencies**: No required dependencies (all are optional)
 
-| `coola`  | `jax`<sup>*</sup> | `numpy`<sup>*</sup> | `packaging`<sup>*</sup> | `pandas`<sup>*</sup> | `polars`<sup>*</sup> | `pyarrow`<sup>*</sup> | `torch`<sup>*</sup> | `xarray`<sup>*</sup> | `python`      |
-|----------|-------------------|---------------------|-------------------------|----------------------|----------------------|-----------------------|---------------------|----------------------|---------------|
-| `0.8.7`  | `>=0.4.6,<1.0`    | `>=1.22,<3.0`       | `>=21.0,<26.0`          | `>=1.5,<3.0`         | `>=1.0,<2.0`         | `>=10.0,<20.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.14` |
-| `0.8.6`  | `>=0.4.6,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      | `>=10.0,<20.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.14` |
-| `0.8.5`  | `>=0.4.6,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      | `>=10.0,<19.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.14` |
-| `0.8.4`  | `>=0.4.6,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      | `>=10.0,<18.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.14` |
-| `0.8.3`  | `>=0.4.1,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      | `>=10.0,<18.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.13` |
-| `0.8.2`  | `>=0.4.1,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      | `>=10.0,<18.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.13` |
-| `0.8.1`  | `>=0.4.1,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      | `>=10.0,<18.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.13` |
-| `0.8.0`  | `>=0.4.1,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      | `>=10.0,<18.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.13` |
-| `0.7.4`  | `>=0.4.1,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      | `>=10.0,<18.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.13` |
-| `0.7.3`  | `>=0.4.1,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      |                       | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.13` |
-| `0.7.2`  | `>=0.4.1,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      |                       | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.13` |
-| `0.7.1`  | `>=0.4.1,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<3.0`       | `>=2023.1`           | `>=3.9,<3.13` |
-| `0.7.0`  | `>=0.4.1,<1.0`    | `>=1.21,<2.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<3.0`       | `>=2023.1`           | `>=3.9,<3.13` |
-| `0.6.2`  | `>=0.4.1,<1.0`    | `>=1.21,<2.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<3.0`       | `>=2023.1`           | `>=3.9,<3.13` |
-| `0.6.1`  | `>=0.4.1,<1.0`    | `>=1.21,<2.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<3.0`       | `>=2023.1`           | `>=3.9,<3.13` |
-| `0.6.0`  | `>=0.4.1,<1.0`    | `>=1.21,<2.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<3.0`       | `>=2023.1`           | `>=3.9,<3.13` |
-| `0.5.0`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13` |
-| `0.4.0`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13` |
-| `0.3.1`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13` |
-| `0.3.0`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13` |
-| `0.2.2`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13` |
-| `0.2.1`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13` |
-| `0.2.0`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13` |
-| `0.1.2`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<0.21`     |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13` |
-| `0.1.1`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<0.20`     |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13` |
-| `0.1.0`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<0.20`     |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.12` |
-| `0.0.26` | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<0.20`     |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.12` |
-| `0.0.25` | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<0.20`     |                       | `>=1.10,<2.2`       | `>=2023.4,<2023.11`  | `>=3.9,<3.12` |
-| `0.0.24` | `>=0.3,<0.5`      | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<0.20`     |                       | `>=1.10,<2.2`       | `>=2023.3,<2023.9`   | `>=3.9,<3.12` |
-| `0.0.23` | `>=0.3,<0.5`      | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<0.20`     |                       | `>=1.10,<2.1`       | `>=2023.3,<2023.9`   | `>=3.9,<3.12` |
-| `0.0.22` | `>=0.3,<0.5`      | `>=1.20,<1.26`      |                         | `>=1.3,<2.1`         | `>=0.18.3,<0.19`     |                       | `>=1.10,<2.1`       | `>=2023.3,<2023.9`   | `>=3.9,<3.12` |
-| `0.0.21` | `>=0.3,<0.5`      | `>=1.20,<1.26`      |                         | `>=1.3,<2.1`         | `>=0.18.3,<0.19`     |                       | `>=1.10,<2.1`       | `>=2023.3,<2023.8`   | `>=3.9,<3.12` |
-| `0.0.20` | `>=0.3,<0.5`      | `>=1.20,<1.26`      |                         | `>=1.3,<2.1`         | `>=0.18.3,<0.19`     |                       | `>=1.10,<2.1`       | `>=2023.3,<2023.8`   | `>=3.9`       |
+**Optional dependencies** (installed with `coola[all]`):
+JAX • NumPy • pandas • polars • PyArrow • PyTorch • xarray
 
-</details>
+For detailed installation instructions, compatibility information, and alternative installation
+methods, see the [installation guide](https://durandtibo.github.io/coola/get_started).
 
 ## Contributing
 
-Please check the instructions in [CONTRIBUTING.md](CONTRIBUTING.md).
+Contributions are welcome! Please check the [contributing guidelines](CONTRIBUTING.md) for details on:
+- Setting up the development environment
+- Code style and testing requirements
+- Submitting pull requests
 
-## Suggestions and Communication
-
-Everyone is welcome to contribute to the community.
-If you have any questions or suggestions, you can
-submit [Github Issues](https://github.com/durandtibo/coola/issues).
-We will reply to you as soon as possible. Thank you very much.
-
-## API stability
+## API Stability
 
 :warning: While `coola` is in development stage, no API is guaranteed to be stable from one
 release to the next.
