@@ -125,29 +125,42 @@ Generate human-readable summaries of nested data structures for debugging and lo
 - Truncation for large collections
 - [Learn more →](https://durandtibo.github.io/coola/uguide/summary)
 
-### 🧪 **Testing Utilities**
-Pytest fixtures and markers for handling optional dependencies in your tests.
-- [Learn more →](https://durandtibo.github.io/coola/uguide/testing)
-
-### 🔧 **Additional Utilities**
-- **Nested operations**: Work with deeply nested data structures ([docs](https://durandtibo.github.io/coola/uguide/nested))
-- **Iterators**: Traverse nested structures ([docs](https://durandtibo.github.io/coola/uguide/iterator))
-- **Reducers**: Aggregate values in nested structures ([docs](https://durandtibo.github.io/coola/uguide/reducer))
-- **Random utilities**: Generate random data structures ([docs](https://durandtibo.github.io/coola/uguide/random))
-- **Recursive utilities**: Apply functions recursively ([docs](https://durandtibo.github.io/coola/uguide/recursive))
+### 🔧 **Nested Data Operations**
+Utilities for manipulating and working with nested data structures.
+- **Data conversion**: Convert between list-of-dicts and dict-of-lists formats
+- **Mapping utilities**: Flatten nested dictionaries, extract values, filter keys
+- **Iteration**: Traverse nested structures using depth-first or breadth-first search
+- **Reduction**: Compute statistics on sequences with multiple backends (native Python, NumPy, PyTorch)
+- [Learn more →](https://durandtibo.github.io/coola/uguide/nested) | [Iterator docs](https://durandtibo.github.io/coola/uguide/iterator) | [Reducer docs](https://durandtibo.github.io/coola/uguide/reducer)
 
 ## Installation
 
 We highly recommend installing in a
 [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/).
 
-### Using pip (recommended)
+### Using uv (recommended)
+
+[`uv`](https://docs.astral.sh/uv/) is a fast Python package installer and resolver:
+
+```shell
+uv pip install coola
+```
+
+To include all optional dependencies:
+
+```shell
+uv pip install coola[all]
+```
+
+### Using pip
+
+Alternatively, you can use `pip`:
 
 ```shell
 pip install coola
 ```
 
-This installs the minimal required dependencies. To include all optional dependencies:
+To include all optional dependencies:
 
 ```shell
 pip install coola[all]
