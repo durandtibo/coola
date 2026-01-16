@@ -311,14 +311,6 @@ your changes.
 before reaching version 1.0.0. We recommend pinning to a specific version in your project's
 dependencies to avoid unexpected breaking changes when upgrading.
 
-Example:
-```toml
-# pyproject.toml
-dependencies = [
-    "coola==0.11.1",  # Pin to a specific version
-]
-```
-
 ## License
 
 `coola` is licensed under BSD 3-Clause "New" or "Revised" license available in [LICENSE](LICENSE)
