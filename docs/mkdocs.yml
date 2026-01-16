@@ -24,6 +24,7 @@ theme:
 nav:
   - Home: index.md
   - get_started.md
+  - migration_v0.11_to_v1.0.md
   - User Guide:
       - uguide/quickstart.md
       - uguide/equality.md
