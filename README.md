@@ -114,7 +114,7 @@ Compare complex nested objects with support for multiple data types.
 [PyArrow](https://arrow.apache.org/docs/python/) •
 [PyTorch](https://pytorch.org/) •
 [xarray](https://docs.xarray.dev/) •
-Python built-ins
+Python built-ins (dict, list, tuple, set, etc.)
 
 See the [full list of supported types →](https://durandtibo.github.io/coola/uguide/equality_types)
 
@@ -166,7 +166,13 @@ pip install coola[numpy,torch]  # with NumPy and PyTorch
 - **Dependencies**: No required dependencies (all are optional)
 
 **Optional dependencies** (installed with `coola[all]`):
-JAX • NumPy • pandas • polars • PyArrow • PyTorch • xarray
+[JAX](https://jax.readthedocs.io/) •
+[NumPy](https://numpy.org/) •
+[pandas](https://pandas.pydata.org/) •
+[polars](https://www.pola.rs/) •
+[PyArrow](https://arrow.apache.org/docs/python/) •
+[PyTorch](https://pytorch.org/) •
+[xarray](https://docs.xarray.dev/)
 
 For detailed installation instructions, compatibility information, and alternative installation
 methods, see the [installation guide](https://durandtibo.github.io/coola/get_started).
