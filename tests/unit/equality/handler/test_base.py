@@ -176,6 +176,24 @@ def test_set_next_handler_handler_incorrect() -> None:
         handler.set_next_handler(42)
 
 
+def test_validate_chain_1_handler() -> None:
+    handler = SameObjectHandler()
+    handler.validate_chain()
+
+
+def test_validate_chain_multiple_handlers() -> None:
+    handler = SameObjectHandler()
+    handler.chain_all(SameTypeHandler(), SameLengthHandler(), ObjectEqualHandler())
+    handler.validate_chain()
+
+
+def test_validate_chain_multiple_handlers_with_cycle() -> None:
+    handler = SameObjectHandler()
+    handler.chain_all(SameTypeHandler(), SameLengthHandler(), handler)
+    with pytest.raises(RuntimeError, match=r"Cycle detected in the chain"):
+        handler.validate_chain()
+
+
 def test_visualize_chain_without_next_handler() -> None:
     assert SameObjectHandler().visualize_chain() == "(0): SameObjectHandler()"
 
