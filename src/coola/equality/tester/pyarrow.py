@@ -29,7 +29,8 @@ if TYPE_CHECKING:
 
 
 class PyarrowEqualityTester(BaseEqualityTester[pa.Array]):
-    r"""Implement an equality tester for ``pyarrow.Array``s and ``pyarrow.Table``s.
+    r"""Implement an equality tester for ``pyarrow.Array``s and
+    ``pyarrow.Table``s.
 
     This tester uses PyArrow's equals() method for comparison. The handler chain:
     1. SameObjectHandler: Check for object identity

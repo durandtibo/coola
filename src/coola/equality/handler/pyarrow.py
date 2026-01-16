@@ -67,7 +67,8 @@ class PyarrowEqualHandler(BaseEqualityHandler):
 def object_equal(
     obj1: pa.Array | pa.Table, obj2: pa.Array | pa.Table, config: EqualityConfig
 ) -> bool:
-    r"""Indicate if the two arrays or tables are equal within a tolerance.
+    r"""Indicate if the two arrays or tables are equal within a
+    tolerance.
 
     ``config.equal_nan``, ``config.atol`` and ``config.rtol``
     arguments are ignored.
