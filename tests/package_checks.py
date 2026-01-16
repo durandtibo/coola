@@ -5,8 +5,12 @@ import logging
 import random
 
 from coola.equality import objects_are_allclose, objects_are_equal
+from coola.iterator import bfs_iterate, dfs_iterate
 from coola.random import manual_seed
+from coola.recursive import recursive_apply
 from coola.reducer import NativeReducer
+from coola.registry import Registry
+from coola.summary import summarize
 from coola.utils.imports import (
     is_jax_available,
     is_numpy_available,
@@ -41,14 +45,30 @@ logger = logging.getLogger(__name__)
 def check_imports() -> None:
     logger.info("Checking imports...")
     objects_to_import = [
-        "coola.equality.comparators.BaseEqualityComparator",
-        "coola.equality.testers.BaseEqualityTester",
-        "coola.objects_are_allclose",
-        "coola.objects_are_equal",
+        "coola.equality.config.EqualityConfig",
+        "coola.equality.handler.BaseEqualityHandler",
+        "coola.equality.objects_are_allclose",
+        "coola.equality.objects_are_equal",
+        "coola.equality.tester.BaseEqualityTester",
+        "coola.iterator.bfs.BaseChildFinder",
+        "coola.iterator.bfs.ChildFinderRegistry",
+        "coola.iterator.bfs_iterate",
+        "coola.iterator.dfs.BaseIterator",
+        "coola.iterator.dfs.IteratorRegistry",
+        "coola.iterator.dfs_iterate",
+        "coola.nested.to_flat_dict",
+        "coola.random.BaseRandomManager",
+        "coola.random.RandomManagerRegistry",
+        "coola.random.random_seed",
+        "coola.recursive.BaseTransformer",
+        "coola.recursive.TransformerRegistry",
+        "coola.recursive.recursive_apply",
         "coola.reducer.BaseReducer",
-        "coola.summary.summarize",
+        "coola.registry.Registry",
+        "coola.registry.TypeRegistry",
         "coola.summary.BaseSummarizer",
         "coola.summary.SummarizerRegistry",
+        "coola.summary.summarize",
     ]
     for a in objects_to_import:
         module_path, name = a.rsplit(".", maxsplit=1)
@@ -57,8 +77,8 @@ def check_imports() -> None:
         assert obj is not None
 
 
-def check_native_comparators() -> None:
-    logger.info("Checking native comparators...")
+def check_equality_native() -> None:
+    logger.info("Checking native equality testers...")
     assert objects_are_allclose("cat", "cat")
     assert objects_are_allclose(4.2, 4.2)
     assert objects_are_allclose([4.2, 2], [4.2, 2])
@@ -71,24 +91,24 @@ def check_native_comparators() -> None:
 
 
 @jax_available
-def check_jax_comparators() -> None:
-    logger.info("Checking jax comparators...")
+def check_equality_jax() -> None:
+    logger.info("Checking jax equality testers...")
     assert is_jax_available()
     assert objects_are_allclose(jnp.ones((2, 3)), jnp.ones((2, 3)))
     assert objects_are_equal(jnp.ones((2, 3)), jnp.ones((2, 3)))
 
 
 @numpy_available
-def check_numpy_comparators() -> None:
-    logger.info("Checking numpy comparators...")
+def check_equality_numpy() -> None:
+    logger.info("Checking numpy equality testers...")
     assert is_numpy_available()
     assert objects_are_allclose(np.ones((2, 3)), np.ones((2, 3)))
     assert objects_are_equal(np.ones((2, 3)), np.ones((2, 3)))
 
 
 @pandas_available
-def check_pandas_comparators() -> None:
-    logger.info("Checking pandas comparators...")
+def check_equality_pandas() -> None:
+    logger.info("Checking pandas equality testers...")
     assert is_pandas_available()
     assert objects_are_allclose(
         pd.DataFrame(
@@ -137,8 +157,8 @@ def check_pandas_comparators() -> None:
 
 
 @polars_available
-def check_polars_comparators() -> None:
-    logger.info("Checking polars comparators...")
+def check_equality_polars() -> None:
+    logger.info("Checking polars equality testers...")
     assert is_polars_available()
     assert objects_are_allclose(
         pl.DataFrame(
@@ -187,8 +207,8 @@ def check_polars_comparators() -> None:
 
 
 @torch_available
-def check_torch_comparators() -> None:
-    logger.info("Checking torch comparators...")
+def check_equality_torch() -> None:
+    logger.info("Checking torch equality testers...")
     assert is_torch_available()
     # Tensor
     assert objects_are_allclose(torch.ones(2, 3), torch.ones(2, 3))
@@ -222,8 +242,8 @@ def check_torch_comparators() -> None:
 
 
 @xarray_available
-def check_xarray_comparators() -> None:
-    logger.info("Checking xarray comparators...")
+def check_equality_xarray() -> None:
+    logger.info("Checking xarray equality testers...")
     assert is_xarray_available()
     # DataArray
     assert objects_are_allclose(
@@ -280,6 +300,25 @@ def check_xarray_comparators() -> None:
     )
 
 
+def check_iterator_bfs() -> None:
+    logger.info("Checking iterator BFS...")
+    assert objects_are_equal(
+        list(bfs_iterate({"a": {"b": 2, "c": {"d": 1, "e": 4}}, "d": 3})), [3, 2, 1, 4]
+    )
+
+
+def check_iterator_dfs() -> None:
+    logger.info("Checking iterator BFS...")
+    assert objects_are_equal(
+        list(
+            dfs_iterate(
+                {"a": {"b": [1, 2], "c": 3}, "d": 4},
+            )
+        ),
+        [1, 2, 3, 4],
+    )
+
+
 def check_random() -> None:
     logger.info("Checking random managers...")
     manual_seed(42)
@@ -291,26 +330,51 @@ def check_random() -> None:
     assert x1 != x2
 
 
-def check_reduction() -> None:
-    logger.info("Checking reduction...")
+def check_recursive() -> None:
+    logger.info("Checking recursive...")
+    assert objects_are_equal(recursive_apply([1, 2, 3], lambda x: x * 2), [2, 4, 6])
+
+
+def check_reducer() -> None:
+    logger.info("Checking reducer...")
     reducer = NativeReducer()
     assert reducer.max([-2, -1, 0, 1, 2]) == 2
     assert reducer.median([-2, -1, 0, 1, 2]) == 0
     assert reducer.sort([2, 1, -2, 3, 0]) == [-2, 0, 1, 2, 3]
 
 
+def check_registry() -> None:
+    logger.info("Checking registry...")
+    registry = Registry[str, int]()
+    registry.register("a", 1)
+    registry.register("b", 2)
+    registry.register("c", 3)
+    assert registry.equal(Registry[str, int]({"a": 1, "b": 2, "c": 3}))
+
+
+def check_summary() -> None:
+    logger.info("Checking summary...")
+    assert summarize({"a": 1, "b": 2}) == "<class 'dict'> (length=2)\n  (a): 1\n  (b): 2"
+
+
 def main() -> None:
     check_imports()
-    check_native_comparators()
-    check_jax_comparators()
-    check_numpy_comparators()
-    check_pandas_comparators()
-    check_polars_comparators()
-    check_torch_comparators()
-    check_xarray_comparators()
+    check_equality_native()
+    check_equality_jax()
+    check_equality_numpy()
+    check_equality_pandas()
+    check_equality_polars()
+    check_equality_torch()
+    check_equality_xarray()
+
+    check_iterator_bfs()
+    check_iterator_dfs()
 
     check_random()
-    check_reduction()
+    check_recursive()
+    check_reducer()
+    check_registry()
+    check_summary()
 
 
 if __name__ == "__main__":
