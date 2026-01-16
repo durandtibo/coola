@@ -232,11 +232,6 @@ so `objects_are_allclose` returns true, whereas `objects_are_equal` returns fals
 It is possible to control the tolerance with the arguments `atol` and `rtol`. `atol` controls the
 absolute tolerance and `rtol` controls the relative tolerance.
 
-### Tolerance
-
-It is possible to control the tolerance with the arguments `atol` and `rtol`. `atol` controls the
-absolute tolerance and `rtol` controls the relative tolerance.
-
 ```pycon
 
 >>> import numpy
