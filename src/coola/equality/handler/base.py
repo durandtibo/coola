@@ -222,7 +222,6 @@ class BaseEqualityHandler(ABC):
             >>> handler = SameObjectHandler()
             >>> handler.chain_all(SameTypeHandler(), SameLengthHandler(), ObjectEqualHandler())
             >>> handler.validate_chain()
-            4
 
             ```
         """
