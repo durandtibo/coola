@@ -1,4 +1,5 @@
-r"""Define the equality tester registry for recursive equality comparison.
+r"""Define the equality tester registry for recursive equality
+comparison.
 
 This module provides a registry system that manages and dispatches
 equality testers based on data types, enabling recursive equality
@@ -21,7 +22,8 @@ if TYPE_CHECKING:
 
 
 class EqualityTesterRegistry:
-    """Registry that manages and dispatches equality testers based on data type.
+    """Registry that manages and dispatches equality testers based on
+    data type.
 
     This registry maintains a mapping from Python types to equality tester instances
     and uses the Method Resolution Order (MRO) for type lookup. When checking
@@ -159,7 +161,8 @@ class EqualityTesterRegistry:
         self._state.register_many(mapping, exist_ok=exist_ok)
 
     def has_equality_tester(self, data_type: type) -> bool:
-        """Check if an equality tester is explicitly registered for the given type.
+        """Check if an equality tester is explicitly registered for the
+        given type.
 
         Note that this only checks for direct registration. Even if this returns
         False, find_equality_tester() may still return a tester via MRO lookup
@@ -223,7 +226,8 @@ class EqualityTesterRegistry:
         return self._state.resolve(data_type)
 
     def objects_are_equal(self, actual: object, expected: object, config: EqualityConfig) -> bool:
-        """Check if two objects are equal by recursively comparing their structure.
+        """Check if two objects are equal by recursively comparing their
+        structure.
 
         This is the main entry point for equality checking. It automatically:
         1. Determines the actual object's type

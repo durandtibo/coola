@@ -1,4 +1,5 @@
-r"""Define the manager registry for random number generator state management.
+r"""Define the manager registry for random number generator state
+management.
 
 This module provides a registry system that manages random number
 generator managers, allowing coordinated control of multiple RNG states

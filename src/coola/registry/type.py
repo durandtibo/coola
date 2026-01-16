@@ -17,7 +17,8 @@ T = TypeVar("T")
 
 
 class TypeRegistry(Generic[T]):
-    r"""A thread-safe type-based registry for storing and retrieving values.
+    r"""A thread-safe type-based registry for storing and retrieving
+    values.
 
     The TypeRegistry class provides a thread-safe container for mapping Python
     types to values. It supports standard dictionary operations through operator
@@ -474,7 +475,8 @@ class TypeRegistry(Generic[T]):
             return self._cache[dtype]
 
     def unregister(self, dtype: type) -> T:
-        """Remove a type-value pair from the registry and return the value.
+        """Remove a type-value pair from the registry and return the
+        value.
 
         This method removes the specified type from the registry and returns
         the value that was associated with it. This allows you to retrieve
