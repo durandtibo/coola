@@ -55,105 +55,174 @@
 
 ## Overview
 
-`coola` is a Python library that provides simple functions to check in a single line if two
-complex/nested objects are equal or not.
-`coola` was initially designed to work
-with [PyTorch `Tensor`s](https://pytorch.org/docs/stable/tensors.html)
-and [NumPy `ndarray`](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html), but it
-is possible to extend it
-to [support other data structures](https://durandtibo.github.io/coola/uguide/equality_handler).
+`coola` is a lightweight Python library for comparing complex and nested data structures.
+It provides simple, extensible functions to check equality between objects containing
+[PyTorch tensors](https://pytorch.org/docs/stable/tensors.html),
+[NumPy arrays](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html),
+pandas/polars DataFrames, and other scientific computing objects.
 
-- [Motivation](#motivation)
-- [Documentation](https://durandtibo.github.io/coola/)
+**Quick Links:**
+
+- [Documentation](https://durandtibo.github.io/coola/) | [Quickstart](https://durandtibo.github.io/coola/quickstart)
 - [Installation](#installation)
+- [Features](#features)
 - [Contributing](#contributing)
-- [API stability](#api-stability)
-- [License](#license)
-- [Security](SECURITY.md)
+- [License](#license) | [Security](SECURITY.md)
 
-## Motivation
+## Why coola?
 
-Let's imagine you have the following dictionaries that contain both a PyTorch `Tensor` and a
-NumPy `ndarray`.
-You want to check if the two dictionaries are equal or not.
-By default, Python does not provide an easy way to check if the two dictionaries are equal or not.
-It is not possible to use the default equality operator `==` because it will raise an error.
-The `coola` library was developed to fill this gap. `coola` provides a function `objects_are_equal`
-that can indicate if two complex/nested objects are equal or not.
+Python's native equality operator `==` doesn't work well with complex nested structures
+containing tensors, arrays, or DataFrames. `coola` solves this with simple comparison functions:
 
 ```pycon
-
->>> import numpy
+>>> import numpy as np
 >>> import torch
 >>> from coola.equality import objects_are_equal
->>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
->>> data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
+>>> data1 = {"torch": torch.ones(2, 3), "numpy": np.zeros((2, 3))}
+>>> data2 = {"torch": torch.ones(2, 3), "numpy": np.zeros((2, 3))}
 >>> objects_are_equal(data1, data2)
-False
+True
 
 ```
 
-`coola` also provides a function `objects_are_allclose` that can indicate if two complex/nested
-objects are equal within a tolerance or not.
+For numerical comparisons with tolerance:
 
 ```pycon
-
->>> import numpy
->>> import torch
 >>> from coola.equality import objects_are_allclose
->>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
->>> data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
->>> objects_are_allclose(data1, data2, atol=1e-6)
-False
+>>> data1 = {"value": 1.0}
+>>> data2 = {"value": 1.0 + 1e-9}
+>>> objects_are_allclose(data1, data2)
+True
 
 ```
 
-`coola` supports the following types:
+See the [quickstart guide](https://durandtibo.github.io/coola/quickstart) for detailed examples.
 
-- [`jax.numpy.ndarray`](https://jax.readthedocs.io/en/latest/index.html)
-- [`numpy.ndarray`](https://numpy.org/doc/stable/index.html)
-- [`numpy.ma.MaskedArray`](https://numpy.org/doc/stable/reference/maskedarray.generic.html)
-- [`pandas.DataFrame`](https://pandas.pydata.org/)
-- [`pandas.Series`](https://pandas.pydata.org/)
-- [`polars.DataFrame`](https://www.pola.rs/)
-- [`polars.Series`](https://www.pola.rs/)
-- [`torch.Tensor`](https://pytorch.org/)
-- [`torch.nn.utils.rnn.PackedSequence`](https://pytorch.org/)
-- [`xarray.DataArray`](https://docs.xarray.dev/en/stable/)
-- [`xarray.Dataset`](https://docs.xarray.dev/en/stable/)
-- [`xarray.Variable`](https://docs.xarray.dev/en/stable/)
+## Features
 
-Please check the [quickstart page](https://durandtibo.github.io/coola/quickstart) to learn more on
-how to use `coola`.
+`coola` provides a comprehensive set of utilities for working with complex data structures:
 
-## Documentation
+### 🔍 **Equality Comparison**
 
-- [latest (stable)](https://durandtibo.github.io/coola/): documentation from the latest stable
-  release.
-- [main (unstable)](https://durandtibo.github.io/coola/main/): documentation associated to the main
-  branch of the repo. This documentation may contain a lot of work-in-progress/outdated/missing
-  parts.
+Compare complex nested objects with support for multiple data types.
+
+- **Exact equality**: `objects_are_equal()` for strict comparison
+- **Approximate equality**: `objects_are_allclose()` for numerical tolerance
+- **Extensible**: Add custom comparators for your own types
+- [Learn more →](https://durandtibo.github.io/coola/uguide/equality)
+
+**Supported types:**
+[JAX](https://jax.readthedocs.io/) •
+[NumPy](https://numpy.org/) •
+[pandas](https://pandas.pydata.org/) •
+[polars](https://www.pola.rs/) •
+[PyArrow](https://arrow.apache.org/docs/python/) •
+[PyTorch](https://pytorch.org/) •
+[xarray](https://docs.xarray.dev/) •
+Python built-ins (dict, list, tuple, set, etc.)
+
+See the [full list of supported types →](https://durandtibo.github.io/coola/uguide/equality_types)
+
+### 📊 **Data Summarization**
+
+Generate human-readable summaries of nested data structures for debugging and logging.
+
+- Configurable depth control
+- Type-specific formatting
+- Truncation for large collections
+- [Learn more →](https://durandtibo.github.io/coola/uguide/summary)
+
+### 🔄 **Data Conversion**
+
+Transform data between different nested structures.
+
+- Convert between list-of-dicts and dict-of-lists formats
+- Useful for working with tabular data and different data representations
+- [Learn more →](https://durandtibo.github.io/coola/uguide/nested)
+
+### 🗂️ **Mapping Utilities**
+
+Work with nested dictionaries efficiently.
+
+- Flatten nested dictionaries into flat key-value pairs
+- Extract specific values from complex nested structures
+- Filter dictionary keys based on patterns or criteria
+- [Learn more →](https://durandtibo.github.io/coola/uguide/nested)
+
+### 🔁 **Iteration**
+
+Traverse nested data structures systematically.
+
+- Depth-first search (DFS) traversal for nested containers
+- Breadth-first search (BFS) traversal for level-by-level processing
+- Filter and extract specific types from heterogeneous collections
+- [Learn more →](https://durandtibo.github.io/coola/uguide/iterator)
+
+### 📈 **Reduction**
+
+Compute statistics on sequences with flexible backends.
+
+- Calculate min, max, mean, median, quantile, std on numeric sequences
+- Support for multiple backends: native Python, NumPy, PyTorch
+- Consistent API regardless of backend choice
+- [Learn more →](https://durandtibo.github.io/coola/uguide/reducer)
 
 ## Installation
 
-We highly recommend installing
-a [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/).
-`coola` can be installed from pip using the following command:
+We highly recommend installing in a
+[virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/).
+
+### Using uv (recommended)
+
+[`uv`](https://docs.astral.sh/uv/) is a fast Python package installer and resolver:
+
+```shell
+uv pip install coola
+```
+
+To include all optional dependencies:
+
+```shell
+uv pip install coola[all]
+```
+
+### Using pip
+
+Alternatively, you can use `pip`:
 
 ```shell
 pip install coola
 ```
 
-To make the package as slim as possible, only the minimal packages required to use `coola` are
-installed.
-To include all the dependencies, you can use the following command:
+To include all optional dependencies:
 
 ```shell
 pip install coola[all]
 ```
 
-Please check the [get started page](https://durandtibo.github.io/coola/get_started) to see how to
-install only some specific dependencies or other alternatives to install the library.
+Or install specific optional dependencies:
+
+```shell
+pip install coola  # minimal installation
+pip install coola[numpy,torch]  # with NumPy and PyTorch
+```
+
+### Requirements
+
+- **Python**: 3.10 or higher
+- **Dependencies**: No required dependencies (all are optional)
+
+**Optional dependencies** (installed with `coola[all]`):
+[JAX](https://jax.readthedocs.io/) •
+[NumPy](https://numpy.org/) •
+[pandas](https://pandas.pydata.org/) •
+[polars](https://www.pola.rs/) •
+[PyArrow](https://arrow.apache.org/docs/python/) •
+[PyTorch](https://pytorch.org/) •
+[xarray](https://docs.xarray.dev/)
+
+For detailed installation instructions, compatibility information, and alternative installation
+methods, see the [installation guide](https://durandtibo.github.io/coola/get_started).
 The following is the corresponding `coola` versions and tested dependencies.
 
 | `coola`  | `jax`<sup>*</sup> | `numpy`<sup>*</sup> | `packaging`<sup>*</sup> | `pandas`<sup>*</sup> | `polars`<sup>*</sup> | `pyarrow`<sup>*</sup> | `torch`<sup>*</sup> | `xarray`<sup>*</sup> | `python`       |
@@ -210,16 +279,14 @@ The following is the corresponding `coola` versions and tested dependencies.
 
 ## Contributing
 
-Please check the instructions in [CONTRIBUTING.md](CONTRIBUTING.md).
+Contributions are welcome! Please check the [contributing guidelines](CONTRIBUTING.md) for details
+on:
 
-## Suggestions and Communication
+- Setting up the development environment
+- Code style and testing requirements
+- Submitting pull requests
 
-Everyone is welcome to contribute to the community.
-If you have any questions or suggestions, you can
-submit [Github Issues](https://github.com/durandtibo/coola/issues).
-We will reply to you as soon as possible. Thank you very much.
-
-## API stability
+## API Stability
 
 :warning: While `coola` is in development stage, no API is guaranteed to be stable from one
 release to the next.
