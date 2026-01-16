@@ -276,8 +276,8 @@ def check_random() -> None:
     x2 = random.uniform(0, 1)  # noqa: S311
     manual_seed(42)
     x3 = random.uniform(0, 1)  # noqa: S311
-    assert x1 == x3, f"Random seed not working correctly: {x1} != {x3}"
-    assert x1 != x2, f"Random values should differ: {x1} == {x2}"
+    assert x1 == x3
+    assert x1 != x2
 
 
 def check_recursive() -> None:
@@ -290,9 +290,9 @@ def check_reducer() -> None:
     r"""Check reducer operations for native sequences."""
     logger.info("Checking reducer...")
     reducer = NativeReducer()
-    assert reducer.max([-2, -1, 0, 1, 2]) == 2, "Reducer max operation failed"
-    assert reducer.median([-2, -1, 0, 1, 2]) == 0, "Reducer median operation failed"
-    assert reducer.sort([2, 1, -2, 3, 0]) == [-2, 0, 1, 2, 3], "Reducer sort operation failed"
+    assert reducer.max([-2, -1, 0, 1, 2]) == 2
+    assert reducer.median([-2, -1, 0, 1, 2]) == 0
+    assert reducer.sort([2, 1, -2, 3, 0]) == [-2, 0, 1, 2, 3]
 
 
 def check_registry() -> None:
@@ -302,9 +302,7 @@ def check_registry() -> None:
     registry.register("a", 1)
     registry.register("b", 2)
     registry.register("c", 3)
-    assert registry.equal(Registry[str, int]({"a": 1, "b": 2, "c": 3})), (
-        "Registry equality check failed"
-    )
+    assert registry.equal(Registry[str, int]({"a": 1, "b": 2, "c": 3}))
 
 
 def check_summary() -> None:
@@ -312,7 +310,7 @@ def check_summary() -> None:
     logger.info("Checking summary...")
     expected = "<class 'dict'> (length=2)\n  (a): 1\n  (b): 2"
     actual = summarize({"a": 1, "b": 2})
-    assert actual == expected, f"Summary mismatch:\nExpected: {expected}\nActual: {actual}"
+    assert actual == expected
 
 
 def main() -> None:
