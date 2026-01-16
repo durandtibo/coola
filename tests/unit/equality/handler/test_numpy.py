@@ -279,3 +279,36 @@ def test_is_numeric_array_true(array: np.ndarray) -> None:
 )
 def test_is_numeric_array_false(array: np.ndarray) -> None:
     assert not is_numeric_array(array)
+
+
+def test_numpy_array_equal_handler_type_validation_invalid_first() -> None:
+    config = EqualityConfig()
+    handler = NumpyArrayEqualHandler()
+    with pytest.raises(TypeError, match="Expected both inputs to be numpy.ndarray"):
+        handler.handle([1, 2, 3], np.ones(3), config)
+
+
+def test_numpy_array_equal_handler_type_validation_invalid_second() -> None:
+    config = EqualityConfig()
+    handler = NumpyArrayEqualHandler()
+    with pytest.raises(TypeError, match="Expected both inputs to be numpy.ndarray"):
+        handler.handle(np.ones(3), [1, 2, 3], config)
+
+
+def test_numpy_array_equal_handler_type_validation_both_invalid() -> None:
+    config = EqualityConfig()
+    handler = NumpyArrayEqualHandler()
+    with pytest.raises(TypeError, match="Expected both inputs to be numpy.ndarray"):
+        handler.handle([1, 2, 3], [1, 2, 3], config)
+
+
+def test_numpy_array_equal_handler_large_array_logging(caplog: pytest.LogCaptureFixture) -> None:
+    config = EqualityConfig(show_difference=True)
+    handler = NumpyArrayEqualHandler()
+    # Create large arrays (> 10000 elements)
+    large_arr1 = np.ones(15000)
+    large_arr2 = np.zeros(15000)
+    result = handler.handle(large_arr1, large_arr2, config)
+    assert result is False
+    # Check that the log message mentions arrays are too large to display
+    assert "arrays too large to display" in caplog.text

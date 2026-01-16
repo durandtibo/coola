@@ -326,3 +326,50 @@ def test_torch_tensor_same_device_handler_set_next_handler_incorrect() -> None:
     handler = TorchTensorSameDeviceHandler()
     with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)
+
+
+@torch_available
+def test_torch_tensor_equal_handler_type_validation_invalid_first(config: EqualityConfig) -> None:
+    handler = TorchTensorEqualHandler()
+    with pytest.raises(TypeError, match="Expected both inputs to be torch.Tensor"):
+        handler.handle([1, 2, 3], torch.ones(3), config)
+
+
+@torch_available
+def test_torch_tensor_equal_handler_type_validation_invalid_second(config: EqualityConfig) -> None:
+    handler = TorchTensorEqualHandler()
+    with pytest.raises(TypeError, match="Expected both inputs to be torch.Tensor"):
+        handler.handle(torch.ones(3), [1, 2, 3], config)
+
+
+@torch_available
+def test_torch_tensor_equal_handler_large_tensor_logging(
+    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+) -> None:
+    config = EqualityConfig(show_difference=True)
+    handler = TorchTensorEqualHandler()
+    # Create large tensors (> 10000 elements)
+    large_tensor1 = torch.ones(15000)
+    large_tensor2 = torch.zeros(15000)
+    result = handler.handle(large_tensor1, large_tensor2, config)
+    assert result is False
+    # Check that the log message mentions tensors are too large to display
+    assert "tensors too large to display" in caplog.text
+
+
+@torch_available
+def test_torch_tensor_same_device_handler_type_validation_invalid_first(
+    config: EqualityConfig,
+) -> None:
+    handler = TorchTensorSameDeviceHandler(TrueHandler())
+    with pytest.raises(TypeError, match="Expected both inputs to be torch.Tensor"):
+        handler.handle([1, 2, 3], torch.ones(3), config)
+
+
+@torch_available
+def test_torch_tensor_same_device_handler_type_validation_invalid_second(
+    config: EqualityConfig,
+) -> None:
+    handler = TorchTensorSameDeviceHandler(TrueHandler())
+    with pytest.raises(TypeError, match="Expected both inputs to be torch.Tensor"):
+        handler.handle(torch.ones(3), [1, 2, 3], config)
