@@ -205,6 +205,37 @@ class BaseEqualityHandler(ABC):
         self._verify_next_handler(handler)
         self._next_handler = handler
 
+    def validate_chain(self) -> None:
+        """Validate the current handler chain.
+
+        Raises:
+            RuntimeError: If the current handler chain is not valid.
+
+        Example:
+            ```pycon
+            >>> from coola.equality.handler import (
+            ...     SameObjectHandler,
+            ...     SameTypeHandler,
+            ...     SameLengthHandler,
+            ...     ObjectEqualHandler,
+            ... )
+            >>> handler = SameObjectHandler()
+            >>> handler.chain_all(SameTypeHandler(), SameLengthHandler(), ObjectEqualHandler())
+            >>> handler.validate_chain()
+            4
+
+            ```
+        """
+        visited = set()
+        current = self
+
+        while current:
+            if id(current) in visited:
+                msg = f"Cycle detected in the chain: {current}"
+                raise RuntimeError(msg)
+            visited.add(id(current))
+            current = current.next_handler
+
     def visualize_chain(self) -> str:
         r"""Visualize the current handler chain.
 
