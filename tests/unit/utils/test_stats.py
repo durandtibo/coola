@@ -59,3 +59,36 @@ def test_quantile_numpy(array: np.ndarray, num_quantiles: int) -> None:
         show_difference=True,
         atol=1e-6,
     )
+
+
+def test_quantile_single_value() -> None:
+    """Test quantile with single-value sequence."""
+    assert objects_are_equal(quantile([5], [0.0, 0.5, 1.0]), [5.0, 5.0, 5.0])
+
+
+def test_quantile_negative_values() -> None:
+    """Test quantile with negative values."""
+    assert objects_are_allclose(
+        quantile([-5, -3, -1], [0.0, 0.5, 1.0]),
+        [-5.0, -3.0, -1.0],
+        show_difference=True,
+    )
+
+
+def test_quantile_mixed_positive_negative() -> None:
+    """Test quantile with mixed positive and negative values."""
+    assert objects_are_allclose(
+        quantile([-10, -5, 0, 5, 10], [0.0, 0.25, 0.5, 0.75, 1.0]),
+        [-10.0, -5.0, 0.0, 5.0, 10.0],
+        show_difference=True,
+    )
+
+
+def test_quantile_identical_values() -> None:
+    """Test quantile with all identical values."""
+    assert objects_are_equal(quantile([3, 3, 3, 3, 3], [0.0, 0.5, 1.0]), [3.0, 3.0, 3.0])
+
+
+def test_quantile_single_quantile() -> None:
+    """Test quantile with single quantile value."""
+    assert objects_are_allclose(quantile([1, 2, 3, 4, 5], [0.5]), [3.0], show_difference=True)
