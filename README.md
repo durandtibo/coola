@@ -126,12 +126,33 @@ Generate human-readable summaries of nested data structures for debugging and lo
 - [Learn more →](https://durandtibo.github.io/coola/uguide/summary)
 
 ### 🔧 **Nested Data Operations**
-Utilities for manipulating and working with nested data structures.
-- **Data conversion**: Convert between list-of-dicts and dict-of-lists formats
-- **Mapping utilities**: Flatten nested dictionaries, extract values, filter keys
-- **Iteration**: Traverse nested structures using depth-first or breadth-first search
-- **Reduction**: Compute statistics on sequences with multiple backends (native Python, NumPy, PyTorch)
-- [Learn more →](https://durandtibo.github.io/coola/uguide/nested) | [Iterator docs](https://durandtibo.github.io/coola/uguide/iterator) | [Reducer docs](https://durandtibo.github.io/coola/uguide/reducer)
+
+#### Data Conversion
+Transform data between different nested structures.
+- Convert between list-of-dicts and dict-of-lists formats
+- Useful for working with tabular data and different data representations
+- [Learn more →](https://durandtibo.github.io/coola/uguide/nested)
+
+#### Mapping Utilities
+Work with nested dictionaries efficiently.
+- Flatten nested dictionaries into flat key-value pairs
+- Extract specific values from complex nested structures
+- Filter dictionary keys based on patterns or criteria
+- [Learn more →](https://durandtibo.github.io/coola/uguide/nested)
+
+#### Iteration
+Traverse nested data structures systematically.
+- Depth-first search (DFS) traversal for nested containers
+- Breadth-first search (BFS) traversal for level-by-level processing
+- Filter and extract specific types from heterogeneous collections
+- [Learn more →](https://durandtibo.github.io/coola/uguide/iterator)
+
+#### Reduction
+Compute statistics on sequences with flexible backends.
+- Calculate min, max, mean, median, quantile, std on numeric sequences
+- Support for multiple backends: native Python, NumPy, PyTorch
+- Consistent API regardless of backend choice
+- [Learn more →](https://durandtibo.github.io/coola/uguide/reducer)
 
 ## Installation
 
