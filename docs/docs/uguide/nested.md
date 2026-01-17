@@ -30,7 +30,6 @@ Use `convert_to_dict_of_lists()` to convert a sequence of dictionaries (rows) in
 lists (columns):
 
 ```pycon
-
 >>> from coola.nested import convert_to_dict_of_lists
 >>> rows = [
 ...     {"name": "Alice", "age": 30, "city": "NYC"},
@@ -54,7 +53,6 @@ Use `convert_to_list_of_dicts()` to convert a dictionary of sequences (columns) 
 dictionaries (rows):
 
 ```pycon
-
 >>> from coola.nested import convert_to_list_of_dicts
 >>> columns = {
 ...     "name": ["Alice", "Bob", "Charlie"],
@@ -76,7 +74,6 @@ with APIs that expect row-oriented data.
 These conversion functions are inverse operations of each other:
 
 ```pycon
-
 >>> from coola.nested import convert_to_dict_of_lists, convert_to_list_of_dicts
 >>> original = [{"x": 1, "y": 2}, {"x": 3, "y": 4}]
 >>> columns = convert_to_dict_of_lists(original)
@@ -95,7 +92,6 @@ These conversion functions are inverse operations of each other:
 Use `get_first_value()` to extract the first value from a mapping:
 
 ```pycon
-
 >>> from coola.nested import get_first_value
 >>> data = {"first": 10, "second": 20, "third": 30}
 >>> get_first_value(data)
@@ -109,7 +105,6 @@ the mapping should have at least one value but don't know the key.
 **Note:** If the mapping is empty, this function raises a `ValueError`.
 
 ```pycon
-
 >>> from coola.nested import get_first_value
 >>> get_first_value({})
 Traceback (most recent call last):
@@ -123,7 +118,6 @@ ValueError: First value cannot be returned because the mapping is empty
 Use `to_flat_dict()` to convert nested dictionaries into a flat dictionary with dot-separated keys:
 
 ```pycon
-
 >>> from coola.nested import to_flat_dict
 >>> nested = {
 ...     "database": {
@@ -152,7 +146,6 @@ This is particularly useful for:
 You can change the separator used to join keys:
 
 ```pycon
-
 >>> from coola.nested import to_flat_dict
 >>> nested = {"a": {"b": {"c": 1}}}
 >>> to_flat_dict(nested, separator="/")
@@ -165,7 +158,6 @@ You can change the separator used to join keys:
 The function also handles lists and tuples by using numeric indices:
 
 ```pycon
-
 >>> from coola.nested import to_flat_dict
 >>> data = {
 ...     "items": [10, 20, 30],
@@ -181,7 +173,6 @@ The function also handles lists and tuples by using numeric indices:
 The function works with any combination of dicts, lists, and tuples:
 
 ```pycon
-
 >>> from coola.nested import to_flat_dict
 >>> complex_data = {
 ...     "users": [
@@ -200,7 +191,6 @@ Use the `to_str` parameter to specify types that should be converted to strings 
 flattened:
 
 ```pycon
-
 >>> from coola.nested import to_flat_dict
 >>> data = {
 ...     "items": [1, 2, 3],
@@ -218,7 +208,6 @@ This is useful when you want to preserve certain data types as strings in the fl
 Use `remove_keys_starting_with()` to filter out dictionary keys that start with a specific prefix:
 
 ```pycon
-
 >>> from coola.nested import remove_keys_starting_with
 >>> data = {
 ...     "temp_var1": 100,
@@ -240,7 +229,6 @@ This is useful for:
 **Note:** Only string keys are checked for the prefix. Non-string keys are preserved:
 
 ```pycon
-
 >>> from coola.nested import remove_keys_starting_with
 >>> mixed_keys = {
 ...     "prefix_str": 1,
@@ -259,7 +247,6 @@ This is useful for:
 Convert API responses from different formats:
 
 ```pycon
-
 >>> from coola.nested import convert_to_dict_of_lists
 >>> # API returns list of user objects
 >>> api_response = [
@@ -278,7 +265,6 @@ Convert API responses from different formats:
 Flatten nested configuration for easier access:
 
 ```pycon
-
 >>> from coola.nested import to_flat_dict
 >>> config = {
 ...     "server": {
@@ -305,7 +291,6 @@ True
 Remove temporary or internal keys from data:
 
 ```pycon
-
 >>> from coola.nested import remove_keys_starting_with
 >>> processed_data = {
 ...     "result": [1, 2, 3],
@@ -324,7 +309,6 @@ Remove temporary or internal keys from data:
 Process rows of data individually:
 
 ```pycon
-
 >>> from coola.nested import convert_to_list_of_dicts
 >>> # Columnar data from database or CSV
 >>> columns = {

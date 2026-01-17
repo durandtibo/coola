@@ -25,7 +25,6 @@ collections.
 The `dfs_iterate` function performs depth-first traversal of nested data structures:
 
 ```pycon
-
 >>> from coola.iterator import dfs_iterate
 >>> list(dfs_iterate({"a": 1, "b": "abc"}))
 [1, 'abc']
@@ -42,7 +41,6 @@ containers themselves even if they're empty.
 **Simple nested lists:**
 
 ```pycon
-
 >>> from coola.iterator import dfs_iterate
 >>> list(dfs_iterate([1, 2, [3, 4, [5, 6]]]))
 [1, 2, 3, 4, 5, 6]
@@ -52,7 +50,6 @@ containers themselves even if they're empty.
 **Nested dictionaries:**
 
 ```pycon
-
 >>> from coola.iterator import dfs_iterate
 >>> data = {"level1": {"level2": {"level3": 42}}}
 >>> list(dfs_iterate(data))
@@ -63,7 +60,6 @@ containers themselves even if they're empty.
 **Mixed structures:**
 
 ```pycon
-
 >>> from coola.iterator import dfs_iterate
 >>> data = {
 ...     "list": [1, 2, 3],
@@ -79,7 +75,6 @@ containers themselves even if they're empty.
 **Sets and tuples:**
 
 ```pycon
-
 >>> from coola.iterator import dfs_iterate
 >>> list(dfs_iterate((1, (2, 3))))
 [1, 2, 3]
@@ -93,7 +88,6 @@ containers themselves even if they're empty.
 Depth-first search goes deep into each branch before moving to the next branch:
 
 ```pycon
-
 >>> from coola.iterator import dfs_iterate
 >>> data = {
 ...     "branch1": [1, [2, 3]],
@@ -112,7 +106,6 @@ Depth-first search goes deep into each branch before moving to the next branch:
 The `bfs_iterate` function performs breadth-first traversal of nested data structures:
 
 ```pycon
-
 >>> from coola.iterator import bfs_iterate
 >>> list(bfs_iterate({"a": 1, "b": "abc"}))
 [1, 'abc']
@@ -128,7 +121,6 @@ Like `dfs_iterate`, it yields only the leaf values, excluding containers.
 **Nested lists:**
 
 ```pycon
-
 >>> from coola.iterator import bfs_iterate
 >>> list(bfs_iterate([1, [2, [3, [4]]]]))
 [1, 2, 3, 4]
@@ -138,7 +130,6 @@ Like `dfs_iterate`, it yields only the leaf values, excluding containers.
 **Multi-level structure:**
 
 ```pycon
-
 >>> from coola.iterator import bfs_iterate
 >>> data = {
 ...     "level1_a": 1,
@@ -155,7 +146,6 @@ Like `dfs_iterate`, it yields only the leaf values, excluding containers.
 The main difference between BFS and DFS is the order of traversal:
 
 ```pycon
-
 >>> from coola.iterator import bfs_iterate, dfs_iterate
 >>> data = [[1, 2], [3, 4]]
 >>> list(dfs_iterate(data))  # DFS: depth-first
@@ -176,7 +166,6 @@ deeper, while DFS goes as deep as possible before backtracking.
 The `filter_by_type` function filters an iterator to yield only values of specified types:
 
 ```pycon
-
 >>> from coola.iterator import filter_by_type
 >>> list(filter_by_type([1, "hello", 2, 3.14, "world", 4], int))
 [1, 2, 4]
@@ -188,7 +177,6 @@ The `filter_by_type` function filters an iterator to yield only values of specif
 You can filter for multiple types using a tuple:
 
 ```pycon
-
 >>> from coola.iterator import filter_by_type
 >>> # Note: bool is a subclass of int
 >>> list(filter_by_type([1, "hello", 2.5, True, None, [1, 2]], (int, float)))
@@ -201,7 +189,6 @@ You can filter for multiple types using a tuple:
 You can combine type filtering with nested iteration:
 
 ```pycon
-
 >>> from coola.iterator import dfs_iterate, filter_by_type
 >>> data = {"a": 1, "b": "hello", "c": [2, "world", 3.14]}
 >>> # Get all numeric values (int and float) from nested structure
@@ -213,7 +200,6 @@ You can combine type filtering with nested iteration:
 **Extract only strings:**
 
 ```pycon
-
 >>> from coola.iterator import dfs_iterate, filter_by_type
 >>> data = [1, "a", [2, "b", [3, "c"]]]
 >>> list(filter_by_type(dfs_iterate(data), str))
@@ -224,7 +210,6 @@ You can combine type filtering with nested iteration:
 **Extract only integers:**
 
 ```pycon
-
 >>> from coola.iterator import bfs_iterate, filter_by_type
 >>> data = {"nums": [1, 2.5, 3], "text": "hello", "value": 2}
 >>> list(filter_by_type(bfs_iterate(data), int))
@@ -242,7 +227,6 @@ registry system.
 **DFS Custom Registry:**
 
 ```pycon
-
 >>> from coola.iterator.dfs import register_iterators, IterableIterator
 >>> # Register custom behavior for specific types
 >>> register_iterators({list: IterableIterator()}, exist_ok=True)
@@ -252,7 +236,6 @@ registry system.
 **BFS Custom Registry:**
 
 ```pycon
-
 >>> from coola.iterator.bfs import register_child_finders, IterableChildFinder
 >>> # Register custom behavior for specific types
 >>> register_child_finders({list: IterableChildFinder()}, exist_ok=True)
@@ -264,7 +247,6 @@ registry system.
 You can create and use a custom registry:
 
 ```pycon
-
 >>> from coola.iterator.dfs import IteratorRegistry, dfs_iterate
 >>> from coola.iterator.dfs import DefaultIterator, IterableIterator
 >>> registry = IteratorRegistry()
@@ -282,7 +264,6 @@ You can create and use a custom registry:
 Extract all values from a complex configuration:
 
 ```pycon
-
 >>> from coola.iterator import dfs_iterate
 >>> config = {
 ...     "database": {"host": "localhost", "port": 5432},
@@ -298,7 +279,6 @@ Extract all values from a complex configuration:
 Count specific types in a nested structure:
 
 ```pycon
-
 >>> from coola.iterator import dfs_iterate, filter_by_type
 >>> data = {
 ...     "scores": [95, 87, 92],
@@ -314,7 +294,6 @@ Count specific types in a nested structure:
 Find all string values in a nested structure:
 
 ```pycon
-
 >>> from coola.iterator import dfs_iterate, filter_by_type
 >>> data = {
 ...     "user": {"name": "John", "age": 30},
@@ -330,7 +309,6 @@ Find all string values in a nested structure:
 Check if all numeric values in a structure are within a range:
 
 ```pycon
-
 >>> from coola.iterator import dfs_iterate, filter_by_type
 >>> data = {"values": [10, 20, 30], "nested": {"more": [40, 50]}}
 >>> numbers = list(filter_by_type(dfs_iterate(data), (int, float)))

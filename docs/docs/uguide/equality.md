@@ -40,7 +40,6 @@ The following example shows how to use the `objects_are_equal` function.
 The objects to compare are dictionaries containing a PyTorch `Tensor` and a NumPy `ndarray`.
 
 ```pycon
-
 >>> import numpy
 >>> import torch
 >>> from coola.equality import objects_are_equal
@@ -66,7 +65,6 @@ two objects. For example if you add `show_difference=True` when you compare the 
 and `data2`, you will see at least one element that is different:
 
 ```pycon
-
 >>> import numpy
 >>> import torch
 >>> from coola.equality import objects_are_equal
@@ -156,7 +154,6 @@ mappings have different keys:
 The previous examples use dictionary, but it is possible to use other types like list or tuple
 
 ```pycon
-
 >>> import numpy
 >>> import torch
 >>> from coola.equality import objects_are_equal
@@ -173,7 +170,6 @@ False
 It is also possible to test more complex objects
 
 ```pycon
-
 >>> import numpy
 >>> import torch
 >>> from coola.equality import objects_are_equal
@@ -205,7 +201,6 @@ different behavior that the native python equality operator `==`. You can take a
 following example to see some differences.
 
 ```pycon
-
 >>> from coola.equality import objects_are_equal
 >>> objects_are_equal(1, 1)
 True
@@ -226,7 +221,6 @@ Similarly, the `objects_are_equal` function considers a `dict` and `collections.
 different objects even if they have the same keys and values.
 
 ```pycon
-
 >>> from collections import OrderedDict
 >>> from coola.equality import objects_are_equal
 >>> objects_are_equal({"key1": 1, "key2": "abc"}, OrderedDict({"key1": 1, "key2": "abc"}))
@@ -252,7 +246,6 @@ The following example shows how to use the `objects_are_allclose` function.
 The objects to compare are dictionaries containing a PyTorch Tensor and a NumPy ndarray.
 
 ```pycon
-
 >>> import numpy
 >>> import torch
 >>> from coola.equality import objects_are_allclose, objects_are_equal
@@ -278,7 +271,6 @@ It is possible to control the tolerance with the arguments `atol` and `rtol`. `a
 absolute tolerance and `rtol` controls the relative tolerance.
 
 ```pycon
-
 >>> import numpy
 >>> import torch
 >>> from coola.equality import objects_are_allclose
@@ -307,7 +299,6 @@ Like `objects_are_equal`, the `objects_are_allclose` function has an argument `s
 which shows the first difference found between the two objects.
 
 ```pycon
-
 >>> import numpy
 >>> import torch
 >>> from coola.equality import objects_are_allclose
@@ -343,7 +334,6 @@ Like the `objects_are_equal` function, the `objects_are_allclose` function can b
 complex/nested objects.
 
 ```pycon
-
 >>> import numpy
 >>> import torch
 >>> from coola.equality import objects_are_allclose
@@ -371,7 +361,6 @@ types [here](equality_types.md#equal-within-a-tolerance-allclose).
 By default, `NaN` is not considered close to any other value, including `NaN`.
 
 ```pycon
-
 >>> from coola.equality import objects_are_allclose
 >>> objects_are_allclose(float("nan"), 0.0)
 False
@@ -384,7 +373,6 @@ By setting `equal_nan=True`, it is possible to change the above behavior and `Na
 considered equal.
 
 ```pycon
-
 >>> from coola.equality import objects_are_allclose
 >>> objects_are_allclose(float("nan"), float("nan"), equal_nan=True)
 True
@@ -396,7 +384,6 @@ However, it may be interesting to check if the non-`NaN` values are equal.
 It is possible to use the `equal_nan=True` option to compare two tensors with `NaN` values.
 
 ```pycon
-
 >>> import numpy
 >>> import torch
 >>> from coola.equality import objects_are_allclose
@@ -428,7 +415,6 @@ True
 The same parameter works with `objects_are_equal()`:
 
 ```pycon
-
 >>> import numpy as np
 >>> from coola.equality import objects_are_equal
 >>> objects_are_equal(
@@ -457,7 +443,6 @@ Let's take a look to `torch`.
 compare `torch.Tensor`s objects:
 
 ```pycon
-
 >>> import torch
 >>> torch.testing.assert_close(torch.ones(2, 3), torch.ones(2, 3))
 
@@ -466,7 +451,6 @@ compare `torch.Tensor`s objects:
 It can also be used on mappings or sequences:
 
 ```pycon
-
 >>> import torch
 >>> torch.testing.assert_close(
 ...     [torch.ones(2, 3), torch.zeros(3)],
@@ -492,7 +476,6 @@ It can also be used on mappings or sequences:
 It also works on tensor like objects like NumPy arrays:
 
 ```pycon
-
 >>> import torch
 >>> import numpy as np
 >>> torch.testing.assert_close(
@@ -506,7 +489,6 @@ It also works on tensor like objects like NumPy arrays:
 However, it does not work if the data structure contains a string:
 
 ```pycon
-
 >>> import torch
 >>> torch.testing.assert_close(
 ...     {"key1": torch.ones(2, 3), "key2": torch.zeros(3), "key3": "abc"},
@@ -522,7 +504,6 @@ The failure occurred for item ['key3']
 `coola` can compare these objects:
 
 ```pycon
-
 >>> import torch
 >>> from coola.equality import objects_are_equal
 >>> objects_are_equal(
@@ -537,7 +518,6 @@ Internally, [`torch.testing.assert_close`](https://pytorch.org/docs/stable/testi
 convert some values to tensors to compare them, which can lead to surprising results like:
 
 ```pycon
-
 >>> import torch
 >>> torch.testing.assert_close((1, 2, 3), [1, 2, 3])
 
@@ -547,7 +527,6 @@ The inputs have different types: the left input is a tuple, whereas the right is
 `coola` has a strict type checking and will indicate the two inputs are different:
 
 ```pycon
-
 >>> import torch
 >>> from coola.equality import objects_are_equal
 >>> objects_are_equal((1, 2, 3), [1, 2, 3])
@@ -561,7 +540,6 @@ has different limitations.
 For example, it can work with strings but can handle only simple sequence and mapping objects
 
 ```pycon
-
 >>> import numpy as np
 >>> from collections import deque
 >>> np.testing.assert_equal(
@@ -585,7 +563,6 @@ ValueError: The truth value of an array with more than one element is ambiguous.
 `coola` can compare these objects:
 
 ```pycon
-
 >>> from coola.equality import objects_are_equal
 >>> import numpy as np
 >>> from collections import deque
@@ -615,7 +592,6 @@ For deeply nested structures, you can control the maximum recursion depth to pre
 overflow. The `max_depth` parameter sets the maximum nesting level that will be compared:
 
 ```pycon
-
 >>> from coola.equality import objects_are_equal
 >>> # Simple nested structure
 >>> nested1 = {"a": {"b": {"c": 1}}}
@@ -640,7 +616,6 @@ The equality system uses a registry to dispatch to the appropriate comparison lo
 You can provide a custom registry if needed:
 
 ```pycon
-
 >>> from coola.equality import objects_are_equal
 >>> from coola.equality.tester import get_default_registry
 >>> registry = get_default_registry()
@@ -670,7 +645,6 @@ NumPy arrays are compared element-wise, checking:
 - Same values
 
 ```pycon
-
 >>> import numpy as np
 >>> from coola.equality import objects_are_equal
 >>> objects_are_equal(np.array([1, 2, 3]), np.array([1, 2, 3]))
@@ -693,7 +667,6 @@ PyTorch tensors are compared checking:
 - Same values
 
 ```pycon
-
 >>> import torch
 >>> from coola.equality import objects_are_equal
 >>> objects_are_equal(torch.tensor([1, 2, 3]), torch.tensor([1, 2, 3]))
@@ -711,7 +684,6 @@ False
 pandas DataFrames and Series are compared using pandas' built-in comparison methods.
 
 ```pycon
-
 >>> import pandas as pd
 >>> from coola.equality import objects_are_equal
 >>> df1 = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
@@ -728,7 +700,6 @@ True
 The equality functions are particularly useful in unit tests:
 
 ```pycon
-
 >>> from coola.equality import objects_are_equal
 >>> def process_data(data):
 ...     # Some data processing
@@ -745,7 +716,6 @@ The equality functions are particularly useful in unit tests:
 When working with machine learning models, you often need to compare outputs:
 
 ```pycon
-
 >>> import torch
 >>> from coola.equality import objects_are_allclose
 >>> output1 = {
@@ -766,7 +736,6 @@ True
 Verify that data transformations preserve expected properties:
 
 ```pycon
-
 >>> import numpy as np
 >>> from coola.equality import objects_are_allclose
 >>> original = np.array([1.0, 2.0, 3.0])

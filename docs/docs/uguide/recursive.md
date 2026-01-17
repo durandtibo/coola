@@ -24,7 +24,6 @@ The main function is `recursive_apply`, which recursively applies a function to 
 data:
 
 ```pycon
-
 >>> from coola.recursive import recursive_apply
 >>> recursive_apply({"a": 1, "b": "abc"}, str)
 {'a': '1', 'b': 'abc'}
@@ -43,7 +42,6 @@ You can use `recursive_apply` with different data structures:
 **Nested lists and tuples:**
 
 ```pycon
-
 >>> from coola.recursive import recursive_apply
 >>> recursive_apply([1, 2, [3, 4, [5, 6]]], lambda x: x + 10)
 [11, 12, [13, 14, [15, 16]]]
@@ -55,7 +53,6 @@ You can use `recursive_apply` with different data structures:
 **Nested dictionaries:**
 
 ```pycon
-
 >>> from coola.recursive import recursive_apply
 >>> data = {"level1": {"level2": {"level3": 42}}}
 >>> recursive_apply(data, lambda x: x * 2)
@@ -68,7 +65,6 @@ You can use `recursive_apply` with different data structures:
 **Mixed nested structures:**
 
 ```pycon
-
 >>> from coola.recursive import recursive_apply
 >>> data = {
 ...     "list": [1, 2, 3],
@@ -88,7 +84,6 @@ For more control over how specific types are transformed, you can create custom 
 extending `BaseTransformer`:
 
 ```pycon
-
 >>> from coola.recursive import BaseTransformer, TransformerRegistry
 >>> class MyType:
 ...     def __init__(self, value):
@@ -110,7 +105,6 @@ extending `BaseTransformer`:
 You can create and use a custom registry for more control:
 
 ```pycon
-
 >>> from coola.recursive import TransformerRegistry, recursive_apply
 >>> from coola.recursive import SequenceTransformer, DefaultTransformer
 >>> registry = TransformerRegistry()
@@ -138,7 +132,6 @@ The `coola.recursive` package provides several built-in transformers:
 The package maintains a singleton default registry with transformers for common Python types:
 
 ```pycon
-
 >>> from coola.recursive import get_default_registry
 >>> registry = get_default_registry()
 >>> registry.transform([1, 2, 3], str)
@@ -159,7 +152,6 @@ The default registry includes transformers for:
 You can extend the default registry to support custom types:
 
 ```pycon
-
 >>> from coola.recursive import register_transformers, BaseTransformer
 >>> class Point:
 ...     def __init__(self, x, y):
@@ -189,7 +181,6 @@ The `coola.recursive` package design is inspired by the DFS pattern and provides
 Convert all numeric values in a nested structure to strings:
 
 ```pycon
-
 >>> from coola.recursive import recursive_apply
 >>> data = {"metrics": [1.5, 2.3, 3.7], "count": 42}
 >>> recursive_apply(data, str)
@@ -202,7 +193,6 @@ Convert all numeric values in a nested structure to strings:
 Scale all numeric values in a configuration:
 
 ```pycon
-
 >>> from coola.recursive import recursive_apply
 >>> config = {
 ...     "learning_rate": 0.001,
@@ -219,7 +209,6 @@ Scale all numeric values in a configuration:
 Normalize all values to a specific range:
 
 ```pycon
-
 >>> from coola.recursive import recursive_apply
 >>> data = {"a": 100, "b": [200, 300], "c": {"d": 400}}
 >>> recursive_apply(data, lambda x: x / 100)

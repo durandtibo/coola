@@ -25,7 +25,6 @@ different libraries in a single call.
 Use `manual_seed()` to set the seed for all available random number generators:
 
 ```pycon
-
 >>> from coola.random import manual_seed
 >>> manual_seed(42)
 >>> # Now all RNGs (random, numpy, torch) are seeded with 42
@@ -44,7 +43,6 @@ Use the `random_seed` context manager to temporarily set a seed and automaticall
 previous RNG state afterward:
 
 ```pycon
-
 >>> import numpy
 >>> from coola.random import random_seed
 >>> with random_seed(42):
@@ -71,7 +69,6 @@ This is useful for reproducible code blocks without affecting the global RNG sta
 You can manually save and restore the entire RNG state:
 
 ```pycon
-
 >>> from coola.random import get_rng_state, set_rng_state
 >>> # Save current state
 >>> state = get_rng_state()
@@ -84,7 +81,6 @@ You can manually save and restore the entire RNG state:
 The state is a dictionary containing the state of all registered random managers:
 
 ```pycon
-
 >>> from coola.random import get_rng_state
 >>> state = get_rng_state()
 >>> state.keys()
@@ -99,7 +95,6 @@ dict_keys(['random', 'numpy', 'torch'])
 Set the seed only for Python's `random` module:
 
 ```pycon
-
 >>> import random
 >>> from coola.random.random import RandomRandomManager
 >>> manager = RandomRandomManager()
@@ -113,7 +108,6 @@ Set the seed only for Python's `random` module:
 Set the seed only for NumPy's random module:
 
 ```pycon
-
 >>> import numpy as np
 >>> from coola.random import numpy_seed
 >>> with numpy_seed(42):
@@ -126,7 +120,6 @@ array([...])
 Or use the NumPy random manager directly:
 
 ```pycon
-
 >>> import numpy as np
 >>> from coola.random.numpy import NumpyRandomManager
 >>> manager = NumpyRandomManager()
@@ -141,7 +134,6 @@ array([...])
 Set the seed only for PyTorch's random module:
 
 ```pycon
-
 >>> import torch
 >>> from coola.random import torch_seed
 >>> with torch_seed(42):
@@ -154,7 +146,6 @@ tensor([...])
 Or use the PyTorch random manager directly:
 
 ```pycon
-
 >>> import torch
 >>> from coola.random.torch import TorchRandomManager
 >>> manager = TorchRandomManager()
@@ -171,7 +162,6 @@ tensor([...])
 The default registry manages all available random managers:
 
 ```pycon
-
 >>> from coola.random import get_default_registry
 >>> registry = get_default_registry()
 >>> registry
@@ -190,7 +180,6 @@ RandomManagerRegistry(
 You can register custom random managers to support additional libraries:
 
 ```pycon
-
 >>> from coola.random import register_managers, RandomRandomManager
 >>> # Register a custom manager
 >>> register_managers({"custom": RandomRandomManager()})  # doctest: +SKIP
@@ -200,7 +189,6 @@ You can register custom random managers to support additional libraries:
 To create a custom manager, extend `BaseRandomManager`:
 
 ```pycon
-
 >>> from coola.random import BaseRandomManager
 >>> class MyRandomManager(BaseRandomManager):
 ...     def get_rng_state(self):
@@ -221,7 +209,6 @@ To create a custom manager, extend `BaseRandomManager`:
 You can create and use a custom registry:
 
 ```pycon
-
 >>> from coola.random import RandomManagerRegistry, RandomRandomManager
 >>> registry = RandomManagerRegistry()
 >>> registry.register("random", RandomRandomManager())
@@ -236,7 +223,6 @@ You can create and use a custom registry:
 Ensure reproducibility in scientific experiments:
 
 ```pycon
-
 >>> import numpy as np
 >>> import torch
 >>> from coola.random import manual_seed
@@ -254,7 +240,6 @@ tensor([...])
 Make a specific code block reproducible without affecting the global state:
 
 ```pycon
-
 >>> import numpy as np
 >>> from coola.random import random_seed
 >>> # Generate some random data
@@ -272,7 +257,6 @@ Internally, the context manager saves and restores RNG state before and after th
 It is equivalent to this code.
 
 ```pycon
-
 >>> from coola.random import get_rng_state, set_rng_state, manual_seed
 >>> # Save initial state
 >>> initial_state = get_rng_state()
@@ -289,7 +273,6 @@ It is equivalent to this code.
 Seed all libraries at once for consistent results:
 
 ```pycon
-
 >>> import random
 >>> import numpy as np
 >>> import torch
@@ -308,7 +291,6 @@ Seed all libraries at once for consistent results:
 Temporarily change seed for a specific operation:
 
 ```pycon
-
 >>> import numpy as np
 >>> from coola.random import random_seed
 >>> # Normal operations
@@ -353,7 +335,6 @@ The `coola.random` package design provides:
 Prefer `random_seed()` context manager over `manual_seed()` for localized reproducibility:
 
 ```pycon
-
 >>> from coola.random import random_seed
 >>> # Good: State is automatically restored
 >>> with random_seed(42):
@@ -366,7 +347,6 @@ Prefer `random_seed()` context manager over `manual_seed()` for localized reprod
 Instead of:
 
 ```pycon
-
 >>> from coola.random import manual_seed, get_rng_state, set_rng_state
 >>> # Not ideal: Manual state management
 >>> state = get_rng_state()
@@ -381,7 +361,6 @@ Instead of:
 Set seeds at the beginning of your script for full reproducibility:
 
 ```pycon
-
 >>> from coola.random import manual_seed
 >>> manual_seed(42)
 >>> # Rest of your code...
@@ -393,7 +372,6 @@ Set seeds at the beginning of your script for full reproducibility:
 Always document when and why you're setting seeds:
 
 ```pycon
-
 >>> from coola.random import manual_seed
 >>> # Set seed for reproducible results in experiments
 >>> manual_seed(42)
