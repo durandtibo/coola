@@ -55,11 +55,13 @@
 
 ## Overview
 
-`coola` is a lightweight Python library that makes it easy to compare complex and nested data structures.
+`coola` is a lightweight Python library that makes it easy to compare complex and nested data
+structures.
 It provides simple, extensible functions to check equality between objects containing
 [PyTorch tensors](https://pytorch.org/docs/stable/tensors.html),
 [NumPy arrays](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html),
-[pandas](https://pandas.pydata.org/)/[polars](https://www.pola.rs/) DataFrames, and other scientific computing objects.
+[pandas](https://pandas.pydata.org/)/[polars](https://www.pola.rs/) DataFrames, and other scientific
+computing objects.
 
 **Quick Links:**
 
@@ -102,22 +104,23 @@ True
 **Debug differences easily:**
 
 ```pycon
->>> import logging
 >>> from coola.equality import objects_are_equal
->>> logging.basicConfig(
-...     level=logging.INFO, format="%(message)s"
-... )  # Configure logging to see differences
 >>> actual = {"users": [{"id": 1, "score": 95}, {"id": 2, "score": 87}]}
 >>> expected = {"users": [{"id": 1, "score": 95}, {"id": 2, "score": 88}]}
 >>> objects_are_equal(actual, expected, show_difference=True)
+False
+
+```
+
+Log output
+
+```textmate
 numbers are different:
   actual   : 87
   expected : 88
 mappings have different values for key 'score'
 sequences have different values at index 1
 mappings have different values for key 'users'
-False
-
 ```
 
 See the [user guide](https://durandtibo.github.io/coola/uguide/equality) for detailed examples.
@@ -201,7 +204,8 @@ Compute statistics on sequences with flexible backends:
 ## Installation
 
 We highly recommend installing
-`coola` in a [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
+`coola` in
+a [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
 to avoid dependency conflicts.
 
 ### Using uv (recommended)

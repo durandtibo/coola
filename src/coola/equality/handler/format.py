@@ -57,7 +57,7 @@ def format_mapping_difference(
 
     Example:
         ```pycon
-        >>> from coola.equality.format import format_mapping_difference
+        >>> from coola.equality.handler.format import format_mapping_difference
         >>> msg = format_mapping_difference(
         ...     {"a": 1, "b": 2},
         ...     {"a": 1, "c": 3},
@@ -104,7 +104,7 @@ def format_sequence_difference(
 
     Example:
         ```pycon
-        >>> from coola.equality.format import format_sequence_difference
+        >>> from coola.equality.handler.format import format_sequence_difference
         >>> msg = format_sequence_difference([1, 2, 3], [1, 2, 4], different_index=2)
         >>> print(msg)
         sequences have different values at index 2
@@ -139,7 +139,7 @@ def format_shape_difference(
 
     Example:
         ```pycon
-        >>> from coola.equality.format import format_shape_difference
+        >>> from coola.equality.handler.format import format_shape_difference
         >>> msg = format_shape_difference((2, 3), (2, 4))
         >>> print(msg)
         objects have different shapes:
@@ -170,7 +170,7 @@ def format_type_difference(
 
     Example:
         ```pycon
-        >>> from coola.equality.format import format_type_difference
+        >>> from coola.equality.handler.format import format_type_difference
         >>> msg = format_type_difference(list, tuple)
         >>> print(msg)
         objects have different types:
@@ -202,7 +202,7 @@ def format_value_difference(
 
     Example:
         ```pycon
-        >>> from coola.equality.format import format_value_difference
+        >>> from coola.equality.handler.format import format_value_difference
         >>> msg = format_value_difference(1, 2, name="numbers")
         >>> print(msg)
         numbers are different:

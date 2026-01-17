@@ -64,13 +64,9 @@ two objects. For example if you add `show_difference=True` when you compare the 
 and `data2`, you will see at least one element that is different:
 
 ```pycon
->>> import logging
 >>> import numpy
 >>> import torch
 >>> from coola.equality import objects_are_equal
->>> logging.basicConfig(
-...     level=logging.INFO, format="%(message)s"
-... )  # Configure logging to see differences
 >>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
 >>> data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
 >>> objects_are_equal(data1, data2, show_difference=True)
@@ -81,10 +77,11 @@ False
 *Output*:
 
 ```textmate
-torch.Tensors are different:
-  actual   : tensor([[1., 1., 1.],
+actual=
+tensor([[1., 1., 1.],
         [1., 1., 1.]])
-  expected : tensor([[0., 0., 0.],
+expected=
+tensor([[0., 0., 0.],
         [0., 0., 0.]])
 mappings have different values for key 'torch'
 ```
@@ -111,9 +108,7 @@ For example, with sequences, the output shows the specific index where values di
 
 ```pycon
 
->>> import logging
 >>> from coola.equality import objects_are_equal
->>> logging.basicConfig(level=logging.INFO, format="%(message)s")
 >>> objects_are_equal([1, 2, 3, 4], [1, 2, 5, 4], show_difference=True)
 False
 
@@ -131,10 +126,7 @@ sequences have different values at index 2
 For mappings with different keys:
 
 ```pycon
-
->>> import logging
 >>> from coola.equality import objects_are_equal
->>> logging.basicConfig(level=logging.INFO, format="%(message)s")
 >>> objects_are_equal({"a": 1, "b": 2}, {"a": 1, "c": 3}, show_difference=True)
 False
 
