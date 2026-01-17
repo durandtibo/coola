@@ -55,8 +55,6 @@ class MappingSameKeysHandler(BaseEqualityHandler):
                 missing_keys = keys1 - keys2
                 additional_keys = keys2 - keys1
                 message = format_mapping_difference(
-                    actual,
-                    expected,
                     missing_keys=missing_keys,
                     additional_keys=additional_keys,
                 )
@@ -120,8 +118,6 @@ class MappingSameValuesHandler(BaseEqualityHandler):
     ) -> None:
         if config.show_difference:
             message = format_mapping_difference(
-                actual,
-                expected,
                 different_value_key=key,
             )
             logger.info(message)

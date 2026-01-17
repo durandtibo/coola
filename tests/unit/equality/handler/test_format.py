@@ -15,8 +15,6 @@ from coola.equality.handler.format import (
 
 def test_format_mapping_difference_missing_keys() -> None:
     msg = format_mapping_difference(
-        {"a": 1, "b": 2},
-        {"a": 1, "c": 3},
         missing_keys={"b"},
         additional_keys={"c"},
     )
@@ -27,8 +25,6 @@ def test_format_mapping_difference_missing_keys() -> None:
 
 def test_format_mapping_difference_different_value() -> None:
     msg = format_mapping_difference(
-        {"a": 1, "b": 2},
-        {"a": 1, "b": 3},
         different_value_key="b",
     )
     assert "mappings have different values for key 'b'" in msg
@@ -36,8 +32,6 @@ def test_format_mapping_difference_different_value() -> None:
 
 def test_format_mapping_difference_missing_and_different() -> None:
     msg = format_mapping_difference(
-        {"a": 1, "b": 2},
-        {"a": 1, "c": 3},
         missing_keys={"b"},
         additional_keys={"c"},
         different_value_key="a",

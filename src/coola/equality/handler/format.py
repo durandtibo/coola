@@ -36,8 +36,6 @@ def _format_value(value: Any, max_length: int = 100) -> str:
 
 
 def format_mapping_difference(
-    actual: Mapping[Any, Any],
-    expected: Mapping[Any, Any],
     *,
     missing_keys: set[Any] | None = None,
     additional_keys: set[Any] | None = None,
@@ -46,8 +44,6 @@ def format_mapping_difference(
     r"""Format a user-friendly difference message for mappings.
 
     Args:
-        actual: The actual mapping.
-        expected: The expected mapping.
         missing_keys: Keys present in actual but not in expected.
         additional_keys: Keys present in expected but not in actual.
         different_value_key: A key with different values in both mappings.
@@ -59,8 +55,6 @@ def format_mapping_difference(
         ```pycon
         >>> from coola.equality.handler.format import format_mapping_difference
         >>> msg = format_mapping_difference(
-        ...     {"a": 1, "b": 2},
-        ...     {"a": 1, "c": 3},
         ...     missing_keys={"b"},
         ...     additional_keys={"c"},
         ... )
