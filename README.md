@@ -63,7 +63,7 @@ It provides simple, extensible functions to check equality between objects conta
 
 **Quick Links:**
 
-- [Documentation](https://durandtibo.github.io/coola/) | [Quickstart](https://durandtibo.github.io/coola/quickstart)
+- [Documentation](https://durandtibo.github.io/coola/) | [User Guide](https://durandtibo.github.io/coola/uguide/equality)
 - [Installation](#installation)
 - [Features](#features)
 - [Contributing](#contributing)
@@ -118,7 +118,7 @@ False
 
 ```
 
-See the [quickstart guide](https://durandtibo.github.io/coola/quickstart) for detailed examples.
+See the [user guide](https://durandtibo.github.io/coola/uguide/equality) for detailed examples.
 
 ## Features
 
@@ -145,7 +145,7 @@ Compare complex nested objects with support for multiple data types:
 [xarray](https://docs.xarray.dev/) •
 Python built-ins (dict, list, tuple, set, etc.)
 
-[See the full list of supported types →](https://durandtibo.github.io/coola/uguide/equality_types)
+[See all type-specific comparison rules →](https://durandtibo.github.io/coola/uguide/equality#type-specific-behavior)
 
 ### 📊 **Data Summarization**
 
