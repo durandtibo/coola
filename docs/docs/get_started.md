@@ -17,7 +17,7 @@ To make the package as slim as possible, only the packages required to use `cool
 It is possible to install all the optional dependencies by running the following command:
 
 ```shell
-uv pip install coola[all]
+uv pip install 'coola[all]'
 ```
 
 This command also installs NumPy and PyTorch.
