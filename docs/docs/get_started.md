@@ -48,7 +48,7 @@ pip install coola[numpy,torch]  # with NumPy and PyTorch
 ## Installing from source
 
 To install `coola` from source, you can follow the steps below. First, you will need to
-install [`poetry`](https://python-poetry.org/docs/master/). `poetry` is used to manage and install
+install [`poetry`](https://python-poetry.org/docs/). `poetry` is used to manage and install
 the dependencies.
 If `poetry` is already installed on your machine, you can skip this step. There are several ways to
 install `poetry` so you can use the one that you prefer. You can check the `poetry` installation by
@@ -81,7 +81,7 @@ conda activate coola
 ```
 
 This example uses `conda` to create a virtual environment, but you can use other tools or
-configurations. Then, you should install the required package to use `coola` with the following
+configurations. Then, you should install the required packages to use `coola` with the following
 command:
 
 ```shell
