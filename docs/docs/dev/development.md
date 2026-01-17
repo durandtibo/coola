@@ -89,12 +89,6 @@ pytest tests/unit/test_comparison.py
 pytest tests/unit/test_comparison.py::test_objects_are_equal
 ```
 
-**Run tests with verbose output:**
-
-```shell
-pytest -v tests/unit/
-```
-
 ### Code Quality
 
 **Format code with Black:**
@@ -242,58 +236,6 @@ coola/
    git push origin fix/bug-description
    ```
 
-### Adding Support for a New Type
-
-1. **Create a new comparator:**
-   ```python
-   # src/coola/equality/comparators/mytype_.py
-   from typing import Any
-   from coola.equality.config import EqualityConfig
-   from coola.equality.comparators.base import BaseEqualityComparator
-
-
-   class MyTypeComparator(BaseEqualityComparator):
-       def clone(self) -> "MyTypeComparator":
-           return self.__class__()
-
-       def equal(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
-           # Type check
-           if type(actual) is not type(expected):
-               if config.show_difference:
-                   # Log difference
-                   pass
-               return False
-
-           # Implement comparison logic
-           return actual == expected
-   ```
-
-2. **Register the comparator:**
-   ```python
-   # In the appropriate __init__.py
-   from coola.equality.testers import EqualityTester
-   from coola.equality.comparators.mytype_ import MyTypeComparator
-
-   EqualityTester.registry[MyType] = MyTypeComparator()
-   ```
-
-3. **Write tests:**
-   ```python
-   # tests/unit/equality/comparators/test_mytype_.py
-   import pytest
-   from coola.equality import objects_are_equal
-
-
-   def test_mytype_equal():
-       obj1 = MyType(...)
-       obj2 = MyType(...)
-       assert objects_are_equal(obj1, obj2)
-   ```
-
-4. **Update documentation:**
-    - Add to `docs/docs/types.md`
-    - Add examples to `docs/docs/examples.md`
-
 ### Updating Dependencies
 
 ```shell
@@ -345,32 +287,6 @@ uv pip compile pyproject.toml -o requirements.txt
        assert not objects_are_equal(obj1, obj3)
    ```
 
-### Running Tests with Different Configurations
-
-**Run tests for a specific module:**
-
-```shell
-pytest tests/unit/equality/
-```
-
-**Run tests matching a pattern:**
-
-```shell
-pytest -k "tensor"
-```
-
-**Run tests with markers:**
-
-```shell
-pytest -m "slow"
-```
-
-**Run tests in parallel:**
-
-```shell
-pytest -n auto
-```
-
 ## Continuous Integration
 
 The project uses GitHub Actions for CI. Workflows are in `.github/workflows/`:
@@ -388,21 +304,6 @@ The project uses GitHub Actions for CI. Workflows are in `.github/workflows/`:
     - Runs daily
     - Tests multiple Python versions
 
-## Release Process
-
-Releases are managed by the maintainers:
-
-1. Update version in `pyproject.toml`
-2. Create and push a git tag
-3. GitHub Actions automatically publishes to PyPI
-4. Documentation is automatically deployed
-
-## Getting Help
-
-- **Documentation**: https://durandtibo.github.io/coola/
-- **GitHub Issues**: https://github.com/durandtibo/coola/issues
-- **Contributing Guide
-  **: [CONTRIBUTING.md](https://github.com/durandtibo/coola/blob/main/.github/CONTRIBUTING.md)
 
 ## Best Practices
 
@@ -414,37 +315,6 @@ Releases are managed by the maintainers:
 6. **Add docstrings** to all public APIs
 7. **Keep dependencies minimal**
 8. **Follow existing code style**
-
-## Troubleshooting Development Issues
-
-### Test Issues
-
-**Tests fail after pulling changes:**
-
-```shell
-# Update dependencies
-inv install
-# Re-run tests
-inv unit-test
-```
-
-**Import errors in tests:**
-
-```shell
-# Make sure package is installed in development mode
-inv install
-```
-
-### Pre-commit Issues
-
-**Pre-commit hooks fail:**
-
-```shell
-# Update pre-commit hooks
-pre-commit autoupdate
-# Try running manually
-pre-commit run --all-files
-```
 
 ## Code Review Checklist
 
