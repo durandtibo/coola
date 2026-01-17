@@ -2,7 +2,7 @@ r"""Implement utilities for logging equality differences."""
 
 from __future__ import annotations
 
-__all__ = ["setup_difference_logging"]
+__all__ = ["setup_difference_logging", "reset_logging_setup"]
 
 import logging
 import sys
@@ -58,3 +58,20 @@ def setup_difference_logging() -> None:
         coola_logger.propagate = False  # Don't propagate to root
         
         _logging_setup_done = True
+
+
+def reset_logging_setup() -> None:
+    r"""Reset the logging setup flag.
+
+    This function is primarily for testing purposes, allowing tests to
+    reset the internal state and re-trigger logging setup.
+
+    Example:
+        ```pycon
+        >>> from coola.equality.logging_utils import reset_logging_setup
+        >>> reset_logging_setup()
+
+        ```
+    """
+    global _logging_setup_done  # noqa: PLW0603
+    _logging_setup_done = False

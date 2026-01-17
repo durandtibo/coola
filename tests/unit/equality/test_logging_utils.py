@@ -2,8 +2,7 @@ from __future__ import annotations
 
 import logging
 
-import coola.equality.logging_utils
-from coola.equality.logging_utils import setup_difference_logging
+from coola.equality.logging_utils import reset_logging_setup, setup_difference_logging
 
 
 def test_setup_difference_logging() -> None:
@@ -11,7 +10,7 @@ def test_setup_difference_logging() -> None:
     coola_logger = logging.getLogger("coola.equality")
     original_handlers = list(coola_logger.handlers)
     coola_logger.handlers.clear()
-    coola.equality.logging_utils._logging_setup_done = False
+    reset_logging_setup()
     
     try:
         # Setup logging
@@ -20,9 +19,8 @@ def test_setup_difference_logging() -> None:
         # Verify logger is configured
         # The handler may or may not be added depending on root logger state
         # But propagate should be False if setup was done
-        if coola.equality.logging_utils._logging_setup_done:
+        if len(coola_logger.handlers) > 0:
             assert not coola_logger.propagate
-            assert len(coola_logger.handlers) > 0
             # Verify handler is set to INFO level
             assert any(h.level == logging.INFO for h in coola_logger.handlers)
     finally:
@@ -36,8 +34,8 @@ def test_setup_difference_logging_idempotent() -> None:
     original_handlers = list(coola_logger.handlers)
     coola_logger.handlers.clear()
     
-    # Reset the global flag
-    coola.equality.logging_utils._logging_setup_done = False
+    # Reset the flag
+    reset_logging_setup()
     
     try:
         # Setup logging multiple times
