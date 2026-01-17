@@ -54,12 +54,8 @@ class SequenceSameValuesHandler(BaseEqualityHandler):
     ) -> bool:
         with check_recursion_depth(config):
             for idx, (value1, value2) in enumerate(zip(actual, expected)):
-                # Add path element before recursing
-                config.add_path_element(f"[index {idx}]")
-                equal = config.registry.objects_are_equal(value1, value2, config)
-                # Remove path element after recursing (whether equal or not)
-                config.remove_last_path_element()
-                if not equal:
+                if not config.registry.objects_are_equal(value1, value2, config):
+                    self._show_difference(actual, expected, idx, config=config)
                     return False
             return self._handle_next(actual, expected, config=config)
 
@@ -70,5 +66,10 @@ class SequenceSameValuesHandler(BaseEqualityHandler):
         index: int,
         config: EqualityConfig,
     ) -> None:
-        # This method is no longer needed as we handle path in the recursive call
-        pass
+        if config.show_difference:
+            message = format_sequence_difference(
+                actual,
+                expected,
+                different_index=index,
+            )
+            logger.info(message)

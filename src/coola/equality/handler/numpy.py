@@ -7,7 +7,7 @@ __all__ = ["NumpyArrayEqualHandler"]
 import logging
 from typing import TYPE_CHECKING
 
-from coola.equality.format import format_difference_with_path
+from coola.equality.format import format_value_difference
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.utils import handlers_are_equal
 from coola.utils.imports import is_numpy_available
@@ -59,9 +59,7 @@ class NumpyArrayEqualHandler(BaseEqualityHandler):
     ) -> bool:
         object_equal = array_equal(actual, expected, config)
         if config.show_difference and not object_equal:
-            # Get the path and format with it
-            path = config.get_path()
-            message = format_difference_with_path(path, actual, expected, name="numpy.ndarrays")
+            message = format_value_difference(actual, expected, name="numpy.ndarrays")
             logger.info(message)
         return object_equal
 

@@ -8,7 +8,7 @@ import logging
 import math
 from typing import TYPE_CHECKING
 
-from coola.equality.format import format_difference_with_path
+from coola.equality.format import format_value_difference
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.utils import handlers_are_equal
 
@@ -89,9 +89,7 @@ class ScalarEqualHandler(BaseEqualityHandler):
     def handle(self, actual: float, expected: float, config: EqualityConfig) -> bool:
         object_equal = number_equal(actual, expected, config)
         if not object_equal and config.show_difference:
-            # Get the path and format with it
-            path = config.get_path()
-            message = format_difference_with_path(path, actual, expected, name="numbers")
+            message = format_value_difference(actual, expected, name="numbers")
             logger.info(message)
         return object_equal
 

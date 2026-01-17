@@ -63,7 +63,6 @@ class EqualityConfig:
     show_difference: bool = False
     max_depth: int = 1000
     _current_depth: int = field(default=0, init=False, repr=False, compare=False)
-    _diff_path: list[str] = field(default_factory=list, init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
         """Validate configuration parameters after initialization."""
@@ -89,24 +88,3 @@ class EqualityConfig:
     def decrement_depth(self) -> None:
         """Increment the current depth counter."""
         self._current_depth -= 1
-
-    def add_path_element(self, element: str) -> None:
-        """Add an element to the difference path.
-        
-        Args:
-            element: A path element describing the location of the difference.
-        """
-        self._diff_path.append(element)
-
-    def remove_last_path_element(self) -> None:
-        """Remove the last element from the difference path."""
-        if self._diff_path:
-            self._diff_path.pop()
-
-    def get_path(self) -> list[str]:
-        """Get the current difference path.
-        
-        Returns:
-            The list of path elements from root to current location.
-        """
-        return self._diff_path.copy()

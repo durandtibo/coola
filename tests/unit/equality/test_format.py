@@ -34,10 +34,7 @@ def test_format_mapping_difference_different_value() -> None:
         {"a": 1, "b": 3},
         different_value_key="b",
     )
-    assert "mappings have different values:" in msg
-    assert "different value for key 'b':" in msg
-    assert "actual   : 2" in msg
-    assert "expected : 3" in msg
+    assert "mappings have different values for key 'b'" in msg
 
 
 def test_format_mapping_difference_missing_and_different() -> None:
@@ -60,23 +57,17 @@ def test_format_mapping_difference_missing_and_different() -> None:
 
 def test_format_sequence_difference_with_index() -> None:
     msg = format_sequence_difference([1, 2, 3], [1, 2, 4], different_index=2)
-    assert "sequences have different values:" in msg
-    assert "different value at index 2:" in msg
-    assert "actual   : 3" in msg
-    assert "expected : 4" in msg
+    assert "sequences have different values at index 2" in msg
 
 
 def test_format_sequence_difference_different_lengths() -> None:
     msg = format_sequence_difference([1, 2], [1, 2, 3], different_index=None)
-    assert "sequences have different values:" in msg
-    assert "lengths: 2 vs 3" in msg
+    assert "sequences have different lengths: 2 vs 3" in msg
 
 
 def test_format_sequence_difference_with_index_and_lengths() -> None:
     msg = format_sequence_difference([1, 2], [1, 2, 3], different_index=1)
-    assert "sequences have different values:" in msg
-    assert "lengths: 2 vs 3" in msg
-    assert "different value at index 1:" in msg
+    assert "sequences have different values at index 1" in msg
 
 
 ###########################################

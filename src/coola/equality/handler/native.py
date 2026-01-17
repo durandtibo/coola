@@ -15,10 +15,7 @@ __all__ = [
 import logging
 from typing import TYPE_CHECKING
 
-from coola.equality.format import (
-    format_difference_with_path,
-    format_type_difference,
-)
+from coola.equality.format import format_type_difference, format_value_difference
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.utils import handlers_are_equal
 
@@ -134,9 +131,7 @@ class ObjectEqualHandler(BaseEqualityHandler):
     ) -> bool:
         object_equal = actual == expected
         if config.show_difference and not object_equal:
-            # Get the path and format with it
-            path = config.get_path()
-            message = format_difference_with_path(path, actual, expected, name="objects")
+            message = format_value_difference(actual, expected, name="objects")
             logger.info(message)
         return object_equal
 
@@ -298,8 +293,7 @@ class SameTypeHandler(BaseEqualityHandler):
     ) -> bool:
         if type(actual) is not type(expected):
             if config.show_difference:
-                path = config.get_path()
-                message = format_type_difference(type(actual), type(expected), path=path)
+                message = format_type_difference(type(actual), type(expected))
                 logger.info(message)
             return False
         return self._handle_next(actual, expected, config=config)
