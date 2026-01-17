@@ -17,7 +17,7 @@ Once you implement and test your feature or bug-fix, please submit a Pull Reques
 ### Prerequisites
 
 - Python 3.10 or higher
-- [Poetry](https://python-poetry.org/) for dependency management
+- [`uv`](https://docs.astral.sh/uv/) for dependency management
 - Git
 
 ### Setting Up Your Development Environment
@@ -28,31 +28,21 @@ Once you implement and test your feature or bug-fix, please submit a Pull Reques
    cd coola
    ```
 
-2. **Install Poetry** (if not already installed):
+2. **Set up the development environment:**
    ```shell
-   curl -sSL https://install.python-poetry.org | python3 -
+   make setup-venv
    ```
 
-3. **Create a virtual environment** (optional but recommended):
+   This will install `uv` (if needed), create a virtual environment, and install all dependencies.
+
+3. **Activate the virtual environment:**
    ```shell
-   make conda
-   conda activate coola
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
    ```
 
-   Or using venv:
+4. **Install pre-commit hooks:**
    ```shell
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-4. **Install dependencies:**
-   ```shell
-   poetry install --no-interaction
-   ```
-
-5. **Install pre-commit hooks:**
-   ```shell
-   poetry run pre-commit install
+   pre-commit install
    ```
 
 ## Development Workflow
@@ -71,14 +61,14 @@ make unit-test-cov
 
 Run specific tests:
 ```shell
-poetry run pytest tests/unit/path/to/test_file.py
+pytest tests/unit/path/to/test_file.py
 ```
 
 ### Code Quality
 
 **Format your code:**
 ```shell
-poetry run black .
+make format
 ```
 
 **Run linter:**
@@ -93,14 +83,14 @@ make docformat
 
 **Run all pre-commit checks:**
 ```shell
-poetry run pre-commit run --all-files
+pre-commit run --all-files
 ```
 
 ### Building Documentation
 
 Build documentation locally:
 ```shell
-poetry run mkdocs serve -f docs/mkdocs.yml
+mkdocs serve -f docs/mkdocs.yml
 ```
 
 Then visit http://127.0.0.1:8000 to view the documentation.
@@ -128,7 +118,7 @@ We actively welcome your pull requests.
 
 4. **Run code quality checks:**
    ```shell
-   poetry run pre-commit run --all-files
+   pre-commit run --all-files
    ```
 
 5. **Commit your changes:**
