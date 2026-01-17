@@ -8,6 +8,7 @@ __all__ = ["objects_are_allclose", "objects_are_equal"]
 from typing import TYPE_CHECKING
 
 from coola.equality.config import EqualityConfig
+from coola.equality.logging_utils import setup_difference_logging
 from coola.equality.tester.interface import get_default_registry
 
 if TYPE_CHECKING:
@@ -82,6 +83,8 @@ def objects_are_allclose(
         raise ValueError(msg)
     if registry is None:
         registry = get_default_registry()
+    if show_difference:
+        setup_difference_logging()
     config = EqualityConfig(
         registry=registry,
         show_difference=show_difference,
@@ -140,6 +143,8 @@ def objects_are_equal(
     """
     if registry is None:
         registry = get_default_registry()
+    if show_difference:
+        setup_difference_logging()
     config = EqualityConfig(
         registry=registry,
         show_difference=show_difference,

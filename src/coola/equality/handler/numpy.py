@@ -7,6 +7,7 @@ __all__ = ["NumpyArrayEqualHandler"]
 import logging
 from typing import TYPE_CHECKING
 
+from coola.equality.format import format_value_difference
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.utils import handlers_are_equal
 from coola.utils.imports import is_numpy_available
@@ -58,9 +59,8 @@ class NumpyArrayEqualHandler(BaseEqualityHandler):
     ) -> bool:
         object_equal = array_equal(actual, expected, config)
         if config.show_difference and not object_equal:
-            logger.info(
-                f"numpy.ndarrays have different elements:\nactual:\n{actual}\nexpected:\n{expected}"
-            )
+            message = format_value_difference(actual, expected, name="numpy.ndarrays")
+            logger.info(message)
         return object_equal
 
 

@@ -7,6 +7,7 @@ __all__ = ["SameShapeHandler", "SupportsShape"]
 import logging
 from typing import TYPE_CHECKING, Protocol
 
+from coola.equality.format import format_shape_difference
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.utils import handlers_are_equal
 
@@ -66,6 +67,7 @@ class SameShapeHandler(BaseEqualityHandler):
     ) -> bool:
         if actual.shape != expected.shape:
             if config.show_difference:
-                logger.info(f"objects have different shapes: {actual.shape} vs {expected.shape}")
+                message = format_shape_difference(actual.shape, expected.shape)
+                logger.info(message)
             return False
         return self._handle_next(actual, expected, config=config)
