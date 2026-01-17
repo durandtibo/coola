@@ -25,7 +25,6 @@ nav:
   - Home: index.md
   - get_started.md
   - User Guide:
-      - uguide/quickstart.md
       - uguide/equality.md
       - uguide/equality_tester.md
       - uguide/equality_handler.md
