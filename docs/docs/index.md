@@ -55,11 +55,13 @@
 
 ## Overview
 
-`coola` is a lightweight Python library that makes it easy to compare complex and nested data structures.
+`coola` is a lightweight Python library that makes it easy to compare complex and nested data
+structures.
 It provides simple, extensible functions to check equality between objects containing
 [PyTorch tensors](https://pytorch.org/docs/stable/tensors.html),
 [NumPy arrays](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html),
-[pandas](https://pandas.pydata.org/)/[polars](https://www.pola.rs/) DataFrames, and other scientific computing objects.
+[pandas](https://pandas.pydata.org/)/[polars](https://www.pola.rs/) DataFrames, and other scientific
+computing objects.
 
 **Quick Links:**
 
@@ -178,7 +180,9 @@ Compute statistics on sequences with flexible backends:
 ## Contributing
 
 Contributions are welcome! We appreciate bug fixes, feature additions, documentation improvements,
-and more. Please check the [contributing guidelines](https://github.com/durandtibo/coola/blob/main/CONTRIBUTING.md) for details on:
+and more. Please check
+the [contributing guidelines](https://github.com/durandtibo/coola/blob/main/CONTRIBUTING.md) for
+details on:
 
 - Setting up the development environment
 - Code style and testing requirements
@@ -189,11 +193,12 @@ your changes.
 
 ## API Stability
 
-:warning: **Important**: While `coola` is in active development, the API may change between releases
-before reaching version 1.0.0. We recommend pinning to a specific version in your project's
-dependencies to avoid unexpected breaking changes when upgrading.
+:warning: **Important**: As `coola` is under active development, its API is not yet stable and may
+change between releases. We recommend pinning a specific version in your project’s dependencies to
+ensure consistent behavior.
 
 ## License
 
-`coola` is licensed under BSD 3-Clause "New" or "Revised" license available in [LICENSE](https://github.com/durandtibo/coola/blob/main/LICENSE)
+`coola` is licensed under BSD 3-Clause "New" or "Revised" license available
+in [LICENSE](https://github.com/durandtibo/coola/blob/main/LICENSE)
 file.
