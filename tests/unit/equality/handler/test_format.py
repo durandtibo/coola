@@ -8,9 +8,9 @@ from coola.equality.handler.format import (
     format_value_difference,
 )
 
-###########################################
+###############################################
 #     Tests for format_mapping_difference     #
-###########################################
+###############################################
 
 
 def test_format_mapping_difference_missing_keys() -> None:
@@ -41,9 +41,9 @@ def test_format_mapping_difference_missing_and_different() -> None:
     assert "additional keys" in msg
 
 
-###########################################
+################################################
 #     Tests for format_sequence_difference     #
-###########################################
+################################################
 
 
 def test_format_sequence_difference_with_index() -> None:
@@ -61,9 +61,9 @@ def test_format_sequence_difference_with_index_and_lengths() -> None:
     assert "sequences have different values at index 1" in msg
 
 
-###########################################
+#############################################
 #     Tests for format_shape_difference     #
-###########################################
+#############################################
 
 
 def test_format_shape_difference() -> None:
@@ -80,9 +80,9 @@ def test_format_shape_difference_1d_vs_2d() -> None:
     assert "expected : (5, 1)" in msg
 
 
-###########################################
+############################################
 #     Tests for format_type_difference     #
-###########################################
+############################################
 
 
 def test_format_type_difference() -> None:
@@ -99,9 +99,9 @@ def test_format_type_difference_int_float() -> None:
     assert "expected : <class 'float'>" in msg
 
 
-###########################################
+#############################################
 #     Tests for format_value_difference     #
-###########################################
+#############################################
 
 
 def test_format_value_difference_default_name() -> None:

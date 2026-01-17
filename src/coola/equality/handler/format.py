@@ -105,17 +105,12 @@ def format_sequence_difference(
 
         ```
     """
-    lines = []
-
     if different_index is not None:
         # Just show the index, not the full values which could be large objects
-        lines.append(f"sequences have different values at index {different_index}")
-    elif len(actual) != len(expected):
-        lines.append(f"sequences have different lengths: {len(actual)} vs {len(expected)}")
-    else:
-        lines.append("sequences have different values")
-
-    return "\n".join(lines)
+        return f"sequences have different values at index {different_index}"
+    if len(actual) != len(expected):
+        return f"sequences have different lengths: {len(actual)} vs {len(expected)}"
+    return "sequences have different values"
 
 
 def format_shape_difference(
