@@ -23,7 +23,6 @@ overloading.
 The `Registry` class provides a thread-safe container for storing and retrieving values by key:
 
 ```pycon
-
 >>> from coola.registry import Registry
 >>> registry = Registry[str, int]()
 >>> registry.register("key1", 42)
@@ -37,7 +36,6 @@ The `Registry` class provides a thread-safe container for storing and retrieving
 The registry supports standard dictionary operations:
 
 ```pycon
-
 >>> from coola.registry import Registry
 >>> registry = Registry[str, int]()
 >>> registry["key1"] = 100
@@ -56,7 +54,6 @@ False
 You can initialize a registry with existing data:
 
 ```pycon
-
 >>> from coola.registry import Registry
 >>> registry = Registry[str, int]({"a": 1, "b": 2})
 >>> len(registry)
@@ -71,7 +68,6 @@ You can initialize a registry with existing data:
 By default, registering a duplicate key raises an error to prevent accidental overwriting:
 
 ```pycon
-
 >>> from coola.registry import Registry
 >>> registry = Registry[str, int]()
 >>> registry.register("key1", 42)
@@ -85,7 +81,6 @@ RuntimeError: A value is already registered for 'key1'...
 To allow overwriting, use `exist_ok=True`:
 
 ```pycon
-
 >>> from coola.registry import Registry
 >>> registry = Registry[str, int]()
 >>> registry.register("key1", 42)
@@ -100,7 +95,6 @@ To allow overwriting, use `exist_ok=True`:
 Register multiple key-value pairs at once:
 
 ```pycon
-
 >>> from coola.registry import Registry
 >>> registry = Registry[str, int]()
 >>> registry.register_many({"key1": 42, "key2": 100, "key3": 7})
@@ -114,7 +108,6 @@ Register multiple key-value pairs at once:
 Bulk updates with `exist_ok`:
 
 ```pycon
-
 >>> from coola.registry import Registry
 >>> registry = Registry[str, int]({"key1": 1})
 >>> registry.register_many({"key1": 10, "key4": 4}, exist_ok=True)
@@ -130,7 +123,6 @@ Bulk updates with `exist_ok`:
 Remove a key and get its value:
 
 ```pycon
-
 >>> from coola.registry import Registry
 >>> registry = Registry[str, int]({"key1": 42, "key2": 100})
 >>> registry.has("key1")
@@ -148,7 +140,6 @@ False
 Remove all entries from the registry:
 
 ```pycon
-
 >>> from coola.registry import Registry
 >>> registry = Registry[str, int]({"key1": 42, "key2": 100})
 >>> len(registry)
@@ -164,7 +155,6 @@ Remove all entries from the registry:
 Access keys, values, and items:
 
 ```pycon
-
 >>> from coola.registry import Registry
 >>> registry = Registry[str, int]({"a": 1, "b": 2})
 >>> list(registry.keys())
@@ -181,7 +171,6 @@ Access keys, values, and items:
 Compare two registries:
 
 ```pycon
-
 >>> from coola.registry import Registry
 >>> registry1 = Registry[str, int]({"key1": 42, "key2": 100})
 >>> registry2 = Registry[str, int]({"key1": 42, "key2": 100})
@@ -200,7 +189,6 @@ False
 The `TypeRegistry` class provides a thread-safe container for mapping Python types to values:
 
 ```pycon
-
 >>> from coola.registry import TypeRegistry
 >>> registry = TypeRegistry[str]()
 >>> registry.register(int, "I am an integer")
@@ -215,7 +203,6 @@ The key feature of `TypeRegistry` is its `resolve()` method, which uses the Meth
 (MRO) to find the most appropriate value for a type:
 
 ```pycon
-
 >>> from coola.registry import TypeRegistry
 >>> registry = TypeRegistry[str]()
 >>> registry.register(object, "I am an object")
@@ -237,7 +224,6 @@ The key feature of `TypeRegistry` is its `resolve()` method, which uses the Meth
 Like `Registry`, `TypeRegistry` supports standard dictionary operations:
 
 ```pycon
-
 >>> from coola.registry import TypeRegistry
 >>> registry = TypeRegistry[str]()
 >>> registry[str] = "I am a string"
@@ -254,7 +240,6 @@ True
 Initialize with type mappings:
 
 ```pycon
-
 >>> from coola.registry import TypeRegistry
 >>> registry = TypeRegistry[int]({str: 100, float: 200})
 >>> len(registry)
@@ -269,7 +254,6 @@ Initialize with type mappings:
 Prevent accidental overwriting of type mappings:
 
 ```pycon
-
 >>> from coola.registry import TypeRegistry
 >>> registry = TypeRegistry[int]()
 >>> registry.register(str, 42)
@@ -283,7 +267,6 @@ RuntimeError: A value is already registered for <class 'str'>...
 Allow overwriting with `exist_ok=True`:
 
 ```pycon
-
 >>> from coola.registry import TypeRegistry
 >>> registry = TypeRegistry[int]()
 >>> registry.register(str, 42)
@@ -298,7 +281,6 @@ Allow overwriting with `exist_ok=True`:
 Register multiple types at once:
 
 ```pycon
-
 >>> from coola.registry import TypeRegistry
 >>> registry = TypeRegistry[str]()
 >>> registry.register_many({int: "integer", float: "float", str: "string"})
@@ -314,7 +296,6 @@ Register multiple types at once:
 The `resolve()` method walks the MRO to find the most specific registered type:
 
 ```pycon
-
 >>> from coola.registry import TypeRegistry
 >>> class Animal:
 ...     pass
@@ -340,7 +321,6 @@ The `resolve()` method walks the MRO to find the most specific registered type:
 The `TypeRegistry` uses an internal cache for type resolution to optimize performance:
 
 ```pycon
-
 >>> from coola.registry import TypeRegistry
 >>> registry = TypeRegistry[str]()
 >>> registry.register(object, "base")
@@ -362,7 +342,6 @@ Both `Registry` and `TypeRegistry` are thread-safe, using reentrant locks (`thre
 protect concurrent access:
 
 ```pycon
-
 >>> from coola.registry import Registry
 >>> import threading
 >>> registry = Registry[str, int]()
@@ -388,7 +367,6 @@ True
 Use a registry to manage plugins:
 
 ```pycon
-
 >>> from coola.registry import Registry
 >>> plugin_registry = Registry[str, type]()
 >>> class JSONParser:
@@ -410,7 +388,6 @@ Use a registry to manage plugins:
 Use a type registry for dispatching based on type:
 
 ```pycon
-
 >>> from coola.registry import TypeRegistry
 >>> handlers = TypeRegistry[str]()
 >>> handlers.register(int, "handle_int")
@@ -428,7 +405,6 @@ Use a type registry for dispatching based on type:
 Use a registry to implement a factory pattern:
 
 ```pycon
-
 >>> from coola.registry import Registry
 >>> factory = Registry[str, type]()
 >>> class Circle:
@@ -450,7 +426,6 @@ Use a registry to implement a factory pattern:
 Store configuration handlers:
 
 ```pycon
-
 >>> from coola.registry import Registry
 >>> config_handlers = Registry[str, callable]()
 >>> config_handlers.register("database", lambda: {"host": "localhost"})

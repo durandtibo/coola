@@ -28,7 +28,6 @@ logic.
 Handlers are chained together to perform multiple checks in sequence:
 
 ```pycon
-
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.handler import (
 ...     SameObjectHandler,
@@ -57,7 +56,6 @@ check passes.
 All handlers inherit from `BaseEqualityHandler`, which provides the interface and chain management:
 
 ```pycon
-
 >>> from coola.equality.handler import BaseEqualityHandler, SameTypeHandler
 >>> handler = SameTypeHandler()
 >>> isinstance(handler, BaseEqualityHandler)
@@ -76,7 +74,6 @@ These handlers check structural properties of objects:
 Checks if both objects are the same object (identity check using `is`):
 
 ```pycon
-
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.handler import SameObjectHandler, FalseHandler
 >>> config = EqualityConfig()
@@ -98,7 +95,6 @@ This is an optimization - if two objects are the same object in memory, they mus
 Checks if both objects have the same type:
 
 ```pycon
-
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.handler import SameTypeHandler, TrueHandler, FalseHandler
 >>> config = EqualityConfig()
@@ -117,7 +113,6 @@ This ensures that lists are only compared with lists, dicts with dicts, etc.
 Checks if both objects have the same length (for sized objects):
 
 ```pycon
-
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.handler import SameLengthHandler, TrueHandler
 >>> config = EqualityConfig()
@@ -134,7 +129,6 @@ False
 Checks if both objects have the same shape (for arrays/tensors):
 
 ```pycon
-
 >>> import numpy as np
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.handler import SameShapeHandler, TrueHandler
@@ -152,7 +146,6 @@ False
 Checks if both objects have the same data type (for arrays/tensors):
 
 ```pycon
-
 >>> import numpy as np
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.handler import SameDTypeHandler, TrueHandler
@@ -174,7 +167,6 @@ These handlers compare the actual values of objects:
 Uses Python's `==` operator to check equality:
 
 ```pycon
-
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.handler import ObjectEqualHandler
 >>> config = EqualityConfig()
@@ -191,7 +183,6 @@ False
 Recursively checks if objects are equal using the equality registry:
 
 ```pycon
-
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.handler import EqualHandler
 >>> class MyList(list):
@@ -214,7 +205,6 @@ This handler is used to compare nested values recursively.
 Compares scalar values (int, float, bool) with optional tolerance:
 
 ```pycon
-
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.handler import ScalarEqualHandler
 >>> config = EqualityConfig(atol=0.1)
@@ -232,7 +222,6 @@ False
 Special handler for comparing NaN values:
 
 ```pycon
-
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.handler import NanEqualHandler
 >>> config = EqualityConfig(equal_nan=True)
@@ -254,7 +243,6 @@ These handlers work with collections like lists, tuples, and dictionaries:
 Compares sequence values element by element:
 
 ```pycon
-
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.handler import SequenceSameValuesHandler, create_chain
 >>> config = EqualityConfig()
@@ -271,7 +259,6 @@ False
 Checks if two mappings have the same keys:
 
 ```pycon
-
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.handler import MappingSameKeysHandler, TrueHandler, create_chain
 >>> config = EqualityConfig()
@@ -288,7 +275,6 @@ False
 Compares mapping values for the same keys:
 
 ```pycon
-
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.handler import MappingSameValuesHandler, TrueHandler, create_chain
 >>> config = EqualityConfig()
@@ -323,7 +309,6 @@ These handlers end the chain:
 Always returns `True` (used when all checks pass):
 
 ```pycon
-
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.handler import TrueHandler
 >>> config = EqualityConfig()
@@ -338,7 +323,6 @@ True
 Always returns `False` (used as a fallback):
 
 ```pycon
-
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.handler import FalseHandler
 >>> config = EqualityConfig()
@@ -355,7 +339,6 @@ False
 You can build chains manually using the `chain()` method:
 
 ```pycon
-
 >>> from coola.equality.handler import (
 ...     SameObjectHandler,
 ...     SameTypeHandler,
@@ -378,7 +361,6 @@ ObjectEqualHandler()
 Build chains with multiple handlers at once:
 
 ```pycon
-
 >>> from coola.equality.handler import (
 ...     SameObjectHandler,
 ...     SameTypeHandler,
@@ -398,7 +380,6 @@ ObjectEqualHandler()
 The utility function `create_chain()` creates a chain from multiple handlers:
 
 ```pycon
-
 >>> from coola.equality.handler import (
 ...     create_chain,
 ...     SameObjectHandler,
@@ -420,7 +401,6 @@ The utility function `create_chain()` creates a chain from multiple handlers:
 You can create custom handlers by inheriting from `BaseEqualityHandler`:
 
 ```pycon
-
 >>> from coola.equality.handler import BaseEqualityHandler
 >>> from coola.equality.config import EqualityConfig
 >>> class CustomHandler(BaseEqualityHandler):
@@ -443,7 +423,6 @@ You can create custom handlers by inheriting from `BaseEqualityHandler`:
 You can visualize and inspect handler chains:
 
 ```pycon
-
 >>> from coola.equality.handler import (
 ...     create_chain,
 ...     SameObjectHandler,
@@ -467,7 +446,6 @@ You can visualize and inspect handler chains:
 Handlers can be compared for equality:
 
 ```pycon
-
 >>> from coola.equality.handler import (
 ...     SameTypeHandler,
 ...     SameObjectHandler,
@@ -500,7 +478,6 @@ Most equality testers use a similar structure:
 Example for sequences:
 
 ```pycon
-
 >>> from coola.equality.handler import (
 ...     create_chain,
 ...     SameObjectHandler,
@@ -525,7 +502,6 @@ The `EqualityConfig` object passed through the chain tracks recursion depth to p
 loops in circular structures:
 
 ```pycon
-
 >>> from coola.equality.config import EqualityConfig
 >>> config = EqualityConfig(max_depth=100)
 >>> config.depth
@@ -545,7 +521,6 @@ This is automatically managed by the handlers that perform recursive comparisons
 When adding support for a new type, you create a handler chain specific to that type:
 
 ```pycon
-
 >>> from coola.equality.handler import (
 ...     create_chain,
 ...     SameObjectHandler,
@@ -569,7 +544,6 @@ The handler chain allows short-circuiting - if any handler returns `False`, the 
 are not executed:
 
 ```pycon
-
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.handler import (
 ...     create_chain,
