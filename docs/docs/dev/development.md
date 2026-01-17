@@ -5,7 +5,7 @@ This guide covers setting up your development environment and common development
 ## Prerequisites
 
 - Python 3.10 or higher
-- [Poetry](https://python-poetry.org/) for dependency management
+- [`uv`](https://docs.astral.sh/uv/) for dependency management
 - Git for version control
 - Basic knowledge of Python and testing
 
@@ -19,42 +19,44 @@ git clone https://github.com/YOUR-USERNAME/coola.git
 cd coola
 ```
 
-### 2. Install Poetry
+### 2. Set Up Virtual Environment
 
-If you don't have Poetry installed:
+The project uses `uv` for dependency management. First, install `uv` if you don't have it:
 
 ```shell
-curl -sSL https://install.python-poetry.org | python3 -
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-Verify installation:
+Create and set up the virtual environment:
 
 ```shell
-poetry --version
+make setup-venv
+```
+
+This will create a virtual environment and install all dependencies, including development tools.
+
+Activate the virtual environment:
+
+```shell
+source .venv/bin/activate
 ```
 
 ### 3. Install Dependencies
 
-```shell
-# Install all dependencies (including dev dependencies)
-poetry install --no-interaction
-
-# Or use make command
-make install
-```
-
-To install with docs dependencies:
+If you already have a virtual environment and just want to install dependencies:
 
 ```shell
-poetry install --with docs
-# Or
-make install-all
+# Install core dependencies
+inv install --no-optional-deps
+
+# Install with documentation dependencies
+inv install --docs-deps
 ```
 
 ### 4. Set Up Pre-commit Hooks
 
 ```shell
-poetry run pre-commit install
+pre-commit install
 ```
 
 This will automatically run code quality checks before each commit.
@@ -66,31 +68,31 @@ This will automatically run code quality checks before each commit.
 **Run all unit tests:**
 
 ```shell
-make unit-test
+inv unit-test
 ```
 
 **Run tests with coverage:**
 
 ```shell
-make unit-test-cov
+inv unit-test --cov
 ```
 
 **Run specific test file:**
 
 ```shell
-poetry run pytest tests/unit/test_comparison.py
+pytest tests/unit/test_comparison.py
 ```
 
 **Run specific test:**
 
 ```shell
-poetry run pytest tests/unit/test_comparison.py::test_objects_are_equal
+pytest tests/unit/test_comparison.py::test_objects_are_equal
 ```
 
 **Run tests with verbose output:**
 
 ```shell
-poetry run pytest -v tests/unit/
+pytest -v tests/unit/
 ```
 
 ### Code Quality
@@ -98,27 +100,25 @@ poetry run pytest -v tests/unit/
 **Format code with Black:**
 
 ```shell
-poetry run black .
-# Or
-make format
+inv check-format
 ```
 
 **Run linter (Ruff):**
 
 ```shell
-make lint
+inv check-lint
 ```
 
 **Format docstrings:**
 
 ```shell
-make docformat
+inv docformat
 ```
 
 **Run all pre-commit checks:**
 
 ```shell
-poetry run pre-commit run --all-files
+pre-commit run --all-files
 ```
 
 ### Documentation
@@ -126,7 +126,7 @@ poetry run pre-commit run --all-files
 **Build documentation locally:**
 
 ```shell
-poetry run mkdocs serve -f docs/mkdocs.yml
+mkdocs serve -f docs/mkdocs.yml
 ```
 
 Then open http://127.0.0.1:8000 in your browser.
@@ -134,21 +134,21 @@ Then open http://127.0.0.1:8000 in your browser.
 **Build documentation without serving:**
 
 ```shell
-poetry run mkdocs build -f docs/mkdocs.yml
+mkdocs build -f docs/mkdocs.yml
 ```
 
 **Run doctests:**
 
 ```shell
-make doctest-src
+inv doctest-src
 ```
 
 ### Type Checking
 
-While `coola` doesn't currently use mypy in CI, you can run type checking locally:
+`coola` uses pyright for type checking. You can run type checking locally:
 
 ```shell
-poetry run mypy src/coola --ignore-missing-imports
+pyright src/coola
 ```
 
 ## Project Structure
@@ -174,7 +174,7 @@ coola/
 │   ├── unit/           # Unit tests
 │   └── integration/    # Integration tests
 ├── pyproject.toml      # Project configuration
-├── poetry.lock         # Locked dependencies
+├── uv.lock             # Locked dependencies
 ├── LICENSE             # License file
 ├── README.md           # Project README
 └── SECURITY.md         # Security policy
@@ -196,12 +196,12 @@ coola/
 
 3. **Run tests:**
    ```shell
-   make unit-test-cov
+   inv unit-test --cov
    ```
 
 4. **Run code quality checks:**
    ```shell
-   poetry run pre-commit run --all-files
+   pre-commit run --all-files
    ```
 
 5. **Commit changes:**
@@ -228,12 +228,12 @@ coola/
 
 4. **Verify the test passes:**
    ```shell
-   poetry run pytest tests/unit/path/to/test.py
+   pytest tests/unit/path/to/test.py
    ```
 
 5. **Run full test suite:**
    ```shell
-   make unit-test-cov
+   inv unit-test --cov
    ```
 
 6. **Commit and push:**
@@ -298,13 +298,11 @@ coola/
 
 ```shell
 # Update all dependencies
-poetry update
+inv update
 
-# Update specific dependency
-poetry update numpy
-
-# Update poetry itself
-poetry self update
+# Dependencies are managed in pyproject.toml and locked in uv.lock
+# To add a new dependency, edit pyproject.toml and run:
+uv pip compile pyproject.toml -o requirements.txt
 ```
 
 ## Testing Guidelines
@@ -352,25 +350,25 @@ poetry self update
 **Run tests for a specific module:**
 
 ```shell
-poetry run pytest tests/unit/equality/
+pytest tests/unit/equality/
 ```
 
 **Run tests matching a pattern:**
 
 ```shell
-poetry run pytest -k "tensor"
+pytest -k "tensor"
 ```
 
 **Run tests with markers:**
 
 ```shell
-poetry run pytest -m "slow"
+pytest -m "slow"
 ```
 
 **Run tests in parallel:**
 
 ```shell
-poetry run pytest -n auto
+pytest -n auto
 ```
 
 ## Continuous Integration
@@ -425,16 +423,16 @@ Releases are managed by the maintainers:
 
 ```shell
 # Update dependencies
-poetry install
+inv install
 # Re-run tests
-make unit-test
+inv unit-test
 ```
 
 **Import errors in tests:**
 
 ```shell
 # Make sure package is installed in development mode
-poetry install
+inv install
 ```
 
 ### Pre-commit Issues
@@ -443,9 +441,9 @@ poetry install
 
 ```shell
 # Update pre-commit hooks
-poetry run pre-commit autoupdate
+pre-commit autoupdate
 # Try running manually
-poetry run pre-commit run --all-files
+pre-commit run --all-files
 ```
 
 ## Code Review Checklist
@@ -466,6 +464,6 @@ Before submitting a PR, ensure:
 
 - [Python Packaging Guide](https://packaging.python.org/)
 - [pytest Documentation](https://docs.pytest.org/)
-- [Poetry Documentation](https://python-poetry.org/docs/)
+- [uv Documentation](https://docs.astral.sh/uv/)
 - [MkDocs Documentation](https://www.mkdocs.org/)
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
