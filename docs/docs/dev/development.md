@@ -24,11 +24,7 @@ cd coola
 The project uses `uv` for dependency management. First, install `uv` if you don't have it:
 
 ```shell
-# On macOS and Linux
 curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# On Windows
-powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
 Create and set up the virtual environment:
@@ -51,10 +47,10 @@ If you already have a virtual environment and just want to install dependencies:
 
 ```shell
 # Install core dependencies
-make install
+inv install --no-optional-deps
 
 # Install with documentation dependencies
-make install-all
+inv install --docs-deps
 ```
 
 ### 4. Set Up Pre-commit Hooks
@@ -72,13 +68,13 @@ This will automatically run code quality checks before each commit.
 **Run all unit tests:**
 
 ```shell
-make unit-test
+inv unit-test
 ```
 
 **Run tests with coverage:**
 
 ```shell
-make unit-test-cov
+inv unit-test --cov
 ```
 
 **Run specific test file:**
@@ -104,19 +100,19 @@ pytest -v tests/unit/
 **Format code with Black:**
 
 ```shell
-make format
+inv check-format
 ```
 
 **Run linter (Ruff):**
 
 ```shell
-make lint
+inv check-lint
 ```
 
 **Format docstrings:**
 
 ```shell
-make docformat
+inv docformat
 ```
 
 **Run all pre-commit checks:**
@@ -144,7 +140,7 @@ mkdocs build -f docs/mkdocs.yml
 **Run doctests:**
 
 ```shell
-make doctest-src
+inv doctest-src
 ```
 
 ### Type Checking
@@ -200,7 +196,7 @@ coola/
 
 3. **Run tests:**
    ```shell
-   make unit-test-cov
+   inv unit-test --cov
    ```
 
 4. **Run code quality checks:**
@@ -237,7 +233,7 @@ coola/
 
 5. **Run full test suite:**
    ```shell
-   make unit-test-cov
+   inv unit-test --cov
    ```
 
 6. **Commit and push:**
@@ -429,7 +425,7 @@ Releases are managed by the maintainers:
 # Update dependencies
 inv install
 # Re-run tests
-make unit-test
+inv unit-test
 ```
 
 **Import errors in tests:**

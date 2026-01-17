@@ -37,7 +37,7 @@ Once you implement and test your feature or bug-fix, please submit a Pull Reques
 
 3. **Activate the virtual environment:**
    ```shell
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   source .venv/bin/activate
    ```
 
 4. **Install pre-commit hooks:**
@@ -51,12 +51,12 @@ Once you implement and test your feature or bug-fix, please submit a Pull Reques
 
 Run all unit tests:
 ```shell
-make unit-test
+inv unit-test
 ```
 
 Run tests with coverage:
 ```shell
-make unit-test-cov
+inv unit-test --cov
 ```
 
 Run specific tests:
@@ -68,17 +68,17 @@ pytest tests/unit/path/to/test_file.py
 
 **Format your code:**
 ```shell
-make format
+inv check-format
 ```
 
 **Run linter:**
 ```shell
-make lint
+inv check-lint
 ```
 
 **Format docstrings:**
 ```shell
-make docformat
+inv docformat
 ```
 
 **Run all pre-commit checks:**
@@ -113,7 +113,7 @@ We actively welcome your pull requests.
 
 3. **Ensure tests pass:**
    ```shell
-   make unit-test-cov
+   inv unit-test --cov
    ```
 
 4. **Run code quality checks:**
