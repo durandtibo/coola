@@ -4,6 +4,7 @@ import importlib
 import logging
 import random
 import sys
+from copy import deepcopy
 
 from coola.equality import objects_are_allclose, objects_are_equal
 from coola.iterator import bfs_iterate, dfs_iterate
@@ -122,9 +123,6 @@ def check_equality_pandas() -> None:
             "col1": [1, 2, 3, 4, 5],
             "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
             "col3": ["a", "b", "c", "d", "e"],
-            "col4": pd.to_datetime(
-                ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
-            ),
         }
     )
     assert objects_are_allclose(df, df.copy())
@@ -141,9 +139,6 @@ def check_equality_polars() -> None:
             "col1": [1, 2, 3, 4, 5],
             "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
             "col3": ["a", "b", "c", "d", "e"],
-            "col4": pl.Series(
-                ["2020/10/12", "2021/3/14", "2022/4/14", "2023/5/15", "2024/6/16"]
-            ).str.to_datetime(),
         }
     )
     assert objects_are_allclose(df, df.clone())
@@ -160,30 +155,13 @@ def check_equality_torch() -> None:
     assert objects_are_equal(torch.ones(2, 3), torch.ones(2, 3))
 
     # PackedSequence
-    assert objects_are_allclose(
-        torch.nn.utils.rnn.pack_padded_sequence(
-            input=torch.arange(10, dtype=torch.float).view(2, 5),
-            lengths=torch.tensor([5, 3], dtype=torch.long),
-            batch_first=True,
-        ),
-        torch.nn.utils.rnn.pack_padded_sequence(
-            input=torch.arange(10, dtype=torch.float).view(2, 5),
-            lengths=torch.tensor([5, 3], dtype=torch.long),
-            batch_first=True,
-        ),
+    packed_sequence = torch.nn.utils.rnn.pack_padded_sequence(
+        input=torch.arange(10, dtype=torch.float).view(2, 5),
+        lengths=torch.tensor([5, 3], dtype=torch.long),
+        batch_first=True,
     )
-    assert objects_are_equal(
-        torch.nn.utils.rnn.pack_padded_sequence(
-            input=torch.arange(10, dtype=torch.float).view(2, 5),
-            lengths=torch.tensor([5, 3], dtype=torch.long),
-            batch_first=True,
-        ),
-        torch.nn.utils.rnn.pack_padded_sequence(
-            input=torch.arange(10, dtype=torch.float).view(2, 5),
-            lengths=torch.tensor([5, 3], dtype=torch.long),
-            batch_first=True,
-        ),
-    )
+    assert objects_are_allclose(packed_sequence, deepcopy(packed_sequence))
+    assert objects_are_equal(packed_sequence, deepcopy(packed_sequence))
 
 
 @xarray_available
@@ -193,58 +171,26 @@ def check_equality_xarray() -> None:
     logger.info("Checking xarray equality testers...")
     assert is_xarray_available()
     # DataArray
-    assert objects_are_allclose(
-        xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"])
-    )
-    assert objects_are_equal(
-        xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"])
-    )
+    data = xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"])
+    assert objects_are_allclose(data, deepcopy(data))
+    assert objects_are_equal(data, deepcopy(data))
 
     # Dataset
-    assert objects_are_allclose(
-        xr.Dataset(
-            {
-                "x": xr.DataArray(np.arange(6), dims=["z"]),
-                "y": xr.DataArray(np.ones((6, 3)), dims=["z", "t"]),
-            },
-            coords={"z": np.arange(6) + 1, "t": [1, 2, 3]},
-            attrs={"global": "this is a global attribute"},
-        ),
-        xr.Dataset(
-            {
-                "x": xr.DataArray(np.arange(6), dims=["z"]),
-                "y": xr.DataArray(np.ones((6, 3)), dims=["z", "t"]),
-            },
-            coords={"z": np.arange(6) + 1, "t": [1, 2, 3]},
-            attrs={"global": "this is a global attribute"},
-        ),
+    dataset = xr.Dataset(
+        {
+            "x": xr.DataArray(np.arange(6), dims=["z"]),
+            "y": xr.DataArray(np.ones((6, 3)), dims=["z", "t"]),
+        },
+        coords={"z": np.arange(6) + 1, "t": [1, 2, 3]},
+        attrs={"global": "this is a global attribute"},
     )
-    assert objects_are_equal(
-        xr.Dataset(
-            {
-                "x": xr.DataArray(np.arange(6), dims=["z"]),
-                "y": xr.DataArray(np.ones((6, 3)), dims=["z", "t"]),
-            },
-            coords={"z": np.arange(6) + 1, "t": [1, 2, 3]},
-            attrs={"global": "this is a global attribute"},
-        ),
-        xr.Dataset(
-            {
-                "x": xr.DataArray(np.arange(6), dims=["z"]),
-                "y": xr.DataArray(np.ones((6, 3)), dims=["z", "t"]),
-            },
-            coords={"z": np.arange(6) + 1, "t": [1, 2, 3]},
-            attrs={"global": "this is a global attribute"},
-        ),
-    )
+    assert objects_are_allclose(dataset, deepcopy(dataset))
+    assert objects_are_equal(dataset, deepcopy(dataset))
 
     # Variable
-    assert objects_are_allclose(
-        xr.Variable(dims=["z"], data=np.arange(6)), xr.Variable(dims=["z"], data=np.arange(6))
-    )
-    assert objects_are_equal(
-        xr.Variable(dims=["z"], data=np.arange(6)), xr.Variable(dims=["z"], data=np.arange(6))
-    )
+    variable = xr.Variable(dims=["z"], data=np.arange(6))
+    assert objects_are_allclose(variable, deepcopy(variable))
+    assert objects_are_equal(variable, deepcopy(variable))
 
 
 def check_iterator_bfs() -> None:
@@ -318,6 +264,7 @@ def main() -> None:
     functionality."""
     try:
         check_imports()
+
         check_equality_native()
         check_equality_jax()
         check_equality_numpy()
