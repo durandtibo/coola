@@ -65,7 +65,7 @@ computing objects.
 
 **Quick Links:**
 
-- [Quickstart](uguide/quickstart.md)
+- [User Guide](uguide/equality.md)
 - [Installation](get_started.md)
 - [Features](#features)
 - [Contributing](#contributing)
@@ -100,7 +100,7 @@ True
 
 ```
 
-See the [quickstart guide](uguide/quickstart.md) for detailed examples.
+See the [user guide](uguide/equality.md) for detailed examples.
 
 ## Features
 

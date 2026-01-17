@@ -4,7 +4,6 @@
 system for comparing objects of different types recursively. This page explains how to use the two
 main functions of `coola`: `objects_are_equal` and `objects_are_allclose`. These functions can be
 used to check if two complex/nested objects are equal or not.
-The motivation of the library is explained [here](../index.md#motivation).
 
 **Prerequisites:** You'll need to know a bit of Python.
 For a refresher, see the [Python tutorial](https://docs.python.org/tutorial/).

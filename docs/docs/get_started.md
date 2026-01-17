@@ -47,21 +47,13 @@ pip install coola[numpy,torch]  # with NumPy and PyTorch
 
 ## Installing from source
 
-To install `coola` from source, you can follow the steps below. First, you will need to
-install [`poetry`](https://python-poetry.org/docs/). `poetry` is used to manage and install
-the dependencies.
-If `poetry` is already installed on your machine, you can skip this step. There are several ways to
-install `poetry` so you can use the one that you prefer. You can check the `poetry` installation by
-running the following command:
+To install `coola` from source, you can follow the steps below.
 
-```shell
-poetry --version
-```
-
-Then, you can clone the git repository:
+First, clone the git repository:
 
 ```shell
 git clone git@github.com:durandtibo/coola.git
+cd coola
 ```
 
 **Note**: `coola` requires Python 3.10 or higher.
@@ -73,16 +65,14 @@ To create a virtual environment, you can use the following command:
 make setup-venv
 ```
 
-It automatically creates a virtual environment. When the virtual environment is created, you
-can activate it with the following command:
+This command automatically creates a virtual environment using [`uv`](https://docs.astral.sh/uv/).
+When the virtual environment is created, you can activate it with the following command:
 
 ```shell
 source .venv/bin/activate
 ```
 
-This example uses `conda` to create a virtual environment, but you can use other tools or
-configurations. Then, you should install the required packages to use `coola` with the following
-command:
+Then, you should install the required packages to use `coola` with the following command:
 
 ```shell
 inv install --docs-deps
