@@ -149,7 +149,7 @@ make doctest-src
 
 ### Type Checking
 
-While `coola` doesn't currently use mypy in CI, you can run type checking locally:
+`coola` uses pyright for type checking. You can run type checking locally:
 
 ```shell
 pyright src/coola
