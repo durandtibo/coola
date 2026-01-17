@@ -68,7 +68,9 @@ and `data2`, you will see at least one element that is different:
 >>> import numpy
 >>> import torch
 >>> from coola.equality import objects_are_equal
->>> logging.basicConfig(level=logging.INFO, format='%(message)s')  # Configure logging to see differences
+>>> logging.basicConfig(
+...     level=logging.INFO, format="%(message)s"
+... )  # Configure logging to see differences
 >>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
 >>> data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
 >>> objects_are_equal(data1, data2, show_difference=True)
@@ -111,7 +113,7 @@ For example, with sequences, the output shows the specific index where values di
 
 >>> import logging
 >>> from coola.equality import objects_are_equal
->>> logging.basicConfig(level=logging.INFO, format='%(message)s')
+>>> logging.basicConfig(level=logging.INFO, format="%(message)s")
 >>> objects_are_equal([1, 2, 3, 4], [1, 2, 5, 4], show_difference=True)
 False
 
@@ -132,8 +134,8 @@ For mappings with different keys:
 
 >>> import logging
 >>> from coola.equality import objects_are_equal
->>> logging.basicConfig(level=logging.INFO, format='%(message)s')
->>> objects_are_equal({'a': 1, 'b': 2}, {'a': 1, 'c': 3}, show_difference=True)
+>>> logging.basicConfig(level=logging.INFO, format="%(message)s")
+>>> objects_are_equal({"a": 1, "b": 2}, {"a": 1, "c": 3}, show_difference=True)
 False
 
 ```

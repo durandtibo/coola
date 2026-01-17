@@ -4,7 +4,7 @@ from __future__ import annotations
 
 __all__ = [
     "format_mapping_difference",
-    "format_sequence_difference", 
+    "format_sequence_difference",
     "format_shape_difference",
     "format_type_difference",
     "format_value_difference",
@@ -21,17 +21,17 @@ logger = logging.getLogger(__name__)
 
 def _format_value(value: Any, max_length: int = 100) -> str:
     """Format a value for display, truncating if too long.
-    
+
     Args:
         value: The value to format.
         max_length: Maximum length for the formatted string.
-        
+
     Returns:
         Formatted value string.
     """
     formatted = str(value)
     if len(formatted) > max_length:
-        return formatted[:max_length - 3] + "..."
+        return formatted[: max_length - 3] + "..."
     return formatted
 
 
@@ -72,7 +72,7 @@ def format_mapping_difference(
         ```
     """
     lines = []
-    
+
     if missing_keys or additional_keys:
         lines.append("mappings have different keys:")
         if missing_keys:
@@ -82,7 +82,7 @@ def format_mapping_difference(
     elif different_value_key is not None:
         # Just show which key has different values, not the full objects
         lines.append(f"mappings have different values for key {different_value_key!r}")
-    
+
     return "\n".join(lines)
 
 
@@ -112,7 +112,7 @@ def format_sequence_difference(
         ```
     """
     lines = []
-    
+
     if different_index is not None:
         # Just show the index, not the full values which could be large objects
         lines.append(f"sequences have different values at index {different_index}")
@@ -120,7 +120,7 @@ def format_sequence_difference(
         lines.append(f"sequences have different lengths: {len(actual)} vs {len(expected)}")
     else:
         lines.append("sequences have different values")
-    
+
     return "\n".join(lines)
 
 
@@ -180,9 +180,7 @@ def format_type_difference(
         ```
     """
     return (
-        f"objects have different types:\n"
-        f"  actual   : {actual_type}\n"
-        f"  expected : {expected_type}"
+        f"objects have different types:\n  actual   : {actual_type}\n  expected : {expected_type}"
     )
 
 
@@ -213,8 +211,4 @@ def format_value_difference(
 
         ```
     """
-    return (
-        f"{name} are different:\n"
-        f"  actual   : {actual}\n"
-        f"  expected : {expected}"
-    )
+    return f"{name} are different:\n  actual   : {actual}\n  expected : {expected}"

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import pytest
-
 from coola.equality.format import (
     format_mapping_difference,
     format_sequence_difference,
@@ -9,7 +7,6 @@ from coola.equality.format import (
     format_type_difference,
     format_value_difference,
 )
-
 
 ###########################################
 #     Tests for format_mapping_difference     #

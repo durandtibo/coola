@@ -60,9 +60,9 @@ class SequenceSameValuesHandler(BaseEqualityHandler):
             return self._handle_next(actual, expected, config=config)
 
     def _show_difference(
-        self, 
-        actual: Sequence, 
-        expected: Sequence, 
+        self,
+        actual: Sequence,
+        expected: Sequence,
         index: int,
         config: EqualityConfig,
     ) -> None:

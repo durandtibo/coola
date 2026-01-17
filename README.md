@@ -104,7 +104,9 @@ True
 ```pycon
 >>> import logging
 >>> from coola.equality import objects_are_equal
->>> logging.basicConfig(level=logging.INFO, format='%(message)s')  # Configure logging to see differences
+>>> logging.basicConfig(
+...     level=logging.INFO, format="%(message)s"
+... )  # Configure logging to see differences
 >>> actual = {"users": [{"id": 1, "score": 95}, {"id": 2, "score": 87}]}
 >>> expected = {"users": [{"id": 1, "score": 95}, {"id": 2, "score": 88}]}
 >>> objects_are_equal(actual, expected, show_difference=True)

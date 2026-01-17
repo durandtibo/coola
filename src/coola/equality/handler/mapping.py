@@ -112,9 +112,9 @@ class MappingSameValuesHandler(BaseEqualityHandler):
             return self._handle_next(actual, expected, config=config)
 
     def _show_difference(
-        self, 
-        actual: Mapping[Any, Any], 
-        expected: Mapping[Any, Any], 
+        self,
+        actual: Mapping[Any, Any],
+        expected: Mapping[Any, Any],
         key: Any,
         config: EqualityConfig,
     ) -> None:
