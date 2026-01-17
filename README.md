@@ -102,21 +102,18 @@ True
 **Debug differences easily:**
 
 ```pycon
+>>> import logging
 >>> from coola.equality import objects_are_equal
+>>> logging.basicConfig(level=logging.INFO, format='%(message)s')  # Configure logging to see differences
 >>> actual = {"users": [{"id": 1, "score": 95}, {"id": 2, "score": 87}]}
 >>> expected = {"users": [{"id": 1, "score": 95}, {"id": 2, "score": 88}]}
 >>> objects_are_equal(actual, expected, show_difference=True)
 numbers are different:
   actual   : 87
   expected : 88
-mappings have different values:
-  different value for key 'score':
-    actual   : 87
-    expected : 88
-sequences have different values:
-  different value at index 1:
-    actual   : {'id': 2, 'score': 87}
-    expected : {'id': 2, 'score': 88}
+mappings have different values for key 'score'
+sequences have different values at index 1
+mappings have different values for key 'users'
 False
 
 ```

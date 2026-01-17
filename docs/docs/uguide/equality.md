@@ -65,9 +65,11 @@ two objects. For example if you add `show_difference=True` when you compare the 
 and `data2`, you will see at least one element that is different:
 
 ```pycon
+>>> import logging
 >>> import numpy
 >>> import torch
 >>> from coola.equality import objects_are_equal
+>>> logging.basicConfig(level=logging.INFO, format='%(message)s')  # Configure logging to see differences
 >>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
 >>> data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
 >>> objects_are_equal(data1, data2, show_difference=True)
@@ -83,16 +85,11 @@ torch.Tensors are different:
         [1., 1., 1.]])
   expected : tensor([[0., 0., 0.],
         [0., 0., 0.]])
-mappings have different values:
-  different value for key 'torch':
-    actual   : tensor([[1., 1., 1.],
-        [1., 1., 1.]])
-    expected : tensor([[0., 0., 0.],
-        [0., 0., 0.]])
+mappings have different values for key 'torch'
 ```
 
-The output automatically appears when `show_difference=True` is used - no manual logging
-configuration is needed. The output shows a clear, structured view of the difference
+To see the difference output, you need to configure logging to show INFO level messages
+(e.g., `logging.basicConfig(level=logging.INFO)`). The output shows a clear, structured view of the difference
 between `data1` and `data2`: the PyTorch `Tensor`s in key `'torch'` of the input dictionaries.
 The output shows the element that fails the check first, and then shows the parent element, so
 it is easy to know where the identified difference is located.
@@ -104,7 +101,7 @@ No output is shown if the two objects are equal and `show_difference=True`.
 
 **Key improvements in difference reporting:**
 
-- **Automatic output**: No need to configure logging manually - output is automatically displayed
+- **Concise parent messages**: Parent containers show only location info (key/index) without full object dumps
 - **Structured formatting**: Clear indentation and organization
 - **Specific information**: Shows exactly which index, key, or attribute differs
 - **User-friendly**: Easy to read and understand at a glance
@@ -113,7 +110,9 @@ For example, with sequences, the output shows the specific index where values di
 
 ```pycon
 
+>>> import logging
 >>> from coola.equality import objects_are_equal
+>>> logging.basicConfig(level=logging.INFO, format='%(message)s')
 >>> objects_are_equal([1, 2, 3, 4], [1, 2, 5, 4], show_difference=True)
 False
 
@@ -125,17 +124,16 @@ False
 numbers are different:
   actual   : 3
   expected : 5
-sequences have different values:
-  different value at index 2:
-    actual   : 3
-    expected : 5
+sequences have different values at index 2
 ```
 
 For mappings with different keys:
 
 ```pycon
 
+>>> import logging
 >>> from coola.equality import objects_are_equal
+>>> logging.basicConfig(level=logging.INFO, format='%(message)s')
 >>> objects_are_equal({'a': 1, 'b': 2}, {'a': 1, 'c': 3}, show_difference=True)
 False
 
