@@ -168,7 +168,7 @@ def test_sequence_same_values_handler_handle_false_show_difference(
     handler = SequenceSameValuesHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(actual=[1, 2, 3], expected=[1, 2, 4], config=config)
-        assert caplog.messages[-1].startswith("sequences have at least one different value:")
+        assert caplog.messages[-1].startswith("sequences have different values:")
 
 
 def test_sequence_same_values_handler_handle_without_next_handler(config: EqualityConfig) -> None:

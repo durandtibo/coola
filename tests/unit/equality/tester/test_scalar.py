@@ -24,7 +24,7 @@ FLOAT_EQUAL = [
 
 FLOAT_NOT_EQUAL = [
     pytest.param(
-        ExamplePair(actual=4.2, expected=1.0, expected_message="numbers are not equal:"),
+        ExamplePair(actual=4.2, expected=1.0, expected_message="numbers are different:"),
         id="different values",
     ),
     pytest.param(
