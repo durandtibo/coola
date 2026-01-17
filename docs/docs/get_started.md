@@ -4,27 +4,48 @@ It is highly recommended to install in
 a [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
 to keep your system in order.
 
-## Installing with `pip` (recommended)
+## Installing with `uv` (recommended)
 
+[`uv`](https://docs.astral.sh/uv/) is a fast Python package installer and resolver.
 The following command installs the latest version of the library:
 
 ```shell
-pip install coola
+uv pip install coola
 ```
 
 To make the package as slim as possible, only the packages required to use `coola` are installed.
 It is possible to install all the optional dependencies by running the following command:
 
 ```shell
-pip install 'coola[all]'
+uv pip install coola[all]
 ```
 
-This command also installed NumPy and PyTorch.
+This command also installs NumPy and PyTorch.
 It is also possible to install the optional packages manually or to select the packages to install.
 In the following example, only NumPy is installed:
 
 ```shell
-pip install coola numpy
+uv pip install coola numpy
+```
+
+## Installing with `pip`
+
+Alternatively, you can use `pip`:
+
+```shell
+pip install coola
+```
+
+**Install with all optional dependencies:**
+
+```shell
+pip install 'coola[all]'
+```
+
+**Install with specific optional dependencies:**
+
+```shell
+pip install coola numpy  # with NumPy
 ```
 
 ## Installing from source
