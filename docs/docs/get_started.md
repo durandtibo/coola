@@ -80,14 +80,14 @@ pip install coola[numpy,torch]  # with NumPy and PyTorch
 
 </details>
 
-## Notes
-
-- `coola` relies on semantic versioning (SemVer) for most packages.
-- `xarray` uses [calendar versioning (CalVer)](https://calver.org/).
-- Version constraints are designed to be flexible while ensuring compatibility.
-
 For the most up-to-date compatibility information, see:
 
 - The [GitHub README compatibility table](https://github.com/durandtibo/coola#installation)
 - The [CI workflow configuration](https://github.com/durandtibo/coola/tree/main/.github/workflows/)
 - The [pyproject.toml file](https://github.com/durandtibo/coola/blob/main/pyproject.toml)
+
+## Notes
+
+- `coola` relies on semantic versioning (SemVer) for most packages.
+- `xarray` uses [calendar versioning (CalVer)](https://calver.org/).
+- Version constraints are designed to be flexible while ensuring compatibility.
