@@ -99,6 +99,28 @@ True
 
 ```
 
+**Debug differences easily:**
+
+```pycon
+>>> from coola.equality import objects_are_equal
+>>> actual = {"users": [{"id": 1, "score": 95}, {"id": 2, "score": 87}]}
+>>> expected = {"users": [{"id": 1, "score": 95}, {"id": 2, "score": 88}]}
+>>> objects_are_equal(actual, expected, show_difference=True)
+numbers are different:
+  actual   : 87
+  expected : 88
+mappings have different values:
+  different value for key 'score':
+    actual   : 87
+    expected : 88
+sequences have different values:
+  different value at index 1:
+    actual   : {'id': 2, 'score': 87}
+    expected : {'id': 2, 'score': 88}
+False
+
+```
+
 See the [quickstart guide](https://durandtibo.github.io/coola/quickstart) for detailed examples.
 
 ## Features
@@ -111,6 +133,7 @@ Compare complex nested objects with support for multiple data types:
 
 - **Exact equality**: `objects_are_equal()` for strict comparison
 - **Approximate equality**: `objects_are_allclose()` for numerical tolerance
+- **User-friendly difference reporting**: Clear, structured output showing exactly what differs
 - **Extensible**: Add custom comparators for your own types
 
 [Learn more →](https://durandtibo.github.io/coola/uguide/equality)
