@@ -7,8 +7,8 @@ __all__ = ["SequenceSameValuesHandler"]
 import logging
 from typing import TYPE_CHECKING, Any
 
-from coola.equality.format import format_sequence_difference
 from coola.equality.handler.base import BaseEqualityHandler
+from coola.equality.handler.format import format_sequence_difference
 from coola.equality.handler.utils import check_recursion_depth, handlers_are_equal
 
 if TYPE_CHECKING:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from coola.equality.format import (
+from coola.equality.handler.format import (
     format_mapping_difference,
     format_sequence_difference,
     format_shape_difference,

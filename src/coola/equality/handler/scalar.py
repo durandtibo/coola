@@ -8,8 +8,8 @@ import logging
 import math
 from typing import TYPE_CHECKING
 
-from coola.equality.format import format_value_difference
 from coola.equality.handler.base import BaseEqualityHandler
+from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.utils import handlers_are_equal
 
 if TYPE_CHECKING:
