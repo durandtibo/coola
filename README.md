@@ -125,7 +125,7 @@ Compare complex nested objects with support for multiple data types:
 [xarray](https://docs.xarray.dev/) •
 Python built-ins (dict, list, tuple, set, etc.)
 
-[See the full list of supported types →](https://durandtibo.github.io/coola/uguide/equality_types)
+[See all type-specific comparison rules →](https://durandtibo.github.io/coola/uguide/equality#type-specific-behavior)
 
 ### 📊 **Data Summarization**
 
