@@ -52,13 +52,11 @@ class MappingSameKeysHandler(BaseEqualityHandler):
         keys2 = set(expected.keys())
         if keys1 != keys2:
             if config.show_difference:
-                missing_keys = keys1 - keys2
-                additional_keys = keys2 - keys1
-                message = format_mapping_difference(
-                    missing_keys=missing_keys,
-                    additional_keys=additional_keys,
+                logger.info(
+                    format_mapping_difference(
+                        missing_keys=keys1 - keys2, additional_keys=keys2 - keys1
+                    )
                 )
-                logger.info(message)
             return False
         return self._handle_next(actual, expected, config=config)
 
@@ -105,19 +103,7 @@ class MappingSameValuesHandler(BaseEqualityHandler):
         with check_recursion_depth(config):
             for key in actual:
                 if not config.registry.objects_are_equal(actual[key], expected[key], config):
-                    self._show_difference(actual, expected, key, config=config)
+                    if config.show_difference:
+                        logger.info(format_mapping_difference(different_value_key=key))
                     return False
             return self._handle_next(actual, expected, config=config)
-
-    def _show_difference(
-        self,
-        actual: Mapping[Any, Any],
-        expected: Mapping[Any, Any],
-        key: Any,
-        config: EqualityConfig,
-    ) -> None:
-        if config.show_difference:
-            message = format_mapping_difference(
-                different_value_key=key,
-            )
-            logger.info(message)

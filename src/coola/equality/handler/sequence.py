@@ -55,21 +55,13 @@ class SequenceSameValuesHandler(BaseEqualityHandler):
         with check_recursion_depth(config):
             for idx, (value1, value2) in enumerate(zip(actual, expected)):
                 if not config.registry.objects_are_equal(value1, value2, config):
-                    self._show_difference(actual, expected, idx, config=config)
+                    if config.show_difference:
+                        logger.info(
+                            format_sequence_difference(
+                                actual,
+                                expected,
+                                different_index=idx,
+                            )
+                        )
                     return False
             return self._handle_next(actual, expected, config=config)
-
-    def _show_difference(
-        self,
-        actual: Sequence,
-        expected: Sequence,
-        index: int,
-        config: EqualityConfig,
-    ) -> None:
-        if config.show_difference:
-            message = format_sequence_difference(
-                actual,
-                expected,
-                different_index=index,
-            )
-            logger.info(message)
