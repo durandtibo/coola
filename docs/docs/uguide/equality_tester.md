@@ -34,7 +34,6 @@ An equality tester is responsible for comparing objects of a specific type. Each
 3. Returns `True` if objects are equal, `False` otherwise
 
 ```pycon
-
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.tester import SequenceEqualityTester
 >>> config = EqualityConfig()
@@ -51,7 +50,6 @@ False
 The registry maintains a mapping from types to testers and automatically selects the right tester:
 
 ```pycon
-
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.tester import get_default_registry
 >>> registry = get_default_registry()
@@ -77,7 +75,6 @@ given type, which means it can handle inheritance correctly.
 Handles sequence types like `list`, `tuple`, and `deque`:
 
 ```pycon
-
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.tester import SequenceEqualityTester
 >>> config = EqualityConfig()
@@ -104,7 +101,6 @@ correctly.
 Handles mapping types like `dict`:
 
 ```pycon
-
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.tester import MappingEqualityTester
 >>> config = EqualityConfig()
@@ -130,7 +126,6 @@ True
 Handles scalar types like `int`, `float`, and `bool`:
 
 ```pycon
-
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.tester import ScalarEqualityTester
 >>> config = EqualityConfig()
@@ -151,7 +146,6 @@ True
 Generic tester that uses Python's `==` operator:
 
 ```pycon
-
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.tester import EqualEqualityTester
 >>> class MyList(list):
@@ -174,7 +168,6 @@ False
 Handles NumPy arrays:
 
 ```pycon
-
 >>> import numpy as np
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.tester import NumpyArrayEqualityTester
@@ -208,7 +201,6 @@ True
 Handles NumPy masked arrays:
 
 ```pycon
-
 >>> import numpy as np
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.tester import NumpyMaskedArrayEqualityTester
@@ -228,7 +220,6 @@ False
 Handles PyTorch tensors:
 
 ```pycon
-
 >>> import torch
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.tester import TorchTensorEqualityTester
@@ -256,7 +247,6 @@ True
 Handles PyTorch PackedSequence objects:
 
 ```pycon
-
 >>> import torch
 >>> from torch.nn.utils.rnn import pack_padded_sequence
 >>> from coola.equality.config import EqualityConfig
@@ -285,7 +275,6 @@ True
 Handles pandas DataFrames:
 
 ```pycon
-
 >>> import pandas as pd
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.tester import PandasDataFrameEqualityTester
@@ -303,7 +292,6 @@ True
 Handles pandas Series:
 
 ```pycon
-
 >>> import pandas as pd
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.tester import PandasSeriesEqualityTester
@@ -339,7 +327,6 @@ The package includes testers for polars DataFrames, Series, and LazyFrames:
 The fallback tester used when no type-specific tester is registered:
 
 ```pycon
-
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.tester import DefaultEqualityTester
 >>> config = EqualityConfig()
@@ -359,7 +346,6 @@ True
 Get the default pre-configured registry:
 
 ```pycon
-
 >>> from coola.equality.tester import get_default_registry
 >>> from coola.equality.config import EqualityConfig
 >>> registry = get_default_registry()
@@ -377,7 +363,6 @@ The default registry includes testers for all supported types.
 You can register custom testers for your own types:
 
 ```pycon
-
 >>> from coola.equality.tester import register_equality_testers, DefaultEqualityTester
 >>> # Create a custom class
 >>> class MyClass:
@@ -398,7 +383,6 @@ section below).
 You can create a custom registry with specific testers:
 
 ```pycon
-
 >>> from coola.equality.tester import (
 ...     EqualityTesterRegistry,
 ...     SequenceEqualityTester,
@@ -424,7 +408,6 @@ True
 To create a custom tester, inherit from `BaseEqualityTester`:
 
 ```pycon
-
 >>> from coola.equality.tester import BaseEqualityTester
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.handler import (
@@ -458,7 +441,6 @@ The tester uses a handler chain to implement the comparison logic.
 Testers use handler chains from `coola.equality.handler` to implement their comparison logic:
 
 ```pycon
-
 >>> from coola.equality.tester import HandlerEqualityTester
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.handler import (
@@ -490,7 +472,6 @@ This allows you to mix and match handlers to create custom comparison logic.
 The registry uses Python's Method Resolution Order (MRO) to find testers:
 
 ```pycon
-
 >>> from coola.equality.tester import get_default_registry
 >>> from coola.equality.config import EqualityConfig
 >>> from collections import OrderedDict
@@ -515,7 +496,6 @@ Testers that handle collections (sequences, mappings) recursively use the regist
 nested values:
 
 ```pycon
-
 >>> from coola.equality.tester import get_default_registry
 >>> from coola.equality.config import EqualityConfig
 >>> registry = get_default_registry()
@@ -535,7 +515,6 @@ The recursion depth is controlled by the `max_depth` parameter in `EqualityConfi
 The registry includes an LRU cache for type lookups to optimize performance:
 
 ```pycon
-
 >>> from coola.equality.tester import get_default_registry
 >>> registry = get_default_registry()
 >>> # First lookup for a type will cache the result
@@ -551,7 +530,6 @@ The registry includes an LRU cache for type lookups to optimize performance:
 Testers are commonly used in testing frameworks:
 
 ```pycon
-
 >>> from coola.equality.tester import get_default_registry
 >>> from coola.equality.config import EqualityConfig
 >>> def assert_equal(actual, expected):
@@ -570,7 +548,6 @@ Testers are commonly used in testing frameworks:
 Add support for your custom types:
 
 ```pycon
-
 >>> from coola.equality.tester import (
 ...     register_equality_testers,
 ...     BaseEqualityTester,
@@ -611,7 +588,6 @@ Add support for your custom types:
 Use testers with tolerance configurations:
 
 ```pycon
-
 >>> import numpy as np
 >>> from coola.equality.tester import get_default_registry
 >>> from coola.equality.config import EqualityConfig

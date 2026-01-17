@@ -28,7 +28,6 @@ format without being overwhelmed by deeply nested or large structures.
 The simplest way to create a summary is using the `summarize()` function:
 
 ```pycon
-
 >>> from coola.summary import summarize
 >>> print(summarize({"a": 1, "b": "abc"}))
 <class 'dict'> (length=2)
@@ -44,7 +43,6 @@ The function automatically detects the type of data and formats it appropriately
 For simple scalar values, the summary shows the type and value:
 
 ```pycon
-
 >>> from coola.summary import summarize
 >>> print(summarize(42))
 <class 'int'> 42
@@ -62,7 +60,6 @@ For simple scalar values, the summary shows the type and value:
 Sequences are displayed with their type, length, and indexed items:
 
 ```pycon
-
 >>> from coola.summary import summarize
 >>> print(summarize([1, 2, 3, 4, 5]))
 <class 'list'> (length=5)
@@ -77,7 +74,6 @@ Sequences are displayed with their type, length, and indexed items:
 Tuples work the same way:
 
 ```pycon
-
 >>> from coola.summary import summarize
 >>> print(summarize((10, 20, 30)))
 <class 'tuple'> (length=3)
@@ -92,7 +88,6 @@ Tuples work the same way:
 Dictionaries show their type, length, and key-value pairs:
 
 ```pycon
-
 >>> from coola.summary import summarize
 >>> print(summarize({"name": "Alice", "age": 30, "city": "NYC"}))
 <class 'dict'> (length=3)
@@ -107,7 +102,6 @@ Dictionaries show their type, length, and key-value pairs:
 Sets display their type, length, and elements:
 
 ```pycon
-
 >>> from coola.summary import summarize
 >>> print(summarize({1, 2, 3, 4, 5}))
 <class 'set'> (length=5)
@@ -129,7 +123,6 @@ The most important feature of `coola.summary` is controlling how deeply nested s
 expanded using the `max_depth` parameter:
 
 ```pycon
-
 >>> from coola.summary import get_default_registry
 >>> nested_data = {"level1": {"level2": {"level3": [1, 2, 3]}}}
 >>> registry = get_default_registry()
@@ -139,7 +132,6 @@ expanded using the `max_depth` parameter:
 **max_depth=0**: Shows the raw string representation (no expansion):
 
 ```pycon
-
 >>> print(registry.summarize(nested_data, max_depth=0))
 {'level1': {'level2': {'level3': [1, 2, 3]}}}
 
@@ -148,7 +140,6 @@ expanded using the `max_depth` parameter:
 **max_depth=1**: Expands only the top level:
 
 ```pycon
-
 >>> print(registry.summarize(nested_data, max_depth=1))
 <class 'dict'> (length=1)
   (level1): {'level2': {'level3': [1, 2, 3]}}
@@ -158,7 +149,6 @@ expanded using the `max_depth` parameter:
 **max_depth=2**: Expands two levels deep:
 
 ```pycon
-
 >>> print(registry.summarize(nested_data, max_depth=2))
 <class 'dict'> (length=1)
   (level1): <class 'dict'> (length=1)
@@ -169,7 +159,6 @@ expanded using the `max_depth` parameter:
 **max_depth=3**: Expands three levels deep:
 
 ```pycon
-
 >>> print(registry.summarize(nested_data, max_depth=3))
 <class 'dict'> (length=1)
   (level1): <class 'dict'> (length=1)
@@ -183,7 +172,6 @@ expanded using the `max_depth` parameter:
 **Nested lists and dictionaries:**
 
 ```pycon
-
 >>> from coola.summary import summarize
 >>> data = {
 ...     "users": [
@@ -202,7 +190,6 @@ expanded using the `max_depth` parameter:
 **Mixed types:**
 
 ```pycon
-
 >>> from coola.summary import summarize
 >>> mixed = {
 ...     "int": 42,
@@ -230,7 +217,6 @@ expanded using the `max_depth` parameter:
 By default, collections show a maximum of 5 items. Longer collections are truncated with `...`:
 
 ```pycon
-
 >>> from coola.summary import summarize
 >>> long_list = list(range(20))
 >>> print(summarize(long_list))
@@ -249,7 +235,6 @@ By default, collections show a maximum of 5 items. Longer collections are trunca
 You can customize the number of items shown using custom summarizers:
 
 ```pycon
-
 >>> from coola.summary import SummarizerRegistry, SequenceSummarizer, DefaultSummarizer
 >>> registry = SummarizerRegistry()
 >>> registry.register(object, DefaultSummarizer())
@@ -267,7 +252,6 @@ You can customize the number of items shown using custom summarizers:
 To show all items, set `max_items=-1`:
 
 ```pycon
-
 >>> from coola.summary import SummarizerRegistry, SequenceSummarizer, DefaultSummarizer
 >>> registry = SummarizerRegistry()
 >>> registry.register(object, DefaultSummarizer())
@@ -292,7 +276,6 @@ To show all items, set `max_items=-1`:
 For very long strings or values, you can use `DefaultSummarizer` with `max_characters`:
 
 ```pycon
-
 >>> from coola.summary import SummarizerRegistry, DefaultSummarizer
 >>> long_string = (
 ...     "This is a very long string that should be truncated when max_characters is set"
@@ -309,7 +292,6 @@ For very long strings or values, you can use `DefaultSummarizer` with `max_chara
 The `num_spaces` parameter controls indentation for nested structures:
 
 ```pycon
-
 >>> from coola.summary import (
 ...     SummarizerRegistry,
 ...     MappingSummarizer,
@@ -336,7 +318,6 @@ The `num_spaces` parameter controls indentation for nested structures:
 With 4 spaces for clearer nesting:
 
 ```pycon
-
 >>> from coola.summary import (
 ...     SummarizerRegistry,
 ...     MappingSummarizer,
@@ -365,7 +346,6 @@ With 4 spaces for clearer nesting:
 The `NDArraySummarizer` creates compact summaries of NumPy arrays:
 
 ```pycon
-
 >>> import numpy as np
 >>> from coola.summary import SummarizerRegistry, NDArraySummarizer, DefaultSummarizer
 >>> registry = SummarizerRegistry()
@@ -380,7 +360,6 @@ The `NDArraySummarizer` creates compact summaries of NumPy arrays:
 By default, only metadata is shown. To see the actual data, use `show_data=True`:
 
 ```pycon
-
 >>> from coola.summary import SummarizerRegistry, NDArraySummarizer, DefaultSummarizer
 >>> import numpy as np
 >>> registry = SummarizerRegistry()
@@ -397,7 +376,6 @@ array([0, 1, 2, 3, 4])
 The `TensorSummarizer` works similarly for PyTorch tensors:
 
 ```pycon
-
 >>> import torch
 >>> from coola.summary import SummarizerRegistry, TensorSummarizer, DefaultSummarizer
 >>> registry = SummarizerRegistry()
@@ -412,7 +390,6 @@ The `TensorSummarizer` works similarly for PyTorch tensors:
 With `show_data=True`:
 
 ```pycon
-
 >>> from coola.summary import SummarizerRegistry, TensorSummarizer, DefaultSummarizer
 >>> import torch
 >>> registry = SummarizerRegistry()
@@ -431,7 +408,6 @@ tensor([0, 1, 2, 3, 4])
 To create a custom summarizer for your own types, extend `BaseSummarizer`:
 
 ```pycon
-
 >>> from coola.summary import BaseSummarizer, SummarizerRegistry
 
 >>> class Person:
@@ -453,7 +429,6 @@ To create a custom summarizer for your own types, extend `BaseSummarizer`:
 Register your custom summarizer with the registry:
 
 ```pycon
-
 >>> from coola.summary import register_summarizers
 >>> register_summarizers({Person: PersonSummarizer()})
 >>> person = Person("Alice", 30)
@@ -470,7 +445,6 @@ Person(name='Alice', age=30)
 The `SummarizerRegistry` manages the mapping from types to summarizers:
 
 ```pycon
-
 >>> from coola.summary import get_default_registry
 >>> registry = get_default_registry()
 >>> registry
@@ -500,7 +474,6 @@ SummarizerRegistry(
 For complete control, create your own registry:
 
 ```pycon
-
 >>> from coola.summary import SummarizerRegistry, SequenceSummarizer, DefaultSummarizer
 >>> registry = SummarizerRegistry()
 >>> registry.register(object, DefaultSummarizer())
@@ -518,7 +491,6 @@ For complete control, create your own registry:
 Use `register_many()` to register multiple types at once:
 
 ```pycon
-
 >>> from coola.summary import (
 ...     SummarizerRegistry,
 ...     SequenceSummarizer,
@@ -537,7 +509,6 @@ Use `register_many()` to register multiple types at once:
 Check if a type has a registered summarizer:
 
 ```pycon
-
 >>> from coola.summary import get_default_registry
 >>> registry = get_default_registry()
 >>> registry.has_summarizer(list)
@@ -554,7 +525,6 @@ True
 Quickly inspect complex data structures during debugging:
 
 ```pycon
-
 >>> from coola.summary import summarize
 >>> config = {
 ...     "database": {
@@ -576,7 +546,6 @@ Quickly inspect complex data structures during debugging:
 Log tensor shapes without filling logs with data:
 
 ```pycon
-
 >>> import torch
 >>> from coola.summary import summarize
 >>> model_weights = {
@@ -597,7 +566,6 @@ Log tensor shapes without filling logs with data:
 Summarize complex API responses:
 
 ```pycon
-
 >>> from coola.summary import summarize
 >>> api_response = {
 ...     "status": "success",
@@ -623,7 +591,6 @@ Get a quick overview to compare different data structures. Note that with defaul
 nested structures are shown as raw strings without truncation:
 
 ```pycon
-
 >>> from coola.summary import summarize
 >>> data1 = {"users": [1, 2, 3, 4, 5], "version": "1.0"}
 >>> data2 = {"users": [1, 2, 3], "version": "2.0"}
@@ -641,7 +608,6 @@ nested structures are shown as raw strings without truncation:
 For deeper inspection with truncation, increase `max_depth`:
 
 ```pycon
-
 >>> from coola.summary import get_default_registry
 >>> registry = get_default_registry()
 >>> data = {"users": list(range(20)), "version": "1.0"}

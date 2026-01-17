@@ -23,7 +23,6 @@ submodules:
 Use `package_available()` and `module_available()` to check if packages or modules are available:
 
 ```pycon
-
 >>> from coola.utils.imports import package_available, module_available
 >>> package_available("os")
 True
@@ -42,7 +41,6 @@ repeated calls.
 For common scientific packages, use dedicated check functions:
 
 ```pycon
-
 >>> from coola.utils.imports import (
 ...     is_numpy_available,
 ...     is_torch_available,
@@ -71,7 +69,6 @@ Available check functions:
 Use context managers to conditionally execute code based on package availability:
 
 ```pycon
-
 >>> from coola.utils.imports import numpy_available
 >>> with numpy_available():  # doctest: +SKIP
 ...     import numpy as np
@@ -99,7 +96,6 @@ Available context managers:
 Use check functions to raise informative errors when required packages are missing:
 
 ```pycon
-
 >>> from coola.utils.imports import check_numpy
 >>> check_numpy()  # doctest: +SKIP
 >>> # Raises RuntimeError with helpful message if NumPy is not installed
@@ -139,7 +135,6 @@ Use `decorator_package_available()` to skip function execution if a package is n
 Use `lazy_import()` or `LazyModule` to defer imports until they are actually used:
 
 ```pycon
-
 >>> from coola.utils.imports import lazy_import
 >>> np = lazy_import("numpy")  # doctest: +SKIP
 >>> # NumPy is not imported yet
@@ -160,7 +155,6 @@ This is useful for:
 Use `str_sequence()` and `repr_sequence()` to format sequences:
 
 ```pycon
-
 >>> from coola.utils.format import str_sequence, repr_sequence
 >>> print(str_sequence([1, 2, 3, 4, 5]))
 (0): 1
@@ -180,7 +174,6 @@ Use `str_sequence()` and `repr_sequence()` to format sequences:
 For single-line formatting, use `str_sequence_line()`:
 
 ```pycon
-
 >>> from coola.utils.format import str_sequence_line
 >>> str_sequence_line([1, 2, 3, 4, 5])
 '1, 2, 3, 4, 5'
@@ -192,7 +185,6 @@ For single-line formatting, use `str_sequence_line()`:
 Use `str_mapping()` and `repr_mapping()` to format dictionaries:
 
 ```pycon
-
 >>> from coola.utils.format import str_mapping, repr_mapping
 >>> data = {"name": "Alice", "age": 30, "city": "NYC"}
 >>> print(str_mapping(data))
@@ -209,7 +201,6 @@ Use `str_mapping()` and `repr_mapping()` to format dictionaries:
 Sort keys before formatting:
 
 ```pycon
-
 >>> from coola.utils.format import str_mapping
 >>> data = {"z": 1, "a": 2, "m": 3}
 >>> print(str_mapping(data, sorted_keys=True))
@@ -222,7 +213,6 @@ Sort keys before formatting:
 For single-line formatting, use `str_mapping_line()`:
 
 ```pycon
-
 >>> from coola.utils.format import str_mapping_line
 >>> str_mapping_line({"a": 1, "b": 2})
 'a=1, b=2'
@@ -234,7 +224,6 @@ For single-line formatting, use `str_mapping_line()`:
 Use `str_indent()` and `repr_indent()` to add indentation to multi-line strings:
 
 ```pycon
-
 >>> from coola.utils.format import str_indent
 >>> multi_line = "line1\nline2\nline3"
 >>> print(str_indent(multi_line, num_spaces=4))
@@ -249,7 +238,6 @@ line1
 Use `str_human_byte_size()` to convert byte sizes to human-readable format:
 
 ```pycon
-
 >>> from coola.utils.format import str_human_byte_size
 >>> str_human_byte_size(512)
 '512.00 B'
@@ -261,7 +249,6 @@ Use `str_human_byte_size()` to convert byte sizes to human-readable format:
 Find the best byte unit for a size:
 
 ```pycon
-
 >>> from coola.utils.format import find_best_byte_unit
 >>> find_best_byte_unit(100)
 'B'
@@ -275,7 +262,6 @@ Find the best byte unit for a size:
 Use `str_time_human()` to format time durations:
 
 ```pycon
-
 >>> from coola.utils.format import str_time_human
 >>> import datetime
 >>> str_time_human(datetime.timedelta(seconds=90).seconds)
@@ -298,7 +284,6 @@ The `coola.utils.tensor` module provides utilities for working with PyTorch tens
 - `is_mps_available()` - Check if MPS (Apple Silicon) is available with PyTorch
 
 ```pycon
-
 >>> from coola.utils.tensor import is_cuda_available, is_mps_available
 >>> is_cuda_available()  # doctest: +SKIP
 False
@@ -353,7 +338,6 @@ Write library code that works with optional dependencies:
 Format complex data structures for debugging:
 
 ```pycon
-
 >>> from coola.utils.format import str_mapping
 >>> config = {
 ...     "model": "transformer",
@@ -374,7 +358,6 @@ Format complex data structures for debugging:
 Show file sizes in human-readable format:
 
 ```pycon
-
 >>> from coola.utils.format import str_human_byte_size
 >>> import os
 >>> def show_file_size(filepath):  # doctest: +SKIP
@@ -389,7 +372,6 @@ Show file sizes in human-readable format:
 Provide fallback behavior when optional packages are not available:
 
 ```pycon
-
 >>> from coola.utils.imports import numpy_available
 >>> def compute_stats(data):
 ...     with numpy_available():  # doctest: +SKIP

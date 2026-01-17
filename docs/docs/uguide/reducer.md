@@ -27,7 +27,6 @@ Uses Python's standard library (`statistics` module) for computations. This redu
 available and has no dependencies.
 
 ```pycon
-
 >>> from coola.reducer import NativeReducer
 >>> reducer = NativeReducer()
 >>> reducer.mean([1, 2, 3, 4, 5])
@@ -45,7 +44,6 @@ Uses NumPy for computations. This reducer is faster than `NativeReducer` for lar
 provides more numerical stability.
 
 ```pycon
-
 >>> from coola.reducer import NumpyReducer
 >>> reducer = NumpyReducer()
 >>> reducer.mean([1, 2, 3, 4, 5])
@@ -63,7 +61,6 @@ Uses PyTorch for computations. This reducer can leverage GPU acceleration and is
 working with PyTorch tensors.
 
 ```pycon
-
 >>> from coola.reducer import TorchReducer
 >>> reducer = TorchReducer()
 >>> reducer.mean([1, 2, 3, 4, 5])
@@ -84,7 +81,6 @@ All reducers provide the same methods for computing statistics:
 #### Maximum Value
 
 ```pycon
-
 >>> from coola.reducer import NativeReducer
 >>> reducer = NativeReducer()
 >>> reducer.max([10, 5, 8, 3, 12])
@@ -97,7 +93,6 @@ All reducers provide the same methods for computing statistics:
 #### Minimum Value
 
 ```pycon
-
 >>> from coola.reducer import NativeReducer
 >>> reducer = NativeReducer()
 >>> reducer.min([10, 5, 8, 3, 12])
@@ -110,7 +105,6 @@ All reducers provide the same methods for computing statistics:
 #### Mean (Average)
 
 ```pycon
-
 >>> from coola.reducer import NativeReducer
 >>> reducer = NativeReducer()
 >>> reducer.mean([1, 2, 3, 4, 5])
@@ -123,7 +117,6 @@ All reducers provide the same methods for computing statistics:
 #### Median
 
 ```pycon
-
 >>> from coola.reducer import NativeReducer
 >>> reducer = NativeReducer()
 >>> reducer.median([1, 2, 3, 4, 5])
@@ -136,7 +129,6 @@ All reducers provide the same methods for computing statistics:
 #### Standard Deviation
 
 ```pycon
-
 >>> from coola.reducer import NativeReducer
 >>> reducer = NativeReducer()
 >>> reducer.std([1, 2, 3, 4, 5])
@@ -151,7 +143,6 @@ All reducers provide the same methods for computing statistics:
 Compute multiple quantiles at once:
 
 ```pycon
-
 >>> from coola.reducer import NativeReducer
 >>> reducer = NativeReducer()
 >>> reducer.quantile([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [0.25, 0.5, 0.75])
@@ -171,7 +162,6 @@ Quantiles are specified as values between 0 and 1, where:
 Sort sequences in ascending or descending order:
 
 ```pycon
-
 >>> from coola.reducer import NativeReducer
 >>> reducer = NativeReducer()
 >>> reducer.sort([5, 2, 8, 1, 9])
@@ -187,7 +177,6 @@ Use `auto_reducer()` to automatically select the best available reducer based on
 packages:
 
 ```pycon
-
 >>> from coola.reducer import auto_reducer
 >>> reducer = auto_reducer()
 >>> reducer.mean([1, 2, 3, 4, 5])
@@ -203,7 +192,6 @@ The selection follows this priority order:
 This is useful when writing library code that should work with whatever the user has installed:
 
 ```pycon
-
 >>> from coola.reducer import auto_reducer
 >>> def compute_statistics(data):
 ...     reducer = auto_reducer()
@@ -225,7 +213,6 @@ This is useful when writing library code that should work with whatever the user
 Most operations raise `EmptySequenceError` when given an empty sequence:
 
 ```pycon
-
 >>> from coola.reducer import NativeReducer, EmptySequenceError
 >>> reducer = NativeReducer()
 >>> try:
@@ -248,7 +235,6 @@ Operations that raise `EmptySequenceError` on empty sequences:
 The `sort()` method does not raise an error for empty sequences; it returns an empty list:
 
 ```pycon
-
 >>> from coola.reducer import NativeReducer
 >>> reducer = NativeReducer()
 >>> reducer.sort([])
@@ -263,7 +249,6 @@ The `sort()` method does not raise an error for empty sequences; it returns an e
 Compute summary statistics for data analysis:
 
 ```pycon
-
 >>> from coola.reducer import auto_reducer
 >>> reducer = auto_reducer()
 >>> temperatures = [72, 68, 75, 71, 73, 69, 74]
@@ -283,7 +268,6 @@ Range: 68-75°F
 Analyze performance metrics:
 
 ```pycon
-
 >>> from coola.reducer import auto_reducer
 >>> reducer = auto_reducer()
 >>> response_times = [120, 145, 132, 128, 156, 141, 139]
@@ -302,7 +286,6 @@ Analyze performance metrics:
 Sort values to find top performers:
 
 ```pycon
-
 >>> from coola.reducer import auto_reducer
 >>> reducer = auto_reducer()
 >>> scores = [85, 92, 78, 95, 88, 91, 87]
@@ -329,7 +312,6 @@ The `coola.reducer` package follows these design principles:
 You can create custom reducers by extending `BaseReducer` or `BaseBasicReducer`:
 
 ```pycon
-
 >>> from coola.reducer import BaseBasicReducer
 >>> from collections.abc import Sequence
 >>> from typing import TypeVar
