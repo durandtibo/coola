@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
-from coola.equality.handler.utils import handlers_are_equal
+from coola.equality.handler.mixin import HandlerEqualityMixin
 
 if TYPE_CHECKING:
     import pyarrow as pa
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class PyarrowEqualHandler(BaseEqualityHandler):
+class PyarrowEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Check if the two pyarrow arrays or tables are equal.
 
     This handler returns ``True`` if the two arrays or tables are
@@ -47,11 +47,6 @@ class PyarrowEqualHandler(BaseEqualityHandler):
 
         ```
     """
-
-    def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
-            return False
-        return handlers_are_equal(self.next_handler, other.next_handler)
 
     def handle(
         self,

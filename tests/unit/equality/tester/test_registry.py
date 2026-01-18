@@ -66,7 +66,7 @@ def test_equality_tester_registry_register_existing_type_without_exist_ok() -> N
     tester1 = SequenceEqualityTester()
     tester2 = DefaultEqualityTester()
     registry.register(list, tester1)
-    with pytest.raises(RuntimeError, match="already registered"):
+    with pytest.raises(RuntimeError, match=r"already registered"):
         registry.register(list, tester2, exist_ok=False)
 
 
@@ -101,7 +101,7 @@ def test_equality_tester_registry_register_many_with_existing_type() -> None:
         list: MappingEqualityTester(),
         dict: MappingEqualityTester(),
     }
-    with pytest.raises(RuntimeError, match="already registered"):
+    with pytest.raises(RuntimeError, match=r"already registered"):
         registry.register_many(testers, exist_ok=False)
 
 

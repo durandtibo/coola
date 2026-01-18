@@ -35,7 +35,7 @@ def test_create_chain_multiple_items() -> None:
 
 
 def test_create_chain_0_item() -> None:
-    with pytest.raises(ValueError, match="At least one handler is required to create a chain"):
+    with pytest.raises(ValueError, match=r"At least one handler is required to create a chain"):
         create_chain()
 
 

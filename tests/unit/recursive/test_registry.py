@@ -62,7 +62,7 @@ def test_transformer_registry_register_existing_type_without_exist_ok() -> None:
     transformer1 = SequenceTransformer()
     transformer2 = MappingTransformer()
     registry.register(list, transformer1)
-    with pytest.raises(RuntimeError, match="already registered"):
+    with pytest.raises(RuntimeError, match=r"already registered"):
         registry.register(list, transformer2, exist_ok=False)
 
 
@@ -97,7 +97,7 @@ def test_transformer_registry_register_many_with_existing_type() -> None:
         list: MappingTransformer(),
         dict: MappingTransformer(),
     }
-    with pytest.raises(RuntimeError, match="already registered"):
+    with pytest.raises(RuntimeError, match=r"already registered"):
         registry.register_many(transformers, exist_ok=False)
 
 

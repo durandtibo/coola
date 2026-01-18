@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
-from coola.equality.handler.utils import handlers_are_equal
+from coola.equality.handler.mixin import HandlerEqualityMixin
 from coola.utils.imports import is_polars_available
 
 if TYPE_CHECKING or is_polars_available():
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class PolarsDataFrameEqualHandler(BaseEqualityHandler):
+class PolarsDataFrameEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Check if the two ``polars.DataFrame``s are equal.
 
     This handler returns ``True`` if the two ``polars.DataFrame``s are
@@ -59,11 +59,6 @@ class PolarsDataFrameEqualHandler(BaseEqualityHandler):
         ```
     """
 
-    def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
-            return False
-        return handlers_are_equal(self.next_handler, other.next_handler)
-
     def handle(
         self,
         actual: pl.DataFrame,
@@ -78,7 +73,7 @@ class PolarsDataFrameEqualHandler(BaseEqualityHandler):
         return object_equal
 
 
-class PolarsLazyFrameEqualHandler(BaseEqualityHandler):
+class PolarsLazyFrameEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Check if the two ``polars.LazyFrame``s are equal.
 
     This handler returns ``True`` if the two ``polars.LazyFrame``s are
@@ -109,11 +104,6 @@ class PolarsLazyFrameEqualHandler(BaseEqualityHandler):
         ```
     """
 
-    def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
-            return False
-        return handlers_are_equal(self.next_handler, other.next_handler)
-
     def handle(
         self,
         actual: pl.LazyFrame,
@@ -128,7 +118,7 @@ class PolarsLazyFrameEqualHandler(BaseEqualityHandler):
         return object_equal
 
 
-class PolarsSeriesEqualHandler(BaseEqualityHandler):
+class PolarsSeriesEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Check if the two ``polars.Series``es are equal.
 
     This handler returns ``True`` if the two ``polars.Series``es are
@@ -150,11 +140,6 @@ class PolarsSeriesEqualHandler(BaseEqualityHandler):
 
         ```
     """
-
-    def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
-            return False
-        return handlers_are_equal(self.next_handler, other.next_handler)
 
     def handle(
         self,

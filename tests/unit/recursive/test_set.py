@@ -79,7 +79,7 @@ def test_set_transformer_transform_with_exception_in_function(
         raise ValueError(msg)
 
     transformer = SetTransformer()
-    with pytest.raises(ValueError, match="Test error"):
+    with pytest.raises(ValueError, match=r"Test error"):
         transformer.transform({1, 2}, func=failing_func, registry=registry)
 
 

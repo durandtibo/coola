@@ -62,7 +62,7 @@ def test_summarizer_registry_register_existing_type_without_exist_ok() -> None:
     summarizer1 = SequenceSummarizer()
     summarizer2 = MappingSummarizer()
     registry.register(list, summarizer1)
-    with pytest.raises(RuntimeError, match="already registered"):
+    with pytest.raises(RuntimeError, match=r"already registered"):
         registry.register(list, summarizer2, exist_ok=False)
 
 
@@ -97,7 +97,7 @@ def test_summarizer_registry_register_many_with_existing_type() -> None:
         list: MappingSummarizer(),
         dict: MappingSummarizer(),
     }
-    with pytest.raises(RuntimeError, match="already registered"):
+    with pytest.raises(RuntimeError, match=r"already registered"):
         registry.register_many(summarizers, exist_ok=False)
 
 
