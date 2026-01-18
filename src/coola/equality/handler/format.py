@@ -19,22 +19,6 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def _format_value(value: Any, max_length: int = 100) -> str:
-    """Format a value for display, truncating if too long.
-
-    Args:
-        value: The value to format.
-        max_length: Maximum length for the formatted string.
-
-    Returns:
-        Formatted value string.
-    """
-    formatted = str(value)
-    if len(formatted) > max_length:
-        return formatted[: max_length - 3] + "..."
-    return formatted
-
-
 def format_mapping_difference(
     *,
     missing_keys: set[Any] | None = None,
@@ -73,7 +57,7 @@ def format_mapping_difference(
             lines.append(f"  missing keys    : {sorted(missing_keys)}")
         if additional_keys:
             lines.append(f"  additional keys : {sorted(additional_keys)}")
-    elif different_value_key is not None:
+    if different_value_key is not None:
         # Just show which key has different values, not the full objects
         lines.append(f"mappings have different values for key {different_value_key!r}")
 
@@ -110,7 +94,7 @@ def format_sequence_difference(
         return f"sequences have different values at index {different_index}"
     if len(actual) != len(expected):
         return f"sequences have different lengths: {len(actual)} vs {len(expected)}"
-    return "sequences have different values"
+    return f"sequences are different:\n  actual   : {actual}\n  expected : {expected}"
 
 
 def format_shape_difference(

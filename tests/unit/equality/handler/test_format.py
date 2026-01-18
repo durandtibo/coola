@@ -13,32 +13,38 @@ from coola.equality.handler.format import (
 ###############################################
 
 
-def test_format_mapping_difference_missing_keys() -> None:
-    msg = format_mapping_difference(
-        missing_keys={"b"},
-        additional_keys={"c"},
+def test_format_mapping_difference_different_keys() -> None:
+    msg = format_mapping_difference(missing_keys={"b"}, additional_keys={"c"})
+    assert msg == (
+        "mappings have different keys:\n  missing keys    : ['b']\n  additional keys : ['c']"
     )
-    assert "mappings have different keys:" in msg
-    assert "missing keys    : ['b']" in msg
-    assert "additional keys : ['c']" in msg
+
+
+def test_format_mapping_difference_additional_keys() -> None:
+    msg = format_mapping_difference(additional_keys={"c"})
+    assert msg == "mappings have different keys:\n  additional keys : ['c']"
+
+
+def test_format_mapping_difference_missing_keys() -> None:
+    msg = format_mapping_difference(missing_keys={"b"})
+    assert msg == "mappings have different keys:\n  missing keys    : ['b']"
 
 
 def test_format_mapping_difference_different_value() -> None:
-    msg = format_mapping_difference(
-        different_value_key="b",
-    )
-    assert "mappings have different values for key 'b'" in msg
+    msg = format_mapping_difference(different_value_key="b")
+    assert msg == "mappings have different values for key 'b'"
 
 
 def test_format_mapping_difference_missing_and_different() -> None:
     msg = format_mapping_difference(
-        missing_keys={"b"},
-        additional_keys={"c"},
-        different_value_key="a",
+        missing_keys={"b"}, additional_keys={"c"}, different_value_key="a"
     )
-    assert "mappings have different keys:" in msg
-    assert "missing keys" in msg
-    assert "additional keys" in msg
+    assert msg == (
+        "mappings have different keys:\n"
+        "  missing keys    : ['b']\n"
+        "  additional keys : ['c']\n"
+        "mappings have different values for key 'a'"
+    )
 
 
 ################################################
@@ -48,17 +54,22 @@ def test_format_mapping_difference_missing_and_different() -> None:
 
 def test_format_sequence_difference_with_index() -> None:
     msg = format_sequence_difference([1, 2, 3], [1, 2, 4], different_index=2)
-    assert "sequences have different values at index 2" in msg
+    assert msg == "sequences have different values at index 2"
 
 
 def test_format_sequence_difference_different_lengths() -> None:
     msg = format_sequence_difference([1, 2], [1, 2, 3], different_index=None)
-    assert "sequences have different lengths: 2 vs 3" in msg
+    assert msg == "sequences have different lengths: 2 vs 3"
 
 
 def test_format_sequence_difference_with_index_and_lengths() -> None:
     msg = format_sequence_difference([1, 2], [1, 2, 3], different_index=1)
-    assert "sequences have different values at index 1" in msg
+    assert msg == "sequences have different values at index 1"
+
+
+def test_format_sequence_difference_different() -> None:
+    msg = format_sequence_difference([1, 2], [1, 4])
+    assert msg == "sequences are different:\n  actual   : [1, 2]\n  expected : [1, 4]"
 
 
 #############################################
@@ -68,16 +79,12 @@ def test_format_sequence_difference_with_index_and_lengths() -> None:
 
 def test_format_shape_difference() -> None:
     msg = format_shape_difference((2, 3), (2, 4))
-    assert "objects have different shapes:" in msg
-    assert "actual   : (2, 3)" in msg
-    assert "expected : (2, 4)" in msg
+    assert msg == "objects have different shapes:\n  actual   : (2, 3)\n  expected : (2, 4)"
 
 
 def test_format_shape_difference_1d_vs_2d() -> None:
     msg = format_shape_difference((5,), (5, 1))
-    assert "objects have different shapes:" in msg
-    assert "actual   : (5,)" in msg
-    assert "expected : (5, 1)" in msg
+    assert msg == "objects have different shapes:\n  actual   : (5,)\n  expected : (5, 1)"
 
 
 ############################################
@@ -87,16 +94,16 @@ def test_format_shape_difference_1d_vs_2d() -> None:
 
 def test_format_type_difference() -> None:
     msg = format_type_difference(list, tuple)
-    assert "objects have different types:" in msg
-    assert "actual   : <class 'list'>" in msg
-    assert "expected : <class 'tuple'>" in msg
+    assert msg == (
+        "objects have different types:\n  actual   : <class 'list'>\n  expected : <class 'tuple'>"
+    )
 
 
 def test_format_type_difference_int_float() -> None:
     msg = format_type_difference(int, float)
-    assert "objects have different types:" in msg
-    assert "actual   : <class 'int'>" in msg
-    assert "expected : <class 'float'>" in msg
+    assert msg == (
+        "objects have different types:\n  actual   : <class 'int'>\n  expected : <class 'float'>"
+    )
 
 
 #############################################
