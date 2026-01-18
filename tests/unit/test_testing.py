@@ -4,7 +4,6 @@ import pytest
 
 from coola.testing import assert_allclose, assert_equal
 
-
 #####################################
 #     Tests for assert_equal     #
 #####################################
