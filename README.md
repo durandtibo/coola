@@ -1,6 +1,6 @@
 # coola
 
-<p align="center">
+<p style="text-align: center;">
     <a href="https://github.com/durandtibo/coola/actions/workflows/ci.yaml">
         <img alt="CI" src="https://github.com/durandtibo/coola/actions/workflows/ci.yaml/badge.svg">
     </a>
@@ -65,11 +65,13 @@ computing objects.
 
 **Quick Links:**
 
-- [Documentation](https://durandtibo.github.io/coola/) | [User Guide](https://durandtibo.github.io/coola/uguide/equality)
+- [Documentation](https://durandtibo.github.io/coola/)
+- [User Guide](https://durandtibo.github.io/coola/uguide/equality)
 - [Installation](#installation)
 - [Features](#features)
 - [Contributing](#contributing)
-- [License](#license) | [Security](SECURITY.md)
+- [License](#license)
+- [Security](SECURITY.md)
 
 ## Why coola?
 
