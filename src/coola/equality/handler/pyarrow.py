@@ -10,6 +10,7 @@ from contextlib import suppress
 from typing import TYPE_CHECKING
 
 from coola.equality.handler.base import BaseEqualityHandler
+from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.utils import handlers_are_equal
 
 if TYPE_CHECKING:
@@ -60,7 +61,7 @@ class PyarrowEqualHandler(BaseEqualityHandler):
     ) -> bool:
         equal = object_equal(actual, expected, config)
         if config.show_difference and not equal:
-            logger.info(f"objects are different:\nactual:\n{actual}\nexpected:\n{expected}")
+            logger.info(format_value_difference(actual=actual, expected=expected))
         return equal
 
 

@@ -13,6 +13,7 @@ import logging
 from typing import TYPE_CHECKING, Protocol
 
 from coola.equality.handler.base import BaseEqualityHandler
+from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.utils import handlers_are_equal
 
 if TYPE_CHECKING:
@@ -96,7 +97,7 @@ class EqualHandler(BaseEqualityHandler):
     def handle(self, actual: SupportsEqual, expected: object, config: EqualityConfig) -> bool:
         if not actual.equal(expected):
             if config.show_difference:
-                logger.info(f"objects are not equal:\nactual:\n{actual}\nexpected:\n{expected}")
+                logger.info(format_value_difference(actual=actual, expected=expected))
             return False
         return True
 
@@ -147,6 +148,6 @@ class EqualNanHandler(BaseEqualityHandler):
     def handle(self, actual: SupportsEqualNan, expected: object, config: EqualityConfig) -> bool:
         if not actual.equal(expected, equal_nan=config.equal_nan):
             if config.show_difference:
-                logger.info(f"objects are not equal:\nactual:\n{actual}\nexpected:\n{expected}")
+                logger.info(format_value_difference(actual=actual, expected=expected))
             return False
         return True

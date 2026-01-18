@@ -8,6 +8,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from coola.equality.handler.base import BaseEqualityHandler
+from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.utils import handlers_are_equal
 
 if TYPE_CHECKING:
@@ -55,7 +56,7 @@ class TorchTensorEqualHandler(BaseEqualityHandler):
         object_equal = tensor_equal(actual, expected, config)
         if config.show_difference and not object_equal:
             logger.info(
-                f"torch.Tensors have different elements:\nactual=\n{actual}\nexpected=\n{expected}"
+                format_value_difference(actual=actual, expected=expected, name="torch.Tensors")
             )
         return object_equal
 

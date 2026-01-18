@@ -8,6 +8,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from coola.equality.handler.base import BaseEqualityHandler
+from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.utils import handlers_are_equal
 from coola.utils.imports import is_jax_available
 
@@ -59,8 +60,7 @@ class JaxArrayEqualHandler(BaseEqualityHandler):
         object_equal = array_equal(actual, expected, config)
         if config.show_difference and not object_equal:
             logger.info(
-                f"jax.numpy.ndarrays have different elements:\n"
-                f"actual=\n{actual}\nexpected=\n{expected}"
+                format_value_difference(actual=actual, expected=expected, name="jax.numpy.ndarrays")
             )
         return object_equal
 
