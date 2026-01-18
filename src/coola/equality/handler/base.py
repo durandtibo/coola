@@ -321,12 +321,16 @@ class HandlerEqualityMixin:
 
     This mixin eliminates code duplication across handlers that only need
     to compare their type and next_handler. Handlers using this mixin must
-    have a next_handler attribute.
+    inherit from BaseEqualityHandler to ensure the next_handler attribute
+    is available.
+
+    Note:
+        This mixin must be used with classes that have a ``next_handler``
+        attribute of type ``BaseEqualityHandler | None``.
 
     Example:
         ```pycon
         >>> from coola.equality.handler import BaseEqualityHandler, HandlerEqualityMixin
-        >>> from coola.equality.handler.utils import handlers_are_equal
         >>> class MyHandler(HandlerEqualityMixin, BaseEqualityHandler):
         ...     def handle(self, actual, expected, config):
         ...         return True
@@ -350,9 +354,14 @@ class HandlerEqualityMixin:
         Returns:
             ``True`` if the handlers are equal, otherwise ``False``.
         """
-        # Delayed import to avoid circular dependency
-        from coola.equality.handler.utils import handlers_are_equal  # noqa: PLC0415
-
         if type(other) is not type(self):
             return False
-        return handlers_are_equal(self.next_handler, other.next_handler)  # type: ignore[attr-defined]
+        
+        # Compare next_handler chains recursively
+        # This implementation avoids circular import by inlining the logic
+        self_next = getattr(self, 'next_handler', None)
+        other_next = getattr(other, 'next_handler', None)
+        
+        if self_next is None:
+            return other_next is None
+        return self_next.equal(other_next)
