@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Protocol
 
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
-from coola.equality.handler.utils import handlers_are_equal
+from coola.equality.handler.mixin import HandlerEqualityMixin
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -56,7 +56,7 @@ class SupportsEqualNan(Protocol):
         """
 
 
-class EqualHandler(BaseEqualityHandler):
+class EqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Check if the two objects have the same data.
 
     This handler returns ``False`` if the two objects are different
@@ -89,11 +89,6 @@ class EqualHandler(BaseEqualityHandler):
         ```
     """
 
-    def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
-            return False
-        return handlers_are_equal(self.next_handler, other.next_handler)
-
     def handle(self, actual: SupportsEqual, expected: object, config: EqualityConfig) -> bool:
         if not actual.equal(expected):
             if config.show_difference:
@@ -102,7 +97,7 @@ class EqualHandler(BaseEqualityHandler):
         return True
 
 
-class EqualNanHandler(BaseEqualityHandler):
+class EqualNanHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Check if the two objects have the same data.
 
     This handler returns ``False`` if the two objects are different
@@ -139,11 +134,6 @@ class EqualNanHandler(BaseEqualityHandler):
 
         ```
     """
-
-    def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
-            return False
-        return handlers_are_equal(self.next_handler, other.next_handler)
 
     def handle(self, actual: SupportsEqualNan, expected: object, config: EqualityConfig) -> bool:
         if not actual.equal(expected, equal_nan=config.equal_nan):

@@ -4,21 +4,21 @@ from __future__ import annotations
 
 __all__ = [
     "__version__",
-    # Equality checking functions
-    "objects_are_equal",
-    "objects_are_allclose",
-    # Summarization
-    "summarize",
-    # Iteration
-    "dfs_iterate",
     "bfs_iterate",
-    "filter_by_type",
     # Nested data utilities
     "convert_to_dict_of_lists",
     "convert_to_list_of_dicts",
-    "to_flat_dict",
+    # Iteration
+    "dfs_iterate",
+    "filter_by_type",
+    "objects_are_allclose",
+    # Equality checking functions
+    "objects_are_equal",
     # Recursive transformation
     "recursive_apply",
+    # Summarization
+    "summarize",
+    "to_flat_dict",
 ]
 
 from importlib.metadata import PackageNotFoundError, version

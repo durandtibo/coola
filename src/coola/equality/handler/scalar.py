@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
-from coola.equality.handler.utils import handlers_are_equal
+from coola.equality.handler.mixin import HandlerEqualityMixin
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class NanEqualHandler(BaseEqualityHandler):
+class NanEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Check if the two NaNs are equal.
 
     This handler returns ``True`` if the two numbers are NaNs,
@@ -40,11 +40,6 @@ class NanEqualHandler(BaseEqualityHandler):
         ```
     """
 
-    def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
-            return False
-        return handlers_are_equal(self.next_handler, other.next_handler)
-
     def handle(
         self,
         actual: float,
@@ -56,7 +51,7 @@ class NanEqualHandler(BaseEqualityHandler):
         return self._handle_next(actual, expected, config=config)
 
 
-class ScalarEqualHandler(BaseEqualityHandler):
+class ScalarEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Check if the two numbers are equal or not.
 
     This handler returns ``False`` if the two numbers are
@@ -80,11 +75,6 @@ class ScalarEqualHandler(BaseEqualityHandler):
 
         ```
     """
-
-    def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
-            return False
-        return handlers_are_equal(self.next_handler, other.next_handler)
 
     def handle(self, actual: float, expected: float, config: EqualityConfig) -> bool:
         object_equal = number_equal(actual, expected, config)

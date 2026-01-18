@@ -41,7 +41,7 @@ __all__ = [
     "handlers_are_equal",
 ]
 
-from coola.equality.handler.base import BaseEqualityHandler, HandlerEqualityMixin
+from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.data import SameDataHandler
 from coola.equality.handler.dtype import SameDTypeHandler
 from coola.equality.handler.equal import EqualHandler, EqualNanHandler
@@ -50,6 +50,7 @@ from coola.equality.handler.mapping import (
     MappingSameKeysHandler,
     MappingSameValuesHandler,
 )
+from coola.equality.handler.mixin import HandlerEqualityMixin
 from coola.equality.handler.native import (
     FalseHandler,
     ObjectEqualHandler,

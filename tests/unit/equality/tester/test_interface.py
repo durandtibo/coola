@@ -166,7 +166,7 @@ def test_register_equality_testers_with_exist_ok_true() -> None:
 
 def test_register_equality_testers_with_exist_ok_false() -> None:
     register_equality_testers({CustomList: DefaultEqualityTester()})
-    with pytest.raises(RuntimeError, match="already registered"):
+    with pytest.raises(RuntimeError, match=r"already registered"):
         register_equality_testers({CustomList: SequenceEqualityTester()}, exist_ok=False)
 
 

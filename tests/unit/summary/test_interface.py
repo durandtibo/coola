@@ -111,7 +111,7 @@ def test_register_summarizers_with_exist_ok_true() -> None:
 
 def test_register_summarizers_with_exist_ok_false() -> None:
     register_summarizers({CustomList: SetSummarizer()})
-    with pytest.raises(RuntimeError, match="already registered"):
+    with pytest.raises(RuntimeError, match=r"already registered"):
         register_summarizers({CustomList: SequenceSummarizer()}, exist_ok=False)
 
 

@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
-from coola.equality.handler.utils import handlers_are_equal
+from coola.equality.handler.mixin import HandlerEqualityMixin
 
 if TYPE_CHECKING:
     import torch
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class TorchTensorEqualHandler(BaseEqualityHandler):
+class TorchTensorEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Check if the two tensors are equal.
 
     This handler returns ``True`` if the two tensors are equal,
@@ -42,11 +42,6 @@ class TorchTensorEqualHandler(BaseEqualityHandler):
         ```
     """
 
-    def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
-            return False
-        return handlers_are_equal(self.next_handler, other.next_handler)
-
     def handle(
         self,
         actual: torch.Tensor,
@@ -61,7 +56,7 @@ class TorchTensorEqualHandler(BaseEqualityHandler):
         return object_equal
 
 
-class TorchTensorSameDeviceHandler(BaseEqualityHandler):
+class TorchTensorSameDeviceHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Check if the two tensors have the same device.
 
     This handler returns ``False`` if the two objects have different
@@ -79,11 +74,6 @@ class TorchTensorSameDeviceHandler(BaseEqualityHandler):
 
         ```
     """
-
-    def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
-            return False
-        return handlers_are_equal(self.next_handler, other.next_handler)
 
     def handle(
         self,

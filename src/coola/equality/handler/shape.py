@@ -7,8 +7,9 @@ __all__ = ["SameShapeHandler", "SupportsShape"]
 import logging
 from typing import TYPE_CHECKING, Protocol
 
-from coola.equality.handler.base import BaseEqualityHandler, HandlerEqualityMixin
+from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_shape_difference
+from coola.equality.handler.mixin import HandlerEqualityMixin
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig

@@ -9,7 +9,8 @@ from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_sequence_difference
-from coola.equality.handler.utils import check_recursion_depth, handlers_are_equal
+from coola.equality.handler.mixin import HandlerEqualityMixin
+from coola.equality.handler.utils import check_recursion_depth
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -19,7 +20,7 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class SequenceSameValuesHandler(BaseEqualityHandler):
+class SequenceSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Check if the two sequences have the same values.
 
     This handler returns ``False`` if the two sequences have at least
@@ -40,11 +41,6 @@ class SequenceSameValuesHandler(BaseEqualityHandler):
 
         ```
     """
-
-    def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
-            return False
-        return handlers_are_equal(self.next_handler, other.next_handler)
 
     def handle(
         self,

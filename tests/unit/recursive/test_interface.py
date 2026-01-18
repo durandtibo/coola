@@ -107,7 +107,7 @@ def test_register_transformers_with_exist_ok_true() -> None:
 
 def test_register_transformers_with_exist_ok_false() -> None:
     register_transformers({CustomList: SetTransformer()})
-    with pytest.raises(RuntimeError, match="already registered"):
+    with pytest.raises(RuntimeError, match=r"already registered"):
         register_transformers({CustomList: SequenceTransformer()}, exist_ok=False)
 
 

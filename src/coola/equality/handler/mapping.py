@@ -9,7 +9,8 @@ from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_mapping_difference
-from coola.equality.handler.utils import check_recursion_depth, handlers_are_equal
+from coola.equality.handler.mixin import HandlerEqualityMixin
+from coola.equality.handler.utils import check_recursion_depth
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -19,7 +20,7 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class MappingSameKeysHandler(BaseEqualityHandler):
+class MappingSameKeysHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Check if the two objects have the same keys.
 
     This handler returns ``False`` if the two objects have different
@@ -36,11 +37,6 @@ class MappingSameKeysHandler(BaseEqualityHandler):
 
         ```
     """
-
-    def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
-            return False
-        return handlers_are_equal(self.next_handler, other.next_handler)
 
     def handle(
         self,
@@ -61,7 +57,7 @@ class MappingSameKeysHandler(BaseEqualityHandler):
         return self._handle_next(actual, expected, config=config)
 
 
-class MappingSameValuesHandler(BaseEqualityHandler):
+class MappingSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Check if the key-value pairs in the first mapping are in the
     second mapping.
 
@@ -88,11 +84,6 @@ class MappingSameValuesHandler(BaseEqualityHandler):
 
         ```
     """
-
-    def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
-            return False
-        return handlers_are_equal(self.next_handler, other.next_handler)
 
     def handle(
         self,

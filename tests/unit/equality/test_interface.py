@@ -315,12 +315,12 @@ def test_objects_are_allclose_custom_registry() -> None:
 
 
 def test_objects_are_allclose_negative_atol() -> None:
-    with pytest.raises(ValueError, match="Invalid tolerance.*atol.*must be non-negative"):
+    with pytest.raises(ValueError, match=r"Invalid tolerance.*atol.*must be non-negative"):
         objects_are_allclose([1, 2, 3], [1, 2, 3], atol=-1.0)
 
 
 def test_objects_are_allclose_negative_rtol() -> None:
-    with pytest.raises(ValueError, match="Invalid tolerance.*rtol.*must be non-negative"):
+    with pytest.raises(ValueError, match=r"Invalid tolerance.*rtol.*must be non-negative"):
         objects_are_allclose([1, 2, 3], [1, 2, 3], rtol=-0.5)
 
 

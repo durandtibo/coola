@@ -86,7 +86,7 @@ def test_sequence_transformer_transform_with_exception_in_function(
         raise ValueError(msg)
 
     transformer = SequenceTransformer()
-    with pytest.raises(ValueError, match="Test error"):
+    with pytest.raises(ValueError, match=r"Test error"):
         transformer.transform([1, 2, 3], func=failing_func, registry=registry)
 
 

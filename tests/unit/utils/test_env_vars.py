@@ -97,7 +97,7 @@ def test_temp_env_vars_restores_on_exception() -> None:
     """Test that original values are restored even when an exception
     occurs."""
     with (  # noqa: PT012
-        pytest.raises(ValueError, match="Test exception"),
+        pytest.raises(ValueError, match=r"Test exception"),
         temp_env_vars({"EXISTING_VAR": "temporary", "NEW_VAR": "new"}),
     ):
         assert os.environ["EXISTING_VAR"] == "temporary"
