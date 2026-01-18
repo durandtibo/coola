@@ -342,7 +342,7 @@ class HandlerEqualityMixin:
         ```
     """
 
-    def equal(self, other: object) -> bool:
+    def equal(self: BaseEqualityHandler, other: object) -> bool:
         r"""Indicate if two handlers are equal.
 
         Two handlers are equal if they are of the same type and have
@@ -356,12 +356,11 @@ class HandlerEqualityMixin:
         """
         if type(other) is not type(self):
             return False
-        
+
+        # At this point, other is the same type as self (a BaseEqualityHandler subclass)
         # Compare next_handler chains recursively
-        # This implementation avoids circular import by inlining the logic
-        self_next = getattr(self, 'next_handler', None)
-        other_next = getattr(other, 'next_handler', None)
-        
-        if self_next is None:
-            return other_next is None
-        return self_next.equal(other_next)
+        # Cast is safe because we've verified the types match
+        other_handler: BaseEqualityHandler = other  # type: ignore[assignment]
+        if self.next_handler is None:
+            return other_handler.next_handler is None
+        return self.next_handler.equal(other_handler.next_handler)
