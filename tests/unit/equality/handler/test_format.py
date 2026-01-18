@@ -113,20 +113,14 @@ def test_format_type_difference_int_float() -> None:
 
 def test_format_value_difference_default_name() -> None:
     msg = format_value_difference(1, 2)
-    assert "objects are different:" in msg
-    assert "actual   : 1" in msg
-    assert "expected : 2" in msg
+    assert msg == "objects are different:\n  actual   : 1\n  expected : 2"
 
 
 def test_format_value_difference_custom_name() -> None:
     msg = format_value_difference(1.0, 2.0, name="numbers")
-    assert "numbers are different:" in msg
-    assert "actual   : 1.0" in msg
-    assert "expected : 2.0" in msg
+    assert msg == "numbers are different:\n  actual   : 1.0\n  expected : 2.0"
 
 
 def test_format_value_difference_arrays() -> None:
-    msg = format_value_difference([1, 2, 3], [1, 2, 4], name="arrays")
-    assert "arrays are different:" in msg
-    assert "actual   : [1, 2, 3]" in msg
-    assert "expected : [1, 2, 4]" in msg
+    msg = format_value_difference([1, 2, 3], [1, 2, 4], name="lists")
+    assert msg == "lists are different:\n  actual   : [1, 2, 3]\n  expected : [1, 2, 4]"
