@@ -75,10 +75,16 @@ def objects_are_allclose(
         ```
     """
     if rtol < 0:
-        msg = f"rtol must be non-negative, but got {rtol}"
+        msg = (
+            f"Invalid tolerance: 'rtol' must be non-negative (>= 0.0), but got {rtol}. "
+            f"Use rtol=1e-5 for typical floating-point comparisons or rtol=0.0 for exact checks."
+        )
         raise ValueError(msg)
     if atol < 0:
-        msg = f"atol must be non-negative, but got {atol}"
+        msg = (
+            f"Invalid tolerance: 'atol' must be non-negative (>= 0.0), but got {atol}. "
+            f"Use atol=1e-8 for typical floating-point comparisons or atol=0.0 for exact checks."
+        )
         raise ValueError(msg)
     if registry is None:
         registry = get_default_registry()

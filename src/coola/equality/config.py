@@ -67,13 +67,22 @@ class EqualityConfig:
     def __post_init__(self) -> None:
         """Validate configuration parameters after initialization."""
         if self.atol < 0:
-            msg = f"atol must be non-negative, but got {self.atol}"
+            msg = (
+                f"Invalid EqualityConfig: 'atol' must be non-negative (>= 0.0), "
+                f"but got {self.atol}. Use atol=0.0 for exact equality checks."
+            )
             raise ValueError(msg)
         if self.rtol < 0:
-            msg = f"rtol must be non-negative, but got {self.rtol}"
+            msg = (
+                f"Invalid EqualityConfig: 'rtol' must be non-negative (>= 0.0), "
+                f"but got {self.rtol}. Use rtol=0.0 for exact equality checks."
+            )
             raise ValueError(msg)
         if self.max_depth <= 0:
-            msg = f"max_depth must be positive, but got {self.max_depth}"
+            msg = (
+                f"Invalid EqualityConfig: 'max_depth' must be positive (> 0), "
+                f"but got {self.max_depth}. Typical values range from 100 to 1000."
+            )
             raise ValueError(msg)
 
     @property
