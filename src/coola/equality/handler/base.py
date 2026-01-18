@@ -2,7 +2,7 @@ r"""Define the equality handler base classes."""
 
 from __future__ import annotations
 
-__all__ = ["BaseEqualityHandler"]
+__all__ = ["BaseEqualityHandler", "HandlerEqualityMixin"]
 
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, TypeVar
@@ -314,3 +314,45 @@ class BaseEqualityHandler(ABC):
 
     def __str__(self) -> str:
         return f"{self.__class__.__qualname__}()"
+
+
+class HandlerEqualityMixin:
+    r"""Mixin providing a standard implementation of the equal() method.
+
+    This mixin eliminates code duplication across handlers that only need
+    to compare their type and next_handler. Handlers using this mixin must
+    have a next_handler attribute.
+
+    Example:
+        ```pycon
+        >>> from coola.equality.handler import BaseEqualityHandler, HandlerEqualityMixin
+        >>> from coola.equality.handler.utils import handlers_are_equal
+        >>> class MyHandler(HandlerEqualityMixin, BaseEqualityHandler):
+        ...     def handle(self, actual, expected, config):
+        ...         return True
+        >>> handler1 = MyHandler()
+        >>> handler2 = MyHandler()
+        >>> handler1.equal(handler2)
+        True
+
+        ```
+    """
+
+    def equal(self, other: object) -> bool:
+        r"""Indicate if two handlers are equal.
+
+        Two handlers are equal if they are of the same type and have
+        equal next_handler chains.
+
+        Args:
+            other: The other object to compare with.
+
+        Returns:
+            ``True`` if the handlers are equal, otherwise ``False``.
+        """
+        # Delayed import to avoid circular dependency
+        from coola.equality.handler.utils import handlers_are_equal  # noqa: PLC0415
+
+        if type(other) is not type(self):
+            return False
+        return handlers_are_equal(self.next_handler, other.next_handler)  # type: ignore[attr-defined]
