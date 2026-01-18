@@ -82,7 +82,7 @@ containing tensors, arrays, or DataFrames. You'll often encounter errors or unex
 ```pycon
 >>> import numpy as np
 >>> import torch
->>> from coola.equality import objects_are_equal
+>>> from coola import objects_are_equal  # Simpler import!
 >>> data1 = {"torch": torch.ones(2, 3), "numpy": np.zeros((2, 3))}
 >>> data2 = {"torch": torch.ones(2, 3), "numpy": np.zeros((2, 3))}
 >>> objects_are_equal(data1, data2)
@@ -93,7 +93,7 @@ True
 **Compare with numerical tolerance:**
 
 ```pycon
->>> from coola.equality import objects_are_allclose
+>>> from coola import objects_are_allclose  # Available at top level
 >>> data1 = {"value": 1.0}
 >>> data2 = {"value": 1.0 + 1e-9}
 >>> objects_are_allclose(data1, data2)
@@ -104,7 +104,7 @@ True
 **Debug differences easily:**
 
 ```pycon
->>> from coola.equality import objects_are_equal
+>>> from coola import objects_are_equal
 >>> actual = {"users": [{"id": 1, "score": 95}, {"id": 2, "score": 87}]}
 >>> expected = {"users": [{"id": 1, "score": 95}, {"id": 2, "score": 88}]}
 >>> objects_are_equal(actual, expected, show_difference=True)
