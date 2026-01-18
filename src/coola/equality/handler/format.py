@@ -20,7 +20,6 @@ logger = logging.getLogger(__name__)
 
 
 def format_mapping_difference(
-    *,
     missing_keys: set[Any] | None = None,
     additional_keys: set[Any] | None = None,
     different_value_key: Any | None = None,
@@ -97,10 +96,7 @@ def format_sequence_difference(
     return f"sequences are different:\n  actual   : {actual}\n  expected : {expected}"
 
 
-def format_shape_difference(
-    actual_shape: tuple[int, ...],
-    expected_shape: tuple[int, ...],
-) -> str:
+def format_shape_difference(actual_shape: tuple[int, ...], expected_shape: tuple[int, ...]) -> str:
     r"""Format a user-friendly difference message for shapes.
 
     Args:
@@ -128,10 +124,7 @@ def format_shape_difference(
     )
 
 
-def format_type_difference(
-    actual_type: type,
-    expected_type: type,
-) -> str:
+def format_type_difference(actual_type: type, expected_type: type) -> str:
     r"""Format a user-friendly difference message for types.
 
     Args:
@@ -157,12 +150,7 @@ def format_type_difference(
     )
 
 
-def format_value_difference(
-    actual: Any,
-    expected: Any,
-    *,
-    name: str = "objects",
-) -> str:
+def format_value_difference(actual: Any, expected: Any, *, name: str = "objects") -> str:
     r"""Format a user-friendly difference message for values.
 
     Args:
