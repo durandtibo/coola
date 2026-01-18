@@ -9,7 +9,7 @@ import logging
 from typing import TYPE_CHECKING, Any, Protocol
 
 from coola.equality.handler.base import BaseEqualityHandler
-from coola.equality.handler.utils import handlers_are_equal
+from coola.equality.handler.mixin import HandlerEqualityMixin
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -32,7 +32,7 @@ class SupportsDType(Protocol):
         return  # pragma: no cover
 
 
-class SameDTypeHandler(BaseEqualityHandler):
+class SameDTypeHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Check if the two objects have the same data type.
 
     This handler returns ``False`` if the two objects have different
@@ -55,11 +55,6 @@ class SameDTypeHandler(BaseEqualityHandler):
 
         ```
     """
-
-    def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
-            return False
-        return handlers_are_equal(self.next_handler, other.next_handler)
 
     def handle(
         self, actual: SupportsDType, expected: SupportsDType, config: EqualityConfig

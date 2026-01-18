@@ -62,7 +62,7 @@ def test_register_iterators_with_exist_ok_true() -> None:
 
 def test_register_iterators_with_exist_ok_false() -> None:
     register_iterators({CustomList: MappingIterator()}, exist_ok=False)
-    with pytest.raises(RuntimeError, match="already registered"):
+    with pytest.raises(RuntimeError, match=r"already registered"):
         register_iterators({CustomList: IterableIterator()}, exist_ok=False)
 
 

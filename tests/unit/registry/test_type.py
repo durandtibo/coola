@@ -118,7 +118,7 @@ def test_type_registry_register_basic() -> None:
 def test_type_registry_register_duplicate_raises_error() -> None:
     """Test that registering a duplicate key raises RuntimeError."""
     registry = TypeRegistry[str]({int: "integer"})
-    with pytest.raises(RuntimeError, match="A value is already registered for <class 'int'>"):
+    with pytest.raises(RuntimeError, match=r"A value is already registered for <class 'int'>"):
         registry.register(int, "int")
 
 
@@ -160,7 +160,7 @@ def test_type_registry_register_many_duplicate_raises_error() -> None:
     """Test that register_many raises error on duplicate without
     exist_ok."""
     registry = TypeRegistry[str]({int: "integer"})
-    with pytest.raises(RuntimeError, match="Types already registered"):
+    with pytest.raises(RuntimeError, match=r"Types already registered"):
         registry.register_many({int: "integer", float: "float"})
 
 
@@ -203,7 +203,7 @@ def test_type_registry_resolve_custom_class_hierarchy() -> None:
 
 def test_type_registry_resolve_missing_type_raises_keyerror() -> None:
     registry = TypeRegistry[str]()
-    with pytest.raises(KeyError, match="Could not find a registered type"):
+    with pytest.raises(KeyError, match=r"Could not find a registered type"):
         registry.resolve(int)
 
 
@@ -236,7 +236,7 @@ def test_type_registry_unregister_existing_key() -> None:
 def test_type_registry_unregister_missing_key_raises_error() -> None:
     """Test that unregistering a missing key raises KeyError."""
     registry = TypeRegistry[str]()
-    with pytest.raises(KeyError, match="Type <class 'int'> is not registered"):
+    with pytest.raises(KeyError, match=r"Type <class 'int'> is not registered"):
         registry.unregister(int)
 
 

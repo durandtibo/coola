@@ -20,6 +20,7 @@ from coola.equality.handler.format import (
     format_type_difference,
     format_value_difference,
 )
+from coola.equality.handler.mixin import HandlerEqualityMixin
 from coola.equality.handler.utils import handlers_are_equal
 
 if TYPE_CHECKING:
@@ -30,7 +31,7 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class FalseHandler(BaseEqualityHandler):
+class FalseHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Implement a handler that always returns ``False``.
 
     This handler is designed to be used at the end of the chain of
@@ -50,11 +51,6 @@ class FalseHandler(BaseEqualityHandler):
         ```
     """
 
-    def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
-            return False
-        return handlers_are_equal(self.next_handler, other.next_handler)
-
     def handle(
         self,
         actual: object,  # noqa: ARG002
@@ -64,7 +60,7 @@ class FalseHandler(BaseEqualityHandler):
         return False
 
 
-class TrueHandler(BaseEqualityHandler):
+class TrueHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Implement a handler that always returns ``True``.
 
     This handler is designed to be used at the end of the chain of
@@ -84,11 +80,6 @@ class TrueHandler(BaseEqualityHandler):
         ```
     """
 
-    def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
-            return False
-        return handlers_are_equal(self.next_handler, other.next_handler)
-
     def handle(
         self,
         actual: object,  # noqa: ARG002
@@ -98,7 +89,7 @@ class TrueHandler(BaseEqualityHandler):
         return True
 
 
-class ObjectEqualHandler(BaseEqualityHandler):
+class ObjectEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Check if the two objects are equal using the default equality
     operator ``==``.
 
@@ -120,11 +111,6 @@ class ObjectEqualHandler(BaseEqualityHandler):
 
         ```
     """
-
-    def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
-            return False
-        return handlers_are_equal(self.next_handler, other.next_handler)
 
     def handle(
         self,
@@ -194,7 +180,7 @@ class SameAttributeHandler(BaseEqualityHandler):
         return self._handle_next(actual, expected, config=config)
 
 
-class SameLengthHandler(BaseEqualityHandler):
+class SameLengthHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Check if the two objects have the same length.
 
     This handler returns ``False`` if the two objects have different
@@ -212,11 +198,6 @@ class SameLengthHandler(BaseEqualityHandler):
         ```
     """
 
-    def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
-            return False
-        return handlers_are_equal(self.next_handler, other.next_handler)
-
     def handle(
         self,
         actual: Sized,
@@ -230,7 +211,7 @@ class SameLengthHandler(BaseEqualityHandler):
         return self._handle_next(actual, expected, config=config)
 
 
-class SameObjectHandler(BaseEqualityHandler):
+class SameObjectHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Check if the two objects refer to the same object.
 
     This handler returns ``True`` if the two objects refer to the
@@ -248,11 +229,6 @@ class SameObjectHandler(BaseEqualityHandler):
         ```
     """
 
-    def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
-            return False
-        return handlers_are_equal(self.next_handler, other.next_handler)
-
     def handle(
         self,
         actual: object,
@@ -264,7 +240,7 @@ class SameObjectHandler(BaseEqualityHandler):
         return self._handle_next(actual, expected, config=config)
 
 
-class SameTypeHandler(BaseEqualityHandler):
+class SameTypeHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Check if the two objects have the same type.
 
     This handler returns ``False`` if the two objects have different
@@ -281,11 +257,6 @@ class SameTypeHandler(BaseEqualityHandler):
 
         ```
     """
-
-    def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
-            return False
-        return handlers_are_equal(self.next_handler, other.next_handler)
 
     def handle(
         self,

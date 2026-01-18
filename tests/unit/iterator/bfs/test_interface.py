@@ -67,7 +67,7 @@ def test_register_child_finders_with_exist_ok_true() -> None:
 
 def test_register_child_finders_with_exist_ok_false() -> None:
     register_child_finders({CustomList: MappingChildFinder()}, exist_ok=False)
-    with pytest.raises(RuntimeError, match="already registered"):
+    with pytest.raises(RuntimeError, match=r"already registered"):
         register_child_finders({CustomList: IterableChildFinder()}, exist_ok=False)
 
 

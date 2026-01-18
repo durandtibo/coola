@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
-from coola.equality.handler.utils import handlers_are_equal
+from coola.equality.handler.mixin import HandlerEqualityMixin
 from coola.utils.imports import is_jax_available
 
 if TYPE_CHECKING or is_jax_available():
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class JaxArrayEqualHandler(BaseEqualityHandler):
+class JaxArrayEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Check if the two JAX arrays are equal.
 
     This handler returns ``True`` if the two arrays are equal,
@@ -45,11 +45,6 @@ class JaxArrayEqualHandler(BaseEqualityHandler):
 
         ```
     """
-
-    def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
-            return False
-        return handlers_are_equal(self.next_handler, other.next_handler)
 
     def handle(
         self,

@@ -114,7 +114,7 @@ def test_registry_register_basic() -> None:
 def test_registry_register_duplicate_raises_error() -> None:
     """Test that registering a duplicate key raises RuntimeError."""
     registry = Registry[str, int]({"key1": 42})
-    with pytest.raises(RuntimeError, match="A value is already registered for 'key1'"):
+    with pytest.raises(RuntimeError, match=r"A value is already registered for 'key1'"):
         registry.register("key1", 100)
 
 
@@ -153,7 +153,7 @@ def test_registry_register_many_duplicate_raises_error() -> None:
     """Test that register_many raises error on duplicate without
     exist_ok."""
     registry = Registry[str, int]({"a": 1})
-    with pytest.raises(RuntimeError, match="Keys already registered"):
+    with pytest.raises(RuntimeError, match=r"Keys already registered"):
         registry.register_many({"a": 10, "b": 2})
 
 
@@ -176,7 +176,7 @@ def test_registry_unregister_existing_key() -> None:
 def test_registry_unregister_missing_key_raises_error() -> None:
     """Test that unregistering a missing key raises KeyError."""
     registry = Registry[str, int]()
-    with pytest.raises(KeyError, match="Key 'missing' is not registered"):
+    with pytest.raises(KeyError, match=r"Key 'missing' is not registered"):
         registry.unregister("missing")
 
 

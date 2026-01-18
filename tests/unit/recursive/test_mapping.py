@@ -84,7 +84,7 @@ def test_mapping_transformer_transform_with_exception_in_function(
         raise ValueError(msg)
 
     transformer = MappingTransformer()
-    with pytest.raises(ValueError, match="Test error"):
+    with pytest.raises(ValueError, match=r"Test error"):
         transformer.transform({"a": 1, "b": 2}, func=failing_func, registry=registry)
 
 

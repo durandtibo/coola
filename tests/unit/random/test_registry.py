@@ -53,7 +53,7 @@ def test_random_manager_registry_register_existing_key_without_exist_ok() -> Non
     manager1 = RandomRandomManager()
     manager2 = RandomRandomManager()
     registry.register("random", manager1)
-    with pytest.raises(RuntimeError, match="already registered"):
+    with pytest.raises(RuntimeError, match=r"already registered"):
         registry.register("random", manager2, exist_ok=False)
 
 
@@ -86,7 +86,7 @@ def test_random_manager_registry_register_many_with_existing_type() -> None:
         "random": RandomRandomManager(),
         "default": RandomRandomManager(),
     }
-    with pytest.raises(RuntimeError, match="already registered"):
+    with pytest.raises(RuntimeError, match=r"already registered"):
         registry.register_many(managers, exist_ok=False)
 
 

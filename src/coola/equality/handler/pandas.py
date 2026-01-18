@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
-from coola.equality.handler.utils import handlers_are_equal
+from coola.equality.handler.mixin import HandlerEqualityMixin
 from coola.utils.imports import is_pandas_available
 
 if TYPE_CHECKING or is_pandas_available():
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class PandasDataFrameEqualHandler(BaseEqualityHandler):
+class PandasDataFrameEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Check if the two ``pandas.DataFrame``s are equal.
 
     This handler returns ``True`` if the two ``pandas.DataFrame``s are
@@ -55,11 +55,6 @@ class PandasDataFrameEqualHandler(BaseEqualityHandler):
         ```
     """
 
-    def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
-            return False
-        return handlers_are_equal(self.next_handler, other.next_handler)
-
     def handle(
         self,
         actual: pd.DataFrame,
@@ -74,7 +69,7 @@ class PandasDataFrameEqualHandler(BaseEqualityHandler):
         return object_equal
 
 
-class PandasSeriesEqualHandler(BaseEqualityHandler):
+class PandasSeriesEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Check if the two ``pandas.Series``es are equal.
 
     This handler returns ``True`` if the two ``pandas.Series``es are
@@ -96,11 +91,6 @@ class PandasSeriesEqualHandler(BaseEqualityHandler):
 
         ```
     """
-
-    def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
-            return False
-        return handlers_are_equal(self.next_handler, other.next_handler)
 
     def handle(
         self,

@@ -59,7 +59,7 @@ def test_child_finder_registry_register_existing_type_without_exist_ok() -> None
     child_finder1 = IterableChildFinder()
     child_finder2 = MappingChildFinder()
     registry.register(list, child_finder1)
-    with pytest.raises(RuntimeError, match="already registered"):
+    with pytest.raises(RuntimeError, match=r"already registered"):
         registry.register(list, child_finder2, exist_ok=False)
 
 
@@ -91,7 +91,7 @@ def test_child_finder_registry_register_many() -> None:
 def test_child_finder_registry_register_many_with_existing_type() -> None:
     registry = ChildFinderRegistry({object: DefaultChildFinder(), list: IterableChildFinder()})
     child_finders = {list: MappingChildFinder(), dict: MappingChildFinder()}
-    with pytest.raises(RuntimeError, match="already registered"):
+    with pytest.raises(RuntimeError, match=r"already registered"):
         registry.register_many(child_finders, exist_ok=False)
 
 
