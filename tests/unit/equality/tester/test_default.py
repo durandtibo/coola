@@ -41,14 +41,6 @@ DEFAULT_NOT_EQUAL = [
         id="different values - str",
     ),
     pytest.param(
-        ExamplePair(actual=1, expected=2, expected_message="objects are different:"),
-        id="different values - int",
-    ),
-    pytest.param(
-        ExamplePair(actual=1.0, expected=2.0, expected_message="objects are different:"),
-        id="different values - float",
-    ),
-    pytest.param(
         ExamplePair(
             actual=complex(4, 2), expected=complex(4, 3), expected_message="objects are different:"
         ),
@@ -76,6 +68,17 @@ DEFAULT_NOT_EQUAL = [
     ),
 ]
 
+# Other testers are more specific for these types
+DEFAULT_SPECIAL_NOT_EQUAL = [
+    pytest.param(
+        ExamplePair(actual=1, expected=2, expected_message="objects are different:"),
+        id="different values - int",
+    ),
+    pytest.param(
+        ExamplePair(actual=1.0, expected=2.0, expected_message="objects are different:"),
+        id="different values - float",
+    ),
+]
 
 ###########################################
 #     Tests for DefaultEqualityTester     #
@@ -193,7 +196,7 @@ def test_default_equality_tester_objects_are_equal_different_type_show_differenc
         assert caplog.messages[0].startswith("objects have different types:")
 
 
-@pytest.mark.parametrize("example", DEFAULT_NOT_EQUAL)
+@pytest.mark.parametrize("example", DEFAULT_NOT_EQUAL + DEFAULT_SPECIAL_NOT_EQUAL)
 def test_default_equality_tester_objects_are_equal_false(
     example: ExamplePair,
     config: EqualityConfig,
@@ -207,7 +210,7 @@ def test_default_equality_tester_objects_are_equal_false(
         assert not caplog.messages
 
 
-@pytest.mark.parametrize("example", DEFAULT_NOT_EQUAL)
+@pytest.mark.parametrize("example", DEFAULT_NOT_EQUAL + DEFAULT_SPECIAL_NOT_EQUAL)
 def test_default_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
