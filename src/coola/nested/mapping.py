@@ -4,13 +4,15 @@ from __future__ import annotations
 
 __all__ = ["get_first_value", "remove_keys_starting_with", "to_flat_dict"]
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, TypeVar
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
+T = TypeVar("T")
 
-def get_first_value(data: Mapping[str, Any]) -> Any:
+
+def get_first_value(data: Mapping[Any, T]) -> T:
     r"""Get the first value of a mapping.
 
     Args:
