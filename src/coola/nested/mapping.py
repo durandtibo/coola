@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 T = TypeVar("T")
 
 
-def get_first_value(data: Mapping[str, T]) -> T:
+def get_first_value(data: Mapping[Any, T]) -> T:
     r"""Get the first value of a mapping.
 
     Args:
