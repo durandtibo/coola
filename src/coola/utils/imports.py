@@ -51,10 +51,12 @@ from contextlib import suppress
 from functools import lru_cache, wraps
 from importlib.util import find_spec
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, NoReturn
+from typing import TYPE_CHECKING, Any, NoReturn, TypeVar
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+F = TypeVar("F", bound="Callable[..., Any]")
 
 
 @lru_cache
@@ -134,9 +136,7 @@ def check_package(package: str, command: str | None = None) -> None:
         raise RuntimeError(msg)
 
 
-def decorator_package_available(
-    fn: Callable[..., Any], condition: Callable[[], bool]
-) -> Callable[..., Any]:
+def decorator_package_available(fn: F, condition: Callable[[], bool]) -> F:
     r"""Implement a decorator to execute a function only if a package is
     installed.
 
@@ -223,7 +223,7 @@ def raise_error_jax_missing() -> NoReturn:
     raise RuntimeError(msg)
 
 
-def jax_available(fn: Callable[..., Any]) -> Callable[..., Any]:
+def jax_available(fn: F) -> F:
     r"""Implement a decorator to execute a function only if ``jax``
     package is installed.
 
@@ -298,7 +298,7 @@ def raise_error_numpy_missing() -> NoReturn:
     raise RuntimeError(msg)
 
 
-def numpy_available(fn: Callable[..., Any]) -> Callable[..., Any]:
+def numpy_available(fn: F) -> F:
     r"""Implement a decorator to execute a function only if ``numpy``
     package is installed.
 
@@ -373,7 +373,7 @@ def raise_error_packaging_missing() -> NoReturn:
     raise RuntimeError(msg)
 
 
-def packaging_available(fn: Callable[..., Any]) -> Callable[..., Any]:
+def packaging_available(fn: F) -> F:
     r"""Implement a decorator to execute a function only if ``packaging``
     package is installed.
 
@@ -448,7 +448,7 @@ def raise_error_pandas_missing() -> NoReturn:
     raise RuntimeError(msg)
 
 
-def pandas_available(fn: Callable[..., Any]) -> Callable[..., Any]:
+def pandas_available(fn: F) -> F:
     r"""Implement a decorator to execute a function only if ``pandas``
     package is installed.
 
@@ -523,7 +523,7 @@ def raise_error_polars_missing() -> NoReturn:
     raise RuntimeError(msg)
 
 
-def polars_available(fn: Callable[..., Any]) -> Callable[..., Any]:
+def polars_available(fn: F) -> F:
     r"""Implement a decorator to execute a function only if ``polars``
     package is installed.
 
@@ -598,7 +598,7 @@ def raise_error_pyarrow_missing() -> NoReturn:
     raise RuntimeError(msg)
 
 
-def pyarrow_available(fn: Callable[..., Any]) -> Callable[..., Any]:
+def pyarrow_available(fn: F) -> F:
     r"""Implement a decorator to execute a function only if ``pyarrow``
     package is installed.
 
@@ -673,7 +673,7 @@ def raise_error_torch_missing() -> NoReturn:
     raise RuntimeError(msg)
 
 
-def torch_available(fn: Callable[..., Any]) -> Callable[..., Any]:
+def torch_available(fn: F) -> F:
     r"""Implement a decorator to execute a function only if ``torch``
     package is installed.
 
@@ -758,7 +758,7 @@ def check_torch_numpy() -> None:
         raise RuntimeError(msg)
 
 
-def torch_numpy_available(fn: Callable[..., Any]) -> Callable[..., Any]:
+def torch_numpy_available(fn: F) -> F:
     r"""Implement a decorator to execute a function only if ``torch`` and
     ``numpy`` packages are installed and are compatible.
 
@@ -833,7 +833,7 @@ def raise_error_xarray_missing() -> NoReturn:
     raise RuntimeError(msg)
 
 
-def xarray_available(fn: Callable[..., Any]) -> Callable[..., Any]:
+def xarray_available(fn: F) -> F:
     r"""Implement a decorator to execute a function only if ``xarray``
     package is installed.
 

@@ -283,6 +283,17 @@ src = ["src"]
     "PL", # Pylint
     "S101", # flake8-bandit
 ]
+# Allow Any in Protocol definitions where the exact type varies by implementation
+"src/coola/equality/handler/data.py" = ["ANN401"]
+"src/coola/equality/handler/dtype.py" = ["ANN401"]
+# Allow Any in formatting utilities that handle arbitrary types
+"src/coola/equality/handler/format.py" = ["ANN401"]
+# Allow Any in recursive transformers that handle arbitrary types
+"src/coola/recursive/*.py" = ["ANN401"]
+# Allow Any in fallback stubs for optional dependencies
+"src/coola/utils/fallback/*.py" = ["ANN401"]
+# Allow Any in LazyModule.__getattr__ which returns arbitrary module attributes
+"src/coola/utils/imports.py" = ["ANN401"]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 10
