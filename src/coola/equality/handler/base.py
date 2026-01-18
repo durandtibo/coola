@@ -324,9 +324,11 @@ class HandlerEqualityMixin:
     inherit from BaseEqualityHandler to ensure the next_handler attribute
     is available.
 
-    Note:
-        This mixin must be used with classes that have a ``next_handler``
-        attribute of type ``BaseEqualityHandler | None``.
+    Design Note:
+        This mixin must be used with classes that inherit from
+        ``BaseEqualityHandler``. The type annotation ``self: BaseEqualityHandler``
+        on the ``equal()`` method enforces this constraint and enables
+        type-safe access to the ``next_handler`` attribute.
 
     Example:
         ```pycon
@@ -348,6 +350,11 @@ class HandlerEqualityMixin:
         Two handlers are equal if they are of the same type and have
         equal next_handler chains.
 
+        Note:
+            The type annotation ``self: BaseEqualityHandler`` ensures this
+            mixin is only used with BaseEqualityHandler subclasses, enabling
+            type-safe access to ``next_handler``.
+
         Args:
             other: The other object to compare with.
 
@@ -357,9 +364,9 @@ class HandlerEqualityMixin:
         if type(other) is not type(self):
             return False
 
-        # At this point, other is the same type as self (a BaseEqualityHandler subclass)
-        # Compare next_handler chains recursively
-        # Cast is safe because we've verified the types match
+        # At this point, other is the same type as self (a BaseEqualityHandler subclass).
+        # We need a type ignore because Python's type system cannot infer that
+        # type(other) == type(self) guarantees other is a BaseEqualityHandler.
         other_handler: BaseEqualityHandler = other  # type: ignore[assignment]
         if self.next_handler is None:
             return other_handler.next_handler is None
