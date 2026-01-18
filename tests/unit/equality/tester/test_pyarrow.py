@@ -208,7 +208,7 @@ PYARROW_ARRAY_EQUAL_TOLERANCE = [
     ),
 ]
 PYARROW_ARRAY_NOT_EQUAL_TOLERANCE = [
-    # The arrays are not equal because the atol and rtol arguments are ignored.
+    # The arrays are different because the atol and rtol arguments are ignored.
     # atol
     pytest.param(
         ExamplePair(

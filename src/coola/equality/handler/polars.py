@@ -11,6 +11,7 @@ from functools import lru_cache
 from typing import TYPE_CHECKING
 
 from coola.equality.handler.base import BaseEqualityHandler
+from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.utils import handlers_are_equal
 from coola.utils.imports import is_polars_available
 
@@ -72,8 +73,7 @@ class PolarsDataFrameEqualHandler(BaseEqualityHandler):
         object_equal = frame_equal(actual, expected, config)
         if config.show_difference and not object_equal:
             logger.info(
-                f"polars.DataFrames have different elements:\n"
-                f"actual:\n{actual}\nexpected:\n{expected}"
+                format_value_difference(actual=actual, expected=expected, name="polars.DataFrames")
             )
         return object_equal
 
@@ -123,8 +123,7 @@ class PolarsLazyFrameEqualHandler(BaseEqualityHandler):
         object_equal = frame_equal(actual.collect(), expected.collect(), config)
         if config.show_difference and not object_equal:
             logger.info(
-                f"polars.LazyFrames have different elements:\n"
-                f"actual:\n{actual}\nexpected:\n{expected}"
+                format_value_difference(actual=actual, expected=expected, name="polars.LazyFrames")
             )
         return object_equal
 
@@ -166,7 +165,7 @@ class PolarsSeriesEqualHandler(BaseEqualityHandler):
         object_equal = series_equal(actual, expected, config)
         if config.show_difference and not object_equal:
             logger.info(
-                f"polars.Series have different elements:\nactual:\n{actual}\nexpected:\n{expected}"
+                format_value_difference(actual=actual, expected=expected, name="polars.Series")
             )
         return object_equal
 

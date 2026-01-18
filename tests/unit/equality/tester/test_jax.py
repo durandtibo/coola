@@ -61,7 +61,7 @@ JAX_ARRAY_NOT_EQUAL = [
         ExamplePair(
             actual=jnp.ones(shape=(2, 3)),
             expected=jnp.zeros(shape=(2, 3)),
-            expected_message="jax.numpy.ndarrays have different elements:",
+            expected_message="jax.numpy.ndarrays are different:",
         ),
         id="different values",
     ),

@@ -89,8 +89,7 @@ class ScalarEqualHandler(BaseEqualityHandler):
     def handle(self, actual: float, expected: float, config: EqualityConfig) -> bool:
         object_equal = number_equal(actual, expected, config)
         if not object_equal and config.show_difference:
-            message = format_value_difference(actual, expected, name="numbers")
-            logger.info(message)
+            logger.info(format_value_difference(actual=actual, expected=expected, name="numbers"))
         return object_equal
 
 

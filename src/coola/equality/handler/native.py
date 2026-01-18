@@ -134,8 +134,7 @@ class ObjectEqualHandler(BaseEqualityHandler):
     ) -> bool:
         object_equal = actual == expected
         if config.show_difference and not object_equal:
-            message = format_value_difference(actual, expected, name="objects")
-            logger.info(message)
+            logger.info(format_value_difference(actual=actual, expected=expected))
         return object_equal
 
 

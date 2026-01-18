@@ -49,7 +49,7 @@ CUSTOM_EQUAL_NAN_NOT_EQUAL = [
         ExamplePair(
             actual=MyFloatNan(4.2),
             expected=MyFloatNan(1),
-            expected_message="objects are not equal:",
+            expected_message="objects are different:",
         ),
         id="different values",
     ),
@@ -57,7 +57,7 @@ CUSTOM_EQUAL_NAN_NOT_EQUAL = [
         ExamplePair(
             actual=MyFloatNan(4.2),
             expected=MyFloatNan(float("nan")),
-            expected_message="objects are not equal:",
+            expected_message="objects are different:",
         ),
         id="different values - NaN",
     ),
@@ -87,7 +87,7 @@ CUSTOM_EQUAL_EQUAL = [
 CUSTOM_EQUAL_NOT_EQUAL = [
     pytest.param(
         ExamplePair(
-            actual=MyFloat(4.2), expected=MyFloat(1), expected_message="objects are not equal:"
+            actual=MyFloat(4.2), expected=MyFloat(1), expected_message="objects are different:"
         ),
         id="different values",
     ),

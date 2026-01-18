@@ -59,8 +59,7 @@ class NumpyArrayEqualHandler(BaseEqualityHandler):
     ) -> bool:
         object_equal = array_equal(actual, expected, config)
         if config.show_difference and not object_equal:
-            message = format_value_difference(actual, expected, name="numpy.ndarrays")
-            logger.info(message)
+            logger.info(format_value_difference(actual, expected, name="numpy.ndarrays"))
         return object_equal
 
 

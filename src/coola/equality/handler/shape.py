@@ -67,7 +67,6 @@ class SameShapeHandler(BaseEqualityHandler):
     ) -> bool:
         if actual.shape != expected.shape:
             if config.show_difference:
-                message = format_shape_difference(actual.shape, expected.shape)
-                logger.info(message)
+                logger.info(format_shape_difference(actual.shape, expected.shape))
             return False
         return self._handle_next(actual, expected, config=config)
