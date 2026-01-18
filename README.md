@@ -272,6 +272,7 @@ methods, see the [installation guide](https://durandtibo.github.io/coola/get_sta
 | `coola`  | `jax`<sup>*</sup> | `numpy`<sup>*</sup> | `packaging`<sup>*</sup> | `pandas`<sup>*</sup> | `polars`<sup>*</sup> | `pyarrow`<sup>*</sup> | `torch`<sup>*</sup> | `xarray`<sup>*</sup> | `python`       |
 |----------|-------------------|---------------------|-------------------------|----------------------|----------------------|-----------------------|---------------------|----------------------|----------------|
 | `main`   | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<23.0`        | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10`       |
+| `1.0.0`  | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<23.0`        | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10`       |
 | `0.11.1` | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<22.0`        | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10`       |
 | `0.11.0` | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<22.0`        | `>=2.0,<3.0`        | `>=2023.1`           | `>=3.10`       |
 | `0.10.0` | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<22.0`        | `>=2.0,<3.0`        | `>=2023.1`           | `>=3.10`       |
@@ -335,9 +336,9 @@ your changes.
 
 ## API Stability
 
-:warning: **Important**: While `coola` is in active development, the API may change between releases
-before reaching version 1.0.0. We recommend pinning to a specific version in your project's
-dependencies to avoid unexpected breaking changes when upgrading.
+:warning: **Important**: As `coola` is under active development, its API is not yet stable and may
+change between releases. We recommend pinning a specific version in your project’s dependencies to
+ensure consistent behavior.
 
 ## License
 
