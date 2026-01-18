@@ -54,6 +54,7 @@ def assert_equal(
 
     Raises:
         AssertionError: if the two objects are not equal.
+        ValueError: if ``max_depth`` is not positive.
         RecursionError: if recursion depth exceeds ``max_depth``.
 
     Example:
@@ -64,6 +65,9 @@ def assert_equal(
 
         ```
     """
+    if max_depth <= 0:
+        msg = f"max_depth must be positive, but got {max_depth}"
+        raise ValueError(msg)
     if not objects_are_equal(
         actual,
         expected,
@@ -112,7 +116,8 @@ def assert_allclose(
 
     Raises:
         AssertionError: if the two objects are not approximately equal.
-        ValueError: if ``rtol`` or ``atol`` is negative.
+        ValueError: if ``rtol`` or ``atol`` is negative, or if
+            ``max_depth`` is not positive.
         RecursionError: if recursion depth exceeds ``max_depth``.
 
     Example:
@@ -123,6 +128,15 @@ def assert_allclose(
 
         ```
     """
+    if rtol < 0:
+        msg = f"rtol must be non-negative, but got {rtol}"
+        raise ValueError(msg)
+    if atol < 0:
+        msg = f"atol must be non-negative, but got {atol}"
+        raise ValueError(msg)
+    if max_depth <= 0:
+        msg = f"max_depth must be positive, but got {max_depth}"
+        raise ValueError(msg)
     if not objects_are_allclose(
         actual,
         expected,

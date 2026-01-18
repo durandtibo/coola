@@ -52,6 +52,16 @@ def test_assert_equal_nan_true() -> None:
     assert_equal(float("nan"), float("nan"), equal_nan=True)
 
 
+def test_assert_equal_invalid_max_depth_zero() -> None:
+    with pytest.raises(ValueError, match="max_depth must be positive"):
+        assert_equal([1, 2, 3], [1, 2, 3], max_depth=0)
+
+
+def test_assert_equal_invalid_max_depth_negative() -> None:
+    with pytest.raises(ValueError, match="max_depth must be positive"):
+        assert_equal([1, 2, 3], [1, 2, 3], max_depth=-1)
+
+
 #########################################
 #     Tests for assert_allclose     #
 #########################################
@@ -123,3 +133,13 @@ def test_assert_allclose_negative_rtol() -> None:
 def test_assert_allclose_negative_atol() -> None:
     with pytest.raises(ValueError, match="atol must be non-negative"):
         assert_allclose(1.0, 1.0, atol=-0.1)
+
+
+def test_assert_allclose_invalid_max_depth_zero() -> None:
+    with pytest.raises(ValueError, match="max_depth must be positive"):
+        assert_allclose([1.0, 2.0], [1.0, 2.0], max_depth=0)
+
+
+def test_assert_allclose_invalid_max_depth_negative() -> None:
+    with pytest.raises(ValueError, match="max_depth must be positive"):
+        assert_allclose([1.0, 2.0], [1.0, 2.0], max_depth=-1)
