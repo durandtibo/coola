@@ -1,6 +1,6 @@
 # Home
 
-<p style="text-align: center;">
+<p align="center">
     <a href="https://github.com/durandtibo/coola/actions/workflows/ci.yaml">
         <img alt="CI" src="https://github.com/durandtibo/coola/actions/workflows/ci.yaml/badge.svg">
     </a>
