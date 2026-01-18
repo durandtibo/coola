@@ -26,12 +26,12 @@ def test_equality_config_with_parameters() -> None:
 
 
 def test_equality_config_negative_atol() -> None:
-    with pytest.raises(ValueError, match=r"Invalid EqualityConfig.*atol.*must be non-negative"):
+    with pytest.raises(ValueError, match="atol must be non-negative"):
         EqualityConfig(atol=-1.0)
 
 
 def test_equality_config_negative_rtol() -> None:
-    with pytest.raises(ValueError, match=r"Invalid EqualityConfig.*rtol.*must be non-negative"):
+    with pytest.raises(ValueError, match="rtol must be non-negative"):
         EqualityConfig(rtol=-0.5)
 
 
@@ -52,12 +52,12 @@ def test_equality_config_max_depth_custom() -> None:
 
 
 def test_equality_config_max_depth_zero() -> None:
-    with pytest.raises(ValueError, match=r"Invalid EqualityConfig.*max_depth.*must be positive"):
+    with pytest.raises(ValueError, match="max_depth must be positive"):
         EqualityConfig(max_depth=0)
 
 
 def test_equality_config_max_depth_negative() -> None:
-    with pytest.raises(ValueError, match=r"Invalid EqualityConfig.*max_depth.*must be positive"):
+    with pytest.raises(ValueError, match="max_depth must be positive"):
         EqualityConfig(max_depth=-1)
 
 
