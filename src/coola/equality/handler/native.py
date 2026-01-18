@@ -16,6 +16,10 @@ import logging
 from typing import TYPE_CHECKING
 
 from coola.equality.handler.base import BaseEqualityHandler
+from coola.equality.handler.format import (
+    format_type_difference,
+    format_value_difference,
+)
 from coola.equality.handler.utils import handlers_are_equal
 
 if TYPE_CHECKING:
@@ -130,7 +134,8 @@ class ObjectEqualHandler(BaseEqualityHandler):
     ) -> bool:
         object_equal = actual == expected
         if config.show_difference and not object_equal:
-            logger.info(f"objects are different:\nactual={actual}\nexpected={expected}")
+            message = format_value_difference(actual, expected, name="objects")
+            logger.info(message)
         return object_equal
 
 
@@ -291,6 +296,7 @@ class SameTypeHandler(BaseEqualityHandler):
     ) -> bool:
         if type(actual) is not type(expected):
             if config.show_difference:
-                logger.info(f"objects have different types: {type(actual)} vs {type(expected)}")
+                message = format_type_difference(type(actual), type(expected))
+                logger.info(message)
             return False
         return self._handle_next(actual, expected, config=config)

@@ -9,6 +9,7 @@ import math
 from typing import TYPE_CHECKING
 
 from coola.equality.handler.base import BaseEqualityHandler
+from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.utils import handlers_are_equal
 
 if TYPE_CHECKING:
@@ -88,7 +89,8 @@ class ScalarEqualHandler(BaseEqualityHandler):
     def handle(self, actual: float, expected: float, config: EqualityConfig) -> bool:
         object_equal = number_equal(actual, expected, config)
         if not object_equal and config.show_difference:
-            logger.info(f"numbers are not equal:\nactual:\n{actual}\nexpected:\n{expected}")
+            message = format_value_difference(actual, expected, name="numbers")
+            logger.info(message)
         return object_equal
 
 

@@ -156,7 +156,7 @@ def test_numpy_array_equal_handler_handle_false_show_difference(
         assert not handler.handle(
             actual=np.ones(shape=(2, 3)), expected=np.ones(shape=(3, 2)), config=config
         )
-        assert caplog.messages[0].startswith("numpy.ndarrays have different elements:")
+        assert caplog.messages[0].startswith("numpy.ndarrays are different:")
 
 
 @numpy_available

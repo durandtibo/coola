@@ -53,7 +53,7 @@ MAPPING_NOT_EQUAL = [
         ExamplePair(
             actual={"a": 1, "b": 2},
             expected={"a": 1, "b": 3},
-            expected_message="mappings have at least one different value:",
+            expected_message="mappings have different values for key",
         ),
         id="different values",
     ),
@@ -61,7 +61,7 @@ MAPPING_NOT_EQUAL = [
         ExamplePair(
             actual={"a": 1, "b": {"k": 1}},
             expected={"a": 1, "b": {"k": 2}},
-            expected_message="mappings have at least one different value:",
+            expected_message="mappings have different values for key",
         ),
         id="different values - nested",
     ),
@@ -69,7 +69,7 @@ MAPPING_NOT_EQUAL = [
         ExamplePair(
             actual={"a": 1, "b": 2},
             expected={"a": 1, "b": float("nan")},
-            expected_message="mappings have at least one different value:",
+            expected_message="mappings have different values for key",
         ),
         id="different values - nan",
     ),
@@ -150,7 +150,7 @@ SEQUENCE_NOT_EQUAL = [
         ExamplePair(
             actual=[1, 2, 3],
             expected=[1, 2, 4],
-            expected_message="sequences have at least one different value:",
+            expected_message="sequences have different values at index",
         ),
         id="different values",
     ),
@@ -158,7 +158,7 @@ SEQUENCE_NOT_EQUAL = [
         ExamplePair(
             actual=[1, 2, [3, 4, 5]],
             expected=[1, 2, [3, 4, 6]],
-            expected_message="sequences have at least one different value:",
+            expected_message="sequences have different values at index",
         ),
         id="different values - nested",
     ),
@@ -166,7 +166,7 @@ SEQUENCE_NOT_EQUAL = [
         ExamplePair(
             actual=[1, 2, 3],
             expected=[1, 2, float("nan")],
-            expected_message="sequences have at least one different value:",
+            expected_message="sequences have different values at index",
         ),
         id="different values - nan",
     ),

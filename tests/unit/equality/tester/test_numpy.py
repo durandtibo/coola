@@ -77,7 +77,7 @@ NUMPY_ARRAY_NOT_EQUAL = [
         ExamplePair(
             actual=np.ones(shape=(2, 3)),
             expected=np.zeros(shape=(2, 3)),
-            expected_message="numpy.ndarrays have different elements:",
+            expected_message="numpy.ndarrays are different:",
         ),
         id="different values",
     ),

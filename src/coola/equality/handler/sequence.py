@@ -8,6 +8,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler.base import BaseEqualityHandler
+from coola.equality.handler.format import format_sequence_difference
 from coola.equality.handler.utils import check_recursion_depth, handlers_are_equal
 
 if TYPE_CHECKING:
@@ -52,18 +53,15 @@ class SequenceSameValuesHandler(BaseEqualityHandler):
         config: EqualityConfig,
     ) -> bool:
         with check_recursion_depth(config):
-            for value1, value2 in zip(actual, expected):
+            for idx, (value1, value2) in enumerate(zip(actual, expected)):
                 if not config.registry.objects_are_equal(value1, value2, config):
-                    self._show_difference(actual, expected, config=config)
+                    if config.show_difference:
+                        logger.info(
+                            format_sequence_difference(
+                                actual,
+                                expected,
+                                different_index=idx,
+                            )
+                        )
                     return False
             return self._handle_next(actual, expected, config=config)
-
-    def _show_difference(
-        self, actual: Sequence, expected: Sequence, config: EqualityConfig
-    ) -> None:
-        if config.show_difference:
-            logger.info(
-                f"sequences have at least one different value:\n"
-                f"first sequence : {actual}\n"
-                f"second sequence: {expected}"
-            )

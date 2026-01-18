@@ -240,7 +240,7 @@ def test_scalar_equal_handler_handle_false_show_difference(
     handler = ScalarEqualHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(actual=1.0, expected=2.0, config=config)
-        assert caplog.messages[0].startswith("numbers are not equal:")
+        assert caplog.messages[0].startswith("numbers are different:")
 
 
 @pytest.mark.parametrize("equal_nan", [True, False])

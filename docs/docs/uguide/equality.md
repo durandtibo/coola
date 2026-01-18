@@ -74,34 +74,71 @@ False
 
 ```
 
-*Log output*:
+*Output*:
 
 ```textmate
-torch.Tensors are different
 actual=
 tensor([[1., 1., 1.],
         [1., 1., 1.]])
 expected=
 tensor([[0., 0., 0.],
         [0., 0., 0.]])
-The mappings have a different value for the key 'torch':
-first mapping  = {'torch': tensor([[1., 1., 1.],
-        [1., 1., 1.]]), 'numpy': array([[0., 0., 0.],
-       [0., 0., 0.]])}
-second mapping = {'torch': tensor([[0., 0., 0.],
-        [0., 0., 0.]]), 'numpy': array([[1., 1., 1.],
-       [1., 1., 1.]])}
+mappings have different values for key 'torch'
 ```
 
-If you do not see this output, you may need to configure `logging` to show the `INFO`
-level (something like `logging.basicConfig(level=logging.INFO)`). The log shows a difference
+To see the difference output, you need to configure logging to show INFO level messages
+(e.g., `logging.basicConfig(level=logging.INFO)`). The output shows a clear, structured view of the difference
 between `data1` and `data2`: the PyTorch `Tensor`s in key `'torch'` of the input dictionaries.
-The top of the log shows the element that fails the check, and then it shows the parent element, so
-it is easy to know where is the identified difference.
+The output shows the element that fails the check first, and then shows the parent element, so
+it is easy to know where the identified difference is located.
+
 Note that it only shows the first difference, not all the differences. Two objects are different if
 any of these elements are different. In the previous example, only the difference for key `'torch'`
-is shown in the log.
-No log is shown if the two objects are equal and `show_difference=True`.
+is shown in the output.
+No output is shown if the two objects are equal and `show_difference=True`.
+
+**Key improvements in difference reporting:**
+
+- **Concise parent messages**: Parent containers show only location info (key/index) without full object dumps
+- **Structured formatting**: Clear indentation and organization
+- **Specific information**: Shows exactly which index, key, or attribute differs
+- **User-friendly**: Easy to read and understand at a glance
+
+For example, with sequences, the output shows the specific index where values differ:
+
+```pycon
+
+>>> from coola.equality import objects_are_equal
+>>> objects_are_equal([1, 2, 3, 4], [1, 2, 5, 4], show_difference=True)
+False
+
+```
+
+*Output*:
+
+```textmate
+numbers are different:
+  actual   : 3
+  expected : 5
+sequences have different values at index 2
+```
+
+For mappings with different keys:
+
+```pycon
+>>> from coola.equality import objects_are_equal
+>>> objects_are_equal({"a": 1, "b": 2}, {"a": 1, "c": 3}, show_difference=True)
+False
+
+```
+
+*Output*:
+
+```textmate
+mappings have different keys:
+  missing keys    : ['b']
+  additional keys : ['c']
+```
 
 ### More Examples
 
@@ -266,21 +303,21 @@ False
 *Output*:
 
 ```textmate
-INFO:coola.comparators.torch_:torch.Tensors are different
-actual=
-tensor([[1., 1., 1.],
+torch.Tensors are different:
+  actual   : tensor([[1., 1., 1.],
         [1., 1., 1.]])
-expected=
-tensor([[1.0001, 1.0001, 1.0001],
+  expected : tensor([[1.0001, 1.0001, 1.0001],
         [1.0001, 1.0001, 1.0001]])
-INFO:coola.comparators.allclose:The mappings have a different value for the key torch:
-first mapping  = {'torch': tensor([[1., 1., 1.],
-        [1., 1., 1.]]), 'numpy': array([[0., 0., 0.],
-       [0., 0., 0.]])}
-second mapping = {'torch': tensor([[1.0001, 1.0001, 1.0001],
-        [1.0001, 1.0001, 1.0001]]), 'numpy': array([[-0.0001, -0.0001, -0.0001],
-       [-0.0001, -0.0001, -0.0001]])}
+mappings have different values:
+  different value for key 'torch':
+    actual   : tensor([[1., 1., 1.],
+        [1., 1., 1.]])
+    expected : tensor([[1.0001, 1.0001, 1.0001],
+        [1.0001, 1.0001, 1.0001]])
 ```
+
+The difference output uses the same improved formatting as `objects_are_equal`, with
+clear indentation and specific information about what differs and where.
 
 ### More Examples
 

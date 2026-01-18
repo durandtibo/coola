@@ -8,6 +8,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler.base import BaseEqualityHandler
+from coola.equality.handler.format import format_mapping_difference
 from coola.equality.handler.utils import check_recursion_depth, handlers_are_equal
 
 if TYPE_CHECKING:
@@ -51,12 +52,10 @@ class MappingSameKeysHandler(BaseEqualityHandler):
         keys2 = set(expected.keys())
         if keys1 != keys2:
             if config.show_difference:
-                missing_keys = keys1 - keys2
-                additional_keys = keys2 - keys1
                 logger.info(
-                    f"mappings have different keys:\n"
-                    f"missing keys: {sorted(missing_keys)}\n"
-                    f"additional keys: {sorted(additional_keys)}"
+                    format_mapping_difference(
+                        missing_keys=keys1 - keys2, additional_keys=keys2 - keys1
+                    )
                 )
             return False
         return self._handle_next(actual, expected, config=config)
@@ -104,16 +103,7 @@ class MappingSameValuesHandler(BaseEqualityHandler):
         with check_recursion_depth(config):
             for key in actual:
                 if not config.registry.objects_are_equal(actual[key], expected[key], config):
-                    self._show_difference(actual, expected, config=config)
+                    if config.show_difference:
+                        logger.info(format_mapping_difference(different_value_key=key))
                     return False
             return self._handle_next(actual, expected, config=config)
-
-    def _show_difference(
-        self, actual: Mapping[Any, Any], expected: Mapping[Any, Any], config: EqualityConfig
-    ) -> None:
-        if config.show_difference:
-            logger.info(
-                f"mappings have at least one different value:\n"
-                f"first mapping : {actual}\n"
-                f"second mapping: {expected}"
-            )

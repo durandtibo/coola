@@ -270,7 +270,7 @@ def test_mapping_same_values_handler_handle_false_show_difference(
     handler = MappingSameValuesHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(actual={"a": 1, "b": 2}, expected={"a": 1, "b": 3}, config=config)
-        assert caplog.messages[-1].startswith("mappings have at least one different value:")
+        assert "mappings have different values for key 'b'" in caplog.messages[-1]
 
 
 def test_mapping_same_values_handler_handle_without_next_handler(config: EqualityConfig) -> None:
