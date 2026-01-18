@@ -55,7 +55,7 @@ POLARS_DATAFRAME_NOT_EQUAL = [
         ExamplePair(
             actual=pl.DataFrame({"col": [1, 2, 3]}),
             expected=pl.DataFrame({"col": [1, 2, 4]}),
-            expected_message="polars.DataFrames have different elements:",
+            expected_message="polars.DataFrames are different:",
         ),
         id="different values",
     ),
@@ -63,7 +63,7 @@ POLARS_DATAFRAME_NOT_EQUAL = [
         ExamplePair(
             actual=pl.DataFrame({"col1": [1, 2, 3]}),
             expected=pl.DataFrame({"col2": [1, 2, 3]}),
-            expected_message="polars.DataFrames have different elements:",
+            expected_message="polars.DataFrames are different:",
         ),
         id="different column names",
     ),
@@ -159,7 +159,7 @@ POLARS_LAZYFRAME_NOT_EQUAL = [
         ExamplePair(
             actual=pl.LazyFrame({"col": [1, 2, 3]}),
             expected=pl.LazyFrame({"col": [1, 2, 4]}),
-            expected_message="polars.LazyFrames have different elements:",
+            expected_message="polars.LazyFrames are different:",
         ),
         id="different values",
     ),
@@ -167,7 +167,7 @@ POLARS_LAZYFRAME_NOT_EQUAL = [
         ExamplePair(
             actual=pl.LazyFrame({"col1": [1, 2, 3]}),
             expected=pl.LazyFrame({"col2": [1, 2, 3]}),
-            expected_message="polars.LazyFrames have different elements:",
+            expected_message="polars.LazyFrames are different:",
         ),
         id="different column names",
     ),
@@ -254,7 +254,7 @@ POLARS_SERIES_NOT_EQUAL = [
         ExamplePair(
             actual=pl.Series([1, 2, 3]),
             expected=pl.Series([1, 2, 4]),
-            expected_message="polars.Series have different elements:",
+            expected_message="polars.Series are different:",
         ),
         id="different value",
     ),
@@ -262,7 +262,7 @@ POLARS_SERIES_NOT_EQUAL = [
         ExamplePair(
             actual=pl.Series([1, 2, 3]),
             expected=pl.Series([1, 2, 3, 4]),
-            expected_message="polars.Series have different elements:",
+            expected_message="polars.Series are different:",
         ),
         id="different shape",
     ),
@@ -270,7 +270,7 @@ POLARS_SERIES_NOT_EQUAL = [
         ExamplePair(
             actual=pl.Series([1, 2, 3]),
             expected=pl.Series([1.0, 2.0, 3.0]),
-            expected_message="polars.Series have different elements:",
+            expected_message="polars.Series are different:",
         ),
         id="different data type",
     ),

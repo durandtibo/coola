@@ -232,7 +232,7 @@ def test_polars_dataframe_equal_handler_handle_false_show_difference(
             pl.DataFrame({"col": [1, 2, 4]}),
             config=config,
         )
-        assert caplog.messages[0].startswith("polars.DataFrames have different elements:")
+        assert caplog.messages[0].startswith("polars.DataFrames are different:")
 
 
 @polars_available
@@ -474,7 +474,7 @@ def test_polars_lazyframe_equal_handler_handle_false_show_difference(
             pl.LazyFrame({"col": [1, 2, 4]}),
             config=config,
         )
-        assert caplog.messages[0].startswith("polars.LazyFrames have different elements:")
+        assert caplog.messages[0].startswith("polars.LazyFrames are different:")
 
 
 @polars_available
@@ -684,7 +684,7 @@ def test_polars_series_equal_handler_handle_false_show_difference(
             expected=pl.Series([1, 2, 3, 4]),
             config=config,
         )
-        assert caplog.messages[0].startswith("polars.Series have different elements:")
+        assert caplog.messages[0].startswith("polars.Series are different:")
 
 
 @polars_available

@@ -283,7 +283,7 @@ TORCH_TENSOR_NOT_EQUAL = [
         ExamplePair(
             actual=torch.ones(2, 3),
             expected=torch.zeros(2, 3),
-            expected_message="torch.Tensors have different elements:",
+            expected_message="torch.Tensors are different:",
         ),
         id="different values",
     ),

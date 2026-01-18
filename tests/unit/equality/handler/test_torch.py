@@ -163,7 +163,7 @@ def test_torch_tensor_equal_handler_handle_false_show_difference(
     handler = TorchTensorEqualHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(actual=torch.ones(2, 3), expected=torch.ones(3, 2), config=config)
-        assert caplog.messages[0].startswith("torch.Tensors have different elements:")
+        assert caplog.messages[0].startswith("torch.Tensors are different:")
 
 
 @torch_available

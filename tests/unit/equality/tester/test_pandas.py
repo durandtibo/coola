@@ -54,7 +54,7 @@ PANDAS_DATAFRAME_NOT_EQUAL = [
         ExamplePair(
             actual=pd.DataFrame({"col": [1, 2, 3]}),
             expected=pd.DataFrame({"col": [1, 2, 4]}),
-            expected_message="pandas.DataFrames have different elements:",
+            expected_message="pandas.DataFrames are different:",
         ),
         id="different values",
     ),
@@ -62,7 +62,7 @@ PANDAS_DATAFRAME_NOT_EQUAL = [
         ExamplePair(
             actual=pd.DataFrame({"col1": [1, 2, 3]}),
             expected=pd.DataFrame({"col2": [1, 2, 3]}),
-            expected_message="pandas.DataFrames have different elements:",
+            expected_message="pandas.DataFrames are different:",
         ),
         id="different column names",
     ),
@@ -149,7 +149,7 @@ PANDAS_SERIES_NOT_EQUAL = [
         ExamplePair(
             actual=pd.Series([1, 2, 3]),
             expected=pd.Series([1, 2, 4]),
-            expected_message="pandas.Series have different elements:",
+            expected_message="pandas.Series are different:",
         ),
         id="different value",
     ),
@@ -157,7 +157,7 @@ PANDAS_SERIES_NOT_EQUAL = [
         ExamplePair(
             actual=pd.Series([1, 2, 3]),
             expected=pd.Series([1, 2, 3, 4]),
-            expected_message="pandas.Series have different elements:",
+            expected_message="pandas.Series are different:",
         ),
         id="different shape",
     ),
@@ -165,7 +165,7 @@ PANDAS_SERIES_NOT_EQUAL = [
         ExamplePair(
             actual=pd.Series([1, 2, 3]),
             expected=pd.Series([1.0, 2.0, 3.0]),
-            expected_message="pandas.Series have different elements:",
+            expected_message="pandas.Series are different:",
         ),
         id="different data type",
     ),

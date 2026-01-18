@@ -140,7 +140,7 @@ def test_equal_handler_handle_false_show_difference(
     handler = EqualHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(actual=MyFloat(42), expected=1, config=config)
-        assert caplog.messages[-1].startswith("objects are not equal:")
+        assert caplog.messages[-1].startswith("objects are different:")
 
 
 @pytest.mark.parametrize("equal_nan", [True, False])
@@ -266,7 +266,7 @@ def test_equal_nan_handler_handle_false_show_difference(
     handler = EqualNanHandler()
     with caplog.at_level(logging.INFO):
         assert not handler.handle(actual=MyFloatNan(42), expected=1, config=config)
-        assert caplog.messages[-1].startswith("objects are not equal:")
+        assert caplog.messages[-1].startswith("objects are different:")
 
 
 @pytest.mark.parametrize("equal_nan", [True, False])

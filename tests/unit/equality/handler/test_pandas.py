@@ -224,7 +224,7 @@ def test_pandas_dataframe_equal_handler_handle_false_show_difference(
             pd.DataFrame({"col": [1, 2, 4]}),
             config=config,
         )
-        assert caplog.messages[0].startswith("pandas.DataFrames have different elements:")
+        assert caplog.messages[0].startswith("pandas.DataFrames are different:")
 
 
 @pandas_available
@@ -449,7 +449,7 @@ def test_pandas_series_equal_handler_handle_false_show_difference(
             expected=pd.Series(data=[1, 2, 3, 4]),
             config=config,
         )
-        assert caplog.messages[0].startswith("pandas.Series have different elements:")
+        assert caplog.messages[0].startswith("pandas.Series are different:")
 
 
 @pandas_available

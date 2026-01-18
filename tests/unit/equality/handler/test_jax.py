@@ -153,7 +153,7 @@ def test_jax_array_equal_handler_handle_false_show_difference(
         assert not handler.handle(
             actual=jnp.ones(shape=(2, 3)), expected=jnp.ones(shape=(3, 2)), config=config
         )
-        assert caplog.messages[0].startswith("jax.numpy.ndarrays have different elements:")
+        assert caplog.messages[0].startswith("jax.numpy.ndarrays are different:")
 
 
 @jax_available
