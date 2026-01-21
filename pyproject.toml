@@ -12,7 +12,7 @@ only-include = ["src"]
 
 [project]
 name = "coola"
-version = "1.0.0"
+version = "1.0.1a0"
 description = "Library to check equality between two complex/nested objects"
 readme = "README.md"
 authors = [
@@ -60,7 +60,7 @@ numpy = ["numpy>=1.24,<3.0"]
 packaging = ["packaging>=22.0"]
 pandas = ["pandas>=2.0,<3.0"]
 polars = ["polars>=1.0,<2.0"]
-pyarrow = ["pyarrow>=11.0,<23.0; python_version < '3.14'"]
+pyarrow = ["pyarrow>=11.0,<24.0"]
 torch = ["torch>=2.0,<3.0; (sys_platform == 'linux' or (sys_platform == 'darwin' and platform_machine == 'arm64'))"]
 xarray = ["xarray>=2024.1"]
 
