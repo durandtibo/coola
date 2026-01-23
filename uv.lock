@@ -450,15 +450,15 @@ wheels = [
 
 [[package]]
 name = "feu"
-version = "0.6.1"
+version = "0.6.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "packaging" },
     { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fa/08/8d2eaf807a62a29f104f850c57eab681b8883d6891ae0fc09a2808562032/feu-0.6.1.tar.gz", hash = "sha256:cf11ee0aca58281626d3a7523a2dcfbab122f023b3b9b71169f6dd4df6a54ce0", size = 27228, upload-time = "2026-01-05T00:24:00.029Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/6d/c5/6fe0cb82178b0611dab21eed6d14b4f15d6a447e91bf810b50e4f3516eb8/feu-0.6.2.tar.gz", hash = "sha256:9307aa145278ffc3a2ee7cafb349cd6852a59406fe5ae6b354b54bc85a1078db", size = 27241, upload-time = "2026-01-23T08:44:04.172Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a6/fd/a9840dfa7721ca53dc5dad92d45918efd43c7be34d785f8e81e4bba58633/feu-0.6.1-py3-none-any.whl", hash = "sha256:508dcacbffad921ceb55dd24f73370800ac24329e40afda03e1bbb1be6879317", size = 37362, upload-time = "2026-01-05T00:23:58.676Z" },
+    { url = "https://files.pythonhosted.org/packages/59/88/660d0c973e082896059cc61cbf02557c129330970d2365c016487cb2d1bc/feu-0.6.2-py3-none-any.whl", hash = "sha256:c2b7f00d8b3239e3af7af14dc09eacc677a722843ea66c9d72ffb08c27f10502", size = 37368, upload-time = "2026-01-23T08:44:02.717Z" },
 ]
 
 [package.optional-dependencies]
@@ -1343,11 +1343,11 @@ wheels = [
 
 [[package]]
 name = "packaging"
-version = "25.0"
+version = "26.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a1/d4/1fc4078c65507b51b96ca8f8c3ba19e6a61c8253c72794544580a7b6c24d/packaging-25.0.tar.gz", hash = "sha256:d443872c98d677bf60f6a1f2f8c1cb748e8fe762d2bf9d3148b5599295b0fc4f", size = 165727, upload-time = "2025-04-19T11:48:59.673Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/65/ee/299d360cdc32edc7d2cf530f3accf79c4fca01e96ffc950d8a52213bd8e4/packaging-26.0.tar.gz", hash = "sha256:00243ae351a257117b6a241061796684b084ed1c516a08c48a3f7e147a9d80b4", size = 143416, upload-time = "2026-01-21T20:50:39.064Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/20/12/38679034af332785aac8774540895e234f4d07f7545804097de4b666afd8/packaging-25.0-py3-none-any.whl", hash = "sha256:29572ef2b1f17581046b3a2227d5c611fb25ec70ca1ba8554b24b0e69331a484", size = 66469, upload-time = "2025-04-19T11:48:57.875Z" },
+    { url = "https://files.pythonhosted.org/packages/b7/b9/c538f279a4e237a006a2c98387d081e9eb060d203d8ed34467cc0f0b9b53/packaging-26.0-py3-none-any.whl", hash = "sha256:b36f1fef9334a5588b4166f8bcd26a14e521f2b55e6b9de3aaa80d3ff7a37529", size = 74366, upload-time = "2026-01-21T20:50:37.788Z" },
 ]
 
 [[package]]
