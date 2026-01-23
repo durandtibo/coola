@@ -43,7 +43,7 @@ def test_get_password_with_username() -> None:
     """Test password prompt includes username when provided."""
     mock_getpass_func = MagicMock(return_value="mypassword")
     with patch("getpass.getpass", mock_getpass_func):
-        assert get_password(user_name="alice") == "mypassword"
+        assert get_password(username="alice") == "mypassword"
         mock_getpass_func.assert_called_once_with("Enter password for user alice: ")
 
 
@@ -52,7 +52,7 @@ def test_get_password_without_username() -> None:
     """Test password prompt without username."""
     mock_getpass_func = MagicMock(return_value="mypassword")
     with patch("getpass.getpass", mock_getpass_func):
-        assert get_password(user_name=None) == "mypassword"
+        assert get_password(username=None) == "mypassword"
         mock_getpass_func.assert_called_once_with("Enter password: ")
 
 

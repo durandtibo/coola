@@ -12,7 +12,7 @@ from typing import Final
 MAX_PASSWORD_LENGTH: Final[int] = 1024
 
 
-def get_password(user_name: str | None = None, *, confirm: bool = False) -> str:
+def get_password(username: str | None = None, *, confirm: bool = False) -> str:
     r"""Securely prompt for and retrieve a password from the user.
 
     This function uses getpass to securely prompt for password input without
@@ -27,7 +27,7 @@ def get_password(user_name: str | None = None, *, confirm: bool = False) -> str:
         - No logging or storage of password values
 
     Args:
-        user_name: Optional username for prompt clarity.
+        username: Optional username for prompt clarity.
         confirm: Require password confirmation if True.
 
     Returns:
@@ -42,7 +42,7 @@ def get_password(user_name: str | None = None, *, confirm: bool = False) -> str:
         msg = "Password input requires an interactive terminal"
         raise RuntimeError(msg)
 
-    prompt = f"Enter password for user {user_name}: " if user_name else "Enter password: "
+    prompt = f"Enter password for user {username}: " if username else "Enter password: "
 
     password = getpass.getpass(prompt)
 
