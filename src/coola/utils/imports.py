@@ -33,15 +33,15 @@ __all__ = [
     "pandas_available",
     "polars_available",
     "pyarrow_available",
-    "raise_error_jax_missing",
-    "raise_error_numpy_missing",
-    "raise_error_packaging_missing",
-    "raise_error_pandas_missing",
-    "raise_error_polars_missing",
-    "raise_error_pyarrow_missing",
-    "raise_error_torch_missing",
-    "raise_error_xarray_missing",
+    "raise_jax_missing_error",
+    "raise_numpy_missing_error",
     "raise_package_missing_error",
+    "raise_packaging_missing_error",
+    "raise_pandas_missing_error",
+    "raise_polars_missing_error",
+    "raise_pyarrow_missing_error",
+    "raise_torch_missing_error",
+    "raise_xarray_missing_error",
     "torch_available",
     "torch_numpy_available",
     "xarray_available",
@@ -229,10 +229,10 @@ def check_jax() -> None:
         ```
     """
     if not is_jax_available():
-        raise_error_jax_missing()
+        raise_jax_missing_error()
 
 
-def raise_error_jax_missing() -> NoReturn:
+def raise_jax_missing_error() -> NoReturn:
     r"""Raise a RuntimeError to indicate the ``jax`` package is
     missing."""
     raise_package_missing_error("jax", "jax")
@@ -299,10 +299,10 @@ def check_numpy() -> None:
         ```
     """
     if not is_numpy_available():
-        raise_error_numpy_missing()
+        raise_numpy_missing_error()
 
 
-def raise_error_numpy_missing() -> NoReturn:
+def raise_numpy_missing_error() -> NoReturn:
     r"""Raise a RuntimeError to indicate the ``numpy`` package is
     missing."""
     raise_package_missing_error("numpy", "numpy")
@@ -369,10 +369,10 @@ def check_packaging() -> None:
         ```
     """
     if not is_packaging_available():
-        raise_error_packaging_missing()
+        raise_packaging_missing_error()
 
 
-def raise_error_packaging_missing() -> NoReturn:
+def raise_packaging_missing_error() -> NoReturn:
     r"""Raise a RuntimeError to indicate the ``packaging`` package is
     missing."""
     raise_package_missing_error("packaging", "packaging")
@@ -439,10 +439,10 @@ def check_pandas() -> None:
         ```
     """
     if not is_pandas_available():
-        raise_error_pandas_missing()
+        raise_pandas_missing_error()
 
 
-def raise_error_pandas_missing() -> NoReturn:
+def raise_pandas_missing_error() -> NoReturn:
     r"""Raise a RuntimeError to indicate the ``pandas`` package is
     missing."""
     raise_package_missing_error("pandas", "pandas")
@@ -509,10 +509,10 @@ def check_polars() -> None:
         ```
     """
     if not is_polars_available():
-        raise_error_polars_missing()
+        raise_polars_missing_error()
 
 
-def raise_error_polars_missing() -> NoReturn:
+def raise_polars_missing_error() -> NoReturn:
     r"""Raise a RuntimeError to indicate the ``polars`` package is
     missing."""
     raise_package_missing_error("polars", "polars")
@@ -579,10 +579,10 @@ def check_pyarrow() -> None:
         ```
     """
     if not is_pyarrow_available():
-        raise_error_pyarrow_missing()
+        raise_pyarrow_missing_error()
 
 
-def raise_error_pyarrow_missing() -> NoReturn:
+def raise_pyarrow_missing_error() -> NoReturn:
     r"""Raise a RuntimeError to indicate the ``pyarrow`` package is
     missing."""
     raise_package_missing_error("pyarrow", "pyarrow")
@@ -649,10 +649,10 @@ def check_torch() -> None:
         ```
     """
     if not is_torch_available():
-        raise_error_torch_missing()
+        raise_torch_missing_error()
 
 
-def raise_error_torch_missing() -> NoReturn:
+def raise_torch_missing_error() -> NoReturn:
     r"""Raise a RuntimeError to indicate the ``torch`` package is
     missing."""
     raise_package_missing_error("torch", "torch")
@@ -804,10 +804,10 @@ def check_xarray() -> None:
         ```
     """
     if not is_xarray_available():
-        raise_error_xarray_missing()
+        raise_xarray_missing_error()
 
 
-def raise_error_xarray_missing() -> NoReturn:
+def raise_xarray_missing_error() -> NoReturn:
     r"""Raise a RuntimeError to indicate the ``xarray`` package is
     missing."""
     raise_package_missing_error("xarray", "xarray")

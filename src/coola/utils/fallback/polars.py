@@ -8,7 +8,7 @@ __all__ = ["polars"]
 from types import ModuleType
 from typing import Any
 
-from coola.utils.imports import raise_error_polars_missing
+from coola.utils.imports import raise_polars_missing_error
 
 
 class FakeClass:
@@ -23,7 +23,7 @@ class FakeClass:
     """
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:  # noqa: ARG002
-        raise_error_polars_missing()
+        raise_polars_missing_error()
 
 
 # Create a fake polars package

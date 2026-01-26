@@ -8,7 +8,7 @@ __all__ = ["cuda", "nn", "torch"]
 from types import ModuleType
 from typing import Any, NoReturn
 
-from coola.utils.imports import raise_error_torch_missing
+from coola.utils.imports import raise_torch_missing_error
 
 
 class FakeClass:
@@ -23,7 +23,7 @@ class FakeClass:
     """
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:  # noqa: ARG002
-        raise_error_torch_missing()
+        raise_torch_missing_error()
 
 
 def fake_function(*args: Any, **kwargs: Any) -> NoReturn:  # noqa: ARG001
@@ -37,7 +37,7 @@ def fake_function(*args: Any, **kwargs: Any) -> NoReturn:  # noqa: ARG001
     Raises:
         RuntimeError: torch is required for this functionality.
     """
-    raise_error_torch_missing()
+    raise_torch_missing_error()
 
 
 cuda: ModuleType = ModuleType("torch.cuda")
