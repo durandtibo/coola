@@ -111,13 +111,13 @@ def test_module_available_false_submodule() -> None:
 
 
 def test_check_package_exist() -> None:
-    with patch("coola.utils.imports.package_available", lambda name: name != "missing"):
+    with patch("coola.utils.imports.universal.package_available", lambda name: name != "missing"):
         check_package("exist")
 
 
 def test_check_package_missing() -> None:
     with (
-        patch("coola.utils.imports.package_available", lambda name: name != "missing"),
+        patch("coola.utils.imports.universal.package_available", lambda name: name != "missing"),
         pytest.raises(RuntimeError, match=r"'missing' package is required but not installed."),
     ):
         check_package("missing")
@@ -129,7 +129,7 @@ def test_check_package_missing_with_command() -> None:
         "You can install 'missing' package with the command:\n\npip install missing"
     )
     with (
-        patch("coola.utils.imports.package_available", lambda name: name != "missing"),
+        patch("coola.utils.imports.universal.package_available", lambda name: name != "missing"),
         pytest.raises(RuntimeError, match=msg),
     ):
         check_package("missing", command="pip install missing")
@@ -217,13 +217,13 @@ def test_raise_package_missing_error_message_format() -> None:
 
 
 def test_check_jax_with_package() -> None:
-    with patch("coola.utils.imports.is_jax_available", lambda: True):
+    with patch("coola.utils.imports.jax.is_jax_available", lambda: True):
         check_jax()
 
 
 def test_check_jax_without_package() -> None:
     with (
-        patch("coola.utils.imports.is_jax_available", lambda: False),
+        patch("coola.utils.imports.jax.is_jax_available", lambda: False),
         pytest.raises(RuntimeError, match=r"'jax' package is required but not installed."),
     ):
         check_jax()
@@ -234,19 +234,19 @@ def test_is_jax_available() -> None:
 
 
 def test_jax_available_with_package() -> None:
-    with patch("coola.utils.imports.is_jax_available", lambda: True):
+    with patch("coola.utils.imports.jax.is_jax_available", lambda: True):
         fn = jax_available(my_function)
         assert fn(2) == 44
 
 
 def test_jax_available_without_package() -> None:
-    with patch("coola.utils.imports.is_jax_available", lambda: False):
+    with patch("coola.utils.imports.jax.is_jax_available", lambda: False):
         fn = jax_available(my_function)
         assert fn(2) is None
 
 
 def test_jax_available_decorator_with_package() -> None:
-    with patch("coola.utils.imports.is_jax_available", lambda: True):
+    with patch("coola.utils.imports.jax.is_jax_available", lambda: True):
 
         @jax_available
         def fn(n: int = 0) -> int:
@@ -256,7 +256,7 @@ def test_jax_available_decorator_with_package() -> None:
 
 
 def test_jax_available_decorator_without_package() -> None:
-    with patch("coola.utils.imports.is_jax_available", lambda: False):
+    with patch("coola.utils.imports.jax.is_jax_available", lambda: False):
 
         @jax_available
         def fn(n: int = 0) -> int:
@@ -276,13 +276,13 @@ def test_raise_jax_missing_error() -> None:
 
 
 def test_check_numpy_with_package() -> None:
-    with patch("coola.utils.imports.is_numpy_available", lambda: True):
+    with patch("coola.utils.imports.numpy.is_numpy_available", lambda: True):
         check_numpy()
 
 
 def test_check_numpy_without_package() -> None:
     with (
-        patch("coola.utils.imports.is_numpy_available", lambda: False),
+        patch("coola.utils.imports.numpy.is_numpy_available", lambda: False),
         pytest.raises(RuntimeError, match=r"'numpy' package is required but not installed."),
     ):
         check_numpy()
@@ -293,19 +293,19 @@ def test_is_numpy_available() -> None:
 
 
 def test_numpy_available_with_package() -> None:
-    with patch("coola.utils.imports.is_numpy_available", lambda: True):
+    with patch("coola.utils.imports.numpy.is_numpy_available", lambda: True):
         fn = numpy_available(my_function)
         assert fn(2) == 44
 
 
 def test_numpy_available_without_package() -> None:
-    with patch("coola.utils.imports.is_numpy_available", lambda: False):
+    with patch("coola.utils.imports.numpy.is_numpy_available", lambda: False):
         fn = numpy_available(my_function)
         assert fn(2) is None
 
 
 def test_numpy_available_decorator_with_package() -> None:
-    with patch("coola.utils.imports.is_numpy_available", lambda: True):
+    with patch("coola.utils.imports.numpy.is_numpy_available", lambda: True):
 
         @numpy_available
         def fn(n: int = 0) -> int:
@@ -315,7 +315,7 @@ def test_numpy_available_decorator_with_package() -> None:
 
 
 def test_numpy_available_decorator_without_package() -> None:
-    with patch("coola.utils.imports.is_numpy_available", lambda: False):
+    with patch("coola.utils.imports.numpy.is_numpy_available", lambda: False):
 
         @numpy_available
         def fn(n: int = 0) -> int:
@@ -335,13 +335,13 @@ def test_raise_numpy_missing_error() -> None:
 
 
 def test_check_packaging_with_package() -> None:
-    with patch("coola.utils.imports.is_packaging_available", lambda: True):
+    with patch("coola.utils.imports.packaging.is_packaging_available", lambda: True):
         check_packaging()
 
 
 def test_check_packaging_without_package() -> None:
     with (
-        patch("coola.utils.imports.is_packaging_available", lambda: False),
+        patch("coola.utils.imports.packaging.is_packaging_available", lambda: False),
         pytest.raises(RuntimeError, match=r"'packaging' package is required but not installed."),
     ):
         check_packaging()
@@ -352,19 +352,19 @@ def test_is_packaging_available() -> None:
 
 
 def test_packaging_available_with_package() -> None:
-    with patch("coola.utils.imports.is_packaging_available", lambda: True):
+    with patch("coola.utils.imports.packaging.is_packaging_available", lambda: True):
         fn = packaging_available(my_function)
         assert fn(2) == 44
 
 
 def test_packaging_available_without_package() -> None:
-    with patch("coola.utils.imports.is_packaging_available", lambda: False):
+    with patch("coola.utils.imports.packaging.is_packaging_available", lambda: False):
         fn = packaging_available(my_function)
         assert fn(2) is None
 
 
 def test_packaging_available_decorator_with_package() -> None:
-    with patch("coola.utils.imports.is_packaging_available", lambda: True):
+    with patch("coola.utils.imports.packaging.is_packaging_available", lambda: True):
 
         @packaging_available
         def fn(n: int = 0) -> int:
@@ -374,7 +374,7 @@ def test_packaging_available_decorator_with_package() -> None:
 
 
 def test_packaging_available_decorator_without_package() -> None:
-    with patch("coola.utils.imports.is_packaging_available", lambda: False):
+    with patch("coola.utils.imports.packaging.is_packaging_available", lambda: False):
 
         @packaging_available
         def fn(n: int = 0) -> int:
@@ -394,13 +394,13 @@ def test_raise_packaging_missing_error() -> None:
 
 
 def test_check_pandas_with_package() -> None:
-    with patch("coola.utils.imports.is_pandas_available", lambda: True):
+    with patch("coola.utils.imports.pandas.is_pandas_available", lambda: True):
         check_pandas()
 
 
 def test_check_pandas_without_package() -> None:
     with (
-        patch("coola.utils.imports.is_pandas_available", lambda: False),
+        patch("coola.utils.imports.pandas.is_pandas_available", lambda: False),
         pytest.raises(RuntimeError, match=r"'pandas' package is required but not installed."),
     ):
         check_pandas()
@@ -411,19 +411,19 @@ def test_is_pandas_available() -> None:
 
 
 def test_pandas_available_with_package() -> None:
-    with patch("coola.utils.imports.is_pandas_available", lambda: True):
+    with patch("coola.utils.imports.pandas.is_pandas_available", lambda: True):
         fn = pandas_available(my_function)
         assert fn(2) == 44
 
 
 def test_pandas_available_without_package() -> None:
-    with patch("coola.utils.imports.is_pandas_available", lambda: False):
+    with patch("coola.utils.imports.pandas.is_pandas_available", lambda: False):
         fn = pandas_available(my_function)
         assert fn(2) is None
 
 
 def test_pandas_available_decorator_with_package() -> None:
-    with patch("coola.utils.imports.is_pandas_available", lambda: True):
+    with patch("coola.utils.imports.pandas.is_pandas_available", lambda: True):
 
         @pandas_available
         def fn(n: int = 0) -> int:
@@ -433,7 +433,7 @@ def test_pandas_available_decorator_with_package() -> None:
 
 
 def test_pandas_available_decorator_without_package() -> None:
-    with patch("coola.utils.imports.is_pandas_available", lambda: False):
+    with patch("coola.utils.imports.pandas.is_pandas_available", lambda: False):
 
         @pandas_available
         def fn(n: int = 0) -> int:
@@ -453,13 +453,13 @@ def test_raise_pandas_missing_error() -> None:
 
 
 def test_check_polars_with_package() -> None:
-    with patch("coola.utils.imports.is_polars_available", lambda: True):
+    with patch("coola.utils.imports.polars.is_polars_available", lambda: True):
         check_polars()
 
 
 def test_check_polars_without_package() -> None:
     with (
-        patch("coola.utils.imports.is_polars_available", lambda: False),
+        patch("coola.utils.imports.polars.is_polars_available", lambda: False),
         pytest.raises(RuntimeError, match=r"'polars' package is required but not installed."),
     ):
         check_polars()
@@ -470,19 +470,19 @@ def test_is_polars_available() -> None:
 
 
 def test_polars_available_with_package() -> None:
-    with patch("coola.utils.imports.is_polars_available", lambda: True):
+    with patch("coola.utils.imports.polars.is_polars_available", lambda: True):
         fn = polars_available(my_function)
         assert fn(2) == 44
 
 
 def test_polars_available_without_package() -> None:
-    with patch("coola.utils.imports.is_polars_available", lambda: False):
+    with patch("coola.utils.imports.polars.is_polars_available", lambda: False):
         fn = polars_available(my_function)
         assert fn(2) is None
 
 
 def test_polars_available_decorator_with_package() -> None:
-    with patch("coola.utils.imports.is_polars_available", lambda: True):
+    with patch("coola.utils.imports.polars.is_polars_available", lambda: True):
 
         @polars_available
         def fn(n: int = 0) -> int:
@@ -492,7 +492,7 @@ def test_polars_available_decorator_with_package() -> None:
 
 
 def test_polars_available_decorator_without_package() -> None:
-    with patch("coola.utils.imports.is_polars_available", lambda: False):
+    with patch("coola.utils.imports.polars.is_polars_available", lambda: False):
 
         @polars_available
         def fn(n: int = 0) -> int:
@@ -512,13 +512,13 @@ def test_raise_polars_missing_error() -> None:
 
 
 def test_check_pyarrow_with_package() -> None:
-    with patch("coola.utils.imports.is_pyarrow_available", lambda: True):
+    with patch("coola.utils.imports.pyarrow.is_pyarrow_available", lambda: True):
         check_pyarrow()
 
 
 def test_check_pyarrow_without_package() -> None:
     with (
-        patch("coola.utils.imports.is_pyarrow_available", lambda: False),
+        patch("coola.utils.imports.pyarrow.is_pyarrow_available", lambda: False),
         pytest.raises(RuntimeError, match=r"'pyarrow' package is required but not installed."),
     ):
         check_pyarrow()
@@ -529,19 +529,19 @@ def test_is_pyarrow_available() -> None:
 
 
 def test_pyarrow_available_with_package() -> None:
-    with patch("coola.utils.imports.is_pyarrow_available", lambda: True):
+    with patch("coola.utils.imports.pyarrow.is_pyarrow_available", lambda: True):
         fn = pyarrow_available(my_function)
         assert fn(2) == 44
 
 
 def test_pyarrow_available_without_package() -> None:
-    with patch("coola.utils.imports.is_pyarrow_available", lambda: False):
+    with patch("coola.utils.imports.pyarrow.is_pyarrow_available", lambda: False):
         fn = pyarrow_available(my_function)
         assert fn(2) is None
 
 
 def test_pyarrow_available_decorator_with_package() -> None:
-    with patch("coola.utils.imports.is_pyarrow_available", lambda: True):
+    with patch("coola.utils.imports.pyarrow.is_pyarrow_available", lambda: True):
 
         @pyarrow_available
         def fn(n: int = 0) -> int:
@@ -551,7 +551,7 @@ def test_pyarrow_available_decorator_with_package() -> None:
 
 
 def test_pyarrow_available_decorator_without_package() -> None:
-    with patch("coola.utils.imports.is_pyarrow_available", lambda: False):
+    with patch("coola.utils.imports.pyarrow.is_pyarrow_available", lambda: False):
 
         @pyarrow_available
         def fn(n: int = 0) -> int:
@@ -571,13 +571,13 @@ def test_raise_pyarrow_missing_error() -> None:
 
 
 def test_check_torch_with_package() -> None:
-    with patch("coola.utils.imports.is_torch_available", lambda: True):
+    with patch("coola.utils.imports.torch.is_torch_available", lambda: True):
         check_torch()
 
 
 def test_check_torch_without_package() -> None:
     with (
-        patch("coola.utils.imports.is_torch_available", lambda: False),
+        patch("coola.utils.imports.torch.is_torch_available", lambda: False),
         pytest.raises(RuntimeError, match=r"'torch' package is required but not installed."),
     ):
         check_torch()
@@ -588,19 +588,19 @@ def test_is_torch_available() -> None:
 
 
 def test_torch_available_with_package() -> None:
-    with patch("coola.utils.imports.is_torch_available", lambda: True):
+    with patch("coola.utils.imports.torch.is_torch_available", lambda: True):
         fn = torch_available(my_function)
         assert fn(2) == 44
 
 
 def test_torch_available_without_package() -> None:
-    with patch("coola.utils.imports.is_torch_available", lambda: False):
+    with patch("coola.utils.imports.torch.is_torch_available", lambda: False):
         fn = torch_available(my_function)
         assert fn(2) is None
 
 
 def test_torch_available_decorator_with_package() -> None:
-    with patch("coola.utils.imports.is_torch_available", lambda: True):
+    with patch("coola.utils.imports.torch.is_torch_available", lambda: True):
 
         @torch_available
         def fn(n: int = 0) -> int:
@@ -610,7 +610,7 @@ def test_torch_available_decorator_with_package() -> None:
 
 
 def test_torch_available_decorator_without_package() -> None:
-    with patch("coola.utils.imports.is_torch_available", lambda: False):
+    with patch("coola.utils.imports.torch.is_torch_available", lambda: False):
 
         @torch_available
         def fn(n: int = 0) -> int:
@@ -630,13 +630,13 @@ def test_raise_torch_missing_error() -> None:
 
 
 def test_check_torch_numpy() -> None:
-    with patch("coola.utils.imports.is_torch_numpy_available", lambda: True):
+    with patch("coola.utils.imports.torch_numpy.is_torch_numpy_available", lambda: True):
         check_torch_numpy()
 
 
 def test_check_torch_numpy_missing() -> None:
     with (
-        patch("coola.utils.imports.is_torch_numpy_available", lambda: False),
+        patch("coola.utils.imports.torch_numpy.is_torch_numpy_available", lambda: False),
         pytest.raises(RuntimeError, match=r"'torch' and 'numpy' packages are required"),
     ):
         check_torch_numpy()
@@ -647,41 +647,41 @@ def test_is_torch_numpy_available() -> None:
 
 
 def test_is_torch_numpy_available_missing_torch() -> None:
-    with patch("coola.utils.imports.is_torch_available", lambda: False):
+    with patch("coola.utils.imports.torch_numpy.is_torch_available", lambda: False):
         assert not is_torch_numpy_available()
 
 
 def test_is_torch_numpy_available_missing_numpy() -> None:
     with (
-        patch("coola.utils.imports.is_torch_available", lambda: True),
-        patch("coola.utils.imports.is_numpy_available", lambda: False),
+        patch("coola.utils.imports.torch_numpy.is_torch_available", lambda: True),
+        patch("coola.utils.imports.torch_numpy.is_numpy_available", lambda: False),
     ):
         assert not is_torch_numpy_available()
 
 
 def test_is_torch_numpy_available_not_compatible() -> None:
     with (
-        patch("coola.utils.imports.is_torch_available", lambda: True),
-        patch("coola.utils.imports.is_numpy_available", lambda: True),
-        patch("coola.utils.imports.torch.tensor", Mock(side_effect=RuntimeError)),
+        patch("coola.utils.imports.torch_numpy.is_torch_available", lambda: True),
+        patch("coola.utils.imports.torch_numpy.is_numpy_available", lambda: True),
+        patch("coola.utils.imports.torch_numpy.torch.tensor", Mock(side_effect=RuntimeError)),
     ):
         assert not is_torch_numpy_available()
 
 
 def test_torch_numpy_available_with_package() -> None:
-    with patch("coola.utils.imports.is_torch_numpy_available", lambda: True):
+    with patch("coola.utils.imports.torch_numpy.is_torch_numpy_available", lambda: True):
         fn = torch_numpy_available(my_function)
         assert fn(2) == 44
 
 
 def test_torch_numpy_available_without_package() -> None:
-    with patch("coola.utils.imports.is_torch_numpy_available", lambda: False):
+    with patch("coola.utils.imports.torch_numpy.is_torch_numpy_available", lambda: False):
         fn = torch_numpy_available(my_function)
         assert fn(2) is None
 
 
 def test_torch_numpy_available_decorator_with_package() -> None:
-    with patch("coola.utils.imports.is_torch_numpy_available", lambda: True):
+    with patch("coola.utils.imports.torch_numpy.is_torch_numpy_available", lambda: True):
 
         @torch_numpy_available
         def fn(n: int = 0) -> int:
@@ -691,7 +691,7 @@ def test_torch_numpy_available_decorator_with_package() -> None:
 
 
 def test_torch_numpy_available_decorator_without_package() -> None:
-    with patch("coola.utils.imports.is_torch_numpy_available", lambda: False):
+    with patch("coola.utils.imports.torch_numpy.is_torch_numpy_available", lambda: False):
 
         @torch_numpy_available
         def fn(n: int = 0) -> int:
@@ -706,13 +706,13 @@ def test_torch_numpy_available_decorator_without_package() -> None:
 
 
 def test_check_xarray_with_package() -> None:
-    with patch("coola.utils.imports.is_xarray_available", lambda: True):
+    with patch("coola.utils.imports.xarray.is_xarray_available", lambda: True):
         check_xarray()
 
 
 def test_check_xarray_without_package() -> None:
     with (
-        patch("coola.utils.imports.is_xarray_available", lambda: False),
+        patch("coola.utils.imports.xarray.is_xarray_available", lambda: False),
         pytest.raises(RuntimeError, match=r"'xarray' package is required but not installed."),
     ):
         check_xarray()
@@ -723,19 +723,19 @@ def test_is_xarray_available() -> None:
 
 
 def test_xarray_available_with_package() -> None:
-    with patch("coola.utils.imports.is_xarray_available", lambda: True):
+    with patch("coola.utils.imports.xarray.is_xarray_available", lambda: True):
         fn = xarray_available(my_function)
         assert fn(2) == 44
 
 
 def test_xarray_available_without_package() -> None:
-    with patch("coola.utils.imports.is_xarray_available", lambda: False):
+    with patch("coola.utils.imports.xarray.is_xarray_available", lambda: False):
         fn = xarray_available(my_function)
         assert fn(2) is None
 
 
 def test_xarray_available_decorator_with_package() -> None:
-    with patch("coola.utils.imports.is_xarray_available", lambda: True):
+    with patch("coola.utils.imports.xarray.is_xarray_available", lambda: True):
 
         @xarray_available
         def fn(n: int = 0) -> int:
@@ -745,7 +745,7 @@ def test_xarray_available_decorator_with_package() -> None:
 
 
 def test_xarray_available_decorator_without_package() -> None:
-    with patch("coola.utils.imports.is_xarray_available", lambda: False):
+    with patch("coola.utils.imports.xarray.is_xarray_available", lambda: False):
 
         @xarray_available
         def fn(n: int = 0) -> int:
