@@ -201,12 +201,14 @@ def test_raise_package_missing_error_different_install_cmd() -> None:
 
 
 def test_raise_package_missing_error_message_format() -> None:
-    try:
+    msg = (
+        "'testpkg' package is required but not installed. "
+        "You can install 'testpkg' package with the command:\n\n"
+        "pip install test-package\n\nor\n\n"
+        "uv pip install test-package\n"
+    )
+    with pytest.raises(RuntimeError, match=msg):
         raise_package_missing_error("testpkg", "test-package")
-    except RuntimeError as e:
-        msg = str(e)
-        assert "'testpkg' package is required but not installed." in msg
-        assert "pip install test-package" in msg
 
 
 ###############

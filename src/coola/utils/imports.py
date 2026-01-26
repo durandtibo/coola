@@ -187,7 +187,8 @@ def raise_package_missing_error(package_name: str, install_cmd: str) -> NoReturn
     msg = (
         f"'{package_name}' package is required but not installed. "
         f"You can install '{package_name}' package with the command:\n\n"
-        f"pip install {install_cmd}\n"
+        f"pip install {install_cmd}\n\nor\n\n"
+        f"uv pip install {install_cmd}\n"
     )
     raise RuntimeError(msg)
 
