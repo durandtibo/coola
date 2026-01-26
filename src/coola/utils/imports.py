@@ -41,6 +41,7 @@ __all__ = [
     "raise_error_pyarrow_missing",
     "raise_error_torch_missing",
     "raise_error_xarray_missing",
+    "raise_package_missing_error",
     "torch_available",
     "torch_numpy_available",
     "xarray_available",
@@ -173,6 +174,24 @@ def decorator_package_available(fn: F, condition: Callable[[], bool]) -> F:
     return inner
 
 
+def raise_package_missing_error(package_name: str, install_cmd: str) -> NoReturn:
+    r"""Raise a RuntimeError for a missing package.
+
+    Args:
+        package_name: The name of the missing package.
+        install_cmd: The pip install command for the package.
+
+    Raises:
+        RuntimeError: Always raised to indicate the package is missing.
+    """
+    msg = (
+        f"'{package_name}' package is required but not installed. "
+        f"You can install '{package_name}' package with the command:\n\n"
+        f"pip install {install_cmd}\n"
+    )
+    raise RuntimeError(msg)
+
+
 ###############
 #     jax     #
 ###############
@@ -215,12 +234,7 @@ def check_jax() -> None:
 def raise_error_jax_missing() -> NoReturn:
     r"""Raise a RuntimeError to indicate the ``jax`` package is
     missing."""
-    msg = (
-        "'jax' package is required but not installed. "
-        "You can install 'jax' package with the command:\n\n"
-        "pip install jax\n"
-    )
-    raise RuntimeError(msg)
+    raise_package_missing_error("jax", "jax")
 
 
 def jax_available(fn: F) -> F:
@@ -290,12 +304,7 @@ def check_numpy() -> None:
 def raise_error_numpy_missing() -> NoReturn:
     r"""Raise a RuntimeError to indicate the ``numpy`` package is
     missing."""
-    msg = (
-        "'numpy' package is required but not installed. "
-        "You can install 'numpy' package with the command:\n\n"
-        "pip install numpy\n"
-    )
-    raise RuntimeError(msg)
+    raise_package_missing_error("numpy", "numpy")
 
 
 def numpy_available(fn: F) -> F:
@@ -365,12 +374,7 @@ def check_packaging() -> None:
 def raise_error_packaging_missing() -> NoReturn:
     r"""Raise a RuntimeError to indicate the ``packaging`` package is
     missing."""
-    msg = (
-        "'packaging' package is required but not installed. "
-        "You can install 'packaging' package with the command:\n\n"
-        "pip install packaging\n"
-    )
-    raise RuntimeError(msg)
+    raise_package_missing_error("packaging", "packaging")
 
 
 def packaging_available(fn: F) -> F:
@@ -440,12 +444,7 @@ def check_pandas() -> None:
 def raise_error_pandas_missing() -> NoReturn:
     r"""Raise a RuntimeError to indicate the ``pandas`` package is
     missing."""
-    msg = (
-        "'pandas' package is required but not installed. "
-        "You can install 'pandas' package with the command:\n\n"
-        "pip install pandas\n"
-    )
-    raise RuntimeError(msg)
+    raise_package_missing_error("pandas", "pandas")
 
 
 def pandas_available(fn: F) -> F:
@@ -515,12 +514,7 @@ def check_polars() -> None:
 def raise_error_polars_missing() -> NoReturn:
     r"""Raise a RuntimeError to indicate the ``polars`` package is
     missing."""
-    msg = (
-        "'polars' package is required but not installed. "
-        "You can install 'polars' package with the command:\n\n"
-        "pip install polars\n"
-    )
-    raise RuntimeError(msg)
+    raise_package_missing_error("polars", "polars")
 
 
 def polars_available(fn: F) -> F:
@@ -590,12 +584,7 @@ def check_pyarrow() -> None:
 def raise_error_pyarrow_missing() -> NoReturn:
     r"""Raise a RuntimeError to indicate the ``pyarrow`` package is
     missing."""
-    msg = (
-        "'pyarrow' package is required but not installed. "
-        "You can install 'pyarrow' package with the command:\n\n"
-        "pip install pyarrow\n"
-    )
-    raise RuntimeError(msg)
+    raise_package_missing_error("pyarrow", "pyarrow")
 
 
 def pyarrow_available(fn: F) -> F:
@@ -665,12 +654,7 @@ def check_torch() -> None:
 def raise_error_torch_missing() -> NoReturn:
     r"""Raise a RuntimeError to indicate the ``torch`` package is
     missing."""
-    msg = (
-        "'torch' package is required but not installed. "
-        "You can install 'torch' package with the command:\n\n"
-        "pip install torch\n"
-    )
-    raise RuntimeError(msg)
+    raise_package_missing_error("torch", "torch")
 
 
 def torch_available(fn: F) -> F:
@@ -825,12 +809,7 @@ def check_xarray() -> None:
 def raise_error_xarray_missing() -> NoReturn:
     r"""Raise a RuntimeError to indicate the ``xarray`` package is
     missing."""
-    msg = (
-        "'xarray' package is required but not installed. "
-        "You can install 'xarray' package with the command:\n\n"
-        "pip install xarray\n"
-    )
-    raise RuntimeError(msg)
+    raise_package_missing_error("xarray", "xarray")
 
 
 def xarray_available(fn: F) -> F:
