@@ -18,11 +18,15 @@ __all__ = [
     "polars_not_available",
     "pyarrow_available",
     "pyarrow_not_available",
+    "requests_available",
+    "requests_not_available",
     "torch_available",
     "torch_cuda_available",
     "torch_mps_available",
     "torch_not_available",
     "torch_numpy_available",
+    "urllib3_available",
+    "urllib3_not_available",
     "xarray_available",
     "xarray_not_available",
 ]
@@ -36,8 +40,10 @@ from coola.utils.imports import (
     is_pandas_available,
     is_polars_available,
     is_pyarrow_available,
+    is_requests_available,
     is_torch_available,
     is_torch_numpy_available,
+    is_urllib3_available,
     is_xarray_available,
 )
 from coola.utils.tensor import is_cuda_available, is_mps_available
@@ -105,4 +111,18 @@ xarray_available: pytest.MarkDecorator = pytest.mark.skipif(
 )
 xarray_not_available: pytest.MarkDecorator = pytest.mark.skipif(
     is_xarray_available(), reason="Skip if xarray is available"
+)
+
+requests_available: pytest.MarkDecorator = pytest.mark.skipif(
+    not is_requests_available(), reason="Requires requests"
+)
+requests_not_available: pytest.MarkDecorator = pytest.mark.skipif(
+    is_requests_available(), reason="Skip if requests is available"
+)
+
+urllib3_available: pytest.MarkDecorator = pytest.mark.skipif(
+    not is_urllib3_available(), reason="Requires urllib3"
+)
+urllib3_not_available: pytest.MarkDecorator = pytest.mark.skipif(
+    is_urllib3_available(), reason="Skip if urllib3 is available"
 )
