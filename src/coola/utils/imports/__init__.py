@@ -14,6 +14,7 @@ __all__ = [
     "check_requests",
     "check_torch",
     "check_torch_numpy",
+    "check_urllib3",
     "check_xarray",
     "decorator_package_available",
     "is_jax_available",
@@ -25,6 +26,7 @@ __all__ = [
     "is_requests_available",
     "is_torch_available",
     "is_torch_numpy_available",
+    "is_urllib3_available",
     "is_xarray_available",
     "jax_available",
     "lazy_import",
@@ -44,10 +46,12 @@ __all__ = [
     "raise_pyarrow_missing_error",
     "raise_requests_missing_error",
     "raise_torch_missing_error",
+    "raise_urllib3_missing_error",
     "raise_xarray_missing_error",
     "requests_available",
     "torch_available",
     "torch_numpy_available",
+    "urllib3_available",
     "xarray_available",
 ]
 
@@ -111,6 +115,12 @@ from coola.utils.imports.universal import (
     module_available,
     package_available,
     raise_package_missing_error,
+)
+from coola.utils.imports.urllib3 import (
+    check_urllib3,
+    is_urllib3_available,
+    raise_urllib3_missing_error,
+    urllib3_available,
 )
 from coola.utils.imports.xarray import (
     check_xarray,
