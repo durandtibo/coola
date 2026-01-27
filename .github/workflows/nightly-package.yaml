@@ -104,3 +104,17 @@ jobs:
     with:
       package-name: xarray
       package-versions: ${{ toJson(fromJson(needs.get-versions.outputs.package_versions).xarray) }}
+
+  requests:
+    needs: get-versions
+    uses: ./.github/workflows/test-package-dep.yaml
+    with:
+      package-name: requests
+      package-versions: ${{ toJson(fromJson(needs.get-versions.outputs.package_versions).requests) }}
+
+  urllib3:
+    needs: get-versions
+    uses: ./.github/workflows/test-package-dep.yaml
+    with:
+      package-name: urllib3
+      package-versions: ${{ toJson(fromJson(needs.get-versions.outputs.package_versions).urllib3) }}

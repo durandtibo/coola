@@ -28,6 +28,7 @@ def fetch_package_versions() -> dict[str, list[str]]:
     polars_verions = fetch_latest_minor_versions("polars", lower="1.0")
     xarray_verions = fetch_latest_minor_versions("xarray", lower="2024.1")
     return {
+        # Data structure dependencies
         "jax": list(fetch_latest_minor_versions("jax", lower="0.5")),
         "numpy": list(fetch_latest_minor_versions("numpy", lower="1.24")),
         "packaging": list(fetch_latest_major_versions("packaging", lower="22.0")),
@@ -46,6 +47,9 @@ def fetch_package_versions() -> dict[str, list[str]]:
                 + filter_last_n_versions(xarray_verions, n=1)
             )
         ),
+        # HTTP dependencies
+        "requests": list(fetch_latest_minor_versions("requests", lower="2.30")),
+        "urllib3": list(fetch_latest_minor_versions("urllib3", lower="2.0")),
     }
 
 
