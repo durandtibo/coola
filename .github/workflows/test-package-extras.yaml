@@ -31,7 +31,7 @@ jobs:
           'pyarrow',
           'torch',
           'xarray',
-          'http',
+          'httpx',
         ]
 
     steps:

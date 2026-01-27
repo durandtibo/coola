@@ -242,9 +242,11 @@ source = { editable = "." }
 
 [package.optional-dependencies]
 http = [
-    { name = "httpx" },
     { name = "requests" },
     { name = "urllib3" },
+]
+httpx = [
+    { name = "httpx" },
 ]
 jax = [
     { name = "jax", version = "0.6.2", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.11' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.11' and sys_platform == 'linux')" },
@@ -300,7 +302,7 @@ docs = [
 
 [package.metadata]
 requires-dist = [
-    { name = "httpx", marker = "extra == 'http'", specifier = ">=0.28,<1.0" },
+    { name = "httpx", marker = "extra == 'httpx'", specifier = ">=0.28,<1.0" },
     { name = "jax", marker = "(platform_machine == 'arm64' and sys_platform == 'darwin' and extra == 'jax') or (sys_platform == 'linux' and extra == 'jax')", specifier = ">=0.5.0,<1.0" },
     { name = "numpy", marker = "extra == 'numpy'", specifier = ">=1.24,<3.0" },
     { name = "packaging", marker = "extra == 'packaging'", specifier = ">=22.0" },
@@ -312,7 +314,7 @@ requires-dist = [
     { name = "urllib3", marker = "extra == 'http'", specifier = ">=2.0,<3.0" },
     { name = "xarray", marker = "extra == 'xarray'", specifier = ">=2024.1" },
 ]
-provides-extras = ["jax", "numpy", "packaging", "pandas", "polars", "pyarrow", "torch", "xarray", "http"]
+provides-extras = ["jax", "numpy", "packaging", "pandas", "polars", "pyarrow", "torch", "xarray", "http", "httpx"]
 
 [package.metadata.requires-dev]
 dev = [

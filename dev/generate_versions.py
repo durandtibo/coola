@@ -50,6 +50,7 @@ def fetch_package_versions() -> dict[str, list[str]]:
         # HTTP dependencies
         "requests": list(fetch_latest_minor_versions("requests", lower="2.30")),
         "urllib3": list(fetch_latest_minor_versions("urllib3", lower="2.0")),
+        "httpx": list(fetch_latest_minor_versions("httpx", lower="0.28")),
     }
 
 
