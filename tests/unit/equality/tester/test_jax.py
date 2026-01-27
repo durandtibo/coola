@@ -236,7 +236,7 @@ def test_jax_array_equality_tester_objects_are_equal_true_tolerance(
 
 def test_jax_array_equality_tester_no_jax() -> None:
     with (
-        patch("coola.utils.imports.is_jax_available", lambda: False),
+        patch("coola.utils.imports.jax.is_jax_available", lambda: False),
         pytest.raises(RuntimeError, match=r"'jax' package is required but not installed."),
     ):
         JaxArrayEqualityTester()

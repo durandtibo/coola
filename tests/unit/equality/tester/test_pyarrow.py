@@ -510,7 +510,7 @@ def test_pyarrow_equality_tester_objects_are_equal_true_tolerance(
 
 def test_pyarrow_equality_tester_no_pyarrow() -> None:
     with (
-        patch("coola.utils.imports.is_pyarrow_available", lambda: False),
+        patch("coola.utils.imports.pyarrow.is_pyarrow_available", lambda: False),
         pytest.raises(RuntimeError, match=r"'pyarrow' package is required but not installed."),
     ):
         PyarrowEqualityTester()
