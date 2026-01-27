@@ -24,9 +24,9 @@ def my_function(n: int = 0) -> int:
     return 42 + n
 
 
-###############
-#     jax     #
-###############
+###############################
+#     Tests for check_jax     #
+###############################
 
 
 def test_check_jax_with_package() -> None:
@@ -42,8 +42,18 @@ def test_check_jax_without_package() -> None:
         check_jax()
 
 
+#######################################
+#     Testes for is_jax_available     #
+#######################################
+
+
 def test_is_jax_available() -> None:
     assert isinstance(is_jax_available(), bool)
+
+
+####################################
+#     Testes for jax_available     #
+####################################
 
 
 def test_jax_available_with_package() -> None:
@@ -76,6 +86,11 @@ def test_jax_available_decorator_without_package() -> None:
             return 42 + n
 
         assert fn(2) is None
+
+
+##############################################
+#     Testes for raise_jax_missing_error     #
+##############################################
 
 
 def test_raise_jax_missing_error() -> None:
