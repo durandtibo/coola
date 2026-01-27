@@ -80,6 +80,13 @@ jobs:
       package-name: xarray
       package-versions: ${{ toJson(fromJson(needs.get-versions.outputs.package_versions).xarray) }}
 
+  httpx:
+    needs: get-versions
+    uses: ./.github/workflows/test-code-dep.yaml
+    with:
+      package-name: httpx
+      package-versions: ${{ toJson(fromJson(needs.get-versions.outputs.package_versions).httpx) }}
+
   requests:
     needs: get-versions
     uses: ./.github/workflows/test-code-dep.yaml

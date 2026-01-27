@@ -4,6 +4,7 @@ from __future__ import annotations
 
 __all__ = [
     "LazyModule",
+    "check_httpx",
     "check_jax",
     "check_numpy",
     "check_package",
@@ -17,6 +18,8 @@ __all__ = [
     "check_urllib3",
     "check_xarray",
     "decorator_package_available",
+    "httpx_available",
+    "is_httpx_available",
     "is_jax_available",
     "is_numpy_available",
     "is_packaging_available",
@@ -37,6 +40,7 @@ __all__ = [
     "pandas_available",
     "polars_available",
     "pyarrow_available",
+    "raise_httpx_missing_error",
     "raise_jax_missing_error",
     "raise_numpy_missing_error",
     "raise_package_missing_error",
@@ -55,6 +59,12 @@ __all__ = [
     "xarray_available",
 ]
 
+from coola.utils.imports.httpx import (
+    check_httpx,
+    httpx_available,
+    is_httpx_available,
+    raise_httpx_missing_error,
+)
 from coola.utils.imports.jax import (
     check_jax,
     is_jax_available,
