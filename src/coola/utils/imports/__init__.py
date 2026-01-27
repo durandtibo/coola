@@ -11,6 +11,7 @@ __all__ = [
     "check_pandas",
     "check_polars",
     "check_pyarrow",
+    "check_requests",
     "check_torch",
     "check_torch_numpy",
     "check_xarray",
@@ -21,6 +22,7 @@ __all__ = [
     "is_pandas_available",
     "is_polars_available",
     "is_pyarrow_available",
+    "is_requests_available",
     "is_torch_available",
     "is_torch_numpy_available",
     "is_xarray_available",
@@ -40,8 +42,10 @@ __all__ = [
     "raise_pandas_missing_error",
     "raise_polars_missing_error",
     "raise_pyarrow_missing_error",
+    "raise_requests_missing_error",
     "raise_torch_missing_error",
     "raise_xarray_missing_error",
+    "requests_available",
     "torch_available",
     "torch_numpy_available",
     "xarray_available",
@@ -83,6 +87,12 @@ from coola.utils.imports.pyarrow import (
     is_pyarrow_available,
     pyarrow_available,
     raise_pyarrow_missing_error,
+)
+from coola.utils.imports.requests import (
+    check_requests,
+    is_requests_available,
+    raise_requests_missing_error,
+    requests_available,
 )
 from coola.utils.imports.torch import (
     check_torch,
