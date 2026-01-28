@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 import pytest
 
 from coola.experimental.http.sync import post_with_automatic_retry
