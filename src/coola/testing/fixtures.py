@@ -34,6 +34,7 @@ __all__ = [
 import pytest
 
 from coola.utils.imports import (
+    is_httpx_available,
     is_jax_available,
     is_numpy_available,
     is_packaging_available,
@@ -111,6 +112,13 @@ xarray_available: pytest.MarkDecorator = pytest.mark.skipif(
 )
 xarray_not_available: pytest.MarkDecorator = pytest.mark.skipif(
     is_xarray_available(), reason="Skip if xarray is available"
+)
+
+httpx_available: pytest.MarkDecorator = pytest.mark.skipif(
+    not is_httpx_available(), reason="Requires httpx"
+)
+httpx_not_available: pytest.MarkDecorator = pytest.mark.skipif(
+    is_httpx_available(), reason="Skip if httpx is available"
 )
 
 requests_available: pytest.MarkDecorator = pytest.mark.skipif(
