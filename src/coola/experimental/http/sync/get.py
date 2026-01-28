@@ -12,7 +12,7 @@ from coola.experimental.http.constants import (
     DEFAULT_TIMEOUT,
     RETRY_STATUS_CODES,
 )
-from coola.experimental.http.sync.utils import request_with_automatic_retry
+from coola.experimental.http.sync.request import request_with_automatic_retry
 from coola.utils.imports import check_httpx, is_httpx_available
 
 if TYPE_CHECKING or is_httpx_available():
