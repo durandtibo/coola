@@ -19,7 +19,7 @@ HTTPBIN_URL = "https://httpbin.org"
 
 
 @httpx_available
-def test_post_with_automatic_retry_successful_post_request() -> None:
+def test_post_with_automatic_retry_successful_request() -> None:
     """Test successful POST request without retries."""
     response = post_with_automatic_retry(
         url=f"{HTTPBIN_URL}/post", json={"test": "data", "number": 42}
@@ -27,6 +27,16 @@ def test_post_with_automatic_retry_successful_post_request() -> None:
     assert response.status_code == 200
     response_data = response.json()
     assert response_data["json"] == {"test": "data", "number": 42}
+
+
+@httpx_available
+def test_post_with_automatic_retry_successful_request_with_client() -> None:
+    """Test successful POST request without retries."""
+    with httpx.Client() as client:
+        response = post_with_automatic_retry(url=f"{HTTPBIN_URL}/post", client=client)
+    assert response.status_code == 200
+    response_data = response.json()
+    assert response_data["url"] == "https://httpbin.org/post"
 
 
 @httpx_available
