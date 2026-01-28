@@ -95,6 +95,3 @@ def post_with_automatic_retry(
     finally:
         if owns_client:
             client.close()
-
-
-
