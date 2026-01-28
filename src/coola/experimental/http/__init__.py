@@ -8,6 +8,7 @@ __all__ = [
     "DEFAULT_TIMEOUT",
     "RETRY_STATUS_CODES",
     "HttpRequestError",
+    "post_with_automatic_retry_async",
 ]
 
 from coola.experimental.http.constants import (
@@ -17,3 +18,4 @@ from coola.experimental.http.constants import (
     RETRY_STATUS_CODES,
 )
 from coola.experimental.http.exception import HttpRequestError
+from coola.experimental.http.post_async import post_with_automatic_retry_async
