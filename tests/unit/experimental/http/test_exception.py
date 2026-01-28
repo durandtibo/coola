@@ -38,30 +38,6 @@ def mock_response() -> httpx.Response:
     return httpx.Response(status_code=500, request=request, json={"error": "Internal server error"})
 
 
-@pytest.fixture
-def error_with_response(mock_response: httpx.Response) -> HttpRequestError:
-    """Create an HttpRequestError with response object."""
-    return HttpRequestError(
-        method="GET",
-        url="https://api.example.com/data",
-        message="Server error occurred",
-        status_code=500,
-        response=mock_response,
-    )
-
-
-@pytest.fixture
-def error_with_cause() -> HttpRequestError:
-    """Create an HttpRequestError with a cause exception."""
-    cause = ValueError("Invalid parameter")
-    return HttpRequestError(
-        method="DELETE",
-        url="https://api.example.com/resource/123",
-        message="Request validation failed",
-        cause=cause,
-    )
-
-
 ######################################
 #     Tests for HttpRequestError     #
 ######################################
@@ -78,6 +54,7 @@ def test_http_request_error_basic_initialization() -> None:
     assert error.response is None
 
 
+@httpx_available
 def test_http_request_error_initialization_with_all_parameters(
     mock_response: httpx.Response,
 ) -> None:
@@ -133,19 +110,31 @@ def test_http_request_error_response_attribute_when_none(basic_error: HttpReques
     assert basic_error.response is None
 
 
-def test_http_request_error_response_attribute_when_provided(
-    error_with_response: HttpRequestError,
-) -> None:
+@httpx_available
+def test_http_request_error_response_attribute_when_provided(mock_response: httpx.Response) -> None:
     """Test response attribute when provided."""
-    assert error_with_response.response is not None
-    assert error_with_response.response.status_code == 500
+    error = HttpRequestError(
+        method="GET",
+        url="https://api.example.com/data",
+        message="Server error occurred",
+        status_code=500,
+        response=mock_response,
+    )
+    assert error.response is not None
+    assert error.response.status_code == 500
 
 
-def test_http_request_error_cause_is_set_when_provided(error_with_cause: HttpRequestError) -> None:
+def test_http_request_error_cause_is_set_when_provided() -> None:
     """Test that __cause__ is properly set when cause is provided."""
-    assert error_with_cause.__cause__ is not None
-    assert isinstance(error_with_cause.__cause__, ValueError)
-    assert str(error_with_cause.__cause__) == "Invalid parameter"
+    error = HttpRequestError(
+        method="DELETE",
+        url="https://api.example.com/resource/123",
+        message="Request validation failed",
+        cause=ValueError("Invalid parameter"),
+    )
+    assert error.__cause__ is not None
+    assert isinstance(error.__cause__, ValueError)
+    assert str(error.__cause__) == "Invalid parameter"
 
 
 def test_http_request_error_cause_is_none_when_not_provided(basic_error: HttpRequestError) -> None:
