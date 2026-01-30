@@ -4,7 +4,6 @@ from __future__ import annotations
 
 __all__ = [
     "LazyModule",
-    "check_httpx",
     "check_jax",
     "check_numpy",
     "check_package",
@@ -12,24 +11,18 @@ __all__ = [
     "check_pandas",
     "check_polars",
     "check_pyarrow",
-    "check_requests",
     "check_torch",
     "check_torch_numpy",
-    "check_urllib3",
     "check_xarray",
     "decorator_package_available",
-    "httpx_available",
-    "is_httpx_available",
     "is_jax_available",
     "is_numpy_available",
     "is_packaging_available",
     "is_pandas_available",
     "is_polars_available",
     "is_pyarrow_available",
-    "is_requests_available",
     "is_torch_available",
     "is_torch_numpy_available",
-    "is_urllib3_available",
     "is_xarray_available",
     "jax_available",
     "lazy_import",
@@ -40,7 +33,6 @@ __all__ = [
     "pandas_available",
     "polars_available",
     "pyarrow_available",
-    "raise_httpx_missing_error",
     "raise_jax_missing_error",
     "raise_numpy_missing_error",
     "raise_package_missing_error",
@@ -48,23 +40,14 @@ __all__ = [
     "raise_pandas_missing_error",
     "raise_polars_missing_error",
     "raise_pyarrow_missing_error",
-    "raise_requests_missing_error",
     "raise_torch_missing_error",
-    "raise_urllib3_missing_error",
     "raise_xarray_missing_error",
-    "requests_available",
     "torch_available",
     "torch_numpy_available",
-    "urllib3_available",
     "xarray_available",
 ]
 
-from coola.utils.imports.httpx import (
-    check_httpx,
-    httpx_available,
-    is_httpx_available,
-    raise_httpx_missing_error,
-)
+
 from coola.utils.imports.jax import (
     check_jax,
     is_jax_available,
@@ -102,12 +85,6 @@ from coola.utils.imports.pyarrow import (
     pyarrow_available,
     raise_pyarrow_missing_error,
 )
-from coola.utils.imports.requests import (
-    check_requests,
-    is_requests_available,
-    raise_requests_missing_error,
-    requests_available,
-)
 from coola.utils.imports.torch import (
     check_torch,
     is_torch_available,
@@ -125,12 +102,6 @@ from coola.utils.imports.universal import (
     module_available,
     package_available,
     raise_package_missing_error,
-)
-from coola.utils.imports.urllib3 import (
-    check_urllib3,
-    is_urllib3_available,
-    raise_urllib3_missing_error,
-    urllib3_available,
 )
 from coola.utils.imports.xarray import (
     check_xarray,
