@@ -75,12 +75,6 @@ def test_get_required_env_var_with_special_characters() -> None:
     assert get_required_env_var("TEST_VAR") == "user@example.com:p@ssw0rd!"
 
 
-@patch.dict(os.environ, {"FIXTURE_TEST": "value"}, clear=True)
-def test_get_required_env_var_with_fixture() -> None:
-    """Example test using the clean_env fixture."""
-    assert get_required_env_var("FIXTURE_TEST") == "value"
-
-
 ###################################
 #     Tests for temp_env_vars     #
 ###################################
