@@ -4,10 +4,76 @@ from __future__ import annotations
 
 import os
 from unittest import mock
+from unittest.mock import patch
 
 import pytest
 
-from coola.utils.env_vars import temp_env_vars
+from coola.utils.env_vars import get_required_env_var, temp_env_vars
+
+##########################################
+#     Tests for get_required_env_var     #
+##########################################
+
+
+@patch.dict(os.environ, {"TEST_VAR": "test_value"}, clear=True)
+def test_get_required_env_var_returns_value() -> None:
+    """Test that a valid environment variable is returned."""
+    assert get_required_env_var("TEST_VAR") == "test_value"
+
+
+@patch.dict(os.environ, {"TEST_VAR": "  test_value  "}, clear=True)
+def test_get_required_env_var_strips_whitespace() -> None:
+    """Test that leading and trailing whitespace is removed."""
+    assert get_required_env_var("TEST_VAR") == "test_value"
+
+
+@patch.dict(os.environ, {"TEST_VAR": "\t\ntest_value\n\t"}, clear=True)
+def test_get_required_env_var_strips_tabs_and_newlines() -> None:
+    """Test that tabs and newlines are stripped."""
+    assert get_required_env_var("TEST_VAR") == "test_value"
+
+
+@patch.dict(os.environ, {}, clear=True)
+def test_get_required_env_var_raises_on_missing_var() -> None:
+    """Test that ValueError is raised when variable doesn't exist."""
+    with pytest.raises(ValueError, match=r"Environment variable 'MISSING_VAR' is required"):
+        get_required_env_var("MISSING_VAR")
+
+
+@patch.dict(os.environ, {"EMPTY_VAR": ""}, clear=True)
+def test_get_required_env_var_raises_on_empty_string() -> None:
+    """Test that ValueError is raised when variable is empty string."""
+    with pytest.raises(ValueError, match=r"Environment variable 'EMPTY_VAR' is required"):
+        get_required_env_var("EMPTY_VAR")
+
+
+@patch.dict(os.environ, {"WHITESPACE_VAR": "   "}, clear=True)
+def test_get_required_env_var_raises_on_whitespace_only() -> None:
+    """Test that ValueError is raised when variable contains only
+    whitespace."""
+    with pytest.raises(ValueError, match="Environment variable 'WHITESPACE_VAR' is required"):
+        get_required_env_var("WHITESPACE_VAR")
+
+
+@patch.dict(os.environ, {"TAB_VAR": "\t\t\t"}, clear=True)
+def test_get_required_env_var_raises_on_tabs_only() -> None:
+    """Test that ValueError is raised when variable contains only
+    tabs."""
+    with pytest.raises(ValueError, match="Environment variable 'TAB_VAR' is required"):
+        get_required_env_var("TAB_VAR")
+
+
+@patch.dict(os.environ, {"TEST_VAR": "hello world"}, clear=True)
+def test_get_required_env_var_preserves_internal_whitespace() -> None:
+    """Test that whitespace within the value is preserved."""
+    assert get_required_env_var("TEST_VAR") == "hello world"
+
+
+@patch.dict(os.environ, {"TEST_VAR": "user@example.com:p@ssw0rd!"}, clear=True)
+def test_get_required_env_var_with_special_characters() -> None:
+    """Test that special characters in values are handled correctly."""
+    assert get_required_env_var("TEST_VAR") == "user@example.com:p@ssw0rd!"
+
 
 ###################################
 #     Tests for temp_env_vars     #

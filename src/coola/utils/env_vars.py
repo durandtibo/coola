@@ -2,7 +2,7 @@ r"""Implement some utility functions to manage environment variables."""
 
 from __future__ import annotations
 
-__all__ = ["temp_env_vars"]
+__all__ = ["get_required_env_var", "temp_env_vars"]
 
 import os
 from contextlib import contextmanager
@@ -10,6 +10,41 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from collections.abc import Generator
+
+
+def get_required_env_var(name: str) -> str:
+    """Retrieve a required environment variable with validation.
+
+    This function fetches an environment variable and ensures it exists and
+    contains a non-empty value after stripping whitespace. If the variable
+    is missing or empty, a ValueError is raised with a descriptive message.
+
+    Args:
+        name: The name of the environment variable to retrieve.
+
+    Returns:
+        The value of the environment variable with leading/trailing whitespace
+        removed.
+
+    Raises:
+        ValueError: If the environment variable is not set or contains only
+            whitespace.
+
+    Example:
+        >>> from coola.utils.env_vars import get_required_env_var
+        >>> os.environ['API_KEY'] = 'my-secret-key'
+        >>> get_required_env_var('API_KEY')
+        'my-secret-key'
+        >>> get_required_env_var('MISSING_VAR')  # doctest: +SKIP
+        ValueError: Environment variable 'MISSING_VAR' is required but not set
+    """
+    value = os.getenv(name)
+
+    if not value or not value.strip():
+        msg = f"Environment variable '{name}' is required but not set or is empty"
+        raise ValueError(msg)
+
+    return value.strip()
 
 
 @contextmanager
