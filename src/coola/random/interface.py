@@ -64,7 +64,7 @@ def random_seed(
 
         ```
     """
-    manager = manager if manager else get_default_registry()
+    manager = manager or get_default_registry()
     state = manager.get_rng_state()
     try:
         manager.manual_seed(seed)
