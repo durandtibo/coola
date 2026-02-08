@@ -12,7 +12,7 @@ only-include = ["src"]
 
 [project]
 name = "coola"
-version = "1.1.0"
+version = "1.1.1a0"
 description = "Library to check equality between two complex/nested objects"
 readme = "README.md"
 authors = [
