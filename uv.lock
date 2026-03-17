@@ -311,11 +311,11 @@ provides-extras = ["jax", "numpy", "packaging", "pandas", "polars", "pyarrow", "
 [package.metadata.requires-dev]
 dev = [
     { name = "black", specifier = ">=26.3" },
-    { name = "coverage", extras = ["toml"], specifier = ">=7.11,<8.0" },
+    { name = "coverage", extras = ["toml"], specifier = ">=7.13,<8.0" },
     { name = "docformatter", extras = ["tomli"], marker = "python_full_version < '3.14'", specifier = ">=1.7,<2.0" },
     { name = "feu", extras = ["all"], specifier = ">=0.6.2,<1.0" },
     { name = "invoke", specifier = ">=2.2.0,<3.0" },
-    { name = "pre-commit", specifier = ">=4.4,<5.0" },
+    { name = "pre-commit", specifier = ">=4.5,<5.0" },
     { name = "pygments", specifier = ">=2.19,<3.0" },
     { name = "pyright", specifier = ">=1.1.407,<2.0" },
     { name = "pytest", specifier = ">=9.0,<10.0" },
