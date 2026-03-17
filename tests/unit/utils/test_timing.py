@@ -28,3 +28,19 @@ def test_timeblock_custom_missing_time() -> None:
         timeblock("message"),
     ):
         pass
+
+
+def test_timeblock_exception_is_raised(caplog: pytest.LogCaptureFixture) -> None:
+    with pytest.raises(ValueError, match="test error"):
+        with timeblock():
+            raise ValueError("test error")
+    assert len(caplog.messages) == 1
+    assert caplog.messages[0].startswith("Total time: ")
+
+
+def test_timeblock_exception_logs_time(caplog: pytest.LogCaptureFixture) -> None:
+    with pytest.raises(RuntimeError):
+        with timeblock("Elapsed: {time}"):
+            raise RuntimeError
+    assert len(caplog.messages) == 1
+    assert caplog.messages[0].startswith("Elapsed: ")
