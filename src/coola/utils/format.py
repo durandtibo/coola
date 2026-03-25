@@ -5,6 +5,7 @@ from __future__ import annotations
 
 __all__ = [
     "find_best_byte_unit",
+    "make_bar",
     "repr_indent",
     "repr_mapping",
     "repr_mapping_line",
