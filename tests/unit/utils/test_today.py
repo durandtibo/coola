@@ -15,7 +15,7 @@ from coola.utils.today import get_today_date
 
 def test_get_today_date_default() -> None:
     """Test that it defaults to UTC and YYYY-MM-DD format."""
-    with patch("argos.utils.today.datetime") as mock_datetime:
+    with patch("coola.utils.today.datetime") as mock_datetime:
         mock_datetime.now.return_value = datetime(
             year=2026, month=3, day=19, hour=12, minute=0, second=0, tzinfo=ZoneInfo("UTC")
         )
@@ -26,7 +26,7 @@ def test_get_today_date_default() -> None:
 
 def test_get_today_date_custom_timezone() -> None:
     """Test that it correctly applies a specific timezone."""
-    with patch("argos.utils.today.datetime") as mock_datetime:
+    with patch("coola.utils.today.datetime") as mock_datetime:
         mock_datetime.now.return_value = datetime(
             year=2026, month=3, day=20, hour=3, minute=0, second=0, tzinfo=ZoneInfo("Asia/Tokyo")
         )
@@ -37,7 +37,7 @@ def test_get_today_date_custom_timezone() -> None:
 
 def test_get_today_date_custom_format() -> None:
     """Test that it respects a custom date format string."""
-    with patch("argos.utils.today.datetime") as mock_datetime:
+    with patch("coola.utils.today.datetime") as mock_datetime:
         mock_datetime.now.return_value = datetime(
             year=2026, month=3, day=19, hour=12, minute=0, second=0, tzinfo=ZoneInfo("UTC")
         )
