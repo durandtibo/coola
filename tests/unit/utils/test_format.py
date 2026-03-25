@@ -4,6 +4,7 @@ import pytest
 
 from coola.utils.format import (
     find_best_byte_unit,
+    make_bar,
     repr_indent,
     repr_mapping,
     repr_mapping_line,
@@ -17,6 +18,90 @@ from coola.utils.format import (
     str_sequence_line,
     str_time_human,
 )
+
+##############################
+#     Tests for make_bar     #
+##############################
+
+
+def test_make_bar_raises_value_error_if_value_is_negative() -> None:
+    with pytest.raises(ValueError, match="value must be in"):
+        make_bar(-0.1)
+
+
+def test_make_bar_raises_value_error_if_value_is_greater_than_1() -> None:
+    with pytest.raises(ValueError, match="value must be in"):
+        make_bar(1.1)
+
+
+def test_make_bar_raises_value_error_if_length_is_zero() -> None:
+    with pytest.raises(ValueError, match="length must be a positive integer"):
+        make_bar(0.5, length=0)
+
+
+def test_make_bar_raises_value_error_if_length_is_negative() -> None:
+    with pytest.raises(ValueError, match="length must be a positive integer"):
+        make_bar(0.5, length=-1)
+
+
+def test_make_bar_empty() -> None:
+    assert make_bar(0.0) == "[░░░░░░░░░░]"
+
+
+def test_make_bar_full() -> None:
+    assert make_bar(1.0) == "[██████████]"
+
+
+def test_make_bar_half() -> None:
+    assert make_bar(0.5) == "[█████░░░░░]"
+
+
+def test_make_bar_partial() -> None:
+    assert make_bar(0.6) == "[██████░░░░]"
+
+
+def test_make_bar_low_value() -> None:
+    assert make_bar(0.1) == "[█░░░░░░░░░]"
+
+
+def test_make_bar_int_value_zero() -> None:
+    assert make_bar(0) == "[░░░░░░░░░░]"
+
+
+def test_make_bar_int_value_one() -> None:
+    assert make_bar(1) == "[██████████]"
+
+
+def test_make_bar_custom_length_short() -> None:
+    assert make_bar(0.5, length=4) == "[██░░]"
+
+
+def test_make_bar_custom_length_long() -> None:
+    assert make_bar(0.5, length=20) == "[██████████░░░░░░░░░░]"
+
+
+def test_make_bar_length_one_empty() -> None:
+    assert make_bar(0.0, length=1) == "[░]"
+
+
+def test_make_bar_length_one_full() -> None:
+    assert make_bar(1.0, length=1) == "[█]"
+
+
+def test_make_bar_starts_with_open_bracket() -> None:
+    assert make_bar(0.5).startswith("[")
+
+
+def test_make_bar_ends_with_close_bracket() -> None:
+    assert make_bar(0.5).endswith("]")
+
+
+def test_make_bar_total_length_matches_length_param() -> None:
+    bar = make_bar(0.5, length=10)
+    # Strip brackets and count characters
+    inner = bar[1:-1]
+    assert len(inner) == 10
+
 
 #################################
 #     Tests for repr_indent     #
