@@ -161,6 +161,7 @@ class SameAttributeHandler(BaseEqualityHandler):
 
     @property
     def name(self) -> str:
+        r"""The name of the attribute to compare."""
         return self._name
 
     def equal(self, other: object) -> bool:
