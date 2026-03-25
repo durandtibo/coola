@@ -11,4 +11,5 @@
 ::: coola.utils.stats
 ::: coola.utils.string
 ::: coola.utils.tensor
+::: coola.utils.today
 ::: coola.utils.version
