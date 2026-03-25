@@ -50,7 +50,7 @@ def convert_to_list_of_dicts(
         mapping_of_seqs: The mapping of sequences to convert.
 
     Returns:
-        A dictionary of lists.
+        A list of dictionaries.
 
     Example:
         ```pycon
