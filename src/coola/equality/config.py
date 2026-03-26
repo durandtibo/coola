@@ -12,16 +12,6 @@ if TYPE_CHECKING:
 
 
 def create_default_registry() -> EqualityTesterRegistry:
-    r"""Create and return the default equality tester registry.
-
-    This helper function creates the default registry populated with
-    built-in equality testers for common Python types. It is used as
-    the default factory for the ``registry`` field of
-    ``EqualityConfig``.
-
-    Returns:
-        The default ``EqualityTesterRegistry`` instance.
-    """
     # local import to avoid circular imports.
     from coola.equality.tester.interface import get_default_registry  # noqa: PLC0415
 

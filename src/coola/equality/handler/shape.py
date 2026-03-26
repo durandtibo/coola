@@ -29,6 +29,7 @@ class SupportsShape(Protocol):
 
     @property
     def shape(self) -> tuple[int, ...]:
+        r"""The shape of the object as a tuple of integers."""
         return ()  # pragma: no cover
 
 

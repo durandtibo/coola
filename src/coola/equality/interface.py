@@ -1,5 +1,4 @@
-r"""Define the public interface to recursively apply a function to all
-items in nested data."""
+r"""Define the public interface to compare nested data for equality."""
 
 from __future__ import annotations
 
@@ -51,7 +50,6 @@ def objects_are_allclose(
 
     Example:
         ```pycon
-
         >>> import torch
         >>> from coola.equality import objects_are_allclose
         >>> objects_are_allclose(
@@ -125,7 +123,6 @@ def objects_are_equal(
 
     Example:
         ```pycon
-
         >>> import torch
         >>> from coola.equality import objects_are_equal
         >>> objects_are_equal(

@@ -152,11 +152,12 @@ class BaseReducer(ABC, Generic[T]):
 
     @abstractmethod
     def sort(self, values: T, descending: bool = False) -> list[int | float]:
-        r"""Sorts the values.
+        r"""Sort the values.
 
         Args:
             values: The values.
-            descending: The sorting order.
+            descending: If ``True``, sorts in descending order.
+                Defaults to ``False`` (ascending order).
 
         Returns:
             The sorted values.
@@ -198,8 +199,14 @@ class BaseReducer(ABC, Generic[T]):
 
 
 class BaseBasicReducer(BaseReducer[T]):
-    r"""Extension of ``BaseReducer`` to check if the input sequence is
-    empty before to call the reduction methods."""
+    r"""Extension of ``BaseReducer`` that validates the input sequence is
+    not empty before calling the reduction methods.
+
+    This class provides concrete implementations of all ``BaseReducer`` abstract
+    methods by first checking for empty sequences (raising ``EmptySequenceError``)
+    and then delegating to private ``_max``, ``_mean``, etc. methods that
+    subclasses must implement.
+    """
 
     @abstractmethod
     def _is_empty(self, values: T) -> bool:

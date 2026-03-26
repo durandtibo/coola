@@ -29,6 +29,7 @@ class SupportsDType(Protocol):
 
     @property
     def dtype(self) -> Any:
+        r"""The data type of the object."""
         return  # pragma: no cover
 
 
