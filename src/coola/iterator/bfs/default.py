@@ -15,14 +15,14 @@ if TYPE_CHECKING:
 class DefaultChildFinder(BaseChildFinder[Any]):
     r"""Default child finder for breadth-first search traversal.
 
-        This child finder serves as the fallback handler for objects that don't have
-        a specialized child finder registered. It treats the input data as a leaf node
-        with no children, so it yields nothing during traversal.
+    This child finder serves as the fallback handler for objects that don't have
+    a specialized child finder registered. It treats the input data as a leaf node
+    with no children, so it yields nothing during traversal.
 
-        The DefaultChildFinder is typically used for:
-        - Primitive types (int, float, str, bool, None)
-        - Objects without internal structure to traverse
-        - Terminal nodes in a data structure
+    The DefaultChildFinder is typically used for:
+    - Primitive types (int, float, str, bool, None)
+    - Objects without internal structure to traverse
+    - Terminal nodes in a data structure
 
     Example:
         ```pycon
