@@ -28,6 +28,7 @@ class SupportsData(Protocol):
 
     @property
     def data(self) -> Any:
+        r"""The underlying data of the object."""
         return  # pragma: no cover
 
 

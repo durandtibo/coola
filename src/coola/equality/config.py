@@ -86,5 +86,5 @@ class EqualityConfig:
         self._current_depth += 1
 
     def decrement_depth(self) -> None:
-        """Increment the current depth counter."""
+        """Decrement the current depth counter."""
         self._current_depth -= 1

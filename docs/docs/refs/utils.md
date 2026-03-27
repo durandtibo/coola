@@ -5,7 +5,11 @@
 ::: coola.utils.imports
 ::: coola.utils.introspection
 ::: coola.utils.mapping
+::: coola.utils.password
 ::: coola.utils.path
+::: coola.utils.secret
 ::: coola.utils.stats
+::: coola.utils.string
 ::: coola.utils.tensor
+::: coola.utils.today
 ::: coola.utils.version
