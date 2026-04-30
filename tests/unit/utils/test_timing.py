@@ -80,3 +80,14 @@ def test_timeblock_exception_logs_time(caplog: pytest.LogCaptureFixture) -> None
         raise RuntimeError
     assert len(caplog.messages) == 1
     assert caplog.messages[0].startswith("Elapsed: ")
+
+
+def test_timeblock_with_timing_result() -> None:
+    with timeblock() as t:
+        assert t.started_at is not None
+        assert t.finished_at is None
+        assert t.elapsed is None
+    assert isinstance(t, TimingResult)
+    assert t.started_at is not None
+    assert t.finished_at is not None
+    assert t.elapsed is not None

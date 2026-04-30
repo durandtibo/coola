@@ -49,7 +49,7 @@ class TimingResult:
 
 
 @contextmanager
-def timeblock(message: str = "Total time: {time}") -> Generator[None, None, None]:
+def timeblock(message: str = "Total time: {time}") -> Generator[TimingResult, None, None]:
     r"""Implement a context manager to measure the execution time of a
     block of code.
 
@@ -65,14 +65,20 @@ def timeblock(message: str = "Total time: {time}") -> Generator[None, None, None
         >>> with timeblock("Training: {time}"):
         ...     y = [1, 2, 3]
         ...
+        >>> with timeblock() as t:
+        ...     z = [1, 2, 3]
+        ...
+        >>> t.elapsed
 
         ```
     """
     if "{time}" not in message:
         msg = f"{{time}} is missing in the message (received: {message})"
         raise RuntimeError(msg)
-    start_time = time.perf_counter()
+    result = TimingResult()
+    result.started_at = time.perf_counter()
     try:
-        yield
+        yield result
     finally:
-        logger.info(message.format(time=str_time_human(time.perf_counter() - start_time)))
+        result.finished_at = time.perf_counter()
+        logger.info(message.format(time=str_time_human(result.elapsed)))
