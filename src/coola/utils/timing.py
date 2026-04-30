@@ -2,7 +2,7 @@ r"""Contain utility functions to measure time."""
 
 from __future__ import annotations
 
-__all__ = ["timeblock"]
+__all__ = ["TimingResult", "timeblock"]
 
 import logging
 import time
@@ -15,6 +15,37 @@ if TYPE_CHECKING:
     from collections.abc import Generator
 
 logger: logging.Logger = logging.getLogger(__name__)
+
+
+class TimingResult:
+    r"""Hold the result of a timed block.
+
+    Args:
+        started_at: The time when the block started, or ``None`` if
+            it has not yet started.
+        finished_at: The time when the block finished, or ``None`` if
+            it has not yet finished.
+    """
+
+    def __init__(self, started_at: float | None = None, finished_at: float | None = None) -> None:
+        self.started_at = started_at
+        self.finished_at = finished_at
+
+    @property
+    def elapsed(self) -> float | None:
+        r"""The elapsed time in seconds, or ``None`` if the block has
+        not yet completed."""
+        if self.started_at is None or self.finished_at is None:
+            return None
+        return self.finished_at - self.started_at
+
+    def __repr__(self) -> str:
+        return (
+            f"{self.__class__.__qualname__}("
+            f"started_at={self.started_at}, "
+            f"finished_at={self.finished_at}, "
+            f"elapsed={self.elapsed})"
+        )
 
 
 @contextmanager
