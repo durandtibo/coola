@@ -43,6 +43,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y shellcheck
+          shellcheck --version
 
       - name: Run ShellCheck
         run: |
