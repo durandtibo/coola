@@ -275,7 +275,7 @@ xarray = [
 dev = [
     { name = "black" },
     { name = "coverage", extra = ["toml"] },
-    { name = "docformatter", extra = ["tomli"], marker = "python_full_version < '3.14'" },
+    { name = "docformatter", extra = ["tomli"] },
     { name = "feu", extra = ["all"] },
     { name = "invoke" },
     { name = "pre-commit" },
@@ -311,7 +311,7 @@ provides-extras = ["jax", "numpy", "packaging", "pandas", "polars", "pyarrow", "
 dev = [
     { name = "black", specifier = ">=26.3" },
     { name = "coverage", extras = ["toml"], specifier = ">=7.13,<8.0" },
-    { name = "docformatter", extras = ["tomli"], marker = "python_full_version < '3.14'", specifier = ">=1.7,<2.0" },
+    { name = "docformatter", extras = ["tomli"], specifier = ">=1.7,<2.0" },
     { name = "feu", extras = ["all"], specifier = ">=0.6.2,<1.0" },
     { name = "invoke", specifier = ">=2.2.0,<4.0" },
     { name = "pre-commit", specifier = ">=4.5,<5.0" },
