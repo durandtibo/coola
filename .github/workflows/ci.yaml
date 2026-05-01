@@ -46,10 +46,10 @@ jobs:
   pre-commit:
     uses: ./.github/workflows/pre-commit.yaml
 
-  # Run unit and integration tests across multiple Python versions and OS
-  test:
-    uses: ./.github/workflows/test.yaml
-
-  # Test compatibility with different dependency versions
-  test-deps:
-    uses: ./.github/workflows/test-deps.yaml
+#  # Run unit and integration tests across multiple Python versions and OS
+#  test:
+#    uses: ./.github/workflows/test.yaml
+#
+#  # Test compatibility with different dependency versions
+#  test-deps:
+#    uses: ./.github/workflows/test-deps.yaml

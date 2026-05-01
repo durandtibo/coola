@@ -50,7 +50,10 @@ jobs:
           shellcheck -- **/*.sh || exit 1
 
       - name: Install shfmt
-        run: sudo snap install shfmt
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shfmt
+          shfmt --version
 
       - name: Run shfmt
         run: |
