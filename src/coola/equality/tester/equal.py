@@ -1,7 +1,8 @@
 r"""Implement equality testers for objects with equal methods.
 
-This module provides specialized testers for objects that implement an ``equal``
-method, supporting both standard equality and NaN-aware equality comparisons.
+This module provides specialized testers for objects that implement an
+``equal`` method, supporting both standard equality and NaN-aware
+equality comparisons.
 """
 
 from __future__ import annotations
