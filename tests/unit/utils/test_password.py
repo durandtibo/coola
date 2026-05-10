@@ -69,7 +69,6 @@ def test_get_password_empty_raises_error() -> None:
 @pytest.mark.usefixtures("mock_interactive_terminal")
 def test_get_password_exceeds_max_length() -> None:
     """Test that password exceeding max length raises ValueError."""
-
     long_password = "a" * (MAX_PASSWORD_LENGTH + 1)
     with (
         patch("getpass.getpass", return_value=long_password),
@@ -83,7 +82,6 @@ def test_get_password_exceeds_max_length() -> None:
 @pytest.mark.usefixtures("mock_interactive_terminal")
 def test_get_password_at_max_length() -> None:
     """Test that password at exactly max length is accepted."""
-
     max_length_password = "a" * MAX_PASSWORD_LENGTH
     with patch("getpass.getpass", return_value=max_length_password):
         password = get_password()

@@ -202,10 +202,10 @@ class BaseBasicReducer(BaseReducer[T]):
     r"""Extension of ``BaseReducer`` that validates the input sequence is
     not empty before calling the reduction methods.
 
-    This class provides concrete implementations of all ``BaseReducer`` abstract
-    methods by first checking for empty sequences (raising ``EmptySequenceError``)
-    and then delegating to private ``_max``, ``_mean``, etc. methods that
-    subclasses must implement.
+    This class provides concrete implementations of all ``BaseReducer``
+    abstract methods by first checking for empty sequences (raising
+    ``EmptySequenceError``) and then delegating to private ``_max``,
+    ``_mean``, etc. methods that subclasses must implement.
     """
 
     @abstractmethod
