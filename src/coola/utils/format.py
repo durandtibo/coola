@@ -78,7 +78,7 @@ def repr_indent(original: object, num_spaces: int = 2) -> str:
     r"""Add indentations if the original string is a multi-lines string.
 
     Args:
-        original: The original string. If the inputis not a
+        original: The original string. If the input is not a
             string, it will be converted to a string with the function
             ``repr``.
         num_spaces: The number of spaces used for the
@@ -88,7 +88,7 @@ def repr_indent(original: object, num_spaces: int = 2) -> str:
         The indented string.
 
     Raises:
-        RuntimeError: if num_spaces is not a positive integer.
+        RuntimeError: if num_spaces is negative.
 
     Example:
         ```pycon
@@ -222,7 +222,7 @@ def str_indent(original: object, num_spaces: int = 2) -> str:
     r"""Add indentations if the original string is a multi-lines string.
 
     Args:
-        original: The original string. If the inputis not a
+        original: The original string. If the input is not a
             string, it will be converted to a string with the function
             ``str``.
         num_spaces: The number of spaces used for the
@@ -232,7 +232,7 @@ def str_indent(original: object, num_spaces: int = 2) -> str:
         The indented string.
 
     Raises:
-        RuntimeError: if num_spaces is not a positive integer.
+        RuntimeError: if num_spaces is negative.
 
     Example:
         ```pycon

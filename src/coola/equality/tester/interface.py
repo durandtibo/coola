@@ -84,6 +84,7 @@ def register_equality_testers(
 
     Example:
         ```pycon
+        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.tester import register_equality_testers, BaseEqualityTester
         >>> class MyType:
         ...     def __init__(self, value):
@@ -95,7 +96,7 @@ def register_equality_testers(
         ...     def objects_are_equal(
         ...         self, actual: MyType, expected: object, config: EqualityConfig
         ...     ) -> bool:
-        ...         if type(other) is not type(self):
+        ...         if type(expected) is not type(actual):
         ...             return False
         ...         return actual.value == expected.value
         ...
