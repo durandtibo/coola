@@ -218,14 +218,16 @@ def test_get_numpy_summarizers_without_numpy_returns_empty_dict() -> None:
 
 def test_get_numpy_summarizers_with_numpy_returns_ndarray_summarizer() -> None:
     fake_ndarray = type("FakeNDArray", (), {})
+    fake_summarizer = object()
     with (
         patch("coola.summary.interface.is_numpy_available", lambda: True),
-        patch("coola.summary.interface.np", Mock(ndarray=fake_ndarray)),
+        patch("coola.summary.interface.np", Mock(ndarray=fake_ndarray), create=True),
+        patch("coola.summary.interface.NDArraySummarizer", Mock(return_value=fake_summarizer)),
     ):
         summarizers = _get_numpy_summarizers()
 
     assert list(summarizers) == [fake_ndarray]
-    assert isinstance(summarizers[fake_ndarray], NDArraySummarizer)
+    assert summarizers[fake_ndarray] is fake_summarizer
 
 
 def test_get_torch_summarizers_without_torch_returns_empty_dict() -> None:
@@ -235,11 +237,13 @@ def test_get_torch_summarizers_without_torch_returns_empty_dict() -> None:
 
 def test_get_torch_summarizers_with_torch_returns_tensor_summarizer() -> None:
     fake_tensor = type("FakeTensor", (), {})
+    fake_summarizer = object()
     with (
         patch("coola.summary.interface.is_torch_available", lambda: True),
-        patch("coola.summary.interface.torch", Mock(Tensor=fake_tensor)),
+        patch("coola.summary.interface.torch", Mock(Tensor=fake_tensor), create=True),
+        patch("coola.summary.interface.TensorSummarizer", Mock(return_value=fake_summarizer)),
     ):
         summarizers = _get_torch_summarizers()
 
     assert list(summarizers) == [fake_tensor]
-    assert isinstance(summarizers[fake_tensor], TensorSummarizer)
+    assert summarizers[fake_tensor] is fake_summarizer
