@@ -1,4 +1,5 @@
-r"""Provide utilities to recursively apply a function to all items in nested data structures.
+r"""Provide utilities to recursively apply a function to all items in
+nested data structures.
 
 Example:
     ```pycon
