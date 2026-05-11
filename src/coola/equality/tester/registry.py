@@ -216,7 +216,7 @@ class EqualityTesterRegistry:
             ... )
             >>> registry = EqualityTesterRegistry({object: DefaultEqualityTester()})
             >>> registry.register(Sequence, SequenceEqualityTester())
-            >>> # list does not inherit from Sequence, so it uses DefaultEqualityTester
+            >>> # Sequence is not in list's MRO, so the registry falls back to DefaultEqualityTester
             >>> tester = registry.find_equality_tester(list)
             >>> tester
             DefaultEqualityTester()

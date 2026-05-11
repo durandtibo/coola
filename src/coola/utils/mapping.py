@@ -32,7 +32,7 @@ def sort_by_keys(mapping: Mapping[Any, Any]) -> dict[Any, Any]:
 
 
 def sort_by_values(mapping: Mapping[Any, Any]) -> dict[Any, Any]:
-    r"""Sort a dictionary by keys.
+    r"""Sort a dictionary by values.
 
     Args:
         mapping: The dictionary to sort.

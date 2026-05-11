@@ -131,8 +131,7 @@ class BaseReducer(ABC, Generic[T]):
 
         Args:
             values: The values.
-            quantiles (sequence of float): The quantile
-                values in the range ``[0, 1]``.
+            quantiles: The quantile values in the range ``[0, 1]``.
 
         Returns:
             The quantiles.
