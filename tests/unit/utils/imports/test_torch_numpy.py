@@ -67,6 +67,18 @@ def test_is_torch_numpy_available_not_compatible() -> None:
         assert not is_torch_numpy_available()
 
 
+def test_is_torch_numpy_available_compatible() -> None:
+    with (
+        patch("coola.utils.imports.torch_numpy.is_torch_available", lambda: True),
+        patch("coola.utils.imports.torch_numpy.is_numpy_available", lambda: True),
+        patch(
+            "coola.utils.imports.torch_numpy.torch.tensor",
+            Mock(return_value=Mock(numpy=Mock(return_value=[1.0]))),
+        ),
+    ):
+        assert is_torch_numpy_available()
+
+
 def test_torch_numpy_available_with_package() -> None:
     with patch("coola.utils.imports.torch_numpy.is_torch_numpy_available", lambda: True):
         fn = torch_numpy_available(my_function)

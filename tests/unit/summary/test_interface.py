@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Generator, Mapping, Sequence
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -16,6 +17,7 @@ from coola.summary import (
     register_summarizers,
     summarize,
 )
+from coola.summary.interface import _get_numpy_summarizers, _get_torch_summarizers
 from coola.testing.fixtures import numpy_available, torch_available
 from coola.utils.imports import is_numpy_available, is_torch_available
 
@@ -207,3 +209,37 @@ def test_get_default_registry_singleton_persists_modifications() -> None:
     registry2 = get_default_registry()
     assert registry1 is registry2
     assert registry2.has_summarizer(CustomList)
+
+
+def test_get_numpy_summarizers_without_numpy_returns_empty_dict() -> None:
+    with patch("coola.summary.interface.is_numpy_available", lambda: False):
+        assert _get_numpy_summarizers() == {}
+
+
+def test_get_numpy_summarizers_with_numpy_returns_ndarray_summarizer() -> None:
+    fake_ndarray = type("FakeNDArray", (), {})
+    with (
+        patch("coola.summary.interface.is_numpy_available", lambda: True),
+        patch("coola.summary.interface.np", Mock(ndarray=fake_ndarray)),
+    ):
+        summarizers = _get_numpy_summarizers()
+
+    assert list(summarizers) == [fake_ndarray]
+    assert isinstance(summarizers[fake_ndarray], NDArraySummarizer)
+
+
+def test_get_torch_summarizers_without_torch_returns_empty_dict() -> None:
+    with patch("coola.summary.interface.is_torch_available", lambda: False):
+        assert _get_torch_summarizers() == {}
+
+
+def test_get_torch_summarizers_with_torch_returns_tensor_summarizer() -> None:
+    fake_tensor = type("FakeTensor", (), {})
+    with (
+        patch("coola.summary.interface.is_torch_available", lambda: True),
+        patch("coola.summary.interface.torch", Mock(Tensor=fake_tensor)),
+    ):
+        summarizers = _get_torch_summarizers()
+
+    assert list(summarizers) == [fake_tensor]
+    assert isinstance(summarizers[fake_tensor], TensorSummarizer)
