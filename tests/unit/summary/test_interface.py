@@ -17,7 +17,6 @@ from coola.summary import (
     register_summarizers,
     summarize,
 )
-from coola.summary.interface import _get_numpy_summarizers, _get_torch_summarizers
 from coola.testing.fixtures import numpy_available, torch_available
 from coola.utils.imports import is_numpy_available, is_torch_available
 
@@ -211,39 +210,31 @@ def test_get_default_registry_singleton_persists_modifications() -> None:
     assert registry2.has_summarizer(CustomList)
 
 
-def test_get_numpy_summarizers_without_numpy_returns_empty_dict() -> None:
-    with patch("coola.summary.interface.is_numpy_available", lambda: False):
-        assert _get_numpy_summarizers() == {}
-
-
-def test_get_numpy_summarizers_with_numpy_returns_ndarray_summarizer() -> None:
+def test_get_default_registry_registers_numpy_summarizer_when_numpy_available() -> None:
     fake_ndarray = type("FakeNDArray", (), {})
     fake_summarizer = object()
     with (
         patch("coola.summary.interface.is_numpy_available", lambda: True),
+        patch("coola.summary.interface.is_torch_available", lambda: False),
         patch("coola.summary.interface.np", Mock(ndarray=fake_ndarray), create=True),
         patch("coola.summary.interface.NDArraySummarizer", Mock(return_value=fake_summarizer)),
     ):
-        summarizers = _get_numpy_summarizers()
+        registry = get_default_registry()
 
-    assert list(summarizers) == [fake_ndarray]
-    assert summarizers[fake_ndarray] is fake_summarizer
-
-
-def test_get_torch_summarizers_without_torch_returns_empty_dict() -> None:
-    with patch("coola.summary.interface.is_torch_available", lambda: False):
-        assert _get_torch_summarizers() == {}
+    assert registry.has_summarizer(fake_ndarray)
+    assert registry.find_summarizer(fake_ndarray) is fake_summarizer
 
 
-def test_get_torch_summarizers_with_torch_returns_tensor_summarizer() -> None:
+def test_get_default_registry_registers_torch_summarizer_when_torch_available() -> None:
     fake_tensor = type("FakeTensor", (), {})
     fake_summarizer = object()
     with (
         patch("coola.summary.interface.is_torch_available", lambda: True),
+        patch("coola.summary.interface.is_numpy_available", lambda: False),
         patch("coola.summary.interface.torch", Mock(Tensor=fake_tensor), create=True),
         patch("coola.summary.interface.TensorSummarizer", Mock(return_value=fake_summarizer)),
     ):
-        summarizers = _get_torch_summarizers()
+        registry = get_default_registry()
 
-    assert list(summarizers) == [fake_tensor]
-    assert summarizers[fake_tensor] is fake_summarizer
+    assert registry.has_summarizer(fake_tensor)
+    assert registry.find_summarizer(fake_tensor) is fake_summarizer
