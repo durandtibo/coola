@@ -27,7 +27,7 @@ def test_auto_reducer_basic() -> None:
         assert isinstance(auto_reducer(), NativeReducer)
 
 
-def test_auto_reducer_prefers_torch_when_torch_and_numpy_available() -> None:
+def test_auto_reducer_prioritizes_torch_over_numpy() -> None:
     torch_reducer = Mock(spec=TorchReducer)
     with (
         patch("coola.reducer.utils.is_torch_available", lambda: True),
@@ -40,7 +40,7 @@ def test_auto_reducer_prefers_torch_when_torch_and_numpy_available() -> None:
         numpy_cls.assert_not_called()
 
 
-def test_auto_reducer_uses_numpy_when_torch_unavailable_and_numpy_available() -> None:
+def test_auto_reducer_falls_back_to_numpy() -> None:
     numpy_reducer = Mock(spec=NumpyReducer)
     with (
         patch("coola.reducer.utils.is_torch_available", lambda: False),
