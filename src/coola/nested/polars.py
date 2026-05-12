@@ -1,4 +1,4 @@
-r"""Contain functions for polars DataFrame/LazyFrame."""
+r"""Contain functions for polars DataFrame."""
 
 from __future__ import annotations
 
@@ -23,9 +23,9 @@ def is_nested_struct(dtype: pl.DataType) -> bool:
 
 
 def expand_list_columns(
-    frame: pl.DataFrame | pl.LazyFrame,
+    frame: pl.DataFrame,
     separator: str,
-) -> pl.DataFrame | pl.LazyFrame:
+) -> pl.DataFrame:
     """Expand list and array columns into one column per index position.
 
     For each ``List`` or ``Array`` column, creates new columns named
@@ -34,12 +34,12 @@ def expand_list_columns(
     filled with ``None``. The original list columns are dropped.
 
     Args:
-        frame: A DataFrame or LazyFrame that may contain list or array columns.
+        frame: A DataFrame that may contain list or array columns.
         separator: Separator used to build output column names following the
             ``<col><separator><index>`` pattern.
 
     Returns:
-        A DataFrame or LazyFrame with list and array columns replaced by
+        A DataFrame with list and array columns replaced by
         their expanded positional columns. Non-list columns are unchanged.
         If no list or array columns are present the frame is returned as-is.
     """
@@ -49,38 +49,33 @@ def expand_list_columns(
     if not list_cols:
         return frame
 
-    # Collect to DataFrame to compute max lengths — required for both input types.
-    collected = frame.collect() if isinstance(frame, pl.LazyFrame) else frame
-
     expansions: dict[str, pl.Series] = {}
     for col in list_cols:
-        max_len = collected[col].list.len().max() or 0
+        max_len = frame[col].list.len().max() or 0
         for i in range(max_len):
-            expansions[f"{col}{separator}{i}"] = collected[col].list.get(i, null_on_oob=True)
+            expansions[f"{col}{separator}{i}"] = frame[col].list.get(i, null_on_oob=True)
 
-    result = collected.drop(list_cols).with_columns(
+    return frame.drop(list_cols).with_columns(
         pl.Series(name, values) for name, values in expansions.items()
     )
-    return result.lazy() if isinstance(frame, pl.LazyFrame) else result
 
 
 def unnest_one_level(
-    frame: pl.DataFrame | pl.LazyFrame,
+    frame: pl.DataFrame,
     separator: str,
-) -> pl.DataFrame | pl.LazyFrame:
-    """Unnest all top-level struct columns in a DataFrame or LazyFrame
-    by one level.
+) -> pl.DataFrame:
+    """Unnest all top-level struct columns in a DataFrame by one level.
 
     Columns that are lists or arrays of structs are exploded first to expose
     the inner structs, which are then unnested.
 
     Args:
-        frame: A DataFrame or LazyFrame that may contain struct columns.
+        frame: A DataFrame that may contain struct columns.
         separator: Separator used to build output column names following the
             ``<parent><separator><field>`` pattern.
 
     Returns:
-        A DataFrame or LazyFrame with all top-level struct columns unnested
+        A DataFrame with all top-level struct columns unnested
         by one level. Non-struct columns are passed through unchanged. If no
         struct columns are present the frame is returned as-is.
     """
@@ -92,24 +87,19 @@ def unnest_one_level(
     struct_cols = [name for name, dtype in frame.schema.items() if isinstance(dtype, pl.Struct)]
     if not struct_cols:
         return frame
-    if isinstance(frame, pl.LazyFrame):
-        return frame.with_columns(
-            pl.col(col).struct.unnest().name.prefix(f"{col}{separator}") for col in struct_cols
-        ).drop(struct_cols)
     return frame.unnest(struct_cols, separator=separator)
 
 
 def flatten_frame(
-    frame: pl.DataFrame | pl.LazyFrame,
+    frame: pl.DataFrame,
     separator: str = ".",
     depth: int | None = None,
     expand_lists: bool = False,
-) -> pl.DataFrame | pl.LazyFrame:
+) -> pl.DataFrame:
     r"""Recursively unnest struct columns and optionally expand
     list/array columns.
 
-    Works with both ``pl.DataFrame`` and ``pl.LazyFrame``. Non-nested columns
-    are passed through unchanged. Struct columns are expanded level by level up
+    Non-nested columns are passed through unchanged. Struct columns are expanded level by level up
     to ``depth`` levels. Columns that are lists or arrays of structs are
     automatically exploded to expose their inner structs before unnesting.
     If ``expand_lists`` is enabled, remaining ``List`` and ``Array`` columns
@@ -118,7 +108,7 @@ def flatten_frame(
     is shorter than the maximum length.
 
     Args:
-        frame: A DataFrame or LazyFrame that may contain struct, list, or array
+        frame: A DataFrame that may contain struct, list, or array
             columns at any nesting level.
         separator: Separator used to build output column names following the
             ``<parent><separator><field>`` pattern. Defaults to ``"."``.
@@ -129,9 +119,9 @@ def flatten_frame(
             and array columns are left as-is.
 
     Returns:
-        A DataFrame or LazyFrame (matching the input type) where struct columns
-        are recursively unnested and, if ``expand_lists`` is ``True``, list and
-        array columns are expanded into positional columns.
+        A DataFrame where struct columns are recursively unnested and, if
+        ``expand_lists`` is ``True``, list and array columns are expanded into
+        positional columns.
 
     Raises:
         ValueError: If ``depth`` is not a positive integer or ``None``.
