@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from unittest.mock import Mock
 
 import pytest
 
@@ -17,7 +18,7 @@ if TYPE_CHECKING or is_polars_available():
     import polars as pl
     from polars.testing import assert_frame_equal
 else:  # pragma: no cover
-    from coola.utils.fallback.polars import polars as pl
+    pl = Mock()
 
 
 ######################################
