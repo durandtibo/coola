@@ -243,9 +243,9 @@ def test_unnest_one_level_list_of_struct() -> None:
     )
 
 
-#####################################################
-#     Tests for expand_list_columns — DataFrame     #
-#####################################################
+#########################################
+#     Tests for expand_list_columns     #
+#########################################
 
 
 @polars_available
@@ -385,7 +385,7 @@ def test_expand_list_columns_separator(separator: str) -> None:
 ###################################
 
 # ---------------------------------------------------------------------------
-# flatten_frame — validation
+# validation
 # ---------------------------------------------------------------------------
 
 
@@ -404,7 +404,7 @@ def test_flatten_frame_negative_depth() -> None:
 
 
 # ---------------------------------------------------------------------------
-# flatten_frame — no-op cases
+# no-op cases
 # ---------------------------------------------------------------------------
 
 
@@ -433,7 +433,7 @@ def test_flatten_frame_no_nested_columns() -> None:
 
 
 # ---------------------------------------------------------------------------
-# flatten_frame — struct unnesting
+# struct unnesting
 # ---------------------------------------------------------------------------
 
 
@@ -551,7 +551,7 @@ def test_flatten_frame_separator(separator: str) -> None:
 
 
 # ---------------------------------------------------------------------------
-# flatten_frame — list expanding
+# list expanding
 # ---------------------------------------------------------------------------
 
 
@@ -586,7 +586,7 @@ def test_flatten_frame_lists_not_expanded_by_default() -> None:
 
 
 # ---------------------------------------------------------------------------
-# flatten_frame — list of structs
+# list of structs
 # ---------------------------------------------------------------------------
 
 
@@ -638,7 +638,7 @@ def test_flatten_frame_list_of_nested_structs() -> None:
 
 
 # ---------------------------------------------------------------------------
-# flatten_frame — struct containing lists
+# struct containing lists
 # ---------------------------------------------------------------------------
 
 
