@@ -48,6 +48,8 @@ def test_is_nested_struct(dtype: pl.DataType, expected: bool) -> None:
 #     Tests for unnest_with_separator     #
 ###########################################
 
+dataframe_original_unnest = pl.DataFrame.unnest
+
 
 def unnest_without_separator(
     self: pl.DataFrame,
@@ -60,7 +62,7 @@ def unnest_without_separator(
     if "separator" in kwargs:
         msg = "DataFrame.unnest() got an unexpected keyword argument 'separator'"
         raise TypeError(msg)
-    return pl.DataFrame.unnest(self, columns, *more_columns)
+    return dataframe_original_unnest(self, columns, *more_columns)
 
 
 @polars_available
