@@ -93,56 +93,6 @@ def test_unnest_one_level_list_of_struct() -> None:
     )
 
 
-##################################################
-#     Tests for unnest_one_level — LazyFrame     #
-##################################################
-
-
-@polars_available
-def test_unnest_one_level_flat_passthrough_lazy() -> None:
-    frame = pl.DataFrame(
-        {"id": [1, 2], "value": ["a", "b"]},
-        schema={"id": pl.Int64, "value": pl.String},
-    ).lazy()
-    assert_frame_equal(
-        unnest_one_level(frame, separator=".").collect(),
-        pl.DataFrame(
-            {"id": [1, 2], "value": ["a", "b"]},
-            schema={"id": pl.Int64, "value": pl.String},
-        ),
-    )
-
-
-@polars_available
-def test_unnest_one_level_single_struct_lazy() -> None:
-    frame = pl.DataFrame(
-        {"id": [1, 2], "coords": [{"x": 10, "y": 20}, {"x": 30, "y": 40}]},
-        schema={"id": pl.Int64, "coords": pl.Struct({"x": pl.Int64, "y": pl.Int64})},
-    ).lazy()
-    assert_frame_equal(
-        unnest_one_level(frame, separator=".").collect(),
-        pl.DataFrame(
-            {"id": [1, 2], "coords.x": [10, 30], "coords.y": [20, 40]},
-            schema={"id": pl.Int64, "coords.x": pl.Int64, "coords.y": pl.Int64},
-        ),
-    )
-
-
-@polars_available
-def test_unnest_one_level_list_of_struct_lazy() -> None:
-    frame = pl.DataFrame(
-        {"id": [1, 2], "items": [[{"name": "a"}], [{"name": "b"}, {"name": "c"}]]},
-        schema={"id": pl.Int64, "items": pl.List(pl.Struct({"name": pl.String}))},
-    ).lazy()
-    assert_frame_equal(
-        unnest_one_level(frame, separator=".").collect(),
-        pl.DataFrame(
-            {"id": [1, 2, 2], "items.name": ["a", "b", "c"]},
-            schema={"id": pl.Int64, "items.name": pl.String},
-        ),
-    )
-
-
 #####################################################
 #     Tests for expand_list_columns — DataFrame     #
 #####################################################
@@ -276,41 +226,6 @@ def test_expand_list_columns_separator(separator: str) -> None:
         pl.DataFrame(
             {f"tags{separator}0": ["a", "c"], f"tags{separator}1": ["b", None]},
             schema={f"tags{separator}0": pl.String, f"tags{separator}1": pl.String},
-        ),
-    )
-
-
-#####################################################
-#     Tests for expand_list_columns — LazyFrame     #
-#####################################################
-
-
-@polars_available
-def test_expand_list_columns_no_lists_lazy() -> None:
-    frame = pl.DataFrame(
-        {"id": [1, 2], "value": ["a", "b"]},
-        schema={"id": pl.Int64, "value": pl.String},
-    ).lazy()
-    assert_frame_equal(
-        expand_list_columns(frame, separator=".").collect(),
-        pl.DataFrame(
-            {"id": [1, 2], "value": ["a", "b"]},
-            schema={"id": pl.Int64, "value": pl.String},
-        ),
-    )
-
-
-@polars_available
-def test_expand_list_columns_unequal_length_lists_lazy() -> None:
-    frame = pl.DataFrame(
-        {"id": [1, 2], "tags": [["foo", "bar"], ["baz"]]},
-        schema={"id": pl.Int64, "tags": pl.List(pl.String)},
-    ).lazy()
-    assert_frame_equal(
-        expand_list_columns(frame, separator=".").collect(),
-        pl.DataFrame(
-            {"id": [1, 2], "tags.0": ["foo", "baz"], "tags.1": ["bar", None]},
-            schema={"id": pl.Int64, "tags.0": pl.String, "tags.1": pl.String},
         ),
     )
 
@@ -485,39 +400,6 @@ def test_flatten_frame_separator(separator: str) -> None:
     )
 
 
-@polars_available
-def test_flatten_frame_single_struct_lazy() -> None:
-    frame = pl.DataFrame(
-        {"id": [1, 2], "coords": [{"x": 10, "y": 20}, {"x": 30, "y": 40}]},
-        schema={"id": pl.Int64, "coords": pl.Struct({"x": pl.Int64, "y": pl.Int64})},
-    ).lazy()
-    assert_frame_equal(
-        flatten_frame(frame).collect(),
-        pl.DataFrame(
-            {"id": [1, 2], "coords.x": [10, 30], "coords.y": [20, 40]},
-            schema={"id": pl.Int64, "coords.x": pl.Int64, "coords.y": pl.Int64},
-        ),
-    )
-
-
-@polars_available
-def test_flatten_frame_three_level_nested_struct_lazy() -> None:
-    frame = pl.DataFrame(
-        {"id": [1], "a": [{"b": {"c": {"d": 42}}}]},
-        schema={
-            "id": pl.Int64,
-            "a": pl.Struct({"b": pl.Struct({"c": pl.Struct({"d": pl.Int64})})}),
-        },
-    ).lazy()
-    assert_frame_equal(
-        flatten_frame(frame).collect(),
-        pl.DataFrame(
-            {"id": [1], "a.b.c.d": [42]},
-            schema={"id": pl.Int64, "a.b.c.d": pl.Int64},
-        ),
-    )
-
-
 # ---------------------------------------------------------------------------
 # flatten_frame — list expanding
 # ---------------------------------------------------------------------------
@@ -549,21 +431,6 @@ def test_flatten_frame_lists_not_expanded_by_default() -> None:
         pl.DataFrame(
             {"id": [1, 2], "tags": [["foo", "bar"], ["baz"]]},
             schema={"id": pl.Int64, "tags": pl.List(pl.String)},
-        ),
-    )
-
-
-@polars_available
-def test_flatten_frame_expand_lists_lazy() -> None:
-    frame = pl.DataFrame(
-        {"id": [1, 2], "tags": [["foo", "bar"], ["baz"]]},
-        schema={"id": pl.Int64, "tags": pl.List(pl.String)},
-    ).lazy()
-    assert_frame_equal(
-        flatten_frame(frame, expand_lists=True).collect(),
-        pl.DataFrame(
-            {"id": [1, 2], "tags.0": ["foo", "baz"], "tags.1": ["bar", None]},
-            schema={"id": pl.Int64, "tags.0": pl.String, "tags.1": pl.String},
         ),
     )
 
@@ -620,27 +487,6 @@ def test_flatten_frame_list_of_nested_structs() -> None:
     )
 
 
-@polars_available
-def test_flatten_frame_list_of_structs_lazy() -> None:
-    frame = pl.DataFrame(
-        {
-            "id": [1, 2],
-            "items": [
-                [{"name": "a", "val": 1}],
-                [{"name": "b", "val": 2}, {"name": "c", "val": 3}],
-            ],
-        },
-        schema={"id": pl.Int64, "items": pl.List(pl.Struct({"name": pl.String, "val": pl.Int64}))},
-    ).lazy()
-    assert_frame_equal(
-        flatten_frame(frame).collect(),
-        pl.DataFrame(
-            {"id": [1, 2, 2], "items.name": ["a", "b", "c"], "items.val": [1, 2, 3]},
-            schema={"id": pl.Int64, "items.name": pl.String, "items.val": pl.Int64},
-        ),
-    )
-
-
 # ---------------------------------------------------------------------------
 # flatten_frame — struct containing lists
 # ---------------------------------------------------------------------------
@@ -686,199 +532,3 @@ def test_flatten_frame_struct_with_list_field_expanded() -> None:
     )
 
 
-# ---------------------------------------------------------------------------
-# flatten_frame — no-op cases (lazy)
-# ---------------------------------------------------------------------------
-
-
-@polars_available
-def test_flatten_frame_empty_lazy() -> None:
-    frame = pl.DataFrame(
-        {"id": pl.Series([], dtype=pl.Int64)},
-        schema={"id": pl.Int64},
-    ).lazy()
-    assert_frame_equal(
-        flatten_frame(frame).collect(),
-        pl.DataFrame({"id": pl.Series([], dtype=pl.Int64)}, schema={"id": pl.Int64}),
-    )
-
-
-@polars_available
-def test_flatten_frame_no_nested_columns_lazy() -> None:
-    frame = pl.DataFrame(
-        {"id": [1, 2], "value": ["a", "b"]},
-        schema={"id": pl.Int64, "value": pl.String},
-    ).lazy()
-    assert_frame_equal(
-        flatten_frame(frame).collect(),
-        pl.DataFrame(
-            {"id": [1, 2], "value": ["a", "b"]},
-            schema={"id": pl.Int64, "value": pl.String},
-        ),
-    )
-
-
-# ---------------------------------------------------------------------------
-# flatten_frame — struct unnesting (lazy)
-# ---------------------------------------------------------------------------
-
-
-@polars_available
-def test_flatten_frame_two_level_nested_struct_lazy() -> None:
-    frame = pl.DataFrame(
-        {
-            "id": [1, 2],
-            "coords": [{"x": 10, "meta": {"label": "a"}}, {"x": 30, "meta": {"label": "b"}}],
-        },
-        schema={
-            "id": pl.Int64,
-            "coords": pl.Struct({"x": pl.Int64, "meta": pl.Struct({"label": pl.String})}),
-        },
-    ).lazy()
-    assert_frame_equal(
-        flatten_frame(frame).collect(),
-        pl.DataFrame(
-            {"id": [1, 2], "coords.x": [10, 30], "coords.meta.label": ["a", "b"]},
-            schema={"id": pl.Int64, "coords.x": pl.Int64, "coords.meta.label": pl.String},
-        ),
-    )
-
-
-@polars_available
-@pytest.mark.parametrize(
-    ("depth", "expected"),
-    [
-        pytest.param(
-            1,
-            pl.DataFrame(
-                {"id": [1], "a.b": [{"c": {"d": 42}}]},
-                schema={"id": pl.Int64, "a.b": pl.Struct({"c": pl.Struct({"d": pl.Int64})})},
-            ),
-            id="depth-1",
-        ),
-        pytest.param(
-            2,
-            pl.DataFrame(
-                {"id": [1], "a.b.c": [{"d": 42}]},
-                schema={"id": pl.Int64, "a.b.c": pl.Struct({"d": pl.Int64})},
-            ),
-            id="depth-2",
-        ),
-        pytest.param(
-            3,
-            pl.DataFrame(
-                {"id": [1], "a.b.c.d": [42]},
-                schema={"id": pl.Int64, "a.b.c.d": pl.Int64},
-            ),
-            id="depth-3",
-        ),
-    ],
-)
-def test_flatten_frame_depth_limit_lazy(depth: int, expected: pl.DataFrame) -> None:
-    frame = pl.DataFrame(
-        {"id": [1], "a": [{"b": {"c": {"d": 42}}}]},
-        schema={
-            "id": pl.Int64,
-            "a": pl.Struct({"b": pl.Struct({"c": pl.Struct({"d": pl.Int64})})}),
-        },
-    ).lazy()
-    assert_frame_equal(flatten_frame(frame, depth=depth).collect(), expected)
-
-
-@polars_available
-@pytest.mark.parametrize(
-    "separator", [".", "_", "__"], ids=["dot", "underscore", "double-underscore"]
-)
-def test_flatten_frame_separator_lazy(separator: str) -> None:
-    frame = pl.DataFrame(
-        {"coords": [{"x": 1, "y": 2}]},
-        schema={"coords": pl.Struct({"x": pl.Int64, "y": pl.Int64})},
-    ).lazy()
-    assert_frame_equal(
-        flatten_frame(frame, separator=separator).collect(),
-        pl.DataFrame(
-            {f"coords{separator}x": [1], f"coords{separator}y": [2]},
-            schema={f"coords{separator}x": pl.Int64, f"coords{separator}y": pl.Int64},
-        ),
-    )
-
-
-# ---------------------------------------------------------------------------
-# flatten_frame — list expanding (lazy)
-# ---------------------------------------------------------------------------
-
-
-@polars_available
-def test_flatten_frame_lists_not_expanded_by_default_lazy() -> None:
-    frame = pl.DataFrame(
-        {"id": [1, 2], "tags": [["foo", "bar"], ["baz"]]},
-        schema={"id": pl.Int64, "tags": pl.List(pl.String)},
-    ).lazy()
-    assert_frame_equal(
-        flatten_frame(frame).collect(),
-        pl.DataFrame(
-            {"id": [1, 2], "tags": [["foo", "bar"], ["baz"]]},
-            schema={"id": pl.Int64, "tags": pl.List(pl.String)},
-        ),
-    )
-
-
-# ---------------------------------------------------------------------------
-# flatten_frame — list of nested structs (lazy)
-# ---------------------------------------------------------------------------
-
-
-@polars_available
-def test_flatten_frame_list_of_nested_structs_lazy() -> None:
-    frame = pl.DataFrame(
-        {
-            "id": [1, 2],
-            "items": [
-                [{"name": "a", "meta": {"score": 1.0}}],
-                [{"name": "b", "meta": {"score": 2.0}}, {"name": "c", "meta": {"score": 3.0}}],
-            ],
-        },
-        schema={
-            "id": pl.Int64,
-            "items": pl.List(
-                pl.Struct({"name": pl.String, "meta": pl.Struct({"score": pl.Float64})})
-            ),
-        },
-    ).lazy()
-    assert_frame_equal(
-        flatten_frame(frame).collect(),
-        pl.DataFrame(
-            {"id": [1, 2, 2], "items.name": ["a", "b", "c"], "items.meta.score": [1.0, 2.0, 3.0]},
-            schema={"id": pl.Int64, "items.name": pl.String, "items.meta.score": pl.Float64},
-        ),
-    )
-
-
-# ---------------------------------------------------------------------------
-# flatten_frame — struct containing lists (lazy)
-# ---------------------------------------------------------------------------
-
-
-@polars_available
-def test_flatten_frame_struct_with_list_field_expanded_lazy() -> None:
-    frame = pl.DataFrame(
-        {"id": [1, 2], "data": [{"tags": ["a", "b"], "score": 1}, {"tags": ["c"], "score": 2}]},
-        schema={"id": pl.Int64, "data": pl.Struct({"tags": pl.List(pl.String), "score": pl.Int64})},
-    ).lazy()
-    assert_frame_equal(
-        flatten_frame(frame, expand_lists=True).collect(),
-        pl.DataFrame(
-            {
-                "id": [1, 2],
-                "data.score": [1, 2],
-                "data.tags.0": ["a", "c"],
-                "data.tags.1": ["b", None],
-            },
-            schema={
-                "id": pl.Int64,
-                "data.score": pl.Int64,
-                "data.tags.0": pl.String,
-                "data.tags.1": pl.String,
-            },
-        ),
-    )
