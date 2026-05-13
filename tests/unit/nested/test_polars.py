@@ -63,6 +63,7 @@ def unnest_without_separator(
     return pl.DataFrame.unnest(self, columns, *more_columns)
 
 
+@polars_available
 def test_unnest_with_separator_single_struct() -> None:
     frame = pl.DataFrame(
         {"id": [1, 2], "coords": [{"x": 10, "y": 20}, {"x": 30, "y": 40}]},
@@ -77,6 +78,7 @@ def test_unnest_with_separator_single_struct() -> None:
     )
 
 
+@polars_available
 def test_unnest_with_separator_multiple_structs() -> None:
     frame = pl.DataFrame(
         {
@@ -104,6 +106,7 @@ def test_unnest_with_separator_multiple_structs() -> None:
     )
 
 
+@polars_available
 @pytest.mark.parametrize(
     "separator", [".", "_", "__"], ids=["dot", "underscore", "double-underscore"]
 )
@@ -121,6 +124,7 @@ def test_unnest_with_separator_separators(separator: str) -> None:
     )
 
 
+@polars_available
 def test_unnest_with_separator_fallback_single_struct() -> None:
     frame = pl.DataFrame(
         {"id": [1, 2], "coords": [{"x": 10, "y": 20}, {"x": 30, "y": 40}]},
@@ -136,6 +140,7 @@ def test_unnest_with_separator_fallback_single_struct() -> None:
         )
 
 
+@polars_available
 def test_unnest_with_separator_fallback_multiple_structs() -> None:
     frame = pl.DataFrame(
         {
@@ -169,6 +174,7 @@ def test_unnest_with_separator_fallback_multiple_structs() -> None:
         )
 
 
+@polars_available
 @pytest.mark.parametrize(
     "separator", [".", "_", "__"], ids=["dot", "underscore", "double-underscore"]
 )
