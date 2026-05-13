@@ -530,5 +530,3 @@ def test_flatten_frame_struct_with_list_field_expanded() -> None:
             },
         ),
     )
-
-
