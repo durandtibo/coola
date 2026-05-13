@@ -2,7 +2,13 @@ r"""Contain functions for polars DataFrame."""
 
 from __future__ import annotations
 
-__all__ = ["expand_list_columns", "flatten_frame", "is_nested_struct", "unnest_one_level"]
+__all__ = [
+    "expand_list_columns",
+    "flatten_frame",
+    "is_nested_struct",
+    "unnest_one_level",
+    "unnest_with_separator",
+]
 
 from typing import TYPE_CHECKING
 
@@ -20,6 +26,35 @@ def is_nested_struct(dtype: pl.DataType) -> bool:
     if isinstance(dtype, (pl.List, pl.Array)):
         return isinstance(dtype.inner, pl.Struct)
     return False
+
+
+def unnest_with_separator(frame: pl.DataFrame, columns: list[str], separator: str) -> pl.DataFrame:
+    """Unnest struct columns with a separator prefix, compatible with
+    polars>=1.0.0.
+
+    On polars>=1.35.0, delegates to the native ``unnest(separator=...)`` parameter.
+    On older versions, unnests without a separator and renames the resulting columns
+    to ``<parent><separator><field>`` manually.
+
+    Args:
+        frame: A DataFrame containing the struct columns to unnest.
+        columns: Names of the struct columns to unnest.
+        separator: Separator used to build output column names following the
+            ``<parent><separator><field>`` pattern.
+
+    Returns:
+        A DataFrame with the given struct columns unnested and output columns
+        named ``<parent><separator><field>``.
+    """
+    try:
+        return frame.unnest(columns, separator=separator)
+    except TypeError:
+        rename_map = {
+            field.name: f"{col}{separator}{field.name}"
+            for col in columns
+            for field in frame.schema[col].fields
+        }
+        return frame.unnest(columns).rename(rename_map)
 
 
 def expand_list_columns(
@@ -79,7 +114,6 @@ def unnest_one_level(
         by one level. Non-struct columns are passed through unchanged. If no
         struct columns are present the frame is returned as-is.
     """
-    # Explode list[struct] and array[struct] columns first to expose inner structs.
     nested_struct_cols = [name for name, dtype in frame.schema.items() if is_nested_struct(dtype)]
     if nested_struct_cols:
         frame = frame.explode(nested_struct_cols)
@@ -87,7 +121,8 @@ def unnest_one_level(
     struct_cols = [name for name, dtype in frame.schema.items() if isinstance(dtype, pl.Struct)]
     if not struct_cols:
         return frame
-    return frame.unnest(struct_cols, separator=separator)
+
+    return unnest_with_separator(frame, struct_cols, separator)
 
 
 def flatten_frame(

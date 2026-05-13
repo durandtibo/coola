@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -10,6 +10,7 @@ from coola.nested.polars import (
     flatten_frame,
     is_nested_struct,
     unnest_one_level,
+    unnest_with_separator,
 )
 from coola.testing.fixtures import polars_available
 from coola.utils.imports import is_polars_available
@@ -43,9 +44,152 @@ def test_is_nested_struct(dtype: pl.DataType, expected: bool) -> None:
     assert is_nested_struct(dtype) == expected
 
 
-##################################################
-#     Tests for unnest_one_level — DataFrame     #
-##################################################
+###########################################
+#     Tests for unnest_with_separator     #
+###########################################
+
+
+def unnest_without_separator(
+    self: pl.DataFrame,
+    columns: str | list[str],
+    *more_columns: str,
+    **kwargs: object,
+) -> pl.DataFrame:
+    """Simulate old polars behaviour by raising TypeError when separator
+    is passed."""
+    if "separator" in kwargs:
+        msg = "DataFrame.unnest() got an unexpected keyword argument 'separator'"
+        raise TypeError(msg)
+    return pl.DataFrame.unnest(self, columns, *more_columns)
+
+
+def test_unnest_with_separator_single_struct() -> None:
+    frame = pl.DataFrame(
+        {"id": [1, 2], "coords": [{"x": 10, "y": 20}, {"x": 30, "y": 40}]},
+        schema={"id": pl.Int64, "coords": pl.Struct({"x": pl.Int64, "y": pl.Int64})},
+    )
+    assert_frame_equal(
+        unnest_with_separator(frame, ["coords"], separator="."),
+        pl.DataFrame(
+            {"id": [1, 2], "coords.x": [10, 30], "coords.y": [20, 40]},
+            schema={"id": pl.Int64, "coords.x": pl.Int64, "coords.y": pl.Int64},
+        ),
+    )
+
+
+def test_unnest_with_separator_multiple_structs() -> None:
+    frame = pl.DataFrame(
+        {
+            "id": [1, 2],
+            "coords": [{"x": 10, "y": 20}, {"x": 30, "y": 40}],
+            "meta": [{"label": "a"}, {"label": "b"}],
+        },
+        schema={
+            "id": pl.Int64,
+            "coords": pl.Struct({"x": pl.Int64, "y": pl.Int64}),
+            "meta": pl.Struct({"label": pl.String}),
+        },
+    )
+    assert_frame_equal(
+        unnest_with_separator(frame, ["coords", "meta"], separator="."),
+        pl.DataFrame(
+            {"id": [1, 2], "coords.x": [10, 30], "coords.y": [20, 40], "meta.label": ["a", "b"]},
+            schema={
+                "id": pl.Int64,
+                "coords.x": pl.Int64,
+                "coords.y": pl.Int64,
+                "meta.label": pl.String,
+            },
+        ),
+    )
+
+
+@pytest.mark.parametrize(
+    "separator", [".", "_", "__"], ids=["dot", "underscore", "double-underscore"]
+)
+def test_unnest_with_separator_separators(separator: str) -> None:
+    frame = pl.DataFrame(
+        {"coords": [{"x": 1, "y": 2}]},
+        schema={"coords": pl.Struct({"x": pl.Int64, "y": pl.Int64})},
+    )
+    assert_frame_equal(
+        unnest_with_separator(frame, ["coords"], separator=separator),
+        pl.DataFrame(
+            {f"coords{separator}x": [1], f"coords{separator}y": [2]},
+            schema={f"coords{separator}x": pl.Int64, f"coords{separator}y": pl.Int64},
+        ),
+    )
+
+
+def test_unnest_with_separator_fallback_single_struct() -> None:
+    frame = pl.DataFrame(
+        {"id": [1, 2], "coords": [{"x": 10, "y": 20}, {"x": 30, "y": 40}]},
+        schema={"id": pl.Int64, "coords": pl.Struct({"x": pl.Int64, "y": pl.Int64})},
+    )
+    with patch.object(pl.DataFrame, "unnest", unnest_without_separator):
+        assert_frame_equal(
+            unnest_with_separator(frame, ["coords"], separator="."),
+            pl.DataFrame(
+                {"id": [1, 2], "coords.x": [10, 30], "coords.y": [20, 40]},
+                schema={"id": pl.Int64, "coords.x": pl.Int64, "coords.y": pl.Int64},
+            ),
+        )
+
+
+def test_unnest_with_separator_fallback_multiple_structs() -> None:
+    frame = pl.DataFrame(
+        {
+            "id": [1, 2],
+            "coords": [{"x": 10, "y": 20}, {"x": 30, "y": 40}],
+            "meta": [{"label": "a"}, {"label": "b"}],
+        },
+        schema={
+            "id": pl.Int64,
+            "coords": pl.Struct({"x": pl.Int64, "y": pl.Int64}),
+            "meta": pl.Struct({"label": pl.String}),
+        },
+    )
+    with patch.object(pl.DataFrame, "unnest", unnest_without_separator):
+        assert_frame_equal(
+            unnest_with_separator(frame, ["coords", "meta"], separator="."),
+            pl.DataFrame(
+                {
+                    "id": [1, 2],
+                    "coords.x": [10, 30],
+                    "coords.y": [20, 40],
+                    "meta.label": ["a", "b"],
+                },
+                schema={
+                    "id": pl.Int64,
+                    "coords.x": pl.Int64,
+                    "coords.y": pl.Int64,
+                    "meta.label": pl.String,
+                },
+            ),
+        )
+
+
+@pytest.mark.parametrize(
+    "separator", [".", "_", "__"], ids=["dot", "underscore", "double-underscore"]
+)
+def test_unnest_with_separator_fallback_separators(separator: str) -> None:
+    frame = pl.DataFrame(
+        {"coords": [{"x": 1, "y": 2}]},
+        schema={"coords": pl.Struct({"x": pl.Int64, "y": pl.Int64})},
+    )
+    with patch.object(pl.DataFrame, "unnest", unnest_without_separator):
+        assert_frame_equal(
+            unnest_with_separator(frame, ["coords"], separator=separator),
+            pl.DataFrame(
+                {f"coords{separator}x": [1], f"coords{separator}y": [2]},
+                schema={f"coords{separator}x": pl.Int64, f"coords{separator}y": pl.Int64},
+            ),
+        )
+
+
+######################################
+#     Tests for unnest_one_level     #
+######################################
 
 
 @polars_available
