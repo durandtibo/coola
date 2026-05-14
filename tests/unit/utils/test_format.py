@@ -24,14 +24,10 @@ from coola.utils.format import (
 ##############################
 
 
-def test_make_bar_raises_value_error_if_value_is_negative() -> None:
+@pytest.mark.parametrize("value", [-0.1, 1.1, float("nan"), float("inf")])
+def test_make_bar_raises_value_error(value: float) -> None:
     with pytest.raises(ValueError, match="value must be in"):
-        make_bar(-0.1)
-
-
-def test_make_bar_raises_value_error_if_value_is_greater_than_1() -> None:
-    with pytest.raises(ValueError, match="value must be in"):
-        make_bar(1.1)
+        make_bar(value)
 
 
 def test_make_bar_raises_value_error_if_length_is_zero() -> None:
