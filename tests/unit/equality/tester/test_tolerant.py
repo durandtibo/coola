@@ -1,44 +1,19 @@
 from __future__ import annotations
 
 import logging
-import math
 from unittest.mock import Mock
 
 import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.tester import TolerantEqualEqualityTester
+from tests.unit.equality.handler.test_tolerant import MyFloat
 from tests.unit.equality.utils import ExamplePair
 
 
 @pytest.fixture
 def config() -> EqualityConfig:
     return EqualityConfig()
-
-
-class MyFloat:
-    def __init__(self, value: float) -> None:
-        self._value = float(value)
-
-    def allclose(
-        self,
-        other: object,
-        rtol: float = 1e-5,
-        atol: float = 1e-8,
-        equal_nan: bool = False,
-    ) -> bool:
-        if type(other) is not type(self):
-            return False
-        if equal_nan and math.isnan(self._value) and math.isnan(other._value):
-            return True
-        return math.isclose(self._value, other._value, rel_tol=rtol, abs_tol=atol)
-
-    def equal(self, other: object, equal_nan: bool = False) -> bool:
-        if type(other) is not type(self):
-            return False
-        if equal_nan and math.isnan(self._value) and math.isnan(other._value):
-            return True
-        return self._value == other._value
 
 
 TOLERANT_EQUAL_EQUAL = [
