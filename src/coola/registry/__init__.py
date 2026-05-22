@@ -1,4 +1,4 @@
-r"""Experimental package with registry implementations."""
+r"""General-purpose registry primitives used across the package."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-r"""Contain functionalities to manage randomness."""
+r"""Utilities to control and restore random number generator states."""
 
 from __future__ import annotations
 

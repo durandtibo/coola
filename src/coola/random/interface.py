@@ -37,30 +37,23 @@ if TYPE_CHECKING:
 def random_seed(
     seed: int, manager: RandomManagerRegistry | None = None
 ) -> Generator[None, None, None]:
-    r"""Implement a context manager to manage the random seed and random
-    number generator (RNG) state.
-
-    The context manager sets the specified random seed and
-    restores the original RNG state afterward.
+    r"""Temporarily set a random seed and restore previous RNG state.
 
     Args:
-        seed: The random number generator seed to use while using
-            this context manager.
-        manager: An optional RandomManagerRegistry instance to use.
-            If not provided, the default random manager will be used.
+        seed: Seed used while inside the context manager.
+        manager: Random manager registry to use. If ``None``, the default
+            registry is used.
 
     Example:
         ```pycon
-        >>> import numpy
+        >>> import random
         >>> from coola.random import random_seed
         >>> with random_seed(42):
-        ...     print(numpy.random.randn(2, 4))
-        ...
-        [[...]]
+        ...     first = random.random()
         >>> with random_seed(42):
-        ...     print(numpy.random.randn(2, 4))
-        ...
-        [[...]]
+        ...     second = random.random()
+        >>> first == second
+        True
 
         ```
     """
@@ -77,14 +70,14 @@ def get_rng_state() -> dict[str, Any]:
     r"""Get the current RNG state.
 
     Returns:
-        The current RNG state.
+        Mapping of manager names to their serialized RNG states.
 
     Example:
         ```pycon
         >>> from coola.random import get_rng_state
         >>> state = get_rng_state()
-        >>> state
-        {'random': ...}
+        >>> "random" in state
+        True
 
         ```
     """
@@ -99,16 +92,14 @@ def manual_seed(seed: int) -> None:
 
     Example:
         ```pycon
-        >>> import torch
+        >>> import random
         >>> from coola.random import manual_seed
         >>> manual_seed(42)
-        >>> torch.randn(3)
-        tensor([...])
-        >>> torch.randn(3)
-        tensor([...])
+        >>> first = random.random()
         >>> manual_seed(42)
-        >>> torch.randn(3)
-        tensor([...])
+        >>> second = random.random()
+        >>> first == second
+        True
 
         ```
     """
@@ -123,10 +114,12 @@ def set_rng_state(state: dict[str, Any]) -> None:
 
     Example:
         ```pycon
-        >>> import torch
         >>> from coola.random import get_rng_state, set_rng_state
-        >>> st = get_rng_state()
-        >>> set_rng_state(st)
+        >>> before = get_rng_state()
+        >>> set_rng_state(before)
+        >>> after = get_rng_state()
+        >>> before.keys() == after.keys()
+        True
 
         ```
     """
@@ -140,8 +133,9 @@ def register_managers(mapping: Mapping[str, BaseRandomManager], exist_ok: bool =
     without modifying global state directly.
 
     Args:
-        mapping: Dictionary mapping manager names to manager instances
-        exist_ok: If False, raises error if any manager name already registered
+        mapping: Mapping of manager names to manager instances.
+        exist_ok: If ``False``, raise an error when a manager name is
+            already registered.
 
     Example:
         ```pycon
@@ -166,10 +160,9 @@ def get_default_registry() -> RandomManagerRegistry:
     across an application.
 
     Returns:
-        A RandomManagerRegistry instance with managers registered for:
-            - "random": Python's random module (always available)
-            - "numpy": NumPy random (if NumPy is installed)
-            - "torch": PyTorch random (if PyTorch is installed)
+        A singleton ``RandomManagerRegistry`` with a manager for Python's
+        ``random`` module and optional managers for NumPy/PyTorch when those
+        dependencies are available.
 
     Notes:
         The singleton pattern means modifications to the returned registry

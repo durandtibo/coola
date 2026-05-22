@@ -1,4 +1,4 @@
-r"""Contain code to check if two objects are equal or not."""
+r"""Utilities to compare nested objects for exact or tolerant equality."""
 
 from __future__ import annotations
 
