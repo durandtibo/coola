@@ -11,8 +11,12 @@ __all__ = ["TolerantEqualEqualityTester"]
 
 from typing import TYPE_CHECKING
 
-from coola.equality.handler import SameObjectHandler, SameTypeHandler, create_chain
-from coola.equality.handler.tolerant import TolerantEqualHandler
+from coola.equality.handler import (
+    SameObjectHandler,
+    SameTypeHandler,
+    TolerantEqualHandler,
+    create_chain,
+)
 from coola.equality.tester.base import BaseEqualityTester
 
 if TYPE_CHECKING:
