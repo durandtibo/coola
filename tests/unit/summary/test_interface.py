@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Generator, Mapping, Sequence
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -207,3 +208,33 @@ def test_get_default_registry_singleton_persists_modifications() -> None:
     registry2 = get_default_registry()
     assert registry1 is registry2
     assert registry2.has_summarizer(CustomList)
+
+
+def test_get_default_registry_registers_numpy_summarizer_when_numpy_available() -> None:
+    fake_ndarray = type("FakeNDArray", (), {})
+    fake_summarizer = object()
+    with (
+        patch("coola.summary.interface.is_numpy_available", lambda: True),
+        patch("coola.summary.interface.is_torch_available", lambda: False),
+        patch("coola.summary.interface.np", Mock(ndarray=fake_ndarray), create=True),
+        patch("coola.summary.interface.NDArraySummarizer", Mock(return_value=fake_summarizer)),
+    ):
+        registry = get_default_registry()
+
+    assert registry.has_summarizer(fake_ndarray)
+    assert registry.find_summarizer(fake_ndarray) is fake_summarizer
+
+
+def test_get_default_registry_registers_torch_summarizer_when_torch_available() -> None:
+    fake_tensor = type("FakeTensor", (), {})
+    fake_summarizer = object()
+    with (
+        patch("coola.summary.interface.is_torch_available", lambda: True),
+        patch("coola.summary.interface.is_numpy_available", lambda: False),
+        patch("coola.summary.interface.torch", Mock(Tensor=fake_tensor), create=True),
+        patch("coola.summary.interface.TensorSummarizer", Mock(return_value=fake_summarizer)),
+    ):
+        registry = get_default_registry()
+
+    assert registry.has_summarizer(fake_tensor)
+    assert registry.find_summarizer(fake_tensor) is fake_summarizer

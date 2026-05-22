@@ -1,10 +1,13 @@
-"""Recursive data transformation using DFS pattern.
+r"""Provide utilities to recursively apply a function to all items in
+nested data structures.
 
-This design is inspired by the DFS array iterator pattern and provides:
-1. Memory-efficient generator-based traversal
-2. Clean separation between transformation logic and type dispatch
-3. No state object threading through recursion
-4. Easy extensibility via registry pattern
+Example:
+    ```pycon
+    >>> from coola.recursive import recursive_apply
+    >>> recursive_apply({"a": 1, "b": 2}, lambda x: x * 10)
+    {'a': 10, 'b': 20}
+
+    ```
 """
 
 from __future__ import annotations
