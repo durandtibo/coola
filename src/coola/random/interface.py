@@ -50,8 +50,10 @@ def random_seed(
         >>> from coola.random import random_seed
         >>> with random_seed(42):
         ...     first = random.random()
+        ...
         >>> with random_seed(42):
         ...     second = random.random()
+        ...
         >>> first == second
         True
 

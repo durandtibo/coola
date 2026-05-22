@@ -130,7 +130,9 @@ def test_manual_seed() -> None:
 
 def test_manual_seed_calls_default_registry() -> None:
     manager = Mock()
-    with patch("coola.random.interface.get_default_registry", Mock(return_value=manager)) as get_registry:
+    with patch(
+        "coola.random.interface.get_default_registry", Mock(return_value=manager)
+    ) as get_registry:
         manual_seed(42)
     get_registry.assert_called_once()
     manager.manual_seed.assert_called_once_with(42)
@@ -155,7 +157,9 @@ def test_set_rng_state() -> None:
 def test_set_rng_state_calls_default_registry() -> None:
     manager = Mock()
     state = {"random": ("state",)}
-    with patch("coola.random.interface.get_default_registry", Mock(return_value=manager)) as get_registry:
+    with patch(
+        "coola.random.interface.get_default_registry", Mock(return_value=manager)
+    ) as get_registry:
         set_rng_state(state)
     get_registry.assert_called_once()
     manager.set_rng_state.assert_called_once_with(state)
