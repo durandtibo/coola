@@ -34,48 +34,48 @@ class TolerantEqualEqualityTester(BaseEqualityTester[object]):
            tolerances are non-zero, otherwise to ``equal``.
 
     Example:
-    ```pycon
-    >>> import math
-    >>> from coola.equality.config import EqualityConfig
-    >>> from coola.equality.tester import TolerantEqualEqualityTester
-    >>> class MyFloat:
-    ...     def __init__(self, value: float) -> None:
-    ...         self._value = float(value)
-    ...     def allclose(
-    ...         self,
-    ...         other: object,
-    ...         rtol: float = 1e-5,
-    ...         atol: float = 1e-8,
-    ...         equal_nan: bool = False,
-    ...     ) -> bool:
-    ...         if type(other) is not type(self):
-    ...             return False
-    ...         if equal_nan and math.isnan(self._value) and math.isnan(other._value):
-    ...             return True
-    ...         return math.isclose(self._value, other._value, rel_tol=rtol, abs_tol=atol)
-    ...     def equal(self, other: object, equal_nan: bool = False) -> bool:
-    ...         if type(other) is not type(self):
-    ...             return False
-    ...         if equal_nan and math.isnan(self._value) and math.isnan(other._value):
-    ...             return True
-    ...         return self._value == other._value
-    ...
-    >>> config = EqualityConfig()
-    >>> tester = TolerantEqualEqualityTester()
-    >>> tester.objects_are_equal(MyFloat(42), MyFloat(42), config)
-    True
-    >>> tester.objects_are_equal(MyFloat(42), MyFloat(1), config)
-    False
-    >>> tester.objects_are_equal(MyFloat(float("nan")), MyFloat(float("nan")), config)
-    False
-    >>> config.equal_nan = True
-    >>> tester.objects_are_equal(MyFloat(float("nan")), MyFloat(float("nan")), config)
-    True
-    >>> config.atol = 0.5
-    >>> tester.objects_are_equal(MyFloat(1.0), MyFloat(1.4), config)
-    True
+        ```pycon
+        >>> import math
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.tester import TolerantEqualEqualityTester
+        >>> class MyFloat:
+        ...     def __init__(self, value: float) -> None:
+        ...         self._value = float(value)
+        ...     def allclose(
+        ...         self,
+        ...         other: object,
+        ...         rtol: float = 1e-5,
+        ...         atol: float = 1e-8,
+        ...         equal_nan: bool = False,
+        ...     ) -> bool:
+        ...         if type(other) is not type(self):
+        ...             return False
+        ...         if equal_nan and math.isnan(self._value) and math.isnan(other._value):
+        ...             return True
+        ...         return math.isclose(self._value, other._value, rel_tol=rtol, abs_tol=atol)
+        ...     def equal(self, other: object, equal_nan: bool = False) -> bool:
+        ...         if type(other) is not type(self):
+        ...             return False
+        ...         if equal_nan and math.isnan(self._value) and math.isnan(other._value):
+        ...             return True
+        ...         return self._value == other._value
+        ...
+        >>> config = EqualityConfig()
+        >>> tester = TolerantEqualEqualityTester()
+        >>> tester.objects_are_equal(MyFloat(42), MyFloat(42), config)
+        True
+        >>> tester.objects_are_equal(MyFloat(42), MyFloat(1), config)
+        False
+        >>> tester.objects_are_equal(MyFloat(float("nan")), MyFloat(float("nan")), config)
+        False
+        >>> config.equal_nan = True
+        >>> tester.objects_are_equal(MyFloat(float("nan")), MyFloat(float("nan")), config)
+        True
+        >>> config.atol = 0.5
+        >>> tester.objects_are_equal(MyFloat(1.0), MyFloat(1.4), config)
+        True
 
-    ```
+        ```
     """
 
     def __init__(self) -> None:
