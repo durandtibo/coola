@@ -41,6 +41,16 @@ class MyFloatNan:
         return self._value == other._value
 
 
+class NoEqualMethod:
+    """Object that does not implement equal."""
+
+
+class EqualNotCallable:
+    """Object where equal exists but is not callable."""
+
+    equal = "not_a_method"
+
+
 ##################################
 #     Tests for EqualHandler     #
 ##################################
@@ -110,7 +120,10 @@ def test_equal_handler_equal_false_different_type_child() -> None:
 
 @pytest.mark.parametrize(
     ("actual", "expected"),
-    [(MyFloat(42), MyFloat(42)), (MyFloat(0), MyFloat(0))],
+    [
+        pytest.param(MyFloat(42), MyFloat(42), id="equal integers"),
+        pytest.param(MyFloat(0), MyFloat(0), id="equal zeros"),
+    ],
 )
 def test_equal_handler_handle_true(
     actual: SupportsEqual, expected: Any, config: EqualityConfig
@@ -121,15 +134,15 @@ def test_equal_handler_handle_true(
 @pytest.mark.parametrize(
     ("actual", "expected"),
     [
-        (MyFloat(42), MyFloat(1)),
-        (MyFloat(42), 42),
-        (MyFloat(0), MyFloat(float("nan"))),
-        (MyFloat(float("nan")), MyFloat(float("nan"))),
+        pytest.param(MyFloat(42), MyFloat(1), id="different values"),
+        pytest.param(MyFloat(42), 42, id="different types"),
+        pytest.param(MyFloat(0), MyFloat(float("nan")), id="number vs nan"),
+        pytest.param(MyFloat(float("nan")), MyFloat(float("nan")), id="nan vs nan"),
+        pytest.param(NoEqualMethod(), NoEqualMethod(), id="missing equal method"),
+        pytest.param(EqualNotCallable(), EqualNotCallable(), id="equal not callable"),
     ],
 )
-def test_equal_handler_handle_false(
-    actual: SupportsEqual, expected: Any, config: EqualityConfig
-) -> None:
+def test_equal_handler_handle_false(actual: Any, expected: Any, config: EqualityConfig) -> None:
     assert not EqualHandler().handle(actual, expected, config)
 
 
@@ -141,6 +154,24 @@ def test_equal_handler_handle_false_show_difference(
     with caplog.at_level(logging.INFO):
         assert not handler.handle(actual=MyFloat(42), expected=1, config=config)
         assert caplog.messages[-1].startswith("objects are different:")
+
+
+def test_equal_handler_handle_no_log_when_equal(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    config.show_difference = True
+    with caplog.at_level(logging.INFO):
+        assert EqualHandler().handle(actual=MyFloat(42), expected=MyFloat(42), config=config)
+    assert not caplog.messages
+
+
+def test_equal_handler_handle_no_log_when_show_difference_false(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    config.show_difference = False
+    with caplog.at_level(logging.INFO):
+        assert not EqualHandler().handle(actual=MyFloat(42), expected=MyFloat(1), config=config)
+    assert not caplog.messages
 
 
 @pytest.mark.parametrize("equal_nan", [True, False])
@@ -236,7 +267,10 @@ def test_equal_nan_handler_equal_false_different_type_child() -> None:
 
 @pytest.mark.parametrize(
     ("actual", "expected"),
-    [(MyFloatNan(42), MyFloatNan(42)), (MyFloatNan(0), MyFloatNan(0))],
+    [
+        pytest.param(MyFloatNan(42), MyFloatNan(42), id="equal integers"),
+        pytest.param(MyFloatNan(0), MyFloatNan(0), id="equal zeros"),
+    ],
 )
 def test_equal_nan_handler_handle_true(
     actual: SupportsEqualNan, expected: Any, config: EqualityConfig
@@ -247,15 +281,17 @@ def test_equal_nan_handler_handle_true(
 @pytest.mark.parametrize(
     ("actual", "expected"),
     [
-        (MyFloatNan(42), MyFloatNan(1)),
-        (MyFloatNan(42), 42),
-        (MyFloatNan(0), MyFloatNan(float("nan"))),
-        (MyFloatNan(float("nan")), MyFloatNan(float("nan"))),
+        pytest.param(MyFloatNan(42), MyFloatNan(1), id="different values"),
+        pytest.param(MyFloatNan(42), 42, id="different types"),
+        pytest.param(MyFloatNan(0), MyFloatNan(float("nan")), id="number vs nan"),
+        pytest.param(
+            MyFloatNan(float("nan")), MyFloatNan(float("nan")), id="nan vs nan equal_nan=False"
+        ),
+        pytest.param(NoEqualMethod(), NoEqualMethod(), id="missing equal method"),
+        pytest.param(EqualNotCallable(), EqualNotCallable(), id="equal not callable"),
     ],
 )
-def test_equal_nan_handler_handle_false(
-    actual: SupportsEqualNan, expected: Any, config: EqualityConfig
-) -> None:
+def test_equal_nan_handler_handle_false(actual: Any, expected: Any, config: EqualityConfig) -> None:
     assert not EqualNanHandler().handle(actual, expected, config)
 
 
@@ -267,6 +303,28 @@ def test_equal_nan_handler_handle_false_show_difference(
     with caplog.at_level(logging.INFO):
         assert not handler.handle(actual=MyFloatNan(42), expected=1, config=config)
         assert caplog.messages[-1].startswith("objects are different:")
+
+
+def test_equal_nan_handler_handle_no_log_when_equal(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    config.show_difference = True
+    with caplog.at_level(logging.INFO):
+        assert EqualNanHandler().handle(
+            actual=MyFloatNan(42), expected=MyFloatNan(42), config=config
+        )
+    assert not caplog.messages
+
+
+def test_equal_nan_handler_handle_no_log_when_show_difference_false(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    config.show_difference = False
+    with caplog.at_level(logging.INFO):
+        assert not EqualNanHandler().handle(
+            actual=MyFloatNan(42), expected=MyFloatNan(1), config=config
+        )
+    assert not caplog.messages
 
 
 @pytest.mark.parametrize("equal_nan", [True, False])
