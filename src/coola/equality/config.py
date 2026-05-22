@@ -12,6 +12,14 @@ if TYPE_CHECKING:
 
 
 def create_default_registry() -> EqualityTesterRegistry:
+    """Create the default equality tester registry.
+
+    This helper is used as a ``dataclasses.field`` default factory to avoid
+    importing the registry interface at module import time.
+
+    Returns:
+        The default equality tester registry.
+    """
     # local import to avoid circular imports.
     from coola.equality.tester.interface import get_default_registry  # noqa: PLC0415
 

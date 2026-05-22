@@ -1,7 +1,7 @@
-r"""Contain handlers to help check if two objects are equal or not.
+r"""Composable equality handlers used by tester implementations.
 
-The handlers are designed to work with the Chain of Responsibility
-pattern.
+Handlers are combined in chains so each check can either short-circuit
+or delegate to the next check in the sequence.
 """
 
 from __future__ import annotations

@@ -1,4 +1,4 @@
-r"""Contain code to iterate over nested data."""
+r"""Utilities to traverse and filter nested data structures."""
 
 from __future__ import annotations
 

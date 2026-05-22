@@ -25,25 +25,28 @@ if TYPE_CHECKING:
 def recursive_apply(
     data: object, func: Callable[[Any], Any], registry: TransformerRegistry | None = None
 ) -> Any:
-    """Recursively apply a function to all items in nested data.
-
-    This is the main public interface that maintains compatibility
-    with the original implementation.
+    """Recursively transform nested data with a type-aware registry.
 
     Args:
-        data: Input data (can be nested)
-        func: Function to apply to each leaf value
+        data: Input data, potentially containing nested containers.
+        func: Function applied to leaf values.
         registry: Registry to resolve transformers for nested data.
+            If ``None``, the default registry is used.
 
     Returns:
-        Transformed data with same structure as input
+        Transformed data with the same structure as the input.
+
+    Notes:
+        Mapping keys are preserved. By default, values of ``str`` are treated
+        as leaves and are not iterated character by character.
 
     Example:
         ```pycon
         >>> from coola.recursive import recursive_apply
         >>> recursive_apply({"a": 1, "b": "abc"}, str)
         {'a': '1', 'b': 'abc'}
-        >>> recursive_apply([1, [2, 3], {"x": 4}], lambda x: x * 2)
+        >>> # Guard the operation so non-numeric leaves are preserved.
+        >>> recursive_apply([1, [2, 3], {"x": 4}], lambda x: x * 2 if isinstance(x, int) else x)
         [2, [4, 6], {'x': 8}]
 
         ```
@@ -59,12 +62,13 @@ def register_transformers(
 ) -> None:
     """Register custom transformers to the default global registry.
 
-    This allows users to add support for custom types without modifying
-    global state directly.
+    This function extends the singleton registry returned by
+    ``get_default_registry``.
 
     Args:
-        mapping: Dictionary mapping types to transformer instances
-        exist_ok: If False, raises error if any type already registered
+        mapping: Mapping of Python types to transformer instances.
+        exist_ok: If ``False``, raise an error when a type is already
+            registered.
 
     Example:
         ```pycon
@@ -97,11 +101,8 @@ def get_default_registry() -> TransformerRegistry:
     across an application.
 
     Returns:
-        A TransformerRegistry instance with transformers registered for:
-            - Scalar types (int, float, complex, bool, str)
-            - Sequences (list, tuple, Sequence ABC)
-            - Sets (set, frozenset)
-            - Mappings (dict, Mapping ABC)
+        A singleton ``TransformerRegistry`` configured for common built-in
+        scalar and container types.
 
     Notes:
         The singleton pattern means modifications to the returned registry
