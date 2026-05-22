@@ -1,4 +1,8 @@
-r"""Contain the main features of the ``coola`` package."""
+r"""Top-level package for ``coola``.
+
+Use this package to compare nested objects, summarize complex structures,
+and work with helper utilities for recursive transformations and iteration.
+"""
 
 __all__ = ["__version__"]
 

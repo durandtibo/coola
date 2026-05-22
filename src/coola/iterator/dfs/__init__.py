@@ -1,5 +1,4 @@
-r"""Contain code to iterate over nested data with a Depth-First Search
-(DFS) strategy."""
+r"""Depth-first traversal utilities for nested data structures."""
 
 from __future__ import annotations
 

@@ -27,48 +27,37 @@ def objects_are_allclose(
     r"""Indicate if two objects are equal within a tolerance.
 
     Args:
-        actual: The actual input.
-        expected: The expected input.
+        actual: The actual object.
+        expected: The expected object.
         rtol: The relative tolerance parameter. Must be non-negative.
         atol: The absolute tolerance parameter. Must be non-negative.
-        equal_nan: If ``True``, then two ``NaN``s  will be considered
-            as equal.
-        show_difference: If ``True``, it shows a difference between
-            the two objects if they are different. This parameter is
-            useful to find the difference between two objects.
+        equal_nan: If ``True``, treat two ``NaN`` values as equal.
+        show_difference: If ``True``, log a readable description when the
+            comparison fails.
         max_depth: Maximum recursion depth for nested comparisons.
             Must be positive. Defaults to 1000.
-        registry: The registry with the equality tester to use.
+        registry: Registry used to resolve type-specific equality testers.
+            If ``None``, the default registry is used.
 
     Returns:
-        ``True`` if the two objects are (element-wise) equal within a
-            tolerance, otherwise ``False``
+        ``True`` if the two objects are equal within tolerances, otherwise
+        ``False``.
 
     Raises:
-        ValueError: if ``rtol`` or ``atol`` is negative.
-        RecursionError: if recursion depth exceeds ``max_depth``.
+        ValueError: If ``rtol`` or ``atol`` is negative.
+        RecursionError: If recursion depth exceeds ``max_depth``.
 
     Example:
         ```pycon
-        >>> import torch
         >>> from coola.equality import objects_are_allclose
-        >>> objects_are_allclose(
-        ...     [torch.ones(2, 3), torch.zeros(2)],
-        ...     [torch.ones(2, 3), torch.zeros(2)],
-        ... )
+        >>> objects_are_allclose([1.0, 2.0], [1.0 + 1e-8, 2.0])
         True
-        >>> objects_are_allclose(
-        ...     [torch.ones(2, 3), torch.ones(2)],
-        ...     [torch.ones(2, 3), torch.zeros(2)],
-        ... )
+        >>> objects_are_allclose([1.0, 2.0], [1.0, 2.1], atol=1e-3, rtol=0.0)
         False
-        >>> objects_are_allclose(
-        ...     [torch.ones(2, 3) + 1e-7, torch.ones(2)],
-        ...     [torch.ones(2, 3), torch.ones(2) - 1e-7],
-        ...     rtol=0,
-        ...     atol=1e-8,
-        ... )
+        >>> objects_are_allclose([float("nan")], [float("nan")], equal_nan=False)
         False
+        >>> objects_are_allclose([float("nan")], [float("nan")], equal_nan=True)
+        True
 
         ```
     """
@@ -103,34 +92,28 @@ def objects_are_equal(
     r"""Indicate if two objects are equal or not.
 
     Args:
-        actual: The actual input.
-        expected: The expected input.
-        equal_nan: If ``True``, then two ``NaN``s  will be considered
-            as equal.
-        show_difference: If ``True``, it shows a difference between
-            the two objects if they are different. This parameter is
-            useful to find the difference between two objects.
+        actual: The actual object.
+        expected: The expected object.
+        equal_nan: If ``True``, treat two ``NaN`` values as equal.
+        show_difference: If ``True``, log a readable description when the
+            comparison fails.
         max_depth: Maximum recursion depth for nested comparisons.
             Must be positive. Defaults to 1000.
-        registry: The registry with the equality tester to use.
+        registry: Registry used to resolve type-specific equality testers.
+            If ``None``, the default registry is used.
 
     Returns:
-        ``True`` if the two nested data are equal, otherwise
-            ``False``.
+        ``True`` if the two objects are exactly equal, otherwise ``False``.
 
     Raises:
-        RecursionError: if recursion depth exceeds ``max_depth``.
+        RecursionError: If recursion depth exceeds ``max_depth``.
 
     Example:
         ```pycon
-        >>> import torch
         >>> from coola.equality import objects_are_equal
-        >>> objects_are_equal(
-        ...     [torch.ones(2, 3), torch.zeros(2)],
-        ...     [torch.ones(2, 3), torch.zeros(2)],
-        ... )
+        >>> objects_are_equal([1, {"a": 2}], [1, {"a": 2}])
         True
-        >>> objects_are_equal([torch.ones(2, 3), torch.ones(2)], [torch.ones(2, 3), torch.zeros(2)])
+        >>> objects_are_equal([1, {"a": 2}], [1, {"a": 3}])
         False
 
         ```

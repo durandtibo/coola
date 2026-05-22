@@ -30,16 +30,16 @@ def summarize(data: object, max_depth: int = 1, registry: SummarizerRegistry | N
     r"""Create a summary string representation of nested data.
 
     Args:
-        data: Input data (can be nested)
+        data: Input data to summarize.
         max_depth: The maximum nesting level to expand when summarizing.
             Structures deeper than this level are shown in compact form.
             Must be non-negative. Default is 1, which expands only the
             top level of nested structures.
         registry: Registry to resolve summarizers for nested data.
-            If None, uses the default registry.
+            If ``None``, the default registry is used.
 
     Returns:
-        String summary of the data
+        A formatted string summary of ``data``.
 
     Example:
         ```pycon
@@ -62,12 +62,13 @@ def register_summarizers(
 ) -> None:
     """Register custom summarizers to the default global registry.
 
-    This allows users to add support for custom types without modifying
-    global state directly.
+    This function extends the singleton registry returned by
+    ``get_default_registry``.
 
     Args:
-        mapping: Dictionary mapping types to summarizer instances
-        exist_ok: If False, raises error if any type already registered
+        mapping: Mapping of Python types to summarizer instances.
+        exist_ok: If ``False``, raise an error when a type is already
+            registered.
 
     Example:
         ```pycon
@@ -78,7 +79,7 @@ def register_summarizers(
         ...
         >>> class MySummarizer(BaseSummarizer[MyType]):
         ...     def equal(self, other: object) -> bool:
-        ...         return type(object) is type(self)
+        ...         return type(other) is type(self)
         ...     def summarize(
         ...         self,
         ...         data: MyType,
@@ -108,11 +109,8 @@ def get_default_registry() -> SummarizerRegistry:
     across an application.
 
     Returns:
-        A SummarizerRegistry instance with summarizers registered for:
-            - Scalar types (int, float, complex, bool, str)
-            - Sequences (list, tuple, Sequence ABC)
-            - Sets (set, frozenset)
-            - Mappings (dict, Mapping ABC)
+        A singleton ``SummarizerRegistry`` configured for common built-in
+        scalar and container types.
 
     Notes:
         The singleton pattern means modifications to the returned registry
