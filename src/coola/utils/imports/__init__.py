@@ -1,4 +1,5 @@
-r"""Helpers to detect, lazily import, and validate optional dependencies."""
+r"""Helpers to detect, lazily import, and validate optional
+dependencies."""
 
 from __future__ import annotations
 

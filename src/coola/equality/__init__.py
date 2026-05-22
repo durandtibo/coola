@@ -1,4 +1,5 @@
-r"""Utilities to compare nested objects for exact or tolerant equality."""
+r"""Utilities to compare nested objects for exact or tolerant
+equality."""
 
 from __future__ import annotations
 

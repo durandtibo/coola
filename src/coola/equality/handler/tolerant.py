@@ -8,6 +8,7 @@ __all__ = ["SupportsTolerantEqual", "TolerantEqualHandler"]
 import logging
 from typing import TYPE_CHECKING, Protocol
 
+
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
@@ -15,7 +16,7 @@ from coola.equality.handler.mixin import HandlerEqualityMixin
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 class SupportsTolerantEqual(Protocol):
