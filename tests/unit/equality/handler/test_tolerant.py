@@ -8,7 +8,7 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.handler import FalseHandler, TrueHandler
-from coola.equality.handler.tolerant_equal import (
+from coola.equality.handler.tolerant import (
     SupportsTolerantEqual,
     TolerantEqualHandler,
 )
