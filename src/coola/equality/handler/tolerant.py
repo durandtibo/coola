@@ -8,7 +8,6 @@ __all__ = ["SupportsTolerantEqual", "TolerantEqualHandler"]
 import logging
 from typing import TYPE_CHECKING, Protocol
 
-
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
@@ -76,7 +75,7 @@ class TolerantEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         ```pycon
         >>> import math
         >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.handler.tolerant_equal import TolerantEqualHandler
+        >>> from coola.equality.handler import TolerantEqualHandler
         >>> class MyFloat:
         ...     def __init__(self, value: float) -> None:
         ...         self._value = float(value)

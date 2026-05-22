@@ -34,6 +34,7 @@ __all__ = [
     "SameTypeHandler",
     "ScalarEqualHandler",
     "SequenceSameValuesHandler",
+    "TolerantEqualHandler",
     "TorchTensorEqualHandler",
     "TorchTensorSameDeviceHandler",
     "TrueHandler",
@@ -76,6 +77,7 @@ from coola.equality.handler.pyarrow import PyarrowEqualHandler
 from coola.equality.handler.scalar import NanEqualHandler, ScalarEqualHandler
 from coola.equality.handler.sequence import SequenceSameValuesHandler
 from coola.equality.handler.shape import SameShapeHandler
+from coola.equality.handler.tolerant import TolerantEqualHandler
 from coola.equality.handler.torch import (
     TorchTensorEqualHandler,
     TorchTensorSameDeviceHandler,
