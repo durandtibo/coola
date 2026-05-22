@@ -45,6 +45,7 @@ def recursive_apply(
         >>> from coola.recursive import recursive_apply
         >>> recursive_apply({"a": 1, "b": "abc"}, str)
         {'a': '1', 'b': 'abc'}
+        >>> # Guard the operation so non-numeric leaves are preserved.
         >>> recursive_apply([1, [2, 3], {"x": 4}], lambda x: x * 2 if isinstance(x, int) else x)
         [2, [4, 6], {'x': 8}]
 
