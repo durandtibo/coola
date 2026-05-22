@@ -48,6 +48,7 @@ __all__ = [
     "PyarrowEqualityTester",
     "ScalarEqualityTester",
     "SequenceEqualityTester",
+    "TolerantEqualEqualityTester",
     "TorchPackedSequenceEqualityTester",
     "TorchTensorEqualityTester",
     "XarrayDataArrayEqualityTester",
@@ -86,6 +87,7 @@ from coola.equality.tester.polars import (
 from coola.equality.tester.pyarrow import PyarrowEqualityTester
 from coola.equality.tester.registry import EqualityTesterRegistry
 from coola.equality.tester.scalar import ScalarEqualityTester
+from coola.equality.tester.tolerant import TolerantEqualEqualityTester
 from coola.equality.tester.torch import (
     TorchPackedSequenceEqualityTester,
     TorchTensorEqualityTester,
