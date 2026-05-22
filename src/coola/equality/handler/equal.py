@@ -19,7 +19,7 @@ from coola.equality.handler.mixin import HandlerEqualityMixin
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 class SupportsEqual(Protocol):
