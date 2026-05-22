@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import random
 from typing import TYPE_CHECKING
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -128,6 +128,14 @@ def test_manual_seed() -> None:
     assert not x1.equal(x2)
 
 
+def test_manual_seed_calls_default_registry() -> None:
+    manager = Mock()
+    with patch("coola.random.interface.get_default_registry", Mock(return_value=manager)) as get_registry:
+        manual_seed(42)
+    get_registry.assert_called_once()
+    manager.manual_seed.assert_called_once_with(42)
+
+
 ###################################
 #     Tests for set_rng_state     #
 ###################################
@@ -142,6 +150,15 @@ def test_set_rng_state() -> None:
     x3 = torch.randn(4, 6)
     assert x1.equal(x3)
     assert not x1.equal(x2)
+
+
+def test_set_rng_state_calls_default_registry() -> None:
+    manager = Mock()
+    state = {"random": ("state",)}
+    with patch("coola.random.interface.get_default_registry", Mock(return_value=manager)) as get_registry:
+        set_rng_state(state)
+    get_registry.assert_called_once()
+    manager.set_rng_state.assert_called_once_with(state)
 
 
 #######################################
