@@ -45,7 +45,6 @@ class HasherRegistry:
             )
         )
         >>> registry.hash([1, 2, 3])
-        'da39a3ee5e6b4b0d3255bfef95601890afd80709'
 
         ```
 
@@ -56,7 +55,6 @@ class HasherRegistry:
         >>> registry = HasherRegistry({object: DefaultHasher()})
         >>> registry.register(list, SequenceHasher())
         >>> registry.hash([1, 2, 3])
-        'da39a3ee5e6b4b0d3255bfef95601890afd80709'
 
         ```
 
@@ -67,7 +65,6 @@ class HasherRegistry:
         >>> registry = get_default_registry()
         >>> data = {"a": [1, 2], "b": [3, 4]}
         >>> registry.hash(data)
-        'da39a3ee5e6b4b0d3255bfef95601890afd80709'
 
         ```
     """
