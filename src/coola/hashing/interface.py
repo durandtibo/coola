@@ -10,9 +10,9 @@ from datetime import date, datetime
 from typing import TYPE_CHECKING, Any
 
 from coola.hashing.datetime import DatetimeHasher
-from coola.hashing.default import DefaultHasher
 from coola.hashing.mapping import MappingHasher
 from coola.hashing.registry import HasherRegistry
+from coola.hashing.repr import ReprHasher
 from coola.hashing.sequence import SequenceHasher
 from coola.hashing.string import StringHasher
 
@@ -125,23 +125,21 @@ def _register_default_hashers(registry: HasherRegistry) -> None:
     Args:
         registry: The registry to populate.
     """
-    default_hasher = DefaultHasher()
     sequence_hasher = SequenceHasher()
     string_hasher = StringHasher()
     mapping_hasher = MappingHasher()
     datetime_hasher = DatetimeHasher()
+    repr_hasher = ReprHasher()
 
     registry.register_many(
         {
-            # Object is the catch-all base for unregistered types
-            object: default_hasher,
             # Strings should not be iterated character by character
             str: string_hasher,
             # Numeric types - no recursion needed
-            int: default_hasher,
-            float: default_hasher,
-            complex: default_hasher,
-            bool: default_hasher,
+            int: repr_hasher,
+            float: repr_hasher,
+            complex: repr_hasher,
+            bool: repr_hasher,
             # Sequences - recursive transformation preserving order
             list: sequence_hasher,
             tuple: sequence_hasher,
@@ -149,7 +147,7 @@ def _register_default_hashers(registry: HasherRegistry) -> None:
             # Mappings - recursive transformation of keys and values
             dict: mapping_hasher,
             Mapping: mapping_hasher,
-            # Date
+            # Date types
             date: datetime_hasher,
             datetime: datetime_hasher,
         }
