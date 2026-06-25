@@ -1,3 +1,1 @@
-# `coola.nested`
-
 ::: coola.nested
