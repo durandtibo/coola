@@ -7,7 +7,6 @@ import pytest
 
 from coola.hashing import (
     DatetimeHasher,
-    DefaultHasher,
     HasherRegistry,
     MappingHasher,
     ReprHasher,
@@ -106,11 +105,9 @@ def test_hash_object_is_deterministic() -> None:
 
 
 def test_hash_object_with_custom_registry() -> None:
-    # A registry with only DefaultHasher treats lists as leaf values.
-    registry = HasherRegistry({object: DefaultHasher()})
-    assert hash_object([1, 2, 3], registry=registry) == hash_object(
-        str([1, 2, 3]), registry=registry
-    )
+    # A registry with only ReprHasher treats lists as leaf values.
+    registry = HasherRegistry({object: ReprHasher()})
+    assert hash_object([1, 2, 3], registry=registry) == hash_object(repr([1, 2, 3]))
 
 
 def test_hash_object_with_custom_length() -> None:
@@ -140,12 +137,12 @@ def test_register_hashers_adds_to_default_registry() -> None:
 
 
 def test_register_hashers_with_exist_ok_true() -> None:
-    register_hashers({CustomList: DefaultHasher()})
+    register_hashers({CustomList: ReprHasher()})
     register_hashers({CustomList: SequenceHasher()}, exist_ok=True)
 
 
 def test_register_hashers_with_exist_ok_false() -> None:
-    register_hashers({CustomList: DefaultHasher()})
+    register_hashers({CustomList: ReprHasher()})
     with pytest.raises(RuntimeError, match=r"already registered"):
         register_hashers({CustomList: SequenceHasher()}, exist_ok=False)
 

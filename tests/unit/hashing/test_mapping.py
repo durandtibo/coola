@@ -5,12 +5,12 @@ from typing import Any
 
 import pytest
 
-from coola.hashing import DefaultHasher, HasherRegistry, MappingHasher
+from coola.hashing import HasherRegistry, MappingHasher, StrHasher
 
 
 @pytest.fixture
 def registry() -> HasherRegistry:
-    return HasherRegistry({object: DefaultHasher(), Mapping: MappingHasher()})
+    return HasherRegistry({object: StrHasher(), Mapping: MappingHasher()})
 
 
 ###################################

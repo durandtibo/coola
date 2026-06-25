@@ -5,14 +5,14 @@ from typing import Any
 
 import pytest
 
-from coola.hashing import DefaultHasher, HasherRegistry, SequenceHasher
+from coola.hashing import HasherRegistry, SequenceHasher, StrHasher
 
 
 @pytest.fixture
 def registry() -> HasherRegistry:
     return HasherRegistry(
         {
-            object: DefaultHasher(),
+            object: StrHasher(),
             Sequence: SequenceHasher(),
             list: SequenceHasher(),
             tuple: SequenceHasher(),

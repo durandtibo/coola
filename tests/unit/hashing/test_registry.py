@@ -6,10 +6,11 @@ import pytest
 
 from coola.hashing import (
     BaseHasher,
-    DefaultHasher,
     HasherRegistry,
     MappingHasher,
+    ReprHasher,
     SequenceHasher,
+    StrHasher,
     StringHasher,
 )
 
@@ -36,7 +37,7 @@ def test_hasher_registry_init_with_state() -> None:
     assert list in registry._state
     assert registry._state[list] is hasher
     # Verify it's a copy — mutations to the source dict don't affect the registry.
-    initial_state[tuple] = DefaultHasher()
+    initial_state[tuple] = ReprHasher()
     assert tuple not in registry._state
 
 
@@ -121,7 +122,7 @@ def test_hasher_registry_has_hasher_false() -> None:
 
 def test_hasher_registry_has_hasher_does_not_check_mro() -> None:
     # has_hasher checks direct registration only — not MRO fallback.
-    assert not HasherRegistry({object: DefaultHasher()}).has_hasher(list)
+    assert not HasherRegistry({object: ReprHasher()}).has_hasher(list)
 
 
 #####################################
@@ -146,7 +147,7 @@ def test_hasher_registry_find_hasher_most_specific() -> None:
     base_hasher = SequenceHasher()
     specific_hasher = MappingHasher()
     registry = HasherRegistry(
-        {object: DefaultHasher(), list: base_hasher, CustomList: specific_hasher}
+        {object: ReprHasher(), list: base_hasher, CustomList: specific_hasher}
     )
     assert registry.find_hasher(CustomList) is specific_hasher
 
@@ -155,8 +156,8 @@ def test_hasher_registry_find_hasher_abc_not_in_mro() -> None:
     from collections.abc import Sequence
 
     # Sequence is an ABC not in list.__mro__, so list falls back to object.
-    registry = HasherRegistry({object: DefaultHasher(), Sequence: SequenceHasher()})
-    assert isinstance(registry.find_hasher(list), DefaultHasher)
+    registry = HasherRegistry({object: ReprHasher(), Sequence: SequenceHasher()})
+    assert isinstance(registry.find_hasher(list), ReprHasher)
 
 
 #####################################
@@ -166,14 +167,14 @@ def test_hasher_registry_find_hasher_abc_not_in_mro() -> None:
 
 def test_hasher_registry_hash_with_list() -> None:
     assert (
-        HasherRegistry({object: DefaultHasher(), list: SequenceHasher()}).hash([1, 2, 3])
+        HasherRegistry({object: StrHasher(), list: SequenceHasher()}).hash([1, 2, 3])
         == "e30f3d309eab8b8216b15ef153005972ce61c8c64c55f78075630089aed023de"
     )
 
 
 def test_hasher_registry_hash_with_dict() -> None:
     assert (
-        HasherRegistry({object: DefaultHasher(), dict: MappingHasher()}).hash({"a": 1, "b": 2})
+        HasherRegistry({object: StrHasher(), dict: MappingHasher()}).hash({"a": 1, "b": 2})
         == "a3ecbdde9e227bcdae038eb86746b0fccb90939d8e7eeac55513423219ffa02f"
     )
 
@@ -181,7 +182,7 @@ def test_hasher_registry_hash_with_dict() -> None:
 def test_hasher_registry_hash_with_nested_structure() -> None:
     registry = HasherRegistry(
         {
-            object: DefaultHasher(),
+            object: StrHasher(),
             list: SequenceHasher(),
             dict: MappingHasher(),
         }
@@ -207,7 +208,7 @@ def test_hasher_registry_hash_with_empty_dict() -> None:
 
 
 def test_hasher_registry_hash_with_length() -> None:
-    result = HasherRegistry({object: DefaultHasher()}).hash(42, length=16)
+    result = HasherRegistry({object: ReprHasher()}).hash(42, length=16)
     assert result == "57b43cf02666687a"
     assert len(result) == 16
 
