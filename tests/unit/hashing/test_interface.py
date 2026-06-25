@@ -6,9 +6,13 @@ from datetime import date, datetime, timezone
 import pytest
 
 from coola.hashing import (
+    DatetimeHasher,
     DefaultHasher,
     HasherRegistry,
+    MappingHasher,
+    ReprHasher,
     SequenceHasher,
+    StringHasher,
     get_default_registry,
     hash_object,
     register_hashers,
@@ -34,41 +38,63 @@ class CustomList(list):
 ##################################
 
 
-def test_hash_object_with_int() -> None:
-    assert hash_object(5) == "70b201352f24bf1c9770b99f8f71201821411cf414377c9b8c2dbcee61db87d6"
-
-
-def test_hash_object_with_string() -> None:
-    assert (
-        hash_object("hello") == "324dcf027dd4a30a932c441f365a25e86b173defa4b8e58948253471b81b72cf"
-    )
-
-
-def test_hash_object_with_list() -> None:
-    assert (
-        hash_object([1, 2, 3]) == "e30f3d309eab8b8216b15ef153005972ce61c8c64c55f78075630089aed023de"
-    )
-
-
-def test_hash_object_with_dict() -> None:
-    assert (
-        hash_object({"a": 1, "b": 2})
-        == "a3ecbdde9e227bcdae038eb86746b0fccb90939d8e7eeac55513423219ffa02f"
-    )
-
-
-def test_hash_object_with_date() -> None:
-    assert (
-        hash_object(date(2021, 1, 1))
-        == "f2b4c6a9941206bb6fc3b4b9c1104d8c05264985c009e2e1c7c840aaeda00dac"
-    )
-
-
-def test_hash_object_with_datetime() -> None:
-    assert (
-        hash_object(datetime(2021, 1, 1, tzinfo=timezone.utc))
-        == "7b9000123bc9220f9759ddc4ae7e7780c16935c8ed6d9417b82c41500ebb3967"
-    )
+@pytest.mark.parametrize(
+    ("data", "expected"),
+    [
+        pytest.param(
+            5,
+            "70b201352f24bf1c9770b99f8f71201821411cf414377c9b8c2dbcee61db87d6",
+            id="int",
+        ),
+        pytest.param(
+            3.14,
+            "ab14d2d4a60939ddc6de342ae33b8a8da25564787546cbdfd6cf29164863ed4a",
+            id="float",
+        ),
+        pytest.param(
+            complex(1, 2),
+            "672e535e27fd6becac3687e261cc67a9708673e67eac19d588d574efadafc1e0",
+            id="complex",
+        ),
+        pytest.param(
+            True,
+            "b37c53228410790b2e6d4ab6eb00deb4e1e9b47e2075100b120e0abd777d0020",
+            id="bool",
+        ),
+        pytest.param(
+            "hello",
+            "324dcf027dd4a30a932c441f365a25e86b173defa4b8e58948253471b81b72cf",
+            id="str",
+        ),
+        pytest.param(
+            [1, 2, 3],
+            "e30f3d309eab8b8216b15ef153005972ce61c8c64c55f78075630089aed023de",
+            id="list",
+        ),
+        pytest.param(
+            (1, 2, 3),
+            "e30f3d309eab8b8216b15ef153005972ce61c8c64c55f78075630089aed023de",
+            id="tuple",
+        ),
+        pytest.param(
+            {"a": 1, "b": 2},
+            "a3ecbdde9e227bcdae038eb86746b0fccb90939d8e7eeac55513423219ffa02f",
+            id="dict",
+        ),
+        pytest.param(
+            date(2021, 1, 1),
+            "f2b4c6a9941206bb6fc3b4b9c1104d8c05264985c009e2e1c7c840aaeda00dac",
+            id="date",
+        ),
+        pytest.param(
+            datetime(2021, 1, 1, tzinfo=timezone.utc),
+            "7b9000123bc9220f9759ddc4ae7e7780c16935c8ed6d9417b82c41500ebb3967",
+            id="datetime",
+        ),
+    ],
+)
+def test_hash_object_parametrized(data: object, expected: str) -> None:
+    assert hash_object(data) == expected
 
 
 def test_hash_object_returns_str() -> None:
@@ -97,6 +123,12 @@ def test_hash_object_uses_default_registry_when_none() -> None:
     assert hash_object([1, 2, 3]) == hash_object([1, 2, 3], registry=get_default_registry())
 
 
+def test_hash_object_nested_structure() -> None:
+    assert hash_object({"a": [1, 2], "b": [3, 4]}) == (
+        "fe7eca5d3348be5060774aab9a95169595884dbb3d1fb7ddc318b1123eadc32b"
+    )
+
+
 #########################################
 #     Tests for register_hashers        #
 #########################################
@@ -104,7 +136,7 @@ def test_hash_object_uses_default_registry_when_none() -> None:
 
 def test_register_hashers_adds_to_default_registry() -> None:
     register_hashers({CustomList: SequenceHasher()})
-    assert get_default_registry().has_hasher(CustomList)
+    assert isinstance(get_default_registry().find_hasher(CustomList), SequenceHasher)
 
 
 def test_register_hashers_with_exist_ok_true() -> None:
@@ -133,48 +165,48 @@ def test_get_default_registry_returns_singleton() -> None:
 
 def test_get_default_registry_singleton_persists_modifications() -> None:
     registry1 = get_default_registry()
-    assert not registry1.has_hasher(CustomList)
     registry1.register(CustomList, SequenceHasher())
-    assert registry1.has_hasher(CustomList)
+    assert isinstance(registry1.find_hasher(CustomList), SequenceHasher)
 
     registry2 = get_default_registry()
     assert registry1 is registry2
-    assert registry2.has_hasher(CustomList)
+    assert isinstance(registry2.find_hasher(CustomList), SequenceHasher)
 
 
-def test_get_default_registry_registers_object() -> None:
-    assert get_default_registry().has_hasher(object)
+def test_get_default_registry_does_not_register_object() -> None:
+    # object is no longer registered as a catch-all fallback.
+    assert not get_default_registry().has_hasher(object)
 
 
 def test_get_default_registry_registers_numeric_types() -> None:
     registry = get_default_registry()
-    assert registry.has_hasher(bool)
-    assert registry.has_hasher(int)
-    assert registry.has_hasher(float)
-    assert registry.has_hasher(complex)
+    assert isinstance(registry.find_hasher(bool), ReprHasher)
+    assert isinstance(registry.find_hasher(int), ReprHasher)
+    assert isinstance(registry.find_hasher(float), ReprHasher)
+    assert isinstance(registry.find_hasher(complex), ReprHasher)
 
 
 def test_get_default_registry_registers_str() -> None:
-    assert get_default_registry().has_hasher(str)
+    assert isinstance(get_default_registry().find_hasher(str), StringHasher)
 
 
 def test_get_default_registry_registers_datetime_types() -> None:
     registry = get_default_registry()
-    assert registry.has_hasher(date)
-    assert registry.has_hasher(datetime)
+    assert isinstance(registry.find_hasher(date), DatetimeHasher)
+    assert isinstance(registry.find_hasher(datetime), DatetimeHasher)
 
 
 def test_get_default_registry_registers_sequences() -> None:
     registry = get_default_registry()
-    assert registry.has_hasher(list)
-    assert registry.has_hasher(tuple)
-    assert registry.has_hasher(Sequence)
+    assert isinstance(registry.find_hasher(list), SequenceHasher)
+    assert isinstance(registry.find_hasher(tuple), SequenceHasher)
+    assert isinstance(registry.find_hasher(Sequence), SequenceHasher)
 
 
 def test_get_default_registry_registers_mappings() -> None:
     registry = get_default_registry()
-    assert registry.has_hasher(dict)
-    assert registry.has_hasher(Mapping)
+    assert isinstance(registry.find_hasher(dict), MappingHasher)
+    assert isinstance(registry.find_hasher(Mapping), MappingHasher)
 
 
 def test_get_default_registry_can_hash_list() -> None:
