@@ -4,25 +4,25 @@ from typing import Any
 
 import pytest
 
-from coola.hashing import HasherRegistry, ReprHasher, hash_string
+from coola.hashing import HasherRegistry, ReprHasher, StrHasher, hash_string
 
 
 @pytest.fixture
 def registry() -> HasherRegistry:
-    return HasherRegistry({object: ReprHasher()})
+    return HasherRegistry({object: StrHasher()})
 
 
-################################
-#     Tests for ReprHasher     #
-################################
+###############################
+#     Tests for StrHasher     #
+###############################
 
 
-def test_repr_hasher_repr() -> None:
-    assert repr(ReprHasher()) == "ReprHasher()"
+def test_str_hasher_repr() -> None:
+    assert repr(StrHasher()) == "StrHasher()"
 
 
-def test_repr_hasher_str() -> None:
-    assert str(ReprHasher()) == "ReprHasher()"
+def test_str_hasher_str() -> None:
+    assert str(StrHasher()) == "StrHasher()"
 
 
 @pytest.mark.parametrize(
@@ -80,7 +80,7 @@ def test_repr_hasher_str() -> None:
         ),
         pytest.param(
             "hello",
-            "171781c2214755b0b238629454fd20d6facb07642c7a15503065a5dad7f79de6",
+            "324dcf027dd4a30a932c441f365a25e86b173defa4b8e58948253471b81b72cf",
             id="str",
         ),
         pytest.param(
@@ -105,48 +105,49 @@ def test_repr_hasher_str() -> None:
         ),
     ],
 )
-def test_repr_hasher_hash_parametrized(data: Any, expected: str, registry: HasherRegistry) -> None:
-    assert ReprHasher().hash(data, registry=registry) == expected
+def test_str_hasher_hash_parametrized(data: Any, expected: str, registry: HasherRegistry) -> None:
+    assert StrHasher().hash(data, registry=registry) == expected
 
 
 @pytest.mark.parametrize(
     ("length", "expected"),
     [
-        pytest.param(16, "73b85de28f512fd3", id="16"),
-        pytest.param(32, "a231498f6c1f441aa98482ea0b224ffa", id="32"),
+        pytest.param(16, "a7b6eda801e5347d", id="16"),
+        pytest.param(32, "46fb7408d4f285228f4af516ea25851b", id="32"),
         pytest.param(
-            64, "bf1003cd5c1336387f7e4eebf72a3d9cd4fa8ab5be19825bc0e3ecd8ce1cd140", id="64-default"
+            64, "324dcf027dd4a30a932c441f365a25e86b173defa4b8e58948253471b81b72cf", id="64-default"
         ),
     ],
 )
-def test_repr_hasher_hash_length(length: int, expected: str, registry: HasherRegistry) -> None:
-    result = ReprHasher().hash(1234, registry=registry, length=length)
+def test_str_hasher_hash_length(length: int, expected: str, registry: HasherRegistry) -> None:
+    result = StrHasher().hash("hello", registry=registry, length=length)
     assert result == expected
     assert len(result) == length
 
 
-def test_repr_hasher_hash_returns_str(registry: HasherRegistry) -> None:
-    assert isinstance(ReprHasher().hash(1234, registry=registry), str)
+def test_str_hasher_hash_returns_str(registry: HasherRegistry) -> None:
+    assert isinstance(StrHasher().hash("hello", registry=registry), str)
 
 
-def test_repr_hasher_hash_is_deterministic(registry: HasherRegistry) -> None:
-    hasher = ReprHasher()
-    assert hasher.hash(1234, registry=registry) == hasher.hash(1234, registry=registry)
+def test_str_hasher_hash_is_deterministic(registry: HasherRegistry) -> None:
+    hasher = StrHasher()
+    assert hasher.hash("hello", registry=registry) == hasher.hash("hello", registry=registry)
 
 
-def test_repr_hasher_hash_different_values_different_hashes(registry: HasherRegistry) -> None:
-    hasher = ReprHasher()
+def test_str_hasher_hash_different_values_different_hashes(registry: HasherRegistry) -> None:
+    hasher = StrHasher()
     assert hasher.hash(1, registry=registry) != hasher.hash(2, registry=registry)
 
 
-def test_repr_hasher_hash_bool_and_int_different_hashes(registry: HasherRegistry) -> None:
-    # repr(True) == 'True' and repr(1) == '1', so they must not collide.
-    hasher = ReprHasher()
+def test_str_hasher_hash_bool_and_int_different_hashes(registry: HasherRegistry) -> None:
+    # str(True) == 'True' and str(1) == '1', so they must not collide.
+    hasher = StrHasher()
     assert hasher.hash(True, registry=registry) != hasher.hash(1, registry=registry)
 
 
-def test_repr_hasher_hash_uses_repr_not_str(registry: HasherRegistry) -> None:
-    # For objects where repr() and str() differ, ReprHasher must use repr().
+def test_str_hasher_hash_uses_str_not_repr(registry: HasherRegistry) -> None:
+    # For objects where str() and repr() differ, StrHasher must use str().
+    # str("hello") == 'hello' while repr("hello") == "'hello'".
     class MyObj:
         def __str__(self) -> str:
             return "str_val"
@@ -155,12 +156,26 @@ def test_repr_hasher_hash_uses_repr_not_str(registry: HasherRegistry) -> None:
             return "repr_val"
 
     obj = MyObj()
-    hasher = ReprHasher()
-    assert hasher.hash(obj, registry=registry) != hash_string(str(obj))
-    assert hasher.hash(obj, registry=registry) == hash_string(repr(obj))
+    hasher = StrHasher()
+    assert hasher.hash(obj, registry=registry) == hash_string(str(obj))
+    assert hasher.hash(obj, registry=registry) != hash_string(repr(obj))
 
 
-def test_repr_hasher_hash_does_not_use_registry(registry: HasherRegistry) -> None:
+def test_str_hasher_hash_str_differs_from_repr_hasher_for_strings(
+    registry: HasherRegistry,
+) -> None:
+    # StrHasher hashes str("hello") = "hello".
+    # ReprHasher hashes repr("hello") = "'hello'" (with quotes).
+    # The two must produce different results for string inputs.
+
+    hasher_str = StrHasher()
+    hasher_repr = ReprHasher()
+    assert hasher_str.hash("hello", registry=registry) != hasher_repr.hash(
+        "hello", registry=registry
+    )
+
+
+def test_str_hasher_hash_does_not_use_registry(registry: HasherRegistry) -> None:
     empty_registry = HasherRegistry()
-    hasher = ReprHasher()
-    assert hasher.hash(1234, registry=registry) == hasher.hash(1234, registry=empty_registry)
+    hasher = StrHasher()
+    assert hasher.hash("hello", registry=registry) == hasher.hash("hello", registry=empty_registry)
