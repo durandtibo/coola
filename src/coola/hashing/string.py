@@ -2,9 +2,41 @@ r"""Provide deterministic hashing functions for strings."""
 
 from __future__ import annotations
 
-__all__ = ["hash_string"]
+__all__ = ["StringHasher", "hash_string"]
 
 import hashlib
+from typing import TYPE_CHECKING
+
+from coola.hashing.base import BaseHasher
+
+if TYPE_CHECKING:
+    from coola.hashing.registry import HasherRegistry
+
+
+class StringHasher(BaseHasher[str]):
+    r"""Hasher for string objects.
+
+    This hasher computes the hash of the string directly, without any
+    intermediate conversion.
+
+    Example:
+        ```pycon
+        >>> from coola.hashing import StringHasher, HasherRegistry
+        >>> registry = HasherRegistry()
+        >>> hasher = StringHasher()
+        >>> hasher
+        StringHasher()
+        >>> hasher.hash("Meowwwwww", registry=registry)
+        '1b06bfa9e842b52eaf47386798687ccd22697ed0198cfda4e0eee7e4650595f5'
+
+        ```
+    """
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__qualname__}()"
+
+    def hash(self, data: str, registry: HasherRegistry, length: int = 64) -> str:  # noqa: ARG002
+        return hash_string(data, length=length)
 
 
 def hash_string(value: str, length: int = 64) -> str:
