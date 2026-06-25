@@ -30,8 +30,8 @@ class MappingHasher(BaseHasher[Mapping[Any, Any]]):
     Example:
         ```pycon
         >>> from collections.abc import Mapping
-        >>> from coola.hashing import MappingHasher, DefaultHasher, HasherRegistry
-        >>> registry = HasherRegistry({object: DefaultHasher(), Mapping: MappingHasher()})
+        >>> from coola.hashing import MappingHasher, StrHasher, HasherRegistry
+        >>> registry = HasherRegistry({object: StrHasher(), Mapping: MappingHasher()})
         >>> hasher = MappingHasher()
         >>> hasher
         MappingHasher()

@@ -19,7 +19,7 @@ class ReprHasher(BaseHasher[Any]):
 
     This hasher converts the object to its ``repr()`` string and then
     computes the hash of that string. It is preferable to
-    ``DefaultHasher`` for numeric types (``int``, ``float``, ``complex``,
+    ``StrHasher`` for numeric types (``int``, ``float``, ``complex``,
     ``bool``) because ``repr()`` guarantees round-trip accuracy for
     floating point values, whereas ``str()`` may lose precision on some
     platforms.

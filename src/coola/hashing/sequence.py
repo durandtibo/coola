@@ -27,8 +27,8 @@ class SequenceHasher(BaseHasher[Sequence[Any]]):
 
     Example:
         ```pycon
-        >>> from coola.hashing import SequenceHasher, DefaultHasher, HasherRegistry
-        >>> registry = HasherRegistry({object: DefaultHasher(), Sequence: SequenceHasher()})
+        >>> from coola.hashing import SequenceHasher, StrHasher, HasherRegistry
+        >>> registry = HasherRegistry({object: StrHasher(), Sequence: SequenceHasher()})
         >>> hasher = SequenceHasher()
         >>> hasher
         SequenceHasher()
