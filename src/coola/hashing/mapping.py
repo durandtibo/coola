@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["MappingHasher"]
 
 from collections.abc import Mapping
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_string
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
 
 
-class MappingHasher(BaseHasher[Mapping]):
+class MappingHasher(BaseHasher[Mapping[Any, Any]]):
     r"""Hasher for mapping types.
 
     This hasher sorts the mapping by key, hashes each key and value
@@ -44,7 +44,7 @@ class MappingHasher(BaseHasher[Mapping]):
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
-    def hash(self, data: Mapping, registry: HasherRegistry, length: int = 64) -> str:
+    def hash(self, data: Mapping[Any, Any], registry: HasherRegistry, length: int = 64) -> str:
         parts = []
         for key in sorted(data.keys()):
             key_hash = registry.hash(key, length=length)
