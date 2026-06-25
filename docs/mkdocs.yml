@@ -44,6 +44,7 @@ nav:
       - migration/v0.11_to_v1.0.md
   - Reference:
       - refs/equality.md
+      - refs/hashing.md
       - refs/iterator.md
       - refs/nested.md
       - refs/random.md

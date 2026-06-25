@@ -26,6 +26,10 @@ jobs:
           python -c "from coola.equality import handler"
           python -c "from coola.equality import tester"
 
+      - name: check coola.hashing
+        run: |
+          python -c "from coola import hashing"
+
       - name: check coola.iterator
         run: |
           python -c "from coola import iterator"
