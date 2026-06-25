@@ -4,6 +4,7 @@ from __future__ import annotations
 
 __all__ = [
     "BaseHasher",
+    "DatetimeHasher",
     "DefaultHasher",
     "HasherRegistry",
     "MappingHasher",
@@ -13,6 +14,7 @@ __all__ = [
 ]
 
 from coola.hashing.base import BaseHasher
+from coola.hashing.datetime import DatetimeHasher
 from coola.hashing.default import DefaultHasher
 from coola.hashing.mapping import MappingHasher
 from coola.hashing.registry import HasherRegistry
