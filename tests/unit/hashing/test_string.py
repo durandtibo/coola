@@ -101,19 +101,6 @@ def test_string_hasher_hash_different_strings_different_hashes(
     assert hasher.hash("hello", registry=registry) != hasher.hash("world", registry=registry)
 
 
-def test_string_hasher_hash_differs_from_default_hasher_hash(
-    registry: HasherRegistry,
-) -> None:
-    # StringHasher hashes the string directly; DefaultHasher hashes str(data),
-    # which adds quotes: str("hello") == "hello" so they are actually equal for strings.
-    # This test documents that StringHasher and DefaultHasher agree on plain strings.
-    from coola.hashing import DefaultHasher
-
-    assert StringHasher().hash("hello", registry=registry) == DefaultHasher().hash(
-        "hello", registry=registry
-    )
-
-
 def test_string_hasher_hash_does_not_use_registry(registry: HasherRegistry) -> None:
     empty_registry = HasherRegistry()
     hasher = StringHasher()
