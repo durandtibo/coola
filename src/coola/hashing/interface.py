@@ -73,12 +73,12 @@ def register_hashers(
 
     Example:
         ```pycon
-        >>> from coola.hashing import register_hashers, DefaultHasher
+        >>> from coola.hashing import register_hashers, StrHasher
         >>> class MyType:
         ...     def __init__(self, value):
         ...         self.value = value
         ...
-        >>> register_hashers({MyType: DefaultHasher()})
+        >>> register_hashers({MyType: StrHasher()})
 
         ```
     """

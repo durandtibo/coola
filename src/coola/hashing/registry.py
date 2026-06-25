@@ -35,12 +35,12 @@ class HasherRegistry:
         Basic usage with a sequence hasher:
 
         ```pycon
-        >>> from coola.hashing import HasherRegistry, SequenceHasher, DefaultHasher
-        >>> registry = HasherRegistry({object: DefaultHasher(), list: SequenceHasher()})
+        >>> from coola.hashing import HasherRegistry, SequenceHasher, StrHasher
+        >>> registry = HasherRegistry({object: StrHasher(), list: SequenceHasher()})
         >>> registry
         HasherRegistry(
           (state): TypeRegistry(
-              (<class 'object'>): DefaultHasher()
+              (<class 'object'>): StrHasher()
               (<class 'list'>): SequenceHasher()
             )
         )
@@ -51,8 +51,8 @@ class HasherRegistry:
         Registering custom hashers:
 
         ```pycon
-        >>> from coola.hashing import HasherRegistry, SequenceHasher, DefaultHasher
-        >>> registry = HasherRegistry({object: DefaultHasher()})
+        >>> from coola.hashing import HasherRegistry, SequenceHasher, StrHasher
+        >>> registry = HasherRegistry({object: StrHasher()})
         >>> registry.register(list, SequenceHasher())
         >>> registry.hash([1, 2, 3])
 
@@ -201,12 +201,12 @@ class HasherRegistry:
         Example:
             ```pycon
             >>> from collections.abc import Sequence
-            >>> from coola.hashing import HasherRegistry, SequenceHasher, DefaultHasher
-            >>> registry = HasherRegistry({object: DefaultHasher()})
+            >>> from coola.hashing import HasherRegistry, SequenceHasher, StrHasher
+            >>> registry = HasherRegistry({object: StrHasher()})
             >>> registry.register(Sequence, SequenceHasher())
             >>> hasher = registry.find_hasher(list)
             >>> hasher
-            DefaultHasher()
+            StrHasher()
 
             ```
         """

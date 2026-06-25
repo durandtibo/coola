@@ -27,11 +27,11 @@ class BaseHasher(ABC, Generic[T]):
 
     Example:
         ```pycon
-        >>> from coola.hashing import DefaultHasher, HasherRegistry
+        >>> from coola.hashing import StrHasher, HasherRegistry
         >>> registry = HasherRegistry()
-        >>> hasher = DefaultHasher()
+        >>> hasher = StrHasher()
         >>> hasher
-        DefaultHasher()
+        StrHasher()
         >>> hasher.hash([1, 2, 3], registry=registry)
 
         ```
@@ -64,9 +64,9 @@ class BaseHasher(ABC, Generic[T]):
 
         Example:
             ```pycon
-            >>> from coola.hashing import DefaultHasher, HasherRegistry
+            >>> from coola.hashing import StrHasher, HasherRegistry
             >>> registry = HasherRegistry()
-            >>> hasher = DefaultHasher()
+            >>> hasher = StrHasher()
             >>> hasher.hash("Meowwww", registry=registry)
 
             ```
