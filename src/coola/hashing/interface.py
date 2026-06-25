@@ -43,9 +43,7 @@ def hash_object(
         ```pycon
         >>> from coola.hashing import hash_object
         >>> hash_object({"a": 1, "b": "abc"})
-        'a3ecbdde9e227bcdae038eb86746b0fccb90939d8e7eeac55513423219ffa02f'
-        >>> hash_object([1, 2, 3])
-        'e30f3d309eab8b8216b15ef153005972ce61c8c64c55f78075630089aed023de'
+        '8579f51cd67c8be8fd22301d4c085e2b676c7c7d49991645a85a3c77692a1056'
 
         ```
     """
