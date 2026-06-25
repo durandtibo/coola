@@ -8,7 +8,9 @@ __all__ = [
     "DefaultHasher",
     "HasherRegistry",
     "MappingHasher",
+    "ReprHasher",
     "SequenceHasher",
+    "StrHasher",
     "StringHasher",
     "get_default_registry",
     "hash_object",
@@ -22,5 +24,7 @@ from coola.hashing.default import DefaultHasher
 from coola.hashing.interface import get_default_registry, hash_object, register_hashers
 from coola.hashing.mapping import MappingHasher
 from coola.hashing.registry import HasherRegistry
+from coola.hashing.repr import ReprHasher
 from coola.hashing.sequence import SequenceHasher
+from coola.hashing.str import StrHasher
 from coola.hashing.string import StringHasher, hash_string
