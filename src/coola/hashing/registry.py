@@ -215,7 +215,7 @@ class HasherRegistry:
         """
         return self._state.resolve(data_type)
 
-    def hash(self, data: object) -> str:
+    def hash(self, data: object, length: int = 64) -> str:
         """Hash the given data by recursively traversing its structure.
 
         This is the main entry point for hashing. It automatically:
@@ -228,6 +228,9 @@ class HasherRegistry:
         Args:
             data: The data to hash. Can be a nested structure such as
                 a ``list``, ``dict``, or ``tuple``.
+            length: The desired length of the returned hex string. Must be an
+                even number between 2 and 128 inclusive, since each byte of the
+                digest encodes as two hex characters.
 
         Returns:
             A string representing the hash of the input data.
@@ -241,4 +244,4 @@ class HasherRegistry:
             ```
         """
         hasher = self.find_hasher(type(data))
-        return hasher.hash(data, self)
+        return hasher.hash(data, registry=self, length=length)
