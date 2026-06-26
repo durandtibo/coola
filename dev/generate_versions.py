@@ -7,54 +7,54 @@ import logging
 from pathlib import Path
 
 from feu.utils.io import save_json
+from feu.utils.mapping import sort_by_keys
 from feu.version import (
-    fetch_latest_major_versions,
-    fetch_latest_minor_versions,
-    filter_every_n_versions,
-    filter_last_n_versions,
-    sort_versions,
-    unique_versions,
+    fetch_latest_major_versions_map,
+    fetch_latest_minor_versions_map,
+    fetch_sampled_latest_minor_versions,
+    get_package_bounds,
+    partition_package_bounds,
+    read_pyproject_dependencies,
+    read_pyproject_optional_dependencies,
 )
 
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-def fetch_package_versions() -> dict[str, list[str]]:
+def fetch_package_versions(base_dir: Path) -> dict[str, list[str]]:
     r"""Get the versions for each package.
+
+    Args:
+        base_dir: Path to the base directory.
 
     Returns:
         A dictionary with the versions for each package.
     """
-    polars_versions = fetch_latest_minor_versions("polars", lower="1.0")
-    xarray_versions = fetch_latest_minor_versions("xarray", lower="2024.1")
-    return {
-        # Data structure dependencies
-        "jax": list(fetch_latest_minor_versions("jax", lower="0.5")),
-        "numpy": list(fetch_latest_minor_versions("numpy", lower="1.24")),
-        "packaging": list(fetch_latest_major_versions("packaging", lower="22.0")),
-        "pandas": list(fetch_latest_minor_versions("pandas", lower="2.0")),
-        "polars": sort_versions(
-            unique_versions(
-                filter_every_n_versions(polars_versions, n=5)
-                + filter_last_n_versions(polars_versions, n=1)
+    pyproject_path = base_dir.joinpath("pyproject.toml")
+
+    deps = read_pyproject_dependencies(pyproject_path) + read_pyproject_optional_dependencies(
+        pyproject_path
+    )
+    major_deps, minor_deps = partition_package_bounds(deps, ["packaging", "pyarrow"])
+
+    return sort_by_keys(
+        fetch_latest_major_versions_map(major_deps)
+        | fetch_latest_minor_versions_map(minor_deps)
+        | {
+            name: fetch_sampled_latest_minor_versions(
+                name, lower=get_package_bounds(deps, name).lower, n=n
             )
-        ),
-        "pyarrow": list(fetch_latest_major_versions("pyarrow", lower="11.0")),
-        "torch": list(fetch_latest_minor_versions("torch", lower="2.0")),
-        "xarray": sort_versions(
-            unique_versions(
-                filter_every_n_versions(xarray_versions, n=3)
-                + filter_last_n_versions(xarray_versions, n=1)
-            )
-        ),
-    }
+            for name, n in [("polars", 5), ("xarray", 3)]
+        }
+    )
 
 
 def main() -> None:
     r"""Generate the package versions and save them in a JSON file."""
-    versions = fetch_package_versions()
+    base_dir = Path(__file__).parent.parent
+    versions = fetch_package_versions(base_dir)
     logger.info(f"{versions=}")
-    path = Path(__file__).parent.parent.joinpath("dev/config").joinpath("package_versions.json")
+    path = base_dir.joinpath("dev/config").joinpath("package_versions.json")
     logger.info(f"Saving package versions to {path}")
     save_json(versions, path, exist_ok=True)
 
