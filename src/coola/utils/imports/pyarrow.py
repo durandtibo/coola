@@ -41,7 +41,7 @@ def check_pyarrow() -> None:
         raise_pyarrow_missing_error()
 
 
-@lru_cache
+@lru_cache(1)
 def is_pyarrow_available() -> bool:
     r"""Indicate if the ``pyarrow`` package is installed or not.
 

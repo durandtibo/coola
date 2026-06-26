@@ -41,7 +41,7 @@ def check_packaging() -> None:
         raise_packaging_missing_error()
 
 
-@lru_cache
+@lru_cache(1)
 def is_packaging_available() -> bool:
     r"""Indicate if the ``packaging`` package is installed or not.
 

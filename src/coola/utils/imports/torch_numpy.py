@@ -47,7 +47,7 @@ def check_torch_numpy() -> None:
         raise RuntimeError(msg)
 
 
-@lru_cache
+@lru_cache(1)
 def is_torch_numpy_available() -> bool:
     r"""Indicate if the ``torch`` and ``numpy`` packages are installed
     and are compatible.

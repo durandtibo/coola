@@ -36,7 +36,7 @@ def check_polars() -> None:
         raise_polars_missing_error()
 
 
-@lru_cache
+@lru_cache(1)
 def is_polars_available() -> bool:
     r"""Indicate if the ``polars`` package is installed or not.
 
