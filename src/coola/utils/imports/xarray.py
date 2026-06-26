@@ -36,7 +36,7 @@ def check_xarray() -> None:
         raise_xarray_missing_error()
 
 
-@lru_cache
+@lru_cache(1)
 def is_xarray_available() -> bool:
     r"""Indicate if the ``xarray`` package is installed or not.
 

@@ -36,7 +36,7 @@ def check_torch() -> None:
         raise_torch_missing_error()
 
 
-@lru_cache
+@lru_cache(1)
 def is_torch_available() -> bool:
     r"""Indicate if the ``torch`` package is installed or not.
 

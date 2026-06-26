@@ -36,7 +36,7 @@ def check_jax() -> None:
         raise_jax_missing_error()
 
 
-@lru_cache
+@lru_cache(1)
 def is_jax_available() -> bool:
     r"""Indicate if the ``jax`` package is installed or not.
 
