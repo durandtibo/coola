@@ -25,8 +25,8 @@ def fetch_package_versions() -> dict[str, list[str]]:
     Returns:
         A dictionary with the versions for each package.
     """
-    polars_verions = fetch_latest_minor_versions("polars", lower="1.0")
-    xarray_verions = fetch_latest_minor_versions("xarray", lower="2024.1")
+    polars_versions = fetch_latest_minor_versions("polars", lower="1.0")
+    xarray_versions = fetch_latest_minor_versions("xarray", lower="2024.1")
     return {
         # Data structure dependencies
         "jax": list(fetch_latest_minor_versions("jax", lower="0.5")),
@@ -35,16 +35,16 @@ def fetch_package_versions() -> dict[str, list[str]]:
         "pandas": list(fetch_latest_minor_versions("pandas", lower="2.0")),
         "polars": sort_versions(
             unique_versions(
-                filter_every_n_versions(polars_verions, n=5)
-                + filter_last_n_versions(polars_verions, n=1)
+                filter_every_n_versions(polars_versions, n=5)
+                + filter_last_n_versions(polars_versions, n=1)
             )
         ),
         "pyarrow": list(fetch_latest_major_versions("pyarrow", lower="11.0")),
         "torch": list(fetch_latest_minor_versions("torch", lower="2.0")),
         "xarray": sort_versions(
             unique_versions(
-                filter_every_n_versions(xarray_verions, n=3)
-                + filter_last_n_versions(xarray_verions, n=1)
+                filter_every_n_versions(xarray_versions, n=3)
+                + filter_last_n_versions(xarray_versions, n=1)
             )
         ),
     }
