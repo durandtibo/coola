@@ -12,7 +12,7 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Setup python environment
         uses: durandtibo/setup-venv-uv-action@v0.0.3
@@ -25,6 +25,10 @@ jobs:
           python -c "from coola import equality"
           python -c "from coola.equality import handler"
           python -c "from coola.equality import tester"
+
+      - name: check coola.hashing
+        run: |
+          python -c "from coola import hashing"
 
       - name: check coola.iterator
         run: |

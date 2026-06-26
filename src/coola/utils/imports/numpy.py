@@ -36,7 +36,7 @@ def check_numpy() -> None:
         raise_numpy_missing_error()
 
 
-@lru_cache
+@lru_cache(1)
 def is_numpy_available() -> bool:
     r"""Indicate if the ``numpy`` package is installed or not.
 

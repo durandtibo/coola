@@ -1,1 +1,2 @@
-r"""Define some testing utilities."""
+r"""Testing helpers for integration with ``pytest`` and equality
+checks."""

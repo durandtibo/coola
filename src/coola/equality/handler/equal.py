@@ -23,7 +23,7 @@ logger: logging.Logger = logging.getLogger(__name__)
 
 
 class SupportsEqual(Protocol):
-    r"""Implement a protocol to represent objects with a ``equal``
+    r"""Implement a protocol to represent objects with an ``equal``
     method."""
 
     def equal(self, other: object) -> bool:
@@ -34,15 +34,15 @@ class SupportsEqual(Protocol):
             other: The value to compare with.
 
         Returns:
-            ``True`` if the two objects are equal, otherwise ``False``
+            ``True`` if the two objects are equal, otherwise ``False``.
         """
 
 
-class SupportsEqualNan(Protocol):
-    r"""Implement a protocol to represent objects with a ``equal``
-    method with an option compare NaNs."""
+class SupportsEqualNan(SupportsEqual, Protocol):
+    r"""Implement a protocol to represent objects with an ``equal``
+    method with an option to compare NaNs."""
 
-    def equal(self, other: object, equal_nan: bool = False) -> bool:
+    def equal(self, other: object, equal_nan: bool = False) -> bool:  # type: ignore[override]
         r"""Return ``True`` if the two objects are equal, otherwise
         ``False``.
 
@@ -52,21 +52,19 @@ class SupportsEqualNan(Protocol):
                 NaN's in both objects will be considered equal.
 
         Returns:
-            ``True`` if the two objects are equal, otherwise ``False``
+            ``True`` if the two objects are equal, otherwise ``False``.
         """
 
 
 class EqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Check if the two objects have the same data.
 
-    This handler returns ``False`` if the two objects are different
-    data, otherwise it returns ``True``. The first object must have
-    a ``equal`` attribute which indicates if the two objects are
-    equal or not.
+    This handler returns ``False`` if the two objects have different
+    data, otherwise it returns ``True``. The first object must
+    implement an ``equal`` method.
 
     Example:
         ```pycon
-        >>> import math
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import EqualHandler
         >>> class MyFloat:
@@ -90,6 +88,8 @@ class EqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     """
 
     def handle(self, actual: SupportsEqual, expected: object, config: EqualityConfig) -> bool:
+        if not hasattr(actual, "equal") or not callable(actual.equal):
+            return False
         if not actual.equal(expected):
             if config.show_difference:
                 logger.info(format_value_difference(actual=actual, expected=expected))
@@ -98,12 +98,13 @@ class EqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
 
 
 class EqualNanHandler(HandlerEqualityMixin, BaseEqualityHandler):
-    r"""Check if the two objects have the same data.
+    r"""Check if the two objects have the same data, with optional NaN
+    equality.
 
-    This handler returns ``False`` if the two objects are different
-    data, otherwise it returns ``True``. The first object must have
-    a ``equal`` attribute which indicates if the two objects are
-    equal or not.
+    This handler returns ``False`` if the two objects have different
+    data, otherwise it returns ``True``. The first object must
+    implement an ``equal`` method that accepts an ``equal_nan``
+    parameter.
 
     Example:
         ```pycon
@@ -136,6 +137,8 @@ class EqualNanHandler(HandlerEqualityMixin, BaseEqualityHandler):
     """
 
     def handle(self, actual: SupportsEqualNan, expected: object, config: EqualityConfig) -> bool:
+        if not hasattr(actual, "equal") or not callable(actual.equal):
+            return False
         if not actual.equal(expected, equal_nan=config.equal_nan):
             if config.show_difference:
                 logger.info(format_value_difference(actual=actual, expected=expected))

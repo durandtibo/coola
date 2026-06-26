@@ -1,12 +1,13 @@
-r"""Contain handlers to help check if two objects are equal or not.
+r"""Composable equality handlers used by tester implementations.
 
-The handlers are designed to work with the Chain of Responsibility
-pattern.
+Handlers are combined in chains so each check can either short-circuit
+or delegate to the next check in the sequence.
 """
 
 from __future__ import annotations
 
 __all__ = [
+    "AllCloseNanHandler",
     "BaseEqualityHandler",
     "EqualHandler",
     "EqualNanHandler",
@@ -33,6 +34,7 @@ __all__ = [
     "SameTypeHandler",
     "ScalarEqualHandler",
     "SequenceSameValuesHandler",
+    "TolerantEqualHandler",
     "TorchTensorEqualHandler",
     "TorchTensorSameDeviceHandler",
     "TrueHandler",
@@ -41,6 +43,7 @@ __all__ = [
     "handlers_are_equal",
 ]
 
+from coola.equality.handler.allclose import AllCloseNanHandler
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.data import SameDataHandler
 from coola.equality.handler.dtype import SameDTypeHandler
@@ -74,6 +77,7 @@ from coola.equality.handler.pyarrow import PyarrowEqualHandler
 from coola.equality.handler.scalar import NanEqualHandler, ScalarEqualHandler
 from coola.equality.handler.sequence import SequenceSameValuesHandler
 from coola.equality.handler.shape import SameShapeHandler
+from coola.equality.handler.tolerant import TolerantEqualHandler
 from coola.equality.handler.torch import (
     TorchTensorEqualHandler,
     TorchTensorSameDeviceHandler,

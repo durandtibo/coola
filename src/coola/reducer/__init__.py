@@ -1,4 +1,5 @@
-r"""Contain the reducer implementations."""
+r"""Reduction utilities for computing statistics over numeric
+sequences."""
 
 __all__ = [
     "BaseBasicReducer",

@@ -36,7 +36,7 @@ def check_pandas() -> None:
         raise_pandas_missing_error()
 
 
-@lru_cache
+@lru_cache(1)
 def is_pandas_available() -> bool:
     r"""Indicate if the ``pandas`` package is installed or not.
 

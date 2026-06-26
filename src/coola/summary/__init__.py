@@ -1,5 +1,4 @@
-r"""Contain functionalities to compute a text summary of nested data
-based on the type of data."""
+r"""Utilities to build readable summaries for nested data structures."""
 
 from __future__ import annotations
 

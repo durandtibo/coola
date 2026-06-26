@@ -1,18 +1,8 @@
-r"""Contain the equality testers to check if two objects are equal or
-not.
+r"""Type-aware equality testers used by ``coola.equality``.
 
-This module provides a comprehensive system for comparing objects of different types
-using a registry-based approach with specialized equality testers. The testers use
-the chain of responsibility pattern with handlers to perform various equality checks.
-
-Key components:
-    - BaseEqualityTester: Abstract base class for all equality testers
-    - EqualityTesterRegistry: Registry that dispatches to appropriate testers by type
-    - Specialized testers for Python built-ins (list, dict, int, float, etc.)
-    - Testers for third-party libraries (NumPy, PyTorch, Pandas, Polars, JAX, xarray, PyArrow)
-
-The default registry is pre-configured with testers for common types and can be
-extended with custom testers using register_equality_testers().
+This package exposes a registry-based dispatch system with built-in testers
+for common Python containers and optional scientific types. Extend the
+default behavior by registering custom testers in the default registry.
 
 Example:
     ```pycon
@@ -48,6 +38,7 @@ __all__ = [
     "PyarrowEqualityTester",
     "ScalarEqualityTester",
     "SequenceEqualityTester",
+    "TolerantEqualEqualityTester",
     "TorchPackedSequenceEqualityTester",
     "TorchTensorEqualityTester",
     "XarrayDataArrayEqualityTester",
@@ -86,6 +77,7 @@ from coola.equality.tester.polars import (
 from coola.equality.tester.pyarrow import PyarrowEqualityTester
 from coola.equality.tester.registry import EqualityTesterRegistry
 from coola.equality.tester.scalar import ScalarEqualityTester
+from coola.equality.tester.tolerant import TolerantEqualEqualityTester
 from coola.equality.tester.torch import (
     TorchPackedSequenceEqualityTester,
     TorchTensorEqualityTester,

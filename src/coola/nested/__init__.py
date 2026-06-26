@@ -1,4 +1,4 @@
-r"""Contain simple operations on nested data structure."""
+r"""Helpers to reshape and query nested mapping data structures."""
 
 from __future__ import annotations
 
