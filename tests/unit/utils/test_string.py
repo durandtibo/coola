@@ -18,33 +18,15 @@ def test_char_diff_summary_returns_string() -> None:
     assert isinstance(char_diff_summary("hello", "hi"), str)
 
 
-def test_char_diff_summary_shrink() -> None:
-    assert char_diff_summary("<p>Hello</p>", "Hello") == "12 -> 5 chars (-7 chars, -58.3%)."
-
-
-def test_char_diff_summary_grow() -> None:
-    assert char_diff_summary("Hi", "Hello world") == "2 -> 11 chars (+9 chars, +450.0%)."
-
-
-def test_char_diff_summary_no_change() -> None:
-    assert char_diff_summary("hello", "world") == "5 -> 5 chars (+0 chars, +0.0%)."
-
-
-def test_char_diff_summary_empty_before() -> None:
-    assert char_diff_summary("", "hello") == "0 -> 5 chars (+5 chars, +0.0%)."
-
-
-def test_char_diff_summary_empty_after() -> None:
-    assert char_diff_summary("hello", "") == "5 -> 0 chars (-5 chars, -100.0%)."
-
-
-def test_char_diff_summary_both_empty() -> None:
-    assert char_diff_summary("", "") == "0 -> 0 chars (+0 chars, +0.0%)."
-
-
 @pytest.mark.parametrize(
     ("before", "after", "expected"),
     [
+        pytest.param("<p>Hello</p>", "Hello", "12 -> 5 chars (-7 chars, -58.3%).", id="shrink"),
+        pytest.param("Hi", "Hello world", "2 -> 11 chars (+9 chars, +450.0%).", id="grow"),
+        pytest.param("hello", "world", "5 -> 5 chars (+0 chars, +0.0%).", id="no-change"),
+        pytest.param("", "hello", "0 -> 5 chars (+5 chars, +0.0%).", id="empty-before"),
+        pytest.param("hello", "", "5 -> 0 chars (-5 chars, -100.0%).", id="empty-after"),
+        pytest.param("", "", "0 -> 0 chars (+0 chars, +0.0%).", id="both-empty"),
         pytest.param(
             "a" * 1000,
             "a" * 500,
@@ -89,52 +71,27 @@ def test_count_lines(text: str, expected: int) -> None:
 ########################################
 
 
-def test_remove_empty_lines_removes_empty_lines() -> None:
-    assert remove_empty_lines("Hello\n\nWorld") == "Hello\nWorld"
-
-
-def test_remove_empty_lines_removes_multiple_consecutive_empty_lines() -> None:
-    assert remove_empty_lines("Hello\n\n\n\nWorld") == "Hello\nWorld"
-
-
-def test_remove_empty_lines_removes_whitespace_only_lines() -> None:
-    assert remove_empty_lines("Hello\n   \nWorld") == "Hello\nWorld"
-
-
-def test_remove_empty_lines_removes_tab_only_lines() -> None:
-    assert remove_empty_lines("Hello\n\t\nWorld") == "Hello\nWorld"
-
-
-def test_remove_empty_lines_no_empty_lines() -> None:
-    assert remove_empty_lines("Hello\nWorld") == "Hello\nWorld"
-
-
-def test_remove_empty_lines_all_empty_lines() -> None:
-    assert remove_empty_lines("\n\n\n") == ""
-
-
-def test_remove_empty_lines_empty_string() -> None:
-    assert remove_empty_lines("") == ""
-
-
-def test_remove_empty_lines_single_line_no_newline() -> None:
-    assert remove_empty_lines("Hello") == "Hello"
-
-
-def test_remove_empty_lines_leading_empty_lines() -> None:
-    assert remove_empty_lines("\n\nHello") == "Hello"
-
-
-def test_remove_empty_lines_trailing_empty_lines() -> None:
-    assert remove_empty_lines("Hello\n\n") == "Hello"
-
-
-def test_remove_empty_lines_preserves_internal_whitespace() -> None:
-    assert remove_empty_lines("Hello   World\n\nFoo") == "Hello   World\nFoo"
-
-
-def test_remove_empty_lines_multiline_with_mixed_empty_lines() -> None:
-    assert remove_empty_lines("Hello\n\nWorld\n\n\nFoo") == "Hello\nWorld\nFoo"
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        pytest.param("Hello\n\nWorld", "Hello\nWorld", id="single-empty-line"),
+        pytest.param("Hello\n\n\n\nWorld", "Hello\nWorld", id="multiple-consecutive-empty-lines"),
+        pytest.param("Hello\n   \nWorld", "Hello\nWorld", id="whitespace-only-line"),
+        pytest.param("Hello\n\t\nWorld", "Hello\nWorld", id="tab-only-line"),
+        pytest.param("Hello\nWorld", "Hello\nWorld", id="no-empty-lines"),
+        pytest.param("\n\n\n", "", id="all-empty-lines"),
+        pytest.param("", "", id="empty-string"),
+        pytest.param("Hello", "Hello", id="single-line-no-newline"),
+        pytest.param("\n\nHello", "Hello", id="leading-empty-lines"),
+        pytest.param("Hello\n\n", "Hello", id="trailing-empty-lines"),
+        pytest.param(
+            "Hello   World\n\nFoo", "Hello   World\nFoo", id="preserves-internal-whitespace"
+        ),
+        pytest.param("Hello\n\nWorld\n\n\nFoo", "Hello\nWorld\nFoo", id="mixed-empty-lines"),
+    ],
+)
+def test_remove_empty_lines(text: str, expected: str) -> None:
+    assert remove_empty_lines(text) == expected
 
 
 ##################################
