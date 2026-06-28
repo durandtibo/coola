@@ -29,6 +29,8 @@ jobs:
           'pyarrow',
           'torch',
           'xarray',
+          'colorlog',
+          'rich',
         ]
 
     steps:
