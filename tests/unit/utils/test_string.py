@@ -2,7 +2,12 @@ from __future__ import annotations
 
 import pytest
 
-from coola.utils.string import char_diff_summary, remove_empty_lines, truncate_str
+from coola.utils.string import (
+    char_diff_summary,
+    count_lines,
+    remove_empty_lines,
+    truncate_str,
+)
 
 ##########################################
 #     Tests for char_diff_summary        #
@@ -53,6 +58,30 @@ def test_char_diff_summary_both_empty() -> None:
 )
 def test_char_diff_summary_values(before: str, after: str, expected: str) -> None:
     assert char_diff_summary(before, after) == expected
+
+
+#################################
+#     Tests for count_lines     #
+#################################
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        pytest.param("", 0, id="empty-string"),
+        pytest.param("Hello", 1, id="single-line"),
+        pytest.param("Hello\nWorld", 2, id="two-lines"),
+        pytest.param("Hello\nWorld\nFoo", 3, id="three-lines"),
+        pytest.param("Hello\n", 1, id="trailing-newline"),
+        pytest.param("\nHello", 2, id="leading-newline"),
+        pytest.param("Hello\n\n\nWorld", 4, id="multiple-consecutive-newlines"),
+        pytest.param("\n\n\n", 3, id="only-newlines"),
+        pytest.param("Hello\r\nWorld", 2, id="windows-line-endings"),
+        pytest.param("Hello\nWorld\r\nFoo", 3, id="mixed-line-endings"),
+    ],
+)
+def test_count_lines(text: str, expected: int) -> None:
+    assert count_lines(text) == expected
 
 
 ########################################
