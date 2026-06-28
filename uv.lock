@@ -250,7 +250,7 @@ wheels = [
 
 [[package]]
 name = "coola"
-version = "1.1.8a0"
+version = "1.1.8a2"
 source = { editable = "." }
 
 [package.optional-dependencies]
@@ -333,7 +333,7 @@ dev = [
     { name = "black", specifier = ">=26.5.1" },
     { name = "coverage", extras = ["toml"], specifier = ">=7.14,<8.0" },
     { name = "docformatter", extras = ["tomli"], specifier = ">=1.7.8,<2.0" },
-    { name = "feu", extras = ["all"], specifier = ">=0.7.0,<1.0" },
+    { name = "feu", extras = ["all"], specifier = ">=0.7.1,<1.0" },
     { name = "invoke", specifier = ">=3.0,<4.0" },
     { name = "pre-commit", specifier = ">=4.6,<5.0" },
     { name = "pygments", specifier = ">=2.20,<3.0" },
@@ -564,16 +564,16 @@ wheels = [
 
 [[package]]
 name = "feu"
-version = "0.7.0"
+version = "0.7.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "packaging" },
     { name = "tomli", marker = "python_full_version < '3.11'" },
     { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/09/67/2446bd5a9d732811aed0cafd271a5cb3c5f56d6a70deb8f318b278f4392f/feu-0.7.0.tar.gz", hash = "sha256:75a8ae7c36ca0effb704e1d5774a81161ac373bb00be1085873d29cd8a7a438d", size = 33688, upload-time = "2026-06-28T01:15:44.24Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/fe/b3/8209a837f083f35e4a6f8107619970b62c58b629da29344599384658df20/feu-0.7.1.tar.gz", hash = "sha256:48a7494df00f56ee18bcb300305493c261ee22b1d96a7be5ecb1189e8e39224a", size = 33705, upload-time = "2026-06-28T05:56:48.692Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4d/0c/b4901ea9542f88e5d34848fdcad526c5a4994db6f27429b61b0d8c487b15/feu-0.7.0-py3-none-any.whl", hash = "sha256:c0244b62b4c777bfc3190f5beb760b32b9bb0e7072eacd095bcd25425abc9789", size = 48171, upload-time = "2026-06-28T01:15:43.137Z" },
+    { url = "https://files.pythonhosted.org/packages/fa/5a/1d0f0b680188291473e91c21919f1c2c5e259f0120e8debad50b3547b98f/feu-0.7.1-py3-none-any.whl", hash = "sha256:ed3f6259677167aa7230f5a88b3d6bb4704ecaedf1160f23e52b2871373a7ae3", size = 48201, upload-time = "2026-06-28T05:56:47.61Z" },
 ]
 
 [package.optional-dependencies]
