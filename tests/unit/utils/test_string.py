@@ -99,40 +99,25 @@ def test_remove_empty_lines(text: str, expected: str) -> None:
 ##################################
 
 
-def test_truncate_str_short_string() -> None:
-    assert truncate_str("hello") == "hello"
-
-
-def test_truncate_str_exact_length() -> None:
-    assert truncate_str("hello", max_len=5) == "hello"
-
-
-def test_truncate_str_empty_string() -> None:
-    assert truncate_str("") == ""
-
-
-def test_truncate_str_truncated() -> None:
-    assert truncate_str("hello world", max_len=8) == "hello..."
-
-
-def test_truncate_str_truncated_to_suffix_length() -> None:
-    assert truncate_str("hello world", max_len=3) == "..."
-
-
-def test_truncate_str_truncated_single_character() -> None:
-    assert truncate_str("hello world", max_len=4) == "h..."
-
-
-def test_truncate_str_custom_suffix() -> None:
-    assert truncate_str("hello world", max_len=8, suffix="…") == "hello w…"
-
-
-def test_truncate_str_empty_suffix() -> None:
-    assert truncate_str("hello world", max_len=5, suffix="") == "hello"
-
-
-def test_truncate_str_empty_suffix_exact_length() -> None:
-    assert truncate_str("hello", max_len=5, suffix="") == "hello"
+@pytest.mark.parametrize(
+    ("text", "kwargs", "expected"),
+    [
+        pytest.param("hello", {}, "hello", id="short-string"),
+        pytest.param("hello", {"max_len": 5}, "hello", id="exact-length"),
+        pytest.param("", {}, "", id="empty-string"),
+        pytest.param("hello world", {"max_len": 8}, "hello...", id="truncated"),
+        pytest.param("hello world", {"max_len": 3}, "...", id="truncated-to-suffix-length"),
+        pytest.param("hello world", {"max_len": 4}, "h...", id="truncated-single-character"),
+        pytest.param("hello world", {"max_len": 8, "suffix": "…"}, "hello w…", id="custom-suffix"),
+        pytest.param("hello world", {"max_len": 5, "suffix": ""}, "hello", id="empty-suffix"),
+        pytest.param(
+            "hello", {"max_len": 5, "suffix": ""}, "hello", id="empty-suffix-exact-length"
+        ),
+        pytest.param("hello", {"max_len": 0, "suffix": ""}, "", id="max-len-zero-empty-suffix"),
+    ],
+)
+def test_truncate_str(text: str, kwargs: dict, expected: str) -> None:
+    assert truncate_str(text, **kwargs) == expected
 
 
 def test_truncate_str_max_len_less_than_suffix() -> None:
@@ -140,7 +125,3 @@ def test_truncate_str_max_len_less_than_suffix() -> None:
         ValueError, match=r"max_len .* must be greater than or equal to the suffix length"
     ):
         truncate_str("hello world", max_len=2)
-
-
-def test_truncate_str_max_len_equal_zero_empty_suffix() -> None:
-    assert truncate_str("hello", max_len=0, suffix="") == ""

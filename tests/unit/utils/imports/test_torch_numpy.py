@@ -13,6 +13,8 @@ from coola.utils.imports import (
 
 logger = logging.getLogger(__name__)
 
+MODULE = "coola.utils.imports.torch_numpy"
+
 
 @pytest.fixture(autouse=True)
 def _cache_clear() -> None:
@@ -29,13 +31,13 @@ def my_function(n: int = 0) -> int:
 
 
 def test_check_torch_numpy() -> None:
-    with patch("coola.utils.imports.torch_numpy.is_torch_numpy_available", lambda: True):
+    with patch(f"{MODULE}.is_torch_numpy_available", lambda: True):
         check_torch_numpy()
 
 
 def test_check_torch_numpy_missing() -> None:
     with (
-        patch("coola.utils.imports.torch_numpy.is_torch_numpy_available", lambda: False),
+        patch(f"{MODULE}.is_torch_numpy_available", lambda: False),
         pytest.raises(RuntimeError, match=r"'torch' and 'numpy' packages are required"),
     ):
         check_torch_numpy()
@@ -46,33 +48,33 @@ def test_is_torch_numpy_available() -> None:
 
 
 def test_is_torch_numpy_available_missing_torch() -> None:
-    with patch("coola.utils.imports.torch_numpy.is_torch_available", lambda: False):
+    with patch(f"{MODULE}.is_torch_available", lambda: False):
         assert not is_torch_numpy_available()
 
 
 def test_is_torch_numpy_available_missing_numpy() -> None:
     with (
-        patch("coola.utils.imports.torch_numpy.is_torch_available", lambda: True),
-        patch("coola.utils.imports.torch_numpy.is_numpy_available", lambda: False),
+        patch(f"{MODULE}.is_torch_available", lambda: True),
+        patch(f"{MODULE}.is_numpy_available", lambda: False),
     ):
         assert not is_torch_numpy_available()
 
 
 def test_is_torch_numpy_available_not_compatible() -> None:
     with (
-        patch("coola.utils.imports.torch_numpy.is_torch_available", lambda: True),
-        patch("coola.utils.imports.torch_numpy.is_numpy_available", lambda: True),
-        patch("coola.utils.imports.torch_numpy.torch.tensor", Mock(side_effect=RuntimeError)),
+        patch(f"{MODULE}.is_torch_available", lambda: True),
+        patch(f"{MODULE}.is_numpy_available", lambda: True),
+        patch(f"{MODULE}.torch.tensor", Mock(side_effect=RuntimeError)),
     ):
         assert not is_torch_numpy_available()
 
 
 def test_is_torch_numpy_available_compatible() -> None:
     with (
-        patch("coola.utils.imports.torch_numpy.is_torch_available", lambda: True),
-        patch("coola.utils.imports.torch_numpy.is_numpy_available", lambda: True),
+        patch(f"{MODULE}.is_torch_available", lambda: True),
+        patch(f"{MODULE}.is_numpy_available", lambda: True),
         patch(
-            "coola.utils.imports.torch_numpy.torch.tensor",
+            f"{MODULE}.torch.tensor",
             Mock(return_value=Mock(numpy=Mock(return_value=[1.0]))),
         ),
     ):
@@ -80,19 +82,19 @@ def test_is_torch_numpy_available_compatible() -> None:
 
 
 def test_torch_numpy_available_with_package() -> None:
-    with patch("coola.utils.imports.torch_numpy.is_torch_numpy_available", lambda: True):
+    with patch(f"{MODULE}.is_torch_numpy_available", lambda: True):
         fn = torch_numpy_available(my_function)
         assert fn(2) == 44
 
 
 def test_torch_numpy_available_without_package() -> None:
-    with patch("coola.utils.imports.torch_numpy.is_torch_numpy_available", lambda: False):
+    with patch(f"{MODULE}.is_torch_numpy_available", lambda: False):
         fn = torch_numpy_available(my_function)
         assert fn(2) is None
 
 
 def test_torch_numpy_available_decorator_with_package() -> None:
-    with patch("coola.utils.imports.torch_numpy.is_torch_numpy_available", lambda: True):
+    with patch(f"{MODULE}.is_torch_numpy_available", lambda: True):
 
         @torch_numpy_available
         def fn(n: int = 0) -> int:
@@ -102,7 +104,7 @@ def test_torch_numpy_available_decorator_with_package() -> None:
 
 
 def test_torch_numpy_available_decorator_without_package() -> None:
-    with patch("coola.utils.imports.torch_numpy.is_torch_numpy_available", lambda: False):
+    with patch(f"{MODULE}.is_torch_numpy_available", lambda: False):
 
         @torch_numpy_available
         def fn(n: int = 0) -> int:
