@@ -43,9 +43,7 @@ def configure_colorlog(level: int = logging.INFO, force: bool = False) -> None:
 
         ```
     """
-    colorlog_available = is_colorlog_available()
-
-    if not colorlog_available:
+    if not is_colorlog_available():
         logging.basicConfig(level=level, force=force)
         return
 
