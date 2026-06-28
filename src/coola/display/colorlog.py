@@ -1,8 +1,8 @@
-"""Provide utilities for configuring Python logging output."""
+"""Provide utilities for configuring Python display output."""
 
 from __future__ import annotations
 
-__all__ = ["configure_colorlog"]
+__all__ = ["configure_colorlog_logging"]
 
 import logging
 
@@ -12,7 +12,7 @@ if is_colorlog_available():  # pragma: no cover
     import colorlog
 
 
-def configure_colorlog(level: int = logging.INFO, force: bool = False) -> None:
+def configure_colorlog_logging(level: int = logging.INFO, force: bool = False) -> None:
     r"""Configure the root logger, using a coloured formatter when
     available.
 
@@ -20,17 +20,17 @@ def configure_colorlog(level: int = logging.INFO, force: bool = False) -> None:
     :class:`colorlog.StreamHandler` with per-level colours for both the
     log metadata (level, logger name, line number) and the message
     itself.  If ``colorlog`` is not installed, falls back to plain
-    :func:`logging.basicConfig` with no formatting.
+    :func:`display.basicConfig` with no formatting.
 
     Note:
-        :func:`logging.basicConfig` is a **no-op** if the root logger
+        :func:`display.basicConfig` is a **no-op** if the root logger
         already has handlers configured.  Pass ``force=True`` to remove
         existing handlers and reconfigure unconditionally.
 
     Args:
         level: Minimum log level for the root logger.  Accepts any
-            constant from :mod:`logging` (e.g. ``logging.DEBUG``,
-            ``logging.WARNING``).  Defaults to ``logging.INFO``.
+            constant from :mod:`display` (e.g. ``display.DEBUG``,
+            ``display.WARNING``).  Defaults to ``display.INFO``.
         force: When ``True``, removes any existing handlers before
             applying the new configuration, ensuring this call always
             takes effect.  Defaults to ``False``.
@@ -38,8 +38,8 @@ def configure_colorlog(level: int = logging.INFO, force: bool = False) -> None:
     Example:
         ```pycon
         >>> import logging
-        >>> from coola.logging.colorlog import configure_colorlog
-        >>> configure_colorlog(level=logging.DEBUG)
+        >>> from coola.display.colorlog import configure_colorlog_logging
+        >>> configure_colorlog_logging(level=display.DEBUG)
 
         ```
     """
