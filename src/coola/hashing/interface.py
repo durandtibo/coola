@@ -150,5 +150,7 @@ def _register_default_hashers(registry: HasherRegistry) -> None:
             # Date types
             date: datetime_hasher,
             datetime: datetime_hasher,
+            # None
+            type(None): repr_hasher,
         }
     )

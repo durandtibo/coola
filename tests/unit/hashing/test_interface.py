@@ -206,6 +206,10 @@ def test_get_default_registry_registers_mappings() -> None:
     assert isinstance(registry.find_hasher(Mapping), MappingHasher)
 
 
+def test_get_default_registry_registers_none() -> None:
+    assert isinstance(get_default_registry().find_hasher(type(None)), ReprHasher)
+
+
 def test_get_default_registry_can_hash_list() -> None:
     assert get_default_registry().hash([1, 2, 3]) == (
         "e30f3d309eab8b8216b15ef153005972ce61c8c64c55f78075630089aed023de"
