@@ -64,6 +64,10 @@ pyarrow = ["pyarrow>=11.0"]
 torch = ["torch>=2.0,<3.0; (sys_platform == 'linux' or (sys_platform == 'darwin' and platform_machine == 'arm64'))"]
 xarray = ["xarray>=2024.1"]
 
+# Logging
+colorlog = ["colorlog >= 6.9,<7.0"]
+rich = ["rich>=14.0.0,<16.0"]
+
 [dependency-groups]
 dev = [
     "black>=26.5.1",
