@@ -2,7 +2,58 @@ from __future__ import annotations
 
 import pytest
 
-from coola.utils.string import remove_empty_lines, truncate_str
+from coola.utils.string import char_diff_summary, remove_empty_lines, truncate_str
+
+##########################################
+#     Tests for char_diff_summary        #
+##########################################
+
+
+def test_char_diff_summary_returns_string() -> None:
+    assert isinstance(char_diff_summary("hello", "hi"), str)
+
+
+def test_char_diff_summary_shrink() -> None:
+    assert char_diff_summary("<p>Hello</p>", "Hello") == "12 -> 5 chars (-7 chars, -58.3%)."
+
+
+def test_char_diff_summary_grow() -> None:
+    assert char_diff_summary("Hi", "Hello world") == "2 -> 11 chars (+9 chars, +450.0%)."
+
+
+def test_char_diff_summary_no_change() -> None:
+    assert char_diff_summary("hello", "world") == "5 -> 5 chars (+0 chars, +0.0%)."
+
+
+def test_char_diff_summary_empty_before() -> None:
+    assert char_diff_summary("", "hello") == "0 -> 5 chars (+5 chars, +0.0%)."
+
+
+def test_char_diff_summary_empty_after() -> None:
+    assert char_diff_summary("hello", "") == "5 -> 0 chars (-5 chars, -100.0%)."
+
+
+def test_char_diff_summary_both_empty() -> None:
+    assert char_diff_summary("", "") == "0 -> 0 chars (+0 chars, +0.0%)."
+
+
+@pytest.mark.parametrize(
+    ("before", "after", "expected"),
+    [
+        pytest.param(
+            "a" * 1000,
+            "a" * 500,
+            "1,000 -> 500 chars (-500 chars, -50.0%).",
+            id="thousands-separator",
+        ),
+        pytest.param("ab", "abcd", "2 -> 4 chars (+2 chars, +100.0%).", id="double"),
+        pytest.param("abcd", "ab", "4 -> 2 chars (-2 chars, -50.0%).", id="half"),
+        pytest.param("abc", "ab", "3 -> 2 chars (-1 chars, -33.3%).", id="one-char-removed"),
+    ],
+)
+def test_char_diff_summary_values(before: str, after: str, expected: str) -> None:
+    assert char_diff_summary(before, after) == expected
+
 
 ########################################
 #     Tests for remove_empty_lines     #
