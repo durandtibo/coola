@@ -2,7 +2,7 @@ r"""Contain utility functions to process strings."""
 
 from __future__ import annotations
 
-__all__ = ["char_diff_summary", "remove_empty_lines", "truncate_str"]
+__all__ = ["char_diff_summary", "count_lines", "remove_empty_lines", "truncate_str"]
 
 
 def char_diff_summary(before: str, after: str) -> str:
@@ -37,6 +37,31 @@ def char_diff_summary(before: str, after: str) -> str:
     pct = diff / n_before * 100 if n_before > 0 else 0.0
     sign = "+" if diff >= 0 else "-"
     return f"{n_before:,} -> {n_after:,} chars ({sign}{abs(diff):,} chars, {sign}{abs(pct):.1f}%)."
+
+
+def count_lines(text: str) -> int:
+    r"""Count the number of lines in a string.
+
+    Args:
+        text: The input string to count lines in.
+
+    Returns:
+        The number of lines in the input string.
+
+    Example:
+        ```pycon
+        >>> from coola.utils.string import count_lines
+        >>> count_lines("Hello\nWorld")
+        2
+        >>> count_lines("Hello\nWorld\nFoo")
+        3
+
+        ```
+    """
+    if not text:
+        return 0
+
+    return len(text.splitlines())
 
 
 def remove_empty_lines(text: str) -> str:
