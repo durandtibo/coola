@@ -5,6 +5,7 @@ from __future__ import annotations
 
 __all__ = [
     "LazyModule",
+    "check_colorlog",
     "check_jax",
     "check_numpy",
     "check_package",
@@ -12,16 +13,20 @@ __all__ = [
     "check_pandas",
     "check_polars",
     "check_pyarrow",
+    "check_rich",
     "check_torch",
     "check_torch_numpy",
     "check_xarray",
+    "colorlog_available",
     "decorator_package_available",
+    "is_colorlog_available",
     "is_jax_available",
     "is_numpy_available",
     "is_packaging_available",
     "is_pandas_available",
     "is_polars_available",
     "is_pyarrow_available",
+    "is_rich_available",
     "is_torch_available",
     "is_torch_numpy_available",
     "is_xarray_available",
@@ -34,6 +39,7 @@ __all__ = [
     "pandas_available",
     "polars_available",
     "pyarrow_available",
+    "raise_colorlog_missing_error",
     "raise_jax_missing_error",
     "raise_numpy_missing_error",
     "raise_package_missing_error",
@@ -41,14 +47,21 @@ __all__ = [
     "raise_pandas_missing_error",
     "raise_polars_missing_error",
     "raise_pyarrow_missing_error",
+    "raise_rich_missing_error",
     "raise_torch_missing_error",
     "raise_xarray_missing_error",
+    "rich_available",
     "torch_available",
     "torch_numpy_available",
     "xarray_available",
 ]
 
-
+from coola.utils.imports.colorlog import (
+    check_colorlog,
+    colorlog_available,
+    is_colorlog_available,
+    raise_colorlog_missing_error,
+)
 from coola.utils.imports.jax import (
     check_jax,
     is_jax_available,
@@ -85,6 +98,12 @@ from coola.utils.imports.pyarrow import (
     is_pyarrow_available,
     pyarrow_available,
     raise_pyarrow_missing_error,
+)
+from coola.utils.imports.rich import (
+    check_rich,
+    is_rich_available,
+    raise_rich_missing_error,
+    rich_available,
 )
 from coola.utils.imports.torch import (
     check_torch,
