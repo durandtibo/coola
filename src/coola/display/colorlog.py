@@ -39,7 +39,7 @@ def configure_colorlog_logging(level: int = logging.INFO, force: bool = False) -
         ```pycon
         >>> import logging
         >>> from coola.display.colorlog import configure_colorlog_logging
-        >>> configure_colorlog_logging(level=display.DEBUG)
+        >>> configure_colorlog_logging(level=logging.DEBUG)
 
         ```
     """
