@@ -55,10 +55,16 @@ class MultilineDisplayMixin(BaseDisplayMixin):
         ...         return {"key1": self.key1, "key2": self.key2}
         ...
         >>> obj = MyClass(key1="value1", key2="value2")
-        >>> repr(obj)
-        'MyClass(\\n  (key1): value1\\n  (key2): value2\\n)'
-        >>> str(obj)
-        'MyClass(\\n  (key1): value1\\n  (key2): value2\\n)'
+        >>> print(repr(obj))
+        MyClass(
+          (key1): value1
+          (key2): value2
+        )
+        >>> print(str(obj))
+        MyClass(
+          (key1): value1
+          (key2): value2
+        )
 
         ```
     """
@@ -91,10 +97,10 @@ class InlineDisplayMixin(BaseDisplayMixin):
         ...         return {"key1": self.key1, "key2": self.key2}
         ...
         >>> obj = MyClass(key1="value1", key2="value2")
-        >>> repr(obj)
-        "MyClass(key1='value1', key2='value2')"
-        >>> str(obj)
-        'MyClass(key1=value1, key2=value2)'
+        >>> print(repr(obj))
+        MyClass(key1='value1', key2='value2')
+        >>> print(str(obj))
+        MyClass(key1=value1, key2=value2)
 
         ```
     """
