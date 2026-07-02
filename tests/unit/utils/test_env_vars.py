@@ -2,13 +2,115 @@
 
 from __future__ import annotations
 
+import logging
 import os
 from unittest import mock
 from unittest.mock import patch
 
 import pytest
 
-from coola.utils.env_vars import get_required_env_var, temp_env_vars
+from coola.utils.env_vars import check_env_vars, get_required_env_var, temp_env_vars
+
+####################################
+#     Tests for check_env_vars     #
+####################################
+
+
+@patch.dict(os.environ, {"TEST_VAR": "test_value"}, clear=True)
+def test_check_env_vars_returns_true_for_defined_var() -> None:
+    """Test that a defined environment variable is reported as True."""
+    assert check_env_vars(["TEST_VAR"]) == {"TEST_VAR": True}
+
+
+@patch.dict(os.environ, {}, clear=True)
+def test_check_env_vars_returns_false_for_missing_var() -> None:
+    """Test that a missing environment variable is reported as False."""
+    assert check_env_vars(["MISSING_VAR"]) == {"MISSING_VAR": False}
+
+
+@patch.dict(os.environ, {"TEST_VAR": "test_value"}, clear=True)
+def test_check_env_vars_returns_true_for_empty_string_value() -> None:
+    """Test that a variable defined as an empty string is still
+    considered defined."""
+    assert check_env_vars(["TEST_VAR"]) == {"TEST_VAR": True}
+
+
+@patch.dict(os.environ, {"VAR_ONE": "value_one"}, clear=True)
+def test_check_env_vars_returns_mapping_for_multiple_vars() -> None:
+    """Test that a mix of defined and missing variables is reported
+    correctly."""
+    assert check_env_vars(["VAR_ONE", "VAR_TWO"]) == {
+        "VAR_ONE": True,
+        "VAR_TWO": False,
+    }
+
+
+@patch.dict(os.environ, {}, clear=True)
+def test_check_env_vars_returns_empty_dict_for_empty_list() -> None:
+    """Test that an empty list of variable names returns an empty
+    dict."""
+    assert check_env_vars([]) == {}
+
+
+@patch.dict(os.environ, {"TEST_VAR": "test_value"}, clear=True)
+def test_check_env_vars_does_not_raise_by_default() -> None:
+    """Test that no error is raised when a variable is missing and
+    raise_on_missing is not set."""
+    check_env_vars(["MISSING_VAR"])
+
+
+@patch.dict(os.environ, {"TEST_VAR": "test_value"}, clear=True)
+def test_check_env_vars_does_not_raise_when_all_defined() -> None:
+    """Test that no error is raised when raise_on_missing is True but
+    all variables are defined."""
+    check_env_vars(["TEST_VAR"], raise_on_missing=True)
+
+
+@patch.dict(os.environ, {}, clear=True)
+def test_check_env_vars_raises_on_missing_var() -> None:
+    """Test that EnvironmentError is raised when a variable is missing
+    and raise_on_missing is True."""
+    with pytest.raises(
+        EnvironmentError, match=r"Missing required environment variable\(s\): MISSING_VAR"
+    ):
+        check_env_vars(["MISSING_VAR"], raise_on_missing=True)
+
+
+@patch.dict(os.environ, {"VAR_ONE": "value_one"}, clear=True)
+def test_check_env_vars_raises_and_lists_all_missing_vars() -> None:
+    """Test that EnvironmentError lists all missing variables, not just
+    the first one."""
+    with pytest.raises(
+        EnvironmentError,
+        match=r"Missing required environment variable\(s\): VAR_TWO, VAR_THREE",
+    ):
+        check_env_vars(["VAR_ONE", "VAR_TWO", "VAR_THREE"], raise_on_missing=True)
+
+
+@patch.dict(os.environ, {}, clear=True)
+def test_check_env_vars_logs_success_message(caplog: pytest.LogCaptureFixture) -> None:
+    """Test that a defined variable logs an info message with a success
+    emoji."""
+    os.environ["TEST_VAR"] = "test_value"
+    with caplog.at_level(logging.INFO):
+        check_env_vars(["TEST_VAR"])
+    assert any(
+        record.levelno == logging.INFO and "✅ 'TEST_VAR' is defined." in record.message
+        for record in caplog.records
+    )
+
+
+@patch.dict(os.environ, {}, clear=True)
+def test_check_env_vars_logs_warning_message(caplog: pytest.LogCaptureFixture) -> None:
+    """Test that a missing variable logs a warning message with a
+    failure emoji."""
+    with caplog.at_level(logging.WARNING):
+        check_env_vars(["MISSING_VAR"])
+    assert any(
+        record.levelno == logging.WARNING and "❌ 'MISSING_VAR' is NOT defined." in record.message
+        for record in caplog.records
+    )
+
 
 ##########################################
 #     Tests for get_required_env_var     #
