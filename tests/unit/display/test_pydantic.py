@@ -10,7 +10,7 @@ from coola.utils.imports import is_pydantic_available
 if is_pydantic_available():
     from pydantic import BaseModel, SecretStr
 else:
-    BaseModel, SecretStr = None, None
+    BaseModel, SecretStr = object, object
 
 
 class MyModel(BaseModel):
