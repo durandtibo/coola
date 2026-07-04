@@ -20,6 +20,8 @@ __all__ = [
     "polars_not_available",
     "pyarrow_available",
     "pyarrow_not_available",
+    "pydantic_available",
+    "pydantic_not_available",
     "rich_available",
     "rich_not_available",
     "torch_available",
@@ -41,6 +43,7 @@ from coola.utils.imports import (
     is_pandas_available,
     is_polars_available,
     is_pyarrow_available,
+    is_pydantic_available,
     is_rich_available,
     is_torch_available,
     is_torch_numpy_available,
@@ -89,6 +92,14 @@ pyarrow_available: pytest.MarkDecorator = pytest.mark.skipif(
 pyarrow_not_available: pytest.MarkDecorator = pytest.mark.skipif(
     is_pyarrow_available(), reason="Skip if pyarrow is available"
 )
+
+pydantic_available: pytest.MarkDecorator = pytest.mark.skipif(
+    not is_pydantic_available(), reason="Requires pydantic"
+)
+pydantic_not_available: pytest.MarkDecorator = pytest.mark.skipif(
+    is_pydantic_available(), reason="Skip if pydantic is available"
+)
+
 
 torch_available: pytest.MarkDecorator = pytest.mark.skipif(
     not is_torch_available(), reason="Requires PyTorch"
