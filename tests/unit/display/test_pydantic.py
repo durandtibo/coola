@@ -151,7 +151,7 @@ def test_repr_pydantic_model_exclude_secret_false() -> None:
     model = MyModel(name="alice", age=30, token=SecretStr("s3cr3t"))
     assert (
         repr_pydantic_model(model, exclude_secret=False)
-        == "MyModel(age=30, name='alice', nickname=None, token='**********')"
+        == "MyModel(age=30, name='alice', nickname=None, token=SecretStr('**********'))"
     )
 
 
