@@ -13,6 +13,7 @@ __all__ = [
     "check_pandas",
     "check_polars",
     "check_pyarrow",
+    "check_pydantic",
     "check_rich",
     "check_torch",
     "check_torch_numpy",
@@ -26,6 +27,7 @@ __all__ = [
     "is_pandas_available",
     "is_polars_available",
     "is_pyarrow_available",
+    "is_pydantic_available",
     "is_rich_available",
     "is_torch_available",
     "is_torch_numpy_available",
@@ -39,6 +41,7 @@ __all__ = [
     "pandas_available",
     "polars_available",
     "pyarrow_available",
+    "pydantic_available",
     "raise_colorlog_missing_error",
     "raise_jax_missing_error",
     "raise_numpy_missing_error",
@@ -47,6 +50,7 @@ __all__ = [
     "raise_pandas_missing_error",
     "raise_polars_missing_error",
     "raise_pyarrow_missing_error",
+    "raise_pydantic_missing_error",
     "raise_rich_missing_error",
     "raise_torch_missing_error",
     "raise_xarray_missing_error",
@@ -98,6 +102,12 @@ from coola.utils.imports.pyarrow import (
     is_pyarrow_available,
     pyarrow_available,
     raise_pyarrow_missing_error,
+)
+from coola.utils.imports.pydantic import (
+    check_pydantic,
+    is_pydantic_available,
+    pydantic_available,
+    raise_pydantic_missing_error,
 )
 from coola.utils.imports.rich import (
     check_rich,
