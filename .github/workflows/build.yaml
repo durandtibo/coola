@@ -21,16 +21,18 @@ jobs:
         dist-type: [ "sdist", "wheel" ]
         package-extra: [
           "",
+          'colorlog',
           'jax',
           'numpy',
           'packaging',
           'pandas',
           'polars',
           'pyarrow',
+          'pydantic',
+          'rich',
+          'rich',
           'torch',
           'xarray',
-          'colorlog',
-          'rich',
         ]
 
     steps:

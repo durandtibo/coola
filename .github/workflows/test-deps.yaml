@@ -66,6 +66,13 @@ jobs:
       package-name: pyarrow
       package-versions: ${{ toJson(fromJson(needs.get-versions.outputs.package_versions).pyarrow) }}
 
+  pydantic:
+    needs: get-versions
+    uses: ./.github/workflows/test-code-dep.yaml
+    with:
+      package-name: pydantic
+      package-versions: ${{ toJson(fromJson(needs.get-versions.outputs.package_versions).pydantic) }}
+
   torch:
     needs: get-versions
     uses: ./.github/workflows/test-code-dep.yaml
