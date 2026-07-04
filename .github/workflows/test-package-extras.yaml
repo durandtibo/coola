@@ -23,12 +23,16 @@ jobs:
         python-version: [ '3.14', '3.13', '3.12', '3.11', '3.10' ]
         extra: [
           'all',
+          'colorlog',
           'jax',
           'numpy',
           'packaging',
           'pandas',
           'polars',
           'pyarrow',
+          'pydantic',
+          'rich',
+          'rich',
           'torch',
           'xarray',
         ]
