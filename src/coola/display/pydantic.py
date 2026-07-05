@@ -14,7 +14,7 @@ from coola.utils.mapping import sort_by_keys
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-if is_pydantic_available():
+if is_pydantic_available():  # pragma: no cover
     from pydantic import BaseModel, SecretStr
 
 
