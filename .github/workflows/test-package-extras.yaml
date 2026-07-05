@@ -32,7 +32,6 @@ jobs:
           'pyarrow',
           'pydantic',
           'rich',
-          'rich',
           'torch',
           'xarray',
         ]
