@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Generator, Mapping, Sequence
 from datetime import date, datetime, timezone
+from pathlib import Path
 
 import pytest
 
@@ -9,6 +10,7 @@ from coola.hashing import (
     DatetimeHasher,
     HasherRegistry,
     MappingHasher,
+    PathHasher,
     ReprHasher,
     SequenceHasher,
     StringHasher,
@@ -187,12 +189,6 @@ def test_get_default_registry_registers_str() -> None:
     assert isinstance(get_default_registry().find_hasher(str), StringHasher)
 
 
-def test_get_default_registry_registers_datetime_types() -> None:
-    registry = get_default_registry()
-    assert isinstance(registry.find_hasher(date), DatetimeHasher)
-    assert isinstance(registry.find_hasher(datetime), DatetimeHasher)
-
-
 def test_get_default_registry_registers_sequences() -> None:
     registry = get_default_registry()
     assert isinstance(registry.find_hasher(list), SequenceHasher)
@@ -204,6 +200,17 @@ def test_get_default_registry_registers_mappings() -> None:
     registry = get_default_registry()
     assert isinstance(registry.find_hasher(dict), MappingHasher)
     assert isinstance(registry.find_hasher(Mapping), MappingHasher)
+
+
+def test_get_default_registry_registers_datetime_types() -> None:
+    registry = get_default_registry()
+    assert isinstance(registry.find_hasher(date), DatetimeHasher)
+    assert isinstance(registry.find_hasher(datetime), DatetimeHasher)
+
+
+def test_get_default_registry_registers_path_types() -> None:
+    registry = get_default_registry()
+    assert isinstance(registry.find_hasher(Path), PathHasher)
 
 
 def test_get_default_registry_registers_none() -> None:
