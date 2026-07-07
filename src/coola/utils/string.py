@@ -2,7 +2,10 @@ r"""Contain utility functions to process strings."""
 
 from __future__ import annotations
 
-__all__ = ["char_diff_summary", "count_lines", "remove_empty_lines", "truncate_str"]
+__all__ = ["char_diff_summary", "count_lines", "remove_empty_lines", "slugify", "truncate_str"]
+
+import re
+import unicodedata
 
 
 def char_diff_summary(before: str, after: str) -> str:
@@ -84,6 +87,44 @@ def remove_empty_lines(text: str) -> str:
         ```
     """
     return "\n".join([line for line in text.splitlines() if line.strip()])
+
+
+def slugify(text: str) -> str:
+    """Convert arbitrary text into a URL/filesystem-safe slug.
+
+    Lowercases the text, strips accents, replaces any run of characters
+    that aren't alphanumerics with a single hyphen, and trims leading or
+    trailing hyphens. Works on any string -- titles, names, tags,
+    filenames, model names, etc. -- not just a specific kind of text.
+
+    Args:
+        text: The raw text to slugify (e.g. an article title, a tag, a
+            file name, or a model name).
+
+    Returns:
+        A lowercase, hyphen-separated slug safe to use as a filename,
+            URL path segment, or dict key.
+
+    Example:
+        ```pycon
+        >>> from coola.utils.string import slugify
+        >>> slugify("Hello, World!")
+        'hello-world'
+        >>> slugify("Claude Sonnet 4.6")
+        'claude-sonnet-4-6'
+        >>> slugify("meta-llama/Llama-3.1-8B-Instruct")
+        'meta-llama-llama-3-1-8b-instruct'
+        >>> slugify("  Café con Leche  ")
+        'cafe-con-leche'
+
+        ```
+    """
+    # Normalize unicode (e.g. accented characters) to closest ASCII form.
+    text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
+    text = text.lower()
+    # Replace any run of non-alphanumeric characters with a single hyphen.
+    text = re.sub(r"[^a-z0-9]+", "-", text)
+    return text.strip("-")
 
 
 def truncate_str(s: str, max_len: int = 100, suffix: str = "...") -> str:

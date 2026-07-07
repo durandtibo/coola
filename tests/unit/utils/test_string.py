@@ -6,6 +6,7 @@ from coola.utils.string import (
     char_diff_summary,
     count_lines,
     remove_empty_lines,
+    slugify,
     truncate_str,
 )
 
@@ -92,6 +93,64 @@ def test_count_lines(text: str, expected: int) -> None:
 )
 def test_remove_empty_lines(text: str, expected: str) -> None:
     assert remove_empty_lines(text) == expected
+
+
+#############################
+#     Tests for slugify     #
+#############################
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        pytest.param("hello", "hello", id="single-word"),
+        pytest.param("", "", id="empty-string"),
+        pytest.param("HELLO WORLD", "hello-world", id="lowercases-text"),
+        pytest.param("hello world", "hello-world", id="replaces-spaces-with-hyphens"),
+        pytest.param(
+            "hello    world", "hello-world", id="collapses-multiple-spaces-into-one-hyphen"
+        ),
+        pytest.param("Hello, World!", "hello-world", id="strips-punctuation"),
+        pytest.param("  hello world  ", "hello-world", id="strips-leading-trailing-whitespace"),
+        pytest.param("!!!hello world!!!", "hello-world", id="strips-leading-trailing-punctuation"),
+        pytest.param("___weird__name---", "weird-name", id="collapses-repeated-separators"),
+        pytest.param("hello_-_world", "hello-world", id="underscore-and-hyphen-mix-collapses"),
+        pytest.param("Top 10 Things", "top-10-things", id="preserves-digits"),
+        pytest.param("Claude Sonnet 4.6", "claude-sonnet-4-6", id="replaces-dots-with-hyphens"),
+        pytest.param(
+            "meta-llama/Llama-3.1-8B-Instruct",
+            "meta-llama-llama-3-1-8b-instruct",
+            id="replaces-slashes-with-hyphens",
+        ),
+        pytest.param("Café con Leche", "cafe-con-leche", id="strips-accents"),
+        pytest.param(
+            "  Café con Leche  ",
+            "cafe-con-leche",
+            id="strips-accents-and-whitespace-together",
+        ),
+        pytest.param(
+            "10 Things You Didn't Know", "10-things-you-didn-t-know", id="handles-apostrophes"
+        ),
+        pytest.param("!!!---___...", "", id="only-punctuation-returns-empty-string"),
+        pytest.param("     ", "", id="only-whitespace-returns-empty-string"),
+        pytest.param("already-a-slug", "already-a-slug", id="already-a-slug-is-unchanged"),
+        pytest.param("日本語 text", "text", id="non-latin-characters-are-dropped"),
+        pytest.param("GPT-4o Mini", "gpt-4o-mini", id="mixed-case-and-numbers"),
+    ],
+)
+def test_slugify(text: str, expected: str) -> None:
+    assert slugify(text) == expected
+
+
+def test_slugify_returns_str() -> None:
+    assert isinstance(slugify("Hello World"), str)
+
+
+def test_slugify_is_idempotent() -> None:
+    text = "Claude Sonnet 4.6"
+    once = slugify(text)
+    twice = slugify(once)
+    assert once == twice
 
 
 ##################################
