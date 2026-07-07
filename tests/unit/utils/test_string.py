@@ -95,9 +95,9 @@ def test_remove_empty_lines(text: str, expected: str) -> None:
     assert remove_empty_lines(text) == expected
 
 
-##############################
+#############################
 #     Tests for slugify     #
-##############################
+#############################
 
 
 @pytest.mark.parametrize(
