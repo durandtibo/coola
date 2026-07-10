@@ -2,7 +2,12 @@ r"""Contain some utility functions to manipulate mappings."""
 
 from __future__ import annotations
 
-__all__ = ["get_first_value", "merge_mappings", "remove_keys_starting_with"]
+__all__ = [
+    "flatten_mapping",
+    "get_first_value",
+    "merge_mappings",
+    "remove_keys_starting_with",
+]
 
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -12,6 +17,107 @@ if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping
 
 T = TypeVar("T")
+
+
+def flatten_mapping(
+    mapping: Mapping[Any, Mapping[Any, Any]],
+    on_duplicate: str = "raise",
+    always_prefix: bool = False,
+    separator: str = ".",
+) -> dict[Any, Any]:
+    r"""Flatten a mapping of mappings into a single dict.
+
+    Each outer key is used as a prefix for its inner keys. If an
+    inner key appears in more than one outer mapping with the same
+    value in every occurrence, the plain inner key is kept and
+    ``on_duplicate`` is not triggered. ``on_duplicate`` only applies
+    when an inner key appears more than once with different values.
+
+    Args:
+        mapping: The mapping of mappings to flatten.
+        on_duplicate: The strategy used to manage duplicate inner
+            keys that have different values across outer mappings.
+            The valid values are:
+            - ``'raise'``: raise an exception if an inner key
+                appears more than once with different values.
+            - ``'first'``: keep the value from the first occurrence,
+                under the plain inner key.
+            - ``'last'``: keep the value from the last occurrence,
+                under the plain inner key.
+            - ``'prefix'``: keep all the values, renaming every
+                occurrence of a conflicting key as
+                ``'{outer_key}{separator}{inner_key}'``.
+        always_prefix: If ``True``, every key in the output is named
+            ``'{outer_key}{separator}{inner_key}'``, regardless of
+            whether it is a duplicate. If ``False``, only keys
+            involved in a genuine conflict are prefixed (only
+            relevant when ``on_duplicate='prefix'``).
+        separator: The separator used to join the outer and inner
+            keys when prefixing.
+
+    Returns:
+        The flattened dict.
+
+    Raises:
+        ValueError: if ``on_duplicate`` is not a valid value.
+        KeyError: if ``on_duplicate='raise'`` and an inner key
+            appears more than once with different values.
+
+    Example:
+        ```pycon
+        >>> from coola.nested import flatten_mapping
+        >>> flatten_mapping(
+        ...     {"module1": {"a": 1, "b": 2}, "module2": {"b": 3, "c": 4}},
+        ...     on_duplicate="prefix",
+        ... )
+        {'a': 1, 'module1.b': 2, 'module2.b': 3, 'c': 4}
+
+        ```
+    """
+    strategies = {"raise", "first", "last", "prefix"}
+    if on_duplicate not in strategies:
+        msg = f"Incorrect on_duplicate value: {on_duplicate!r}. Valid values are {strategies}"
+        raise ValueError(msg)
+
+    out: dict[Any, Any] = {}
+    origins: dict[Any, Any] = {}  # inner key -> outer key of the recorded occurrence
+    seen: dict[Any, Any] = {}  # inner key -> recorded value, to check for real conflicts
+
+    for outer_key, inner_mapping in mapping.items():
+        for inner_key, value in inner_mapping.items():
+            prefixed_key = f"{outer_key}{separator}{inner_key}"
+
+            if always_prefix:
+                out[prefixed_key] = value
+                continue
+
+            if inner_key not in seen:
+                seen[inner_key] = value
+                origins[inner_key] = outer_key
+                out[inner_key] = value
+                continue
+
+            if objects_are_equal(seen[inner_key], value):
+                continue
+
+            if on_duplicate == "raise":
+                msg = f"Duplicate key found: {inner_key!r}"
+                raise KeyError(msg)
+            if on_duplicate == "first":
+                continue
+            if on_duplicate == "last":
+                seen[inner_key] = value
+                out[inner_key] = value
+                continue
+
+            # Re-key the first occurrence too, the first time a real
+            # conflict is found for this inner key.
+            if inner_key in out:
+                first_key = f"{origins[inner_key]}{separator}{inner_key}"
+                out[first_key] = out.pop(inner_key)
+            out[prefixed_key] = value
+
+    return out
 
 
 def get_first_value(data: Mapping[Any, T]) -> T:
