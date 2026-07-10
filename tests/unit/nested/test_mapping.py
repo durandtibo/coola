@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-
 import pytest
 
 from coola.nested import (
     get_first_value,
-    merge_list_of_mappings,
+    merge_mappings,
     remove_keys_starting_with,
 )
 
@@ -25,30 +24,45 @@ def test_get_first_value() -> None:
     assert get_first_value({"key1": 1, "key2": 2}) == 1
 
 
-############################################
-#     Tests for merge_list_of_mappings     #
-############################################
+####################################
+#     Tests for merge_mappings     #
+####################################
 
 
-def test_merge_list_of_mappings_empty_list() -> None:
-    assert merge_list_of_mappings([]) == {}
+def test_merge_mappings_empty_list() -> None:
+    assert merge_mappings([]) == {}
 
 
-def test_merge_list_of_mappings_empty_mappings() -> None:
-    assert merge_list_of_mappings([{}, {}]) == {}
+def test_merge_mappings_empty_mappings() -> None:
+    assert merge_mappings([{}, {}]) == {}
 
 
-def test_merge_list_of_mappings_single_mapping() -> None:
-    assert merge_list_of_mappings([{"a": 1, "b": 2}]) == {"a": 1, "b": 2}
+def test_merge_mappings_single_mapping() -> None:
+    assert merge_mappings([{"a": 1, "b": 2}]) == {"a": 1, "b": 2}
 
 
-def test_merge_list_of_mappings_no_duplicate_keys() -> None:
-    assert merge_list_of_mappings([{"a": 1}, {"b": 2}, {"c": 3}]) == {"a": 1, "b": 2, "c": 3}
+def test_merge_mappings_no_duplicate_keys() -> None:
+    assert merge_mappings([{"a": 1}, {"b": 2}, {"c": 3}]) == {"a": 1, "b": 2, "c": 3}
 
 
-def test_merge_list_of_mappings_incorrect_on_duplicate() -> None:
+def test_merge_mappings_incorrect_on_duplicate() -> None:
     with pytest.raises(ValueError, match="Incorrect on_duplicate value"):
-        merge_list_of_mappings([{"a": 1}], on_duplicate="incorrect")
+        merge_mappings([{"a": 1}], on_duplicate="incorrect")
+
+
+def test_merge_mappings_same_value_duplicate_not_triggered() -> None:
+    # Duplicate keys with equal values should not trigger on_duplicate,
+    # even with the default "raise" strategy.
+    assert merge_mappings([{"a": 1, "b": 2, "c": 3}, {"a": 1, "b": 2, "d": 4}]) == {
+        "a": 1,
+        "b": 2,
+        "c": 3,
+        "d": 4,
+    }
+
+
+def test_merge_mappings_same_value_multiple_mappings() -> None:
+    assert merge_mappings([{"a": 1}, {"a": 1}, {"a": 1}]) == {"a": 1}
 
 
 @pytest.mark.parametrize(
@@ -96,34 +110,53 @@ def test_merge_list_of_mappings_incorrect_on_duplicate() -> None:
             {"a": 1, "b": 2, "c": 3, "a_1": 4, "d": 5},
             id="suffix-non-adjacent-duplicate",
         ),
+        pytest.param(
+            # Same value first, then a real conflict: suffix numbering
+            # should only count the genuine conflict.
+            [{"a": 1}, {"a": 1}, {"a": 2}],
+            "suffix",
+            {"a": 1, "a_1": 2},
+            id="suffix-repeated-then-conflicting",
+        ),
+        pytest.param(
+            # Mix of equal-value duplicates and conflicting duplicates.
+            [{"a": 1, "b": 2}, {"a": 1, "b": 3}],
+            "last",
+            {"a": 1, "b": 3},
+            id="last-mixed-equal-and-conflicting",
+        ),
     ],
 )
-def test_merge_list_of_mappings(mappings: list[dict], on_duplicate: str, expected: dict) -> None:
-    assert merge_list_of_mappings(mappings, on_duplicate=on_duplicate) == expected
+def test_merge_mappings(mappings: list[dict], on_duplicate: str, expected: dict) -> None:
+    assert merge_mappings(mappings, on_duplicate=on_duplicate) == expected
 
 
-def test_merge_list_of_mappings_default_on_duplicate_is_raise() -> None:
+def test_merge_mappings_default_on_duplicate_is_raise() -> None:
     with pytest.raises(KeyError, match="Duplicate key found"):
-        merge_list_of_mappings([{"a": 1}, {"a": 2}])
+        merge_mappings([{"a": 1}, {"a": 2}])
 
 
-def test_merge_list_of_mappings_raise_on_duplicate() -> None:
+def test_merge_mappings_raise_on_duplicate() -> None:
     with pytest.raises(KeyError, match="Duplicate key found"):
-        merge_list_of_mappings([{"a": 1, "b": 2}, {"b": 3}], on_duplicate="raise")
+        merge_mappings([{"a": 1, "b": 2}, {"b": 3}], on_duplicate="raise")
 
 
-def test_merge_list_of_mappings_raise_no_duplicate() -> None:
-    assert merge_list_of_mappings([{"a": 1}, {"b": 2}], on_duplicate="raise") == {"a": 1, "b": 2}
+def test_merge_mappings_raise_no_duplicate() -> None:
+    assert merge_mappings([{"a": 1}, {"b": 2}], on_duplicate="raise") == {"a": 1, "b": 2}
 
 
-def test_merge_list_of_mappings_iterable_generator() -> None:
-    # merge_list_of_mappings should accept any iterable, not just a list.
+def test_merge_mappings_raise_same_value_no_error() -> None:
+    assert merge_mappings([{"a": 1}, {"a": 1}], on_duplicate="raise") == {"a": 1}
+
+
+def test_merge_mappings_iterable_generator() -> None:
+    # merge_mappings should accept any iterable, not just a list.
     gen = ({"a": i} for i in range(3))
-    assert merge_list_of_mappings(gen, on_duplicate="last") == {"a": 2}
+    assert merge_mappings(gen, on_duplicate="last") == {"a": 2}
 
 
-def test_merge_list_of_mappings_non_string_keys() -> None:
-    assert merge_list_of_mappings([{1: "a"}, {(2, 3): "b"}]) == {1: "a", (2, 3): "b"}
+def test_merge_mappings_non_string_keys() -> None:
+    assert merge_mappings([{1: "a"}, {(2, 3): "b"}]) == {1: "a", (2, 3): "b"}
 
 
 ###############################################
