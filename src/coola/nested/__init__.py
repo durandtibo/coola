@@ -5,6 +5,7 @@ from __future__ import annotations
 __all__ = [
     "convert_to_dict_of_lists",
     "convert_to_list_of_dicts",
+    "flatten_mapping",
     "from_flat_dict",
     "get_first_value",
     "merge_mappings",
@@ -15,6 +16,7 @@ __all__ = [
 from coola.nested.conversion import convert_to_dict_of_lists, convert_to_list_of_dicts
 from coola.nested.flat import from_flat_dict, to_flat_dict
 from coola.nested.mapping import (
+    flatten_mapping,
     get_first_value,
     merge_mappings,
     remove_keys_starting_with,
