@@ -2,9 +2,11 @@ r"""Contain some utility functions to manipulate mappings."""
 
 from __future__ import annotations
 
-__all__ = ["get_first_value", "merge_list_of_mappings", "remove_keys_starting_with"]
+__all__ = ["get_first_value", "merge_mappings", "remove_keys_starting_with"]
 
 from typing import TYPE_CHECKING, Any, TypeVar
+
+from coola.equality import objects_are_equal
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping
@@ -38,17 +40,23 @@ def get_first_value(data: Mapping[Any, T]) -> T:
     return data[next(iter(data))]
 
 
-def merge_list_of_mappings(
+def merge_mappings(
     mappings: Iterable[Mapping[Any, Any]], on_duplicate: str = "raise"
 ) -> dict[Any, Any]:
     r"""Merge an iterable of mappings into a single dict.
 
+    If a key appears more than once with the same value in every
+    occurrence, the value is kept as-is and ``on_duplicate`` is not
+    triggered. ``on_duplicate`` only applies when a key appears more
+    than once with different values.
+
     Args:
         mappings: The mappings to merge.
-        on_duplicate: The strategy used to manage duplicate keys.
+        on_duplicate: The strategy used to manage duplicate keys that
+            have different values across mappings.
             The valid values are:
             - ``'raise'``: raise an exception if a key appears
-                more than once.
+                more than once with different values.
             - ``'first'``: keep the value from the first occurrence.
             - ``'last'``: keep the value from the last occurrence.
             - ``'suffix'``: keep all the values by adding a
@@ -61,14 +69,12 @@ def merge_list_of_mappings(
     Raises:
         ValueError: if ``on_duplicate`` is not a valid value.
         KeyError: if ``on_duplicate='raise'`` and a key appears
-            more than once.
+            more than once with different values.
 
     Example:
         ```pycon
-        >>> from coola.nested import merge_list_of_mappings
-        >>> merge_list_of_mappings(
-        ...     [{"key1": 1, "key2": 2}, {"key2": 3, "key3": 4}], on_duplicate="last"
-        ... )
+        >>> from coola.nested import merge_mappings
+        >>> merge_mappings([{"key1": 1, "key2": 2}, {"key2": 3, "key3": 4}], on_duplicate="last")
         {'key1': 1, 'key2': 3, 'key3': 4}
 
         ```
@@ -85,6 +91,10 @@ def merge_list_of_mappings(
             if key not in counts:
                 counts[key] = 1
                 out[key] = value
+                continue
+
+            if objects_are_equal(out[key], value):
+                # Same value repeated: not a real conflict, keep as-is.
                 continue
 
             counts[key] += 1
