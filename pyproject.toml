@@ -288,6 +288,7 @@ src = ["src"]
     "PL", # Pylint
     "S101", # flake8-bandit
 ]
+"tests/unit/hashing/test_pydantic.py" = ["S106"]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 10
