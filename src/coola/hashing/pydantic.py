@@ -3,19 +3,95 @@ handling."""
 
 from __future__ import annotations
 
-__all__ = ["hash_pydantic_model", "unwrap_secrets"]
+__all__ = ["PydanticModelHasher", "hash_pydantic_model", "unwrap_secrets"]
 
 import json
 from typing import TYPE_CHECKING, Any, Literal
 
+from pydantic import BaseModel
+
+from coola.hashing.base import BaseHasher
 from coola.hashing.bytes import hash_bytes
 from coola.utils.imports import is_pydantic_available
 
 if TYPE_CHECKING:
-    from pydantic import BaseModel
+    from coola.hashing.registry import HasherRegistry
 
 if is_pydantic_available():  # pragma: no cover
     from pydantic import SecretBytes, SecretStr
+
+
+class PydanticModelHasher(BaseHasher[BaseModel]):
+    r"""Hasher for pydantic ``BaseModel`` objects.
+
+    This hasher computes a stable content hash of a pydantic model by
+    serializing its fields to a sorted-key JSON payload and hashing
+    the resulting bytes - see ``hash_pydantic_model`` for details.
+
+    Args:
+        on_secret: How ``SecretStr``/``SecretBytes`` fields are
+            handled when hashing - one of ``"reveal"``, ``"exclude"``,
+            or ``"error"``. See ``unwrap_secrets`` for the semantics of
+            each option. Defaults to ``"error"`` so secret fields are
+            never silently included/excluded without an explicit
+            decision.
+
+    Example:
+        ```pycon
+        >>> from pydantic import BaseModel
+        >>> from coola.hashing import PydanticModelHasher, HasherRegistry
+        >>> class Point(BaseModel):
+        ...     x: int
+        ...     y: int
+        ...
+        >>> registry = HasherRegistry()
+        >>> hasher = PydanticModelHasher()
+        >>> hasher
+        PydanticModelHasher(on_secret='error')
+        >>> len(hasher.hash(Point(x=1, y=2), registry=registry))
+        64
+
+        ```
+    """
+
+    def __init__(
+        self,
+        on_secret: Literal["reveal", "exclude", "error"] = "error",  # noqa: S107
+    ) -> None:
+        self._on_secret = on_secret
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__qualname__}(on_secret={self._on_secret!r})"
+
+    def hash(
+        self,
+        data: BaseModel,
+        registry: HasherRegistry,  # noqa: ARG002
+        length: int = 64,
+    ) -> str:
+        r"""Compute a deterministic hash of a pydantic model.
+
+        Args:
+            data: The pydantic model instance to hash.
+            registry: The hasher registry. Unused by this hasher since
+                the model is serialized and hashed directly with no
+                need to dispatch to another hasher for nested data;
+                accepted only to satisfy the common ``BaseHasher``
+                interface.
+            length: The desired length of the returned hex string. See
+                ``hash_bytes`` for constraints. Defaults to 64.
+
+        Returns:
+            A lowercase hexadecimal string of exactly ``length``
+            characters.
+
+        Raises:
+            ValueError: If ``on_secret="error"`` (the default) and
+                ``data`` contains a ``SecretStr``/``SecretBytes``
+                field, or if ``length`` is not an even number between
+                2 and 128.
+        """
+        return hash_pydantic_model(data, length=length, on_secret=self._on_secret)
 
 
 def unwrap_secrets(
