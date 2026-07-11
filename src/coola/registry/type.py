@@ -598,5 +598,5 @@ class TypeRegistry(Generic[T]):
             if base_type in self._state:
                 return self._state[base_type]
 
-        msg = "Could not find a registered type"
+        msg = f"Could not find a registered type for {dtype}"
         raise KeyError(msg)
