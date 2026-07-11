@@ -4,6 +4,7 @@ from __future__ import annotations
 
 __all__ = [
     "BaseHasher",
+    "BytesHasher",
     "DatetimeHasher",
     "HasherRegistry",
     "MappingHasher",
@@ -13,6 +14,7 @@ __all__ = [
     "StrHasher",
     "StringHasher",
     "get_default_registry",
+    "hash_bytes",
     "hash_object",
     "hash_path",
     "hash_string",
@@ -20,6 +22,7 @@ __all__ = [
 ]
 
 from coola.hashing.base import BaseHasher
+from coola.hashing.bytes import BytesHasher, hash_bytes
 from coola.hashing.datetime import DatetimeHasher
 from coola.hashing.interface import get_default_registry, hash_object, register_hashers
 from coola.hashing.mapping import MappingHasher
