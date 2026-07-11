@@ -15,7 +15,7 @@ from coola.utils.imports import is_pydantic_available
 if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
 
-if is_pydantic_available():
+if TYPE_CHECKING or is_pydantic_available():
     import pydantic
     from pydantic import SecretBytes, SecretStr
 else:  # pragma: no cover
