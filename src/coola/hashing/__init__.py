@@ -9,6 +9,7 @@ __all__ = [
     "HasherRegistry",
     "MappingHasher",
     "PathHasher",
+    "PydanticModelHasher",
     "ReprHasher",
     "SequenceHasher",
     "StrHasher",
@@ -28,7 +29,7 @@ from coola.hashing.datetime import DatetimeHasher
 from coola.hashing.interface import get_default_registry, hash_object, register_hashers
 from coola.hashing.mapping import MappingHasher
 from coola.hashing.path import PathHasher, hash_path
-from coola.hashing.pydantic import hash_pydantic_model
+from coola.hashing.pydantic import PydanticModelHasher, hash_pydantic_model
 from coola.hashing.registry import HasherRegistry
 from coola.hashing.repr import ReprHasher
 from coola.hashing.sequence import SequenceHasher
