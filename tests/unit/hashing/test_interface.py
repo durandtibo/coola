@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from coola.hashing import (
+    BytesHasher,
     DatetimeHasher,
     HasherRegistry,
     MappingHasher,
@@ -187,6 +188,10 @@ def test_get_default_registry_registers_numeric_types() -> None:
 
 def test_get_default_registry_registers_str() -> None:
     assert isinstance(get_default_registry().find_hasher(str), StringHasher)
+
+
+def test_get_default_registry_registers_bytes() -> None:
+    assert isinstance(get_default_registry().find_hasher(bytes), BytesHasher)
 
 
 def test_get_default_registry_registers_sequences() -> None:
