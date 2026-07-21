@@ -56,19 +56,23 @@ def sanitize_path(path: str | os.PathLike[str]) -> Path:
 
 
 @contextlib.contextmanager
-def working_directory(path: Path) -> Generator[None]:
+def working_directory(path: str | os.PathLike[str]) -> Generator[None]:
     r"""Context manager to change the working directory to the given
     path, and then changes it back to its previous value on exit.
 
     source: https://gist.github.com/nottrobin/3d675653244f8814838a
 
     Args:
-        path: The path to the temporary working directory.
+        path: The path to the temporary working directory. This can
+            be any path-like object, i.e. a string or an object
+            implementing the ``os.PathLike`` protocol such as
+            ``pathlib.Path``. See ``sanitize_path`` for details on
+            how the path is resolved.
 
     Example:
         ```pycon
         >>> from coola.utils.path import working_directory
-        >>> with working_directory(Path("src")):
+        >>> with working_directory("src"):
         ...     x = 1
         ...
 
