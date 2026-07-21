@@ -7,7 +7,7 @@ __all__ = ["cuda", "nn", "torch"]
 
 from types import ModuleType
 
-from coola.utils.fallback._factory import make_fake_class, make_fake_function
+from coola.utils.fallback.factory import make_fake_class, make_fake_function
 from coola.utils.imports import raise_torch_missing_error
 
 FakeClass = make_fake_class(raise_torch_missing_error)

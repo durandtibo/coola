@@ -7,7 +7,7 @@ __all__ = ["numpy"]
 
 from types import ModuleType
 
-from coola.utils.fallback._factory import make_fake_class
+from coola.utils.fallback.factory import make_fake_class
 from coola.utils.imports import raise_numpy_missing_error
 
 FakeClass = make_fake_class(raise_numpy_missing_error)
