@@ -37,6 +37,11 @@ def get_password(username: str | None = None, *, confirm: bool = False) -> str:
         RuntimeError: If not running in an interactive terminal.
         KeyboardInterrupt, EOFError: If input is interrupted.
         ValueError: If password validation fails.
+
+    Note:
+        This function has no doctest example because it requires
+        interactive terminal input, which cannot be simulated in a
+        doctest.
     """
     if not (sys.stdin.isatty() and sys.stderr.isatty()):
         msg = "Password input requires an interactive terminal"
