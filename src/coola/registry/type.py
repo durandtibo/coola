@@ -222,12 +222,13 @@ class TypeRegistry(Generic[T]):
         with first._lock, second._lock:
             return objects_are_equal(self._state, other._state, equal_nan=equal_nan)
 
-    def get(self, dtype: type, default: T | None = None) -> T:
+    def get(self, dtype: type, default: T | None = None) -> T | None:
         """Retrieve the value associated with a type.
 
         This method performs a direct lookup in the registry and returns the
-        corresponding value. If the type doesn't exist, a KeyError is raised
-        with a descriptive message. For inheritance-based lookup, use the
+        corresponding value. If the type doesn't exist, ``default`` is
+        returned instead (``None`` unless otherwise specified) - no
+        exception is raised. For inheritance-based lookup, use the
         `resolve()` method instead.
 
         Args:
@@ -235,7 +236,8 @@ class TypeRegistry(Generic[T]):
             default: Value to return if the key does not exist.
 
         Returns:
-            The value associated with the specified type.
+            The value associated with the specified type, or ``default``
+            if it is not registered.
 
         Example:
             ```pycon
@@ -244,8 +246,10 @@ class TypeRegistry(Generic[T]):
             >>> registry.register(str, 42)
             >>> registry.get(str)
             42
-            >>> registry.get(int)  # doctest: +SKIP
-            KeyError: "Key <class 'int'> is not registered"
+            >>> registry.get(int) is None
+            True
+            >>> registry.get(int, default=-1)
+            -1
 
             ```
         """
