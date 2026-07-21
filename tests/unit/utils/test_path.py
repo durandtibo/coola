@@ -62,11 +62,55 @@ def test_sanitize_path_path_uri_not_parsed() -> None:
 #######################################
 
 
-def test_working_directory() -> None:
+def test_working_directory_path() -> None:
     cwd_before = Path.cwd()
     new_path = cwd_before.parent
     with working_directory(new_path):
         assert Path.cwd() == new_path
+
+    assert Path.cwd() == cwd_before
+
+
+def test_working_directory_str() -> None:
+    cwd_before = Path.cwd()
+    new_path = cwd_before.parent
+    with working_directory(str(new_path)):
+        assert Path.cwd() == new_path
+
+    assert Path.cwd() == cwd_before
+
+
+def test_working_directory_pathlike() -> None:
+    cwd_before = Path.cwd()
+    new_path = cwd_before.parent
+
+    class MyPathLike:
+        def __fspath__(self) -> str:
+            return str(new_path)
+
+    with working_directory(MyPathLike()):
+        assert Path.cwd() == new_path
+
+    assert Path.cwd() == cwd_before
+
+
+def test_working_directory_relative() -> None:
+    cwd_before = Path.cwd()
+    with working_directory(".."):
+        assert Path.cwd() == cwd_before.parent
+
+    assert Path.cwd() == cwd_before
+
+
+def test_working_directory_nested() -> None:
+    cwd_before = Path.cwd()
+    parent = cwd_before.parent
+    grandparent = parent.parent
+    with working_directory(parent):
+        assert Path.cwd() == parent
+        with working_directory(grandparent):
+            assert Path.cwd() == grandparent
+        assert Path.cwd() == parent
 
     assert Path.cwd() == cwd_before
 
