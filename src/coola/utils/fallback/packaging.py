@@ -5,13 +5,7 @@ from __future__ import annotations
 
 __all__ = ["Version"]
 
-from typing import Any
-
+from coola.utils.fallback.factory import make_fake_class
 from coola.utils.imports import raise_packaging_missing_error
 
-
-class Version:
-    r"""Create a fake Version class."""
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:  # noqa: ARG002
-        raise_packaging_missing_error()
+Version = make_fake_class(raise_packaging_missing_error)

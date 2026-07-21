@@ -119,6 +119,13 @@ def test_chain_all_multiple_handlers(config: EqualityConfig) -> None:
     assert handler.handle(actual=[1, 2, 3], expected=[1, 2, 3], config=config)
 
 
+def test_chain_all_no_handlers() -> None:
+    handler = SameObjectHandler()
+    assert handler.chain_all() is handler
+    assert handler.next_handler is None
+    assert handler.get_chain_length() == 1
+
+
 def test_chain_all_with_cycle() -> None:
     handler = SameObjectHandler()
     with pytest.raises(
