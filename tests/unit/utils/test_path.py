@@ -31,6 +31,32 @@ def test_sanitize_path_uri() -> None:
     assert sanitize_path("file:///my/path/something/./../") == Path("/my/path")
 
 
+def test_sanitize_path_pathlike() -> None:
+    class MyPathLike:
+        def __fspath__(self) -> str:
+            return "something/./../"
+
+    assert sanitize_path(MyPathLike()) == Path.cwd()
+
+
+def test_sanitize_path_pathlike_uri() -> None:
+    class MyPathLike:
+        def __fspath__(self) -> str:
+            return "file:///my/path/something/./../"
+
+    assert sanitize_path(MyPathLike()) == Path("/my/path")
+
+
+def test_sanitize_path_path_uri_not_parsed() -> None:
+    # Known limitation: unlike an equivalent str, a Path built from a
+    # file URI is not recognized as a URI because Path already
+    # collapses the "///" into a single "/" (e.g. "file:///a" becomes
+    # "file:/a"), so it no longer starts with "file://" and is instead
+    # treated as a plain relative path.
+    path = Path("file:///my/path/something/./../")
+    assert sanitize_path(path) == Path.cwd() / "file:/my/path"
+
+
 #######################################
 #     Tests for working_directory     #
 #######################################
