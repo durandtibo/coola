@@ -1,5 +1,6 @@
 ::: coola.utils
 ::: coola.utils.array
+::: coola.utils.date
 ::: coola.utils.env_vars
 ::: coola.utils.format
 ::: coola.utils.imports
