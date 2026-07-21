@@ -40,11 +40,8 @@ def get_fully_qualified_name(obj: object) -> str:
     # If not a function/class/method, fall back to the class
     if qualname is None:
         cls = obj.__class__
-        module = getattr(cls, "__module__", None)
-        qualname = getattr(cls, "__qualname__", None)
-
-    # Every class object exposes ``__qualname__``, so this is always set by this point.
-    assert qualname is not None  # noqa: S101
+        module = cls.__module__
+        qualname = cls.__qualname__
 
     if module and module != "__main__":
         return f"{module}.{qualname}"
