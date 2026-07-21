@@ -116,7 +116,7 @@ def unnest_one_level(
     """
     nested_struct_cols = [name for name, dtype in frame.schema.items() if is_nested_struct(dtype)]
     if nested_struct_cols:
-        frame = frame.explode(nested_struct_cols)
+        frame = frame.explode(nested_struct_cols, empty_as_null=True)
 
     struct_cols = [name for name, dtype in frame.schema.items() if isinstance(dtype, pl.Struct)]
     if not struct_cols:
