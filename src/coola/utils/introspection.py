@@ -43,6 +43,9 @@ def get_fully_qualified_name(obj: object) -> str:
         module = getattr(cls, "__module__", None)
         qualname = getattr(cls, "__qualname__", None)
 
+    # Every class object exposes ``__qualname__``, so this is always set by this point.
+    assert qualname is not None  # noqa: S101
+
     if module and module != "__main__":
         return f"{module}.{qualname}"
 
