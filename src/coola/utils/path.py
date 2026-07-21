@@ -21,6 +21,13 @@ def sanitize_path(path: str | os.PathLike[str]) -> Path:
         path: The path to sanitize. This can be any path-like object,
             i.e. a string or an object implementing the
             ``os.PathLike`` protocol such as ``pathlib.Path``.
+            ``file://`` URIs are recognized and decoded, but only if
+            given as a ``str`` (or a ``PathLike`` whose
+            ``__fspath__`` returns the raw URI string). Wrapping a
+            URI in ``pathlib.Path`` first is not supported: ``Path``
+            collapses ``"file:///a"`` to ``"file:/a"`` before this
+            function ever sees it, so the URI can no longer be
+            detected and it is treated as a plain relative path.
 
     Returns:
         The sanitized path as a ``pathlib.Path`` object.
