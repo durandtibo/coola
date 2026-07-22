@@ -13,7 +13,7 @@ from coola.utils.imports import check_packaging, is_packaging_available
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-if is_packaging_available():
+if TYPE_CHECKING or is_packaging_available():
     from packaging.version import Version
 else:  # pragma: no cover
     from coola.utils.fallback.packaging import Version
