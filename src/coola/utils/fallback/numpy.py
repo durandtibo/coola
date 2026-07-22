@@ -10,7 +10,7 @@ from types import ModuleType
 from coola.utils.fallback.factory import make_fake_class
 from coola.utils.imports import raise_numpy_missing_error
 
-FakeClass = make_fake_class(raise_numpy_missing_error)
+FakeClass: type = make_fake_class(raise_numpy_missing_error)
 
 # Create a fake numpy package
 numpy: ModuleType = ModuleType("numpy")

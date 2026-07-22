@@ -46,7 +46,7 @@ def compare_version(package: str, op: Callable, version: str) -> bool:
     return op(pkg_version, Version(version))
 
 
-@lru_cache
+@lru_cache(maxsize=None)
 def get_package_version(package: str) -> Version | None:
     r"""Get the package version.
 
