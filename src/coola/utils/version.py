@@ -4,7 +4,7 @@ from __future__ import annotations
 
 __all__ = ["compare_version", "get_package_version"]
 
-from functools import lru_cache
+from functools import cache
 from importlib.metadata import PackageNotFoundError, version
 from typing import TYPE_CHECKING
 
@@ -19,7 +19,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.packaging import Version
 
 
-def compare_version(package: str, op: Callable, version: str) -> bool:
+def compare_version(package: str, op: Callable[[Version, Version], bool], version: str) -> bool:
     r"""Compare a package version to a given version.
 
     Args:
@@ -46,7 +46,7 @@ def compare_version(package: str, op: Callable, version: str) -> bool:
     return op(pkg_version, Version(version))
 
 
-@lru_cache(maxsize=None)
+@cache
 def get_package_version(package: str) -> Version | None:
     r"""Get the package version.
 
