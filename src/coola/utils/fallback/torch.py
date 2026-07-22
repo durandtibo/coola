@@ -6,12 +6,16 @@ from __future__ import annotations
 __all__ = ["cuda", "nn", "torch"]
 
 from types import ModuleType
+from typing import TYPE_CHECKING, NoReturn
 
 from coola.utils.fallback.factory import make_fake_class, make_fake_function
 from coola.utils.imports import raise_torch_missing_error
 
-FakeClass = make_fake_class(raise_torch_missing_error)
-fake_function = make_fake_function(raise_torch_missing_error)
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+FakeClass: type = make_fake_class(raise_torch_missing_error)
+fake_function: Callable[..., NoReturn] = make_fake_function(raise_torch_missing_error)
 
 cuda: ModuleType = ModuleType("torch.cuda")
 cuda.is_available = fake_function
