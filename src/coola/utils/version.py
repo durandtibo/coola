@@ -4,7 +4,7 @@ from __future__ import annotations
 
 __all__ = ["compare_version", "get_package_version"]
 
-from functools import cache
+from functools import lru_cache
 from importlib.metadata import PackageNotFoundError, version
 from typing import TYPE_CHECKING
 
@@ -46,7 +46,7 @@ def compare_version(package: str, op: Callable[[Version, Version], bool], versio
     return op(pkg_version, Version(version))
 
 
-@cache
+@lru_cache
 def get_package_version(package: str) -> Version | None:
     r"""Get the package version.
 
