@@ -10,6 +10,7 @@ __all__ = [
     "unnest_with_separator",
 ]
 
+import inspect
 from typing import TYPE_CHECKING
 
 from coola.utils.imports import is_polars_available
@@ -116,7 +117,10 @@ def unnest_one_level(
     """
     nested_struct_cols = [name for name, dtype in frame.schema.items() if is_nested_struct(dtype)]
     if nested_struct_cols:
-        frame = frame.explode(nested_struct_cols, empty_as_null=True)
+        kwargs = {}
+        if "empty_as_null" in inspect.signature(frame.explode).parameters:
+            kwargs["empty_as_null"] = True
+        frame = frame.explode(nested_struct_cols, **kwargs)
 
     struct_cols = [name for name, dtype in frame.schema.items() if isinstance(dtype, pl.Struct)]
     if not struct_cols:

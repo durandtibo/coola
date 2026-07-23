@@ -245,6 +245,62 @@ def test_unnest_one_level_list_of_struct() -> None:
     )
 
 
+dataframe_original_explode = pl.DataFrame.explode
+
+
+def explode_requiring_empty_as_null(
+    self: pl.DataFrame,
+    columns: str | list[str],
+    *more_columns: str,
+    empty_as_null: bool,
+) -> pl.DataFrame:
+    """Simulate a polars version that requires empty_as_null to be
+    passed explicitly."""
+    return dataframe_original_explode(self, columns, *more_columns, empty_as_null=empty_as_null)
+
+
+def explode_without_empty_as_null(
+    self: pl.DataFrame,
+    columns: str | list[str],
+    *more_columns: str,
+) -> pl.DataFrame:
+    """Simulate old polars behaviour where empty_as_null does not
+    exist."""
+    return dataframe_original_explode(self, columns, *more_columns, empty_as_null=True)
+
+
+@polars_available
+def test_unnest_one_level_list_of_struct_empty_as_null_supported() -> None:
+    frame = pl.DataFrame(
+        {"id": [1, 2], "items": [[{"name": "a"}], [{"name": "b"}, {"name": "c"}]]},
+        schema={"id": pl.Int64, "items": pl.List(pl.Struct({"name": pl.String}))},
+    )
+    with patch.object(pl.DataFrame, "explode", explode_requiring_empty_as_null):
+        assert_frame_equal(
+            unnest_one_level(frame, separator="."),
+            pl.DataFrame(
+                {"id": [1, 2, 2], "items.name": ["a", "b", "c"]},
+                schema={"id": pl.Int64, "items.name": pl.String},
+            ),
+        )
+
+
+@polars_available
+def test_unnest_one_level_list_of_struct_fallback_no_empty_as_null() -> None:
+    frame = pl.DataFrame(
+        {"id": [1, 2], "items": [[{"name": "a"}], [{"name": "b"}, {"name": "c"}]]},
+        schema={"id": pl.Int64, "items": pl.List(pl.Struct({"name": pl.String}))},
+    )
+    with patch.object(pl.DataFrame, "explode", explode_without_empty_as_null):
+        assert_frame_equal(
+            unnest_one_level(frame, separator="."),
+            pl.DataFrame(
+                {"id": [1, 2, 2], "items.name": ["a", "b", "c"]},
+                schema={"id": pl.Int64, "items.name": pl.String},
+            ),
+        )
+
+
 #########################################
 #     Tests for expand_list_columns     #
 #########################################
