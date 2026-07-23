@@ -57,10 +57,7 @@ def unnest_with_separator(frame: pl.DataFrame, columns: list[str], separator: st
         return frame.unnest(columns).rename(rename_map)
 
 
-def expand_list_columns(
-    frame: pl.DataFrame,
-    separator: str,
-) -> pl.DataFrame:
+def expand_list_columns(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
     """Expand list and array columns into one column per index position.
 
     For each ``List`` or ``Array`` column, creates new columns named
@@ -95,10 +92,7 @@ def expand_list_columns(
     )
 
 
-def unnest_one_level(
-    frame: pl.DataFrame,
-    separator: str,
-) -> pl.DataFrame:
+def unnest_one_level(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
     """Unnest all top-level struct columns in a DataFrame by one level.
 
     Columns that are lists or arrays of structs are exploded first to expose
@@ -116,7 +110,11 @@ def unnest_one_level(
     """
     nested_struct_cols = [name for name, dtype in frame.schema.items() if is_nested_struct(dtype)]
     if nested_struct_cols:
-        frame = frame.explode(nested_struct_cols, empty_as_null=True)
+        try:
+            frame = frame.explode(nested_struct_cols, empty_as_null=True)
+        except TypeError:
+            # empty_as_null is not available in older polars versions
+            frame = frame.explode(nested_struct_cols)
 
     struct_cols = [name for name, dtype in frame.schema.items() if isinstance(dtype, pl.Struct)]
     if not struct_cols:
