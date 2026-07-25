@@ -160,6 +160,15 @@ def test_repr_hasher_hash_uses_repr_not_str(registry: HasherRegistry) -> None:
     assert hasher.hash(obj, registry=registry) == hash_string(repr(obj))
 
 
+def test_repr_hasher_hash_ignore_unhashable_has_no_effect(registry: HasherRegistry) -> None:
+    # ReprHasher is a leaf hasher — ignore_unhashable is accepted for
+    # interface consistency but has no effect since it never recurses.
+    hasher = ReprHasher()
+    assert hasher.hash(1234, registry=registry) == hasher.hash(
+        1234, registry=registry, ignore_unhashable=True
+    )
+
+
 def test_repr_hasher_hash_does_not_use_registry(registry: HasherRegistry) -> None:
     empty_registry = HasherRegistry()
     hasher = ReprHasher()

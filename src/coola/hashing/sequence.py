@@ -40,6 +40,14 @@ class SequenceHasher(BaseHasher[Sequence[Any]]):
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
-    def hash(self, data: Sequence[Any], registry: HasherRegistry, length: int = 64) -> str:
-        intermediate = "".join(registry.hash(item, length=length) for item in data)
+    def hash(
+        self,
+        data: Sequence[Any],
+        registry: HasherRegistry,
+        length: int = 64,
+        ignore_unhashable: bool = False,
+    ) -> str:
+        intermediate = "".join(
+            registry.hash(item, length=length, ignore_unhashable=ignore_unhashable) for item in data
+        )
         return hash_string(intermediate, length=length)

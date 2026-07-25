@@ -69,6 +69,7 @@ class PydanticModelHasher(BaseHasher[pydantic.BaseModel]):
         data: pydantic.BaseModel,
         registry: HasherRegistry,  # noqa: ARG002
         length: int = 64,
+        ignore_unhashable: bool = False,  # noqa: ARG002
     ) -> str:
         r"""Compute a deterministic hash of a pydantic model.
 
@@ -81,6 +82,8 @@ class PydanticModelHasher(BaseHasher[pydantic.BaseModel]):
                 interface.
             length: The desired length of the returned hex string. See
                 ``hash_bytes`` for constraints. Defaults to 64.
+            ignore_unhashable: Unused by this hasher; accepted only to
+                satisfy the common ``BaseHasher`` interface.
 
         Returns:
             A lowercase hexadecimal string of exactly ``length``

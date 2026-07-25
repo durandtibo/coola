@@ -44,10 +44,16 @@ class MappingHasher(BaseHasher[Mapping[Any, Any]]):
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
-    def hash(self, data: Mapping[Any, Any], registry: HasherRegistry, length: int = 64) -> str:
+    def hash(
+        self,
+        data: Mapping[Any, Any],
+        registry: HasherRegistry,
+        length: int = 64,
+        ignore_unhashable: bool = False,
+    ) -> str:
         parts = []
         for key in sorted(data.keys()):
-            key_hash = registry.hash(key, length=length)
-            val_hash = registry.hash(data[key], length=length)
+            key_hash = registry.hash(key, length=length, ignore_unhashable=ignore_unhashable)
+            val_hash = registry.hash(data[key], length=length, ignore_unhashable=ignore_unhashable)
             parts.append(key_hash + val_hash)
         return hash_string("".join(parts), length=length)

@@ -109,6 +109,15 @@ def test_datetime_hasher_hash_date_and_datetime_different_hashes(
     )
 
 
+def test_datetime_hasher_hash_ignore_unhashable_has_no_effect(registry: HasherRegistry) -> None:
+    # DatetimeHasher is a leaf hasher — ignore_unhashable is accepted for
+    # interface consistency but has no effect since it never recurses.
+    hasher = DatetimeHasher()
+    assert hasher.hash(date(2021, 1, 1), registry=registry) == hasher.hash(
+        date(2021, 1, 1), registry=registry, ignore_unhashable=True
+    )
+
+
 def test_datetime_hasher_hash_does_not_use_registry(registry: HasherRegistry) -> None:
     empty_registry = HasherRegistry()
     hasher = DatetimeHasher()

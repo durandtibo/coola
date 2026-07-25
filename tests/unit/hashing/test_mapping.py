@@ -106,3 +106,58 @@ def test_mapping_hasher_hash_key_value_not_commutative(registry: HasherRegistry)
     # value hashes are concatenated in a fixed key-then-value order.
     hasher = MappingHasher()
     assert hasher.hash({"a": "b"}, registry=registry) != hasher.hash({"b": "a"}, registry=registry)
+
+
+class Unhashable:
+    r"""A type with no registered hasher."""
+
+
+@pytest.fixture
+def registry_without_fallback() -> HasherRegistry:
+    # No `object` fallback registered, so `Unhashable` cannot be resolved.
+    return HasherRegistry({Mapping: MappingHasher(), dict: MappingHasher()})
+
+
+def test_mapping_hasher_hash_unhashable_value_raises_by_default(
+    registry_without_fallback: HasherRegistry,
+) -> None:
+    with pytest.raises(KeyError, match=r"Could not find a registered type"):
+        MappingHasher().hash({"a": Unhashable()}, registry=registry_without_fallback)
+
+
+def test_mapping_hasher_hash_unhashable_value_raises_when_explicitly_false(
+    registry_without_fallback: HasherRegistry,
+) -> None:
+    with pytest.raises(KeyError, match=r"Could not find a registered type"):
+        MappingHasher().hash(
+            {"a": Unhashable()}, registry=registry_without_fallback, ignore_unhashable=False
+        )
+
+
+def test_mapping_hasher_hash_ignore_unhashable_value_returns_str(
+    registry_without_fallback: HasherRegistry,
+) -> None:
+    result = MappingHasher().hash(
+        {"a": Unhashable()}, registry=registry_without_fallback, ignore_unhashable=True
+    )
+    assert isinstance(result, str)
+
+
+def test_mapping_hasher_hash_ignore_unhashable_key_returns_str(
+    registry_without_fallback: HasherRegistry,
+) -> None:
+    result = MappingHasher().hash(
+        {Unhashable(): "a"}, registry=registry_without_fallback, ignore_unhashable=True
+    )
+    assert isinstance(result, str)
+
+
+def test_mapping_hasher_hash_ignore_unhashable_is_deterministic(
+    registry_without_fallback: HasherRegistry,
+) -> None:
+    hasher = MappingHasher()
+    assert hasher.hash(
+        {"a": Unhashable()}, registry=registry_without_fallback, ignore_unhashable=True
+    ) == hasher.hash(
+        {"a": Unhashable()}, registry=registry_without_fallback, ignore_unhashable=True
+    )
