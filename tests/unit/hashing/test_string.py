@@ -101,6 +101,15 @@ def test_string_hasher_hash_different_strings_different_hashes(
     assert hasher.hash("hello", registry=registry) != hasher.hash("world", registry=registry)
 
 
+def test_string_hasher_hash_ignore_unhashable_has_no_effect(registry: HasherRegistry) -> None:
+    # StringHasher is a leaf hasher — ignore_unhashable is accepted for
+    # interface consistency but has no effect since it never recurses.
+    hasher = StringHasher()
+    assert hasher.hash("hello", registry=registry) == hasher.hash(
+        "hello", registry=registry, ignore_unhashable=True
+    )
+
+
 def test_string_hasher_hash_does_not_use_registry(registry: HasherRegistry) -> None:
     empty_registry = HasherRegistry()
     hasher = StringHasher()

@@ -40,7 +40,13 @@ class PathHasher(BaseHasher[Path]):
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
-    def hash(self, data: Path, registry: HasherRegistry, length: int = 64) -> str:  # noqa: ARG002
+    def hash(
+        self,
+        data: Path,
+        registry: HasherRegistry,  # noqa: ARG002
+        length: int = 64,
+        ignore_unhashable: bool = False,  # noqa: ARG002
+    ) -> str:
         return hash_path(data, length=length)
 
 

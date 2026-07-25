@@ -27,6 +27,7 @@ def hash_object(
     data: object,
     registry: HasherRegistry | None = None,
     length: int = 64,
+    ignore_unhashable: bool = False,
 ) -> str:
     """Compute a hash of a nested data structure.
 
@@ -38,9 +39,20 @@ def hash_object(
         length: The desired length of the returned hex string. Must be
             an even number between 2 and 128 inclusive. Defaults to
             ``64``.
+        ignore_unhashable: If ``True``, objects for which no hasher is
+            registered (including nested objects found while hashing
+            sequences or mappings) are replaced by a deterministic
+            placeholder hash instead of raising an error. Defaults to
+            ``False``, which raises a ``KeyError`` when an unhashable
+            object is encountered.
 
     Returns:
         A string representing the hash of the input data.
+
+    Raises:
+        KeyError: If ``data`` (or a nested object within it) has a
+            type for which no hasher is registered and
+            ``ignore_unhashable`` is ``False``.
 
     Example:
         ```pycon
@@ -52,7 +64,7 @@ def hash_object(
     """
     if registry is None:
         registry = get_default_registry()
-    return registry.hash(data, length=length)
+    return registry.hash(data, length=length, ignore_unhashable=ignore_unhashable)
 
 
 def register_hashers(

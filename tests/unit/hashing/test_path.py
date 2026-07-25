@@ -70,6 +70,18 @@ def test_path_hasher_hash_different_paths_different_hashes(
     assert hasher.hash(path_a, registry=registry) != hasher.hash(path_b, registry=registry)
 
 
+def test_path_hasher_hash_ignore_unhashable_has_no_effect(
+    tmp_path: Path, registry: HasherRegistry
+) -> None:
+    # PathHasher is a leaf hasher — ignore_unhashable is accepted for
+    # interface consistency but has no effect since it never recurses.
+    hasher = PathHasher()
+    path = tmp_path / "file.txt"
+    assert hasher.hash(path, registry=registry) == hasher.hash(
+        path, registry=registry, ignore_unhashable=True
+    )
+
+
 def test_path_hasher_hash_does_not_use_registry(tmp_path: Path, registry: HasherRegistry) -> None:
     empty_registry = HasherRegistry()
     hasher = PathHasher()

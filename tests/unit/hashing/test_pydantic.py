@@ -139,6 +139,20 @@ def test_pydantic_model_hasher_hash_different_values_different_hashes(
 
 
 @pydantic_available
+def test_pydantic_model_hasher_hash_ignore_unhashable_has_no_effect(
+    registry: HasherRegistry,
+) -> None:
+    # PydanticModelHasher is a leaf hasher — ignore_unhashable is accepted
+    # for interface consistency but has no effect since it never recurses
+    # through the registry.
+    hasher = PydanticModelHasher()
+    point = Point(x=1, y=2)
+    assert hasher.hash(point, registry=registry) == hasher.hash(
+        point, registry=registry, ignore_unhashable=True
+    )
+
+
+@pydantic_available
 def test_pydantic_model_hasher_hash_does_not_use_registry() -> None:
     empty_registry = HasherRegistry()
     populated_registry = HasherRegistry({object: PydanticModelHasher()})
