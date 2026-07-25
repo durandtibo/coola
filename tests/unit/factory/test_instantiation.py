@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 import math
 from abc import ABC, abstractmethod
 from collections import Counter
@@ -225,6 +226,28 @@ def test_instantiate_object_function_kwargs(arg1: int, arg2: str) -> None:
 
 def test_instantiate_object_incorrect_type() -> None:
     with pytest.raises(
-        TypeError, match=r"Incorrect type: .*. The valid types are class and function"
+        TypeError, match=r"Incorrect type: .*. The valid types are class and callable"
     ):
         instantiate_object(Fake(12))
+
+
+def test_instantiate_object_builtin_function() -> None:
+    assert instantiate_object(len, [1, 2, 3]) == 3
+
+
+def test_instantiate_object_partial() -> None:
+    obj = instantiate_object(functools.partial(fake_func, arg2="partial"), 42)
+    assert isinstance(obj, Fake)
+    assert obj.arg1 == 42
+    assert obj.arg2 == "partial"
+
+
+def test_instantiate_object_callable_instance() -> None:
+    class CallableFactory:
+        def __call__(self, arg1: int) -> Fake:
+            return Fake(arg1=arg1, arg2="callable")
+
+    obj = instantiate_object(CallableFactory(), 7)
+    assert isinstance(obj, Fake)
+    assert obj.arg1 == 7
+    assert obj.arg2 == "callable"

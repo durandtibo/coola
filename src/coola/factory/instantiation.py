@@ -71,30 +71,32 @@ def instantiate_object(
 ) -> Any:
     r"""Instantiate dynamically an object from its configuration.
 
-    This function creates an instance of a class or calls a function
+    This function creates an instance of a class or calls a callable
     with the provided arguments. For classes, it supports different
     instantiation methods (constructor, __new__, or class methods).
-    For functions, it simply calls them with the given arguments.
+    For any other callable (function, builtin, ``functools.partial``,
+    or an object implementing ``__call__``), it simply calls it with
+    the given arguments.
 
     Args:
-        obj: The class to instantiate or the function to call. Must
-            be a class or function object.
+        obj: The class to instantiate or the callable to call. Must
+            be a class or a callable object.
         *args: Positional arguments to pass to the class constructor
-            or function.
+            or callable.
         _init_: The function or method to use to create the object.
-            This parameter is ignored if ``obj`` is a function. For
+            This parameter is ignored if ``obj`` is not a class. For
             classes, if ``"__init__"`` (default), the object is
             created by calling the constructor. Can also be
             ``"__new__"`` or the name of a class method.
         **kwargs: Keyword arguments to pass to the class constructor
-            or function.
+            or callable.
 
     Returns:
-        The instantiated object if ``obj`` is a class name, otherwise
-            the returned value of the function.
+        The instantiated object if ``obj`` is a class, otherwise the
+            returned value of the callable.
 
     Raises:
-        TypeError: if ``obj`` is not a class or a function.
+        TypeError: if ``obj`` is not a class or a callable.
 
     Example:
         ```pycon
@@ -107,11 +109,11 @@ def instantiate_object(
 
         ```
     """
-    if inspect.isfunction(obj):
-        return obj(*args, **kwargs)
     if inspect.isclass(obj):
         return _instantiate_class_object(obj, *args, _init_=_init_, **kwargs)
-    msg = f"Incorrect type: {obj}. The valid types are class and function"
+    if callable(obj):
+        return obj(*args, **kwargs)
+    msg = f"Incorrect type: {obj}. The valid types are class and callable"
     raise TypeError(msg)
 
 
