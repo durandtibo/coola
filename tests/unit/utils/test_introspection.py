@@ -1,6 +1,14 @@
 from __future__ import annotations
 
-from coola.utils.introspection import get_fully_qualified_name
+from typing import Any
+
+import pytest
+
+from coola.utils.introspection import (
+    check_not_lambda_function,
+    get_fully_qualified_name,
+    is_lambda_function,
+)
 
 
 class Fake:
@@ -30,6 +38,25 @@ class Outer:
 def fake_func(arg1: int, arg2: str = "abc") -> Fake:
     """Fake function."""
     return Fake(arg1=arg1, arg2=arg2)
+
+
+###############################################
+#     Tests for check_not_lambda_function     #
+###############################################
+
+
+def test_check_not_lambda_function_lambda_raises_error() -> None:
+    with pytest.raises(TypeError, match=r"lambda function"):
+        check_not_lambda_function(lambda x: x)
+
+
+def test_check_not_lambda_function_regular_function_does_not_raise() -> None:
+    check_not_lambda_function(fake_func)
+
+
+@pytest.mark.parametrize("obj", [-1, "abc", Fake])
+def test_check_not_lambda_function_non_function_does_not_raise(obj: Any) -> None:
+    check_not_lambda_function(obj)
 
 
 ####################################
@@ -103,3 +130,33 @@ def test_get_fully_qualified_name_main_module_fallback() -> None:
         get_fully_qualified_name(Fake)
         == "test_get_fully_qualified_name_main_module_fallback.<locals>.Fake"
     )
+
+
+def test_get_fully_qualified_name_object_in_main_module_returns_qualname_only() -> None:
+    class MyClass:
+        pass
+
+    MyClass.__module__ = "__main__"  # override for testing
+    assert get_fully_qualified_name(MyClass) == MyClass.__qualname__
+
+
+def test_get_fully_qualified_name_builtin_function() -> None:
+    assert get_fully_qualified_name(map) == "builtins.map"
+
+
+########################################
+#     Tests for is_lambda_function     #
+########################################
+
+
+def test_is_lambda_function_lambda() -> None:
+    assert is_lambda_function(lambda x: x)
+
+
+def test_is_lambda_function_regular_function() -> None:
+    assert not is_lambda_function(fake_func)
+
+
+@pytest.mark.parametrize("obj", [-1, "abc", Fake])
+def test_is_lambda_function_non_function(obj: Any) -> None:
+    assert not is_lambda_function(obj)
