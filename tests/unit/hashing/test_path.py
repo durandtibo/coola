@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -172,7 +173,15 @@ def test_hash_path_resolves_relative_to_absolute() -> None:
 
 def test_hash_path_resolve_failure_uses_posix_of_unresolved_path(tmp_path: Path) -> None:
     path = tmp_path / ".." / "file.txt"
-    with patch.object(Path, "resolve", side_effect=OSError("boom")):
+    original_resolve = Path.resolve
+
+    def fake_resolve(self: Path, *args: Any, **kwargs: Any) -> Path:
+        if self == path:
+            msg = "boom"
+            raise OSError(msg)
+        return original_resolve(self, *args, **kwargs)
+
+    with patch.object(Path, "resolve", autospec=True, side_effect=fake_resolve):
         result = hash_path(path)
 
     assert result == hash_string(path.as_posix())
