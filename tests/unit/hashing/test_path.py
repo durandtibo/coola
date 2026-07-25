@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from coola.hashing import HasherRegistry, PathHasher, hash_path
+from coola.hashing import HasherRegistry, PathHasher, hash_path, hash_string
 
 
 @pytest.fixture
@@ -164,12 +164,9 @@ def test_hash_path_resolves_relative_segments(tmp_path: Path) -> None:
     assert hash_path(direct) == hash_path(indirect)
 
 
-def test_hash_path_resolves_relative_to_absolute(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.chdir(tmp_path)
+def test_hash_path_resolves_relative_to_absolute() -> None:
     relative = Path("file.txt")
-    absolute = tmp_path / "file.txt"
+    absolute = Path.cwd() / "file.txt"
     assert hash_path(relative) == hash_path(absolute)
 
 
@@ -177,9 +174,6 @@ def test_hash_path_resolve_failure_uses_posix_of_unresolved_path(tmp_path: Path)
     path = tmp_path / "file.txt"
     with patch.object(Path, "resolve", side_effect=OSError("boom")):
         result = hash_path(path)
-
-    from coola.hashing import hash_string
-
     assert result == hash_string(path.as_posix())
 
 
