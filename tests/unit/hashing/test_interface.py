@@ -129,6 +129,38 @@ def test_hash_object_nested_structure() -> None:
     )
 
 
+class Unhashable:
+    r"""A type with no registered hasher."""
+
+
+def test_hash_object_unhashable_raises_by_default() -> None:
+    with pytest.raises(KeyError, match=r"Could not find a registered type"):
+        hash_object(Unhashable())
+
+
+def test_hash_object_unhashable_raises_when_explicitly_false() -> None:
+    with pytest.raises(KeyError, match=r"Could not find a registered type"):
+        hash_object(Unhashable(), ignore_unhashable=False)
+
+
+def test_hash_object_ignore_unhashable_returns_str() -> None:
+    assert isinstance(hash_object(Unhashable(), ignore_unhashable=True), str)
+
+
+def test_hash_object_ignore_unhashable_nested_in_list() -> None:
+    assert isinstance(hash_object([1, Unhashable(), 3], ignore_unhashable=True), str)
+
+
+def test_hash_object_ignore_unhashable_nested_in_dict() -> None:
+    assert isinstance(hash_object({"a": Unhashable()}, ignore_unhashable=True), str)
+
+
+def test_hash_object_ignore_unhashable_is_deterministic() -> None:
+    assert hash_object(Unhashable(), ignore_unhashable=True) == hash_object(
+        Unhashable(), ignore_unhashable=True
+    )
+
+
 #########################################
 #     Tests for register_hashers        #
 #########################################

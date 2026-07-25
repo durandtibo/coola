@@ -175,6 +175,15 @@ def test_str_hasher_hash_str_differs_from_repr_hasher_for_strings(
     )
 
 
+def test_str_hasher_hash_ignore_unhashable_has_no_effect(registry: HasherRegistry) -> None:
+    # StrHasher is a leaf hasher — ignore_unhashable is accepted for
+    # interface consistency but has no effect since it never recurses.
+    hasher = StrHasher()
+    assert hasher.hash("hello", registry=registry) == hasher.hash(
+        "hello", registry=registry, ignore_unhashable=True
+    )
+
+
 def test_str_hasher_hash_does_not_use_registry(registry: HasherRegistry) -> None:
     empty_registry = HasherRegistry()
     hasher = StrHasher()

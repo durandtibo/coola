@@ -37,7 +37,13 @@ class BytesHasher(BaseHasher[bytes]):
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
-    def hash(self, data: bytes, registry: HasherRegistry, length: int = 64) -> str:  # noqa: ARG002
+    def hash(
+        self,
+        data: bytes,
+        registry: HasherRegistry,  # noqa: ARG002
+        length: int = 64,
+        ignore_unhashable: bool = False,  # noqa: ARG002
+    ) -> str:
         r"""Compute a deterministic hash of bytes.
 
         Args:
@@ -48,6 +54,8 @@ class BytesHasher(BaseHasher[bytes]):
                 only to satisfy the common ``BaseHasher`` interface.
             length: The desired length of the returned hex string. See
                 ``hash_bytes`` for constraints. Defaults to 64.
+            ignore_unhashable: Unused by this hasher; accepted only to
+                satisfy the common ``BaseHasher`` interface.
 
         Returns:
             A lowercase hexadecimal string of exactly ``length``
