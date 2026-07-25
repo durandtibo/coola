@@ -8,7 +8,12 @@ are lambda functions.
 
 from __future__ import annotations
 
-__all__ = ["check_not_lambda_function", "get_fully_qualified_name", "is_lambda_function"]
+__all__ = [
+    "check_not_lambda_function",
+    "get_all_child_classes",
+    "get_fully_qualified_name",
+    "is_lambda_function",
+]
 
 import inspect
 from typing import Any
@@ -39,6 +44,38 @@ def check_not_lambda_function(obj: Any) -> None:
             "Please use a regular function instead"
         )
         raise TypeError(msg)
+
+
+def get_all_child_classes(cls: type) -> set[type]:
+    r"""Get all the child classes (or subclasses) of a given class.
+
+    Based on: https://stackoverflow.com/a/3862957
+
+    Args:
+        cls: The class whose child classes are to be retrieved.
+
+    Returns:
+        The set of all the child classes of the given class.
+
+    Example:
+        ```pycon
+        >>> from coola.utils.introspection import get_all_child_classes
+        >>> class Foo:
+        ...     pass
+        ...
+        >>> all_child_classes(Foo)
+        set()
+        >>> class Bar(Foo):
+        ...     pass
+        ...
+        >>> all_child_classes(Foo)
+        {<class '....Bar'>}
+
+        ```
+    """
+    return set(cls.__subclasses__()).union(
+        [s for c in cls.__subclasses__() for s in get_all_child_classes(c)]
+    )
 
 
 def get_fully_qualified_name(obj: Any) -> str:
