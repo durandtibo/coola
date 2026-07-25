@@ -107,7 +107,7 @@ torch-backend = "auto"
 [tool.mutmut]
 source_paths = ["src/coola/"]
 pytest_add_cli_args_test_selection = ["tests/unit/"]
-pytest_add_cli_args = ["-x", "-q"]
+pytest_add_cli_args = ["-q", "--maxfail=0"]
 
 [tool.coverage.paths]
 source = ["src", "*/site-packages"]
