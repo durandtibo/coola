@@ -2,27 +2,19 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from typing import TYPE_CHECKING, Any
-from unittest.mock import Mock
 
 import pytest
 
 from coola.equality import objects_are_allclose, objects_are_equal
 from coola.equality.tester import DefaultEqualityTester, EqualityTesterRegistry
 from coola.testing.fixtures import numpy_available, torch_available
-from coola.utils.imports import is_numpy_available, is_torch_available
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
-if is_numpy_available():
-    import numpy as np
-else:
-    np = Mock()
 
-if is_torch_available():
-    import torch
-else:
-    torch = Mock()
+np = pytest.importorskip("numpy")
+torch = pytest.importorskip("torch")
 
 # Test constants for recursion depth tests
 SAFE_NESTING_DEPTH = 50  # Depth that should work within default max_depth
