@@ -63,12 +63,12 @@ def get_all_child_classes(cls: type) -> set[type]:
         >>> class Foo:
         ...     pass
         ...
-        >>> all_child_classes(Foo)
+        >>> get_all_child_classes(Foo)
         set()
         >>> class Bar(Foo):
         ...     pass
         ...
-        >>> all_child_classes(Foo)
+        >>> get_all_child_classes(Foo)
         {<class '....Bar'>}
 
         ```
