@@ -129,3 +129,5 @@ dmypy.json
 .pyre/
 
 .ruff_cache/
+
+mutants/
