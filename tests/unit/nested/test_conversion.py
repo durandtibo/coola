@@ -1,6 +1,31 @@
 from __future__ import annotations
 
-from coola.nested import convert_to_dict_of_lists, convert_to_list_of_dicts
+from dataclasses import dataclass
+
+from coola.nested import (
+    convert_to_dict_of_lists,
+    convert_to_json,
+    convert_to_list_of_dicts,
+)
+from coola.testing.fixtures import pydantic_available
+from coola.utils.imports import is_pydantic_available
+
+if is_pydantic_available():
+    from pydantic import BaseModel
+else:
+    BaseModel = object
+
+
+class MyModel(BaseModel):
+    name: str
+    age: int
+
+
+@dataclass
+class Point:
+    x: int
+    y: int
+
 
 ##############################################
 #     Tests for convert_to_dict_of_lists     #
@@ -79,4 +104,54 @@ def test_convert_to_list_of_dicts_different_types() -> None:
     assert convert_to_list_of_dicts({"name": ["Alice", "Bob"], "age": [30, 25]}) == [
         {"name": "Alice", "age": 30},
         {"name": "Bob", "age": 25},
+    ]
+
+
+##########################################
+#     Tests for convert_to_json      #
+##########################################
+
+
+def test_convert_to_json_int() -> None:
+    assert convert_to_json(1) == 1
+
+
+def test_convert_to_json_dataclass() -> None:
+    assert convert_to_json(Point(x=1, y=2)) == {"x": 1, "y": 2}
+
+
+def test_convert_to_json_list_of_dataclasses() -> None:
+    """Unlike to_json, convert_to_json recursively converts objects
+    nested inside containers."""
+    assert convert_to_json([Point(x=1, y=2), Point(x=3, y=4)]) == [
+        {"x": 1, "y": 2},
+        {"x": 3, "y": 4},
+    ]
+
+
+def test_convert_to_json_dict_of_dataclasses() -> None:
+    assert convert_to_json({"a": Point(x=1, y=2), "b": Point(x=3, y=4)}) == {
+        "a": {"x": 1, "y": 2},
+        "b": {"x": 3, "y": 4},
+    }
+
+
+def test_convert_to_json_nested_containers() -> None:
+    assert convert_to_json({"points": [Point(x=1, y=2), Point(x=3, y=4)]}) == {
+        "points": [{"x": 1, "y": 2}, {"x": 3, "y": 4}]
+    }
+
+
+def test_convert_to_json_no_conversion_needed() -> None:
+    assert convert_to_json({"key": [1, 2, 3], "value": "abc"}) == {
+        "key": [1, 2, 3],
+        "value": "abc",
+    }
+
+
+@pydantic_available
+def test_convert_to_json_list_of_pydantic_models() -> None:
+    assert convert_to_json([MyModel(name="alice", age=30), MyModel(name="bob", age=25)]) == [
+        {"name": "alice", "age": 30},
+        {"name": "bob", "age": 25},
     ]
