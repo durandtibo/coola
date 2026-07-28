@@ -4,7 +4,7 @@ from __future__ import annotations
 
 __all__ = [
     "convert_to_dict_of_lists",
-    "convert_to_json",
+    "convert_to_jsonable",
     "convert_to_list_of_dicts",
     "flatten_mapping",
     "from_flat_dict",
@@ -18,7 +18,7 @@ __all__ = [
 
 from coola.nested.conversion import (
     convert_to_dict_of_lists,
-    convert_to_json,
+    convert_to_jsonable,
     convert_to_list_of_dicts,
 )
 from coola.nested.flat import from_flat_dict, to_flat_dict
