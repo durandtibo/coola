@@ -7,13 +7,23 @@ from coola.nested import (
     convert_to_json,
     convert_to_list_of_dicts,
 )
-from coola.testing.fixtures import pydantic_available
-from coola.utils.imports import is_pydantic_available
+from coola.testing.fixtures import numpy_available, pydantic_available, torch_available
+from coola.utils.imports import (
+    is_numpy_available,
+    is_pydantic_available,
+    is_torch_available,
+)
 
 if is_pydantic_available():
     from pydantic import BaseModel
 else:
     BaseModel = object
+
+if is_numpy_available():
+    import numpy as np
+
+if is_torch_available():
+    import torch
 
 
 class MyModel(BaseModel):
@@ -155,3 +165,29 @@ def test_convert_to_json_list_of_pydantic_models() -> None:
         {"name": "alice", "age": 30},
         {"name": "bob", "age": 25},
     ]
+
+
+@numpy_available
+def test_convert_to_json_numpy_array() -> None:
+    assert convert_to_json(np.array([1, 2, 3])) == [1, 2, 3]
+
+
+@numpy_available
+def test_convert_to_json_dict_of_numpy_arrays() -> None:
+    assert convert_to_json({"a": np.array([1, 2]), "b": np.array([3, 4])}) == {
+        "a": [1, 2],
+        "b": [3, 4],
+    }
+
+
+@torch_available
+def test_convert_to_json_torch_tensor() -> None:
+    assert convert_to_json(torch.tensor([1, 2, 3])) == [1, 2, 3]
+
+
+@torch_available
+def test_convert_to_json_dict_of_torch_tensors() -> None:
+    assert convert_to_json({"a": torch.tensor([1, 2]), "b": torch.tensor([3, 4])}) == {
+        "a": [1, 2],
+        "b": [3, 4],
+    }
