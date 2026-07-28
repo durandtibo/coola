@@ -6,6 +6,8 @@ from coola.nested import (
     flatten_mapping,
     get_first_value,
     merge_mappings,
+    remove_keys_containing,
+    remove_keys_if,
     remove_keys_starting_with,
 )
 
@@ -340,6 +342,133 @@ def test_merge_mappings_non_string_keys() -> None:
     assert merge_mappings([{1: "a"}, {(2, 3): "b"}]) == {1: "a", (2, 3): "b"}
 
 
+#####################################
+#     Tests for remove_keys_if     #
+#####################################
+
+
+def test_remove_keys_if_empty() -> None:
+    assert remove_keys_if({}, lambda key: key == "key") == {}
+
+
+def test_remove_keys_if() -> None:
+    assert remove_keys_if(
+        {"key": 1, "key.abc": 2, "abc": 3, "abc.key": 4, 1: 5, (2, 3): 6},
+        lambda key: isinstance(key, str) and "key" in key,
+    ) == {
+        "abc": 3,
+        1: 5,
+        (2, 3): 6,
+    }
+
+
+def test_remove_keys_if_non_string_predicate() -> None:
+    assert remove_keys_if(
+        {"a": 1, "b": 2, 1: 3, 2: 4}, lambda key: isinstance(key, int) and key % 2 == 0
+    ) == {"a": 1, "b": 2, 1: 3}
+
+
+def test_remove_keys_if_nested_mapping() -> None:
+    assert remove_keys_if(
+        {"abc": {"key": 1, "abc": 2}, "key": {"abc": 3}},
+        lambda key: isinstance(key, str) and "key" in key,
+    ) == {"abc": {"abc": 2}}
+
+
+def test_remove_keys_if_nested_list() -> None:
+    assert remove_keys_if(
+        {"list": [{"key": 1, "abc": 2}, {"key": 3}], "abc": 4},
+        lambda key: isinstance(key, str) and "key" in key,
+    ) == {"list": [{"abc": 2}, {}], "abc": 4}
+
+
+def test_remove_keys_if_nested_tuple() -> None:
+    assert remove_keys_if(
+        {"tuple": ({"key": 1, "abc": 2},)}, lambda key: isinstance(key, str) and "key" in key
+    ) == {"tuple": ({"abc": 2},)}
+
+
+def test_remove_keys_if_nested_set() -> None:
+    assert remove_keys_if(
+        {"set": {1, 2, 3}, "key": 4}, lambda key: isinstance(key, str) and "key" in key
+    ) == {"set": {1, 2, 3}}
+
+
+def test_remove_keys_if_preserves_mapping_type() -> None:
+    from collections import OrderedDict
+
+    out = remove_keys_if(
+        OrderedDict(key=1, abc=2), lambda key: isinstance(key, str) and "key" in key
+    )
+    assert out == {"abc": 2}
+    assert isinstance(out, OrderedDict)
+
+
+def test_remove_keys_if_preserves_namedtuple() -> None:
+    from typing import NamedTuple
+
+    class Point(NamedTuple):
+        x: int
+        y: dict
+
+    out = remove_keys_if(
+        {"point": Point(1, {"key": 2, "abc": 3})},
+        lambda key: isinstance(key, str) and "key" in key,
+    )
+    assert out == {"point": Point(1, {"abc": 3})}
+    assert isinstance(out["point"], Point)
+
+
+############################################
+#     Tests for remove_keys_containing     #
+############################################
+
+
+def test_remove_keys_containing_empty() -> None:
+    assert remove_keys_containing({}, "key") == {}
+
+
+def test_remove_keys_containing() -> None:
+    assert remove_keys_containing(
+        {"key": 1, "key.abc": 2, "abc": 3, "abc.key": 4, 1: 5, (2, 3): 6}, "key"
+    ) == {
+        "abc": 3,
+        1: 5,
+        (2, 3): 6,
+    }
+
+
+def test_remove_keys_containing_another_substring() -> None:
+    assert remove_keys_containing(
+        {"key": 1, "key.abc": 2, "abc": 3, "abc.key": 4, 1: 5, (2, 3): 6}, "xyz"
+    ) == {
+        "key": 1,
+        "key.abc": 2,
+        "abc": 3,
+        "abc.key": 4,
+        1: 5,
+        (2, 3): 6,
+    }
+
+
+def test_remove_keys_containing_nested_mapping() -> None:
+    assert remove_keys_containing({"abc": {"key": 1, "abc": 2}, "key": {"abc": 3}}, "key") == {
+        "abc": {"abc": 2}
+    }
+
+
+def test_remove_keys_containing_nested_list() -> None:
+    assert remove_keys_containing(
+        {"list": [{"key": 1, "abc": 2}, {"key": 3}], "abc": 4}, "key"
+    ) == {"list": [{"abc": 2}, {}], "abc": 4}
+
+
+def test_remove_keys_containing_nested_tuple() -> None:
+    assert remove_keys_containing({"tuple": ({"key": 1, "abc": 2},)}, "key") == {
+        "tuple": ({"abc": 2},)
+    }
+
+
 ###############################################
 #     Tests for remove_keys_starting_with     #
 ###############################################
@@ -369,4 +498,10 @@ def test_remove_keys_starting_with_another_key() -> None:
         "abc.key": 4,
         1: 5,
         (2, 3): 6,
+    }
+
+
+def test_remove_keys_starting_with_nested_mapping() -> None:
+    assert remove_keys_starting_with({"abc": {"key": 1, "abc": 2}, "key": {"abc": 3}}, "key") == {
+        "abc": {"abc": 2}
     }
