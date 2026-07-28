@@ -254,9 +254,15 @@ def explode_requiring_empty_as_null(
     *more_columns: str,
     empty_as_null: bool,
 ) -> pl.DataFrame:
-    """Simulate a polars version that requires empty_as_null to be
-    passed explicitly."""
-    return _explode(self, columns, *more_columns, empty_as_null=empty_as_null)
+    """Simulate a polars version that supports (and requires) the
+    ``empty_as_null`` keyword argument.
+
+    The real installed polars version may predate ``empty_as_null``,
+    so this does not delegate the keyword argument itself to the real
+    ``explode`` implementation; it only checks that it was received.
+    """
+    del empty_as_null
+    return _explode(self, columns, *more_columns)
 
 
 def explode_without_empty_as_null(
