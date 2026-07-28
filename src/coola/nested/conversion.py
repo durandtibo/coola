@@ -2,12 +2,12 @@ r"""Contain some utility functions to convert nested data structure."""
 
 from __future__ import annotations
 
-__all__ = ["convert_to_dict_of_lists", "convert_to_json", "convert_to_list_of_dicts"]
+__all__ = ["convert_to_dict_of_lists", "convert_to_jsonable", "convert_to_list_of_dicts"]
 
 from typing import TYPE_CHECKING, Any
 
 from coola.recursive import recursive_apply
-from coola.utils.conversion import to_json
+from coola.utils.conversion import to_jsonable
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -66,14 +66,14 @@ def convert_to_list_of_dicts(
     return [dict(zip(mapping_of_seqs, seqs)) for seqs in zip(*mapping_of_seqs.values())]
 
 
-def convert_to_json(data: Any) -> Any:
+def convert_to_jsonable(data: Any) -> Any:
     r"""Recursively convert a nested data structure to a JSON-compatible
     representation.
 
     This function walks through nested containers (e.g. ``list``,
-    ``tuple``, ``dict``) and applies ``coola.utils.conversion.to_json``
+    ``tuple``, ``dict``) and applies ``coola.utils.conversion.to_jsonable``
     to every object, converting ``pydantic.BaseModel`` and dataclass
-    objects found at any depth. Use ``to_json`` directly if the data
+    objects found at any depth. Use ``to_jsonable`` directly if the data
     is a single, non-nested object.
 
     Args:
@@ -85,15 +85,15 @@ def convert_to_json(data: Any) -> Any:
     Example:
         ```pycon
         >>> from dataclasses import dataclass
-        >>> from coola.nested import convert_to_json
+        >>> from coola.nested import convert_to_jsonable
         >>> @dataclass
         ... class Point:
         ...     x: int
         ...     y: int
         ...
-        >>> convert_to_json([Point(x=1, y=2), {"key": Point(x=3, y=4)}])
+        >>> convert_to_jsonable([Point(x=1, y=2), {"key": Point(x=3, y=4)}])
         [{'x': 1, 'y': 2}, {'key': {'x': 3, 'y': 4}}]
 
         ```
     """
-    return recursive_apply(data, to_json)
+    return recursive_apply(data, to_jsonable)

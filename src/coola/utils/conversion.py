@@ -2,7 +2,7 @@ r"""Contain conversion functions."""
 
 from __future__ import annotations
 
-__all__ = ["to_json"]
+__all__ = ["to_jsonable"]
 
 from dataclasses import asdict, is_dataclass
 from typing import Any
@@ -29,7 +29,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.torch import torch
 
 
-def to_json(data: Any) -> Any:
+def to_jsonable(data: Any) -> Any:
     r"""Convert a single object to a JSON-compatible representation.
 
     This function only converts ``pydantic.BaseModel``, dataclass,
@@ -38,7 +38,7 @@ def to_json(data: Any) -> Any:
     nested dataclass or ``BaseModel`` fields. All other object types,
     including containers such as ``list`` or ``dict``, are returned
     unchanged. To recursively convert every object in a nested data
-    structure, use ``coola.nested.convert_to_json`` instead.
+    structure, use ``coola.nested.convert_to_jsonable`` instead.
 
     Args:
         data: The object to convert.
@@ -51,15 +51,15 @@ def to_json(data: Any) -> Any:
     Example:
         ```pycon
         >>> from dataclasses import dataclass
-        >>> from coola.utils.conversion import to_json
+        >>> from coola.utils.conversion import to_jsonable
         >>> @dataclass
         ... class Point:
         ...     x: int
         ...     y: int
         ...
-        >>> to_json(Point(x=1, y=2))
+        >>> to_jsonable(Point(x=1, y=2))
         {'x': 1, 'y': 2}
-        >>> to_json([Point(x=1, y=2)])  # not converted because it is a list
+        >>> to_jsonable([Point(x=1, y=2)])  # not converted because it is a list
         [Point(x=1, y=2)]
 
         ```
@@ -67,7 +67,7 @@ def to_json(data: Any) -> Any:
     if isinstance(data, BaseModel):
         return data.model_dump(mode="json")
     if is_dataclass(data) and not isinstance(data, type):
-        return to_json(asdict(data))
+        return to_jsonable(asdict(data))
     if isinstance(data, np.ndarray):
         return data.tolist()
     if isinstance(data, torch.Tensor):
