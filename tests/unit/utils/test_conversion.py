@@ -2,14 +2,24 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from coola.testing.fixtures import pydantic_available
+from coola.testing.fixtures import numpy_available, pydantic_available, torch_available
 from coola.utils.conversion import to_json
-from coola.utils.imports import is_pydantic_available
+from coola.utils.imports import (
+    is_numpy_available,
+    is_pydantic_available,
+    is_torch_available,
+)
 
 if is_pydantic_available():
     from pydantic import BaseModel
 else:
     BaseModel = object
+
+if is_numpy_available():
+    import numpy as np
+
+if is_torch_available():
+    import torch
 
 
 class MyModel(BaseModel):
@@ -74,3 +84,23 @@ def test_to_json_dict_not_converted() -> None:
 @pydantic_available
 def test_to_json_pydantic_model() -> None:
     assert to_json(MyModel(name="alice", age=30)) == {"name": "alice", "age": 30}
+
+
+@numpy_available
+def test_to_json_numpy_array() -> None:
+    assert to_json(np.array([1, 2, 3])) == [1, 2, 3]
+
+
+@numpy_available
+def test_to_json_numpy_array_2d() -> None:
+    assert to_json(np.array([[1, 2], [3, 4]])) == [[1, 2], [3, 4]]
+
+
+@torch_available
+def test_to_json_torch_tensor() -> None:
+    assert to_json(torch.tensor([1, 2, 3])) == [1, 2, 3]
+
+
+@torch_available
+def test_to_json_torch_tensor_2d() -> None:
+    assert to_json(torch.tensor([[1, 2], [3, 4]])) == [[1, 2], [3, 4]]
