@@ -16,7 +16,7 @@ from coola.utils.imports import (
 if is_pydantic_available():
     from pydantic import BaseModel
 else:  # pragma: no cover
-    from coola.utils.fallback.pydantic.pydantic import BaseModel
+    from coola.utils.fallback.pydantic import BaseModel
 
 if is_numpy_available():
     import numpy as np
