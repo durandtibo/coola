@@ -305,32 +305,6 @@ def integration_test(c: Context, cov: bool = False) -> None:
 
 
 @task
-def mutation_test(c: Context) -> None:
-    r"""Run mutation testing with mutmut.
-
-    Since 100% line coverage does not guarantee that assertions are
-    meaningful, this task introduces small mutations in the source
-    code and re-runs the unit tests to check that at least one test
-    fails for each mutation (i.e. the mutation is "killed"). This is
-    slow, so it is intended to run on a schedule rather than on every
-    commit.
-
-    The paths to mutate and the test selection are configured in the
-    ``[tool.mutmut]`` section of ``pyproject.toml``.
-
-    Args:
-        c: The invoke context.
-
-    Example:
-        invoke mutation-test
-    """
-    logger.info("🧬 Running mutation testing...")
-    c.run("mutmut run", pty=True, warn=True)
-    c.run("mutmut results", pty=True)
-    logger.info("✅ Mutation testing complete")
-
-
-@task
 def show_installed_packages(c: Context) -> None:
     r"""Show the installed packages.
 
