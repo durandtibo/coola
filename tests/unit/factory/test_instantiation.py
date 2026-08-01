@@ -37,6 +37,12 @@ class Fake:
         return "not a Fake instance"
 
 
+class FakeAbstractClass(ABC):
+    @abstractmethod
+    def my_method(self) -> None:
+        """Abstract method."""
+
+
 def fake_func(arg1: int, arg2: str = "abc") -> Fake:
     """Fake function to tests some functions."""
     return Fake(arg1=arg1, arg2=arg2)
@@ -180,11 +186,6 @@ def test_instantiate_object_init_not_method() -> None:
 
 
 def test_instantiate_object_abstract_class() -> None:
-    class FakeAbstractClass(ABC):
-        @abstractmethod
-        def my_method(self) -> None:
-            """Abstract method."""
-
     with pytest.raises(
         TypeError,
         match=r"Cannot instantiate the class .* because it is an abstract class.",
