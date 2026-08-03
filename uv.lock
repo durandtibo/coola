@@ -327,14 +327,14 @@ provides-extras = ["jax", "numpy", "packaging", "pandas", "polars", "pyarrow", "
 [package.metadata.requires-dev]
 dev = [
     { name = "black", specifier = ">=26.5.1" },
-    { name = "coverage", extras = ["toml"], specifier = ">=7.14,<8.0" },
+    { name = "coverage", extras = ["toml"], specifier = ">=7.15,<8.0" },
     { name = "docformatter", extras = ["tomli"], specifier = ">=1.7.8,<2.0" },
-    { name = "feu", extras = ["all"], specifier = ">=0.7.2,<1.0" },
+    { name = "feu", extras = ["all"], specifier = ">=0.7.3,<1.0" },
     { name = "invoke", specifier = ">=3.0,<4.0" },
     { name = "pre-commit", specifier = ">=4.6,<5.0" },
     { name = "pygments", specifier = ">=2.20,<3.0" },
-    { name = "pyright", specifier = ">=1.1.409,<2.0" },
-    { name = "pytest", specifier = ">=9.0,<10.0" },
+    { name = "pyright", specifier = ">=1.1.411,<2.0" },
+    { name = "pytest", specifier = ">=9.1,<10.0" },
     { name = "pytest-cov", specifier = ">=7.1,<8.0" },
     { name = "pytest-timeout", specifier = ">=2.4,<3.0" },
     { name = "ruff", specifier = ">=0.16,<1.0" },
