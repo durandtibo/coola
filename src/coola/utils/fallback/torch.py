@@ -6,39 +6,16 @@ from __future__ import annotations
 __all__ = ["cuda", "nn", "torch"]
 
 from types import ModuleType
-from typing import Any, NoReturn
+from typing import TYPE_CHECKING, NoReturn
 
+from coola.utils.fallback.factory import make_fake_class, make_fake_function
 from coola.utils.imports import raise_torch_missing_error
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
-class FakeClass:
-    r"""Fake class that raises an error because torch is not installed.
-
-    Args:
-        *args: Positional arguments.
-        **kwargs: Keyword arguments.
-
-    Raises:
-        RuntimeError: torch is required for this functionality.
-    """
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:  # noqa: ARG002
-        raise_torch_missing_error()
-
-
-def fake_function(*args: Any, **kwargs: Any) -> NoReturn:  # noqa: ARG001
-    r"""Fake function that raises an error because torch is not
-    installed.
-
-    Args:
-        *args: Positional arguments.
-        **kwargs: Keyword arguments.
-
-    Raises:
-        RuntimeError: torch is required for this functionality.
-    """
-    raise_torch_missing_error()
-
+FakeClass: type = make_fake_class(raise_torch_missing_error)
+fake_function: Callable[..., NoReturn] = make_fake_function(raise_torch_missing_error)
 
 cuda: ModuleType = ModuleType("torch.cuda")
 cuda.is_available = fake_function

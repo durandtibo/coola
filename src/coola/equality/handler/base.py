@@ -80,6 +80,15 @@ class BaseEqualityHandler(ABC):
     def handle(self, actual: object, expected: object, config: EqualityConfig) -> bool:
         r"""Return the equality result between the two input objects.
 
+        Note:
+            Not every handler needs all three parameters (e.g. a handler
+            that only checks ``actual``'s type ignores ``expected``).
+            Implementations keep the full signature so handlers stay
+            interchangeable in the chain of responsibility and callers
+            never need to special-case one handler's signature; unused
+            parameters are suppressed with ``# noqa: ARG002`` rather than
+            reworking the shared interface.
+
         Args:
             actual: The actual input.
             expected: The expected input.

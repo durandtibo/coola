@@ -11,13 +11,12 @@ repos:
         entry: python -Im docformatter
         additional_dependencies:
           - docformatter >= 1.7.5
-          - tomli >= 2.0.0
         args: [ "--in-place", "--config", "./pyproject.toml" ]
         language: python
         types:
           - python
   - repo: https://github.com/pycqa/isort
-    rev: 9.0.0a3
+    rev: 9.0.0b1
     hooks:
       - id: isort
         name: isort (python)
@@ -45,15 +44,15 @@ repos:
     rev: 26.5.1
     hooks:
       - id: black
-        language_version: python3.13
+        language_version: python3.14
   - repo: https://github.com/adamchainz/blacken-docs
     rev: "1.20.0"
     hooks:
       - id: blacken-docs
         additional_dependencies:
-          - black>=26.1
+          - black>=26.5
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.20
+    rev: v0.16.1
     hooks:
       - id: ruff-check
         types_or: [ python, pyi, jupyter ]

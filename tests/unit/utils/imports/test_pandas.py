@@ -14,6 +14,8 @@ from coola.utils.imports import (
 
 logger = logging.getLogger(__name__)
 
+MODULE = "coola.utils.imports.pandas"
+
 
 @pytest.fixture(autouse=True)
 def _cache_clear() -> None:
@@ -30,13 +32,13 @@ def my_function(n: int = 0) -> int:
 
 
 def test_check_pandas_with_package() -> None:
-    with patch("coola.utils.imports.pandas.is_pandas_available", lambda: True):
+    with patch(f"{MODULE}.is_pandas_available", lambda: True):
         check_pandas()
 
 
 def test_check_pandas_without_package() -> None:
     with (
-        patch("coola.utils.imports.pandas.is_pandas_available", lambda: False),
+        patch(f"{MODULE}.is_pandas_available", lambda: False),
         pytest.raises(RuntimeError, match=r"'pandas' package is required but not installed."),
     ):
         check_pandas()
@@ -47,19 +49,19 @@ def test_is_pandas_available() -> None:
 
 
 def test_pandas_available_with_package() -> None:
-    with patch("coola.utils.imports.pandas.is_pandas_available", lambda: True):
+    with patch(f"{MODULE}.is_pandas_available", lambda: True):
         fn = pandas_available(my_function)
         assert fn(2) == 44
 
 
 def test_pandas_available_without_package() -> None:
-    with patch("coola.utils.imports.pandas.is_pandas_available", lambda: False):
+    with patch(f"{MODULE}.is_pandas_available", lambda: False):
         fn = pandas_available(my_function)
         assert fn(2) is None
 
 
 def test_pandas_available_decorator_with_package() -> None:
-    with patch("coola.utils.imports.pandas.is_pandas_available", lambda: True):
+    with patch(f"{MODULE}.is_pandas_available", lambda: True):
 
         @pandas_available
         def fn(n: int = 0) -> int:
@@ -69,7 +71,7 @@ def test_pandas_available_decorator_with_package() -> None:
 
 
 def test_pandas_available_decorator_without_package() -> None:
-    with patch("coola.utils.imports.pandas.is_pandas_available", lambda: False):
+    with patch(f"{MODULE}.is_pandas_available", lambda: False):
 
         @pandas_available
         def fn(n: int = 0) -> int:

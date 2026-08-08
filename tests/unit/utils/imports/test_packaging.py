@@ -15,6 +15,9 @@ from coola.utils.imports import (
 logger = logging.getLogger(__name__)
 
 
+MODULE = "coola.utils.imports.packaging"
+
+
 @pytest.fixture(autouse=True)
 def _cache_clear() -> None:
     is_packaging_available.cache_clear()
@@ -30,13 +33,13 @@ def my_function(n: int = 0) -> int:
 
 
 def test_check_packaging_with_package() -> None:
-    with patch("coola.utils.imports.packaging.is_packaging_available", lambda: True):
+    with patch(f"{MODULE}.is_packaging_available", lambda: True):
         check_packaging()
 
 
 def test_check_packaging_without_package() -> None:
     with (
-        patch("coola.utils.imports.packaging.is_packaging_available", lambda: False),
+        patch(f"{MODULE}.is_packaging_available", lambda: False),
         pytest.raises(RuntimeError, match=r"'packaging' package is required but not installed."),
     ):
         check_packaging()
@@ -47,19 +50,19 @@ def test_is_packaging_available() -> None:
 
 
 def test_packaging_available_with_package() -> None:
-    with patch("coola.utils.imports.packaging.is_packaging_available", lambda: True):
+    with patch(f"{MODULE}.is_packaging_available", lambda: True):
         fn = packaging_available(my_function)
         assert fn(2) == 44
 
 
 def test_packaging_available_without_package() -> None:
-    with patch("coola.utils.imports.packaging.is_packaging_available", lambda: False):
+    with patch(f"{MODULE}.is_packaging_available", lambda: False):
         fn = packaging_available(my_function)
         assert fn(2) is None
 
 
 def test_packaging_available_decorator_with_package() -> None:
-    with patch("coola.utils.imports.packaging.is_packaging_available", lambda: True):
+    with patch(f"{MODULE}.is_packaging_available", lambda: True):
 
         @packaging_available
         def fn(n: int = 0) -> int:
@@ -69,7 +72,7 @@ def test_packaging_available_decorator_with_package() -> None:
 
 
 def test_packaging_available_decorator_without_package() -> None:
-    with patch("coola.utils.imports.packaging.is_packaging_available", lambda: False):
+    with patch(f"{MODULE}.is_packaging_available", lambda: False):
 
         @packaging_available
         def fn(n: int = 0) -> int:

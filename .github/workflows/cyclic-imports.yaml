@@ -15,16 +15,25 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Setup python environment
-        uses: durandtibo/setup-venv-uv-action@v0.0.3
+        uses: durandtibo/setup-venv-uv-action@v0.1.0
 
       - name: check coola
         run: |
           python -c "import coola"
+
+      - name: check coola.display
+        run: |
+          python -c "from coola import display"
+
       - name: check coola.equality
         run: |
           python -c "from coola import equality"
           python -c "from coola.equality import handler"
           python -c "from coola.equality import tester"
+
+      - name: check coola.factory
+        run: |
+          python -c "from coola import factory"
 
       - name: check coola.hashing
         run: |

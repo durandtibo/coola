@@ -15,6 +15,9 @@ from coola.utils.imports import (
 logger = logging.getLogger(__name__)
 
 
+MODULE = "coola.utils.imports.torch"
+
+
 @pytest.fixture(autouse=True)
 def _cache_clear() -> None:
     is_torch_available.cache_clear()
@@ -30,13 +33,13 @@ def my_function(n: int = 0) -> int:
 
 
 def test_check_torch_with_package() -> None:
-    with patch("coola.utils.imports.torch.is_torch_available", lambda: True):
+    with patch(f"{MODULE}.is_torch_available", lambda: True):
         check_torch()
 
 
 def test_check_torch_without_package() -> None:
     with (
-        patch("coola.utils.imports.torch.is_torch_available", lambda: False),
+        patch(f"{MODULE}.is_torch_available", lambda: False),
         pytest.raises(RuntimeError, match=r"'torch' package is required but not installed."),
     ):
         check_torch()
@@ -47,19 +50,19 @@ def test_is_torch_available() -> None:
 
 
 def test_torch_available_with_package() -> None:
-    with patch("coola.utils.imports.torch.is_torch_available", lambda: True):
+    with patch(f"{MODULE}.is_torch_available", lambda: True):
         fn = torch_available(my_function)
         assert fn(2) == 44
 
 
 def test_torch_available_without_package() -> None:
-    with patch("coola.utils.imports.torch.is_torch_available", lambda: False):
+    with patch(f"{MODULE}.is_torch_available", lambda: False):
         fn = torch_available(my_function)
         assert fn(2) is None
 
 
 def test_torch_available_decorator_with_package() -> None:
-    with patch("coola.utils.imports.torch.is_torch_available", lambda: True):
+    with patch(f"{MODULE}.is_torch_available", lambda: True):
 
         @torch_available
         def fn(n: int = 0) -> int:
@@ -69,7 +72,7 @@ def test_torch_available_decorator_with_package() -> None:
 
 
 def test_torch_available_decorator_without_package() -> None:
-    with patch("coola.utils.imports.torch.is_torch_available", lambda: False):
+    with patch(f"{MODULE}.is_torch_available", lambda: False):
 
         @torch_available
         def fn(n: int = 0) -> int:

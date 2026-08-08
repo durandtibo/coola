@@ -35,7 +35,13 @@ class StringHasher(BaseHasher[str]):
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}()"
 
-    def hash(self, data: str, registry: HasherRegistry, length: int = 64) -> str:  # noqa: ARG002
+    def hash(
+        self,
+        data: str,
+        registry: HasherRegistry,  # noqa: ARG002
+        length: int = 64,
+        ignore_unhashable: bool = False,  # noqa: ARG002
+    ) -> str:
         return hash_string(data, length=length)
 
 

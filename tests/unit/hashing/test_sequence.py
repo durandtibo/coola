@@ -131,3 +131,49 @@ def test_sequence_hasher_hash_nested_differs_from_flat(registry: HasherRegistry)
     assert hasher.hash([[1, 2], [3, 4]], registry=registry) != hasher.hash(
         [1, 2, 3, 4], registry=registry
     )
+
+
+class Unhashable:
+    r"""A type with no registered hasher."""
+
+
+@pytest.fixture
+def registry_without_fallback() -> HasherRegistry:
+    # No `object` fallback registered, so `Unhashable` cannot be resolved.
+    return HasherRegistry({list: SequenceHasher()})
+
+
+def test_sequence_hasher_hash_unhashable_item_raises_by_default(
+    registry_without_fallback: HasherRegistry,
+) -> None:
+    with pytest.raises(KeyError, match=r"Could not find a registered type"):
+        SequenceHasher().hash([1, Unhashable(), 3], registry=registry_without_fallback)
+
+
+def test_sequence_hasher_hash_unhashable_item_raises_when_explicitly_false(
+    registry_without_fallback: HasherRegistry,
+) -> None:
+    with pytest.raises(KeyError, match=r"Could not find a registered type"):
+        SequenceHasher().hash(
+            [1, Unhashable(), 3], registry=registry_without_fallback, ignore_unhashable=False
+        )
+
+
+def test_sequence_hasher_hash_ignore_unhashable_item_returns_str(
+    registry_without_fallback: HasherRegistry,
+) -> None:
+    result = SequenceHasher().hash(
+        [1, Unhashable(), 3], registry=registry_without_fallback, ignore_unhashable=True
+    )
+    assert isinstance(result, str)
+
+
+def test_sequence_hasher_hash_ignore_unhashable_is_deterministic(
+    registry_without_fallback: HasherRegistry,
+) -> None:
+    hasher = SequenceHasher()
+    assert hasher.hash(
+        [1, Unhashable(), 3], registry=registry_without_fallback, ignore_unhashable=True
+    ) == hasher.hash(
+        [1, Unhashable(), 3], registry=registry_without_fallback, ignore_unhashable=True
+    )

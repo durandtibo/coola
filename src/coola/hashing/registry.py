@@ -12,6 +12,7 @@ __all__ = ["HasherRegistry"]
 from typing import TYPE_CHECKING, Any
 
 from coola.hashing.base import BaseHasher
+from coola.hashing.string import hash_string
 from coola.registry import TypeRegistry
 from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
 
@@ -212,7 +213,7 @@ class HasherRegistry:
         """
         return self._state.resolve(data_type)
 
-    def hash(self, data: object, length: int = 64) -> str:
+    def hash(self, data: object, length: int = 64, ignore_unhashable: bool = False) -> str:
         """Hash the given data by recursively traversing its structure.
 
         This is the main entry point for hashing. It automatically:
@@ -228,9 +229,20 @@ class HasherRegistry:
             length: The desired length of the returned hex string. Must be an
                 even number between 2 and 128 inclusive, since each byte of the
                 digest encodes as two hex characters.
+            ignore_unhashable: If ``True``, objects for which no hasher is
+                registered (including their parent types via MRO) are
+                replaced by a deterministic placeholder hash instead of
+                raising a ``KeyError``. This also applies to nested
+                objects encountered while recursing into sequences or
+                mappings. Defaults to ``False``, which raises an error.
 
         Returns:
             A string representing the hash of the input data.
+
+        Raises:
+            KeyError: If no hasher is registered for ``data``'s type
+                (or any of its parent types) and ``ignore_unhashable``
+                is ``False``.
 
         Example:
             ```pycon
@@ -240,5 +252,10 @@ class HasherRegistry:
 
             ```
         """
-        hasher = self.find_hasher(type(data))
-        return hasher.hash(data, registry=self, length=length)
+        try:
+            hasher = self.find_hasher(type(data))
+        except KeyError:
+            if ignore_unhashable:
+                return hash_string(f"<unhashable:{type(data)!r}>", length=length)
+            raise
+        return hasher.hash(data, registry=self, length=length, ignore_unhashable=ignore_unhashable)

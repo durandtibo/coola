@@ -6,6 +6,8 @@ r"""Define some pytest fixtures for testing.
 from __future__ import annotations
 
 __all__ = [
+    "colorlog_available",
+    "colorlog_not_available",
     "jax_available",
     "jax_not_available",
     "numpy_available",
@@ -18,6 +20,10 @@ __all__ = [
     "polars_not_available",
     "pyarrow_available",
     "pyarrow_not_available",
+    "pydantic_available",
+    "pydantic_not_available",
+    "rich_available",
+    "rich_not_available",
     "torch_available",
     "torch_cuda_available",
     "torch_mps_available",
@@ -30,12 +36,15 @@ __all__ = [
 import pytest
 
 from coola.utils.imports import (
+    is_colorlog_available,
     is_jax_available,
     is_numpy_available,
     is_packaging_available,
     is_pandas_available,
     is_polars_available,
     is_pyarrow_available,
+    is_pydantic_available,
+    is_rich_available,
     is_torch_available,
     is_torch_numpy_available,
     is_xarray_available,
@@ -84,6 +93,14 @@ pyarrow_not_available: pytest.MarkDecorator = pytest.mark.skipif(
     is_pyarrow_available(), reason="Skip if pyarrow is available"
 )
 
+pydantic_available: pytest.MarkDecorator = pytest.mark.skipif(
+    not is_pydantic_available(), reason="Requires pydantic"
+)
+pydantic_not_available: pytest.MarkDecorator = pytest.mark.skipif(
+    is_pydantic_available(), reason="Skip if pydantic is available"
+)
+
+
 torch_available: pytest.MarkDecorator = pytest.mark.skipif(
     not is_torch_available(), reason="Requires PyTorch"
 )
@@ -105,4 +122,18 @@ xarray_available: pytest.MarkDecorator = pytest.mark.skipif(
 )
 xarray_not_available: pytest.MarkDecorator = pytest.mark.skipif(
     is_xarray_available(), reason="Skip if xarray is available"
+)
+
+
+colorlog_available: pytest.MarkDecorator = pytest.mark.skipif(
+    not is_colorlog_available(), reason="Requires colorlog"
+)
+colorlog_not_available: pytest.MarkDecorator = pytest.mark.skipif(
+    is_colorlog_available(), reason="Skip if colorlog is available"
+)
+rich_available: pytest.MarkDecorator = pytest.mark.skipif(
+    not is_rich_available(), reason="Requires rich"
+)
+rich_not_available: pytest.MarkDecorator = pytest.mark.skipif(
+    is_rich_available(), reason="Skip if rich is available"
 )

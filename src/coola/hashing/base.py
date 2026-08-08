@@ -43,6 +43,7 @@ class BaseHasher(ABC, Generic[T]):
         data: T,
         registry: HasherRegistry,
         length: int = 64,
+        ignore_unhashable: bool = False,
     ) -> str:
         r"""Hash the given data structure recursively.
 
@@ -58,6 +59,11 @@ class BaseHasher(ABC, Generic[T]):
             length: The desired length of the returned hex string. Must be an
                 even number between 2 and 128 inclusive, since each byte of the
                 digest encodes as two hex characters.
+            ignore_unhashable: If ``True``, nested objects for which no
+                hasher is registered are replaced by a deterministic
+                placeholder hash instead of raising an error. Only
+                relevant for hashers that recurse into nested data via
+                the registry.
 
         Returns:
             A string representing the hash of the input data.

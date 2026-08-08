@@ -18,7 +18,7 @@ def sort_by_keys(mapping: Mapping[Any, Any]) -> dict[Any, Any]:
         mapping: The dictionary to sort.
 
     Returns:
-        dict: The sorted dictionary.
+        The sorted dictionary.
 
     Example:
         ```pycon
@@ -38,7 +38,7 @@ def sort_by_values(mapping: Mapping[Any, Any]) -> dict[Any, Any]:
         mapping: The dictionary to sort.
 
     Returns:
-        dict: The sorted dictionary.
+        The sorted dictionary.
 
     Example:
         ```pycon

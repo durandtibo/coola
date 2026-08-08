@@ -29,7 +29,7 @@ permissions:
 
 jobs:
   get-versions:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     timeout-minutes: 2
     outputs:
       package_versions: ${{ steps.read-json.outputs.json-content }}

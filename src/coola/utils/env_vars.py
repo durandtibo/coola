@@ -2,14 +2,56 @@ r"""Implement some utility functions to manage environment variables."""
 
 from __future__ import annotations
 
-__all__ = ["get_required_env_var", "temp_env_vars"]
+__all__ = ["check_env_vars", "get_required_env_var", "temp_env_vars"]
 
+import logging
 import os
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
+    from collections.abc import Generator, Sequence
+
+
+logger: logging.Logger = logging.getLogger(__name__)
+
+
+def check_env_vars(var_names: Sequence[str], raise_on_missing: bool = False) -> dict[str, bool]:
+    """Check whether each environment variable in var_names is defined.
+
+    Logs the status of each variable to the terminal.
+
+    Args:
+        var_names: List of environment variable names to check.
+        raise_on_missing: If True, raises EnvironmentError when any
+            variable is missing. Defaults to False.
+
+    Returns:
+        Mapping of variable name -> True if defined, False otherwise.
+
+    Raises:
+        EnvironmentError: If raise_on_missing is True and one or more
+            variables are missing.
+    """
+    results = {}
+    missing = []
+
+    for name in var_names:
+        value = os.environ.get(name)
+        is_defined = value is not None
+        results[name] = is_defined
+
+        if is_defined:
+            logger.info(f"✅ '{name}' is defined.")
+        else:
+            logger.warning(f"❌ '{name}' is NOT defined.")
+            missing.append(name)
+
+    if missing and raise_on_missing:
+        msg = f"Missing required environment variable(s): {', '.join(missing)}"
+        raise OSError(msg)
+
+    return results
 
 
 def get_required_env_var(name: str) -> str:

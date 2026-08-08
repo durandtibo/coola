@@ -2,13 +2,16 @@ from __future__ import annotations
 
 from collections.abc import Generator, Mapping, Sequence
 from datetime import date, datetime, timezone
+from pathlib import Path
 
 import pytest
 
 from coola.hashing import (
+    BytesHasher,
     DatetimeHasher,
     HasherRegistry,
     MappingHasher,
+    PathHasher,
     ReprHasher,
     SequenceHasher,
     StringHasher,
@@ -126,6 +129,38 @@ def test_hash_object_nested_structure() -> None:
     )
 
 
+class Unhashable:
+    r"""A type with no registered hasher."""
+
+
+def test_hash_object_unhashable_raises_by_default() -> None:
+    with pytest.raises(KeyError, match=r"Could not find a registered type"):
+        hash_object(Unhashable())
+
+
+def test_hash_object_unhashable_raises_when_explicitly_false() -> None:
+    with pytest.raises(KeyError, match=r"Could not find a registered type"):
+        hash_object(Unhashable(), ignore_unhashable=False)
+
+
+def test_hash_object_ignore_unhashable_returns_str() -> None:
+    assert isinstance(hash_object(Unhashable(), ignore_unhashable=True), str)
+
+
+def test_hash_object_ignore_unhashable_nested_in_list() -> None:
+    assert isinstance(hash_object([1, Unhashable(), 3], ignore_unhashable=True), str)
+
+
+def test_hash_object_ignore_unhashable_nested_in_dict() -> None:
+    assert isinstance(hash_object({"a": Unhashable()}, ignore_unhashable=True), str)
+
+
+def test_hash_object_ignore_unhashable_is_deterministic() -> None:
+    assert hash_object(Unhashable(), ignore_unhashable=True) == hash_object(
+        Unhashable(), ignore_unhashable=True
+    )
+
+
 #########################################
 #     Tests for register_hashers        #
 #########################################
@@ -187,10 +222,8 @@ def test_get_default_registry_registers_str() -> None:
     assert isinstance(get_default_registry().find_hasher(str), StringHasher)
 
 
-def test_get_default_registry_registers_datetime_types() -> None:
-    registry = get_default_registry()
-    assert isinstance(registry.find_hasher(date), DatetimeHasher)
-    assert isinstance(registry.find_hasher(datetime), DatetimeHasher)
+def test_get_default_registry_registers_bytes() -> None:
+    assert isinstance(get_default_registry().find_hasher(bytes), BytesHasher)
 
 
 def test_get_default_registry_registers_sequences() -> None:
@@ -204,6 +237,21 @@ def test_get_default_registry_registers_mappings() -> None:
     registry = get_default_registry()
     assert isinstance(registry.find_hasher(dict), MappingHasher)
     assert isinstance(registry.find_hasher(Mapping), MappingHasher)
+
+
+def test_get_default_registry_registers_datetime_types() -> None:
+    registry = get_default_registry()
+    assert isinstance(registry.find_hasher(date), DatetimeHasher)
+    assert isinstance(registry.find_hasher(datetime), DatetimeHasher)
+
+
+def test_get_default_registry_registers_path_types() -> None:
+    registry = get_default_registry()
+    assert isinstance(registry.find_hasher(Path), PathHasher)
+
+
+def test_get_default_registry_registers_none() -> None:
+    assert isinstance(get_default_registry().find_hasher(type(None)), ReprHasher)
 
 
 def test_get_default_registry_can_hash_list() -> None:

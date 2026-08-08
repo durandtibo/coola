@@ -15,6 +15,8 @@ __all__ = [
     "BaseTransformer",
     "ConditionalTransformer",
     "DefaultTransformer",
+    "IdentityTransformer",
+    "KeyFilterTransformer",
     "MappingTransformer",
     "SequenceTransformer",
     "SetTransformer",
@@ -27,11 +29,13 @@ __all__ = [
 from coola.recursive.base import BaseTransformer
 from coola.recursive.conditional import ConditionalTransformer
 from coola.recursive.default import DefaultTransformer
+from coola.recursive.identity import IdentityTransformer
 from coola.recursive.interface import (
     get_default_registry,
     recursive_apply,
     register_transformers,
 )
+from coola.recursive.key import KeyFilterTransformer
 from coola.recursive.mapping import MappingTransformer
 from coola.recursive.registry import TransformerRegistry
 from coola.recursive.sequence import SequenceTransformer

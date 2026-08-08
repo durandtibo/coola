@@ -15,6 +15,8 @@ from coola.testing.fixtures import (
     polars_not_available,
     pyarrow_available,
     pyarrow_not_available,
+    pydantic_available,
+    pydantic_not_available,
     torch_available,
     torch_not_available,
     xarray_available,
@@ -27,6 +29,7 @@ from coola.utils.imports import (
     check_pandas,
     check_polars,
     check_pyarrow,
+    check_pydantic,
     check_torch,
     check_xarray,
     is_jax_available,
@@ -35,6 +38,7 @@ from coola.utils.imports import (
     is_pandas_available,
     is_polars_available,
     is_pyarrow_available,
+    is_pydantic_available,
     is_torch_available,
     is_xarray_available,
 )
@@ -193,6 +197,32 @@ def test_is_pyarrow_available_true() -> None:
 @pyarrow_not_available
 def test_is_pyarrow_available_false() -> None:
     assert not is_pyarrow_available()
+
+
+####################
+#     pydantic     #
+####################
+
+
+@pydantic_available
+def test_check_pydantic_with_package() -> None:
+    check_pydantic()
+
+
+@pydantic_not_available
+def test_check_pydantic_without_package() -> None:
+    with pytest.raises(RuntimeError, match=r"'pydantic' package is required but not installed."):
+        check_pydantic()
+
+
+@pydantic_available
+def test_is_pydantic_available_true() -> None:
+    assert is_pydantic_available()
+
+
+@pydantic_not_available
+def test_is_pydantic_available_false() -> None:
+    assert not is_pydantic_available()
 
 
 #################

@@ -1,5 +1,6 @@
 ::: coola.utils
 ::: coola.utils.array
+::: coola.utils.date
 ::: coola.utils.env_vars
 ::: coola.utils.format
 ::: coola.utils.imports
@@ -11,5 +12,4 @@
 ::: coola.utils.stats
 ::: coola.utils.string
 ::: coola.utils.tensor
-::: coola.utils.today
 ::: coola.utils.version

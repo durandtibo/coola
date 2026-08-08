@@ -11,7 +11,6 @@ __all__ = [
     "repr_mapping_line",
     "repr_sequence",
     "repr_sequence_line",
-    "repr_sequence_line",
     "str_human_byte_size",
     "str_indent",
     "str_mapping",

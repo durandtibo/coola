@@ -7,10 +7,13 @@ __all__ = ["get_default_registry", "hash_object", "register_hashers"]
 
 from collections.abc import Mapping, Sequence
 from datetime import date, datetime
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from coola.hashing.bytes import BytesHasher
 from coola.hashing.datetime import DatetimeHasher
 from coola.hashing.mapping import MappingHasher
+from coola.hashing.path import PathHasher
 from coola.hashing.registry import HasherRegistry
 from coola.hashing.repr import ReprHasher
 from coola.hashing.sequence import SequenceHasher
@@ -24,6 +27,7 @@ def hash_object(
     data: object,
     registry: HasherRegistry | None = None,
     length: int = 64,
+    ignore_unhashable: bool = False,
 ) -> str:
     """Compute a hash of a nested data structure.
 
@@ -35,9 +39,20 @@ def hash_object(
         length: The desired length of the returned hex string. Must be
             an even number between 2 and 128 inclusive. Defaults to
             ``64``.
+        ignore_unhashable: If ``True``, objects for which no hasher is
+            registered (including nested objects found while hashing
+            sequences or mappings) are replaced by a deterministic
+            placeholder hash instead of raising an error. Defaults to
+            ``False``, which raises a ``KeyError`` when an unhashable
+            object is encountered.
 
     Returns:
         A string representing the hash of the input data.
+
+    Raises:
+        KeyError: If ``data`` (or a nested object within it) has a
+            type for which no hasher is registered and
+            ``ignore_unhashable`` is ``False``.
 
     Example:
         ```pycon
@@ -49,7 +64,7 @@ def hash_object(
     """
     if registry is None:
         registry = get_default_registry()
-    return registry.hash(data, length=length)
+    return registry.hash(data, length=length, ignore_unhashable=ignore_unhashable)
 
 
 def register_hashers(
@@ -135,6 +150,7 @@ def _register_default_hashers(registry: HasherRegistry) -> None:
         {
             # Strings should not be iterated character by character
             str: string_hasher,
+            bytes: BytesHasher(),
             # Numeric types - no recursion needed
             int: repr_hasher,
             float: repr_hasher,
@@ -150,5 +166,9 @@ def _register_default_hashers(registry: HasherRegistry) -> None:
             # Date types
             date: datetime_hasher,
             datetime: datetime_hasher,
+            # Path
+            Path: PathHasher(),
+            # None
+            type(None): repr_hasher,
         }
     )

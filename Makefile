@@ -63,14 +63,14 @@ publish-doc-latest :
 .PHONY : setup-venv
 setup-venv :
 	$(MAKE) update-uv
-	uv venv --python 3.13 --clear
+	uv venv --python 3.14 --clear
 	$(MAKE) install-invoke
 	.venv/bin/inv create-venv
 	.venv/bin/inv install --docs-deps
 
 .PHONY : install-invoke
 install-invoke :
-	uv pip install "invoke>=2.2.0"
+	uv pip install "invoke>=3.0"
 
 .PHONY : update-uv
 update-uv :

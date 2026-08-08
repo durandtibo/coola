@@ -95,6 +95,19 @@ def test_type_registry_get_missing_key_return_none() -> None:
     assert registry.get(int) is None
 
 
+def test_type_registry_get_missing_key_return_custom_default() -> None:
+    """Test that getting a missing key returns the given default
+    value."""
+    registry = TypeRegistry[str]()
+    assert registry.get(int, default="missing") == "missing"
+
+
+def test_type_registry_get_existing_key_ignores_default() -> None:
+    """Test that getting an existing key ignores the default value."""
+    registry = TypeRegistry[str]({int: "integer"})
+    assert registry.get(int, default="missing") == "integer"
+
+
 def test_type_registry_has_existing_key() -> None:
     """Test checking existence of an existing key."""
     registry = TypeRegistry[str]({int: "integer", float: "float"})
