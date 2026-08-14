@@ -50,4 +50,25 @@ class DatetimeHasher(BaseHasher[date]):
         length: int = 64,
         ignore_unhashable: bool = False,  # noqa: ARG002
     ) -> str:
+        r"""Compute a deterministic hash of a date/datetime.
+
+        Args:
+            data: The date or datetime to hash.
+            registry: The hasher registry. Unused by this hasher since
+                the ISO string is hashed directly with no need to
+                dispatch to another hasher for nested data; accepted
+                only to satisfy the common ``BaseHasher`` interface.
+            length: The desired length of the returned hex string. See
+                ``hash_string`` for constraints. Defaults to 64.
+            ignore_unhashable: Unused by this hasher; accepted only to
+                satisfy the common ``BaseHasher`` interface.
+
+        Returns:
+            A lowercase hexadecimal string of exactly ``length``
+            characters.
+
+        Raises:
+            ValueError: If ``length`` is not an even number between 2
+                and 128.
+        """
         return hash_string(data.isoformat(), length=length)

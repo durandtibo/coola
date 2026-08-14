@@ -18,7 +18,7 @@ class DefaultSummarizer(BaseSummarizer[object]):
     Args:
         max_characters: The maximum number of characters to
             show. If a negative value is provided, all the characters
-            are shown.
+            are shown. Defaults to ``-1``.
 
     Example:
         ```pycon

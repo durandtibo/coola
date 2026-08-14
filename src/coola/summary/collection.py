@@ -26,10 +26,6 @@ class BaseCollectionSummarizer(BaseSummarizer[T]):
             output. This affects the visual structure of nested summaries.
             Defaults to 2.
 
-    Attributes:
-        _max_items: Stores the maximum number of items to display.
-        _num_spaces: Stores the number of spaces for indentation.
-
     Example:
         ```pycon
         >>> from coola.summary import SummarizerRegistry, MappingSummarizer, DefaultSummarizer

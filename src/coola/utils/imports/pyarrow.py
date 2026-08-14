@@ -84,6 +84,18 @@ def pyarrow_available(fn: F) -> F:
 
 
 def raise_pyarrow_missing_error() -> NoReturn:
-    r"""Raise a RuntimeError to indicate the ``pyarrow`` package is
-    missing."""
+    r"""Raise a ``RuntimeError`` to indicate the ``pyarrow`` package is
+    missing.
+
+    Raises:
+        RuntimeError: Always, with a message indicating that the
+            ``pyarrow`` package is not installed.
+
+    Example:
+        ```pycon
+        >>> from coola.utils.imports import raise_pyarrow_missing_error
+        >>> raise_pyarrow_missing_error()  # doctest: +SKIP
+
+        ```
+    """
     raise_package_missing_error("pyarrow", "pyarrow")

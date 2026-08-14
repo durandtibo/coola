@@ -161,7 +161,7 @@ class TypeRegistry(Generic[T]):
         return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(snapshot))}\n)"
 
     def clear(self) -> None:
-        """Remove all entries from the registry.
+        r"""Remove all entries from the registry.
 
         This method empties the registry, leaving it in the same state as a
         newly created empty registry. This operation cannot be undone.
@@ -181,7 +181,7 @@ class TypeRegistry(Generic[T]):
             False
 
             ```
-        """
+        r"""
         with self._lock:
             self._state.clear()
             self._cache.clear()
@@ -213,7 +213,7 @@ class TypeRegistry(Generic[T]):
             False
 
             ```
-        """
+        r"""
         if type(other) is not type(self):
             return False
 
@@ -223,7 +223,7 @@ class TypeRegistry(Generic[T]):
             return objects_are_equal(self._state, other._state, equal_nan=equal_nan)
 
     def get(self, dtype: type, default: T | None = None) -> T | None:
-        """Retrieve the value associated with a type.
+        r"""Retrieve the value associated with a type.
 
         This method performs a direct lookup in the registry and returns the
         corresponding value. If the type doesn't exist, ``default`` is
@@ -252,12 +252,12 @@ class TypeRegistry(Generic[T]):
             -1
 
             ```
-        """
+        r"""
         with self._lock:
             return self._state.get(dtype, default)
 
     def has(self, dtype: type) -> bool:
-        """Check whether a type is registered in the registry.
+        r"""Check whether a type is registered in the registry.
 
         This method provides a safe way to test for type existence without
         risking a KeyError exception. It only checks for direct type matches;
@@ -280,12 +280,12 @@ class TypeRegistry(Generic[T]):
             False
 
             ```
-        """
+        r"""
         with self._lock:
             return dtype in self._state
 
     def register(self, dtype: type, value: T, exist_ok: bool = False) -> None:
-        """Register a new type-value pair in the registry.
+        r"""Register a new type-value pair in the registry.
 
         By default, this method raises an error if you try to register a type
         that already exists. This prevents accidental overwriting of values.
@@ -333,7 +333,7 @@ class TypeRegistry(Generic[T]):
             100
 
             ```
-        """
+        r"""
         with self._lock:
             if dtype in self._state and not exist_ok:
                 msg = (
@@ -346,7 +346,7 @@ class TypeRegistry(Generic[T]):
             self._cache.clear()
 
     def register_many(self, mapping: Mapping[type, T], exist_ok: bool = False) -> None:
-        """Register multiple type-value pairs in a single operation.
+        r"""Register multiple type-value pairs in a single operation.
 
         This is a convenience method for bulk registration. It iterates through
         the provided mapping and registers each type-value pair. All registrations
@@ -395,7 +395,7 @@ class TypeRegistry(Generic[T]):
             4
 
             ```
-        """
+        r"""
         with self._lock:
             # Check all keys first if exist_ok is False
             if not exist_ok and (duplicates := set(mapping) & set(self._state)):
@@ -409,7 +409,7 @@ class TypeRegistry(Generic[T]):
             self._cache.clear()
 
     def resolve(self, dtype: type) -> T:
-        """Resolve a type to its associated value using MRO lookup.
+        r"""Resolve a type to its associated value using MRO lookup.
 
         This method finds the most appropriate value for a given type by
         walking the Method Resolution Order (MRO). It first checks for a
@@ -472,14 +472,14 @@ class TypeRegistry(Generic[T]):
             'dog'
 
             ```
-        """
+        r"""
         with self._lock:
             if dtype not in self._cache:
                 self._cache[dtype] = self._resolve_uncached(dtype)
             return self._cache[dtype]
 
     def unregister(self, dtype: type) -> T:
-        """Remove a type-value pair from the registry and return the
+        r"""Remove a type-value pair from the registry and return the
         value.
 
         This method removes the specified type from the registry and returns
@@ -512,7 +512,7 @@ class TypeRegistry(Generic[T]):
             False
 
             ```
-        """
+        r"""
         with self._lock:
             if dtype not in self._state:
                 msg = f"Type {dtype} is not registered"
@@ -522,7 +522,7 @@ class TypeRegistry(Generic[T]):
             return self._state.pop(dtype)
 
     def items(self) -> ItemsView[type, T]:
-        """Return key-value pairs.
+        r"""Return key-value pairs.
 
         Returns:
             The key-value pairs.
@@ -535,12 +535,12 @@ class TypeRegistry(Generic[T]):
             dict_items([(<class 'int'>, 'I am an integer'), (<class 'float'>, 'I am a float')])
 
             ```
-        """
+        r"""
         with self._lock:
             return self._state.copy().items()
 
     def keys(self) -> KeysView[type]:
-        """Return registered keys.
+        r"""Return registered keys.
 
         Returns:
             The registered keys.
@@ -553,12 +553,12 @@ class TypeRegistry(Generic[T]):
             dict_keys([<class 'int'>, <class 'float'>])
 
             ```
-        """
+        r"""
         with self._lock:
             return self._state.copy().keys()
 
     def values(self) -> ValuesView[T]:
-        """Return registered values.
+        r"""Return registered values.
 
         Returns:
             The registered values.
@@ -571,12 +571,12 @@ class TypeRegistry(Generic[T]):
             dict_values(['I am an integer', 'I am a float'])
 
             ```
-        """
+        r"""
         with self._lock:
             return self._state.copy().values()
 
     def _resolve_uncached(self, dtype: type) -> T:
-        """Find value using MRO lookup (uncached version).
+        r"""Find value using MRO lookup (uncached version).
 
         This is the internal implementation that performs the actual type
         resolution. It first checks for a direct match, then walks the MRO
@@ -592,7 +592,7 @@ class TypeRegistry(Generic[T]):
 
         Raises:
             KeyError: If no matching type is found in the registry.
-        """
+        r"""
         # Direct lookup first (most common case, O(1))
         if dtype in self._state:
             return self._state[dtype]

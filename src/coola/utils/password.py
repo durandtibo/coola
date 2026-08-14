@@ -35,7 +35,8 @@ def get_password(username: str | None = None, *, confirm: bool = False) -> str:
 
     Raises:
         RuntimeError: If not running in an interactive terminal.
-        KeyboardInterrupt, EOFError: If input is interrupted.
+        KeyboardInterrupt: If input is interrupted.
+        EOFError: If input is interrupted (e.g. end of stream reached).
         ValueError: If password validation fails.
 
     Note:

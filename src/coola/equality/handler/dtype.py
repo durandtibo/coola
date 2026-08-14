@@ -40,7 +40,8 @@ class SameDTypeHandler(HandlerEqualityMixin, BaseEqualityHandler):
     data types, otherwise it passes the inputs to the next handler.
     The objects must have a ``dtype`` attribute (e.g. ``object.dtype``)
     which returns the data type of the object. This handler works on
-    ``numpy.ndarray``s and ``torch.Tensor``s objects.
+    ``jax.numpy.ndarray``s, ``numpy.ndarray``s and ``torch.Tensor``s
+    objects.
 
     Example:
         ```pycon

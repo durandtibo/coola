@@ -79,6 +79,18 @@ def torch_available(fn: F) -> F:
 
 
 def raise_torch_missing_error() -> NoReturn:
-    r"""Raise a RuntimeError to indicate the ``torch`` package is
-    missing."""
+    r"""Raise a ``RuntimeError`` to indicate the ``torch`` package is
+    missing.
+
+    Raises:
+        RuntimeError: Always, with a message indicating that the
+            ``torch`` package is not installed.
+
+    Example:
+        ```pycon
+        >>> from coola.utils.imports import raise_torch_missing_error
+        >>> raise_torch_missing_error()  # doctest: +SKIP
+
+        ```
+    """
     raise_package_missing_error("torch", "torch")

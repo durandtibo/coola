@@ -94,6 +94,18 @@ def number_equal(number1: float, number2: float, config: EqualityConfig) -> bool
     Returns:
         ``True`` if the two numbers are equal within a tolerance,
             otherwise ``False``.
+
+    Example:
+        ```pycon
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.handler.scalar import number_equal
+        >>> config = EqualityConfig()
+        >>> number_equal(42.0, 42.0, config)
+        True
+        >>> number_equal(42.0, 42.1, config)
+        False
+
+        ```
     """
     if config.atol > 0.0 or config.rtol > 0.0:
         return math.isclose(number1, number2, abs_tol=config.atol, rel_tol=config.rtol)

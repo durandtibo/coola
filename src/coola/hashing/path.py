@@ -47,6 +47,27 @@ class PathHasher(BaseHasher[Path]):
         length: int = 64,
         ignore_unhashable: bool = False,  # noqa: ARG002
     ) -> str:
+        r"""Compute a deterministic hash of a path.
+
+        Args:
+            data: The path to hash.
+            registry: The hasher registry. Unused by this hasher since
+                the path is hashed directly with no need to dispatch to
+                another hasher for nested data; accepted only to
+                satisfy the common ``BaseHasher`` interface.
+            length: The desired length of the returned hex string. See
+                ``hash_path`` for constraints. Defaults to 64.
+            ignore_unhashable: Unused by this hasher; accepted only to
+                satisfy the common ``BaseHasher`` interface.
+
+        Returns:
+            A lowercase hexadecimal string of exactly ``length``
+            characters.
+
+        Raises:
+            ValueError: If ``length`` is not an even number between 2
+                and 128.
+        """
         return hash_path(data, length=length)
 
 
@@ -65,10 +86,16 @@ def hash_path(path: Path, length: int = 64) -> str:
 
     Args:
         path: The path to hash.
-        length: Desired hash string length.
+        length: The desired length of the returned hex string. Must be
+            an even number between 2 and 128 inclusive. Defaults to 64.
 
     Returns:
-        A stable hash string, ``length`` characters long.
+        A lowercase hexadecimal string of exactly ``length``
+        characters.
+
+    Raises:
+        ValueError: If ``length`` is not an even number between 2 and
+            128.
     """
     try:
         resolved = path.resolve()
