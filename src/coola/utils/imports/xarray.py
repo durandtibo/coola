@@ -79,6 +79,18 @@ def xarray_available(fn: F) -> F:
 
 
 def raise_xarray_missing_error() -> NoReturn:
-    r"""Raise a RuntimeError to indicate the ``xarray`` package is
-    missing."""
+    r"""Raise a ``RuntimeError`` to indicate the ``xarray`` package is
+    missing.
+
+    Raises:
+        RuntimeError: Always, with a message indicating that the
+            ``xarray`` package is not installed.
+
+    Example:
+        ```pycon
+        >>> from coola.utils.imports import raise_xarray_missing_error
+        >>> raise_xarray_missing_error()  # doctest: +SKIP
+
+        ```
+    """
     raise_package_missing_error("xarray", "xarray")

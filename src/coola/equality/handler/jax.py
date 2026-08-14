@@ -71,6 +71,19 @@ def array_equal(array1: jnp.ndarray, array2: jnp.ndarray, config: EqualityConfig
     Returns:
         ``True`` if the two arrays are equal within a tolerance,
             otherwise ``False``.
+
+    Example:
+        ```pycon
+        >>> import jax.numpy as jnp
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.handler.jax import array_equal
+        >>> config = EqualityConfig()
+        >>> array_equal(jnp.ones((2, 3)), jnp.ones((2, 3)), config)
+        True
+        >>> array_equal(jnp.ones((2, 3)), jnp.zeros((2, 3)), config)
+        False
+
+        ```
     """
     if config.atol > 0 or config.rtol > 0:
         return jnp.allclose(

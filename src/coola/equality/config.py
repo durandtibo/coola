@@ -86,7 +86,7 @@ class EqualityConfig:
 
     @property
     def depth(self) -> int:
-        r"""Get the current depth counter."""
+        r"""The current recursion depth counter."""
         return self._current_depth
 
     def increment_depth(self) -> None:

@@ -44,6 +44,9 @@ class PolarsDataFrameEqualityTester(BaseEqualityTester[pl.DataFrame]):
     2. SameTypeHandler: Verify both are polars DataFrames
     3. PolarsDataFrameEqualHandler: Use Polars' internal equality testing
 
+    The tester respects config.equal_nan for NaN comparisons and config.atol/rtol
+    for floating-point tolerance.
+
     Example:
         Basic DataFrame comparison:
 
@@ -97,6 +100,9 @@ class PolarsLazyFrameEqualityTester(BaseEqualityTester[pl.LazyFrame]):
     1. SameObjectHandler: Check for object identity
     2. SameTypeHandler: Verify both are polars LazyFrames
     3. PolarsLazyFrameEqualHandler: Use Polars' internal equality testing
+
+    The tester respects config.equal_nan for NaN comparisons and config.atol/rtol
+    for floating-point tolerance.
 
     Note:
         LazyFrames represent query plans and are collected (materialized) for
@@ -155,6 +161,9 @@ class PolarsSeriesEqualityTester(BaseEqualityTester[pl.Series]):
     1. SameObjectHandler: Check for object identity
     2. SameTypeHandler: Verify both are polars Series
     3. PolarsSeriesEqualHandler: Use Polars' internal equality testing
+
+    The tester respects config.equal_nan for NaN comparisons and config.atol/rtol
+    for floating-point tolerance.
 
     Example:
         Basic Series comparison:

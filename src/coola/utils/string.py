@@ -9,7 +9,7 @@ import unicodedata
 
 
 def char_diff_summary(before: str, after: str) -> str:
-    """Compute a human-readable character count difference string.
+    r"""Compute a human-readable character count difference string.
 
     Returns a formatted string describing the character counts before
     and after a text transformation, including the signed difference and
@@ -90,7 +90,7 @@ def remove_empty_lines(text: str) -> str:
 
 
 def slugify(text: str) -> str:
-    """Convert arbitrary text into a URL/filesystem-safe slug.
+    r"""Convert arbitrary text into a URL/filesystem-safe slug.
 
     Lowercases the text, strips accents, replaces any run of characters
     that aren't alphanumerics with a single hyphen, and trims leading or

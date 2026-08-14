@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 class BloomFilter:
-    """Fixed-memory approximate set-membership structure.
+    r"""Fixed-memory approximate set-membership structure.
 
     Used here for approximate exact-duplicate detection over
     document content: guarantees no false negatives (a document that
@@ -26,7 +26,7 @@ class BloomFilter:
     """
 
     def __init__(self, expected_items: int = 1_000_000, fp_rate: float = 0.01) -> None:
-        """Initialize the filter's bit array and hash count.
+        r"""Initialize the filter's bit array and hash count.
 
         Args:
             expected_items: Approximate number of unique items the
@@ -55,14 +55,14 @@ class BloomFilter:
 
     @staticmethod
     def _optimal_size(n: int, p: float) -> int:
-        """Compute the bit-array size minimizing memory for the given
+        r"""Compute the bit-array size minimizing memory for the given
         expected item count ``n`` and target false-positive rate
         ``p``."""
         return max(8, int(-(n * math.log(p)) / (math.log(2) ** 2)))
 
     @staticmethod
     def _optimal_hash_count(m: int, n: int) -> int:
-        """Compute the number of hash functions minimizing the false-
+        r"""Compute the number of hash functions minimizing the false-
         positive rate for a bit array of size ``m`` and expected item
         count ``n``."""
         return max(1, int((m / max(n, 1)) * math.log(2)))
@@ -93,7 +93,7 @@ class BloomFilter:
             yield (h1 + i * h2) % self.size
 
     def add_and_check(self, item: bytes) -> bool:
-        """Add an item to the filter and report whether it was probably
+        r"""Add an item to the filter and report whether it was probably
         already present.
 
         Args:

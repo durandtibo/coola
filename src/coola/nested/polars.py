@@ -21,15 +21,34 @@ else:  # pragma: no cover
 
 
 def is_nested_struct(dtype: pl.DataType) -> bool:
-    """Return True if dtype is a List or Array whose inner type is a
-    Struct."""
+    r"""Return ``True`` if ``dtype`` is a ``List`` or ``Array`` whose
+    inner type is a ``Struct``.
+
+    Args:
+        dtype: The polars dtype to inspect.
+
+    Returns:
+        ``True`` if ``dtype`` is a ``List``/``Array`` of ``Struct``,
+            otherwise ``False``.
+
+    Example:
+        ```pycon
+        >>> import polars as pl
+        >>> from coola.nested.polars import is_nested_struct
+        >>> is_nested_struct(pl.List(pl.Struct({"x": pl.Int64})))
+        True
+        >>> is_nested_struct(pl.List(pl.Int64))
+        False
+
+        ```
+    """
     if isinstance(dtype, (pl.List, pl.Array)):
         return isinstance(dtype.inner, pl.Struct)
     return False
 
 
 def unnest_with_separator(frame: pl.DataFrame, columns: list[str], separator: str) -> pl.DataFrame:
-    """Unnest struct columns with a separator prefix, compatible with
+    r"""Unnest struct columns with a separator prefix, compatible with
     polars>=1.0.0.
 
     On polars>=1.35.0, delegates to the native ``unnest(separator=...)`` parameter.
@@ -58,7 +77,7 @@ def unnest_with_separator(frame: pl.DataFrame, columns: list[str], separator: st
 
 
 def expand_list_columns(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
-    """Expand list and array columns into one column per index position.
+    r"""Expand list and array columns into one column per index position.
 
     For each ``List`` or ``Array`` column, creates new columns named
     ``<col><separator><index>`` for each position up to the maximum list
@@ -93,7 +112,7 @@ def expand_list_columns(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
 
 
 def unnest_one_level(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
-    """Unnest all top-level struct columns in a DataFrame by one level.
+    r"""Unnest all top-level struct columns in a DataFrame by one level.
 
     Columns that are lists or arrays of structs are exploded first to expose
     the inner structs, which are then unnested.

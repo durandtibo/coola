@@ -21,12 +21,9 @@ class MappingSummarizer(BaseCollectionSummarizer[Mapping[Any, Any]]):
     This class formats mapping types (dict, OrderedDict, etc.) into readable
     summaries that display the type, length, and key-value pairs with proper
     indentation. It respects the max_items limit and handles nested structures
-    through the registry system.
-    This class creates a multi-line summary showing the mapping's type,
-    length, and contents. It handles depth limiting to prevent excessively
-    deep nested summaries and truncates the output when the number of items
-    exceeds max_items.
-
+    through the registry system. It handles depth limiting to prevent
+    excessively deep nested summaries and truncates the output when the
+    number of items exceeds max_items.
 
     Args:
         max_items: The maximum number of key-value pairs to display.

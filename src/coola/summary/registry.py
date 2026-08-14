@@ -20,23 +20,22 @@ if TYPE_CHECKING:
 
 
 class SummarizerRegistry:
-    """Registry that manages and dispatches summarizers based on data
+    r"""Registry that manages and dispatches summarizers based on data
     type.
 
-    This registry maintains a mapping from Python types to summarizer instances
-    and uses the Method Resolution Order (MRO) for type lookup. When summarizing
-    data, it automatically selects the most specific registered summarizer for
-    the data's type, falling back to parent types or a default summarizer if needed.
+    This registry maintains a mapping from Python types to summarizer
+    instances and uses the Method Resolution Order (MRO) for type
+    lookup. When summarizing data, it automatically selects the most
+    specific registered summarizer for the data's type, falling back to
+    parent types or a default summarizer if needed.
 
-    The registry includes an LRU cache for type lookups to optimize performance
-    in applications that repeatedly summarize similar data structures.
+    Type lookups are cached internally for performance. The cache is
+    cleared automatically whenever the registry is modified (e.g. via
+    ``register`` or ``register_many``).
 
     Args:
         initial_state: Optional initial mapping of types to summarizers.
             If provided, the state is copied to prevent external mutations.
-
-    Attributes:
-        _state: Internal mapping of registered types to summarizers
 
     Example:
         Basic usage with a sequence summarizer:
@@ -105,18 +104,20 @@ class SummarizerRegistry:
     ) -> None:
         """Register a summarizer for a given data type.
 
-        This method associates a summarizer instance with a specific Python type.
-        When data of this type is summarized, the registered summarizer will be used.
-        The cache is automatically cleared after registration to ensure consistency.
+        The internal type-lookup cache is automatically cleared after
+        registration to ensure consistency.
 
         Args:
-            data_type: The Python type to register (e.g., list, dict, custom classes)
-            summarizer: The summarizer instance that handles this type
-            exist_ok: If False (default), raises an error if the type is already
-                registered. If True, overwrites the existing registration silently.
+            data_type: The Python type to register (e.g., ``list``, ``dict``,
+                custom classes).
+            summarizer: The summarizer instance that handles this type.
+            exist_ok: If ``False`` (default), raises an error if the type is
+                already registered. If ``True``, overwrites the existing
+                registration silently.
 
         Raises:
-            RuntimeError: If the type is already registered and exist_ok is False
+            RuntimeError: If the type is already registered and ``exist_ok``
+                is ``False``.
 
         Example:
             ```pycon
@@ -137,16 +138,18 @@ class SummarizerRegistry:
     ) -> None:
         """Register multiple summarizers at once.
 
-        This is a convenience method for bulk registration that internally calls
-        register() for each type-summarizer pair.
+        This is a convenience method for bulk registration that internally
+        calls ``register`` for each type-summarizer pair.
 
         Args:
-            mapping: Dictionary mapping Python types to summarizer instances
-            exist_ok: If False (default), raises an error if any type is already
-                registered. If True, overwrites existing registrations silently.
+            mapping: Dictionary mapping Python types to summarizer instances.
+            exist_ok: If ``False`` (default), raises an error if any type is
+                already registered. If ``True``, overwrites existing
+                registrations silently.
 
         Raises:
-            RuntimeError: If any type is already registered and exist_ok is False
+            RuntimeError: If any type is already registered and ``exist_ok``
+                is ``False``.
 
         Example:
             ```pycon
@@ -174,16 +177,16 @@ class SummarizerRegistry:
         """Check if a summarizer is explicitly registered for the given
         type.
 
-        Note that this only checks for direct registration. Even if this returns
-        False, find_summarizer() may still return a summarizer via MRO lookup
-        or the default summarizer.
+        Note that this only checks for direct registration. Even if this
+        returns ``False``, ``find_summarizer`` may still return a
+        summarizer via MRO lookup or the default summarizer.
 
         Args:
-            data_type: The type to check
+            data_type: The type to check.
 
         Returns:
-            True if a summarizer is explicitly registered for this type,
-            False otherwise
+            ``True`` if a summarizer is explicitly registered for this type,
+                ``False`` otherwise.
 
         Example:
             ```pycon
@@ -202,18 +205,16 @@ class SummarizerRegistry:
         """Find the appropriate summarizer for a given type.
 
         Uses the Method Resolution Order (MRO) to find the most specific
-        registered summarizer. For example, if you register a summarizer
-        for Sequence but not for list, lists will use the Sequence summarizer.
-
-        Results are cached using an LRU cache (256 entries) for performance,
-        as summarizer lookup is a hot path in recursive summarizations.
+        registered summarizer. For example, if a summarizer is
+        registered for ``Sequence`` but not for ``list``, lists will use
+        the ``Sequence`` summarizer.
 
         Args:
-            data_type: The Python type to find a summarizer for
+            data_type: The Python type to find a summarizer for.
 
         Returns:
-            The most specific registered summarizer for this type, a parent
-            type's summarizer via MRO, or the default summarizer
+            The most specific registered summarizer for this type, resolved
+            via MRO, or the default summarizer if no match is found.
 
         Example:
             ```pycon

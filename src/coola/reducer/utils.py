@@ -19,7 +19,7 @@ def auto_reducer() -> BaseReducer[Sequence[float]]:
     The "best" reducer is found by using the following rules:
         - If ``torch`` is available, use ``TorchReducer``
         - If ``numpy`` is available, use ``NumpyReducer``
-        - Otherwise, use ``BasicReducer``
+        - Otherwise, use ``NativeReducer``
 
     Returns:
         The "best" reducer.

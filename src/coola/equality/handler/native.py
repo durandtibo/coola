@@ -165,6 +165,17 @@ class SameAttributeHandler(BaseEqualityHandler):
         return self._name
 
     def equal(self, other: object) -> bool:
+        r"""Indicate if two handlers are equal.
+
+        Two handlers are equal if they are of the same type, target the
+        same attribute ``name``, and have equal ``next_handler`` chains.
+
+        Args:
+            other: The other object to compare with.
+
+        Returns:
+            ``True`` if the handlers are equal, otherwise ``False``.
+        """
         if type(other) is not type(self):
             return False
         if self.name != other.name:
