@@ -19,6 +19,9 @@ T = TypeVar("T")
 class HandlerEqualityTester(BaseEqualityTester[T]):
     r"""Implement an equality tester that uses an equality handler.
 
+    Args:
+        handler: The head of the handler chain used to compare objects.
+
     Example:
         ```pycon
         >>> from coola.equality.config import EqualityConfig

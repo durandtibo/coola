@@ -51,6 +51,30 @@ class MappingHasher(BaseHasher[Mapping[Any, Any]]):
         length: int = 64,
         ignore_unhashable: bool = False,
     ) -> str:
+        r"""Compute a deterministic hash of a mapping.
+
+        Args:
+            data: The mapping to hash.
+            registry: The hasher registry used to hash each key and
+                value, and to recurse into any nested data structures.
+            length: The desired length of the returned hex string. Must
+                be an even number between 2 and 128 inclusive. Defaults
+                to 64.
+            ignore_unhashable: If ``True``, keys/values for which no
+                hasher is registered are replaced by a deterministic
+                placeholder hash instead of raising an error.
+
+        Returns:
+            A lowercase hexadecimal string of exactly ``length``
+            characters.
+
+        Raises:
+            KeyError: If a key or value has a type for which no hasher
+                is registered in ``registry`` and ``ignore_unhashable``
+                is ``False``.
+            ValueError: If ``length`` is not an even number between 2
+                and 128.
+        """
         parts = []
         for key in sorted(data.keys()):
             key_hash = registry.hash(key, length=length, ignore_unhashable=ignore_unhashable)

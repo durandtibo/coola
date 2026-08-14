@@ -116,6 +116,23 @@ def frame_equal(df1: pd.DataFrame, df2: pd.DataFrame, config: EqualityConfig) ->
 
     Returns:
         ``True`` if the two DataFrames are equal, otherwise ``False``.
+
+    Example:
+        ```pycon
+        >>> import pandas
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.handler.pandas import frame_equal
+        >>> config = EqualityConfig()
+        >>> frame_equal(
+        ...     pandas.DataFrame({"col": [1, 2, 3]}), pandas.DataFrame({"col": [1, 2, 3]}), config
+        ... )
+        True
+        >>> frame_equal(
+        ...     pandas.DataFrame({"col": [1, 2, 3]}), pandas.DataFrame({"col": [1, 2, 4]}), config
+        ... )
+        False
+
+        ```
     """
     if not config.equal_nan and df1.isna().any().any():
         return False
@@ -143,6 +160,19 @@ def series_equal(series1: pd.Series, series2: pd.Series, config: EqualityConfig)
 
     Returns:
         ``True`` if the two series are equal, otherwise ``False``.
+
+    Example:
+        ```pycon
+        >>> import pandas
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.handler.pandas import series_equal
+        >>> config = EqualityConfig()
+        >>> series_equal(pandas.Series([1, 2, 3]), pandas.Series([1, 2, 3]), config)
+        True
+        >>> series_equal(pandas.Series([1, 2, 3]), pandas.Series([1, 2, 4]), config)
+        False
+
+        ```
     """
     if not config.equal_nan and series1.isna().any():
         return False

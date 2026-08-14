@@ -183,6 +183,19 @@ def frame_equal(df1: pl.DataFrame, df2: pl.DataFrame, config: EqualityConfig) ->
 
     Returns:
         ``True`` if the two DataFrames are equal, otherwise ``False``.
+
+    Example:
+        ```pycon
+        >>> import polars as pl
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.handler.polars import frame_equal
+        >>> config = EqualityConfig()
+        >>> frame_equal(pl.DataFrame({"col": [1, 2, 3]}), pl.DataFrame({"col": [1, 2, 3]}), config)
+        True
+        >>> frame_equal(pl.DataFrame({"col": [1, 2, 3]}), pl.DataFrame({"col": [1, 2, 4]}), config)
+        False
+
+        ```
     """
     if not config.equal_nan and has_nan(df1):
         return False
@@ -203,6 +216,19 @@ def series_equal(series1: pl.Series, series2: pl.Series, config: EqualityConfig)
 
     Returns:
         ``True`` if the two series are equal, otherwise ``False``.
+
+    Example:
+        ```pycon
+        >>> import polars as pl
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.handler.polars import series_equal
+        >>> config = EqualityConfig()
+        >>> series_equal(pl.Series([1, 2, 3]), pl.Series([1, 2, 3]), config)
+        True
+        >>> series_equal(pl.Series([1, 2, 3]), pl.Series([1, 2, 4]), config)
+        False
+
+        ```
     """
     if not config.equal_nan and has_nan(series1):
         return False

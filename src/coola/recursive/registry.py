@@ -20,23 +20,22 @@ if TYPE_CHECKING:
 
 
 class TransformerRegistry:
-    """Registry that manages and dispatches transformers based on data
+    r"""Registry that manages and dispatches transformers based on data
     type.
 
-    This registry maintains a mapping from Python types to transformer instances
-    and uses the Method Resolution Order (MRO) for type lookup. When transforming
-    data, it automatically selects the most specific registered transformer for
-    the data's type, falling back to parent types or a default transformer if needed.
+    This registry maintains a mapping from Python types to transformer
+    instances and uses the Method Resolution Order (MRO) for type
+    lookup. When transforming data, it automatically selects the most
+    specific registered transformer for the data's type, falling back
+    to parent types or a default transformer if needed.
 
-    The registry includes an LRU cache for type lookups to optimize performance
-    in applications that repeatedly transform similar data structures.
+    Type lookups are cached internally for performance. The cache is
+    cleared automatically whenever the registry is modified (e.g. via
+    ``register`` or ``register_many``).
 
     Args:
         initial_state: Optional initial mapping of types to transformers.
             If provided, the state is copied to prevent external mutations.
-
-    Attributes:
-        _state: Internal mapping of registered types to transformers
 
     Example:
         Basic usage with a sequence transformer:
@@ -100,18 +99,20 @@ class TransformerRegistry:
     ) -> None:
         """Register a transformer for a given data type.
 
-        This method associates a transformer instance with a specific Python type.
-        When data of this type is transformed, the registered transformer will be used.
-        The cache is automatically cleared after registration to ensure consistency.
+        The internal type-lookup cache is automatically cleared after
+        registration to ensure consistency.
 
         Args:
-            data_type: The Python type to register (e.g., list, dict, custom classes)
-            transformer: The transformer instance that handles this type
-            exist_ok: If False (default), raises an error if the type is already
-                registered. If True, overwrites the existing registration silently.
+            data_type: The Python type to register (e.g., ``list``, ``dict``,
+                custom classes).
+            transformer: The transformer instance that handles this type.
+            exist_ok: If ``False`` (default), raises an error if the type is
+                already registered. If ``True``, overwrites the existing
+                registration silently.
 
         Raises:
-            RuntimeError: If the type is already registered and exist_ok is False
+            RuntimeError: If the type is already registered and ``exist_ok``
+                is ``False``.
 
         Example:
             ```pycon
@@ -132,16 +133,18 @@ class TransformerRegistry:
     ) -> None:
         """Register multiple transformers at once.
 
-        This is a convenience method for bulk registration that internally calls
-        register() for each type-transformer pair.
+        This is a convenience method for bulk registration that internally
+        calls ``register`` for each type-transformer pair.
 
         Args:
-            mapping: Dictionary mapping Python types to transformer instances
-            exist_ok: If False (default), raises an error if any type is already
-                registered. If True, overwrites existing registrations silently.
+            mapping: Dictionary mapping Python types to transformer instances.
+            exist_ok: If ``False`` (default), raises an error if any type is
+                already registered. If ``True``, overwrites existing
+                registrations silently.
 
         Raises:
-            RuntimeError: If any type is already registered and exist_ok is False
+            RuntimeError: If any type is already registered and ``exist_ok``
+                is ``False``.
 
         Example:
             ```pycon
@@ -169,16 +172,16 @@ class TransformerRegistry:
         """Check if a transformer is explicitly registered for the given
         type.
 
-        Note that this only checks for direct registration. Even if this returns
-        False, find_transformer() may still return a transformer via MRO lookup
-        or the default transformer.
+        Note that this only checks for direct registration. Even if this
+        returns ``False``, ``find_transformer`` may still return a
+        transformer via MRO lookup or the default transformer.
 
         Args:
-            data_type: The type to check
+            data_type: The type to check.
 
         Returns:
-            True if a transformer is explicitly registered for this type,
-            False otherwise
+            ``True`` if a transformer is explicitly registered for this type,
+                ``False`` otherwise.
 
         Example:
             ```pycon
@@ -198,18 +201,16 @@ class TransformerRegistry:
         """Find the appropriate transformer for a given type.
 
         Uses the Method Resolution Order (MRO) to find the most specific
-        registered transformer. For example, if you register a transformer
-        for Sequence but not for list, lists will use the Sequence transformer.
-
-        Results are cached using an LRU cache (256 entries) for performance,
-        as transformer lookup is a hot path in recursive transformations.
+        registered transformer. For example, if a transformer is
+        registered for ``Sequence`` but not for ``list``, lists will use
+        the ``Sequence`` transformer.
 
         Args:
-            data_type: The Python type to find a transformer for
+            data_type: The Python type to find a transformer for.
 
         Returns:
-            The most specific registered transformer for this type, a parent
-            type's transformer via MRO, or the default transformer
+            The most specific registered transformer for this type, resolved
+            via MRO, or the default transformer if no match is found.
 
         Example:
             ```pycon
@@ -231,22 +232,24 @@ class TransformerRegistry:
         structure.
 
         This is the main entry point for transformation. It automatically:
-        1. Determines the data's type
-        2. Finds the appropriate transformer
-        3. Delegates to that transformer's transform method
-        4. The transformer recursively processes nested structures
 
-        The original structure of the data is preserved - only the leaf values
-        are transformed by the provided function.
+        1. Determines the data's type.
+        2. Finds the appropriate transformer via ``find_transformer``.
+        3. Delegates to that transformer's ``transform`` method, which
+           recursively processes any nested structures.
+
+        The original structure of the data is preserved - only the leaf
+        values are transformed by the provided function.
 
         Args:
-            data: The data to transform (can be nested: lists, dicts, tuples, etc.)
+            data: The data to transform. Can be a nested structure such as
+                a ``list``, ``dict``, or ``tuple``.
             func: Function to apply to leaf values. Should accept one argument
                 and return a transformed value.
 
         Returns:
-            Transformed data with the same structure as the input but with
-            leaf values transformed by func
+            The transformed data, with the same structure as the input but
+            with leaf values transformed by ``func``.
 
         Example:
             Converting all numbers to strings in a nested structure:

@@ -91,6 +91,9 @@ def check_recursion_depth(config: EqualityConfig) -> Generator[None, None, None]
     Args:
         config: The equality configuration containing depth settings.
 
+    Yields:
+        ``None``.
+
     Raises:
         RecursionError: if the current depth exceeds max_depth.
 

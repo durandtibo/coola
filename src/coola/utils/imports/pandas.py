@@ -79,6 +79,18 @@ def pandas_available(fn: F) -> F:
 
 
 def raise_pandas_missing_error() -> NoReturn:
-    r"""Raise a RuntimeError to indicate the ``pandas`` package is
-    missing."""
+    r"""Raise a ``RuntimeError`` to indicate the ``pandas`` package is
+    missing.
+
+    Raises:
+        RuntimeError: Always, with a message indicating that the
+            ``pandas`` package is not installed.
+
+    Example:
+        ```pycon
+        >>> from coola.utils.imports import raise_pandas_missing_error
+        >>> raise_pandas_missing_error()  # doctest: +SKIP
+
+        ```
+    """
     raise_package_missing_error("pandas", "pandas")

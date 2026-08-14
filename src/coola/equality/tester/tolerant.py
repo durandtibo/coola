@@ -27,15 +27,15 @@ class TolerantEqualEqualityTester(BaseEqualityTester[object]):
     r"""Implement an equality tester for objects that support both
     ``allclose`` and ``equal`` methods.
 
-        This tester is designed for objects that implement both an
-        ``allclose(other, rtol, atol, equal_nan)`` method for
-        tolerance-based comparison and an ``equal(other, equal_nan)``
-        method for exact comparison. It uses a handler chain that checks:
+    This tester is designed for objects that implement both an
+    ``allclose(other, rtol, atol, equal_nan)`` method for
+    tolerance-based comparison and an ``equal(other, equal_nan)``
+    method for exact comparison. It uses a handler chain that checks:
 
-        1. ``SameObjectHandler``: Check for object identity.
-        2. ``SameTypeHandler``: Verify same type.
-        3. ``TolerantEqualHandler``: Dispatch to ``allclose`` when
-           tolerances are non-zero, otherwise to ``equal``.
+    1. ``SameObjectHandler``: Check for object identity.
+    2. ``SameTypeHandler``: Verify same type.
+    3. ``TolerantEqualHandler``: Dispatch to ``allclose`` when
+       tolerances are non-zero, otherwise to ``equal``.
 
     Example:
         ```pycon

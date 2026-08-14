@@ -15,28 +15,41 @@ if TYPE_CHECKING:
 
 
 def find_root_package_parent(start_path: str | Path) -> Path:
-    """Given a file or directory path, walk upward through directories
-    that contain __init__.py (i.e., are part of a package) and return
-    the parent directory of the outermost (root) package.
-
-    Example:
-        my_project/
-            pkg/
-                __init__.py
-                sub/
-                    __init__.py
-                    module.py
-
-        find_root_package_parent(".../pkg/sub/module.py")
-        -> Path(".../my_project")
+    r"""Given a file or directory path, walk upward through directories
+    that contain ``__init__.py`` (i.e., are part of a package) and
+    return the parent directory of the outermost (root) package.
 
     Args:
-        start_path: Path to a file or directory inside the package.
+        start_path: The path to a file or directory inside the
+            package. Can be any path-like object, i.e. a string or
+            an object implementing the ``os.PathLike`` protocol such
+            as ``pathlib.Path``.
 
     Returns:
-        Absolute Path to the parent directory of the root package.
-        If start_path itself is not part of a package (no __init__.py
-        in its directory), its own directory is returned.
+        The absolute path to the parent directory of the root
+            package. If ``start_path`` itself is not part of a
+            package (no ``__init__.py`` in its directory), its own
+            directory is returned.
+
+    Example:
+        ```pycon
+        >>> from coola.utils.path import find_root_package_parent
+        >>> find_root_package_parent("something")  # doctest: +SKIP
+        PosixPath('.../my_project')
+
+        ```
+
+        Given the following directory layout::
+
+            my_project/
+                pkg/
+                    __init__.py
+                    sub/
+                        __init__.py
+                        module.py
+
+        ``find_root_package_parent(".../pkg/sub/module.py")`` returns
+        ``Path(".../my_project")``.
     """
     path = sanitize_path(start_path)
 

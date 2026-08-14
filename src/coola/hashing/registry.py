@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 
 class HasherRegistry:
-    """Registry that manages and dispatches hashers based on data type.
+    r"""Registry that manages and dispatches hashers based on data type.
 
     This registry maintains a mapping from Python types to hasher instances
     and uses the Method Resolution Order (MRO) for type lookup. When hashing
@@ -46,6 +46,7 @@ class HasherRegistry:
             )
         )
         >>> registry.hash([1, 2, 3])
+        'e30f3d309eab8b8216b15ef153005972ce61c8c64c55f78075630089aed023de'
 
         ```
 
@@ -56,6 +57,7 @@ class HasherRegistry:
         >>> registry = HasherRegistry({object: StrHasher()})
         >>> registry.register(list, SequenceHasher())
         >>> registry.hash([1, 2, 3])
+        'e30f3d309eab8b8216b15ef153005972ce61c8c64c55f78075630089aed023de'
 
         ```
 
@@ -66,6 +68,7 @@ class HasherRegistry:
         >>> registry = get_default_registry()
         >>> data = {"a": [1, 2], "b": [3, 4]}
         >>> registry.hash(data)
+        'fe7eca5d3348be5060774aab9a95169595884dbb3d1fb7ddc318b1123eadc32b'
 
         ```
     """
@@ -214,7 +217,7 @@ class HasherRegistry:
         return self._state.resolve(data_type)
 
     def hash(self, data: object, length: int = 64, ignore_unhashable: bool = False) -> str:
-        """Hash the given data by recursively traversing its structure.
+        r"""Hash the given data by recursively traversing its structure.
 
         This is the main entry point for hashing. It automatically:
 
@@ -249,6 +252,7 @@ class HasherRegistry:
             >>> from coola.hashing import get_default_registry
             >>> registry = get_default_registry()
             >>> registry.hash({"scores": [95, 87, 92], "name": "test"})
+            '3f77b02a675a351ea0db656ace3425998b742702c03daf3694ab66d5cb67b729'
 
             ```
         """

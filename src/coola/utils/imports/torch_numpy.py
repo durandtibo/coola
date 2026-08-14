@@ -1,4 +1,5 @@
-r"""Contain utilities for optional torch dependency."""
+r"""Contain utilities to check that the optional ``torch`` and ``numpy``
+dependencies are installed and mutually compatible."""
 
 from __future__ import annotations
 
@@ -82,7 +83,7 @@ def torch_numpy_available(fn: F) -> F:
 
     Returns:
         A wrapper around ``fn`` if ``torch`` and ``numpy`` packages
-            are installed and are compatible., otherwise ``None``.
+            are installed and are compatible, otherwise ``None``.
 
     Example:
         ```pycon
