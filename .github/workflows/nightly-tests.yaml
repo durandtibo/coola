@@ -12,6 +12,8 @@ permissions:
   contents: read
 
 jobs:
+  benchmark:
+    uses: ./.github/workflows/benchmark.yaml
   build:
     uses: ./.github/workflows/build.yaml
   cyclic-imports:
