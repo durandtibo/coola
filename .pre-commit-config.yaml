@@ -6,6 +6,12 @@ default_stages: [ pre-commit ]
 repos:
   - repo: local
     hooks:
+      - id: pyright
+        name: pyright
+        entry: uv run inv check-types
+        language: system
+        types: [ python ]
+        pass_filenames: false
       - id: docformatter
         name: docformatter
         entry: python -Im docformatter
