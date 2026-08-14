@@ -123,9 +123,13 @@ def frame_equal(df1: pd.DataFrame, df2: pd.DataFrame, config: EqualityConfig) ->
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler.pandas import frame_equal
         >>> config = EqualityConfig()
-        >>> frame_equal(pandas.DataFrame({"col": [1, 2, 3]}), pandas.DataFrame({"col": [1, 2, 3]}), config)
+        >>> frame_equal(
+        ...     pandas.DataFrame({"col": [1, 2, 3]}), pandas.DataFrame({"col": [1, 2, 3]}), config
+        ... )
         True
-        >>> frame_equal(pandas.DataFrame({"col": [1, 2, 3]}), pandas.DataFrame({"col": [1, 2, 4]}), config)
+        >>> frame_equal(
+        ...     pandas.DataFrame({"col": [1, 2, 3]}), pandas.DataFrame({"col": [1, 2, 4]}), config
+        ... )
         False
 
         ```

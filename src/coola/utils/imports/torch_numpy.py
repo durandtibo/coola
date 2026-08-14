@@ -1,5 +1,5 @@
-r"""Contain utilities to check that the optional ``torch`` and
-``numpy`` dependencies are installed and mutually compatible."""
+r"""Contain utilities to check that the optional ``torch`` and ``numpy``
+dependencies are installed and mutually compatible."""
 
 from __future__ import annotations
 

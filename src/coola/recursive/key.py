@@ -36,7 +36,11 @@ class KeyFilterTransformer(BaseTransformer[Mapping[Any, Any]]):
 
     Example:
         ```pycon
-        >>> from coola.recursive import KeyFilterTransformer, TransformerRegistry, DefaultTransformer
+        >>> from coola.recursive import (
+        ...     KeyFilterTransformer,
+        ...     TransformerRegistry,
+        ...     DefaultTransformer,
+        ... )
         >>> registry = TransformerRegistry({object: DefaultTransformer()})
         >>> transformer = KeyFilterTransformer()
         >>> transformer.transform(

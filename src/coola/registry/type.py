@@ -592,7 +592,8 @@ class TypeRegistry(Generic[T]):
 
         Raises:
             KeyError: If no matching type is found in the registry.
-        r"""
+        r
+        """
         # Direct lookup first (most common case, O(1))
         if dtype in self._state:
             return self._state[dtype]

@@ -77,8 +77,7 @@ def unnest_with_separator(frame: pl.DataFrame, columns: list[str], separator: st
 
 
 def expand_list_columns(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
-    r"""Expand list and array columns into one column per index
-    position.
+    r"""Expand list and array columns into one column per index position.
 
     For each ``List`` or ``Array`` column, creates new columns named
     ``<col><separator><index>`` for each position up to the maximum list
@@ -113,8 +112,7 @@ def expand_list_columns(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
 
 
 def unnest_one_level(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
-    r"""Unnest all top-level struct columns in a DataFrame by one
-    level.
+    r"""Unnest all top-level struct columns in a DataFrame by one level.
 
     Columns that are lists or arrays of structs are exploded first to expose
     the inner structs, which are then unnested.
