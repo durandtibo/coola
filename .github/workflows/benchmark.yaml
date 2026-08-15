@@ -1,0 +1,27 @@
+# Benchmark workflow.
+# Runs the performance benchmark suite (tests/benchmarks/) to catch
+# regressions in the equality comparison machinery. Not part of the
+# blocking PR checks.
+
+name: Benchmark
+on:
+  workflow_call:
+  workflow_dispatch:  # to trigger manually
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup python environment
+        uses: durandtibo/setup-venv-uv-action@v0.1.0
+
+      - name: Run benchmarks
+        run: |
+          inv benchmark
