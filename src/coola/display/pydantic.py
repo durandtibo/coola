@@ -28,6 +28,19 @@ def secret_field_names(model: BaseModel) -> set[str]:
     Returns:
         The set of field names whose annotation is (or includes)
             ``SecretStr``.
+
+    Example:
+        ```pycon
+        >>> from pydantic import BaseModel, SecretStr
+        >>> from coola.display.pydantic import secret_field_names
+        >>> class Config(BaseModel):
+        ...     name: str
+        ...     token: SecretStr
+        ...
+        >>> secret_field_names(Config(name="my-app", token="s3cr3t"))
+        {'token'}
+
+        ```
     """
     names = set()
     for name, field in type(model).model_fields.items():
@@ -86,6 +99,19 @@ def str_pydantic_model(
 
     Returns:
         A string like ``"ClassName(field1=value1, field2=value2)"``.
+
+    Example:
+        ```pycon
+        >>> from pydantic import BaseModel
+        >>> from coola.display.pydantic import str_pydantic_model
+        >>> class Config(BaseModel):
+        ...     name: str
+        ...     count: int
+        ...
+        >>> str_pydantic_model(Config(name="my-app", count=3))
+        'Config(count=3, name=my-app)'
+
+        ```
     """
     return _format_pydantic_model(
         model,
@@ -120,6 +146,19 @@ def repr_pydantic_model(
     Returns:
         A string like ``"ClassName(field1=value1, field2=value2)"``
             using ``repr`` for each value.
+
+    Example:
+        ```pycon
+        >>> from pydantic import BaseModel
+        >>> from coola.display.pydantic import repr_pydantic_model
+        >>> class Config(BaseModel):
+        ...     name: str
+        ...     count: int
+        ...
+        >>> repr_pydantic_model(Config(name="my-app", count=3))
+        "Config(count=3, name='my-app')"
+
+        ```
     """
     return _format_pydantic_model(
         model,

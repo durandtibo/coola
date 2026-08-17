@@ -17,21 +17,34 @@ logger: logging.Logger = logging.getLogger(__name__)
 
 
 def check_env_vars(var_names: Sequence[str], raise_on_missing: bool = False) -> dict[str, bool]:
-    """Check whether each environment variable in var_names is defined.
+    r"""Check whether each environment variable in ``var_names`` is
+    defined.
 
     Logs the status of each variable to the terminal.
 
     Args:
-        var_names: List of environment variable names to check.
-        raise_on_missing: If True, raises EnvironmentError when any
-            variable is missing. Defaults to False.
+        var_names: The sequence of environment variable names to
+            check.
+        raise_on_missing: If ``True``, raises ``OSError`` when any
+            variable is missing. Defaults to ``False``.
 
     Returns:
-        Mapping of variable name -> True if defined, False otherwise.
+        A mapping of variable name to ``True`` if defined, ``False``
+            otherwise.
 
     Raises:
-        EnvironmentError: If raise_on_missing is True and one or more
+        OSError: If ``raise_on_missing`` is ``True`` and one or more
             variables are missing.
+
+    Example:
+        ```pycon
+        >>> import os
+        >>> from coola.utils.env_vars import check_env_vars
+        >>> os.environ["MY_VAR"] = "abc"
+        >>> check_env_vars(["MY_VAR", "MISSING_VAR"])
+        {'MY_VAR': True, 'MISSING_VAR': False}
+
+        ```
     """
     results = {}
     missing = []
@@ -55,30 +68,35 @@ def check_env_vars(var_names: Sequence[str], raise_on_missing: bool = False) -> 
 
 
 def get_required_env_var(name: str) -> str:
-    """Retrieve a required environment variable with validation.
+    r"""Retrieve a required environment variable with validation.
 
     This function fetches an environment variable and ensures it exists and
     contains a non-empty value after stripping whitespace. If the variable
-    is missing or empty, a ValueError is raised with a descriptive message.
+    is missing or empty, a ``ValueError`` is raised with a descriptive
+    message.
 
     Args:
         name: The name of the environment variable to retrieve.
 
     Returns:
-        The value of the environment variable with leading/trailing whitespace
-        removed.
+        The value of the environment variable with leading/trailing
+            whitespace removed.
 
     Raises:
-        ValueError: If the environment variable is not set or contains only
-            whitespace.
+        ValueError: If the environment variable is not set or contains
+            only whitespace.
 
     Example:
+        ```pycon
+        >>> import os
         >>> from coola.utils.env_vars import get_required_env_var
-        >>> os.environ['API_KEY'] = 'my-secret-key'
-        >>> get_required_env_var('API_KEY')
+        >>> os.environ["API_KEY"] = "my-secret-key"
+        >>> get_required_env_var("API_KEY")
         'my-secret-key'
-        >>> get_required_env_var('MISSING_VAR')  # doctest: +SKIP
-        ValueError: Environment variable 'MISSING_VAR' is required but not set
+        >>> get_required_env_var("MISSING_VAR")  # doctest: +SKIP
+        ValueError: Environment variable 'MISSING_VAR' is required but not set or is empty
+
+        ```
     """
     value = os.getenv(name)
 
@@ -94,21 +112,17 @@ def temp_env_vars(env_vars: dict[str, Any]) -> Generator[None, None, None]:
     r"""Context manager to temporarily set or modify environment
     variables.
 
-    This context manager allows you to temporarily change environment variables
-    within a specific scope. All changes are automatically reverted when exiting
-    the context, even if an exception occurs.
+    Changes are automatically reverted when exiting the context, even
+    if an exception occurs. If a variable already exists, its
+    original value is saved and restored on exit. If a variable
+    doesn't exist, it is created temporarily and removed on exit. All
+    operations are guaranteed to execute via ``try``/``finally``, even
+    if an exception is raised inside the ``with`` block.
 
     Args:
-        env_vars: Environment variables to set as keyword arguments.
-            Keys are variable names, values are the values to set.
-            Values are automatically converted to strings.
-
-    Behavior:
-        - If a variable already exists, its original value is saved and restored
-        - If a variable doesn't exist, it's created temporarily and removed on exit
-        - All operations are guaranteed to execute via try/finally
-        - Thread-safe for the current process (but note that os.environ affects
-          the entire process, not just the current thread)
+        env_vars: The environment variables to set, as a mapping of
+            variable name to value. Values are automatically converted
+            to strings.
 
     Example:
         ```pycon
@@ -128,9 +142,10 @@ def temp_env_vars(env_vars: dict[str, Any]) -> Generator[None, None, None]:
 
         ```
 
-    Notes:
-        Changes to os.environ affect the entire Python process, not just the
-        current thread. Use with caution in multi-threaded applications.
+    Note:
+        Changes to ``os.environ`` affect the entire Python process, not
+        just the current thread. Use with caution in multi-threaded
+        applications.
     """
     # Store original values (or None if they didn't exist)
     original = {key: os.environ.get(key, None) for key in env_vars}

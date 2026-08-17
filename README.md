@@ -253,6 +253,7 @@ pip install coola[numpy,torch]  # with NumPy and PyTorch
 ### Requirements
 
 - **Python**: 3.10 or higher
+- **Operating system**: Linux or macOS (no Windows support)
 - **Core dependencies**: None (fully optional dependencies)
 
 **Optional dependencies** (install with `coola[all]`):
@@ -263,6 +264,10 @@ pip install coola[numpy,torch]  # with NumPy and PyTorch
 [PyArrow](https://arrow.apache.org/docs/python/) •
 [PyTorch](https://pytorch.org/) •
 [xarray](https://docs.xarray.dev/)
+
+> **Note:** the `jax` and `torch` extras are further restricted to Linux and Apple Silicon (macOS
+> arm64), matching the platforms these libraries publish wheels for — installing `coola[jax]` or
+> `coola[torch]` on Intel macOS will fail to resolve.
 
 For detailed installation instructions, compatibility information, and alternative installation
 methods, see the [installation guide](https://durandtibo.github.io/coola/get_started).

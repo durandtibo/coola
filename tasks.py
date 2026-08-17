@@ -305,6 +305,26 @@ def integration_test(c: Context, cov: bool = False) -> None:
 
 
 @task
+def benchmark(c: Context) -> None:
+    r"""Run performance benchmarks.
+
+    This task executes the benchmark suite located in the tests/benchmarks/
+    directory to catch performance regressions in the equality comparison
+    machinery. Benchmarks are not part of the regular unit/integration test
+    suite and are not run in standard CI.
+
+    Args:
+        c: The invoke context.
+
+    Example:
+        invoke benchmark
+    """
+    logger.info("⏱️  Running benchmarks...")
+    c.run("python -m pytest tests/benchmarks/ --benchmark-only", pty=True)
+    logger.info("✅ Benchmarks complete")
+
+
+@task
 def show_installed_packages(c: Context) -> None:
     r"""Show the installed packages.
 
@@ -361,7 +381,7 @@ def publish_doc_dev(c: Context) -> None:
 @task
 def publish_doc_latest(c: Context) -> None:
     r"""Publish latest (e.g. stable) docs."""
-    from feu.git import get_last_version_tag_name  # noqa: PLC0415
+    from feu.local_git import get_last_version_tag_name  # noqa: PLC0415
     from packaging.version import Version  # noqa: PLC0415
 
     logger.info("📚 Publishing latest documentation...")

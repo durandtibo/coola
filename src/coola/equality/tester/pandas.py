@@ -38,9 +38,8 @@ class PandasDataFrameEqualityTester(BaseEqualityTester[pd.DataFrame]):
     2. SameTypeHandler: Verify both are pandas DataFrames
     3. PandasDataFrameEqualHandler: Use pandas' assert_frame_equal internally
 
-    Note:
-        The tester uses pandas' internal comparison logic which handles NaN values
-        and performs comprehensive DataFrame equality checking.
+    The tester respects config.equal_nan for NaN comparisons and config.atol/rtol
+    for floating-point tolerance.
 
     Example:
         Basic DataFrame comparison:
@@ -114,9 +113,8 @@ class PandasSeriesEqualityTester(BaseEqualityTester[pd.Series]):
     2. SameTypeHandler: Verify both are pandas Series
     3. PandasSeriesEqualHandler: Use pandas' assert_series_equal internally
 
-    Note:
-        The tester uses pandas' internal comparison logic which handles NaN values
-        and performs comprehensive Series equality checking.
+    The tester respects config.equal_nan for NaN comparisons and config.atol/rtol
+    for floating-point tolerance.
 
     Example:
         Basic Series comparison:

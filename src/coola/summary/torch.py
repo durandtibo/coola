@@ -27,16 +27,18 @@ class TensorSummarizer(BaseSummarizer[torch.Tensor]):
     r"""Implement a summarizer for ``torch.Tensor`` objects.
 
     This summarizer generates compact string representations of PyTorch
-    tensors. By default, it displays metadata (type, shape, dtype, device)
-    rather than tensor values, making it suitable for logging and debugging
-    large tensors. Optionally, it can show the full tensor representation.
+    tensors. By default, it displays metadata (type, shape, dtype, device,
+    requires_grad) rather than tensor values, making it suitable for logging
+    and debugging large tensors. Optionally, it can show the full tensor
+    representation.
 
     Args:
         show_data: If ``True``, returns the default tensor string
             representation (same as ``repr(tensor)``), displaying
             actual values. If ``False`` (default), returns only
             metadata in a compact format:
-            ``<class> | shape=<shape> | dtype=<dtype> | device=<device>``.
+            ``<class> | shape=<shape> | dtype=<dtype> | device=<device> |
+            requires_grad=<requires_grad>``.
             Default: ``False``
 
     Raises:

@@ -84,6 +84,18 @@ def packaging_available(fn: F) -> F:
 
 
 def raise_packaging_missing_error() -> NoReturn:
-    r"""Raise a RuntimeError to indicate the ``packaging`` package is
-    missing."""
+    r"""Raise a ``RuntimeError`` to indicate the ``packaging`` package is
+    missing.
+
+    Raises:
+        RuntimeError: Always, with a message indicating that the
+            ``packaging`` package is not installed.
+
+    Example:
+        ```pycon
+        >>> from coola.utils.imports import raise_packaging_missing_error
+        >>> raise_packaging_missing_error()  # doctest: +SKIP
+
+        ```
+    """
     raise_package_missing_error("packaging", "packaging")

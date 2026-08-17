@@ -35,7 +35,7 @@ license-files = ["LICENSE"]
 dynamic = ["maintainers"]
 
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: BSD License",
@@ -80,6 +80,7 @@ dev = [
     "pygments >=2.20,<3.0",
     "pyright >=1.1.411,<2.0",
     "pytest >=9.1,<10.0",
+    "pytest-benchmark >=5.1,<6.0",
     "pytest-cov >=7.1,<8.0",
     "pytest-timeout >=2.4,<3.0",
     "ruff >=0.16,<1.0",

@@ -36,7 +36,7 @@ BYTE_UNITS = {
 
 
 def make_bar(value: float, length: int = 10) -> str:
-    """Create a progress bar string for a given value between 0 and 1.
+    r"""Create a progress bar string for a given value between 0 and 1.
 
     Args:
         value: A float between 0 and 1 representing the metric value.

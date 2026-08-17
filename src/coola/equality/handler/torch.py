@@ -101,6 +101,19 @@ def tensor_equal(tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityC
     Returns:
         ``True`` if the two tensors are equal within a tolerance,
             otherwise ``False``.
+
+    Example:
+        ```pycon
+        >>> import torch
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.handler.torch import tensor_equal
+        >>> config = EqualityConfig()
+        >>> tensor_equal(torch.ones(2, 3), torch.ones(2, 3), config)
+        True
+        >>> tensor_equal(torch.ones(2, 3), torch.zeros(2, 3), config)
+        False
+
+        ```
     """
     if config.equal_nan or config.atol > 0 or config.rtol > 0:
         return tensor1.allclose(

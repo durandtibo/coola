@@ -64,9 +64,8 @@ def resolve_object(obj: T | dict[str, Any], cls: type[T] = object) -> T:
     configuration dictionary.
 
     If ``obj`` is already an instance of ``cls`` it is returned
-    as-is.  If it is a :class:`dict`, it is treated as an
-    ``objectory`` factory configuration and instantiated via
-    :func:`objectory.factory`.
+    as-is.  If it is a :class:`dict`, it is treated as a factory
+    configuration and instantiated via :func:`coola.factory.factory`.
 
     Note:
         Any :class:`dict` (including instances of ``dict``
@@ -78,9 +77,9 @@ def resolve_object(obj: T | dict[str, Any], cls: type[T] = object) -> T:
 
     Args:
         obj: Either a fully configured instance of ``cls``, or a
-            :class:`dict` containing an ``objectory`` factory
-            specification (must include a ``"_target_"`` key
-            pointing to the fully-qualified class name).
+            :class:`dict` containing a factory specification (must
+            include a ``"_target_"`` key pointing to the
+            fully-qualified class name).
         cls: The expected type. Used to validate the resolved object,
             whether ``obj`` was already an instance or was built from
             a configuration dictionary. Defaults to :class:`object`,

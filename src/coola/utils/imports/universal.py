@@ -145,6 +145,13 @@ def raise_package_missing_error(package_name: str, install_cmd: str) -> NoReturn
 
     Raises:
         RuntimeError: Always raised to indicate the package is missing.
+
+    Example:
+        ```pycon
+        >>> from coola.utils.imports import raise_package_missing_error
+        >>> raise_package_missing_error("numpy", "numpy")  # doctest: +SKIP
+
+        ```
     """
     msg = (
         f"'{package_name}' package is required but not installed. "

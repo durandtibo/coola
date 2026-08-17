@@ -114,7 +114,7 @@ class Registry(Generic[K, V]):
         return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(snapshot))}\n)"
 
     def clear(self) -> None:
-        """Remove all entries from the registry.
+        r"""Remove all entries from the registry.
 
         This method empties the registry, leaving it in the same state as a
         newly created empty registry. This operation cannot be undone.
@@ -132,7 +132,7 @@ class Registry(Generic[K, V]):
             False
 
             ```
-        """
+        r"""
         with self._lock:
             self._state.clear()
 
@@ -159,7 +159,7 @@ class Registry(Generic[K, V]):
             False
 
             ```
-        """
+        r"""
         if type(other) is not type(self):
             return False
 
@@ -169,7 +169,7 @@ class Registry(Generic[K, V]):
             return objects_are_equal(self._state, other._state, equal_nan=equal_nan)
 
     def get(self, key: K, default: V | None = None) -> V | None:
-        """Retrieve the value associated with a key.
+        r"""Retrieve the value associated with a key.
 
         This method performs a lookup in the registry and returns the
         corresponding value.
@@ -191,12 +191,12 @@ class Registry(Generic[K, V]):
             None
 
             ```
-        """
+        r"""
         with self._lock:
             return self._state.get(key, default)
 
     def has(self, key: K) -> bool:
-        """Check whether a key is registered in the registry.
+        r"""Check whether a key is registered in the registry.
 
         This method provides a safe way to test for key existence without
         risking a KeyError exception.
@@ -217,12 +217,12 @@ class Registry(Generic[K, V]):
             False
 
             ```
-        """
+        r"""
         with self._lock:
             return key in self._state
 
     def register(self, key: K, value: V, exist_ok: bool = False) -> None:
-        """Register a new key-value pair in the registry.
+        r"""Register a new key-value pair in the registry.
 
         By default, this method raises an error if you try to register a key
         that already exists. This prevents accidental overwriting of values.
@@ -267,7 +267,7 @@ class Registry(Generic[K, V]):
             100
 
             ```
-        """
+        r"""
         with self._lock:
             if key in self._state and not exist_ok:
                 msg = (
@@ -278,7 +278,7 @@ class Registry(Generic[K, V]):
             self._state[key] = value
 
     def register_many(self, mapping: Mapping[K, V], exist_ok: bool = False) -> None:
-        """Register multiple key-value pairs in a single operation.
+        r"""Register multiple key-value pairs in a single operation.
 
         This is a convenience method for bulk registration. It iterates through
         the provided mapping and registers each key-value pair. All registrations
@@ -324,7 +324,7 @@ class Registry(Generic[K, V]):
             4
 
             ```
-        """
+        r"""
         with self._lock:
             # Check all keys first if exist_ok is False
             if not exist_ok and (duplicates := set(mapping) & set(self._state)):
@@ -336,7 +336,7 @@ class Registry(Generic[K, V]):
             self._state.update(mapping)
 
     def unregister(self, key: K) -> V:
-        """Remove a key-value pair from the registry and return the
+        r"""Remove a key-value pair from the registry and return the
         value.
 
         This method removes the specified key from the registry and returns
@@ -366,7 +366,7 @@ class Registry(Generic[K, V]):
             False
 
             ```
-        """
+        r"""
         with self._lock:
             if key not in self._state:
                 msg = f"Key '{key}' is not registered"
@@ -374,7 +374,7 @@ class Registry(Generic[K, V]):
             return self._state.pop(key)
 
     def items(self) -> ItemsView[K, V]:
-        """Return key-value pairs.
+        r"""Return key-value pairs.
 
         Returns:
             The key-value pairs.
@@ -387,12 +387,12 @@ class Registry(Generic[K, V]):
             dict_items([('a', 1), ('b', 2)])
 
             ```
-        """
+        r"""
         with self._lock:
             return self._state.copy().items()
 
     def keys(self) -> KeysView[K]:
-        """Return registered keys.
+        r"""Return registered keys.
 
         Returns:
             The registered keys.
@@ -405,12 +405,12 @@ class Registry(Generic[K, V]):
             dict_keys(['a', 'b'])
 
             ```
-        """
+        r"""
         with self._lock:
             return self._state.copy().keys()
 
     def values(self) -> ValuesView[V]:
-        """Return registered values.
+        r"""Return registered values.
 
         Returns:
             The registered values.
@@ -423,6 +423,6 @@ class Registry(Generic[K, V]):
             dict_values([1, 2])
 
             ```
-        """
+        r"""
         with self._lock:
             return self._state.copy().values()

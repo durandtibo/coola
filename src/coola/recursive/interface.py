@@ -67,8 +67,13 @@ def register_transformers(
 
     Args:
         mapping: Mapping of Python types to transformer instances.
-        exist_ok: If ``False``, raise an error when a type is already
-            registered.
+        exist_ok: If ``False`` (default), raise an error when a type is
+            already registered. If ``True``, overwrites existing
+            registrations silently.
+
+    Raises:
+        RuntimeError: If any type is already registered and ``exist_ok``
+            is ``False``.
 
     Example:
         ```pycon
