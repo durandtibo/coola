@@ -10,6 +10,7 @@ __all__ = [
     "from_flat_dict",
     "get_first_value",
     "merge_mappings",
+    "remove_keys",
     "remove_keys_containing",
     "remove_keys_if",
     "remove_keys_starting_with",
