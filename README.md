@@ -50,6 +50,9 @@
     <a href="https://pepy.tech/project/coola">
         <img  alt="Monthly downloads" src="https://static.pepy.tech/badge/coola/month">
     </a>
+    <a href="https://scorecard.dev/viewer/?uri=github.com/durandtibo/coola">
+        <img  alt="OpenSSF Scorecard" src="https://api.scorecard.dev/projects/github.com/durandtibo/coola/badge">
+    </a>
     <br/>
 </p>
 
