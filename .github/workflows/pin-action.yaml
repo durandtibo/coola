@@ -14,7 +14,7 @@ permissions: {}
 
 jobs:
   pin:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
       contents: read # actions/checkout only needs read; the app token grants write
