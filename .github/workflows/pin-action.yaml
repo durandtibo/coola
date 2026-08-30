@@ -23,13 +23,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      # Always install the latest ratchet release, so the version never goes stale
       - name: Install ratchet
+        uses: jaxxstorm/action-install-gh-release@v1.10.0
+        with:
+          repo: sethvargo/ratchet
+          platform: linux
+          arch: amd64
         env:
-          RATCHET_VERSION: "0.12.0"
-        run: |
-          curl -sSLo ratchet "https://github.com/sethvargo/ratchet/releases/download/v${RATCHET_VERSION}/ratchet_${RATCHET_VERSION}_linux_amd64"
-          chmod +x ratchet
-          sudo mv ratchet /usr/local/bin/ratchet
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Pin all action references to their commit SHA, keeping the version as a comment
       - name: Pin GitHub Actions
