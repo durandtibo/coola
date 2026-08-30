@@ -10,13 +10,14 @@ on:
     tags:
       - "v*.*.*"  # Trigger on version tags (e.g., v1.0.0)
 
-permissions:
-  contents: write  # Required to push to gh-pages branch
+permissions: {}
 
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: write  # Required to push to gh-pages branch
 
     steps:
       - name: Checkout
