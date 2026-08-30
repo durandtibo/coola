@@ -50,12 +50,12 @@
     <a href="https://pepy.tech/project/coola">
         <img alt="Monthly downloads" src="https://static.pepy.tech/badge/coola/month">
     </a>
-    <a href="https://scorecard.dev/viewer/?uri=github.com/durandtibo/coola">
-        <img alt="OpenSSF Scorecard" src="https://api.scorecard.dev/projects/github.com/durandtibo/coola/badge">
-    </a>
-    <br/>
     <a href="https://github.com/durandtibo/coola/stargazers">
         <img alt="GitHub stars" src="https://img.shields.io/github/stars/durandtibo/coola">
+    </a>
+    <br/>
+    <a href="https://scorecard.dev/viewer/?uri=github.com/durandtibo/coola">
+        <img alt="OpenSSF Scorecard" src="https://img.shields.io/badge/dynamic/json?url=https://api.scorecard.dev/projects/github.com/durandtibo/coola&label=openssf%20scorecard&query=score">
     </a>
 </p>
 
