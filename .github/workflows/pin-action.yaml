@@ -1,9 +1,9 @@
-# Action pin workflow.
+# Pin action workflow.
 # Pins GitHub Actions in workflow files to immutable commit SHAs using ratchet.
 # https://github.com/sethvargo/ratchet
 # Creates a pull request with the pinned actions after validation.
 
-name: action-pin
+name: pin-action
 
 on:
   schedule:
@@ -43,7 +43,7 @@ jobs:
         if: always()
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          branch: update/action-pin
+          branch: update/pin-action
           title: Pin GitHub Actions to commit SHA
           commit-message: "Pin GitHub Actions to commit SHA"
           body: Pin GitHub Actions to their commit SHA using ratchet.
