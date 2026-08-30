@@ -3,7 +3,7 @@
 # https://github.com/sethvargo/ratchet
 # Creates a pull request with the pinned actions after validation.
 
-name: pin-action
+name: Pin GitHub Actions
 
 on:
   schedule:
