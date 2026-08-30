@@ -33,14 +33,15 @@ on:
     - cron: "0 * * * *" # runs every hour
   workflow_dispatch: # optional, for manual triggering
 
-permissions:
-  actions: write
-  contents: read
+permissions: {}
 
 jobs:
   cancel-stale-runs:
     runs-on: ubuntu-slim
     timeout-minutes: 5
+    permissions:
+      actions: write
+      contents: read
 
     steps:
       - uses: durandtibo/cancel-queued-runs-action@v1.9

@@ -10,13 +10,14 @@ on:
     branches:
       - main  # Trigger on pushes to main branch
 
-permissions:
-  contents: write  # Required to push to gh-pages branch
+permissions: {}
 
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: write  # Required to push to gh-pages branch
 
     steps:
       - name: Checkout

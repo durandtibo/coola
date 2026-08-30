@@ -9,14 +9,15 @@ on:
   workflow_call:
   workflow_dispatch:  # to trigger manually
 
-permissions:
-  contents: write      # Required to push changes
-  pull-requests: write # Required to create pull requests
+permissions: {}
 
 jobs:
   generate-package-versions:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: write      # Required to push changes
+      pull-requests: write # Required to create pull requests
 
     steps:
       - name: Checkout
