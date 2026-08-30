@@ -22,16 +22,16 @@
     </a>
     <br/>
     <a href="https://github.com/psf/black">
-        <img  alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg">
+        <img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg">
     </a>
     <a href="https://google.github.io/styleguide/pyguide.html#s3.8-comments-and-docstrings">
-        <img  alt="Doc style: google" src="https://img.shields.io/badge/%20style-google-3666d6.svg">
+        <img alt="Doc style: google" src="https://img.shields.io/badge/%20style-google-3666d6.svg">
     </a>
     <a href="https://github.com/astral-sh/ruff">
-        <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff" style="max-width:100%;">
+        <img alt="Ruff" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json">
     </a>
     <a href="https://github.com/guilatrova/tryceratops">
-        <img  alt="try/except style: tryceratops" src="https://img.shields.io/badge/try%2Fexcept%20style-tryceratops%20%F0%9F%A6%96%E2%9C%A8-black">
+        <img alt="try/except style: tryceratops" src="https://img.shields.io/badge/try%2Fexcept%20style-tryceratops%20%F0%9F%A6%96%E2%9C%A8-black">
     </a>
     <br/>
     <a href="https://pypi.org/project/coola/">
@@ -45,15 +45,18 @@
     </a>
     <br/>
     <a href="https://pepy.tech/project/coola">
-        <img  alt="Downloads" src="https://static.pepy.tech/badge/coola">
+        <img alt="Downloads" src="https://static.pepy.tech/badge/coola">
     </a>
     <a href="https://pepy.tech/project/coola">
-        <img  alt="Monthly downloads" src="https://static.pepy.tech/badge/coola/month">
+        <img alt="Monthly downloads" src="https://static.pepy.tech/badge/coola/month">
     </a>
     <a href="https://scorecard.dev/viewer/?uri=github.com/durandtibo/coola">
-        <img  alt="OpenSSF Scorecard" src="https://api.scorecard.dev/projects/github.com/durandtibo/coola/badge">
+        <img alt="OpenSSF Scorecard" src="https://api.scorecard.dev/projects/github.com/durandtibo/coola/badge">
     </a>
     <br/>
+    <a href="https://github.com/durandtibo/coola/stargazers">
+        <img alt="GitHub stars" src="https://img.shields.io/github/stars/durandtibo/coola">
+    </a>
 </p>
 
 ## Overview
