@@ -5,7 +5,7 @@
 name: Tests
 on:
   workflow_call:
-  workflow_dispatch:  # to trigger manually
+  workflow_dispatch: # to trigger manually
 
 permissions:
   contents: read
@@ -19,81 +19,79 @@ jobs:
       max-parallel: 8
       fail-fast: false
       matrix:
-        os: [
-          ubuntu-latest,
-          ubuntu-26.04,
-          ubuntu-24.04,
-          ubuntu-22.04,
-          ubuntu-26.04-arm,
-          ubuntu-24.04-arm,
-          ubuntu-22.04-arm,
-          macos-latest,
-          macos-26,
-          macos-15,
-          macos-14,
-          macos-26-intel,
-          macos-15-intel,
-        ]
+        os:
+          [
+            ubuntu-latest,
+            ubuntu-26.04,
+            ubuntu-24.04,
+            ubuntu-22.04,
+            ubuntu-26.04-arm,
+            ubuntu-24.04-arm,
+            ubuntu-22.04-arm,
+            macos-latest,
+            macos-26,
+            macos-15,
+            macos-14,
+            macos-26-intel,
+            macos-15-intel,
+          ]
         # Test all supported Python versions including free-threaded builds (t suffix)
-        python-version: [ '3.14', '3.14t', '3.13', '3.13t', '3.12', '3.11', '3.10' ]
-
+        python-version:
+          ["3.14", "3.14t", "3.13", "3.13t", "3.12", "3.11", "3.10"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
-
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
       - name: Setup python environment
-        uses: durandtibo/setup-venv-uv-action@v0.1.0
+        uses: durandtibo/setup-venv-uv-action@59716ab8fb83cc7025548b3831c06b6f5c268f4f # ratchet:durandtibo/setup-venv-uv-action@v0.1.0
         with:
           python-version: ${{ matrix.python-version }}
-
       - name: Run unit tests
         run: |
           inv unit-test --cov
-
       - name: Run integration tests
         run: |
           inv integration-test --cov
-
   # Test with minimal dependencies to ensure optional dependencies are truly optional
+
   min:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
+
     strategy:
       max-parallel: 8
       fail-fast: false
       matrix:
-        os: [
-          ubuntu-latest,
-          ubuntu-26.04,
-          ubuntu-24.04,
-          ubuntu-22.04,
-          ubuntu-26.04-arm,
-          ubuntu-24.04-arm,
-          ubuntu-22.04-arm,
-          macos-latest,
-          macos-26,
-          macos-15,
-          macos-14,
-          macos-26-intel,
-          macos-15-intel,
-        ]
-        python-version: [ '3.14', '3.14t', '3.13', '3.13t', '3.12', '3.11', '3.10' ]
-
+        os:
+          [
+            ubuntu-latest,
+            ubuntu-26.04,
+            ubuntu-24.04,
+            ubuntu-22.04,
+            ubuntu-26.04-arm,
+            ubuntu-24.04-arm,
+            ubuntu-22.04-arm,
+            macos-latest,
+            macos-26,
+            macos-15,
+            macos-14,
+            macos-26-intel,
+            macos-15-intel,
+          ]
+        python-version:
+          ["3.14", "3.14t", "3.13", "3.13t", "3.12", "3.11", "3.10"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
-
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
       # Install only required dependencies, not optional ones
+
       - name: Setup python environment
-        uses: durandtibo/setup-venv-uv-action@v0.1.0
+        uses: durandtibo/setup-venv-uv-action@59716ab8fb83cc7025548b3831c06b6f5c268f4f # ratchet:durandtibo/setup-venv-uv-action@v0.1.0
         with:
           python-version: ${{ matrix.python-version }}
-          install-args: '--no-optional-deps'
-
+          install-args: "--no-optional-deps"
       - name: Run unit tests
         run: |
           inv unit-test --cov
-
       - name: Run integration tests
         run: |
           inv integration-test --cov

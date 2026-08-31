@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 from unittest.mock import Mock, patch
 
 import pytest
@@ -11,13 +12,18 @@ from coola.utils.imports import (
     torch_numpy_available,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
 logger = logging.getLogger(__name__)
 
 MODULE = "coola.utils.imports.torch_numpy"
 
 
 @pytest.fixture(autouse=True)
-def _cache_clear() -> None:
+def _cache_clear() -> Generator[None]:
+    is_torch_numpy_available.cache_clear()
+    yield
     is_torch_numpy_available.cache_clear()
 
 

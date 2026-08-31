@@ -33,17 +33,18 @@ on:
     - cron: "0 * * * *" # runs every hour
   workflow_dispatch: # optional, for manual triggering
 
-permissions:
-  actions: write
-  contents: read
+permissions: {}
 
 jobs:
   cancel-stale-runs:
     runs-on: ubuntu-slim
     timeout-minutes: 5
+    permissions:
+      actions: write
+      contents: read
 
     steps:
-      - uses: durandtibo/cancel-queued-runs-action@v1.9
+      - uses: durandtibo/cancel-queued-runs-action@3f57ce49d16e0e14e7dd4aed984ff77470d8e357 # ratchet:durandtibo/cancel-queued-runs-action@v1.9
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           repo: ${{ github.repository }}

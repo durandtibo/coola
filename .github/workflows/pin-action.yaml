@@ -1,0 +1,68 @@
+# Pin action workflow.
+# Pins GitHub Actions in workflow files to immutable commit SHAs using ratchet.
+# https://github.com/sethvargo/ratchet
+# Creates a pull request with the pinned actions after validation.
+
+name: Pin GitHub Actions
+
+on:
+  schedule:
+    - cron: "0 8 * * 3" # Run every Wednesday at 8:00 AM UTC
+  workflow_dispatch: # to trigger manually
+
+permissions: {}
+
+jobs:
+  pin:
+    runs-on: ubuntu-slim
+    timeout-minutes: 5
+    permissions:
+      contents: read # actions/checkout only needs read; the app token grants write
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # ratchet:actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.TIBOT_APP_ID }}
+          private-key: ${{ secrets.TIBOT_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+          permission-workflows: write
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: false
+
+      # Always install the latest ratchet release, so the version never goes stale
+      - name: Install ratchet
+        uses: jaxxstorm/action-install-gh-release@c5ead9a448b4660cf1e7866ee22e4dc56538031a # ratchet:jaxxstorm/action-install-gh-release@v1.10.0
+        with:
+          repo: sethvargo/ratchet
+          platform: linux
+          arch: amd64
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+
+      # Pin all action references to their commit SHA, keeping the version as a comment
+      - name: Pin GitHub Actions
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }} # for API quota and auth
+        run: |
+          ratchet pin .github/workflows/*.yaml .github/workflows/*.yml
+
+      # Reformat the pinned files so ratchet's output matches repo style
+      - name: Format YAML
+        run: npx --yes prettier --write ".github/workflows/*.yaml" ".github/workflows/*.yml"
+
+      # Create a pull request with the pinned actions
+      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # ratchet:peter-evans/create-pull-request@v8
+        if: always()
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          branch: update/pin-action
+          title: Pin GitHub Actions to commit SHA
+          commit-message: "Pin GitHub Actions to commit SHA"
+          body: Pin GitHub Actions to their commit SHA using ratchet.
+          author: ci-bot <${{secrets.CI_BOT_EMAIL}}>

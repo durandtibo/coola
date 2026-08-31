@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
@@ -12,13 +13,18 @@ from coola.utils.imports import (
     raise_colorlog_missing_error,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
 logger = logging.getLogger(__name__)
 
 MODULE = "coola.utils.imports.colorlog"
 
 
 @pytest.fixture(autouse=True)
-def _cache_clear() -> None:
+def _cache_clear() -> Generator[None]:
+    is_colorlog_available.cache_clear()
+    yield
     is_colorlog_available.cache_clear()
 
 
