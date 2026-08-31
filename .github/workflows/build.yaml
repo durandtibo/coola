@@ -5,7 +5,7 @@
 name: Build Tests
 on:
   workflow_call:
-  workflow_dispatch:  # to trigger manually
+  workflow_dispatch: # to trigger manually
 
 permissions:
   contents: read
@@ -18,48 +18,48 @@ jobs:
       max-parallel: 8
       fail-fast: false
       matrix:
-        dist-type: [ "sdist", "wheel" ]
-        package-extra: [
-          "",
-          'colorlog',
-          'jax',
-          'numpy',
-          'packaging',
-          'pandas',
-          'polars',
-          'pyarrow',
-          'pydantic',
-          'rich',
-          'torch',
-          'xarray',
-        ]
-
+        dist-type: ["sdist", "wheel"]
+        package-extra:
+          [
+            "",
+            "colorlog",
+            "jax",
+            "numpy",
+            "packaging",
+            "pandas",
+            "polars",
+            "pyarrow",
+            "pydantic",
+            "rich",
+            "torch",
+            "xarray",
+          ]
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
-
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
       - name: Verify Build
-        uses: durandtibo/verify-uv-build-action@v0.0.7
+        uses: durandtibo/verify-uv-build-action@88da014d506b5f0b4f657d4ba8920061ab785620 # ratchet:durandtibo/verify-uv-build-action@v0.0.7
         with:
           package-name: coola
           package-extra: ${{ matrix.package-extra }}
           package-dependencies: ""
           dist-type: ${{ matrix.dist-type }}
-
       - name: Run package checks
         shell: bash
         run: |
+
           set -euo pipefail
           echo "🔍 Running package checks..."
           python tests/package_checks.py
-          echo "✅ Package checks passed"
 
+          echo "✅ Package checks passed"
       - name: Check optional packages installation
         if: ${{ matrix.package-extra != '' }}
         shell: bash
         run: |
           set -euo pipefail
           echo "🔍 Verifying if ${{ matrix.package-extra }} is installed..."
+
           if ! uv pip list | grep -qE "^${{ matrix.package-extra }}\s"; then
             echo "❌ Error: Package '${{ matrix.package-extra }}' not found in installed packages"
             echo "Installed packages:"
@@ -75,24 +75,24 @@ jobs:
       max-parallel: 8
       fail-fast: false
       matrix:
-        dist-type: [ "sdist", "wheel" ]
-
+        dist-type: ["sdist", "wheel"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
-
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
       - name: Verify Build
-        uses: durandtibo/verify-uv-build-action@v0.0.7
+        uses: durandtibo/verify-uv-build-action@88da014d506b5f0b4f657d4ba8920061ab785620 # ratchet:durandtibo/verify-uv-build-action@v0.0.7
+
         with:
           package-name: coola
           package-extra: all
           package-dependencies: ""
           dist-type: ${{ matrix.dist-type }}
           verify-sdist-extra: false
-
       - name: Run package checks
         run: |
+
           set -euo pipefail
           echo "🔍 Running package checks..."
           python tests/package_checks.py
+
           echo "✅ Package checks passed"
