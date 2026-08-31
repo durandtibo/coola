@@ -19,41 +19,39 @@ jobs:
       max-parallel: 8
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest ]
-        python-version: [ '3.14', '3.13', '3.12', '3.11', '3.10' ]
-        extra: [
-          'all',
-          'colorlog',
-          'jax',
-          'numpy',
-          'packaging',
-          'pandas',
-          'polars',
-          'pyarrow',
-          'pydantic',
-          'rich',
-          'torch',
-          'xarray',
-        ]
-
+        os: [ubuntu-latest]
+        python-version: ["3.14", "3.13", "3.12", "3.11", "3.10"]
+        extra:
+          [
+            "all",
+            "colorlog",
+            "jax",
+            "numpy",
+            "packaging",
+            "pandas",
+            "polars",
+            "pyarrow",
+            "pydantic",
+            "rich",
+            "torch",
+            "xarray",
+          ]
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
-
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
       - name: Install uv and set the python version
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # ratchet:astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python-version }}
           activate-environment: true
-
       - name: Install package
         run: |
           uv pip install ${{ inputs.install-args }} "coola[${{ matrix.extra }}]"
-
       - name: Show dependency tree
         run: |
-          uv pip tree --show-version-specifiers
 
+          uv pip tree --show-version-specifiers
       - name: Run some checks
         run: |
+
           python tests/package_checks.py
