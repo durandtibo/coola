@@ -19,23 +19,23 @@ jobs:
       max-parallel: 8
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
-        python-version: ["3.14", "3.13", "3.12", "3.11", "3.10"]
-        extra:
-          [
-            "all",
-            "colorlog",
-            "jax",
-            "numpy",
-            "packaging",
-            "pandas",
-            "polars",
-            "pyarrow",
-            "pydantic",
-            "rich",
-            "torch",
-            "xarray",
-          ]
+        os: [ ubuntu-latest ]
+        python-version: [ '3.14', '3.14t', '3.13', '3.13t', '3.12', '3.11', '3.10' ]
+        extra: [
+          'all',
+          'colorlog',
+          'jax',
+          'numpy',
+          'packaging',
+          'pandas',
+          'polars',
+          'pyarrow',
+          'pydantic',
+          'rich',
+          'torch',
+          'xarray',
+        ]
+
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
