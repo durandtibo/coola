@@ -290,6 +290,16 @@ src = ["src"]
     "S101", # flake8-bandit
 ]
 "tests/unit/hashing/test_pydantic.py" = ["S106"]
+# Ignore the fuzz harnesses directory.
+"fuzz/**" = [
+    "ANN", # flake8-annotations
+    "D", # pydocstyle
+    "INP001", # flake8-no-pep420 (not a package, executed directly by atheris/ClusterFuzzLite)
+    "N802", # pep8-naming (atheris requires the `TestOneInput` entry point name)
+    "PLR0911", # Pylint (many branches are expected in a fuzz input builder)
+    "S101", # flake8-bandit
+    "SIM105", # flake8-simplify
+]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 10

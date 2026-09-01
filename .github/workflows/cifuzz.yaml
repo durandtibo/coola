@@ -1,0 +1,40 @@
+# CIFuzz workflow.
+# Runs ClusterFuzzLite (Atheris) fuzzing harnesses against pull requests to
+# catch crashes and unhandled exceptions before merge.
+# https://google.github.io/clusterfuzzlite/
+
+name: CIFuzz
+
+on:
+  pull_request:
+    paths:
+      - "src/**"
+      - "fuzz/**"
+      - ".clusterfuzzlite/**"
+      - ".github/workflows/cifuzz.yaml"
+  workflow_dispatch: # to trigger manually
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fuzzing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Build fuzzers
+        id: build
+        uses: google/clusterfuzzlite/actions/build_fuzzers@82652fb49e77bc29c35da1167bb286e93c6bcc05 # ratchet:google/clusterfuzzlite/actions/build_fuzzers@v1
+        with:
+          language: python
+
+      - name: Run fuzzers
+        uses: google/clusterfuzzlite/actions/run_fuzzers@82652fb49e77bc29c35da1167bb286e93c6bcc05 # ratchet:google/clusterfuzzlite/actions/run_fuzzers@v1
+        with:
+          fuzz-seconds: 300
+          mode: "code-change"
+          sanitizer: address
