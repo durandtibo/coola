@@ -1,4 +1,5 @@
-r"""Atheris fuzz harness for ``coola.nested.to_flat_dict``/``from_flat_dict``.
+r"""Atheris fuzz harness for
+``coola.nested.to_flat_dict``/``from_flat_dict``.
 
 Feeds pseudo-random nested Python objects into ``to_flat_dict`` and feeds
 pseudo-random flat dicts into ``from_flat_dict`` to look for crashes,

@@ -1,4 +1,5 @@
-r"""Atheris fuzz harness for ``coola.utils.string``/``coola.utils.text_diff``.
+r"""Atheris fuzz harness for
+``coola.utils.string``/``coola.utils.text_diff``.
 
 Feeds pseudo-random strings into ``slugify``, ``truncate_str``,
 ``char_diff_summary``, and ``unified_diff`` to look for crashes or
