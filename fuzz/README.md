@@ -14,6 +14,9 @@ Atheris/libFuzzer.
 pip install atheris
 python fuzz/fuzz_objects_are_equal.py
 python fuzz/fuzz_summarize.py
+python fuzz/fuzz_hash_object.py
+python fuzz/fuzz_flat_dict.py
+python fuzz/fuzz_string_utils.py
 ```
 
 Add `-runs=100000` or a corpus directory as extra CLI arguments to control the run, e.g.:
