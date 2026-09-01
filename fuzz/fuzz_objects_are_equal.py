@@ -21,7 +21,8 @@ with atheris.instrument_imports():
 
 
 def _build_object(fdp: atheris.FuzzedDataProvider, depth: int = 0):
-    r"""Build a pseudo-random, possibly-nested Python object from fuzzer bytes."""
+    r"""Build a pseudo-random, possibly-nested Python object from fuzzer
+    bytes."""
     if depth >= 5:
         return fdp.ConsumeInt(8)
 

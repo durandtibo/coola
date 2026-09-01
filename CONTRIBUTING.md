@@ -285,6 +285,21 @@ def test_objects_are_equal_with_different_dicts_returns_false():
     assert not objects_are_equal(dict1, dict2)
 ```
 
+### Fuzzing
+
+`coola` is fuzzed with [Atheris](https://github.com/google/atheris) harnesses under `fuzz/`,
+run on every pull request via [ClusterFuzzLite](https://google.github.io/clusterfuzzlite/)
+(`.clusterfuzzlite/`, `.github/workflows/cifuzz.yaml`). If you add a new public entry point that
+parses or normalizes arbitrary/nested input, consider adding or extending a harness in `fuzz/` so
+it gets continuous coverage-guided testing.
+
+You can run a harness locally with:
+
+```shell
+pip install atheris
+python fuzz/fuzz_objects_are_equal.py
+```
+
 ## Documentation
 
 ### Documentation Standards

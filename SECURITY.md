@@ -52,6 +52,14 @@ When using `coola` in your projects:
 3. **Review code**: When comparing sensitive data, ensure appropriate access controls are in place
 4. **Validate inputs**: Always validate data before comparison, especially when handling user inputs
 
+## Fuzzing
+
+`coola` is continuously fuzz-tested with [Atheris](https://github.com/google/atheris) harnesses
+(see `fuzz/`), run on pull requests via
+[ClusterFuzzLite](https://google.github.io/clusterfuzzlite/) to catch crashes, unhandled
+exceptions, and other robustness issues in the comparison and summarization logic before they
+reach a release.
+
 ## Known Security Considerations
 
 `coola` is a library for comparing complex objects. When using it:

@@ -137,6 +137,24 @@ mkdocs build -f docs/mkdocs.yml
 inv doctest-src
 ```
 
+### Fuzzing
+
+`coola` uses [Atheris](https://github.com/google/atheris) fuzz harnesses, located in `fuzz/`, to
+find crashes and unhandled exceptions in the comparison (`objects_are_equal`/`objects_are_allclose`)
+and summarization (`summarize`) logic. They run continuously on pull requests via
+[ClusterFuzzLite](https://google.github.io/clusterfuzzlite/) (see `.clusterfuzzlite/` and
+`.github/workflows/cifuzz.yaml`).
+
+Run a harness locally:
+
+```shell
+pip install atheris
+python fuzz/fuzz_objects_are_equal.py
+```
+
+See `fuzz/README.md` for more details, including how to pass a fixed run count or a corpus
+directory.
+
 ### Type Checking
 
 `coola` uses pyright for type checking. You can run type checking locally:
@@ -156,6 +174,7 @@ coola/
 ├── docs/                 # Documentation
 │   ├── docs/            # Documentation source
 │   └── mkdocs.yml       # MkDocs configuration
+├── fuzz/                 # Atheris fuzz harnesses (run via ClusterFuzzLite)
 ├── src/                 # Source code
 │   └── coola/
 │       ├── comparison.py           # Main API
@@ -303,6 +322,9 @@ The project uses GitHub Actions for CI. Workflows are in `.github/workflows/`:
 - **Nightly Tests**: Tests against latest dependencies
     - Runs daily
     - Tests multiple Python versions
+
+- **CIFuzz**: Runs fuzzing harnesses via ClusterFuzzLite
+    - Runs on pull requests touching `src/`, `fuzz/`, or `.clusterfuzzlite/`
 
 
 ## Best Practices
