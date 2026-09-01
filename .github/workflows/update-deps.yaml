@@ -16,11 +16,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
-      contents: write # Required to push changes
-      pull-requests: write # Required to create pull requests
+      contents: read # actions/checkout only needs read; the app token grants write
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # ratchet:actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.TIBOT_APP_ID }}
+          private-key: ${{ secrets.TIBOT_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: false
 
       - name: Setup python environment
         uses: durandtibo/setup-venv-uv-action@59716ab8fb83cc7025548b3831c06b6f5c268f4f # ratchet:durandtibo/setup-venv-uv-action@v0.1.0
@@ -50,7 +62,7 @@ jobs:
       - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # ratchet:peter-evans/create-pull-request@v8
         if: always()
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
           branch: update/dependencies
           title: Update dependencies
           commit-message: "Update dependencies"
