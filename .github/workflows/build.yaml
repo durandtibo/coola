@@ -46,8 +46,7 @@ jobs:
           dist-type: ${{ matrix.dist-type }}
       - name: Run package checks
         shell: bash
-        run: |
-
+        run: |2
           set -euo pipefail
           echo "🔍 Running package checks..."
           python tests/package_checks.py
@@ -62,17 +61,19 @@ jobs:
 
           if ! uv pip list | grep -qE "^${{ matrix.package-extra }}\s"; then
             echo "❌ Error: Package '${{ matrix.package-extra }}' not found in installed packages"
+
             echo "Installed packages:"
             uv pip list
             exit 1
+
           fi
           echo "✅ Package '${{ matrix.package-extra }}' is installed"
-
   build-all:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:
       max-parallel: 8
+
       fail-fast: false
       matrix:
         dist-type: ["sdist", "wheel"]
@@ -80,8 +81,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
       - name: Verify Build
-        uses: durandtibo/verify-uv-build-action@88da014d506b5f0b4f657d4ba8920061ab785620 # ratchet:durandtibo/verify-uv-build-action@v0.0.7
 
+        uses: durandtibo/verify-uv-build-action@88da014d506b5f0b4f657d4ba8920061ab785620 # ratchet:durandtibo/verify-uv-build-action@v0.0.7
         with:
           package-name: coola
           package-extra: all
@@ -89,10 +90,10 @@ jobs:
           dist-type: ${{ matrix.dist-type }}
           verify-sdist-extra: false
       - name: Run package checks
-        run: |
-
+        run: |2
           set -euo pipefail
           echo "🔍 Running package checks..."
           python tests/package_checks.py
+
 
           echo "✅ Package checks passed"
