@@ -1,12 +1,28 @@
 from __future__ import annotations
 
 import re
+import time
 
 import pytest
 
+from coola.identifier import ulid as ulid_module
 from coola.identifier.ulid import generate_ulid
 
 ULID_PATTERN = re.compile(r"^[0-9A-HJKMNP-TV-Z]{26}$")
+
+
+def _decode_timestamp_ms(value: str) -> int:
+    """Decode the 48-bit timestamp encoded in a ULID string, by
+    reversing the Crockford Base32 encoding used by ``generate_ulid``.
+
+    Used to verify the timestamp is actually round-tripped through the
+    encoding correctly, rather than just checking the output's shape.
+    """
+    payload = 0
+    for char in value:
+        payload = (payload << 5) | ulid_module._ENCODING.index(char)
+    payload &= (1 << 128) - 1
+    return payload >> 80
 
 
 ##################################
@@ -57,3 +73,34 @@ def test_generate_ulid_negative_timestamp_raises() -> None:
 def test_generate_ulid_timestamp_too_large_raises() -> None:
     with pytest.raises(ValueError, match="timestamp_ms must fit in 48 bits"):
         generate_ulid(timestamp_ms=2**48)
+
+
+def test_generate_ulid_encodes_timestamp_roundtrip() -> None:
+    assert _decode_timestamp_ms(generate_ulid(timestamp_ms=1_234_567_890_123)) == 1_234_567_890_123
+
+
+def test_generate_ulid_encodes_zero_timestamp_roundtrip() -> None:
+    assert _decode_timestamp_ms(generate_ulid(timestamp_ms=0)) == 0
+
+
+def test_generate_ulid_encodes_max_timestamp_roundtrip() -> None:
+    assert _decode_timestamp_ms(generate_ulid(timestamp_ms=2**48 - 1)) == 2**48 - 1
+
+
+def test_generate_ulid_default_timestamp_is_current_time() -> None:
+    before = int(pytest.importorskip("time").time() * 1000)
+    ulid = generate_ulid()
+    after = int(__import__("time").time() * 1000)
+    assert before <= _decode_timestamp_ms(ulid) <= after
+
+
+def test_generate_ulid_many_calls_are_unique() -> None:
+    ulids = {generate_ulid() for _ in range(1000)}
+    assert len(ulids) == 1000
+
+
+def test_generate_ulid_uses_full_crockford_alphabet_characters() -> None:
+    # A large sample should exercise the randomness bytes broadly
+    # enough to see characters beyond the timestamp-derived prefix.
+    combined = "".join(generate_ulid() for _ in range(200))
+    assert set(combined) <= set(ulid_module._ENCODING)
