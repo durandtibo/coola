@@ -154,8 +154,6 @@ def test_stable_uuid_custom_namespace_is_deterministic() -> None:
 
 
 def test_stable_uuid_same_data_different_namespace_matches_manual_uuid5() -> None:
-    from coola.hashing import hash_object
-
     namespace = uuid.uuid4()
     data = {"a": 1}
     assert stable_uuid(data, namespace=namespace) == str(uuid.uuid5(namespace, hash_object(data)))
