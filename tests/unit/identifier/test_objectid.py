@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import re
 import time
+from unittest.mock import patch
 
 from coola.identifier import ObjectIdGenerator, generate_object_id
+from coola.identifier import objectid as objectid_module
 
 OBJECT_ID_PATTERN = re.compile(r"^[0-9a-f]{24}$")
 
@@ -30,9 +32,10 @@ def test_generate_object_id_many_calls_are_unique() -> None:
 
 
 def test_generate_object_id_sorts_by_creation_time() -> None:
-    first = generate_object_id()
-    time.sleep(1.01)
-    second = generate_object_id()
+    with patch("time.time", return_value=1_800_000_000):
+        first = generate_object_id()
+    with patch("time.time", return_value=1_800_000_001):
+        second = generate_object_id()
     assert first < second
 
 
@@ -84,7 +87,20 @@ def test_object_id_generator_generate_counter_wraps() -> None:
     assert int(second[18:], 16) == 0
 
 
-def test_generate_object_id_uses_shared_default_generator() -> None:
-    from coola.identifier import objectid
+def test_object_id_generator_generate_encodes_current_timestamp() -> None:
+    with patch("time.time", return_value=1_800_000_000):
+        object_id = ObjectIdGenerator().generate()
+    assert int(object_id[:8], 16) == 1_800_000_000
 
-    assert generate_object_id()[8:18] == objectid._default_generator._process_value.hex()
+
+def test_object_id_generator_generate_sorts_by_creation_time() -> None:
+    generator = ObjectIdGenerator()
+    with patch("time.time", return_value=1_800_000_000):
+        first = generator.generate()
+    with patch("time.time", return_value=1_800_000_001):
+        second = generator.generate()
+    assert first < second
+
+
+def test_generate_object_id_uses_shared_default_generator() -> None:
+    assert generate_object_id()[8:18] == objectid_module._default_generator._process_value.hex()

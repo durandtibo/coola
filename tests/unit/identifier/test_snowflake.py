@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
+from coola.identifier import snowflake
 from coola.identifier.snowflake import (
     _EPOCH_MS,
     _MAX_SEQUENCE,
@@ -32,6 +33,56 @@ def _decode(snowflake_id: int) -> tuple[int, int, int]:
 #####################################
 #     Tests for SnowflakeIdGenerator     #
 #####################################
+
+
+def test_snowflake_id_generator_init_default_state() -> None:
+    generator = SnowflakeIdGenerator()
+    assert generator._last_timestamp_ms == -1
+    assert generator._sequence == 0
+
+
+def test_snowflake_id_generator_init_resumes_state() -> None:
+    generator = SnowflakeIdGenerator(last_timestamp_ms=1_800_000_000_000, sequence=42)
+    assert generator._last_timestamp_ms == 1_800_000_000_000
+    assert generator._sequence == 42
+
+
+def test_snowflake_id_generator_init_resumed_state_blocks_earlier_timestamp() -> None:
+    generator = SnowflakeIdGenerator(last_timestamp_ms=_EPOCH_MS + (1 << 41) - 1)
+    with pytest.raises(RuntimeError, match="clock moved backward"):
+        generator.generate()
+
+
+def test_snowflake_id_generator_init_last_timestamp_ms_too_small_raises() -> None:
+    with pytest.raises(ValueError, match="last_timestamp_ms - epoch must fit in 41 bits"):
+        SnowflakeIdGenerator(last_timestamp_ms=_EPOCH_MS - 1)
+
+
+def test_snowflake_id_generator_init_last_timestamp_ms_too_large_raises() -> None:
+    with pytest.raises(ValueError, match="last_timestamp_ms - epoch must fit in 41 bits"):
+        SnowflakeIdGenerator(last_timestamp_ms=_EPOCH_MS + (1 << 41))
+
+
+def test_snowflake_id_generator_init_last_timestamp_ms_min_is_valid() -> None:
+    SnowflakeIdGenerator(last_timestamp_ms=_EPOCH_MS)
+
+
+def test_snowflake_id_generator_init_last_timestamp_ms_max_is_valid() -> None:
+    SnowflakeIdGenerator(last_timestamp_ms=_EPOCH_MS + (1 << 41) - 1)
+
+
+def test_snowflake_id_generator_init_negative_sequence_raises() -> None:
+    with pytest.raises(ValueError, match="sequence must fit in 12 bits"):
+        SnowflakeIdGenerator(sequence=-1)
+
+
+def test_snowflake_id_generator_init_sequence_too_large_raises() -> None:
+    with pytest.raises(ValueError, match="sequence must fit in 12 bits"):
+        SnowflakeIdGenerator(sequence=_MAX_SEQUENCE + 1)
+
+
+def test_snowflake_id_generator_init_max_sequence_is_valid() -> None:
+    SnowflakeIdGenerator(sequence=_MAX_SEQUENCE)
 
 
 def test_snowflake_id_generator_generate_returns_int() -> None:
@@ -147,6 +198,25 @@ def test_snowflake_id_generator_generate_sequence_rollover_advances_to_next_mill
     assert sequence == 0
 
 
+def test_snowflake_id_generator_generate_clock_moved_backward_during_busy_wait_raises() -> None:
+    first_ms = 1_800_000_000_000
+    backward_ms = first_ms - 1
+    generator = SnowflakeIdGenerator()
+    generator._last_timestamp_ms = first_ms
+    generator._sequence = _MAX_SEQUENCE
+    # The main body sees `first_ms` again (sequence wraps to 0, forcing
+    # the busy-wait loop), which itself then observes the clock having
+    # moved backward.
+    with (
+        patch(
+            "time.time_ns",
+            side_effect=[first_ms * 1_000_000, backward_ms * 1_000_000],
+        ),
+        pytest.raises(RuntimeError, match="clock moved backward"),
+    ):
+        generator.generate()
+
+
 def test_snowflake_id_generator_generate_sequence_wraps_within_same_millisecond() -> None:
     generator = SnowflakeIdGenerator()
     fixed_ms = 1_800_000_000_000
@@ -201,10 +271,18 @@ def test_generate_snowflake_id_negative_worker_id_raises() -> None:
         generate_snowflake_id(worker_id=-1)
 
 
-def test_generate_snowflake_id_uses_shared_default_generator() -> None:
+def test_generate_snowflake_id_uses_shared_default_generator(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     # Successive calls to the module-level function must observe each
     # other's state (they delegate to the same default generator),
-    # unlike two independent `SnowflakeIdGenerator` instances.
+    # unlike two independent `SnowflakeIdGenerator` instances. Swap in
+    # a fresh instance for the duration of the test so the real
+    # process-wide singleton is not left stamped with the patched
+    # timestamp below, which would otherwise make any later call to
+    # `generate_snowflake_id` in this process raise "clock moved
+    # backward".
+    monkeypatch.setattr(snowflake, "_default_generator", SnowflakeIdGenerator())
     with patch("time.time_ns", return_value=1_900_000_000_000 * 1_000_000):
         first = generate_snowflake_id()
         second = generate_snowflake_id()

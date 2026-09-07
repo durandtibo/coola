@@ -45,6 +45,22 @@ class SnowflakeIdGenerator:
     independent: create one per worker/shard/test instead of sharing
     mutable global state.
 
+    Args:
+        last_timestamp_ms: The millisecond timestamp of the last ID
+            minted by this generator, or ``-1`` (default) if none has
+            been minted yet. Pass the value persisted from a previous
+            instance (e.g. across a process restart) together with
+            ``sequence`` to preserve the monotonically increasing
+            guarantee; leave at the default for a fresh generator.
+        sequence: The sequence number of the last ID minted for
+            ``last_timestamp_ms``. Ignored (treated as ``0``) when
+            ``last_timestamp_ms`` is ``-1``.
+
+    Raises:
+        ValueError: If ``last_timestamp_ms`` is not ``-1`` and does
+            not fit in 41 bits, or if ``sequence`` does not fit in 12
+            bits.
+
     Example:
         ```pycon
         >>> from coola.identifier.snowflake import SnowflakeIdGenerator
@@ -56,10 +72,20 @@ class SnowflakeIdGenerator:
         ```
     """
 
-    def __init__(self) -> None:
+    def __init__(self, last_timestamp_ms: int = -1, sequence: int = 0) -> None:
+        if last_timestamp_ms != -1:
+            # last_timestamp_ms is an absolute Unix ms timestamp (like
+            # time.time_ns() // 1_000_000), not one already shifted by
+            # _EPOCH_MS, so it must fit in 41 bits only once the epoch
+            # is subtracted back out, matching what `generate` does
+            # when packing the returned integer.
+            validate_bit_range(
+                last_timestamp_ms - _EPOCH_MS, _TIMESTAMP_BITS, name="last_timestamp_ms - epoch"
+            )
+        validate_bit_range(sequence, _SEQUENCE_BITS, name="sequence")
         self._lock = threading.Lock()
-        self._last_timestamp_ms = -1
-        self._sequence = 0
+        self._last_timestamp_ms = last_timestamp_ms
+        self._sequence = sequence
 
     def generate(self, worker_id: int = 0) -> int:
         r"""Generate a Snowflake-style 64-bit identifier.
