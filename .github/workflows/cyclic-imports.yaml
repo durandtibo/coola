@@ -17,52 +17,31 @@ jobs:
       - name: Setup python environment
         uses: durandtibo/setup-venv-uv-action@59716ab8fb83cc7025548b3831c06b6f5c268f4f # ratchet:durandtibo/setup-venv-uv-action@v0.1.0
 
-      - name: check coola
+      - name: check modules
         run: |
-          python -c "import coola"
-
-      - name: check coola.display
-        run: |
-          python -c "from coola import display"
-
-      - name: check coola.equality
-        run: |
-          python -c "from coola import equality"
-          python -c "from coola.equality import handler"
-          python -c "from coola.equality import tester"
-
-      - name: check coola.factory
-        run: |
-          python -c "from coola import factory"
-
-      - name: check coola.hashing
-        run: |
-          python -c "from coola import hashing"
-
-      - name: check coola.iterator
-        run: |
-          python -c "from coola import iterator"
-          python -c "from coola.iterator import bfs"
-          python -c "from coola.iterator import dfs"
-
-      - name: check coola.nested
-        run: |
-          python -c "from coola import nested"
-      - name: check coola.random
-        run: |
-          python -c "from coola import random"
-      - name: check coola.recursive
-        run: |
-          python -c "from coola import recursive"
-      - name: check coola.reducer
-        run: |
-          python -c "from coola import reducer"
-      - name: check coola.registry
-        run: |
-          python -c "from coola import registry"
-      - name: check coola.summary
-        run: |
-          python -c "from coola import summary"
-      - name: check coola.utils
-        run: |
-          python -c "from coola import utils"
+          modules=(
+            coola
+            coola.display
+            coola.equality
+            coola.equality.handler
+            coola.equality.tester
+            coola.factory
+            coola.hashing
+            coola.identifier
+            coola.iterator
+            coola.iterator.bfs
+            coola.iterator.dfs
+            coola.nested
+            coola.random
+            coola.recursive
+            coola.reducer
+            coola.registry
+            coola.summary
+            coola.testing
+            coola.utils
+          )
+          for module in "${modules[@]}"; do
+            echo "::group::check ${module}"
+            python -c "import ${module}"
+            echo "::endgroup::"
+          done
