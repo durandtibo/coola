@@ -13,13 +13,14 @@ from __future__ import annotations
 __all__ = ["extract_ulid_timestamp_ms", "generate_ulid"]
 
 import os
-import time
 
-from coola.identifier.validation import validate_timestamp_ms
-
-# Crockford's Base32 alphabet (excludes I, L, O, U to avoid
-# transcription ambiguity), as specified by the ULID spec.
-_ENCODING = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
+from coola.identifier.validation import (
+    CROCKFORD_BASE32_ALPHABET as _ENCODING,
+)
+from coola.identifier.validation import (
+    decode_crockford_base32,
+    resolve_timestamp_ms,
+)
 
 
 def generate_ulid(timestamp_ms: int | None = None) -> str:
@@ -53,9 +54,7 @@ def generate_ulid(timestamp_ms: int | None = None) -> str:
 
         ```
     """
-    if timestamp_ms is None:
-        timestamp_ms = time.time_ns() // 1_000_000
-    validate_timestamp_ms(timestamp_ms)
+    timestamp_ms = resolve_timestamp_ms(timestamp_ms)
     payload = timestamp_ms.to_bytes(6, byteorder="big") + os.urandom(10)
     return _encode_base32(payload)
 
@@ -91,14 +90,7 @@ def extract_ulid_timestamp_ms(ulid: str) -> int:
     if len(ulid) != 26:
         msg = f"ulid must be 26 characters long, got {len(ulid)}"
         raise ValueError(msg)
-    value = 0
-    for char in ulid:
-        try:
-            digit = _ENCODING.index(char)
-        except ValueError as error:
-            msg = f"ulid contains a character outside the Crockford Base32 alphabet, got {char!r}"
-            raise ValueError(msg) from error
-        value = value * 32 + digit
+    value = decode_crockford_base32(ulid, name="ulid")
     return value >> 80
 
 

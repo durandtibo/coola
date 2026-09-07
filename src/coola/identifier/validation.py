@@ -9,13 +9,23 @@ the same checks and error messages.
 from __future__ import annotations
 
 __all__ = [
+    "CROCKFORD_BASE32_ALPHABET",
+    "decode_crockford_base32",
+    "resolve_timestamp_ms",
     "validate_bit_range",
     "validate_non_negative",
     "validate_positive",
     "validate_timestamp_ms",
 ]
 
+import time
+
 _TIMESTAMP_BITS = 48
+
+# Crockford's Base32 alphabet (excludes I, L, O, U to avoid transcription
+# ambiguity). Shared by ``coola.identifier.ulid`` and
+# ``coola.identifier.checksummed``, which both encode/decode it.
+CROCKFORD_BASE32_ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
 
 
 def validate_bit_range(value: int, bits: int, *, name: str) -> None:
@@ -79,3 +89,61 @@ def validate_positive(value: int, *, name: str) -> None:
     if value <= 0:
         msg = f"{name} must be positive, got {value}"
         raise ValueError(msg)
+
+
+def resolve_timestamp_ms(timestamp_ms: int | None) -> int:
+    r"""Return ``timestamp_ms``, defaulting to the current time and
+    validating that the result fits in 48 bits.
+
+    Shared by the generators (``generate_ulid``, ``generate_uuid7``)
+    that accept an optional 48-bit millisecond timestamp, defaulting to
+    ``time.time_ns() // 1_000_000`` when not given.
+
+    Args:
+        timestamp_ms: The Unix timestamp in milliseconds, or ``None``
+            to use the current time.
+
+    Returns:
+        ``timestamp_ms``, or the current time in milliseconds if it
+        was ``None``.
+
+    Raises:
+        ValueError: If the resolved timestamp does not fit in 48 bits
+            (i.e. is negative or exceeds ``2**48 - 1``).
+    """
+    if timestamp_ms is None:
+        timestamp_ms = time.time_ns() // 1_000_000
+    validate_timestamp_ms(timestamp_ms)
+    return timestamp_ms
+
+
+def decode_crockford_base32(text: str, *, name: str) -> int:
+    r"""Decode a Crockford Base32 string into its integer value.
+
+    Shared by ``coola.identifier.ulid`` and
+    ``coola.identifier.checksummed``, which both decode strings drawn
+    from ``CROCKFORD_BASE32_ALPHABET``.
+
+    Args:
+        text: The Crockford Base32 string to decode.
+        name: The name of the value, used in the error message.
+
+    Returns:
+        The decoded integer value.
+
+    Raises:
+        ValueError: If ``text`` contains a character outside
+            ``CROCKFORD_BASE32_ALPHABET``.
+    """
+    value = 0
+    for char in text:
+        try:
+            digit = CROCKFORD_BASE32_ALPHABET.index(char)
+        except ValueError as error:
+            msg = (
+                f"{name} contains a character outside the Crockford Base32 alphabet, "
+                f"got {char!r}"
+            )
+            raise ValueError(msg) from error
+        value = value * 32 + digit
+    return value
