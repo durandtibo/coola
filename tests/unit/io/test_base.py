@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import logging
-from typing import TYPE_CHECKING
+import pytest
 
 from coola.equality.tester import get_default_registry
 from coola.factory import OBJECT_TARGET
@@ -15,9 +14,6 @@ from coola.io import (
     resolve_loader,
     resolve_saver,
 )
-
-if TYPE_CHECKING:
-    import pytest
 
 ######################################
 #     Tests for is_loader_config     #
@@ -59,10 +55,9 @@ def test_resolve_loader_dict() -> None:
     assert isinstance(resolve_loader({OBJECT_TARGET: "coola.io.JsonLoader"}), JsonLoader)
 
 
-def test_resolve_loader_incorrect_type(caplog: pytest.LogCaptureFixture) -> None:
-    with caplog.at_level(level=logging.WARNING):
-        assert isinstance(resolve_loader({OBJECT_TARGET: "coola.io.JsonSaver"}), JsonSaver)
-        assert caplog.messages
+def test_resolve_loader_incorrect_type() -> None:
+    with pytest.raises(TypeError, match="Received object is not a BaseLoader instance"):
+        resolve_loader({OBJECT_TARGET: "coola.io.JsonSaver"})
 
 
 ###################################
@@ -79,10 +74,9 @@ def test_resolve_saver_dict() -> None:
     assert isinstance(resolve_saver({OBJECT_TARGET: "coola.io.JsonSaver"}), JsonSaver)
 
 
-def test_resolve_saver_incorrect_type(caplog: pytest.LogCaptureFixture) -> None:
-    with caplog.at_level(level=logging.WARNING):
-        assert isinstance(resolve_saver({OBJECT_TARGET: "coola.io.JsonLoader"}), JsonLoader)
-        assert caplog.messages
+def test_resolve_saver_incorrect_type() -> None:
+    with pytest.raises(TypeError, match="Received object is not a BaseSaver instance"):
+        resolve_saver({OBJECT_TARGET: "coola.io.JsonLoader"})
 
 
 def test_equality_tester_registry_has_equality_tester() -> None:

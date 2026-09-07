@@ -62,10 +62,10 @@ class BaseLoader(ABC, Generic[T]):
 
         Example:
             ```pycon
-            >>> from coola.io import JsonLoader, YamlLoader
+            >>> from coola.io import JsonLoader, TextLoader
             >>> JsonLoader().equal(JsonLoader())
             True
-            >>> JsonLoader().equal(YamlLoader())
+            >>> JsonLoader().equal(TextLoader())
             False
 
             ```
@@ -131,10 +131,10 @@ class BaseSaver(ABC, Generic[T]):
 
         Example:
             ```pycon
-            >>> from coola.io import JsonSaver, YamlSaver
+            >>> from coola.io import JsonSaver, TextSaver
             >>> JsonSaver().equal(JsonSaver())
             True
-            >>> JsonSaver().equal(YamlSaver())
+            >>> JsonSaver().equal(TextSaver())
             False
 
             ```
