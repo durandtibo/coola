@@ -8,7 +8,7 @@ For a refresher, see the [Python tutorial](https://docs.python.org/tutorial/).
 
 ## Overview
 
-The `coola.identifier` package provides four identifier generators, covering two different
+The `coola.identifier` package provides several identifier generators, covering two different
 problems:
 
 | Function                       | Same data → same ID? | Format               | Use case                                                    |
@@ -16,13 +16,16 @@ problems:
 | `generate_stable_uuid`          | :white_check_mark:    | UUID string           | Reproducible ID, needs a valid UUID (e.g. UUID DB column)      |
 | `generate_stable_content_id`    | :white_check_mark:    | hex string            | Reproducible ID, full hash strength (dedup, caching)           |
 | `generate_ulid`                 | :x:                   | 26-char string         | Unique, sortable-by-creation-time ID                           |
+| `generate_uuid7`                | :x:                   | UUID string            | Unique, sortable-by-creation-time ID, needs a valid UUID       |
 | `generate_snowflake_id`         | :x:                   | 64-bit integer        | Unique, sortable-by-creation-time ID as a single integer        |
+| `generate_prefixed_id`          | depends on generator  | `"{prefix}_{id}"`     | Wraps any of the above so the ID's type is recognizable at a glance |
 
 `generate_stable_uuid` and `generate_stable_content_id` are content-addressed: they are built on
 top of [`coola.hashing`](../refs/hashing.md)'s `hash_object`, so calling them twice with equal data
-(regardless of e.g. mapping key order) always returns the same identifier. `generate_ulid` and
-`generate_snowflake_id` are not derived from data at all — they mint a fresh, unique value every
-call, ordered by creation time instead.
+(regardless of e.g. mapping insertion order) always returns the same identifier. `generate_ulid`,
+`generate_uuid7`, and `generate_snowflake_id` are not derived from data at all: they mint a fresh,
+unique value every call, ordered by creation time instead. `generate_prefixed_id` is not a new
+algorithm; it wraps any of the others (or a custom callable) to tag the identifier's type.
 
 ## Stable, content-derived identifiers
 
@@ -135,8 +138,29 @@ False
 ```
 
 Because the timestamp is the most significant part, ULIDs generated later sort (as plain strings)
-after ULIDs generated earlier — unlike `uuid.uuid4`, which sorts randomly. Use it for a unique
+after ULIDs generated earlier, unlike `uuid.uuid4`, which sorts randomly. Use it for a unique
 record ID that should also sort roughly by insertion order.
+
+### `generate_uuid7`
+
+`generate_uuid7` generates a [UUIDv7](https://www.rfc-editor.org/rfc/rfc9562) (RFC 9562): like
+`generate_ulid`, it packs a 48-bit millisecond timestamp followed by randomness, but into the
+standard 128-bit UUID layout (version and variant bits included) instead of a Base32 string:
+
+```pycon
+>>> from coola.identifier import generate_uuid7
+>>> generate_uuid7()  # doctest: +ELLIPSIS
+'...'
+>>> generate_uuid7() == generate_uuid7()
+False
+
+```
+
+Like ULIDs, UUIDv7 values sort (as plain strings) in creation-time order. Prefer `generate_uuid7`
+over `generate_ulid` when the identifier must be a valid UUID string (e.g. a UUID-typed database
+column, or an API expecting `uuid.UUID` formatting); prefer `generate_ulid` otherwise, since it
+packs more randomness (80 bits) than UUIDv7 leaves available (74 bits, once the version and
+variant bits are subtracted).
 
 ### `generate_snowflake_id`
 
@@ -152,18 +176,18 @@ Twitter's original Snowflake service: a 41-bit millisecond timestamp, a 10-bit `
 ```
 
 Like `generate_ulid`, successive IDs are monotonically increasing, but the result is a plain
-64-bit integer rather than a string — useful when the identifier must fit a `BIGINT`-style column,
+64-bit integer rather than a string, useful when the identifier must fit a `BIGINT`-style column,
 or when IDs need to be attributable to the worker/shard that minted them via `worker_id`.
 
 `generate_snowflake_id` is a thread-safe convenience wrapper around a shared, process-wide
-`SnowflakeIdGenerator` instance — its sequence counter is local to that instance, so it guarantees
+`SnowflakeIdGenerator` instance: its sequence counter is local to that instance, so it guarantees
 uniqueness across calls sharing it, not across other instances or processes. Assign each
 concurrently running generator (typically one per process or shard) a distinct `worker_id` to
 avoid collisions between them.
 
 Use `SnowflakeIdGenerator` directly instead of the module-level function when you need several
-independent generators in the same process — e.g. one per worker thread, or an isolated instance
-in a test — without them sharing state through a global singleton:
+independent generators in the same process, e.g. one per worker thread, or an isolated instance
+in a test, without them sharing state through a global singleton:
 
 ```pycon
 >>> from coola.identifier import SnowflakeIdGenerator
@@ -173,10 +197,57 @@ in a test — without them sharing state through a global singleton:
 
 ```
 
+## Prefixed identifiers
+
+### `generate_prefixed_id`
+
+`generate_prefixed_id` is not a new identifier-generation algorithm: it wraps any of the
+generators above (via its `generator` argument, defaulting to `generate_ulid`) to produce
+Stripe-style prefixed identifiers, which make an identifier's type recognizable at a glance (e.g.
+in logs, URLs, or support tickets) without a lookup:
+
+```pycon
+>>> from coola.identifier import generate_prefixed_id
+>>> generate_prefixed_id("cus")  # doctest: +ELLIPSIS
+'cus_...'
+
+```
+
+Pass a different `generator` to prefix a different kind of identifier, e.g. a `SnowflakeIdGenerator`
+instance's output turned into a string:
+
+```pycon
+>>> from coola.identifier import SnowflakeIdGenerator, generate_prefixed_id
+>>> generator = SnowflakeIdGenerator()
+>>> generate_prefixed_id("evt", generator=lambda: str(generator.generate()))
+... # doctest: +ELLIPSIS
+'evt_...'
+
+```
+
+`prefix` must be non-empty and must not contain `"_"` (the separator between the prefix and the
+generated identifier):
+
+```pycon
+>>> from coola.identifier import generate_prefixed_id
+>>> generate_prefixed_id("")
+Traceback (most recent call last):
+    ...
+ValueError: prefix must not be empty
+>>> generate_prefixed_id("cus_tom")
+Traceback (most recent call last):
+    ...
+ValueError: prefix must not contain '_', got 'cus_tom'
+
+```
+
 ## Which one should I use?
 
 - Need the same identifier every time for the same data? Use `generate_stable_uuid` (valid UUID
   format) or `generate_stable_content_id` (raw hash, stronger collision resistance, configurable
   length).
-- Need a unique identifier per call, sortable by creation time? Use `generate_ulid` (string) or
-  `generate_snowflake_id` (64-bit integer).
+- Need a unique identifier per call, sortable by creation time? Use `generate_ulid` (string,
+  more randomness), `generate_uuid7` (string, valid UUID format), or `generate_snowflake_id`
+  (64-bit integer).
+- Need the identifier's type recognizable at a glance (e.g. in logs or URLs)? Wrap any of the
+  above with `generate_prefixed_id`.
