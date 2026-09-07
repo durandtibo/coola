@@ -33,6 +33,17 @@ jobs:
       # actions: read
 
     steps:
+      # Needed for the Branch-Protection check, which requires a token with
+      # administration:read access to read classic branch protection rules.
+      # See https://github.com/ossf/scorecard-action?tab=readme-ov-file#authentication-with-github-app-token-optional
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # ratchet:actions/create-github-app-token@v3.2.0
+        with:
+          app-id: ${{ secrets.TIBOT_APP_ID }}
+          private-key: ${{ secrets.TIBOT_APP_PRIVATE_KEY }}
+          permission-administration: read
+
       - name: "Checkout code"
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -43,11 +54,9 @@ jobs:
         with:
           results_file: results.sarif
           results_format: sarif
-          # (Optional) "write" PAT token. Uncomment the `repo_token` line below if:
-          # - you want to enable the Branch-Protection check on a *public* repository, or
-          # - you are installing Scorecard on a *private* repository
-          # To create the PAT, follow the steps in https://github.com/ossf/scorecard-action?tab=readme-ov-file#authentication-with-fine-grained-pat-optional.
-          # repo_token: ${{ secrets.SCORECARD_TOKEN }}
+          # Needed for the Branch-Protection check on a public repository (or
+          # to run Scorecard at all on a private one).
+          repo_token: ${{ steps.app-token.outputs.token }}
 
           # Public repositories:
           #   - Publish results to OpenSSF REST API for easy access by consumers
