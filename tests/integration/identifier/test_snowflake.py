@@ -34,9 +34,9 @@ def test_snowflake_id_generator_generate_thread_safe() -> None:
 def test_snowflake_id_generator_generate_thread_safe_during_sequence_rollover() -> None:
     """Test that concurrent calls racing through an exhausted per-
     millisecond sequence never produce duplicate identifiers."""
-    generator = SnowflakeIdGenerator()
-    generator._last_timestamp_ms = time.time_ns() // 1_000_000
-    generator._sequence = _MAX_SEQUENCE
+    generator = SnowflakeIdGenerator(
+        last_timestamp_ms=time.time_ns() // 1_000_000, sequence=_MAX_SEQUENCE
+    )
     ids: list[int] = []
     lock = threading.Lock()
     num_threads = 8

@@ -30,9 +30,9 @@ def _decode(snowflake_id: int) -> tuple[int, int, int]:
     return timestamp_ms, worker_id, sequence
 
 
-#####################################
+##########################################
 #     Tests for SnowflakeIdGenerator     #
-#####################################
+##########################################
 
 
 def test_snowflake_id_generator_init_default_state() -> None:
@@ -179,8 +179,7 @@ def test_snowflake_id_generator_generate_explicit_timestamp_ms_backward_raises()
 
 
 def test_snowflake_id_generator_generate_clock_moved_backward_raises() -> None:
-    generator = SnowflakeIdGenerator()
-    generator._last_timestamp_ms = 9_999_999_999_999
+    generator = SnowflakeIdGenerator(last_timestamp_ms=3_900_000_000_000)
     with pytest.raises(RuntimeError, match="clock moved backward"):
         generator.generate()
 
@@ -196,9 +195,7 @@ def test_snowflake_id_generator_generate_encodes_timestamp_roundtrip() -> None:
 def test_snowflake_id_generator_generate_sequence_rollover_advances_to_next_millisecond() -> None:
     first_ms = 1_800_000_000_000
     next_ms = first_ms + 1
-    generator = SnowflakeIdGenerator()
-    generator._last_timestamp_ms = first_ms
-    generator._sequence = _MAX_SEQUENCE
+    generator = SnowflakeIdGenerator(last_timestamp_ms=first_ms, sequence=_MAX_SEQUENCE)
     # The main body sees `first_ms` again (sequence wraps to 0, forcing
     # the busy-wait loop), which itself observes `first_ms` once more
     # before the clock advances to `next_ms`.
@@ -219,9 +216,7 @@ def test_snowflake_id_generator_generate_releases_lock_during_busy_wait() -> Non
     # wait -- only for the brief windows in between spins.
     first_ms = 1_800_000_000_000
     next_ms = first_ms + 1
-    generator = SnowflakeIdGenerator()
-    generator._last_timestamp_ms = first_ms
-    generator._sequence = _MAX_SEQUENCE
+    generator = SnowflakeIdGenerator(last_timestamp_ms=first_ms, sequence=_MAX_SEQUENCE)
 
     lock_was_free_during_sleep = []
 
@@ -249,9 +244,7 @@ def test_snowflake_id_generator_generate_releases_lock_during_busy_wait() -> Non
 def test_snowflake_id_generator_generate_clock_moved_backward_during_busy_wait_raises() -> None:
     first_ms = 1_800_000_000_000
     backward_ms = first_ms - 1
-    generator = SnowflakeIdGenerator()
-    generator._last_timestamp_ms = first_ms
-    generator._sequence = _MAX_SEQUENCE
+    generator = SnowflakeIdGenerator(last_timestamp_ms=first_ms, sequence=_MAX_SEQUENCE)
     # The main body sees `first_ms` again (sequence wraps to 0, forcing
     # the busy-wait loop), which itself then observes the clock having
     # moved backward.
