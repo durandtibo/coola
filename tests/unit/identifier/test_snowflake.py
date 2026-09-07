@@ -102,6 +102,42 @@ def test_generate_snowflake_id_clock_moved_backward_raises() -> None:
         generate_snowflake_id()
 
 
+def test_generate_snowflake_id_encodes_timestamp_roundtrip() -> None:
+    fixed_ms = 1_800_000_000_000
+    with patch("time.time_ns", return_value=fixed_ms * 1_000_000):
+        snowflake_id = generate_snowflake_id()
+    decoded_ms = (snowflake_id >> snowflake_module._TIMESTAMP_SHIFT) + snowflake_module._EPOCH_MS
+    assert decoded_ms == fixed_ms
+
+
+def test_generate_snowflake_id_sequence_rollover_advances_to_next_millisecond() -> None:
+    first_ms = 1_800_000_000_000
+    next_ms = first_ms + 1
+    snowflake_module._last_timestamp_ms = first_ms
+    snowflake_module._sequence = snowflake_module._MAX_SEQUENCE
+    # The main body sees `first_ms` again (sequence wraps to 0, forcing
+    # the busy-wait loop), which itself observes `first_ms` once more
+    # before the clock advances to `next_ms`.
+    with patch(
+        "time.time_ns",
+        side_effect=[first_ms * 1_000_000, first_ms * 1_000_000, next_ms * 1_000_000],
+    ):
+        snowflake_id = generate_snowflake_id()
+    decoded_ms = (snowflake_id >> snowflake_module._TIMESTAMP_SHIFT) + snowflake_module._EPOCH_MS
+    assert decoded_ms == next_ms
+    assert (snowflake_id & snowflake_module._MAX_SEQUENCE) == 0
+
+
+def test_generate_snowflake_id_sequence_wraps_within_same_millisecond() -> None:
+    fixed_ms = 1_800_000_000_000
+    with patch("time.time_ns", return_value=fixed_ms * 1_000_000):
+        first = generate_snowflake_id()
+        current = first
+        for _ in range(snowflake_module._MAX_SEQUENCE):
+            current = generate_snowflake_id()
+        assert current == first + snowflake_module._MAX_SEQUENCE
+
+
 def test_generate_snowflake_id_thread_safe() -> None:
     ids: list[int] = []
     lock = threading.Lock()

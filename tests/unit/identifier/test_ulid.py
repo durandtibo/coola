@@ -88,9 +88,9 @@ def test_generate_ulid_encodes_max_timestamp_roundtrip() -> None:
 
 
 def test_generate_ulid_default_timestamp_is_current_time() -> None:
-    before = int(pytest.importorskip("time").time() * 1000)
+    before = int(time.time() * 1000)
     ulid = generate_ulid()
-    after = int(__import__("time").time() * 1000)
+    after = int(time.time() * 1000)
     assert before <= _decode_timestamp_ms(ulid) <= after
 
 
