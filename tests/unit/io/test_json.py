@@ -109,6 +109,15 @@ def test_json_saver_save_file_exist_ok(tmp_path: Path) -> None:
     assert load_json(path) == {"key1": [3, 2, 1], "key2": "meow"}
 
 
+def test_json_saver_save_not_serializable_no_leftover_tmp_file(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("tmp/data.json")
+    saver = JsonSaver()
+    with pytest.raises(TypeError):
+        saver.save({"key1": object()}, path)
+    assert not path.is_file()
+    assert list(path.parent.iterdir()) == []
+
+
 def test_json_saver_save_file_exist_ok_dir(tmp_path: Path) -> None:
     path = tmp_path.joinpath("tmp/data.json")
     path.mkdir(parents=True, exist_ok=True)

@@ -231,7 +231,11 @@ class BaseFileSaver(BaseSaver[T]):
         # Save to tmp, then commit by moving the file in case the job gets
         # interrupted while writing the file
         tmp_path = add_uuid_suffix(path)
-        self._save_file(to_save, tmp_path)
+        try:
+            self._save_file(to_save, tmp_path)
+        except BaseException:
+            tmp_path.unlink(missing_ok=True)
+            raise
         tmp_path.rename(path)
 
     @abstractmethod
