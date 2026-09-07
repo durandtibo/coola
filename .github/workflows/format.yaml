@@ -47,6 +47,7 @@ jobs:
 
       - name: Run ShellCheck
         run: |
+          shopt -s globstar
           echo "🔍 Running ShellCheck..."
           shellcheck -- **/*.sh || exit 1
 
@@ -58,5 +59,6 @@ jobs:
 
       - name: Run shfmt
         run: |
+          shopt -s globstar
           echo "✨ Checking formatting using shfmt..."
           shfmt -d -- **/*.sh
