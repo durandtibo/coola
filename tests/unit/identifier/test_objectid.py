@@ -112,6 +112,36 @@ def test_generate_object_id_uses_shared_default_generator() -> None:
     assert generate_object_id()[8:18] == objectid_module._default_generator._process_value.hex()
 
 
+def test_object_id_generator_generate_accepts_explicit_timestamp() -> None:
+    object_id = ObjectIdGenerator().generate(timestamp=1_800_000_000)
+    assert int(object_id[:8], 16) == 1_800_000_000
+
+
+def test_object_id_generator_generate_timestamp_does_not_race_counter() -> None:
+    # The timestamp and counter must be captured together under the
+    # same lock acquisition, otherwise concurrent callers could pair a
+    # later counter with an earlier timestamp (see generate()).
+    generator = ObjectIdGenerator()
+    with patch("time.time", return_value=1_800_000_000):
+        first = generator.generate()
+    assert int(first[:8], 16) == 1_800_000_000
+
+
+def test_object_id_generator_generate_negative_timestamp_raises() -> None:
+    with pytest.raises(ValueError, match="timestamp must fit in 32 bits"):
+        ObjectIdGenerator().generate(timestamp=-1)
+
+
+def test_object_id_generator_generate_timestamp_too_large_raises() -> None:
+    with pytest.raises(ValueError, match="timestamp must fit in 32 bits"):
+        ObjectIdGenerator().generate(timestamp=2**32)
+
+
+def test_generate_object_id_accepts_explicit_timestamp() -> None:
+    object_id = generate_object_id(timestamp=1_800_000_000)
+    assert int(object_id[:8], 16) == 1_800_000_000
+
+
 #####################################################
 #     Tests for extract_object_id_timestamp        #
 #####################################################

@@ -1,4 +1,10 @@
-r"""Provide identifiers for nested data."""
+r"""Provide identifiers for nested data.
+
+Every generator returns a ``str`` identifier except
+``generate_snowflake_id``/``SnowflakeIdGenerator.generate``, which
+return a plain ``int`` (a Snowflake ID is defined as a 64-bit integer,
+e.g. for use as a database ``BIGINT`` primary key).
+"""
 
 from __future__ import annotations
 

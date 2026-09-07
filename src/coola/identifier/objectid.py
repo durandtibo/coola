@@ -22,6 +22,8 @@ import os
 import threading
 import time
 
+from coola.identifier.validation import validate_bit_range
+
 _TIMESTAMP_BYTES = 4
 _PROCESS_BYTES = 5
 _COUNTER_BYTES = 3
@@ -40,7 +42,7 @@ class ObjectIdGenerator:
 
     Example:
         ```pycon
-        >>> from coola.identifier.objectid import ObjectIdGenerator
+        >>> from coola.identifier import ObjectIdGenerator
         >>> generator = ObjectIdGenerator()
         >>> object_id = generator.generate()
         >>> len(object_id)
@@ -58,7 +60,7 @@ class ObjectIdGenerator:
         self._lock = threading.Lock()
         self._counter = int.from_bytes(os.urandom(_COUNTER_BYTES), byteorder="big")
 
-    def generate(self) -> str:
+    def generate(self, timestamp: int | None = None) -> str:
         r"""Generate a MongoDB ObjectId style 12-byte identifier.
 
         The returned value packs a 4-byte Unix timestamp (seconds), a
@@ -77,12 +79,21 @@ class ObjectIdGenerator:
             in the extreme, uniqueness) for IDs minted within that
             second.
 
+        Args:
+            timestamp: The Unix timestamp in seconds to encode. If
+                ``None`` (default), the current time is used. Exposed
+                mainly for deterministic testing.
+
         Returns:
             A 24-character lowercase hex string.
 
+        Raises:
+            ValueError: If ``timestamp`` does not fit in 32 bits (i.e.
+                is negative or exceeds ``2**32 - 1``).
+
         Example:
             ```pycon
-            >>> from coola.identifier.objectid import ObjectIdGenerator
+            >>> from coola.identifier import ObjectIdGenerator
             >>> generator = ObjectIdGenerator()
             >>> object_id = generator.generate()
             >>> len(object_id)
@@ -91,12 +102,16 @@ class ObjectIdGenerator:
             ```
         """
         with self._lock:
+            if timestamp is None:
+                timestamp = int(time.time())
+            validate_bit_range(timestamp, _TIMESTAMP_BYTES * 8, name="timestamp")
             self._counter = (self._counter + 1) & _MAX_COUNTER
             counter = self._counter
-        timestamp = int(time.time()).to_bytes(_TIMESTAMP_BYTES, byteorder="big")
-        payload = (
-            timestamp + self._process_value + counter.to_bytes(_COUNTER_BYTES, byteorder="big")
-        )
+            payload = (
+                timestamp.to_bytes(_TIMESTAMP_BYTES, byteorder="big")
+                + self._process_value
+                + counter.to_bytes(_COUNTER_BYTES, byteorder="big")
+            )
         return payload.hex()
 
 
@@ -105,7 +120,7 @@ class ObjectIdGenerator:
 _default_generator = ObjectIdGenerator()
 
 
-def generate_object_id() -> str:
+def generate_object_id(timestamp: int | None = None) -> str:
     r"""Generate a MongoDB ObjectId style 12-byte identifier.
 
     Convenience wrapper around a shared, process-wide
@@ -113,8 +128,17 @@ def generate_object_id() -> str:
     if you need multiple independent generators (e.g. one per test) or
     want to avoid sharing state through a module-level singleton.
 
+    Args:
+        timestamp: The Unix timestamp in seconds to encode. If
+            ``None`` (default), the current time is used. Exposed
+            mainly for deterministic testing.
+
     Returns:
         A 24-character lowercase hex string.
+
+    Raises:
+        ValueError: If ``timestamp`` does not fit in 32 bits (i.e. is
+            negative or exceeds ``2**32 - 1``).
 
     Example:
         ```pycon
@@ -125,7 +149,7 @@ def generate_object_id() -> str:
 
         ```
     """
-    return _default_generator.generate()
+    return _default_generator.generate(timestamp=timestamp)
 
 
 def extract_object_id_timestamp(object_id: str) -> int:

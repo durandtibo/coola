@@ -14,13 +14,8 @@ __all__ = ["extract_ulid_timestamp_ms", "generate_ulid"]
 
 import os
 
-from coola.identifier.validation import (
-    CROCKFORD_BASE32_ALPHABET as _ENCODING,
-)
-from coola.identifier.validation import (
-    decode_crockford_base32,
-    resolve_timestamp_ms,
-)
+from coola.identifier.validation import CROCKFORD_BASE32_ALPHABET as _ENCODING
+from coola.identifier.validation import decode_crockford_base32, resolve_timestamp_ms
 
 
 def generate_ulid(timestamp_ms: int | None = None) -> str:

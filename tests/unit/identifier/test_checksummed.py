@@ -97,3 +97,14 @@ def test_verify_checksummed_id_normalizes_l_as_one() -> None:
     payload = "0123456789AB"
     value = payload + _checksum_symbol(payload)
     assert verify_checksummed_id(value.replace("1", "L"), sep="")
+
+
+def test_generate_checksummed_id_sep_empty_is_verifiable() -> None:
+    value = generate_checksummed_id(sep="")
+    assert "-" not in value
+    assert verify_checksummed_id(value, sep="")
+
+
+def test_generate_checksummed_id_sep_multichar_raises() -> None:
+    with pytest.raises(ValueError, match="sep must be empty or a single character"):
+        generate_checksummed_id(sep="--")

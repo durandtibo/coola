@@ -120,3 +120,9 @@ def test_extract_uuid7_timestamp_ms_matches_decode_helper() -> None:
 def test_extract_uuid7_timestamp_ms_invalid_string_raises() -> None:
     with pytest.raises(ValueError, match="badly formed hexadecimal UUID string"):
         extract_uuid7_timestamp_ms("not-a-uuid")
+
+
+def test_extract_uuid7_timestamp_ms_rejects_non_v7_uuid() -> None:
+    # A UUIDv4-shaped string: version nibble is 4, not 7.
+    with pytest.raises(ValueError, match="uuid7 must be a version 7 UUID"):
+        extract_uuid7_timestamp_ms("00000000-0000-4000-8000-000000000000")

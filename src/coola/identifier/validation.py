@@ -140,10 +140,7 @@ def decode_crockford_base32(text: str, *, name: str) -> int:
         try:
             digit = CROCKFORD_BASE32_ALPHABET.index(char)
         except ValueError as error:
-            msg = (
-                f"{name} contains a character outside the Crockford Base32 alphabet, "
-                f"got {char!r}"
-            )
+            msg = f"{name} contains a character outside the Crockford Base32 alphabet, got {char!r}"
             raise ValueError(msg) from error
         value = value * 32 + digit
     return value
