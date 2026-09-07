@@ -15,6 +15,8 @@ __all__ = ["generate_ulid"]
 import os
 import time
 
+from coola.identifier.validation import validate_timestamp_ms
+
 # Crockford's Base32 alphabet (excludes I, L, O, U to avoid
 # transcription ambiguity), as specified by the ULID spec.
 _ENCODING = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
@@ -53,9 +55,7 @@ def generate_ulid(timestamp_ms: int | None = None) -> str:
     """
     if timestamp_ms is None:
         timestamp_ms = time.time_ns() // 1_000_000
-    if not 0 <= timestamp_ms <= 0xFFFFFFFFFFFF:
-        msg = f"timestamp_ms must fit in 48 bits (0 to 2**48 - 1), got {timestamp_ms}"
-        raise ValueError(msg)
+    validate_timestamp_ms(timestamp_ms)
     payload = timestamp_ms.to_bytes(6, byteorder="big") + os.urandom(10)
     return _encode_base32(payload)
 

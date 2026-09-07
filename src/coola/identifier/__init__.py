@@ -3,6 +3,7 @@ r"""Provide identifiers for nested data."""
 from __future__ import annotations
 
 __all__ = [
+    "ObjectIdGenerator",
     "SnowflakeIdGenerator",
     "decode_obfuscated_id",
     "generate_checksummed_id",
@@ -23,7 +24,7 @@ from coola.identifier.checksummed import generate_checksummed_id, verify_checksu
 from coola.identifier.content import generate_stable_content_id
 from coola.identifier.nanoid import generate_nano_id
 from coola.identifier.obfuscated import decode_obfuscated_id, generate_obfuscated_id
-from coola.identifier.objectid import generate_object_id
+from coola.identifier.objectid import ObjectIdGenerator, generate_object_id
 from coola.identifier.prefixed import generate_prefixed_id
 from coola.identifier.snowflake import SnowflakeIdGenerator, generate_snowflake_id
 from coola.identifier.ulid import generate_ulid

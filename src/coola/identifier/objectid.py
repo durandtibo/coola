@@ -16,7 +16,7 @@ explicit ``worker_id`` control is needed instead.
 
 from __future__ import annotations
 
-__all__ = ["generate_object_id"]
+__all__ = ["ObjectIdGenerator", "generate_object_id"]
 
 import os
 import threading
@@ -27,31 +27,91 @@ _PROCESS_BYTES = 5
 _COUNTER_BYTES = 3
 _MAX_COUNTER = (1 << (_COUNTER_BYTES * 8)) - 1
 
-# A random 5-byte value fixed for the lifetime of this process, playing
-# the role a machine/process identifier plays in the original MongoDB
-# ObjectId format, without requiring the caller to configure one.
-_PROCESS_VALUE = os.urandom(_PROCESS_BYTES)
 
-_lock = threading.Lock()
-_counter = int.from_bytes(os.urandom(_COUNTER_BYTES), byteorder="big")
+class ObjectIdGenerator:
+    r"""Generate MongoDB ObjectId style 12-byte identifiers.
+
+    All the state needed to mint IDs (the per-instance random value
+    and the counter) lives on the instance rather than at module
+    scope, so each generator is independent: create one per
+    process/test instead of sharing mutable global state. Use
+    ``generate_object_id`` for the common case of a single, shared,
+    process-wide generator.
+
+    Example:
+        ```pycon
+        >>> from coola.identifier.objectid import ObjectIdGenerator
+        >>> generator = ObjectIdGenerator()
+        >>> object_id = generator.generate()
+        >>> len(object_id)
+        24
+
+        ```
+    """
+
+    def __init__(self) -> None:
+        # A random 5-byte value fixed for the lifetime of this
+        # generator, playing the role a machine/process identifier
+        # plays in the original MongoDB ObjectId format, without
+        # requiring the caller to configure one.
+        self._process_value = os.urandom(_PROCESS_BYTES)
+        self._lock = threading.Lock()
+        self._counter = int.from_bytes(os.urandom(_COUNTER_BYTES), byteorder="big")
+
+    def generate(self) -> str:
+        r"""Generate a MongoDB ObjectId style 12-byte identifier.
+
+        The returned value packs a 4-byte Unix timestamp (seconds), a
+        5-byte value fixed once per generator instance, and a 3-byte
+        counter that increments (and silently wraps modulo ``2**24``)
+        on every call, into a 24-character lowercase hex string.
+        Because the timestamp is the most significant part, IDs
+        generated in a later second sort (as plain strings) after IDs
+        generated in an earlier one.
+
+        Note:
+            Unlike ``SnowflakeIdGenerator.generate``, this never
+            raises or blocks: if more than ``2**24`` IDs are requested
+            within the same second, the counter wraps around silently,
+            at the cost of no longer guaranteeing strict ordering (or,
+            in the extreme, uniqueness) for IDs minted within that
+            second.
+
+        Returns:
+            A 24-character lowercase hex string.
+
+        Example:
+            ```pycon
+            >>> from coola.identifier.objectid import ObjectIdGenerator
+            >>> generator = ObjectIdGenerator()
+            >>> object_id = generator.generate()
+            >>> len(object_id)
+            24
+
+            ```
+        """
+        with self._lock:
+            self._counter = (self._counter + 1) & _MAX_COUNTER
+            counter = self._counter
+        timestamp = int(time.time()).to_bytes(_TIMESTAMP_BYTES, byteorder="big")
+        payload = (
+            timestamp + self._process_value + counter.to_bytes(_COUNTER_BYTES, byteorder="big")
+        )
+        return payload.hex()
+
+
+# Default, process-wide generator backing the module-level
+# `generate_object_id` function below.
+_default_generator = ObjectIdGenerator()
 
 
 def generate_object_id() -> str:
     r"""Generate a MongoDB ObjectId style 12-byte identifier.
 
-    The returned value packs a 4-byte Unix timestamp (seconds), a
-    5-byte value fixed once per process, and a 3-byte counter that
-    increments (and silently wraps modulo ``2**24``) on every call,
-    into a 24-character lowercase hex string. Because the timestamp is
-    the most significant part, IDs generated in a later second sort
-    (as plain strings) after IDs generated in an earlier one.
-
-    Note:
-        Unlike ``SnowflakeIdGenerator.generate``, this never raises or
-        blocks: if more than ``2**24`` IDs are requested within the
-        same second, the counter wraps around silently, at the cost of
-        no longer guaranteeing strict ordering (or, in the extreme,
-        uniqueness) for IDs minted within that second.
+    Convenience wrapper around a shared, process-wide
+    ``ObjectIdGenerator`` instance. Use ``ObjectIdGenerator`` directly
+    if you need multiple independent generators (e.g. one per test) or
+    want to avoid sharing state through a module-level singleton.
 
     Returns:
         A 24-character lowercase hex string.
@@ -65,10 +125,4 @@ def generate_object_id() -> str:
 
         ```
     """
-    global _counter  # noqa: PLW0603
-    with _lock:
-        _counter = (_counter + 1) & _MAX_COUNTER
-        counter = _counter
-    timestamp = int(time.time()).to_bytes(_TIMESTAMP_BYTES, byteorder="big")
-    payload = timestamp + _PROCESS_VALUE + counter.to_bytes(_COUNTER_BYTES, byteorder="big")
-    return payload.hex()
+    return _default_generator.generate()

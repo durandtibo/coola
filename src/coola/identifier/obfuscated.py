@@ -30,6 +30,8 @@ __all__ = ["decode_obfuscated_id", "generate_obfuscated_id"]
 
 import hashlib
 
+from coola.identifier.validation import validate_bit_range
+
 _BITS = 64
 _MASK = (1 << _BITS) - 1
 _ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -105,9 +107,7 @@ def generate_obfuscated_id(number: int, salt: str = "", min_length: int = 0) -> 
 
         ```
     """
-    if not 0 <= number <= _MASK:
-        msg = f"number must fit in {_BITS} bits (0 to {_MASK}), got {number}"
-        raise ValueError(msg)
+    validate_bit_range(number, _BITS, name="number")
     obfuscated = (number * _multiplier(salt)) & _MASK
     return _encode_base62(obfuscated, min_length=min_length)
 

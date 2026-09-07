@@ -17,6 +17,8 @@ __all__ = ["SnowflakeIdGenerator", "generate_snowflake_id"]
 import threading
 import time
 
+from coola.identifier.validation import validate_bit_range
+
 # Custom epoch (2024-01-01T00:00:00Z, in ms since the Unix epoch) so the
 # 41-bit timestamp field does not waste bits on years before this
 # library existed. Shifts the field's effective range to ~69 years from
@@ -106,12 +108,7 @@ class SnowflakeIdGenerator:
 
             ```
         """
-        if not 0 <= worker_id <= _MAX_WORKER_ID:
-            msg = (
-                f"worker_id must fit in {_WORKER_ID_BITS} bits "
-                f"(0 to {_MAX_WORKER_ID}), got {worker_id}"
-            )
-            raise ValueError(msg)
+        validate_bit_range(worker_id, _WORKER_ID_BITS, name="worker_id")
 
         with self._lock:
             timestamp_ms = time.time_ns() // 1_000_000
@@ -126,9 +123,19 @@ class SnowflakeIdGenerator:
                 if self._sequence == 0:
                     # Sequence exhausted for this millisecond: busy-wait
                     # for the next one so the ID stays monotonically
-                    # increasing.
-                    while timestamp_ms <= self._last_timestamp_ms:
+                    # increasing. Re-check for backward clock movement
+                    # on every spin, since the clock could jump backward
+                    # while this loop is running, which would otherwise
+                    # spin forever.
+                    last_timestamp_ms = self._last_timestamp_ms
+                    while timestamp_ms <= last_timestamp_ms:
                         timestamp_ms = time.time_ns() // 1_000_000
+                        if timestamp_ms < last_timestamp_ms:
+                            msg = (
+                                f"clock moved backward: last timestamp was "
+                                f"{last_timestamp_ms} ms, got {timestamp_ms} ms"
+                            )
+                            raise RuntimeError(msg)
             else:
                 self._sequence = 0
             self._last_timestamp_ms = timestamp_ms
