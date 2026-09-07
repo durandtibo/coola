@@ -82,9 +82,9 @@ def test_generate_stable_uuid5_empty_dict_same_uuid() -> None:
 
 
 def test_generate_stable_uuid5_nested_dict_key_order_independent() -> None:
-    assert generate_stable_uuid5({"info": {"year": 2024, "topic": "cats"}}) == generate_stable_uuid5(
-        {"info": {"topic": "cats", "year": 2024}}
-    )
+    assert generate_stable_uuid5(
+        {"info": {"year": 2024, "topic": "cats"}}
+    ) == generate_stable_uuid5({"info": {"topic": "cats", "year": 2024}})
 
 
 def test_generate_stable_uuid5_list_input() -> None:
@@ -142,7 +142,9 @@ def test_generate_stable_uuid5_custom_registry_is_honored() -> None:
     assert generate_stable_uuid5("meow") != generate_stable_uuid5("meow", registry=custom_registry)
 
 
-def test_generate_stable_uuid5_does_not_mutate_default_registry_when_custom_registry_given() -> None:
+def test_generate_stable_uuid5_does_not_mutate_default_registry_when_custom_registry_given() -> (
+    None
+):
     custom_registry = HasherRegistry({object: StringHasher()})
     generate_stable_uuid5("meow", registry=custom_registry)
     assert not hasattr(get_default_registry, "_registry")

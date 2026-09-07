@@ -106,8 +106,6 @@ def generate_stable_uuid5(
     return str(
         uuid.uuid5(
             namespace,
-            hash_object(
-                data, registry=registry, length=128, ignore_unhashable=ignore_unhashable
-            ),
+            hash_object(data, registry=registry, length=128, ignore_unhashable=ignore_unhashable),
         )
     )
