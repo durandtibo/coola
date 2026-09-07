@@ -165,3 +165,9 @@ def test_is_object_config_function_not_matching_return_type() -> None:
     """Test is_object_config with function where return type doesn't
     match."""
     assert not is_object_config({OBJECT_TARGET: "tests.unit.factory.test_config.create_list"}, dict)
+
+
+def test_is_object_config_target_is_not_a_class() -> None:
+    """Test is_object_config returns False when the target resolves to a
+    non-class object, e.g. a module-level constant."""
+    assert not is_object_config({OBJECT_TARGET: "math.pi"}, object)

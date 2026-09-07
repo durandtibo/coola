@@ -21,7 +21,7 @@ def is_object_config(config: dict[str, Any], cls: type) -> bool:
     r"""Indicate if the input configuration is a configuration for a
     given class.
 
-    This function only checks if the value of the key  ``_target_``
+    This function only checks if the value of the key ``_target_``
     is valid. It does not check the other values. If ``_target_``
     indicates a function, the returned type hint is used to check
     the class.
@@ -54,4 +54,4 @@ def is_object_config(config: dict[str, Any], cls: type) -> bool:
     origin = get_origin(target)
     # Union[T1, T2] or T1 | T2
     targets = get_args(target) if origin in (Union, UnionType) else (target,)
-    return any(cls in target.__mro__ for target in targets)
+    return any(inspect.isclass(t) and cls in t.__mro__ for t in targets)
