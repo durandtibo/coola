@@ -18,6 +18,11 @@ problems:
 | `generate_ulid`                 | :x:                   | 26-char string         | Unique, sortable-by-creation-time ID                           |
 | `generate_uuid7`                | :x:                   | UUID string            | Unique, sortable-by-creation-time ID, needs a valid UUID       |
 | `generate_snowflake_id`         | :x:                   | 64-bit integer        | Unique, sortable-by-creation-time ID as a single integer        |
+| `generate_object_id`            | :x:                   | 24-char hex string    | Unique, sortable-by-creation-time ID, never blocks/raises        |
+| `generate_uuid4`                | :x:                   | UUID string            | Plain random ID, needs a valid UUID, no ordering                |
+| `generate_nano_id`              | :x:                   | configurable string   | Short, URL-safe random ID with custom alphabet/length            |
+| `generate_checksummed_id`       | :x:                   | grouped string         | Random ID with a check symbol, for identifiers humans retype     |
+| `generate_obfuscated_id`        | reversible, not random| base62 string          | Obfuscates an existing sequential integer, decodable with `decode_obfuscated_id` |
 | `generate_prefixed_id`          | depends on generator  | `"{prefix}_{id}"`     | Wraps any of the above so the ID's type is recognizable at a glance |
 
 `generate_stable_uuid5` and `generate_stable_content_id` are content-addressed: they are built on
@@ -196,6 +201,80 @@ in a test, without them sharing state through a global singleton:
 >>> id2 = generator.generate(worker_id=3)
 
 ```
+
+### `generate_uuid4`
+
+`generate_uuid4` is a thin wrapper around `uuid.uuid4()`, provided for API symmetry with
+`generate_uuid7` and `generate_stable_uuid5`. It carries no timestamp and does not sort by
+creation time:
+
+```pycon
+>>> from coola.identifier import generate_uuid4
+>>> generate_uuid4()  # doctest: +ELLIPSIS
+'...'
+
+```
+
+### `generate_nano_id`
+
+`generate_nano_id` generates a [Nano ID](https://github.com/ai/nanoid) style random string: unlike
+`generate_ulid` and `generate_uuid7`, both its alphabet and its length are configurable, which
+makes it a better fit for short, URL-safe identifiers (e.g. slugs):
+
+```pycon
+>>> from coola.identifier import generate_nano_id
+>>> generate_nano_id()  # doctest: +ELLIPSIS
+'...'
+>>> generate_nano_id(size=8, alphabet="0123456789abcdef")  # doctest: +ELLIPSIS
+'...'
+
+```
+
+### `generate_object_id`
+
+`generate_object_id` generates a MongoDB `ObjectId` style 24-character hex string: a 4-byte
+timestamp, a 5-byte per-process value, and a 3-byte counter. Like `SnowflakeIdGenerator`, later IDs
+sort after earlier ones, but the counter silently wraps instead of raising or blocking when
+exhausted within a second, and no `worker_id` needs to be configured:
+
+```pycon
+>>> from coola.identifier import generate_object_id
+>>> generate_object_id()  # doctest: +ELLIPSIS
+'...'
+
+```
+
+### `generate_checksummed_id`
+
+`generate_checksummed_id` adds a Crockford Base32 check symbol to a random identifier, so that a
+single mistyped or transposed character is caught locally, without needing a lookup. Use it for
+identifiers a human is expected to read back or retype, e.g. a support code or license key:
+
+```pycon
+>>> from coola.identifier import generate_checksummed_id, verify_checksummed_id
+>>> checksummed_id = generate_checksummed_id()
+>>> verify_checksummed_id(checksummed_id)
+True
+
+```
+
+### `generate_obfuscated_id` and `decode_obfuscated_id`
+
+Unlike every other generator above, `generate_obfuscated_id` does not mint a new value: it takes
+an existing non-negative integer (e.g. a database autoincrement ID) and reshapes it into a short
+opaque string that hides its magnitude and ordering, while remaining exactly reversible via
+`decode_obfuscated_id` given the same `salt`:
+
+```pycon
+>>> from coola.identifier import generate_obfuscated_id, decode_obfuscated_id
+>>> encoded = generate_obfuscated_id(42, salt="orders")
+>>> decode_obfuscated_id(encoded, salt="orders")
+42
+
+```
+
+This is obfuscation, not encryption: do not rely on it to hide data from anyone who can observe
+many `(plaintext, obfuscated)` pairs for a known `salt`.
 
 ## Prefixed identifiers
 
