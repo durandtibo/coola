@@ -13,8 +13,8 @@ def test_generate_nano_id_default_length() -> None:
     assert len(generate_nano_id()) == 21
 
 
-def test_generate_nano_id_custom_size() -> None:
-    assert len(generate_nano_id(size=8)) == 8
+def test_generate_nano_id_custom_length() -> None:
+    assert len(generate_nano_id(length=8)) == 8
 
 
 def test_generate_nano_id_is_unique() -> None:
@@ -27,19 +27,19 @@ def test_generate_nano_id_many_calls_are_unique() -> None:
 
 
 def test_generate_nano_id_custom_alphabet() -> None:
-    value = generate_nano_id(size=100, alphabet="01")
+    value = generate_nano_id(length=100, alphabet="01")
     assert len(value) == 100
     assert set(value) <= {"0", "1"}
 
 
-def test_generate_nano_id_zero_size_raises() -> None:
-    with pytest.raises(ValueError, match="size must be positive"):
-        generate_nano_id(size=0)
+def test_generate_nano_id_zero_length_raises() -> None:
+    with pytest.raises(ValueError, match="length must be positive"):
+        generate_nano_id(length=0)
 
 
-def test_generate_nano_id_negative_size_raises() -> None:
-    with pytest.raises(ValueError, match="size must be positive"):
-        generate_nano_id(size=-1)
+def test_generate_nano_id_negative_length_raises() -> None:
+    with pytest.raises(ValueError, match="length must be positive"):
+        generate_nano_id(length=-1)
 
 
 def test_generate_nano_id_empty_alphabet_raises() -> None:
@@ -58,18 +58,18 @@ def test_generate_nano_id_alphabet_too_large_raises() -> None:
 
 
 def test_generate_nano_id_single_character_alphabet() -> None:
-    assert generate_nano_id(size=5, alphabet="a") == "aaaaa"
+    assert generate_nano_id(length=5, alphabet="a") == "aaaaa"
 
 
 def test_generate_nano_id_rejects_out_of_range_bytes(monkeypatch: pytest.MonkeyPatch) -> None:
     # alphabet="abc" has 3 characters, so the rejection mask is 0b11
     # (3): a byte masking to 3 must be rejected since it is out of
     # range, and an accepted byte that does not yet complete the
-    # requested size must resume the inner loop rather than return
+    # requested length must resume the inner loop rather than return
     # early.
     buffer = bytes([3, 0, 3, 1, 2])  # reject, accept 'a', reject, accept 'b', accept 'c'
     monkeypatch.setattr("coola.identifier.nanoid.os.urandom", lambda _size: buffer)
-    assert generate_nano_id(size=3, alphabet="abc") == "abc"
+    assert generate_nano_id(length=3, alphabet="abc") == "abc"
 
 
 def test_generate_nano_id_needs_multiple_urandom_batches(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -78,14 +78,14 @@ def test_generate_nano_id_needs_multiple_urandom_batches(monkeypatch: pytest.Mon
     # second time to make progress.
     batches = iter([bytes([3, 3, 3]), bytes([0, 1, 2])])
     monkeypatch.setattr("coola.identifier.nanoid.os.urandom", lambda _size: next(batches))
-    assert generate_nano_id(size=3, alphabet="abc") == "abc"
+    assert generate_nano_id(length=3, alphabet="abc") == "abc"
 
 
 def test_generate_nano_id_alphabet_just_above_power_of_two() -> None:
-    # alphabet size 129 sits just above the 128 power-of-two boundary,
+    # alphabet length 129 sits just above the 128 power-of-two boundary,
     # so the rejection mask (255) accepts only ~50% of bytes: a
     # worst-case-ish rejection rate worth exercising explicitly.
     alphabet = "".join(chr(ord("!") + i) for i in range(129))
-    value = generate_nano_id(size=50, alphabet=alphabet)
+    value = generate_nano_id(length=50, alphabet=alphabet)
     assert len(value) == 50
     assert all(char in alphabet for char in value)

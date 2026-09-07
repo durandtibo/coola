@@ -22,20 +22,20 @@ from coola.identifier.validation import validate_positive
 # 6 bits of entropy.
 _DEFAULT_ALPHABET = "_-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
-_DEFAULT_SIZE = 21
+_DEFAULT_LENGTH = 21
 
 
-def generate_nano_id(size: int = _DEFAULT_SIZE, alphabet: str = _DEFAULT_ALPHABET) -> str:
+def generate_nano_id(length: int = _DEFAULT_LENGTH, alphabet: str = _DEFAULT_ALPHABET) -> str:
     r"""Generate a Nano ID style random identifier.
 
-    Draws ``size`` characters from ``alphabet`` uniformly at random,
+    Draws ``length`` characters from ``alphabet`` uniformly at random,
     using rejection sampling on ``os.urandom`` bytes so every character
     of ``alphabet`` has exactly equal probability (a plain
     ``byte % len(alphabet)`` would bias the result unless
     ``len(alphabet)`` is a power of two).
 
     Args:
-        size: The number of characters to generate. Must be positive.
+        length: The number of characters to generate. Must be positive.
         alphabet: The set of characters to draw from. Must contain
             between 1 and 256 distinct characters. Defaults to a
             64-character URL-safe alphabet (digits, upper- and
@@ -43,10 +43,10 @@ def generate_nano_id(size: int = _DEFAULT_SIZE, alphabet: str = _DEFAULT_ALPHABE
             reference Nano ID implementation's default.
 
     Returns:
-        A random string of length ``size`` drawn from ``alphabet``.
+        A random string of length ``length`` drawn from ``alphabet``.
 
     Raises:
-        ValueError: If ``size`` is not positive, or ``alphabet`` is
+        ValueError: If ``length`` is not positive, or ``alphabet`` is
             empty, has duplicate characters, or has more than 256
             distinct characters.
 
@@ -56,13 +56,13 @@ def generate_nano_id(size: int = _DEFAULT_SIZE, alphabet: str = _DEFAULT_ALPHABE
         >>> nano_id = generate_nano_id()
         >>> len(nano_id)
         21
-        >>> short_id = generate_nano_id(size=8, alphabet="0123456789abcdef")
+        >>> short_id = generate_nano_id(length=8, alphabet="0123456789abcdef")
         >>> len(short_id)
         8
 
         ```
     """
-    validate_positive(size, name="size")
+    validate_positive(length, name="length")
     n = len(alphabet)
     if n == 0:
         msg = "alphabet must not be empty"
@@ -80,16 +80,16 @@ def generate_nano_id(size: int = _DEFAULT_SIZE, alphabet: str = _DEFAULT_ALPHABE
     mask = (1 << (n - 1).bit_length()) - 1
 
     chars: list[str] = []
-    while len(chars) < size:
+    while len(chars) < length:
         # Oversample: with the mask applied, roughly n / (mask + 1) of
         # the bytes are accepted, so pull extra bytes up front to
         # usually finish in a single os.urandom call.
-        needed = size - len(chars)
+        needed = length - len(chars)
         buffer = os.urandom(needed + needed // 4 + 16)
         for byte in buffer:
             index = byte & mask
             if index < n:
                 chars.append(alphabet[index])
-                if len(chars) == size:
+                if len(chars) == length:
                     break
     return "".join(chars)

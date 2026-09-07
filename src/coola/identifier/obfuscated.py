@@ -14,13 +14,23 @@ consecutive public-facing IDs, leaking e.g. total row counts) but a
 public-facing identifier should not reveal that.
 
 The technique (sometimes called "Optimus" or "Hashids"-style ID
-obfuscation) multiplies the integer by an odd, salt-derived constant
-modulo 2**64: multiplication by an odd number is a bijection on 64-bit
-integers, so the operation is exactly invertible via the modular inverse
-of that constant, without needing to store a mapping anywhere. This is
-obfuscation, not encryption: an attacker who can observe several
-``(plaintext, obfuscated)`` pairs for a known ``salt`` can recover the
-multiplier. Do not rely on it to hide data from anyone who can query
+obfuscation) applies an affine map, ``number * multiplier + increment``
+modulo 2**64, using an odd, salt-derived ``multiplier`` and a second,
+independent salt-derived ``increment``: multiplication by an odd number
+is a bijection on 64-bit integers, and adding a constant is trivially
+invertible too, so the whole map is exactly invertible (subtract
+``increment``, then multiply by the modular inverse of ``multiplier``)
+without needing to store anything. The ``increment`` term matters
+specifically for the sequential-integer case this module targets: with
+multiplication alone, ``obfuscated(n + 1) - obfuscated(n) == multiplier``
+for every ``n``, so a single known ``(plaintext, obfuscated)`` pair next
+to an unknown one immediately recovers ``multiplier`` and breaks every
+other ID under the same ``salt``. Adding ``increment`` does not remove
+that difference (it still equals ``multiplier``, since ``increment``
+cancels out), so this is still obfuscation, not encryption: an attacker
+who can observe two ``(plaintext, obfuscated)`` pairs for a known
+``salt`` (adjacent or not) can solve the resulting linear system for
+both constants. Do not rely on it to hide data from anyone who can query
 your API repeatedly under a fixed ``salt``.
 """
 
@@ -38,16 +48,20 @@ _ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 _BASE = len(_ALPHABET)
 
 
-def _multiplier(salt: str) -> int:
-    r"""Derive an odd 64-bit multiplier from ``salt``.
+def _multiplier_and_increment(salt: str) -> tuple[int, int]:
+    r"""Derive the affine map's odd 64-bit multiplier and 64-bit
+    increment from ``salt``.
 
     The multiplier must be odd for multiplication modulo 2**64 to be a
     bijection (any even multiplier collapses distinct inputs onto the
-    same output for at least half of the value space).
+    same output for at least half of the value space). The increment
+    has no such constraint: adding any constant modulo 2**64 is already
+    a bijection.
     """
     digest = hashlib.sha256(salt.encode("utf-8")).digest()
-    value = int.from_bytes(digest[:8], byteorder="big") & _MASK
-    return value | 1
+    multiplier = (int.from_bytes(digest[:8], byteorder="big") & _MASK) | 1
+    increment = int.from_bytes(digest[8:16], byteorder="big") & _MASK
+    return multiplier, increment
 
 
 def _encode_base62(number: int, min_length: int) -> str:
@@ -109,7 +123,8 @@ def generate_obfuscated_id(number: int, salt: str = "", min_length: int = 0) -> 
     """
     validate_bit_range(number, _BITS, name="number")
     validate_non_negative(min_length, name="min_length")
-    obfuscated = (number * _multiplier(salt)) & _MASK
+    multiplier, increment = _multiplier_and_increment(salt)
+    obfuscated = (number * multiplier + increment) & _MASK
     return _encode_base62(obfuscated, min_length=min_length)
 
 
@@ -147,5 +162,6 @@ def decode_obfuscated_id(encoded: str, salt: str = "") -> int:
     except ValueError as error:
         msg = f"encoded contains a character outside the base62 alphabet, got {encoded!r}"
         raise ValueError(msg) from error
-    inverse = pow(_multiplier(salt), -1, 1 << _BITS)
-    return (obfuscated * inverse) & _MASK
+    multiplier, increment = _multiplier_and_increment(salt)
+    inverse = pow(multiplier, -1, 1 << _BITS)
+    return ((obfuscated - increment) * inverse) & _MASK
