@@ -1,6 +1,6 @@
 r"""Provide a ULID identifier for time-ordered records.
 
-Unlike ``generate_stable_uuid`` and ``generate_stable_content_id``, a
+Unlike ``generate_stable_uuid5`` and ``generate_stable_content_id``, a
 ULID is not derived from data content: two calls with the same input
 produce different values. Use it when what you need is a unique,
 lexicographically sortable-by-creation-time identifier (e.g. a record ID

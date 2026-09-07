@@ -30,7 +30,7 @@ def generate_prefixed_id(prefix: str, generator: Callable[[], str] = generate_ul
             separator.
         generator: A zero-argument callable that returns the
             identifier to prefix. Defaults to ``generate_ulid``. Pass
-            e.g. ``generate_stable_uuid`` partially applied to a fixed
+            e.g. ``generate_stable_uuid5`` partially applied to a fixed
             ``data`` argument (via ``functools.partial``) to prefix a
             content-derived identifier instead.
 

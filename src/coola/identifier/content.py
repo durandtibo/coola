@@ -1,6 +1,6 @@
 r"""Provide a content-addressed identifier for nested data.
 
-This is an alternative to ``generate_stable_uuid``: instead of wrapping
+This is an alternative to ``generate_stable_uuid5``: instead of wrapping
 the digest in a ``uuid.uuid5`` value (which is bounded by SHA-1's
 128-bit output regardless of the strength of the underlying hash),
 ``generate_stable_content_id`` returns the ``hash_object`` digest
@@ -30,7 +30,7 @@ def generate_stable_content_id(
     r"""Compute a content-addressed identifier for a nested data
     structure.
 
-    Unlike ``generate_stable_uuid``, the returned identifier is the raw
+    Unlike ``generate_stable_uuid5``, the returned identifier is the raw
     ``hash_object`` digest: it is not reshaped into a UUID, so its
     collision resistance and length are exactly those of the
     underlying hash rather than being bounded by ``uuid.uuid5``'s
