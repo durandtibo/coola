@@ -85,7 +85,7 @@ jobs:
           inputs: dist/*.tar.gz dist/*.whl
 
       - name: Upload artifacts and signatures to GitHub release
-        uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090 # ratchet:softprops/action-gh-release@v2.4.1
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # ratchet:softprops/action-gh-release@v3.0.3
         with:
           files: |
             dist/*.tar.gz
