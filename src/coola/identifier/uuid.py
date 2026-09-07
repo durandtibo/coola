@@ -47,7 +47,21 @@ def stable_uuid(
         strength of the digest fed into it, so ``stable_uuid(a) ==
         stable_uuid(b)`` if and only if ``hash_object(a) ==
         hash_object(b)`` (modulo the astronomically unlikely case of a
-        ``uuid.uuid5`` collision on two different digests).
+        ``uuid.uuid5`` collision on two different digests). Note also
+        that ``uuid.uuid5`` hashes its input with SHA-1 internally, so
+        the final UUID's collision resistance is bounded by SHA-1
+        regardless of how strong ``hash_object``'s own digest is.
+
+    Warning:
+        The value returned by ``stable_uuid`` for a given ``data`` is
+        stable only as long as ``hash_object`` (and the hashers
+        resolved by ``registry`` for the types in ``data``) keep
+        producing the same digest for that ``data``. A change to the
+        default registry's hashing algorithms in a future ``coola``
+        release would silently change the UUIDs produced here. Do not
+        rely on cross-version stability for UUIDs persisted long-term
+        (e.g. as database primary keys) unless you pin ``coola`` and
+        pass an explicit, version-controlled ``registry``.
 
     Args:
         data: The data to derive a UUID from. Can be a nested structure
