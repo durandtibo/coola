@@ -1,21 +1,9 @@
 from __future__ import annotations
 
 import threading
-from typing import TYPE_CHECKING
 
 from coola.identifier import SnowflakeIdGenerator
-
-if TYPE_CHECKING:
-    from collections.abc import Sequence
-
-
-def run_threads(threads: Sequence[threading.Thread]) -> None:
-    for thread in threads:
-        thread.start()
-
-    for thread in threads:
-        thread.join()
-
+from tests.integration.identifier.test_objectid import run_threads
 
 ##########################################
 #     Tests for SnowflakeIdGenerator     #
