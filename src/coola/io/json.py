@@ -69,7 +69,7 @@ class JsonSaver(BaseFileSaver[T]):
         return type(other) is type(self)
 
     def _save_file(self, to_save: T, path: Path) -> None:
-        with Path.open(path, mode="w") as file:
+        with Path.open(path, mode="w", encoding="utf-8") as file:
             json.dump(to_save, file, sort_keys=False)
 
 
