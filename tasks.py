@@ -349,8 +349,8 @@ def show_python_config(c: Context) -> None:
 
 
 @task
-def publish_pypi(c: Context) -> None:
-    r"""Publish the package to PyPI.
+def build_package(c: Context) -> None:
+    r"""Build the package and verify it can be installed.
 
     Args:
         c: The invoke context.
@@ -362,6 +362,16 @@ def publish_pypi(c: Context) -> None:
         f'uv run --with {NAME} --refresh-package {NAME} --no-project -- python -c "import {NAME}"',
         pty=True,
     )
+
+
+@task
+def publish_pypi(c: Context) -> None:
+    r"""Build and publish the package to PyPI.
+
+    Args:
+        c: The invoke context.
+    """
+    build_package(c)
     logger.info("🚀 Publishing to PyPI...")
     c.run("uv publish --token ${PYPI_TOKEN}", pty=True)
     logger.info("✅ Package published successfully")

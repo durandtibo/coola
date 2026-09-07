@@ -31,9 +31,33 @@ jobs:
         run: |
           make install-invoke
 
-      # Build and publish package to PyPI using token from secrets
-      - name: Publish
-        env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+      - name: Build package
         run: |
-          inv publish-pypi
+          inv build-package
+
+      - name: Upload distribution artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # ratchet:actions/upload-artifact@v7.0.1
+        with:
+          name: dist
+          path: dist/
+          retention-days: 1
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment:
+      name: pypi
+      url: https://pypi.org/project/coola/
+    permissions:
+      # Required for PyPI Trusted Publishing (OIDC) - no API token needed.
+      id-token: write
+    steps:
+      - name: Download distribution artifacts
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # ratchet:actions/download-artifact@v7.0.0
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # ratchet:pypa/gh-action-pypi-publish@v1.14.2
