@@ -146,8 +146,8 @@ Twitter's original Snowflake service: a 41-bit millisecond timestamp, a 10-bit `
 
 ```pycon
 >>> from coola.identifier import generate_snowflake_id
->>> generate_snowflake_id()  # doctest: +ELLIPSIS
->>> generate_snowflake_id(worker_id=3)  # doctest: +ELLIPSIS
+>>> id1 = generate_snowflake_id()
+>>> id2 = generate_snowflake_id(worker_id=3)
 
 ```
 
@@ -168,8 +168,8 @@ in a test — without them sharing state through a global singleton:
 ```pycon
 >>> from coola.identifier import SnowflakeIdGenerator
 >>> generator = SnowflakeIdGenerator()
->>> generator.generate()  # doctest: +ELLIPSIS
->>> generator.generate(worker_id=3)  # doctest: +ELLIPSIS
+>>> id1 = generator.generate()
+>>> id2 = generator.generate(worker_id=3)
 
 ```
 
