@@ -2,21 +2,9 @@ from __future__ import annotations
 
 import threading
 from collections import defaultdict
-from typing import TYPE_CHECKING
 
 from coola.registry import Registry
-
-if TYPE_CHECKING:
-    from collections.abc import Sequence
-
-
-def run_threads(threads: Sequence[threading.Thread]) -> None:
-    for thread in threads:
-        thread.start()
-
-    for thread in threads:
-        thread.join()
-
+from tests.integration.helpers import run_threads
 
 ##############################
 #     Tests for Registry     #

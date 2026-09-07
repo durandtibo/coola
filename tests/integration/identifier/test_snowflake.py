@@ -3,7 +3,7 @@ from __future__ import annotations
 import threading
 
 from coola.identifier import SnowflakeIdGenerator
-from tests.integration.identifier.test_objectid import run_threads
+from tests.integration.helpers import run_threads
 
 ##########################################
 #     Tests for SnowflakeIdGenerator     #

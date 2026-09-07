@@ -6,7 +6,7 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from coola.registry import TypeRegistry
-from tests.integration.registry.test_vanilla import run_threads
+from tests.integration.helpers import run_threads
 
 
 class Animal:
