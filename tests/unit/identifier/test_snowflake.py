@@ -13,6 +13,7 @@ from coola.identifier.snowflake import (
     _TIMESTAMP_SHIFT,
     _WORKER_ID_SHIFT,
     SnowflakeIdGenerator,
+    extract_snowflake_timestamp_ms,
     generate_snowflake_id,
 )
 
@@ -287,3 +288,30 @@ def test_generate_snowflake_id_uses_shared_default_generator(
         first = generate_snowflake_id()
         second = generate_snowflake_id()
     assert second == first + 1
+
+
+###########################################################
+#     Tests for extract_snowflake_timestamp_ms           #
+###########################################################
+
+
+def test_extract_snowflake_timestamp_ms_roundtrip() -> None:
+    fixed_ms = 1_800_000_000_000
+    with patch("time.time_ns", return_value=fixed_ms * 1_000_000):
+        snowflake_id = SnowflakeIdGenerator().generate()
+    assert extract_snowflake_timestamp_ms(snowflake_id) == fixed_ms
+
+
+def test_extract_snowflake_timestamp_ms_matches_decode_helper() -> None:
+    snowflake_id = SnowflakeIdGenerator().generate()
+    assert extract_snowflake_timestamp_ms(snowflake_id) == _decode(snowflake_id)[0]
+
+
+def test_extract_snowflake_timestamp_ms_negative_raises() -> None:
+    with pytest.raises(ValueError, match="snowflake_id must fit in"):
+        extract_snowflake_timestamp_ms(-1)
+
+
+def test_extract_snowflake_timestamp_ms_too_large_raises() -> None:
+    with pytest.raises(ValueError, match="snowflake_id must fit in"):
+        extract_snowflake_timestamp_ms(1 << 63)

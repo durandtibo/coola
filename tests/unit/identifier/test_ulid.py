@@ -6,7 +6,7 @@ import time
 import pytest
 
 from coola.identifier import ulid as ulid_module
-from coola.identifier.ulid import generate_ulid
+from coola.identifier.ulid import extract_ulid_timestamp_ms, generate_ulid
 
 ULID_PATTERN = re.compile(r"^[0-9A-HJKMNP-TV-Z]{26}$")
 
@@ -104,3 +104,37 @@ def test_generate_ulid_uses_full_crockford_alphabet_characters() -> None:
     # enough to see characters beyond the timestamp-derived prefix.
     combined = "".join(generate_ulid() for _ in range(200))
     assert set(combined) <= set(ulid_module._ENCODING)
+
+
+##############################################
+#     Tests for extract_ulid_timestamp_ms   #
+##############################################
+
+
+def test_extract_ulid_timestamp_ms_roundtrip() -> None:
+    assert extract_ulid_timestamp_ms(generate_ulid(timestamp_ms=1_234_567_890_123)) == (
+        1_234_567_890_123
+    )
+
+
+def test_extract_ulid_timestamp_ms_zero() -> None:
+    assert extract_ulid_timestamp_ms(generate_ulid(timestamp_ms=0)) == 0
+
+
+def test_extract_ulid_timestamp_ms_max() -> None:
+    assert extract_ulid_timestamp_ms(generate_ulid(timestamp_ms=2**48 - 1)) == 2**48 - 1
+
+
+def test_extract_ulid_timestamp_ms_matches_decode_helper() -> None:
+    ulid = generate_ulid()
+    assert extract_ulid_timestamp_ms(ulid) == _decode_timestamp_ms(ulid)
+
+
+def test_extract_ulid_timestamp_ms_wrong_length_raises() -> None:
+    with pytest.raises(ValueError, match="ulid must be 26 characters long"):
+        extract_ulid_timestamp_ms("TOO-SHORT")
+
+
+def test_extract_ulid_timestamp_ms_invalid_character_raises() -> None:
+    with pytest.raises(ValueError, match="ulid contains a character outside"):
+        extract_ulid_timestamp_ms("I" * 26)

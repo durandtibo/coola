@@ -30,7 +30,7 @@ __all__ = ["decode_obfuscated_id", "generate_obfuscated_id"]
 
 import hashlib
 
-from coola.identifier.validation import validate_bit_range
+from coola.identifier.validation import validate_bit_range, validate_non_negative
 
 _BITS = 64
 _MASK = (1 << _BITS) - 1
@@ -86,7 +86,7 @@ def generate_obfuscated_id(number: int, salt: str = "", min_length: int = 0) -> 
             with the same ``salt`` used here to recover ``number``.
         min_length: The minimum length of the returned string; shorter
             results are left-padded with ``'0'``. Defaults to ``0``
-            (no padding).
+            (no padding). Must be non-negative.
 
     Returns:
         A base62 string that ``decode_obfuscated_id`` can turn back
@@ -94,7 +94,7 @@ def generate_obfuscated_id(number: int, salt: str = "", min_length: int = 0) -> 
 
     Raises:
         ValueError: If ``number`` is negative or does not fit in 64
-            bits.
+            bits, or if ``min_length`` is negative.
 
     Example:
         ```pycon
@@ -108,6 +108,7 @@ def generate_obfuscated_id(number: int, salt: str = "", min_length: int = 0) -> 
         ```
     """
     validate_bit_range(number, _BITS, name="number")
+    validate_non_negative(min_length, name="min_length")
     obfuscated = (number * _multiplier(salt)) & _MASK
     return _encode_base62(obfuscated, min_length=min_length)
 

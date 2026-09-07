@@ -12,7 +12,7 @@ the worker/shard that minted them.
 
 from __future__ import annotations
 
-__all__ = ["SnowflakeIdGenerator", "generate_snowflake_id"]
+__all__ = ["SnowflakeIdGenerator", "extract_snowflake_timestamp_ms", "generate_snowflake_id"]
 
 import threading
 import time
@@ -224,3 +224,40 @@ def generate_snowflake_id(worker_id: int = 0) -> int:
         ```
     """
     return _default_generator.generate(worker_id=worker_id)
+
+
+def extract_snowflake_timestamp_ms(snowflake_id: int) -> int:
+    r"""Extract the millisecond timestamp encoded in a Snowflake-style
+    identifier.
+
+    Inverse of the encoding done by ``SnowflakeIdGenerator.generate``
+    (and ``generate_snowflake_id``): shifts out the worker ID and
+    sequence fields and adds back the fixed epoch that was subtracted
+    when the ID was minted.
+
+    Args:
+        snowflake_id: The identifier previously returned by
+            ``SnowflakeIdGenerator.generate`` or
+            ``generate_snowflake_id``.
+
+    Returns:
+        The Unix timestamp, in milliseconds, that was encoded in
+        ``snowflake_id``.
+
+    Raises:
+        ValueError: If ``snowflake_id`` is negative or does not fit in
+            64 bits.
+
+    Example:
+        ```pycon
+        >>> from coola.identifier import extract_snowflake_timestamp_ms, generate_snowflake_id
+        >>> snowflake_id = generate_snowflake_id()
+        >>> isinstance(extract_snowflake_timestamp_ms(snowflake_id), int)
+        True
+
+        ```
+    """
+    validate_bit_range(
+        snowflake_id, _TIMESTAMP_BITS + _WORKER_ID_BITS + _SEQUENCE_BITS, name="snowflake_id"
+    )
+    return (snowflake_id >> _TIMESTAMP_SHIFT) + _EPOCH_MS

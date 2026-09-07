@@ -5,7 +5,7 @@ import time
 
 import pytest
 
-from coola.identifier.uuid7 import generate_uuid7
+from coola.identifier.uuid7 import extract_uuid7_timestamp_ms, generate_uuid7
 
 UUID7_PATTERN = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
 
@@ -91,3 +91,32 @@ def test_generate_uuid7_default_timestamp_is_current_time() -> None:
 def test_generate_uuid7_many_calls_are_unique() -> None:
     uuids = {generate_uuid7() for _ in range(1000)}
     assert len(uuids) == 1000
+
+
+###################################################
+#     Tests for extract_uuid7_timestamp_ms       #
+###################################################
+
+
+def test_extract_uuid7_timestamp_ms_roundtrip() -> None:
+    assert extract_uuid7_timestamp_ms(generate_uuid7(timestamp_ms=1_234_567_890_123)) == (
+        1_234_567_890_123
+    )
+
+
+def test_extract_uuid7_timestamp_ms_zero() -> None:
+    assert extract_uuid7_timestamp_ms(generate_uuid7(timestamp_ms=0)) == 0
+
+
+def test_extract_uuid7_timestamp_ms_max() -> None:
+    assert extract_uuid7_timestamp_ms(generate_uuid7(timestamp_ms=2**48 - 1)) == 2**48 - 1
+
+
+def test_extract_uuid7_timestamp_ms_matches_decode_helper() -> None:
+    uuid7 = generate_uuid7()
+    assert extract_uuid7_timestamp_ms(uuid7) == _decode_timestamp_ms(uuid7)
+
+
+def test_extract_uuid7_timestamp_ms_invalid_string_raises() -> None:
+    with pytest.raises(ValueError, match="badly formed hexadecimal UUID string"):
+        extract_uuid7_timestamp_ms("not-a-uuid")
