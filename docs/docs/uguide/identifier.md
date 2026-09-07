@@ -263,7 +263,7 @@ makes it a better fit for short, URL-safe identifiers (e.g. slugs):
 >>> from coola.identifier import generate_nano_id
 >>> generate_nano_id()  # doctest: +ELLIPSIS
 '...'
->>> generate_nano_id(size=8, alphabet="0123456789abcdef")  # doctest: +ELLIPSIS
+>>> generate_nano_id(length=8, alphabet="0123456789abcdef")  # doctest: +ELLIPSIS
 '...'
 
 ```

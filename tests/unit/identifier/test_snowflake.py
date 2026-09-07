@@ -212,6 +212,40 @@ def test_snowflake_id_generator_generate_sequence_rollover_advances_to_next_mill
     assert sequence == 0
 
 
+def test_snowflake_id_generator_generate_releases_lock_during_busy_wait() -> None:
+    # The busy-wait spin (entered once the per-millisecond sequence
+    # wraps) must release the generator's lock for the sleep itself, so
+    # other threads calling generate() are not blocked for the whole
+    # wait -- only for the brief windows in between spins.
+    first_ms = 1_800_000_000_000
+    next_ms = first_ms + 1
+    generator = SnowflakeIdGenerator()
+    generator._last_timestamp_ms = first_ms
+    generator._sequence = _MAX_SEQUENCE
+
+    lock_was_free_during_sleep = []
+
+    def fake_sleep(_seconds: float) -> None:
+        acquired = generator._lock.acquire(blocking=False)
+        lock_was_free_during_sleep.append(acquired)
+        if acquired:
+            generator._lock.release()
+
+    with (
+        patch(
+            "time.time_ns",
+            side_effect=[first_ms * 1_000_000, first_ms * 1_000_000, next_ms * 1_000_000],
+        ),
+        patch("time.sleep", side_effect=fake_sleep),
+    ):
+        generator.generate()
+
+    # Two spins happen before the clock advances past first_ms (see the
+    # rollover test above), so the lock must have been observed free
+    # from within the sleep both times.
+    assert lock_was_free_during_sleep == [True, True]
+
+
 def test_snowflake_id_generator_generate_clock_moved_backward_during_busy_wait_raises() -> None:
     first_ms = 1_800_000_000_000
     backward_ms = first_ms - 1

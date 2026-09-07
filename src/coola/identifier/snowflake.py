@@ -161,16 +161,27 @@ class SnowflakeIdGenerator:
                 self._sequence = (self._sequence + 1) & _MAX_SEQUENCE
                 if self._sequence == 0:
                     # Sequence exhausted for this millisecond: spin-wait
-                    # (with a short sleep between checks, so this does not
-                    # pin a CPU core at 100% while holding the lock) for
-                    # the next one so the ID stays monotonically
-                    # increasing. Re-check for backward clock movement
-                    # on every spin, since the clock could jump backward
+                    # for the next one so the ID stays monotonically
+                    # increasing. The lock is released for the sleep
+                    # itself (re-acquired immediately after) rather than
+                    # held for the whole wait, so other threads calling
+                    # generate() get a chance to make progress between
+                    # spins instead of being blocked until the clock
+                    # ticks. Re-check for backward clock movement on
+                    # every spin, since the clock could jump backward
                     # while this loop is running, which would otherwise
-                    # spin forever.
+                    # spin forever; and re-check the shared timestamp on
+                    # every spin too, in case another thread advanced it
+                    # (and possibly reset the sequence) while the lock
+                    # was released, so this call does not commit a
+                    # timestamp/sequence pair another thread already used.
                     last_timestamp_ms = self._last_timestamp_ms
                     while timestamp_ms <= last_timestamp_ms:
-                        time.sleep(_SPIN_SLEEP_S)
+                        self._lock.release()
+                        try:
+                            time.sleep(_SPIN_SLEEP_S)
+                        finally:
+                            self._lock.acquire()
                         timestamp_ms = time.time_ns() // 1_000_000
                         if timestamp_ms < last_timestamp_ms:
                             msg = (
@@ -178,6 +189,13 @@ class SnowflakeIdGenerator:
                                 f"{last_timestamp_ms} ms, got {timestamp_ms} ms"
                             )
                             raise RuntimeError(msg)
+                        last_timestamp_ms = max(last_timestamp_ms, self._last_timestamp_ms)
+                    # timestamp_ms is now strictly greater than every
+                    # last_timestamp_ms observed above (ours and any
+                    # other thread's), so the sequence restarts at 0
+                    # rather than keeping whatever another thread left it
+                    # at for its own (earlier) timestamp.
+                    self._sequence = 0
             else:
                 self._sequence = 0
             self._last_timestamp_ms = timestamp_ms
