@@ -19,6 +19,12 @@ import time
 
 from coola.identifier.validation import validate_bit_range
 
+# Sleep briefly between spins while waiting for the next millisecond, to
+# avoid busy-waiting a full CPU core (and holding the lock) at 100%
+# utilization when the per-millisecond sequence is exhausted.
+_SPIN_SLEEP_S = 0.0001
+
+
 # Custom epoch (2024-01-01T00:00:00Z, in ms since the Unix epoch) so the
 # 41-bit timestamp field does not waste bits on years before this
 # library existed. Shifts the field's effective range to ~69 years from
@@ -147,14 +153,17 @@ class SnowflakeIdGenerator:
             if timestamp_ms == self._last_timestamp_ms:
                 self._sequence = (self._sequence + 1) & _MAX_SEQUENCE
                 if self._sequence == 0:
-                    # Sequence exhausted for this millisecond: busy-wait
-                    # for the next one so the ID stays monotonically
+                    # Sequence exhausted for this millisecond: spin-wait
+                    # (with a short sleep between checks, so this does not
+                    # pin a CPU core at 100% while holding the lock) for
+                    # the next one so the ID stays monotonically
                     # increasing. Re-check for backward clock movement
                     # on every spin, since the clock could jump backward
                     # while this loop is running, which would otherwise
                     # spin forever.
                     last_timestamp_ms = self._last_timestamp_ms
                     while timestamp_ms <= last_timestamp_ms:
+                        time.sleep(_SPIN_SLEEP_S)
                         timestamp_ms = time.time_ns() // 1_000_000
                         if timestamp_ms < last_timestamp_ms:
                             msg = (
