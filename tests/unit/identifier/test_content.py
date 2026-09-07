@@ -1,27 +1,13 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
 
 import pytest
 
 from coola.hashing import HasherRegistry, ReprHasher, StringHasher, get_default_registry
 from coola.identifier.content import generate_stable_content_id
 
-if TYPE_CHECKING:
-    from collections.abc import Generator
-
 HEX_PATTERN = re.compile(r"^[0-9a-f]+$")
-
-
-@pytest.fixture(autouse=True)
-def _reset_default_registry() -> Generator[None, None, None]:
-    """Reset the singleton registry before and after each test."""
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
-    yield
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
 
 
 ###################################################

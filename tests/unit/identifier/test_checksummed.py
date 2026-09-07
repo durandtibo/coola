@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from coola.identifier import generate_checksummed_id, verify_checksummed_id
+from coola.identifier.checksummed import _checksum_symbol
 
 
 def test_generate_checksummed_id_returns_str() -> None:
@@ -59,3 +60,18 @@ def test_generate_checksummed_id_zero_length_raises() -> None:
 def test_generate_checksummed_id_zero_group_size_raises() -> None:
     with pytest.raises(ValueError, match="group_size must be positive"):
         generate_checksummed_id(group_size=0)
+
+
+def test_generate_checksummed_id_sep_overlapping_alphabet_raises() -> None:
+    with pytest.raises(ValueError, match="sep must not contain a character"):
+        generate_checksummed_id(sep="A")
+
+
+def test_generate_checksummed_id_sep_overlapping_check_symbol_raises() -> None:
+    with pytest.raises(ValueError, match="sep must not contain a character"):
+        generate_checksummed_id(sep="*")
+
+
+def test_checksum_symbol_invalid_character_raises() -> None:
+    with pytest.raises(ValueError, match="payload contains a character outside"):
+        _checksum_symbol("!")

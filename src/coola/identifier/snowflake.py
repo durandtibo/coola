@@ -17,6 +17,8 @@ __all__ = ["SnowflakeIdGenerator", "generate_snowflake_id"]
 import threading
 import time
 
+from coola.identifier.validation import validate_bit_range
+
 # Custom epoch (2024-01-01T00:00:00Z, in ms since the Unix epoch) so the
 # 41-bit timestamp field does not waste bits on years before this
 # library existed. Shifts the field's effective range to ~69 years from
@@ -43,6 +45,22 @@ class SnowflakeIdGenerator:
     independent: create one per worker/shard/test instead of sharing
     mutable global state.
 
+    Args:
+        last_timestamp_ms: The millisecond timestamp of the last ID
+            minted by this generator, or ``-1`` (default) if none has
+            been minted yet. Pass the value persisted from a previous
+            instance (e.g. across a process restart) together with
+            ``sequence`` to preserve the monotonically increasing
+            guarantee; leave at the default for a fresh generator.
+        sequence: The sequence number of the last ID minted for
+            ``last_timestamp_ms``. Ignored (treated as ``0``) when
+            ``last_timestamp_ms`` is ``-1``.
+
+    Raises:
+        ValueError: If ``last_timestamp_ms`` is not ``-1`` and does
+            not fit in 41 bits, or if ``sequence`` does not fit in 12
+            bits.
+
     Example:
         ```pycon
         >>> from coola.identifier.snowflake import SnowflakeIdGenerator
@@ -54,10 +72,20 @@ class SnowflakeIdGenerator:
         ```
     """
 
-    def __init__(self) -> None:
+    def __init__(self, last_timestamp_ms: int = -1, sequence: int = 0) -> None:
+        if last_timestamp_ms != -1:
+            # last_timestamp_ms is an absolute Unix ms timestamp (like
+            # time.time_ns() // 1_000_000), not one already shifted by
+            # _EPOCH_MS, so it must fit in 41 bits only once the epoch
+            # is subtracted back out, matching what `generate` does
+            # when packing the returned integer.
+            validate_bit_range(
+                last_timestamp_ms - _EPOCH_MS, _TIMESTAMP_BITS, name="last_timestamp_ms - epoch"
+            )
+        validate_bit_range(sequence, _SEQUENCE_BITS, name="sequence")
         self._lock = threading.Lock()
-        self._last_timestamp_ms = -1
-        self._sequence = 0
+        self._last_timestamp_ms = last_timestamp_ms
+        self._sequence = sequence
 
     def generate(self, worker_id: int = 0) -> int:
         r"""Generate a Snowflake-style 64-bit identifier.
@@ -106,12 +134,7 @@ class SnowflakeIdGenerator:
 
             ```
         """
-        if not 0 <= worker_id <= _MAX_WORKER_ID:
-            msg = (
-                f"worker_id must fit in {_WORKER_ID_BITS} bits "
-                f"(0 to {_MAX_WORKER_ID}), got {worker_id}"
-            )
-            raise ValueError(msg)
+        validate_bit_range(worker_id, _WORKER_ID_BITS, name="worker_id")
 
         with self._lock:
             timestamp_ms = time.time_ns() // 1_000_000
@@ -126,9 +149,19 @@ class SnowflakeIdGenerator:
                 if self._sequence == 0:
                     # Sequence exhausted for this millisecond: busy-wait
                     # for the next one so the ID stays monotonically
-                    # increasing.
-                    while timestamp_ms <= self._last_timestamp_ms:
+                    # increasing. Re-check for backward clock movement
+                    # on every spin, since the clock could jump backward
+                    # while this loop is running, which would otherwise
+                    # spin forever.
+                    last_timestamp_ms = self._last_timestamp_ms
+                    while timestamp_ms <= last_timestamp_ms:
                         timestamp_ms = time.time_ns() // 1_000_000
+                        if timestamp_ms < last_timestamp_ms:
+                            msg = (
+                                f"clock moved backward: last timestamp was "
+                                f"{last_timestamp_ms} ms, got {timestamp_ms} ms"
+                            )
+                            raise RuntimeError(msg)
             else:
                 self._sequence = 0
             self._last_timestamp_ms = timestamp_ms

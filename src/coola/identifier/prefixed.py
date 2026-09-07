@@ -38,7 +38,8 @@ def generate_prefixed_id(prefix: str, generator: Callable[[], str] = generate_ul
         ``f"{prefix}_{generator()}"``.
 
     Raises:
-        ValueError: If ``prefix`` is empty or contains ``"_"``.
+        ValueError: If ``prefix`` is empty or contains ``"_"``, or if
+            ``generator()`` returns an empty string.
 
     Example:
         ```pycon
@@ -56,4 +57,8 @@ def generate_prefixed_id(prefix: str, generator: Callable[[], str] = generate_ul
     if "_" in prefix:
         msg = f"prefix must not contain '_', got {prefix!r}"
         raise ValueError(msg)
-    return f"{prefix}_{generator()}"
+    identifier = generator()
+    if not identifier:
+        msg = f"generator() must return a non-empty string, got {identifier!r}"
+        raise ValueError(msg)
+    return f"{prefix}_{identifier}"

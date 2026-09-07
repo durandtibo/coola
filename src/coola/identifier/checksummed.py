@@ -21,6 +21,8 @@ __all__ = ["generate_checksummed_id", "verify_checksummed_id"]
 
 import os
 
+from coola.identifier.validation import validate_positive
+
 # Crockford's Base32 alphabet, matching coola.identifier.ulid.
 _ENCODING = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
 # The 5 extra check symbols from the Crockford spec, extending the
@@ -32,14 +34,44 @@ _DEFAULT_GROUP_SIZE = 4
 
 
 def _checksum_symbol(payload: str) -> str:
-    r"""Compute the mod-37 Crockford check symbol for ``payload``."""
+    r"""Compute the mod-37 Crockford check symbol for ``payload``.
+
+    Raises:
+        ValueError: If ``payload`` contains a character outside the
+            Crockford Base32 alphabet.
+    """
     value = 0
     for char in payload:
-        value = value * 32 + _ENCODING.index(char)
+        try:
+            digit = _ENCODING.index(char)
+        except ValueError as error:
+            msg = (
+                f"payload contains a character outside the Crockford Base32 alphabet, got {char!r}"
+            )
+            raise ValueError(msg) from error
+        value = value * 32 + digit
     remainder = value % 37
     if remainder < 32:
         return _ENCODING[remainder]
     return _CHECK_SYMBOLS[remainder - 32]
+
+
+def _validate_sep(sep: str) -> None:
+    r"""Validate that ``sep`` does not overlap the extended Crockford
+    Base32 alphabet, which would make grouped output ambiguous to parse
+    back.
+
+    Raises:
+        ValueError: If ``sep`` contains a character from the extended
+            Crockford Base32 alphabet.
+    """
+    alphabet = _ENCODING + _CHECK_SYMBOLS
+    if any(char in alphabet for char in sep):
+        msg = (
+            "sep must not contain a character from the extended Crockford Base32 "
+            f"alphabet ({alphabet!r}), got {sep!r}"
+        )
+        raise ValueError(msg)
 
 
 def generate_checksummed_id(
@@ -59,14 +91,19 @@ def generate_checksummed_id(
             formatted output. Must be positive. Pass a number greater
             than or equal to ``length + 1`` (or ``sep=""``) to disable
             grouping.
-        sep: The separator inserted between groups.
+        sep: The separator inserted between groups. Must not contain a
+            character from the extended Crockford Base32 alphabet, or
+            ``verify_checksummed_id`` would not be able to tell a
+            separator character apart from a payload/check one.
 
     Returns:
         A string of ``length`` random characters plus one check
         symbol, grouped by ``group_size`` and joined by ``sep``.
 
     Raises:
-        ValueError: If ``length`` or ``group_size`` is not positive.
+        ValueError: If ``length`` or ``group_size`` is not positive,
+            or if ``sep`` contains a character from the extended
+            Crockford Base32 alphabet.
 
     Example:
         ```pycon
@@ -79,12 +116,9 @@ def generate_checksummed_id(
 
         ```
     """
-    if length <= 0:
-        msg = f"length must be positive, got {length}"
-        raise ValueError(msg)
-    if group_size <= 0:
-        msg = f"group_size must be positive, got {group_size}"
-        raise ValueError(msg)
+    validate_positive(length, name="length")
+    validate_positive(group_size, name="group_size")
+    _validate_sep(sep)
     payload = "".join(_ENCODING[b % 32] for b in os.urandom(length))
     full = payload + _checksum_symbol(payload)
     return sep.join(full[i : i + group_size] for i in range(0, len(full), group_size))

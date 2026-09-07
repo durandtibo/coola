@@ -55,3 +55,8 @@ def test_generate_prefixed_id_prefix_with_underscore_raises() -> None:
 def test_generate_prefixed_id_with_generate_ulid_matches_pattern() -> None:
     value = generate_prefixed_id("rec", generator=generate_ulid)
     assert re.match(r"^rec_[0-9A-HJKMNP-TV-Z]{26}$", value)
+
+
+def test_generate_prefixed_id_empty_generator_output_raises() -> None:
+    with pytest.raises(ValueError, match="generator\\(\\) must return a non-empty string"):
+        generate_prefixed_id("cus", generator=lambda: "")

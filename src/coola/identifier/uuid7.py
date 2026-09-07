@@ -18,6 +18,8 @@ import os
 import time
 import uuid
 
+from coola.identifier.validation import validate_timestamp_ms
+
 
 def generate_uuid7(timestamp_ms: int | None = None) -> str:
     r"""Generate a UUIDv7 (RFC 9562) identifier.
@@ -54,9 +56,7 @@ def generate_uuid7(timestamp_ms: int | None = None) -> str:
     """
     if timestamp_ms is None:
         timestamp_ms = time.time_ns() // 1_000_000
-    if not 0 <= timestamp_ms <= 0xFFFFFFFFFFFF:
-        msg = f"timestamp_ms must fit in 48 bits (0 to 2**48 - 1), got {timestamp_ms}"
-        raise ValueError(msg)
+    validate_timestamp_ms(timestamp_ms)
 
     rand = os.urandom(10)
     # 48-bit timestamp, followed by 80 bits of randomness that the

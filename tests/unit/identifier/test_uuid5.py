@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import re
 import uuid
-from typing import TYPE_CHECKING
 
 import pytest
 
@@ -15,20 +14,7 @@ from coola.hashing import (
 )
 from coola.identifier.uuid5 import _NAMESPACE, generate_stable_uuid5
 
-if TYPE_CHECKING:
-    from collections.abc import Generator
-
 UUID_PATTERN = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$")
-
-
-@pytest.fixture(autouse=True)
-def _reset_default_registry() -> Generator[None, None, None]:
-    """Reset the singleton registry before and after each test."""
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
-    yield
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
 
 
 ############################################

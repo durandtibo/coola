@@ -15,6 +15,8 @@ __all__ = ["generate_nano_id"]
 
 import os
 
+from coola.identifier.validation import validate_positive
+
 # Default alphabet used by the reference Nano ID implementation: 64
 # URL-safe characters (unreserved by RFC 3986), giving each character
 # 6 bits of entropy.
@@ -60,9 +62,7 @@ def generate_nano_id(size: int = _DEFAULT_SIZE, alphabet: str = _DEFAULT_ALPHABE
 
         ```
     """
-    if size <= 0:
-        msg = f"size must be positive, got {size}"
-        raise ValueError(msg)
+    validate_positive(size, name="size")
     n = len(alphabet)
     if n == 0:
         msg = "alphabet must not be empty"
