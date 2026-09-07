@@ -3,15 +3,15 @@ r"""Provide a content-addressed identifier for nested data.
 This is an alternative to ``generate_stable_uuid``: instead of wrapping
 the digest in a ``uuid.uuid5`` value (which is bounded by SHA-1's
 128-bit output regardless of the strength of the underlying hash),
-``generate_content_id`` returns the ``hash_object`` digest directly.
-This keeps the full collision resistance and configurable length of the
-underlying hash, at the cost of not being a valid UUID string (so it
-cannot fill a UUID-typed database column, for example).
+``generate_stable_content_id`` returns the ``hash_object`` digest
+directly. This keeps the full collision resistance and configurable
+length of the underlying hash, at the cost of not being a valid UUID
+string (so it cannot fill a UUID-typed database column, for example).
 """
 
 from __future__ import annotations
 
-__all__ = ["generate_content_id"]
+__all__ = ["generate_stable_content_id"]
 
 from typing import TYPE_CHECKING
 
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from coola.hashing import HasherRegistry
 
 
-def generate_content_id(
+def generate_stable_content_id(
     data: object,
     registry: HasherRegistry | None = None,
     length: int = 64,
@@ -61,12 +61,12 @@ def generate_content_id(
 
     Example:
         ```pycon
-        >>> from coola.identifier import generate_content_id
-        >>> generate_content_id({"source": "cats.txt", "page": 1})  # doctest: +ELLIPSIS
+        >>> from coola.identifier import generate_stable_content_id
+        >>> generate_stable_content_id({"source": "cats.txt", "page": 1})  # doctest: +ELLIPSIS
         '...'
-        >>> generate_content_id({"page": 1, "source": "cats.txt"}) == generate_content_id(
-        ...     {"source": "cats.txt", "page": 1}
-        ... )
+        >>> generate_stable_content_id(
+        ...     {"page": 1, "source": "cats.txt"}
+        ... ) == generate_stable_content_id({"source": "cats.txt", "page": 1})
         True
 
         ```
