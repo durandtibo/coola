@@ -3,7 +3,7 @@ r"""Provide a deterministic UUID identifier for nested data.
 This is deliberately kept separate from ``coola.hashing``:
 ``hash_object`` and friends produce a hex digest of a chosen ``length``
 for content hashing (dedup, caching, comparisons), whereas
-``generate_stable_uuid`` produces a valid UUID string for use as a
+``generate_stable_uuid5`` produces a valid UUID string for use as a
 stable identifier (e.g. a record ID or a database primary key). The two
 solve different problems and are not meant to be interchangeable, hence
 the separate module.
@@ -11,7 +11,7 @@ the separate module.
 
 from __future__ import annotations
 
-__all__ = ["generate_stable_uuid"]
+__all__ = ["generate_stable_uuid5"]
 
 import uuid
 from typing import TYPE_CHECKING
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 _NAMESPACE = uuid.UUID("2b6f6a52-6e83-4b1b-9e3a-0a2e9b2d9c6a")
 
 
-def generate_stable_uuid(
+def generate_stable_uuid5(
     data: object,
     registry: HasherRegistry | None = None,
     namespace: uuid.UUID = _NAMESPACE,
@@ -35,7 +35,7 @@ def generate_stable_uuid(
 ) -> str:
     r"""Compute a stable, reproducible UUID for a nested data structure.
 
-    Hashes ``data`` via ``hash_object`` (at its default, full digest
+    Hashes ``data`` via ``hash_object`` (at its maximum, 128-hex-digit
     length, so the identifier gets the full benefit of the underlying
     hash's collision resistance) to guarantee a consistent digest
     regardless of e.g. mapping insertion order, then derives a
@@ -45,7 +45,7 @@ def generate_stable_uuid(
     Note:
         ``uuid.uuid5`` always returns a 128-bit value regardless of the
         strength of the digest fed into it, so
-        ``generate_stable_uuid(a) == generate_stable_uuid(b)`` if and
+        ``generate_stable_uuid5(a) == generate_stable_uuid5(b)`` if and
         only if ``hash_object(a) == hash_object(b)`` (modulo the
         astronomically unlikely case of a ``uuid.uuid5`` collision on
         two different digests). Note also that ``uuid.uuid5`` hashes
@@ -54,7 +54,7 @@ def generate_stable_uuid(
         ``hash_object``'s own digest is.
 
     Warning:
-        The value returned by ``generate_stable_uuid`` for a given
+        The value returned by ``generate_stable_uuid5`` for a given
         ``data`` is stable only as long as ``hash_object`` (and the
         hashers
         resolved by ``registry`` for the types in ``data``) keep
@@ -93,10 +93,10 @@ def generate_stable_uuid(
 
     Example:
         ```pycon
-        >>> from coola.identifier import generate_stable_uuid
-        >>> generate_stable_uuid({"source": "cats.txt", "page": 1})  # doctest: +ELLIPSIS
+        >>> from coola.identifier import generate_stable_uuid5
+        >>> generate_stable_uuid5({"source": "cats.txt", "page": 1})  # doctest: +ELLIPSIS
         '...'
-        >>> generate_stable_uuid({"page": 1, "source": "cats.txt"}) == generate_stable_uuid(
+        >>> generate_stable_uuid5({"page": 1, "source": "cats.txt"}) == generate_stable_uuid5(
         ...     {"source": "cats.txt", "page": 1}
         ... )
         True
@@ -106,6 +106,6 @@ def generate_stable_uuid(
     return str(
         uuid.uuid5(
             namespace,
-            hash_object(data, registry=registry, ignore_unhashable=ignore_unhashable),
+            hash_object(data, registry=registry, length=128, ignore_unhashable=ignore_unhashable),
         )
     )

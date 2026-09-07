@@ -13,14 +13,14 @@ problems:
 
 | Function                       | Same data → same ID? | Format               | Use case                                                    |
 |---------------------------------|:---------------------:|-----------------------|---------------------------------------------------------------|
-| `generate_stable_uuid`          | :white_check_mark:    | UUID string           | Reproducible ID, needs a valid UUID (e.g. UUID DB column)      |
+| `generate_stable_uuid5`          | :white_check_mark:    | UUID string           | Reproducible ID, needs a valid UUID (e.g. UUID DB column)      |
 | `generate_stable_content_id`    | :white_check_mark:    | hex string            | Reproducible ID, full hash strength (dedup, caching)           |
 | `generate_ulid`                 | :x:                   | 26-char string         | Unique, sortable-by-creation-time ID                           |
 | `generate_uuid7`                | :x:                   | UUID string            | Unique, sortable-by-creation-time ID, needs a valid UUID       |
 | `generate_snowflake_id`         | :x:                   | 64-bit integer        | Unique, sortable-by-creation-time ID as a single integer        |
 | `generate_prefixed_id`          | depends on generator  | `"{prefix}_{id}"`     | Wraps any of the above so the ID's type is recognizable at a glance |
 
-`generate_stable_uuid` and `generate_stable_content_id` are content-addressed: they are built on
+`generate_stable_uuid5` and `generate_stable_content_id` are content-addressed: they are built on
 top of [`coola.hashing`](../refs/hashing.md)'s `hash_object`, so calling them twice with equal data
 (regardless of e.g. mapping insertion order) always returns the same identifier. `generate_ulid`,
 `generate_uuid7`, and `generate_snowflake_id` are not derived from data at all: they mint a fresh,
@@ -29,17 +29,17 @@ algorithm; it wraps any of the others (or a custom callable) to tag the identifi
 
 ## Stable, content-derived identifiers
 
-### `generate_stable_uuid`
+### `generate_stable_uuid5`
 
-`generate_stable_uuid` computes a stable, reproducible UUID for a nested data structure. It hashes
+`generate_stable_uuid5` computes a stable, reproducible UUID for a nested data structure. It hashes
 `data` with `hash_object` (so mapping key order, for example, does not affect the result), then
 derives a deterministic `uuid.uuid5` from that digest under a fixed namespace:
 
 ```pycon
->>> from coola.identifier import generate_stable_uuid
->>> generate_stable_uuid({"source": "cats.txt", "page": 1})  # doctest: +ELLIPSIS
+>>> from coola.identifier import generate_stable_uuid5
+>>> generate_stable_uuid5({"source": "cats.txt", "page": 1})  # doctest: +ELLIPSIS
 '...'
->>> generate_stable_uuid({"page": 1, "source": "cats.txt"}) == generate_stable_uuid(
+>>> generate_stable_uuid5({"page": 1, "source": "cats.txt"}) == generate_stable_uuid5(
 ...     {"source": "cats.txt", "page": 1}
 ... )
 True
@@ -56,23 +56,23 @@ with UUIDs minted by another system for unrelated data:
 
 ```pycon
 >>> import uuid
->>> from coola.identifier import generate_stable_uuid
+>>> from coola.identifier import generate_stable_uuid5
 >>> namespace = uuid.uuid4()
->>> generate_stable_uuid({"a": 1}, namespace=namespace)  # doctest: +ELLIPSIS
+>>> generate_stable_uuid5({"a": 1}, namespace=namespace)  # doctest: +ELLIPSIS
 '...'
 
 ```
 
 !!! warning
 
-    The UUID `generate_stable_uuid` returns for a given input is stable only as long as
+    The UUID `generate_stable_uuid5` returns for a given input is stable only as long as
     `hash_object` (and the hashers resolved for the types in the data) keep producing the same
     digest. Do not rely on cross-version stability for UUIDs persisted long-term unless you pin
     `coola` and pass an explicit, version-controlled hasher registry.
 
 ### `generate_stable_content_id`
 
-`generate_stable_content_id` is an alternative to `generate_stable_uuid` that skips the UUID
+`generate_stable_content_id` is an alternative to `generate_stable_uuid5` that skips the UUID
 reshaping step: it returns the `hash_object` digest directly.
 
 ```pycon
@@ -96,13 +96,13 @@ cost of not being a valid UUID string:
 
 ```
 
-Prefer `generate_stable_content_id` over `generate_stable_uuid` when you don't need UUID format
+Prefer `generate_stable_content_id` over `generate_stable_uuid5` when you don't need UUID format
 compliance (e.g. internal cache keys, deduplication) and want the strongest possible collision
 resistance.
 
 ### Custom hasher registry and unhashable data
 
-Both `generate_stable_uuid` and `generate_stable_content_id` forward `registry` and
+Both `generate_stable_uuid5` and `generate_stable_content_id` forward `registry` and
 `ignore_unhashable` to `hash_object`:
 
 ```pycon
@@ -243,7 +243,7 @@ ValueError: prefix must not contain '_', got 'cus_tom'
 
 ## Which one should I use?
 
-- Need the same identifier every time for the same data? Use `generate_stable_uuid` (valid UUID
+- Need the same identifier every time for the same data? Use `generate_stable_uuid5` (valid UUID
   format) or `generate_stable_content_id` (raw hash, stronger collision resistance, configurable
   length).
 - Need a unique identifier per call, sortable by creation time? Use `generate_ulid` (string,
