@@ -3,15 +3,15 @@ r"""Provide a deterministic UUID identifier for nested data.
 This is deliberately kept separate from ``coola.hashing``:
 ``hash_object`` and friends produce a hex digest of a chosen ``length``
 for content hashing (dedup, caching, comparisons), whereas
-``stable_uuid`` produces a valid UUID string for use as a stable
-identifier (e.g. a record ID or a database primary key). The two solve
-different problems and are not meant to be interchangeable, hence the
-separate module.
+``generate_stable_uuid`` produces a valid UUID string for use as a
+stable identifier (e.g. a record ID or a database primary key). The two
+solve different problems and are not meant to be interchangeable, hence
+the separate module.
 """
 
 from __future__ import annotations
 
-__all__ = ["stable_uuid"]
+__all__ = ["generate_stable_uuid"]
 
 import uuid
 from typing import TYPE_CHECKING
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 _NAMESPACE = uuid.UUID("2b6f6a52-6e83-4b1b-9e3a-0a2e9b2d9c6a")
 
 
-def stable_uuid(
+def generate_stable_uuid(
     data: object,
     registry: HasherRegistry | None = None,
     namespace: uuid.UUID = _NAMESPACE,
@@ -44,17 +44,19 @@ def stable_uuid(
 
     Note:
         ``uuid.uuid5`` always returns a 128-bit value regardless of the
-        strength of the digest fed into it, so ``stable_uuid(a) ==
-        stable_uuid(b)`` if and only if ``hash_object(a) ==
-        hash_object(b)`` (modulo the astronomically unlikely case of a
-        ``uuid.uuid5`` collision on two different digests). Note also
-        that ``uuid.uuid5`` hashes its input with SHA-1 internally, so
-        the final UUID's collision resistance is bounded by SHA-1
-        regardless of how strong ``hash_object``'s own digest is.
+        strength of the digest fed into it, so
+        ``generate_stable_uuid(a) == generate_stable_uuid(b)`` if and
+        only if ``hash_object(a) == hash_object(b)`` (modulo the
+        astronomically unlikely case of a ``uuid.uuid5`` collision on
+        two different digests). Note also that ``uuid.uuid5`` hashes
+        its input with SHA-1 internally, so the final UUID's collision
+        resistance is bounded by SHA-1 regardless of how strong
+        ``hash_object``'s own digest is.
 
     Warning:
-        The value returned by ``stable_uuid`` for a given ``data`` is
-        stable only as long as ``hash_object`` (and the hashers
+        The value returned by ``generate_stable_uuid`` for a given
+        ``data`` is stable only as long as ``hash_object`` (and the
+        hashers
         resolved by ``registry`` for the types in ``data``) keep
         producing the same digest for that ``data``. A change to the
         default registry's hashing algorithms in a future ``coola``
@@ -91,10 +93,10 @@ def stable_uuid(
 
     Example:
         ```pycon
-        >>> from coola.identifier import stable_uuid
-        >>> stable_uuid({"source": "cats.txt", "page": 1})  # doctest: +ELLIPSIS
+        >>> from coola.identifier import generate_stable_uuid
+        >>> generate_stable_uuid({"source": "cats.txt", "page": 1})  # doctest: +ELLIPSIS
         '...'
-        >>> stable_uuid({"page": 1, "source": "cats.txt"}) == stable_uuid(
+        >>> generate_stable_uuid({"page": 1, "source": "cats.txt"}) == generate_stable_uuid(
         ...     {"source": "cats.txt", "page": 1}
         ... )
         True
