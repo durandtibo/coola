@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any
+
 import pytest
 
 from coola.equality.tester import get_default_registry
 from coola.factory import OBJECT_TARGET
 from coola.io import (
+    BaseFileSaver,
     BaseLoader,
     BaseSaver,
     JsonLoader,
@@ -14,6 +17,9 @@ from coola.io import (
     resolve_loader,
     resolve_saver,
 )
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 ######################################
 #     Tests for is_loader_config     #
@@ -82,3 +88,53 @@ def test_resolve_saver_incorrect_type() -> None:
 def test_equality_tester_registry_has_equality_tester() -> None:
     assert get_default_registry().has_equality_tester(BaseLoader)
     assert get_default_registry().has_equality_tester(BaseSaver)
+
+
+#######################################
+#     Tests for BaseFileSaver.save     #
+#######################################
+
+
+class FailingFileSaver(BaseFileSaver[Any]):
+    r"""A file saver whose ``_save_file`` always fails, to test that the
+    temporary file is cleaned up when the write fails."""
+
+    def __init__(self, delete_tmp_file: bool = False) -> None:
+        # If ``True``, the temp file is removed before raising, to
+        # simulate ``_save_file`` implementations that clean up after
+        # themselves or never created the file in the first place.
+        self.delete_tmp_file = delete_tmp_file
+        self.tmp_path: Path | None = None
+
+    def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
+        return type(other) is type(self)
+
+    def _save_file(self, to_save: Any, path: Path) -> None:  # noqa: ARG002
+        self.tmp_path = path
+        path.touch()
+        if self.delete_tmp_file:
+            path.unlink()
+        msg = "failed to save"
+        raise RuntimeError(msg)
+
+
+def test_base_file_saver_save_removes_tmp_file_on_failure(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    saver = FailingFileSaver()
+    with pytest.raises(RuntimeError, match="failed to save"):
+        saver.save("hello", path)
+    assert not path.is_file()
+    assert saver.tmp_path is not None
+    assert not saver.tmp_path.is_file()
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_base_file_saver_save_missing_tmp_file_on_failure(tmp_path: Path) -> None:
+    # ``unlink(missing_ok=True)`` must not raise even if the tmp file
+    # does not exist anymore when the failure is handled.
+    path = tmp_path.joinpath("data.txt")
+    saver = FailingFileSaver(delete_tmp_file=True)
+    with pytest.raises(RuntimeError, match="failed to save"):
+        saver.save("hello", path)
+    assert not path.is_file()
+    assert list(tmp_path.iterdir()) == []
