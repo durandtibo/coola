@@ -126,8 +126,9 @@ def decode_obfuscated_id(encoded: str, salt: str = "") -> int:
         The original non-negative integer.
 
     Raises:
-        ValueError: If ``encoded`` contains a character outside the
-            base62 alphabet used by ``generate_obfuscated_id``.
+        ValueError: If ``encoded`` is empty or contains a character
+            outside the base62 alphabet used by
+            ``generate_obfuscated_id``.
 
     Example:
         ```pycon
@@ -137,6 +138,9 @@ def decode_obfuscated_id(encoded: str, salt: str = "") -> int:
 
         ```
     """
+    if not encoded:
+        msg = "encoded must not be empty"
+        raise ValueError(msg)
     try:
         obfuscated = _decode_base62(encoded)
     except ValueError as error:
