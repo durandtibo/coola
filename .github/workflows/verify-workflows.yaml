@@ -16,6 +16,11 @@ on:
 permissions:
   contents: read
 
+# Cancel stale in-progress runs when a new commit is pushed to the same PR/branch.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   verify-workflows:
     runs-on: ubuntu-slim
