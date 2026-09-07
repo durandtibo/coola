@@ -69,7 +69,7 @@ class SnowflakeIdGenerator:
 
     Example:
         ```pycon
-        >>> from coola.identifier.snowflake import SnowflakeIdGenerator
+        >>> from coola.identifier import SnowflakeIdGenerator
         >>> generator = SnowflakeIdGenerator()
         >>> snowflake_id = generator.generate()
         >>> isinstance(snowflake_id, int)
@@ -93,7 +93,7 @@ class SnowflakeIdGenerator:
         self._last_timestamp_ms = last_timestamp_ms
         self._sequence = sequence
 
-    def generate(self, worker_id: int = 0) -> int:
+    def generate(self, worker_id: int = 0, timestamp_ms: int | None = None) -> int:
         r"""Generate a Snowflake-style 64-bit identifier.
 
         The returned integer is composed of a 41-bit millisecond
@@ -118,6 +118,12 @@ class SnowflakeIdGenerator:
                 generators. Must fit in 10 bits (``0`` to ``1023``).
                 Defaults to ``0``, which is fine for a single-process
                 use case.
+            timestamp_ms: The Unix timestamp in milliseconds to encode.
+                If ``None`` (default), the current time is used.
+                Exposed mainly for deterministic testing; passing a
+                value that moves the clock backward relative to the
+                last call raises ``RuntimeError`` just like an actual
+                backward clock movement would.
 
         Returns:
             A 64-bit non-negative integer, monotonically increasing
@@ -132,7 +138,7 @@ class SnowflakeIdGenerator:
 
         Example:
             ```pycon
-            >>> from coola.identifier.snowflake import SnowflakeIdGenerator
+            >>> from coola.identifier import SnowflakeIdGenerator
             >>> generator = SnowflakeIdGenerator()
             >>> snowflake_id = generator.generate(worker_id=3)
             >>> isinstance(snowflake_id, int)
@@ -143,7 +149,8 @@ class SnowflakeIdGenerator:
         validate_bit_range(worker_id, _WORKER_ID_BITS, name="worker_id")
 
         with self._lock:
-            timestamp_ms = time.time_ns() // 1_000_000
+            if timestamp_ms is None:
+                timestamp_ms = time.time_ns() // 1_000_000
             if timestamp_ms < self._last_timestamp_ms:
                 msg = (
                     f"clock moved backward: last timestamp was {self._last_timestamp_ms} ms, "
@@ -188,7 +195,7 @@ class SnowflakeIdGenerator:
 _default_generator = SnowflakeIdGenerator()
 
 
-def generate_snowflake_id(worker_id: int = 0) -> int:
+def generate_snowflake_id(worker_id: int = 0, timestamp_ms: int | None = None) -> int:
     r"""Generate a Snowflake-style 64-bit identifier.
 
     Convenience wrapper around a shared, process-wide
@@ -202,6 +209,9 @@ def generate_snowflake_id(worker_id: int = 0) -> int:
             ID, used to avoid collisions between concurrent generators.
             Must fit in 10 bits (``0`` to ``1023``). Defaults to ``0``,
             which is fine for a single-process use case.
+        timestamp_ms: The Unix timestamp in milliseconds to encode. If
+            ``None`` (default), the current time is used. Exposed
+            mainly for deterministic testing.
 
     Returns:
         A 64-bit non-negative integer, monotonically increasing for
@@ -223,7 +233,7 @@ def generate_snowflake_id(worker_id: int = 0) -> int:
 
         ```
     """
-    return _default_generator.generate(worker_id=worker_id)
+    return _default_generator.generate(worker_id=worker_id, timestamp_ms=timestamp_ms)
 
 
 def extract_snowflake_timestamp_ms(snowflake_id: int) -> int:

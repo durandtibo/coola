@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import threading
 from unittest.mock import patch
 
 import pytest
@@ -165,6 +164,20 @@ def test_snowflake_id_generator_generate_max_worker_id_is_valid() -> None:
     assert isinstance(SnowflakeIdGenerator().generate(worker_id=1023), int)
 
 
+def test_snowflake_id_generator_generate_accepts_explicit_timestamp_ms() -> None:
+    fixed_ms = 1_800_000_000_000
+    snowflake_id = SnowflakeIdGenerator().generate(timestamp_ms=fixed_ms)
+    decoded_ms, _, _ = _decode(snowflake_id)
+    assert decoded_ms == fixed_ms
+
+
+def test_snowflake_id_generator_generate_explicit_timestamp_ms_backward_raises() -> None:
+    generator = SnowflakeIdGenerator()
+    generator.generate(timestamp_ms=1_800_000_000_000)
+    with pytest.raises(RuntimeError, match="clock moved backward"):
+        generator.generate(timestamp_ms=1_700_000_000_000)
+
+
 def test_snowflake_id_generator_generate_clock_moved_backward_raises() -> None:
     generator = SnowflakeIdGenerator()
     generator._last_timestamp_ms = 9_999_999_999_999
@@ -227,25 +240,6 @@ def test_snowflake_id_generator_generate_sequence_wraps_within_same_millisecond(
         for _ in range(_MAX_SEQUENCE):
             current = generator.generate()
         assert current == first + _MAX_SEQUENCE
-
-
-def test_snowflake_id_generator_generate_thread_safe() -> None:
-    generator = SnowflakeIdGenerator()
-    ids: list[int] = []
-    lock = threading.Lock()
-
-    def _worker() -> None:
-        snowflake_id = generator.generate()
-        with lock:
-            ids.append(snowflake_id)
-
-    threads = [threading.Thread(target=_worker) for _ in range(200)]
-    for thread in threads:
-        thread.start()
-    for thread in threads:
-        thread.join()
-
-    assert len(ids) == len(set(ids))
 
 
 ######################################

@@ -79,3 +79,13 @@ def test_generate_nano_id_needs_multiple_urandom_batches(monkeypatch: pytest.Mon
     batches = iter([bytes([3, 3, 3]), bytes([0, 1, 2])])
     monkeypatch.setattr("coola.identifier.nanoid.os.urandom", lambda _size: next(batches))
     assert generate_nano_id(size=3, alphabet="abc") == "abc"
+
+
+def test_generate_nano_id_alphabet_just_above_power_of_two() -> None:
+    # alphabet size 129 sits just above the 128 power-of-two boundary,
+    # so the rejection mask (255) accepts only ~50% of bytes: a
+    # worst-case-ish rejection rate worth exercising explicitly.
+    alphabet = "".join(chr(ord("!") + i) for i in range(129))
+    value = generate_nano_id(size=50, alphabet=alphabet)
+    assert len(value) == 50
+    assert all(char in alphabet for char in value)

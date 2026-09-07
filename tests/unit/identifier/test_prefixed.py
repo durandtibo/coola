@@ -60,3 +60,12 @@ def test_generate_prefixed_id_with_generate_ulid_matches_pattern() -> None:
 def test_generate_prefixed_id_empty_generator_output_raises() -> None:
     with pytest.raises(ValueError, match="generator\\(\\) must return a non-empty string"):
         generate_prefixed_id("cus", generator=lambda: "")
+
+
+def test_generate_prefixed_id_propagates_generator_error() -> None:
+    def _failing_generator() -> str:
+        msg = "boom"
+        raise RuntimeError(msg)
+
+    with pytest.raises(RuntimeError, match="boom"):
+        generate_prefixed_id("cus", generator=_failing_generator)

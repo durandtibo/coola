@@ -21,10 +21,12 @@ __all__ = ["generate_checksummed_id", "verify_checksummed_id"]
 
 import os
 
-from coola.identifier.validation import validate_positive
+from coola.identifier.validation import (
+    CROCKFORD_BASE32_ALPHABET,
+    decode_crockford_base32,
+    validate_positive,
+)
 
-# Crockford's Base32 alphabet, matching coola.identifier.ulid.
-_ENCODING = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
 # The 5 extra check symbols from the Crockford spec, extending the
 # alphabet from 32 to the 37 values needed for a mod-37 checksum.
 _CHECK_SYMBOLS = "*~$=U"
@@ -53,32 +55,27 @@ def _checksum_symbol(payload: str) -> str:
         ValueError: If ``payload`` contains a character outside the
             Crockford Base32 alphabet.
     """
-    value = 0
-    for char in payload:
-        try:
-            digit = _ENCODING.index(char)
-        except ValueError as error:
-            msg = (
-                f"payload contains a character outside the Crockford Base32 alphabet, got {char!r}"
-            )
-            raise ValueError(msg) from error
-        value = value * 32 + digit
+    value = decode_crockford_base32(payload, name="payload")
     remainder = value % 37
     if remainder < 32:
-        return _ENCODING[remainder]
+        return CROCKFORD_BASE32_ALPHABET[remainder]
     return _CHECK_SYMBOLS[remainder - 32]
 
 
 def _validate_sep(sep: str) -> None:
-    r"""Validate that ``sep`` does not overlap the extended Crockford
-    Base32 alphabet, which would make grouped output ambiguous to parse
-    back.
+    r"""Validate that ``sep`` is at most one character and does not
+    overlap the extended Crockford Base32 alphabet, which would make
+    grouped output ambiguous to parse back.
 
     Raises:
-        ValueError: If ``sep`` contains a character from the extended
-            Crockford Base32 alphabet.
+        ValueError: If ``sep`` is more than one character long, or
+            contains a character from the extended Crockford Base32
+            alphabet.
     """
-    alphabet = _ENCODING + _CHECK_SYMBOLS
+    if len(sep) > 1:
+        msg = f"sep must be empty or a single character, got {sep!r}"
+        raise ValueError(msg)
+    alphabet = CROCKFORD_BASE32_ALPHABET + _CHECK_SYMBOLS
     if any(char in alphabet for char in sep):
         msg = (
             "sep must not contain a character from the extended Crockford Base32 "
@@ -132,7 +129,7 @@ def generate_checksummed_id(
     validate_positive(length, name="length")
     validate_positive(group_size, name="group_size")
     _validate_sep(sep)
-    payload = "".join(_ENCODING[b % 32] for b in os.urandom(length))
+    payload = "".join(CROCKFORD_BASE32_ALPHABET[b % 32] for b in os.urandom(length))
     full = payload + _checksum_symbol(payload)
     return sep.join(full[i : i + group_size] for i in range(0, len(full), group_size))
 
@@ -177,7 +174,7 @@ def verify_checksummed_id(identifier: str, sep: str = "-") -> bool:
     if len(full) < 2:
         return False
     payload, check = full[:-1], full[-1]
-    if any(char not in _ENCODING for char in payload):
+    if any(char not in CROCKFORD_BASE32_ALPHABET for char in payload):
         return False
     # payload was just validated above, so this cannot raise.
     return check == _checksum_symbol(payload)

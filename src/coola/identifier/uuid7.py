@@ -15,10 +15,9 @@ from __future__ import annotations
 __all__ = ["extract_uuid7_timestamp_ms", "generate_uuid7"]
 
 import os
-import time
 import uuid
 
-from coola.identifier.validation import validate_timestamp_ms
+from coola.identifier.validation import resolve_timestamp_ms
 
 
 def generate_uuid7(timestamp_ms: int | None = None) -> str:
@@ -54,9 +53,7 @@ def generate_uuid7(timestamp_ms: int | None = None) -> str:
 
         ```
     """
-    if timestamp_ms is None:
-        timestamp_ms = time.time_ns() // 1_000_000
-    validate_timestamp_ms(timestamp_ms)
+    timestamp_ms = resolve_timestamp_ms(timestamp_ms)
 
     rand = os.urandom(10)
     # 48-bit timestamp, followed by 80 bits of randomness that the
@@ -92,7 +89,8 @@ def extract_uuid7_timestamp_ms(uuid7: str) -> int:
         ``uuid7``.
 
     Raises:
-        ValueError: If ``uuid7`` is not a valid UUID string.
+        ValueError: If ``uuid7`` is not a valid UUID string, or is not
+            a version 7 UUID (RFC 9562 variant, version nibble ``7``).
 
     Example:
         ```pycon
@@ -102,4 +100,8 @@ def extract_uuid7_timestamp_ms(uuid7: str) -> int:
 
         ```
     """
-    return uuid.UUID(uuid7).int >> 80
+    parsed = uuid.UUID(uuid7)
+    if parsed.version != 7:
+        msg = f"uuid7 must be a version 7 UUID, got version {parsed.version} ({uuid7!r})"
+        raise ValueError(msg)
+    return parsed.int >> 80
