@@ -123,8 +123,5 @@ def verify_checksummed_id(identifier: str, sep: str = "-") -> bool:
     payload, check = full[:-1], full[-1]
     if any(char not in _ENCODING for char in payload):
         return False
-    try:
-        expected = _checksum_symbol(payload)
-    except ValueError:
-        return False
-    return check == expected
+    # payload was just validated above, so this cannot raise.
+    return check == _checksum_symbol(payload)

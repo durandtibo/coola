@@ -59,3 +59,23 @@ def test_generate_nano_id_alphabet_too_large_raises() -> None:
 
 def test_generate_nano_id_single_character_alphabet() -> None:
     assert generate_nano_id(size=5, alphabet="a") == "aaaaa"
+
+
+def test_generate_nano_id_rejects_out_of_range_bytes(monkeypatch: pytest.MonkeyPatch) -> None:
+    # alphabet="abc" has 3 characters, so the rejection mask is 0b11
+    # (3): a byte masking to 3 must be rejected since it is out of
+    # range, and an accepted byte that does not yet complete the
+    # requested size must resume the inner loop rather than return
+    # early.
+    buffer = bytes([3, 0, 3, 1, 2])  # reject, accept 'a', reject, accept 'b', accept 'c'
+    monkeypatch.setattr("coola.identifier.nanoid.os.urandom", lambda _size: buffer)
+    assert generate_nano_id(size=3, alphabet="abc") == "abc"
+
+
+def test_generate_nano_id_needs_multiple_urandom_batches(monkeypatch: pytest.MonkeyPatch) -> None:
+    # The first os.urandom call returns only out-of-range bytes, so no
+    # character is accepted and the outer loop must call os.urandom a
+    # second time to make progress.
+    batches = iter([bytes([3, 3, 3]), bytes([0, 1, 2])])
+    monkeypatch.setattr("coola.identifier.nanoid.os.urandom", lambda _size: next(batches))
+    assert generate_nano_id(size=3, alphabet="abc") == "abc"
