@@ -12,7 +12,7 @@ UUID format compliance does not matter, since it packs more randomness
 
 from __future__ import annotations
 
-__all__ = ["generate_uuid7"]
+__all__ = ["extract_uuid7_timestamp_ms", "generate_uuid7"]
 
 import os
 import time
@@ -74,3 +74,32 @@ def generate_uuid7(timestamp_ms: int | None = None) -> str:
     value |= 0b10 << 62
 
     return str(uuid.UUID(int=value))
+
+
+def extract_uuid7_timestamp_ms(uuid7: str) -> int:
+    r"""Extract the millisecond timestamp encoded in a UUIDv7.
+
+    Inverse of the encoding done by ``generate_uuid7``: the timestamp
+    is the top 48 bits of the UUID, unaffected by the version/variant
+    bits stamped into the lower 80 bits.
+
+    Args:
+        uuid7: The UUIDv7 string previously returned by
+            ``generate_uuid7``.
+
+    Returns:
+        The Unix timestamp in milliseconds that was encoded in
+        ``uuid7``.
+
+    Raises:
+        ValueError: If ``uuid7`` is not a valid UUID string.
+
+    Example:
+        ```pycon
+        >>> from coola.identifier import extract_uuid7_timestamp_ms, generate_uuid7
+        >>> extract_uuid7_timestamp_ms(generate_uuid7(timestamp_ms=1704067200000))
+        1704067200000
+
+        ```
+    """
+    return uuid.UUID(uuid7).int >> 80

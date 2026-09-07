@@ -32,6 +32,19 @@ _CHECK_SYMBOLS = "*~$=U"
 _DEFAULT_LENGTH = 12
 _DEFAULT_GROUP_SIZE = 4
 
+# Crockford Base32 decoding is case-insensitive and normalizes the
+# characters most often confused when hand-transcribed: 'O' with '0',
+# and 'I'/'L' with '1'. Applied to the whole identifier (check symbol
+# included) before verification, since none of the mapped letters
+# collide with the '*~$=U' check symbols.
+_NORMALIZE_TABLE = str.maketrans("oOiIlL", "001111")
+
+
+def _normalize(identifier: str) -> str:
+    r"""Apply the Crockford Base32 case/confusable normalization to
+    ``identifier``."""
+    return identifier.upper().translate(_NORMALIZE_TABLE)
+
 
 def _checksum_symbol(payload: str) -> str:
     r"""Compute the mod-37 Crockford check symbol for ``payload``.
@@ -134,6 +147,13 @@ def verify_checksummed_id(identifier: str, sep: str = "-") -> bool:
         sep: The group separator used when ``identifier`` was
             generated.
 
+    Per the Crockford Base32 spec, decoding is case-insensitive and
+    normalizes the characters most often confused when an identifier is
+    hand-transcribed: ``'O'`` with ``'0'``, and ``'I'``/``'L'`` with
+    ``'1'``. ``identifier`` is normalized this way before its check
+    symbol is verified, so e.g. a lowercase retype or an ``'O'`` typed
+    for a ``'0'`` still verifies correctly.
+
     Returns:
         ``True`` if the trailing character is a valid check symbol for
         the characters preceding it, ``False`` otherwise (including
@@ -148,10 +168,12 @@ def verify_checksummed_id(identifier: str, sep: str = "-") -> bool:
         True
         >>> verify_checksummed_id("not-a-valid-id")
         False
+        >>> verify_checksummed_id(generate_checksummed_id().lower())
+        True
 
         ```
     """
-    full = identifier.replace(sep, "") if sep else identifier
+    full = _normalize(identifier.replace(sep, "") if sep else identifier)
     if len(full) < 2:
         return False
     payload, check = full[:-1], full[-1]

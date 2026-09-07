@@ -8,7 +8,12 @@ the same checks and error messages.
 
 from __future__ import annotations
 
-__all__ = ["validate_bit_range", "validate_positive", "validate_timestamp_ms"]
+__all__ = [
+    "validate_bit_range",
+    "validate_non_negative",
+    "validate_positive",
+    "validate_timestamp_ms",
+]
 
 _TIMESTAMP_BITS = 48
 
@@ -44,6 +49,21 @@ def validate_timestamp_ms(timestamp_ms: int) -> None:
             is negative or exceeds ``2**48 - 1``).
     """
     validate_bit_range(timestamp_ms, _TIMESTAMP_BITS, name="timestamp_ms")
+
+
+def validate_non_negative(value: int, *, name: str) -> None:
+    r"""Validate that ``value`` is not negative.
+
+    Args:
+        value: The value to validate.
+        name: The name of the value, used in the error message.
+
+    Raises:
+        ValueError: If ``value`` is negative.
+    """
+    if value < 0:
+        msg = f"{name} must be non-negative, got {value}"
+        raise ValueError(msg)
 
 
 def validate_positive(value: int, *, name: str) -> None:

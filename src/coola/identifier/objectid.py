@@ -16,7 +16,7 @@ explicit ``worker_id`` control is needed instead.
 
 from __future__ import annotations
 
-__all__ = ["ObjectIdGenerator", "generate_object_id"]
+__all__ = ["ObjectIdGenerator", "extract_object_id_timestamp", "generate_object_id"]
 
 import os
 import threading
@@ -126,3 +126,43 @@ def generate_object_id() -> str:
         ```
     """
     return _default_generator.generate()
+
+
+def extract_object_id_timestamp(object_id: str) -> int:
+    r"""Extract the Unix timestamp encoded in an ObjectId-style
+    identifier.
+
+    Inverse of the encoding done by ``ObjectIdGenerator.generate``
+    (and ``generate_object_id``): decodes the leading 4 bytes of the
+    24-character hex string back to the Unix timestamp (in seconds)
+    it was created from.
+
+    Args:
+        object_id: The identifier string previously returned by
+            ``ObjectIdGenerator.generate`` or ``generate_object_id``.
+
+    Returns:
+        The Unix timestamp, in seconds, that was encoded in
+        ``object_id``.
+
+    Raises:
+        ValueError: If ``object_id`` is not a 24-character hex string.
+
+    Example:
+        ```pycon
+        >>> from coola.identifier import extract_object_id_timestamp, generate_object_id
+        >>> object_id = generate_object_id()
+        >>> isinstance(extract_object_id_timestamp(object_id), int)
+        True
+
+        ```
+    """
+    if len(object_id) != 2 * (_TIMESTAMP_BYTES + _PROCESS_BYTES + _COUNTER_BYTES):
+        msg = f"object_id must be a 24-character hex string, got {object_id!r}"
+        raise ValueError(msg)
+    try:
+        payload = bytes.fromhex(object_id)
+    except ValueError as error:
+        msg = f"object_id must be a 24-character hex string, got {object_id!r}"
+        raise ValueError(msg) from error
+    return int.from_bytes(payload[:_TIMESTAMP_BYTES], byteorder="big")

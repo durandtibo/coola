@@ -42,3 +42,13 @@ def test_generate_obfuscated_id_too_large_raises() -> None:
 def test_decode_obfuscated_id_invalid_character_raises() -> None:
     with pytest.raises(ValueError, match="encoded contains a character outside"):
         decode_obfuscated_id("not!valid")
+
+
+def test_generate_obfuscated_id_negative_min_length_raises() -> None:
+    with pytest.raises(ValueError, match="min_length must be non-negative"):
+        generate_obfuscated_id(1, min_length=-1)
+
+
+def test_decode_obfuscated_id_empty_raises() -> None:
+    with pytest.raises(ValueError, match="encoded must not be empty"):
+        decode_obfuscated_id("")

@@ -4,7 +4,13 @@ import re
 import time
 from unittest.mock import patch
 
-from coola.identifier import ObjectIdGenerator, generate_object_id
+import pytest
+
+from coola.identifier import (
+    ObjectIdGenerator,
+    extract_object_id_timestamp,
+    generate_object_id,
+)
 from coola.identifier import objectid as objectid_module
 
 OBJECT_ID_PATTERN = re.compile(r"^[0-9a-f]{24}$")
@@ -104,3 +110,28 @@ def test_object_id_generator_generate_sorts_by_creation_time() -> None:
 
 def test_generate_object_id_uses_shared_default_generator() -> None:
     assert generate_object_id()[8:18] == objectid_module._default_generator._process_value.hex()
+
+
+#####################################################
+#     Tests for extract_object_id_timestamp        #
+#####################################################
+
+
+def test_extract_object_id_timestamp_roundtrip() -> None:
+    with patch("time.time", return_value=1_800_000_000):
+        object_id = generate_object_id()
+    assert extract_object_id_timestamp(object_id) == 1_800_000_000
+
+
+def test_extract_object_id_timestamp_returns_int() -> None:
+    assert isinstance(extract_object_id_timestamp(generate_object_id()), int)
+
+
+def test_extract_object_id_timestamp_wrong_length_raises() -> None:
+    with pytest.raises(ValueError, match="object_id must be a 24-character hex string"):
+        extract_object_id_timestamp("too-short")
+
+
+def test_extract_object_id_timestamp_invalid_hex_raises() -> None:
+    with pytest.raises(ValueError, match="object_id must be a 24-character hex string"):
+        extract_object_id_timestamp("z" * 24)

@@ -75,3 +75,25 @@ def test_generate_checksummed_id_sep_overlapping_check_symbol_raises() -> None:
 def test_checksum_symbol_invalid_character_raises() -> None:
     with pytest.raises(ValueError, match="payload contains a character outside"):
         _checksum_symbol("!")
+
+
+def test_verify_checksummed_id_accepts_lowercase() -> None:
+    assert verify_checksummed_id(generate_checksummed_id().lower())
+
+
+def test_verify_checksummed_id_normalizes_o_as_zero() -> None:
+    payload = "0123456789AB"
+    value = payload + _checksum_symbol(payload)
+    assert verify_checksummed_id(value.replace("0", "O"), sep="")
+
+
+def test_verify_checksummed_id_normalizes_i_as_one() -> None:
+    payload = "0123456789AB"
+    value = payload + _checksum_symbol(payload)
+    assert verify_checksummed_id(value.replace("1", "I"), sep="")
+
+
+def test_verify_checksummed_id_normalizes_l_as_one() -> None:
+    payload = "0123456789AB"
+    value = payload + _checksum_symbol(payload)
+    assert verify_checksummed_id(value.replace("1", "L"), sep="")

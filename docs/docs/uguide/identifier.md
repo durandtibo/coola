@@ -32,6 +32,12 @@ top of [`coola.hashing`](../refs/hashing.md)'s `hash_object`, so calling them tw
 unique value every call, ordered by creation time instead. `generate_prefixed_id` is not a new
 algorithm; it wraps any of the others (or a custom callable) to tag the identifier's type.
 
+The four time-ordered generators (`generate_ulid`, `generate_uuid7`, `generate_snowflake_id`, and
+`generate_object_id`) each have a matching `extract_*_timestamp*` function
+(`extract_ulid_timestamp_ms`, `extract_uuid7_timestamp_ms`, `extract_snowflake_timestamp_ms`, and
+`extract_object_id_timestamp`) that recovers the timestamp packed into a previously generated
+identifier.
+
 ## Stable, content-derived identifiers
 
 ### `generate_stable_uuid5`
@@ -146,6 +152,17 @@ Because the timestamp is the most significant part, ULIDs generated later sort (
 after ULIDs generated earlier, unlike `uuid.uuid4`, which sorts randomly. Use it for a unique
 record ID that should also sort roughly by insertion order.
 
+Use `extract_ulid_timestamp_ms` to recover the timestamp encoded in a ULID, e.g. to check how old a
+record is without a separate stored timestamp column:
+
+```pycon
+>>> from coola.identifier import extract_ulid_timestamp_ms, generate_ulid
+>>> ulid = generate_ulid(timestamp_ms=1704067200000)
+>>> extract_ulid_timestamp_ms(ulid)
+1704067200000
+
+```
+
 ### `generate_uuid7`
 
 `generate_uuid7` generates a [UUIDv7](https://www.rfc-editor.org/rfc/rfc9562) (RFC 9562): like
@@ -166,6 +183,17 @@ over `generate_ulid` when the identifier must be a valid UUID string (e.g. a UUI
 column, or an API expecting `uuid.UUID` formatting); prefer `generate_ulid` otherwise, since it
 packs more randomness (80 bits) than UUIDv7 leaves available (74 bits, once the version and
 variant bits are subtracted).
+
+`extract_uuid7_timestamp_ms` recovers the timestamp, the same way `extract_ulid_timestamp_ms` does
+for a ULID:
+
+```pycon
+>>> from coola.identifier import extract_uuid7_timestamp_ms, generate_uuid7
+>>> uuid7 = generate_uuid7(timestamp_ms=1704067200000)
+>>> extract_uuid7_timestamp_ms(uuid7)
+1704067200000
+
+```
 
 ### `generate_snowflake_id`
 
@@ -199,6 +227,16 @@ in a test, without them sharing state through a global singleton:
 >>> generator = SnowflakeIdGenerator()
 >>> id1 = generator.generate()
 >>> id2 = generator.generate(worker_id=3)
+
+```
+
+`extract_snowflake_timestamp_ms` recovers the timestamp encoded in a Snowflake-style ID:
+
+```pycon
+>>> from coola.identifier import extract_snowflake_timestamp_ms, generate_snowflake_id
+>>> snowflake_id = generate_snowflake_id()
+>>> isinstance(extract_snowflake_timestamp_ms(snowflake_id), int)
+True
 
 ```
 
@@ -244,6 +282,17 @@ exhausted within a second, and no `worker_id` needs to be configured:
 
 ```
 
+`extract_object_id_timestamp` recovers the (second-resolution) Unix timestamp encoded in an
+identifier previously returned by `generate_object_id` or `ObjectIdGenerator.generate`:
+
+```pycon
+>>> from coola.identifier import extract_object_id_timestamp, generate_object_id
+>>> object_id = generate_object_id()
+>>> isinstance(extract_object_id_timestamp(object_id), int)
+True
+
+```
+
 ### `generate_checksummed_id`
 
 `generate_checksummed_id` adds a Crockford Base32 check symbol to a random identifier, so that a
@@ -254,6 +303,17 @@ identifiers a human is expected to read back or retype, e.g. a support code or l
 >>> from coola.identifier import generate_checksummed_id, verify_checksummed_id
 >>> checksummed_id = generate_checksummed_id()
 >>> verify_checksummed_id(checksummed_id)
+True
+
+```
+
+`verify_checksummed_id` follows the Crockford Base32 spec's own transcription rules: it is
+case-insensitive, and it normalizes `'O'` to `'0'` and `'I'`/`'L'` to `'1'` before checking the
+check symbol, so a human who reads back `'O'` for `'0'` (or types in lowercase) still verifies
+correctly:
+
+```pycon
+>>> verify_checksummed_id(checksummed_id.lower())
 True
 
 ```

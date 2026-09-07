@@ -10,7 +10,7 @@ identifier for deduplication or caching.
 
 from __future__ import annotations
 
-__all__ = ["generate_ulid"]
+__all__ = ["extract_ulid_timestamp_ms", "generate_ulid"]
 
 import os
 import time
@@ -58,6 +58,48 @@ def generate_ulid(timestamp_ms: int | None = None) -> str:
     validate_timestamp_ms(timestamp_ms)
     payload = timestamp_ms.to_bytes(6, byteorder="big") + os.urandom(10)
     return _encode_base32(payload)
+
+
+def extract_ulid_timestamp_ms(ulid: str) -> int:
+    r"""Extract the millisecond timestamp encoded in a ULID.
+
+    Inverse of the encoding done by ``generate_ulid``: decodes the
+    26-character Crockford Base32 string back to its 128-bit value and
+    returns the top 48 bits, which is the timestamp ``generate_ulid``
+    packed in.
+
+    Args:
+        ulid: The ULID string previously returned by ``generate_ulid``.
+
+    Returns:
+        The Unix timestamp in milliseconds that was encoded in
+        ``ulid``.
+
+    Raises:
+        ValueError: If ``ulid`` is not 26 characters long, or contains
+            a character outside the Crockford Base32 alphabet used by
+            ``generate_ulid``.
+
+    Example:
+        ```pycon
+        >>> from coola.identifier import extract_ulid_timestamp_ms, generate_ulid
+        >>> extract_ulid_timestamp_ms(generate_ulid(timestamp_ms=1704067200000))
+        1704067200000
+
+        ```
+    """
+    if len(ulid) != 26:
+        msg = f"ulid must be 26 characters long, got {len(ulid)}"
+        raise ValueError(msg)
+    value = 0
+    for char in ulid:
+        try:
+            digit = _ENCODING.index(char)
+        except ValueError as error:
+            msg = f"ulid contains a character outside the Crockford Base32 alphabet, got {char!r}"
+            raise ValueError(msg) from error
+        value = value * 32 + digit
+    return value >> 80
 
 
 def _encode_base32(payload: bytes) -> str:
