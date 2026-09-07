@@ -4,7 +4,7 @@ Like ``generate_ulid``, a UUIDv7 is not derived from data content: two
 calls produce different values even for identical input. Unlike
 ``generate_ulid``, the result is a valid UUID string (RFC 9562), so it
 fits a UUID-typed database column or any API expecting ``uuid.UUID``
-formatting — something neither ``generate_ulid`` nor
+formatting, something neither ``generate_ulid`` nor
 ``generate_stable_content_id`` provide. Prefer ``generate_ulid`` when
 UUID format compliance does not matter, since it packs more randomness
 (80 bits) than UUIDv7's 74 bits of usable random space.

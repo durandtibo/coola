@@ -23,7 +23,7 @@ problems:
 `generate_stable_uuid` and `generate_stable_content_id` are content-addressed: they are built on
 top of [`coola.hashing`](../refs/hashing.md)'s `hash_object`, so calling them twice with equal data
 (regardless of e.g. mapping insertion order) always returns the same identifier. `generate_ulid`,
-`generate_uuid7`, and `generate_snowflake_id` are not derived from data at all — they mint a fresh,
+`generate_uuid7`, and `generate_snowflake_id` are not derived from data at all: they mint a fresh,
 unique value every call, ordered by creation time instead. `generate_prefixed_id` is not a new
 algorithm; it wraps any of the others (or a custom callable) to tag the identifier's type.
 
@@ -138,7 +138,7 @@ False
 ```
 
 Because the timestamp is the most significant part, ULIDs generated later sort (as plain strings)
-after ULIDs generated earlier — unlike `uuid.uuid4`, which sorts randomly. Use it for a unique
+after ULIDs generated earlier, unlike `uuid.uuid4`, which sorts randomly. Use it for a unique
 record ID that should also sort roughly by insertion order.
 
 ### `generate_uuid7`
@@ -176,18 +176,18 @@ Twitter's original Snowflake service: a 41-bit millisecond timestamp, a 10-bit `
 ```
 
 Like `generate_ulid`, successive IDs are monotonically increasing, but the result is a plain
-64-bit integer rather than a string — useful when the identifier must fit a `BIGINT`-style column,
+64-bit integer rather than a string, useful when the identifier must fit a `BIGINT`-style column,
 or when IDs need to be attributable to the worker/shard that minted them via `worker_id`.
 
 `generate_snowflake_id` is a thread-safe convenience wrapper around a shared, process-wide
-`SnowflakeIdGenerator` instance — its sequence counter is local to that instance, so it guarantees
+`SnowflakeIdGenerator` instance: its sequence counter is local to that instance, so it guarantees
 uniqueness across calls sharing it, not across other instances or processes. Assign each
 concurrently running generator (typically one per process or shard) a distinct `worker_id` to
 avoid collisions between them.
 
 Use `SnowflakeIdGenerator` directly instead of the module-level function when you need several
-independent generators in the same process — e.g. one per worker thread, or an isolated instance
-in a test — without them sharing state through a global singleton:
+independent generators in the same process, e.g. one per worker thread, or an isolated instance
+in a test, without them sharing state through a global singleton:
 
 ```pycon
 >>> from coola.identifier import SnowflakeIdGenerator
