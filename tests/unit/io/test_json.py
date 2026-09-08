@@ -117,6 +117,14 @@ def test_json_saver_save_file_exist_ok(tmp_path: Path) -> None:
     assert load_json(path) == {"key1": [3, 2, 1], "key2": "meow"}
 
 
+def test_json_saver_save_respects_encoding(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.json")
+    content = {"key": "Résultats: €1.2B"}
+    JsonSaver(encoding="utf-8").save(content, path)
+    assert path.read_text(encoding="utf-8") == '{"key": "R\\u00e9sultats: \\u20ac1.2B"}'
+    assert JsonLoader().load(path) == content
+
+
 def test_json_saver_save_not_serializable_no_leftover_tmp_file(tmp_path: Path) -> None:
     path = tmp_path.joinpath("tmp/data.json")
     saver = JsonSaver()
