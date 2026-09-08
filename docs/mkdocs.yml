@@ -30,6 +30,7 @@ nav:
       - uguide/equality_tester.md
       - uguide/equality_handler.md
       - uguide/identifier.md
+      - uguide/io.md
       - uguide/iterator.md
       - uguide/nested.md
       - uguide/random.md
@@ -48,6 +49,7 @@ nav:
       - refs/equality.md
       - refs/hashing.md
       - refs/identifier.md
+      - refs/io.md
       - refs/iterator.md
       - refs/nested.md
       - refs/random.md
