@@ -7,8 +7,9 @@ __all__ = ["TimingResult", "timeblock"]
 import logging
 import time
 from contextlib import contextmanager
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
+from coola.display import InlineDisplayMixin
 from coola.utils.format import str_time_human
 
 if TYPE_CHECKING:
@@ -17,7 +18,7 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class TimingResult:
+class TimingResult(InlineDisplayMixin):
     r"""Hold the result of a timed block.
 
     Args:
@@ -39,13 +40,12 @@ class TimingResult:
             return None
         return self.finished_at - self.started_at
 
-    def __repr__(self) -> str:
-        return (
-            f"{self.__class__.__qualname__}("
-            f"started_at={self.started_at}, "
-            f"finished_at={self.finished_at}, "
-            f"elapsed={self.elapsed})"
-        )
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {
+            "started_at": self.started_at,
+            "finished_at": self.finished_at,
+            "elapsed": self.elapsed,
+        }
 
 
 @contextmanager

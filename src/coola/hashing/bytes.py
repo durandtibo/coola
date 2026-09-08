@@ -5,15 +5,16 @@ from __future__ import annotations
 __all__ = ["BytesHasher", "hash_bytes"]
 
 import hashlib
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
+from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 
 if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
 
 
-class BytesHasher(BaseHasher[bytes]):
+class BytesHasher(InlineDisplayMixin, BaseHasher[bytes]):
     r"""Hasher for bytes objects.
 
     This hasher computes the hash of the bytes directly, without any
@@ -34,8 +35,8 @@ class BytesHasher(BaseHasher[bytes]):
         ```
     """
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
 
     def hash(
         self,

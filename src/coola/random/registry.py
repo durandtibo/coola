@@ -13,15 +13,15 @@ __all__ = ["RandomManagerRegistry"]
 
 from typing import TYPE_CHECKING, Any
 
+from coola.display import MultilineDisplayMixin
 from coola.random.base import BaseRandomManager
 from coola.registry import Registry
-from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
 
-class RandomManagerRegistry(BaseRandomManager):
+class RandomManagerRegistry(MultilineDisplayMixin, BaseRandomManager):
     """Registry that manages random number generator managers.
 
     This registry maintains a mapping from string keys to random manager instances,
@@ -58,13 +58,8 @@ class RandomManagerRegistry(BaseRandomManager):
             initial_state
         )
 
-    def __repr__(self) -> str:
-        state = repr_indent(repr_mapping({"state": self._state}))
-        return f"{self.__class__.__qualname__}(\n  {state}\n)"
-
-    def __str__(self) -> str:
-        state = str_indent(str_mapping({"state": self._state}))
-        return f"{self.__class__.__qualname__}(\n  {state}\n)"
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {"state": self._state}
 
     def register(
         self,

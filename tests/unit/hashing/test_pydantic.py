@@ -58,7 +58,7 @@ def test_pydantic_model_hasher_repr_custom_on_secret() -> None:
 
 @pydantic_available
 def test_pydantic_model_hasher_str_default() -> None:
-    assert str(PydanticModelHasher()) == "PydanticModelHasher(on_secret='error')"
+    assert str(PydanticModelHasher()) == "PydanticModelHasher(on_secret=error)"
 
 
 @pydantic_available

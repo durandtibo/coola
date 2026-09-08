@@ -7,6 +7,7 @@ __all__ = ["NumpyRandomManager"]
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
 
+from coola.display import InlineDisplayMixin
 from coola.random.base import BaseRandomManager
 from coola.utils.imports import check_numpy, is_numpy_available
 
@@ -19,7 +20,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.numpy import numpy as np
 
 
-class NumpyRandomManager(BaseRandomManager):  # noqa: PLW1641
+class NumpyRandomManager(InlineDisplayMixin, BaseRandomManager):  # noqa: PLW1641
     r"""Implement a random manager for the library ``numpy``.
 
     The seed must be between ``0`` and ``2**32 - 1``, so a modulo
@@ -35,14 +36,14 @@ class NumpyRandomManager(BaseRandomManager):  # noqa: PLW1641
         ```
     """
 
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
+
     def __init__(self) -> None:
         check_numpy()
 
     def __eq__(self, other: object) -> bool:
         return type(other) is type(self)
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def get_rng_state(self) -> tuple[Any, ...]:
         return np.random.get_state()

@@ -7,15 +7,16 @@ __all__ = ["NativeReducer"]
 
 from collections.abc import Sequence
 from statistics import mean, median, stdev
-from typing import TypeVar
+from typing import Any, TypeVar
 
+from coola.display import InlineDisplayMixin
 from coola.reducer.base import BaseBasicReducer
 from coola.utils.stats import quantile
 
 T = TypeVar("T", bound=Sequence[float])
 
 
-class NativeReducer(BaseBasicReducer[T]):
+class NativeReducer(InlineDisplayMixin, BaseBasicReducer[T]):
     r"""Implement a native reducer.
 
     Example:
@@ -32,8 +33,8 @@ class NativeReducer(BaseBasicReducer[T]):
         ```
     """
 
-    def __str__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
 
     def _is_empty(self, values: T) -> bool:
         return not values

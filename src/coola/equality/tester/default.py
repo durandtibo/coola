@@ -9,8 +9,9 @@ from __future__ import annotations
 
 __all__ = ["DefaultEqualityTester"]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
+from coola.display import InlineDisplayMixin
 from coola.equality.handler import (
     ObjectEqualHandler,
     SameObjectHandler,
@@ -23,7 +24,7 @@ if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
 
 
-class DefaultEqualityTester(BaseEqualityTester[object]):
+class DefaultEqualityTester(InlineDisplayMixin, BaseEqualityTester[object]):
     r"""Implement a default equality tester.
 
     This tester serves as the fallback for types without specialized equality
@@ -64,11 +65,11 @@ class DefaultEqualityTester(BaseEqualityTester[object]):
         ```
     """
 
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
+
     def __init__(self) -> None:
         self._handler = create_chain(SameObjectHandler(), SameTypeHandler(), ObjectEqualHandler())
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def equal(self, other: object) -> bool:
         return type(other) is type(self)

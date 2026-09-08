@@ -9,8 +9,9 @@ from __future__ import annotations
 
 __all__ = ["NDArraySummarizer"]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
+from coola.display import InlineDisplayMixin
 from coola.summary.base import BaseSummarizer
 from coola.utils.imports import check_numpy, is_numpy_available
 
@@ -23,7 +24,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.numpy import numpy as np
 
 
-class NDArraySummarizer(BaseSummarizer[np.ndarray]):
+class NDArraySummarizer(InlineDisplayMixin, BaseSummarizer[np.ndarray]):
     r"""Implement a summarizer for ``numpy.ndarray`` objects.
 
     This summarizer generates compact string representations of NumPy
@@ -69,8 +70,8 @@ class NDArraySummarizer(BaseSummarizer[np.ndarray]):
         check_numpy()
         self._show_data = bool(show_data)
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}(show_data={self._show_data})"
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {"show_data": self._show_data}
 
     def equal(self, other: object) -> bool:
         if type(other) is not type(self):

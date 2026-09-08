@@ -9,8 +9,9 @@ from __future__ import annotations
 
 __all__ = ["TorchPackedSequenceEqualityTester", "TorchTensorEqualityTester"]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
+from coola.display import InlineDisplayMixin
 from coola.equality.handler import (
     SameAttributeHandler,
     SameDataHandler,
@@ -37,7 +38,9 @@ if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
 
 
-class TorchPackedSequenceEqualityTester(BaseEqualityTester[torch.nn.utils.rnn.PackedSequence]):
+class TorchPackedSequenceEqualityTester(
+    InlineDisplayMixin, BaseEqualityTester[torch.nn.utils.rnn.PackedSequence]
+):
     r"""Implement an equality tester for
     ``torch.nn.utils.rnn.PackedSequence``.
 
@@ -78,6 +81,9 @@ class TorchPackedSequenceEqualityTester(BaseEqualityTester[torch.nn.utils.rnn.Pa
         ```
     """
 
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
+
     def __init__(self) -> None:
         check_torch()
         self._handler = create_chain(
@@ -89,9 +95,6 @@ class TorchPackedSequenceEqualityTester(BaseEqualityTester[torch.nn.utils.rnn.Pa
             SameAttributeHandler(name="unsorted_indices"),
             TrueHandler(),
         )
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
@@ -105,7 +108,7 @@ class TorchPackedSequenceEqualityTester(BaseEqualityTester[torch.nn.utils.rnn.Pa
         return self._handler.handle(actual, expected, config=config)
 
 
-class TorchTensorEqualityTester(BaseEqualityTester[torch.Tensor]):
+class TorchTensorEqualityTester(InlineDisplayMixin, BaseEqualityTester[torch.Tensor]):
     r"""Implement an equality tester for ``torch.Tensor``.
 
     This tester compares PyTorch tensors element-wise with support for device,
@@ -173,6 +176,9 @@ class TorchTensorEqualityTester(BaseEqualityTester[torch.Tensor]):
         ```
     """
 
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
+
     def __init__(self) -> None:
         check_torch()
         self._handler = create_chain(
@@ -183,9 +189,6 @@ class TorchTensorEqualityTester(BaseEqualityTester[torch.Tensor]):
             TorchTensorSameDeviceHandler(),
             TorchTensorEqualHandler(),
         )
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def equal(self, other: object) -> bool:
         return type(other) is type(self)

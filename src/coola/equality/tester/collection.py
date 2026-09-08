@@ -13,6 +13,7 @@ __all__ = ["MappingEqualityTester", "SequenceEqualityTester"]
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any
 
+from coola.display import InlineDisplayMixin
 from coola.equality.handler import (
     MappingSameKeysHandler,
     MappingSameValuesHandler,
@@ -29,7 +30,7 @@ if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
 
 
-class MappingEqualityTester(BaseEqualityTester[Mapping[Any, Any]]):
+class MappingEqualityTester(InlineDisplayMixin, BaseEqualityTester[Mapping[Any, Any]]):
     r"""Implement a mapping equality tester.
 
     This tester handles dictionary-like objects (dict, Mapping ABC) by recursively
@@ -76,6 +77,9 @@ class MappingEqualityTester(BaseEqualityTester[Mapping[Any, Any]]):
         ```
     """
 
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
+
     def __init__(self) -> None:
         self._handler = create_chain(
             SameObjectHandler(),
@@ -85,9 +89,6 @@ class MappingEqualityTester(BaseEqualityTester[Mapping[Any, Any]]):
             MappingSameValuesHandler(),
             TrueHandler(),
         )
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
@@ -101,7 +102,7 @@ class MappingEqualityTester(BaseEqualityTester[Mapping[Any, Any]]):
         return self._handler.handle(actual, expected, config=config)
 
 
-class SequenceEqualityTester(BaseEqualityTester[Sequence[Any]]):
+class SequenceEqualityTester(InlineDisplayMixin, BaseEqualityTester[Sequence[Any]]):
     r"""Implement a sequence equality tester.
 
     This tester handles sequence types (list, tuple, deque, Sequence ABC) by
@@ -147,6 +148,9 @@ class SequenceEqualityTester(BaseEqualityTester[Sequence[Any]]):
         ```
     """
 
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
+
     def __init__(self) -> None:
         self._handler = create_chain(
             SameObjectHandler(),
@@ -155,9 +159,6 @@ class SequenceEqualityTester(BaseEqualityTester[Sequence[Any]]):
             SequenceSameValuesHandler(),
             TrueHandler(),
         )
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def equal(self, other: object) -> bool:
         return type(other) is type(self)

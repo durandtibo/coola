@@ -8,6 +8,7 @@ __all__ = ["PydanticModelHasher", "hash_pydantic_model", "unwrap_secrets"]
 import json
 from typing import TYPE_CHECKING, Any, Literal
 
+from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.bytes import hash_bytes
 from coola.utils.imports import is_pydantic_available
@@ -22,7 +23,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.pydantic import pydantic
 
 
-class PydanticModelHasher(BaseHasher[pydantic.BaseModel]):
+class PydanticModelHasher(InlineDisplayMixin, BaseHasher[pydantic.BaseModel]):
     r"""Hasher for pydantic ``BaseModel`` objects.
 
     This hasher computes a stable content hash of a pydantic model by
@@ -61,8 +62,8 @@ class PydanticModelHasher(BaseHasher[pydantic.BaseModel]):
     ) -> None:
         self._on_secret = on_secret
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}(on_secret={self._on_secret!r})"
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {"on_secret": self._on_secret}
 
     def hash(
         self,

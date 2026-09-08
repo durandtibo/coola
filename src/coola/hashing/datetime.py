@@ -5,8 +5,9 @@ from __future__ import annotations
 __all__ = ["DatetimeHasher"]
 
 from datetime import date
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
+from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_string
 
@@ -14,7 +15,7 @@ if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
 
 
-class DatetimeHasher(BaseHasher[date]):
+class DatetimeHasher(InlineDisplayMixin, BaseHasher[date]):
     r"""Hasher for :class:`datetime.date` and :class:`datetime.datetime`
     objects.
 
@@ -40,8 +41,8 @@ class DatetimeHasher(BaseHasher[date]):
         ```
     """
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
 
     def hash(
         self,

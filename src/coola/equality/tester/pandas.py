@@ -8,8 +8,9 @@ from __future__ import annotations
 
 __all__ = ["PandasDataFrameEqualityTester", "PandasSeriesEqualityTester"]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
+from coola.display import InlineDisplayMixin
 from coola.equality.handler import (
     PandasDataFrameEqualHandler,
     PandasSeriesEqualHandler,
@@ -29,7 +30,7 @@ if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
 
 
-class PandasDataFrameEqualityTester(BaseEqualityTester[pd.DataFrame]):
+class PandasDataFrameEqualityTester(InlineDisplayMixin, BaseEqualityTester[pd.DataFrame]):
     r"""Implement an equality tester for ``pandas.DataFrame``.
 
     This tester uses pandas' DataFrame equality testing which compares shape,
@@ -83,14 +84,14 @@ class PandasDataFrameEqualityTester(BaseEqualityTester[pd.DataFrame]):
         ```
     """
 
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
+
     def __init__(self) -> None:
         check_pandas()
         self._handler = create_chain(
             SameObjectHandler(), SameTypeHandler(), PandasDataFrameEqualHandler()
         )
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
@@ -104,7 +105,7 @@ class PandasDataFrameEqualityTester(BaseEqualityTester[pd.DataFrame]):
         return self._handler.handle(actual, expected, config=config)
 
 
-class PandasSeriesEqualityTester(BaseEqualityTester[pd.Series]):
+class PandasSeriesEqualityTester(InlineDisplayMixin, BaseEqualityTester[pd.Series]):
     r"""Implement an equality tester for ``pandas.Series``.
 
     This tester uses pandas' Series equality testing which compares length,
@@ -150,14 +151,14 @@ class PandasSeriesEqualityTester(BaseEqualityTester[pd.Series]):
         ```
     """
 
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
+
     def __init__(self) -> None:
         check_pandas()
         self._handler = create_chain(
             SameObjectHandler(), SameTypeHandler(), PandasSeriesEqualHandler()
         )
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def equal(self, other: object) -> bool:
         return type(other) is type(self)

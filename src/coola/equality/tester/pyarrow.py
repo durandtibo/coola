@@ -8,8 +8,9 @@ from __future__ import annotations
 
 __all__ = ["PyarrowEqualityTester"]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
+from coola.display import InlineDisplayMixin
 from coola.equality.handler import (
     PyarrowEqualHandler,
     SameObjectHandler,
@@ -28,7 +29,7 @@ if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
 
 
-class PyarrowEqualityTester(BaseEqualityTester[pa.Array]):
+class PyarrowEqualityTester(InlineDisplayMixin, BaseEqualityTester[pa.Array]):
     r"""Implement an equality tester for ``pyarrow.Array``s and
     ``pyarrow.Table``s.
 
@@ -74,12 +75,12 @@ class PyarrowEqualityTester(BaseEqualityTester[pa.Array]):
         ```
     """
 
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
+
     def __init__(self) -> None:
         check_pyarrow()
         self._handler = create_chain(SameObjectHandler(), SameTypeHandler(), PyarrowEqualHandler())
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
