@@ -12,6 +12,8 @@ from coola.io.base import BaseFileSaver, BaseLoader
 
 T = TypeVar("T")
 
+DEFAULT_ENCODING = "utf-8"
+
 
 class JsonLoader(BaseLoader[T]):
     r"""Implement a data loader to load data in a JSON file.
@@ -46,6 +48,10 @@ class JsonLoader(BaseLoader[T]):
 class JsonSaver(BaseFileSaver[T]):
     r"""Implement a file saver to save data with a JSON file.
 
+    Args:
+        encoding: The file encoding to use when writing the file.
+            Defaults to ``"utf-8"``.
+
     Example:
         ```pycon
         >>> import tempfile
@@ -62,14 +68,19 @@ class JsonSaver(BaseFileSaver[T]):
         ```
     """
 
+    def __init__(self, encoding: str = DEFAULT_ENCODING) -> None:
+        self._encoding = encoding
+
     def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
+        return f"{self.__class__.__qualname__}(encoding={self._encoding})"
 
     def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
-        return type(other) is type(self)
+        if type(other) is not type(self):
+            return False
+        return self._encoding == other._encoding
 
     def _save_file(self, to_save: T, path: Path) -> None:
-        with Path.open(path, mode="w", encoding="utf-8") as file:
+        with Path.open(path, mode="w", encoding=self._encoding) as file:
             json.dump(to_save, file, sort_keys=False)
 
 
@@ -100,12 +111,20 @@ def load_json(path: Path) -> Any:
     return JsonLoader().load(path)
 
 
-def save_json(to_save: Any, path: Path, *, exist_ok: bool = False) -> None:
+def save_json(
+    to_save: Any,
+    path: Path,
+    *,
+    encoding: str = DEFAULT_ENCODING,
+    exist_ok: bool = False,
+) -> None:
     r"""Save the given data in a JSON file.
 
     Args:
         to_save: The data to write in a JSON file.
         path: The path where to write the JSON file.
+        encoding: The file encoding to use when writing the file.
+            Defaults to ``"utf-8"``.
         exist_ok: If ``exist_ok`` is ``False`` (the default),
             ``FileExistsError`` is raised if the target file
             already exists. If ``exist_ok`` is ``True``,
@@ -131,4 +150,4 @@ def save_json(to_save: Any, path: Path, *, exist_ok: bool = False) -> None:
 
         ```
     """
-    JsonSaver().save(to_save, path, exist_ok=exist_ok)
+    JsonSaver(encoding=encoding).save(to_save, path, exist_ok=exist_ok)
