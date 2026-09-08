@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -17,9 +18,6 @@ from coola.io import (
     resolve_loader,
     resolve_saver,
 )
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 ######################################
 #     Tests for is_loader_config     #
@@ -135,6 +133,46 @@ def test_base_file_saver_save_missing_tmp_file_on_failure(tmp_path: Path) -> Non
     path = tmp_path.joinpath("data.txt")
     saver = FailingFileSaver(delete_tmp_file=True)
     with pytest.raises(RuntimeError, match="failed to save"):
+        saver.save("hello", path)
+    assert not path.is_file()
+    assert list(tmp_path.iterdir()) == []
+
+
+class SimpleFileSaver(BaseFileSaver[str]):
+    r"""A file saver that writes the string representation of the data
+    to save."""
+
+    def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
+        return type(other) is type(self)
+
+    def _save_file(self, to_save: Any, path: Path) -> None:
+        path.write_text(str(to_save))
+
+
+def test_base_file_saver_save_exist_ok_overwrites_content(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    saver = SimpleFileSaver()
+    saver.save("hello", path)
+    saver.save("world", path, exist_ok=True)
+    assert path.is_file()
+    assert path.read_text() == "world"
+
+
+def test_base_file_saver_save_removes_tmp_file_on_commit_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A failure during the final commit step (``Path.replace``) must
+    # still trigger the cleanup of the temporary file, not just a
+    # failure in ``_save_file``.
+    path = tmp_path.joinpath("data.txt")
+    saver = SimpleFileSaver()
+
+    def failing_replace(self: Path, target: Path) -> Path:  # noqa: ARG001
+        msg = "failed to commit"
+        raise RuntimeError(msg)
+
+    monkeypatch.setattr(Path, "replace", failing_replace)
+    with pytest.raises(RuntimeError, match="failed to commit"):
         saver.save("hello", path)
     assert not path.is_file()
     assert list(tmp_path.iterdir()) == []
