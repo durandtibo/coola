@@ -233,10 +233,10 @@ class BaseFileSaver(BaseSaver[T]):
         tmp_path = add_uuid_suffix(path)
         try:
             self._save_file(to_save, tmp_path)
+            tmp_path.replace(path)
         except BaseException:
             tmp_path.unlink(missing_ok=True)
             raise
-        tmp_path.rename(path)
 
     @abstractmethod
     def _save_file(self, to_save: T, path: Path) -> None:

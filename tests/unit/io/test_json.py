@@ -59,11 +59,11 @@ def test_json_loader_load(path_json: Path) -> None:
 
 
 def test_json_saver_repr() -> None:
-    assert repr(JsonSaver()) == "JsonSaver()"
+    assert repr(JsonSaver()) == "JsonSaver(encoding=utf-8)"
 
 
 def test_json_saver_str() -> None:
-    assert str(JsonSaver()) == "JsonSaver()"
+    assert str(JsonSaver()) == "JsonSaver(encoding=utf-8)"
 
 
 def test_json_saver_equal_true() -> None:
@@ -78,6 +78,14 @@ def test_json_saver_equal_false_child() -> None:
     class Child(JsonSaver): ...
 
     assert not JsonSaver().equal(Child())
+
+
+def test_json_saver_equal_false_encoding() -> None:
+    assert not JsonSaver(encoding="utf-8").equal(JsonSaver(encoding="latin-1"))
+
+
+def test_json_saver_equal_true_encoding() -> None:
+    assert JsonSaver(encoding="latin-1").equal(JsonSaver(encoding="latin-1"))
 
 
 @pytest.mark.parametrize("equal_nan", [True, False])
@@ -144,6 +152,13 @@ def test_save_json(tmp_path: Path) -> None:
     path = tmp_path.joinpath("tmp/data.json")
     save_json({"key1": [1, 2, 3], "key2": "abc"}, path)
     assert path.is_file()
+
+
+def test_save_json_respects_encoding(tmp_path: Path) -> None:
+    content = {"key": "Résultats: €1.2B"}
+    path = tmp_path.joinpath("data.json")
+    save_json(content, path, encoding="utf-8")
+    assert load_json(path) == content
 
 
 def test_save_json_file_exist(tmp_path: Path) -> None:
