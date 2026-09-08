@@ -84,7 +84,6 @@ class ScalarEqualityTester(InlineDisplayMixin, BaseEqualityTester[float]):
             SameObjectHandler(), SameTypeHandler(), NanEqualHandler(), ScalarEqualHandler()
         )
 
-
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 

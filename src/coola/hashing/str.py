@@ -36,7 +36,6 @@ class StrHasher(InlineDisplayMixin, BaseHasher[Any]):
         ```
     """
 
-
     def _get_repr_kwargs(self) -> dict[str, Any]:
         return {}
 

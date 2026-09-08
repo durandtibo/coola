@@ -49,7 +49,6 @@ class NumpyReducer(InlineDisplayMixin, BaseBasicReducer[T]):
     def __init__(self) -> None:
         check_numpy()
 
-
     def _is_empty(self, values: T) -> bool:
         if isinstance(values, np.ndarray):
             return values.size == 0

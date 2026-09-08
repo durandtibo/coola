@@ -96,7 +96,6 @@ class NumpyArrayEqualityTester(InlineDisplayMixin, BaseEqualityTester[np.ndarray
             NumpyArrayEqualHandler(),
         )
 
-
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
@@ -180,7 +179,6 @@ class NumpyMaskedArrayEqualityTester(InlineDisplayMixin, BaseEqualityTester[np.m
             SameAttributeHandler("fill_value"),
             TrueHandler(),
         )
-
 
     def equal(self, other: object) -> bool:
         return type(other) is type(self)

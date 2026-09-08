@@ -41,7 +41,6 @@ class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):  # noqa: PLW164
     def __eq__(self, other: object) -> bool:
         return type(other) is type(self)
 
-
     def get_rng_state(self) -> dict[str, Any]:
         return {
             "torch": torch.get_rng_state(),

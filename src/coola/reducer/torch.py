@@ -49,7 +49,6 @@ class TorchReducer(InlineDisplayMixin, BaseBasicReducer[T]):
     def __init__(self) -> None:
         check_torch()
 
-
     def _is_empty(self, values: T) -> bool:
         if torch.is_tensor(values):
             return values.numel() == 0

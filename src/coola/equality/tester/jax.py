@@ -77,7 +77,6 @@ class JaxArrayEqualityTester(InlineDisplayMixin, BaseEqualityTester[jnp.ndarray]
             JaxArrayEqualHandler(),
         )
 
-
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 

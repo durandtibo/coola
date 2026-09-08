@@ -88,7 +88,6 @@ class XarrayDataArrayEqualityTester(InlineDisplayMixin, BaseEqualityTester[xr.Da
             TrueHandler(),
         )
 
-
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
@@ -153,7 +152,6 @@ class XarrayDatasetEqualityTester(InlineDisplayMixin, BaseEqualityTester[xr.Data
             TrueHandler(),
         )
 
-
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
@@ -217,7 +215,6 @@ class XarrayVariableEqualityTester(InlineDisplayMixin, BaseEqualityTester[xr.Var
             SameAttributeHandler(name="attrs"),
             TrueHandler(),
         )
-
 
     def equal(self, other: object) -> bool:
         return type(other) is type(self)

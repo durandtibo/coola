@@ -90,7 +90,6 @@ class MappingEqualityTester(InlineDisplayMixin, BaseEqualityTester[Mapping[Any, 
             TrueHandler(),
         )
 
-
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
@@ -160,7 +159,6 @@ class SequenceEqualityTester(InlineDisplayMixin, BaseEqualityTester[Sequence[Any
             SequenceSameValuesHandler(),
             TrueHandler(),
         )
-
 
     def equal(self, other: object) -> bool:
         return type(other) is type(self)

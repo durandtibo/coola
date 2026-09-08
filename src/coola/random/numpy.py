@@ -45,7 +45,6 @@ class NumpyRandomManager(InlineDisplayMixin, BaseRandomManager):  # noqa: PLW164
     def __eq__(self, other: object) -> bool:
         return type(other) is type(self)
 
-
     def get_rng_state(self) -> tuple[Any, ...]:
         return np.random.get_state()
 

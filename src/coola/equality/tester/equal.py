@@ -67,7 +67,6 @@ class EqualEqualityTester(InlineDisplayMixin, BaseEqualityTester[object]):
     def __init__(self) -> None:
         self._handler = create_chain(SameObjectHandler(), SameTypeHandler(), EqualHandler())
 
-
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
@@ -126,7 +125,6 @@ class EqualNanEqualityTester(InlineDisplayMixin, BaseEqualityTester[object]):
 
     def __init__(self) -> None:
         self._handler = create_chain(SameObjectHandler(), SameTypeHandler(), EqualNanHandler())
-
 
     def equal(self, other: object) -> bool:
         return type(other) is type(self)

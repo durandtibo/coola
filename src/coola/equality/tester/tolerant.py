@@ -89,7 +89,6 @@ class TolerantEqualEqualityTester(InlineDisplayMixin, BaseEqualityTester[object]
     def __init__(self) -> None:
         self._handler = create_chain(SameObjectHandler(), SameTypeHandler(), TolerantEqualHandler())
 
-
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 

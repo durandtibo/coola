@@ -9,8 +9,9 @@ from __future__ import annotations
 
 __all__ = ["TensorSummarizer"]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
+from coola.display import InlineDisplayMixin
 from coola.summary.base import BaseSummarizer
 from coola.utils.imports import check_torch, is_torch_available
 
@@ -23,7 +24,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.torch import torch
 
 
-class TensorSummarizer(BaseSummarizer[torch.Tensor]):
+class TensorSummarizer(InlineDisplayMixin, BaseSummarizer[torch.Tensor]):
     r"""Implement a summarizer for ``torch.Tensor`` objects.
 
     This summarizer generates compact string representations of PyTorch
@@ -71,8 +72,8 @@ class TensorSummarizer(BaseSummarizer[torch.Tensor]):
         check_torch()
         self._show_data = bool(show_data)
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}(show_data={self._show_data})"
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {"show_data": self._show_data}
 
     def equal(self, other: object) -> bool:
         if type(other) is not type(self):

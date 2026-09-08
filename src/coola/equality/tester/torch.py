@@ -38,7 +38,9 @@ if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
 
 
-class TorchPackedSequenceEqualityTester(InlineDisplayMixin, BaseEqualityTester[torch.nn.utils.rnn.PackedSequence]):
+class TorchPackedSequenceEqualityTester(
+    InlineDisplayMixin, BaseEqualityTester[torch.nn.utils.rnn.PackedSequence]
+):
     r"""Implement an equality tester for
     ``torch.nn.utils.rnn.PackedSequence``.
 
@@ -93,7 +95,6 @@ class TorchPackedSequenceEqualityTester(InlineDisplayMixin, BaseEqualityTester[t
             SameAttributeHandler(name="unsorted_indices"),
             TrueHandler(),
         )
-
 
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
@@ -188,7 +189,6 @@ class TorchTensorEqualityTester(InlineDisplayMixin, BaseEqualityTester[torch.Ten
             TorchTensorSameDeviceHandler(),
             TorchTensorEqualHandler(),
         )
-
 
     def equal(self, other: object) -> bool:
         return type(other) is type(self)

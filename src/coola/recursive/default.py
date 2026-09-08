@@ -52,7 +52,6 @@ class DefaultTransformer(InlineDisplayMixin, BaseTransformer[Any]):
         ```
     """
 
-
     def _get_repr_kwargs(self) -> dict[str, Any]:
         return {}
 

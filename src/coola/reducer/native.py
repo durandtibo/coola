@@ -33,7 +33,6 @@ class NativeReducer(InlineDisplayMixin, BaseBasicReducer[T]):
         ```
     """
 
-
     def _get_repr_kwargs(self) -> dict[str, Any]:
         return {}
 

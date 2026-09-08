@@ -31,7 +31,6 @@ class RandomRandomManager(InlineDisplayMixin, BaseRandomManager):  # noqa: PLW16
     def __eq__(self, other: object) -> bool:
         return type(other) is type(self)
 
-
     def get_rng_state(self) -> tuple[Any, ...]:
         return random.getstate()
 

@@ -82,7 +82,6 @@ class PolarsDataFrameEqualityTester(InlineDisplayMixin, BaseEqualityTester[pl.Da
             SameObjectHandler(), SameTypeHandler(), PolarsDataFrameEqualHandler()
         )
 
-
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
@@ -144,7 +143,6 @@ class PolarsLazyFrameEqualityTester(InlineDisplayMixin, BaseEqualityTester[pl.La
             SameObjectHandler(), SameTypeHandler(), PolarsLazyFrameEqualHandler()
         )
 
-
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
@@ -193,7 +191,6 @@ class PolarsSeriesEqualityTester(InlineDisplayMixin, BaseEqualityTester[pl.Serie
         self._handler = create_chain(
             SameObjectHandler(), SameTypeHandler(), PolarsSeriesEqualHandler()
         )
-
 
     def equal(self, other: object) -> bool:
         return type(other) is type(self)

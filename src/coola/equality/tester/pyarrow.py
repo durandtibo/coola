@@ -82,7 +82,6 @@ class PyarrowEqualityTester(InlineDisplayMixin, BaseEqualityTester[pa.Array]):
         check_pyarrow()
         self._handler = create_chain(SameObjectHandler(), SameTypeHandler(), PyarrowEqualHandler())
 
-
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 

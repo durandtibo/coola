@@ -93,7 +93,6 @@ class PandasDataFrameEqualityTester(InlineDisplayMixin, BaseEqualityTester[pd.Da
             SameObjectHandler(), SameTypeHandler(), PandasDataFrameEqualHandler()
         )
 
-
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 
@@ -160,7 +159,6 @@ class PandasSeriesEqualityTester(InlineDisplayMixin, BaseEqualityTester[pd.Serie
         self._handler = create_chain(
             SameObjectHandler(), SameTypeHandler(), PandasSeriesEqualHandler()
         )
-
 
     def equal(self, other: object) -> bool:
         return type(other) is type(self)

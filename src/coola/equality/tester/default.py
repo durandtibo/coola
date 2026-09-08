@@ -71,7 +71,6 @@ class DefaultEqualityTester(InlineDisplayMixin, BaseEqualityTester[object]):
     def __init__(self) -> None:
         self._handler = create_chain(SameObjectHandler(), SameTypeHandler(), ObjectEqualHandler())
 
-
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
 

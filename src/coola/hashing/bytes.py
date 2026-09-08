@@ -35,7 +35,6 @@ class BytesHasher(InlineDisplayMixin, BaseHasher[bytes]):
         ```
     """
 
-
     def _get_repr_kwargs(self) -> dict[str, Any]:
         return {}
 
