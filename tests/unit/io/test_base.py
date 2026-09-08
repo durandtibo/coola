@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any
 
@@ -173,6 +174,46 @@ def test_base_file_saver_save_removes_tmp_file_on_commit_failure(
 
     monkeypatch.setattr(Path, "replace", failing_replace)
     with pytest.raises(RuntimeError, match="failed to commit"):
+        saver.save("hello", path, exist_ok=True)
+    assert not path.is_file()
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_base_file_saver_save_removes_tmp_file_on_link_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A failure during the final commit step (``os.link``, used when
+    # ``exist_ok=False``) must still trigger the cleanup of the
+    # temporary file, not just a failure in ``_save_file``.
+    path = tmp_path.joinpath("data.txt")
+    saver = SimpleFileSaver()
+
+    def failing_link(src: str, dst: str) -> None:  # noqa: ARG001
+        msg = "failed to commit"
+        raise RuntimeError(msg)
+
+    monkeypatch.setattr(os, "link", failing_link)
+    with pytest.raises(RuntimeError, match="failed to commit"):
         saver.save("hello", path)
     assert not path.is_file()
     assert list(tmp_path.iterdir()) == []
+
+
+def test_base_file_saver_save_exist_ok_false_fails_atomically_on_concurrent_create(
+    tmp_path: Path,
+) -> None:
+    # If the target path is created after the initial existence check but
+    # before the commit step, ``exist_ok=False`` must still raise instead
+    # of silently overwriting it.
+    path = tmp_path.joinpath("data.txt")
+    saver = SimpleFileSaver()
+    original_save_file = saver._save_file
+
+    def save_file_then_create_target(to_save: Any, tmp: Path) -> None:
+        original_save_file(to_save, tmp)
+        path.write_text("concurrent")
+
+    saver._save_file = save_file_then_create_target
+    with pytest.raises(FileExistsError):
+        saver.save("hello", path)
+    assert path.read_text() == "concurrent"

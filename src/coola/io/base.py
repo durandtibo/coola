@@ -14,6 +14,7 @@ __all__ = [
 ]
 
 import logging
+import os
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
@@ -233,7 +234,17 @@ class BaseFileSaver(BaseSaver[T]):
         tmp_path = add_uuid_suffix(path)
         try:
             self._save_file(to_save, tmp_path)
-            tmp_path.replace(path)
+            if exist_ok:
+                tmp_path.replace(path)
+            else:
+                # ``os.link`` + unlink is used instead of a plain rename so the
+                # ``exist_ok=False`` guarantee also holds if ``path`` was created
+                # concurrently between the check above and this commit step:
+                # ``link`` atomically fails with ``FileExistsError`` in that case.
+                try:
+                    os.link(tmp_path, path)
+                finally:
+                    tmp_path.unlink(missing_ok=True)
         except BaseException:
             tmp_path.unlink(missing_ok=True)
             raise

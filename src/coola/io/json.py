@@ -8,7 +8,9 @@ import json
 from pathlib import Path
 from typing import Any, TypeVar
 
+from coola.equality.interface import objects_are_equal
 from coola.io.base import BaseFileSaver, BaseLoader
+from coola.utils.format import repr_mapping_line
 
 T = TypeVar("T")
 
@@ -51,6 +53,8 @@ class JsonSaver(BaseFileSaver[T]):
     Args:
         encoding: The file encoding to use when writing the file.
             Defaults to ``"utf-8"``.
+        **kwargs: Additional arguments passed to ``json.dump``, e.g.
+            ``indent`` or ``sort_keys``.
 
     Example:
         ```pycon
@@ -68,20 +72,24 @@ class JsonSaver(BaseFileSaver[T]):
         ```
     """
 
-    def __init__(self, encoding: str = DEFAULT_ENCODING) -> None:
+    def __init__(self, encoding: str = DEFAULT_ENCODING, **kwargs: Any) -> None:
         self._encoding = encoding
+        self._kwargs = kwargs
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}(encoding={self._encoding})"
+        kwargs = f", {repr_mapping_line(self._kwargs)}" if self._kwargs else ""
+        return f"{self.__class__.__qualname__}(encoding={self._encoding}{kwargs})"
 
-    def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
+    def equal(self, other: Any, equal_nan: bool = False) -> bool:
         if type(other) is not type(self):
             return False
-        return self._encoding == other._encoding
+        return self._encoding == other._encoding and objects_are_equal(
+            self._kwargs, other._kwargs, equal_nan=equal_nan
+        )
 
     def _save_file(self, to_save: T, path: Path) -> None:
         with Path.open(path, mode="w", encoding=self._encoding) as file:
-            json.dump(to_save, file, sort_keys=False)
+            json.dump(to_save, file, **self._kwargs)
 
 
 def load_json(path: Path) -> Any:
@@ -117,6 +125,7 @@ def save_json(
     *,
     encoding: str = DEFAULT_ENCODING,
     exist_ok: bool = False,
+    **kwargs: Any,
 ) -> None:
     r"""Save the given data in a JSON file.
 
@@ -131,6 +140,8 @@ def save_json(
             ``FileExistsError`` will not be raised unless the
             given path already exists in the file system and is
             not a file.
+        **kwargs: Additional arguments passed to ``json.dump``, e.g.
+            ``indent`` or ``sort_keys``.
 
     Raises:
         FileExistsError: if the file already exists.
@@ -150,4 +161,4 @@ def save_json(
 
         ```
     """
-    JsonSaver(encoding=encoding).save(to_save, path, exist_ok=exist_ok)
+    JsonSaver(encoding=encoding, **kwargs).save(to_save, path, exist_ok=exist_ok)
