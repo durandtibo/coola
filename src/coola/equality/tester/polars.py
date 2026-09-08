@@ -14,8 +14,9 @@ __all__ = [
     "PolarsSeriesEqualityTester",
 ]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
+from coola.display import InlineDisplayMixin
 from coola.equality.handler import (
     PolarsDataFrameEqualHandler,
     PolarsLazyFrameEqualHandler,
@@ -36,7 +37,7 @@ if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
 
 
-class PolarsDataFrameEqualityTester(BaseEqualityTester[pl.DataFrame]):
+class PolarsDataFrameEqualityTester(InlineDisplayMixin, BaseEqualityTester[pl.DataFrame]):
     r"""Implement an equality tester for ``polars.DataFrame``.
 
     This tester uses Polars' DataFrame equality testing. The handler chain:
@@ -72,14 +73,15 @@ class PolarsDataFrameEqualityTester(BaseEqualityTester[pl.DataFrame]):
         ```
     """
 
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
+
     def __init__(self) -> None:
         check_polars()
         self._handler = create_chain(
             SameObjectHandler(), SameTypeHandler(), PolarsDataFrameEqualHandler()
         )
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
@@ -93,7 +95,7 @@ class PolarsDataFrameEqualityTester(BaseEqualityTester[pl.DataFrame]):
         return self._handler.handle(actual, expected, config=config)
 
 
-class PolarsLazyFrameEqualityTester(BaseEqualityTester[pl.LazyFrame]):
+class PolarsLazyFrameEqualityTester(InlineDisplayMixin, BaseEqualityTester[pl.LazyFrame]):
     r"""Implement an equality tester for ``polars.LazyFrame``.
 
     This tester uses Polars' LazyFrame equality testing. The handler chain:
@@ -133,14 +135,15 @@ class PolarsLazyFrameEqualityTester(BaseEqualityTester[pl.LazyFrame]):
         ```
     """
 
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
+
     def __init__(self) -> None:
         check_polars()
         self._handler = create_chain(
             SameObjectHandler(), SameTypeHandler(), PolarsLazyFrameEqualHandler()
         )
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
@@ -154,7 +157,7 @@ class PolarsLazyFrameEqualityTester(BaseEqualityTester[pl.LazyFrame]):
         return self._handler.handle(actual, expected, config=config)
 
 
-class PolarsSeriesEqualityTester(BaseEqualityTester[pl.Series]):
+class PolarsSeriesEqualityTester(InlineDisplayMixin, BaseEqualityTester[pl.Series]):
     r"""Implement an equality tester for ``polars.Series``.
 
     This tester uses Polars' Series equality testing. The handler chain:
@@ -182,14 +185,15 @@ class PolarsSeriesEqualityTester(BaseEqualityTester[pl.Series]):
         ```
     """
 
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
+
     def __init__(self) -> None:
         check_polars()
         self._handler = create_chain(
             SameObjectHandler(), SameTypeHandler(), PolarsSeriesEqualHandler()
         )
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def equal(self, other: object) -> bool:
         return type(other) is type(self)

@@ -8,8 +8,9 @@ from __future__ import annotations
 __all__ = ["TorchReducer"]
 
 from collections.abc import Sequence
-from typing import TypeVar
+from typing import Any, TypeVar
 
+from coola.display import InlineDisplayMixin
 from coola.reducer.base import BaseBasicReducer
 from coola.utils.imports import check_torch, is_torch_available
 from coola.utils.tensor import to_tensor
@@ -22,7 +23,7 @@ else:  # pragma: no cover
 T = TypeVar("T", Sequence[float], torch.Tensor)
 
 
-class TorchReducer(BaseBasicReducer[T]):
+class TorchReducer(InlineDisplayMixin, BaseBasicReducer[T]):
     r"""Implement a reducer based on torch functions.
 
     Raises:
@@ -42,11 +43,12 @@ class TorchReducer(BaseBasicReducer[T]):
         ```
     """
 
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
+
     def __init__(self) -> None:
         check_torch()
 
-    def __str__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def _is_empty(self, values: T) -> bool:
         if torch.is_tensor(values):

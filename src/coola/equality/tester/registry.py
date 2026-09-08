@@ -12,8 +12,8 @@ __all__ = ["EqualityTesterRegistry"]
 
 from typing import TYPE_CHECKING, Any
 
+from coola.display import MultilineDisplayMixin
 from coola.equality.tester.base import BaseEqualityTester
-from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
 
 
-class EqualityTesterRegistry:
+class EqualityTesterRegistry(MultilineDisplayMixin):
     """Registry that manages and dispatches equality testers based on
     data type.
 
@@ -75,13 +75,8 @@ class EqualityTesterRegistry:
             initial_state
         )
 
-    def __repr__(self) -> str:
-        state = repr_indent(repr_mapping({"state": self._state}))
-        return f"{self.__class__.__qualname__}(\n  {state}\n)"
-
-    def __str__(self) -> str:
-        state = str_indent(str_mapping({"state": self._state}))
-        return f"{self.__class__.__qualname__}(\n  {state}\n)"
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {"state": self._state}
 
     def register(
         self,

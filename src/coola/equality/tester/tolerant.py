@@ -9,8 +9,9 @@ from __future__ import annotations
 
 __all__ = ["TolerantEqualEqualityTester"]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
+from coola.display import InlineDisplayMixin
 from coola.equality.handler import (
     SameObjectHandler,
     SameTypeHandler,
@@ -23,7 +24,7 @@ if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
 
 
-class TolerantEqualEqualityTester(BaseEqualityTester[object]):
+class TolerantEqualEqualityTester(InlineDisplayMixin, BaseEqualityTester[object]):
     r"""Implement an equality tester for objects that support both
     ``allclose`` and ``equal`` methods.
 
@@ -82,11 +83,12 @@ class TolerantEqualEqualityTester(BaseEqualityTester[object]):
         ```
     """
 
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
+
     def __init__(self) -> None:
         self._handler = create_chain(SameObjectHandler(), SameTypeHandler(), TolerantEqualHandler())
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def equal(self, other: object) -> bool:
         return type(other) is type(self)

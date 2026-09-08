@@ -9,8 +9,9 @@ from __future__ import annotations
 __all__ = ["JaxArrayEqualityTester"]
 
 from functools import lru_cache
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
+from coola.display import InlineDisplayMixin
 from coola.equality.handler import (
     JaxArrayEqualHandler,
     SameDTypeHandler,
@@ -32,7 +33,7 @@ if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
 
 
-class JaxArrayEqualityTester(BaseEqualityTester[jnp.ndarray]):
+class JaxArrayEqualityTester(InlineDisplayMixin, BaseEqualityTester[jnp.ndarray]):
     r"""Implement an equality tester for ``jax.numpy.ndarray``.
 
     This tester compares JAX arrays element-wise with support for NaN equality
@@ -63,6 +64,9 @@ class JaxArrayEqualityTester(BaseEqualityTester[jnp.ndarray]):
         ```
     """
 
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
+
     def __init__(self) -> None:
         check_jax()
         self._handler = create_chain(
@@ -73,8 +77,6 @@ class JaxArrayEqualityTester(BaseEqualityTester[jnp.ndarray]):
             JaxArrayEqualHandler(),
         )
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def equal(self, other: object) -> bool:
         return type(other) is type(self)

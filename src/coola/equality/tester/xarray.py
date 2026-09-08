@@ -13,8 +13,9 @@ __all__ = [
     "XarrayVariableEqualityTester",
 ]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
+from coola.display import InlineDisplayMixin
 from coola.equality.handler import (
     SameAttributeHandler,
     SameDataHandler,
@@ -35,7 +36,7 @@ if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
 
 
-class XarrayDataArrayEqualityTester(BaseEqualityTester[xr.DataArray]):
+class XarrayDataArrayEqualityTester(InlineDisplayMixin, BaseEqualityTester[xr.DataArray]):
     r"""Implement an equality tester for ``xarray.DataArray``.
 
     This tester compares xarray DataArrays by checking their variable, name,
@@ -73,6 +74,9 @@ class XarrayDataArrayEqualityTester(BaseEqualityTester[xr.DataArray]):
         ```
     """
 
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
+
     def __init__(self) -> None:
         check_xarray()
         self._handler = create_chain(
@@ -84,8 +88,6 @@ class XarrayDataArrayEqualityTester(BaseEqualityTester[xr.DataArray]):
             TrueHandler(),
         )
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
@@ -99,7 +101,7 @@ class XarrayDataArrayEqualityTester(BaseEqualityTester[xr.DataArray]):
         return self._handler.handle(actual, expected, config=config)
 
 
-class XarrayDatasetEqualityTester(BaseEqualityTester[xr.Dataset]):
+class XarrayDatasetEqualityTester(InlineDisplayMixin, BaseEqualityTester[xr.Dataset]):
     r"""Implement an equality tester for ``xarray.Dataset``.
 
     This tester compares xarray Datasets by checking their data variables,
@@ -137,6 +139,9 @@ class XarrayDatasetEqualityTester(BaseEqualityTester[xr.Dataset]):
         ```
     """
 
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
+
     def __init__(self) -> None:
         check_xarray()
         self._handler = create_chain(
@@ -148,8 +153,6 @@ class XarrayDatasetEqualityTester(BaseEqualityTester[xr.Dataset]):
             TrueHandler(),
         )
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def equal(self, other: object) -> bool:
         return type(other) is type(self)
@@ -163,7 +166,7 @@ class XarrayDatasetEqualityTester(BaseEqualityTester[xr.Dataset]):
         return self._handler.handle(actual, expected, config=config)
 
 
-class XarrayVariableEqualityTester(BaseEqualityTester[xr.Variable]):
+class XarrayVariableEqualityTester(InlineDisplayMixin, BaseEqualityTester[xr.Variable]):
     r"""Implement an equality tester for ``xarray.Variable``.
 
     This tester compares xarray Variables by checking their data, dimensions,
@@ -201,6 +204,9 @@ class XarrayVariableEqualityTester(BaseEqualityTester[xr.Variable]):
         ```
     """
 
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
+
     def __init__(self) -> None:
         check_xarray()
         self._handler = create_chain(
@@ -212,8 +218,6 @@ class XarrayVariableEqualityTester(BaseEqualityTester[xr.Variable]):
             TrueHandler(),
         )
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def equal(self, other: object) -> bool:
         return type(other) is type(self)

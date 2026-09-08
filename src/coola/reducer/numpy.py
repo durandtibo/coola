@@ -8,8 +8,9 @@ from __future__ import annotations
 __all__ = ["NumpyReducer"]
 
 from collections.abc import Sequence
-from typing import TypeVar
+from typing import Any, TypeVar
 
+from coola.display import InlineDisplayMixin
 from coola.reducer.base import BaseBasicReducer
 from coola.utils.imports import check_numpy, is_numpy_available
 
@@ -22,7 +23,7 @@ else:  # pragma: no cover
 T = TypeVar("T", Sequence[float], np.ndarray)
 
 
-class NumpyReducer(BaseBasicReducer[T]):
+class NumpyReducer(InlineDisplayMixin, BaseBasicReducer[T]):
     r"""Implement a reducer based on NumPy functions.
 
     Raises:
@@ -42,11 +43,12 @@ class NumpyReducer(BaseBasicReducer[T]):
         ```
     """
 
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
+
     def __init__(self) -> None:
         check_numpy()
 
-    def __str__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def _is_empty(self, values: T) -> bool:
         if isinstance(values, np.ndarray):

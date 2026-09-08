@@ -11,16 +11,16 @@ __all__ = ["HasherRegistry"]
 
 from typing import TYPE_CHECKING, Any
 
+from coola.display import MultilineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_string
 from coola.registry import TypeRegistry
-from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
 
-class HasherRegistry:
+class HasherRegistry(MultilineDisplayMixin):
     r"""Registry that manages and dispatches hashers based on data type.
 
     This registry maintains a mapping from Python types to hasher instances
@@ -76,13 +76,8 @@ class HasherRegistry:
     def __init__(self, initial_state: dict[type, BaseHasher[Any]] | None = None) -> None:
         self._state: TypeRegistry[BaseHasher] = TypeRegistry[BaseHasher](initial_state)
 
-    def __repr__(self) -> str:
-        state = repr_indent(repr_mapping({"state": self._state}))
-        return f"{self.__class__.__qualname__}(\n  {state}\n)"
-
-    def __str__(self) -> str:
-        state = str_indent(str_mapping({"state": self._state}))
-        return f"{self.__class__.__qualname__}(\n  {state}\n)"
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {"state": self._state}
 
     def register(
         self,

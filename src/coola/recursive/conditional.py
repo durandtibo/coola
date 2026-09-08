@@ -7,8 +7,8 @@ __all__ = ["ConditionalTransformer"]
 
 from typing import TYPE_CHECKING, Any, TypeVar
 
+from coola.display import MultilineDisplayMixin
 from coola.recursive.base import BaseTransformer
-from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 T = TypeVar("T")
 
 
-class ConditionalTransformer(BaseTransformer[T]):
+class ConditionalTransformer(MultilineDisplayMixin, BaseTransformer[T]):
     r"""Wrapper transformer that conditionally applies transformations.
 
     This transformer wraps another transformer and only applies it when
@@ -74,13 +74,8 @@ class ConditionalTransformer(BaseTransformer[T]):
         self._transformer = transformer
         self._condition = condition
 
-    def __repr__(self) -> str:
-        params = {"transformer": self._transformer, "condition": self._condition}
-        return f"{self.__class__.__qualname__}(\n  {repr_indent(repr_mapping(params))}\n)"
-
-    def __str__(self) -> str:
-        params = {"transformer": self._transformer, "condition": self._condition}
-        return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(params))}\n)"
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {"transformer": self._transformer, "condition": self._condition}
 
     def transform(
         self,

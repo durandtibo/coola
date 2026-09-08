@@ -5,8 +5,9 @@ from __future__ import annotations
 __all__ = ["PathHasher", "hash_path"]
 
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
+from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_string
 
@@ -14,7 +15,7 @@ if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
 
 
-class PathHasher(BaseHasher[Path]):
+class PathHasher(InlineDisplayMixin, BaseHasher[Path]):
     r"""Hasher for ``pathlib.Path`` objects.
 
     This hasher delegates to ``hash_path``, which resolves the path
@@ -37,8 +38,9 @@ class PathHasher(BaseHasher[Path]):
         ```
     """
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
+
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
 
     def hash(
         self,

@@ -7,6 +7,7 @@ __all__ = ["TorchRandomManager", "torch_seed"]
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
 
+from coola.display import InlineDisplayMixin
 from coola.random.base import BaseRandomManager
 from coola.utils.imports import check_torch, is_torch_available
 
@@ -19,7 +20,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.torch import torch
 
 
-class TorchRandomManager(BaseRandomManager):  # noqa: PLW1641
+class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):  # noqa: PLW1641
     r"""Implement a random manager for the library ``torch``.
 
     Example:
@@ -31,14 +32,15 @@ class TorchRandomManager(BaseRandomManager):  # noqa: PLW1641
         ```
     """
 
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
+
     def __init__(self) -> None:
         check_torch()
 
     def __eq__(self, other: object) -> bool:
         return type(other) is type(self)
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def get_rng_state(self) -> dict[str, Any]:
         return {

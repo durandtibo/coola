@@ -8,10 +8,11 @@ __all__ = ["RandomRandomManager"]
 import random
 from typing import Any
 
+from coola.display import InlineDisplayMixin
 from coola.random.base import BaseRandomManager
 
 
-class RandomRandomManager(BaseRandomManager):  # noqa: PLW1641
+class RandomRandomManager(InlineDisplayMixin, BaseRandomManager):  # noqa: PLW1641
     r"""Implement a random manager for the python standard library
     ``random``.
 
@@ -24,11 +25,12 @@ class RandomRandomManager(BaseRandomManager):  # noqa: PLW1641
         ```
     """
 
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
+
     def __eq__(self, other: object) -> bool:
         return type(other) is type(self)
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
 
     def get_rng_state(self) -> tuple[Any, ...]:
         return random.getstate()

@@ -7,13 +7,14 @@ __all__ = ["IterableChildFinder"]
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any
 
+from coola.display import InlineDisplayMixin
 from coola.iterator.bfs.base import BaseChildFinder
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
 
-class IterableChildFinder(BaseChildFinder[Iterable[Any]]):
+class IterableChildFinder(InlineDisplayMixin, BaseChildFinder[Iterable[Any]]):
     r"""Child finder for iterable objects.
 
     This child finder handles iterable objects by yielding each element
@@ -32,8 +33,9 @@ class IterableChildFinder(BaseChildFinder[Iterable[Any]]):
         ```
     """
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
+
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
 
     def find_children(self, data: Iterable[Any]) -> Iterator[Any]:
         yield from data
