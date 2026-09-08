@@ -355,7 +355,7 @@ def resolve_saver(saver: BaseSaver[T] | dict[Any, Any]) -> BaseSaver[T]:
         >>> from coola.io import resolve_saver
         >>> saver = resolve_saver({"_target_": "coola.io.JsonSaver"})
         >>> saver
-        JsonSaver()
+        JsonSaver(encoding='utf-8')
 
         ```
     """
