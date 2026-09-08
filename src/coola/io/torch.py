@@ -6,9 +6,9 @@ __all__ = ["TorchLoader", "TorchSaver", "load_torch", "save_torch"]
 
 from typing import TYPE_CHECKING, Any, TypeVar
 
+from coola.display import InlineDisplayMixin
 from coola.equality.interface import objects_are_equal
 from coola.io.base import BaseFileSaver, BaseLoader
-from coola.utils.format import repr_mapping_line
 from coola.utils.imports import check_torch, is_torch_available
 
 if TYPE_CHECKING:
@@ -20,7 +20,7 @@ if TYPE_CHECKING or is_torch_available():  # pragma: no cover
 T = TypeVar("T")
 
 
-class TorchLoader(BaseLoader[T]):
+class TorchLoader(InlineDisplayMixin, BaseLoader[T]):
     r"""Implement a data loader to load data in a PyTorch file.
 
     Args:
@@ -46,8 +46,8 @@ class TorchLoader(BaseLoader[T]):
         check_torch()
         self._kwargs = kwargs
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}({repr_mapping_line(self._kwargs)})"
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return self._kwargs
 
     def equal(self, other: Any, equal_nan: bool = False) -> bool:
         if type(other) is not type(self):
@@ -58,7 +58,7 @@ class TorchLoader(BaseLoader[T]):
         return torch.load(path, **self._kwargs)
 
 
-class TorchSaver(BaseFileSaver[T]):
+class TorchSaver(InlineDisplayMixin, BaseFileSaver[T]):
     r"""Implement a file saver to save data with a PyTorch file.
 
     Args:
@@ -84,8 +84,8 @@ class TorchSaver(BaseFileSaver[T]):
         check_torch()
         self._kwargs = kwargs
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}({repr_mapping_line(self._kwargs)})"
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return self._kwargs
 
     def equal(self, other: Any, equal_nan: bool = False) -> bool:
         if type(other) is not type(self):

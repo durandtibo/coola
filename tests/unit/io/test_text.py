@@ -25,7 +25,7 @@ def path_text(tmp_path_factory: pytest.TempPathFactory) -> Path:
 
 
 def test_text_loader_repr() -> None:
-    assert repr(TextLoader()) == "TextLoader(encoding=utf-8)"
+    assert repr(TextLoader()) == "TextLoader(encoding='utf-8')"
 
 
 def test_text_loader_str() -> None:
@@ -84,7 +84,7 @@ def test_text_loader_load_respects_encoding(tmp_path: Path) -> None:
 
 
 def test_text_saver_repr() -> None:
-    assert repr(TextSaver()) == "TextSaver(encoding=utf-8)"
+    assert repr(TextSaver()) == "TextSaver(encoding='utf-8')"
 
 
 def test_text_saver_str() -> None:

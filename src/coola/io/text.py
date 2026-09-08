@@ -7,6 +7,7 @@ __all__ = ["TextLoader", "TextSaver", "load_text", "save_text"]
 from pathlib import Path
 from typing import Any, TypeVar
 
+from coola.display import InlineDisplayMixin
 from coola.io.base import BaseFileSaver, BaseLoader
 
 T = TypeVar("T")
@@ -14,7 +15,7 @@ T = TypeVar("T")
 DEFAULT_ENCODING = "utf-8"
 
 
-class TextLoader(BaseLoader[str]):
+class TextLoader(InlineDisplayMixin, BaseLoader[str]):
     r"""Implement a data loader to load data from a text file.
 
     Args:
@@ -40,8 +41,8 @@ class TextLoader(BaseLoader[str]):
     def __init__(self, encoding: str = DEFAULT_ENCODING) -> None:
         self._encoding = encoding
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}(encoding={self._encoding})"
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {"encoding": self._encoding}
 
     def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
         if type(other) is not type(self):
@@ -53,7 +54,7 @@ class TextLoader(BaseLoader[str]):
             return file.read()
 
 
-class TextSaver(BaseFileSaver[str]):
+class TextSaver(InlineDisplayMixin, BaseFileSaver[str]):
     r"""Implement a file saver to save data to a text file.
 
     Args:
@@ -83,8 +84,8 @@ class TextSaver(BaseFileSaver[str]):
     def __init__(self, encoding: str = DEFAULT_ENCODING) -> None:
         self._encoding = encoding
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}(encoding={self._encoding})"
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {"encoding": self._encoding}
 
     def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
         if type(other) is not type(self):

@@ -8,16 +8,16 @@ import json
 from pathlib import Path
 from typing import Any, TypeVar
 
+from coola.display import InlineDisplayMixin
 from coola.equality.interface import objects_are_equal
 from coola.io.base import BaseFileSaver, BaseLoader
-from coola.utils.format import repr_mapping_line
 
 T = TypeVar("T")
 
 DEFAULT_ENCODING = "utf-8"
 
 
-class JsonLoader(BaseLoader[T]):
+class JsonLoader(InlineDisplayMixin, BaseLoader[T]):
     r"""Implement a data loader to load data in a JSON file.
 
     Example:
@@ -36,8 +36,8 @@ class JsonLoader(BaseLoader[T]):
         ```
     """
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}()"
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
 
     def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
         return type(other) is type(self)
@@ -47,7 +47,7 @@ class JsonLoader(BaseLoader[T]):
             return json.load(file)
 
 
-class JsonSaver(BaseFileSaver[T]):
+class JsonSaver(InlineDisplayMixin, BaseFileSaver[T]):
     r"""Implement a file saver to save data with a JSON file.
 
     Args:
@@ -76,9 +76,8 @@ class JsonSaver(BaseFileSaver[T]):
         self._encoding = encoding
         self._kwargs = kwargs
 
-    def __repr__(self) -> str:
-        kwargs = f", {repr_mapping_line(self._kwargs)}" if self._kwargs else ""
-        return f"{self.__class__.__qualname__}(encoding={self._encoding}{kwargs})"
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {"encoding": self._encoding, **self._kwargs}
 
     def equal(self, other: Any, equal_nan: bool = False) -> bool:
         if type(other) is not type(self):

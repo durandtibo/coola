@@ -59,7 +59,7 @@ def test_json_loader_load(path_json: Path) -> None:
 
 
 def test_json_saver_repr() -> None:
-    assert repr(JsonSaver()) == "JsonSaver(encoding=utf-8)"
+    assert repr(JsonSaver()) == "JsonSaver(encoding='utf-8')"
 
 
 def test_json_saver_str() -> None:
