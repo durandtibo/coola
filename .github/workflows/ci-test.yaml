@@ -29,10 +29,8 @@ jobs:
         # Test all supported Python versions including free-threaded builds (t suffix)
         python-version: ${{ fromJson(inputs.test-matrix).python_versions }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
-      - name: Setup python environment
-        uses: durandtibo/setup-venv-uv-action@59716ab8fb83cc7025548b3831c06b6f5c268f4f # ratchet:durandtibo/setup-venv-uv-action@v0.1.0
+      - name: Checkout and setup python environment
+        uses: ./.github/actions/checkout-python-env
         with:
           python-version: ${{ matrix.python-version }}
       - name: Run unit tests
@@ -68,11 +66,9 @@ jobs:
         os: ${{ fromJson(inputs.test-matrix).os_matrix }}
         python-version: ${{ fromJson(inputs.test-matrix).python_versions }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
       # Install only required dependencies, not optional ones
-      - name: Setup python environment
-        uses: durandtibo/setup-venv-uv-action@59716ab8fb83cc7025548b3831c06b6f5c268f4f # ratchet:durandtibo/setup-venv-uv-action@v0.1.0
+      - name: Checkout and setup python environment
+        uses: ./.github/actions/checkout-python-env
         with:
           python-version: ${{ matrix.python-version }}
           install-args: "--no-optional-deps"
