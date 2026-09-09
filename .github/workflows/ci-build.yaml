@@ -22,6 +22,11 @@ jobs:
     with:
       extra-values: '[""]'
 
+  # Default Python version x every extra (incl. no-extra baseline): catches
+  # per-extra build/packaging issues. Kept separate from build-all below,
+  # which instead varies Python version at a fixed extra=all - merging the
+  # two into one matrix would need an `include:` fan-out plus conditional
+  # steps for little gain, since the two jobs vary orthogonal axes.
   build:
     needs: get-extras
     runs-on: ubuntu-latest
