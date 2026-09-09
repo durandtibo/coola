@@ -2,7 +2,7 @@
 
 This directory holds every workflow for the repository. There are no
 subdirectories: GitHub only discovers workflows placed directly under
-`.github/workflows/`, so reusable workflows live here too, alongside the
+`workflows`, so reusable workflows live here too, alongside the
 top-level ones that trigger on events.
 
 ## Naming convention
@@ -11,14 +11,14 @@ Every file is prefixed by what it does:
 
 | Prefix       | Purpose                                                                                     |
 | ------------ | -------------------------------------------------------------------------------------------- |
-| `ci-`        | Quality/test checks, most of them reusable workflows called from `ci.yaml`.                  |
+| `ci-`        | Quality/test checks, most of them reusable workflows called from `workflows/ci.yaml`.                  |
 | `lib-`       | Reusable workflows with no event trigger of their own; they only expose `workflow_call` outputs (e.g. reading a JSON config file) and are `needs:`-ed by other jobs. |
 | `bot-`       | Scheduled automation that pushes commits / opens PRs as the `ci-bot` GitHub App.              |
 | `nightly-`   | Scheduled checks against the *published* PyPI package (as opposed to `ci-*`, which checks the repo's source). |
 | `release-`   | Publishing: PyPI package, GitHub release assets, documentation.                              |
 | `security-`  | Supply-chain/security scanning (Scorecard, dependency review).                               |
 
-`ci.yaml` is the entry point for pull requests/pushes to `main`; it fans out
+`workflows/ci.yaml` is the entry point for pull requests/pushes to `main`; it fans out
 to the `ci-*.yaml` reusable workflows so each check can also be run/dispatched
 on its own. Job ids in `ci.yaml` and in the workflows it calls are
 load-bearing for branch protection (see the comment at the top of `ci.yaml`)
@@ -34,7 +34,7 @@ load-bearing for branch protection (see the comment at the top of `ci.yaml`)
 - **`.github/workflows/lib-*.yaml`** (reusable workflows called with `uses:
   ./.github/workflows/lib-....yaml`): used when the output needs to feed a
   matrix, or when the shared logic is naturally a whole job (e.g. reading
-  `dev/config/test_matrix.json` once and handing the JSON down to several
+  `../dev/config/test_matrix.json` once and handing the JSON down to several
   jobs via `needs:`).
 
 When adding new duplication, prefer extending an existing composite
@@ -45,7 +45,7 @@ action/reusable workflow over copy-pasting steps.
 - **Action pinning**: every third-party (and first-party `actions/*`) step is
   pinned to a full commit SHA with a trailing `# ratchet:owner/repo@vX.Y.Z`
   comment, added and refreshed automatically by
-  [`ratchet`](https://github.com/sethvargo/ratchet) via `bot-pin-action.yaml`.
+  [`ratchet`](https://github.com/sethvargo/ratchet) via `workflows/bot-pin-action.yaml`.
   Never hand-pin a SHA without that comment — the next `bot-pin-action` run
   would otherwise silently downgrade or drift it. Local composite actions
   (`uses: ./.github/actions/...`) are referenced by path, not pinned.
@@ -59,7 +59,7 @@ action/reusable workflow over copy-pasting steps.
   indefinitely.
 - **Runners**: `ubuntu-slim` for lightweight jobs that only run a small
   action or a couple of shell commands (no Python/build tooling); otherwise
-  `ubuntu-latest`, or the OS matrix under test for `ci-test.yaml` /
+  `ubuntu-latest`, or the OS matrix under test for `workflows/ci-test.yaml` /
   `nightly-test-package.yaml`.
 - **`workflow_dispatch`**: added to every workflow (checks and automation
   alike) so it can be re-run manually without waiting for its normal trigger.
@@ -67,22 +67,22 @@ action/reusable workflow over copy-pasting steps.
 ## Shared configuration
 
 Values that would otherwise be duplicated across workflows are centralized in
-`dev/config/`:
+`../dev/config`:
 
-- `dev/config/test_matrix.json` — supported Python versions / OS matrix,
+- `../dev/config/test_matrix.json` — supported Python versions / OS matrix,
   read once per run by `lib-get-test-matrix.yaml`.
-- `dev/config/package_versions.json` — version ranges to test optional
+- `../dev/config/package_versions.json` — version ranges to test optional
   dependencies against, read by `lib-get-package-versions.yaml` and kept
   current by `bot-generate-package-versions.yaml`.
 
 Optional-dependency *names* are never duplicated in config: they're read
-directly from `pyproject.toml`'s `[project.optional-dependencies]` by the
+directly from `../pyproject.toml`'s `[project.optional-dependencies]` by the
 `get-package-extras` composite action / `lib-get-package-extras.yaml`, so a
 new extra only needs to be added in one place.
 
 ## Validating changes to this directory
 
-`ci-verify-workflows.yaml` runs `durandtibo/verify-github-workflow-action` on
+`workflows/ci-verify-workflows.yaml` runs `durandtibo/verify-github-workflow-action` on
 every PR/push that touches `.github/workflows/*`, checking pinning and
 general workflow correctness. Locally, `actionlint` (run from this
 directory) and a YAML syntax check are good pre-flight checks before pushing:
