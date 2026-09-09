@@ -1,11 +1,13 @@
 # Benchmark workflow.
 # Runs the performance benchmark suite (tests/benchmarks/) to catch
 # regressions in the equality comparison machinery. Not part of the
-# blocking PR checks.
+# blocking PR checks: runs nightly on its own schedule instead of on every
+# PR/push, and can also be triggered manually.
 
 name: Benchmark
 on:
-  workflow_call:
+  schedule:
+    - cron: "10 9 * * *" # Run nightly at 9:10 AM UTC, alongside CI's nightly run
   workflow_dispatch: # to trigger manually
 
 permissions:
