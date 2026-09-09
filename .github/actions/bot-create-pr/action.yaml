@@ -1,0 +1,43 @@
+# Composite action shared by every automation workflow that opens a PR as
+# the bot app (pin-action.yaml, pre-commit-autoupdate.yaml, update-deps.yaml,
+# generate-package-versions.yaml). Wraps peter-evans/create-pull-request with
+# the standard ci-bot author and `if: always()` so a check step earlier in
+# the job (e.g. running the updated hooks/tests) can fail without blocking
+# the PR from opening. Keeping this in one place means the action's pinned
+# SHA and the ci-bot author convention only need to be updated once.
+
+name: Bot create pull request
+description: Open a pull request using the bot app token, authored as ci-bot
+
+inputs:
+  token:
+    description: GitHub App token from the bot-checkout action
+    required: true
+  author-email:
+    description: Email to attribute the commit/PR to (paired with the fixed "ci-bot" name)
+    required: true
+  branch:
+    description: Branch to create/update with the changes
+    required: true
+  title:
+    description: Pull request title
+    required: true
+  commit-message:
+    description: Commit message for the change
+    required: true
+  body:
+    description: Pull request body
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # ratchet:peter-evans/create-pull-request@v8
+      if: always()
+      with:
+        token: ${{ inputs.token }}
+        branch: ${{ inputs.branch }}
+        title: ${{ inputs.title }}
+        commit-message: ${{ inputs.commit-message }}
+        body: ${{ inputs.body }}
+        author: ci-bot <${{ inputs.author-email }}>
