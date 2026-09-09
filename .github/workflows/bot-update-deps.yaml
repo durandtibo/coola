@@ -2,7 +2,7 @@
 # Updates all dependencies to their latest compatible versions weekly.
 # Creates a pull request with the updates after running tests.
 
-name: Update dependencies
+name: Update Dependencies
 on:
   schedule:
     - cron: "0 6 * * 6" # Run every Saturday at 6:00 AM UTC
@@ -18,20 +18,12 @@ jobs:
       contents: read # actions/checkout only needs read; the app token grants write
 
     steps:
-      - name: Generate GitHub App token
-        id: app-token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # ratchet:actions/create-github-app-token@v3.2.0
+      - name: Bot checkout
+        id: bot-checkout
+        uses: ./.github/actions/bot-checkout
         with:
           client-id: ${{ secrets.TIBOT_CLIENT_ID }}
           private-key: ${{ secrets.TIBOT_APP_PRIVATE_KEY }}
-          permission-contents: write
-          permission-pull-requests: write
-
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-          persist-credentials: false
 
       - name: Setup python environment
         uses: durandtibo/setup-venv-uv-action@59716ab8fb83cc7025548b3831c06b6f5c268f4f # ratchet:durandtibo/setup-venv-uv-action@v0.1.0
@@ -61,7 +53,7 @@ jobs:
       - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # ratchet:peter-evans/create-pull-request@v8
         if: always()
         with:
-          token: ${{ steps.app-token.outputs.token }}
+          token: ${{ steps.bot-checkout.outputs.token }}
           branch: update/dependencies
           title: Update dependencies
           commit-message: "Update dependencies"

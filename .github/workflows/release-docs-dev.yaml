@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   publish:
-    uses: ./.github/workflows/docs-publish.yaml
+    uses: ./.github/workflows/release-docs-publish.yaml
     with:
       mode: dev
     secrets: inherit

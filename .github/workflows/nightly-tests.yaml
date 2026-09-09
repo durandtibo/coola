@@ -14,8 +14,8 @@ permissions:
 jobs:
   # Same build/lint/test checks that run in ci.yaml, kept in sync via checks.yaml
   checks:
-    uses: ./.github/workflows/checks.yaml
+    uses: ./.github/workflows/ci-checks.yaml
     secrets: inherit
 
   benchmark:
-    uses: ./.github/workflows/benchmark.yaml
+    uses: ./.github/workflows/ci-benchmark.yaml

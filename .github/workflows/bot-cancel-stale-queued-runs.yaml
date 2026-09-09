@@ -26,7 +26,7 @@
 #   - actions: write - Required to cancel workflow runs
 #   - contents: read - Required for repository access
 
-name: Cancel stale queued runs
+name: Cancel Stale Queued Runs
 
 on:
   schedule:

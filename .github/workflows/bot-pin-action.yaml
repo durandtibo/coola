@@ -19,21 +19,13 @@ jobs:
     permissions:
       contents: read # actions/checkout only needs read; the app token grants write
     steps:
-      - name: Generate GitHub App token
-        id: app-token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # ratchet:actions/create-github-app-token@v3.2.0
+      - name: Bot checkout
+        id: bot-checkout
+        uses: ./.github/actions/bot-checkout
         with:
           client-id: ${{ secrets.TIBOT_CLIENT_ID }}
           private-key: ${{ secrets.TIBOT_APP_PRIVATE_KEY }}
-          permission-contents: write
-          permission-pull-requests: write
           permission-workflows: write
-
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-          persist-credentials: false
 
       # Always install the latest ratchet release, so the version never goes stale
       - name: Install ratchet
@@ -43,12 +35,12 @@ jobs:
           platform: linux
           arch: amd64
         env:
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          GITHUB_TOKEN: ${{ steps.bot-checkout.outputs.token }}
 
       # Pin all action references to their commit SHA, keeping the version as a comment
       - name: Pin GitHub Actions
         env:
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }} # for API quota and auth
+          GITHUB_TOKEN: ${{ steps.bot-checkout.outputs.token }} # for API quota and auth
         run: |
           ratchet pin .github/workflows/*.yaml .github/workflows/*.yml
 
@@ -60,7 +52,7 @@ jobs:
       - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # ratchet:peter-evans/create-pull-request@v8
         if: always()
         with:
-          token: ${{ steps.app-token.outputs.token }}
+          token: ${{ steps.bot-checkout.outputs.token }}
           branch: update/pin-action
           title: Pin GitHub Actions to commit SHA
           commit-message: "Pin GitHub Actions to commit SHA"
