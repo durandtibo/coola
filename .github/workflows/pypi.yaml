@@ -12,6 +12,11 @@ on:
 permissions:
   contents: read
 
+# Serialize publishes to avoid overlapping releases on close tag pushes.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
