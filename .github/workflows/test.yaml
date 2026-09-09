@@ -25,9 +25,11 @@ jobs:
   # Test with all dependencies across multiple Python versions and operating systems
   all:
     needs: get-matrix
-    # get-matrix is skipped whenever the caller already passed test-matrix in;
-    # a skipped need isn't "success", so allow that result explicitly.
-    if: needs.get-matrix.result == 'success' || needs.get-matrix.result == 'skipped'
+    # get-matrix is skipped whenever the caller already passed test-matrix in.
+    # GitHub auto-skips dependents of a skipped need unless the if starts with
+    # always(), so we need both: always() to opt out of that propagation, and
+    # the explicit result check to still bail out on a real get-matrix failure.
+    if: always() && (needs.get-matrix.result == 'success' || needs.get-matrix.result == 'skipped')
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
     strategy:
@@ -54,7 +56,7 @@ jobs:
   # Test with minimal dependencies to ensure optional dependencies are truly optional
   min:
     needs: get-matrix
-    if: needs.get-matrix.result == 'success' || needs.get-matrix.result == 'skipped'
+    if: always() && (needs.get-matrix.result == 'success' || needs.get-matrix.result == 'skipped')
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
     strategy:

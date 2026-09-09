@@ -34,9 +34,15 @@ jobs:
   # to date by generate-package-versions.yaml).
   test-dep:
     needs: [get-extras, get-versions, get-matrix]
-    # get-matrix is skipped whenever the caller already passed test-matrix in;
-    # a skipped need isn't "success", so allow that result explicitly.
-    if: needs.get-matrix.result == 'success' || needs.get-matrix.result == 'skipped'
+    # get-matrix is skipped whenever the caller already passed test-matrix in.
+    # GitHub auto-skips dependents of a skipped need unless the if starts with
+    # always(), so we need always() to opt out of that propagation, plus
+    # explicit checks so a real failure in any need still stops this job.
+    if: >-
+      always() &&
+      needs.get-extras.result == 'success' &&
+      needs.get-versions.result == 'success' &&
+      (needs.get-matrix.result == 'success' || needs.get-matrix.result == 'skipped')
     strategy:
       fail-fast: false
       matrix:
