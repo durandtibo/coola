@@ -36,12 +36,9 @@ jobs:
 
       # Configure git and fetch gh-pages branch for mike
       - name: Setup doc deploy
-        env:
-          CI_BOT_EMAIL: ${{secrets.CI_BOT_EMAIL}}
-        run: |
-          git config --global user.name ci-docs-bot
-          git config --global user.email "$CI_BOT_EMAIL"
-          git fetch origin gh-pages --depth=1 --tags
+        uses: ./.github/actions/setup-doc-deploy
+        with:
+          ci-bot-email: ${{ secrets.CI_BOT_EMAIL }}
 
       # Build and deploy documentation for the latest stable version
       - name: Build and deploy documentation
