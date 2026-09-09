@@ -19,29 +19,18 @@ jobs:
 
       - name: check modules
         run: |
-          modules=(
-            coola
-            coola.display
-            coola.equality
-            coola.equality.handler
-            coola.equality.tester
-            coola.factory
-            coola.hashing
-            coola.identifier
-            coola.io
-            coola.iterator
-            coola.iterator.bfs
-            coola.iterator.dfs
-            coola.nested
-            coola.random
-            coola.recursive
-            coola.reducer
-            coola.registry
-            coola.summary
-            coola.testing
-            coola.utils
+          # Discover all coola subpackages dynamically instead of a hand-maintained
+          # list, so newly added subpackages are automatically covered.
+          modules=$(python -c "
+          import pkgutil
+          import coola
+          names = ['coola'] + sorted(
+              name for _, name, ispkg in pkgutil.walk_packages(coola.__path__, prefix='coola.')
+              if ispkg
           )
-          for module in "${modules[@]}"; do
+          print('\n'.join(names))
+          ")
+          echo "$modules" | while IFS= read -r module; do
             echo "::group::check ${module}"
             python -c "import ${module}"
             echo "::endgroup::"

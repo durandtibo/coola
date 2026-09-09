@@ -1,10 +1,10 @@
 # Stable documentation deployment workflow.
 # Builds and deploys documentation for released versions to GitHub Pages.
 # Triggered by version tags and uses mike for documentation versioning.
+# The actual build/deploy steps live in docs-publish.yaml, shared with docs-dev.yaml.
 
 name: Documentation (stable)
 on:
-  workflow_call:
   workflow_dispatch: # to trigger manually
   push:
     tags:
@@ -18,29 +18,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: write # Required to push to gh-pages branch
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
-
-      # Install dependencies including documentation tools
-      - name: Setup python environment
-        uses: durandtibo/setup-venv-uv-action@59716ab8fb83cc7025548b3831c06b6f5c268f4f # ratchet:durandtibo/setup-venv-uv-action@v0.1.0
-        with:
-          install-args: "--docs-deps"
-
-      # Configure git and fetch gh-pages branch for mike
-      - name: Setup doc deploy
-        uses: ./.github/actions/setup-doc-deploy
-        with:
-          ci-bot-email: ${{ secrets.CI_BOT_EMAIL }}
-
-      # Build and deploy documentation for the latest stable version
-      - name: Build and deploy documentation
-        run: |
-          inv publish-doc-latest
+  publish:
+    uses: ./.github/workflows/docs-publish.yaml
+    with:
+      mode: stable
+    secrets: inherit

@@ -1,0 +1,49 @@
+# Shared documentation build-and-deploy logic used by both docs.yaml (stable
+# releases, triggered by version tags) and docs-dev.yaml (dev docs, triggered
+# on push to main). Keeping the steps in one place avoids the two drifting.
+
+name: Documentation Publish
+on:
+  workflow_call:
+    inputs:
+      mode:
+        description: "Which mike target to publish: 'stable' or 'dev'"
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write # Required to push to gh-pages branch
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
+
+      # Install dependencies including documentation tools
+      - name: Setup python environment
+        uses: durandtibo/setup-venv-uv-action@59716ab8fb83cc7025548b3831c06b6f5c268f4f # ratchet:durandtibo/setup-venv-uv-action@v0.1.0
+        with:
+          install-args: "--docs-deps"
+
+      # Configure git and fetch gh-pages branch for mike
+      - name: Setup doc deploy
+        uses: ./.github/actions/setup-doc-deploy
+        with:
+          ci-bot-email: ${{ secrets.CI_BOT_EMAIL }}
+
+      # Build and deploy documentation for the requested mode
+      - name: Build and deploy documentation
+        run: |
+          case "${{ inputs.mode }}" in
+            stable) inv publish-doc-latest ;;
+            dev) inv publish-doc-dev ;;
+            *)
+              echo "::error::Unknown mode '${{ inputs.mode }}', expected 'stable' or 'dev'"
+              exit 1
+              ;;
+          esac

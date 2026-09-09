@@ -12,7 +12,12 @@ permissions:
   contents: read
 
 jobs:
+  # Load the shared python-version matrix from dev/config/test_matrix.json
+  get-matrix:
+    uses: ./.github/workflows/get-test-matrix.yaml
+
   test:
+    needs: get-matrix
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
     strategy:
@@ -20,7 +25,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ '3.14', '3.14t', '3.13', '3.13t', '3.12', '3.11', '3.10' ]
+        python-version: ${{ fromJson(needs.get-matrix.outputs.test_matrix).python_versions }}
         extra: [
           'all',
           'colorlog',

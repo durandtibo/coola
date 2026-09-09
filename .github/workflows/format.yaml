@@ -40,9 +40,13 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
 
       - name: Install ShellCheck
+        env:
+          SHELLCHECK_VERSION: "0.10.0"
         run: |
-          sudo apt-get update
-          sudo apt-get install -y shellcheck
+          set -euo pipefail
+          curl -sSfL "https://github.com/koalaman/shellcheck/releases/download/v${SHELLCHECK_VERSION}/shellcheck-v${SHELLCHECK_VERSION}.linux.x86_64.tar.xz" \
+            | tar -xJ
+          sudo install "shellcheck-v${SHELLCHECK_VERSION}/shellcheck" /usr/local/bin/shellcheck
           shellcheck --version
 
       - name: Run ShellCheck
@@ -52,9 +56,13 @@ jobs:
           shellcheck -- **/*.sh || exit 1
 
       - name: Install shfmt
+        env:
+          SHFMT_VERSION: "3.10.0"
         run: |
-          sudo apt-get update
-          sudo apt-get install -y shfmt
+          set -euo pipefail
+          curl -sSfL "https://github.com/mvdan/sh/releases/download/v${SHFMT_VERSION}/shfmt_v${SHFMT_VERSION}_linux_amd64" \
+            -o /tmp/shfmt
+          sudo install /tmp/shfmt /usr/local/bin/shfmt
           shfmt --version
 
       - name: Run shfmt
