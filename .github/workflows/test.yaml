@@ -25,6 +25,9 @@ jobs:
   # Test with all dependencies across multiple Python versions and operating systems
   all:
     needs: get-matrix
+    # get-matrix is skipped whenever the caller already passed test-matrix in;
+    # a skipped need isn't "success", so allow it explicitly.
+    if: always() && !failure() && !cancelled()
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
     strategy:
@@ -51,6 +54,7 @@ jobs:
   # Test with minimal dependencies to ensure optional dependencies are truly optional
   min:
     needs: get-matrix
+    if: always() && !failure() && !cancelled()
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
     strategy:
