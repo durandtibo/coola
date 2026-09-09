@@ -1,9 +1,16 @@
 # Main CI workflow that orchestrates all quality checks and tests.
 # Runs on pull requests, pushes to main, a nightly schedule, and manual dispatch.
 # Validates code quality, runs tests, and checks dependencies.
-# The benchmark suite runs separately, on its own schedule, in ci-benchmark.yaml.
 # Coverage is uploaded from the "all" job of ci-test.yaml rather than a
 # separate full test run.
+#
+# Deliberately NOT called from here, each standalone with its own trigger:
+#   - ci-benchmark.yaml: runs nightly on its own schedule instead of gating
+#     every PR/push, since a benchmark regression isn't a merge blocker.
+#   - ci-verify-workflows.yaml: lints .github/workflows/* itself, so it
+#     triggers on workflow-file changes rather than every PR/push.
+# See .github/GUIDELINES.md for the naming/prefix and runs-on/timeout
+# conventions shared across every workflow in this directory.
 #
 # The individual check jobs below call out to per-check reusable workflows
 # (ci-build.yaml, ci-format.yaml, ...) instead of inlining their steps here,

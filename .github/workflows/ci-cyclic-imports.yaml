@@ -1,3 +1,7 @@
+# Cyclic imports check.
+# Imports every coola subpackage in isolation to catch circular-import
+# regressions that only surface once a submodule is imported directly.
+
 name: Cyclic Imports
 on:
   workflow_call:

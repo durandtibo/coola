@@ -44,9 +44,11 @@ jobs:
         run: |
           ratchet pin .github/workflows/*.yaml .github/workflows/*.yml
 
-      # Reformat the pinned files so ratchet's output matches repo style
+      # Reformat the pinned files so ratchet's output matches repo style.
+      # Version pinned so a `prettier` release can't silently change
+      # formatting output on a bot-authored PR.
       - name: Format YAML
-        run: npx --yes prettier --write ".github/workflows/*.yaml" ".github/workflows/*.yml"
+        run: npx --yes prettier@3.4.2 --write ".github/workflows/*.yaml" ".github/workflows/*.yml"
 
       # Create a pull request with the pinned actions
       - uses: ./.github/actions/bot-create-pr
