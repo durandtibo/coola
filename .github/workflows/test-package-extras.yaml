@@ -16,8 +16,15 @@ jobs:
   get-matrix:
     uses: ./.github/workflows/get-test-matrix.yaml
 
+  # Load the extras from pyproject.toml's [project.optional-dependencies],
+  # plus "all" to also test installing every extra at once.
+  get-extras:
+    uses: ./.github/workflows/get-package-extras.yaml
+    with:
+      extra-values: '["all"]'
+
   test:
-    needs: get-matrix
+    needs: [get-matrix, get-extras]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
     strategy:
@@ -26,21 +33,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python-version: ${{ fromJson(needs.get-matrix.outputs.test_matrix).python_versions }}
-        extra:
-          [
-            "all",
-            "colorlog",
-            "jax",
-            "numpy",
-            "packaging",
-            "pandas",
-            "polars",
-            "pyarrow",
-            "pydantic",
-            "rich",
-            "torch",
-            "xarray",
-          ]
+        extra: ${{ fromJson(needs.get-extras.outputs.extras) }}
 
     steps:
       - name: Checkout
@@ -55,7 +48,8 @@ jobs:
           INSTALL_ARGS: ${{ inputs.install-args }}
           EXTRA: ${{ matrix.extra }}
         run: |
-          uv pip install $INSTALL_ARGS "coola[$EXTRA]"
+          read -ra install_args <<< "$INSTALL_ARGS"
+          uv pip install "${install_args[@]}" "coola[$EXTRA]"
       - name: Show dependency tree
         run: |
 
