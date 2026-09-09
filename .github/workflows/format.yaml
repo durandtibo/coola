@@ -39,31 +39,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
 
-      - name: Install ShellCheck
-        env:
-          SHELLCHECK_VERSION: "0.10.0"
-        run: |
-          set -euo pipefail
-          curl -sSfL "https://github.com/koalaman/shellcheck/releases/download/v${SHELLCHECK_VERSION}/shellcheck-v${SHELLCHECK_VERSION}.linux.x86_64.tar.xz" \
-            | tar -xJ
-          sudo install "shellcheck-v${SHELLCHECK_VERSION}/shellcheck" /usr/local/bin/shellcheck
-          shellcheck --version
-
+      # Installs and runs ShellCheck in one step. `version: stable` always
+      # resolves to the latest stable ShellCheck release at run time, and the
+      # action reference itself is kept current by dependabot.yml (github-actions
+      # ecosystem) + the pin-action.yaml ratchet job — so no version to bump by hand.
       - name: Run ShellCheck
-        run: |
-          shopt -s globstar
-          echo "🔍 Running ShellCheck..."
-          shellcheck -- **/*.sh || exit 1
+        uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # ratchet:ludeeus/action-shellcheck@2.0.0
+        with:
+          version: stable
+          check_together: "yes"
 
+      # setup-shfmt defaults shfmt-version to `latest`, so it also auto-updates;
+      # the action reference is kept current the same way as ShellCheck above.
       - name: Install shfmt
-        env:
-          SHFMT_VERSION: "3.10.0"
-        run: |
-          set -euo pipefail
-          curl -sSfL "https://github.com/mvdan/sh/releases/download/v${SHFMT_VERSION}/shfmt_v${SHFMT_VERSION}_linux_amd64" \
-            -o /tmp/shfmt
-          sudo install /tmp/shfmt /usr/local/bin/shfmt
-          shfmt --version
+        uses: mfinelli/setup-shfmt@a25fda4c1fe115aec0f85e04126610841bc3141d # ratchet:mfinelli/setup-shfmt@v4.0.1
 
       - name: Run shfmt
         run: |
