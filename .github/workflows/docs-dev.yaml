@@ -12,6 +12,11 @@ on:
 
 permissions: {}
 
+# Serialize deploys to gh-pages to avoid racing mike deployments.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
