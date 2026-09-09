@@ -38,12 +38,14 @@ jobs:
 
       # Build and deploy documentation for the requested mode
       - name: Build and deploy documentation
+        env:
+          MODE: ${{ inputs.mode }}
         run: |
-          case "${{ inputs.mode }}" in
+          case "$MODE" in
             stable) inv publish-doc-latest ;;
             dev) inv publish-doc-dev ;;
             *)
-              echo "::error::Unknown mode '${{ inputs.mode }}', expected 'stable' or 'dev'"
+              echo "::error::Unknown mode '$MODE', expected 'stable' or 'dev'"
               exit 1
               ;;
           esac
