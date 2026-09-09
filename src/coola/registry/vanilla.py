@@ -132,7 +132,7 @@ class Registry(Generic[K, V]):
             False
 
             ```
-        r"""
+        """
         with self._lock:
             self._state.clear()
 
@@ -159,7 +159,7 @@ class Registry(Generic[K, V]):
             False
 
             ```
-        r"""
+        """
         if type(other) is not type(self):
             return False
 
@@ -187,11 +187,11 @@ class Registry(Generic[K, V]):
             >>> registry = Registry[str, int]({"key1": 42, "key2": 100})
             >>> registry.get("key1")
             42
-            >>> registry.get("missing")
-            None
+            >>> registry.get("missing") is None
+            True
 
             ```
-        r"""
+        """
         with self._lock:
             return self._state.get(key, default)
 
@@ -217,7 +217,7 @@ class Registry(Generic[K, V]):
             False
 
             ```
-        r"""
+        """
         with self._lock:
             return key in self._state
 
@@ -267,7 +267,7 @@ class Registry(Generic[K, V]):
             100
 
             ```
-        r"""
+        """
         with self._lock:
             if key in self._state and not exist_ok:
                 msg = (
@@ -324,7 +324,7 @@ class Registry(Generic[K, V]):
             4
 
             ```
-        r"""
+        """
         with self._lock:
             # Check all keys first if exist_ok is False
             if not exist_ok and (duplicates := set(mapping) & set(self._state)):
@@ -366,7 +366,7 @@ class Registry(Generic[K, V]):
             False
 
             ```
-        r"""
+        """
         with self._lock:
             if key not in self._state:
                 msg = f"Key '{key}' is not registered"
@@ -387,7 +387,7 @@ class Registry(Generic[K, V]):
             dict_items([('a', 1), ('b', 2)])
 
             ```
-        r"""
+        """
         with self._lock:
             return self._state.copy().items()
 
@@ -405,7 +405,7 @@ class Registry(Generic[K, V]):
             dict_keys(['a', 'b'])
 
             ```
-        r"""
+        """
         with self._lock:
             return self._state.copy().keys()
 
@@ -423,6 +423,6 @@ class Registry(Generic[K, V]):
             dict_values([1, 2])
 
             ```
-        r"""
+        """
         with self._lock:
             return self._state.copy().values()

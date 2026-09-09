@@ -181,7 +181,7 @@ class TypeRegistry(Generic[T]):
             False
 
             ```
-        r"""
+        """
         with self._lock:
             self._state.clear()
             self._cache.clear()
@@ -213,7 +213,7 @@ class TypeRegistry(Generic[T]):
             False
 
             ```
-        r"""
+        """
         if type(other) is not type(self):
             return False
 
@@ -252,7 +252,7 @@ class TypeRegistry(Generic[T]):
             -1
 
             ```
-        r"""
+        """
         with self._lock:
             return self._state.get(dtype, default)
 
@@ -280,7 +280,7 @@ class TypeRegistry(Generic[T]):
             False
 
             ```
-        r"""
+        """
         with self._lock:
             return dtype in self._state
 
@@ -333,7 +333,7 @@ class TypeRegistry(Generic[T]):
             100
 
             ```
-        r"""
+        """
         with self._lock:
             if dtype in self._state and not exist_ok:
                 msg = (
@@ -395,7 +395,7 @@ class TypeRegistry(Generic[T]):
             4
 
             ```
-        r"""
+        """
         with self._lock:
             # Check all keys first if exist_ok is False
             if not exist_ok and (duplicates := set(mapping) & set(self._state)):
@@ -472,7 +472,7 @@ class TypeRegistry(Generic[T]):
             'dog'
 
             ```
-        r"""
+        """
         with self._lock:
             if dtype not in self._cache:
                 self._cache[dtype] = self._resolve_uncached(dtype)
@@ -512,7 +512,7 @@ class TypeRegistry(Generic[T]):
             False
 
             ```
-        r"""
+        """
         with self._lock:
             if dtype not in self._state:
                 msg = f"Type {dtype} is not registered"
@@ -535,7 +535,7 @@ class TypeRegistry(Generic[T]):
             dict_items([(<class 'int'>, 'I am an integer'), (<class 'float'>, 'I am a float')])
 
             ```
-        r"""
+        """
         with self._lock:
             return self._state.copy().items()
 
@@ -553,7 +553,7 @@ class TypeRegistry(Generic[T]):
             dict_keys([<class 'int'>, <class 'float'>])
 
             ```
-        r"""
+        """
         with self._lock:
             return self._state.copy().keys()
 
@@ -571,7 +571,7 @@ class TypeRegistry(Generic[T]):
             dict_values(['I am an integer', 'I am a float'])
 
             ```
-        r"""
+        """
         with self._lock:
             return self._state.copy().values()
 
