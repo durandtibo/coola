@@ -2,7 +2,7 @@
 # Runs doctests on code examples in docstrings to ensure they work correctly.
 # Also validates that the documentation can be built without errors.
 
-name: Documentation Tests
+name: Doctest
 on:
   workflow_call:
   workflow_dispatch: # to trigger manually
@@ -44,7 +44,7 @@ jobs:
           install-args: "--docs-deps"
 
       # Configure git for mike (documentation versioning tool), shared with
-      # docs-publish.yaml so the two never drift.
+      # release-docs-publish.yaml so the two never drift.
       - name: Setup doc deploy
         uses: ./.github/actions/setup-doc-deploy
         with:

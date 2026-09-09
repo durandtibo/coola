@@ -1,5 +1,5 @@
 # Reusable workflow for testing code with specific dependency versions.
-# Used by test-deps.yaml to test compatibility with different versions of dependencies.
+# Used by ci-test-deps.yaml to test compatibility with different versions of dependencies.
 # Runs unit tests with each specified version of a package.
 
 name: Test Code with Dependency Version

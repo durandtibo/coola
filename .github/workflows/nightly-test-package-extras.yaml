@@ -1,14 +1,10 @@
-# Reusable workflow for testing the installed package.
-# Tests package installation from PyPI and validates basic functionality.
-# Used to test stable releases, pre-releases, and different installation configurations.
-
-name: Test Package
+name: PyPI Package Extras Install Test
 on:
   workflow_call:
     inputs:
-      install-cmd:
-        default: "uv pip install coola"
-        description: "Command to install the package"
+      install-args:
+        default: ""
+        description: "Optional arguments to install the package"
         required: false
         type: string
       test-matrix:
@@ -20,39 +16,40 @@ permissions:
   contents: read
 
 jobs:
+  # Load the extras from pyproject.toml's [project.optional-dependencies],
+  # plus "all" to also test installing every extra at once.
+  get-extras:
+    uses: ./.github/workflows/lib-get-package-extras.yaml
+    with:
+      extra-values: '["all"]'
+
   test:
+    needs: get-extras
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
     strategy:
       max-parallel: 8
       fail-fast: false
       matrix:
-        os: ${{ fromJson(inputs.test-matrix).os_matrix }}
+        os: [ubuntu-latest]
         python-version: ${{ fromJson(inputs.test-matrix).python_versions }}
+        extra: ${{ fromJson(needs.get-extras.outputs.extras) }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
-      # Install uv package manager
       - name: Install uv and set the python version
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # ratchet:astral-sh/setup-uv@v10.0.1
         with:
           python-version: ${{ matrix.python-version }}
           activate-environment: true
-      # Install package from PyPI using custom install command
       - name: Install package
         env:
-          INSTALL_CMD: ${{ inputs.install-cmd }}
+          INSTALL_ARGS: ${{ inputs.install-args }}
+          EXTRA: ${{ matrix.extra }}
         run: |
-          $INSTALL_CMD
-      # Display dependency tree
-
-      - name: Show dependency tree
-        shell: bash
-        run: |
-
-          uv pip tree --show-version-specifiers
-      # Run basic package checks (imports, version, etc.)
-      - name: Run some checks
-        run: |
-          python tests/package_checks.py
+          read -ra install_args <<< "$INSTALL_ARGS"
+          uv pip install "${install_args[@]}" "coola[$EXTRA]"
+      # Display dependency tree and run basic package checks
+      - name: Verify installed package
+        uses: ./.github/actions/verify-installed-package

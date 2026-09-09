@@ -18,7 +18,7 @@ jobs:
   # Load the extras from pyproject.toml's [project.optional-dependencies],
   # plus "" for a baseline "no extra" build.
   get-extras:
-    uses: ./.github/workflows/get-package-extras.yaml
+    uses: ./.github/workflows/lib-get-package-extras.yaml
     with:
       extra-values: '[""]'
 

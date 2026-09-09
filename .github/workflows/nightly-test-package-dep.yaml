@@ -2,7 +2,7 @@
 # Tests the PyPI package with different versions of optional dependencies.
 # Ensures published package works across supported dependency version ranges.
 
-name: Test Package with Dependency Version
+name: Dependency Compatibility (PyPI Package)
 on:
   workflow_call:
     inputs:
@@ -57,13 +57,6 @@ jobs:
           package-version: ${{ matrix.package-version }}
           python-version: ${{ matrix.python-version }}
 
-      # Display dependency tree
-      - name: Show dependency tree
-        shell: bash
-        run: |
-          uv pip tree --show-version-specifiers
-
-      # Run basic package checks
-      - name: Run some checks
-        run: |
-          python tests/package_checks.py
+      # Display dependency tree and run basic package checks
+      - name: Verify installed package
+        uses: ./.github/actions/verify-installed-package

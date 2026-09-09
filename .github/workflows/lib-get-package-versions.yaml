@@ -1,4 +1,4 @@
-name: Get Versions
+name: Get Package Versions
 
 # This reusable workflow reads package version configuration from a JSON file
 # and exposes it as an output for use in other workflows.
@@ -6,7 +6,7 @@ name: Get Versions
 # Usage:
 #   jobs:
 #     get-versions:
-#       uses: ./.github/workflows/get-versions.yaml
+#       uses: ./.github/workflows/lib-get-package-versions.yaml
 #
 #     use-versions:
 #       needs: get-versions

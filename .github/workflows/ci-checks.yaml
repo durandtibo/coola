@@ -3,7 +3,7 @@
 # job list in one reusable workflow avoids the two drifting: a check added
 # here is automatically picked up by both callers.
 
-name: Checks
+name: CI Checks
 on:
   workflow_call:
 
@@ -14,46 +14,48 @@ jobs:
   # Load the shared python-version/OS matrix from dev/config/test_matrix.json
   # once, and pass it down to every job below that needs it.
   get-matrix:
-    uses: ./.github/workflows/get-test-matrix.yaml
+    uses: ./.github/workflows/lib-get-test-matrix.yaml
 
   # Validate package can be built and installed correctly
   build:
     needs: get-matrix
-    uses: ./.github/workflows/build.yaml
+    uses: ./.github/workflows/ci-build.yaml
     with:
       test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}
 
   # Check for circular import dependencies
   cyclic-imports:
-    uses: ./.github/workflows/cyclic-imports.yaml
+    uses: ./.github/workflows/ci-cyclic-imports.yaml
 
   # Run doctests on code examples
   doctest:
-    uses: ./.github/workflows/doctest.yaml
+    uses: ./.github/workflows/ci-doctest.yaml
     secrets: inherit
 
   # Verify code formatting and linting
   format:
-    uses: ./.github/workflows/format.yaml
+    uses: ./.github/workflows/ci-format.yaml
 
   # Check type annotations with pyright
   type-checking:
-    uses: ./.github/workflows/type-checking.yaml
+    uses: ./.github/workflows/ci-type-checking.yaml
 
   # Run pre-commit hooks for code quality
   pre-commit:
-    uses: ./.github/workflows/pre-commit.yaml
+    uses: ./.github/workflows/ci-pre-commit.yaml
 
-  # Run unit and integration tests across multiple Python versions and OS
+  # Run unit and integration tests across multiple Python versions and OS.
+  # secrets: inherit is required so the "all" job can upload coverage to Codecov.
   test:
     needs: get-matrix
-    uses: ./.github/workflows/test.yaml
+    uses: ./.github/workflows/ci-test.yaml
     with:
       test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}
+    secrets: inherit
 
   # Test compatibility with different dependency versions
   test-deps:
     needs: get-matrix
-    uses: ./.github/workflows/test-deps.yaml
+    uses: ./.github/workflows/ci-test-deps.yaml
     with:
       test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}

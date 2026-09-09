@@ -1,6 +1,8 @@
 # Main CI workflow that orchestrates all quality checks and tests.
 # Runs on pull requests and pushes to the main branch.
-# Validates code quality, runs tests, checks dependencies, and generates coverage reports.
+# Validates code quality, runs tests, and checks dependencies.
+# Coverage is uploaded from the "all" job of ci-test.yaml (called via ci-checks.yaml)
+# rather than a separate full test run.
 
 name: CI
 on:
@@ -18,10 +20,5 @@ permissions:
 jobs:
   # Shared build/lint/test checks, also used by nightly-tests.yaml
   checks:
-    uses: ./.github/workflows/checks.yaml
-    secrets: inherit
-
-  # Generate and upload code coverage reports
-  coverage:
-    uses: ./.github/workflows/coverage.yaml
+    uses: ./.github/workflows/ci-checks.yaml
     secrets: inherit

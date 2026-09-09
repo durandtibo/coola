@@ -8,7 +8,7 @@ name: Get Test Matrix
 # Usage:
 #   jobs:
 #     get-matrix:
-#       uses: ./.github/workflows/get-test-matrix.yaml
+#       uses: ./.github/workflows/lib-get-test-matrix.yaml
 #
 #     test:
 #       needs: get-matrix

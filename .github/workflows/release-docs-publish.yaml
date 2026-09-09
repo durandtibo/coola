@@ -1,5 +1,5 @@
-# Shared documentation build-and-deploy logic used by both docs.yaml (stable
-# releases, triggered by version tags) and docs-dev.yaml (dev docs, triggered
+# Shared documentation build-and-deploy logic used by both release-docs.yaml (stable
+# releases, triggered by version tags) and release-docs-dev.yaml (dev docs, triggered
 # on push to main). Keeping the steps in one place avoids the two drifting.
 
 name: Documentation Publish

@@ -2,7 +2,7 @@
 # Runs all configured pre-commit hooks to validate code quality.
 # Checks formatting, linting, and other code quality rules.
 
-name: pre-commit
+name: Pre-commit
 on:
   workflow_call:
   workflow_dispatch: # to trigger manually

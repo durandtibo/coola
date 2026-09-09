@@ -7,7 +7,7 @@ name: Get Package Extras
 # Usage:
 #   jobs:
 #     get-extras:
-#       uses: ./.github/workflows/get-package-extras.yaml
+#       uses: ./.github/workflows/lib-get-package-extras.yaml
 #       # with:
 #       #   extra-values: '[""]' # or '["all"]', to also test a non-package extra
 #

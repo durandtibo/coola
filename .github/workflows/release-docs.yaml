@@ -1,7 +1,7 @@
 # Stable documentation deployment workflow.
 # Builds and deploys documentation for released versions to GitHub Pages.
 # Triggered by version tags and uses mike for documentation versioning.
-# The actual build/deploy steps live in docs-publish.yaml, shared with docs-dev.yaml.
+# The actual build/deploy steps live in release-docs-publish.yaml, shared with release-docs-dev.yaml.
 
 name: Documentation (stable)
 on:
@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   publish:
-    uses: ./.github/workflows/docs-publish.yaml
+    uses: ./.github/workflows/release-docs-publish.yaml
     with:
       mode: stable
     secrets: inherit

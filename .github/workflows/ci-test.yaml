@@ -1,8 +1,10 @@
 # Comprehensive test suite workflow.
 # Runs unit and integration tests across multiple Python versions and operating systems.
 # Tests both with all dependencies and with minimal dependencies.
+# The ubuntu-latest/3.14 cell of the "all" matrix also uploads coverage to Codecov,
+# so coverage tracking rides on an existing run instead of a separate full test pass.
 
-name: Tests
+name: Unit & Integration Tests
 on:
   workflow_call:
     inputs:
@@ -39,6 +41,21 @@ jobs:
       - name: Run integration tests
         run: |
           inv integration-test --cov
+      # Upload coverage from a single representative cell of the matrix (only
+      # for the main repository, to avoid spam from forks).
+      - name: Upload coverage to Codecov
+        if: |
+          matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14' &&
+          github.repository == 'durandtibo/coola' && (github.event_name == 'push' || github.event_name == 'pull_request')
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # ratchet:codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          # Ignore codecov failures as the codecov server is not
+          # very reliable but we don't want to report a failure
+          # in the github UI just because the coverage report failed to
+          # be published.
+          fail_ci_if_error: false
 
   # Test with minimal dependencies to ensure optional dependencies are truly optional
   min:
