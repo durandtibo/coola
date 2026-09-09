@@ -7,38 +7,25 @@ on:
   workflow_call:
     inputs:
       test-matrix:
-        description: "JSON test matrix from get-test-matrix.yaml. If omitted (e.g. manual workflow_dispatch), it is loaded internally."
-        required: false
+        description: "JSON test matrix from get-test-matrix.yaml, loaded once by the caller"
+        required: true
         type: string
-  workflow_dispatch: # to trigger manually
 
 permissions:
   contents: read
 
 jobs:
-  # Load the shared python-version/OS matrix from dev/config/test_matrix.json,
-  # but only when the caller didn't already load it once and pass it in.
-  get-matrix:
-    if: inputs.test-matrix == ''
-    uses: ./.github/workflows/get-test-matrix.yaml
-
   # Test with all dependencies across multiple Python versions and operating systems
   all:
-    needs: get-matrix
-    # get-matrix is skipped whenever the caller already passed test-matrix in.
-    # GitHub auto-skips dependents of a skipped need unless the if starts with
-    # always(), so we need both: always() to opt out of that propagation, and
-    # the explicit result check to still bail out on a real get-matrix failure.
-    if: always() && (needs.get-matrix.result == 'success' || needs.get-matrix.result == 'skipped')
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
     strategy:
       max-parallel: 8
       fail-fast: false
       matrix:
-        os: ${{ fromJson(inputs.test-matrix || needs.get-matrix.outputs.test_matrix).os_matrix }}
+        os: ${{ fromJson(inputs.test-matrix).os_matrix }}
         # Test all supported Python versions including free-threaded builds (t suffix)
-        python-version: ${{ fromJson(inputs.test-matrix || needs.get-matrix.outputs.test_matrix).python_versions }}
+        python-version: ${{ fromJson(inputs.test-matrix).python_versions }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
@@ -55,16 +42,14 @@ jobs:
 
   # Test with minimal dependencies to ensure optional dependencies are truly optional
   min:
-    needs: get-matrix
-    if: always() && (needs.get-matrix.result == 'success' || needs.get-matrix.result == 'skipped')
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
     strategy:
       max-parallel: 8
       fail-fast: false
       matrix:
-        os: ${{ fromJson(inputs.test-matrix || needs.get-matrix.outputs.test_matrix).os_matrix }}
-        python-version: ${{ fromJson(inputs.test-matrix || needs.get-matrix.outputs.test_matrix).python_versions }}
+        os: ${{ fromJson(inputs.test-matrix).os_matrix }}
+        python-version: ${{ fromJson(inputs.test-matrix).python_versions }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7

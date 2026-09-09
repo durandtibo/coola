@@ -7,21 +7,14 @@ on:
   workflow_call:
     inputs:
       test-matrix:
-        description: "JSON test matrix from get-test-matrix.yaml. If omitted (e.g. manual workflow_dispatch), it is loaded internally."
-        required: false
+        description: "JSON test matrix from get-test-matrix.yaml, loaded once by the caller"
+        required: true
         type: string
-  workflow_dispatch: # to trigger manually
 
 permissions:
   contents: read
 
 jobs:
-  # Load the shared python-version matrix from dev/config/test_matrix.json,
-  # but only when the caller didn't already load it once and pass it in.
-  get-matrix:
-    if: inputs.test-matrix == ''
-    uses: ./.github/workflows/get-test-matrix.yaml
-
   # Load the extras from pyproject.toml's [project.optional-dependencies],
   # plus "" for a baseline "no extra" build.
   get-extras:
@@ -76,12 +69,6 @@ jobs:
           echo "✅ Package '$PACKAGE_EXTRA' is installed"
 
   build-all:
-    needs: get-matrix
-    # get-matrix is skipped whenever the caller already passed test-matrix in.
-    # GitHub auto-skips dependents of a skipped need unless the if starts with
-    # always(), so we need both: always() to opt out of that propagation, and
-    # the explicit result check to still bail out on a real get-matrix failure.
-    if: always() && (needs.get-matrix.result == 'success' || needs.get-matrix.result == 'skipped')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:
@@ -91,7 +78,7 @@ jobs:
         dist-type: ["sdist", "wheel"]
         # Test at least one full-extras build per supported Python version to
         # catch version-specific build regressions (e.g. free-threaded 3.13t/3.14t).
-        python-version: ${{ fromJson(inputs.test-matrix || needs.get-matrix.outputs.test_matrix).python_versions }}
+        python-version: ${{ fromJson(inputs.test-matrix).python_versions }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
