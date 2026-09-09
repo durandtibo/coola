@@ -27,9 +27,10 @@ load-bearing for branch protection (see the comment at the top of `ci.yaml`)
 ## Composite actions vs. reusable workflows
 
 - **`.github/actions/*`** (composite actions): used when the shared unit is a
-  handful of *steps* inside a single job (e.g. checkout + `uv` setup, or
-  generating a bot token + checking out). Composite actions cannot produce a
-  job-level output usable in a `strategy.matrix`.
+  handful of *steps* inside a single job (e.g. checkout + `uv` setup,
+  generating a bot token + checking out, or opening the resulting PR as
+  ci-bot). Composite actions cannot produce a job-level output usable in a
+  `strategy.matrix`.
 - **`.github/workflows/lib-*.yaml`** (reusable workflows called with `uses:
   ./.github/workflows/lib-....yaml`): used when the output needs to feed a
   matrix, or when the shared logic is naturally a whole job (e.g. reading
