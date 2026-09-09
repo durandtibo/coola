@@ -7,15 +7,15 @@ on:
         description: "Optional arguments to install the package"
         required: false
         type: string
+      test-matrix:
+        description: "JSON test matrix from get-test-matrix.yaml, loaded once by the caller"
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 jobs:
-  # Load the shared python-version matrix from dev/config/test_matrix.json
-  get-matrix:
-    uses: ./.github/workflows/get-test-matrix.yaml
-
   # Load the extras from pyproject.toml's [project.optional-dependencies],
   # plus "all" to also test installing every extra at once.
   get-extras:
@@ -24,7 +24,7 @@ jobs:
       extra-values: '["all"]'
 
   test:
-    needs: [get-matrix, get-extras]
+    needs: get-extras
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
     strategy:
@@ -32,7 +32,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ${{ fromJson(needs.get-matrix.outputs.test_matrix).python_versions }}
+        python-version: ${{ fromJson(inputs.test-matrix).python_versions }}
         extra: ${{ fromJson(needs.get-extras.outputs.extras) }}
 
     steps:

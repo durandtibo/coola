@@ -5,6 +5,11 @@
 name: Test - Dependencies
 on:
   workflow_call:
+    inputs:
+      test-matrix:
+        description: "JSON test matrix from get-test-matrix.yaml. If omitted (e.g. manual workflow_dispatch), it is loaded internally."
+        required: false
+        type: string
   workflow_dispatch: # to trigger manually
 
 permissions:
@@ -17,13 +22,18 @@ jobs:
     uses: ./.github/workflows/get-package-extras.yaml
   get-versions:
     uses: ./.github/workflows/get-versions.yaml
+  # Load the shared python-version matrix from dev/config/test_matrix.json,
+  # but only when the caller didn't already load it once and pass it in.
+  get-matrix:
+    if: inputs.test-matrix == ''
+    uses: ./.github/workflows/get-test-matrix.yaml
 
   # One job per optional dependency, driven by get-extras/get-versions
   # instead of a hardcoded list, so a new optional dependency only needs to
   # be added to pyproject.toml (and dev/config/package_versions.json, kept up
   # to date by generate-package-versions.yaml).
   test-dep:
-    needs: [get-extras, get-versions]
+    needs: [get-extras, get-versions, get-matrix]
     strategy:
       fail-fast: false
       matrix:
@@ -32,3 +42,4 @@ jobs:
     with:
       package-name: ${{ matrix.package-name }}
       package-versions: ${{ toJson(fromJson(needs.get-versions.outputs.package_versions)[matrix.package-name]) }}
+      test-matrix: ${{ inputs.test-matrix || needs.get-matrix.outputs.test_matrix }}
