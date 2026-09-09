@@ -7,11 +7,6 @@ on:
 permissions:
   contents: read
 
-# Avoid stacking up duplicate nightly runs if manually re-triggered.
-concurrency:
-  group: ${{ github.workflow }}
-  cancel-in-progress: false
-
 jobs:
   get-versions:
     uses: ./.github/workflows/get-versions.yaml

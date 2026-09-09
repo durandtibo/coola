@@ -11,11 +11,6 @@ on:
 permissions:
   contents: read
 
-# Avoid stacking up duplicate nightly runs if manually re-triggered.
-concurrency:
-  group: ${{ github.workflow }}
-  cancel-in-progress: false
-
 jobs:
   benchmark:
     uses: ./.github/workflows/benchmark.yaml

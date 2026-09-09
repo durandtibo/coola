@@ -15,12 +15,6 @@ on:
 permissions:
   contents: read
 
-# Cancel stale in-progress runs when a new commit is pushed to the same PR/branch,
-# but let runs on main complete.
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
-
 jobs:
   # Validate package can be built and installed correctly
   build:
