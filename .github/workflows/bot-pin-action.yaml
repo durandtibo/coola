@@ -1,5 +1,6 @@
 # Pin action workflow.
-# Pins GitHub Actions in workflow files to immutable commit SHAs using ratchet.
+# Pins GitHub Actions in workflow files and composite actions to immutable
+# commit SHAs using ratchet.
 # https://github.com/sethvargo/ratchet
 # Creates a pull request with the pinned actions after validation.
 
@@ -37,18 +38,24 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.bot-checkout.outputs.token }}
 
-      # Pin all action references to their commit SHA, keeping the version as a comment
+      # Pin all action references to their commit SHA, keeping the version as a
+      # comment. Covers both top-level workflows and the composite actions
+      # they call under .github/actions/*, so neither drifts out of pinning.
       - name: Pin GitHub Actions
         env:
           GITHUB_TOKEN: ${{ steps.bot-checkout.outputs.token }} # for API quota and auth
         run: |
-          ratchet pin .github/workflows/*.yaml .github/workflows/*.yml
+          ratchet pin .github/workflows/*.yaml .github/workflows/*.yml \
+            .github/actions/*/action.yaml .github/actions/*/action.yml
 
       # Reformat the pinned files so ratchet's output matches repo style.
       # Version pinned so a `prettier` release can't silently change
       # formatting output on a bot-authored PR.
       - name: Format YAML
-        run: npx --yes prettier@3.4.2 --write ".github/workflows/*.yaml" ".github/workflows/*.yml"
+        run: |
+          npx --yes prettier@3.4.2 --write \
+            ".github/workflows/*.yaml" ".github/workflows/*.yml" \
+            ".github/actions/*/action.yaml" ".github/actions/*/action.yml"
 
       # Create a pull request with the pinned actions
       - uses: ./.github/actions/bot-create-pr
