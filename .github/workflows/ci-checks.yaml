@@ -1,7 +1,8 @@
-# Shared set of quality/test checks used by both ci.yaml (on pull requests and
-# pushes to main) and nightly-tests.yaml (on a nightly schedule). Keeping the
-# job list in one reusable workflow avoids the two drifting: a check added
-# here is automatically picked up by both callers.
+# Shared set of quality/test checks called by ci.yaml's "checks" job, which
+# triggers on pull requests, pushes to main, a nightly schedule, and manual
+# dispatch. Kept as its own reusable workflow (rather than inlined) so the
+# required-status-check contexts referenced by branch protection
+# (e.g. "format / format") stay stable.
 
 name: CI Checks
 on:

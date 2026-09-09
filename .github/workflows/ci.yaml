@@ -1,6 +1,7 @@
 # Main CI workflow that orchestrates all quality checks and tests.
-# Runs on pull requests and pushes to the main branch.
-# Validates code quality, runs tests, and checks dependencies.
+# Runs on pull requests, pushes to main, a nightly schedule, and manual dispatch.
+# Validates code quality, runs tests, checks dependencies, and (nightly/manual
+# only) runs the benchmark suite.
 # Coverage is uploaded from the "all" job of ci-test.yaml (called via ci-checks.yaml)
 # rather than a separate full test run.
 
@@ -12,13 +13,21 @@ on:
   push:
     branches:
       - main
+  schedule:
+    - cron: "10 9 * * *" # Run nightly at 9:10 AM UTC to catch issues from external changes
   workflow_dispatch: # to trigger manually
 
 permissions:
   contents: read
 
 jobs:
-  # Shared build/lint/test checks, also used by nightly-tests.yaml
+  # Shared build/lint/test checks, run on every trigger.
   checks:
     uses: ./.github/workflows/ci-checks.yaml
     secrets: inherit
+
+  # Not part of the blocking PR checks: only run nightly and on manual dispatch,
+  # to catch performance regressions without slowing down every PR/push.
+  benchmark:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/ci-benchmark.yaml
