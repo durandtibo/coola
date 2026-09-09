@@ -43,13 +43,12 @@ jobs:
         with:
           install-args: "--docs-deps"
 
-      # Configure git for mike (documentation versioning tool)
+      # Configure git for mike (documentation versioning tool), shared with
+      # docs-publish.yaml so the two never drift.
       - name: Setup doc deploy
-        env:
-          CI_BOT_EMAIL: ${{secrets.CI_BOT_EMAIL}}
-        run: |
-          git config --global user.name ci-docs-bot
-          git config --global user.email "$CI_BOT_EMAIL"
+        uses: ./.github/actions/setup-doc-deploy
+        with:
+          ci-bot-email: ${{ secrets.CI_BOT_EMAIL }}
 
       # Build documentation to a temporary branch to verify no errors
       - name: Build documentation

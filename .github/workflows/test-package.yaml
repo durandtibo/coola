@@ -16,29 +16,20 @@ permissions:
   contents: read
 
 jobs:
+  # Load the shared python-version/OS matrix from dev/config/test_matrix.json
+  get-matrix:
+    uses: ./.github/workflows/get-test-matrix.yaml
+
   test:
+    needs: get-matrix
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
     strategy:
       max-parallel: 8
       fail-fast: false
       matrix:
-        os: [
-          ubuntu-latest,
-          ubuntu-26.04,
-          ubuntu-24.04,
-          ubuntu-22.04,
-          ubuntu-26.04-arm,
-          ubuntu-24.04-arm,
-          ubuntu-22.04-arm,
-          macos-latest,
-          macos-26,
-          macos-15,
-          macos-14,
-          macos-26-intel,
-          macos-15-intel,
-        ]
-        python-version: [ '3.14', '3.14t', '3.13', '3.13t', '3.12', '3.11', '3.10' ]
+        os: ${{ fromJson(needs.get-matrix.outputs.test_matrix).os_matrix }}
+        python-version: ${{ fromJson(needs.get-matrix.outputs.test_matrix).python_versions }}
 
     steps:
       - name: Checkout

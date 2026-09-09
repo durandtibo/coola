@@ -1,0 +1,51 @@
+name: Get Test Matrix
+
+# This reusable workflow reads the shared Python-version and OS matrices from a
+# JSON file and exposes them as a single output, so the supported version/OS
+# lists only need to be updated in one place (dev/config/test_matrix.json)
+# instead of being duplicated across every test-* workflow.
+#
+# Usage:
+#   jobs:
+#     get-matrix:
+#       uses: ./.github/workflows/get-test-matrix.yaml
+#
+#     test:
+#       needs: get-matrix
+#       strategy:
+#         matrix:
+#           python-version: ${{ fromJson(needs.get-matrix.outputs.test_matrix).python_versions }}
+#           os: ${{ fromJson(needs.get-matrix.outputs.test_matrix).os_matrix }}
+
+on:
+  workflow_call:
+    outputs:
+      test_matrix:
+        description: "JSON string containing python_versions and os_matrix from dev/config/test_matrix.json"
+        value: ${{ jobs.get-matrix.outputs.test_matrix }}
+
+  workflow_dispatch: # Allows manual triggering for testing purposes
+
+permissions:
+  contents: read
+
+jobs:
+  get-matrix:
+    runs-on: ubuntu-slim
+    timeout-minutes: 2
+    outputs:
+      test_matrix: ${{ steps.read-json.outputs.json-content }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
+
+      - name: Read and validate JSON file
+        uses: durandtibo/read-json-action@b014656c6f0c53b3caf9056fedeaead02ebae3ad # ratchet:durandtibo/read-json-action@v0.1
+        id: read-json
+        with:
+          file-path: dev/config/test_matrix.json
+
+      - name: Display test matrix
+        run: |
+          echo "🧪 Test matrix loaded successfully:"
+          echo '${{ steps.read-json.outputs.json-content }}' | jq '.'
