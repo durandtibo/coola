@@ -10,7 +10,8 @@ on:
     tags:
       - "v*.*.*" # Trigger on version tags (e.g., v1.0.0)
 
-permissions: {}
+permissions:
+  contents: write # Required by the called workflow to push to gh-pages branch
 
 # Serialize deploys to gh-pages to avoid racing mike deployments.
 concurrency:
