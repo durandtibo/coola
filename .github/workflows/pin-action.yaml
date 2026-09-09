@@ -12,6 +12,11 @@ on:
 
 permissions: {}
 
+# Avoid stacking up duplicate runs if manually re-triggered while a scheduled run is in flight.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
 jobs:
   pin:
     runs-on: ubuntu-slim

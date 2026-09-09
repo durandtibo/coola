@@ -24,22 +24,23 @@ jobs:
       max-parallel: 8
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest ]
+        os: [ubuntu-latest]
         python-version: ${{ fromJson(needs.get-matrix.outputs.test_matrix).python_versions }}
-        extra: [
-          'all',
-          'colorlog',
-          'jax',
-          'numpy',
-          'packaging',
-          'pandas',
-          'polars',
-          'pyarrow',
-          'pydantic',
-          'rich',
-          'torch',
-          'xarray',
-        ]
+        extra:
+          [
+            "all",
+            "colorlog",
+            "jax",
+            "numpy",
+            "packaging",
+            "pandas",
+            "polars",
+            "pyarrow",
+            "pydantic",
+            "rich",
+            "torch",
+            "xarray",
+          ]
 
     steps:
       - name: Checkout
@@ -50,8 +51,11 @@ jobs:
           python-version: ${{ matrix.python-version }}
           activate-environment: true
       - name: Install package
+        env:
+          INSTALL_ARGS: ${{ inputs.install-args }}
+          EXTRA: ${{ matrix.extra }}
         run: |
-          uv pip install ${{ inputs.install-args }} "coola[${{ matrix.extra }}]"
+          uv pip install $INSTALL_ARGS "coola[$EXTRA]"
       - name: Show dependency tree
         run: |
 
