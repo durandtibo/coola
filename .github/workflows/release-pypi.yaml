@@ -9,6 +9,13 @@ on:
     tags:
       - "v*.*.*" # Trigger on version tags (e.g., v1.0.0)
 
+# Never cancel a run of this workflow: it publishes to PyPI and signs/attaches
+# release assets, and a mid-flight cancellation could leave the release
+# half-published. Different tags still get independent groups.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
 

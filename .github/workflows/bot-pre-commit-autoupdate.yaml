@@ -9,6 +9,12 @@ on:
     - cron: "0 8 * * 2" # Run every Tuesday at 8:00 AM UTC
   workflow_dispatch: # to trigger manually
 
+# Prevent an overlapping scheduled + manually-dispatched run from racing to
+# open the same update PR.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
 permissions: {}
 
 jobs:
