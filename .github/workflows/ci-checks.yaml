@@ -3,7 +3,7 @@
 # job list in one reusable workflow avoids the two drifting: a check added
 # here is automatically picked up by both callers.
 
-name: Checks
+name: CI Checks
 on:
   workflow_call:
 

@@ -2,7 +2,7 @@
 # Generates configuration for testing different dependency versions.
 # Creates a pull request with updated version configuration weekly.
 
-name: Generate package versions
+name: Generate Package Versions
 on:
   schedule:
     - cron: "0 6 * * 4" # Run every Thursday at 6:00 AM UTC

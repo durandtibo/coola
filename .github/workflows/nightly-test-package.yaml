@@ -2,7 +2,7 @@
 # Tests package installation from PyPI and validates basic functionality.
 # Used to test stable releases, pre-releases, and different installation configurations.
 
-name: Test Package
+name: PyPI Package Install Test
 on:
   workflow_call:
     inputs:

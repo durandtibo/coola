@@ -4,7 +4,7 @@
 # The ubuntu-latest/3.14 cell of the "all" matrix also uploads coverage to Codecov,
 # so coverage tracking rides on an existing run instead of a separate full test pass.
 
-name: Tests
+name: Unit & Integration Tests
 on:
   workflow_call:
     inputs:

@@ -2,7 +2,7 @@
 # Tests the package with different versions of optional dependencies.
 # Ensures compatibility across supported dependency version ranges.
 
-name: Test - Dependencies
+name: Dependency Compatibility (Source)
 on:
   workflow_call:
     inputs:
@@ -25,7 +25,7 @@ jobs:
   # One job per optional dependency, driven by get-extras/get-versions
   # instead of a hardcoded list, so a new optional dependency only needs to
   # be added to pyproject.toml (and dev/config/package_versions.json, kept up
-  # to date by generate-package-versions.yaml).
+  # to date by bot-generate-package-versions.yaml).
   test-dep:
     needs: [get-extras, get-versions]
     strategy:

@@ -42,7 +42,7 @@ jobs:
       # Installs and runs ShellCheck in one step. `version: stable` always
       # resolves to the latest stable ShellCheck release at run time, and the
       # action reference itself is kept current by dependabot.yml (github-actions
-      # ecosystem) + the pin-action.yaml ratchet job — so no version to bump by hand.
+      # ecosystem) + the bot-pin-action.yaml ratchet job — so no version to bump by hand.
       - name: Run ShellCheck
         uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # ratchet:ludeeus/action-shellcheck@2.0.0
         with:

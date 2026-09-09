@@ -1,4 +1,4 @@
-name: Test Package with Extras
+name: PyPI Package Extras Install Test
 on:
   workflow_call:
     inputs:
