@@ -15,89 +15,16 @@ jobs:
   get-versions:
     uses: ./.github/workflows/get-versions.yaml
 
-  ########################
-  #     Dependencies     #
-  ########################
-
-  #################################
-  #     Optional dependencies     #
-  #################################
-
-  jax:
+  # One job per optional dependency, driven by the package names/versions from
+  # get-versions instead of a hardcoded list, so a new optional dependency
+  # only needs to be added to dev/config/package_versions.json.
+  test-dep:
     needs: get-versions
+    strategy:
+      fail-fast: false
+      matrix:
+        package-name: ${{ fromJson(needs.get-versions.outputs.package_names) }}
     uses: ./.github/workflows/test-code-dep.yaml
     with:
-      package-name: jax
-      package-versions: ${{ toJson(fromJson(needs.get-versions.outputs.package_versions).jax) }}
-
-  numpy:
-    needs: get-versions
-    uses: ./.github/workflows/test-code-dep.yaml
-    with:
-      package-name: numpy
-      package-versions: ${{ toJson(fromJson(needs.get-versions.outputs.package_versions).numpy) }}
-
-  packaging:
-    needs: get-versions
-    uses: ./.github/workflows/test-code-dep.yaml
-    with:
-      package-name: packaging
-      package-versions: ${{ toJson(fromJson(needs.get-versions.outputs.package_versions).packaging) }}
-
-  pandas:
-    needs: get-versions
-    uses: ./.github/workflows/test-code-dep.yaml
-    with:
-      package-name: pandas
-      package-versions: ${{ toJson(fromJson(needs.get-versions.outputs.package_versions).pandas) }}
-
-  polars:
-    needs: get-versions
-    uses: ./.github/workflows/test-code-dep.yaml
-    with:
-      package-name: polars
-      package-versions: ${{ toJson(fromJson(needs.get-versions.outputs.package_versions).polars) }}
-
-  pyarrow:
-    needs: get-versions
-    uses: ./.github/workflows/test-code-dep.yaml
-    with:
-      package-name: pyarrow
-      package-versions: ${{ toJson(fromJson(needs.get-versions.outputs.package_versions).pyarrow) }}
-
-  pydantic:
-    needs: get-versions
-    uses: ./.github/workflows/test-code-dep.yaml
-    with:
-      package-name: pydantic
-      package-versions: ${{ toJson(fromJson(needs.get-versions.outputs.package_versions).pydantic) }}
-
-  torch:
-    needs: get-versions
-    uses: ./.github/workflows/test-code-dep.yaml
-    with:
-      package-name: torch
-      package-versions: ${{ toJson(fromJson(needs.get-versions.outputs.package_versions).torch) }}
-
-  xarray:
-    needs: get-versions
-    uses: ./.github/workflows/test-code-dep.yaml
-    with:
-      package-name: xarray
-      package-versions: ${{ toJson(fromJson(needs.get-versions.outputs.package_versions).xarray) }}
-
-  # Logging
-
-  colorlog:
-    needs: get-versions
-    uses: ./.github/workflows/test-code-dep.yaml
-    with:
-      package-name: colorlog
-      package-versions: ${{ toJson(fromJson(needs.get-versions.outputs.package_versions).colorlog) }}
-
-  rich:
-    needs: get-versions
-    uses: ./.github/workflows/test-code-dep.yaml
-    with:
-      package-name: rich
-      package-versions: ${{ toJson(fromJson(needs.get-versions.outputs.package_versions).rich) }}
+      package-name: ${{ matrix.package-name }}
+      package-versions: ${{ toJson(fromJson(needs.get-versions.outputs.package_versions)[matrix.package-name]) }}

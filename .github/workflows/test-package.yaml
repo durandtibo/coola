@@ -42,8 +42,10 @@ jobs:
           activate-environment: true
       # Install package from PyPI using custom install command
       - name: Install package
+        env:
+          INSTALL_CMD: ${{ inputs.install-cmd }}
         run: |
-          ${{ inputs.install-cmd }}
+          $INSTALL_CMD
       # Display dependency tree
 
       - name: Show dependency tree

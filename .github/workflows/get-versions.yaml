@@ -21,6 +21,9 @@ on:
       package_versions:
         description: "JSON string containing all package versions from dev/config/package_versions.json"
         value: ${{ jobs.get-versions.outputs.package_versions }}
+      package_names:
+        description: "JSON array of the optional-dependency package names (the keys of package_versions), so callers don't have to hardcode the list"
+        value: ${{ jobs.get-versions.outputs.package_names }}
 
   workflow_dispatch: # Allows manual triggering for testing purposes
 
@@ -33,6 +36,7 @@ jobs:
     timeout-minutes: 2
     outputs:
       package_versions: ${{ steps.read-json.outputs.json-content }}
+      package_names: ${{ steps.package-names.outputs.names }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
@@ -44,6 +48,17 @@ jobs:
           file-path: dev/config/package_versions.json
 
       - name: Display package versions
+        env:
+          JSON_CONTENT: ${{ steps.read-json.outputs.json-content }}
         run: |
           echo "📦 Package versions loaded successfully:"
-          echo '${{ steps.read-json.outputs.json-content }}' | jq '.'
+          echo "$JSON_CONTENT" | jq '.'
+
+      - name: Derive package names
+        id: package-names
+        env:
+          JSON_CONTENT: ${{ steps.read-json.outputs.json-content }}
+        run: |
+          names=$(echo "$JSON_CONTENT" | jq -c 'keys')
+          echo "📦 Package names: $names"
+          echo "names=$names" >> "$GITHUB_OUTPUT"

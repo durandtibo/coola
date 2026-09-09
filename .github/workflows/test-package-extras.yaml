@@ -16,8 +16,28 @@ jobs:
   get-matrix:
     uses: ./.github/workflows/get-test-matrix.yaml
 
+  # Load the shared optional-dependency package names from dev/config/package_versions.json
+  get-versions:
+    uses: ./.github/workflows/get-versions.yaml
+
+  # "all" installs every optional extra at once; it isn't a package name, so
+  # append it to the names from get-versions rather than hardcoding the whole list.
+  get-extras:
+    needs: get-versions
+    runs-on: ubuntu-slim
+    timeout-minutes: 2
+    outputs:
+      extras: ${{ steps.extras.outputs.extras }}
+    steps:
+      - id: extras
+        env:
+          PACKAGE_NAMES: ${{ needs.get-versions.outputs.package_names }}
+        run: |
+          extras=$(echo "$PACKAGE_NAMES" | jq -c '. + ["all"]')
+          echo "extras=$extras" >> "$GITHUB_OUTPUT"
+
   test:
-    needs: get-matrix
+    needs: [get-matrix, get-extras]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
     strategy:
@@ -26,21 +46,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python-version: ${{ fromJson(needs.get-matrix.outputs.test_matrix).python_versions }}
-        extra:
-          [
-            "all",
-            "colorlog",
-            "jax",
-            "numpy",
-            "packaging",
-            "pandas",
-            "polars",
-            "pyarrow",
-            "pydantic",
-            "rich",
-            "torch",
-            "xarray",
-          ]
+        extra: ${{ fromJson(needs.get-extras.outputs.extras) }}
 
     steps:
       - name: Checkout
@@ -55,7 +61,8 @@ jobs:
           INSTALL_ARGS: ${{ inputs.install-args }}
           EXTRA: ${{ matrix.extra }}
         run: |
-          uv pip install $INSTALL_ARGS "coola[$EXTRA]"
+          read -ra install_args <<< "$INSTALL_ARGS"
+          uv pip install "${install_args[@]}" "coola[$EXTRA]"
       - name: Show dependency tree
         run: |
 

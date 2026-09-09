@@ -15,7 +15,28 @@ jobs:
   get-matrix:
     uses: ./.github/workflows/get-test-matrix.yaml
 
+  # Load the shared optional-dependency package names from dev/config/package_versions.json
+  get-versions:
+    uses: ./.github/workflows/get-versions.yaml
+
+  # "" (no extra) is a baseline build, not a package name, so append it to the
+  # names from get-versions rather than hardcoding the whole list.
+  get-extras:
+    needs: get-versions
+    runs-on: ubuntu-slim
+    timeout-minutes: 2
+    outputs:
+      extras: ${{ steps.extras.outputs.extras }}
+    steps:
+      - id: extras
+        env:
+          PACKAGE_NAMES: ${{ needs.get-versions.outputs.package_names }}
+        run: |
+          extras=$(echo "$PACKAGE_NAMES" | jq -c '[""] + .')
+          echo "extras=$extras" >> "$GITHUB_OUTPUT"
+
   build:
+    needs: get-extras
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:
@@ -23,21 +44,7 @@ jobs:
       fail-fast: false
       matrix:
         dist-type: ["sdist", "wheel"]
-        package-extra:
-          [
-            "",
-            "colorlog",
-            "jax",
-            "numpy",
-            "packaging",
-            "pandas",
-            "polars",
-            "pyarrow",
-            "pydantic",
-            "rich",
-            "torch",
-            "xarray",
-          ]
+        package-extra: ${{ fromJson(needs.get-extras.outputs.extras) }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
@@ -60,17 +67,19 @@ jobs:
       - name: Check optional packages installation
         if: ${{ matrix.package-extra != '' }}
         shell: bash
+        env:
+          PACKAGE_EXTRA: ${{ matrix.package-extra }}
         run: |
           set -euo pipefail
-          echo "🔍 Verifying if ${{ matrix.package-extra }} is installed..."
+          echo "🔍 Verifying if $PACKAGE_EXTRA is installed..."
 
-          if ! uv pip list | grep -qE "^${{ matrix.package-extra }}\s"; then
-            echo "❌ Error: Package '${{ matrix.package-extra }}' not found in installed packages"
+          if ! uv pip list | grep -qE "^${PACKAGE_EXTRA}\s"; then
+            echo "❌ Error: Package '$PACKAGE_EXTRA' not found in installed packages"
             echo "Installed packages:"
             uv pip list
             exit 1
           fi
-          echo "✅ Package '${{ matrix.package-extra }}' is installed"
+          echo "✅ Package '$PACKAGE_EXTRA' is installed"
 
   build-all:
     needs: get-matrix
