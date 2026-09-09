@@ -1,0 +1,45 @@
+# Composite action shared by every CI workflow that just needs the repo
+# checked out and a Python venv set up before running a check (format,
+# type-checking, doctest, benchmark, cyclic-imports, tests, docs, ...).
+# Bundles actions/checkout + durandtibo/setup-venv-uv-action so the two
+# always travel together and callers don't repeat the same two steps.
+
+name: Checkout and setup Python environment
+description: Check out the repository and set up a Python venv with uv
+
+inputs:
+  python-version:
+    description: Python version to install (forwarded to setup-venv-uv-action)
+    required: false
+    default: ""
+  install-args:
+    description: Extra arguments for the dependency install step (forwarded to setup-venv-uv-action)
+    required: false
+    default: ""
+  package-name:
+    description: Extra package to install at a specific version (forwarded to setup-venv-uv-action)
+    required: false
+    default: ""
+  package-version:
+    description: Version of package-name to install (forwarded to setup-venv-uv-action)
+    required: false
+    default: ""
+  package-install-args:
+    description: Extra arguments for the package-name install step (forwarded to setup-venv-uv-action)
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
+
+    - name: Setup python environment
+      uses: durandtibo/setup-venv-uv-action@59716ab8fb83cc7025548b3831c06b6f5c268f4f # ratchet:durandtibo/setup-venv-uv-action@v0.1.0
+      with:
+        python-version: ${{ inputs.python-version }}
+        install-args: ${{ inputs.install-args }}
+        package-name: ${{ inputs.package-name }}
+        package-version: ${{ inputs.package-version }}
+        package-install-args: ${{ inputs.package-install-args }}
