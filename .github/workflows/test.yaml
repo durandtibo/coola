@@ -26,8 +26,8 @@ jobs:
   all:
     needs: get-matrix
     # get-matrix is skipped whenever the caller already passed test-matrix in;
-    # a skipped need isn't "success", so allow it explicitly.
-    if: always() && !failure() && !cancelled()
+    # a skipped need isn't "success", so allow that result explicitly.
+    if: needs.get-matrix.result == 'success' || needs.get-matrix.result == 'skipped'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
     strategy:
@@ -54,7 +54,7 @@ jobs:
   # Test with minimal dependencies to ensure optional dependencies are truly optional
   min:
     needs: get-matrix
-    if: always() && !failure() && !cancelled()
+    if: needs.get-matrix.result == 'success' || needs.get-matrix.result == 'skipped'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
     strategy:

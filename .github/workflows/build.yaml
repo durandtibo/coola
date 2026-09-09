@@ -78,8 +78,8 @@ jobs:
   build-all:
     needs: get-matrix
     # get-matrix is skipped whenever the caller already passed test-matrix in;
-    # a skipped need isn't "success", so allow it explicitly.
-    if: always() && !failure() && !cancelled()
+    # a skipped need isn't "success", so allow that result explicitly.
+    if: needs.get-matrix.result == 'success' || needs.get-matrix.result == 'skipped'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:

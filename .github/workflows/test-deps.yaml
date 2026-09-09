@@ -35,8 +35,8 @@ jobs:
   test-dep:
     needs: [get-extras, get-versions, get-matrix]
     # get-matrix is skipped whenever the caller already passed test-matrix in;
-    # a skipped need isn't "success", so allow it explicitly.
-    if: always() && !failure() && !cancelled()
+    # a skipped need isn't "success", so allow that result explicitly.
+    if: needs.get-matrix.result == 'success' || needs.get-matrix.result == 'skipped'
     strategy:
       fail-fast: false
       matrix:
