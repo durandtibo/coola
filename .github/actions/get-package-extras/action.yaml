@@ -1,0 +1,51 @@
+# Composite action shared by every workflow that needs the list of optional
+# extras (build.yaml, test-package-extras.yaml, nightly-package.yaml,
+# test-deps.yaml). Reads the extra names directly from pyproject.toml's
+# [project.optional-dependencies] table instead of a hardcoded/duplicated
+# list, so it can never drift from what `pip install "coola[extra]"` actually
+# installs. Requires the repository to already be checked out.
+
+name: Get package extras
+description: Read the optional-dependency extra names from pyproject.toml's [project.optional-dependencies]
+
+inputs:
+  pyproject-path:
+    description: Path to pyproject.toml
+    required: false
+    default: pyproject.toml
+  extra-values:
+    description: >
+      JSON array of additional values to prepend to the extras read from
+      pyproject.toml, for callers that need a non-package value in the list
+      too (e.g. '[""]' for a "no extra" baseline, or '["all"]').
+    required: false
+    default: "[]"
+
+outputs:
+  extras:
+    description: JSON array of extra names
+    value: ${{ steps.extras.outputs.extras }}
+
+runs:
+  using: composite
+  steps:
+    - id: extras
+      shell: bash
+      env:
+        PYPROJECT_PATH: ${{ inputs.pyproject-path }}
+        EXTRA_VALUES: ${{ inputs.extra-values }}
+      run: |
+        extras=$(python3 - "$PYPROJECT_PATH" "$EXTRA_VALUES" <<'PYEOF'
+        import json
+        import sys
+        import tomllib
+
+        pyproject_path, extra_values = sys.argv[1], sys.argv[2]
+        with open(pyproject_path, "rb") as f:
+            data = tomllib.load(f)
+        names = sorted(data.get("project", {}).get("optional-dependencies", {}).keys())
+        print(json.dumps(json.loads(extra_values) + names))
+        PYEOF
+        )
+        echo "📦 Extras: $extras"
+        echo "extras=$extras" >> "$GITHUB_OUTPUT"

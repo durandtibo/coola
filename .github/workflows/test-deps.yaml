@@ -11,19 +11,23 @@ permissions:
   contents: read
 
 jobs:
-  # Get dependency version information from config file
+  # Get the extra names from pyproject.toml, and their version bounds from
+  # dev/config/package_versions.json.
+  get-extras:
+    uses: ./.github/workflows/get-package-extras.yaml
   get-versions:
     uses: ./.github/workflows/get-versions.yaml
 
-  # One job per optional dependency, driven by the package names/versions from
-  # get-versions instead of a hardcoded list, so a new optional dependency
-  # only needs to be added to dev/config/package_versions.json.
+  # One job per optional dependency, driven by get-extras/get-versions
+  # instead of a hardcoded list, so a new optional dependency only needs to
+  # be added to pyproject.toml (and dev/config/package_versions.json, kept up
+  # to date by generate-package-versions.yaml).
   test-dep:
-    needs: get-versions
+    needs: [get-extras, get-versions]
     strategy:
       fail-fast: false
       matrix:
-        package-name: ${{ fromJson(needs.get-versions.outputs.package_names) }}
+        package-name: ${{ fromJson(needs.get-extras.outputs.extras) }}
     uses: ./.github/workflows/test-code-dep.yaml
     with:
       package-name: ${{ matrix.package-name }}

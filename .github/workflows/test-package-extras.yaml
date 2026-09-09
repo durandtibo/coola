@@ -16,25 +16,12 @@ jobs:
   get-matrix:
     uses: ./.github/workflows/get-test-matrix.yaml
 
-  # Load the shared optional-dependency package names from dev/config/package_versions.json
-  get-versions:
-    uses: ./.github/workflows/get-versions.yaml
-
-  # "all" installs every optional extra at once; it isn't a package name, so
-  # append it to the names from get-versions rather than hardcoding the whole list.
+  # Load the extras from pyproject.toml's [project.optional-dependencies],
+  # plus "all" to also test installing every extra at once.
   get-extras:
-    needs: get-versions
-    runs-on: ubuntu-slim
-    timeout-minutes: 2
-    outputs:
-      extras: ${{ steps.extras.outputs.extras }}
-    steps:
-      - id: extras
-        env:
-          PACKAGE_NAMES: ${{ needs.get-versions.outputs.package_names }}
-        run: |
-          extras=$(echo "$PACKAGE_NAMES" | jq -c '. + ["all"]')
-          echo "extras=$extras" >> "$GITHUB_OUTPUT"
+    uses: ./.github/workflows/get-package-extras.yaml
+    with:
+      extra-values: '["all"]'
 
   test:
     needs: [get-matrix, get-extras]
