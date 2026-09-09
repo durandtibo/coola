@@ -6,6 +6,7 @@ __all__ = [
     "BaseHasher",
     "BytesHasher",
     "DatetimeHasher",
+    "HashableHasher",
     "HasherRegistry",
     "MappingHasher",
     "PathHasher",
@@ -14,6 +15,7 @@ __all__ = [
     "SequenceHasher",
     "StrHasher",
     "StringHasher",
+    "SupportsHash",
     "get_default_registry",
     "hash_bytes",
     "hash_object",
@@ -26,6 +28,7 @@ __all__ = [
 from coola.hashing.base import BaseHasher
 from coola.hashing.bytes import BytesHasher, hash_bytes
 from coola.hashing.datetime import DatetimeHasher
+from coola.hashing.hashable import HashableHasher, SupportsHash
 from coola.hashing.interface import get_default_registry, hash_object, register_hashers
 from coola.hashing.mapping import MappingHasher
 from coola.hashing.path import PathHasher, hash_path
