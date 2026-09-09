@@ -25,13 +25,6 @@ on:
     - cron: "10 9 * * *" # Run nightly at 9:10 AM UTC to catch issues from external changes
   workflow_dispatch: # to trigger manually
 
-# Serialize runs for the same PR/branch instead of letting them queue in
-# arbitrary order; cancel-in-progress is intentionally false so an
-# in-progress run always finishes rather than being cancelled.
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false
-
 permissions:
   contents: read
 

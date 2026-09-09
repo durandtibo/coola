@@ -56,15 +56,6 @@ action/reusable workflow over copy-pasting steps.
   actually does (2 for a config-read job, 5 for most checks, 10 for slower
   jobs like Scorecard or benchmarks) so a hung step can't occupy a runner
   indefinitely.
-- **Concurrency**: every workflow with its own event trigger (`pull_request`,
-  `push`, `schedule`, `branch_protection_rule`) declares a `concurrency:`
-  group so overlapping runs (a new push, a stray manual re-dispatch, a
-  schedule firing while a previous run is still going) queue and run one at a
-  time instead of racing each other. `cancel-in-progress` is always `false`
-  — an in-progress run is always left to finish rather than being cancelled,
-  including on `ci.yaml` and other PR-triggered workflows. Reusable workflows
-  (`workflow_call`-only) don't need their own concurrency block — they run as
-  part of their caller's group.
 - **Runners**: `ubuntu-slim` for lightweight jobs that only run a small
   action or a couple of shell commands (no Python/build tooling); otherwise
   `ubuntu-latest`, or the OS matrix under test for `ci-test.yaml` /

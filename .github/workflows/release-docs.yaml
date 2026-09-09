@@ -10,12 +10,6 @@ on:
     tags:
       - "v*.*.*" # Trigger on version tags (e.g., v1.0.0)
 
-# Serialize (never cancel) re-runs for the same tag, so a manual re-dispatch
-# can't be cut off mid-publish; different tags get independent groups.
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false
-
 permissions:
   contents: write # Required by the called workflow to push to gh-pages branch
 

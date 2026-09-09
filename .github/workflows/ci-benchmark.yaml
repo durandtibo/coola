@@ -10,10 +10,6 @@ on:
     - cron: "10 9 * * *" # Run nightly at 9:10 AM UTC, alongside CI's nightly run
   workflow_dispatch: # to trigger manually
 
-concurrency:
-  group: ${{ github.workflow }}
-  cancel-in-progress: false
-
 permissions:
   contents: read
 

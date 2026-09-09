@@ -13,10 +13,6 @@ on:
       - ".github/workflows/*" # Trigger on changes to workflow files
   workflow_dispatch: # to trigger manually
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false
-
 permissions:
   contents: read
 
