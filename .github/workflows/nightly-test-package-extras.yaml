@@ -31,7 +31,7 @@ jobs:
       max-parallel: 8
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: ${{ fromJson(inputs.test-matrix).os_matrix }}
         python-version: ${{ fromJson(inputs.test-matrix).python_versions }}
         extra: ${{ fromJson(needs.get-extras.outputs.extras) }}
 

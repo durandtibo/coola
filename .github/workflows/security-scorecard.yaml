@@ -1,3 +1,7 @@
+# OSSF Scorecard supply-chain security workflow.
+# Runs the Scorecard analysis and publishes results to the OpenSSF badge API
+# and GitHub's code-scanning dashboard, so the repo's supply-chain security
+# posture is tracked over time.
 # This workflow uses actions that are not certified by GitHub. They are provided
 # by a third-party and are governed by separate terms of service, privacy
 # policy, and support documentation.
@@ -32,9 +36,6 @@ jobs:
       security-events: write
       # Needed to publish results and get a badge (see publish_results below).
       id-token: write
-      # Uncomment the permissions below if installing in a private repository.
-      # contents: read
-      # actions: read
 
     steps:
       # Needed for the Branch-Protection check, which requires a token with
@@ -71,11 +72,7 @@ jobs:
           #     of the value entered here.
           publish_results: true
 
-          # (Optional) Uncomment file_mode if you have a .gitattributes with files marked export-ignore
-          # file_mode: git
-
-      # Upload the results as artifacts (optional). Commenting out will disable uploads of run results in SARIF
-      # format to the repository Actions tab.
+      # Upload the results as artifacts, for visibility in the Actions tab.
       - name: "Upload artifact"
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # ratchet:actions/upload-artifact@v7.0.1
         with:
@@ -83,8 +80,7 @@ jobs:
           path: results.sarif
           retention-days: 5
 
-      # Upload the results to GitHub's code scanning dashboard (optional).
-      # Commenting out will disable upload of results to your repo's Code Scanning dashboard
+      # Upload the results to GitHub's code scanning dashboard.
       - name: "Upload to code-scanning"
         uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # ratchet:github/codeql-action/upload-sarif@v4.37.9
         with:

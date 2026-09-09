@@ -24,6 +24,13 @@ on its own. Job ids in `ci.yaml` and in the workflows it calls are
 load-bearing for branch protection (see the comment at the top of `ci.yaml`)
 — keep them in sync if you rename either side.
 
+Two `ci-*` workflows are deliberately *not* called from `ci.yaml`, each
+standalone with its own trigger instead: `ci-benchmark.yaml` runs nightly on
+its own schedule rather than gating every PR/push, since a benchmark
+regression isn't a merge blocker; `ci-verify-workflows.yaml` lints
+`.github/workflows/*` itself, so it triggers on workflow-file changes rather
+than every PR/push.
+
 ## Composite actions vs. reusable workflows
 
 - **`.github/actions/*`** (composite actions): used when the shared unit is a
@@ -48,7 +55,10 @@ action/reusable workflow over copy-pasting steps.
   [`ratchet`](https://github.com/sethvargo/ratchet) via `workflows/bot-pin-action.yaml`.
   Never hand-pin a SHA without that comment — the next `bot-pin-action` run
   would otherwise silently downgrade or drift it. Local composite actions
-  (`uses: ./.github/actions/...`) are referenced by path, not pinned.
+  (`uses: ./.github/actions/...`) are referenced by path, not pinned. Any
+  runtime tool invoked outside of a pinned action (e.g. `npx <pkg>`) should
+  also pin an explicit version, so a bot-authored PR can't pick up an
+  unreviewed upstream release.
 - **Permissions**: top-level `permissions:` is always the least the workflow
   needs — `contents: read` or `{}` — and any job that needs more (e.g.
   `contents: write` to push, `id-token: write` for OIDC) declares it on that

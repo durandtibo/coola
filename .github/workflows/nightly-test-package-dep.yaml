@@ -28,7 +28,7 @@ jobs:
       max-parallel: 8
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: ${{ fromJson(inputs.test-matrix).os_matrix }}
         python-version: ${{ fromJson(inputs.test-matrix).python_versions }}
         # Test with each version of the specified package
         package-version: ${{ fromJson(inputs.package-versions) }}
