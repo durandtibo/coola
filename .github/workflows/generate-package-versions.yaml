@@ -6,7 +6,6 @@ name: Generate package versions
 on:
   schedule:
     - cron: "0 6 * * 4" # Run every Thursday at 6:00 AM UTC
-  workflow_call:
   workflow_dispatch: # to trigger manually
 
 permissions: {}
