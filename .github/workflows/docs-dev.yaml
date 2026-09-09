@@ -13,11 +13,6 @@ on:
 permissions:
   contents: write # Required by the called workflow to push to gh-pages branch
 
-# Serialize deploys to gh-pages to avoid racing mike deployments.
-concurrency:
-  group: ${{ github.workflow }}
-  cancel-in-progress: false
-
 jobs:
   publish:
     uses: ./.github/workflows/docs-publish.yaml
