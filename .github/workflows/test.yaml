@@ -5,28 +5,27 @@
 name: Tests
 on:
   workflow_call:
-  workflow_dispatch: # to trigger manually
+    inputs:
+      test-matrix:
+        description: "JSON test matrix from get-test-matrix.yaml, loaded once by the caller"
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 jobs:
-  # Load the shared python-version/OS matrix from dev/config/test_matrix.json
-  get-matrix:
-    uses: ./.github/workflows/get-test-matrix.yaml
-
   # Test with all dependencies across multiple Python versions and operating systems
   all:
-    needs: get-matrix
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
     strategy:
       max-parallel: 8
       fail-fast: false
       matrix:
-        os: ${{ fromJson(needs.get-matrix.outputs.test_matrix).os_matrix }}
+        os: ${{ fromJson(inputs.test-matrix).os_matrix }}
         # Test all supported Python versions including free-threaded builds (t suffix)
-        python-version: ${{ fromJson(needs.get-matrix.outputs.test_matrix).python_versions }}
+        python-version: ${{ fromJson(inputs.test-matrix).python_versions }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
@@ -43,15 +42,14 @@ jobs:
 
   # Test with minimal dependencies to ensure optional dependencies are truly optional
   min:
-    needs: get-matrix
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
     strategy:
       max-parallel: 8
       fail-fast: false
       matrix:
-        os: ${{ fromJson(needs.get-matrix.outputs.test_matrix).os_matrix }}
-        python-version: ${{ fromJson(needs.get-matrix.outputs.test_matrix).python_versions }}
+        os: ${{ fromJson(inputs.test-matrix).os_matrix }}
+        python-version: ${{ fromJson(inputs.test-matrix).python_versions }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7

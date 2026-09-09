@@ -11,25 +11,24 @@ on:
         description: "Command to install the package"
         required: false
         type: string
+      test-matrix:
+        description: "JSON test matrix from get-test-matrix.yaml, loaded once by the caller"
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 jobs:
-  # Load the shared python-version/OS matrix from dev/config/test_matrix.json
-  get-matrix:
-    uses: ./.github/workflows/get-test-matrix.yaml
-
   test:
-    needs: get-matrix
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
     strategy:
       max-parallel: 8
       fail-fast: false
       matrix:
-        os: ${{ fromJson(needs.get-matrix.outputs.test_matrix).os_matrix }}
-        python-version: ${{ fromJson(needs.get-matrix.outputs.test_matrix).python_versions }}
+        os: ${{ fromJson(inputs.test-matrix).os_matrix }}
+        python-version: ${{ fromJson(inputs.test-matrix).python_versions }}
 
     steps:
       - name: Checkout

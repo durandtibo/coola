@@ -5,16 +5,16 @@
 name: Build Tests
 on:
   workflow_call:
-  workflow_dispatch: # to trigger manually
+    inputs:
+      test-matrix:
+        description: "JSON test matrix from get-test-matrix.yaml, loaded once by the caller"
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 jobs:
-  # Load the shared python-version matrix from dev/config/test_matrix.json
-  get-matrix:
-    uses: ./.github/workflows/get-test-matrix.yaml
-
   # Load the extras from pyproject.toml's [project.optional-dependencies],
   # plus "" for a baseline "no extra" build.
   get-extras:
@@ -69,7 +69,6 @@ jobs:
           echo "✅ Package '$PACKAGE_EXTRA' is installed"
 
   build-all:
-    needs: get-matrix
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:
@@ -79,7 +78,7 @@ jobs:
         dist-type: ["sdist", "wheel"]
         # Test at least one full-extras build per supported Python version to
         # catch version-specific build regressions (e.g. free-threaded 3.13t/3.14t).
-        python-version: ${{ fromJson(needs.get-matrix.outputs.test_matrix).python_versions }}
+        python-version: ${{ fromJson(inputs.test-matrix).python_versions }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7

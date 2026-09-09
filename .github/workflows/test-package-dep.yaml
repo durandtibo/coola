@@ -12,17 +12,16 @@ on:
       package-versions:
         type: string
         required: true
+      test-matrix:
+        description: "JSON test matrix from get-test-matrix.yaml, loaded once by the caller"
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 jobs:
-  # Load the shared python-version matrix from dev/config/test_matrix.json
-  get-matrix:
-    uses: ./.github/workflows/get-test-matrix.yaml
-
   test:
-    needs: get-matrix
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
     strategy:
@@ -30,7 +29,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        python-version: ${{ fromJson(needs.get-matrix.outputs.test_matrix).python_versions }}
+        python-version: ${{ fromJson(inputs.test-matrix).python_versions }}
         # Test with each version of the specified package
         package-version: ${{ fromJson(inputs.package-versions) }}
 
