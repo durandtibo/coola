@@ -182,9 +182,13 @@ Date: 2026-09-09
     `test_generate_nano_id_length_above_max_raises`, and
     `test_generate_nano_id_very_large_length_raises`.
 
-25. **NOT A BUG** — **`utils/env_vars.py:19-67` (`check_env_vars`)** — logs use emoji prefixes
+25. **FIXED** — **`utils/env_vars.py:19-67` (`check_env_vars`)** — logs use emoji prefixes
     (`✅`/`❌`) baked into the message, inconsistent with the package's plain-text log
     style and a potential issue for non-UTF-8 log sinks.
+
+    **Fix:** Removed the `✅`/`❌` emoji from the info/warning log messages in
+    `check_env_vars`. Covered by `test_check_env_vars_logs_success_message` and
+    `test_check_env_vars_logs_warning_message`.
 
 26. **FIXED** — **`display/pydantic.py:71-73`** — `exclude_fields` names that don't
     exist on the model are silently ignored, which can mask a caller's typo (e.g.

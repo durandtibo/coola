@@ -55,9 +55,9 @@ def check_env_vars(var_names: Sequence[str], raise_on_missing: bool = False) -> 
         results[name] = is_defined
 
         if is_defined:
-            logger.info(f"✅ '{name}' is defined.")
+            logger.info(f"'{name}' is defined.")
         else:
-            logger.warning(f"❌ '{name}' is NOT defined.")
+            logger.warning(f"'{name}' is NOT defined.")
             missing.append(name)
 
     if missing and raise_on_missing:
