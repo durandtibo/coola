@@ -3,6 +3,7 @@ r"""Contain some utility functions to manipulate mappings."""
 from __future__ import annotations
 
 __all__ = [
+    "add_prefix_suffix_to_keys",
     "flatten_mapping",
     "get_first_value",
     "merge_mappings",
@@ -133,6 +134,52 @@ def flatten_mapping(
                 out[first_key] = out.pop(inner_key)
             out[prefixed_key] = value
 
+    return out
+
+
+def add_prefix_suffix_to_keys(
+    mapping: Mapping[Any, Any],
+    prefix: str = "",
+    suffix: str = "",
+    recursive: bool = False,
+) -> dict[Any, Any]:
+    r"""Add a prefix and/or a suffix to the keys of a mapping.
+
+    Only keys of type ``str`` are renamed; every other key is kept
+    as-is because a prefix/suffix cannot be concatenated to it.
+
+    Args:
+        mapping: The input mapping.
+        prefix: The prefix to prepend to the keys.
+        suffix: The suffix to append to the keys.
+        recursive: If ``True``, the prefix and suffix are also added
+            to the keys of every nested mapping. If ``False``, only
+            the keys of the top-level mapping are renamed.
+
+    Returns:
+        A new dict with the renamed keys.
+
+    Example:
+        ```pycon
+        >>> from coola.nested import add_prefix_suffix_to_keys
+        >>> add_prefix_suffix_to_keys({"key1": 1, "key2": 2}, prefix="prefix_")
+        {'prefix_key1': 1, 'prefix_key2': 2}
+        >>> add_prefix_suffix_to_keys(
+        ...     {"key1": 1, "key2": {"key3": 3}}, suffix="_suffix", recursive=True
+        ... )
+        {'key1_suffix': 1, 'key2_suffix': {'key3_suffix': 3}}
+
+        ```
+    """
+    out: dict[Any, Any] = {}
+    for key, value in mapping.items():
+        new_key = f"{prefix}{key}{suffix}" if isinstance(key, str) else key
+        new_value = (
+            add_prefix_suffix_to_keys(value, prefix=prefix, suffix=suffix, recursive=True)
+            if recursive and isinstance(value, Mapping)
+            else value
+        )
+        out[new_key] = new_value
     return out
 
 
