@@ -11,6 +11,7 @@ from __future__ import annotations
 
 __all__ = ["RandomManagerRegistry"]
 
+import logging
 from typing import TYPE_CHECKING, Any
 
 from coola.display import MultilineDisplayMixin
@@ -19,6 +20,8 @@ from coola.registry import Registry
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
+
+logger = logging.getLogger(__name__)
 
 
 class RandomManagerRegistry(MultilineDisplayMixin, BaseRandomManager):
@@ -170,4 +173,10 @@ class RandomManagerRegistry(MultilineDisplayMixin, BaseRandomManager):
 
     def set_rng_state(self, state: dict[str, Any]) -> None:
         for key, value in state.items():
+            if key not in self._state:
+                logger.warning(
+                    f"Ignoring RNG state for unregistered key {key!r}; "
+                    f"registered keys are {sorted(self._state.keys())}"
+                )
+                continue
             self._state[key].set_rng_state(value)

@@ -138,3 +138,26 @@ def test_random_manager_registry_set_rng_state() -> None:
     x3 = random.uniform(0, 1)  # noqa: S311
     assert x1 == x3
     assert x1 != x2
+
+
+def test_random_manager_registry_set_rng_state_unregistered_key() -> None:
+    rng = RandomManagerRegistry({"random": RandomRandomManager()})
+    state = rng.get_rng_state()
+    state["torch"] = "fake_state"
+    # Should not raise even though "torch" is not registered.
+    rng.set_rng_state(state)
+
+
+def test_random_manager_registry_set_rng_state_unregistered_key_logs_warning(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    rng = RandomManagerRegistry()
+    with caplog.at_level("WARNING"):
+        rng.set_rng_state({"torch": "fake_state"})
+    assert "torch" in caplog.text
+
+
+def test_random_manager_registry_set_rng_state_empty() -> None:
+    rng = RandomManagerRegistry()
+    # Should not raise for an empty registry and empty state.
+    rng.set_rng_state({})
