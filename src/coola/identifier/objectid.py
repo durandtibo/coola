@@ -22,7 +22,7 @@ import os
 import threading
 import time
 
-from coola.identifier.validation import validate_bit_range
+from coola.identifier.validation import singleton_generator, validate_bit_range
 
 _TIMESTAMP_BYTES = 4
 _PROCESS_BYTES = 5
@@ -116,8 +116,8 @@ class ObjectIdGenerator:
 
 
 # Default, process-wide generator backing the module-level
-# `generate_object_id` function below.
-_default_generator = ObjectIdGenerator()
+# `generate_object_id` function below, built lazily on first use.
+_get_default_generator = singleton_generator(ObjectIdGenerator)
 
 
 def generate_object_id(timestamp: int | None = None) -> str:
@@ -149,7 +149,7 @@ def generate_object_id(timestamp: int | None = None) -> str:
 
         ```
     """
-    return _default_generator.generate(timestamp=timestamp)
+    return _get_default_generator().generate(timestamp=timestamp)
 
 
 def extract_object_id_timestamp(object_id: str) -> int:

@@ -17,7 +17,7 @@ __all__ = ["SnowflakeIdGenerator", "extract_snowflake_timestamp_ms", "generate_s
 import threading
 import time
 
-from coola.identifier.validation import validate_bit_range
+from coola.identifier.validation import singleton_generator, validate_bit_range
 
 # Sleep briefly between spins while waiting for the next millisecond, to
 # avoid busy-waiting a full CPU core (and holding the lock) at 100%
@@ -214,8 +214,8 @@ class SnowflakeIdGenerator:
 
 
 # Default, process-wide generator backing the module-level
-# `generate_snowflake_id` function below.
-_default_generator = SnowflakeIdGenerator()
+# `generate_snowflake_id` function below, built lazily on first use.
+_get_default_generator = singleton_generator(SnowflakeIdGenerator)
 
 
 def generate_snowflake_id(worker_id: int = 0, timestamp_ms: int | None = None) -> int:
@@ -256,7 +256,7 @@ def generate_snowflake_id(worker_id: int = 0, timestamp_ms: int | None = None) -
 
         ```
     """
-    return _default_generator.generate(worker_id=worker_id, timestamp_ms=timestamp_ms)
+    return _get_default_generator().generate(worker_id=worker_id, timestamp_ms=timestamp_ms)
 
 
 def extract_snowflake_timestamp_ms(snowflake_id: int) -> int:

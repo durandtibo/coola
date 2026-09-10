@@ -162,15 +162,22 @@ Date: 2026-09-09
     packages (plus the same singleton idiom as #18).
     **Fix:** share a common bootstrap/singleton helper.
 
-23. **`identifier/objectid.py` / `identifier/snowflake.py`** — both maintain a private
+23. **FIXED** — **`identifier/objectid.py` / `identifier/snowflake.py`** — both maintain a private
     module-level default generator instance with near-identical wrapper functions.
-    **Fix (minor):** a small `_singleton(cls)` helper would remove the repetition.
+    **Fix:** added a shared `singleton_generator(cls)` helper in
+    `identifier/validation.py` that lazily builds and returns one shared instance;
+    both modules now use it instead of an eagerly-built module-level instance. Covered
+    by `test_singleton_generator_*` in `test_validation.py`.
 
 ## Minor / hardening notes
 
-24. **`identifier/nanoid.py:65-95`** — `os.urandom(...)` sized off `length` in a loop
-    with no upper bound; a very large `length` allocates a correspondingly large
+24. **FIXED** — **`identifier/nanoid.py:65-95`** — `os.urandom(...)` sized off `length` in a
+    loop with no upper bound; a very large `length` allocates a correspondingly large
     buffer per iteration. Low risk since bounded by caller input, but worth capping.
+    **Fix:** `generate_nano_id` now raises `ValueError` when `length` exceeds a
+    `_MAX_LENGTH` cap (1024). Covered by `test_generate_nano_id_max_length_is_valid`,
+    `test_generate_nano_id_length_above_max_raises`, and
+    `test_generate_nano_id_very_large_length_raises`.
 
 25. **`utils/env_vars.py:19-67` (`check_env_vars`)** — logs use emoji prefixes
     (`✅`/`❌`) baked into the message, inconsistent with the package's plain-text log

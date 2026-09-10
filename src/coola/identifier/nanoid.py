@@ -24,6 +24,13 @@ _DEFAULT_ALPHABET = "_-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstu
 
 _DEFAULT_LENGTH = 21
 
+# Upper bound on `length`, and on the number of bytes requested from
+# `os.urandom` in a single loop iteration below. Guards against a very
+# large `length` (accidental or malicious, e.g. from unvalidated user
+# input) driving a correspondingly large `os.urandom` allocation per
+# iteration; far larger than any realistic identifier still fits.
+_MAX_LENGTH = 1024
+
 
 def generate_nano_id(length: int = _DEFAULT_LENGTH, alphabet: str = _DEFAULT_ALPHABET) -> str:
     r"""Generate a Nano ID style random identifier.
@@ -46,9 +53,9 @@ def generate_nano_id(length: int = _DEFAULT_LENGTH, alphabet: str = _DEFAULT_ALP
         A random string of length ``length`` drawn from ``alphabet``.
 
     Raises:
-        ValueError: If ``length`` is not positive, or ``alphabet`` is
-            empty, has duplicate characters, or has more than 256
-            distinct characters.
+        ValueError: If ``length`` is not positive or exceeds 1024, or
+            ``alphabet`` is empty, has duplicate characters, or has
+            more than 256 distinct characters.
 
     Example:
         ```pycon
@@ -63,6 +70,9 @@ def generate_nano_id(length: int = _DEFAULT_LENGTH, alphabet: str = _DEFAULT_ALP
         ```
     """
     validate_positive(length, name="length")
+    if length > _MAX_LENGTH:
+        msg = f"length must be at most {_MAX_LENGTH}, got {length}"
+        raise ValueError(msg)
     n = len(alphabet)
     if n == 0:
         msg = "alphabet must not be empty"

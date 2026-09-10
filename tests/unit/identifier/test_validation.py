@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from coola.identifier.validation import (
+    singleton_generator,
     validate_bit_range,
     validate_non_negative,
     validate_positive,
@@ -117,3 +118,40 @@ def test_validate_non_negative_negative_raises() -> None:
 def test_validate_non_negative_uses_name_in_message() -> None:
     with pytest.raises(ValueError, match=r"^min_length must be non-negative"):
         validate_non_negative(-1, name="min_length")
+
+
+###########################################
+#     Tests for singleton_generator     #
+###########################################
+
+
+def test_singleton_generator_returns_same_instance_across_calls() -> None:
+    class Counter:
+        pass
+
+    get_instance = singleton_generator(Counter)
+    assert get_instance() is get_instance()
+
+
+def test_singleton_generator_is_lazy() -> None:
+    created = []
+
+    class Counter:
+        def __init__(self) -> None:
+            created.append(1)
+
+    get_instance = singleton_generator(Counter)
+    assert created == []
+    get_instance()
+    assert created == [1]
+    get_instance()
+    assert created == [1]
+
+
+def test_singleton_generator_independent_across_calls_to_singleton_generator() -> None:
+    class Counter:
+        pass
+
+    get_instance_1 = singleton_generator(Counter)
+    get_instance_2 = singleton_generator(Counter)
+    assert get_instance_1() is not get_instance_2()
