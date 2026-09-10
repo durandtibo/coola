@@ -9,7 +9,7 @@ from itertools import islice
 from typing import TYPE_CHECKING, Any
 
 from coola.summary.collection import BaseCollectionSummarizer
-from coola.utils.format import str_indent, str_sequence
+from coola.utils.format import str_sequence
 
 if TYPE_CHECKING:
     from coola.summary.registry import SummarizerRegistry
@@ -50,32 +50,20 @@ class SequenceSummarizer(BaseCollectionSummarizer[Sequence[Any]]):
         ```
     """
 
-    def summarize(
+    def _get_preview(self, data: Sequence[Any]) -> list:
+        return list(islice(data, self._max_items))
+
+    def _format_items(
         self,
         data: Sequence[Any],
         registry: SummarizerRegistry,
-        depth: int = 0,
-        max_depth: int = 1,
+        depth: int,
+        max_depth: int,
     ) -> str:
-        if depth >= max_depth:
-            text = str(data)
-            if self._max_items >= 0 and len(data) > self._max_items:
-                preview = list(islice(data, self._max_items))
-                text = f"{preview!r} ..."
-            return registry.summarize(text, depth=depth + 1, max_depth=max_depth)
-        typ = type(data)
-        length = len(data)
-        if length == 0:
-            return str_indent(f"{typ} {data}", num_spaces=self._num_spaces)
-        if self._max_items == 0:
-            return str_indent(f"{typ} (length={length:,}) ...", num_spaces=self._num_spaces)
-
+        items = data
         if self._max_items > 0:
-            data = islice(data, self._max_items)
-        data = str_sequence(
-            [registry.summarize(value, depth=depth + 1, max_depth=max_depth) for value in data],
+            items = islice(items, self._max_items)
+        return str_sequence(
+            [registry.summarize(value, depth=depth + 1, max_depth=max_depth) for value in items],
             num_spaces=self._num_spaces,
         )
-        if length > self._max_items and self._max_items > 0:
-            data = f"{data}\n..."
-        return str_indent(f"{typ} (length={length:,})\n{data}", num_spaces=self._num_spaces)

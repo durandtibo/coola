@@ -16,7 +16,12 @@ explicit ``worker_id`` control is needed instead.
 
 from __future__ import annotations
 
-__all__ = ["ObjectIdGenerator", "extract_object_id_timestamp", "generate_object_id"]
+__all__ = [
+    "ObjectIdGenerator",
+    "extract_object_id_timestamp",
+    "generate_object_id",
+    "get_default_generator",
+]
 
 import os
 import threading
@@ -115,9 +120,21 @@ class ObjectIdGenerator:
         return payload.hex()
 
 
-# Default, process-wide generator backing the module-level
-# `generate_object_id` function below.
-_default_generator = ObjectIdGenerator()
+def get_default_generator() -> ObjectIdGenerator:
+    r"""Get or create the default, process-wide generator backing
+    ``generate_object_id``.
+
+    Returns a singleton ``ObjectIdGenerator`` instance shared by every
+    call to ``generate_object_id``. Uses the same lazy,
+    singleton-on-the-function pattern as ``get_default_registry()``
+    (see e.g. ``coola.equality.tester.interface``).
+
+    Returns:
+        The shared, process-wide ``ObjectIdGenerator`` instance.
+    """
+    if not hasattr(get_default_generator, "_generator"):
+        get_default_generator._generator = ObjectIdGenerator()
+    return get_default_generator._generator
 
 
 def generate_object_id(timestamp: int | None = None) -> str:
@@ -149,7 +166,7 @@ def generate_object_id(timestamp: int | None = None) -> str:
 
         ```
     """
-    return _default_generator.generate(timestamp=timestamp)
+    return get_default_generator().generate(timestamp=timestamp)
 
 
 def extract_object_id_timestamp(object_id: str) -> int:

@@ -89,25 +89,24 @@ def test_check_env_vars_raises_and_lists_all_missing_vars() -> None:
 
 @patch.dict(os.environ, {}, clear=True)
 def test_check_env_vars_logs_success_message(caplog: pytest.LogCaptureFixture) -> None:
-    """Test that a defined variable logs an info message with a success
-    emoji."""
+    """Test that a defined variable logs a plain-text info message."""
     os.environ["TEST_VAR"] = "test_value"
     with caplog.at_level(logging.INFO):
         check_env_vars(["TEST_VAR"])
     assert any(
-        record.levelno == logging.INFO and "✅ 'TEST_VAR' is defined." in record.message
+        record.levelno == logging.INFO and "'TEST_VAR' is defined." in record.message
         for record in caplog.records
     )
 
 
 @patch.dict(os.environ, {}, clear=True)
 def test_check_env_vars_logs_warning_message(caplog: pytest.LogCaptureFixture) -> None:
-    """Test that a missing variable logs a warning message with a
-    failure emoji."""
+    """Test that a missing variable logs a plain-text warning
+    message."""
     with caplog.at_level(logging.WARNING):
         check_env_vars(["MISSING_VAR"])
     assert any(
-        record.levelno == logging.WARNING and "❌ 'MISSING_VAR' is NOT defined." in record.message
+        record.levelno == logging.WARNING and "'MISSING_VAR' is NOT defined." in record.message
         for record in caplog.records
     )
 

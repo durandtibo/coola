@@ -3,6 +3,7 @@ r"""Contain some utility functions to manipulate mappings."""
 from __future__ import annotations
 
 __all__ = [
+    "add_prefix_suffix_to_keys",
     "flatten_mapping",
     "get_first_value",
     "merge_mappings",
@@ -58,7 +59,11 @@ def flatten_mapping(
                 under the plain inner key.
             - ``'prefix'``: keep all the values, renaming every
                 occurrence of a conflicting key as
-                ``'{outer_key}{separator}{inner_key}'``.
+                ``'{outer_key}{separator}{inner_key}'``, including
+                the first occurrence. This differs from
+                :func:`merge_mappings`'s ``on_duplicate='suffix'``
+                strategy, which leaves the first occurrence under
+                the plain key.
         always_prefix: If ``True``, every key in the output is named
             ``'{outer_key}{separator}{inner_key}'``, regardless of
             whether it is a duplicate. If ``False``, only keys
@@ -132,6 +137,52 @@ def flatten_mapping(
     return out
 
 
+def add_prefix_suffix_to_keys(
+    mapping: Mapping[Any, Any],
+    prefix: str = "",
+    suffix: str = "",
+    recursive: bool = False,
+) -> dict[Any, Any]:
+    r"""Add a prefix and/or a suffix to the keys of a mapping.
+
+    Only keys of type ``str`` are renamed; every other key is kept
+    as-is because a prefix/suffix cannot be concatenated to it.
+
+    Args:
+        mapping: The input mapping.
+        prefix: The prefix to prepend to the keys.
+        suffix: The suffix to append to the keys.
+        recursive: If ``True``, the prefix and suffix are also added
+            to the keys of every nested mapping. If ``False``, only
+            the keys of the top-level mapping are renamed.
+
+    Returns:
+        A new dict with the renamed keys.
+
+    Example:
+        ```pycon
+        >>> from coola.nested import add_prefix_suffix_to_keys
+        >>> add_prefix_suffix_to_keys({"key1": 1, "key2": 2}, prefix="prefix_")
+        {'prefix_key1': 1, 'prefix_key2': 2}
+        >>> add_prefix_suffix_to_keys(
+        ...     {"key1": 1, "key2": {"key3": 3}}, suffix="_suffix", recursive=True
+        ... )
+        {'key1_suffix': 1, 'key2_suffix': {'key3_suffix': 3}}
+
+        ```
+    """
+    out: dict[Any, Any] = {}
+    for key, value in mapping.items():
+        new_key = f"{prefix}{key}{suffix}" if isinstance(key, str) else key
+        new_value = (
+            add_prefix_suffix_to_keys(value, prefix=prefix, suffix=suffix, recursive=True)
+            if recursive and isinstance(value, Mapping)
+            else value
+        )
+        out[new_key] = new_value
+    return out
+
+
 def get_first_value(data: Mapping[Any, T]) -> T:
     r"""Get the first value of a mapping.
 
@@ -180,6 +231,15 @@ def merge_mappings(
             - ``'suffix'``: keep all the values by adding a
                 ``'_n'`` suffix to the key name, where ``n`` is
                 incremented for each new occurrence.
+
+    Note:
+        With ``on_duplicate='suffix'``, only the *later* occurrences
+        of a conflicting key are renamed (``'{key}_1'``,
+        ``'{key}_2'``, ...); the first occurrence keeps the plain
+        key. This differs from :func:`flatten_mapping`'s
+        ``on_duplicate='prefix'`` strategy, which renames *every*
+        occurrence, including the first, once a genuine conflict is
+        detected for a key.
 
     Returns:
         The merged dict.

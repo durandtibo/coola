@@ -103,7 +103,7 @@ Date: 2026-09-09
     file/CI log), producing raw ANSI codes in non-interactive output.
     **Fix:** check `sys.stderr.isatty()` before attaching the color handler.
 
-15. **`hashing/str.py` vs `hashing/string.py`** — `StrHasher` (calls `str(data)` first)
+15. **NOT A BUG** — **`hashing/str.py` vs `hashing/string.py`** — `StrHasher` (calls `str(data)` first)
     and `StringHasher` (assumes input is already `str`) have confusingly similar names,
     risking accidental misuse.
     **Fix:** rename one to make the semantic difference clear from the name.
@@ -116,7 +116,7 @@ Date: 2026-09-09
     `next_handler`. `SameAttributeHandler` uses the mixin with
     `_equality_attrs() -> ("name",)` instead of reimplementing `equal()`.
 
-17. **`registry/vanilla.py` (`Registry`) vs `registry/type.py` (`TypeRegistry`)** — ~90%
+17. **FIXED** — **`registry/vanilla.py` (`Registry`) vs `registry/type.py` (`TypeRegistry`)** — ~90%
     duplicated: identical thread-safe implementations of `__contains__`,
     `__getitem__`, `__setitem__`, `__iter__`, `__len__`, `__repr__`, `__str__`,
     `clear`, `equal` (including the same lock-ordering trick), `get`, `has`,
@@ -134,48 +134,75 @@ Date: 2026-09-09
     **Fix:** guard with `threading.Lock` (or initialize eagerly at import time), and
     factor the duplicated logic into one shared helper.
 
-19. **`summary/mapping.py`, `summary/sequence.py`, `summary/set.py`** — `.summarize()`
+19. **FIXED** — **`summary/mapping.py`, `summary/sequence.py`, `summary/set.py`** — `.summarize()`
     is near-identical (~25 lines each): same empty/zero-`max_items`/depth-limit/
     truncation logic, differing only in iteration/formatting.
     **Fix:** factor the shared skeleton into `BaseCollectionSummarizer` as a template
     method.
 
-20. **`factory/constants.py:22`, `factory/resolve.py:18`, `factory/instantiation.py:70`** —
+20. **FIXED** — **`factory/constants.py:22`, `factory/resolve.py:18`, `factory/instantiation.py:70`** —
     `OBJECT_INIT = "_init_"` is defined and exported "to be robust to naming change"
     but `factory()`/`instantiate_object()` hardcode the literal `"_init_"` instead of
     referencing the constant, defeating its purpose.
-    **Fix:** wire `_init_` handling through the constant, or drop the constant and its
-    docstring claim.
+    **Fix:** `factory()` no longer declares an explicit `_init_` parameter; it now
+    pops the `OBJECT_INIT` key out of `**kwargs` (falling back to `"__init__"`), so a
+    config dict built with the `OBJECT_INIT` constant is honored the same way as one
+    using the literal `"_init_"` string. Covered by
+    `test_factory_object_init_constant_matches_literal_key`.
 
-21. **`nested/mapping.py`** — `merge_mappings`'s `"suffix"` strategy leaves the *first*
-    occurrence under the plain key and suffixes only later ones, while
+21. **FIXED** — **`nested/mapping.py`** — `merge_mappings`'s `"suffix"` strategy leaves the
+    *first* occurrence under the plain key and suffixes only later ones, while
     `flatten_mapping`'s `"prefix"` strategy renames *both* the first and later
     occurrences once a conflict is detected. Two similar dedup APIs behave differently
     for the "keep everything" case.
-    **Fix:** document the asymmetry prominently, or align first-occurrence handling.
+    **Fix:** documented the asymmetry prominently in both functions' docstrings, with
+    each cross-referencing the other's behavior. Covered by
+    `test_merge_mappings_flatten_mapping_first_occurrence_asymmetry`.
 
 22. **`iterator/bfs`/`iterator/dfs`** — `_register_default_child_finders` /
     `_register_default_iterators` bootstrap code is near copy-pasted between the two
     packages (plus the same singleton idiom as #18).
     **Fix:** share a common bootstrap/singleton helper.
 
-23. **`identifier/objectid.py` / `identifier/snowflake.py`** — both maintain a private
+23. **FIXED** — **`identifier/objectid.py` / `identifier/snowflake.py`** — both maintain a private
     module-level default generator instance with near-identical wrapper functions.
-    **Fix (minor):** a small `_singleton(cls)` helper would remove the repetition.
+    **Fix:** each module now exposes a public `get_default_generator()` function that
+    lazily builds and caches the shared instance on itself (the same
+    `hasattr(fn, "_x")`-on-the-function singleton pattern already used by
+    `get_default_registry()` in e.g. `equality/tester/interface.py`), replacing the
+    previously eagerly-built, private module-level instance. Covered by
+    `test_generate_object_id_uses_shared_default_generator` and
+    `test_generate_snowflake_id_uses_shared_default_generator`.
 
 ## Minor / hardening notes
 
-24. **`identifier/nanoid.py:65-95`** — `os.urandom(...)` sized off `length` in a loop
-    with no upper bound; a very large `length` allocates a correspondingly large
+24. **FIXED** — **`identifier/nanoid.py:65-95`** — `os.urandom(...)` sized off `length` in a
+    loop with no upper bound; a very large `length` allocates a correspondingly large
     buffer per iteration. Low risk since bounded by caller input, but worth capping.
+    **Fix:** `generate_nano_id` now raises `ValueError` when `length` exceeds a
+    `_MAX_LENGTH` cap (1024). Covered by `test_generate_nano_id_max_length_is_valid`,
+    `test_generate_nano_id_length_above_max_raises`, and
+    `test_generate_nano_id_very_large_length_raises`.
 
-25. **`utils/env_vars.py:19-67` (`check_env_vars`)** — logs use emoji prefixes
+25. **FIXED** — **`utils/env_vars.py:19-67` (`check_env_vars`)** — logs use emoji prefixes
     (`✅`/`❌`) baked into the message, inconsistent with the package's plain-text log
     style and a potential issue for non-UTF-8 log sinks.
 
-26. **`display/pydantic.py:71-73`** — `exclude_fields` names that don't exist on the
-    model are silently ignored, which can mask a caller's typo (e.g.
+    **Fix:** Removed the `✅`/`❌` emoji from the info/warning log messages in
+    `check_env_vars`. Covered by `test_check_env_vars_logs_success_message` and
+    `test_check_env_vars_logs_warning_message`.
+
+26. **FIXED** — **`display/pydantic.py:71-73`** — `exclude_fields` names that don't
+    exist on the model are silently ignored, which can mask a caller's typo (e.g.
     `exclude_fields=["nmae"]`). Consider warning/raising on unknown field names.
+
+    **Fix:** `_format_pydantic_model` now emits a `RuntimeWarning` listing any
+    `exclude_fields` names not present on the model, while still applying the
+    exclusion for the names that do match. Covered by
+    `test_str_pydantic_model_exclude_fields_missing_field`,
+    `test_str_pydantic_model_exclude_fields_missing_field_and_valid_field`,
+    `test_str_pydantic_model_exclude_fields_no_warning_for_valid_field`, and
+    `test_repr_pydantic_model_exclude_fields_missing_field`.
 
 ## Note on scope
 

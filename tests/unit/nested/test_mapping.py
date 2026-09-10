@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from coola.nested import (
+    add_prefix_suffix_to_keys,
     flatten_mapping,
     get_first_value,
     merge_mappings,
@@ -10,6 +11,65 @@ from coola.nested import (
     remove_keys_if,
     remove_keys_starting_with,
 )
+
+################################################
+#     Tests for add_prefix_suffix_to_keys     #
+################################################
+
+
+def test_add_prefix_suffix_to_keys_empty_mapping() -> None:
+    assert add_prefix_suffix_to_keys({}, prefix="prefix_") == {}
+
+
+def test_add_prefix_suffix_to_keys_prefix_only() -> None:
+    assert add_prefix_suffix_to_keys({"key1": 1, "key2": 2}, prefix="prefix_") == {
+        "prefix_key1": 1,
+        "prefix_key2": 2,
+    }
+
+
+def test_add_prefix_suffix_to_keys_suffix_only() -> None:
+    assert add_prefix_suffix_to_keys({"key1": 1, "key2": 2}, suffix="_suffix") == {
+        "key1_suffix": 1,
+        "key2_suffix": 2,
+    }
+
+
+def test_add_prefix_suffix_to_keys_prefix_and_suffix() -> None:
+    assert add_prefix_suffix_to_keys({"key1": 1, "key2": 2}, prefix="pre_", suffix="_suf") == {
+        "pre_key1_suf": 1,
+        "pre_key2_suf": 2,
+    }
+
+
+def test_add_prefix_suffix_to_keys_no_prefix_or_suffix() -> None:
+    assert add_prefix_suffix_to_keys({"key1": 1, "key2": 2}) == {"key1": 1, "key2": 2}
+
+
+def test_add_prefix_suffix_to_keys_non_string_key() -> None:
+    assert add_prefix_suffix_to_keys({1: "a", "key": "b"}, prefix="prefix_") == {
+        1: "a",
+        "prefix_key": "b",
+    }
+
+
+def test_add_prefix_suffix_to_keys_not_recursive_by_default() -> None:
+    assert add_prefix_suffix_to_keys({"key1": 1, "key2": {"key3": 3}}, prefix="prefix_") == {
+        "prefix_key1": 1,
+        "prefix_key2": {"key3": 3},
+    }
+
+
+def test_add_prefix_suffix_to_keys_recursive() -> None:
+    assert add_prefix_suffix_to_keys(
+        {"key1": 1, "key2": {"key3": 3, "key4": {"key5": 5}}},
+        prefix="prefix_",
+        recursive=True,
+    ) == {
+        "prefix_key1": 1,
+        "prefix_key2": {"prefix_key3": 3, "prefix_key4": {"prefix_key5": 5}},
+    }
+
 
 #####################################
 #     Tests for flatten_mapping     #
@@ -312,6 +372,19 @@ def test_merge_mappings_same_value_multiple_mappings() -> None:
 )
 def test_merge_mappings(mappings: list[dict], on_duplicate: str, expected: dict) -> None:
     assert merge_mappings(mappings, on_duplicate=on_duplicate) == expected
+
+
+def test_merge_mappings_flatten_mapping_first_occurrence_asymmetry() -> None:
+    """Test and document the documented asymmetry between
+    ``merge_mappings(on_duplicate='suffix')``, which leaves the first
+    occurrence of a conflicting key under the plain key, and
+    ``flatten_mapping(on_duplicate='prefix')``, which renames every
+    occurrence, including the first, once a real conflict is found."""
+    merged = merge_mappings([{"a": 1}, {"a": 2}], on_duplicate="suffix")
+    assert merged == {"a": 1, "a_1": 2}  # first occurrence keeps the plain key
+
+    flattened = flatten_mapping({"m1": {"a": 1}, "m2": {"a": 2}}, on_duplicate="prefix")
+    assert flattened == {"m1.a": 1, "m2.a": 2}  # first occurrence is renamed too
 
 
 def test_merge_mappings_default_on_duplicate_is_raise() -> None:

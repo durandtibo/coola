@@ -42,6 +42,21 @@ def test_generate_nano_id_negative_length_raises() -> None:
         generate_nano_id(length=-1)
 
 
+def test_generate_nano_id_max_length_is_valid() -> None:
+    nano_id = generate_nano_id(length=1024)
+    assert len(nano_id) == 1024
+
+
+def test_generate_nano_id_length_above_max_raises() -> None:
+    with pytest.raises(ValueError, match="length must be at most 1024, got 1025"):
+        generate_nano_id(length=1025)
+
+
+def test_generate_nano_id_very_large_length_raises() -> None:
+    with pytest.raises(ValueError, match="length must be at most 1024"):
+        generate_nano_id(length=10_000_000)
+
+
 def test_generate_nano_id_empty_alphabet_raises() -> None:
     with pytest.raises(ValueError, match="alphabet must not be empty"):
         generate_nano_id(alphabet="")

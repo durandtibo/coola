@@ -329,7 +329,8 @@ def test_generate_snowflake_id_uses_shared_default_generator(
     # timestamp below, which would otherwise make any later call to
     # `generate_snowflake_id` in this process raise "clock moved
     # backward".
-    monkeypatch.setattr(snowflake, "_default_generator", SnowflakeIdGenerator())
+    fresh_generator = SnowflakeIdGenerator()
+    monkeypatch.setattr(snowflake, "get_default_generator", lambda: fresh_generator)
     with patch("time.time_ns", return_value=1_900_000_000_000 * 1_000_000):
         first = generate_snowflake_id()
         second = generate_snowflake_id()
