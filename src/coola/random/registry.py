@@ -21,7 +21,7 @@ from coola.registry import Registry
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 class RandomManagerRegistry(MultilineDisplayMixin, BaseRandomManager):

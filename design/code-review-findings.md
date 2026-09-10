@@ -49,13 +49,13 @@ Date: 2026-09-09
    `np.allclose` can raise instead of returning `False`.
    **Fix:** also require `is_numeric_array(array2)` before calling `np.allclose`.
 
-7. **`random/registry.py:171-173` (`set_rng_state`)** —
+7. **FIXED** — **`random/registry.py:171-173` (`set_rng_state`)** —
    `for key, value in state.items(): self._state[key].set_rng_state(value)` raises a
    raw `KeyError` if `state` contains a key not currently registered, unlike
    `manual_seed`/`get_rng_state` which only touch what's registered.
    **Fix:** skip unknown keys (or raise a clear, documented error).
 
-8. **`recursive/key.py:54-80` (`KeyFilterTransformer`)** — `func` is overloaded for
+8. **FIXED** — **`recursive/key.py:54-80` (`KeyFilterTransformer`)** — `func` is overloaded for
    two unrelated roles: the key-drop predicate (`func(key)`) and, unchanged, the
    recursive value-transform function (`registry.transform(value, func)`). The class's
    own doctest shows the surprising result (`{"keep": 1, "secret": 2}` →
