@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import threading
 from collections.abc import Generator, Iterable, Mapping
 from typing import Any
 
@@ -15,6 +16,7 @@ from coola.iterator.bfs import (
     get_default_registry,
     register_child_finders,
 )
+from coola.iterator.bfs.interface import _default_registry
 from tests.unit.iterator.bfs.helpers import (
     DEFAULT_ITERATE_SAMPLES,
     ITERATE_SAMPLES,
@@ -25,11 +27,9 @@ from tests.unit.iterator.bfs.helpers import (
 @pytest.fixture(autouse=True)
 def _reset_default_registry() -> Generator[None, None, None]:
     """Reset the registry before and after each test."""
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    _default_registry.reset()
     yield
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    _default_registry.reset()
 
 
 #################################
@@ -128,6 +128,25 @@ def test_register_default_child_finders_registers_object() -> None:
 def test_default_registry_can_iterate(data: Any, expected: Any) -> None:
     """Test the behavior of the default child_finder registry."""
     assert objects_are_equal(list(get_default_registry().iterate(data)), expected)
+
+
+def test_get_default_registry_thread_safe() -> None:
+    """Test that concurrent first calls do not race and build different
+    registries."""
+    results = [None] * 16
+    barrier = threading.Barrier(16)
+
+    def worker(index: int) -> None:
+        barrier.wait()
+        results[index] = get_default_registry()
+
+    threads = [threading.Thread(target=worker, args=(i,)) for i in range(16)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    assert all(result is results[0] for result in results)
 
 
 def test_get_default_registry_singleton_persists_modifications() -> None:

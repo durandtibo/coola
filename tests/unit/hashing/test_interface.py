@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import threading
 from collections.abc import Generator, Mapping, Sequence
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -19,16 +20,15 @@ from coola.hashing import (
     hash_object,
     register_hashers,
 )
+from coola.hashing.interface import _default_registry
 
 
 @pytest.fixture(autouse=True)
 def _reset_default_registry() -> Generator[None, None, None]:
     """Reset the singleton registry before and after each test."""
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    _default_registry.reset()
     yield
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    _default_registry.reset()
 
 
 class CustomList(list):
@@ -193,6 +193,25 @@ def test_get_default_registry_returns_registry() -> None:
 
 def test_get_default_registry_returns_singleton() -> None:
     assert get_default_registry() is get_default_registry()
+
+
+def test_get_default_registry_thread_safe() -> None:
+    """Test that concurrent first calls do not race and build different
+    registries."""
+    results = [None] * 16
+    barrier = threading.Barrier(16)
+
+    def worker(index: int) -> None:
+        barrier.wait()
+        results[index] = get_default_registry()
+
+    threads = [threading.Thread(target=worker, args=(i,)) for i in range(16)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    assert all(result is results[0] for result in results)
 
 
 def test_get_default_registry_singleton_persists_modifications() -> None:

@@ -122,7 +122,7 @@ Date: 2026-09-09
     `TypeRegistry` only adds MRO `resolve()`/caching on top.
     **Fix:** have `TypeRegistry` compose/extend a shared base with `Registry`.
 
-18. **`get_default_registry()` singleton pattern (non-thread-safe, repeated 6x)** —
+18. **FIXED** — **`get_default_registry()` singleton pattern (non-thread-safe, repeated 6x)** —
     `equality/tester/interface.py`, `hashing/interface.py`, `recursive/interface.py`,
     `random/interface.py`, `iterator/bfs/interface.py`, `iterator/dfs/interface.py`,
     `summary/interface.py` all use

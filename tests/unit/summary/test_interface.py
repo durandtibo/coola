@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import threading
 from collections.abc import Generator, Mapping, Sequence
 from unittest.mock import Mock, patch
 
@@ -17,6 +18,7 @@ from coola.summary import (
     register_summarizers,
     summarize,
 )
+from coola.summary.interface import _default_registry
 from coola.testing.fixtures import numpy_available, torch_available
 from coola.utils.imports import is_numpy_available, is_torch_available
 
@@ -30,11 +32,9 @@ if is_numpy_available():  # pragma: no cover
 @pytest.fixture(autouse=True)
 def _reset_default_registry() -> Generator[None, None, None]:
     """Reset the registry before and after each test."""
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    _default_registry.reset()
     yield
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    _default_registry.reset()
 
 
 class CustomList(list):
@@ -195,6 +195,25 @@ def test_default_registry_can_summarize_dict() -> None:
     """Test that default registry can summarize a dict."""
     registry = get_default_registry()
     assert registry.summarize({"a": 1, "b": 2}) == "<class 'dict'> (length=2)\n  (a): 1\n  (b): 2"
+
+
+def test_get_default_registry_thread_safe() -> None:
+    """Test that concurrent first calls do not race and build different
+    registries."""
+    results = [None] * 16
+    barrier = threading.Barrier(16)
+
+    def worker(index: int) -> None:
+        barrier.wait()
+        results[index] = get_default_registry()
+
+    threads = [threading.Thread(target=worker, args=(i,)) for i in range(16)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    assert all(result is results[0] for result in results)
 
 
 def test_get_default_registry_singleton_persists_modifications() -> None:

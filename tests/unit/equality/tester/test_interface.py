@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import threading
 from collections import OrderedDict, deque
 from collections.abc import Generator, Mapping, Sequence
 
@@ -31,6 +32,7 @@ from coola.equality.tester import (
     get_default_registry,
     register_equality_testers,
 )
+from coola.equality.tester.interface import _default_registry
 from coola.equality.tester.jax import get_array_impl_class
 from coola.utils.imports import (
     is_jax_available,
@@ -61,11 +63,9 @@ if is_xarray_available():
 @pytest.fixture(autouse=True)
 def _reset_default_registry() -> Generator[None, None, None]:
     """Reset the registry before and after each test."""
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    _default_registry.reset()
     yield
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    _default_registry.reset()
 
 
 @pytest.fixture
@@ -188,6 +188,25 @@ def test_get_default_registry_returns_singleton() -> None:
     registry1 = get_default_registry()
     registry2 = get_default_registry()
     assert registry1 is registry2
+
+
+def test_get_default_registry_thread_safe() -> None:
+    """Test that concurrent first calls do not race and build different
+    registries."""
+    results = [None] * 16
+    barrier = threading.Barrier(16)
+
+    def worker(index: int) -> None:
+        barrier.wait()
+        results[index] = get_default_registry()
+
+    threads = [threading.Thread(target=worker, args=(i,)) for i in range(16)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    assert all(result is results[0] for result in results)
 
 
 @pytest.mark.parametrize(("dtype", "tester_class", "is_registered"), TESTER_TYPES)

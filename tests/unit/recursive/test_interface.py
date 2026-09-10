@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import threading
 from collections.abc import Generator, Mapping, Sequence
 
 import pytest
@@ -14,16 +15,15 @@ from coola.recursive import (
     recursive_apply,
     register_transformers,
 )
+from coola.recursive.interface import _default_registry
 
 
 @pytest.fixture(autouse=True)
 def _reset_default_registry() -> Generator[None, None, None]:
     """Reset the registry before and after each test."""
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    _default_registry.reset()
     yield
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    _default_registry.reset()
 
 
 class CustomList(list):
@@ -181,6 +181,25 @@ def test_default_registry_can_transform_dict() -> None:
     """Test that default registry can transform a dict."""
     registry = get_default_registry()
     assert registry.transform({"a": 1, "b": 2}, lambda x: x * 10) == {"a": 10, "b": 20}
+
+
+def test_get_default_registry_thread_safe() -> None:
+    """Test that concurrent first calls do not race and build different
+    registries."""
+    results = [None] * 16
+    barrier = threading.Barrier(16)
+
+    def worker(index: int) -> None:
+        barrier.wait()
+        results[index] = get_default_registry()
+
+    threads = [threading.Thread(target=worker, args=(i,)) for i in range(16)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    assert all(result is results[0] for result in results)
 
 
 def test_get_default_registry_singleton_persists_modifications() -> None:

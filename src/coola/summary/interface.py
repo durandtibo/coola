@@ -15,6 +15,7 @@ from coola.summary.sequence import SequenceSummarizer
 from coola.summary.set import SetSummarizer
 from coola.summary.torch import TensorSummarizer
 from coola.utils.imports import is_numpy_available, is_torch_available
+from coola.utils.singleton import LazySingleton
 
 if TYPE_CHECKING:
     from coola.summary.base import BaseSummarizer
@@ -134,11 +135,16 @@ def get_default_registry() -> SummarizerRegistry:
 
         ```
     """
-    if not hasattr(get_default_registry, "_registry"):
-        registry = SummarizerRegistry()
-        _register_default_summarizers(registry)
-        get_default_registry._registry = registry
-    return get_default_registry._registry
+    return _default_registry.get()
+
+
+def _create_default_registry() -> SummarizerRegistry:
+    registry = SummarizerRegistry()
+    _register_default_summarizers(registry)
+    return registry
+
+
+_default_registry: LazySingleton[SummarizerRegistry] = LazySingleton(_create_default_registry)
 
 
 def _register_default_summarizers(registry: SummarizerRegistry) -> None:

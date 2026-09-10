@@ -12,6 +12,7 @@ from coola.iterator.bfs.default import DefaultChildFinder
 from coola.iterator.bfs.iterable import IterableChildFinder
 from coola.iterator.bfs.mapping import MappingChildFinder
 from coola.iterator.bfs.registry import ChildFinderRegistry
+from coola.utils.singleton import LazySingleton
 
 if TYPE_CHECKING:
     from coola.iterator.bfs import BaseChildFinder
@@ -104,11 +105,16 @@ def get_default_registry() -> ChildFinderRegistry:
 
         ```
     """
-    if not hasattr(get_default_registry, "_registry"):
-        registry = ChildFinderRegistry()
-        _register_default_child_finders(registry)
-        get_default_registry._registry = registry
-    return get_default_registry._registry
+    return _default_registry.get()
+
+
+def _create_default_registry() -> ChildFinderRegistry:
+    registry = ChildFinderRegistry()
+    _register_default_child_finders(registry)
+    return registry
+
+
+_default_registry: LazySingleton[ChildFinderRegistry] = LazySingleton(_create_default_registry)
 
 
 def _register_default_child_finders(registry: ChildFinderRegistry) -> None:

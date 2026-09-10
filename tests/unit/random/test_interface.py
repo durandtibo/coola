@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import random
+import threading
 from typing import TYPE_CHECKING
 from unittest.mock import Mock, patch
 
@@ -14,6 +15,7 @@ from coola.random import (
     register_managers,
 )
 from coola.random.interface import (
+    _default_registry,
     get_rng_state,
     manual_seed,
     random_seed,
@@ -38,11 +40,9 @@ if is_torch_available():
 def _reset_default_registry() -> Generator[None, None, None]:
     """Reset the default registry before and after each test to ensure
     test isolation."""
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    _default_registry.reset()
     yield
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    _default_registry.reset()
 
 
 class CustomList(list):
@@ -248,6 +248,25 @@ def test_get_default_registry_without_torch() -> None:
     unavailable."""
     registry = get_default_registry()
     assert not registry.has_manager("torch")
+
+
+def test_get_default_registry_thread_safe() -> None:
+    """Test that concurrent first calls do not race and build different
+    registries."""
+    results = [None] * 16
+    barrier = threading.Barrier(16)
+
+    def worker(index: int) -> None:
+        barrier.wait()
+        results[index] = get_default_registry()
+
+    threads = [threading.Thread(target=worker, args=(i,)) for i in range(16)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    assert all(result is results[0] for result in results)
 
 
 def test_get_default_registry_singleton_persists_modifications() -> None:
