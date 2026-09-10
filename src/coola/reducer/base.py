@@ -159,10 +159,8 @@ class BaseReducer(ABC, Generic[T]):
                 Defaults to ``False`` (ascending order).
 
         Returns:
-            The sorted values.
-
-        Raises:
-            EmptySequenceError: if the input sequence is empty.
+            The sorted values. An empty input returns an empty list,
+            unlike the other reduction methods.
 
         Example:
             ```pycon
@@ -172,6 +170,8 @@ class BaseReducer(ABC, Generic[T]):
             [-2, 0, 1, 2, 3]
             >>> reducer.sort([2, 1, -2, 3, 0], descending=True)
             [3, 2, 1, 0, -2]
+            >>> reducer.sort([])
+            []
 
             ```
         """
@@ -305,24 +305,12 @@ class BaseBasicReducer(BaseReducer[T]):
             The quantiles.
         """
 
-    def sort(self, values: T, descending: bool = False) -> list[int | float]:
-        if self._is_empty(values):
-            msg = "Cannot sort because the sequence is empty"
-            raise EmptySequenceError(msg)
-        return self._sort(values, descending=descending)
-
-    @abstractmethod
-    def _sort(self, values: T, descending: bool = False) -> list[int | float]:
-        r"""Sort the values.
-
-        Args:
-            values: The values.
-            descending: If ``True``, sorts in descending order.
-                Defaults to ``False`` (ascending order).
-
-        Returns:
-            The sorted values.
-        """
+    # Unlike the other reductions, sorting is well-defined for an empty
+    # sequence (``sorted([]) == []``), so ``sort`` intentionally has no
+    # concrete override here that would route it through the
+    # ``_is_empty`` check guarding max/mean/median/min/quantile/std;
+    # subclasses implement ``sort`` (inherited from ``BaseReducer``)
+    # directly.
 
     def std(self, values: T) -> float:
         if self._is_empty(values):

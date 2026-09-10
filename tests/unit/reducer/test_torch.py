@@ -244,8 +244,7 @@ def test_torch_reducer_sort_descending(values: Sequence[int | float]) -> None:
 @torch_available
 @pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_torch_reducer_sort_empty(values: Sequence[int | float]) -> None:
-    with pytest.raises(EmptySequenceError, match=r"Cannot sort because the sequence is empty"):
-        TorchReducer().sort(values)
+    assert TorchReducer().sort(values) == []
 
 
 @torch_available
