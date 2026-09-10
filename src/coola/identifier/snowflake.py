@@ -131,7 +131,9 @@ class SnowflakeIdGenerator:
             as the system clock does not move backward).
 
         Raises:
-            ValueError: If ``worker_id`` does not fit in 10 bits.
+            ValueError: If ``worker_id`` does not fit in 10 bits, or if
+                ``timestamp_ms`` (relative to the fixed epoch) does not
+                fit in 41 bits.
             RuntimeError: If the system clock moved backward relative
                 to the last call, which would otherwise risk
                 generating a duplicate or decreasing ID.
@@ -151,6 +153,9 @@ class SnowflakeIdGenerator:
         with self._lock:
             if timestamp_ms is None:
                 timestamp_ms = time.time_ns() // 1_000_000
+            validate_bit_range(
+                timestamp_ms - _EPOCH_MS, _TIMESTAMP_BITS, name="timestamp_ms - epoch"
+            )
             if timestamp_ms < self._last_timestamp_ms:
                 msg = (
                     f"clock moved backward: last timestamp was {self._last_timestamp_ms} ms, "

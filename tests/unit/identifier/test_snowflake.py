@@ -171,11 +171,36 @@ def test_snowflake_id_generator_generate_accepts_explicit_timestamp_ms() -> None
     assert decoded_ms == fixed_ms
 
 
+def test_snowflake_id_generator_generate_timestamp_ms_too_large_raises() -> None:
+    generator = SnowflakeIdGenerator()
+    with pytest.raises(ValueError, match="timestamp_ms"):
+        generator.generate(timestamp_ms=_EPOCH_MS + (1 << 41))
+
+
+def test_snowflake_id_generator_generate_timestamp_ms_too_small_raises() -> None:
+    generator = SnowflakeIdGenerator()
+    with pytest.raises(ValueError, match="timestamp_ms"):
+        generator.generate(timestamp_ms=_EPOCH_MS - 1)
+
+
+def test_snowflake_id_generator_generate_timestamp_ms_max_is_valid() -> None:
+    fixed_ms = _EPOCH_MS + (1 << 41) - 1
+    snowflake_id = SnowflakeIdGenerator().generate(timestamp_ms=fixed_ms)
+    decoded_ms, _, _ = _decode(snowflake_id)
+    assert decoded_ms == fixed_ms
+
+
+def test_snowflake_id_generator_generate_timestamp_ms_min_is_valid() -> None:
+    snowflake_id = SnowflakeIdGenerator().generate(timestamp_ms=_EPOCH_MS)
+    decoded_ms, _, _ = _decode(snowflake_id)
+    assert decoded_ms == _EPOCH_MS
+
+
 def test_snowflake_id_generator_generate_explicit_timestamp_ms_backward_raises() -> None:
     generator = SnowflakeIdGenerator()
     generator.generate(timestamp_ms=1_800_000_000_000)
     with pytest.raises(RuntimeError, match="clock moved backward"):
-        generator.generate(timestamp_ms=1_700_000_000_000)
+        generator.generate(timestamp_ms=1_750_000_000_000)
 
 
 def test_snowflake_id_generator_generate_clock_moved_backward_raises() -> None:
