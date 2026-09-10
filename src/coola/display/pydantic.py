@@ -5,6 +5,7 @@ from __future__ import annotations
 
 __all__ = ["repr_pydantic_model", "secret_field_names", "str_pydantic_model"]
 
+import warnings
 from typing import TYPE_CHECKING, Any, get_args
 
 from coola.utils.format import repr_mapping_line, str_mapping_line
@@ -97,6 +98,13 @@ def _format_pydantic_model(
         config = {k: v for k, v in config.items() if v is not None}
     if exclude_fields:
         excluded = set(exclude_fields)
+        unknown = excluded - config.keys()
+        if unknown:
+            msg = (
+                f"'exclude_fields' contains field names that do not exist on "
+                f"{type(model).__qualname__}: {sorted(unknown)}"
+            )
+            warnings.warn(msg, RuntimeWarning, stacklevel=3)
         config = {k: v for k, v in config.items() if k not in excluded}
     if sort:
         config = sort_by_keys(config)

@@ -182,13 +182,21 @@ Date: 2026-09-09
     `test_generate_nano_id_length_above_max_raises`, and
     `test_generate_nano_id_very_large_length_raises`.
 
-25. **`utils/env_vars.py:19-67` (`check_env_vars`)** — logs use emoji prefixes
+25. **NOT A BUG** — **`utils/env_vars.py:19-67` (`check_env_vars`)** — logs use emoji prefixes
     (`✅`/`❌`) baked into the message, inconsistent with the package's plain-text log
     style and a potential issue for non-UTF-8 log sinks.
 
-26. **`display/pydantic.py:71-73`** — `exclude_fields` names that don't exist on the
-    model are silently ignored, which can mask a caller's typo (e.g.
+26. **FIXED** — **`display/pydantic.py:71-73`** — `exclude_fields` names that don't
+    exist on the model are silently ignored, which can mask a caller's typo (e.g.
     `exclude_fields=["nmae"]`). Consider warning/raising on unknown field names.
+
+    **Fix:** `_format_pydantic_model` now emits a `RuntimeWarning` listing any
+    `exclude_fields` names not present on the model, while still applying the
+    exclusion for the names that do match. Covered by
+    `test_str_pydantic_model_exclude_fields_missing_field`,
+    `test_str_pydantic_model_exclude_fields_missing_field_and_valid_field`,
+    `test_str_pydantic_model_exclude_fields_no_warning_for_valid_field`, and
+    `test_repr_pydantic_model_exclude_fields_missing_field`.
 
 ## Note on scope
 

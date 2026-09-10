@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import warnings
+
 import pytest
 
 from coola.display import repr_pydantic_model, str_pydantic_model
@@ -129,10 +131,26 @@ def test_str_pydantic_model_exclude_fields() -> None:
 @pydantic_available
 def test_str_pydantic_model_exclude_fields_missing_field() -> None:
     model = MyModel(name="alice", age=30, token=SecretStr("s3cr3t"))
-    assert (
-        str_pydantic_model(model, exclude_fields=["does_not_exist"])
-        == "MyModel(age=30, name=alice, nickname=None)"
-    )
+    with pytest.warns(RuntimeWarning, match="does_not_exist"):
+        out = str_pydantic_model(model, exclude_fields=["does_not_exist"])
+    assert out == "MyModel(age=30, name=alice, nickname=None)"
+
+
+@pydantic_available
+def test_str_pydantic_model_exclude_fields_missing_field_and_valid_field() -> None:
+    model = MyModel(name="alice", age=30, token=SecretStr("s3cr3t"))
+    with pytest.warns(RuntimeWarning, match="does_not_exist"):
+        out = str_pydantic_model(model, exclude_fields=["does_not_exist", "nickname"])
+    assert out == "MyModel(age=30, name=alice)"
+
+
+@pydantic_available
+def test_str_pydantic_model_exclude_fields_no_warning_for_valid_field() -> None:
+    model = MyModel(name="alice", age=30, token=SecretStr("s3cr3t"))
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        out = str_pydantic_model(model, exclude_fields=["nickname"])
+    assert out == "MyModel(age=30, name=alice)"
 
 
 @pydantic_available
@@ -181,6 +199,14 @@ def test_repr_pydantic_model_exclude_fields() -> None:
     assert (
         repr_pydantic_model(model, exclude_fields=["nickname"]) == "MyModel(age=30, name='alice')"
     )
+
+
+@pydantic_available
+def test_repr_pydantic_model_exclude_fields_missing_field() -> None:
+    model = MyModel(name="alice", age=30, token=SecretStr("s3cr3t"))
+    with pytest.warns(RuntimeWarning, match="does_not_exist"):
+        out = repr_pydantic_model(model, exclude_fields=["does_not_exist"])
+    assert out == "MyModel(age=30, name='alice', nickname=None)"
 
 
 @pydantic_available
