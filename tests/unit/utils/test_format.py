@@ -449,10 +449,10 @@ def test_str_human_byte_size_zero() -> None:
 def test_str_human_byte_size_exact_kb_boundary() -> None:
     """Test str_human_byte_size at exact KB boundary (1024 bytes).
 
-    Note: At exactly 1024 bytes, 1024/1024 = 1.0, which is not > 1,
-    so the function keeps the unit as 'B' rather than upgrading to 'KB'.
+    Note: At exactly 1024 bytes, 1024/1024 = 1.0, which upgrades the
+    unit to 'KB'.
     """
-    assert str_human_byte_size(1024) == "1,024.00 B"
+    assert str_human_byte_size(1024) == "1.00 KB"
 
 
 def test_str_human_byte_size_just_over_kb() -> None:
@@ -468,10 +468,10 @@ def test_str_human_byte_size_just_under_kb() -> None:
 def test_str_human_byte_size_exact_mb_boundary() -> None:
     """Test str_human_byte_size at exact MB boundary (1048576 bytes).
 
-    Note: At exactly 1048576 bytes, 1048576/1048576 = 1.0, which is not > 1,
-    so the function keeps the unit as 'KB' rather than upgrading to 'MB'.
+    Note: At exactly 1048576 bytes, 1048576/1048576 = 1.0, which upgrades
+    the unit to 'MB'.
     """
-    assert str_human_byte_size(1048576) == "1,024.00 KB"
+    assert str_human_byte_size(1048576) == "1.00 MB"
 
 
 def test_str_human_byte_size_just_over_mb() -> None:
@@ -482,9 +482,10 @@ def test_str_human_byte_size_just_over_mb() -> None:
 def test_str_human_byte_size_exact_gb_boundary() -> None:
     """Test str_human_byte_size at exact GB boundary (1073741824 bytes).
 
-    Note: At exactly 1073741824 bytes, the function keeps the unit as 'MB'.
+    Note: At exactly 1073741824 bytes, the function upgrades the unit to
+    'GB'.
     """
-    assert str_human_byte_size(1073741824) == "1,024.00 MB"
+    assert str_human_byte_size(1073741824) == "1.00 GB"
 
 
 def test_str_human_byte_size_incorrect_unit() -> None:
@@ -515,10 +516,10 @@ def test_find_best_byte_unit_zero() -> None:
 def test_find_best_byte_unit_exact_kb_boundary() -> None:
     """Test find_best_byte_unit at exact KB boundary (1024 bytes).
 
-    Note: At exactly 1024 bytes, 1024/1024 = 1.0, which is not > 1,
-    so the function returns 'B' rather than 'KB'.
+    Note: At exactly 1024 bytes, 1024/1024 = 1.0, which upgrades the
+    unit to 'KB'.
     """
-    assert find_best_byte_unit(1024) == "B"
+    assert find_best_byte_unit(1024) == "KB"
 
 
 def test_find_best_byte_unit_just_over_kb() -> None:
@@ -529,9 +530,9 @@ def test_find_best_byte_unit_just_over_kb() -> None:
 def test_find_best_byte_unit_exact_mb_boundary() -> None:
     """Test find_best_byte_unit at exact MB boundary (1048576 bytes).
 
-    Note: At exactly 1048576 bytes, the function returns 'KB'.
+    Note: At exactly 1048576 bytes, the function returns 'MB'.
     """
-    assert find_best_byte_unit(1048576) == "KB"
+    assert find_best_byte_unit(1048576) == "MB"
 
 
 def test_find_best_byte_unit_just_over_mb() -> None:
@@ -542,9 +543,9 @@ def test_find_best_byte_unit_just_over_mb() -> None:
 def test_find_best_byte_unit_exact_gb_boundary() -> None:
     """Test find_best_byte_unit at exact GB boundary (1073741824 bytes).
 
-    Note: At exactly 1073741824 bytes, the function returns 'MB'.
+    Note: At exactly 1073741824 bytes, the function returns 'GB'.
     """
-    assert find_best_byte_unit(1073741824) == "MB"
+    assert find_best_byte_unit(1073741824) == "GB"
 
 
 def test_find_best_byte_unit_negative_size() -> None:

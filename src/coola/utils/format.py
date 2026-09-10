@@ -465,6 +465,6 @@ def find_best_byte_unit(size: int) -> str:
         raise ValueError(msg)
     best_unit = "B"
     for unit, multiplier in BYTE_UNITS.items():
-        if (size / multiplier) > 1:
+        if (size / multiplier) >= 1:
             best_unit = unit
     return best_unit

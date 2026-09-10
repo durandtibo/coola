@@ -58,7 +58,11 @@ class SequenceSummarizer(BaseCollectionSummarizer[Sequence[Any]]):
         max_depth: int = 1,
     ) -> str:
         if depth >= max_depth:
-            return registry.summarize(str(data), depth=depth + 1, max_depth=max_depth)
+            text = str(data)
+            if self._max_items >= 0 and len(data) > self._max_items:
+                preview = list(islice(data, self._max_items))
+                text = f"{preview!r} ..."
+            return registry.summarize(text, depth=depth + 1, max_depth=max_depth)
         typ = type(data)
         length = len(data)
         if length == 0:

@@ -138,6 +138,16 @@ def test_mapping_summarizer_summarize_depth_exceeds_max_depth(registry: Summariz
     assert result == "{'key1': 'value1'}"
 
 
+def test_mapping_summarizer_summarize_depth_exceeds_max_depth_truncates_before_stringify(
+    registry: SummarizerRegistry,
+) -> None:
+    """At the max_depth boundary, only the first max_items pairs are
+    stringified, instead of stringifying the whole mapping."""
+    data = {i: i for i in range(1000)}
+    result = MappingSummarizer(max_items=3).summarize(data, registry, depth=1, max_depth=1)
+    assert result == "{0: 0, 1: 1, 2: 2} ..."
+
+
 def test_mapping_summarizer_summarize_custom_num_spaces(registry: SummarizerRegistry) -> None:
     result = MappingSummarizer(num_spaces=4).summarize({"key1": "value1"}, registry)
     assert result == "<class 'dict'> (length=1)\n    (key1): value1"
