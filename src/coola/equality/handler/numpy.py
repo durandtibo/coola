@@ -83,7 +83,11 @@ def array_equal(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) 
 
         ```
     """
-    if (config.atol > 0 or config.rtol > 0) and is_numeric_array(array1):
+    if (
+        (config.atol > 0 or config.rtol > 0)
+        and is_numeric_array(array1)
+        and is_numeric_array(array2)
+    ):
         return np.allclose(
             array1, array2, rtol=config.rtol, atol=config.atol, equal_nan=config.equal_nan
         )

@@ -237,6 +237,32 @@ def test_array_equal_true_rtol(array: np.ndarray, config: EqualityConfig) -> Non
     assert array_equal(array, array.copy(), config=config)
 
 
+@numpy_available
+def test_array_equal_false_non_numeric_array1_atol(config: EqualityConfig) -> None:
+    config.atol = 1e-6
+    assert not array_equal(
+        np.array(["polar", "bear", "meow"]), np.array([1, 0, 1], dtype=np.int64), config=config
+    )
+
+
+@numpy_available
+def test_array_equal_false_non_numeric_array2_atol(config: EqualityConfig) -> None:
+    # array2 has a non-numeric dtype: array_equal must not blindly call
+    # np.allclose on it (it would raise a TypeError) and must return False instead.
+    config.atol = 1e-6
+    assert not array_equal(
+        np.array([1, 0, 1], dtype=np.int64), np.array(["polar", "bear", "meow"]), config=config
+    )
+
+
+@numpy_available
+def test_array_equal_false_non_numeric_array2_rtol(config: EqualityConfig) -> None:
+    config.rtol = 1e-3
+    assert not array_equal(
+        np.array([1, 0, 1], dtype=np.int64), np.array(["polar", "bear", "meow"]), config=config
+    )
+
+
 ######################################
 #     Tests for is_numeric_array     #
 ######################################
