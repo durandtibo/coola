@@ -39,6 +39,17 @@ class Line:
     end: Point
 
 
+@dataclass
+class Container:
+    items: list
+    mapping: dict
+
+
+@dataclass
+class Wrapper:
+    value: object
+
+
 ##############################
 #     Tests for to_jsonable      #
 ##############################
@@ -104,3 +115,48 @@ def test_to_json_torch_tensor() -> None:
 @torch_available
 def test_to_json_torch_tensor_2d() -> None:
     assert to_jsonable(torch.tensor([[1, 2], [3, 4]])) == [[1, 2], [3, 4]]
+
+
+@numpy_available
+def test_to_json_dataclass_with_nested_numpy_array() -> None:
+    """A numpy.ndarray field nested inside a dataclass must be
+    converted, even though dataclasses.asdict does not convert it on its
+    own."""
+    assert to_jsonable(Wrapper(value=np.array([1, 2, 3]))) == {"value": [1, 2, 3]}
+
+
+@torch_available
+def test_to_json_dataclass_with_nested_torch_tensor() -> None:
+    """A torch.Tensor field nested inside a dataclass must be converted,
+    even though dataclasses.asdict does not convert it on its own."""
+    assert to_jsonable(Wrapper(value=torch.tensor([1, 2, 3]))) == {"value": [1, 2, 3]}
+
+
+@pydantic_available
+def test_to_json_dataclass_with_nested_pydantic_model() -> None:
+    """A pydantic.BaseModel field nested inside a dataclass must be
+    converted, even though dataclasses.asdict does not convert it on its
+    own."""
+    assert to_jsonable(Wrapper(value=MyModel(name="alice", age=30))) == {
+        "value": {"name": "alice", "age": 30}
+    }
+
+
+@numpy_available
+def test_to_json_dataclass_with_nested_numpy_array_in_list() -> None:
+    """A numpy.ndarray nested inside a list field of a dataclass must be
+    converted."""
+    assert to_jsonable(Container(items=[np.array([1, 2])], mapping={})) == {
+        "items": [[1, 2]],
+        "mapping": {},
+    }
+
+
+@numpy_available
+def test_to_json_dataclass_with_nested_numpy_array_in_dict() -> None:
+    """A numpy.ndarray nested inside a dict field of a dataclass must be
+    converted."""
+    assert to_jsonable(Container(items=[], mapping={"data": np.array([1, 2])})) == {
+        "items": [],
+        "mapping": {"data": [1, 2]},
+    }

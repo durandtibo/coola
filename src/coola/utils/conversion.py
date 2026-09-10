@@ -67,9 +67,31 @@ def to_jsonable(data: Any) -> Any:
     if isinstance(data, BaseModel):
         return data.model_dump(mode="json")
     if is_dataclass(data) and not isinstance(data, type):
-        return to_jsonable(asdict(data))
+        return _to_jsonable_recursive(asdict(data))
     if isinstance(data, np.ndarray):
         return data.tolist()
     if isinstance(data, torch.Tensor):
         return data.tolist()
     return data
+
+
+def _to_jsonable_recursive(data: Any) -> Any:
+    r"""Recursively apply ``to_jsonable`` to the dict/list structure
+    produced by ``dataclasses.asdict``.
+
+    ``dataclasses.asdict`` recurses into nested dataclasses, ``list``, and
+    ``dict`` fields but leaves other field values (e.g. ``numpy.ndarray``,
+    ``torch.Tensor``, ``pydantic.BaseModel``) unconverted. This helper walks
+    the resulting structure and converts each leaf.
+
+    Args:
+        data: The dict/list structure to convert.
+
+    Returns:
+        The converted object.
+    """
+    if isinstance(data, dict):
+        return {key: _to_jsonable_recursive(value) for key, value in data.items()}
+    if isinstance(data, list):
+        return [_to_jsonable_recursive(value) for value in data]
+    return to_jsonable(data)
