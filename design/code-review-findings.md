@@ -22,7 +22,7 @@ Date: 2026-09-09
    instead of the documented compact form.
    **Fix:** truncate (e.g. via `max_items`/`max_characters`) before stringifying.
 
-3. **`identifier/snowflake.py:96-208` (`generate`)** — `__init__` validates
+3. **FIXED** — **`identifier/snowflake.py:96-208` (`generate`)** — `__init__` validates
    `last_timestamp_ms - _EPOCH_MS` fits in 41 bits, but `generate()` never validates
    `timestamp_ms - _EPOCH_MS` before packing it with `<< _TIMESTAMP_SHIFT`. A timestamp
    beyond `_EPOCH_MS + 2**41 - 1` silently overflows into worker/sequence bits instead
