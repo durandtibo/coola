@@ -6,7 +6,8 @@ from typing import Any
 
 import pytest
 
-from coola.display import InlineDisplayMixin, MultilineDisplayMixin
+from coola.display import BaseDisplayMixin, InlineDisplayMixin, MultilineDisplayMixin
+from coola.display.mixin import BaseDisplayMixin as BaseDisplayMixinFromSubmodule
 
 # ---------------------------------------------------------------------------
 # Concrete subclasses for testing
@@ -95,3 +96,22 @@ def test_inline_str_empty_kwargs() -> None:
 def test_inline_abstract_without_get_repr_kwargs_raises() -> None:
     with pytest.raises(TypeError, match="Can't instantiate abstract class InlineDisplayMixin"):
         InlineDisplayMixin()
+
+
+#########################################
+#     Tests for BaseDisplayMixin       #
+#########################################
+
+
+def test_base_display_mixin_exported_from_coola_display() -> None:
+    assert BaseDisplayMixin is BaseDisplayMixinFromSubmodule
+
+
+def test_base_display_mixin_is_base_of_multiline_and_inline() -> None:
+    assert issubclass(MultilineDisplayMixin, BaseDisplayMixin)
+    assert issubclass(InlineDisplayMixin, BaseDisplayMixin)
+
+
+def test_base_display_mixin_abstract_raises() -> None:
+    with pytest.raises(TypeError, match="Can't instantiate abstract class BaseDisplayMixin"):
+        BaseDisplayMixin()

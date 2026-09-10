@@ -88,17 +88,17 @@ Date: 2026-09-09
     counterparts, unlike every other backend fixture.
     **Fix:** add the missing `_not_available` marks.
 
-12. **`display/pydantic.py:65-77` (`_format_pydantic_model`)** — secret-field
+12. **FIXED** — **`display/pydantic.py:65-77` (`_format_pydantic_model`)** — secret-field
     exclusion only operates at the top level of `model.model_dump()`; a `SecretStr`
     nested inside a child `BaseModel` field is not masked.
     **Fix:** recurse into nested `BaseModel` values, or use `model_dump(mode="json")`.
 
-13. **`display/mixin.py:21-35`** — `BaseDisplayMixin` has no leading underscore but is
+13. **FIXED** — **`display/mixin.py:21-35`** — `BaseDisplayMixin` has no leading underscore but is
     not exported from `coola.display`, forcing consumers to import from the private
     submodule path if they want to type-hint against it.
     **Fix:** export it, or rename with a leading underscore to signal it's private.
 
-14. **`display/colorlog.py:50-76`** — colored formatter is attached unconditionally
+14. **FIXED** — **`display/colorlog.py:50-76`** — colored formatter is attached unconditionally
     when `colorlog` is available, even when output isn't a TTY (e.g. redirected to a
     file/CI log), producing raw ANSI codes in non-interactive output.
     **Fix:** check `sys.stderr.isatty()` before attaching the color handler.
