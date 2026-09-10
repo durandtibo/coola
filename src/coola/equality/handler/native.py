@@ -21,7 +21,6 @@ from coola.equality.handler.format import (
     format_value_difference,
 )
 from coola.equality.handler.mixin import HandlerEqualityMixin
-from coola.equality.handler.utils import handlers_are_equal
 
 if TYPE_CHECKING:
     from collections.abc import Sized
@@ -124,7 +123,7 @@ class ObjectEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         return object_equal
 
 
-class SameAttributeHandler(BaseEqualityHandler):
+class SameAttributeHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Check if the two objects have the same attribute.
 
     This handler returns ``False`` if the two objects have different
@@ -164,23 +163,8 @@ class SameAttributeHandler(BaseEqualityHandler):
         r"""The name of the attribute to compare."""
         return self._name
 
-    def equal(self, other: object) -> bool:
-        r"""Indicate if two handlers are equal.
-
-        Two handlers are equal if they are of the same type, target the
-        same attribute ``name``, and have equal ``next_handler`` chains.
-
-        Args:
-            other: The other object to compare with.
-
-        Returns:
-            ``True`` if the handlers are equal, otherwise ``False``.
-        """
-        if type(other) is not type(self):
-            return False
-        if self.name != other.name:
-            return False
-        return handlers_are_equal(self.next_handler, other.next_handler)
+    def _equality_attrs(self) -> tuple[str, ...]:
+        return ("name",)
 
     def handle(self, actual: object, expected: object, config: EqualityConfig) -> bool:
         value1 = getattr(actual, self._name)

@@ -11,6 +11,7 @@ __all__ = [
     "BaseEqualityHandler",
     "EqualHandler",
     "EqualNanHandler",
+    "EqualityHandler",
     "FalseHandler",
     "HandlerEqualityMixin",
     "JaxArrayEqualHandler",
@@ -53,7 +54,7 @@ from coola.equality.handler.mapping import (
     MappingSameKeysHandler,
     MappingSameValuesHandler,
 )
-from coola.equality.handler.mixin import HandlerEqualityMixin
+from coola.equality.handler.mixin import EqualityHandler, HandlerEqualityMixin
 from coola.equality.handler.native import (
     FalseHandler,
     ObjectEqualHandler,

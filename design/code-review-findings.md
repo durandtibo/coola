@@ -108,11 +108,13 @@ Date: 2026-09-09
     risking accidental misuse.
     **Fix:** rename one to make the semantic difference clear from the name.
 
-16. **`equality/handler/native.py:127-192` (`SameAttributeHandler`)** — hand-rolls the
-    same `equal()` pattern that `HandlerEqualityMixin` exists specifically to avoid
+16. **FIXED** — **`equality/handler/native.py:127-192` (`SameAttributeHandler`)** — hand-rolls
+    the same `equal()` pattern that `HandlerEqualityMixin` exists specifically to avoid
     duplicating.
-    **Fix:** extend the mixin to support the extra `name` field instead of
-    reimplementing it.
+    **Fix:** `HandlerEqualityMixin` now supports an optional `_equality_attrs()` hook
+    (default `()`) naming extra instance attributes to compare alongside type and
+    `next_handler`. `SameAttributeHandler` uses the mixin with
+    `_equality_attrs() -> ("name",)` instead of reimplementing `equal()`.
 
 17. **`registry/vanilla.py` (`Registry`) vs `registry/type.py` (`TypeRegistry`)** — ~90%
     duplicated: identical thread-safe implementations of `__contains__`,
