@@ -4,19 +4,14 @@ from __future__ import annotations
 
 __all__ = ["TypeRegistry"]
 
-import threading
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import Generic, TypeVar
 
-from coola.equality.interface import objects_are_equal
-from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
-
-if TYPE_CHECKING:
-    from collections.abc import ItemsView, Iterator, KeysView, Mapping, ValuesView
+from coola.registry.base import BaseRegistry
 
 T = TypeVar("T")
 
 
-class TypeRegistry(Generic[T]):
+class TypeRegistry(BaseRegistry[type, T], Generic[T]):
     r"""A thread-safe type-based registry for storing and retrieving
     values.
 
@@ -120,293 +115,31 @@ class TypeRegistry(Generic[T]):
     """
 
     def __init__(self, initial_state: dict[type, T] | None = None) -> None:
-        self._state: dict[type, T] = initial_state.copy() if initial_state else {}
+        super().__init__(initial_state=initial_state)
         # cache for type lookups - improves performance for repeated transforms
         self._cache: dict[type, T] = {}
 
-        self._lock: threading.RLock = threading.RLock()  # RLock allows re-entrant locking
+    def _on_change(self) -> None:
+        # Clear cache when registry changes to ensure new registrations are used
+        self._cache.clear()
 
-    def __contains__(self, dtype: type) -> bool:
-        return self.has(dtype)
+    def _not_registered_msg(self, key: type) -> str:
+        return f"Type {key} is not registered"
 
-    def __getitem__(self, dtype: type) -> T:
-        with self._lock:
-            if dtype not in self._state:
-                msg = f"Type '{dtype}' is not registered"
-                raise KeyError(msg)
-            return self._state[dtype]
+    def _getitem_not_registered_msg(self, key: type) -> str:
+        return f"Type '{key}' is not registered"
 
-    def __setitem__(self, dtype: type, value: T) -> None:
-        self.register(dtype, value, exist_ok=True)
+    def _already_registered_msg(self, key: type) -> str:
+        return (
+            f"A value is already registered for {key}. "
+            "Use a different type or set exist_ok=True to override."
+        )
 
-    def __delitem__(self, dtype: type) -> None:
-        self.unregister(dtype)
-
-    def __iter__(self) -> Iterator[type]:
-        with self._lock:
-            return iter(self._state.copy())
-
-    def __len__(self) -> int:
-        with self._lock:
-            return len(self._state)
-
-    def __repr__(self) -> str:
-        with self._lock:
-            snapshot = self._state.copy()
-        return f"{self.__class__.__qualname__}(\n  {repr_indent(repr_mapping(snapshot))}\n)"
-
-    def __str__(self) -> str:
-        with self._lock:
-            snapshot = self._state.copy()
-        return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(snapshot))}\n)"
-
-    def clear(self) -> None:
-        r"""Remove all entries from the registry.
-
-        This method empties the registry, leaving it in the same state as a
-        newly created empty registry. This operation cannot be undone.
-
-        Example:
-            ```pycon
-            >>> from coola.registry import TypeRegistry
-            >>> registry = TypeRegistry[str]({int: "I am an integer", float: "I am a float"})
-            >>> len(registry)
-            2
-            >>> registry.clear()
-            >>> len(registry)
-            0
-            >>> registry.has(int)
-            False
-            >>> registry.has(float)
-            False
-
-            ```
-        """
-        with self._lock:
-            self._state.clear()
-            self._cache.clear()
-
-    def equal(self, other: object, equal_nan: bool = False) -> bool:
-        r"""Indicate if two registries are equal.
-
-        Two registries are considered equal if they contain the same type-value
-        mappings. The comparison is order-independent since dictionaries are
-        unordered collections.
-
-        Args:
-            other: The object to compare with.
-            equal_nan: If ``True``, then two ``NaN`` values will be
-                considered equal when comparing values.
-
-        Returns:
-            ``True`` if the two registries are equal, otherwise ``False``.
-
-        Example:
-            ```pycon
-            >>> from coola.registry import TypeRegistry
-            >>> registry1 = TypeRegistry[str]({int: "I am an integer", float: "I am a float"})
-            >>> registry2 = TypeRegistry[str]({int: "I am an integer", float: "I am a float"})
-            >>> registry3 = TypeRegistry[str]({int: "I am an integer"})
-            >>> registry1.equal(registry2)
-            True
-            >>> registry1.equal(registry3)
-            False
-
-            ```
-        """
-        if type(other) is not type(self):
-            return False
-
-        # Acquire locks in a consistent order based on object id to avoid deadlock
-        first, second = (self, other) if id(self) < id(other) else (other, self)
-        with first._lock, second._lock:
-            return objects_are_equal(self._state, other._state, equal_nan=equal_nan)
-
-    def get(self, dtype: type, default: T | None = None) -> T | None:
-        r"""Retrieve the value associated with a type.
-
-        This method performs a direct lookup in the registry and returns the
-        corresponding value. If the type doesn't exist, ``default`` is
-        returned instead (``None`` unless otherwise specified) - no
-        exception is raised. For inheritance-based lookup, use the
-        `resolve()` method instead.
-
-        Args:
-            dtype: The type whose value should be retrieved.
-            default: Value to return if the key does not exist.
-
-        Returns:
-            The value associated with the specified type, or ``default``
-            if it is not registered.
-
-        Example:
-            ```pycon
-            >>> from coola.registry import TypeRegistry
-            >>> registry = TypeRegistry[int]()
-            >>> registry.register(str, 42)
-            >>> registry.get(str)
-            42
-            >>> registry.get(int) is None
-            True
-            >>> registry.get(int, default=-1)
-            -1
-
-            ```
-        """
-        with self._lock:
-            return self._state.get(dtype, default)
-
-    def has(self, dtype: type) -> bool:
-        r"""Check whether a type is registered in the registry.
-
-        This method provides a safe way to test for type existence without
-        risking a KeyError exception. It only checks for direct type matches;
-        it does not check parent types via MRO.
-
-        Args:
-            dtype: The type to check for existence.
-
-        Returns:
-            True if the type exists in the registry, False otherwise.
-
-        Example:
-            ```pycon
-            >>> from coola.registry import TypeRegistry
-            >>> registry = TypeRegistry[int]()
-            >>> registry.register(str, 42)
-            >>> registry.has(str)
-            True
-            >>> registry.has(int)
-            False
-
-            ```
-        """
-        with self._lock:
-            return dtype in self._state
-
-    def register(self, dtype: type, value: T, exist_ok: bool = False) -> None:
-        r"""Register a new type-value pair in the registry.
-
-        By default, this method raises an error if you try to register a type
-        that already exists. This prevents accidental overwriting of values.
-        Set exist_ok=True to allow overwriting.
-
-        Registering a new type clears the internal resolution cache to ensure
-        that subsequent `resolve()` calls use the updated registry state.
-
-        Args:
-            dtype: The type to register. Must be a Python type object.
-            value: The value to associate with the type.
-            exist_ok: Controls behavior when the type already exists.
-                If False (default), raises RuntimeError for duplicate types.
-                If True, silently overwrites the existing value.
-
-        Raises:
-            RuntimeError: If the type is already registered and exist_ok is False.
-                The error message provides guidance on how to resolve the conflict.
-
-        Example:
-            Basic registration:
-
-            ```pycon
-            >>> from coola.registry import TypeRegistry
-            >>> registry = TypeRegistry[int]()
-            >>> registry.register(str, 42)
-            >>> registry.get(str)
-            42
-
-            ```
-
-            Attempting to register a duplicate type:
-
-            ```pycon
-            >>> registry.register(str, 100)  # doctest: +SKIP
-            RuntimeError: A value is already registered for '<class 'str'>'...
-
-            ```
-
-            Overwriting with exist_ok:
-
-            ```pycon
-            >>> registry.register(str, 100, exist_ok=True)
-            >>> registry.get(str)
-            100
-
-            ```
-        """
-        with self._lock:
-            if dtype in self._state and not exist_ok:
-                msg = (
-                    f"A value is already registered for {dtype}. "
-                    "Use a different type or set exist_ok=True to override."
-                )
-                raise RuntimeError(msg)
-            self._state[dtype] = value
-            # Clear cache when registry changes to ensure new registrations are used
-            self._cache.clear()
-
-    def register_many(self, mapping: Mapping[type, T], exist_ok: bool = False) -> None:
-        r"""Register multiple type-value pairs in a single operation.
-
-        This is a convenience method for bulk registration. It iterates through
-        the provided mapping and registers each type-value pair. All registrations
-        follow the same exist_ok policy. The operation is atomic when exist_ok
-        is False - if any type already exists, no changes are made.
-
-        Registering new types clears the internal resolution cache to ensure
-        that subsequent `resolve()` calls use the updated registry state.
-
-        Args:
-            mapping: A dictionary or mapping containing the type-value pairs
-                to register. The keys must be Python type objects and values
-                must match the registry's type parameter.
-            exist_ok: Controls behavior when any type already exists.
-                If False (default), raises error on the first duplicate type.
-                If True, overwrites all existing values without error.
-
-        Raises:
-            RuntimeError: If exist_ok is False and any type in the mapping
-                is already registered. The error occurs before any registration
-                is performed, ensuring no partial updates.
-
-        Example:
-            Registering multiple entries at once:
-
-            ```pycon
-            >>> from coola.registry import TypeRegistry
-            >>> registry = TypeRegistry[int]()
-            >>> registry.register_many({str: 42, float: 100, list: 7})
-            >>> registry.get(str)
-            42
-            >>> registry.get(float)
-            100
-            >>> len(registry)
-            3
-
-            ```
-
-            Bulk update with exist_ok:
-
-            ```pycon
-            >>> registry.register_many({str: 1, dict: 4}, exist_ok=True)
-            >>> registry.get(str)
-            1
-            >>> registry.get(dict)
-            4
-
-            ```
-        """
-        with self._lock:
-            # Check all keys first if exist_ok is False
-            if not exist_ok and (duplicates := set(mapping) & set(self._state)):
-                msg = (
-                    f"Types already registered: {', '.join(map(str, duplicates))}. "
-                    "Use different types or set exist_ok=True to override."
-                )
-                raise RuntimeError(msg)
-            self._state.update(mapping)
-            # Clear cache when registry changes to ensure new registrations are used
-            self._cache.clear()
+    def _many_already_registered_msg(self, duplicates: set[type]) -> str:
+        return (
+            f"Types already registered: {', '.join(map(str, duplicates))}. "
+            "Use different types or set exist_ok=True to override."
+        )
 
     def resolve(self, dtype: type) -> T:
         r"""Resolve a type to its associated value using MRO lookup.
@@ -478,103 +211,6 @@ class TypeRegistry(Generic[T]):
                 self._cache[dtype] = self._resolve_uncached(dtype)
             return self._cache[dtype]
 
-    def unregister(self, dtype: type) -> T:
-        r"""Remove a type-value pair from the registry and return the
-        value.
-
-        This method removes the specified type from the registry and returns
-        the value that was associated with it. This allows you to retrieve
-        the value one last time before it's removed.
-
-        Unregistering a type clears the internal resolution cache to ensure
-        that subsequent `resolve()` calls reflect the updated registry state.
-
-        Args:
-            dtype: The type to unregister and remove from the registry.
-
-        Returns:
-            The value that was associated with the type before removal.
-
-        Raises:
-            KeyError: If the type is not registered. The error message
-                includes the type that was not found.
-
-        Example:
-            ```pycon
-            >>> from coola.registry import TypeRegistry
-            >>> registry = TypeRegistry[str]({int: "I am an integer"})
-            >>> registry.has(int)
-            True
-            >>> value = registry.unregister(int)
-            >>> value
-            'I am an integer'
-            >>> registry.has(int)
-            False
-
-            ```
-        """
-        with self._lock:
-            if dtype not in self._state:
-                msg = f"Type {dtype} is not registered"
-                raise KeyError(msg)
-            # Clear cache when registry changes to ensure new registrations are used
-            self._cache.clear()
-            return self._state.pop(dtype)
-
-    def items(self) -> ItemsView[type, T]:
-        r"""Return key-value pairs.
-
-        Returns:
-            The key-value pairs.
-
-        Example:
-            ```pycon
-            >>> from coola.registry import TypeRegistry
-            >>> registry = TypeRegistry[str]({int: "I am an integer", float: "I am a float"})
-            >>> registry.items()
-            dict_items([(<class 'int'>, 'I am an integer'), (<class 'float'>, 'I am a float')])
-
-            ```
-        """
-        with self._lock:
-            return self._state.copy().items()
-
-    def keys(self) -> KeysView[type]:
-        r"""Return registered keys.
-
-        Returns:
-            The registered keys.
-
-        Example:
-            ```pycon
-            >>> from coola.registry import TypeRegistry
-            >>> registry = TypeRegistry[str]({int: "I am an integer", float: "I am a float"})
-            >>> registry.keys()
-            dict_keys([<class 'int'>, <class 'float'>])
-
-            ```
-        """
-        with self._lock:
-            return self._state.copy().keys()
-
-    def values(self) -> ValuesView[T]:
-        r"""Return registered values.
-
-        Returns:
-            The registered values.
-
-        Example:
-            ```pycon
-            >>> from coola.registry import TypeRegistry
-            >>> registry = TypeRegistry[str]({int: "I am an integer", float: "I am a float"})
-            >>> registry.values()
-            dict_values(['I am an integer', 'I am a float'])
-
-            ```
-        """
-        with self._lock:
-            return self._state.copy().values()
-
     def _resolve_uncached(self, dtype: type) -> T:
         r"""Find value using MRO lookup (uncached version).
 
@@ -592,7 +228,6 @@ class TypeRegistry(Generic[T]):
 
         Raises:
             KeyError: If no matching type is found in the registry.
-        r
         """
         # Direct lookup first (most common case, O(1))
         if dtype in self._state:
