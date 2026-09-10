@@ -186,6 +186,18 @@ def test_set_summarizer_summarize_large_length_formatting(registry: SummarizerRe
     assert result.endswith("\n  ...")
 
 
+def test_set_summarizer_summarize_depth_exceeds_max_depth_truncates_before_stringify(
+    registry: SummarizerRegistry,
+) -> None:
+    """At the max_depth boundary, only the first max_items items are
+    stringified, instead of stringifying the whole set."""
+    data = set(range(1000))
+    result = SetSummarizer(max_items=3).summarize(data, registry, depth=1, max_depth=1)
+    assert result.endswith(" ...")
+    # only 3 items were stringified, not the full 1000-item set
+    assert result.count(",") == 2
+
+
 def test_set_summarizer_summarize_max_items_equals_length(registry: SummarizerRegistry) -> None:
     result = SetSummarizer(max_items=3).summarize({1, 2, 3}, registry)
     assert result.startswith("<class 'set'> (length=3)\n")

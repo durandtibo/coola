@@ -227,6 +227,16 @@ def test_sequence_summarizer_summarize_mixed_types_max_depth_2(
     )
 
 
+def test_sequence_summarizer_summarize_depth_exceeds_max_depth_truncates_before_stringify(
+    registry: SummarizerRegistry,
+) -> None:
+    """At the max_depth boundary, only the first max_items items are
+    stringified, instead of stringifying the whole sequence."""
+    data = list(range(1000))
+    result = SequenceSummarizer(max_items=3).summarize(data, registry, depth=1, max_depth=1)
+    assert result == "[0, 1, 2] ..."
+
+
 def test_sequence_summarizer_summarize_exactly_max_items(registry: SummarizerRegistry) -> None:
     """Test when sequence length equals max_items (no truncation)."""
     result = SequenceSummarizer(max_items=3).summarize([1, 2, 3], registry)
