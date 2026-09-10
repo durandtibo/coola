@@ -5,6 +5,7 @@ from __future__ import annotations
 __all__ = ["configure_colorlog_logging"]
 
 import logging
+import sys
 
 from coola.utils.imports import is_colorlog_available
 
@@ -16,11 +17,14 @@ def configure_colorlog_logging(level: int = logging.INFO, force: bool = False) -
     r"""Configure the root logger, using a coloured formatter when
     available.
 
-    If the ``colorlog`` package is installed, attaches a
-    :class:`colorlog.StreamHandler` with per-level colours for both the
-    log metadata (level, logger name, line number) and the message
-    itself.  If ``colorlog`` is not installed, falls back to plain
-    :func:`logging.basicConfig` with no formatting.
+    If the ``colorlog`` package is installed and ``sys.stderr`` is
+    attached to a terminal, attaches a :class:`colorlog.StreamHandler`
+    with per-level colours for both the log metadata (level, logger
+    name, line number) and the message itself.  If ``colorlog`` is not
+    installed, or output is not a terminal (e.g. redirected to a file
+    or running in CI), falls back to plain :func:`logging.basicConfig`
+    with no formatting, to avoid emitting raw ANSI escape codes into
+    non-interactive output.
 
     Note:
         :func:`logging.basicConfig` is a **no-op** if the root logger
@@ -43,7 +47,7 @@ def configure_colorlog_logging(level: int = logging.INFO, force: bool = False) -
 
         ```
     """
-    if not is_colorlog_available():
+    if not is_colorlog_available() or not sys.stderr.isatty():
         logging.basicConfig(level=level, force=force)
         return
 

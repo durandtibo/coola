@@ -9,6 +9,11 @@ from unittest.mock import patch
 import pytest
 
 from coola.display.colorlog import configure_colorlog_logging
+from coola.testing.fixtures import colorlog_available
+from coola.utils.imports import is_colorlog_available
+
+if is_colorlog_available():
+    import colorlog
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -108,3 +113,49 @@ def test_configure_colorlog_logging_force_false_is_noop_when_handlers_exist() ->
         configure_colorlog_logging(force=False)
 
     assert sentinel in logging.getLogger().handlers
+
+
+###################################################
+#     Tests for non-interactive (non-TTY) output  #
+###################################################
+
+
+@colorlog_available
+def test_configure_colorlog_logging_not_a_tty_falls_back_to_basic_config() -> None:
+    with (
+        patch(f"{MODULE}.is_colorlog_available", return_value=True),
+        patch(f"{MODULE}.sys.stderr.isatty", return_value=False),
+        patch(f"{MODULE}.logging.basicConfig") as mock_basicconfig,
+        patch(f"{MODULE}.colorlog.StreamHandler") as mock_stream_handler,
+    ):
+        configure_colorlog_logging(level=logging.DEBUG, force=True)
+
+    mock_stream_handler.assert_not_called()
+    mock_basicconfig.assert_called_once_with(level=logging.DEBUG, force=True)
+
+
+@colorlog_available
+def test_configure_colorlog_logging_tty_attaches_colored_handler() -> None:
+    with (
+        patch(f"{MODULE}.is_colorlog_available", return_value=True),
+        patch(f"{MODULE}.sys.stderr.isatty", return_value=True),
+        patch(f"{MODULE}.logging.basicConfig") as mock_basicconfig,
+    ):
+        configure_colorlog_logging(level=logging.DEBUG, force=True)
+
+    assert mock_basicconfig.call_args.kwargs["level"] == logging.DEBUG
+    assert mock_basicconfig.call_args.kwargs["force"] is True
+    handlers = mock_basicconfig.call_args.kwargs["handlers"]
+    assert len(handlers) == 1
+    assert isinstance(handlers[0], colorlog.StreamHandler)
+
+
+def test_configure_colorlog_logging_no_colorlog_ignores_tty() -> None:
+    with (
+        patch(f"{MODULE}.is_colorlog_available", return_value=False),
+        patch(f"{MODULE}.sys.stderr.isatty", return_value=True),
+        patch(f"{MODULE}.logging.basicConfig") as mock_basicconfig,
+    ):
+        configure_colorlog_logging(level=logging.DEBUG, force=True)
+
+    mock_basicconfig.assert_called_once_with(level=logging.DEBUG, force=True)

@@ -51,6 +51,34 @@ def secret_field_names(model: BaseModel) -> set[str]:
     return names
 
 
+def _mask_secret_fields(model: BaseModel, dumped: dict[str, Any]) -> dict[str, Any]:
+    """Recursively remove ``SecretStr`` fields from a ``model_dump()``
+    result, including fields nested inside child ``BaseModel``
+    values."""
+    secret_fields = secret_field_names(model)
+    config = {k: v for k, v in dumped.items() if k not in secret_fields}
+    for name in type(model).model_fields:
+        if name in config:
+            config[name] = _mask_nested_secret_fields(getattr(model, name), config[name])
+    return config
+
+
+def _mask_nested_secret_fields(value: Any, dumped: Any) -> Any:
+    """Apply :func:`_mask_secret_fields` to ``value``/``dumped`` pairs
+    nested in ``BaseModel``, list/tuple, or dict containers."""
+    if isinstance(value, BaseModel) and isinstance(dumped, dict):
+        return _mask_secret_fields(value, dumped)
+    if isinstance(value, (list, tuple)) and isinstance(dumped, (list, tuple)):
+        return type(dumped)(
+            _mask_nested_secret_fields(v, d) for v, d in zip(value, dumped, strict=False)
+        )
+    if isinstance(value, dict) and isinstance(dumped, dict):
+        return {
+            k: _mask_nested_secret_fields(v, dumped[k]) for k, v in value.items() if k in dumped
+        }
+    return dumped
+
+
 def _format_pydantic_model(
     model: BaseModel,
     *,
@@ -64,8 +92,7 @@ def _format_pydantic_model(
     ``repr_pydantic_model``."""
     config: dict[str, Any] = model.model_dump()
     if exclude_secret:
-        secret_fields = secret_field_names(model)
-        config = {k: v for k, v in config.items() if k not in secret_fields}
+        config = _mask_secret_fields(model, config)
     if exclude_none:
         config = {k: v for k, v in config.items() if v is not None}
     if exclude_fields:

@@ -30,6 +30,26 @@ class OptionalSecretModel(BaseModel):
     value: int = 0
 
 
+class ChildModel(BaseModel):
+    api_key: SecretStr
+    host: str
+
+
+class ParentModel(BaseModel):
+    name: str
+    child: ChildModel
+
+
+class ParentWithChildListModel(BaseModel):
+    name: str
+    children: list[ChildModel]
+
+
+class ParentWithChildDictModel(BaseModel):
+    name: str
+    children: dict[str, ChildModel]
+
+
 ##########################################
 #     Tests for secret_field_names      #
 ##########################################
@@ -171,3 +191,72 @@ def test_str_and_repr_agree_on_field_set(sort: bool) -> None:
     r = repr_pydantic_model(model, sort=sort)
     # same class name and field order, differing only in value formatting
     assert s.split("(")[0] == r.split("(")[0]
+
+
+###############################################################
+#     Tests for exclude_secret with nested BaseModel fields   #
+###############################################################
+
+
+@pydantic_available
+def test_str_pydantic_model_nested_secret_excluded_by_default() -> None:
+    model = ParentModel(
+        name="alice", child=ChildModel(api_key=SecretStr("s3cr3t"), host="example.com")
+    )
+    out = str_pydantic_model(model)
+    assert "api_key" not in out
+    assert "s3cr3t" not in out
+    assert out == "ParentModel(child={'host': 'example.com'}, name=alice)"
+
+
+@pydantic_available
+def test_str_pydantic_model_nested_secret_included_when_exclude_secret_false() -> None:
+    model = ParentModel(
+        name="alice", child=ChildModel(api_key=SecretStr("s3cr3t"), host="example.com")
+    )
+    out = str_pydantic_model(model, exclude_secret=False)
+    assert "s3cr3t" not in out
+    assert "api_key" in out
+    assert "**********" in out
+
+
+@pydantic_available
+def test_str_pydantic_model_nested_secret_in_list_excluded() -> None:
+    model = ParentWithChildListModel(
+        name="alice",
+        children=[
+            ChildModel(api_key=SecretStr("s3cr3t-1"), host="a.example.com"),
+            ChildModel(api_key=SecretStr("s3cr3t-2"), host="b.example.com"),
+        ],
+    )
+    out = str_pydantic_model(model)
+    assert "api_key" not in out
+    assert "s3cr3t" not in out
+    assert "a.example.com" in out
+    assert "b.example.com" in out
+
+
+@pydantic_available
+def test_repr_pydantic_model_nested_secret_excluded_by_default() -> None:
+    model = ParentModel(
+        name="alice", child=ChildModel(api_key=SecretStr("s3cr3t"), host="example.com")
+    )
+    out = repr_pydantic_model(model)
+    assert "api_key" not in out
+    assert "s3cr3t" not in out
+
+
+@pydantic_available
+def test_str_pydantic_model_nested_secret_in_dict_excluded() -> None:
+    model = ParentWithChildDictModel(
+        name="alice",
+        children={
+            "a": ChildModel(api_key=SecretStr("s3cr3t-1"), host="a.example.com"),
+            "b": ChildModel(api_key=SecretStr("s3cr3t-2"), host="b.example.com"),
+        },
+    )
+    out = str_pydantic_model(model)
+    assert "api_key" not in out
+    assert "s3cr3t" not in out
+    assert "a.example.com" in out
+    assert "b.example.com" in out
