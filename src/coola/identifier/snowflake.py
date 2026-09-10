@@ -12,12 +12,17 @@ the worker/shard that minted them.
 
 from __future__ import annotations
 
-__all__ = ["SnowflakeIdGenerator", "extract_snowflake_timestamp_ms", "generate_snowflake_id"]
+__all__ = [
+    "SnowflakeIdGenerator",
+    "extract_snowflake_timestamp_ms",
+    "generate_snowflake_id",
+    "get_default_generator",
+]
 
 import threading
 import time
 
-from coola.identifier.validation import singleton_generator, validate_bit_range
+from coola.identifier.validation import validate_bit_range
 
 # Sleep briefly between spins while waiting for the next millisecond, to
 # avoid busy-waiting a full CPU core (and holding the lock) at 100%
@@ -213,9 +218,21 @@ class SnowflakeIdGenerator:
         )
 
 
-# Default, process-wide generator backing the module-level
-# `generate_snowflake_id` function below, built lazily on first use.
-_get_default_generator = singleton_generator(SnowflakeIdGenerator)
+def get_default_generator() -> SnowflakeIdGenerator:
+    r"""Get or create the default, process-wide generator backing
+    ``generate_snowflake_id``.
+
+    Returns a singleton ``SnowflakeIdGenerator`` instance shared by
+    every call to ``generate_snowflake_id``. Uses the same lazy,
+    singleton-on-the-function pattern as ``get_default_registry()``
+    (see e.g. ``coola.equality.tester.interface``).
+
+    Returns:
+        The shared, process-wide ``SnowflakeIdGenerator`` instance.
+    """
+    if not hasattr(get_default_generator, "_generator"):
+        get_default_generator._generator = SnowflakeIdGenerator()
+    return get_default_generator._generator
 
 
 def generate_snowflake_id(worker_id: int = 0, timestamp_ms: int | None = None) -> int:
@@ -256,7 +273,7 @@ def generate_snowflake_id(worker_id: int = 0, timestamp_ms: int | None = None) -
 
         ```
     """
-    return _get_default_generator().generate(worker_id=worker_id, timestamp_ms=timestamp_ms)
+    return get_default_generator().generate(worker_id=worker_id, timestamp_ms=timestamp_ms)
 
 
 def extract_snowflake_timestamp_ms(snowflake_id: int) -> int:

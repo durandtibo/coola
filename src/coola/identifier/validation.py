@@ -12,7 +12,6 @@ __all__ = [
     "CROCKFORD_BASE32_ALPHABET",
     "decode_crockford_base32",
     "resolve_timestamp_ms",
-    "singleton_generator",
     "validate_bit_range",
     "validate_non_negative",
     "validate_positive",
@@ -20,12 +19,6 @@ __all__ = [
 ]
 
 import time
-from typing import TYPE_CHECKING, TypeVar
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-T = TypeVar("T")
 
 _TIMESTAMP_BITS = 48
 
@@ -122,37 +115,6 @@ def resolve_timestamp_ms(timestamp_ms: int | None) -> int:
         timestamp_ms = time.time_ns() // 1_000_000
     validate_timestamp_ms(timestamp_ms)
     return timestamp_ms
-
-
-def singleton_generator(cls: type[T]) -> Callable[[], T]:
-    r"""Return a callable that lazily builds and returns a single, shared
-    instance of ``cls``.
-
-    Shared by the modules (``coola.identifier.objectid``,
-    ``coola.identifier.snowflake``) that expose a module-level
-    ``generate_*`` convenience function backed by a single, lazily
-    created, process-wide generator instance, so each module does not
-    need to repeat the same "build it once, on first use" wrapper.
-    Uses the same ``hasattr(fn, "_instance")``-on-the-function idiom as
-    ``get_default_registry()`` (``coola.equality.tester.interface`` and
-    friends), rather than a closure variable, to stay consistent with
-    that existing pattern elsewhere in the codebase.
-
-    Args:
-        cls: The class to instantiate (with no arguments) the first
-            time the returned callable is invoked.
-
-    Returns:
-        A callable that returns the same ``cls`` instance on every
-        call, creating it lazily on the first call.
-    """
-
-    def get_instance() -> T:
-        if not hasattr(get_instance, "_instance"):
-            get_instance._instance = cls()
-        return get_instance._instance
-
-    return get_instance
 
 
 def decode_crockford_base32(text: str, *, name: str) -> int:

@@ -164,10 +164,13 @@ Date: 2026-09-09
 
 23. **FIXED** — **`identifier/objectid.py` / `identifier/snowflake.py`** — both maintain a private
     module-level default generator instance with near-identical wrapper functions.
-    **Fix:** added a shared `singleton_generator(cls)` helper in
-    `identifier/validation.py` that lazily builds and returns one shared instance;
-    both modules now use it instead of an eagerly-built module-level instance. Covered
-    by `test_singleton_generator_*` in `test_validation.py`.
+    **Fix:** each module now exposes a public `get_default_generator()` function that
+    lazily builds and caches the shared instance on itself (the same
+    `hasattr(fn, "_x")`-on-the-function singleton pattern already used by
+    `get_default_registry()` in e.g. `equality/tester/interface.py`), replacing the
+    previously eagerly-built, private module-level instance. Covered by
+    `test_generate_object_id_uses_shared_default_generator` and
+    `test_generate_snowflake_id_uses_shared_default_generator`.
 
 ## Minor / hardening notes
 

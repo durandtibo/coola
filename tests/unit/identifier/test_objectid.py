@@ -109,7 +109,7 @@ def test_object_id_generator_generate_sorts_by_creation_time() -> None:
 
 
 def test_generate_object_id_uses_shared_default_generator() -> None:
-    process_value = objectid_module._get_default_generator()._process_value.hex()
+    process_value = objectid_module.get_default_generator()._process_value.hex()
     assert generate_object_id()[8:18] == process_value
 
 
