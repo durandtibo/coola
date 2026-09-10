@@ -103,7 +103,7 @@ Date: 2026-09-09
     file/CI log), producing raw ANSI codes in non-interactive output.
     **Fix:** check `sys.stderr.isatty()` before attaching the color handler.
 
-15. **`hashing/str.py` vs `hashing/string.py`** — `StrHasher` (calls `str(data)` first)
+15. **NOT A BUG** — **`hashing/str.py` vs `hashing/string.py`** — `StrHasher` (calls `str(data)` first)
     and `StringHasher` (assumes input is already `str`) have confusingly similar names,
     risking accidental misuse.
     **Fix:** rename one to make the semantic difference clear from the name.
@@ -114,7 +114,7 @@ Date: 2026-09-09
     **Fix:** extend the mixin to support the extra `name` field instead of
     reimplementing it.
 
-17. **`registry/vanilla.py` (`Registry`) vs `registry/type.py` (`TypeRegistry`)** — ~90%
+17. **FIXED** — **`registry/vanilla.py` (`Registry`) vs `registry/type.py` (`TypeRegistry`)** — ~90%
     duplicated: identical thread-safe implementations of `__contains__`,
     `__getitem__`, `__setitem__`, `__iter__`, `__len__`, `__repr__`, `__str__`,
     `clear`, `equal` (including the same lock-ordering trick), `get`, `has`,
