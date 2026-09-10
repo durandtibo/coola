@@ -7,7 +7,7 @@ __all__ = ["factory", "resolve_object"]
 import logging
 from typing import Any, TypeVar
 
-from coola.factory.constants import OBJECT_TARGET
+from coola.factory.constants import OBJECT_INIT, OBJECT_TARGET
 from coola.factory.instantiation import import_object, instantiate_object
 
 logger: logging.Logger = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ logger: logging.Logger = logging.getLogger(__name__)
 T = TypeVar("T")
 
 
-def factory(_target_: str, *args: Any, _init_: str = "__init__", **kwargs: Any) -> Any:
+def factory(_target_: str, *args: Any, **kwargs: Any) -> Any:
     r"""Instantiate dynamically an object given its configuration.
 
     This function provides a universal factory that can instantiate
@@ -29,12 +29,12 @@ def factory(_target_: str, *args: Any, _init_: str = "__init__", **kwargs: Any) 
             "math.isclose".
         *args: Positional arguments to pass to the class constructor
             or function.
-        _init_: The function or method to use to create the object.
-            If ``"__init__"`` (default), the object is created by
-            calling the constructor. Can also be ``"__new__"`` or the
-            name of a class method.
         **kwargs: Keyword arguments to pass to the class constructor
-            or function.
+            or function. The special ``OBJECT_INIT`` (``"_init_"``)
+            key controls the function or method used to create the
+            object. If ``"__init__"`` (default), the object is
+            created by calling the constructor. Can also be
+            ``"__new__"`` or the name of a class method.
 
     Returns:
         The instantiated object with the given parameters.
@@ -56,7 +56,8 @@ def factory(_target_: str, *args: Any, _init_: str = "__init__", **kwargs: Any) 
     except ImportError as e:
         msg = f"The target object does not exist: {_target_}"
         raise ImportError(msg) from e
-    return instantiate_object(target, *args, _init_=_init_, **kwargs)
+    init = kwargs.pop(OBJECT_INIT, "__init__")
+    return instantiate_object(target, *args, _init_=init, **kwargs)
 
 
 def resolve_object(obj: T | dict[str, Any], cls: type[T] = object) -> T:
