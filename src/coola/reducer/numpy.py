@@ -69,7 +69,7 @@ class NumpyReducer(InlineDisplayMixin, BaseBasicReducer[T]):
     def _quantile(self, values: T, quantiles: Sequence[float]) -> list[float]:
         return np.quantile(np.asarray(values), q=quantiles).tolist()
 
-    def _sort(self, values: T, descending: bool = False) -> list[int | float]:
+    def sort(self, values: T, descending: bool = False) -> list[int | float]:
         array = np.sort(np.asarray(values))
         if descending:
             return array[::-1].tolist()

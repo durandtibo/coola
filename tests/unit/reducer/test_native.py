@@ -162,8 +162,7 @@ def test_native_reducer_sort_descending(values: Sequence[int | float]) -> None:
 
 @pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_native_reducer_sort_empty(values: Sequence[int | float]) -> None:
-    with pytest.raises(EmptySequenceError, match=r"Cannot sort because the sequence is empty"):
-        NativeReducer().sort(values)
+    assert NativeReducer().sort(values) == []
 
 
 @pytest.mark.parametrize("values", [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2)])

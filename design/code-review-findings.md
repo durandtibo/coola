@@ -62,12 +62,19 @@ Date: 2026-09-09
    `{'keep': False}` — the survivor's value gets run through the drop predicate too).
    **Fix:** split into separate `predicate` and `transform_func` parameters.
 
-9. **FIXED** — **`reducer/base.py` (`BaseBasicReducer`)** — `max/mean/median/min/quantile/std` are
+9. **NOT A BUG** — **`reducer/base.py` (`BaseBasicReducer`)** — `max/mean/median/min/quantile/std` are
    routed through `_is_empty()` → `EmptySequenceError`, but `sort` is a plain
    `abstractmethod` with no empty-check wrapper, so `NativeReducer.sort([])`,
    `NumpyReducer.sort([])`, `TorchReducer.sort([])` silently return `[]` instead of
    raising like the rest of the API.
-   **Fix:** route `sort` through the same `_is_empty`/`_sort` pattern.
+   **Resolution:** unlike max/mean/median/min/quantile/std, sorting *is* well-defined
+   for an empty sequence (`sorted([]) == []`), so `sort` should not raise. An earlier
+   pass routed `sort` through `_is_empty`/`EmptySequenceError` for consistency with the
+   other methods; that was reverted — `sort([])` now returns `[]` again. Rather than
+   keep a pass-through `sort`/`_sort` pair in `BaseBasicReducer`, `sort` was dropped
+   from it entirely (with a comment explaining why) and each subclass now implements
+   the public `sort` (inherited from `BaseReducer`) directly instead of a private
+   `_sort`, and the affected tests/docstrings were updated accordingly.
 
 10. **FIXED** — **`hashing/sequence.py:29-38` (`SequenceHasher`)** — doctest calls
     `hasher.hash([1, 2, 3], registry=registry)` with no expected output line; will fail
