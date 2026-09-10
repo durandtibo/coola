@@ -5,7 +5,7 @@ from collections import Counter, OrderedDict
 
 import pytest
 
-from coola.factory import OBJECT_TARGET, factory, resolve_object
+from coola.factory import OBJECT_INIT, OBJECT_TARGET, factory, resolve_object
 
 
 class BaseFakeClass(ABC):
@@ -208,6 +208,22 @@ def test_factory_non_existing_module() -> None:
     """Test that factory raises error for non-existing module."""
     with pytest.raises(ImportError, match=r"The target object does not exist:"):
         factory("non_existing_module.SomeClass")
+
+
+def test_factory_object_init_constant_matches_literal_key() -> None:
+    """Test that the OBJECT_INIT constant is wired to the actual
+    ``_init_`` behavior of factory, i.e. that using the constant as a
+    dict key has the same effect as the literal ``"_init_"`` string."""
+    obj = factory(
+        **{
+            OBJECT_TARGET: "tests.unit.factory.test_resolve.FakeClass",
+            OBJECT_INIT: "create_with_custom_arg2",
+            "arg2": "custom_value",
+        }
+    )
+    assert isinstance(obj, FakeClass)
+    assert obj.arg1 == 100
+    assert obj.arg2 == "custom_value"
 
 
 def test_factory_invalid_init_method() -> None:
