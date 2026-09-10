@@ -72,7 +72,7 @@ class TorchReducer(InlineDisplayMixin, BaseBasicReducer[T]):
             to_tensor(quantiles).float(),
         ).tolist()
 
-    def sort(self, values: T, descending: bool = False) -> list[int | float]:
+    def _sort(self, values: T, descending: bool = False) -> list[int | float]:
         return torch.sort(to_tensor(values), descending=descending)[0].tolist()
 
     def _std(self, values: T) -> float:

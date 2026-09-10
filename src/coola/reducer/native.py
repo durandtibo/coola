@@ -59,5 +59,5 @@ class NativeReducer(InlineDisplayMixin, BaseBasicReducer[T]):
             return float("nan")
         return stdev(values)
 
-    def sort(self, values: T, descending: bool = False) -> list[int | float]:
+    def _sort(self, values: T, descending: bool = False) -> list[int | float]:
         return sorted(values, reverse=descending)

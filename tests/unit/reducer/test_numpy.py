@@ -231,7 +231,8 @@ def test_numpy_reducer_sort_descending(values: Sequence[int | float]) -> None:
 @numpy_available
 @pytest.mark.parametrize("values", EMPTY_SEQUENCES)
 def test_numpy_reducer_sort_empty(values: Sequence[int | float]) -> None:
-    assert NumpyReducer().sort(values) == []
+    with pytest.raises(EmptySequenceError, match=r"Cannot sort because the sequence is empty"):
+        NumpyReducer().sort(values)
 
 
 @numpy_available

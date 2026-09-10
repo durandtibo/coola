@@ -161,6 +161,9 @@ class BaseReducer(ABC, Generic[T]):
         Returns:
             The sorted values.
 
+        Raises:
+            EmptySequenceError: if the input sequence is empty.
+
         Example:
             ```pycon
             >>> from coola.reducer import TorchReducer
@@ -300,6 +303,25 @@ class BaseBasicReducer(BaseReducer[T]):
 
         Returns:
             The quantiles.
+        """
+
+    def sort(self, values: T, descending: bool = False) -> list[int | float]:
+        if self._is_empty(values):
+            msg = "Cannot sort because the sequence is empty"
+            raise EmptySequenceError(msg)
+        return self._sort(values, descending=descending)
+
+    @abstractmethod
+    def _sort(self, values: T, descending: bool = False) -> list[int | float]:
+        r"""Sort the values.
+
+        Args:
+            values: The values.
+            descending: If ``True``, sorts in descending order.
+                Defaults to ``False`` (ascending order).
+
+        Returns:
+            The sorted values.
         """
 
     def std(self, values: T) -> float:

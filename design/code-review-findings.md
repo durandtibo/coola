@@ -62,14 +62,14 @@ Date: 2026-09-09
    `{'keep': False}` — the survivor's value gets run through the drop predicate too).
    **Fix:** split into separate `predicate` and `transform_func` parameters.
 
-9. **`reducer/base.py` (`BaseBasicReducer`)** — `max/mean/median/min/quantile/std` are
+9. **FIXED** — **`reducer/base.py` (`BaseBasicReducer`)** — `max/mean/median/min/quantile/std` are
    routed through `_is_empty()` → `EmptySequenceError`, but `sort` is a plain
    `abstractmethod` with no empty-check wrapper, so `NativeReducer.sort([])`,
    `NumpyReducer.sort([])`, `TorchReducer.sort([])` silently return `[]` instead of
    raising like the rest of the API.
    **Fix:** route `sort` through the same `_is_empty`/`_sort` pattern.
 
-10. **`hashing/sequence.py:29-38` (`SequenceHasher`)** — doctest calls
+10. **FIXED** — **`hashing/sequence.py:29-38` (`SequenceHasher`)** — doctest calls
     `hasher.hash([1, 2, 3], registry=registry)` with no expected output line; will fail
     under `--doctest-modules`.
     **Fix:** add the expected hex-digest output.
