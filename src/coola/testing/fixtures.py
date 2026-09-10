@@ -26,9 +26,12 @@ __all__ = [
     "rich_not_available",
     "torch_available",
     "torch_cuda_available",
+    "torch_cuda_not_available",
     "torch_mps_available",
+    "torch_mps_not_available",
     "torch_not_available",
     "torch_numpy_available",
+    "torch_numpy_not_available",
     "xarray_available",
     "xarray_not_available",
 ]
@@ -110,11 +113,20 @@ torch_not_available: pytest.MarkDecorator = pytest.mark.skipif(
 torch_cuda_available: pytest.MarkDecorator = pytest.mark.skipif(
     not is_cuda_available(), reason="Requires PyTorch and CUDA"
 )
+torch_cuda_not_available: pytest.MarkDecorator = pytest.mark.skipif(
+    is_cuda_available(), reason="Skip if PyTorch and CUDA are available"
+)
 torch_numpy_available: pytest.MarkDecorator = pytest.mark.skipif(
     not is_torch_numpy_available(), reason="Requires PyTorch and NumPy"
 )
+torch_numpy_not_available: pytest.MarkDecorator = pytest.mark.skipif(
+    is_torch_numpy_available(), reason="Skip if PyTorch and NumPy are available"
+)
 torch_mps_available: pytest.MarkDecorator = pytest.mark.skipif(
     not is_mps_available(), reason="Requires PyTorch and MPS"
+)
+torch_mps_not_available: pytest.MarkDecorator = pytest.mark.skipif(
+    is_mps_available(), reason="Skip if PyTorch and MPS are available"
 )
 
 xarray_available: pytest.MarkDecorator = pytest.mark.skipif(
