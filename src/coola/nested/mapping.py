@@ -58,7 +58,11 @@ def flatten_mapping(
                 under the plain inner key.
             - ``'prefix'``: keep all the values, renaming every
                 occurrence of a conflicting key as
-                ``'{outer_key}{separator}{inner_key}'``.
+                ``'{outer_key}{separator}{inner_key}'``, including
+                the first occurrence. This differs from
+                :func:`merge_mappings`'s ``on_duplicate='suffix'``
+                strategy, which leaves the first occurrence under
+                the plain key.
         always_prefix: If ``True``, every key in the output is named
             ``'{outer_key}{separator}{inner_key}'``, regardless of
             whether it is a duplicate. If ``False``, only keys
@@ -180,6 +184,15 @@ def merge_mappings(
             - ``'suffix'``: keep all the values by adding a
                 ``'_n'`` suffix to the key name, where ``n`` is
                 incremented for each new occurrence.
+
+    Note:
+        With ``on_duplicate='suffix'``, only the *later* occurrences
+        of a conflicting key are renamed (``'{key}_1'``,
+        ``'{key}_2'``, ...); the first occurrence keeps the plain
+        key. This differs from :func:`flatten_mapping`'s
+        ``on_duplicate='prefix'`` strategy, which renames *every*
+        occurrence, including the first, once a genuine conflict is
+        detected for a key.
 
     Returns:
         The merged dict.
