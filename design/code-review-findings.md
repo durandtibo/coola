@@ -132,7 +132,7 @@ Date: 2026-09-09
     **Fix:** guard with `threading.Lock` (or initialize eagerly at import time), and
     factor the duplicated logic into one shared helper.
 
-19. **`summary/mapping.py`, `summary/sequence.py`, `summary/set.py`** — `.summarize()`
+19. **FIXED** — **`summary/mapping.py`, `summary/sequence.py`, `summary/set.py`** — `.summarize()`
     is near-identical (~25 lines each): same empty/zero-`max_items`/depth-limit/
     truncation logic, differing only in iteration/formatting.
     **Fix:** factor the shared skeleton into `BaseCollectionSummarizer` as a template

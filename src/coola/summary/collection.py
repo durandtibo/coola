@@ -4,11 +4,16 @@ from __future__ import annotations
 
 __all__ = ["BaseCollectionSummarizer"]
 
-from typing import TypeVar
+from collections.abc import Sized
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from coola.summary.base import BaseSummarizer
+from coola.utils.format import str_indent
 
-T = TypeVar("T")
+if TYPE_CHECKING:
+    from coola.summary.registry import SummarizerRegistry
+
+T = TypeVar("T", bound=Sized)
 
 
 class BaseCollectionSummarizer(BaseSummarizer[T]):
@@ -55,3 +60,52 @@ class BaseCollectionSummarizer(BaseSummarizer[T]):
         if type(other) is not type(self):
             return False
         return self._max_items == other._max_items and self._num_spaces == other._num_spaces
+
+    def summarize(
+        self,
+        data: T,
+        registry: SummarizerRegistry,
+        depth: int = 0,
+        max_depth: int = 1,
+    ) -> str:
+        r"""Summarize a collection following the shared truncation and
+        depth-limiting skeleton.
+
+        Subclasses only need to implement ``_get_preview`` and
+        ``_format_items`` to control how items are previewed and
+        formatted.
+        """
+        if depth >= max_depth:
+            text = str(data)
+            if self._max_items >= 0 and len(data) > self._max_items:
+                preview = self._get_preview(data)
+                text = f"{preview!r} ..."
+            return registry.summarize(text, depth=depth + 1, max_depth=max_depth)
+        typ = type(data)
+        length = len(data)
+        if length == 0:
+            return str_indent(f"{typ} {data}", num_spaces=self._num_spaces)
+        if self._max_items == 0:
+            return str_indent(f"{typ} (length={length:,}) ...", num_spaces=self._num_spaces)
+
+        body = self._format_items(data, registry, depth=depth, max_depth=max_depth)
+        if length > self._max_items and self._max_items > 0:
+            body = f"{body}\n..."
+        return str_indent(f"{typ} (length={length:,})\n{body}", num_spaces=self._num_spaces)
+
+    def _get_preview(self, data: T) -> Any:
+        r"""Return a truncated preview of ``data`` used when the depth
+        limit has been reached and the collection exceeds
+        ``max_items``."""
+        raise NotImplementedError
+
+    def _format_items(
+        self,
+        data: T,
+        registry: SummarizerRegistry,
+        depth: int,
+        max_depth: int,
+    ) -> str:
+        r"""Format the (possibly truncated) items of ``data`` into the
+        body of the summary."""
+        raise NotImplementedError
