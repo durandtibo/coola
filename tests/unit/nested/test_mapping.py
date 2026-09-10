@@ -314,6 +314,19 @@ def test_merge_mappings(mappings: list[dict], on_duplicate: str, expected: dict)
     assert merge_mappings(mappings, on_duplicate=on_duplicate) == expected
 
 
+def test_merge_mappings_flatten_mapping_first_occurrence_asymmetry() -> None:
+    """Test and document the documented asymmetry between
+    ``merge_mappings(on_duplicate='suffix')``, which leaves the first
+    occurrence of a conflicting key under the plain key, and
+    ``flatten_mapping(on_duplicate='prefix')``, which renames every
+    occurrence, including the first, once a real conflict is found."""
+    merged = merge_mappings([{"a": 1}, {"a": 2}], on_duplicate="suffix")
+    assert merged == {"a": 1, "a_1": 2}  # first occurrence keeps the plain key
+
+    flattened = flatten_mapping({"m1": {"a": 1}, "m2": {"a": 2}}, on_duplicate="prefix")
+    assert flattened == {"m1.a": 1, "m2.a": 2}  # first occurrence is renamed too
+
+
 def test_merge_mappings_default_on_duplicate_is_raise() -> None:
     with pytest.raises(KeyError, match="Duplicate key found"):
         merge_mappings([{"a": 1}, {"a": 2}])

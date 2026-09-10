@@ -138,19 +138,24 @@ Date: 2026-09-09
     **Fix:** factor the shared skeleton into `BaseCollectionSummarizer` as a template
     method.
 
-20. **`factory/constants.py:22`, `factory/resolve.py:18`, `factory/instantiation.py:70`** —
+20. **FIXED** — **`factory/constants.py:22`, `factory/resolve.py:18`, `factory/instantiation.py:70`** —
     `OBJECT_INIT = "_init_"` is defined and exported "to be robust to naming change"
     but `factory()`/`instantiate_object()` hardcode the literal `"_init_"` instead of
     referencing the constant, defeating its purpose.
-    **Fix:** wire `_init_` handling through the constant, or drop the constant and its
-    docstring claim.
+    **Fix:** `factory()` no longer declares an explicit `_init_` parameter; it now
+    pops the `OBJECT_INIT` key out of `**kwargs` (falling back to `"__init__"`), so a
+    config dict built with the `OBJECT_INIT` constant is honored the same way as one
+    using the literal `"_init_"` string. Covered by
+    `test_factory_object_init_constant_matches_literal_key`.
 
-21. **`nested/mapping.py`** — `merge_mappings`'s `"suffix"` strategy leaves the *first*
-    occurrence under the plain key and suffixes only later ones, while
+21. **FIXED** — **`nested/mapping.py`** — `merge_mappings`'s `"suffix"` strategy leaves the
+    *first* occurrence under the plain key and suffixes only later ones, while
     `flatten_mapping`'s `"prefix"` strategy renames *both* the first and later
     occurrences once a conflict is detected. Two similar dedup APIs behave differently
     for the "keep everything" case.
-    **Fix:** document the asymmetry prominently, or align first-occurrence handling.
+    **Fix:** documented the asymmetry prominently in both functions' docstrings, with
+    each cross-referencing the other's behavior. Covered by
+    `test_merge_mappings_flatten_mapping_first_occurrence_asymmetry`.
 
 22. **`iterator/bfs`/`iterator/dfs`** — `_register_default_child_finders` /
     `_register_default_iterators` bootstrap code is near copy-pasted between the two
