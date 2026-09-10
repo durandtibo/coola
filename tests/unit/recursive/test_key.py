@@ -7,6 +7,7 @@ import pytest
 
 from coola.equality import objects_are_equal
 from coola.recursive import (
+    DefaultTransformer,
     IdentityTransformer,
     KeyFilterTransformer,
     SequenceTransformer,
@@ -126,3 +127,101 @@ def test_key_filter_transformer_transform_with_exception_in_predicate(
 
     with pytest.raises(ValueError, match=r"Test error"):
         KeyFilterTransformer().transform({"a": 1}, func=failing_predicate, registry=registry)
+
+
+##############################################################
+#     Tests for the predicate / transform_func decoupling    #
+##############################################################
+
+
+@pytest.fixture
+def transforming_registry() -> TransformerRegistry:
+    # A registry where non-container values are actually transformed by
+    # the function they receive, unlike the ``registry`` fixture above
+    # where non-container values are left untouched (``IdentityTransformer``).
+    return TransformerRegistry(
+        {
+            object: DefaultTransformer(),
+            list: SequenceTransformer(),
+            tuple: SequenceTransformer(),
+            set: SetTransformer(),
+            frozenset: SetTransformer(),
+            dict: KeyFilterTransformer(),
+        }
+    )
+
+
+def test_key_filter_transformer_transform_default_transform_func_reuses_predicate(
+    transforming_registry: TransformerRegistry,
+) -> None:
+    # Without an explicit transform_func, kept values are run through the
+    # key predicate too, reproducing the surprising legacy behavior.
+    assert objects_are_equal(
+        KeyFilterTransformer().transform(
+            {"keep": 1, "secret": 2},
+            func=lambda key: key == "secret",
+            registry=transforming_registry,
+        ),
+        {"keep": False},
+    )
+
+
+def test_key_filter_transformer_transform_explicit_transform_func_decouples_values(
+    transforming_registry: TransformerRegistry,
+) -> None:
+    # An explicit transform_func decouples value transformation from the
+    # key predicate: kept values are left untouched by the identity func.
+    assert objects_are_equal(
+        KeyFilterTransformer().transform(
+            {"keep": 1, "secret": 2},
+            func=lambda key: key == "secret",
+            registry=transforming_registry,
+            transform_func=lambda x: x,
+        ),
+        {"keep": 1},
+    )
+
+
+def test_key_filter_transformer_transform_transform_func_applied_to_values(
+    transforming_registry: TransformerRegistry,
+) -> None:
+    assert objects_are_equal(
+        KeyFilterTransformer().transform(
+            {"keep": 1, "secret": 2},
+            func=lambda key: key == "secret",
+            registry=transforming_registry,
+            transform_func=str,
+        ),
+        {"keep": "1"},
+    )
+
+
+def test_key_filter_transformer_transform_str_value_uses_transform_func(
+    transforming_registry: TransformerRegistry,
+) -> None:
+    # str values must use transform_func, not func, even though str is a
+    # Sequence: otherwise the predicate would be misapplied to string values.
+    assert objects_are_equal(
+        KeyFilterTransformer().transform(
+            {"keep": "hello", "secret": 2},
+            func=lambda key: key == "secret",
+            registry=transforming_registry,
+            transform_func=str.upper,
+        ),
+        {"keep": "HELLO"},
+    )
+
+
+def test_key_filter_transformer_transform_default_transform_func_nested_mapping_still_filtered(
+    registry: TransformerRegistry,
+) -> None:
+    # With the default (no explicit transform_func), the predicate keeps
+    # filtering nested mappings at every level, exactly as before this fix.
+    assert objects_are_equal(
+        KeyFilterTransformer().transform(
+            {"a": {"key": 1, "b": 2}, "key": {"b": 3}},
+            func=lambda key: isinstance(key, str) and "key" in key,
+            registry=registry,
+        ),
+        {"a": {"b": 2}},
+    )
