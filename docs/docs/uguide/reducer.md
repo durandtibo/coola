@@ -231,14 +231,15 @@ Operations that raise `EmptySequenceError` on empty sequences:
 - `median()`
 - `std()`
 - `quantile()`
-
-The `sort()` method does not raise an error for empty sequences; it returns an empty list:
+- `sort()`
 
 ```pycon
 >>> from coola.reducer import NativeReducer
 >>> reducer = NativeReducer()
 >>> reducer.sort([])
-[]
+Traceback (most recent call last):
+...
+coola.reducer.base.EmptySequenceError: Cannot sort because the sequence is empty
 
 ```
 
@@ -340,7 +341,7 @@ You can create custom reducers by extending `BaseReducer` or `BaseBasicReducer`:
 ...     def _std(self, values: T) -> float:
 ...         m = self._mean(values)
 ...         return (sum((x - m) ** 2 for x in values) / len(values)) ** 0.5
-...     def sort(self, values: T, descending: bool = False) -> list[int | float]:
+...     def _sort(self, values: T, descending: bool = False) -> list[int | float]:
 ...         return sorted(values, reverse=descending)
 ...
 >>> reducer = CustomReducer()
