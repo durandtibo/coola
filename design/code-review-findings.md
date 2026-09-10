@@ -83,7 +83,7 @@ Date: 2026-09-09
 
 ## API inconsistency / design issues
 
-11. **`display/testing/fixtures.py:104-118`** — `torch_cuda_available`,
+11. **FIXED** — **`display/testing/fixtures.py:104-118`** — `torch_cuda_available`,
     `torch_numpy_available`, `torch_mps_available` have no `_not_available`
     counterparts, unlike every other backend fixture.
     **Fix:** add the missing `_not_available` marks.
