@@ -23,9 +23,9 @@ class EqualityHandler(Protocol):
     """
 
     @property
-    def next_handler(self) -> BaseEqualityHandler | None: ...
+    def next_handler(self) -> BaseEqualityHandler | None: ...  # pragma: no cover
 
-    def _equality_attrs(self) -> tuple[str, ...]: ...
+    def _equality_attrs(self) -> tuple[str, ...]: ...  # pragma: no cover
 
 
 class HandlerEqualityMixin:
