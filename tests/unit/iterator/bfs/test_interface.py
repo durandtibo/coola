@@ -50,6 +50,23 @@ def test_bfs_iterate_custom_registry(data: Any, expected: Any) -> None:
     )
 
 
+def test_bfs_iterate_duck_typed_iterable_not_silently_dropped() -> None:
+    r"""An object that implements ``__iter__`` without ``list`` (or any
+    registered type) in its MRO must be yielded as a leaf value rather
+    than silently dropped because the registry falls back to
+    ``DefaultChildFinder``."""
+
+    class CustomIterable:
+        def __iter__(self) -> Any:
+            yield 1
+            yield 2
+
+    data = CustomIterable()
+    assert list(
+        bfs_iterate(data, registry=ChildFinderRegistry({object: DefaultChildFinder()}))
+    ) == [data]
+
+
 ############################################
 #     Tests for register_child_finders     #
 ############################################

@@ -234,7 +234,7 @@ Date: 2026-09-09
     an unrelated crash in the message-formatting code path.
     **Fix:** sort by `repr`/`str` of each key instead of the raw key.
 
-30. **`iterator/bfs/registry.py:296-306` (`ChildFinderRegistry.iterate`)** — decides
+30. **FIXED** — **`iterator/bfs/registry.py:296-306` (`ChildFinderRegistry.iterate`)** — decides
     whether a value is a "container" via a structural
     `isinstance(current, (Mapping, Iterable))` check, but the child finder actually
     used to expand it comes from `TypeRegistry.resolve`, which walks the concrete
