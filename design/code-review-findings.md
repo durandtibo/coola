@@ -187,7 +187,6 @@ Date: 2026-09-09
 25. **FIXED** — **`utils/env_vars.py:19-67` (`check_env_vars`)** — logs use emoji prefixes
     (`✅`/`❌`) baked into the message, inconsistent with the package's plain-text log
     style and a potential issue for non-UTF-8 log sinks.
-
     **Fix:** Removed the `✅`/`❌` emoji from the info/warning log messages in
     `check_env_vars`. Covered by `test_check_env_vars_logs_success_message` and
     `test_check_env_vars_logs_warning_message`.
@@ -195,7 +194,6 @@ Date: 2026-09-09
 26. **FIXED** — **`display/pydantic.py:71-73`** — `exclude_fields` names that don't
     exist on the model are silently ignored, which can mask a caller's typo (e.g.
     `exclude_fields=["nmae"]`). Consider warning/raising on unknown field names.
-
     **Fix:** `_format_pydantic_model` now emits a `RuntimeWarning` listing any
     `exclude_fields` names not present on the model, while still applying the
     exclusion for the names that do match. Covered by
@@ -203,6 +201,75 @@ Date: 2026-09-09
     `test_str_pydantic_model_exclude_fields_missing_field_and_valid_field`,
     `test_str_pydantic_model_exclude_fields_no_warning_for_valid_field`, and
     `test_repr_pydantic_model_exclude_fields_missing_field`.
+
+## Second pass (2026-09-10) — additional findings
+
+27. **`summary/collection.py:249-254` (`BaseCollectionSummarizer.summarize`)** — when
+    `max_items` is explicitly negative (documented as "show all items, no
+    truncation") and the depth limit is hit, the code falls through to
+    `text = str(data)` unconditionally, since the truncation branch only fires
+    `if self._max_items >= 0 and len(data) > self._max_items`. A large collection
+    summarized with `max_items=-1` and nesting deeper than `max_depth` dumps the
+    entire untruncated `str(data)` at that depth, e.g.
+    `SequenceSummarizer(max_items=-1).summarize([0]*100000, registry, depth=1, max_depth=1)`
+    produces a 100000-element string. Same class of unbounded-stringify bug as #2,
+    reintroduced for the `max_items < 0` case that fix didn't cover.
+    **Fix:** cap the depth-limit preview length regardless of the sign of
+    `max_items`, rather than falling back to plain `str(data)`.
+
+28. **`hashing/mapping.py:80` (`MappingHasher.hash`)** — `for key in sorted(data.keys())`
+    requires all keys to be mutually comparable. A dict with heterogeneous key
+    types (e.g. `{1: "a", "b": 2}`) raises `TypeError: '<' not supported between
+    instances of 'str' and 'int'` instead of hashing, even though `MappingHasher`
+    documents only "no hasher registered for a key/value type" as a raise
+    condition.
+    **Fix:** sort by each key's own hash string (already computed per-item) rather
+    than the raw key.
+
+29. **`equality/handler/format.py:53-58` (`format_mapping_difference`)** — same
+    pattern as #28: `sorted(missing_keys)` / `sorted(additional_keys)` assumes
+    mutually comparable keys. Comparing two dicts with mixed-type keys (e.g.
+    `{1: "x", "y": "z"}` vs `{}`) raises `TypeError` while building the "mappings
+    have different keys" diagnostic, turning a legitimate assertion failure into
+    an unrelated crash in the message-formatting code path.
+    **Fix:** sort by `repr`/`str` of each key instead of the raw key.
+
+30. **`iterator/bfs/registry.py:296-306` (`ChildFinderRegistry.iterate`)** — decides
+    whether a value is a "container" via a structural
+    `isinstance(current, (Mapping, Iterable))` check, but the child finder actually
+    used to expand it comes from `TypeRegistry.resolve`, which walks the concrete
+    `dtype.__mro__` only. For an object whose class implements `__iter__` without
+    inheriting from `collections.abc.Iterable` (never appearing in its MRO),
+    `resolve()` falls back to `DefaultChildFinder`, which yields nothing — so
+    `is_container` is `True` but `children` is empty, and `queue.extend(children)`
+    silently drops the value with no expansion and no leaf output. Repro:
+    ```python
+    class Custom:
+        def __iter__(self):
+            yield 1
+            yield 2
+
+
+    list(bfs_iterate([Custom()]))  # -> [] instead of [1, 2] or [Custom()]
+    ```
+    The DFS counterpart (`iterator/dfs/registry.py`) has no such split-brain check
+    since it dispatches purely through the registry, so BFS and DFS disagree on
+    the same input, and BFS additionally loses data silently.
+    **Fix:** decide containership solely through the registry (e.g. have
+    `find_child_finder` report whether it resolved to a real container finder vs.
+    the default) instead of a separate `isinstance` test that can disagree with
+    MRO-based resolution.
+
+31. **`io/base.py:239-297` (`BaseFileSaver.save`) — hardening note** — the
+    `exist_ok=False` path uses `os.link` + `unlink` specifically to guard against
+    a concurrent creation of `path` between the initial check and the commit,
+    but the `exist_ok=True` path commits via a plain `tmp_path.replace(path)` with
+    no such TOCTOU guard: a file created concurrently by another process between
+    the `path.is_file()` check and the replace is silently overwritten, and a
+    concurrently-removed parent directory can surface a less specific `OSError`
+    than the `IsADirectoryError`/`FileExistsError` raised on the other branch.
+    **Fix:** document explicitly that the TOCTOU guard applies only when
+    `exist_ok=False`.
 
 ## Note on scope
 
