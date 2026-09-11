@@ -134,6 +134,21 @@ def test_child_finder_registry_find_child_finder_most_specific() -> None:
     assert registry.find_child_finder(CustomList) is specific_child_finder
 
 
+def test_child_finder_registry_find_children_direct_match() -> None:
+    registry = ChildFinderRegistry({list: IterableChildFinder()})
+    assert list(registry.find_children([1, 2, 3])) == [1, 2, 3]
+
+
+def test_child_finder_registry_find_children_mro_lookup() -> None:
+    registry = ChildFinderRegistry({list: IterableChildFinder()})
+    assert list(registry.find_children(CustomList([1, 2, 3]))) == [1, 2, 3]
+
+
+def test_child_finder_registry_find_children_default() -> None:
+    registry = ChildFinderRegistry({object: DefaultChildFinder(), list: IterableChildFinder()})
+    assert list(registry.find_children(42)) == []
+
+
 @pytest.mark.parametrize(("data", "expected"), ITERATE_SAMPLES)
 def test_child_finder_registry_iterate(data: Any, expected: Any) -> None:
     iterable_child_finder = IterableChildFinder()
