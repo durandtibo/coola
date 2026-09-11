@@ -226,7 +226,7 @@ Date: 2026-09-09
     **Fix:** sort by each key's own hash string (already computed per-item) rather
     than the raw key.
 
-29. **`equality/handler/format.py:53-58` (`format_mapping_difference`)** — same
+29. **FIXED** — **`equality/handler/format.py:53-58` (`format_mapping_difference`)** — same
     pattern as #28: `sorted(missing_keys)` / `sorted(additional_keys)` assumes
     mutually comparable keys. Comparing two dicts with mixed-type keys (e.g.
     `{1: "x", "y": "z"}` vs `{}`) raises `TypeError` while building the "mappings

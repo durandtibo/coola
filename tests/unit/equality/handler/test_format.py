@@ -47,6 +47,23 @@ def test_format_mapping_difference_missing_and_different() -> None:
     )
 
 
+def test_format_mapping_difference_missing_keys_heterogeneous_types() -> None:
+    # Keys with mixed types are not mutually comparable, so sorting by the raw
+    # keys would raise a TypeError. The message just needs to be built without
+    # crashing.
+    msg = format_mapping_difference(missing_keys={1, "y"})
+    assert msg.startswith("mappings have different keys:\n  missing keys    : ")
+    assert "1" in msg
+    assert "'y'" in msg
+
+
+def test_format_mapping_difference_additional_keys_heterogeneous_types() -> None:
+    msg = format_mapping_difference(additional_keys={1, "y"})
+    assert msg.startswith("mappings have different keys:\n  additional keys : ")
+    assert "1" in msg
+    assert "'y'" in msg
+
+
 ################################################
 #     Tests for format_sequence_difference     #
 ################################################
