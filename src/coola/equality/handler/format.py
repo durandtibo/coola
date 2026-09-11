@@ -53,9 +53,9 @@ def format_mapping_difference(
     if missing_keys or additional_keys:
         lines.append("mappings have different keys:")
         if missing_keys:
-            lines.append(f"  missing keys    : {sorted(missing_keys)}")
+            lines.append(f"  missing keys    : {sorted(missing_keys, key=str)}")
         if additional_keys:
-            lines.append(f"  additional keys : {sorted(additional_keys)}")
+            lines.append(f"  additional keys : {sorted(additional_keys, key=str)}")
     if different_value_key is not None:
         # Just show which key has different values, not the full objects
         lines.append(f"mappings have different values for key {different_value_key!r}")
