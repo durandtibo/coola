@@ -134,6 +134,21 @@ def test_child_finder_registry_find_child_finder_most_specific() -> None:
     assert registry.find_child_finder(CustomList) is specific_child_finder
 
 
+def test_child_finder_registry_find_children_direct_match() -> None:
+    registry = ChildFinderRegistry({list: IterableChildFinder()})
+    assert list(registry.find_children([1, 2, 3])) == [1, 2, 3]
+
+
+def test_child_finder_registry_find_children_mro_lookup() -> None:
+    registry = ChildFinderRegistry({list: IterableChildFinder()})
+    assert list(registry.find_children(CustomList([1, 2, 3]))) == [1, 2, 3]
+
+
+def test_child_finder_registry_find_children_default() -> None:
+    registry = ChildFinderRegistry({object: DefaultChildFinder(), list: IterableChildFinder()})
+    assert list(registry.find_children(42)) == []
+
+
 @pytest.mark.parametrize(("data", "expected"), ITERATE_SAMPLES)
 def test_child_finder_registry_iterate(data: Any, expected: Any) -> None:
     iterable_child_finder = IterableChildFinder()
@@ -153,6 +168,51 @@ def test_child_finder_registry_iterate(data: Any, expected: Any) -> None:
         )
         == expected
     )
+
+
+def test_child_finder_registry_iterate_duck_typed_iterable_no_finder_registered() -> None:
+    r"""An object implementing ``__iter__`` but absent from any registered
+    type's MRO must not be silently dropped when no dedicated child finder
+    is registered for it: it should be yielded as a leaf value, not expanded
+    into an empty result."""
+
+    class CustomIterable:
+        def __iter__(self) -> Any:
+            yield 1
+            yield 2
+
+    data = CustomIterable()
+    registry = ChildFinderRegistry({object: DefaultChildFinder()})
+
+    assert list(registry.iterate(data)) == [data]
+
+
+def test_child_finder_registry_iterate_container_type_without_registered_finder() -> None:
+    r"""A structurally container-like value (e.g. a list) must not be
+    dropped when no finder besides the default is registered: it should be
+    yielded as a leaf value since the registry cannot expand it."""
+    registry = ChildFinderRegistry({object: DefaultChildFinder()})
+
+    assert list(registry.iterate([1, 2, 3])) == [[1, 2, 3]]
+
+
+def test_child_finder_registry_iterate_agrees_with_find_child_finder() -> None:
+    r"""Containership must be decided solely from the resolved child
+    finder, so a type registered with a non-default finder is always
+    expanded, even if it would not structurally look like a
+    container."""
+
+    class LeafButRegisteredAsContainer:
+        pass
+
+    child_finder = IterableChildFinder()
+    registry = ChildFinderRegistry(
+        {object: DefaultChildFinder(), LeafButRegisteredAsContainer: child_finder}
+    )
+    assert registry.find_child_finder(LeafButRegisteredAsContainer) is child_finder
+    # No __iter__, so IterableChildFinder.find_children raises when actually expanded.
+    with pytest.raises(TypeError):
+        list(registry.iterate(LeafButRegisteredAsContainer()))
 
 
 def test_child_finder_registry_registry_isolation() -> None:
