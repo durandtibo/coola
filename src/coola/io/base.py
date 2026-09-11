@@ -203,6 +203,16 @@ class BaseFileSaver(BaseSaver[T]):
                 given path already exists in the file system and is
                 not a file.
 
+                Note: the ``exist_ok=False`` guarantee is protected
+                against a concurrent creation of ``path`` between the
+                initial existence check and the commit step (the
+                commit uses ``os.link`` which atomically fails with
+                ``FileExistsError`` in that case). This TOCTOU guard
+                does not apply when ``exist_ok=True``: the commit is a
+                plain replace, so a file created concurrently by
+                another process between the check and the replace is
+                silently overwritten.
+
         Raises:
             FileExistsError: if the file already exists.
 

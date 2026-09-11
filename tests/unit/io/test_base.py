@@ -205,15 +205,35 @@ def test_base_file_saver_save_exist_ok_false_fails_atomically_on_concurrent_crea
     # If the target path is created after the initial existence check but
     # before the commit step, ``exist_ok=False`` must still raise instead
     # of silently overwriting it.
-    path = tmp_path.joinpath("data.txt")
+    target_path = tmp_path.joinpath("data.txt")
     saver = SimpleFileSaver()
     original_save_file = saver._save_file
 
-    def save_file_then_create_target(to_save: Any, tmp: Path) -> None:
-        original_save_file(to_save, tmp)
-        path.write_text("concurrent")
+    def save_file_then_create_target(to_save: Any, path: Path) -> None:
+        original_save_file(to_save, path)
+        target_path.write_text("concurrent")
 
     saver._save_file = save_file_then_create_target
     with pytest.raises(FileExistsError):
-        saver.save("hello", path)
-    assert path.read_text() == "concurrent"
+        saver.save("hello", target_path)
+    assert target_path.read_text() == "concurrent"
+
+
+def test_base_file_saver_save_exist_ok_true_silently_overwrites_concurrent_create(
+    tmp_path: Path,
+) -> None:
+    # Unlike ``exist_ok=False``, the ``exist_ok=True`` path has no TOCTOU
+    # guard: a file created concurrently between the initial check and the
+    # commit step is silently overwritten by the plain ``Path.replace``
+    # commit, instead of raising.
+    target_path = tmp_path.joinpath("data.txt")
+    saver = SimpleFileSaver()
+    original_save_file = saver._save_file
+
+    def save_file_then_create_target(to_save: Any, path: Path) -> None:
+        original_save_file(to_save, path)
+        target_path.write_text("concurrent")
+
+    saver._save_file = save_file_then_create_target
+    saver.save("hello", target_path, exist_ok=True)
+    assert target_path.read_text() == "hello"

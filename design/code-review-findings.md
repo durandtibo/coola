@@ -260,7 +260,7 @@ Date: 2026-09-09
     the default) instead of a separate `isinstance` test that can disagree with
     MRO-based resolution.
 
-31. **`io/base.py:239-297` (`BaseFileSaver.save`) — hardening note** — the
+31. **FIXED** — **`io/base.py:239-297` (`BaseFileSaver.save`) — hardening note** — the
     `exist_ok=False` path uses `os.link` + `unlink` specifically to guard against
     a concurrent creation of `path` between the initial check and the commit,
     but the `exist_ok=True` path commits via a plain `tmp_path.replace(path)` with
