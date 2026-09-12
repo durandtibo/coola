@@ -10,11 +10,12 @@ on:
     tags:
       - "v*.*.*" # Trigger on version tags (e.g., v1.0.0)
 
-permissions:
-  contents: write # Required by the called workflow to push to gh-pages branch
+permissions: {}
 
 jobs:
   publish:
+    permissions:
+      contents: write # Required by the called workflow to push to gh-pages branch
     uses: ./.github/workflows/release-docs-publish.yaml
     with:
       mode: stable
