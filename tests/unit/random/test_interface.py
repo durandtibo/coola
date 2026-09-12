@@ -11,8 +11,9 @@ from coola.random import (
     RandomManagerRegistry,
     RandomRandomManager,
     get_default_registry,
-    register_managers,
 )
+from coola.random import interface as random_interface
+from coola.random import register_managers
 from coola.random.interface import (
     get_rng_state,
     manual_seed,
@@ -38,11 +39,9 @@ if is_torch_available():
 def _reset_default_registry() -> Generator[None, None, None]:
     """Reset the default registry before and after each test to ensure
     test isolation."""
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    random_interface._default_registry._instance = None
     yield
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    random_interface._default_registry._instance = None
 
 
 class CustomList(list):

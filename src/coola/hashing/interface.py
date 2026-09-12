@@ -18,6 +18,7 @@ from coola.hashing.registry import HasherRegistry
 from coola.hashing.repr import ReprHasher
 from coola.hashing.sequence import SequenceHasher
 from coola.hashing.string import StringHasher
+from coola.utils.singleton import LazySingleton
 
 if TYPE_CHECKING:
     from coola.hashing.base import BaseHasher
@@ -126,11 +127,7 @@ def get_default_registry() -> HasherRegistry:
 
         ```
     """
-    if not hasattr(get_default_registry, "_registry"):
-        registry = HasherRegistry()
-        _register_default_hashers(registry)
-        get_default_registry._registry = registry
-    return get_default_registry._registry
+    return _default_registry.get()
 
 
 def _register_default_hashers(registry: HasherRegistry) -> None:
@@ -172,3 +169,12 @@ def _register_default_hashers(registry: HasherRegistry) -> None:
             type(None): repr_hasher,
         }
     )
+
+
+def _build_default_registry() -> HasherRegistry:
+    registry = HasherRegistry()
+    _register_default_hashers(registry)
+    return registry
+
+
+_default_registry: LazySingleton[HasherRegistry] = LazySingleton(_build_default_registry)

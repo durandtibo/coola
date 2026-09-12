@@ -10,6 +10,7 @@ from coola.iterator.bfs import (
     bfs_iterate,
     get_default_registry,
 )
+from coola.iterator.bfs import interface as bfs_interface
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Iterator
@@ -18,11 +19,9 @@ if TYPE_CHECKING:
 @pytest.fixture(autouse=True)
 def _reset_default_registry() -> Generator[None, None, None]:
     """Reset the registry before and after each test."""
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    bfs_interface._default_registry._instance = None
     yield
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    bfs_interface._default_registry._instance = None
 
 
 class LinkedListNode:

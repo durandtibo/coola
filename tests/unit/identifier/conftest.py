@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from coola.hashing import get_default_registry
+from coola.hashing import interface as hashing_interface
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -18,8 +18,6 @@ def _reset_default_registry() -> Generator[None, None, None]:
     generators both delegate to ``coola.hashing.hash_object`` and thus
     to this cached, otherwise test-order-dependent, singleton.
     """
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    hashing_interface._default_registry._instance = None
     yield
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    hashing_interface._default_registry._instance = None

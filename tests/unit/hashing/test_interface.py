@@ -17,18 +17,17 @@ from coola.hashing import (
     StringHasher,
     get_default_registry,
     hash_object,
-    register_hashers,
 )
+from coola.hashing import interface as hashing_interface
+from coola.hashing import register_hashers
 
 
 @pytest.fixture(autouse=True)
 def _reset_default_registry() -> Generator[None, None, None]:
     """Reset the singleton registry before and after each test."""
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    hashing_interface._default_registry._instance = None
     yield
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    hashing_interface._default_registry._instance = None
 
 
 class CustomList(list):

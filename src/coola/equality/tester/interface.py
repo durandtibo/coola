@@ -52,6 +52,7 @@ from coola.utils.imports import (
     is_torch_available,
     is_xarray_available,
 )
+from coola.utils.singleton import LazySingleton
 
 if is_jax_available():  # pragma: no cover
     import jax.numpy as jnp
@@ -145,11 +146,7 @@ def get_default_registry() -> EqualityTesterRegistry:
 
         ```
     """
-    if not hasattr(get_default_registry, "_registry"):
-        registry = EqualityTesterRegistry()
-        _register_default_equality_testers(registry)
-        get_default_registry._registry = registry
-    return get_default_registry._registry
+    return _default_registry.get()
 
 
 def _register_default_equality_testers(registry: EqualityTesterRegistry) -> None:
@@ -349,3 +346,12 @@ def _get_xarray_equality_testers() -> dict[type, BaseEqualityTester]:
         xr.Dataset: XarrayDatasetEqualityTester(),
         xr.Variable: XarrayVariableEqualityTester(),
     }
+
+
+def _build_default_registry() -> EqualityTesterRegistry:
+    registry = EqualityTesterRegistry()
+    _register_default_equality_testers(registry)
+    return registry
+
+
+_default_registry: LazySingleton[EqualityTesterRegistry] = LazySingleton(_build_default_registry)

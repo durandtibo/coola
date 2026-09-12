@@ -4,7 +4,8 @@ import re
 
 import pytest
 
-from coola.hashing import HasherRegistry, ReprHasher, StringHasher, get_default_registry
+from coola.hashing import HasherRegistry, ReprHasher, StringHasher
+from coola.hashing import interface as hashing_interface
 from coola.identifier.content import generate_stable_content_id
 
 HEX_PATTERN = re.compile(r"^[0-9a-f]+$")
@@ -88,4 +89,4 @@ def test_generate_stable_content_id_does_not_mutate_default_registry_when_custom
 ):
     custom_registry = HasherRegistry({object: StringHasher()})
     generate_stable_content_id("meow", registry=custom_registry)
-    assert not hasattr(get_default_registry, "_registry")
+    assert hashing_interface._default_registry._instance is None

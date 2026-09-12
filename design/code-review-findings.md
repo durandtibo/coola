@@ -124,15 +124,20 @@ Date: 2026-09-09
     `TypeRegistry` only adds MRO `resolve()`/caching on top.
     **Fix:** have `TypeRegistry` compose/extend a shared base with `Registry`.
 
-18. **`get_default_registry()` singleton pattern (non-thread-safe, repeated 6x)** —
+18. **FIXED** — **`get_default_registry()` singleton pattern (non-thread-safe, repeated 6x)** —
     `equality/tester/interface.py`, `hashing/interface.py`, `recursive/interface.py`,
     `random/interface.py`, `iterator/bfs/interface.py`, `iterator/dfs/interface.py`,
     `summary/interface.py` all use
     `if not hasattr(fn, "_registry"): fn._registry = ...` with no lock — two threads
     racing on first use can each build a different registry, silently discarding any
     prior seed/registration state on the loser.
-    **Fix:** guard with `threading.Lock` (or initialize eagerly at import time), and
-    factor the duplicated logic into one shared helper.
+    **Fix:** eager import-time initialization was tried first but reintroduces a real
+    circular import (`equality.tester.registry` locally imports `coola.registry.type`
+    specifically to dodge a cycle with `coola.equality`, which building the registry
+    at module-load time re-triggers). Instead, added `coola.utils.singleton.LazySingleton`
+    — a thread-safe, double-checked-locking lazy holder — and each of the 7 modules now
+    does `_default_registry = LazySingleton(_build_default_registry)` with
+    `get_default_registry()` returning `_default_registry.get()`.
 
 19. **FIXED** — **`summary/mapping.py`, `summary/sequence.py`, `summary/set.py`** — `.summarize()`
     is near-identical (~25 lines each): same empty/zero-`max_items`/depth-limit/

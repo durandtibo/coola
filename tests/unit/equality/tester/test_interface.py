@@ -29,8 +29,9 @@ from coola.equality.tester import (
     XarrayDatasetEqualityTester,
     XarrayVariableEqualityTester,
     get_default_registry,
-    register_equality_testers,
 )
+from coola.equality.tester import interface as tester_interface
+from coola.equality.tester import register_equality_testers
 from coola.equality.tester.jax import get_array_impl_class
 from coola.utils.imports import (
     is_jax_available,
@@ -61,11 +62,9 @@ if is_xarray_available():
 @pytest.fixture(autouse=True)
 def _reset_default_registry() -> Generator[None, None, None]:
     """Reset the registry before and after each test."""
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    tester_interface._default_registry._instance = None
     yield
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    tester_interface._default_registry._instance = None
 
 
 @pytest.fixture

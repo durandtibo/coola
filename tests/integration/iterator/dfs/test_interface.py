@@ -11,6 +11,7 @@ from coola.iterator.dfs import (
     dfs_iterate,
     get_default_registry,
 )
+from coola.iterator.dfs import interface as dfs_interface
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -21,11 +22,9 @@ if TYPE_CHECKING:
 @pytest.fixture(autouse=True)
 def _reset_default_registry() -> Generator[None, None, None]:
     """Reset the registry before and after each test."""
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    dfs_interface._default_registry._instance = None
     yield
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    dfs_interface._default_registry._instance = None
 
 
 class LinkedListNode:
