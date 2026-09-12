@@ -46,8 +46,8 @@ class MappingSummarizer(BaseCollectionSummarizer[Mapping[Any, Any]]):
         ```
     """
 
-    def _get_preview(self, data: Mapping[Any, Any]) -> dict:
-        return dict(islice(data.items(), self._max_items))
+    def _get_preview(self, data: Mapping[Any, Any], limit: int) -> dict:
+        return dict(islice(data.items(), limit))
 
     def _format_items(
         self,

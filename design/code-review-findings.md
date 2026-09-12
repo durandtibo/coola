@@ -204,7 +204,7 @@ Date: 2026-09-09
 
 ## Second pass (2026-09-10) — additional findings
 
-27. **`summary/collection.py:249-254` (`BaseCollectionSummarizer.summarize`)** — when
+27. **FIXED** — **`summary/collection.py:249-254` (`BaseCollectionSummarizer.summarize`)** — when
     `max_items` is explicitly negative (documented as "show all items, no
     truncation") and the depth limit is hit, the code falls through to
     `text = str(data)` unconditionally, since the truncation branch only fires

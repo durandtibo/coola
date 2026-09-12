@@ -47,8 +47,8 @@ class SetSummarizer(BaseCollectionSummarizer[AbstractSet[Any]]):
         ```
     """
 
-    def _get_preview(self, data: AbstractSet[Any]) -> list:
-        return list(islice(iter(data), self._max_items))
+    def _get_preview(self, data: AbstractSet[Any], limit: int) -> list:
+        return list(islice(iter(data), limit))
 
     def _format_items(
         self,

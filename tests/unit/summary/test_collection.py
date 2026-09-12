@@ -13,8 +13,8 @@ class FakeSequenceSummarizer(BaseCollectionSummarizer[Sequence[Any]]):
     r"""Minimal concrete summarizer used to test the shared template
     method implemented in ``BaseCollectionSummarizer``."""
 
-    def _get_preview(self, data: Sequence[Any]) -> list:
-        return list(data[: self._max_items])
+    def _get_preview(self, data: Sequence[Any], limit: int) -> list:
+        return list(data[:limit])
 
     def _format_items(
         self,
@@ -49,7 +49,7 @@ def registry() -> SummarizerRegistry:
 def test_base_collection_summarizer_not_implemented() -> None:
     summarizer = BaseCollectionSummarizer()
     with pytest.raises(NotImplementedError):
-        summarizer._get_preview([1, 2, 3])
+        summarizer._get_preview([1, 2, 3], limit=2)
     with pytest.raises(NotImplementedError):
         summarizer._format_items([1, 2, 3], SummarizerRegistry(), depth=0, max_depth=1)
 
@@ -96,3 +96,24 @@ def test_base_collection_summarizer_summarize_depth_limit_with_preview(
     summarizer = FakeSequenceSummarizer(max_items=2)
     out = summarizer.summarize([1, 2, 3], registry, depth=1, max_depth=1)
     assert out == "[1, 2] ..."
+
+
+def test_base_collection_summarizer_summarize_depth_limit_negative_max_items_no_truncation(
+    registry: SummarizerRegistry,
+) -> None:
+    summarizer = FakeSequenceSummarizer(max_items=-1)
+    out = summarizer.summarize([1, 2, 3], registry, depth=1, max_depth=1)
+    assert out == "[1, 2, 3]"
+
+
+def test_base_collection_summarizer_summarize_depth_limit_negative_max_items_is_capped(
+    registry: SummarizerRegistry,
+) -> None:
+    # Regression test for issue #27: max_items=-1 (i.e. "no truncation") must
+    # still cap the preview length when the depth limit is hit, instead of
+    # falling back to an unbounded str(data).
+    summarizer = FakeSequenceSummarizer(max_items=-1)
+    data = list(range(100_000))
+    out = summarizer.summarize(data, registry, depth=1, max_depth=1)
+    assert out == f"{list(range(BaseCollectionSummarizer._DEPTH_LIMIT_PREVIEW_ITEMS))} ..."
+    assert len(out) < 1_000
