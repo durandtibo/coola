@@ -231,15 +231,15 @@ Operations that raise `EmptySequenceError` on empty sequences:
 - `median()`
 - `std()`
 - `quantile()`
-- `sort()`
+
+Unlike the other reductions, sorting is well-defined for an empty sequence, so `sort()` returns
+an empty list instead of raising an error:
 
 ```pycon
 >>> from coola.reducer import NativeReducer
 >>> reducer = NativeReducer()
 >>> reducer.sort([])
-Traceback (most recent call last):
-...
-coola.reducer.base.EmptySequenceError: Cannot sort because the sequence is empty
+[]
 
 ```
 
@@ -310,7 +310,12 @@ The `coola.reducer` package follows these design principles:
 
 ### Creating a Custom Reducer
 
-You can create custom reducers by extending `BaseReducer` or `BaseBasicReducer`:
+You can create custom reducers by extending `BaseReducer` or `BaseBasicReducer`. `BaseBasicReducer`
+provides concrete implementations of `max`, `mean`, `median`, `min`, `quantile`, and `std` that
+first check for an empty sequence (via `_is_empty`) and then delegate to private `_max`, `_mean`,
+etc. methods. `sort` is not covered by this empty-sequence check — since sorting an empty
+sequence is well-defined, subclasses implement `sort` directly, like any other `BaseReducer`
+method:
 
 ```pycon
 >>> from coola.reducer import BaseBasicReducer
@@ -341,12 +346,14 @@ You can create custom reducers by extending `BaseReducer` or `BaseBasicReducer`:
 ...     def _std(self, values: T) -> float:
 ...         m = self._mean(values)
 ...         return (sum((x - m) ** 2 for x in values) / len(values)) ** 0.5
-...     def _sort(self, values: T, descending: bool = False) -> list[int | float]:
+...     def sort(self, values: T, descending: bool = False) -> list[int | float]:
 ...         return sorted(values, reverse=descending)
 ...
 >>> reducer = CustomReducer()
 >>> reducer.mean([1, 2, 3, 4, 5])
 3.0
+>>> reducer.sort([])
+[]
 
 ```
 
