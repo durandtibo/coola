@@ -102,7 +102,7 @@ into non-interactive output:
 
 ```pycon
 
->>> from coola.display import configure_colorlog_logging
+>>> from coola.display.colorlog import configure_colorlog_logging
 >>> configure_colorlog_logging()
 
 ```
