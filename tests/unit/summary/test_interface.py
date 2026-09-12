@@ -14,9 +14,9 @@ from coola.summary import (
     SummarizerRegistry,
     TensorSummarizer,
     get_default_registry,
-    register_summarizers,
-    summarize,
 )
+from coola.summary import interface as summary_interface
+from coola.summary import register_summarizers, summarize
 from coola.testing.fixtures import numpy_available, torch_available
 from coola.utils.imports import is_numpy_available, is_torch_available
 
@@ -30,11 +30,9 @@ if is_numpy_available():  # pragma: no cover
 @pytest.fixture(autouse=True)
 def _reset_default_registry() -> Generator[None, None, None]:
     """Reset the registry before and after each test."""
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    summary_interface._default_registry._instance = None
     yield
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    summary_interface._default_registry._instance = None
 
 
 class CustomList(list):

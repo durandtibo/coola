@@ -13,8 +13,9 @@ from coola.iterator.bfs import (
     IterableChildFinder,
     MappingChildFinder,
     get_default_registry,
-    register_child_finders,
 )
+from coola.iterator.bfs import interface as bfs_interface
+from coola.iterator.bfs import register_child_finders
 from tests.unit.iterator.bfs.helpers import (
     DEFAULT_ITERATE_SAMPLES,
     ITERATE_SAMPLES,
@@ -25,11 +26,9 @@ from tests.unit.iterator.bfs.helpers import (
 @pytest.fixture(autouse=True)
 def _reset_default_registry() -> Generator[None, None, None]:
     """Reset the registry before and after each test."""
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    bfs_interface._default_registry._instance = None
     yield
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    bfs_interface._default_registry._instance = None
 
 
 #################################

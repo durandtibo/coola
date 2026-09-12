@@ -11,19 +11,17 @@ from coola.recursive import (
     SetTransformer,
     TransformerRegistry,
     get_default_registry,
-    recursive_apply,
-    register_transformers,
 )
+from coola.recursive import interface as recursive_interface
+from coola.recursive import recursive_apply, register_transformers
 
 
 @pytest.fixture(autouse=True)
 def _reset_default_registry() -> Generator[None, None, None]:
     """Reset the registry before and after each test."""
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    recursive_interface._default_registry._instance = None
     yield
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    recursive_interface._default_registry._instance = None
 
 
 class CustomList(list):
