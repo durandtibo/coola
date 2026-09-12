@@ -5,16 +5,18 @@ from __future__ import annotations
 
 __all__ = ["bfs_iterate", "get_default_registry", "register_child_finders"]
 
-from collections.abc import Iterable, Iterator, Mapping
 from typing import TYPE_CHECKING, Any
 
 from coola.iterator.bfs.default import DefaultChildFinder
 from coola.iterator.bfs.iterable import IterableChildFinder
 from coola.iterator.bfs.mapping import MappingChildFinder
 from coola.iterator.bfs.registry import ChildFinderRegistry
+from coola.iterator.bootstrap import register_default_handlers
 from coola.utils.singleton import LazySingleton
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator, Mapping
+
     from coola.iterator.bfs import BaseChildFinder
 
 
@@ -122,32 +124,11 @@ def _register_default_child_finders(registry: ChildFinderRegistry) -> None:
         This function is automatically called by `get_default_registry()` and should not
         be called directly by users.
     """
-    default_child_finder = DefaultChildFinder()
-    iterable_child_finder = IterableChildFinder()
-    mapping_child_finder = MappingChildFinder()
-
-    registry.register_many(
-        {
-            # Scalar types - no recursion needed
-            object: default_child_finder,
-            str: default_child_finder,  # Strings should not be iterated character by character
-            bytes: default_child_finder,
-            int: default_child_finder,
-            float: default_child_finder,
-            complex: default_child_finder,
-            bool: default_child_finder,
-            # Iterables - recursive iteration (lists, tuples, etc.)
-            list: iterable_child_finder,
-            tuple: iterable_child_finder,
-            range: iterable_child_finder,
-            Iterable: iterable_child_finder,
-            # Sets - recursive iteration (sets, frozenset)
-            set: iterable_child_finder,
-            frozenset: iterable_child_finder,
-            # Mappings - recursive iteration (dictionaries)
-            dict: mapping_child_finder,
-            Mapping: mapping_child_finder,
-        }
+    register_default_handlers(
+        registry,
+        default_handler=DefaultChildFinder(),
+        iterable_handler=IterableChildFinder(),
+        mapping_handler=MappingChildFinder(),
     )
 
 

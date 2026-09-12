@@ -164,10 +164,14 @@ Date: 2026-09-09
     each cross-referencing the other's behavior. Covered by
     `test_merge_mappings_flatten_mapping_first_occurrence_asymmetry`.
 
-22. **`iterator/bfs`/`iterator/dfs`** — `_register_default_child_finders` /
+22. **FIXED** — **`iterator/bfs`/`iterator/dfs`** — `_register_default_child_finders` /
     `_register_default_iterators` bootstrap code is near copy-pasted between the two
     packages (plus the same singleton idiom as #18).
-    **Fix:** share a common bootstrap/singleton helper.
+    **Fix:** extracted the shared `object`/`str`/`int`/... scalar, iterable, and mapping
+    type groupings into `coola.iterator._bootstrap.register_default_handlers()`; both
+    `bfs/interface.py` and `dfs/interface.py` now call it with their own handler
+    instances instead of duplicating the type-to-handler mapping. Covered by
+    `tests/unit/iterator/test_bootstrap.py`.
 
 23. **FIXED** — **`identifier/objectid.py` / `identifier/snowflake.py`** — both maintain a private
     module-level default generator instance with near-identical wrapper functions.
