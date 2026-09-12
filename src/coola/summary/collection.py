@@ -46,6 +46,10 @@ class BaseCollectionSummarizer(BaseSummarizer[T]):
         ```
     """
 
+    #: Number of items to preview when the depth limit is hit and
+    #: ``max_items`` is negative (i.e. truncation is otherwise disabled).
+    _DEPTH_LIMIT_PREVIEW_ITEMS = 5
+
     def __init__(self, max_items: int = 5, num_spaces: int = 2) -> None:
         self._max_items = max_items
         self._num_spaces = num_spaces
@@ -77,8 +81,11 @@ class BaseCollectionSummarizer(BaseSummarizer[T]):
         """
         if depth >= max_depth:
             text = str(data)
-            if self._max_items >= 0 and len(data) > self._max_items:
-                preview = self._get_preview(data)
+            preview_limit = (
+                self._max_items if self._max_items >= 0 else self._DEPTH_LIMIT_PREVIEW_ITEMS
+            )
+            if len(data) > preview_limit:
+                preview = self._get_preview(data, preview_limit)
                 text = f"{preview!r} ..."
             return registry.summarize(text, depth=depth + 1, max_depth=max_depth)
         typ = type(data)
@@ -93,10 +100,10 @@ class BaseCollectionSummarizer(BaseSummarizer[T]):
             body = f"{body}\n..."
         return str_indent(f"{typ} (length={length:,})\n{body}", num_spaces=self._num_spaces)
 
-    def _get_preview(self, data: T) -> Any:
-        r"""Return a truncated preview of ``data`` used when the depth
-        limit has been reached and the collection exceeds
-        ``max_items``."""
+    def _get_preview(self, data: T, limit: int) -> Any:
+        r"""Return a preview of ``data`` truncated to ``limit`` items,
+        used when the depth limit has been reached and the collection
+        exceeds that limit."""
         raise NotImplementedError
 
     def _format_items(

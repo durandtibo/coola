@@ -50,8 +50,8 @@ class SequenceSummarizer(BaseCollectionSummarizer[Sequence[Any]]):
         ```
     """
 
-    def _get_preview(self, data: Sequence[Any]) -> list:
-        return list(islice(data, self._max_items))
+    def _get_preview(self, data: Sequence[Any], limit: int) -> list:
+        return list(islice(data, limit))
 
     def _format_items(
         self,

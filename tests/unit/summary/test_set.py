@@ -170,6 +170,18 @@ def test_set_summarizer_summarize_depth_limit(registry: SummarizerRegistry) -> N
     assert result in ["{1, 2, 3}", "{1, 3, 2}", "{2, 1, 3}", "{2, 3, 1}", "{3, 2, 1}", "{3, 1, 2}"]
 
 
+def test_set_summarizer_summarize_depth_limit_negative_max_items_is_capped(
+    registry: SummarizerRegistry,
+) -> None:
+    """Regression test for issue #27: max_items=-1 must not dump an
+    unbounded str(data) when the depth limit is reached."""
+    result = SetSummarizer(max_items=-1).summarize(
+        set(range(100_000)), registry, depth=1, max_depth=1
+    )
+    assert result.endswith(" ...")
+    assert len(result) < 1_000
+
+
 def test_set_summarizer_summarize_num_spaces(registry: SummarizerRegistry) -> None:
     result = SetSummarizer(num_spaces=4).summarize({1}, registry)
     assert result == "<class 'set'> (length=1)\n    (0): 1"
