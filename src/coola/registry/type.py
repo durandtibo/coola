@@ -4,10 +4,10 @@ from __future__ import annotations
 
 __all__ = ["TypeRegistry"]
 
-from collections import OrderedDict
 from typing import Generic, TypeVar
 
 from coola.registry.base import BaseRegistry
+from coola.utils.lru import LRUCache
 
 T = TypeVar("T")
 
@@ -124,7 +124,7 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
         super().__init__(initial_state=initial_state)
         # bounded LRU cache for type lookups - improves performance for
         # repeated transforms without growing unbounded
-        self._cache: OrderedDict[type, T] = OrderedDict()
+        self._cache: LRUCache[type, T] = LRUCache(maxsize=_MAX_CACHE_SIZE)
 
     def _on_change(self) -> None:
         # Clear cache when registry changes to ensure new registrations are used
@@ -212,14 +212,9 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
         """
         with self._lock:
             if dtype in self._cache:
-                # Mark as most-recently-used.
-                self._cache.move_to_end(dtype)
                 return self._cache[dtype]
             value = self._resolve_uncached(dtype)
             self._cache[dtype] = value
-            if len(self._cache) > _MAX_CACHE_SIZE:
-                # Evict the least-recently-used entry.
-                self._cache.popitem(last=False)
             return value
 
     def _resolve_uncached(self, dtype: type) -> T:
