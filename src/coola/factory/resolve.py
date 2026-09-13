@@ -65,16 +65,21 @@ def resolve_object(obj: T | dict[str, Any], cls: type[T] = object) -> T:
     configuration dictionary.
 
     If ``obj`` is already an instance of ``cls`` it is returned
-    as-is.  If it is a :class:`dict`, it is treated as a factory
-    configuration and instantiated via :func:`coola.factory.factory`.
+    as-is. Otherwise, if it is a :class:`dict`, it is treated as a
+    factory configuration and instantiated via
+    :func:`coola.factory.factory`.
 
     Note:
-        Any :class:`dict` (including instances of ``dict``
-        subclasses, e.g. ``Counter`` or ``OrderedDict``) is always
-        treated as a factory configuration, even when it is already
-        a valid instance of ``cls``. Do not use this function to
-        resolve objects whose expected type is itself a ``dict``
-        subclass.
+        If ``cls`` is itself a :class:`dict` subclass (e.g.
+        ``Counter`` or ``OrderedDict``), a ``dict`` (or ``dict``
+        subclass) instance that is already a valid instance of
+        ``cls`` is returned as-is rather than being treated as a
+        factory configuration. Any other :class:`dict` is treated as
+        a factory configuration, including a plain :class:`dict`
+        used to describe how to build a ``dict``-subclass instance,
+        and a ``dict`` subclass instance that is not itself a valid
+        ``cls`` instance (e.g. a ``Counter`` when ``cls`` is
+        ``OrderedDict``).
 
     Args:
         obj: Either a fully configured instance of ``cls``, or a
@@ -108,7 +113,8 @@ def resolve_object(obj: T | dict[str, Any], cls: type[T] = object) -> T:
         ```
     """
     cls_name = cls.__qualname__
-    if isinstance(obj, dict):
+    cls_is_dict_subclass = isinstance(cls, type) and issubclass(cls, dict)
+    if isinstance(obj, dict) and not (cls_is_dict_subclass and isinstance(obj, cls)):
         if OBJECT_TARGET not in obj:
             msg = (
                 f"Cannot resolve a {cls_name} instance from the configuration because it is "

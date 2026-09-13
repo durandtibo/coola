@@ -249,16 +249,27 @@ footguns rather than fundamental design problems.
   design constraint worth keeping in mind if a future PR adds a `config=`
   parameter to the public functions.
 
-- **`resolve_object`'s "any `dict` subclass is treated as config" caveat**
-  (`src/coola/factory/resolve.py:71-77`) is a sharp edge silently baked into
-  behavior: `resolve_object(Counter(...), cls=Counter)` would try to treat the
-  `Counter` instance as a factory config dict and fail looking for
-  `_target_`. The docstring calls this out, which is good, but the function
-  doesn't raise a more specific/actionable error in that exact case — the
-  resulting `TypeError` ("missing the `_target_` key") could be confusing
-  when the *actual* problem is "you don't need to resolve this, it's already
-  an instance." Consider checking `isinstance(obj, cls) and isinstance(obj,
-  dict) and OBJECT_TARGET not in obj` and giving a more specific error hint.
+- **FIXED** — **`resolve_object`'s "any `dict` subclass is treated as
+  config" caveat** (`src/coola/factory/resolve.py:63-128`).
+  `resolve_object(Counter(...), cls=Counter)` used to always treat a `dict`
+  (including `dict` subclass instances like `Counter`/`OrderedDict`) as a
+  factory configuration, even when it was already a valid `cls` instance,
+  raising a confusing `TypeError` ("missing the `_target_` key") instead of
+  just returning the object. `resolve_object` now only takes the
+  factory-configuration branch for a `dict` when `cls` is *not* a `dict`
+  subclass that `obj` already satisfies — i.e. when `cls` is itself a
+  `dict` subclass (e.g. `Counter`, `OrderedDict`) and `obj` is already a
+  valid instance of it, `obj` is returned as-is like any other pass-through
+  case; a plain `dict` describing how to build such an instance, or a
+  `dict` subclass instance that is *not* a valid `cls` instance (e.g. a
+  `Counter` when `cls=OrderedDict`), is still treated as configuration as
+  before. The docstring's **Note** was rewritten to describe the new,
+  narrower rule. Covered by new tests in
+  `tests/unit/factory/test_resolve.py`:
+  `test_resolve_object_dict_subclass_instance_matching_cls_is_passed_through`,
+  `test_resolve_object_counter_instance_matching_cls_is_passed_through`,
+  `test_resolve_object_plain_dict_with_dict_subclass_cls_is_treated_as_config`,
+  and `test_resolve_object_dict_subclass_instance_not_matching_cls_is_treated_as_config`.
 
 ---
 
