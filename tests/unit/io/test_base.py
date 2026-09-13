@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import os
+import threading
+import time
 from pathlib import Path
 from typing import Any
 
@@ -217,6 +219,94 @@ def test_base_file_saver_save_exist_ok_false_fails_atomically_on_concurrent_crea
     with pytest.raises(FileExistsError):
         saver.save("hello", target_path)
     assert target_path.read_text() == "concurrent"
+
+
+class SlowFileSaver(BaseFileSaver[str]):
+    r"""A file saver like ``SimpleFileSaver`` but that sleeps while
+    writing, to widen the window during which a concurrent ``save`` call
+    could interleave with this one."""
+
+    def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
+        return type(other) is type(self)
+
+    def _save_file(self, to_save: Any, path: Path) -> None:
+        path.write_text(str(to_save))
+        time.sleep(0.01)
+
+
+def test_base_file_saver_save_concurrent_exist_ok_true_does_not_interleave(
+    tmp_path: Path,
+) -> None:
+    # Regression test: concurrent ``save(..., exist_ok=True)`` calls to the
+    # same path must not interleave their write/commit steps. Before the
+    # per-path lock was added, each thread wrote its own tmp file and then
+    # raced to commit, so the final content could in principle come from a
+    # tmp file that had already been unlinked by another thread, or the
+    # commit steps could otherwise interleave; the fix serializes the whole
+    # write+commit sequence per path so the result is always exactly one
+    # writer's full content, never a mix or a crash.
+    path = tmp_path.joinpath("data.txt")
+    saver = SlowFileSaver()
+    values = [f"value-{i}" for i in range(8)]
+    errors: list[BaseException] = []
+
+    def worker(value: str) -> None:
+        try:
+            saver.save(value, path, exist_ok=True)
+        except BaseException as exc:  # noqa: BLE001
+            errors.append(exc)
+
+    threads = [threading.Thread(target=worker, args=(value,)) for value in values]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    assert not errors
+    assert path.is_file()
+    assert path.read_text() in values
+    # No leftover tmp files from any writer.
+    assert list(tmp_path.iterdir()) == [path]
+
+
+def test_base_file_saver_save_concurrent_exist_ok_true_serializes_writers(
+    tmp_path: Path,
+) -> None:
+    # Directly verify the per-path lock prevents two ``save`` calls to the
+    # same path from ever being inside the write/commit section at the same
+    # time.
+    path = tmp_path.joinpath("data.txt")
+    saver = SlowFileSaver()
+    active = 0
+    max_active = 0
+    guard = threading.Lock()
+
+    original_save_file = saver._save_file
+
+    def tracked_save_file(to_save: Any, path: Path) -> None:
+        nonlocal active, max_active
+        with guard:
+            active += 1
+            max_active = max(max_active, active)
+        try:
+            original_save_file(to_save, path)
+        finally:
+            with guard:
+                active -= 1
+
+    saver._save_file = tracked_save_file
+    threads = [
+        threading.Thread(
+            target=saver.save, args=(f"value-{i}",), kwargs={"path": path, "exist_ok": True}
+        )
+        for i in range(6)
+    ]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    assert max_active == 1
 
 
 def test_base_file_saver_save_exist_ok_true_silently_overwrites_concurrent_create(
