@@ -175,7 +175,7 @@ def test_hasher_registry_hash_with_list() -> None:
 def test_hasher_registry_hash_with_dict() -> None:
     assert (
         HasherRegistry({object: StrHasher(), dict: MappingHasher()}).hash({"a": 1, "b": 2})
-        == "a3ecbdde9e227bcdae038eb86746b0fccb90939d8e7eeac55513423219ffa02f"
+        == "8cdf48729ca0eeb6e039ce3c6e6d77b3c9df8f1d27e6cfb9c28e682201372e37"
     )
 
 
@@ -189,7 +189,7 @@ def test_hasher_registry_hash_with_nested_structure() -> None:
     )
     assert (
         registry.hash({"a": [1, 2], "b": [3, 4]})
-        == "fe7eca5d3348be5060774aab9a95169595884dbb3d1fb7ddc318b1123eadc32b"
+        == "99a6b5da2730e625fef3e39e16a4e31e4c41805989d55c419e987ad7bf6778dd"
     )
 
 

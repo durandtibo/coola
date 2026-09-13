@@ -31,7 +31,7 @@ def test_mapping_hasher_str() -> None:
     [
         pytest.param(
             {"a": 1, "b": 2},
-            "a3ecbdde9e227bcdae038eb86746b0fccb90939d8e7eeac55513423219ffa02f",
+            "8cdf48729ca0eeb6e039ce3c6e6d77b3c9df8f1d27e6cfb9c28e682201372e37",
             id="two_items",
         ),
         pytest.param(
@@ -46,7 +46,7 @@ def test_mapping_hasher_str() -> None:
         ),
         pytest.param(
             {"x": "hello", "y": [1, 2, 3]},
-            "df791b222ef5922c2aaaf313d9df9d4de9f41e098d71890abdea038c26b45c9e",
+            "1c157a13e58f25fcced2f6bb171c8ff7867bbe0e44c95c60f83b63b2030644fb",
             id="mixed_value_types",
         ),
     ],
@@ -63,7 +63,7 @@ def test_mapping_hasher_hash_parametrized(
         pytest.param(16, "11b35be24b54a602", id="16"),
         pytest.param(32, "6a2bc12783a1b90e6ddbe778ab44f452", id="32"),
         pytest.param(
-            64, "a3ecbdde9e227bcdae038eb86746b0fccb90939d8e7eeac55513423219ffa02f", id="64-default"
+            64, "8cdf48729ca0eeb6e039ce3c6e6d77b3c9df8f1d27e6cfb9c28e682201372e37", id="64-default"
         ),
     ],
 )
@@ -106,6 +106,34 @@ def test_mapping_hasher_hash_key_value_not_commutative(registry: HasherRegistry)
     # value hashes are concatenated in a fixed key-then-value order.
     hasher = MappingHasher()
     assert hasher.hash({"a": "b"}, registry=registry) != hasher.hash({"b": "a"}, registry=registry)
+
+
+def test_mapping_hasher_hash_heterogeneous_key_types_does_not_raise(
+    registry: HasherRegistry,
+) -> None:
+    # Keys of mutually incomparable types must not be sorted directly,
+    # otherwise `sorted` raises `TypeError: '<' not supported between
+    # instances of 'str' and 'int'`.
+    result = MappingHasher().hash({1: "a", "b": 2}, registry=registry)
+    assert isinstance(result, str)
+
+
+def test_mapping_hasher_hash_heterogeneous_key_types_is_insertion_order_independent(
+    registry: HasherRegistry,
+) -> None:
+    hasher = MappingHasher()
+    assert hasher.hash({1: "a", "b": 2}, registry=registry) == hasher.hash(
+        {"b": 2, 1: "a"}, registry=registry
+    )
+
+
+def test_mapping_hasher_hash_heterogeneous_key_types_is_deterministic(
+    registry: HasherRegistry,
+) -> None:
+    hasher = MappingHasher()
+    assert hasher.hash({1: "a", "b": 2}, registry=registry) == hasher.hash(
+        {1: "a", "b": 2}, registry=registry
+    )
 
 
 class Unhashable:
