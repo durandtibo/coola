@@ -279,13 +279,21 @@ footguns rather than fundamental design problems.
   single largest duplication opportunity in the package (six structurally
   identical wrapper classes around `TypeRegistry`).
 
-- **`SupportsAllCloseNan` (`src/coola/equality/handler/allclose.py:20-43`)
+- **FIXED** — **`SupportsAllCloseNan` (`src/coola/equality/handler/allclose.py:20-43`)
   and `SupportsTolerantEqual` (`src/coola/equality/handler/tolerant.py:21-59`)
   Protocols duplicate the `allclose` method signature verbatim** (both
-  declare the same `allclose(self, other, rtol=1e-5, atol=1e-8,
-  equal_nan=False) -> bool`). `SupportsTolerantEqual` could simply extend
-  `SupportsAllCloseNan` and add the `equal` method, avoiding the copy-pasted
-  signature and docstring.
+  declared the same `allclose(self, other, rtol=1e-5, atol=1e-8,
+  equal_nan=False) -> bool`). `SupportsTolerantEqual` now extends
+  `SupportsAllCloseNan` (`class SupportsTolerantEqual(SupportsAllCloseNan,
+  Protocol)`) and only adds the `equal` method, removing the copy-pasted
+  `allclose` signature and docstring. Covered by two new tests in
+  `tests/unit/equality/handler/test_tolerant.py`:
+  `test_supports_tolerant_equal_extends_supports_allclose_nan` (asserts
+  `SupportsAllCloseNan` is in `SupportsTolerantEqual`'s MRO) and
+  `test_supports_tolerant_equal_does_not_redefine_allclose` (asserts
+  `allclose` is inherited, not redeclared, on `SupportsTolerantEqual`); the
+  existing `test_tolerant.py`/`test_allclose.py` suites (76 tests) still pass
+  unchanged.
 
 - **FIXED** — **`hasattr(x, "method") and callable(x.method)` guard pattern
   repeated** — `src/coola/equality/handler/allclose.py:91`,
