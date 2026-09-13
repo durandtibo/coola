@@ -438,6 +438,14 @@ def resolve_loader(loader: BaseLoader[T] | dict[Any, Any]) -> BaseLoader[T]:
     Returns:
         The instantiated data loader.
 
+    Security:
+        When ``loader`` is a configuration :class:`dict`, its
+        ``"_target_"`` value is imported and instantiated with no
+        allowlist (see :func:`coola.factory.factory`). Only call this
+        function with a configuration that comes from a trusted
+        source; never resolve a loader configuration derived from
+        untrusted input, as this is a remote-code-execution vector.
+
     Example:
         ```pycon
         >>> from coola.io import resolve_loader
@@ -461,6 +469,14 @@ def resolve_saver(saver: BaseSaver[T] | dict[Any, Any]) -> BaseSaver[T]:
 
     Returns:
         The instantiated data saver.
+
+    Security:
+        When ``saver`` is a configuration :class:`dict`, its
+        ``"_target_"`` value is imported and instantiated with no
+        allowlist (see :func:`coola.factory.factory`). Only call this
+        function with a configuration that comes from a trusted
+        source; never resolve a saver configuration derived from
+        untrusted input, as this is a remote-code-execution vector.
 
     Example:
         ```pycon

@@ -43,6 +43,17 @@ def factory(_target_: str, *args: Any, **kwargs: Any) -> Any:
         ImportError: if the target cannot be found.
         TypeError: if ``_target_`` is not a string.
 
+    Security:
+        ``_target_`` is imported and called with no allowlist or
+        restriction on which module or class it may reference: this
+        function will import arbitrary module code and instantiate or
+        call arbitrary objects from a dotted path string. Only pass a
+        ``_target_`` that comes from a trusted source (e.g. code you
+        wrote, or a configuration file you control). Never resolve a
+        ``_target_`` derived from untrusted input, such as a
+        third-party-uploaded config file or a network payload, as this
+        is a remote-code-execution vector.
+
     Example:
         ```pycon
         >>> from coola.factory import factory
@@ -98,6 +109,15 @@ def resolve_object(obj: T | dict[str, Any], cls: type[T] = object) -> T:
         TypeError: If ``obj`` is a :class:`dict` missing the
             ``"_target_"`` key, or if the resolved object is not an
             instance of ``cls``.
+
+    Security:
+        When ``obj`` is a :class:`dict`, its ``"_target_"`` value is
+        passed to :func:`coola.factory.factory`, which imports and
+        instantiates arbitrary objects from a dotted path string with
+        no allowlist. Only call this function with a configuration
+        dictionary that comes from a trusted source; never resolve a
+        ``_target_`` derived from untrusted input, as this is a
+        remote-code-execution vector.
 
     Example:
         ```pycon

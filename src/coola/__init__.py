@@ -1,8 +1,14 @@
 r"""Top-level package for ``coola``.
 
-Use this package to compare nested objects, summarize complex
-structures, and work with helper utilities for recursive transformations
-and iteration.
+``coola`` provides functionality to compare nested objects, summarize
+complex structures, and work with helper utilities for recursive
+transformations and iteration.
+
+This top-level module only exposes ``__version__``; it does not re-
+export the package's entry points (e.g. ``objects_are_equal``,
+``objects_are_allclose``, ``summary``). Import them from their
+respective submodules instead, e.g. ``from coola.equality import
+objects_are_equal`` or ``from coola.summary import summary``.
 """
 
 __all__ = ["__version__"]
