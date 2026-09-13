@@ -7,8 +7,12 @@ __all__ = ["TypeRegistry"]
 from typing import Generic, TypeVar
 
 from coola.registry.base import BaseRegistry
+from coola.utils.lru import LRUCache
 
 T = TypeVar("T")
+
+#: Maximum number of entries kept in the ``resolve()`` LRU cache.
+_MAX_CACHE_SIZE = 1024
 
 
 class TypeRegistry(BaseRegistry[type, T], Generic[T]):
@@ -24,8 +28,18 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
     most specific registered type, walking up the inheritance hierarchy if needed.
     This makes it ideal for type-based dispatching systems.
 
-    The registry includes an internal cache for type resolution to optimize
-    performance when repeatedly resolving the same types.
+    The registry includes an internal LRU (least-recently-used) cache for
+    type resolution, bounded to ``_MAX_CACHE_SIZE`` (1024) entries, to
+    optimize performance when repeatedly resolving the same types without
+    growing unbounded.
+
+    Note:
+        ``resolve()`` walks ``dtype.__mro__``, which reflects real (static)
+        inheritance only. Virtual subclasses registered via
+        ``abc.ABCMeta.register()`` do not appear in ``__mro__``, so
+        registering a value for an ABC does not make ``resolve()`` match
+        that ABC's virtual subclasses even though ``isinstance`` would
+        report them as instances of the ABC. See ``resolve()`` for details.
 
     Args:
         initial_state: An optional dictionary to initialize the registry with.
@@ -34,7 +48,7 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
 
     Attributes:
         _state: Internal dictionary storing the type-value pairs.
-        _cache: Cached version of type resolution lookups for performance.
+        _cache: Bounded LRU cache of type resolution lookups for performance.
         _lock: Threading lock for synchronizing access to both state and cache.
 
     Example:
@@ -116,17 +130,15 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
 
     def __init__(self, initial_state: dict[type, T] | None = None) -> None:
         super().__init__(initial_state=initial_state)
-        # cache for type lookups - improves performance for repeated transforms
-        self._cache: dict[type, T] = {}
+        # bounded LRU cache for type lookups - improves performance for
+        # repeated transforms without growing unbounded
+        self._cache: LRUCache[type, T] = LRUCache(maxsize=_MAX_CACHE_SIZE)
 
     def _on_change(self) -> None:
         # Clear cache when registry changes to ensure new registrations are used
         self._cache.clear()
 
     def _not_registered_msg(self, key: type) -> str:
-        return f"Type {key} is not registered"
-
-    def _getitem_not_registered_msg(self, key: type) -> str:
         return f"Type '{key}' is not registered"
 
     def _already_registered_msg(self, key: type) -> str:
@@ -151,6 +163,17 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
 
         Results are cached internally to optimize performance for repeated
         lookups of the same type.
+
+        Note:
+            Resolution walks ``dtype.__mro__``, i.e. real (static)
+            inheritance only. Virtual subclasses registered with
+            ``abc.ABCMeta.register()`` do not appear in ``__mro__``, so
+            registering a value for an ABC does *not* make this method
+            resolve any of that ABC's virtual subclasses, even though
+            ``isinstance(instance_of_virtual_subclass, the_abc)`` is
+            ``True``. To make a virtual subclass resolve to a value, either
+            register the subclass itself or a real (non-virtual) ancestor of
+            it.
 
         Args:
             dtype: The type to resolve.
@@ -207,9 +230,11 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
             ```
         """
         with self._lock:
-            if dtype not in self._cache:
-                self._cache[dtype] = self._resolve_uncached(dtype)
-            return self._cache[dtype]
+            if dtype in self._cache:
+                return self._cache[dtype]
+            value = self._resolve_uncached(dtype)
+            self._cache[dtype] = value
+            return value
 
     def _resolve_uncached(self, dtype: type) -> T:
         r"""Find value using MRO lookup (uncached version).
@@ -238,5 +263,4 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
             if base_type in self._state:
                 return self._state[base_type]
 
-        msg = f"Could not find a registered type for {dtype}"
-        raise KeyError(msg)
+        raise KeyError(self._not_registered_msg(dtype))

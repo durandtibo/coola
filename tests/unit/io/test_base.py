@@ -19,6 +19,7 @@ from coola.io import (
     resolve_loader,
     resolve_saver,
 )
+from coola.io.base import _acquire_file_lock, _get_save_lock
 
 ######################################
 #     Tests for is_loader_config     #
@@ -217,6 +218,51 @@ def test_base_file_saver_save_exist_ok_false_fails_atomically_on_concurrent_crea
     with pytest.raises(FileExistsError):
         saver.save("hello", target_path)
     assert target_path.read_text() == "concurrent"
+
+
+def test_get_save_lock_reuses_existing_lock_for_same_path(tmp_path: Path) -> None:
+    # Keep a strong reference to the first lock so the ``WeakValueDictionary``
+    # entry survives until the second call, exercising the branch where an
+    # existing lock is reused instead of a new one being created.
+    path = tmp_path.joinpath("data.txt")
+    lock = _get_save_lock(path)
+    assert _get_save_lock(path) is lock
+
+
+def test_acquire_file_lock_creates_and_removes_lock_file(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    assert not lock_path.is_file()
+    acquired = _acquire_file_lock(path)
+    assert acquired == lock_path
+    assert lock_path.is_file()
+    # Releasing is the caller's responsibility (``_save_lock`` does this);
+    # ``_acquire_file_lock`` itself only creates the lock file.
+    lock_path.unlink()
+
+
+def test_acquire_file_lock_times_out_when_never_released(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.touch()
+    try:
+        with pytest.raises(TimeoutError, match="timed out"):
+            _acquire_file_lock(path, timeout=0.05, poll_interval=0.001)
+    finally:
+        lock_path.unlink()
+
+
+def test_base_file_saver_save_removes_lock_file_after_success(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    SimpleFileSaver().save("value", path)
+    assert not tmp_path.joinpath("data.txt.lock").is_file()
+
+
+def test_base_file_saver_save_removes_lock_file_after_failure(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    with pytest.raises(RuntimeError, match="failed to save"):
+        FailingFileSaver().save("value", path)
+    assert not tmp_path.joinpath("data.txt.lock").is_file()
 
 
 def test_base_file_saver_save_exist_ok_true_silently_overwrites_concurrent_create(

@@ -133,12 +133,12 @@ class Unhashable:
 
 
 def test_hash_object_unhashable_raises_by_default() -> None:
-    with pytest.raises(KeyError, match=r"Could not find a registered type"):
+    with pytest.raises(KeyError, match=r"is not registered"):
         hash_object(Unhashable())
 
 
 def test_hash_object_unhashable_raises_when_explicitly_false() -> None:
-    with pytest.raises(KeyError, match=r"Could not find a registered type"):
+    with pytest.raises(KeyError, match=r"is not registered"):
         hash_object(Unhashable(), ignore_unhashable=False)
 
 

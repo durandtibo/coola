@@ -227,12 +227,12 @@ class Unhashable:
 
 
 def test_hasher_registry_hash_unhashable_raises_by_default() -> None:
-    with pytest.raises(KeyError, match=r"Could not find a registered type"):
+    with pytest.raises(KeyError, match=r"is not registered"):
         HasherRegistry().hash(Unhashable())
 
 
 def test_hasher_registry_hash_unhashable_raises_when_explicitly_false() -> None:
-    with pytest.raises(KeyError, match=r"Could not find a registered type"):
+    with pytest.raises(KeyError, match=r"is not registered"):
         HasherRegistry().hash(Unhashable(), ignore_unhashable=False)
 
 
@@ -263,7 +263,7 @@ def test_hasher_registry_hash_ignore_unhashable_nested_in_list_raises_by_default
     # No `object` fallback registered, so an `Unhashable` element inside
     # the list cannot be resolved.
     registry = HasherRegistry({list: SequenceHasher()})
-    with pytest.raises(KeyError, match=r"Could not find a registered type"):
+    with pytest.raises(KeyError, match=r"is not registered"):
         registry.hash([1, Unhashable(), 3])
 
 
@@ -276,5 +276,5 @@ def test_hasher_registry_hash_ignore_unhashable_nested_in_dict() -> None:
 
 def test_hasher_registry_hash_ignore_unhashable_nested_in_dict_raises_by_default() -> None:
     registry = HasherRegistry({str: StrHasher(), dict: MappingHasher()})
-    with pytest.raises(KeyError, match=r"Could not find a registered type"):
+    with pytest.raises(KeyError, match=r"is not registered"):
         registry.hash({"a": Unhashable()})

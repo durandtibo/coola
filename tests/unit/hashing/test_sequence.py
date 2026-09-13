@@ -146,14 +146,14 @@ def registry_without_fallback() -> HasherRegistry:
 def test_sequence_hasher_hash_unhashable_item_raises_by_default(
     registry_without_fallback: HasherRegistry,
 ) -> None:
-    with pytest.raises(KeyError, match=r"Could not find a registered type"):
+    with pytest.raises(KeyError, match=r"is not registered"):
         SequenceHasher().hash([1, Unhashable(), 3], registry=registry_without_fallback)
 
 
 def test_sequence_hasher_hash_unhashable_item_raises_when_explicitly_false(
     registry_without_fallback: HasherRegistry,
 ) -> None:
-    with pytest.raises(KeyError, match=r"Could not find a registered type"):
+    with pytest.raises(KeyError, match=r"is not registered"):
         SequenceHasher().hash(
             [1, Unhashable(), 3], registry=registry_without_fallback, ignore_unhashable=False
         )

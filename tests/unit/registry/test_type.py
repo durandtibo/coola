@@ -216,8 +216,25 @@ def test_type_registry_resolve_custom_class_hierarchy() -> None:
 
 def test_type_registry_resolve_missing_type_raises_keyerror() -> None:
     registry = TypeRegistry[str]()
-    with pytest.raises(KeyError, match=r"Could not find a registered type"):
+    with pytest.raises(KeyError, match=r"Type \'<class \'int\'>\' is not registered"):
         registry.resolve(int)
+
+
+def test_type_registry_not_registered_message_is_consistent() -> None:
+    """``resolve``, ``__getitem__`` and ``unregister`` must raise
+    ``KeyError`` with identical wording for the same "not registered"
+    condition."""
+    registry = TypeRegistry[str]()
+    with pytest.raises(KeyError) as resolve_exc_info:
+        registry.resolve(int)
+    with pytest.raises(KeyError) as getitem_exc_info:
+        _ = registry[int]
+    with pytest.raises(KeyError) as unregister_exc_info:
+        registry.unregister(int)
+
+    assert (
+        str(resolve_exc_info.value) == str(getitem_exc_info.value) == str(unregister_exc_info.value)
+    )
 
 
 def test_type_registry_resolve_uses_cache() -> None:
@@ -228,6 +245,55 @@ def test_type_registry_resolve_uses_cache() -> None:
     # Second resolve uses cache
     result2 = registry.resolve(int)
     assert result1 == result2 == "object"
+
+
+def test_type_registry_resolve_cache_is_bounded_lru() -> None:
+    """Test the resolve() cache never grows past 1024 entries and evicts
+    the least-recently-used type first."""
+    registry = TypeRegistry[str]({object: "object"})
+    types = [type(f"Type{i}", (), {}) for i in range(1025)]
+    for tp in types:
+        registry.resolve(tp)
+    assert len(registry._cache) == 1024
+    # The first resolved type should have been evicted (least recently used).
+    assert types[0] not in registry._cache
+    # The most recently resolved types should still be cached.
+    assert types[-1] in registry._cache
+    assert types[1] in registry._cache
+
+
+def test_type_registry_resolve_cache_lru_order_updated_on_access() -> None:
+    """Test that re-resolving a cached type marks it as most-recently-
+    used, protecting it from eviction."""
+    registry = TypeRegistry[str]({object: "object"})
+    types = [type(f"Type{i}", (), {}) for i in range(1024)]
+    for tp in types:
+        registry.resolve(tp)
+    assert len(registry._cache) == 1024
+    # Touch the first (oldest) entry to mark it as most-recently-used.
+    registry.resolve(types[0])
+    # Adding one more type should now evict the second entry, not the first.
+    new_type = type("NewType", (), {})
+    registry.resolve(new_type)
+    assert len(registry._cache) == 1024
+    assert types[0] in registry._cache
+    assert types[1] not in registry._cache
+    assert new_type in registry._cache
+
+
+def test_type_registry_resolve_cache_cleared_does_not_exceed_max_size() -> None:
+    """Test the cache stays bounded after registrations clear and
+    repopulate it."""
+    registry = TypeRegistry[str]({object: "object"})
+    types = [type(f"Type{i}", (), {}) for i in range(2000)]
+    for tp in types:
+        registry.resolve(tp)
+    assert len(registry._cache) <= 1024
+    registry.register(int, "integer")  # triggers _on_change(), clearing the cache
+    assert registry._cache == {}
+    for tp in types:
+        registry.resolve(tp)
+    assert len(registry._cache) <= 1024
 
 
 def test_type_registry_resolve_most_specific_type() -> None:
@@ -249,7 +315,7 @@ def test_type_registry_unregister_existing_key() -> None:
 def test_type_registry_unregister_missing_key_raises_error() -> None:
     """Test that unregistering a missing key raises KeyError."""
     registry = TypeRegistry[str]()
-    with pytest.raises(KeyError, match=r"Type <class 'int'> is not registered"):
+    with pytest.raises(KeyError, match=r"Type \'<class \'int\'>\' is not registered"):
         registry.unregister(int)
 
 
@@ -422,3 +488,55 @@ def test_type_registry_registry_with_int_keys() -> None:
     assert registry.get(int) == 1
     assert registry.get(float) == 2
     assert registry.equal(TypeRegistry[int]({int: 1, float: 2}))
+
+
+# Test resolve() with ABC virtual subclasses
+
+
+def test_type_registry_resolve_does_not_match_abc_virtual_subclass() -> None:
+    """Test that resolve() does not follow ABC virtual subclass
+    registration, since it only walks __mro__ (static inheritance)."""
+    import abc
+
+    class MyABC(abc.ABC):  # noqa: B024
+        pass
+
+    class NotARealSubclass:
+        pass
+
+    MyABC.register(NotARealSubclass)
+    # isinstance() sees the virtual subclass relationship...
+    assert isinstance(NotARealSubclass(), MyABC)
+    # ...but resolve() does not, because it is not in __mro__.
+    registry = TypeRegistry[str]()
+    registry.register(MyABC, "abc value")
+    with pytest.raises(KeyError, match="is not registered"):
+        registry.resolve(NotARealSubclass)
+
+
+def test_type_registry_resolve_abc_virtual_subclass_registered_after_lookup() -> None:
+    """Test that registering a value for an ABC after a virtual subclass
+    has already been resolved does not retroactively make resolve()
+    match the virtual subclass (the cache is not the cause: even an
+    uncached lookup does not follow virtual subclass relationships)."""
+    import abc
+
+    class MyABC(abc.ABC):  # noqa: B024
+        pass
+
+    class NotARealSubclass:
+        pass
+
+    MyABC.register(NotARealSubclass)
+    registry = TypeRegistry[str]()
+    with pytest.raises(KeyError, match="is not registered"):
+        registry.resolve(NotARealSubclass)
+    # Register the ABC only after the failed lookup above.
+    registry.register(MyABC, "abc value")
+    # Still does not resolve: virtual subclasses never appear in __mro__,
+    # cache or no cache.
+    with pytest.raises(KeyError, match="is not registered"):
+        registry.resolve(NotARealSubclass)
+    # Registering the concrete subclass itself does work.
+    registry.register(NotARealSubclass, "concrete value")
+    assert registry.resolve(NotARealSubclass) == "concrete value"

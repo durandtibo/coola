@@ -13,8 +13,12 @@ __all__ = [
     "resolve_saver",
 ]
 
+import contextlib
 import logging
 import os
+import threading
+import time
+import weakref
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
@@ -23,11 +27,80 @@ from coola.factory import is_object_config, resolve_object
 from coola.io.utils import add_uuid_suffix
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
     from pathlib import Path
 
 T = TypeVar("T")
 
 logger: logging.Logger = logging.getLogger(__name__)
+
+# Per-path locks used by ``BaseFileSaver.save`` to serialize concurrent
+# ``save`` calls targeting the same path within this process. A
+# ``WeakValueDictionary`` is used so a lock is discarded automatically once
+# no ``save`` call references it anymore, instead of accumulating one entry
+# per distinct path saved over the lifetime of the process.
+_SAVE_LOCKS_GUARD = threading.Lock()
+_SAVE_LOCKS: weakref.WeakValueDictionary[str, threading.Lock] = weakref.WeakValueDictionary()
+
+# Default timeout/poll interval for the cross-process file lock acquired by
+# ``_save_lock`` below.
+_FILE_LOCK_TIMEOUT = 60.0
+_FILE_LOCK_POLL_INTERVAL = 0.01
+
+
+def _get_save_lock(path: Path) -> threading.Lock:
+    r"""Get (creating if needed) the lock used to serialize ``save``
+    calls targeting the given path."""
+    key = str(path)
+    with _SAVE_LOCKS_GUARD:
+        lock = _SAVE_LOCKS.get(key)
+        if lock is None:
+            lock = threading.Lock()
+            _SAVE_LOCKS[key] = lock
+        return lock
+
+
+def _acquire_file_lock(
+    path: Path, timeout: float = _FILE_LOCK_TIMEOUT, poll_interval: float = _FILE_LOCK_POLL_INTERVAL
+) -> Path:
+    r"""Create a lock file next to ``path``, blocking until it can be
+    created exclusively.
+
+    ``os.open`` with ``O_CREAT | O_EXCL`` atomically fails with
+    ``FileExistsError`` if the lock file already exists, which makes
+    this safe as a mutual-exclusion primitive across processes, unlike
+    the in-process-only ``threading.Lock`` returned by
+    ``_get_save_lock``.
+    """
+    lock_path = path.with_name(path.name + ".lock")
+    deadline = time.monotonic() + timeout
+    while True:
+        try:
+            os.close(os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY))
+        except FileExistsError:  # noqa: PERF203
+            if time.monotonic() >= deadline:
+                msg = (
+                    f"timed out after {timeout}s waiting for the save lock on {path} "
+                    f"({lock_path} still exists)"
+                )
+                raise TimeoutError(msg) from None
+            time.sleep(poll_interval)
+        else:
+            return lock_path
+
+
+@contextlib.contextmanager
+def _save_lock(path: Path) -> Generator[None, None, None]:
+    r"""Serialize ``save`` calls targeting ``path``, both within this
+    process (fast in-memory lock) and across processes (lock file), so
+    that no two calls can interleave their write/commit steps regardless
+    of ``exist_ok``."""
+    with _get_save_lock(path):
+        lock_path = _acquire_file_lock(path)
+        try:
+            yield
+        finally:
+            lock_path.unlink(missing_ok=True)
 
 
 class BaseLoader(ABC, Generic[T]):
@@ -207,11 +280,23 @@ class BaseFileSaver(BaseSaver[T]):
                 against a concurrent creation of ``path`` between the
                 initial existence check and the commit step (the
                 commit uses ``os.link`` which atomically fails with
-                ``FileExistsError`` in that case). This TOCTOU guard
-                does not apply when ``exist_ok=True``: the commit is a
-                plain replace, so a file created concurrently by
-                another process between the check and the replace is
-                silently overwritten.
+                ``FileExistsError`` in that case).
+
+                Note: concurrent ``save`` calls targeting the same
+                ``path``, whether from *within this process* (an
+                in-memory lock) or from *other processes* (a
+                ``path.lock`` lock file created next to ``path``), are
+                serialized so they cannot interleave their
+                write/commit steps and corrupt or partially overwrite
+                each other's data. This holds for ``exist_ok=True``
+                too: two concurrent calls with ``exist_ok=True`` can no
+                longer race each other's ``tmp_path.replace(path)``
+                commit; each call's replace happens fully before the
+                next one starts. Which call's data ends up on disk is
+                still whichever one wins the lock last (no ordering is
+                guaranteed beyond "no interleaving"), and the lock file
+                is removed once the holder releases it, so it does not
+                accumulate on disk.
 
         Raises:
             FileExistsError: if the file already exists.
@@ -239,25 +324,42 @@ class BaseFileSaver(BaseSaver[T]):
             raise FileExistsError(msg)
         path.parent.mkdir(exist_ok=True, parents=True)
 
-        # Save to tmp, then commit by moving the file in case the job gets
-        # interrupted while writing the file
-        tmp_path = add_uuid_suffix(path)
-        try:
-            self._save_file(to_save, tmp_path)
-            if exist_ok:
-                tmp_path.replace(path)
-            else:
-                # ``os.link`` + unlink is used instead of a plain rename so the
-                # ``exist_ok=False`` guarantee also holds if ``path`` was created
-                # concurrently between the check above and this commit step:
-                # ``link`` atomically fails with ``FileExistsError`` in that case.
-                try:
-                    os.link(tmp_path, path)
-                finally:
-                    tmp_path.unlink(missing_ok=True)
-        except BaseException:
-            tmp_path.unlink(missing_ok=True)
-            raise
+        # Serialize concurrent ``save`` calls targeting the same path, both
+        # in-process and across processes (see the note in the docstring):
+        # without this, two calls could each write their own tmp file and
+        # then interleave their commit steps below, e.g. call A's
+        # ``os.link``/``replace`` landing after call B's, silently
+        # discarding whichever of A's or B's data lost the race in a
+        # non-deterministic, hard-to-reproduce way.
+        with _save_lock(path):
+            # Save to tmp, then commit by moving the file in case the job
+            # gets interrupted while writing the file.
+            tmp_path = add_uuid_suffix(path)
+            try:
+                self._save_file(to_save, tmp_path)
+                if exist_ok:
+                    tmp_path.replace(path)
+                else:
+                    # ``os.link`` + unlink is used instead of a plain rename so the
+                    # ``exist_ok=False`` guarantee also holds if ``path`` was created
+                    # concurrently between the check above and this commit step:
+                    # ``link`` atomically fails with ``FileExistsError`` in that case.
+                    try:
+                        os.link(tmp_path, path)
+                    finally:
+                        # Unlinks ``tmp_path`` whether ``os.link`` succeeded (the
+                        # data now lives at ``path`` via the hard link) or failed
+                        # (nothing to keep); the redundant ``unlink(missing_ok=True)``
+                        # below in the outer ``except`` is then a no-op.
+                        tmp_path.unlink(missing_ok=True)
+            except BaseException:
+                # Covers a failure in ``_save_file`` itself (``tmp_path`` may or
+                # may not have been created) as well as a failure of
+                # ``tmp_path.replace(path)`` in the ``exist_ok=True`` branch;
+                # ``missing_ok=True`` makes this safe to call even when the
+                # ``finally`` above (or ``_save_file``) already removed it.
+                tmp_path.unlink(missing_ok=True)
+                raise
 
     @abstractmethod
     def _save_file(self, to_save: T, path: Path) -> None:

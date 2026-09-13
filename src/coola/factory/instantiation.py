@@ -98,6 +98,15 @@ def instantiate_object(
     Raises:
         TypeError: if ``obj`` is not a class or a callable.
 
+    Warning:
+        ``"__new__"`` bypasses ``cls.__init__`` entirely: it
+        calls ``cls.__new__(cls, *args, **kwargs)`` and
+        returns the result as-is, so the object's ``__init__``
+        is never invoked. Unlike ``cls(*args, **kwargs)``,
+        which always runs ``__new__`` then ``__init__``, this
+        can silently produce a partially-initialized object
+        if the caller expected the usual two-step semantics.
+
     Example:
         ```pycon
         >>> from collections import Counter
@@ -130,7 +139,8 @@ def _instantiate_class_object(
         *args: Variable length argument list.
         _init_: The function to use to create the object.
             If ``"__init__"``, the object is created by calling the
-            constructor.
+            constructor. If ``"__new__"``, ``cls.__init__`` is never
+            called (see ``instantiate_object`` for details).
         **kwargs: Arbitrary keyword arguments.
 
     Returns:

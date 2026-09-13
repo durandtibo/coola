@@ -61,3 +61,24 @@ def test_bloom_filter_size_scales_with_fp_rate() -> None:
     loose = BloomFilter(expected_items=1000, fp_rate=0.5)
     strict = BloomFilter(expected_items=1000, fp_rate=0.0001)
     assert strict.size > loose.size
+
+
+def test_bloom_filter_hash_count_is_capped_for_extreme_parameters() -> None:
+    # A tiny expected_items combined with a fp_rate close to 0 would
+    # otherwise drive the theoretically-optimal hash count arbitrarily
+    # high (it grows as -log(fp_rate)); it must stay bounded instead.
+    bloom = BloomFilter(expected_items=1, fp_rate=1e-300)
+    assert bloom.hash_count <= BloomFilter._MAX_HASH_COUNT
+
+
+def test_bloom_filter_hash_count_is_at_least_one() -> None:
+    bloom = BloomFilter(expected_items=1_000_000, fp_rate=0.999)
+    assert bloom.hash_count >= 1
+
+
+def test_bloom_filter_add_and_check_works_with_capped_hash_count() -> None:
+    # Sanity check that the filter still behaves correctly (no false
+    # negatives) once the hash count has been clamped by the cap.
+    bloom = BloomFilter(expected_items=1, fp_rate=1e-300)
+    assert bloom.add_and_check(b"hello") is False
+    assert bloom.add_and_check(b"hello") is True

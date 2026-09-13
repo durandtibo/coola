@@ -20,13 +20,21 @@ jobs:
     permissions:
       contents: read # actions/checkout only needs read; the app token grants write
     steps:
-      - name: Bot checkout
-        id: bot-checkout
-        uses: ./.github/actions/bot-checkout
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # ratchet:actions/create-github-app-token@v3.2.0
         with:
           client-id: ${{ secrets.TIBOT_CLIENT_ID }}
           private-key: ${{ secrets.TIBOT_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
           permission-workflows: write
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: false
 
       # Always install the latest ratchet release, so the version never goes stale
       - name: Install ratchet
@@ -36,14 +44,14 @@ jobs:
           platform: linux
           arch: amd64
         env:
-          GITHUB_TOKEN: ${{ steps.bot-checkout.outputs.token }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
       # Pin all action references to their commit SHA, keeping the version as a
       # comment. Covers both top-level workflows and the composite actions
       # they call under .github/actions/*, so neither drifts out of pinning.
       - name: Pin GitHub Actions
         env:
-          GITHUB_TOKEN: ${{ steps.bot-checkout.outputs.token }} # for API quota and auth
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }} # for API quota and auth
         run: |
           ratchet pin .github/workflows/*.yaml .github/workflows/*.yml \
             .github/actions/*/action.yaml .github/actions/*/action.yml
@@ -58,11 +66,13 @@ jobs:
             ".github/actions/*/action.yaml" ".github/actions/*/action.yml"
 
       # Create a pull request with the pinned actions
-      - uses: ./.github/actions/bot-create-pr
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # ratchet:peter-evans/create-pull-request@v8
+        if: always()
         with:
-          token: ${{ steps.bot-checkout.outputs.token }}
-          author-email: ${{ secrets.CI_BOT_EMAIL }}
+          token: ${{ steps.app-token.outputs.token }}
           branch: update/pin-action
           title: Pin GitHub Actions to commit SHA
           commit-message: "Pin GitHub Actions to commit SHA"
           body: Pin GitHub Actions to their commit SHA using ratchet.
+          author: ci-bot <${{ secrets.CI_BOT_EMAIL }}>

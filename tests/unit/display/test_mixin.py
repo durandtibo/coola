@@ -6,7 +6,12 @@ from typing import Any
 
 import pytest
 
-from coola.display import BaseDisplayMixin, InlineDisplayMixin, MultilineDisplayMixin
+from coola.display import (
+    BaseDisplayMixin,
+    InlineDisplayMixin,
+    MultilineDisplayMixin,
+    NoArgsDisplayMixin,
+)
 from coola.display.mixin import BaseDisplayMixin as BaseDisplayMixinFromSubmodule
 
 # ---------------------------------------------------------------------------
@@ -115,3 +120,57 @@ def test_base_display_mixin_is_base_of_multiline_and_inline() -> None:
 def test_base_display_mixin_abstract_raises() -> None:
     with pytest.raises(TypeError, match="Can't instantiate abstract class BaseDisplayMixin"):
         BaseDisplayMixin()
+
+
+###########################################
+#     Tests for NoArgsDisplayMixin    #
+###########################################
+
+
+class NoArgsInlineObj(NoArgsDisplayMixin, InlineDisplayMixin):
+    pass
+
+
+class NoArgsMultilineObj(NoArgsDisplayMixin, MultilineDisplayMixin):
+    pass
+
+
+def test_no_args_display_mixin_get_repr_kwargs_returns_empty_dict() -> None:
+    assert NoArgsInlineObj()._get_repr_kwargs() == {}
+
+
+def test_no_args_display_mixin_is_base_display_mixin() -> None:
+    assert issubclass(NoArgsDisplayMixin, BaseDisplayMixin)
+
+
+def test_no_args_display_mixin_with_inline_repr() -> None:
+    assert repr(NoArgsInlineObj()) == "NoArgsInlineObj()"
+
+
+def test_no_args_display_mixin_with_inline_str() -> None:
+    assert str(NoArgsInlineObj()) == "NoArgsInlineObj()"
+
+
+def test_no_args_display_mixin_with_multiline_repr() -> None:
+    assert repr(NoArgsMultilineObj()) == "NoArgsMultilineObj(\n  \n)"
+
+
+def test_no_args_display_mixin_with_multiline_str() -> None:
+    assert str(NoArgsMultilineObj()) == "NoArgsMultilineObj(\n  \n)"
+
+
+def test_no_args_display_mixin_is_instantiable_directly() -> None:
+    # NoArgsDisplayMixin alone does not implement __repr__/__str__ from
+    # Inline/MultilineDisplayMixin, but it does satisfy the abstract
+    # _get_repr_kwargs contract, so it can be instantiated on its own.
+    obj = NoArgsDisplayMixin()
+    assert obj._get_repr_kwargs() == {}
+
+
+class CustomOverride(NoArgsDisplayMixin, InlineDisplayMixin):
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {"key": "value"}
+
+
+def test_no_args_display_mixin_override_takes_precedence() -> None:
+    assert repr(CustomOverride()) == "CustomOverride(key='value')"

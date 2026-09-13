@@ -8,7 +8,6 @@ __all__ = ["BaseRegistry"]
 import threading
 from typing import TYPE_CHECKING, Generic, TypeVar
 
-from coola.equality.interface import objects_are_equal
 from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:
@@ -156,6 +155,10 @@ class BaseRegistry(Generic[K, V]):
 
             ```
         """
+        # Local import to avoid a cyclic import: coola.equality.interface's import
+        # chain transitively depends on this module (e.g. via EqualityTesterRegistry).
+        from coola.equality.interface import objects_are_equal  # noqa: PLC0415
+
         if type(other) is not type(self):
             return False
 
@@ -275,8 +278,14 @@ class BaseRegistry(Generic[K, V]):
 
         This is a convenience method for bulk registration. It iterates through
         the provided mapping and registers each key-value pair. All registrations
-        follow the same exist_ok policy. The operation is atomic when exist_ok
-        is False - if any key already exists, no changes are made.
+        follow the same exist_ok policy. The operation is atomic *with respect to
+        this registry* when exist_ok is False: either every key-value pair in
+        ``mapping`` ends up registered, or (if any key already exists) none of
+        them do - there is no partial registration. This says nothing about
+        atomicity across multiple registries: if ``mapping`` is registered into
+        several registries in sequence, each ``register_many`` call is atomic on
+        its own, but the overall multi-registry operation is not - a failure on
+        a later registry does not roll back an earlier one.
 
         Args:
             mapping: A dictionary or mapping containing the key-value pairs
