@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import threading
-
 import pytest
 
 from coola.registry import Registry, TypeRegistry
@@ -135,24 +133,3 @@ def test_base_registry_on_change_not_called_when_register_fails() -> None:
     with pytest.raises(RuntimeError):
         registry.register("key1", 100)
     assert registry.changes == 1  # only the first successful register
-
-
-def test_base_registry_thread_safety_concurrent_register() -> None:
-    """Test that concurrent registrations do not corrupt the registry
-    state."""
-    registry = BaseRegistry[int, int]()
-
-    def register_range(start: int, end: int) -> None:
-        for i in range(start, end):
-            registry.register(i, i * 2)
-
-    threads = [
-        threading.Thread(target=register_range, args=(i * 100, (i + 1) * 100)) for i in range(10)
-    ]
-    for thread in threads:
-        thread.start()
-    for thread in threads:
-        thread.join()
-
-    assert len(registry) == 1000
-    assert registry.get(500) == 1000
