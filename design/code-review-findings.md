@@ -256,18 +256,30 @@ footguns rather than fundamental design problems.
 
 ## 4. Performance Concerns
 
-- **`TypeRegistry.resolve()`'s MRO walk is `O(len(mro))` per cache miss and
-  the cache is unbounded** (`src/coola/registry/type.py:209-242`). For the
-  package's steady-state use (a fixed, small set of registered types), this
-  is fine. It becomes a concern only if a consumer calls `objects_are_equal`/
-  `hash`/`transform` on many distinct dynamically-generated classes (e.g.
-  pydantic models created per-request, or `NamedTuple`s created in a loop) —
-  each distinct type grows the cache forever with no eviction, which is a
-  slow, unbounded memory leak in long-running processes. Given the
-  docstring in `EqualityTesterRegistry.find_equality_tester` (section 2)
-  already claims an "LRU cache (256 entries)" was intended, adding a real
-  bounded cache (or exposing a way to clear/bound it) would fix both the
-  documentation mismatch and this leak risk.
+- **FIXED** — **`TypeRegistry.resolve()`'s MRO walk is `O(len(mro))` per
+  cache miss and the cache was unbounded** (`src/coola/registry/type.py`).
+  For the package's steady-state use (a fixed, small set of registered
+  types), this was fine, but a consumer calling `objects_are_equal`/`hash`/
+  `transform` on many distinct dynamically-generated classes (e.g. pydantic
+  models created per-request, or `NamedTuple`s created in a loop) grew the
+  cache forever with no eviction — a slow, unbounded memory leak in
+  long-running processes. `TypeRegistry._cache` is now an `OrderedDict`
+  used as a bounded LRU cache capped at 1024 entries (`_MAX_CACHE_SIZE`):
+  `resolve()` moves a hit to the most-recently-used end and, after
+  inserting a new entry, evicts the least-recently-used entry once the
+  cache exceeds the cap; `_on_change()` still clears the whole cache on
+  `register`/`unregister`/`register_many`/`clear` as before. The stale
+  "LRU cache (256 entries)" docstring in
+  `EqualityTesterRegistry.find_equality_tester`
+  (`src/coola/equality/tester/registry.py`) was updated to say 1024,
+  matching the real cap it delegates to. Covered by new tests in
+  `tests/unit/registry/test_type.py`:
+  `test_type_registry_resolve_cache_is_bounded_lru` (cache never exceeds
+  1024 entries and evicts the least-recently-used type first),
+  `test_type_registry_resolve_cache_lru_order_updated_on_access` (re-resolving
+  a cached type protects it from eviction), and
+  `test_type_registry_resolve_cache_cleared_does_not_exceed_max_size`
+  (the cache stays bounded across a `_on_change()` clear and repopulation).
 
 - **`SequenceHasher.hash` and `SequenceSameValuesHandler`/
   `MappingSameValuesHandler` recurse through `registry.hash`/
@@ -570,10 +582,11 @@ this pass and worth a targeted look given the findings above):
 2. Extract a shared base for the six `TypeRegistry`-backed dispatch
    registries to eliminate ~500+ lines of duplicated boilerplate/docstrings
    and fix the discovered doc/behavior drift in one place (§2, §3).
-3. Reconcile the "LRU cache (256 entries)" docstring claim in
-   `EqualityTesterRegistry.find_equality_tester` with the actual unbounded
-   `TypeRegistry` cache, and consider bounding the cache to avoid unbounded
-   growth with dynamically generated types (§2, §4).
+3. **FIXED** — Reconciled the "LRU cache" docstring claim in
+   `EqualityTesterRegistry.find_equality_tester` with the `TypeRegistry`
+   cache by making the cache a real bounded LRU (1024 entries) instead of
+   the previous unbounded dict, fixing both the documentation mismatch and
+   the unbounded growth risk with dynamically generated types (§2, §4).
 4. Add explicit security warnings to the public docstrings of
    `factory`/`resolve_object`/`resolve_loader`/`resolve_saver` and
    `PickleLoader`/`load_pickle` about executing/deserializing untrusted

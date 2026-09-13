@@ -192,7 +192,7 @@ class EqualityTesterRegistry(MultilineDisplayMixin):
         registered equality tester. For example, if you register a tester
         for Sequence but not for list, lists will use the Sequence tester.
 
-        Results are cached using an LRU cache (256 entries) for performance,
+        Results are cached using an LRU cache (1024 entries) for performance,
         as tester lookup is a hot path in recursive equality checking.
 
         Args:
