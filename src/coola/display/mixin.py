@@ -3,7 +3,7 @@ formatting."""
 
 from __future__ import annotations
 
-__all__ = ["InlineDisplayMixin", "MultilineDisplayMixin"]
+__all__ = ["InlineDisplayMixin", "MultilineDisplayMixin", "NoArgsDisplayMixin"]
 
 from abc import ABC, abstractmethod
 from typing import Any
@@ -112,3 +112,34 @@ class InlineDisplayMixin(BaseDisplayMixin):
     def __str__(self) -> str:
         args = str_mapping_line(self._get_repr_kwargs())
         return f"{self.__class__.__qualname__}({args})"
+
+
+class NoArgsDisplayMixin(BaseDisplayMixin):
+    r"""Mixin that provides a default, no-op ``_get_repr_kwargs``
+    implementation for classes with no constructor arguments to show.
+
+    Many stateless classes (e.g. handlers, hashers, transformers without
+    configuration) only need to satisfy the :class:`BaseDisplayMixin`
+    abstract method contract with an empty dict. Combine this mixin with
+    :class:`InlineDisplayMixin` or :class:`MultilineDisplayMixin` to avoid
+    writing a trivial ``_get_repr_kwargs`` override that just returns
+    ``{}``. A subclass with actual constructor arguments should override
+    ``_get_repr_kwargs`` instead of using this mixin.
+
+    Example:
+        ```pycon
+        >>> from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+        >>> class MyClass(NoArgsDisplayMixin, InlineDisplayMixin):
+        ...     pass
+        ...
+        >>> obj = MyClass()
+        >>> print(repr(obj))
+        MyClass()
+        >>> print(str(obj))
+        MyClass()
+
+        ```
+    """
+
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {}
