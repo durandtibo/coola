@@ -12,16 +12,14 @@ __all__ = ["EqualityTesterRegistry"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.display import MultilineDisplayMixin
 from coola.equality.tester.base import BaseEqualityTester
+from coola.registry import BaseTypeDispatchRegistry
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
-
     from coola.equality.config import EqualityConfig
 
 
-class EqualityTesterRegistry(MultilineDisplayMixin):
+class EqualityTesterRegistry(BaseTypeDispatchRegistry[BaseEqualityTester[Any]]):
     """Registry that manages and dispatches equality testers based on
     data type.
 
@@ -68,94 +66,6 @@ class EqualityTesterRegistry(MultilineDisplayMixin):
         ```
     """
 
-    def __init__(self, initial_state: dict[type, BaseEqualityTester[Any]] | None = None) -> None:
-        # local import to avoid cyclic imports as TypeRegistry uses objects_are_equal
-        from coola.registry.type import TypeRegistry  # noqa: PLC0415
-
-        self._state: TypeRegistry[BaseEqualityTester] = TypeRegistry[BaseEqualityTester](
-            initial_state
-        )
-
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {"state": self._state}
-
-    def register(
-        self,
-        data_type: type,
-        tester: BaseEqualityTester[Any],
-        exist_ok: bool = False,
-    ) -> None:
-        """Register an equality tester for a given data type.
-
-        This method associates an equality tester instance with a specific Python type.
-        When checking equality for data of this type, the registered tester will be used.
-        The cache is automatically cleared after registration to ensure consistency.
-
-        Args:
-            data_type: The Python type to register (e.g., list, dict, custom classes)
-            tester: The equality tester instance that handles this type
-            exist_ok: If False (default), raises an error if the type is already
-                registered. If True, overwrites the existing registration silently.
-
-        Raises:
-            RuntimeError: If the type is already registered and exist_ok is False
-
-        Example:
-            ```pycon
-            >>> from coola.equality.tester import EqualityTesterRegistry, SequenceEqualityTester
-            >>> registry = EqualityTesterRegistry()
-            >>> registry.register(list, SequenceEqualityTester())
-            >>> registry.has_equality_tester(list)
-            True
-
-            ```
-        """
-        self._state.register(data_type, tester, exist_ok=exist_ok)
-
-    def register_many(
-        self,
-        mapping: Mapping[type, BaseEqualityTester[Any]],
-        exist_ok: bool = False,
-    ) -> None:
-        """Register multiple equality testers at once.
-
-        This is a convenience method for bulk registration that internally calls
-        register() for each type-tester pair.
-
-        Args:
-            mapping: Dictionary mapping Python types to equality tester instances
-            exist_ok: If False (default), raises an error if any type is already
-                registered. If True, overwrites existing registrations silently.
-
-        Raises:
-            RuntimeError: If any type is already registered and exist_ok is False
-
-        Example:
-            ```pycon
-            >>> from coola.equality.tester import (
-            ...     EqualityTesterRegistry,
-            ...     SequenceEqualityTester,
-            ...     MappingEqualityTester,
-            ... )
-            >>> registry = EqualityTesterRegistry()
-            >>> registry.register_many(
-            ...     {
-            ...         list: SequenceEqualityTester(),
-            ...         dict: MappingEqualityTester(),
-            ...     }
-            ... )
-            >>> registry
-            EqualityTesterRegistry(
-              (state): TypeRegistry(
-                  (<class 'list'>): SequenceEqualityTester()
-                  (<class 'dict'>): MappingEqualityTester()
-                )
-            )
-
-            ```
-        """
-        self._state.register_many(mapping, exist_ok=exist_ok)
-
     def has_equality_tester(self, data_type: type) -> bool:
         """Check if an equality tester is explicitly registered for the
         given type.
@@ -178,12 +88,10 @@ class EqualityTesterRegistry(MultilineDisplayMixin):
             >>> registry.register(list, SequenceEqualityTester())
             >>> registry.has_equality_tester(list)
             True
-            >>> registry.has_equality_tester(tuple)
-            False
 
             ```
         """
-        return data_type in self._state
+        return self.has(data_type)
 
     def find_equality_tester(self, data_type: type) -> BaseEqualityTester[Any]:
         """Find the appropriate equality tester for a given type.
@@ -192,8 +100,9 @@ class EqualityTesterRegistry(MultilineDisplayMixin):
         registered equality tester. For example, if you register a tester
         for Sequence but not for list, lists will use the Sequence tester.
 
-        Results are cached using an LRU cache (1024 entries) for performance,
-        as tester lookup is a hot path in recursive equality checking.
+        Results are cached using an internal (unbounded, per-instance)
+        cache for performance, as tester lookup is a hot path in
+        recursive equality checking.
 
         Args:
             data_type: The Python type to find an equality tester for
@@ -219,7 +128,7 @@ class EqualityTesterRegistry(MultilineDisplayMixin):
 
             ```
         """
-        return self._state.resolve(data_type)
+        return self.find(data_type)
 
     def objects_are_equal(self, actual: object, expected: object, config: EqualityConfig) -> bool:
         """Check if two objects are equal by recursively comparing their
