@@ -287,12 +287,21 @@ footguns rather than fundamental design problems.
   `SupportsAllCloseNan` and add the `equal` method, avoiding the copy-pasted
   signature and docstring.
 
-- **`hasattr(x, "method") and callable(x.method)` guard pattern repeated** —
-  `src/coola/equality/handler/allclose.py:91`,
-  `src/coola/equality/handler/tolerant.py:122-127`. A tiny shared helper
-  (`_supports(obj, *method_names)`) in `coola.equality.handler.utils` would
-  remove the duplicated guard and make it easy to extend if a third handler
-  needs the same check.
+- **FIXED** — **`hasattr(x, "method") and callable(x.method)` guard pattern
+  repeated** — `src/coola/equality/handler/allclose.py:91`,
+  `src/coola/equality/handler/tolerant.py:122-127`. Added
+  `supports_methods(obj, *method_names)` to
+  `src/coola/equality/handler/utils.py` (exported from
+  `coola.equality.handler`), which checks that `obj` has every named method
+  and that each is callable. `AllCloseNanHandler.handle` and
+  `TolerantEqualHandler.handle` now call `supports_methods(actual, ...)`
+  instead of the inlined `hasattr`/`callable` checks. Covered by new tests
+  in `tests/unit/equality/handler/test_utils.py`
+  (`test_supports_methods_*`: no method names, single/multiple methods
+  present, a missing method among several, a non-callable attribute, a
+  plain `object()`, and a builtin `int` method), plus the existing
+  `test_allclose.py`/`test_tolerant.py` suites, which still pass unchanged
+  since the observable behavior of both handlers is identical.
 
 - **FIXED** — **`_get_repr_kwargs` returning `{}`** appears in many leaf
   classes purely to satisfy the `BaseDisplayMixin` abstract method contract
