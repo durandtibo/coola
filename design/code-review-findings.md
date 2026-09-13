@@ -138,13 +138,13 @@ footguns rather than fundamental design problems.
 
 ### Low
 
-- ~~**`BloomFilter.add_and_check`'s double-hashing derives both `h1`/`h2` from
+- **FIXED** — **`BloomFilter.add_and_check`'s double-hashing derives both `h1`/`h2` from
   one SHA-512 digest** — `src/coola/utils/bloom_filter.py:70-93`. This is a
   reasonable, well-documented trade-off (comment explains it), but note
   `_optimal_hash_count` can return an unbounded number of hash rounds for
   very small `n`/large `m` ratios; for `expected_items=1`, `fp_rate` close to
   0, `hash_count` could get large. Not a bug, but worth a sanity cap given
-  it's called once per `add_and_check`.~~ **Fixed**: `_optimal_hash_count`
+  it's called once per `add_and_check`. Fix: `_optimal_hash_count`
   now clamps its result to `_MAX_HASH_COUNT` (32), covered by
   `test_bloom_filter_hash_count_is_capped_for_extreme_parameters` and
   `test_bloom_filter_add_and_check_works_with_capped_hash_count` in
@@ -222,17 +222,20 @@ footguns rather than fundamental design problems.
   missing type; the existing tests for each of the three call sites were
   updated to match the unified message.
 
-- **`register_many`'s "atomic" claim is per-registry, not cross-registry** —
-  the docstrings (e.g. `src/coola/registry/base.py:273-326`) call the
-  operation atomic when `exist_ok=False`, which is true for the underlying
-  dict mutation, but `_on_change()` is invoked exactly once after the bulk
-  `dict.update`, same as `register`. That's fine and consistent — just flag
-  that "atomic" here specifically means "no error occurs after partial
-  mutation," not thread-isolation across the whole call (a concurrent reader
-  could still observe a state where some but not all new keys are visible
-  mid-`update`, though CPython's GIL makes `dict.update` itself atomic in
-  practice). Consider clarifying the docstring's atomicity claim to be
-  precise about which guarantee is meant.
+- **FIXED** — **`register_many`'s "atomic" claim is per-registry, not
+  cross-registry** — the docstring (`src/coola/registry/base.py:273-326`)
+  called the operation atomic when `exist_ok=False` without qualifying what
+  "atomic" meant: that guarantee is "either every key-value pair in the call
+  ends up registered in *this* registry, or none do," not cross-registry
+  isolation — if the same mapping is registered into several registries in
+  sequence, a failure on a later registry does not roll back an earlier,
+  already-successful one. The docstring now states this explicitly. Covered
+  by two new tests in `tests/unit/registry/test_base.py`:
+  `test_base_registry_register_many_is_atomic_per_registry_on_duplicate`
+  (a failed call leaves the registry unchanged) and
+  `test_base_registry_register_many_is_not_atomic_across_registries` (a
+  successful call on one registry is not rolled back when a later call on a
+  different registry fails).
 
 - **`EqualityConfig` documents itself as "not thread-safe"** and correctly
   recommends one instance per comparison (`src/coola/equality/config.py:29-36`),
