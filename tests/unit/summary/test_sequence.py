@@ -179,6 +179,18 @@ def test_sequence_summarizer_summarize_depth_limit_not_reached(
     )
 
 
+def test_sequence_summarizer_summarize_depth_limit_negative_max_items_is_capped(
+    registry: SummarizerRegistry,
+) -> None:
+    """Regression test for issue #27: max_items=-1 must not dump an
+    unbounded str(data) when the depth limit is reached."""
+    result = SequenceSummarizer(max_items=-1).summarize(
+        list(range(100_000)), registry, depth=1, max_depth=1
+    )
+    assert result == "[0, 1, 2, 3, 4] ..."
+    assert len(result) < 1_000
+
+
 def test_sequence_summarizer_summarize_nested_structures(registry: SummarizerRegistry) -> None:
     """Test summarizing nested structures."""
     result = SequenceSummarizer().summarize([[1, 2], [3, 4]], registry, max_depth=2)

@@ -13,19 +13,18 @@ from coola.iterator.dfs import (
     IteratorRegistry,
     MappingIterator,
     get_default_registry,
-    register_iterators,
 )
+from coola.iterator.dfs import interface as dfs_interface
+from coola.iterator.dfs import register_iterators
 from tests.unit.iterator.dfs.helpers import DEFAULT_SAMPLES, SAMPLES, CustomList
 
 
 @pytest.fixture(autouse=True)
 def _reset_default_registry() -> Generator[None, None, None]:
     """Reset the registry before and after each test."""
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    dfs_interface._default_registry._instance = None
     yield
-    if hasattr(get_default_registry, "_registry"):
-        del get_default_registry._registry
+    dfs_interface._default_registry._instance = None
 
 
 #################################

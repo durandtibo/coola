@@ -9,9 +9,9 @@ from coola.hashing import (
     HasherRegistry,
     ReprHasher,
     StringHasher,
-    get_default_registry,
     hash_object,
 )
+from coola.hashing import interface as hashing_interface
 from coola.identifier.uuid5 import _NAMESPACE, generate_stable_uuid5
 
 UUID_PATTERN = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$")
@@ -133,7 +133,7 @@ def test_generate_stable_uuid5_does_not_mutate_default_registry_when_custom_regi
 ):
     custom_registry = HasherRegistry({object: StringHasher()})
     generate_stable_uuid5("meow", registry=custom_registry)
-    assert not hasattr(get_default_registry, "_registry")
+    assert hashing_interface._default_registry._instance is None
 
 
 def test_generate_stable_uuid5_custom_namespace_changes_uuid() -> None:

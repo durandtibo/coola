@@ -124,15 +124,20 @@ Date: 2026-09-09
     `TypeRegistry` only adds MRO `resolve()`/caching on top.
     **Fix:** have `TypeRegistry` compose/extend a shared base with `Registry`.
 
-18. **`get_default_registry()` singleton pattern (non-thread-safe, repeated 6x)** —
+18. **FIXED** — **`get_default_registry()` singleton pattern (non-thread-safe, repeated 6x)** —
     `equality/tester/interface.py`, `hashing/interface.py`, `recursive/interface.py`,
     `random/interface.py`, `iterator/bfs/interface.py`, `iterator/dfs/interface.py`,
     `summary/interface.py` all use
     `if not hasattr(fn, "_registry"): fn._registry = ...` with no lock — two threads
     racing on first use can each build a different registry, silently discarding any
     prior seed/registration state on the loser.
-    **Fix:** guard with `threading.Lock` (or initialize eagerly at import time), and
-    factor the duplicated logic into one shared helper.
+    **Fix:** eager import-time initialization was tried first but reintroduces a real
+    circular import (`equality.tester.registry` locally imports `coola.registry.type`
+    specifically to dodge a cycle with `coola.equality`, which building the registry
+    at module-load time re-triggers). Instead, added `coola.utils.singleton.LazySingleton`
+    — a thread-safe, double-checked-locking lazy holder — and each of the 7 modules now
+    does `_default_registry = LazySingleton(_build_default_registry)` with
+    `get_default_registry()` returning `_default_registry.get()`.
 
 19. **FIXED** — **`summary/mapping.py`, `summary/sequence.py`, `summary/set.py`** — `.summarize()`
     is near-identical (~25 lines each): same empty/zero-`max_items`/depth-limit/
@@ -159,10 +164,14 @@ Date: 2026-09-09
     each cross-referencing the other's behavior. Covered by
     `test_merge_mappings_flatten_mapping_first_occurrence_asymmetry`.
 
-22. **`iterator/bfs`/`iterator/dfs`** — `_register_default_child_finders` /
+22. **FIXED** — **`iterator/bfs`/`iterator/dfs`** — `_register_default_child_finders` /
     `_register_default_iterators` bootstrap code is near copy-pasted between the two
     packages (plus the same singleton idiom as #18).
-    **Fix:** share a common bootstrap/singleton helper.
+    **Fix:** extracted the shared `object`/`str`/`int`/... scalar, iterable, and mapping
+    type groupings into `coola.iterator._bootstrap.register_default_handlers()`; both
+    `bfs/interface.py` and `dfs/interface.py` now call it with their own handler
+    instances instead of duplicating the type-to-handler mapping. Covered by
+    `tests/unit/iterator/test_bootstrap.py`.
 
 23. **FIXED** — **`identifier/objectid.py` / `identifier/snowflake.py`** — both maintain a private
     module-level default generator instance with near-identical wrapper functions.
@@ -204,7 +213,7 @@ Date: 2026-09-09
 
 ## Second pass (2026-09-10) — additional findings
 
-27. **`summary/collection.py:249-254` (`BaseCollectionSummarizer.summarize`)** — when
+27. **FIXED** — **`summary/collection.py:249-254` (`BaseCollectionSummarizer.summarize`)** — when
     `max_items` is explicitly negative (documented as "show all items, no
     truncation") and the depth limit is hit, the code falls through to
     `text = str(data)` unconditionally, since the truncation branch only fires
@@ -226,7 +235,7 @@ Date: 2026-09-09
     **Fix:** sort by each key's own hash string (already computed per-item) rather
     than the raw key.
 
-29. **`equality/handler/format.py:53-58` (`format_mapping_difference`)** — same
+29. **FIXED** — **`equality/handler/format.py:53-58` (`format_mapping_difference`)** — same
     pattern as #28: `sorted(missing_keys)` / `sorted(additional_keys)` assumes
     mutually comparable keys. Comparing two dicts with mixed-type keys (e.g.
     `{1: "x", "y": "z"}` vs `{}`) raises `TypeError` while building the "mappings
@@ -234,7 +243,7 @@ Date: 2026-09-09
     an unrelated crash in the message-formatting code path.
     **Fix:** sort by `repr`/`str` of each key instead of the raw key.
 
-30. **`iterator/bfs/registry.py:296-306` (`ChildFinderRegistry.iterate`)** — decides
+30. **FIXED** — **`iterator/bfs/registry.py:296-306` (`ChildFinderRegistry.iterate`)** — decides
     whether a value is a "container" via a structural
     `isinstance(current, (Mapping, Iterable))` check, but the child finder actually
     used to expand it comes from `TypeRegistry.resolve`, which walks the concrete
@@ -260,7 +269,7 @@ Date: 2026-09-09
     the default) instead of a separate `isinstance` test that can disagree with
     MRO-based resolution.
 
-31. **`io/base.py:239-297` (`BaseFileSaver.save`) — hardening note** — the
+31. **FIXED** — **`io/base.py:239-297` (`BaseFileSaver.save`) — hardening note** — the
     `exist_ok=False` path uses `os.link` + `unlink` specifically to guard against
     a concurrent creation of `path` between the initial check and the commit,
     but the `exist_ok=True` path commits via a plain `tmp_path.replace(path)` with

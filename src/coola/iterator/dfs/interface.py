@@ -5,15 +5,18 @@ from __future__ import annotations
 
 __all__ = ["dfs_iterate", "get_default_registry", "register_iterators"]
 
-from collections.abc import Iterable, Iterator, Mapping
 from typing import TYPE_CHECKING, Any
 
+from coola.iterator.bootstrap import register_default_handlers
 from coola.iterator.dfs.default import DefaultIterator
 from coola.iterator.dfs.iterable import IterableIterator
 from coola.iterator.dfs.mapping import MappingIterator
 from coola.iterator.dfs.registry import IteratorRegistry
+from coola.utils.singleton import LazySingleton
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator, Mapping
+
     from coola.iterator.dfs.base import BaseIterator
 
 
@@ -100,11 +103,7 @@ def get_default_registry() -> IteratorRegistry:
 
         ```
     """
-    if not hasattr(get_default_registry, "_registry"):
-        registry = IteratorRegistry()
-        _register_default_iterators(registry)
-        get_default_registry._registry = registry
-    return get_default_registry._registry
+    return _default_registry.get()
 
 
 def _register_default_iterators(registry: IteratorRegistry) -> None:
@@ -121,29 +120,18 @@ def _register_default_iterators(registry: IteratorRegistry) -> None:
         This function is automatically called by `get_default_registry()` and should not
         be called directly by users.
     """
-    default_iterator = DefaultIterator()
-    iterable_iterator = IterableIterator()
-    mapping_iterator = MappingIterator()
-
-    registry.register_many(
-        {
-            # Scalar types - no recursion needed
-            object: default_iterator,
-            str: default_iterator,  # Strings should not be iterated character by character
-            bytes: default_iterator,
-            int: default_iterator,
-            float: default_iterator,
-            complex: default_iterator,
-            bool: default_iterator,
-            # Iterables - recursive iteration (lists, tuples, etc.)
-            list: iterable_iterator,
-            tuple: iterable_iterator,
-            range: iterable_iterator,
-            set: iterable_iterator,
-            frozenset: iterable_iterator,
-            Iterable: iterable_iterator,
-            # Mappings - recursive iteration (dictionaries)
-            dict: mapping_iterator,
-            Mapping: mapping_iterator,
-        }
+    register_default_handlers(
+        registry,
+        default_handler=DefaultIterator(),
+        iterable_handler=IterableIterator(),
+        mapping_handler=MappingIterator(),
     )
+
+
+def _build_default_registry() -> IteratorRegistry:
+    registry = IteratorRegistry()
+    _register_default_iterators(registry)
+    return registry
+
+
+_default_registry: LazySingleton[IteratorRegistry] = LazySingleton(_build_default_registry)

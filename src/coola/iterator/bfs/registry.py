@@ -6,15 +6,15 @@ from __future__ import annotations
 __all__ = ["ChildFinderRegistry"]
 
 from collections import deque
-from collections.abc import Iterable, Mapping
 from typing import TYPE_CHECKING, Any
 
 from coola.display import MultilineDisplayMixin
 from coola.iterator.bfs.base import BaseChildFinder
+from coola.iterator.bfs.default import DefaultChildFinder
 from coola.registry import TypeRegistry
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Iterator, Mapping
 
 
 class ChildFinderRegistry(MultilineDisplayMixin):
@@ -297,11 +297,9 @@ class ChildFinderRegistry(MultilineDisplayMixin):
 
         while queue:
             current = queue.popleft()
-            is_container = isinstance(current, (Mapping, Iterable)) and not isinstance(
-                current, (str, bytes)
-            )
-            children = list(self.find_children(current))
-            if is_container or children:
-                queue.extend(children)
+            child_finder = self.find_child_finder(type(current))
+            is_container = not isinstance(child_finder, DefaultChildFinder)
+            if is_container:
+                queue.extend(child_finder.find_children(current))
             else:
                 yield current
