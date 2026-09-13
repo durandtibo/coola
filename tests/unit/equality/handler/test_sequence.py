@@ -107,8 +107,6 @@ def test_sequence_same_values_handler_equal_false_different_type_child() -> None
         ([0, 1, 2], [0, 1, 2]),
         ((0, 1, 2), (0, 1, 2)),
         ([0, ("a", "b", "c"), 2], [0, ("a", "b", "c"), 2]),
-        ([0, 1, 2], [0, 1, 2, 3]),
-        ([0, 1, 2, 3], [0, 1, 2]),
     ],
 )
 def test_sequence_same_values_handler_handle_true(
@@ -137,12 +135,44 @@ def test_sequence_same_values_handler_handle_true_numpy(
         ([1, 2, 3], [1, 2, 4]),
         ((1, 2, 3), (1, 2, 4)),
         ([0, ("a", "b", "c"), 2], [0, ("a", "b", "d"), 2]),
+        ([0, 1, 2], [0, 1, 2, 3]),
+        ([0, 1, 2, 3], [0, 1, 2]),
+        ([0, 1, 2], []),
+        ([], [0, 1, 2]),
     ],
 )
 def test_sequence_same_values_handler_handle_false(
     actual: Sequence, expected: Sequence, config: EqualityConfig
 ) -> None:
     assert not SequenceSameValuesHandler().handle(actual, expected, config)
+
+
+def test_sequence_same_values_handler_handle_false_different_length_show_difference(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    config.show_difference = True
+    handler = SequenceSameValuesHandler()
+    with caplog.at_level(logging.INFO):
+        assert not handler.handle(actual=[1, 2, 3], expected=[1, 2], config=config)
+        assert "sequences have different lengths" in caplog.messages[-1]
+
+
+def test_sequence_same_values_handler_handle_different_length_does_not_call_next_handler(
+    config: EqualityConfig,
+) -> None:
+    next_handler = Mock(spec=TrueHandler)
+    handler = SequenceSameValuesHandler(next_handler=next_handler)
+    assert not handler.handle(actual=[1, 2, 3], expected=[1, 2], config=config)
+    next_handler.handle.assert_not_called()
+
+
+def test_sequence_same_values_handler_handle_different_length_without_next_handler(
+    config: EqualityConfig,
+) -> None:
+    # The length mismatch must be caught before the "next handler is not
+    # defined" check, so this must return False instead of raising.
+    handler = SequenceSameValuesHandler()
+    assert not handler.handle(actual=[1, 2, 3], expected=[1, 2], config=config)
 
 
 @numpy_available
