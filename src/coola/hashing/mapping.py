@@ -37,7 +37,7 @@ class MappingHasher(InlineDisplayMixin, BaseHasher[Mapping[Any, Any]]):
         >>> hasher
         MappingHasher()
         >>> hasher.hash({"a": 1, "b": 2}, registry=registry)
-        'a3ecbdde9e227bcdae038eb86746b0fccb90939d8e7eeac55513423219ffa02f'
+        '8cdf48729ca0eeb6e039ce3c6e6d77b3c9df8f1d27e6cfb9c28e682201372e37'
 
         ```
     """
@@ -76,9 +76,10 @@ class MappingHasher(InlineDisplayMixin, BaseHasher[Mapping[Any, Any]]):
             ValueError: If ``length`` is not an even number between 2
                 and 128.
         """
-        parts = []
-        for key in sorted(data.keys()):
+        items = []
+        for key, value in data.items():
             key_hash = registry.hash(key, length=length, ignore_unhashable=ignore_unhashable)
-            val_hash = registry.hash(data[key], length=length, ignore_unhashable=ignore_unhashable)
-            parts.append(key_hash + val_hash)
+            val_hash = registry.hash(value, length=length, ignore_unhashable=ignore_unhashable)
+            items.append((key_hash, key_hash + val_hash))
+        parts = [item for _, item in sorted(items, key=lambda item: item[0])]
         return hash_string("".join(parts), length=length)
