@@ -4,11 +4,15 @@ from __future__ import annotations
 
 __all__ = ["TypeRegistry"]
 
+from collections import OrderedDict
 from typing import Generic, TypeVar
 
 from coola.registry.base import BaseRegistry
 
 T = TypeVar("T")
+
+#: Maximum number of entries kept in the ``resolve()`` LRU cache.
+_MAX_CACHE_SIZE = 1024
 
 
 class TypeRegistry(BaseRegistry[type, T], Generic[T]):
@@ -24,8 +28,10 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
     most specific registered type, walking up the inheritance hierarchy if needed.
     This makes it ideal for type-based dispatching systems.
 
-    The registry includes an internal cache for type resolution to optimize
-    performance when repeatedly resolving the same types.
+    The registry includes an internal LRU (least-recently-used) cache for
+    type resolution, bounded to ``_MAX_CACHE_SIZE`` (1024) entries, to
+    optimize performance when repeatedly resolving the same types without
+    growing unbounded.
 
     Args:
         initial_state: An optional dictionary to initialize the registry with.
@@ -34,7 +40,7 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
 
     Attributes:
         _state: Internal dictionary storing the type-value pairs.
-        _cache: Cached version of type resolution lookups for performance.
+        _cache: Bounded LRU cache of type resolution lookups for performance.
         _lock: Threading lock for synchronizing access to both state and cache.
 
     Example:
@@ -116,8 +122,9 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
 
     def __init__(self, initial_state: dict[type, T] | None = None) -> None:
         super().__init__(initial_state=initial_state)
-        # cache for type lookups - improves performance for repeated transforms
-        self._cache: dict[type, T] = {}
+        # bounded LRU cache for type lookups - improves performance for
+        # repeated transforms without growing unbounded
+        self._cache: OrderedDict[type, T] = OrderedDict()
 
     def _on_change(self) -> None:
         # Clear cache when registry changes to ensure new registrations are used
@@ -204,9 +211,16 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
             ```
         """
         with self._lock:
-            if dtype not in self._cache:
-                self._cache[dtype] = self._resolve_uncached(dtype)
-            return self._cache[dtype]
+            if dtype in self._cache:
+                # Mark as most-recently-used.
+                self._cache.move_to_end(dtype)
+                return self._cache[dtype]
+            value = self._resolve_uncached(dtype)
+            self._cache[dtype] = value
+            if len(self._cache) > _MAX_CACHE_SIZE:
+                # Evict the least-recently-used entry.
+                self._cache.popitem(last=False)
+            return value
 
     def _resolve_uncached(self, dtype: type) -> T:
         r"""Find value using MRO lookup (uncached version).
