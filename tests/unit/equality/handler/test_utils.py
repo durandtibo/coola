@@ -13,6 +13,7 @@ from coola.equality.handler import (
     check_recursion_depth,
     create_chain,
     handlers_are_equal,
+    supports_methods,
 )
 
 if TYPE_CHECKING:
@@ -114,3 +115,50 @@ def test_check_recursion_depth_greater_than_max_depth() -> None:
         check_recursion_depth(config),
     ):
         pass
+
+
+######################################
+#     Tests for supports_methods     #
+######################################
+
+
+class _WithMethods:
+    def allclose(self) -> bool:
+        return True
+
+    def equal(self) -> bool:
+        return True
+
+    not_callable = 42
+
+
+def test_supports_methods_no_method_names() -> None:
+    assert supports_methods(_WithMethods())
+
+
+def test_supports_methods_single_method_true() -> None:
+    assert supports_methods(_WithMethods(), "allclose")
+
+
+def test_supports_methods_multiple_methods_true() -> None:
+    assert supports_methods(_WithMethods(), "allclose", "equal")
+
+
+def test_supports_methods_missing_method_false() -> None:
+    assert not supports_methods(_WithMethods(), "does_not_exist")
+
+
+def test_supports_methods_one_missing_among_several_false() -> None:
+    assert not supports_methods(_WithMethods(), "allclose", "does_not_exist")
+
+
+def test_supports_methods_attribute_not_callable_false() -> None:
+    assert not supports_methods(_WithMethods(), "not_callable")
+
+
+def test_supports_methods_on_plain_object_false() -> None:
+    assert not supports_methods(object(), "allclose")
+
+
+def test_supports_methods_on_int_true() -> None:
+    assert supports_methods(1, "bit_length")

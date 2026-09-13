@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Protocol
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
+from coola.equality.handler.utils import supports_methods
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -88,7 +89,7 @@ class AllCloseNanHandler(HandlerEqualityMixin, BaseEqualityHandler):
     """
 
     def handle(self, actual: SupportsAllCloseNan, expected: object, config: EqualityConfig) -> bool:
-        if not hasattr(actual, "allclose") or not callable(actual.allclose):
+        if not supports_methods(actual, "allclose"):
             return False
         if not actual.allclose(
             expected, rtol=config.rtol, atol=config.atol, equal_nan=config.equal_nan
