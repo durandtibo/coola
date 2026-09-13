@@ -60,12 +60,21 @@ class BloomFilter:
         ``p``."""
         return max(8, int(-(n * math.log(p)) / (math.log(2) ** 2)))
 
-    @staticmethod
-    def _optimal_hash_count(m: int, n: int) -> int:
+    # Upper bound on the number of hash rounds per item, regardless of what
+    # the ``expected_items``/``fp_rate`` combination would otherwise compute.
+    # Without this cap, a very small ``expected_items`` combined with a
+    # ``fp_rate`` close to 0 drives the theoretically-optimal hash count
+    # arbitrarily high (it grows as ``-log(fp_rate)``), making
+    # ``add_and_check`` unboundedly slow for a configuration that is
+    # already well past the point of diminishing returns.
+    _MAX_HASH_COUNT = 32
+
+    @classmethod
+    def _optimal_hash_count(cls, m: int, n: int) -> int:
         r"""Compute the number of hash functions minimizing the false-
         positive rate for a bit array of size ``m`` and expected item
-        count ``n``."""
-        return max(1, int((m / max(n, 1)) * math.log(2)))
+        count ``n``, capped at ``_MAX_HASH_COUNT``."""
+        return max(1, min(cls._MAX_HASH_COUNT, int((m / max(n, 1)) * math.log(2))))
 
     def _hashes(self, item: bytes) -> Generator[int, None, None]:
         """Yield ``self.hash_count`` bit indices for ``item``.
