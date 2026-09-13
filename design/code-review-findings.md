@@ -330,12 +330,31 @@ footguns rather than fundamental design problems.
   Migrating the existing leaf classes listed above to use it is left as a
   follow-up.
 
-- **Type-lookup docstring/example blocks are copy-pasted nearly verbatim**
-  across `find_equality_tester`, `find_transformer`, `find_hasher` (see
-  section 2). Beyond the code itself, this means any correction to the
-  behavioral description (e.g. the stale "LRU cache (256 entries)" claim
-  flagged above) has to be hunted down and fixed in multiple places — which
-  is presumably how the inconsistency was introduced.
+- **FIXED** — **Type-lookup docstring/example blocks are copy-pasted nearly
+  verbatim** across `find_equality_tester`, `find_transformer`, `find_hasher`,
+  `find_summarizer`, `find_child_finder`, `find_iterator` (and their
+  `has_<x>` counterparts; see section 2). Beyond the code itself, this meant
+  any correction to the behavioral description (e.g. the stale "LRU cache
+  (256 entries)" claim flagged above) had to be hunted down and fixed in
+  multiple places — which is presumably how the inconsistency was
+  introduced; the six `find_<x>` docstrings also disagreed on caching
+  details (some said nothing, one said "unbounded, per-instance", two just
+  said "caches the result for performance"). The full MRO/caching/`KeyError`
+  behavioral description now lives once, on
+  `BaseTypeDispatchRegistry.has`/`.find` (`src/coola/registry/dispatch.py`),
+  including a new **Note** on `find` documenting the internal cache. Each
+  concrete registry's `has_<x>`/`find_<x>` wrapper docstring was trimmed
+  down to its own Args/Returns/Example plus a `See also` pointer back to the
+  base method, instead of re-describing the shared behavior. Covered by new
+  tests in `tests/unit/registry/test_dispatch.py`:
+  `test_registry_wrapper_docstrings_reference_base_class` (each wrapper's
+  docstring points at `BaseTypeDispatchRegistry.has`/`.find`),
+  `test_registry_wrapper_docstrings_do_not_duplicate_mro_prose` (the
+  "Method Resolution Order" behavioral description no longer appears
+  copy-pasted in any `find_<x>` docstring), and
+  `test_base_type_dispatch_registry_find_docstring_documents_caching`
+  (the caching behavior is documented on the base class). All existing
+  tests and doctests in the touched modules still pass.
 
 ---
 

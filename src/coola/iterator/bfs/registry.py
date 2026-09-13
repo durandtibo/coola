@@ -87,12 +87,11 @@ class ChildFinderRegistry(BaseTypeDispatchRegistry[BaseChildFinder[Any]]):
     """
 
     def has_child_finder(self, data_type: type) -> bool:
-        r"""Check if a child finder is directly registered for a data
-        type.
+        r"""Type-specific alias for :meth:`has`: check if a child finder
+        is directly registered for a data type.
 
-        This method only checks for an exact type match in the registry.
-        Even if this returns ``False``, a suitable child finder may still
-        be resolved via MRO lookup.
+        See :meth:`BaseTypeDispatchRegistry.has` for the full behavior
+        description.
 
         Args:
             data_type: The type to check.
@@ -115,10 +114,12 @@ class ChildFinderRegistry(BaseTypeDispatchRegistry[BaseChildFinder[Any]]):
         return self.has(data_type)
 
     def find_child_finder(self, data_type: type) -> BaseChildFinder[Any]:
-        r"""Find the appropriate child finder for a given data type.
+        r"""Type-specific alias for :meth:`find`: find the appropriate
+        child finder for a given data type.
 
-        This method resolves the child finder using MRO lookup and
-        caches the result for faster subsequent access.
+        See :meth:`BaseTypeDispatchRegistry.find` for the full behavior
+        description (MRO resolution, caching, and the ``KeyError`` on no
+        match).
 
         Args:
             data_type: The data type for which to find a child finder.

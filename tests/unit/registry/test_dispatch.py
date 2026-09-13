@@ -145,3 +145,85 @@ def test_registries_register_many_shares_base_implementation(
     h3 = Handler()
     registry.register_many({int: h3}, exist_ok=True)
     assert registry.find(int) is h3
+
+
+##############################################################
+#     Tests for de-duplicated has_<x>/find_<x> docstrings    #
+##############################################################
+
+# Method-name pairs for the "thin wrapper" `has_<x>`/`find_<x>` methods that
+# each concrete registry exposes around the shared `has`/`find` from
+# `BaseTypeDispatchRegistry`. See design/code-review-findings.md, section 3
+# ("Type-lookup docstring/example blocks are copy-pasted nearly verbatim").
+_WRAPPER_METHOD_NAMES = [
+    ("has_equality_tester", "find_equality_tester"),
+    ("has_hasher", "find_hasher"),
+    ("has_transformer", "find_transformer"),
+    ("has_summarizer", "find_summarizer"),
+    ("has_child_finder", "find_child_finder"),
+    ("has_iterator", "find_iterator"),
+]
+
+
+@pytest.mark.parametrize(
+    ("registry_cls", "names"),
+    list(
+        zip(
+            [
+                EqualityTesterRegistry,
+                HasherRegistry,
+                TransformerRegistry,
+                SummarizerRegistry,
+                ChildFinderRegistry,
+                IteratorRegistry,
+            ],
+            _WRAPPER_METHOD_NAMES,
+            strict=True,
+        )
+    ),
+)
+def test_registry_wrapper_docstrings_reference_base_class(
+    registry_cls: type[BaseTypeDispatchRegistry], names: tuple[str, str]
+) -> None:
+    """Test that each ``has_<x>``/``find_<x>`` wrapper documents its
+    behavior by pointing at ``BaseTypeDispatchRegistry.has``/``.find``
+    instead of duplicating the full behavioral description, so a future
+    correction only needs to be made once, in the base class."""
+    has_name, find_name = names
+    has_doc = getattr(registry_cls, has_name).__doc__
+    find_doc = getattr(registry_cls, find_name).__doc__
+    assert "BaseTypeDispatchRegistry.has" in has_doc
+    assert "BaseTypeDispatchRegistry.find" in find_doc
+
+
+@pytest.mark.parametrize(
+    "registry_cls",
+    [
+        EqualityTesterRegistry,
+        HasherRegistry,
+        TransformerRegistry,
+        SummarizerRegistry,
+        ChildFinderRegistry,
+        IteratorRegistry,
+    ],
+)
+def test_registry_wrapper_docstrings_do_not_duplicate_mro_prose(
+    registry_cls: type[BaseTypeDispatchRegistry],
+) -> None:
+    """Test that the ``find_<x>`` wrapper docstrings no longer duplicate
+    the long "uses the Method Resolution Order..." behavioral
+    description that used to be copy-pasted (with minor drift) into
+    every registry; that description now lives only on
+    ``BaseTypeDispatchRegistry.find``."""
+    find_name = next(name for _, name in _WRAPPER_METHOD_NAMES if hasattr(registry_cls, name))
+    doc = getattr(registry_cls, find_name).__doc__
+    assert "Method Resolution Order" not in doc
+    assert "BaseTypeDispatchRegistry.find" in doc
+
+
+def test_base_type_dispatch_registry_find_docstring_documents_caching() -> None:
+    """Test that the caching behavior of ``find`` is documented once, in
+    the base class, rather than repeated (and drifting, e.g. the stale
+    "LRU cache (256 entries)" claim flagged in the review) across each
+    concrete registry's ``find_<x>`` wrapper."""
+    assert "cached" in BaseTypeDispatchRegistry.find.__doc__

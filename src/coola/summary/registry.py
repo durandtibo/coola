@@ -82,12 +82,11 @@ class SummarizerRegistry(BaseTypeDispatchRegistry[BaseSummarizer[Any]]):
     """
 
     def has_summarizer(self, data_type: type) -> bool:
-        """Check if a summarizer is explicitly registered for the given
-        type.
+        """Type-specific alias for :meth:`has`: check if a summarizer
+        is explicitly registered for the given type.
 
-        Note that this only checks for direct registration. Even if this
-        returns ``False``, ``find_summarizer`` may still return a
-        summarizer via MRO lookup or the default summarizer.
+        See :meth:`BaseTypeDispatchRegistry.has` for the full behavior
+        description.
 
         Args:
             data_type: The type to check.
@@ -110,12 +109,12 @@ class SummarizerRegistry(BaseTypeDispatchRegistry[BaseSummarizer[Any]]):
         return self.has(data_type)
 
     def find_summarizer(self, data_type: type) -> BaseSummarizer[Any]:
-        """Find the appropriate summarizer for a given type.
+        """Type-specific alias for :meth:`find`: find the appropriate
+        summarizer for a given type.
 
-        Uses the Method Resolution Order (MRO) to find the most specific
-        registered summarizer. For example, if a summarizer is
-        registered for ``Sequence`` but not for ``list``, lists will use
-        the ``Sequence`` summarizer.
+        See :meth:`BaseTypeDispatchRegistry.find` for the full behavior
+        description (MRO resolution, caching, and the ``KeyError`` on no
+        match).
 
         Args:
             data_type: The Python type to find a summarizer for.
