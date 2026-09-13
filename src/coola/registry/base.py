@@ -278,8 +278,14 @@ class BaseRegistry(Generic[K, V]):
 
         This is a convenience method for bulk registration. It iterates through
         the provided mapping and registers each key-value pair. All registrations
-        follow the same exist_ok policy. The operation is atomic when exist_ok
-        is False - if any key already exists, no changes are made.
+        follow the same exist_ok policy. The operation is atomic *with respect to
+        this registry* when exist_ok is False: either every key-value pair in
+        ``mapping`` ends up registered, or (if any key already exists) none of
+        them do - there is no partial registration. This says nothing about
+        atomicity across multiple registries: if ``mapping`` is registered into
+        several registries in sequence, each ``register_many`` call is atomic on
+        its own, but the overall multi-registry operation is not - a failure on
+        a later registry does not roll back an earlier one.
 
         Args:
             mapping: A dictionary or mapping containing the key-value pairs
