@@ -97,13 +97,17 @@ footguns rather than fundamental design problems.
 
 ### Low
 
-- **`BloomFilter.add_and_check`'s double-hashing derives both `h1`/`h2` from
+- ~~**`BloomFilter.add_and_check`'s double-hashing derives both `h1`/`h2` from
   one SHA-512 digest** — `src/coola/utils/bloom_filter.py:70-93`. This is a
   reasonable, well-documented trade-off (comment explains it), but note
   `_optimal_hash_count` can return an unbounded number of hash rounds for
   very small `n`/large `m` ratios; for `expected_items=1`, `fp_rate` close to
   0, `hash_count` could get large. Not a bug, but worth a sanity cap given
-  it's called once per `add_and_check`.
+  it's called once per `add_and_check`.~~ **Fixed**: `_optimal_hash_count`
+  now clamps its result to `_MAX_HASH_COUNT` (32), covered by
+  `test_bloom_filter_hash_count_is_capped_for_extreme_parameters` and
+  `test_bloom_filter_add_and_check_works_with_capped_hash_count` in
+  `tests/unit/utils/test_bloom_filter.py`.
 
 ---
 
