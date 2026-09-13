@@ -42,7 +42,7 @@ class SupportsEqualNan(SupportsEqual, Protocol):
     r"""Implement a protocol to represent objects with an ``equal``
     method with an option to compare NaNs."""
 
-    def equal(self, other: object, equal_nan: bool = False) -> bool:  # type: ignore[override]
+    def equal(self, other: object, equal_nan: bool = False) -> bool:
         r"""Return ``True`` if the two objects are equal, otherwise
         ``False``.
 
