@@ -21,6 +21,7 @@ from coola.io import (
     resolve_loader,
     resolve_saver,
 )
+from coola.io.base import _acquire_file_lock
 
 ######################################
 #     Tests for is_loader_config     #
@@ -307,6 +308,94 @@ def test_base_file_saver_save_concurrent_exist_ok_true_serializes_writers(
         thread.join()
 
     assert max_active == 1
+
+
+def test_acquire_file_lock_creates_and_removes_lock_file(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    assert not lock_path.is_file()
+    acquired = _acquire_file_lock(path)
+    assert acquired == lock_path
+    assert lock_path.is_file()
+    # Releasing is the caller's responsibility (``_save_lock`` does this);
+    # ``_acquire_file_lock`` itself only creates the lock file.
+    lock_path.unlink()
+
+
+def test_acquire_file_lock_blocks_while_another_holder_owns_the_lock_file(
+    tmp_path: Path,
+) -> None:
+    # Simulate a concurrent writer (possibly in another process) holding the
+    # lock file: ``_acquire_file_lock`` must not return until it is removed.
+    path = tmp_path.joinpath("data.txt")
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.touch()
+    acquired: list[Path] = []
+
+    def waiter() -> None:
+        acquired.append(_acquire_file_lock(path, poll_interval=0.001))
+
+    thread = threading.Thread(target=waiter)
+    thread.start()
+    time.sleep(0.05)
+    assert not acquired  # still waiting, the lock file is held
+    lock_path.unlink()
+    thread.join(timeout=5)
+    assert not thread.is_alive()
+    assert acquired == [lock_path]
+    lock_path.unlink()
+
+
+def test_acquire_file_lock_times_out_when_never_released(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.touch()
+    try:
+        with pytest.raises(TimeoutError, match="timed out"):
+            _acquire_file_lock(path, timeout=0.05, poll_interval=0.001)
+    finally:
+        lock_path.unlink()
+
+
+def test_base_file_saver_save_blocks_while_lock_file_is_held(tmp_path: Path) -> None:
+    # Regression test for cross-process serialization: even though the
+    # in-process ``threading.Lock`` used by ``_get_save_lock`` cannot see
+    # holders in other processes, ``save`` must still wait on the lock file
+    # left behind by such a holder before writing/committing.
+    path = tmp_path.joinpath("data.txt")
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.touch()
+    saver = SimpleFileSaver()
+    done = threading.Event()
+
+    def worker() -> None:
+        saver.save("value", path, exist_ok=True)
+        done.set()
+
+    thread = threading.Thread(target=worker)
+    thread.start()
+    time.sleep(0.05)
+    assert not done.is_set()
+    assert not path.is_file()
+    lock_path.unlink()
+    thread.join(timeout=5)
+    assert done.is_set()
+    assert path.is_file()
+    assert path.read_text() == "value"
+    assert not lock_path.is_file()
+
+
+def test_base_file_saver_save_removes_lock_file_after_success(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    SimpleFileSaver().save("value", path)
+    assert not tmp_path.joinpath("data.txt.lock").is_file()
+
+
+def test_base_file_saver_save_removes_lock_file_after_failure(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    with pytest.raises(RuntimeError, match="failed to save"):
+        FailingFileSaver().save("value", path)
+    assert not tmp_path.joinpath("data.txt.lock").is_file()
 
 
 def test_base_file_saver_save_exist_ok_true_silently_overwrites_concurrent_create(

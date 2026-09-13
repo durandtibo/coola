@@ -62,15 +62,38 @@ footguns rather than fundamental design problems.
   worth an explicit docstring caveat, since users reasonably expect an ABC to
   "count" via `isinstance`, not just MRO.
 
-- **`BaseFileSaver.save`'s `exist_ok=True` path is not atomic against
-  concurrent writers** — `src/coola/io/base.py:192-260`. The docstring is
-  admirably explicit about this ("This TOCTOU guard does not apply when
-  `exist_ok=True`"), so it's a documented limitation rather than a silent bug,
-  but two concurrent `save(..., exist_ok=True)` calls to the same path can
-  interleave (`tmp_path.replace(path)` from each), silently overwriting one
-  writer's data with no way to detect it happened. If any coola consumer
-  relies on "save wins deterministically," consider a lock file or leaving
-  a note that no writer is guaranteed to win with `exist_ok=True`.
+- **FIXED** — **`BaseFileSaver.save`'s `exist_ok=True` path is not atomic
+  against concurrent writers** — `src/coola/io/base.py:192-260`. The
+  previous per-path lock (`_get_save_lock`) only serialized `save` calls
+  *within this process* via a `threading.Lock`; the docstring documented
+  that `exist_ok=True` was not protected against other processes racing
+  `tmp_path.replace(path)`. `save` now acquires a cross-process lock
+  (`_save_lock`, in `src/coola/io/base.py`) that combines the existing
+  in-process `threading.Lock` with a lock file (`<path>.lock`) created via
+  `os.open(..., O_CREAT | O_EXCL)`, which atomically fails with
+  `FileExistsError` if another process (or thread) already holds it; the
+  caller polls until it can create the file, then removes it when done. This
+  serializes the full write/commit sequence — including the `exist_ok=True`
+  `tmp_path.replace(path)` commit — across processes, not just threads, so
+  concurrent writers can no longer interleave their commits (whichever call
+  wins the lock last still wins, but no ordering beyond "no interleaving" is
+  promised, matching the intentional "last writer wins" semantics of
+  `exist_ok=True`). The docstrings were updated to describe the new
+  cross-process guarantee. The pre-existing
+  `tests/unit/io/test_base.py::test_base_file_saver_save_concurrent_exist_ok_true_serializes_writers`
+  and `::test_base_file_saver_save_concurrent_exist_ok_true_does_not_interleave`
+  (thread-based, so they exercise the in-process half of the lock) still
+  pass. New tests cover the lock-file half directly, by manually creating
+  the `<path>.lock` file to stand in for a holder in another process:
+  `test_acquire_file_lock_creates_and_removes_lock_file`,
+  `test_acquire_file_lock_blocks_while_another_holder_owns_the_lock_file`,
+  `test_acquire_file_lock_times_out_when_never_released`,
+  `test_base_file_saver_save_blocks_while_lock_file_is_held`,
+  `test_base_file_saver_save_removes_lock_file_after_success`, and
+  `test_base_file_saver_save_removes_lock_file_after_failure`. Also manually
+  verified end-to-end with real OS processes (`multiprocessing.Process`, not
+  threads) racing `save(..., exist_ok=True)` on the same path: the result is
+  always exactly one writer's full content and no lock file is left behind.
 
 - **FIXED** — **`instantiate_object` with `_init_="__new__"` bypasses
   `__init__` but the isinstance check happens only for the returned object,
