@@ -8,7 +8,6 @@ __all__ = ["BaseRegistry"]
 import threading
 from typing import TYPE_CHECKING, Generic, TypeVar
 
-from coola.equality.interface import objects_are_equal
 from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:
@@ -156,6 +155,10 @@ class BaseRegistry(Generic[K, V]):
 
             ```
         """
+        # Local import to avoid a cyclic import: coola.equality.interface's import
+        # chain transitively depends on this module (e.g. via EqualityTesterRegistry).
+        from coola.equality.interface import objects_are_equal  # noqa: PLC0415
+
         if type(other) is not type(self):
             return False
 

@@ -8,16 +8,15 @@ __all__ = ["ChildFinderRegistry"]
 from collections import deque
 from typing import TYPE_CHECKING, Any
 
-from coola.display import MultilineDisplayMixin
 from coola.iterator.bfs.base import BaseChildFinder
 from coola.iterator.bfs.default import DefaultChildFinder
-from coola.registry import TypeRegistry
+from coola.registry import BaseTypeDispatchRegistry
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator, Mapping
+    from collections.abc import Iterator
 
 
-class ChildFinderRegistry(MultilineDisplayMixin):
+class ChildFinderRegistry(BaseTypeDispatchRegistry[BaseChildFinder[Any]]):
     r"""Registry that manages child finders for breadth-first traversal
     of nested data structures.
 
@@ -87,85 +86,6 @@ class ChildFinderRegistry(MultilineDisplayMixin):
         ```
     """
 
-    def __init__(self, initial_state: dict[type, BaseChildFinder[Any]] | None = None) -> None:
-        self._state: TypeRegistry[BaseChildFinder] = TypeRegistry[BaseChildFinder](initial_state)
-
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {"state": self._state}
-
-    def register(
-        self,
-        data_type: type,
-        child_finder: BaseChildFinder[Any],
-        exist_ok: bool = False,
-    ) -> None:
-        r"""Register a child finder for a given data type.
-
-        This method associates a specific ``BaseChildFinder`` with a
-        Python type. When an object of this type (or a subclass) is
-        encountered during traversal, the registered child finder
-        will be used.
-
-        The internal cache is cleared after registration to ensure
-        consistency.
-
-        Args:
-            data_type: The Python type to register (e.g., ``list``,
-                ``dict``, or a custom class).
-            child_finder: The child finder instance responsible for
-                extracting children from objects of this type.
-            exist_ok: If ``True``, allows overwriting an existing
-                registration. If ``False``, raises an error.
-
-        Raises:
-            RuntimeError: If the type is already registered and
-                ``exist_ok`` is ``False``.
-
-        Example:
-            ```pycon
-            >>> from coola.iterator.bfs import ChildFinderRegistry, IterableChildFinder
-            >>> registry = ChildFinderRegistry()
-            >>> registry.register(list, IterableChildFinder())
-            >>> registry.has_child_finder(list)
-            True
-
-            ```
-        """
-        self._state.register(data_type, child_finder, exist_ok)
-
-    def register_many(
-        self,
-        mapping: Mapping[type, BaseChildFinder[Any]],
-        exist_ok: bool = False,
-    ) -> None:
-        r"""Register multiple child finders at once.
-
-        Args:
-            mapping: A mapping from Python types to their corresponding
-                child finders.
-            exist_ok: If ``True``, allows overwriting existing
-                registrations.
-
-        Raises:
-            RuntimeError: If any type is already registered and
-                ``exist_ok`` is ``False``.
-
-        Example:
-            ```pycon
-            >>> from coola.iterator.bfs import (
-            ...     ChildFinderRegistry,
-            ...     IterableChildFinder,
-            ...     MappingChildFinder,
-            ... )
-            >>> registry = ChildFinderRegistry()
-            >>> registry.register_many({list: IterableChildFinder(), dict: MappingChildFinder()})
-            >>> registry.has_child_finder(list), registry.has_child_finder(dict)
-            (True, True)
-
-            ```
-        """
-        self._state.register_many(mapping, exist_ok)
-
     def has_child_finder(self, data_type: type) -> bool:
         r"""Check if a child finder is directly registered for a data
         type.
@@ -192,7 +112,7 @@ class ChildFinderRegistry(MultilineDisplayMixin):
 
             ```
         """
-        return data_type in self._state
+        return self.has(data_type)
 
     def find_child_finder(self, data_type: type) -> BaseChildFinder[Any]:
         r"""Find the appropriate child finder for a given data type.
@@ -223,7 +143,7 @@ class ChildFinderRegistry(MultilineDisplayMixin):
 
             ```
         """
-        return self._state.resolve(data_type)
+        return self.find(data_type)
 
     def find_children(self, data: object) -> Iterator[Any]:
         r"""Return the immediate children of an object using its child

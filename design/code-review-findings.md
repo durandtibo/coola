@@ -155,26 +155,38 @@ footguns rather than fundamental design problems.
 
 ## 2. API Design / Consistency Issues
 
-- **Five near-identical registry wrapper classes** — `EqualityTesterRegistry`
-  (`src/coola/equality/tester/registry.py`), `TransformerRegistry`
-  (`src/coola/recursive/registry.py`), `HasherRegistry`
-  (`src/coola/hashing/registry.py`), plus (per the package listing but not
-  read in depth this pass) `summary/registry.py`, `iterator/bfs/registry.py`,
-  `iterator/dfs/registry.py`. Each hand-implements `register`,
+- **FIXED** — **Five near-identical registry wrapper classes** —
+  `EqualityTesterRegistry` (`src/coola/equality/tester/registry.py`),
+  `TransformerRegistry` (`src/coola/recursive/registry.py`), `HasherRegistry`
+  (`src/coola/hashing/registry.py`), `SummarizerRegistry`
+  (`src/coola/summary/registry.py`), `ChildFinderRegistry`
+  (`src/coola/iterator/bfs/registry.py`), and `IteratorRegistry`
+  (`src/coola/iterator/dfs/registry.py`) each hand-implemented `register`,
   `register_many`, `has_<x>`, `find_<x>`, and a `_get_repr_kwargs` that
-  wraps an internal `TypeRegistry`. The method bodies are one-line
-  delegations to `self._state.*` and the docstrings are near-verbatim copies
-  with only the noun swapped (compare
-  `src/coola/equality/tester/registry.py:81-156` to
-  `src/coola/hashing/registry.py:82-154` to
-  `src/coola/recursive/registry.py:89-164`). This is a strong candidate for a
-  shared generic base (e.g. `TypedDispatchRegistry[V]` in `coola/registry`)
-  that these six classes subclass or compose, exposing `register`,
-  `register_many`, `has`, `find`, leaving only the type-specific entry point
-  (`objects_are_equal`, `transform`, `hash`, `summarize`, iterate) to the
-  subclass. This would cut ~500-700 lines of duplicated docstring/boilerplate
-  and centralize any future behavior change (e.g. adding an LRU cache
-  consistently — see next point).
+  wrapped an internal `TypeRegistry`, with one-line delegations to
+  `self._state.*` and near-verbatim docstrings. Added
+  `BaseTypeDispatchRegistry[V]` in `src/coola/registry/dispatch.py` (exported
+  from `coola.registry`), a shared generic base providing `__init__`,
+  `_get_repr_kwargs`, `register`, `register_many`, `has`, and `find`. All six
+  classes now subclass it and keep only their type-specific, richly
+  docstringed `has_<x>`/`find_<x>` wrappers (thin one-liners delegating to
+  `self.has`/`self.find`) plus their domain entry point (`objects_are_equal`,
+  `hash`, `transform`, `summarize`, `find_children`/`iterate`). This removed
+  the duplicated `__init__`/`_get_repr_kwargs`/`register`/`register_many`
+  bodies and docstrings from all six files. As a side effect, fixing this
+  also required breaking a latent import cycle: `BaseRegistry.equal()`
+  (`src/coola/registry/base.py`) imported `coola.equality.interface` at
+  module scope, which transitively imports `EqualityTesterRegistry` — that
+  import is now local to `equal()`, which also let `EqualityTesterRegistry`
+  drop its own local `TypeRegistry` import workaround. Covered by
+  `tests/unit/registry/test_dispatch.py` (new): behavior tests for
+  `BaseTypeDispatchRegistry` itself (init/copy-on-init, register with/without
+  `exist_ok`, `register_many`, `has` vs. MRO-resolving `find`, missing-key
+  `KeyError`, `repr`), plus parametrized tests asserting all six registries
+  are `BaseTypeDispatchRegistry` subclasses and that `register_many` on each
+  concrete registry actually goes through the shared implementation. The
+  full existing test suite (5877 tests) and all doctests in the touched
+  modules still pass unchanged.
 
 - **FIXED** — **Inconsistent caching strategy across registries doing the
   same MRO lookup**: `TypeRegistry.resolve()` (`src/coola/registry/type.py`)
