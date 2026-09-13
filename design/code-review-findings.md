@@ -72,16 +72,22 @@ footguns rather than fundamental design problems.
   relies on "save wins deterministically," consider a lock file or leaving
   a note that no writer is guaranteed to win with `exist_ok=True`.
 
-- **`instantiate_object` with `_init_="__new__"` bypasses `__init__` but the
-  isinstance check happens only for the returned object, not for whether
-  `__init__` runs at all** — `src/coola/factory/instantiation.py:120-165`.
-  For `__new__`, `obj = init_fn(cls, *args, **kwargs)` never calls
-  `cls.__init__`, silently producing a partially-initialized object if the
-  caller expected `__new__`-then-`__init__` semantics (which is what plain
-  `cls(*args, **kwargs)` would do). This is likely intentional (an escape
-  hatch), but the docstring doesn't call out that `__init__` is skipped
-  entirely for this path — worth a one-line warning since it's an easy
-  source of "attribute not set" bugs downstream.
+- **FIXED** — **`instantiate_object` with `_init_="__new__"` bypasses
+  `__init__` but the isinstance check happens only for the returned object,
+  not for whether `__init__` runs at all** —
+  `src/coola/factory/instantiation.py:120-165`. For `__new__`,
+  `obj = init_fn(cls, *args, **kwargs)` never calls `cls.__init__`, silently
+  producing a partially-initialized object if the caller expected
+  `__new__`-then-`__init__` semantics (which is what plain
+  `cls(*args, **kwargs)` would do). This is intentional (an escape hatch),
+  so the fix documents rather than changes the behavior: `instantiate_object`
+  and `_instantiate_class_object` docstrings now carry an explicit warning
+  that `_init_="__new__"` skips `cls.__init__` entirely, unlike the default
+  `__init__` path. Covered by
+  `tests/unit/factory/test_instantiation.py::test_instantiate_object_class_init_new_bypasses_init`
+  and `::test_instantiate_object_class_init_new_vs_default_init`, which assert
+  that the `__new__` path leaves the instance `__dict__` empty while the
+  default path populates it as expected.
 
 - **`NativeReducer._std` special-cases length 1 to return `nan` instead of
   raising** — `src/coola/reducer/native.py:57-60`, contrasted with

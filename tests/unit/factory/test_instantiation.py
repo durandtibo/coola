@@ -150,6 +150,23 @@ def test_instantiate_object_class_init_new() -> None:
     assert isinstance(instantiate_object(Fake, _init_="__new__"), Fake)
 
 
+def test_instantiate_object_class_init_new_bypasses_init() -> None:
+    # `__new__` must not run `Fake.__init__`, unlike the default `__init__` path.
+    obj = instantiate_object(Fake, _init_="__new__")
+    assert "arg1" not in obj.__dict__
+    assert "arg2" not in obj.__dict__
+
+
+def test_instantiate_object_class_init_new_vs_default_init() -> None:
+    # Sanity check contrasting the two paths: the default path always
+    # runs `__init__` and sets the attributes, `__new__` never does.
+    default_obj = instantiate_object(Fake, 1, "abc")
+    assert default_obj.__dict__ == {"arg1": 1, "arg2": "abc"}
+
+    new_obj = instantiate_object(Fake, _init_="__new__")
+    assert new_obj.__dict__ == {}
+
+
 def test_instantiate_object_class_init_static_method() -> None:
     obj = instantiate_object(Fake, _init_="static_method")
     assert isinstance(obj, Fake)
