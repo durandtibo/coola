@@ -70,12 +70,11 @@ class HasherRegistry(BaseTypeDispatchRegistry[BaseHasher[Any]]):
     """
 
     def has_hasher(self, data_type: type) -> bool:
-        """Check if a hasher is explicitly registered for the given
-        type.
+        """Type-specific alias for :meth:`has`: check if a hasher is
+        explicitly registered for the given type.
 
-        Note that this only checks for direct registration. Even if this
-        returns ``False``, ``find_hasher`` may still return a hasher via
-        MRO lookup or the default hasher.
+        See :meth:`BaseTypeDispatchRegistry.has` for the full behavior
+        description.
 
         Args:
             data_type: The type to check.
@@ -99,12 +98,12 @@ class HasherRegistry(BaseTypeDispatchRegistry[BaseHasher[Any]]):
         return self.has(data_type)
 
     def find_hasher(self, data_type: type) -> BaseHasher[Any]:
-        """Find the appropriate hasher for a given type.
+        """Type-specific alias for :meth:`find`: find the appropriate
+        hasher for a given type.
 
-        Uses the Method Resolution Order (MRO) to find the most specific
-        registered hasher. For example, if a hasher is registered for
-        ``Sequence`` but not for ``list``, lists will use the ``Sequence``
-        hasher.
+        See :meth:`BaseTypeDispatchRegistry.find` for the full behavior
+        description (MRO resolution, caching, and the ``KeyError`` on no
+        match).
 
         Args:
             data_type: The Python type to find a hasher for.

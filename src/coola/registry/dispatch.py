@@ -133,5 +133,10 @@ class BaseTypeDispatchRegistry(MultilineDisplayMixin, Generic[V]):
         Raises:
             KeyError: If no handler is registered for ``data_type``
                 (or any of its parent types).
+
+        Note:
+            Results are cached internally (see ``TypeRegistry.resolve``)
+            so repeated lookups for the same type are fast. The cache
+            is invalidated automatically by ``register``/``register_many``.
         """
         return self._state.resolve(data_type)

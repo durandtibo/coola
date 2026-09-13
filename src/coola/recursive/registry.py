@@ -80,12 +80,11 @@ class TransformerRegistry(BaseTypeDispatchRegistry[BaseTransformer[Any]]):
     """
 
     def has_transformer(self, data_type: type) -> bool:
-        """Check if a transformer is explicitly registered for the given
-        type.
+        """Type-specific alias for :meth:`has`: check if a transformer
+        is explicitly registered for the given type.
 
-        Note that this only checks for direct registration. Even if this
-        returns ``False``, ``find_transformer`` may still return a
-        transformer via MRO lookup or the default transformer.
+        See :meth:`BaseTypeDispatchRegistry.has` for the full behavior
+        description.
 
         Args:
             data_type: The type to check.
@@ -109,12 +108,12 @@ class TransformerRegistry(BaseTypeDispatchRegistry[BaseTransformer[Any]]):
         return self.has(data_type)
 
     def find_transformer(self, data_type: type) -> BaseTransformer[Any]:
-        """Find the appropriate transformer for a given type.
+        """Type-specific alias for :meth:`find`: find the appropriate
+        transformer for a given type.
 
-        Uses the Method Resolution Order (MRO) to find the most specific
-        registered transformer. For example, if a transformer is
-        registered for ``Sequence`` but not for ``list``, lists will use
-        the ``Sequence`` transformer.
+        See :meth:`BaseTypeDispatchRegistry.find` for the full behavior
+        description (MRO resolution, caching, and the ``KeyError`` on no
+        match).
 
         Args:
             data_type: The Python type to find a transformer for.

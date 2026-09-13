@@ -67,12 +67,11 @@ class EqualityTesterRegistry(BaseTypeDispatchRegistry[BaseEqualityTester[Any]]):
     """
 
     def has_equality_tester(self, data_type: type) -> bool:
-        """Check if an equality tester is explicitly registered for the
-        given type.
+        """Type-specific alias for :meth:`has`: check if an equality
+        tester is explicitly registered for the given type.
 
-        Note that this only checks for direct registration. Even if this returns
-        False, find_equality_tester() may still return a tester via MRO lookup
-        or the default tester.
+        See :meth:`BaseTypeDispatchRegistry.has` for the full behavior
+        description.
 
         Args:
             data_type: The type to check
@@ -94,15 +93,12 @@ class EqualityTesterRegistry(BaseTypeDispatchRegistry[BaseEqualityTester[Any]]):
         return self.has(data_type)
 
     def find_equality_tester(self, data_type: type) -> BaseEqualityTester[Any]:
-        """Find the appropriate equality tester for a given type.
+        """Type-specific alias for :meth:`find`: find the appropriate
+        equality tester for a given type.
 
-        Uses the Method Resolution Order (MRO) to find the most specific
-        registered equality tester. For example, if you register a tester
-        for Sequence but not for list, lists will use the Sequence tester.
-
-        Results are cached using an internal (unbounded, per-instance)
-        cache for performance, as tester lookup is a hot path in
-        recursive equality checking.
+        See :meth:`BaseTypeDispatchRegistry.find` for the full behavior
+        description (MRO resolution, caching, and the ``KeyError`` on no
+        match).
 
         Args:
             data_type: The Python type to find an equality tester for
