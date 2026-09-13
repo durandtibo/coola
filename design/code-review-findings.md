@@ -233,17 +233,24 @@ footguns rather than fundamental design problems.
   remove the duplicated guard and make it easy to extend if a third handler
   needs the same check.
 
-- **`_get_repr_kwargs` returning `{}`** appears in many leaf classes purely
-  to satisfy the `BaseDisplayMixin` abstract method contract (e.g.
-  `PickleLoader._get_repr_kwargs` in `src/coola/io/pickle.py:37-38`,
+- **FIXED** — **`_get_repr_kwargs` returning `{}`** appears in many leaf
+  classes purely to satisfy the `BaseDisplayMixin` abstract method contract
+  (e.g. `PickleLoader._get_repr_kwargs` in `src/coola/io/pickle.py:37-38`,
   `DefaultTransformer._get_repr_kwargs` in
   `src/coola/recursive/default.py:55-56`, `SequenceHasher._get_repr_kwargs`
-  in `src/coola/hashing/sequence.py:42-43`). Since this is the common case
-  (stateless handler/hasher/transformer with no constructor args), consider
-  giving `BaseDisplayMixin` (or a new `NoArgsDisplayMixin`) a default
-  `_get_repr_kwargs` returning `{}`, and only requiring the override when a
-  class actually has state — this removes a large number of trivial,
-  content-free method bodies across the codebase.
+  in `src/coola/hashing/sequence.py:42-43`). Added `NoArgsDisplayMixin`
+  (`src/coola/display/mixin.py`), a mixin providing a default
+  `_get_repr_kwargs` returning `{}`; a stateless class can now mix it in
+  alongside `InlineDisplayMixin`/`MultilineDisplayMixin` (e.g. `class Foo(
+  NoArgsDisplayMixin, InlineDisplayMixin)`) instead of writing a trivial,
+  content-free override, while a class with actual constructor arguments
+  keeps overriding `_get_repr_kwargs` as before. Exported from
+  `coola.display`. Covered by new tests in
+  `tests/unit/display/test_mixin.py` (empty-dict default, composition with
+  both `Inline`/`MultilineDisplayMixin`, that a subclass override still
+  takes precedence, and that it is a `BaseDisplayMixin` subclass).
+  Migrating the existing leaf classes listed above to use it is left as a
+  follow-up.
 
 - **Type-lookup docstring/example blocks are copy-pasted nearly verbatim**
   across `find_equality_tester`, `find_transformer`, `find_hasher` (see
