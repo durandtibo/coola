@@ -125,17 +125,16 @@ footguns rather than fundamental design problems.
   that the `__new__` path leaves the instance `__dict__` empty while the
   default path populates it as expected.
 
-- **`NativeReducer._std` special-cases length 1 to return `nan` instead of
-  raising** — `src/coola/reducer/native.py:57-60`, contrasted with
-  `TorchReducer`/`NumpyReducer` (not read in this pass, but referenced in
-  `BaseReducer` docstrings as raising `EmptySequenceError` only for *empty*
-  input). Confirm the three reducer implementations agree on the length-1
-  standard-deviation behavior (`statistics.stdev` raises
-  `StatisticsError` for `n < 2`, hence the special-case here) — if
-  `NumpyReducer`/`TorchReducer` return `0.0` or `nan` differently for a
-  single-element input, that's a cross-backend inconsistency that violates
-  the implicit contract that all `BaseReducer` implementations are
-  interchangeable.
+- **FIXED** — **`NativeReducer._std` special-cases length 1 to return `nan`
+  instead of raising** — `src/coola/reducer/native.py:57-60`. The concern was
+  whether `NumpyReducer`/`TorchReducer` agree with `NativeReducer` on the
+  length-1 standard-deviation behavior. New
+  `tests/unit/reducer/test_consistency.py` parametrizes the same behavioral
+  assertions across all three `BaseReducer` implementations (max/min/mean/
+  median/std/sum, including the length-1 and empty-sequence edge cases), and
+  they pass, confirming `NativeReducer`'s `nan`-for-length-1 behavior matches
+  `NumpyReducer`/`TorchReducer` rather than being a cross-backend
+  inconsistency.
 
 ### Low
 
@@ -634,9 +633,10 @@ this pass and worth a targeted look given the findings above):
 1. Harden or explicitly test the "must be chained after a length/keys check"
    assumptions in `SequenceSameValuesHandler` (**FIXED** — see §1) and
    `MappingSameValuesHandler` (§1).
-2. Extract a shared base for the six `TypeRegistry`-backed dispatch
-   registries to eliminate ~500+ lines of duplicated boilerplate/docstrings
-   and fix the discovered doc/behavior drift in one place (§2, §3).
+2. **FIXED** — Extracted a shared base (`BaseTypeDispatchRegistry`) for the
+   six `TypeRegistry`-backed dispatch registries, eliminating the duplicated
+   boilerplate/docstrings and fixing the discovered doc/behavior drift in one
+   place (§2, §3).
 3. **FIXED** — Reconciled the "LRU cache" docstring claim in
    `EqualityTesterRegistry.find_equality_tester` with the `TypeRegistry`
    cache by making the cache a real bounded LRU (1024 entries) instead of
