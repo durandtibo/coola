@@ -51,6 +51,21 @@ class TolerantEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     is called with the configured tolerances and ``equal_nan``. When
     both are zero, ``equal`` is called with ``equal_nan`` only.
 
+    Notes:
+        As with ``AllCloseNanHandler``, the ``actual`` parameter's
+        ``SupportsTolerantEqual`` type hint documents the intended
+        "happy path" contract, not a runtime guarantee: ``handle``
+        checks ``supports_methods(actual, "allclose", "equal")``
+        defensively and returns ``False`` when either method is
+        missing, since the dispatch registry resolves handlers by
+        ``type(actual)``, not by protocol conformance.
+
+        If the delegated ``actual.allclose``/``actual.equal`` call
+        raises an exception, that exception propagates unchanged out
+        of ``handle`` rather than being caught and converted into
+        ``False`` — a buggy or misbehaving user-defined implementation
+        is expected to fail loudly.
+
     Example:
         ```pycon
         >>> import math

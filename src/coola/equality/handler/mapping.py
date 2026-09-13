@@ -71,6 +71,17 @@ class MappingSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
         keys. To check if two mappings are equal, you can combine this
         handler with ``MappingSameKeysHandler``.
 
+    Warning:
+        This handler does not check the assumption above itself: it
+        accesses ``expected[key]`` directly for every key in ``actual``
+        without a ``.get``/``try``-``except``. If this handler is used
+        standalone (or as the first handler in a chain, without
+        ``MappingSameKeysHandler`` preceding it) and ``actual`` has a
+        key that is missing from ``expected``, ``handle`` raises
+        ``KeyError`` instead of returning ``False``. Always chain this
+        handler after ``MappingSameKeysHandler`` unless the missing-key
+        case is otherwise guaranteed not to occur.
+
     Example:
         ```pycon
         >>> from coola.equality.config import EqualityConfig
