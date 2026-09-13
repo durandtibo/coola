@@ -175,7 +175,7 @@ def test_native_reducer_std_float(values: Sequence[int | float]) -> None:
     assert math.isclose(NativeReducer().std(values), 1.5811388492584229, abs_tol=1e-6)
 
 
-@pytest.mark.parametrize("values", [[1], [1.0]])
+@pytest.mark.parametrize("values", [[1], (1,), [1.0], (1.0,)])
 def test_native_reducer_std_one(values: Sequence[int | float]) -> None:
     assert math.isnan(NativeReducer().std(values))
 
