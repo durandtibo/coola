@@ -33,6 +33,14 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
     optimize performance when repeatedly resolving the same types without
     growing unbounded.
 
+    Note:
+        ``resolve()`` walks ``dtype.__mro__``, which reflects real (static)
+        inheritance only. Virtual subclasses registered via
+        ``abc.ABCMeta.register()`` do not appear in ``__mro__``, so
+        registering a value for an ABC does not make ``resolve()`` match
+        that ABC's virtual subclasses even though ``isinstance`` would
+        report them as instances of the ABC. See ``resolve()`` for details.
+
     Args:
         initial_state: An optional dictionary to initialize the registry with.
             If provided, a copy is made to prevent external modifications.
@@ -155,6 +163,17 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
 
         Results are cached internally to optimize performance for repeated
         lookups of the same type.
+
+        Note:
+            Resolution walks ``dtype.__mro__``, i.e. real (static)
+            inheritance only. Virtual subclasses registered with
+            ``abc.ABCMeta.register()`` do not appear in ``__mro__``, so
+            registering a value for an ABC does *not* make this method
+            resolve any of that ABC's virtual subclasses, even though
+            ``isinstance(instance_of_virtual_subclass, the_abc)`` is
+            ``True``. To make a virtual subclass resolve to a value, either
+            register the subclass itself or a real (non-virtual) ancestor of
+            it.
 
         Args:
             dtype: The type to resolve.
