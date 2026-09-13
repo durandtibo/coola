@@ -8,6 +8,7 @@ __all__ = ["SupportsTolerantEqual", "TolerantEqualHandler"]
 import logging
 from typing import TYPE_CHECKING, Protocol
 
+from coola.equality.handler.allclose import SupportsAllCloseNan
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
@@ -19,32 +20,10 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class SupportsTolerantEqual(Protocol):
+class SupportsTolerantEqual(SupportsAllCloseNan, Protocol):
     r"""Implement a protocol to represent objects that support both an
     ``allclose`` method with tolerance and NaN options, and an ``equal``
     method with a NaN option."""
-
-    def allclose(
-        self,
-        other: object,
-        rtol: float = 1e-5,
-        atol: float = 1e-8,
-        equal_nan: bool = False,
-    ) -> bool:
-        r"""Return ``True`` if the two objects are equal within
-        tolerance, otherwise ``False``.
-
-        Args:
-            other: The value to compare with.
-            rtol: The relative tolerance parameter. Must be non-negative.
-            atol: The absolute tolerance parameter. Must be non-negative.
-            equal_nan: If ``True``, then two ``NaN``s will be considered
-                as equal.
-
-        Returns:
-            ``True`` if the two objects are equal within tolerance,
-            otherwise ``False``.
-        """
 
     def equal(self, other: object, equal_nan: bool = False) -> bool:
         r"""Return ``True`` if the two objects are equal, otherwise
