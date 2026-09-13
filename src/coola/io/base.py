@@ -15,6 +15,8 @@ __all__ = [
 
 import logging
 import os
+import threading
+import weakref
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
@@ -28,6 +30,26 @@ if TYPE_CHECKING:
 T = TypeVar("T")
 
 logger: logging.Logger = logging.getLogger(__name__)
+
+# Per-path locks used by ``BaseFileSaver.save`` to serialize concurrent
+# ``save`` calls targeting the same path within this process. A
+# ``WeakValueDictionary`` is used so a lock is discarded automatically once
+# no ``save`` call references it anymore, instead of accumulating one entry
+# per distinct path saved over the lifetime of the process.
+_SAVE_LOCKS_GUARD = threading.Lock()
+_SAVE_LOCKS: weakref.WeakValueDictionary[str, threading.Lock] = weakref.WeakValueDictionary()
+
+
+def _get_save_lock(path: Path) -> threading.Lock:
+    r"""Get (creating if needed) the lock used to serialize ``save``
+    calls targeting the given path."""
+    key = str(path)
+    with _SAVE_LOCKS_GUARD:
+        lock = _SAVE_LOCKS.get(key)
+        if lock is None:
+            lock = threading.Lock()
+            _SAVE_LOCKS[key] = lock
+        return lock
 
 
 class BaseLoader(ABC, Generic[T]):
@@ -213,6 +235,16 @@ class BaseFileSaver(BaseSaver[T]):
                 another process between the check and the replace is
                 silently overwritten.
 
+                Note: concurrent ``save`` calls targeting the same
+                ``path`` from *within this process* are serialized by
+                an internal per-path lock, so they cannot interleave
+                their write/commit steps and corrupt or partially
+                overwrite each other's data; which call's data ends up
+                on disk is still whichever one wins the lock last (no
+                ordering is guaranteed beyond "no interleaving"). This
+                lock does not protect against concurrent writers in
+                *other* processes.
+
         Raises:
             FileExistsError: if the file already exists.
 
@@ -239,25 +271,41 @@ class BaseFileSaver(BaseSaver[T]):
             raise FileExistsError(msg)
         path.parent.mkdir(exist_ok=True, parents=True)
 
-        # Save to tmp, then commit by moving the file in case the job gets
-        # interrupted while writing the file
-        tmp_path = add_uuid_suffix(path)
-        try:
-            self._save_file(to_save, tmp_path)
-            if exist_ok:
-                tmp_path.replace(path)
-            else:
-                # ``os.link`` + unlink is used instead of a plain rename so the
-                # ``exist_ok=False`` guarantee also holds if ``path`` was created
-                # concurrently between the check above and this commit step:
-                # ``link`` atomically fails with ``FileExistsError`` in that case.
-                try:
-                    os.link(tmp_path, path)
-                finally:
-                    tmp_path.unlink(missing_ok=True)
-        except BaseException:
-            tmp_path.unlink(missing_ok=True)
-            raise
+        # Serialize concurrent ``save`` calls targeting the same path (see the
+        # note in the docstring): without this, two in-process calls could
+        # each write their own tmp file and then interleave their commit
+        # steps below, e.g. call A's ``os.link``/``replace`` landing after
+        # call B's, silently discarding whichever of A's or B's data lost
+        # the race in a non-deterministic, hard-to-reproduce way.
+        with _get_save_lock(path):
+            # Save to tmp, then commit by moving the file in case the job
+            # gets interrupted while writing the file.
+            tmp_path = add_uuid_suffix(path)
+            try:
+                self._save_file(to_save, tmp_path)
+                if exist_ok:
+                    tmp_path.replace(path)
+                else:
+                    # ``os.link`` + unlink is used instead of a plain rename so the
+                    # ``exist_ok=False`` guarantee also holds if ``path`` was created
+                    # concurrently between the check above and this commit step:
+                    # ``link`` atomically fails with ``FileExistsError`` in that case.
+                    try:
+                        os.link(tmp_path, path)
+                    finally:
+                        # Unlinks ``tmp_path`` whether ``os.link`` succeeded (the
+                        # data now lives at ``path`` via the hard link) or failed
+                        # (nothing to keep); the redundant ``unlink(missing_ok=True)``
+                        # below in the outer ``except`` is then a no-op.
+                        tmp_path.unlink(missing_ok=True)
+            except BaseException:
+                # Covers a failure in ``_save_file`` itself (``tmp_path`` may or
+                # may not have been created) as well as a failure of
+                # ``tmp_path.replace(path)`` in the ``exist_ok=True`` branch;
+                # ``missing_ok=True`` makes this safe to call even when the
+                # ``finally`` above (or ``_save_file``) already removed it.
+                tmp_path.unlink(missing_ok=True)
+                raise
 
     @abstractmethod
     def _save_file(self, to_save: T, path: Path) -> None:
