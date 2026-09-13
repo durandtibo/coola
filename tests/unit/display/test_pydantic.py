@@ -258,8 +258,8 @@ def test_str_pydantic_model_nested_secret_in_list_excluded() -> None:
     out = str_pydantic_model(model)
     assert "api_key" not in out
     assert "s3cr3t" not in out
-    assert "a.example.com" in out
-    assert "b.example.com" in out
+    assert "'host': 'a.example.com'" in out
+    assert "'host': 'b.example.com'" in out
 
 
 @pydantic_available
@@ -284,5 +284,5 @@ def test_str_pydantic_model_nested_secret_in_dict_excluded() -> None:
     out = str_pydantic_model(model)
     assert "api_key" not in out
     assert "s3cr3t" not in out
-    assert "a.example.com" in out
-    assert "b.example.com" in out
+    assert "'host': 'a.example.com'" in out
+    assert "'host': 'b.example.com'" in out
