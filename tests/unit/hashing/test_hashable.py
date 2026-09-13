@@ -180,7 +180,7 @@ def test_hashable_hasher_hash_forwards_ignore_unhashable_argument(
 def test_hashable_hasher_hash_propagates_unhashable_nested_value() -> None:
     empty_registry = HasherRegistry()
     obj = MyObj(Unhashable())
-    with pytest.raises(KeyError, match=r"Could not find a registered type"):
+    with pytest.raises(KeyError, match=r"is not registered"):
         HashableHasher().hash(obj, registry=empty_registry)
 
 

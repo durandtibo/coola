@@ -121,14 +121,14 @@ def registry_without_fallback() -> HasherRegistry:
 def test_mapping_hasher_hash_unhashable_value_raises_by_default(
     registry_without_fallback: HasherRegistry,
 ) -> None:
-    with pytest.raises(KeyError, match=r"Could not find a registered type"):
+    with pytest.raises(KeyError, match=r"is not registered"):
         MappingHasher().hash({"a": Unhashable()}, registry=registry_without_fallback)
 
 
 def test_mapping_hasher_hash_unhashable_value_raises_when_explicitly_false(
     registry_without_fallback: HasherRegistry,
 ) -> None:
-    with pytest.raises(KeyError, match=r"Could not find a registered type"):
+    with pytest.raises(KeyError, match=r"is not registered"):
         MappingHasher().hash(
             {"a": Unhashable()}, registry=registry_without_fallback, ignore_unhashable=False
         )

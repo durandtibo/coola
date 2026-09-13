@@ -30,8 +30,9 @@ class EqualityTesterRegistry(MultilineDisplayMixin):
     equality, it automatically selects the most specific registered equality tester for
     the data's type, falling back to parent types or a default tester if needed.
 
-    The registry includes an LRU cache for type lookups to optimize performance
-    in applications that repeatedly check equality of similar data structures.
+    The registry includes an internal cache for type lookups to optimize
+    performance in applications that repeatedly check equality of similar data
+    structures.
 
     Args:
         initial_state: Optional initial mapping of types to equality testers.

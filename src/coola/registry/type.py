@@ -124,9 +124,6 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
         self._cache.clear()
 
     def _not_registered_msg(self, key: type) -> str:
-        return f"Type {key} is not registered"
-
-    def _getitem_not_registered_msg(self, key: type) -> str:
         return f"Type '{key}' is not registered"
 
     def _already_registered_msg(self, key: type) -> str:
@@ -238,5 +235,4 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
             if base_type in self._state:
                 return self._state[base_type]
 
-        msg = f"Could not find a registered type for {dtype}"
-        raise KeyError(msg)
+        raise KeyError(self._not_registered_msg(dtype))
