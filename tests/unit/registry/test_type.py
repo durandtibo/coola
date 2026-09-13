@@ -216,8 +216,25 @@ def test_type_registry_resolve_custom_class_hierarchy() -> None:
 
 def test_type_registry_resolve_missing_type_raises_keyerror() -> None:
     registry = TypeRegistry[str]()
-    with pytest.raises(KeyError, match=r"Could not find a registered type"):
+    with pytest.raises(KeyError, match=r"Type \'<class \'int\'>\' is not registered"):
         registry.resolve(int)
+
+
+def test_type_registry_not_registered_message_is_consistent() -> None:
+    """``resolve``, ``__getitem__`` and ``unregister`` must raise
+    ``KeyError`` with identical wording for the same "not registered"
+    condition."""
+    registry = TypeRegistry[str]()
+    with pytest.raises(KeyError) as resolve_exc_info:
+        registry.resolve(int)
+    with pytest.raises(KeyError) as getitem_exc_info:
+        _ = registry[int]
+    with pytest.raises(KeyError) as unregister_exc_info:
+        registry.unregister(int)
+
+    assert (
+        str(resolve_exc_info.value) == str(getitem_exc_info.value) == str(unregister_exc_info.value)
+    )
 
 
 def test_type_registry_resolve_uses_cache() -> None:
@@ -249,7 +266,7 @@ def test_type_registry_unregister_existing_key() -> None:
 def test_type_registry_unregister_missing_key_raises_error() -> None:
     """Test that unregistering a missing key raises KeyError."""
     registry = TypeRegistry[str]()
-    with pytest.raises(KeyError, match=r"Type <class 'int'> is not registered"):
+    with pytest.raises(KeyError, match=r"Type \'<class \'int\'>\' is not registered"):
         registry.unregister(int)
 
 

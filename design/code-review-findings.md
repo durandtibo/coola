@@ -130,30 +130,40 @@ footguns rather than fundamental design problems.
   and centralize any future behavior change (e.g. adding an LRU cache
   consistently — see next point).
 
-- **Inconsistent caching strategy across registries doing the same MRO
-  lookup**: `TypeRegistry.resolve()` (`src/coola/registry/type.py:144-212`)
+- **FIXED** — **Inconsistent caching strategy across registries doing the
+  same MRO lookup**: `TypeRegistry.resolve()` (`src/coola/registry/type.py`)
   uses a plain dict cache guarded by the registry's own lock, but
-  `EqualityTesterRegistry.find_equality_tester`'s docstring claims "Results
-  are cached using an LRU cache (256 entries)" (`tester/registry.py:194-196`)
-  — yet the implementation shown (`tester/registry.py:221`) just calls
-  `self._state.resolve(data_type)`, which is the *unbounded* dict cache in
-  `TypeRegistry`, not an LRU. Either the docstring is stale (most likely,
-  since `TypeRegistry` replaced a previous `functools.lru_cache`-based
-  implementation), or there's a bounded cache elsewhere. This is worth
-  reconciling: either restore the bounded cache (an unbounded per-type cache
-  is fine for real classes but could grow if callers programmatically
-  generate many one-off types) or fix the misleading docstring.
+  `EqualityTesterRegistry.find_equality_tester`'s docstring claimed "Results
+  are cached using an LRU cache (256 entries)" — yet the implementation just
+  calls `self._state.resolve(data_type)`, which is the *unbounded* dict
+  cache in `TypeRegistry`, not an LRU. The stale docstring was rewritten to
+  describe the actual (unbounded, per-instance) internal cache instead of
+  claiming a bounded LRU that doesn't exist, in both
+  `src/coola/equality/tester/registry.py` (class docstring) and the
+  `TypeRegistry` module itself. (Actually adding a bounded/LRU cache is left
+  as a separate follow-up — see the performance section below — since it
+  would change eviction behavior, not just documentation.)
 
-- **Mixed `_getitem_not_registered_msg` design leads to inconsistent
-  `KeyError` wording between `__getitem__` and `.resolve()`** —
-  `src/coola/registry/base.py:90-93` and `src/coola/registry/type.py:126-131`
-  produce `"Type '<...>' is not registered"` for `__getitem__` but
-  `TypeRegistry._resolve_uncached` (`type.py:241`) raises a *third*, again
-  differently worded message: `"Could not find a registered type for
-  {dtype}"`. Three different error strings for what is conceptually the same
-  "lookup miss" condition on the same object makes it harder for calling code
-  to reliably match on error text (e.g. in tests) and is inconsistent
-  polish for an otherwise very consistent codebase.
+- **FIXED** — **Mixed `_getitem_not_registered_msg` design led to
+  inconsistent `KeyError` wording between `__getitem__`, `.resolve()` and
+  `.unregister()`** — `TypeRegistry` previously produced three different
+  strings for the same "lookup miss" condition: `"Type {key} is not
+  registered"` (no quotes, from `_not_registered_msg`, used by
+  `unregister`), `"Type '{key}' is not registered"` (quoted, from
+  `_getitem_not_registered_msg`, used by `__getitem__`), and `"Could not
+  find a registered type for {dtype}"` (a third, hardcoded message in
+  `_resolve_uncached`). `TypeRegistry` now defines a single
+  `_not_registered_msg` (`"Type '{key}' is not registered"`) and both
+  `_resolve_uncached` and `unregister`/`__getitem__` (via the inherited
+  `BaseRegistry._getitem_not_registered_msg`, which delegates to
+  `_not_registered_msg`) raise `KeyError` with that same wording; the
+  now-redundant `_getitem_not_registered_msg` override was removed. Covered
+  by a new test,
+  `test_type_registry_not_registered_message_is_consistent` in
+  `tests/unit/registry/test_type.py`, which asserts `resolve`, `__getitem__`
+  and `unregister` all raise `KeyError` with identical text for the same
+  missing type; the existing tests for each of the three call sites were
+  updated to match the unified message.
 
 - **`register_many`'s "atomic" claim is per-registry, not cross-registry** —
   the docstrings (e.g. `src/coola/registry/base.py:273-326`) call the
