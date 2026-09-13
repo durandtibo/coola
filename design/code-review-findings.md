@@ -51,16 +51,29 @@ footguns rather than fundamental design problems.
 
 ### Medium
 
-- **`TypeRegistry` cache can go stale for ABC virtual subclasses registered
-  after resolution** — `src/coola/registry/type.py:117-243`. `resolve()`
-  caches by `dtype` and the cache is only invalidated by `_on_change()` on
-  `register`/`unregister`/`register_many`/`clear`. If a class is registered
-  with `abc.ABCMeta.register()` (virtual subclass, not real inheritance) into
-  an ABC that's already an MRO parent used by the registry, `__mro__` walk in
-  `_resolve_uncached` won't discover the new relationship anyway (virtual
-  subclasses don't appear in `__mro__`), so results are consistent — but it's
-  worth an explicit docstring caveat, since users reasonably expect an ABC to
-  "count" via `isinstance`, not just MRO.
+- **FIXED** — **`TypeRegistry` cache can go stale for ABC virtual subclasses
+  registered after resolution** — `src/coola/registry/type.py:117-243`.
+  `resolve()` caches by `dtype` and the cache is only invalidated by
+  `_on_change()` on `register`/`unregister`/`register_many`/`clear`. If a
+  class is registered with `abc.ABCMeta.register()` (virtual subclass, not
+  real inheritance) into an ABC that's already an MRO parent used by the
+  registry, `__mro__` walk in `_resolve_uncached` won't discover the new
+  relationship anyway (virtual subclasses don't appear in `__mro__`), so
+  results are consistent — but it was worth an explicit docstring caveat,
+  since users reasonably expect an ABC to "count" via `isinstance`, not just
+  MRO. Both `TypeRegistry`'s class docstring and `resolve()`'s docstring now
+  carry an explicit **Note** explaining that resolution follows
+  `dtype.__mro__` (real, static inheritance) only, that
+  `abc.ABCMeta.register()` virtual subclasses never appear there — so
+  registering a value for an ABC does not make `resolve()` match its virtual
+  subclasses even though `isinstance` would — and that callers must
+  register the subclass itself (or a real ancestor) to make it resolve.
+  Covered by two new regression tests in `tests/unit/registry/test_type.py`:
+  `test_type_registry_resolve_does_not_match_abc_virtual_subclass` and
+  `test_type_registry_resolve_abc_virtual_subclass_registered_after_lookup`,
+  which assert `resolve()` raises `KeyError` for a virtual subclass both
+  before and after the ABC itself is registered (cached or not), and that
+  registering the concrete subclass directly fixes resolution.
 
 - **`BaseFileSaver.save`'s `exist_ok=True` path is not atomic against
   concurrent writers** — `src/coola/io/base.py:192-260`. The docstring is
