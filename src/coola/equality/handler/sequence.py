@@ -24,9 +24,11 @@ class SequenceSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Check if the two sequences have the same values.
 
     This handler returns ``False`` if the two sequences have at least
-    one different value, otherwise it passes the inputs to the next
-    handler. If the sequences have different length, this handler
-    checks only the values of the shortest sequence.
+    one different value or a different length, otherwise it passes the
+    inputs to the next handler. The length check is done by this
+    handler as defense-in-depth, so it returns a correct result even
+    when used standalone or without a preceding ``SameLengthHandler``
+    in the chain.
 
     Example:
         ```pycon
@@ -37,6 +39,8 @@ class SequenceSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
         >>> handler.handle([1, 2, 3], [1, 2, 3], config)
         True
         >>> handler.handle([1, 2, 3], [1, 2, 4], config)
+        False
+        >>> handler.handle([1, 2, 3], [1, 2], config)
         False
 
         ```
@@ -49,6 +53,12 @@ class SequenceSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
         config: EqualityConfig,
     ) -> bool:
         with check_recursion_depth(config):
+            if len(actual) != len(expected):
+                if config.show_difference:
+                    logger.info(
+                        f"sequences have different lengths: {len(actual):,} vs {len(expected):,}"
+                    )
+                return False
             for idx, (value1, value2) in enumerate(zip(actual, expected)):
                 if not config.registry.objects_are_equal(value1, value2, config):
                     if config.show_difference:

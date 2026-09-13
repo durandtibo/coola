@@ -18,19 +18,25 @@ footguns rather than fundamental design problems.
 
 ### High
 
-- **`SequenceSameValuesHandler` silently accepts sequences of different
-  length as equal** — `src/coola/equality/handler/sequence.py:45-63`. The
-  handler zips `actual`/`expected` and only compares up to the shorter
-  sequence's length; it never checks `len(actual) == len(expected)` itself,
-  and its docstring explicitly says "If the sequences have different length,
-  this handler checks only the values of the shortest sequence." This means
-  correctness for sequence types depends entirely on `SequenceSameValuesHandler`
-  always being chained after a `SameLengthHandler` in every tester that uses
-  it (e.g. `SequenceEqualityTester`). This is a foot-gun for anyone
-  registering a custom tester or reusing this handler standalone — worth
-  either enforcing the invariant (e.g. have the handler check the length
-  itself as defense-in-depth) or adding a prominent warning plus a
-  `validate_chain`-style guard that a `SameLengthHandler` precedes it.
+- **FIXED** — **`SequenceSameValuesHandler` silently accepted sequences of
+  different length as equal** — `src/coola/equality/handler/sequence.py:45-63`.
+  The handler zipped `actual`/`expected` and only compared up to the shorter
+  sequence's length; it never checked `len(actual) == len(expected)` itself,
+  even though its docstring said "If the sequences have different length,
+  this handler checks only the values of the shortest sequence." This meant
+  correctness for sequence types depended entirely on `SequenceSameValuesHandler`
+  always being chained after a `SameLengthHandler` in every tester that used
+  it (e.g. `SequenceEqualityTester`) — a foot-gun for anyone registering a
+  custom tester or reusing this handler standalone. `handle` now checks
+  `len(actual) == len(expected)` itself as defense-in-depth (returning
+  `False`, with a difference log line when `config.show_difference` is set,
+  before ever touching `next_handler`) and the docstring/doctest were updated
+  to document the new, correct behavior. Covered by
+  `tests/unit/equality/handler/test_sequence.py`: the previous tests that
+  asserted `True` for mismatched-length inputs were replaced with tests
+  asserting `False`, plus new tests for the difference-logging message, that
+  the next handler is not invoked on a length mismatch, and that a length
+  mismatch is caught even with no next handler configured.
 
 - **`MappingSameValuesHandler` assumes matching keys** —
   `src/coola/equality/handler/mapping.py:88-100`. Docstring says "This handler
@@ -440,12 +446,12 @@ this pass and worth a targeted look given the findings above):
   for actual multithreaded stress tests (e.g. many threads calling
   `register`/`unregister`/`resolve` concurrently) would validate the
   concurrency claims rather than only the single-threaded API surface.
-- **`SequenceSameValuesHandler` used standalone with mismatched lengths and
-  no preceding `SameLengthHandler`** — given the correctness risk noted in
-  section 1, a regression test asserting the *documented* shortest-sequence
-  behavior (and that testers compose it correctly with a length check) would
-  guard against a future refactor accidentally dropping the length check
-  from `SequenceEqualityTester`'s chain.
+- **FIXED** — **`SequenceSameValuesHandler` used standalone with mismatched
+  lengths and no preceding `SameLengthHandler`** — the handler now checks the
+  length itself (see §1), so this is covered directly rather than only via
+  `SequenceEqualityTester`'s chain; regression tests in
+  `tests/unit/equality/handler/test_sequence.py` assert `False` for
+  mismatched-length inputs used standalone.
 - **`TypeRegistry.resolve()` cache invalidation across `register_many` with
   partial overlap and `exist_ok=True`** — confirm a test exercises
   re-resolving a type after its registration is overwritten via
@@ -539,8 +545,8 @@ this pass and worth a targeted look given the findings above):
 ## Summary of Highest-Priority Actions
 
 1. Harden or explicitly test the "must be chained after a length/keys check"
-   assumptions in `SequenceSameValuesHandler` and `MappingSameValuesHandler`
-   (§1).
+   assumptions in `SequenceSameValuesHandler` (**FIXED** — see §1) and
+   `MappingSameValuesHandler` (§1).
 2. Extract a shared base for the six `TypeRegistry`-backed dispatch
    registries to eliminate ~500+ lines of duplicated boilerplate/docstrings
    and fix the discovered doc/behavior drift in one place (§2, §3).
