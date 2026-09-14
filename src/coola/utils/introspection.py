@@ -13,6 +13,7 @@ __all__ = [
     "get_all_child_classes",
     "get_fully_qualified_name",
     "is_lambda_function",
+    "supports_methods",
 ]
 
 import inspect
@@ -119,6 +120,31 @@ def get_fully_qualified_name(obj: Any) -> str:
     if module and module != "__main__":
         return f"{module}.{qualname}"
     return qualname
+
+
+def supports_methods(obj: Any, *method_names: str) -> bool:
+    r"""Indicate whether an object has all the given methods and they are
+    callable.
+
+    Args:
+        obj: The object to check.
+        method_names: The names of the methods to check.
+
+    Returns:
+        ``True`` if ``obj`` has every method in ``method_names`` and
+            each is callable, otherwise ``False``.
+
+    Example:
+        ```pycon
+        >>> from coola.utils.introspection import supports_methods
+        >>> supports_methods(1, "bit_length")
+        True
+        >>> supports_methods(1, "bit_length", "does_not_exist")
+        False
+
+        ```
+    """
+    return all(hasattr(obj, name) and callable(getattr(obj, name)) for name in method_names)
 
 
 def is_lambda_function(obj: Any) -> bool:

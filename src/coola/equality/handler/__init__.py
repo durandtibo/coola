@@ -41,7 +41,6 @@ __all__ = [
     "check_recursion_depth",
     "create_chain",
     "handlers_are_equal",
-    "supports_methods",
 ]
 
 from coola.equality.handler.allclose import AllCloseNanHandler
@@ -87,5 +86,4 @@ from coola.equality.handler.utils import (
     check_recursion_depth,
     create_chain,
     handlers_are_equal,
-    supports_methods,
 )
