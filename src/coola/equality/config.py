@@ -53,6 +53,8 @@ class EqualityConfig:
     Raises:
         ValueError: if ``atol`` or ``rtol`` is negative, or if
             ``max_depth`` is not positive.
+        TypeError: if ``registry`` does not implement an
+            ``objects_are_equal`` method.
 
     Example:
         ```pycon
@@ -74,6 +76,14 @@ class EqualityConfig:
 
     def __post_init__(self) -> None:
         """Validate configuration parameters after initialization."""
+        # local import to avoid circular imports.
+        from coola.equality.handler.utils import supports_methods  # noqa: PLC0415
+
+        if not supports_methods(self.registry, "objects_are_equal"):
+            msg = (
+                f"registry must implement an 'objects_are_equal' method, but got {self.registry!r}"
+            )
+            raise TypeError(msg)
         if self.atol < 0:
             msg = f"atol must be non-negative, but got {self.atol}"
             raise ValueError(msg)

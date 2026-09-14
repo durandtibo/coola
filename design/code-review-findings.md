@@ -462,18 +462,20 @@ footguns rather than fundamental design problems.
 
 ## 5. Type Hints / Documentation Gaps
 
-- **`AllCloseNanHandler.handle`'s signature types `actual` as
+- **FIXED** — **`AllCloseNanHandler.handle`'s signature types `actual` as
   `SupportsAllCloseNan` but the method itself checks `hasattr(actual,
   "allclose")` before trusting that** (`src/coola/equality/handler/allclose.py:90-99`).
   This is good defensive coding, but it means the type hint is aspirational/
   not load-bearing — a static type checker will happily accept a
   `SupportsAllCloseNan`-typed argument reaching this handler, but the
   runtime code path exists specifically to guard against the *opposite*
-  case (an arbitrary object without `allclose`). Consider documenting in the
-  class docstring that the type hint documents the "happy path" contract but
-  the implementation is deliberately defensive against arbitrary inputs
-  reaching it via the dispatch registry (which resolves by `type(actual)`,
-  not by protocol conformance).
+  case (an arbitrary object without `allclose`). The class docstring now
+  carries an explicit **Notes** block documenting that the type hint
+  describes the "happy path" contract while the implementation is
+  deliberately defensive against arbitrary inputs reaching it via the
+  dispatch registry (which resolves by `type(actual)`, not by protocol
+  conformance), and that an exception raised by a user-defined `allclose`
+  propagates unchanged rather than being swallowed.
 
 - **`BaseEqualityHandler.handle`'s docstring explicitly documents why every
   handler keeps the full `(actual, expected, config)` signature even when
@@ -494,28 +496,30 @@ footguns rather than fundamental design problems.
   for keeping docstrings accurate (see the stale LRU-cache claim above as a
   concrete instance of docs drifting from code).
 
-- **`coola/__init__.py` exposes only `__version__`** (`src/coola/__init__.py:8`)
-  — the top-level package docstring says "Use this package to compare nested
-  objects, summarize complex structures..." but none of `objects_are_equal`,
-  `objects_are_allclose`, or similarly central entry points are re-exported
-  at the top level; users must know to import from `coola.equality`,
-  `coola.hashing`, `coola.recursive`, etc. This is a legitimate design
-  choice (avoids import-time cost / circular-import risk given the
-  lazy-registry pattern used throughout), but the top-level docstring's
-  framing ("Use this package to compare nested objects...") reads as if
-  `import coola; coola.objects_are_equal(...)` should work, which it
-  doesn't. Either adjust the docstring to point explicitly at the
-  submodules, or add deliberate lazy re-exports (e.g. via `__getattr__` in
-  `__init__.py`) if ergonomics matter more than import-time cost.
+- **FIXED** — **`coola/__init__.py` exposes only `__version__`**
+  (`src/coola/__init__.py:8`) — the top-level package docstring used to say
+  "Use this package to compare nested objects, summarize complex
+  structures..." while none of `objects_are_equal`, `objects_are_allclose`,
+  or similarly central entry points were re-exported at the top level,
+  reading as if `import coola; coola.objects_are_equal(...)` should work.
+  The docstring was rewritten to state explicitly that the top-level module
+  only exposes `__version__` and points readers at the relevant submodules
+  (`coola.equality`, `coola.summary`, etc.) instead of implying a flat API.
 
-- **`EqualityConfig.__post_init__` validates `atol`/`rtol`/`max_depth` but
-  not `equal_nan`/`show_difference`/`registry` types** — reasonable, since
-  those are simple/duck-typed, but note the *type* of `registry` isn't
-  checked at all — passing a non-`EqualityTesterRegistry` object with a
-  compatible-looking `objects_are_equal` method would work by duck typing
-  (arguably a feature, not a bug), but passing something entirely wrong
-  produces a late, possibly confusing `AttributeError` deep in a handler
-  rather than an immediate, clear error at `EqualityConfig` construction.
+- **FIXED** — **`EqualityConfig.__post_init__` validates `atol`/`rtol`/
+  `max_depth` but not `registry`'s type** — passing something that doesn't
+  implement `objects_are_equal` used to produce a late, confusing
+  `AttributeError` deep inside a handler rather than an immediate, clear
+  error at `EqualityConfig` construction. `__post_init__` now calls
+  `supports_methods(self.registry, "objects_are_equal")` (duck-typed, so any
+  compatible registry still works, not just `EqualityTesterRegistry`) and
+  raises `TypeError` immediately if the method is missing; the class
+  docstring's `Raises` section documents this. Covered by two new tests in
+  `tests/unit/equality/test_config.py`:
+  `test_equality_config_registry_missing_objects_are_equal` (a plain
+  `object()` registry raises `TypeError`) and
+  `test_equality_config_registry_duck_typed` (a duck-typed registry with
+  only `objects_are_equal` is still accepted).
 
 ---
 

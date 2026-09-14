@@ -41,6 +41,20 @@ def test_equality_config_zero_tolerances() -> None:
     assert config.rtol == 0.0
 
 
+def test_equality_config_registry_missing_objects_are_equal() -> None:
+    with pytest.raises(TypeError, match="registry must implement an 'objects_are_equal' method"):
+        EqualityConfig(registry=object())
+
+
+def test_equality_config_registry_duck_typed() -> None:
+    class FakeRegistry:
+        def objects_are_equal(self, actual: object, expected: object) -> bool:  # noqa: ARG002
+            return True
+
+    config = EqualityConfig(registry=FakeRegistry())
+    assert isinstance(config.registry, FakeRegistry)
+
+
 def test_equality_config_max_depth_default() -> None:
     config = EqualityConfig()
     assert config.max_depth == 1000
