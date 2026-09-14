@@ -397,16 +397,26 @@ footguns rather than fundamental design problems.
   extra bookkeeping) but worth noting as a potential opportunity if hashing
   large nested configs becomes a hot path.
 
-- **`BaseRegistry.items()/keys()/values()` all take a full `dict.copy()`
-  under the lock on every call** (`src/coola/registry/base.py:367-419`).
-  This is the right trade-off for thread-safety (avoids returning a live
-  view that could be mutated concurrently while iterated), but for
-  registries queried in hot loops (e.g. inside a comparison of many objects)
-  this is an O(n) allocation per call rather than O(1). If any of these
-  registries end up on a hot path outside of setup/registration time, this
-  is worth revisiting — as-is, it looks like registries are populated once
-  at import/config time and read via `resolve`/`get`, which don't copy, so
-  it's likely fine in practice.
+- **FIXED** — **`BaseRegistry.items()/keys()/values()` all took a full
+  `dict.copy()` under the lock on every call** —
+  `src/coola/registry/base.py:367-419`. Thread-safety still requires never
+  returning a live view of `_state` that could be mutated concurrently
+  while iterated, but repeated read-only calls between mutations paid for a
+  fresh O(n) allocation every time. `BaseRegistry` now caches the snapshot
+  copy on `self._snapshot` (lazily built by a new `_get_snapshot()` helper)
+  and reuses it across calls; a new `_invalidate()` helper — called by
+  `register`, `register_many`, `unregister` and `clear` instead of calling
+  `self._on_change()` directly — clears `self._snapshot` back to `None`
+  before delegating to `_on_change()`, so subclasses that override
+  `_on_change` (e.g. `TypeRegistry`, to clear its own resolution cache)
+  keep working unchanged. `items`/`keys`/`values` now call
+  `self._get_snapshot()` instead of `self._state.copy()` directly. Covered
+  by new tests in `tests/unit/registry/test_base.py`: repeated calls reuse
+  the same cached dict (`is` identity), the cache starts `None` before the
+  first read, each mutating method (`register`, `register_many`,
+  `unregister`, `clear`) invalidates it while a failed `register` (duplicate
+  key, `exist_ok=False`) does not, and a previously returned view stays
+  detached (unaffected) after a later mutation.
 
 - **`BloomFilter._hashes` computes a fresh SHA-512 digest per call** —
   `src/coola/utils/bloom_filter.py:70-93` — appropriate for its stated use
