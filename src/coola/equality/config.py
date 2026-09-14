@@ -7,6 +7,8 @@ __all__ = ["EqualityConfig"]
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from coola.utils.introspection import supports_methods
+
 if TYPE_CHECKING:
     from coola.equality.tester.registry import EqualityTesterRegistry
 
@@ -77,8 +79,6 @@ class EqualityConfig:
     def __post_init__(self) -> None:
         """Validate configuration parameters after initialization."""
         # local import to avoid circular imports.
-        from coola.equality.handler.utils import supports_methods  # noqa: PLC0415
-
         if not supports_methods(self.registry, "objects_are_equal"):
             msg = (
                 f"registry must implement an 'objects_are_equal' method, but got {self.registry!r}"
