@@ -26,6 +26,12 @@ class SequenceHasher(InlineDisplayMixin, BaseHasher[Sequence[Any]]):
     ``collections.abc.Sequence``, including ``list``, ``tuple``, and
     ``str``.
 
+    Within a single ``hash`` call, items that are the same object
+    (``is``/``id()`` identity, e.g. repeated or interned values) are
+    hashed only once and the result is reused for every occurrence,
+    avoiding redundant recursive ``registry.hash`` calls for
+    highly repetitive sequences.
+
     Example:
         ```pycon
         >>> from coola.hashing import SequenceHasher, StrHasher, HasherRegistry
@@ -73,7 +79,13 @@ class SequenceHasher(InlineDisplayMixin, BaseHasher[Sequence[Any]]):
             ValueError: If ``length`` is not an even number between 2
                 and 128.
         """
-        intermediate = "".join(
-            registry.hash(item, length=length, ignore_unhashable=ignore_unhashable) for item in data
-        )
-        return hash_string(intermediate, length=length)
+        cache: dict[int, str] = {}
+        parts = []
+        for item in data:
+            key = id(item)
+            item_hash = cache.get(key)
+            if item_hash is None:
+                item_hash = registry.hash(item, length=length, ignore_unhashable=ignore_unhashable)
+                cache[key] = item_hash
+            parts.append(item_hash)
+        return hash_string("".join(parts), length=length)
