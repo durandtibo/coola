@@ -165,3 +165,118 @@ def test_base_registry_on_change_not_called_when_register_fails() -> None:
     with pytest.raises(RuntimeError):
         registry.register("key1", 100)
     assert registry.changes == 1  # only the first successful register
+
+
+#############################################################
+#     Tests for the items()/keys()/values() snapshot cache     #
+#############################################################
+
+
+def test_base_registry_items_keys_values_reuse_cached_snapshot() -> None:
+    """Test that repeated ``items``/``keys``/``values`` calls between
+    mutations reuse the same cached ``dict.copy()`` instead of copying
+    ``_state`` again on every call."""
+    registry = BaseRegistry[str, int]({"key1": 1, "key2": 2})
+    snapshot1 = registry._get_snapshot()
+    snapshot2 = registry._get_snapshot()
+    assert snapshot1 is snapshot2
+
+
+def test_base_registry_items_uses_cached_snapshot() -> None:
+    """Test that ``items`` is backed by the cached snapshot."""
+    registry = BaseRegistry[str, int]({"key1": 1, "key2": 2})
+    registry.items()
+    assert registry._snapshot is registry._get_snapshot()
+
+
+def test_base_registry_keys_uses_cached_snapshot() -> None:
+    """Test that ``keys`` is backed by the cached snapshot."""
+    registry = BaseRegistry[str, int]({"key1": 1, "key2": 2})
+    registry.keys()
+    assert registry._snapshot is registry._get_snapshot()
+
+
+def test_base_registry_values_uses_cached_snapshot() -> None:
+    """Test that ``values`` is backed by the cached snapshot."""
+    registry = BaseRegistry[str, int]({"key1": 1, "key2": 2})
+    registry.values()
+    assert registry._snapshot is registry._get_snapshot()
+
+
+def test_base_registry_snapshot_cache_none_before_first_read() -> None:
+    """Test that no snapshot is created until ``items``/``keys``/
+    ``values`` is called."""
+    registry = BaseRegistry[str, int]({"key1": 1, "key2": 2})
+    assert registry._snapshot is None
+
+
+def test_base_registry_snapshot_cache_invalidated_by_register() -> None:
+    """Test that ``register`` invalidates the cached snapshot and that
+    ``items`` reflects the new state afterwards."""
+    registry = BaseRegistry[str, int]({"key1": 1})
+    registry.items()
+    assert registry._snapshot is not None
+    registry.register("key2", 2)
+    assert registry._snapshot is None
+    assert dict(registry.items()) == {"key1": 1, "key2": 2}
+
+
+def test_base_registry_snapshot_cache_invalidated_by_register_many() -> None:
+    """Test that ``register_many`` invalidates the cached snapshot."""
+    registry = BaseRegistry[str, int]({"key1": 1})
+    registry.items()
+    registry.register_many({"key2": 2, "key3": 3})
+    assert registry._snapshot is None
+    assert dict(registry.items()) == {"key1": 1, "key2": 2, "key3": 3}
+
+
+def test_base_registry_snapshot_cache_invalidated_by_unregister() -> None:
+    """Test that ``unregister`` invalidates the cached snapshot."""
+    registry = BaseRegistry[str, int]({"key1": 1, "key2": 2})
+    registry.items()
+    registry.unregister("key1")
+    assert registry._snapshot is None
+    assert dict(registry.items()) == {"key2": 2}
+
+
+def test_base_registry_snapshot_cache_invalidated_by_clear() -> None:
+    """Test that ``clear`` invalidates the cached snapshot."""
+    registry = BaseRegistry[str, int]({"key1": 1, "key2": 2})
+    registry.items()
+    registry.clear()
+    assert registry._snapshot is None
+    assert dict(registry.items()) == {}
+
+
+def test_base_registry_snapshot_cache_not_invalidated_when_register_fails() -> None:
+    """Test that a failed ``register`` call (duplicate key,
+    exist_ok=False) does not invalidate an already-cached snapshot."""
+    registry = BaseRegistry[str, int]({"key1": 1})
+    registry.items()
+    snapshot = registry._snapshot
+    with pytest.raises(RuntimeError):
+        registry.register("key1", 2)
+    assert registry._snapshot is snapshot
+
+
+def test_base_registry_snapshot_is_isolated_from_live_state() -> None:
+    """Test that the returned views are a detached snapshot: mutating
+    the registry afterward does not change a previously returned
+    view."""
+    registry = BaseRegistry[str, int]({"key1": 1})
+    items = registry.items()
+    keys = registry.keys()
+    values = registry.values()
+    registry.register("key2", 2)
+    assert dict(items) == {"key1": 1}
+    assert list(keys) == ["key1"]
+    assert list(values) == [1]
+
+
+def test_base_registry_items_keys_values_consistent_with_each_other() -> None:
+    """Test that ``items``/``keys``/``values`` called back-to-back
+    (using the same cached snapshot) stay mutually consistent."""
+    registry = BaseRegistry[str, int]({"key1": 1, "key2": 2})
+    assert dict(registry.items()) == {"key1": 1, "key2": 2}
+    assert list(registry.keys()) == ["key1", "key2"]
+    assert list(registry.values()) == [1, 2]
