@@ -78,7 +78,6 @@ class EqualityConfig:
 
     def __post_init__(self) -> None:
         """Validate configuration parameters after initialization."""
-        # local import to avoid circular imports.
         if not supports_methods(self.registry, "objects_are_equal"):
             msg = (
                 f"registry must implement an 'objects_are_equal' method, but got {self.registry!r}"
