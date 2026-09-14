@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Protocol
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
+from coola.utils.introspection import supports_methods
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -51,6 +52,25 @@ class AllCloseNanHandler(HandlerEqualityMixin, BaseEqualityHandler):
     tolerance, otherwise it returns True. The first object must
     implement an ``allclose`` method.
 
+    Notes:
+        ``handle``'s ``actual`` parameter is typed as
+        ``SupportsAllCloseNan`` to document the intended "happy path"
+        contract, but this type hint is not load-bearing at runtime:
+        because the equality dispatch registry resolves handlers by
+        ``type(actual)`` rather than by protocol conformance, an
+        arbitrary object without an ``allclose`` method can reach this
+        handler. ``handle`` therefore checks ``supports_methods(actual,
+        "allclose")`` defensively before trusting the type hint, and
+        returns ``False`` if the method is missing rather than raising
+        ``AttributeError``.
+
+        If ``actual.allclose`` is present but raises an exception, that
+        exception propagates unchanged out of ``handle`` (it is not
+        caught or converted into ``False``); this is because a buggy
+        or misbehaving user-defined ``allclose`` implementation is
+        allowed to fail loudly rather than being silently swallowed
+        into a wrong result.
+
     Example:
         ```pycon
         >>> import math
@@ -88,7 +108,7 @@ class AllCloseNanHandler(HandlerEqualityMixin, BaseEqualityHandler):
     """
 
     def handle(self, actual: SupportsAllCloseNan, expected: object, config: EqualityConfig) -> bool:
-        if not hasattr(actual, "allclose") or not callable(actual.allclose):
+        if not supports_methods(actual, "allclose"):
             return False
         if not actual.allclose(
             expected, rtol=config.rtol, atol=config.atol, equal_nan=config.equal_nan

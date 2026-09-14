@@ -8,9 +8,11 @@ __all__ = ["SupportsTolerantEqual", "TolerantEqualHandler"]
 import logging
 from typing import TYPE_CHECKING, Protocol
 
+from coola.equality.handler.allclose import SupportsAllCloseNan
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
+from coola.utils.introspection import supports_methods
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -18,32 +20,10 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class SupportsTolerantEqual(Protocol):
+class SupportsTolerantEqual(SupportsAllCloseNan, Protocol):
     r"""Implement a protocol to represent objects that support both an
     ``allclose`` method with tolerance and NaN options, and an ``equal``
     method with a NaN option."""
-
-    def allclose(
-        self,
-        other: object,
-        rtol: float = 1e-5,
-        atol: float = 1e-8,
-        equal_nan: bool = False,
-    ) -> bool:
-        r"""Return ``True`` if the two objects are equal within
-        tolerance, otherwise ``False``.
-
-        Args:
-            other: The value to compare with.
-            rtol: The relative tolerance parameter. Must be non-negative.
-            atol: The absolute tolerance parameter. Must be non-negative.
-            equal_nan: If ``True``, then two ``NaN``s will be considered
-                as equal.
-
-        Returns:
-            ``True`` if the two objects are equal within tolerance,
-            otherwise ``False``.
-        """
 
     def equal(self, other: object, equal_nan: bool = False) -> bool:
         r"""Return ``True`` if the two objects are equal, otherwise
@@ -70,6 +50,21 @@ class TolerantEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     When ``config.atol`` or ``config.rtol`` is non-zero, ``allclose``
     is called with the configured tolerances and ``equal_nan``. When
     both are zero, ``equal`` is called with ``equal_nan`` only.
+
+    Notes:
+        As with ``AllCloseNanHandler``, the ``actual`` parameter's
+        ``SupportsTolerantEqual`` type hint documents the intended
+        "happy path" contract, not a runtime guarantee: ``handle``
+        checks ``supports_methods(actual, "allclose", "equal")``
+        defensively and returns ``False`` when either method is
+        missing, since the dispatch registry resolves handlers by
+        ``type(actual)``, not by protocol conformance.
+
+        If the delegated ``actual.allclose``/``actual.equal`` call
+        raises an exception, that exception propagates unchanged out
+        of ``handle`` rather than being caught and converted into
+        ``False`` — a buggy or misbehaving user-defined implementation
+        is expected to fail loudly.
 
     Example:
         ```pycon
@@ -119,12 +114,7 @@ class TolerantEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     def handle(
         self, actual: SupportsTolerantEqual, expected: object, config: EqualityConfig
     ) -> bool:
-        if (
-            not hasattr(actual, "allclose")
-            or not callable(actual.allclose)
-            or not hasattr(actual, "equal")
-            or not callable(actual.equal)
-        ):
+        if not supports_methods(actual, "allclose", "equal"):
             return False
         if config.atol != 0 or config.rtol != 0:
             result = actual.allclose(

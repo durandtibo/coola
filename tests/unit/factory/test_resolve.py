@@ -328,12 +328,32 @@ def test_resolve_object_from_dict_missing_target_raises_incorrect_type_error() -
         resolve_object({"name": "Rex"}, cls=Dog)
 
 
-# --- Dict subclasses are always treated as configuration ---
+# --- Dict subclasses that are already a valid ``cls`` instance are
+# --- passed through, not treated as configuration ---
 
 
-def test_resolve_object_dict_subclass_instance_is_treated_as_config() -> None:
-    # Even though `od` is already a valid `OrderedDict` instance, it is a `dict`
-    # subclass, so it is always treated as a factory configuration.
+def test_resolve_object_dict_subclass_instance_matching_cls_is_passed_through() -> None:
+    # `od` is already a valid `OrderedDict` instance, so it is returned
+    # as-is instead of being (incorrectly) treated as a factory configuration.
     od = OrderedDict(a=1)
+    assert resolve_object(od, cls=OrderedDict) is od
+
+
+def test_resolve_object_counter_instance_matching_cls_is_passed_through() -> None:
+    counter = Counter(a=1, b=2)
+    assert resolve_object(counter, cls=Counter) is counter
+
+
+def test_resolve_object_plain_dict_with_dict_subclass_cls_is_treated_as_config() -> None:
+    # A plain `dict` (not already an instance of `cls`) describing a
+    # `dict`-subclass target is still treated as a factory configuration.
+    result = resolve_object({OBJECT_TARGET: "collections.OrderedDict", "a": 1}, cls=OrderedDict)
+    assert isinstance(result, OrderedDict)
+    assert result == OrderedDict(a=1)
+
+
+def test_resolve_object_dict_subclass_instance_not_matching_cls_is_treated_as_config() -> None:
+    # `Counter` is a `dict` but not an `OrderedDict`, so it is not a valid
+    # `cls` instance and is (still) treated as a factory configuration.
     with pytest.raises(TypeError, match=r"missing the `_target_` key"):
-        resolve_object(od, cls=OrderedDict)
+        resolve_object(Counter(a=1), cls=OrderedDict)

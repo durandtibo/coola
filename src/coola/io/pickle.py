@@ -18,6 +18,13 @@ T = TypeVar("T")
 class PickleLoader(InlineDisplayMixin, BaseLoader[T]):
     r"""Implement a data loader to load data in a pickle file.
 
+    Warning:
+        ``load`` calls ``pickle.load`` on the given file. Unpickling
+        can execute arbitrary code as a side effect of deserialization.
+        Only load pickle files that come from a trusted source; never
+        load a pickle file that comes from an untrusted or
+        unauthenticated source.
+
     Example:
         ```pycon
         >>> import tempfile
@@ -91,6 +98,13 @@ def load_pickle(path: Path) -> Any:
 
     Returns:
         The data from the pickle file.
+
+    Warning:
+        This function unpickles the file's content, which can execute
+        arbitrary code as a side effect of deserialization. Only load
+        pickle files that come from a trusted source; never load a
+        pickle file that comes from an untrusted or unauthenticated
+        source.
 
     Example:
         ```pycon

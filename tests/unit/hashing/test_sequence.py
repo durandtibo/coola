@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from typing import Any
+from unittest.mock import Mock
 
 import pytest
 
@@ -177,3 +178,25 @@ def test_sequence_hasher_hash_ignore_unhashable_is_deterministic(
     ) == hasher.hash(
         [1, Unhashable(), 3], registry=registry_without_fallback, ignore_unhashable=True
     )
+
+
+def test_sequence_hasher_hash_reuses_cached_result_for_repeated_object(
+    registry: HasherRegistry,
+) -> None:
+    # ``shared`` appears at several positions in the sequence: the hasher
+    # must reuse the first computed hash instead of recomputing
+    # ``registry.hash`` for every occurrence.
+    shared = [1, 2, 3]
+    wrapped = Mock(wraps=registry)
+    assert SequenceHasher().hash(
+        [shared, shared, shared], registry=wrapped
+    ) == SequenceHasher().hash([shared, shared, shared], registry=registry)
+    assert wrapped.hash.call_count == 1
+
+
+def test_sequence_hasher_hash_does_not_reuse_cache_across_different_objects(
+    registry: HasherRegistry,
+) -> None:
+    wrapped = Mock(wraps=registry)
+    SequenceHasher().hash([1, 2, 3], registry=wrapped)
+    assert wrapped.hash.call_count == 3

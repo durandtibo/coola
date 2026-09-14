@@ -7,15 +7,14 @@ __all__ = ["IteratorRegistry"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.display import MultilineDisplayMixin
 from coola.iterator.dfs.base import BaseIterator
-from coola.registry import TypeRegistry
+from coola.registry import BaseTypeDispatchRegistry
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator, Mapping
+    from collections.abc import Iterator
 
 
-class IteratorRegistry(MultilineDisplayMixin):
+class IteratorRegistry(BaseTypeDispatchRegistry[BaseIterator[Any]]):
     r"""Registry that manages iterators for different data types.
 
     This registry stores iterators for various data types and handles
@@ -62,90 +61,12 @@ class IteratorRegistry(MultilineDisplayMixin):
         ```
     """
 
-    def __init__(self, initial_state: dict[type, BaseIterator[Any]] | None = None) -> None:
-        self._state: TypeRegistry[BaseIterator] = TypeRegistry[BaseIterator](initial_state)
-
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {"state": self._state}
-
-    def register(
-        self,
-        data_type: type,
-        iterator: BaseIterator[Any],
-        exist_ok: bool = False,
-    ) -> None:
-        r"""Register an iterator for a given data type.
-
-        This method associates a specific iterator with a type.
-        If data of this type is iterated, the registered iterator
-        will be used. The cache is cleared after a registration to
-        ensure consistency.
-
-        Args:
-            data_type: The Python type to register (e.g., `list`, `dict`, custom types).
-            iterator: The iterator instance that handles this type.
-            exist_ok: If `True`, allows overwriting an existing registration.
-                If `False`, raises an error.
-
-        Raises:
-            RuntimeError: If the type is already registered and `exist_ok` is `False`.
-
-        Example:
-            ```pycon
-            >>> from coola.iterator.dfs import IteratorRegistry, IterableIterator
-            >>> registry = IteratorRegistry()
-            >>> registry.register(list, IterableIterator())
-            >>> registry.has_iterator(list)
-            True
-
-            ```
-        """
-        self._state.register(data_type, iterator, exist_ok=exist_ok)
-
-    def register_many(
-        self,
-        mapping: Mapping[type, BaseIterator[Any]],
-        exist_ok: bool = False,
-    ) -> None:
-        r"""Register multiple iterators at once.
-
-        This method allows for bulk registration of iterators for multiple data types.
-
-        Args:
-            mapping: A dictionary mapping Python types to their respective iterators.
-            exist_ok: If `True`, allows overwriting existing registrations.
-
-        Raises:
-            RuntimeError: If any type is already registered and `exist_ok` is `False`.
-
-        Example:
-            ```pycon
-            >>> from coola.iterator.dfs import (
-            ...     IteratorRegistry,
-            ...     IterableIterator,
-            ...     MappingIterator,
-            ...     DefaultIterator,
-            ... )
-            >>> registry = IteratorRegistry({object: DefaultIterator()})
-            >>> registry.register_many({list: IterableIterator(), dict: MappingIterator()})
-            >>> registry
-            IteratorRegistry(
-              (state): TypeRegistry(
-                  (<class 'object'>): DefaultIterator()
-                  (<class 'list'>): IterableIterator()
-                  (<class 'dict'>): MappingIterator()
-                )
-            )
-
-            ```
-        """
-        self._state.register_many(mapping, exist_ok=exist_ok)
-
     def has_iterator(self, data_type: type) -> bool:
-        r"""Check if an iterator is registered for a given data type.
+        r"""Type-specific alias for :meth:`has`: check if an iterator is
+        registered for a given data type.
 
-        This method checks for direct registration. Even if this method returns `False`,
-        a suitable iterator might still be found using the MRO lookup.
+        See :meth:`BaseTypeDispatchRegistry.has` for the full behavior
+        description.
 
         Args:
             data_type: The type to check.
@@ -164,13 +85,15 @@ class IteratorRegistry(MultilineDisplayMixin):
 
             ```
         """
-        return data_type in self._state
+        return self.has(data_type)
 
     def find_iterator(self, data_type: type) -> BaseIterator[Any]:
-        r"""Find the appropriate iterator for a given type.
+        r"""Type-specific alias for :meth:`find`: find the appropriate
+        iterator for a given type.
 
-        This method uses the MRO to find the most specific iterator. It caches the result
-        for performance, so subsequent lookups are faster.
+        See :meth:`BaseTypeDispatchRegistry.find` for the full behavior
+        description (MRO resolution, caching, and the ``KeyError`` on no
+        match).
 
         Args:
             data_type: The data type for which to find an iterator.
@@ -189,7 +112,7 @@ class IteratorRegistry(MultilineDisplayMixin):
 
             ```
         """
-        return self._state.resolve(data_type)
+        return self.find(data_type)
 
     def iterate(self, data: object) -> Iterator[Any]:
         r"""Perform depth-first iteration over a data structure.

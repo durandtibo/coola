@@ -11,15 +11,14 @@ __all__ = ["TransformerRegistry"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.display import MultilineDisplayMixin
 from coola.recursive.base import BaseTransformer
-from coola.registry import TypeRegistry
+from coola.registry import BaseTypeDispatchRegistry
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Mapping
+    from collections.abc import Callable
 
 
-class TransformerRegistry(MultilineDisplayMixin):
+class TransformerRegistry(BaseTypeDispatchRegistry[BaseTransformer[Any]]):
     r"""Registry that manages and dispatches transformers based on data
     type.
 
@@ -80,96 +79,12 @@ class TransformerRegistry(MultilineDisplayMixin):
         ```
     """
 
-    def __init__(self, initial_state: dict[type, BaseTransformer[Any]] | None = None) -> None:
-        self._state: TypeRegistry[BaseTransformer] = TypeRegistry[BaseTransformer](initial_state)
-
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {"state": self._state}
-
-    def register(
-        self,
-        data_type: type,
-        transformer: BaseTransformer[Any],
-        exist_ok: bool = False,
-    ) -> None:
-        """Register a transformer for a given data type.
-
-        The internal type-lookup cache is automatically cleared after
-        registration to ensure consistency.
-
-        Args:
-            data_type: The Python type to register (e.g., ``list``, ``dict``,
-                custom classes).
-            transformer: The transformer instance that handles this type.
-            exist_ok: If ``False`` (default), raises an error if the type is
-                already registered. If ``True``, overwrites the existing
-                registration silently.
-
-        Raises:
-            RuntimeError: If the type is already registered and ``exist_ok``
-                is ``False``.
-
-        Example:
-            ```pycon
-            >>> from coola.recursive import TransformerRegistry, SequenceTransformer
-            >>> registry = TransformerRegistry()
-            >>> registry.register(list, SequenceTransformer())
-            >>> registry.has_transformer(list)
-            True
-
-            ```
-        """
-        self._state.register(data_type, transformer, exist_ok=exist_ok)
-
-    def register_many(
-        self,
-        mapping: Mapping[type, BaseTransformer[Any]],
-        exist_ok: bool = False,
-    ) -> None:
-        """Register multiple transformers at once.
-
-        This is a convenience method for bulk registration that internally
-        calls ``register`` for each type-transformer pair.
-
-        Args:
-            mapping: Dictionary mapping Python types to transformer instances.
-            exist_ok: If ``False`` (default), raises an error if any type is
-                already registered. If ``True``, overwrites existing
-                registrations silently.
-
-        Raises:
-            RuntimeError: If any type is already registered and ``exist_ok``
-                is ``False``.
-
-        Example:
-            ```pycon
-            >>> from coola.recursive import TransformerRegistry, SequenceTransformer, MappingTransformer
-            >>> registry = TransformerRegistry()
-            >>> registry.register_many(
-            ...     {
-            ...         list: SequenceTransformer(),
-            ...         dict: MappingTransformer(),
-            ...     }
-            ... )
-            >>> registry
-            TransformerRegistry(
-              (state): TypeRegistry(
-                  (<class 'list'>): SequenceTransformer()
-                  (<class 'dict'>): MappingTransformer()
-                )
-            )
-
-            ```
-        """
-        self._state.register_many(mapping, exist_ok=exist_ok)
-
     def has_transformer(self, data_type: type) -> bool:
-        """Check if a transformer is explicitly registered for the given
-        type.
+        """Type-specific alias for :meth:`has`: check if a transformer
+        is explicitly registered for the given type.
 
-        Note that this only checks for direct registration. Even if this
-        returns ``False``, ``find_transformer`` may still return a
-        transformer via MRO lookup or the default transformer.
+        See :meth:`BaseTypeDispatchRegistry.has` for the full behavior
+        description.
 
         Args:
             data_type: The type to check.
@@ -190,15 +105,15 @@ class TransformerRegistry(MultilineDisplayMixin):
 
             ```
         """
-        return data_type in self._state
+        return self.has(data_type)
 
     def find_transformer(self, data_type: type) -> BaseTransformer[Any]:
-        """Find the appropriate transformer for a given type.
+        """Type-specific alias for :meth:`find`: find the appropriate
+        transformer for a given type.
 
-        Uses the Method Resolution Order (MRO) to find the most specific
-        registered transformer. For example, if a transformer is
-        registered for ``Sequence`` but not for ``list``, lists will use
-        the ``Sequence`` transformer.
+        See :meth:`BaseTypeDispatchRegistry.find` for the full behavior
+        description (MRO resolution, caching, and the ``KeyError`` on no
+        match).
 
         Args:
             data_type: The Python type to find a transformer for.
@@ -220,7 +135,7 @@ class TransformerRegistry(MultilineDisplayMixin):
 
             ```
         """
-        return self._state.resolve(data_type)
+        return self.find(data_type)
 
     def transform(self, data: object, func: Callable[[Any], Any]) -> Any:
         """Transform data by applying a function recursively through the

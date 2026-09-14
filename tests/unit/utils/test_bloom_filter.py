@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+
 import pytest
 
 from coola.utils.bloom_filter import BloomFilter
@@ -82,3 +84,32 @@ def test_bloom_filter_add_and_check_works_with_capped_hash_count() -> None:
     bloom = BloomFilter(expected_items=1, fp_rate=1e-300)
     assert bloom.add_and_check(b"hello") is False
     assert bloom.add_and_check(b"hello") is True
+
+
+def test_bloom_filter_hashes_uses_blake2b() -> None:
+    # ``_hashes`` must derive its two hash values from a BLAKE2b digest
+    # (not e.g. SHA-512), split into two 16-byte halves.
+    bloom = BloomFilter(expected_items=100, fp_rate=0.01)
+    item = b"hello"
+    digest = hashlib.blake2b(item, digest_size=32).digest()
+    h1 = int.from_bytes(digest[:16], "big")
+    h2 = int.from_bytes(digest[16:], "big") | 1
+    expected = [(h1 + i * h2) % bloom.size for i in range(bloom.hash_count)]
+    assert list(bloom._hashes(item)) == expected
+
+
+def test_bloom_filter_hashes_yields_hash_count_indices() -> None:
+    bloom = BloomFilter(expected_items=100, fp_rate=0.01)
+    indices = list(bloom._hashes(b"hello"))
+    assert len(indices) == bloom.hash_count
+    assert all(0 <= idx < bloom.size for idx in indices)
+
+
+def test_bloom_filter_hashes_is_deterministic() -> None:
+    bloom = BloomFilter(expected_items=100, fp_rate=0.01)
+    assert list(bloom._hashes(b"hello")) == list(bloom._hashes(b"hello"))
+
+
+def test_bloom_filter_hashes_differ_for_different_items() -> None:
+    bloom = BloomFilter(expected_items=100, fp_rate=0.01)
+    assert list(bloom._hashes(b"hello")) != list(bloom._hashes(b"world"))

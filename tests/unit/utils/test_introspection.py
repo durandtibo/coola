@@ -10,6 +10,7 @@ from coola.utils.introspection import (
     get_all_child_classes,
     get_fully_qualified_name,
     is_lambda_function,
+    supports_methods,
 )
 
 
@@ -299,3 +300,50 @@ def test_is_lambda_function_regular_function() -> None:
 @pytest.mark.parametrize("obj", [-1, "abc", Fake])
 def test_is_lambda_function_non_function(obj: Any) -> None:
     assert not is_lambda_function(obj)
+
+
+######################################
+#     Tests for supports_methods     #
+######################################
+
+
+class _WithMethods:
+    def allclose(self) -> bool:
+        return True
+
+    def equal(self) -> bool:
+        return True
+
+    not_callable = 42
+
+
+def test_supports_methods_no_method_names() -> None:
+    assert supports_methods(_WithMethods())
+
+
+def test_supports_methods_single_method_true() -> None:
+    assert supports_methods(_WithMethods(), "allclose")
+
+
+def test_supports_methods_multiple_methods_true() -> None:
+    assert supports_methods(_WithMethods(), "allclose", "equal")
+
+
+def test_supports_methods_missing_method_false() -> None:
+    assert not supports_methods(_WithMethods(), "does_not_exist")
+
+
+def test_supports_methods_one_missing_among_several_false() -> None:
+    assert not supports_methods(_WithMethods(), "allclose", "does_not_exist")
+
+
+def test_supports_methods_attribute_not_callable_false() -> None:
+    assert not supports_methods(_WithMethods(), "not_callable")
+
+
+def test_supports_methods_on_plain_object_false() -> None:
+    assert not supports_methods(object(), "allclose")
+
+
+def test_supports_methods_on_int_true() -> None:
+    assert supports_methods(1, "bit_length")

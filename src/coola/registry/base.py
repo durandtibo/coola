@@ -8,7 +8,6 @@ __all__ = ["BaseRegistry"]
 import threading
 from typing import TYPE_CHECKING, Generic, TypeVar
 
-from coola.equality.interface import objects_are_equal
 from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:
@@ -40,6 +39,11 @@ class BaseRegistry(Generic[K, V]):
     def __init__(self, initial_state: dict[K, V] | None = None) -> None:
         self._state: dict[K, V] = initial_state.copy() if initial_state else {}
         self._lock: threading.RLock = threading.RLock()  # RLock allows re-entrant locking
+        # Cached snapshot of ``_state`` used by ``items``/``keys``/``values``. It is
+        # invalidated (set to None) by ``_invalidate`` on every mutation, so repeated
+        # read-only calls between mutations reuse the same copy instead of paying for
+        # a fresh O(n) ``dict.copy()`` each time.
+        self._snapshot: dict[K, V] | None = None
 
     def __contains__(self, key: K) -> bool:
         return self.has(key)
@@ -81,6 +85,17 @@ class BaseRegistry(Generic[K, V]):
         override it to invalidate any derived state (e.g. a resolution
         cache).
         """
+
+    def _invalidate(self) -> None:
+        r"""Invalidate state derived from ``_state`` after a mutation.
+
+        This is called while holding ``self._lock`` by every method that
+        mutates ``_state``. It clears the ``items``/``keys``/``values``
+        snapshot cache and calls ``_on_change`` so subclasses can
+        invalidate their own derived state (e.g. a resolution cache).
+        """
+        self._snapshot = None
+        self._on_change()
 
     def _not_registered_msg(self, key: K) -> str:
         r"""Return the error message used when ``key`` is not
@@ -130,7 +145,7 @@ class BaseRegistry(Generic[K, V]):
         """
         with self._lock:
             self._state.clear()
-            self._on_change()
+            self._invalidate()
 
     def equal(self, other: object, equal_nan: bool = False) -> bool:
         r"""Indicate if two objects are equal or not.
@@ -156,6 +171,10 @@ class BaseRegistry(Generic[K, V]):
 
             ```
         """
+        # Local import to avoid a cyclic import: coola.equality.interface's import
+        # chain transitively depends on this module (e.g. via EqualityTesterRegistry).
+        from coola.equality.interface import objects_are_equal  # noqa: PLC0415
+
         if type(other) is not type(self):
             return False
 
@@ -268,15 +287,21 @@ class BaseRegistry(Generic[K, V]):
             if key in self._state and not exist_ok:
                 raise RuntimeError(self._already_registered_msg(key))
             self._state[key] = value
-            self._on_change()
+            self._invalidate()
 
     def register_many(self, mapping: Mapping[K, V], exist_ok: bool = False) -> None:
         r"""Register multiple key-value pairs in a single operation.
 
         This is a convenience method for bulk registration. It iterates through
         the provided mapping and registers each key-value pair. All registrations
-        follow the same exist_ok policy. The operation is atomic when exist_ok
-        is False - if any key already exists, no changes are made.
+        follow the same exist_ok policy. The operation is atomic *with respect to
+        this registry* when exist_ok is False: either every key-value pair in
+        ``mapping`` ends up registered, or (if any key already exists) none of
+        them do - there is no partial registration. This says nothing about
+        atomicity across multiple registries: if ``mapping`` is registered into
+        several registries in sequence, each ``register_many`` call is atomic on
+        its own, but the overall multi-registry operation is not - a failure on
+        a later registry does not roll back an earlier one.
 
         Args:
             mapping: A dictionary or mapping containing the key-value pairs
@@ -323,7 +348,7 @@ class BaseRegistry(Generic[K, V]):
             if not exist_ok and (duplicates := set(mapping) & set(self._state)):
                 raise RuntimeError(self._many_already_registered_msg(duplicates))
             self._state.update(mapping)
-            self._on_change()
+            self._invalidate()
 
     def unregister(self, key: K) -> V:
         r"""Remove a key-value pair from the registry and return the
@@ -361,8 +386,22 @@ class BaseRegistry(Generic[K, V]):
             if key not in self._state:
                 raise KeyError(self._not_registered_msg(key))
             value = self._state.pop(key)
-            self._on_change()
+            self._invalidate()
             return value
+
+    def _get_snapshot(self) -> dict[K, V]:
+        r"""Return a cached, read-only-by-convention copy of ``_state``.
+
+        This must be called while holding ``self._lock``. The copy is
+        made lazily and cached on ``self._snapshot`` until the next
+        mutation (see ``_invalidate``), so that repeated calls to
+        ``items``/``keys``/ ``values`` between mutations reuse the same
+        ``dict.copy()`` instead of paying for a fresh O(n) allocation
+        every time.
+        """
+        if self._snapshot is None:
+            self._snapshot = self._state.copy()
+        return self._snapshot
 
     def items(self) -> ItemsView[K, V]:
         r"""Return key-value pairs.
@@ -380,7 +419,7 @@ class BaseRegistry(Generic[K, V]):
             ```
         """
         with self._lock:
-            return self._state.copy().items()
+            return self._get_snapshot().items()
 
     def keys(self) -> KeysView[K]:
         r"""Return registered keys.
@@ -398,7 +437,7 @@ class BaseRegistry(Generic[K, V]):
             ```
         """
         with self._lock:
-            return self._state.copy().keys()
+            return self._get_snapshot().keys()
 
     def values(self) -> ValuesView[V]:
         r"""Return registered values.
@@ -416,4 +455,4 @@ class BaseRegistry(Generic[K, V]):
             ```
         """
         with self._lock:
-            return self._state.copy().values()
+            return self._get_snapshot().values()

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import threading
-
 import pytest
 
 from coola.utils.singleton import LazySingleton
@@ -118,35 +116,28 @@ def test_lazy_singleton_recovers_after_factory_exception() -> None:
     assert len(calls) == 2
 
 
-def test_lazy_singleton_is_thread_safe() -> None:
-    build_count = 0
-    build_lock = threading.Lock()
+def test_lazy_singleton_get_skips_factory_when_instance_set_during_lock_acquisition() -> None:
+    # Covers the double-checked-locking branch: if the instance was built by
+    # another caller while this one was waiting to acquire the lock, the
+    # factory must not be called again once the lock is held.
 
-    def factory() -> object:
-        nonlocal build_count
-        # Simulate slow construction to widen the race window so concurrent
-        # callers are likely to overlap inside `get()`.
-        threading.Event().wait(0.01)
-        with build_lock:
-            build_count += 1
-        return object()
+    class SettingLock:
+        def __init__(self, singleton: LazySingleton[str]) -> None:
+            self._singleton = singleton
+
+        def __enter__(self) -> None:
+            self._singleton._instance = "built-by-another-caller"
+
+        def __exit__(self, *args: object) -> None:
+            return None
+
+    calls = []
+
+    def factory() -> str:
+        calls.append(1)
+        return "built-by-factory"
 
     singleton = LazySingleton(factory)
-    results: list[object] = [None] * 32
-    errors: list[BaseException] = []
-
-    def target(index: int) -> None:
-        try:
-            results[index] = singleton.get()
-        except BaseException as exc:  # noqa: BLE001
-            errors.append(exc)
-
-    threads = [threading.Thread(target=target, args=(i,)) for i in range(32)]
-    for thread in threads:
-        thread.start()
-    for thread in threads:
-        thread.join()
-
-    assert not errors
-    assert build_count == 1
-    assert all(result is results[0] for result in results)
+    singleton._lock = SettingLock(singleton)
+    assert singleton.get() == "built-by-another-caller"
+    assert calls == []

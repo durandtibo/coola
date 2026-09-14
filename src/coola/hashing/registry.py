@@ -9,18 +9,14 @@ from __future__ import annotations
 
 __all__ = ["HasherRegistry"]
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-from coola.display import MultilineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_string
-from coola.registry import TypeRegistry
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping
+from coola.registry import BaseTypeDispatchRegistry
 
 
-class HasherRegistry(MultilineDisplayMixin):
+class HasherRegistry(BaseTypeDispatchRegistry[BaseHasher[Any]]):
     r"""Registry that manages and dispatches hashers based on data type.
 
     This registry maintains a mapping from Python types to hasher instances
@@ -73,93 +69,12 @@ class HasherRegistry(MultilineDisplayMixin):
         ```
     """
 
-    def __init__(self, initial_state: dict[type, BaseHasher[Any]] | None = None) -> None:
-        self._state: TypeRegistry[BaseHasher] = TypeRegistry[BaseHasher](initial_state)
-
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {"state": self._state}
-
-    def register(
-        self,
-        data_type: type,
-        hasher: BaseHasher[Any],
-        exist_ok: bool = False,
-    ) -> None:
-        """Register a hasher for a given data type.
-
-        Args:
-            data_type: The Python type to register (e.g., ``list``, ``dict``,
-                custom classes).
-            hasher: The hasher instance that handles this type.
-            exist_ok: If ``False`` (default), raises an error if the type is
-                already registered. If ``True``, overwrites the existing
-                registration silently.
-
-        Raises:
-            RuntimeError: If the type is already registered and ``exist_ok``
-                is ``False``.
-
-        Example:
-            ```pycon
-            >>> from coola.hashing import HasherRegistry, SequenceHasher
-            >>> registry = HasherRegistry()
-            >>> registry.register(list, SequenceHasher())
-            >>> registry.has_hasher(list)
-            True
-
-            ```
-        """
-        self._state.register(data_type, hasher, exist_ok=exist_ok)
-
-    def register_many(
-        self,
-        mapping: Mapping[type, BaseHasher[Any]],
-        exist_ok: bool = False,
-    ) -> None:
-        """Register multiple hashers at once.
-
-        This is a convenience method for bulk registration that internally
-        calls ``register`` for each type-hasher pair.
-
-        Args:
-            mapping: Dictionary mapping Python types to hasher instances.
-            exist_ok: If ``False`` (default), raises an error if any type is
-                already registered. If ``True``, overwrites existing
-                registrations silently.
-
-        Raises:
-            RuntimeError: If any type is already registered and ``exist_ok``
-                is ``False``.
-
-        Example:
-            ```pycon
-            >>> from coola.hashing import HasherRegistry, SequenceHasher, MappingHasher
-            >>> registry = HasherRegistry()
-            >>> registry.register_many(
-            ...     {
-            ...         list: SequenceHasher(),
-            ...         dict: MappingHasher(),
-            ...     }
-            ... )
-            >>> registry
-            HasherRegistry(
-              (state): TypeRegistry(
-                  (<class 'list'>): SequenceHasher()
-                  (<class 'dict'>): MappingHasher()
-                )
-            )
-
-            ```
-        """
-        self._state.register_many(mapping, exist_ok=exist_ok)
-
     def has_hasher(self, data_type: type) -> bool:
-        """Check if a hasher is explicitly registered for the given
-        type.
+        """Type-specific alias for :meth:`has`: check if a hasher is
+        explicitly registered for the given type.
 
-        Note that this only checks for direct registration. Even if this
-        returns ``False``, ``find_hasher`` may still return a hasher via
-        MRO lookup or the default hasher.
+        See :meth:`BaseTypeDispatchRegistry.has` for the full behavior
+        description.
 
         Args:
             data_type: The type to check.
@@ -180,15 +95,15 @@ class HasherRegistry(MultilineDisplayMixin):
 
             ```
         """
-        return data_type in self._state
+        return self.has(data_type)
 
     def find_hasher(self, data_type: type) -> BaseHasher[Any]:
-        """Find the appropriate hasher for a given type.
+        """Type-specific alias for :meth:`find`: find the appropriate
+        hasher for a given type.
 
-        Uses the Method Resolution Order (MRO) to find the most specific
-        registered hasher. For example, if a hasher is registered for
-        ``Sequence`` but not for ``list``, lists will use the ``Sequence``
-        hasher.
+        See :meth:`BaseTypeDispatchRegistry.find` for the full behavior
+        description (MRO resolution, caching, and the ``KeyError`` on no
+        match).
 
         Args:
             data_type: The Python type to find a hasher for.
@@ -209,7 +124,7 @@ class HasherRegistry(MultilineDisplayMixin):
 
             ```
         """
-        return self._state.resolve(data_type)
+        return self.find(data_type)
 
     def hash(self, data: object, length: int = 64, ignore_unhashable: bool = False) -> str:
         r"""Hash the given data by recursively traversing its structure.

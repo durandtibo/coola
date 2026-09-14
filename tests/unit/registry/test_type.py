@@ -488,3 +488,55 @@ def test_type_registry_registry_with_int_keys() -> None:
     assert registry.get(int) == 1
     assert registry.get(float) == 2
     assert registry.equal(TypeRegistry[int]({int: 1, float: 2}))
+
+
+# Test resolve() with ABC virtual subclasses
+
+
+def test_type_registry_resolve_does_not_match_abc_virtual_subclass() -> None:
+    """Test that resolve() does not follow ABC virtual subclass
+    registration, since it only walks __mro__ (static inheritance)."""
+    import abc
+
+    class MyABC(abc.ABC):  # noqa: B024
+        pass
+
+    class NotARealSubclass:
+        pass
+
+    MyABC.register(NotARealSubclass)
+    # isinstance() sees the virtual subclass relationship...
+    assert isinstance(NotARealSubclass(), MyABC)
+    # ...but resolve() does not, because it is not in __mro__.
+    registry = TypeRegistry[str]()
+    registry.register(MyABC, "abc value")
+    with pytest.raises(KeyError, match="is not registered"):
+        registry.resolve(NotARealSubclass)
+
+
+def test_type_registry_resolve_abc_virtual_subclass_registered_after_lookup() -> None:
+    """Test that registering a value for an ABC after a virtual subclass
+    has already been resolved does not retroactively make resolve()
+    match the virtual subclass (the cache is not the cause: even an
+    uncached lookup does not follow virtual subclass relationships)."""
+    import abc
+
+    class MyABC(abc.ABC):  # noqa: B024
+        pass
+
+    class NotARealSubclass:
+        pass
+
+    MyABC.register(NotARealSubclass)
+    registry = TypeRegistry[str]()
+    with pytest.raises(KeyError, match="is not registered"):
+        registry.resolve(NotARealSubclass)
+    # Register the ABC only after the failed lookup above.
+    registry.register(MyABC, "abc value")
+    # Still does not resolve: virtual subclasses never appear in __mro__,
+    # cache or no cache.
+    with pytest.raises(KeyError, match="is not registered"):
+        registry.resolve(NotARealSubclass)
+    # Registering the concrete subclass itself does work.
+    registry.register(NotARealSubclass, "concrete value")
+    assert registry.resolve(NotARealSubclass) == "concrete value"

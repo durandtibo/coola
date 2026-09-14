@@ -9,17 +9,13 @@ from __future__ import annotations
 
 __all__ = ["SummarizerRegistry"]
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-from coola.display import MultilineDisplayMixin
-from coola.registry import TypeRegistry
+from coola.registry import BaseTypeDispatchRegistry
 from coola.summary.base import BaseSummarizer
 
-if TYPE_CHECKING:
-    from collections.abc import Mapping
 
-
-class SummarizerRegistry(MultilineDisplayMixin):
+class SummarizerRegistry(BaseTypeDispatchRegistry[BaseSummarizer[Any]]):
     r"""Registry that manages and dispatches summarizers based on data
     type.
 
@@ -85,96 +81,12 @@ class SummarizerRegistry(MultilineDisplayMixin):
         ```
     """
 
-    def __init__(self, initial_state: dict[type, BaseSummarizer[Any]] | None = None) -> None:
-        self._state: TypeRegistry[BaseSummarizer] = TypeRegistry[BaseSummarizer](initial_state)
-
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {"state": self._state}
-
-    def register(
-        self,
-        data_type: type,
-        summarizer: BaseSummarizer[Any],
-        exist_ok: bool = False,
-    ) -> None:
-        """Register a summarizer for a given data type.
-
-        The internal type-lookup cache is automatically cleared after
-        registration to ensure consistency.
-
-        Args:
-            data_type: The Python type to register (e.g., ``list``, ``dict``,
-                custom classes).
-            summarizer: The summarizer instance that handles this type.
-            exist_ok: If ``False`` (default), raises an error if the type is
-                already registered. If ``True``, overwrites the existing
-                registration silently.
-
-        Raises:
-            RuntimeError: If the type is already registered and ``exist_ok``
-                is ``False``.
-
-        Example:
-            ```pycon
-            >>> from coola.summary import SummarizerRegistry, SequenceSummarizer
-            >>> registry = SummarizerRegistry()
-            >>> registry.register(list, SequenceSummarizer())
-            >>> registry.has_summarizer(list)
-            True
-
-            ```
-        """
-        self._state.register(data_type, summarizer, exist_ok=exist_ok)
-
-    def register_many(
-        self,
-        mapping: Mapping[type, BaseSummarizer[Any]],
-        exist_ok: bool = False,
-    ) -> None:
-        """Register multiple summarizers at once.
-
-        This is a convenience method for bulk registration that internally
-        calls ``register`` for each type-summarizer pair.
-
-        Args:
-            mapping: Dictionary mapping Python types to summarizer instances.
-            exist_ok: If ``False`` (default), raises an error if any type is
-                already registered. If ``True``, overwrites existing
-                registrations silently.
-
-        Raises:
-            RuntimeError: If any type is already registered and ``exist_ok``
-                is ``False``.
-
-        Example:
-            ```pycon
-            >>> from coola.summary import SummarizerRegistry, SequenceSummarizer, MappingSummarizer
-            >>> registry = SummarizerRegistry()
-            >>> registry.register_many(
-            ...     {
-            ...         list: SequenceSummarizer(),
-            ...         dict: MappingSummarizer(),
-            ...     }
-            ... )
-            >>> registry
-            SummarizerRegistry(
-              (state): TypeRegistry(
-                  (<class 'list'>): SequenceSummarizer(max_items=5, num_spaces=2)
-                  (<class 'dict'>): MappingSummarizer(max_items=5, num_spaces=2)
-                )
-            )
-
-            ```
-        """
-        self._state.register_many(mapping, exist_ok=exist_ok)
-
     def has_summarizer(self, data_type: type) -> bool:
-        """Check if a summarizer is explicitly registered for the given
-        type.
+        """Type-specific alias for :meth:`has`: check if a summarizer
+        is explicitly registered for the given type.
 
-        Note that this only checks for direct registration. Even if this
-        returns ``False``, ``find_summarizer`` may still return a
-        summarizer via MRO lookup or the default summarizer.
+        See :meth:`BaseTypeDispatchRegistry.has` for the full behavior
+        description.
 
         Args:
             data_type: The type to check.
@@ -194,15 +106,15 @@ class SummarizerRegistry(MultilineDisplayMixin):
 
             ```
         """
-        return data_type in self._state
+        return self.has(data_type)
 
     def find_summarizer(self, data_type: type) -> BaseSummarizer[Any]:
-        """Find the appropriate summarizer for a given type.
+        """Type-specific alias for :meth:`find`: find the appropriate
+        summarizer for a given type.
 
-        Uses the Method Resolution Order (MRO) to find the most specific
-        registered summarizer. For example, if a summarizer is
-        registered for ``Sequence`` but not for ``list``, lists will use
-        the ``Sequence`` summarizer.
+        See :meth:`BaseTypeDispatchRegistry.find` for the full behavior
+        description (MRO resolution, caching, and the ``KeyError`` on no
+        match).
 
         Args:
             data_type: The Python type to find a summarizer for.
@@ -221,7 +133,7 @@ class SummarizerRegistry(MultilineDisplayMixin):
 
             ```
         """
-        return self._state.resolve(data_type)
+        return self.find(data_type)
 
     def summarize(self, data: object, depth: int = 0, max_depth: int = 1) -> str:
         r"""Generate a formatted string summary of the provided data.

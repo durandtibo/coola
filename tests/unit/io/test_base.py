@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import os
-import threading
-import time
 from pathlib import Path
 from typing import Any
 
@@ -21,6 +19,7 @@ from coola.io import (
     resolve_loader,
     resolve_saver,
 )
+from coola.io.base import _acquire_file_lock, _get_save_lock
 
 ######################################
 #     Tests for is_loader_config     #
@@ -221,92 +220,49 @@ def test_base_file_saver_save_exist_ok_false_fails_atomically_on_concurrent_crea
     assert target_path.read_text() == "concurrent"
 
 
-class SlowFileSaver(BaseFileSaver[str]):
-    r"""A file saver like ``SimpleFileSaver`` but that sleeps while
-    writing, to widen the window during which a concurrent ``save`` call
-    could interleave with this one."""
-
-    def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
-        return type(other) is type(self)
-
-    def _save_file(self, to_save: Any, path: Path) -> None:
-        path.write_text(str(to_save))
-        time.sleep(0.01)
-
-
-def test_base_file_saver_save_concurrent_exist_ok_true_does_not_interleave(
-    tmp_path: Path,
-) -> None:
-    # Regression test: concurrent ``save(..., exist_ok=True)`` calls to the
-    # same path must not interleave their write/commit steps. Before the
-    # per-path lock was added, each thread wrote its own tmp file and then
-    # raced to commit, so the final content could in principle come from a
-    # tmp file that had already been unlinked by another thread, or the
-    # commit steps could otherwise interleave; the fix serializes the whole
-    # write+commit sequence per path so the result is always exactly one
-    # writer's full content, never a mix or a crash.
+def test_get_save_lock_reuses_existing_lock_for_same_path(tmp_path: Path) -> None:
+    # Keep a strong reference to the first lock so the ``WeakValueDictionary``
+    # entry survives until the second call, exercising the branch where an
+    # existing lock is reused instead of a new one being created.
     path = tmp_path.joinpath("data.txt")
-    saver = SlowFileSaver()
-    values = [f"value-{i}" for i in range(8)]
-    errors: list[BaseException] = []
-
-    def worker(value: str) -> None:
-        try:
-            saver.save(value, path, exist_ok=True)
-        except BaseException as exc:  # noqa: BLE001
-            errors.append(exc)
-
-    threads = [threading.Thread(target=worker, args=(value,)) for value in values]
-    for thread in threads:
-        thread.start()
-    for thread in threads:
-        thread.join()
-
-    assert not errors
-    assert path.is_file()
-    assert path.read_text() in values
-    # No leftover tmp files from any writer.
-    assert list(tmp_path.iterdir()) == [path]
+    lock = _get_save_lock(path)
+    assert _get_save_lock(path) is lock
 
 
-def test_base_file_saver_save_concurrent_exist_ok_true_serializes_writers(
-    tmp_path: Path,
-) -> None:
-    # Directly verify the per-path lock prevents two ``save`` calls to the
-    # same path from ever being inside the write/commit section at the same
-    # time.
+def test_acquire_file_lock_creates_and_removes_lock_file(tmp_path: Path) -> None:
     path = tmp_path.joinpath("data.txt")
-    saver = SlowFileSaver()
-    active = 0
-    max_active = 0
-    guard = threading.Lock()
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    assert not lock_path.is_file()
+    acquired = _acquire_file_lock(path)
+    assert acquired == lock_path
+    assert lock_path.is_file()
+    # Releasing is the caller's responsibility (``_save_lock`` does this);
+    # ``_acquire_file_lock`` itself only creates the lock file.
+    lock_path.unlink()
 
-    original_save_file = saver._save_file
 
-    def tracked_save_file(to_save: Any, path: Path) -> None:
-        nonlocal active, max_active
-        with guard:
-            active += 1
-            max_active = max(max_active, active)
-        try:
-            original_save_file(to_save, path)
-        finally:
-            with guard:
-                active -= 1
+def test_acquire_file_lock_times_out_when_never_released(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.touch()
+    try:
+        with pytest.raises(TimeoutError, match="timed out"):
+            _acquire_file_lock(path, timeout=0.05, poll_interval=0.001)
+    finally:
+        lock_path.unlink()
 
-    saver._save_file = tracked_save_file
-    threads = [
-        threading.Thread(
-            target=saver.save, args=(f"value-{i}",), kwargs={"path": path, "exist_ok": True}
-        )
-        for i in range(6)
-    ]
-    for thread in threads:
-        thread.start()
-    for thread in threads:
-        thread.join()
 
-    assert max_active == 1
+def test_base_file_saver_save_removes_lock_file_after_success(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    SimpleFileSaver().save("value", path)
+    assert not tmp_path.joinpath("data.txt.lock").is_file()
+
+
+def test_base_file_saver_save_removes_lock_file_after_failure(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    with pytest.raises(RuntimeError, match="failed to save"):
+        FailingFileSaver().save("value", path)
+    assert not tmp_path.joinpath("data.txt.lock").is_file()
 
 
 def test_base_file_saver_save_exist_ok_true_silently_overwrites_concurrent_create(

@@ -8,6 +8,7 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.handler import FalseHandler, TrueHandler
+from coola.equality.handler.allclose import SupportsAllCloseNan
 from coola.equality.handler.tolerant import (
     SupportsTolerantEqual,
     TolerantEqualHandler,
@@ -17,6 +18,17 @@ from coola.equality.handler.tolerant import (
 @pytest.fixture
 def config() -> EqualityConfig:
     return EqualityConfig()
+
+
+def test_supports_tolerant_equal_extends_supports_allclose_nan() -> None:
+    assert SupportsAllCloseNan in SupportsTolerantEqual.mro()
+
+
+def test_supports_tolerant_equal_does_not_redefine_allclose() -> None:
+    # ``allclose`` must be inherited from ``SupportsAllCloseNan``, not
+    # re-declared, to avoid the duplicated signature/docstring.
+    assert "allclose" not in SupportsTolerantEqual.__dict__
+    assert "allclose" in SupportsAllCloseNan.__dict__
 
 
 class MyFloat:
