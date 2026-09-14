@@ -418,14 +418,21 @@ footguns rather than fundamental design problems.
   key, `exist_ok=False`) does not, and a previously returned view stays
   detached (unaffected) after a later mutation.
 
-- **`BloomFilter._hashes` computes a fresh SHA-512 digest per call** —
-  `src/coola/utils/bloom_filter.py:70-93` — appropriate for its stated use
-  case (approximate duplicate detection over documents), not a concern at
-  the intended data volumes, but SHA-512 is heavier than necessary purely
-  for a non-cryptographic bloom filter; a faster non-cryptographic hash
-  (e.g. xxhash/murmur, if an optional dependency is acceptable) would reduce
-  CPU cost for very large corpora. Low priority given no dependency is
-  currently required for this pure-stdlib implementation.
+- **FIXED** — **`BloomFilter._hashes` computes a fresh SHA-512 digest per
+  call** — `src/coola/utils/bloom_filter.py:79-102` — appropriate for its
+  stated use case (approximate duplicate detection over documents), not a
+  concern at the intended data volumes, but SHA-512 is heavier than
+  necessary purely for a non-cryptographic bloom filter. Switched to
+  `hashlib.blake2b(item, digest_size=32)`: still pure stdlib (no new
+  dependency), faster than SHA-512 in CPython, and requests exactly the 32
+  bytes needed (two 16-byte halves for `h1`/`h2`) instead of truncating a
+  64-byte SHA-512 digest. Covered by new tests in
+  `tests/unit/utils/test_bloom_filter.py`:
+  `test_bloom_filter_hashes_uses_blake2b` (pins the digest algorithm and
+  the exact index derivation), plus
+  `test_bloom_filter_hashes_yields_hash_count_indices`,
+  `test_bloom_filter_hashes_is_deterministic`, and
+  `test_bloom_filter_hashes_differ_for_different_items`.
 
 ---
 
