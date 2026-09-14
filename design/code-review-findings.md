@@ -38,16 +38,18 @@ footguns rather than fundamental design problems.
   the next handler is not invoked on a length mismatch, and that a length
   mismatch is caught even with no next handler configured.
 
-- **`MappingSameValuesHandler` assumes matching keys** —
-  `src/coola/equality/handler/mapping.py:88-100`. Docstring says "This handler
-  assumes that all the keys in the first mapping are also in the second
-  mapping," but `handle` does `expected[key]` without a `.get`/try-except.
-  If this handler is ever used without `MappingSameKeysHandler` first (e.g. a
-  future custom tester composes handlers differently, or someone calls it
-  directly per its own doctest promise of being usable standalone), a missing
-  key raises `KeyError` instead of returning `False`/a sensible equality
-  result. Same category of implicit-ordering risk as the sequence handler
-  above.
+- **PARTIALLY ADDRESSED (documented, not fixed)** — **`MappingSameValuesHandler`
+  assumes matching keys** — `src/coola/equality/handler/mapping.py`. `handle`
+  still does `expected[key]` without a `.get`/try-except, so a missing key
+  still raises `KeyError` instead of returning `False` when this handler is
+  used standalone/without `MappingSameKeysHandler` preceding it — unlike the
+  sibling `SequenceSameValuesHandler` finding above, the underlying behavior
+  was **not** changed. What was added is an explicit **Warning** block in the
+  docstring spelling out the assumption and the `KeyError` consequence, plus
+  identity-based memoization of repeated value-pair comparisons (see §4). The
+  defense-in-depth fix applied to `SequenceSameValuesHandler` was not mirrored
+  here — worth doing for consistency, or explicitly deciding the documented
+  contract is sufficient.
 
 ### Medium
 
@@ -462,18 +464,14 @@ footguns rather than fundamental design problems.
 
 ## 5. Type Hints / Documentation Gaps
 
-- **`AllCloseNanHandler.handle`'s signature types `actual` as
-  `SupportsAllCloseNan` but the method itself checks `hasattr(actual,
-  "allclose")` before trusting that** (`src/coola/equality/handler/allclose.py:90-99`).
-  This is good defensive coding, but it means the type hint is aspirational/
-  not load-bearing — a static type checker will happily accept a
-  `SupportsAllCloseNan`-typed argument reaching this handler, but the
-  runtime code path exists specifically to guard against the *opposite*
-  case (an arbitrary object without `allclose`). Consider documenting in the
-  class docstring that the type hint documents the "happy path" contract but
-  the implementation is deliberately defensive against arbitrary inputs
-  reaching it via the dispatch registry (which resolves by `type(actual)`,
-  not by protocol conformance).
+- **FIXED (documented)** — **`AllCloseNanHandler.handle`'s signature types
+  `actual` as `SupportsAllCloseNan` but the method itself checks
+  `hasattr(actual, "allclose")` before trusting that**
+  (`src/coola/equality/handler/allclose.py`). The class docstring now
+  explicitly documents that `SupportsAllCloseNan` describes the intended
+  "happy path" contract, while the implementation is deliberately defensive
+  against arbitrary inputs reaching it via the dispatch registry (which
+  resolves by `type(actual)`, not by protocol conformance).
 
 - **`BaseEqualityHandler.handle`'s docstring explicitly documents why every
   handler keeps the full `(actual, expected, config)` signature even when
@@ -494,22 +492,19 @@ footguns rather than fundamental design problems.
   for keeping docstrings accurate (see the stale LRU-cache claim above as a
   concrete instance of docs drifting from code).
 
-- **`coola/__init__.py` exposes only `__version__`** (`src/coola/__init__.py:8`)
-  — the top-level package docstring says "Use this package to compare nested
-  objects, summarize complex structures..." but none of `objects_are_equal`,
-  `objects_are_allclose`, or similarly central entry points are re-exported
-  at the top level; users must know to import from `coola.equality`,
-  `coola.hashing`, `coola.recursive`, etc. This is a legitimate design
-  choice (avoids import-time cost / circular-import risk given the
-  lazy-registry pattern used throughout), but the top-level docstring's
-  framing ("Use this package to compare nested objects...") reads as if
-  `import coola; coola.objects_are_equal(...)` should work, which it
-  doesn't. Either adjust the docstring to point explicitly at the
-  submodules, or add deliberate lazy re-exports (e.g. via `__getattr__` in
-  `__init__.py`) if ergonomics matter more than import-time cost.
+- **FIXED (docstring reworded, no re-exports added)** — **`coola/__init__.py`
+  exposes only `__version__`** — the module docstring was rewritten and now
+  explicitly says it "only exposes `__version__`" and does not re-export
+  entry points, pointing readers at `coola.equality`/`coola.summary`
+  explicitly (e.g. `from coola.equality import objects_are_equal`), instead
+  of the old, misleading "Use this package to compare nested objects..."
+  framing. The alternative option (adding lazy re-exports via
+  `__getattr__`) was not taken — this was the "adjust the docstring" branch
+  of the original suggestion, a deliberate choice, not an oversight.
 
-- **`EqualityConfig.__post_init__` validates `atol`/`rtol`/`max_depth` but
-  not `equal_nan`/`show_difference`/`registry` types** — reasonable, since
+- **STILL OPEN** — **`EqualityConfig.__post_init__` validates
+  `atol`/`rtol`/`max_depth` but not `equal_nan`/`show_difference`/`registry`
+  types** — confirmed still true (`src/coola/equality/config.py`). Reasonable, since
   those are simple/duck-typed, but note the *type* of `registry` isn't
   checked at all — passing a non-`EqualityTesterRegistry` object with a
   compatible-looking `objects_are_equal` method would work by duck typing
@@ -521,47 +516,39 @@ footguns rather than fundamental design problems.
 
 ## 6. Error Handling
 
-- **`import_object`/`factory`/`instantiate_object`/`resolve_object`
-  (`src/coola/factory/instantiation.py`, `src/coola/factory/resolve.py`) form
-  a dynamic-import-and-call pipeline that will import and execute arbitrary
-  module code and instantiate arbitrary classes from a string path.** This
-  is a deliberate, Hydra-style design (used by `coola.io`'s
-  `is_loader_config`/`resolve_loader` to build loaders/savers from `dict`
-  configs — `src/coola/io/base.py:273-373`). There is no allowlist or
-  restriction on which modules/classes can be targeted. If any of these
-  entry points (`factory()`, `resolve_object()`, `resolve_loader()`,
-  `resolve_saver()`) can ever be reached with a `_target_` string derived
-  from untrusted input (e.g. a config file uploaded by a third party, or a
-  network payload), this is a remote-code-execution vector. Worth an
-  explicit **Security** note in the public docstrings of `factory`,
-  `resolve_object`, `resolve_loader`, and `resolve_saver` warning that
-  `_target_` must come from a trusted source, mirroring what many similar
-  libraries (Hydra, OmegaConf) document prominently.
+- **FIXED (documented)** — **`import_object`/`factory`/`instantiate_object`/
+  `resolve_object` (`src/coola/factory/instantiation.py`,
+  `src/coola/factory/resolve.py`) form a dynamic-import-and-call pipeline
+  that will import and execute arbitrary module code and instantiate
+  arbitrary classes from a string path.** This is a deliberate, Hydra-style
+  design (used by `coola.io`'s `is_loader_config`/`resolve_loader` to build
+  loaders/savers from `dict` configs — `src/coola/io/base.py`). The RCE
+  vector itself is unchanged (by design), but explicit **Security** blocks
+  now exist on `factory`, `instantiate_object`/`_instantiate_class_object`
+  (`src/coola/factory/instantiation.py`), `resolve_object`
+  (`src/coola/factory/resolve.py`), and `resolve_loader`/`resolve_saver`
+  (`src/coola/io/base.py`), all warning that `_target_`/`object_path` must
+  come from a trusted source. No tests to add here (documentation-only
+  fix); see the still-open test-coverage suggestion in §7 for exercising
+  the "malicious `_target_`" behavior explicitly.
 
-- **`PickleLoader.load` uses `pickle.load` on arbitrary file paths**
-  (`src/coola/io/pickle.py:43-45`), suppressed with `# noqa: S301` (the
-  bandit/ruff rule for exactly this risk) but with no docstring-level
-  warning to *callers* of `PickleLoader`/`load_pickle` that loading a pickle
-  file from an untrusted source can execute arbitrary code during
-  unpickling. The `# noqa` silences the linter but doesn't communicate the
-  risk to library users reading the API docs. Recommend adding an explicit
-  "Warning: only load pickle files from trusted sources" note to
-  `PickleLoader`'s and `load_pickle`'s public docstrings
-  (`src/coola/io/pickle.py:18-35`, `86-110`), not just the loader itself —
-  the loader is one of the friendliest public entry points in `coola.io` and
-  most likely to be reached by end users skimming examples rather than
-  internals.
+- **FIXED (documented)** — **`PickleLoader.load` uses `pickle.load` on
+  arbitrary file paths** (`src/coola/io/pickle.py`), suppressed with
+  `# noqa: S301`. Both `PickleLoader`'s class docstring and `load_pickle`'s
+  docstring now carry an explicit **Warning** block stating that
+  unpickling can execute arbitrary code and that only trusted pickle files
+  should be loaded.
 
-- **`AllCloseNanHandler.handle` and `TolerantEqualHandler.handle` swallow
-  any exception `actual.allclose(...)`/`actual.equal(...)` might raise** —
-  they don't; on closer look there's no try/except around those calls
-  (`src/coola/equality/handler/allclose.py:90-99`,
-  `src/coola/equality/handler/tolerant.py:119-139`), so a buggy user-defined
-  `allclose`/`equal` implementation that raises will propagate up through
-  `objects_are_equal` uncaught. That's arguably correct behavior (fail
-  loudly rather than silently returning `False`), but it's worth confirming
-  this is the intended contract and documenting it — currently neither
-  handler's docstring says what happens if the delegated method raises.
+- **FIXED (documented)** — **`AllCloseNanHandler.handle` and
+  `TolerantEqualHandler.handle`'s contract when the delegated method
+  raises** (`src/coola/equality/handler/allclose.py`,
+  `src/coola/equality/handler/tolerant.py`) — confirmed there is indeed no
+  try/except around `actual.allclose(...)`/`actual.equal(...)`, so a
+  raising user-defined method still propagates uncaught through
+  `objects_are_equal` (unchanged, and the right behavior). Both
+  docstrings now have a **Note** stating this explicitly: "If
+  `actual.allclose`/`actual.equal` is present but raises an exception, that
+  exception propagates unchanged out of `handle`."
 
 - **`BaseFileSaver.save`'s cleanup path can itself raise and mask the
   original exception** — `src/coola/io/base.py:245-260`: on failure inside
@@ -579,18 +566,15 @@ footguns rather than fundamental design problems.
   dense enough to warrant a comment mapping each failure mode to its
   handler, for future maintainers.
 
-- **`TypeRegistry.resolve()` raises `KeyError` with a message built from
-  `dtype` — `f"Could not find a registered type for {dtype}"` (`type.py:241`)
-  — but callers like `HasherRegistry.hash` catch it narrowly
-  (`except KeyError:` at `src/coola/hashing/registry.py:254-259`) to
-  implement `ignore_unhashable`.** If `TypeRegistry.resolve()`'s internals
-  (or a future refactor) ever raise `KeyError` for an unrelated reason (e.g.
-  a bug indexing into `self._state`), `HasherRegistry.hash` would silently
-  swallow it into the `ignore_unhashable` placeholder path instead of
-  surfacing the real bug. Consider a dedicated exception type (e.g.
-  `TypeNotRegisteredError(KeyError)`) so call sites can catch precisely the
-  "no registration found" case without also catching unrelated `KeyError`s
-  from implementation bugs.
+- **STILL OPEN** — **`TypeRegistry.resolve()` raises bare `KeyError`** (the
+  message text was unified as part of §2, but the exception *type* was not
+  changed) — callers like `HasherRegistry.hash` still catch it narrowly
+  (`except KeyError:` in `src/coola/hashing/registry.py`) to implement
+  `ignore_unhashable`. No `TypeNotRegisteredError` (or similar `KeyError`
+  subclass) exists anywhere in `src/coola/` as of this review, so the risk
+  described originally is unchanged: a future bug that raises `KeyError`
+  from inside `resolve()` for an unrelated reason would still be silently
+  swallowed by `ignore_unhashable`-style call sites. Not addressed.
 
 ---
 
@@ -618,42 +602,40 @@ parity doesn't guarantee the *interesting* branches are covered:
 Specific gaps worth checking directly (not confirmed absent, but not seen in
 this pass and worth a targeted look given the findings above):
 
-- **Concurrent-mutation tests for `BaseRegistry`** — the class is explicitly
-  documented as thread-safe with `RLock`, but a review of `tests/unit/registry`
-  for actual multithreaded stress tests (e.g. many threads calling
-  `register`/`unregister`/`resolve` concurrently) would validate the
-  concurrency claims rather than only the single-threaded API surface.
+- **STILL OPEN** — **Concurrent-mutation tests for `BaseRegistry`** —
+  confirmed: no `Thread`/multithreaded stress test exists in
+  `tests/unit/registry/` as of this review. The class is documented as
+  thread-safe with `RLock`, but that claim is only validated at the
+  single-threaded API-surface level.
 - **FIXED** — **`SequenceSameValuesHandler` used standalone with mismatched
   lengths and no preceding `SameLengthHandler`** — the handler now checks the
   length itself (see §1), so this is covered directly rather than only via
   `SequenceEqualityTester`'s chain; regression tests in
   `tests/unit/equality/handler/test_sequence.py` assert `False` for
   mismatched-length inputs used standalone.
-- **`TypeRegistry.resolve()` cache invalidation across `register_many` with
-  partial overlap and `exist_ok=True`** — confirm a test exercises
-  re-resolving a type after its registration is overwritten via
-  `register_many(..., exist_ok=True)`, not just via `register`.
-  `_on_change()` is called in both paths per the code, but this is a natural
-  seam for a regression to slip through unnoticed.
-- **`BaseFileSaver.save` concurrent-writer race with `exist_ok=True`** — the
-  docstring documents the exact race condition; a test simulating it (two
-  savers targeting the same path) would at least document the accepted
-  behavior in an executable form, even if the "fix" is just "last writer
-  wins."
-- **`instantiate_object`/`factory` with malicious-looking `_target_` (e.g.
-  targeting `os.system`, `eval`, dunder attribute traversal like
-  `"builtins.eval"`)** — given the RCE-adjacent design flagged in section 6,
-  tests that document current behavior (it *will* successfully resolve and
-  call `os.system` if given the chance) help future maintainers understand
-  this is accepted, known behavior rather than an oversight, and make any
-  future decision to add an allowlist a deliberate, tested change.
-- **`get_password`'s `confirm=True` mismatch path** and **non-interactive
-  terminal path** in `src/coola/utils/password.py` are inherently hard to
-  unit test (docstring says as much — "no doctest example because it
-  requires interactive terminal input"); confirm `tests/unit/utils` mocks
-  `sys.stdin.isatty`/`getpass.getpass` to cover the `RuntimeError` and
-  mismatched-confirmation `ValueError` branches, since these are exactly the
-  kind of branches that are easy to skip when a doctest can't cover them.
+- **PARTIALLY COVERED** — **`TypeRegistry.resolve()` cache invalidation
+  across `register_many` with partial overlap and `exist_ok=True`** —
+  `tests/unit/registry/test_type.py` has a `register_many` +
+  `exist_ok=True` overwrite test, but it doesn't specifically re-resolve a
+  type via `.resolve()` (to populate the cache) before overwriting via
+  `register_many(..., exist_ok=True)` and then assert the cache reflects
+  the new value — the exact seam originally flagged is not explicitly
+  exercised.
+- **FIXED** — **`BaseFileSaver.save` concurrent-writer race with
+  `exist_ok=True`** — now covered directly; see the tests listed under the
+  §1 `BaseFileSaver.save` fix (cross-process lock file tests plus the
+  pre-existing thread-based serialization/non-interleaving tests).
+- **STILL OPEN** — **`instantiate_object`/`factory` with malicious-looking
+  `_target_` (e.g. targeting `os.system`, `eval`, dunder attribute
+  traversal like `"builtins.eval"`)** — confirmed: no such test exists in
+  `tests/unit/factory/`. Security warnings were added to the docstrings
+  (§6), but no test documents the accepted "it will call `os.system` if
+  given the chance" behavior in executable form.
+- **FIXED (already covered)** — **`get_password`'s `confirm=True` mismatch
+  path** and **non-interactive terminal path** in
+  `src/coola/utils/password.py` — `tests/unit/utils/test_password.py`
+  already mocks `sys.stdin.isatty`/`getpass.getpass` and covers both the
+  non-interactive `RuntimeError` path and the mismatched-confirmation case.
 
 ---
 
@@ -721,9 +703,13 @@ this pass and worth a targeted look given the findings above):
 
 ## Summary of Highest-Priority Actions
 
-1. Harden or explicitly test the "must be chained after a length/keys check"
-   assumptions in `SequenceSameValuesHandler` (**FIXED** — see §1) and
-   `MappingSameValuesHandler` (§1).
+1. **PARTIALLY FIXED** — `SequenceSameValuesHandler` now hardens the
+   "must be chained after a length check" assumption itself (**FIXED** —
+   see §1). `MappingSameValuesHandler`'s equivalent "must be chained after
+   `MappingSameKeysHandler`" assumption is only **documented** (an explicit
+   Warning block), not hardened the same way — it still raises `KeyError`
+   standalone on a missing key (§1). Mirroring the sequence-handler fix
+   here is the main remaining item from this bullet.
 2. **FIXED** — Extracted a shared base (`BaseTypeDispatchRegistry`) for the
    six `TypeRegistry`-backed dispatch registries, eliminating the duplicated
    boilerplate/docstrings and fixing the discovered doc/behavior drift in one
@@ -733,10 +719,24 @@ this pass and worth a targeted look given the findings above):
    cache by making the cache a real bounded LRU (1024 entries) instead of
    the previous unbounded dict, fixing both the documentation mismatch and
    the unbounded growth risk with dynamically generated types (§2, §4).
-4. Add explicit security warnings to the public docstrings of
+4. **FIXED** — Added explicit security warnings to the public docstrings of
    `factory`/`resolve_object`/`resolve_loader`/`resolve_saver` and
    `PickleLoader`/`load_pickle` about executing/deserializing untrusted
-   input (§6).
-5. Introduce a dedicated "type not registered" exception distinct from bare
-   `KeyError` so callers like `HasherRegistry.hash`'s `ignore_unhashable`
-   path can't accidentally swallow unrelated bugs (§6).
+   input (§6). A test documenting the accepted malicious-`_target_`
+   behavior is still not present (§7).
+5. **STILL OPEN** — No dedicated "type not registered" exception distinct
+   from bare `KeyError` exists; `TypeRegistry.resolve()` still raises plain
+   `KeyError`, so callers like `HasherRegistry.hash`'s `ignore_unhashable`
+   path can still accidentally swallow unrelated bugs (§6). This is the
+   most significant unresolved item from the original review.
+
+### Other confirmed-still-open items (not in the original top 5)
+
+- `EqualityConfig.__post_init__` doesn't validate the `registry` argument's
+  type (§5).
+- No multithreaded stress tests for `BaseRegistry` concurrency claims (§7).
+- No test for `TypeRegistry` cache invalidation specifically through
+  `register_many(..., exist_ok=True)` after a prior `.resolve()` populated
+  the cache (§7).
+- No test exercising `instantiate_object`/`factory` with a malicious-looking
+  `_target_` (§7).
