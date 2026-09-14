@@ -31,6 +31,15 @@ def import_object(object_path: str) -> Any:
         TypeError: if ``object_path`` is not a string.
         ImportError: if ``object_path`` cannot be imported.
 
+    Security:
+        This function imports arbitrary module code with no allowlist
+        or restriction on which module or attribute it may reference:
+        importing a module executes its top-level code. Only pass an
+        ``object_path`` that comes from a trusted source. Never
+        resolve an ``object_path`` derived from untrusted input, such
+        as a third-party-uploaded config file or a network payload, as
+        this is a remote-code-execution vector.
+
     Example:
         ```pycon
         >>> from coola.factory import import_object
@@ -106,6 +115,15 @@ def instantiate_object(
         which always runs ``__new__`` then ``__init__``, this
         can silently produce a partially-initialized object
         if the caller expected the usual two-step semantics.
+
+    Security:
+        ``obj`` is instantiated or called with the given arguments with
+        no allowlist or restriction on what it may do: an arbitrary
+        class or callable will be invoked as-is. Only pass an ``obj``
+        (and ``_init_``) that come from a trusted source. Never
+        instantiate an object whose class/callable or arguments are
+        derived from untrusted input, as this is a remote-code-execution
+        vector.
 
     Example:
         ```pycon
