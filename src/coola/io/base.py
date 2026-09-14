@@ -350,15 +350,24 @@ class BaseFileSaver(BaseSaver[T]):
                         # Unlinks ``tmp_path`` whether ``os.link`` succeeded (the
                         # data now lives at ``path`` via the hard link) or failed
                         # (nothing to keep); the redundant ``unlink(missing_ok=True)``
-                        # below in the outer ``except`` is then a no-op.
-                        tmp_path.unlink(missing_ok=True)
+                        # below in the outer ``except`` is then a no-op. Any error
+                        # from this cleanup ``unlink`` itself (e.g. a permission
+                        # issue) is suppressed rather than propagated, so it cannot
+                        # mask an in-flight ``os.link`` exception.
+                        with contextlib.suppress(OSError):
+                            tmp_path.unlink(missing_ok=True)
             except BaseException:
                 # Covers a failure in ``_save_file`` itself (``tmp_path`` may or
                 # may not have been created) as well as a failure of
                 # ``tmp_path.replace(path)`` in the ``exist_ok=True`` branch;
                 # ``missing_ok=True`` makes this safe to call even when the
-                # ``finally`` above (or ``_save_file``) already removed it.
-                tmp_path.unlink(missing_ok=True)
+                # ``finally`` above (or ``_save_file``) already removed it. The
+                # cleanup ``unlink`` is wrapped so that if it itself raises
+                # (e.g. a permission error), that secondary error is suppressed
+                # and the original exception being handled here still propagates
+                # unmasked.
+                with contextlib.suppress(OSError):
+                    tmp_path.unlink(missing_ok=True)
                 raise
 
     @abstractmethod
