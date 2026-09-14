@@ -82,9 +82,13 @@ class BloomFilter:
         Uses double hashing (two independent hash values combined
         linearly) to cheaply derive many hash functions from two, per
         the standard Kirsch-Mitzenmacher technique. Both values are
-        derived from a single SHA-512 digest, split into two halves,
+        derived from a single BLAKE2b digest, split into two halves,
         which avoids a second hash computation while keeping the two
-        values statistically independent.
+        values statistically independent. BLAKE2b is used instead of
+        SHA-512 because it is faster in CPython's stdlib while being
+        just as suitable here (this is not a cryptographic use case);
+        the digest is also sized to exactly the 32 bytes this method
+        needs, rather than truncating a 64-byte SHA-512 digest.
 
         Args:
             item: The raw bytes to hash.
@@ -92,9 +96,9 @@ class BloomFilter:
         Yields:
             Bit-array indices, in ``range(self.size)``.
         """
-        digest = hashlib.sha512(item).digest()
-        h1 = int.from_bytes(digest[:32], "big")
-        h2 = int.from_bytes(digest[32:], "big")
+        digest = hashlib.blake2b(item, digest_size=32).digest()
+        h1 = int.from_bytes(digest[:16], "big")
+        h2 = int.from_bytes(digest[16:], "big")
         # Ensure h2 is never 0, or every index collapses to h1 for that item.
         h2 |= 1
 
