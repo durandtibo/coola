@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from typing import TYPE_CHECKING
+from unittest.mock import Mock
 
 import pytest
 
@@ -277,6 +278,32 @@ def test_mapping_same_values_handler_handle_without_next_handler(config: Equalit
     handler = MappingSameValuesHandler()
     with pytest.raises(RuntimeError, match=r"next handler is not defined"):
         handler.handle(actual={"a": 1, "b": 2}, expected={"a": 1, "b": 2}, config=config)
+
+
+def test_mapping_same_values_handler_handle_reuses_cached_result_for_repeated_object(
+    config: EqualityConfig,
+) -> None:
+    # ``shared`` is referenced under both keys in both mappings: the handler
+    # must reuse the first comparison's result instead of recomputing
+    # ``objects_are_equal`` for every occurrence.
+    shared = [1, 2, 3]
+    actual = {"a": shared, "b": shared}
+    expected = {"a": shared, "b": shared}
+    registry = Mock(wraps=config.registry)
+    config.registry = registry
+    assert MappingSameValuesHandler(next_handler=TrueHandler()).handle(actual, expected, config)
+    assert registry.objects_are_equal.call_count == 1
+
+
+def test_mapping_same_values_handler_handle_does_not_reuse_cache_across_different_objects(
+    config: EqualityConfig,
+) -> None:
+    actual = {"a": 1, "b": 2}
+    expected = {"a": 1, "b": 2}
+    registry = Mock(wraps=config.registry)
+    config.registry = registry
+    assert MappingSameValuesHandler(next_handler=TrueHandler()).handle(actual, expected, config)
+    assert registry.objects_are_equal.call_count == 2
 
 
 def test_mapping_same_values_handler_set_next_handler() -> None:

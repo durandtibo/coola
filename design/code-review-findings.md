@@ -385,17 +385,41 @@ footguns rather than fundamental design problems.
   `test_type_registry_resolve_cache_cleared_does_not_exceed_max_size`
   (the cache stays bounded across a `_on_change()` clear and repopulation).
 
-- **`SequenceHasher.hash` and `SequenceSameValuesHandler`/
+- **FIXED** — **`SequenceHasher.hash` and `SequenceSameValuesHandler`/
   `MappingSameValuesHandler` recurse through `registry.hash`/
   `config.registry.objects_are_equal` per element with no short-circuit
   reuse of already-computed hashes for repeated/interned values** — for
   workloads with highly repetitive nested structures (e.g. many identical
-  sub-trees), there's no memoization keyed by `id()`/structural hash, so
-  identical sub-structures are re-hashed/re-compared repeatedly. This is a
-  reasonable trade-off for a general-purpose library (memoization requires
-  either accepting `id()`-based caching pitfalls with mutable objects, or
-  extra bookkeeping) but worth noting as a potential opportunity if hashing
-  large nested configs becomes a hot path.
+  sub-trees), there was no memoization keyed by `id()`/structural hash, so
+  identical sub-structures were re-hashed/re-compared repeatedly. All three
+  now keep a cache local to a single `hash`/`handle` call: `SequenceHasher.hash`
+  (`src/coola/hashing/sequence.py`) caches `id(item) -> hash string`, so an
+  item appearing at several positions in the sequence is passed to
+  `registry.hash` only once; `SequenceSameValuesHandler.handle`
+  (`src/coola/equality/handler/sequence.py`) and
+  `MappingSameValuesHandler.handle`
+  (`src/coola/equality/handler/mapping.py`) cache
+  `(id(value1), id(value2)) -> bool`, so a repeated pair of values (e.g. the
+  same shared sub-object referenced under several indices/keys) is passed to
+  `config.registry.objects_are_equal` only once. The cache is per-call
+  (a fresh dict each time), so it introduces no cross-call staleness for
+  mutable objects — it only avoids redundant work for objects that are
+  still the same object *within* one comparison/hash. Docstrings for all
+  three were updated to describe the new identity-based memoization.
+  Covered by new tests asserting the underlying `registry.hash`/
+  `objects_are_equal` mock is called once for a value repeated several
+  times but still once per distinct value otherwise:
+  `test_sequence_hasher_hash_reuses_cached_result_for_repeated_object` and
+  `test_sequence_hasher_hash_does_not_reuse_cache_across_different_objects`
+  in `tests/unit/hashing/test_sequence.py`;
+  `test_sequence_same_values_handler_handle_reuses_cached_result_for_repeated_object`
+  and
+  `test_sequence_same_values_handler_handle_does_not_reuse_cache_across_different_objects`
+  in `tests/unit/equality/handler/test_sequence.py`; and
+  `test_mapping_same_values_handler_handle_reuses_cached_result_for_repeated_object`
+  and
+  `test_mapping_same_values_handler_handle_does_not_reuse_cache_across_different_objects`
+  in `tests/unit/equality/handler/test_mapping.py`.
 
 - **FIXED** — **`BaseRegistry.items()/keys()/values()` all took a full
   `dict.copy()` under the lock on every call** —

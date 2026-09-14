@@ -71,6 +71,12 @@ class MappingSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
         keys. To check if two mappings are equal, you can combine this
         handler with ``MappingSameKeysHandler``.
 
+        Within a single ``handle`` call, the result of comparing a
+        given pair of values is cached by object identity (``id()``),
+        so repeated or interned values that appear under several keys
+        are compared only once, avoiding redundant recursive
+        ``objects_are_equal`` calls for highly repetitive mappings.
+
     Warning:
         This handler does not check the assumption above itself: it
         accesses ``expected[key]`` directly for every key in ``actual``
@@ -103,8 +109,15 @@ class MappingSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
         config: EqualityConfig,
     ) -> bool:
         with check_recursion_depth(config):
+            cache: dict[tuple[int, int], bool] = {}
             for key in actual:
-                if not config.registry.objects_are_equal(actual[key], expected[key], config):
+                value1, value2 = actual[key], expected[key]
+                cache_key = (id(value1), id(value2))
+                are_equal = cache.get(cache_key)
+                if are_equal is None:
+                    are_equal = config.registry.objects_are_equal(value1, value2, config)
+                    cache[cache_key] = are_equal
+                if not are_equal:
                     if config.show_difference:
                         logger.info(format_mapping_difference(different_value_key=key))
                     return False

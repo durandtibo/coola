@@ -207,6 +207,32 @@ def test_sequence_same_values_handler_handle_without_next_handler(config: Equali
         handler.handle(actual=[1, 2, 3], expected=[1, 2, 3], config=config)
 
 
+def test_sequence_same_values_handler_handle_reuses_cached_result_for_repeated_object(
+    config: EqualityConfig,
+) -> None:
+    # ``shared`` appears at several indices in both sequences: the handler
+    # must reuse the first comparison's result instead of recomputing
+    # ``objects_are_equal`` for every occurrence.
+    shared = [1, 2, 3]
+    actual = [shared, shared, shared]
+    expected = [shared, shared, shared]
+    registry = Mock(wraps=config.registry)
+    config.registry = registry
+    assert SequenceSameValuesHandler(next_handler=TrueHandler()).handle(actual, expected, config)
+    assert registry.objects_are_equal.call_count == 1
+
+
+def test_sequence_same_values_handler_handle_does_not_reuse_cache_across_different_objects(
+    config: EqualityConfig,
+) -> None:
+    actual = [1, 2]
+    expected = [1, 2]
+    registry = Mock(wraps=config.registry)
+    config.registry = registry
+    assert SequenceSameValuesHandler(next_handler=TrueHandler()).handle(actual, expected, config)
+    assert registry.objects_are_equal.call_count == 2
+
+
 def test_sequence_same_values_handler_set_next_handler() -> None:
     handler = SequenceSameValuesHandler()
     handler.set_next_handler(FalseHandler())
