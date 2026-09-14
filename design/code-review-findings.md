@@ -14,6 +14,42 @@ footguns rather than fundamental design problems.
 
 ---
 
+## Verification pass (2026-09-14)
+
+Re-checked every item still marked open or partially addressed against the
+current `src/coola` tree (branch `BaseFileSaver`, after `04339fa3`). All
+**FIXED**/**FIXED (documented)** items previously recorded were spot-checked
+and remain accurate; the few notes below are the only changes from this pass.
+`src/coola/nested` and `src/coola/testing` were out of scope for the original
+review and still haven't been audited — flagging that gap here rather than
+doing a partial pass now.
+
+- This pass extends coverage to `src/coola/nested` and `src/coola/testing`
+  (both previously out of scope — see new §9 below for the findings from
+  that review). `src/coola/testing/fixtures.py` was also read and has no
+  findings: it's a thin, uniform set of `pytest.mark.skipif` decorators
+  built from `coola.utils.imports`/`coola.utils.tensor` availability checks.
+- The LRU-cache fix recorded in §2/§4 has since been refactored one step
+  further: the bounded cache now lives in a dedicated, reusable
+  `LRUCache[K, V]` class (`src/coola/utils/lru.py`), and
+  `TypeRegistry._cache` is `LRUCache(maxsize=_MAX_CACHE_SIZE)` rather than a
+  raw `OrderedDict` maintained inline. Behavior is unchanged (still capped at
+  1024 entries, still evicts least-recently-used), so this doesn't reopen the
+  finding — just note the implementation detail if referencing "OrderedDict"
+  from the original write-up below.
+- All **STILL OPEN** items in §1, §5, §6, §7 were re-confirmed against
+  current source and are still open exactly as described: `MappingSameValuesHandler`
+  still raises bare `KeyError` on a missing key when used standalone
+  (`src/coola/equality/handler/mapping.py:113-114`); `TypeRegistry.resolve()`
+  still raises plain `KeyError`, not a dedicated exception type
+  (`src/coola/registry/type.py:266`); `EqualityConfig.__post_init__` still
+  doesn't validate `registry`'s type (`src/coola/equality/config.py:75-85`);
+  no `Thread`-based concurrency stress test exists under
+  `tests/unit/registry/`; and no test exercises `instantiate_object`/`factory`
+  with a malicious-looking `_target_` (e.g. `"os.system"`, `"builtins.eval"`).
+
+---
+
 ## 1. Correctness Risks / Bugs
 
 ### High
@@ -704,6 +740,50 @@ this pass and worth a targeted look given the findings above):
 
 ---
 
+## 9. `coola.nested` Package (newly reviewed)
+
+`src/coola/nested` (`conversion.py`, `flat.py`, `mapping.py`, `polars.py`)
+was not covered by the original review. It's generally solid — good
+docstrings, consistent `on_duplicate` handling between `flatten_mapping`
+and `merge_mappings`, sensible optional-`polars`-dependency fallbacks — but
+a few gaps mirror the "undocumented same-length/same-keys assumption"
+pattern already flagged elsewhere in this document (§1).
+
+- **`convert_to_list_of_dicts` silently truncates mismatched-length
+  sequences instead of validating them** — `src/coola/nested/conversion.py:45-66`.
+  The docstring says "All the sequences should have the same length," but
+  the implementation is `[dict(zip(mapping_of_seqs, seqs)) for seqs in
+  zip(*mapping_of_seqs.values())]` — plain `zip()` silently stops at the
+  shortest sequence, so `convert_to_list_of_dicts({"a": [1, 2, 3], "b": [10,
+  20]})` quietly returns only 2 dicts instead of raising, dropping `a`'s
+  third value with no warning. This is the same shape of bug already fixed
+  for `SequenceSameValuesHandler` (§1) and worth the same treatment: either
+  validate lengths upfront and raise (e.g. `ValueError`) on mismatch, or use
+  `zip(..., strict=True)` (Python 3.10+) and document the exception.
+- **`convert_to_dict_of_lists` only reads keys from the first mapping, with
+  no validation that later mappings match** — `src/coola/nested/conversion.py:16-42`.
+  `{key: [dic[key] for dic in seq_of_mappings] for key in
+  seq_of_mappings[0]}` means: if a later mapping is missing a key from the
+  first, it raises a plain `KeyError` (not a targeted error message); if a
+  later mapping has *extra* keys not present in the first, they are silently
+  dropped from the output with no indication. Both are undocumented
+  behaviors of the "first mapping defines the schema" design choice.
+- **`_flatten_mapping`'s key stringification can silently collide** —
+  `src/coola/nested/flat.py:278-282`. Child prefixes are built with
+  `str(key)`, so a mapping with both an `int` key `1` and a `str` key
+  `"1"` (or any two keys whose `str()` forms coincide, e.g. `1` and `True`
+  since `str(True) == "True"` but `str(1) == "1"` — more concretely `1` vs.
+  `"1"`) produces the same flattened key for both entries; `flat.update(...)`
+  then makes the later one silently overwrite the earlier one's value, with
+  no error or warning. Niche (requires mixed-type keys colliding under
+  `str()`), but worth at least a docstring note given `to_flat_dict` is
+  documented as lossless for the "list becomes numbered keys" case.
+- No correctness issues found in `polars.py` (the `unnest`/`explode`
+  version-compatibility fallbacks via `try`/`except TypeError` are
+  reasonable) or `testing/fixtures.py`.
+
+---
+
 ## Summary of Highest-Priority Actions
 
 1. **PARTIALLY FIXED** — `SequenceSameValuesHandler` now hardens the
@@ -732,6 +812,13 @@ this pass and worth a targeted look given the findings above):
    `KeyError`, so callers like `HasherRegistry.hash`'s `ignore_unhashable`
    path can still accidentally swallow unrelated bugs (§6). This is the
    most significant unresolved item from the original review.
+
+6. **NEW (this pass)** — `coola.nested.conversion.convert_to_list_of_dicts`
+   silently truncates mismatched-length sequences via plain `zip()` instead
+   of validating/raising, and `convert_to_dict_of_lists` silently drops any
+   extra keys present only in non-first mappings — both are undocumented,
+   silent-data-loss variants of the same "assumed matching shape" pattern
+   already fixed for `SequenceSameValuesHandler` (§1, §9).
 
 ### Other confirmed-still-open items (not in the original top 5)
 
