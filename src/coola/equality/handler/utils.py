@@ -2,7 +2,7 @@ r"""Contain utilities for handlers."""
 
 from __future__ import annotations
 
-__all__ = ["check_recursion_depth", "create_chain", "handlers_are_equal", "supports_methods"]
+__all__ = ["check_recursion_depth", "create_chain", "handlers_are_equal"]
 
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
@@ -78,31 +78,6 @@ def handlers_are_equal(
     if handler1 is None:
         return handler1 == handler2
     return handler1.equal(handler2)
-
-
-def supports_methods(obj: object, *method_names: str) -> bool:
-    r"""Indicate whether an object has all the given methods and they are
-    callable.
-
-    Args:
-        obj: The object to check.
-        method_names: The names of the methods to check.
-
-    Returns:
-        ``True`` if ``obj`` has every method in ``method_names`` and
-            each is callable, otherwise ``False``.
-
-    Example:
-        ```pycon
-        >>> from coola.equality.handler import supports_methods
-        >>> supports_methods(1, "bit_length")
-        True
-        >>> supports_methods(1, "bit_length", "does_not_exist")
-        False
-
-        ```
-    """
-    return all(hasattr(obj, name) and callable(getattr(obj, name)) for name in method_names)
 
 
 @contextmanager

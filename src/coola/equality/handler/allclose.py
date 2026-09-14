@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Protocol
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
-from coola.equality.handler.utils import supports_methods
+from coola.utils.introspection import supports_methods
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
