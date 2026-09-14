@@ -200,6 +200,66 @@ def test_base_file_saver_save_removes_tmp_file_on_link_failure(
     assert list(tmp_path.iterdir()) == []
 
 
+def test_base_file_saver_save_original_exception_survives_unlink_failure_in_except(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # If cleaning up the temp file in the outer ``except`` handler itself
+    # raises (e.g. a permission error), the original exception being
+    # handled must still be the one that propagates, not the cleanup
+    # failure.
+    path = tmp_path.joinpath("data.txt")
+    saver = FailingFileSaver()
+
+    def failing_unlink(self: Path, missing_ok: bool = False) -> None:
+        # Only the temp file cleanup should fail; the lock file cleanup
+        # (a different path, suffixed ``.lock``) must be left alone.
+        if self.suffix == ".lock":
+            try:
+                os.unlink(self)  # noqa: PTH108
+            except FileNotFoundError:
+                if not missing_ok:
+                    raise
+            return
+        msg = "failed to clean up"
+        raise PermissionError(msg)
+
+    monkeypatch.setattr(Path, "unlink", failing_unlink)
+    with pytest.raises(RuntimeError, match="failed to save"):
+        saver.save("hello", path)
+
+
+def test_base_file_saver_save_original_exception_survives_unlink_failure_in_finally(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # If cleaning up the temp file in the ``finally`` block after a failed
+    # ``os.link`` itself raises, the original ``os.link`` exception must
+    # still be the one that propagates, not the cleanup failure.
+    path = tmp_path.joinpath("data.txt")
+    saver = SimpleFileSaver()
+
+    def failing_link(src: str, dst: str) -> None:  # noqa: ARG001
+        msg = "failed to commit"
+        raise RuntimeError(msg)
+
+    def failing_unlink(self: Path, missing_ok: bool = False) -> None:
+        # Only the temp file cleanup should fail; the lock file cleanup
+        # (a different path, suffixed ``.lock``) must be left alone.
+        if self.suffix == ".lock":
+            try:
+                os.unlink(self)  # noqa: PTH108
+            except FileNotFoundError:
+                if not missing_ok:
+                    raise
+            return
+        msg = "failed to clean up"
+        raise PermissionError(msg)
+
+    monkeypatch.setattr(os, "link", failing_link)
+    monkeypatch.setattr(Path, "unlink", failing_unlink)
+    with pytest.raises(RuntimeError, match="failed to commit"):
+        saver.save("hello", path)
+
+
 def test_base_file_saver_save_exist_ok_false_fails_atomically_on_concurrent_create(
     tmp_path: Path,
 ) -> None:

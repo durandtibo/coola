@@ -550,21 +550,24 @@ footguns rather than fundamental design problems.
   `actual.allclose`/`actual.equal` is present but raises an exception, that
   exception propagates unchanged out of `handle`."
 
-- **`BaseFileSaver.save`'s cleanup path can itself raise and mask the
-  original exception** — `src/coola/io/base.py:245-260`: on failure inside
-  the `try` block, the `except BaseException: tmp_path.unlink(missing_ok=True);
-  raise` re-raises the original exception, which is correct, but the
-  `os.link`/`finally: tmp_path.unlink(...)` block above it (lines 253-257)
-  means if `os.link` raises `FileExistsError` (the expected TOCTOU case) the
-  `finally` unlinks `tmp_path` and the `FileExistsError` propagates — good.
-  But if `_save_file` itself raises, the outer `except BaseException` at
-  line 258 unlinks `tmp_path` *again* (already handled by the same path) —
-  actually on inspection this is fine since `_save_file`'s failure happens
-  before `os.link`/`tmp_path.replace` is attempted, and the `unlink` call
-  uses `missing_ok=True`, so double-unlink attempts are harmless. No actual
-  bug — flagged only because the nested try/finally-inside-try/except is
-  dense enough to warrant a comment mapping each failure mode to its
-  handler, for future maintainers.
+- **FIXED** — **`BaseFileSaver.save`'s cleanup path can itself raise and
+  mask the original exception** — `src/coola/io/base.py:245-260`. The
+  `unlink(missing_ok=True)` calls in the `finally` block (after `os.link`)
+  and in the outer `except BaseException: ... raise` handler only suppress
+  `FileNotFoundError`; on some filesystems/permissions `unlink` can raise a
+  different `OSError` (e.g. `PermissionError`), which would propagate from
+  inside the `finally`/`except` body and replace (mask) the exception
+  actually being handled — the caller would see the cleanup failure instead
+  of the real `os.link`/`_save_file` error. Both cleanup `unlink` calls are
+  now wrapped in `contextlib.suppress(OSError)`, so a failure to remove the
+  temp file is silently ignored and the original exception always survives.
+  Covered by two new tests in `tests/unit/io/test_base.py`:
+  `test_base_file_saver_save_original_exception_survives_unlink_failure_in_except`
+  and
+  `test_base_file_saver_save_original_exception_survives_unlink_failure_in_finally`,
+  which monkeypatch `Path.unlink` to raise `PermissionError` and assert the
+  original `_save_file`/`os.link` exception is still the one raised, not the
+  `PermissionError`.
 
 - **STILL OPEN** — **`TypeRegistry.resolve()` raises bare `KeyError`** (the
   message text was unified as part of §2, but the exception *type* was not
