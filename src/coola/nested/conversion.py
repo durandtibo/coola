@@ -18,14 +18,18 @@ def convert_to_dict_of_lists(
 ) -> dict[Any, list[Any]]:
     r"""Convert a sequence of mappings to a dictionary of lists.
 
-    All the dictionaries should have the same keys. The first
-    mapping in the sequence is used to find the keys.
+    All the mappings must have the same keys as the first mapping in
+    the sequence, which is used to find the keys.
 
     Args:
         seq_of_mappings: The sequence of mappings to convert.
 
     Returns:
         A dictionary of lists.
+
+    Raises:
+        ValueError: If a mapping's keys differ from the first
+            mapping's keys.
 
     Example:
         ```pycon
@@ -37,9 +41,18 @@ def convert_to_dict_of_lists(
 
         ```
     """
-    if seq_of_mappings:
-        return {key: [dic[key] for dic in seq_of_mappings] for key in seq_of_mappings[0]}
-    return {}
+    if not seq_of_mappings:
+        return {}
+    keys = set(seq_of_mappings[0])
+    for i, mapping in enumerate(seq_of_mappings):
+        if set(mapping) != keys:
+            msg = (
+                f"All the mappings must have the same keys as the first mapping "
+                f"({sorted(keys, key=str)}), but mapping at index {i} has keys "
+                f"{sorted(mapping, key=str)}"
+            )
+            raise ValueError(msg)
+    return {key: [dic[key] for dic in seq_of_mappings] for key in seq_of_mappings[0]}
 
 
 def convert_to_list_of_dicts(
@@ -47,13 +60,16 @@ def convert_to_list_of_dicts(
 ) -> list[dict[Any, Any]]:
     r"""Convert a mapping of sequences to a list of dictionaries.
 
-    All the sequences should have the same length.
+    All the sequences must have the same length.
 
     Args:
         mapping_of_seqs: The mapping of sequences to convert.
 
     Returns:
         A list of dictionaries.
+
+    Raises:
+        ValueError: If the sequences do not all have the same length.
 
     Example:
         ```pycon
@@ -63,6 +79,10 @@ def convert_to_list_of_dicts(
 
         ```
     """
+    lengths = {key: len(seq) for key, seq in mapping_of_seqs.items()}
+    if len(set(lengths.values())) > 1:
+        msg = f"All the sequences must have the same length, but received lengths {lengths}"
+        raise ValueError(msg)
     return [dict(zip(mapping_of_seqs, seqs)) for seqs in zip(*mapping_of_seqs.values())]
 
 

@@ -749,25 +749,31 @@ and `merge_mappings`, sensible optional-`polars`-dependency fallbacks — but
 a few gaps mirror the "undocumented same-length/same-keys assumption"
 pattern already flagged elsewhere in this document (§1).
 
-- **`convert_to_list_of_dicts` silently truncates mismatched-length
-  sequences instead of validating them** — `src/coola/nested/conversion.py:45-66`.
-  The docstring says "All the sequences should have the same length," but
-  the implementation is `[dict(zip(mapping_of_seqs, seqs)) for seqs in
-  zip(*mapping_of_seqs.values())]` — plain `zip()` silently stops at the
-  shortest sequence, so `convert_to_list_of_dicts({"a": [1, 2, 3], "b": [10,
-  20]})` quietly returns only 2 dicts instead of raising, dropping `a`'s
-  third value with no warning. This is the same shape of bug already fixed
-  for `SequenceSameValuesHandler` (§1) and worth the same treatment: either
-  validate lengths upfront and raise (e.g. `ValueError`) on mismatch, or use
-  `zip(..., strict=True)` (Python 3.10+) and document the exception.
-- **`convert_to_dict_of_lists` only reads keys from the first mapping, with
-  no validation that later mappings match** — `src/coola/nested/conversion.py:16-42`.
-  `{key: [dic[key] for dic in seq_of_mappings] for key in
-  seq_of_mappings[0]}` means: if a later mapping is missing a key from the
-  first, it raises a plain `KeyError` (not a targeted error message); if a
-  later mapping has *extra* keys not present in the first, they are silently
-  dropped from the output with no indication. Both are undocumented
-  behaviors of the "first mapping defines the schema" design choice.
+- **FIXED** — **`convert_to_list_of_dicts` silently truncated mismatched-length
+  sequences instead of validating them** — `src/coola/nested/conversion.py`.
+  The docstring said "All the sequences should have the same length," but
+  the implementation was `[dict(zip(mapping_of_seqs, seqs)) for seqs in
+  zip(*mapping_of_seqs.values())]` — plain `zip()` silently stopped at the
+  shortest sequence. `convert_to_list_of_dicts` now computes each sequence's
+  length upfront and raises `ValueError` (message includes every key's
+  length) if they're not all equal, before doing any `zip`-based
+  truncation. Covered by
+  `test_convert_to_list_of_dicts_mismatched_length_raises_error` in
+  `tests/unit/nested/test_conversion.py`; the doctest and existing
+  equal-length tests are unchanged.
+- **FIXED** — **`convert_to_dict_of_lists` only read keys from the first
+  mapping, with no validation that later mappings match** —
+  `src/coola/nested/conversion.py`. `{key: [dic[key] for dic in
+  seq_of_mappings] for key in seq_of_mappings[0]}` meant a later mapping
+  missing a key from the first raised a plain, unhelpful `KeyError`, and a
+  later mapping with *extra* keys not present in the first silently dropped
+  them from the output. `convert_to_dict_of_lists` now compares every
+  mapping's key set against the first mapping's and raises `ValueError`
+  (naming the offending index and both key sets) on any mismatch, before
+  building the result. Covered by
+  `test_convert_to_dict_of_lists_missing_key_raises_error` and
+  `test_convert_to_dict_of_lists_extra_key_raises_error` in
+  `tests/unit/nested/test_conversion.py`.
 - **`_flatten_mapping`'s key stringification can silently collide** —
   `src/coola/nested/flat.py:278-282`. Child prefixes are built with
   `str(key)`, so a mapping with both an `int` key `1` and a `str` key
@@ -813,12 +819,10 @@ pattern already flagged elsewhere in this document (§1).
    path can still accidentally swallow unrelated bugs (§6). This is the
    most significant unresolved item from the original review.
 
-6. **NEW (this pass)** — `coola.nested.conversion.convert_to_list_of_dicts`
-   silently truncates mismatched-length sequences via plain `zip()` instead
-   of validating/raising, and `convert_to_dict_of_lists` silently drops any
-   extra keys present only in non-first mappings — both are undocumented,
-   silent-data-loss variants of the same "assumed matching shape" pattern
-   already fixed for `SequenceSameValuesHandler` (§1, §9).
+6. **FIXED** — `coola.nested.conversion.convert_to_list_of_dicts` and
+   `convert_to_dict_of_lists` now validate sequence lengths / key sets
+   upfront and raise `ValueError` on mismatch instead of silently
+   truncating or dropping data (§9).
 
 ### Other confirmed-still-open items (not in the original top 5)
 
