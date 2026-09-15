@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+import pytest
+
 from coola.nested import (
     convert_to_dict_of_lists,
     convert_to_jsonable,
@@ -79,6 +81,20 @@ def test_convert_to_dict_of_lists_different_types() -> None:
     }
 
 
+def test_convert_to_dict_of_lists_missing_key_raises_error() -> None:
+    """Test convert_to_dict_of_lists raises when a later mapping is
+    missing a key present in the first mapping."""
+    with pytest.raises(ValueError, match="All the mappings must have the same keys"):
+        convert_to_dict_of_lists([{"key1": 1, "key2": 10}, {"key1": 2}])
+
+
+def test_convert_to_dict_of_lists_extra_key_raises_error() -> None:
+    """Test convert_to_dict_of_lists raises when a later mapping has a
+    key not present in the first mapping."""
+    with pytest.raises(ValueError, match="All the mappings must have the same keys"):
+        convert_to_dict_of_lists([{"key1": 1}, {"key1": 2, "key2": 20}])
+
+
 ##############################################
 #     Tests for convert_to_list_of_dicts     #
 ##############################################
@@ -115,6 +131,13 @@ def test_convert_to_list_of_dicts_different_types() -> None:
         {"name": "Alice", "age": 30},
         {"name": "Bob", "age": 25},
     ]
+
+
+def test_convert_to_list_of_dicts_mismatched_length_raises_error() -> None:
+    """Test convert_to_list_of_dicts raises when sequences have
+    different lengths."""
+    with pytest.raises(ValueError, match="All the sequences must have the same length"):
+        convert_to_list_of_dicts({"key1": [1, 2, 3], "key2": [10, 20]})
 
 
 ##########################################
