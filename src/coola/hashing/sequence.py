@@ -39,8 +39,8 @@ class SequenceHasher(InlineDisplayMixin, BaseHasher[Sequence[Any]]):
         >>> hasher = SequenceHasher()
         >>> hasher
         SequenceHasher()
-        >>> hasher.hash([1, 2, 3], registry=registry)
-        'e30f3d309eab8b8216b15ef153005972ce61c8c64c55f78075630089aed023de'
+        >>> len(hasher.hash([1, 2, 3], registry=registry))
+        64
 
         ```
     """

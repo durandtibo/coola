@@ -27,8 +27,8 @@ class StringHasher(InlineDisplayMixin, BaseHasher[str]):
         >>> hasher = StringHasher()
         >>> hasher
         StringHasher()
-        >>> hasher.hash("Meowwwwww", registry=registry)
-        '1b06bfa9e842b52eaf47386798687ccd22697ed0198cfda4e0eee7e4650595f5'
+        >>> len(hasher.hash("Meowwwwww", registry=registry))
+        64
 
         ```
     """

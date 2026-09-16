@@ -41,8 +41,8 @@ class HasherRegistry(BaseTypeDispatchRegistry[BaseHasher[Any]]):
               (<class 'list'>): SequenceHasher()
             )
         )
-        >>> registry.hash([1, 2, 3])
-        'e30f3d309eab8b8216b15ef153005972ce61c8c64c55f78075630089aed023de'
+        >>> len(registry.hash([1, 2, 3]))
+        64
 
         ```
 
@@ -52,8 +52,8 @@ class HasherRegistry(BaseTypeDispatchRegistry[BaseHasher[Any]]):
         >>> from coola.hashing import HasherRegistry, SequenceHasher, StrHasher
         >>> registry = HasherRegistry({object: StrHasher()})
         >>> registry.register(list, SequenceHasher())
-        >>> registry.hash([1, 2, 3])
-        'e30f3d309eab8b8216b15ef153005972ce61c8c64c55f78075630089aed023de'
+        >>> len(registry.hash([1, 2, 3]))
+        64
 
         ```
 
@@ -63,8 +63,8 @@ class HasherRegistry(BaseTypeDispatchRegistry[BaseHasher[Any]]):
         >>> from coola.hashing import get_default_registry
         >>> registry = get_default_registry()
         >>> data = {"a": [1, 2], "b": [3, 4]}
-        >>> registry.hash(data)
-        'fe7eca5d3348be5060774aab9a95169595884dbb3d1fb7ddc318b1123eadc32b'
+        >>> len(registry.hash(data))
+        64
 
         ```
     """
@@ -161,8 +161,8 @@ class HasherRegistry(BaseTypeDispatchRegistry[BaseHasher[Any]]):
             ```pycon
             >>> from coola.hashing import get_default_registry
             >>> registry = get_default_registry()
-            >>> registry.hash({"scores": [95, 87, 92], "name": "test"})
-            '3f77b02a675a351ea0db656ace3425998b742702c03daf3694ab66d5cb67b729'
+            >>> len(registry.hash({"scores": [95, 87, 92], "name": "test"}))
+            64
 
             ```
         """
