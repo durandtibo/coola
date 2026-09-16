@@ -53,6 +53,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }} # for API quota and auth
         run: |
+          shopt -s nullglob
           ratchet pin .github/workflows/*.yaml .github/workflows/*.yml \
             .github/actions/*/action.yaml .github/actions/*/action.yml
 
