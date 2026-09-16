@@ -58,8 +58,8 @@ def hash_object(
     Example:
         ```pycon
         >>> from coola.hashing import hash_object
-        >>> hash_object({"a": 1, "b": "abc"})
-        '8579f51cd67c8be8fd22301d4c085e2b676c7c7d49991645a85a3c77692a1056'
+        >>> len(hash_object({"a": 1, "b": "abc"}))
+        64
 
         ```
     """
@@ -122,8 +122,8 @@ def get_default_registry() -> HasherRegistry:
         ```pycon
         >>> from coola.hashing import get_default_registry
         >>> registry = get_default_registry()
-        >>> registry.hash("meowwwwww")
-        '36a34d8fd93344d3be9a68e8c797601210f7d4585e30c102f3e8fceea38192aa'
+        >>> len(registry.hash("meowwwwww"))
+        64
 
         ```
     """

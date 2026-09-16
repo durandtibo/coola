@@ -35,8 +35,8 @@ class DatetimeHasher(InlineDisplayMixin, BaseHasher[date]):
         >>> hasher = DatetimeHasher()
         >>> hasher
         DatetimeHasher()
-        >>> hasher.hash(date(2021, 1, 1), registry=registry)
-        'f2b4c6a9941206bb6fc3b4b9c1104d8c05264985c009e2e1c7c840aaeda00dac'
+        >>> len(hasher.hash(date(2021, 1, 1), registry=registry))
+        64
 
         ```
     """

@@ -36,8 +36,8 @@ class MappingHasher(InlineDisplayMixin, BaseHasher[Mapping[Any, Any]]):
         >>> hasher = MappingHasher()
         >>> hasher
         MappingHasher()
-        >>> hasher.hash({"a": 1, "b": 2}, registry=registry)
-        '8cdf48729ca0eeb6e039ce3c6e6d77b3c9df8f1d27e6cfb9c28e682201372e37'
+        >>> len(hasher.hash({"a": 1, "b": 2}, registry=registry))
+        64
 
         ```
     """

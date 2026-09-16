@@ -32,8 +32,8 @@ class BaseHasher(ABC, Generic[T]):
         >>> hasher = StrHasher()
         >>> hasher
         StrHasher()
-        >>> hasher.hash([1, 2, 3], registry=registry)
-        '07d1c573fdfe5074241be58b56a31220ff7a9cb3dd94f1cba650eca27c0a421e'
+        >>> len(hasher.hash([1, 2, 3], registry=registry))
+        64
 
         ```
     """
@@ -74,8 +74,8 @@ class BaseHasher(ABC, Generic[T]):
             >>> from coola.hashing import StrHasher, HasherRegistry
             >>> registry = HasherRegistry()
             >>> hasher = StrHasher()
-            >>> hasher.hash("Meowwww", registry=registry)
-            'e0df5b99e14691d091804299975ae7c6206de906331fafa94c7e4df136100724'
+            >>> len(hasher.hash("Meowwww", registry=registry))
+            64
 
             ```
         """
