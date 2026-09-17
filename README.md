@@ -12,10 +12,10 @@
     </a>
     <br/>
     <a href="https://durandtibo.github.io/coola/">
-        <img alt="Documentation" src="https://github.com/durandtibo/coola/actions/workflows/docs.yaml/badge.svg">
+        <img alt="Documentation" src="https://github.com/durandtibo/coola/actions/workflows/release-docs.yaml/badge.svg">
     </a>
     <a href="https://durandtibo.github.io/coola/dev/">
-        <img alt="Documentation" src="https://github.com/durandtibo/coola/actions/workflows/docs-dev.yaml/badge.svg">
+        <img alt="Documentation" src="https://github.com/durandtibo/coola/actions/workflows/release-docs-dev.yaml/badge.svg">
     </a>
     <br/>
     <a href="https://github.com/psf/black">
