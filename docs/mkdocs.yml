@@ -30,6 +30,7 @@ nav:
       - uguide/equality_tester.md
       - uguide/equality_handler.md
       - uguide/factory.md
+      - uguide/hashing.md
       - uguide/identifier.md
       - uguide/io.md
       - uguide/iterator.md
