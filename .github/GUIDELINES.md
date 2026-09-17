@@ -87,7 +87,8 @@ Values that would otherwise be duplicated across workflows are centralized in
 
 Optional-dependency *names* are never duplicated in config: they're read
 directly from `../pyproject.toml`'s `[project.optional-dependencies]` by the
-`get-package-extras` composite action / `lib-get-package-extras.yaml`, so a
+`durandtibo/extract-pyproject-metadata-action` composite action /
+`lib-get-package-extras.yaml`, so a
 new extra only needs to be added in one place.
 
 ## Validating changes to this directory
