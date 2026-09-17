@@ -43,6 +43,36 @@ jobs:
         run: |
           uvx twine check --strict dist/*
 
+      - name: Extract package metadata
+        id: metadata
+        uses: durandtibo/extract-pyproject-metadata-action@4661b78698e6ceb7e04cf60bbdd52addf85a2889 # ratchet:durandtibo/extract-pyproject-metadata-action@v0.2
+
+      - name: Check tag matches package version
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          TAG_VERSION: ${{ github.ref_name }}
+          PACKAGE_VERSION: ${{ steps.metadata.outputs.version }}
+        run: |
+          # Tag is "vX.Y.Z"; strip the leading "v" before comparing.
+          if [[ "${TAG_VERSION#v}" != "${PACKAGE_VERSION}" ]]; then
+            echo "::error::Tag ${TAG_VERSION} does not match package version ${PACKAGE_VERSION}"
+            exit 1
+          fi
+
+      - name: Smoke test built wheel
+        env:
+          PACKAGE_NAME: ${{ steps.metadata.outputs.name }}
+        run: |
+          uv venv smoke-test-venv
+          source smoke-test-venv/bin/activate
+          uv pip install dist/*.whl
+          python -c "import importlib; importlib.import_module('${PACKAGE_NAME}')"
+          deactivate
+
+      - name: Generate checksums
+        run: |
+          cd dist && sha256sum *.tar.gz *.whl > SHA256SUMS
+
       - name: Upload distribution artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # ratchet:actions/upload-artifact@v7.0.1
         with:
@@ -66,6 +96,10 @@ jobs:
         with:
           name: dist
           path: dist/
+
+      - name: Verify checksums
+        run: |
+          cd dist && sha256sum --check SHA256SUMS
 
       - name: Sign distributions with Sigstore
         uses: sigstore/gh-action-sigstore-python@790bc6befb9d733738f18d8f895854b453640ec9 # ratchet:sigstore/gh-action-sigstore-python@v3.5.0
@@ -103,6 +137,10 @@ jobs:
         with:
           name: dist
           path: dist/
+
+      - name: Verify checksums
+        run: |
+          cd dist && sha256sum --check SHA256SUMS && rm SHA256SUMS
 
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # ratchet:pypa/gh-action-pypi-publish@v1.14.2
