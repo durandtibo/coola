@@ -50,26 +50,6 @@ jobs:
           path: dist/
           retention-days: 5
 
-  publish:
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    environment:
-      name: pypi
-      url: https://pypi.org/project/coola/
-    permissions:
-      # Required for PyPI Trusted Publishing (OIDC) - no API token needed.
-      id-token: write
-    steps:
-      - name: Download distribution artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8.0.1
-        with:
-          name: dist
-          path: dist/
-
-      - name: Publish package to PyPI
-        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # ratchet:pypa/gh-action-pypi-publish@v1.14.2
-
   sign-and-release:
     needs: build
     if: startsWith(github.ref, 'refs/tags/')
@@ -99,3 +79,30 @@ jobs:
             dist/*.tar.gz
             dist/*.whl
             dist/*.sigstore.json
+
+  publish:
+    needs: [build, sign-and-release]
+    # Only fail-closed on tag pushes: on a tag, publish must wait for
+    # sign-and-release to succeed; on workflow_dispatch, sign-and-release
+    # is skipped (not failed), so allow publish to proceed.
+    if: |
+      always() &&
+      needs.build.result == 'success' &&
+      (needs.sign-and-release.result == 'success' || needs.sign-and-release.result == 'skipped')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment:
+      name: pypi
+      url: https://pypi.org/project/coola/
+    permissions:
+      # Required for PyPI Trusted Publishing (OIDC) - no API token needed.
+      id-token: write
+    steps:
+      - name: Download distribution artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8.0.1
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # ratchet:pypa/gh-action-pypi-publish@v1.14.2
