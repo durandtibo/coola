@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from coola.registry import TypeRegistry
+from coola.utils.lru import LRUCache
 
 ##################################
 #     Tests for TypeRegistry     #
@@ -266,16 +267,17 @@ def test_type_registry_resolve_cache_lru_order_updated_on_access() -> None:
     """Test that re-resolving a cached type marks it as most-recently-
     used, protecting it from eviction."""
     registry = TypeRegistry[str]({object: "object"})
-    types = [type(f"Type{i}", (), {}) for i in range(1024)]
+    registry._cache = LRUCache(maxsize=4)
+    types = [type(f"Type{i}", (), {}) for i in range(4)]
     for tp in types:
         registry.resolve(tp)
-    assert len(registry._cache) == 1024
+    assert len(registry._cache) == 4
     # Touch the first (oldest) entry to mark it as most-recently-used.
     registry.resolve(types[0])
     # Adding one more type should now evict the second entry, not the first.
     new_type = type("NewType", (), {})
     registry.resolve(new_type)
-    assert len(registry._cache) == 1024
+    assert len(registry._cache) == 4
     assert types[0] in registry._cache
     assert types[1] not in registry._cache
     assert new_type in registry._cache
@@ -285,15 +287,16 @@ def test_type_registry_resolve_cache_cleared_does_not_exceed_max_size() -> None:
     """Test the cache stays bounded after registrations clear and
     repopulate it."""
     registry = TypeRegistry[str]({object: "object"})
-    types = [type(f"Type{i}", (), {}) for i in range(2000)]
+    registry._cache = LRUCache(maxsize=4)
+    types = [type(f"Type{i}", (), {}) for i in range(8)]
     for tp in types:
         registry.resolve(tp)
-    assert len(registry._cache) <= 1024
+    assert len(registry._cache) <= 4
     registry.register(int, "integer")  # triggers _on_change(), clearing the cache
     assert registry._cache == {}
     for tp in types:
         registry.resolve(tp)
-    assert len(registry._cache) <= 1024
+    assert len(registry._cache) <= 4
 
 
 def test_type_registry_resolve_most_specific_type() -> None:
