@@ -1,8 +1,9 @@
 name: Get Package Extras
 
-# This reusable workflow wraps the get-package-extras composite action so its
-# output can be used from a job's `strategy.matrix` (a `uses:` composite
-# action alone can't be, since it produces a step output, not a job output).
+# This reusable workflow wraps the extract-pyproject-metadata-action composite
+# action so its output can be used from a job's `strategy.matrix` (a `uses:`
+# composite action alone can't be, since it produces a step output, not a job
+# output).
 #
 # Usage:
 #   jobs:
@@ -54,6 +55,6 @@ jobs:
 
       - name: Get package extras
         id: extras
-        uses: ./.github/actions/get-package-extras
+        uses: durandtibo/extract-pyproject-metadata-action@b21147a9f23008959e0929b2000d63d7d1dcce34 # ratchet:durandtibo/extract-pyproject-metadata-action@v0.1
         with:
           extra-values: ${{ inputs.extra-values }}
