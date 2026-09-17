@@ -307,7 +307,7 @@ def test_acquire_file_lock_times_out_when_never_released(tmp_path: Path) -> None
     lock_path.touch()
     try:
         with pytest.raises(TimeoutError, match="timed out"):
-            _acquire_file_lock(path, timeout=0.05, poll_interval=0.001)
+            _acquire_file_lock(path, timeout=0.01, poll_interval=0.001)
     finally:
         lock_path.unlink()
 
