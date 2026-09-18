@@ -10,7 +10,7 @@ MARKDOWN_MK_INCLUDED := 1
 MARKDOWN_FORMAT_PATH ?= .
 MARKDOWN_LINT_GLOB ?= **/*.md
 
-include prettier.mk
+include $(dir $(lastword $(MAKEFILE_LIST)))prettier.mk
 
 .PHONY: format-markdown
 format-markdown: install-prettier
