@@ -15,7 +15,11 @@ include $(dir $(lastword $(MAKEFILE_LIST)))prettier.mk
 .PHONY: format-markdown
 format-markdown: install-prettier ## Format Markdown files with prettier
 	@echo "✨ Running prettier to format Markdown files..."
-	prettier --write '$(MARKDOWN_FORMAT_PATH)'
+	@output=$$(prettier --write '$(MARKDOWN_FORMAT_PATH)' 2>&1); status=$$?; \
+	echo "$$output"; \
+	if [ $$status -ne 0 ] && ! echo "$$output" | grep -q "No files matching the pattern"; then \
+		exit $$status; \
+	fi
 	@echo "✅ Prettier formatting complete"
 
 .PHONY: install-markdownlint
