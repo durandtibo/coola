@@ -4,10 +4,10 @@ YAML_MK_INCLUDED := 1
 # Targets for formatting and linting YAML files.
 #
 # Optional variables (set before including this file):
-#   YAML_FORMAT_PATH ?= .   # path passed to prettier
-#   YAML_LINT_PATH   ?= .   # path passed to yamllint
+#   YAML_FORMAT_PATH ?= **/*.{yml,yaml}   # path or glob passed to prettier
+#   YAML_LINT_PATH   ?= .                 # path passed to yamllint
 
-YAML_FORMAT_PATH ?= .
+YAML_FORMAT_PATH ?= **/*.{yml,yaml}
 YAML_LINT_PATH ?= .
 
 include $(dir $(lastword $(MAKEFILE_LIST)))prettier.mk
@@ -15,7 +15,7 @@ include $(dir $(lastword $(MAKEFILE_LIST)))prettier.mk
 .PHONY: format-yaml
 format-yaml: install-prettier ## Format YAML files with prettier
 	@echo "✨ Running prettier to format YAML files..."
-	prettier --write '$(YAML_FORMAT_PATH)/**/*.{yml,yaml}'
+	prettier --write '$(YAML_FORMAT_PATH)'
 	@echo "✅ Prettier formatting complete"
 
 .PHONY: install-yamllint
