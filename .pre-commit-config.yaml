@@ -3,6 +3,8 @@ default_language_version:
 
 default_stages: [ pre-commit ]
 
+exclude: ^\.make/
+
 repos:
   - repo: local
     hooks:
