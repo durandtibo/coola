@@ -13,7 +13,7 @@ YAML_LINT_PATH ?= .
 include $(dir $(lastword $(MAKEFILE_LIST)))prettier.mk
 
 .PHONY: format-yaml
-format-yaml: install-prettier
+format-yaml: install-prettier ## Format YAML files with prettier
 	@echo "✨ Running prettier to format YAML files..."
 	prettier --write '$(YAML_FORMAT_PATH)/**/*.{yml,yaml}'
 	@echo "✅ Prettier formatting complete"
@@ -29,7 +29,7 @@ install-yamllint:
 	fi
 
 .PHONY: lint-yaml
-lint-yaml: install-yamllint
+lint-yaml: install-yamllint ## Lint YAML files with yamllint
 	@echo "🔍 Running yamllint on YAML files..."
 	yamllint -f colored $(YAML_LINT_PATH)
 	@echo "✅ Yamllint passed"

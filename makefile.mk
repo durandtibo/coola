@@ -50,13 +50,13 @@ install-checkmake:
 	fi
 
 .PHONY: format-makefile
-format-makefile: install-mbake
+format-makefile: install-mbake ## Format Makefiles with mbake
 	@echo "✨ Running mbake to format Makefiles..."
 	mbake format $(MAKEFILE_FORMAT_FILES)
 	@echo "✅ Makefile formatting complete"
 
 .PHONY: lint-makefile
-lint-makefile: install-checkmake
+lint-makefile: install-checkmake ## Lint Makefiles with checkmake
 	@echo "🔍 Running checkmake on Makefiles..."
 	checkmake $(MAKEFILE_LINT_FILES)
 	@echo "✅ Checkmake passed"
