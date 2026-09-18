@@ -40,7 +40,7 @@ Run `make help` to list every target that has a `## description` comment (see `h
 | File          | Targets                                     | Tools                      | Description                                                           |
 | ------------- | ------------------------------------------- | -------------------------- | --------------------------------------------------------------------- |
 | `yaml.mk`     | `format-yaml`, `lint-yaml`                  | `prettier`, `yamllint`     | Format and lint YAML files                                            |
-| `makefile.mk` | `format-makefile`, `lint-makefile`          | `mbake`, `checkmake`       | Format and lint Makefiles                                             |
+| `makefile.mk` | `format-makefile`, `lint-makefile`          | `mbake`, `checkmake`       | Format and lint Makefiles and `.mk` files                             |
 | `shell.mk`    | `format-shell`, `lint-shell`                | `shfmt`, `shellcheck`      | Format and lint shell scripts                                         |
 | `markdown.mk` | `format-markdown`, `lint-markdown`          | `prettier`, `markdownlint` | Format and lint Markdown files                                        |
 | `uv.mk`       | `install-invoke`, `update-uv`, `setup-venv` | `uv`                       | Manage Python virtual environments with `uv`                          |
@@ -67,10 +67,10 @@ YAML_LINT_PATH = .github/workflows
 
 Optional variables (set before `include`):
 
-| Variable                | Default    | Description                    |
-| ----------------------- | ---------- | ------------------------------ |
-| `MAKEFILE_FORMAT_FILES` | `Makefile` | Files passed to `mbake format` |
-| `MAKEFILE_LINT_FILES`   | `Makefile` | Files passed to `checkmake`    |
+| Variable                | Default         | Description                    |
+| ----------------------- | --------------- | ------------------------------ |
+| `MAKEFILE_FORMAT_FILES` | `Makefile *.mk` | Files passed to `mbake format` |
+| `MAKEFILE_LINT_FILES`   | `Makefile *.mk` | Files passed to `checkmake`    |
 
 ```makefile
 include makefile.mk
