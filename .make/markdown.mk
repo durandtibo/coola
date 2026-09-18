@@ -13,7 +13,7 @@ MARKDOWN_LINT_GLOB ?= **/*.md
 include $(dir $(lastword $(MAKEFILE_LIST)))prettier.mk
 
 .PHONY: format-markdown
-format-markdown: install-prettier
+format-markdown: install-prettier ## Format Markdown files with prettier
 	@echo "✨ Running prettier to format Markdown files..."
 	prettier --write '$(MARKDOWN_FORMAT_PATH)/**/*.md'
 	@echo "✅ Prettier formatting complete"
@@ -26,7 +26,7 @@ install-markdownlint:
 	fi
 
 .PHONY: lint-markdown
-lint-markdown: install-markdownlint
+lint-markdown: install-markdownlint ## Lint Markdown files with markdownlint
 	@echo "🔍 Running markdownlint on Markdown files..."
 	markdownlint $(MARKDOWN_LINT_GLOB)
 	@echo "✅ Markdownlint passed"

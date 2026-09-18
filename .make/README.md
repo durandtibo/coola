@@ -14,21 +14,26 @@ include yaml.mk
 include makefile.mk
 include shell.mk
 include markdown.mk
+include help.mk
+
+.DEFAULT_GOAL := help
 
 .PHONY: install-tools
-install-tools: install-prettier install-yamllint install-mbake install-checkmake install-shellcheck install-shfmt install-markdownlint
+install-tools: install-prettier install-yamllint install-mbake install-checkmake install-shellcheck install-shfmt install-markdownlint ## Install all formatting/linting tools
 
 .PHONY: format
-format: format-yaml format-makefile format-shell format-markdown
+format: format-yaml format-makefile format-shell format-markdown ## Format all files
 
 .PHONY: lint
-lint: lint-yaml lint-makefile lint-shell lint-markdown
+lint: lint-yaml lint-makefile lint-shell lint-markdown ## Lint all files
 ```
 
 Required tools (`prettier`, `yamllint`, `mbake`, `checkmake`, `shellcheck`, `shfmt`, `markdownlint`)
 are installed on demand — each
 `format-*`/`lint-*` target depends on an `install-*` target that installs the tool if it isn't
 already on `PATH`. Run `make install-tools` to install all of them upfront.
+
+Run `make help` to list every target that has a `## description` comment (see `help.mk` below).
 
 ## Available files
 
@@ -41,6 +46,7 @@ already on `PATH`. Run `make install-tools` to install all of them upfront.
 | `uv.mk`       | `install-invoke`, `update-uv`, `setup-venv` | `uv`                       | Manage Python virtual environments with `uv`                          |
 | `prettier.mk` | `install-prettier`                          | `prettier`                 | Shared `install-prettier` target, included by `yaml.mk`/`markdown.mk` |
 | `self.mk`     | `update-subtree`                            | `git`                      | Sync the `.make` shared-makefiles subtree                             |
+| `help.mk`     | `help`                                      | —                          | List all documented (`## ...`) targets                                |
 
 ### `yaml.mk`
 
@@ -144,6 +150,21 @@ include self.mk
 `update-subtree` adds the `$(SHARED_MAKEFILES_REMOTE_NAME)` remote if missing, fetches
 `$(SHARED_MAKEFILES_BRANCH)`, and runs `git subtree pull --prefix=$(SHARED_MAKEFILES_PREFIX)
 $(SHARED_MAKEFILES_REMOTE_NAME) $(SHARED_MAKEFILES_BRANCH) --squash` to sync the subtree.
+
+### `help.mk`
+
+```makefile
+include help.mk
+
+.PHONY: format
+format: format-yaml ## Format all files
+```
+
+`help` scans every included Makefile (`$(MAKEFILE_LIST)`) for lines matching
+`target: ... ## description` and prints them, sorted, as `target` / `description` pairs. Only
+targets with a trailing `## ...` comment show up — add one to any target you want documented. Every
+target defined in this repo's own `.mk` files is already annotated this way, so `include`-ing any
+of them and running `make help` lists them for free.
 
 ## Design
 
