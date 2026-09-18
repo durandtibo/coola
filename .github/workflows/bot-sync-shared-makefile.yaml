@@ -1,0 +1,70 @@
+# Shared Makefile subtree sync workflow.
+# Pulls updates from the shared-makefiles repository into .make weekly.
+# Creates a pull request with the updates when there is something new.
+
+name: Sync shared Makefile (subtree)
+
+on:
+  schedule:
+    - cron: "0 6 * * 3" # Run every Wednesday at 6:00 AM UTC
+  workflow_dispatch: # to trigger manually
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  subtree-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read # actions/checkout only needs read; the app token grants write
+
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # ratchet:actions/create-github-app-token@v3.2.0
+        with:
+          client-id: ${{ secrets.TIBOT_CLIENT_ID }}
+          private-key: ${{ secrets.TIBOT_APP_PRIVATE_KEY }}
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: false
+          fetch-depth: 0 # subtree needs full history
+
+      - name: Configure git identity
+        run: |
+          git config user.name "ci-bot"
+          git config user.email "${{ secrets.CI_BOT_EMAIL }}"
+
+      - name: Pull subtree updates
+        id: subtree
+        run: |
+          set -euo pipefail
+          git remote add shared-makefiles https://github.com/durandtibo/shared-makefiles.git
+          git fetch shared-makefiles main
+          before="$(git rev-parse HEAD)"
+          git subtree pull --prefix=.make shared-makefiles main --squash -m "Sync shared Makefile subtree"
+          after="$(git rev-parse HEAD)"
+          if [ "$before" != "$after" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create pull request
+        if: steps.subtree.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # ratchet:peter-evans/create-pull-request@v8
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          branch: update/sync-shared-makefile
+          title: Sync shared Makefile subtree
+          commit-message: "Sync shared Makefile subtree"
+          body: Automated subtree sync from `durandtibo/shared-makefiles`.
+          delete-branch: true
+          author: ci-bot <${{ secrets.CI_BOT_EMAIL }}>
