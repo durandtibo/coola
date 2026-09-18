@@ -4,10 +4,10 @@ MARKDOWN_MK_INCLUDED := 1
 # Targets for formatting and linting Markdown files.
 #
 # Optional variables (set before including this file):
-#   MARKDOWN_FORMAT_PATH ?= .            # path passed to prettier
+#   MARKDOWN_FORMAT_PATH ?= **/*.md      # path or glob passed to prettier
 #   MARKDOWN_LINT_GLOB   ?= **/*.md      # glob passed to markdownlint
 
-MARKDOWN_FORMAT_PATH ?= .
+MARKDOWN_FORMAT_PATH ?= **/*.md
 MARKDOWN_LINT_GLOB ?= **/*.md
 
 include $(dir $(lastword $(MAKEFILE_LIST)))prettier.mk
@@ -15,7 +15,7 @@ include $(dir $(lastword $(MAKEFILE_LIST)))prettier.mk
 .PHONY: format-markdown
 format-markdown: install-prettier ## Format Markdown files with prettier
 	@echo "✨ Running prettier to format Markdown files..."
-	prettier --write '$(MARKDOWN_FORMAT_PATH)/**/*.md'
+	prettier --write '$(MARKDOWN_FORMAT_PATH)'
 	@echo "✅ Prettier formatting complete"
 
 .PHONY: install-markdownlint
