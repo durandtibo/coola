@@ -40,9 +40,12 @@ repos:
       - id: end-of-file-fixer
       - id: trailing-whitespace
       - id: check-toml
-      - id: sort-simple-yaml
       - id: check-yaml
         args: [--unsafe]
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: mixed-line-ending
+      - id: debug-statements
   - repo: https://github.com/pre-commit/pygrep-hooks
     rev: v1.10.0 # Use the ref you want to point at
     hooks:
@@ -63,6 +66,6 @@ repos:
     hooks:
       - id: ruff-check
         types_or: [python, pyi, jupyter]
-        args: [--fix, --unsafe-fixes]
+        args: [--fix]
       - id: ruff-format
         types_or: [python, pyi, jupyter]
