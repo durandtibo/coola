@@ -35,6 +35,9 @@ jobs:
       - name: format-yaml (installs prettier on demand)
         run: make -f yaml.mk format-yaml YAML_FORMAT_PATH=testdata/sample.yaml
 
+      - name: format-yaml (no matching files)
+        run: make -f yaml.mk format-yaml YAML_FORMAT_PATH="testdata/no-such-dir/*.yaml"
+
   test-makefile-mk:
     needs: workflow-config
     strategy:
@@ -50,6 +53,9 @@ jobs:
 
       - name: format-makefile (installs mbake on demand)
         run: make -f makefile.mk format-makefile MAKEFILE_FORMAT_FILES="yaml.mk makefile.mk shell.mk markdown.mk"
+
+      - name: format-makefile (no matching files)
+        run: make -f makefile.mk format-makefile MAKEFILE_FORMAT_FILES="no-such-dir/*.mk"
 
   test-shell-mk:
     needs: workflow-config
@@ -67,6 +73,9 @@ jobs:
       - name: format-shell (installs shfmt on demand)
         run: make -f shell.mk format-shell SHELL_FORMAT_PATH=testdata
 
+      - name: format-shell (no matching files)
+        run: make -f shell.mk format-shell SHELL_FORMAT_PATH=testdata/no-such-dir
+
   test-markdown-mk:
     needs: workflow-config
     strategy:
@@ -82,6 +91,9 @@ jobs:
 
       - name: format-markdown (installs prettier on demand)
         run: make -f markdown.mk format-markdown MARKDOWN_FORMAT_PATH=testdata/sample.md
+
+      - name: format-markdown (no matching files)
+        run: make -f markdown.mk format-markdown MARKDOWN_FORMAT_PATH="testdata/no-such-dir/*.md"
 
   test-uv-mk:
     needs: workflow-config

@@ -15,7 +15,11 @@ include $(dir $(lastword $(MAKEFILE_LIST)))prettier.mk
 .PHONY: format-yaml
 format-yaml: install-prettier ## Format YAML files with prettier
 	@echo "✨ Running prettier to format YAML files..."
-	prettier --write '$(YAML_FORMAT_PATH)'
+	@output=$$(prettier --write '$(YAML_FORMAT_PATH)' 2>&1); status=$$?; \
+	echo "$$output"; \
+	if [ $$status -ne 0 ] && ! echo "$$output" | grep -q "No files matching the pattern"; then \
+		exit $$status; \
+	fi
 	@echo "✅ Prettier formatting complete"
 
 .PHONY: install-yamllint

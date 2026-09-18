@@ -10,6 +10,8 @@ MAKEFILE_MK_INCLUDED := 1
 MAKEFILE_FORMAT_FILES ?= Makefile *.mk
 MAKEFILE_LINT_FILES ?= Makefile *.mk
 
+CHECKMAKE_VERSION ?= v0.3.2
+
 # mbake has no Homebrew formula, so macOS also goes through pipx/pip.
 .PHONY: install-mbake
 install-mbake:
@@ -23,8 +25,6 @@ install-mbake:
 			pip3 install --user --break-system-packages mbake; \
 		fi; \
 	fi
-
-CHECKMAKE_VERSION ?= v0.3.2
 
 .PHONY: install-checkmake
 install-checkmake:
@@ -52,7 +52,17 @@ install-checkmake:
 .PHONY: format-makefile
 format-makefile: install-mbake ## Format Makefiles and .mk files with mbake
 	@echo "✨ Running mbake to format Makefiles..."
-	mbake format $(MAKEFILE_FORMAT_FILES)
+	@files=""; \
+	for pattern in $(MAKEFILE_FORMAT_FILES); do \
+		for f in $$pattern; do \
+			[ -e "$$f" ] && files="$$files $$f"; \
+		done; \
+	done; \
+	if [ -n "$$files" ]; then \
+		mbake format $$files; \
+	else \
+		echo "No files found matching: $(MAKEFILE_FORMAT_FILES)"; \
+	fi
 	@echo "✅ Makefile formatting complete"
 
 .PHONY: lint-makefile
