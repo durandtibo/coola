@@ -1,4 +1,4 @@
-SHELL=/bin/bash
+SHELL = /bin/bash
 
 include .make/help.mk
 include .make/makefile.mk

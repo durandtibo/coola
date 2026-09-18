@@ -61,6 +61,7 @@ All test files must follow the pytest convention:
 - **Location**: Mirror the source code structure
 
 Examples:
+
 - Source: `src/coola/utils/format.py` → Test: `tests/unit/utils/test_format.py`
 - Source: `src/coola/equality/handler/scalar.py` → Test: `tests/unit/equality/handler/test_scalar.py`
 
@@ -400,6 +401,7 @@ def test_numpy_feature() -> None:
 ```
 
 Available markers:
+
 - `@numpy_available` - Requires NumPy
 - `@torch_available` - Requires PyTorch
 - Similar markers exist for other optional dependencies
@@ -409,6 +411,7 @@ Available markers:
 ### When to Use Docstrings
 
 Add docstrings to tests when:
+
 - The test is complex and the name alone isn't self-explanatory
 - The test demonstrates important behavior
 - The test is part of a critical module (e.g., equality, summary)

@@ -108,7 +108,7 @@ into non-interactive output:
 ```
 
 !!! note
-    `logging.basicConfig` is a no-op if the root logger already has handlers configured. Pass
-    `force=True` to remove existing handlers and reconfigure unconditionally.
+`logging.basicConfig` is a no-op if the root logger already has handlers configured. Pass
+`force=True` to remove existing handlers and reconfigure unconditionally.
 
 See the [reference](../refs/display.md) for the complete API.

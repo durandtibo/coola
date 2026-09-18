@@ -153,6 +153,7 @@ Compute multiple quantiles at once:
 ```
 
 Quantiles are specified as values between 0 and 1, where:
+
 - 0.0 = minimum value
 - 0.5 = median
 - 1.0 = maximum value
@@ -185,6 +186,7 @@ packages:
 ```
 
 The selection follows this priority order:
+
 1. **TorchReducer** if PyTorch is available
 2. **NumpyReducer** if NumPy is available
 3. **NativeReducer** as fallback (always available)
@@ -225,6 +227,7 @@ Error: Cannot compute the mean because the sequence is empty
 ```
 
 Operations that raise `EmptySequenceError` on empty sequences:
+
 - `max()`
 - `min()`
 - `mean()`

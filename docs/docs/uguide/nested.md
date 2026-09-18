@@ -136,6 +136,7 @@ Use `to_flat_dict()` to convert nested dictionaries into a flat dictionary with 
 ```
 
 This is particularly useful for:
+
 - Configuration management
 - Logging hierarchical data
 - Creating command-line arguments from nested configurations
@@ -222,6 +223,7 @@ Use `remove_keys_starting_with()` to filter out dictionary keys that start with 
 ```
 
 This is useful for:
+
 - Removing temporary or internal variables
 - Filtering configuration keys
 - Cleaning up data structures
