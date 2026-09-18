@@ -1,14 +1,14 @@
 ifndef MAKEFILE_MK_INCLUDED
 MAKEFILE_MK_INCLUDED := 1
 
-# Targets for formatting and linting Makefiles.
+# Targets for formatting and linting Makefiles and *.mk files.
 #
 # Optional variables (set before including this file):
-#   MAKEFILE_FORMAT_FILES ?= Makefile   # files passed to mbake format
-#   MAKEFILE_LINT_FILES   ?= Makefile   # files passed to checkmake
+#   MAKEFILE_FORMAT_FILES ?= Makefile *.mk   # files passed to mbake format
+#   MAKEFILE_LINT_FILES   ?= Makefile *.mk   # files passed to checkmake
 
-MAKEFILE_FORMAT_FILES ?= Makefile
-MAKEFILE_LINT_FILES ?= Makefile
+MAKEFILE_FORMAT_FILES ?= Makefile *.mk
+MAKEFILE_LINT_FILES ?= Makefile *.mk
 
 # mbake has no Homebrew formula, so macOS also goes through pipx/pip.
 .PHONY: install-mbake
@@ -33,14 +33,14 @@ install-checkmake:
 		case "$$(uname -s)" in \
 			Darwin) brew install checkmake ;; \
 			*) \
-				if command -v go >/dev/null 2>&1 && go install github.com/mrtazz/checkmake/cmd/checkmake@latest; then \
-					: ; \
-				else \
-					arch="$$(uname -m)"; \
-					case "$$arch" in \
-						x86_64) arch=amd64 ;; \
-						aarch64|arm64) arch=arm64 ;; \
-					esac; \
+			if command -v go >/dev/null 2>&1 && go install github.com/mrtazz/checkmake/cmd/checkmake@latest; then \
+				: ; \
+			else \
+				arch="$$(uname -m)"; \
+				case "$$arch" in \
+					x86_64) arch=amd64 ;; \
+					aarch64|arm64) arch=arm64 ;; \
+				esac; \
 					curl -fsSL -o /tmp/checkmake "https://github.com/checkmake/checkmake/releases/download/$(CHECKMAKE_VERSION)/checkmake-$(CHECKMAKE_VERSION).linux.$${arch}"; \
 					chmod +x /tmp/checkmake; \
 					sudo mv /tmp/checkmake /usr/local/bin/checkmake; \
@@ -50,13 +50,13 @@ install-checkmake:
 	fi
 
 .PHONY: format-makefile
-format-makefile: install-mbake ## Format Makefiles with mbake
+format-makefile: install-mbake ## Format Makefiles and .mk files with mbake
 	@echo "✨ Running mbake to format Makefiles..."
 	mbake format $(MAKEFILE_FORMAT_FILES)
 	@echo "✅ Makefile formatting complete"
 
 .PHONY: lint-makefile
-lint-makefile: install-checkmake ## Lint Makefiles with checkmake
+lint-makefile: install-checkmake ## Lint Makefiles and .mk files with checkmake
 	@echo "🔍 Running checkmake on Makefiles..."
 	checkmake $(MAKEFILE_LINT_FILES)
 	@echo "✅ Checkmake passed"

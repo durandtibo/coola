@@ -9,6 +9,7 @@ SHELL_MK_INCLUDED := 1
 
 SHELL_FORMAT_PATH ?= .
 SHELL_LINT_PATH ?= .
+SHFMT_VERSION ?= v3.10.0
 
 .PHONY: install-shellcheck
 install-shellcheck:
@@ -20,8 +21,6 @@ install-shellcheck:
 		esac; \
 	fi
 
-SHFMT_VERSION ?= v3.10.0
-
 .PHONY: install-shfmt
 install-shfmt:
 	@if ! command -v shfmt >/dev/null 2>&1; then \
@@ -29,8 +28,10 @@ install-shfmt:
 		case "$$(uname -s)" in \
 			Darwin) brew install shfmt ;; \
 			*) \
-				if command -v go >/dev/null 2>&1 && go install mvdan.cc/sh/v3/cmd/shfmt@latest; then \
-					: ; \
+			if command -v go >/dev/null 2>&1 && go install mvdan.cc/sh/v3/cmd/shfmt@latest; then \
+				gobin="$$(go env GOBIN)"; \
+				if [ -z "$$gobin" ]; then gobin="$$(go env GOPATH)/bin"; fi; \
+					sudo cp "$$gobin/shfmt" /usr/local/bin/shfmt; \
 				else \
 					arch="$$(uname -m)"; \
 					case "$$arch" in \
