@@ -54,6 +54,7 @@ False
 ```
 
 Available check functions:
+
 - `is_numpy_available()` - Check if NumPy is available
 - `is_torch_available()` - Check if PyTorch is available
 - `is_pandas_available()` - Check if pandas is available
@@ -81,6 +82,7 @@ Use context managers to conditionally execute code based on package availability
 If the package is not available, the code block is skipped without raising an error.
 
 Available context managers:
+
 - `numpy_available()` - Execute block if NumPy is available
 - `torch_available()` - Execute block if PyTorch is available
 - `pandas_available()` - Execute block if pandas is available
@@ -103,6 +105,7 @@ Use check functions to raise informative errors when required packages are missi
 ```
 
 Available check functions (raise `RuntimeError` if package is missing):
+
 - `check_numpy()` - Require NumPy
 - `check_torch()` - Require PyTorch
 - `check_pandas()` - Require pandas
@@ -144,6 +147,7 @@ Use `lazy_import()` or `LazyModule` to defer imports until they are actually use
 ```
 
 This is useful for:
+
 - Reducing startup time by deferring expensive imports
 - Making optional dependencies truly optional
 - Avoiding circular import issues

@@ -116,7 +116,7 @@ doing a partial pass now.
 - **FIXED** — **`BaseFileSaver.save`'s `exist_ok=True` path is not atomic
   against concurrent writers** — `src/coola/io/base.py:192-260`. The
   previous per-path lock (`_get_save_lock`) only serialized `save` calls
-  *within this process* via a `threading.Lock`; the docstring documented
+  _within this process_ via a `threading.Lock`; the docstring documented
   that `exist_ok=True` was not protected against other processes racing
   `tmp_path.replace(path)`. `save` now acquires a cross-process lock
   (`_save_lock`, in `src/coola/io/base.py`) that combines the existing
@@ -230,7 +230,7 @@ doing a partial pass now.
   uses a plain dict cache guarded by the registry's own lock, but
   `EqualityTesterRegistry.find_equality_tester`'s docstring claimed "Results
   are cached using an LRU cache (256 entries)" — yet the implementation just
-  calls `self._state.resolve(data_type)`, which is the *unbounded* dict
+  calls `self._state.resolve(data_type)`, which is the _unbounded_ dict
   cache in `TypeRegistry`, not an LRU. The stale docstring was rewritten to
   describe the actual (unbounded, per-instance) internal cache instead of
   claiming a bounded LRU that doesn't exist, in both
@@ -243,10 +243,10 @@ doing a partial pass now.
   inconsistent `KeyError` wording between `__getitem__`, `.resolve()` and
   `.unregister()`** — `TypeRegistry` previously produced three different
   strings for the same "lookup miss" condition: `"Type {key} is not
-  registered"` (no quotes, from `_not_registered_msg`, used by
+registered"` (no quotes, from `_not_registered_msg`, used by
   `unregister`), `"Type '{key}' is not registered"` (quoted, from
   `_getitem_not_registered_msg`, used by `__getitem__`), and `"Could not
-  find a registered type for {dtype}"` (a third, hardcoded message in
+find a registered type for {dtype}"` (a third, hardcoded message in
   `_resolve_uncached`). `TypeRegistry` now defines a single
   `_not_registered_msg` (`"Type '{key}' is not registered"`) and both
   `_resolve_uncached` and `unregister`/`__getitem__` (via the inherited
@@ -264,7 +264,7 @@ doing a partial pass now.
   cross-registry** — the docstring (`src/coola/registry/base.py:273-326`)
   called the operation atomic when `exist_ok=False` without qualifying what
   "atomic" meant: that guarantee is "either every key-value pair in the call
-  ends up registered in *this* registry, or none do," not cross-registry
+  ends up registered in _this_ registry, or none do," not cross-registry
   isolation — if the same mapping is registered into several registries in
   sequence, a failure on a later registry does not roll back an earlier,
   already-successful one. The docstring now states this explicitly. Covered
@@ -281,7 +281,7 @@ doing a partial pass now.
   (`src/coola/equality/interface.py:16-129`) accept a shared, possibly
   externally-constructed `registry: EqualityTesterRegistry` while
   constructing a fresh `EqualityConfig` per call — good — but nothing
-  prevents a caller from passing the *same* `EqualityConfig` instance into
+  prevents a caller from passing the _same_ `EqualityConfig` instance into
   two concurrent top-level calls (the API doesn't accept a pre-built config
   at all today, which actually protects against this). Just flag as a
   design constraint worth keeping in mind if a future PR adds a `config=`
@@ -294,12 +294,12 @@ doing a partial pass now.
   factory configuration, even when it was already a valid `cls` instance,
   raising a confusing `TypeError` ("missing the `_target_` key") instead of
   just returning the object. `resolve_object` now only takes the
-  factory-configuration branch for a `dict` when `cls` is *not* a `dict`
+  factory-configuration branch for a `dict` when `cls` is _not_ a `dict`
   subclass that `obj` already satisfies — i.e. when `cls` is itself a
   `dict` subclass (e.g. `Counter`, `OrderedDict`) and `obj` is already a
   valid instance of it, `obj` is returned as-is like any other pass-through
   case; a plain `dict` describing how to build such an instance, or a
-  `dict` subclass instance that is *not* a valid `cls` instance (e.g. a
+  `dict` subclass instance that is _not_ a valid `cls` instance (e.g. a
   `Counter` when `cls=OrderedDict`), is still treated as configuration as
   before. The docstring's **Note** was rewritten to describe the new,
   narrower rule. Covered by new tests in
@@ -321,9 +321,9 @@ doing a partial pass now.
   and `SupportsTolerantEqual` (`src/coola/equality/handler/tolerant.py:21-59`)
   Protocols duplicate the `allclose` method signature verbatim** (both
   declared the same `allclose(self, other, rtol=1e-5, atol=1e-8,
-  equal_nan=False) -> bool`). `SupportsTolerantEqual` now extends
+equal_nan=False) -> bool`). `SupportsTolerantEqual` now extends
   `SupportsAllCloseNan` (`class SupportsTolerantEqual(SupportsAllCloseNan,
-  Protocol)`) and only adds the `equal` method, removing the copy-pasted
+Protocol)`) and only adds the `equal` method, removing the copy-pasted
   `allclose` signature and docstring. Covered by two new tests in
   `tests/unit/equality/handler/test_tolerant.py`:
   `test_supports_tolerant_equal_extends_supports_allclose_nan` (asserts
@@ -358,7 +358,7 @@ doing a partial pass now.
   (`src/coola/display/mixin.py`), a mixin providing a default
   `_get_repr_kwargs` returning `{}`; a stateless class can now mix it in
   alongside `InlineDisplayMixin`/`MultilineDisplayMixin` (e.g. `class Foo(
-  NoArgsDisplayMixin, InlineDisplayMixin)`) instead of writing a trivial,
+NoArgsDisplayMixin, InlineDisplayMixin)`) instead of writing a trivial,
   content-free override, while a class with actual constructor arguments
   keeps overriding `_get_repr_kwargs` as before. Exported from
   `coola.display`. Covered by new tests in
@@ -442,7 +442,7 @@ doing a partial pass now.
   `config.registry.objects_are_equal` only once. The cache is per-call
   (a fresh dict each time), so it introduces no cross-call staleness for
   mutable objects — it only avoids redundant work for objects that are
-  still the same object *within* one comparison/hash. Docstrings for all
+  still the same object _within_ one comparison/hash. Docstrings for all
   three were updated to describe the new identity-based memoization.
   Covered by new tests asserting the underlying `registry.hash`/
   `objects_are_equal` mock is called once for a value repeated several
@@ -520,7 +520,7 @@ doing a partial pass now.
 
 - **Public functions accept `object` for `actual`/`expected` almost
   everywhere** (e.g. `objects_are_equal(actual: object, expected: object,
-  ...)` in `src/coola/equality/interface.py:83-91`), which is correct but
+...)` in `src/coola/equality/interface.py:83-91`), which is correct but
   means callers get no type-level help distinguishing "compatible" from
   "incompatible" types — inherent to the domain (comparing arbitrary
   objects), not a gap to fix, just noting that documentation (not typing) is
@@ -541,7 +541,7 @@ doing a partial pass now.
 - **STILL OPEN** — **`EqualityConfig.__post_init__` validates
   `atol`/`rtol`/`max_depth` but not `equal_nan`/`show_difference`/`registry`
   types** — confirmed still true (`src/coola/equality/config.py`). Reasonable, since
-  those are simple/duck-typed, but note the *type* of `registry` isn't
+  those are simple/duck-typed, but note the _type_ of `registry` isn't
   checked at all — passing a non-`EqualityTesterRegistry` object with a
   compatible-looking `objects_are_equal` method would work by duck typing
   (arguably a feature, not a bug), but passing something entirely wrong
@@ -606,7 +606,7 @@ doing a partial pass now.
   `PermissionError`.
 
 - **STILL OPEN** — **`TypeRegistry.resolve()` raises bare `KeyError`** (the
-  message text was unified as part of §2, but the exception *type* was not
+  message text was unified as part of §2, but the exception _type_ was not
   changed) — callers like `HasherRegistry.hash` still catch it narrowly
   (`except KeyError:` in `src/coola/hashing/registry.py`) to implement
   `ignore_unhashable`. No `TypeNotRegisteredError` (or similar `KeyError`
@@ -621,22 +621,22 @@ doing a partial pass now.
 
 File-count parity between `src/coola/<pkg>` and `tests/unit/<pkg>` is good
 overall (see table below), which suggests decent breadth, but file-count
-parity doesn't guarantee the *interesting* branches are covered:
+parity doesn't guarantee the _interesting_ branches are covered:
 
-| package | src files | test files |
-|---|---|---|
-| equality/handler | 21 | 21 |
-| equality/tester | 17 | 16 |
-| hashing | 14 | 13 |
-| io | 7 | 8 |
-| reducer | 6 | 5 |
-| recursive | 11 | 10 |
-| registry | 4 | 4 |
-| identifier | 13 | 14 |
-| iterator | 17 | 17 |
-| factory | 5 | 4 |
-| summary | 11 | 10 |
-| random | 7 | 6 |
+| package          | src files | test files |
+| ---------------- | --------- | ---------- |
+| equality/handler | 21        | 21         |
+| equality/tester  | 17        | 16         |
+| hashing          | 14        | 13         |
+| io               | 7         | 8          |
+| reducer          | 6         | 5          |
+| recursive        | 11        | 10         |
+| registry         | 4         | 4          |
+| identifier       | 13        | 14         |
+| iterator         | 17        | 17         |
+| factory          | 5         | 4          |
+| summary          | 11        | 10         |
+| random           | 7         | 6          |
 
 Specific gaps worth checking directly (not confirmed absent, but not seen in
 this pass and worth a targeted look given the findings above):
@@ -723,9 +723,9 @@ this pass and worth a targeted look given the findings above):
   methods are added in the future (e.g. a hypothetical `TypeRegistry.merge()`).
 
 - **`coola.io`'s `BaseLoader`/`BaseSaver` registering themselves into the
-  *equality* default registry as a side effect of module import**
+  _equality_ default registry as a side effect of module import**
   (`src/coola/io/base.py:375-377`: `get_default_registry().register_many({BaseLoader:
-  EqualNanEqualityTester(), BaseSaver: EqualNanEqualityTester()}, exist_ok=True)`
+EqualNanEqualityTester(), BaseSaver: EqualNanEqualityTester()}, exist_ok=True)`
   at module scope) is a cross-cutting, import-time side effect: merely
   importing `coola.io` mutates global state in `coola.equality`. This works
   today (the `exist_ok=True` avoids errors on re-import/re-registration) but
@@ -753,7 +753,7 @@ pattern already flagged elsewhere in this document (§1).
   sequences instead of validating them** — `src/coola/nested/conversion.py`.
   The docstring said "All the sequences should have the same length," but
   the implementation was `[dict(zip(mapping_of_seqs, seqs)) for seqs in
-  zip(*mapping_of_seqs.values())]` — plain `zip()` silently stopped at the
+zip(*mapping_of_seqs.values())]` — plain `zip()` silently stopped at the
   shortest sequence. `convert_to_list_of_dicts` now computes each sequence's
   length upfront and raises `ValueError` (message includes every key's
   length) if they're not all equal, before doing any `zip`-based
@@ -764,9 +764,9 @@ pattern already flagged elsewhere in this document (§1).
 - **FIXED** — **`convert_to_dict_of_lists` only read keys from the first
   mapping, with no validation that later mappings match** —
   `src/coola/nested/conversion.py`. `{key: [dic[key] for dic in
-  seq_of_mappings] for key in seq_of_mappings[0]}` meant a later mapping
+seq_of_mappings] for key in seq_of_mappings[0]}` meant a later mapping
   missing a key from the first raised a plain, unhelpful `KeyError`, and a
-  later mapping with *extra* keys not present in the first silently dropped
+  later mapping with _extra_ keys not present in the first silently dropped
   them from the output. `convert_to_dict_of_lists` now compares every
   mapping's key set against the first mapping's and raises `ValueError`
   (naming the offending index and both key sets) on any mismatch, before

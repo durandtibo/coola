@@ -9,14 +9,14 @@ top-level ones that trigger on events.
 
 Every file is prefixed by what it does:
 
-| Prefix       | Purpose                                                                                     |
-| ------------ | -------------------------------------------------------------------------------------------- |
-| `ci-`        | Quality/test checks, most of them reusable workflows called from `workflows/ci.yaml`.                  |
-| `lib-`       | Reusable workflows with no event trigger of their own; they only expose `workflow_call` outputs (e.g. reading a JSON config file) and are `needs:`-ed by other jobs. |
-| `bot-`       | Scheduled automation that pushes commits / opens PRs as the `ci-bot` GitHub App.              |
-| `nightly-`   | Scheduled checks against the *published* PyPI package (as opposed to `ci-*`, which checks the repo's source). |
-| `release-`   | Publishing: PyPI package, GitHub release assets, documentation.                              |
-| `security-`  | Supply-chain/security scanning (Scorecard, dependency review).                               |
+| Prefix      | Purpose                                                                                                                                                              |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ci-`       | Quality/test checks, most of them reusable workflows called from `workflows/ci.yaml`.                                                                                |
+| `lib-`      | Reusable workflows with no event trigger of their own; they only expose `workflow_call` outputs (e.g. reading a JSON config file) and are `needs:`-ed by other jobs. |
+| `bot-`      | Scheduled automation that pushes commits / opens PRs as the `ci-bot` GitHub App.                                                                                     |
+| `nightly-`  | Scheduled checks against the _published_ PyPI package (as opposed to `ci-*`, which checks the repo's source).                                                        |
+| `release-`  | Publishing: PyPI package, GitHub release assets, documentation.                                                                                                      |
+| `security-` | Supply-chain/security scanning (Scorecard, dependency review).                                                                                                       |
 
 `workflows/ci.yaml` is the entry point for pull requests/pushes to `main`; it fans out
 to the `ci-*.yaml` reusable workflows so each check can also be run/dispatched
@@ -24,7 +24,7 @@ on its own. Job ids in `ci.yaml` and in the workflows it calls are
 load-bearing for branch protection (see the comment at the top of `ci.yaml`)
 — keep them in sync if you rename either side.
 
-Two `ci-*` workflows are deliberately *not* called from `ci.yaml`, each
+Two `ci-*` workflows are deliberately _not_ called from `ci.yaml`, each
 standalone with its own trigger instead: `ci-benchmark.yaml` runs nightly on
 its own schedule rather than gating every PR/push, since a benchmark
 regression isn't a merge blocker; `ci-verify-workflows.yaml` lints
@@ -34,12 +34,12 @@ than every PR/push.
 ## Composite actions vs. reusable workflows
 
 - **`.github/actions/*`** (composite actions): used when the shared unit is a
-  handful of *steps* inside a single job (e.g. checkout + `uv` setup,
+  handful of _steps_ inside a single job (e.g. checkout + `uv` setup,
   generating a bot token + checking out, or opening the resulting PR as
   ci-bot). Composite actions cannot produce a job-level output usable in a
   `strategy.matrix`.
 - **`.github/workflows/lib-*.yaml`** (reusable workflows called with `uses:
-  ./.github/workflows/lib-....yaml`): used when the output needs to feed a
+./.github/workflows/lib-....yaml`): used when the output needs to feed a
   matrix, or when the shared logic is naturally a whole job (e.g. reading
   `../dev/config/test_matrix.json` once and handing the JSON down to several
   jobs via `needs:`).
@@ -85,7 +85,7 @@ Values that would otherwise be duplicated across workflows are centralized in
   dependencies against, read by `lib-get-package-versions.yaml` and kept
   current by `bot-generate-package-versions.yaml`.
 
-Optional-dependency *names* are never duplicated in config: they're read
+Optional-dependency _names_ are never duplicated in config: they're read
 directly from `../pyproject.toml`'s `[project.optional-dependencies]` by the
 `durandtibo/extract-pyproject-metadata-action` composite action /
 `lib-get-package-extras.yaml`, so a

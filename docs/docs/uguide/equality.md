@@ -74,7 +74,7 @@ False
 
 ```
 
-*Output*:
+_Output_:
 
 ```textmate
 actual=
@@ -114,7 +114,7 @@ False
 
 ```
 
-*Output*:
+_Output_:
 
 ```textmate
 numbers are different:
@@ -132,7 +132,7 @@ False
 
 ```
 
-*Output*:
+_Output_:
 
 ```textmate
 mappings have different keys:
@@ -300,7 +300,7 @@ False
 
 ```
 
-*Output*:
+_Output_:
 
 ```textmate
 torch.Tensors are different:

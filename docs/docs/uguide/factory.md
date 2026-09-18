@@ -107,10 +107,10 @@ datetime.date(2020, 1, 1)
 ```
 
 !!! warning
-    Any `dict` (including `dict` subclasses such as `Counter` or `OrderedDict`) is always
-    treated as a factory configuration, even when it is already a valid instance of the
-    expected class. Do not use `resolve_object` to resolve objects whose expected type is
-    itself a `dict` subclass.
+Any `dict` (including `dict` subclasses such as `Counter` or `OrderedDict`) is always
+treated as a factory configuration, even when it is already a valid instance of the
+expected class. Do not use `resolve_object` to resolve objects whose expected type is
+itself a `dict` subclass.
 
 ## Checking if a configuration targets a class
 

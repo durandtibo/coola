@@ -11,19 +11,19 @@ For a refresher, see the [Python tutorial](https://docs.python.org/tutorial/).
 The `coola.identifier` package provides several identifier generators, covering two different
 problems:
 
-| Function                       | Same data → same ID? | Format               | Use case                                                    |
-|---------------------------------|:---------------------:|-----------------------|---------------------------------------------------------------|
-| `generate_stable_uuid5`          | :white_check_mark:    | UUID string           | Reproducible ID, needs a valid UUID (e.g. UUID DB column)      |
-| `generate_stable_content_id`    | :white_check_mark:    | hex string            | Reproducible ID, full hash strength (dedup, caching)           |
-| `generate_ulid`                 | :x:                   | 26-char string         | Unique, sortable-by-creation-time ID                           |
-| `generate_uuid7`                | :x:                   | UUID string            | Unique, sortable-by-creation-time ID, needs a valid UUID       |
-| `generate_snowflake_id`         | :x:                   | 64-bit integer        | Unique, sortable-by-creation-time ID as a single integer        |
-| `generate_object_id`            | :x:                   | 24-char hex string    | Unique, sortable-by-creation-time ID, never blocks/raises        |
-| `generate_uuid4`                | :x:                   | UUID string            | Plain random ID, needs a valid UUID, no ordering                |
-| `generate_nano_id`              | :x:                   | configurable string   | Short, URL-safe random ID with custom alphabet/length            |
-| `generate_checksummed_id`       | :x:                   | grouped string         | Random ID with a check symbol, for identifiers humans retype     |
-| `generate_obfuscated_id`        | reversible, not random| base62 string          | Obfuscates an existing sequential integer, decodable with `decode_obfuscated_id` |
-| `generate_prefixed_id`          | depends on generator  | `"{prefix}_{id}"`     | Wraps any of the above so the ID's type is recognizable at a glance |
+| Function                     |  Same data → same ID?  | Format              | Use case                                                                         |
+| ---------------------------- | :--------------------: | ------------------- | -------------------------------------------------------------------------------- |
+| `generate_stable_uuid5`      |   :white_check_mark:   | UUID string         | Reproducible ID, needs a valid UUID (e.g. UUID DB column)                        |
+| `generate_stable_content_id` |   :white_check_mark:   | hex string          | Reproducible ID, full hash strength (dedup, caching)                             |
+| `generate_ulid`              |          :x:           | 26-char string      | Unique, sortable-by-creation-time ID                                             |
+| `generate_uuid7`             |          :x:           | UUID string         | Unique, sortable-by-creation-time ID, needs a valid UUID                         |
+| `generate_snowflake_id`      |          :x:           | 64-bit integer      | Unique, sortable-by-creation-time ID as a single integer                         |
+| `generate_object_id`         |          :x:           | 24-char hex string  | Unique, sortable-by-creation-time ID, never blocks/raises                        |
+| `generate_uuid4`             |          :x:           | UUID string         | Plain random ID, needs a valid UUID, no ordering                                 |
+| `generate_nano_id`           |          :x:           | configurable string | Short, URL-safe random ID with custom alphabet/length                            |
+| `generate_checksummed_id`    |          :x:           | grouped string      | Random ID with a check symbol, for identifiers humans retype                     |
+| `generate_obfuscated_id`     | reversible, not random | base62 string       | Obfuscates an existing sequential integer, decodable with `decode_obfuscated_id` |
+| `generate_prefixed_id`       |  depends on generator  | `"{prefix}_{id}"`   | Wraps any of the above so the ID's type is recognizable at a glance              |
 
 `generate_stable_uuid5` and `generate_stable_content_id` are content-addressed: they are built on
 top of [`coola.hashing`](../refs/hashing.md)'s `hash_object`, so calling them twice with equal data

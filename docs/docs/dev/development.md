@@ -179,26 +179,30 @@ coola/
 ### Adding a New Feature
 
 1. **Create a new branch:**
+
    ```shell
    git checkout -b feature/my-feature
    ```
 
 2. **Implement the feature:**
-    - Write code in `src/coola/`
-    - Add tests in `tests/unit/`
-    - Update documentation in `docs/docs/`
+   - Write code in `src/coola/`
+   - Add tests in `tests/unit/`
+   - Update documentation in `docs/docs/`
 
 3. **Run tests:**
+
    ```shell
    inv unit-test --cov
    ```
 
 4. **Run code quality checks:**
+
    ```shell
    pre-commit run --all-files
    ```
 
 5. **Commit changes:**
+
    ```shell
    git add .
    git commit -m "Add: brief description of feature"
@@ -212,6 +216,7 @@ coola/
 ### Fixing a Bug
 
 1. **Create a branch:**
+
    ```shell
    git checkout -b fix/bug-description
    ```
@@ -221,11 +226,13 @@ coola/
 3. **Fix the bug**
 
 4. **Verify the test passes:**
+
    ```shell
    pytest tests/unit/path/to/test.py
    ```
 
 5. **Run full test suite:**
+
    ```shell
    inv unit-test --cov
    ```
@@ -252,6 +259,7 @@ uv pip compile pyproject.toml -o requirements.txt
 ### Writing Good Tests
 
 1. **Use descriptive names:**
+
    ```python
    def test_objects_are_equal_with_identical_dicts_returns_true(): ...
 
@@ -260,12 +268,13 @@ uv pip compile pyproject.toml -o requirements.txt
    ```
 
 2. **Test edge cases:**
-    - Empty collections
-    - None values
-    - Large data
-    - Deeply nested structures
+   - Empty collections
+   - None values
+   - Large data
+   - Deeply nested structures
 
 3. **Use fixtures for common data:**
+
    ```python
    @pytest.fixture
    def sample_tensor():
@@ -292,18 +301,17 @@ uv pip compile pyproject.toml -o requirements.txt
 The project uses GitHub Actions for CI. Workflows are in `.github/workflows/`:
 
 - **CI**: Runs on every push and PR
-    - Linting
-    - Tests
-    - Coverage
+  - Linting
+  - Tests
+  - Coverage
 
 - **Documentation**: Builds and deploys docs
-    - Builds on every push
-    - Deploys on release
+  - Builds on every push
+  - Deploys on release
 
 - **Nightly Tests**: Tests against latest dependencies
-    - Runs daily
-    - Tests multiple Python versions
-
+  - Runs daily
+  - Tests multiple Python versions
 
 ## Best Practices
 

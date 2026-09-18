@@ -167,6 +167,7 @@ The recursive nature of comparison through nested structures follows a visitor-l
 To add support for a custom type:
 
 1. **Implement a Comparator:**
+
    ```python
    class MyTypeComparator(BaseEqualityComparator):
        def equal(self, actual: MyType, expected: Any, config: EqualityConfig) -> bool:
@@ -182,6 +183,7 @@ To add support for a custom type:
    ```
 
 2. **Register the Comparator:**
+
    ```python
    tester = EqualityTester.local_copy()
    tester.add_comparator(MyType, MyTypeComparator())

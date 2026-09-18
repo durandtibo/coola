@@ -23,12 +23,14 @@ Once you implement and test your feature or bug-fix, please submit a Pull Reques
 ### Setting Up Your Development Environment
 
 1. **Fork and clone the repository:**
+
    ```shell
    git clone https://github.com/YOUR-USERNAME/coola.git
    cd coola
    ```
 
 2. **Set up the development environment:**
+
    ```shell
    make setup-venv
    ```
@@ -36,6 +38,7 @@ Once you implement and test your feature or bug-fix, please submit a Pull Reques
    This will install `uv` (if needed), create a virtual environment, and install all dependencies.
 
 3. **Activate the virtual environment:**
+
    ```shell
    source .venv/bin/activate
    ```
@@ -50,16 +53,19 @@ Once you implement and test your feature or bug-fix, please submit a Pull Reques
 ### Running Tests
 
 Run all unit tests:
+
 ```shell
 inv unit-test
 ```
 
 Run tests with coverage:
+
 ```shell
 inv unit-test --cov
 ```
 
 Run specific tests:
+
 ```shell
 pytest tests/unit/path/to/test_file.py
 ```
@@ -67,21 +73,25 @@ pytest tests/unit/path/to/test_file.py
 ### Code Quality
 
 **Format your code:**
+
 ```shell
 inv check-format
 ```
 
 **Run linter:**
+
 ```shell
 inv check-lint
 ```
 
 **Format docstrings:**
+
 ```shell
 inv docformat
 ```
 
 **Run all pre-commit checks:**
+
 ```shell
 pre-commit run --all-files
 ```
@@ -89,6 +99,7 @@ pre-commit run --all-files
 ### Building Documentation
 
 Build documentation locally:
+
 ```shell
 mkdocs serve -f docs/mkdocs.yml
 ```
@@ -102,6 +113,7 @@ We actively welcome your pull requests.
 ### Pull Request Process
 
 1. **Fork the repo and create your branch from `main`:**
+
    ```shell
    git checkout -b feature/my-new-feature
    ```
@@ -112,22 +124,26 @@ We actively welcome your pull requests.
    - Update documentation if needed
 
 3. **Ensure tests pass:**
+
    ```shell
    inv unit-test --cov
    ```
 
 4. **Run code quality checks:**
+
    ```shell
    pre-commit run --all-files
    ```
 
 5. **Commit your changes:**
+
    ```shell
    git add .
    git commit -m "Add feature: description of feature"
    ```
 
 6. **Push to your fork:**
+
    ```shell
    git push origin feature/my-new-feature
    ```
@@ -173,6 +189,7 @@ When reporting bugs, please include:
 ## Bug: objects_are_equal fails with custom type
 
 **Environment:**
+
 - coola version: 0.9.1
 - Python version: 3.10.8
 - OS: Ubuntu 22.04
@@ -182,8 +199,8 @@ When reporting bugs, please include:
 from coola.equality import objects_are_equal
 
 class MyClass:
-    def __init__(self, value):
-        self.value = value
+def **init**(self, value):
+self.value = value
 
 obj1 = MyClass(42)
 obj2 = MyClass(42)
@@ -197,7 +214,7 @@ objects_are_equal(obj1, obj2)
 **Error:**
 \`\`\`
 Traceback (most recent call last):
-  ...
+...
 \`\`\`
 ```
 
@@ -228,7 +245,7 @@ For feature requests, please include:
 
 **Example:**
 
-```python
+````python
 def my_function(param1: int, param2: str) -> bool:
     """Brief description of the function.
 
@@ -254,7 +271,7 @@ def my_function(param1: int, param2: str) -> bool:
     if param1 < 0:
         raise ValueError("param1 must be non-negative")
     return param2.startswith("h")
-```
+````
 
 ### Testing Standards
 
@@ -315,6 +332,7 @@ Follow these conventions:
 - **Build:** Changes to build system or dependencies
 
 **Examples:**
+
 - `Add: Support for custom comparators`
 - `Fix: Handle NaN values correctly in numpy arrays`
 - `Update: Improve error messages for type mismatches`
@@ -335,6 +353,7 @@ By participating in this project you agree to abide by its terms.
 ### Recognition
 
 Contributors will be:
+
 - Listed in release notes
 - Credited in the contributors list
 - Mentioned in relevant documentation
@@ -348,6 +367,7 @@ of this source tree.
 ## Questions?
 
 If you have questions about contributing, feel free to:
+
 - Open an issue with the "question" label
 - Check the [FAQ](https://durandtibo.github.io/coola/faq)
 - Review existing issues and pull requests

@@ -449,7 +449,7 @@ The `coola.registry` package design provides:
 ## Comparison: Registry vs TypeRegistry
 
 | Feature    | Registry                  | TypeRegistry              |
-|------------|---------------------------|---------------------------|
+| ---------- | ------------------------- | ------------------------- |
 | Key type   | Any hashable              | Python types only         |
 | MRO lookup | No                        | Yes (via `resolve()`)     |
 | Caching    | No                        | Yes (for type resolution) |

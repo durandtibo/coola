@@ -60,7 +60,7 @@ You can use `recursive_apply` with different data structures:
 
 ```
 
-```
+````
 
 **Mixed nested structures:**
 
@@ -74,7 +74,7 @@ You can use `recursive_apply` with different data structures:
 >>> recursive_apply(data, lambda x: x + 100)
 {'list': [101, 102, 103], 'dict': {'a': 104, 'b': 105}, 'value': 108}
 
-```
+````
 
 ## Advanced Usage
 
@@ -142,6 +142,7 @@ The package maintains a singleton default registry with transformers for common 
 ```
 
 The default registry includes transformers for:
+
 - Scalar types: `int`, `float`, `complex`, `bool`, `str`
 - Sequences: `list`, `tuple`, `Sequence` (ABC)
 - Sets: `set`, `frozenset`

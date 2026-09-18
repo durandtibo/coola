@@ -5,7 +5,7 @@
 We release patches for security vulnerabilities. The following versions are currently supported:
 
 | Version | Supported          |
-|---------|--------------------|
+| ------- | ------------------ |
 | 1.1.x   | :white_check_mark: |
 | < 1.1.0 | :x:                |
 
