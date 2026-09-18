@@ -20,6 +20,12 @@ update-subtree:
 	git remote add $(SHARED_MAKEFILES_REMOTE_NAME) $(SHARED_MAKEFILES_REMOTE_URL) || true
 	git fetch $(SHARED_MAKEFILES_REMOTE_NAME) $(SHARED_MAKEFILES_BRANCH)
 	git subtree pull --prefix=$(SHARED_MAKEFILES_PREFIX) $(SHARED_MAKEFILES_REMOTE_NAME) $(SHARED_MAKEFILES_BRANCH) --squash -m "chore: sync shared Makefile subtree" || true
+	@if [ -d "$(SHARED_MAKEFILES_PREFIX)/.github" ] || [ -d "$(SHARED_MAKEFILES_PREFIX)/testdata" ]; then \
+		echo "🧹 Removing .github/ and testdata/ from $(SHARED_MAKEFILES_PREFIX)..."; \
+		git rm -rq --ignore-unmatch $(SHARED_MAKEFILES_PREFIX)/.github $(SHARED_MAKEFILES_PREFIX)/testdata; \
+		rm -rf $(SHARED_MAKEFILES_PREFIX)/.github $(SHARED_MAKEFILES_PREFIX)/testdata; \
+		git commit -m "chore: remove .github and testdata from synced subtree" || true; \
+	fi
 	@echo "✅ Subtree sync complete"
 
 endif
