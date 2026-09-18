@@ -10,7 +10,7 @@ YAML_MK_INCLUDED := 1
 YAML_FORMAT_PATH ?= .
 YAML_LINT_PATH ?= .
 
-include prettier.mk
+include $(dir $(lastword $(MAKEFILE_LIST)))prettier.mk
 
 .PHONY: format-yaml
 format-yaml: install-prettier
