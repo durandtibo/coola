@@ -11,13 +11,13 @@ Makefile include would be reused, instead of copy-pasting `tasks.py` into every 
 
 ### Option 1 — Separate pip-installable package
 
-Put the shared tasks in an installable package (e.g. `invoke-common-tasks`).
+Put the shared tasks in an installable package (e.g. `invoke-tasklib`).
 Each project's `tasks.py` imports the tasks it needs and composes its own
 `Collection`, with project-specific values passed through `invoke`'s config system.
 
 ```python
 from invoke import Collection
-from invoke_common_tasks import lint, test, build
+from invoke_tasklib import lint, test, build
 
 ns = Collection(lint, test, build)
 ns.configure({"package": {"name": "coola"}})
@@ -51,7 +51,7 @@ env vars, CLI flags) rather than per-project Python composition.
 
 ```python
 # tasks.py — identical in every project
-from invoke_common_tasks import ns
+from invoke_tasklib import ns
 ```
 
 ```yaml
@@ -84,10 +84,15 @@ Default to Option 3 (identical `tasks.py`, config-driven) for the common case, b
 allow a project to drop down to Option 1's explicit `Collection` composition when it
 truly needs a custom task or subset.
 
+## Package name
+
+- **Name**: `invoke-tasklib` (available on PyPI at the time of writing)
+- **Description**: "Reusable Invoke tasks shared across Python projects."
+
 ## Plan
 
 ### Phase 1 — Extract and design the shared package
-1. Create `invoke-common-tasks` repo (standalone, or inside an existing internal
+1. Create `invoke-tasklib` repo (standalone, or inside an existing internal
    tools monorepo).
 2. Inventory current tasks across projects (starting with `coola`'s `tasks.py`) and
    group into modules by concern: `lint.py`, `format.py`, `test.py`, `docs.py`,
@@ -113,7 +118,7 @@ truly needs a custom task or subset.
 ### Phase 3 — Standard integration path (identical `tasks.py`)
 1. Standard per-project `tasks.py`:
    ```python
-   from invoke_common_tasks import ns
+   from invoke_tasklib import ns
    ```
 2. Standard per-project `invoke.yaml`:
    ```yaml
@@ -127,7 +132,7 @@ truly needs a custom task or subset.
    the pre-built `ns`, and build a custom `Collection`:
    ```python
    from invoke import Collection
-   from invoke_common_tasks import lint, test, docs
+   from invoke_tasklib import lint, test, docs
    from . import my_custom_task
 
    ns = Collection(lint, test, docs, my_custom_task)
@@ -149,7 +154,7 @@ truly needs a custom task or subset.
    available (branch/stash) until verified.
 
 ### Phase 6 — Maintenance workflow
-1. Changes to shared tasks -> bump version in `invoke-common-tasks` -> update
+1. Changes to shared tasks -> bump version in `invoke-tasklib` -> update
    changelog.
 2. Each project upgrades its pin independently; CI runs `invoke --list` + key tasks
    after bumping.
