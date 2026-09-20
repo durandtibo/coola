@@ -184,3 +184,23 @@ def test_get_password_unicode_characters() -> None:
     unicode_password = "пароль密码🔒"  # noqa: S105
     with patch("getpass.getpass", return_value=unicode_password):
         assert get_password() == unicode_password
+
+
+@pytest.mark.usefixtures("mock_interactive_terminal")
+def test_get_password_confirm_unicode_characters_match() -> None:
+    """Test that unicode passwords can be confirmed without raising
+    TypeError."""
+    unicode_password = "пароль密码🔒"  # noqa: S105
+    with patch("getpass.getpass", side_effect=[unicode_password, unicode_password]):
+        assert get_password(confirm=True) == unicode_password
+
+
+@pytest.mark.usefixtures("mock_interactive_terminal")
+def test_get_password_confirm_unicode_characters_mismatch() -> None:
+    """Test that mismatched unicode passwords raise ValueError, not
+    TypeError."""
+    with (
+        patch("getpass.getpass", side_effect=["пароль密码🔒", "other🔒"]),
+        pytest.raises(ValueError, match="Passwords do not match"),
+    ):
+        get_password(confirm=True)
