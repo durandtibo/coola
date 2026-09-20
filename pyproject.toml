@@ -71,7 +71,6 @@ rich = ["rich>=14.0.0,<16.0"]
 
 [dependency-groups]
 dev = [
-    "black>=26.5.1",
     "coverage[toml]>=7.15,<8.0",
     "docformatter[tomli]>=1.7.8,<2.0",
     "feu[all]>=0.8.1,<1.0",
@@ -103,6 +102,10 @@ Issues = "https://github.com/durandtibo/coola/issues"
 
 [tool.uv.pip]
 torch-backend = "auto"
+
+[tool.codespell]
+skip = "*.lock,./.git,./htmlcov,./docs/site,coverage.xml"
+ignore-regex = "re-declared|\\btha\\.\\.\\."
 
 [tool.coverage.paths]
 source = ["src", "*/site-packages"]
@@ -136,9 +139,6 @@ include = '\.pyi?$'
 [tool.pylint.FORMAT]
 max-line-length = 100
 
-[tool.isort]
-profile = "black"
-
 [tool.docformatter]
 recursive = true
 wrap-summaries = 72
@@ -162,6 +162,7 @@ lint.select = [
     "F", # pyflakes
     "FA", # flake8-future-annotations
     "FURB", # refurb
+    "I", # isort
     "ICN", # flake8-import-conventions
     "INP", # flake8-no-pep420
     "ISC", # flake8-implicit-str-concat
@@ -223,6 +224,7 @@ lint.fixable = [
     "F", # pyflakes
     "FA", # flake8-future-annotations
     "FURB", # refurb
+    "I", # isort
     "ICN", # flake8-import-conventions
     "INP", # flake8-no-pep420
     "ISC", # flake8-implicit-str-concat
@@ -301,7 +303,7 @@ convention = "google"
 max-doc-length = 72
 
 [tool.ruff.lint.isort]
-force-sort-within-sections = true
+force-sort-within-sections = false
 combine-as-imports = true
 known-first-party = ["src"]
 

@@ -25,17 +25,17 @@ PYTHON_VERSION = "3.14"
 
 @task
 def check_format(c: Context) -> None:
-    r"""Check code format with black.
+    r"""Check code format with ruff.
 
-    This task verifies that all Python code follows Black's formatting rules
+    This task verifies that all Python code follows ruff's formatting rules
     without modifying any files. Use the 'format' task to automatically fix
     formatting issues.
 
     Args:
         c: The invoke context.
     """
-    logger.info("🎨 Checking code format with black...")
-    c.run("black --check .", pty=True)
+    logger.info("🎨 Checking code format with ruff...")
+    c.run("ruff format --check .", pty=True)
     logger.info("✅ Code format check passed")
 
 

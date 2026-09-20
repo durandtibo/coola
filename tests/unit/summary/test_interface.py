@@ -14,9 +14,10 @@ from coola.summary import (
     SummarizerRegistry,
     TensorSummarizer,
     get_default_registry,
+    interface as summary_interface,
+    register_summarizers,
+    summarize,
 )
-from coola.summary import interface as summary_interface
-from coola.summary import register_summarizers, summarize
 from coola.testing.fixtures import numpy_available, torch_available
 from coola.utils.imports import is_numpy_available, is_torch_available
 

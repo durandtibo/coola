@@ -28,7 +28,7 @@ find_cmd="find ."
 for folder in "${exclude_folders[@]}"; do
 	find_cmd+=" -path \"./$folder\" -prune -o"
 done
-find_cmd+=" -type f -name \"*.md\" -print"
+find_cmd+=' -type f -name "*.md" -print'
 
 # Execute the find command and capture files
 files=$(eval "$find_cmd")

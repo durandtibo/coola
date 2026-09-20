@@ -13,9 +13,9 @@ from coola.iterator.bfs import (
     IterableChildFinder,
     MappingChildFinder,
     get_default_registry,
+    interface as bfs_interface,
+    register_child_finders,
 )
-from coola.iterator.bfs import interface as bfs_interface
-from coola.iterator.bfs import register_child_finders
 from tests.unit.iterator.bfs.helpers import (
     DEFAULT_ITERATE_SAMPLES,
     ITERATE_SAMPLES,

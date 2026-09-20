@@ -11,9 +11,9 @@ from coola.random import (
     RandomManagerRegistry,
     RandomRandomManager,
     get_default_registry,
+    interface as random_interface,
+    register_managers,
 )
-from coola.random import interface as random_interface
-from coola.random import register_managers
 from coola.random.interface import (
     get_rng_state,
     manual_seed,

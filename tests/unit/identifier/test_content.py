@@ -4,8 +4,7 @@ import re
 
 import pytest
 
-from coola.hashing import HasherRegistry, ReprHasher, StringHasher
-from coola.hashing import interface as hashing_interface
+from coola.hashing import HasherRegistry, ReprHasher, StringHasher, interface as hashing_interface
 from coola.identifier.content import generate_stable_content_id
 
 HEX_PATTERN = re.compile(r"^[0-9a-f]+$")

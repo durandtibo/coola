@@ -7,9 +7,9 @@ import pytest
 from coola.equality import objects_are_equal
 from coola.equality.tester import (
     SequenceEqualityTester,
+    interface as tester_interface,
+    register_equality_testers,
 )
-from coola.equality.tester import interface as tester_interface
-from coola.equality.tester import register_equality_testers
 
 if TYPE_CHECKING:
     from collections.abc import Generator

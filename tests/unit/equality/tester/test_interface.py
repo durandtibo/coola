@@ -29,9 +29,9 @@ from coola.equality.tester import (
     XarrayDatasetEqualityTester,
     XarrayVariableEqualityTester,
     get_default_registry,
+    interface as tester_interface,
+    register_equality_testers,
 )
-from coola.equality.tester import interface as tester_interface
-from coola.equality.tester import register_equality_testers
 from coola.equality.tester.jax import get_array_impl_class
 from coola.utils.imports import (
     is_jax_available,
