@@ -151,7 +151,6 @@ Generic tester that uses Python's `==` operator:
 >>> class MyList(list):
 ...     def equal(self, other: object) -> bool:
 ...         return self == other
-...
 >>> config = EqualityConfig()
 >>> tester = EqualEqualityTester()
 >>> tester.objects_are_equal(MyList([1, 2, 3]), MyList([1, 2, 3]), config)
@@ -368,7 +367,6 @@ You can register custom testers for your own types:
 >>> class MyClass:
 ...     def __init__(self, value):
 ...         self.value = value
-...
 >>> # Register a tester for MyClass (modifies the global default registry)
 >>> # Note: This is skipped in doctests to avoid side effects on the global state
 >>> register_equality_testers({MyClass: DefaultEqualityTester()})  # doctest: +SKIP
@@ -419,6 +417,7 @@ To create a custom tester, inherit from `BaseEqualityTester`:
 ... )
 >>> class MyObjectEqualityTester(BaseEqualityTester):
 ...     """Tester for objects with a 'value' attribute."""
+...
 ...     def __init__(self):
 ...         self._handler = create_chain(
 ...             SameObjectHandler(),
@@ -426,11 +425,12 @@ To create a custom tester, inherit from `BaseEqualityTester`:
 ...             SameAttributeHandler("value"),
 ...             TrueHandler(),
 ...         )
+...
 ...     def equal(self, other: object) -> bool:
 ...         return type(other) is type(self)
+...
 ...     def objects_are_equal(self, actual, expected, config: EqualityConfig) -> bool:
 ...         return self._handler.handle(actual, expected, config)
-...
 
 ```
 
@@ -537,7 +537,6 @@ Testers are commonly used in testing frameworks:
 ...     config = EqualityConfig(show_difference=True)
 ...     if not registry.objects_are_equal(actual, expected, config):
 ...         raise AssertionError(f"{actual} != {expected}")
-...
 >>> assert_equal([1, 2, 3], [1, 2, 3])  # Passes
 >>> # assert_equal([1, 2, 3], [1, 2, 4])  # Would raise AssertionError
 
@@ -563,9 +562,9 @@ Add support for your custom types:
 ...     def __init__(self, x, y):
 ...         self.x = x
 ...         self.y = y
+...
 ...     def __eq__(self, other):
 ...         return isinstance(other, Point) and self.x == other.x and self.y == other.y
-...
 >>> class PointEqualityTester(BaseEqualityTester):
 ...     def __init__(self):
 ...         self._handler = create_chain(
@@ -573,11 +572,12 @@ Add support for your custom types:
 ...             SameTypeHandler(),
 ...             ObjectEqualHandler(),
 ...         )
+...
 ...     def equal(self, other):
 ...         return type(other) is type(self)
+...
 ...     def objects_are_equal(self, actual, expected, config):
 ...         return self._handler.handle(actual, expected, config)
-...
 >>> # Register the tester (modifies global state, so skipped in doctests)
 >>> register_equality_testers({Point: PointEqualityTester()})  # doctest: +SKIP
 

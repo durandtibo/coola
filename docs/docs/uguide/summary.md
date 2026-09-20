@@ -277,9 +277,7 @@ For very long strings or values, you can use `DefaultSummarizer` with `max_chara
 
 ```pycon
 >>> from coola.summary import SummarizerRegistry, DefaultSummarizer
->>> long_string = (
-...     "This is a very long string that should be truncated when max_characters is set"
-... )
+>>> long_string = "This is a very long string that should be truncated when max_characters is set"
 >>> registry = SummarizerRegistry()
 >>> registry.register(object, DefaultSummarizer(max_characters=30))
 >>> print(registry.summarize(long_string))
@@ -414,13 +412,12 @@ To create a custom summarizer for your own types, extend `BaseSummarizer`:
 ...     def __init__(self, name, age):
 ...         self.name = name
 ...         self.age = age
-...
 >>> class PersonSummarizer(BaseSummarizer):
 ...     def equal(self, other: object) -> bool:
 ...         return type(self) is type(other)
+...
 ...     def summarize(self, data, registry, depth=0, max_depth=1):
 ...         return f"Person(name={data.name!r}, age={data.age})"
-...
 
 ```
 

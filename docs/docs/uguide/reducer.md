@@ -202,7 +202,6 @@ This is useful when writing library code that should work with whatever the user
 ...         "std": reducer.std(data),
 ...         "median": reducer.median(data),
 ...     }
-...
 >>> compute_statistics([1, 2, 3, 4, 5])
 {'mean': 3.0, 'std': 1.58113..., 'median': 3}
 
@@ -221,7 +220,6 @@ Most operations raise `EmptySequenceError` when given an empty sequence:
 ...     reducer.mean([])
 ... except EmptySequenceError as e:
 ...     print(f"Error: {e}")
-...
 Error: Cannot compute the mean because the sequence is empty
 
 ```
@@ -328,10 +326,13 @@ method:
 >>> class CustomReducer(BaseBasicReducer[T]):
 ...     def _is_empty(self, values: T) -> bool:
 ...         return len(values) == 0
+...
 ...     def _max(self, values: T) -> int | float:
 ...         return max(values)
+...
 ...     def _mean(self, values: T) -> float:
 ...         return sum(values) / len(values)
+...
 ...     def _median(self, values: T) -> int | float:
 ...         sorted_vals = sorted(values)
 ...         n = len(sorted_vals)
@@ -339,19 +340,22 @@ method:
 ...         if n % 2 == 0:
 ...             return (sorted_vals[mid - 1] + sorted_vals[mid]) / 2
 ...         return sorted_vals[mid]
+...
 ...     def _min(self, values: T) -> int | float:
 ...         return min(values)
+...
 ...     def _quantile(self, values: T, quantiles: Sequence[float]) -> list[float]:
 ...         # Custom quantile implementation
 ...         sorted_vals = sorted(values)
 ...         n = len(sorted_vals)
 ...         return [sorted_vals[int(q * (n - 1))] for q in quantiles]
+...
 ...     def _std(self, values: T) -> float:
 ...         m = self._mean(values)
 ...         return (sum((x - m) ** 2 for x in values) / len(values)) ** 0.5
+...
 ...     def sort(self, values: T, descending: bool = False) -> list[int | float]:
 ...         return sorted(values, reverse=descending)
-...
 >>> reducer = CustomReducer()
 >>> reducer.mean([1, 2, 3, 4, 5])
 3.0

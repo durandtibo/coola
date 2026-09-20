@@ -882,13 +882,9 @@ You can use `objects_are_allclose` to compare objects with NaNs.
 >>> import numpy as np
 >>> import xarray as xr
 >>> from coola.equality import objects_are_equal
->>> objects_are_equal(
-...     xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"])
-... )
+>>> objects_are_equal(xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"]))
 True
->>> objects_are_equal(
-...     xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.zeros(6), dims=["z"])
-... )
+>>> objects_are_equal(xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.zeros(6), dims=["z"]))
 False
 
 ```
@@ -1238,13 +1234,9 @@ You can use `objects_are_allclose` to compare objects with NaNs.
 >>> import numpy as np
 >>> import xarray as xr
 >>> from coola.equality import objects_are_allclose
->>> objects_are_allclose(
-...     xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"])
-... )
+>>> objects_are_allclose(xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"]))
 True
->>> objects_are_allclose(
-...     xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.zeros(6), dims=["z"])
-... )
+>>> objects_are_allclose(xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.zeros(6), dims=["z"]))
 False
 
 ```
@@ -1260,7 +1252,6 @@ The equality functions are particularly useful in unit tests:
 >>> def process_data(data):
 ...     # Some data processing
 ...     return {"result": [x * 2 for x in data]}
-...
 >>> result = process_data([1, 2, 3])
 >>> expected = {"result": [2, 4, 6]}
 >>> assert objects_are_equal(result, expected)

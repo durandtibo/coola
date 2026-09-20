@@ -299,13 +299,10 @@ The `resolve()` method walks the MRO to find the most specific registered type:
 >>> from coola.registry import TypeRegistry
 >>> class Animal:
 ...     pass
-...
 >>> class Dog(Animal):
 ...     pass
-...
 >>> class Poodle(Dog):
 ...     pass
-...
 >>> registry = TypeRegistry[str]()
 >>> registry.register(Animal, "animal")
 >>> registry.register(Dog, "dog")
@@ -347,14 +344,11 @@ protect concurrent access:
 >>> registry = Registry[str, int]()
 >>> def worker(key, value):
 ...     registry.register(key, value, exist_ok=True)
-...
 >>> threads = [threading.Thread(target=worker, args=(f"key{i}", i)) for i in range(10)]
 >>> for t in threads:
 ...     t.start()
-...
 >>> for t in threads:
 ...     t.join()
-...
 >>> len(registry) == 10
 True
 
@@ -371,10 +365,8 @@ Use a registry to manage plugins:
 >>> plugin_registry = Registry[str, type]()
 >>> class JSONParser:
 ...     pass
-...
 >>> class XMLParser:
 ...     pass
-...
 >>> plugin_registry.register("json", JSONParser)
 >>> plugin_registry.register("xml", XMLParser)
 >>> parser_class = plugin_registry.get("json")
@@ -409,10 +401,8 @@ Use a registry to implement a factory pattern:
 >>> factory = Registry[str, type]()
 >>> class Circle:
 ...     pass
-...
 >>> class Square:
 ...     pass
-...
 >>> factory.register("circle", Circle)
 >>> factory.register("square", Square)
 >>> shape_class = factory.get("circle")

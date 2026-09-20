@@ -35,9 +35,9 @@ returns a dict mapping constructor argument names to their values.
 ...     def __init__(self, key1: str, key2: str) -> None:
 ...         self.key1 = key1
 ...         self.key2 = key2
+...
 ...     def _get_repr_kwargs(self) -> dict[str, Any]:
 ...         return {"key1": self.key1, "key2": self.key2}
-...
 >>> obj = MyClass(key1="value1", key2="value2")
 >>> print(repr(obj))
 MyClass(key1='value1', key2='value2')
@@ -57,9 +57,9 @@ values, where a single-line format would be hard to read:
 ...     def __init__(self, key1: str, key2: str) -> None:
 ...         self.key1 = key1
 ...         self.key2 = key2
+...
 ...     def _get_repr_kwargs(self) -> dict[str, Any]:
 ...         return {"key1": self.key1, "key2": self.key2}
-...
 >>> obj = MyClass(key1="value1", key2="value2")
 >>> print(repr(obj))
 MyClass(
@@ -82,7 +82,6 @@ default, which makes them safe to use in logs:
 >>> class Config(BaseModel):
 ...     name: str
 ...     token: SecretStr
-...
 >>> str_pydantic_model(Config(name="my-app", token="s3cr3t"))
 'Config(name=my-app)'
 

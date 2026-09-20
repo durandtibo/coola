@@ -99,9 +99,7 @@ returned unchanged; if it is a `dict`, it is instantiated via `factory`:
 >>> from coola.factory import resolve_object
 >>> resolve_object(date(2020, 1, 1), cls=date)
 datetime.date(2020, 1, 1)
->>> resolve_object(
-...     {"_target_": "datetime.date", "year": 2020, "month": 1, "day": 1}, cls=date
-... )
+>>> resolve_object({"_target_": "datetime.date", "year": 2020, "month": 1, "day": 1}, cls=date)
 datetime.date(2020, 1, 1)
 
 ```

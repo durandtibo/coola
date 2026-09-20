@@ -90,9 +90,9 @@ reshaping step: it returns the `hash_object` digest directly.
 >>> from coola.identifier import generate_stable_content_id
 >>> generate_stable_content_id({"source": "cats.txt", "page": 1})  # doctest: +ELLIPSIS
 '...'
->>> generate_stable_content_id(
-...     {"page": 1, "source": "cats.txt"}
-... ) == generate_stable_content_id({"source": "cats.txt", "page": 1})
+>>> generate_stable_content_id({"page": 1, "source": "cats.txt"}) == generate_stable_content_id(
+...     {"source": "cats.txt", "page": 1}
+... )
 True
 
 ```

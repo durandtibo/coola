@@ -33,7 +33,6 @@ Each supported format has a loader class, a saver class, and two convenience fun
 ...     save_json({"key1": [1, 2, 3], "key2": "abc"}, path)
 ...     data = load_json(path)
 ...     data
-...
 {'key1': [1, 2, 3], 'key2': 'abc'}
 
 ```
@@ -49,7 +48,6 @@ The class-based equivalent is `JsonLoader` and `JsonSaver`:
 ...     JsonSaver().save({"key1": [1, 2, 3], "key2": "abc"}, path)
 ...     data = JsonLoader().load(path)
 ...     data
-...
 {'key1': [1, 2, 3], 'key2': 'abc'}
 
 ```
@@ -63,7 +61,6 @@ The class-based equivalent is `JsonLoader` and `JsonSaver`:
 >>> with tempfile.TemporaryDirectory() as tmpdir:
 ...     path = Path(tmpdir).joinpath("data.json")
 ...     JsonSaver(indent=2, sort_keys=True).save({"b": 1, "a": 2}, path)
-...
 
 ```
 
@@ -78,7 +75,6 @@ The class-based equivalent is `JsonLoader` and `JsonSaver`:
 ...     save_pickle({"key1": [1, 2, 3], "key2": "abc"}, path)
 ...     data = load_pickle(path)
 ...     data
-...
 {'key1': [1, 2, 3], 'key2': 'abc'}
 
 ```
@@ -97,7 +93,6 @@ keyword arguments to `pickle.dump`.
 ...     save_text("hello", path)
 ...     data = load_text(path)
 ...     data
-...
 'hello'
 
 ```
@@ -116,7 +111,6 @@ passed to `save_text` is not a string, it is converted with `str` before being w
 ...     save_torch({"key1": [1, 2, 3], "key2": "abc"}, path)
 ...     data = load_torch(path)
 ...     data
-...
 {'key1': [1, 2, 3], 'key2': 'abc'}
 
 ```
@@ -137,7 +131,6 @@ By default, every saver raises `FileExistsError` if the target path already exis
 ...     path = Path(tmpdir).joinpath("data.txt")
 ...     save_text("hello", path)
 ...     save_text("world", path, exist_ok=True)
-...
 
 ```
 
@@ -198,9 +191,9 @@ Subclass `BaseLoader` to implement a custom loader:
 >>> class UpperTextLoader(BaseLoader[str]):
 ...     def equal(self, other: Any, equal_nan: bool = False) -> bool:
 ...         return type(other) is type(self)
+...
 ...     def load(self, path: Path) -> str:
 ...         return path.read_text().upper()
-...
 
 ```
 
@@ -214,9 +207,9 @@ of `save` directly - this reuses the atomic write and `exist_ok` handling descri
 >>> class UpperTextSaver(BaseFileSaver[str]):
 ...     def equal(self, other: Any, equal_nan: bool = False) -> bool:
 ...         return type(other) is type(self)
+...
 ...     def _save_file(self, to_save: str, path: Path) -> None:
 ...         path.write_text(str(to_save).upper())
-...
 
 ```
 

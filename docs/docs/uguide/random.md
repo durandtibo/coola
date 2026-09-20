@@ -47,11 +47,9 @@ previous RNG state afterward:
 >>> from coola.random import random_seed
 >>> with random_seed(42):
 ...     print(numpy.random.randn(2, 4))
-...
 [[...]]
 >>> with random_seed(42):
 ...     print(numpy.random.randn(2, 4))
-...
 [[...]]
 
 ```
@@ -112,7 +110,6 @@ Set the seed only for NumPy's random module:
 >>> from coola.random import numpy_seed
 >>> with numpy_seed(42):
 ...     np.random.rand(3)
-...
 array([...])
 
 ```
@@ -138,7 +135,6 @@ Set the seed only for PyTorch's random module:
 >>> from coola.random import torch_seed
 >>> with torch_seed(42):
 ...     torch.rand(3)
-...
 tensor([...])
 
 ```
@@ -194,13 +190,14 @@ To create a custom manager, extend `BaseRandomManager`:
 ...     def get_rng_state(self):
 ...         # Return current RNG state
 ...         return {}
+...
 ...     def set_rng_state(self, state):
 ...         # Restore RNG state
 ...         pass
+...
 ...     def manual_seed(self, seed):
 ...         # Set seed
 ...         pass
-...
 
 ```
 
@@ -247,7 +244,6 @@ Make a specific code block reproducible without affecting the global state:
 >>> # This block is reproducible
 >>> with random_seed(123):
 ...     reproducible_data = np.random.rand(5)
-...
 >>> # Continue with original RNG state
 >>> data2 = np.random.rand(5)
 
@@ -298,7 +294,6 @@ Temporarily change seed for a specific operation:
 >>> # Use specific seed for initialization
 >>> with random_seed(999):
 ...     initialization = np.random.randn(10, 10)
-...
 >>> # Continue with normal operations
 >>> more_data = np.random.rand(3)
 
@@ -340,7 +335,6 @@ Prefer `random_seed()` context manager over `manual_seed()` for localized reprod
 >>> with random_seed(42):
 ...     # reproducible code
 ...     pass
-...
 
 ```
 

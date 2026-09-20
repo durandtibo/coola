@@ -64,7 +64,6 @@ one) for which no hasher is registered:
 ...     hash_object(object())
 ... except KeyError as e:
 ...     print("Error")
-...
 Error
 
 ```
@@ -136,9 +135,9 @@ it is a singleton, any modification made via `register_hashers` affects every su
 >>> class Point:
 ...     def __init__(self, x, y):
 ...         self.x, self.y = x, y
+...
 ...     def __str__(self):
 ...         return f"Point({self.x}, {self.y})"
-...
 >>> register_hashers({Point: StrHasher()})
 
 ```

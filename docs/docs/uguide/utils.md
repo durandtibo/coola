@@ -73,9 +73,9 @@ Use context managers to conditionally execute code based on package availability
 >>> from coola.utils.imports import numpy_available
 >>> with numpy_available():  # doctest: +SKIP
 ...     import numpy as np
+...
 ...     arr = np.array([1, 2, 3])
 ...     print(arr)
-...
 
 ```
 
@@ -127,8 +127,8 @@ Use `decorator_package_available()` to skip function execution if a package is n
 >>> @decorator
 ... def process_with_numpy(data):
 ...     import numpy as np
-...     return np.array(data).sum()
 ...
+...     return np.array(data).sum()
 >>> # Function only executes if NumPy is available
 
 ```
@@ -328,10 +328,10 @@ Write library code that works with optional dependencies:
 >>> def process_data(data: Sequence[float]) -> float:
 ...     if is_numpy_available():
 ...         import numpy as np
+...
 ...         return np.array(data).sum().item()
 ...     else:
 ...         return sum(data)
-...
 >>> process_data([1, 2, 3, 4, 5])
 15
 
@@ -367,7 +367,6 @@ Show file sizes in human-readable format:
 >>> def show_file_size(filepath):  # doctest: +SKIP
 ...     size = os.path.getsize(filepath)
 ...     return f"{filepath}: {str_human_byte_size(size)}"
-...
 
 ```
 
@@ -381,13 +380,13 @@ Provide fallback behavior when optional packages are not available:
 ...     with numpy_available():  # doctest: +SKIP
 ...         # Use NumPy if available (faster)
 ...         import numpy as np
+...
 ...         arr = np.array(data)
 ...         return {"mean": arr.mean(), "std": arr.std()}
 ...     # Fallback to pure Python
 ...     mean = sum(data) / len(data)
 ...     variance = sum((x - mean) ** 2 for x in data) / len(data)
 ...     return {"mean": mean, "std": variance**0.5}
-...
 
 ```
 
