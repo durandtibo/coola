@@ -14,11 +14,8 @@ your findings.
 
 **Please do not report security vulnerabilities through public GitHub issues.**
 
-Instead, please report security vulnerabilities using one of the following private channels:
-
-- **GitHub Security Advisories** (preferred): use the
-  [Report a vulnerability](https://github.com/durandtibo/coola/security/advisories/new) form.
-- **Email**: **durand.tibo+gh@gmail.com**
+Instead, please report security vulnerabilities privately using
+[GitHub Security Advisories](https://github.com/durandtibo/coola/security/advisories/new).
 
 ### What to Expect
 
