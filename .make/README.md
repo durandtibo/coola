@@ -14,22 +14,23 @@ include yaml.mk
 include makefile.mk
 include shell.mk
 include markdown.mk
+include actions.mk
 include help.mk
 
 .DEFAULT_GOAL := help
 
 .PHONY: install-tools
-install-tools: install-prettier install-yamllint install-mbake install-checkmake install-shellcheck install-shfmt install-markdownlint ## Install all formatting/linting tools
+install-tools: install-prettier install-yamllint install-mbake install-checkmake install-shellcheck install-shfmt install-markdownlint install-actionlint ## Install all formatting/linting tools
 
 .PHONY: format
 format: format-yaml format-makefile format-shell format-markdown ## Format all files
 
 .PHONY: lint
-lint: lint-yaml lint-makefile lint-shell lint-markdown ## Lint all files
+lint: lint-yaml lint-makefile lint-shell lint-markdown lint-actions ## Lint all files
 ```
 
-Required tools (`prettier`, `yamllint`, `mbake`, `checkmake`, `shellcheck`, `shfmt`, `markdownlint`)
-are installed on demand — each
+Required tools (`prettier`, `yamllint`, `mbake`, `checkmake`, `shellcheck`, `shfmt`, `markdownlint`,
+`actionlint`) are installed on demand — each
 `format-*`/`lint-*` target depends on an `install-*` target that installs the tool if it isn't
 already on `PATH`. Run `make install-tools` to install all of them upfront.
 
@@ -43,6 +44,7 @@ Run `make help` to list every target that has a `## description` comment (see `h
 | `makefile.mk` | `format-makefile`, `lint-makefile`          | `mbake`, `checkmake`       | Format and lint Makefiles and `.mk` files                             |
 | `shell.mk`    | `format-shell`, `lint-shell`                | `shfmt`, `shellcheck`      | Format and lint shell scripts                                         |
 | `markdown.mk` | `format-markdown`, `lint-markdown`          | `prettier`, `markdownlint` | Format and lint Markdown files                                        |
+| `actions.mk`  | `lint-actions`                              | `actionlint`               | Lint GitHub Actions workflow files                                    |
 | `uv.mk`       | `install-invoke`, `update-uv`, `setup-venv` | `uv`                       | Manage Python virtual environments with `uv`                          |
 | `prettier.mk` | `install-prettier`                          | `prettier`                 | Shared `install-prettier` target, included by `yaml.mk`/`markdown.mk` |
 | `self.mk`     | `update-subtree`                            | `git`                      | Sync the `.make` shared-makefiles subtree                             |
@@ -106,6 +108,20 @@ Optional variables (set before `include`):
 include markdown.mk
 
 MARKDOWN_LINT_GLOB = docs/**/*.md
+```
+
+### `actions.mk`
+
+Optional variables (set before `include`):
+
+| Variable            | Default | Description                                                                      |
+| ------------------- | ------- | -------------------------------------------------------------------------------- |
+| `ACTIONS_LINT_PATH` | `.`     | Path searched for `.github/workflows/*.{yml,yaml}` files, passed to `actionlint` |
+
+```makefile
+include actions.mk
+
+ACTIONS_LINT_PATH = .
 ```
 
 ### `uv.mk`

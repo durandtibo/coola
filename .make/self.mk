@@ -19,7 +19,16 @@ update-subtree:
 	@echo "🔄 Syncing $(SHARED_MAKEFILES_PREFIX) subtree from $(SHARED_MAKEFILES_REMOTE_URL)..."
 	git remote add $(SHARED_MAKEFILES_REMOTE_NAME) $(SHARED_MAKEFILES_REMOTE_URL) || true
 	git fetch $(SHARED_MAKEFILES_REMOTE_NAME) $(SHARED_MAKEFILES_BRANCH)
-	git subtree pull --prefix=$(SHARED_MAKEFILES_PREFIX) $(SHARED_MAKEFILES_REMOTE_NAME) $(SHARED_MAKEFILES_BRANCH) --squash -m "chore: sync shared Makefile subtree" || true
+	@if [ -d "$(SHARED_MAKEFILES_PREFIX)" ] && ! git log --grep="git-subtree-dir: $(SHARED_MAKEFILES_PREFIX)$$" --format=%H -1 | grep -q .; then \
+		echo "⚠️  $(SHARED_MAKEFILES_PREFIX) exists but has no subtree history; re-adding it..."; \
+		git rm -rq $(SHARED_MAKEFILES_PREFIX); \
+		git commit -m "chore: remove $(SHARED_MAKEFILES_PREFIX) before subtree re-add"; \
+		git subtree add --prefix=$(SHARED_MAKEFILES_PREFIX) $(SHARED_MAKEFILES_REMOTE_NAME) $(SHARED_MAKEFILES_BRANCH) --squash -m "chore: sync shared Makefile subtree"; \
+	elif [ ! -d "$(SHARED_MAKEFILES_PREFIX)" ]; then \
+		git subtree add --prefix=$(SHARED_MAKEFILES_PREFIX) $(SHARED_MAKEFILES_REMOTE_NAME) $(SHARED_MAKEFILES_BRANCH) --squash -m "chore: sync shared Makefile subtree"; \
+	else \
+		git subtree pull --prefix=$(SHARED_MAKEFILES_PREFIX) $(SHARED_MAKEFILES_REMOTE_NAME) $(SHARED_MAKEFILES_BRANCH) --squash -m "chore: sync shared Makefile subtree" || true; \
+	fi
 	@if [ -d "$(SHARED_MAKEFILES_PREFIX)/.github" ] || [ -d "$(SHARED_MAKEFILES_PREFIX)/testdata" ]; then \
 		echo "🧹 Removing .github/ and testdata/ from $(SHARED_MAKEFILES_PREFIX)..."; \
 		git rm -rq --ignore-unmatch $(SHARED_MAKEFILES_PREFIX)/.github $(SHARED_MAKEFILES_PREFIX)/testdata; \
