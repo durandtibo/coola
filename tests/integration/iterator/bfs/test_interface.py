@@ -9,8 +9,8 @@ from coola.iterator.bfs import (
     BaseChildFinder,
     bfs_iterate,
     get_default_registry,
+    interface as bfs_interface,
 )
-from coola.iterator.bfs import interface as bfs_interface
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Iterator

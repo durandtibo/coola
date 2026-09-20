@@ -12,8 +12,7 @@ __all__ = [
     "remove_keys_starting_with",
 ]
 
-from collections.abc import Mapping, Sequence
-from collections.abc import Set as AbstractSet
+from collections.abc import Mapping, Sequence, Set as AbstractSet
 from functools import lru_cache
 from typing import TYPE_CHECKING, Any, TypeVar
 

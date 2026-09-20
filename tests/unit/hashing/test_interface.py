@@ -17,9 +17,9 @@ from coola.hashing import (
     StringHasher,
     get_default_registry,
     hash_object,
+    interface as hashing_interface,
+    register_hashers,
 )
-from coola.hashing import interface as hashing_interface
-from coola.hashing import register_hashers
 
 
 @pytest.fixture(autouse=True)

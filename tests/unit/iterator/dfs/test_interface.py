@@ -13,9 +13,9 @@ from coola.iterator.dfs import (
     IteratorRegistry,
     MappingIterator,
     get_default_registry,
+    interface as dfs_interface,
+    register_iterators,
 )
-from coola.iterator.dfs import interface as dfs_interface
-from coola.iterator.dfs import register_iterators
 from tests.unit.iterator.dfs.helpers import DEFAULT_SAMPLES, SAMPLES, CustomList
 
 

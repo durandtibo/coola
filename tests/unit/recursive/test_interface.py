@@ -11,9 +11,10 @@ from coola.recursive import (
     SetTransformer,
     TransformerRegistry,
     get_default_registry,
+    interface as recursive_interface,
+    recursive_apply,
+    register_transformers,
 )
-from coola.recursive import interface as recursive_interface
-from coola.recursive import recursive_apply, register_transformers
 
 
 @pytest.fixture(autouse=True)

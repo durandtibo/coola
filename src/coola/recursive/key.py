@@ -4,8 +4,7 @@ from __future__ import annotations
 
 __all__ = ["KeyFilterTransformer"]
 
-from collections.abc import Mapping, Sequence
-from collections.abc import Set as AbstractSet
+from collections.abc import Mapping, Sequence, Set as AbstractSet
 from typing import TYPE_CHECKING, Any
 
 from coola.recursive.base import BaseTransformer

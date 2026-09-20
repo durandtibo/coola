@@ -10,8 +10,8 @@ from coola.iterator.dfs import (
     IteratorRegistry,
     dfs_iterate,
     get_default_registry,
+    interface as dfs_interface,
 )
-from coola.iterator.dfs import interface as dfs_interface
 
 if TYPE_CHECKING:
     from collections.abc import Generator
