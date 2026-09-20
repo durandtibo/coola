@@ -6,9 +6,12 @@ MAKEFILE_MK_INCLUDED := 1
 # Optional variables (set before including this file):
 #   MAKEFILE_FORMAT_FILES ?= Makefile *.mk   # files passed to mbake format
 #   MAKEFILE_LINT_FILES   ?= Makefile *.mk   # files passed to checkmake
+#   MBAKE_CONFIG          ?= <this dir>/bake.toml   # config passed to mbake format
 
 MAKEFILE_FORMAT_FILES ?= Makefile *.mk
 MAKEFILE_LINT_FILES ?= Makefile *.mk
+
+MBAKE_CONFIG ?= $(dir $(lastword $(MAKEFILE_LIST)))bake.toml
 
 CHECKMAKE_VERSION ?= v0.3.2
 
@@ -59,7 +62,7 @@ format-makefile: install-mbake ## Format Makefiles and .mk files with mbake
 		done; \
 	done; \
 	if [ -n "$$files" ]; then \
-		mbake format $$files; \
+		mbake format --config $(MBAKE_CONFIG) $$files; \
 	else \
 		echo "No files found matching: $(MAKEFILE_FORMAT_FILES)"; \
 	fi
