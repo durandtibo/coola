@@ -2,12 +2,8 @@
 
 ## Supported Versions
 
-We release patches for security vulnerabilities. The following versions are currently supported:
-
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.1.x   | :white_check_mark: |
-| < 1.1.0 | :x:                |
+Security fixes are only released for the latest minor version on PyPI. Older versions are not
+patched, so please upgrade to the latest release before reporting an issue.
 
 ## Reporting a Vulnerability
 
@@ -26,7 +22,8 @@ Instead, please report security vulnerabilities by emailing:
 
 Please include the following information in your report:
 
-- Type of issue (e.g., buffer overflow, SQL injection, cross-site scripting, etc.)
+- Type of issue (e.g., denial of service via crafted input, arbitrary code execution, information
+  disclosure, etc.)
 - Full paths of source file(s) related to the manifestation of the issue
 - The location of the affected source code (tag/branch/commit or direct URL)
 - Any special configuration required to reproduce the issue
@@ -42,23 +39,25 @@ This information will help us triage your report more quickly.
 - Security updates will be clearly marked in release notes
 - We will notify users through GitHub releases and other appropriate channels
 
-## Security Best Practices
-
-When using `coola` in your projects:
-
-1. **Keep dependencies updated**: Regularly update to the latest version of `coola` and its
-   dependencies
-2. **Monitor security advisories**: Watch the repository for security announcements
-3. **Review code**: When comparing sensitive data, ensure appropriate access controls are in place
-4. **Validate inputs**: Always validate data before comparison, especially when handling user inputs
-
 ## Known Security Considerations
 
-`coola` is a library for comparing complex objects. When using it:
+`coola` provides utilities to compare, summarize, and format Python objects (including NumPy,
+PyTorch, pandas, and other optional dependencies). Most of the library does not perform network
+I/O or execute arbitrary code, with one notable exception:
 
-- **Resource exhaustion**: Be cautious when comparing very large or deeply nested data structures,
-  as this may consume significant memory and CPU resources
-- **Sensitive data**: When comparing objects containing sensitive data, ensure proper access
-  controls and logging are in place
-- **Third-party data structures**: When extending `coola` to support custom types, ensure proper
-  validation and error handling
+- **`coola.factory` executes arbitrary code by design**: `import_object`, `instantiate_object`,
+  `factory`, and `resolve_object` import a module and object (e.g. `"os.system"`) from a string
+  path and, for `instantiate_object`/`factory`, call it with the given arguments. Importing a
+  module runs its top-level code, and the resolved object can be anything, including a callable
+  that executes shell commands. **Never pass an object path, or a configuration dict containing
+  one (e.g. under the `_target_` key), that comes from untrusted input** — a user-uploaded
+  config file, a network payload, or any other data you do not fully trust. Treat these functions
+  the same way you would treat `eval`/`pickle.load` on untrusted data.
+- **Resource exhaustion**: Comparing or summarizing very large or deeply nested/recursive data
+  structures can consume significant memory, CPU, or stack depth (recursion). Do not run
+  comparisons on untrusted, unbounded input without limits.
+- **Sensitive data in output**: Comparison failures and summaries may include the values being
+  compared. Avoid logging or displaying `coola` output for objects that contain secrets or
+  personal data.
+- **Custom extensions**: If you register custom comparators/handlers for your own types, apply the
+  same input validation you would to any other code path that processes untrusted data.
