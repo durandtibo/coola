@@ -45,7 +45,7 @@ repos:
       # Fails if uv.lock is out of sync with pyproject.toml.
       - id: uv-lock
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.7
+    rev: v0.16.8
     hooks:
       # Lints and autofixes Python/pyi/Jupyter files (includes import sorting).
       - id: ruff-check
