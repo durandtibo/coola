@@ -80,16 +80,16 @@ def test_batchify_is_lazy() -> None:
 
 
 def test_batchify_invalid_size_zero() -> None:
-    with pytest.raises(ValueError, match="size must be >= 1"):
+    with pytest.raises(ValueError, match="size must be greater than or equal to 1"):
         list(batchify([1, 2, 3], size=0))
 
 
 def test_batchify_invalid_size_negative() -> None:
-    with pytest.raises(ValueError, match="size must be >= 1"):
+    with pytest.raises(ValueError, match="size must be greater than or equal to 1"):
         list(batchify([1, 2, 3], size=-5))
 
 
 def test_batchify_invalid_size_raises_before_iteration() -> None:
     """Size validation fires eagerly, before any item is consumed."""
-    with pytest.raises(ValueError, match="size must be >= 1"):
+    with pytest.raises(ValueError, match="size must be greater than or equal to 1"):
         list(batchify(infinite(), size=0))

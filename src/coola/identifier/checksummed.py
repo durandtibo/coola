@@ -21,11 +21,8 @@ __all__ = ["generate_checksummed_id", "verify_checksummed_id"]
 
 import os
 
-from coola.identifier.validation import (
-    CROCKFORD_BASE32_ALPHABET,
-    decode_crockford_base32,
-    validate_positive,
-)
+from coola.identifier.validation import CROCKFORD_BASE32_ALPHABET, decode_crockford_base32
+from coola.validation import validate_positive
 
 # The 5 extra check symbols from the Crockford spec, extending the
 # alphabet from 32 to the 37 values needed for a mod-37 checksum.

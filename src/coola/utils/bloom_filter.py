@@ -8,6 +8,8 @@ import hashlib
 import math
 from typing import TYPE_CHECKING
 
+from coola.validation import validate_gt
+
 if TYPE_CHECKING:
     from collections.abc import Generator
 
@@ -43,9 +45,7 @@ class BloomFilter:
             ValueError: if ``expected_items`` is not positive or
                 ``fp_rate`` is not in ``(0, 1)``.
         """
-        if expected_items < 1:
-            msg = f"expected_items must be greater than 0, but received {expected_items}"
-            raise ValueError(msg)
+        validate_gt(expected_items, 0, name="expected_items")
         if not 0 < fp_rate < 1:
             msg = f"fp_rate must be in (0, 1), but received {fp_rate}"
             raise ValueError(msg)

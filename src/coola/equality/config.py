@@ -7,6 +7,8 @@ __all__ = ["EqualityConfig"]
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from coola.validation import validate_non_negative, validate_positive
+
 if TYPE_CHECKING:
     from coola.equality.tester.registry import EqualityTesterRegistry
 
@@ -74,15 +76,9 @@ class EqualityConfig:
 
     def __post_init__(self) -> None:
         """Validate configuration parameters after initialization."""
-        if self.atol < 0:
-            msg = f"atol must be non-negative, but got {self.atol}"
-            raise ValueError(msg)
-        if self.rtol < 0:
-            msg = f"rtol must be non-negative, but got {self.rtol}"
-            raise ValueError(msg)
-        if self.max_depth <= 0:
-            msg = f"max_depth must be positive, but got {self.max_depth}"
-            raise ValueError(msg)
+        validate_non_negative(self.atol, name="atol")
+        validate_non_negative(self.rtol, name="rtol")
+        validate_positive(self.max_depth, name="max_depth")
 
     @property
     def depth(self) -> int:
