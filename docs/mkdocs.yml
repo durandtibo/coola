@@ -42,6 +42,7 @@ nav:
       - uguide/summary.md
       - uguide/testing.md
       - uguide/utils.md
+      - uguide/validation.md
   - Developer Guide:
       - dev/development.md
       - dev/architecture.md
@@ -63,6 +64,7 @@ nav:
       - refs/summary.md
       - refs/testing.md
       - refs/utils.md
+      - refs/validation.md
   - GitHub: https://github.com/durandtibo/coola
 
 repo_url: https://github.com/durandtibo/coola
