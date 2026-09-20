@@ -7,6 +7,8 @@ __all__ = ["batchify"]
 from itertools import islice
 from typing import TYPE_CHECKING, TypeVar
 
+from coola.validation import validate_ge
+
 if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator
 
@@ -43,9 +45,7 @@ def batchify(items: Iterable[T], *, size: int) -> Iterator[tuple[T, ...]]:
 
         ```
     """
-    if size < 1:
-        msg = "size must be >= 1"
-        raise ValueError(msg)
+    validate_ge(size, 1, name="size")
     iterator = iter(items)
     while batch := tuple(islice(iterator, size)):
         yield batch

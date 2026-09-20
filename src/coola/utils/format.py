@@ -23,6 +23,8 @@ __all__ = [
 import datetime
 from typing import TYPE_CHECKING, Any
 
+from coola.validation import validate_non_negative
+
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
@@ -424,9 +426,7 @@ def str_human_byte_size(size: int, unit: str | None = None) -> str:
 
         ```
     """
-    if size < 0:
-        msg = f"Size must be non-negative, got {size}"
-        raise ValueError(msg)
+    validate_non_negative(size, name="Size")
     if unit is None:  # Find the best unit.
         unit = find_best_byte_unit(size)
     if unit not in BYTE_UNITS:
@@ -460,9 +460,7 @@ def find_best_byte_unit(size: int) -> str:
 
         ```
     """
-    if size < 0:
-        msg = f"Size must be non-negative, got {size}"
-        raise ValueError(msg)
+    validate_non_negative(size, name="Size")
     best_unit = "B"
     for unit, multiplier in BYTE_UNITS.items():
         if (size / multiplier) >= 1:

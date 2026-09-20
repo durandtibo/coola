@@ -15,7 +15,7 @@ __all__ = ["generate_nano_id"]
 
 import os
 
-from coola.identifier.validation import validate_positive
+from coola.validation import validate_positive
 
 # Default alphabet used by the reference Nano ID implementation: 64
 # URL-safe characters (unreserved by RFC 3986), giving each character

@@ -2,12 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from coola.identifier.validation import (
-    validate_bit_range,
-    validate_non_negative,
-    validate_positive,
-    validate_timestamp_ms,
-)
+from coola.identifier.validation import validate_bit_range, validate_timestamp_ms
 
 ###########################################
 #     Tests for validate_bit_range     #
@@ -66,54 +61,3 @@ def test_validate_timestamp_ms_negative_raises() -> None:
 def test_validate_timestamp_ms_too_large_raises() -> None:
     with pytest.raises(ValueError, match="timestamp_ms must fit in 48 bits"):
         validate_timestamp_ms(2**48)
-
-
-#######################################
-#     Tests for validate_positive     #
-#######################################
-
-
-def test_validate_positive_one_is_valid() -> None:
-    validate_positive(1, name="value")
-
-
-def test_validate_positive_large_value_is_valid() -> None:
-    validate_positive(1_000_000, name="value")
-
-
-def test_validate_positive_zero_raises() -> None:
-    with pytest.raises(ValueError, match="value must be positive, got 0"):
-        validate_positive(0, name="value")
-
-
-def test_validate_positive_negative_raises() -> None:
-    with pytest.raises(ValueError, match="value must be positive, got -1"):
-        validate_positive(-1, name="value")
-
-
-def test_validate_positive_uses_name_in_message() -> None:
-    with pytest.raises(ValueError, match=r"^length must be positive"):
-        validate_positive(0, name="length")
-
-
-###########################################
-#     Tests for validate_non_negative     #
-###########################################
-
-
-def test_validate_non_negative_zero_is_valid() -> None:
-    validate_non_negative(0, name="value")
-
-
-def test_validate_non_negative_positive_is_valid() -> None:
-    validate_non_negative(1_000_000, name="value")
-
-
-def test_validate_non_negative_negative_raises() -> None:
-    with pytest.raises(ValueError, match="value must be non-negative, got -1"):
-        validate_non_negative(-1, name="value")
-
-
-def test_validate_non_negative_uses_name_in_message() -> None:
-    with pytest.raises(ValueError, match=r"^min_length must be non-negative"):
-        validate_non_negative(-1, name="min_length")

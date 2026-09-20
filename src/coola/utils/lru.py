@@ -2,9 +2,9 @@ r"""Define a bounded, dict-like LRU (least-recently-used) cache.
 
 Used by ``TypeRegistry`` (and other data structures that need a bounded
 lookup cache) to cap memory usage while keeping the most recently used
-entries around. This class is not thread-safe on its own — callers that
-share an instance across threads (e.g. ``TypeRegistry``) are expected to
-guard access with their own lock.
+entries around. This class is not thread-safe on its own — callers
+that share an instance across threads (e.g. ``TypeRegistry``) are
+expected to guard access with their own lock.
 """
 
 from __future__ import annotations
@@ -13,6 +13,8 @@ __all__ = ["LRUCache"]
 
 from collections import OrderedDict
 from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar
+
+from coola.validation import validate_gt
 
 if TYPE_CHECKING:
     from collections.abc import ItemsView, Iterator, KeysView, ValuesView
@@ -58,9 +60,7 @@ class LRUCache(Generic[K, V]):
     __hash__: ClassVar[None] = None  # type: ignore[assignment]
 
     def __init__(self, maxsize: int) -> None:
-        if maxsize < 1:
-            msg = f"maxsize must be greater than 0, but received {maxsize}"
-            raise ValueError(msg)
+        validate_gt(maxsize, 0, name="maxsize")
         self._maxsize = maxsize
         self._data: OrderedDict[K, V] = OrderedDict()
 

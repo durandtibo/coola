@@ -2,7 +2,16 @@ r"""Contain functions to validate comparisons."""
 
 from __future__ import annotations
 
-__all__ = ["validate_ge", "validate_gt", "validate_le", "validate_lt"]
+__all__ = [
+    "validate_ge",
+    "validate_gt",
+    "validate_le",
+    "validate_lt",
+    "validate_negative",
+    "validate_non_negative",
+    "validate_non_positive",
+    "validate_positive",
+]
 
 from typing import Any
 
@@ -96,4 +105,92 @@ def validate_lt(value: Any, high: Any, *, name: str = "value") -> None:
     """
     if value >= high:
         msg = f"{name} must be less than {high}, got {value}"
+        raise ValueError(msg)
+
+
+def validate_non_negative(value: Any, *, name: str = "value") -> None:
+    r"""Validate that ``value`` is not negative.
+
+    Args:
+        value: The value to validate.
+        name: The name of the value, used in the error message.
+
+    Raises:
+        ValueError: If ``value`` is negative.
+
+    Example:
+        ```pycon
+        >>> from coola.validation import validate_non_negative
+        >>> validate_non_negative(1)
+
+        ```
+    """
+    if value < 0:
+        msg = f"{name} must be non-negative, got {value}"
+        raise ValueError(msg)
+
+
+def validate_positive(value: Any, *, name: str = "value") -> None:
+    r"""Validate that ``value`` is strictly positive.
+
+    Args:
+        value: The value to validate.
+        name: The name of the value, used in the error message.
+
+    Raises:
+        ValueError: If ``value`` is not positive.
+
+    Example:
+        ```pycon
+        >>> from coola.validation import validate_positive
+        >>> validate_positive(1)
+
+        ```
+    """
+    if value <= 0:
+        msg = f"{name} must be positive, got {value}"
+        raise ValueError(msg)
+
+
+def validate_negative(value: Any, *, name: str = "value") -> None:
+    r"""Validate that ``value`` is strictly negative.
+
+    Args:
+        value: The value to validate.
+        name: The name of the value, used in the error message.
+
+    Raises:
+        ValueError: If ``value`` is not negative.
+
+    Example:
+        ```pycon
+        >>> from coola.validation import validate_negative
+        >>> validate_negative(-1)
+
+        ```
+    """
+    if value >= 0:
+        msg = f"{name} must be negative, got {value}"
+        raise ValueError(msg)
+
+
+def validate_non_positive(value: Any, *, name: str = "value") -> None:
+    r"""Validate that ``value`` is not positive.
+
+    Args:
+        value: The value to validate.
+        name: The name of the value, used in the error message.
+
+    Raises:
+        ValueError: If ``value`` is positive.
+
+    Example:
+        ```pycon
+        >>> from coola.validation import validate_non_positive
+        >>> validate_non_positive(-1)
+
+        ```
+    """
+    if value > 0:
+        msg = f"{name} must be non-positive, got {value}"
         raise ValueError(msg)

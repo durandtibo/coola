@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 from coola.equality.config import EqualityConfig
 from coola.equality.tester.interface import get_default_registry
+from coola.validation import validate_non_negative
 
 if TYPE_CHECKING:
     from coola.equality.tester.registry import EqualityTesterRegistry
@@ -61,12 +62,8 @@ def objects_are_allclose(
 
         ```
     """
-    if rtol < 0:
-        msg = f"rtol must be non-negative, but got {rtol}"
-        raise ValueError(msg)
-    if atol < 0:
-        msg = f"atol must be non-negative, but got {atol}"
-        raise ValueError(msg)
+    validate_non_negative(rtol, name="rtol")
+    validate_non_negative(atol, name="atol")
     if registry is None:
         registry = get_default_registry()
     config = EqualityConfig(

@@ -40,7 +40,8 @@ __all__ = ["decode_obfuscated_id", "generate_obfuscated_id"]
 
 import hashlib
 
-from coola.identifier.validation import validate_bit_range, validate_non_negative
+from coola.identifier.validation import validate_bit_range
+from coola.validation import validate_non_negative
 
 _BITS = 64
 _MASK = (1 << _BITS) - 1
