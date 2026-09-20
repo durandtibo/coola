@@ -14,9 +14,17 @@ your findings.
 
 **Please do not report security vulnerabilities through public GitHub issues.**
 
-Instead, please report security vulnerabilities by emailing:
+Instead, please report security vulnerabilities using one of the following private channels:
 
-**durand.tibo+gh@gmail.com**
+- **GitHub Security Advisories** (preferred): use the
+  [Report a vulnerability](https://github.com/durandtibo/coola/security/advisories/new) form.
+- **Email**: **durand.tibo+gh@gmail.com**
+
+### What to Expect
+
+- We will acknowledge receipt of your report within **5 business days**.
+- We will provide an initial assessment (including whether the report is accepted, and an
+  estimated timeline for a fix) within **10 business days** of acknowledgment.
 
 ### What to Include
 
