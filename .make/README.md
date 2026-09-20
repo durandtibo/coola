@@ -36,6 +36,25 @@ already on `PATH`. Run `make install-tools` to install all of them upfront.
 
 Run `make help` to list every target that has a `## description` comment (see `help.mk` below).
 
+## Adding as a git subtree
+
+This repo is meant to be vendored into consuming projects as a git subtree (conventionally at
+`.make/`), rather than being added as a submodule or copy-pasted:
+
+```shell
+git remote add shared-makefiles https://github.com/durandtibo/shared-makefiles.git
+git fetch shared-makefiles main
+
+git subtree add --prefix=.make shared-makefiles main --squash
+```
+
+Then `include` the files you need from `.make/` in your project's `Makefile`, e.g.
+`include .make/yaml.mk`.
+
+To pull in upstream changes later, `include .make/self.mk` and run `make update-subtree` — see
+[`self.mk`](#self-mk) below. It fetches the latest commits and runs `git subtree pull`, so you
+don't need to remember the raw `git subtree`/`git remote` invocations yourself.
+
 ## Available files
 
 | File          | Targets                                     | Tools                      | Description                                                           |
