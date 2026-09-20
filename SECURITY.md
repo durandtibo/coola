@@ -53,6 +53,11 @@ I/O or execute arbitrary code, with one notable exception:
   one (e.g. under the `_target_` key), that comes from untrusted input** — a user-uploaded
   config file, a network payload, or any other data you do not fully trust. Treat these functions
   the same way you would treat `eval`/`pickle.load` on untrusted data.
+- **`coola.io` pickle loading executes arbitrary code by design**: `PickleLoader.load` and
+  `load_pickle` call Python's `pickle.load` on the given file. Unpickling can run arbitrary code
+  as a side effect of deserialization regardless of how the pickle was produced. **Only load
+  pickle files from a source you trust**; never load one that came from an untrusted or
+  unauthenticated source (e.g. a file uploaded by a third party or fetched over the network).
 - **Resource exhaustion**: Comparing or summarizing very large or deeply nested/recursive data
   structures can consume significant memory, CPU, or stack depth (recursion). Do not run
   comparisons on untrusted, unbounded input without limits.
