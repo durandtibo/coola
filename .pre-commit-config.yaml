@@ -40,7 +40,7 @@ repos:
       # Flags old-style type comments in favor of real annotations.
       - id: python-use-type-annotations
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.9.6
+    rev: 0.12.17
     hooks:
       # Fails if uv.lock is out of sync with pyproject.toml.
       - id: uv-lock
@@ -67,17 +67,17 @@ repos:
         types:
           - python
   - repo: https://github.com/scop/pre-commit-shfmt
-    rev: v3.12.0-1
+    rev: v3.14.1-1
     hooks:
       # Enforces consistent shell script formatting.
       - id: shfmt
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.10.0.1
+    rev: v0.11.0.1-1
     hooks:
       # Lints shell scripts for bugs and portability issues.
       - id: shellcheck
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
+    rev: v2.4.3
     hooks:
       # Spell-checks source and docs for common typos.
       - id: codespell

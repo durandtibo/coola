@@ -6,10 +6,10 @@ resolution-markers = [
     "python_full_version >= '3.14' and sys_platform == 'emscripten'",
     "python_full_version >= '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version == '3.13.*' and sys_platform == 'win32'",
-    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.13.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version == '3.12.*' and sys_platform == 'win32'",
+    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
+    "python_full_version == '3.13.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version == '3.12.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
@@ -317,7 +317,7 @@ xarray = [
 [package.dev-dependencies]
 dev = [
     { name = "coverage", extra = ["toml"] },
-    { name = "docformatter", extra = ["tomli"] },
+    { name = "docformatter" },
     { name = "feu", extra = ["all"] },
     { name = "invoke" },
     { name = "pre-commit" },
@@ -356,12 +356,12 @@ provides-extras = ["jax", "numpy", "packaging", "pandas", "polars", "pyarrow", "
 [package.metadata.requires-dev]
 dev = [
     { name = "coverage", extras = ["toml"], specifier = ">=7.15,<8.0" },
-    { name = "docformatter", extras = ["tomli"], specifier = ">=1.7.8,<2.0" },
-    { name = "feu", extras = ["all"], specifier = ">=0.8.1,<1.0" },
+    { name = "docformatter", specifier = ">=1.7.8,<2.0" },
+    { name = "feu", extras = ["all"], specifier = ">=0.8.3,<1.0" },
     { name = "invoke", specifier = ">=3.0,<4.0" },
     { name = "pre-commit", specifier = ">=4.6,<5.0" },
     { name = "pygments", specifier = ">=2.20,<3.0" },
-    { name = "pyright", specifier = ">=1.1.411,<2.0" },
+    { name = "pyright", specifier = ">=1.1.414,<2.0" },
     { name = "pytest", specifier = ">=9.1,<10.0" },
     { name = "pytest-benchmark", specifier = ">=5.1,<6.0" },
     { name = "pytest-cov", specifier = ">=7.1,<8.0" },
@@ -607,11 +607,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/6a/e1/f6fb315205e0a8f62ddbd52029b3d39cb5bada768af317193460f0454f6b/docformatter-1.7.8.tar.gz", hash = "sha256:6589b62a8f38c62c4c8c84cb1afa296af007c88c959e4c9d25c74c1f933c4dbf", size = 37754, upload-time = "2026-04-28T20:34:49.39Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/09/9b/9d2f60e967243aa0d1c6366f4f5feb0740393b5da7dbc66802034afc6331/docformatter-1.7.8-py3-none-any.whl", hash = "sha256:8e518948bacb8d8df5d5f625060e214a200f0a908d8e6797c9ebbdd2cdd17467", size = 59445, upload-time = "2026-04-28T20:34:50.393Z" },
-]
-
-[package.optional-dependencies]
-tomli = [
-    { name = "tomli", marker = "python_full_version < '3.11'" },
 ]
 
 [[package]]
@@ -1429,10 +1424,10 @@ resolution-markers = [
     "python_full_version >= '3.14' and sys_platform == 'emscripten'",
     "python_full_version >= '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version == '3.13.*' and sys_platform == 'win32'",
-    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.13.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version == '3.12.*' and sys_platform == 'win32'",
+    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
+    "python_full_version == '3.13.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version == '3.12.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/13/01/11703282db468b85f6f7b8c7f22d058de5970d5c7e60a3a8aaa313c3de36/numpy-2.5.3.tar.gz", hash = "sha256:df2d5874ff183595a4ba404edd04f6bd9b5505c1d7708573f6a6c17489a67563", size = 20791231, upload-time = "2026-09-06T16:27:47.073Z" }
@@ -1756,10 +1751,10 @@ resolution-markers = [
     "python_full_version >= '3.14' and sys_platform == 'emscripten'",
     "python_full_version >= '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version == '3.13.*' and sys_platform == 'win32'",
-    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.13.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version == '3.12.*' and sys_platform == 'win32'",
+    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
+    "python_full_version == '3.13.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version == '3.12.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
@@ -2117,11 +2112,11 @@ wheels = [
 
 [[package]]
 name = "pyparsing"
-version = "3.3.2"
+version = "3.3.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/f3/91/9c6ee907786a473bf81c5f53cf703ba0957b23ab84c264080fb5a450416f/pyparsing-3.3.2.tar.gz", hash = "sha256:c777f4d763f140633dcb6d8a3eda953bf7a214dc4eff598413c070bcdc117cbc", size = 6851574, upload-time = "2026-01-21T03:57:59.36Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e4/11/b213bebff182584360cb8d17c72c1677fec5c5c228de439e63bcf8ab1c8f/pyparsing-3.3.3.tar.gz", hash = "sha256:928ae7e20211f3b6f3915a72f06a0cfd29ab9d24279dd6346b6b1a7146397d36", size = 1050487, upload-time = "2026-09-20T20:59:05.609Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/10/bd/c038d7cc38edc1aa5bf91ab8068b63d4308c66c4c8bb3cbba7dfbc049f9c/pyparsing-3.3.2-py3-none-any.whl", hash = "sha256:850ba148bd908d7e2411587e247a1e4f0327839c40e2e5e6d05a007ecc69911d", size = 122781, upload-time = "2026-01-21T03:57:55.912Z" },
+    { url = "https://files.pythonhosted.org/packages/38/bb/d215ee7c73b61497b28a5503f9f53523f294fcc936762b7caf90e0c1c2b5/pyparsing-3.3.3-py3-none-any.whl", hash = "sha256:ece8c00a69cf01b45d0b1dedabb469c90d8caf996d4fda40f147627a122849a4", size = 126420, upload-time = "2026-09-20T20:59:04.025Z" },
 ]
 
 [[package]]
@@ -2706,7 +2701,7 @@ wheels = [
 
 [[package]]
 name = "virtualenv"
-version = "21.7.16"
+version = "21.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "distlib" },
@@ -2715,9 +2710,9 @@ dependencies = [
     { name = "python-discovery" },
     { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/45/2b/f7ec483cb56fc84cab8676971b171156111cd125d069ca02fdaf0239f3e5/virtualenv-21.7.16.tar.gz", hash = "sha256:d3fcf6954a07121c2b61efcb96419e2f40b3718d558998f13a7314e32cc42723", size = 5363081, upload-time = "2026-09-19T06:59:08.339Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2f/5d/42254e91a9203a13d95ab4f5211f4cdda52b82fc3546340f7fb33a642173/virtualenv-21.9.0.tar.gz", hash = "sha256:fa0f2a26fcb6f32b376fc8b2c705b6057366763d5b9e5242d1ab10ecc3279fd3", size = 5372770, upload-time = "2026-09-20T00:29:19.843Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c7/46/a02c0bb29e6102616aa91d68a5e3f055393d92353d94b52ad6c51d540c20/virtualenv-21.7.16-py3-none-any.whl", hash = "sha256:752fd5d5352502fbd794422983eed65a249fc6f4685c5e2122fd6052e6477a11", size = 5330278, upload-time = "2026-09-19T06:59:06.096Z" },
+    { url = "https://files.pythonhosted.org/packages/9d/e5/9446b7a2a3d73de5f9fcf8f825efe78b071b111729e89f4ac07649b9448b/virtualenv-21.9.0-py3-none-any.whl", hash = "sha256:8c7cde05f630fbedf61758258014a92e6d6d5b4b9c6e6be7279d233f89e09aac", size = 5477625, upload-time = "2026-09-20T00:29:18.065Z" },
 ]
 
 [[package]]
@@ -2790,10 +2785,10 @@ resolution-markers = [
     "python_full_version >= '3.14' and sys_platform == 'emscripten'",
     "python_full_version >= '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version == '3.13.*' and sys_platform == 'win32'",
-    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.13.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version == '3.12.*' and sys_platform == 'win32'",
+    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
+    "python_full_version == '3.13.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version == '3.12.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version == '3.11.*' and sys_platform == 'emscripten'",

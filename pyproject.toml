@@ -72,12 +72,12 @@ rich = ["rich>=14.0.0,<16.0"]
 [dependency-groups]
 dev = [
     "coverage[toml]>=7.15,<8.0",
-    "docformatter[tomli]>=1.7.8,<2.0",
-    "feu[all]>=0.8.1,<1.0",
+    "docformatter>=1.7.8,<2.0",
+    "feu[all]>=0.8.3,<1.0",
     "invoke>=3.0,<4.0",
     "pre-commit>=4.6,<5.0",
     "pygments>=2.20,<3.0",
-    "pyright>=1.1.411,<2.0",
+    "pyright>=1.1.414,<2.0",
     "pytest>=9.1,<10.0",
     "pytest-benchmark>=5.1,<6.0",
     "pytest-cov>=7.1,<8.0",
