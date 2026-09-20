@@ -62,7 +62,7 @@ def get_password(username: str | None = None, *, confirm: bool = False) -> str:
 
     if confirm:
         confirmation = getpass.getpass("Confirm password: ")
-        if not hmac.compare_digest(password, confirmation):
+        if not hmac.compare_digest(password.encode(), confirmation.encode()):
             msg = "Passwords do not match"
             raise ValueError(msg)
 

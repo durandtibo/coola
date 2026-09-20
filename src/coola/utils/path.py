@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from collections.abc import Generator
 
 
-def find_root_package_parent(start_path: str | Path) -> Path:
+def find_root_package_parent(start_path: str | os.PathLike[str]) -> Path:
     r"""Given a file or directory path, walk upward through directories
     that contain ``__init__.py`` (i.e., are part of a package) and
     return the parent directory of the outermost (root) package.

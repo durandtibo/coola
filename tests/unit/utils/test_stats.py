@@ -92,3 +92,10 @@ def test_quantile_identical_values() -> None:
 def test_quantile_single_quantile() -> None:
     """Test quantile with single quantile value."""
     assert objects_are_allclose(quantile([1, 2, 3, 4, 5], [0.5]), [3.0], show_difference=True)
+
+
+def test_quantile_empty_values_raises_error() -> None:
+    """Test that empty values with non-empty quantiles raises
+    ValueError."""
+    with pytest.raises(ValueError, match="values must not be empty"):
+        quantile([], [0.5])

@@ -32,6 +32,9 @@ def quantile(values: Sequence[float | int], quantiles: Sequence[float]) -> list[
     """
     values = sorted(values)
     n = len(values)
+    if n == 0 and len(quantiles) > 0:
+        msg = "values must not be empty when quantiles is not empty"
+        raise ValueError(msg)
     output = []
     for q in quantiles:
         virtual_index = max(0.0, min(n - 1.0, q * (n - 1.0)))
