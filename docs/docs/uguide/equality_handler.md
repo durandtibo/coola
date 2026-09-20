@@ -188,7 +188,6 @@ Recursively checks if objects are equal using the equality registry:
 >>> class MyList(list):
 ...     def equal(self, other: object) -> bool:
 ...         return self == other
-...
 >>> config = EqualityConfig()
 >>> handler = EqualHandler()
 >>> handler.handle(MyList([1, 2, 3]), MyList([1, 2, 3]), config)
@@ -406,15 +405,16 @@ You can create custom handlers by inheriting from `BaseEqualityHandler`:
 >>> class CustomHandler(BaseEqualityHandler):
 ...     def equal(self, other: object) -> bool:
 ...         return type(other) is type(self)
+...
 ...     def handle(self, actual: object, expected: object, config: EqualityConfig) -> bool:
 ...         # Custom comparison logic
 ...         if self._meets_condition(actual, expected):
 ...             return self._handle_next(actual, expected, config)
 ...         return False
+...
 ...     def _meets_condition(self, actual: object, expected: object) -> bool:
 ...         # Implement your condition
 ...         return True
-...
 
 ```
 

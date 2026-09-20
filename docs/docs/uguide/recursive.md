@@ -88,13 +88,12 @@ extending `BaseTransformer`:
 >>> class MyType:
 ...     def __init__(self, value):
 ...         self.value = value
+...
 ...     def __repr__(self):
 ...         return f"MyType({self.value})"
-...
 >>> class MyTransformer(BaseTransformer):
 ...     def transform(self, data, func, registry):
 ...         return MyType(func(data.value))
-...
 >>> registry = TransformerRegistry()
 >>> registry.register(MyType, MyTransformer())
 
@@ -158,11 +157,9 @@ You can extend the default registry to support custom types:
 ...     def __init__(self, x, y):
 ...         self.x = x
 ...         self.y = y
-...
 >>> class PointTransformer(BaseTransformer):
 ...     def transform(self, data, func, registry):
 ...         return Point(func(data.x), func(data.y))
-...
 >>> register_transformers({Point: PointTransformer()})  # doctest: +SKIP
 
 ```

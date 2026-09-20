@@ -320,7 +320,6 @@ Process rows of data individually:
 >>> # Process each row
 >>> for row in convert_to_list_of_dicts(columns):
 ...     print(f"Processing ID {row['id']} with value {row['value']}")
-...
 Processing ID 1 with value 10
 Processing ID 2 with value 20
 Processing ID 3 with value 30
