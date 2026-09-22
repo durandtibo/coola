@@ -47,24 +47,24 @@ jobs:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
       # Pin all action references to their commit SHA, keeping the version as a
-      # comment. Covers both top-level workflows and the composite actions
-      # they call under .github/actions/*, so neither drifts out of pinning.
+      # comment. Covers top-level workflows, this repo's own action.y(a)ml,
+      # and any composite actions under .github/actions/*, so none drift out
+      # of pinning.
       - name: Pin GitHub Actions
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }} # for API quota and auth
         run: |
           shopt -s nullglob
           ratchet pin .github/workflows/*.yaml .github/workflows/*.yml \
-            .github/actions/*/action.yaml .github/actions/*/action.yml
+            .github/actions/*/action.yaml .github/actions/*/action.yml \
+            action.y*ml
 
       # Reformat the pinned files so ratchet's output matches repo style.
       # Version pinned so a `prettier` release can't silently change
       # formatting output on a bot-authored PR.
       - name: Format YAML
         run: |
-          npx --yes prettier@3.4.2 --write \
-            ".github/workflows/*.yaml" ".github/workflows/*.yml" \
-            ".github/actions/*/action.yaml" ".github/actions/*/action.yml"
+          make format-yaml
 
       # Create a pull request with the pinned actions
       - name: Create pull request
