@@ -39,7 +39,7 @@ jobs:
 
       - name: Build package
         run: |
-          inv build-package
+          inv release.build
 
       - name: Check package metadata
         run: |

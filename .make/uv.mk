@@ -21,8 +21,8 @@ install-invoke: install-uv
 	uv pip install "invoke>=3.0"
 	@echo "✅ invoke installed"
 
-.PHONY: install-invoke-plus
-install-invoke-plus: install-invoke
+.PHONY: install-invoke-tasklib
+install-invoke-tasklib: install-uv
 	@echo "📦 Installing invoke-tasklib..."
 	uv pip install "invoke-tasklib>=0.0.2"
 	@echo "✅ invoke-tasklib installed"

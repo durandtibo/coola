@@ -88,7 +88,7 @@ repos:
       # Type-checks Python files with pyright.
       - id: pyright
         name: pyright
-        entry: uv run inv check-types
+        entry: uv run inv types.check
         language: system
         types: [python]
         pass_filenames: false
