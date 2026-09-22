@@ -24,12 +24,14 @@ ns.configure({"package": {"name": "coola"}})
 ```
 
 **Pros**
+
 - Idiomatic Python: real imports, testable task functions, IDE support.
 - Versioned and pinned per project — upgrade one repo at a time, roll back if needed.
 - Config/code separation: differences live in a small YAML/dict, not duplicated logic.
 - Shared tasks can be unit-tested once instead of trusted-by-copy everywhere.
 
 **Cons**
+
 - Extra release ceremony: change a shared task -> bump/publish package -> bump pin
   in each consumer. Slower than editing a file in place.
 - Requires a distribution mechanism (private index, or git dependency).
@@ -64,12 +66,14 @@ paths:
 ```
 
 **Pros**
+
 - Maximum consistency — literally the same `tasks.py` everywhere.
 - Non-Python-comfortable contributors can adjust behavior via YAML only.
 - New shared tasks require zero per-project changes beyond bumping the package.
 - Uses `invoke`'s native config layering — no custom machinery needed.
 
 **Cons**
+
 - Less flexible: a project needing a genuinely different task set or a one-off task
   either bloats the shared package with conditionals, or falls back to per-project
   code anyway.
@@ -92,6 +96,7 @@ truly needs a custom task or subset.
 ## Plan
 
 ### Phase 1 — Extract and design the shared package
+
 1. Create `invoke-tasklib` repo (standalone, or inside an existing internal
    tools monorepo).
 2. Inventory current tasks across projects (starting with `coola`'s `tasks.py`) and
@@ -109,6 +114,7 @@ truly needs a custom task or subset.
    to start).
 
 ### Phase 2 — Define the config contract
+
 1. Document the config schema the shared tasks expect (`package.name`,
    `paths.src`, `paths.tests`, `docs.source`, etc.) in the shared package's README.
 2. Standardize on `invoke.yaml` at each project root (auto-loaded by `invoke`).
@@ -116,6 +122,7 @@ truly needs a custom task or subset.
    needs to state real differences (mainly package name and nonstandard paths).
 
 ### Phase 3 — Standard integration path (identical `tasks.py`)
+
 1. Standard per-project `tasks.py`:
    ```python
    from invoke_tasklib import ns
@@ -128,6 +135,7 @@ truly needs a custom task or subset.
 3. Add the shared package as a pinned dev dependency.
 
 ### Phase 4 — Escape hatch for project-specific needs
+
 1. Document the pattern for diverging: import individual task modules instead of
    the pre-built `ns`, and build a custom `Collection`:
    ```python
@@ -145,6 +153,7 @@ truly needs a custom task or subset.
    rather than encouraging full overrides.
 
 ### Phase 5 — Migrate projects
+
 1. Pilot with `coola`.
 2. Migrate fully, verify all tasks behave identically (`invoke --list`, run each
    task).
@@ -154,6 +163,7 @@ truly needs a custom task or subset.
    available (branch/stash) until verified.
 
 ### Phase 6 — Maintenance workflow
+
 1. Changes to shared tasks -> bump version in `invoke-tasklib` -> update
    changelog.
 2. Each project upgrades its pin independently; CI runs `invoke --list` + key tasks

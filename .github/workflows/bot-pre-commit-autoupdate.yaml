@@ -32,7 +32,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup python environment
-        uses: durandtibo/setup-venv-uv-action@59716ab8fb83cc7025548b3831c06b6f5c268f4f # ratchet:durandtibo/setup-venv-uv-action@v0.1.0
+        uses: durandtibo/setup-venv-uv-action@269cae0b38051f39b2cfb10230687ba2b8093424 # ratchet:durandtibo/setup-venv-uv-action@v0.2.0
 
       # Update pre-commit hooks to their latest versions
       - name: Autoupdate pre-commit hooks
