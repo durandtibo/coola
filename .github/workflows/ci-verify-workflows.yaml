@@ -6,13 +6,9 @@ name: Verify Workflows
 
 on:
   pull_request:
-    paths:
-      - ".github/workflows/**" # Trigger on changes to workflow files
-      - ".github/actions/**"
   push:
-    paths:
-      - ".github/workflows/**" # Trigger on changes to workflow files
-      - ".github/actions/**"
+    branches:
+      - main
   workflow_dispatch: # to trigger manually
 
 permissions:
