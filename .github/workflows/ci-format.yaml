@@ -24,12 +24,12 @@ jobs:
       # Check code formatting with ruff
       - name: Check format
         run: |
-          inv check-format
+          inv format.check-python
 
       # Check code quality with ruff
       - name: Check lint
         run: |
-          inv check-lint
+          inv lint.check-lint
 
   shell:
     runs-on: ubuntu-latest

@@ -42,8 +42,8 @@ jobs:
           MODE: ${{ inputs.mode }}
         run: |
           case "$MODE" in
-            stable) inv publish-doc-latest ;;
-            dev) inv publish-doc-dev ;;
+            stable) inv doc.publish-latest ;;
+            dev) inv doc.publish-dev ;;
             *)
               echo "::error::Unknown mode '$MODE', expected 'stable' or 'dev'"
               exit 1

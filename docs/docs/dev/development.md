@@ -47,10 +47,10 @@ If you already have a virtual environment and just want to install dependencies:
 
 ```shell
 # Install core dependencies
-inv install --no-optional-deps
+inv env.install --no-optional-deps
 
 # Install with documentation dependencies
-inv install --docs-deps
+inv env.install --groups dev,docs
 ```
 
 ### 4. Set Up Pre-commit Hooks
@@ -68,13 +68,13 @@ This will automatically run code quality checks before each commit.
 **Run all unit tests:**
 
 ```shell
-inv unit-test
+inv test.unit
 ```
 
 **Run tests with coverage:**
 
 ```shell
-inv unit-test --cov
+inv test.unit --cov
 ```
 
 **Run specific test file:**
@@ -94,19 +94,19 @@ pytest tests/unit/test_comparison.py::test_objects_are_equal
 **Format code with Black:**
 
 ```shell
-inv check-format
+inv format.check-python
 ```
 
 **Run linter (Ruff):**
 
 ```shell
-inv check-lint
+inv lint.check-lint
 ```
 
 **Format docstrings:**
 
 ```shell
-inv docformat
+inv format.fix-docstrings
 ```
 
 **Run all pre-commit checks:**
@@ -134,7 +134,7 @@ mkdocs build -f docs/mkdocs.yml
 **Run doctests:**
 
 ```shell
-inv doctest-src
+inv test.doctest
 ```
 
 ### Type Checking
@@ -192,7 +192,7 @@ coola/
 3. **Run tests:**
 
    ```shell
-   inv unit-test --cov
+   inv test.unit --cov
    ```
 
 4. **Run code quality checks:**
@@ -234,7 +234,7 @@ coola/
 5. **Run full test suite:**
 
    ```shell
-   inv unit-test --cov
+   inv test.unit --cov
    ```
 
 6. **Commit and push:**
@@ -247,7 +247,7 @@ coola/
 
 ```shell
 # Update all dependencies
-inv update
+inv env.update
 
 # Dependencies are managed in pyproject.toml and locked in uv.lock
 # To add a new dependency, edit pyproject.toml and run:

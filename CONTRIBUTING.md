@@ -55,13 +55,13 @@ Once you implement and test your feature or bug-fix, please submit a Pull Reques
 Run all unit tests:
 
 ```shell
-inv unit-test
+inv test.unit
 ```
 
 Run tests with coverage:
 
 ```shell
-inv unit-test --cov
+inv test.unit --cov
 ```
 
 Run specific tests:
@@ -75,19 +75,19 @@ pytest tests/unit/path/to/test_file.py
 **Format your code:**
 
 ```shell
-inv check-format
+inv format.check-python
 ```
 
 **Run linter:**
 
 ```shell
-inv check-lint
+inv lint.check-lint
 ```
 
 **Format docstrings:**
 
 ```shell
-inv docformat
+inv format.fix-docstrings
 ```
 
 **Run all pre-commit checks:**
@@ -126,7 +126,7 @@ We actively welcome your pull requests.
 3. **Ensure tests pass:**
 
    ```shell
-   inv unit-test --cov
+   inv test.unit --cov
    ```
 
 4. **Run code quality checks:**
