@@ -48,7 +48,7 @@ jobs:
         if: |
           matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14' &&
           github.repository == 'durandtibo/coola' && (github.event_name == 'push' || github.event_name == 'pull_request')
-        uses: codecov/codecov-action@0b35c9ecc4f0529d0eb674914510c22f85b196b4 # ratchet:codecov/codecov-action@v7
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # ratchet:codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
