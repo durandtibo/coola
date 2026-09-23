@@ -55,6 +55,6 @@ jobs:
 
       - name: Get package extras
         id: extras
-        uses: durandtibo/extract-pyproject-metadata-action@b21147a9f23008959e0929b2000d63d7d1dcce34 # ratchet:durandtibo/extract-pyproject-metadata-action@v0.1
+        uses: durandtibo/extract-pyproject-metadata-action@4661b78698e6ceb7e04cf60bbdd52addf85a2889 # ratchet:durandtibo/extract-pyproject-metadata-action@v0.2
         with:
           extra-values: ${{ inputs.extra-values }}
