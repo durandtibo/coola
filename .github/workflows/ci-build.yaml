@@ -49,7 +49,7 @@ jobs:
           dist-type: ${{ matrix.dist-type }}
       - name: Run package checks
         shell: bash
-        run: |
+        run: |2
 
           set -euo pipefail
           echo "🔍 Running package checks..."
@@ -101,7 +101,7 @@ jobs:
           dist-type: ${{ matrix.dist-type }}
           verify-sdist-extra: false
       - name: Run package checks
-        run: |
+        run: |2
 
           set -euo pipefail
           echo "🔍 Running package checks..."
