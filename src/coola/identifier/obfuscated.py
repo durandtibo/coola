@@ -41,7 +41,7 @@ __all__ = ["decode_obfuscated_id", "generate_obfuscated_id"]
 import hashlib
 
 from coola.identifier.validation import validate_bit_range
-from coola.validation import validate_non_negative
+from coola.validation import validate_non_negative, validate_not_empty
 
 _BITS = 64
 _MASK = (1 << _BITS) - 1
@@ -155,9 +155,7 @@ def decode_obfuscated_id(encoded: str, salt: str = "") -> int:
 
         ```
     """
-    if not encoded:
-        msg = "encoded must not be empty"
-        raise ValueError(msg)
+    validate_not_empty(encoded, name="encoded")
     try:
         obfuscated = _decode_base62(encoded)
     except ValueError as error:

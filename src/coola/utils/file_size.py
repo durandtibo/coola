@@ -25,15 +25,14 @@ def get_file_size(path: Path) -> int:
     Raises:
         FileNotFoundError: if ``path`` does not exist.
 
-    Example usage:
+    Example:
+        ```pycon
+        >>> from pathlib import Path
+        >>> from coola.utils.file_size import get_file_size
+        >>> get_file_size(Path(__file__))  # doctest: +SKIP
+        512
 
-    ```pycon
-    >>> from pathlib import Path
-    >>> from coola.utils.file_size import get_file_size
-    >>> get_file_size(Path(__file__))  # doctest: +SKIP
-    512
-
-    ```
+        ```
     """
     if not path.exists():
         msg = f"path does not exist: {path}"

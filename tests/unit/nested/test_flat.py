@@ -140,7 +140,7 @@ def test_from_flat_dict_separator_absent_from_keys() -> None:
 
 
 def test_from_flat_dict_empty_separator_raises() -> None:
-    with pytest.raises(ValueError, match="non-empty"):
+    with pytest.raises(ValueError, match="must not be empty"):
         from_flat_dict({"a.b": 1}, separator="")
 
 

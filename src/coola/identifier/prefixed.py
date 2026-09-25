@@ -15,6 +15,7 @@ __all__ = ["generate_prefixed_id"]
 from typing import TYPE_CHECKING
 
 from coola.identifier.ulid import generate_ulid
+from coola.validation import validate_not_empty
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -51,9 +52,7 @@ def generate_prefixed_id(prefix: str, generator: Callable[[], str] = generate_ul
 
         ```
     """
-    if not prefix:
-        msg = "prefix must not be empty"
-        raise ValueError(msg)
+    validate_not_empty(prefix, name="prefix")
     if "_" in prefix:
         msg = f"prefix must not contain '_', got {prefix!r}"
         raise ValueError(msg)

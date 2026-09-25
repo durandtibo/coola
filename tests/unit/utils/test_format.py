@@ -31,12 +31,12 @@ def test_make_bar_raises_value_error(value: float) -> None:
 
 
 def test_make_bar_raises_value_error_if_length_is_zero() -> None:
-    with pytest.raises(ValueError, match="length must be a positive integer"):
+    with pytest.raises(ValueError, match="length must be positive"):
         make_bar(0.5, length=0)
 
 
 def test_make_bar_raises_value_error_if_length_is_negative() -> None:
-    with pytest.raises(ValueError, match="length must be a positive integer"):
+    with pytest.raises(ValueError, match="length must be positive"):
         make_bar(0.5, length=-1)
 
 
