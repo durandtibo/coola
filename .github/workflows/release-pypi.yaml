@@ -73,17 +73,28 @@ jobs:
         run: |
           cd dist && sha256sum --check SHA256SUMS && rm SHA256SUMS
 
+      # sigstore verify expects each bundle next to a same-basename copy of
+      # its artifact, so the artifacts are copied into a scratch dir rather
+      # than downloading the bundles into dist/ itself - gh-action-pypi-publish
+      # uploads every file in packages-dir, and it can't handle .sigstore.json
+      # (errors with "Unknown distribution format"), so dist/ must only ever
+      # contain the wheel/sdist that are meant to be published.
       - name: Download signature bundles
         if: startsWith(github.ref, 'refs/tags/')
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8.0.1
         with:
           name: signatures
-          path: dist/
+          path: verify/
+
+      - name: Install uv
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # ratchet:astral-sh/setup-uv@v10.1.0
 
       - name: Verify Sigstore signatures
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          uvx sigstore verify identity dist/*.tar.gz dist/*.whl \
+          cp dist/*.tar.gz dist/*.whl verify/
+          uvx sigstore verify identity verify/*.tar.gz verify/*.whl \
             --cert-identity "https://github.com/${{ github.repository }}/.github/workflows/release-pypi.yaml@${{ github.ref }}" \
             --cert-oidc-issuer https://token.actions.githubusercontent.com
 
