@@ -7,6 +7,8 @@ __all__ = ["from_flat_dict", "to_flat_dict"]
 from collections.abc import Mapping, Sequence
 from typing import Any
 
+from coola.validation import validate_not_empty
+
 
 def from_flat_dict(data: dict[str, Any], separator: str = ".") -> dict[str, Any]:
     r"""Return a nested dict from a flat dict produced by
@@ -46,9 +48,7 @@ def from_flat_dict(data: dict[str, Any], separator: str = ".") -> dict[str, Any]
 
         ```
     """
-    if not separator:
-        msg = "separator must be a non-empty string"
-        raise ValueError(msg)
+    validate_not_empty(separator, name="separator")
 
     nested: dict[str, Any] = {}
     for flat_key, value in data.items():

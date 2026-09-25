@@ -23,7 +23,7 @@ __all__ = [
 import datetime
 from typing import TYPE_CHECKING, Any
 
-from coola.validation import validate_non_negative
+from coola.validation import validate_non_negative, validate_positive
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -67,9 +67,7 @@ def make_bar(value: float, length: int = 10) -> str:
     if not 0.0 <= value <= 1.0:
         msg = f"value must be in [0, 1], but got {value}"
         raise ValueError(msg)
-    if length <= 0:
-        msg = f"length must be a positive integer, but got {length}"
-        raise ValueError(msg)
+    validate_positive(length, name="length")
 
     filled = round(value * length)
     return f"[{'█' * filled}{'░' * (length - filled)}]"
