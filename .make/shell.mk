@@ -58,4 +58,10 @@ format-shell: install-shfmt ## Format shell scripts with shfmt
 	find $(SHELL_FORMAT_PATH) -type d -name '.make' -prune -o -type f -name '*.sh' -print0 | xargs -0 -r shfmt -l -w
 	@echo "✅ Shell formatting complete"
 
+.PHONY: check-format-shell
+check-format-shell: install-shfmt ## Check shell script formatting with shfmt
+	@echo "🔍 Checking shell script formatting with shfmt..."
+	find $(SHELL_FORMAT_PATH) -type d -name '.make' -prune -o -type f -name '*.sh' -print0 | xargs -0 -r shfmt -d
+	@echo "✅ Shell formatting is correct"
+
 endif
