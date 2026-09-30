@@ -554,3 +554,19 @@ def test_type_registry_resolve_raises_type_not_registered_error() -> None:
         registry.resolve(int)
     assert isinstance(exc_info.value, KeyError)
     assert "Registered types: str" in str(exc_info.value)
+
+
+def test_type_registry_not_registered_msg_without_mro() -> None:
+    """The MRO section is omitted when the key has no ``__mro__``."""
+    registry = TypeRegistry[str]({int: "integer"})
+    msg = registry._not_registered_msg("not a type")  # type: ignore[arg-type]
+    assert "MRO" not in msg
+    assert msg.startswith("Type 'not a type' is not registered")
+    assert "Registered types: int" in msg
+
+
+def test_type_registry_not_registered_msg_empty_registry() -> None:
+    """The registered-types section is omitted for an empty registry."""
+    msg = TypeRegistry[str]()._not_registered_msg(int)
+    assert "MRO: int, object" in msg
+    assert "Registered types" not in msg
