@@ -557,3 +557,28 @@ def test_type_registry_stress_test_high_contention() -> None:
     # Just verify no crashes occurred and operations completed
     assert counter["value"] == num_threads * 10
     assert len(registry) > 0
+
+
+def test_type_registry_concurrent_resolve_with_mutation() -> None:
+    """Test concurrent resolve() calls never see an unexpected value
+    while another thread registers and unregisters a type."""
+    registry = TypeRegistry[str]({object: "object"})
+    results = []
+
+    def resolve_repeatedly() -> None:
+        for _ in range(1000):
+            results.append(registry.resolve(bool))
+
+    def mutate_registry() -> None:
+        for _ in range(200):
+            registry.register(int, "integer", exist_ok=True)
+            assert registry.resolve(bool) == "integer"
+            registry.unregister(int)
+
+    run_threads(
+        [threading.Thread(target=resolve_repeatedly) for _ in range(4)]
+        + [threading.Thread(target=mutate_registry)]
+    )
+
+    assert len(results) == 4000
+    assert set(results) <= {"object", "integer"}

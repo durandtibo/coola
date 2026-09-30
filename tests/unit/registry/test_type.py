@@ -278,33 +278,6 @@ def test_type_registry_resolve_cache_cleared_on_change() -> None:
     assert registry.resolve(int) == "integer"
 
 
-def test_type_registry_resolve_concurrent_with_mutation() -> None:
-    """Test concurrent resolve() calls never see a stale value once a
-    registration has completed."""
-    import threading
-
-    registry = TypeRegistry[str]({object: "object"})
-    errors: list[str] = []
-    stop = threading.Event()
-
-    def reader() -> None:
-        while not stop.is_set():
-            if registry.resolve(bool) not in {"object", "integer"}:
-                errors.append("bad value")
-
-    threads = [threading.Thread(target=reader) for _ in range(4)]
-    for t in threads:
-        t.start()
-    for _ in range(200):
-        registry.register(int, "integer", exist_ok=True)
-        assert registry.resolve(bool) == "integer"
-        registry.unregister(int)
-    stop.set()
-    for t in threads:
-        t.join()
-    assert not errors
-
-
 def test_type_registry_resolve_most_specific_type() -> None:
     registry = TypeRegistry[str]({object: "object", int: "int", float: "float"})
     # Should get most specific match
