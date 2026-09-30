@@ -91,3 +91,10 @@ repos:
         language: system
         types: [python]
         pass_filenames: false
+      # Enforces the package layering contract defined in pyproject.toml.
+      - id: import-linter
+        name: import-linter
+        entry: uv run lint-imports
+        language: system
+        types: [python]
+        pass_filenames: false
