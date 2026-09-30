@@ -66,12 +66,12 @@ def to_jsonable(data: Any) -> Any:
     """
     if isinstance(data, BaseModel):
         return data.model_dump(mode="json")
-    if is_dataclass(data) and not isinstance(data, type):
-        return _to_jsonable_recursive(asdict(data))
     if isinstance(data, np.ndarray):
         return data.tolist()
     if isinstance(data, torch.Tensor):
         return data.tolist()
+    if is_dataclass(data) and not isinstance(data, type):
+        return _to_jsonable_recursive(asdict(data))
     return data
 
 

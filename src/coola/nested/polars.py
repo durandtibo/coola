@@ -10,7 +10,7 @@ __all__ = [
     "unnest_with_separator",
 ]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from coola.utils.imports import is_polars_available
 from coola.validation import validate_positive
@@ -72,7 +72,7 @@ def unnest_with_separator(frame: pl.DataFrame, columns: list[str], separator: st
         rename_map = {
             field.name: f"{col}{separator}{field.name}"
             for col in columns
-            for field in frame.schema[col].fields
+            for field in cast("pl.Struct", frame.schema[col]).fields
         }
         return frame.unnest(columns).rename(rename_map)
 
@@ -103,7 +103,7 @@ def expand_list_columns(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
 
     expansions: dict[str, pl.Series] = {}
     for col in list_cols:
-        max_len = frame[col].list.len().max() or 0
+        max_len = cast("int", frame[col].list.len().max() or 0)
         for i in range(max_len):
             expansions[f"{col}{separator}{i}"] = frame[col].list.get(i, null_on_oob=True)
 

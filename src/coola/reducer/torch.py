@@ -8,14 +8,14 @@ from __future__ import annotations
 __all__ = ["TorchReducer"]
 
 from collections.abc import Sequence
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from coola.display import InlineDisplayMixin
 from coola.reducer.base import BaseBasicReducer
 from coola.utils.imports import check_torch, is_torch_available
 from coola.utils.tensor import to_tensor
 
-if is_torch_available():
+if TYPE_CHECKING or is_torch_available():
     import torch
 else:  # pragma: no cover
     from coola.utils.fallback.torch import torch
@@ -50,7 +50,7 @@ class TorchReducer(InlineDisplayMixin, BaseBasicReducer[T]):
         check_torch()
 
     def _is_empty(self, values: T) -> bool:
-        if torch.is_tensor(values):
+        if isinstance(values, torch.Tensor):
             return values.numel() == 0
         return not values
 
@@ -76,7 +76,7 @@ class TorchReducer(InlineDisplayMixin, BaseBasicReducer[T]):
         return torch.sort(to_tensor(values), descending=descending)[0].tolist()
 
     def _std(self, values: T) -> float:
-        values = to_tensor(values).float()
-        if values.numel() == 1:
+        tensor = to_tensor(values).float()
+        if tensor.numel() == 1:
             return float("nan")
-        return values.std().item()
+        return tensor.std().item()

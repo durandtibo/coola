@@ -12,6 +12,8 @@ from coola.utils.imports import is_colorlog_available
 
 if is_colorlog_available():  # pragma: no cover
     import colorlog
+else:  # pragma: no cover
+    from coola.utils.fallback.colorlog import colorlog
 
 
 def configure_colorlog_logging(

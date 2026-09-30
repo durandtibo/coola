@@ -42,6 +42,7 @@ class SupportsAllCloseNan(Protocol):
         Returns:
             ``True`` if the two objects are equal, otherwise ``False``.
         """
+        ...
 
 
 class AllCloseNanHandler(HandlerEqualityMixin, BaseEqualityHandler):

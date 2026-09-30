@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["SetTransformer"]
 
 from collections.abc import Set as AbstractSet
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from coola.display import InlineDisplayMixin
 from coola.recursive.base import BaseTransformer
@@ -72,4 +72,5 @@ class SetTransformer(InlineDisplayMixin, BaseTransformer[AbstractSet[Any]]):
         transformed = {registry.transform(item, func) for item in data}
 
         # Rebuild with original type to preserve set characteristics
-        return type(data)(transformed)
+        data_type = cast("Callable[..., Any]", type(data))
+        return data_type(transformed)

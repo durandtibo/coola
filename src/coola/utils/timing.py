@@ -81,4 +81,4 @@ def timeblock(message: str = "Total time: {time}") -> Generator[TimingResult, No
         yield result
     finally:
         result.finished_at = time.perf_counter()
-        logger.info(message.format(time=str_time_human(result.elapsed)))
+        logger.info(message.format(time=str_time_human(result.elapsed or 0.0)))

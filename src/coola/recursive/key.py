@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["KeyFilterTransformer"]
 
 from collections.abc import Mapping, Sequence, Set as AbstractSet
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from coola.recursive.base import BaseTransformer
 
@@ -106,7 +106,8 @@ class KeyFilterTransformer(BaseTransformer[Mapping[Any, Any]]):
             for key, value in data.items()
             if not func(key)
         }
-        return type(data)(filtered)
+        data_type = cast("Callable[..., Any]", type(data))
+        return data_type(filtered)
 
     @staticmethod
     def _value_func(

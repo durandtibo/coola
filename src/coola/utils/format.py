@@ -165,8 +165,8 @@ def repr_mapping_line(
 
         ```
     """
-    mapping = sorted(mapping.items()) if sorted_keys else mapping.items()
-    return separator.join(f"{key}={value!r}" for key, value in mapping)
+    items = sorted(mapping.items()) if sorted_keys else mapping.items()
+    return separator.join(f"{key}={value!r}" for key, value in items)
 
 
 def repr_sequence(sequence: Sequence[Any], num_spaces: int = 2) -> str:
@@ -315,8 +315,8 @@ def str_mapping_line(
 
         ```
     """
-    mapping = sorted(mapping.items()) if sorted_keys else mapping.items()
-    return separator.join(f"{key}={value!s}" for key, value in mapping)
+    items = sorted(mapping.items()) if sorted_keys else mapping.items()
+    return separator.join(f"{key}={value!s}" for key, value in items)
 
 
 def str_sequence(sequence: Sequence[Any], num_spaces: int = 2) -> str:

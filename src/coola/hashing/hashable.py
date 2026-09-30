@@ -38,6 +38,7 @@ class SupportsHash(Protocol):
         Returns:
             The hash of this object.
         """
+        ...
 
 
 class HashableHasher(InlineDisplayMixin, BaseHasher[SupportsHash]):

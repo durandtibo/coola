@@ -16,6 +16,7 @@ from collections.abc import Iterable, Mapping
 from typing import Protocol, TypeVar
 
 T = TypeVar("T")
+T_contra = TypeVar("T_contra", contravariant=True)
 
 # Scalar types are treated as leaves: they never need to be expanded further.
 _SCALAR_TYPES = (object, str, bytes, int, float, complex, bool)
@@ -25,7 +26,7 @@ _ITERABLE_TYPES = (list, tuple, range, Iterable, set, frozenset)
 _MAPPING_TYPES = (dict, Mapping)
 
 
-class SupportsRegisterMany(Protocol):
+class SupportsRegisterMany(Protocol[T_contra]):
     r"""Protocol for registries that ``register_default_handlers`` can
     populate.
 
@@ -34,12 +35,12 @@ class SupportsRegisterMany(Protocol):
     """
 
     def register_many(
-        self, mapping: Mapping[type, T], exist_ok: bool = False
+        self, mapping: Mapping[type, T_contra], exist_ok: bool = False
     ) -> None: ...  # pragma: no cover
 
 
 def register_default_handlers(
-    registry: SupportsRegisterMany,
+    registry: SupportsRegisterMany[T],
     default_handler: T,
     iterable_handler: T,
     mapping_handler: T,

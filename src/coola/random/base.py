@@ -5,6 +5,7 @@ from __future__ import annotations
 __all__ = ["BaseRandomManager"]
 
 from abc import ABC, abstractmethod
+from typing import Any
 
 
 class BaseRandomManager(ABC):
@@ -59,7 +60,7 @@ class BaseRandomManager(ABC):
         """
 
     @abstractmethod
-    def set_rng_state(self, state: object) -> None:
+    def set_rng_state(self, state: Any) -> None:
         r"""Set the RNG state.
 
         Args:

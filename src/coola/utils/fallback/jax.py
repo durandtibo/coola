@@ -5,19 +5,20 @@ from __future__ import annotations
 
 __all__ = ["jax", "jnp", "numpy"]
 
-from types import ModuleType
+from typing import TYPE_CHECKING
 
-from coola.utils.fallback.factory import make_fake_class
+from coola.utils.fallback.factory import make_fake_class, make_fake_module
 from coola.utils.imports import raise_jax_missing_error
+
+if TYPE_CHECKING:
+    from types import ModuleType
 
 FakeClass: type = make_fake_class(raise_jax_missing_error)
 
-numpy: ModuleType = ModuleType("jax.numpy")
-numpy.ndarray = FakeClass
+numpy: ModuleType = make_fake_module("jax.numpy", ndarray=FakeClass)
 
 # Create a fake jax package
-jax: ModuleType = ModuleType("jax")
-jax.numpy = numpy
+jax: ModuleType = make_fake_module("jax", numpy=numpy)
 
 # Export jnp as an alias for convenience
-jnp: ModuleType = jax.numpy
+jnp: ModuleType = numpy

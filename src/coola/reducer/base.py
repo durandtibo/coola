@@ -5,10 +5,12 @@ from __future__ import annotations
 __all__ = ["BaseBasicReducer", "BaseReducer", "EmptySequenceError"]
 
 from abc import ABC, abstractmethod
-from collections.abc import Sequence
-from typing import Generic, TypeVar
+from typing import TYPE_CHECKING, Generic, TypeVar
 
-T = TypeVar("T", bound=Sequence[float])
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+T = TypeVar("T")
 
 
 class EmptySequenceError(Exception):

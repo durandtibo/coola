@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["factory", "resolve_object"]
 
 import logging
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast
 
 from coola.factory.constants import OBJECT_INIT, OBJECT_TARGET
 from coola.factory.instantiation import import_object, instantiate_object
@@ -146,4 +146,4 @@ def resolve_object(obj: T | dict[str, Any], cls: type[T] = object) -> T:
     if not isinstance(obj, cls):
         msg = f"Received object is not a {cls_name} instance (received: {type(obj)})"
         raise TypeError(msg)
-    return obj
+    return cast("T", obj)

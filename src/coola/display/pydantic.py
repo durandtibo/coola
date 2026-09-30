@@ -15,8 +15,10 @@ from coola.utils.mapping import sort_by_keys
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-if is_pydantic_available():  # pragma: no cover
+if TYPE_CHECKING or is_pydantic_available():  # pragma: no cover
     from pydantic import BaseModel, SecretStr
+else:  # pragma: no cover
+    from coola.utils.fallback.pydantic import BaseModel, SecretStr
 
 
 def secret_field_names(model: BaseModel) -> set[str]:

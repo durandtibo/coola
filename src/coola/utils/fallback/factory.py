@@ -11,8 +11,9 @@ package shape.
 
 from __future__ import annotations
 
-__all__ = ["make_fake_class", "make_fake_function"]
+__all__ = ["make_fake_class", "make_fake_function", "make_fake_module"]
 
+from types import ModuleType
 from typing import TYPE_CHECKING, Any, NoReturn
 
 if TYPE_CHECKING:
@@ -67,3 +68,28 @@ def make_fake_function(raise_error: Callable[[], NoReturn]) -> Callable[..., NoR
         raise_error()
 
     return fake_function
+
+
+def make_fake_module(name: str, **attributes: Any) -> ModuleType:
+    r"""Create a fake module exposing the given attributes.
+
+    Args:
+        name: The fully qualified name of the module
+            (e.g. ``"torch.nn"``).
+        **attributes: The attributes to expose on the module.
+
+    Returns:
+        The fake module.
+
+    Example:
+        ```pycon
+        >>> from coola.utils.fallback.factory import make_fake_module
+        >>> module = make_fake_module("pkg", value=1)
+        >>> module.value
+        1
+
+        ```
+    """
+    module = ModuleType(name)
+    module.__dict__.update(attributes)
+    return module
