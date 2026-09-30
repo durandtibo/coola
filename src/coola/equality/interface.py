@@ -17,7 +17,8 @@ if TYPE_CHECKING:
 def _compare(
     registry: EqualityTesterRegistry, actual: object, expected: object, config: EqualityConfig
 ) -> bool:
-    """Run the comparison and make interpreter stack overflows actionable.
+    """Run the comparison and make interpreter stack overflows
+    actionable.
 
     The comparison recurses through several Python frames per nesting
     level, so the interpreter limit (``sys.getrecursionlimit()``) is
