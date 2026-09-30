@@ -281,3 +281,33 @@ def test_import_object_not_allowed_prefixes() -> None:
         import_object("os.system", allowed_prefixes=["collections"])
     with pytest.raises(ImportError, match="not allowed"):
         import_object("collectionsx.Counter", allowed_prefixes=["collections"])
+
+
+def test_import_object_allowed_prefixes_none_allows_all() -> None:
+    assert import_object("math.pi", allowed_prefixes=None) == math.pi
+
+
+def test_import_object_allowed_prefixes_empty_rejects_all() -> None:
+    with pytest.raises(ImportError, match="not allowed"):
+        import_object("collections.Counter", allowed_prefixes=[])
+
+
+def test_import_object_allowed_prefixes_multiple() -> None:
+    assert import_object("math.pi", allowed_prefixes=["collections", "math"]) == math.pi
+
+
+def test_import_object_allowed_prefixes_submodule() -> None:
+    assert import_object("os.path.join", allowed_prefixes=["os.path"]) is not None
+    with pytest.raises(ImportError, match="not allowed"):
+        import_object("os.getcwd", allowed_prefixes=["os.path"])
+
+
+def test_import_object_allowed_prefixes_checked_before_import() -> None:
+    # A non-existent module outside the allow-list must report "not allowed".
+    with pytest.raises(ImportError, match="not allowed"):
+        import_object("nonexistent_pkg_xyz.Foo", allowed_prefixes=["collections"])
+
+
+def test_import_object_allowed_prefixes_non_string() -> None:
+    with pytest.raises(TypeError, match="not a string"):
+        import_object(42, allowed_prefixes=["collections"])

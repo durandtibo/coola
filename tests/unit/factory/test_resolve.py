@@ -363,3 +363,14 @@ def test_factory_allowed_prefixes() -> None:
     assert factory("collections.Counter", [1, 1], _allowed_prefixes_=["collections"])
     with pytest.raises(ImportError, match="does not exist"):
         factory("os.getcwd", _allowed_prefixes_=["collections"])
+
+
+def test_factory_allowed_prefixes_not_forwarded_to_target() -> None:
+    # The reserved key must be consumed, not passed to the constructor.
+    assert factory("collections.Counter", [1, 1, 2], _allowed_prefixes_=["collections"]) == Counter(
+        [1, 1, 2]
+    )
+
+
+def test_factory_allowed_prefixes_none() -> None:
+    assert factory("collections.Counter", [1], _allowed_prefixes_=None) == Counter([1])

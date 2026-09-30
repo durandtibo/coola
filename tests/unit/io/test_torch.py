@@ -235,3 +235,26 @@ def test_torch_loader_weights_only_default(tmp_path: Path) -> None:
     with pytest.raises(Exception, match=r"(?i)weights|unsupported|global"):
         TorchLoader().load(path)
     assert TorchLoader(weights_only=False).load(path) == PurePosixPath("a")
+
+
+@torch_available
+def test_torch_loader_weights_only_explicit_true(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("obj.pt")
+    torch.save(PurePosixPath("a"), path)
+    with pytest.raises(Exception, match=r"(?i)weights|unsupported|global"):
+        TorchLoader(weights_only=True).load(path)
+
+
+@torch_available
+def test_torch_loader_does_not_mutate_kwargs() -> None:
+    loader = TorchLoader()
+    assert repr(loader) == "TorchLoader()"
+
+
+@torch_available
+def test_load_torch_weights_only_default(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("obj.pt")
+    torch.save(PurePosixPath("a"), path)
+    with pytest.raises(Exception, match=r"(?i)weights|unsupported|global"):
+        load_torch(path)
+    assert load_torch(path, weights_only=False) == PurePosixPath("a")
