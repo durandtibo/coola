@@ -22,6 +22,22 @@ LOGGER_NAME = "coola.equality"
 np = pytest.importorskip("numpy")
 
 
+def equal_result(actual: object, expected: object) -> ComparisonResult:
+    return ComparisonResult(True, actual=repr(actual), expected=repr(expected))
+
+
+def different_result(
+    actual: object, expected: object, path: tuple, reason: str
+) -> ComparisonResult:
+    return ComparisonResult(
+        False, path=path, reason=reason, actual=repr(actual), expected=repr(expected)
+    )
+
+
+def numbers(actual: object, expected: object) -> str:
+    return f"numbers are different:\n  actual   : {actual}\n  expected : {expected}"
+
+
 @pytest.fixture
 def logger_state() -> tuple[int, bool, list[logging.Handler]]:
     logger = logging.getLogger(LOGGER_NAME)
@@ -108,87 +124,86 @@ def test_comparison_result_format_message_without_reason() -> None:
     ],
 )
 def test_compare_equal(actual: object, expected: object) -> None:
-    result = compare(actual, expected)
-    assert result.equal
-    assert bool(result)
-    assert result.path == ()
-    assert result.reason is None
-    assert result.actual == repr(actual)
-    assert result.expected == repr(expected)
+    assert compare(actual, expected) == equal_result(actual, expected)
 
 
 @pytest.mark.parametrize(
-    ("actual", "expected", "path"),
+    ("actual", "expected", "path", "reason"),
     [
-        (1, 2, ()),
-        ([1, 2, 3], [1, 2, 4], (2,)),
-        ({"a": 1}, {"a": 2}, ("a",)),
-        ({"a": [1, 2]}, {"a": [1, 3]}, ("a", 1)),
-        ({"a": [1, {"b": 2}]}, {"a": [1, {"b": 3}]}, ("a", 1, "b")),
-        ([[1, 2], [3, 4]], [[1, 2], [3, 5]], (1, 1)),
-        ({1: {2: {3: "x"}}}, {1: {2: {3: "y"}}}, (1, 2, 3)),
+        (1, 2, (), numbers(1, 2)),
+        ([1, 2, 3], [1, 2, 4], (2,), numbers(3, 4)),
+        ({"a": 1}, {"a": 2}, ("a",), numbers(1, 2)),
+        ({"a": [1, 2]}, {"a": [1, 3]}, ("a", 1), numbers(2, 3)),
+        ({"a": [1, {"b": 2}]}, {"a": [1, {"b": 3}]}, ("a", 1, "b"), numbers(2, 3)),
+        ([[1, 2], [3, 4]], [[1, 2], [3, 4 + 1]], (1, 1), numbers(4, 5)),
+        (
+            {1: {2: {3: "x"}}},
+            {1: {2: {3: "y"}}},
+            (1, 2, 3),
+            "objects are different:\n  actual   : x\n  expected : y",
+        ),
+        ((1, 2, 3), (1, 2, 4), (2,), numbers(3, 4)),
+        (OrderedDict(a=[1, 2]), OrderedDict(a=[1, 3]), ("a", 1), numbers(2, 3)),
+        ({"a": (1, {"b": [1]})}, {"a": (1, {"b": [2]})}, ("a", 1, "b", 0), numbers(1, 2)),
+        (
+            {(1, 2): "x"},
+            {(1, 2): "y"},
+            ((1, 2),),
+            "objects are different:\n  actual   : x\n  expected : y",
+        ),
+        (
+            {"a": 1},
+            {"b": 1},
+            (),
+            "mappings have different keys:\n  missing keys    : ['a']\n  additional keys : ['b']",
+        ),
+        ({"a": [1]}, {"a": [1, 2]}, ("a",), "objects have different lengths: 1 vs 2"),
+        (
+            [1],
+            (1,),
+            (),
+            "objects have different types:\n  actual   : <class 'list'>\n  expected : <class 'tuple'>",
+        ),
     ],
 )
-def test_compare_not_equal_path(actual: object, expected: object, path: tuple) -> None:
-    result = compare(actual, expected)
-    assert not result
-    assert result.path == path
-    assert result.reason
-    assert result.actual == repr(actual)
-    assert result.expected == repr(expected)
+def test_compare_not_equal(actual: object, expected: object, path: tuple, reason: str) -> None:
+    assert compare(actual, expected) == different_result(actual, expected, path, reason)
 
 
 def test_compare_first_difference_only() -> None:
-    result = compare([1, 2, 3], [9, 2, 9])
-    assert result.path == (0,)
-
-
-def test_compare_reason_is_innermost() -> None:
-    result = compare({"a": [1, 2]}, {"a": [1, 3]})
-    assert "numbers are different" in result.reason
-    assert "actual   : 2" in result.reason
-    assert "expected : 3" in result.reason
-
-
-def test_compare_different_keys() -> None:
-    result = compare({"a": 1}, {"b": 1})
-    assert not result
-    assert result.path == ()
-    assert "different keys" in result.reason
-
-
-def test_compare_different_lengths() -> None:
-    result = compare({"a": [1]}, {"a": [1, 2]})
-    assert not result
-    assert result.path == ("a",)
-    assert "different lengths" in result.reason
-
-
-def test_compare_different_types() -> None:
-    result = compare([1], (1,))
-    assert not result
-    assert result.path == ()
-    assert "different types" in result.reason
+    assert compare([1, 2, 3], [9, 2, 9]) == different_result(
+        [1, 2, 3], [9, 2, 9], (0,), numbers(1, 9)
+    )
 
 
 def test_compare_shared_objects_reused() -> None:
     shared = [1, 2]
-    assert compare({"a": shared, "b": shared}, {"a": [1, 2], "b": [1, 2]})
+    actual, expected = {"a": shared, "b": shared}, {"a": [1, 2], "b": [1, 2]}
+    assert compare(actual, expected) == equal_result(actual, expected)
 
 
 @pytest.mark.parametrize(
-    ("actual", "expected", "kwargs", "equal"),
+    ("actual", "expected", "kwargs"),
     [
-        ([1.0], [1.05], {}, False),
-        ([1.0], [1.05], {"atol": 0.1}, True),
-        ([100.0], [101.0], {"rtol": 0.05}, True),
-        ([100.0], [101.0], {"rtol": 0.001}, False),
-        ([float("nan")], [float("nan")], {}, False),
-        ([float("nan")], [float("nan")], {"equal_nan": True}, True),
+        ([1.0], [1.05], {"atol": 0.1}),
+        ([100.0], [101.0], {"rtol": 0.05}),
+        ([float("nan")], [float("nan")], {"equal_nan": True}),
     ],
 )
-def test_compare_options(actual: list, expected: list, kwargs: dict, equal: bool) -> None:
-    assert bool(compare(actual, expected, **kwargs)) is equal
+def test_compare_options_equal(actual: list, expected: list, kwargs: dict) -> None:
+    assert compare(actual, expected, **kwargs) == equal_result(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ("actual", "expected", "kwargs", "reason"),
+    [
+        ([1.0], [1.05], {}, numbers(1.0, 1.05)),
+        ([100.0], [101.0], {"rtol": 0.001}, numbers(100.0, 101.0)),
+        ([float("nan")], [float("nan")], {}, numbers("nan", "nan")),
+    ],
+)
+def test_compare_options_not_equal(actual: list, expected: list, kwargs: dict, reason: str) -> None:
+    assert compare(actual, expected, **kwargs) == different_result(actual, expected, (0,), reason)
 
 
 @pytest.mark.parametrize("name", ["atol", "rtol"])
@@ -204,8 +219,8 @@ def test_compare_max_depth() -> None:
 
 def test_compare_explicit_registry() -> None:
     registry = get_default_registry()
-    assert compare([1], [1], registry=registry).equal
-    assert not compare([1], [2], registry=registry)
+    assert compare([1], [1], registry=registry) == equal_result([1], [1])
+    assert compare([1], [2], registry=registry) == different_result([1], [2], (0,), numbers(1, 2))
 
 
 def test_compare_custom_registry_is_used() -> None:
@@ -239,7 +254,7 @@ def test_compare_restores_custom_logger_level() -> None:
     logger.setLevel(logging.ERROR)
     logger.propagate = False
     try:
-        assert not compare([1], [2])
+        assert compare([1], [2]) == different_result([1], [2], (0,), numbers(1, 2))
         assert logger.level == logging.ERROR
         assert logger.propagate is False
     finally:
@@ -259,7 +274,9 @@ def test_compare_concurrent_threads() -> None:
         t.start()
     for t in threads:
         t.join()
-    assert all(r.path == ("k", 1) for r in results.values())
+    for i, result in results.items():
+        actual, expected = {"k": [0, i]}, {"k": [0, i + 1]}
+        assert result == different_result(actual, expected, ("k", 1), numbers(i, i + 1))
 
 
 #####################################
@@ -393,38 +410,32 @@ def test_public_exports() -> None:
         assert hasattr(eq, name)
 
 
-@pytest.mark.parametrize(
-    ("actual", "expected", "path"),
-    [
-        ((1, 2, 3), (1, 2, 4), (2,)),
-        (OrderedDict(a=[1, 2]), OrderedDict(a=[1, 3]), ("a", 1)),
-        ({"a": (1, {"b": [1]})}, {"a": (1, {"b": [2]})}, ("a", 1, "b", 0)),
-        ({(1, 2): "x"}, {(1, 2): "y"}, ((1, 2),)),
-    ],
-)
-def test_compare_path_other_containers(actual: object, expected: object, path: tuple) -> None:
-    assert compare(actual, expected).path == path
-
-
 def test_compare_numpy_inside_containers() -> None:
-    result = compare({"x": [np.array([1, 2])]}, {"x": [np.array([1, 3])]})
-    assert not result
-    assert result.path == ("x", 0)
-    assert compare({"x": [np.ones(2)]}, {"x": [np.ones(2)]})
+    actual, expected = {"x": [np.array([1, 2])]}, {"x": [np.array([1, 3])]}
+    assert compare(actual, expected) == different_result(
+        actual,
+        expected,
+        ("x", 0),
+        "numpy.ndarrays are different:\n  actual   : [1 2]\n  expected : [1 3]",
+    )
+    actual = expected = {"x": [np.ones(2)]}
+    assert compare(actual, expected) == equal_result(actual, expected)
 
 
 def test_compare_numpy_allclose() -> None:
-    assert compare({"x": np.ones(2)}, {"x": np.ones(2) + 1e-3}, atol=1e-2)
-    assert not compare({"x": np.ones(2)}, {"x": np.ones(2) + 1e-3})
+    actual, expected = {"x": np.ones(2)}, {"x": np.ones(2) + 1e-3}
+    assert compare(actual, expected, atol=1e-2) == equal_result(actual, expected)
+    assert compare(actual, expected) == different_result(
+        actual,
+        expected,
+        ("x",),
+        "numpy.ndarrays are different:\n  actual   : [1. 1.]\n  expected : [1.001 1.001]",
+    )
 
 
 def test_compare_result_is_independent_between_calls() -> None:
-    first = compare([1], [2])
-    second = compare([1], [1])
-    assert not first
-    assert second
-    assert second.path == ()
-    assert second.reason is None
+    assert compare([1], [2]) == different_result([1], [2], (0,), numbers(1, 2))
+    assert compare([1], [1]) == equal_result([1], [1])
 
 
 def test_compare_user_handler_on_logger_receives_nothing() -> None:
@@ -465,4 +476,4 @@ def test_compare_parent_logger_handler_receives_nothing() -> None:
 
 def test_compare_does_not_leak_records_between_calls() -> None:
     compare([1], [2])
-    assert compare({"a": 1}, {"a": 1}).reason is None
+    assert compare({"a": 1}, {"a": 1}) == equal_result({"a": 1}, {"a": 1})
