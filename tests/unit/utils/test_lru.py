@@ -219,3 +219,8 @@ def test_lru_cache_repr() -> None:
 
 def test_lru_cache_str() -> None:
     assert str(LRUCache[str, int](maxsize=3)).startswith("LRUCache(")
+
+
+def test_lru_cache_unhashable() -> None:
+    with pytest.raises(TypeError, match="unhashable type"):
+        hash(LRUCache[str, int](maxsize=2))

@@ -67,13 +67,15 @@ class TorchReducer(InlineDisplayMixin, BaseBasicReducer[T]):
         return to_tensor(values).min().item()
 
     def _quantile(self, values: T, quantiles: Sequence[float]) -> list[float]:
-        return torch.quantile(
+        result: Any = torch.quantile(
             to_tensor(values).float(),
             to_tensor(quantiles).float(),
-        ).tolist()
+        )
+        return result.tolist()
 
     def sort(self, values: T, descending: bool = False) -> list[int | float]:
-        return torch.sort(to_tensor(values), descending=descending)[0].tolist()
+        result: Any = torch.sort(to_tensor(values), descending=descending)[0]
+        return result.tolist()
 
     def _std(self, values: T) -> float:
         tensor = to_tensor(values).float()

@@ -14,7 +14,7 @@ __all__ = [
 
 from collections.abc import Mapping, Sequence, Set as AbstractSet
 from functools import lru_cache
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from coola.equality import objects_are_equal
 from coola.recursive import (
@@ -174,7 +174,9 @@ def add_prefix_suffix_to_keys(
     for key, value in mapping.items():
         new_key = f"{prefix}{key}{suffix}" if isinstance(key, str) else key
         new_value = (
-            add_prefix_suffix_to_keys(value, prefix=prefix, suffix=suffix, recursive=True)
+            add_prefix_suffix_to_keys(
+                cast("Mapping[Any, Any]", value), prefix=prefix, suffix=suffix, recursive=True
+            )
             if recursive and isinstance(value, Mapping)
             else value
         )

@@ -6,7 +6,7 @@ from __future__ import annotations
 __all__ = ["PandasDataFrameEqualHandler", "PandasSeriesEqualHandler"]
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
@@ -134,10 +134,10 @@ def frame_equal(df1: pd.DataFrame, df2: pd.DataFrame, config: EqualityConfig) ->
 
         ```
     """
-    if not config.equal_nan and df1.isna().any().any():
+    if not config.equal_nan and cast("Any", df1).isna().any().any():
         return False
     try:
-        pd.testing.assert_frame_equal(
+        cast("Any", pd.testing).assert_frame_equal(
             df1,
             df2,
             check_exact=config.atol == 0 and config.rtol == 0,
@@ -174,10 +174,10 @@ def series_equal(series1: pd.Series, series2: pd.Series, config: EqualityConfig)
 
         ```
     """
-    if not config.equal_nan and series1.isna().any():
+    if not config.equal_nan and cast("Any", series1).isna().any():
         return False
     try:
-        pd.testing.assert_series_equal(
+        cast("Any", pd.testing).assert_series_equal(
             series1,
             series2,
             check_exact=config.atol == 0 and config.rtol == 0,

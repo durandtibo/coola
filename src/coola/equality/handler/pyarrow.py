@@ -7,15 +7,13 @@ __all__ = ["PyarrowEqualHandler"]
 import logging
 import warnings
 from contextlib import suppress
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
 
 if TYPE_CHECKING:
-    import pyarrow as pa
-
     from coola.equality.config import EqualityConfig
 
 
@@ -50,8 +48,8 @@ class PyarrowEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
 
     def handle(
         self,
-        actual: pa.Array | pa.Table,
-        expected: pa.Array | pa.Table,
+        actual: Any,
+        expected: Any,
         config: EqualityConfig,
     ) -> bool:
         equal = object_equal(actual, expected, config)
@@ -60,9 +58,7 @@ class PyarrowEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         return equal
 
 
-def object_equal(
-    obj1: pa.Array | pa.Table, obj2: pa.Array | pa.Table, config: EqualityConfig
-) -> bool:
+def object_equal(obj1: Any, obj2: Any, config: EqualityConfig) -> bool:
     r"""Indicate if the two arrays or tables are equal within a
     tolerance.
 

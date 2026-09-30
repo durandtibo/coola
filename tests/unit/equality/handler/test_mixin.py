@@ -17,13 +17,13 @@ class MyHandler(HandlerEqualityMixin, BaseEqualityHandler):
 
 
 class NamedHandler(HandlerEqualityMixin, BaseEqualityHandler):
-    r"""Handler with extra state compared via ``_equality_attrs``."""
+    r"""Handler with extra state compared via ``equality_attrs``."""
 
     def __init__(self, name: str, next_handler: BaseEqualityHandler | None = None) -> None:
         super().__init__(next_handler=next_handler)
         self.name = name
 
-    def _equality_attrs(self) -> tuple[str, ...]:
+    def equality_attrs(self) -> tuple[str, ...]:
         return ("name",)
 
     def handle(
@@ -37,7 +37,7 @@ class NamedHandler(HandlerEqualityMixin, BaseEqualityHandler):
 
 class MultiAttrHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Handler with several extra attributes compared via
-    ``_equality_attrs``."""
+    ``equality_attrs``."""
 
     def __init__(
         self, name: str, mode: str, next_handler: BaseEqualityHandler | None = None
@@ -46,7 +46,7 @@ class MultiAttrHandler(HandlerEqualityMixin, BaseEqualityHandler):
         self.name = name
         self.mode = mode
 
-    def _equality_attrs(self) -> tuple[str, ...]:
+    def equality_attrs(self) -> tuple[str, ...]:
         return ("name", "mode")
 
     def handle(
@@ -80,7 +80,7 @@ def test_handler_equality_mixin_equal_false_different_next_handler() -> None:
 
 
 def test_handler_equality_mixin_equality_attrs_default() -> None:
-    assert MyHandler()._equality_attrs() == ()
+    assert MyHandler().equality_attrs() == ()
 
 
 @pytest.mark.parametrize(
@@ -118,7 +118,7 @@ def test_handler_equality_mixin_equal_false_extra_attrs(
 
 
 def test_handler_equality_mixin_equality_attrs_multiple() -> None:
-    assert MultiAttrHandler(name="data", mode="strict")._equality_attrs() == ("name", "mode")
+    assert MultiAttrHandler(name="data", mode="strict").equality_attrs() == ("name", "mode")
 
 
 def test_handler_equality_mixin_equal_true_multiple_extra_attrs() -> None:

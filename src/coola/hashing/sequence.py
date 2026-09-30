@@ -80,7 +80,7 @@ class SequenceHasher(InlineDisplayMixin, BaseHasher[Sequence[Any]]):
                 and 128.
         """
         cache: dict[int, str] = {}
-        parts = []
+        parts: list[str] = []
         for item in data:
             key = id(item)
             item_hash = cache.get(key)

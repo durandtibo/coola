@@ -312,5 +312,9 @@ xarray = "xr"
 
 [tool.pyright]
 include = ["src"]
+typeCheckingMode = "strict"
+reportMissingTypeStubs = false
+reportPropertyTypeMismatch = true
+reportUnnecessaryTypeIgnoreComment = true
 venvPath = "."
 venv = ".venv"

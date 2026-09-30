@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["TorchRandomManager", "torch_seed"]
 
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from coola.display import InlineDisplayMixin
 from coola.random.base import BaseRandomManager
@@ -48,7 +48,7 @@ class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):  # noqa: PLW164
         }
 
     def manual_seed(self, seed: int) -> None:
-        torch.manual_seed(seed)
+        cast("Any", torch).manual_seed(seed)
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(seed)
 

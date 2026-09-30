@@ -9,7 +9,7 @@ from __future__ import annotations
 __all__ = ["JaxArrayEqualityTester"]
 
 from functools import lru_cache
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from coola.display import InlineDisplayMixin
 from coola.equality.handler import (
@@ -104,4 +104,4 @@ def get_array_impl_class() -> type:
         This function is cached to avoid creating arrays repeatedly. The result
         is used to register the concrete JAX array type in the default registry.
     """
-    return jnp.ones(1).__class__
+    return cast("type", cast("Any", jnp).ones(1).__class__)

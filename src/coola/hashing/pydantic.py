@@ -6,7 +6,7 @@ from __future__ import annotations
 __all__ = ["PydanticModelHasher", "hash_pydantic_model", "unwrap_secrets"]
 
 import json
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
@@ -174,7 +174,7 @@ def unwrap_secrets(
 
     if isinstance(value, dict):
         result: dict[Any, Any] = {}
-        for k, v in value.items():
+        for k, v in cast("dict[Any, Any]", value).items():
             if isinstance(v, (SecretStr, SecretBytes)) and on_secret == "exclude":  # noqa: S105
                 continue
             result[k] = unwrap_secrets(v, on_secret=on_secret)
@@ -182,7 +182,7 @@ def unwrap_secrets(
 
     if isinstance(value, list):
         result_list: list[Any] = []
-        for v in value:
+        for v in cast("list[Any]", value):
             if isinstance(v, (SecretStr, SecretBytes)) and on_secret == "exclude":  # noqa: S105
                 continue
             result_list.append(unwrap_secrets(v, on_secret=on_secret))

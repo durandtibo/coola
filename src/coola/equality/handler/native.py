@@ -163,7 +163,7 @@ class SameAttributeHandler(HandlerEqualityMixin, BaseEqualityHandler):
         r"""The name of the attribute to compare."""
         return self._name
 
-    def _equality_attrs(self) -> tuple[str, ...]:
+    def equality_attrs(self) -> tuple[str, ...]:
         return ("name",)
 
     def handle(self, actual: object, expected: object, config: EqualityConfig) -> bool:
