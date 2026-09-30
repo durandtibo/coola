@@ -3,6 +3,7 @@ from __future__ import annotations
 import dataclasses
 import logging
 from collections import OrderedDict
+from typing import Any
 
 import pytest
 
@@ -57,8 +58,9 @@ def test_comparison_result_bool(equal: bool) -> None:
 
 
 def test_comparison_result_is_frozen() -> None:
+    result: Any = ComparisonResult(True)
     with pytest.raises(dataclasses.FrozenInstanceError):
-        ComparisonResult(True).equal = False  # type: ignore[misc]
+        result.equal = False
 
 
 @pytest.mark.parametrize(
@@ -290,8 +292,9 @@ def test_assert_objects_equal_equal_nan() -> None:
 
 
 def test_assert_objects_equal_rejects_tolerance() -> None:
+    kwargs: Any = {"atol": 0.1}
     with pytest.raises(TypeError):
-        assert_objects_equal(1, 1, atol=0.1)  # type: ignore[call-arg]
+        assert_objects_equal(1, 1, **kwargs)
 
 
 def test_assert_objects_equal_is_exact() -> None:

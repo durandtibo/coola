@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 from coola.registry import TypeRegistry
@@ -559,7 +561,8 @@ def test_type_registry_resolve_raises_type_not_registered_error() -> None:
 def test_type_registry_not_registered_msg_without_mro() -> None:
     """The MRO section is omitted when the key has no ``__mro__``."""
     registry = TypeRegistry[str]({int: "integer"})
-    msg = registry._not_registered_msg("not a type")  # type: ignore[arg-type]
+    key: Any = "not a type"
+    msg = registry._not_registered_msg(key)
     assert "MRO" not in msg
     assert msg.startswith("Type 'not a type' is not registered")
     assert "Registered types: int" in msg
