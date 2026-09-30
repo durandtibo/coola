@@ -54,7 +54,15 @@ def timeblock(message: str = "Total time: {time}") -> Generator[TimingResult, No
     block of code.
 
     Args:
-        message: The message displayed when the time is logged.
+        message: The message displayed when the time is logged. It
+            must contain the ``{time}`` placeholder.
+
+    Yields:
+        A ``TimingResult`` whose ``elapsed`` attribute is set when the
+            block exits.
+
+    Raises:
+        RuntimeError: If ``message`` does not contain ``{time}``.
 
     Example:
         ```pycon

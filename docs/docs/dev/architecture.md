@@ -25,89 +25,94 @@ These functions provide a simple interface while delegating to the internal comp
 
 ### 2. Testers
 
-Testers are responsible for orchestrating the comparison process.
+A tester implements the comparison logic for one type (or family of types). Testers live in
+`coola.equality.tester`.
 
 #### `BaseEqualityTester`
 
 Abstract base class defining the tester interface:
 
 ```python
-class BaseEqualityTester:
-    def equal(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
-        """Check if two objects are equal."""
-        ...
+class BaseEqualityTester(ABC, Generic[T]):
+    @abstractmethod
+    def equal(self, other: object) -> bool:
+        """Indicate if ``other`` is a tester of the same type."""
+
+    @abstractmethod
+    def objects_are_equal(self, actual: T, expected: object, config: EqualityConfig) -> bool:
+        """Indicate if two objects are equal."""
 ```
 
-#### `EqualityTester`
+#### Built-in Testers
 
-The default implementation that uses a registry of comparators:
+- **`DefaultEqualityTester`**: Fallback for any type (identity, type check, then `==`)
+- **`MappingEqualityTester`** and **`SequenceEqualityTester`**: Recurse into mappings and sequences
+- **`ScalarEqualityTester`**, **`EqualEqualityTester`**, **`EqualNanEqualityTester`**,
+  **`TolerantEqualEqualityTester`**: Scalars and objects with an `equal` method
+- Array and dataframe testers for NumPy, PyTorch, pandas, polars, xarray, JAX and PyArrow (for
+  example `NumpyArrayEqualityTester`, `TorchTensorEqualityTester`,
+  `PandasDataFrameEqualityTester`)
+- **`HandlerEqualityTester`**: Wraps a chain of handlers (see below)
 
-- Maintains a registry mapping types to comparators
-- Uses Method Resolution Order (MRO) to find the most specific comparator
-- Delegates comparison to the appropriate comparator
+### 3. Registry
 
-**Key Features:**
+#### `EqualityTesterRegistry`
 
-- Type-based dispatch
-- Support for inheritance hierarchies
-- Extensible through registration
+The registry maps types to testers. It is built on `BaseTypeDispatchRegistry`
+(`coola.registry`):
 
-### 3. Comparators
+- `find_equality_tester(data_type)` returns the tester for the most specific registered type,
+  walking the Method Resolution Order (MRO); `object` is registered with `DefaultEqualityTester`,
+  so a tester is always found
+- `objects_are_equal(actual, expected, config)` finds the tester for `type(actual)` and delegates
+  to it
+- Lookup results are cached per type, and the cache is cleared whenever the registry changes
 
-Comparators implement comparison logic for specific types.
-
-#### `BaseEqualityComparator`
-
-Abstract base class for comparators:
-
-```python
-class BaseEqualityComparator:
-    def equal(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
-        """Compare two objects of a specific type."""
-        ...
-
-    def clone(self) -> BaseEqualityComparator:
-        """Create a copy of this comparator."""
-        ...
-```
-
-#### Built-in Comparators
-
-- **`DefaultEqualityComparator`**: Handles basic Python types
-- **`MappingEqualityComparator`**: Handles dict and mapping types
-- **`SequenceEqualityComparator`**: Handles list, tuple, and sequences
-- **`TorchTensorComparator`**: Handles PyTorch tensors
-- **`NumpyArrayComparator`**: Handles NumPy arrays
-- **`PandasDataFrameComparator`**: Handles pandas DataFrames
-- And more for other supported types...
+`get_default_registry()` returns the global registry. Testers for optional libraries are only
+registered when the library is installed. `register_equality_testers(mapping, exist_ok=False)`
+adds testers to it.
 
 ### 4. Configuration
 
 #### `EqualityConfig`
 
-Configuration object that carries comparison settings through the comparison tree:
+A dataclass that carries the comparison settings through the comparison tree:
 
 ```python
-@dataclasses.dataclass
+@dataclass
 class EqualityConfig:
-    tester: BaseEqualityTester
+    registry: EqualityTesterRegistry  # defaults to the default registry
+    equal_nan: bool = False
+    atol: float = 0.0
+    rtol: float = 0.0
     show_difference: bool = False
-    # Additional settings...
+    max_depth: int = 1000
 ```
 
-This allows behavior to be customized without changing comparator signatures.
+This allows behavior to be customized without changing tester signatures. A config tracks the
+current recursion depth, so it is not thread-safe: create one config per comparison.
 
 ### 5. Handlers
 
-Handlers provide reusable comparison logic for common checks:
+Handlers (`coola.equality.handler`) are small reusable checks that are chained together
+(chain of responsibility). Each handler either returns a result or passes the comparison to the
+next handler in the chain. Examples:
 
-- **`DTypeHandler`**: Compares data types
-- **`ShapeHandler`**: Compares array shapes
-- **`DeviceHandler`**: Compares PyTorch device placement
-- **`NativeEqualHandler`**: Performs native equality checks
-- And more...
+- **`SameObjectHandler`**, **`SameTypeHandler`**, **`SameLengthHandler`**: Generic checks
+- **`SameDTypeHandler`**, **`SameShapeHandler`**: Metadata checks
+- **`TorchTensorSameDeviceHandler`**: Compares PyTorch device placement
+- **`ObjectEqualHandler`**, **`NanEqualHandler`**, **`TolerantEqualHandler`**: Value checks
+- **`MappingSameKeysHandler`**, **`MappingSameValuesHandler`**, **`SequenceSameValuesHandler`**:
+  Recursive checks for containers
+- Library-specific handlers such as `NumpyArrayEqualHandler` or `PandasDataFrameEqualHandler`
 
-Handlers promote code reuse and consistency across comparators.
+`create_chain(*handlers)` links handlers and returns the first one. A `HandlerEqualityTester`
+turns a chain into a tester. Handlers promote code reuse and consistency across testers.
+
+### 6. Comparison Results
+
+`compare` returns a `ComparisonResult`, and `assert_objects_equal` / `assert_objects_allclose`
+raise an `AssertionError` with a description of the difference.
 
 ## Data Flow
 
@@ -116,17 +121,17 @@ Here's how a comparison flows through the system:
 ```
 User calls objects_are_equal(obj1, obj2)
     ↓
-Creates EqualityConfig with settings
+Creates EqualityConfig with settings (and the registry)
     ↓
-Calls tester.equal(obj1, obj2, config)
+Calls registry.objects_are_equal(obj1, obj2, config)
     ↓
-Tester looks up comparator based on obj1's type
+Registry looks up the tester based on type(obj1) (MRO lookup)
     ↓
-Calls comparator.equal(obj1, obj2, config)
+Calls tester.objects_are_equal(obj1, obj2, config)
     ↓
-Comparator performs type-specific checks
+Tester runs its handler chain (type check, metadata, values)
     ↓
-May recursively call tester.equal() for nested objects
+May recursively call registry.objects_are_equal() for nested objects
     ↓
 Returns boolean result
 ```
@@ -135,17 +140,18 @@ Returns boolean result
 
 ### 1. Strategy Pattern
 
-Comparators implement different comparison strategies for different types, allowing the algorithm to
+Testers implement different comparison strategies for different types, allowing the algorithm to
 vary independently from the clients that use it.
 
 ### 2. Chain of Responsibility
 
-The MRO-based comparator lookup implements a chain of responsibility, trying more specific
-comparators before falling back to general ones.
+Handlers are chained: each one either decides the result or passes the comparison to the next
+handler. The MRO-based tester lookup also tries more specific testers before falling back to
+general ones.
 
 ### 3. Template Method
 
-Many comparators follow a template:
+Many testers follow a template:
 
 1. Check types match
 2. Check metadata (shape, dtype, etc.)
@@ -154,7 +160,7 @@ Many comparators follow a template:
 
 ### 4. Registry Pattern
 
-The comparator registry allows runtime type-to-comparator mapping, enabling extensibility.
+The tester registry allows runtime type-to-tester mapping, enabling extensibility.
 
 ### 5. Visitor Pattern
 
@@ -166,33 +172,46 @@ The recursive nature of comparison through nested structures follows a visitor-l
 
 To add support for a custom type:
 
-1. **Implement a Comparator:**
+1. **Implement a Tester:**
 
    ```python
-   class MyTypeComparator(BaseEqualityComparator):
-       def equal(self, actual: MyType, expected: Any, config: EqualityConfig) -> bool:
+   from coola.equality.config import EqualityConfig
+   from coola.equality.tester import BaseEqualityTester
+
+
+   class MyTypeEqualityTester(BaseEqualityTester[MyType]):
+       def equal(self, other: object) -> bool:
+           return type(other) is type(self)
+
+       def objects_are_equal(self, actual: MyType, expected: object, config: EqualityConfig) -> bool:
            # Type check
            if type(actual) is not type(expected):
                return False
 
            # Custom comparison logic
            return actual.compare_to(expected)
-
-       def clone(self):
-           return MyTypeComparator()
    ```
 
-2. **Register the Comparator:**
+2. **Register the Tester:**
 
    ```python
-   tester = EqualityTester.local_copy()
-   tester.add_comparator(MyType, MyTypeComparator())
+   from coola.equality.tester import register_equality_testers
+
+   register_equality_testers({MyType: MyTypeEqualityTester()})
    ```
 
-3. **Use with Custom Tester:**
+   To avoid modifying the global registry, create a `EqualityTesterRegistry`, register the tester
+   on it and pass it with `registry=`.
+
+3. **Use it:**
+
    ```python
-   objects_are_equal(obj1, obj2, tester=tester)
+   from coola.equality import objects_are_equal
+
+   objects_are_equal(obj1, obj2)
    ```
+
+See the [extending guide](../uguide/extending.md) for more details.
 
 ## Type System
 
@@ -210,15 +229,15 @@ This prevents subtle bugs from type coercion.
 
 Through MRO-based lookup, `coola` supports inheritance:
 
-- A comparator for `Sequence` applies to `list`, `tuple`, etc.
-- More specific comparators override general ones
-- Custom subclasses inherit parent comparators
+- A tester for `Sequence` applies to `list`, `tuple`, etc.
+- More specific testers override general ones
+- Custom subclasses inherit parent testers
 
 ## Performance Considerations
 
 ### Early Exit
 
-Comparators check fast properties first:
+Testers check fast properties first:
 
 1. Type check (very fast)
 2. Metadata checks (fast: shape, dtype, device)
@@ -230,26 +249,27 @@ Comparisons short-circuit on first difference when possible.
 
 ### Caching
 
-The tester caches comparator lookups by type for performance.
+The registry caches tester lookups by type for performance.
 
 ### Recursive Depth
 
-For deeply nested structures, comparison is recursive. Very deep nesting may hit recursion limits (
-typically ~1000 levels in Python).
+For deeply nested structures, comparison is recursive. `EqualityConfig.max_depth` (default 1000)
+bounds the nesting depth. Each level uses several interpreter frames, so Python's own recursion
+limit (`sys.setrecursionlimit`) may be reached first, in which case a `RecursionError` with an
+actionable message is raised.
 
 ## Error Handling
 
 ### Graceful Degradation
 
-When a specific comparator is not available, `coola` falls back to:
+When a specific tester is not available, `coola` falls back to:
 
-1. More general comparator (via MRO)
-2. Default comparator (for `object`)
-3. Native equality check as last resort
+1. More general tester (via MRO)
+2. `DefaultEqualityTester` (registered for `object`), which uses `==`
 
 ### Informative Messages
 
-When `show_difference=True`, comparators log:
+When `show_difference=True`, testers log:
 
 - What objects differ
 - Where in the structure the difference is
@@ -259,7 +279,7 @@ When `show_difference=True`, comparators log:
 
 The `coola` codebase uses:
 
-1. **Unit tests**: Test individual comparators in isolation
+1. **Unit tests**: Test individual testers and handlers in isolation
 2. **Integration tests**: Test complete comparison workflows
 3. **Property-based tests**: Test invariants (e.g., reflexivity)
 4. **Cross-library tests**: Test integration with PyTorch, NumPy, etc.
@@ -286,21 +306,15 @@ Each optional dependency is only imported when used (lazy loading).
 
 ```
 coola/
-├── comparison.py          # Main public API
-├── equality/
-│   ├── comparators/       # Type-specific comparators
-│   │   ├── base.py
-│   │   ├── default.py
-│   │   ├── collection.py  # Mapping, Sequence
-│   │   ├── torch_.py
-│   │   ├── numpy_.py
-│   │   └── ...
-│   ├── testers/          # Comparison orchestration
-│   │   ├── base.py
-│   │   └── default.py
-│   ├── handlers/         # Reusable comparison logic
-│   └── config.py         # Configuration
-├── allclose/             # Tolerance-based comparison
+├── equality/             # Equality and tolerance comparison
+│   ├── interface.py      # objects_are_equal, objects_are_allclose
+│   ├── result.py         # compare, assert_objects_equal, ...
+│   ├── config.py         # EqualityConfig
+│   ├── tester/           # Type-specific testers and the registry
+│   └── handler/          # Reusable comparison logic
+├── registry/             # Generic registries and type dispatch
+├── summary/, hashing/, recursive/, iterator/, nested/, random/, reducer/
+├── io/, factory/, identifier/, display/, validation/, testing/
 └── utils/                # Utility functions
 ```
 
@@ -320,16 +334,16 @@ types.
 
 **Trade-off**: Slightly more complex than if/else chains, but much more maintainable.
 
-### Why Separate Testers and Comparators?
+### Why Separate Testers and Handlers?
 
-**Rationale**: Separation of concerns. Testers handle dispatch and orchestration, comparators handle
-type-specific logic.
+**Rationale**: Separation of concerns. Testers are the per-type entry points found by the registry,
+handlers are small reusable checks that testers chain together.
 
 **Trade-off**: More classes/files, but better modularity.
 
 ### Why Handlers?
 
-**Rationale**: Code reuse. Many comparators need similar checks (dtype, shape, etc.).
+**Rationale**: Code reuse. Many testers need similar checks (dtype, shape, etc.).
 
 **Trade-off**: One more abstraction layer, but reduces duplication.
 
@@ -383,5 +397,5 @@ To contribute to `coola`'s architecture:
 4. Write tests for new components
 5. Update this document for significant changes
 
-See the [contributing guide](https://github.com/durandtibo/coola/blob/main/.github/CONTRIBUTING.md)
+See the [contributing guide](https://github.com/durandtibo/coola/blob/main/CONTRIBUTING.md)
 for more details.

@@ -21,6 +21,9 @@ optional features that depend on specific packages.
 
 ## Available Fixtures
 
+All fixtures are defined in `coola.testing.fixtures`, so import them from there
+(`from coola.testing.fixtures import numpy_available`).
+
 The package provides pytest markers that automatically skip tests based on package availability.
 These markers come in pairs: one to require a package and one to skip when a package is available.
 
@@ -31,7 +34,7 @@ These markers come in pairs: one to require a package and one to skip when a pac
 Skip the test if NumPy is not available:
 
 ```python
-from coola.testing import numpy_available
+from coola.testing.fixtures import numpy_available
 
 
 @numpy_available
@@ -48,7 +51,7 @@ def test_numpy_functionality():
 Skip the test if NumPy is available (useful for testing fallback behavior):
 
 ```python
-from coola.testing import numpy_not_available
+from coola.testing.fixtures import numpy_not_available
 
 
 @numpy_not_available
@@ -65,7 +68,7 @@ def test_fallback_without_numpy():
 Skip the test if PyTorch is not available:
 
 ```python
-from coola.testing import torch_available
+from coola.testing.fixtures import torch_available
 
 
 @torch_available
@@ -82,7 +85,7 @@ def test_torch_functionality():
 Skip the test if PyTorch is available:
 
 ```python
-from coola.testing import torch_not_available
+from coola.testing.fixtures import torch_not_available
 
 
 @torch_not_available
@@ -96,7 +99,7 @@ def test_fallback_without_torch():
 Skip the test if PyTorch with CUDA is not available:
 
 ```python
-from coola.testing import torch_cuda_available
+from coola.testing.fixtures import torch_cuda_available
 
 
 @torch_cuda_available
@@ -114,7 +117,7 @@ def test_gpu_functionality():
 Skip the test if PyTorch with MPS (Apple Silicon) is not available:
 
 ```python
-from coola.testing import torch_mps_available
+from coola.testing.fixtures import torch_mps_available
 
 
 @torch_mps_available
@@ -132,7 +135,7 @@ def test_mps_functionality():
 Skip the test if both PyTorch and NumPy are not available:
 
 ```python
-from coola.testing import torch_numpy_available
+from coola.testing.fixtures import torch_numpy_available
 
 
 @torch_numpy_available
@@ -153,7 +156,7 @@ def test_torch_numpy_interop():
 Skip the test if pandas is not available:
 
 ```python
-from coola.testing import pandas_available
+from coola.testing.fixtures import pandas_available
 
 
 @pandas_available
@@ -170,7 +173,7 @@ def test_pandas_functionality():
 Skip the test if pandas is available:
 
 ```python
-from coola.testing import pandas_not_available
+from coola.testing.fixtures import pandas_not_available
 
 
 @pandas_not_available
@@ -186,7 +189,7 @@ def test_fallback_without_pandas():
 Skip the test if polars is not available:
 
 ```python
-from coola.testing import polars_available
+from coola.testing.fixtures import polars_available
 
 
 @polars_available
@@ -203,7 +206,7 @@ def test_polars_functionality():
 Skip the test if polars is available:
 
 ```python
-from coola.testing import polars_not_available
+from coola.testing.fixtures import polars_not_available
 
 
 @polars_not_available
@@ -219,7 +222,7 @@ def test_fallback_without_polars():
 Skip the test if JAX is not available:
 
 ```python
-from coola.testing import jax_available
+from coola.testing.fixtures import jax_available
 
 
 @jax_available
@@ -236,7 +239,7 @@ def test_jax_functionality():
 Skip the test if JAX is available:
 
 ```python
-from coola.testing import jax_not_available
+from coola.testing.fixtures import jax_not_available
 
 
 @jax_not_available
@@ -252,7 +255,7 @@ def test_fallback_without_jax():
 Skip the test if xarray is not available:
 
 ```python
-from coola.testing import xarray_available
+from coola.testing.fixtures import xarray_available
 
 
 @xarray_available
@@ -269,7 +272,7 @@ def test_xarray_functionality():
 Skip the test if xarray is available:
 
 ```python
-from coola.testing import xarray_not_available
+from coola.testing.fixtures import xarray_not_available
 
 
 @xarray_not_available
@@ -285,7 +288,7 @@ def test_fallback_without_xarray():
 Skip the test if pyarrow is not available:
 
 ```python
-from coola.testing import pyarrow_available
+from coola.testing.fixtures import pyarrow_available
 
 
 @pyarrow_available
@@ -302,7 +305,7 @@ def test_pyarrow_functionality():
 Skip the test if pyarrow is available:
 
 ```python
-from coola.testing import pyarrow_not_available
+from coola.testing.fixtures import pyarrow_not_available
 
 
 @pyarrow_not_available
@@ -318,7 +321,7 @@ def test_fallback_without_pyarrow():
 Skip the test if packaging is not available:
 
 ```python
-from coola.testing import packaging_available
+from coola.testing.fixtures import packaging_available
 
 
 @packaging_available
@@ -335,7 +338,7 @@ def test_packaging_functionality():
 Skip the test if packaging is available:
 
 ```python
-from coola.testing import packaging_not_available
+from coola.testing.fixtures import packaging_not_available
 
 
 @packaging_not_available
@@ -344,6 +347,20 @@ def test_fallback_without_packaging():
     pass
 ```
 
+### Other Markers
+
+The following markers follow the same pattern and are also available in
+`coola.testing.fixtures`:
+
+| Require the package     | Skip if the package is available |
+| ----------------------- | -------------------------------- |
+| `colorlog_available`    | `colorlog_not_available`         |
+| `pydantic_available`    | `pydantic_not_available`         |
+| `rich_available`        | `rich_not_available`             |
+| `torch_numpy_available` | `torch_numpy_not_available`      |
+| `torch_cuda_available`  | `torch_cuda_not_available`       |
+| `torch_mps_available`   | `torch_mps_not_available`        |
+
 ## Usage Examples
 
 ### Testing with Multiple Dependencies
@@ -351,7 +368,7 @@ def test_fallback_without_packaging():
 You can use multiple markers on a single test:
 
 ```python
-from coola.testing import torch_available, numpy_available
+from coola.testing.fixtures import torch_available, numpy_available
 
 
 @torch_available
@@ -372,7 +389,7 @@ def test_torch_numpy_conversion():
 Test that your code works when optional dependencies are not available:
 
 ```python
-from coola.testing import torch_available, torch_not_available
+from coola.testing.fixtures import torch_available, torch_not_available
 
 
 @torch_available
@@ -398,7 +415,7 @@ def test_with_native_backend():
 Test GPU or accelerator-specific functionality:
 
 ```python
-from coola.testing import torch_cuda_available, torch_mps_available
+from coola.testing.fixtures import torch_cuda_available, torch_mps_available
 
 
 @torch_cuda_available
@@ -429,7 +446,7 @@ When writing a library that supports multiple backends:
 
 ```python
 # mylib/tests/test_equality.py
-from coola.testing import torch_available, numpy_available
+from coola.testing.fixtures import torch_available, numpy_available
 
 
 @torch_available
@@ -457,7 +474,7 @@ def test_equality_numpy_arrays():
 Test that appropriate errors are raised when dependencies are missing:
 
 ```python
-from coola.testing import torch_not_available
+from coola.testing.fixtures import torch_not_available
 import pytest
 
 
@@ -475,7 +492,7 @@ def test_error_without_torch():
 Ensure both implementation and fallback paths are tested:
 
 ```python
-from coola.testing import pandas_available, pandas_not_available
+from coola.testing.fixtures import pandas_available, pandas_not_available
 
 
 @pandas_available

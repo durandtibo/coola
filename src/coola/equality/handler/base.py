@@ -125,6 +125,9 @@ class BaseEqualityHandler(ABC):
         Returns:
             The input handler.
 
+        Raises:
+            TypeError: If ``handler`` is ``None``.
+
         Example:
             ```pycon
             >>> from coola.equality.config import EqualityConfig

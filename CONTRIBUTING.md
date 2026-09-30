@@ -75,13 +75,13 @@ pytest tests/unit/path/to/test_file.py
 **Format your code:**
 
 ```shell
-inv format.check-python
+inv format.fix-python
 ```
 
 **Run linter:**
 
 ```shell
-inv lint.check-lint
+inv lint.check-python
 ```
 
 **Format docstrings:**
@@ -333,7 +333,7 @@ Follow these conventions:
 
 **Examples:**
 
-- `Add: Support for custom comparators`
+- `Add: Support for custom equality testers`
 - `Fix: Handle NaN values correctly in numpy arrays`
 - `Update: Improve error messages for type mismatches`
 
