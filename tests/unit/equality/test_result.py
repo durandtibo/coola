@@ -50,12 +50,9 @@ def logger_state() -> tuple[int, bool, list[logging.Handler]]:
 
 
 def test_comparison_result_defaults() -> None:
-    result = ComparisonResult(True)
-    assert result.equal
-    assert result.path == ()
-    assert result.reason is None
-    assert result.actual == ""
-    assert result.expected == ""
+    assert ComparisonResult(True) == ComparisonResult(
+        equal=True, path=(), reason=None, actual="", expected=""
+    )
 
 
 @pytest.mark.parametrize("equal", [True, False])
