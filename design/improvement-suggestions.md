@@ -91,10 +91,11 @@ files (e.g. `equality/tester/interface.py` has seven).
   `coola.equality`; no pytest plugin yet) Provide a pytest plugin / `assert_objects_equal` that raises `AssertionError`
   with a path-annotated diff (`data["a"][2]: 1 != 3`). `coola.testing` is
   currently only skip-markers; this would be a natural home.
-- `EqualityConfig` validates lazily (open finding). Convert to a frozen
+- **Fixed** (eager `__post_init__` validation, finite check, unknown options rejected; kept
+  non-frozen because of the depth counter) `EqualityConfig` validates lazily. Convert to a frozen
   dataclass with `__post_init__` validation of `atol`/`rtol` (non-negative,
   finite) and reject unknown options.
-- Document/decide NaN and `-0.0` semantics table per backend
+- **Fixed** (matrix in `docs/uguide/equality.md`) Document/decide NaN and `-0.0` semantics table per backend
   (numpy/torch/pandas/polars/jax/pyarrow); tests exist, but a single matrix in
   the docs would prevent per-backend divergence.
 

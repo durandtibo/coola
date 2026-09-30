@@ -35,6 +35,18 @@ def test_equality_config_negative_rtol() -> None:
         EqualityConfig(rtol=-0.5)
 
 
+@pytest.mark.parametrize("value", [float("inf"), float("nan")])
+@pytest.mark.parametrize("name", ["atol", "rtol"])
+def test_equality_config_non_finite_tolerance(name: str, value: float) -> None:
+    with pytest.raises(ValueError, match=f"{name} must be"):
+        EqualityConfig(**{name: value})
+
+
+def test_equality_config_unknown_option() -> None:
+    with pytest.raises(TypeError, match="unexpected keyword"):
+        EqualityConfig(unknown=1)
+
+
 def test_equality_config_zero_tolerances() -> None:
     config = EqualityConfig(atol=0.0, rtol=0.0)
     assert config.atol == 0.0

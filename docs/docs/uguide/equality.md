@@ -1292,6 +1292,24 @@ True
 
 ```
 
+## NaN and `-0.0` Semantics
+
+The behaviour below was checked for each backend with `objects_are_equal` on NaN values.
+
+| Backend        | `nan` vs `nan` (default) | `equal_nan=True` | `0.0` vs `-0.0` |
+| -------------- | ------------------------ | ---------------- | --------------- |
+| Python `float` | `True` (same object)\*   | `True`           | equal           |
+| NumPy          | `False`                  | `True`           | equal           |
+| PyTorch        | `False`                  | `True`           | equal           |
+| pandas         | `False`                  | `True`           | equal           |
+| polars         | `False`                  | `True`           | equal           |
+| JAX            | `False`                  | `True`           | equal           |
+| PyArrow        | `False`                  | `False`\*\*      | equal           |
+
+\* Python short-circuits on identity; two distinct NaN floats are not equal by default.
+
+\*\* PyArrow does not support `equal_nan`; it is ignored with a `RuntimeWarning`.
+
 ## Design Principles
 
 The `coola.equality` package is designed around several key principles:

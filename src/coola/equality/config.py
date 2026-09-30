@@ -7,7 +7,7 @@ __all__ = ["EqualityConfig"]
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from coola.validation import validate_non_negative, validate_positive
+from coola.validation import validate_finite, validate_non_negative, validate_positive
 
 if TYPE_CHECKING:
     from coola.equality.tester.registry import EqualityTesterRegistry
@@ -53,7 +53,7 @@ class EqualityConfig:
             with extremely deeply nested structures.
 
     Raises:
-        ValueError: if ``atol`` or ``rtol`` is negative, or if
+        ValueError: if ``atol`` or ``rtol`` is negative or not finite, or if
             ``max_depth`` is not positive.
 
     Example:
@@ -79,6 +79,8 @@ class EqualityConfig:
         validate_non_negative(self.atol, name="atol")
         validate_non_negative(self.rtol, name="rtol")
         validate_positive(self.max_depth, name="max_depth")
+        validate_finite(self.atol, name="atol")
+        validate_finite(self.rtol, name="rtol")
 
     @property
     def depth(self) -> int:
