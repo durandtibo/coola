@@ -36,6 +36,7 @@ class SupportsEqual(Protocol):
         Returns:
             ``True`` if the two objects are equal, otherwise ``False``.
         """
+        ...  # pragma: no cover
 
 
 class SupportsEqualNan(SupportsEqual, Protocol):
@@ -54,6 +55,7 @@ class SupportsEqualNan(SupportsEqual, Protocol):
         Returns:
             ``True`` if the two objects are equal, otherwise ``False``.
         """
+        ...  # pragma: no cover
 
 
 class EqualHandler(HandlerEqualityMixin, BaseEqualityHandler):

@@ -26,6 +26,7 @@ __all__ = [
 import os
 import threading
 import time
+from functools import lru_cache
 
 from coola.identifier.validation import validate_bit_range
 
@@ -120,21 +121,19 @@ class ObjectIdGenerator:
         return payload.hex()
 
 
+@lru_cache(maxsize=1)
 def get_default_generator() -> ObjectIdGenerator:
     r"""Get or create the default, process-wide generator backing
     ``generate_object_id``.
 
     Returns a singleton ``ObjectIdGenerator`` instance shared by every
     call to ``generate_object_id``. Uses the same lazy,
-    singleton-on-the-function pattern as ``get_default_registry()``
-    (see e.g. ``coola.equality.tester.interface``).
+    ``functools.lru_cache`` singleton pattern.
 
     Returns:
         The shared, process-wide ``ObjectIdGenerator`` instance.
     """
-    if not hasattr(get_default_generator, "_generator"):
-        get_default_generator._generator = ObjectIdGenerator()
-    return get_default_generator._generator
+    return ObjectIdGenerator()
 
 
 def generate_object_id(timestamp: int | None = None) -> str:

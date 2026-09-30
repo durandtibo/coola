@@ -37,6 +37,7 @@ class SupportsTolerantEqual(SupportsAllCloseNan, Protocol):
         Returns:
             ``True`` if the two objects are equal, otherwise ``False``.
         """
+        ...  # pragma: no cover
 
 
 class TolerantEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):

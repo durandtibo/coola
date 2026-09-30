@@ -21,6 +21,7 @@ __all__ = [
 
 import threading
 import time
+from functools import lru_cache
 
 from coola.identifier.validation import validate_bit_range
 
@@ -218,21 +219,19 @@ class SnowflakeIdGenerator:
         )
 
 
+@lru_cache(maxsize=1)
 def get_default_generator() -> SnowflakeIdGenerator:
     r"""Get or create the default, process-wide generator backing
     ``generate_snowflake_id``.
 
     Returns a singleton ``SnowflakeIdGenerator`` instance shared by
     every call to ``generate_snowflake_id``. Uses the same lazy,
-    singleton-on-the-function pattern as ``get_default_registry()``
-    (see e.g. ``coola.equality.tester.interface``).
+    ``functools.lru_cache`` singleton pattern.
 
     Returns:
         The shared, process-wide ``SnowflakeIdGenerator`` instance.
     """
-    if not hasattr(get_default_generator, "_generator"):
-        get_default_generator._generator = SnowflakeIdGenerator()
-    return get_default_generator._generator
+    return SnowflakeIdGenerator()
 
 
 def generate_snowflake_id(worker_id: int = 0, timestamp_ms: int | None = None) -> int:

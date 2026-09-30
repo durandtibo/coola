@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["BaseEqualityHandler"]
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from coola.utils.format import str_sequence
 
@@ -77,7 +77,7 @@ class BaseEqualityHandler(ABC):
         """
 
     @abstractmethod
-    def handle(self, actual: object, expected: object, config: EqualityConfig) -> bool:
+    def handle(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
         r"""Return the equality result between the two input objects.
 
         Note:

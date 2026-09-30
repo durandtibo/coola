@@ -56,18 +56,32 @@ from coola.utils.singleton import LazySingleton
 
 if is_jax_available():  # pragma: no cover
     import jax.numpy as jnp
+else:  # pragma: no cover
+    from coola.utils.fallback.jax import jnp
 if is_numpy_available():  # pragma: no cover
     import numpy as np
+else:  # pragma: no cover
+    from coola.utils.fallback.numpy import numpy as np
 if is_pandas_available():  # pragma: no cover
     import pandas as pd
+else:  # pragma: no cover
+    from coola.utils.fallback.pandas import pandas as pd
 if is_polars_available():  # pragma: no cover
     import polars as pl
+else:  # pragma: no cover
+    from coola.utils.fallback.polars import polars as pl
 if is_pyarrow_available():  # pragma: no cover
     import pyarrow as pa
+else:  # pragma: no cover
+    from coola.utils.fallback.pyarrow import pyarrow as pa
 if is_torch_available():  # pragma: no cover
     import torch
+else:  # pragma: no cover
+    from coola.utils.fallback.torch import torch
 if is_xarray_available():  # pragma: no cover
     import xarray as xr
+else:  # pragma: no cover
+    from coola.utils.fallback.xarray import xarray as xr
 
 
 def register_equality_testers(

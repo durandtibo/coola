@@ -14,7 +14,7 @@ import importlib
 from contextlib import suppress
 from functools import lru_cache, wraps
 from importlib.util import find_spec
-from typing import TYPE_CHECKING, Any, NoReturn, TypeVar
+from typing import TYPE_CHECKING, Any, NoReturn, TypeVar, cast
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -133,7 +133,7 @@ def decorator_package_available(fn: F, condition: Callable[[], bool]) -> F:
             return None
         return fn(*args, **kwargs)
 
-    return inner
+    return cast("F", inner)
 
 
 def raise_package_missing_error(package_name: str, install_cmd: str) -> NoReturn:

@@ -60,7 +60,7 @@ class PydanticModelHasher(InlineDisplayMixin, BaseHasher[pydantic.BaseModel]):
         self,
         on_secret: Literal["reveal", "exclude", "error"] = "error",  # noqa: S107
     ) -> None:
-        self._on_secret = on_secret
+        self._on_secret: Literal["reveal", "exclude", "error"] = on_secret
 
     def _get_repr_kwargs(self) -> dict[str, Any]:
         return {"on_secret": self._on_secret}

@@ -22,9 +22,13 @@ if TYPE_CHECKING:
 
 if is_torch_available():  # pragma: no cover
     import torch
+else:  # pragma: no cover
+    from coola.utils.fallback.torch import torch
 
 if is_numpy_available():  # pragma: no cover
     import numpy as np
+else:  # pragma: no cover
+    from coola.utils.fallback.numpy import numpy as np
 
 
 def summarize(data: object, max_depth: int = 1, registry: SummarizerRegistry | None = None) -> str:

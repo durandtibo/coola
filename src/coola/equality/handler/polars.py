@@ -8,7 +8,7 @@ __all__ = ["PolarsDataFrameEqualHandler", "PolarsLazyFrameEqualHandler", "Polars
 import inspect
 import logging
 from functools import lru_cache
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
@@ -264,7 +264,8 @@ def assert_frame_equal(
     if is_new_naming():
         testing.assert_frame_equal(df1, df2, abs_tol=atol, rel_tol=rtol, check_exact=check_exact)
     else:
-        testing.assert_frame_equal(df1, df2, atol=atol, rtol=rtol, check_exact=check_exact)
+        old_tol: dict[str, Any] = {"atol": atol, "rtol": rtol}
+        testing.assert_frame_equal(df1, df2, check_exact=check_exact, **old_tol)
 
 
 def assert_series_equal(
@@ -289,7 +290,8 @@ def assert_series_equal(
             series1, series2, abs_tol=atol, rel_tol=rtol, check_exact=check_exact
         )
     else:
-        testing.assert_series_equal(series1, series2, atol=atol, rtol=rtol, check_exact=check_exact)
+        old_tol: dict[str, Any] = {"atol": atol, "rtol": rtol}
+        testing.assert_series_equal(series1, series2, check_exact=check_exact, **old_tol)
 
 
 @lru_cache
@@ -301,4 +303,4 @@ def is_new_naming() -> bool:
         ``True`` if ``abs_tol`` and ``rel_tol`` are used,
             otherwise ``atol`` and ``rtol`` are used.
     """
-    return "abs_tol" in inspect.signature(pl.testing.assert_frame_equal).parameters
+    return "abs_tol" in inspect.signature(testing.assert_frame_equal).parameters

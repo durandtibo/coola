@@ -8,13 +8,13 @@ from __future__ import annotations
 __all__ = ["NumpyReducer"]
 
 from collections.abc import Sequence
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from coola.display import InlineDisplayMixin
 from coola.reducer.base import BaseBasicReducer
 from coola.utils.imports import check_numpy, is_numpy_available
 
-if is_numpy_available():
+if TYPE_CHECKING or is_numpy_available():
     import numpy as np
 else:  # pragma: no cover
     from coola.utils.fallback.numpy import numpy as np
