@@ -597,9 +597,12 @@ True
 
 ```
 
-The default `max_depth` is 1000, which should be sufficient for most use cases. If you have
-extremely deeply nested structures (e.g., recursive data structures built programmatically), you
-can increase this limit to avoid `RecursionError`.
+The default `max_depth` is 1000. Note that the comparison is recursive and uses several Python
+frames per nesting level, so the interpreter limit (`sys.getrecursionlimit()`, 1000 by default)
+is usually reached first, at roughly 60-150 nesting levels depending on the container types.
+In that case a `RecursionError` is raised with an explanatory message. For extremely deeply nested
+structures, reduce the nesting or raise the interpreter limit with `sys.setrecursionlimit()`
+(and `max_depth` accordingly). Comparison does not use an explicit stack.
 
 ### Using Custom Registries
 

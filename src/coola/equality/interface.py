@@ -14,6 +14,29 @@ if TYPE_CHECKING:
     from coola.equality.tester.registry import EqualityTesterRegistry
 
 
+def _compare(
+    registry: EqualityTesterRegistry, actual: object, expected: object, config: EqualityConfig
+) -> bool:
+    """Run the comparison and make interpreter stack overflows
+    actionable.
+
+    The comparison recurses through several Python frames per nesting
+    level, so the interpreter limit (``sys.getrecursionlimit()``) is
+    usually reached well before ``config.max_depth``.
+    """
+    try:
+        return registry.objects_are_equal(actual, expected, config)
+    except RecursionError as exc:
+        if "Maximum recursion depth" in str(exc):
+            raise
+        msg = (
+            "The Python recursion limit was exceeded while comparing deeply nested "
+            "objects. Each nesting level uses several interpreter frames; reduce the "
+            "nesting or increase the limit with sys.setrecursionlimit()."
+        )
+        raise RecursionError(msg) from exc
+
+
 def objects_are_allclose(
     actual: object,
     expected: object,
@@ -74,7 +97,7 @@ def objects_are_allclose(
         rtol=rtol,
         max_depth=max_depth,
     )
-    return registry.objects_are_equal(actual, expected, config)
+    return _compare(registry, actual, expected, config)
 
 
 def objects_are_equal(
@@ -123,4 +146,4 @@ def objects_are_equal(
         equal_nan=equal_nan,
         max_depth=max_depth,
     )
-    return registry.objects_are_equal(actual, expected, config)
+    return _compare(registry, actual, expected, config)

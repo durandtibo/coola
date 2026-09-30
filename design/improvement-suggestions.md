@@ -123,7 +123,7 @@ files (e.g. `equality/tester/interface.py` has seven).
 **Partially fixed** (lock-free `TypeRegistry.resolve` cache hits via a copy-on-write snapshot;
 registry benchmarks in `tests/benchmarks/test_registry_benchmark.py`; `nested/*` reviewed: `to_flat_dict` now flattens
 into one shared dict instead of merging per-level dicts; `from_flat_dict`, `flatten_mapping` and
-`merge_mappings` were already single-pass; explicit-stack equality not done).
+`merge_mappings` were already single-pass; recursion limit documented and interpreter `RecursionError` wrapped with an actionable message; explicit-stack equality deliberately not done because handler chains are recursive by design).
 
 - Equality/summary/iteration dispatch resolves the type via `TypeRegistry`
   (LRU-cached, good). For hot loops on large nested structures, the per-node cost
