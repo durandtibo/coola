@@ -18,7 +18,7 @@ from coola.utils.imports import is_numpy_available, is_torch_available
 from coola.utils.singleton import LazySingleton
 
 if TYPE_CHECKING:
-    from coola.summary.base import BaseSummarizer
+    from coola.summary.base import Summarizer
 
 if is_torch_available():  # pragma: no cover
     import torch
@@ -58,7 +58,7 @@ def summarize(data: object, max_depth: int = 1, registry: SummarizerRegistry | N
 
 
 def register_summarizers(
-    mapping: Mapping[type, BaseSummarizer[Any]],
+    mapping: Mapping[type, Summarizer[Any]],
     exist_ok: bool = False,
 ) -> None:
     """Register custom summarizers to the default global registry.
@@ -159,13 +159,13 @@ def _register_default_summarizers(registry: SummarizerRegistry) -> None:
         This function is called internally by get_default_registry() and should
         not typically be called directly by users.
     """
-    summarizers: dict[type, BaseSummarizer[Any]] = _get_native_summarizers()
+    summarizers: dict[type, Summarizer[Any]] = _get_native_summarizers()
     summarizers.update(_get_numpy_summarizers())
     summarizers.update(_get_torch_summarizers())
     registry.register_many(summarizers)
 
 
-def _get_native_summarizers() -> dict[type, BaseSummarizer[Any]]:
+def _get_native_summarizers() -> dict[type, Summarizer[Any]]:
     r"""Get the native summarizers for common Python types.
 
     Returns:
@@ -202,7 +202,7 @@ def _get_native_summarizers() -> dict[type, BaseSummarizer[Any]]:
     }
 
 
-def _get_numpy_summarizers() -> dict[type, BaseSummarizer[Any]]:
+def _get_numpy_summarizers() -> dict[type, Summarizer[Any]]:
     r"""Get the native summarizers for NumPy types.
 
     Returns:
@@ -217,7 +217,7 @@ def _get_numpy_summarizers() -> dict[type, BaseSummarizer[Any]]:
     return {np.ndarray: NDArraySummarizer()}
 
 
-def _get_torch_summarizers() -> dict[type, BaseSummarizer[Any]]:
+def _get_torch_summarizers() -> dict[type, Summarizer[Any]]:
     r"""Get the native summarizers for PyTorch types.
 
     Returns:

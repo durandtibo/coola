@@ -278,3 +278,18 @@ def test_hasher_registry_hash_ignore_unhashable_nested_in_dict_raises_by_default
     registry = HasherRegistry({str: StrHasher(), dict: MappingHasher()})
     with pytest.raises(KeyError, match=r"is not registered"):
         registry.hash({"a": Unhashable()})
+
+
+def test_hasher_registry_accepts_protocol_implementation_without_subclassing() -> None:
+    class PlainHasher:
+        def hash(
+            self,
+            data: Any,  # noqa: ARG002
+            registry: HasherRegistry,  # noqa: ARG002
+            length: int = 64,
+            ignore_unhashable: bool = False,  # noqa: ARG002
+        ) -> str:
+            return "a" * length
+
+    registry = HasherRegistry({object: PlainHasher()})
+    assert registry.hash(1, length=4) == "aaaa"

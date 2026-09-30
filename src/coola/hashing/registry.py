@@ -11,12 +11,12 @@ __all__ = ["HasherRegistry"]
 
 from typing import Any
 
-from coola.hashing.base import BaseHasher
+from coola.hashing.base import Hasher
 from coola.hashing.string import hash_string
 from coola.registry import BaseTypeDispatchRegistry
 
 
-class HasherRegistry(BaseTypeDispatchRegistry[BaseHasher[Any]]):
+class HasherRegistry(BaseTypeDispatchRegistry[Hasher[Any]]):
     r"""Registry that manages and dispatches hashers based on data type.
 
     This registry maintains a mapping from Python types to hasher instances
@@ -97,7 +97,7 @@ class HasherRegistry(BaseTypeDispatchRegistry[BaseHasher[Any]]):
         """
         return self.has(data_type)
 
-    def find_hasher(self, data_type: type) -> BaseHasher[Any]:
+    def find_hasher(self, data_type: type) -> Hasher[Any]:
         """Type-specific alias for :meth:`find`: find the appropriate
         hasher for a given type.
 

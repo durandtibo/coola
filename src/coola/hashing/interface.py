@@ -21,7 +21,7 @@ from coola.hashing.string import StringHasher
 from coola.utils.singleton import LazySingleton
 
 if TYPE_CHECKING:
-    from coola.hashing.base import BaseHasher
+    from coola.hashing.base import Hasher
 
 
 def hash_object(
@@ -69,7 +69,7 @@ def hash_object(
 
 
 def register_hashers(
-    mapping: Mapping[type, BaseHasher[Any]],
+    mapping: Mapping[type, Hasher[Any]],
     exist_ok: bool = False,
 ) -> None:
     """Register custom hashers into the default global registry.

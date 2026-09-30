@@ -11,14 +11,14 @@ __all__ = ["TransformerRegistry"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.recursive.base import BaseTransformer
+from coola.recursive.base import Transformer
 from coola.registry import BaseTypeDispatchRegistry
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-class TransformerRegistry(BaseTypeDispatchRegistry[BaseTransformer[Any]]):
+class TransformerRegistry(BaseTypeDispatchRegistry[Transformer[Any]]):
     r"""Registry that manages and dispatches transformers based on data
     type.
 
@@ -107,7 +107,7 @@ class TransformerRegistry(BaseTypeDispatchRegistry[BaseTransformer[Any]]):
         """
         return self.has(data_type)
 
-    def find_transformer(self, data_type: type) -> BaseTransformer[Any]:
+    def find_transformer(self, data_type: type) -> Transformer[Any]:
         """Type-specific alias for :meth:`find`: find the appropriate
         transformer for a given type.
 

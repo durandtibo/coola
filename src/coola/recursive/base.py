@@ -2,10 +2,10 @@ r"""Define the transformer base class."""
 
 from __future__ import annotations
 
-__all__ = ["BaseTransformer"]
+__all__ = ["BaseTransformer", "Transformer"]
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeVar
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -13,6 +13,23 @@ if TYPE_CHECKING:
     from coola.recursive.registry import TransformerRegistry
 
 T = TypeVar("T")
+T_contra = TypeVar("T_contra", contravariant=True)
+
+
+class Transformer(Protocol[T_contra]):
+    r"""Structural interface of a type-specific transformer.
+
+    Any object with a compatible ``transform`` method can be registered
+    without subclassing :class:`BaseTransformer`, which remains
+    available as a convenience base class.
+    """
+
+    def transform(
+        self,
+        data: T_contra,
+        func: Callable[[Any], Any],
+        registry: TransformerRegistry,
+    ) -> Any: ...
 
 
 class BaseTransformer(ABC, Generic[T]):
