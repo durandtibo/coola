@@ -132,7 +132,7 @@ def repr_mapping(mapping: Mapping[Any, Any], sorted_keys: bool = False, num_spac
 
         ```
     """
-    lines = []
+    lines: list[str] = []
     for key, value in sorted(mapping.items()) if sorted_keys else mapping.items():
         lines.append(f"({key}): {repr_indent(value, num_spaces=num_spaces)}")
     return "\n".join(lines)
@@ -190,7 +190,7 @@ def repr_sequence(sequence: Sequence[Any], num_spaces: int = 2) -> str:
 
         ```
     """
-    lines = []
+    lines: list[str] = []
     for i, item in enumerate(sequence):
         lines.append(f"({i}): {repr_indent(item, num_spaces=num_spaces)}")
     return "\n".join(lines)
@@ -282,7 +282,7 @@ def str_mapping(mapping: Mapping[Any, Any], sorted_keys: bool = False, num_space
 
         ```
     """
-    lines = []
+    lines: list[str] = []
     for key, value in sorted(mapping.items()) if sorted_keys else mapping.items():
         lines.append(f"({key}): {str_indent(value, num_spaces=num_spaces)}")
     return "\n".join(lines)
@@ -340,7 +340,7 @@ def str_sequence(sequence: Sequence[Any], num_spaces: int = 2) -> str:
 
         ```
     """
-    lines = []
+    lines: list[str] = []
     for i, item in enumerate(sequence):
         lines.append(f"({i}): {str_indent(item, num_spaces=num_spaces)}")
     return "\n".join(lines)

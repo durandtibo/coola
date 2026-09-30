@@ -121,7 +121,7 @@ def load_pickle(path: Path) -> Any:
 
         ```
     """
-    return PickleLoader().load(path)
+    return PickleLoader[Any]().load(path)
 
 
 def save_pickle(to_save: Any, path: Path, *, exist_ok: bool = False, **kwargs: Any) -> None:
@@ -156,4 +156,4 @@ def save_pickle(to_save: Any, path: Path, *, exist_ok: bool = False, **kwargs: A
 
         ```
     """
-    PickleSaver(**kwargs).save(to_save, path, exist_ok=exist_ok)
+    PickleSaver[Any](**kwargs).save(to_save, path, exist_ok=exist_ok)

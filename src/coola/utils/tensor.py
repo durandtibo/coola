@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["get_available_devices", "is_cuda_available", "is_mps_available", "to_tensor"]
 
 from functools import lru_cache
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from coola.utils.imports import is_numpy_available, is_torch_available
 
@@ -109,7 +109,7 @@ def to_tensor(data: Sequence[int | float] | torch.Tensor | np.ndarray) -> torch.
         ```
     """
     if is_numpy_available() and isinstance(data, np.ndarray):
-        return torch.from_numpy(data)
+        return cast("Any", torch).from_numpy(data)
     if not torch.is_tensor(data):
         return torch.as_tensor(data)
     return data

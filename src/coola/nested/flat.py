@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["from_flat_dict", "to_flat_dict"]
 
 from collections.abc import Mapping, Sequence
-from typing import Any
+from typing import Any, cast
 
 from coola.validation import validate_not_empty
 
@@ -85,14 +85,14 @@ def _set_nested(
             scalar leaf, or the final segment collides with an existing
             nested dict.
     """
-    current = target
+    current: dict[str, Any] = target
     for depth, segment in enumerate(segments[:-1]):
-        existing = current.get(segment)
+        existing: Any = current.get(segment)
         if existing is None:
             current[segment] = {}
             current = current[segment]
         elif isinstance(existing, dict):
-            current = existing
+            current = cast("dict[str, Any]", existing)
         else:
             path_so_far = separator.join(segments[: depth + 1])
             msg = (
@@ -188,12 +188,12 @@ def to_flat_dict(
         return {prefix: str(data)}
 
     if isinstance(data, Mapping):
-        return _flatten_mapping(data, prefix, separator, _to_str)
+        return _flatten_mapping(cast("Mapping[Any, Any]", data), prefix, separator, _to_str)
 
     # str is a Sequence, so it must be excluded before the Sequence check
     # to avoid iterating over individual characters.
     if isinstance(data, Sequence) and not isinstance(data, str):
-        return _flatten_sequence(data, prefix, separator, _to_str)
+        return _flatten_sequence(cast("Sequence[Any]", data), prefix, separator, _to_str)
 
     # Scalar leaf
     if prefix is None:
@@ -252,7 +252,7 @@ def _build_key(prefix: str | None, child: str, separator: str) -> str:
 
 
 def _flatten_mapping(
-    data: Mapping,
+    data: Mapping[Any, Any],
     prefix: str | None,
     separator: str,
     to_str: tuple[type, ...],
@@ -283,7 +283,7 @@ def _flatten_mapping(
 
 
 def _flatten_sequence(
-    data: Sequence,
+    data: Sequence[Any],
     prefix: str | None,
     separator: str,
     to_str: tuple[type, ...],

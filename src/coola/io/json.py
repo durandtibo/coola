@@ -115,7 +115,7 @@ def load_json(path: Path) -> Any:
 
         ```
     """
-    return JsonLoader().load(path)
+    return JsonLoader[Any]().load(path)
 
 
 def save_json(
@@ -160,4 +160,4 @@ def save_json(
 
         ```
     """
-    JsonSaver(encoding=encoding, **kwargs).save(to_save, path, exist_ok=exist_ok)
+    JsonSaver[Any](encoding=encoding, **kwargs).save(to_save, path, exist_ok=exist_ok)

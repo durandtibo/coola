@@ -12,7 +12,7 @@ from __future__ import annotations
 __all__ = ["LRUCache"]
 
 from collections import OrderedDict
-from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
 from coola.validation import validate_gt
 
@@ -55,9 +55,6 @@ class LRUCache(Generic[K, V]):
 
         ```
     """
-
-    # Mutable and compares by content, like dict: not hashable.
-    __hash__: ClassVar[None] = None
 
     def __init__(self, maxsize: int) -> None:
         validate_gt(maxsize, 0, name="maxsize")
@@ -102,9 +99,14 @@ class LRUCache(Generic[K, V]):
     def __delitem__(self, key: K) -> None:
         del self._data[key]
 
+    def __hash__(self) -> int:
+        # Mutable and compares by content, like dict: not hashable.
+        msg = f"unhashable type: {type(self).__name__!r}"
+        raise TypeError(msg)
+
     def __eq__(self, other: object) -> bool:
         if isinstance(other, LRUCache):
-            return self._data == other._data
+            return self._data == cast("LRUCache[Any, Any]", other)._data
         if isinstance(other, dict):
             return self._data == other
         return NotImplemented

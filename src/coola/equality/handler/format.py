@@ -48,7 +48,7 @@ def format_mapping_difference(
 
         ```
     """
-    lines = []
+    lines: list[str] = []
 
     if missing_keys or additional_keys:
         lines.append("mappings have different keys:")

@@ -18,18 +18,13 @@ from coola.equality.handler import (
     create_chain,
 )
 from coola.equality.tester.base import BaseEqualityTester
-from coola.utils.imports import check_pyarrow, is_pyarrow_available
-
-if TYPE_CHECKING or is_pyarrow_available():
-    import pyarrow as pa
-else:  # pragma: no cover
-    from coola.utils.fallback.pyarrow import pyarrow as pa
+from coola.utils.imports import check_pyarrow
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
 
 
-class PyarrowEqualityTester(InlineDisplayMixin, BaseEqualityTester[pa.Array]):
+class PyarrowEqualityTester(InlineDisplayMixin, BaseEqualityTester[Any]):
     r"""Implement an equality tester for ``pyarrow.Array``s and
     ``pyarrow.Table``s.
 
@@ -87,7 +82,7 @@ class PyarrowEqualityTester(InlineDisplayMixin, BaseEqualityTester[pa.Array]):
 
     def objects_are_equal(
         self,
-        actual: pa.Array,
+        actual: Any,
         expected: object,
         config: EqualityConfig,
     ) -> bool:

@@ -69,7 +69,7 @@ def _encode_base62(number: int, min_length: int) -> str:
     if number == 0:
         chars = ["0"]
     else:
-        chars = []
+        chars: list[str] = []
         while number > 0:
             number, rem = divmod(number, _BASE)
             chars.append(_ALPHABET[rem])

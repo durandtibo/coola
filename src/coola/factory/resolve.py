@@ -133,7 +133,7 @@ def resolve_object(obj: T | dict[str, Any], cls: type[T] = object) -> T:
         ```
     """
     cls_name = cls.__qualname__
-    cls_is_dict_subclass = isinstance(cls, type) and issubclass(cls, dict)
+    cls_is_dict_subclass = issubclass(cls, dict)
     if isinstance(obj, dict) and not (cls_is_dict_subclass and isinstance(obj, cls)):
         if OBJECT_TARGET not in obj:
             msg = (
@@ -142,8 +142,10 @@ def resolve_object(obj: T | dict[str, Any], cls: type[T] = object) -> T:
             )
             raise TypeError(msg)
         logger.info("Initializing a %s instance from its configuration...", cls_name)
-        obj = factory(**obj)
+        obj = factory(**cast("dict[str, Any]", obj))
     if not isinstance(obj, cls):
-        msg = f"Received object is not a {cls_name} instance (received: {type(obj)})"
+        msg = (
+            f"Received object is not a {cls_name} instance (received: {type(cast('object', obj))})"
+        )
         raise TypeError(msg)
     return cast("T", obj)

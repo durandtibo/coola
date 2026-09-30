@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-def import_object(object_path: str) -> Any:
+def import_object(object_path: object) -> Any:
     r"""Import an object given its path.
 
     This function dynamically imports a class, function, or other
@@ -76,7 +76,7 @@ def import_object(object_path: str) -> Any:
 
 
 def instantiate_object(
-    obj: Callable | type, *args: Any, _init_: str = "__init__", **kwargs: Any
+    obj: Callable[..., Any] | type, *args: Any, _init_: str = "__init__", **kwargs: Any
 ) -> Any:
     r"""Instantiate dynamically an object from its configuration.
 
@@ -136,7 +136,7 @@ def instantiate_object(
 
         ```
     """
-    if inspect.isclass(obj):
+    if isinstance(obj, type):
         return _instantiate_class_object(obj, *args, _init_=_init_, **kwargs)
     if callable(obj):
         return obj(*args, **kwargs)

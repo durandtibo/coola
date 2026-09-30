@@ -7,7 +7,7 @@ __all__ = ["get_default_registry", "register_equality_testers"]
 
 from collections import deque
 from collections.abc import Mapping, Sequence
-from typing import Any
+from typing import Any, cast
 
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.tester.base import BaseEqualityTester
@@ -196,7 +196,7 @@ def _register_default_equality_testers(registry: EqualityTesterRegistry) -> None
     registry.register_many(testers)
 
 
-def _get_native_equality_testers() -> dict[type, BaseEqualityTester]:
+def _get_native_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
     r"""Get native equality testers and their associated type.
 
     Returns:
@@ -231,7 +231,7 @@ def _get_native_equality_testers() -> dict[type, BaseEqualityTester]:
     }
 
 
-def _get_jax_equality_testers() -> dict[type, BaseEqualityTester]:
+def _get_jax_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
     r"""Get the equality testers for jax objects.
 
     Returns:
@@ -248,7 +248,7 @@ def _get_jax_equality_testers() -> dict[type, BaseEqualityTester]:
     return {jnp.ndarray: tester, get_array_impl_class(): tester}
 
 
-def _get_numpy_equality_testers() -> dict[type, BaseEqualityTester]:
+def _get_numpy_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
     r"""Get the equality testers for NumPy objects.
 
     Returns:
@@ -267,7 +267,7 @@ def _get_numpy_equality_testers() -> dict[type, BaseEqualityTester]:
     }
 
 
-def _get_pandas_equality_testers() -> dict[type, BaseEqualityTester]:
+def _get_pandas_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
     r"""Get the equality testers for pandas objects.
 
     Returns:
@@ -286,7 +286,7 @@ def _get_pandas_equality_testers() -> dict[type, BaseEqualityTester]:
     }
 
 
-def _get_polars_equality_testers() -> dict[type, BaseEqualityTester]:
+def _get_polars_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
     r"""Get the equality testers for polars objects.
 
     Returns:
@@ -306,7 +306,7 @@ def _get_polars_equality_testers() -> dict[type, BaseEqualityTester]:
     }
 
 
-def _get_pyarrow_equality_testers() -> dict[type, BaseEqualityTester]:
+def _get_pyarrow_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
     r"""Get the equality testers for pyarrow objects.
 
     Returns:
@@ -320,10 +320,10 @@ def _get_pyarrow_equality_testers() -> dict[type, BaseEqualityTester]:
         return {}
 
     tester = PyarrowEqualityTester()
-    return {pa.Array: tester, pa.Table: tester}
+    return {cast("Any", pa).Array: tester, cast("Any", pa).Table: tester}
 
 
-def _get_torch_equality_testers() -> dict[type, BaseEqualityTester]:
+def _get_torch_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
     r"""Get the equality testers for PyTorch objects.
 
     Returns:
@@ -342,7 +342,7 @@ def _get_torch_equality_testers() -> dict[type, BaseEqualityTester]:
     }
 
 
-def _get_xarray_equality_testers() -> dict[type, BaseEqualityTester]:
+def _get_xarray_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
     r"""Get the equality testers for xarray objects.
 
     Returns:

@@ -46,8 +46,8 @@ def check_env_vars(var_names: Sequence[str], raise_on_missing: bool = False) -> 
 
         ```
     """
-    results = {}
-    missing = []
+    results: dict[str, bool] = {}
+    missing: list[str] = []
 
     for name in var_names:
         value = os.environ.get(name)

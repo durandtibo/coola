@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["BaseEqualityHandler"]
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, NoReturn, TypeVar, overload
 
 from coola.utils.format import str_sequence
 
@@ -110,7 +110,13 @@ class BaseEqualityHandler(ABC):
             ```
         """
 
-    def chain(self, handler: T) -> T:
+    @overload
+    def chain(self, handler: None) -> NoReturn: ...
+
+    @overload
+    def chain(self, handler: T) -> T: ...
+
+    def chain(self, handler: T | None) -> T:
         r"""Chain a handler to the current handler.
 
         Args:
@@ -234,8 +240,8 @@ class BaseEqualityHandler(ABC):
 
             ```
         """
-        visited = set()
-        current = self
+        visited: set[int] = set()
+        current: BaseEqualityHandler | None = self
 
         while current:
             if id(current) in visited:
@@ -268,8 +274,8 @@ class BaseEqualityHandler(ABC):
 
             ```
         """
-        handlers = []
-        current = self
+        handlers: list[BaseEqualityHandler] = []
+        current: BaseEqualityHandler | None = self
         while current:
             handlers.append(current)
             current = current.next_handler
@@ -294,7 +300,7 @@ class BaseEqualityHandler(ABC):
             raise RuntimeError(msg)
         return self._next_handler.handle(actual, expected, config=config)
 
-    def _verify_next_handler(self, handler: BaseEqualityHandler | None) -> None:
+    def _verify_next_handler(self, handler: object) -> None:
         r"""Verify the next handler is valid.
 
         Args:

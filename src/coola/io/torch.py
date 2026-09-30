@@ -121,7 +121,7 @@ def load_torch(path: Path, **kwargs: Any) -> Any:
 
         ```
     """
-    return TorchLoader(**kwargs).load(path)
+    return TorchLoader[Any](**kwargs).load(path)
 
 
 def save_torch(to_save: Any, path: Path, *, exist_ok: bool = False, **kwargs: Any) -> None:
@@ -156,4 +156,4 @@ def save_torch(to_save: Any, path: Path, *, exist_ok: bool = False, **kwargs: An
 
         ```
     """
-    TorchSaver(**kwargs).save(to_save, path, exist_ok=exist_ok)
+    TorchSaver[Any](**kwargs).save(to_save, path, exist_ok=exist_ok)

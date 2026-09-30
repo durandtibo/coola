@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["to_jsonable"]
 
 from dataclasses import asdict, is_dataclass
-from typing import Any
+from typing import Any, cast
 
 from coola.utils.imports import (
     is_numpy_available,
@@ -91,7 +91,10 @@ def _to_jsonable_recursive(data: Any) -> Any:
         The converted object.
     """
     if isinstance(data, dict):
-        return {key: _to_jsonable_recursive(value) for key, value in data.items()}
+        return {
+            key: _to_jsonable_recursive(value)
+            for key, value in cast("dict[Any, Any]", data).items()
+        }
     if isinstance(data, list):
-        return [_to_jsonable_recursive(value) for value in data]
+        return [_to_jsonable_recursive(value) for value in cast("list[Any]", data)]
     return to_jsonable(data)

@@ -76,7 +76,7 @@ class MappingHasher(InlineDisplayMixin, BaseHasher[Mapping[Any, Any]]):
             ValueError: If ``length`` is not an even number between 2
                 and 128.
         """
-        items = []
+        items: list[tuple[str, str]] = []
         for key, value in data.items():
             key_hash = registry.hash(key, length=length, ignore_unhashable=ignore_unhashable)
             val_hash = registry.hash(value, length=length, ignore_unhashable=ignore_unhashable)

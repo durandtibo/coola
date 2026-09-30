@@ -6,14 +6,14 @@ from __future__ import annotations
 __all__ = ["repr_pydantic_model", "secret_field_names", "str_pydantic_model"]
 
 import warnings
-from typing import TYPE_CHECKING, Any, get_args
+from typing import TYPE_CHECKING, Any, cast, get_args
 
 from coola.utils.format import repr_mapping_line, str_mapping_line
 from coola.utils.imports import is_pydantic_available
 from coola.utils.mapping import sort_by_keys
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Sequence
 
 if TYPE_CHECKING or is_pydantic_available():  # pragma: no cover
     from pydantic import BaseModel, SecretStr
@@ -45,7 +45,7 @@ def secret_field_names(model: BaseModel) -> set[str]:
 
         ```
     """
-    names = set()
+    names: set[str] = set()
     for name, field in type(model).model_fields.items():
         annotation = field.annotation
         candidates = get_args(annotation) or (annotation,)
@@ -66,18 +66,25 @@ def _mask_secret_fields(model: BaseModel, dumped: dict[str, Any]) -> dict[str, A
     return config
 
 
-def _mask_nested_secret_fields(value: Any, dumped: Any) -> Any:
+def _mask_nested_secret_fields(value: object, dumped: object) -> Any:
     """Apply :func:`_mask_secret_fields` to ``value``/``dumped`` pairs
     nested in ``BaseModel``, list/tuple, or dict containers."""
     if isinstance(value, BaseModel) and isinstance(dumped, dict):
-        return _mask_secret_fields(value, dumped)
+        return _mask_secret_fields(value, cast("dict[str, Any]", dumped))
     if isinstance(value, (list, tuple)) and isinstance(dumped, (list, tuple)):
-        return type(dumped)(
-            _mask_nested_secret_fields(v, d) for v, d in zip(value, dumped, strict=False)
-        )
+        values = cast("Sequence[object]", value)
+        dumped_values = cast("Sequence[object]", dumped)
+        items = [
+            _mask_nested_secret_fields(v, d) for v, d in zip(values, dumped_values, strict=False)
+        ]
+        return tuple(items) if isinstance(dumped, tuple) else items
     if isinstance(value, dict) and isinstance(dumped, dict):
+        value_map = cast("dict[Any, object]", value)
+        dumped_map = cast("dict[Any, object]", dumped)
         return {
-            k: _mask_nested_secret_fields(v, dumped[k]) for k, v in value.items() if k in dumped
+            k: _mask_nested_secret_fields(v, dumped_map[k])
+            for k, v in value_map.items()
+            if k in dumped_map
         }
     return dumped
 
@@ -85,7 +92,7 @@ def _mask_nested_secret_fields(value: Any, dumped: Any) -> Any:
 def _format_pydantic_model(
     model: BaseModel,
     *,
-    mapping_line_fn: Callable[[dict], str],
+    mapping_line_fn: Callable[[dict[str, Any]], str],
     sort: bool = True,
     exclude_none: bool = False,
     exclude_secret: bool = True,

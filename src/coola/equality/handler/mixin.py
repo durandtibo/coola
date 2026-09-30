@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 class EqualityHandler(Protocol):
     r"""Protocol describing the members ``HandlerEqualityMixin.equal()``
     relies on: those of ``BaseEqualityHandler`` (``next_handler``) plus
-    ``_equality_attrs()`` from the mixin.
+    ``equality_attrs()`` from the mixin.
 
     This lets ``equal()`` type-check access to ``self`` without a
     runtime (import-time) dependency between ``HandlerEqualityMixin``
@@ -25,7 +25,7 @@ class EqualityHandler(Protocol):
     @property
     def next_handler(self) -> BaseEqualityHandler | None: ...  # pragma: no cover
 
-    def _equality_attrs(self) -> tuple[str, ...]: ...  # pragma: no cover
+    def equality_attrs(self) -> tuple[str, ...]: ...  # pragma: no cover
 
 
 class HandlerEqualityMixin:
@@ -41,7 +41,7 @@ class HandlerEqualityMixin:
         ``BaseEqualityHandler``. The type annotation ``self: EqualityHandler``
         on the ``equal()`` method enforces this constraint and enables
         type-safe access to the ``next_handler`` attribute (and, for
-        handlers with extra state, ``_equality_attrs()``).
+        handlers with extra state, ``equality_attrs()``).
 
     Example:
         ```pycon
@@ -59,7 +59,7 @@ class HandlerEqualityMixin:
 
     A handler that also holds extra state (e.g. a configuration field
     besides ``next_handler``) can still use this mixin by overriding
-    ``_equality_attrs()`` to name the extra attributes to compare:
+    ``equality_attrs()`` to name the extra attributes to compare:
 
     Example:
         ```pycon
@@ -68,7 +68,7 @@ class HandlerEqualityMixin:
         ...     def __init__(self, name, next_handler=None):
         ...         super().__init__(next_handler=next_handler)
         ...         self.name = name
-        ...     def _equality_attrs(self):
+        ...     def equality_attrs(self):
         ...         return ("name",)
         ...     def handle(self, actual, expected, config):
         ...         return True
@@ -84,7 +84,7 @@ class HandlerEqualityMixin:
         ```
     """
 
-    def _equality_attrs(self) -> tuple[str, ...]:
+    def equality_attrs(self) -> tuple[str, ...]:
         r"""Name the extra instance attributes ``equal`` should compare.
 
         Override this in a subclass that has extra state beyond
@@ -100,13 +100,13 @@ class HandlerEqualityMixin:
         r"""Indicate if two handlers are equal.
 
         Two handlers are equal if they are of the same type, have equal
-        values for the attributes named by ``_equality_attrs()``, and
+        values for the attributes named by ``equality_attrs()``, and
         have equal ``next_handler`` chains.
 
         Note:
             The type annotation ``self: EqualityHandler`` ensures this
             mixin is only used with BaseEqualityHandler subclasses, enabling
-            type-safe access to ``next_handler`` and ``_equality_attrs``.
+            type-safe access to ``next_handler`` and ``equality_attrs``.
 
         Args:
             other: The other object to compare with.
@@ -116,7 +116,7 @@ class HandlerEqualityMixin:
         """
         if type(other) is not type(self):
             return False
-        for attr in self._equality_attrs():
+        for attr in self.equality_attrs():
             if getattr(self, attr) != getattr(other, attr):
                 return False
         return handlers_are_equal(self.next_handler, other.next_handler)
