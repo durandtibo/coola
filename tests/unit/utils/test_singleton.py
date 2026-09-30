@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
+
 import pytest
 
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
@@ -155,3 +157,16 @@ def test_make_default_registry_singleton_builds_and_populates_once() -> None:
     assert singleton.get() == {"a": 1}
     assert singleton.get() is singleton.get()
     assert calls == [1]
+
+
+def test_make_default_registry_singleton_concurrent_get_builds_once() -> None:
+    calls = []
+
+    def register(_registry: dict) -> None:
+        calls.append(1)
+
+    singleton = make_default_registry_singleton(dict, register)
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        results = list(executor.map(lambda _: singleton.get(), range(32)))
+    assert calls == [1]
+    assert all(r is results[0] for r in results)
