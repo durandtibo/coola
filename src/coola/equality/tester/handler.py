@@ -59,7 +59,7 @@ class HandlerEqualityTester(BaseEqualityTester[T]):
         return f"{self.__class__.__qualname__}(\n  {str_indent(self._handler.visualize_chain())}\n)"
 
     def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
+        if type(other) is not type(self) or not isinstance(other, type(self)):
             return False
         return self._handler.equal(other._handler)
 

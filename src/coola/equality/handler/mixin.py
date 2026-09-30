@@ -114,7 +114,7 @@ class HandlerEqualityMixin:
         Returns:
             ``True`` if the handlers are equal, otherwise ``False``.
         """
-        if type(other) is not type(self):
+        if type(other) is not type(self) or not isinstance(other, type(self)):
             return False
         for attr in self.equality_attrs():
             if getattr(self, attr) != getattr(other, attr):

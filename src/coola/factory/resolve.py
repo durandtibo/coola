@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["factory", "resolve_object"]
 
 import logging
-from typing import Any, TypeVar, cast
+from typing import Any, TypeVar, cast, overload
 
 from coola.factory.constants import OBJECT_INIT, OBJECT_TARGET
 from coola.factory.instantiation import import_object, instantiate_object
@@ -71,7 +71,15 @@ def factory(_target_: str, *args: Any, **kwargs: Any) -> Any:
     return instantiate_object(target, *args, _init_=init, **kwargs)
 
 
-def resolve_object(obj: T | dict[str, Any], cls: type[T] = object) -> T:
+@overload
+def resolve_object(obj: T | dict[str, Any]) -> T: ...
+
+
+@overload
+def resolve_object(obj: T | dict[str, Any], cls: type[T]) -> T: ...
+
+
+def resolve_object(obj: Any, cls: type = object) -> Any:
     """Resolve an instance of ``cls`` from an existing object or a
     configuration dictionary.
 
@@ -148,4 +156,4 @@ def resolve_object(obj: T | dict[str, Any], cls: type[T] = object) -> T:
             f"Received object is not a {cls_name} instance (received: {type(cast('object', obj))})"
         )
         raise TypeError(msg)
-    return cast("T", obj)
+    return obj

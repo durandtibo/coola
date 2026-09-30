@@ -37,10 +37,10 @@ class LazyModule(ModuleType):
         super().__init__(name)
         self._module: object = None
 
-    def __getattr__(self, item: str) -> Any:
+    def __getattr__(self, name: str) -> Any:
         if self._module is None:
             self._import_module()
-        return getattr(self._module, item)
+        return getattr(self._module, name)
 
     def __dir__(self) -> list[str]:
         if self._module is None:

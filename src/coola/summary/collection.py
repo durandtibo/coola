@@ -61,7 +61,7 @@ class BaseCollectionSummarizer(BaseSummarizer[T]):
         )
 
     def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
+        if type(other) is not type(self) or not isinstance(other, type(self)):
             return False
         return self._max_items == other._max_items and self._num_spaces == other._num_spaces
 
