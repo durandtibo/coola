@@ -2,7 +2,7 @@ r"""Implement a structured comparison result and an assertion helper."""
 
 from __future__ import annotations
 
-__all__ = ["ComparisonResult", "assert_objects_equal", "compare"]
+__all__ = ["ComparisonResult", "assert_objects_allclose", "assert_objects_equal", "compare"]
 
 import logging
 import threading
@@ -190,13 +190,68 @@ def compare(
     )
 
 
+def assert_objects_allclose(
+    actual: object,
+    expected: object,
+    *,
+    rtol: float = 1e-5,
+    atol: float = 1e-8,
+    equal_nan: bool = False,
+    max_depth: int = 1000,
+    registry: EqualityTesterRegistry | None = None,
+    root: str = "actual",
+) -> None:
+    r"""Assert that two objects are equal within a tolerance.
+
+    Args:
+        actual: The actual object.
+        expected: The expected object.
+        rtol: The relative tolerance parameter. Must be non-negative.
+        atol: The absolute tolerance parameter. Must be non-negative.
+        equal_nan: If ``True``, treat two ``NaN`` values as equal.
+        max_depth: Maximum recursion depth for nested comparisons.
+        registry: Registry used to resolve type-specific equality
+            testers. If ``None``, the default registry is used.
+        root: The name used for the root of the path in the message.
+
+    Raises:
+        AssertionError: If the objects are not equal within the
+            tolerances. The message contains the path to the first
+            difference.
+        ValueError: If ``rtol`` or ``atol`` is negative.
+
+    Example:
+        ```pycon
+        >>> from coola.equality import assert_objects_allclose
+        >>> assert_objects_allclose({"a": [1.0, 2.0]}, {"a": [1.0, 2.0 + 1e-9]})
+        >>> assert_objects_allclose([1.0], [1.5], atol=0.1, root="data")
+        Traceback (most recent call last):
+            ...
+        AssertionError: objects are not equal at data[0]
+        numbers are different:
+          actual   : 1.0
+          expected : 1.5
+
+        ```
+    """
+    result = compare(
+        actual,
+        expected,
+        equal_nan=equal_nan,
+        atol=atol,
+        rtol=rtol,
+        max_depth=max_depth,
+        registry=registry,
+    )
+    if not result:
+        raise AssertionError(result.format_message(root))
+
+
 def assert_objects_equal(
     actual: object,
     expected: object,
     *,
     equal_nan: bool = False,
-    atol: float = 0.0,
-    rtol: float = 0.0,
     max_depth: int = 1000,
     registry: EqualityTesterRegistry | None = None,
     root: str = "actual",
@@ -207,8 +262,6 @@ def assert_objects_equal(
         actual: The actual object.
         expected: The expected object.
         equal_nan: If ``True``, treat two ``NaN`` values as equal.
-        atol: The absolute tolerance. Must be non-negative.
-        rtol: The relative tolerance. Must be non-negative.
         max_depth: Maximum recursion depth for nested comparisons.
         registry: Registry used to resolve type-specific equality
             testers. If ``None``, the default registry is used.
@@ -236,8 +289,6 @@ def assert_objects_equal(
         actual,
         expected,
         equal_nan=equal_nan,
-        atol=atol,
-        rtol=rtol,
         max_depth=max_depth,
         registry=registry,
     )

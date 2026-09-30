@@ -3,15 +3,23 @@ from __future__ import annotations
 import dataclasses
 import logging
 import threading
+from collections import OrderedDict
 
 import pytest
 
-from coola.equality import ComparisonResult, assert_objects_equal, compare
+from coola.equality import (
+    ComparisonResult,
+    assert_objects_allclose,
+    assert_objects_equal,
+    compare,
+)
 from coola.equality.result import _CaptureHandler
 from coola.equality.tester import EqualityTesterRegistry
 from coola.equality.tester.interface import get_default_registry
 
 LOGGER_NAME = "coola.equality"
+
+np = pytest.importorskip("numpy")
 
 
 @pytest.fixture
@@ -310,18 +318,151 @@ def test_assert_objects_equal_message_contains_reason() -> None:
         assert_objects_equal([1], [2])
 
 
-def test_assert_objects_equal_tolerance() -> None:
-    assert_objects_equal([1.0], [1.05], atol=0.1)
-    with pytest.raises(AssertionError):
-        assert_objects_equal([1.0], [1.05])
-
-
 def test_assert_objects_equal_equal_nan() -> None:
     assert_objects_equal([float("nan")], [float("nan")], equal_nan=True)
     with pytest.raises(AssertionError):
         assert_objects_equal([float("nan")], [float("nan")])
 
 
-def test_assert_objects_equal_negative_tolerance() -> None:
-    with pytest.raises(ValueError, match="atol"):
-        assert_objects_equal(1, 1, atol=-1.0)
+def test_assert_objects_equal_rejects_tolerance() -> None:
+    with pytest.raises(TypeError):
+        assert_objects_equal(1, 1, atol=0.1)  # type: ignore[call-arg]
+
+
+def test_assert_objects_equal_is_exact() -> None:
+    with pytest.raises(AssertionError):
+        assert_objects_equal([1.0], [1.0 + 1e-9])
+
+
+#########################################
+#     Tests for assert_objects_allclose #
+#########################################
+
+
+def test_assert_objects_allclose_passes() -> None:
+    assert_objects_allclose({"a": [1.0, 2.0]}, {"a": [1.0, 2.0 + 1e-9]})
+
+
+def test_assert_objects_allclose_returns_none() -> None:
+    assert assert_objects_allclose(1.0, 1.0) is None
+
+
+def test_assert_objects_allclose_default_tolerances() -> None:
+    assert_objects_allclose([1.0], [1.0 + 1e-9])
+    with pytest.raises(AssertionError):
+        assert_objects_allclose([1.0], [1.001])
+
+
+@pytest.mark.parametrize(("kwargs"), [{"atol": 0.1}, {"rtol": 0.1}])
+def test_assert_objects_allclose_custom_tolerance(kwargs: dict) -> None:
+    assert_objects_allclose([1.0], [1.05], **kwargs)
+
+
+def test_assert_objects_allclose_fails_with_path() -> None:
+    with pytest.raises(AssertionError, match=r"data\['a'\]\[1\]"):
+        assert_objects_allclose({"a": [1.0, 2.0]}, {"a": [1.0, 3.0]}, root="data")
+
+
+def test_assert_objects_allclose_default_root() -> None:
+    with pytest.raises(AssertionError, match=r"actual\[0\]"):
+        assert_objects_allclose([1.0], [2.0])
+
+
+def test_assert_objects_allclose_equal_nan() -> None:
+    assert_objects_allclose([float("nan")], [float("nan")], equal_nan=True)
+    with pytest.raises(AssertionError):
+        assert_objects_allclose([float("nan")], [float("nan")])
+
+
+@pytest.mark.parametrize("name", ["atol", "rtol"])
+def test_assert_objects_allclose_negative_tolerance(name: str) -> None:
+    with pytest.raises(ValueError, match=name):
+        assert_objects_allclose(1.0, 1.0, **{name: -1.0})
+
+
+#################################
+#     Additional compare tests  #
+#################################
+
+
+def test_public_exports() -> None:
+    import coola.equality as eq
+
+    for name in ["ComparisonResult", "assert_objects_allclose", "assert_objects_equal", "compare"]:
+        assert name in eq.__all__
+        assert hasattr(eq, name)
+
+
+@pytest.mark.parametrize(
+    ("actual", "expected", "path"),
+    [
+        ((1, 2, 3), (1, 2, 4), (2,)),
+        (OrderedDict(a=[1, 2]), OrderedDict(a=[1, 3]), ("a", 1)),
+        ({"a": (1, {"b": [1]})}, {"a": (1, {"b": [2]})}, ("a", 1, "b", 0)),
+        ({(1, 2): "x"}, {(1, 2): "y"}, ((1, 2),)),
+    ],
+)
+def test_compare_path_other_containers(actual: object, expected: object, path: tuple) -> None:
+    assert compare(actual, expected).path == path
+
+
+def test_compare_numpy_inside_containers() -> None:
+    result = compare({"x": [np.array([1, 2])]}, {"x": [np.array([1, 3])]})
+    assert not result
+    assert result.path == ("x", 0)
+    assert compare({"x": [np.ones(2)]}, {"x": [np.ones(2)]})
+
+
+def test_compare_numpy_allclose() -> None:
+    assert compare({"x": np.ones(2)}, {"x": np.ones(2) + 1e-3}, atol=1e-2)
+    assert not compare({"x": np.ones(2)}, {"x": np.ones(2) + 1e-3})
+
+
+def test_compare_result_is_independent_between_calls() -> None:
+    first = compare([1], [2])
+    second = compare([1], [1])
+    assert not first
+    assert second
+    assert second.path == ()
+    assert second.reason is None
+
+
+def test_compare_user_handler_on_logger_receives_nothing() -> None:
+    received: list[logging.LogRecord] = []
+
+    class Collector(logging.Handler):
+        def emit(self, record: logging.LogRecord) -> None:
+            received.append(record)
+
+    logger = logging.getLogger(LOGGER_NAME)
+    handler = Collector()
+    logger.addHandler(handler)
+    try:
+        compare([1], [2])
+    finally:
+        logger.removeHandler(handler)
+    # A user handler attached directly to the logger still sees the records;
+    # only propagation to ancestors is suppressed.
+    assert received
+
+
+def test_compare_parent_logger_handler_receives_nothing() -> None:
+    received: list[logging.LogRecord] = []
+
+    class Collector(logging.Handler):
+        def emit(self, record: logging.LogRecord) -> None:
+            received.append(record)
+
+    parent = logging.getLogger("coola")
+    handler = Collector(level=logging.DEBUG)
+    parent.addHandler(handler)
+    try:
+        compare([1], [2])
+    finally:
+        parent.removeHandler(handler)
+    assert received == []
+
+
+def test_compare_does_not_leak_records_between_calls() -> None:
+    compare([1], [2])
+    assert compare({"a": 1}, {"a": 1}).reason is None
