@@ -8,6 +8,10 @@ __all__ = ["mask_secret"]
 def mask_secret(secret: str, show_first: int = 3, show_last: int = 4) -> str:
     r"""Mask the content of the secret with ``*``.
 
+    Note:
+        This is for display/logging only, not encryption: the shown
+        characters are leaked, and the length of the secret is preserved.
+
     Args:
         secret: The secret to mask.
         show_first: The number of first values to show.

@@ -34,7 +34,10 @@ def factory(_target_: str, *args: Any, **kwargs: Any) -> Any:
             key controls the function or method used to create the
             object. If ``"__init__"`` (default), the object is
             created by calling the constructor. Can also be
-            ``"__new__"`` or the name of a class method.
+            ``"__new__"`` or the name of a class method. The special
+            ``"_allowed_prefixes_"`` key is an optional allow-list
+            of module prefixes that ``_target_`` must match (see
+            ``import_object``).
 
     Returns:
         The instantiated object with the given parameters.
@@ -63,7 +66,7 @@ def factory(_target_: str, *args: Any, **kwargs: Any) -> Any:
         ```
     """
     try:
-        target = import_object(_target_)
+        target = import_object(_target_, allowed_prefixes=kwargs.pop("_allowed_prefixes_", None))
     except ImportError as e:
         msg = f"The target object does not exist: {_target_}"
         raise ImportError(msg) from e

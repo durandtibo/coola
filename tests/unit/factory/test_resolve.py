@@ -357,3 +357,9 @@ def test_resolve_object_dict_subclass_instance_not_matching_cls_is_treated_as_co
     # `cls` instance and is (still) treated as a factory configuration.
     with pytest.raises(TypeError, match=r"missing the `_target_` key"):
         resolve_object(Counter(a=1), cls=OrderedDict)
+
+
+def test_factory_allowed_prefixes() -> None:
+    assert factory("collections.Counter", [1, 1], _allowed_prefixes_=["collections"])
+    with pytest.raises(ImportError, match="does not exist"):
+        factory("os.getcwd", _allowed_prefixes_=["collections"])

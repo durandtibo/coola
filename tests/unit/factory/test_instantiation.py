@@ -269,3 +269,15 @@ def test_instantiate_object_callable_instance() -> None:
     assert isinstance(obj, Fake)
     assert obj.arg1 == 7
     assert obj.arg2 == "callable"
+
+
+def test_import_object_allowed_prefixes() -> None:
+    assert import_object("collections.Counter", allowed_prefixes=["collections"]) is Counter
+    assert import_object("collections", allowed_prefixes=["collections"])
+
+
+def test_import_object_not_allowed_prefixes() -> None:
+    with pytest.raises(ImportError, match="not allowed"):
+        import_object("os.system", allowed_prefixes=["collections"])
+    with pytest.raises(ImportError, match="not allowed"):
+        import_object("collectionsx.Counter", allowed_prefixes=["collections"])

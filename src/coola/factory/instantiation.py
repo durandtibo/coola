@@ -9,10 +9,10 @@ import inspect
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Sequence
 
 
-def import_object(object_path: object) -> Any:
+def import_object(object_path: object, *, allowed_prefixes: Sequence[str] | None = None) -> Any:
     r"""Import an object given its path.
 
     This function dynamically imports a class, function, or other
@@ -23,18 +23,24 @@ def import_object(object_path: object) -> Any:
     Args:
         object_path: The fully qualified path of the object to import.
             Must be a string in the format "module.path.ObjectName".
+        allowed_prefixes: An optional allow-list of module prefixes.
+            If provided, ``object_path`` must be equal to a prefix or
+            start with ``prefix + "."``, otherwise an ``ImportError``
+            is raised *before* anything is imported.
 
     Returns:
         The imported object.
 
     Raises:
         TypeError: if ``object_path`` is not a string.
-        ImportError: if ``object_path`` cannot be imported.
+        ImportError: if ``object_path`` cannot be imported or is not
+            allowed by ``allowed_prefixes``.
 
     Security:
-        This function imports arbitrary module code with no allowlist
-        or restriction on which module or attribute it may reference:
-        importing a module executes its top-level code. Only pass an
+        By default, this function imports arbitrary module code with
+        no restriction on which module or attribute it may reference:
+        importing a module executes its top-level code. Use
+        ``allowed_prefixes`` to restrict it. Only pass an
         ``object_path`` that comes from a trusted source. Never
         resolve an ``object_path`` derived from untrusted input, such
         as a third-party-uploaded config file or a network payload, as
@@ -61,6 +67,12 @@ def import_object(object_path: object) -> Any:
     if not isinstance(object_path, str):
         msg = f"`object_path` is not a string: {object_path}"
         raise TypeError(msg)
+
+    if allowed_prefixes is not None and not any(
+        object_path == prefix or object_path.startswith(prefix + ".") for prefix in allowed_prefixes
+    ):
+        msg = f"Object path {object_path!r} is not allowed. Allowed prefixes: {list(allowed_prefixes)}"
+        raise ImportError(msg)
 
     # If there's no dot, treat it as a module/package import.
     if "." not in object_path:
