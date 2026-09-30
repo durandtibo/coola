@@ -33,7 +33,7 @@ entries. Suggestions:
 Risk: public class names and methods must stay; do it as an internal refactor
 with deprecation aliases if any names change.
 
-## 2. A dedicated "not registered" exception (medium)
+## 2. **Fixed** A dedicated "not registered" exception (medium)
 
 `TypeRegistry.find/resolve` and `BaseRegistry.__getitem__` raise bare `KeyError`.
 Callers cannot distinguish "no handler for this type" from an ordinary dict
@@ -80,14 +80,15 @@ files (e.g. `equality/tester/interface.py` has seven).
 
 ## 5. Equality: results and diagnostics (medium-high)
 
-- `objects_are_equal` returns `bool`; the reason for a mismatch is available
+- **Fixed** `objects_are_equal` returns `bool`; the reason for a mismatch is available
   only through logging (`show_difference`). Add a structured variant such as
   `compare(actual, expected, ...) -> ComparisonResult` (`equal: bool`, `path`
   to first difference, `reason`, `actual`/`expected` reprs, all differences when
   `fail_fast=False`). `bool(result)` keeps drop-in semantics. This is the most
   requested capability for a testing helper (pytest assertion messages, custom
   reporting) and the handler chain already computes the information.
-- Provide a pytest plugin / `assert_objects_equal` that raises `AssertionError`
+- **Partially fixed** (`assert_objects_equal` / `assert_objects_allclose` added in
+  `coola.equality`; no pytest plugin yet) Provide a pytest plugin / `assert_objects_equal` that raises `AssertionError`
   with a path-annotated diff (`data["a"][2]: 1 != 3`). `coola.testing` is
   currently only skip-markers; this would be a natural home.
 - `EqualityConfig` validates lazily (open finding). Convert to a frozen
@@ -179,8 +180,8 @@ files (e.g. `equality/tester/interface.py` has seven).
 
 ## 11. Suggested order
 
-1. `TypeNotRegisteredError` (section 2) — small, immediately useful.
-2. Structured comparison result + `assert_objects_equal` (section 5).
+1. **Fixed** `TypeNotRegisteredError` (section 2) — small, immediately useful.
+2. **Fixed** Structured comparison result + `assert_objects_equal` (section 5).
 3. Registry/interface deduplication (section 1) with benchmarks (section 7) as a safety net.
 4. Lazy backend proxy + entry-point registration (section 4).
 5. Import-linter layering and `utils` regrouping (section 8).
