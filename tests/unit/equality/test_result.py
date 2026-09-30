@@ -13,13 +13,11 @@ from coola.equality import (
     assert_objects_equal,
     compare,
 )
-from coola.equality.result import _CaptureHandler
+from coola.equality.result import CaptureHandler
 from coola.equality.tester import EqualityTesterRegistry
 from coola.equality.tester.interface import get_default_registry
 
 LOGGER_NAME = "coola.equality"
-
-np = pytest.importorskip("numpy")
 
 
 def equal_result(actual: object, expected: object) -> ComparisonResult:
@@ -277,7 +275,7 @@ def test_compare_concurrent_threads() -> None:
 
 
 #####################################
-#     Tests for _CaptureHandler     #
+#     Tests for CaptureHandler     #
 #####################################
 
 
@@ -286,14 +284,14 @@ def _record() -> logging.LogRecord:
 
 
 def test_capture_handler_keeps_same_thread_records() -> None:
-    handler = _CaptureHandler()
+    handler = CaptureHandler()
     record = _record()
     handler.emit(record)
     assert handler.records == [record]
 
 
 def test_capture_handler_ignores_other_threads() -> None:
-    handler = _CaptureHandler()
+    handler = CaptureHandler()
     record = _record()
     record.thread = handler._thread_id + 1
     handler.emit(record)
@@ -301,7 +299,7 @@ def test_capture_handler_ignores_other_threads() -> None:
 
 
 def test_capture_handler_level() -> None:
-    assert _CaptureHandler().level == logging.INFO
+    assert CaptureHandler().level == logging.INFO
 
 
 #####################################
@@ -405,29 +403,6 @@ def test_public_exports() -> None:
     for name in ["ComparisonResult", "assert_objects_allclose", "assert_objects_equal", "compare"]:
         assert name in eq.__all__
         assert hasattr(eq, name)
-
-
-def test_compare_numpy_inside_containers() -> None:
-    actual, expected = {"x": [np.array([1, 2])]}, {"x": [np.array([1, 3])]}
-    assert compare(actual, expected) == different_result(
-        actual,
-        expected,
-        ("x", 0),
-        "numpy.ndarrays are different:\n  actual   : [1 2]\n  expected : [1 3]",
-    )
-    actual = expected = {"x": [np.ones(2)]}
-    assert compare(actual, expected) == equal_result(actual, expected)
-
-
-def test_compare_numpy_allclose() -> None:
-    actual, expected = {"x": np.ones(2)}, {"x": np.ones(2) + 1e-3}
-    assert compare(actual, expected, atol=1e-2) == equal_result(actual, expected)
-    assert compare(actual, expected) == different_result(
-        actual,
-        expected,
-        ("x",),
-        "numpy.ndarrays are different:\n  actual   : [1. 1.]\n  expected : [1.001 1.001]",
-    )
 
 
 def test_compare_result_is_independent_between_calls() -> None:

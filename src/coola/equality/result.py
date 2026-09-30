@@ -2,7 +2,13 @@ r"""Implement a structured comparison result and an assertion helper."""
 
 from __future__ import annotations
 
-__all__ = ["ComparisonResult", "assert_objects_allclose", "assert_objects_equal", "compare"]
+__all__ = [
+    "CaptureHandler",
+    "ComparisonResult",
+    "assert_objects_allclose",
+    "assert_objects_equal",
+    "compare",
+]
 
 import logging
 import threading
@@ -89,7 +95,30 @@ class ComparisonResult:
         return "\n".join(lines)
 
 
-class _CaptureHandler(logging.Handler):
+class CaptureHandler(logging.Handler):
+    r"""Collect the records logged by the current thread.
+
+    Records emitted from other threads are ignored, so concurrent
+    comparisons do not see each other's records.
+
+    Attributes:
+        records: The captured records, in emission order.
+
+    Example:
+        ```pycon
+        >>> import logging
+        >>> from coola.equality.result import CaptureHandler
+        >>> handler = CaptureHandler()
+        >>> logger = logging.getLogger("capture_example")
+        >>> logger.addHandler(handler)
+        >>> logger.warning("hello")
+        >>> [record.getMessage() for record in handler.records]
+        ['hello']
+        >>> logger.removeHandler(handler)
+
+        ```
+    """
+
     def __init__(self) -> None:
         super().__init__(level=logging.INFO)
         self.records: list[logging.LogRecord] = []
@@ -164,7 +193,7 @@ def compare(
         rtol=rtol,
         max_depth=max_depth,
     )
-    capture = _CaptureHandler()
+    capture = CaptureHandler()
     logger = logging.getLogger(_LOGGER_NAME)
     with _capture_lock:
         level, propagate = logger.level, logger.propagate
