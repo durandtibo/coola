@@ -10,6 +10,7 @@ restoring RNG states, and managing a global registry of random managers.
 from __future__ import annotations
 
 __all__ = [
+    "get_default_random_manager_registry",
     "get_default_registry",
     "get_rng_state",
     "manual_seed",
@@ -189,6 +190,9 @@ def get_default_registry() -> RandomManagerRegistry:
         ```
     """
     return _default_registry.get()
+
+
+get_default_random_manager_registry = get_default_registry
 
 
 def _register_default_managers(registry: RandomManagerRegistry) -> None:

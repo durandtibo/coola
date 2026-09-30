@@ -3,7 +3,7 @@ items in nested data."""
 
 from __future__ import annotations
 
-__all__ = ["get_default_registry", "hash_object", "register_hashers"]
+__all__ = ["get_default_hasher_registry", "get_default_registry", "hash_object", "register_hashers"]
 
 from collections.abc import Mapping, Sequence
 from datetime import date, datetime
@@ -128,6 +128,9 @@ def get_default_registry() -> HasherRegistry:
         ```
     """
     return _default_registry.get()
+
+
+get_default_hasher_registry = get_default_registry
 
 
 def _register_default_hashers(registry: HasherRegistry) -> None:

@@ -3,7 +3,11 @@ management."""
 
 from __future__ import annotations
 
-__all__ = ["get_default_registry", "register_equality_testers"]
+__all__ = [
+    "get_default_equality_tester_registry",
+    "get_default_registry",
+    "register_equality_testers",
+]
 
 from collections import deque
 from collections.abc import Mapping, Sequence
@@ -161,6 +165,9 @@ def get_default_registry() -> EqualityTesterRegistry:
         ```
     """
     return _default_registry.get()
+
+
+get_default_equality_tester_registry = get_default_registry
 
 
 def _register_default_equality_testers(registry: EqualityTesterRegistry) -> None:

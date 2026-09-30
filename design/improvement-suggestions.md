@@ -50,6 +50,9 @@ low-risk step.
 
 ## 3. Public API surface and discoverability (medium)
 
+**Partially fixed** (distinct `get_default_*_registry` aliases and `tests/unit/test_public_api.py`
+added; lazy top-level re-exports not done).
+
 - `coola/__init__.py` exports only `__version__`. That is a deliberate,
   documented choice, but it forces users to learn six import paths. Consider
   lazily re-exporting the four headline functions (`objects_are_equal`,

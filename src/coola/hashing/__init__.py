@@ -17,6 +17,7 @@ __all__ = [
     "StrHasher",
     "StringHasher",
     "SupportsHash",
+    "get_default_hasher_registry",
     "get_default_registry",
     "hash_bytes",
     "hash_object",
@@ -30,7 +31,12 @@ from coola.hashing.base import BaseHasher, Hasher
 from coola.hashing.bytes import BytesHasher, hash_bytes
 from coola.hashing.datetime import DatetimeHasher
 from coola.hashing.hashable import HashableHasher, SupportsHash
-from coola.hashing.interface import get_default_registry, hash_object, register_hashers
+from coola.hashing.interface import (
+    get_default_hasher_registry,
+    get_default_registry,
+    hash_object,
+    register_hashers,
+)
 from coola.hashing.mapping import MappingHasher
 from coola.hashing.path import PathHasher, hash_path
 from coola.hashing.pydantic import PydanticModelHasher, hash_pydantic_model

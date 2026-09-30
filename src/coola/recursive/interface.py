@@ -3,7 +3,12 @@ items in nested data."""
 
 from __future__ import annotations
 
-__all__ = ["get_default_registry", "recursive_apply", "register_transformers"]
+__all__ = [
+    "get_default_registry",
+    "get_default_transformer_registry",
+    "recursive_apply",
+    "register_transformers",
+]
 
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any
@@ -128,6 +133,9 @@ def get_default_registry() -> TransformerRegistry:
         ```
     """
     return _default_registry.get()
+
+
+get_default_transformer_registry = get_default_registry
 
 
 def _register_default_transformers(registry: TransformerRegistry) -> None:
