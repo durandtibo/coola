@@ -20,7 +20,7 @@ from coola.utils.singleton import LazySingleton
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from coola.recursive.base import BaseTransformer
+    from coola.recursive.base import Transformer
 
 
 def recursive_apply(
@@ -58,7 +58,7 @@ def recursive_apply(
 
 
 def register_transformers(
-    mapping: Mapping[type, BaseTransformer[Any]],
+    mapping: Mapping[type, Transformer[Any]],
     exist_ok: bool = False,
 ) -> None:
     """Register custom transformers to the default global registry.

@@ -33,9 +33,9 @@ entries. Suggestions:
 Risk: public class names and methods must stay; do it as an internal refactor
 with deprecation aliases if any names change.
 
-## 2. **Fixed** A dedicated "not registered" exception (medium)
+## 2. A dedicated "not registered" exception (medium)
 
-`TypeRegistry.find/resolve` and `BaseRegistry.__getitem__` raise bare `KeyError`.
+**Fixed** `TypeRegistry.find/resolve` and `BaseRegistry.__getitem__` raise bare `KeyError`.
 Callers cannot distinguish "no handler for this type" from an ordinary dict
 miss inside user code. Add `class TypeNotRegisteredError(KeyError, LookupError)`
 (subclassing `KeyError` keeps existing `except KeyError` code working) and include
@@ -54,8 +54,8 @@ low-risk step.
   startup" property and keeps `import coola` cheap.
 - Every subpackage defines its own `get_default_registry`. Same name, different
   return types, so `from coola.x import *` collisions and confusing IDE
-  auto-imports. Consider distinct public aliases
-  (`get_default_hasher_registry`, ...) while keeping the old names.
+  auto-imports. Consider distinct public aliases (`get_default_hasher_registry`, ...) while keeping
+  the old names.
 - Add an `__all__` consistency test (all names in `__all__` importable; every
   public module has `__all__`) to prevent API drift.
 
@@ -69,8 +69,7 @@ files (e.g. `equality/tester/interface.py` has seven).
 - Centralise via a lazy-module proxy (one `LazyModule("numpy")` object per
   backend). This removes the repeated conditional imports and the
   `# pragma: no cover` markers scattered around them, and `fallback/` can be
-  reduced to the proxy raising an actionable message
-  (`pip install coola[numpy]`).
+  reduced to the proxy raising an actionable message (`pip install coola[numpy]`).
 - Give every backend a uniform registration hook (entry point group
   `coola.backends`, or a module-level `register()` function) so
   `_register_default_X` in each interface stops importing/if-checking each
@@ -88,15 +87,16 @@ files (e.g. `equality/tester/interface.py` has seven).
   requested capability for a testing helper (pytest assertion messages, custom
   reporting) and the handler chain already computes the information.
 - **Partially fixed** (`assert_objects_equal` / `assert_objects_allclose` added in
-  `coola.equality`; no pytest plugin yet) Provide a pytest plugin / `assert_objects_equal` that raises `AssertionError`
+  `coola.equality`; no pytest plugin yet) Provide a pytest plugin / `assert_objects_equal` that
+  raises `AssertionError`
   with a path-annotated diff (`data["a"][2]: 1 != 3`). `coola.testing` is
   currently only skip-markers; this would be a natural home.
 - **Fixed** (eager `__post_init__` validation, finite check, unknown options rejected; kept
   non-frozen because of the depth counter) `EqualityConfig` validates lazily. Convert to a frozen
   dataclass with `__post_init__` validation of `atol`/`rtol` (non-negative,
   finite) and reject unknown options.
-- **Fixed** (matrix in `docs/uguide/equality.md`) Document/decide NaN and `-0.0` semantics table per backend
-  (numpy/torch/pandas/polars/jax/pyarrow); tests exist, but a single matrix in
+- **Fixed** (matrix in `docs/uguide/equality.md`) Document/decide NaN and `-0.0` semantics table per
+  backend (numpy/torch/pandas/polars/jax/pyarrow); tests exist, but a single matrix in
   the docs would prevent per-backend divergence.
 
 ## 6. Typing and static checks (medium)
@@ -105,7 +105,7 @@ files (e.g. `equality/tester/interface.py` has seven).
   generic but the concrete registries expose `BaseHasher[Any]`. Parameterise
   handlers/testers on the data type (`BaseEqualityTester[T]`) and run
   `mypy --strict` (or pyright strict) on `src/coola` in CI if not already.
-- Use `typing.Protocol` for the small strategy interfaces (`Hasher`,
+- **Fixed** (`Hasher`, `Summarizer`, `Transformer` protocols; registries accept them) Use `typing.Protocol` for the small strategy interfaces (`Hasher`,
   `Summarizer`, `Transformer`) so users can register plain classes/functions
   without subclassing the ABCs. Keep the ABCs as convenience bases.
 - Replace `TypeVar` K/V with PEP 695 syntax when the minimum Python moves to
@@ -138,8 +138,8 @@ files (e.g. `equality/tester/interface.py` has seven).
   sibling distribution, so the public API commitment stays small.
 - `identifier/` (12 modules: ulid, snowflake, nanoid, uuid4/5/7, checksummed,
   obfuscated, prefixed, ...) is conceptually separate from the rest. It
-  could be a subpackage with its own docs section, or an extra
-  (`coola[identifier]`), to make the core easier to understand.
+  could be a subpackage with its own docs section, or an extra (`coola[identifier]`), to make the
+  core easier to understand.
 - Same for `io/`, `display/`, `reducer/`, `random/`, `factory/`, `validation/`:
   add a short `docs/architecture.md` with a diagram showing which packages
   depend on `registry` (core) versus which are standalone helpers, and enforce
@@ -160,8 +160,8 @@ files (e.g. `equality/tester/interface.py` has seven).
   `code-review-findings.md`.
 - `hashing` names: make clear in docs that these are content hashes for
   identity/caching, not for security; `identifier/obfuscated.py` and
-  `utils/secret.py`/`password.py` should state their threat model explicitly
-  (obfuscation is not encryption).
+  `utils/secret.py`/`password.py` should state their threat model explicitly (obfuscation is not
+  encryption).
 
 ## 10. Documentation and testing (low effort)
 

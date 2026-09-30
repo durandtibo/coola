@@ -10,6 +10,7 @@ __all__ = [
     "NDArraySummarizer",
     "SequenceSummarizer",
     "SetSummarizer",
+    "Summarizer",
     "SummarizerRegistry",
     "TensorSummarizer",
     "get_default_registry",
@@ -17,7 +18,7 @@ __all__ = [
     "summarize",
 ]
 
-from coola.summary.base import BaseSummarizer
+from coola.summary.base import BaseSummarizer, Summarizer
 from coola.summary.collection import BaseCollectionSummarizer
 from coola.summary.default import DefaultSummarizer
 from coola.summary.interface import (

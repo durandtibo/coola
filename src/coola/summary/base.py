@@ -8,16 +8,34 @@ structures with configurable depth limits.
 
 from __future__ import annotations
 
-__all__ = ["BaseSummarizer"]
+__all__ = ["BaseSummarizer", "Summarizer"]
 
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import TYPE_CHECKING, Generic, Protocol, TypeVar
 
 if TYPE_CHECKING:
     from coola.summary.registry import SummarizerRegistry
 
 T = TypeVar("T")
+T_contra = TypeVar("T_contra", contravariant=True)
+
+
+class Summarizer(Protocol[T_contra]):
+    r"""Structural interface of a type-specific summarizer.
+
+    Any object with a compatible ``summarize`` method can be registered
+    without subclassing :class:`BaseSummarizer`, which remains available
+    as a convenience base class.
+    """
+
+    def summarize(
+        self,
+        data: T_contra,
+        registry: SummarizerRegistry,
+        depth: int = 0,
+        max_depth: int = 1,
+    ) -> str: ...
 
 
 class BaseSummarizer(ABC, Generic[T]):

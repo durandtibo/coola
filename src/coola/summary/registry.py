@@ -12,10 +12,10 @@ __all__ = ["SummarizerRegistry"]
 from typing import Any
 
 from coola.registry import BaseTypeDispatchRegistry
-from coola.summary.base import BaseSummarizer
+from coola.summary.base import Summarizer
 
 
-class SummarizerRegistry(BaseTypeDispatchRegistry[BaseSummarizer[Any]]):
+class SummarizerRegistry(BaseTypeDispatchRegistry[Summarizer[Any]]):
     r"""Registry that manages and dispatches summarizers based on data
     type.
 
@@ -108,7 +108,7 @@ class SummarizerRegistry(BaseTypeDispatchRegistry[BaseSummarizer[Any]]):
         """
         return self.has(data_type)
 
-    def find_summarizer(self, data_type: type) -> BaseSummarizer[Any]:
+    def find_summarizer(self, data_type: type) -> Summarizer[Any]:
         """Type-specific alias for :meth:`find`: find the appropriate
         summarizer for a given type.
 

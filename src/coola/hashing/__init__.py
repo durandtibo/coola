@@ -7,6 +7,7 @@ __all__ = [
     "BytesHasher",
     "DatetimeHasher",
     "HashableHasher",
+    "Hasher",
     "HasherRegistry",
     "MappingHasher",
     "PathHasher",
@@ -25,7 +26,7 @@ __all__ = [
     "register_hashers",
 ]
 
-from coola.hashing.base import BaseHasher
+from coola.hashing.base import BaseHasher, Hasher
 from coola.hashing.bytes import BytesHasher, hash_bytes
 from coola.hashing.datetime import DatetimeHasher
 from coola.hashing.hashable import HashableHasher, SupportsHash

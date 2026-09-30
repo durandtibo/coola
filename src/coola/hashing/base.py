@@ -2,15 +2,33 @@ r"""Define the hasher base class."""
 
 from __future__ import annotations
 
-__all__ = ["BaseHasher"]
+__all__ = ["BaseHasher", "Hasher"]
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import TYPE_CHECKING, Generic, Protocol, TypeVar
 
 if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
 
 T = TypeVar("T")
+T_contra = TypeVar("T_contra", contravariant=True)
+
+
+class Hasher(Protocol[T_contra]):
+    r"""Structural interface of a type-specific hasher.
+
+    Any object with a compatible ``hash`` method can be registered
+    without subclassing :class:`BaseHasher`, which remains available as
+    a convenience base class.
+    """
+
+    def hash(
+        self,
+        data: T_contra,
+        registry: HasherRegistry,
+        length: int = 64,
+        ignore_unhashable: bool = False,
+    ) -> str: ...
 
 
 class BaseHasher(ABC, Generic[T]):
