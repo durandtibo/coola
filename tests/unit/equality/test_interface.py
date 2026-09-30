@@ -525,3 +525,11 @@ def test_objects_are_equal_true_complex_objects() -> None:
 def test_objects_are_equal_custom_registry() -> None:
     registry = EqualityTesterRegistry({object: DefaultEqualityTester()})
     assert not objects_are_equal([], (), registry=registry)
+
+
+def test_objects_are_equal_python_recursion_limit_message() -> None:
+    data1, data2 = [], []
+    for _ in range(2000):
+        data1, data2 = [data1], [data2]
+    with pytest.raises(RecursionError, match="Python recursion limit"):
+        objects_are_equal(data1, data2, max_depth=10**6)
