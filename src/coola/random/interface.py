@@ -224,5 +224,5 @@ def _register_default_managers(registry: RandomManagerRegistry) -> None:
 
 
 _default_registry: LazySingleton[RandomManagerRegistry] = make_default_registry_singleton(
-    RandomManagerRegistry, _register_default_managers
+    RandomManagerRegistry, _register_default_managers, plugin_group="coola.random.managers"
 )

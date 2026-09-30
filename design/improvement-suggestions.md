@@ -69,8 +69,9 @@ added; lazy top-level re-exports not done).
 ## 4. Optional-dependency handling (medium)
 
 **Partially fixed** (`LazyModule` / `lazy_import` exist in `coola.utils.imports`, but the
-conditional `if is_X_available(): import X` blocks remain and there is no uniform
-backend registration hook / entry-point group yet).
+conditional `if is_X_available(): import X` blocks remain; third-party entry-point groups
+(`coola.<registry>.*`, loaded by `load_registry_plugins` in `coola.utils.singleton`) now exist for
+all seven default registries, but built-in backends are still registered by name).
 
 Currently three mechanisms coexist: `coola.utils.imports` (`is_X_available`,
 decorators), `coola.utils.fallback.*` (stub modules), and `TYPE_CHECKING`

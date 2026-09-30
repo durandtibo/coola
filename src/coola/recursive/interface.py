@@ -190,5 +190,5 @@ def _register_default_transformers(registry: TransformerRegistry) -> None:
 
 
 _default_registry: LazySingleton[TransformerRegistry] = make_default_registry_singleton(
-    TransformerRegistry, _register_default_transformers
+    TransformerRegistry, _register_default_transformers, plugin_group="coola.recursive.transformers"
 )

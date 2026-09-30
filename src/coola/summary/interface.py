@@ -245,5 +245,5 @@ def _get_torch_summarizers() -> dict[type, Summarizer[Any]]:
 
 
 _default_registry: LazySingleton[SummarizerRegistry] = make_default_registry_singleton(
-    SummarizerRegistry, _register_default_summarizers
+    SummarizerRegistry, _register_default_summarizers, plugin_group="coola.summary.summarizers"
 )

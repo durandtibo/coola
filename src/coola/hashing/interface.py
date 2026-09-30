@@ -175,5 +175,5 @@ def _register_default_hashers(registry: HasherRegistry) -> None:
 
 
 _default_registry: LazySingleton[HasherRegistry] = make_default_registry_singleton(
-    HasherRegistry, _register_default_hashers
+    HasherRegistry, _register_default_hashers, plugin_group="coola.hashing.hashers"
 )
