@@ -175,9 +175,36 @@ def to_flat_dict(
 
         ```
     """
-    _to_str: tuple[type, ...] = _normalize_to_str(to_str)
+    flat: dict[str, Any] = {}
+    _flatten_into(flat, data, prefix, separator, _normalize_to_str(to_str))
+    return flat
 
-    if isinstance(data, _to_str):
+
+def _flatten_into(
+    flat: dict[str, Any],
+    data: object,
+    prefix: str | None,
+    separator: str,
+    to_str: tuple[type, ...],
+) -> None:
+    """Flatten *data* into the shared output dict *flat*.
+
+    Every nested level writes directly into the same ``flat`` dict, so
+    flattening is a single pass without intermediate per-level dicts.
+
+    Args:
+        flat: The output dict (mutated in-place).
+        data: The value to flatten.
+        prefix: The accumulated key path so far, or ``None`` at the
+            root level.
+        separator: The string used to join key segments.
+        to_str: Normalised tuple of types that should be stringified
+            rather than recursed into.
+
+    Raises:
+        ValueError: If a leaf is reached with no key to store it under.
+    """
+    if isinstance(data, to_str):
         if prefix is None:
             msg = (
                 f"Cannot create a flat dict entry with a None key. "
@@ -185,25 +212,26 @@ def to_flat_dict(
                 f"Got data={data!r}"
             )
             raise ValueError(msg)
-        return {prefix: str(data)}
-
-    if isinstance(data, Mapping):
-        return _flatten_mapping(cast("Mapping[Any, Any]", data), prefix, separator, _to_str)
-
+        flat[prefix] = str(data)
+    elif isinstance(data, Mapping):
+        for key, value in cast("Mapping[Any, Any]", data).items():
+            child = _build_key(prefix, str(key), separator)
+            _flatten_into(flat, value, child, separator, to_str)
     # str is a Sequence, so it must be excluded before the Sequence check
     # to avoid iterating over individual characters.
-    if isinstance(data, Sequence) and not isinstance(data, str):
-        return _flatten_sequence(cast("Sequence[Any]", data), prefix, separator, _to_str)
-
-    # Scalar leaf
-    if prefix is None:
+    elif isinstance(data, Sequence) and not isinstance(data, str):
+        for i, value in enumerate(cast("Sequence[Any]", data)):
+            child = _build_key(prefix, str(i), separator)
+            _flatten_into(flat, value, child, separator, to_str)
+    elif prefix is None:
         msg = (
             f"Cannot create a flat dict entry with a None key. "
             f"Provide a non-None prefix or pass a mapping/sequence as data. "
             f"Got data={data!r}"
         )
         raise ValueError(msg)
-    return {prefix: data}
+    else:
+        flat[prefix] = data
 
 
 def _normalize_to_str(to_str: type | tuple[type, ...] | None) -> tuple[type, ...]:
@@ -249,67 +277,3 @@ def _build_key(prefix: str | None, child: str, separator: str) -> str:
         The combined key path as a string.
     """
     return f"{prefix}{separator}{child}" if prefix is not None else child
-
-
-def _flatten_mapping(
-    data: Mapping[Any, Any],
-    prefix: str | None,
-    separator: str,
-    to_str: tuple[type, ...],
-) -> dict[str, Any]:
-    """Flatten a :class:`Mapping` into a flat ``dict`` with dotted keys.
-
-    Iterates over every ``(key, value)`` pair, builds the child prefix
-    by appending ``str(key)`` to the current ``prefix``, then
-    delegates each value back to :func:`to_flat_dict` for further
-    flattening.
-
-    Args:
-        data: The mapping to flatten.
-        prefix: The accumulated key path so far, or ``None`` at the
-            root level.
-        separator: The string used to join key segments.
-        to_str: Normalised tuple of types that should be stringified
-            rather than recursed into.
-
-    Returns:
-        A flat dictionary.
-    """
-    flat: dict[str, Any] = {}
-    for key, value in data.items():
-        child_prefix = _build_key(prefix, str(key), separator)
-        flat.update(to_flat_dict(value, prefix=child_prefix, separator=separator, to_str=to_str))
-    return flat
-
-
-def _flatten_sequence(
-    data: Sequence[Any],
-    prefix: str | None,
-    separator: str,
-    to_str: tuple[type, ...],
-) -> dict[str, Any]:
-    """Flatten a non-string :class:`Sequence` into a flat ``dict`` with
-    dotted keys.
-
-    Iterates over every element by index, builds the child prefix by
-    appending the string representation of the index to the current
-    ``prefix``, then delegates each element back to
-    :func:`to_flat_dict` for further flattening.
-
-    Args:
-        data: The sequence to flatten.  Must not be a ``str`` (strings
-            are handled as scalar leaves by the caller).
-        prefix: The accumulated key path so far, or ``None`` at the
-            root level.
-        separator: The string used to join key segments.
-        to_str: Normalised tuple of types that should be stringified
-            rather than recursed into.
-
-    Returns:
-        A flat dictionary.
-    """
-    flat: dict[str, Any] = {}
-    for i, value in enumerate(data):
-        child_prefix = _build_key(prefix, str(i), separator)
-        flat.update(to_flat_dict(value, prefix=child_prefix, separator=separator, to_str=to_str))
-    return flat

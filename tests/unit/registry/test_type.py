@@ -3,7 +3,6 @@ from __future__ import annotations
 import pytest
 
 from coola.registry import TypeRegistry
-from coola.utils.lru import LRUCache
 
 ##################################
 #     Tests for TypeRegistry     #
@@ -248,55 +247,62 @@ def test_type_registry_resolve_uses_cache() -> None:
     assert result1 == result2 == "object"
 
 
-def test_type_registry_resolve_cache_is_bounded_lru() -> None:
-    """Test the resolve() cache never grows past 1024 entries and evicts
-    the least-recently-used type first."""
+def test_type_registry_resolve_cache_is_bounded() -> None:
+    """Test the resolve() cache never grows past 1024 entries and is
+    reset when full."""
     registry = TypeRegistry[str]({object: "object"})
     types = [type(f"Type{i}", (), {}) for i in range(1025)]
-    for tp in types:
+    for tp in types[:1024]:
         registry.resolve(tp)
     assert len(registry._cache) == 1024
-    # The first resolved type should have been evicted (least recently used).
-    assert types[0] not in registry._cache
-    # The most recently resolved types should still be cached.
-    assert types[-1] in registry._cache
-    assert types[1] in registry._cache
+    registry.resolve(types[1024])
+    assert registry._cache == {types[1024]: "object"}
 
 
-def test_type_registry_resolve_cache_lru_order_updated_on_access() -> None:
-    """Test that re-resolving a cached type marks it as most-recently-
-    used, protecting it from eviction."""
+def test_type_registry_resolve_cache_snapshot_not_mutated() -> None:
+    """Test resolve() publishes a new snapshot instead of mutating the
+    previous one (lock-free readers rely on this)."""
     registry = TypeRegistry[str]({object: "object"})
-    registry._cache = LRUCache(maxsize=4)
-    types = [type(f"Type{i}", (), {}) for i in range(4)]
-    for tp in types:
-        registry.resolve(tp)
-    assert len(registry._cache) == 4
-    # Touch the first (oldest) entry to mark it as most-recently-used.
-    registry.resolve(types[0])
-    # Adding one more type should now evict the second entry, not the first.
-    new_type = type("NewType", (), {})
-    registry.resolve(new_type)
-    assert len(registry._cache) == 4
-    assert types[0] in registry._cache
-    assert types[1] not in registry._cache
-    assert new_type in registry._cache
+    registry.resolve(int)
+    snapshot = registry._cache
+    registry.resolve(str)
+    assert snapshot == {int: "object"}
+    assert registry._cache == {int: "object", str: "object"}
 
 
-def test_type_registry_resolve_cache_cleared_does_not_exceed_max_size() -> None:
-    """Test the cache stays bounded after registrations clear and
-    repopulate it."""
+def test_type_registry_resolve_cache_cleared_on_change() -> None:
     registry = TypeRegistry[str]({object: "object"})
-    registry._cache = LRUCache(maxsize=4)
-    types = [type(f"Type{i}", (), {}) for i in range(8)]
-    for tp in types:
-        registry.resolve(tp)
-    assert len(registry._cache) <= 4
-    registry.register(int, "integer")  # triggers _on_change(), clearing the cache
+    registry.resolve(int)
+    registry.register(int, "integer")
     assert registry._cache == {}
-    for tp in types:
-        registry.resolve(tp)
-    assert len(registry._cache) <= 4
+    assert registry.resolve(int) == "integer"
+
+
+def test_type_registry_resolve_concurrent_with_mutation() -> None:
+    """Test concurrent resolve() calls never see a stale value once a
+    registration has completed."""
+    import threading
+
+    registry = TypeRegistry[str]({object: "object"})
+    errors: list[str] = []
+    stop = threading.Event()
+
+    def reader() -> None:
+        while not stop.is_set():
+            if registry.resolve(bool) not in {"object", "integer"}:
+                errors.append("bad value")
+
+    threads = [threading.Thread(target=reader) for _ in range(4)]
+    for t in threads:
+        t.start()
+    for _ in range(200):
+        registry.register(int, "integer", exist_ok=True)
+        assert registry.resolve(bool) == "integer"
+        registry.unregister(int)
+    stop.set()
+    for t in threads:
+        t.join()
+    assert not errors
 
 
 def test_type_registry_resolve_most_specific_type() -> None:
