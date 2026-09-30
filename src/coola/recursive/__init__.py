@@ -23,6 +23,7 @@ __all__ = [
     "Transformer",
     "TransformerRegistry",
     "get_default_registry",
+    "get_default_transformer_registry",
     "recursive_apply",
     "register_transformers",
 ]
@@ -33,6 +34,7 @@ from coola.recursive.default import DefaultTransformer
 from coola.recursive.identity import IdentityTransformer
 from coola.recursive.interface import (
     get_default_registry,
+    get_default_transformer_registry,
     recursive_apply,
     register_transformers,
 )

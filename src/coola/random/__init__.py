@@ -8,6 +8,7 @@ __all__ = [
     "RandomManagerRegistry",
     "RandomRandomManager",
     "TorchRandomManager",
+    "get_default_random_manager_registry",
     "get_default_registry",
     "get_rng_state",
     "manual_seed",
@@ -20,6 +21,7 @@ __all__ = [
 
 from coola.random.base import BaseRandomManager
 from coola.random.interface import (
+    get_default_random_manager_registry,
     get_default_registry,
     get_rng_state,
     manual_seed,

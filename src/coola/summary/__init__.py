@@ -14,6 +14,7 @@ __all__ = [
     "SummarizerRegistry",
     "TensorSummarizer",
     "get_default_registry",
+    "get_default_summarizer_registry",
     "register_summarizers",
     "summarize",
 ]
@@ -23,6 +24,7 @@ from coola.summary.collection import BaseCollectionSummarizer
 from coola.summary.default import DefaultSummarizer
 from coola.summary.interface import (
     get_default_registry,
+    get_default_summarizer_registry,
     register_summarizers,
     summarize,
 )

@@ -2,7 +2,12 @@ r"""Define the public interface to summarize nested data."""
 
 from __future__ import annotations
 
-__all__ = ["get_default_registry", "register_summarizers", "summarize"]
+__all__ = [
+    "get_default_registry",
+    "get_default_summarizer_registry",
+    "register_summarizers",
+    "summarize",
+]
 
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any
@@ -140,6 +145,9 @@ def get_default_registry() -> SummarizerRegistry:
         ```
     """
     return _default_registry.get()
+
+
+get_default_summarizer_registry = get_default_registry
 
 
 def _register_default_summarizers(registry: SummarizerRegistry) -> None:

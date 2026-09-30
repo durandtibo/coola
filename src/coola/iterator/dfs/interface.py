@@ -3,7 +3,12 @@ data."""
 
 from __future__ import annotations
 
-__all__ = ["dfs_iterate", "get_default_registry", "register_iterators"]
+__all__ = [
+    "dfs_iterate",
+    "get_default_iterator_registry",
+    "get_default_registry",
+    "register_iterators",
+]
 
 from typing import TYPE_CHECKING, Any
 
@@ -104,6 +109,9 @@ def get_default_registry() -> IteratorRegistry:
         ```
     """
     return _default_registry.get()
+
+
+get_default_iterator_registry = get_default_registry
 
 
 def _register_default_iterators(registry: IteratorRegistry) -> None:

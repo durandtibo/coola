@@ -3,7 +3,12 @@ data."""
 
 from __future__ import annotations
 
-__all__ = ["bfs_iterate", "get_default_registry", "register_child_finders"]
+__all__ = [
+    "bfs_iterate",
+    "get_default_child_finder_registry",
+    "get_default_registry",
+    "register_child_finders",
+]
 
 from typing import TYPE_CHECKING, Any
 
@@ -108,6 +113,9 @@ def get_default_registry() -> ChildFinderRegistry:
         ```
     """
     return _default_registry.get()
+
+
+get_default_child_finder_registry = get_default_registry
 
 
 def _register_default_child_finders(registry: ChildFinderRegistry) -> None:
