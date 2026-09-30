@@ -313,7 +313,8 @@ xarray = "xr"
 [tool.pyright]
 include = ["src"]
 typeCheckingMode = "strict"
-# pandas and pyarrow do not ship type stubs
 reportMissingTypeStubs = false
+reportPropertyTypeMismatch = true
+reportUnnecessaryTypeIgnoreComment = true
 venvPath = "."
 venv = ".venv"
