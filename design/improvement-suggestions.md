@@ -7,6 +7,10 @@ estimated value / effort. Line counts are from the current tree.
 
 ## 1. Deduplicate the five parallel registry/interface stacks (high value)
 
+**Fixed** (`BaseTypeDispatchRegistry` in `coola.registry` and
+`make_default_registry_singleton` in `coola.utils.singleton`; per-package
+`register_X` / `get_default_registry` kept as thin public wrappers).
+
 `equality`, `hashing`, `recursive`, `summary`, `random`, `iterator/{bfs,dfs}`
 each ship the same skeleton:
 
@@ -183,7 +187,7 @@ files (e.g. `equality/tester/interface.py` has seven).
 
 1. **Fixed** `TypeNotRegisteredError` (section 2) — small, immediately useful.
 2. **Fixed** Structured comparison result + `assert_objects_equal` (section 5).
-3. Registry/interface deduplication (section 1) with benchmarks (section 7) as a safety net.
+3. **Fixed** Registry/interface deduplication (section 1) with benchmarks (section 7) as a safety net.
 4. Lazy backend proxy + entry-point registration (section 4).
 5. Import-linter layering and `utils` regrouping (section 8).
 6. Lazy top-level re-exports and API aliases (section 3).

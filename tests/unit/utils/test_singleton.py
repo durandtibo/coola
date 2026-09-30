@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from coola.utils.singleton import LazySingleton
+from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
 ###################################
 #     Tests for LazySingleton     #
@@ -141,3 +141,17 @@ def test_lazy_singleton_get_skips_factory_when_instance_set_during_lock_acquisit
     singleton._lock = SettingLock(singleton)
     assert singleton.get() == "built-by-another-caller"
     assert calls == []
+
+
+def test_make_default_registry_singleton_builds_and_populates_once() -> None:
+    calls = []
+
+    def register(registry: dict) -> None:
+        calls.append(1)
+        registry["a"] = 1
+
+    singleton = make_default_registry_singleton(dict, register)
+    assert calls == []
+    assert singleton.get() == {"a": 1}
+    assert singleton.get() is singleton.get()
+    assert calls == [1]

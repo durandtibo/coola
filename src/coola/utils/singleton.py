@@ -11,7 +11,7 @@ double-checked locking.
 
 from __future__ import annotations
 
-__all__ = ["LazySingleton"]
+__all__ = ["LazySingleton", "make_default_registry_singleton"]
 
 import threading
 from typing import TYPE_CHECKING, Generic, TypeVar
@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 T = TypeVar("T")
+R = TypeVar("R")
 
 
 class LazySingleton(Generic[T]):
@@ -66,3 +67,42 @@ class LazySingleton(Generic[T]):
                 if self._instance is None:
                     self._instance = self._factory()
         return self._instance
+
+
+def make_default_registry_singleton(
+    registry_cls: Callable[[], R],
+    register_defaults: Callable[[R], None],
+) -> LazySingleton[R]:
+    r"""Create a lazy singleton that builds and populates a default
+    registry on first access.
+
+    This removes the near-identical ``_build_default_registry``
+    functions previously copied in each package, and guarantees the same
+    thread-safe construction everywhere.
+
+    Args:
+        registry_cls: Callable (usually the registry class) that
+            returns a new, empty registry.
+        register_defaults: Callable that populates the registry with
+            the default entries.
+
+    Returns:
+        A ``LazySingleton`` whose ``get`` method returns the populated
+            registry.
+
+    Example:
+        ```pycon
+        >>> from coola.utils.singleton import make_default_registry_singleton
+        >>> singleton = make_default_registry_singleton(dict, lambda r: r.update(a=1))
+        >>> singleton.get()
+        {'a': 1}
+
+        ```
+    """
+
+    def build() -> R:
+        registry = registry_cls()
+        register_defaults(registry)
+        return registry
+
+    return LazySingleton(build)

@@ -26,7 +26,7 @@ from coola.random.random import RandomRandomManager
 from coola.random.registry import RandomManagerRegistry
 from coola.random.torch import TorchRandomManager
 from coola.utils.imports import is_numpy_available, is_torch_available
-from coola.utils.singleton import LazySingleton
+from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Mapping
@@ -219,10 +219,6 @@ def _register_default_managers(registry: RandomManagerRegistry) -> None:
     registry.register_many(managers)
 
 
-def _build_default_registry() -> RandomManagerRegistry:
-    registry = RandomManagerRegistry()
-    _register_default_managers(registry)
-    return registry
-
-
-_default_registry: LazySingleton[RandomManagerRegistry] = LazySingleton(_build_default_registry)
+_default_registry: LazySingleton[RandomManagerRegistry] = make_default_registry_singleton(
+    RandomManagerRegistry, _register_default_managers
+)

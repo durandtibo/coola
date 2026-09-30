@@ -15,7 +15,7 @@ from coola.recursive.mapping import MappingTransformer
 from coola.recursive.registry import TransformerRegistry
 from coola.recursive.sequence import SequenceTransformer
 from coola.recursive.set import SetTransformer
-from coola.utils.singleton import LazySingleton
+from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -181,10 +181,6 @@ def _register_default_transformers(registry: TransformerRegistry) -> None:
     )
 
 
-def _build_default_registry() -> TransformerRegistry:
-    registry = TransformerRegistry()
-    _register_default_transformers(registry)
-    return registry
-
-
-_default_registry: LazySingleton[TransformerRegistry] = LazySingleton(_build_default_registry)
+_default_registry: LazySingleton[TransformerRegistry] = make_default_registry_singleton(
+    TransformerRegistry, _register_default_transformers
+)

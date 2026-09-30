@@ -12,7 +12,7 @@ from coola.iterator.dfs.default import DefaultIterator
 from coola.iterator.dfs.iterable import IterableIterator
 from coola.iterator.dfs.mapping import MappingIterator
 from coola.iterator.dfs.registry import IteratorRegistry
-from coola.utils.singleton import LazySingleton
+from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
 if TYPE_CHECKING:
     from collections.abc import Iterator, Mapping
@@ -128,10 +128,6 @@ def _register_default_iterators(registry: IteratorRegistry) -> None:
     )
 
 
-def _build_default_registry() -> IteratorRegistry:
-    registry = IteratorRegistry()
-    _register_default_iterators(registry)
-    return registry
-
-
-_default_registry: LazySingleton[IteratorRegistry] = LazySingleton(_build_default_registry)
+_default_registry: LazySingleton[IteratorRegistry] = make_default_registry_singleton(
+    IteratorRegistry, _register_default_iterators
+)
