@@ -566,8 +566,7 @@ def test_type_registry_concurrent_resolve_with_mutation() -> None:
     results = []
 
     def resolve_repeatedly() -> None:
-        for _ in range(1000):
-            results.append(registry.resolve(bool))
+        results.extend(registry.resolve(bool) for _ in range(1000))
 
     def mutate_registry() -> None:
         for _ in range(200):
