@@ -370,5 +370,7 @@ def _get_xarray_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
 
 
 _default_registry: LazySingleton[EqualityTesterRegistry] = make_default_registry_singleton(
-    EqualityTesterRegistry, _register_default_equality_testers
+    EqualityTesterRegistry,
+    _register_default_equality_testers,
+    plugin_group="coola.equality.testers",
 )

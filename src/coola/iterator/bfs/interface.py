@@ -141,5 +141,5 @@ def _register_default_child_finders(registry: ChildFinderRegistry) -> None:
 
 
 _default_registry: LazySingleton[ChildFinderRegistry] = make_default_registry_singleton(
-    ChildFinderRegistry, _register_default_child_finders
+    ChildFinderRegistry, _register_default_child_finders, plugin_group="coola.iterator.bfs"
 )

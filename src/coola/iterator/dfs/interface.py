@@ -137,5 +137,5 @@ def _register_default_iterators(registry: IteratorRegistry) -> None:
 
 
 _default_registry: LazySingleton[IteratorRegistry] = make_default_registry_singleton(
-    IteratorRegistry, _register_default_iterators
+    IteratorRegistry, _register_default_iterators, plugin_group="coola.iterator.dfs"
 )

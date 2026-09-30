@@ -93,3 +93,35 @@ True
   its subclasses unless a more specific one is registered.
 - Registering an already-registered type raises an error unless `exist_ok=True`.
 - Custom types nested in lists or dicts work out of the box once registered.
+
+## Registering types from a third-party package
+
+A package can add support for its own types without users calling
+`register_*` by hand. Expose a function that takes the registry and
+registers types on it, then declare it as an entry point in one of these
+groups:
+
+| Group                          | Registry                   |
+| ------------------------------ | -------------------------- |
+| `coola.equality.testers`       | equality testers           |
+| `coola.summary.summarizers`    | summarizers                |
+| `coola.hashing.hashers`        | hashers                    |
+| `coola.recursive.transformers` | recursive transformers     |
+| `coola.iterator.dfs`           | DFS iterators              |
+| `coola.iterator.bfs`           | BFS child finders          |
+| `coola.random.managers`        | random managers            |
+
+```toml
+# pyproject.toml of the plugin package
+[project.entry-points."coola.summary.summarizers"]
+mypkg = "mypkg.coola_plugin:register"
+```
+
+```python
+# mypkg/coola_plugin.py
+def register(registry):
+    registry.register_many({MyType: MySummarizer()})
+```
+
+Plugins run once, when the default registry is first built, after the
+built-in entries. A plugin that raises is skipped with a `RuntimeWarning`.
