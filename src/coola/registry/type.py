@@ -7,6 +7,7 @@ __all__ = ["TypeRegistry"]
 from typing import Generic, TypeVar
 
 from coola.registry.base import BaseRegistry
+from coola.registry.exceptions import TypeNotRegisteredError
 from coola.utils.lru import LRUCache
 
 T = TypeVar("T")
@@ -139,7 +140,14 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
         self._cache.clear()
 
     def _not_registered_msg(self, key: type) -> str:
-        return f"Type '{key}' is not registered"
+        msg = f"Type '{key}' is not registered"
+        mro = getattr(key, "__mro__", None)
+        if mro:
+            msg += f" (MRO: {', '.join(t.__qualname__ for t in mro)})"
+        registered = [t.__qualname__ for t in self._state]
+        if registered:
+            msg += f". Registered types: {', '.join(sorted(registered))}"
+        return msg
 
     def _already_registered_msg(self, key: type) -> str:
         return (
@@ -183,7 +191,7 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
             parent type in the MRO.
 
         Raises:
-            KeyError: If no matching type is found in the registry, including
+            TypeNotRegisteredError: If no matching type is found in the registry, including
                 parent types in the MRO.
 
         Example:
@@ -252,7 +260,7 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
             The appropriate value for the type or its nearest parent type.
 
         Raises:
-            KeyError: If no matching type is found in the registry.
+            TypeNotRegisteredError: If no matching type is found in the registry.
         """
         # Direct lookup first (most common case, O(1))
         if dtype in self._state:
@@ -263,4 +271,4 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
             if base_type in self._state:
                 return self._state[base_type]
 
-        raise KeyError(self._not_registered_msg(dtype))
+        raise TypeNotRegisteredError(self._not_registered_msg(dtype))

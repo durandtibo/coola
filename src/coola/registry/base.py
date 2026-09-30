@@ -8,6 +8,7 @@ __all__ = ["BaseRegistry"]
 import threading
 from typing import TYPE_CHECKING, Generic, TypeVar
 
+from coola.registry.exceptions import TypeNotRegisteredError
 from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:
@@ -51,7 +52,7 @@ class BaseRegistry(Generic[K, V]):
     def __getitem__(self, key: K) -> V:
         with self._lock:
             if key not in self._state:
-                raise KeyError(self._getitem_not_registered_msg(key))
+                raise TypeNotRegisteredError(self._getitem_not_registered_msg(key))
             return self._state[key]
 
     def __setitem__(self, key: K, value: V) -> None:
@@ -384,7 +385,7 @@ class BaseRegistry(Generic[K, V]):
         """
         with self._lock:
             if key not in self._state:
-                raise KeyError(self._not_registered_msg(key))
+                raise TypeNotRegisteredError(self._not_registered_msg(key))
             value = self._state.pop(key)
             self._invalidate()
             return value
