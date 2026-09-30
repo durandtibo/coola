@@ -12,7 +12,7 @@ from coola.iterator.bfs.iterable import IterableChildFinder
 from coola.iterator.bfs.mapping import MappingChildFinder
 from coola.iterator.bfs.registry import ChildFinderRegistry
 from coola.iterator.bootstrap import register_default_handlers
-from coola.utils.singleton import LazySingleton
+from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
 if TYPE_CHECKING:
     from collections.abc import Iterator, Mapping
@@ -132,10 +132,6 @@ def _register_default_child_finders(registry: ChildFinderRegistry) -> None:
     )
 
 
-def _build_default_registry() -> ChildFinderRegistry:
-    registry = ChildFinderRegistry()
-    _register_default_child_finders(registry)
-    return registry
-
-
-_default_registry: LazySingleton[ChildFinderRegistry] = LazySingleton(_build_default_registry)
+_default_registry: LazySingleton[ChildFinderRegistry] = make_default_registry_singleton(
+    ChildFinderRegistry, _register_default_child_finders
+)
