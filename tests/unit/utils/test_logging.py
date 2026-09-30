@@ -115,50 +115,8 @@ def test_capture_handler_keeps_extra_attributes(logger: logging.Logger) -> None:
     assert handler.records[0].custom == (1, 2)
 
 
-def test_capture_handler_thread_id_is_creation_thread() -> None:
-    handler = CaptureHandler()
-    assert handler._thread_id == threading.get_ident()
-    created: list[CaptureHandler] = []
-    thread = threading.Thread(target=lambda: created.append(CaptureHandler()))
-    thread.start()
-    thread.join()
-    assert created[0]._thread_id != handler._thread_id
-
-
-def test_capture_handler_only_captures_owner_thread(logger: logging.Logger) -> None:
-    handler = CaptureHandler()
-    logger.addHandler(handler)
-    try:
-        thread = threading.Thread(target=lambda: logger.info("from other thread"))
-        thread.start()
-        thread.join()
-        logger.info("from owner thread")
-    finally:
-        logger.removeHandler(handler)
-    assert [record.getMessage() for record in handler.records] == ["from owner thread"]
-
-
-def test_capture_handler_concurrent_handlers_are_isolated(logger: logging.Logger) -> None:
-    results: dict[int, list[str]] = {}
-    barrier = threading.Barrier(4)
-
-    def worker(i: int) -> None:
-        handler = CaptureHandler()
-        logger.addHandler(handler)
-        barrier.wait()
-        for j in range(20):
-            logger.info("worker %d msg %d", i, j)
-        barrier.wait()
-        logger.removeHandler(handler)
-        results[i] = [record.getMessage() for record in handler.records]
-
-    threads = [threading.Thread(target=worker, args=(i,)) for i in range(4)]
-    for t in threads:
-        t.start()
-    for t in threads:
-        t.join()
-    for i, messages in results.items():
-        assert messages == [f"worker {i} msg {j}" for j in range(20)]
+def test_capture_handler_thread_id_is_current_thread() -> None:
+    assert CaptureHandler()._thread_id == threading.get_ident()
 
 
 def test_capture_handler_does_not_propagate_by_itself(

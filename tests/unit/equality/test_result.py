@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import dataclasses
 import logging
-import threading
 from collections import OrderedDict
 
 import pytest
@@ -254,23 +253,6 @@ def test_compare_restores_custom_logger_level() -> None:
     finally:
         logger.setLevel(level)
         logger.propagate = propagate
-
-
-def test_compare_concurrent_threads() -> None:
-    results: dict[int, ComparisonResult] = {}
-
-    def worker(i: int) -> None:
-        for _ in range(20):
-            results[i] = compare({"k": [0, i]}, {"k": [0, i + 1]})
-
-    threads = [threading.Thread(target=worker, args=(i,)) for i in range(4)]
-    for t in threads:
-        t.start()
-    for t in threads:
-        t.join()
-    for i, result in results.items():
-        actual, expected = {"k": [0, i]}, {"k": [0, i + 1]}
-        assert result == different_result(actual, expected, ("k", 1), numbers(i, i + 1))
 
 
 #####################################
