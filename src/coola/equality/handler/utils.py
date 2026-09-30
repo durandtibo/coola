@@ -23,6 +23,9 @@ def create_chain(*handlers: BaseEqualityHandler) -> BaseEqualityHandler:
     Returns:
         The first handler of the chain.
 
+    Raises:
+        ValueError: If no handler is provided.
+
     Example:
         ```pycon
         >>> from coola.equality.handler import (

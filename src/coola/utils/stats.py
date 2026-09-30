@@ -22,6 +22,9 @@ def quantile(values: Sequence[float | int], quantiles: Sequence[float]) -> list[
     Returns:
         The quantiles.
 
+    Raises:
+        ValueError: If ``values`` is empty and ``quantiles`` is not.
+
     Example:
         ```pycon
         >>> from coola.utils.stats import quantile

@@ -299,7 +299,8 @@ class BaseFileSaver(BaseSaver[T]):
                 accumulate on disk.
 
         Raises:
-            FileExistsError: if the file already exists.
+            FileExistsError: if the file already exists and ``exist_ok`` is ``False``.
+            IsADirectoryError: If ``path`` is a directory.
 
         Example:
             ```pycon
