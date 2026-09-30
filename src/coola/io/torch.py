@@ -25,6 +25,12 @@ class TorchLoader(InlineDisplayMixin, BaseLoader[T]):
 
     Args:
         **kwargs: Additional arguments passed to ``torch.load``.
+            ``weights_only`` defaults to ``True``; pass
+            ``weights_only=False`` only for trusted files.
+
+    Security:
+        Loading with ``weights_only=False`` can execute arbitrary code
+        (it uses pickle). Only do so for files from a trusted source.
 
     Example:
         ```pycon
@@ -55,7 +61,9 @@ class TorchLoader(InlineDisplayMixin, BaseLoader[T]):
         return objects_are_equal(self._kwargs, other._kwargs, equal_nan=equal_nan)
 
     def load(self, path: Path) -> T:
-        return torch.load(path, **self._kwargs)
+        kwargs = dict(self._kwargs)
+        kwargs.setdefault("weights_only", True)
+        return torch.load(path, **kwargs)
 
 
 class TorchSaver(InlineDisplayMixin, BaseFileSaver[T]):

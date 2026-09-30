@@ -68,6 +68,10 @@ added; lazy top-level re-exports not done).
 
 ## 4. Optional-dependency handling (medium)
 
+**Partially fixed** (`LazyModule` / `lazy_import` exist in `coola.utils.imports`, but the
+conditional `if is_X_available(): import X` blocks remain and there is no uniform
+backend registration hook / entry-point group yet).
+
 Currently three mechanisms coexist: `coola.utils.imports` (`is_X_available`,
 decorators), `coola.utils.fallback.*` (stub modules), and `TYPE_CHECKING`
 guards plus `if is_X_available(): import X` blocks repeated at the top of many
@@ -108,7 +112,7 @@ files (e.g. `equality/tester/interface.py` has seven).
 
 ## 6. Typing and static checks (medium)
 
-- `py.typed` is present; make sure generics survive: `BaseRegistry[K, V]` is
+- **Partially fixed** (`BaseEqualityTester[T]` is generic; strict mypy in CI not verified) `py.typed` is present; make sure generics survive: `BaseRegistry[K, V]` is
   generic but the concrete registries expose `BaseHasher[Any]`. Parameterise
   handlers/testers on the data type (`BaseEqualityTester[T]`) and run
   `mypy --strict` (or pyright strict) on `src/coola` in CI if not already.
@@ -163,6 +167,12 @@ into one shared dict instead of merging per-level dicts; `from_flat_dict`, `flat
 
 ## 9. Security-sensitive surfaces (medium)
 
+**Fixed** ("trusted source only" notices in `io/pickle.py`, `io/torch.py` and
+`factory/`; `TorchLoader` defaults to `weights_only=True`; `import_object` and
+`factory` accept an allow-list of module prefixes, `allowed_prefixes=` /
+`_allowed_prefixes_=`; hashing and `mask_secret` docs state their non-security
+scope).
+
 - `io/pickle.py`, `io/torch.py` (`torch.load`) and `factory/instantiation.py`
   (`instantiate_object` from a dotted path) execute arbitrary code by design.
   Add a shared, clearly documented "trusted input only" notice in the
@@ -176,6 +186,10 @@ into one shared dict instead of merging per-level dicts; `from_flat_dict`, `flat
   encryption).
 
 ## 10. Documentation and testing (low effort)
+
+**Partially fixed** (`htmlcov/` and `coverage.xml` are git-ignored; `xdoctest` is a dev
+dependency). Still open: extension tutorial, Hypothesis property tests, registry
+concurrent-mutation stress test.
 
 - Docstring examples are excellent and doctested. Add the doctest run to CI if
   not already, and add a "How to add support for a new type" tutorial that
@@ -196,6 +210,6 @@ into one shared dict instead of merging per-level dicts; `from_flat_dict`, `flat
 1. **Fixed** `TypeNotRegisteredError` (section 2) — small, immediately useful.
 2. **Fixed** Structured comparison result + `assert_objects_equal` (section 5).
 3. **Fixed** Registry/interface deduplication (section 1) with benchmarks (section 7) as a safety net.
-4. Lazy backend proxy + entry-point registration (section 4).
-5. Import-linter layering and `utils` regrouping (section 8).
-6. Lazy top-level re-exports and API aliases (section 3).
+4. **Partially fixed** Lazy backend proxy + entry-point registration (section 4).
+5. **Open** Import-linter layering and `utils` regrouping (section 8).
+6. **Partially fixed** Lazy top-level re-exports (still open) and API aliases (done) (section 3).

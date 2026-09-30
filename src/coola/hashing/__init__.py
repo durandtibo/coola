@@ -1,4 +1,8 @@
-r"""Provide deterministic hashing functions."""
+r"""Provide deterministic hashing functions.
+
+These are content hashes for identity and caching, not for security: do
+not use them for passwords, signatures or integrity against an attacker.
+"""
 
 from __future__ import annotations
 
