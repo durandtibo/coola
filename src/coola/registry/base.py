@@ -366,8 +366,9 @@ class BaseRegistry(Generic[K, V]):
             The value that was associated with the key before removal.
 
         Raises:
-            KeyError: If the key is not registered. The error message
-                includes the key that was not found.
+            TypeNotRegisteredError: If the key is not registered. It
+                subclasses ``KeyError``, and its message includes the
+                key that was not found.
 
         Example:
             ```pycon
