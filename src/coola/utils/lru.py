@@ -57,7 +57,7 @@ class LRUCache(Generic[K, V]):
     """
 
     # Mutable and compares by content, like dict: not hashable.
-    __hash__: ClassVar[None] = None  # type: ignore[assignment]
+    __hash__: ClassVar[None] = None
 
     def __init__(self, maxsize: int) -> None:
         validate_gt(maxsize, 0, name="maxsize")

@@ -58,7 +58,7 @@ def test_comparison_result_bool(equal: bool) -> None:
 
 def test_comparison_result_is_frozen() -> None:
     with pytest.raises(dataclasses.FrozenInstanceError):
-        ComparisonResult(True).equal = False  # type: ignore[misc]
+        ComparisonResult(True).equal = False
 
 
 @pytest.mark.parametrize(
@@ -291,7 +291,7 @@ def test_assert_objects_equal_equal_nan() -> None:
 
 def test_assert_objects_equal_rejects_tolerance() -> None:
     with pytest.raises(TypeError):
-        assert_objects_equal(1, 1, atol=0.1)  # type: ignore[call-arg]
+        assert_objects_equal(1, 1, atol=0.1)
 
 
 def test_assert_objects_equal_is_exact() -> None:

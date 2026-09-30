@@ -211,7 +211,7 @@ def test_hashable_hasher_hash_missing_hash_method_raises_error(registry: HasherR
         pass
 
     with pytest.raises(AttributeError):
-        HashableHasher().hash(NotHashable(), registry=registry)  # type: ignore[arg-type]
+        HashableHasher().hash(NotHashable(), registry=registry)
 
 
 def test_hashable_hasher_hash_non_callable_hash_attribute_raises_error(
@@ -221,7 +221,7 @@ def test_hashable_hasher_hash_non_callable_hash_attribute_raises_error(
         hash = "not-a-method"
 
     with pytest.raises(TypeError):
-        HashableHasher().hash(NotCallableHash(), registry=registry)  # type: ignore[arg-type]
+        HashableHasher().hash(NotCallableHash(), registry=registry)
 
 
 def test_hashable_hasher_registered_in_registry_is_used_via_dispatch() -> None:
@@ -256,7 +256,7 @@ def test_supports_hash_protocol_method_body_is_a_stub() -> None:
     # declares the interface implementers must satisfy - but calling it
     # directly (unbound, on a compatible instance) exercises its `...`
     # body for coverage and confirms it is a no-op that returns `None`.
-    assert SupportsHash.hash(MyObj(42)) is None  # type: ignore[reportAbstractUsage]
+    assert SupportsHash.hash(MyObj(42)) is None
 
 
 def test_supports_hash_isinstance_true_regardless_of_signature() -> None:
