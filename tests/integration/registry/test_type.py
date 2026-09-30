@@ -581,3 +581,18 @@ def test_type_registry_concurrent_resolve_with_mutation() -> None:
 
     assert len(results) == 4000
     assert set(results) <= {"object", "integer"}
+
+
+def test_type_registry_resolve_cache_filled_while_waiting_for_lock() -> None:
+    """Test that ``resolve`` returns the value cached by another thread
+    while it was waiting for the lock."""
+    registry = TypeRegistry[str]()
+    registry.register(object, "base")
+    results = []
+    with registry._lock:
+        thread = threading.Thread(target=lambda: results.append(registry.resolve(int)))
+        thread.start()
+        time.sleep(0.05)  # let the thread miss the fast path and block on the lock
+        registry._cache = {int: "cached"}
+    thread.join()
+    assert results == ["cached"]

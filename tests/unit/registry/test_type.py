@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import threading
-import time
-
 import pytest
 
 from coola.registry import TypeRegistry
@@ -552,16 +549,3 @@ def test_type_registry_not_registered_msg_empty_registry() -> None:
     msg = TypeRegistry[str]()._not_registered_msg(int)
     assert "MRO: int, object" in msg
     assert "Registered types" not in msg
-
-
-def test_type_registry_resolve_cache_filled_while_waiting_for_lock() -> None:
-    registry = TypeRegistry[str]()
-    registry.register(object, "base")
-    results = []
-    with registry._lock:
-        thread = threading.Thread(target=lambda: results.append(registry.resolve(int)))
-        thread.start()
-        time.sleep(0.05)  # let the thread miss the fast path and block on the lock
-        registry._cache = {int: "cached"}
-    thread.join()
-    assert results == ["cached"]
