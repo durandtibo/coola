@@ -20,7 +20,7 @@ import threading
 import time
 import weakref
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
 from coola.equality.tester import EqualNanEqualityTester, get_default_registry
 from coola.factory import is_object_config, resolve_object
@@ -464,7 +464,7 @@ def resolve_loader(loader: BaseLoader[T] | dict[Any, Any]) -> BaseLoader[T]:
 
         ```
     """
-    return resolve_object(loader, BaseLoader)
+    return cast("BaseLoader[T]", resolve_object(loader, BaseLoader))
 
 
 def resolve_saver(saver: BaseSaver[T] | dict[Any, Any]) -> BaseSaver[T]:
@@ -496,7 +496,7 @@ def resolve_saver(saver: BaseSaver[T] | dict[Any, Any]) -> BaseSaver[T]:
 
         ```
     """
-    return resolve_object(saver, BaseSaver)
+    return cast("BaseSaver[T]", resolve_object(saver, BaseSaver))
 
 
 get_default_registry().register_many(

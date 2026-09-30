@@ -139,10 +139,10 @@ inv test.doctest
 
 ### Type Checking
 
-`coola` uses pyright for type checking. You can run type checking locally:
+`coola` uses ty for type checking. You can run type checking locally:
 
 ```shell
-pyright src/coola
+ty check src/coola
 ```
 
 ## Project Structure

@@ -59,7 +59,7 @@ jobs:
   format:
     uses: ./.github/workflows/ci-format.yaml
 
-  # Check type annotations with pyright
+  # Check type annotations with ty
   type-checking:
     uses: ./.github/workflows/ci-type-checking.yaml
 
