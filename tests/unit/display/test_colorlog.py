@@ -159,3 +159,34 @@ def test_configure_colorlog_logging_no_colorlog_ignores_tty() -> None:
         configure_colorlog_logging(level=logging.DEBUG, force=True)
 
     mock_basicconfig.assert_called_once_with(level=logging.DEBUG, force=True)
+
+
+#############################
+#     Tests for kwargs      #
+#############################
+
+
+def test_configure_colorlog_logging_kwargs_forwarded() -> None:
+    with patch(f"{MODULE}.logging.basicConfig") as mock_basicconfig:
+        configure_colorlog_logging(datefmt="%H:%M")
+    assert mock_basicconfig.call_args.kwargs["datefmt"] == "%H:%M"
+
+
+def test_configure_colorlog_logging_kwargs_forwarded_without_colorlog() -> None:
+    with (
+        patch(f"{MODULE}.is_colorlog_available", return_value=False),
+        patch(f"{MODULE}.logging.basicConfig") as mock_basicconfig,
+    ):
+        configure_colorlog_logging(force=True, datefmt="%H:%M")
+    mock_basicconfig.assert_called_once_with(level=logging.INFO, force=True, datefmt="%H:%M")
+
+
+@colorlog_available
+def test_configure_colorlog_logging_kwargs_forwarded_tty() -> None:
+    with (
+        patch(f"{MODULE}.is_colorlog_available", return_value=True),
+        patch(f"{MODULE}.sys.stderr.isatty", return_value=True),
+        patch(f"{MODULE}.logging.basicConfig") as mock_basicconfig,
+    ):
+        configure_colorlog_logging(datefmt="%H:%M")
+    assert mock_basicconfig.call_args.kwargs["datefmt"] == "%H:%M"

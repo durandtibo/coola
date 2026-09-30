@@ -6,6 +6,7 @@ __all__ = ["configure_colorlog_logging"]
 
 import logging
 import sys
+from typing import Any
 
 from coola.utils.imports import is_colorlog_available
 
@@ -13,7 +14,9 @@ if is_colorlog_available():  # pragma: no cover
     import colorlog
 
 
-def configure_colorlog_logging(level: int = logging.INFO, force: bool = False) -> None:
+def configure_colorlog_logging(
+    level: int = logging.INFO, force: bool = False, **kwargs: Any
+) -> None:
     r"""Configure the root logger, using a coloured formatter when
     available.
 
@@ -38,6 +41,8 @@ def configure_colorlog_logging(level: int = logging.INFO, force: bool = False) -
         force: When ``True``, removes any existing handlers before
             applying the new configuration, ensuring this call always
             takes effect.  Defaults to ``False``.
+        **kwargs: Additional keyword arguments passed to
+            :func:`logging.basicConfig` (e.g. ``stream``, ``filename``).
 
     Example:
         ```pycon
@@ -48,7 +53,7 @@ def configure_colorlog_logging(level: int = logging.INFO, force: bool = False) -
         ```
     """
     if not is_colorlog_available() or not sys.stderr.isatty():
-        logging.basicConfig(level=level, force=force)
+        logging.basicConfig(level=level, force=force, **kwargs)
         return
 
     handler = colorlog.StreamHandler()
@@ -77,4 +82,4 @@ def configure_colorlog_logging(level: int = logging.INFO, force: bool = False) -
             },
         )
     )
-    logging.basicConfig(level=level, handlers=[handler], force=force)
+    logging.basicConfig(level=level, handlers=[handler], force=force, **kwargs)
