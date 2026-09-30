@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, cast
+
 import pytest
 
 from coola.registry import TypeRegistry
+
+if TYPE_CHECKING:
+    import threading
 
 ##################################
 #     Tests for TypeRegistry     #
@@ -549,3 +554,21 @@ def test_type_registry_not_registered_msg_empty_registry() -> None:
     msg = TypeRegistry[str]()._not_registered_msg(int)
     assert "MRO: int, object" in msg
     assert "Registered types" not in msg
+
+
+def test_type_registry_resolve_returns_cached_value_set_during_lock_acquisition() -> None:
+    # Covers the double-checked-locking branch: if another caller populated the
+    # cache while this one waited for the lock, the value is returned without
+    # resolving again.
+    registry = TypeRegistry[str]()
+    registry.register(int, "int")
+
+    class PopulatingLock:
+        def __enter__(self) -> None:
+            registry._cache = {int: "cached-by-another-caller"}
+
+        def __exit__(self, *args: object) -> None:
+            return None
+
+    registry._lock = cast("threading.RLock", PopulatingLock())
+    assert registry.resolve(int) == "cached-by-another-caller"
