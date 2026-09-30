@@ -3,7 +3,6 @@ r"""Implement a structured comparison result and an assertion helper."""
 from __future__ import annotations
 
 __all__ = [
-    "CaptureHandler",
     "ComparisonResult",
     "assert_objects_allclose",
     "assert_objects_equal",
@@ -17,6 +16,7 @@ from typing import TYPE_CHECKING
 
 from coola.equality.config import EqualityConfig
 from coola.equality.tester.interface import get_default_registry
+from coola.utils.logging import CaptureHandler
 from coola.validation import validate_non_negative
 
 if TYPE_CHECKING:
@@ -93,40 +93,6 @@ class ComparisonResult:
         if self.reason:
             lines.append(self.reason)
         return "\n".join(lines)
-
-
-class CaptureHandler(logging.Handler):
-    r"""Collect the records logged by the current thread.
-
-    Records emitted from other threads are ignored, so concurrent
-    comparisons do not see each other's records.
-
-    Attributes:
-        records: The captured records, in emission order.
-
-    Example:
-        ```pycon
-        >>> import logging
-        >>> from coola.equality.result import CaptureHandler
-        >>> handler = CaptureHandler()
-        >>> logger = logging.getLogger("capture_example")
-        >>> logger.addHandler(handler)
-        >>> logger.warning("hello")
-        >>> [record.getMessage() for record in handler.records]
-        ['hello']
-        >>> logger.removeHandler(handler)
-
-        ```
-    """
-
-    def __init__(self) -> None:
-        super().__init__(level=logging.INFO)
-        self.records: list[logging.LogRecord] = []
-        self._thread_id = threading.get_ident()
-
-    def emit(self, record: logging.LogRecord) -> None:
-        if record.thread == self._thread_id:
-            self.records.append(record)
 
 
 def compare(

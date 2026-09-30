@@ -13,7 +13,6 @@ from coola.equality import (
     assert_objects_equal,
     compare,
 )
-from coola.equality.result import CaptureHandler
 from coola.equality.tester import EqualityTesterRegistry
 from coola.equality.tester.interface import get_default_registry
 
@@ -272,34 +271,6 @@ def test_compare_concurrent_threads() -> None:
     for i, result in results.items():
         actual, expected = {"k": [0, i]}, {"k": [0, i + 1]}
         assert result == different_result(actual, expected, ("k", 1), numbers(i, i + 1))
-
-
-#####################################
-#     Tests for CaptureHandler     #
-#####################################
-
-
-def _record() -> logging.LogRecord:
-    return logging.LogRecord(LOGGER_NAME, logging.INFO, "", 0, "msg", None, None)
-
-
-def test_capture_handler_keeps_same_thread_records() -> None:
-    handler = CaptureHandler()
-    record = _record()
-    handler.emit(record)
-    assert handler.records == [record]
-
-
-def test_capture_handler_ignores_other_threads() -> None:
-    handler = CaptureHandler()
-    record = _record()
-    record.thread = handler._thread_id + 1
-    handler.emit(record)
-    assert handler.records == []
-
-
-def test_capture_handler_level() -> None:
-    assert CaptureHandler().level == logging.INFO
 
 
 #####################################
