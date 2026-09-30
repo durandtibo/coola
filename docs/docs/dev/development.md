@@ -80,27 +80,40 @@ inv test.unit --cov
 **Run specific test file:**
 
 ```shell
-pytest tests/unit/test_comparison.py
+pytest tests/unit/equality/test_interface.py
 ```
 
 **Run specific test:**
 
 ```shell
-pytest tests/unit/test_comparison.py::test_objects_are_equal
+pytest tests/unit/equality/test_interface.py::test_objects_are_equal_false_different_type
 ```
 
 ### Code Quality
 
-**Format code with Black:**
+**Check code formatting (Ruff):**
 
 ```shell
 inv format.check-python
 ```
 
+**Fix code formatting:**
+
+```shell
+inv format.fix-python
+```
+
 **Run linter (Ruff):**
 
 ```shell
-inv lint.check-lint
+inv lint.check-python
+```
+
+**Check the package layering and import cycles:**
+
+```shell
+lint-imports
+inv imports.check-cycles
 ```
 
 **Format docstrings:**
@@ -139,10 +152,11 @@ inv test.doctest
 
 ### Type Checking
 
-`coola` uses ty for type checking. You can run type checking locally:
+`coola` uses [ty](https://docs.astral.sh/ty/) for type checking (see the `ci-type-checking`
+workflow). You can run type checking locally:
 
 ```shell
-ty check src/coola
+ty check
 ```
 
 ## Project Structure
@@ -151,22 +165,21 @@ ty check src/coola
 coola/
 ├── .github/               # GitHub configuration
 │   ├── workflows/        # CI/CD workflows
-│   ├── CONTRIBUTING.md   # Contribution guidelines
 │   └── ISSUE_TEMPLATE/   # Issue templates
 ├── docs/                 # Documentation
 │   ├── docs/            # Documentation source
 │   └── mkdocs.yml       # MkDocs configuration
 ├── src/                 # Source code
 │   └── coola/
-│       ├── comparison.py           # Main API
-│       ├── equality/              # Equality comparison
-│       │   ├── comparators/      # Type-specific comparators
-│       │   ├── testers/          # Comparison testers
-│       │   └── handlers/         # Comparison handlers
+│       ├── equality/             # Equality comparison
+│       │   ├── tester/           # Type-specific testers and the registry
+│       │   └── handler/          # Comparison handlers
+│       ├── registry/, summary/, hashing/, recursive/, iterator/, nested/, ...
 │       └── utils/                # Utility functions
 ├── tests/               # Test files
 │   ├── unit/           # Unit tests
 │   └── integration/    # Integration tests
+├── CONTRIBUTING.md     # Contribution guidelines
 ├── pyproject.toml      # Project configuration
 ├── uv.lock             # Locked dependencies
 ├── LICENSE             # License file
@@ -251,7 +264,7 @@ inv env.update
 
 # Dependencies are managed in pyproject.toml and locked in uv.lock
 # To add a new dependency, edit pyproject.toml and run:
-uv pip compile pyproject.toml -o requirements.txt
+uv lock
 ```
 
 ## Testing Guidelines
@@ -276,6 +289,11 @@ uv pip compile pyproject.toml -o requirements.txt
 3. **Use fixtures for common data:**
 
    ```python
+   import pytest
+   import torch
+   from coola.equality import objects_are_equal
+
+
    @pytest.fixture
    def sample_tensor():
        return torch.randn(10, 10)

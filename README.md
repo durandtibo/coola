@@ -144,7 +144,7 @@ Compare complex nested objects with support for multiple data types:
 - **Exact equality**: `objects_are_equal()` for strict comparison
 - **Approximate equality**: `objects_are_allclose()` for numerical tolerance
 - **User-friendly difference reporting**: Clear, structured output showing exactly what differs
-- **Extensible**: Add custom comparators for your own types
+- **Extensible**: Add custom equality testers for your own types
 
 [Learn more →](https://durandtibo.github.io/coola/uguide/equality)
 
