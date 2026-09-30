@@ -13,6 +13,7 @@ Include the files you need in your project's `Makefile`:
 include yaml.mk
 include makefile.mk
 include shell.mk
+include toml.mk
 include markdown.mk
 include actions.mk
 include help.mk
@@ -20,10 +21,10 @@ include help.mk
 .DEFAULT_GOAL := help
 
 .PHONY: install-tools
-install-tools: install-prettier install-yamllint install-mbake install-checkmake install-shellcheck install-shfmt install-markdownlint install-actionlint ## Install all formatting/linting tools
+install-tools: install-prettier install-yamllint install-mbake install-checkmake install-shellcheck install-shfmt install-taplo install-markdownlint install-actionlint ## Install all formatting/linting tools
 
 .PHONY: format
-format: format-yaml format-makefile format-shell format-markdown ## Format all files
+format: format-yaml format-makefile format-shell format-toml format-markdown ## Format all files
 
 .PHONY: lint
 lint: lint-yaml lint-makefile lint-shell lint-markdown lint-actions ## Lint all files
@@ -62,6 +63,7 @@ don't need to remember the raw `git subtree`/`git remote` invocations yourself.
 | `yaml.mk`     | `format-yaml`, `lint-yaml`                  | `prettier`, `yamllint`     | Format and lint YAML files                                            |
 | `makefile.mk` | `format-makefile`, `lint-makefile`          | `mbake`, `checkmake`       | Format and lint Makefiles and `.mk` files                             |
 | `shell.mk`    | `format-shell`, `lint-shell`                | `shfmt`, `shellcheck`      | Format and lint shell scripts                                         |
+| `toml.mk`     | `format-toml`                               | `taplo`                    | Format TOML files                                                     |
 | `markdown.mk` | `format-markdown`, `lint-markdown`          | `prettier`, `markdownlint` | Format and lint Markdown files                                        |
 | `actions.mk`  | `lint-actions`                              | `actionlint`               | Lint GitHub Actions workflow files                                    |
 | `uv.mk`       | `install-invoke`, `update-uv`, `setup-venv` | `uv`                       | Manage Python virtual environments with `uv`                          |
@@ -112,6 +114,20 @@ Optional variables (set before `include`):
 include shell.mk
 
 SHELL_LINT_PATH = scripts
+```
+
+### `toml.mk`
+
+Optional variables (set before `include`):
+
+| Variable           | Default | Description                                        |
+| ------------------ | ------- | -------------------------------------------------- |
+| `TOML_FORMAT_PATH` | `.`     | Path searched for `*.toml` files passed to `taplo` |
+
+```makefile
+include toml.mk
+
+TOML_FORMAT_PATH = config
 ```
 
 ### `markdown.mk`
