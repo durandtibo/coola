@@ -280,3 +280,42 @@ def test_base_registry_items_keys_values_consistent_with_each_other() -> None:
     assert dict(registry.items()) == {"key1": 1, "key2": 2}
     assert list(registry.keys()) == ["key1", "key2"]
     assert list(registry.values()) == [1, 2]
+
+
+#######################################
+#     Tests for concurrent mutation   #
+#######################################
+
+
+def test_base_registry_concurrent_mutation_stress() -> None:
+    """Test that concurrent register/unregister/read calls stay
+    consistent."""
+    import threading
+
+    registry = BaseRegistry[int, int]()
+    n_threads, n_keys = 8, 200
+    errors: list[BaseException] = []
+    barrier = threading.Barrier(n_threads)
+
+    def worker(tid: int) -> None:
+        try:
+            barrier.wait()
+            for i in range(n_keys):
+                key = tid * n_keys + i
+                registry.register(key, key)
+                assert registry[key] == key
+                list(registry.items())  # iterate while others mutate
+                if i % 2:
+                    assert registry.unregister(key) == key
+        except BaseException as exc:  # noqa: BLE001
+            errors.append(exc)
+
+    threads = [threading.Thread(target=worker, args=(t,)) for t in range(n_threads)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    assert not errors
+    assert len(registry) == n_threads * n_keys // 2
+    assert all((k % n_keys) % 2 == 0 for k in registry)
