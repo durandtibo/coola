@@ -59,11 +59,11 @@ added; lazy top-level re-exports not done).
   `objects_are_allclose`, `summarize`, `hash_object`) via module `__getattr__`
   (PEP 562). Lazy loading preserves the "no optional-dependency import at
   startup" property and keeps `import coola` cheap.
-- Every subpackage defines its own `get_default_registry`. Same name, different
+- **Fixed** Every subpackage defines its own `get_default_registry`. Same name, different
   return types, so `from coola.x import *` collisions and confusing IDE
   auto-imports. Consider distinct public aliases (`get_default_hasher_registry`, ...) while keeping
   the old names.
-- Add an `__all__` consistency test (all names in `__all__` importable; every
+- **Fixed** Add an `__all__` consistency test (all names in `__all__` importable; every
   public module has `__all__`) to prevent API drift.
 
 ## 4. Optional-dependency handling (medium)
@@ -119,6 +119,11 @@ files (e.g. `equality/tester/interface.py` has seven).
   3.12 (currently `>=3.10`).
 
 ## 7. Performance (medium, measure first)
+
+**Partially fixed** (lock-free `TypeRegistry.resolve` cache hits via a copy-on-write snapshot;
+registry benchmarks in `tests/benchmarks/test_registry_benchmark.py`; `nested/*` reviewed: `to_flat_dict` now flattens
+into one shared dict instead of merging per-level dicts; `from_flat_dict`, `flatten_mapping` and
+`merge_mappings` were already single-pass; explicit-stack equality not done).
 
 - Equality/summary/iteration dispatch resolves the type via `TypeRegistry`
   (LRU-cached, good). For hot loops on large nested structures, the per-node cost

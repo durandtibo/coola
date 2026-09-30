@@ -8,11 +8,10 @@ from typing import Generic, TypeVar
 
 from coola.registry.base import BaseRegistry
 from coola.registry.exceptions import TypeNotRegisteredError
-from coola.utils.lru import LRUCache
 
 T = TypeVar("T")
 
-#: Maximum number of entries kept in the ``resolve()`` LRU cache.
+#: Maximum number of entries kept in the ``resolve()`` cache.
 _MAX_CACHE_SIZE = 1024
 
 
@@ -29,10 +28,11 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
     most specific registered type, walking up the inheritance hierarchy if needed.
     This makes it ideal for type-based dispatching systems.
 
-    The registry includes an internal LRU (least-recently-used) cache for
-    type resolution, bounded to ``_MAX_CACHE_SIZE`` (1024) entries, to
-    optimize performance when repeatedly resolving the same types without
-    growing unbounded.
+    The registry includes an internal cache for type resolution, bounded to
+    ``_MAX_CACHE_SIZE`` (1024) entries. The cache is an immutable snapshot
+    that is replaced atomically (copy on write) on a miss or a mutation, so
+    cache hits in ``resolve()`` are lock-free and do not contend under
+    threads. When the cache is full, it is reset rather than evicting entries.
 
     Note:
         ``resolve()`` walks ``dtype.__mro__``, which reflects real (static)
@@ -49,7 +49,7 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
 
     Attributes:
         _state: Internal dictionary storing the type-value pairs.
-        _cache: Bounded LRU cache of type resolution lookups for performance.
+        _cache: Bounded snapshot of type resolution lookups, swapped atomically.
         _lock: Threading lock for synchronizing access to both state and cache.
 
     Example:
@@ -131,13 +131,14 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
 
     def __init__(self, initial_state: dict[type, T] | None = None) -> None:
         super().__init__(initial_state=initial_state)
-        # bounded LRU cache for type lookups - improves performance for
-        # repeated transforms without growing unbounded
-        self._cache: LRUCache[type, T] = LRUCache(maxsize=_MAX_CACHE_SIZE)
+        # Bounded copy-on-write cache for type lookups. It is never mutated in
+        # place: writers (holding the lock) publish a new dict, so readers can
+        # use whichever snapshot they grab without locking.
+        self._cache: dict[type, T] = {}
 
     def _on_change(self) -> None:
         # Clear cache when registry changes to ensure new registrations are used
-        self._cache.clear()
+        self._cache = {}
 
     def _not_registered_msg(self, key: type) -> str:
         msg = f"Type '{key}' is not registered"
@@ -237,11 +238,18 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
 
             ```
         """
+        # Lock-free fast path: the snapshot is immutable once published.
+        cache = self._cache
+        if dtype in cache:
+            return cache[dtype]
         with self._lock:
-            if dtype in self._cache:
-                return self._cache[dtype]
+            cache = self._cache
+            if dtype in cache:
+                return cache[dtype]
             value = self._resolve_uncached(dtype)
-            self._cache[dtype] = value
+            new_cache = cache.copy() if len(cache) < _MAX_CACHE_SIZE else {}
+            new_cache[dtype] = value
+            self._cache = new_cache
             return value
 
     def _resolve_uncached(self, dtype: type) -> T:
