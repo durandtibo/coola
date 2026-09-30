@@ -183,9 +183,7 @@ To add support for a custom type:
        def equal(self, other: object) -> bool:
            return type(other) is type(self)
 
-       def objects_are_equal(
-           self, actual: MyType, expected: object, config: EqualityConfig
-       ) -> bool:
+       def objects_are_equal(self, actual: MyType, expected: object, config: EqualityConfig) -> bool:
            # Type check
            if type(actual) is not type(expected):
                return False
