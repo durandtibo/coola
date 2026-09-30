@@ -344,6 +344,28 @@ Potential areas for enhancement:
 4. **Diff generation**: Not just boolean result, but detailed diff
 5. **Performance optimizations**: Cython/Numba for hot paths
 
+## Package Layering
+
+Packages fall into two groups:
+
+- **Core**: `registry` (type-based dispatch), `utils` (generic helpers), `display` and
+  `validation`. These must not import from any feature package.
+- **Features**: `equality`, `hashing`, `summary`, `recursive`, `iterator`, `random`, `nested`,
+  `reducer`, `io`, `factory`, `identifier` and `testing`. Only `equality`, `hashing`, `summary`,
+  `recursive` and `iterator` are built on `registry`; `identifier`, `reducer` and `random` are
+  standalone helpers.
+
+The only exception is a deferred (function-level) import in `coola.registry.base`, which is listed in
+`ignore_imports`. `display` and `utils` currently import each other, so they are kept in the same
+group.
+
+The contract is enforced with [import-linter](https://import-linter.readthedocs.io/)
+(configured in `pyproject.toml`). Run it with:
+
+```shell
+lint-imports
+```
+
 ## References
 
 - [PEP 8](https://www.python.org/dev/peps/pep-0008/): Python style guide

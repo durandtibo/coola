@@ -146,6 +146,12 @@ into one shared dict instead of merging per-level dicts; `from_flat_dict`, `flat
 
 ## 8. Module organisation (low-medium)
 
+**Partially fixed** (`docs/docs/dev/architecture.md` has a "Package Layering" section and an
+import-linter `forbidden` contract in `pyproject.toml` keeps core packages from importing feature
+packages. Not done: regrouping/privatising `coola.utils` modules and splitting `identifier/` into an
+extra, both of which would break public imports; feature packages still import each other's
+internals, e.g. `io -> factory`, `nested -> equality`).
+
 - `coola.utils` is a grab bag (`git.py`, `password.py`, `secret.py`,
   `bloom_filter.py`, `stats.py`, `timing.py`, `file_size.py`,
   `text_diff.py`, ...). Several are unrelated to the package's mission (compare,
@@ -213,5 +219,5 @@ branch coverage. `flatten`/`unflatten` round-trip property does not apply (no su
 2. **Fixed** Structured comparison result + `assert_objects_equal` (section 5).
 3. **Fixed** Registry/interface deduplication (section 1) with benchmarks (section 7) as a safety net.
 4. **Partially fixed** Lazy backend proxy + entry-point registration (section 4).
-5. **Open** Import-linter layering and `utils` regrouping (section 8).
+5. **Partially fixed** Import-linter layering (done) and `utils` regrouping (open) (section 8).
 6. **Partially fixed** Lazy top-level re-exports (still open) and API aliases (done) (section 3).

@@ -40,7 +40,7 @@ repos:
       # Flags old-style type comments in favor of real annotations.
       - id: python-use-type-annotations
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.12.20
+    rev: 0.12.21
     hooks:
       # Fails if uv.lock is out of sync with pyproject.toml.
       - id: uv-lock
@@ -88,6 +88,13 @@ repos:
       - id: ty
         name: ty
         entry: uv run ty check
+        language: system
+        types: [python]
+        pass_filenames: false
+      # Enforces the package layering contract defined in pyproject.toml.
+      - id: import-linter
+        name: import-linter
+        entry: uv run lint-imports
         language: system
         types: [python]
         pass_filenames: false
