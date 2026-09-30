@@ -104,4 +104,4 @@ def extract_uuid7_timestamp_ms(uuid7: str) -> int:
     if parsed.version != 7:
         msg = f"uuid7 must be a version 7 UUID, got version {parsed.version} ({uuid7!r})"
         raise ValueError(msg)
-    return parsed.int >> 80
+    return int.from_bytes(parsed.bytes, "big") >> 80

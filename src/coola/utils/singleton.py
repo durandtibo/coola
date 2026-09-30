@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING, Generic, TypeVar
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from importlib.metadata import EntryPoint
 
 T = TypeVar("T")
 R = TypeVar("R")
@@ -139,11 +140,17 @@ def load_registry_plugins(registry: object, group: str) -> None:
         ```
     """
     for entry_point in entry_points(group=group):
-        try:
-            entry_point.load()(registry)
-        except Exception as exc:  # noqa: BLE001, PERF203
-            warnings.warn(
-                f"Skipping plugin {entry_point.name!r} of group {group!r}: {exc!r}",
-                RuntimeWarning,
-                stacklevel=2,
-            )
+        _load_plugin(entry_point, registry, group)
+
+
+def _load_plugin(entry_point: EntryPoint, registry: object, group: str) -> None:
+    r"""Load one plugin and apply it to the registry, warning on
+    failure."""
+    try:
+        entry_point.load()(registry)
+    except Exception as exc:  # noqa: BLE001
+        warnings.warn(
+            f"Skipping plugin {entry_point.name!r} of group {group!r}: {exc!r}",
+            RuntimeWarning,
+            stacklevel=3,
+        )

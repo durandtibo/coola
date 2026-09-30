@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, Any, NoReturn
+from typing import TYPE_CHECKING, Any, NoReturn, cast
 
 import pytest
 
@@ -13,6 +13,7 @@ from coola.utils.singleton import (
 )
 
 if TYPE_CHECKING:
+    import threading
     from collections.abc import Callable
 
 ###################################
@@ -149,7 +150,7 @@ def test_lazy_singleton_get_skips_factory_when_instance_set_during_lock_acquisit
         return "built-by-factory"
 
     singleton = LazySingleton(factory)
-    singleton._lock = SettingLock(singleton)  # type: ignore[assignment]  # pyright: ignore[reportAttributeAccessIssue]
+    singleton._lock = cast("threading.Lock", SettingLock(singleton))
     assert singleton.get() == "built-by-another-caller"
     assert calls == []
 
