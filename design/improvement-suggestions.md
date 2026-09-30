@@ -187,9 +187,11 @@ scope).
 
 ## 10. Documentation and testing (low effort)
 
-**Partially fixed** (`htmlcov/` and `coverage.xml` are git-ignored; `xdoctest` is a dev
-dependency). Still open: extension tutorial, Hypothesis property tests, registry
-concurrent-mutation stress test.
+**Mostly fixed** (`htmlcov/` and `coverage.xml` are git-ignored; `xdoctest` is a dev
+dependency; extension tutorial in `docs/docs/uguide/extending.md`; Hypothesis property tests in
+`tests/unit/properties`; registry concurrent-mutation stress test in
+`tests/unit/registry/test_base.py`). Intentionally not done: tracking `# pragma: no cover`
+branch coverage. `flatten`/`unflatten` round-trip property does not apply (no such API).
 
 - Docstring examples are excellent and doctested. Add the doctest run to CI if
   not already, and add a "How to add support for a new type" tutorial that
