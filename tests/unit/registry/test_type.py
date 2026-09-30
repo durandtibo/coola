@@ -543,3 +543,14 @@ def test_type_registry_resolve_abc_virtual_subclass_registered_after_lookup() ->
     # Registering the concrete subclass itself does work.
     registry.register(NotARealSubclass, "concrete value")
     assert registry.resolve(NotARealSubclass) == "concrete value"
+
+
+def test_type_registry_resolve_raises_type_not_registered_error() -> None:
+    from coola.registry import TypeNotRegisteredError
+
+    registry = TypeRegistry[str]()
+    registry.register(str, "string")
+    with pytest.raises(TypeNotRegisteredError, match=r"MRO: int, object") as exc_info:
+        registry.resolve(int)
+    assert isinstance(exc_info.value, KeyError)
+    assert "Registered types: str" in str(exc_info.value)
