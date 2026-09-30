@@ -119,6 +119,9 @@ class MappingSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
                     cache[cache_key] = are_equal
                 if not are_equal:
                     if config.show_difference:
-                        logger.info(format_mapping_difference(different_value_key=key))
+                        logger.info(
+                            format_mapping_difference(different_value_key=key),
+                            extra={"coola_path": (key,), "coola_path_kind": "key"},
+                        )
                     return False
             return self._handle_next(actual, expected, config=config)
