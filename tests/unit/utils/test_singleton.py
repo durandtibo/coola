@@ -149,7 +149,7 @@ def test_lazy_singleton_get_skips_factory_when_instance_set_during_lock_acquisit
         return "built-by-factory"
 
     singleton = LazySingleton(factory)
-    singleton._lock = SettingLock(singleton)
+    singleton._lock = SettingLock(singleton)  # type: ignore[assignment]  # pyright: ignore[reportAttributeAccessIssue]
     assert singleton.get() == "built-by-another-caller"
     assert calls == []
 
