@@ -101,15 +101,15 @@ A package can add support for its own types without users calling
 registers types on it, then declare it as an entry point in one of these
 groups:
 
-| Group                          | Registry                   |
-| ------------------------------ | -------------------------- |
-| `coola.equality.testers`       | equality testers           |
-| `coola.summary.summarizers`    | summarizers                |
-| `coola.hashing.hashers`        | hashers                    |
-| `coola.recursive.transformers` | recursive transformers     |
-| `coola.iterator.dfs`           | DFS iterators              |
-| `coola.iterator.bfs`           | BFS child finders          |
-| `coola.random.managers`        | random managers            |
+| Group                          | Registry               |
+| ------------------------------ | ---------------------- |
+| `coola.equality.testers`       | equality testers       |
+| `coola.summary.summarizers`    | summarizers            |
+| `coola.hashing.hashers`        | hashers                |
+| `coola.recursive.transformers` | recursive transformers |
+| `coola.iterator.dfs`           | DFS iterators          |
+| `coola.iterator.bfs`           | BFS child finders      |
+| `coola.random.managers`        | random managers        |
 
 ```toml
 # pyproject.toml of the plugin package

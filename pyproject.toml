@@ -324,7 +324,12 @@ include_external_packages = false
 [[tool.importlinter.contracts]]
 name = "Core packages must not import feature packages"
 type = "forbidden"
-source_modules = ["coola.registry", "coola.utils", "coola.display", "coola.validation"]
+source_modules = [
+  "coola.registry",
+  "coola.utils",
+  "coola.display",
+  "coola.validation",
+]
 forbidden_modules = [
   "coola.equality",
   "coola.hashing",

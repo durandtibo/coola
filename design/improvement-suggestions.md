@@ -113,14 +113,14 @@ files (e.g. `equality/tester/interface.py` has seven).
 
 ## 6. Typing and static checks (medium)
 
-- **Partially fixed** (`BaseEqualityTester[T]` is generic; strict mypy in CI not verified) `py.typed` is present; make sure generics survive: `BaseRegistry[K, V]` is
+- **Partially fixed** (`BaseEqualityTester[T]` is generic; the project type-checks with `ty` rather than `mypy --strict`/pyright strict) `py.typed` is present; make sure generics survive: `BaseRegistry[K, V]` is
   generic but the concrete registries expose `BaseHasher[Any]`. Parameterise
   handlers/testers on the data type (`BaseEqualityTester[T]`) and run
   `mypy --strict` (or pyright strict) on `src/coola` in CI if not already.
 - **Fixed** (`Hasher`, `Summarizer`, `Transformer` protocols; registries accept them) Use `typing.Protocol` for the small strategy interfaces (`Hasher`,
   `Summarizer`, `Transformer`) so users can register plain classes/functions
   without subclassing the ABCs. Keep the ABCs as convenience bases.
-- Replace `TypeVar` K/V with PEP 695 syntax when the minimum Python moves to
+- **Open** (minimum Python is still 3.10) Replace `TypeVar` K/V with PEP 695 syntax when the minimum Python moves to
   3.12 (currently `>=3.10`).
 
 ## 7. Performance (medium, measure first)
@@ -200,17 +200,18 @@ dependency; extension tutorial in `docs/docs/uguide/extending.md`; Hypothesis pr
 `tests/unit/registry/test_base.py`). Intentionally not done: tracking `# pragma: no cover`
 branch coverage. `flatten`/`unflatten` round-trip property does not apply (no such API).
 
-- Docstring examples are excellent and doctested. Add the doctest run to CI if
+- **Fixed** (doctests run in CI via `ci-doctest.yaml` / `inv test.doctest`; tutorial in
+  `docs/docs/uguide/extending.md`) Docstring examples are excellent and doctested. Add the doctest run to CI if
   not already, and add a "How to add support for a new type" tutorial that
   walks through equality + summary + hash + iterator registration for one
   custom class; this is the package's main extension story and is currently
   scattered over five interface modules.
-- Add property-based tests (Hypothesis) for the invariants: `objects_are_equal`
+- **Fixed** Add property-based tests (Hypothesis) for the invariants: `objects_are_equal`
   is reflexive/symmetric, `hash_object` agrees with equality,
   `recursive_apply(identity)` returns an equal object, `flatten` then
   `unflatten` round-trips.
-- Add the concurrent-mutation stress test for `BaseRegistry` noted as open.
-- Track coverage of the `# pragma: no cover` optional-dependency branches by
+- **Fixed** Add the concurrent-mutation stress test for `BaseRegistry` noted as open.
+- **Not done** (`htmlcov/` and `coverage.xml` are git-ignored) Track coverage of the `# pragma: no cover` optional-dependency branches by
   running the matrix job with each backend installed and absent (there are
   `coverage.xml`/`htmlcov` at repo root; make sure they are git-ignored).
 
