@@ -64,7 +64,8 @@ objects_are_equal`, line ~177) makes the low-level registry depend on the
    `equality` package. This is a layering inversion and is probably why a `noqa:
 PLC0415` is needed. Check whether it can be done through a callable injected by
    `equality`, or by a small comparison function in `utils`.
-4. **Repeated `dict.copy()` in `BaseRegistry.__repr__`/`__str__`/`__iter__`.** A
+4. **Repeated `dict.copy()` in `BaseRegistry.__repr__`/`__str__`/`__iter__`.**
+   _(Fixed: all three now use `_get_snapshot()`.)_ A
    snapshot cache (`_snapshot`) already exists, and `__iter__`, `__repr__` and
    `__str__` do not use it, so they pay O(n) per call. Use the snapshot there too.
 5. **Snowflake / ObjectId generators.** These depend on wall-clock time. Please
@@ -109,5 +110,5 @@ PLC0415` is needed. Check whether it can be done through a callable injected by
 | 1.1 | ~~Decide on bloom filter / identifier scope~~ (kept) | S      | High   |
 | 2   | Shared default-registry helper                       | M      | Medium |
 | 3.3 | Remove registry -> equality import                   | M      | Medium |
-| 3.4 | Use snapshot in repr/iter                            | S      | Low    |
+| 3.4 | ~~Use snapshot in repr/iter~~ (fixed)                | S      | Low    |
 | 4.2 | Per-file ruff ignores                                | S      | Low    |
