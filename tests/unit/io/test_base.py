@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import time
 from pathlib import Path
 from typing import Any
 
@@ -343,3 +344,26 @@ def test_base_file_saver_save_exist_ok_true_silently_overwrites_concurrent_creat
     saver._save_file = save_file_then_create_target
     saver.save("hello", target_path, exist_ok=True)
     assert target_path.read_text() == "hello"
+
+
+def test_acquire_file_lock_breaks_stale_lock(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.touch()
+    old = time.time() - 1000
+    os.utime(lock_path, (old, old))
+    assert _acquire_file_lock(path, timeout=0.5, stale_after=10) == lock_path
+    assert lock_path.is_file()
+    assert time.time() - lock_path.stat().st_mtime < 10
+    assert list(tmp_path.glob("*.stale")) == []
+    lock_path.unlink()
+
+
+def test_acquire_file_lock_keeps_fresh_lock(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.touch()
+    with pytest.raises(TimeoutError, match="timed out"):
+        _acquire_file_lock(path, timeout=0.01, poll_interval=0.001, stale_after=100)
+    assert lock_path.is_file()
+    lock_path.unlink()

@@ -18,6 +18,7 @@ import logging
 import os
 import threading
 import time
+import uuid
 import weakref
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
@@ -46,6 +47,9 @@ _SAVE_LOCKS: weakref.WeakValueDictionary[str, threading.Lock] = weakref.WeakValu
 # ``_save_lock`` below.
 _FILE_LOCK_TIMEOUT = 60.0
 _FILE_LOCK_POLL_INTERVAL = 0.01
+# A lock file older than this many seconds is assumed to have been left
+# behind by a process that died while holding it, and is broken.
+_FILE_LOCK_STALE_AFTER = 300.0
 
 
 def _get_save_lock(path: Path) -> threading.Lock:
@@ -60,8 +64,32 @@ def _get_save_lock(path: Path) -> threading.Lock:
         return lock
 
 
+def _break_stale_lock(lock_path: Path, stale_after: float) -> bool:
+    r"""Remove ``lock_path`` if its age exceeds ``stale_after`` seconds.
+
+    The file is first renamed to a unique name so that, if several
+    waiters notice the same stale lock, only one of them removes it.
+
+    Returns:
+        ``True`` if a stale lock was removed.
+    """
+    try:
+        if time.time() - lock_path.stat().st_mtime <= stale_after:
+            return False
+        broken = lock_path.with_name(f"{lock_path.name}.{os.getpid()}.{uuid.uuid4().hex}.stale")
+        lock_path.rename(broken)
+    except FileNotFoundError:
+        return False
+    broken.unlink(missing_ok=True)
+    logger.warning(f"Removed stale save lock {lock_path} (older than {stale_after}s)")
+    return True
+
+
 def _acquire_file_lock(
-    path: Path, timeout: float = _FILE_LOCK_TIMEOUT, poll_interval: float = _FILE_LOCK_POLL_INTERVAL
+    path: Path,
+    timeout: float = _FILE_LOCK_TIMEOUT,
+    poll_interval: float = _FILE_LOCK_POLL_INTERVAL,
+    stale_after: float = _FILE_LOCK_STALE_AFTER,
 ) -> Path:
     r"""Create a lock file next to ``path``, blocking until it can be
     created exclusively.
@@ -71,6 +99,10 @@ def _acquire_file_lock(
     this safe as a mutual-exclusion primitive across processes, unlike
     the in-process-only ``threading.Lock`` returned by
     ``_get_save_lock``.
+
+    A lock file older than ``stale_after`` seconds is treated as left
+    over by a crashed process and is broken, so a killed writer does not
+    block every later save.
     """
     lock_path = path.with_name(path.name + ".lock")
     deadline = time.monotonic() + timeout
@@ -78,6 +110,8 @@ def _acquire_file_lock(
         try:
             os.close(os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY))
         except FileExistsError:  # noqa: PERF203
+            if _break_stale_lock(lock_path, stale_after):
+                continue
             if time.monotonic() >= deadline:
                 msg = (
                     f"timed out after {timeout}s waiting for the save lock on {path} "
