@@ -14,7 +14,8 @@ submodules:
 1. **Import utilities** - Check if packages are available and handle optional dependencies
 2. **Formatting utilities** - Format objects, sequences, and mappings for display
 3. **Array utilities** - Utilities for working with arrays
-4. **Other utilities** - Path, version, environment variable, and introspection utilities
+4. **Other utilities** - Bloom filter, path, version, environment variable, and introspection
+   utilities
 
 ## Import Utilities (`coola.utils.imports`)
 
@@ -293,6 +294,23 @@ The `coola.utils.tensor` module provides utilities for working with PyTorch tens
 False
 >>> is_mps_available()  # doctest: +SKIP
 False
+
+```
+
+## Bloom Filter (`coola.utils.bloom_filter`)
+
+The `coola.utils.bloom_filter` module provides `BloomFilter`, a fixed-memory approximate set
+used for duplicate detection. It never reports a false negative, but it can report a false
+positive at a configurable rate. It is a standalone utility and is not used by the other
+`coola` packages.
+
+```pycon
+>>> from coola.utils.bloom_filter import BloomFilter
+>>> bf = BloomFilter(expected_items=1000, fp_rate=0.01)
+>>> bf.add_and_check(b"hello")
+False
+>>> bf.add_and_check(b"hello")
+True
 
 ```
 

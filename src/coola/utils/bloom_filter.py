@@ -17,14 +17,26 @@ if TYPE_CHECKING:
 class BloomFilter:
     r"""Fixed-memory approximate set-membership structure.
 
-    Used here for approximate exact-duplicate detection over
-    document content: guarantees no false negatives (a document that
-    truly has appeared before will always be flagged as a duplicate),
-    at the cost of a tunable false-positive rate (a document may
-    occasionally be flagged as a duplicate when it is not). Memory
-    usage is fixed up front based on the expected number of items and
+    A Bloom filter answers "have I probably seen this item before?"
+    using a fixed amount of memory. It guarantees no false negatives
+    (an item that was added is always reported as present), at the
+    cost of a tunable false-positive rate (an item that was never
+    added may occasionally be reported as present). Memory usage is
+    fixed up front based on the expected number of items and the
     desired false-positive rate, regardless of how many items are
-    actually added.
+    actually added. It is a standalone utility, typically used for
+    approximate duplicate detection over large streams of items.
+
+    Example:
+        ```pycon
+        >>> from coola.utils.bloom_filter import BloomFilter
+        >>> bf = BloomFilter(expected_items=1000, fp_rate=0.01)
+        >>> bf.add_and_check(b"hello")
+        False
+        >>> bf.add_and_check(b"hello")
+        True
+
+        ```
     """
 
     def __init__(self, expected_items: int = 1_000_000, fp_rate: float = 0.01) -> None:
