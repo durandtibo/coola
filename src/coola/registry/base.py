@@ -40,7 +40,8 @@ class BaseRegistry(Generic[K, V]):
     def __init__(self, initial_state: dict[K, V] | None = None) -> None:
         self._state: dict[K, V] = initial_state.copy() if initial_state else {}
         self._lock: threading.RLock = threading.RLock()  # RLock allows re-entrant locking
-        # Cached snapshot of ``_state`` used by ``items``/``keys``/``values``. It is
+        # Cached snapshot of ``_state`` used by ``items``/``keys``/``values`` and by
+        # ``__iter__``/``__repr__``/``__str__``. It is
         # invalidated (set to None) by ``_invalidate`` on every mutation, so repeated
         # read-only calls between mutations reuse the same copy instead of paying for
         # a fresh O(n) ``dict.copy()`` each time.
@@ -63,7 +64,7 @@ class BaseRegistry(Generic[K, V]):
 
     def __iter__(self) -> Iterator[K]:
         with self._lock:
-            return iter(self._state.copy())
+            return iter(self._get_snapshot())
 
     def __len__(self) -> int:
         with self._lock:
@@ -71,12 +72,12 @@ class BaseRegistry(Generic[K, V]):
 
     def __repr__(self) -> str:
         with self._lock:
-            snapshot = self._state.copy()
+            snapshot = self._get_snapshot()
         return f"{self.__class__.__qualname__}(\n  {repr_indent(repr_mapping(snapshot))}\n)"
 
     def __str__(self) -> str:
         with self._lock:
-            snapshot = self._state.copy()
+            snapshot = self._get_snapshot()
         return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(snapshot))}\n)"
 
     def _on_change(self) -> None:

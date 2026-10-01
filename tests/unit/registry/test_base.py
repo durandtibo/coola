@@ -203,6 +203,39 @@ def test_base_registry_values_uses_cached_snapshot() -> None:
     assert registry._snapshot is registry._get_snapshot()
 
 
+def test_base_registry_iter_uses_cached_snapshot() -> None:
+    """Test that ``__iter__`` is backed by the cached snapshot."""
+    registry = BaseRegistry[str, int]({"key1": 1, "key2": 2})
+    assert list(registry) == ["key1", "key2"]
+    assert registry._snapshot is registry._get_snapshot()
+
+
+def test_base_registry_repr_uses_cached_snapshot() -> None:
+    """Test that ``__repr__`` is backed by the cached snapshot."""
+    registry = BaseRegistry[str, int]({"key1": 1, "key2": 2})
+    repr(registry)
+    assert registry._snapshot is registry._get_snapshot()
+
+
+def test_base_registry_str_uses_cached_snapshot() -> None:
+    """Test that ``__str__`` is backed by the cached snapshot."""
+    registry = BaseRegistry[str, int]({"key1": 1, "key2": 2})
+    str(registry)
+    assert registry._snapshot is registry._get_snapshot()
+
+
+def test_base_registry_iter_is_stable_when_registry_is_mutated_during_iteration() -> None:
+    """Test that mutating the registry while iterating neither raises
+    nor changes what the in-flight iterator yields."""
+    registry = BaseRegistry[str, int]({"key1": 1, "key2": 2})
+    keys = []
+    for key in registry:
+        keys.append(key)
+        registry.register(f"new-{key}", 0)
+    assert keys == ["key1", "key2"]
+    assert len(registry) == 4
+
+
 def test_base_registry_snapshot_cache_none_before_first_read() -> None:
     """Test that no snapshot is created until ``items``/``keys``/
     ``values`` is called."""
