@@ -11,13 +11,13 @@ registries, clear module boundaries (import-linter is in place), and a typed pac
 
 ## 1. Scope / cohesion
 
-1. **Unrelated modules in the library.** `utils/bloom_filter.py` is not imported
-   anywhere in `src/` (only by its own test). Its docstring talks about "document
-   content" and "duplicate detection", which reads like it was copied from another
-   project. The `identifier/` package (snowflake, ObjectId, ULID, nanoid, uuid4/5/7,
-   checksummed, obfuscated) is also far from coola's stated purpose (compare, summarize
-   and transform nested objects). Options: move them to a separate package, mark them
-   clearly as standalone utilities in the docs, or drop what has no consumer.
+1. **Unrelated modules in the library.** _(Decision: keep `utils/bloom_filter.py` and
+   the `identifier/` package as standalone utilities. The `BloomFilter` docstring was
+   made generic, and it is now documented in the `utils` reference and user guide. The
+   `identifier/` package already has its own guide and reference page.)_
+   `utils/bloom_filter.py` is not imported anywhere in `src/`, and `identifier/` is far
+   from coola's stated purpose (compare, summarize and transform nested objects), which
+   is why they are documented as standalone.
 2. **Stale `__pycache__` files.** `src/coola/__pycache__` holds `equal.*.pyc`,
    `reduction.*.pyc`, `summarization.*.pyc`, `types.*.pyc` and `testing.*.pyc` from
    modules that no longer exist. They are untracked, but a stale `.pyc` can shadow
@@ -47,7 +47,9 @@ Suggestions:
 
 ## 3. Correctness / robustness leads
 
-1. **Cross-process file lock in `io/base.py`.** `_acquire_file_lock` uses an
+1. **Cross-process file lock in `io/base.py`.** _(Fixed: lock files older than
+   300 s are now treated as stale and broken, see `_break_stale_lock`; the
+   PID/`filelock` options below were not adopted.)_ `_acquire_file_lock` uses an
    `O_EXCL` lock file with a timeout. If a process is killed while holding the lock,
    the `.lock` file stays and every later save times out. Consider storing the PID
    and timestamp in the lock file and breaking locks older than some threshold, or
@@ -91,7 +93,8 @@ PLC0415` is needed. Check whether it can be done through a callable injected by
 - Add a property-based test (hypothesis) for `TypeRegistry.resolve` MRO behavior
   and cache invalidation under concurrent `register` calls.
 - Add a concurrency test for `io/base.py` save locking that kills a child process
-  mid-write (see 3.1).
+  mid-write (see 3.1; stale-lock breaking is unit-tested, but not with a real
+  killed process).
 - Add a test that every package listed in `__all__` is actually importable without
   optional dependencies installed (a "minimal install" CI job).
 - Add a CI check that `__pycache__`-style stale artifacts and unused modules
@@ -99,11 +102,11 @@ PLC0415` is needed. Check whether it can be done through a callable injected by
 
 ## Priority
 
-| #   | Item                                      | Effort | Value  |
-| --- | ----------------------------------------- | ------ | ------ |
-| 3.1 | Stale lock-file recovery                  | M      | High   |
-| 1.1 | Decide on bloom filter / identifier scope | S      | High   |
-| 2   | Shared default-registry helper            | M      | Medium |
-| 3.3 | Remove registry -> equality import        | M      | Medium |
-| 3.4 | Use snapshot in repr/iter                 | S      | Low    |
-| 4.2 | Per-file ruff ignores                     | S      | Low    |
+| #   | Item                                                 | Effort | Value  |
+| --- | ---------------------------------------------------- | ------ | ------ |
+| 3.1 | ~~Stale lock-file recovery~~ (fixed)                 | M      | High   |
+| 1.1 | ~~Decide on bloom filter / identifier scope~~ (kept) | S      | High   |
+| 2   | Shared default-registry helper                       | M      | Medium |
+| 3.3 | Remove registry -> equality import                   | M      | Medium |
+| 3.4 | Use snapshot in repr/iter                            | S      | Low    |
+| 4.2 | Per-file ruff ignores                                | S      | Low    |
