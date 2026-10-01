@@ -596,3 +596,60 @@ def test_type_registry_resolve_cache_filled_while_waiting_for_lock() -> None:
         registry._cache = {int: "cached"}
     thread.join()
     assert results == ["cached"]
+
+
+def test_type_registry_cache_invalidated_by_concurrent_register() -> None:
+    """Test that a type registered while other threads are resolving is
+    never masked by a stale cache entry."""
+    num_threads = 20
+    registry = TypeRegistry[str]({object: "base"})
+    barrier = threading.Barrier(num_threads + 1)
+    errors = []
+
+    def resolve_repeatedly() -> None:
+        barrier.wait()
+        try:
+            for _ in range(200):
+                assert registry.resolve(Poodle) in {"base", "dog"}
+        except Exception as e:  # noqa: BLE001
+            errors.append(e)
+
+    threads = [threading.Thread(target=resolve_repeatedly) for _ in range(num_threads)]
+    for thread in threads:
+        thread.start()
+    barrier.wait()
+    registry.register(Dog, "dog")
+    for thread in threads:
+        thread.join()
+
+    assert not errors, f"Errors occurred: {errors}"
+    # Once the registration is done, no thread may observe the stale value.
+    assert registry.resolve(Poodle) == "dog"
+
+
+def test_type_registry_cache_invalidated_by_concurrent_register_and_unregister() -> None:
+    """Test that the cache stays consistent when registrations and
+    removals race with resolutions."""
+    registry = TypeRegistry[str]({object: "base"})
+    num_iterations = 200
+    errors = []
+
+    def toggle() -> None:
+        for _ in range(num_iterations):
+            registry.register(Dog, "dog", exist_ok=True)
+            registry.unregister(Dog)
+
+    def resolve() -> None:
+        try:
+            for _ in range(num_iterations):
+                assert registry.resolve(Poodle) in {"base", "dog"}
+        except Exception as e:  # noqa: BLE001
+            errors.append(e)
+
+    run_threads(
+        [threading.Thread(target=toggle)] + [threading.Thread(target=resolve) for _ in range(10)]
+    )
+
+    assert not errors, f"Errors occurred: {errors}"
+    # The last operation was an unregister, so the cache must not keep "dog".
+    assert registry.resolve(Poodle) == "base"
