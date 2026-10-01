@@ -124,4 +124,6 @@ def register(registry):
 ```
 
 Plugins run once, when the default registry is first built, after the
-built-in entries. A plugin that raises is skipped with a `RuntimeWarning`.
+built-in entries. A plugin that raises is skipped with a `RuntimeWarning`, and the failure is logged
+with its traceback. Set the `COOLA_STRICT_PLUGINS=1` environment variable (e.g. in CI)
+to re-raise the exception instead, so a broken plugin is not missed.

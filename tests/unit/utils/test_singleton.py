@@ -7,6 +7,7 @@ import pytest
 
 from coola.utils import singleton
 from coola.utils.singleton import (
+    STRICT_PLUGINS_ENV_VAR,
     LazySingleton,
     load_registry_plugins,
     make_default_registry_singleton,
@@ -221,6 +222,36 @@ def test_load_registry_plugins_warns_on_failure(monkeypatch: pytest.MonkeyPatch)
     with pytest.warns(RuntimeWarning, match="Skipping plugin 'bad'"):
         load_registry_plugins(registry, "grp")
     assert registry == {"b": 2}
+
+
+def test_load_registry_plugins_logs_failure_with_traceback(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    _patch_entry_points(monkeypatch, [_FakeEntryPoint("bad", _broken)])
+    with pytest.warns(RuntimeWarning), caplog.at_level("ERROR", logger=singleton.logger.name):
+        load_registry_plugins({}, "grp")
+    assert "Failed to load plugin 'bad' of group 'grp'" in caplog.text
+    assert "RuntimeError: boom" in caplog.text
+
+
+@pytest.mark.parametrize("value", ["1", "true", "yes"])
+def test_load_registry_plugins_strict_mode_raises(
+    monkeypatch: pytest.MonkeyPatch, value: str
+) -> None:
+    monkeypatch.setenv(STRICT_PLUGINS_ENV_VAR, value)
+    _patch_entry_points(monkeypatch, [_FakeEntryPoint("bad", _broken)])
+    with pytest.raises(RuntimeError, match="boom"):
+        load_registry_plugins({}, "grp")
+
+
+@pytest.mark.parametrize("value", ["", "0", "false", "FALSE"])
+def test_load_registry_plugins_strict_mode_disabled_warns(
+    monkeypatch: pytest.MonkeyPatch, value: str
+) -> None:
+    monkeypatch.setenv(STRICT_PLUGINS_ENV_VAR, value)
+    _patch_entry_points(monkeypatch, [_FakeEntryPoint("bad", _broken)])
+    with pytest.warns(RuntimeWarning, match="Skipping plugin 'bad'"):
+        load_registry_plugins({}, "grp")
 
 
 def test_make_default_registry_singleton_loads_plugins(monkeypatch: pytest.MonkeyPatch) -> None:
