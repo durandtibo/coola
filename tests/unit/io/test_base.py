@@ -4,6 +4,7 @@ import os
 import time
 from pathlib import Path
 from typing import Any
+from unittest.mock import patch
 
 import pytest
 
@@ -20,7 +21,7 @@ from coola.io import (
     resolve_loader,
     resolve_saver,
 )
-from coola.io.base import _acquire_file_lock, _get_save_lock
+from coola.io.base import _acquire_file_lock, _break_stale_lock, _get_save_lock
 
 ######################################
 #     Tests for is_loader_config     #
@@ -367,3 +368,29 @@ def test_acquire_file_lock_keeps_fresh_lock(tmp_path: Path) -> None:
         _acquire_file_lock(path, timeout=0.01, poll_interval=0.001, stale_after=100)
     assert lock_path.is_file()
     lock_path.unlink()
+
+
+def test_break_stale_lock_returns_false_when_lock_is_missing(tmp_path: Path) -> None:
+    assert not _break_stale_lock(tmp_path.joinpath("data.txt.lock"), stale_after=10)
+
+
+def test_break_stale_lock_returns_false_when_lock_disappears_before_rename(
+    tmp_path: Path,
+) -> None:
+    # Another waiter may break the same stale lock between our ``stat`` and
+    # ``rename`` calls; the loser must not raise.
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.touch()
+    old = time.time() - 1000
+    os.utime(lock_path, (old, old))
+    with patch.object(Path, "rename", side_effect=FileNotFoundError):
+        assert not _break_stale_lock(lock_path, stale_after=10)
+
+
+def test_break_stale_lock_removes_old_lock(tmp_path: Path) -> None:
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.touch()
+    old = time.time() - 1000
+    os.utime(lock_path, (old, old))
+    assert _break_stale_lock(lock_path, stale_after=10)
+    assert list(tmp_path.iterdir()) == []

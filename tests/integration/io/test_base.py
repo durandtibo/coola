@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import subprocess
+import sys
 import threading
 import time
 from typing import TYPE_CHECKING, Any
+
+import pytest
 
 from coola.io import BaseFileSaver
 from coola.io.base import _acquire_file_lock
@@ -159,3 +163,49 @@ def test_base_file_saver_save_blocks_while_lock_file_is_held(tmp_path: Path) -> 
     assert path.is_file()
     assert path.read_text() == "value"
     assert not lock_path.is_file()
+
+
+_HOLD_LOCK_SCRIPT = """
+import sys
+import time
+from pathlib import Path
+
+from coola.io.base import _acquire_file_lock
+
+_acquire_file_lock(Path(sys.argv[1]))
+print("locked", flush=True)
+time.sleep(60)
+"""
+
+
+def test_acquire_file_lock_recovers_after_holder_process_is_killed(tmp_path: Path) -> None:
+    # Regression test for stale lock-file recovery: a process killed while
+    # holding the lock never releases it, so the lock file is left behind.
+    # A later writer must be able to break it once it is old enough.
+    path = tmp_path.joinpath("data.txt")
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    child = subprocess.Popen(  # noqa: S603
+        [sys.executable, "-c", _HOLD_LOCK_SCRIPT, str(path)],
+        stdout=subprocess.PIPE,
+        text=True,
+    )
+    try:
+        assert child.stdout is not None
+        assert child.stdout.readline().strip() == "locked"
+        assert lock_path.is_file()
+    finally:
+        child.kill()
+        child.wait()
+        if child.stdout is not None:
+            child.stdout.close()
+
+    # The killed process cannot release the lock, so it is still there and
+    # a writer that does not consider it stale times out.
+    assert lock_path.is_file()
+    with pytest.raises(TimeoutError, match="timed out"):
+        _acquire_file_lock(path, timeout=0.05, poll_interval=0.001, stale_after=3600)
+
+    # Once the lock is older than ``stale_after`` it is broken.
+    time.sleep(0.1)
+    assert _acquire_file_lock(path, timeout=5, stale_after=0.05) == lock_path
+    lock_path.unlink()

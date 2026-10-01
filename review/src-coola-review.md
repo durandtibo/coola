@@ -90,11 +90,12 @@ PLC0415` is needed. Check whether it can be done through a callable injected by
 
 ## 5. Testing and tooling suggestions
 
-- Add a property-based test (hypothesis) for `TypeRegistry.resolve` MRO behavior
-  and cache invalidation under concurrent `register` calls.
-- Add a concurrency test for `io/base.py` save locking that kills a child process
-  mid-write (see 3.1; stale-lock breaking is unit-tested, but not with a real
-  killed process).
+- ~~Add a property-based test (hypothesis) for `TypeRegistry.resolve` MRO behavior
+  and cache invalidation under concurrent `register` calls.~~ (Done:
+  `tests/integration/properties/test_registry.py` for MRO and cache invalidation, and
+  concurrent register/unregister tests in `tests/integration/registry/test_type.py`.)
+- ~~Add a concurrency test for `io/base.py` save locking that kills a child process
+  mid-write (see 3.1).~~ (Done: `tests/integration/io/test_base.py`.)
 - Add a test that every package listed in `__all__` is actually importable without
   optional dependencies installed (a "minimal install" CI job).
 - Add a CI check that `__pycache__`-style stale artifacts and unused modules
