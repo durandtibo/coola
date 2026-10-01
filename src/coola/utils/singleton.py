@@ -11,8 +11,15 @@ double-checked locking.
 
 from __future__ import annotations
 
-__all__ = ["LazySingleton", "load_registry_plugins", "make_default_registry_singleton"]
+__all__ = [
+    "STRICT_PLUGINS_ENV_VAR",
+    "LazySingleton",
+    "load_registry_plugins",
+    "make_default_registry_singleton",
+]
 
+import logging
+import os
 import threading
 import warnings
 from importlib.metadata import entry_points
@@ -21,6 +28,13 @@ from typing import TYPE_CHECKING, Generic, TypeVar
 if TYPE_CHECKING:
     from collections.abc import Callable
     from importlib.metadata import EntryPoint
+
+logger: logging.Logger = logging.getLogger(__name__)
+
+#: Environment variable that makes a failing plugin raise instead of being
+#: skipped with a warning. It is enabled by any value other than ``""``,
+#: ``"0"`` and ``"false"`` (case-insensitive), and is useful in CI.
+STRICT_PLUGINS_ENV_VAR = "COOLA_STRICT_PLUGINS"
 
 T = TypeVar("T")
 R = TypeVar("R")
@@ -125,7 +139,9 @@ def load_registry_plugins(registry: object, group: str) -> None:
     Each entry point in ``group`` must resolve to a callable that takes
     the registry and registers its types on it. A plugin that fails to
     load or run emits a ``RuntimeWarning`` and is skipped, so one broken
-    plugin cannot break coola.
+    plugin cannot break coola. The failure is also logged with its
+    traceback. If the ``COOLA_STRICT_PLUGINS`` environment variable is
+    set (e.g. in CI), the exception is re-raised instead.
 
     Args:
         registry: The registry passed to each plugin.
@@ -143,12 +159,25 @@ def load_registry_plugins(registry: object, group: str) -> None:
         _load_plugin(entry_point, registry, group)
 
 
+def _strict_plugins() -> bool:
+    r"""Indicate whether plugin failures must raise instead of warn."""
+    return os.environ.get(STRICT_PLUGINS_ENV_VAR, "").strip().lower() not in {"", "0", "false"}
+
+
 def _load_plugin(entry_point: EntryPoint, registry: object, group: str) -> None:
-    r"""Load one plugin and apply it to the registry, warning on
-    failure."""
+    r"""Load one plugin and apply it to the registry.
+
+    A failure is logged with its traceback and reported as a
+    ``RuntimeWarning``, or re-raised in strict mode.
+    """
     try:
         entry_point.load()(registry)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
+        if _strict_plugins():
+            raise
+        logger.error(
+            f"Failed to load plugin {entry_point.name!r} of group {group!r}", exc_info=True
+        )
         warnings.warn(
             f"Skipping plugin {entry_point.name!r} of group {group!r}: {exc!r}",
             RuntimeWarning,

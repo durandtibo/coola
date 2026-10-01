@@ -18,12 +18,20 @@ registries, clear module boundaries (import-linter is in place), and a typed pac
    `utils/bloom_filter.py` is not imported anywhere in `src/`, and `identifier/` is far
    from coola's stated purpose (compare, summarize and transform nested objects), which
    is why they are documented as standalone.
-2. **Stale `__pycache__` files.** `src/coola/__pycache__` holds `equal.*.pyc`,
+2. **Stale `__pycache__` files.** _(Fixed: removed locally.)_ `src/coola/__pycache__` holds `equal.*.pyc`,
    `reduction.*.pyc`, `summarization.*.pyc`, `types.*.pyc` and `testing.*.pyc` from
    modules that no longer exist. They are untracked, but a stale `.pyc` can shadow
    or confuse imports in some setups. Delete them locally.
 
 ## 2. Duplication across registries
+
+_(Status: the shared helper already exists. `make_default_registry_singleton` in
+`coola.utils.singleton` provides the lazy singleton, default population and plugin
+loading, and all six packages use it. The `get_default_*_registry` aliases are
+public API: they are exported, documented in the user guide and covered by
+`tests/unit/test_public_api.py`, so they are kept. What remains per package is the
+public `register_x`/`get_default_registry` functions and their docstrings, which
+are documented API and are not worth collapsing.)_
 
 The `equality`, `hashing`, `recursive`, `summary`, `iterator/dfs` and `iterator/bfs`
 packages each repeat the same scaffolding:
@@ -55,7 +63,8 @@ Suggestions:
    and timestamp in the lock file and breaking locks older than some threshold, or
    using `fcntl`/`msvcrt` (or the `filelock` package) so the OS releases the lock
    on process death.
-2. **Plugin loading swallows all exceptions** (`utils/singleton.py`, `_load_plugin`,
+2. **Plugin loading swallows all exceptions** _(Fixed: failures are now logged with
+   their traceback, and `COOLA_STRICT_PLUGINS=1` re-raises.)_ (`utils/singleton.py`, `_load_plugin`,
    `except Exception` plus a `RuntimeWarning`). This is a defensible choice, but a
    broken plugin is easy to miss. Consider logging with `exc_info` or a strict-mode
    env var that re-raises (useful in CI).
@@ -108,7 +117,7 @@ PLC0415` is needed. Check whether it can be done through a callable injected by
 | --- | ---------------------------------------------------- | ------ | ------ |
 | 3.1 | ~~Stale lock-file recovery~~ (fixed)                 | M      | High   |
 | 1.1 | ~~Decide on bloom filter / identifier scope~~ (kept) | S      | High   |
-| 2   | Shared default-registry helper                       | M      | Medium |
+| 2   | ~~Shared default-registry helper~~ (already done)    | M      | Medium |
 | 3.3 | Remove registry -> equality import                   | M      | Medium |
 | 3.4 | ~~Use snapshot in repr/iter~~ (fixed)                | S      | Low    |
 | 4.2 | Per-file ruff ignores                                | S      | Low    |
