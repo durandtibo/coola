@@ -25,6 +25,10 @@ jobs:
         with:
           python-version: "3.14"
 
-      # Run all pre-commit hooks on changed files
+      # Run all pre-commit hooks on changed files.
+      # UV_ALL_EXTRAS makes `uv run` (used by the ty hook) install the optional
+      # dependencies so that type checking can resolve their imports.
       - name: Run pre-commit
+        env:
+          UV_ALL_EXTRAS: "1"
         uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # ratchet:pre-commit/action@v3.0.1
