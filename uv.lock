@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = ">=3.10"
 resolution-markers = [
     "python_full_version >= '3.14' and sys_platform == 'win32'",
@@ -364,7 +364,7 @@ dev = [
     { name = "hypothesis", specifier = ">=6.100,<7.0" },
     { name = "import-linter", specifier = ">=2.0,<3.0" },
     { name = "invoke", specifier = ">=3.0,<4.0" },
-    { name = "invoke-tasklib", specifier = ">=0.0.7,<1.0" },
+    { name = "invoke-tasklib", specifier = ">=0.0.8,<1.0" },
     { name = "pre-commit", specifier = ">=4.6,<5.0" },
     { name = "pygments", specifier = ">=2.20,<3.0" },
     { name = "pytest", specifier = ">=9.1,<10.0" },
@@ -981,14 +981,14 @@ wheels = [
 
 [[package]]
 name = "invoke-tasklib"
-version = "0.0.7"
+version = "0.0.8"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "invoke" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/91/9c/9f15ea811c0b1cdfc25589af2a5c0216e495a57807c6687e88ca639fe782/invoke_tasklib-0.0.7.tar.gz", hash = "sha256:685195bbdf6d510c790f641e5c0eda377025d33255bcbad1e9586fbf175f6642", size = 14782, upload-time = "2026-09-27T09:42:03.694Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d5/a9/fb6fe70dfce0ec5989f1f6805976c68ffeb21e8735686fa8657d01b5afac/invoke_tasklib-0.0.8.tar.gz", hash = "sha256:3f98f6878245bf3865ab135636dc44e4362383559249f4fd7df40cda1e8dc1e1", size = 15061, upload-time = "2026-10-03T22:29:32.961Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/2c/bd/ff5119ce3b9ab005fdcaee7761d80f82ef6c3b070cbe3e02e19b716fb483/invoke_tasklib-0.0.7-py3-none-any.whl", hash = "sha256:10c0e3ac67185871986552def343ee5d4421770da9f9b52b3f206251bc7fbb98", size = 16389, upload-time = "2026-09-27T09:42:02.452Z" },
+    { url = "https://files.pythonhosted.org/packages/e4/9c/82d875cc426d18bf62fd7d3ace326e0d808aea867eed48547359c66842ea/invoke_tasklib-0.0.8-py3-none-any.whl", hash = "sha256:2a36e4c11150b73fabf2f9c930aeb66f183ce07a0b6e6de28fc9c08cdaf69d60", size = 16683, upload-time = "2026-10-03T22:29:31.787Z" },
 ]
 
 [[package]]
