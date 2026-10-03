@@ -40,12 +40,12 @@ repos:
       # Flags old-style type comments in favor of real annotations.
       - id: python-use-type-annotations
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.12.21
+    rev: 0.12.22
     hooks:
       # Fails if uv.lock is out of sync with pyproject.toml.
       - id: uv-lock
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.9
+    rev: v0.16.10
     hooks:
       # Lints and autofixes Python/pyi/Jupyter files (includes import sorting).
       - id: ruff-check
