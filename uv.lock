@@ -359,7 +359,7 @@ provides-extras = ["jax", "numpy", "packaging", "pandas", "polars", "pyarrow", "
 dev = [
     { name = "coverage", extras = ["toml"], specifier = ">=7.15,<8.0" },
     { name = "docformatter", specifier = ">=1.7.8,<2.0" },
-    { name = "feu", extras = ["all"], specifier = ">=0.8.3,<1.0" },
+    { name = "feu", extras = ["all"], specifier = ">=0.8.4,<1.0" },
     { name = "import-linter", specifier = ">=2.0,<3.0" },
     { name = "invoke", specifier = ">=3.0,<4.0" },
     { name = "invoke-tasklib", specifier = ">=0.0.8,<1.0" },
@@ -627,15 +627,15 @@ wheels = [
 
 [[package]]
 name = "feu"
-version = "0.8.3"
+version = "0.8.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "packaging" },
     { name = "tomli", marker = "python_full_version < '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a1/34/f022e330f97153e3094d7c5a0311a6083ea820b66552f9c348c431b267fc/feu-0.8.3.tar.gz", hash = "sha256:370abd065128c608512cc0c7886a867eb80d2f2fda86715d42d111d45e8c2593", size = 56781, upload-time = "2026-08-31T04:03:06.338Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/31/a0/383e0ff3a00cb83bf47bf58cef5bb6dee074a40be060aee9e790b91405e7/feu-0.8.4.tar.gz", hash = "sha256:1479507b25f59522046cd5c036846876d3586b6ea21b5154f43713c05d976257", size = 57308, upload-time = "2026-10-05T02:08:25.142Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/34/76/bd4a6bd8094b8081e0b15ad55b14feb91b3eff1c2f5e136c822378060247/feu-0.8.3-py3-none-any.whl", hash = "sha256:41f350553cc0d0998eec363ae0d3c1aeea15899fb88e0be22635d8d42602d3ec", size = 92920, upload-time = "2026-08-31T04:03:05.293Z" },
+    { url = "https://files.pythonhosted.org/packages/dc/a0/e0d39878832a556e4ab577303451acf78d065110ed834c4a368dc16735ed/feu-0.8.4-py3-none-any.whl", hash = "sha256:5bf133cc773c241228076e6c4a7c31fc0100b9e1c9641c6bd979fa078cb4aad0", size = 93165, upload-time = "2026-10-05T02:08:23.742Z" },
 ]
 
 [package.optional-dependencies]
@@ -649,11 +649,11 @@ all = [
 
 [[package]]
 name = "filelock"
-version = "4.0.10"
+version = "4.0.11"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/4b/51/a182494d1d8dde1240bff84dda57d48165d982e59582ce8f167e8e3d7628/filelock-4.0.10.tar.gz", hash = "sha256:00d6a81f976a6332551c2c10f39e12b4abb7e01c64d4c497b81a615bc9186f1f", size = 252487, upload-time = "2026-10-03T23:40:48.884Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d8/9c/925c4f62920e4200d573d2bfe5cfd1b993134c3aee5f9bd3b7c55e20297e/filelock-4.0.11.tar.gz", hash = "sha256:9dc453a1edd25626a6fc97c2cb1bd9f7e46345843d40b3181c071761fb9a5f7a", size = 253844, upload-time = "2026-10-05T00:57:32.47Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/5b/2a/4b1ea3f2180be251a5cff1e70c8a5b7994ffa5c8eab8937901f8a9db58fe/filelock-4.0.10-py3-none-any.whl", hash = "sha256:698048d158dc3c9e18cc5e88b3efdd4bd0e77d76686b22adb4511cc4b2c2f0db", size = 111193, upload-time = "2026-10-03T23:40:47.334Z" },
+    { url = "https://files.pythonhosted.org/packages/4a/4d/2983a9fc0a412a09151299d1ec9eb7511e3d577f7213e19395fabebf9db6/filelock-4.0.11-py3-none-any.whl", hash = "sha256:1cbdc4ace7fb11d2f6d073f5c3d91537a23b3d58d2bf2fdffc12c6d717a589c6", size = 111688, upload-time = "2026-10-05T00:57:30.896Z" },
 ]
 
 [[package]]
