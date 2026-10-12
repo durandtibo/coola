@@ -16,7 +16,7 @@ Once you implement and test your feature or bug-fix, please submit a Pull Reques
 
 ### Prerequisites
 
-- Python 3.10 or higher
+- Python 3.11 or higher
 - [`uv`](https://docs.astral.sh/uv/) for dependency management
 - Git
 

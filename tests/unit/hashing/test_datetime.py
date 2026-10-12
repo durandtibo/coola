@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 
 import pytest
 
@@ -39,17 +39,17 @@ def test_datetime_hasher_str() -> None:
             id="date_end_of_year",
         ),
         pytest.param(
-            datetime(2021, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
+            datetime(2021, 1, 1, 0, 0, 0, tzinfo=UTC),
             "7b9000123bc9220f9759ddc4ae7e7780c16935c8ed6d9417b82c41500ebb3967",
             id="datetime_midnight",
         ),
         pytest.param(
-            datetime(2024, 12, 31, 23, 59, 59, tzinfo=timezone.utc),
+            datetime(2024, 12, 31, 23, 59, 59, tzinfo=UTC),
             "676dda2885fb7510aa8be2e0aff297d76cdec9661ee5f4383f964988edf25840",
             id="datetime_end_of_year",
         ),
         pytest.param(
-            datetime(2021, 1, 1, 12, 30, 45, 123456, tzinfo=timezone.utc),
+            datetime(2021, 1, 1, 12, 30, 45, 123456, tzinfo=UTC),
             "13f82bb8ce7a9ac5d81d8c0570e8b51b547ec83aac578142a84cc6d51cd0aee7",
             id="datetime_with_microseconds",
         ),
@@ -105,7 +105,7 @@ def test_datetime_hasher_hash_date_and_datetime_different_hashes(
     # isoformat() distinguishes them, so their hashes must differ.
     hasher = DatetimeHasher()
     assert hasher.hash(date(2021, 1, 1), registry=registry) != hasher.hash(
-        datetime(2021, 1, 1, 0, 0, 0, tzinfo=timezone.utc), registry=registry
+        datetime(2021, 1, 1, 0, 0, 0, tzinfo=UTC), registry=registry
     )
 
 

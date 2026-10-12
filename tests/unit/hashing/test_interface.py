@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Generator, Mapping, Sequence
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 import pytest
@@ -88,7 +88,7 @@ class CustomList(list):
             id="date",
         ),
         pytest.param(
-            datetime(2021, 1, 1, tzinfo=timezone.utc),
+            datetime(2021, 1, 1, tzinfo=UTC),
             "7b9000123bc9220f9759ddc4ae7e7780c16935c8ed6d9417b82c41500ebb3967",
             id="datetime",
         ),

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from unittest.mock import patch
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -87,15 +87,13 @@ def test_to_date_from_str_invalid_format() -> None:
 
 def test_to_datetime_from_datetime() -> None:
     """Test that a datetime object is returned unchanged."""
-    dt = datetime(2026, 3, 19, 12, 0, 0, tzinfo=timezone.utc)
+    dt = datetime(2026, 3, 19, 12, 0, 0, tzinfo=UTC)
     assert to_datetime(dt) is dt
 
 
 def test_to_datetime_from_str() -> None:
     """Test that an ISO format string is parsed."""
-    assert to_datetime("2026-03-19T12:00:00+00:00") == datetime(
-        2026, 3, 19, 12, 0, 0, tzinfo=timezone.utc
-    )
+    assert to_datetime("2026-03-19T12:00:00+00:00") == datetime(2026, 3, 19, 12, 0, 0, tzinfo=UTC)
 
 
 def test_to_datetime_from_str_invalid_format() -> None:
