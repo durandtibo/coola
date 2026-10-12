@@ -109,7 +109,7 @@ def _acquire_file_lock(
     while True:
         try:
             os.close(os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY))
-        except FileExistsError:  # noqa: PERF203
+        except FileExistsError:
             if _break_stale_lock(lock_path, stale_after):
                 continue
             if time.monotonic() >= deadline:

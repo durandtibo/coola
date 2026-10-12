@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import warnings
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import Mock, patch
 
 import pytest
@@ -57,15 +57,15 @@ PYARROW_ARRAY_EQUAL = [
         ExamplePair(
             actual=pa.array(
                 [
-                    datetime(year=2012, month=1, day=1, tzinfo=timezone.utc),
-                    datetime(year=2012, month=3, day=4, tzinfo=timezone.utc),
+                    datetime(year=2012, month=1, day=1, tzinfo=UTC),
+                    datetime(year=2012, month=3, day=4, tzinfo=UTC),
                 ],
                 type=pa.date64(),
             ),
             expected=pa.array(
                 [
-                    datetime(year=2012, month=1, day=1, tzinfo=timezone.utc),
-                    datetime(year=2012, month=3, day=4, tzinfo=timezone.utc),
+                    datetime(year=2012, month=1, day=1, tzinfo=UTC),
+                    datetime(year=2012, month=3, day=4, tzinfo=UTC),
                 ],
                 type=pa.date64(),
             ),
@@ -137,15 +137,15 @@ PYARROW_ARRAY_EQUAL_TOLERANCE = [
         ExamplePair(
             actual=pa.array(
                 [
-                    datetime(year=2012, month=1, day=1, tzinfo=timezone.utc),
-                    datetime(year=2012, month=3, day=4, tzinfo=timezone.utc),
+                    datetime(year=2012, month=1, day=1, tzinfo=UTC),
+                    datetime(year=2012, month=3, day=4, tzinfo=UTC),
                 ],
                 type=pa.date64(),
             ),
             expected=pa.array(
                 [
-                    datetime(year=2012, month=1, day=1, tzinfo=timezone.utc),
-                    datetime(year=2012, month=3, day=4, tzinfo=timezone.utc),
+                    datetime(year=2012, month=1, day=1, tzinfo=UTC),
+                    datetime(year=2012, month=3, day=4, tzinfo=UTC),
                 ],
                 type=pa.date64(),
             ),
@@ -190,15 +190,15 @@ PYARROW_ARRAY_EQUAL_TOLERANCE = [
         ExamplePair(
             actual=pa.array(
                 [
-                    datetime(year=2012, month=1, day=1, tzinfo=timezone.utc),
-                    datetime(year=2012, month=3, day=4, tzinfo=timezone.utc),
+                    datetime(year=2012, month=1, day=1, tzinfo=UTC),
+                    datetime(year=2012, month=3, day=4, tzinfo=UTC),
                 ],
                 type=pa.date64(),
             ),
             expected=pa.array(
                 [
-                    datetime(year=2012, month=1, day=1, tzinfo=timezone.utc),
-                    datetime(year=2012, month=3, day=4, tzinfo=timezone.utc),
+                    datetime(year=2012, month=1, day=1, tzinfo=UTC),
+                    datetime(year=2012, month=3, day=4, tzinfo=UTC),
                 ],
                 type=pa.date64(),
             ),

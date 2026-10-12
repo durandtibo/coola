@@ -4,7 +4,7 @@ from __future__ import annotations
 
 __all__ = ["DEFAULT_DATE_FORMAT", "get_today_date", "to_date", "to_datetime"]
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from typing import Final
 from zoneinfo import ZoneInfo
 
@@ -66,7 +66,7 @@ def to_date(d: date | str, date_format: str = DEFAULT_DATE_FORMAT) -> date:
     """
     if isinstance(d, str):
         # tzinfo is only set to satisfy ruff's DTZ007; it is discarded by ``.date()``.
-        return datetime.strptime(d, date_format).replace(tzinfo=timezone.utc).date()
+        return datetime.strptime(d, date_format).replace(tzinfo=UTC).date()
     return d
 
 
