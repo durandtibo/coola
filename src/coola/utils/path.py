@@ -138,9 +138,5 @@ def working_directory(path: str | os.PathLike[str]) -> Generator[None]:
         ```
     """
     path = sanitize_path(path)
-    prev_cwd = Path.cwd()
-    os.chdir(path)
-    try:
+    with contextlib.chdir(path):
         yield
-    finally:
-        os.chdir(prev_cwd)
