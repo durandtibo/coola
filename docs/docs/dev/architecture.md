@@ -288,7 +288,7 @@ The `coola` codebase uses:
 
 ### Core Dependencies
 
-- Python 3.10+: Core language features
+- Python 3.11+: Core language features
 
 ### Optional Dependencies
 
