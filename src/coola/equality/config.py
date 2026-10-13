@@ -28,7 +28,7 @@ def create_default_registry() -> EqualityTesterRegistry:
     return get_default_registry()
 
 
-@dataclass
+@dataclass(slots=True)
 class EqualityConfig:
     r"""Define the config to control the comparison rules.
 

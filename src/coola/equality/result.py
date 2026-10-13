@@ -26,7 +26,7 @@ _LOGGER_NAME = "coola.equality"
 _capture_lock = threading.RLock()
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ComparisonResult:
     r"""Describe the outcome of comparing two objects.
 
