@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Self
+
 import pytest
 
 from coola.nested import (
@@ -11,6 +13,33 @@ from coola.nested import (
     remove_keys_if,
     remove_keys_starting_with,
 )
+
+
+class _PassesValidationOnly(str):
+    """A string that equals its value only for the first comparison.
+
+    It lets a test get past the ``on_duplicate`` validation (a set
+    membership check) while matching none of the strategy branches
+    afterwards, to exercise the defensive ``assert_never`` branches.
+    """
+
+    def __new__(cls, value: str) -> Self:
+        obj = super().__new__(cls, value)
+        obj._remaining = 1
+        return obj
+
+    def __hash__(self) -> int:
+        return str.__hash__(self)
+
+    def __eq__(self, other: object) -> bool:
+        if self._remaining > 0:
+            self._remaining -= 1
+            return str.__eq__(self, other)
+        return False
+
+    def __ne__(self, other: object) -> bool:
+        return not self.__eq__(other)
+
 
 ################################################
 #     Tests for add_prefix_suffix_to_keys     #
@@ -90,6 +119,14 @@ def test_flatten_mapping_single_outer_key() -> None:
 
 def test_flatten_mapping_no_duplicate_keys() -> None:
     assert flatten_mapping({"module1": {"a": 1}, "module2": {"b": 2}}) == {"a": 1, "b": 2}
+
+
+def test_flatten_mapping_unhandled_on_duplicate() -> None:
+    with pytest.raises(AssertionError):
+        flatten_mapping(
+            {"x": {"a": 1}, "y": {"a": 2}},
+            on_duplicate=_PassesValidationOnly("prefix"),  # type: ignore[arg-type]
+        )
 
 
 def test_flatten_mapping_incorrect_on_duplicate() -> None:
@@ -291,6 +328,11 @@ def test_merge_mappings_no_duplicate_keys() -> None:
 def test_merge_mappings_incorrect_on_duplicate() -> None:
     with pytest.raises(ValueError, match="Incorrect on_duplicate value"):
         merge_mappings([{"a": 1}], on_duplicate="incorrect")
+
+
+def test_merge_mappings_unhandled_on_duplicate() -> None:
+    with pytest.raises(AssertionError):
+        merge_mappings([{"a": 1}, {"a": 2}], on_duplicate=_PassesValidationOnly("first"))  # type: ignore[arg-type]
 
 
 def test_merge_mappings_same_value_duplicate_not_triggered() -> None:

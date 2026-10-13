@@ -125,7 +125,7 @@ def flatten_mapping(
                 seen[inner_key] = value
                 out[inner_key] = value
                 continue
-            if on_duplicate != "prefix":  # pragma: no cover
+            if on_duplicate != "prefix":
                 assert_never(on_duplicate)
 
             # Re-key the first occurrence too, the first time a real
@@ -287,7 +287,7 @@ def merge_mappings(
                 out[key] = value
             elif on_duplicate == "suffix":
                 out[f"{key}_{counts[key] - 1}"] = value
-            elif on_duplicate != "first":  # pragma: no cover; "first" keeps the existing value
+            elif on_duplicate != "first":  # "first" keeps the existing value
                 assert_never(on_duplicate)
 
     return out
