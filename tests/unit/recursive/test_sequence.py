@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, NamedTuple, NoReturn
+from typing import TYPE_CHECKING, Any, NamedTuple, Never
 
 import pytest
 
@@ -81,7 +81,7 @@ def test_sequence_transformer_transform_with_identity_function(
 def test_sequence_transformer_transform_with_exception_in_function(
     registry: TransformerRegistry,
 ) -> None:
-    def failing_func(x: Any) -> NoReturn:
+    def failing_func(x: Any) -> Never:
         msg = f"Test error {x}"
         raise ValueError(msg)
 

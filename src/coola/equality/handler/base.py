@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["BaseEqualityHandler"]
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, NoReturn, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Never, TypeVar, overload
 
 from coola.utils.format import str_sequence
 
@@ -111,7 +111,7 @@ class BaseEqualityHandler(ABC):
         """
 
     @overload
-    def chain(self, handler: None) -> NoReturn: ...
+    def chain(self, handler: None) -> Never: ...
 
     @overload
     def chain(self, handler: T) -> T: ...

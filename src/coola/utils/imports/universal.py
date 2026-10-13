@@ -14,7 +14,7 @@ import importlib
 from contextlib import suppress
 from functools import lru_cache, wraps
 from importlib.util import find_spec
-from typing import TYPE_CHECKING, Any, NoReturn, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Never, TypeVar, cast
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -136,7 +136,7 @@ def decorator_package_available(fn: F, condition: Callable[[], bool]) -> F:
     return cast("F", inner)
 
 
-def raise_package_missing_error(package_name: str, install_cmd: str) -> NoReturn:
+def raise_package_missing_error(package_name: str, install_cmd: str) -> Never:
     r"""Raise a RuntimeError for a missing package.
 
     Args:

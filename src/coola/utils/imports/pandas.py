@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["check_pandas", "is_pandas_available", "pandas_available", "raise_pandas_missing_error"]
 
 from functools import lru_cache
-from typing import TYPE_CHECKING, Any, NoReturn, TypeVar
+from typing import TYPE_CHECKING, Any, Never, TypeVar
 
 from coola.utils.imports.universal import (
     decorator_package_available,
@@ -78,7 +78,7 @@ def pandas_available(fn: F) -> F:
     return decorator_package_available(fn, is_pandas_available)
 
 
-def raise_pandas_missing_error() -> NoReturn:
+def raise_pandas_missing_error() -> Never:
     r"""Raise a ``RuntimeError`` to indicate the ``pandas`` package is
     missing.
 

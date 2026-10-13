@@ -66,7 +66,7 @@ class SequenceSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
                     )
                 return False
             cache: dict[tuple[int, int], bool] = {}
-            for idx, (value1, value2) in enumerate(zip(actual, expected)):
+            for idx, (value1, value2) in enumerate(zip(actual, expected, strict=True)):
                 key = (id(value1), id(value2))
                 are_equal = cache.get(key)
                 if are_equal is None:

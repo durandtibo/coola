@@ -10,7 +10,7 @@ __all__ = [
 ]
 
 from functools import lru_cache
-from typing import TYPE_CHECKING, Any, NoReturn, TypeVar
+from typing import TYPE_CHECKING, Any, Never, TypeVar
 
 from coola.utils.imports.universal import (
     decorator_package_available,
@@ -83,7 +83,7 @@ def colorlog_available(fn: F) -> F:
     return decorator_package_available(fn, is_colorlog_available)
 
 
-def raise_colorlog_missing_error() -> NoReturn:
+def raise_colorlog_missing_error() -> Never:
     r"""Raise a ``RuntimeError`` to indicate the ``colorlog`` package is
     missing.
 

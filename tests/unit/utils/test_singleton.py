@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, Any, NoReturn, cast
+from typing import TYPE_CHECKING, Any, Never, cast
 
 import pytest
 
@@ -201,7 +201,7 @@ def _patch_entry_points(monkeypatch: pytest.MonkeyPatch, eps: list[_FakeEntryPoi
     monkeypatch.setattr(singleton, "entry_points", lambda group: eps)  # noqa: ARG005
 
 
-def _broken(registry: Any) -> NoReturn:  # noqa: ARG001
+def _broken(registry: Any) -> Never:  # noqa: ARG001
     msg = "boom"
     raise RuntimeError(msg)
 
