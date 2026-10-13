@@ -13,7 +13,7 @@ __all__ = [
 ]
 
 from collections.abc import Mapping, Sequence, Set as AbstractSet
-from functools import lru_cache
+from functools import cache
 from typing import TYPE_CHECKING, Any, Literal, TypeVar, assert_never, cast
 
 from coola.equality import objects_are_equal
@@ -293,7 +293,7 @@ def merge_mappings(
     return out
 
 
-@lru_cache(maxsize=1)
+@cache
 def _get_key_filter_registry() -> TransformerRegistry:
     """Build the registry used by ``remove_keys_if`` to recurse through
     arbitrary nested containers.

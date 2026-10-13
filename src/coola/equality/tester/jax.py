@@ -8,7 +8,7 @@ from __future__ import annotations
 
 __all__ = ["JaxArrayEqualityTester"]
 
-from functools import lru_cache
+from functools import cache
 from typing import TYPE_CHECKING, Any, cast
 
 from coola.display import InlineDisplayMixin
@@ -89,7 +89,7 @@ class JaxArrayEqualityTester(InlineDisplayMixin, BaseEqualityTester[jnp.ndarray]
         return self._handler.handle(actual, expected, config=config)
 
 
-@lru_cache(maxsize=1)
+@cache
 def get_array_impl_class() -> type:
     r"""Get the JAX array implementation class.
 

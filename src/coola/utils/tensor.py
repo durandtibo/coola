@@ -4,7 +4,7 @@ from __future__ import annotations
 
 __all__ = ["get_available_devices", "is_cuda_available", "is_mps_available", "to_tensor"]
 
-from functools import lru_cache
+from functools import cache
 from typing import TYPE_CHECKING, Any, cast
 
 from coola.utils.imports import is_numpy_available, is_torch_available
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-@lru_cache(1)
+@cache
 def get_available_devices() -> tuple[str, ...]:
     r"""Get the available PyTorch devices on the machine.
 
@@ -46,7 +46,7 @@ def get_available_devices() -> tuple[str, ...]:
     return tuple(devices)
 
 
-@lru_cache(1)
+@cache
 def is_cuda_available() -> bool:
     r"""Indicate if CUDA is currently available.
 
@@ -63,7 +63,7 @@ def is_cuda_available() -> bool:
     return is_torch_available() and torch.cuda.is_available()
 
 
-@lru_cache(1)
+@cache
 def is_mps_available() -> bool:
     r"""Indicate if MPS is currently available.
 

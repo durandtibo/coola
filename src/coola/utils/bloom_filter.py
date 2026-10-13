@@ -88,7 +88,7 @@ class BloomFilter:
         count ``n``, capped at ``_MAX_HASH_COUNT``."""
         return max(1, min(cls._MAX_HASH_COUNT, int((m / max(n, 1)) * math.log(2))))
 
-    def _hashes(self, item: bytes) -> Generator[int, None, None]:
+    def _hashes(self, item: bytes) -> Generator[int]:
         """Yield ``self.hash_count`` bit indices for ``item``.
 
         Uses double hashing (two independent hash values combined

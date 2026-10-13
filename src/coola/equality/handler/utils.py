@@ -84,7 +84,7 @@ def handlers_are_equal(
 
 
 @contextmanager
-def check_recursion_depth(config: EqualityConfig) -> Generator[None, None, None]:
+def check_recursion_depth(config: EqualityConfig) -> Generator[None]:
     r"""Context manager to track and enforce recursion depth limits.
 
     This context manager increments the recursion depth counter on entry
