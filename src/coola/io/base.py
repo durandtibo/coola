@@ -124,7 +124,7 @@ def _acquire_file_lock(
 
 
 @contextlib.contextmanager
-def _save_lock(path: Path) -> Generator[None, None, None]:
+def _save_lock(path: Path) -> Generator[None]:
     r"""Serialize ``save`` calls targeting ``path``, both within this
     process (fast in-memory lock) and across processes (lock file), so
     that no two calls can interleave their write/commit steps regardless

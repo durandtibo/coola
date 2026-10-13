@@ -32,6 +32,7 @@ Note: PEP 695 syntax (`class Foo[T]`, `type X = ...`) is **3.12**, so the ~94
 | 14 | Ruff rule sets | Nothing to do (already enabled) |
 | 15 | CI matrix / classifiers | Partly verified; CI matrix lives outside the repo |
 | 16 | Docs wording | Done (3 pages) |
+| F4-5 | Slots benchmark, `functools.cache`, `Generator[X]` | Done |
 
 ## 1. Implemented
 
@@ -73,9 +74,18 @@ Note: PEP 695 syntax (`class Foo[T]`, `type X = ...`) is **3.12**, so the ~94
 6. **`@dataclass(slots=True)`.** Applied to `EqualityConfig` and `ComparisonResult` (the
    latter as `frozen=True, slots=True`). Nothing in `src` relied on `__dict__` or ad-hoc
    attributes. `kw_only=True` was not applied because it would break positional callers.
-   Not benchmarked.
+   Micro-benchmark (5 runs, best): creating 100k `EqualityConfig` took 0.039 s with slots vs 0.043 s
+   without (~10% faster); the instance has no `__dict__` (88 B vs 48 B plus a dict). Comparison
+   speed was unchanged within noise.
 
-7. **Docs.** `docs/docs/get_started.md`, `docs/docs/dev/development.md` and
+7. **Small idioms (not 3.11-specific).** Zero-argument `@lru_cache(maxsize=1)` / `@lru_cache(1)`
+   functions (`utils/tensor.py` x3, `equality/tester/jax.py`, `identifier/objectid.py`,
+   `identifier/snowflake.py`, `nested/mapping.py`) now use `@functools.cache`; `cache_clear()`
+   is still available, which the tests rely on. `Generator[X, None, None]` annotations were
+   shortened to `Generator[X]` (already the style in `utils/path.py`). The functions with
+   arguments (`get_package_version`, polars `is_new_naming`) keep `lru_cache`.
+
+8. **Docs.** `docs/docs/get_started.md`, `docs/docs/dev/development.md` and
    `docs/docs/dev/architecture.md` now say Python 3.11. Left alone on purpose: older rows of
    the README compatibility table (they record past releases), the sample environment in
    `CONTRIBUTING.md`, and the generated, git-ignored `docs/site/`.
@@ -110,15 +120,7 @@ Note: PEP 695 syntax (`class Foo[T]`, `type X = ...`) is **3.12**, so the ~94
    `ValueError` raise. That would change when an invalid value is reported (only when a
    conflict occurs), so the current approach is the safer one. Revisit only if the helper
    becomes a burden.
-4. **Benchmark `slots=True`.** `tests/benchmarks` exists; a before/after on a comparison of
-   many small objects would confirm the gain for `EqualityConfig`.
-5. **Optional style items (not 3.11-specific).**
-   - `@contextmanager` functions annotated `Generator[None, None, None]`
-     (`io/base.py:127`) can be `Iterator[None]`.
-   - Zero-argument functions decorated with `@lru_cache(maxsize=1)` (e.g. the
-     `is_*_available` helpers) are equivalent to `@functools.cache`. This is cosmetic;
-     check first that the call sites do not use `cache_info()`/`maxsize`.
-6. **Prepare for 3.12 (when the floor moves).** Convert `TypeVar` declarations and
+4. **Prepare for 3.12 (when the floor moves).** Convert `TypeVar` declarations and
    `Generic[...]` classes to PEP 695 syntax, use `type X = ...` aliases, add
    `@typing.override` on the many `abstractmethod` implementations (44 abstract methods),
    and consider `itertools.batched` for `utils.batching.batchify` (it would still need the
@@ -127,5 +129,4 @@ Note: PEP 695 syntax (`class Foo[T]`, `type X = ...`) is **3.12**, so the ~94
 ## Suggested order for what remains
 
 1. Follow-ups 1 (confirm CI matrix) and 2 (type checker). They are cheap and verify the rest.
-2. Follow-ups 4-5 are optional polish.
-3. Follow-up 6 when the project drops 3.11.
+2. Follow-up 4 when the project drops 3.11.

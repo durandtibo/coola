@@ -49,7 +49,7 @@ class TimingResult(InlineDisplayMixin):
 
 
 @contextmanager
-def timeblock(message: str = "Total time: {time}") -> Generator[TimingResult, None, None]:
+def timeblock(message: str = "Total time: {time}") -> Generator[TimingResult]:
     r"""Implement a context manager to measure the execution time of a
     block of code.
 

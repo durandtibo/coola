@@ -108,7 +108,7 @@ def get_required_env_var(name: str) -> str:
 
 
 @contextmanager
-def temp_env_vars(env_vars: dict[str, Any]) -> Generator[None, None, None]:
+def temp_env_vars(env_vars: dict[str, Any]) -> Generator[None]:
     r"""Context manager to temporarily set or modify environment
     variables.
 

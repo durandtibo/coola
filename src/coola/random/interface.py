@@ -36,9 +36,7 @@ if TYPE_CHECKING:
 
 
 @contextmanager
-def random_seed(
-    seed: int, manager: RandomManagerRegistry | None = None
-) -> Generator[None, None, None]:
+def random_seed(seed: int, manager: RandomManagerRegistry | None = None) -> Generator[None]:
     r"""Temporarily set a random seed and restore previous RNG state.
 
     Args:
