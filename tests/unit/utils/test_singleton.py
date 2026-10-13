@@ -240,12 +240,15 @@ def test_load_registry_plugins_strict_mode_raises(
 ) -> None:
     monkeypatch.setenv(STRICT_PLUGINS_ENV_VAR, value)
     _patch_entry_points(monkeypatch, [_FakeEntryPoint("bad", _broken)])
-    with pytest.raises(ExceptionGroup) as exc_info:
+    with pytest.RaisesGroup(
+        pytest.RaisesExc(
+            RuntimeError,
+            match="boom",
+            check=lambda e: "plugin 'bad' of group 'grp'" in e.__notes__[0],
+        ),
+        match="Failed to load 1 plugin",
+    ):
         load_registry_plugins({}, "grp")
-    (error,) = exc_info.value.exceptions
-    assert isinstance(error, RuntimeError)
-    assert "boom" in str(error)
-    assert "plugin 'bad' of group 'grp'" in error.__notes__[0]
 
 
 def test_load_registry_plugins_strict_mode_reports_all_failures(
@@ -261,9 +264,8 @@ def test_load_registry_plugins_strict_mode_reports_all_failures(
         ],
     )
     registry: dict = {}
-    with pytest.raises(ExceptionGroup) as exc_info:
+    with pytest.RaisesGroup(RuntimeError, RuntimeError, match="Failed to load 2 plugin"):
         load_registry_plugins(registry, "grp")
-    assert len(exc_info.value.exceptions) == 2
     assert registry == {"p": 1}
 
 

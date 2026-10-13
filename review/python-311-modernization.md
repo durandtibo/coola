@@ -67,6 +67,8 @@ Note: PEP 695 syntax (`class Foo[T]`, `type X = ...`) is **3.12**, so the ~94
    the need for a `# noqa: BLE001`. Non-strict mode (warn and skip) is unchanged.
    **Breaking for strict mode:** a single failing plugin now raises `ExceptionGroup`, not the
    original exception, so `except RuntimeError` around it no longer catches it.
+   The strict-mode tests use `pytest.RaisesGroup` / `pytest.RaisesExc` to assert the group
+   message, the member exceptions and the per-plugin note.
 
 6. **`@dataclass(slots=True)`.** Applied to `EqualityConfig` and `ComparisonResult` (the
    latter as `frozen=True, slots=True`). Nothing in `src` relied on `__dict__` or ad-hoc
@@ -102,25 +104,21 @@ Note: PEP 695 syntax (`class Foo[T]`, `type X = ...`) is **3.12**, so the ~94
    `Never` are not enforced. Adding mypy (or pyright) with `python_version = "3.11"` would
    make these changes pay off, and would also check the `# type: ignore[arg-type]` comments
    in the new tests.
-3. **Use `pytest.RaisesGroup` in the plugin tests.** The new strict-mode tests in
-   `tests/unit/utils/test_singleton.py` unpack `ExceptionGroup.exceptions` by hand.
-   `pytest.RaisesGroup` (pytest 8.4+; the repo requires 9.0) expresses this more directly,
-   including nested matching.
-4. **Simplify the `_PassesValidationOnly` test helper.** It is a hack needed only because
+3. **Simplify the `_PassesValidationOnly` test helper.** It is a hack needed only because
    `nested/mapping.py` validates `on_duplicate` up front *and* has a defensive branch. One
    option is to drop the up-front set check and let the final `else: assert_never` /
    `ValueError` raise. That would change when an invalid value is reported (only when a
    conflict occurs), so the current approach is the safer one. Revisit only if the helper
    becomes a burden.
-5. **Benchmark `slots=True`.** `tests/benchmarks` exists; a before/after on a comparison of
+4. **Benchmark `slots=True`.** `tests/benchmarks` exists; a before/after on a comparison of
    many small objects would confirm the gain for `EqualityConfig`.
-6. **Optional style items (not 3.11-specific).**
+5. **Optional style items (not 3.11-specific).**
    - `@contextmanager` functions annotated `Generator[None, None, None]`
      (`io/base.py:127`) can be `Iterator[None]`.
    - Zero-argument functions decorated with `@lru_cache(maxsize=1)` (e.g. the
      `is_*_available` helpers) are equivalent to `@functools.cache`. This is cosmetic;
      check first that the call sites do not use `cache_info()`/`maxsize`.
-7. **Prepare for 3.12 (when the floor moves).** Convert `TypeVar` declarations and
+6. **Prepare for 3.12 (when the floor moves).** Convert `TypeVar` declarations and
    `Generic[...]` classes to PEP 695 syntax, use `type X = ...` aliases, add
    `@typing.override` on the many `abstractmethod` implementations (44 abstract methods),
    and consider `itertools.batched` for `utils.batching.batchify` (it would still need the
@@ -128,7 +126,6 @@ Note: PEP 695 syntax (`class Foo[T]`, `type X = ...`) is **3.12**, so the ~94
 
 ## Suggested order for what remains
 
-1. Follow-up 1 (confirm CI matrix) and 2 (type checker). They are cheap and verify the rest.
-2. Follow-up 3 (`RaisesGroup`) in the next test-touching PR.
-3. Follow-ups 5–6 are optional polish.
-4. Follow-up 7 when the project drops 3.11.
+1. Follow-ups 1 (confirm CI matrix) and 2 (type checker). They are cheap and verify the rest.
+2. Follow-ups 4-5 are optional polish.
+3. Follow-up 6 when the project drops 3.11.
