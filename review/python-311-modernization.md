@@ -17,22 +17,22 @@ Note: PEP 695 syntax (`class Foo[T]`, `type X = ...`) is **3.12**, so the ~94
 
 ## Status summary
 
-| # | Item | Status |
-|---|------|--------|
-| 1 | `zip(strict=True)`, drop `B905` ignore | Done |
-| 2 | `typing.Self` | Done where it applied (see below); otherwise "use in new code" |
-| 3 | `NoReturn` → `Never` | Done (src and tests) |
-| 4 | `assert_never` on `Literal` branches | Done, with unit tests |
-| 5 | `ExceptionGroup` / `add_note` in plugin loader | Done, with unit tests |
-| 6 | `dataclass(slots=True)` | Done (`EqualityConfig`, `ComparisonResult`) |
-| 7 | `match` statements | Skipped on purpose |
-| 8 | `isinstance(x, A \| B)` | Skipped on purpose |
-| 9 | `tomllib` | Nothing to do |
-| 10–13 | `StrEnum`, `LiteralString`, `Required`, asyncio | Not applicable |
-| 14 | Ruff rule sets | Nothing to do (already enabled) |
-| 15 | CI matrix / classifiers | Partly verified; CI matrix lives outside the repo |
-| 16 | Docs wording | Done (3 pages) |
-| F4-5 | Slots benchmark, `functools.cache`, `Generator[X]` | Done |
+| #     | Item                                               | Status                                                         |
+| ----- | -------------------------------------------------- | -------------------------------------------------------------- |
+| 1     | `zip(strict=True)`, drop `B905` ignore             | Done                                                           |
+| 2     | `typing.Self`                                      | Done where it applied (see below); otherwise "use in new code" |
+| 3     | `NoReturn` → `Never`                               | Done (src and tests)                                           |
+| 4     | `assert_never` on `Literal` branches               | Done, with unit tests                                          |
+| 5     | `ExceptionGroup` / `add_note` in plugin loader     | Done, with unit tests                                          |
+| 6     | `dataclass(slots=True)`                            | Done (`EqualityConfig`, `ComparisonResult`)                    |
+| 7     | `match` statements                                 | Skipped on purpose                                             |
+| 8     | `isinstance(x, A \| B)`                            | Skipped on purpose                                             |
+| 9     | `tomllib`                                          | Nothing to do                                                  |
+| 10–13 | `StrEnum`, `LiteralString`, `Required`, asyncio    | Not applicable                                                 |
+| 14    | Ruff rule sets                                     | Nothing to do (already enabled)                                |
+| 15    | CI matrix / classifiers                            | Partly verified; CI matrix lives outside the repo              |
+| 16    | Docs wording                                       | Done (3 pages)                                                 |
+| F4-5  | Slots benchmark, `functools.cache`, `Generator[X]` | Done                                                           |
 
 ## 1. Implemented
 
@@ -115,7 +115,7 @@ Note: PEP 695 syntax (`class Foo[T]`, `type X = ...`) is **3.12**, so the ~94
    make these changes pay off, and would also check the `# type: ignore[arg-type]` comments
    in the new tests.
 3. **Simplify the `_PassesValidationOnly` test helper.** It is a hack needed only because
-   `nested/mapping.py` validates `on_duplicate` up front *and* has a defensive branch. One
+   `nested/mapping.py` validates `on_duplicate` up front _and_ has a defensive branch. One
    option is to drop the up-front set check and let the final `else: assert_never` /
    `ValueError` raise. That would change when an invalid value is reported (only when a
    conflict occurs), so the current approach is the safer one. Revisit only if the helper
