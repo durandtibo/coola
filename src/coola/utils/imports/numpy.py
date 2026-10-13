@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["check_numpy", "is_numpy_available", "numpy_available", "raise_numpy_missing_error"]
 
 from functools import lru_cache
-from typing import TYPE_CHECKING, Any, NoReturn, TypeVar
+from typing import TYPE_CHECKING, Any, Never, TypeVar
 
 from coola.utils.imports.universal import (
     decorator_package_available,
@@ -78,7 +78,7 @@ def numpy_available(fn: F) -> F:
     return decorator_package_available(fn, is_numpy_available)
 
 
-def raise_numpy_missing_error() -> NoReturn:
+def raise_numpy_missing_error() -> Never:
     r"""Raise a ``RuntimeError`` to indicate the ``numpy`` package is
     missing.
 

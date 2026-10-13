@@ -83,7 +83,10 @@ def convert_to_list_of_dicts(
     if len(set(lengths.values())) > 1:
         msg = f"All the sequences must have the same length, but received lengths {lengths}"
         raise ValueError(msg)
-    return [dict(zip(mapping_of_seqs, seqs)) for seqs in zip(*mapping_of_seqs.values())]
+    return [
+        dict(zip(mapping_of_seqs, seqs, strict=True))
+        for seqs in zip(*mapping_of_seqs.values(), strict=True)
+    ]
 
 
 def convert_to_jsonable(data: Any) -> Any:

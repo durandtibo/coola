@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import OrderedDict
-from typing import TYPE_CHECKING, Any, NoReturn
+from typing import TYPE_CHECKING, Any, Never
 
 import pytest
 
@@ -79,7 +79,7 @@ def test_mapping_transformer_transform_with_identity_function(
 def test_mapping_transformer_transform_with_exception_in_function(
     registry: TransformerRegistry,
 ) -> None:
-    def failing_func(x: Any) -> NoReturn:
+    def failing_func(x: Any) -> Never:
         msg = f"Test error {x}"
         raise ValueError(msg)
 

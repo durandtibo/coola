@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["check_torch", "is_torch_available", "raise_torch_missing_error", "torch_available"]
 
 from functools import lru_cache
-from typing import TYPE_CHECKING, Any, NoReturn, TypeVar
+from typing import TYPE_CHECKING, Any, Never, TypeVar
 
 from coola.utils.imports.universal import (
     decorator_package_available,
@@ -78,7 +78,7 @@ def torch_available(fn: F) -> F:
     return decorator_package_available(fn, is_torch_available)
 
 
-def raise_torch_missing_error() -> NoReturn:
+def raise_torch_missing_error() -> Never:
     r"""Raise a ``RuntimeError`` to indicate the ``torch`` package is
     missing.
 

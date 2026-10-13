@@ -14,13 +14,13 @@ from __future__ import annotations
 __all__ = ["make_fake_class", "make_fake_function", "make_fake_module"]
 
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, NoReturn
+from typing import TYPE_CHECKING, Any, Never
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-def make_fake_class(raise_error: Callable[[], NoReturn]) -> type:
+def make_fake_class(raise_error: Callable[[], Never]) -> type:
     r"""Create a fake class whose constructor raises the given "missing
     dependency" error.
 
@@ -50,7 +50,7 @@ def make_fake_class(raise_error: Callable[[], NoReturn]) -> type:
     )
 
 
-def make_fake_function(raise_error: Callable[[], NoReturn]) -> Callable[..., NoReturn]:
+def make_fake_function(raise_error: Callable[[], Never]) -> Callable[..., Never]:
     r"""Create a fake function that raises the given "missing dependency"
     error when called.
 
@@ -64,7 +64,7 @@ def make_fake_function(raise_error: Callable[[], NoReturn]) -> Callable[..., NoR
         installed. Calling it raises the given error.
     """
 
-    def fake_function(*args: Any, **kwargs: Any) -> NoReturn:  # noqa: ARG001
+    def fake_function(*args: Any, **kwargs: Any) -> Never:  # noqa: ARG001
         raise_error()
 
     return fake_function

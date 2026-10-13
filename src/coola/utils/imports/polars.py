@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["check_polars", "is_polars_available", "polars_available", "raise_polars_missing_error"]
 
 from functools import lru_cache
-from typing import TYPE_CHECKING, Any, NoReturn, TypeVar
+from typing import TYPE_CHECKING, Any, Never, TypeVar
 
 from coola.utils.imports.universal import (
     decorator_package_available,
@@ -78,7 +78,7 @@ def polars_available(fn: F) -> F:
     return decorator_package_available(fn, is_polars_available)
 
 
-def raise_polars_missing_error() -> NoReturn:
+def raise_polars_missing_error() -> Never:
     r"""Raise a ``RuntimeError`` to indicate the ``polars`` package is
     missing.
 
