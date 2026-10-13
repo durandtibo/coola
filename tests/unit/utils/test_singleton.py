@@ -240,8 +240,31 @@ def test_load_registry_plugins_strict_mode_raises(
 ) -> None:
     monkeypatch.setenv(STRICT_PLUGINS_ENV_VAR, value)
     _patch_entry_points(monkeypatch, [_FakeEntryPoint("bad", _broken)])
-    with pytest.raises(RuntimeError, match="boom"):
+    with pytest.raises(ExceptionGroup) as exc_info:
         load_registry_plugins({}, "grp")
+    (error,) = exc_info.value.exceptions
+    assert isinstance(error, RuntimeError)
+    assert "boom" in str(error)
+    assert "plugin 'bad' of group 'grp'" in error.__notes__[0]
+
+
+def test_load_registry_plugins_strict_mode_reports_all_failures(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv(STRICT_PLUGINS_ENV_VAR, "1")
+    _patch_entry_points(
+        monkeypatch,
+        [
+            _FakeEntryPoint("bad1", _broken),
+            _FakeEntryPoint("ok", lambda r: r.update(p=1)),
+            _FakeEntryPoint("bad2", _broken),
+        ],
+    )
+    registry: dict = {}
+    with pytest.raises(ExceptionGroup) as exc_info:
+        load_registry_plugins(registry, "grp")
+    assert len(exc_info.value.exceptions) == 2
+    assert registry == {"p": 1}
 
 
 @pytest.mark.parametrize("value", ["", "0", "false", "FALSE"])

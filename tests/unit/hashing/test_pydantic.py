@@ -237,6 +237,12 @@ def test_unwrap_secrets_scalar_passthrough() -> None:
     assert unwrap_secrets(None, on_secret="error") is None
 
 
+@pydantic_available
+def test_unwrap_secrets_unhandled_on_secret() -> None:
+    with pytest.raises(AssertionError):
+        unwrap_secrets(SecretStr("hunter2"), on_secret="invalid")  # type: ignore[arg-type]
+
+
 # --- on_secret="reveal" ---
 
 

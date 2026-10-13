@@ -141,7 +141,9 @@ def load_registry_plugins(registry: object, group: str) -> None:
     load or run emits a ``RuntimeWarning`` and is skipped, so one broken
     plugin cannot break coola. The failure is also logged with its
     traceback. If the ``COOLA_STRICT_PLUGINS`` environment variable is
-    set (e.g. in CI), the exception is re-raised instead.
+    set (e.g. in CI), every plugin is still attempted and all failures
+    are then raised together as an ``ExceptionGroup``, each annotated
+    with the plugin name and group.
 
     Args:
         registry: The registry passed to each plugin.
@@ -155,8 +157,12 @@ def load_registry_plugins(registry: object, group: str) -> None:
 
         ```
     """
+    errors: list[Exception] = []
     for entry_point in entry_points(group=group):
-        _load_plugin(entry_point, registry, group)
+        _load_plugin(entry_point, registry, group, errors)
+    if errors:
+        msg = f"Failed to load {len(errors)} plugin(s) of group {group!r}"
+        raise ExceptionGroup(msg, errors)
 
 
 def _strict_plugins() -> bool:
@@ -164,17 +170,22 @@ def _strict_plugins() -> bool:
     return os.environ.get(STRICT_PLUGINS_ENV_VAR, "").strip().lower() not in {"", "0", "false"}
 
 
-def _load_plugin(entry_point: EntryPoint, registry: object, group: str) -> None:
+def _load_plugin(
+    entry_point: EntryPoint, registry: object, group: str, errors: list[Exception]
+) -> None:
     r"""Load one plugin and apply it to the registry.
 
     A failure is logged with its traceback and reported as a
-    ``RuntimeWarning``, or re-raised in strict mode.
+    ``RuntimeWarning``, or, in strict mode, annotated with a note and
+    appended to ``errors`` so the caller can raise them together.
     """
     try:
         entry_point.load()(registry)
     except Exception as exc:
         if _strict_plugins():
-            raise
+            exc.add_note(f"while loading plugin {entry_point.name!r} of group {group!r}")
+            errors.append(exc)
+            return
         logger.error(
             f"Failed to load plugin {entry_point.name!r} of group {group!r}", exc_info=True
         )
