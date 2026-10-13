@@ -14,7 +14,7 @@ __all__ = [
 
 from collections.abc import Mapping, Sequence, Set as AbstractSet
 from functools import lru_cache
-from typing import TYPE_CHECKING, Any, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Literal, TypeVar, assert_never, cast
 
 from coola.equality import objects_are_equal
 from coola.recursive import (
@@ -33,7 +33,7 @@ T = TypeVar("T")
 
 def flatten_mapping(
     mapping: Mapping[Any, Mapping[Any, Any]],
-    on_duplicate: str = "raise",
+    on_duplicate: Literal["raise", "first", "last", "prefix"] = "raise",
     always_prefix: bool = False,
     separator: str = ".",
 ) -> dict[Any, Any]:
@@ -125,6 +125,8 @@ def flatten_mapping(
                 seen[inner_key] = value
                 out[inner_key] = value
                 continue
+            if on_duplicate != "prefix":
+                assert_never(on_duplicate)
 
             # Re-key the first occurrence too, the first time a real
             # conflict is found for this inner key.
@@ -211,7 +213,8 @@ def get_first_value(data: Mapping[Any, T]) -> T:
 
 
 def merge_mappings(
-    mappings: Iterable[Mapping[Any, Any]], on_duplicate: str = "raise"
+    mappings: Iterable[Mapping[Any, Any]],
+    on_duplicate: Literal["raise", "first", "last", "suffix"] = "raise",
 ) -> dict[Any, Any]:
     r"""Merge an iterable of mappings into a single dict.
 
@@ -284,7 +287,8 @@ def merge_mappings(
                 out[key] = value
             elif on_duplicate == "suffix":
                 out[f"{key}_{counts[key] - 1}"] = value
-            # on_duplicate == "first" -> keep existing value, do nothing
+            elif on_duplicate != "first":  # "first" keeps the existing value
+                assert_never(on_duplicate)
 
     return out
 

@@ -6,7 +6,7 @@ from __future__ import annotations
 __all__ = ["PydanticModelHasher", "hash_pydantic_model", "unwrap_secrets"]
 
 import json
-from typing import TYPE_CHECKING, Any, Literal, cast
+from typing import TYPE_CHECKING, Any, Literal, assert_never, cast
 
 from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
@@ -166,11 +166,13 @@ def unwrap_secrets(
                 "dict/list to drop it from."
             )
             raise ValueError(msg)
-        msg = (
-            "Encountered a SecretStr/SecretBytes field while hashing; "
-            "pass on_secret='reveal' or on_secret='exclude' to hash_model()."
-        )
-        raise ValueError(msg)
+        if on_secret == "error":  # noqa: S105
+            msg = (
+                "Encountered a SecretStr/SecretBytes field while hashing; "
+                "pass on_secret='reveal' or on_secret='exclude' to hash_model()."
+            )
+            raise ValueError(msg)
+        assert_never(on_secret)
 
     if isinstance(value, dict):
         result: dict[Any, Any] = {}
