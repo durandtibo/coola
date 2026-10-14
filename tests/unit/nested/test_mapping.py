@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Self
+from collections import OrderedDict
+from typing import NamedTuple, Self
 
 import pytest
 
@@ -510,8 +511,6 @@ def test_remove_keys_if_nested_set() -> None:
 
 
 def test_remove_keys_if_preserves_mapping_type() -> None:
-    from collections import OrderedDict
-
     out = remove_keys_if(
         OrderedDict(key=1, abc=2), lambda key: isinstance(key, str) and "key" in key
     )
@@ -520,8 +519,6 @@ def test_remove_keys_if_preserves_mapping_type() -> None:
 
 
 def test_remove_keys_if_preserves_namedtuple() -> None:
-    from typing import NamedTuple
-
     class Point(NamedTuple):
         x: int
         y: dict

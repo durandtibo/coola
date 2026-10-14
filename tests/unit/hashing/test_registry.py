@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Any
 
 import pytest
@@ -153,8 +154,6 @@ def test_hasher_registry_find_hasher_most_specific() -> None:
 
 
 def test_hasher_registry_find_hasher_abc_not_in_mro() -> None:
-    from collections.abc import Sequence
-
     # Sequence is an ABC not in list.__mro__, so list falls back to object.
     registry = HasherRegistry({object: ReprHasher(), Sequence: SequenceHasher()})
     assert isinstance(registry.find_hasher(list), ReprHasher)

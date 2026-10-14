@@ -6,6 +6,7 @@ from collections import OrderedDict
 
 import pytest
 
+import coola.equality as eq
 from coola.equality import (
     ComparisonResult,
     assert_objects_allclose,
@@ -351,8 +352,6 @@ def test_assert_objects_allclose_negative_tolerance(name: str) -> None:
 
 
 def test_public_exports() -> None:
-    import coola.equality as eq
-
     for name in ["ComparisonResult", "assert_objects_allclose", "assert_objects_equal", "compare"]:
         assert name in eq.__all__
         assert hasattr(eq, name)
