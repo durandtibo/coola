@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import abc
 from typing import TYPE_CHECKING, cast
 
 import pytest
 
-from coola.registry import TypeRegistry
+from coola.registry import TypeNotRegisteredError, TypeRegistry
 
 if TYPE_CHECKING:
     import threading
@@ -483,7 +484,6 @@ def test_type_registry_registry_with_int_keys() -> None:
 def test_type_registry_resolve_does_not_match_abc_virtual_subclass() -> None:
     """Test that resolve() does not follow ABC virtual subclass
     registration, since it only walks __mro__ (static inheritance)."""
-    import abc
 
     class MyABC(abc.ABC):  # noqa: B024
         pass
@@ -506,7 +506,6 @@ def test_type_registry_resolve_abc_virtual_subclass_registered_after_lookup() ->
     has already been resolved does not retroactively make resolve()
     match the virtual subclass (the cache is not the cause: even an
     uncached lookup does not follow virtual subclass relationships)."""
-    import abc
 
     class MyABC(abc.ABC):  # noqa: B024
         pass
@@ -530,8 +529,6 @@ def test_type_registry_resolve_abc_virtual_subclass_registered_after_lookup() ->
 
 
 def test_type_registry_resolve_raises_type_not_registered_error() -> None:
-    from coola.registry import TypeNotRegisteredError
-
     registry = TypeRegistry[str]()
     registry.register(str, "string")
     with pytest.raises(TypeNotRegisteredError, match=r"MRO: int, object") as exc_info:
