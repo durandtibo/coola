@@ -4,10 +4,10 @@ Date: 2026-10-12 · Branch: `main` · ruff 0.17.0 · Python ≥ 3.11 (`requires-
 
 ## Summary
 
-- 164 `# noqa` directives in Python code (`src/` = 54, `tests/` = 110). One more mention is in a docstring (`equality/handler/base.py:89`), and some are in generated `docs/site/`, which is not source.
+- 161 `# noqa` directives in Python code (`src/` = 51, `tests/` = 110). One more mention is in a docstring (`equality/handler/base.py:89`), and some are in generated `docs/site/`, which is not source.
 - **No directive is unused.** `ruff check --extend-select RUF100 --no-fix .` passes, so nothing can be deleted blindly.
 - No file-level or blanket `# noqa` is used. Every directive names a rule code, which is good.
-- About **107 of the 164 (~65%) can be removed** with a few config changes and small refactors. The remaining 57 are justified or need a policy decision (see below).
+- About **104 of the 161 (~65%) can be removed** with a few config changes and small refactors. The remaining 57 are justified or need a policy decision (see below).
 - Raising the minimum Python version from 3.10 to 3.11 did not change any directive: none of them depended on 3.10 behaviour, and `UP007` still fires for `Union[...]` because `X | Y` has been available since 3.10. Since the previous review, `PERF203` is no longer needed (the lock-retry loop in `io/base.py` no longer triggers it), and `src/` gained one `ARG001` pair in `utils/fallback/factory.py` that was previously not counted.
 
 (Note: `ruff check --select RUF100` alone wrongly reports all directives as unused, because it disables every other rule. Always use `--extend-select`.)
@@ -24,7 +24,6 @@ Date: 2026-10-12 · Branch: `main` · ruff 0.17.0 · Python ≥ 3.11 (`requires-
 | ARG001 / ARG005 (unused function / lambda arg)    | 6 / 4  | 2 / 0                 | 4 / 4     | Keep in `src`. Ignore `ARG` in tests.    |
 | ANN001 / ANN201                                   | 6 / 1  | 0                     | 7         | Ignore in tests, or add annotations      |
 | PT012 (`pytest.raises` with multi-statement body) | 5      | 0                     | 5         | Fix by restructuring                     |
-| PLW1641 (`__eq__` without `__hash__`)             | 3      | 3                     | 0         | Fix once on the base class               |
 | S603                                              | 2      | 1                     | 1         | Keep (subprocess calls)                  |
 | PTH108                                            | 2      | 0                     | 2         | Keep (deliberate `os.unlink` patch)      |
 | PLC0415 (import outside top level)                | 2      | 2                     | 0         | Keep (circular-import avoidance)         |
@@ -63,9 +62,9 @@ Recommendation: option 1 for `src`, unless the count grows. Do the per-file igno
 
 Pattern: `with (pytest.raises(...), seed_ctx()):` (parenthesized form, or the single-line `with a, b:` form in the `random` tests) followed by `msg = ...; raise ...`. The extra statement is just building the message. Fix by hoisting `msg = "Exception"` above the `with`, so the body is a single `raise RuntimeError(msg)`. That removes all 5 without a config change (`tests/unit/utils/test_path.py:229`, `tests/unit/utils/test_env_vars.py:266`, `tests/unit/random/test_{torch,numpy,interface}.py`).
 
-### 4. `PLW1641` (3, `random/{torch,random,numpy}.py`)
+### 4. `PLW1641` (fixed)
 
-`InlineDisplayMixin` + `BaseRandomManager` flag "defines `__eq__` without `__hash__`". Each of the three managers defines `__eq__` (`return type(other) is type(self)`), so the rule fires on the concrete class. Options: define `__hash__` in each class consistently with `__eq__` (e.g. `return hash(type(self))`), which removes the three directives but adds three methods, or set `__hash__ = None` if the managers are intentionally unhashable. Moving `__eq__` / `__hash__` to `BaseRandomManager` once would be cleanest, since the three implementations are identical.
+The three random managers (`random/{torch,random,numpy}.py`) defined `__eq__` (`type(other) is type(self)`) without `__hash__`. Each now defines `__hash__` returning `hash(type(self))`, consistent with `__eq__`, and the three directives are removed. `ruff check --preview --select PLW1641` is clean.
 
 ### 5. `S105` / `S107` in `src/coola/hashing/pydantic.py` (7)
 
@@ -85,10 +84,10 @@ False positives: the strings are _policy names_ (`"reveal"`, `"exclude"`, `"erro
 
 1. Extend `per-file-ignores` for `tests/**` with `ARG`, `ANN`, `S105`, `S106`, `S311`, `NPY002`, and `BLE001` for `tests/integration/**`. This removes ~99 directives with a small diff. Then run `ruff check --extend-select RUF100 --fix` to strip the now-unused comments.
 2. Hoist `msg` in the 5 `PT012` tests (−5).
-3. Fix `__hash__` once on the random manager base (−3).
+3. ~~Fix `__hash__` on the random managers (−3).~~ Done.
 4. Add a short reason to the kept directives (`# noqa: S301  # trusted local file`) and enable `RUF100` in the main `select` so stale directives are caught in CI. Ruff's `PGH004` already requires a code, so blanket noqa cannot sneak back in.
 
-Expected result: 164 → ~57 directives, all in `src/` except 6 justified ones in tests. Of the 51 in `src/`, 39 are `ARG001` / `ARG002` (shared interface signatures) and 7 are the `pydantic` `S105` / `S107` false positives.
+Expected result: 161 → ~57 directives, all in `src/` except 6 justified ones in tests. Of the 51 in `src/`, 39 are `ARG001` / `ARG002` (shared interface signatures) and 7 are the `pydantic` `S105` / `S107` false positives.
 
 ## Caveats
 

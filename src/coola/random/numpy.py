@@ -20,7 +20,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.numpy import numpy as np
 
 
-class NumpyRandomManager(InlineDisplayMixin, BaseRandomManager):  # noqa: PLW1641
+class NumpyRandomManager(InlineDisplayMixin, BaseRandomManager):
     r"""Implement a random manager for the library ``numpy``.
 
     The seed must be between ``0`` and ``2**32 - 1``, so a modulo
@@ -44,6 +44,9 @@ class NumpyRandomManager(InlineDisplayMixin, BaseRandomManager):  # noqa: PLW164
 
     def __eq__(self, other: object) -> bool:
         return type(other) is type(self)
+
+    def __hash__(self) -> int:
+        return hash(type(self))
 
     def get_rng_state(self) -> tuple[Any, ...]:
         return np.random.get_state()

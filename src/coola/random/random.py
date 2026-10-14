@@ -12,7 +12,7 @@ from coola.display import InlineDisplayMixin
 from coola.random.base import BaseRandomManager
 
 
-class RandomRandomManager(InlineDisplayMixin, BaseRandomManager):  # noqa: PLW1641
+class RandomRandomManager(InlineDisplayMixin, BaseRandomManager):
     r"""Implement a random manager for the python standard library
     ``random``.
 
@@ -30,6 +30,9 @@ class RandomRandomManager(InlineDisplayMixin, BaseRandomManager):  # noqa: PLW16
 
     def __eq__(self, other: object) -> bool:
         return type(other) is type(self)
+
+    def __hash__(self) -> int:
+        return hash(type(self))
 
     def get_rng_state(self) -> tuple[Any, ...]:
         return random.getstate()
