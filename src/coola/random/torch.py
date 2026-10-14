@@ -20,7 +20,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.torch import torch
 
 
-class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):  # noqa: PLW1641
+class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):
     r"""Implement a random manager for the library ``torch``.
 
     Example:
@@ -40,6 +40,9 @@ class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):  # noqa: PLW164
 
     def __eq__(self, other: object) -> bool:
         return type(other) is type(self)
+
+    def __hash__(self) -> int:
+        return hash(type(self))
 
     def get_rng_state(self) -> dict[str, Any]:
         return {
