@@ -45,6 +45,18 @@ def test_numpy_random_manager__eq__false_different_type_child() -> None:
 
 
 @numpy_available
+def test_numpy_random_manager__hash__() -> None:
+    assert hash(NumpyRandomManager()) == hash(NumpyRandomManager())
+
+
+@numpy_available
+def test_numpy_random_manager__hash__different_type_child() -> None:
+    class Child(NumpyRandomManager): ...
+
+    assert hash(NumpyRandomManager()) != hash(Child())
+
+
+@numpy_available
 def test_numpy_random_manager_get_rng_state() -> None:
     rng = NumpyRandomManager()
     state = rng.get_rng_state()

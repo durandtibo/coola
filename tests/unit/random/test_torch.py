@@ -45,6 +45,18 @@ def test_torch_random_manager__eq__false_different_type_child() -> None:
 
 
 @torch_available
+def test_torch_random_manager__hash__() -> None:
+    assert hash(TorchRandomManager()) == hash(TorchRandomManager())
+
+
+@torch_available
+def test_torch_random_manager__hash__different_type_child() -> None:
+    class Child(TorchRandomManager): ...
+
+    assert hash(TorchRandomManager()) != hash(Child())
+
+
+@torch_available
 def test_torch_random_manager_get_rng_state() -> None:
     rng = TorchRandomManager()
     state = rng.get_rng_state()
