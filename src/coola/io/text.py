@@ -4,11 +4,13 @@ from __future__ import annotations
 
 __all__ = ["TextLoader", "TextSaver", "load_text", "save_text"]
 
-from pathlib import Path
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from coola.display import InlineDisplayMixin
 from coola.io.base import BaseFileSaver, BaseLoader
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 T = TypeVar("T")
 
@@ -50,7 +52,7 @@ class TextLoader(InlineDisplayMixin, BaseLoader[str]):
         return self._encoding == other._encoding
 
     def load(self, path: Path) -> str:
-        with Path.open(path, encoding=self._encoding) as file:
+        with path.open(encoding=self._encoding) as file:
             return file.read()
 
 
@@ -93,7 +95,7 @@ class TextSaver(InlineDisplayMixin, BaseFileSaver[str]):
         return self._encoding == other._encoding
 
     def _save_file(self, to_save: str, path: Path) -> None:
-        with Path.open(path, mode="w", encoding=self._encoding) as file:
+        with path.open(mode="w", encoding=self._encoding) as file:
             file.write(str(to_save))
 
 

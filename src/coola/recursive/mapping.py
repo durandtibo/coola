@@ -5,10 +5,11 @@ from __future__ import annotations
 __all__ = ["MappingTransformer"]
 
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
 from coola.recursive.base import BaseTransformer
+from coola.utils.introspection import get_type_constructor
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -67,5 +68,5 @@ class MappingTransformer(InlineDisplayMixin, BaseTransformer[Mapping[Any, Any]])
         transformed = {key: registry.transform(value, func) for key, value in data.items()}
 
         # Rebuild with original type to preserve mapping characteristics
-        data_type = cast("Callable[..., Any]", type(data))
+        data_type = get_type_constructor(data)
         return data_type(transformed)

@@ -139,7 +139,7 @@ workflows was done afterwards; its extra findings are in section 4.
 Found by grepping and reading all of `src/` (207 files), plus `tests/`, `dev/`, `debug/`,
 `pyproject.toml` and the workflows. All of these work on 3.11. Ordered by value/effort.
 
-### A. `Path.open(path, ...)` → `path.open(...)` (6 sites)
+### A. `Path.open(path, ...)` → `path.open(...)` (6 sites) — Done
 
 `io/text.py:53,96`, `io/json.py:46,90`, `io/pickle.py:51,89` call the unbound method
 `Path.open(path, mode=...)`. It works but reads oddly and bypasses subclass dispatch. Use
@@ -147,7 +147,11 @@ Found by grepping and reading all of `src/` (207 files), plus `tests/`, `dev/`, 
 special handling). Add an `encoding=` to any text open that lacks one (`EncodingWarning`
 is a 3.10+ check; `PLW1514` in ruff enforces it).
 
-### B. Reduce the `cast(...)` workarounds (19 casts)
+### B. Reduce the `cast(...)` workarounds (19 casts) — Partly done
+
+Done: the four `cast("Callable[..., Any]", type(data))` copies in `recursive/` now use the new
+`utils.introspection.get_type_constructor`. The other casts (optional-dependency `cast("Any", ...)`)
+were left: they are needed by `ty` and removing them is a separate experiment.
 
 `equality/handler/pandas.py:137-180`, `equality/tester/interface.py:330`,
 `equality/tester/jax.py:107`, `utils/tensor.py:112` and `display/pydantic.py:73` use
@@ -157,7 +161,7 @@ once `ty` runs clean (see follow-up 2); some may be removable. The
 `cast("Callable[..., Any]", type(data))` pattern repeated in `recursive/{set,sequence,mapping,key}.py`
 could become one shared helper (or a `Protocol` with `__call__`) instead of four copies.
 
-### C. `typing.Union` in `factory/config.py`
+### C. `typing.Union` in `factory/config.py` — Reviewed, kept
 
 `factory/config.py:14,55` imports `Union` only to compare `get_origin(target)` with
 `(Union, UnionType)`. That is correct and must stay for `typing.Union[...]` annotations

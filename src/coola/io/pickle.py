@@ -5,12 +5,14 @@ from __future__ import annotations
 __all__ = ["PickleLoader", "PickleSaver", "load_pickle", "save_pickle"]
 
 import pickle
-from pathlib import Path
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from coola.display import InlineDisplayMixin
 from coola.equality.interface import objects_are_equal
 from coola.io.base import BaseFileSaver, BaseLoader
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 T = TypeVar("T")
 
@@ -48,7 +50,7 @@ class PickleLoader(InlineDisplayMixin, BaseLoader[T]):
         return type(other) is type(self)
 
     def load(self, path: Path) -> T:
-        with Path.open(path, mode="rb") as file:
+        with path.open(mode="rb") as file:
             return pickle.load(file)  # noqa: S301
 
 
@@ -86,7 +88,7 @@ class PickleSaver(InlineDisplayMixin, BaseFileSaver[T]):
         return objects_are_equal(self._kwargs, other._kwargs, equal_nan=equal_nan)
 
     def _save_file(self, to_save: T, path: Path) -> None:
-        with Path.open(path, mode="wb") as file:
+        with path.open(mode="wb") as file:
             pickle.dump(to_save, file, **self._kwargs)
 
 
