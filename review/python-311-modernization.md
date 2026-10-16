@@ -232,10 +232,10 @@ appears only twice in `snowflake.py`, not worth a helper.
 - `io/utils.py:41-48` builds the extension with `"".join(path.suffixes)[1:]` and then slices
   the name by length. Using `path.name.removesuffix(extension)` (3.9+) is clearer.
 - `utils/format.py:136,168,286,318` repeat `sorted(mapping.items()) if sorted_keys else
-  mapping.items()` four times; extract a helper.
+mapping.items()` four times; extract a helper.
 - `equality/handler/mixin.py:117`, `equality/tester/handler.py:62`, `registry/base.py:180`
   and `summary/collection.py:64` repeat `type(other) is not type(self) or not
-  isinstance(other, type(self))`. The second clause is redundant once the first holds;
+isinstance(other, type(self))`. The second clause is redundant once the first holds;
   keep one.
 - `nested/mapping.py:212` `data[next(iter(data))]` can be `next(iter(data.values()))`.
 - `identifier/*`: `time.time_ns() // 1_000_000` appears three times (`snowflake.py`);
