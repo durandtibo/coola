@@ -4,16 +4,23 @@ Scope: `src/coola` (207 files) after the bump to `requires-python = ">=3.11"`
 (`target-version = "py311"` in ruff).
 
 Method: grep-based checks plus reading the relevant code. After implementing the changes
-below I ran `ruff check`, `ruff format` and the unit tests (all pass). **mypy is not
-installed here and the repo has no type-checker config, so none of the typing changes
-(`Literal`, `assert_never`, `Never`) have been type-checked.**
+below I ran `ruff check`, `ruff format` and the unit tests (all pass). **The typing
+changes (`Literal`, `assert_never`, `Never`) were not type-checked in that session.** The
+repo does have a type checker, [`ty`](https://github.com/astral-sh/ty) (`[tool.ty.src]` in
+`pyproject.toml`, run by `.github/workflows/ci-type-checking.yaml` plus `inv types.check`),
+so run `ty check` to verify them (the earlier version of this document wrongly said there
+was none).
 
 The codebase was already modern: `from __future__ import annotations` + `X | Y`
 everywhere, no `typing.List/Dict/Tuple`, no `typing_extensions`, no `sys.version_info`
 branches, no `os.path`. The wins were small.
 
 Note: PEP 695 syntax (`class Foo[T]`, `type X = ...`) is **3.12**, so the ~94
-`TypeVar(...)` declarations must stay until the floor moves to 3.12.
+`TypeVar(...)` declarations (51 real ones, in 14 `Generic[...]` classes and many generic
+functions) must stay until the floor moves to 3.12.
+
+A second full pass over `src/`, `tests/`, `dev/`, `debug/`, `pyproject.toml` and the CI
+workflows was done afterwards; its extra findings are in section 4.
 
 ## Status summary
 
@@ -107,13 +114,14 @@ Note: PEP 695 syntax (`class Foo[T]`, `type X = ...`) is **3.12**, so the ~94
 
 1. **CI Python matrix.** It is read from the external `durandtibo/workflow-config-action`
    (see `.github/workflows/lib-get-test-matrix.yaml`), so it is not in this repo. Confirm
-   that shared config no longer lists 3.10. `pyproject.toml` classifiers (3.11–3.14) and the
+   that shared config no longer lists 3.10. `pyproject.toml` classifiers (3.11–3.15) and the
    README `main` row (`>=3.11`) are already correct.
-2. **Configure a type checker.** `pyproject.toml` has no mypy/pyright section and CI does
-   not appear to run one. Without it, `assert_never`, the new `Literal` parameters and
-   `Never` are not enforced. Adding mypy (or pyright) with `python_version = "3.11"` would
-   make these changes pay off, and would also check the `# type: ignore[arg-type]` comments
-   in the new tests.
+2. **Run `ty check` against the typing changes.** A type checker is already configured
+   (`ty`, CI job "Type Checking"), so no new tool is needed. Confirm that `ty` passes with the
+   `assert_never`, `Literal` and `Never` changes, and that the `# type: ignore[arg-type]`
+   comments in the new tests are understood by `ty` (it honours `# type: ignore` but prefers
+   `# ty: ignore[...]`). `[tool.ty]` has no `environment.python-version`; add
+   `python-version = "3.11"` so `ty` checks against the floor and not the interpreter in use.
 3. **Simplify the `_PassesValidationOnly` test helper.** It is a hack needed only because
    `nested/mapping.py` validates `on_duplicate` up front _and_ has a defensive branch. One
    option is to drop the up-front set check and let the final `else: assert_never` /
@@ -122,11 +130,125 @@ Note: PEP 695 syntax (`class Foo[T]`, `type X = ...`) is **3.12**, so the ~94
    becomes a burden.
 4. **Prepare for 3.12 (when the floor moves).** Convert `TypeVar` declarations and
    `Generic[...]` classes to PEP 695 syntax, use `type X = ...` aliases, add
-   `@typing.override` on the many `abstractmethod` implementations (44 abstract methods),
+   `@typing.override` on the implementations of the 33 `@abstractmethod`s (none use it today),
    and consider `itertools.batched` for `utils.batching.batchify` (it would still need the
    `size >= 1` validation and a tuple-yielding wrapper).
 
+## 4. Additional suggestions from a full-codebase pass
+
+Found by grepping and reading all of `src/` (207 files), plus `tests/`, `dev/`, `debug/`,
+`pyproject.toml` and the workflows. All of these work on 3.11. Ordered by value/effort.
+
+### A. `Path.open(path, ...)` → `path.open(...)` (6 sites)
+
+`io/text.py:53,96`, `io/json.py:46,90`, `io/pickle.py:51,89` call the unbound method
+`Path.open(path, mode=...)`. It works but reads oddly and bypasses subclass dispatch. Use
+`path.open(...)` (or `path.read_text/write_text/read_bytes/write_bytes` where there is no
+special handling). Add an `encoding=` to any text open that lacks one (`EncodingWarning`
+is a 3.10+ check; `PLW1514` in ruff enforces it).
+
+### B. Reduce the `cast(...)` workarounds (19 casts)
+
+`equality/handler/pandas.py:137-180`, `equality/tester/interface.py:330`,
+`equality/tester/jax.py:107`, `utils/tensor.py:112` and `display/pydantic.py:73` use
+`cast("Any", pd)` to silence the checker on optional dependencies. These are
+workarounds for optional dependencies, not 3.11 features. Review which are still needed
+once `ty` runs clean (see follow-up 2); some may be removable. The
+`cast("Callable[..., Any]", type(data))` pattern repeated in `recursive/{set,sequence,mapping,key}.py`
+could become one shared helper (or a `Protocol` with `__call__`) instead of four copies.
+
+### C. `typing.Union` in `factory/config.py`
+
+`factory/config.py:14,55` imports `Union` only to compare `get_origin(target)` with
+`(Union, UnionType)`. That is correct and must stay for `typing.Union[...]` annotations
+coming from user code, so keep it, but make the intent explicit (the comment already
+says so). No other `Optional`/`Union`/`List`/`Dict` exist in `src/` or `tests/`.
+
+### D. Mark overrides with `@typing.override` — 3.12, but prepare now
+
+0 uses today across 33 abstract methods and every subclass of `BaseTester`, `BaseHasher`,
+`BaseTransformer`, `BaseLoader`/`BaseSaver`, `BaseReducer`, `BaseSummarizer`, `BaseHandler`,
+`BaseRandomManager` and the `Registry` classes. When the floor becomes 3.12 add `@override` from `typing`.
+Do not backport it with `typing_extensions` now: `dependencies = []` is a feature.
+
+### E. Dedupe the 11 `utils/imports/<pkg>.py` modules
+
+`numpy.py`, `torch.py`, `pandas.py`, `polars.py`, `jax.py`, `pyarrow.py`, `pydantic.py`,
+`packaging.py`, `colorlog.py`, `rich.py`, `xarray.py` are near-identical (96 lines each; they
+differ only in the package name and the `__all__` order). Each repeats `F = TypeVar("F",
+bound="Callable[..., Any]")`, a `@lru_cache(1)` availability check, `check_*`,
+`*_available`, `raise_*_missing_error`. A small factory in `utils/imports/universal.py`
+(for example `make_package_helpers("numpy")`) would remove ~1000 lines. This is not purely
+a modernization item, but it is the largest remaining duplication. On 3.12 the repeated
+`F` becomes `ParamSpec`-based (`def decorator[**P, R](fn: Callable[P, R]) -> Callable[P, R | None]`),
+which also removes the `cast("F", inner)` in `universal.py:136`. On 3.11 the same can be
+done now with `ParamSpec` + `TypeVar` from `typing` (3.10+); the `@wraps` wrapper then returns
+`Callable[P, R | None]`, which is truthfully typed because the wrapper returns `None` when
+the package is missing. The current `F`-typed signature claims the return type is unchanged.
+
+### F. `@functools.cache` for the remaining zero-argument `@lru_cache(1)` (11 files)
+
+The doc's section 1 item 7 converted 7 sites, but all the `utils/imports/<pkg>.py` files still
+use `@lru_cache(1)` (`pyarrow`, `pandas`, `numpy`, `torch_numpy`, `polars`, `pydantic`,
+`packaging`, `jax`, `torch`, `colorlog`, `rich`, `xarray`). These are the same zero-argument
+case; switch to `@cache`. `utils/imports/universal.py:25,50` use bare `@lru_cache`
+(default `maxsize=128`) on functions taking a `str`; they are fine, but `UP033` /
+`FURB` would flag `@lru_cache(maxsize=None)` if it ever appears. Tests that call
+`cache_clear()` keep working.
+
+### G. Logging: lazy `%s` formatting instead of f-strings (7 sites)
+
+`io/base.py:84`, `utils/env_vars.py:58,60`, `equality/handler/native.py:174,205` and
+others pass an f-string to `logger.info/warning`. This formats the message even when the
+level is disabled; `logger.info("... %s", value)` defers it. Ruff `G004` flags it; the rule
+set `LOG` is on but `G` is not in `lint.select`. Enable `G` (flake8-logging-format). The
+`equality/handler/*.py` sites that call `format_value_difference(...)` eagerly are the
+hot ones: wrap in `if logger.isEnabledFor(logging.INFO):` or pass a lazy object, since they
+run on every mismatch during equality checks.
+
+### H. Small readability items
+
+- Time sources are already correct: `perf_counter` for elapsed time, `monotonic` for
+  deadlines, `time.time()` only where compared with file mtimes or ID timestamps.
+- `io/utils.py:41-48` builds the extension with `"".join(path.suffixes)[1:]` and then slices
+  the name by length. Using `path.name.removesuffix(extension)` (3.9+) is clearer.
+- `utils/format.py:136,168,286,318` repeat `sorted(mapping.items()) if sorted_keys else
+  mapping.items()` four times; extract a helper.
+- `equality/handler/mixin.py:117`, `equality/tester/handler.py:62`, `registry/base.py:180`
+  and `summary/collection.py:64` repeat `type(other) is not type(self) or not
+  isinstance(other, type(self))`. The second clause is redundant once the first holds;
+  keep one.
+- `nested/mapping.py:212` `data[next(iter(data))]` can be `next(iter(data.values()))`.
+- `identifier/*`: `time.time_ns() // 1_000_000` appears three times (`snowflake.py`);
+  extract a small `_now_ms()`.
+- `debug/equality_examples.py`: `logger.info(f"...")` and module-level conditional imports;
+  fine for a scratch script, excluded from the above.
+
+### I. Checked and nothing to change
+
+- `datetime`: already uses `datetime.UTC` (3.11) and `ZoneInfo`; no `utcnow`/`utcfromtimestamp`.
+- `contextlib`: `chdir` (3.11) is already used in `utils/path.py`; `suppress` is used in place
+  of `try/except/pass` everywhere.
+- `raise ... from`: all re-raises chain correctly (`from error`/`from None`).
+- `zip`: every call has `strict=`.
+- `dataclass`: only 2 dataclasses exist, both already `slots=True`. Plain classes with
+  `__init__` (`TimingResult`, `LRUCache`, the `random` managers) are mutable or define
+  custom `__eq__`/`__hash__`, so converting them gains nothing.
+- `Final`: used twice (`MAX_PASSWORD_LENGTH`, `DEFAULT_DATE_FORMAT`); other constants are
+  private `_UPPER_CASE` names and could take `Final` but ruff does not require it.
+- `Protocol`: 12 protocols, all already `runtime_checkable` where `isinstance` is used.
+- `TypeAlias`/`TypedDict`/`NamedTuple`/`Enum`: none, nothing to convert.
+- `tomllib`, `asyncio.TaskGroup`, `StrEnum`: no use case (see section 2).
+- Ruff `lint.select` already includes `UP`, `FURB`, `PERF`, `PTH`, `SIM`, `RUF`, `TC`, `LOG`,
+  `TRY`; `target-version = "py311"` is set. `G` (logging format) is the only
+  relevant family that is not selected (`FA` is already selected).
+- Tests: `tmp_path` fixtures and `monkeypatch` are used throughout; `tmpdir` and
+  `unittest.mock` appear in only 3 files (`tests/unit/io/test_utils.py`, `test_base.py`, guide).
+  `pytest.RaisesGroup` is used for the new plugin tests. No deprecated typing imports in tests.
+
 ## Suggested order for what remains
 
-1. Follow-ups 1 (confirm CI matrix) and 2 (type checker). They are cheap and verify the rest.
-2. Follow-up 4 when the project drops 3.11.
+1. Follow-ups 1 (confirm CI matrix) and 2 (`ty check`). They are cheap and verify the rest.
+2. Section 4, items A–C (cheap, behaviour-preserving, 3.11-compatible).
+3. Section 4, items D–H as time allows.
+4. Follow-up 4 when the project drops 3.11.
