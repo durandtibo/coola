@@ -27,7 +27,7 @@ logger: logging.Logger = logging.getLogger(__name__)
 
 
 def section(title: str) -> None:
-    logger.info(f"\n{'=' * 70}\n{title}\n{'=' * 70}")
+    logger.info("\n%s\n%s\n%s", "=" * 70, title, "=" * 70)
 
 
 def cases() -> list[tuple[str, object, object]]:
@@ -60,41 +60,42 @@ def cases() -> list[tuple[str, object, object]]:
 def main() -> None:
     section("objects_are_equal(..., show_difference=True)  -- messages are logged")
     for name, actual, expected in cases():
-        logger.info(f"\n# {name}")
-        logger.info(f"result: {objects_are_equal(actual, expected, show_difference=True)}")
+        logger.info("\n# %s", name)
+        logger.info("result: %s", objects_are_equal(actual, expected, show_difference=True))
 
     section("objects_are_allclose(..., show_difference=True)  -- atol=1e-5")
     for name, actual, expected in cases():
-        logger.info(f"\n# {name}")
+        logger.info("\n# %s", name)
         logger.info(
-            f"result: {objects_are_allclose(actual, expected, atol=1e-5, show_difference=True)}"
+            "result: %s",
+            objects_are_allclose(actual, expected, atol=1e-5, show_difference=True),
         )
 
     section("compare(...)  -- structured result (nothing is logged)")
     for name, actual, expected in cases():
         result = compare(actual, expected)
-        logger.info(f"\n# {name}")
-        logger.info(f"equal  : {bool(result)}")
-        logger.info(f"path   : {result.path!r}  ->  {result.format_path('data')!r}")
-        logger.info(f"reason : {result.reason}")
+        logger.info("\n# %s", name)
+        logger.info("equal  : %s", bool(result))
+        logger.info("path   : %r  ->  %r", result.path, result.format_path("data"))
+        logger.info("reason : %s", result.reason)
 
     section("assert_objects_equal(...)  -- AssertionError messages")
     for name, actual, expected in cases():
-        logger.info(f"\n# {name}")
+        logger.info("\n# %s", name)
         try:
             assert_objects_equal(actual, expected, root="data")
             logger.info("OK")
         except AssertionError as exc:
-            logger.info(f"AssertionError: {exc}")
+            logger.info("AssertionError: %s", exc)
 
     section("assert_objects_allclose(...)  -- AssertionError messages (atol=1e-2)")
     for name, actual, expected in cases():
-        logger.info(f"\n# {name}")
+        logger.info("\n# %s", name)
         try:
             assert_objects_allclose(actual, expected, atol=1e-2, root="data")
             logger.info("OK")
         except AssertionError as exc:
-            logger.info(f"AssertionError: {exc}")
+            logger.info("AssertionError: %s", exc)
 
 
 if __name__ == "__main__":
