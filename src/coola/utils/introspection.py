@@ -12,12 +12,16 @@ __all__ = [
     "check_not_lambda_function",
     "get_all_child_classes",
     "get_fully_qualified_name",
+    "get_type_constructor",
     "is_lambda_function",
     "supports_methods",
 ]
 
 import inspect
-from typing import Any
+from typing import TYPE_CHECKING, Any, cast
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 def check_not_lambda_function(obj: Any) -> None:
@@ -181,3 +185,27 @@ def is_lambda_function(obj: Any) -> bool:
     if not inspect.isfunction(obj):
         return False
     return obj.__name__ == "<lambda>"
+
+
+def get_type_constructor(obj: object) -> Callable[..., Any]:
+    r"""Get the type of an object as a generic callable.
+
+    Type checkers do not allow calling ``type(obj)`` with arbitrary
+    arguments. This helper centralizes the cast needed to rebuild an
+    object of the same type from new data.
+
+    Args:
+        obj: The object whose type is returned.
+
+    Returns:
+        The type of ``obj``, typed as a callable.
+
+    Example:
+        ```pycon
+        >>> from coola.utils.introspection import get_type_constructor
+        >>> get_type_constructor([1, 2])((3, 4))
+        [3, 4]
+
+        ```
+    """
+    return cast("Callable[..., Any]", type(obj))

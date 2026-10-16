@@ -5,10 +5,11 @@ from __future__ import annotations
 __all__ = ["SequenceTransformer"]
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
 from coola.recursive.base import BaseTransformer
+from coola.utils.introspection import get_type_constructor
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -76,7 +77,7 @@ class SequenceTransformer(InlineDisplayMixin, BaseTransformer[Sequence[Any]]):
         transformed = [registry.transform(item, func) for item in data]
 
         # Rebuild with original type
-        data_type = cast("Callable[..., Any]", type(data))
+        data_type = get_type_constructor(data)
         if isinstance(data, tuple) and hasattr(data, "_fields"):  # namedtuple special case
             return data_type(*transformed)
         return data_type(transformed)

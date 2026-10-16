@@ -5,12 +5,14 @@ from __future__ import annotations
 __all__ = ["JsonLoader", "JsonSaver", "load_json", "save_json"]
 
 import json
-from pathlib import Path
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from coola.display import InlineDisplayMixin
 from coola.equality.interface import objects_are_equal
 from coola.io.base import BaseFileSaver, BaseLoader
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 T = TypeVar("T")
 
@@ -43,7 +45,7 @@ class JsonLoader(InlineDisplayMixin, BaseLoader[T]):
         return type(other) is type(self)
 
     def load(self, path: Path) -> T:
-        with Path.open(path, mode="rb") as file:
+        with path.open(mode="rb") as file:
             return json.load(file)
 
 
@@ -87,7 +89,7 @@ class JsonSaver(InlineDisplayMixin, BaseFileSaver[T]):
         )
 
     def _save_file(self, to_save: T, path: Path) -> None:
-        with Path.open(path, mode="w", encoding=self._encoding) as file:
+        with path.open(mode="w", encoding=self._encoding) as file:
             json.dump(to_save, file, **self._kwargs)
 
 
