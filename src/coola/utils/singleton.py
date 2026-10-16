@@ -186,9 +186,7 @@ def _load_plugin(
             exc.add_note(f"while loading plugin {entry_point.name!r} of group {group!r}")
             errors.append(exc)
             return
-        logger.error(
-            f"Failed to load plugin {entry_point.name!r} of group {group!r}", exc_info=True
-        )
+        logger.exception("Failed to load plugin %r of group %r", entry_point.name, group)
         warnings.warn(
             f"Skipping plugin {entry_point.name!r} of group {group!r}: {exc!r}",
             RuntimeWarning,

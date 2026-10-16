@@ -175,8 +175,9 @@ class RandomManagerRegistry(MultilineDisplayMixin, BaseRandomManager):
         for key, value in state.items():
             if key not in self._state:
                 logger.warning(
-                    f"Ignoring RNG state for unregistered key {key!r}; "
-                    f"registered keys are {sorted(self._state.keys())}"
+                    "Ignoring RNG state for unregistered key %r; registered keys are %s",
+                    key,
+                    sorted(self._state.keys()),
                 )
                 continue
             self._state[key].set_rng_state(value)

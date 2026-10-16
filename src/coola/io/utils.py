@@ -43,7 +43,7 @@ def add_uuid_suffix(path: Path) -> Path:
     extension = "".join(path.suffixes)[1:]
     if extension:
         extension = "." + extension
-        stem = path.name[: -len(extension)]
+        stem = path.name.removesuffix(extension)
     else:
         stem = path.name
     return path.with_name(f"{stem}-{h}{extension}")

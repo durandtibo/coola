@@ -209,7 +209,7 @@ def get_first_value(data: Mapping[Any, T]) -> T:
     if not data:
         msg = "First value cannot be returned because the mapping is empty"
         raise ValueError(msg)
-    return data[next(iter(data))]
+    return next(iter(data.values()))
 
 
 def merge_mappings(

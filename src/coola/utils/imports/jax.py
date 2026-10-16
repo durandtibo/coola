@@ -4,7 +4,7 @@ from __future__ import annotations
 
 __all__ = ["check_jax", "is_jax_available", "jax_available", "raise_jax_missing_error"]
 
-from functools import lru_cache
+from functools import cache
 from typing import TYPE_CHECKING, Any, Never, TypeVar
 
 from coola.utils.imports.universal import (
@@ -36,7 +36,7 @@ def check_jax() -> None:
         raise_jax_missing_error()
 
 
-@lru_cache(1)
+@cache
 def is_jax_available() -> bool:
     r"""Indicate if the ``jax`` package is installed or not.
 

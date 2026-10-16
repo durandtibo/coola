@@ -4,7 +4,7 @@ from __future__ import annotations
 
 __all__ = ["check_polars", "is_polars_available", "polars_available", "raise_polars_missing_error"]
 
-from functools import lru_cache
+from functools import cache
 from typing import TYPE_CHECKING, Any, Never, TypeVar
 
 from coola.utils.imports.universal import (
@@ -36,7 +36,7 @@ def check_polars() -> None:
         raise_polars_missing_error()
 
 
-@lru_cache(1)
+@cache
 def is_polars_available() -> bool:
     r"""Indicate if the ``polars`` package is installed or not.
 

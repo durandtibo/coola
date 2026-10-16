@@ -9,7 +9,7 @@ __all__ = [
     "raise_pyarrow_missing_error",
 ]
 
-from functools import lru_cache
+from functools import cache
 from typing import TYPE_CHECKING, Any, Never, TypeVar
 
 from coola.utils.imports.universal import (
@@ -41,7 +41,7 @@ def check_pyarrow() -> None:
         raise_pyarrow_missing_error()
 
 
-@lru_cache(1)
+@cache
 def is_pyarrow_available() -> bool:
     r"""Indicate if the ``pyarrow`` package is installed or not.
 

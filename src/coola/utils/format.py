@@ -26,7 +26,7 @@ from typing import TYPE_CHECKING, Any
 from coola.validation import validate_non_negative, validate_positive
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Iterable, Mapping, Sequence
 
 BYTE_UNITS = {
     "B": 1,
@@ -133,7 +133,7 @@ def repr_mapping(mapping: Mapping[Any, Any], sorted_keys: bool = False, num_spac
         ```
     """
     lines: list[str] = []
-    for key, value in sorted(mapping.items()) if sorted_keys else mapping.items():
+    for key, value in _iter_items(mapping, sorted_keys):
         lines.append(f"({key}): {repr_indent(value, num_spaces=num_spaces)}")
     return "\n".join(lines)
 
@@ -165,8 +165,7 @@ def repr_mapping_line(
 
         ```
     """
-    items = sorted(mapping.items()) if sorted_keys else mapping.items()
-    return separator.join(f"{key}={value!r}" for key, value in items)
+    return separator.join(f"{key}={value!r}" for key, value in _iter_items(mapping, sorted_keys))
 
 
 def repr_sequence(sequence: Sequence[Any], num_spaces: int = 2) -> str:
@@ -283,7 +282,7 @@ def str_mapping(mapping: Mapping[Any, Any], sorted_keys: bool = False, num_space
         ```
     """
     lines: list[str] = []
-    for key, value in sorted(mapping.items()) if sorted_keys else mapping.items():
+    for key, value in _iter_items(mapping, sorted_keys):
         lines.append(f"({key}): {str_indent(value, num_spaces=num_spaces)}")
     return "\n".join(lines)
 
@@ -315,8 +314,7 @@ def str_mapping_line(
 
         ```
     """
-    items = sorted(mapping.items()) if sorted_keys else mapping.items()
-    return separator.join(f"{key}={value!s}" for key, value in items)
+    return separator.join(f"{key}={value!s}" for key, value in _iter_items(mapping, sorted_keys))
 
 
 def str_sequence(sequence: Sequence[Any], num_spaces: int = 2) -> str:
@@ -464,3 +462,8 @@ def find_best_byte_unit(size: int) -> str:
         if (size / multiplier) >= 1:
             best_unit = unit
     return best_unit
+
+
+def _iter_items(mapping: Mapping[Any, Any], sorted_keys: bool) -> Iterable[tuple[Any, Any]]:
+    r"""Return the items of a mapping, sorted by key if requested."""
+    return sorted(mapping.items()) if sorted_keys else mapping.items()

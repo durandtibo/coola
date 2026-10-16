@@ -4,7 +4,7 @@ from __future__ import annotations
 
 __all__ = ["check_numpy", "is_numpy_available", "numpy_available", "raise_numpy_missing_error"]
 
-from functools import lru_cache
+from functools import cache
 from typing import TYPE_CHECKING, Any, Never, TypeVar
 
 from coola.utils.imports.universal import (
@@ -36,7 +36,7 @@ def check_numpy() -> None:
         raise_numpy_missing_error()
 
 
-@lru_cache(1)
+@cache
 def is_numpy_available() -> bool:
     r"""Indicate if the ``numpy`` package is installed or not.
 

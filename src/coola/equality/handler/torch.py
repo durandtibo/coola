@@ -84,7 +84,7 @@ class TorchTensorSameDeviceHandler(HandlerEqualityMixin, BaseEqualityHandler):
         if actual.device != expected.device:
             if config.show_difference:
                 logger.info(
-                    f"torch.Tensors have different devices: {actual.device} vs {expected.device}"
+                    "torch.Tensors have different devices: %s vs %s", actual.device, expected.device
                 )
             return False
         return self._handle_next(actual, expected, config=config)
