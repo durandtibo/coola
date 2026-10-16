@@ -284,9 +284,6 @@ target-version = "py311"
 src = ["src"]
 
 [tool.ruff.lint.per-file-ignores]
-# Scratch and maintenance scripts.
-"debug/**" = ["G004"]
-"dev/**" = ["G004"]
 # Ignore all directories named `tests`.
 "tests/**" = [
   "D",    # pydocstyle
