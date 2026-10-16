@@ -168,29 +168,34 @@ could become one shared helper (or a `Protocol` with `__call__`) instead of four
 coming from user code, so keep it, but make the intent explicit (the comment already
 says so). No other `Optional`/`Union`/`List`/`Dict` exist in `src/` or `tests/`.
 
-### D. Mark overrides with `@typing.override` — 3.12, but prepare now
+### D. Mark overrides with `@typing.override` — Blocked (3.12)
 
 0 uses today across 33 abstract methods and every subclass of `BaseTester`, `BaseHasher`,
 `BaseTransformer`, `BaseLoader`/`BaseSaver`, `BaseReducer`, `BaseSummarizer`, `BaseHandler`,
 `BaseRandomManager` and the `Registry` classes. When the floor becomes 3.12 add `@override` from `typing`.
 Do not backport it with `typing_extensions` now: `dependencies = []` is a feature.
 
-### E. Dedupe the 11 `utils/imports/<pkg>.py` modules
+### E. Dedupe the 11 `utils/imports/<pkg>.py` modules — Decided against
 
 `numpy.py`, `torch.py`, `pandas.py`, `polars.py`, `jax.py`, `pyarrow.py`, `pydantic.py`,
 `packaging.py`, `colorlog.py`, `rich.py`, `xarray.py` are near-identical (96 lines each; they
 differ only in the package name and the `__all__` order). Each repeats `F = TypeVar("F",
 bound="Callable[..., Any]")`, a `@lru_cache(1)` availability check, `check_*`,
 `*_available`, `raise_*_missing_error`. A small factory in `utils/imports/universal.py`
-(for example `make_package_helpers("numpy")`) would remove ~1000 lines. This is not purely
-a modernization item, but it is the largest remaining duplication. On 3.12 the repeated
+(for example `make_package_helpers("numpy")`) would remove ~1000 lines. **Decision: not done.** The
+modules are the public, statically named API (`check_numpy`, `is_numpy_available`, ...) re-exported
+from `utils/imports/__init__.py`, with per-function docstrings and doctests. Generating them from a
+factory would hide those names from `ty` and IDEs and change the docs. Changing the decorator's
+return type to `Callable[P, R | None]` would also make every decorated function look `Optional` to
+callers. The duplication is the price of explicit names; revisit only with a stub-generating approach.
+Original note: this is not purely a modernization item, but it is the largest remaining duplication. On 3.12 the repeated
 `F` becomes `ParamSpec`-based (`def decorator[**P, R](fn: Callable[P, R]) -> Callable[P, R | None]`),
 which also removes the `cast("F", inner)` in `universal.py:136`. On 3.11 the same can be
 done now with `ParamSpec` + `TypeVar` from `typing` (3.10+); the `@wraps` wrapper then returns
 `Callable[P, R | None]`, which is truthfully typed because the wrapper returns `None` when
 the package is missing. The current `F`-typed signature claims the return type is unchanged.
 
-### F. `@functools.cache` for the remaining zero-argument `@lru_cache(1)` (11 files)
+### F. `@functools.cache` for the remaining zero-argument `@lru_cache(1)` (11 files) — Done
 
 The doc's section 1 item 7 converted 7 sites, but all the `utils/imports/<pkg>.py` files still
 use `@lru_cache(1)` (`pyarrow`, `pandas`, `numpy`, `torch_numpy`, `polars`, `pydantic`,
@@ -200,7 +205,12 @@ case; switch to `@cache`. `utils/imports/universal.py:25,50` use bare `@lru_cach
 `FURB` would flag `@lru_cache(maxsize=None)` if it ever appears. Tests that call
 `cache_clear()` keep working.
 
-### G. Logging: lazy `%s` formatting instead of f-strings (7 sites)
+### G. Logging: lazy `%s` formatting instead of f-strings (7 sites) — Done
+
+Done: 12 `src/` sites converted to lazy `%s` arguments, `logger.error(..., exc_info=True)` became
+`logger.exception(...)` in `utils/singleton.py`, and ruff `G` is enabled (with `G004` ignored for the
+`debug/` and `dev/` scripts). The `format_value_difference(...)` calls are already guarded by
+`config.show_difference`, so they were left as they are.
 
 `io/base.py:84`, `utils/env_vars.py:58,60`, `equality/handler/native.py:174,205` and
 others pass an f-string to `logger.info/warning`. This formats the message even when the
@@ -210,7 +220,12 @@ set `LOG` is on but `G` is not in `lint.select`. Enable `G` (flake8-logging-form
 hot ones: wrap in `if logger.isEnabledFor(logging.INFO):` or pass a lazy object, since they
 run on every mismatch during equality checks.
 
-### H. Small readability items
+### H. Small readability items — Mostly done
+
+Done: `_iter_items` helper in `utils/format.py`, `removesuffix` in `io/utils.py`,
+`next(iter(data.values()))` in `nested/mapping.py`. Not done: the `isinstance(other, type(self))` clause
+is redundant at runtime but narrows `other` for the type checker, so it stays; `time_ns() // 1_000_000`
+appears only twice in `snowflake.py`, not worth a helper.
 
 - Time sources are already correct: `perf_counter` for elapsed time, `monotonic` for
   deadlines, `time.time()` only where compared with file mtimes or ID timestamps.

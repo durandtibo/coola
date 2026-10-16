@@ -6,7 +6,7 @@ from __future__ import annotations
 __all__ = ["check_torch_numpy", "is_torch_numpy_available", "torch_numpy_available"]
 
 from contextlib import suppress
-from functools import lru_cache
+from functools import cache
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from coola.utils.imports.numpy import is_numpy_available
@@ -48,7 +48,7 @@ def check_torch_numpy() -> None:
         raise RuntimeError(msg)
 
 
-@lru_cache(1)
+@cache
 def is_torch_numpy_available() -> bool:
     r"""Indicate if the ``torch`` and ``numpy`` packages are installed
     and are compatible.

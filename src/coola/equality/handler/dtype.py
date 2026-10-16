@@ -64,7 +64,7 @@ class SameDTypeHandler(HandlerEqualityMixin, BaseEqualityHandler):
         if actual.dtype != expected.dtype:
             if config.show_difference:
                 logger.info(
-                    f"objects have different data types: {actual.dtype} vs {expected.dtype}"
+                    "objects have different data types: %s vs %s", actual.dtype, expected.dtype
                 )
             return False
         return self._handle_next(actual, expected, config=config)

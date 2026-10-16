@@ -9,7 +9,7 @@ __all__ = [
     "raise_colorlog_missing_error",
 ]
 
-from functools import lru_cache
+from functools import cache
 from typing import TYPE_CHECKING, Any, Never, TypeVar
 
 from coola.utils.imports.universal import (
@@ -41,7 +41,7 @@ def check_colorlog() -> None:
         raise_colorlog_missing_error()
 
 
-@lru_cache(1)
+@cache
 def is_colorlog_available() -> bool:
     r"""Indicate if the ``colorlog`` package is installed or not.
 

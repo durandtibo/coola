@@ -9,7 +9,7 @@ __all__ = [
     "rich_available",
 ]
 
-from functools import lru_cache
+from functools import cache
 from typing import TYPE_CHECKING, Any, Never, TypeVar
 
 from coola.utils.imports.universal import (
@@ -41,7 +41,7 @@ def check_rich() -> None:
         raise_rich_missing_error()
 
 
-@lru_cache(1)
+@cache
 def is_rich_available() -> bool:
     r"""Indicate if the ``rich`` package is installed or not.
 

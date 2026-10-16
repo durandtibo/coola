@@ -81,7 +81,7 @@ def _break_stale_lock(lock_path: Path, stale_after: float) -> bool:
     except FileNotFoundError:
         return False
     broken.unlink(missing_ok=True)
-    logger.warning(f"Removed stale save lock {lock_path} (older than {stale_after}s)")
+    logger.warning("Removed stale save lock %s (older than %ss)", lock_path, stale_after)
     return True
 
 

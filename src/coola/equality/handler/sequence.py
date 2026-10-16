@@ -62,7 +62,9 @@ class SequenceSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
             if len(actual) != len(expected):
                 if config.show_difference:
                     logger.info(
-                        f"sequences have different lengths: {len(actual):,} vs {len(expected):,}"
+                        "sequences have different lengths: %s vs %s",
+                        f"{len(actual):,}",
+                        f"{len(expected):,}",
                     )
                 return False
             cache: dict[tuple[int, int], bool] = {}

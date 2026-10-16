@@ -9,7 +9,7 @@ __all__ = [
     "raise_packaging_missing_error",
 ]
 
-from functools import lru_cache
+from functools import cache
 from typing import TYPE_CHECKING, Any, Never, TypeVar
 
 from coola.utils.imports.universal import (
@@ -41,7 +41,7 @@ def check_packaging() -> None:
         raise_packaging_missing_error()
 
 
-@lru_cache(1)
+@cache
 def is_packaging_available() -> bool:
     r"""Indicate if the ``packaging`` package is installed or not.
 

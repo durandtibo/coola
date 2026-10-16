@@ -171,7 +171,7 @@ class SameAttributeHandler(HandlerEqualityMixin, BaseEqualityHandler):
         value2 = getattr(expected, self._name)
         if not config.registry.objects_are_equal(value1, value2, config):
             if config.show_difference:
-                logger.info(f"objects have different {self._name}: {value1} vs {value2}")
+                logger.info("objects have different %s: %s vs %s", self._name, value1, value2)
             return False
         return self._handle_next(actual, expected, config=config)
 
@@ -202,7 +202,11 @@ class SameLengthHandler(HandlerEqualityMixin, BaseEqualityHandler):
     ) -> bool:
         if len(actual) != len(expected):
             if config.show_difference:
-                logger.info(f"objects have different lengths: {len(actual):,} vs {len(expected):,}")
+                logger.info(
+                    "objects have different lengths: %s vs %s",
+                    f"{len(actual):,}",
+                    f"{len(expected):,}",
+                )
             return False
         return self._handle_next(actual, expected, config=config)
 
