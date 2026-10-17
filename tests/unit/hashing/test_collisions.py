@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from coola.hashing import hash_object
+from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
 
 if is_numpy_available():
@@ -32,6 +33,6 @@ def test_hash_object_list_and_tuple_hash_the_same() -> None:
     assert hash_object([1, 2]) == hash_object((1, 2))
 
 
-@pytest.mark.skipif(not is_numpy_available(), reason="Requires NumPy")
+@numpy_available
 def test_hash_object_numpy_scalar_hashes_like_builtin() -> None:
     assert hash_object(np.float64(1.5)) == hash_object(1.5)
