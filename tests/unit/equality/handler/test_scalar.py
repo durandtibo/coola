@@ -275,3 +275,21 @@ def test_scalar_equal_handler_set_next_handler_incorrect() -> None:
     handler = ScalarEqualHandler()
     with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)
+
+
+def test_number_equal_huge_int_tolerance() -> None:
+    from coola.equality.handler.scalar import number_equal
+
+    big = 10**400
+    config = EqualityConfig(rtol=1e-5)
+    assert number_equal(big, big + 1, config)
+    assert not number_equal(big, 2 * big, config)
+    assert number_equal(big, big, EqualityConfig(atol=1.0))
+    assert not number_equal(big, big + 2, EqualityConfig(atol=1.0))
+    assert number_equal(big, big + 1, EqualityConfig(atol=1.0))
+
+
+def test_number_equal_huge_int_and_infinity() -> None:
+    from coola.equality.handler.scalar import number_equal
+
+    assert not number_equal(10**400, float("inf"), EqualityConfig(rtol=1e-5))
