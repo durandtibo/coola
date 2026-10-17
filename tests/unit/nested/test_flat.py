@@ -249,10 +249,10 @@ def test_to_flat_dict_empty_dict() -> None:
             id="nested-dict",
         ),
         pytest.param(
-            # An empty nested dict contributes no keys to the flat output.
+            # An empty nested dict is kept as a leaf value.
             {"module": {}, "str": "abc"},
-            {"str": "abc"},
-            id="empty-nested-dict-omitted",
+            {"module": {}, "str": "abc"},
+            id="empty-nested-dict-kept",
         ),
         pytest.param(
             {
@@ -451,3 +451,36 @@ def test_to_flat_dict_numpy_array_mixed_with_scalars() -> None:
     result = to_flat_dict({"x": "hello", "y": array})
     assert result["x"] == "hello"
     assert objects_are_equal(result["y"], array)
+
+
+def test_from_flat_dict_none_leaf_then_nested_raises() -> None:
+    with pytest.raises(ValueError, match="conflict"):
+        from_flat_dict({"a": None, "a.b": 1})
+
+
+def test_from_flat_dict_non_string_key_raises() -> None:
+    with pytest.raises(TypeError, match="must be strings"):
+        from_flat_dict({1: "x"})
+
+
+def test_to_flat_dict_empty_containers_are_kept() -> None:
+    assert to_flat_dict({"a": {}, "b": [], "c": [1]}) == {"a": {}, "b": [], "c.0": 1}
+
+
+def test_to_flat_dict_empty_top_level() -> None:
+    assert to_flat_dict({}) == {}
+
+
+def test_to_flat_dict_key_collision_raises() -> None:
+    with pytest.raises(ValueError, match="collision"):
+        to_flat_dict({1: "x", "1": "y"})
+
+
+def test_to_flat_dict_separator_collision_raises() -> None:
+    with pytest.raises(ValueError, match="collision"):
+        to_flat_dict({"a.b": 1, "a": {"b": 2}})
+
+
+def test_flat_dict_round_trip_with_empty_containers() -> None:
+    data = {"a": {}, "b": {"c": 1, "d": {}}}
+    assert from_flat_dict(to_flat_dict(data)) == data
