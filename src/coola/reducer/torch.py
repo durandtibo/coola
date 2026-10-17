@@ -55,7 +55,7 @@ class TorchReducer(InlineDisplayMixin, BaseBasicReducer[T]):
         return not values
 
     def _max(self, values: T) -> int | float:
-        return to_tensor(values).max().item()
+        return _to_tensor(values).max().item()
 
     def _mean(self, values: T) -> float:
         return _to_float_tensor(values).mean().item()
@@ -63,7 +63,7 @@ class TorchReducer(InlineDisplayMixin, BaseBasicReducer[T]):
     def _median(self, values: T) -> int | float:
         # ``torch.median`` returns the lower of the two middle values;
         # average them to match ``statistics.median`` and ``numpy.median``.
-        tensor = to_tensor(values).flatten()
+        tensor = _to_tensor(values).flatten()
         n = tensor.numel()
         ordered = tensor.sort()[0]
         if n % 2 == 1:
@@ -72,7 +72,7 @@ class TorchReducer(InlineDisplayMixin, BaseBasicReducer[T]):
         return middle.mean().item()
 
     def _min(self, values: T) -> int | float:
-        return to_tensor(values).min().item()
+        return _to_tensor(values).min().item()
 
     def _quantile(self, values: T, quantiles: Sequence[float]) -> list[float]:
         tensor = _to_float_tensor(values)
@@ -82,7 +82,7 @@ class TorchReducer(InlineDisplayMixin, BaseBasicReducer[T]):
         return result.tolist()
 
     def sort(self, values: T, descending: bool = False) -> list[int | float]:
-        result: Any = torch.sort(to_tensor(values), descending=descending)[0]
+        result: Any = torch.sort(_to_tensor(values), descending=descending)[0]
         return result.tolist()
 
     def _std(self, values: T) -> float:
@@ -103,5 +103,19 @@ def _to_float_tensor(values: Any) -> torch.Tensor:
     """
     if isinstance(values, (list, tuple)):
         return torch.as_tensor(values, dtype=torch.float64)
-    tensor = to_tensor(values)
+    tensor = _to_tensor(values)
     return tensor if tensor.is_floating_point() else tensor.double()
+
+
+def _to_tensor(values: Any) -> torch.Tensor:
+    """Convert the values to a tensor without losing precision.
+
+    Python floats are double precision, so a list or tuple that contains
+    a float is converted to ``float64`` (instead of the ``float32``
+    default of torch). A list of ints stays integer. Tensors and arrays
+    keep their dtype.
+    """
+    if isinstance(values, (list, tuple)):
+        has_float = any(isinstance(value, float) for value in values)
+        return torch.as_tensor(values, dtype=torch.float64 if has_float else None)
+    return to_tensor(values)
