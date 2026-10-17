@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola.reducer import EmptySequenceError, TorchReducer
+from coola.reducer import EmptySequenceError, NativeReducer, TorchReducer
 from coola.testing.fixtures import torch_available
 from coola.utils.imports import is_torch_available
 
@@ -291,3 +291,33 @@ def test_torch_reducer_no_torch() -> None:
         pytest.raises(RuntimeError, match=r"'torch' package is required but not installed."),
     ):
         TorchReducer()
+
+
+@torch_available
+@pytest.mark.parametrize(
+    "values",
+    [
+        pytest.param([1, 2, 3, 4], id="list-even"),
+        pytest.param([4, 1, 3, 2], id="list-unsorted"),
+        pytest.param(torch.tensor([1.0, 2.0, 3.0, 4.0]), id="tensor-even"),
+    ],
+)
+def test_torch_reducer_median_even_averages_middle_values(values: Sequence[float]) -> None:
+    assert TorchReducer().median(values) == 2.5
+
+
+@torch_available
+def test_torch_reducer_median_odd() -> None:
+    assert TorchReducer().median([5, 1, 3]) == 3
+
+
+@torch_available
+def test_torch_reducer_matches_native_reducer() -> None:
+    values = [0.1, 0.7, 0.3, 2.5, 1.1, 9.9]
+    torch_reducer, native = TorchReducer(), NativeReducer()
+    assert torch_reducer.median(values) == pytest.approx(native.median(values))
+    assert torch_reducer.mean(values) == pytest.approx(native.mean(values), rel=1e-12)
+    assert torch_reducer.std(values) == pytest.approx(native.std(values), rel=1e-12)
+    assert torch_reducer.quantile(values, [0.1, 0.5]) == pytest.approx(
+        native.quantile(values, [0.1, 0.5]), rel=1e-12
+    )

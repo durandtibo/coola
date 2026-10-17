@@ -58,18 +58,25 @@ class TorchReducer(InlineDisplayMixin, BaseBasicReducer[T]):
         return to_tensor(values).max().item()
 
     def _mean(self, values: T) -> float:
-        return to_tensor(values).float().mean().item()
+        return _to_double(values).mean().item()
 
     def _median(self, values: T) -> int | float:
-        return to_tensor(values).median().item()
+        # ``torch.median`` returns the lower of the two middle values;
+        # average them to match ``statistics.median`` and ``numpy.median``.
+        tensor = to_tensor(values).flatten()
+        n = tensor.numel()
+        ordered = tensor.sort()[0]
+        if n % 2 == 1:
+            return ordered[n // 2].item()
+        return ((ordered[n // 2 - 1].double() + ordered[n // 2].double()) / 2).item()
 
     def _min(self, values: T) -> int | float:
         return to_tensor(values).min().item()
 
     def _quantile(self, values: T, quantiles: Sequence[float]) -> list[float]:
         result: Any = torch.quantile(
-            to_tensor(values).float(),
-            to_tensor(quantiles).float(),
+            _to_double(values),
+            _to_double(quantiles),
         )
         return result.tolist()
 
@@ -78,7 +85,15 @@ class TorchReducer(InlineDisplayMixin, BaseBasicReducer[T]):
         return result.tolist()
 
     def _std(self, values: T) -> float:
-        tensor = to_tensor(values).float()
+        tensor = _to_double(values)
         if tensor.numel() == 1:
             return float("nan")
         return tensor.std().item()
+
+
+def _to_double(values: Any) -> torch.Tensor:
+    """Convert the values to a ``float64`` tensor without first rounding
+    Python floats to ``float32``."""
+    if isinstance(values, torch.Tensor) or not isinstance(values, (list, tuple)):
+        return to_tensor(values).double()
+    return torch.as_tensor(values, dtype=torch.float64)
