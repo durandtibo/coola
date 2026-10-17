@@ -30,12 +30,6 @@ class SequenceSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
     when used standalone or without a preceding ``SameLengthHandler``
     in the chain.
 
-    Within a single ``handle`` call, the result of comparing a given
-    pair of items is cached by object identity (``id()``), so repeated
-    or interned values that appear at several indices are compared only
-    once, avoiding redundant recursive ``objects_are_equal`` calls for
-    highly repetitive sequences.
-
     Example:
         ```pycon
         >>> from coola.equality.config import EqualityConfig
@@ -67,14 +61,8 @@ class SequenceSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
                         f"{len(expected):,}",
                     )
                 return False
-            cache: dict[tuple[int, int], bool] = {}
             for idx, (value1, value2) in enumerate(zip(actual, expected, strict=True)):
-                key = (id(value1), id(value2))
-                are_equal = cache.get(key)
-                if are_equal is None:
-                    are_equal = config.registry.objects_are_equal(value1, value2, config)
-                    cache[key] = are_equal
-                if not are_equal:
+                if not config.registry.objects_are_equal(value1, value2, config):
                     if config.show_difference:
                         logger.info(
                             format_sequence_difference(

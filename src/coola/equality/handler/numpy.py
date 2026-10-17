@@ -91,7 +91,14 @@ def array_equal(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) 
         return np.allclose(
             array1, array2, rtol=config.rtol, atol=config.atol, equal_nan=config.equal_nan
         )
-    return np.array_equal(array1, array2, equal_nan=config.equal_nan)
+    # ``np.isnan`` is not defined for string/object/void dtypes, so
+    # ``equal_nan`` is only forwarded when both arrays support it.
+    equal_nan = config.equal_nan and _supports_nan(array1) and _supports_nan(array2)
+    return np.array_equal(array1, array2, equal_nan=equal_nan)
+
+
+def _supports_nan(array: np.ndarray) -> bool:
+    return is_numeric_array(array) or array.dtype.kind in {"m", "M"}
 
 
 def is_numeric_array(array: np.ndarray) -> bool:
