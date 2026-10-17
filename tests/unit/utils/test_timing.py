@@ -91,3 +91,10 @@ def test_timeblock_with_timing_result() -> None:
     assert t.started_at is not None
     assert t.finished_at is not None
     assert t.elapsed is not None
+
+
+def test_timeblock_message_with_other_braces(caplog: pytest.LogCaptureFixture) -> None:
+    with timeblock("{'step': 1} took {time} {}"):
+        pass
+    assert caplog.messages[0].startswith("{'step': 1} took ")
+    assert caplog.messages[0].endswith(" {}")

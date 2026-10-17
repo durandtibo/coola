@@ -6,6 +6,7 @@ from typing import NamedTuple, Self
 import pytest
 
 from coola.nested import (
+    DuplicateKeyError,
     add_prefix_suffix_to_keys,
     flatten_mapping,
     get_first_value,
@@ -617,3 +618,34 @@ def test_remove_keys_starting_with_nested_mapping() -> None:
     assert remove_keys_starting_with({"abc": {"key": 1, "abc": 2}, "key": {"abc": 3}}, "key") == {
         "abc": {"abc": 2}
     }
+
+
+def test_duplicate_key_error_is_key_error_and_value_error() -> None:
+    assert issubclass(DuplicateKeyError, KeyError)
+    assert issubclass(DuplicateKeyError, ValueError)
+
+
+def test_duplicate_key_error_str_is_not_quoted() -> None:
+    assert str(DuplicateKeyError("Duplicate key found: 'a'")) == "Duplicate key found: 'a'"
+
+
+def test_merge_mappings_raises_duplicate_key_error() -> None:
+    with pytest.raises(DuplicateKeyError, match="Duplicate key found"):
+        merge_mappings([{"a": 1}, {"a": 2}])
+
+
+def test_flatten_mapping_raises_duplicate_key_error() -> None:
+    with pytest.raises(ValueError, match="Duplicate key found"):
+        flatten_mapping({"x": {"a": 1}, "y": {"a": 2}})
+
+
+def test_merge_mappings_suffix_does_not_overwrite_existing_key() -> None:
+    # "a_1" already exists, so the duplicate "a" must not overwrite it.
+    result = merge_mappings([{"a": 1, "a_1": 10}, {"a": 2}], on_duplicate="suffix")
+    assert result == {"a": 1, "a_1": 10, "a_2": 2}
+
+
+def test_merge_mappings_suffix_key_colliding_with_later_key_raises() -> None:
+    # The suffixed duplicate "a_1" collides with the original key "a_1" of the third mapping.
+    with pytest.raises(DuplicateKeyError, match="collides"):
+        merge_mappings([{"a": 1}, {"a": 2}, {"a_1": 3}], on_duplicate="suffix")

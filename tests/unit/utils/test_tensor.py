@@ -168,3 +168,12 @@ def test_to_tensor_numpy() -> None:
         assert to_tensor(np.array([3, 1, 2, 0, 1])).equal(
             torch.tensor([3, 1, 2, 0, 1], dtype=torch.long)
         )
+
+
+@numpy_available
+@torch_available
+def test_to_tensor_numpy_negative_strides() -> None:
+    import numpy as np
+
+    out = to_tensor(np.array([1, 2, 3])[::-1])
+    assert out.tolist() == [3, 2, 1]

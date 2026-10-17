@@ -160,3 +160,52 @@ def test_to_json_dataclass_with_nested_numpy_array_in_dict() -> None:
         "items": [],
         "mapping": {"data": [1, 2]},
     }
+
+
+def test_to_json_path() -> None:
+    from pathlib import Path
+
+    assert to_jsonable(Path("a/b.txt")) == str(Path("a/b.txt"))
+
+
+def test_to_json_date_and_datetime() -> None:
+    import datetime
+
+    assert to_jsonable(datetime.date(2024, 1, 2)) == "2024-01-02"
+    assert (
+        to_jsonable(datetime.datetime(2024, 1, 2, 3, 4, 5, tzinfo=datetime.UTC))
+        == "2024-01-02T03:04:05+00:00"
+    )
+
+
+def test_to_json_enum() -> None:
+    from enum import Enum
+
+    class Color(Enum):
+        RED = 1
+
+    class Name(Enum):
+        A = "a"
+
+    assert to_jsonable(Color.RED) == 1
+    assert to_jsonable(Name.A) == "a"
+
+
+@numpy_available
+def test_to_json_numpy_scalar() -> None:
+    result = to_jsonable(np.float32(1.5))
+    assert result == 1.5
+    assert type(result) is float
+    assert type(to_jsonable(np.int64(3))) is int
+    assert type(to_jsonable(np.bool_(True))) is bool
+
+
+def test_to_json_dataclass_with_tuple_and_set_fields() -> None:
+    @dataclass
+    class Container:
+        values: tuple
+        unique: set
+        nested: dict
+
+    result = to_jsonable(Container(values=(1, (2, 3)), unique={4}, nested={"a": (5,)}))
+    assert result == {"values": [1, [2, 3]], "unique": [4], "nested": {"a": [5]}}

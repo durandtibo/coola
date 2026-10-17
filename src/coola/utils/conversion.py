@@ -4,14 +4,20 @@ from __future__ import annotations
 
 __all__ = ["to_jsonable"]
 
+import datetime
 from dataclasses import asdict, is_dataclass
-from typing import Any, cast
+from enum import Enum
+from pathlib import PurePath
+from typing import TYPE_CHECKING, Any, cast
 
 from coola.utils.imports import (
     is_numpy_available,
     is_pydantic_available,
     is_torch_available,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Iterable
 
 if is_pydantic_available():
     from pydantic import BaseModel
@@ -32,8 +38,12 @@ else:  # pragma: no cover
 def to_jsonable(data: Any) -> Any:
     r"""Convert a single object to a JSON-compatible representation.
 
-    This function only converts ``pydantic.BaseModel``, dataclass,
-    ``numpy.ndarray``, and ``torch.Tensor`` objects. Dataclasses are
+    This function converts ``pydantic.BaseModel``, dataclass,
+    ``numpy.ndarray``, ``numpy`` scalar, ``torch.Tensor``,
+    ``pathlib`` path, ``datetime.date``/``datetime.datetime`` and
+    ``enum.Enum`` objects. Paths are converted to strings, dates to
+    ISO 8601 strings and enum members to their (converted) value.
+    Dataclasses are
     converted recursively because ``dataclasses.asdict`` can produce
     nested dataclass or ``BaseModel`` fields. All other object types,
     including containers such as ``list`` or ``dict``, are returned
@@ -44,8 +54,7 @@ def to_jsonable(data: Any) -> Any:
         data: The object to convert.
 
     Returns:
-        The converted object if it is a ``pydantic.BaseModel``,
-            a dataclass, a ``numpy.ndarray``, or a ``torch.Tensor``,
+        The converted object if it is one of the supported types,
             otherwise the object unchanged.
 
     Example:
@@ -64,15 +73,25 @@ def to_jsonable(data: Any) -> Any:
 
         ```
     """
-    if isinstance(data, BaseModel):
-        return data.model_dump(mode="json")
-    if isinstance(data, np.ndarray):
-        return data.tolist()
-    if isinstance(data, torch.Tensor):
-        return data.tolist()
+    for types, convert in _CONVERTERS:
+        if isinstance(data, types):
+            return convert(data)
     if is_dataclass(data) and not isinstance(data, type):
         return _to_jsonable_recursive(asdict(data))
     return data
+
+
+# (types, converter) pairs, checked in order by ``to_jsonable``.
+_CONVERTERS: tuple[tuple[tuple[type, ...], Callable[[Any], Any]], ...] = (
+    ((BaseModel,), lambda data: data.model_dump(mode="json")),
+    (
+        (np.ndarray, np.generic, torch.Tensor) if is_numpy_available() else (torch.Tensor,),
+        lambda data: data.tolist(),
+    ),
+    ((PurePath,), str),
+    ((datetime.date,), lambda data: data.isoformat()),
+    ((Enum,), lambda data: to_jsonable(data.value)),
+)
 
 
 def _to_jsonable_recursive(data: Any) -> Any:
@@ -95,6 +114,6 @@ def _to_jsonable_recursive(data: Any) -> Any:
             key: _to_jsonable_recursive(value)
             for key, value in cast("dict[Any, Any]", data).items()
         }
-    if isinstance(data, list):
-        return [_to_jsonable_recursive(value) for value in cast("list[Any]", data)]
+    if isinstance(data, (list, tuple, set, frozenset)):
+        return [_to_jsonable_recursive(value) for value in cast("Iterable[Any]", data)]
     return to_jsonable(data)

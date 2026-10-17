@@ -45,7 +45,7 @@ def to_array(data: Sequence[int | float] | torch.Tensor | np.ndarray) -> np.ndar
         ```
     """
     if is_torch_available() and torch.is_tensor(data):
-        return data.numpy()
+        return data.detach().cpu().numpy()
     if not isinstance(data, np.ndarray):
         return np.asarray(data)
     return data

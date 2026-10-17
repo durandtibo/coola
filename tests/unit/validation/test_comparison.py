@@ -160,3 +160,21 @@ def test_validate_non_positive_positive() -> None:
 def test_validate_non_positive_custom_name() -> None:
     with pytest.raises(ValueError, match="count must be non-positive, got 1"):
         validate_non_positive(1, name="count")
+
+
+@pytest.mark.parametrize(
+    "validate",
+    [
+        pytest.param(lambda v: validate_ge(v, 0), id="ge"),
+        pytest.param(lambda v: validate_gt(v, 0), id="gt"),
+        pytest.param(lambda v: validate_le(v, 0), id="le"),
+        pytest.param(lambda v: validate_lt(v, 0), id="lt"),
+        pytest.param(validate_negative, id="negative"),
+        pytest.param(validate_non_negative, id="non_negative"),
+        pytest.param(validate_non_positive, id="non_positive"),
+        pytest.param(validate_positive, id="positive"),
+    ],
+)
+def test_validate_comparison_rejects_nan(validate: object) -> None:
+    with pytest.raises(ValueError, match="nan"):
+        validate(float("nan"))  # type: ignore[operator]
