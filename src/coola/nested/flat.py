@@ -52,6 +52,9 @@ def from_flat_dict(data: dict[str, Any], separator: str = ".") -> dict[str, Any]
 
     nested: dict[str, Any] = {}
     for flat_key, value in data.items():
+        if not isinstance(flat_key, str):
+            msg = f"Flat dict keys must be strings, got {flat_key!r} ({type(flat_key).__name__})"
+            raise TypeError(msg)
         segments = flat_key.split(separator)
         _set_nested(nested, segments, value, flat_key, separator)
     return nested
@@ -87,21 +90,22 @@ def _set_nested(
     """
     current: dict[str, Any] = target
     for depth, segment in enumerate(segments[:-1]):
-        existing: Any = current.get(segment)
-        if existing is None:
+        if segment not in current:
             current[segment] = {}
             current = current[segment]
-        elif isinstance(existing, dict):
-            current = cast("dict[str, Any]", existing)
         else:
-            path_so_far = separator.join(segments[: depth + 1])
-            msg = (
-                f"Key conflict: '{original_key}' tries to nest under "
-                f"'{path_so_far}', but that path is already a scalar leaf "
-                f"(value={existing!r}). Check that the flat dict was not "
-                f"constructed from two incompatible sources."
-            )
-            raise ValueError(msg)
+            existing: Any = current[segment]
+            if isinstance(existing, dict):
+                current = cast("dict[str, Any]", existing)
+            else:
+                path_so_far = separator.join(segments[: depth + 1])
+                msg = (
+                    f"Key conflict: '{original_key}' tries to nest under "
+                    f"'{path_so_far}', but that path is already a scalar leaf "
+                    f"(value={existing!r}). Check that the flat dict was not "
+                    "constructed from two incompatible sources."
+                )
+                raise ValueError(msg)
 
     leaf_key = segments[-1]
     if isinstance(current.get(leaf_key), dict):
@@ -212,7 +216,11 @@ def _flatten_into(
                 f"Got data={data!r}"
             )
             raise ValueError(msg)
-        flat[prefix] = str(data)
+        _set_leaf(flat, prefix, str(data))
+    elif isinstance(data, (Mapping, Sequence)) and not isinstance(data, str) and not data:
+        # Keep empty containers: they would otherwise vanish from the output.
+        if prefix is not None:
+            _set_leaf(flat, prefix, data)
     elif isinstance(data, Mapping):
         for key, value in cast("Mapping[Any, Any]", data).items():
             child = _build_key(prefix, str(key), separator)
@@ -231,7 +239,23 @@ def _flatten_into(
         )
         raise ValueError(msg)
     else:
-        flat[prefix] = data
+        _set_leaf(flat, prefix, data)
+
+
+def _set_leaf(flat: dict[str, Any], key: str, value: Any) -> None:
+    """Store *value* under *key*, refusing to overwrite an existing
+    entry.
+
+    Keys are converted with ``str()`` while flattening, so different
+    keys (e.g. ``1`` and ``"1"``) can collide.
+    """
+    if key in flat:
+        msg = (
+            f"Key collision: several entries are flattened to the key {key!r}. "
+            "Keys are converted to strings, so different keys can collide."
+        )
+        raise ValueError(msg)
+    flat[key] = value
 
 
 def _normalize_to_str(to_str: type | tuple[type, ...] | None) -> tuple[type, ...]:
