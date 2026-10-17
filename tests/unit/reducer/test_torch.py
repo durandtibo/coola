@@ -321,3 +321,42 @@ def test_torch_reducer_matches_native_reducer() -> None:
     assert torch_reducer.quantile(values, [0.1, 0.5]) == pytest.approx(
         native.quantile(values, [0.1, 0.5]), rel=1e-12
     )
+
+
+@torch_available
+@pytest.mark.parametrize(
+    ("values", "dtype"),
+    [
+        pytest.param([0.1, 0.2], "float64", id="list-of-floats"),
+        pytest.param([1, 2], "float64", id="list-of-ints"),
+        pytest.param((0.1, 0.2), "float64", id="tuple"),
+        pytest.param(torch.tensor([0.1, 0.2], dtype=torch.float32), "float32", id="float32"),
+        pytest.param(torch.tensor([0.1, 0.2], dtype=torch.float64), "float64", id="float64"),
+        pytest.param(torch.tensor([0.1, 0.2], dtype=torch.float16), "float16", id="float16"),
+        pytest.param(torch.tensor([1, 2]), "float64", id="int64"),
+        pytest.param(torch.tensor([True, False]), "float64", id="bool"),
+    ],
+)
+def test_to_float_tensor_dtype(values: object, dtype: str) -> None:
+    from coola.reducer.torch import _to_float_tensor
+
+    assert _to_float_tensor(values).dtype == getattr(torch, dtype)
+
+
+@torch_available
+def test_torch_reducer_float32_input_keeps_float32_precision() -> None:
+    values = torch.tensor([0.1, 0.2, 0.3, 0.4], dtype=torch.float32)
+    assert TorchReducer().mean(values) == values.mean().item()
+    assert TorchReducer().std(values) == values.std().item()
+    assert TorchReducer().median(values) == pytest.approx(0.25)
+
+
+@torch_available
+def test_torch_reducer_float16_quantile() -> None:
+    values = torch.tensor([1.0, 2.0, 3.0], dtype=torch.float16)
+    assert TorchReducer().quantile(values, [0.5]) == [2.0]
+
+
+@torch_available
+def test_torch_reducer_python_floats_keep_double_precision() -> None:
+    assert TorchReducer().mean([0.1, 0.2]) == pytest.approx(0.15, rel=1e-15)
