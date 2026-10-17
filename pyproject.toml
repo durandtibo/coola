@@ -288,7 +288,7 @@ src = ["src"]
 "tests/**" = [
   "D",    # pydocstyle
   "PL",   # Pylint
-  "S101", # flake8-bandit
+  "S101", # flake8-bandit: assert
 ]
 "tests/unit/hashing/test_pydantic.py" = ["S106"]
 
