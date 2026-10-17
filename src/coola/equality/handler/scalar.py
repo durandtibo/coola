@@ -113,16 +113,39 @@ def number_equal(number1: float, number2: float, config: EqualityConfig) -> bool
             return math.isclose(number1, number2, abs_tol=config.atol, rel_tol=config.rtol)
         except OverflowError:
             # An ``int`` too large for a float: compare with exact arithmetic.
-            return _int_isclose(number1, number2, rtol=config.rtol, atol=config.atol)
+            return int_isclose(number1, number2, rtol=config.rtol, atol=config.atol)
     return number1 == number2
 
 
-def _int_isclose(number1: float, number2: float, rtol: float, atol: float) -> bool:
-    """Indicate if two numbers are close, using exact rational
+def int_isclose(number1: float, number2: float, rtol: float = 0.0, atol: float = 0.0) -> bool:
+    r"""Indicate if two numbers are close, using exact rational
     arithmetic.
 
-    This is used as a fallback of ``math.isclose`` for integers that are
-    too large to be converted to a float.
+    This is a fallback of ``math.isclose`` for integers that are too
+    large to be converted to a float. The numbers are close if
+    ``abs(number1 - number2) <= max(rtol * max(abs(number1),
+    abs(number2)), atol)``.
+
+    Args:
+        number1: The first number.
+        number2: The second number.
+        rtol: The relative tolerance.
+        atol: The absolute tolerance.
+
+    Returns:
+        ``True`` if the two numbers are close, otherwise ``False``.
+            Infinite or NaN inputs, which cannot be converted to exact
+            fractions, are compared with ``==``.
+
+    Example:
+        ```pycon
+        >>> from coola.equality.handler.scalar import int_isclose
+        >>> int_isclose(10**400, 10**400 + 1, rtol=1e-5)
+        True
+        >>> int_isclose(10**400, 2 * 10**400, rtol=1e-5)
+        False
+
+        ```
     """
     try:
         value1, value2 = Fraction(number1), Fraction(number2)
