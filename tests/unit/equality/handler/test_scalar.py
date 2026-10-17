@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import math
 
 import pytest
 
@@ -11,6 +12,7 @@ from coola.equality.handler import (
     ScalarEqualHandler,
     TrueHandler,
 )
+from coola.equality.handler.scalar import int_isclose
 from tests.unit.equality.tester.test_scalar import SCALAR_EQUAL_TOLERANCE
 from tests.unit.equality.utils import ExamplePair
 
@@ -275,3 +277,71 @@ def test_scalar_equal_handler_set_next_handler_incorrect() -> None:
     handler = ScalarEqualHandler()
     with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)
+
+
+def test_number_equal_huge_int_tolerance() -> None:
+    from coola.equality.handler.scalar import number_equal
+
+    big = 10**400
+    config = EqualityConfig(rtol=1e-5)
+    assert number_equal(big, big + 1, config)
+    assert not number_equal(big, 2 * big, config)
+    assert number_equal(big, big, EqualityConfig(atol=1.0))
+    assert not number_equal(big, big + 2, EqualityConfig(atol=1.0))
+    assert number_equal(big, big + 1, EqualityConfig(atol=1.0))
+
+
+def test_number_equal_huge_int_and_infinity() -> None:
+    from coola.equality.handler.scalar import number_equal
+
+    assert not number_equal(10**400, float("inf"), EqualityConfig(rtol=1e-5))
+
+
+#################################
+#     Tests for int_isclose     #
+#################################
+
+
+@pytest.mark.parametrize(
+    ("number1", "number2", "rtol", "atol", "expected"),
+    [
+        pytest.param(10**400, 10**400, 0.0, 0.0, True, id="equal-no-tolerance"),
+        pytest.param(10**400, 10**400 + 1, 0.0, 0.0, False, id="different-no-tolerance"),
+        pytest.param(10**400, 10**400 + 1, 1e-5, 0.0, True, id="rtol-close"),
+        pytest.param(10**400, 2 * 10**400, 1e-5, 0.0, False, id="rtol-far"),
+        pytest.param(10**400, 10**400 + 1, 0.0, 1.0, True, id="atol-boundary"),
+        pytest.param(10**400, 10**400 + 2, 0.0, 1.0, False, id="atol-exceeded"),
+        pytest.param(10**400, 10**400 + 5, 0.0, 10.0, True, id="atol-close"),
+        pytest.param(-(10**400), -(10**400) - 1, 1e-5, 0.0, True, id="negative"),
+        pytest.param(-(10**400), 10**400, 1e-5, 0.0, False, id="opposite-signs"),
+        pytest.param(0, 0, 0.0, 0.0, True, id="zero"),
+        pytest.param(1, 2, 0.5, 0.0, True, id="small-ints-rtol"),
+        pytest.param(1.5, 1.5, 0.0, 0.0, True, id="floats"),
+        pytest.param(10**400, float("inf"), 1e-5, 0.0, False, id="int-inf"),
+        pytest.param(float("inf"), float("inf"), 1e-5, 0.0, True, id="inf-inf"),
+        pytest.param(float("inf"), float("-inf"), 1e-5, 0.0, False, id="inf-neg-inf"),
+        pytest.param(float("nan"), float("nan"), 1e-5, 0.0, False, id="nan-nan"),
+    ],
+)
+def test_int_isclose(
+    number1: float, number2: float, rtol: float, atol: float, expected: bool
+) -> None:
+    assert int_isclose(number1, number2, rtol=rtol, atol=atol) == expected
+
+
+def test_int_isclose_is_symmetric() -> None:
+    assert int_isclose(10**400, 10**400 + 3, rtol=1e-5) == int_isclose(
+        10**400 + 3, 10**400, rtol=1e-5
+    )
+
+
+def test_int_isclose_default_tolerances_are_exact() -> None:
+    assert int_isclose(10**400, 10**400)
+    assert not int_isclose(10**400, 10**400 + 1)
+
+
+def test_int_isclose_agrees_with_math_isclose_for_small_ints() -> None:
+    for number1, number2 in [(100, 101), (1000, 1001), (7, 8), (0, 1)]:
+        assert int_isclose(number1, number2, rtol=0.01, atol=0.5) == math.isclose(
+            number1, number2, rel_tol=0.01, abs_tol=0.5
+        )
