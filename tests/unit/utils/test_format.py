@@ -125,7 +125,7 @@ def test_repr_indent_num_spaces_4() -> None:
 
 
 def test_repr_indent_num_spaces_incorrect() -> None:
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ValueError):
         repr_indent("abc\ndef", num_spaces=-1)
 
 
@@ -264,7 +264,7 @@ def test_str_indent_num_spaces_4() -> None:
 
 
 def test_str_indent_num_spaces_incorrect() -> None:
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ValueError):
         str_indent("abc\ndef", num_spaces=-1)
 
 

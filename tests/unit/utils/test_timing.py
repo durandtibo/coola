@@ -61,7 +61,7 @@ def test_timeblock_custom_message(caplog: pytest.LogCaptureFixture) -> None:
 
 def test_timeblock_custom_missing_time() -> None:
     with (
-        pytest.raises(RuntimeError, match=r"{time} is missing in the message"),
+        pytest.raises(ValueError, match=r"{time} is missing in the message"),
         timeblock("message"),
     ):
         pass
