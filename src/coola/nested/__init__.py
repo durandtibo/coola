@@ -3,6 +3,7 @@ r"""Helpers to reshape and query nested mapping data structures."""
 from __future__ import annotations
 
 __all__ = [
+    "DuplicateKeyError",
     "add_prefix_suffix_to_keys",
     "convert_to_dict_of_lists",
     "convert_to_jsonable",
@@ -24,6 +25,7 @@ from coola.nested.conversion import (
 )
 from coola.nested.flat import from_flat_dict, to_flat_dict
 from coola.nested.mapping import (
+    DuplicateKeyError,
     add_prefix_suffix_to_keys,
     flatten_mapping,
     get_first_value,

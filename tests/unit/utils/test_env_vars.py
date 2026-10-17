@@ -337,3 +337,21 @@ def test_temp_env_vars_multiple_sequential_uses() -> None:
         assert os.environ["VAR"] == "second"
 
     assert os.environ["VAR"] == "original"
+
+
+def test_temp_env_vars_removed_inside_block_does_not_raise() -> None:
+    name = "COOLA_TEST_TEMP_ENV_REMOVED"
+    os.environ.pop(name, None)
+    with temp_env_vars({name: "value"}):
+        del os.environ[name]
+    assert name not in os.environ
+
+
+def test_temp_env_vars_restores_when_setting_fails() -> None:
+    name = "COOLA_TEST_TEMP_ENV_PARTIAL"
+    os.environ.pop(name, None)
+    # The second value cannot be stored in the environment (embedded null byte).
+    with pytest.raises(ValueError, match="null"), temp_env_vars({name: "value", "BAD": "a\0b"}):
+        pass  # pragma: no cover
+    assert name not in os.environ
+    assert "BAD" not in os.environ

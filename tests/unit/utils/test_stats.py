@@ -99,3 +99,13 @@ def test_quantile_empty_values_raises_error() -> None:
     ValueError."""
     with pytest.raises(ValueError, match="values must not be empty"):
         quantile([], [0.5])
+
+
+@pytest.mark.parametrize("q", [-0.1, 1.1, float("nan"), float("inf")])
+def test_quantile_invalid_quantile_raises(q: float) -> None:
+    with pytest.raises(ValueError, match=r"quantiles must be in \[0, 1\]"):
+        quantile([1, 2, 3], [0.5, q])
+
+
+def test_quantile_boundaries() -> None:
+    assert quantile([1, 2, 3], [0.0, 1.0]) == [1, 3]

@@ -33,6 +33,10 @@ def quantile(values: Sequence[float | int], quantiles: Sequence[float]) -> list[
 
         ```
     """
+    for q in quantiles:
+        if not 0.0 <= q <= 1.0:
+            msg = f"quantiles must be in [0, 1], got {q}"
+            raise ValueError(msg)
     values = sorted(values)
     n = len(values)
     if n == 0 and len(quantiles) > 0:

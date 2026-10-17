@@ -87,7 +87,7 @@ def repr_indent(original: object, num_spaces: int = 2) -> str:
         The indented string.
 
     Raises:
-        RuntimeError: if num_spaces is negative.
+        ValueError: if num_spaces is negative.
 
     Example:
         ```pycon
@@ -230,7 +230,7 @@ def str_indent(original: object, num_spaces: int = 2) -> str:
         The indented string.
 
     Raises:
-        RuntimeError: if num_spaces is negative.
+        ValueError: if num_spaces is negative.
 
     Example:
         ```pycon
@@ -243,8 +243,8 @@ def str_indent(original: object, num_spaces: int = 2) -> str:
         ```
     """
     if num_spaces < 0:
-        msg = f"Incorrect num_spaces. Expected a positive integer but received {num_spaces}"
-        raise RuntimeError(msg)
+        msg = f"Incorrect num_spaces. Expected a non-negative integer but received {num_spaces}"
+        raise ValueError(msg)
     formatted = str(original).split("\n")
     if len(formatted) == 1:  # single line
         return formatted[0]

@@ -34,7 +34,7 @@ def validate_ge(value: Any, low: Any, *, name: str = "value") -> None:
 
         ```
     """
-    if value < low:
+    if not value >= low:
         msg = f"{name} must be greater than or equal to {low}, got {value}"
         raise ValueError(msg)
 
@@ -57,7 +57,7 @@ def validate_gt(value: Any, low: Any, *, name: str = "value") -> None:
 
         ```
     """
-    if value <= low:
+    if not value > low:
         msg = f"{name} must be greater than {low}, got {value}"
         raise ValueError(msg)
 
@@ -80,7 +80,7 @@ def validate_le(value: Any, high: Any, *, name: str = "value") -> None:
 
         ```
     """
-    if value > high:
+    if not value <= high:
         msg = f"{name} must be less than or equal to {high}, got {value}"
         raise ValueError(msg)
 
@@ -103,7 +103,7 @@ def validate_lt(value: Any, high: Any, *, name: str = "value") -> None:
 
         ```
     """
-    if value >= high:
+    if not value < high:
         msg = f"{name} must be less than {high}, got {value}"
         raise ValueError(msg)
 
@@ -125,7 +125,7 @@ def validate_non_negative(value: Any, *, name: str = "value") -> None:
 
         ```
     """
-    if value < 0:
+    if not value >= 0:
         msg = f"{name} must be non-negative, got {value}"
         raise ValueError(msg)
 
@@ -147,7 +147,7 @@ def validate_positive(value: Any, *, name: str = "value") -> None:
 
         ```
     """
-    if value <= 0:
+    if not value > 0:
         msg = f"{name} must be positive, got {value}"
         raise ValueError(msg)
 
@@ -169,7 +169,7 @@ def validate_negative(value: Any, *, name: str = "value") -> None:
 
         ```
     """
-    if value >= 0:
+    if not value < 0:
         msg = f"{name} must be negative, got {value}"
         raise ValueError(msg)
 
@@ -191,6 +191,6 @@ def validate_non_positive(value: Any, *, name: str = "value") -> None:
 
         ```
     """
-    if value > 0:
+    if not value <= 0:
         msg = f"{name} must be non-positive, got {value}"
         raise ValueError(msg)

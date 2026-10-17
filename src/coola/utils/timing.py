@@ -62,7 +62,7 @@ def timeblock(message: str = "Total time: {time}") -> Generator[TimingResult]:
             block exits.
 
     Raises:
-        RuntimeError: If ``message`` does not contain ``{time}``.
+        ValueError: If ``message`` does not contain ``{time}``.
 
     Example:
         ```pycon
@@ -82,11 +82,12 @@ def timeblock(message: str = "Total time: {time}") -> Generator[TimingResult]:
     """
     if "{time}" not in message:
         msg = f"{{time}} is missing in the message (received: {message})"
-        raise RuntimeError(msg)
+        raise ValueError(msg)
     result = TimingResult()
     result.started_at = time.perf_counter()
     try:
         yield result
     finally:
         result.finished_at = time.perf_counter()
-        logger.info(message.format(time=str_time_human(result.elapsed or 0.0)))
+        # ``replace`` (not ``format``) so other braces in the message are kept as is.
+        logger.info(message.replace("{time}", str_time_human(result.elapsed or 0.0)))

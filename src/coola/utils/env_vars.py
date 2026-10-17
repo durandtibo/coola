@@ -150,18 +150,17 @@ def temp_env_vars(env_vars: dict[str, Any]) -> Generator[None]:
     # Store original values (or None if they didn't exist)
     original = {key: os.environ.get(key, None) for key in env_vars}
 
-    # Set new values
-    for key, value in env_vars.items():
-        os.environ[key] = str(value)
-
     try:
+        # Set new values (inside ``try`` so a failure halfway still restores)
+        for key, value in env_vars.items():
+            os.environ[key] = str(value)
         yield
     finally:
         # Restore original state
         for key, value in original.items():
             if value is None:
                 # Remove if it didn't exist before
-                os.environ.pop(key)
+                os.environ.pop(key, None)
             else:
                 # Restore original value
                 os.environ[key] = value

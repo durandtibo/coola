@@ -109,6 +109,8 @@ def to_tensor(data: Sequence[int | float] | torch.Tensor | np.ndarray) -> torch.
         ```
     """
     if is_numpy_available() and isinstance(data, np.ndarray):
+        if any(stride < 0 for stride in data.strides):
+            data = data.copy()  # ``torch.from_numpy`` does not support negative strides
         return cast("Any", torch).from_numpy(data)
     if not torch.is_tensor(data):
         return torch.as_tensor(data)
