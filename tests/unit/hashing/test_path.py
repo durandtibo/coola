@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from coola.hashing import HasherRegistry, PathHasher, hash_path, hash_string
+from coola.hashing import HasherRegistry, PathHasher, hash_path, hash_tagged
 
 
 @pytest.fixture
@@ -174,7 +174,7 @@ def test_hash_path_resolve_failure_uses_posix_of_unresolved_path(tmp_path: Path)
     path = tmp_path / "file.txt"
     with patch.object(Path, "resolve", side_effect=OSError("boom")):
         result = hash_path(path)
-    assert result == hash_string(path.as_posix())
+    assert result == hash_tagged("Path", path.as_posix())
 
 
 # --- Invalid length ---

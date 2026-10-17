@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
-from coola.hashing.string import hash_string
+from coola.hashing.string import hash_tagged
 
 if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
@@ -69,4 +69,9 @@ class ReprHasher(InlineDisplayMixin, BaseHasher[Any]):
             ValueError: If ``length`` is not an even number between 2
                 and 128.
         """
-        return hash_string(repr(data), length=length)
+        for base in (bool, int, float, complex):
+            if isinstance(data, base):
+                # Use the builtin repr so subclasses (e.g. NumPy scalars)
+                # hash like the builtin value, independent of library versions.
+                return hash_tagged(base.__name__, base.__repr__(data), length=length)
+        return hash_tagged(type(data).__qualname__, repr(data), length=length)

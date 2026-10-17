@@ -30,27 +30,27 @@ def test_datetime_hasher_str() -> None:
     [
         pytest.param(
             date(2021, 1, 1),
-            "f2b4c6a9941206bb6fc3b4b9c1104d8c05264985c009e2e1c7c840aaeda00dac",
+            "1d7ccf2f2d2fa168388daafdef0be5efb6e74b780c83a649af3368a5a23911f1",
             id="date",
         ),
         pytest.param(
             date(2024, 12, 31),
-            "1dc2d8ecaf7d9164fd224e3ff8637a7819c086ab506e02c334eea47ebb2f03db",
+            "ee4eff7d44d05ec8419af555ca241c8e81e66446f41de6acf0c7bd9da870541c",
             id="date_end_of_year",
         ),
         pytest.param(
             datetime(2021, 1, 1, 0, 0, 0, tzinfo=UTC),
-            "7b9000123bc9220f9759ddc4ae7e7780c16935c8ed6d9417b82c41500ebb3967",
+            "1cc1275c7d33a7dc33384372f2b37341544cd099de233c9bcaa753fe08ea6621",
             id="datetime_midnight",
         ),
         pytest.param(
             datetime(2024, 12, 31, 23, 59, 59, tzinfo=UTC),
-            "676dda2885fb7510aa8be2e0aff297d76cdec9661ee5f4383f964988edf25840",
+            "38eaaede7c78cc1b1173766b115890fe39b6cc532392863a6f6c0c8e3f36e84c",
             id="datetime_end_of_year",
         ),
         pytest.param(
             datetime(2021, 1, 1, 12, 30, 45, 123456, tzinfo=UTC),
-            "13f82bb8ce7a9ac5d81d8c0570e8b51b547ec83aac578142a84cc6d51cd0aee7",
+            "4fa08fb0f0c7815492ed08e490f0b184f8d75a43eeba9023c7e072009facdd5d",
             id="datetime_with_microseconds",
         ),
     ],
@@ -64,10 +64,10 @@ def test_datetime_hasher_hash_parametrized(
 @pytest.mark.parametrize(
     ("length", "expected"),
     [
-        pytest.param(16, "7a0778ccca4b20e9", id="16"),
-        pytest.param(32, "1e9b4678d322a95de544bd97aa696363", id="32"),
+        pytest.param(16, "eab4ea3c8f815b6b", id="16"),
+        pytest.param(32, "e8490efa4b99a2e38064fa10c867a0d4", id="32"),
         pytest.param(
-            64, "f2b4c6a9941206bb6fc3b4b9c1104d8c05264985c009e2e1c7c840aaeda00dac", id="64-default"
+            64, "1d7ccf2f2d2fa168388daafdef0be5efb6e74b780c83a649af3368a5a23911f1", id="64-default"
         ),
     ],
 )

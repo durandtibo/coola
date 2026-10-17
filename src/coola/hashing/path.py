@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
-from coola.hashing.string import hash_string
+from coola.hashing.string import hash_tagged
 
 if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
@@ -102,4 +102,4 @@ def hash_path(path: Path, length: int = 64) -> str:
         resolved = path.resolve()
     except OSError:
         resolved = path
-    return hash_string(resolved.as_posix(), length=length)
+    return hash_tagged("Path", resolved.as_posix(), length=length)

@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
-from coola.hashing.string import hash_string
+from coola.hashing.string import hash_tagged
 
 if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
@@ -82,4 +82,4 @@ class MappingHasher(InlineDisplayMixin, BaseHasher[Mapping[Any, Any]]):
             val_hash = registry.hash(value, length=length, ignore_unhashable=ignore_unhashable)
             items.append((key_hash, key_hash + val_hash))
         parts = [item for _, item in sorted(items, key=lambda item: item[0])]
-        return hash_string("".join(parts), length=length)
+        return hash_tagged("mapping", "".join(parts), length=length)

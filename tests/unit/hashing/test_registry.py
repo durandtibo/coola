@@ -167,14 +167,14 @@ def test_hasher_registry_find_hasher_abc_not_in_mro() -> None:
 def test_hasher_registry_hash_with_list() -> None:
     assert (
         HasherRegistry({object: StrHasher(), list: SequenceHasher()}).hash([1, 2, 3])
-        == "e30f3d309eab8b8216b15ef153005972ce61c8c64c55f78075630089aed023de"
+        == "0708bf79f681139268711c8c0f125fde9109476dd1362adc3c3ce455e605b94e"
     )
 
 
 def test_hasher_registry_hash_with_dict() -> None:
     assert (
         HasherRegistry({object: StrHasher(), dict: MappingHasher()}).hash({"a": 1, "b": 2})
-        == "8cdf48729ca0eeb6e039ce3c6e6d77b3c9df8f1d27e6cfb9c28e682201372e37"
+        == "30dc27fd019ada1ebfd094059a3e349b601c452176d2c2fa5fce3c64678dc59b"
     )
 
 
@@ -188,27 +188,27 @@ def test_hasher_registry_hash_with_nested_structure() -> None:
     )
     assert (
         registry.hash({"a": [1, 2], "b": [3, 4]})
-        == "99a6b5da2730e625fef3e39e16a4e31e4c41805989d55c419e987ad7bf6778dd"
+        == "87fc1c8ded2d1904de7c02ba283fca31103f19305c08deb183943b5720e09821"
     )
 
 
 def test_hasher_registry_hash_with_empty_list() -> None:
     assert (
         HasherRegistry({list: SequenceHasher()}).hash([])
-        == "0e5751c026e543b2e8ab2eb06099daa1d1e5df47778f7787faab45cdf12fe3a8"
+        == "844dea01562659240f7c438c4bc74c7713eb68c6e4d693a30bda1798aaa972d7"
     )
 
 
 def test_hasher_registry_hash_with_empty_dict() -> None:
     assert (
         HasherRegistry({dict: MappingHasher()}).hash({})
-        == "0e5751c026e543b2e8ab2eb06099daa1d1e5df47778f7787faab45cdf12fe3a8"
+        == "d0184328135d1a4b3a9492b8d5a214b49e15af380c2458d8a2671ecef2d2ee34"
     )
 
 
 def test_hasher_registry_hash_with_length() -> None:
     result = HasherRegistry({object: ReprHasher()}).hash(42, length=16)
-    assert result == "57b43cf02666687a"
+    assert result == "4d693658248572a8"
     assert len(result) == 16
 
 

@@ -28,27 +28,27 @@ def test_bytes_hasher_str() -> None:
     [
         pytest.param(
             b"hello",
-            "324dcf027dd4a30a932c441f365a25e86b173defa4b8e58948253471b81b72cf",
+            "5445a0f97d2dd6ab7fe9478001593062297d6a661c6c991713726487c7a40d06",
             id="lowercase",
         ),
         pytest.param(
             b"Hello",
-            "8b7ca7d27d9fc55fa30abfe515b3afb24e3fe89fdd02e2ac92bca2c96680642e",
+            "13e90b849db105c46ab09021e432a1fb86b2845628588382cb6027af8a437651",
             id="uppercase_first",
         ),
         pytest.param(
             b"hello ",
-            "5c945bdc1b01abc46c3bee5681b8bd080157aa9e76a5a39c575d856aab41d5cf",
+            "9eab563d356052f1aad497a2979000fee0926c58df699efced2f4a6968fd83b1",
             id="trailing_space",
         ),
         pytest.param(
             b"",
-            "0e5751c026e543b2e8ab2eb06099daa1d1e5df47778f7787faab45cdf12fe3a8",
+            "fd04376b68c6fb49d034171ad0b0d57f63c62df3347927f46f24bca0efb5abdc",
             id="empty_bytes",
         ),
         pytest.param(
             b"Meowwwwww",
-            "1b06bfa9e842b52eaf47386798687ccd22697ed0198cfda4e0eee7e4650595f5",
+            "7fed8b5db41d2fe23ee973445831a1de4862dbdbc3798fafeb13479e28e1ab12",
             id="meow",
         ),
     ],
@@ -62,10 +62,10 @@ def test_bytes_hasher_hash_parametrized(
 @pytest.mark.parametrize(
     ("length", "expected"),
     [
-        pytest.param(16, "a7b6eda801e5347d", id="16"),
-        pytest.param(32, "46fb7408d4f285228f4af516ea25851b", id="32"),
+        pytest.param(16, "c03fc993641ae772", id="16"),
+        pytest.param(32, "e95d1d684ca34b3cd6ddb88781f983e6", id="32"),
         pytest.param(
-            64, "324dcf027dd4a30a932c441f365a25e86b173defa4b8e58948253471b81b72cf", id="64-default"
+            64, "5445a0f97d2dd6ab7fe9478001593062297d6a661c6c991713726487c7a40d06", id="64-default"
         ),
     ],
 )

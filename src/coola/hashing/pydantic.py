@@ -14,13 +14,19 @@ from coola.hashing.bytes import hash_bytes
 from coola.utils.imports import is_pydantic_available
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence, Set as AbstractSet
+
     from coola.hashing.registry import HasherRegistry
 
 if TYPE_CHECKING or is_pydantic_available():
     import pydantic
     from pydantic import SecretBytes, SecretStr
+
+    _SECRET_TYPES = (SecretStr, SecretBytes)
 else:  # pragma: no cover
     from coola.utils.fallback.pydantic import pydantic
+
+    _SECRET_TYPES = ()
 
 
 class PydanticModelHasher(InlineDisplayMixin, BaseHasher[pydantic.BaseModel]):
@@ -156,20 +162,20 @@ def unwrap_secrets(
 
         ```
     """
-    if isinstance(value, (SecretStr, SecretBytes)):
+    if isinstance(value, _SECRET_TYPES):
         if on_secret == "reveal":  # noqa: S105
             secret = value.get_secret_value()
             return secret.decode("utf-8") if isinstance(secret, bytes) else secret
         if on_secret == "exclude":  # noqa: S105
             msg = (
                 "Cannot exclude a top-level secret value with no enclosing "
-                "dict/list to drop it from."
+                "dict/list/tuple/set to drop it from."
             )
             raise ValueError(msg)
         if on_secret == "error":  # noqa: S105
             msg = (
                 "Encountered a SecretStr/SecretBytes field while hashing; "
-                "pass on_secret='reveal' or on_secret='exclude' to hash_model()."
+                "pass on_secret='reveal' or on_secret='exclude' to hash_pydantic_model()."
             )
             raise ValueError(msg)
         assert_never(on_secret)
@@ -177,18 +183,27 @@ def unwrap_secrets(
     if isinstance(value, dict):
         result: dict[Any, Any] = {}
         for k, v in cast("dict[Any, Any]", value).items():
-            if isinstance(v, (SecretStr, SecretBytes)) and on_secret == "exclude":  # noqa: S105
+            if isinstance(v, _SECRET_TYPES) and on_secret == "exclude":  # noqa: S105
                 continue
             result[k] = unwrap_secrets(v, on_secret=on_secret)
         return result
 
-    if isinstance(value, list):
-        result_list: list[Any] = []
-        for v in cast("list[Any]", value):
-            if isinstance(v, (SecretStr, SecretBytes)) and on_secret == "exclude":  # noqa: S105
-                continue
-            result_list.append(unwrap_secrets(v, on_secret=on_secret))
-        return result_list
+    if isinstance(value, (list, tuple)):
+        return [
+            unwrap_secrets(v, on_secret=on_secret)
+            for v in cast("Sequence[Any]", value)
+            if not (isinstance(v, _SECRET_TYPES) and on_secret == "exclude")  # noqa: S105
+        ]
+
+    if isinstance(value, (set, frozenset)):
+        # Sets have no stable order and are not JSON serializable, so
+        # emit a list sorted by the serialized form of each item.
+        items = [
+            unwrap_secrets(v, on_secret=on_secret)
+            for v in cast("AbstractSet[Any]", value)
+            if not (isinstance(v, _SECRET_TYPES) and on_secret == "exclude")  # noqa: S105
+        ]
+        return sorted(items, key=lambda item: json.dumps(item, sort_keys=True, default=str))
 
     return value
 
@@ -254,4 +269,4 @@ def hash_pydantic_model(
     payload = model.model_dump(mode="python")
     resolved = unwrap_secrets(payload, on_secret=on_secret)
     serialized = json.dumps(resolved, sort_keys=True, separators=(",", ":"), default=str)
-    return hash_bytes(serialized.encode("utf-8"), length=length)
+    return hash_bytes(b"pydantic\0" + serialized.encode("utf-8"), length=length)

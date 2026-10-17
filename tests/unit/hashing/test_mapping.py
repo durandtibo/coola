@@ -31,22 +31,22 @@ def test_mapping_hasher_str() -> None:
     [
         pytest.param(
             {"a": 1, "b": 2},
-            "8cdf48729ca0eeb6e039ce3c6e6d77b3c9df8f1d27e6cfb9c28e682201372e37",
+            "30dc27fd019ada1ebfd094059a3e349b601c452176d2c2fa5fce3c64678dc59b",
             id="two_items",
         ),
         pytest.param(
             {"a": 1},
-            "4ced54d7abe496efe275f1d45a9d4210be8ec6b4a1686dc8ce5d408b918a4089",
+            "35dc276c439c54e18dc675aaef88f84c1b198cd14811f51a95d092dc4603b959",
             id="single_item",
         ),
         pytest.param(
             {},
-            "0e5751c026e543b2e8ab2eb06099daa1d1e5df47778f7787faab45cdf12fe3a8",
+            "d0184328135d1a4b3a9492b8d5a214b49e15af380c2458d8a2671ecef2d2ee34",
             id="empty_mapping",
         ),
         pytest.param(
             {"x": "hello", "y": [1, 2, 3]},
-            "1c157a13e58f25fcced2f6bb171c8ff7867bbe0e44c95c60f83b63b2030644fb",
+            "10cdf21a84e7be45961a09182aa270f2408910513e75f3bc597d73fcb53ff02a",
             id="mixed_value_types",
         ),
     ],
@@ -60,10 +60,10 @@ def test_mapping_hasher_hash_parametrized(
 @pytest.mark.parametrize(
     ("length", "expected"),
     [
-        pytest.param(16, "11b35be24b54a602", id="16"),
-        pytest.param(32, "6a2bc12783a1b90e6ddbe778ab44f452", id="32"),
+        pytest.param(16, "b72dbd8958f6e2c8", id="16"),
+        pytest.param(32, "9d58c48115b2aba85b3b75c6639775d0", id="32"),
         pytest.param(
-            64, "8cdf48729ca0eeb6e039ce3c6e6d77b3c9df8f1d27e6cfb9c28e682201372e37", id="64-default"
+            64, "30dc27fd019ada1ebfd094059a3e349b601c452176d2c2fa5fce3c64678dc59b", id="64-default"
         ),
     ],
 )
