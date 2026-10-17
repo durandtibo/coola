@@ -66,7 +66,7 @@ class BytesHasher(InlineDisplayMixin, BaseHasher[bytes]):
             ValueError: If ``length`` is not an even number between 2
                 and 128.
         """
-        return hash_bytes(data, length=length)
+        return hash_bytes(b"bytes\0" + data, length=length)
 
 
 def hash_bytes(value: bytes, length: int = 64) -> str:

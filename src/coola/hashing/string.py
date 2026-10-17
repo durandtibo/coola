@@ -2,7 +2,7 @@ r"""Provide deterministic hashing functions for strings."""
 
 from __future__ import annotations
 
-__all__ = ["StringHasher", "hash_string"]
+__all__ = ["StringHasher", "hash_string", "hash_tagged"]
 
 import hashlib
 from typing import TYPE_CHECKING, Any
@@ -96,3 +96,23 @@ def hash_string(value: str, length: int = 64) -> str:
         raise ValueError(msg)
     digest_size = length // 2
     return hashlib.blake2b(value.encode(), digest_size=digest_size).hexdigest()
+
+
+def hash_tagged(tag: str, value: str, length: int = 64) -> str:
+    """Compute a hash of ``value`` namespaced by a type ``tag``.
+
+    The tag is mixed into the digest input so that values of different
+    types that have the same textual form (e.g. ``1`` and ``'1'``, or
+    an empty list and an empty string) do not collide.
+
+    Args:
+        tag: The type tag, e.g. ``"int"`` or ``"list"``.
+        value: The text to hash.
+        length: The desired length of the returned hex string. See
+            ``hash_string`` for constraints.
+
+    Returns:
+        A lowercase hexadecimal string of exactly ``length``
+        characters.
+    """
+    return hash_string(f"{tag}\0{value}", length=length)

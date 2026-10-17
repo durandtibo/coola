@@ -28,6 +28,7 @@ __all__ = [
     "hash_path",
     "hash_pydantic_model",
     "hash_string",
+    "hash_tagged",
     "register_hashers",
 ]
 
@@ -48,4 +49,4 @@ from coola.hashing.registry import HasherRegistry
 from coola.hashing.repr import ReprHasher
 from coola.hashing.sequence import SequenceHasher
 from coola.hashing.str import StrHasher
-from coola.hashing.string import StringHasher, hash_string
+from coola.hashing.string import StringHasher, hash_string, hash_tagged

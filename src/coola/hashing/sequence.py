@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
-from coola.hashing.string import hash_string
+from coola.hashing.string import hash_tagged
 
 if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
@@ -79,13 +79,7 @@ class SequenceHasher(InlineDisplayMixin, BaseHasher[Sequence[Any]]):
             ValueError: If ``length`` is not an even number between 2
                 and 128.
         """
-        cache: dict[int, str] = {}
-        parts: list[str] = []
-        for item in data:
-            key = id(item)
-            item_hash = cache.get(key)
-            if item_hash is None:
-                item_hash = registry.hash(item, length=length, ignore_unhashable=ignore_unhashable)
-                cache[key] = item_hash
-            parts.append(item_hash)
-        return hash_string("".join(parts), length=length)
+        parts = [
+            registry.hash(item, length=length, ignore_unhashable=ignore_unhashable) for item in data
+        ]
+        return hash_tagged("sequence", "".join(parts), length=length)

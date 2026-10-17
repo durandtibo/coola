@@ -62,7 +62,7 @@ def test_hashable_hasher_hash_matches_object_hash(registry: HasherRegistry) -> N
     ("value", "expected"),
     [
         pytest.param(
-            42, "2f0039e93a27221fcf657fb877a1d4f60307106113e885096cb44a461cd0afbf", id="int"
+            42, "e8de54a41b283e18905a5ef6ff1a6f2f4e361845c5d091fbcb371e3d003ec90e", id="int"
         ),
         pytest.param(
             "abc", "bddd813c634239723171ef3fee98579b94964e3bb1cb3e427262c8c068d52319", id="str"
@@ -123,10 +123,10 @@ def test_hashable_hasher_hash_different_types_different_hashes(registry: HasherR
 @pytest.mark.parametrize(
     ("length", "expected"),
     [
-        pytest.param(16, "57b43cf02666687a", id="16"),
-        pytest.param(32, "755345b7ef54b0d592c17e04737ab3d9", id="32"),
+        pytest.param(16, "4d693658248572a8", id="16"),
+        pytest.param(32, "75840878f68c8ee55bf5e05bad7d2bfc", id="32"),
         pytest.param(
-            64, "2f0039e93a27221fcf657fb877a1d4f60307106113e885096cb44a461cd0afbf", id="64-default"
+            64, "e8de54a41b283e18905a5ef6ff1a6f2f4e361845c5d091fbcb371e3d003ec90e", id="64-default"
         ),
     ],
 )

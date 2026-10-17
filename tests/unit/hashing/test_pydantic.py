@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 from coola.hashing import HasherRegistry, hash_pydantic_model
@@ -77,7 +79,7 @@ def test_pydantic_model_hasher_hash_known_value(registry: HasherRegistry) -> Non
     point = Point(x=1, y=2)
     assert (
         PydanticModelHasher().hash(point, registry=registry)
-        == "301e1d3a626603f235bacd91349cdf1f5479e8fb4557cc452753cdb1b33d82ea"
+        == "a86e902575b9c860c45380d1c661a88ff7975f9c8a97b7e1439af5676dc350fb"
     )
 
 
@@ -95,10 +97,10 @@ def test_pydantic_model_hasher_hash_default_length_is_64(registry: HasherRegistr
 @pytest.mark.parametrize(
     ("length", "expected"),
     [
-        pytest.param(16, "986f13d61aea29e3", id="16"),
+        pytest.param(16, "5885b1b8a7b3c171", id="16"),
         pytest.param(
             64,
-            "301e1d3a626603f235bacd91349cdf1f5479e8fb4557cc452753cdb1b33d82ea",
+            "a86e902575b9c860c45380d1c661a88ff7975f9c8a97b7e1439af5676dc350fb",
             id="64-default",
         ),
     ],
@@ -481,3 +483,51 @@ def test_hash_pydantic_model_multiple_secret_fields_all_handled() -> None:
         on_secret="exclude",
     )
     assert a == b
+
+
+@pydantic_available
+@pytest.mark.parametrize("container", [tuple, list, set, frozenset])
+def test_hash_pydantic_model_secret_in_container_raises_by_default(container: type) -> None:
+    class Model(BaseModel):
+        values: Any
+
+    with pytest.raises(ValueError, match="SecretStr"):
+        hash_pydantic_model(Model(values=container([SecretStr("a")])))
+
+
+@pydantic_available
+@pytest.mark.parametrize("container", [tuple, list, set, frozenset])
+def test_hash_pydantic_model_secret_in_container_reveal_depends_on_secret(
+    container: type,
+) -> None:
+    class Model(BaseModel):
+        values: Any
+
+    first = hash_pydantic_model(Model(values=container([SecretStr("a")])), on_secret="reveal")
+    second = hash_pydantic_model(Model(values=container([SecretStr("b")])), on_secret="reveal")
+    assert first != second
+
+
+@pydantic_available
+@pytest.mark.parametrize("container", [tuple, list, set, frozenset])
+def test_hash_pydantic_model_secret_in_container_exclude_ignores_secret(
+    container: type,
+) -> None:
+    class Model(BaseModel):
+        values: Any
+
+    first = hash_pydantic_model(Model(values=container([SecretStr("a"), "x"])), on_secret="exclude")
+    second = hash_pydantic_model(
+        Model(values=container([SecretStr("b"), "x"])), on_secret="exclude"
+    )
+    assert first == second
+
+
+@pydantic_available
+def test_hash_pydantic_model_set_is_order_independent() -> None:
+    class Model(BaseModel):
+        values: Any
+
+    assert hash_pydantic_model(Model(values={"a", "b", "c"})) == hash_pydantic_model(
+        Model(values={"c", "b", "a"})
+    )

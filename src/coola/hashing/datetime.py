@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
-from coola.hashing.string import hash_string
+from coola.hashing.string import hash_tagged
 
 if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
@@ -72,4 +72,4 @@ class DatetimeHasher(InlineDisplayMixin, BaseHasher[date]):
             ValueError: If ``length`` is not an even number between 2
                 and 128.
         """
-        return hash_string(data.isoformat(), length=length)
+        return hash_tagged(type(data).__qualname__, data.isoformat(), length=length)

@@ -39,27 +39,27 @@ def test_sequence_hasher_str() -> None:
     [
         pytest.param(
             [1, 2, 3],
-            "e30f3d309eab8b8216b15ef153005972ce61c8c64c55f78075630089aed023de",
+            "0708bf79f681139268711c8c0f125fde9109476dd1362adc3c3ce455e605b94e",
             id="list_of_ints",
         ),
         pytest.param(
             (1, 2, 3),
-            "e30f3d309eab8b8216b15ef153005972ce61c8c64c55f78075630089aed023de",
+            "0708bf79f681139268711c8c0f125fde9109476dd1362adc3c3ce455e605b94e",
             id="tuple_same_as_list",
         ),
         pytest.param(
             [42],
-            "52cd1083fe122c990268e9a127b49f5dc65a0b071a3a7c00f52f01b2208c1a38",
+            "b989e403fcb0a92fbd9cdd8e83b24c8540f4632db582a02dda087916e1ec7cca",
             id="single_element",
         ),
         pytest.param(
             [],
-            "0e5751c026e543b2e8ab2eb06099daa1d1e5df47778f7787faab45cdf12fe3a8",
+            "844dea01562659240f7c438c4bc74c7713eb68c6e4d693a30bda1798aaa972d7",
             id="empty_sequence",
         ),
         pytest.param(
             "abc",
-            "040c910c2fffa8ec50282e64abfd994192e99a5565b07855bbcc23669bb6f25a",
+            "deeb2844f1898c0f1fd0107f79100f0f4458f597ce5ba3082cf51d19c628275e",
             id="str_sequence",
         ),
     ],
@@ -73,10 +73,10 @@ def test_sequence_hasher_hash_parametrized(
 @pytest.mark.parametrize(
     ("length", "expected"),
     [
-        pytest.param(16, "38600139ffd04ca0", id="16"),
-        pytest.param(32, "56ef471038da2edee2635fd3064628a1", id="32"),
+        pytest.param(16, "c707ce89f1b1a4f6", id="16"),
+        pytest.param(32, "df4ebc44992eea89c78876774c07e0df", id="32"),
         pytest.param(
-            64, "e30f3d309eab8b8216b15ef153005972ce61c8c64c55f78075630089aed023de", id="64-default"
+            64, "0708bf79f681139268711c8c0f125fde9109476dd1362adc3c3ce455e605b94e", id="64-default"
         ),
     ],
 )
@@ -122,7 +122,7 @@ def test_sequence_hasher_hash_is_deterministic(registry: HasherRegistry) -> None
 def test_sequence_hasher_hash_nested_sequence(registry: HasherRegistry) -> None:
     # Nested lists are recursed into via the registry.
     assert SequenceHasher().hash([[1, 2], [3, 4]], registry=registry) == (
-        "aaaf7ff74d087a45da40168d0b346ceb24a7e08793a9001390e10103d5736ccd"
+        "b47a1417d5bb6b7e1ad2e4c3e7bd5f2c06676b46e1529deb24d1d638c8e64cc4"
     )
 
 
@@ -178,20 +178,6 @@ def test_sequence_hasher_hash_ignore_unhashable_is_deterministic(
     ) == hasher.hash(
         [1, Unhashable(), 3], registry=registry_without_fallback, ignore_unhashable=True
     )
-
-
-def test_sequence_hasher_hash_reuses_cached_result_for_repeated_object(
-    registry: HasherRegistry,
-) -> None:
-    # ``shared`` appears at several positions in the sequence: the hasher
-    # must reuse the first computed hash instead of recomputing
-    # ``registry.hash`` for every occurrence.
-    shared = [1, 2, 3]
-    wrapped = Mock(wraps=registry)
-    assert SequenceHasher().hash(
-        [shared, shared, shared], registry=wrapped
-    ) == SequenceHasher().hash([shared, shared, shared], registry=registry)
-    assert wrapped.hash.call_count == 1
 
 
 def test_sequence_hasher_hash_does_not_reuse_cache_across_different_objects(

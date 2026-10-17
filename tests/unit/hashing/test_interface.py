@@ -17,6 +17,7 @@ from coola.hashing import (
     StringHasher,
     get_default_registry,
     hash_object,
+    hash_tagged,
     interface as hashing_interface,
     register_hashers,
 )
@@ -44,22 +45,22 @@ class CustomList(list):
     [
         pytest.param(
             5,
-            "70b201352f24bf1c9770b99f8f71201821411cf414377c9b8c2dbcee61db87d6",
+            "e082b7ec382aca2fd735131e1e0783773d3024db6b45dcc12663f1f58ee2acbe",
             id="int",
         ),
         pytest.param(
             3.14,
-            "ab14d2d4a60939ddc6de342ae33b8a8da25564787546cbdfd6cf29164863ed4a",
+            "7f490c17244f4f05739d330c6b390f4d6ca1a259c63527d49ed4031de9f80fca",
             id="float",
         ),
         pytest.param(
             complex(1, 2),
-            "672e535e27fd6becac3687e261cc67a9708673e67eac19d588d574efadafc1e0",
+            "4ee227f701d6a0eaa2429bfb3378dd865abe0e5fc9d303068c0befaffbab41b1",
             id="complex",
         ),
         pytest.param(
             True,
-            "b37c53228410790b2e6d4ab6eb00deb4e1e9b47e2075100b120e0abd777d0020",
+            "d7d4d5d42aa13a2cb19b77506ff0e2cfe278713fecddd620b898d65bc7dc63dd",
             id="bool",
         ),
         pytest.param(
@@ -69,27 +70,27 @@ class CustomList(list):
         ),
         pytest.param(
             [1, 2, 3],
-            "e30f3d309eab8b8216b15ef153005972ce61c8c64c55f78075630089aed023de",
+            "f4adaffe06dacaa6cf0ca45f9e1b8a4161ae8fa1064e5d63345c3c15414d3138",
             id="list",
         ),
         pytest.param(
             (1, 2, 3),
-            "e30f3d309eab8b8216b15ef153005972ce61c8c64c55f78075630089aed023de",
+            "f4adaffe06dacaa6cf0ca45f9e1b8a4161ae8fa1064e5d63345c3c15414d3138",
             id="tuple",
         ),
         pytest.param(
             {"a": 1, "b": 2},
-            "8cdf48729ca0eeb6e039ce3c6e6d77b3c9df8f1d27e6cfb9c28e682201372e37",
+            "f1304bbdf8f7c7625e8dc07607be7bb0b135c50e0c16fd51b65da9b432fb9142",
             id="dict",
         ),
         pytest.param(
             date(2021, 1, 1),
-            "f2b4c6a9941206bb6fc3b4b9c1104d8c05264985c009e2e1c7c840aaeda00dac",
+            "1d7ccf2f2d2fa168388daafdef0be5efb6e74b780c83a649af3368a5a23911f1",
             id="date",
         ),
         pytest.param(
             datetime(2021, 1, 1, tzinfo=UTC),
-            "7b9000123bc9220f9759ddc4ae7e7780c16935c8ed6d9417b82c41500ebb3967",
+            "1cc1275c7d33a7dc33384372f2b37341544cd099de233c9bcaa753fe08ea6621",
             id="datetime",
         ),
     ],
@@ -109,7 +110,7 @@ def test_hash_object_is_deterministic() -> None:
 def test_hash_object_with_custom_registry() -> None:
     # A registry with only ReprHasher treats lists as leaf values.
     registry = HasherRegistry({object: ReprHasher()})
-    assert hash_object([1, 2, 3], registry=registry) == hash_object(repr([1, 2, 3]))
+    assert hash_object([1, 2, 3], registry=registry) == hash_tagged("list", repr([1, 2, 3]))
 
 
 def test_hash_object_with_custom_length() -> None:
@@ -124,7 +125,7 @@ def test_hash_object_uses_default_registry_when_none() -> None:
 
 def test_hash_object_nested_structure() -> None:
     assert hash_object({"a": [1, 2], "b": [3, 4]}) == (
-        "99a6b5da2730e625fef3e39e16a4e31e4c41805989d55c419e987ad7bf6778dd"
+        "471ec7a4b395624feacb7778762f8e7c23d56cad9bcd917839c286898e583281"
     )
 
 
@@ -255,11 +256,11 @@ def test_get_default_registry_registers_none() -> None:
 
 def test_get_default_registry_can_hash_list() -> None:
     assert get_default_registry().hash([1, 2, 3]) == (
-        "e30f3d309eab8b8216b15ef153005972ce61c8c64c55f78075630089aed023de"
+        "f4adaffe06dacaa6cf0ca45f9e1b8a4161ae8fa1064e5d63345c3c15414d3138"
     )
 
 
 def test_get_default_registry_can_hash_dict() -> None:
     assert get_default_registry().hash({"a": 1, "b": 2}) == (
-        "8cdf48729ca0eeb6e039ce3c6e6d77b3c9df8f1d27e6cfb9c28e682201372e37"
+        "f1304bbdf8f7c7625e8dc07607be7bb0b135c50e0c16fd51b65da9b432fb9142"
     )
