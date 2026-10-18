@@ -7,18 +7,12 @@ and dtype instead of the full data by default.
 
 from __future__ import annotations
 
-from coola.utils.introspection import is_same_type
-
 __all__ = ["NDArraySummarizer"]
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
-from coola.display import InlineDisplayMixin
-from coola.summary.base import BaseSummarizer
+from coola.summary.metadata import BaseMetadataSummarizer
 from coola.utils.imports import check_numpy, is_numpy_available
-
-if TYPE_CHECKING:
-    from coola.summary.registry import SummarizerRegistry
 
 if TYPE_CHECKING or is_numpy_available():
     import numpy as np
@@ -26,7 +20,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.numpy import numpy as np
 
 
-class NDArraySummarizer(InlineDisplayMixin, BaseSummarizer[np.ndarray]):
+class NDArraySummarizer(BaseMetadataSummarizer[np.ndarray]):
     r"""Implement a summarizer for ``numpy.ndarray`` objects.
 
     This summarizer generates compact string representations of NumPy
@@ -68,25 +62,8 @@ class NDArraySummarizer(InlineDisplayMixin, BaseSummarizer[np.ndarray]):
         ```
     """
 
-    def __init__(self, show_data: bool = False) -> None:
+    def _check_dependencies(self) -> None:
         check_numpy()
-        self._show_data = bool(show_data)
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {"show_data": self._show_data}
-
-    def equal(self, other: object) -> bool:
-        if not is_same_type(other, self):
-            return False
-        return self._show_data == other._show_data
-
-    def summarize(
-        self,
-        data: np.ndarray,
-        registry: SummarizerRegistry,  # noqa: ARG002
-        depth: int = 0,  # noqa: ARG002
-        max_depth: int = 1,  # noqa: ARG002
-    ) -> str:
-        if self._show_data:
-            return repr(data)
-        return " | ".join([f"{type(data)}", f"shape={data.shape}", f"dtype={data.dtype}"])
+    def _describe(self, data: np.ndarray) -> list[str]:
+        return [f"shape={data.shape}", f"dtype={data.dtype}"]

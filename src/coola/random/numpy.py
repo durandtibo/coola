@@ -2,8 +2,6 @@ r"""Implement a random manager for NumPy."""
 
 from __future__ import annotations
 
-from coola.utils.introspection import is_same_type
-
 __all__ = ["NumpyRandomManager"]
 
 from contextlib import contextmanager
@@ -12,6 +10,7 @@ from typing import TYPE_CHECKING, Any
 from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
 from coola.random.base import BaseRandomManager
 from coola.utils.imports import check_numpy, is_numpy_available
+from coola.utils.introspection import is_same_type
 
 if TYPE_CHECKING:
     from collections.abc import Generator

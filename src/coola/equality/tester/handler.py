@@ -2,14 +2,13 @@ r"""Implement an equality tester that uses an equality handler."""
 
 from __future__ import annotations
 
-from coola.utils.introspection import is_same_type
-
 __all__ = ["HandlerEqualityTester"]
 
 from typing import TYPE_CHECKING, TypeVar
 
 from coola.equality.tester.base import BaseEqualityTester
 from coola.utils.format import str_indent
+from coola.utils.introspection import is_same_type
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig

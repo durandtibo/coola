@@ -36,3 +36,14 @@ def test_pyarrow_array_instantiation_with_args() -> None:
         MissingPackageError, match=r"'pyarrow' package is required but not installed."
     ):
         pyarrow.Array([1, 2, 3])
+
+
+@pytest.mark.parametrize("name", ["ChunkedArray", "Table"])
+def test_pyarrow_fake_class_exists(name: str) -> None:
+    assert isinstance(getattr(pyarrow, name), type)
+
+
+@pytest.mark.parametrize("name", ["ChunkedArray", "Table"])
+def test_pyarrow_fake_class_instantiation_raises(name: str) -> None:
+    with pytest.raises(MissingPackageError, match="'pyarrow' package is required"):
+        getattr(pyarrow, name)()

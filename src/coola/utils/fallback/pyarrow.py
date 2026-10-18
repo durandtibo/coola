@@ -16,4 +16,6 @@ if TYPE_CHECKING:
 FakeClass: type = make_fake_class(raise_pyarrow_missing_error)
 
 # Create a fake pyarrow package
-pyarrow: ModuleType = make_fake_module("pyarrow", Array=FakeClass)
+pyarrow: ModuleType = make_fake_module(
+    "pyarrow", Array=FakeClass, ChunkedArray=FakeClass, Table=FakeClass
+)

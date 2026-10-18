@@ -2,13 +2,12 @@ r"""Implement the default summarizer."""
 
 from __future__ import annotations
 
-from coola.utils.introspection import is_same_type
-
 __all__ = ["DefaultSummarizer"]
 
 from typing import TYPE_CHECKING
 
 from coola.summary.base import BaseSummarizer
+from coola.utils.introspection import is_same_type
 
 if TYPE_CHECKING:
     from coola.summary.registry import SummarizerRegistry

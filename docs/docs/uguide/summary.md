@@ -399,6 +399,39 @@ tensor([0, 1, 2, 3, 4])
 
 ```
 
+### DataFrames, Arrays and Other Array-Like Types
+
+The default registry also summarizes the other array-like types supported by `coola.equality`,
+when their package is installed. They show metadata only (type, shape, dtype and column names),
+so a large data frame never floods the logs. At most 10 columns or variables are listed.
+
+| Type                                    | Summarizer                  | Summary                                    |
+| --------------------------------------- | --------------------------- | ------------------------------------------ |
+| `pandas.DataFrame`                      | `PandasDataFrameSummarizer` | `shape`, `columns` with their dtype        |
+| `pandas.Series`                         | `PandasSeriesSummarizer`    | `shape`, `dtype`, `name`                   |
+| `polars.DataFrame`                      | `PolarsDataFrameSummarizer` | `shape`, `columns` with their dtype        |
+| `polars.LazyFrame`                      | `PolarsLazyFrameSummarizer` | `columns` with their dtype (not collected) |
+| `polars.Series`                         | `PolarsSeriesSummarizer`    | `shape`, `dtype`, `name`                   |
+| `pyarrow.Table`                         | `PyarrowTableSummarizer`    | `shape`, `columns` with their type         |
+| `pyarrow.Array`, `pyarrow.ChunkedArray` | `PyarrowArraySummarizer`    | `length`, `type`                           |
+| `xarray.DataArray`                      | `XarrayDataArraySummarizer` | `dims`, `shape`, `dtype`, `name`           |
+| `xarray.Dataset`                        | `XarrayDatasetSummarizer`   | `dims`, `data_vars` with their dtype       |
+| `xarray.Variable`                       | `XarrayVariableSummarizer`  | `dims`, `shape`, `dtype`                   |
+| `jax.Array`                             | `JaxArraySummarizer`        | `shape`, `dtype`                           |
+
+```pycon
+>>> import pandas as pd
+>>> from coola.summary import summarize
+>>> frame = pd.DataFrame({"a": [1, 2, 3], "b": [0.1, 0.2, 0.3]})
+>>> print(summarize(frame))
+<class 'pandas.DataFrame'> | shape=(3, 2) | columns=a: int64, b: float64
+
+```
+
+Like `NDArraySummarizer` and `TensorSummarizer`, each of them accepts `show_data=True` to return
+`repr(data)` instead. To add a summarizer for another type that is described by its metadata,
+extend `BaseMetadataSummarizer` and implement `_describe`.
+
 ## Creating Custom Summarizers
 
 ### Defining a Custom Summarizer
@@ -636,6 +669,12 @@ The `coola.summary` package provides the following built-in summarizers:
 - **`NDArraySummarizer`**: For NumPy arrays (requires NumPy)
   - Configurable: `show_data` (default: False)
 - **`TensorSummarizer`**: For PyTorch tensors (requires PyTorch)
+  - Configurable: `show_data` (default: False)
+- **`PandasDataFrameSummarizer`**, **`PandasSeriesSummarizer`**, **`PolarsDataFrameSummarizer`**,
+  **`PolarsLazyFrameSummarizer`**, **`PolarsSeriesSummarizer`**, **`PyarrowArraySummarizer`**,
+  **`PyarrowTableSummarizer`**, **`XarrayDataArraySummarizer`**, **`XarrayDatasetSummarizer`**,
+  **`XarrayVariableSummarizer`**, **`JaxArraySummarizer`**: for the other array-like types (require
+  the corresponding package)
   - Configurable: `show_data` (default: False)
 
 ## Design Principles

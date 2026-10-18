@@ -8,25 +8,77 @@ import pytest
 from coola.registry import AlreadyRegisteredError
 from coola.summary import (
     DefaultSummarizer,
+    JaxArraySummarizer,
     MappingSummarizer,
     NDArraySummarizer,
+    PandasDataFrameSummarizer,
+    PandasSeriesSummarizer,
+    PolarsDataFrameSummarizer,
+    PolarsLazyFrameSummarizer,
+    PolarsSeriesSummarizer,
+    PyarrowArraySummarizer,
+    PyarrowTableSummarizer,
     SequenceSummarizer,
     SetSummarizer,
     SummarizerRegistry,
     TensorSummarizer,
+    XarrayDataArraySummarizer,
+    XarrayDatasetSummarizer,
+    XarrayVariableSummarizer,
     get_default_registry,
     interface as summary_interface,
     register_summarizers,
     summarize,
 )
-from coola.testing.fixtures import numpy_available, torch_available
-from coola.utils.imports import is_numpy_available, is_torch_available
+from coola.testing.fixtures import (
+    jax_available,
+    numpy_available,
+    pandas_available,
+    polars_available,
+    pyarrow_available,
+    torch_available,
+    xarray_available,
+)
+from coola.utils.imports import (
+    is_jax_available,
+    is_numpy_available,
+    is_pandas_available,
+    is_polars_available,
+    is_pyarrow_available,
+    is_torch_available,
+    is_xarray_available,
+)
 
 if is_torch_available():  # pragma: no cover
     import torch
 
 if is_numpy_available():  # pragma: no cover
     import numpy as np
+
+if is_jax_available():  # pragma: no cover
+    import jax.numpy as jnp
+else:  # pragma: no cover
+    jnp = Mock()
+
+if is_pandas_available():  # pragma: no cover
+    import pandas as pd
+else:  # pragma: no cover
+    pd = Mock()
+
+if is_polars_available():  # pragma: no cover
+    import polars as pl
+else:  # pragma: no cover
+    pl = Mock()
+
+if is_pyarrow_available():  # pragma: no cover
+    import pyarrow as pa
+else:  # pragma: no cover
+    pa = Mock()
+
+if is_xarray_available():  # pragma: no cover
+    import xarray as xr
+else:  # pragma: no cover
+    xr = Mock()
 
 
 @pytest.fixture(autouse=True)
@@ -238,3 +290,75 @@ def test_get_default_registry_registers_torch_summarizer_when_torch_available() 
 
     assert registry.has_summarizer(fake_tensor)
     assert registry.find_summarizer(fake_tensor) is fake_summarizer
+
+
+@pandas_available
+def test_get_default_registry_pandas_summarizers() -> None:
+    registry = get_default_registry()
+    assert isinstance(registry.find_summarizer(pd.DataFrame), PandasDataFrameSummarizer)
+    assert isinstance(registry.find_summarizer(pd.Series), PandasSeriesSummarizer)
+
+
+@polars_available
+def test_get_default_registry_polars_summarizers() -> None:
+    registry = get_default_registry()
+    assert isinstance(registry.find_summarizer(pl.DataFrame), PolarsDataFrameSummarizer)
+    assert isinstance(registry.find_summarizer(pl.LazyFrame), PolarsLazyFrameSummarizer)
+    assert isinstance(registry.find_summarizer(pl.Series), PolarsSeriesSummarizer)
+
+
+@pyarrow_available
+def test_get_default_registry_pyarrow_summarizers() -> None:
+    registry = get_default_registry()
+    assert isinstance(registry.find_summarizer(pa.Array), PyarrowArraySummarizer)
+    assert isinstance(registry.find_summarizer(pa.ChunkedArray), PyarrowArraySummarizer)
+    assert isinstance(registry.find_summarizer(pa.Table), PyarrowTableSummarizer)
+
+
+@xarray_available
+def test_get_default_registry_xarray_summarizers() -> None:
+    registry = get_default_registry()
+    assert isinstance(registry.find_summarizer(xr.DataArray), XarrayDataArraySummarizer)
+    assert isinstance(registry.find_summarizer(xr.Dataset), XarrayDatasetSummarizer)
+    assert isinstance(registry.find_summarizer(xr.Variable), XarrayVariableSummarizer)
+
+
+@jax_available
+def test_get_default_registry_jax_summarizers() -> None:
+    registry = get_default_registry()
+    assert isinstance(registry.find_summarizer(jnp.ndarray), JaxArraySummarizer)
+    assert isinstance(registry.find_summarizer(type(jnp.ones(1))), JaxArraySummarizer)
+
+
+@pandas_available
+@polars_available
+@pyarrow_available
+@xarray_available
+@jax_available
+def test_summarize_nested_structure_with_dataframes() -> None:
+    data = {"pandas": pd.DataFrame({"a": [1]}), "polars": pl.DataFrame({"a": [1]})}
+    result = summarize(data, max_depth=2)
+    assert "pandas.DataFrame'> | shape=(1, 1) | columns=a: int64" in result
+    assert "shape=(1, 1) | columns=a: Int64" in result
+
+
+@pytest.mark.parametrize(
+    ("name", "data_type"),
+    [
+        pytest.param("is_jax_available", jnp.ndarray, id="jax"),
+        pytest.param("is_pandas_available", pd.DataFrame, id="pandas"),
+        pytest.param("is_polars_available", pl.DataFrame, id="polars"),
+        pytest.param("is_pyarrow_available", pa.Table, id="pyarrow"),
+        pytest.param("is_xarray_available", xr.Dataset, id="xarray"),
+    ],
+)
+@jax_available
+@pandas_available
+@polars_available
+@pyarrow_available
+@xarray_available
+def test_register_default_summarizers_without_optional_package(name: str, data_type: type) -> None:
+    registry = SummarizerRegistry()
+    with patch(f"coola.summary.interface.{name}", lambda: False):
+        summary_interface._register_default_summarizers(registry)
+    assert not registry.has(data_type)

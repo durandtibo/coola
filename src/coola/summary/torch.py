@@ -7,18 +7,12 @@ dtype, and device instead of the full data by default.
 
 from __future__ import annotations
 
-from coola.utils.introspection import is_same_type
-
 __all__ = ["TensorSummarizer"]
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
-from coola.display import InlineDisplayMixin
-from coola.summary.base import BaseSummarizer
+from coola.summary.metadata import BaseMetadataSummarizer
 from coola.utils.imports import check_torch, is_torch_available
-
-if TYPE_CHECKING:
-    from coola.summary.registry import SummarizerRegistry
 
 if TYPE_CHECKING or is_torch_available():
     import torch
@@ -26,7 +20,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.torch import torch
 
 
-class TensorSummarizer(InlineDisplayMixin, BaseSummarizer[torch.Tensor]):
+class TensorSummarizer(BaseMetadataSummarizer[torch.Tensor]):
     r"""Implement a summarizer for ``torch.Tensor`` objects.
 
     This summarizer generates compact string representations of PyTorch
@@ -70,33 +64,13 @@ class TensorSummarizer(InlineDisplayMixin, BaseSummarizer[torch.Tensor]):
         ```
     """
 
-    def __init__(self, show_data: bool = False) -> None:
+    def _check_dependencies(self) -> None:
         check_torch()
-        self._show_data = bool(show_data)
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {"show_data": self._show_data}
-
-    def equal(self, other: object) -> bool:
-        if not is_same_type(other, self):
-            return False
-        return self._show_data == other._show_data
-
-    def summarize(
-        self,
-        data: torch.Tensor,
-        registry: SummarizerRegistry,  # noqa: ARG002
-        depth: int = 0,  # noqa: ARG002
-        max_depth: int = 1,  # noqa: ARG002
-    ) -> str:
-        if self._show_data:
-            return repr(data)
-        return " | ".join(
-            [
-                f"{type(data)}",
-                f"shape={data.shape}",
-                f"dtype={data.dtype}",
-                f"device={data.device}",
-                f"requires_grad={data.requires_grad}",
-            ]
-        )
+    def _describe(self, data: torch.Tensor) -> list[str]:
+        return [
+            f"shape={data.shape}",
+            f"dtype={data.dtype}",
+            f"device={data.device}",
+            f"requires_grad={data.requires_grad}",
+        ]

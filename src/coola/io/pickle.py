@@ -2,8 +2,6 @@ r"""Contain pickle-based data loaders and savers."""
 
 from __future__ import annotations
 
-from coola.utils.introspection import is_same_type
-
 __all__ = ["PickleLoader", "PickleSaver", "load_pickle", "save_pickle"]
 
 import pickle
@@ -12,6 +10,7 @@ from typing import TYPE_CHECKING, Any, TypeVar
 from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
 from coola.equality.interface import objects_are_equal
 from coola.io.base import BaseFileSaver, BaseLoader
+from coola.utils.introspection import is_same_type
 
 if TYPE_CHECKING:
     from pathlib import Path
