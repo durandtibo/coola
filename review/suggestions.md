@@ -544,44 +544,39 @@ The suite is large (11k tests, ~18 s) and covers every line. Status of the impro
 
 `pyproject.toml`:
 
-- `[tool.ruff.lint.fixable]` repeats the full `select` list and `unfixable = []`;
-  both are the defaults (everything fixable). Remove ~50 lines. `lint.exclude` also
-  restates ruff's default exclusions.
-- `[tool.ruff.lint.mccabe] max-complexity = 10` has no effect because `C90` is not in
-  `select`. Either add `"C90"` or delete the section.
-- `[tool.ruff.lint.isort] known-first-party = ["src"]` should be `["coola"]` (with
-  `src = ["src"]` ruff usually detects it correctly, so the entry is probably harmless
-  but wrong).
-- `[tool.pytest.ini_options] pythonpath = ["src"]` is redundant when the package is
-  installed in the dev environment and can mask packaging problems (tests would pass
-  even if a module is missing from the wheel). Keep it only if CI does not install the
-  project; otherwise remove it so tests run against the installed package.
-- No `fail_under` in `[tool.coverage.report]`. With 100% coverage today, setting
-  `fail_under = 100` (or 99) locks it in.
-- `ty` is the only type checker and is pre-1.0 (`ty>=0.0.86`). Its output can change
-  between releases. Consider running `pyright --verifytypes coola` or `mypy --strict`
-  in a non-blocking CI job for a second opinion, especially on the heavily
-  `cast('Any', ...)`-ed optional-dependency code.
-- The import-linter contract lists `coola.registry.base -> coola.equality.interface`
-  as an ignored import (previous review 3.3, still open). The only use is
-  `BaseRegistry.equal`. Move the comparison to a tiny `coola.utils` function that takes
-  the compare callable, or implement `equal` with `self._state == other._state` plus
-  the NaN option injected by the subclass. That removes the last layering exception.
-- `[project.optional-dependencies]` has no `all` / `testing` extra. Users must list
-  every package. Add `all = ["coola[numpy,pandas,...]"]`. The `autoextras` hook may
-  already generate this; if so, mention it in the README.
-- `Programming Language :: Python :: 3.15` is listed as a classifier while 3.15 is
-  not released; keep only if CI actually tests 3.15 pre-releases.
+- ~~`[tool.ruff.lint.fixable]` / `unfixable` / `exclude`~~ _(Fixed: removed, about 70 lines. They
+  were the defaults, and the set of linted files is unchanged.)_
+- ~~`[tool.ruff.lint.mccabe] max-complexity = 10`~~ _(Fixed: `C90` is now in `select`, so the limit
+  is enforced. `flatten_mapping` and `merge_mappings` were too complex (12); small helpers were
+  extracted.)_
+- ~~`known-first-party = ["src"]`~~ _(Fixed: `["coola"]`.)_
+- ~~`pythonpath = ["src"]`~~ _(Fixed: removed, the tests run against the installed package. The
+  `min` and `all` CI jobs install the project.)_
+- **`fail_under` in `[tool.coverage.report]`**: not changed. A global value would fail the `min` CI
+  job (no optional dependency installed, most tests skipped) and a unit-only run. Enforce the
+  threshold with `--cov-fail-under` on the one job that runs the full suite (`all`), or rely on
+  Codecov.
+- **Second type checker** (`pyright` / `mypy`): not done. It needs a decision on a new, non-blocking
+  CI job, and its output on the optional-dependency code has not been looked at.
+- **import-linter exception `coola.registry.base -> coola.equality.interface`**: kept, by decision.
+  `BaseRegistry.equal` has to compare the registered values with the full equality machinery (nested
+  values, `equal_nan`, objects with an `equal` method), and a local replacement would duplicate it.
+  The import is deferred and documented in the contract.
+- ~~`[project.optional-dependencies]` has no `all` extra~~ _(It exists: the `autoextras` hook
+  generates it, and the README and the get started page document `coola[all]`.)_
+- **`Programming Language :: Python :: 3.15` classifier**: not changed. The Python versions tested by
+  the CI come from the `workflow-config-action` and not from a file of the repository, so they cannot
+  be checked here. (`.github/GUIDELINES.md` also mentions a `dev/config/test_matrix.json` that does
+  not exist.)
 
 Repository layout:
 
-- `debug/` and `dev/` are tracked top-level folders. `debug/equality_examples.py` is a
-  useful demo; move it to `docs/` or `examples/` and run it in the doctest job so it
-  cannot rot. Keep `dev/` if it is the version-pinning script.
+- ~~`debug/`~~ _(Fixed: `debug/equality_examples.py` is now `examples/equality.py`, and
+  `tests/integration/test_examples.py` runs every script of `examples/` in a fresh interpreter, so
+  they cannot rot. `dev/` is kept: it is the version-pinning script and its config.)_
 - `.gitignore` already ignores `coverage.xml` and `htmlcov`.
-- 27 workflow files is a lot to maintain. `ci-*` and `nightly-*` may share steps; the
-  `lib-*` reusable workflows are a good start. A short `.github/workflows/README.md`
-  (a table of workflow → trigger → purpose) helps new contributors.
+- ~~Catalogue of the workflows~~ _(Fixed: `.github/GUIDELINES.md` has a table with the trigger and the
+  purpose of each of the 34 workflows.)_
 
 ---
 

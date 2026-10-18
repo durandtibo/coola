@@ -1,6 +1,6 @@
 r"""Show examples of the ``coola.equality`` functions and their messages.
 
-Run with: ``python debug/equality_examples.py``
+Run with: ``python examples/equality.py``
 """
 
 # ruff: noqa: D103
