@@ -833,10 +833,6 @@ def test_assert_series_equal_old_naming() -> None:
 
 @polars_available
 def test_polars_lazyframe_equal_handler_different_schema_does_not_collect() -> None:
-    import polars as pl
-
-    from coola.equality.handler import PolarsLazyFrameEqualHandler
-
     actual = Mock(spec=pl.LazyFrame)
     actual.collect_schema.return_value = pl.Schema({"a": pl.Int64})
     expected = Mock(spec=pl.LazyFrame)
