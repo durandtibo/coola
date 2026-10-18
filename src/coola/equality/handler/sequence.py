@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_sequence_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
-from coola.equality.handler.utils import check_recursion_depth
+from coola.equality.handler.utils import check_recursion_depth, report_difference
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -55,7 +55,9 @@ class SequenceSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
         with check_recursion_depth(config):
             if len(actual) != len(expected):
                 if config.show_difference:
-                    logger.info(
+                    report_difference(
+                        logger,
+                        config,
                         "sequences have different lengths: %s vs %s",
                         f"{len(actual):,}",
                         f"{len(expected):,}",
@@ -64,7 +66,9 @@ class SequenceSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
             for idx, (value1, value2) in enumerate(zip(actual, expected, strict=True)):
                 if not config.registry.objects_are_equal(value1, value2, config):
                     if config.show_difference:
-                        logger.info(
+                        report_difference(
+                            logger,
+                            config,
                             format_sequence_difference(
                                 actual,
                                 expected,

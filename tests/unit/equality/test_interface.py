@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any
 import pytest
 
 from coola.equality import objects_are_allclose, objects_are_equal
+from coola.equality.handler import MaxDepthExceededError
 from coola.equality.tester import DefaultEqualityTester, EqualityTesterRegistry
 from coola.testing.fixtures import numpy_available, torch_available
 
@@ -533,3 +534,21 @@ def test_objects_are_equal_python_recursion_limit_message() -> None:
         data1, data2 = [data1], [data2]
     with pytest.raises(RecursionError, match="Python recursion limit"):
         objects_are_equal(data1, data2, max_depth=10**6)
+
+
+def test_objects_are_equal_max_depth_error_is_not_rewritten() -> None:
+    data1, data2 = [], []
+    for _ in range(50):
+        data1, data2 = [data1], [data2]
+    with pytest.raises(MaxDepthExceededError, match=r"Maximum recursion depth \(10\) exceeded"):
+        objects_are_equal(data1, data2, max_depth=10)
+
+
+def test_objects_are_equal_python_recursion_error_is_wrapped() -> None:
+    data1, data2 = [], []
+    for _ in range(2000):
+        data1, data2 = [data1], [data2]
+    with pytest.raises(RecursionError, match="Python recursion limit") as exc_info:
+        objects_are_equal(data1, data2, max_depth=10**6)
+    assert not isinstance(exc_info.value, MaxDepthExceededError)
+    assert isinstance(exc_info.value.__cause__, RecursionError)

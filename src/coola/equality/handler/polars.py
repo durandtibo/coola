@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
+from coola.equality.handler.utils import report_difference
 from coola.utils.imports import is_polars_available
 
 if TYPE_CHECKING or is_polars_available():
@@ -67,8 +68,10 @@ class PolarsDataFrameEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     ) -> bool:
         object_equal = frame_equal(actual, expected, config)
         if config.show_difference and not object_equal:
-            logger.info(
-                format_value_difference(actual=actual, expected=expected, name="polars.DataFrames")
+            report_difference(
+                logger,
+                config,
+                format_value_difference(actual=actual, expected=expected, name="polars.DataFrames"),
             )
         return object_equal
 
@@ -112,8 +115,10 @@ class PolarsLazyFrameEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     ) -> bool:
         object_equal = frame_equal(actual.collect(), expected.collect(), config)
         if config.show_difference and not object_equal:
-            logger.info(
-                format_value_difference(actual=actual, expected=expected, name="polars.LazyFrames")
+            report_difference(
+                logger,
+                config,
+                format_value_difference(actual=actual, expected=expected, name="polars.LazyFrames"),
             )
         return object_equal
 
@@ -149,8 +154,10 @@ class PolarsSeriesEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     ) -> bool:
         object_equal = series_equal(actual, expected, config)
         if config.show_difference and not object_equal:
-            logger.info(
-                format_value_difference(actual=actual, expected=expected, name="polars.Series")
+            report_difference(
+                logger,
+                config,
+                format_value_difference(actual=actual, expected=expected, name="polars.Series"),
             )
         return object_equal
 

@@ -310,8 +310,6 @@ def test_is_numeric_array_false(array: np.ndarray) -> None:
 @numpy_available
 @pytest.mark.parametrize("dtype", ["U3", "S3", "O"])
 def test_array_equal_equal_nan_non_numeric_dtype(dtype: str, config: EqualityConfig) -> None:
-    import numpy as np
-
     config.equal_nan = True
     assert array_equal(np.array(["a", "b"], dtype=dtype), np.array(["a", "b"], dtype=dtype), config)
     assert not array_equal(
@@ -321,8 +319,6 @@ def test_array_equal_equal_nan_non_numeric_dtype(dtype: str, config: EqualityCon
 
 @numpy_available
 def test_array_equal_equal_nan_datetime_dtype(config: EqualityConfig) -> None:
-    import numpy as np
-
     config.equal_nan = True
     assert array_equal(
         np.array(["2020-01-01", "NaT"], dtype="datetime64[D]"),

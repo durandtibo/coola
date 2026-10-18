@@ -12,7 +12,7 @@ from coola.equality.handler import (
     ScalarEqualHandler,
     TrueHandler,
 )
-from coola.equality.handler.scalar import int_isclose
+from coola.equality.handler.scalar import int_isclose, number_equal
 from tests.unit.equality.tester.test_scalar import SCALAR_EQUAL_TOLERANCE
 from tests.unit.equality.utils import ExamplePair
 
@@ -280,8 +280,6 @@ def test_scalar_equal_handler_set_next_handler_incorrect() -> None:
 
 
 def test_number_equal_huge_int_tolerance() -> None:
-    from coola.equality.handler.scalar import number_equal
-
     big = 10**400
     config = EqualityConfig(rtol=1e-5)
     assert number_equal(big, big + 1, config)
@@ -292,8 +290,6 @@ def test_number_equal_huge_int_tolerance() -> None:
 
 
 def test_number_equal_huge_int_and_infinity() -> None:
-    from coola.equality.handler.scalar import number_equal
-
     assert not number_equal(10**400, float("inf"), EqualityConfig(rtol=1e-5))
 
 

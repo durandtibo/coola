@@ -376,9 +376,8 @@ def test_compare_user_handler_on_logger_receives_nothing() -> None:
         compare([1], [2])
     finally:
         logger.removeHandler(handler)
-    # A user handler attached directly to the logger still sees the records;
-    # only propagation to ancestors is suppressed.
-    assert received
+    # Differences go to the config reporter, so nothing is logged at all.
+    assert not received
 
 
 def test_compare_parent_logger_handler_receives_nothing() -> None:
@@ -401,3 +400,18 @@ def test_compare_parent_logger_handler_receives_nothing() -> None:
 def test_compare_does_not_leak_records_between_calls() -> None:
     compare([1], [2])
     assert compare({"a": 1}, {"a": 1}) == equal_result({"a": 1}, {"a": 1})
+
+
+def test_compare_does_not_modify_logger_while_running() -> None:
+    logger = logging.getLogger(LOGGER_NAME)
+    before = (logger.level, logger.propagate, list(logger.handlers))
+    seen: list[tuple[int, bool, list[logging.Handler]]] = []
+
+    class Spy:
+        def __eq__(self, other: object) -> bool:
+            seen.append((logger.level, logger.propagate, list(logger.handlers)))
+            return False
+
+    compare([Spy()], [Spy()])
+    assert seen
+    assert all(state == before for state in seen)

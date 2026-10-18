@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Protocol
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_shape_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
+from coola.equality.handler.utils import report_difference
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -63,6 +64,8 @@ class SameShapeHandler(HandlerEqualityMixin, BaseEqualityHandler):
     ) -> bool:
         if actual.shape != expected.shape:
             if config.show_difference:
-                logger.info(format_shape_difference(actual.shape, expected.shape))
+                report_difference(
+                    logger, config, format_shape_difference(actual.shape, expected.shape)
+                )
             return False
         return self._handle_next(actual, expected, config=config)

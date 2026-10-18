@@ -16,6 +16,7 @@ __all__ = [
     "JaxArrayEqualHandler",
     "MappingSameKeysHandler",
     "MappingSameValuesHandler",
+    "MaxDepthExceededError",
     "NanEqualHandler",
     "NumpyArrayEqualHandler",
     "ObjectEqualHandler",
@@ -41,6 +42,7 @@ __all__ = [
     "check_recursion_depth",
     "create_chain",
     "handlers_are_equal",
+    "report_difference",
 ]
 
 from coola.equality.handler.allclose import AllCloseNanHandler
@@ -83,7 +85,9 @@ from coola.equality.handler.torch import (
     TorchTensorSameDeviceHandler,
 )
 from coola.equality.handler.utils import (
+    MaxDepthExceededError,
     check_recursion_depth,
     create_chain,
     handlers_are_equal,
+    report_difference,
 )

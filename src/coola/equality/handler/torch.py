@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
+from coola.equality.handler.utils import report_difference
 
 if TYPE_CHECKING:
     import torch
@@ -50,8 +51,10 @@ class TorchTensorEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     ) -> bool:
         object_equal = tensor_equal(actual, expected, config)
         if config.show_difference and not object_equal:
-            logger.info(
-                format_value_difference(actual=actual, expected=expected, name="torch.Tensors")
+            report_difference(
+                logger,
+                config,
+                format_value_difference(actual=actual, expected=expected, name="torch.Tensors"),
             )
         return object_equal
 
@@ -83,8 +86,12 @@ class TorchTensorSameDeviceHandler(HandlerEqualityMixin, BaseEqualityHandler):
     ) -> bool:
         if actual.device != expected.device:
             if config.show_difference:
-                logger.info(
-                    "torch.Tensors have different devices: %s vs %s", actual.device, expected.device
+                report_difference(
+                    logger,
+                    config,
+                    "torch.Tensors have different devices: %s vs %s",
+                    actual.device,
+                    expected.device,
                 )
             return False
         return self._handle_next(actual, expected, config=config)

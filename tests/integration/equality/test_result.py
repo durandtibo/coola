@@ -1,9 +1,16 @@
 from __future__ import annotations
 
+import logging
 import threading
+from typing import TYPE_CHECKING
 
 from coola.equality import ComparisonResult, compare
 from tests.integration.helpers import run_threads
+
+if TYPE_CHECKING:
+    import pytest
+
+LOGGER_NAME = "coola.equality"
 
 ##############################
 #     Tests for compare      #
@@ -31,3 +38,47 @@ def test_compare_concurrent_threads() -> None:
             actual=repr(actual),
             expected=repr(expected),
         )
+
+
+def test_compare_concurrent_calls_do_not_mix_results() -> None:
+    """Test that concurrent comparisons report their own path and that
+    equal objects are never reported as different."""
+    num_threads = 8
+    barrier = threading.Barrier(num_threads)
+    errors: list[str] = []
+
+    def worker(index: int) -> None:
+        barrier.wait()
+        for _ in range(50):
+            result = compare({"key": [index, 1]}, {"key": [index, 2]})
+            if result.path != ("key", 1):
+                errors.append(f"worker {index}: unexpected path {result.path}")
+            if not compare({"key": index}, {"key": index}):
+                errors.append(f"worker {index}: equal objects reported as different")
+
+    run_threads([threading.Thread(target=worker, args=(i,)) for i in range(num_threads)])
+
+    assert not errors
+
+
+def test_compare_does_not_drop_logs_of_other_threads(caplog: pytest.LogCaptureFixture) -> None:
+    """Test that a log record emitted by another thread while a
+    comparison is running is not dropped."""
+    started = threading.Event()
+    release = threading.Event()
+
+    class Blocking:
+        def __eq__(self, other: object) -> bool:
+            started.set()
+            release.wait(timeout=5)
+            return True
+
+    thread = threading.Thread(target=compare, args=(Blocking(), Blocking()))
+    with caplog.at_level(logging.INFO, logger=LOGGER_NAME):
+        thread.start()
+        assert started.wait(timeout=5)
+        logging.getLogger(LOGGER_NAME).info("message from another thread")
+        release.set()
+        thread.join()
+
+    assert "message from another thread" in caplog.messages

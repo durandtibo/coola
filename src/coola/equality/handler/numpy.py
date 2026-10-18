@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
+from coola.equality.handler.utils import report_difference
 from coola.utils.imports import is_numpy_available
 
 if TYPE_CHECKING or is_numpy_available():
@@ -54,7 +55,9 @@ class NumpyArrayEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     ) -> bool:
         object_equal = array_equal(actual, expected, config)
         if config.show_difference and not object_equal:
-            logger.info(format_value_difference(actual, expected, name="numpy.ndarrays"))
+            report_difference(
+                logger, config, format_value_difference(actual, expected, name="numpy.ndarrays")
+            )
         return object_equal
 
 
