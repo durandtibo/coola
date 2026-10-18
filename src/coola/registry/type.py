@@ -42,6 +42,13 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
         that ABC's virtual subclasses even though ``isinstance`` would
         report them as instances of the ABC. See ``resolve()`` for details.
 
+        A fallback on ``issubclass`` is deliberately not provided. Many
+        built-in types are virtual subclasses of ``Sequence`` (``str``,
+        ``bytes``, ``range``, ``memoryview``...), so such a fallback would
+        send ``str`` to the handler registered for ``Sequence`` and, for
+        instance, iterate over a string character by character. Register
+        the virtual subclass explicitly instead.
+
     Args:
         initial_state: An optional dictionary to initialize the registry with.
             If provided, a copy is made to prevent external modifications.
@@ -135,6 +142,8 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
         # place: writers (holding the lock) publish a new dict, so readers can
         # use whichever snapshot they grab without locking.
         self._cache: dict[type, T] = {}
+
+    _not_registered_error = TypeNotRegisteredError
 
     def _on_change(self) -> None:
         # Clear cache when registry changes to ensure new registrations are used
@@ -247,6 +256,10 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
             if dtype in cache:
                 return cache[dtype]
             value = self._resolve_uncached(dtype)
+            # Copy on write: readers hold an immutable snapshot, so cache hits need no
+            # lock. A miss costs O(len(cache)) (at most ``_MAX_CACHE_SIZE`` entries) and
+            # misses are rare after warm-up: resolving a type is cached for the life of
+            # the registry until the next ``register``/``unregister``.
             new_cache = cache.copy() if len(cache) < _MAX_CACHE_SIZE else {}
             new_cache[dtype] = value
             self._cache = new_cache

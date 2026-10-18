@@ -297,6 +297,8 @@ codebase is inconsistent.
 
 ### 2.5 Registry duplicate-key semantics (low)
 
+_(Status: fixed, except the atomicity point (not an issue for the built-in registries). `KeyNotRegisteredError(KeyError, LookupError)` is now the base of `TypeNotRegisteredError`: a plain `Registry` raises `KeyNotRegisteredError`, a `TypeRegistry` still raises `TypeNotRegisteredError`. The copy-on-write cache has an explanatory comment. The `issubclass` fallback for virtual subclasses was deliberately **not** added: `str`, `bytes` and `range` are virtual `Sequence`s, so `str` would be dispatched to the `Sequence` handler and iterated character by character. This is documented in the `TypeRegistry` docstring.)_
+
 - `BaseRegistry.register_many` is not atomic with respect to partial failures in
   subclasses overriding `_on_change`, but is fine for the built-in ones.
 - `Registry.__getitem__` / `unregister` raise `TypeNotRegisteredError` for non-type
@@ -313,6 +315,8 @@ codebase is inconsistent.
   `issubclass` fallback for ABC keys.
 
 ### 2.6 `get_default_*_registry` aliases (low)
+
+_(Status: not changed, by decision. The long names are kept as plain aliases of `get_default_registry`: they are documented in the user guide as "Unambiguous alias" and are useful to avoid import collisions, so they are not deprecated. A deprecation helper was tried and rolled back.)_
 
 Each `interface.py` defines both `get_default_registry` and
 `get_default_<x>_registry`. They were kept as public API. A short module-level note
