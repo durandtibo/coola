@@ -31,6 +31,48 @@ These functions work with a wide variety of types, including:
 The comparison is recursive, so nested structures like lists of dictionaries containing arrays are
 handled correctly.
 
+## Guarantees
+
+The comparison functions follow these rules for every type, in addition to the type-specific rules
+described [below](#type-specific-behavior).
+
+| Property                  | Statement                                                                                                                                                       |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Strict type               | Two objects must have exactly the same type to be equal. `1`, `1.0` and `True` are pairwise different, and so are `[1]` and `(1,)`, `dict` and `OrderedDict`, `set` and `frozenset`, `str` and `bytes`. A subclass is different from its base class. |
+| Recursive                 | Containers are compared item by item, at any depth. Containers must have the same length (or the same keys).                                                    |
+| Order rules               | Sequences are order-sensitive (`[1, 2]` differs from `[2, 1]`). Mappings and sets are not: `{"a": 1, "b": 2}` equals `{"b": 2, "a": 1}`, even for `OrderedDict`. |
+| Value semantics           | The values are compared with `==` unless a tester exists for the type. Arrays, tensors and data frames also compare dtype, shape and so on (see [Type-Specific Behavior](#type-specific-behavior)). |
+| NaN                       | `NaN` is not equal to `NaN`, unless `equal_nan=True` or both are the same object. See [Behavior by Type](#behavior-by-type-nan-and-tolerance).                  |
+| Signed zero               | `-0.0` is equal to `0.0`.                                                                                                                                       |
+| Time zones                | Aware datetimes are equal when they represent the same instant, whatever their time zone. A naive and an aware datetime are different.                          |
+| Tolerance                 | Only `objects_are_allclose` uses `atol` and `rtol`, and only for numbers, arrays, tensors and data frames. Every other value is compared exactly, and the types must still match: `objects_are_allclose(1, 1.0, atol=1)` is `False`. |
+| Unregistered types        | A type without a dedicated tester is compared with `==` after the type check, so your own classes work if they define `__eq__`. Otherwise two objects are equal only if they are the same object. |
+| Pure                      | The comparison does not modify its inputs, and gives the same answer every time.                                                                                |
+| Failure modes             | A self-referencing container raises a `RecursionError` (see [Controlling Recursion Depth](#controlling-recursion-depth)). Unsupported types never raise: they fall back to `==`. |
+| Consistent with hashing   | Objects that are equal also have the same [`hash_object`](hashing.md) hash. The reverse is not guaranteed: a `list` subclass and a `list`, or a NumPy `float64` and a `float`, share a hash but are not equal. |
+
+```pycon
+>>> from collections import OrderedDict
+>>> from coola.equality import objects_are_allclose, objects_are_equal
+>>> objects_are_equal([1, 2], (1, 2))
+False
+>>> objects_are_equal({"a": 1, "b": 2}, {"b": 2, "a": 1})
+True
+>>> objects_are_equal(OrderedDict(a=1, b=2), OrderedDict(b=2, a=1))
+True
+>>> objects_are_equal(0.0, -0.0)
+True
+>>> objects_are_equal(float("nan"), float("nan"))
+False
+>>> objects_are_equal(float("nan"), float("nan"), equal_nan=True)
+True
+>>> objects_are_allclose([1.0, 2.0], [1.001, 2.001], atol=0.01)
+True
+>>> objects_are_allclose([1.0, 2.0], (1.001, 2.001), atol=0.01)
+False
+
+```
+
 ## Checking Exact Equality
 
 ### First Example
