@@ -139,6 +139,8 @@ def frame_equal(df1: pd.DataFrame, df2: pd.DataFrame, config: EqualityConfig) ->
 
         ```
     """
+    if df1.shape != df2.shape:  # cheap check before scanning for NaN
+        return False
     if not config.equal_nan and cast("Any", df1).isna().any().any():
         return False
     try:
@@ -179,6 +181,8 @@ def series_equal(series1: pd.Series, series2: pd.Series, config: EqualityConfig)
 
         ```
     """
+    if series1.shape != series2.shape:  # cheap check before scanning for NaN
+        return False
     if not config.equal_nan and cast("Any", series1).isna().any():
         return False
     try:

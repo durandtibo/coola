@@ -204,6 +204,8 @@ def frame_equal(df1: pl.DataFrame, df2: pl.DataFrame, config: EqualityConfig) ->
 
         ```
     """
+    if df1.shape != df2.shape:  # cheap check before scanning for NaN
+        return False
     if not config.equal_nan and has_nan(df1):
         return False
     try:
@@ -237,6 +239,8 @@ def series_equal(series1: pl.Series, series2: pl.Series, config: EqualityConfig)
 
         ```
     """
+    if series1.shape != series2.shape:  # cheap check before scanning for NaN
+        return False
     if not config.equal_nan and has_nan(series1):
         return False
     try:
