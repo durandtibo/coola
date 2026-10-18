@@ -81,13 +81,14 @@ class BaseCollectionSummarizer(BaseSummarizer[T]):
         formatted.
         """
         if depth >= max_depth:
-            text = str(data)
             preview_limit = (
                 self._max_items if self._max_items >= 0 else self._DEPTH_LIMIT_PREVIEW_ITEMS
             )
             if len(data) > preview_limit:
                 preview = self._get_preview(data, preview_limit)
                 text = f"{preview!r} ..."
+            else:
+                text = str(data)
             return registry.summarize(text, depth=depth + 1, max_depth=max_depth)
         typ = type(data)
         length = len(data)
