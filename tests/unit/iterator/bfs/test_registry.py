@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -16,6 +16,10 @@ from tests.unit.iterator.bfs.helpers import (
     ITERATE_SAMPLES,
     CustomList,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
 
 #########################################
 #     Tests for ChildFinderRegistry     #
@@ -225,3 +229,118 @@ def test_child_finder_registry_registry_isolation() -> None:
 
     assert registry1._state[list] is child_finder1
     assert registry2._state[list] is child_finder2
+
+
+############################################
+#     Tests for is_leaf and the cycles     #
+############################################
+
+
+class LeafChildFinder(BaseChildFinder[Any]):
+    r"""A leaf child finder that does not inherit from ``DefaultChildFinder``."""
+
+    @property
+    def is_leaf(self) -> bool:
+        return True
+
+    def find_children(self, data: Any) -> Iterator[Any]:  # noqa: ARG002
+        return iter(())
+
+
+class ExpandedDefaultChildFinder(DefaultChildFinder):
+    r"""A child finder that inherits from ``DefaultChildFinder`` but has children."""
+
+    @property
+    def is_leaf(self) -> bool:
+        return False
+
+    def find_children(self, data: Any) -> Iterator[Any]:
+        yield from data
+
+
+class Wrapper:
+    r"""A custom container."""
+
+    def __init__(self, *items: Any) -> None:
+        self.items = list(items)
+
+
+class WrapperChildFinder(BaseChildFinder[Wrapper]):
+    def find_children(self, data: Wrapper) -> Iterator[Any]:
+        yield from data.items
+
+
+def test_child_finder_is_leaf_default_is_false() -> None:
+    assert not WrapperChildFinder().is_leaf
+
+
+def test_default_child_finder_is_leaf() -> None:
+    assert DefaultChildFinder().is_leaf
+
+
+@pytest.mark.parametrize("child_finder", [IterableChildFinder(), MappingChildFinder()])
+def test_container_child_finders_are_not_leaves(child_finder: BaseChildFinder[Any]) -> None:
+    assert not child_finder.is_leaf
+
+
+def test_child_finder_registry_iterate_custom_leaf_finder_not_inheriting_default() -> None:
+    registry = ChildFinderRegistry(
+        {object: DefaultChildFinder(), list: IterableChildFinder(), tuple: LeafChildFinder()}
+    )
+    assert list(registry.iterate([1, (2, 3), 4])) == [1, (2, 3), 4]
+
+
+def test_child_finder_registry_iterate_default_subclass_with_children_is_expanded() -> None:
+    registry = ChildFinderRegistry(
+        {
+            object: DefaultChildFinder(),
+            list: IterableChildFinder(),
+            tuple: ExpandedDefaultChildFinder(),
+        }
+    )
+    assert list(registry.iterate([1, (2, 3)])) == [1, 2, 3]
+
+
+def test_child_finder_registry_iterate_self_referencing_list_raises() -> None:
+    data: list[Any] = [1]
+    data.append(data)
+    registry = ChildFinderRegistry({object: DefaultChildFinder(), list: IterableChildFinder()})
+    with pytest.raises(ValueError, match="Cycle detected"):
+        list(registry.iterate(data))
+
+
+def test_child_finder_registry_iterate_self_referencing_dict_raises() -> None:
+    data: dict[str, Any] = {"a": 1}
+    data["self"] = data
+    registry = ChildFinderRegistry({object: DefaultChildFinder(), dict: MappingChildFinder()})
+    with pytest.raises(ValueError, match="Cycle detected"):
+        list(registry.iterate(data))
+
+
+def test_child_finder_registry_iterate_indirect_cycle_raises() -> None:
+    first: list[Any] = []
+    second: list[Any] = [first]
+    first.append(second)
+    registry = ChildFinderRegistry({object: DefaultChildFinder(), list: IterableChildFinder()})
+    with pytest.raises(ValueError, match="Cycle detected"):
+        list(registry.iterate(first))
+
+
+def test_child_finder_registry_iterate_cycle_in_custom_container_raises() -> None:
+    wrapper = Wrapper(1)
+    wrapper.items.append(wrapper)
+    registry = ChildFinderRegistry({object: DefaultChildFinder(), Wrapper: WrapperChildFinder()})
+    with pytest.raises(ValueError, match="Cycle detected"):
+        list(registry.iterate(wrapper))
+
+
+def test_child_finder_registry_iterate_shared_container_is_not_a_cycle() -> None:
+    shared = [1, 2]
+    registry = ChildFinderRegistry({object: DefaultChildFinder(), list: IterableChildFinder()})
+    assert list(registry.iterate([shared, shared, [shared]])) == [1, 2, 1, 2, 1, 2]
+
+
+def test_child_finder_registry_iterate_repeated_leaf_is_not_a_cycle() -> None:
+    value = "x"
+    registry = ChildFinderRegistry({object: DefaultChildFinder(), list: IterableChildFinder()})
+    assert list(registry.iterate([value, [value, value]])) == ["x", "x", "x"]

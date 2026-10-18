@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Generator, Iterable, Mapping
+from collections.abc import Collection, Generator, Iterator, Mapping
 from typing import Any
 
 import pytest
@@ -116,7 +116,7 @@ def test_get_default_registry_scalar_types(data_type: type) -> None:
     assert isinstance(registry.find_child_finder(data_type), DefaultChildFinder)
 
 
-@pytest.mark.parametrize("data_type", [list, tuple, range, Iterable, set, frozenset])
+@pytest.mark.parametrize("data_type", [list, tuple, range, Collection, set, frozenset])
 def test_get_default_registry_iterable(data_type: type) -> None:
     """Test that iterable types are registered with
     IterableChildFinder."""
@@ -158,3 +158,31 @@ def test_get_default_registry_singleton_persists_modifications() -> None:
     registry2 = get_default_registry()
     assert registry1 is registry2
     assert registry2.has_child_finder(CustomList)
+
+
+class CustomIterator(Iterator):
+    r"""An iterator that explicitly inherits from ``collections.abc.Iterator``."""
+
+    def __init__(self, values: list[int]) -> None:
+        self._values = iter(values)
+
+    def __next__(self) -> int:
+        return next(self._values)
+
+
+def test_bfs_iterate_iterators_are_leaves_and_not_consumed() -> None:
+    iterator = CustomIterator([1, 2, 3])
+    generator = (i for i in range(3))
+    result = list(bfs_iterate([iterator, generator, 4]))
+    assert result[0] is iterator
+    assert result[1] is generator
+    assert result[2] == 4
+    assert list(iterator) == [1, 2, 3]
+    assert list(generator) == [0, 1, 2]
+
+
+def test_bfs_iterate_self_referencing_list_raises() -> None:
+    data: list = [1]
+    data.append(data)
+    with pytest.raises(ValueError, match="Cycle detected"):
+        list(bfs_iterate(data))

@@ -37,6 +37,10 @@ class DefaultChildFinder(InlineDisplayMixin, NoArgsDisplayMixin, BaseChildFinder
         ```
     """
 
+    @property
+    def is_leaf(self) -> bool:
+        return True
+
     def find_children(self, data: object) -> Iterator[Any]:  # noqa: ARG002
         return
         yield

@@ -12,7 +12,7 @@ from __future__ import annotations
 
 __all__ = ["SupportsRegisterMany", "register_default_handlers"]
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Collection, Mapping
 from typing import Protocol, TypeVar
 
 T = TypeVar("T")
@@ -20,8 +20,10 @@ T_contra = TypeVar("T_contra", contravariant=True)
 
 # Scalar types are treated as leaves: they never need to be expanded further.
 _SCALAR_TYPES = (object, str, bytes, int, float, complex, bool)
-# Iterables (excluding mappings) are expanded into their elements.
-_ITERABLE_TYPES = (list, tuple, range, Iterable, set, frozenset)
+# Collections (excluding mappings) are expanded into their elements. Iterators and
+# generators are not collections: they are leaves, so they are never consumed (or
+# iterated forever) by a traversal.
+_ITERABLE_TYPES = (list, tuple, range, Collection, set, frozenset)
 # Mappings are expanded into their values.
 _MAPPING_TYPES = (dict, Mapping)
 

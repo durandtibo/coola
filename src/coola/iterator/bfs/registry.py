@@ -9,11 +9,23 @@ from collections import deque
 from typing import TYPE_CHECKING, Any
 
 from coola.iterator.bfs.base import BaseChildFinder
-from coola.iterator.bfs.default import DefaultChildFinder
 from coola.registry import BaseTypeDispatchRegistry
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
+
+_Ancestors = tuple[int, "_Ancestors"] | None
+r"""A linked list of the ids of the ancestors of an object."""
+
+
+def _is_ancestor(data: object, ancestors: _Ancestors) -> bool:
+    r"""Indicate if ``data`` is one of its ancestors (a cycle)."""
+    target = id(data)
+    while ancestors is not None:
+        ancestor_id, ancestors = ancestors
+        if ancestor_id == target:
+            return True
+    return False
 
 
 class ChildFinderRegistry(BaseTypeDispatchRegistry[BaseChildFinder[Any]]):
@@ -187,12 +199,19 @@ class ChildFinderRegistry(BaseTypeDispatchRegistry[BaseChildFinder[Any]]):
         Only non-container (leaf) values are yielded.
 
         Containers themselves are never yielded, even if they are empty.
+        A value is a container if its child finder is not a leaf
+        (``is_leaf``). Iterators and generators are not containers by
+        default: they are yielded as they are, never consumed.
 
         Args:
             data: The data structure to traverse.
 
         Yields:
             Atomic (non-container) values in breadth-first order.
+
+        Raises:
+            ValueError: If a container contains itself, directly or
+                through other containers (a cycle).
 
         Example:
             ```pycon
@@ -214,13 +233,20 @@ class ChildFinderRegistry(BaseTypeDispatchRegistry[BaseChildFinder[Any]]):
 
             ```
         """
-        queue = deque([data])
+        # Each item of the queue comes with its ancestors, as a linked list of
+        # ``(id, parent)`` pairs, which is used to detect the cycles.
+        queue: deque[tuple[object, _Ancestors]] = deque([(data, None)])
 
         while queue:
-            current = queue.popleft()
+            current, ancestors = queue.popleft()
             child_finder = self.find_child_finder(type(current))
-            is_container = not isinstance(child_finder, DefaultChildFinder)
-            if is_container:
-                queue.extend(child_finder.find_children(current))
-            else:
+            if child_finder.is_leaf:
                 yield current
+                continue
+            if _is_ancestor(current, ancestors):
+                msg = f"Cycle detected: an object of type {type(current)} contains itself"
+                raise ValueError(msg)
+            children_ancestors = (id(current), ancestors)
+            queue.extend(
+                (child, children_ancestors) for child in child_finder.find_children(current)
+            )
