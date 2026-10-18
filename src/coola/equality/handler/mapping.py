@@ -2,7 +2,7 @@ r"""Implement handlers for mapping objects."""
 
 from __future__ import annotations
 
-__all__ = ["MappingSameKeysHandler", "MappingSameValuesHandler"]
+__all__ = ["MappingSameKeyOrderHandler", "MappingSameKeysHandler", "MappingSameValuesHandler"]
 
 import logging
 from typing import TYPE_CHECKING, Any
@@ -54,6 +54,52 @@ class MappingSameKeysHandler(HandlerEqualityMixin, BaseEqualityHandler):
                     format_mapping_difference(
                         missing_keys=keys1 - keys2, additional_keys=keys2 - keys1
                     ),
+                )
+            return False
+        return self._handle_next(actual, expected, config=config)
+
+
+class MappingSameKeyOrderHandler(HandlerEqualityMixin, BaseEqualityHandler):
+    r"""Check if the two objects have their keys in the same order.
+
+    This handler returns ``False`` if the keys of the two objects are
+    not iterated in the same order, otherwise it passes the inputs to
+    the next handler. It is meant for mappings whose order is
+    meaningful, like ``collections.OrderedDict``.
+
+    Notes:
+        This handler does not check that the two mappings have the
+        same keys. Combine it with ``MappingSameKeysHandler``, which
+        gives a more precise message for missing and additional keys.
+
+    Example:
+        ```pycon
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.handler import MappingSameKeyOrderHandler, TrueHandler
+        >>> config = EqualityConfig()
+        >>> handler = MappingSameKeyOrderHandler(next_handler=TrueHandler())
+        >>> handler.handle({"a": 1, "b": 2}, {"a": 1, "b": 2}, config)
+        True
+        >>> handler.handle({"a": 1, "b": 2}, {"b": 2, "a": 1}, config)
+        False
+
+        ```
+    """
+
+    def handle(
+        self,
+        actual: Mapping[Any, Any],
+        expected: Mapping[Any, Any],
+        config: EqualityConfig,
+    ) -> bool:
+        actual_keys = list(actual)
+        expected_keys = list(expected)
+        if actual_keys != expected_keys:
+            if config.show_difference:
+                report_difference(
+                    logger,
+                    config,
+                    format_mapping_difference(different_key_order=(actual_keys, expected_keys)),
                 )
             return False
         return self._handle_next(actual, expected, config=config)

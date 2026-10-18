@@ -15,6 +15,7 @@ from coola.equality.tester import (
     JaxArrayEqualityTester,
     MappingEqualityTester,
     NumpyArrayEqualityTester,
+    OrderedMappingEqualityTester,
     PandasDataFrameEqualityTester,
     PandasSeriesEqualityTester,
     PolarsDataFrameEqualityTester,
@@ -96,7 +97,7 @@ TESTER_TYPES: list[tuple[type, type, bool]] = [
     # Mapping
     (dict, MappingEqualityTester, True),
     (Mapping, MappingEqualityTester, True),
-    (OrderedDict, MappingEqualityTester, False),
+    (OrderedDict, OrderedMappingEqualityTester, True),
     # coola types
     (BaseEqualityTester, EqualEqualityTester, True),
     (BaseEqualityHandler, EqualEqualityTester, True),

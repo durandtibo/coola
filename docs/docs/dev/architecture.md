@@ -46,7 +46,8 @@ class BaseEqualityTester(ABC, Generic[T]):
 #### Built-in Testers
 
 - **`DefaultEqualityTester`**: Fallback for any type (identity, type check, then `==`)
-- **`MappingEqualityTester`** and **`SequenceEqualityTester`**: Recurse into mappings and sequences
+- **`MappingEqualityTester`**, **`OrderedMappingEqualityTester`** (also checks the key order, used
+  for `OrderedDict`) and **`SequenceEqualityTester`**: Recurse into mappings and sequences
 - **`ScalarEqualityTester`**, **`EqualEqualityTester`**, **`EqualNanEqualityTester`**,
   **`TolerantEqualEqualityTester`**: Scalars and objects with an `equal` method
 - Array and dataframe testers for NumPy, PyTorch, pandas, polars, xarray, JAX and PyArrow (for
@@ -102,7 +103,8 @@ next handler in the chain. Examples:
 - **`SameDTypeHandler`**, **`SameShapeHandler`**: Metadata checks
 - **`TorchTensorSameDeviceHandler`**: Compares PyTorch device placement
 - **`ObjectEqualHandler`**, **`NanEqualHandler`**, **`TolerantEqualHandler`**: Value checks
-- **`MappingSameKeysHandler`**, **`MappingSameValuesHandler`**, **`SequenceSameValuesHandler`**:
+- **`MappingSameKeysHandler`**, **`MappingSameKeyOrderHandler`**, **`MappingSameValuesHandler`**,
+  **`SequenceSameValuesHandler`**:
   Recursive checks for containers
 - Library-specific handlers such as `NumpyArrayEqualHandler` or `PandasDataFrameEqualHandler`
 
@@ -222,6 +224,8 @@ See the [extending guide](../uguide/extending.md) for more details.
 - `1` (int) ≠ `1.0` (float) ≠ `True` (bool)
 - `list` ≠ `tuple`
 - `dict` ≠ `OrderedDict`
+- two `OrderedDict`s with the same items in a different order are different (the order of the keys of
+  a `dict` is ignored)
 
 This prevents subtle bugs from type coercion.
 

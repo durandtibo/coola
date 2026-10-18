@@ -141,3 +141,12 @@ def test_format_value_difference_custom_name() -> None:
 def test_format_value_difference_arrays() -> None:
     msg = format_value_difference([1, 2, 3], [1, 2, 4], name="lists")
     assert msg == "lists are different:\n  actual   : [1, 2, 3]\n  expected : [1, 2, 4]"
+
+
+def test_format_mapping_difference_different_key_order() -> None:
+    message = format_mapping_difference(different_key_order=(["a", "b"], ["b", "a"]))
+    assert message == (
+        "mappings have the same keys in a different order:\n"
+        "  actual   : ['a', 'b']\n"
+        "  expected : ['b', 'a']"
+    )
