@@ -325,6 +325,8 @@ next minor release, would stop the surface from growing.
 
 ### 2.7 Package-level exports (low)
 
+_(Status: not changed, by decision. The top-level package only exposes `__version__` on purpose; the entry points are imported from their subpackage. A lazy re-export was tried and rolled back.)_
+
 `coola/__init__.py` only exports `__version__`. Lazy re-exports through module
 `__getattr__` would keep import time low while letting
 `coola.objects_are_equal(...)`, `coola.summarize(...)` work. If this is rejected on
@@ -339,6 +341,8 @@ Either document it as an internal helper (leading underscore) or make it satisfy
 protocol (move `transform_func` into the constructor).
 
 ### 2.9 Summary coverage vs equality coverage (medium)
+
+_(Status: fixed for `summary`. `BaseMetadataSummarizer` (`summary/metadata.py`) is the shared base, and `NDArraySummarizer` / `TensorSummarizer` now use it. New summarizers, registered in the default registry when their package is installed: `PandasDataFrameSummarizer`, `PandasSeriesSummarizer`, `PolarsDataFrameSummarizer`, `PolarsLazyFrameSummarizer` (does not collect), `PolarsSeriesSummarizer`, `PyarrowArraySummarizer`, `PyarrowTableSummarizer`, `XarrayDataArraySummarizer`, `XarrayDatasetSummarizer`, `XarrayVariableSummarizer`, `JaxArraySummarizer`. All accept `show_data`; wide frames list at most 10 columns. Decisions: `recursive` is unchanged (an array is a leaf passed to the function, which is what callers want). `hashing` is unchanged: a stable array hash needs decisions on dtype, byte order, layout, NaN payloads and object dtype, and pandas/polars have no canonical byte form, so it is left to `register_hashers`.)_
 
 `summary` has summarizers for `list`, `tuple`, `set`, `dict`, NumPy and Torch only.
 Equality supports pandas, polars, pyarrow, xarray and JAX. `summarize(df)` falls back
