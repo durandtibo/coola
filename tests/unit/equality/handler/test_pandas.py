@@ -13,6 +13,7 @@ from coola.equality.handler import (
     PandasSeriesEqualHandler,
     TrueHandler,
 )
+from coola.equality.handler.pandas import frame_equal, series_equal
 from coola.testing.fixtures import pandas_available
 from coola.utils.imports import is_pandas_available
 from tests.unit.equality.tester.test_pandas import (
@@ -499,3 +500,10 @@ def test_pandas_series_equal_handle_set_next_handler_incorrect() -> None:
     handler = PandasSeriesEqualHandler()
     with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)
+
+
+@pandas_available
+def test_pandas_frame_and_series_equal_different_shape() -> None:
+    config = EqualityConfig(equal_nan=True)
+    assert not frame_equal(pd.DataFrame({"a": [1, 2]}), pd.DataFrame({"a": [1, 2, 3]}), config)
+    assert not series_equal(pd.Series([1, 2]), pd.Series([1, 2, 3]), config)
