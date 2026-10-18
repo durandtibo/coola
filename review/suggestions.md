@@ -220,12 +220,12 @@ writing `try: ... except ImportError:` will not catch these. `RuntimeError` is a
 used for registry duplicates, cyclic handler chains, lock timeouts and bad arguments,
 which makes `except RuntimeError` meaningless. Proposed mapping:
 
-| Case | Current | Better |
-| --- | --- | --- |
-| Missing optional package | `RuntimeError` | `ImportError` (subclass `ModuleNotFoundError`) |
+| Case                                                | Current        | Better                                                           |
+| --------------------------------------------------- | -------------- | ---------------------------------------------------------------- |
+| Missing optional package                            | `RuntimeError` | `ImportError` (subclass `ModuleNotFoundError`)                   |
 | Duplicate registry key (`register(exist_ok=False)`) | `RuntimeError` | `KeyError`/`ValueError`, or a dedicated `AlreadyRegisteredError` |
-| Bad argument (`str_indent`, `timeblock`) | `RuntimeError` | `ValueError` |
-| Handler cycle | `RuntimeError` | `ValueError` |
+| Bad argument (`str_indent`, `timeblock`)            | `RuntimeError` | `ValueError`                                                     |
+| Handler cycle                                       | `RuntimeError` | `ValueError`                                                     |
 
 Keep a deprecation path: a subclass of both (`class X(ImportError, RuntimeError)`)
 preserves old `except RuntimeError` code.
@@ -562,7 +562,7 @@ Repository layout:
   thread-safe (1.8).
 - State clearly in the hashing docs which types are supported out of the box
   (`str, bytes, int, float, complex, bool, None, list, tuple, dict, date, datetime,
-  Path`, nothing else) and that `set`, NumPy, Torch and pandas objects need a
+Path`, nothing else) and that `set`, NumPy, Torch and pandas objects need a
   registered hasher.
 - `utils/` contains modules unrelated to comparison (`password`, `git`, `date`,
   `file_size`, `text_diff`, `bloom_filter`, `timing`). The earlier review decided to
@@ -573,23 +573,23 @@ Repository layout:
 
 ## 7. Suggested order of work
 
-| # | Item | Effort | Value |
-| --- | --- | --- | --- |
-| 1.2 | ~~Pydantic hasher ignores secrets inside tuples/sets~~ (fixed) | S | High |
-| 1.1 | ~~Type-tag hash inputs (collisions across types, NumPy repr, Path)~~ (fixed) | M | High |
-| 1.7 | ~~Torch median disagrees with Native/NumPy; float32 stats~~ (fixed) | S | High |
-| 1.4 | ~~NumPy string arrays + `equal_nan` raise~~ (fixed) | S | Medium |
-| 1.3 | ~~Remove or pin objects in the `id()` caches~~ (fixed) | S | Medium |
-| 1.6 | ~~Flat dict key collisions and lost empty containers~~ (fixed) | S | Medium |
-| 2.1 | ~~`ImportError` for missing optional packages~~ (fixed) | M | Medium |
-| 2.13 | `allowed_prefixes` on `resolve_object`, security notes | S | Medium |
-| 2.12 | Move io tester registration out of import time; no-hardlink fallback | M | Medium |
-| 2.9 | Summarizers (and hashers) for pandas/polars/pyarrow/xarray/JAX | M | Medium |
-| 1.8 | ~~Replace logger mutation in `compare()` with a reporter~~ (fixed) | M | Medium |
-| 2.3 | Collapse tester boilerplate onto `HandlerEqualityTester` | M | Medium |
-| 4 | Fix log-level-dependent timing tests; add differential/property tests | S | Medium |
-| 2.2 | ~~Availability checks should detect broken installs; cache reset~~ (fixed) | S | Low |
-| 2.14 | Reset ID generators after fork | S | Low |
-| 5 | Prune ruff config, `fail_under`, minimal-install CI job | S | Low |
-| 3 | Summary `str(data)` ordering, equality fast path for scalar lists | S | Low |
-| 1.10 | ~~Validators reject NaN; assorted small fixes~~ (fixed) | S | Low |
+| #    | Item                                                                         | Effort | Value  |
+| ---- | ---------------------------------------------------------------------------- | ------ | ------ |
+| 1.2  | ~~Pydantic hasher ignores secrets inside tuples/sets~~ (fixed)               | S      | High   |
+| 1.1  | ~~Type-tag hash inputs (collisions across types, NumPy repr, Path)~~ (fixed) | M      | High   |
+| 1.7  | ~~Torch median disagrees with Native/NumPy; float32 stats~~ (fixed)          | S      | High   |
+| 1.4  | ~~NumPy string arrays + `equal_nan` raise~~ (fixed)                          | S      | Medium |
+| 1.3  | ~~Remove or pin objects in the `id()` caches~~ (fixed)                       | S      | Medium |
+| 1.6  | ~~Flat dict key collisions and lost empty containers~~ (fixed)               | S      | Medium |
+| 2.1  | ~~`ImportError` for missing optional packages~~ (fixed)                      | M      | Medium |
+| 2.13 | `allowed_prefixes` on `resolve_object`, security notes                       | S      | Medium |
+| 2.12 | Move io tester registration out of import time; no-hardlink fallback         | M      | Medium |
+| 2.9  | Summarizers (and hashers) for pandas/polars/pyarrow/xarray/JAX               | M      | Medium |
+| 1.8  | ~~Replace logger mutation in `compare()` with a reporter~~ (fixed)           | M      | Medium |
+| 2.3  | Collapse tester boilerplate onto `HandlerEqualityTester`                     | M      | Medium |
+| 4    | Fix log-level-dependent timing tests; add differential/property tests        | S      | Medium |
+| 2.2  | ~~Availability checks should detect broken installs; cache reset~~ (fixed)   | S      | Low    |
+| 2.14 | Reset ID generators after fork                                               | S      | Low    |
+| 5    | Prune ruff config, `fail_under`, minimal-install CI job                      | S      | Low    |
+| 3    | Summary `str(data)` ordering, equality fast path for scalar lists            | S      | Low    |
+| 1.10 | ~~Validators reject NaN; assorted small fixes~~ (fixed)                      | S      | Low    |
