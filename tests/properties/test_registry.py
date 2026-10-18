@@ -31,7 +31,8 @@ values = st.integers(0, 100)
 
 
 def model_resolve(model: dict[type, int], cls: type) -> int | None:
-    r"""Resolve ``cls`` in a dictionary with the method resolution order."""
+    r"""Resolve ``cls`` in a dictionary with the method resolution
+    order."""
     for base in cls.__mro__:
         if base in model:
             return model[base]
@@ -167,9 +168,11 @@ class RegistryMachine(RuleBasedStateMachine):
 
 
 class TypeRegistryMachine(RuleBasedStateMachine):
-    r"""Compare the resolution of a ``TypeRegistry`` with a dictionary and
-    the method resolution order, after any sequence of operations: the
-    cache of ``resolve`` is invalidated by the changes."""
+    r"""Compare the resolution of a ``TypeRegistry`` with a dictionary
+    and the method resolution order, after any sequence of operations:
+
+    the cache of ``resolve`` is invalidated by the changes.
+    """
 
     def __init__(self) -> None:
         super().__init__()

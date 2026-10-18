@@ -23,7 +23,8 @@ strategies = st.sampled_from(["first", "last", "suffix"])
 
 
 def leaves(data: Any) -> int:
-    r"""Count the leaves of nested dictionaries (an empty dictionary is a leaf)."""
+    r"""Count the leaves of nested dictionaries (an empty dictionary is
+    a leaf)."""
     if isinstance(data, dict) and data:
         return sum(leaves(value) for value in data.values())
     return 1
