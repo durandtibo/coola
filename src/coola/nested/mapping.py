@@ -105,10 +105,7 @@ def flatten_mapping(
 
         ```
     """
-    strategies = {"raise", "first", "last", "prefix"}
-    if on_duplicate not in strategies:
-        msg = f"Incorrect on_duplicate value: {on_duplicate!r}. Valid values are {strategies}"
-        raise ValueError(msg)
+    _validate_on_duplicate(on_duplicate, {"raise", "first", "last", "prefix"})
 
     out: dict[Any, Any] = {}
     origins: dict[Any, Any] = {}  # inner key -> outer key of the recorded occurrence
@@ -145,12 +142,55 @@ def flatten_mapping(
 
             # Re-key the first occurrence too, the first time a real
             # conflict is found for this inner key.
-            if inner_key in out:
-                first_key = f"{origins[inner_key]}{separator}{inner_key}"
-                out[first_key] = out.pop(inner_key)
+            _prefix_first_occurrence(out, inner_key, f"{origins[inner_key]}{separator}{inner_key}")
             out[prefixed_key] = value
 
     return out
+
+
+def _validate_on_duplicate(on_duplicate: str, strategies: set[str]) -> None:
+    r"""Check that the strategy to handle the duplicate keys is valid.
+
+    Args:
+        on_duplicate: The strategy to check.
+        strategies: The valid strategies.
+
+    Raises:
+        ValueError: if ``on_duplicate`` is not a valid strategy.
+    """
+    if on_duplicate not in strategies:
+        msg = f"Incorrect on_duplicate value: {on_duplicate!r}. Valid values are {strategies}"
+        raise ValueError(msg)
+
+
+def _prefix_first_occurrence(out: dict[Any, Any], key: Any, prefixed_key: str) -> None:
+    r"""Re-key the first occurrence of ``key`` with its prefixed key, if it
+    is still stored with its original key.
+
+    Args:
+        out: The flattened mapping, modified in-place.
+        key: The original key.
+        prefixed_key: The key with the prefix of its first occurrence.
+    """
+    if key in out:
+        out[prefixed_key] = out.pop(key)
+
+
+def _free_suffixed_key(out: dict[Any, Any], key: Any, suffix: int) -> str:
+    r"""Find the first key ``{key}_{n}`` with ``n >= suffix`` that is not
+    in ``out``, so an existing key is never overwritten.
+
+    Args:
+        out: The merged mapping.
+        key: The original key.
+        suffix: The first suffix to try.
+
+    Returns:
+        The key with a suffix that is not used.
+    """
+    while f"{key}_{suffix}" in out:
+        suffix += 1
+    return f"{key}_{suffix}"
 
 
 def add_prefix_suffix_to_keys(
@@ -276,10 +316,7 @@ def merge_mappings(
 
         ```
     """
-    strategies = {"raise", "first", "last", "suffix"}
-    if on_duplicate not in strategies:
-        msg = f"Incorrect on_duplicate value: {on_duplicate!r}. Valid values are {strategies}"
-        raise ValueError(msg)
+    _validate_on_duplicate(on_duplicate, {"raise", "first", "last", "suffix"})
 
     out: dict[Any, Any] = {}
     counts: dict[Any, int] = {}
@@ -305,10 +342,7 @@ def merge_mappings(
             if on_duplicate == "last":
                 out[key] = value
             elif on_duplicate == "suffix":
-                suffix = counts[key] - 1
-                while f"{key}_{suffix}" in out:  # never overwrite an existing key
-                    suffix += 1
-                out[f"{key}_{suffix}"] = value
+                out[_free_suffixed_key(out, key, counts[key] - 1)] = value
             elif on_duplicate != "first":  # "first" keeps the existing value
                 assert_never(on_duplicate)
 
