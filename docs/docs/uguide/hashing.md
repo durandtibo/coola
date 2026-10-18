@@ -100,7 +100,7 @@ The default registry hashes **only** the following types (and their subclasses):
 | `list`, `tuple`, `deque`, other `Sequence`   | Order matters. One tag per family: a `list` and a `tuple` with the same items hash differently    |
 | `NamedTuple`                                 | Tagged with the class and field names, so it differs from a plain `tuple`                         |
 | `dict`, other `Mapping`                      | Independent of the order of the keys                                                              |
-| `OrderedDict`                                | Depends on the order of the keys, like its equality                                               |
+| `OrderedDict`                                | Own tag, but independent of the order of the keys, like `coola` equality                          |
 | `set`, `frozenset`                           | Independent of the iteration order. A `set` and a `frozenset` hash differently                    |
 | `date`, `datetime`, `time`                   | ISO 8601 form, including the UTC offset when there is one                                         |
 | `timedelta`, `timezone`                      | The `repr` of the value                                                                           |
@@ -137,17 +137,18 @@ identifier across upgrades without checking.
 
 The default registry is designed around the following properties.
 
-| Property                 | Statement                                                                                                                                      |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Deterministic            | The same value gives the same hash across calls, processes, machines and operating systems. It does not depend on `PYTHONHASHSEED` or on object addresses. |
-| Type-sensitive           | Values of different types hash differently, even when their text looks the same: `1`, `1.0`, `True`, `"1"`, `b"1"` and `[1]` are all distinct.   |
-| Structure-sensitive      | Nesting and item boundaries matter: `[[1], 2]`, `[1, [2]]` and `[1, 2]` are distinct, and so are `["ab", "c"]` and `["a", "bc"]`.               |
-| Order rules              | Ordered containers are order-sensitive (`[1, 2]` differs from `[2, 1]`). Unordered containers are not (`{1, 2}` equals `{2, 1}`).             |
-| Composable               | A container hash is built only from the hashes of its children, resolved through the registry, so each type can be extended independently.     |
-| Fixed width              | The output is a lowercase hex string of `length` characters (an even number between 2 and 128, default 64).                                    |
-| No silent false equality | An unsupported type fails loudly by default. The `ignore_unhashable` placeholder is an explicit, documented opt-out.                           |
-| Cross-library scalars    | Subclasses of `bool`, `int`, `float` and `complex` (such as `np.float64`) hash like the equivalent builtin, independently of the library version. |
-| Pure                     | Hashing has no side effect and does not read the filesystem, environment or clock, except for the opt-in `ResolvedPathHasher`.                  |
+| Property                 | Statement                                                                                                                                                                                                                     |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Equality-consistent      | Objects that are equal for [`objects_are_equal`](equality.md) have the same hash. The reverse can fail for a few types that share a hash on purpose, e.g. a `list` subclass and a `list`, or a NumPy `float64` and a `float`. |
+| Deterministic            | The same value gives the same hash across calls, processes, machines and operating systems. It does not depend on `PYTHONHASHSEED` or on object addresses.                                                                    |
+| Type-sensitive           | Values of different types hash differently, even when their text looks the same: `1`, `1.0`, `True`, `"1"`, `b"1"` and `[1]` are all distinct.                                                                                |
+| Structure-sensitive      | Nesting and item boundaries matter: `[[1], 2]`, `[1, [2]]` and `[1, 2]` are distinct, and so are `["ab", "c"]` and `["a", "bc"]`.                                                                                             |
+| Order rules              | Ordered containers are order-sensitive (`[1, 2]` differs from `[2, 1]`). Unordered containers are not (`{1, 2}` equals `{2, 1}`).                                                                                             |
+| Composable               | A container hash is built only from the hashes of its children, resolved through the registry, so each type can be extended independently.                                                                                    |
+| Fixed width              | The output is a lowercase hex string of `length` characters (an even number between 2 and 128, default 64).                                                                                                                   |
+| No silent false equality | An unsupported type fails loudly by default. The `ignore_unhashable` placeholder is an explicit, documented opt-out.                                                                                                          |
+| Cross-library scalars    | Subclasses of `bool`, `int`, `float` and `complex` (such as `np.float64`) hash like the equivalent builtin, independently of the library version.                                                                             |
+| Pure                     | Hashing has no side effect and does not read the filesystem, environment or clock, except for the opt-in `ResolvedPathHasher`.                                                                                                |
 
 Internally, every hash is a BLAKE2b digest of `tag + "\0" + payload`, where the tag identifies the
 type family. Containers concatenate the **fixed-width** hashes of their children and hash the
@@ -156,18 +157,18 @@ result, which makes the concatenation unambiguous without delimiters. The regist
 
 ### Choices that may surprise you
 
-| Question                                       | Answer                                                                                                                       |
-| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `[1, 2]` vs `(1, 2)`                           | **Different.** They are different types, and each sequence family has its own tag.                                           |
-| `list` vs `deque`                              | **Different**, for the same reason.                                                                                          |
-| `1` vs `1.0` vs `True`                         | **All different.** `1 == 1.0` in Python, but the identity of a hash is the type and the value.                               |
-| `{"a": 1, "b": 2}` vs `{"b": 2, "a": 1}`       | **Same.** Insertion order is not semantic for mappings.                                                                      |
-| `dict` vs `OrderedDict`                        | **Different.** `OrderedDict` equality is order-sensitive, so its hash is order-sensitive too.                                |
-| `set` vs `frozenset`                           | **Different.** Both are order-insensitive.                                                                                   |
-| `set` vs `list` with the same items            | **Different.**                                                                                                               |
-| `str` vs `bytes`                               | **Different.**                                                                                                               |
-| `IntEnum` / `StrEnum` member vs its value      | **Different.** Enum members are not collapsed into `int` or `str`.                                                           |
-| Subclass instance vs base instance             | **Same** for scalars normalised to the builtin (e.g. NumPy floats), and for subclasses that dispatch to the same hasher and tag (e.g. a `list` subclass). |
+| Question                                  | Answer                                                                                                                                                    |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `[1, 2]` vs `(1, 2)`                      | **Different.** They are different types, and each sequence family has its own tag.                                                                        |
+| `list` vs `deque`                         | **Different**, for the same reason.                                                                                                                       |
+| `1` vs `1.0` vs `True`                    | **All different.** `1 == 1.0` in Python, but the identity of a hash is the type and the value.                                                            |
+| `{"a": 1, "b": 2}` vs `{"b": 2, "a": 1}`  | **Same.** Insertion order is not semantic for mappings.                                                                                                   |
+| `dict` vs `OrderedDict`                   | **Different**, like in `objects_are_equal`. Both ignore the order of the keys.                                                                            |
+| `set` vs `frozenset`                      | **Different.** Both are order-insensitive.                                                                                                                |
+| `set` vs `list` with the same items       | **Different.**                                                                                                                                            |
+| `str` vs `bytes`                          | **Different.**                                                                                                                                            |
+| `IntEnum` / `StrEnum` member vs its value | **Different.** Enum members are not collapsed into `int` or `str`.                                                                                        |
+| Subclass instance vs base instance        | **Same** for scalars normalised to the builtin (e.g. NumPy floats), and for subclasses that dispatch to the same hasher and tag (e.g. a `list` subclass). |
 
 ```pycon
 >>> from coola.hashing import hash_object
@@ -190,32 +191,34 @@ True
 - **`bytes`, `bytearray`**: tagged with their type name, payload is the raw content.
 - **`bool`, `int`, `float`, `complex`, `None`**: tag is the type name, payload is the builtin
   `repr`, which round-trips exactly. `bool` is checked before `int`, so `True` and `1` differ.
-  `0.0` and `-0.0` differ, and all NaNs hash the same.
+  `-0.0` hashes like `0.0` (they are equal), and all NaNs hash the same.
 - **`Enum`**: the qualified class name and the member name, not the member value.
 - **`list`, `tuple`, `deque`, other `Sequence`**: the tag is the sequence family, the payload is
   the child hashes in order. A named tuple also includes its class name and field names, so
   `Point(1, 2)` differs from `(1, 2)`. Strings and bytes are never iterated as sequences.
 - **`dict`, other `Mapping`**: each item is `key_hash + value_hash`, and items are sorted by the
-  *key hash*, not by the key. Keys do not need to be orderable and can have mixed types.
-  `OrderedDict` is the exception: items keep their iteration order.
+  _key hash_, not by the key. Keys do not need to be orderable and can have mixed types.
+  This includes `OrderedDict`, whose key order is also ignored by `objects_are_equal`. Register
+  `MappingHasher(tag, ordered=True)` for a mapping type whose order is meaningful.
 - **`set`, `frozenset`**: the sorted item hashes under the `set` or `frozenset` tag.
 - **`date`, `datetime`, `time`**: tagged with the concrete class name, payload is the ISO 8601
-  string. Offsets are part of the payload, so naive and aware datetimes differ, and equal instants
-  in different time zones hash differently. Convert to UTC first if you want instant equality.
-  `timedelta` and `timezone` use their `repr`.
+  string. Aware datetimes are converted to UTC first, so the same instant in two time zones hashes
+  the same, while a naive and an aware datetime differ. The offset of an aware `time` is part of
+  its payload. `timedelta` and `timezone` use their `repr`.
 - **`Path`, `PurePath`**: the POSIX form of the path as written, with no filesystem access, so the
   hash is portable across machines. A relative and an absolute path to the same location differ.
   Register `ResolvedPathHasher` to resolve symlinks, `..` and relative paths first; the result
-  then depends on the filesystem and on the current working directory. Hashing the *content* of
+  then depends on the filesystem and on the current working directory. Hashing the _content_ of
   a file is a different operation that is not provided by a hasher.
 - **pydantic `BaseModel`**: the qualified model class name plus the fields, hashed as a mapping
   through the registry (extra fields included). Two different model classes with the same values
   therefore differ. Secrets are controlled by `on_secret`:
-    - `"error"` (default) raises a `ValueError` (the message never contains the secret),
-    - `"reveal"` hashes the real secret value,
-    - `"exclude"` drops secret fields, so models that differ only by a secret hash the same.
+  - `"error"` (default) raises a `ValueError` (the message never contains the secret),
+  - `"reveal"` hashes the real secret value,
+  - `"exclude"` drops secret fields, so models that differ only by a secret hash the same.
 
   Nested models use the same `on_secret` policy.
+
 - **Dataclasses**: the qualified class name plus the field values, with `DataclassHasher`
   registered for each dataclass type.
 - **Objects with their own `hash` method**: the result of `hash`, tagged with the qualified class
@@ -238,13 +241,13 @@ True
 
 ## Errors
 
-| Situation                                           | Behavior                                                                                  |
-| --------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `length` is odd or outside 2 to 128                 | `ValueError`                                                                              |
-| No hasher for the type                              | `KeyError` naming the type, or a lossy placeholder with `ignore_unhashable=True`          |
-| Self-referencing container                          | `ValueError` instead of a stack overflow                                                  |
-| String that is not valid UTF-8                      | `ValueError`                                                                              |
-| Secret field with `on_secret="error"`               | `ValueError`, without leaking the value                                                   |
+| Situation                             | Behavior                                                                         |
+| ------------------------------------- | -------------------------------------------------------------------------------- |
+| `length` is odd or outside 2 to 128   | `ValueError`                                                                     |
+| No hasher for the type                | `KeyError` naming the type, or a lossy placeholder with `ignore_unhashable=True` |
+| Self-referencing container            | `ValueError` instead of a stack overflow                                         |
+| String that is not valid UTF-8        | `ValueError`                                                                     |
+| Secret field with `on_secret="error"` | `ValueError`, without leaking the value                                          |
 
 ## Type-Specific Hashers
 

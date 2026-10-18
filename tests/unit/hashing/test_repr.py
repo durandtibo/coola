@@ -174,3 +174,21 @@ def test_repr_hasher_hash_does_not_use_registry(registry: HasherRegistry) -> Non
     empty_registry = HasherRegistry()
     hasher = ReprHasher()
     assert hasher.hash(1234, registry=registry) == hasher.hash(1234, registry=empty_registry)
+
+
+def test_repr_hasher_hash_negative_zero_equals_zero(registry: HasherRegistry) -> None:
+    hasher = ReprHasher()
+    assert hasher.hash(-0.0, registry=registry) == hasher.hash(0.0, registry=registry)
+
+
+def test_repr_hasher_hash_negative_zero_complex_components(registry: HasherRegistry) -> None:
+    hasher = ReprHasher()
+    assert hasher.hash(complex(-0.0, -0.0), registry=registry) == hasher.hash(0j, registry=registry)
+    assert hasher.hash(complex(-0.0, 1.0), registry=registry) == hasher.hash(
+        complex(0.0, 1.0), registry=registry
+    )
+
+
+def test_repr_hasher_hash_zero_differs_from_one(registry: HasherRegistry) -> None:
+    hasher = ReprHasher()
+    assert hasher.hash(0.0, registry=registry) != hasher.hash(1.0, registry=registry)

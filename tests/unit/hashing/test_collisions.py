@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 from collections import OrderedDict, deque
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta, timezone
 from enum import Enum, IntEnum, StrEnum
 from pathlib import Path
 from typing import NamedTuple
 
 import pytest
 
+from coola.equality import objects_are_equal
 from coola.hashing import hash_object
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
@@ -62,7 +63,6 @@ def test_hash_object_different_types_do_not_collide(first: object, second: objec
     [
         pytest.param(1, 1.0, id="int-float"),
         pytest.param(1, True, id="int-bool"),
-        pytest.param(0.0, -0.0, id="zero-negative-zero"),
         pytest.param("1", b"1", id="str-bytes"),
         pytest.param(b"1", bytearray(b"1"), id="bytes-bytearray"),
         pytest.param([1, 2], (1, 2), id="list-tuple"),
@@ -73,7 +73,6 @@ def test_hash_object_different_types_do_not_collide(first: object, second: objec
         pytest.param([[1], 2], [1, [2]], id="nesting"),
         pytest.param(["ab", "c"], ["a", "bc"], id="item-boundaries"),
         pytest.param([1, 2], [2, 1], id="list-order"),
-        pytest.param(OrderedDict(a=1, b=2), OrderedDict(b=2, a=1), id="ordereddict-order"),
         pytest.param(date(2024, 1, 1), datetime(2024, 1, 1), id="date-datetime"),  # noqa: DTZ001
         pytest.param(
             datetime(2024, 1, 1),  # noqa: DTZ001
@@ -98,6 +97,14 @@ def test_hash_object_type_sensitive(first: object, second: object) -> None:
         pytest.param({"a": 1, "b": 2}, {"b": 2, "a": 1}, id="dict-order"),
         pytest.param({1, 2, 3}, {3, 2, 1}, id="set-order"),
         pytest.param({1: "a", "x": 2}, {"x": 2, 1: "a"}, id="mixed-key-types"),
+        pytest.param(OrderedDict(a=1, b=2), OrderedDict(b=2, a=1), id="ordereddict-order"),
+        pytest.param(0.0, -0.0, id="zero-negative-zero"),
+        pytest.param(complex(-0.0, -0.0), 0j, id="complex-negative-zero"),
+        pytest.param(
+            datetime(2024, 1, 1, 12, tzinfo=UTC),
+            datetime(2024, 1, 1, 13, tzinfo=timezone(timedelta(hours=1))),
+            id="same-instant-different-zone",
+        ),
         pytest.param(float("nan"), float("nan"), id="nan"),
         pytest.param(Point(1, 2), Point(1, 2), id="namedtuple"),
     ],
@@ -158,3 +165,25 @@ def test_hash_object_ignore_unhashable_warns() -> None:
 @numpy_available
 def test_hash_object_numpy_scalar_hashes_like_builtin() -> None:
     assert hash_object(np.float64(1.5)) == hash_object(1.5)
+
+
+@pytest.mark.parametrize(
+    ("first", "second"),
+    [
+        pytest.param({"a": 1, "b": [1, 2]}, {"b": [1, 2], "a": 1}, id="dict"),
+        pytest.param(OrderedDict(a=1, b=2), OrderedDict(b=2, a=1), id="ordereddict"),
+        pytest.param({1, 2, 3}, {3, 2, 1}, id="set"),
+        pytest.param(0.0, -0.0, id="negative-zero"),
+        pytest.param(
+            datetime(2024, 1, 1, 12, tzinfo=UTC),
+            datetime(2024, 1, 1, 13, tzinfo=timezone(timedelta(hours=1))),
+            id="aware-datetime",
+        ),
+        pytest.param(Point(1, 2), Point(1, 2), id="namedtuple"),
+        pytest.param([1, (2, {3})], [1, (2, {3})], id="nested"),
+    ],
+)
+def test_hash_object_is_consistent_with_objects_are_equal(first: object, second: object) -> None:
+    # Objects that coola considers equal must have the same hash.
+    assert objects_are_equal(first, second)
+    assert hash_object(first) == hash_object(second)
