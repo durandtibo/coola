@@ -9,7 +9,7 @@ import pytest
 from coola.reducer import EmptySequenceError, NativeReducer, TorchReducer
 from coola.reducer.torch import _to_float_tensor
 from coola.testing.fixtures import torch_available
-from coola.utils.imports import is_torch_available
+from coola.utils.imports import MissingPackageError, is_torch_available
 
 if is_torch_available():
     import torch
@@ -289,7 +289,7 @@ def test_torch_reducer_std_empty(values: Sequence[int | float]) -> None:
 def test_torch_reducer_no_torch() -> None:
     with (
         patch("coola.utils.imports.torch.is_torch_available", lambda: False),
-        pytest.raises(RuntimeError, match=r"'torch' package is required but not installed."),
+        pytest.raises(MissingPackageError, match=r"'torch' package is required but not installed."),
     ):
         TorchReducer()
 

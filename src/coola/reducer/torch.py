@@ -27,7 +27,7 @@ class TorchReducer(InlineDisplayMixin, BaseBasicReducer[T]):
     r"""Implement a reducer based on torch functions.
 
     Raises:
-        RuntimeError: if ``torch`` is not installed.
+        MissingPackageError: if ``torch`` is not installed.
 
     Example:
         ```pycon

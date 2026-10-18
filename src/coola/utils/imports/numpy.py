@@ -23,7 +23,7 @@ def check_numpy() -> None:
     r"""Check if the ``numpy`` package is installed.
 
     Raises:
-        RuntimeError: if the ``numpy`` package is not installed.
+        MissingPackageError: if the ``numpy`` package is not installed.
 
     Example:
         ```pycon
@@ -79,11 +79,11 @@ def numpy_available(fn: F) -> F:
 
 
 def raise_numpy_missing_error() -> Never:
-    r"""Raise a ``RuntimeError`` to indicate the ``numpy`` package is
-    missing.
+    r"""Raise a ``MissingPackageError`` to indicate the ``numpy`` package
+    is missing.
 
     Raises:
-        RuntimeError: Always, with a message indicating that the
+        MissingPackageError: Always, with a message indicating that the
             ``numpy`` package is not installed.
 
     Example:

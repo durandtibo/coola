@@ -5,6 +5,7 @@ from types import ModuleType
 import pytest
 
 from coola.utils.fallback.numpy import numpy
+from coola.utils.imports import MissingPackageError
 
 
 def test_numpy_is_module_type() -> None:
@@ -28,7 +29,9 @@ def test_numpy_masked_array_is_class() -> None:
 
 
 def test_numpy_masked_array_instantiation() -> None:
-    with pytest.raises(RuntimeError, match=r"'numpy' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'numpy' package is required but not installed."
+    ):
         numpy.ma.MaskedArray()
 
 
@@ -41,5 +44,7 @@ def test_numpy_ndarray_is_class() -> None:
 
 
 def test_numpy_ndarray_instantiation() -> None:
-    with pytest.raises(RuntimeError, match=r"'numpy' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'numpy' package is required but not installed."
+    ):
         numpy.ndarray()

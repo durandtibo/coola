@@ -8,7 +8,7 @@ import pytest
 
 from coola.reducer import EmptySequenceError, NumpyReducer
 from coola.testing.fixtures import numpy_available
-from coola.utils.imports import is_numpy_available
+from coola.utils.imports import MissingPackageError, is_numpy_available
 
 if is_numpy_available():
     import numpy as np
@@ -275,6 +275,6 @@ def test_numpy_reducer_std_empty(values: Sequence[int | float]) -> None:
 def test_numpy_reducer_no_numpy() -> None:
     with (
         patch("coola.utils.imports.numpy.is_numpy_available", lambda: False),
-        pytest.raises(RuntimeError, match=r"'numpy' package is required but not installed."),
+        pytest.raises(MissingPackageError, match=r"'numpy' package is required but not installed."),
     ):
         NumpyReducer()

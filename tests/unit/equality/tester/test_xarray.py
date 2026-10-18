@@ -12,7 +12,7 @@ from coola.equality.tester import (
     XarrayVariableEqualityTester,
 )
 from coola.testing.fixtures import xarray_available
-from coola.utils.imports import is_numpy_available, is_xarray_available
+from coola.utils.imports import MissingPackageError, is_numpy_available, is_xarray_available
 from tests.unit.equality.utils import ExamplePair
 
 if is_numpy_available():
@@ -569,7 +569,9 @@ def test_xarray_data_array_equality_tester_objects_are_equal_true_tolerance(
 def test_xarray_data_array_equality_tester_no_xarray() -> None:
     with (
         patch("coola.utils.imports.xarray.is_xarray_available", lambda: False),
-        pytest.raises(RuntimeError, match=r"'xarray' package is required but not installed."),
+        pytest.raises(
+            MissingPackageError, match=r"'xarray' package is required but not installed."
+        ),
     ):
         XarrayDataArrayEqualityTester()
 
@@ -707,7 +709,9 @@ def test_xarray_dataset_equality_tester_objects_are_equal_true_tolerance(
 def test_xarray_dataset_equality_tester_no_xarray() -> None:
     with (
         patch("coola.utils.imports.xarray.is_xarray_available", lambda: False),
-        pytest.raises(RuntimeError, match=r"'xarray' package is required but not installed."),
+        pytest.raises(
+            MissingPackageError, match=r"'xarray' package is required but not installed."
+        ),
     ):
         XarrayDatasetEqualityTester()
 
@@ -845,6 +849,8 @@ def test_xarray_variable_equality_tester_objects_are_equal_true_tolerance(
 def test_xarray_variable_equality_tester_no_xarray() -> None:
     with (
         patch("coola.utils.imports.xarray.is_xarray_available", lambda: False),
-        pytest.raises(RuntimeError, match=r"'xarray' package is required but not installed."),
+        pytest.raises(
+            MissingPackageError, match=r"'xarray' package is required but not installed."
+        ),
     ):
         XarrayVariableEqualityTester()

@@ -23,7 +23,7 @@ def check_torch() -> None:
     r"""Check if the ``torch`` package is installed.
 
     Raises:
-        RuntimeError: if the ``torch`` package is not installed.
+        MissingPackageError: if the ``torch`` package is not installed.
 
     Example:
         ```pycon
@@ -79,11 +79,11 @@ def torch_available(fn: F) -> F:
 
 
 def raise_torch_missing_error() -> Never:
-    r"""Raise a ``RuntimeError`` to indicate the ``torch`` package is
-    missing.
+    r"""Raise a ``MissingPackageError`` to indicate the ``torch`` package
+    is missing.
 
     Raises:
-        RuntimeError: Always, with a message indicating that the
+        MissingPackageError: Always, with a message indicating that the
             ``torch`` package is not installed.
 
     Example:

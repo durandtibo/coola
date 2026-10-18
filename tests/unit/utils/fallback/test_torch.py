@@ -5,6 +5,7 @@ from types import ModuleType
 import pytest
 
 from coola.utils.fallback.torch import torch
+from coola.utils.imports import MissingPackageError
 
 
 def test_torch_is_module_type() -> None:
@@ -23,12 +24,16 @@ def test_torch_nested_module_access() -> None:
 
 
 def test_torch_cuda_is_available_call() -> None:
-    with pytest.raises(RuntimeError, match=r"'torch' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'torch' package is required but not installed."
+    ):
         torch.cuda.is_available()
 
 
 def test_torch_cuda_synchronize_call() -> None:
-    with pytest.raises(RuntimeError, match=r"'torch' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'torch' package is required but not installed."
+    ):
         torch.cuda.synchronize()
 
 
@@ -41,7 +46,9 @@ def test_torch_packed_sequence_is_class() -> None:
 
 
 def test_torch_packed_sequence_instantiation() -> None:
-    with pytest.raises(RuntimeError, match=r"'torch' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'torch' package is required but not installed."
+    ):
         torch.nn.utils.rnn.PackedSequence()
 
 
@@ -54,10 +61,14 @@ def test_torch_tensor_class_is_class() -> None:
 
 
 def test_torch_tensor_class_instantiation() -> None:
-    with pytest.raises(RuntimeError, match=r"'torch' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'torch' package is required but not installed."
+    ):
         torch.Tensor()
 
 
 def test_torch_tensor_call() -> None:
-    with pytest.raises(RuntimeError, match=r"'torch' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'torch' package is required but not installed."
+    ):
         torch.tensor()

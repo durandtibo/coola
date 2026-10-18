@@ -7,7 +7,7 @@ import pytest
 from coola.equality import objects_are_equal
 from coola.random import NumpyRandomManager, numpy_seed
 from coola.testing.fixtures import numpy_available
-from coola.utils.imports import is_numpy_available
+from coola.utils.imports import MissingPackageError, is_numpy_available
 
 if is_numpy_available():
     import numpy as np
@@ -90,7 +90,7 @@ def test_numpy_random_manager_set_rng_state() -> None:
 def test_numpy_random_manager_no_numpy() -> None:
     with (
         patch("coola.utils.imports.numpy.is_numpy_available", lambda: False),
-        pytest.raises(RuntimeError, match=r"'numpy' package is required but not installed."),
+        pytest.raises(MissingPackageError, match=r"'numpy' package is required but not installed."),
     ):
         NumpyRandomManager()
 

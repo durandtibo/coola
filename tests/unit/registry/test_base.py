@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from coola.registry import Registry, TypeRegistry
+from coola.registry import AlreadyRegisteredError, Registry, TypeRegistry
 from coola.registry.base import BaseRegistry
 
 ###################################
@@ -162,7 +162,7 @@ def test_base_registry_on_change_not_called_when_register_fails() -> None:
 
     registry = TrackedRegistry()
     registry.register("key1", 42)
-    with pytest.raises(RuntimeError):
+    with pytest.raises(AlreadyRegisteredError):
         registry.register("key1", 100)
     assert registry.changes == 1  # only the first successful register
 
@@ -287,7 +287,7 @@ def test_base_registry_snapshot_cache_not_invalidated_when_register_fails() -> N
     registry = BaseRegistry[str, int]({"key1": 1})
     registry.items()
     snapshot = registry._snapshot
-    with pytest.raises(RuntimeError):
+    with pytest.raises(AlreadyRegisteredError):
         registry.register("key1", 2)
     assert registry._snapshot is snapshot
 

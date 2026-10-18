@@ -5,6 +5,7 @@ from types import ModuleType
 import pytest
 
 from coola.utils.fallback.pydantic import pydantic
+from coola.utils.imports import MissingPackageError
 
 
 def test_pydantic_is_module_type() -> None:
@@ -24,10 +25,14 @@ def test_pydantic_base_model_is_class() -> None:
 
 
 def test_pydantic_base_model_instantiation() -> None:
-    with pytest.raises(RuntimeError, match=r"'pydantic' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'pydantic' package is required but not installed."
+    ):
         pydantic.BaseModel()
 
 
 def test_pydantic_base_model_instantiation_with_args() -> None:
-    with pytest.raises(RuntimeError, match=r"'pydantic' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'pydantic' package is required but not installed."
+    ):
         pydantic.BaseModel([1, 2, 3])

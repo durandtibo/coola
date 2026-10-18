@@ -5,6 +5,7 @@ from typing import Any
 import pytest
 
 from coola.equality import objects_are_equal
+from coola.registry import AlreadyRegisteredError
 from coola.summary import (
     BaseSummarizer,
     DefaultSummarizer,
@@ -62,7 +63,7 @@ def test_summarizer_registry_register_existing_type_without_exist_ok() -> None:
     summarizer1 = SequenceSummarizer()
     summarizer2 = MappingSummarizer()
     registry.register(list, summarizer1)
-    with pytest.raises(RuntimeError, match=r"already registered"):
+    with pytest.raises(AlreadyRegisteredError, match=r"already registered"):
         registry.register(list, summarizer2, exist_ok=False)
 
 
@@ -97,7 +98,7 @@ def test_summarizer_registry_register_many_with_existing_type() -> None:
         list: MappingSummarizer(),
         dict: MappingSummarizer(),
     }
-    with pytest.raises(RuntimeError, match=r"already registered"):
+    with pytest.raises(AlreadyRegisteredError, match=r"already registered"):
         registry.register_many(summarizers, exist_ok=False)
 
 

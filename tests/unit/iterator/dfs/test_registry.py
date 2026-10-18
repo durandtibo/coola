@@ -11,6 +11,7 @@ from coola.iterator.dfs import (
     IteratorRegistry,
     MappingIterator,
 )
+from coola.registry import AlreadyRegisteredError
 from tests.unit.iterator.dfs.helpers import DEFAULT_SAMPLES, CustomList
 
 ######################################
@@ -56,7 +57,7 @@ def test_iterator_registry_register_existing_type_without_exist_ok() -> None:
     iterator1 = IterableIterator()
     iterator2 = MappingIterator()
     registry.register(list, iterator1)
-    with pytest.raises(RuntimeError, match=r"already registered"):
+    with pytest.raises(AlreadyRegisteredError, match=r"already registered"):
         registry.register(list, iterator2, exist_ok=False)
 
 
@@ -89,7 +90,7 @@ def test_iterator_registry_register_many_with_existing_type() -> None:
     registry = IteratorRegistry()
     registry.register(list, IterableIterator())
     iterators = {list: MappingIterator(), dict: MappingIterator()}
-    with pytest.raises(RuntimeError, match=r"already registered"):
+    with pytest.raises(AlreadyRegisteredError, match=r"already registered"):
         registry.register_many(iterators, exist_ok=False)
 
 

@@ -14,6 +14,7 @@ from coola.hashing import (
     StrHasher,
     StringHasher,
 )
+from coola.registry import AlreadyRegisteredError
 
 
 class CustomList(list):
@@ -65,7 +66,7 @@ def test_hasher_registry_register_new_type() -> None:
 
 def test_hasher_registry_register_existing_type_without_exist_ok() -> None:
     registry = HasherRegistry({list: SequenceHasher()})
-    with pytest.raises(RuntimeError, match=r"already registered"):
+    with pytest.raises(AlreadyRegisteredError, match=r"already registered"):
         registry.register(list, MappingHasher(), exist_ok=False)
 
 
@@ -97,7 +98,7 @@ def test_hasher_registry_register_many() -> None:
 
 def test_hasher_registry_register_many_with_existing_type() -> None:
     registry = HasherRegistry({list: SequenceHasher()})
-    with pytest.raises(RuntimeError, match=r"already registered"):
+    with pytest.raises(AlreadyRegisteredError, match=r"already registered"):
         registry.register_many({list: MappingHasher(), dict: MappingHasher()}, exist_ok=False)
 
 

@@ -5,7 +5,7 @@ import pytest
 from coola.equality.config import EqualityConfig
 from coola.equality.tester import JaxArrayEqualityTester
 from coola.testing.fixtures import jax_available, jax_not_available
-from coola.utils.imports import is_jax_available
+from coola.utils.imports import MissingPackageError, is_jax_available
 
 if is_jax_available():
     import jax.numpy as jnp
@@ -25,5 +25,5 @@ def test_jax_array_equality_tester_with_jax(config: EqualityConfig) -> None:
 
 @jax_not_available
 def test_jax_array_equality_tester_without_jax() -> None:
-    with pytest.raises(RuntimeError, match=r"'jax' package is required but not installed."):
+    with pytest.raises(MissingPackageError, match=r"'jax' package is required but not installed."):
         JaxArrayEqualityTester()

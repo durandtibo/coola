@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from coola.utils.imports import (
+    MissingPackageError,
     check_xarray,
     is_xarray_available,
     raise_xarray_missing_error,
@@ -45,7 +46,9 @@ def test_check_xarray_with_package() -> None:
 def test_check_xarray_without_package() -> None:
     with (
         patch(f"{MODULE}.is_xarray_available", lambda: False),
-        pytest.raises(RuntimeError, match=r"'xarray' package is required but not installed."),
+        pytest.raises(
+            MissingPackageError, match=r"'xarray' package is required but not installed."
+        ),
     ):
         check_xarray()
 
@@ -87,5 +90,7 @@ def test_xarray_available_decorator_without_package() -> None:
 
 
 def test_raise_xarray_missing_error() -> None:
-    with pytest.raises(RuntimeError, match=r"'xarray' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'xarray' package is required but not installed."
+    ):
         raise_xarray_missing_error()

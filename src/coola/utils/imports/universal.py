@@ -3,6 +3,7 @@ r"""Contain utilities to manage optional dependencies."""
 from __future__ import annotations
 
 __all__ = [
+    "MissingPackageError",
     "check_package",
     "decorator_package_available",
     "module_available",
@@ -20,6 +21,27 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 F = TypeVar("F", bound="Callable[..., Any]")
+
+
+class MissingPackageError(ModuleNotFoundError, RuntimeError):
+    r"""Raised when an optional package is required but not installed.
+
+    It is a ``ModuleNotFoundError`` (so ``except ImportError`` works as
+    expected). It also derives from ``RuntimeError``, which this error
+    used to be, so existing ``except RuntimeError`` code keeps working.
+
+    Example:
+        ```pycon
+        >>> from coola.utils.imports import MissingPackageError, check_package
+        >>> try:
+        ...     check_package("not_an_installed_package")
+        ... except ImportError as error:
+        ...     print(type(error).__name__, error.name)
+        ...
+        MissingPackageError not_an_installed_package
+
+        ```
+    """
 
 
 @lru_cache
@@ -83,7 +105,7 @@ def check_package(package: str, command: str | None = None) -> None:
         command: The command to install the package.
 
     Raises:
-        RuntimeError: if the package is not installed.
+        MissingPackageError: if the package is not installed.
 
     Example:
         ```pycon
@@ -96,7 +118,7 @@ def check_package(package: str, command: str | None = None) -> None:
         msg = f"'{package}' package is required but not installed."
         if command is not None:
             msg += f" You can install '{package}' package with the command:\n\n{command}"
-        raise RuntimeError(msg)
+        raise MissingPackageError(msg, name=package)
 
 
 def decorator_package_available(fn: F, condition: Callable[[], bool]) -> F:
@@ -137,14 +159,15 @@ def decorator_package_available(fn: F, condition: Callable[[], bool]) -> F:
 
 
 def raise_package_missing_error(package_name: str, install_cmd: str) -> Never:
-    r"""Raise a RuntimeError for a missing package.
+    r"""Raise a ``MissingPackageError`` for a missing package.
 
     Args:
         package_name: The name of the missing package.
         install_cmd: The pip install command for the package.
 
     Raises:
-        RuntimeError: Always raised to indicate the package is missing.
+        MissingPackageError: Always raised to indicate the package is
+            missing.
 
     Example:
         ```pycon
@@ -159,4 +182,4 @@ def raise_package_missing_error(package_name: str, install_cmd: str) -> Never:
         f"pip install {install_cmd}\n\nor\n\n"
         f"uv pip install {install_cmd}\n"
     )
-    raise RuntimeError(msg)
+    raise MissingPackageError(msg, name=package_name)

@@ -26,7 +26,7 @@ def make_fake_class(raise_error: Callable[[], Never]) -> type:
 
     Args:
         raise_error: A no-argument callable that raises the
-            ``RuntimeError`` for the missing optional dependency, e.g.
+            ``MissingPackageError`` for the missing optional dependency, e.g.
             ``coola.utils.imports.raise_numpy_missing_error``.
 
     Returns:
@@ -56,7 +56,7 @@ def make_fake_function(raise_error: Callable[[], Never]) -> Callable[..., Never]
 
     Args:
         raise_error: A no-argument callable that raises the
-            ``RuntimeError`` for the missing optional dependency.
+            ``MissingPackageError`` for the missing optional dependency.
 
     Returns:
         A function that can be used as a stand-in for a real backend

@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, TypeVar
 
 from coola.utils.imports.numpy import is_numpy_available
 from coola.utils.imports.torch import is_torch_available
-from coola.utils.imports.universal import decorator_package_available
+from coola.utils.imports.universal import MissingPackageError, decorator_package_available
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -30,7 +30,7 @@ def check_torch_numpy() -> None:
     are compatible.
 
     Raises:
-        RuntimeError: if one of the packages is not installed or if
+        MissingPackageError: if one of the packages is not installed or if
             they are not compatible.
 
     Example:
@@ -45,7 +45,7 @@ def check_torch_numpy() -> None:
             "'torch' and 'numpy' packages are required but one of the package is not "
             "installed or they are not compatible. "
         )
-        raise RuntimeError(msg)
+        raise MissingPackageError(msg)
 
 
 @cache

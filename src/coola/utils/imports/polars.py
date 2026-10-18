@@ -23,7 +23,7 @@ def check_polars() -> None:
     r"""Check if the ``polars`` package is installed.
 
     Raises:
-        RuntimeError: if the ``polars`` package is not installed.
+        MissingPackageError: if the ``polars`` package is not installed.
 
     Example:
         ```pycon
@@ -79,11 +79,11 @@ def polars_available(fn: F) -> F:
 
 
 def raise_polars_missing_error() -> Never:
-    r"""Raise a ``RuntimeError`` to indicate the ``polars`` package is
-    missing.
+    r"""Raise a ``MissingPackageError`` to indicate the ``polars``
+    package is missing.
 
     Raises:
-        RuntimeError: Always, with a message indicating that the
+        MissingPackageError: Always, with a message indicating that the
             ``polars`` package is not installed.
 
     Example:

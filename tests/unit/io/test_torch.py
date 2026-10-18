@@ -8,7 +8,7 @@ import pytest
 from coola.equality.interface import objects_are_equal
 from coola.io import TorchLoader, TorchSaver, load_torch, save_text, save_torch
 from coola.testing.fixtures import torch_available, torch_not_available
-from coola.utils.imports import is_torch_available
+from coola.utils.imports import MissingPackageError, is_torch_available
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -31,7 +31,9 @@ def path_torch(tmp_path_factory: pytest.TempPathFactory) -> Path:
 
 @torch_not_available
 def test_torch_loader_no_torch() -> None:
-    with pytest.raises(RuntimeError, match=r"'torch' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'torch' package is required but not installed."
+    ):
         TorchLoader()
 
 
@@ -98,7 +100,9 @@ def test_torch_loader_load_tensor(tmp_path: Path) -> None:
 
 @torch_not_available
 def test_torch_saver_no_torch() -> None:
-    with pytest.raises(RuntimeError, match=r"'torch' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'torch' package is required but not installed."
+    ):
         TorchSaver()
 
 

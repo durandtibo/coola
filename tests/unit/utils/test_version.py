@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 
 from coola.testing.fixtures import packaging_available
-from coola.utils.imports import is_packaging_available
+from coola.utils.imports import MissingPackageError, is_packaging_available
 from coola.utils.version import compare_version, get_package_version
 
 if is_packaging_available():
@@ -35,7 +35,9 @@ def test_compare_version_false_missing() -> None:
 def test_compare_version_missing_packaging() -> None:
     with (
         patch("coola.utils.imports.packaging.is_packaging_available", lambda: False),
-        pytest.raises(RuntimeError, match=r"'packaging' package is required but not installed."),
+        pytest.raises(
+            MissingPackageError, match=r"'packaging' package is required but not installed."
+        ),
     ):
         compare_version("my_package", operator.ge, "7.3.0")
 
@@ -59,6 +61,8 @@ def test_get_package_version_missing() -> None:
 def test_get_package_version_missing_packaging() -> None:
     with (
         patch("coola.utils.imports.packaging.is_packaging_available", lambda: False),
-        pytest.raises(RuntimeError, match=r"'packaging' package is required but not installed."),
+        pytest.raises(
+            MissingPackageError, match=r"'packaging' package is required but not installed."
+        ),
     ):
         get_package_version("my_package")

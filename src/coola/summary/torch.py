@@ -43,7 +43,7 @@ class TensorSummarizer(InlineDisplayMixin, BaseSummarizer[torch.Tensor]):
             Default: ``False``
 
     Raises:
-        RuntimeError: If PyTorch is not installed or available.
+        MissingPackageError: If PyTorch is not installed or available.
 
     Example:
         ```pycon

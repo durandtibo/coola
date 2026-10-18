@@ -8,7 +8,7 @@ __all__ = ["BaseRegistry"]
 import threading
 from typing import TYPE_CHECKING, Generic, TypeVar
 
-from coola.registry.exceptions import TypeNotRegisteredError
+from coola.registry.exceptions import AlreadyRegisteredError, TypeNotRegisteredError
 from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:
@@ -249,11 +249,11 @@ class BaseRegistry(Generic[K, V]):
             key: The key to register. Must be hashable.
             value: The value to associate with the key.
             exist_ok: Controls behavior when the key already exists.
-                If False (default), raises RuntimeError for duplicate keys.
+                If False (default), raises AlreadyRegisteredError for duplicate keys.
                 If True, silently overwrites the existing value.
 
         Raises:
-            RuntimeError: If the key is already registered and exist_ok is False.
+            AlreadyRegisteredError: If the key is already registered and exist_ok is False.
                 The error message provides guidance on how to resolve the conflict.
 
         Example:
@@ -272,7 +272,7 @@ class BaseRegistry(Generic[K, V]):
 
             ```pycon
             >>> registry.register("key1", 100)  # doctest: +SKIP
-            RuntimeError: A value is already registered for 'key1'...
+            AlreadyRegisteredError: A value is already registered for 'key1'...
 
             ```
 
@@ -287,7 +287,7 @@ class BaseRegistry(Generic[K, V]):
         """
         with self._lock:
             if key in self._state and not exist_ok:
-                raise RuntimeError(self._already_registered_msg(key))
+                raise AlreadyRegisteredError(self._already_registered_msg(key))
             self._state[key] = value
             self._invalidate()
 
@@ -314,7 +314,7 @@ class BaseRegistry(Generic[K, V]):
                 If True, overwrites all existing values without error.
 
         Raises:
-            RuntimeError: If exist_ok is False and any key in the mapping
+            AlreadyRegisteredError: If exist_ok is False and any key in the mapping
                 is already registered. The error occurs on the first duplicate
                 encountered, and no partial registration occurs.
 
@@ -348,7 +348,7 @@ class BaseRegistry(Generic[K, V]):
         with self._lock:
             # Check all keys first if exist_ok is False
             if not exist_ok and (duplicates := set(mapping) & set(self._state)):
-                raise RuntimeError(self._many_already_registered_msg(duplicates))
+                raise AlreadyRegisteredError(self._many_already_registered_msg(duplicates))
             self._state.update(mapping)
             self._invalidate()
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 __all__ = [
     "LazyModule",
+    "MissingPackageError",
     "check_colorlog",
     "check_jax",
     "check_numpy",
@@ -127,6 +128,7 @@ from coola.utils.imports.torch_numpy import (
     torch_numpy_available,
 )
 from coola.utils.imports.universal import (
+    MissingPackageError,
     check_package,
     decorator_package_available,
     module_available,

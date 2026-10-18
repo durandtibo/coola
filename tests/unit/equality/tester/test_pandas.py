@@ -11,7 +11,7 @@ from coola.equality.tester import (
     PandasSeriesEqualityTester,
 )
 from coola.testing.fixtures import pandas_available
-from coola.utils.imports import is_pandas_available
+from coola.utils.imports import MissingPackageError, is_pandas_available
 from tests.unit.equality.utils import ExamplePair
 
 if is_pandas_available():
@@ -370,7 +370,9 @@ def test_pandas_dataframe_equality_tester_objects_are_equal_tolerance(
 def test_pandas_dataframe_equality_tester_no_pandas() -> None:
     with (
         patch("coola.utils.imports.pandas.is_pandas_available", lambda: False),
-        pytest.raises(RuntimeError, match=r"'pandas' package is required but not installed."),
+        pytest.raises(
+            MissingPackageError, match=r"'pandas' package is required but not installed."
+        ),
     ):
         PandasDataFrameEqualityTester()
 
@@ -508,6 +510,8 @@ def test_pandas_series_equality_tester_objects_are_equal_tolerance(
 def test_pandas_series_equality_tester_no_pandas() -> None:
     with (
         patch("coola.utils.imports.pandas.is_pandas_available", lambda: False),
-        pytest.raises(RuntimeError, match=r"'pandas' package is required but not installed."),
+        pytest.raises(
+            MissingPackageError, match=r"'pandas' package is required but not installed."
+        ),
     ):
         PandasSeriesEqualityTester()

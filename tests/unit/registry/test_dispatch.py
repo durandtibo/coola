@@ -7,6 +7,7 @@ from coola.hashing.registry import HasherRegistry
 from coola.iterator.bfs.registry import ChildFinderRegistry
 from coola.iterator.dfs.registry import IteratorRegistry
 from coola.recursive.registry import TransformerRegistry
+from coola.registry import AlreadyRegisteredError
 from coola.registry.dispatch import BaseTypeDispatchRegistry
 from coola.summary.registry import SummarizerRegistry
 
@@ -35,7 +36,7 @@ def test_base_type_dispatch_registry_register_and_find() -> None:
 
 def test_base_type_dispatch_registry_register_exist_ok_false_raises_error() -> None:
     registry = BaseTypeDispatchRegistry[str]({int: "int_handler"})
-    with pytest.raises(RuntimeError, match="already registered"):
+    with pytest.raises(AlreadyRegisteredError, match="already registered"):
         registry.register(int, "new_handler")
 
 
@@ -138,7 +139,7 @@ def test_registries_register_many_shares_base_implementation(
     assert registry.has(int)
     assert registry.has(str)
 
-    with pytest.raises(RuntimeError, match="already registered"):
+    with pytest.raises(AlreadyRegisteredError, match="already registered"):
         registry.register_many({int: Handler()})
 
     # exist_ok=True overwrites without error
