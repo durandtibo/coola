@@ -378,9 +378,9 @@ def test_mapping_equality_tester_objects_are_equal_false_numpy(
     assert not MappingEqualityTester().objects_are_equal(actual, expected, config)
 
 
-####################################################
+##################################################
 #     Tests for OrderedMappingEqualityTester     #
-####################################################
+##################################################
 
 
 def test_ordered_mapping_equality_tester_repr() -> None:

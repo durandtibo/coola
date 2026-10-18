@@ -131,9 +131,9 @@ def test_key_filter_transformer_transform_with_exception_in_predicate(
         KeyFilterTransformer().transform({"a": 1}, func=failing_predicate, registry=registry)
 
 
-##############################################################
-#     Tests for the predicate / transform_func decoupling    #
-##############################################################
+###############################################################
+#     Tests for the predicate / transform_func decoupling     #
+###############################################################
 
 
 @pytest.fixture
@@ -226,9 +226,9 @@ def test_key_filter_transformer_transform_default_transform_func_nested_mapping_
     )
 
 
-#######################################
-#     Tests for the Transformer API    #
-#######################################
+#########################################
+#     Tests for the Transformer API     #
+#########################################
 
 
 def test_key_filter_transformer_repr_default() -> None:

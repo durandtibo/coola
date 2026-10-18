@@ -53,9 +53,9 @@ def test_get_today_date_invalid_timezone() -> None:
         get_today_date(timezone="Fake/Timezone")
 
 
-############################
-#     Tests for to_date    #
-############################
+#############################
+#     Tests for to_date     #
+#############################
 
 
 def test_to_date_from_date() -> None:
@@ -80,9 +80,9 @@ def test_to_date_from_str_invalid_format() -> None:
         to_date("2026-03-19", date_format="%d/%m/%Y")
 
 
-################################
-#     Tests for to_datetime    #
-################################
+#################################
+#     Tests for to_datetime     #
+#################################
 
 
 def test_to_datetime_from_datetime() -> None:

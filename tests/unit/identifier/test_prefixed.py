@@ -7,9 +7,9 @@ import pytest
 from coola.identifier.prefixed import generate_prefixed_id
 from coola.identifier.ulid import generate_ulid
 
-########################################
-#     Tests for generate_prefixed_id  #
-########################################
+##########################################
+#     Tests for generate_prefixed_id     #
+##########################################
 
 
 def test_generate_prefixed_id_returns_str() -> None:

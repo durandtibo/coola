@@ -26,9 +26,9 @@ def config() -> EqualityConfig:
     return EqualityConfig(rtol=1e-5, atol=1e-8)
 
 
-####################
-#     Helpers      #
-####################
+###################
+#     Helpers     #
+###################
 
 
 class MyFloatAllCloseNan:
@@ -61,9 +61,9 @@ class AllcloseNotCallable:
     allclose = "not_a_method"
 
 
-#########################################
-#     Tests for AllCloseNanHandler      #
-#########################################
+########################################
+#     Tests for AllCloseNanHandler     #
+########################################
 
 
 def test_allclose_nan_handler_repr() -> None:

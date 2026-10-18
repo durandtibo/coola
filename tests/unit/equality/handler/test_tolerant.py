@@ -112,9 +112,9 @@ class EqualNotCallable:
     equal = "not_a_method"
 
 
-############################################
-#     Tests for TolerantEqualHandler       #
-############################################
+##########################################
+#     Tests for TolerantEqualHandler     #
+##########################################
 
 
 def test_tolerant_equal_handler_repr() -> None:

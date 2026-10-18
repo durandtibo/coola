@@ -167,9 +167,9 @@ def test_reducers_std_empty_raises(reducer: BaseReducer, values: Sequence[int | 
         reducer.std(values)
 
 
-####################################################
-#     Agreement with the reference (native) one    #
-####################################################
+#####################################################
+#     Agreement with the reference (native) one     #
+#####################################################
 
 # Datasets that exercise the cases where implementations tend to differ:
 # even/odd lengths (median), unsorted input, duplicates, negative values,

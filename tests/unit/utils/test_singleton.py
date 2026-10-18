@@ -183,9 +183,9 @@ def test_make_default_registry_singleton_concurrent_get_builds_once() -> None:
     assert all(r is results[0] for r in results)
 
 
-################################################
-#     Tests for load_registry_plugins          #
-################################################
+###########################################
+#     Tests for load_registry_plugins     #
+###########################################
 
 
 class _FakeEntryPoint:

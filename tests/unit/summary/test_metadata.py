@@ -23,9 +23,9 @@ def registry() -> SummarizerRegistry:
     return SummarizerRegistry()
 
 
-##################################
-#     Tests for format_fields    #
-##################################
+###################################
+#     Tests for format_fields     #
+###################################
 
 
 def test_format_fields_empty() -> None:
@@ -55,9 +55,9 @@ def test_format_fields_accepts_an_iterator() -> None:
     assert format_fields(iter([("a", 1)])) == "a: 1"
 
 
-#############################################
-#     Tests for BaseMetadataSummarizer      #
-#############################################
+############################################
+#     Tests for BaseMetadataSummarizer     #
+############################################
 
 
 def test_base_metadata_summarizer_is_abstract() -> None:

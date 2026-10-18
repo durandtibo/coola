@@ -48,9 +48,9 @@ def fake_func(arg1: int, arg2: str = "abc") -> Fake:
     return Fake(arg1=arg1, arg2=arg2)
 
 
-####################################
-#     Tests for import_object      #
-####################################
+###################################
+#     Tests for import_object     #
+###################################
 
 
 def test_import_object_class() -> None:

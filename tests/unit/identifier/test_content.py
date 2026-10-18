@@ -10,9 +10,9 @@ from coola.identifier.content import generate_stable_content_id
 HEX_PATTERN = re.compile(r"^[0-9a-f]+$")
 
 
-###################################################
-#     Tests for generate_stable_content_id       #
-###################################################
+################################################
+#     Tests for generate_stable_content_id     #
+################################################
 
 
 def test_generate_stable_content_id_returns_str() -> None:

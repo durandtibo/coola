@@ -10,9 +10,9 @@ def registry() -> HasherRegistry:
     return HasherRegistry({object: BytesHasher()})
 
 
-################################
-#     Tests for BytesHasher    #
-################################
+#################################
+#     Tests for BytesHasher     #
+#################################
 
 
 def test_bytes_hasher_repr() -> None:
@@ -118,9 +118,9 @@ def test_bytes_hasher_hash_does_not_use_registry(registry: HasherRegistry) -> No
     )
 
 
-###############################
-#     Tests for hash_bytes    #
-###############################
+################################
+#     Tests for hash_bytes     #
+################################
 
 # --- Return type and format ---
 

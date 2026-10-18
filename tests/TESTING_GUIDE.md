@@ -45,9 +45,9 @@ tests/
 Tests should be grouped logically within files using section headers:
 
 ```python
-##################################
-#     Tests for ClassName        #
-##################################
+###############################
+#     Tests for ClassName     #
+###############################
 
 
 def test_class_name_method_name_scenario() -> None: ...
@@ -123,9 +123,9 @@ def config() -> Config:
     return Config()
 
 
-##################################
-#     Tests for ClassName        #
-##################################
+###############################
+#     Tests for ClassName     #
+###############################
 
 
 def test_class_name_method_default() -> None:
@@ -148,9 +148,9 @@ def test_class_name_method_parametrized(param: type) -> None:
 Use hash-bounded section headers to separate test groups:
 
 ```python
-##################################
-#     Tests for ClassName        #
-##################################
+###############################
+#     Tests for ClassName     #
+###############################
 ```
 
 - Pattern: `# [#'s][test name][#'s]`

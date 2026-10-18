@@ -19,9 +19,9 @@ def registry() -> SummarizerRegistry:
     return SummarizerRegistry()
 
 
-######################################
+#######################################
 #     Tests for NDArraySummarizer     #
-######################################
+#######################################
 
 
 @numpy_available

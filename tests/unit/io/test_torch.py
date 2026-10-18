@@ -24,9 +24,9 @@ def path_torch(tmp_path_factory: pytest.TempPathFactory) -> Path:
     return path
 
 
-################################
+#################################
 #     Tests for TorchLoader     #
-################################
+#################################
 
 
 @torch_not_available
@@ -93,9 +93,9 @@ def test_torch_loader_load_tensor(tmp_path: Path) -> None:
     assert objects_are_equal(TorchLoader().load(path), tensor)
 
 
-###############################
+################################
 #     Tests for TorchSaver     #
-###############################
+################################
 
 
 @torch_not_available

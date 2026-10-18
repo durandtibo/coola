@@ -39,9 +39,9 @@ from hypothesis import (  # noqa: E402
 
 HEX_PATTERN = re.compile(r"^[0-9a-f]+$")
 
-#####################
-#  Fixed width      #
-#####################
+#######################
+#     Fixed width     #
+#######################
 
 
 @given(data=values, length=lengths)
@@ -57,9 +57,9 @@ def test_fixed_width_odd_length_raises(data: Any, length: int) -> None:
         hash_object(data, length=length)
 
 
-########################
-#  Deterministic       #
-########################
+#########################
+#     Deterministic     #
+#########################
 
 
 @given(data=values)
@@ -94,9 +94,9 @@ def test_deterministic_independent_of_pythonhashseed(data: Any) -> None:
     assert results == {hash_object(data)}
 
 
-########################
-#  Equality-consistent #
-########################
+###############################
+#     Equality-consistent     #
+###############################
 
 
 @given(data=values)
@@ -125,9 +125,9 @@ def test_equality_consistent_negative_zero_and_nan() -> None:
     assert hash_object(float("nan")) == hash_object(-float("nan"))
 
 
-########################
-#  Type-sensitive      #
-########################
+##########################
+#     Type-sensitive     #
+##########################
 
 
 @given(x=st.integers())
@@ -222,9 +222,9 @@ def test_path_relative_differs_from_absolute(parts: list[str]) -> None:
     assert hash_object(relative) == hash_object(PurePosixPath(*parts))
 
 
-#########################
-#  Structure-sensitive  #
-#########################
+###############################
+#     Structure-sensitive     #
+###############################
 
 
 @given(x=values, y=values)
@@ -239,9 +239,9 @@ def test_structure_sensitive_item_boundaries_matter(s: str, data: st.DataObject)
     assert hash_object([s[:i], s[i:]]) != hash_object([s[:j], s[j:]])
 
 
-#########################
-#  Order rules          #
-#########################
+#######################
+#     Order rules     #
+#######################
 
 
 @given(items=st.lists(st.integers(), unique=True, min_size=2, max_size=8), data=st.data())
@@ -286,9 +286,9 @@ def test_order_ordered_dict_is_sensitive_to_key_order(mapping: dict, data: st.Da
     )
 
 
-#########################
-#  Composable           #
-#########################
+######################
+#     Composable     #
+######################
 
 
 class Constant:
@@ -331,9 +331,9 @@ def test_composable_changing_a_child_hash_changes_the_container_hash(
     assert registry.hash([Constant(v) for v in a]) != registry.hash([Constant(v) for v in other])
 
 
-#########################
-#  Unsupported types    #
-#########################
+#############################
+#     Unsupported types     #
+#############################
 
 
 class Unsupported:
@@ -354,9 +354,9 @@ def test_no_silent_false_equality_placeholder_warns(x: Any) -> None:
     assert len(result) == 64
 
 
-#########################
-#  Cross-library scalars #
-#########################
+#################################
+#     Cross-library scalars     #
+#################################
 
 
 class MyInt(int):
@@ -392,9 +392,9 @@ def test_scalar_numpy_float64_hashes_like_float(x: float) -> None:
     assert hash_object(np.float64(x)) == hash_object(x)
 
 
-#########################
-#  Pure                 #
-#########################
+################
+#     Pure     #
+################
 
 
 @given(data=values)

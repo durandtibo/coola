@@ -19,9 +19,9 @@ def registry() -> SummarizerRegistry:
     )
 
 
-#######################################
+########################################
 #     Tests for SequenceSummarizer     #
-#######################################
+########################################
 
 
 def test_sequence_summarizer_init_default() -> None:

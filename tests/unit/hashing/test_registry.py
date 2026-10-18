@@ -22,9 +22,9 @@ class CustomList(list):
     r"""Custom class that inherits from list."""
 
 
-#####################################
-#     Tests for HasherRegistry      #
-#####################################
+####################################
+#     Tests for HasherRegistry     #
+####################################
 
 
 def test_hasher_registry_init_empty() -> None:
@@ -52,9 +52,9 @@ def test_hasher_registry_str() -> None:
     assert str(HasherRegistry()).startswith("HasherRegistry(")
 
 
-#####################################
-#     Tests for register            #
-#####################################
+##############################
+#     Tests for register     #
+##############################
 
 
 def test_hasher_registry_register_new_type() -> None:
@@ -78,9 +78,9 @@ def test_hasher_registry_register_existing_type_with_exist_ok() -> None:
     assert registry._state[list] is hasher
 
 
-#####################################
-#     Tests for register_many       #
-#####################################
+###################################
+#     Tests for register_many     #
+###################################
 
 
 def test_hasher_registry_register_many() -> None:
@@ -110,9 +110,9 @@ def test_hasher_registry_register_many_with_exist_ok() -> None:
     assert registry._state[list] is hasher
 
 
-#####################################
-#     Tests for has_hasher          #
-#####################################
+################################
+#     Tests for has_hasher     #
+################################
 
 
 def test_hasher_registry_has_hasher_true() -> None:
@@ -128,9 +128,9 @@ def test_hasher_registry_has_hasher_does_not_check_mro() -> None:
     assert not HasherRegistry({object: ReprHasher()}).has_hasher(list)
 
 
-#####################################
-#     Tests for find_hasher         #
-#####################################
+#################################
+#     Tests for find_hasher     #
+#################################
 
 
 def test_hasher_registry_find_hasher_direct_match() -> None:
@@ -161,9 +161,9 @@ def test_hasher_registry_find_hasher_abc_not_in_mro() -> None:
     assert isinstance(registry.find_hasher(list), ReprHasher)
 
 
-#####################################
-#     Tests for hash                #
-#####################################
+##########################
+#     Tests for hash     #
+##########################
 
 
 def test_hasher_registry_hash_with_list() -> None:

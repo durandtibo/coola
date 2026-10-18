@@ -350,9 +350,9 @@ def test_supports_methods_on_int_true() -> None:
     assert supports_methods(1, "bit_length")
 
 
-#####################################
-#     Tests for is_same_type        #
-#####################################
+##################################
+#     Tests for is_same_type     #
+##################################
 
 
 class Parent:

@@ -119,9 +119,9 @@ def test_check_recursion_depth_greater_than_max_depth() -> None:
         pass
 
 
-####################################
-#     Tests for report_difference  #
-####################################
+#######################################
+#     Tests for report_difference     #
+#######################################
 
 
 def test_report_difference_logs_without_reporter(caplog: pytest.LogCaptureFixture) -> None:

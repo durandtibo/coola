@@ -17,9 +17,9 @@ from coola.identifier.uuid5 import _NAMESPACE, generate_stable_uuid5
 UUID_PATTERN = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$")
 
 
-############################################
-#     Tests for generate_stable_uuid5      #
-############################################
+###########################################
+#     Tests for generate_stable_uuid5     #
+###########################################
 
 
 def test_generate_stable_uuid5_returns_str() -> None:

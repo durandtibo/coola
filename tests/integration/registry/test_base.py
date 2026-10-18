@@ -5,9 +5,9 @@ import threading
 from coola.registry.base import BaseRegistry
 from tests.integration.helpers import run_threads
 
-###################################
+##################################
 #     Tests for BaseRegistry     #
-###################################
+##################################
 
 
 def test_base_registry_thread_safety_concurrent_register() -> None:

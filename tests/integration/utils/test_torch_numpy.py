@@ -3,9 +3,9 @@ from __future__ import annotations
 from coola.testing.fixtures import torch_available
 from tests.integration.helpers import run_python
 
-###############################################
-#     Tests for the imports of torch+numpy    #
-###############################################
+################################################
+#     Tests for the imports of torch+numpy     #
+################################################
 
 
 def test_is_torch_numpy_available_does_not_import_torch_if_numpy_is_missing() -> None:

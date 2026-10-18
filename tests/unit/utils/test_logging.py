@@ -28,9 +28,9 @@ def make_record(level: int = logging.INFO, msg: str = "msg") -> logging.LogRecor
     return logging.LogRecord(LOGGER_NAME, level, "", 0, msg, None, None)
 
 
-#################################
-#     Tests for CaptureHandler  #
-#################################
+####################################
+#     Tests for CaptureHandler     #
+####################################
 
 
 def test_capture_handler_is_logging_handler() -> None:

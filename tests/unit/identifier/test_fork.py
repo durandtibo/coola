@@ -13,9 +13,9 @@ class Resettable:
         self.resets += 1
 
 
-##############################
-#     Tests for track_fork   #
-##############################
+################################
+#     Tests for track_fork     #
+################################
 
 
 def test_track_fork_resets_the_tracked_objects() -> None:

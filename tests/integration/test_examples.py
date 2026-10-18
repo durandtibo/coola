@@ -12,9 +12,9 @@ EXAMPLES = sorted(
     if path.name != "__init__.py"
 )
 
-####################################
-#     Tests for the examples       #
-####################################
+##################################
+#     Tests for the examples     #
+##################################
 
 
 def test_examples_are_found() -> None:
