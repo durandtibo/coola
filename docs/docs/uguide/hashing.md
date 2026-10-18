@@ -157,19 +157,19 @@ result, which makes the concatenation unambiguous without delimiters. The regist
 
 ### Choices that may surprise you
 
-| Question                                  | Answer                                                                                                                                                    |
-| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `[1, 2]` vs `(1, 2)`                      | **Different.** They are different types, and each sequence family has its own tag.                                                                        |
-| `list` vs `deque`                         | **Different**, for the same reason.                                                                                                                       |
-| `1` vs `1.0` vs `True`                    | **All different.** `1 == 1.0` in Python, but the identity of a hash is the type and the value.                                                            |
-| `{"a": 1, "b": 2}` vs `{"b": 2, "a": 1}`  | **Same.** Insertion order is not semantic for mappings.                                                                                                   |
-| `dict` vs `OrderedDict`                   | **Different**, like in `objects_are_equal`.                                                                                                               |
-| `OrderedDict` with the same items in another order | **Different.** Order is the point of an `OrderedDict`, and `objects_are_equal` also says they are different. |
-| `set` vs `frozenset`                      | **Different.** Both are order-insensitive.                                                                                                                |
-| `set` vs `list` with the same items       | **Different.**                                                                                                                                            |
-| `str` vs `bytes`                          | **Different.**                                                                                                                                            |
-| `IntEnum` / `StrEnum` member vs its value | **Different.** Enum members are not collapsed into `int` or `str`.                                                                                        |
-| Subclass instance vs base instance        | **Same** for scalars normalised to the builtin (e.g. NumPy floats), and for subclasses that dispatch to the same hasher and tag (e.g. a `list` subclass). |
+| Question                                           | Answer                                                                                                                                                    |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `[1, 2]` vs `(1, 2)`                               | **Different.** They are different types, and each sequence family has its own tag.                                                                        |
+| `list` vs `deque`                                  | **Different**, for the same reason.                                                                                                                       |
+| `1` vs `1.0` vs `True`                             | **All different.** `1 == 1.0` in Python, but the identity of a hash is the type and the value.                                                            |
+| `{"a": 1, "b": 2}` vs `{"b": 2, "a": 1}`           | **Same.** Insertion order is not semantic for mappings.                                                                                                   |
+| `dict` vs `OrderedDict`                            | **Different**, like in `objects_are_equal`.                                                                                                               |
+| `OrderedDict` with the same items in another order | **Different.** Order is the point of an `OrderedDict`, and `objects_are_equal` also says they are different.                                              |
+| `set` vs `frozenset`                               | **Different.** Both are order-insensitive.                                                                                                                |
+| `set` vs `list` with the same items                | **Different.**                                                                                                                                            |
+| `str` vs `bytes`                                   | **Different.**                                                                                                                                            |
+| `IntEnum` / `StrEnum` member vs its value          | **Different.** Enum members are not collapsed into `int` or `str`.                                                                                        |
+| Subclass instance vs base instance                 | **Same** for scalars normalised to the builtin (e.g. NumPy floats), and for subclasses that dispatch to the same hasher and tag (e.g. a `list` subclass). |
 
 ```pycon
 >>> from coola.hashing import hash_object
