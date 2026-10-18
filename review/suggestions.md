@@ -504,33 +504,39 @@ _(Status: fixed. (1) The `torch_numpy` module docstring, the three `check_torch_
 
 ## 4. Tests
 
-The suite is large (5.7k tests, ~12 s) and covers every line. Improvements:
+The suite is large (11k tests, ~18 s) and covers every line. Status of the improvements:
 
-- **Order/config coupling.** Four tests in `tests/unit/utils/test_timing.py` fail when
-  pytest is run with `-o log_level=WARNING` (reproduced: `assert 0 == 1` on caplog).
-  They pass only because `pyproject.toml` sets `log_level = "DEBUG"`. Make them call
-  `caplog.set_level(logging.INFO, logger=...)` so they do not depend on a global
-  setting.
-- **Global `log_level = "DEBUG"`** in `[tool.pytest.ini_options]` makes every test
-  capture debug logs. Drop it and set levels per test.
-- **Property-based tests** exist for the registry. Add Hypothesis tests for:
-  `hash_object` (equal inputs ⇒ equal hash; the collisions in 1.1 would be caught by
-  `a != b ⇒ hash(a) != hash(b)` on generated JSON-like data),
-  `objects_are_equal` reflexivity/symmetry on generated nested structures,
-  `from_flat_dict(to_flat_dict(x)) == x` for dict-only data, and
-  `flatten`/`merge` idempotence.
-- **Differential tests** for the three reducers (Native vs NumPy vs Torch) on random
-  inputs would have caught 1.7.
-- **Fuzz `compare()` thread-safety**: two threads comparing different objects while
-  a third logs to `coola.equality`.
-- **Minimal-install CI job**: carried over from the previous review and still worth
-  adding. Run the unit tests with no optional packages (`uv sync --no-extra ...`) to
-  prove nothing imports an optional package at module scope (see `torch_numpy.py` in
-  section 2.16).
-- **Mutation testing** (e.g. `mutmut` on `equality/handler`) is worth a one-off run:
-  100% line coverage does not show that assertions are strong.
-- `tests/package_checks.py` and `tests/TESTING_GUIDE.md` exist; link the guide from
-  `CONTRIBUTING.md` if it is not yet linked.
+- ~~**Order/config coupling.**~~ _(Fixed. The tests of `tests/unit/utils/test_timing.py` set the
+  level with `caplog.at_level(logging.INFO, logger=...)` in the test. The suite passes with
+  `-o log_level=WARNING`, `ERROR` and `DEBUG`. Note that `caplog.set_level` in a fixture does not
+  work, because the capture handler of the test is not the one of its fixtures. The guideline is in
+  `tests/TESTING_GUIDE.md`.)_
+- ~~**Global `log_level = "DEBUG"`**~~ _(Fixed. It was removed from `[tool.pytest.ini_options]`.)_
+- **Property-based tests**: not done for now, to be added later. A first version was written with
+  seeded `random.Random` generators (no property-testing library, by decision) and then removed.
+  It was one test per seed in `tests/unit/properties/`, and all the properties held, so it found no
+  new bug. The properties to cover when they come back:
+  `hash_object` (deterministic, independent of the order of the keys, `hash(a) == hash(b)` implies
+  the same data, so no collision between `1` and `"1"` or `[]` and `""`), `objects_are_equal` and
+  `objects_are_allclose` (reflexive with `equal_nan=True`, symmetric, a changed leaf is detected),
+  `compare` (agrees with `objects_are_equal`, its path points to a difference),
+  `from_flat_dict(to_flat_dict(x)) == x`, `merge_mappings` / `flatten_mapping` idempotence, and
+  `TypeRegistry.resolve` (nearest registered ancestor, cache invalidated by `register` and
+  `unregister`). The registry properties that the previous review reported as done were not in the
+  repository either.
+- ~~**Differential tests** for the three reducers~~ _(Done: `tests/unit/reducer/test_consistency.py`
+  compares them on fixed datasets, and `tests/unit/properties/test_reducer.py` on random inputs.)_
+- ~~**Fuzz `compare()` thread-safety**~~ _(Covered by `tests/integration/equality/test_result.py`:
+  concurrent comparisons do not mix their results, and a record logged by another thread during a
+  comparison is not dropped.)_
+- ~~**Minimal-install CI job**~~ _(Already exists: the `min` job of `ci-test.yaml` installs
+  `--no-optional-deps` and runs the unit and integration tests. I also ran the whole suite locally in
+  a virtual environment with only the required dependencies: 8,087 passed, 2,851 skipped, and one
+  failure that needs `ruff`, a development tool, to be installed.)_
+- **Mutation testing** (e.g. `mutmut` on `equality/handler`): not done. It is a one-off run that is
+  worth doing before a release: 100% line coverage does not show that the assertions are strong.
+- ~~`tests/package_checks.py` and `tests/TESTING_GUIDE.md`~~ _(`CONTRIBUTING.md` now links to the
+  testing guide.)_
 
 ---
 

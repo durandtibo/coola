@@ -1,8 +1,15 @@
 from __future__ import annotations
 
+import logging
+
 import pytest
 
 from coola.utils.timing import TimingResult, timeblock
+
+# ``timeblock`` logs at the INFO level: the tests set the level locally with ``caplog.at_level``
+# instead of relying on a global log level.
+LOGGER_NAME = "coola.utils.timing"
+
 
 ##################################
 #     Tests for TimingResult     #
@@ -47,14 +54,14 @@ def test_timing_result_repr() -> None:
 
 
 def test_timeblock(caplog: pytest.LogCaptureFixture) -> None:
-    with timeblock():
+    with caplog.at_level(logging.INFO, logger=LOGGER_NAME), timeblock():
         pass  # do nothing
     assert len(caplog.messages) == 1
     assert caplog.messages[0].startswith("Total time: ")
 
 
 def test_timeblock_custom_message(caplog: pytest.LogCaptureFixture) -> None:
-    with timeblock("{time}"):
+    with caplog.at_level(logging.INFO, logger=LOGGER_NAME), timeblock("{time}"):
         pass  # do anything
     assert len(caplog.messages) == 1
 
@@ -69,14 +76,22 @@ def test_timeblock_custom_missing_time() -> None:
 
 def test_timeblock_exception_is_raised(caplog: pytest.LogCaptureFixture) -> None:
     msg = "test error"
-    with pytest.raises(ValueError, match="test error"), timeblock():
+    with (
+        caplog.at_level(logging.INFO, logger=LOGGER_NAME),
+        pytest.raises(ValueError, match="test error"),
+        timeblock(),
+    ):
         raise ValueError(msg)
     assert len(caplog.messages) == 1
     assert caplog.messages[0].startswith("Total time: ")
 
 
 def test_timeblock_exception_logs_time(caplog: pytest.LogCaptureFixture) -> None:
-    with pytest.raises(RuntimeError), timeblock("Elapsed: {time}"):
+    with (
+        caplog.at_level(logging.INFO, logger=LOGGER_NAME),
+        pytest.raises(RuntimeError),
+        timeblock("Elapsed: {time}"),
+    ):
         raise RuntimeError
     assert len(caplog.messages) == 1
     assert caplog.messages[0].startswith("Elapsed: ")
@@ -94,7 +109,7 @@ def test_timeblock_with_timing_result() -> None:
 
 
 def test_timeblock_message_with_other_braces(caplog: pytest.LogCaptureFixture) -> None:
-    with timeblock("{'step': 1} took {time} {}"):
+    with caplog.at_level(logging.INFO, logger=LOGGER_NAME), timeblock("{'step': 1} took {time} {}"):
         pass
     assert caplog.messages[0].startswith("{'step': 1} took ")
     assert caplog.messages[0].endswith(" {}")
