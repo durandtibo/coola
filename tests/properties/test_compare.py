@@ -90,8 +90,8 @@ def test_path_leads_to_a_difference(data: Any, other: Any) -> None:
         assert not objects_are_equal(actual, expected)
 
 
-@given(data=values, key=st.text(max_size=3), depth=st.integers(0, 4))
-def test_path_is_found_at_any_depth(data: Any, key: str, depth: int) -> None:
+@given(key=st.text(max_size=3), depth=st.integers(0, 4))
+def test_path_is_found_at_any_depth(key: str, depth: int) -> None:
     actual: Any = {"leaf": 1}
     expected: Any = {"leaf": 2}
     path: tuple[Any, ...] = ("leaf",)
