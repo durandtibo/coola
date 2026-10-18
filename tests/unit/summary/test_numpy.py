@@ -186,6 +186,6 @@ def test_ndarray_summarizer_summarize_max_depth_ignored(registry: SummarizerRegi
 def test_ndarray_summarizer_summarize_large_ndarray(registry: SummarizerRegistry) -> None:
     """Test summarizing a very large ndarray (metadata should still be
     compact)."""
-    array = np.ones((1000, 1000, 10))
+    array = np.broadcast_to(np.float64(1), (1000, 1000, 10))  # no memory allocated
     result = NDArraySummarizer().summarize(array, registry)
     assert result == "<class 'numpy.ndarray'> | shape=(1000, 1000, 10) | dtype=float64"

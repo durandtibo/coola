@@ -205,7 +205,7 @@ def test_mapping_summarizer_summarize_depth_limit_negative_max_items_is_capped(
 ) -> None:
     """Regression test for issue #27: max_items=-1 must not dump an
     unbounded str(data) when the depth limit is reached."""
-    data = {f"key{i}": i for i in range(100_000)}
+    data = {f"key{i}": i for i in range(2_000)}
     result = MappingSummarizer(max_items=-1).summarize(data, registry, depth=1, max_depth=1)
     assert result == "{'key0': 0, 'key1': 1, 'key2': 2, 'key3': 3, 'key4': 4} ..."
     assert len(result) < 1_000
