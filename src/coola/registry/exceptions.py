@@ -2,16 +2,42 @@ r"""Define the exceptions raised by the registries."""
 
 from __future__ import annotations
 
-__all__ = ["AlreadyRegisteredError", "TypeNotRegisteredError"]
+__all__ = ["AlreadyRegisteredError", "KeyNotRegisteredError", "TypeNotRegisteredError"]
 
 
-class TypeNotRegisteredError(KeyError, LookupError):
+class KeyNotRegisteredError(KeyError, LookupError):
+    r"""Raised when no value is registered for a key.
+
+    It subclasses ``KeyError`` so existing ``except KeyError`` code keeps
+    working. Registries whose keys are types raise the more specific
+    ``TypeNotRegisteredError``.
+
+    Example:
+        ```pycon
+        >>> from coola.registry import KeyNotRegisteredError, Registry
+        >>> registry = Registry[str, int]()
+        >>> try:
+        ...     registry["missing"]
+        ... except KeyNotRegisteredError:
+        ...     print("not registered")
+        ...
+        not registered
+
+        ```
+    """
+
+    def __str__(self) -> str:
+        # KeyError.__str__ would repr() the message, escaping newlines.
+        return str(self.args[0]) if len(self.args) == 1 else super().__str__()
+
+
+class TypeNotRegisteredError(KeyNotRegisteredError):
     r"""Raised when no value is registered for a type or any of its
     parent types.
 
-    It subclasses ``KeyError`` so existing ``except KeyError`` code keeps
-    working, but it lets callers distinguish a missing type handler from
-    an ordinary dict miss.
+    It subclasses ``KeyNotRegisteredError`` (and so ``KeyError``) so existing
+    ``except KeyError`` code keeps working, but it lets callers distinguish a
+    missing type handler from an ordinary dict miss.
 
     Example:
         ```pycon
@@ -26,10 +52,6 @@ class TypeNotRegisteredError(KeyError, LookupError):
 
         ```
     """
-
-    def __str__(self) -> str:
-        # KeyError.__str__ would repr() the message, escaping newlines.
-        return str(self.args[0]) if len(self.args) == 1 else super().__str__()
 
 
 class AlreadyRegisteredError(ValueError, RuntimeError):

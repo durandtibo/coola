@@ -10,7 +10,7 @@ __all__ = ["BaseRegistry"]
 import threading
 from typing import TYPE_CHECKING, Generic, TypeVar
 
-from coola.registry.exceptions import AlreadyRegisteredError, TypeNotRegisteredError
+from coola.registry.exceptions import AlreadyRegisteredError, KeyNotRegisteredError
 from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:
@@ -55,7 +55,7 @@ class BaseRegistry(Generic[K, V]):
     def __getitem__(self, key: K) -> V:
         with self._lock:
             if key not in self._state:
-                raise TypeNotRegisteredError(self._getitem_not_registered_msg(key))
+                raise self._not_registered_error(self._getitem_not_registered_msg(key))
             return self._state[key]
 
     def __setitem__(self, key: K, value: V) -> None:
@@ -100,6 +100,9 @@ class BaseRegistry(Generic[K, V]):
         """
         self._snapshot = None
         self._on_change()
+
+    _not_registered_error: type[KeyNotRegisteredError] = KeyNotRegisteredError
+    """The exception raised when a key is not registered."""
 
     def _not_registered_msg(self, key: K) -> str:
         r"""Return the error message used when ``key`` is not
@@ -369,9 +372,10 @@ class BaseRegistry(Generic[K, V]):
             The value that was associated with the key before removal.
 
         Raises:
-            TypeNotRegisteredError: If the key is not registered. It
+            KeyNotRegisteredError: If the key is not registered. It
                 subclasses ``KeyError``, and its message includes the
-                key that was not found.
+                key that was not found. Registries with type keys raise
+                its subclass ``TypeNotRegisteredError``.
 
         Example:
             ```pycon
@@ -389,7 +393,7 @@ class BaseRegistry(Generic[K, V]):
         """
         with self._lock:
             if key not in self._state:
-                raise TypeNotRegisteredError(self._not_registered_msg(key))
+                raise self._not_registered_error(self._not_registered_msg(key))
             value = self._state.pop(key)
             self._invalidate()
             return value
