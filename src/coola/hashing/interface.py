@@ -42,7 +42,9 @@ def hash_object(
     the order of ordered containers, and not on the order of unordered
     ones. For example ``[1, 2]``, ``(1, 2)`` and ``{1, 2}`` all hash
     differently, while ``{"a": 1, "b": 2}`` and ``{"b": 2, "a": 1}``
-    hash the same.
+    hash the same. An ``OrderedDict`` is the exception among mappings:
+    the order of its keys matters, so two ``OrderedDict`` with the same
+    items in a different order hash differently.
 
     Args:
         data: The data to hash. Can be a nested structure such as a

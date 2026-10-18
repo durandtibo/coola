@@ -9,8 +9,9 @@ follow these rules:
 - Every hash is domain-separated by a type tag, so values of different
   types never share a hash even if their text form is the same
   (``1``, ``1.0``, ``True`` and ``"1"`` are all distinct).
-- Ordered containers are order-sensitive and unordered containers
-  (``dict``, ``set``) are not. Each container family has its own tag, so
+- Ordered containers (``list``, ``tuple``, ``OrderedDict``) are
+  order-sensitive and unordered containers (``dict``, ``set``) are not,
+  like in ``coola`` equality. Each container family has its own tag, so
   a ``list`` and a ``tuple`` with the same items hash differently.
 - Container hashes are built only from the hashes of their children,
   resolved through a ``HasherRegistry``.
