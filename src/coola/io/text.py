@@ -135,6 +135,7 @@ def save_text(
     *,
     encoding: str = DEFAULT_ENCODING,
     exist_ok: bool = False,
+    fsync: bool = False,
 ) -> None:
     r"""Save the given data to a text file.
 
@@ -149,6 +150,11 @@ def save_text(
             ``FileExistsError`` will not be raised unless the
             given path already exists in the file system and is
             not a file.
+        fsync: If ``True``, flush the data to the disk before committing
+            the file, so it survives a power failure or a system crash.
+            It is slower. Defaults to ``False``: the file is replaced
+            atomically, but its content may be lost if the machine
+            crashes right after the call.
 
     Raises:
         FileExistsError: if the file already exists.
@@ -172,4 +178,4 @@ def save_text(
 
         ```
     """
-    TextSaver(encoding=encoding).save(to_save, path, exist_ok=exist_ok)
+    TextSaver(encoding=encoding).save(to_save, path, exist_ok=exist_ok, fsync=fsync)

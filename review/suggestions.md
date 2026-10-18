@@ -388,6 +388,8 @@ _(Status: fixed. `BaseRandomManager.seed(seed)` is now the single "save, seed, r
 
 ### 2.12 `io` package (medium)
 
+_(Status: fixed. (1) The `BaseLoader` / `BaseSaver` equality testers are now registered by the default equality registry (`_get_io_equality_testers`, with a deferred import of `coola.io.base`), not as an import side effect; the test workaround that re-registered them in `tests/unit/io/conftest.py` was removed. (2) `BaseFileSaver` falls back to a check + rename when `os.link` is not supported. (3) The write access needed on the directory (temporary file and lock file) is documented; a `lock_dir` option was not added, since the temporary file needs the directory to be writable anyway. (4) `save(..., fsync=True)` (also `save_json`, `save_pickle`, `save_text` and `save_torch`) flushes the file before the commit and the directory after; the default is unchanged. (5) The pickle warnings already existed on the loaders and `load_pickle`; a security note was added to `load_torch` (`weights_only=True` default) and to the user guide.)_
+
 - `io/base.py` registers `EqualNanEqualityTester` for `BaseLoader`/`BaseSaver` in the
   global equality registry at import time. Importing `coola.io` therefore mutates a
   singleton in another package. Register them in

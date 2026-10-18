@@ -124,6 +124,7 @@ def save_json(
     *,
     encoding: str = DEFAULT_ENCODING,
     exist_ok: bool = False,
+    fsync: bool = False,
     **kwargs: Any,
 ) -> None:
     r"""Save the given data in a JSON file.
@@ -139,6 +140,11 @@ def save_json(
             ``FileExistsError`` will not be raised unless the
             given path already exists in the file system and is
             not a file.
+        fsync: If ``True``, flush the data to the disk before committing
+            the file, so it survives a power failure or a system crash.
+            It is slower. Defaults to ``False``: the file is replaced
+            atomically, but its content may be lost if the machine
+            crashes right after the call.
         **kwargs: Additional arguments passed to ``json.dump``, e.g.
             ``indent`` or ``sort_keys``.
 
@@ -160,4 +166,4 @@ def save_json(
 
         ```
     """
-    JsonSaver[Any](encoding=encoding, **kwargs).save(to_save, path, exist_ok=exist_ok)
+    JsonSaver[Any](encoding=encoding, **kwargs).save(to_save, path, exist_ok=exist_ok, fsync=fsync)

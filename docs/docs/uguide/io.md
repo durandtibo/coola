@@ -82,6 +82,13 @@ The class-based equivalent is `JsonLoader` and `JsonSaver`:
 `PickleLoader`/`PickleSaver` are the class-based equivalents, and `PickleSaver` forwards extra
 keyword arguments to `pickle.dump`.
 
+!!! danger "Only load pickle files that you trust"
+
+    Unpickling can execute arbitrary code. Never call `load_pickle` or `PickleLoader.load` on a file
+    that comes from an untrusted or unauthenticated source. For PyTorch files, `load_torch` and
+    `TorchLoader` use `weights_only=True` by default, which only loads tensors and simple containers.
+    Pass `weights_only=False` only for trusted files.
+
 ### Text
 
 ```pycon
@@ -137,6 +144,35 @@ By default, every saver raises `FileExistsError` if the target path already exis
 File savers (`BaseFileSaver` subclasses, i.e. all the built-in savers) write to a temporary file
 first and then atomically move it into place, so a job interrupted while writing never leaves a
 partially written file at the target path.
+
+### Durability
+
+The move is atomic, but by default the data is only written to the operating system cache: if the
+machine crashes right after `save`, the file can be missing or empty even though a reader never saw
+a partial file. This is fine for caches and most logs. For data that must survive a power failure,
+pass `fsync=True`: the data is flushed to the disk before the file is moved into place, and the
+directory is flushed afterward. It is slower.
+
+```pycon
+>>> import tempfile
+>>> from pathlib import Path
+>>> from coola.io import save_json
+>>> with tempfile.TemporaryDirectory() as tmpdir:
+...     save_json({"key": "value"}, Path(tmpdir).joinpath("data.json"), fsync=True)
+
+```
+
+### Requirements on the directory
+
+`save` needs write access to the _directory_ of the target path, not only to the file: the data is
+written to a temporary file next to the target, and a `<name>.lock` file is created there to
+serialize concurrent saves of the same path (in the same process or in different processes). A lock
+file left by a killed process is removed after 5 minutes.
+
+When `exist_ok=False`, the file is committed with a hard link, so a file created concurrently is never
+overwritten. On filesystems without hard link support (FAT/exFAT, some network and container
+volumes), `save` falls back to checking that the target does not exist and renaming the temporary
+file.
 
 ## Comparing Loaders and Savers
 
