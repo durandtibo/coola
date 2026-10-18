@@ -115,6 +115,12 @@ def load_torch(path: Path, **kwargs: Any) -> Any:
     Returns:
         The data from the PyTorch file.
 
+    Security:
+        ``weights_only`` defaults to ``True``, which restricts the
+        unpickler to tensors and simple containers. Pass
+        ``weights_only=False`` only for files from a trusted source:
+        it uses pickle, which can execute arbitrary code.
+
     Example:
         ```pycon
         >>> import tempfile
@@ -133,7 +139,9 @@ def load_torch(path: Path, **kwargs: Any) -> Any:
     return TorchLoader[Any](**kwargs).load(path)
 
 
-def save_torch(to_save: Any, path: Path, *, exist_ok: bool = False, **kwargs: Any) -> None:
+def save_torch(
+    to_save: Any, path: Path, *, exist_ok: bool = False, fsync: bool = False, **kwargs: Any
+) -> None:
     r"""Save the given data in a PyTorch file.
 
     Args:
@@ -145,6 +153,11 @@ def save_torch(to_save: Any, path: Path, *, exist_ok: bool = False, **kwargs: An
             ``FileExistsError`` will not be raised unless the
             given path already exists in the file system and is
             not a file.
+        fsync: If ``True``, flush the data to the disk before committing
+            the file, so it survives a power failure or a system crash.
+            It is slower. Defaults to ``False``: the file is replaced
+            atomically, but its content may be lost if the machine
+            crashes right after the call.
         **kwargs: Additional arguments passed to ``torch.save``.
 
     Raises:
@@ -165,4 +178,4 @@ def save_torch(to_save: Any, path: Path, *, exist_ok: bool = False, **kwargs: An
 
         ```
     """
-    TorchSaver[Any](**kwargs).save(to_save, path, exist_ok=exist_ok)
+    TorchSaver[Any](**kwargs).save(to_save, path, exist_ok=exist_ok, fsync=fsync)

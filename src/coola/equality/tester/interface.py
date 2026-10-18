@@ -20,7 +20,7 @@ from coola.equality.tester.collection import (
     SequenceEqualityTester,
 )
 from coola.equality.tester.default import DefaultEqualityTester
-from coola.equality.tester.equal import EqualEqualityTester
+from coola.equality.tester.equal import EqualEqualityTester, EqualNanEqualityTester
 from coola.equality.tester.jax import JaxArrayEqualityTester, get_array_impl_class
 from coola.equality.tester.numpy import (
     NumpyArrayEqualityTester,
@@ -240,7 +240,8 @@ def _get_native_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
 
 
 def _get_io_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
-    r"""Get the equality testers for the loaders and savers of ``coola.io``.
+    r"""Get the equality testers for the loaders and savers of
+    ``coola.io``.
 
     The loaders and the savers have an ``equal`` method, so they are
     compared with it.

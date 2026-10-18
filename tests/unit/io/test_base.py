@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import errno
 import os
+import subprocess
+import sys
 import time
 from pathlib import Path
 from typing import Any
@@ -8,7 +11,13 @@ from unittest.mock import patch
 
 import pytest
 
-from coola.equality.tester import get_default_registry
+import coola
+from coola.equality import objects_are_equal
+from coola.equality.tester import (
+    EqualNanEqualityTester,
+    get_default_registry,
+    interface as equality_interface,
+)
 from coola.factory import OBJECT_TARGET
 from coola.io import (
     BaseFileSaver,
@@ -16,10 +25,14 @@ from coola.io import (
     BaseSaver,
     JsonLoader,
     JsonSaver,
+    TextLoader,
     is_loader_config,
     is_saver_config,
     resolve_loader,
     resolve_saver,
+    save_json,
+    save_pickle,
+    save_text,
 )
 from coola.io.base import _acquire_file_lock, _break_stale_lock, _get_save_lock
 
@@ -394,3 +407,193 @@ def test_break_stale_lock_removes_old_lock(tmp_path: Path) -> None:
     os.utime(lock_path, (old, old))
     assert _break_stale_lock(lock_path, stale_after=10)
     assert list(tmp_path.iterdir()) == []
+
+
+################################################
+#     Tests for the equality tester registry   #
+################################################
+
+
+def test_equality_tester_registry_has_io_testers_after_the_singleton_is_reset() -> None:
+    # The testers are part of the default registry: they do not depend on a registration
+    # made when ``coola.io`` was imported, so they survive a reset of the singleton.
+    equality_interface._default_registry._instance = None
+    try:
+        registry = get_default_registry()
+        assert isinstance(registry.find_equality_tester(BaseLoader), EqualNanEqualityTester)
+        assert isinstance(registry.find_equality_tester(BaseSaver), EqualNanEqualityTester)
+        assert registry.find_equality_tester(JsonLoader) is registry.find_equality_tester(
+            BaseLoader
+        )
+    finally:
+        equality_interface._default_registry._instance = None
+
+
+def test_loaders_and_savers_are_compared_with_equal() -> None:
+    assert objects_are_equal(JsonLoader(), JsonLoader())
+    assert not objects_are_equal(JsonLoader(), TextLoader())
+    assert objects_are_equal({"saver": JsonSaver(indent=2)}, {"saver": JsonSaver(indent=2)})
+    assert not objects_are_equal(JsonSaver(indent=2), JsonSaver(indent=4))
+
+
+def test_importing_coola_io_does_not_modify_the_default_equality_registry() -> None:
+    code = (
+        "import coola.io; "
+        "from coola.equality.tester import interface; "
+        "print(interface._default_registry._instance is None)"
+    )
+    src = str(Path(coola.__file__).parents[1])
+    result = subprocess.run(  # noqa: S603
+        [sys.executable, "-c", code],
+        capture_output=True,
+        text=True,
+        check=True,
+        env={**os.environ, "PYTHONPATH": src},
+    )
+    assert result.stdout.split() == ["True"]
+
+
+########################################
+#     Tests for the hard link fallback #
+########################################
+
+
+def unsupported_link(src: str, dst: str) -> None:  # noqa: ARG001
+    raise OSError(errno.ENOTSUP, "Operation not supported")
+
+
+def test_base_file_saver_save_falls_back_to_rename_if_hard_links_are_not_supported(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path.joinpath("data.txt")
+    monkeypatch.setattr(os, "link", unsupported_link)
+    SimpleFileSaver().save("hello", path)
+    assert path.read_text() == "hello"
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["data.txt"]  # no tmp or lock file
+
+
+def test_base_file_saver_save_fallback_raises_if_the_file_exists(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path.joinpath("data.txt")
+
+    class CreatingFileSaver(SimpleFileSaver):
+        def _save_file(self, to_save: str, path: Path) -> None:
+            super()._save_file(to_save, path)
+            # The target is created between the initial check and the commit.
+            tmp_path.joinpath("data.txt").write_text("other")
+
+    monkeypatch.setattr(os, "link", unsupported_link)
+    with pytest.raises(FileExistsError, match="already exists"):
+        CreatingFileSaver().save("hello", path)
+    assert path.read_text() == "other"
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["data.txt"]
+
+
+def test_base_file_saver_save_link_file_exists_error_is_not_swallowed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path.joinpath("data.txt")
+
+    def exists_link(src: str, dst: str) -> None:  # noqa: ARG001
+        raise FileExistsError
+
+    monkeypatch.setattr(os, "link", exists_link)
+    with pytest.raises(FileExistsError):
+        SimpleFileSaver().save("hello", path)
+    assert not path.exists()
+
+
+def test_base_file_saver_save_fallback_failure_removes_the_tmp_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path.joinpath("data.txt")
+    monkeypatch.setattr(os, "link", unsupported_link)
+
+    def failing_replace(self: Path, target: Path) -> Path:  # noqa: ARG001
+        msg = "no space left"
+        raise OSError(errno.ENOSPC, msg)
+
+    monkeypatch.setattr(Path, "replace", failing_replace)
+    with pytest.raises(OSError, match="no space left"):
+        SimpleFileSaver().save("hello", path)
+    assert list(tmp_path.iterdir()) == []
+
+
+##########################
+#     Tests for fsync    #
+##########################
+
+
+def test_base_file_saver_save_does_not_fsync_by_default(tmp_path: Path) -> None:
+    with patch("coola.io.base.os.fsync") as mock_fsync:
+        SimpleFileSaver().save("hello", tmp_path.joinpath("data.txt"))
+    mock_fsync.assert_not_called()
+
+
+@pytest.mark.parametrize("exist_ok", [False, True])
+def test_base_file_saver_save_fsync_flushes_the_file_and_the_directory(
+    tmp_path: Path, exist_ok: bool
+) -> None:
+    path = tmp_path.joinpath("data.txt")
+    with patch("coola.io.base.os.fsync") as mock_fsync:
+        SimpleFileSaver().save("hello", path, exist_ok=exist_ok, fsync=True)
+    assert path.read_text() == "hello"
+    assert mock_fsync.call_count == 2  # the file, then the directory
+
+
+def test_base_file_saver_save_fsync_flushes_the_file_before_the_commit(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path.joinpath("data.txt")
+    events: list[str] = []
+    real_link = os.link
+
+    def recording_link(src: str, dst: str) -> None:
+        events.append("commit")
+        real_link(src, dst)
+
+    with (
+        patch("coola.io.base.os.fsync", side_effect=lambda fd: events.append("fsync")),  # noqa: ARG005
+        patch("coola.io.base.os.link", recording_link),
+    ):
+        SimpleFileSaver().save("hello", path, fsync=True)
+    assert events == ["fsync", "commit", "fsync"]
+
+
+def test_base_file_saver_save_fsync_directory_error_is_ignored(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    real_open = os.open
+
+    def failing_directory_open(p: Any, flags: int, *args: Any, **kwargs: Any) -> int:
+        if Path(p) == tmp_path:
+            msg = "cannot open a directory"
+            raise PermissionError(msg)
+        return real_open(p, flags, *args, **kwargs)
+
+    with patch("coola.io.base.os.open", failing_directory_open):
+        SimpleFileSaver().save("hello", path, fsync=True)
+    assert path.read_text() == "hello"
+
+
+def test_base_file_saver_save_fsync_not_called_if_saving_fails(tmp_path: Path) -> None:
+    with (
+        patch("coola.io.base.os.fsync") as mock_fsync,
+        pytest.raises(RuntimeError, match="failed to save"),
+    ):
+        FailingFileSaver().save("hello", tmp_path.joinpath("data.txt"), fsync=True)
+    mock_fsync.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("save", "name", "data"),
+    [
+        pytest.param(save_json, "data.json", {"a": 1}, id="json"),
+        pytest.param(save_pickle, "data.pkl", {"a": 1}, id="pickle"),
+        pytest.param(save_text, "data.txt", "hello", id="text"),
+    ],
+)
+def test_save_functions_forward_fsync(save: Any, name: str, data: Any, tmp_path: Path) -> None:
+    with patch("coola.io.base.os.fsync") as mock_fsync:
+        save(data, tmp_path.joinpath(name), fsync=True)
+    assert mock_fsync.call_count == 2

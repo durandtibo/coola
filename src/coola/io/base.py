@@ -272,7 +272,7 @@ class BaseSaver(ABC, Generic[T]):
         """
 
     @abstractmethod
-    def save(self, to_save: T, path: Path, *, exist_ok: bool = False, fsync: bool = False) -> None:
+    def save(self, to_save: T, path: Path, *, exist_ok: bool = False) -> None:
         r"""Save the data into the given path.
 
         Args:
@@ -319,7 +319,7 @@ class BaseFileSaver(BaseSaver[T]):
         ```
     """
 
-    def save(self, to_save: T, path: Path, *, exist_ok: bool = False) -> None:
+    def save(self, to_save: T, path: Path, *, exist_ok: bool = False, fsync: bool = False) -> None:
         r"""Save the data into the given path.
 
         Args:

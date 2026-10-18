@@ -124,7 +124,9 @@ def load_pickle(path: Path) -> Any:
     return PickleLoader[Any]().load(path)
 
 
-def save_pickle(to_save: Any, path: Path, *, exist_ok: bool = False, **kwargs: Any) -> None:
+def save_pickle(
+    to_save: Any, path: Path, *, exist_ok: bool = False, fsync: bool = False, **kwargs: Any
+) -> None:
     r"""Save the given data in a pickle file.
 
     Args:
@@ -136,6 +138,11 @@ def save_pickle(to_save: Any, path: Path, *, exist_ok: bool = False, **kwargs: A
             ``FileExistsError`` will not be raised unless the
             given path already exists in the file system and is
             not a file.
+        fsync: If ``True``, flush the data to the disk before committing
+            the file, so it survives a power failure or a system crash.
+            It is slower. Defaults to ``False``: the file is replaced
+            atomically, but its content may be lost if the machine
+            crashes right after the call.
         **kwargs: Additional arguments passed to ``pickle.dump``.
 
     Raises:
@@ -156,4 +163,4 @@ def save_pickle(to_save: Any, path: Path, *, exist_ok: bool = False, **kwargs: A
 
         ```
     """
-    PickleSaver[Any](**kwargs).save(to_save, path, exist_ok=exist_ok)
+    PickleSaver[Any](**kwargs).save(to_save, path, exist_ok=exist_ok, fsync=fsync)
