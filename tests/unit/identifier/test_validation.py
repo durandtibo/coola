@@ -10,9 +10,9 @@ from coola.identifier.validation import (
     validate_timestamp_ms,
 )
 
-###########################################
+########################################
 #     Tests for validate_bit_range     #
-###########################################
+########################################
 
 
 def test_validate_bit_range_minimum_is_valid() -> None:
@@ -42,9 +42,9 @@ def test_validate_bit_range_uses_name_in_message() -> None:
         validate_bit_range(-1, 10, name="worker_id")
 
 
-############################################
+###########################################
 #     Tests for validate_timestamp_ms     #
-############################################
+###########################################
 
 
 def test_validate_timestamp_ms_zero_is_valid() -> None:
@@ -69,9 +69,9 @@ def test_validate_timestamp_ms_too_large_raises() -> None:
         validate_timestamp_ms(2**48)
 
 
-#########################################
-#     Tests for resolve_timestamp_ms    #
-#########################################
+##########################################
+#     Tests for resolve_timestamp_ms     #
+##########################################
 
 
 def test_resolve_timestamp_ms_returns_the_given_timestamp() -> None:

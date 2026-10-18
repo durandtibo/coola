@@ -47,9 +47,9 @@ class EmptyKwargsInline(InlineDisplayMixin):
         return {}
 
 
-##########################################
-#     Tests for MultilineDisplayMixin    #
-##########################################
+###########################################
+#     Tests for MultilineDisplayMixin     #
+###########################################
 
 
 def test_multiline_repr() -> None:
@@ -77,9 +77,9 @@ def test_multiline_abstract_without_get_repr_kwargs_raises() -> None:
         MultilineDisplayMixin()
 
 
-#######################################
-#     Tests for InlineDisplayMixin    #
-#######################################
+########################################
+#     Tests for InlineDisplayMixin     #
+########################################
 
 
 def test_inline_repr() -> None:
@@ -103,9 +103,9 @@ def test_inline_abstract_without_get_repr_kwargs_raises() -> None:
         InlineDisplayMixin()
 
 
-#########################################
-#     Tests for BaseDisplayMixin       #
-#########################################
+######################################
+#     Tests for BaseDisplayMixin     #
+######################################
 
 
 def test_base_display_mixin_exported_from_coola_display() -> None:
@@ -122,9 +122,9 @@ def test_base_display_mixin_abstract_raises() -> None:
         BaseDisplayMixin()
 
 
-###########################################
-#     Tests for NoArgsDisplayMixin    #
-###########################################
+########################################
+#     Tests for NoArgsDisplayMixin     #
+########################################
 
 
 class NoArgsInlineObj(NoArgsDisplayMixin, InlineDisplayMixin):

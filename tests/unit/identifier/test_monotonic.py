@@ -16,9 +16,9 @@ def at(ms: int) -> int:
     return ms * 1_000_000
 
 
-###################################
-#     Tests for MonotonicRandom   #
-###################################
+#####################################
+#     Tests for MonotonicRandom     #
+#####################################
 
 
 def test_monotonic_random_increases_in_the_same_millisecond() -> None:

@@ -102,9 +102,9 @@ def test_equality_tester_registry_has_equality_tester() -> None:
     assert get_default_registry().has_equality_tester(BaseSaver)
 
 
-#######################################
+########################################
 #     Tests for BaseFileSaver.save     #
-#######################################
+########################################
 
 
 class FailingFileSaver(BaseFileSaver[Any]):
@@ -406,9 +406,9 @@ def test_break_stale_lock_removes_old_lock(tmp_path: Path) -> None:
     assert list(tmp_path.iterdir()) == []
 
 
-################################################
-#     Tests for the equality tester registry   #
-################################################
+##################################################
+#     Tests for the equality tester registry     #
+##################################################
 
 
 def test_equality_tester_registry_has_io_testers_after_the_singleton_is_reset() -> None:
@@ -433,9 +433,9 @@ def test_loaders_and_savers_are_compared_with_equal() -> None:
     assert not objects_are_equal(JsonSaver(indent=2), JsonSaver(indent=4))
 
 
-########################################
-#     Tests for the hard link fallback #
-########################################
+############################################
+#     Tests for the hard link fallback     #
+############################################
 
 
 def unsupported_link(src: str, dst: str) -> None:  # noqa: ARG001
@@ -500,9 +500,9 @@ def test_base_file_saver_save_fallback_failure_removes_the_tmp_file(
     assert list(tmp_path.iterdir()) == []
 
 
-##########################
-#     Tests for fsync    #
-##########################
+###########################
+#     Tests for fsync     #
+###########################
 
 
 def test_base_file_saver_save_does_not_fsync_by_default(tmp_path: Path) -> None:
@@ -579,9 +579,9 @@ def test_save_functions_forward_fsync(save: Any, name: str, data: Any, tmp_path:
     assert mock_fsync.call_count == 2
 
 
-##################################################
-#     Tests for allowed_prefixes of the config   #
-##################################################
+####################################################
+#     Tests for allowed_prefixes of the config     #
+####################################################
 
 
 def test_is_loader_config_allowed_prefixes() -> None:

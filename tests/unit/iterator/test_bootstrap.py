@@ -24,9 +24,9 @@ class _FakeRegistry:
         self.state.update(mapping)
 
 
-##############################################
+###############################################
 #     Tests for register_default_handlers     #
-##############################################
+###############################################
 
 
 @pytest.mark.parametrize("data_type", [object, str, bytes, int, float, complex, bool])

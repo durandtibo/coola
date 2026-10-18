@@ -10,9 +10,9 @@ def registry() -> HasherRegistry:
     return HasherRegistry({object: StringHasher()})
 
 
-#################################
-#     Tests for StringHasher    #
-#################################
+##################################
+#     Tests for StringHasher     #
+##################################
 
 
 def test_string_hasher_repr() -> None:
@@ -116,9 +116,9 @@ def test_string_hasher_hash_does_not_use_registry(registry: HasherRegistry) -> N
     assert hasher.hash("hello", registry=registry) == hasher.hash("hello", registry=empty_registry)
 
 
-################################
-#     Tests for hash_string    #
-################################
+#################################
+#     Tests for hash_string     #
+#################################
 
 # --- Return type and format ---
 

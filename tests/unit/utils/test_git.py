@@ -16,9 +16,9 @@ from coola.utils.git import (
 
 GIT_PATH = "/usr/bin/git"
 
-######################################
-#     Tests for get_current_branch    #
-######################################
+########################################
+#     Tests for get_current_branch     #
+########################################
 
 
 def test_get_current_branch_returns_stdout() -> None:
@@ -51,9 +51,9 @@ def test_get_current_branch_raises_error_when_not_a_repo() -> None:
         get_current_branch()
 
 
-############################################
-#     Tests for get_current_commit_hash    #
-############################################
+#############################################
+#     Tests for get_current_commit_hash     #
+#############################################
 
 
 def test_get_current_commit_hash_returns_stdout() -> None:
@@ -103,9 +103,9 @@ def test_get_current_commit_hash_raises_error_when_not_a_repo() -> None:
         get_current_commit_hash()
 
 
-##################################
+#################################
 #     Tests for is_git_repo     #
-##################################
+#################################
 
 
 def test_is_git_repo_returns_true() -> None:
@@ -137,9 +137,9 @@ def test_is_git_repo_returns_false_when_git_not_found() -> None:
         assert is_git_repo() is False
 
 
-########################################
-#     Tests for run_git_command       #
-########################################
+#####################################
+#     Tests for run_git_command     #
+#####################################
 
 
 def test_run_git_command_returns_stripped_stdout() -> None:

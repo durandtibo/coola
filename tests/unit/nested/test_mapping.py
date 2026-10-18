@@ -43,9 +43,9 @@ class _PassesValidationOnly(str):
         return not self.__eq__(other)
 
 
-################################################
+###############################################
 #     Tests for add_prefix_suffix_to_keys     #
-################################################
+###############################################
 
 
 def test_add_prefix_suffix_to_keys_empty_mapping() -> None:
@@ -459,9 +459,9 @@ def test_merge_mappings_non_string_keys() -> None:
     assert merge_mappings([{1: "a"}, {(2, 3): "b"}]) == {1: "a", (2, 3): "b"}
 
 
-#####################################
+####################################
 #     Tests for remove_keys_if     #
-#####################################
+####################################
 
 
 def test_remove_keys_if_empty() -> None:

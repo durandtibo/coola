@@ -42,9 +42,9 @@ class CountingTester(MyTester):
         return super()._create_handler()
 
 
-###########################################
+#############################################
 #     Tests for BaseChainEqualityTester     #
-###########################################
+#############################################
 
 
 def test_base_chain_equality_tester_is_abstract() -> None:

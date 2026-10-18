@@ -54,9 +54,9 @@ def test_generate_object_id_encodes_current_timestamp() -> None:
     assert before <= timestamp <= after
 
 
-###################################
+#######################################
 #     Tests for ObjectIdGenerator     #
-###################################
+#######################################
 
 
 def test_object_id_generator_generate_returns_str() -> None:
@@ -144,9 +144,9 @@ def test_generate_object_id_accepts_explicit_timestamp() -> None:
     assert int(object_id[:8], 16) == 1_800_000_000
 
 
-#####################################################
-#     Tests for extract_object_id_timestamp        #
-#####################################################
+#################################################
+#     Tests for extract_object_id_timestamp     #
+#################################################
 
 
 def test_extract_object_id_timestamp_roundtrip() -> None:

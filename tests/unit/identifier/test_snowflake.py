@@ -294,9 +294,9 @@ def test_snowflake_id_generator_generate_sequence_wraps_within_same_millisecond(
         assert current == first + _MAX_SEQUENCE
 
 
-######################################
+###########################################
 #     Tests for generate_snowflake_id     #
-######################################
+###########################################
 
 
 def test_generate_snowflake_id_returns_int() -> None:
@@ -337,9 +337,9 @@ def test_generate_snowflake_id_uses_shared_default_generator(
     assert second == first + 1
 
 
-###########################################################
-#     Tests for extract_snowflake_timestamp_ms           #
-###########################################################
+####################################################
+#     Tests for extract_snowflake_timestamp_ms     #
+####################################################
 
 
 def test_extract_snowflake_timestamp_ms_roundtrip() -> None:

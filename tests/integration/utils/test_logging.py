@@ -25,9 +25,9 @@ def logger() -> Iterator[logging.Logger]:
     logger.propagate = propagate
 
 
-#####################################
-#     Tests for CaptureHandler      #
-#####################################
+####################################
+#     Tests for CaptureHandler     #
+####################################
 
 
 def test_capture_handler_thread_id_is_creation_thread() -> None:

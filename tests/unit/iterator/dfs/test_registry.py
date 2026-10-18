@@ -155,9 +155,9 @@ def test_iterator_registry_registry_isolation() -> None:
     assert registry2._state[list] is iterator2
 
 
-#######################################
-#     Tests for the cycles            #
-#######################################
+################################
+#     Tests for the cycles     #
+################################
 
 
 class Wrapper:

@@ -22,9 +22,9 @@ from tests.properties.strategies import rebuild, scalars, small_values, values
 finite_floats = st.floats(allow_nan=False, allow_infinity=False, min_value=-1e6, max_value=1e6)
 
 
-#########################
-#  Reflexive/symmetric  #
-#########################
+###############################
+#     Reflexive/symmetric     #
+###############################
 
 
 @given(data=values)
@@ -44,9 +44,9 @@ def test_equal_is_transitive(a: Any, b: Any, c: Any) -> None:
         assert objects_are_equal(a, c)
 
 
-########################
-#  Strict type          #
-########################
+#######################
+#     Strict type     #
+#######################
 
 
 @given(x=st.integers(min_value=-(2**52), max_value=2**52))
@@ -90,9 +90,9 @@ def test_strict_type_dict_differs_from_ordered_dict(data: dict) -> None:
     assert not objects_are_equal(data, OrderedDict(data))
 
 
-########################
-#  Recursive            #
-########################
+#####################
+#     Recursive     #
+#####################
 
 
 @given(items=st.lists(st.integers(), max_size=5), extra=st.integers())
@@ -124,9 +124,9 @@ def test_recursive_difference_is_found_at_any_depth(x: Any, y: Any, depth: int) 
     assert not objects_are_equal(left, right)
 
 
-########################
-#  Order rules          #
-########################
+#######################
+#     Order rules     #
+#######################
 
 
 @given(items=st.lists(st.integers(), unique=True, min_size=2, max_size=8), data=st.data())
@@ -183,9 +183,9 @@ def test_order_sets_ignore_the_iteration_order(items: list[int], data: st.DataOb
     assert objects_are_equal(frozenset(items), frozenset(shuffled))
 
 
-########################
-#  NaN and signed zero  #
-########################
+###############################
+#     NaN and signed zero     #
+###############################
 
 
 def test_nan_is_not_equal_to_nan() -> None:
@@ -218,9 +218,9 @@ def test_signed_zero_is_equal_to_zero(atol: float, rtol: float) -> None:
     assert objects_are_allclose(0.0, -0.0, atol=atol, rtol=rtol)
 
 
-########################
-#  Time zones           #
-########################
+######################
+#     Time zones     #
+######################
 
 
 @given(
@@ -245,9 +245,9 @@ def test_time_zones_naive_never_equals_aware(value: dt.datetime) -> None:
     assert objects_are_equal(value, value)
 
 
-########################
-#  Tolerance            #
-########################
+#####################
+#     Tolerance     #
+#####################
 
 
 @given(data=small_values, other=small_values)
@@ -292,9 +292,9 @@ def test_tolerance_is_not_used_for_other_values(s: str, t: str) -> None:
     assert objects_are_allclose(s, t, atol=1e6, rtol=1e6) == (s == t)
 
 
-########################
-#  Unregistered types   #
-########################
+##############################
+#     Unregistered types     #
+##############################
 
 
 class WithoutEq:
@@ -332,9 +332,9 @@ def test_unregistered_type_never_raises(x: Any) -> None:
     assert isinstance(objects_are_equal(x, WithoutEq()), bool)
 
 
-########################
-#  Pure                 #
-########################
+################
+#     Pure     #
+################
 
 
 @given(data=values, other=values)
@@ -346,9 +346,9 @@ def test_pure_inputs_are_not_modified_and_answer_is_stable(data: Any, other: Any
     assert objects_are_equal(other, other_before)
 
 
-########################
-#  Failure modes        #
-########################
+#########################
+#     Failure modes     #
+#########################
 
 
 def test_failure_mode_self_referencing_list_raises_recursion_error() -> None:
@@ -365,9 +365,9 @@ def test_show_difference_does_not_change_the_result(data: Any, other: Any) -> No
     assert objects_are_equal(data, other, show_difference=True) == objects_are_equal(data, other)
 
 
-########################
-#  Consistent w/ hashing #
-########################
+#################################
+#     Consistent w/ hashing     #
+#################################
 
 
 @given(data=small_values, other=small_values)

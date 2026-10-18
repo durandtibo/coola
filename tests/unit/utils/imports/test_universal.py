@@ -141,9 +141,9 @@ def test_decorator_package_available_decorator_condition_false() -> None:
     assert fn(2) is None
 
 
-##############################################
-#     Tests for raise_package_missing_error  #
-##############################################
+#################################################
+#     Tests for raise_package_missing_error     #
+#################################################
 
 
 def test_raise_package_missing_error_basic() -> None:
@@ -202,9 +202,9 @@ def test_missing_package_error_can_still_be_caught_as_runtime_error() -> None:
         check_package("not_a_package")
 
 
-########################################################
-#     Tests for module_available with broken modules   #
-########################################################
+##########################################################
+#     Tests for module_available with broken modules     #
+##########################################################
 
 
 @pytest.mark.parametrize(

@@ -36,9 +36,9 @@ def run_in_children(num_children: int, function: object) -> list[str]:
     return results
 
 
-################################
-#     Tests for the forks      #
-################################
+###############################
+#     Tests for the forks     #
+###############################
 
 
 def test_object_ids_of_forked_children_have_distinct_process_values() -> None:

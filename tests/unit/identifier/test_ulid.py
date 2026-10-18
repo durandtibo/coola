@@ -40,9 +40,9 @@ def _decode_timestamp_ms(value: str) -> int:
     return payload >> 80
 
 
-##################################
-#     Tests for generate_ulid   #
-##################################
+###################################
+#     Tests for generate_ulid     #
+###################################
 
 
 def test_generate_ulid_returns_str() -> None:
@@ -121,9 +121,9 @@ def test_generate_ulid_uses_full_crockford_alphabet_characters() -> None:
     assert set(combined) <= set(ulid_module._ENCODING)
 
 
-##############################################
-#     Tests for extract_ulid_timestamp_ms   #
-##############################################
+###############################################
+#     Tests for extract_ulid_timestamp_ms     #
+###############################################
 
 
 def test_extract_ulid_timestamp_ms_roundtrip() -> None:
@@ -155,9 +155,9 @@ def test_extract_ulid_timestamp_ms_invalid_character_raises() -> None:
         extract_ulid_timestamp_ms("I" * 26)
 
 
-##########################################
-#     Tests for the monotonic ULIDs      #
-##########################################
+#########################################
+#     Tests for the monotonic ULIDs     #
+#########################################
 
 
 def test_generate_ulid_monotonic_in_the_same_millisecond() -> None:

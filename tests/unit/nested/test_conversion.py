@@ -140,9 +140,9 @@ def test_convert_to_list_of_dicts_mismatched_length_raises_error() -> None:
         convert_to_list_of_dicts({"key1": [1, 2, 3], "key2": [10, 20]})
 
 
-##########################################
-#     Tests for convert_to_jsonable      #
-##########################################
+#########################################
+#     Tests for convert_to_jsonable     #
+#########################################
 
 
 def test_convert_to_json_int() -> None:

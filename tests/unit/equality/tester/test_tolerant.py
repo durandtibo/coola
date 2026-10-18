@@ -79,9 +79,9 @@ TOLERANT_EQUAL_NOT_EQUAL_WITH_TOLERANCE = [
 ]
 
 
-################################################
-#     Tests for TolerantEqualEqualityTester    #
-################################################
+#################################################
+#     Tests for TolerantEqualEqualityTester     #
+#################################################
 
 
 def test_tolerant_equal_equality_tester_repr() -> None:

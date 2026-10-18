@@ -5,9 +5,9 @@ import pytest
 from coola.registry import AlreadyRegisteredError, Registry, TypeRegistry
 from coola.registry.base import BaseRegistry
 
-###################################
+##################################
 #     Tests for BaseRegistry     #
-###################################
+##################################
 
 
 def test_registry_is_subclass_of_base_registry() -> None:
@@ -167,9 +167,9 @@ def test_base_registry_on_change_not_called_when_register_fails() -> None:
     assert registry.changes == 1  # only the first successful register
 
 
-#############################################################
+################################################################
 #     Tests for the items()/keys()/values() snapshot cache     #
-#############################################################
+################################################################
 
 
 def test_base_registry_items_keys_values_reuse_cached_snapshot() -> None:

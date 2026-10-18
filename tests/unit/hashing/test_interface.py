@@ -45,9 +45,9 @@ class CustomList(list):
     r"""Custom class that inherits from list."""
 
 
-##################################
-#     Tests for hash_object      #
-##################################
+#################################
+#     Tests for hash_object     #
+#################################
 
 
 @pytest.mark.parametrize(
@@ -171,9 +171,9 @@ def test_hash_object_ignore_unhashable_is_deterministic() -> None:
         )
 
 
-#########################################
-#     Tests for register_hashers        #
-#########################################
+######################################
+#     Tests for register_hashers     #
+######################################
 
 
 def test_register_hashers_adds_to_default_registry() -> None:

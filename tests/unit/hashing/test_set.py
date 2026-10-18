@@ -10,9 +10,9 @@ def registry() -> HasherRegistry:
     return HasherRegistry({object: StrHasher()})
 
 
-##############################
-#     Tests for SetHasher    #
-##############################
+###############################
+#     Tests for SetHasher     #
+###############################
 
 
 def test_set_hasher_repr() -> None:

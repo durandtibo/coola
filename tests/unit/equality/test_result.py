@@ -41,9 +41,9 @@ def logger_state() -> tuple[int, bool, list[logging.Handler]]:
     return logger.level, logger.propagate, list(logger.handlers)
 
 
-###################################
-#     Tests for ComparisonResult  #
-###################################
+######################################
+#     Tests for ComparisonResult     #
+######################################
 
 
 def test_comparison_result_defaults() -> None:
@@ -101,9 +101,9 @@ def test_comparison_result_format_message_without_reason() -> None:
     assert result.format_message("data") == "objects are not equal at data['a']"
 
 
-###########################
-#     Tests for compare   #
-###########################
+#############################
+#     Tests for compare     #
+#############################
 
 
 @pytest.mark.parametrize(
@@ -256,9 +256,9 @@ def test_compare_restores_custom_logger_level() -> None:
         logger.propagate = propagate
 
 
-#####################################
-#     Tests for assert_objects_equal #
-#####################################
+##########################################
+#     Tests for assert_objects_equal     #
+##########################################
 
 
 def test_assert_objects_equal_passes() -> None:
@@ -300,9 +300,9 @@ def test_assert_objects_equal_is_exact() -> None:
         assert_objects_equal([1.0], [1.0 + 1e-9])
 
 
-#########################################
-#     Tests for assert_objects_allclose #
-#########################################
+#############################################
+#     Tests for assert_objects_allclose     #
+#############################################
 
 
 def test_assert_objects_allclose_passes() -> None:
@@ -346,9 +346,9 @@ def test_assert_objects_allclose_negative_tolerance(name: str) -> None:
         assert_objects_allclose(1.0, 1.0, **{name: -1.0})
 
 
-#################################
-#     Additional compare tests  #
-#################################
+####################################
+#     Additional compare tests     #
+####################################
 
 
 def test_public_exports() -> None:

@@ -53,9 +53,9 @@ class Wrapper:
     value: object
 
 
-##############################
-#     Tests for to_jsonable      #
-##############################
+#################################
+#     Tests for to_jsonable     #
+#################################
 
 
 def test_to_json_dataclass() -> None:

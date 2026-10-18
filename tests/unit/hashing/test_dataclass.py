@@ -35,9 +35,9 @@ def registry() -> HasherRegistry:
     return registry
 
 
-####################################
-#     Tests for DataclassHasher    #
-####################################
+#####################################
+#     Tests for DataclassHasher     #
+#####################################
 
 
 def test_dataclass_hasher_repr() -> None:

@@ -9,9 +9,9 @@ from coola.utils.file_size import get_file_size
 if TYPE_CHECKING:
     from pathlib import Path
 
-#####################################
-#     Tests for get_file_size      #
-#####################################
+###################################
+#     Tests for get_file_size     #
+###################################
 
 
 def test_get_file_size_file(tmp_path: Path) -> None:

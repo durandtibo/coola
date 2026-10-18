@@ -59,9 +59,9 @@ def test_already_registered_error_is_not_a_key_error() -> None:
     assert issubclass(TypeNotRegisteredError, KeyError)
 
 
-############################################
-#     Tests for KeyNotRegisteredError      #
-############################################
+###########################################
+#     Tests for KeyNotRegisteredError     #
+###########################################
 
 
 def test_key_not_registered_error_is_key_error_and_lookup_error() -> None:

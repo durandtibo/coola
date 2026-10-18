@@ -63,9 +63,9 @@ def test_torch_numpy_not_available_is_opposite_of_torch_numpy_available() -> Non
     assert numpy_available != numpy_not_available
 
 
-#################################
-#     Tests for requires         #
-#################################
+##############################
+#     Tests for requires     #
+##############################
 
 
 def test_requires_dependency_available() -> None:

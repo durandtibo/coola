@@ -10,9 +10,9 @@ from coola.utils.string import (
     truncate_str,
 )
 
-##########################################
-#     Tests for char_diff_summary        #
-##########################################
+#######################################
+#     Tests for char_diff_summary     #
+#######################################
 
 
 def test_char_diff_summary_returns_string() -> None:

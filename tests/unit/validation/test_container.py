@@ -27,9 +27,9 @@ def test_validate_not_empty_custom_name() -> None:
         validate_not_empty([], name="my_list")
 
 
-##################################
+#################################
 #     Tests for validate_in     #
-##################################
+#################################
 
 
 def test_validate_in_valid() -> None:

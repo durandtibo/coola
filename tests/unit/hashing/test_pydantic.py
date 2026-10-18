@@ -290,9 +290,9 @@ def test_pydantic_model_hasher_on_secret_is_configured_once_via_constructor(
     )
 
 
-###################################
-#     Tests for unwrap_secrets    #
-###################################
+####################################
+#     Tests for unwrap_secrets     #
+####################################
 
 # --- Non-secret values pass through unchanged ---
 
@@ -432,9 +432,9 @@ def test_unwrap_secrets_error_no_secret_does_not_raise() -> None:
     assert unwrap_secrets({"user": "alice"}, on_secret="error") == {"user": "alice"}
 
 
-########################################
-#     Tests for hash_pydantic_model    #
-########################################
+#########################################
+#     Tests for hash_pydantic_model     #
+#########################################
 
 # --- Return type and format ---
 

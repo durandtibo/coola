@@ -52,9 +52,9 @@ class ParentWithChildDictModel(BaseModel):
     children: dict[str, ChildModel]
 
 
-##########################################
-#     Tests for secret_field_names      #
-##########################################
+########################################
+#     Tests for secret_field_names     #
+########################################
 
 
 @pydantic_available
@@ -81,9 +81,9 @@ def test_secret_field_names_optional_secret_none() -> None:
     assert secret_field_names(model) == {"key"}
 
 
-##########################################
-#     Tests for str_pydantic_model      #
-##########################################
+########################################
+#     Tests for str_pydantic_model     #
+########################################
 
 
 @pydantic_available
@@ -167,9 +167,9 @@ def test_str_pydantic_model_no_secret_fields() -> None:
     assert str_pydantic_model(model) == "NoSecretModel(a=1, b=x)"
 
 
-###########################################
-#     Tests for repr_pydantic_model      #
-###########################################
+#########################################
+#     Tests for repr_pydantic_model     #
+#########################################
 
 
 @pydantic_available
@@ -219,9 +219,9 @@ def test_str_and_repr_agree_on_field_set(sort: bool) -> None:
     assert s.split("(")[0] == r.split("(")[0]
 
 
-###############################################################
-#     Tests for exclude_secret with nested BaseModel fields   #
-###############################################################
+#################################################################
+#     Tests for exclude_secret with nested BaseModel fields     #
+#################################################################
 
 
 @pydantic_available

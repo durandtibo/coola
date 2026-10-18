@@ -5,9 +5,9 @@ import threading
 from coola.identifier import ObjectIdGenerator
 from tests.integration.helpers import run_threads
 
-######################################
+#######################################
 #     Tests for ObjectIdGenerator     #
-######################################
+#######################################
 
 
 def test_object_id_generator_generate_thread_safe() -> None:

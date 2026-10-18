@@ -12,9 +12,9 @@ if TYPE_CHECKING:
 
 LOGGER_NAME = "coola.equality"
 
-##############################
-#     Tests for compare      #
-##############################
+#############################
+#     Tests for compare     #
+#############################
 
 
 def test_compare_concurrent_threads() -> None:

@@ -42,9 +42,9 @@ def registry() -> HasherRegistry:
     return HasherRegistry()
 
 
-#################################
-#     Tests for EnumHasher      #
-#################################
+################################
+#     Tests for EnumHasher     #
+################################
 
 
 def test_enum_hasher_repr() -> None:
@@ -69,9 +69,9 @@ def test_enum_hasher_hash_invalid_length_raises(registry: HasherRegistry) -> Non
         EnumHasher().hash(Color.RED, registry=registry, length=3)
 
 
-##############################
-#     Tests for hash_enum    #
-##############################
+###############################
+#     Tests for hash_enum     #
+###############################
 
 
 def test_hash_enum_different_members_differ() -> None:
@@ -90,9 +90,9 @@ def test_hash_enum_composite_flag() -> None:
     assert hash_enum(Perm.R | Perm.W) != hash_enum(Perm.R)
 
 
-###############################################
-#     Tests for enums in the default registry #
-###############################################
+###################################################
+#     Tests for enums in the default registry     #
+###################################################
 
 
 @pytest.mark.parametrize("member", [Color.RED, Number.ONE, Label.A, MixedStr.A, MixedInt.ONE])

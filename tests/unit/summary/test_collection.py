@@ -41,9 +41,9 @@ def registry() -> SummarizerRegistry:
     )
 
 
-##################################################
-#     Tests for BaseCollectionSummarizer         #
-##################################################
+##############################################
+#     Tests for BaseCollectionSummarizer     #
+##############################################
 
 
 def test_base_collection_summarizer_not_implemented() -> None:

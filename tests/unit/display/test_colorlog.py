@@ -32,9 +32,9 @@ def reset_root_logger() -> Generator[None]:
     root.level = original_level
 
 
-##########################################
-#     Tests for configure_colorlog       #
-##########################################
+########################################
+#     Tests for configure_colorlog     #
+########################################
 
 
 def test_configure_colorlog_logging() -> None:
@@ -115,9 +115,9 @@ def test_configure_colorlog_logging_force_false_is_noop_when_handlers_exist() ->
     assert sentinel in logging.getLogger().handlers
 
 
-###################################################
-#     Tests for non-interactive (non-TTY) output  #
-###################################################
+######################################################
+#     Tests for non-interactive (non-TTY) output     #
+######################################################
 
 
 @colorlog_available
@@ -161,9 +161,9 @@ def test_configure_colorlog_logging_no_colorlog_ignores_tty() -> None:
     mock_basicconfig.assert_called_once_with(level=logging.DEBUG, force=True)
 
 
-#############################
-#     Tests for kwargs      #
-#############################
+############################
+#     Tests for kwargs     #
+############################
 
 
 def test_configure_colorlog_logging_kwargs_forwarded() -> None:

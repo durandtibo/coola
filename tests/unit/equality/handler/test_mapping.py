@@ -333,9 +333,9 @@ def test_mapping_same_values_handler_handle_does_not_cache_by_identity(
     assert registry.objects_are_equal.call_count == 2
 
 
-###############################################
-#     Tests for MappingSameKeyOrderHandler    #
-###############################################
+################################################
+#     Tests for MappingSameKeyOrderHandler     #
+################################################
 
 
 def test_mapping_same_key_order_handler_repr() -> None:

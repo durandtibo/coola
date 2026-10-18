@@ -27,9 +27,9 @@ class CounterRandomManager(BaseRandomManager):
         self.value = state
 
 
-##################################
-#     Tests for BaseRandomManager #
-##################################
+#######################################
+#     Tests for BaseRandomManager     #
+#######################################
 
 
 def test_base_random_manager_is_abstract() -> None:

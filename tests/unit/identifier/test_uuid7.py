@@ -36,7 +36,7 @@ def _decode_timestamp_ms(value: str) -> int:
 
 
 ####################################
-#     Tests for generate_uuid7    #
+#     Tests for generate_uuid7     #
 ####################################
 
 
@@ -109,9 +109,9 @@ def test_generate_uuid7_many_calls_are_unique() -> None:
     assert len(uuids) == 1000
 
 
-###################################################
-#     Tests for extract_uuid7_timestamp_ms       #
-###################################################
+################################################
+#     Tests for extract_uuid7_timestamp_ms     #
+################################################
 
 
 def test_extract_uuid7_timestamp_ms_roundtrip() -> None:
@@ -144,9 +144,9 @@ def test_extract_uuid7_timestamp_ms_rejects_non_v7_uuid() -> None:
         extract_uuid7_timestamp_ms("00000000-0000-4000-8000-000000000000")
 
 
-############################################
-#     Tests for the monotonic UUIDv7       #
-############################################
+##########################################
+#     Tests for the monotonic UUIDv7     #
+##########################################
 
 
 def test_generate_uuid7_monotonic_in_the_same_millisecond() -> None:

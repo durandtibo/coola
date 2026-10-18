@@ -15,9 +15,9 @@ from tests.integration.helpers import run_python, run_threads
 if TYPE_CHECKING:
     from pathlib import Path
 
-#######################################
+########################################
 #     Tests for BaseFileSaver.save     #
-#######################################
+########################################
 
 
 class SimpleFileSaver(BaseFileSaver[str]):
@@ -211,9 +211,9 @@ def test_acquire_file_lock_recovers_after_holder_process_is_killed(tmp_path: Pat
     lock_path.unlink()
 
 
-################################################
-#     Tests for the import of coola.io          #
-################################################
+############################################
+#     Tests for the import of coola.io     #
+############################################
 
 
 def test_importing_coola_io_does_not_modify_the_default_equality_registry() -> None:

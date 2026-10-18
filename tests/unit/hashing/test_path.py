@@ -20,9 +20,9 @@ def registry() -> HasherRegistry:
     return HasherRegistry({object: PathHasher()})
 
 
-###############################
-#     Tests for PathHasher    #
-###############################
+################################
+#     Tests for PathHasher     #
+################################
 
 
 def test_path_hasher_repr() -> None:
@@ -102,9 +102,9 @@ def test_path_hasher_hash_matches_hash_path(tmp_path: Path, registry: HasherRegi
     assert hasher.hash(path, registry=registry) == hash_path(path)
 
 
-##############################
-#     Tests for hash_path    #
-##############################
+###############################
+#     Tests for hash_path     #
+###############################
 
 # --- Return type and format ---
 
