@@ -172,6 +172,12 @@ class RandomManagerRegistry(MultilineDisplayMixin, BaseRandomManager):
             value.manual_seed(seed)
 
     def set_rng_state(self, state: dict[str, Any]) -> None:
+        missing = sorted(key for key in self._state if key not in state)
+        if missing:
+            logger.warning(
+                "No RNG state for the registered key(s) %s; their state is not restored",
+                missing,
+            )
         for key, value in state.items():
             if key not in self._state:
                 logger.warning(

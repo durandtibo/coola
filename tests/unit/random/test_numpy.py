@@ -125,3 +125,55 @@ def test_numpy_seed_same_random_seed() -> None:
     with numpy_seed(42):
         x2 = np.random.randn(4, 6)  # noqa: NPY002
     assert np.array_equal(x1, x2)
+
+
+@numpy_available
+def test_numpy_random_manager_seed() -> None:
+    manager = NumpyRandomManager()
+    state = np.random.get_state()  # noqa: NPY002
+    with manager.seed(42):
+        first = np.random.rand()  # noqa: NPY002
+    assert objects_are_equal(state, np.random.get_state())  # noqa: NPY002
+    with manager.seed(42):
+        second = np.random.rand()  # noqa: NPY002
+    assert first == second
+
+
+@numpy_available
+def test_numpy_random_manager_manual_seed_is_folded_modulo_2_32() -> None:
+    manager = NumpyRandomManager()
+    manager.manual_seed(1)
+    first = np.random.rand(3)  # noqa: NPY002
+    manager.manual_seed(2**32 + 1)
+    second = np.random.rand(3)  # noqa: NPY002
+    assert objects_are_equal(first, second)
+
+
+@numpy_available
+def test_numpy_random_manager_manual_seed_negative_seed_wraps() -> None:
+    manager = NumpyRandomManager()
+    manager.manual_seed(-1)
+    first = np.random.rand(3)  # noqa: NPY002
+    manager.manual_seed(2**32 - 1)
+    second = np.random.rand(3)  # noqa: NPY002
+    assert objects_are_equal(first, second)
+
+
+@numpy_available
+def test_numpy_random_manager_different_seeds_give_different_numbers() -> None:
+    manager = NumpyRandomManager()
+    manager.manual_seed(1)
+    first = np.random.rand(3)  # noqa: NPY002
+    manager.manual_seed(2)
+    second = np.random.rand(3)  # noqa: NPY002
+    assert not objects_are_equal(first, second)
+
+
+@numpy_available
+def test_numpy_random_manager_does_not_manage_default_rng_generators() -> None:
+    manager = NumpyRandomManager()
+    rng = np.random.default_rng(0)
+    expected = np.random.default_rng(0).random(3)
+    with manager.seed(42):
+        values = rng.random(3)  # the independent generator is not affected by the seed
+    assert objects_are_equal(values, expected)

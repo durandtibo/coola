@@ -67,3 +67,23 @@ def test_random_random_manager_set_rng_state() -> None:
     x3 = random.uniform(0, 1)  # noqa: S311
     assert x1 == x3
     assert x1 != x2
+
+
+def test_random_random_manager_seed() -> None:
+    manager = RandomRandomManager()
+    state = random.getstate()
+    with manager.seed(42):
+        first = random.random()  # noqa: S311
+    assert random.getstate() == state
+    with manager.seed(42):
+        second = random.random()  # noqa: S311
+    assert first == second
+
+
+def test_random_random_manager_does_not_manage_random_instances() -> None:
+    manager = RandomRandomManager()
+    generator = random.Random(0)  # noqa: S311
+    expected = random.Random(0).random()  # noqa: S311
+    with manager.seed(42):
+        value = generator.random()
+    assert value == expected

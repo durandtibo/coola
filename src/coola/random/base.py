@@ -5,7 +5,11 @@ from __future__ import annotations
 __all__ = ["BaseRandomManager"]
 
 from abc import ABC, abstractmethod
-from typing import Any
+from contextlib import contextmanager
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 
 class BaseRandomManager(ABC):
@@ -15,6 +19,8 @@ class BaseRandomManager(ABC):
     - ``get_rng_state``.
     - ``manual_seed``.
     - ``set_rng_state``.
+
+    The ``seed`` context manager is implemented with these methods.
 
     Example:
         ```pycon
@@ -76,3 +82,36 @@ class BaseRandomManager(ABC):
 
             ```
         """
+
+    @contextmanager
+    def seed(self, seed: int) -> Generator[None]:
+        r"""Temporarily set a seed and restore the RNG state afterward.
+
+        The state is restored even if an exception is raised inside the
+        context.
+
+        Args:
+            seed: The seed to use while inside the context manager.
+
+        Example:
+            ```pycon
+            >>> import random
+            >>> from coola.random import RandomRandomManager
+            >>> manager = RandomRandomManager()
+            >>> with manager.seed(42):
+            ...     first = random.random()
+            ...
+            >>> with manager.seed(42):
+            ...     second = random.random()
+            ...
+            >>> first == second
+            True
+
+            ```
+        """
+        state = self.get_rng_state()
+        try:
+            self.manual_seed(seed)
+            yield
+        finally:
+            self.set_rng_state(state)

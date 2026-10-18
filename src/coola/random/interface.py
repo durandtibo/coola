@@ -60,12 +60,8 @@ def random_seed(seed: int, manager: RandomManagerRegistry | None = None) -> Gene
         ```
     """
     manager = manager or get_default_registry()
-    state = manager.get_rng_state()
-    try:
-        manager.manual_seed(seed)
+    with manager.seed(seed):
         yield
-    finally:
-        manager.set_rng_state(state)
 
 
 def get_rng_state() -> dict[str, Any]:

@@ -18,6 +18,19 @@ The `coola.random` package provides a unified interface for controlling random n
 This allows you to set seeds, get and restore RNG states, and manage randomness consistently across
 different libraries in a single call.
 
+!!! warning "Global generators only"
+
+    Only the **global** generator of each library is managed: `random.seed`, `numpy.random.seed` (the
+    legacy generator) and `torch.manual_seed`. Independent generator objects, such as
+    `random.Random()`, `numpy.random.default_rng()` and `torch.Generator()`, are not seeded and their
+    state is not saved or restored. Seed them explicitly, e.g. `numpy.random.default_rng(seed)`.
+
+!!! note "NumPy seeds"
+
+    NumPy's legacy generator only accepts seeds between `0` and `2**32 - 1`. `NumpyRandomManager`
+    folds the seed into this range with `seed % 2**32`, so the seeds `1` and `2**32 + 1` give the same
+    random numbers, and a negative seed `-n` is the same as `2**32 - n`.
+
 ## Basic Usage
 
 ### Setting a Random Seed
