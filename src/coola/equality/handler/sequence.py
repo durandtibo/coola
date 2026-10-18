@@ -67,11 +67,14 @@ class SequenceSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
                         f"{len(expected):,}",
                     )
                 return False
-            if _is_exact_scalar_sequence(actual) and _is_exact_scalar_sequence(expected):
-                # Fast path: skip the per-element dispatch. On mismatch, fall
-                # through to the slow path to locate the first difference.
-                if actual == expected:
-                    return self._handle_next(actual, expected, config=config)
+            # Fast path: skip the per-element dispatch. On mismatch, fall
+            # through to the slow path to locate the first difference.
+            if (
+                _is_exact_scalar_sequence(actual)
+                and _is_exact_scalar_sequence(expected)
+                and actual == expected
+            ):
+                return self._handle_next(actual, expected, config=config)
             for idx, (value1, value2) in enumerate(zip(actual, expected, strict=True)):
                 if not config.registry.objects_are_equal(value1, value2, config):
                     if config.show_difference:
