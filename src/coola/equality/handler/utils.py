@@ -11,7 +11,7 @@ __all__ = [
 ]
 
 from contextlib import contextmanager
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
     import logging
@@ -76,8 +76,8 @@ def report_difference(
     if config.reporter is None:
         logger.info(msg, *args, extra=extra)
         return
-    path = (extra or {}).get("coola_path", ())
-    config.reporter(msg % args if args else msg, path)  # type: ignore[arg-type]
+    path = cast("tuple[object, ...]", (extra or {}).get("coola_path", ()))
+    config.reporter(msg % args if args else msg, path)
 
 
 def create_chain(*handlers: BaseEqualityHandler) -> BaseEqualityHandler:

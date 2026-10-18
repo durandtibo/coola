@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
 import pytest
@@ -7,12 +8,14 @@ import pytest
 from coola.equality.config import EqualityConfig
 from coola.equality.handler import (
     FalseHandler,
+    MaxDepthExceededError,
     ObjectEqualHandler,
     SameObjectHandler,
     SameTypeHandler,
     check_recursion_depth,
     create_chain,
     handlers_are_equal,
+    report_difference,
 )
 
 if TYPE_CHECKING:
@@ -111,6 +114,51 @@ def test_check_recursion_depth_greater_than_max_depth() -> None:
     config._current_depth = 101
     with (
         pytest.raises(RecursionError, match=r"Maximum recursion depth"),
+        check_recursion_depth(config),
+    ):
+        pass
+
+
+####################################
+#     Tests for report_difference  #
+####################################
+
+
+def test_report_difference_logs_without_reporter(caplog: pytest.LogCaptureFixture) -> None:
+    logger = logging.getLogger("test_report_difference")
+    with caplog.at_level(logging.INFO, logger=logger.name):
+        report_difference(logger, EqualityConfig(), "different %s", "values")
+    assert caplog.messages == ["different values"]
+
+
+def test_report_difference_sends_formatted_message_and_path_to_reporter(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    reports: list[tuple[str, tuple[object, ...]]] = []
+    config = EqualityConfig(reporter=lambda message, path: reports.append((message, path)))
+    logger = logging.getLogger("test_report_difference")
+    with caplog.at_level(logging.INFO, logger=logger.name):
+        report_difference(logger, config, "%s vs %s", 1, 2, extra={"coola_path": ("a", 0)})
+    assert reports == [("1 vs 2", ("a", 0))]
+    assert not caplog.messages  # nothing is logged when there is a reporter
+
+
+def test_report_difference_reporter_without_args_or_extra() -> None:
+    reports: list[tuple[str, tuple[object, ...]]] = []
+    config = EqualityConfig(reporter=lambda message, path: reports.append((message, path)))
+    report_difference(logging.getLogger("x"), config, "100% different")
+    assert reports == [("100% different", ())]
+
+
+def test_max_depth_exceeded_error_is_recursion_error() -> None:
+    assert issubclass(MaxDepthExceededError, RecursionError)
+
+
+def test_check_recursion_depth_raises_max_depth_exceeded_error() -> None:
+    config = EqualityConfig(max_depth=1)
+    with (
+        check_recursion_depth(config),
+        pytest.raises(MaxDepthExceededError),
         check_recursion_depth(config),
     ):
         pass

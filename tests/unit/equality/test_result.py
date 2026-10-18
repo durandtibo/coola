@@ -376,9 +376,8 @@ def test_compare_user_handler_on_logger_receives_nothing() -> None:
         compare([1], [2])
     finally:
         logger.removeHandler(handler)
-    # A user handler attached directly to the logger still sees the records;
-    # only propagation to ancestors is suppressed.
-    assert received
+    # Differences go to the config reporter, so nothing is logged at all.
+    assert not received
 
 
 def test_compare_parent_logger_handler_receives_nothing() -> None:
@@ -401,3 +400,63 @@ def test_compare_parent_logger_handler_receives_nothing() -> None:
 def test_compare_does_not_leak_records_between_calls() -> None:
     compare([1], [2])
     assert compare({"a": 1}, {"a": 1}) == equal_result({"a": 1}, {"a": 1})
+
+
+def test_compare_does_not_modify_logger_while_running() -> None:
+    logger = logging.getLogger(LOGGER_NAME)
+    before = (logger.level, logger.propagate, list(logger.handlers))
+    seen: list[tuple[int, bool, list[logging.Handler]]] = []
+
+    class Spy:
+        def __eq__(self, other: object) -> bool:
+            seen.append((logger.level, logger.propagate, list(logger.handlers)))
+            return False
+
+    compare([Spy()], [Spy()])
+    assert seen
+    assert all(state == before for state in seen)
+
+
+def test_compare_concurrent_calls_do_not_mix_results() -> None:
+    import threading
+
+    errors: list[str] = []
+    barrier = threading.Barrier(8)
+
+    def worker(index: int) -> None:
+        barrier.wait()
+        for _ in range(50):
+            result = compare({"key": [index, 1]}, {"key": [index, 2]})
+            if result.path != ("key", 1):
+                errors.append(f"worker {index}: unexpected path {result.path}")
+            if not compare({"key": index}, {"key": index}):
+                errors.append(f"worker {index}: equal objects reported as different")
+
+    threads = [threading.Thread(target=worker, args=(i,)) for i in range(8)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    assert not errors
+
+
+def test_compare_does_not_drop_logs_of_other_threads(caplog: pytest.LogCaptureFixture) -> None:
+    import threading
+
+    started = threading.Event()
+    release = threading.Event()
+
+    class Blocking:
+        def __eq__(self, other: object) -> bool:
+            started.set()
+            release.wait(timeout=5)
+            return True
+
+    thread = threading.Thread(target=compare, args=(Blocking(), Blocking()))
+    with caplog.at_level(logging.INFO, logger=LOGGER_NAME):
+        thread.start()
+        assert started.wait(timeout=5)
+        logging.getLogger(LOGGER_NAME).info("message from another thread")
+        release.set()
+        thread.join()
+    assert "message from another thread" in caplog.messages
