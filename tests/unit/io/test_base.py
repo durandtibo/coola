@@ -597,3 +597,36 @@ def test_save_functions_forward_fsync(save: Any, name: str, data: Any, tmp_path:
     with patch("coola.io.base.os.fsync") as mock_fsync:
         save(data, tmp_path.joinpath(name), fsync=True)
     assert mock_fsync.call_count == 2
+
+
+##################################################
+#     Tests for allowed_prefixes of the config   #
+##################################################
+
+
+def test_is_loader_config_allowed_prefixes() -> None:
+    config = {OBJECT_TARGET: "coola.io.JsonLoader"}
+    assert is_loader_config(config, allowed_prefixes=["coola.io"])
+    with pytest.raises(ImportError, match="not allowed"):
+        is_loader_config(config, allowed_prefixes=["os"])
+
+
+def test_is_saver_config_allowed_prefixes() -> None:
+    config = {OBJECT_TARGET: "coola.io.JsonSaver"}
+    assert is_saver_config(config, allowed_prefixes=["coola.io"])
+    with pytest.raises(ImportError, match="not allowed"):
+        is_saver_config(config, allowed_prefixes=["os"])
+
+
+def test_resolve_loader_allowed_prefixes() -> None:
+    config = {OBJECT_TARGET: "coola.io.JsonLoader"}
+    assert isinstance(resolve_loader(config, allowed_prefixes=["coola.io"]), JsonLoader)
+    with pytest.raises(ImportError, match="target object does not exist"):
+        resolve_loader(config, allowed_prefixes=["os"])
+
+
+def test_resolve_saver_allowed_prefixes() -> None:
+    config = {OBJECT_TARGET: "coola.io.JsonSaver"}
+    assert isinstance(resolve_saver(config, allowed_prefixes=["coola.io"]), JsonSaver)
+    with pytest.raises(ImportError, match="target object does not exist"):
+        resolve_saver(config, allowed_prefixes=["os"])

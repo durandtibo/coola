@@ -110,10 +110,43 @@ treated as a factory configuration, even when it is already a valid instance of 
 expected class. Do not use `resolve_object` to resolve objects whose expected type is
 itself a `dict` subclass.
 
+## Security: restricting the targets
+
+!!! danger "Only resolve configurations that you trust"
+
+    `import_object`, `factory` and `resolve_object` import and call whatever the `_target_` names
+    (for example `"os.system"`). Never resolve a configuration that comes from untrusted input.
+
+If a configuration cannot be fully trusted (for example, a file edited by users), restrict the
+modules that `_target_` may reference with `allowed_prefixes`. A target is allowed if it is equal
+to a prefix, or starts with the prefix followed by a dot:
+
+```pycon
+>>> from coola.factory import resolve_object
+>>> config = {"_target_": "collections.Counter", "a": 2}
+>>> resolve_object(config, allowed_prefixes=["collections"])
+Counter({'a': 2})
+>>> resolve_object({"_target_": "os.getcwd"}, allowed_prefixes=["collections"])
+Traceback (most recent call last):
+    ...
+ImportError: The target object does not exist: os.getcwd
+
+```
+
+`allowed_prefixes` is checked before the module is imported. The caller's list replaces the
+`_allowed_prefixes_` key of the configuration, so a configuration cannot widen it. It is also
+available in `resolve_loader`, `resolve_saver`, `is_object_config`, `is_loader_config` and
+`is_saver_config`. For `factory`, use the `_allowed_prefixes_` key.
+
+This is a mitigation, not a sandbox: it limits _what_ can be called, not the arguments it is called
+with. Only allow objects that are safe to call with arbitrary arguments.
+
 ## Checking if a configuration targets a class
 
 `is_object_config` checks whether the `_target_` of a configuration resolves to (or returns,
-for functions with a type-hinted return value) a given class:
+for functions with a type-hinted return value) a given class. The target is imported to check it, so
+pass `allowed_prefixes` for a configuration that is not trusted. A function whose return type hint
+cannot be resolved is not a configuration for the class:
 
 ```pycon
 

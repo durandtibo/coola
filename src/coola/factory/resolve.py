@@ -176,10 +176,10 @@ def resolve_object(
             )
             raise TypeError(msg)
         logger.info("Initializing a %s instance from its configuration...", cls_name)
-        config = cast("dict[str, Any]", obj)
+        config: dict[str, Any] = dict(cast("dict[str, Any]", obj))
         if allowed_prefixes is not None:
             # The caller's allow-list wins over the one of the configuration.
-            config = {**config, "_allowed_prefixes_": allowed_prefixes}
+            config["_allowed_prefixes_"] = allowed_prefixes
         obj = factory(**config)
     if not isinstance(obj, cls):
         msg = (

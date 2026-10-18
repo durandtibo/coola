@@ -57,7 +57,14 @@ I/O or execute arbitrary code, with one notable exception:
   that executes shell commands. **Never pass an object path, or a configuration dict containing
   one (e.g. under the `_target_` key), that comes from untrusted input** — a user-uploaded
   config file, a network payload, or any other data you do not fully trust. Treat these functions
-  the same way you would treat `eval`/`pickle.load` on untrusted data.
+  the same way you would treat `eval`/`pickle.load` on untrusted data. `is_object_config`,
+  `is_loader_config` and `is_saver_config` also **import** the `_target_` (to check its class), and
+  importing a module runs its code. If a configuration cannot be fully trusted, pass
+  `allowed_prefixes` (to `resolve_object`, `resolve_loader`, `resolve_saver` and the
+  `is_*_config` functions, or `_allowed_prefixes_` to `factory`) to restrict the `_target_` to the
+  modules you expect. This is a mitigation, not a sandbox: an allow-list limits _what_ can be
+  called, not the arguments it is called with, so only allow objects that are safe to call with
+  arbitrary arguments.
 - **`coola.io` pickle loading executes arbitrary code by design**: `PickleLoader.load` and
   `load_pickle` call Python's `pickle.load` on the given file. Unpickling can run arbitrary code
   as a side effect of deserialization regardless of how the pickle was produced. **Only load
