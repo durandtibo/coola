@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any, Never, TypeVar
 
 from coola.utils.imports.universal import (
     decorator_package_available,
-    package_available,
+    module_available,
     raise_package_missing_error,
 )
 
@@ -38,7 +38,7 @@ def check_pandas() -> None:
 
 @cache
 def is_pandas_available() -> bool:
-    r"""Indicate if the ``pandas`` package is installed or not.
+    r"""Indicate if the ``pandas`` package is installed and can be imported.
 
     Returns:
         ``True`` if ``pandas`` is available otherwise ``False``.
@@ -50,7 +50,7 @@ def is_pandas_available() -> bool:
 
         ```
     """
-    return package_available("pandas")
+    return module_available("pandas")
 
 
 def pandas_available(fn: F) -> F:

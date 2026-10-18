@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any, Never, TypeVar
 
 from coola.utils.imports.universal import (
     decorator_package_available,
-    package_available,
+    module_available,
     raise_package_missing_error,
 )
 
@@ -43,7 +43,7 @@ def check_pydantic() -> None:
 
 @cache
 def is_pydantic_available() -> bool:
-    r"""Indicate if the ``pydantic`` package is installed or not.
+    r"""Indicate if the ``pydantic`` package is installed and can be imported.
 
     Returns:
         ``True`` if ``pydantic`` is available otherwise ``False``.
@@ -55,7 +55,7 @@ def is_pydantic_available() -> bool:
 
         ```
     """
-    return package_available("pydantic")
+    return module_available("pydantic")
 
 
 def pydantic_available(fn: F) -> F:

@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any, Never, TypeVar
 
 from coola.utils.imports.universal import (
     decorator_package_available,
-    package_available,
+    module_available,
     raise_package_missing_error,
 )
 
@@ -38,7 +38,7 @@ def check_jax() -> None:
 
 @cache
 def is_jax_available() -> bool:
-    r"""Indicate if the ``jax`` package is installed or not.
+    r"""Indicate if the ``jax`` package is installed and can be imported.
 
     Returns:
         ``True`` if ``jax`` is available otherwise ``False``.
@@ -50,7 +50,7 @@ def is_jax_available() -> bool:
 
         ```
     """
-    return package_available("jax")
+    return module_available("jax")
 
 
 def jax_available(fn: F) -> F:

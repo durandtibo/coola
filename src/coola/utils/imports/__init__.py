@@ -19,6 +19,7 @@ __all__ = [
     "check_torch",
     "check_torch_numpy",
     "check_xarray",
+    "clear_availability_caches",
     "colorlog_available",
     "decorator_package_available",
     "is_colorlog_available",
@@ -61,6 +62,7 @@ __all__ = [
     "xarray_available",
 ]
 
+from coola.utils.imports.cache import clear_availability_caches
 from coola.utils.imports.colorlog import (
     check_colorlog,
     colorlog_available,

@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any, Never, TypeVar
 
 from coola.utils.imports.universal import (
     decorator_package_available,
-    package_available,
+    module_available,
     raise_package_missing_error,
 )
 
@@ -38,7 +38,7 @@ def check_polars() -> None:
 
 @cache
 def is_polars_available() -> bool:
-    r"""Indicate if the ``polars`` package is installed or not.
+    r"""Indicate if the ``polars`` package is installed and can be imported.
 
     Returns:
         ``True`` if ``polars`` is available otherwise ``False``.
@@ -50,7 +50,7 @@ def is_polars_available() -> bool:
 
         ```
     """
-    return package_available("polars")
+    return module_available("polars")
 
 
 def polars_available(fn: F) -> F:
