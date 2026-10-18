@@ -17,7 +17,6 @@ from coola.hashing.base import Hasher
 from coola.hashing.string import hash_string
 from coola.registry import BaseTypeDispatchRegistry
 
-
 _state = threading.local()
 
 
@@ -43,7 +42,7 @@ class HasherRegistry(BaseTypeDispatchRegistry[Hasher[Any]]):
         HasherRegistry(
           (state): TypeRegistry(
               (<class 'object'>): StrHasher()
-              (<class 'list'>): SequenceHasher()
+              (<class 'list'>): SequenceHasher(tag='sequence')
             )
         )
         >>> len(registry.hash([1, 2, 3]))

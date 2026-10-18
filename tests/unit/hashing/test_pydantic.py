@@ -11,9 +11,9 @@ from coola.testing.fixtures import pydantic_available
 from coola.utils.imports import is_pydantic_available
 
 if is_pydantic_available():
-    from pydantic import BaseModel, SecretBytes, SecretStr
+    from pydantic import BaseModel, ConfigDict, SecretBytes, SecretStr
 else:
-    BaseModel, SecretBytes, SecretStr = object, object, object
+    BaseModel, ConfigDict, SecretBytes, SecretStr = object, dict, object, object
 
 
 class Point(BaseModel):
@@ -42,7 +42,7 @@ class AnyValue(BaseModel):
 
 
 class Open(BaseModel):
-    model_config = {"extra": "allow"}
+    model_config = ConfigDict(extra="allow")
 
     x: int
 

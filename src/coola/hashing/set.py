@@ -81,7 +81,6 @@ class SetHasher(InlineDisplayMixin, BaseHasher[AbstractSet[Any]]):
                 and 128.
         """
         parts = sorted(
-            registry.hash(item, length=length, ignore_unhashable=ignore_unhashable)
-            for item in data
+            registry.hash(item, length=length, ignore_unhashable=ignore_unhashable) for item in data
         )
         return hash_tagged(self._tag, "".join(parts), length=length)

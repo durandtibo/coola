@@ -36,8 +36,9 @@ def test_set_hasher_hash_is_deterministic(registry: HasherRegistry) -> None:
 
 def test_set_hasher_hash_is_independent_of_insertion_order(registry: HasherRegistry) -> None:
     hasher = SetHasher()
-    first = hasher.hash(set([1, 2, 3]), registry=registry)
-    second = hasher.hash(set([3, 2, 1]), registry=registry)
+    items = ["a", "b", "c", "d"]
+    first = hasher.hash(set(items), registry=registry)
+    second = hasher.hash(set(items[::-1]), registry=registry)  # noqa: C415
     assert first == second
 
 
@@ -62,10 +63,9 @@ def test_set_hasher_hash_items_are_not_required_to_be_orderable() -> None:
     assert registry.hash({1, "a", None}) == registry.hash({None, "a", 1})
 
 
-def test_set_hasher_hash_unhashable_item_raises(registry: HasherRegistry) -> None:
-    empty = HasherRegistry()
+def test_set_hasher_hash_unhashable_item_raises() -> None:
     with pytest.raises(KeyError):
-        SetHasher().hash({1}, registry=empty)
+        SetHasher().hash({1}, registry=HasherRegistry())
 
 
 def test_set_hasher_hash_nested_frozenset_in_set() -> None:

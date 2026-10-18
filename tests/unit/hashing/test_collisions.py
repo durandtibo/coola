@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from collections import OrderedDict, deque, namedtuple
-from datetime import date, datetime, timezone
+from collections import OrderedDict, deque
+from datetime import UTC, date, datetime
 from enum import Enum, IntEnum, StrEnum
 from pathlib import Path
+from typing import NamedTuple
 
 import pytest
 
@@ -14,8 +15,15 @@ from coola.utils.imports import is_numpy_available
 if is_numpy_available():
     import numpy as np
 
-Point = namedtuple("Point", ["x", "y"])
-Other = namedtuple("Other", ["x", "y"])
+
+class Point(NamedTuple):
+    x: int
+    y: int
+
+
+class Other(NamedTuple):
+    x: int
+    y: int
 
 
 class Color(Enum):
@@ -66,9 +74,11 @@ def test_hash_object_different_types_do_not_collide(first: object, second: objec
         pytest.param(["ab", "c"], ["a", "bc"], id="item-boundaries"),
         pytest.param([1, 2], [2, 1], id="list-order"),
         pytest.param(OrderedDict(a=1, b=2), OrderedDict(b=2, a=1), id="ordereddict-order"),
-        pytest.param(date(2024, 1, 1), datetime(2024, 1, 1), id="date-datetime"),
+        pytest.param(date(2024, 1, 1), datetime(2024, 1, 1), id="date-datetime"),  # noqa: DTZ001
         pytest.param(
-            datetime(2024, 1, 1), datetime(2024, 1, 1, tzinfo=timezone.utc), id="naive-aware"
+            datetime(2024, 1, 1),  # noqa: DTZ001
+            datetime(2024, 1, 1, tzinfo=UTC),
+            id="naive-aware",
         ),
         pytest.param(Path("a"), "a", id="path-str"),
         pytest.param(Color.RED, 1, id="enum-int"),

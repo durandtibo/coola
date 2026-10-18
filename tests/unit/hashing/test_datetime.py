@@ -139,7 +139,8 @@ def test_datetime_hasher_hash_time(registry: HasherRegistry) -> None:
 def test_datetime_hasher_hash_time_differs_from_datetime(registry: HasherRegistry) -> None:
     hasher = DatetimeHasher()
     assert hasher.hash(time(0, 0), registry=registry) != hasher.hash(
-        datetime(2024, 1, 1), registry=registry
+        datetime(2024, 1, 1),  # noqa: DTZ001
+        registry=registry,
     )
 
 
@@ -158,4 +159,4 @@ def test_default_registry_hashes_timedelta_and_timezone() -> None:
     registry = get_default_registry()
     assert registry.hash(timedelta(days=1)) == registry.hash(timedelta(hours=24))
     assert registry.hash(timedelta(days=1)) != registry.hash(timedelta(days=2))
-    assert registry.hash(timezone.utc) != registry.hash(timezone(timedelta(hours=1)))
+    assert registry.hash(UTC) != registry.hash(timezone(timedelta(hours=1)))

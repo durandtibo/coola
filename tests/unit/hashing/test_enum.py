@@ -29,7 +29,7 @@ class Perm(Flag):
     W = 2
 
 
-class MixedStr(str, Enum):
+class MixedStr(str, Enum):  # noqa: UP042
     A = "a"
 
 

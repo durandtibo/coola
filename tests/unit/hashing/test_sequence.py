@@ -1,13 +1,22 @@
 from __future__ import annotations
 
-from collections import namedtuple
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, NamedTuple
 from unittest.mock import Mock
 
 import pytest
 
 from coola.hashing import HasherRegistry, SequenceHasher, StrHasher
+
+
+class Point(NamedTuple):
+    x: int
+    y: int
+
+
+class Renamed(NamedTuple):
+    a: int
+    b: int
 
 
 @pytest.fixture
@@ -200,7 +209,6 @@ def test_sequence_hasher_repr_custom_tag() -> None:
 
 
 def test_sequence_hasher_hash_named_tuple_differs_from_tuple(registry: HasherRegistry) -> None:
-    Point = namedtuple("Point", ["x", "y"])
     hasher = SequenceHasher("tuple")
     assert hasher.hash(Point(1, 2), registry=registry) != hasher.hash((1, 2), registry=registry)
 
@@ -208,9 +216,7 @@ def test_sequence_hasher_hash_named_tuple_differs_from_tuple(registry: HasherReg
 def test_sequence_hasher_hash_named_tuple_depends_on_field_names(
     registry: HasherRegistry,
 ) -> None:
-    Point = namedtuple("Point", ["x", "y"])
-    Other = namedtuple("Point", ["a", "b"])
     hasher = SequenceHasher("tuple")
     assert hasher.hash(Point(1, 2), registry=registry) != hasher.hash(
-        Other(1, 2), registry=registry
+        Renamed(1, 2), registry=registry
     )

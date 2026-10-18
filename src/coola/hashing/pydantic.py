@@ -49,12 +49,12 @@ class PydanticModelHasher(InlineDisplayMixin, BaseHasher[pydantic.BaseModel]):
     Example:
         ```pycon
         >>> from pydantic import BaseModel
-        >>> from coola.hashing import PydanticModelHasher, HasherRegistry
+        >>> from coola.hashing import PydanticModelHasher, get_default_registry
         >>> class Point(BaseModel):
         ...     x: int
         ...     y: int
         ...
-        >>> registry = HasherRegistry()
+        >>> registry = get_default_registry()
         >>> hasher = PydanticModelHasher()
         >>> hasher
         PydanticModelHasher(on_secret='error')
