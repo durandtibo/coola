@@ -2,7 +2,7 @@ r"""Implement handlers for sequence objects."""
 
 from __future__ import annotations
 
-__all__ = ["SequenceSameValuesHandler"]
+__all__ = ["SequenceSameValuesHandler", "is_exact_scalar_sequence"]
 
 import logging
 from typing import TYPE_CHECKING, Any
@@ -70,8 +70,8 @@ class SequenceSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
             # Fast path: skip the per-element dispatch. On mismatch, fall
             # through to the slow path to locate the first difference.
             if (
-                _is_exact_scalar_sequence(actual)
-                and _is_exact_scalar_sequence(expected)
+                is_exact_scalar_sequence(actual)
+                and is_exact_scalar_sequence(expected)
                 and actual == expected
             ):
                 return self._handle_next(actual, expected, config=config)
@@ -92,7 +92,7 @@ class SequenceSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
             return self._handle_next(actual, expected, config=config)
 
 
-def _is_exact_scalar_sequence(seq: Sequence[Any]) -> bool:
+def is_exact_scalar_sequence(seq: Sequence[Any]) -> bool:
     r"""Indicate if ``seq`` is a list or tuple containing only exact
     built-in scalars."""
     return type(seq) in {list, tuple} and set(map(type, seq)) <= _EXACT_SCALAR_TYPES

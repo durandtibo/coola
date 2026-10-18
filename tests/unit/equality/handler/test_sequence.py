@@ -8,6 +8,7 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.handler import FalseHandler, SequenceSameValuesHandler, TrueHandler
+from coola.equality.handler.sequence import is_exact_scalar_sequence
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
 
@@ -275,3 +276,13 @@ def test_sequence_same_values_handler_handle_fast_path_false_show_difference(
         assert not SequenceSameValuesHandler().handle([1, 2, 3], [1, 2, 4], config)
     assert caplog.messages
 
+
+
+@pytest.mark.parametrize("seq", [[1, "a", None, True], (b"a", 2), [], ()])
+def test_is_exact_scalar_sequence_true(seq: object) -> None:
+    assert is_exact_scalar_sequence(seq)
+
+
+@pytest.mark.parametrize("seq", [[1.0], [1, [2]], {1, 2}, "abc", range(3)])
+def test_is_exact_scalar_sequence_false(seq: object) -> None:
+    assert not is_exact_scalar_sequence(seq)
