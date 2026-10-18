@@ -9,6 +9,7 @@ import pytest
 from coola.identifier import (
     ObjectIdGenerator,
     extract_object_id_timestamp,
+    fork,
     generate_object_id,
     objectid as objectid_module,
 )
@@ -166,3 +167,32 @@ def test_extract_object_id_timestamp_wrong_length_raises() -> None:
 def test_extract_object_id_timestamp_invalid_hex_raises() -> None:
     with pytest.raises(ValueError, match="object_id must be a 24-character hex string"):
         extract_object_id_timestamp("z" * 24)
+
+
+def test_object_id_generator_is_tracked_for_forks() -> None:
+    generator = ObjectIdGenerator()
+    assert generator in fork._TRACKED
+
+
+def test_object_id_generator_reset_after_fork_regenerates_the_random_state() -> None:
+    generator = ObjectIdGenerator()
+    process_value, counter, lock = generator._process_value, generator._counter, generator._lock
+    generator._reset_after_fork()
+    assert generator._process_value != process_value  # 2**-40 chance of a false failure
+    assert generator._counter != counter  # 2**-24 chance of a false failure
+    assert generator._lock is not lock
+
+
+def test_object_id_generator_reset_after_fork_does_not_block_if_the_lock_was_held() -> None:
+    generator = ObjectIdGenerator()
+    generator._lock.acquire()  # held by a thread that does not exist in the child
+    generator._reset_after_fork()
+    assert len(generator.generate()) == 24
+
+
+def test_object_id_generator_after_fork_ids_use_the_new_process_value() -> None:
+    generator = ObjectIdGenerator()
+    before = generator.generate()
+    generator._reset_after_fork()
+    after = generator.generate()
+    assert before[8:18] != after[8:18]  # the 5-byte process value

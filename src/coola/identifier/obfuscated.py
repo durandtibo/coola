@@ -91,6 +91,14 @@ def generate_obfuscated_id(number: int, salt: str = "", min_length: int = 0) -> 
     r"""Obfuscate a non-negative integer into a short, reversible
     identifier.
 
+    Warning:
+        This is obfuscation, **not encryption**. It hides the
+        magnitude and the order of the integers from a casual reader,
+        but anyone who sees two ``(number, identifier)`` pairs for the
+        same ``salt`` can recover the constants, and ``salt`` is not a
+        secret key. Do not use it to protect sensitive data or as an
+        access control: authorize every access explicitly.
+
     Args:
         number: The integer to obfuscate. Must fit in 64 bits (``0``
             to ``2**64 - 1``), e.g. a database autoincrement ID or a
@@ -132,6 +140,10 @@ def generate_obfuscated_id(number: int, salt: str = "", min_length: int = 0) -> 
 def decode_obfuscated_id(encoded: str, salt: str = "") -> int:
     r"""Reverse ``generate_obfuscated_id`` and recover the original
     integer.
+
+    Warning:
+        The obfuscation is not encryption: see
+        ``generate_obfuscated_id``.
 
     Args:
         encoded: The string previously returned by

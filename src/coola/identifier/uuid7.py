@@ -17,7 +17,12 @@ __all__ = ["extract_uuid7_timestamp_ms", "generate_uuid7"]
 import os
 import uuid
 
-from coola.identifier.validation import resolve_timestamp_ms
+from coola.identifier.monotonic import MonotonicRandom
+from coola.identifier.validation import validate_timestamp_ms
+
+# State of the UUIDv7 generated with the current time: they increase within a millisecond.
+# A UUIDv7 has 74 random bits (12 + 62), the others are the version and the variant.
+_MONOTONIC = MonotonicRandom(bits=74)
 
 
 def generate_uuid7(timestamp_ms: int | None = None) -> str:
@@ -31,10 +36,25 @@ def generate_uuid7(timestamp_ms: int | None = None) -> str:
     strings) after UUIDv7 values generated earlier, unlike
     ``uuid.uuid4`` which sorts randomly.
 
+    Note:
+        When the current time is used (``timestamp_ms=None``), UUIDv7
+        values are monotonic within a process (the "method 1"
+        counter of RFC 9562): values generated in the same
+        millisecond (or after the clock moved backward) keep the
+        timestamp and increment the 74 random bits by one, so they
+        still sort in the order of generation, which keeps database
+        indexes append-only. The state is per process, protected by a
+        lock, and reset in the child process of a fork. Across
+        processes, values generated in the same millisecond are not
+        ordered. When ``timestamp_ms`` is given, the random bits are
+        always random: two values with the same timestamp are not
+        ordered.
+
     Args:
         timestamp_ms: The Unix timestamp in milliseconds to encode. If
-            ``None`` (default), the current time is used. Exposed
-            mainly for deterministic testing.
+            ``None`` (default), the current time is used and the UUIDs
+            are monotonic (see below). Exposed mainly for
+            deterministic testing and for backfilling.
 
     Returns:
         A lowercase UUID string of the form
@@ -53,12 +73,18 @@ def generate_uuid7(timestamp_ms: int | None = None) -> str:
 
         ```
     """
-    timestamp_ms = resolve_timestamp_ms(timestamp_ms)
-
-    rand = os.urandom(10)
-    # 48-bit timestamp, followed by 80 bits of randomness that the
-    # version/variant bits below are then stamped onto.
-    value = (timestamp_ms << 80) | int.from_bytes(rand, byteorder="big")
+    if timestamp_ms is None:
+        timestamp_ms, rand_bits = _MONOTONIC.next()
+        validate_timestamp_ms(timestamp_ms)
+        # Spread the 74 monotonic random bits around the version and variant bits:
+        # 12 bits (rand_a) before the variant, and 62 bits (rand_b) after.
+        rand_a, rand_b = rand_bits >> 62, rand_bits & ((1 << 62) - 1)
+        value = (timestamp_ms << 80) | (rand_a << 64) | rand_b
+    else:
+        validate_timestamp_ms(timestamp_ms)
+        # 48-bit timestamp, followed by 80 bits of randomness that the
+        # version/variant bits below are then stamped onto.
+        value = (timestamp_ms << 80) | int.from_bytes(os.urandom(10), byteorder="big")
 
     # Stamp the 4-bit version (7) into bits 76-79 (the top nibble of
     # the 16 bits following the timestamp).

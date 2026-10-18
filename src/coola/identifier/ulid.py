@@ -14,11 +14,15 @@ __all__ = ["extract_ulid_timestamp_ms", "generate_ulid"]
 
 import os
 
+from coola.identifier.monotonic import MonotonicRandom
 from coola.identifier.validation import (
     CROCKFORD_BASE32_ALPHABET as _ENCODING,
     decode_crockford_base32,
-    resolve_timestamp_ms,
+    validate_timestamp_ms,
 )
+
+# State of the ULIDs generated with the current time: they increase within a millisecond.
+_MONOTONIC = MonotonicRandom(bits=80)
 
 
 def generate_ulid(timestamp_ms: int | None = None) -> str:
@@ -31,10 +35,24 @@ def generate_ulid(timestamp_ms: int | None = None) -> str:
     (lexicographically, as plain strings) after ULIDs generated
     earlier, unlike ``uuid.uuid4`` which sorts randomly.
 
+    Note:
+        When the current time is used (``timestamp_ms=None``), ULIDs
+        are monotonic within a process, as recommended by the ULID
+        specification: ULIDs generated in the same millisecond (or
+        after the clock moved backward) keep the timestamp and
+        increment the random part by one, so they still sort in the
+        order of generation. The state is per process, protected by a
+        lock, and reset in the child process of a fork. Across
+        processes, ULIDs generated in the same millisecond are not
+        ordered. When ``timestamp_ms`` is given, the random part is
+        always random: two ULIDs with the same timestamp are not
+        ordered.
+
     Args:
         timestamp_ms: The Unix timestamp in milliseconds to encode. If
-            ``None`` (default), the current time is used. Exposed
-            mainly for deterministic testing.
+            ``None`` (default), the current time is used and the ULIDs
+            are monotonic (see below). Exposed mainly for
+            deterministic testing and for backfilling.
 
     Returns:
         A 26-character uppercase Crockford Base32 ULID string.
@@ -52,8 +70,15 @@ def generate_ulid(timestamp_ms: int | None = None) -> str:
 
         ```
     """
-    timestamp_ms = resolve_timestamp_ms(timestamp_ms)
-    payload = timestamp_ms.to_bytes(6, byteorder="big") + os.urandom(10)
+    if timestamp_ms is None:
+        timestamp_ms, randomness = _MONOTONIC.next()
+        validate_timestamp_ms(timestamp_ms)
+        payload = timestamp_ms.to_bytes(6, byteorder="big") + randomness.to_bytes(
+            10, byteorder="big"
+        )
+    else:
+        validate_timestamp_ms(timestamp_ms)
+        payload = timestamp_ms.to_bytes(6, byteorder="big") + os.urandom(10)
     return _encode_base32(payload)
 
 
