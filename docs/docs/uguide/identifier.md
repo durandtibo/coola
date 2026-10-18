@@ -152,6 +152,12 @@ Because the timestamp is the most significant part, ULIDs generated later sort (
 after ULIDs generated earlier, unlike `uuid.uuid4`, which sorts randomly. Use it for a unique
 record ID that should also sort roughly by insertion order.
 
+ULIDs generated with the current time are **monotonic within a process**, as recommended by the ULID
+specification: ULIDs generated in the same millisecond (or after the clock moved backward) keep the
+timestamp and increment the random part by one, so they sort in the order of generation. Across
+processes, ULIDs generated in the same millisecond are not ordered. A ULID generated with an explicit
+`timestamp_ms` always has a random part, so it is not ordered relative to the others.
+
 Use `extract_ulid_timestamp_ms` to recover the timestamp encoded in a ULID, e.g. to check how old a
 record is without a separate stored timestamp column:
 
@@ -178,7 +184,9 @@ False
 
 ```
 
-Like ULIDs, UUIDv7 values sort (as plain strings) in creation-time order. Prefer `generate_uuid7`
+Like ULIDs, UUIDv7 values sort (as plain strings) in creation-time order, and they are monotonic
+within a process when the current time is used (the 74 random bits are incremented within the same
+millisecond), which keeps the inserts in a database index append-only. Prefer `generate_uuid7`
 over `generate_ulid` when the identifier must be a valid UUID string (e.g. a UUID-typed database
 column, or an API expecting `uuid.UUID` formatting); prefer `generate_ulid` otherwise, since it
 packs more randomness (80 bits) than UUIDv7 leaves available (74 bits, once the version and
@@ -216,7 +224,9 @@ or when IDs need to be attributable to the worker/shard that minted them via `wo
 `SnowflakeIdGenerator` instance: its sequence counter is local to that instance, so it guarantees
 uniqueness across calls sharing it, not across other instances or processes. Assign each
 concurrently running generator (typically one per process or shard) a distinct `worker_id` to
-avoid collisions between them.
+avoid collisions between them. This includes the children of a fork (`os.fork`, or `multiprocessing`
+with the `fork` start method): they inherit the state of the generator of their parent, so they must
+not keep the default `worker_id=0`.
 
 Use `SnowflakeIdGenerator` directly instead of the module-level function when you need several
 independent generators in the same process, e.g. one per worker thread, or an isolated instance
@@ -273,7 +283,9 @@ makes it a better fit for short, URL-safe identifiers (e.g. slugs):
 `generate_object_id` generates a MongoDB `ObjectId` style 24-character hex string: a 4-byte
 timestamp, a 5-byte per-process value, and a 3-byte counter. Like `SnowflakeIdGenerator`, later IDs
 sort after earlier ones, but the counter silently wraps instead of raising or blocking when
-exhausted within a second, and no `worker_id` needs to be configured:
+exhausted within a second, and no `worker_id` needs to be configured. After a fork, the child
+process gets its own random per-process value and counter, so the parent and its children do not
+produce the same identifiers:
 
 ```pycon
 >>> from coola.identifier import generate_object_id
@@ -333,8 +345,11 @@ opaque string that hides its magnitude and ordering, while remaining exactly rev
 
 ```
 
-This is obfuscation, not encryption: do not rely on it to hide data from anyone who can observe
-many `(plaintext, obfuscated)` pairs for a known `salt`.
+!!! warning "Obfuscation, not encryption"
+
+    The `salt` is not a secret key. Anyone who can observe two `(plaintext, obfuscated)` pairs for a
+    known `salt` can recover the constants and decode every identifier. Do not use it to protect
+    sensitive data or as an access control: authorize every access explicitly.
 
 ## Prefixed identifiers
 

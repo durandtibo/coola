@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from coola.identifier import snowflake
+from coola.identifier import fork, snowflake
 from coola.identifier.snowflake import (
     _EPOCH_MS,
     _MAX_SEQUENCE,
@@ -362,3 +362,29 @@ def test_extract_snowflake_timestamp_ms_negative_raises() -> None:
 def test_extract_snowflake_timestamp_ms_too_large_raises() -> None:
     with pytest.raises(ValueError, match="snowflake_id must fit in"):
         extract_snowflake_timestamp_ms(1 << 63)
+
+
+def test_snowflake_generator_is_tracked_for_forks() -> None:
+    generator = SnowflakeIdGenerator()
+    assert generator in fork._TRACKED
+
+
+def test_snowflake_generator_reset_after_fork_recreates_the_lock() -> None:
+    generator = SnowflakeIdGenerator()
+    lock = generator._lock
+    generator._reset_after_fork()
+    assert generator._lock is not lock
+
+
+def test_snowflake_generator_reset_after_fork_does_not_block_if_the_lock_was_held() -> None:
+    generator = SnowflakeIdGenerator()
+    generator._lock.acquire()  # held by a thread that does not exist in the child
+    generator._reset_after_fork()
+    assert isinstance(generator.generate(), int)
+
+
+def test_snowflake_generator_reset_after_fork_keeps_the_ids_monotonic() -> None:
+    generator = SnowflakeIdGenerator()
+    first = generator.generate(timestamp_ms=1_800_000_000_000)
+    generator._reset_after_fork()
+    assert generator.generate(timestamp_ms=1_800_000_000_000) > first

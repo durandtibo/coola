@@ -18,8 +18,9 @@ UUID7_PATTERN = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f
 
 @pytest.fixture(autouse=True)
 def _reset_monotonic_state() -> Generator[None]:
-    """Reset the state of the monotonic generator, which is shared by the tests of the
-    process and depends on the time (a test with a fake clock must start from scratch)."""
+    """Reset the state of the monotonic generator, which is shared by
+    the tests of the process and depends on the time (a test with a fake
+    clock must start from scratch)."""
     uuid7_module._MONOTONIC._reset_after_fork()
     yield
     uuid7_module._MONOTONIC._reset_after_fork()

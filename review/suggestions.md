@@ -428,6 +428,8 @@ come from YAML/JSON files or users therefore execute arbitrary callables. Sugges
 
 ### 2.14 Identifiers (low)
 
+_(Status: fixed. (1) `ObjectIdGenerator` regenerates its process value and counter, and recreates its lock, in the child of a fork (`coola.identifier.fork.track_fork`, based on `os.register_at_fork`); `SnowflakeIdGenerator` recreates its lock and its docstring and the user guide warn that forked children must use a distinct `worker_id`. (2) `generate_ulid` and `generate_uuid7` are now monotonic within a process when the current time is used (`MonotonicRandom`: the random part is incremented within the same millisecond or if the clock moves backward, and borrows the next millisecond on overflow); an explicit `timestamp_ms` keeps a random part. (3) `generate_obfuscated_id` and `decode_obfuscated_id` have a \"not encryption\" warning, and so does the user guide. (4) The `snowflake` clock regression point needed no change.)_
+
 - `ObjectIdGenerator` and `SnowflakeIdGenerator` are process-wide `@cache`
   singletons. After `os.fork()` the child inherits the same random process value and
   counter, so two forked workers can emit identical ObjectIds. Re-create the

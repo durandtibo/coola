@@ -2,11 +2,11 @@ r"""Reset the state of the identifier generators in a forked process.
 
 A process created with ``os.fork`` (e.g. a worker of a pre-fork server
 or of ``multiprocessing`` with the ``fork`` start method) starts with a
-copy of the memory of its parent, including the state of the
-generators. Without a reset, the parent and its children would produce
-the same random values and the same counters, so they could produce the
-same identifiers. The generators that register with ``track_fork`` are
-reset in the child process right after the fork.
+copy of the memory of its parent, including the state of the generators.
+Without a reset, the parent and its children would produce the same
+random values and the same counters, so they could produce the same
+identifiers. The generators that register with ``track_fork`` are reset
+in the child process right after the fork.
 """
 
 from __future__ import annotations
@@ -64,5 +64,5 @@ def _after_fork_in_child() -> None:
 
 
 # ``os.register_at_fork`` is not available on every platform (e.g. Windows).
-if hasattr(os, "register_at_fork"):
+if hasattr(os, "register_at_fork"):  # pragma: no branch
     os.register_at_fork(after_in_child=_after_fork_in_child)

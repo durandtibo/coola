@@ -18,8 +18,9 @@ ULID_PATTERN = re.compile(r"^[0-9A-HJKMNP-TV-Z]{26}$")
 
 @pytest.fixture(autouse=True)
 def _reset_monotonic_state() -> Generator[None]:
-    """Reset the state of the monotonic generator, which is shared by the tests of the
-    process and depends on the time (a test with a fake clock must start from scratch)."""
+    """Reset the state of the monotonic generator, which is shared by
+    the tests of the process and depends on the time (a test with a fake
+    clock must start from scratch)."""
     ulid_module._MONOTONIC._reset_after_fork()
     yield
     ulid_module._MONOTONIC._reset_after_fork()
