@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from coola.hashing import HasherRegistry, StringHasher, hash_string
+from coola.hashing import HasherRegistry, StringHasher, hash_string, hash_tagged
 
 
 @pytest.fixture
@@ -199,3 +199,16 @@ def test_hash_string_is_sensitive_to_whitespace() -> None:
 def test_hash_string_raises_for_invalid_length(length: int) -> None:
     with pytest.raises(ValueError, match=str(abs(length))):
         hash_string("hello", length=length)
+
+
+def test_string_hasher_hash_is_tagged() -> None:
+    assert StringHasher().hash("hello", registry=HasherRegistry()) == hash_tagged("str", "hello")
+
+
+def test_string_hasher_hash_differs_from_untagged_hash_string(registry: HasherRegistry) -> None:
+    assert StringHasher().hash("hello", registry=registry) != hash_string("hello")
+
+
+def test_hash_string_lone_surrogate_raises_value_error() -> None:
+    with pytest.raises(ValueError, match="not valid UTF-8"):
+        hash_string("\ud800")

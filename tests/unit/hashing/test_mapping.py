@@ -189,3 +189,29 @@ def test_mapping_hasher_hash_ignore_unhashable_is_deterministic(
     ) == hasher.hash(
         {"a": Unhashable()}, registry=registry_without_fallback, ignore_unhashable=True
     )
+
+
+def test_mapping_hasher_repr_ordered() -> None:
+    assert repr(MappingHasher("OrderedDict", ordered=True)) == (
+        "MappingHasher(tag='OrderedDict', ordered=True)"
+    )
+
+
+def test_mapping_hasher_hash_ordered_depends_on_insertion_order(registry: HasherRegistry) -> None:
+    hasher = MappingHasher(ordered=True)
+    assert hasher.hash({"a": 1, "b": 2}, registry=registry) != hasher.hash(
+        {"b": 2, "a": 1}, registry=registry
+    )
+
+
+def test_mapping_hasher_hash_unordered_ignores_insertion_order(registry: HasherRegistry) -> None:
+    hasher = MappingHasher()
+    assert hasher.hash({"a": 1, "b": 2}, registry=registry) == hasher.hash(
+        {"b": 2, "a": 1}, registry=registry
+    )
+
+
+def test_mapping_hasher_tag_changes_hash(registry: HasherRegistry) -> None:
+    assert MappingHasher("dict").hash({"a": 1}, registry=registry) != MappingHasher(
+        "OrderedDict"
+    ).hash({"a": 1}, registry=registry)

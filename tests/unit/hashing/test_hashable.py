@@ -235,7 +235,9 @@ def test_hashable_hasher_registered_in_registry_is_used_via_dispatch() -> None:
         {MyObj: HashableHasher(), int: get_default_registry().find_hasher(int)}
     )
     obj = MyObj(42)
-    assert registry.hash(obj) == obj.hash(registry=registry)
+    assert registry.hash(obj) == hash_tagged(
+        f"custom:{MyObj.__module__}.{MyObj.__qualname__}", obj.hash(registry=registry)
+    )
 
 
 ##################################

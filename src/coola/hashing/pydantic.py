@@ -13,6 +13,8 @@ from coola.hashing.string import hash_tagged
 from coola.utils.imports import is_pydantic_available
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from coola.hashing.registry import HasherRegistry
 
 if TYPE_CHECKING or is_pydantic_available():
@@ -32,9 +34,9 @@ class PydanticModelHasher(InlineDisplayMixin, BaseHasher[pydantic.BaseModel]):
     This hasher computes a stable content hash of a pydantic model from
     its qualified class name and its fields, with every field value
     hashed through the registry - see ``hash_pydantic_model`` for
-    details. Nested models are hashed through the registry too, so this
-    hasher must be registered for ``pydantic.BaseModel`` (or for the
-    nested model types) to hash models that contain other models.
+    details. Nested models found directly in fields or in plain
+    containers (``dict``, ``list``, ``tuple``, ``set``, ``frozenset``)
+    are hashed with the same ``on_secret`` policy.
 
     Args:
         on_secret: How ``SecretStr``/``SecretBytes`` fields are
@@ -116,6 +118,7 @@ def unwrap_secrets(
     value: Any,
     *,
     on_secret: Literal["reveal", "exclude", "error"],
+    on_model: Callable[[pydantic.BaseModel], Any] | None = None,
 ) -> Any:
     """Recursively resolve ``SecretStr``/``SecretBytes`` values before
     hashing.
@@ -146,6 +149,10 @@ def unwrap_secrets(
               encountered, forcing the caller to make an explicit
               choice rather than hashing (or silently ignoring) secret
               data by accident. The message never contains the secret.
+        on_model: If given, called with every nested pydantic model
+            found in the traversed containers, and its return value
+            replaces the model. ``hash_pydantic_model`` uses it to hash
+            nested models with the same ``on_secret`` policy.
 
     Returns:
         The value with secrets resolved (or removed) according to
@@ -190,11 +197,20 @@ def unwrap_secrets(
     def keep(item: Any) -> bool:
         return not (isinstance(item, _SECRET_TYPES) and on_secret == "exclude")  # noqa: S105
 
+    if on_model is not None and isinstance(value, pydantic.BaseModel):
+        return on_model(value)
+
     value_type = type(value)
     if value_type is dict:
-        return {k: unwrap_secrets(v, on_secret=on_secret) for k, v in value.items() if keep(v)}
+        return {
+            k: unwrap_secrets(v, on_secret=on_secret, on_model=on_model)
+            for k, v in value.items()
+            if keep(v)
+        }
     if value_type in {list, tuple, set, frozenset}:
-        return value_type(unwrap_secrets(v, on_secret=on_secret) for v in value if keep(v))
+        return value_type(
+            unwrap_secrets(v, on_secret=on_secret, on_model=on_model) for v in value if keep(v)
+        )
     return value
 
 
@@ -265,6 +281,16 @@ def hash_pydantic_model(
     cls = type(model)
     fields = {name: getattr(model, name) for name in cls.model_fields}
     fields.update(model.model_extra or {})
-    resolved = unwrap_secrets(fields, on_secret=on_secret)
+
+    def hash_nested(nested: pydantic.BaseModel) -> str:
+        return hash_pydantic_model(
+            nested,
+            length=length,
+            on_secret=on_secret,
+            registry=registry,
+            ignore_unhashable=ignore_unhashable,
+        )
+
+    resolved = unwrap_secrets(fields, on_secret=on_secret, on_model=hash_nested)
     digest = registry.hash(resolved, length=length, ignore_unhashable=ignore_unhashable)
     return hash_tagged(f"pydantic:{cls.__module__}.{cls.__qualname__}", digest, length=length)

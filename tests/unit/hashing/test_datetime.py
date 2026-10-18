@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, time, timedelta, timezone
 
 import pytest
 
-from coola.hashing import DatetimeHasher, HasherRegistry
+from coola.hashing import DatetimeHasher, HasherRegistry, get_default_registry
 
 
 @pytest.fixture
@@ -124,3 +124,38 @@ def test_datetime_hasher_hash_does_not_use_registry(registry: HasherRegistry) ->
     assert hasher.hash(date(2021, 1, 1), registry=registry) == hasher.hash(
         date(2021, 1, 1), registry=empty_registry
     )
+
+
+def test_datetime_hasher_hash_time(registry: HasherRegistry) -> None:
+    hasher = DatetimeHasher()
+    assert hasher.hash(time(12, 30), registry=registry) == hasher.hash(
+        time(12, 30), registry=registry
+    )
+    assert hasher.hash(time(12, 30), registry=registry) != hasher.hash(
+        time(12, 31), registry=registry
+    )
+
+
+def test_datetime_hasher_hash_time_differs_from_datetime(registry: HasherRegistry) -> None:
+    hasher = DatetimeHasher()
+    assert hasher.hash(time(0, 0), registry=registry) != hasher.hash(
+        datetime(2024, 1, 1), registry=registry
+    )
+
+
+def test_datetime_hasher_hash_same_instant_different_zone_differs(
+    registry: HasherRegistry,
+) -> None:
+    utc = datetime(2024, 1, 1, 12, tzinfo=UTC)
+    paris = utc.astimezone(timezone(timedelta(hours=1)))
+    assert utc == paris
+    assert DatetimeHasher().hash(utc, registry=registry) != DatetimeHasher().hash(
+        paris, registry=registry
+    )
+
+
+def test_default_registry_hashes_timedelta_and_timezone() -> None:
+    registry = get_default_registry()
+    assert registry.hash(timedelta(days=1)) == registry.hash(timedelta(hours=24))
+    assert registry.hash(timedelta(days=1)) != registry.hash(timedelta(days=2))
+    assert registry.hash(timezone.utc) != registry.hash(timezone(timedelta(hours=1)))

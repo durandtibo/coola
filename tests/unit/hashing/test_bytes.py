@@ -201,3 +201,20 @@ def test_hash_bytes_is_sensitive_to_whitespace() -> None:
 def test_hash_bytes_raises_for_invalid_length(length: int) -> None:
     with pytest.raises(ValueError, match=str(abs(length))):
         hash_bytes(b"hello", length=length)
+
+
+def test_bytes_hasher_hash_bytearray_differs_from_bytes(registry: HasherRegistry) -> None:
+    hasher = BytesHasher()
+    assert hasher.hash(bytearray(b"abc"), registry=registry) != hasher.hash(
+        b"abc", registry=registry
+    )
+
+
+def test_bytes_hasher_hash_bytearray_depends_on_content(registry: HasherRegistry) -> None:
+    hasher = BytesHasher()
+    assert hasher.hash(bytearray(b"abc"), registry=registry) == hasher.hash(
+        bytearray(b"abc"), registry=registry
+    )
+    assert hasher.hash(bytearray(b"abc"), registry=registry) != hasher.hash(
+        bytearray(b"abd"), registry=registry
+    )

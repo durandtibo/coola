@@ -293,3 +293,22 @@ def test_hasher_registry_accepts_protocol_implementation_without_subclassing() -
 
     registry = HasherRegistry({object: PlainHasher()})
     assert registry.hash(1, length=4) == "aaaa"
+
+
+def test_hasher_registry_hash_ignore_unhashable_warns() -> None:
+    with pytest.warns(UserWarning, match="placeholder"):
+        HasherRegistry().hash(Unhashable(), ignore_unhashable=True)
+
+
+def test_hasher_registry_hash_self_referencing_raises() -> None:
+    registry = HasherRegistry({list: SequenceHasher()})
+    data: list = []
+    data.append(data)
+    with pytest.raises(ValueError, match="self-referencing"):
+        registry.hash(data)
+
+
+def test_hasher_registry_hash_same_object_twice_is_not_a_cycle() -> None:
+    registry = HasherRegistry({list: SequenceHasher(), int: StrHasher()})
+    shared = [1]
+    assert isinstance(registry.hash([shared, shared]), str)
