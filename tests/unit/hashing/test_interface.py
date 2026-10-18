@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Generator, Mapping, Sequence
 from datetime import UTC, date, datetime
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -21,7 +22,14 @@ from coola.hashing import (
     interface as hashing_interface,
     register_hashers,
 )
+from coola.hashing.interface import _register_default_hashers
+from coola.hashing.pydantic import PydanticModelHasher
 from coola.registry import AlreadyRegisteredError
+from coola.testing.fixtures import pydantic_available
+from coola.utils.imports import is_pydantic_available
+
+if is_pydantic_available():
+    import pydantic
 
 
 @pytest.fixture(autouse=True)
@@ -265,3 +273,21 @@ def test_get_default_registry_can_hash_dict() -> None:
     assert get_default_registry().hash({"a": 1, "b": 2}) == (
         "cefc870254126d81d0209ed1b37eda8d4d9c06378205a1c802dd2a05b21dc896"
     )
+
+
+@pydantic_available
+def test_register_default_hashers_registers_pydantic_model_when_available() -> None:
+    registry = HasherRegistry()
+    _register_default_hashers(registry)
+    assert isinstance(registry.find_hasher(pydantic.BaseModel), PydanticModelHasher)
+
+
+def test_register_default_hashers_skips_pydantic_model_when_unavailable() -> None:
+    registry = HasherRegistry()
+    with (
+        patch("coola.hashing.interface.is_pydantic_available", lambda: False),
+        patch("coola.hashing.interface.PydanticModelHasher") as hasher_cls,
+    ):
+        _register_default_hashers(registry)
+    hasher_cls.assert_not_called()
+    assert registry.has_hasher(list)

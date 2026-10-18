@@ -38,6 +38,12 @@ def hash_object(
 ) -> str:
     """Compute a hash of a nested data structure.
 
+    The hash is deterministic and depends on the type of every value, on
+    the order of ordered containers, and not on the order of unordered
+    ones. For example ``[1, 2]``, ``(1, 2)`` and ``{1, 2}`` all hash
+    differently, while ``{"a": 1, "b": 2}`` and ``{"b": 2, "a": 1}``
+    hash the same.
+
     Args:
         data: The data to hash. Can be a nested structure such as a
             ``list``, ``dict``, or ``tuple``.
@@ -49,9 +55,11 @@ def hash_object(
         ignore_unhashable: If ``True``, objects for which no hasher is
             registered (including nested objects found while hashing
             sequences or mappings) are replaced by a deterministic
-            placeholder hash instead of raising an error. Defaults to
-            ``False``, which raises a ``KeyError`` when an unhashable
-            object is encountered.
+            placeholder hash instead of raising an error. The
+            placeholder only depends on the type, so it is lossy, and a
+            ``UserWarning`` is emitted each time one is used. Defaults
+            to ``False``, which raises a ``KeyError`` when an
+            unhashable object is encountered.
 
     Returns:
         A string representing the hash of the input data.
@@ -60,6 +68,9 @@ def hash_object(
         KeyError: If ``data`` (or a nested object within it) has a
             type for which no hasher is registered and
             ``ignore_unhashable`` is ``False``.
+        ValueError: If ``length`` is not an even number between 2 and
+            128, or if ``data`` contains itself (a self-referencing
+            container).
 
     Example:
         ```pycon

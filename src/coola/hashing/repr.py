@@ -19,8 +19,12 @@ class ReprHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Any]):
     r"""Hasher for objects whose ``repr()`` is a reliable canonical
     representation.
 
-    This hasher converts the object to its ``repr()`` string and then
-    computes the hash of that string. It is preferable to
+    This hasher converts the object to its ``repr()`` string and hashes
+    it under a type tag. Instances of ``bool``, ``int``, ``float`` and
+    ``complex`` (including subclasses such as NumPy scalars) use the
+    builtin ``repr`` and the builtin type name as tag, so they hash like
+    the equivalent builtin value. Enum members are hashed with
+    ``hash_enum`` instead. It is preferable to
     ``StrHasher`` for numeric types (``int``, ``float``, ``complex``,
     ``bool``) because ``repr()`` guarantees round-trip accuracy for
     floating point values, whereas ``str()`` may lose precision on some

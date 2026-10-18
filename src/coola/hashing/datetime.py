@@ -20,12 +20,13 @@ class DatetimeHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[date | t
     and :class:`datetime.time` objects.
 
     This hasher converts the object to its ISO 8601 string representation
-    via ``isoformat()`` and then computes the hash of that string.
+    via ``isoformat()`` and hashes that string under a tag made of the
+    concrete class name.
 
     Since :class:`datetime.datetime` is a subclass of :class:`datetime.date`,
-    both types are handled by this hasher. Their ISO representations are
-    always distinct (e.g. ``'2021-01-01'`` vs ``'2021-01-01T00:00:00'``),
-    so they never produce the same hash for the same calendar date.
+    both types are handled by this hasher. The class name is part of the
+    tag, so a ``date`` and a ``datetime`` never produce the same hash,
+    even for the same calendar day.
 
     Offsets are part of the ISO string, so naive and aware values
     differ, and equal instants in different time zones hash
