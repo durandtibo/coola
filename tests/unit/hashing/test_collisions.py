@@ -199,3 +199,21 @@ def test_hash_object_ordereddict_consistent_with_objects_are_equal() -> None:
     second = OrderedDict(b=2, a=1)
     assert not objects_are_equal(first, second)
     assert hash_object(first) != hash_object(second)
+
+
+def test_hash_object_ordereddict_subclass_is_order_sensitive() -> None:
+    class MyOrderedDict(OrderedDict):
+        pass
+
+    first = MyOrderedDict(a=1, b=2)
+    second = MyOrderedDict(b=2, a=1)
+    assert not objects_are_equal(first, second)
+    assert hash_object(first) != hash_object(second)
+    assert hash_object(first) == hash_object(MyOrderedDict(a=1, b=2))
+
+
+def test_hash_object_ordereddict_nested_order_is_checked() -> None:
+    first = {"k": [OrderedDict(a=1, b=2)]}
+    second = {"k": [OrderedDict(b=2, a=1)]}
+    assert not objects_are_equal(first, second)
+    assert hash_object(first) != hash_object(second)
