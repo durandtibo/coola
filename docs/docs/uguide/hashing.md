@@ -11,7 +11,9 @@ For a refresher, see the [Python tutorial](https://docs.python.org/tutorial/).
 The `coola.hashing` package computes a stable hash string for arbitrary objects, including
 nested containers. Unlike Python's built-in `hash()`, which is randomized across processes for
 strings by default and is not guaranteed to be stable across Python versions, `coola.hashing`
-always returns the same hash for equivalent data. It offers:
+always returns the same hash for equivalent data. The hashes are content fingerprints for
+identity, caching and deduplication: they are **not** cryptographic guarantees, so do not use them
+for passwords, signatures or integrity against an attacker. It offers:
 
 1. **Deterministic hashes** - the same input always produces the same output
 2. **Recursive hashing** - nested `list`, `dict`, `tuple`, and other containers are hashed
@@ -69,9 +71,9 @@ Error
 ```
 
 Pass `ignore_unhashable=True` to replace unhashable objects with a deterministic placeholder
-hash instead of raising an error. The placeholder only depends on the type, so any two
-unsupported objects of the same type hash the same: a `UserWarning` is emitted each time a
-placeholder is used.
+hash instead of raising an error. The placeholder only depends on the type, so it is **lossy**:
+any two unsupported objects of the same type hash the same. A `UserWarning` is emitted each time
+a placeholder is used, so a silent false equality does not hide in a cache key.
 
 ```pycon
 >>> import warnings
@@ -128,11 +130,121 @@ False
 
 ```
 
-Values of different types do not collide: the type of the value is part of the hash, so `1`,
-`1.0`, `True` and `"1"`, or `[]`, `()` and `""`, all have different hashes. Order matters for
-ordered containers (`[1, 2]` differs from `[2, 1]`) and does not for unordered ones (`{1, 2}`
-equals `{2, 1}`). The hash values can change between versions of
-`coola`: do not persist them as a stable identifier across upgrades without checking.
+The hash values can change between versions of `coola`: do not persist them as a stable
+identifier across upgrades without checking.
+
+## Properties
+
+The default registry is designed around the following properties.
+
+| Property                 | Statement                                                                                                                                      |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Deterministic            | The same value gives the same hash across calls, processes, machines and operating systems. It does not depend on `PYTHONHASHSEED` or on object addresses. |
+| Type-sensitive           | Values of different types hash differently, even when their text looks the same: `1`, `1.0`, `True`, `"1"`, `b"1"` and `[1]` are all distinct.   |
+| Structure-sensitive      | Nesting and item boundaries matter: `[[1], 2]`, `[1, [2]]` and `[1, 2]` are distinct, and so are `["ab", "c"]` and `["a", "bc"]`.               |
+| Order rules              | Ordered containers are order-sensitive (`[1, 2]` differs from `[2, 1]`). Unordered containers are not (`{1, 2}` equals `{2, 1}`).             |
+| Composable               | A container hash is built only from the hashes of its children, resolved through the registry, so each type can be extended independently.     |
+| Fixed width              | The output is a lowercase hex string of `length` characters (an even number between 2 and 128, default 64).                                    |
+| No silent false equality | An unsupported type fails loudly by default. The `ignore_unhashable` placeholder is an explicit, documented opt-out.                           |
+| Cross-library scalars    | Subclasses of `bool`, `int`, `float` and `complex` (such as `np.float64`) hash like the equivalent builtin, independently of the library version. |
+| Pure                     | Hashing has no side effect and does not read the filesystem, environment or clock, except for the opt-in `ResolvedPathHasher`.                  |
+
+Internally, every hash is a BLAKE2b digest of `tag + "\0" + payload`, where the tag identifies the
+type family. Containers concatenate the **fixed-width** hashes of their children and hash the
+result, which makes the concatenation unambiguous without delimiters. The registry dispatches on
+`type(data)` along the Method Resolution Order, so the most specific registered type wins.
+
+### Choices that may surprise you
+
+| Question                                       | Answer                                                                                                                       |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `[1, 2]` vs `(1, 2)`                           | **Different.** They are different types, and each sequence family has its own tag.                                           |
+| `list` vs `deque`                              | **Different**, for the same reason.                                                                                          |
+| `1` vs `1.0` vs `True`                         | **All different.** `1 == 1.0` in Python, but the identity of a hash is the type and the value.                               |
+| `{"a": 1, "b": 2}` vs `{"b": 2, "a": 1}`       | **Same.** Insertion order is not semantic for mappings.                                                                      |
+| `dict` vs `OrderedDict`                        | **Different.** `OrderedDict` equality is order-sensitive, so its hash is order-sensitive too.                                |
+| `set` vs `frozenset`                           | **Different.** Both are order-insensitive.                                                                                   |
+| `set` vs `list` with the same items            | **Different.**                                                                                                               |
+| `str` vs `bytes`                               | **Different.**                                                                                                               |
+| `IntEnum` / `StrEnum` member vs its value      | **Different.** Enum members are not collapsed into `int` or `str`.                                                           |
+| Subclass instance vs base instance             | **Same** for scalars normalised to the builtin (e.g. NumPy floats), and for subclasses that dispatch to the same hasher and tag (e.g. a `list` subclass). |
+
+```pycon
+>>> from coola.hashing import hash_object
+>>> hash_object([1, 2]) != hash_object((1, 2))
+True
+>>> hash_object(1) != hash_object(1.0)
+True
+>>> hash_object({"a": 1, "b": 2}) == hash_object({"b": 2, "a": 1})
+True
+>>> hash_object({1, 2, 3}) == hash_object({3, 2, 1})
+True
+
+```
+
+## Behavior per Type
+
+- **`str`**: tag `str`, UTF-8 payload. There is no Unicode normalisation, so a precomposed `é` and
+  `e` followed by a combining accent are different strings. A string that cannot be encoded as
+  UTF-8 (a lone surrogate) raises a `ValueError`.
+- **`bytes`, `bytearray`**: tagged with their type name, payload is the raw content.
+- **`bool`, `int`, `float`, `complex`, `None`**: tag is the type name, payload is the builtin
+  `repr`, which round-trips exactly. `bool` is checked before `int`, so `True` and `1` differ.
+  `0.0` and `-0.0` differ, and all NaNs hash the same.
+- **`Enum`**: the qualified class name and the member name, not the member value.
+- **`list`, `tuple`, `deque`, other `Sequence`**: the tag is the sequence family, the payload is
+  the child hashes in order. A named tuple also includes its class name and field names, so
+  `Point(1, 2)` differs from `(1, 2)`. Strings and bytes are never iterated as sequences.
+- **`dict`, other `Mapping`**: each item is `key_hash + value_hash`, and items are sorted by the
+  *key hash*, not by the key. Keys do not need to be orderable and can have mixed types.
+  `OrderedDict` is the exception: items keep their iteration order.
+- **`set`, `frozenset`**: the sorted item hashes under the `set` or `frozenset` tag.
+- **`date`, `datetime`, `time`**: tagged with the concrete class name, payload is the ISO 8601
+  string. Offsets are part of the payload, so naive and aware datetimes differ, and equal instants
+  in different time zones hash differently. Convert to UTC first if you want instant equality.
+  `timedelta` and `timezone` use their `repr`.
+- **`Path`, `PurePath`**: the POSIX form of the path as written, with no filesystem access, so the
+  hash is portable across machines. A relative and an absolute path to the same location differ.
+  Register `ResolvedPathHasher` to resolve symlinks, `..` and relative paths first; the result
+  then depends on the filesystem and on the current working directory. Hashing the *content* of
+  a file is a different operation that is not provided by a hasher.
+- **pydantic `BaseModel`**: the qualified model class name plus the fields, hashed as a mapping
+  through the registry (extra fields included). Two different model classes with the same values
+  therefore differ. Secrets are controlled by `on_secret`:
+    - `"error"` (default) raises a `ValueError` (the message never contains the secret),
+    - `"reveal"` hashes the real secret value,
+    - `"exclude"` drops secret fields, so models that differ only by a secret hash the same.
+
+  Nested models use the same `on_secret` policy.
+- **Dataclasses**: the qualified class name plus the field values, with `DataclassHasher`
+  registered for each dataclass type.
+- **Objects with their own `hash` method**: the result of `hash`, tagged with the qualified class
+  name (see [Custom Objects](#custom-objects)).
+
+```pycon
+>>> from dataclasses import dataclass
+>>> from coola.hashing import DataclassHasher, hash_object, register_hashers
+>>> @dataclass
+... class Point:
+...     x: int
+...     y: int
+>>> register_hashers({Point: DataclassHasher()})
+>>> hash_object(Point(1, 2)) == hash_object(Point(1, 2))
+True
+>>> hash_object(Point(1, 2)) != hash_object({"x": 1, "y": 2})
+True
+
+```
+
+## Errors
+
+| Situation                                           | Behavior                                                                                  |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `length` is odd or outside 2 to 128                 | `ValueError`                                                                              |
+| No hasher for the type                              | `KeyError` naming the type, or a lossy placeholder with `ignore_unhashable=True`          |
+| Self-referencing container                          | `ValueError` instead of a stack overflow                                                  |
+| String that is not valid UTF-8                      | `ValueError`                                                                              |
+| Secret field with `on_secret="error"`               | `ValueError`, without leaking the value                                                   |
 
 ## Type-Specific Hashers
 
@@ -224,6 +336,20 @@ For a class that can compute its own hash, implement the `SupportsHash` protocol
 `hash(registry=..., length=..., ignore_unhashable=...)` method. `HashableHasher` then dispatches
 to it, and the registry-based hashers (`hash_object`, `SequenceHasher`, `MappingHasher`, ...) can
 hash instances of that class like any other registered type.
+
+### Writing a Hasher
+
+When you add a hasher, follow these rules so that it keeps the guarantees above:
+
+1. Pick a unique, stable tag, and never reuse the tag of another type family.
+2. Return a tagged hash (`hash_tagged(tag, payload, length=length)`), never a bare `hash_string`.
+3. Hash children with `registry.hash(child, length=length, ignore_unhashable=ignore_unhashable)`:
+   always forward both arguments.
+4. Do not depend on object addresses, `id()`, `hash()`, the iteration order of dicts or sets,
+   the locale, the time zone or the clock.
+5. Register the hasher for the most general type whose semantics are identical, and for the
+   exact type where they are not.
+6. Test stability, equality-consistency, type-sensitivity, item boundaries and order.
 
 ## See Also
 
