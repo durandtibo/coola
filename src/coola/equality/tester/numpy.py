@@ -9,9 +9,8 @@ from __future__ import annotations
 
 __all__ = ["NumpyArrayEqualityTester", "NumpyMaskedArrayEqualityTester"]
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
-from coola.display import InlineDisplayMixin
 from coola.equality.handler import (
     NumpyArrayEqualHandler,
     SameAttributeHandler,
@@ -23,7 +22,7 @@ from coola.equality.handler import (
     TrueHandler,
     create_chain,
 )
-from coola.equality.tester.base import BaseEqualityTester
+from coola.equality.tester.chain import BaseChainEqualityTester
 from coola.utils.imports import check_numpy, is_numpy_available
 
 if TYPE_CHECKING or is_numpy_available():
@@ -32,10 +31,10 @@ else:  # pragma: no cover
     from coola.utils.fallback.numpy import numpy as np
 
 if TYPE_CHECKING:
-    from coola.equality.config import EqualityConfig
+    from coola.equality.handler import BaseEqualityHandler
 
 
-class NumpyArrayEqualityTester(InlineDisplayMixin, BaseEqualityTester[np.ndarray]):
+class NumpyArrayEqualityTester(BaseChainEqualityTester[np.ndarray]):
     r"""Implement an equality tester for ``numpy.ndarray``.
 
     This tester compares NumPy arrays element-wise with support for NaN equality
@@ -83,12 +82,11 @@ class NumpyArrayEqualityTester(InlineDisplayMixin, BaseEqualityTester[np.ndarray
         ```
     """
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
-
-    def __init__(self) -> None:
+    def _check_dependencies(self) -> None:
         check_numpy()
-        self._handler = create_chain(
+
+    def _create_handler(self) -> BaseEqualityHandler:
+        return create_chain(
             SameObjectHandler(),
             SameTypeHandler(),
             SameDTypeHandler(),
@@ -96,19 +94,8 @@ class NumpyArrayEqualityTester(InlineDisplayMixin, BaseEqualityTester[np.ndarray
             NumpyArrayEqualHandler(),
         )
 
-    def equal(self, other: object) -> bool:
-        return type(other) is type(self)
 
-    def objects_are_equal(
-        self,
-        actual: np.ndarray,
-        expected: object,
-        config: EqualityConfig,
-    ) -> bool:
-        return self._handler.handle(actual, expected, config=config)
-
-
-class NumpyMaskedArrayEqualityTester(InlineDisplayMixin, BaseEqualityTester[np.ma.MaskedArray]):
+class NumpyMaskedArrayEqualityTester(BaseChainEqualityTester[np.ma.MaskedArray]):
     r"""Implement an equality tester for ``numpy.ma.MaskedArray``.
 
     This tester compares NumPy masked arrays by checking data, mask, and fill_value.
@@ -164,12 +151,11 @@ class NumpyMaskedArrayEqualityTester(InlineDisplayMixin, BaseEqualityTester[np.m
         ```
     """
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
-
-    def __init__(self) -> None:
+    def _check_dependencies(self) -> None:
         check_numpy()
-        self._handler = create_chain(
+
+    def _create_handler(self) -> BaseEqualityHandler:
+        return create_chain(
             SameObjectHandler(),
             SameTypeHandler(),
             SameDTypeHandler(),
@@ -179,14 +165,3 @@ class NumpyMaskedArrayEqualityTester(InlineDisplayMixin, BaseEqualityTester[np.m
             SameAttributeHandler("fill_value"),
             TrueHandler(),
         )
-
-    def equal(self, other: object) -> bool:
-        return type(other) is type(self)
-
-    def objects_are_equal(
-        self,
-        actual: np.ma.MaskedArray,
-        expected: object,
-        config: EqualityConfig,
-    ) -> bool:
-        return self._handler.handle(actual, expected, config=config)

@@ -13,7 +13,6 @@ __all__ = ["MappingEqualityTester", "SequenceEqualityTester"]
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any
 
-from coola.display import InlineDisplayMixin
 from coola.equality.handler import (
     MappingSameKeysHandler,
     MappingSameValuesHandler,
@@ -24,13 +23,13 @@ from coola.equality.handler import (
     TrueHandler,
     create_chain,
 )
-from coola.equality.tester.base import BaseEqualityTester
+from coola.equality.tester.chain import BaseChainEqualityTester
 
 if TYPE_CHECKING:
-    from coola.equality.config import EqualityConfig
+    from coola.equality.handler import BaseEqualityHandler
 
 
-class MappingEqualityTester(InlineDisplayMixin, BaseEqualityTester[Mapping[Any, Any]]):
+class MappingEqualityTester(BaseChainEqualityTester[Mapping[Any, Any]]):
     r"""Implement a mapping equality tester.
 
     This tester handles dictionary-like objects (dict, Mapping ABC) by recursively
@@ -77,11 +76,8 @@ class MappingEqualityTester(InlineDisplayMixin, BaseEqualityTester[Mapping[Any, 
         ```
     """
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
-
-    def __init__(self) -> None:
-        self._handler = create_chain(
+    def _create_handler(self) -> BaseEqualityHandler:
+        return create_chain(
             SameObjectHandler(),
             SameTypeHandler(),
             SameLengthHandler(),
@@ -90,19 +86,8 @@ class MappingEqualityTester(InlineDisplayMixin, BaseEqualityTester[Mapping[Any, 
             TrueHandler(),
         )
 
-    def equal(self, other: object) -> bool:
-        return type(other) is type(self)
 
-    def objects_are_equal(
-        self,
-        actual: Mapping[Any, Any],
-        expected: object,
-        config: EqualityConfig,
-    ) -> bool:
-        return self._handler.handle(actual, expected, config=config)
-
-
-class SequenceEqualityTester(InlineDisplayMixin, BaseEqualityTester[Sequence[Any]]):
+class SequenceEqualityTester(BaseChainEqualityTester[Sequence[Any]]):
     r"""Implement a sequence equality tester.
 
     This tester handles sequence types (list, tuple, deque, Sequence ABC) by
@@ -148,25 +133,11 @@ class SequenceEqualityTester(InlineDisplayMixin, BaseEqualityTester[Sequence[Any
         ```
     """
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
-
-    def __init__(self) -> None:
-        self._handler = create_chain(
+    def _create_handler(self) -> BaseEqualityHandler:
+        return create_chain(
             SameObjectHandler(),
             SameTypeHandler(),
             SameLengthHandler(),
             SequenceSameValuesHandler(),
             TrueHandler(),
         )
-
-    def equal(self, other: object) -> bool:
-        return type(other) is type(self)
-
-    def objects_are_equal(
-        self,
-        actual: Sequence[Any],
-        expected: object,
-        config: EqualityConfig,
-    ) -> bool:
-        return self._handler.handle(actual, expected, config=config)

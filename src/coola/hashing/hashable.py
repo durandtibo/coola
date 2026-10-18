@@ -4,9 +4,9 @@ from __future__ import annotations
 
 __all__ = ["HashableHasher", "SupportsHash"]
 
-from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from coola.display import InlineDisplayMixin
+from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
 from coola.hashing.base import BaseHasher
 
 if TYPE_CHECKING:
@@ -41,7 +41,7 @@ class SupportsHash(Protocol):
         ...
 
 
-class HashableHasher(InlineDisplayMixin, BaseHasher[SupportsHash]):
+class HashableHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[SupportsHash]):
     r"""Hasher for objects that implement their own ``hash`` method.
 
     This hasher delegates to the object's own ``hash`` method, passing
@@ -72,9 +72,6 @@ class HashableHasher(InlineDisplayMixin, BaseHasher[SupportsHash]):
 
         ```
     """
-
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
 
     def hash(
         self,

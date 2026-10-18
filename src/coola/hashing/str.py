@@ -6,7 +6,7 @@ __all__ = ["StrHasher"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.display import InlineDisplayMixin
+from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_string
 
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
 
 
-class StrHasher(InlineDisplayMixin, BaseHasher[Any]):
+class StrHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Any]):
     r"""Hasher for objects whose ``str()`` is a reliable canonical
     representation.
 
@@ -35,9 +35,6 @@ class StrHasher(InlineDisplayMixin, BaseHasher[Any]):
 
         ```
     """
-
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
 
     def hash(
         self,

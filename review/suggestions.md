@@ -248,6 +248,8 @@ cheap and failure-prone, and expose `cache_clear` in the testing helpers.
 
 ### 2.3 Equality tester boilerplate (medium, simplification)
 
+_(Status: fixed. `BaseChainEqualityTester` (`equality/tester/chain.py`) implements `equal`, `objects_are_equal`, the repr and the chain creation; each built-in tester now only defines `_create_handler` (and `_check_dependencies` when it needs an optional package). The 27 `_get_repr_kwargs` methods that returned `{}` were removed in favor of `NoArgsDisplayMixin`, which is now used by the hashers, transformers, summarizers, iterators, finders, random managers, reducers and io classes.)_
+
 About 25 tester classes (`tester/numpy.py`, `pandas.py`, `polars.py`, `torch.py`,
 `xarray.py`, `jax.py`, `pyarrow.py`, `scalar.py`, `default.py`, `equal.py`,
 `tolerant.py`, `collection.py`) repeat the same body:
@@ -283,6 +285,8 @@ The same applies to `Hasher`, `Transformer`, `Summarizer`, `ChildFinder` and
 is currently used nowhere under `src/`. Use it.
 
 ### 2.4 `equal()` identity checks are copy-pasted (low)
+
+_(Status: fixed. `is_same_type(value, reference)` in `coola.utils.introspection` is a `TypeGuard`, so the type checker narrows `other` and the redundant `isinstance` clause is gone. It replaces every `type(other) is type(self)` check in `src`.)_
 
 `type(other) is not type(self) or not isinstance(other, type(self))` appears in
 `BaseRegistry.equal`, `HandlerEqualityMixin.equal`, `HandlerEqualityTester.equal` and

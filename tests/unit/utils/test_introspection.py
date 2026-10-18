@@ -10,6 +10,7 @@ from coola.utils.introspection import (
     get_all_child_classes,
     get_fully_qualified_name,
     is_lambda_function,
+    is_same_type,
     supports_methods,
 )
 
@@ -347,3 +348,54 @@ def test_supports_methods_on_plain_object_false() -> None:
 
 def test_supports_methods_on_int_true() -> None:
     assert supports_methods(1, "bit_length")
+
+
+#####################################
+#     Tests for is_same_type        #
+#####################################
+
+
+class Parent:
+    """Parent class."""
+
+
+class Child(Parent):
+    """Child class."""
+
+
+def test_is_same_type_true() -> None:
+    assert is_same_type(Parent(), Parent())
+
+
+def test_is_same_type_false_different_classes() -> None:
+    assert not is_same_type(Parent(), Fake(1))
+
+
+def test_is_same_type_false_subclass() -> None:
+    assert not is_same_type(Child(), Parent())
+    assert not is_same_type(Parent(), Child())
+
+
+def test_is_same_type_bool_is_not_int() -> None:
+    assert not is_same_type(True, 1)
+
+
+def test_is_same_type_builtin_types() -> None:
+    assert is_same_type(1, 2)
+    assert is_same_type("a", "b")
+    assert not is_same_type(1, 1.0)
+
+
+def test_is_same_type_narrows_for_attribute_access() -> None:
+    class Point:
+        def __init__(self, x: int) -> None:
+            self.x = x
+
+        def equal(self, other: object) -> bool:
+            if not is_same_type(other, self):
+                return False
+            return self.x == other.x
+
+    assert Point(1).equal(Point(1))
+    assert not Point(1).equal(Point(2))
+    assert not Point(1).equal(1)

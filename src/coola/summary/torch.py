@@ -7,6 +7,8 @@ dtype, and device instead of the full data by default.
 
 from __future__ import annotations
 
+from coola.utils.introspection import is_same_type
+
 __all__ = ["TensorSummarizer"]
 
 from typing import TYPE_CHECKING, Any
@@ -76,7 +78,7 @@ class TensorSummarizer(InlineDisplayMixin, BaseSummarizer[torch.Tensor]):
         return {"show_data": self._show_data}
 
     def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
+        if not is_same_type(other, self):
             return False
         return self._show_data == other._show_data
 

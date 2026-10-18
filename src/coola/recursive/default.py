@@ -6,7 +6,7 @@ __all__ = ["DefaultTransformer"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.display import InlineDisplayMixin
+from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
 from coola.recursive.base import BaseTransformer
 
 if TYPE_CHECKING:
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from coola.recursive.registry import TransformerRegistry
 
 
-class DefaultTransformer(InlineDisplayMixin, BaseTransformer[Any]):
+class DefaultTransformer(InlineDisplayMixin, NoArgsDisplayMixin, BaseTransformer[Any]):
     r"""Transformer for leaf nodes that directly applies the function.
 
     This is the default transformer used for values that don't require
@@ -51,9 +51,6 @@ class DefaultTransformer(InlineDisplayMixin, BaseTransformer[Any]):
 
         ```
     """
-
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
 
     def transform(
         self,

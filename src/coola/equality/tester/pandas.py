@@ -8,9 +8,8 @@ from __future__ import annotations
 
 __all__ = ["PandasDataFrameEqualityTester", "PandasSeriesEqualityTester"]
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
-from coola.display import InlineDisplayMixin
 from coola.equality.handler import (
     PandasDataFrameEqualHandler,
     PandasSeriesEqualHandler,
@@ -18,7 +17,7 @@ from coola.equality.handler import (
     SameTypeHandler,
     create_chain,
 )
-from coola.equality.tester.base import BaseEqualityTester
+from coola.equality.tester.chain import BaseChainEqualityTester
 from coola.utils.imports import check_pandas, is_pandas_available
 
 if TYPE_CHECKING or is_pandas_available():
@@ -27,10 +26,10 @@ else:  # pragma: no cover
     from coola.utils.fallback.pandas import pandas as pd
 
 if TYPE_CHECKING:
-    from coola.equality.config import EqualityConfig
+    from coola.equality.handler import BaseEqualityHandler
 
 
-class PandasDataFrameEqualityTester(InlineDisplayMixin, BaseEqualityTester[pd.DataFrame]):
+class PandasDataFrameEqualityTester(BaseChainEqualityTester[pd.DataFrame]):
     r"""Implement an equality tester for ``pandas.DataFrame``.
 
     This tester uses pandas' DataFrame equality testing which compares shape,
@@ -84,28 +83,14 @@ class PandasDataFrameEqualityTester(InlineDisplayMixin, BaseEqualityTester[pd.Da
         ```
     """
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
-
-    def __init__(self) -> None:
+    def _check_dependencies(self) -> None:
         check_pandas()
-        self._handler = create_chain(
-            SameObjectHandler(), SameTypeHandler(), PandasDataFrameEqualHandler()
-        )
 
-    def equal(self, other: object) -> bool:
-        return type(other) is type(self)
-
-    def objects_are_equal(
-        self,
-        actual: pd.DataFrame,
-        expected: object,
-        config: EqualityConfig,
-    ) -> bool:
-        return self._handler.handle(actual, expected, config=config)
+    def _create_handler(self) -> BaseEqualityHandler:
+        return create_chain(SameObjectHandler(), SameTypeHandler(), PandasDataFrameEqualHandler())
 
 
-class PandasSeriesEqualityTester(InlineDisplayMixin, BaseEqualityTester[pd.Series]):
+class PandasSeriesEqualityTester(BaseChainEqualityTester[pd.Series]):
     r"""Implement an equality tester for ``pandas.Series``.
 
     This tester uses pandas' Series equality testing which compares length,
@@ -151,22 +136,8 @@ class PandasSeriesEqualityTester(InlineDisplayMixin, BaseEqualityTester[pd.Serie
         ```
     """
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
-
-    def __init__(self) -> None:
+    def _check_dependencies(self) -> None:
         check_pandas()
-        self._handler = create_chain(
-            SameObjectHandler(), SameTypeHandler(), PandasSeriesEqualHandler()
-        )
 
-    def equal(self, other: object) -> bool:
-        return type(other) is type(self)
-
-    def objects_are_equal(
-        self,
-        actual: pd.Series,
-        expected: object,
-        config: EqualityConfig,
-    ) -> bool:
-        return self._handler.handle(actual, expected, config=config)
+    def _create_handler(self) -> BaseEqualityHandler:
+        return create_chain(SameObjectHandler(), SameTypeHandler(), PandasSeriesEqualHandler())

@@ -20,6 +20,7 @@ Example:
 from __future__ import annotations
 
 __all__ = [
+    "BaseChainEqualityTester",
     "BaseEqualityTester",
     "DefaultEqualityTester",
     "EqualEqualityTester",
@@ -50,6 +51,7 @@ __all__ = [
 ]
 
 from coola.equality.tester.base import BaseEqualityTester
+from coola.equality.tester.chain import BaseChainEqualityTester
 from coola.equality.tester.collection import (
     MappingEqualityTester,
     SequenceEqualityTester,

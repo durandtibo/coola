@@ -14,14 +14,17 @@ __all__ = [
     "get_fully_qualified_name",
     "get_type_constructor",
     "is_lambda_function",
+    "is_same_type",
     "supports_methods",
 ]
 
 import inspect
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, TypeGuard, TypeVar, cast
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+T = TypeVar("T")
 
 
 def check_not_lambda_function(obj: Any) -> None:
@@ -209,3 +212,37 @@ def get_type_constructor(obj: object) -> Callable[..., Any]:
         ```
     """
     return cast("Callable[..., Any]", type(obj))
+
+
+def is_same_type(value: object, reference: T) -> TypeGuard[T]:
+    r"""Indicate if an object has exactly the same type as a reference.
+
+    The types must be identical: an instance of a subclass is not
+    considered to have the same type as an instance of its parent
+    class. This is the check used by the ``equal`` methods to compare
+    two objects of the same class. When it returns ``True``, type
+    checkers know that ``value`` has the type of ``reference``, so its
+    attributes can be accessed.
+
+    Args:
+        value: The object to check. It is the first argument because
+            type guards narrow the first argument.
+        reference: The object that gives the expected type.
+
+    Returns:
+        ``True`` if ``type(value) is type(reference)``, otherwise
+            ``False``.
+
+    Example:
+        ```pycon
+        >>> from coola.utils.introspection import is_same_type
+        >>> is_same_type(1, 2)
+        True
+        >>> is_same_type(1, 2.0)
+        False
+        >>> is_same_type(True, 1)
+        False
+
+        ```
+    """
+    return type(value) is type(reference)
