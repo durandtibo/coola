@@ -144,14 +144,22 @@ def test_datetime_hasher_hash_time_differs_from_datetime(registry: HasherRegistr
     )
 
 
-def test_datetime_hasher_hash_same_instant_different_zone_differs(
+def test_datetime_hasher_hash_same_instant_different_zone_is_equal(
     registry: HasherRegistry,
 ) -> None:
     utc = datetime(2024, 1, 1, 12, tzinfo=UTC)
     paris = utc.astimezone(timezone(timedelta(hours=1)))
     assert utc == paris
-    assert DatetimeHasher().hash(utc, registry=registry) != DatetimeHasher().hash(
+    assert DatetimeHasher().hash(utc, registry=registry) == DatetimeHasher().hash(
         paris, registry=registry
+    )
+
+
+def test_datetime_hasher_hash_different_instants_differ(registry: HasherRegistry) -> None:
+    first = datetime(2024, 1, 1, 12, tzinfo=UTC)
+    second = datetime(2024, 1, 1, 12, tzinfo=timezone(timedelta(hours=1)))
+    assert DatetimeHasher().hash(first, registry=registry) != DatetimeHasher().hash(
+        second, registry=registry
     )
 
 

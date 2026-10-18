@@ -4,7 +4,7 @@ from __future__ import annotations
 
 __all__ = ["DatetimeHasher"]
 
-from datetime import date, time
+from datetime import UTC, date, datetime, time
 from typing import TYPE_CHECKING
 
 from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
@@ -28,9 +28,10 @@ class DatetimeHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[date | t
     tag, so a ``date`` and a ``datetime`` never produce the same hash,
     even for the same calendar day.
 
-    Offsets are part of the ISO string, so naive and aware values
-    differ, and equal instants in different time zones hash
-    differently.
+    Aware datetimes are converted to UTC first, so equal instants in
+    different time zones hash the same, like they compare equal. Naive
+    and aware datetimes differ. An aware ``time`` is not normalised: its
+    offset is part of the ISO string.
 
     Example:
         ```pycon
@@ -75,4 +76,7 @@ class DatetimeHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[date | t
             ValueError: If ``length`` is not an even number between 2
                 and 128.
         """
+        if isinstance(data, datetime) and data.utcoffset() is not None:
+            # Aware datetimes that represent the same instant are equal.
+            data = data.astimezone(UTC)
         return hash_tagged(type(data).__qualname__, data.isoformat(), length=length)

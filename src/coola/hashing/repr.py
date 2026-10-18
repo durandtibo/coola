@@ -15,6 +15,19 @@ if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
 
 
+def _builtin_repr(base: Any, data: Any) -> str:
+    """Return the ``repr`` of ``data`` as the builtin type ``base``.
+
+    ``-0.0`` is normalised to ``0.0`` (also for the components of a
+    complex number) because the two values are equal.
+    """
+    if base is float:
+        return float.__repr__(float(data) + 0.0)
+    if base is complex:
+        return complex.__repr__(complex(float(data.real) + 0.0, float(data.imag) + 0.0))
+    return base.__repr__(data)
+
+
 class ReprHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Any]):
     r"""Hasher for objects whose ``repr()`` is a reliable canonical
     representation.
@@ -23,7 +36,8 @@ class ReprHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Any]):
     it under a type tag. Instances of ``bool``, ``int``, ``float`` and
     ``complex`` (including subclasses such as NumPy scalars) use the
     builtin ``repr`` and the builtin type name as tag, so they hash like
-    the equivalent builtin value. Enum members are hashed with
+    the equivalent builtin value. Negative zero is normalised to zero,
+    since ``-0.0 == 0.0``. Enum members are hashed with
     ``hash_enum`` instead. It is preferable to
     ``StrHasher`` for numeric types (``int``, ``float``, ``complex``,
     ``bool``) because ``repr()`` guarantees round-trip accuracy for
@@ -79,5 +93,5 @@ class ReprHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Any]):
             if isinstance(data, base):
                 # Use the builtin repr so subclasses (e.g. NumPy scalars)
                 # hash like the builtin value, independent of library versions.
-                return hash_tagged(base.__name__, base.__repr__(data), length=length)
+                return hash_tagged(base.__name__, _builtin_repr(base, data), length=length)
         return hash_tagged(type(data).__qualname__, repr(data), length=length)
