@@ -27,7 +27,7 @@ from coola.factory import is_object_config, resolve_object
 from coola.io.utils import add_uuid_suffix
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
+    from collections.abc import Generator, Sequence
     from pathlib import Path
 
 T = TypeVar("T")
@@ -491,7 +491,9 @@ class BaseFileSaver(BaseSaver[T]):
         """
 
 
-def is_loader_config(config: dict[Any, Any]) -> bool:
+def is_loader_config(
+    config: dict[Any, Any], *, allowed_prefixes: Sequence[str] | None = None
+) -> bool:
     r"""Indicate if the input configuration is a configuration for a
     ``BaseLoader``.
 
@@ -502,10 +504,17 @@ def is_loader_config(config: dict[Any, Any]) -> bool:
 
     Args:
         config: The configuration to check.
+        allowed_prefixes: An optional allow-list of module prefixes that
+            the ``"_target_"`` must match, e.g. ``["coola.io"]``. If
+            ``None`` (default), any ``"_target_"`` is allowed.
 
     Returns:
         ``True`` if the input configuration is a configuration for a
             ``BaseLoader`` object.
+
+    Security:
+        The ``"_target_"`` is imported to check its class: see
+        :func:`coola.factory.is_object_config`.
 
     Example:
         ```pycon
@@ -515,10 +524,12 @@ def is_loader_config(config: dict[Any, Any]) -> bool:
 
         ```
     """
-    return is_object_config(config, BaseLoader)
+    return is_object_config(config, BaseLoader, allowed_prefixes=allowed_prefixes)
 
 
-def is_saver_config(config: dict[Any, Any]) -> bool:
+def is_saver_config(
+    config: dict[Any, Any], *, allowed_prefixes: Sequence[str] | None = None
+) -> bool:
     r"""Indicate if the input configuration is a configuration for a
     ``BaseSaver``.
 
@@ -529,10 +540,17 @@ def is_saver_config(config: dict[Any, Any]) -> bool:
 
     Args:
         config: The configuration to check.
+        allowed_prefixes: An optional allow-list of module prefixes that
+            the ``"_target_"`` must match, e.g. ``["coola.io"]``. If
+            ``None`` (default), any ``"_target_"`` is allowed.
 
     Returns:
         ``True`` if the input configuration is a configuration for a
             ``BaseSaver`` object.
+
+    Security:
+        The ``"_target_"`` is imported to check its class: see
+        :func:`coola.factory.is_object_config`.
 
     Example:
         ```pycon
@@ -542,10 +560,12 @@ def is_saver_config(config: dict[Any, Any]) -> bool:
 
         ```
     """
-    return is_object_config(config, BaseSaver)
+    return is_object_config(config, BaseSaver, allowed_prefixes=allowed_prefixes)
 
 
-def resolve_loader(loader: BaseLoader[T] | dict[Any, Any]) -> BaseLoader[T]:
+def resolve_loader(
+    loader: BaseLoader[T] | dict[Any, Any], *, allowed_prefixes: Sequence[str] | None = None
+) -> BaseLoader[T]:
     r"""Set up a data loader.
 
     The data loader is instantiated from its configuration by using the
@@ -553,6 +573,9 @@ def resolve_loader(loader: BaseLoader[T] | dict[Any, Any]) -> BaseLoader[T]:
 
     Args:
         loader: The data loader or its configuration.
+        allowed_prefixes: An optional allow-list of module prefixes that
+            the ``"_target_"`` must match, e.g. ``["coola.io"]``. If
+            ``None`` (default), any ``"_target_"`` is allowed.
 
     Returns:
         The instantiated data loader.
@@ -560,10 +583,11 @@ def resolve_loader(loader: BaseLoader[T] | dict[Any, Any]) -> BaseLoader[T]:
     Security:
         When ``loader`` is a configuration :class:`dict`, its
         ``"_target_"`` value is imported and instantiated with no
-        allowlist (see :func:`coola.factory.factory`). Only call this
-        function with a configuration that comes from a trusted
-        source; never resolve a loader configuration derived from
-        untrusted input, as this is a remote-code-execution vector.
+        allowlist by default (see :func:`coola.factory.factory`). Only
+        call this function with a configuration that comes from a
+        trusted source, or restrict it with ``allowed_prefixes``; never
+        resolve a loader configuration derived from untrusted input
+        without it, as this is a remote-code-execution vector.
 
     Example:
         ```pycon
@@ -574,10 +598,14 @@ def resolve_loader(loader: BaseLoader[T] | dict[Any, Any]) -> BaseLoader[T]:
 
         ```
     """
-    return cast("BaseLoader[T]", resolve_object(loader, BaseLoader))
+    return cast(
+        "BaseLoader[T]", resolve_object(loader, BaseLoader, allowed_prefixes=allowed_prefixes)
+    )
 
 
-def resolve_saver(saver: BaseSaver[T] | dict[Any, Any]) -> BaseSaver[T]:
+def resolve_saver(
+    saver: BaseSaver[T] | dict[Any, Any], *, allowed_prefixes: Sequence[str] | None = None
+) -> BaseSaver[T]:
     r"""Set up a data saver.
 
     The data saver is instantiated from its configuration by using the
@@ -585,6 +613,9 @@ def resolve_saver(saver: BaseSaver[T] | dict[Any, Any]) -> BaseSaver[T]:
 
     Args:
         saver: The data saver or its configuration.
+        allowed_prefixes: An optional allow-list of module prefixes that
+            the ``"_target_"`` must match, e.g. ``["coola.io"]``. If
+            ``None`` (default), any ``"_target_"`` is allowed.
 
     Returns:
         The instantiated data saver.
@@ -592,10 +623,11 @@ def resolve_saver(saver: BaseSaver[T] | dict[Any, Any]) -> BaseSaver[T]:
     Security:
         When ``saver`` is a configuration :class:`dict`, its
         ``"_target_"`` value is imported and instantiated with no
-        allowlist (see :func:`coola.factory.factory`). Only call this
-        function with a configuration that comes from a trusted
-        source; never resolve a saver configuration derived from
-        untrusted input, as this is a remote-code-execution vector.
+        allowlist by default (see :func:`coola.factory.factory`). Only
+        call this function with a configuration that comes from a
+        trusted source, or restrict it with ``allowed_prefixes``; never
+        resolve a saver configuration derived from untrusted input
+        without it, as this is a remote-code-execution vector.
 
     Example:
         ```pycon
@@ -606,4 +638,4 @@ def resolve_saver(saver: BaseSaver[T] | dict[Any, Any]) -> BaseSaver[T]:
 
         ```
     """
-    return cast("BaseSaver[T]", resolve_object(saver, BaseSaver))
+    return cast("BaseSaver[T]", resolve_object(saver, BaseSaver, allowed_prefixes=allowed_prefixes))

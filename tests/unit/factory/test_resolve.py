@@ -374,3 +374,52 @@ def test_factory_allowed_prefixes_not_forwarded_to_target() -> None:
 
 def test_factory_allowed_prefixes_none() -> None:
     assert factory("collections.Counter", [1], _allowed_prefixes_=None) == Counter([1])
+
+
+def test_resolve_object_allowed_prefixes_match() -> None:
+    config = {OBJECT_TARGET: "collections.Counter", "a": 2}
+    assert resolve_object(config, Counter, allowed_prefixes=["collections"]) == Counter(a=2)
+
+
+def test_resolve_object_allowed_prefixes_no_match() -> None:
+    with pytest.raises(ImportError, match="target object does not exist") as info:
+        resolve_object({OBJECT_TARGET: "collections.Counter"}, allowed_prefixes=["os"])
+    assert "not allowed" in str(info.value.__cause__)
+
+
+def test_resolve_object_allowed_prefixes_no_match_does_not_call_the_target() -> None:
+    with pytest.raises(ImportError, match="target object does not exist"):
+        resolve_object({OBJECT_TARGET: "os.getcwd"}, allowed_prefixes=["collections"])
+
+
+def test_resolve_object_allowed_prefixes_must_match_a_whole_module_name() -> None:
+    with pytest.raises(ImportError, match="target object does not exist"):
+        resolve_object({OBJECT_TARGET: "collections.Counter"}, allowed_prefixes=["collection"])
+
+
+def test_resolve_object_allowed_prefixes_overrides_the_prefixes_of_the_config() -> None:
+    # A configuration cannot widen the allow-list given by the caller.
+    config = {OBJECT_TARGET: "os.getcwd", "_allowed_prefixes_": ["os"]}
+    with pytest.raises(ImportError, match="target object does not exist"):
+        resolve_object(config, allowed_prefixes=["collections"])
+
+
+def test_resolve_object_allowed_prefixes_does_not_modify_the_config() -> None:
+    config = {OBJECT_TARGET: "collections.Counter", "a": 1}
+    resolve_object(config, allowed_prefixes=["collections"])
+    assert config == {OBJECT_TARGET: "collections.Counter", "a": 1}
+
+
+def test_resolve_object_prefixes_of_the_config_are_used_without_allowed_prefixes() -> None:
+    config = {OBJECT_TARGET: "os.getcwd", "_allowed_prefixes_": ["collections"]}
+    with pytest.raises(ImportError, match="target object does not exist"):
+        resolve_object(config)
+
+
+def test_resolve_object_allowed_prefixes_ignored_for_an_instance() -> None:
+    counter = Counter([1])
+    assert resolve_object(counter, Counter, allowed_prefixes=["os"]) is counter
+
+
+def test_resolve_object_without_allowed_prefixes_allows_any_target() -> None:
+    assert resolve_object({OBJECT_TARGET: "collections.Counter", "a": 1}) == Counter(a=1)

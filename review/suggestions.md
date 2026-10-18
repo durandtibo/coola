@@ -412,6 +412,8 @@ _(Status: fixed. (1) The `BaseLoader` / `BaseSaver` equality testers are now reg
 
 ### 2.13 Factory security note (medium)
 
+_(Status: fixed. `allowed_prefixes` is available in `resolve_object`, `resolve_loader`, `resolve_saver`, `is_object_config`, `is_loader_config` and `is_saver_config`; the caller's list replaces the `_allowed_prefixes_` key of the configuration so a configuration cannot widen it. `is_object_config` returns `False` when the return type hint cannot be resolved (`NameError`) and uses `issubclass`, so virtual subclasses match. The docstrings, `SECURITY.md` (including that the `is_*_config` functions import the target) and the factory user guide describe the risk and the mitigation. The default is unchanged: no allow-list.)_
+
 `factory.resolve_object` / `factory.factory` import and call whatever `_target_`
 names. `allowed_prefixes` exists but is opt-in and not reachable from
 `resolve_object` (only from `factory(**cfg)` via `_allowed_prefixes_`). Configs that

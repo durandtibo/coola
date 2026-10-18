@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import ABC
 from collections import Counter
 from typing import Union
 
@@ -26,6 +27,22 @@ def create_list_without_type_hint():  # noqa: ANN201
 def create_list_union2() -> list | tuple:
     """Helper function with modern union syntax."""
     return [1, 2, 3, 4]
+
+
+def create_undefined_return_type() -> UndefinedType:  # noqa: F821
+    """Helper function whose return type hint cannot be resolved."""
+    return []
+
+
+class Interface(ABC):  # noqa: B024
+    """An abstract class with a virtual subclass."""
+
+
+class VirtualSubclass:
+    """A class registered as a virtual subclass of ``Interface``."""
+
+
+Interface.register(VirtualSubclass)
 
 
 ######################################
@@ -171,3 +188,52 @@ def test_is_object_config_target_is_not_a_class() -> None:
     """Test is_object_config returns False when the target resolves to a
     non-class object, e.g. a module-level constant."""
     assert not is_object_config({OBJECT_TARGET: "math.pi"}, object)
+
+
+def test_is_object_config_function_with_unresolvable_return_type_hint() -> None:
+    # ``get_type_hints`` raises a ``NameError``: the config is not for ``cls``
+    assert not is_object_config(
+        {OBJECT_TARGET: "tests.unit.factory.test_config.create_undefined_return_type"}, list
+    )
+
+
+def test_is_object_config_virtual_subclass() -> None:
+    assert is_object_config(
+        {OBJECT_TARGET: "tests.unit.factory.test_config.VirtualSubclass"}, Interface
+    )
+
+
+def test_is_object_config_not_a_virtual_subclass() -> None:
+    assert not is_object_config({OBJECT_TARGET: "builtins.int"}, Interface)
+
+
+def test_is_object_config_allowed_prefixes_match() -> None:
+    config = {OBJECT_TARGET: "collections.Counter"}
+    assert is_object_config(config, Counter, allowed_prefixes=["collections"])
+    assert is_object_config(config, Counter, allowed_prefixes=["os", "collections.Counter"])
+
+
+def test_is_object_config_allowed_prefixes_no_match() -> None:
+    with pytest.raises(ImportError, match="not allowed"):
+        is_object_config({OBJECT_TARGET: "collections.Counter"}, Counter, allowed_prefixes=["os"])
+
+
+def test_is_object_config_allowed_prefixes_must_match_a_whole_module_name() -> None:
+    with pytest.raises(ImportError, match="not allowed"):
+        is_object_config(
+            {OBJECT_TARGET: "collections.Counter"}, Counter, allowed_prefixes=["collection"]
+        )
+
+
+def test_is_object_config_allowed_prefixes_checked_before_the_import() -> None:
+    # The module is not imported if it is not allowed: the error is not a "module not found".
+    with pytest.raises(ImportError, match="not allowed"):
+        is_object_config(
+            {OBJECT_TARGET: "module_that_does_not_exist.Class"},
+            object,
+            allowed_prefixes=["collections"],
+        )
+
+
+def test_is_object_config_allowed_prefixes_without_target() -> None:
+    assert not is_object_config({}, object, allowed_prefixes=["collections"])
