@@ -275,6 +275,9 @@ def my_function(param1: int, param2: str) -> bool:
 
 ### Testing Standards
 
+Follow the conventions of the [testing guide](tests/TESTING_GUIDE.md) (organization, naming,
+fixtures, markers, logging assertions).
+
 - Write unit tests for all new code
 - Aim for >90% code coverage
 - Use descriptive test names: `test_<function>_<condition>_<expected_result>`

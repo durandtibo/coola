@@ -298,6 +298,18 @@ def test_function_logs_warning(caplog: LogCaptureFixture) -> None:
         assert "expected warning" in caplog.messages[0]
 ```
 
+Always set the level locally with `caplog.at_level`, with the name of the logger, and do not rely
+on a global `log_level` in `pyproject.toml`: the tests must pass whatever the level configured for
+the run (`pytest -o log_level=WARNING`). Do not call `caplog.set_level` in a fixture: the capture
+handler of the test is not the one of its fixtures, so the level would not apply.
+
+```python
+def test_function_logs_info(caplog: LogCaptureFixture) -> None:
+    with caplog.at_level(logging.INFO, logger="coola.module"):
+        function_that_logs_at_info_level()
+    assert caplog.messages == ["expected message"]
+```
+
 ## Parametrization
 
 ### Basic Parametrization
