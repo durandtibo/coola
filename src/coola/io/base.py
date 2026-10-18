@@ -23,7 +23,6 @@ import weakref
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
-from coola.equality.tester import EqualNanEqualityTester, get_default_registry
 from coola.factory import is_object_config, resolve_object
 from coola.io.utils import add_uuid_suffix
 
@@ -121,6 +120,30 @@ def _acquire_file_lock(
             time.sleep(poll_interval)
         else:
             return lock_path
+
+
+def _fsync_file(path: Path) -> None:
+    r"""Flush the content of a file to the disk."""
+    fd = os.open(path, os.O_RDONLY)
+    try:
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+
+
+def _fsync_directory(path: Path) -> None:
+    r"""Flush the entries of a directory to the disk, so a rename or a
+    link made in it survives a power failure.
+
+    It is a best effort: some platforms and filesystems do not support
+    opening or syncing a directory.
+    """
+    with contextlib.suppress(OSError):
+        fd = os.open(path, os.O_RDONLY)
+        try:
+            os.fsync(fd)
+        finally:
+            os.close(fd)
 
 
 @contextlib.contextmanager
@@ -249,7 +272,7 @@ class BaseSaver(ABC, Generic[T]):
         """
 
     @abstractmethod
-    def save(self, to_save: T, path: Path, *, exist_ok: bool = False) -> None:
+    def save(self, to_save: T, path: Path, *, exist_ok: bool = False, fsync: bool = False) -> None:
         r"""Save the data into the given path.
 
         Args:
@@ -332,6 +355,27 @@ class BaseFileSaver(BaseSaver[T]):
                 is removed once the holder releases it, so it does not
                 accumulate on disk.
 
+            fsync: If ``True``, the data is flushed to the disk before
+                the file is committed, and the directory is flushed
+                after, so the file is not empty or missing after a
+                power failure or a system crash. It is slower.
+                If ``False`` (the default), the data is only written
+                to the operating system cache: the file is still
+                replaced atomically (a reader never sees a partially
+                written file), but its content can be lost if the
+                machine crashes right after the call. This is fine for
+                caches and most logs.
+
+        Note:
+            The caller needs write access to the *directory* of
+            ``path``, not only to the file: the data is first written
+            to a temporary file next to ``path``, and a ``path.lock``
+            file is created there while the file is saved (see the
+            ``exist_ok`` argument). The saved file is committed with a
+            hard link, or with a rename if the filesystem does not
+            support hard links (e.g. FAT/exFAT, and some network and
+            container volumes).
+
         Raises:
             FileExistsError: if the file already exists and ``exist_ok`` is ``False``.
             IsADirectoryError: If ``path`` is a directory.
@@ -372,6 +416,8 @@ class BaseFileSaver(BaseSaver[T]):
             tmp_path = add_uuid_suffix(path)
             try:
                 self._save_file(to_save, tmp_path)
+                if fsync:
+                    _fsync_file(tmp_path)
                 if exist_ok:
                     tmp_path.replace(path)
                 else:
@@ -380,7 +426,7 @@ class BaseFileSaver(BaseSaver[T]):
                     # concurrently between the check above and this commit step:
                     # ``link`` atomically fails with ``FileExistsError`` in that case.
                     try:
-                        os.link(tmp_path, path)
+                        self._link(tmp_path, path)
                     finally:
                         # Unlinks ``tmp_path`` whether ``os.link`` succeeded (the
                         # data now lives at ``path`` via the hard link) or failed
@@ -404,6 +450,35 @@ class BaseFileSaver(BaseSaver[T]):
                 with contextlib.suppress(OSError):
                     tmp_path.unlink(missing_ok=True)
                 raise
+            if fsync:
+                _fsync_directory(path.parent)
+
+    @staticmethod
+    def _link(tmp_path: Path, path: Path) -> None:
+        r"""Commit ``tmp_path`` to ``path`` without overwriting ``path``.
+
+        ``os.link`` is atomic: it fails with ``FileExistsError`` if
+        ``path`` exists. When the filesystem does not support hard links,
+        it falls back on a check followed by a rename. This is safe
+        between the processes that use ``save``, because they hold the
+        lock of ``path`` while committing.
+
+        Args:
+            tmp_path: The temporary file with the data.
+            path: The target path, which must not exist.
+
+        Raises:
+            FileExistsError: if ``path`` exists.
+        """
+        try:
+            os.link(tmp_path, path)
+        except FileExistsError:
+            raise
+        except OSError:
+            if path.exists():
+                msg = f"path ({path}) already exists. Use `exist_ok=True` to overwrite the file"
+                raise FileExistsError(msg) from None
+            tmp_path.replace(path)
 
     @abstractmethod
     def _save_file(self, to_save: T, path: Path) -> None:
@@ -532,8 +607,3 @@ def resolve_saver(saver: BaseSaver[T] | dict[Any, Any]) -> BaseSaver[T]:
         ```
     """
     return cast("BaseSaver[T]", resolve_object(saver, BaseSaver))
-
-
-get_default_registry().register_many(
-    {BaseLoader: EqualNanEqualityTester(), BaseSaver: EqualNanEqualityTester()}, exist_ok=True
-)

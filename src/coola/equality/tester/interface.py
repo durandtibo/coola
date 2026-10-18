@@ -192,6 +192,7 @@ def _register_default_equality_testers(registry: EqualityTesterRegistry) -> None
     """
     testers = (
         _get_native_equality_testers()
+        | _get_io_equality_testers()
         | _get_jax_equality_testers()
         | _get_numpy_equality_testers()
         | _get_pandas_equality_testers()
@@ -236,6 +237,28 @@ def _get_native_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
         BaseEqualityHandler: equal,
         BaseEqualityTester: equal,
     }
+
+
+def _get_io_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
+    r"""Get the equality testers for the loaders and savers of ``coola.io``.
+
+    The loaders and the savers have an ``equal`` method, so they are
+    compared with it.
+
+    Returns:
+        The equality testers for the base classes of the loaders and
+            the savers.
+
+    Notes:
+        This function is called internally by get_default_registry() and should
+        not typically be called directly by users.
+    """
+    # Local import: ``coola.io`` depends on ``coola.equality``, so it cannot be imported
+    # when this module is imported. It is imported when the registry is created.
+    from coola.io.base import BaseLoader, BaseSaver  # noqa: PLC0415
+
+    tester = EqualNanEqualityTester()
+    return {BaseLoader: tester, BaseSaver: tester}
 
 
 def _get_jax_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
