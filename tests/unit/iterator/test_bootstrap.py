@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Collection, Mapping
 from typing import Any
 
 import pytest
@@ -37,7 +37,7 @@ def test_register_default_handlers_scalar_types(data_type: type) -> None:
     assert registry.state[data_type] == default_handler
 
 
-@pytest.mark.parametrize("data_type", [list, tuple, range, Iterable, set, frozenset])
+@pytest.mark.parametrize("data_type", [list, tuple, range, Collection, set, frozenset])
 def test_register_default_handlers_iterable_types(data_type: type) -> None:
     registry = _FakeRegistry()
     iterable_handler = "iterable"
@@ -67,7 +67,7 @@ def test_register_default_handlers_registers_all_types_exactly_once() -> None:
         list,
         tuple,
         range,
-        Iterable,
+        Collection,
         set,
         frozenset,
         dict,

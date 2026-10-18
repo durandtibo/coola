@@ -3,7 +3,7 @@ types."""
 
 from __future__ import annotations
 
-__all__ = ["IteratorRegistry"]
+__all__ = ["IteratorRegistry", "PathRegistry"]
 
 from typing import TYPE_CHECKING, Any
 
@@ -128,6 +128,12 @@ class IteratorRegistry(BaseTypeDispatchRegistry[BaseIterator[Any]]):
             The elements of the data structure according to the
                 appropriate iterator's traversal logic.
 
+        Raises:
+            ValueError: If a container contains itself, directly or
+                through other containers (a cycle), and its iterator
+                visits the children with ``registry.iterate`` (as the
+                built-in iterators do).
+
         Example:
             ```pycon
             >>> from coola.iterator.dfs import (
@@ -144,5 +150,86 @@ class IteratorRegistry(BaseTypeDispatchRegistry[BaseIterator[Any]]):
 
             ```
         """
+        yield from self._iterate(data, ())
+
+    def _iterate(self, data: object, ancestors: tuple[int, ...]) -> Iterator[Any]:
+        r"""Iterate over a data structure, checking for cycles.
+
+        The iterator receives a registry that remembers the ancestors of
+        ``data``, so the calls to ``registry.iterate`` made by the
+        iterators to visit the children can detect that a container
+        contains itself.
+
+        Args:
+            data: The data structure to iterate over.
+            ancestors: The ids of the containers being traversed that
+                contain ``data``.
+
+        Yields:
+            The elements of the data structure.
+
+        Raises:
+            ValueError: If ``data`` is one of its ancestors.
+        """
+        if id(data) in ancestors:
+            msg = f"Cycle detected: an object of type {type(data)} contains itself"
+            raise ValueError(msg)
         iterator = self.find_iterator(type(data))
-        yield from iterator.iterate(data, self)
+        yield from iterator.iterate(data, PathRegistry(self, (*ancestors, id(data))))
+
+
+class PathRegistry(IteratorRegistry):
+    r"""A view of an iterator registry that knows the path to the object
+    being iterated.
+
+    It is the registry given to the iterators by
+    ``IteratorRegistry.iterate``, so their recursive calls to
+    ``iterate`` can detect a container that contains itself. It shares
+    its state with the registry it was created from: the iterators
+    registered in one are visible in the other.
+
+    Args:
+        registry: The registry to view.
+        ancestors: The ids of the containers on the path to the object
+            being iterated, including the object itself.
+
+    Example:
+        ```pycon
+        >>> from coola.iterator.dfs import (
+        ...     DefaultIterator,
+        ...     IterableIterator,
+        ...     IteratorRegistry,
+        ...     PathRegistry,
+        ... )
+        >>> registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
+        >>> data = [1, 2]
+        >>> path_registry = PathRegistry(registry, (id(data),))
+        >>> list(path_registry.iterate([3, 4]))
+        [3, 4]
+        >>> list(path_registry.iterate(data))
+        Traceback (most recent call last):
+            ...
+        ValueError: Cycle detected: an object of type <class 'list'> contains itself
+
+        ```
+    """
+
+    def __init__(self, registry: IteratorRegistry, ancestors: tuple[int, ...]) -> None:
+        self._state = registry._state
+        self._registry = registry
+        self._ancestors = ancestors
+
+    def iterate(self, data: object) -> Iterator[Any]:
+        r"""Iterate over a data structure that is reached from the path.
+
+        Args:
+            data: The data structure to iterate over.
+
+        Yields:
+            The elements of the data structure.
+
+        Raises:
+            ValueError: If ``data`` is one of the containers of the
+                path (a cycle).
+        """
+        yield from self._registry._iterate(data, self._ancestors)

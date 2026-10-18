@@ -7,11 +7,13 @@ import pytest
 
 from coola.equality import objects_are_equal
 from coola.recursive import (
+    BaseTransformer,
     DefaultTransformer,
     IdentityTransformer,
     KeyFilterTransformer,
     SequenceTransformer,
     SetTransformer,
+    Transformer,
     TransformerRegistry,
 )
 
@@ -172,11 +174,10 @@ def test_key_filter_transformer_transform_explicit_transform_func_decouples_valu
     # An explicit transform_func decouples value transformation from the
     # key predicate: kept values are left untouched by the identity func.
     assert objects_are_equal(
-        KeyFilterTransformer().transform(
+        KeyFilterTransformer(transform_func=lambda x: x).transform(
             {"keep": 1, "secret": 2},
             func=lambda key: key == "secret",
             registry=transforming_registry,
-            transform_func=lambda x: x,
         ),
         {"keep": 1},
     )
@@ -186,11 +187,10 @@ def test_key_filter_transformer_transform_transform_func_applied_to_values(
     transforming_registry: TransformerRegistry,
 ) -> None:
     assert objects_are_equal(
-        KeyFilterTransformer().transform(
+        KeyFilterTransformer(transform_func=str).transform(
             {"keep": 1, "secret": 2},
             func=lambda key: key == "secret",
             registry=transforming_registry,
-            transform_func=str,
         ),
         {"keep": "1"},
     )
@@ -202,11 +202,10 @@ def test_key_filter_transformer_transform_str_value_uses_transform_func(
     # str values must use transform_func, not func, even though str is a
     # Sequence: otherwise the predicate would be misapplied to string values.
     assert objects_are_equal(
-        KeyFilterTransformer().transform(
+        KeyFilterTransformer(transform_func=str.upper).transform(
             {"keep": "hello", "secret": 2},
             func=lambda key: key == "secret",
             registry=transforming_registry,
-            transform_func=str.upper,
         ),
         {"keep": "HELLO"},
     )
@@ -225,3 +224,43 @@ def test_key_filter_transformer_transform_default_transform_func_nested_mapping_
         ),
         {"a": {"b": 2}},
     )
+
+
+#######################################
+#     Tests for the Transformer API    #
+#######################################
+
+
+def test_key_filter_transformer_repr_default() -> None:
+    assert repr(KeyFilterTransformer()) == "KeyFilterTransformer(transform_func=None)"
+
+
+def test_key_filter_transformer_str_default() -> None:
+    assert str(KeyFilterTransformer()) == "KeyFilterTransformer(transform_func=None)"
+
+
+def test_key_filter_transformer_repr_with_transform_func() -> None:
+    assert repr(KeyFilterTransformer(transform_func=str)).startswith(
+        "KeyFilterTransformer(transform_func="
+    )
+
+
+def test_key_filter_transformer_follows_the_transformer_protocol(
+    registry: TransformerRegistry,
+) -> None:
+    # ``func`` and ``registry`` are the only arguments, like for the other transformers.
+    transformer: Transformer[Any] = KeyFilterTransformer()
+    assert transformer.transform({"a": 1, "b": 2}, lambda key: key == "a", registry) == {"b": 2}
+
+
+def test_key_filter_transformer_is_a_base_transformer() -> None:
+    assert isinstance(KeyFilterTransformer(), BaseTransformer)
+
+
+def test_key_filter_transformer_transform_rejects_transform_func_argument(
+    registry: TransformerRegistry,
+) -> None:
+    with pytest.raises(TypeError, match="transform_func"):
+        KeyFilterTransformer().transform(  # type: ignore[call-arg]
+            {"a": 1}, lambda _: False, registry, transform_func=str
+        )

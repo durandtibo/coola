@@ -28,6 +28,9 @@ class BaseChildFinder(ABC, Generic[T]):
 
     Notes:
         - Subclasses must implement the ``find_children`` method.
+        - A child finder for leaf types should also override ``is_leaf``
+          to return ``True``, so the traversal yields the value instead
+          of expanding it.
         - For leaf types (types with no children), simply return without yielding.
 
     Example:
@@ -41,6 +44,16 @@ class BaseChildFinder(ABC, Generic[T]):
 
         ```
     """
+
+    @property
+    def is_leaf(self) -> bool:
+        r"""Indicate if the data handled by this child finder are leaves.
+
+        A leaf has no children: the traversal yields it instead of
+        expanding it. The default is ``False``; a child finder for leaf
+        types overrides it to return ``True``.
+        """
+        return False
 
     @abstractmethod
     def find_children(self, data: T) -> Iterator[Any]:
