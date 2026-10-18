@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import gc
-
 from coola.identifier import fork
 from coola.identifier.fork import track_fork
 
@@ -38,7 +36,6 @@ def test_track_fork_does_not_keep_the_object_alive() -> None:
     assert obj in fork._TRACKED
     size = len(fork._TRACKED)
     del obj
-    gc.collect()
     assert len(fork._TRACKED) == size - 1
 
 
