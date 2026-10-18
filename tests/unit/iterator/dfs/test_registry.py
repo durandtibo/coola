@@ -10,6 +10,7 @@ from coola.iterator.dfs import (
     IterableIterator,
     IteratorRegistry,
     MappingIterator,
+    PathRegistry,
 )
 from coola.registry import AlreadyRegisteredError
 from tests.unit.iterator.dfs.helpers import DEFAULT_SAMPLES, CustomList
@@ -223,3 +224,51 @@ def test_iterator_registry_iterate_sees_registrations_made_after_a_traversal_sta
     assert next(iterator) == 1
     registry.register(Wrapper, WrapperIterator())
     assert list(iterator) == [2]
+
+
+##################################
+#     Tests for PathRegistry     #
+##################################
+
+
+def test_path_registry_is_an_iterator_registry() -> None:
+    assert isinstance(PathRegistry(IteratorRegistry(), ()), IteratorRegistry)
+
+
+def test_path_registry_shares_the_state_of_the_registry() -> None:
+    registry = IteratorRegistry({object: DefaultIterator()})
+    path_registry = PathRegistry(registry, ())
+    assert path_registry._state is registry._state
+    registry.register(list, IterableIterator())
+    assert path_registry.has(list)
+
+
+def test_path_registry_iterate() -> None:
+    registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
+    assert list(PathRegistry(registry, ()).iterate([1, [2, 3]])) == [1, 2, 3]
+
+
+def test_path_registry_iterate_ancestor_raises() -> None:
+    registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
+    data = [1, 2]
+    with pytest.raises(ValueError, match="Cycle detected"):
+        list(PathRegistry(registry, (id(data),)).iterate(data))
+
+
+def test_path_registry_iterate_not_an_ancestor() -> None:
+    registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
+    other = [1]  # keep a reference: the id of a freed object can be reused
+    assert list(PathRegistry(registry, (id(other),)).iterate([1, 2])) == [1, 2]
+
+
+def test_path_registry_is_given_to_the_iterators() -> None:
+    received: list[IteratorRegistry] = []
+
+    class RecordingIterator(BaseIterator[Wrapper]):
+        def iterate(self, data: Wrapper, registry: IteratorRegistry) -> Iterator[Any]:
+            received.append(registry)
+            yield from data.items
+
+    registry = IteratorRegistry({object: DefaultIterator(), Wrapper: RecordingIterator()})
+    assert list(registry.iterate(Wrapper(1, 2))) == [1, 2]
+    assert isinstance(received[0], PathRegistry)
