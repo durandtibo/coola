@@ -268,6 +268,19 @@ def test_sequence_same_values_handler_handle_fast_path_true(config: EqualityConf
     )
 
 
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [([False], [0]), ((2, False), (2, 0)), ([1, 2], [True, 2]), ([1, "a"], [1.0, "a"])],
+)
+def test_sequence_same_values_handler_handle_fast_path_different_item_types(
+    config: EqualityConfig, actual: Sequence, expected: Sequence
+) -> None:
+    # ``False == 0`` and ``1 == 1.0``, but the types of the items must match.
+    assert not SequenceSameValuesHandler(next_handler=TrueHandler()).handle(
+        actual, expected, config
+    )
+
+
 def test_sequence_same_values_handler_handle_fast_path_false_show_difference(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:

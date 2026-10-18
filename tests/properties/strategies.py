@@ -1,4 +1,5 @@
-r"""Define the Hypothesis strategies shared by the property-based tests."""
+r"""Define the Hypothesis strategies shared by the property-based
+tests."""
 
 from __future__ import annotations
 
