@@ -8,6 +8,7 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.handler import FalseHandler, SequenceSameValuesHandler, TrueHandler
+from coola.equality.handler.sequence import is_exact_scalar_sequence
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
 
@@ -221,8 +222,8 @@ def test_sequence_same_values_handler_handle_without_next_handler(config: Equali
 def test_sequence_same_values_handler_handle_does_not_reuse_cache_across_different_objects(
     config: EqualityConfig,
 ) -> None:
-    actual = [1, 2]
-    expected = [1, 2]
+    actual = [1.0, 2.0]
+    expected = [1.0, 2.0]
     registry = Mock(wraps=config.registry)
     config.registry = registry
     assert SequenceSameValuesHandler(next_handler=TrueHandler()).handle(actual, expected, config)
@@ -259,3 +260,29 @@ def test_sequence_same_values_handler_handle_does_not_cache_by_identity(
         [shared, shared, shared], [shared, shared, shared], config
     )
     assert registry.objects_are_equal.call_count == 3
+
+
+def test_sequence_same_values_handler_handle_fast_path_true(config: EqualityConfig) -> None:
+    assert SequenceSameValuesHandler(next_handler=TrueHandler()).handle(
+        [1, "a", None, True], [1, "a", None, True], config
+    )
+
+
+def test_sequence_same_values_handler_handle_fast_path_false_show_difference(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    config.show_difference = True
+    with caplog.at_level(logging.INFO):
+        assert not SequenceSameValuesHandler().handle([1, 2, 3], [1, 2, 4], config)
+    assert caplog.messages
+
+
+
+@pytest.mark.parametrize("seq", [[1, "a", None, True], (b"a", 2), [], ()])
+def test_is_exact_scalar_sequence_true(seq: object) -> None:
+    assert is_exact_scalar_sequence(seq)
+
+
+@pytest.mark.parametrize("seq", [[1.0], [1, [2]], {1, 2}, "abc", range(3)])
+def test_is_exact_scalar_sequence_false(seq: object) -> None:
+    assert not is_exact_scalar_sequence(seq)

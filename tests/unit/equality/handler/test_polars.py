@@ -838,3 +838,13 @@ def test_polars_frame_and_series_equal_different_shape() -> None:
     config = EqualityConfig(equal_nan=True)
     assert not frame_equal(pl.DataFrame({"a": [1, 2]}), pl.DataFrame({"a": [1, 2, 3]}), config)
     assert not series_equal(pl.Series([1, 2]), pl.Series([1, 2, 3]), config)
+    
+@polars_available
+def test_polars_lazyframe_equal_handler_different_schema_does_not_collect() -> None:
+    actual = Mock(spec=pl.LazyFrame)
+    actual.collect_schema.return_value = pl.Schema({"a": pl.Int64})
+    expected = Mock(spec=pl.LazyFrame)
+    expected.collect_schema.return_value = pl.Schema({"a": pl.Float64})
+    assert not PolarsLazyFrameEqualHandler().handle(actual, expected, EqualityConfig())
+    actual.collect.assert_not_called()
+    expected.collect.assert_not_called()
