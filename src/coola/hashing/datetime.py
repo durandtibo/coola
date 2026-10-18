@@ -50,6 +50,7 @@ class DatetimeHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[date | t
         self,
         data: date | time,
         registry: HasherRegistry,  # noqa: ARG002
+        *,
         length: int = 64,
         ignore_unhashable: bool = False,  # noqa: ARG002
     ) -> str:

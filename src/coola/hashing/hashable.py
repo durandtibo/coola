@@ -78,6 +78,7 @@ class HashableHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Supports
         self,
         data: SupportsHash,
         registry: HasherRegistry,
+        *,
         length: int = 64,
         ignore_unhashable: bool = False,
     ) -> str:

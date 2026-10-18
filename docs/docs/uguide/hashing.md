@@ -117,7 +117,7 @@ NumPy arrays:
 >>> import numpy as np
 >>> from coola.hashing import BaseHasher, hash_bytes, hash_object, register_hashers
 >>> class NumpyHasher(BaseHasher[np.ndarray]):
-...     def hash(self, data, registry, length=64, ignore_unhashable=False):
+...     def hash(self, data, registry, *, length=64, ignore_unhashable=False):
 ...         header = f"{data.dtype}|{data.shape}|".encode()
 ...         return hash_bytes(header + np.ascontiguousarray(data).tobytes(), length=length)
 >>> register_hashers({np.ndarray: NumpyHasher()}, exist_ok=True)

@@ -40,6 +40,7 @@ class BytesHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[bytes | byt
         self,
         data: bytes | bytearray,
         registry: HasherRegistry,  # noqa: ARG002
+        *,
         length: int = 64,
         ignore_unhashable: bool = False,  # noqa: ARG002
     ) -> str:

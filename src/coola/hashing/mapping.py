@@ -63,6 +63,7 @@ class MappingHasher(InlineDisplayMixin, BaseHasher[Mapping[Any, Any]]):
         self,
         data: Mapping[Any, Any],
         registry: HasherRegistry,
+        *,
         length: int = 64,
         ignore_unhashable: bool = False,
     ) -> str:

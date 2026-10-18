@@ -57,6 +57,7 @@ class SequenceHasher(InlineDisplayMixin, BaseHasher[Sequence[Any]]):
         self,
         data: Sequence[Any],
         registry: HasherRegistry,
+        *,
         length: int = 64,
         ignore_unhashable: bool = False,
     ) -> str:

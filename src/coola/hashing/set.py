@@ -53,6 +53,7 @@ class SetHasher(InlineDisplayMixin, BaseHasher[AbstractSet[Any]]):
         self,
         data: AbstractSet[Any],
         registry: HasherRegistry,
+        *,
         length: int = 64,
         ignore_unhashable: bool = False,
     ) -> str:
