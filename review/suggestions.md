@@ -14,7 +14,7 @@ correctness edge cases and design consistency, not hygiene.
 All the sections have been handled. Each item has a _Status_ line that says what was done, and
 section 7 has a table with one line per item. What is **not** done, and why:
 
-- **Property-based tests** (section 4): to be added later.
+- ~~**Property-based tests**~~ (section 4): implemented, see section 4.
 - **Mutation testing** (section 4): a one-off run that has not been done.
 - **`fail_under` for the coverage** and a **second type checker** in the CI (section 5): they need a
   decision on the CI jobs.
@@ -519,7 +519,7 @@ _(Status: fixed. (1) The `torch_numpy` module docstring, the three `check_torch_
 
 ## 4. Tests
 
-The suite is large (11k tests, ~18 s) and covers every line. Status of the improvements:
+The suite is large (7.5k tests, ~18 s, plus the property-based tests) and covers every line. Status of the improvements:
 
 - ~~**Order/config coupling.**~~ _(Fixed. The tests of `tests/unit/utils/test_timing.py` set the
   level with `caplog.at_level(logging.INFO, logger=...)` in the test. The suite passes with
@@ -527,20 +527,49 @@ The suite is large (11k tests, ~18 s) and covers every line. Status of the impro
   work, because the capture handler of the test is not the one of its fixtures. The guideline is in
   `tests/TESTING_GUIDE.md`.)_
 - ~~**Global `log_level = "DEBUG"`**~~ _(Fixed. It was removed from `[tool.pytest.ini_options]`.)_
-- **Property-based tests**: not done for now, to be added later. A first version was written with
-  seeded `random.Random` generators (no property-testing library, by decision) and then removed.
-  It was one test per seed in `tests/unit/properties/`, and all the properties held, so it found no
-  new bug. The properties to cover when they come back:
-  `hash_object` (deterministic, independent of the order of the keys, `hash(a) == hash(b)` implies
-  the same data, so no collision between `1` and `"1"` or `[]` and `""`), `objects_are_equal` and
-  `objects_are_allclose` (reflexive with `equal_nan=True`, symmetric, a changed leaf is detected),
-  `compare` (agrees with `objects_are_equal`, its path points to a difference),
-  `from_flat_dict(to_flat_dict(x)) == x`, `merge_mappings` / `flatten_mapping` idempotence, and
-  `TypeRegistry.resolve` (nearest registered ancestor, cache invalidated by `register` and
-  `unregister`). The registry properties that the previous review reported as done were not in the
-  repository either.
+- ~~**Property-based tests.**~~ _(Implemented for `hash_object` (#2020) and for `objects_are_equal` /
+  `objects_are_allclose` (#2022), with Hypothesis (`hypothesis` is in the development dependencies,
+  and `tests/properties/conftest.py` skips the tests if it is not installed). They are in
+  `tests/properties/` (`strategies.py`, `test_hashing.py` and `test_equality.py`, about 40
+  properties each) and run in their own CI workflow, `ci-test-properties.yaml`, called from `ci.yaml`
+  for all the supported Python versions.
+  Equality: reflexive, symmetric and transitive; strict type checks (`int`, `float`, `bool`,
+  `str`/`bytes`, subclasses, `dict`/`OrderedDict`); lengths, keys and differences found at any depth;
+  order of sequences, `dict`, `OrderedDict` and sets; `NaN` and `-0.0`; time zones; tolerance
+  (`allclose` with zero tolerance behaves like `equal`, follows `math.isclose`, applies inside
+  containers, does not relax the type check); unregistered types; the inputs are not modified;
+  self-referencing list; `show_difference` does not change the result; equal objects have the same
+  hash.
+  Hashing: fixed-width lowercase hex, deterministic (also across `PYTHONHASHSEED`), consistent with
+  equality, sensitive to the type, the structure and the order, composable from the hashes of the
+  children, no silent false equality, scalar subclasses hash like the builtin, and the input is not
+  modified.
+  **They found a real bug**: the fast path of `SequenceSameValuesHandler` compared the items with
+  `==`, so `[False]` and `[0]`, `[1, 2]` and `[True, 2]`, or `[1, "a"]` and `[1.0, "a"]` were equal
+  although the types of the items are different. The fast path now also checks the types of the
+  items, with unit tests.
+  The remaining properties were added afterwards, in the same directory:
+  `test_compare.py` (`compare` agrees with `objects_are_equal` and `objects_are_allclose`, an equal
+  result has no path and no reason, the path leads to a difference at any depth, the message names
+  the path, `assert_objects_equal` / `assert_objects_allclose` raise iff the objects differ with the
+  message of `compare`, `compare` does not modify its inputs and does not log),
+  `test_nested.py` (`from_flat_dict(to_flat_dict(x)) == x` with any separator, one entry for each
+  leaf, a scalar that is also a prefix is a conflict, key collisions; `merge_mappings` is idempotent,
+  keeps every key, `first` / `last` keep the first / last value, `raise` raises iff a key has two
+  values, `suffix` loses no value, associative for the keys; `flatten_mapping` with `always_prefix`,
+  idempotent on a flat mapping, `prefix` loses no value, `raise` raises iff an inner key has two
+  values), `test_reducer.py` (the NumPy and PyTorch reducers agree with the native one for floats and
+  integers; the mean, the median and the quantiles are bounded and monotonic; the quantiles `0`,
+  `1` and `0.5` are the min, the max and the median; independent of the order; the inputs are not
+  modified and the results are Python numbers; constant sequences), and `test_registry.py`
+  (`TypeRegistry.resolve` returns the first registered class of the MRO, including on a diamond
+  hierarchy, and never uses a virtual subclass; stateful tests compare `Registry` and `TypeRegistry`
+  with a dictionary after any sequence of `register`, `register_many`, `unregister`, `clear`,
+  `get` and `resolve`, which checks that the cache of `resolve` is invalidated). The registry
+  properties that the previous review reported as done were not in the repository.)_
 - ~~**Differential tests** for the three reducers~~ _(Done: `tests/unit/reducer/test_consistency.py`
-  compares them on fixed datasets, and `tests/unit/properties/test_reducer.py` on random inputs.)_
+  compares them on fixed datasets: even and odd lengths, unsorted input, duplicates, tiny and huge
+  magnitudes, and `tests/properties/test_reducer.py` compares them on generated inputs.)_
 - ~~**Fuzz `compare()` thread-safety**~~ _(Covered by `tests/integration/equality/test_result.py`:
   concurrent comparisons do not mix their results, and a record logged by another thread during a
   comparison is not dropped.)_
@@ -663,6 +692,6 @@ Everything is done unless the status says otherwise. Open items are in **bold**.
 | 2.15 | `testing.fixtures` repetition                                    | Fixed                                                           |
 | 2.16 | Naming and lazy `torch` import                                   | Fixed                                                           |
 | 3    | Performance                                                      | Fixed or benchmarked (#1999 to #2003)                           |
-| 4    | Tests                                                            | Fixed, **property-based tests later, mutation testing not run** |
+| 4    | Tests                                                            | Fixed; property-based tests implemented (hashing, equality, `compare`, `nested`, reducers, registries; they found a bug), **mutation testing not run** |
 | 5    | Tooling and configuration                                        | Fixed, **`fail_under` and a second type checker not done**      |
 | 6    | Documentation                                                    | Fixed                                                           |

@@ -8,7 +8,21 @@ from typing import Any
 
 from hypothesis import strategies as st
 
-__all__ = ["lengths", "literal_values", "nested", "rebuild", "scalars", "small_values", "values"]
+__all__ = [
+    "flat_leaves",
+    "float_lists",
+    "int_mappings",
+    "keys",
+    "lengths",
+    "literal_values",
+    "nested",
+    "nested_dicts",
+    "quantile_lists",
+    "rebuild",
+    "scalars",
+    "small_values",
+    "values",
+]
 
 # Scalars whose ``repr`` can be evaluated by ``ast.literal_eval``.
 literal_scalars = st.one_of(
@@ -65,3 +79,25 @@ def rebuild(data: Any) -> Any:
     if isinstance(data, frozenset):
         return frozenset(reversed(list(data)))
     return copy.deepcopy(data)
+
+
+# Keys of the dictionaries that are flattened: no separator, no underscore (used by the suffixes).
+keys = st.text(alphabet="abcd", min_size=1, max_size=3)
+flat_leaves = st.one_of(st.none(), st.booleans(), st.integers(-100, 100), st.text(max_size=4))
+# Nested dictionaries with only dictionaries and scalars, so that flattening them is lossless.
+nested_dicts = st.dictionaries(
+    keys,
+    st.recursive(
+        flat_leaves,
+        lambda children: st.dictionaries(keys, children, max_size=3),
+        max_leaves=8,
+    ),
+    max_size=4,
+)
+int_mappings = st.dictionaries(keys, st.integers(-5, 5), max_size=4)
+float_lists = st.lists(
+    st.floats(min_value=-1e6, max_value=1e6, allow_nan=False, allow_infinity=False),
+    min_size=1,
+    max_size=30,
+)
+quantile_lists = st.lists(st.floats(min_value=0, max_value=1), min_size=1, max_size=5)
