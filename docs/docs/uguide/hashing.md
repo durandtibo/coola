@@ -100,7 +100,7 @@ The default registry hashes **only** the following types (and their subclasses):
 | `list`, `tuple`, `deque`, other `Sequence`   | Order matters. One tag per family: a `list` and a `tuple` with the same items hash differently    |
 | `NamedTuple`                                 | Tagged with the class and field names, so it differs from a plain `tuple`                         |
 | `dict`, other `Mapping`                      | Independent of the order of the keys                                                              |
-| `OrderedDict`                                | Own tag, but independent of the order of the keys, like `coola` equality                          |
+| `OrderedDict`                                | Own tag. The order of the keys matters, like in `objects_are_equal`                               |
 | `set`, `frozenset`                           | Independent of the iteration order. A `set` and a `frozenset` hash differently                    |
 | `date`, `datetime`, `time`                   | ISO 8601 form, including the UTC offset when there is one                                         |
 | `timedelta`, `timezone`                      | The `repr` of the value                                                                           |
@@ -163,7 +163,8 @@ result, which makes the concatenation unambiguous without delimiters. The regist
 | `list` vs `deque`                         | **Different**, for the same reason.                                                                                                                       |
 | `1` vs `1.0` vs `True`                    | **All different.** `1 == 1.0` in Python, but the identity of a hash is the type and the value.                                                            |
 | `{"a": 1, "b": 2}` vs `{"b": 2, "a": 1}`  | **Same.** Insertion order is not semantic for mappings.                                                                                                   |
-| `dict` vs `OrderedDict`                   | **Different**, like in `objects_are_equal`. Both ignore the order of the keys.                                                                            |
+| `dict` vs `OrderedDict`                   | **Different**, like in `objects_are_equal`.                                                                                                               |
+| `OrderedDict` with the same items in another order | **Different.** Order is the point of an `OrderedDict`, and `objects_are_equal` also says they are different. |
 | `set` vs `frozenset`                      | **Different.** Both are order-insensitive.                                                                                                                |
 | `set` vs `list` with the same items       | **Different.**                                                                                                                                            |
 | `str` vs `bytes`                          | **Different.**                                                                                                                                            |
@@ -198,8 +199,9 @@ True
   `Point(1, 2)` differs from `(1, 2)`. Strings and bytes are never iterated as sequences.
 - **`dict`, other `Mapping`**: each item is `key_hash + value_hash`, and items are sorted by the
   _key hash_, not by the key. Keys do not need to be orderable and can have mixed types.
-  This includes `OrderedDict`, whose key order is also ignored by `objects_are_equal`. Register
-  `MappingHasher(tag, ordered=True)` for a mapping type whose order is meaningful.
+  `OrderedDict` is the exception: its items are hashed in order, so two `OrderedDict`s with the same
+  items in a different order hash differently, like `objects_are_equal` says they are different.
+  Register `MappingHasher(tag, ordered=True)` for another mapping type whose order is meaningful.
 - **`set`, `frozenset`**: the sorted item hashes under the `set` or `frozenset` tag.
 - **`date`, `datetime`, `time`**: tagged with the concrete class name, payload is the ISO 8601
   string. Aware datetimes are converted to UTC first, so the same instant in two time zones hashes

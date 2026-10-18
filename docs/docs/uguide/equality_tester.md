@@ -125,6 +125,25 @@ True
 
 ```
 
+#### `OrderedMappingEqualityTester`
+
+Like `MappingEqualityTester`, and it also requires the keys to be in the same order. It is
+registered for `collections.OrderedDict`, whose order is meaningful (Python's `==` also compares it
+between two `OrderedDict`s). The other mappings ignore the order of the keys:
+
+```pycon
+>>> from collections import OrderedDict
+>>> from coola.equality.config import EqualityConfig
+>>> from coola.equality.tester import OrderedMappingEqualityTester
+>>> config = EqualityConfig()
+>>> tester = OrderedMappingEqualityTester()
+>>> tester.objects_are_equal(OrderedDict(a=1, b=2), OrderedDict(a=1, b=2), config)
+True
+>>> tester.objects_are_equal(OrderedDict(a=1, b=2), OrderedDict(b=2, a=1), config)
+False
+
+```
+
 ### Scalar Testers
 
 #### `ScalarEqualityTester`
@@ -483,14 +502,16 @@ The registry uses Python's Method Resolution Order (MRO) to find testers:
 >>> from collections import OrderedDict
 >>> registry = get_default_registry()
 >>> config = EqualityConfig()
->>> # OrderedDict inherits from dict, so MappingEqualityTester is used
->>> # But the tester checks that both objects have the same type
+>>> # OrderedDict inherits from dict, but it has its own, more specific tester
+>>> # And the tester checks that both objects have the same type
 >>> od = OrderedDict([("a", 1), ("b", 2)])
 >>> registry.objects_are_equal(od, {"a": 1, "b": 2}, config)
 False
->>> # Comparing two OrderedDicts works (same type)
+>>> # Comparing two OrderedDicts works (same type, same order)
 >>> registry.objects_are_equal(od, OrderedDict([("a", 1), ("b", 2)]), config)
 True
+>>> registry.objects_are_equal(od, OrderedDict([("b", 2), ("a", 1)]), config)
+False
 
 ```
 

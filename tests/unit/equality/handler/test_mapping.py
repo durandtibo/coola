@@ -9,6 +9,7 @@ import pytest
 from coola.equality.config import EqualityConfig
 from coola.equality.handler import (
     FalseHandler,
+    MappingSameKeyOrderHandler,
     MappingSameKeysHandler,
     MappingSameValuesHandler,
     TrueHandler,
@@ -330,3 +331,82 @@ def test_mapping_same_values_handler_handle_does_not_cache_by_identity(
         {"a": shared, "b": shared}, {"a": shared, "b": shared}, config
     )
     assert registry.objects_are_equal.call_count == 2
+
+
+###############################################
+#     Tests for MappingSameKeyOrderHandler    #
+###############################################
+
+
+def test_mapping_same_key_order_handler_repr() -> None:
+    assert repr(MappingSameKeyOrderHandler()) == "MappingSameKeyOrderHandler()"
+
+
+def test_mapping_same_key_order_handler_str() -> None:
+    assert str(MappingSameKeyOrderHandler()) == "MappingSameKeyOrderHandler()"
+
+
+def test_mapping_same_key_order_handler_equal_true() -> None:
+    assert MappingSameKeyOrderHandler().equal(MappingSameKeyOrderHandler())
+
+
+def test_mapping_same_key_order_handler_equal_false_different_type() -> None:
+    assert not MappingSameKeyOrderHandler().equal(FalseHandler())
+
+
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [
+        ({}, {}),
+        ({"a": 1, "b": 2}, {"a": 1, "b": 2}),
+        ({"a": 1, "b": 2}, {"a": 3, "b": 4}),
+        ({1: "a", "x": 2}, {1: "b", "x": 3}),
+    ],
+)
+def test_mapping_same_key_order_handler_handle_true(
+    actual: Mapping, expected: Mapping, config: EqualityConfig
+) -> None:
+    assert MappingSameKeyOrderHandler(next_handler=TrueHandler()).handle(actual, expected, config)
+
+
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [
+        ({"a": 1, "b": 2}, {"b": 2, "a": 1}),
+        ({1: "a", "x": 2}, {"x": 2, 1: "a"}),
+    ],
+)
+def test_mapping_same_key_order_handler_handle_false(
+    actual: Mapping, expected: Mapping, config: EqualityConfig
+) -> None:
+    assert not MappingSameKeyOrderHandler(next_handler=TrueHandler()).handle(
+        actual, expected, config
+    )
+
+
+def test_mapping_same_key_order_handler_handle_false_show_difference(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    config.show_difference = True
+    handler = MappingSameKeyOrderHandler(next_handler=TrueHandler())
+    with caplog.at_level(logging.INFO):
+        assert not handler.handle(actual={"a": 1, "b": 2}, expected={"b": 2, "a": 1}, config=config)
+        assert caplog.messages[0].startswith("mappings have the same keys in a different order:")
+        assert "['a', 'b']" in caplog.messages[0]
+        assert "['b', 'a']" in caplog.messages[0]
+
+
+def test_mapping_same_key_order_handler_handle_true_does_not_log(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    config.show_difference = True
+    handler = MappingSameKeyOrderHandler(next_handler=TrueHandler())
+    with caplog.at_level(logging.INFO):
+        assert handler.handle(actual={"a": 1}, expected={"a": 1}, config=config)
+        assert not caplog.messages
+
+
+def test_mapping_same_key_order_handler_handle_without_next_handler(config: EqualityConfig) -> None:
+    handler = MappingSameKeyOrderHandler()
+    with pytest.raises(RuntimeError, match=r"next handler is not defined"):
+        handler.handle({"a": 1}, {"a": 1}, config)

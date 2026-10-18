@@ -8,12 +8,13 @@ registry.
 
 from __future__ import annotations
 
-__all__ = ["MappingEqualityTester", "SequenceEqualityTester"]
+__all__ = ["MappingEqualityTester", "OrderedMappingEqualityTester", "SequenceEqualityTester"]
 
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler import (
+    MappingSameKeyOrderHandler,
     MappingSameKeysHandler,
     MappingSameValuesHandler,
     SameLengthHandler,
@@ -82,6 +83,48 @@ class MappingEqualityTester(BaseChainEqualityTester[Mapping[Any, Any]]):
             SameTypeHandler(),
             SameLengthHandler(),
             MappingSameKeysHandler(),
+            MappingSameValuesHandler(),
+            TrueHandler(),
+        )
+
+
+class OrderedMappingEqualityTester(BaseChainEqualityTester[Mapping[Any, Any]]):
+    r"""Implement an equality tester for mappings whose order matters.
+
+    This tester behaves like ``MappingEqualityTester``, and additionally
+    requires the keys to be in the same order. It is registered for
+    ``collections.OrderedDict``, for which Python's ``==`` is also
+    order-sensitive. The handler chain:
+    1. SameObjectHandler: Check for object identity
+    2. SameTypeHandler: Verify same type
+    3. SameLengthHandler: Check both mappings have same number of keys
+    4. MappingSameKeysHandler: Verify both have the same keys
+    5. MappingSameKeyOrderHandler: Verify the keys are in the same order
+    6. MappingSameValuesHandler: Recursively compare values using registry
+    7. TrueHandler: Return True if all checks pass
+
+    Example:
+        ```pycon
+        >>> from collections import OrderedDict
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.tester import OrderedMappingEqualityTester
+        >>> config = EqualityConfig()
+        >>> tester = OrderedMappingEqualityTester()
+        >>> tester.objects_are_equal(OrderedDict(a=1, b=2), OrderedDict(a=1, b=2), config)
+        True
+        >>> tester.objects_are_equal(OrderedDict(a=1, b=2), OrderedDict(b=2, a=1), config)
+        False
+
+        ```
+    """
+
+    def _create_handler(self) -> BaseEqualityHandler:
+        return create_chain(
+            SameObjectHandler(),
+            SameTypeHandler(),
+            SameLengthHandler(),
+            MappingSameKeysHandler(),
+            MappingSameKeyOrderHandler(),
             MappingSameValuesHandler(),
             TrueHandler(),
         )

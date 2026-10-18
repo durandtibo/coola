@@ -183,7 +183,7 @@ def _register_default_hashers(registry: HasherRegistry) -> None:
             Sequence: SequenceHasher("sequence"),
             # Mappings - recursive transformation of keys and values
             dict: MappingHasher("dict"),
-            OrderedDict: MappingHasher("OrderedDict"),
+            OrderedDict: MappingHasher("OrderedDict", ordered=True),
             Mapping: MappingHasher("mapping"),
             # Unordered containers
             set: SetHasher("set"),

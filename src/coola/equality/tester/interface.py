@@ -9,7 +9,7 @@ __all__ = [
     "register_equality_testers",
 ]
 
-from collections import deque
+from collections import OrderedDict, deque
 from collections.abc import Mapping, Sequence
 from typing import Any, cast
 
@@ -17,6 +17,7 @@ from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.tester.base import BaseEqualityTester
 from coola.equality.tester.collection import (
     MappingEqualityTester,
+    OrderedMappingEqualityTester,
     SequenceEqualityTester,
 )
 from coola.equality.tester.default import DefaultEqualityTester
@@ -142,7 +143,7 @@ def get_default_registry() -> EqualityTesterRegistry:
         A EqualityTesterRegistry instance with equality testers registered for:
             - Scalar types (int, float)
             - Sequences (list, tuple, deque, Sequence ABC)
-            - Mappings (dict, Mapping ABC)
+            - Mappings (dict, OrderedDict, Mapping ABC)
             - Third-party library types (numpy, torch, pandas, polars, jax, xarray, pyarrow)
 
     Notes:
@@ -180,7 +181,8 @@ def _register_default_equality_testers(registry: EqualityTesterRegistry) -> None
     The registration strategy:
         - Scalar types use ScalarEqualityTester (supports NaN equality)
         - Sequences use SequenceEqualityTester for recursive list/tuple processing
-        - Mappings use MappingEqualityTester for recursive dict processing
+        - Mappings use MappingEqualityTester for recursive dict processing, and
+          OrderedDict uses OrderedMappingEqualityTester, which also checks the key order
         - Object type uses DefaultEqualityTester as catch-all for unregistered types
 
     Args:
@@ -217,6 +219,7 @@ def _get_native_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
     default = DefaultEqualityTester()
     scalar = ScalarEqualityTester()
     mapping = MappingEqualityTester()
+    ordered_mapping = OrderedMappingEqualityTester()
     sequence = SequenceEqualityTester()
     equal = EqualEqualityTester()
     return {
@@ -232,6 +235,7 @@ def _get_native_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
         Sequence: sequence,
         # Mappings - recursive transformation of keys and values
         dict: mapping,
+        OrderedDict: ordered_mapping,
         Mapping: mapping,
         # coola types
         BaseEqualityHandler: equal,

@@ -15,6 +15,7 @@ __all__ = [
     "HandlerCycleError",
     "HandlerEqualityMixin",
     "JaxArrayEqualHandler",
+    "MappingSameKeyOrderHandler",
     "MappingSameKeysHandler",
     "MappingSameValuesHandler",
     "MaxDepthExceededError",
@@ -53,6 +54,7 @@ from coola.equality.handler.dtype import SameDTypeHandler
 from coola.equality.handler.equal import EqualHandler, EqualNanHandler
 from coola.equality.handler.jax import JaxArrayEqualHandler
 from coola.equality.handler.mapping import (
+    MappingSameKeyOrderHandler,
     MappingSameKeysHandler,
     MappingSameValuesHandler,
 )

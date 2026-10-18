@@ -8,7 +8,11 @@ from unittest.mock import Mock
 import pytest
 
 from coola.equality.config import EqualityConfig
-from coola.equality.tester import MappingEqualityTester, SequenceEqualityTester
+from coola.equality.tester import (
+    MappingEqualityTester,
+    OrderedMappingEqualityTester,
+    SequenceEqualityTester,
+)
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
 from tests.unit.equality.utils import ExamplePair
@@ -372,6 +376,88 @@ def test_mapping_equality_tester_objects_are_equal_false_numpy(
     actual: Mapping, expected: Mapping, config: EqualityConfig
 ) -> None:
     assert not MappingEqualityTester().objects_are_equal(actual, expected, config)
+
+
+####################################################
+#     Tests for OrderedMappingEqualityTester     #
+####################################################
+
+
+def test_ordered_mapping_equality_tester_repr() -> None:
+    assert repr(OrderedMappingEqualityTester()) == "OrderedMappingEqualityTester()"
+
+
+def test_ordered_mapping_equality_tester_str() -> None:
+    assert str(OrderedMappingEqualityTester()) == "OrderedMappingEqualityTester()"
+
+
+def test_ordered_mapping_equality_tester_equal_true() -> None:
+    assert OrderedMappingEqualityTester().equal(OrderedMappingEqualityTester())
+
+
+def test_ordered_mapping_equality_tester_equal_false_different_type() -> None:
+    assert not OrderedMappingEqualityTester().equal(MappingEqualityTester())
+
+
+def test_ordered_mapping_equality_tester_objects_are_equal_true_same_order(
+    config: EqualityConfig,
+) -> None:
+    assert OrderedMappingEqualityTester().objects_are_equal(
+        OrderedDict(a=1, b=2), OrderedDict(a=1, b=2), config
+    )
+
+
+def test_ordered_mapping_equality_tester_objects_are_equal_true_same_object(
+    config: EqualityConfig,
+) -> None:
+    obj = OrderedDict(a=1, b=2)
+    assert OrderedMappingEqualityTester().objects_are_equal(obj, obj, config)
+
+
+def test_ordered_mapping_equality_tester_objects_are_equal_false_different_order(
+    config: EqualityConfig,
+) -> None:
+    assert not OrderedMappingEqualityTester().objects_are_equal(
+        OrderedDict(a=1, b=2), OrderedDict(b=2, a=1), config
+    )
+
+
+def test_ordered_mapping_equality_tester_objects_are_equal_false_different_order_show_difference(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    config.show_difference = True
+    with caplog.at_level(logging.INFO):
+        assert not OrderedMappingEqualityTester().objects_are_equal(
+            OrderedDict(a=1, b=2), OrderedDict(b=2, a=1), config
+        )
+        assert caplog.messages[0].startswith("mappings have the same keys in a different order:")
+
+
+def test_ordered_mapping_equality_tester_objects_are_equal_false_different_values(
+    config: EqualityConfig,
+) -> None:
+    assert not OrderedMappingEqualityTester().objects_are_equal(
+        OrderedDict(a=1, b=2), OrderedDict(a=1, b=3), config
+    )
+
+
+def test_ordered_mapping_equality_tester_objects_are_equal_false_different_keys(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    config.show_difference = True
+    with caplog.at_level(logging.INFO):
+        assert not OrderedMappingEqualityTester().objects_are_equal(
+            OrderedDict(a=1, b=2), OrderedDict(a=1, c=2), config
+        )
+        assert caplog.messages[0].startswith("mappings have different keys:")
+
+
+def test_ordered_mapping_equality_tester_objects_are_equal_false_different_type(
+    config: EqualityConfig,
+) -> None:
+    assert not OrderedMappingEqualityTester().objects_are_equal(
+        OrderedDict(a=1, b=2), {"a": 1, "b": 2}, config
+    )
 
 
 ############################################

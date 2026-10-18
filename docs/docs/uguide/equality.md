@@ -40,7 +40,7 @@ described [below](#type-specific-behavior).
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Strict type             | Two objects must have exactly the same type to be equal. `1`, `1.0` and `True` are pairwise different, and so are `[1]` and `(1,)`, `dict` and `OrderedDict`, `set` and `frozenset`, `str` and `bytes`. A subclass is different from its base class. |
 | Recursive               | Containers are compared item by item, at any depth. Containers must have the same length (or the same keys).                                                                                                                                         |
-| Order rules             | Sequences are order-sensitive (`[1, 2]` differs from `[2, 1]`). Mappings and sets are not: `{"a": 1, "b": 2}` equals `{"b": 2, "a": 1}`, even for `OrderedDict`.                                                                                     |
+| Order rules             | Sequences are order-sensitive (`[1, 2]` differs from `[2, 1]`). `dict` and other mappings ignore the order of the keys: `{"a": 1, "b": 2}` equals `{"b": 2, "a": 1}`. `OrderedDict` is the exception: the order of its keys is compared, like in Python. See [Ordered dictionaries](#ordered-dictionaries). |
 | Value semantics         | The values are compared with `==` unless a tester exists for the type. Arrays, tensors and data frames also compare dtype, shape and so on (see [Type-Specific Behavior](#type-specific-behavior)).                                                  |
 | NaN                     | `NaN` is not equal to `NaN`, unless `equal_nan=True` or both are the same object. See [Behavior by Type](#behavior-by-type-nan-and-tolerance).                                                                                                       |
 | Signed zero             | `-0.0` is equal to `0.0`.                                                                                                                                                                                                                            |
@@ -59,7 +59,7 @@ False
 >>> objects_are_equal({"a": 1, "b": 2}, {"b": 2, "a": 1})
 True
 >>> objects_are_equal(OrderedDict(a=1, b=2), OrderedDict(b=2, a=1))
-True
+False
 >>> objects_are_equal(0.0, -0.0)
 True
 >>> objects_are_equal(float("nan"), float("nan"))
@@ -88,6 +88,53 @@ False
 False
 
 ```
+
+### Ordered dictionaries
+
+For a `dict`, the order of the keys is not meaningful, so it is ignored. An `OrderedDict` is
+different: the order of the items is the reason to use it, and Python's `==` also compares the order
+between two `OrderedDict`s. `objects_are_equal` and `objects_are_allclose` follow this design:
+
+| Comparison                                 | Result    | Why                                                       |
+| ------------------------------------------ | --------- | --------------------------------------------------------- |
+| `OrderedDict` vs `OrderedDict`, same order | `True`    | Same type, same items, same order                         |
+| `OrderedDict` vs `OrderedDict`, other order | `False`  | The order of the keys is compared                         |
+| `OrderedDict` vs `dict`                    | `False`   | Different types (the strict type rule)                    |
+| `dict` vs `dict`, other order              | `True`    | The order of the keys of a `dict` is ignored              |
+
+```pycon
+>>> from collections import OrderedDict
+>>> from coola.equality import objects_are_equal
+>>> objects_are_equal(OrderedDict(a=1, b=2), OrderedDict(a=1, b=2))  # same order
+True
+>>> objects_are_equal(OrderedDict(a=1, b=2), OrderedDict(b=2, a=1))  # different order
+False
+>>> objects_are_equal(OrderedDict(a=1, b=2), dict(a=1, b=2))  # different type
+False
+>>> objects_are_equal({"a": 1, "b": 2}, {"b": 2, "a": 1})  # plain dict: order ignored
+True
+
+```
+
+The rule applies at any depth, so an `OrderedDict` nested in a list or in a `dict` is also checked.
+The tolerance only applies to the values: `objects_are_allclose` still requires the same key order.
+`compare` and `show_difference=True` explain the difference:
+
+```pycon
+>>> from collections import OrderedDict
+>>> from coola.equality import compare
+>>> print(compare(OrderedDict(a=1, b=2), OrderedDict(b=2, a=1)).format_message())
+objects are not equal at actual
+mappings have the same keys in a different order:
+  actual   : ['a', 'b']
+  expected : ['b', 'a']
+
+```
+
+Only `OrderedDict` (and its subclasses) is order-sensitive. For another mapping type whose order
+matters, register an `OrderedMappingEqualityTester` (see
+[`coola.equality.tester`](equality_tester.md)). The hash of `hash_object` follows the same design:
+the hash of an `OrderedDict` depends on the order of its keys, and the hash of a `dict` does not.
 
 ## Checking Exact Equality
 
@@ -267,7 +314,8 @@ True
 ```
 
 Similarly, the `objects_are_equal` function considers a `dict` and `collections.OrderedDict` as
-different objects even if they have the same keys and values.
+different objects even if they have the same keys and values (see
+[Ordered dictionaries](#ordered-dictionaries) for the order of the keys).
 
 ```pycon
 >>> from collections import OrderedDict
@@ -734,15 +782,17 @@ False
 
 ```
 
-#### `collections.abc.Mapping` | `dict`
+#### `collections.abc.Mapping` | `dict` | `collections.OrderedDict`
 
 Two `Mapping`s are equal if:
 
 - they have the same type
 - they have the same number of elements i.e. `len(mapping1) == len(mapping2)` returns `True`
-- they have the same set of keys i.e. `set(mapping1.keys()) != set(mapping2.keys())` returns `True`
+- they have the same set of keys i.e. `set(mapping1.keys()) == set(mapping2.keys())` returns `True`
 - For each key, the values are equal. The value associated to the key `k` in the first mapping has
   to be equal to value associated to the key `k` in the second mapping.
+- For an `OrderedDict` only: the keys are in the same order. The order is ignored for the other
+  mappings.
 
 ```pycon
 >>> from collections import OrderedDict
@@ -1067,16 +1117,18 @@ True
 
 ```
 
-#### `collections.abc.Mapping` | `dict`
+#### `collections.abc.Mapping` | `dict` | `collections.OrderedDict`
 
 Two `Mapping`s are equal within a tolerance if:
 
 - they have the same type
 - they have the same number of elements i.e. `len(mapping1) == len(mapping2)` returns `True`
-- they have the same set of keys i.e. `set(mapping1.keys()) != set(mapping2.keys())` returns `True`
+- they have the same set of keys i.e. `set(mapping1.keys()) == set(mapping2.keys())` returns `True`
 - For each key, the values are equal within a tolerance. The value associated to the key `k` in the
   first mapping has to be equal within the tolerance to value associated to the key `k` in the
   second mapping.
+- For an `OrderedDict` only: the keys are in the same order. The tolerance does not apply to the
+  keys.
 
 **Example**
 

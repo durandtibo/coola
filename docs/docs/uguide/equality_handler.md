@@ -269,6 +269,23 @@ False
 
 ```
 
+#### `MappingSameKeyOrderHandler`
+
+Checks if two mappings iterate over their keys in the same order. It is used for mappings whose
+order is meaningful, like `OrderedDict`, and it should be placed after `MappingSameKeysHandler`:
+
+```pycon
+>>> from coola.equality.config import EqualityConfig
+>>> from coola.equality.handler import MappingSameKeyOrderHandler, TrueHandler, create_chain
+>>> config = EqualityConfig()
+>>> handler = create_chain(MappingSameKeyOrderHandler(), TrueHandler())
+>>> handler.handle({"a": 1, "b": 2}, {"a": 3, "b": 4}, config)
+True
+>>> handler.handle({"a": 1, "b": 2}, {"b": 4, "a": 3}, config)
+False
+
+```
+
 #### `MappingSameValuesHandler`
 
 Compares mapping values for the same keys:

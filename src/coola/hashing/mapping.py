@@ -26,9 +26,10 @@ class MappingHasher(InlineDisplayMixin, BaseHasher[Mapping[Any, Any]]):
     Sorting by key hash (not by key) ensures that mappings with the
     same key-value pairs but different insertion orders produce the
     same hash, without requiring keys to be orderable. This matches
-    ``coola`` equality, which ignores the order of the keys, even for
-    ``OrderedDict``. Register the hasher with ``ordered=True`` for a
-    mapping type whose order is meaningful.
+    ``coola`` equality, which ignores the order of the keys of a
+    ``dict``. Register the hasher with ``ordered=True`` for a mapping
+    type whose order is meaningful, like ``OrderedDict``: its equality
+    is order-sensitive too.
 
     The tag identifies the mapping family, so a ``dict`` and an
     ``OrderedDict`` with the same items hash differently.
