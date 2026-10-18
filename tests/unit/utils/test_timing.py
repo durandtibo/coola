@@ -1,8 +1,17 @@
 from __future__ import annotations
 
+import logging
+
 import pytest
 
 from coola.utils.timing import TimingResult, timeblock
+
+
+@pytest.fixture(autouse=True)
+def _log_level(caplog: pytest.LogCaptureFixture) -> None:
+    # ``timeblock`` logs at the INFO level: do not rely on a global log level.
+    caplog.set_level(logging.INFO, logger="coola.utils.timing")
+
 
 ##################################
 #     Tests for TimingResult     #
