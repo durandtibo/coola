@@ -26,6 +26,7 @@ from coola.random.numpy import NumpyRandomManager
 from coola.random.random import RandomRandomManager
 from coola.random.registry import RandomManagerRegistry
 from coola.random.torch import TorchRandomManager
+from coola.utils.deprecation import deprecated_alias
 from coola.utils.imports import is_numpy_available, is_torch_available
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
@@ -190,7 +191,10 @@ def get_default_registry() -> RandomManagerRegistry:
     return _default_registry.get()
 
 
-get_default_random_manager_registry = get_default_registry
+# Deprecated alias of ``get_default_registry``: the name is the same in every subpackage.
+get_default_random_manager_registry = deprecated_alias(
+    get_default_registry, "get_default_random_manager_registry"
+)
 
 
 def _register_default_managers(registry: RandomManagerRegistry) -> None:

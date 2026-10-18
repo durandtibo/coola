@@ -18,6 +18,7 @@ from coola.hashing.registry import HasherRegistry
 from coola.hashing.repr import ReprHasher
 from coola.hashing.sequence import SequenceHasher
 from coola.hashing.string import StringHasher
+from coola.utils.deprecation import deprecated_alias
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
 if TYPE_CHECKING:
@@ -130,7 +131,8 @@ def get_default_registry() -> HasherRegistry:
     return _default_registry.get()
 
 
-get_default_hasher_registry = get_default_registry
+# Deprecated alias of ``get_default_registry``: the name is the same in every subpackage.
+get_default_hasher_registry = deprecated_alias(get_default_registry, "get_default_hasher_registry")
 
 
 def _register_default_hashers(registry: HasherRegistry) -> None:

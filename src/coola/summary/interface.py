@@ -19,6 +19,7 @@ from coola.summary.registry import SummarizerRegistry
 from coola.summary.sequence import SequenceSummarizer
 from coola.summary.set import SetSummarizer
 from coola.summary.torch import TensorSummarizer
+from coola.utils.deprecation import deprecated_alias
 from coola.utils.imports import is_numpy_available, is_torch_available
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
@@ -147,7 +148,10 @@ def get_default_registry() -> SummarizerRegistry:
     return _default_registry.get()
 
 
-get_default_summarizer_registry = get_default_registry
+# Deprecated alias of ``get_default_registry``: the name is the same in every subpackage.
+get_default_summarizer_registry = deprecated_alias(
+    get_default_registry, "get_default_summarizer_registry"
+)
 
 
 def _register_default_summarizers(registry: SummarizerRegistry) -> None:

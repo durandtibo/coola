@@ -47,11 +47,12 @@ False
 
 ### Registry System
 
-!!! tip "Unambiguous alias"
+!!! warning "Deprecated alias"
 
-    `get_default_registry` exists in several `coola` subpackages with different return types.
-    `get_default_equality_tester_registry` is an alias of the same function with a more explicit name, which avoids
-    import collisions.
+    `get_default_equality_tester_registry` is a deprecated alias of `get_default_registry` and emits a `DeprecationWarning`.
+    `get_default_registry` exists in several `coola` subpackages with different return types:
+    to avoid import collisions, import the subpackage (`import coola.equality.tester as ...`)
+    or rename the function when importing it (`from ... import get_default_registry as ...`).
 
 The registry maintains a mapping from types to testers and automatically selects the right tester:
 

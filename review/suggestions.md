@@ -297,6 +297,8 @@ codebase is inconsistent.
 
 ### 2.5 Registry duplicate-key semantics (low)
 
+_(Status: fixed, except the atomicity point (not an issue for the built-in registries). `KeyNotRegisteredError(KeyError, LookupError)` is now the base of `TypeNotRegisteredError`: a plain `Registry` raises `KeyNotRegisteredError`, a `TypeRegistry` still raises `TypeNotRegisteredError`. The copy-on-write cache has an explanatory comment. The `issubclass` fallback for virtual subclasses was deliberately **not** added: `str`, `bytes` and `range` are virtual `Sequence`s, so `str` would be dispatched to the `Sequence` handler and iterated character by character. This is documented in the `TypeRegistry` docstring.)_
+
 - `BaseRegistry.register_many` is not atomic with respect to partial failures in
   subclasses overriding `_on_change`, but is fine for the built-in ones.
 - `Registry.__getitem__` / `unregister` raise `TypeNotRegisteredError` for non-type
@@ -313,6 +315,8 @@ codebase is inconsistent.
   `issubclass` fallback for ABC keys.
 
 ### 2.6 `get_default_*_registry` aliases (low)
+
+_(Status: fixed. The seven long names are now created with `coola.utils.deprecation.deprecated_alias`, which emits a `DeprecationWarning` pointing to the canonical `get_default_registry` of the subpackage. They are still exported. The user guide pages that presented them as a convenience now describe them as deprecated.)_
 
 Each `interface.py` defines both `get_default_registry` and
 `get_default_<x>_registry`. They were kept as public API. A short module-level note

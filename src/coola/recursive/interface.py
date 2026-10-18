@@ -20,6 +20,7 @@ from coola.recursive.mapping import MappingTransformer
 from coola.recursive.registry import TransformerRegistry
 from coola.recursive.sequence import SequenceTransformer
 from coola.recursive.set import SetTransformer
+from coola.utils.deprecation import deprecated_alias
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
 if TYPE_CHECKING:
@@ -135,7 +136,10 @@ def get_default_registry() -> TransformerRegistry:
     return _default_registry.get()
 
 
-get_default_transformer_registry = get_default_registry
+# Deprecated alias of ``get_default_registry``: the name is the same in every subpackage.
+get_default_transformer_registry = deprecated_alias(
+    get_default_registry, "get_default_transformer_registry"
+)
 
 
 def _register_default_transformers(registry: TransformerRegistry) -> None:
