@@ -6,6 +6,7 @@ from __future__ import annotations
 __all__ = [
     "LazyModule",
     "MissingPackageError",
+    "availability_cache",
     "check_colorlog",
     "check_jax",
     "check_numpy",
@@ -62,7 +63,6 @@ __all__ = [
     "xarray_available",
 ]
 
-from coola.utils.imports.cache import clear_availability_caches
 from coola.utils.imports.colorlog import (
     check_colorlog,
     colorlog_available,
@@ -131,7 +131,9 @@ from coola.utils.imports.torch_numpy import (
 )
 from coola.utils.imports.universal import (
     MissingPackageError,
+    availability_cache,
     check_package,
+    clear_availability_caches,
     decorator_package_available,
     module_available,
     package_available,

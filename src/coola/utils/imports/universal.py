@@ -4,7 +4,9 @@ from __future__ import annotations
 
 __all__ = [
     "MissingPackageError",
+    "availability_cache",
     "check_package",
+    "clear_availability_caches",
     "decorator_package_available",
     "module_available",
     "package_available",
@@ -14,9 +16,9 @@ __all__ = [
 import importlib
 import logging
 from contextlib import suppress
-from functools import lru_cache, wraps
+from functools import cache, wraps
 from importlib.util import find_spec
-from typing import TYPE_CHECKING, Any, Never, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Never, Protocol, TypeVar, cast
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -24,6 +26,66 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 F = TypeVar("F", bound="Callable[..., Any]")
+
+
+class _CachedFunction(Protocol):
+    def cache_clear(self) -> None: ...
+
+
+_CACHED_FUNCTIONS: list[_CachedFunction] = []
+
+
+def availability_cache(fn: F) -> F:
+    r"""Cache the result of an availability check and register it, so
+    ``clear_availability_caches`` can reset it.
+
+    Use it instead of ``functools.cache`` on the functions that check
+    if a package is available.
+
+    Args:
+        fn: The availability check to cache.
+
+    Returns:
+        The cached function, which has a ``cache_clear`` method.
+
+    Example:
+        ```pycon
+        >>> from coola.utils.imports import availability_cache
+        >>> @availability_cache
+        ... def is_my_package_available() -> bool:
+        ...     return True
+        ...
+        >>> is_my_package_available()
+        True
+
+        ```
+    """
+    cached = cache(fn)
+    _CACHED_FUNCTIONS.append(cast("_CachedFunction", cached))
+    return cast("F", cached)
+
+
+def clear_availability_caches() -> None:
+    r"""Clear the cached results of the availability checks.
+
+    ``package_available``, ``module_available`` and the
+    ``is_<package>_available`` functions cache their result, so the
+    availability of a package cannot change during the life of the
+    process. Call this function to force the checks to run again, for
+    example in a test that changes ``sys.modules`` or ``sys.path``.
+
+    The functions to clear are the ones decorated with
+    ``availability_cache``, so there is no list to maintain.
+
+    Example:
+        ```pycon
+        >>> from coola.utils.imports import clear_availability_caches
+        >>> clear_availability_caches()
+
+        ```
+    """
+    for function in _CACHED_FUNCTIONS:
+        function.cache_clear()
 
 
 class MissingPackageError(ModuleNotFoundError, RuntimeError):
@@ -47,7 +109,7 @@ class MissingPackageError(ModuleNotFoundError, RuntimeError):
     """
 
 
-@lru_cache
+@availability_cache
 def package_available(name: str) -> bool:
     r"""Indicate if a package is installed or not.
 
@@ -76,7 +138,7 @@ def package_available(name: str) -> bool:
     return False
 
 
-@lru_cache
+@availability_cache
 def module_available(name: str) -> bool:
     r"""Indicate if a module is available or not.
 

@@ -236,7 +236,7 @@ the real error. Prefer `pytest.mark.skipif` semantics only in `coola.testing`.
 
 ### 2.2 `is_xxx_available` uses `find_spec` only (low)
 
-_(Status: fixed. The `is_<package>_available` functions now use `module_available`, which imports the module, so a broken installation is reported as unavailable and a warning with the traceback is logged. `package_available` stays a cheap lookup that does not import. `clear_availability_caches()` resets all the cached checks.)_
+_(Status: fixed. The `is_<package>_available` functions now use `module_available`, which imports the module, so a broken installation is reported as unavailable and a warning with the traceback is logged. `package_available` stays a cheap lookup that does not import. `clear_availability_caches()` resets all the cached checks; the functions are registered by the `availability_cache` decorator, so there is no list to maintain.)_
 
 `package_available` returns `True` if the module can be found, not if it imports.
 A broken install (ABI mismatch, missing shared library) reports "available", then

@@ -6,7 +6,9 @@ from unittest.mock import patch
 
 import pytest
 
+from coola.utils import imports
 from coola.utils.imports import (
+    availability_cache,
     clear_availability_caches,
     is_numpy_available,
     module_available,
@@ -15,6 +17,8 @@ from coola.utils.imports import (
 
 if TYPE_CHECKING:
     from collections.abc import Generator
+
+from coola.utils.imports.universal import _CACHED_FUNCTIONS
 
 MODULE = "coola.utils.imports.universal"
 logger = logging.getLogger(__name__)
@@ -60,3 +64,40 @@ def test_clear_availability_caches_clears_package_available() -> None:
 def test_is_numpy_available_reports_broken_installation_as_unavailable() -> None:
     with patch(f"{MODULE}.importlib.import_module", side_effect=OSError("libblas.so missing")):
         assert not is_numpy_available()
+
+
+def test_all_is_available_functions_are_registered() -> None:
+    # A new ``is_<package>_available`` that is not decorated with
+    # ``availability_cache`` would not be reset by ``clear_availability_caches``.
+    names = [
+        name for name in imports.__all__ if name.startswith("is_") and name.endswith("_available")
+    ]
+    assert len(names) >= 12
+    for name in names:
+        assert getattr(imports, name) in _CACHED_FUNCTIONS, name
+
+
+def test_package_available_and_module_available_are_registered() -> None:
+    assert package_available in _CACHED_FUNCTIONS
+    assert module_available in _CACHED_FUNCTIONS
+
+
+def test_availability_cache_caches_and_registers() -> None:
+    calls = []
+
+    @availability_cache
+    def is_my_package_available() -> bool:
+        calls.append(1)
+        return True
+
+    try:
+        assert is_my_package_available()
+        assert is_my_package_available()
+        assert len(calls) == 1
+        assert is_my_package_available in _CACHED_FUNCTIONS
+
+        clear_availability_caches()
+        assert is_my_package_available()
+        assert len(calls) == 2
+    finally:
+        _CACHED_FUNCTIONS.remove(is_my_package_available)
