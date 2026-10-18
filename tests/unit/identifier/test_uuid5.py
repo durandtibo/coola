@@ -101,13 +101,15 @@ def test_generate_stable_uuid5_unhashable_type_raises_by_default() -> None:
 
 
 def test_generate_stable_uuid5_ignore_unhashable_does_not_raise() -> None:
-    assert UUID_PATTERN.match(generate_stable_uuid5(object(), ignore_unhashable=True))
+    with pytest.warns(UserWarning, match=r"No hasher registered"):
+        assert UUID_PATTERN.match(generate_stable_uuid5(object(), ignore_unhashable=True))
 
 
 def test_generate_stable_uuid5_ignore_unhashable_is_deterministic() -> None:
-    assert generate_stable_uuid5(object(), ignore_unhashable=True) == generate_stable_uuid5(
-        object(), ignore_unhashable=True
-    )
+    with pytest.warns(UserWarning, match=r"No hasher registered"):
+        assert generate_stable_uuid5(object(), ignore_unhashable=True) == generate_stable_uuid5(
+            object(), ignore_unhashable=True
+        )
 
 
 def test_generate_stable_uuid5_uses_given_registry() -> None:

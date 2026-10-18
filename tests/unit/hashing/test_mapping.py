@@ -6,6 +6,7 @@ from typing import Any
 import pytest
 
 from coola.hashing import HasherRegistry, MappingHasher, StrHasher
+from tests.unit.hashing.helpers import Unhashable
 
 
 @pytest.fixture
@@ -136,10 +137,6 @@ def test_mapping_hasher_hash_heterogeneous_key_types_is_deterministic(
     )
 
 
-class Unhashable:
-    r"""A type with no registered hasher."""
-
-
 @pytest.fixture
 def registry_without_fallback() -> HasherRegistry:
     # No `object` fallback registered, so `Unhashable` cannot be resolved.
@@ -165,18 +162,20 @@ def test_mapping_hasher_hash_unhashable_value_raises_when_explicitly_false(
 def test_mapping_hasher_hash_ignore_unhashable_value_returns_str(
     registry_without_fallback: HasherRegistry,
 ) -> None:
-    result = MappingHasher().hash(
-        {"a": Unhashable()}, registry=registry_without_fallback, ignore_unhashable=True
-    )
+    with pytest.warns(UserWarning, match=r"No hasher registered"):
+        result = MappingHasher().hash(
+            {"a": Unhashable()}, registry=registry_without_fallback, ignore_unhashable=True
+        )
     assert isinstance(result, str)
 
 
 def test_mapping_hasher_hash_ignore_unhashable_key_returns_str(
     registry_without_fallback: HasherRegistry,
 ) -> None:
-    result = MappingHasher().hash(
-        {Unhashable(): "a"}, registry=registry_without_fallback, ignore_unhashable=True
-    )
+    with pytest.warns(UserWarning, match=r"No hasher registered"):
+        result = MappingHasher().hash(
+            {Unhashable(): "a"}, registry=registry_without_fallback, ignore_unhashable=True
+        )
     assert isinstance(result, str)
 
 
@@ -184,11 +183,15 @@ def test_mapping_hasher_hash_ignore_unhashable_is_deterministic(
     registry_without_fallback: HasherRegistry,
 ) -> None:
     hasher = MappingHasher()
-    assert hasher.hash(
-        {"a": Unhashable()}, registry=registry_without_fallback, ignore_unhashable=True
-    ) == hasher.hash(
-        {"a": Unhashable()}, registry=registry_without_fallback, ignore_unhashable=True
-    )
+    with pytest.warns(UserWarning, match=r"No hasher registered"):
+        first = hasher.hash(
+            {"a": Unhashable()}, registry=registry_without_fallback, ignore_unhashable=True
+        )
+    with pytest.warns(UserWarning, match=r"No hasher registered"):
+        second = hasher.hash(
+            {"a": Unhashable()}, registry=registry_without_fallback, ignore_unhashable=True
+        )
+    assert first == second
 
 
 def test_mapping_hasher_repr_ordered() -> None:
