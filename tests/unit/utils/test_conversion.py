@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import datetime
 from dataclasses import dataclass
+from enum import Enum
+from pathlib import Path
 
 from coola.testing.fixtures import numpy_available, pydantic_available, torch_available
 from coola.utils.conversion import to_jsonable
@@ -163,14 +166,10 @@ def test_to_json_dataclass_with_nested_numpy_array_in_dict() -> None:
 
 
 def test_to_json_path() -> None:
-    from pathlib import Path
-
     assert to_jsonable(Path("a/b.txt")) == str(Path("a/b.txt"))
 
 
 def test_to_json_date_and_datetime() -> None:
-    import datetime
-
     assert to_jsonable(datetime.date(2024, 1, 2)) == "2024-01-02"
     assert (
         to_jsonable(datetime.datetime(2024, 1, 2, 3, 4, 5, tzinfo=datetime.UTC))
@@ -179,8 +178,6 @@ def test_to_json_date_and_datetime() -> None:
 
 
 def test_to_json_enum() -> None:
-    from enum import Enum
-
     class Color(Enum):
         RED = 1
 

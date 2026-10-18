@@ -173,7 +173,5 @@ def test_to_tensor_numpy() -> None:
 @numpy_available
 @torch_available
 def test_to_tensor_numpy_negative_strides() -> None:
-    import numpy as np
-
     out = to_tensor(np.array([1, 2, 3])[::-1])
     assert out.tolist() == [3, 2, 1]

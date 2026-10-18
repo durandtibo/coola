@@ -7,6 +7,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from coola.reducer import EmptySequenceError, NativeReducer, TorchReducer
+from coola.reducer.torch import _to_float_tensor
 from coola.testing.fixtures import torch_available
 from coola.utils.imports import is_torch_available
 
@@ -338,8 +339,6 @@ def test_torch_reducer_matches_native_reducer() -> None:
     ],
 )
 def test_to_float_tensor_dtype(values: object, dtype: str) -> None:
-    from coola.reducer.torch import _to_float_tensor
-
     assert _to_float_tensor(values).dtype == getattr(torch, dtype)
 
 
