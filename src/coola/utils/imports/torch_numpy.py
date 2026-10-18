@@ -1,5 +1,14 @@
 r"""Contain utilities to check that the optional ``torch`` and ``numpy``
-dependencies are installed and mutually compatible."""
+dependencies are installed and mutually compatible.
+
+Unlike the other modules of ``coola.utils.imports``, which check one
+package, these utilities check a **pair** of packages: ``torch`` and
+``numpy`` are both installed, *and* ``torch`` can exchange data with
+``numpy`` (a ``torch`` built against another major version of ``numpy``
+cannot). Use them for code that converts between tensors and arrays. If
+the code only needs one of the two, use the check of this package
+instead (``is_torch_available`` or ``is_numpy_available``).
+"""
 
 from __future__ import annotations
 
@@ -22,15 +31,12 @@ if TYPE_CHECKING:
 F = TypeVar("F", bound="Callable[..., Any]")
 
 
-if is_torch_available():
-    import torch
-else:  # pragma: no cover
-    from coola.utils.fallback.torch import torch
-
-
 def check_torch_numpy() -> None:
     r"""Check if the ``torch`` and ``numpy`` packages are installed and
     are compatible.
+
+    Unlike the other ``check_<package>`` functions, this function
+    checks a pair of packages (see ``is_torch_numpy_available``).
 
     Raises:
         MissingPackageError: if one of the packages is not installed or if
@@ -56,6 +62,10 @@ def is_torch_numpy_available() -> bool:
     r"""Indicate if the ``torch`` and ``numpy`` packages are installed
     and are compatible.
 
+    The packages are compatible if a ``torch`` tensor can be converted
+    to a ``numpy`` array. Unlike the other ``is_<package>_available``
+    functions, this function checks a pair of packages.
+
     Returns:
         ``True`` if both packages are available and compatible,
             otherwise ``False``.
@@ -71,6 +81,10 @@ def is_torch_numpy_available() -> bool:
         return False
     if not is_numpy_available():
         return False
+    # Imported here and not at the top of the module, so importing
+    # ``coola.utils.imports`` does not import ``torch``.
+    import torch  # noqa: PLC0415
+
     with suppress(RuntimeError):
         torch.tensor([1.0]).numpy()  # Check if the libraries are compatible
         return True
@@ -80,6 +94,9 @@ def is_torch_numpy_available() -> bool:
 def torch_numpy_available(fn: F) -> F:
     r"""Implement a decorator to execute a function only if ``torch`` and
     ``numpy`` packages are installed and are compatible.
+
+    Unlike the other ``<package>_available`` decorators, this decorator
+    checks a pair of packages (see ``is_torch_numpy_available``).
 
     Args:
         fn: The function to execute.

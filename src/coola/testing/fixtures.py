@@ -7,6 +7,12 @@ the test unless the dependency is available, and
 ``<name>_not_available`` skips it if the dependency is available. They
 are created by ``requires``, so supporting a new dependency takes one
 line, plus the two names in ``__all__``.
+
+Most marks are named after one package. The ``torch_cuda_*``,
+``torch_mps_*`` and ``torch_numpy_*`` marks are named after a feature of
+PyTorch or a pair of packages: they check that PyTorch is installed
+*and* that the CUDA device, the MPS device or NumPy (in a compatible
+version) is usable.
 """
 
 from __future__ import annotations

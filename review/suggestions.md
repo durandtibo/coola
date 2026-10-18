@@ -457,6 +457,8 @@ be guarded.
 
 ### 2.16 Naming (low)
 
+_(Status: fixed. (1) The `torch_numpy` module docstring, the three `check_torch_numpy` / `is_torch_numpy_available` / `torch_numpy_available` docstrings, the `coola.testing.fixtures` module docstring and the testing user guide now say that these check a pair of packages (or a feature of PyTorch, for `torch_cuda_*` and `torch_mps_*`), not one package. (2) `utils/imports/torch_numpy.py` no longer imports `torch` at module scope: it is imported inside `is_torch_numpy_available`, after the cheap checks. `import coola.utils.imports` imports neither `torch` nor `numpy` anymore (it imported both before); tests run a fresh interpreter to check it.)_
+
 - `torch_numpy_*` fixtures and `is_torch_numpy_available` are named after the pair,
   while all the others name one package. Fine, but add a note in the docstring.
 - `utils/imports/torch_numpy.py` imports `torch` at module scope (via the fallback

@@ -6,6 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from coola.testing.fixtures import torch_available
 from coola.utils.imports import (
     MissingPackageError,
     check_torch_numpy,
@@ -67,23 +68,22 @@ def test_is_torch_numpy_available_missing_numpy() -> None:
         assert not is_torch_numpy_available()
 
 
+@torch_available
 def test_is_torch_numpy_available_not_compatible() -> None:
     with (
         patch(f"{MODULE}.is_torch_available", lambda: True),
         patch(f"{MODULE}.is_numpy_available", lambda: True),
-        patch(f"{MODULE}.torch.tensor", Mock(side_effect=RuntimeError)),
+        patch("torch.tensor", Mock(side_effect=RuntimeError)),
     ):
         assert not is_torch_numpy_available()
 
 
+@torch_available
 def test_is_torch_numpy_available_compatible() -> None:
     with (
         patch(f"{MODULE}.is_torch_available", lambda: True),
         patch(f"{MODULE}.is_numpy_available", lambda: True),
-        patch(
-            f"{MODULE}.torch.tensor",
-            Mock(return_value=Mock(numpy=Mock(return_value=[1.0]))),
-        ),
+        patch("torch.tensor", Mock(return_value=Mock(numpy=Mock(return_value=[1.0])))),
     ):
         assert is_torch_numpy_available()
 
