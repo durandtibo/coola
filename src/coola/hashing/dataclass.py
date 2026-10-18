@@ -47,6 +47,7 @@ class DataclassHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Any]):
         self,
         data: Any,
         registry: HasherRegistry,
+        *,
         length: int = 64,
         ignore_unhashable: bool = False,
     ) -> str:

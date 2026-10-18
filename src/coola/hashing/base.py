@@ -26,6 +26,7 @@ class Hasher(Protocol[T_contra]):
         self,
         data: T_contra,
         registry: HasherRegistry,
+        *,
         length: int = 64,
         ignore_unhashable: bool = False,
     ) -> str: ...
@@ -61,6 +62,7 @@ class BaseHasher(ABC, Generic[T]):
         self,
         data: T,
         registry: HasherRegistry,
+        *,
         length: int = 64,
         ignore_unhashable: bool = False,
     ) -> str:

@@ -43,6 +43,7 @@ class EnumHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Enum]):
         self,
         data: Enum,
         registry: HasherRegistry,  # noqa: ARG002
+        *,
         length: int = 64,
         ignore_unhashable: bool = False,  # noqa: ARG002
     ) -> str:

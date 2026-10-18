@@ -77,6 +77,7 @@ must produce the same hash.
 ...         self,
 ...         data: Point,
 ...         registry: HasherRegistry,
+...         *,
 ...         length: int = 64,
 ...         ignore_unhashable: bool = False,
 ...     ) -> str:

@@ -286,6 +286,7 @@ def test_hasher_registry_accepts_protocol_implementation_without_subclassing() -
             self,
             data: Any,  # noqa: ARG002
             registry: HasherRegistry,  # noqa: ARG002
+            *,
             length: int = 64,
             ignore_unhashable: bool = False,  # noqa: ARG002
         ) -> str:

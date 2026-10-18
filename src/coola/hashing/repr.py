@@ -47,6 +47,7 @@ class ReprHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Any]):
         self,
         data: Any,
         registry: HasherRegistry,  # noqa: ARG002
+        *,
         length: int = 64,
         ignore_unhashable: bool = False,  # noqa: ARG002
     ) -> str:

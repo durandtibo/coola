@@ -43,6 +43,7 @@ class PathHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[PurePath]):
         self,
         data: PurePath,
         registry: HasherRegistry,  # noqa: ARG002
+        *,
         length: int = 64,
         ignore_unhashable: bool = False,  # noqa: ARG002
     ) -> str:
@@ -99,6 +100,7 @@ class ResolvedPathHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Path
         self,
         data: Path,
         registry: HasherRegistry,  # noqa: ARG002
+        *,
         length: int = 64,
         ignore_unhashable: bool = False,  # noqa: ARG002
     ) -> str:
