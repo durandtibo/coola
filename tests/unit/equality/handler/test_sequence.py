@@ -221,8 +221,8 @@ def test_sequence_same_values_handler_handle_without_next_handler(config: Equali
 def test_sequence_same_values_handler_handle_does_not_reuse_cache_across_different_objects(
     config: EqualityConfig,
 ) -> None:
-    actual = [1, 2]
-    expected = [1, 2]
+    actual = [1.0, 2.0]
+    expected = [1.0, 2.0]
     registry = Mock(wraps=config.registry)
     config.registry = registry
     assert SequenceSameValuesHandler(next_handler=TrueHandler()).handle(actual, expected, config)
@@ -259,3 +259,19 @@ def test_sequence_same_values_handler_handle_does_not_cache_by_identity(
         [shared, shared, shared], [shared, shared, shared], config
     )
     assert registry.objects_are_equal.call_count == 3
+
+
+def test_sequence_same_values_handler_handle_fast_path_true(config: EqualityConfig) -> None:
+    assert SequenceSameValuesHandler(next_handler=TrueHandler()).handle(
+        [1, "a", None, True], [1, "a", None, True], config
+    )
+
+
+def test_sequence_same_values_handler_handle_fast_path_false_show_difference(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    config.show_difference = True
+    with caplog.at_level(logging.INFO):
+        assert not SequenceSameValuesHandler().handle([1, 2, 3], [1, 2, 4], config)
+    assert caplog.messages
+

@@ -19,6 +19,10 @@ if TYPE_CHECKING:
 
 logger: logging.Logger = logging.getLogger(__name__)
 
+# Types for which ``==`` is exact and agrees with ``objects_are_equal``
+# (no NaN, no tolerance), so whole sequences can be compared at once.
+_EXACT_SCALAR_TYPES: frozenset[type] = frozenset({int, str, bytes, bool, type(None)})
+
 
 class SequenceSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Check if the two sequences have the same values.
@@ -63,6 +67,11 @@ class SequenceSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
                         f"{len(expected):,}",
                     )
                 return False
+            if _is_exact_scalar_sequence(actual) and _is_exact_scalar_sequence(expected):
+                # Fast path: skip the per-element dispatch. On mismatch, fall
+                # through to the slow path to locate the first difference.
+                if actual == expected:
+                    return self._handle_next(actual, expected, config=config)
             for idx, (value1, value2) in enumerate(zip(actual, expected, strict=True)):
                 if not config.registry.objects_are_equal(value1, value2, config):
                     if config.show_difference:
@@ -78,3 +87,9 @@ class SequenceSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
                         )
                     return False
             return self._handle_next(actual, expected, config=config)
+
+
+def _is_exact_scalar_sequence(seq: Sequence[Any]) -> bool:
+    r"""Indicate if ``seq`` is a list or tuple containing only exact
+    built-in scalars."""
+    return type(seq) in {list, tuple} and set(map(type, seq)) <= _EXACT_SCALAR_TYPES
