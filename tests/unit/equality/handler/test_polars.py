@@ -829,3 +829,14 @@ def test_assert_series_equal_old_naming() -> None:
     ):
         assert_series_equal(series1=pl.Series([1, 2, 3]), series2=pl.Series([1, 2, 3]))
         assert mock.call_args.kwargs == {"atol": 1e-8, "rtol": 1e-5, "check_exact": False}
+
+
+@polars_available
+def test_polars_lazyframe_equal_handler_different_schema_does_not_collect() -> None:
+    actual = Mock(spec=pl.LazyFrame)
+    actual.collect_schema.return_value = pl.Schema({"a": pl.Int64})
+    expected = Mock(spec=pl.LazyFrame)
+    expected.collect_schema.return_value = pl.Schema({"a": pl.Float64})
+    assert not PolarsLazyFrameEqualHandler().handle(actual, expected, EqualityConfig())
+    actual.collect.assert_not_called()
+    expected.collect.assert_not_called()
