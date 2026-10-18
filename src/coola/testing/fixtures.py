@@ -108,6 +108,35 @@ def requires(
     )
 
 
+colorlog_available: pytest.MarkDecorator
+colorlog_not_available: pytest.MarkDecorator
+jax_available: pytest.MarkDecorator
+jax_not_available: pytest.MarkDecorator
+numpy_available: pytest.MarkDecorator
+numpy_not_available: pytest.MarkDecorator
+packaging_available: pytest.MarkDecorator
+packaging_not_available: pytest.MarkDecorator
+pandas_available: pytest.MarkDecorator
+pandas_not_available: pytest.MarkDecorator
+polars_available: pytest.MarkDecorator
+polars_not_available: pytest.MarkDecorator
+pyarrow_available: pytest.MarkDecorator
+pyarrow_not_available: pytest.MarkDecorator
+pydantic_available: pytest.MarkDecorator
+pydantic_not_available: pytest.MarkDecorator
+rich_available: pytest.MarkDecorator
+rich_not_available: pytest.MarkDecorator
+torch_available: pytest.MarkDecorator
+torch_cuda_available: pytest.MarkDecorator
+torch_cuda_not_available: pytest.MarkDecorator
+torch_mps_available: pytest.MarkDecorator
+torch_mps_not_available: pytest.MarkDecorator
+torch_not_available: pytest.MarkDecorator
+torch_numpy_available: pytest.MarkDecorator
+torch_numpy_not_available: pytest.MarkDecorator
+xarray_available: pytest.MarkDecorator
+xarray_not_available: pytest.MarkDecorator
+
 jax_available, jax_not_available = requires(is_jax_available(), "JAX")
 numpy_available, numpy_not_available = requires(is_numpy_available(), "NumPy")
 packaging_available, packaging_not_available = requires(is_packaging_available(), "packaging")
