@@ -9,11 +9,16 @@ from __future__ import annotations
 
 __all__ = ["HasherRegistry"]
 
+import threading
+import warnings
 from typing import Any
 
 from coola.hashing.base import Hasher
 from coola.hashing.string import hash_string
 from coola.registry import BaseTypeDispatchRegistry
+
+
+_state = threading.local()
 
 
 class HasherRegistry(BaseTypeDispatchRegistry[Hasher[Any]]):
@@ -147,7 +152,11 @@ class HasherRegistry(BaseTypeDispatchRegistry[Hasher[Any]]):
                 replaced by a deterministic placeholder hash instead of
                 raising a ``KeyError``. This also applies to nested
                 objects encountered while recursing into sequences or
-                mappings. Defaults to ``False``, which raises an error.
+                mappings. The placeholder only depends on the type, so
+                any two unsupported objects of the same type hash the
+                same; a ``UserWarning`` is emitted each time a
+                placeholder is used. Defaults to ``False``, which
+                raises an error.
 
         Returns:
             A string representing the hash of the input data.
@@ -156,6 +165,8 @@ class HasherRegistry(BaseTypeDispatchRegistry[Hasher[Any]]):
             KeyError: If no hasher is registered for ``data``'s type
                 (or any of its parent types) and ``ignore_unhashable``
                 is ``False``.
+            ValueError: If ``data`` contains itself (a self-referencing
+                container).
 
         Example:
             ```pycon
@@ -170,6 +181,25 @@ class HasherRegistry(BaseTypeDispatchRegistry[Hasher[Any]]):
             hasher = self.find_hasher(type(data))
         except KeyError:
             if ignore_unhashable:
+                warnings.warn(
+                    f"No hasher registered for {type(data)!r}: using a type-only placeholder, "
+                    "so all objects of this type hash the same.",
+                    UserWarning,
+                    stacklevel=2,
+                )
                 return hash_string(f"<unhashable:{type(data)!r}>", length=length)
             raise
-        return hasher.hash(data, registry=self, length=length, ignore_unhashable=ignore_unhashable)
+        active: set[int] | None = getattr(_state, "active", None)
+        if active is None:
+            active = _state.active = set()
+        key = id(data)
+        if key in active:
+            msg = f"Cannot hash a self-referencing {type(data)!r}."
+            raise ValueError(msg)
+        active.add(key)
+        try:
+            return hasher.hash(
+                data, registry=self, length=length, ignore_unhashable=ignore_unhashable
+            )
+        finally:
+            active.discard(key)

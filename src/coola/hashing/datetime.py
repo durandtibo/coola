@@ -4,7 +4,7 @@ from __future__ import annotations
 
 __all__ = ["DatetimeHasher"]
 
-from datetime import date
+from datetime import date, time
 from typing import TYPE_CHECKING
 
 from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
@@ -15,9 +15,9 @@ if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
 
 
-class DatetimeHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[date]):
-    r"""Hasher for :class:`datetime.date` and :class:`datetime.datetime`
-    objects.
+class DatetimeHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[date | time]):
+    r"""Hasher for :class:`datetime.date`, :class:`datetime.datetime`
+    and :class:`datetime.time` objects.
 
     This hasher converts the object to its ISO 8601 string representation
     via ``isoformat()`` and then computes the hash of that string.
@@ -26,6 +26,10 @@ class DatetimeHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[date]):
     both types are handled by this hasher. Their ISO representations are
     always distinct (e.g. ``'2021-01-01'`` vs ``'2021-01-01T00:00:00'``),
     so they never produce the same hash for the same calendar date.
+
+    Offsets are part of the ISO string, so naive and aware values
+    differ, and equal instants in different time zones hash
+    differently.
 
     Example:
         ```pycon
@@ -43,7 +47,7 @@ class DatetimeHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[date]):
 
     def hash(
         self,
-        data: date,
+        data: date | time,
         registry: HasherRegistry,  # noqa: ARG002
         length: int = 64,
         ignore_unhashable: bool = False,  # noqa: ARG002

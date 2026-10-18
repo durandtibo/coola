@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
 from coola.hashing.base import BaseHasher
+from coola.hashing.string import hash_tagged
 
 if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
@@ -98,11 +99,14 @@ class HashableHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Supports
                 Forwarded to ``data.hash``.
 
         Returns:
-            A string representing the hash of ``data``, as returned by
-            ``data.hash``.
+            A string representing the hash of ``data``: the value
+            returned by ``data.hash``, namespaced by the qualified
+            class name of ``data``.
 
         Raises:
             AttributeError: If ``data`` does not implement a ``hash``
                 method.
         """
-        return data.hash(registry=registry, length=length, ignore_unhashable=ignore_unhashable)
+        digest = data.hash(registry=registry, length=length, ignore_unhashable=ignore_unhashable)
+        cls = type(data)
+        return hash_tagged(f"custom:{cls.__module__}.{cls.__qualname__}", digest, length=length)

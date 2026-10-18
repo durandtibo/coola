@@ -7,7 +7,7 @@ __all__ = ["MappingHasher"]
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_tagged
 
@@ -15,18 +15,28 @@ if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
 
 
-class MappingHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Mapping[Any, Any]]):
+class MappingHasher(InlineDisplayMixin, BaseHasher[Mapping[Any, Any]]):
     r"""Hasher for mapping types.
 
-    This hasher sorts the mapping by key, hashes each key and value
-    separately via the registry, concatenates the key and value hashes
-    per item, concatenates all per-item strings, and hashes the result.
+    This hasher hashes each key and value separately via the registry,
+    concatenates the key and value hashes per item, sorts the items by
+    key hash, concatenates all per-item strings, and hashes the result
+    under a type tag.
 
-    Sorting by key ensures that mappings with the same key-value pairs
-    but different insertion orders produce the same hash.
+    Sorting by key hash (not by key) ensures that mappings with the
+    same key-value pairs but different insertion orders produce the
+    same hash, without requiring keys to be orderable. Mappings whose
+    equality is order-sensitive (e.g. ``OrderedDict``) should be
+    registered with ``ordered=True``.
 
-    This hasher handles any type that is an instance of
-    ``collections.abc.Mapping``, including ``dict``.
+    The tag identifies the mapping family, so a ``dict`` and an
+    ``OrderedDict`` with the same items hash differently.
+
+    Args:
+        tag: The type tag mixed into the hash. Defaults to
+            ``"mapping"``.
+        ordered: If ``True``, items are hashed in iteration order
+            instead of being sorted. Defaults to ``False``.
 
     Example:
         ```pycon
@@ -35,12 +45,19 @@ class MappingHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Mapping[A
         >>> registry = HasherRegistry({object: StrHasher(), Mapping: MappingHasher()})
         >>> hasher = MappingHasher()
         >>> hasher
-        MappingHasher()
+        MappingHasher(tag='mapping', ordered=False)
         >>> len(hasher.hash({"a": 1, "b": 2}, registry=registry))
         64
 
         ```
     """
+
+    def __init__(self, tag: str = "mapping", ordered: bool = False) -> None:
+        self._tag = tag
+        self._ordered = ordered
+
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {"tag": self._tag, "ordered": self._ordered}
 
     def hash(
         self,
@@ -78,5 +95,6 @@ class MappingHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Mapping[A
             key_hash = registry.hash(key, length=length, ignore_unhashable=ignore_unhashable)
             val_hash = registry.hash(value, length=length, ignore_unhashable=ignore_unhashable)
             items.append((key_hash, key_hash + val_hash))
-        parts = [item for _, item in sorted(items, key=lambda item: item[0])]
-        return hash_tagged("mapping", "".join(parts), length=length)
+        if not self._ordered:
+            items.sort(key=lambda item: item[0])
+        return hash_tagged(self._tag, "".join(item for _, item in items), length=length)

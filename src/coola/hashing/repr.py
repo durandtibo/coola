@@ -4,11 +4,12 @@ from __future__ import annotations
 
 __all__ = ["ReprHasher"]
 
+from enum import Enum
 from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
 from coola.hashing.base import BaseHasher
-from coola.hashing.string import hash_tagged
+from coola.hashing.string import hash_enum, hash_tagged
 
 if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
@@ -66,6 +67,9 @@ class ReprHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Any]):
             ValueError: If ``length`` is not an even number between 2
                 and 128.
         """
+        if isinstance(data, Enum):
+            # ``(int, Enum)`` mixins reach this hasher through the MRO.
+            return hash_enum(data, length=length)
         for base in (bool, int, float, complex):
             if isinstance(data, base):
                 # Use the builtin repr so subclasses (e.g. NumPy scalars)

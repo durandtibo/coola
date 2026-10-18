@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
 from coola.hashing.base import BaseHasher
-from coola.hashing.string import hash_string
+from coola.hashing.string import hash_tagged
 
 if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
@@ -64,4 +64,4 @@ class StrHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Any]):
             ValueError: If ``length`` is not an even number between 2
                 and 128.
         """
-        return hash_string(str(data), length=length)
+        return hash_tagged(f"str:{type(data).__qualname__}", str(data), length=length)
