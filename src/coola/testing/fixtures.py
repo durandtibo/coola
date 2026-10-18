@@ -1,6 +1,12 @@
 r"""Define some pytest fixtures for testing.
 
 `pytest` is required to use these fixtures.
+
+Each optional dependency has a pair of marks: ``<name>_available``
+skips the test unless the dependency is available, and
+``<name>_not_available`` skips it if the dependency is available.
+They are created by ``requires``, so supporting a new dependency takes
+one line, plus the two names in ``__all__``.
 """
 
 from __future__ import annotations
@@ -22,6 +28,7 @@ __all__ = [
     "pyarrow_not_available",
     "pydantic_available",
     "pydantic_not_available",
+    "requires",
     "rich_available",
     "rich_not_available",
     "torch_available",
@@ -54,98 +61,64 @@ from coola.utils.imports import (
 )
 from coola.utils.tensor import is_cuda_available, is_mps_available
 
-jax_available: pytest.MarkDecorator = pytest.mark.skipif(
-    not is_jax_available(), reason="Requires JAX"
-)
-jax_not_available: pytest.MarkDecorator = pytest.mark.skipif(
-    is_jax_available(), reason="Skip if JAX is available"
-)
 
-numpy_available: pytest.MarkDecorator = pytest.mark.skipif(
-    not is_numpy_available(), reason="Requires NumPy"
-)
-numpy_not_available: pytest.MarkDecorator = pytest.mark.skipif(
-    is_numpy_available(), reason="Skip if NumPy is available"
-)
+def requires(
+    is_available: bool, name: str, *, plural: bool = False
+) -> tuple[pytest.MarkDecorator, pytest.MarkDecorator]:
+    r"""Create the pair of marks for a dependency.
 
-packaging_available: pytest.MarkDecorator = pytest.mark.skipif(
-    not is_packaging_available(), reason="Requires packaging"
-)
-packaging_not_available: pytest.MarkDecorator = pytest.mark.skipif(
-    is_packaging_available(), reason="Skip if packaging is available"
-)
+    Use it to support a new optional dependency: the marks are meant to
+    be assigned to module-level names, so they can be imported and used
+    as test decorators.
 
-pandas_available: pytest.MarkDecorator = pytest.mark.skipif(
-    not is_pandas_available(), reason="Requires pandas"
-)
-pandas_not_available: pytest.MarkDecorator = pytest.mark.skipif(
-    is_pandas_available(), reason="Skip if pandas is available"
-)
+    Args:
+        is_available: Whether the dependency is available.
+        name: The name of the dependency in the skip reasons, e.g.
+            ``"PyTorch and CUDA"``.
+        plural: If ``True``, the reason of the second mark uses "are"
+            instead of "is" (for a name that lists several
+            dependencies).
 
-polars_available: pytest.MarkDecorator = pytest.mark.skipif(
-    not is_polars_available(), reason="Requires polars"
-)
-polars_not_available: pytest.MarkDecorator = pytest.mark.skipif(
-    is_polars_available(), reason="Skip if polars is available"
-)
+    Returns:
+        The ``(available, not_available)`` marks. The first one skips
+            the test if the dependency is not available, the second one
+            skips it if the dependency is available.
 
-pyarrow_available: pytest.MarkDecorator = pytest.mark.skipif(
-    not is_pyarrow_available(), reason="Requires pyarrow"
-)
-pyarrow_not_available: pytest.MarkDecorator = pytest.mark.skipif(
-    is_pyarrow_available(), reason="Skip if pyarrow is available"
-)
+    Example:
+        ```pycon
+        >>> from coola.testing.fixtures import requires
+        >>> numpy_available, numpy_not_available = requires(True, "NumPy")
+        >>> numpy_available.kwargs["reason"]
+        'Requires NumPy'
+        >>> numpy_not_available.kwargs["reason"]
+        'Skip if NumPy is available'
 
-pydantic_available: pytest.MarkDecorator = pytest.mark.skipif(
-    not is_pydantic_available(), reason="Requires pydantic"
-)
-pydantic_not_available: pytest.MarkDecorator = pytest.mark.skipif(
-    is_pydantic_available(), reason="Skip if pydantic is available"
-)
+        ```
+    """
+    verb = "are" if plural else "is"
+    return (
+        pytest.mark.skipif(not is_available, reason=f"Requires {name}"),
+        pytest.mark.skipif(is_available, reason=f"Skip if {name} {verb} available"),
+    )
 
 
-torch_available: pytest.MarkDecorator = pytest.mark.skipif(
-    not is_torch_available(), reason="Requires PyTorch"
+jax_available, jax_not_available = requires(is_jax_available(), "JAX")
+numpy_available, numpy_not_available = requires(is_numpy_available(), "NumPy")
+packaging_available, packaging_not_available = requires(is_packaging_available(), "packaging")
+pandas_available, pandas_not_available = requires(is_pandas_available(), "pandas")
+polars_available, polars_not_available = requires(is_polars_available(), "polars")
+pyarrow_available, pyarrow_not_available = requires(is_pyarrow_available(), "pyarrow")
+pydantic_available, pydantic_not_available = requires(is_pydantic_available(), "pydantic")
+torch_available, torch_not_available = requires(is_torch_available(), "PyTorch")
+torch_cuda_available, torch_cuda_not_available = requires(
+    is_cuda_available(), "PyTorch and CUDA", plural=True
 )
-torch_not_available: pytest.MarkDecorator = pytest.mark.skipif(
-    is_torch_available(), reason="Skip if PyTorch is available"
+torch_numpy_available, torch_numpy_not_available = requires(
+    is_torch_numpy_available(), "PyTorch and NumPy", plural=True
 )
-torch_cuda_available: pytest.MarkDecorator = pytest.mark.skipif(
-    not is_cuda_available(), reason="Requires PyTorch and CUDA"
+torch_mps_available, torch_mps_not_available = requires(
+    is_mps_available(), "PyTorch and MPS", plural=True
 )
-torch_cuda_not_available: pytest.MarkDecorator = pytest.mark.skipif(
-    is_cuda_available(), reason="Skip if PyTorch and CUDA are available"
-)
-torch_numpy_available: pytest.MarkDecorator = pytest.mark.skipif(
-    not is_torch_numpy_available(), reason="Requires PyTorch and NumPy"
-)
-torch_numpy_not_available: pytest.MarkDecorator = pytest.mark.skipif(
-    is_torch_numpy_available(), reason="Skip if PyTorch and NumPy are available"
-)
-torch_mps_available: pytest.MarkDecorator = pytest.mark.skipif(
-    not is_mps_available(), reason="Requires PyTorch and MPS"
-)
-torch_mps_not_available: pytest.MarkDecorator = pytest.mark.skipif(
-    is_mps_available(), reason="Skip if PyTorch and MPS are available"
-)
-
-xarray_available: pytest.MarkDecorator = pytest.mark.skipif(
-    not is_xarray_available(), reason="Requires xarray"
-)
-xarray_not_available: pytest.MarkDecorator = pytest.mark.skipif(
-    is_xarray_available(), reason="Skip if xarray is available"
-)
-
-
-colorlog_available: pytest.MarkDecorator = pytest.mark.skipif(
-    not is_colorlog_available(), reason="Requires colorlog"
-)
-colorlog_not_available: pytest.MarkDecorator = pytest.mark.skipif(
-    is_colorlog_available(), reason="Skip if colorlog is available"
-)
-rich_available: pytest.MarkDecorator = pytest.mark.skipif(
-    not is_rich_available(), reason="Requires rich"
-)
-rich_not_available: pytest.MarkDecorator = pytest.mark.skipif(
-    is_rich_available(), reason="Skip if rich is available"
-)
+xarray_available, xarray_not_available = requires(is_xarray_available(), "xarray")
+colorlog_available, colorlog_not_available = requires(is_colorlog_available(), "colorlog")
+rich_available, rich_not_available = requires(is_rich_available(), "rich")

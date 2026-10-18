@@ -447,6 +447,8 @@ _(Status: fixed. (1) `ObjectIdGenerator` regenerates its process value and count
 
 ### 2.15 `testing.fixtures` repetition (low)
 
+_(Status: fixed. `coola.testing.fixtures` builds each pair of marks with the public `requires(is_available, name)`: supporting a new dependency is one line plus the two names in `__all__`. The 28 marks are unchanged (same condition and same skip reason). The `pytest` dependency is left as is, by decision: it is stated in the module docstring, and the fixtures are only useful with `pytest`.)_
+
 `testing/fixtures.py` defines 28 near-identical `pytest.mark.skipif` lines. A tiny
 helper (`_requires(name, is_available)` returning the pair) makes adding a backend a
 one-line change. `testing` also imports `pytest` at module import time, so
