@@ -43,7 +43,8 @@ def check_colorlog() -> None:
 
 @cache
 def is_colorlog_available() -> bool:
-    r"""Indicate if the ``colorlog`` package is installed and can be imported.
+    r"""Indicate if the ``colorlog`` package is installed and can be
+    imported.
 
     Returns:
         ``True`` if ``colorlog`` is available otherwise ``False``.

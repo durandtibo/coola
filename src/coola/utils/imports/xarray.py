@@ -38,7 +38,8 @@ def check_xarray() -> None:
 
 @cache
 def is_xarray_available() -> bool:
-    r"""Indicate if the ``xarray`` package is installed and can be imported.
+    r"""Indicate if the ``xarray`` package is installed and can be
+    imported.
 
     Returns:
         ``True`` if ``xarray`` is available otherwise ``False``.

@@ -38,7 +38,8 @@ def check_polars() -> None:
 
 @cache
 def is_polars_available() -> bool:
-    r"""Indicate if the ``polars`` package is installed and can be imported.
+    r"""Indicate if the ``polars`` package is installed and can be
+    imported.
 
     Returns:
         ``True`` if ``polars`` is available otherwise ``False``.

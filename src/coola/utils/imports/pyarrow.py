@@ -43,7 +43,8 @@ def check_pyarrow() -> None:
 
 @cache
 def is_pyarrow_available() -> bool:
-    r"""Indicate if the ``pyarrow`` package is installed and can be imported.
+    r"""Indicate if the ``pyarrow`` package is installed and can be
+    imported.
 
     Returns:
         ``True`` if ``pyarrow`` is available otherwise ``False``.

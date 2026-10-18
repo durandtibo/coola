@@ -38,7 +38,8 @@ def check_pandas() -> None:
 
 @cache
 def is_pandas_available() -> bool:
-    r"""Indicate if the ``pandas`` package is installed and can be imported.
+    r"""Indicate if the ``pandas`` package is installed and can be
+    imported.
 
     Returns:
         ``True`` if ``pandas`` is available otherwise ``False``.

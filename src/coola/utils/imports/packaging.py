@@ -43,7 +43,8 @@ def check_packaging() -> None:
 
 @cache
 def is_packaging_available() -> bool:
-    r"""Indicate if the ``packaging`` package is installed and can be imported.
+    r"""Indicate if the ``packaging`` package is installed and can be
+    imported.
 
     Returns:
         ``True`` if ``packaging`` is available otherwise ``False``.

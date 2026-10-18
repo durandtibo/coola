@@ -43,7 +43,8 @@ def check_pydantic() -> None:
 
 @cache
 def is_pydantic_available() -> bool:
-    r"""Indicate if the ``pydantic`` package is installed and can be imported.
+    r"""Indicate if the ``pydantic`` package is installed and can be
+    imported.
 
     Returns:
         ``True`` if ``pydantic`` is available otherwise ``False``.

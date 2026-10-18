@@ -38,7 +38,8 @@ def check_torch() -> None:
 
 @cache
 def is_torch_available() -> bool:
-    r"""Indicate if the ``torch`` package is installed and can be imported.
+    r"""Indicate if the ``torch`` package is installed and can be
+    imported.
 
     Returns:
         ``True`` if ``torch`` is available otherwise ``False``.

@@ -43,7 +43,8 @@ def check_rich() -> None:
 
 @cache
 def is_rich_available() -> bool:
-    r"""Indicate if the ``rich`` package is installed and can be imported.
+    r"""Indicate if the ``rich`` package is installed and can be
+    imported.
 
     Returns:
         ``True`` if ``rich`` is available otherwise ``False``.

@@ -38,7 +38,8 @@ def check_numpy() -> None:
 
 @cache
 def is_numpy_available() -> bool:
-    r"""Indicate if the ``numpy`` package is installed and can be imported.
+    r"""Indicate if the ``numpy`` package is installed and can be
+    imported.
 
     Returns:
         ``True`` if ``numpy`` is available otherwise ``False``.
