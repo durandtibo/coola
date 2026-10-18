@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import errno
 import os
-import subprocess
-import sys
 import time
 from pathlib import Path
 from typing import Any
@@ -11,7 +9,6 @@ from unittest.mock import patch
 
 import pytest
 
-import coola
 from coola.equality import objects_are_equal
 from coola.equality.tester import (
     EqualNanEqualityTester,
@@ -434,23 +431,6 @@ def test_loaders_and_savers_are_compared_with_equal() -> None:
     assert not objects_are_equal(JsonLoader(), TextLoader())
     assert objects_are_equal({"saver": JsonSaver(indent=2)}, {"saver": JsonSaver(indent=2)})
     assert not objects_are_equal(JsonSaver(indent=2), JsonSaver(indent=4))
-
-
-def test_importing_coola_io_does_not_modify_the_default_equality_registry() -> None:
-    code = (
-        "import coola.io; "
-        "from coola.equality.tester import interface; "
-        "print(interface._default_registry._instance is None)"
-    )
-    src = str(Path(coola.__file__).parents[1])
-    result = subprocess.run(  # noqa: S603
-        [sys.executable, "-c", code],
-        capture_output=True,
-        text=True,
-        check=True,
-        env={**os.environ, "PYTHONPATH": src},
-    )
-    assert result.stdout.split() == ["True"]
 
 
 ########################################

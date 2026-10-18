@@ -10,7 +10,7 @@ import pytest
 
 from coola.io import BaseFileSaver
 from coola.io.base import _acquire_file_lock
-from tests.integration.helpers import run_threads
+from tests.integration.helpers import run_python, run_threads
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -209,3 +209,28 @@ def test_acquire_file_lock_recovers_after_holder_process_is_killed(tmp_path: Pat
     time.sleep(0.1)
     assert _acquire_file_lock(path, timeout=5, stale_after=0.05) == lock_path
     lock_path.unlink()
+
+
+################################################
+#     Tests for the import of coola.io          #
+################################################
+
+
+def test_importing_coola_io_does_not_modify_the_default_equality_registry() -> None:
+    code = (
+        "import coola.io; "
+        "from coola.equality.tester import interface; "
+        "print(interface._default_registry._instance is None)"
+    )
+    assert run_python(code) == ["True"]
+
+
+def test_default_equality_registry_has_the_io_testers_after_importing_coola_io() -> None:
+    code = (
+        "import coola.io; "
+        "from coola.equality.tester import get_default_registry; "
+        "registry = get_default_registry(); "
+        "print(registry.has_equality_tester(coola.io.BaseLoader), "
+        "registry.has_equality_tester(coola.io.BaseSaver))"
+    )
+    assert run_python(code) == ["True", "True"]
