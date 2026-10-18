@@ -4,10 +4,10 @@ dependencies are installed and mutually compatible.
 Unlike the other modules of ``coola.utils.imports``, which check one
 package, these utilities check a **pair** of packages: ``torch`` and
 ``numpy`` are both installed, *and* ``torch`` can exchange data with
-``numpy`` (a ``torch`` built against another major version of
-``numpy`` cannot). Use them for code that converts between tensors and
-arrays. If the code only needs one of the two, use the check of this
-package instead (``is_torch_available`` or ``is_numpy_available``).
+``numpy`` (a ``torch`` built against another major version of ``numpy``
+cannot). Use them for code that converts between tensors and arrays. If
+the code only needs one of the two, use the check of this package
+instead (``is_torch_available`` or ``is_numpy_available``).
 """
 
 from __future__ import annotations

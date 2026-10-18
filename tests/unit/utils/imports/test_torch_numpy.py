@@ -39,8 +39,9 @@ def my_function(n: int = 0) -> int:
 
 
 def run_python(code: str) -> list[str]:
-    r"""Run ``code`` in a fresh interpreter (the modules imported by this process
-    would hide the imports of ``code``) and return the words it prints."""
+    r"""Run ``code`` in a fresh interpreter (the modules imported by
+    this process would hide the imports of ``code``) and return the
+    words it prints."""
     src = str(Path(coola.__file__).parents[1])
     result = subprocess.run(  # noqa: S603
         [sys.executable, "-c", code],
