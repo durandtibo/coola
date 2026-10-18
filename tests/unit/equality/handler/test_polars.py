@@ -17,8 +17,10 @@ from coola.equality.handler.polars import (
     PolarsLazyFrameEqualHandler,
     assert_frame_equal,
     assert_series_equal,
+    frame_equal,
     has_nan,
     is_new_naming,
+    series_equal,
 )
 from coola.testing.fixtures import polars_available
 from coola.utils.imports import is_polars_available
@@ -833,10 +835,6 @@ def test_assert_series_equal_old_naming() -> None:
 
 @polars_available
 def test_polars_frame_and_series_equal_different_shape() -> None:
-    import polars as pl
-
-    from coola.equality.handler.polars import frame_equal, series_equal
-
     config = EqualityConfig(equal_nan=True)
     assert not frame_equal(pl.DataFrame({"a": [1, 2]}), pl.DataFrame({"a": [1, 2, 3]}), config)
     assert not series_equal(pl.Series([1, 2]), pl.Series([1, 2, 3]), config)
