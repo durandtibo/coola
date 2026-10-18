@@ -2,11 +2,11 @@ r"""Define some pytest fixtures for testing.
 
 `pytest` is required to use these fixtures.
 
-Each optional dependency has a pair of marks: ``<name>_available``
-skips the test unless the dependency is available, and
-``<name>_not_available`` skips it if the dependency is available.
-They are created by ``requires``, so supporting a new dependency takes
-one line, plus the two names in ``__all__``.
+Each optional dependency has a pair of marks: ``<name>_available`` skips
+the test unless the dependency is available, and
+``<name>_not_available`` skips it if the dependency is available. They
+are created by ``requires``, so supporting a new dependency takes one
+line, plus the two names in ``__all__``.
 """
 
 from __future__ import annotations

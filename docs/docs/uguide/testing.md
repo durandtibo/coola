@@ -361,6 +361,27 @@ The following markers follow the same pattern and are also available in
 | `torch_cuda_available`  | `torch_cuda_not_available`       |
 | `torch_mps_available`   | `torch_mps_not_available`        |
 
+## Creating Markers for Another Dependency
+
+`requires` creates the pair of markers for any dependency. It takes a boolean that says whether the
+dependency is available and the name used in the skip reasons, and returns the
+`(available, not_available)` markers:
+
+```python
+from coola.testing.fixtures import requires
+from coola.utils.imports import package_available
+
+dask_available, dask_not_available = requires(package_available("dask"), "Dask")
+
+
+@dask_available
+def test_with_dask() -> None: ...
+```
+
+The first marker skips the test if the dependency is not available, the second one skips it if the
+dependency is available. Pass `plural=True` when the name lists several dependencies (for example
+`"PyTorch and CUDA"`), so the reason reads "are available".
+
 ## Usage Examples
 
 ### Testing with Multiple Dependencies
