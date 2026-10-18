@@ -334,6 +334,8 @@ purpose (the docstring suggests it is), keep as is.
 
 ### 2.8 `KeyFilterTransformer` does not match its siblings (low)
 
+_(Status: fixed. `KeyFilterTransformer` now has the `Transformer` signature `transform(data, func, registry)`; `transform_func` moved to the constructor (`KeyFilterTransformer(transform_func=...)`), and it uses `InlineDisplayMixin`. Passing `transform_func` to `transform` is no longer accepted.)_
+
 `recursive/key.py::KeyFilterTransformer` does not use a display mixin, and its
 `transform` takes an extra keyword-only `transform_func` that the `Transformer`
 protocol does not have. `nested/mapping.py` builds a private registry around it.
@@ -355,6 +357,8 @@ flag as `NDArraySummarizer`. Make the same decision for `recursive` and `hashing
 raises or falls back to `object` handling).
 
 ### 2.10 BFS/DFS iterators (low)
+
+_(Status: fixed. The default registries register `Collection` instead of `Iterable`, so iterators and generators are leaves and are never consumed. `BaseChildFinder.is_leaf` (default `False`, `True` for `DefaultChildFinder`) replaces the `isinstance(..., DefaultChildFinder)` check. Both `bfs_iterate` and `dfs_iterate` raise `ValueError("Cycle detected ...")` for a container that contains itself; a shared sub-container is not a cycle. In DFS the iterators receive a registry view that knows the path, so custom iterators that call `registry.iterate` are protected too.)_
 
 - Both register `Iterable` as a "container". A generator, file object or infinite
   iterator passed in is consumed (or never ends). Restrict to `Collection` or

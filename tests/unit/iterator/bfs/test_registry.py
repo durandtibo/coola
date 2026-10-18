@@ -237,7 +237,8 @@ def test_child_finder_registry_registry_isolation() -> None:
 
 
 class LeafChildFinder(BaseChildFinder[Any]):
-    r"""A leaf child finder that does not inherit from ``DefaultChildFinder``."""
+    r"""A leaf child finder that does not inherit from
+    ``DefaultChildFinder``."""
 
     @property
     def is_leaf(self) -> bool:
@@ -248,7 +249,8 @@ class LeafChildFinder(BaseChildFinder[Any]):
 
 
 class ExpandedDefaultChildFinder(DefaultChildFinder):
-    r"""A child finder that inherits from ``DefaultChildFinder`` but has children."""
+    r"""A child finder that inherits from ``DefaultChildFinder`` but has
+    children."""
 
     @property
     def is_leaf(self) -> bool:

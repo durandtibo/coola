@@ -179,8 +179,8 @@ class IteratorRegistry(BaseTypeDispatchRegistry[BaseIterator[Any]]):
 
 
 class _PathRegistry(IteratorRegistry):
-    r"""A view of an iterator registry that knows the path to the
-    object being iterated.
+    r"""A view of an iterator registry that knows the path to the object
+    being iterated.
 
     It is the registry given to the iterators, so their recursive calls
     to ``iterate`` can detect a container that contains itself. It shares

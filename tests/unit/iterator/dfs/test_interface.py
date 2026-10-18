@@ -137,7 +137,8 @@ def test_get_default_registry_singleton_persists_modifications() -> None:
 
 
 class CustomIterator(Iterator):
-    r"""An iterator that explicitly inherits from ``collections.abc.Iterator``."""
+    r"""An iterator that explicitly inherits from
+    ``collections.abc.Iterator``."""
 
     def __init__(self, values: list[int]) -> None:
         self._values = iter(values)

@@ -317,6 +317,33 @@ True
 
 ```
 
+## Iterators and Cycles
+
+The default registries expand collections (`list`, `tuple`, `set`, `dict`, `range`, ...) but treat
+iterators and generators as leaves: they are returned as they are and never consumed, so a
+generator (or an infinite iterator) in the data cannot be exhausted or hang the traversal.
+
+A container that contains itself cannot be traversed. Both `dfs_iterate` and `bfs_iterate` raise a
+`ValueError` instead of looping forever or hitting the recursion limit. A container that appears
+several times without containing itself is not a cycle, and its leaves are returned each time:
+
+```pycon
+>>> from coola.iterator.dfs import dfs_iterate
+>>> shared = [1, 2]
+>>> list(dfs_iterate([shared, shared]))
+[1, 2, 1, 2]
+>>> data = [1]
+>>> data.append(data)
+>>> list(dfs_iterate(data))
+Traceback (most recent call last):
+    ...
+ValueError: Cycle detected: an object of type <class 'list'> contains itself
+
+```
+
+A custom child finder for leaf types must override `is_leaf` to return `True` (like
+`DefaultChildFinder`) so `bfs_iterate` yields the value instead of expanding it.
+
 ## Design Principles
 
 The `coola.iterator` package design provides:
