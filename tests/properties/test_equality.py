@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import copy
 import datetime as dt
+import math
 from collections import OrderedDict, deque
 from typing import Any
 
@@ -224,8 +225,8 @@ def test_signed_zero_is_equal_to_zero(atol: float, rtol: float) -> None:
 
 @given(
     value=st.datetimes(
-        min_value=dt.datetime(2000, 1, 1, tzinfo=None),
-        max_value=dt.datetime(2100, 1, 1, tzinfo=None),
+        min_value=dt.datetime(2000, 1, 1),  # noqa: DTZ001
+        max_value=dt.datetime(2100, 1, 1),  # noqa: DTZ001
     )
 )
 def test_time_zones_aware_datetimes_compare_by_instant(value: dt.datetime) -> None:

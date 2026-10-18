@@ -67,11 +67,14 @@ class SequenceSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
                         f"{len(expected):,}",
                     )
                 return False
-            # Fast path: skip the per-element dispatch. On mismatch, fall
-            # through to the slow path to locate the first difference.
+            # Fast path: skip the per-element dispatch. ``==`` ignores the type
+            # (``False == 0``), so the types must match item by item. On
+            # mismatch, fall through to the slow path to locate the first
+            # difference.
             if (
                 is_exact_scalar_sequence(actual)
                 and is_exact_scalar_sequence(expected)
+                and list(map(type, actual)) == list(map(type, expected))
                 and actual == expected
             ):
                 return self._handle_next(actual, expected, config=config)
