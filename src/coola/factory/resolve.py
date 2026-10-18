@@ -5,10 +5,13 @@ from __future__ import annotations
 __all__ = ["factory", "resolve_object"]
 
 import logging
-from typing import Any, TypeVar, cast, overload
+from typing import TYPE_CHECKING, Any, TypeVar, cast, overload
 
 from coola.factory.constants import OBJECT_INIT, OBJECT_TARGET
 from coola.factory.instantiation import import_object, instantiate_object
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -75,14 +78,20 @@ def factory(_target_: str, *args: Any, **kwargs: Any) -> Any:
 
 
 @overload
-def resolve_object(obj: T | dict[str, Any]) -> T: ...
+def resolve_object(
+    obj: T | dict[str, Any], *, allowed_prefixes: Sequence[str] | None = None
+) -> T: ...
 
 
 @overload
-def resolve_object(obj: T | dict[str, Any], cls: type[T]) -> T: ...
+def resolve_object(
+    obj: T | dict[str, Any], cls: type[T], *, allowed_prefixes: Sequence[str] | None = None
+) -> T: ...
 
 
-def resolve_object(obj: Any, cls: type = object) -> Any:
+def resolve_object(
+    obj: Any, cls: type = object, *, allowed_prefixes: Sequence[str] | None = None
+) -> Any:
     """Resolve an instance of ``cls`` from an existing object or a
     configuration dictionary.
 
@@ -112,6 +121,14 @@ def resolve_object(obj: Any, cls: type = object) -> Any:
             whether ``obj`` was already an instance or was built from
             a configuration dictionary. Defaults to :class:`object`,
             which accepts any resolved value without validation.
+        allowed_prefixes: An optional allow-list of module prefixes
+            that the ``"_target_"`` of the configuration must match
+            (see ``import_object``): ``"mypackage"`` allows
+            ``"mypackage"`` and ``"mypackage.sub.Class"`` but not
+            ``"mypackage2.Class"``. If ``None`` (default), any
+            ``"_target_"`` is allowed. When it is set, it replaces the
+            ``"_allowed_prefixes_"`` key of the configuration, so
+            a configuration cannot widen it.
 
     Returns:
         A configured instance of ``cls``.
@@ -120,15 +137,21 @@ def resolve_object(obj: Any, cls: type = object) -> Any:
         TypeError: If ``obj`` is a :class:`dict` missing the
             ``"_target_"`` key, or if the resolved object is not an
             instance of ``cls``.
+        ImportError: If the ``"_target_"`` does not match
+            ``allowed_prefixes``, or if it cannot be found.
 
     Security:
         When ``obj`` is a :class:`dict`, its ``"_target_"`` value is
         passed to :func:`coola.factory.factory`, which imports and
         instantiates arbitrary objects from a dotted path string with
-        no allowlist. Only call this function with a configuration
-        dictionary that comes from a trusted source; never resolve a
-        ``_target_`` derived from untrusted input, as this is a
-        remote-code-execution vector.
+        no allowlist by default. Only call this function with a
+        configuration dictionary that comes from a trusted source;
+        never resolve a ``_target_`` derived from untrusted input, as
+        this is a remote-code-execution vector. If the configuration
+        cannot be fully trusted, pass ``allowed_prefixes`` to restrict
+        the ``"_target_"`` to the modules you expect, and check the
+        arguments of the allowed objects too: an allow-list limits
+        *what* can be called, not the arguments it is called with.
 
     Example:
         ```pycon
@@ -153,7 +176,11 @@ def resolve_object(obj: Any, cls: type = object) -> Any:
             )
             raise TypeError(msg)
         logger.info("Initializing a %s instance from its configuration...", cls_name)
-        obj = factory(**cast("dict[str, Any]", obj))
+        config = cast("dict[str, Any]", obj)
+        if allowed_prefixes is not None:
+            # The caller's allow-list wins over the one of the configuration.
+            config = {**config, "_allowed_prefixes_": allowed_prefixes}
+        obj = factory(**config)
     if not isinstance(obj, cls):
         msg = (
             f"Received object is not a {cls_name} instance (received: {type(cast('object', obj))})"
