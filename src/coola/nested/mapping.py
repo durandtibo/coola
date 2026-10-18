@@ -164,8 +164,8 @@ def _validate_on_duplicate(on_duplicate: str, strategies: set[str]) -> None:
 
 
 def _prefix_first_occurrence(out: dict[Any, Any], key: Any, prefixed_key: str) -> None:
-    r"""Re-key the first occurrence of ``key`` with its prefixed key, if it
-    is still stored with its original key.
+    r"""Re-key the first occurrence of ``key`` with its prefixed key, if
+    it is still stored with its original key.
 
     Args:
         out: The flattened mapping, modified in-place.
