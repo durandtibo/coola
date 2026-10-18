@@ -23,7 +23,7 @@ def check_pandas() -> None:
     r"""Check if the ``pandas`` package is installed.
 
     Raises:
-        RuntimeError: if the ``pandas`` package is not installed.
+        MissingPackageError: if the ``pandas`` package is not installed.
 
     Example:
         ```pycon
@@ -79,11 +79,11 @@ def pandas_available(fn: F) -> F:
 
 
 def raise_pandas_missing_error() -> Never:
-    r"""Raise a ``RuntimeError`` to indicate the ``pandas`` package is
-    missing.
+    r"""Raise a ``MissingPackageError`` to indicate the ``pandas``
+    package is missing.
 
     Raises:
-        RuntimeError: Always, with a message indicating that the
+        MissingPackageError: Always, with a message indicating that the
             ``pandas`` package is not installed.
 
     Example:

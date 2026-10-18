@@ -20,6 +20,7 @@ from coola.random.interface import (
     random_seed,
     set_rng_state,
 )
+from coola.registry import AlreadyRegisteredError
 from coola.testing.fixtures import (
     numpy_available,
     numpy_not_available,
@@ -187,7 +188,7 @@ def test_register_managers_with_exist_ok_false() -> None:
     """Test that register_managers raises RuntimeError when attempting
     to re-register with exist_ok=False."""
     register_managers({"custom": RandomRandomManager()})
-    with pytest.raises(RuntimeError, match=r"already registered"):
+    with pytest.raises(AlreadyRegisteredError, match=r"already registered"):
         register_managers({"custom": RandomRandomManager()}, exist_ok=False)
 
 

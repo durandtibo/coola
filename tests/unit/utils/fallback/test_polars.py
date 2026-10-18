@@ -5,6 +5,7 @@ from types import ModuleType
 import pytest
 
 from coola.utils.fallback.polars import polars
+from coola.utils.imports import MissingPackageError
 
 
 def test_polars_is_module_type() -> None:
@@ -24,7 +25,9 @@ def test_polars_dataframe_is_class() -> None:
 
 
 def test_polars_dataframe_instantiation() -> None:
-    with pytest.raises(RuntimeError, match=r"'polars' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'polars' package is required but not installed."
+    ):
         polars.DataFrame()
 
 
@@ -37,7 +40,9 @@ def test_polars_lazyframe_is_class() -> None:
 
 
 def test_polars_lazyframe_instantiation() -> None:
-    with pytest.raises(RuntimeError, match=r"'polars' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'polars' package is required but not installed."
+    ):
         polars.LazyFrame()
 
 
@@ -50,5 +55,7 @@ def test_polars_series_is_class() -> None:
 
 
 def test_polars_series_instantiation() -> None:
-    with pytest.raises(RuntimeError, match=r"'polars' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'polars' package is required but not installed."
+    ):
         polars.Series()

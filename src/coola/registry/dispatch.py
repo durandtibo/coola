@@ -73,7 +73,7 @@ class BaseTypeDispatchRegistry(MultilineDisplayMixin, Generic[V]):
                 the existing registration silently.
 
         Raises:
-            RuntimeError: If the type is already registered and
+            AlreadyRegisteredError: If the type is already registered and
                 ``exist_ok`` is ``False``.
         """
         self._state.register(data_type, value, exist_ok=exist_ok)
@@ -92,7 +92,7 @@ class BaseTypeDispatchRegistry(MultilineDisplayMixin, Generic[V]):
                 existing registrations silently.
 
         Raises:
-            RuntimeError: If any type is already registered and
+            AlreadyRegisteredError: If any type is already registered and
                 ``exist_ok`` is ``False``.
         """
         self._state.register_many(mapping, exist_ok=exist_ok)

@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from coola.utils.imports import (
+    MissingPackageError,
     check_colorlog,
     colorlog_available,
     is_colorlog_available,
@@ -45,7 +46,9 @@ def test_check_colorlog_with_package() -> None:
 def test_check_colorlog_without_package() -> None:
     with (
         patch(f"{MODULE}.is_colorlog_available", lambda: False),
-        pytest.raises(RuntimeError, match=r"'colorlog' package is required but not installed."),
+        pytest.raises(
+            MissingPackageError, match=r"'colorlog' package is required but not installed."
+        ),
     ):
         check_colorlog()
 
@@ -87,5 +90,7 @@ def test_colorlog_available_decorator_without_package() -> None:
 
 
 def test_raise_colorlog_missing_error() -> None:
-    with pytest.raises(RuntimeError, match=r"'colorlog' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'colorlog' package is required but not installed."
+    ):
         raise_colorlog_missing_error()

@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from coola.utils.imports import (
+    MissingPackageError,
     check_torch,
     is_torch_available,
     raise_torch_missing_error,
@@ -46,7 +47,7 @@ def test_check_torch_with_package() -> None:
 def test_check_torch_without_package() -> None:
     with (
         patch(f"{MODULE}.is_torch_available", lambda: False),
-        pytest.raises(RuntimeError, match=r"'torch' package is required but not installed."),
+        pytest.raises(MissingPackageError, match=r"'torch' package is required but not installed."),
     ):
         check_torch()
 
@@ -88,5 +89,7 @@ def test_torch_available_decorator_without_package() -> None:
 
 
 def test_raise_torch_missing_error() -> None:
-    with pytest.raises(RuntimeError, match=r"'torch' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'torch' package is required but not installed."
+    ):
         raise_torch_missing_error()

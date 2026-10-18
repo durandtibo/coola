@@ -23,7 +23,7 @@ def check_xarray() -> None:
     r"""Check if the ``xarray`` package is installed.
 
     Raises:
-        RuntimeError: if the ``xarray`` package is not installed.
+        MissingPackageError: if the ``xarray`` package is not installed.
 
     Example:
         ```pycon
@@ -79,11 +79,11 @@ def xarray_available(fn: F) -> F:
 
 
 def raise_xarray_missing_error() -> Never:
-    r"""Raise a ``RuntimeError`` to indicate the ``xarray`` package is
-    missing.
+    r"""Raise a ``MissingPackageError`` to indicate the ``xarray``
+    package is missing.
 
     Raises:
-        RuntimeError: Always, with a message indicating that the
+        MissingPackageError: Always, with a message indicating that the
             ``xarray`` package is not installed.
 
     Example:

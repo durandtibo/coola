@@ -11,7 +11,7 @@ from coola.equality.tester import (
     NumpyMaskedArrayEqualityTester,
 )
 from coola.testing.fixtures import numpy_available
-from coola.utils.imports import is_numpy_available
+from coola.utils.imports import MissingPackageError, is_numpy_available
 from tests.unit.equality.utils import ExamplePair
 
 if is_numpy_available():
@@ -370,7 +370,7 @@ def test_numpy_array_equality_tester_objects_are_equal_true_tolerance(
 def test_numpy_array_equality_tester_no_numpy() -> None:
     with (
         patch("coola.utils.imports.numpy.is_numpy_available", lambda: False),
-        pytest.raises(RuntimeError, match=r"'numpy' package is required but not installed."),
+        pytest.raises(MissingPackageError, match=r"'numpy' package is required but not installed."),
     ):
         NumpyArrayEqualityTester()
 
@@ -496,6 +496,6 @@ def test_numpy_masked_array_equality_tester_objects_are_equal_nan(
 def test_numpy_masked_array_equality_tester_no_numpy() -> None:
     with (
         patch("coola.utils.imports.numpy.is_numpy_available", lambda: False),
-        pytest.raises(RuntimeError, match=r"'numpy' package is required but not installed."),
+        pytest.raises(MissingPackageError, match=r"'numpy' package is required but not installed."),
     ):
         NumpyMaskedArrayEqualityTester()

@@ -15,6 +15,7 @@ from coola.recursive import (
     recursive_apply,
     register_transformers,
 )
+from coola.registry import AlreadyRegisteredError
 
 
 @pytest.fixture(autouse=True)
@@ -106,7 +107,7 @@ def test_register_transformers_with_exist_ok_true() -> None:
 
 def test_register_transformers_with_exist_ok_false() -> None:
     register_transformers({CustomList: SetTransformer()})
-    with pytest.raises(RuntimeError, match=r"already registered"):
+    with pytest.raises(AlreadyRegisteredError, match=r"already registered"):
         register_transformers({CustomList: SequenceTransformer()}, exist_ok=False)
 
 

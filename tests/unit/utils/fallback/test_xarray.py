@@ -5,6 +5,7 @@ from types import ModuleType
 import pytest
 
 from coola.utils.fallback.xarray import xarray
+from coola.utils.imports import MissingPackageError
 
 
 def test_xarray_is_module_type() -> None:
@@ -24,7 +25,9 @@ def test_xarray_data_array_is_class() -> None:
 
 
 def test_xarray_data_array_instantiation() -> None:
-    with pytest.raises(RuntimeError, match=r"'xarray' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'xarray' package is required but not installed."
+    ):
         xarray.DataArray()
 
 
@@ -37,7 +40,9 @@ def test_xarray_dataset_is_class() -> None:
 
 
 def test_xarray_dataset_instantiation() -> None:
-    with pytest.raises(RuntimeError, match=r"'xarray' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'xarray' package is required but not installed."
+    ):
         xarray.Dataset()
 
 
@@ -50,5 +55,7 @@ def test_xarray_variable_is_class() -> None:
 
 
 def test_xarray_variable_instantiation() -> None:
-    with pytest.raises(RuntimeError, match=r"'xarray' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'xarray' package is required but not installed."
+    ):
         xarray.Variable()

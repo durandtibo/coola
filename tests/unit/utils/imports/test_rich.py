@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from coola.utils.imports import (
+    MissingPackageError,
     check_rich,
     is_rich_available,
     raise_rich_missing_error,
@@ -46,7 +47,7 @@ def test_check_rich_with_package() -> None:
 def test_check_rich_without_package() -> None:
     with (
         patch(f"{MODULE}.is_rich_available", lambda: False),
-        pytest.raises(RuntimeError, match=r"'rich' package is required but not installed."),
+        pytest.raises(MissingPackageError, match=r"'rich' package is required but not installed."),
     ):
         check_rich()
 
@@ -88,5 +89,5 @@ def test_rich_available_decorator_without_package() -> None:
 
 
 def test_raise_rich_missing_error() -> None:
-    with pytest.raises(RuntimeError, match=r"'rich' package is required but not installed."):
+    with pytest.raises(MissingPackageError, match=r"'rich' package is required but not installed."):
         raise_rich_missing_error()

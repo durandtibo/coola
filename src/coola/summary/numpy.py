@@ -41,7 +41,7 @@ class NDArraySummarizer(InlineDisplayMixin, BaseSummarizer[np.ndarray]):
             Default: ``False``
 
     Raises:
-        RuntimeError: If NumPy is not installed or available.
+        MissingPackageError: If NumPy is not installed or available.
 
     Example:
         ```pycon

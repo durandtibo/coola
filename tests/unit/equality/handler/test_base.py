@@ -4,10 +4,12 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.handler import (
+    HandlerCycleError,
     ObjectEqualHandler,
     SameLengthHandler,
     SameObjectHandler,
     SameTypeHandler,
+    TrueHandler,
 )
 
 
@@ -84,7 +86,7 @@ def test_chain_multiple_handlers(config: EqualityConfig) -> None:
 def test_chain_with_cycle() -> None:
     handler = SameObjectHandler()
     with pytest.raises(
-        RuntimeError, match=r"Cycle detected! the current handler cannot be its next handler"
+        HandlerCycleError, match=r"Cycle detected! the current handler cannot be its next handler"
     ):
         handler.chain(handler)
 
@@ -129,7 +131,7 @@ def test_chain_all_no_handlers() -> None:
 def test_chain_all_with_cycle() -> None:
     handler = SameObjectHandler()
     with pytest.raises(
-        RuntimeError, match=r"Cycle detected! the current handler cannot be its next handler"
+        HandlerCycleError, match=r"Cycle detected! the current handler cannot be its next handler"
     ):
         handler.chain_all(handler, SameTypeHandler(), SameLengthHandler(), ObjectEqualHandler())
 
@@ -166,7 +168,7 @@ def test_set_next_handler_handler() -> None:
 def test_set_next_handler_with_cycle() -> None:
     handler = SameObjectHandler()
     with pytest.raises(
-        RuntimeError, match=r"Cycle detected! the current handler cannot be its next handler"
+        HandlerCycleError, match=r"Cycle detected! the current handler cannot be its next handler"
     ):
         handler.set_next_handler(handler)
 
@@ -197,7 +199,7 @@ def test_validate_chain_multiple_handlers() -> None:
 def test_validate_chain_multiple_handlers_with_cycle() -> None:
     handler = SameObjectHandler()
     handler.chain_all(SameTypeHandler(), SameLengthHandler(), handler)
-    with pytest.raises(RuntimeError, match=r"Cycle detected in the chain"):
+    with pytest.raises(HandlerCycleError, match=r"Cycle detected in the chain"):
         handler.validate_chain()
 
 
@@ -221,3 +223,22 @@ def test_visualize_chain_with_multiple_next_handler() -> None:
         "(2): SameLengthHandler()\n"
         "(3): ObjectEqualHandler()"
     )
+
+
+def test_handler_cycle_error_is_value_error_and_runtime_error() -> None:
+    assert issubclass(HandlerCycleError, ValueError)
+    assert issubclass(HandlerCycleError, RuntimeError)
+
+
+def test_set_next_handler_self_raises_handler_cycle_error() -> None:
+    handler = TrueHandler()
+    with pytest.raises(HandlerCycleError, match="Cycle detected"):
+        handler.set_next_handler(handler)
+
+
+def test_validate_chain_cycle_raises_handler_cycle_error() -> None:
+    first, second = TrueHandler(), TrueHandler()
+    first.set_next_handler(second)
+    second._next_handler = first  # bypass the check to create a cycle
+    with pytest.raises(HandlerCycleError, match="Cycle detected in the chain"):
+        first.validate_chain()

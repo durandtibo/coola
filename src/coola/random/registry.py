@@ -83,7 +83,7 @@ class RandomManagerRegistry(MultilineDisplayMixin, BaseRandomManager):
                 registered. If True, overwrites the existing registration silently.
 
         Raises:
-            RuntimeError: If the key is already registered and exist_ok is False
+            AlreadyRegisteredError: If the key is already registered and exist_ok is False
 
         Example:
             ```pycon
@@ -113,7 +113,7 @@ class RandomManagerRegistry(MultilineDisplayMixin, BaseRandomManager):
                 registered. If True, overwrites existing registrations silently.
 
         Raises:
-            RuntimeError: If any key is already registered and exist_ok is False
+            AlreadyRegisteredError: If any key is already registered and exist_ok is False
 
         Example:
             ```pycon

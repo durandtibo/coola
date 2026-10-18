@@ -27,7 +27,7 @@ class NumpyReducer(InlineDisplayMixin, BaseBasicReducer[T]):
     r"""Implement a reducer based on NumPy functions.
 
     Raises:
-        RuntimeError: if ``numpy`` is not installed.
+        MissingPackageError: if ``numpy`` is not installed.
 
     Example:
         ```pycon

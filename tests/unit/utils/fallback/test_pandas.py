@@ -5,6 +5,7 @@ from types import ModuleType
 import pytest
 
 from coola.utils.fallback.pandas import pandas
+from coola.utils.imports import MissingPackageError
 
 
 def test_pandas_is_module_type() -> None:
@@ -24,7 +25,9 @@ def test_pandas_dataframe_is_class() -> None:
 
 
 def test_pandas_dataframe_instantiation() -> None:
-    with pytest.raises(RuntimeError, match=r"'pandas' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'pandas' package is required but not installed."
+    ):
         pandas.DataFrame()
 
 
@@ -37,5 +40,7 @@ def test_pandas_series_is_class() -> None:
 
 
 def test_pandas_series_instantiation() -> None:
-    with pytest.raises(RuntimeError, match=r"'pandas' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'pandas' package is required but not installed."
+    ):
         pandas.Series()

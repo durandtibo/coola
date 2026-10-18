@@ -7,7 +7,7 @@ import pytest
 from coola.equality import objects_are_equal
 from coola.random import TorchRandomManager, torch_seed
 from coola.testing.fixtures import torch_available
-from coola.utils.imports import is_torch_available
+from coola.utils.imports import MissingPackageError, is_torch_available
 
 if is_torch_available():
     import torch
@@ -102,7 +102,7 @@ def test_torch_random_manager_set_rng_state() -> None:
 def test_torch_random_manager_no_torch() -> None:
     with (
         patch("coola.utils.imports.torch.is_torch_available", lambda: False),
-        pytest.raises(RuntimeError, match=r"'torch' package is required but not installed."),
+        pytest.raises(MissingPackageError, match=r"'torch' package is required but not installed."),
     ):
         TorchRandomManager()
 

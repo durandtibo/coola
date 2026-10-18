@@ -2,7 +2,7 @@ r"""Define the equality handler base classes."""
 
 from __future__ import annotations
 
-__all__ = ["BaseEqualityHandler"]
+__all__ = ["BaseEqualityHandler", "HandlerCycleError"]
 
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Never, TypeVar, overload
@@ -13,6 +13,28 @@ if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
 
 T = TypeVar("T", bound="BaseEqualityHandler")
+
+
+class HandlerCycleError(ValueError, RuntimeError):
+    r"""Raised when a handler chain contains a cycle.
+
+    It is a ``ValueError`` (the handler passed would create an invalid
+    chain). It also derives from ``RuntimeError``, which this error
+    used to be, so existing ``except RuntimeError`` code keeps working.
+
+    Example:
+        ```pycon
+        >>> from coola.equality.handler import HandlerCycleError, TrueHandler
+        >>> handler = TrueHandler()
+        >>> try:
+        ...     handler.set_next_handler(handler)
+        ... except HandlerCycleError:
+        ...     print("cycle")
+        ...
+        cycle
+
+        ```
+    """
 
 
 class BaseEqualityHandler(ABC):
@@ -227,7 +249,7 @@ class BaseEqualityHandler(ABC):
         """Validate the current handler chain.
 
         Raises:
-            RuntimeError: If the current handler chain is not valid.
+            HandlerCycleError: If the current handler chain contains a cycle.
 
         Example:
             ```pycon
@@ -249,7 +271,7 @@ class BaseEqualityHandler(ABC):
         while current:
             if id(current) in visited:
                 msg = f"Cycle detected in the chain: {current}"
-                raise RuntimeError(msg)
+                raise HandlerCycleError(msg)
             visited.add(id(current))
             current = current.next_handler
 
@@ -310,14 +332,14 @@ class BaseEqualityHandler(ABC):
             handler: The next handler.
 
         Raises:
-            RuntimeError: if the next handler is self.
+            HandlerCycleError: if the next handler is self.
             TypeError: if the next handler is not a BaseEqualityHandler.
         """
         if not handler:
             return
         if handler is self:
             msg = "Cycle detected! the current handler cannot be its next handler"
-            raise RuntimeError(msg)
+            raise HandlerCycleError(msg)
         if not isinstance(handler, BaseEqualityHandler):
             msg = (
                 f"Incorrect type for 'handler'. Expected "

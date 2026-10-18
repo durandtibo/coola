@@ -23,7 +23,7 @@ def check_jax() -> None:
     r"""Check if the ``jax`` package is installed.
 
     Raises:
-        RuntimeError: if the ``jax`` package is not installed.
+        MissingPackageError: if the ``jax`` package is not installed.
 
     Example:
         ```pycon
@@ -79,11 +79,11 @@ def jax_available(fn: F) -> F:
 
 
 def raise_jax_missing_error() -> Never:
-    r"""Raise a ``RuntimeError`` to indicate the ``jax`` package is
-    missing.
+    r"""Raise a ``MissingPackageError`` to indicate the ``jax`` package
+    is missing.
 
     Raises:
-        RuntimeError: Always, with a message indicating that the
+        MissingPackageError: Always, with a message indicating that the
             ``jax`` package is not installed.
 
     Example:

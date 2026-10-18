@@ -28,7 +28,7 @@ def check_pydantic() -> None:
     r"""Check if the ``pydantic`` package is installed.
 
     Raises:
-        RuntimeError: if the ``pydantic`` package is not installed.
+        MissingPackageError: if the ``pydantic`` package is not installed.
 
     Example:
         ```pycon
@@ -84,11 +84,11 @@ def pydantic_available(fn: F) -> F:
 
 
 def raise_pydantic_missing_error() -> Never:
-    r"""Raise a ``RuntimeError`` to indicate the ``pydantic`` package is
-    missing.
+    r"""Raise a ``MissingPackageError`` to indicate the ``pydantic``
+    package is missing.
 
     Raises:
-        RuntimeError: Always, with a message indicating that the
+        MissingPackageError: Always, with a message indicating that the
             ``pydantic`` package is not installed.
 
     Example:

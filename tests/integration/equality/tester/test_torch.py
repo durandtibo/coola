@@ -8,7 +8,7 @@ from coola.equality.tester import (
     TorchTensorEqualityTester,
 )
 from coola.testing.fixtures import torch_available, torch_not_available
-from coola.utils.imports import is_torch_available
+from coola.utils.imports import MissingPackageError, is_torch_available
 
 if is_torch_available():
     import torch
@@ -43,7 +43,9 @@ def test_torch_packed_sequence_equality_tester_with_torch(config: EqualityConfig
 
 @torch_not_available
 def test_torch_packed_sequence_equality_tester_without_torch() -> None:
-    with pytest.raises(RuntimeError, match=r"'torch' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'torch' package is required but not installed."
+    ):
         TorchPackedSequenceEqualityTester()
 
 
@@ -61,5 +63,7 @@ def test_torch_tensor_equality_tester_with_torch(config: EqualityConfig) -> None
 
 @torch_not_available
 def test_torch_tensor_equality_tester_without_torch() -> None:
-    with pytest.raises(RuntimeError, match=r"'torch' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'torch' package is required but not installed."
+    ):
         TorchTensorEqualityTester()

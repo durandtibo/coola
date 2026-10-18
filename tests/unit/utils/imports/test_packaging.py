@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from coola.utils.imports import (
+    MissingPackageError,
     check_packaging,
     is_packaging_available,
     packaging_available,
@@ -46,7 +47,9 @@ def test_check_packaging_with_package() -> None:
 def test_check_packaging_without_package() -> None:
     with (
         patch(f"{MODULE}.is_packaging_available", lambda: False),
-        pytest.raises(RuntimeError, match=r"'packaging' package is required but not installed."),
+        pytest.raises(
+            MissingPackageError, match=r"'packaging' package is required but not installed."
+        ),
     ):
         check_packaging()
 
@@ -88,5 +91,7 @@ def test_packaging_available_decorator_without_package() -> None:
 
 
 def test_raise_packaging_missing_error() -> None:
-    with pytest.raises(RuntimeError, match=r"'packaging' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'packaging' package is required but not installed."
+    ):
         raise_packaging_missing_error()

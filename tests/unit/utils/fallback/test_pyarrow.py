@@ -5,6 +5,7 @@ from types import ModuleType
 import pytest
 
 from coola.utils.fallback.pyarrow import pyarrow
+from coola.utils.imports import MissingPackageError
 
 
 def test_pyarrow_is_module_type() -> None:
@@ -24,10 +25,14 @@ def test_pyarrow_array_is_class() -> None:
 
 
 def test_pyarrow_array_instantiation() -> None:
-    with pytest.raises(RuntimeError, match=r"'pyarrow' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'pyarrow' package is required but not installed."
+    ):
         pyarrow.Array()
 
 
 def test_pyarrow_array_instantiation_with_args() -> None:
-    with pytest.raises(RuntimeError, match=r"'pyarrow' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'pyarrow' package is required but not installed."
+    ):
         pyarrow.Array([1, 2, 3])

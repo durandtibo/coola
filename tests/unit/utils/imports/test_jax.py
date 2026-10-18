@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from coola.utils.imports import (
+    MissingPackageError,
     check_jax,
     is_jax_available,
     jax_available,
@@ -46,7 +47,7 @@ def test_check_jax_with_package() -> None:
 def test_check_jax_without_package() -> None:
     with (
         patch(f"{MODULE}.is_jax_available", lambda: False),
-        pytest.raises(RuntimeError, match=r"'jax' package is required but not installed."),
+        pytest.raises(MissingPackageError, match=r"'jax' package is required but not installed."),
     ):
         check_jax()
 
@@ -103,5 +104,5 @@ def test_jax_available_decorator_without_package() -> None:
 
 
 def test_raise_jax_missing_error() -> None:
-    with pytest.raises(RuntimeError, match=r"'jax' package is required but not installed."):
+    with pytest.raises(MissingPackageError, match=r"'jax' package is required but not installed."):
         raise_jax_missing_error()

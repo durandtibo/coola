@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from coola.utils.imports import (
+    MissingPackageError,
     check_package,
     decorator_package_available,
     module_available,
@@ -71,7 +72,9 @@ def test_check_package_exist() -> None:
 def test_check_package_missing() -> None:
     with (
         patch(f"{MODULE}.package_available", lambda name: name != "missing"),
-        pytest.raises(RuntimeError, match=r"'missing' package is required but not installed."),
+        pytest.raises(
+            MissingPackageError, match=r"'missing' package is required but not installed."
+        ),
     ):
         check_package("missing")
 
@@ -144,12 +147,14 @@ def test_decorator_package_available_decorator_condition_false() -> None:
 
 
 def test_raise_package_missing_error_basic() -> None:
-    with pytest.raises(RuntimeError, match=r"'mypackage' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'mypackage' package is required but not installed."
+    ):
         raise_package_missing_error("mypackage", "mypackage")
 
 
 def test_raise_package_missing_error_different_install_cmd() -> None:
-    with pytest.raises(RuntimeError, match=r"'git' package is required but not installed."):
+    with pytest.raises(MissingPackageError, match=r"'git' package is required but not installed."):
         raise_package_missing_error("git", "gitpython")
 
 
@@ -162,3 +167,36 @@ def test_raise_package_missing_error_message_format() -> None:
     )
     with pytest.raises(RuntimeError, match=msg):
         raise_package_missing_error("testpkg", "test-package")
+
+
+#########################################
+#     Tests for MissingPackageError     #
+#########################################
+
+
+def test_missing_package_error_is_import_error_and_runtime_error() -> None:
+    assert issubclass(MissingPackageError, ModuleNotFoundError)
+    assert issubclass(MissingPackageError, ImportError)
+    assert issubclass(MissingPackageError, RuntimeError)
+
+
+def test_check_package_missing_raises_missing_package_error() -> None:
+    with pytest.raises(MissingPackageError, match="'not_a_package' package is required") as info:
+        check_package("not_a_package")
+    assert info.value.name == "not_a_package"
+
+
+def test_raise_package_missing_error_raises_missing_package_error() -> None:
+    with pytest.raises(MissingPackageError, match="'my_package' package is required") as info:
+        raise_package_missing_error("my_package", "my-package")
+    assert info.value.name == "my_package"
+
+
+def test_missing_package_error_can_be_caught_as_import_error() -> None:
+    with pytest.raises(ImportError, match="package is required"):
+        check_package("not_a_package")
+
+
+def test_missing_package_error_can_still_be_caught_as_runtime_error() -> None:
+    with pytest.raises(RuntimeError, match="package is required"):
+        check_package("not_a_package")

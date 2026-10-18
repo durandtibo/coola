@@ -28,7 +28,7 @@ def check_colorlog() -> None:
     r"""Check if the ``colorlog`` package is installed.
 
     Raises:
-        RuntimeError: if the ``colorlog`` package is not installed.
+        MissingPackageError: if the ``colorlog`` package is not installed.
 
     Example:
         ```pycon
@@ -84,11 +84,11 @@ def colorlog_available(fn: F) -> F:
 
 
 def raise_colorlog_missing_error() -> Never:
-    r"""Raise a ``RuntimeError`` to indicate the ``colorlog`` package is
-    missing.
+    r"""Raise a ``MissingPackageError`` to indicate the ``colorlog``
+    package is missing.
 
     Raises:
-        RuntimeError: Always, with a message indicating that the
+        MissingPackageError: Always, with a message indicating that the
             ``colorlog`` package is not installed.
 
     Example:

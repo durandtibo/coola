@@ -28,7 +28,7 @@ def check_rich() -> None:
     r"""Check if the ``rich`` package is installed.
 
     Raises:
-        RuntimeError: if the ``rich`` package is not installed.
+        MissingPackageError: if the ``rich`` package is not installed.
 
     Example:
         ```pycon
@@ -84,11 +84,11 @@ def rich_available(fn: F) -> F:
 
 
 def raise_rich_missing_error() -> Never:
-    r"""Raise a ``RuntimeError`` to indicate the ``rich`` package is
-    missing.
+    r"""Raise a ``MissingPackageError`` to indicate the ``rich`` package
+    is missing.
 
     Raises:
-        RuntimeError: Always, with a message indicating that the
+        MissingPackageError: Always, with a message indicating that the
             ``rich`` package is not installed.
 
     Example:

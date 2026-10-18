@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, cast
 
 import pytest
 
-from coola.registry import TypeNotRegisteredError, TypeRegistry
+from coola.registry import AlreadyRegisteredError, TypeNotRegisteredError, TypeRegistry
 
 if TYPE_CHECKING:
     import threading
@@ -137,7 +137,9 @@ def test_type_registry_register_basic() -> None:
 def test_type_registry_register_duplicate_raises_error() -> None:
     """Test that registering a duplicate key raises RuntimeError."""
     registry = TypeRegistry[str]({int: "integer"})
-    with pytest.raises(RuntimeError, match=r"A value is already registered for <class 'int'>"):
+    with pytest.raises(
+        AlreadyRegisteredError, match=r"A value is already registered for <class 'int'>"
+    ):
         registry.register(int, "int")
 
 
@@ -179,7 +181,7 @@ def test_type_registry_register_many_duplicate_raises_error() -> None:
     """Test that register_many raises error on duplicate without
     exist_ok."""
     registry = TypeRegistry[str]({int: "integer"})
-    with pytest.raises(RuntimeError, match=r"Types already registered"):
+    with pytest.raises(AlreadyRegisteredError, match=r"Types already registered"):
         registry.register_many({int: "integer", float: "float"})
 
 

@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from coola.utils.imports import (
+    MissingPackageError,
     check_pandas,
     is_pandas_available,
     pandas_available,
@@ -45,7 +46,9 @@ def test_check_pandas_with_package() -> None:
 def test_check_pandas_without_package() -> None:
     with (
         patch(f"{MODULE}.is_pandas_available", lambda: False),
-        pytest.raises(RuntimeError, match=r"'pandas' package is required but not installed."),
+        pytest.raises(
+            MissingPackageError, match=r"'pandas' package is required but not installed."
+        ),
     ):
         check_pandas()
 
@@ -87,5 +90,7 @@ def test_pandas_available_decorator_without_package() -> None:
 
 
 def test_raise_pandas_missing_error() -> None:
-    with pytest.raises(RuntimeError, match=r"'pandas' package is required but not installed."):
+    with pytest.raises(
+        MissingPackageError, match=r"'pandas' package is required but not installed."
+    ):
         raise_pandas_missing_error()

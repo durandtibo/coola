@@ -5,6 +5,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from coola.registry import AlreadyRegisteredError
 from coola.summary import (
     DefaultSummarizer,
     MappingSummarizer,
@@ -111,7 +112,7 @@ def test_register_summarizers_with_exist_ok_true() -> None:
 
 def test_register_summarizers_with_exist_ok_false() -> None:
     register_summarizers({CustomList: SetSummarizer()})
-    with pytest.raises(RuntimeError, match=r"already registered"):
+    with pytest.raises(AlreadyRegisteredError, match=r"already registered"):
         register_summarizers({CustomList: SequenceSummarizer()}, exist_ok=False)
 
 

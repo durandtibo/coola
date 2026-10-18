@@ -84,7 +84,7 @@ def register_hashers(
             registrations silently.
 
     Raises:
-        RuntimeError: If any type is already registered and ``exist_ok``
+        AlreadyRegisteredError: If any type is already registered and ``exist_ok``
             is ``False``.
 
     Example:

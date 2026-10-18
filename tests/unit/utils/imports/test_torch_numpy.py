@@ -7,6 +7,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from coola.utils.imports import (
+    MissingPackageError,
     check_torch_numpy,
     is_torch_numpy_available,
     torch_numpy_available,
@@ -44,7 +45,7 @@ def test_check_torch_numpy() -> None:
 def test_check_torch_numpy_missing() -> None:
     with (
         patch(f"{MODULE}.is_torch_numpy_available", lambda: False),
-        pytest.raises(RuntimeError, match=r"'torch' and 'numpy' packages are required"),
+        pytest.raises(MissingPackageError, match=r"'torch' and 'numpy' packages are required"),
     ):
         check_torch_numpy()
 

@@ -16,6 +16,7 @@ from coola.iterator.bfs import (
     interface as bfs_interface,
     register_child_finders,
 )
+from coola.registry import AlreadyRegisteredError
 from tests.unit.iterator.bfs.helpers import (
     DEFAULT_ITERATE_SAMPLES,
     ITERATE_SAMPLES,
@@ -83,7 +84,7 @@ def test_register_child_finders_with_exist_ok_true() -> None:
 
 def test_register_child_finders_with_exist_ok_false() -> None:
     register_child_finders({CustomList: MappingChildFinder()}, exist_ok=False)
-    with pytest.raises(RuntimeError, match=r"already registered"):
+    with pytest.raises(AlreadyRegisteredError, match=r"already registered"):
         register_child_finders({CustomList: IterableChildFinder()}, exist_ok=False)
 
 

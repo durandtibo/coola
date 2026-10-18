@@ -28,7 +28,7 @@ def check_packaging() -> None:
     r"""Check if the ``packaging`` package is installed.
 
     Raises:
-        RuntimeError: if the ``packaging`` package is not installed.
+        MissingPackageError: if the ``packaging`` package is not installed.
 
     Example:
         ```pycon
@@ -84,11 +84,11 @@ def packaging_available(fn: F) -> F:
 
 
 def raise_packaging_missing_error() -> Never:
-    r"""Raise a ``RuntimeError`` to indicate the ``packaging`` package is
-    missing.
+    r"""Raise a ``MissingPackageError`` to indicate the ``packaging``
+    package is missing.
 
     Raises:
-        RuntimeError: Always, with a message indicating that the
+        MissingPackageError: Always, with a message indicating that the
             ``packaging`` package is not installed.
 
     Example:

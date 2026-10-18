@@ -21,6 +21,7 @@ from coola.hashing import (
     interface as hashing_interface,
     register_hashers,
 )
+from coola.registry import AlreadyRegisteredError
 
 
 @pytest.fixture(autouse=True)
@@ -178,7 +179,7 @@ def test_register_hashers_with_exist_ok_true() -> None:
 
 def test_register_hashers_with_exist_ok_false() -> None:
     register_hashers({CustomList: ReprHasher()})
-    with pytest.raises(RuntimeError, match=r"already registered"):
+    with pytest.raises(AlreadyRegisteredError, match=r"already registered"):
         register_hashers({CustomList: SequenceHasher()}, exist_ok=False)
 
 

@@ -2,7 +2,7 @@ r"""Define the exceptions raised by the registries."""
 
 from __future__ import annotations
 
-__all__ = ["TypeNotRegisteredError"]
+__all__ = ["AlreadyRegisteredError", "TypeNotRegisteredError"]
 
 
 class TypeNotRegisteredError(KeyError, LookupError):
@@ -30,3 +30,28 @@ class TypeNotRegisteredError(KeyError, LookupError):
     def __str__(self) -> str:
         # KeyError.__str__ would repr() the message, escaping newlines.
         return str(self.args[0]) if len(self.args) == 1 else super().__str__()
+
+
+class AlreadyRegisteredError(ValueError, RuntimeError):
+    r"""Raised when registering a key that is already registered and
+    ``exist_ok`` is ``False``.
+
+    It is a ``ValueError`` (the value passed is not acceptable in the
+    current state of the registry). It also derives from
+    ``RuntimeError``, which this error used to be, so existing
+    ``except RuntimeError`` code keeps working.
+
+    Example:
+        ```pycon
+        >>> from coola.registry import AlreadyRegisteredError, Registry
+        >>> registry = Registry[str, int]()
+        >>> registry.register("key", 1)
+        >>> try:
+        ...     registry.register("key", 2)
+        ... except AlreadyRegisteredError:
+        ...     print("already registered")
+        ...
+        already registered
+
+        ```
+    """

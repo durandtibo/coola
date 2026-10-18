@@ -28,7 +28,7 @@ def check_pyarrow() -> None:
     r"""Check if the ``pyarrow`` package is installed.
 
     Raises:
-        RuntimeError: if the ``pyarrow`` package is not installed.
+        MissingPackageError: if the ``pyarrow`` package is not installed.
 
     Example:
         ```pycon
@@ -84,11 +84,11 @@ def pyarrow_available(fn: F) -> F:
 
 
 def raise_pyarrow_missing_error() -> Never:
-    r"""Raise a ``RuntimeError`` to indicate the ``pyarrow`` package is
-    missing.
+    r"""Raise a ``MissingPackageError`` to indicate the ``pyarrow``
+    package is missing.
 
     Raises:
-        RuntimeError: Always, with a message indicating that the
+        MissingPackageError: Always, with a message indicating that the
             ``pyarrow`` package is not installed.
 
     Example:
