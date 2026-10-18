@@ -1295,23 +1295,73 @@ True
 
 ```
 
-## NaN and `-0.0` Semantics
+## Behavior by Type: NaN and Tolerance
 
-The behaviour below was checked for each backend with `objects_are_equal` on NaN values.
+The arguments `equal_nan`, `atol` and `rtol` are not supported by every library. This table
+summarizes what each type does with them (it was checked for each type with `objects_are_equal` and
+`objects_are_allclose`).
 
-| Backend        | `nan` vs `nan` (default) | `equal_nan=True` | `0.0` vs `-0.0` |
-| -------------- | ------------------------ | ---------------- | --------------- |
-| Python `float` | `True` (same object)\*   | `True`           | equal           |
-| NumPy          | `False`                  | `True`           | equal           |
-| PyTorch        | `False`                  | `True`           | equal           |
-| pandas         | `False`                  | `True`           | equal           |
-| polars         | `False`                  | `True`           | equal           |
-| JAX            | `False`                  | `True`           | equal           |
-| PyArrow        | `False`                  | `False`\*\*      | equal           |
+| Type                                                    | `equal_nan`                                                                                 | `atol` / `rtol`                                                                                        | Also compared                                            |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------- |
+| `float`, `int`                                          | Honored for distinct `NaN` objects\*                                                        | `math.isclose`, for `int` too                                                                          | The types must be the same (`1` and `1.0` are different) |
+| `numpy.ndarray`                                         | Honored for numeric and datetime dtypes; **ignored for `str`, `bytes` and `object` arrays** | Numeric dtypes only (`bool`, `int`, `uint`, `float`, `complex`); the other dtypes are compared exactly | dtype, shape                                             |
+| `numpy.ma.MaskedArray`                                  | Honored for the data                                                                        | Honored for the data                                                                                   | dtype, shape, mask, `fill_value`                         |
+| `torch.Tensor`                                          | Honored                                                                                     | Honored (`torch.allclose`), integer tensors included                                                   | dtype, shape, device                                     |
+| `torch.nn.utils.rnn.PackedSequence`                     | Honored                                                                                     | Honored                                                                                                | `batch_sizes`, `sorted_indices`, `unsorted_indices`      |
+| `jax.numpy.ndarray`                                     | Honored                                                                                     | Honored                                                                                                | dtype, shape                                             |
+| `pandas.DataFrame`, `pandas.Series`                     | **Any missing value counts as `NaN`**: `NaN`, `None`, `NaT`, `pd.NA`                        | Honored (exact if both are `0`)                                                                        | dtype, index, columns                                    |
+| `polars.DataFrame`, `polars.Series`, `polars.LazyFrame` | Honored for float `NaN`. **`null` is always equal to `null`**                               | Honored (exact if both are `0`)                                                                        | dtype, schema; a `LazyFrame` is collected                |
+| `xarray.DataArray`, `xarray.Dataset`, `xarray.Variable` | Honored                                                                                     | Honored                                                                                                | dimensions, coordinates, attributes                      |
+| `pyarrow.Array`, `pyarrow.Table`                        | **Ignored**: `NaN` is never equal to `NaN`, but `null` is equal to `null`                   | **Ignored**: exact comparison                                                                          | Whatever `pyarrow`'s `equals` compares                   |
 
-\* Python short-circuits on identity; two distinct NaN floats are not equal by default.
+\* Python short-circuits on identity, so `x is x` is always equal. Two distinct `NaN` floats are
+not equal unless `equal_nan=True`.
 
-\*\* PyArrow does not support `equal_nan`; it is ignored with a `RuntimeWarning`.
+Details:
+
+- **pandas**: with `equal_nan=False` (the default), a data frame or a series that contains any
+  missing value is never equal to another one, **even to a copy of itself**, because the missing
+  values are not equal to each other. Use `equal_nan=True` to compare the data frames with missing
+  values.
+- **PyArrow**: when one of the ignored arguments is set, a `RuntimeWarning` is emitted by each
+  comparison (for example `atol is ignored because it is not supported for ...`). Python's default
+  warning filter shows a warning once per location, so comparing a large nested object does not
+  flood the output, but a test runner can show all of them.
+- **NumPy**: `equal_nan=True` can safely be used with an object that contains arrays of strings:
+  the argument is only applied to the dtypes that have a `NaN`.
+- **`-0.0`** is equal to `0.0` for all the types, whatever the tolerance.
+
+## Explaining a Difference
+
+`objects_are_equal(..., show_difference=True)` logs the first difference found with the standard
+`logging` module (INFO level, `coola.equality.*` loggers), which is convenient to debug in a
+console. To get the difference in your code, use `compare`, which returns a `ComparisonResult` with
+the path to the difference and the reason:
+
+```pycon
+>>> from coola.equality import compare
+>>> result = compare({"a": [1, 2]}, {"a": [1, 3]})
+>>> result.equal
+False
+>>> result.path
+('a', 1)
+>>> print(result.format_message())
+objects are not equal at actual['a'][1]
+numbers are different:
+  actual   : 2
+  expected : 3
+
+```
+
+`assert_objects_equal` and `assert_objects_allclose` raise an `AssertionError` with the same
+message, for the tests.
+
+- `compare` and the assert functions do not log and do not change the logging configuration, so they
+  can be called from several threads at the same time.
+- A custom handler is only explained by `compare` if it reports its difference with
+  `coola.equality.handler.report_difference` (not directly with a logger).
+- `EqualityConfig` is **not** thread-safe: it contains the depth counter of the comparison. The
+  functions create one for each call; do not share an instance between threads.
 
 ## Design Principles
 

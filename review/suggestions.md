@@ -9,7 +9,22 @@ State of the repo when I ran it: `ruff check src` and `ty check` pass, and
 is consistent and carefully tested. The suggestions below are therefore mostly
 correctness edge cases and design consistency, not hygiene.
 
-Items followed by a _Status_ line have been handled. Items marked **[verified]** were reproduced in a Python session on this checkout.
+## Status
+
+All the sections have been handled. Each item has a _Status_ line that says what was done, and
+section 7 has a table with one line per item. What is **not** done, and why:
+
+- **Property-based tests** (section 4): to be added later.
+- **Mutation testing** (section 4): a one-off run that has not been done.
+- **`fail_under` for the coverage** and a **second type checker** in the CI (section 5): they need a
+  decision on the CI jobs.
+- **Hashers for arrays and data frames** (2.9): there is no canonical byte form, so the hashing user
+  guide shows how to register one.
+- **Kept by decision**: the `get_default_*_registry` aliases (2.6), the top-level package without
+  re-exports (2.7), the `to_date` `tzinfo` (1.10), the deferred import of the registry equality
+  (section 5).
+
+Items marked **[verified]** were reproduced in a Python session on this checkout.
 The rest are leads from reading the code. The earlier reviews in this folder
 (`src-coola-review.md`, `noqa-review.md`, `python-311-modernization.md`) are not
 repeated here.
@@ -582,48 +597,72 @@ Repository layout:
 
 ## 6. Documentation
 
-- Add a "how to add a new backend" page (previous review 4.3, still valid). The
-  checklist is: availability probe in `utils/imports`, fallback in `utils/fallback`,
-  handler, tester, registration in `tester/interface.py`, then `summary`, `hashing`,
-  `recursive`, `iterator` as applicable. Right now it is easy to add equality support
-  and forget the other four registries (see 2.9).
-- Document the semantic contract of `equal_nan`, `atol`, `rtol` per backend in one
-  table. Pyarrow ignores all three (with a `RuntimeWarning` per call, which can flood
-  logs when many arrays are compared inside a nested object; consider warning once);
-  pandas ignores `equal_nan=False` for non-numeric NaN-likes (`None`, `NaT`, `pd.NA`)
-  because `isna()` is used; NumPy applies tolerance only to numeric dtypes.
-- Document that `compare()` and `show_difference=True` are for debugging and not
-  thread-safe (1.8).
-- State clearly in the hashing docs which types are supported out of the box
-  (`str, bytes, int, float, complex, bool, None, list, tuple, dict, date, datetime,
-Path`, nothing else) and that `set`, NumPy, Torch and pandas objects need a
-  registered hasher.
-- `utils/` contains modules unrelated to comparison (`password`, `git`, `date`,
-  `file_size`, `text_diff`, `bloom_filter`, `timing`). The earlier review decided to
-  keep them. If they stay, list them in `docs/` under "General helpers" so they are not
-  mistaken for core API.
+- ~~Add a "how to add a new backend" page (previous review 4.3, still valid). The checklist is:
+  availability probe in `utils/imports`, fallback in `utils/fallback`, handler, tester,
+  registration in `tester/interface.py`, then `summary`, `hashing`, `recursive`, `iterator` as
+  applicable. Right now it is easy to add equality support and forget the other four registries (see
+  2.9).~~ _(Fixed: `docs/docs/dev/add_backend.md`, in the Developer Guide. It lists the files for the
+  dependency, the equality support and the tests, and a table with the decision to make for the
+  summary, hashing, recursive, iterator, random and reducer packages.)_
+- ~~Document the semantic contract of `equal_nan`, `atol`, `rtol` per backend in one table.~~
+  _(Fixed: "Behavior by Type: NaN and Tolerance" in the equality user guide. The table was checked
+  against the code. The notes were corrected: pandas does not ignore `equal_nan=False`, it counts any
+  missing value (`NaN`, `None`, `NaT`, `pd.NA`) as `NaN`, so a data frame with a missing value is not
+  equal to its own copy; polars `null` is always equal to `null`; PyArrow ignores the three arguments
+  and warns, and Python's default filter shows that warning once per location, so no code change was
+  needed; NumPy applies `equal_nan` only to the dtypes that have a `NaN`, and the tolerance only to
+  numeric dtypes.)_
+- ~~Document that `compare()` and `show_difference=True` are for debugging and not thread-safe
+  (1.8).~~ _(Fixed, and the premise changed: since 1.8, `compare()` and the assert functions are
+  thread-safe. The new section "Explaining a Difference" of the equality user guide says so, explains
+  that `show_difference=True` logs at the INFO level, that a custom handler must call
+  `report_difference` to be explained, and that `EqualityConfig` must not be shared between
+  threads.)_
+- ~~State clearly in the hashing docs which types are supported out of the box and that `set`,
+  NumPy, Torch and pandas objects need a registered hasher.~~ _(Fixed: "Supported Types" in the
+  hashing user guide, with a NumPy hasher example. It also says that values of different types do not
+  collide and that the hash values can change between versions. The outdated `RuntimeError` and the
+  `str` in the `SequenceHasher` description were corrected.)_
+- ~~`utils/` contains modules unrelated to comparison (`password`, `git`, `date`, `file_size`,
+  `text_diff`, `bloom_filter`, `timing`). If they stay, list them in `docs/` under "General helpers"
+  so they are not mistaken for core API.~~ _(Fixed: "Core helpers and general helpers" in the utils
+  user guide, with a table of the standalone modules.)_
 
 ---
 
 ## 7. Suggested order of work
 
-| #    | Item                                                                         | Effort | Value  |
-| ---- | ---------------------------------------------------------------------------- | ------ | ------ |
-| 1.2  | ~~Pydantic hasher ignores secrets inside tuples/sets~~ (fixed)               | S      | High   |
-| 1.1  | ~~Type-tag hash inputs (collisions across types, NumPy repr, Path)~~ (fixed) | M      | High   |
-| 1.7  | ~~Torch median disagrees with Native/NumPy; float32 stats~~ (fixed)          | S      | High   |
-| 1.4  | ~~NumPy string arrays + `equal_nan` raise~~ (fixed)                          | S      | Medium |
-| 1.3  | ~~Remove or pin objects in the `id()` caches~~ (fixed)                       | S      | Medium |
-| 1.6  | ~~Flat dict key collisions and lost empty containers~~ (fixed)               | S      | Medium |
-| 2.1  | ~~`ImportError` for missing optional packages~~ (fixed)                      | M      | Medium |
-| 2.13 | `allowed_prefixes` on `resolve_object`, security notes                       | S      | Medium |
-| 2.12 | Move io tester registration out of import time; no-hardlink fallback         | M      | Medium |
-| 2.9  | Summarizers (and hashers) for pandas/polars/pyarrow/xarray/JAX               | M      | Medium |
-| 1.8  | ~~Replace logger mutation in `compare()` with a reporter~~ (fixed)           | M      | Medium |
-| 2.3  | Collapse tester boilerplate onto `HandlerEqualityTester`                     | M      | Medium |
-| 4    | Fix log-level-dependent timing tests; add differential/property tests        | S      | Medium |
-| 2.2  | ~~Availability checks should detect broken installs; cache reset~~ (fixed)   | S      | Low    |
-| 2.14 | Reset ID generators after fork                                               | S      | Low    |
-| 5    | Prune ruff config, `fail_under`, minimal-install CI job                      | S      | Low    |
-| 3    | Summary `str(data)` ordering, equality fast path for scalar lists            | S      | Low    |
-| 1.10 | ~~Validators reject NaN; assorted small fixes~~ (fixed)                      | S      | Low    |
+Everything is done unless the status says otherwise. Open items are in **bold**.
+
+| #    | Item                                                             | Status                                                          |
+| ---- | ---------------------------------------------------------------- | --------------------------------------------------------------- |
+| 1.1  | Type-tag hash inputs (collisions across types, NumPy repr, Path) | Fixed (`Path` still resolved)                                   |
+| 1.2  | Pydantic hasher ignores secrets inside tuples/sets               | Fixed                                                           |
+| 1.3  | Remove the `id()` caches                                         | Fixed                                                           |
+| 1.4  | NumPy string arrays + `equal_nan` raise                          | Fixed                                                           |
+| 1.5  | Scalar tolerance on huge ints                                    | Fixed                                                           |
+| 1.6  | Flat dict key collisions and lost empty containers               | Fixed                                                           |
+| 1.7  | Torch median disagrees with Native/NumPy; float32 stats          | Fixed                                                           |
+| 1.8  | Replace logger mutation in `compare()` with a reporter           | Fixed                                                           |
+| 1.9  | `_compare` RecursionError rewrite                                | Fixed                                                           |
+| 1.10 | Validators reject NaN; assorted small fixes                      | Fixed (`to_date` kept)                                          |
+| 2.1  | `ImportError` for missing optional packages                      | Fixed                                                           |
+| 2.2  | Availability checks detect broken installs; cache reset          | Fixed                                                           |
+| 2.3  | Collapse tester boilerplate                                      | Fixed                                                           |
+| 2.4  | `is_same_type` for the `equal()` checks                          | Fixed                                                           |
+| 2.5  | Registry duplicate-key semantics                                 | Fixed (no `issubclass` fallback, by decision)                   |
+| 2.6  | `get_default_*_registry` aliases                                 | Kept, by decision                                               |
+| 2.7  | Package-level exports                                            | Kept, by decision                                               |
+| 2.8  | `KeyFilterTransformer` signature                                 | Fixed                                                           |
+| 2.9  | Summarizers for pandas/polars/pyarrow/xarray/JAX                 | Fixed (**no hashers**, by decision)                             |
+| 2.10 | BFS/DFS iterators: leaves, `is_leaf`, cycles                     | Fixed                                                           |
+| 2.11 | `random` package                                                 | Fixed (NumPy seed folding documented)                           |
+| 2.12 | `io` package                                                     | Fixed                                                           |
+| 2.13 | `allowed_prefixes` on `resolve_object`, security notes           | Fixed                                                           |
+| 2.14 | Identifiers: fork safety, monotonic ULID/UUIDv7                  | Fixed                                                           |
+| 2.15 | `testing.fixtures` repetition                                    | Fixed                                                           |
+| 2.16 | Naming and lazy `torch` import                                   | Fixed                                                           |
+| 3    | Performance                                                      | Fixed or benchmarked (#1999 to #2003)                           |
+| 4    | Tests                                                            | Fixed, **property-based tests later, mutation testing not run** |
+| 5    | Tooling and configuration                                        | Fixed, **`fail_under` and a second type checker not done**      |
+| 6    | Documentation                                                    | Fixed                                                           |

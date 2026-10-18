@@ -17,6 +17,30 @@ submodules:
 4. **Other utilities** - Bloom filter, path, version, environment variable, and introspection
    utilities
 
+### Core helpers and general helpers
+
+Most of the modules are **core helpers**, used by the other `coola` packages and part of the
+supported API: `imports`, `format`, `introspection`, `singleton`, `lru`, `array`, `tensor`,
+`conversion`, `mapping`, `stats`, `logging`, `string`, `env_vars` and `fallback`.
+
+The following modules are **general helpers**: standalone utilities that are not used by the other
+`coola` packages. They are kept because they are small and tested, but they are not related to
+comparing, summarizing or transforming data, so do not look for `coola`'s core features there:
+
+| Module                     | Content                                                   |
+| -------------------------- | --------------------------------------------------------- |
+| `coola.utils.bloom_filter` | `BloomFilter`, an approximate set for duplicate detection |
+| `coola.utils.date`         | Today's date and conversion of dates                      |
+| `coola.utils.file_size`    | The size of a file or of a directory                      |
+| `coola.utils.git`          | The branch and the commit of a git repository             |
+| `coola.utils.password`     | Read a password from the terminal                         |
+| `coola.utils.secret`       | Mask a secret before displaying it                        |
+| `coola.utils.text_diff`    | Unified diff of two texts                                 |
+| `coola.utils.timing`       | The `timeblock` context manager                           |
+| `coola.utils.path`         | Path sanitization and working directory                   |
+| `coola.utils.version`      | Version of an installed package                           |
+| `coola.utils.batching`     | Split an iterable in batches                              |
+
 ## Import Utilities (`coola.utils.imports`)
 
 ### Checking Package Availability

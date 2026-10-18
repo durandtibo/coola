@@ -51,14 +51,14 @@ In this page, `<pkg>` is the name of the library, e.g. `pandas`.
 Decide for each package whether the library needs an entry, and write the decision down in the
 pull request.
 
-| Package | What to do | Default |
-| --- | --- | --- |
-| `coola.summary` | Add a `BaseMetadataSummarizer` in `summary/<pkg>.py` that describes the metadata (shape, dtype, columns) in `_describe`, export it, and register it in `summary/interface.py` (`_get_<pkg>_summarizers`). | Without it, the summary is the `str` of the object, which can be very long. |
-| `coola.hashing` | Nothing by default: there is no canonical byte form for arrays and data frames. Document how to register a hasher with `register_hashers`. | The type is not hashable. |
-| `coola.recursive` | Nothing: the objects of the library are leaves, passed to the function. | Leaf. |
-| `coola.iterator` | Nothing: the objects are leaves, and are not expanded. | Leaf. |
-| `coola.random` | If the library has a global random number generator, add a `BaseRandomManager` in `random/<pkg>.py`, and register it in `random/interface.py`. | Not managed. |
-| `coola.reducer` | If the library can compute statistics, add a `BaseBasicReducer` in `reducer/<pkg>.py`. Its results must agree with `NativeReducer` (see `tests/unit/reducer/test_consistency.py`). | Not supported. |
+| Package           | What to do                                                                                                                                                                                                | Default                                                                     |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `coola.summary`   | Add a `BaseMetadataSummarizer` in `summary/<pkg>.py` that describes the metadata (shape, dtype, columns) in `_describe`, export it, and register it in `summary/interface.py` (`_get_<pkg>_summarizers`). | Without it, the summary is the `str` of the object, which can be very long. |
+| `coola.hashing`   | Nothing by default: there is no canonical byte form for arrays and data frames. Document how to register a hasher with `register_hashers`.                                                                | The type is not hashable.                                                   |
+| `coola.recursive` | Nothing: the objects of the library are leaves, passed to the function.                                                                                                                                   | Leaf.                                                                       |
+| `coola.iterator`  | Nothing: the objects are leaves, and are not expanded.                                                                                                                                                    | Leaf.                                                                       |
+| `coola.random`    | If the library has a global random number generator, add a `BaseRandomManager` in `random/<pkg>.py`, and register it in `random/interface.py`.                                                            | Not managed.                                                                |
+| `coola.reducer`   | If the library can compute statistics, add a `BaseBasicReducer` in `reducer/<pkg>.py`. Its results must agree with `NativeReducer` (see `tests/unit/reducer/test_consistency.py`).                        | Not supported.                                                              |
 
 ## 4. Tests and documentation
 
@@ -74,10 +74,10 @@ pull request.
 
 ## Summary of the files
 
-| Step | Files |
-| --- | --- |
-| Dependency | `pyproject.toml`, `utils/imports/<pkg>.py`, `utils/imports/__init__.py`, `utils/fallback/<pkg>.py`, `testing/fixtures.py` |
-| Equality | `equality/handler/<pkg>.py`, `equality/handler/__init__.py`, `equality/tester/<pkg>.py`, `equality/tester/__init__.py`, `equality/tester/interface.py` |
-| Summary | `summary/<pkg>.py`, `summary/__init__.py`, `summary/interface.py` |
-| Others (optional) | `random/<pkg>.py`, `random/interface.py`, `reducer/<pkg>.py` |
-| Tests and docs | `tests/unit/...`, `docs/docs/uguide/*.md` |
+| Step              | Files                                                                                                                                                  |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Dependency        | `pyproject.toml`, `utils/imports/<pkg>.py`, `utils/imports/__init__.py`, `utils/fallback/<pkg>.py`, `testing/fixtures.py`                              |
+| Equality          | `equality/handler/<pkg>.py`, `equality/handler/__init__.py`, `equality/tester/<pkg>.py`, `equality/tester/__init__.py`, `equality/tester/interface.py` |
+| Summary           | `summary/<pkg>.py`, `summary/__init__.py`, `summary/interface.py`                                                                                      |
+| Others (optional) | `random/<pkg>.py`, `random/interface.py`, `reducer/<pkg>.py`                                                                                           |
+| Tests and docs    | `tests/unit/...`, `docs/docs/uguide/*.md`                                                                                                              |

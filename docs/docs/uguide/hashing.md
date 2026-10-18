@@ -78,6 +78,45 @@ hash instead of raising an error:
 
 ```
 
+## Supported Types
+
+The default registry hashes **only** the following types (and their subclasses):
+
+| Type                                      | Notes                                                                                             |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `str`, `bytes`                            |                                                                                                   |
+| `int`, `float`, `complex`, `bool`, `None` | The `repr` of the builtin value, so a NumPy scalar that is a `float` hashes like the same `float` |
+| `list`, `tuple`, other `Sequence`         | A `list` and a `tuple` with the same items hash the same                                          |
+| `dict`, other `Mapping`                   | Independent of the order of the keys                                                              |
+| `datetime.date`, `datetime.datetime`      | ISO 8601 form                                                                                     |
+| `pathlib.Path`                            | The resolved POSIX form                                                                           |
+
+Nothing else is supported: **`set`, NumPy arrays, PyTorch tensors, pandas and polars data frames,
+and your own classes need a registered hasher**. Otherwise `hash_object` raises a
+`TypeNotRegisteredError` (or hashes a placeholder with `ignore_unhashable=True`). There is no
+default hasher for arrays and data frames because there is no canonical byte form for them: you
+decide what must be part of the hash (the dtype? the memory layout? the index?). For example, for
+NumPy arrays:
+
+```pycon
+>>> import numpy as np
+>>> from coola.hashing import BaseHasher, hash_bytes, hash_object, register_hashers
+>>> class NumpyHasher(BaseHasher[np.ndarray]):
+...     def hash(self, data, registry, length=64, ignore_unhashable=False):
+...         header = f"{data.dtype}|{data.shape}|".encode()
+...         return hash_bytes(header + np.ascontiguousarray(data).tobytes(), length=length)
+>>> register_hashers({np.ndarray: NumpyHasher()}, exist_ok=True)
+>>> hash_object({"a": np.arange(3)}) == hash_object({"a": np.arange(3)})
+True
+>>> hash_object(np.arange(3)) == hash_object(np.arange(3).astype(float))
+False
+
+```
+
+Values of different types do not collide: the type of the value is part of the hash, so `1` and
+`"1"`, or `[]` and `""`, have different hashes. The hash values can change between versions of
+`coola`: do not persist them as a stable identifier across upgrades without checking.
+
 ## Type-Specific Hashers
 
 Each hasher implements the `BaseHasher` interface and knows how to hash one kind of object,
@@ -92,7 +131,7 @@ delegating to a `HasherRegistry` to hash any nested values. The built-in hashers
 - `DatetimeHasher` - hashes `date`/`datetime` objects via their ISO 8601 representation
 - `PathHasher` / `hash_path` - hashes `pathlib.Path` objects via their resolved POSIX form, so
   logically equivalent paths hash the same
-- `SequenceHasher` - hashes `list`, `tuple`, `str`, and other `Sequence` types element by element
+- `SequenceHasher` - hashes `list`, `tuple` and the other `Sequence` types element by element
 - `MappingHasher` - hashes `dict` and other `Mapping` types, sorted by key so that insertion
   order does not affect the result
 - `PydanticModelHasher` / `hash_pydantic_model` - hashes pydantic `BaseModel` objects, with
@@ -148,7 +187,7 @@ it is a singleton, any modification made via `register_hashers` affects every su
 
 ```
 
-`register_hashers` raises a `RuntimeError` if a type is already registered, unless
+`register_hashers` raises an `AlreadyRegisteredError` if a type is already registered, unless
 `exist_ok=True` is passed to overwrite the existing registration.
 
 If you need an isolated registry instead of mutating the shared singleton, create a
