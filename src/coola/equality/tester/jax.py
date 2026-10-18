@@ -11,7 +11,6 @@ __all__ = ["JaxArrayEqualityTester"]
 from functools import cache
 from typing import TYPE_CHECKING, Any, cast
 
-from coola.display import InlineDisplayMixin
 from coola.equality.handler import (
     JaxArrayEqualHandler,
     SameDTypeHandler,
@@ -20,7 +19,7 @@ from coola.equality.handler import (
     SameTypeHandler,
     create_chain,
 )
-from coola.equality.tester.base import BaseEqualityTester
+from coola.equality.tester.chain import BaseChainEqualityTester
 from coola.utils.imports import check_jax, is_jax_available
 
 if TYPE_CHECKING or is_jax_available():
@@ -30,10 +29,10 @@ else:  # pragma: no cover
 
 
 if TYPE_CHECKING:
-    from coola.equality.config import EqualityConfig
+    from coola.equality.handler import BaseEqualityHandler
 
 
-class JaxArrayEqualityTester(InlineDisplayMixin, BaseEqualityTester[jnp.ndarray]):
+class JaxArrayEqualityTester(BaseChainEqualityTester[jnp.ndarray]):
     r"""Implement an equality tester for ``jax.numpy.ndarray``.
 
     This tester compares JAX arrays element-wise with support for NaN equality
@@ -64,29 +63,17 @@ class JaxArrayEqualityTester(InlineDisplayMixin, BaseEqualityTester[jnp.ndarray]
         ```
     """
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
-
-    def __init__(self) -> None:
+    def _check_dependencies(self) -> None:
         check_jax()
-        self._handler = create_chain(
+
+    def _create_handler(self) -> BaseEqualityHandler:
+        return create_chain(
             SameObjectHandler(),
             SameTypeHandler(),
             SameDTypeHandler(),
             SameShapeHandler(),
             JaxArrayEqualHandler(),
         )
-
-    def equal(self, other: object) -> bool:
-        return type(other) is type(self)
-
-    def objects_are_equal(
-        self,
-        actual: jnp.ndarray,
-        expected: object,
-        config: EqualityConfig,
-    ) -> bool:
-        return self._handler.handle(actual, expected, config=config)
 
 
 @cache

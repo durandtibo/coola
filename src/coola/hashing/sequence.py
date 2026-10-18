@@ -7,7 +7,7 @@ __all__ = ["SequenceHasher"]
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any
 
-from coola.display import InlineDisplayMixin
+from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_tagged
 
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
 
 
-class SequenceHasher(InlineDisplayMixin, BaseHasher[Sequence[Any]]):
+class SequenceHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Sequence[Any]]):
     r"""Hasher for sequence types.
 
     This hasher computes the hash of each item in the sequence
@@ -44,9 +44,6 @@ class SequenceHasher(InlineDisplayMixin, BaseHasher[Sequence[Any]]):
 
         ```
     """
-
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
 
     def hash(
         self,

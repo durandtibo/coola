@@ -2,12 +2,14 @@ r"""Contain JSON-based data loaders and savers."""
 
 from __future__ import annotations
 
+from coola.utils.introspection import is_same_type
+
 __all__ = ["JsonLoader", "JsonSaver", "load_json", "save_json"]
 
 import json
 from typing import TYPE_CHECKING, Any, TypeVar
 
-from coola.display import InlineDisplayMixin
+from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
 from coola.equality.interface import objects_are_equal
 from coola.io.base import BaseFileSaver, BaseLoader
 
@@ -19,7 +21,7 @@ T = TypeVar("T")
 DEFAULT_ENCODING = "utf-8"
 
 
-class JsonLoader(InlineDisplayMixin, BaseLoader[T]):
+class JsonLoader(InlineDisplayMixin, NoArgsDisplayMixin, BaseLoader[T]):
     r"""Implement a data loader to load data in a JSON file.
 
     Example:
@@ -38,11 +40,8 @@ class JsonLoader(InlineDisplayMixin, BaseLoader[T]):
         ```
     """
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
-
     def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
-        return type(other) is type(self)
+        return is_same_type(other, self)
 
     def load(self, path: Path) -> T:
         with path.open(mode="rb") as file:
@@ -82,7 +81,7 @@ class JsonSaver(InlineDisplayMixin, BaseFileSaver[T]):
         return {"encoding": self._encoding, **self._kwargs}
 
     def equal(self, other: Any, equal_nan: bool = False) -> bool:
-        if type(other) is not type(self):
+        if not is_same_type(other, self):
             return False
         return self._encoding == other._encoding and objects_are_equal(
             self._kwargs, other._kwargs, equal_nan=equal_nan

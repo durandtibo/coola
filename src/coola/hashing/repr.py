@@ -6,7 +6,7 @@ __all__ = ["ReprHasher"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.display import InlineDisplayMixin
+from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_tagged
 
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
 
 
-class ReprHasher(InlineDisplayMixin, BaseHasher[Any]):
+class ReprHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Any]):
     r"""Hasher for objects whose ``repr()`` is a reliable canonical
     representation.
 
@@ -37,9 +37,6 @@ class ReprHasher(InlineDisplayMixin, BaseHasher[Any]):
 
         ```
     """
-
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
 
     def hash(
         self,

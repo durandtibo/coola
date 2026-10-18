@@ -2,6 +2,8 @@ r"""Contain torch-based data loaders and savers."""
 
 from __future__ import annotations
 
+from coola.utils.introspection import is_same_type
+
 __all__ = ["TorchLoader", "TorchSaver", "load_torch", "save_torch"]
 
 from typing import TYPE_CHECKING, Any, TypeVar
@@ -56,7 +58,7 @@ class TorchLoader(InlineDisplayMixin, BaseLoader[T]):
         return self._kwargs
 
     def equal(self, other: Any, equal_nan: bool = False) -> bool:
-        if type(other) is not type(self):
+        if not is_same_type(other, self):
             return False
         return objects_are_equal(self._kwargs, other._kwargs, equal_nan=equal_nan)
 
@@ -96,7 +98,7 @@ class TorchSaver(InlineDisplayMixin, BaseFileSaver[T]):
         return self._kwargs
 
     def equal(self, other: Any, equal_nan: bool = False) -> bool:
-        if type(other) is not type(self):
+        if not is_same_type(other, self):
             return False
         return objects_are_equal(self._kwargs, other._kwargs, equal_nan=equal_nan)
 

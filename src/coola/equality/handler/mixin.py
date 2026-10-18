@@ -2,6 +2,8 @@ r"""Define the equality handler base classes."""
 
 from __future__ import annotations
 
+from coola.utils.introspection import is_same_type
+
 __all__ = ["EqualityHandler", "HandlerEqualityMixin"]
 
 from typing import TYPE_CHECKING, Protocol
@@ -114,7 +116,7 @@ class HandlerEqualityMixin:
         Returns:
             ``True`` if the handlers are equal, otherwise ``False``.
         """
-        if type(other) is not type(self) or not isinstance(other, type(self)):
+        if not is_same_type(other, self):
             return False
         for attr in self.equality_attrs():
             if getattr(self, attr) != getattr(other, attr):

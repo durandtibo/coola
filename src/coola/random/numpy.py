@@ -2,12 +2,14 @@ r"""Implement a random manager for NumPy."""
 
 from __future__ import annotations
 
+from coola.utils.introspection import is_same_type
+
 __all__ = ["NumpyRandomManager"]
 
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
 
-from coola.display import InlineDisplayMixin
+from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
 from coola.random.base import BaseRandomManager
 from coola.utils.imports import check_numpy, is_numpy_available
 
@@ -20,7 +22,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.numpy import numpy as np
 
 
-class NumpyRandomManager(InlineDisplayMixin, BaseRandomManager):
+class NumpyRandomManager(InlineDisplayMixin, NoArgsDisplayMixin, BaseRandomManager):
     r"""Implement a random manager for the library ``numpy``.
 
     The seed must be between ``0`` and ``2**32 - 1``, so a modulo
@@ -36,14 +38,11 @@ class NumpyRandomManager(InlineDisplayMixin, BaseRandomManager):
         ```
     """
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
-
     def __init__(self) -> None:
         check_numpy()
 
     def __eq__(self, other: object) -> bool:
-        return type(other) is type(self)
+        return is_same_type(other, self)
 
     def __hash__(self) -> int:
         return hash(type(self))

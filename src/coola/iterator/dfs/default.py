@@ -7,7 +7,7 @@ __all__ = ["DefaultIterator"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.display import InlineDisplayMixin
+from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
 from coola.iterator.dfs.base import BaseIterator
 
 if TYPE_CHECKING:
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from coola.iterator.dfs.registry import IteratorRegistry
 
 
-class DefaultIterator(InlineDisplayMixin, BaseIterator[Any]):
+class DefaultIterator(InlineDisplayMixin, NoArgsDisplayMixin, BaseIterator[Any]):
     r"""Default iterator for depth-first search traversal of leaf nodes.
 
     This iterator serves as the fallback handler for objects that don't have
@@ -40,9 +40,6 @@ class DefaultIterator(InlineDisplayMixin, BaseIterator[Any]):
 
         ```
     """
-
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
 
     def iterate(
         self,

@@ -3,6 +3,8 @@ r"""Define a thread-safe base registry shared by ``Registry`` and
 
 from __future__ import annotations
 
+from coola.utils.introspection import is_same_type
+
 __all__ = ["BaseRegistry"]
 
 import threading
@@ -177,7 +179,7 @@ class BaseRegistry(Generic[K, V]):
         # chain transitively depends on this module (e.g. via EqualityTesterRegistry).
         from coola.equality.interface import objects_are_equal  # noqa: PLC0415
 
-        if type(other) is not type(self) or not isinstance(other, type(self)):
+        if not is_same_type(other, self):
             return False
 
         # Acquire locks in a consistent order based on object id to avoid deadlock

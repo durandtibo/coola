@@ -3,16 +3,18 @@ r"""Implement a random manager for the python standard library
 
 from __future__ import annotations
 
+from coola.utils.introspection import is_same_type
+
 __all__ = ["RandomRandomManager"]
 
 import random
 from typing import Any
 
-from coola.display import InlineDisplayMixin
+from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
 from coola.random.base import BaseRandomManager
 
 
-class RandomRandomManager(InlineDisplayMixin, BaseRandomManager):
+class RandomRandomManager(InlineDisplayMixin, NoArgsDisplayMixin, BaseRandomManager):
     r"""Implement a random manager for the python standard library
     ``random``.
 
@@ -25,11 +27,8 @@ class RandomRandomManager(InlineDisplayMixin, BaseRandomManager):
         ```
     """
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
-
     def __eq__(self, other: object) -> bool:
-        return type(other) is type(self)
+        return is_same_type(other, self)
 
     def __hash__(self) -> int:
         return hash(type(self))

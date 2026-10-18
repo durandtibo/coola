@@ -8,14 +8,14 @@ __all__ = ["MappingIterator"]
 from collections.abc import Iterator, Mapping
 from typing import TYPE_CHECKING, Any
 
-from coola.display import InlineDisplayMixin
+from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
 from coola.iterator.dfs.base import BaseIterator
 
 if TYPE_CHECKING:
     from coola.iterator.dfs.registry import IteratorRegistry
 
 
-class MappingIterator(InlineDisplayMixin, BaseIterator[Mapping[Any, Any]]):
+class MappingIterator(InlineDisplayMixin, NoArgsDisplayMixin, BaseIterator[Mapping[Any, Any]]):
     r"""Iterator for depth-first traversal of mapping data structures.
 
     This iterator handles dict-like objects by recursively iterating over
@@ -47,9 +47,6 @@ class MappingIterator(InlineDisplayMixin, BaseIterator[Mapping[Any, Any]]):
 
         ```
     """
-
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
 
     def iterate(self, data: Mapping[Any, Any], registry: IteratorRegistry) -> Iterator[Any]:
         for value in data.values():

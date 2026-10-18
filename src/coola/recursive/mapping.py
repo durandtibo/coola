@@ -7,7 +7,7 @@ __all__ = ["MappingTransformer"]
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
-from coola.display import InlineDisplayMixin
+from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
 from coola.recursive.base import BaseTransformer
 from coola.utils.introspection import get_type_constructor
 
@@ -17,7 +17,9 @@ if TYPE_CHECKING:
     from coola.recursive.registry import TransformerRegistry
 
 
-class MappingTransformer(InlineDisplayMixin, BaseTransformer[Mapping[Any, Any]]):
+class MappingTransformer(
+    InlineDisplayMixin, NoArgsDisplayMixin, BaseTransformer[Mapping[Any, Any]]
+):
     r"""Transformer for mapping types that recursively transforms values.
 
     This transformer handles dict-like mapping structures by recursively
@@ -54,9 +56,6 @@ class MappingTransformer(InlineDisplayMixin, BaseTransformer[Mapping[Any, Any]])
 
         ```
     """
-
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
 
     def transform(
         self,

@@ -2,6 +2,8 @@ r"""Implement an equality tester that uses an equality handler."""
 
 from __future__ import annotations
 
+from coola.utils.introspection import is_same_type
+
 __all__ = ["HandlerEqualityTester"]
 
 from typing import TYPE_CHECKING, TypeVar
@@ -59,7 +61,7 @@ class HandlerEqualityTester(BaseEqualityTester[T]):
         return f"{self.__class__.__qualname__}(\n  {str_indent(self._handler.visualize_chain())}\n)"
 
     def equal(self, other: object) -> bool:
-        if type(other) is not type(self) or not isinstance(other, type(self)):
+        if not is_same_type(other, self):
             return False
         return self._handler.equal(other._handler)
 

@@ -2,6 +2,8 @@ r"""Implement summarizers for ``Collection`` data."""
 
 from __future__ import annotations
 
+from coola.utils.introspection import is_same_type
+
 __all__ = ["BaseCollectionSummarizer"]
 
 from collections.abc import Sized
@@ -61,7 +63,7 @@ class BaseCollectionSummarizer(BaseSummarizer[T]):
         )
 
     def equal(self, other: object) -> bool:
-        if type(other) is not type(self) or not isinstance(other, type(self)):
+        if not is_same_type(other, self):
             return False
         return self._max_items == other._max_items and self._num_spaces == other._num_spaces
 

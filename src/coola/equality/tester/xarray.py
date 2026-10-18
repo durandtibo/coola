@@ -13,9 +13,8 @@ __all__ = [
     "XarrayVariableEqualityTester",
 ]
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
-from coola.display import InlineDisplayMixin
 from coola.equality.handler import (
     SameAttributeHandler,
     SameDataHandler,
@@ -24,7 +23,7 @@ from coola.equality.handler import (
     TrueHandler,
     create_chain,
 )
-from coola.equality.tester.base import BaseEqualityTester
+from coola.equality.tester.chain import BaseChainEqualityTester
 from coola.utils.imports import check_xarray, is_xarray_available
 
 if TYPE_CHECKING or is_xarray_available():
@@ -33,10 +32,10 @@ else:  # pragma: no cover
     from coola.utils.fallback.xarray import xarray as xr
 
 if TYPE_CHECKING:
-    from coola.equality.config import EqualityConfig
+    from coola.equality.handler import BaseEqualityHandler
 
 
-class XarrayDataArrayEqualityTester(InlineDisplayMixin, BaseEqualityTester[xr.DataArray]):
+class XarrayDataArrayEqualityTester(BaseChainEqualityTester[xr.DataArray]):
     r"""Implement an equality tester for ``xarray.DataArray``.
 
     This tester compares xarray DataArrays by checking their variable, name,
@@ -74,12 +73,11 @@ class XarrayDataArrayEqualityTester(InlineDisplayMixin, BaseEqualityTester[xr.Da
         ```
     """
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
-
-    def __init__(self) -> None:
+    def _check_dependencies(self) -> None:
         check_xarray()
-        self._handler = create_chain(
+
+    def _create_handler(self) -> BaseEqualityHandler:
+        return create_chain(
             SameObjectHandler(),
             SameTypeHandler(),
             SameAttributeHandler(name="variable"),
@@ -88,19 +86,8 @@ class XarrayDataArrayEqualityTester(InlineDisplayMixin, BaseEqualityTester[xr.Da
             TrueHandler(),
         )
 
-    def equal(self, other: object) -> bool:
-        return type(other) is type(self)
 
-    def objects_are_equal(
-        self,
-        actual: xr.DataArray,
-        expected: object,
-        config: EqualityConfig,
-    ) -> bool:
-        return self._handler.handle(actual, expected, config=config)
-
-
-class XarrayDatasetEqualityTester(InlineDisplayMixin, BaseEqualityTester[xr.Dataset]):
+class XarrayDatasetEqualityTester(BaseChainEqualityTester[xr.Dataset]):
     r"""Implement an equality tester for ``xarray.Dataset``.
 
     This tester compares xarray Datasets by checking their data variables,
@@ -138,12 +125,11 @@ class XarrayDatasetEqualityTester(InlineDisplayMixin, BaseEqualityTester[xr.Data
         ```
     """
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
-
-    def __init__(self) -> None:
+    def _check_dependencies(self) -> None:
         check_xarray()
-        self._handler = create_chain(
+
+    def _create_handler(self) -> BaseEqualityHandler:
+        return create_chain(
             SameObjectHandler(),
             SameTypeHandler(),
             SameAttributeHandler(name="data_vars"),
@@ -152,19 +138,8 @@ class XarrayDatasetEqualityTester(InlineDisplayMixin, BaseEqualityTester[xr.Data
             TrueHandler(),
         )
 
-    def equal(self, other: object) -> bool:
-        return type(other) is type(self)
 
-    def objects_are_equal(
-        self,
-        actual: xr.Dataset,
-        expected: object,
-        config: EqualityConfig,
-    ) -> bool:
-        return self._handler.handle(actual, expected, config=config)
-
-
-class XarrayVariableEqualityTester(InlineDisplayMixin, BaseEqualityTester[xr.Variable]):
+class XarrayVariableEqualityTester(BaseChainEqualityTester[xr.Variable]):
     r"""Implement an equality tester for ``xarray.Variable``.
 
     This tester compares xarray Variables by checking their data, dimensions,
@@ -202,12 +177,11 @@ class XarrayVariableEqualityTester(InlineDisplayMixin, BaseEqualityTester[xr.Var
         ```
     """
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
-
-    def __init__(self) -> None:
+    def _check_dependencies(self) -> None:
         check_xarray()
-        self._handler = create_chain(
+
+    def _create_handler(self) -> BaseEqualityHandler:
+        return create_chain(
             SameObjectHandler(),
             SameTypeHandler(),
             SameDataHandler(),
@@ -215,14 +189,3 @@ class XarrayVariableEqualityTester(InlineDisplayMixin, BaseEqualityTester[xr.Var
             SameAttributeHandler(name="attrs"),
             TrueHandler(),
         )
-
-    def equal(self, other: object) -> bool:
-        return type(other) is type(self)
-
-    def objects_are_equal(
-        self,
-        actual: xr.Variable,
-        expected: object,
-        config: EqualityConfig,
-    ) -> bool:
-        return self._handler.handle(actual, expected, config=config)

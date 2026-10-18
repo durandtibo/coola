@@ -14,9 +14,8 @@ __all__ = [
     "PolarsSeriesEqualityTester",
 ]
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
-from coola.display import InlineDisplayMixin
 from coola.equality.handler import (
     PolarsDataFrameEqualHandler,
     PolarsLazyFrameEqualHandler,
@@ -25,7 +24,7 @@ from coola.equality.handler import (
     SameTypeHandler,
     create_chain,
 )
-from coola.equality.tester.base import BaseEqualityTester
+from coola.equality.tester.chain import BaseChainEqualityTester
 from coola.utils.imports import check_polars, is_polars_available
 
 if TYPE_CHECKING or is_polars_available():
@@ -34,10 +33,10 @@ else:  # pragma: no cover
     from coola.utils.fallback.polars import polars as pl
 
 if TYPE_CHECKING:
-    from coola.equality.config import EqualityConfig
+    from coola.equality.handler import BaseEqualityHandler
 
 
-class PolarsDataFrameEqualityTester(InlineDisplayMixin, BaseEqualityTester[pl.DataFrame]):
+class PolarsDataFrameEqualityTester(BaseChainEqualityTester[pl.DataFrame]):
     r"""Implement an equality tester for ``polars.DataFrame``.
 
     This tester uses Polars' DataFrame equality testing. The handler chain:
@@ -73,28 +72,14 @@ class PolarsDataFrameEqualityTester(InlineDisplayMixin, BaseEqualityTester[pl.Da
         ```
     """
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
-
-    def __init__(self) -> None:
+    def _check_dependencies(self) -> None:
         check_polars()
-        self._handler = create_chain(
-            SameObjectHandler(), SameTypeHandler(), PolarsDataFrameEqualHandler()
-        )
 
-    def equal(self, other: object) -> bool:
-        return type(other) is type(self)
-
-    def objects_are_equal(
-        self,
-        actual: pl.DataFrame,
-        expected: object,
-        config: EqualityConfig,
-    ) -> bool:
-        return self._handler.handle(actual, expected, config=config)
+    def _create_handler(self) -> BaseEqualityHandler:
+        return create_chain(SameObjectHandler(), SameTypeHandler(), PolarsDataFrameEqualHandler())
 
 
-class PolarsLazyFrameEqualityTester(InlineDisplayMixin, BaseEqualityTester[pl.LazyFrame]):
+class PolarsLazyFrameEqualityTester(BaseChainEqualityTester[pl.LazyFrame]):
     r"""Implement an equality tester for ``polars.LazyFrame``.
 
     This tester uses Polars' LazyFrame equality testing. The handler chain:
@@ -134,28 +119,14 @@ class PolarsLazyFrameEqualityTester(InlineDisplayMixin, BaseEqualityTester[pl.La
         ```
     """
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
-
-    def __init__(self) -> None:
+    def _check_dependencies(self) -> None:
         check_polars()
-        self._handler = create_chain(
-            SameObjectHandler(), SameTypeHandler(), PolarsLazyFrameEqualHandler()
-        )
 
-    def equal(self, other: object) -> bool:
-        return type(other) is type(self)
-
-    def objects_are_equal(
-        self,
-        actual: pl.LazyFrame,
-        expected: object,
-        config: EqualityConfig,
-    ) -> bool:
-        return self._handler.handle(actual, expected, config=config)
+    def _create_handler(self) -> BaseEqualityHandler:
+        return create_chain(SameObjectHandler(), SameTypeHandler(), PolarsLazyFrameEqualHandler())
 
 
-class PolarsSeriesEqualityTester(InlineDisplayMixin, BaseEqualityTester[pl.Series]):
+class PolarsSeriesEqualityTester(BaseChainEqualityTester[pl.Series]):
     r"""Implement an equality tester for ``polars.Series``.
 
     This tester uses Polars' Series equality testing. The handler chain:
@@ -183,22 +154,8 @@ class PolarsSeriesEqualityTester(InlineDisplayMixin, BaseEqualityTester[pl.Serie
         ```
     """
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
-
-    def __init__(self) -> None:
+    def _check_dependencies(self) -> None:
         check_polars()
-        self._handler = create_chain(
-            SameObjectHandler(), SameTypeHandler(), PolarsSeriesEqualHandler()
-        )
 
-    def equal(self, other: object) -> bool:
-        return type(other) is type(self)
-
-    def objects_are_equal(
-        self,
-        actual: pl.Series,
-        expected: object,
-        config: EqualityConfig,
-    ) -> bool:
-        return self._handler.handle(actual, expected, config=config)
+    def _create_handler(self) -> BaseEqualityHandler:
+        return create_chain(SameObjectHandler(), SameTypeHandler(), PolarsSeriesEqualHandler())

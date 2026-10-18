@@ -5,16 +5,16 @@ from __future__ import annotations
 __all__ = ["StringHasher", "hash_string", "hash_tagged"]
 
 import hashlib
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
-from coola.display import InlineDisplayMixin
+from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
 from coola.hashing.base import BaseHasher
 
 if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
 
 
-class StringHasher(InlineDisplayMixin, BaseHasher[str]):
+class StringHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[str]):
     r"""Hasher for string objects.
 
     This hasher computes the hash of the string directly, without any
@@ -32,9 +32,6 @@ class StringHasher(InlineDisplayMixin, BaseHasher[str]):
 
         ```
     """
-
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
 
     def hash(
         self,

@@ -7,7 +7,7 @@ __all__ = ["MappingHasher"]
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
-from coola.display import InlineDisplayMixin
+from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_tagged
 
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
 
 
-class MappingHasher(InlineDisplayMixin, BaseHasher[Mapping[Any, Any]]):
+class MappingHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Mapping[Any, Any]]):
     r"""Hasher for mapping types.
 
     This hasher sorts the mapping by key, hashes each key and value
@@ -41,9 +41,6 @@ class MappingHasher(InlineDisplayMixin, BaseHasher[Mapping[Any, Any]]):
 
         ```
     """
-
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
 
     def hash(
         self,

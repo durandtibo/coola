@@ -2,6 +2,8 @@ r"""Contain text-based data loaders and savers."""
 
 from __future__ import annotations
 
+from coola.utils.introspection import is_same_type
+
 __all__ = ["TextLoader", "TextSaver", "load_text", "save_text"]
 
 from typing import TYPE_CHECKING, Any, TypeVar
@@ -47,7 +49,7 @@ class TextLoader(InlineDisplayMixin, BaseLoader[str]):
         return {"encoding": self._encoding}
 
     def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
-        if type(other) is not type(self):
+        if not is_same_type(other, self):
             return False
         return self._encoding == other._encoding
 
@@ -90,7 +92,7 @@ class TextSaver(InlineDisplayMixin, BaseFileSaver[str]):
         return {"encoding": self._encoding}
 
     def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
-        if type(other) is not type(self):
+        if not is_same_type(other, self):
             return False
         return self._encoding == other._encoding
 

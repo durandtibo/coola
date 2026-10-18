@@ -2,6 +2,8 @@ r"""Implement the default summarizer."""
 
 from __future__ import annotations
 
+from coola.utils.introspection import is_same_type
+
 __all__ = ["DefaultSummarizer"]
 
 from typing import TYPE_CHECKING
@@ -38,7 +40,7 @@ class DefaultSummarizer(BaseSummarizer[object]):
         return f"{self.__class__.__qualname__}(max_characters={self._max_characters:,})"
 
     def equal(self, other: object) -> bool:
-        if type(other) is not type(self):
+        if not is_same_type(other, self):
             return False
         return self._max_characters == other._max_characters
 
