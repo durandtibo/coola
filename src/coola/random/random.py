@@ -17,6 +17,11 @@ class RandomRandomManager(InlineDisplayMixin, NoArgsDisplayMixin, BaseRandomMana
     r"""Implement a random manager for the python standard library
     ``random``.
 
+    Only the global generator of the module (``random.seed``,
+    ``random.getstate`` and ``random.setstate``) is managed. The
+    generators created with ``random.Random()`` are independent objects:
+    they are not seeded, and their state is not saved nor restored.
+
     Example:
         ```pycon
         >>> from coola.random import RandomRandomManager

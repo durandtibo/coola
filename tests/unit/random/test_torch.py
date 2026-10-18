@@ -146,3 +146,25 @@ def test_torch_seed_different_random_seeds() -> None:
     with torch_seed(142):
         x2 = torch.randn(4, 6)
     assert not x1.equal(x2)
+
+
+@torch_available
+def test_torch_random_manager_seed() -> None:
+    manager = TorchRandomManager()
+    state = torch.get_rng_state()
+    with manager.seed(42):
+        first = torch.rand(3)
+    assert objects_are_equal(state, torch.get_rng_state())
+    with manager.seed(42):
+        second = torch.rand(3)
+    assert objects_are_equal(first, second)
+
+
+@torch_available
+def test_torch_random_manager_does_not_manage_generator_objects() -> None:
+    manager = TorchRandomManager()
+    generator = torch.Generator().manual_seed(0)
+    expected = torch.rand(3, generator=torch.Generator().manual_seed(0))
+    with manager.seed(42):
+        values = torch.rand(3, generator=generator)
+    assert objects_are_equal(values, expected)

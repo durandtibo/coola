@@ -162,3 +162,52 @@ def test_random_manager_registry_set_rng_state_empty() -> None:
     rng = RandomManagerRegistry()
     # Should not raise for an empty registry and empty state.
     rng.set_rng_state({})
+
+
+def test_random_manager_registry_set_rng_state_missing_key_logs_warning(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    rng = RandomManagerRegistry({"random": RandomRandomManager(), "other": RandomRandomManager()})
+    state = rng.get_rng_state()
+    del state["other"]
+    with caplog.at_level("WARNING"):
+        rng.set_rng_state(state)
+    assert "No RNG state for the registered key(s) ['other']" in caplog.text
+
+
+def test_random_manager_registry_set_rng_state_missing_key_restores_the_other_keys() -> None:
+    rng = RandomManagerRegistry({"random": RandomRandomManager(), "other": RandomRandomManager()})
+    state = rng.get_rng_state()
+    del state["other"]
+    x1 = random.uniform(0, 1)  # noqa: S311
+    rng.set_rng_state(state)
+    assert random.uniform(0, 1) == x1  # noqa: S311
+
+
+def test_random_manager_registry_set_rng_state_all_keys_does_not_warn(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    rng = RandomManagerRegistry({"random": RandomRandomManager()})
+    with caplog.at_level("WARNING"):
+        rng.set_rng_state(rng.get_rng_state())
+    assert not caplog.records
+
+
+def test_random_manager_registry_set_rng_state_empty_state_warns_for_registered_keys(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    rng = RandomManagerRegistry({"random": RandomRandomManager()})
+    with caplog.at_level("WARNING"):
+        rng.set_rng_state({})
+    assert "['random']" in caplog.text
+
+
+def test_random_manager_registry_seed() -> None:
+    rng = RandomManagerRegistry({"random": RandomRandomManager()})
+    state = random.getstate()
+    with rng.seed(42):
+        first = random.uniform(0, 1)  # noqa: S311
+    assert random.getstate() == state
+    with rng.seed(42):
+        second = random.uniform(0, 1)  # noqa: S311
+    assert first == second

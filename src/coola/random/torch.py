@@ -24,6 +24,11 @@ else:  # pragma: no cover
 class TorchRandomManager(InlineDisplayMixin, NoArgsDisplayMixin, BaseRandomManager):
     r"""Implement a random manager for the library ``torch``.
 
+    Only the default generators of PyTorch (the CPU one and the CUDA
+    ones) are managed. The generators created with ``torch.Generator()``
+    are independent objects: they are not seeded, and their state is not
+    saved nor restored.
+
     Example:
         ```pycon
         >>> from coola.random import TorchRandomManager
@@ -85,10 +90,5 @@ def torch_seed(seed: int) -> Generator[None]:
 
         ```
     """
-    manager = TorchRandomManager()
-    state = manager.get_rng_state()
-    try:
-        manager.manual_seed(seed)
+    with TorchRandomManager().seed(seed):
         yield
-    finally:
-        manager.set_rng_state(state)

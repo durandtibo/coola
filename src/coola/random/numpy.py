@@ -24,9 +24,18 @@ else:  # pragma: no cover
 class NumpyRandomManager(InlineDisplayMixin, NoArgsDisplayMixin, BaseRandomManager):
     r"""Implement a random manager for the library ``numpy``.
 
-    The seed must be between ``0`` and ``2**32 - 1``, so a modulo
-    operator to convert an integer to an integer between ``0`` and
-    ``2**32 - 1``.
+    Only the legacy global generator of NumPy (``numpy.random.seed``,
+    ``numpy.random.get_state`` and ``numpy.random.set_state``) is
+    managed. The generators created with ``numpy.random.default_rng()``
+    are independent objects: they are not seeded, and their state is
+    not saved nor restored. Seed them explicitly, e.g.
+    ``numpy.random.default_rng(seed)``.
+
+    The legacy generator only accepts seeds between ``0`` and
+    ``2**32 - 1``, so the seed is folded into this range with
+    ``seed % 2**32``. Consequently, the seeds ``1`` and ``2**32 + 1``
+    produce the same random numbers, and a negative seed ``-n`` is the
+    same as ``2**32 - n``.
 
     Example:
         ```pycon
@@ -83,10 +92,5 @@ def numpy_seed(seed: int) -> Generator[None]:
 
         ```
     """
-    manager = NumpyRandomManager()
-    state = manager.get_rng_state()
-    try:
-        manager.manual_seed(seed)
+    with NumpyRandomManager().seed(seed):
         yield
-    finally:
-        manager.set_rng_state(state)

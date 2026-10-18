@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import random
+from contextlib import contextmanager
 from typing import TYPE_CHECKING
 from unittest.mock import Mock, patch
 
@@ -88,17 +89,25 @@ def test_random_seed_different_random_seeds() -> None:
 
 
 def test_random_seed_uses_custom_manager() -> None:
-    """Test that random_seed uses a custom manager when provided."""
+    """Test that random_seed delegates to the ``seed`` context manager of
+    the provided manager."""
     mock_manager = Mock()
-    mock_state = Mock()
-    mock_manager.get_rng_state.return_value = mock_state
+    entered = []
+    exited = []
+
+    @contextmanager
+    def fake_seed(seed: int) -> Generator[None]:
+        entered.append(seed)
+        yield
+        exited.append(seed)
+
+    mock_manager.seed = fake_seed
 
     with random_seed(42, manager=mock_manager):
-        pass
+        assert entered == [42]
+        assert exited == []
 
-    mock_manager.get_rng_state.assert_called_once()
-    mock_manager.manual_seed.assert_called_once_with(42)
-    mock_manager.set_rng_state.assert_called_once_with(mock_state)
+    assert exited == [42]
 
 
 ###################################
