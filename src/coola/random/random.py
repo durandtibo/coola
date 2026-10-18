@@ -3,8 +3,6 @@ r"""Implement a random manager for the python standard library
 
 from __future__ import annotations
 
-from coola.utils.introspection import is_same_type
-
 __all__ = ["RandomRandomManager"]
 
 import random
@@ -12,6 +10,7 @@ from typing import Any
 
 from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
 from coola.random.base import BaseRandomManager
+from coola.utils.introspection import is_same_type
 
 
 class RandomRandomManager(InlineDisplayMixin, NoArgsDisplayMixin, BaseRandomManager):

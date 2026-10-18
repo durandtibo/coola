@@ -3,8 +3,6 @@ r"""Define a thread-safe base registry shared by ``Registry`` and
 
 from __future__ import annotations
 
-from coola.utils.introspection import is_same_type
-
 __all__ = ["BaseRegistry"]
 
 import threading
@@ -12,6 +10,7 @@ from typing import TYPE_CHECKING, Generic, TypeVar
 
 from coola.registry.exceptions import AlreadyRegisteredError, KeyNotRegisteredError
 from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
+from coola.utils.introspection import is_same_type
 
 if TYPE_CHECKING:
     from collections.abc import ItemsView, Iterator, KeysView, Mapping, ValuesView

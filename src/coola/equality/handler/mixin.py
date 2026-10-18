@@ -2,13 +2,12 @@ r"""Define the equality handler base classes."""
 
 from __future__ import annotations
 
-from coola.utils.introspection import is_same_type
-
 __all__ = ["EqualityHandler", "HandlerEqualityMixin"]
 
 from typing import TYPE_CHECKING, Protocol
 
 from coola.equality.handler.utils import handlers_are_equal
+from coola.utils.introspection import is_same_type
 
 if TYPE_CHECKING:
     from coola.equality.handler.base import BaseEqualityHandler

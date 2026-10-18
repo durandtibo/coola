@@ -13,17 +13,63 @@ from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any
 
 from coola.summary.default import DefaultSummarizer
+from coola.summary.jax import JaxArraySummarizer
 from coola.summary.mapping import MappingSummarizer
 from coola.summary.numpy import NDArraySummarizer
+from coola.summary.pandas import PandasDataFrameSummarizer, PandasSeriesSummarizer
+from coola.summary.polars import (
+    PolarsDataFrameSummarizer,
+    PolarsLazyFrameSummarizer,
+    PolarsSeriesSummarizer,
+)
+from coola.summary.pyarrow import PyarrowArraySummarizer, PyarrowTableSummarizer
 from coola.summary.registry import SummarizerRegistry
 from coola.summary.sequence import SequenceSummarizer
 from coola.summary.set import SetSummarizer
 from coola.summary.torch import TensorSummarizer
-from coola.utils.imports import is_numpy_available, is_torch_available
+from coola.summary.xarray import (
+    XarrayDataArraySummarizer,
+    XarrayDatasetSummarizer,
+    XarrayVariableSummarizer,
+)
+from coola.utils.imports import (
+    is_jax_available,
+    is_numpy_available,
+    is_pandas_available,
+    is_polars_available,
+    is_pyarrow_available,
+    is_torch_available,
+    is_xarray_available,
+)
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
 if TYPE_CHECKING:
     from coola.summary.base import Summarizer
+
+if is_jax_available():  # pragma: no cover
+    import jax.numpy as jnp
+else:  # pragma: no cover
+    from coola.utils.fallback.jax import jnp
+
+if is_pandas_available():  # pragma: no cover
+    import pandas as pd
+else:  # pragma: no cover
+    from coola.utils.fallback.pandas import pandas as pd
+
+if is_polars_available():  # pragma: no cover
+    import polars as pl
+else:  # pragma: no cover
+    from coola.utils.fallback.polars import polars as pl
+
+if is_pyarrow_available():  # pragma: no cover
+    import pyarrow as pa
+else:  # pragma: no cover
+    from coola.utils.fallback.pyarrow import pyarrow as pa
+
+if is_xarray_available():  # pragma: no cover
+    import xarray as xr
+else:  # pragma: no cover
+    from coola.utils.fallback.xarray import xarray as xr
 
 if is_torch_available():  # pragma: no cover
     import torch
@@ -172,8 +218,13 @@ def _register_default_summarizers(registry: SummarizerRegistry) -> None:
         not typically be called directly by users.
     """
     summarizers: dict[type, Summarizer[Any]] = _get_native_summarizers()
+    summarizers.update(_get_jax_summarizers())
     summarizers.update(_get_numpy_summarizers())
+    summarizers.update(_get_pandas_summarizers())
+    summarizers.update(_get_polars_summarizers())
+    summarizers.update(_get_pyarrow_summarizers())
     summarizers.update(_get_torch_summarizers())
+    summarizers.update(_get_xarray_summarizers())
     registry.register_many(summarizers)
 
 
@@ -242,6 +293,100 @@ def _get_torch_summarizers() -> dict[type, Summarizer[Any]]:
     if not is_torch_available():  # pragma: no cover
         return {}
     return {torch.Tensor: TensorSummarizer()}
+
+
+def _get_jax_summarizers() -> dict[type, Summarizer[Any]]:
+    r"""Get the summarizers for JAX types.
+
+    Returns:
+        The summarizers for JAX types, or an empty dictionary if the
+            package is not installed.
+
+    Notes:
+        This function is called internally by get_default_registry() and should
+        not typically be called directly by users.
+    """
+    if not is_jax_available():  # pragma: no cover
+        return {}
+    summarizer = JaxArraySummarizer()
+    return {jnp.ndarray: summarizer, type(jnp.ones(1)): summarizer}
+
+
+def _get_pandas_summarizers() -> dict[type, Summarizer[Any]]:
+    r"""Get the summarizers for pandas types.
+
+    Returns:
+        The summarizers for pandas types, or an empty dictionary if the
+            package is not installed.
+
+    Notes:
+        This function is called internally by get_default_registry() and should
+        not typically be called directly by users.
+    """
+    if not is_pandas_available():  # pragma: no cover
+        return {}
+    return {pd.DataFrame: PandasDataFrameSummarizer(), pd.Series: PandasSeriesSummarizer()}
+
+
+def _get_polars_summarizers() -> dict[type, Summarizer[Any]]:
+    r"""Get the summarizers for polars types.
+
+    Returns:
+        The summarizers for polars types, or an empty dictionary if the
+            package is not installed.
+
+    Notes:
+        This function is called internally by get_default_registry() and should
+        not typically be called directly by users.
+    """
+    if not is_polars_available():  # pragma: no cover
+        return {}
+    return {
+        pl.DataFrame: PolarsDataFrameSummarizer(),
+        pl.LazyFrame: PolarsLazyFrameSummarizer(),
+        pl.Series: PolarsSeriesSummarizer(),
+    }
+
+
+def _get_pyarrow_summarizers() -> dict[type, Summarizer[Any]]:
+    r"""Get the summarizers for pyarrow types.
+
+    Returns:
+        The summarizers for pyarrow types, or an empty dictionary if the
+            package is not installed.
+
+    Notes:
+        This function is called internally by get_default_registry() and should
+        not typically be called directly by users.
+    """
+    if not is_pyarrow_available():  # pragma: no cover
+        return {}
+    array_summarizer = PyarrowArraySummarizer()
+    return {
+        pa.Array: array_summarizer,
+        pa.ChunkedArray: array_summarizer,
+        pa.Table: PyarrowTableSummarizer(),
+    }
+
+
+def _get_xarray_summarizers() -> dict[type, Summarizer[Any]]:
+    r"""Get the summarizers for xarray types.
+
+    Returns:
+        The summarizers for xarray types, or an empty dictionary if the
+            package is not installed.
+
+    Notes:
+        This function is called internally by get_default_registry() and should
+        not typically be called directly by users.
+    """
+    if not is_xarray_available():  # pragma: no cover
+        return {}
+    return {
+        xr.DataArray: XarrayDataArraySummarizer(),
+        xr.Dataset: XarrayDatasetSummarizer(),
+        xr.Variable: XarrayVariableSummarizer(),
+    }
 
 
 _default_registry: LazySingleton[SummarizerRegistry] = make_default_registry_singleton(

@@ -2,8 +2,6 @@ r"""Implement summarizers for ``Collection`` data."""
 
 from __future__ import annotations
 
-from coola.utils.introspection import is_same_type
-
 __all__ = ["BaseCollectionSummarizer"]
 
 from collections.abc import Sized
@@ -11,6 +9,7 @@ from typing import TYPE_CHECKING, Any, TypeVar
 
 from coola.summary.base import BaseSummarizer
 from coola.utils.format import str_indent
+from coola.utils.introspection import is_same_type
 
 if TYPE_CHECKING:
     from coola.summary.registry import SummarizerRegistry

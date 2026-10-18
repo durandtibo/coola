@@ -6,13 +6,24 @@ __all__ = [
     "BaseCollectionSummarizer",
     "BaseSummarizer",
     "DefaultSummarizer",
+    "JaxArraySummarizer",
     "MappingSummarizer",
     "NDArraySummarizer",
+    "PandasDataFrameSummarizer",
+    "PandasSeriesSummarizer",
+    "PolarsDataFrameSummarizer",
+    "PolarsLazyFrameSummarizer",
+    "PolarsSeriesSummarizer",
+    "PyarrowArraySummarizer",
+    "PyarrowTableSummarizer",
     "SequenceSummarizer",
     "SetSummarizer",
     "Summarizer",
     "SummarizerRegistry",
     "TensorSummarizer",
+    "XarrayDataArraySummarizer",
+    "XarrayDatasetSummarizer",
+    "XarrayVariableSummarizer",
     "get_default_registry",
     "get_default_summarizer_registry",
     "register_summarizers",
@@ -28,9 +39,22 @@ from coola.summary.interface import (
     register_summarizers,
     summarize,
 )
+from coola.summary.jax import JaxArraySummarizer
 from coola.summary.mapping import MappingSummarizer
 from coola.summary.numpy import NDArraySummarizer
+from coola.summary.pandas import PandasDataFrameSummarizer, PandasSeriesSummarizer
+from coola.summary.polars import (
+    PolarsDataFrameSummarizer,
+    PolarsLazyFrameSummarizer,
+    PolarsSeriesSummarizer,
+)
+from coola.summary.pyarrow import PyarrowArraySummarizer, PyarrowTableSummarizer
 from coola.summary.registry import SummarizerRegistry
 from coola.summary.sequence import SequenceSummarizer
 from coola.summary.set import SetSummarizer
 from coola.summary.torch import TensorSummarizer
+from coola.summary.xarray import (
+    XarrayDataArraySummarizer,
+    XarrayDatasetSummarizer,
+    XarrayVariableSummarizer,
+)
