@@ -133,7 +133,7 @@ def test_mps_functionality():
 #### `torch_numpy_available`
 
 Unlike the markers named after one package, `torch_numpy_*` (like `torch_cuda_*` and `torch_mps_*`)
-checks a **pair**: PyTorch and NumPy must both be installed *and* PyTorch must be able to exchange
+checks a **pair**: PyTorch and NumPy must both be installed _and_ PyTorch must be able to exchange
 data with NumPy (a PyTorch built against another major version of NumPy cannot). Use it for tests
 that convert between tensors and arrays; for a test that only needs one of them, use
 `torch_available` or `numpy_available`.

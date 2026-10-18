@@ -277,7 +277,6 @@ def test_sequence_same_values_handler_handle_fast_path_false_show_difference(
     assert caplog.messages
 
 
-
 @pytest.mark.parametrize("seq", [[1, "a", None, True], (b"a", 2), [], ()])
 def test_is_exact_scalar_sequence_true(seq: object) -> None:
     assert is_exact_scalar_sequence(seq)
