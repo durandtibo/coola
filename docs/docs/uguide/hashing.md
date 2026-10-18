@@ -127,12 +127,11 @@ registered hasher for an object's type, using the Method Resolution Order (MRO):
 
 ### The Default Registry
 
-!!! warning "Deprecated alias"
+!!! tip "Unambiguous alias"
 
-    `get_default_hasher_registry` is a deprecated alias of `get_default_registry` and emits a `DeprecationWarning`.
-    `get_default_registry` exists in several `coola` subpackages with different return types:
-    to avoid import collisions, import the subpackage (`import coola.hashing as ...`)
-    or rename the function when importing it (`from ... import get_default_registry as ...`).
+    `get_default_registry` exists in several `coola` subpackages with different return types.
+    `get_default_hasher_registry` is an alias of the same function with a more explicit name, which avoids
+    import collisions.
 
 `get_default_registry` returns the singleton registry used internally by `hash_object`. Because
 it is a singleton, any modification made via `register_hashers` affects every subsequent call:

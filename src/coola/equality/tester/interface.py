@@ -47,7 +47,6 @@ from coola.equality.tester.xarray import (
     XarrayDatasetEqualityTester,
     XarrayVariableEqualityTester,
 )
-from coola.utils.deprecation import deprecated_alias
 from coola.utils.imports import (
     is_jax_available,
     is_numpy_available,
@@ -168,10 +167,7 @@ def get_default_registry() -> EqualityTesterRegistry:
     return _default_registry.get()
 
 
-# Deprecated alias of ``get_default_registry``: the name is the same in every subpackage.
-get_default_equality_tester_registry = deprecated_alias(
-    get_default_registry, "get_default_equality_tester_registry"
-)
+get_default_equality_tester_registry = get_default_registry
 
 
 def _register_default_equality_testers(registry: EqualityTesterRegistry) -> None:

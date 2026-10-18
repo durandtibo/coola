@@ -155,12 +155,11 @@ tensor([...])
 
 ### Working with the Registry
 
-!!! warning "Deprecated alias"
+!!! tip "Unambiguous alias"
 
-    `get_default_random_manager_registry` is a deprecated alias of `get_default_registry` and emits a `DeprecationWarning`.
-    `get_default_registry` exists in several `coola` subpackages with different return types:
-    to avoid import collisions, import the subpackage (`import coola.random as ...`)
-    or rename the function when importing it (`from ... import get_default_registry as ...`).
+    `get_default_registry` exists in several `coola` subpackages with different return types.
+    `get_default_random_manager_registry` is an alias of the same function with a more explicit name, which avoids
+    import collisions.
 
 The default registry manages all available random managers:
 

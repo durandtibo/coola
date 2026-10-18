@@ -316,7 +316,7 @@ _(Status: fixed, except the atomicity point (not an issue for the built-in regis
 
 ### 2.6 `get_default_*_registry` aliases (low)
 
-_(Status: fixed. The seven long names are now created with `coola.utils.deprecation.deprecated_alias`, which emits a `DeprecationWarning` pointing to the canonical `get_default_registry` of the subpackage. They are still exported. The user guide pages that presented them as a convenience now describe them as deprecated.)_
+_(Status: not changed, by decision. The long names are kept as plain aliases of `get_default_registry`: they are documented in the user guide as "Unambiguous alias" and are useful to avoid import collisions, so they are not deprecated. A deprecation helper was tried and rolled back.)_
 
 Each `interface.py` defines both `get_default_registry` and
 `get_default_<x>_registry`. They were kept as public API. A short module-level note

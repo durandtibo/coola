@@ -17,7 +17,6 @@ from coola.iterator.bfs.iterable import IterableChildFinder
 from coola.iterator.bfs.mapping import MappingChildFinder
 from coola.iterator.bfs.registry import ChildFinderRegistry
 from coola.iterator.bootstrap import register_default_handlers
-from coola.utils.deprecation import deprecated_alias
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
 if TYPE_CHECKING:
@@ -116,10 +115,7 @@ def get_default_registry() -> ChildFinderRegistry:
     return _default_registry.get()
 
 
-# Deprecated alias of ``get_default_registry``: the name is the same in every subpackage.
-get_default_child_finder_registry = deprecated_alias(
-    get_default_registry, "get_default_child_finder_registry"
-)
+get_default_child_finder_registry = get_default_registry
 
 
 def _register_default_child_finders(registry: ChildFinderRegistry) -> None:

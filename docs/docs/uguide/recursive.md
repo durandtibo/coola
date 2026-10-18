@@ -128,12 +128,11 @@ The `coola.recursive` package provides several built-in transformers:
 
 ### Getting the Default Registry
 
-!!! warning "Deprecated alias"
+!!! tip "Unambiguous alias"
 
-    `get_default_transformer_registry` is a deprecated alias of `get_default_registry` and emits a `DeprecationWarning`.
-    `get_default_registry` exists in several `coola` subpackages with different return types:
-    to avoid import collisions, import the subpackage (`import coola.recursive as ...`)
-    or rename the function when importing it (`from ... import get_default_registry as ...`).
+    `get_default_registry` exists in several `coola` subpackages with different return types.
+    `get_default_transformer_registry` is an alias of the same function with a more explicit name, which avoids
+    import collisions.
 
 The package maintains a singleton default registry with transformers for common Python types:
 
