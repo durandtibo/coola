@@ -89,8 +89,8 @@ def test_random_seed_different_random_seeds() -> None:
 
 
 def test_random_seed_uses_custom_manager() -> None:
-    """Test that random_seed delegates to the ``seed`` context manager of
-    the provided manager."""
+    """Test that random_seed delegates to the ``seed`` context manager
+    of the provided manager."""
     mock_manager = Mock()
     entered = []
     exited = []

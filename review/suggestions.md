@@ -372,6 +372,8 @@ _(Status: fixed. The default registries register `Collection` instead of `Iterab
 
 ### 2.11 `random` package (low)
 
+_(Status: fixed. `BaseRandomManager.seed(seed)` is now the single "save, seed, restore" context manager; `random_seed`, `numpy_seed` and `torch_seed` delegate to it. The NumPy seed folding (`seed % 2**32`) was kept and is now documented, with tests, rather than rejected: rejecting would break `random_seed(seed)` for the other libraries with seeds above 2\**32. The docstrings and the user guide state that only the global generators are managed (not `random.Random()`, `numpy.random.default_rng()` or `torch.Generator()`). `RandomManagerRegistry.set_rng_state` now also warns about registered keys that are missing from the state.)_
+
 - `random_seed`, `numpy_seed` and `torch_seed` each reimplement "save state, seed,
   yield, restore". Put one `seed(self, seed)` context manager on `BaseRandomManager`
   and have the three functions delegate.
