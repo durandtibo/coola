@@ -216,5 +216,5 @@ def test_bytes_hasher_hash_bytearray_depends_on_content(registry: HasherRegistry
         bytearray(b"abc"), registry=registry
     )
     assert hasher.hash(bytearray(b"abc"), registry=registry) != hasher.hash(
-        bytearray(b"abd"), registry=registry
+        bytearray(b"xyz"), registry=registry
     )

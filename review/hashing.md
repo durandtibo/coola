@@ -140,19 +140,19 @@ For anyone adding a hasher:
 
 The implementation in `src/coola/hashing/` follows this design, with these notes:
 
-| Area | Status |
-|---|---|
-| Tagged `str`, `StrHasher`, `bytes` | Done. Every hasher is domain-separated. |
-| One tag per sequence family, named tuples | Done (`list`, `tuple`, `deque`, `sequence`). |
-| Mapping families, `OrderedDict` ordered | Done (`dict`, `OrderedDict`, `mapping`). |
-| `set`, `frozenset` | Done (`SetHasher`, sorted item hashes). |
-| `bytearray`, `time`, `timedelta`, `timezone`, `Enum`, dataclass | Done. `DataclassHasher` is opt-in per class, since dataclasses share no base type. |
-| `Enum` mixins (`IntEnum`, `StrEnum`, `(str, Enum)`) | Done. `StringHasher` and `ReprHasher` delegate to `hash_enum`, because the MRO reaches `str`/`int` before `Enum`. |
-| `Path` | Pure by default (`PathHasher`, accepts `PurePath`), `ResolvedPathHasher` is the opt-in resolver. |
-| Pydantic | Class-tagged, fields go through the registry, nested models use the same `on_secret`. Registered by default when pydantic is installed. |
-| Custom `SupportsHash` objects | Tagged with the qualified class name. |
-| `ignore_unhashable` | Still available, now emits a `UserWarning`. |
-| Self-referencing data | `ValueError` from `HasherRegistry.hash`, detected with an identity set per thread. |
-| Lone surrogates in `str` | `ValueError` with a clear message. |
-| Cross-library scalars (P9) | `float`/`complex`/`bool`/`int` subclasses normalise to builtins. NumPy scalars that do not subclass a builtin (e.g. `np.int64`) still need a registered hasher. |
-| Golden hashes in CI | Existing unit tests pin hashes for the main types. A hash format change is a visible test diff. |
+| Area                                                            | Status                                                                                                                                                          |
+| --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tagged `str`, `StrHasher`, `bytes`                              | Done. Every hasher is domain-separated.                                                                                                                         |
+| One tag per sequence family, named tuples                       | Done (`list`, `tuple`, `deque`, `sequence`).                                                                                                                    |
+| Mapping families, `OrderedDict` ordered                         | Done (`dict`, `OrderedDict`, `mapping`).                                                                                                                        |
+| `set`, `frozenset`                                              | Done (`SetHasher`, sorted item hashes).                                                                                                                         |
+| `bytearray`, `time`, `timedelta`, `timezone`, `Enum`, dataclass | Done. `DataclassHasher` is opt-in per class, since dataclasses share no base type.                                                                              |
+| `Enum` mixins (`IntEnum`, `StrEnum`, `(str, Enum)`)             | Done. `StringHasher` and `ReprHasher` delegate to `hash_enum`, because the MRO reaches `str`/`int` before `Enum`.                                               |
+| `Path`                                                          | Pure by default (`PathHasher`, accepts `PurePath`), `ResolvedPathHasher` is the opt-in resolver.                                                                |
+| Pydantic                                                        | Class-tagged, fields go through the registry, nested models use the same `on_secret`. Registered by default when pydantic is installed.                         |
+| Custom `SupportsHash` objects                                   | Tagged with the qualified class name.                                                                                                                           |
+| `ignore_unhashable`                                             | Still available, now emits a `UserWarning`.                                                                                                                     |
+| Self-referencing data                                           | `ValueError` from `HasherRegistry.hash`, detected with an identity set per thread.                                                                              |
+| Lone surrogates in `str`                                        | `ValueError` with a clear message.                                                                                                                              |
+| Cross-library scalars (P9)                                      | `float`/`complex`/`bool`/`int` subclasses normalise to builtins. NumPy scalars that do not subclass a builtin (e.g. `np.int64`) still need a registered hasher. |
+| Golden hashes in CI                                             | Existing unit tests pin hashes for the main types. A hash format change is a visible test diff.                                                                 |

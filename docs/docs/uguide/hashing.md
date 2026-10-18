@@ -89,21 +89,21 @@ Self-referencing containers (e.g. a list that contains itself) raise a `ValueErr
 
 The default registry hashes **only** the following types (and their subclasses):
 
-| Type                                          | Notes                                                                                             |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `str`                                         | UTF-8 text, no Unicode normalisation                                                              |
-| `bytes`, `bytearray`                          | A `bytes` and a `bytearray` with the same content hash differently                                |
-| `int`, `float`, `complex`, `bool`, `None`     | The `repr` of the builtin value, so a NumPy scalar that is a `float` hashes like the same `float` |
-| `Enum` (including `IntEnum`, `StrEnum`)       | The qualified class name and the member name, not the value                                       |
-| `list`, `tuple`, `deque`, other `Sequence`    | Order matters. One tag per family: a `list` and a `tuple` with the same items hash differently    |
-| `NamedTuple`                                  | Tagged with the class and field names, so it differs from a plain `tuple`                         |
-| `dict`, other `Mapping`                       | Independent of the order of the keys                                                              |
-| `OrderedDict`                                 | Depends on the order of the keys, like its equality                                               |
-| `set`, `frozenset`                            | Independent of the iteration order. A `set` and a `frozenset` hash differently                    |
-| `date`, `datetime`, `time`                    | ISO 8601 form, including the UTC offset when there is one                                         |
-| `timedelta`, `timezone`                       | The `repr` of the value                                                                           |
-| `pathlib.PurePath`, `pathlib.Path`            | The POSIX form of the path as written, without touching the filesystem                            |
-| pydantic `BaseModel` (if pydantic installed)  | The qualified class name and the fields, hashed through the registry                              |
+| Type                                         | Notes                                                                                             |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `str`                                        | UTF-8 text, no Unicode normalisation                                                              |
+| `bytes`, `bytearray`                         | A `bytes` and a `bytearray` with the same content hash differently                                |
+| `int`, `float`, `complex`, `bool`, `None`    | The `repr` of the builtin value, so a NumPy scalar that is a `float` hashes like the same `float` |
+| `Enum` (including `IntEnum`, `StrEnum`)      | The qualified class name and the member name, not the value                                       |
+| `list`, `tuple`, `deque`, other `Sequence`   | Order matters. One tag per family: a `list` and a `tuple` with the same items hash differently    |
+| `NamedTuple`                                 | Tagged with the class and field names, so it differs from a plain `tuple`                         |
+| `dict`, other `Mapping`                      | Independent of the order of the keys                                                              |
+| `OrderedDict`                                | Depends on the order of the keys, like its equality                                               |
+| `set`, `frozenset`                           | Independent of the iteration order. A `set` and a `frozenset` hash differently                    |
+| `date`, `datetime`, `time`                   | ISO 8601 form, including the UTC offset when there is one                                         |
+| `timedelta`, `timezone`                      | The `repr` of the value                                                                           |
+| `pathlib.PurePath`, `pathlib.Path`           | The POSIX form of the path as written, without touching the filesystem                            |
+| pydantic `BaseModel` (if pydantic installed) | The qualified class name and the fields, hashed through the registry                              |
 
 Nothing else is supported: **NumPy arrays, PyTorch tensors, pandas and polars data frames,
 dataclasses and your own classes need a registered hasher** (use `DataclassHasher` for
