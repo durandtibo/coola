@@ -2,9 +2,10 @@ r"""Provide deterministic hashing functions for strings."""
 
 from __future__ import annotations
 
-__all__ = ["StringHasher", "hash_string", "hash_tagged"]
+__all__ = ["StringHasher", "hash_enum", "hash_string", "hash_tagged"]
 
 import hashlib
+from enum import Enum
 from typing import TYPE_CHECKING
 
 from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
@@ -17,8 +18,10 @@ if TYPE_CHECKING:
 class StringHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[str]):
     r"""Hasher for string objects.
 
-    This hasher computes the hash of the string directly, without any
-    intermediate conversion.
+    This hasher computes the hash of the string, namespaced by the
+    ``str`` type tag, without any intermediate conversion. ``str``
+    subclasses hash like plain strings, except enum members, which hash
+    through ``hash_enum``.
 
     Example:
         ```pycon
@@ -61,7 +64,10 @@ class StringHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[str]):
             ValueError: If ``length`` is not an even number between 2
                 and 128.
         """
-        return hash_string(data, length=length)
+        if isinstance(data, Enum):
+            # ``(str, Enum)`` mixins reach this hasher through the MRO.
+            return hash_enum(data, length=length)
+        return hash_tagged("str", data, length=length)
 
 
 def hash_string(value: str, length: int = 64) -> str:
@@ -92,7 +98,12 @@ def hash_string(value: str, length: int = 64) -> str:
         msg = f"length must be an even number between 2 and 128, got {length}."
         raise ValueError(msg)
     digest_size = length // 2
-    return hashlib.blake2b(value.encode(), digest_size=digest_size).hexdigest()
+    try:
+        encoded = value.encode()
+    except UnicodeEncodeError as exc:
+        msg = f"Cannot hash a string that is not valid UTF-8 (e.g. a lone surrogate): {exc.reason}."
+        raise ValueError(msg) from exc
+    return hashlib.blake2b(encoded, digest_size=digest_size).hexdigest()
 
 
 def hash_tagged(tag: str, value: str, length: int = 64) -> str:
@@ -113,3 +124,36 @@ def hash_tagged(tag: str, value: str, length: int = 64) -> str:
         characters.
     """
     return hash_string(f"{tag}\0{value}", length=length)
+
+
+def hash_enum(member: Enum, length: int = 64) -> str:
+    """Compute a hash of an enum member.
+
+    The hash depends on the qualified name of the enum class and on the
+    member name, not on the member value, so it is stable and does not
+    collapse ``IntEnum``/``StrEnum`` members into ``int``/``str``.
+
+    Args:
+        member: The enum member to hash.
+        length: The desired length of the returned hex string. See
+            ``hash_string`` for constraints.
+
+    Returns:
+        A lowercase hexadecimal string of exactly ``length``
+        characters.
+
+    Example:
+        ```pycon
+        >>> from enum import Enum
+        >>> from coola.hashing import hash_enum
+        >>> class Color(Enum):
+        ...     RED = 1
+        ...
+        >>> len(hash_enum(Color.RED))
+        64
+
+        ```
+    """
+    cls = type(member)
+    name = member.name if member.name is not None else repr(member.value)
+    return hash_tagged("Enum", f"{cls.__module__}.{cls.__qualname__}.{name}", length=length)

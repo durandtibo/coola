@@ -7,7 +7,7 @@ __all__ = ["SequenceHasher"]
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_tagged
 
@@ -15,22 +15,24 @@ if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
 
 
-class SequenceHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Sequence[Any]]):
+class SequenceHasher(InlineDisplayMixin, BaseHasher[Sequence[Any]]):
     r"""Hasher for sequence types.
 
     This hasher computes the hash of each item in the sequence
     recursively using the registry, concatenates the intermediate hash
-    strings, and then hashes the concatenated result.
+    strings, and then hashes the concatenated result under a type tag.
+    Item order matters.
 
-    This hasher handles any type that is an instance of
-    ``collections.abc.Sequence``, including ``list``, ``tuple``, and
-    ``str``.
+    The tag identifies the sequence family, so sequences of different
+    families with the same items (e.g. a ``list`` and a ``tuple``) hash
+    differently. Register one instance per family, e.g.
+    ``SequenceHasher("list")`` for ``list``. A named tuple is tagged
+    with its class name and field names, so it differs from a plain
+    ``tuple`` and from other named tuples.
 
-    Within a single ``hash`` call, items that are the same object
-    (``is``/``id()`` identity, e.g. repeated or interned values) are
-    hashed only once and the result is reused for every occurrence,
-    avoiding redundant recursive ``registry.hash`` calls for
-    highly repetitive sequences.
+    Args:
+        tag: The type tag mixed into the hash. Defaults to
+            ``"sequence"``.
 
     Example:
         ```pycon
@@ -38,12 +40,18 @@ class SequenceHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Sequence
         >>> registry = HasherRegistry({object: StrHasher(), Sequence: SequenceHasher()})
         >>> hasher = SequenceHasher()
         >>> hasher
-        SequenceHasher()
+        SequenceHasher(tag='sequence')
         >>> len(hasher.hash([1, 2, 3], registry=registry))
         64
 
         ```
     """
+
+    def __init__(self, tag: str = "sequence") -> None:
+        self._tag = tag
+
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {"tag": self._tag}
 
     def hash(
         self,
@@ -79,4 +87,10 @@ class SequenceHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Sequence
         parts = [
             registry.hash(item, length=length, ignore_unhashable=ignore_unhashable) for item in data
         ]
-        return hash_tagged("sequence", "".join(parts), length=length)
+        fields = getattr(type(data), "_fields", None)
+        if isinstance(data, tuple) and isinstance(fields, tuple):
+            # Named tuple: the class and field names are part of the type.
+            tag = f"{self._tag}:{type(data).__qualname__}({','.join(map(str, fields))})"
+        else:
+            tag = self._tag
+        return hash_tagged(tag, "".join(parts), length=length)

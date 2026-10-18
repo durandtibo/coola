@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from coola.hashing import HasherRegistry, ReprHasher, StrHasher, hash_string
+from coola.hashing import HasherRegistry, ReprHasher, StrHasher, hash_tagged
 
 
 @pytest.fixture
@@ -30,77 +30,77 @@ def test_str_hasher_str() -> None:
     [
         pytest.param(
             1234,
-            "bf1003cd5c1336387f7e4eebf72a3d9cd4fa8ab5be19825bc0e3ecd8ce1cd140",
+            "5361a39f90c3fbcbdbf28f3e75caaf46117ee724a45e2417293deb1c7372c3a5",
             id="int",
         ),
         pytest.param(
             0,
-            "0fd923ca5e7218c4ba3c3801c26a617ecdbfdaebb9c76ce2eca166e7855efbb8",
+            "b48f4e205ce7c64358a63f4be6ca1b595a7938fa8c2957b93ae9226cdd3d25e0",
             id="int_zero",
         ),
         pytest.param(
             -1,
-            "63ac695b1ed4698e9ab1e2aee9b9802b584e65810c58a3656440411d713b8ce2",
+            "69f5d336ac4364e1572f7d644d39620039df1574057b1def70e8159d70a1443f",
             id="int_negative",
         ),
         pytest.param(
             1.5,
-            "92a0f8f152d1206df5b494cdbcec4de630269bda0df7f59a9a96a4fc5cc6e955",
+            "8449b0279dab0952bd63c08a8d6efbcc06acfbc8fcbdfb5bd994cbcb4592a76c",
             id="float",
         ),
         pytest.param(
             float("inf"),
-            "094ec93925e633ab5b33fa4dba41328559b931c8f59d255753c3e14510c0f6d8",
+            "60c2d38cf83713554ec16b91ff0f4368bed98a07ad6014bbcbeeae3b2b425111",
             id="float_inf",
         ),
         pytest.param(
             True,
-            "b37c53228410790b2e6d4ab6eb00deb4e1e9b47e2075100b120e0abd777d0020",
+            "f99a94bf0762f7954b0a911995be46edf4be9335c66e7b19ff46771a5721f224",
             id="bool_true",
         ),
         pytest.param(
             False,
-            "caf16c1ae983a5041d15f62141676b96db1f7f850ea7ef2f62f1a01a469b9c7c",
+            "35436762a2d50b51372325c767f9cd1135988b785179f539f7d8516955373616",
             id="bool_false",
         ),
         pytest.param(
             complex(1, 2),
-            "672e535e27fd6becac3687e261cc67a9708673e67eac19d588d574efadafc1e0",
+            "ea65f84d990d47df43a7fb4a4c2448e226b3a4143801a78a977352c16bcdd24c",
             id="complex",
         ),
         pytest.param(
             complex(0, -1),
-            "ac607ed8de2919e6705d9dbda2ada4605384cb27e0c03e1c1d272d49dec6f1ab",
+            "b03df2987589a8d12e8bde56c7901da39ecd5fcea8f4f82a40137b9ef91169e4",
             id="complex_imaginary",
         ),
         pytest.param(
             None,
-            "047380c75d8da0e84df15f8218632f31ca7058142d75fa4ee225aea3e8b1da82",
+            "16ce736f793e63bc86493579745ee0d01fddc8470fede131ab63c18fc703500e",
             id="none",
         ),
         pytest.param(
             "hello",
-            "324dcf027dd4a30a932c441f365a25e86b173defa4b8e58948253471b81b72cf",
+            "7258221889359377b94d9af3fddce64bb5a41be7dd2547bf259cedc7bc0c2ceb",
             id="str",
         ),
         pytest.param(
             [1, 2, 3],
-            "07d1c573fdfe5074241be58b56a31220ff7a9cb3dd94f1cba650eca27c0a421e",
+            "27f6ffcf7a27a7c5e4a693584aec688b7b2ad5ecac4e4c58aec67bc1f3030aa4",
             id="list",
         ),
         pytest.param(
             {"a": 1},
-            "1fda8e5b5936528de9a77d335493f7299d258f78417cf6e69f737a439129cb68",
+            "a96506e297db564d1a88d3f06d73ec708a62c598b2bceba7fc00e5067a6cd29b",
             id="dict",
         ),
         pytest.param(
             (1, 2, 3),
-            "a0906786d40534291e1543b93de2faae35d9328bea5182f925e276fcedfb81ae",
+            "3d9feb22294eb0a8b1278e2e412e29dd8cc17dd8431113574e4f1572fd64ed06",
             id="tuple",
         ),
         pytest.param(
             b"bytes",
-            "e0652d4bc0821a8be21ad001b60a4799617edf4fd26c5396152784301f86c59f",
+            "403df08c312ea6bec985ab16f1c7f941976991e4766a9f0a7a24077e9a0a5b9a",
             id="bytes",
         ),
     ],
@@ -112,10 +112,10 @@ def test_str_hasher_hash_parametrized(data: Any, expected: str, registry: Hasher
 @pytest.mark.parametrize(
     ("length", "expected"),
     [
-        pytest.param(16, "a7b6eda801e5347d", id="16"),
-        pytest.param(32, "46fb7408d4f285228f4af516ea25851b", id="32"),
+        pytest.param(16, "9fc476b447085da8", id="16"),
+        pytest.param(32, "de01d2683340090c5780e0ff4a4035d4", id="32"),
         pytest.param(
-            64, "324dcf027dd4a30a932c441f365a25e86b173defa4b8e58948253471b81b72cf", id="64-default"
+            64, "7258221889359377b94d9af3fddce64bb5a41be7dd2547bf259cedc7bc0c2ceb", id="64-default"
         ),
     ],
 )
@@ -157,8 +157,9 @@ def test_str_hasher_hash_uses_str_not_repr(registry: HasherRegistry) -> None:
 
     obj = MyObj()
     hasher = StrHasher()
-    assert hasher.hash(obj, registry=registry) == hash_string(str(obj))
-    assert hasher.hash(obj, registry=registry) != hash_string(repr(obj))
+    tag = f"str:{MyObj.__qualname__}"
+    assert hasher.hash(obj, registry=registry) == hash_tagged(tag, str(obj))
+    assert hasher.hash(obj, registry=registry) != hash_tagged(tag, repr(obj))
 
 
 def test_str_hasher_hash_str_differs_from_repr_hasher_for_strings(

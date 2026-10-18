@@ -14,11 +14,12 @@ if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
 
 
-class BytesHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[bytes]):
-    r"""Hasher for bytes objects.
+class BytesHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[bytes | bytearray]):
+    r"""Hasher for ``bytes`` and ``bytearray`` objects.
 
-    This hasher computes the hash of the bytes directly, without any
-    intermediate conversion.
+    This hasher computes the hash of the bytes namespaced by the type
+    tag (``bytes`` or ``bytearray``), so a ``bytes`` and a ``bytearray``
+    with the same content hash differently.
 
     Example:
         ```pycon
@@ -37,7 +38,7 @@ class BytesHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[bytes]):
 
     def hash(
         self,
-        data: bytes,
+        data: bytes | bytearray,
         registry: HasherRegistry,  # noqa: ARG002
         length: int = 64,
         ignore_unhashable: bool = False,  # noqa: ARG002
@@ -63,7 +64,8 @@ class BytesHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[bytes]):
             ValueError: If ``length`` is not an even number between 2
                 and 128.
         """
-        return hash_bytes(b"bytes\0" + data, length=length)
+        tag = b"bytearray" if isinstance(data, bytearray) else b"bytes"
+        return hash_bytes(tag + b"\0" + bytes(data), length=length)
 
 
 def hash_bytes(value: bytes, length: int = 64) -> str:

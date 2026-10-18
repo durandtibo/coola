@@ -1,11 +1,18 @@
 from __future__ import annotations
 
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from unittest.mock import patch
 
 import pytest
 
-from coola.hashing import HasherRegistry, PathHasher, hash_path, hash_tagged
+from coola.hashing import (
+    HasherRegistry,
+    PathHasher,
+    ResolvedPathHasher,
+    get_default_registry,
+    hash_path,
+    hash_tagged,
+)
 
 
 @pytest.fixture
@@ -161,19 +168,21 @@ def test_hash_path_is_case_sensitive(tmp_path: Path) -> None:
 def test_hash_path_resolves_relative_segments(tmp_path: Path) -> None:
     direct = tmp_path / "file.txt"
     indirect = tmp_path / "sub" / ".." / "file.txt"
-    assert hash_path(direct) == hash_path(indirect)
+    assert hash_path(direct, resolve=True) == hash_path(indirect, resolve=True)
+    assert hash_path(direct) != hash_path(indirect)
 
 
 def test_hash_path_resolves_relative_to_absolute() -> None:
     relative = Path("file.txt")
     absolute = Path.cwd() / "file.txt"
-    assert hash_path(relative) == hash_path(absolute)
+    assert hash_path(relative, resolve=True) == hash_path(absolute, resolve=True)
+    assert hash_path(relative) != hash_path(absolute)
 
 
 def test_hash_path_resolve_failure_uses_posix_of_unresolved_path(tmp_path: Path) -> None:
     path = tmp_path / "file.txt"
     with patch.object(Path, "resolve", side_effect=OSError("boom")):
-        result = hash_path(path)
+        result = hash_path(path, resolve=True)
     assert result == hash_tagged("Path", path.as_posix())
 
 
@@ -195,3 +204,54 @@ def test_hash_path_resolve_failure_uses_posix_of_unresolved_path(tmp_path: Path)
 def test_hash_path_raises_for_invalid_length(length: int, tmp_path: Path) -> None:
     with pytest.raises(ValueError, match=str(abs(length))):
         hash_path(tmp_path / "file.txt", length=length)
+
+
+def test_hash_path_default_does_not_touch_the_filesystem() -> None:
+    with patch.object(Path, "resolve", side_effect=AssertionError("resolve called")):
+        assert hash_path(Path("a/../b")) == hash_tagged("Path", "a/../b")
+
+
+def test_hash_path_relative_and_absolute_differ_by_default() -> None:
+    assert hash_path(Path("file.txt")) != hash_path(Path.cwd() / "file.txt")
+
+
+def test_hash_path_pure_path() -> None:
+    assert hash_path(PurePosixPath("a/b")) == hash_tagged("Path", "a/b")
+
+
+def test_hash_path_pure_path_ignores_resolve() -> None:
+    path = PurePosixPath("a/../b")
+    assert hash_path(path, resolve=True) == hash_path(path)
+
+
+def test_hash_path_windows_path_uses_posix_form() -> None:
+    assert hash_path(PureWindowsPath("a\\b")) == hash_tagged("Path", "a/b")
+
+
+def test_default_registry_hashes_paths_without_resolving() -> None:
+    registry = get_default_registry()
+    assert registry.hash(Path("a")) == hash_path(Path("a"))
+    assert registry.hash(PurePosixPath("a")) == hash_path(PurePosixPath("a"))
+
+
+########################################
+#     Tests for ResolvedPathHasher     #
+########################################
+
+
+def test_resolved_path_hasher_repr() -> None:
+    assert repr(ResolvedPathHasher()) == "ResolvedPathHasher()"
+
+
+def test_resolved_path_hasher_hash_resolves_path(tmp_path: Path) -> None:
+    registry = HasherRegistry()
+    hasher = ResolvedPathHasher()
+    direct = tmp_path / "file.txt"
+    indirect = tmp_path / "sub" / ".." / "file.txt"
+    assert hasher.hash(direct, registry=registry) == hasher.hash(indirect, registry=registry)
+
+
+def test_resolved_path_hasher_hash_matches_hash_path_resolve(tmp_path: Path) -> None:
+    path = tmp_path / "file.txt"
+    result = ResolvedPathHasher().hash(path, registry=HasherRegistry())
+    assert result == hash_path(path, resolve=True)

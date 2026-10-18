@@ -2,6 +2,20 @@ r"""Provide deterministic hashing functions.
 
 These are content hashes for identity and caching, not for security: do
 not use them for passwords, signatures or integrity against an attacker.
+
+Hashes are deterministic across calls, processes and machines, and
+follow these rules:
+
+- Every hash is domain-separated by a type tag, so values of different
+  types never share a hash even if their text form is the same
+  (``1``, ``1.0``, ``True`` and ``"1"`` are all distinct).
+- Ordered containers are order-sensitive and unordered containers
+  (``dict``, ``set``) are not. Each container family has its own tag, so
+  a ``list`` and a ``tuple`` with the same items hash differently.
+- Container hashes are built only from the hashes of their children,
+  resolved through a ``HasherRegistry``.
+- Unsupported types raise ``KeyError`` unless ``ignore_unhashable`` is
+  set.
 """
 
 from __future__ import annotations
@@ -9,7 +23,9 @@ from __future__ import annotations
 __all__ = [
     "BaseHasher",
     "BytesHasher",
+    "DataclassHasher",
     "DatetimeHasher",
+    "EnumHasher",
     "HashableHasher",
     "Hasher",
     "HasherRegistry",
@@ -17,13 +33,16 @@ __all__ = [
     "PathHasher",
     "PydanticModelHasher",
     "ReprHasher",
+    "ResolvedPathHasher",
     "SequenceHasher",
+    "SetHasher",
     "StrHasher",
     "StringHasher",
     "SupportsHash",
     "get_default_hasher_registry",
     "get_default_registry",
     "hash_bytes",
+    "hash_enum",
     "hash_object",
     "hash_path",
     "hash_pydantic_model",
@@ -34,7 +53,9 @@ __all__ = [
 
 from coola.hashing.base import BaseHasher, Hasher
 from coola.hashing.bytes import BytesHasher, hash_bytes
+from coola.hashing.dataclass import DataclassHasher
 from coola.hashing.datetime import DatetimeHasher
+from coola.hashing.enum import EnumHasher
 from coola.hashing.hashable import HashableHasher, SupportsHash
 from coola.hashing.interface import (
     get_default_hasher_registry,
@@ -43,10 +64,11 @@ from coola.hashing.interface import (
     register_hashers,
 )
 from coola.hashing.mapping import MappingHasher
-from coola.hashing.path import PathHasher, hash_path
+from coola.hashing.path import PathHasher, ResolvedPathHasher, hash_path
 from coola.hashing.pydantic import PydanticModelHasher, hash_pydantic_model
 from coola.hashing.registry import HasherRegistry
 from coola.hashing.repr import ReprHasher
 from coola.hashing.sequence import SequenceHasher
+from coola.hashing.set import SetHasher
 from coola.hashing.str import StrHasher
-from coola.hashing.string import StringHasher, hash_string, hash_tagged
+from coola.hashing.string import StringHasher, hash_enum, hash_string, hash_tagged

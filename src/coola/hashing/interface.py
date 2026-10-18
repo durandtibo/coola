@@ -5,19 +5,25 @@ from __future__ import annotations
 
 __all__ = ["get_default_hasher_registry", "get_default_registry", "hash_object", "register_hashers"]
 
+from collections import OrderedDict, deque
 from collections.abc import Mapping, Sequence
-from datetime import date, datetime
-from pathlib import Path
+from datetime import date, datetime, time, timedelta, timezone
+from enum import Enum
+from pathlib import PurePath
 from typing import TYPE_CHECKING, Any
 
 from coola.hashing.bytes import BytesHasher
 from coola.hashing.datetime import DatetimeHasher
+from coola.hashing.enum import EnumHasher
 from coola.hashing.mapping import MappingHasher
 from coola.hashing.path import PathHasher
+from coola.hashing.pydantic import PydanticModelHasher
 from coola.hashing.registry import HasherRegistry
 from coola.hashing.repr import ReprHasher
 from coola.hashing.sequence import SequenceHasher
+from coola.hashing.set import SetHasher
 from coola.hashing.string import StringHasher
+from coola.utils.imports import is_pydantic_available
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
 if TYPE_CHECKING:
@@ -32,6 +38,12 @@ def hash_object(
 ) -> str:
     """Compute a hash of a nested data structure.
 
+    The hash is deterministic and depends on the type of every value, on
+    the order of ordered containers, and not on the order of unordered
+    ones. For example ``[1, 2]``, ``(1, 2)`` and ``{1, 2}`` all hash
+    differently, while ``{"a": 1, "b": 2}`` and ``{"b": 2, "a": 1}``
+    hash the same.
+
     Args:
         data: The data to hash. Can be a nested structure such as a
             ``list``, ``dict``, or ``tuple``.
@@ -43,9 +55,11 @@ def hash_object(
         ignore_unhashable: If ``True``, objects for which no hasher is
             registered (including nested objects found while hashing
             sequences or mappings) are replaced by a deterministic
-            placeholder hash instead of raising an error. Defaults to
-            ``False``, which raises a ``KeyError`` when an unhashable
-            object is encountered.
+            placeholder hash instead of raising an error. The
+            placeholder only depends on the type, so it is lossy, and a
+            ``UserWarning`` is emitted each time one is used. Defaults
+            to ``False``, which raises a ``KeyError`` when an
+            unhashable object is encountered.
 
     Returns:
         A string representing the hash of the input data.
@@ -54,6 +68,9 @@ def hash_object(
         KeyError: If ``data`` (or a nested object within it) has a
             type for which no hasher is registered and
             ``ignore_unhashable`` is ``False``.
+        ValueError: If ``length`` is not an even number between 2 and
+            128, or if ``data`` contains itself (a self-referencing
+            container).
 
     Example:
         ```pycon
@@ -140,9 +157,8 @@ def _register_default_hashers(registry: HasherRegistry) -> None:
     Args:
         registry: The registry to populate.
     """
-    sequence_hasher = SequenceHasher()
     string_hasher = StringHasher()
-    mapping_hasher = MappingHasher()
+    bytes_hasher = BytesHasher()
     datetime_hasher = DatetimeHasher()
     repr_hasher = ReprHasher()
 
@@ -150,28 +166,43 @@ def _register_default_hashers(registry: HasherRegistry) -> None:
         {
             # Strings should not be iterated character by character
             str: string_hasher,
-            bytes: BytesHasher(),
+            bytes: bytes_hasher,
+            bytearray: bytes_hasher,
             # Numeric types - no recursion needed
             int: repr_hasher,
             float: repr_hasher,
             complex: repr_hasher,
             bool: repr_hasher,
-            # Sequences - recursive transformation preserving order
-            list: sequence_hasher,
-            tuple: sequence_hasher,
-            Sequence: sequence_hasher,
+            type(None): repr_hasher,
+            Enum: EnumHasher(),
+            # Ordered containers - one tag per family, so a list and a
+            # tuple with the same items hash differently
+            list: SequenceHasher("list"),
+            tuple: SequenceHasher("tuple"),
+            deque: SequenceHasher("deque"),
+            Sequence: SequenceHasher("sequence"),
             # Mappings - recursive transformation of keys and values
-            dict: mapping_hasher,
-            Mapping: mapping_hasher,
-            # Date types
+            dict: MappingHasher("dict"),
+            OrderedDict: MappingHasher("OrderedDict", ordered=True),
+            Mapping: MappingHasher("mapping"),
+            # Unordered containers
+            set: SetHasher("set"),
+            frozenset: SetHasher("frozenset"),
+            # Date and time types
             date: datetime_hasher,
             datetime: datetime_hasher,
-            # Path
-            Path: PathHasher(),
-            # None
-            type(None): repr_hasher,
+            time: datetime_hasher,
+            timedelta: repr_hasher,
+            timezone: repr_hasher,
+            # Path (hashed as written, without touching the filesystem)
+            PurePath: PathHasher(),
         }
     )
+    if is_pydantic_available():
+        import pydantic  # noqa: PLC0415
+
+        # Pydantic models - the fields are hashed through the registry.
+        registry.register(pydantic.BaseModel, PydanticModelHasher())
 
 
 _default_registry: LazySingleton[HasherRegistry] = make_default_registry_singleton(

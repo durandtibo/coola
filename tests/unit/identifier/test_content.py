@@ -56,8 +56,8 @@ def test_generate_stable_content_id_list_input() -> None:
     assert HEX_PATTERN.match(generate_stable_content_id([1, 2, 3]))
 
 
-def test_generate_stable_content_id_tuple_and_list_same_id() -> None:
-    assert generate_stable_content_id([1, 2]) == generate_stable_content_id((1, 2))
+def test_generate_stable_content_id_tuple_and_list_different_id() -> None:
+    assert generate_stable_content_id([1, 2]) != generate_stable_content_id((1, 2))
 
 
 def test_generate_stable_content_id_unhashable_type_raises_by_default() -> None:

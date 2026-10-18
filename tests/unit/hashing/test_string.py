@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from coola.hashing import HasherRegistry, StringHasher, hash_string
+from coola.hashing import HasherRegistry, StringHasher, hash_string, hash_tagged
 
 
 @pytest.fixture
@@ -28,27 +28,27 @@ def test_string_hasher_str() -> None:
     [
         pytest.param(
             "hello",
-            "324dcf027dd4a30a932c441f365a25e86b173defa4b8e58948253471b81b72cf",
+            "9d4bd2af5629d5a22405d7fe02fe410ee11ae44178b4ee0eb9ca4d7795ac9906",
             id="lowercase",
         ),
         pytest.param(
             "Hello",
-            "8b7ca7d27d9fc55fa30abfe515b3afb24e3fe89fdd02e2ac92bca2c96680642e",
+            "6740b969578b13957189f26bdd86899a70899d4ff0ccff0e97ca1d3f8f411800",
             id="uppercase_first",
         ),
         pytest.param(
             "hello ",
-            "5c945bdc1b01abc46c3bee5681b8bd080157aa9e76a5a39c575d856aab41d5cf",
+            "9b059b06a9ab65ac68ea58aae9f0afe24e713169770d9470946d86c3ae4d78ec",
             id="trailing_space",
         ),
         pytest.param(
             "",
-            "0e5751c026e543b2e8ab2eb06099daa1d1e5df47778f7787faab45cdf12fe3a8",
+            "a024db9f50066fd82a7a075b9ed57faf248c835b586a8931b8f6ef2fb826cc29",
             id="empty_string",
         ),
         pytest.param(
             "Meowwwwww",
-            "1b06bfa9e842b52eaf47386798687ccd22697ed0198cfda4e0eee7e4650595f5",
+            "465fcb65cce407b13615e2324b10c99d6b94f7cca9cb69120d90415fb3632d9c",
             id="meow",
         ),
     ],
@@ -62,10 +62,10 @@ def test_string_hasher_hash_parametrized(
 @pytest.mark.parametrize(
     ("length", "expected"),
     [
-        pytest.param(16, "a7b6eda801e5347d", id="16"),
-        pytest.param(32, "46fb7408d4f285228f4af516ea25851b", id="32"),
+        pytest.param(16, "8145498007a9ef19", id="16"),
+        pytest.param(32, "2a34b1c3773ac9d514f55240b5b8a87e", id="32"),
         pytest.param(
-            64, "324dcf027dd4a30a932c441f365a25e86b173defa4b8e58948253471b81b72cf", id="64-default"
+            64, "9d4bd2af5629d5a22405d7fe02fe410ee11ae44178b4ee0eb9ca4d7795ac9906", id="64-default"
         ),
     ],
 )
@@ -199,3 +199,16 @@ def test_hash_string_is_sensitive_to_whitespace() -> None:
 def test_hash_string_raises_for_invalid_length(length: int) -> None:
     with pytest.raises(ValueError, match=str(abs(length))):
         hash_string("hello", length=length)
+
+
+def test_string_hasher_hash_is_tagged() -> None:
+    assert StringHasher().hash("hello", registry=HasherRegistry()) == hash_tagged("str", "hello")
+
+
+def test_string_hasher_hash_differs_from_untagged_hash_string(registry: HasherRegistry) -> None:
+    assert StringHasher().hash("hello", registry=registry) != hash_string("hello")
+
+
+def test_hash_string_lone_surrogate_raises_value_error() -> None:
+    with pytest.raises(ValueError, match="not valid UTF-8"):
+        hash_string("\ud800")

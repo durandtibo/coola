@@ -136,24 +136,23 @@ For anyone adding a hasher:
 - Self-reference: `a = []; a.append(a)`.
 - Cross-process: the same hash under different `PYTHONHASHSEED`.
 
-## 7. Gap analysis against the current code
+## 7. Implementation status
 
-| Area                                                              | Current                                                                                       | Target                                                    |
-| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| `str` tag                                                         | Untagged (`hash_string(s)`)                                                                   | Tagged `str`                                              |
-| `StrHasher`                                                       | Untagged                                                                                      | Tagged, or removed                                        |
-| `list` vs `tuple`                                                 | Same hash (shared `sequence` tag)                                                             | Different                                                 |
-| Other sequences                                                   | All share `sequence`                                                                          | Per-family tag                                            |
-| `dict` vs other mappings                                          | All share `mapping`, `OrderedDict` ignores order                                              | Per-family tag, `OrderedDict` ordered                     |
-| `set`, `frozenset`                                                | No hasher, so `KeyError` or a type-only placeholder                                           | Sorted-hash hasher with its own tags                      |
-| `bytearray`, `time`, `timedelta`, `Enum`, `namedtuple`, dataclass | No hasher                                                                                     | Supported                                                 |
-| `bytes` tag                                                       | Built into the payload, not via `hash_tagged`                                                 | Via `hash_tagged` for consistency                         |
-| `Path`                                                            | `resolve()`, which depends on the filesystem and cwd                                          | Pure by default, with an opt-in resolver                  |
-| Pydantic                                                          | Not in defaults, ignores the model class name, JSON with `default=str`, bypasses the registry | Class-tagged, goes through the registry, no `default=str` |
-| `ignore_unhashable`                                               | Silent type-only placeholder                                                                  | Lossy placeholder that is reported                        |
-| Self-referencing data                                             | `RecursionError`                                                                              | Detected with a clear error                               |
-| NumPy scalars                                                     | Handled in `ReprHasher` for bool, int, float and complex                                      | Kept, and covered by tests                                |
-| Domain separation in containers                                   | Done through `hash_tagged`                                                                    | Kept                                                      |
-| Fixed-width child concatenation                                   | Done                                                                                          | Kept                                                      |
+The implementation in `src/coola/hashing/` follows this design, with these notes:
 
-Items already matching the target: BLAKE2b with a configurable length, fixed-width child concatenation, domain separation through `\0`, int vs bool vs float distinction, `repr`-based exact float round trip, MRO dispatch, and the plugin entry point `coola.hashing.hashers`.
+| Area                                                            | Status                                                                                                                                                          |
+| --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tagged `str`, `StrHasher`, `bytes`                              | Done. Every hasher is domain-separated.                                                                                                                         |
+| One tag per sequence family, named tuples                       | Done (`list`, `tuple`, `deque`, `sequence`).                                                                                                                    |
+| Mapping families, `OrderedDict` ordered                         | Done (`dict`, `OrderedDict`, `mapping`).                                                                                                                        |
+| `set`, `frozenset`                                              | Done (`SetHasher`, sorted item hashes).                                                                                                                         |
+| `bytearray`, `time`, `timedelta`, `timezone`, `Enum`, dataclass | Done. `DataclassHasher` is opt-in per class, since dataclasses share no base type.                                                                              |
+| `Enum` mixins (`IntEnum`, `StrEnum`, `(str, Enum)`)             | Done. `StringHasher` and `ReprHasher` delegate to `hash_enum`, because the MRO reaches `str`/`int` before `Enum`.                                               |
+| `Path`                                                          | Pure by default (`PathHasher`, accepts `PurePath`), `ResolvedPathHasher` is the opt-in resolver.                                                                |
+| Pydantic                                                        | Class-tagged, fields go through the registry, nested models use the same `on_secret`. Registered by default when pydantic is installed.                         |
+| Custom `SupportsHash` objects                                   | Tagged with the qualified class name.                                                                                                                           |
+| `ignore_unhashable`                                             | Still available, now emits a `UserWarning`.                                                                                                                     |
+| Self-referencing data                                           | `ValueError` from `HasherRegistry.hash`, detected with an identity set per thread.                                                                              |
+| Lone surrogates in `str`                                        | `ValueError` with a clear message.                                                                                                                              |
+| Cross-library scalars (P9)                                      | `float`/`complex`/`bool`/`int` subclasses normalise to builtins. NumPy scalars that do not subclass a builtin (e.g. `np.int64`) still need a registered hasher. |
+| Golden hashes in CI                                             | Existing unit tests pin hashes for the main types. A hash format change is a visible test diff.                                                                 |
