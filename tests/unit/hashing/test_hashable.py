@@ -10,6 +10,7 @@ from coola.hashing import (
     HasherRegistry,
     SupportsHash,
     get_default_registry,
+    hash_tagged,
 )
 
 
@@ -55,17 +56,19 @@ def test_hashable_hasher_str() -> None:
 
 def test_hashable_hasher_hash_matches_object_hash(registry: HasherRegistry) -> None:
     obj = MyObj(42)
-    assert HashableHasher().hash(obj, registry=registry) == obj.hash(registry=registry)
+    assert HashableHasher().hash(obj, registry=registry) == hash_tagged(
+        f"custom:{MyObj.__module__}.{MyObj.__qualname__}", obj.hash(registry=registry)
+    )
 
 
 @pytest.mark.parametrize(
     ("value", "expected"),
     [
         pytest.param(
-            42, "e8de54a41b283e18905a5ef6ff1a6f2f4e361845c5d091fbcb371e3d003ec90e", id="int"
+            42, "adebfdc48255351449fd92aee2b63d092f14b081afa0d431782ff4d31c48dc5d", id="int"
         ),
         pytest.param(
-            "abc", "bddd813c634239723171ef3fee98579b94964e3bb1cb3e427262c8c068d52319", id="str"
+            "abc", "d7b8e3ab7c17b5c3caa49d8ac09758c8238eb7540baa482463684ae43e656b93", id="str"
         ),
         pytest.param([1, 2, 3], None, id="list"),
     ],
@@ -123,10 +126,10 @@ def test_hashable_hasher_hash_different_types_different_hashes(registry: HasherR
 @pytest.mark.parametrize(
     ("length", "expected"),
     [
-        pytest.param(16, "4d693658248572a8", id="16"),
-        pytest.param(32, "75840878f68c8ee55bf5e05bad7d2bfc", id="32"),
+        pytest.param(16, "8c5cc1eef3cf1fc6", id="16"),
+        pytest.param(32, "ac0617feb83d72cdcce2b673a919eb4b", id="32"),
         pytest.param(
-            64, "e8de54a41b283e18905a5ef6ff1a6f2f4e361845c5d091fbcb371e3d003ec90e", id="64-default"
+            64, "adebfdc48255351449fd92aee2b63d092f14b081afa0d431782ff4d31c48dc5d", id="64-default"
         ),
     ],
 )
@@ -148,7 +151,7 @@ def test_hashable_hasher_hash_forwards_registry_argument() -> None:
     result = HashableHasher().hash(obj, registry=registry)
 
     obj.hash.assert_called_once_with(registry=registry, length=64, ignore_unhashable=False)
-    assert result == "cafe"
+    assert result == hash_tagged(f"custom:{type(obj).__module__}.{type(obj).__qualname__}", "cafe")
 
 
 @pytest.mark.parametrize("length", [2, 16, 32, 64, 128])

@@ -81,12 +81,10 @@ def test_generate_stable_uuid5_scalar_input() -> None:
     assert UUID_PATTERN.match(generate_stable_uuid5(42))
 
 
-def test_generate_stable_uuid5_tuple_and_list_same_uuid() -> None:
-    # SequenceHasher (used by the default registry for both list and
-    # tuple) hashes items the same way regardless of the concrete
-    # sequence type, so a list and an equivalent tuple derive the same
-    # UUID.
-    assert generate_stable_uuid5([1, 2]) == generate_stable_uuid5((1, 2))
+def test_generate_stable_uuid5_tuple_and_list_different_uuid() -> None:
+    # The default registry tags each sequence family, so a list and an
+    # equivalent tuple derive different UUIDs.
+    assert generate_stable_uuid5([1, 2]) != generate_stable_uuid5((1, 2))
 
 
 def test_generate_stable_uuid5_matches_uuid5_of_hash_object() -> None:

@@ -9,7 +9,9 @@ from __future__ import annotations
 __all__ = [
     "BaseHasher",
     "BytesHasher",
+    "DataclassHasher",
     "DatetimeHasher",
+    "EnumHasher",
     "HashableHasher",
     "Hasher",
     "HasherRegistry",
@@ -17,12 +19,15 @@ __all__ = [
     "PathHasher",
     "PydanticModelHasher",
     "ReprHasher",
+    "ResolvedPathHasher",
     "SequenceHasher",
+    "SetHasher",
     "StrHasher",
     "StringHasher",
     "SupportsHash",
     "get_default_hasher_registry",
     "get_default_registry",
+    "hash_enum",
     "hash_bytes",
     "hash_object",
     "hash_path",
@@ -34,7 +39,9 @@ __all__ = [
 
 from coola.hashing.base import BaseHasher, Hasher
 from coola.hashing.bytes import BytesHasher, hash_bytes
+from coola.hashing.dataclass import DataclassHasher
 from coola.hashing.datetime import DatetimeHasher
+from coola.hashing.enum import EnumHasher
 from coola.hashing.hashable import HashableHasher, SupportsHash
 from coola.hashing.interface import (
     get_default_hasher_registry,
@@ -43,10 +50,11 @@ from coola.hashing.interface import (
     register_hashers,
 )
 from coola.hashing.mapping import MappingHasher
-from coola.hashing.path import PathHasher, hash_path
+from coola.hashing.path import PathHasher, ResolvedPathHasher, hash_path
 from coola.hashing.pydantic import PydanticModelHasher, hash_pydantic_model
 from coola.hashing.registry import HasherRegistry
 from coola.hashing.repr import ReprHasher
 from coola.hashing.sequence import SequenceHasher
+from coola.hashing.set import SetHasher
 from coola.hashing.str import StrHasher
-from coola.hashing.string import StringHasher, hash_string, hash_tagged
+from coola.hashing.string import StringHasher, hash_enum, hash_string, hash_tagged

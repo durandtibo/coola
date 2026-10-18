@@ -27,11 +27,11 @@ def registry() -> HasherRegistry:
 
 
 def test_sequence_hasher_repr() -> None:
-    assert repr(SequenceHasher()) == "SequenceHasher()"
+    assert repr(SequenceHasher()) == "SequenceHasher(tag='sequence')"
 
 
 def test_sequence_hasher_str() -> None:
-    assert str(SequenceHasher()) == "SequenceHasher()"
+    assert str(SequenceHasher()) == "SequenceHasher(tag=sequence)"
 
 
 @pytest.mark.parametrize(
@@ -39,17 +39,17 @@ def test_sequence_hasher_str() -> None:
     [
         pytest.param(
             [1, 2, 3],
-            "0708bf79f681139268711c8c0f125fde9109476dd1362adc3c3ce455e605b94e",
+            "bfe86f0fc5750a217446b5a88d2bfc543b33c63fa190489e917b16a0bc792cce",
             id="list_of_ints",
         ),
         pytest.param(
             (1, 2, 3),
-            "0708bf79f681139268711c8c0f125fde9109476dd1362adc3c3ce455e605b94e",
-            id="tuple_same_as_list",
+            "bfe86f0fc5750a217446b5a88d2bfc543b33c63fa190489e917b16a0bc792cce",
+            id="tuple_default_tag",
         ),
         pytest.param(
             [42],
-            "b989e403fcb0a92fbd9cdd8e83b24c8540f4632db582a02dda087916e1ec7cca",
+            "973d92e388edf5f5952cf69bb7d85b68114ee8fb906c5cfbdbc48a8b265b4909",
             id="single_element",
         ),
         pytest.param(
@@ -59,7 +59,7 @@ def test_sequence_hasher_str() -> None:
         ),
         pytest.param(
             "abc",
-            "deeb2844f1898c0f1fd0107f79100f0f4458f597ce5ba3082cf51d19c628275e",
+            "aa15256e3813f16a427f4796612909858040b64185401a6a65c05c668c19b029",
             id="str_sequence",
         ),
     ],
@@ -73,10 +73,10 @@ def test_sequence_hasher_hash_parametrized(
 @pytest.mark.parametrize(
     ("length", "expected"),
     [
-        pytest.param(16, "c707ce89f1b1a4f6", id="16"),
-        pytest.param(32, "df4ebc44992eea89c78876774c07e0df", id="32"),
+        pytest.param(16, "b41e8f79a38a42d1", id="16"),
+        pytest.param(32, "65b29e2995d9414e93e4599d87c72219", id="32"),
         pytest.param(
-            64, "0708bf79f681139268711c8c0f125fde9109476dd1362adc3c3ce455e605b94e", id="64-default"
+            64, "bfe86f0fc5750a217446b5a88d2bfc543b33c63fa190489e917b16a0bc792cce", id="64-default"
         ),
     ],
 )
@@ -122,7 +122,7 @@ def test_sequence_hasher_hash_is_deterministic(registry: HasherRegistry) -> None
 def test_sequence_hasher_hash_nested_sequence(registry: HasherRegistry) -> None:
     # Nested lists are recursed into via the registry.
     assert SequenceHasher().hash([[1, 2], [3, 4]], registry=registry) == (
-        "b47a1417d5bb6b7e1ad2e4c3e7bd5f2c06676b46e1529deb24d1d638c8e64cc4"
+        "7b31321709b3a28e0209236aae8fb5a69ab823d68b35660ff88459e60409c63f"
     )
 
 

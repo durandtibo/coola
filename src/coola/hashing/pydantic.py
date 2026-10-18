@@ -5,17 +5,14 @@ from __future__ import annotations
 
 __all__ = ["PydanticModelHasher", "hash_pydantic_model", "unwrap_secrets"]
 
-import json
-from typing import TYPE_CHECKING, Any, Literal, assert_never, cast
+from typing import TYPE_CHECKING, Any, Literal, assert_never
 
 from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
-from coola.hashing.bytes import hash_bytes
+from coola.hashing.string import hash_tagged
 from coola.utils.imports import is_pydantic_available
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence, Set as AbstractSet
-
     from coola.hashing.registry import HasherRegistry
 
 if TYPE_CHECKING or is_pydantic_available():
@@ -32,9 +29,12 @@ else:  # pragma: no cover
 class PydanticModelHasher(InlineDisplayMixin, BaseHasher[pydantic.BaseModel]):
     r"""Hasher for pydantic ``BaseModel`` objects.
 
-    This hasher computes a stable content hash of a pydantic model by
-    serializing its fields to a sorted-key JSON payload and hashing
-    the resulting bytes - see ``hash_pydantic_model`` for details.
+    This hasher computes a stable content hash of a pydantic model from
+    its qualified class name and its fields, with every field value
+    hashed through the registry - see ``hash_pydantic_model`` for
+    details. Nested models are hashed through the registry too, so this
+    hasher must be registered for ``pydantic.BaseModel`` (or for the
+    nested model types) to hash models that contain other models.
 
     Args:
         on_secret: How ``SecretStr``/``SecretBytes`` fields are
@@ -74,23 +74,21 @@ class PydanticModelHasher(InlineDisplayMixin, BaseHasher[pydantic.BaseModel]):
     def hash(
         self,
         data: pydantic.BaseModel,
-        registry: HasherRegistry,  # noqa: ARG002
+        registry: HasherRegistry,
         length: int = 64,
-        ignore_unhashable: bool = False,  # noqa: ARG002
+        ignore_unhashable: bool = False,
     ) -> str:
         r"""Compute a deterministic hash of a pydantic model.
 
         Args:
             data: The pydantic model instance to hash.
-            registry: The hasher registry. Unused by this hasher since
-                the model is serialized and hashed directly with no
-                need to dispatch to another hasher for nested data;
-                accepted only to satisfy the common ``BaseHasher``
-                interface.
+            registry: The hasher registry used to hash the field
+                values.
             length: The desired length of the returned hex string. See
-                ``hash_bytes`` for constraints. Defaults to 64.
-            ignore_unhashable: Unused by this hasher; accepted only to
-                satisfy the common ``BaseHasher`` interface.
+                ``hash_string`` for constraints. Defaults to 64.
+            ignore_unhashable: If ``True``, field values for which no
+                hasher is registered are replaced by a deterministic
+                placeholder hash instead of raising an error.
 
         Returns:
             A lowercase hexadecimal string of exactly ``length``
@@ -101,8 +99,17 @@ class PydanticModelHasher(InlineDisplayMixin, BaseHasher[pydantic.BaseModel]):
                 ``data`` contains a ``SecretStr``/``SecretBytes``
                 field, or if ``length`` is not an even number between
                 2 and 128.
+            KeyError: If a field value has a type for which no hasher
+                is registered in ``registry`` and ``ignore_unhashable``
+                is ``False``.
         """
-        return hash_pydantic_model(data, length=length, on_secret=self._on_secret)
+        return hash_pydantic_model(
+            data,
+            length=length,
+            on_secret=self._on_secret,
+            registry=registry,
+            ignore_unhashable=ignore_unhashable,
+        )
 
 
 def unwrap_secrets(
@@ -113,11 +120,14 @@ def unwrap_secrets(
     """Recursively resolve ``SecretStr``/``SecretBytes`` values before
     hashing.
 
+    Only plain ``dict``, ``list``, ``tuple``, ``set`` and ``frozenset``
+    containers are traversed, and they are rebuilt with the same type so
+    the type information is preserved. Any other value is returned
+    unchanged.
+
     Args:
-        value: A (possibly nested) structure of dicts/lists/primitives,
-            as produced by ``model.model_dump(mode="python")`` -
-            secrets are NOT yet masked at this stage since we bypass
-            JSON mode's default masking.
+        value: A (possibly nested) structure of containers and
+            primitives, e.g. the field values of a model.
         on_secret: How to handle secret fields:
 
             - ``"reveal"``: hash the real underlying secret value (via
@@ -126,16 +136,16 @@ def unwrap_secrets(
               encrypted-at-rest, or the secret has enough entropy that
               the hash isn't practically reversible).
             - ``"exclude"``: drop secret values entirely from the
-              hashed payload - removed as dict keys, and removed as
-              list elements (never replaced with a placeholder such as
-              ``None``, so the "shape" of the payload doesn't leak
-              where a secret used to be). The hash then reflects
+              hashed payload - removed as dict values, and removed as
+              sequence/set elements (never replaced with a placeholder
+              such as ``None``, so the "shape" of the payload doesn't
+              leak where a secret used to be). The hash then reflects
               everything *except* secrets - two models differing only
               in a secret value hash the same.
             - ``"error"``: raise ``ValueError`` if any secret field is
               encountered, forcing the caller to make an explicit
               choice rather than hashing (or silently ignoring) secret
-              data by accident.
+              data by accident. The message never contains the secret.
 
     Returns:
         The value with secrets resolved (or removed) according to
@@ -146,10 +156,8 @@ def unwrap_secrets(
     Raises:
         ValueError: If ``on_secret="error"`` and a secret field is
             found, or if ``on_secret="exclude"`` and ``value`` is
-            itself a bare secret with no enclosing dict/list to drop
+            itself a bare secret with no enclosing container to drop
             it from.
-        UnicodeDecodeError: If ``on_secret="reveal"``, the secret is a
-            ``SecretBytes``, and its content isn't valid UTF-8.
 
     Example:
         ```pycon
@@ -164,8 +172,7 @@ def unwrap_secrets(
     """
     if isinstance(value, _SECRET_TYPES):
         if on_secret == "reveal":  # noqa: S105
-            secret = value.get_secret_value()
-            return secret.decode("utf-8") if isinstance(secret, bytes) else secret
+            return value.get_secret_value()
         if on_secret == "exclude":  # noqa: S105
             msg = (
                 "Cannot exclude a top-level secret value with no enclosing "
@@ -180,31 +187,14 @@ def unwrap_secrets(
             raise ValueError(msg)
         assert_never(on_secret)
 
-    if isinstance(value, dict):
-        result: dict[Any, Any] = {}
-        for k, v in cast("dict[Any, Any]", value).items():
-            if isinstance(v, _SECRET_TYPES) and on_secret == "exclude":  # noqa: S105
-                continue
-            result[k] = unwrap_secrets(v, on_secret=on_secret)
-        return result
+    def keep(item: Any) -> bool:
+        return not (isinstance(item, _SECRET_TYPES) and on_secret == "exclude")  # noqa: S105
 
-    if isinstance(value, (list, tuple)):
-        return [
-            unwrap_secrets(v, on_secret=on_secret)
-            for v in cast("Sequence[Any]", value)
-            if not (isinstance(v, _SECRET_TYPES) and on_secret == "exclude")  # noqa: S105
-        ]
-
-    if isinstance(value, (set, frozenset)):
-        # Sets have no stable order and are not JSON serializable, so
-        # emit a list sorted by the serialized form of each item.
-        items = [
-            unwrap_secrets(v, on_secret=on_secret)
-            for v in cast("AbstractSet[Any]", value)
-            if not (isinstance(v, _SECRET_TYPES) and on_secret == "exclude")  # noqa: S105
-        ]
-        return sorted(items, key=lambda item: json.dumps(item, sort_keys=True, default=str))
-
+    value_type = type(value)
+    if value_type is dict:
+        return {k: unwrap_secrets(v, on_secret=on_secret) for k, v in value.items() if keep(v)}
+    if value_type in {list, tuple, set, frozenset}:
+        return value_type(unwrap_secrets(v, on_secret=on_secret) for v in value if keep(v))
     return value
 
 
@@ -213,35 +203,33 @@ def hash_pydantic_model(
     *,
     length: int = 64,
     on_secret: Literal["reveal", "exclude", "error"] = "error",  # noqa: S107
+    registry: HasherRegistry | None = None,
+    ignore_unhashable: bool = False,
 ) -> str:
     """Compute a stable content hash of a pydantic model.
 
-    Serializes the model to a sorted-key JSON payload and hashes the
-    resulting bytes with BLAKE2b (via ``hash_bytes``), so the hash is
-    stable regardless of field declaration order or dict insertion
-    order.
-
-    Note:
-        Serialization uses ``model.model_dump(mode="python")`` rather
-        than ``mode="json"``, since JSON mode pre-masks
-        ``SecretStr``/``SecretBytes`` fields to ``"**********"``
-        before we can apply ``on_secret`` ourselves. One consequence:
-        other special types (e.g. ``datetime``, ``UUID``, ``Decimal``,
-        ``Enum``) aren't normalized through pydantic's JSON encoders -
-        they fall back to plain ``str()`` via ``json.dumps(...,
-        default=str)`` instead. This is usually fine for hashing
-        purposes (it's still deterministic), but the exact string form
-        may differ from what ``mode="json"`` would have produced.
+    The hash combines the qualified class name of the model, so two
+    different model classes with the same field values hash
+    differently, with the hash of a mapping from field name to field
+    value (extra fields included). Every value is hashed through the
+    registry, so it follows the same rules as any other data (type
+    sensitivity, order-insensitive sets, ...), and the hash is stable
+    regardless of field declaration order.
 
     Args:
         model: The pydantic model instance to hash.
-        length: The desired length of the returned hex string, passed
-            through to ``hash_bytes``. Must be an even number between
-            2 and 128 inclusive. Defaults to 64.
+        length: The desired length of the returned hex string. Must be
+            an even number between 2 and 128 inclusive. Defaults to
+            64.
         on_secret: How ``SecretStr``/``SecretBytes`` fields are
             handled - see ``unwrap_secrets`` for details. Defaults to
             ``"error"`` so secret fields are never silently
             included/excluded/masked without an explicit decision.
+        registry: The registry used to hash the field values. If
+            ``None``, the default registry is used.
+        ignore_unhashable: If ``True``, field values for which no
+            hasher is registered are replaced by a deterministic
+            placeholder hash instead of raising an error.
 
     Returns:
         The hex digest of the hash, as a string.
@@ -250,10 +238,14 @@ def hash_pydantic_model(
         ValueError: If ``on_secret="error"`` (the default) and the
             model contains a ``SecretStr``/``SecretBytes`` field, or
             if ``length`` is not an even number between 2 and 128.
+        KeyError: If a field value has a type for which no hasher is
+            registered in ``registry`` and ``ignore_unhashable`` is
+            ``False``.
 
     Example:
         ```pycon
         >>> from pydantic import BaseModel, SecretStr
+        >>> from coola.hashing import hash_pydantic_model
         >>> class Creds(BaseModel):
         ...     username: str
         ...     password: SecretStr
@@ -266,7 +258,13 @@ def hash_pydantic_model(
 
         ```
     """
-    payload = model.model_dump(mode="python")
-    resolved = unwrap_secrets(payload, on_secret=on_secret)
-    serialized = json.dumps(resolved, sort_keys=True, separators=(",", ":"), default=str)
-    return hash_bytes(b"pydantic\0" + serialized.encode("utf-8"), length=length)
+    if registry is None:
+        from coola.hashing.interface import get_default_registry  # noqa: PLC0415
+
+        registry = get_default_registry()
+    cls = type(model)
+    fields = {name: getattr(model, name) for name in cls.model_fields}
+    fields.update(model.model_extra or {})
+    resolved = unwrap_secrets(fields, on_secret=on_secret)
+    digest = registry.hash(resolved, length=length, ignore_unhashable=ignore_unhashable)
+    return hash_tagged(f"pydantic:{cls.__module__}.{cls.__qualname__}", digest, length=length)

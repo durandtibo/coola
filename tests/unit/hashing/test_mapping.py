@@ -19,11 +19,11 @@ def registry() -> HasherRegistry:
 
 
 def test_mapping_hasher_repr() -> None:
-    assert repr(MappingHasher()) == "MappingHasher()"
+    assert repr(MappingHasher()) == "MappingHasher(tag='mapping', ordered=False)"
 
 
 def test_mapping_hasher_str() -> None:
-    assert str(MappingHasher()) == "MappingHasher()"
+    assert str(MappingHasher()) == "MappingHasher(tag=mapping, ordered=False)"
 
 
 @pytest.mark.parametrize(
@@ -31,12 +31,12 @@ def test_mapping_hasher_str() -> None:
     [
         pytest.param(
             {"a": 1, "b": 2},
-            "30dc27fd019ada1ebfd094059a3e349b601c452176d2c2fa5fce3c64678dc59b",
+            "0fde8be56160bfbace2c2f3ce1200a3a0b1355d40defca6fd85d8a423099a90a",
             id="two_items",
         ),
         pytest.param(
             {"a": 1},
-            "35dc276c439c54e18dc675aaef88f84c1b198cd14811f51a95d092dc4603b959",
+            "08d6ce551687c99a97404de46b5b5dcc53d00d08b28301cdc149163a34d32355",
             id="single_item",
         ),
         pytest.param(
@@ -46,7 +46,7 @@ def test_mapping_hasher_str() -> None:
         ),
         pytest.param(
             {"x": "hello", "y": [1, 2, 3]},
-            "10cdf21a84e7be45961a09182aa270f2408910513e75f3bc597d73fcb53ff02a",
+            "e205a3845cc143f8b78e8e845ef51f928bc7900cb2425b865e4d2777118c3fd5",
             id="mixed_value_types",
         ),
     ],
@@ -60,10 +60,10 @@ def test_mapping_hasher_hash_parametrized(
 @pytest.mark.parametrize(
     ("length", "expected"),
     [
-        pytest.param(16, "b72dbd8958f6e2c8", id="16"),
-        pytest.param(32, "9d58c48115b2aba85b3b75c6639775d0", id="32"),
+        pytest.param(16, "83405ad8236ae11d", id="16"),
+        pytest.param(32, "d3d84762c7ee1934100661166b93a1f1", id="32"),
         pytest.param(
-            64, "30dc27fd019ada1ebfd094059a3e349b601c452176d2c2fa5fce3c64678dc59b", id="64-default"
+            64, "0fde8be56160bfbace2c2f3ce1200a3a0b1355d40defca6fd85d8a423099a90a", id="64-default"
         ),
     ],
 )

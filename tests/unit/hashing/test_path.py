@@ -161,19 +161,21 @@ def test_hash_path_is_case_sensitive(tmp_path: Path) -> None:
 def test_hash_path_resolves_relative_segments(tmp_path: Path) -> None:
     direct = tmp_path / "file.txt"
     indirect = tmp_path / "sub" / ".." / "file.txt"
-    assert hash_path(direct) == hash_path(indirect)
+    assert hash_path(direct, resolve=True) == hash_path(indirect, resolve=True)
+    assert hash_path(direct) != hash_path(indirect)
 
 
 def test_hash_path_resolves_relative_to_absolute() -> None:
     relative = Path("file.txt")
     absolute = Path.cwd() / "file.txt"
-    assert hash_path(relative) == hash_path(absolute)
+    assert hash_path(relative, resolve=True) == hash_path(absolute, resolve=True)
+    assert hash_path(relative) != hash_path(absolute)
 
 
 def test_hash_path_resolve_failure_uses_posix_of_unresolved_path(tmp_path: Path) -> None:
     path = tmp_path / "file.txt"
     with patch.object(Path, "resolve", side_effect=OSError("boom")):
-        result = hash_path(path)
+        result = hash_path(path, resolve=True)
     assert result == hash_tagged("Path", path.as_posix())
 
 

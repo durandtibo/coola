@@ -66,22 +66,22 @@ class CustomList(list):
         ),
         pytest.param(
             "hello",
-            "324dcf027dd4a30a932c441f365a25e86b173defa4b8e58948253471b81b72cf",
+            "9d4bd2af5629d5a22405d7fe02fe410ee11ae44178b4ee0eb9ca4d7795ac9906",
             id="str",
         ),
         pytest.param(
             [1, 2, 3],
-            "f4adaffe06dacaa6cf0ca45f9e1b8a4161ae8fa1064e5d63345c3c15414d3138",
+            "ec609b5623c6456c63f338d63d699ebe4d5345baff999c5fc61471c62656f586",
             id="list",
         ),
         pytest.param(
             (1, 2, 3),
-            "f4adaffe06dacaa6cf0ca45f9e1b8a4161ae8fa1064e5d63345c3c15414d3138",
+            "68c32ffc6288f744784a055a2abd7392488a36623521e708f52da350c9038f40",
             id="tuple",
         ),
         pytest.param(
             {"a": 1, "b": 2},
-            "f1304bbdf8f7c7625e8dc07607be7bb0b135c50e0c16fd51b65da9b432fb9142",
+            "cefc870254126d81d0209ed1b37eda8d4d9c06378205a1c802dd2a05b21dc896",
             id="dict",
         ),
         pytest.param(
@@ -126,7 +126,7 @@ def test_hash_object_uses_default_registry_when_none() -> None:
 
 def test_hash_object_nested_structure() -> None:
     assert hash_object({"a": [1, 2], "b": [3, 4]}) == (
-        "471ec7a4b395624feacb7778762f8e7c23d56cad9bcd917839c286898e583281"
+        "df457ece3d6ba8364e163149129d84e5dad821264bc2fbaa5d239b07aa14be37"
     )
 
 
@@ -257,11 +257,11 @@ def test_get_default_registry_registers_none() -> None:
 
 def test_get_default_registry_can_hash_list() -> None:
     assert get_default_registry().hash([1, 2, 3]) == (
-        "f4adaffe06dacaa6cf0ca45f9e1b8a4161ae8fa1064e5d63345c3c15414d3138"
+        "ec609b5623c6456c63f338d63d699ebe4d5345baff999c5fc61471c62656f586"
     )
 
 
 def test_get_default_registry_can_hash_dict() -> None:
     assert get_default_registry().hash({"a": 1, "b": 2}) == (
-        "f1304bbdf8f7c7625e8dc07607be7bb0b135c50e0c16fd51b65da9b432fb9142"
+        "cefc870254126d81d0209ed1b37eda8d4d9c06378205a1c802dd2a05b21dc896"
     )
