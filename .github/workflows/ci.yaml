@@ -76,6 +76,13 @@ jobs:
       test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}
     secrets: inherit
 
+  # Run the property-based tests (Hypothesis) on ubuntu-latest for all the Python versions
+  test-properties:
+    needs: get-matrix
+    uses: ./.github/workflows/ci-test-properties.yaml
+    with:
+      test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}
+
   # Test compatibility with different dependency versions
   test-deps:
     needs: get-matrix
