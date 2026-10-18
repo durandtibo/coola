@@ -28,6 +28,7 @@ import threading
 import time
 from functools import cache
 
+from coola.identifier.fork import track_fork
 from coola.identifier.validation import validate_bit_range
 
 _TIMESTAMP_BYTES = 4
@@ -46,6 +47,14 @@ class ObjectIdGenerator:
     ``generate_object_id`` for the common case of a single, shared,
     process-wide generator.
 
+    Note:
+        After a fork (``os.fork``, or ``multiprocessing`` with the
+        ``fork`` start method), the child process receives a copy of
+        the generator. To prevent the parent and its children from
+        producing the same identifiers, the random per-process value
+        and the counter are regenerated in the child process, and its
+        lock is recreated.
+
     Example:
         ```pycon
         >>> from coola.identifier import ObjectIdGenerator
@@ -63,6 +72,14 @@ class ObjectIdGenerator:
         # plays in the original MongoDB ObjectId format, without
         # requiring the caller to configure one.
         self._process_value = os.urandom(_PROCESS_BYTES)
+        self._lock = threading.Lock()
+        self._counter = int.from_bytes(os.urandom(_COUNTER_BYTES), byteorder="big")
+        track_fork(self)
+
+    def _reset_after_fork(self) -> None:
+        r"""Regenerate the random state in a forked child process."""
+        self._process_value = os.urandom(_PROCESS_BYTES)
+        # The lock may have been held by a thread that does not exist in the child.
         self._lock = threading.Lock()
         self._counter = int.from_bytes(os.urandom(_COUNTER_BYTES), byteorder="big")
 

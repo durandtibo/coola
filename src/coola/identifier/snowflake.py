@@ -23,6 +23,7 @@ import threading
 import time
 from functools import cache
 
+from coola.identifier.fork import track_fork
 from coola.identifier.validation import validate_bit_range
 
 # Sleep briefly between spins while waiting for the next millisecond, to
@@ -56,6 +57,15 @@ class SnowflakeIdGenerator:
     instance rather than at module scope, so each generator is
     independent: create one per worker/shard/test instead of sharing
     mutable global state.
+
+    Warning:
+        The uniqueness of the IDs across processes comes from the
+        ``worker_id`` passed to ``generate``, not from random values.
+        Two processes that use the same ``worker_id`` (the default is
+        ``0``) can generate the same ID in the same millisecond. This
+        includes the children of a fork, which inherit the state of
+        the generator of their parent: give each process or worker a
+        distinct ``worker_id``.
 
     Args:
         last_timestamp_ms: The millisecond timestamp of the last ID
@@ -98,6 +108,17 @@ class SnowflakeIdGenerator:
         self._lock = threading.Lock()
         self._last_timestamp_ms = last_timestamp_ms
         self._sequence = sequence
+        track_fork(self)
+
+    def _reset_after_fork(self) -> None:
+        r"""Recreate the lock in a forked child process.
+
+        The lock may have been held by a thread that does not exist in
+        the child process, which would block it forever. The timestamp
+        and the sequence are kept: a Snowflake ID is made unique across
+        processes by its ``worker_id``, not by random values.
+        """
+        self._lock = threading.Lock()
 
     def generate(self, worker_id: int = 0, timestamp_ms: int | None = None) -> int:
         r"""Generate a Snowflake-style 64-bit identifier.
