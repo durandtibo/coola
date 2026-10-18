@@ -476,23 +476,28 @@ _(Status: fixed. (1) The `torch_numpy` module docstring, the three `check_torch_
   Compute `str(data)` only when `len(data) <= preview_limit`. (My quick timing of a 2M
   list at `max_depth=0` was ~0.06 s, so this matters mainly for huge or deeply nested
   data, but the fix is two lines.)
+  _(Status: fixed in #1999.)_
 - **`SequenceSameValuesHandler` / `MappingSameValuesHandler`** allocate a `cache` dict
   per call, even for short lists of scalars where nothing can repeat. Skip the cache
   for `len < 2`, or drop it (see 1.3). For lists of floats/ints, a fast path
   (`actual == expected` on the whole list when both contain only built-in scalars and
   no tolerance is set) would avoid per-element dispatch.
+  _(Status: partly fixed in #2000. The per-call `cache` no longer exists. `SequenceSameValuesHandler` now has a fast path for lists/tuples of exact scalars (`int`, `str`, `bytes`, `bool`, `None`); floats are excluded because of NaN and tolerance. `MappingSameValuesHandler` is unchanged.)_
 - **Per-element dispatch**: `registry.objects_are_equal` calls `type(actual)`, resolves
   through `TypeRegistry.resolve`, and runs a 3–4 handler chain per scalar. The
   `tests/benchmarks` folder exists; add a benchmark for `list[float]` of 100k items so
   a fast path can be measured.
+  _(Status: benchmark added in #2001; the dispatch itself is unchanged.)_
 - **Pandas/Polars handlers** run `isna().any().any()` and `is_nan()` scans before the
   actual comparison. For large frames that is an extra full pass. When `equal_nan` is
   `False`, `assert_frame_equal` already reports NaN differences if the other frame
   has no NaN, but not when both contain NaN at the same place, so the pre-scan is
   needed. Consider doing it once on `df1` only when `df1 is not df2` and skipping
   when the shapes already differ (cheap checks first).
+  _(Status: fixed in #2002. Shapes are checked before the NaN scan; the scan already ran on the first operand only.)_
 - **`LazyFrame` handler** calls `collect()` on both inputs without schema check.
   Compare `collect_schema()` first to fail fast.
+  _(Status: fixed in #2003.)_
 - **`TypeRegistry.resolve`** is already cached; no change needed.
 
 ---
