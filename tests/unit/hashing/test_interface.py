@@ -27,6 +27,7 @@ from coola.hashing.pydantic import PydanticModelHasher
 from coola.registry import AlreadyRegisteredError
 from coola.testing.fixtures import pydantic_available
 from coola.utils.imports import is_pydantic_available
+from tests.unit.hashing.helpers import Unhashable
 
 if is_pydantic_available():
     import pydantic
@@ -138,10 +139,6 @@ def test_hash_object_nested_structure() -> None:
     )
 
 
-class Unhashable:
-    r"""A type with no registered hasher."""
-
-
 def test_hash_object_unhashable_raises_by_default() -> None:
     with pytest.raises(KeyError, match=r"is not registered"):
         hash_object(Unhashable())
@@ -153,21 +150,25 @@ def test_hash_object_unhashable_raises_when_explicitly_false() -> None:
 
 
 def test_hash_object_ignore_unhashable_returns_str() -> None:
-    assert isinstance(hash_object(Unhashable(), ignore_unhashable=True), str)
+    with pytest.warns(UserWarning, match=r"No hasher registered"):
+        assert isinstance(hash_object(Unhashable(), ignore_unhashable=True), str)
 
 
 def test_hash_object_ignore_unhashable_nested_in_list() -> None:
-    assert isinstance(hash_object([1, Unhashable(), 3], ignore_unhashable=True), str)
+    with pytest.warns(UserWarning, match=r"No hasher registered"):
+        assert isinstance(hash_object([1, Unhashable(), 3], ignore_unhashable=True), str)
 
 
 def test_hash_object_ignore_unhashable_nested_in_dict() -> None:
-    assert isinstance(hash_object({"a": Unhashable()}, ignore_unhashable=True), str)
+    with pytest.warns(UserWarning, match=r"No hasher registered"):
+        assert isinstance(hash_object({"a": Unhashable()}, ignore_unhashable=True), str)
 
 
 def test_hash_object_ignore_unhashable_is_deterministic() -> None:
-    assert hash_object(Unhashable(), ignore_unhashable=True) == hash_object(
-        Unhashable(), ignore_unhashable=True
-    )
+    with pytest.warns(UserWarning, match=r"No hasher registered"):
+        assert hash_object(Unhashable(), ignore_unhashable=True) == hash_object(
+            Unhashable(), ignore_unhashable=True
+        )
 
 
 #########################################

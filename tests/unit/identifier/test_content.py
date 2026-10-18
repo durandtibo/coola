@@ -66,7 +66,8 @@ def test_generate_stable_content_id_unhashable_type_raises_by_default() -> None:
 
 
 def test_generate_stable_content_id_ignore_unhashable_does_not_raise() -> None:
-    assert HEX_PATTERN.match(generate_stable_content_id(object(), ignore_unhashable=True))
+    with pytest.warns(UserWarning, match=r"No hasher registered"):
+        assert HEX_PATTERN.match(generate_stable_content_id(object(), ignore_unhashable=True))
 
 
 def test_generate_stable_content_id_uses_given_registry() -> None:

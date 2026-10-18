@@ -12,6 +12,7 @@ from coola.hashing import (
     get_default_registry,
     hash_tagged,
 )
+from tests.unit.hashing.helpers import Unhashable
 
 
 class MyObj:
@@ -30,10 +31,6 @@ class MyObj:
         if registry is None:
             registry = get_default_registry()
         return registry.hash(self._value, length=length, ignore_unhashable=ignore_unhashable)
-
-
-class Unhashable:
-    r"""A type with no registered hasher."""
 
 
 @pytest.fixture
@@ -190,7 +187,8 @@ def test_hashable_hasher_hash_propagates_unhashable_nested_value() -> None:
 def test_hashable_hasher_hash_ignore_unhashable_nested_value_returns_str() -> None:
     empty_registry = HasherRegistry()
     obj = MyObj(Unhashable())
-    result = HashableHasher().hash(obj, registry=empty_registry, ignore_unhashable=True)
+    with pytest.warns(UserWarning, match=r"No hasher registered"):
+        result = HashableHasher().hash(obj, registry=empty_registry, ignore_unhashable=True)
     assert isinstance(result, str)
 
 

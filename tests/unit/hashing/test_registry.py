@@ -15,6 +15,7 @@ from coola.hashing import (
     StringHasher,
 )
 from coola.registry import AlreadyRegisteredError
+from tests.unit.hashing.helpers import Unhashable
 
 
 class CustomList(list):
@@ -222,10 +223,6 @@ def test_hasher_registry_hash_registry_isolation() -> None:
     assert registry2._state[list] is hasher2
 
 
-class Unhashable:
-    r"""A type with no registered hasher."""
-
-
 def test_hasher_registry_hash_unhashable_raises_by_default() -> None:
     with pytest.raises(KeyError, match=r"is not registered"):
         HasherRegistry().hash(Unhashable())
@@ -237,26 +234,33 @@ def test_hasher_registry_hash_unhashable_raises_when_explicitly_false() -> None:
 
 
 def test_hasher_registry_hash_ignore_unhashable_returns_str() -> None:
-    assert isinstance(HasherRegistry().hash(Unhashable(), ignore_unhashable=True), str)
+    with pytest.warns(UserWarning, match=r"No hasher registered"):
+        result = HasherRegistry().hash(Unhashable(), ignore_unhashable=True)
+    assert isinstance(result, str)
 
 
 def test_hasher_registry_hash_ignore_unhashable_respects_length() -> None:
-    result = HasherRegistry().hash(Unhashable(), length=16, ignore_unhashable=True)
+    with pytest.warns(UserWarning, match=r"No hasher registered"):
+        result = HasherRegistry().hash(Unhashable(), length=16, ignore_unhashable=True)
     assert len(result) == 16
 
 
 def test_hasher_registry_hash_ignore_unhashable_is_deterministic() -> None:
     registry = HasherRegistry()
-    assert registry.hash(Unhashable(), ignore_unhashable=True) == registry.hash(
-        Unhashable(), ignore_unhashable=True
-    )
+    with pytest.warns(UserWarning, match=r"No hasher registered"):
+        first = registry.hash(Unhashable(), ignore_unhashable=True)
+    with pytest.warns(UserWarning, match=r"No hasher registered"):
+        second = registry.hash(Unhashable(), ignore_unhashable=True)
+    assert first == second
 
 
 def test_hasher_registry_hash_ignore_unhashable_nested_in_list() -> None:
     # No `object` fallback registered, so the `Unhashable` element would
     # normally be unresolvable; ignore_unhashable=True must handle it.
     registry = HasherRegistry({int: StrHasher(), list: SequenceHasher()})
-    assert isinstance(registry.hash([1, Unhashable(), 3], ignore_unhashable=True), str)
+    with pytest.warns(UserWarning, match=r"No hasher registered"):
+        result = registry.hash([1, Unhashable(), 3], ignore_unhashable=True)
+    assert isinstance(result, str)
 
 
 def test_hasher_registry_hash_ignore_unhashable_nested_in_list_raises_by_default() -> None:
@@ -271,7 +275,9 @@ def test_hasher_registry_hash_ignore_unhashable_nested_in_dict() -> None:
     # No `object` fallback registered, so the `Unhashable` value would
     # normally be unresolvable; ignore_unhashable=True must handle it.
     registry = HasherRegistry({str: StrHasher(), dict: MappingHasher()})
-    assert isinstance(registry.hash({"a": Unhashable()}, ignore_unhashable=True), str)
+    with pytest.warns(UserWarning, match=r"No hasher registered"):
+        result = registry.hash({"a": Unhashable()}, ignore_unhashable=True)
+    assert isinstance(result, str)
 
 
 def test_hasher_registry_hash_ignore_unhashable_nested_in_dict_raises_by_default() -> None:

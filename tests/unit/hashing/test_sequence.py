@@ -7,6 +7,7 @@ from unittest.mock import Mock
 import pytest
 
 from coola.hashing import HasherRegistry, SequenceHasher, StrHasher
+from tests.unit.hashing.helpers import Unhashable
 
 
 class Point(NamedTuple):
@@ -144,10 +145,6 @@ def test_sequence_hasher_hash_nested_differs_from_flat(registry: HasherRegistry)
     )
 
 
-class Unhashable:
-    r"""A type with no registered hasher."""
-
-
 @pytest.fixture
 def registry_without_fallback() -> HasherRegistry:
     # No `object` fallback registered, so `Unhashable` cannot be resolved.
@@ -173,9 +170,10 @@ def test_sequence_hasher_hash_unhashable_item_raises_when_explicitly_false(
 def test_sequence_hasher_hash_ignore_unhashable_item_returns_str(
     registry_without_fallback: HasherRegistry,
 ) -> None:
-    result = SequenceHasher().hash(
-        [1, Unhashable(), 3], registry=registry_without_fallback, ignore_unhashable=True
-    )
+    with pytest.warns(UserWarning, match=r"No hasher registered"):
+        result = SequenceHasher().hash(
+            [1, Unhashable(), 3], registry=registry_without_fallback, ignore_unhashable=True
+        )
     assert isinstance(result, str)
 
 
@@ -183,11 +181,15 @@ def test_sequence_hasher_hash_ignore_unhashable_is_deterministic(
     registry_without_fallback: HasherRegistry,
 ) -> None:
     hasher = SequenceHasher()
-    assert hasher.hash(
-        [1, Unhashable(), 3], registry=registry_without_fallback, ignore_unhashable=True
-    ) == hasher.hash(
-        [1, Unhashable(), 3], registry=registry_without_fallback, ignore_unhashable=True
-    )
+    with pytest.warns(UserWarning, match=r"No hasher registered"):
+        first = hasher.hash(
+            [1, Unhashable(), 3], registry=registry_without_fallback, ignore_unhashable=True
+        )
+    with pytest.warns(UserWarning, match=r"No hasher registered"):
+        second = hasher.hash(
+            [1, Unhashable(), 3], registry=registry_without_fallback, ignore_unhashable=True
+        )
+    assert first == second
 
 
 def test_sequence_hasher_hash_does_not_reuse_cache_across_different_objects(
