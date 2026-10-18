@@ -9,12 +9,12 @@ __all__ = [
     "raise_pyarrow_missing_error",
 ]
 
-from functools import cache
 from typing import TYPE_CHECKING, Any, Never, TypeVar
 
 from coola.utils.imports.universal import (
+    availability_cache,
     decorator_package_available,
-    package_available,
+    module_available,
     raise_package_missing_error,
 )
 
@@ -41,9 +41,10 @@ def check_pyarrow() -> None:
         raise_pyarrow_missing_error()
 
 
-@cache
+@availability_cache
 def is_pyarrow_available() -> bool:
-    r"""Indicate if the ``pyarrow`` package is installed or not.
+    r"""Indicate if the ``pyarrow`` package is installed and can be
+    imported.
 
     Returns:
         ``True`` if ``pyarrow`` is available otherwise ``False``.
@@ -55,7 +56,7 @@ def is_pyarrow_available() -> bool:
 
         ```
     """
-    return package_available("pyarrow")
+    return module_available("pyarrow")
 
 
 def pyarrow_available(fn: F) -> F:

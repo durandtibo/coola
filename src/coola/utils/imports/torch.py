@@ -4,12 +4,12 @@ from __future__ import annotations
 
 __all__ = ["check_torch", "is_torch_available", "raise_torch_missing_error", "torch_available"]
 
-from functools import cache
 from typing import TYPE_CHECKING, Any, Never, TypeVar
 
 from coola.utils.imports.universal import (
+    availability_cache,
     decorator_package_available,
-    package_available,
+    module_available,
     raise_package_missing_error,
 )
 
@@ -36,9 +36,10 @@ def check_torch() -> None:
         raise_torch_missing_error()
 
 
-@cache
+@availability_cache
 def is_torch_available() -> bool:
-    r"""Indicate if the ``torch`` package is installed or not.
+    r"""Indicate if the ``torch`` package is installed and can be
+    imported.
 
     Returns:
         ``True`` if ``torch`` is available otherwise ``False``.
@@ -50,7 +51,7 @@ def is_torch_available() -> bool:
 
         ```
     """
-    return package_available("torch")
+    return module_available("torch")
 
 
 def torch_available(fn: F) -> F:

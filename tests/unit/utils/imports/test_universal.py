@@ -200,3 +200,35 @@ def test_missing_package_error_can_be_caught_as_import_error() -> None:
 def test_missing_package_error_can_still_be_caught_as_runtime_error() -> None:
     with pytest.raises(RuntimeError, match="package is required"):
         check_package("not_a_package")
+
+
+########################################################
+#     Tests for module_available with broken modules   #
+########################################################
+
+
+@pytest.mark.parametrize(
+    "error", [OSError("libfoo.so not found"), RuntimeError("ABI"), AttributeError("x")]
+)
+def test_module_available_broken_module_returns_false_and_warns(
+    error: Exception, caplog: pytest.LogCaptureFixture
+) -> None:
+    name = f"broken_module_{type(error).__name__}"
+    with (
+        patch(f"{MODULE}.importlib.import_module", side_effect=error),
+        caplog.at_level(logging.WARNING, logger=MODULE),
+    ):
+        assert not module_available(name)
+    assert f"The module '{name}' is installed but cannot be imported" in caplog.text
+
+
+def test_module_available_missing_module_does_not_warn(caplog: pytest.LogCaptureFixture) -> None:
+    with caplog.at_level(logging.WARNING, logger=MODULE):
+        assert not module_available("missing_module_without_warning")
+    assert not caplog.records
+
+
+def test_package_available_does_not_import_the_package() -> None:
+    with patch(f"{MODULE}.importlib.import_module", side_effect=OSError("broken")) as mock:
+        assert package_available("json")
+    mock.assert_not_called()

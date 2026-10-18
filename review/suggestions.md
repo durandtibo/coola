@@ -9,7 +9,7 @@ State of the repo when I ran it: `ruff check src` and `ty check` pass, and
 is consistent and carefully tested. The suggestions below are therefore mostly
 correctness edge cases and design consistency, not hygiene.
 
-Items marked **[verified]** were reproduced in a Python session on this checkout.
+Items followed by a _Status_ line have been handled. Items marked **[verified]** were reproduced in a Python session on this checkout.
 The rest are leads from reading the code. The earlier reviews in this folder
 (`src-coola-review.md`, `noqa-review.md`, `python-311-modernization.md`) are not
 repeated here.
@@ -19,6 +19,8 @@ repeated here.
 ## 1. Correctness issues
 
 ### 1.1 Hashing: different values produce the same hash **[verified]** (high)
+
+_(Status: fixed. Hash inputs are namespaced by type: `sequence`, `mapping`, `bytes`, `pydantic`, `Path`, the date class name and the builtin scalar type (`hash_tagged`). Subclasses such as NumPy scalars hash like the builtin value. List and tuple deliberately still hash the same. Not done: `PathHasher` still resolves paths, and the hashers still have no depth guard. All hash values changed.)_
 
 `coola.hashing` hashes scalars with `repr`, strings with their bytes, and containers
 by concatenating child hashes. No hasher mixes a type tag into the digest, so
@@ -55,6 +57,8 @@ Related hashing points:
 
 ### 1.2 `PydanticModelHasher` misses secrets inside tuples and sets **[verified]** (high)
 
+_(Status: fixed. Secrets are found in lists, tuples, sets and frozensets; sets are hashed as sorted lists; the error message names `hash_pydantic_model()`. Not done: the `SecretBytes` / `list[SecretStr]` detection in `display/pydantic.py`.)_
+
 `unwrap_secrets` only walks `dict` and `list`. For a model with
 `t: tuple[SecretStr, ...]`, `model_dump()` gives a tuple, which is returned
 unchanged. `json.dumps(..., default=str)` then writes `'**********'` for every
@@ -76,6 +80,8 @@ with a custom serializer. Also:
 
 ### 1.3 `id()`-keyed result caches in equality handlers (medium)
 
+_(Status: fixed. The `id()` caches were removed from the mapping and sequence handlers and from `SequenceHasher`.)_
+
 `MappingSameValuesHandler` and `SequenceSameValuesHandler` cache `(id(v1), id(v2))`
 per call. This assumes values stay alive for the whole loop. For `Mapping` and
 `Sequence` implementations that create their values on access (lazy views, wrappers
@@ -89,6 +95,8 @@ The same pattern is in `SequenceHasher`.
 
 ### 1.4 NumPy string arrays raise with `equal_nan=True` **[verified]** (medium)
 
+_(Status: fixed. `equal_nan` is only forwarded to NumPy for numeric and datetime dtypes.)_
+
 `objects_are_equal(np.array(['a']), np.array(['a']), equal_nan=True)` raises
 `TypeError: ufunc 'isnan' not supported`. `handler/numpy.py::array_equal` guards the
 tolerance branch with `is_numeric_array` but calls `np.array_equal(..., equal_nan=...)`
@@ -97,11 +105,15 @@ or catch `TypeError` and fall back. Object and datetime arrays deserve a test to
 
 ### 1.5 Scalar tolerance on huge ints **[verified]** (low)
 
+_(Status: fixed. `number_equal` falls back to the exact `int_isclose` when `math.isclose` overflows.)_
+
 `objects_are_allclose(10**400, 10**400 + 1)` raises `OverflowError` from
 `math.isclose`. Fall back to exact comparison or an integer-aware difference when
 either operand is an `int` that does not fit a float.
 
 ### 1.6 `to_flat_dict` / `from_flat_dict` lose data and are not inverses **[verified]** (medium)
+
+_(Status: fixed. Empty containers are kept as leaves, key collisions raise `ValueError`, a `None` leaf no longer hides a nesting conflict, and non-string keys raise `TypeError`. Lists still come back as dicts: the round trip is lossy by design.)_
 
 For `{'a': {}, 'b': [1, 2], 1: 'x', '1': 'y'}`:
 
@@ -119,6 +131,8 @@ Suggestions: raise on key collisions after `str()`, emit empty containers as a l
 
 ### 1.7 `Reducer` backends disagree on the median **[verified]** (medium)
 
+_(Status: fixed. The Torch median averages the two middle values; `TorchReducer` keeps the precision of its input (`float64` for Python lists, the tensor dtype otherwise) and no longer rounds Python floats to `float32` in `max`/`min`/`sort`. Consistency tests compare all reducers. `auto_reducer()` still prefers Torch.)_
+
 For `[1, 2, 3, 4]`: `NativeReducer` and `NumpyReducer` return 2.5, and
 `TorchReducer` returns 2.0 (`torch.median` returns the lower middle value). Because
 `auto_reducer()` prefers Torch when installed, the result depends on which packages
@@ -132,6 +146,8 @@ are installed. Fix by averaging the two middle values in `TorchReducer._median`
   native, and make Torch opt-in.
 
 ### 1.8 `compare()` mutates a global logger (medium)
+
+_(Status: fixed. `EqualityConfig.reporter` and `report_difference()` replace the logger capture: `compare()` takes no lock and changes no logger state. Custom handlers must call `report_difference` to be captured by `compare()`.)_
 
 `equality/result.py::compare` takes a process-wide RLock, then temporarily sets
 `coola.equality` logger level to INFO and `propagate = False`. Consequences:
@@ -150,6 +166,8 @@ the thread-safety limits.
 
 ### 1.9 `_compare` RecursionError rewrite is hard to read (low)
 
+_(Status: fixed. `check_recursion_depth` raises `MaxDepthExceededError` (a `RecursionError`), and `_compare` no longer matches on the message text.)_
+
 `equality/interface.py::_compare` re-raises when `'Maximum recursion depth' in
 str(exc)` and otherwise wraps with a custom message. The string match depends on
 CPython's message text, and the branch that wraps is the surprising one. Add a
@@ -157,6 +175,8 @@ comment on the intent, or catch `RecursionError` once and always raise the frien
 message with `from exc`.
 
 ### 1.10 Small correctness items
+
+_(Status: fixed, except `to_date`: the `.replace(tzinfo=UTC)` is what satisfies the `DTZ007` lint rule, so it was left. `DuplicateKeyError(KeyError, ValueError)` was added for the `nested` mapping helpers; `str_indent` and `timeblock` now raise `ValueError`.)_
 
 - `validation/*`: `validate_non_negative(float('nan'))` and `validate_positive(nan)`
   pass because `nan < 0` is `False`. `EqualityConfig` adds `validate_finite` after
@@ -192,18 +212,20 @@ message with `from exc`.
 
 ### 2.1 Optional-dependency errors should be `ImportError` (medium)
 
+_(Status: fixed. `MissingPackageError(ModuleNotFoundError, RuntimeError)`, `AlreadyRegisteredError(ValueError, RuntimeError)` and `HandlerCycleError(ValueError, RuntimeError)` were added; the old `RuntimeError` is kept as a base class for compatibility. Not done: `decorator_package_available` still returns `None` silently, because it is public API.)_
+
 `utils/imports/universal.py::raise_package_missing_error` and `check_package` raise
 `RuntimeError`. The standard is `ImportError` (or `ModuleNotFoundError`). Callers
 writing `try: ... except ImportError:` will not catch these. `RuntimeError` is also
 used for registry duplicates, cyclic handler chains, lock timeouts and bad arguments,
 which makes `except RuntimeError` meaningless. Proposed mapping:
 
-| Case | Current | Better |
-| --- | --- | --- |
-| Missing optional package | `RuntimeError` | `ImportError` (subclass `ModuleNotFoundError`) |
+| Case                                                | Current        | Better                                                           |
+| --------------------------------------------------- | -------------- | ---------------------------------------------------------------- |
+| Missing optional package                            | `RuntimeError` | `ImportError` (subclass `ModuleNotFoundError`)                   |
 | Duplicate registry key (`register(exist_ok=False)`) | `RuntimeError` | `KeyError`/`ValueError`, or a dedicated `AlreadyRegisteredError` |
-| Bad argument (`str_indent`, `timeblock`) | `RuntimeError` | `ValueError` |
-| Handler cycle | `RuntimeError` | `ValueError` |
+| Bad argument (`str_indent`, `timeblock`)            | `RuntimeError` | `ValueError`                                                     |
+| Handler cycle                                       | `RuntimeError` | `ValueError`                                                     |
 
 Keep a deprecation path: a subclass of both (`class X(ImportError, RuntimeError)`)
 preserves old `except RuntimeError` code.
@@ -213,6 +235,8 @@ missing. A function decorated this way returns `None` instead of failing, which 
 the real error. Prefer `pytest.mark.skipif` semantics only in `coola.testing`.
 
 ### 2.2 `is_xxx_available` uses `find_spec` only (low)
+
+_(Status: fixed. The `is_<package>_available` functions now use `module_available`, which imports the module, so a broken installation is reported as unavailable and a warning with the traceback is logged. `package_available` stays a cheap lookup that does not import. `clear_availability_caches()` resets all the cached checks; the functions are registered by the `availability_cache` decorator, so there is no list to maintain.)_
 
 `package_available` returns `True` if the module can be found, not if it imports.
 A broken install (ABI mismatch, missing shared library) reports "available", then
@@ -538,7 +562,7 @@ Repository layout:
   thread-safe (1.8).
 - State clearly in the hashing docs which types are supported out of the box
   (`str, bytes, int, float, complex, bool, None, list, tuple, dict, date, datetime,
-  Path`, nothing else) and that `set`, NumPy, Torch and pandas objects need a
+Path`, nothing else) and that `set`, NumPy, Torch and pandas objects need a
   registered hasher.
 - `utils/` contains modules unrelated to comparison (`password`, `git`, `date`,
   `file_size`, `text_diff`, `bloom_filter`, `timing`). The earlier review decided to
@@ -549,22 +573,23 @@ Repository layout:
 
 ## 7. Suggested order of work
 
-| # | Item | Effort | Value |
-| --- | --- | --- | --- |
-| 1.2 | Pydantic hasher ignores secrets inside tuples/sets | S | High |
-| 1.1 | Type-tag hash inputs (collisions across types, NumPy repr, Path) | M | High |
-| 1.7 | Torch median disagrees with Native/NumPy; float32 stats | S | High |
-| 1.4 | NumPy string arrays + `equal_nan` raise | S | Medium |
-| 1.3 | Remove or pin objects in the `id()` caches | S | Medium |
-| 1.6 | Flat dict key collisions and lost empty containers | S | Medium |
-| 2.1 | `ImportError` for missing optional packages | M | Medium |
-| 2.13 | `allowed_prefixes` on `resolve_object`, security notes | S | Medium |
-| 2.12 | Move io tester registration out of import time; no-hardlink fallback | M | Medium |
-| 2.9 | Summarizers (and hashers) for pandas/polars/pyarrow/xarray/JAX | M | Medium |
-| 1.8 | Replace logger mutation in `compare()` with a reporter | M | Medium |
-| 2.3 | Collapse tester boilerplate onto `HandlerEqualityTester` | M | Medium |
-| 4 | Fix log-level-dependent timing tests; add differential/property tests | S | Medium |
-| 2.14 | Reset ID generators after fork | S | Low |
-| 5 | Prune ruff config, `fail_under`, minimal-install CI job | S | Low |
-| 3 | Summary `str(data)` ordering, equality fast path for scalar lists | S | Low |
-| 1.10 | Validators reject NaN; assorted small fixes | S | Low |
+| #    | Item                                                                         | Effort | Value  |
+| ---- | ---------------------------------------------------------------------------- | ------ | ------ |
+| 1.2  | ~~Pydantic hasher ignores secrets inside tuples/sets~~ (fixed)               | S      | High   |
+| 1.1  | ~~Type-tag hash inputs (collisions across types, NumPy repr, Path)~~ (fixed) | M      | High   |
+| 1.7  | ~~Torch median disagrees with Native/NumPy; float32 stats~~ (fixed)          | S      | High   |
+| 1.4  | ~~NumPy string arrays + `equal_nan` raise~~ (fixed)                          | S      | Medium |
+| 1.3  | ~~Remove or pin objects in the `id()` caches~~ (fixed)                       | S      | Medium |
+| 1.6  | ~~Flat dict key collisions and lost empty containers~~ (fixed)               | S      | Medium |
+| 2.1  | ~~`ImportError` for missing optional packages~~ (fixed)                      | M      | Medium |
+| 2.13 | `allowed_prefixes` on `resolve_object`, security notes                       | S      | Medium |
+| 2.12 | Move io tester registration out of import time; no-hardlink fallback         | M      | Medium |
+| 2.9  | Summarizers (and hashers) for pandas/polars/pyarrow/xarray/JAX               | M      | Medium |
+| 1.8  | ~~Replace logger mutation in `compare()` with a reporter~~ (fixed)           | M      | Medium |
+| 2.3  | Collapse tester boilerplate onto `HandlerEqualityTester`                     | M      | Medium |
+| 4    | Fix log-level-dependent timing tests; add differential/property tests        | S      | Medium |
+| 2.2  | ~~Availability checks should detect broken installs; cache reset~~ (fixed)   | S      | Low    |
+| 2.14 | Reset ID generators after fork                                               | S      | Low    |
+| 5    | Prune ruff config, `fail_under`, minimal-install CI job                      | S      | Low    |
+| 3    | Summary `str(data)` ordering, equality fast path for scalar lists            | S      | Low    |
+| 1.10 | ~~Validators reject NaN; assorted small fixes~~ (fixed)                      | S      | Low    |

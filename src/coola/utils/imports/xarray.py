@@ -4,12 +4,12 @@ from __future__ import annotations
 
 __all__ = ["check_xarray", "is_xarray_available", "raise_xarray_missing_error", "xarray_available"]
 
-from functools import cache
 from typing import TYPE_CHECKING, Any, Never, TypeVar
 
 from coola.utils.imports.universal import (
+    availability_cache,
     decorator_package_available,
-    package_available,
+    module_available,
     raise_package_missing_error,
 )
 
@@ -36,9 +36,10 @@ def check_xarray() -> None:
         raise_xarray_missing_error()
 
 
-@cache
+@availability_cache
 def is_xarray_available() -> bool:
-    r"""Indicate if the ``xarray`` package is installed or not.
+    r"""Indicate if the ``xarray`` package is installed and can be
+    imported.
 
     Returns:
         ``True`` if ``xarray`` is available otherwise ``False``.
@@ -50,7 +51,7 @@ def is_xarray_available() -> bool:
 
         ```
     """
-    return package_available("xarray")
+    return module_available("xarray")
 
 
 def xarray_available(fn: F) -> F:

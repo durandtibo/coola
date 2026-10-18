@@ -9,12 +9,12 @@ __all__ = [
     "rich_available",
 ]
 
-from functools import cache
 from typing import TYPE_CHECKING, Any, Never, TypeVar
 
 from coola.utils.imports.universal import (
+    availability_cache,
     decorator_package_available,
-    package_available,
+    module_available,
     raise_package_missing_error,
 )
 
@@ -41,9 +41,10 @@ def check_rich() -> None:
         raise_rich_missing_error()
 
 
-@cache
+@availability_cache
 def is_rich_available() -> bool:
-    r"""Indicate if the ``rich`` package is installed or not.
+    r"""Indicate if the ``rich`` package is installed and can be
+    imported.
 
     Returns:
         ``True`` if ``rich`` is available otherwise ``False``.
@@ -55,7 +56,7 @@ def is_rich_available() -> bool:
 
         ```
     """
-    return package_available("rich")
+    return module_available("rich")
 
 
 def rich_available(fn: F) -> F:
