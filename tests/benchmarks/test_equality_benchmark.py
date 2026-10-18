@@ -56,3 +56,9 @@ def test_objects_are_allclose_flat_list_benchmark(benchmark) -> None:  # noqa: A
     data = [float(i) for i in range(10_000)]
     other = [float(i) for i in range(10_000)]
     assert benchmark(objects_are_allclose, data, other)
+
+
+def test_objects_are_equal_large_float_list_benchmark(benchmark) -> None:  # noqa: ANN001
+    data = [float(i) for i in range(100_000)]
+    other = [float(i) for i in range(100_000)]
+    assert benchmark(objects_are_equal, data, other)
