@@ -10,6 +10,8 @@ from typing import TYPE_CHECKING
 from coola.validation import validate_finite, validate_non_negative, validate_positive
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from coola.equality.tester.registry import EqualityTesterRegistry
 
 
@@ -51,6 +53,12 @@ class EqualityConfig:
             comparisons. Must be positive. Defaults to 1000.
             Set to a lower value to protect against stack overflow
             with extremely deeply nested structures.
+        reporter: An optional callable that receives the differences
+            found while ``show_difference`` is ``True``. It is called
+            with the message and the location of the difference in the
+            compared objects (relative to the current nesting level).
+            When it is set, the differences are sent to it instead of
+            being logged. Defaults to ``None`` (log the differences).
 
     Raises:
         ValueError: if ``atol`` or ``rtol`` is negative or not finite, or if
@@ -72,6 +80,9 @@ class EqualityConfig:
     rtol: float = 0.0
     show_difference: bool = False
     max_depth: int = 1000
+    reporter: Callable[[str, tuple[object, ...]], None] | None = field(
+        default=None, repr=False, compare=False
+    )
     _current_depth: int = field(default=0, init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:

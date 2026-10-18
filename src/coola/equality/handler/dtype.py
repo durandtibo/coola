@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any, Protocol
 
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.mixin import HandlerEqualityMixin
+from coola.equality.handler.utils import report_difference
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -63,8 +64,12 @@ class SameDTypeHandler(HandlerEqualityMixin, BaseEqualityHandler):
     ) -> bool:
         if actual.dtype != expected.dtype:
             if config.show_difference:
-                logger.info(
-                    "objects have different data types: %s vs %s", actual.dtype, expected.dtype
+                report_difference(
+                    logger,
+                    config,
+                    "objects have different data types: %s vs %s",
+                    actual.dtype,
+                    expected.dtype,
                 )
             return False
         return self._handle_next(actual, expected, config=config)

@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any, cast
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
+from coola.equality.handler.utils import report_difference
 from coola.utils.imports import is_pandas_available
 
 if TYPE_CHECKING or is_pandas_available():
@@ -63,8 +64,10 @@ class PandasDataFrameEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     ) -> bool:
         object_equal = frame_equal(actual, expected, config)
         if config.show_difference and not object_equal:
-            logger.info(
-                format_value_difference(actual=actual, expected=expected, name="pandas.DataFrames")
+            report_difference(
+                logger,
+                config,
+                format_value_difference(actual=actual, expected=expected, name="pandas.DataFrames"),
             )
         return object_equal
 
@@ -100,8 +103,10 @@ class PandasSeriesEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     ) -> bool:
         object_equal = series_equal(actual, expected, config)
         if config.show_difference and not object_equal:
-            logger.info(
-                format_value_difference(actual=actual, expected=expected, name="pandas.Series")
+            report_difference(
+                logger,
+                config,
+                format_value_difference(actual=actual, expected=expected, name="pandas.Series"),
             )
         return object_equal
 

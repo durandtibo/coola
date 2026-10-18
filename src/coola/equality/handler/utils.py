@@ -2,16 +2,82 @@ r"""Contain utilities for handlers."""
 
 from __future__ import annotations
 
-__all__ = ["check_recursion_depth", "create_chain", "handlers_are_equal"]
+__all__ = [
+    "MaxDepthExceededError",
+    "check_recursion_depth",
+    "create_chain",
+    "handlers_are_equal",
+    "report_difference",
+]
 
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    import logging
     from collections.abc import Generator
 
     from coola.equality.config import EqualityConfig
     from coola.equality.handler.base import BaseEqualityHandler
+
+
+class MaxDepthExceededError(RecursionError):
+    r"""Raised when the nesting of the compared objects exceeds the
+    ``max_depth`` of the equality configuration.
+
+    It derives from ``RecursionError`` for backward compatibility. It
+    allows telling this error apart from the interpreter's own stack
+    overflow, which is also a ``RecursionError``.
+    """
+
+
+def report_difference(
+    logger: logging.Logger,
+    config: EqualityConfig,
+    msg: str,
+    *args: object,
+    extra: dict[str, object] | None = None,
+) -> None:
+    r"""Report a difference found while comparing two objects.
+
+    If the configuration has a ``reporter``, the formatted message is
+    sent to it together with the location of the difference, and
+    nothing is logged. Otherwise, the message is logged at the ``INFO``
+    level with ``logger``.
+
+    Handlers should call this function (instead of ``logger.info``) when
+    ``config.show_difference`` is ``True``.
+
+    Args:
+        logger: The logger used when there is no reporter.
+        config: The equality configuration.
+        msg: The message, optionally with ``%`` placeholders.
+        *args: The values for the placeholders of ``msg``.
+        extra: Extra information about the difference. The
+            ``"coola_path"`` entry is a tuple with the location of the
+            difference in the compared objects, relative to the current
+            level of nesting.
+
+    Example:
+        ```pycon
+        >>> import logging
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.handler import report_difference
+        >>> reports = []
+        >>> config = EqualityConfig(reporter=lambda msg, path: reports.append((msg, path)))
+        >>> report_difference(
+        ...     logging.getLogger(), config, "different %s", "values", extra={"coola_path": ("a",)}
+        ... )
+        >>> reports
+        [('different values', ('a',))]
+
+        ```
+    """
+    if config.reporter is None:
+        logger.info(msg, *args, extra=extra)
+        return
+    path = (extra or {}).get("coola_path", ())
+    config.reporter(msg % args if args else msg, path)  # type: ignore[arg-type]
 
 
 def create_chain(*handlers: BaseEqualityHandler) -> BaseEqualityHandler:
@@ -98,7 +164,7 @@ def check_recursion_depth(config: EqualityConfig) -> Generator[None]:
         ``None``.
 
     Raises:
-        RecursionError: if the current depth exceeds max_depth.
+        MaxDepthExceededError: if the current depth exceeds max_depth.
 
     Example:
         ```pycon
@@ -117,7 +183,7 @@ def check_recursion_depth(config: EqualityConfig) -> Generator[None]:
             f"Maximum recursion depth ({config.max_depth}) exceeded. "
             f"Consider increasing max_depth parameter or simplifying the data structure."
         )
-        raise RecursionError(msg)
+        raise MaxDepthExceededError(msg)
     config.increment_depth()
     try:
         yield

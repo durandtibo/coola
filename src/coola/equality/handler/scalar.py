@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
+from coola.equality.handler.utils import report_difference
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -80,7 +81,11 @@ class ScalarEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     def handle(self, actual: float, expected: float, config: EqualityConfig) -> bool:
         object_equal = number_equal(actual, expected, config)
         if not object_equal and config.show_difference:
-            logger.info(format_value_difference(actual=actual, expected=expected, name="numbers"))
+            report_difference(
+                logger,
+                config,
+                format_value_difference(actual=actual, expected=expected, name="numbers"),
+            )
         return object_equal
 
 

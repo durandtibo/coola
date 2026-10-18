@@ -21,6 +21,7 @@ from coola.equality.handler.format import (
     format_value_difference,
 )
 from coola.equality.handler.mixin import HandlerEqualityMixin
+from coola.equality.handler.utils import report_difference
 
 if TYPE_CHECKING:
     from collections.abc import Sized
@@ -119,7 +120,9 @@ class ObjectEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     ) -> bool:
         object_equal = actual == expected
         if config.show_difference and not object_equal:
-            logger.info(format_value_difference(actual=actual, expected=expected))
+            report_difference(
+                logger, config, format_value_difference(actual=actual, expected=expected)
+            )
         return object_equal
 
 
@@ -171,7 +174,14 @@ class SameAttributeHandler(HandlerEqualityMixin, BaseEqualityHandler):
         value2 = getattr(expected, self._name)
         if not config.registry.objects_are_equal(value1, value2, config):
             if config.show_difference:
-                logger.info("objects have different %s: %s vs %s", self._name, value1, value2)
+                report_difference(
+                    logger,
+                    config,
+                    "objects have different %s: %s vs %s",
+                    self._name,
+                    value1,
+                    value2,
+                )
             return False
         return self._handle_next(actual, expected, config=config)
 
@@ -202,7 +212,9 @@ class SameLengthHandler(HandlerEqualityMixin, BaseEqualityHandler):
     ) -> bool:
         if len(actual) != len(expected):
             if config.show_difference:
-                logger.info(
+                report_difference(
+                    logger,
+                    config,
                     "objects have different lengths: %s vs %s",
                     f"{len(actual):,}",
                     f"{len(expected):,}",
@@ -267,6 +279,6 @@ class SameTypeHandler(HandlerEqualityMixin, BaseEqualityHandler):
         if type(actual) is not type(expected):
             if config.show_difference:
                 message = format_type_difference(type(actual), type(expected))
-                logger.info(message)
+                report_difference(logger, config, message)
             return False
         return self._handle_next(actual, expected, config=config)

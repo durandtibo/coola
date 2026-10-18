@@ -12,6 +12,7 @@ from coola.equality.handler.allclose import SupportsAllCloseNan
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
+from coola.equality.handler.utils import report_difference
 from coola.utils.introspection import supports_methods
 
 if TYPE_CHECKING:
@@ -125,6 +126,8 @@ class TolerantEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
             result = actual.equal(expected, equal_nan=config.equal_nan)
         if not result:
             if config.show_difference:
-                logger.info(format_value_difference(actual=actual, expected=expected))
+                report_difference(
+                    logger, config, format_value_difference(actual=actual, expected=expected)
+                )
             return False
         return True

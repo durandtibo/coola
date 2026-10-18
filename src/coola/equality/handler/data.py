@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any, Protocol
 
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.mixin import HandlerEqualityMixin
+from coola.equality.handler.utils import report_difference
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -58,6 +59,12 @@ class SameDataHandler(HandlerEqualityMixin, BaseEqualityHandler):
     def handle(self, actual: SupportsData, expected: SupportsData, config: EqualityConfig) -> bool:
         if not config.registry.objects_are_equal(actual.data, expected.data, config):
             if config.show_difference:
-                logger.info("objects have different data: %s vs %s", actual.data, expected.data)
+                report_difference(
+                    logger,
+                    config,
+                    "objects have different data: %s vs %s",
+                    actual.data,
+                    expected.data,
+                )
             return False
         return self._handle_next(actual, expected, config=config)

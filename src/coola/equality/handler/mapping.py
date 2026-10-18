@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_mapping_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
-from coola.equality.handler.utils import check_recursion_depth
+from coola.equality.handler.utils import check_recursion_depth, report_difference
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -48,10 +48,12 @@ class MappingSameKeysHandler(HandlerEqualityMixin, BaseEqualityHandler):
         keys2 = set(expected.keys())
         if keys1 != keys2:
             if config.show_difference:
-                logger.info(
+                report_difference(
+                    logger,
+                    config,
                     format_mapping_difference(
                         missing_keys=keys1 - keys2, additional_keys=keys2 - keys1
-                    )
+                    ),
                 )
             return False
         return self._handle_next(actual, expected, config=config)
@@ -107,7 +109,9 @@ class MappingSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
                 value1, value2 = actual[key], expected[key]
                 if not config.registry.objects_are_equal(value1, value2, config):
                     if config.show_difference:
-                        logger.info(
+                        report_difference(
+                            logger,
+                            config,
                             format_mapping_difference(different_value_key=key),
                             extra={"coola_path": (key,), "coola_path_kind": "key"},
                         )

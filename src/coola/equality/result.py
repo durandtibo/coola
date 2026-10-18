@@ -9,21 +9,15 @@ __all__ = [
     "compare",
 ]
 
-import logging
-import threading
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from coola.equality.config import EqualityConfig
 from coola.equality.tester.interface import get_default_registry
-from coola.utils.logging import CaptureHandler
 from coola.validation import validate_non_negative
 
 if TYPE_CHECKING:
     from coola.equality.tester.registry import EqualityTesterRegistry
-
-_LOGGER_NAME = "coola.equality"
-_capture_lock = threading.RLock()
 
 
 @dataclass(frozen=True, slots=True)
@@ -112,11 +106,13 @@ def compare(
     Comparison stops at the first difference.
 
     Note:
-        The difference is collected from the records the equality
-        handlers log while comparing. While this function runs,
-        the ``coola.equality`` logger is temporarily set to ``INFO``
-        and does not propagate to parent loggers, so nothing is
-        emitted to the user's logging handlers.
+        The difference is collected from the reports the equality
+        handlers send to the ``reporter`` of the comparison
+        configuration (see ``report_difference``). Nothing is logged,
+        and no global state is modified, so this function can be called
+        concurrently from several threads. Custom handlers that write
+        to a logger directly instead of calling ``report_difference``
+        are not captured, and the result then has no explanation.
 
     Args:
         actual: The actual object.
@@ -159,27 +155,17 @@ def compare(
         rtol=rtol,
         max_depth=max_depth,
     )
-    capture = CaptureHandler()
-    logger = logging.getLogger(_LOGGER_NAME)
-    with _capture_lock:
-        level, propagate = logger.level, logger.propagate
-        logger.addHandler(capture)
-        logger.setLevel(logging.INFO)
-        logger.propagate = False
-        try:
-            equal = registry.objects_are_equal(actual, expected, config)
-        finally:
-            logger.removeHandler(capture)
-            logger.setLevel(level)
-            logger.propagate = propagate
+    reports: list[tuple[str, tuple[object, ...]]] = []
+    config.reporter = lambda message, path: reports.append((message, path))
+    equal = registry.objects_are_equal(actual, expected, config)
     if equal:
         return ComparisonResult(True, actual=repr(actual), expected=repr(expected))
-    # Handlers log innermost differences first: the outermost path
-    # component is logged last.
+    # Handlers report innermost differences first: the outermost path
+    # component is reported last.
     path: list[object] = []
-    for record in reversed(capture.records):
-        path.extend(getattr(record, "coola_path", ()))
-    reason = capture.records[0].getMessage() if capture.records else None
+    for _, location in reversed(reports):
+        path.extend(location)
+    reason = reports[0][0] if reports else None
     return ComparisonResult(
         False, tuple(path), reason, actual=repr(actual), expected=repr(expected)
     )
