@@ -113,7 +113,10 @@ class PolarsLazyFrameEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         expected: pl.LazyFrame,
         config: EqualityConfig,
     ) -> bool:
-        object_equal = frame_equal(actual.collect(), expected.collect(), config)
+        # Compare the schemas first to fail fast without collecting the data.
+        object_equal = actual.collect_schema() == expected.collect_schema() and frame_equal(
+            actual.collect(), expected.collect(), config
+        )
         if config.show_difference and not object_equal:
             report_difference(
                 logger,
