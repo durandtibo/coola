@@ -67,6 +67,7 @@ def test_to_array_numpy() -> None:
         )
 
 
+@numpy_available
 @torch_available
 def test_to_array_tensor_requires_grad() -> None:
     x = torch.tensor([1.0, 2.0], requires_grad=True)
