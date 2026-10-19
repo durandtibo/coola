@@ -344,6 +344,17 @@ ValueError: Cycle detected: an object of type <class 'list'> contains itself
 A custom child finder for leaf types must override `is_leaf` to return `True` (like
 `DefaultChildFinder`) so `bfs_iterate` yields the value instead of expanding it.
 
+## Properties
+
+| Property                     | Statement                                                                                                                               |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Lazy                         | Both `dfs_iterate` and `bfs_iterate` are generators: leaves are produced one at a time.                                                 |
+| Every leaf is returned       | A container that appears several times, without containing itself, gives its leaves each time.                                          |
+| Cycle-safe                   | A container that contains itself raises `ValueError` instead of looping forever or hitting the recursion limit.                         |
+| Iterators are leaves         | The default registries never consume an iterator or a generator, so an infinite iterator cannot hang the traversal.                     |
+| Same leaves, different order | DFS and BFS visit the same leaves. Only the order differs.                                                                              |
+| Extensible                   | Support for a new container type is added with a child finder that registers its children. `is_leaf` must return `True` for leaf types. |
+
 ## Design Principles
 
 The `coola.iterator` package design provides:

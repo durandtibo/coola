@@ -74,6 +74,16 @@ ValueError: count must be greater than 1, got 1
 
 ```
 
+## Properties
+
+| Property            | Statement                                                                                                  |
+| ------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Silent on success   | Every function returns `None` when the value is valid.                                                     |
+| Standard exceptions | A wrong type raises `TypeError`. A wrong value raises `ValueError`. No custom exception class is involved. |
+| Informative message | The message names the argument (`name`, default `"value"`), the constraint and the value received.         |
+| Pure                | Validators do not modify the value and have no side effect.                                                |
+| Keyword-only `name` | `name` can only be passed by keyword, so a call cannot mix it up with a bound.                             |
+
 ## See Also
 
 - [`coola.identifier`](identifier.md): Uses a similar internal validation helper module for its

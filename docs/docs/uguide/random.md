@@ -342,6 +342,18 @@ The `coola.random` package design provides:
 4. **Context managers**: Temporarily set seeds without affecting global state
 5. **Extensibility**: Easy to add support for new random number generators
 
+## Properties
+
+| Property                | Statement                                                                                                                                        |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| One call, all libraries | `manual_seed` seeds `random`, and NumPy and PyTorch when they are installed.                                                                     |
+| Global generators only  | Only `random.seed`, `numpy.random.seed` and `torch.manual_seed` are managed. `random.Random()`, `default_rng()` and `torch.Generator()` are not. |
+| Restorable              | `get_rng_state` and `set_rng_state` save and restore the state of every managed library.                                                         |
+| Scoped seeding          | `random_seed` restores the original state when the block exits.                                                                                  |
+| Optional dependencies   | A library that is not installed is skipped, not an error.                                                                                        |
+| NumPy seed folding      | The NumPy seed is `seed % 2**32`, so `1` and `2**32 + 1` give the same numbers.                                                                  |
+| Extensible              | A manager for another generator can be registered.                                                                                               |
+
 ## Best Practices
 
 ### Always Use Context Managers When Possible

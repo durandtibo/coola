@@ -69,6 +69,16 @@ MyClass(
 
 ```
 
+## Properties
+
+| Property             | Statement                                                                                                         |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| One hook             | A subclass only implements `_get_repr_kwargs`. `__repr__` and `__str__` come from the mixin.                      |
+| Consistent format    | All the objects that use a mixin share the same layout: `Name(key=value)` inline, or one `(key): value` per line. |
+| `repr` vs `str`      | `__repr__` shows the `repr` of the values, and `__str__` shows their `str`.                                       |
+| Safe terminal output | The colored logging is used only if `colorlog` is installed and the output is a terminal. Otherwise it is plain.  |
+| Respects the logger  | `logging.basicConfig` does nothing if the root logger already has handlers, unless `force=True`.                  |
+
 ## Formatting pydantic models
 
 `str_pydantic_model` and `repr_pydantic_model` produce a single-line, sorted representation of

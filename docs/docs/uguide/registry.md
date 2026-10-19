@@ -436,6 +436,17 @@ The `coola.registry` package design provides:
 4. **Performance**: Caching in `TypeRegistry` for efficient type resolution
 5. **Standard interface**: Dictionary-like operations for familiar API
 
+## Properties
+
+| Property                   | Statement                                                                                                              |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Thread-safe                | Reads and writes are protected by a reentrant lock (`threading.RLock`).                                                |
+| No silent overwrite        | Registering an existing key raises `AlreadyRegisteredError`, unless `exist_ok=True`.                                   |
+| Backward-compatible errors | A missing key raises `KeyNotRegisteredError`, and a missing type raises `TypeNotRegisteredError`. Both are `KeyError`. |
+| Most specific type wins    | `TypeRegistry.resolve` follows the Method Resolution Order.                                                            |
+| Cached resolution          | `TypeRegistry` caches the resolution of types for speed.                                                               |
+| Generic typing             | Both registries are generic in their key and value types.                                                              |
+
 ## Comparison: Registry vs TypeRegistry
 
 | Feature    | Registry                  | TypeRegistry              |
