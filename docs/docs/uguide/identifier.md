@@ -397,15 +397,16 @@ ValueError: prefix must not contain '_', got 'cus_tom'
 
 ## Properties
 
-| Property                       | Statement                                                                                                                            |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Stable IDs are content-derived | `generate_stable_uuid5` and `generate_stable_content_id` give the same ID for equal data, regardless of the mapping insertion order. |
-| Collision resistance           | `generate_stable_uuid5` is bounded by SHA-1. `generate_stable_content_id` keeps the strength of the underlying hash.                 |
-| Time-ordered IDs sort          | ULID, UUIDv7 and Snowflake IDs sort in creation order. They are monotonic within a process when the current time is used.            |
-| Not ordered across processes   | Two processes that mint an ID in the same millisecond do not give ordered IDs.                                                       |
-| Snowflake uniqueness           | It holds for the calls that share a generator. Give each concurrent generator, including each fork, its own `worker_id`.             |
-| Thread-safe Snowflake          | `generate_snowflake_id` can be called from several threads.                                                                          |
-| Recoverable timestamp          | The time-ordered generators have a matching `extract_*` function.                                                                    |
+| Property                       | Statement                                                                                                                                          |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Stable IDs are content-derived | `generate_stable_uuid5` and `generate_stable_content_id` give the same ID for equal data, regardless of the mapping insertion order.               |
+| Collision resistance           | `generate_stable_uuid5` is bounded by SHA-1. `generate_stable_content_id` keeps the strength of the underlying hash.                               |
+| Time-ordered IDs sort          | ULID, UUIDv7 and Snowflake IDs sort in creation order. They are monotonic within a process when the current time is used.                          |
+| Not ordered across processes   | Two processes that mint an ID in the same millisecond do not give ordered IDs.                                                                     |
+| Snowflake uniqueness           | It holds for the calls that share a generator. Give each concurrent generator, including each fork, its own `worker_id`.                           |
+| Thread-safe Snowflake          | `generate_snowflake_id` can be called from several threads.                                                                                        |
+| Recoverable timestamp          | The time-ordered generators have a matching `extract_*` function.                                                                                  |
+| Extensible                     | `generate_prefixed_id` wraps any generator, including a custom callable, and `SnowflakeIdGenerator` can be instantiated for an isolated generator. |
 
 The stable IDs inherit the [hashing](hashing.md) properties, including the fact that they can change between versions of `coola`.
 

@@ -189,6 +189,7 @@ The built-in loaders and savers are designed around the following properties.
 | Format-agnostic API      | Every loader has `load(path)` and every saver has `save(data, path, exist_ok=...)`, so formats can be swapped without changing the calling code.                                            |
 | Comparable               | Loaders and savers implement `equal()`: two of them are equal if they have the same type and the same configuration (e.g. encoding or keyword arguments).                                   |
 | Safe by default for load | `TorchLoader` uses `weights_only=True` unless told otherwise. `PickleLoader` cannot be made safe: only load pickle files that you trust.                                                    |
+| Extensible               | A loader or saver for another format is added by subclassing `BaseLoader` or `BaseFileSaver`, which reuses the atomic write and `exist_ok` handling.                                        |
 
 Not guaranteed:
 

@@ -549,6 +549,7 @@ def test_load_data_without_pandas():
 | Paired markers  | Each dependency has a marker to run a test only if it is installed, and one only if it is not.   |
 | Skip, not fail  | A test whose condition is not met is skipped with a message that names the dependency.           |
 | Standard pytest | The markers are `pytest.mark.skipif` decorators, so they combine with the other pytest features. |
+| Extensible      | `requires` creates the pair of markers for another dependency, like for the built-in ones.       |
 
 ## Design Principles
 

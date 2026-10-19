@@ -315,6 +315,7 @@ The `coola.reducer` package follows these design principles:
 | Explicit empty case   | `max`, `min`, `mean`, `median`, `std` and `quantile` raise `EmptySequenceError` on an empty sequence.              |
 | Empty sort is defined | `sort([])` returns `[]`.                                                                                           |
 | Automatic backend     | `auto_reducer()` selects the best backend that is available.                                                       |
+| Extensible            | A reducer for another backend is added by subclassing `BaseReducer` or `BaseBasicReducer`.                         |
 
 Not guaranteed: results can differ between backends at the level of floating point precision.
 
