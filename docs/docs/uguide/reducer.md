@@ -307,6 +307,18 @@ The `coola.reducer` package follows these design principles:
 4. **Clear error handling**: Explicit `EmptySequenceError` for operations on empty sequences
 5. **Type safety**: Generic types ensure type correctness
 
+## Properties
+
+| Property              | Statement                                                                                                          |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Same interface        | `NativeReducer`, the NumPy reducer and the PyTorch reducer implement `BaseReducer`, so the backend can be swapped. |
+| Explicit empty case   | `max`, `min`, `mean`, `median`, `std` and `quantile` raise `EmptySequenceError` on an empty sequence.              |
+| Empty sort is defined | `sort([])` returns `[]`.                                                                                           |
+| Automatic backend     | `auto_reducer()` selects the best backend that is available.                                                       |
+| Extensible            | A reducer for another backend is added by subclassing `BaseReducer` or `BaseBasicReducer`.                         |
+
+Not guaranteed: results can differ between backends at the level of floating point precision.
+
 ## Advanced Usage
 
 ### Creating a Custom Reducer

@@ -141,6 +141,16 @@ available in `resolve_loader`, `resolve_saver`, `is_object_config`, `is_loader_c
 This is a mitigation, not a sandbox: it limits _what_ can be called, not the arguments it is called
 with. Only allow objects that are safe to call with arbitrary arguments.
 
+## Properties
+
+| Property                  | Statement                                                                                                                      |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Explicit target           | The object to import or call is named only by the `_target_` key. The other keys are passed as keyword arguments.              |
+| Fails loudly              | A target that cannot be imported raises `ImportError`, and a missing object is never replaced by a default.                    |
+| Opt-in restriction        | `allowed_prefixes` is checked **before** the module is imported. Without it, any importable object can be called.              |
+| Not widenable by the data | The `allowed_prefixes` argument of the caller replaces the `_allowed_prefixes_` key, so a configuration cannot widen the list. |
+| Not a sandbox             | The restriction limits _what_ is called, not the arguments. Never resolve an untrusted configuration without it.               |
+
 ## Checking if a configuration targets a class
 
 `is_object_config` checks whether the `_target_` of a configuration resolves to (or returns,

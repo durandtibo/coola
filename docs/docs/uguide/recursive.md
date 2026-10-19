@@ -170,6 +170,17 @@ You can extend the default registry to support custom types:
 
 ```
 
+## Properties
+
+| Property             | Statement                                                                                                               |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Type dispatch        | The transformer is chosen from the type of the data, along the Method Resolution Order, so the most specific type wins. |
+| Structure-preserving | A container is rebuilt with the transformed children, so the nesting of the output matches the input.                   |
+| Registry-extensible  | A new type is supported by registering a transformer, without changing the existing ones.                               |
+| Lazy traversal       | The traversal relies on generators and does not load the whole structure at once.                                       |
+
+Not guaranteed: self-referencing containers are not detected, so they must not be passed to a transformer.
+
 ## Design Principles
 
 The `coola.recursive` package design is inspired by the DFS pattern and provides:

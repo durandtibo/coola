@@ -174,6 +174,30 @@ overwritten. On filesystems without hard link support (FAT/exFAT, some network a
 volumes), `save` falls back to checking that the target does not exist and renaming the temporary
 file.
 
+## Properties
+
+The built-in loaders and savers are designed around the following properties.
+
+| Property                 | Statement                                                                                                                                                                                   |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Atomic write             | A file saver writes to a temporary file next to the target and then moves it into place, so a reader never sees a partially written file, and an interrupted `save` leaves no partial file. |
+| No silent overwrite      | `save` raises `FileExistsError` if the target exists, unless `exist_ok=True`. This also holds if the file is created concurrently, because the commit uses a hard link.                     |
+| Concurrency-safe         | Concurrent saves of the same path, in one process or in several, are serialized and never interleave. Which call's data ends up on disk is the last one to take the lock.                   |
+| Opt-in durability        | By default the data only reaches the operating system cache. `fsync=True` flushes the file and the directory, so the file survives a power failure. It is slower.                           |
+| Clean failure            | If writing fails, the temporary file is removed and the original exception is raised, even if the cleanup itself fails. An existing target file is left untouched.                          |
+| Directory safety         | A path that is a directory raises `IsADirectoryError`. Missing parent directories are created.                                                                                              |
+| Format-agnostic API      | Every loader has `load(path)` and every saver has `save(data, path, exist_ok=...)`, so formats can be swapped without changing the calling code.                                            |
+| Comparable               | Loaders and savers implement `equal()`: two of them are equal if they have the same type and the same configuration (e.g. encoding or keyword arguments).                                   |
+| Safe by default for load | `TorchLoader` uses `weights_only=True` unless told otherwise. `PickleLoader` cannot be made safe: only load pickle files that you trust.                                                    |
+| Extensible               | A loader or saver for another format is added by subclassing `BaseLoader` or `BaseFileSaver`, which reuses the atomic write and `exist_ok` handling.                                        |
+
+Not guaranteed:
+
+- Round trip beyond the format: JSON turns tuples into lists and non-string keys into strings,
+  and text files store `str(data)` for non-string data.
+- Durability without `fsync=True`.
+- Which of several concurrent saves wins.
+
 ## Comparing Loaders and Savers
 
 Loaders and savers implement `equal()` so they can be compared, including with

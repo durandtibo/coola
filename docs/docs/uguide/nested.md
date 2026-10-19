@@ -335,6 +335,15 @@ The `coola.nested` package follows these design principles:
 3. **Non-destructive**: All functions return new data structures; original data is unchanged
 4. **Predictable**: Consistent behavior across different data structures
 
+## Properties
+
+| Property         | Statement                                                                                                |
+| ---------------- | -------------------------------------------------------------------------------------------------------- |
+| Non-destructive  | The functions return new data structures. The input is not modified.                                     |
+| Type-agnostic    | They work with the generic Python types (`dict`, `list`, `tuple`), not with a specific library.          |
+| Predictable      | The same operation behaves the same way on every supported structure.                                    |
+| Explicit failure | An operation without a defined result raises, e.g. `ValueError` for the first value of an empty mapping. |
+
 ## See Also
 
 - [`coola.recursive`](recursive.md): For recursively transforming nested data

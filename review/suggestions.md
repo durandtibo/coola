@@ -663,35 +663,35 @@ Repository layout:
 
 Everything is done unless the status says otherwise. Open items are in **bold**.
 
-| #    | Item                                                             | Status                                                          |
-| ---- | ---------------------------------------------------------------- | --------------------------------------------------------------- |
-| 1.1  | Type-tag hash inputs (collisions across types, NumPy repr, Path) | Fixed (`Path` still resolved)                                   |
-| 1.2  | Pydantic hasher ignores secrets inside tuples/sets               | Fixed                                                           |
-| 1.3  | Remove the `id()` caches                                         | Fixed                                                           |
-| 1.4  | NumPy string arrays + `equal_nan` raise                          | Fixed                                                           |
-| 1.5  | Scalar tolerance on huge ints                                    | Fixed                                                           |
-| 1.6  | Flat dict key collisions and lost empty containers               | Fixed                                                           |
-| 1.7  | Torch median disagrees with Native/NumPy; float32 stats          | Fixed                                                           |
-| 1.8  | Replace logger mutation in `compare()` with a reporter           | Fixed                                                           |
-| 1.9  | `_compare` RecursionError rewrite                                | Fixed                                                           |
-| 1.10 | Validators reject NaN; assorted small fixes                      | Fixed (`to_date` kept)                                          |
-| 2.1  | `ImportError` for missing optional packages                      | Fixed                                                           |
-| 2.2  | Availability checks detect broken installs; cache reset          | Fixed                                                           |
-| 2.3  | Collapse tester boilerplate                                      | Fixed                                                           |
-| 2.4  | `is_same_type` for the `equal()` checks                          | Fixed                                                           |
-| 2.5  | Registry duplicate-key semantics                                 | Fixed (no `issubclass` fallback, by decision)                   |
-| 2.6  | `get_default_*_registry` aliases                                 | Kept, by decision                                               |
-| 2.7  | Package-level exports                                            | Kept, by decision                                               |
-| 2.8  | `KeyFilterTransformer` signature                                 | Fixed                                                           |
-| 2.9  | Summarizers for pandas/polars/pyarrow/xarray/JAX                 | Fixed (**no hashers**, by decision)                             |
-| 2.10 | BFS/DFS iterators: leaves, `is_leaf`, cycles                     | Fixed                                                           |
-| 2.11 | `random` package                                                 | Fixed (NumPy seed folding documented)                           |
-| 2.12 | `io` package                                                     | Fixed                                                           |
-| 2.13 | `allowed_prefixes` on `resolve_object`, security notes           | Fixed                                                           |
-| 2.14 | Identifiers: fork safety, monotonic ULID/UUIDv7                  | Fixed                                                           |
-| 2.15 | `testing.fixtures` repetition                                    | Fixed                                                           |
-| 2.16 | Naming and lazy `torch` import                                   | Fixed                                                           |
-| 3    | Performance                                                      | Fixed or benchmarked (#1999 to #2003)                           |
+| #    | Item                                                             | Status                                                                                                                                                 |
+| ---- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1.1  | Type-tag hash inputs (collisions across types, NumPy repr, Path) | Fixed (`Path` still resolved)                                                                                                                          |
+| 1.2  | Pydantic hasher ignores secrets inside tuples/sets               | Fixed                                                                                                                                                  |
+| 1.3  | Remove the `id()` caches                                         | Fixed                                                                                                                                                  |
+| 1.4  | NumPy string arrays + `equal_nan` raise                          | Fixed                                                                                                                                                  |
+| 1.5  | Scalar tolerance on huge ints                                    | Fixed                                                                                                                                                  |
+| 1.6  | Flat dict key collisions and lost empty containers               | Fixed                                                                                                                                                  |
+| 1.7  | Torch median disagrees with Native/NumPy; float32 stats          | Fixed                                                                                                                                                  |
+| 1.8  | Replace logger mutation in `compare()` with a reporter           | Fixed                                                                                                                                                  |
+| 1.9  | `_compare` RecursionError rewrite                                | Fixed                                                                                                                                                  |
+| 1.10 | Validators reject NaN; assorted small fixes                      | Fixed (`to_date` kept)                                                                                                                                 |
+| 2.1  | `ImportError` for missing optional packages                      | Fixed                                                                                                                                                  |
+| 2.2  | Availability checks detect broken installs; cache reset          | Fixed                                                                                                                                                  |
+| 2.3  | Collapse tester boilerplate                                      | Fixed                                                                                                                                                  |
+| 2.4  | `is_same_type` for the `equal()` checks                          | Fixed                                                                                                                                                  |
+| 2.5  | Registry duplicate-key semantics                                 | Fixed (no `issubclass` fallback, by decision)                                                                                                          |
+| 2.6  | `get_default_*_registry` aliases                                 | Kept, by decision                                                                                                                                      |
+| 2.7  | Package-level exports                                            | Kept, by decision                                                                                                                                      |
+| 2.8  | `KeyFilterTransformer` signature                                 | Fixed                                                                                                                                                  |
+| 2.9  | Summarizers for pandas/polars/pyarrow/xarray/JAX                 | Fixed (**no hashers**, by decision)                                                                                                                    |
+| 2.10 | BFS/DFS iterators: leaves, `is_leaf`, cycles                     | Fixed                                                                                                                                                  |
+| 2.11 | `random` package                                                 | Fixed (NumPy seed folding documented)                                                                                                                  |
+| 2.12 | `io` package                                                     | Fixed                                                                                                                                                  |
+| 2.13 | `allowed_prefixes` on `resolve_object`, security notes           | Fixed                                                                                                                                                  |
+| 2.14 | Identifiers: fork safety, monotonic ULID/UUIDv7                  | Fixed                                                                                                                                                  |
+| 2.15 | `testing.fixtures` repetition                                    | Fixed                                                                                                                                                  |
+| 2.16 | Naming and lazy `torch` import                                   | Fixed                                                                                                                                                  |
+| 3    | Performance                                                      | Fixed or benchmarked (#1999 to #2003)                                                                                                                  |
 | 4    | Tests                                                            | Fixed; property-based tests implemented (hashing, equality, `compare`, `nested`, reducers, registries; they found a bug), **mutation testing not run** |
-| 5    | Tooling and configuration                                        | Fixed, **`fail_under` and a second type checker not done**      |
-| 6    | Documentation                                                    | Fixed                                                           |
+| 5    | Tooling and configuration                                        | Fixed, **`fail_under` and a second type checker not done**                                                                                             |
+| 6    | Documentation                                                    | Fixed                                                                                                                                                  |

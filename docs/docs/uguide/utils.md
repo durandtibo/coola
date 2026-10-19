@@ -432,6 +432,15 @@ Provide fallback behavior when optional packages are not available:
 
 ```
 
+## Properties
+
+| Property              | Statement                                                                                 |
+| --------------------- | ----------------------------------------------------------------------------------------- |
+| Optional dependencies | The import helpers report whether a package is available, without failing when it is not. |
+| Cached checks         | The availability of a package is cached, so repeated checks are cheap.                    |
+| Focused submodules    | Each submodule (`imports`, `format`, `mapping`, `path`, ...) has one responsibility.      |
+| Informative errors    | Errors and formatted values are written to be read by a person.                           |
+
 ## Design Principles
 
 The `coola.utils` package follows these design principles:

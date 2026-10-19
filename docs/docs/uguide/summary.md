@@ -677,6 +677,19 @@ The `coola.summary` package provides the following built-in summarizers:
   the corresponding package)
   - Configurable: `show_data` (default: False)
 
+## Properties
+
+| Property       | Statement                                                                                                                          |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Bounded output | Collections show at most 5 items by default, and nesting is expanded up to `max_depth` (default 1). The rest is elided with `...`. |
+| Metadata first | Arrays and tensors show their metadata (type, shape, dtype, ...), not their content.                                               |
+| Type dispatch  | The summarizer is chosen from the type of the data through the registry.                                                           |
+| Read-only      | Summarizing does not modify the data.                                                                                              |
+| Extensible     | A summarizer for a custom type is added by registering it.                                                                         |
+| For humans     | The output is meant to be read, not parsed: its exact format can change.                                                           |
+
+Not guaranteed: self-referencing containers are not detected.
+
 ## Design Principles
 
 The `coola.summary` package is designed with the following principles:
