@@ -78,7 +78,6 @@ MyClass(
 | `repr` vs `str`      | `__repr__` shows the `repr` of the values, and `__str__` shows their `str`.                                       |
 | Safe terminal output | The colored logging is used only if `colorlog` is installed and the output is a terminal. Otherwise it is plain.  |
 | Respects the logger  | `logging.basicConfig` does nothing if the root logger already has handlers, unless `force=True`.                  |
-| Extensible           | A class gets the common format by inheriting a mixin, and a custom layout by subclassing it.                      |
 
 ## Formatting pydantic models
 
