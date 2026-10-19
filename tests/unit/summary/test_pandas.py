@@ -94,15 +94,21 @@ def test_summarizer_missing_package_raises(summarizer_cls: type) -> None:
 def test_pandas_dataframe_summarizer_summarize(registry: SummarizerRegistry) -> None:
     frame = pd.DataFrame({"a": [1, 2, 3], "b": [0.1, 0.2, 0.3], "c": ["x", "y", "z"]})
     result = PandasDataFrameSummarizer().summarize(frame, registry)
-    assert result.startswith(
-        "<class 'pandas.DataFrame'> | shape=(3, 3) | columns=a: int64, b: float64, c: "
-    )
+    assert result.startswith(f"{type(frame)} | shape=(3, 3) | columns=a: int64, b: float64, c: ")
 
 
 @pandas_available
 def test_pandas_dataframe_summarizer_summarize_empty(registry: SummarizerRegistry) -> None:
-    result = PandasDataFrameSummarizer().summarize(pd.DataFrame(), registry)
-    assert result == "<class 'pandas.DataFrame'> | shape=(0, 0) | columns="
+    frame = pd.DataFrame()
+    result = PandasDataFrameSummarizer().summarize(frame, registry)
+    assert result == f"{type(frame)} | shape=(0, 0) | columns="
+
+
+@pandas_available
+def test_pandas_dataframe_summarizer_summarize_class_name(registry: SummarizerRegistry) -> None:
+    result = PandasDataFrameSummarizer().summarize(pd.DataFrame({"a": [1]}), registry)
+    assert "<class 'pandas." in result
+    assert ".DataFrame'>" in result
 
 
 @pandas_available
@@ -121,14 +127,23 @@ def test_pandas_dataframe_summarizer_summarize_show_data(registry: SummarizerReg
 
 @pandas_available
 def test_pandas_series_summarizer_summarize(registry: SummarizerRegistry) -> None:
-    result = PandasSeriesSummarizer().summarize(pd.Series([1, 2, 3], name="a"), registry)
-    assert result == "<class 'pandas.Series'> | shape=(3,) | dtype=int64 | name='a'"
+    series = pd.Series([1, 2, 3], name="a")
+    result = PandasSeriesSummarizer().summarize(series, registry)
+    assert result == f"{type(series)} | shape=(3,) | dtype=int64 | name='a'"
+
+
+@pandas_available
+def test_pandas_series_summarizer_summarize_class_name(registry: SummarizerRegistry) -> None:
+    result = PandasSeriesSummarizer().summarize(pd.Series([1]), registry)
+    assert "<class 'pandas." in result
+    assert ".Series'>" in result
 
 
 @pandas_available
 def test_pandas_series_summarizer_summarize_no_name(registry: SummarizerRegistry) -> None:
-    result = PandasSeriesSummarizer().summarize(pd.Series([1.0, 2.0]), registry)
-    assert result == "<class 'pandas.Series'> | shape=(2,) | dtype=float64 | name=None"
+    series = pd.Series([1.0, 2.0])
+    result = PandasSeriesSummarizer().summarize(series, registry)
+    assert result == f"{type(series)} | shape=(2,) | dtype=float64 | name=None"
 
 
 @pandas_available
