@@ -3,4 +3,4 @@ tasklib:
     name: coola
   groups:
     install: dev,docs
-    update: dev,docs,property
+    update: dev,docs
