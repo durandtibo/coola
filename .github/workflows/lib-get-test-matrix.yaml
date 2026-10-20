@@ -22,7 +22,7 @@ on:
   workflow_call:
     outputs:
       test_matrix:
-        description: "JSON string containing python_versions and os_matrix"
+        description: "JSON string containing python_versions, python_versions_standard and os_matrix"
         value: ${{ jobs.get-matrix.outputs.test_matrix }}
 
   workflow_dispatch: # Allows manual triggering for testing purposes
@@ -45,12 +45,14 @@ jobs:
         id: build-matrix
         env:
           PYTHON_VERSIONS: ${{ steps.cfg.outputs.python_versions }}
+          PYTHON_VERSIONS_STANDARD: ${{ steps.cfg.outputs.python_versions_standard }}
           OS_UNIX: ${{ steps.cfg.outputs.os_unix }}
         run: |
           test_matrix=$(jq -nc \
             --argjson python_versions "$PYTHON_VERSIONS" \
+            --argjson python_versions_standard "$PYTHON_VERSIONS_STANDARD" \
             --argjson os_matrix "$OS_UNIX" \
-            '{python_versions: $python_versions, os_matrix: $os_matrix}')
+            '{python_versions: $python_versions, python_versions_standard: $python_versions_standard, os_matrix: $os_matrix}')
           echo "test_matrix=$test_matrix" >> "$GITHUB_OUTPUT"
 
       - name: Display test matrix
