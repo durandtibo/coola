@@ -288,7 +288,7 @@ rich = [
     { name = "rich" },
 ]
 torch = [
-    { name = "torch", marker = "(platform_machine == 'arm64' and sys_platform == 'darwin') or sys_platform == 'linux'" },
+    { name = "torch", marker = "(python_full_version < '3.15' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.15' and sys_platform == 'linux')" },
 ]
 xarray = [
     { name = "xarray" },
@@ -333,7 +333,7 @@ requires-dist = [
     { name = "pyarrow", marker = "extra == 'pyarrow'", specifier = ">=11.0" },
     { name = "pydantic", marker = "extra == 'pydantic'", specifier = ">=2.0,<3.0" },
     { name = "rich", marker = "extra == 'rich'", specifier = ">=14.0.0,<16.0" },
-    { name = "torch", marker = "(platform_machine == 'arm64' and sys_platform == 'darwin' and extra == 'torch') or (sys_platform == 'linux' and extra == 'torch')", specifier = ">=2.0,<3.0" },
+    { name = "torch", marker = "(python_full_version < '3.15' and platform_machine == 'arm64' and sys_platform == 'darwin' and extra == 'torch') or (python_full_version < '3.15' and sys_platform == 'linux' and extra == 'torch')", specifier = ">=2.0,<3.0" },
     { name = "xarray", marker = "extra == 'xarray'", specifier = ">=2024.1" },
 ]
 provides-extras = ["jax", "numpy", "packaging", "pandas", "polars", "pyarrow", "pydantic", "torch", "xarray", "colorlog", "rich"]
@@ -2607,20 +2607,20 @@ name = "torch"
 version = "2.14.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cuda-bindings", marker = "python_full_version < '3.15' and sys_platform == 'linux'" },
+    { name = "cuda-bindings", marker = "sys_platform == 'linux'" },
     { name = "cuda-toolkit", extra = ["cublas", "cudart", "cufft", "cufile", "cupti", "curand", "cusolver", "cusparse", "nvjitlink", "nvrtc", "nvtx"], marker = "sys_platform == 'linux'" },
     { name = "filelock" },
     { name = "fsspec" },
     { name = "jinja2" },
-    { name = "networkx", version = "3.6.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
-    { name = "networkx", version = "3.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "networkx", version = "3.6.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' or python_full_version >= '3.15'" },
+    { name = "networkx", version = "3.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and python_full_version < '3.15'" },
     { name = "nvidia-cudnn-cu13", marker = "sys_platform == 'linux'" },
     { name = "nvidia-cusparselt-cu13", marker = "sys_platform == 'linux'" },
     { name = "nvidia-nccl-cu13", marker = "sys_platform == 'linux'" },
     { name = "nvidia-nvshmem-cu13", marker = "sys_platform == 'linux'" },
     { name = "setuptools" },
     { name = "sympy" },
-    { name = "triton", marker = "python_full_version < '3.15' and sys_platform == 'linux'" },
+    { name = "triton", marker = "sys_platform == 'linux'" },
     { name = "typing-extensions" },
 ]
 wheels = [
