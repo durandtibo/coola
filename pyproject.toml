@@ -63,7 +63,7 @@ polars = ["polars>=1.0,<3.0"]
 pyarrow = ["pyarrow>=11.0"]
 pydantic = ["pydantic>=2.0,<3.0"]
 torch = [
-  "torch>=2.0,<3.0; (sys_platform == 'linux' or (sys_platform == 'darwin' and platform_machine == 'arm64'))",
+  "torch>=2.0,<3.0; python_full_version < '3.15' and (sys_platform == 'linux' or (sys_platform == 'darwin' and platform_machine == 'arm64'))",
 ]
 xarray = ["xarray>=2024.1"]
 
@@ -72,11 +72,11 @@ colorlog = ["colorlog >= 6.9,<7.0"]
 rich = ["rich>=14.0.0,<16.0"]
 
 [dependency-groups]
+
 dev = [
   "coverage[toml]>=7.15,<8.0",
   "docformatter>=1.7.8,<2.0",
   "feu[all]>=0.8.4,<1.0",
-  "hypothesis >=6.170,<7.0",
   "import-linter>=2.0,<3.0; python_full_version >= '3.14'",
   "invoke-tasklib>=0.0.8,<1.0",
   "invoke>=3.0,<4.0",
@@ -97,6 +97,9 @@ docs = [
   "mkdocstrings[python]>=1.0,<2.0",
   "mkdocs-include-markdown-plugin >=7.3,<8.0",
 ]
+
+# Hypothesis has no wheels for free-threaded Python, so it is not in the dev group.
+property = ["hypothesis >=6.170,<7.0"]
 
 [project.urls]
 Homepage = "https://github.com/durandtibo/coola"
