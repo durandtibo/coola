@@ -5,16 +5,24 @@ from __future__ import annotations
 
 __all__ = ["get_default_hasher_registry", "get_default_registry", "hash_object", "register_hashers"]
 
+import dataclasses
 from collections import OrderedDict, deque
 from collections.abc import Mapping, Sequence
 from datetime import date, datetime, time, timedelta, timezone
+from decimal import Decimal
 from enum import Enum
+from fractions import Fraction
 from pathlib import PurePath
 from typing import TYPE_CHECKING, Any
+from uuid import UUID
+from zoneinfo import ZoneInfo
 
 from coola.hashing.bytes import BytesHasher
+from coola.hashing.canonical import DecimalHasher, FractionHasher, RangeHasher
+from coola.hashing.dataclass import DataclassHasher
 from coola.hashing.datetime import DatetimeHasher
 from coola.hashing.enum import EnumHasher
+from coola.hashing.hashable import HashableHasher
 from coola.hashing.mapping import MappingHasher
 from coola.hashing.path import PathHasher
 from coola.hashing.pydantic import PydanticModelHasher
@@ -22,8 +30,9 @@ from coola.hashing.registry import HasherRegistry
 from coola.hashing.repr import ReprHasher
 from coola.hashing.sequence import SequenceHasher
 from coola.hashing.set import SetHasher
+from coola.hashing.str import StrHasher
 from coola.hashing.string import StringHasher
-from coola.utils.imports import is_pydantic_available
+from coola.utils.imports import is_numpy_available, is_pydantic_available
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
 if TYPE_CHECKING:
@@ -200,11 +209,49 @@ def _register_default_hashers(registry: HasherRegistry) -> None:
             PurePath: PathHasher(),
         }
     )
+    registry.register_many(_get_value_hashers())
+    registry.register_many(_get_numpy_hashers(repr_hasher))
+    # The types that cannot be registered one by one: any dataclass, and any class
+    # that defines a ``hash`` method. The type lookup comes first, so a hasher
+    # registered for a type wins.
+    registry.register_fallback(dataclasses.is_dataclass, DataclassHasher())
+    registry.register_fallback(_has_hash_method, HashableHasher())
     if is_pydantic_available():
         import pydantic  # noqa: PLC0415
 
         # Pydantic models - the fields are hashed through the registry.
         registry.register(pydantic.BaseModel, PydanticModelHasher())
+
+
+def _has_hash_method(data_type: type) -> bool:
+    r"""Indicate if the instances of a type have a ``hash`` method (see
+    ``SupportsHash``)."""
+    return callable(getattr(data_type, "hash", None))
+
+
+def _get_value_hashers() -> dict[type, Hasher[Any]]:
+    r"""Get the hashers of the standard library values that are not
+    containers."""
+    str_hasher = StrHasher()
+    return {
+        # ``str`` is canonical for these types
+        UUID: str_hasher,
+        ZoneInfo: str_hasher,
+        # The equal values must have the same hash
+        Decimal: DecimalHasher(),
+        Fraction: FractionHasher(),
+        range: RangeHasher(),
+    }
+
+
+def _get_numpy_hashers(hasher: Hasher[Any]) -> dict[type, Hasher[Any]]:
+    r"""Get the hashers of the NumPy scalars (``np.float64`` is a ``float``,
+    the other scalars are not)."""
+    if not is_numpy_available():  # pragma: no cover
+        return {}
+    import numpy as np  # noqa: PLC0415
+
+    return {np.bool_: hasher, np.integer: hasher, np.floating: hasher, np.complexfloating: hasher}
 
 
 _default_registry: LazySingleton[HasherRegistry] = make_default_registry_singleton(

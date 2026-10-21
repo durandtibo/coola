@@ -14,7 +14,7 @@ from coola.hashing import (
     StrHasher,
     StringHasher,
 )
-from coola.registry import AlreadyRegisteredError
+from coola.registry import AlreadyRegisteredError, TypeNotRegisteredError
 from tests.unit.hashing.helpers import Unhashable
 
 
@@ -319,3 +319,137 @@ def test_hasher_registry_hash_same_object_twice_is_not_a_cycle() -> None:
     registry = HasherRegistry({list: SequenceHasher(), int: StrHasher()})
     shared = [1]
     assert isinstance(registry.hash([shared, shared]), str)
+
+
+########################################
+#     Tests for the fallbacks          #
+########################################
+
+
+class Marked:
+    r"""A type matched by a fallback."""
+
+
+def is_marked(data_type: type) -> bool:
+    return issubclass(data_type, Marked)
+
+
+def test_hasher_registry_find_hasher_uses_the_fallback() -> None:
+    hasher = StrHasher()
+    registry = HasherRegistry({list: SequenceHasher()})
+    registry.register_fallback(is_marked, hasher)
+    assert registry.find_hasher(Marked) is hasher
+
+
+def test_hasher_registry_find_hasher_fallback_for_a_subclass() -> None:
+    class Child(Marked): ...
+
+    hasher = StrHasher()
+    registry = HasherRegistry()
+    registry.register_fallback(is_marked, hasher)
+    assert registry.find_hasher(Child) is hasher
+
+
+def test_hasher_registry_find_hasher_registered_type_wins_over_the_fallback() -> None:
+    registered = ReprHasher()
+    registry = HasherRegistry({Marked: registered})
+    registry.register_fallback(is_marked, StrHasher())
+    assert registry.find_hasher(Marked) is registered
+
+
+def test_hasher_registry_find_hasher_registered_parent_wins_over_the_fallback() -> None:
+    class Child(Marked): ...
+
+    registered = ReprHasher()
+    registry = HasherRegistry({Marked: registered})
+    registry.register_fallback(is_marked, StrHasher())
+    assert registry.find_hasher(Child) is registered
+
+
+def test_hasher_registry_find_hasher_first_matching_fallback_wins() -> None:
+    first, second = StrHasher(), ReprHasher()
+    registry = HasherRegistry()
+    registry.register_fallback(is_marked, first)
+    registry.register_fallback(is_marked, second)
+    assert registry.find_hasher(Marked) is first
+
+
+def test_hasher_registry_find_hasher_skips_the_fallback_that_does_not_match() -> None:
+    first, second = StrHasher(), ReprHasher()
+    registry = HasherRegistry()
+    registry.register_fallback(lambda _: False, first)
+    registry.register_fallback(is_marked, second)
+    assert registry.find_hasher(Marked) is second
+
+
+def test_hasher_registry_find_hasher_no_matching_fallback_raises() -> None:
+    registry = HasherRegistry()
+    registry.register_fallback(is_marked, StrHasher())
+    with pytest.raises(KeyError, match="is not registered"):
+        registry.find_hasher(Unhashable)
+
+
+def test_hasher_registry_object_hasher_makes_the_fallbacks_unreachable() -> None:
+    catch_all = ReprHasher()
+    registry = HasherRegistry({object: catch_all})
+    registry.register_fallback(is_marked, StrHasher())
+    assert registry.find_hasher(Marked) is catch_all
+
+
+class ConstantHasher(BaseHasher[Any]):
+    def hash(
+        self,
+        data: Any,  # noqa: ARG002
+        registry: HasherRegistry,  # noqa: ARG002
+        *,
+        length: int = 64,
+        ignore_unhashable: bool = False,  # noqa: ARG002
+    ) -> str:
+        return "c" * length
+
+
+def test_hasher_registry_fallback_is_used_by_hash() -> None:
+    registry = HasherRegistry()
+    registry.register_fallback(is_marked, ConstantHasher())
+    assert registry.hash(Marked()) == "c" * 64
+
+
+def test_hasher_registry_has_hasher_ignores_the_fallbacks() -> None:
+    registry = HasherRegistry()
+    registry.register_fallback(is_marked, StrHasher())
+    assert not registry.has_hasher(Marked)
+
+
+def test_hasher_registry_repr_shows_the_fallbacks() -> None:
+    registry = HasherRegistry()
+    assert "fallbacks" not in repr(registry)
+    registry.register_fallback(is_marked, StrHasher())
+    assert "fallbacks" in repr(registry)
+    assert "StrHasher()" in repr(registry)
+
+
+def test_hasher_registry_unhashable_error_names_the_remedies() -> None:
+    registry = HasherRegistry()
+    with pytest.raises(KeyError) as exc_info:
+        registry.hash(Unhashable())
+    message = str(exc_info.value)
+    assert "register a hasher" in message
+    assert "hash()" in message
+    assert "ignore_unhashable=True" in message
+    assert "Unhashable" in message
+
+
+def test_hasher_registry_unhashable_error_is_a_type_not_registered_error() -> None:
+    with pytest.raises(TypeNotRegisteredError):
+        HasherRegistry().hash(Unhashable())
+
+
+def test_hasher_registry_hash_reraises_a_key_error_that_is_not_a_missing_type() -> None:
+    class BrokenRegistry(HasherRegistry):
+        def find_hasher(self, data_type: type) -> Any:  # noqa: ARG002
+            msg = "broken"
+            raise KeyError(msg)
+
+    with pytest.raises(KeyError, match="broken") as exc_info:
+        BrokenRegistry().hash(1)
+    assert not isinstance(exc_info.value, TypeNotRegisteredError)
