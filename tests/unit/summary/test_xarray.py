@@ -153,3 +153,10 @@ def test_xarray_variable_summarizer_summarize(registry: SummarizerRegistry) -> N
 def test_xarray_variable_summarizer_summarize_show_data(registry: SummarizerRegistry) -> None:
     variable = xr.Variable(("x",), np.ones(2))
     assert XarrayVariableSummarizer(show_data=True).summarize(variable, registry) == repr(variable)
+
+
+@xarray_available
+def test_dataset_summarizer_max_fields(registry: SummarizerRegistry) -> None:
+    dataset = xr.Dataset({"a": ("x", [1]), "b": ("x", [2.0]), "c": ("x", [3])})
+    out = XarrayDatasetSummarizer(max_fields=1).summarize(dataset, registry)
+    assert out.endswith("data_vars=a: int64, ... (+2 more)")

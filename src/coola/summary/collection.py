@@ -4,6 +4,7 @@ from __future__ import annotations
 
 __all__ = ["BaseCollectionSummarizer"]
 
+from abc import abstractmethod
 from collections.abc import Sized
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -102,12 +103,13 @@ class BaseCollectionSummarizer(BaseSummarizer[T]):
             body = f"{body}\n..."
         return str_indent(f"{typ} (length={length:,})\n{body}", num_spaces=self._num_spaces)
 
+    @abstractmethod
     def _get_preview(self, data: T, limit: int) -> Any:
         r"""Return a preview of ``data`` truncated to ``limit`` items,
         used when the depth limit has been reached and the collection
         exceeds that limit."""
-        raise NotImplementedError
 
+    @abstractmethod
     def _format_items(
         self,
         data: T,
@@ -117,4 +119,3 @@ class BaseCollectionSummarizer(BaseSummarizer[T]):
     ) -> str:
         r"""Format the (possibly truncated) items of ``data`` into the
         body of the summary."""
-        raise NotImplementedError

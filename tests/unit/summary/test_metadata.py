@@ -3,7 +3,12 @@ from __future__ import annotations
 import pytest
 
 from coola.summary import SummarizerRegistry
-from coola.summary.metadata import BaseMetadataSummarizer, format_fields
+from coola.summary.metadata import (
+    MAX_FIELDS,
+    BaseFieldsSummarizer,
+    BaseMetadataSummarizer,
+    format_fields,
+)
 from coola.utils.imports import MissingPackageError
 
 
@@ -104,3 +109,74 @@ def test_base_metadata_summarizer_depth_is_ignored(registry: SummarizerRegistry)
     assert summarizer.summarize([1], registry, depth=7, max_depth=9) == summarizer.summarize(
         [1], registry
     )
+
+
+########################################
+#     Tests for BaseFieldsSummarizer   #
+########################################
+
+
+class DictFieldsSummarizer(BaseFieldsSummarizer[dict]):
+    def _describe(self, data: dict) -> list[str]:
+        return [f"fields={self._format_fields(data.items())}"]
+
+
+FIELDS = {f"c{i}": "int" for i in range(12)}
+
+
+def test_fields_summarizer_default_max_fields(registry: SummarizerRegistry) -> None:
+    assert DictFieldsSummarizer()._max_fields == MAX_FIELDS
+    out = DictFieldsSummarizer().summarize(FIELDS, registry)
+    assert out.endswith("c9: int, ... (+2 more)")
+    assert "c10" not in out
+
+
+def test_fields_summarizer_max_fields(registry: SummarizerRegistry) -> None:
+    out = DictFieldsSummarizer(max_fields=3).summarize(FIELDS, registry)
+    assert out == "<class 'dict'> | fields=c0: int, c1: int, c2: int, ... (+9 more)"
+
+
+def test_fields_summarizer_max_fields_larger_than_the_fields(registry: SummarizerRegistry) -> None:
+    out = DictFieldsSummarizer(max_fields=100).summarize(FIELDS, registry)
+    assert "more" not in out
+    assert "c11: int" in out
+
+
+def test_fields_summarizer_max_fields_zero(registry: SummarizerRegistry) -> None:
+    out = DictFieldsSummarizer(max_fields=0).summarize(FIELDS, registry)
+    assert out == "<class 'dict'> | fields=... (+12 more)"
+
+
+def test_fields_summarizer_negative_max_fields_raises() -> None:
+    with pytest.raises(ValueError, match="max_fields must be non-negative"):
+        DictFieldsSummarizer(max_fields=-1)
+
+
+def test_fields_summarizer_repr_default() -> None:
+    assert repr(DictFieldsSummarizer()) == "DictFieldsSummarizer(show_data=False)"
+
+
+def test_fields_summarizer_repr_with_max_fields() -> None:
+    assert repr(DictFieldsSummarizer(max_fields=3)) == (
+        "DictFieldsSummarizer(show_data=False, max_fields=3)"
+    )
+
+
+def test_fields_summarizer_equal_true() -> None:
+    assert DictFieldsSummarizer(max_fields=3).equal(DictFieldsSummarizer(max_fields=3))
+
+
+def test_fields_summarizer_equal_false_different_max_fields() -> None:
+    assert not DictFieldsSummarizer(max_fields=3).equal(DictFieldsSummarizer(max_fields=4))
+
+
+def test_fields_summarizer_equal_false_different_show_data() -> None:
+    assert not DictFieldsSummarizer(show_data=True).equal(DictFieldsSummarizer())
+
+
+def test_fields_summarizer_equal_false_different_type() -> None:
+    assert not DictFieldsSummarizer().equal(ListSummarizer())
+
+
+def test_fields_summarizer_show_data(registry: SummarizerRegistry) -> None:
+    assert DictFieldsSummarizer(show_data=True).summarize({"a": 1}, registry) == "{'a': 1}"

@@ -19,7 +19,9 @@ class DefaultSummarizer(BaseSummarizer[object]):
     Args:
         max_characters: The maximum number of characters to
             show. If a negative value is provided, all the characters
-            are shown. Defaults to ``-1``.
+            are shown. Defaults to ``1000``, to keep the summary of an
+            object with a huge ``str`` short. Note that ``str(data)``
+            is computed before it is truncated.
 
     Example:
         ```pycon
@@ -32,7 +34,7 @@ class DefaultSummarizer(BaseSummarizer[object]):
         ```
     """
 
-    def __init__(self, max_characters: int = -1) -> None:
+    def __init__(self, max_characters: int = 1000) -> None:
         self._max_characters = max_characters
 
     def __repr__(self) -> str:
