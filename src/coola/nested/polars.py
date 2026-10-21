@@ -103,9 +103,13 @@ def expand_list_columns(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
 
     expansions: dict[str, pl.Series] = {}
     for col in list_cols:
-        max_len = cast("int", frame[col].list.len().max() or 0)
+        series = frame[col]
+        if isinstance(series.dtype, pl.Array):
+            # The ``list`` namespace is not defined for the ``Array`` dtype.
+            series = series.cast(pl.List(series.dtype.inner))
+        max_len = cast("int", series.list.len().max() or 0)
         for i in range(max_len):
-            expansions[f"{col}{separator}{i}"] = frame[col].list.get(i, null_on_oob=True)
+            expansions[f"{col}{separator}{i}"] = series.list.get(i, null_on_oob=True)
 
     return frame.drop(list_cols).with_columns(
         pl.Series(name, values) for name, values in expansions.items()

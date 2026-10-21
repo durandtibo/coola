@@ -344,6 +344,53 @@ def test_expand_list_columns_equal_length_lists() -> None:
 
 
 @polars_available
+def test_expand_list_columns_array() -> None:
+    frame = pl.DataFrame(
+        {"id": [1, 2], "vec": [[1, 2], [3, 4]]},
+        schema={"id": pl.Int64, "vec": pl.Array(pl.Int64, 2)},
+    )
+    assert_frame_equal(
+        expand_list_columns(frame, separator="."),
+        pl.DataFrame(
+            {"id": [1, 2], "vec.0": [1, 3], "vec.1": [2, 4]},
+            schema={"id": pl.Int64, "vec.0": pl.Int64, "vec.1": pl.Int64},
+        ),
+    )
+
+
+@polars_available
+def test_expand_list_columns_array_with_null() -> None:
+    frame = pl.DataFrame({"vec": [[1.0, 2.0], None]}, schema={"vec": pl.Array(pl.Float64, 2)})
+    assert_frame_equal(
+        expand_list_columns(frame, separator="/"),
+        pl.DataFrame(
+            {"vec/0": [1.0, None], "vec/1": [2.0, None]},
+            schema={"vec/0": pl.Float64, "vec/1": pl.Float64},
+        ),
+    )
+
+
+@polars_available
+def test_expand_list_columns_array_and_list() -> None:
+    frame = pl.DataFrame(
+        {"vec": [[1, 2]], "tags": [["a"]]},
+        schema={"vec": pl.Array(pl.Int64, 2), "tags": pl.List(pl.String)},
+    )
+    result = expand_list_columns(frame, separator=".")
+    assert sorted(result.columns) == ["tags.0", "vec.0", "vec.1"]
+    assert result.row(0, named=True) == {"vec.0": 1, "vec.1": 2, "tags.0": "a"}
+
+
+@polars_available
+def test_flatten_frame_expand_lists_array() -> None:
+    frame = pl.DataFrame({"vec": [[1, 2], [3, 4]]}, schema={"vec": pl.Array(pl.Int64, 2)})
+    assert_frame_equal(
+        flatten_frame(frame, expand_lists=True),
+        pl.DataFrame({"vec.0": [1, 3], "vec.1": [2, 4]}),
+    )
+
+
+@polars_available
 def test_expand_list_columns_unequal_length_lists() -> None:
     frame = pl.DataFrame(
         {"id": [1, 2], "tags": [["foo", "bar"], ["baz"]]},
