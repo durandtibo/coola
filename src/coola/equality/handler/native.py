@@ -13,6 +13,7 @@ __all__ = [
 ]
 
 import logging
+from operator import attrgetter
 from typing import TYPE_CHECKING
 
 from coola.equality.handler.base import BaseEqualityHandler
@@ -141,7 +142,9 @@ class SameAttributeHandler(HandlerEqualityMixin, BaseEqualityHandler):
 
     This handler returns ``False`` if the two objects have different
     attributes, otherwise it passes the inputs to the next handler.
-    The objects must have the attribute.
+    The objects must have the attribute. The name can be a dotted
+    path (for example ``"coords.variables"``) to compare the
+    attribute of an attribute.
 
     Example:
         ```pycon
@@ -180,8 +183,12 @@ class SameAttributeHandler(HandlerEqualityMixin, BaseEqualityHandler):
         return ("name",)
 
     def handle(self, actual: object, expected: object, config: EqualityConfig) -> bool:
-        value1 = getattr(actual, self._name)
-        value2 = getattr(expected, self._name)
+        # ``attrgetter`` instead of ``getattr`` to support a dotted name
+        # (e.g. ``"coords.variables"``): ``getattr(obj, "a.b")`` looks for an
+        # attribute whose name contains a dot, while ``attrgetter("a.b")``
+        # reads ``obj.a.b``. For a name without a dot, it is the same as ``getattr``.
+        value1 = attrgetter(self._name)(actual)
+        value2 = attrgetter(self._name)(expected)
         if not config.registry.objects_are_equal(value1, value2, config):
             if config.show_difference:
                 report_difference(

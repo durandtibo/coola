@@ -44,7 +44,7 @@ class XarrayDataArrayEqualityTester(BaseChainEqualityTester[xr.DataArray]):
     2. SameTypeHandler: Verify both are xarray DataArrays
     3. SameAttributeHandler("variable"): Compare the underlying Variable
     4. SameAttributeHandler("name"): Compare the DataArray names
-    5. SameAttributeHandler("_coords"): Compare the coordinate mappings
+    5. SameAttributeHandler("coords.variables"): Compare the coordinate variables
     6. TrueHandler: Return True if all checks pass
 
     Example:
@@ -82,7 +82,7 @@ class XarrayDataArrayEqualityTester(BaseChainEqualityTester[xr.DataArray]):
             SameTypeHandler(),
             SameAttributeHandler(name="variable"),
             SameAttributeHandler(name="name"),
-            SameAttributeHandler(name="_coords"),
+            SameAttributeHandler(name="coords.variables"),
             TrueHandler(),
         )
 

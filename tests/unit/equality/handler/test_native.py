@@ -890,3 +890,34 @@ def test_object_equal_handler_handle_non_bool_result_error_cause() -> None:
     with pytest.raises(TypeError) as exc_info:
         ObjectEqualHandler().handle(AmbiguousEq(), AmbiguousEq(), EqualityConfig())
     assert isinstance(exc_info.value.__cause__, ValueError)
+
+
+class _Inner:
+    def __init__(self, value: object) -> None:
+        self.value = value
+
+
+class _Outer:
+    def __init__(self, value: object) -> None:
+        self.inner = _Inner(value)
+
+
+def test_same_attribute_handler_dotted_name(config: EqualityConfig) -> None:
+    handler = SameAttributeHandler(name="inner.value", next_handler=TrueHandler())
+    assert handler.handle(_Outer(1), _Outer(1), config)
+    assert not handler.handle(_Outer(1), _Outer(2), config)
+
+
+def test_same_attribute_handler_dotted_name_show_difference(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    handler = SameAttributeHandler(name="inner.value", next_handler=TrueHandler())
+    with caplog.at_level(logging.INFO):
+        assert not handler.handle(_Outer(1), _Outer(2), EqualityConfig(show_difference=True))
+    assert caplog.messages[-1] == "objects have different inner.value: 1 vs 2"
+
+
+def test_same_attribute_handler_dotted_name_missing_attribute(config: EqualityConfig) -> None:
+    handler = SameAttributeHandler(name="inner.missing", next_handler=TrueHandler())
+    with pytest.raises(AttributeError, match="missing"):
+        handler.handle(_Outer(1), _Outer(1), config)
