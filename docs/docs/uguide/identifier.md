@@ -228,6 +228,14 @@ avoid collisions between them. This includes the children of a fork (`os.fork`, 
 with the `fork` start method): they inherit the state of the generator of their parent, so they must
 not keep the default `worker_id=0`.
 
+If the system clock moves backward (typically a step adjustment by NTP, or a virtual machine that
+resumes from a pause), the generator raises a `RuntimeError` instead of minting an ID that could be a
+duplicate or smaller than a previous one. This is a deliberate choice: waiting for the clock to catch
+up could block for an unbounded time. The error is raised before the state of the generator is
+modified, so the next call works once the clock is back to the last timestamp. If your system can
+see steps of the clock, retry the call after a short delay, or run the time synchronization in
+slew mode.
+
 Use `SnowflakeIdGenerator` directly instead of the module-level function when you need several
 independent generators in the same process, e.g. one per worker thread, or an isolated instance
 in a test, without them sharing state through a global singleton:
