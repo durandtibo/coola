@@ -61,6 +61,8 @@ class TorchReducer(InlineDisplayMixin, NoArgsDisplayMixin, BaseBasicReducer[T]):
         # ``torch.median`` returns the lower of the two middle values;
         # average them to match ``statistics.median`` and ``numpy.median``.
         tensor = _to_tensor(values).flatten()
+        if tensor.isnan().any():
+            return float("nan")
         n = tensor.numel()
         ordered = tensor.sort()[0]
         if n % 2 == 1:

@@ -333,3 +333,58 @@ def test_reducers_agree_on_array_and_tensor_inputs(dtype: str) -> None:
     assert quantiles[2] == pytest.approx(quantiles[0], **tol)
     sorts = [reducer.sort(values) for reducer, values in reducers]
     assert sorts[0] == sorts[1] == sorts[2]
+
+
+NAN = float("nan")
+NAN_VALUES = [
+    pytest.param([NAN, 1.0, 2.0], id="first"),
+    pytest.param([1.0, NAN, 2.0], id="middle"),
+    pytest.param([1.0, 2.0, NAN], id="last"),
+    pytest.param([NAN], id="only"),
+    pytest.param([NAN, NAN, 1.0], id="several"),
+]
+
+
+@pytest.mark.parametrize("values", NAN_VALUES)
+@pytest.mark.parametrize("method", ["max", "min", "mean", "median"])
+def test_reducers_nan_propagates(reducer: BaseReducer, values: list[float], method: str) -> None:
+    r"""A NaN gives NaN, whatever its position, for all the reducers."""
+    assert math.isnan(getattr(reducer, method)(values))
+
+
+@pytest.mark.parametrize("values", NAN_VALUES)
+def test_reducers_nan_std(reducer: BaseReducer, values: list[float]) -> None:
+    assert math.isnan(reducer.std(values))
+
+
+@pytest.mark.parametrize("values", NAN_VALUES[:3])
+def test_reducers_nan_quantile(reducer: BaseReducer, values: list[float]) -> None:
+    assert all(math.isnan(q) for q in reducer.quantile(values, [0.1, 0.5, 0.9]))
+
+
+@pytest.mark.parametrize("values", NAN_VALUES[:3])
+def test_reducers_nan_sort_ascending_puts_nan_last(
+    reducer: BaseReducer, values: list[float]
+) -> None:
+    result = reducer.sort(values)
+    assert result[:2] == [1.0, 2.0]
+    assert math.isnan(result[2])
+
+
+@pytest.mark.parametrize("values", NAN_VALUES[:3])
+def test_reducers_nan_sort_descending_puts_nan_first(
+    reducer: BaseReducer, values: list[float]
+) -> None:
+    result = reducer.sort(values, descending=True)
+    assert math.isnan(result[0])
+    assert result[1:] == [2.0, 1.0]
+
+
+@pytest.mark.parametrize("method", ["max", "min", "mean", "median"])
+def test_reducers_inf_is_not_nan(reducer: BaseReducer, method: str) -> None:
+    assert not math.isnan(getattr(reducer, method)([1.0, float("inf"), 2.0]))
+
+
+@pytest.mark.filterwarnings("ignore:invalid value:RuntimeWarning")
+def test_reducers_std_infinite_value_is_nan(reducer: BaseReducer) -> None:
+    assert math.isnan(reducer.std([1.0, 2.0, float("inf")]))
