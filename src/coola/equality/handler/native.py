@@ -183,6 +183,10 @@ class SameAttributeHandler(HandlerEqualityMixin, BaseEqualityHandler):
         return ("name",)
 
     def handle(self, actual: object, expected: object, config: EqualityConfig) -> bool:
+        # ``attrgetter`` instead of ``getattr`` to support a dotted name
+        # (e.g. ``"coords.variables"``): ``getattr(obj, "a.b")`` looks for an
+        # attribute whose name contains a dot, while ``attrgetter("a.b")``
+        # reads ``obj.a.b``. For a name without a dot, it is the same as ``getattr``.
         value1 = attrgetter(self._name)(actual)
         value2 = attrgetter(self._name)(expected)
         if not config.registry.objects_are_equal(value1, value2, config):
