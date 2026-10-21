@@ -10,8 +10,19 @@ are new: none of them repeats an item of that review, `src-coola-review.md`, `no
 `python-311-modernization.md`.
 
 Items marked **[verified]** were reproduced on this checkout (`.venv`, Python 3.14, NumPy, torch, pandas,
-polars, pyarrow, xarray, JAX, pydantic installed). The others are leads from reading the code. I did not
-run the test suite or the linters, and I did not change any source file.
+polars, pyarrow, xarray, JAX, pydantic installed). The others are leads from reading the code. The review
+itself changed no source file; the fixes listed below were made afterwards.
+
+## Status
+
+| Item | Status                                                                                                   |
+| ---- | -------------------------------------------------------------------------------------------------------- |
+| 1.1  | **Fixed**                                                                                                |
+| 1.2  | **Fixed** for NumPy scalars, `complex` and dataclasses. Not done: `set`/`frozenset`, NumPy datetime arrays |
+| 1.3  | **Fixed**                                                                                                |
+| 1.4 to 1.13, 2.x, 3 | Open                                                                                      |
+
+Each fixed item also has a _Status_ line under its title.
 
 Priority: **P1** wrong result or crash on realistic input, **P2** inconsistent or fragile
 behaviour, **P3** cleanup.
@@ -21,6 +32,8 @@ behaviour, **P3** cleanup.
 ## 1. Correctness
 
 ### 1.1 `objects_are_equal` can return a non-`bool` **[verified]** (P1)
+
+_(Status: fixed. `ObjectEqualHandler` converts the result of `==` with `bool()`; if that fails it raises a `TypeError` that names the type and says to register an equality tester (it does not return `False`). Regression tests are in `tests/unit/equality/handler/test_native.py`. Not done: the property test `type(objects_are_equal(a, b)) is bool`.)_
 
 `ObjectEqualHandler` returns `actual == expected` unchanged. For a dataclass that holds a NumPy
 array, `@dataclass` builds `__eq__` from a tuple comparison and the result is an array:
@@ -44,6 +57,9 @@ is ambiguous". The same happens for any type whose `__eq__` returns an array-lik
 - Add a property test: for every pair from the existing strategies, `type(objects_are_equal(a, b)) is bool`.
 
 ### 1.2 Tolerance and `equal_nan` are silently ignored for several common types **[verified]** (P1)
+
+_(Status: fixed for the cases in the table, except `set`/`frozenset`.
+`np.floating`, `np.integer` and `np.complexfloating` use the scalar tester, `complex` uses it too (`cmath.isclose`, `cmath.isnan`), and `ScalarEqualHandler` now returns a real `bool`. A new `DataclassEqualityTester` compares the fields with the registry (skips `compare=False` fields); it is selected through a `DataclassMarker` key in `EqualityTesterRegistry.find_equality_tester` for dataclasses that have no tester of their own and keep the generated `__eq__` (`eq=True`). Not done: `set`/`frozenset` still compare exactly, with no warning; NumPy `M`/`m` arrays still ignore the tolerance silently (a warning would fire on every call with the default tolerances of `objects_are_allclose`). The "Supported Types" section of the equality user guide now lists what works and the caveats. Tests: `tests/integration/equality/test_tolerance_types.py` and the unit tests of the new handler, tester and registry fallback.)_
 
 Only `int` and `float` (and their subclasses) go through `ScalarEqualityTester`. Everything else falls to
 `DefaultEqualityTester` (`==`), which ignores `atol`, `rtol` and `equal_nan`:
@@ -71,6 +87,8 @@ is the most surprising gap for a library whose purpose is tolerant comparison of
   setting; do the same here.
 
 ### 1.3 Polars `Decimal` columns crash the equality check **[verified]** (P1)
+
+_(Status: fixed. `has_nan` in `equality/handler/polars.py` uses `dtype.is_float()` and `cs.float()` instead of `is_numeric()`/`cs.numeric()`, so `Decimal` columns no longer raise. Tests added in `tests/unit/equality/handler/test_polars.py`.)_
 
 ```python
 objects_are_equal(
