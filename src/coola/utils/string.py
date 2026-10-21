@@ -17,7 +17,9 @@ def char_diff_summary(before: str, after: str) -> str:
 
     The sign of the diff reflects whether the transformation grew or
     shrank the text: negative means fewer characters, positive means
-    more.  Handles empty input gracefully (reports 0.0% change).
+    more.  Handles empty input gracefully: the percentage is ``0.0%`` if
+    both texts are empty, and ``n/a`` if the text grew from an empty
+    text (the change relative to zero is undefined).
 
     Args:
         before: The text before transformation.
@@ -31,15 +33,20 @@ def char_diff_summary(before: str, after: str) -> str:
         >>> from coola.utils.string import char_diff_summary
         >>> char_diff_summary("<p>Hello</p>", "Hello")
         '12 -> 5 chars (-7 chars, -58.3%).'
+        >>> char_diff_summary("", "abc")
+        '0 -> 3 chars (+3 chars, n/a).'
 
         ```
     """
     n_before = len(before)
     n_after = len(after)
     diff = n_after - n_before
-    pct = diff / n_before * 100 if n_before > 0 else 0.0
     sign = "+" if diff >= 0 else "-"
-    return f"{n_before:,} -> {n_after:,} chars ({sign}{abs(diff):,} chars, {sign}{abs(pct):.1f}%)."
+    if n_before > 0:
+        change = f"{sign}{abs(diff / n_before * 100):.1f}%"
+    else:
+        change = "+0.0%" if diff == 0 else "n/a"
+    return f"{n_before:,} -> {n_after:,} chars ({sign}{abs(diff):,} chars, {change})."
 
 
 def count_lines(text: str) -> int:

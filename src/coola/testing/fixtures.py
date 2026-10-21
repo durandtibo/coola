@@ -49,6 +49,8 @@ __all__ = [
     "xarray_not_available",
 ]
 
+from typing import TYPE_CHECKING
+
 import pytest
 
 from coola.utils.imports import (
@@ -65,7 +67,9 @@ from coola.utils.imports import (
     is_torch_numpy_available,
     is_xarray_available,
 )
-from coola.utils.tensor import is_cuda_available, is_mps_available
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 def requires(
@@ -137,23 +141,51 @@ torch_numpy_not_available: pytest.MarkDecorator
 xarray_available: pytest.MarkDecorator
 xarray_not_available: pytest.MarkDecorator
 
-jax_available, jax_not_available = requires(is_jax_available(), "JAX")
-numpy_available, numpy_not_available = requires(is_numpy_available(), "NumPy")
-packaging_available, packaging_not_available = requires(is_packaging_available(), "packaging")
-pandas_available, pandas_not_available = requires(is_pandas_available(), "pandas")
-polars_available, polars_not_available = requires(is_polars_available(), "polars")
-pyarrow_available, pyarrow_not_available = requires(is_pyarrow_available(), "pyarrow")
-pydantic_available, pydantic_not_available = requires(is_pydantic_available(), "pydantic")
-torch_available, torch_not_available = requires(is_torch_available(), "PyTorch")
-torch_cuda_available, torch_cuda_not_available = requires(
-    is_cuda_available(), "PyTorch and CUDA", plural=True
-)
-torch_numpy_available, torch_numpy_not_available = requires(
-    is_torch_numpy_available(), "PyTorch and NumPy", plural=True
-)
-torch_mps_available, torch_mps_not_available = requires(
-    is_mps_available(), "PyTorch and MPS", plural=True
-)
-xarray_available, xarray_not_available = requires(is_xarray_available(), "xarray")
-colorlog_available, colorlog_not_available = requires(is_colorlog_available(), "colorlog")
-rich_available, rich_not_available = requires(is_rich_available(), "rich")
+
+def _is_cuda_available() -> bool:
+    # Imported here because ``coola.utils.tensor`` imports ``torch`` when it is installed.
+    from coola.utils.tensor import is_cuda_available  # noqa: PLC0415
+
+    return is_cuda_available()
+
+
+def _is_mps_available() -> bool:
+    from coola.utils.tensor import is_mps_available  # noqa: PLC0415
+
+    return is_mps_available()
+
+
+# The availability of a package is checked when its markers are first accessed, not when this
+# module is imported: the checks import the packages (``torch``, ``jax``...) and
+# ``is_mps_available`` allocates a tensor on the device, which is slow and initializes a GPU
+# context. A test module that only needs ``numpy_available`` does not pay for them.
+# The markers are still module attributes (``from coola.testing.fixtures import
+# torch_available`` works, and ``pytestmark = [torch_available]``), through PEP 562.
+_REQUIREMENTS: dict[str, tuple[Callable[[], bool], str, bool]] = {
+    "jax": (is_jax_available, "JAX", False),
+    "numpy": (is_numpy_available, "NumPy", False),
+    "packaging": (is_packaging_available, "packaging", False),
+    "pandas": (is_pandas_available, "pandas", False),
+    "polars": (is_polars_available, "polars", False),
+    "pyarrow": (is_pyarrow_available, "pyarrow", False),
+    "pydantic": (is_pydantic_available, "pydantic", False),
+    "torch": (is_torch_available, "PyTorch", False),
+    "torch_cuda": (_is_cuda_available, "PyTorch and CUDA", True),
+    "torch_numpy": (is_torch_numpy_available, "PyTorch and NumPy", True),
+    "torch_mps": (_is_mps_available, "PyTorch and MPS", True),
+    "xarray": (is_xarray_available, "xarray", False),
+    "colorlog": (is_colorlog_available, "colorlog", False),
+    "rich": (is_rich_available, "rich", False),
+}
+
+
+def __getattr__(name: str) -> pytest.MarkDecorator:
+    for key, (is_available, label, plural) in _REQUIREMENTS.items():
+        if name in {f"{key}_available", f"{key}_not_available"}:
+            available, not_available = requires(is_available(), label, plural=plural)
+            # Cached: ``__getattr__`` is not called again for these names.
+            globals()[f"{key}_available"] = available
+            globals()[f"{key}_not_available"] = not_available
+            return globals()[name]
+    msg = f"module {__name__!r} has no attribute {name!r}"
+    raise AttributeError(msg)

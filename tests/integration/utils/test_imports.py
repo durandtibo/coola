@@ -43,6 +43,7 @@ from coola.utils.imports import (
     is_torch_available,
     is_xarray_available,
 )
+from tests.integration.helpers import run_python
 
 ###############
 #     jax     #
@@ -292,3 +293,24 @@ def test_is_xarray_available_true() -> None:
 @xarray_not_available
 def test_is_xarray_available_false() -> None:
     assert not is_xarray_available()
+
+
+################################################
+#     Tests for the import of the fixtures     #
+################################################
+
+
+def test_importing_the_fixtures_does_not_import_the_packages() -> None:
+    code = (
+        "import sys; import coola.testing.fixtures; "
+        "print(*(name in sys.modules for name in ('torch', 'jax', 'numpy', 'pandas')))"
+    )
+    assert run_python(code) == ["False", "False", "False", "False"]
+
+
+def test_accessing_a_marker_imports_only_what_it_needs() -> None:
+    code = (
+        "import sys; from coola.testing.fixtures import numpy_available; "
+        "print('numpy' in sys.modules, 'torch' in sys.modules)"
+    )
+    assert run_python(code) == ["True", "False"]

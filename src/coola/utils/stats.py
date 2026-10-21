@@ -25,11 +25,18 @@ def quantile(values: Sequence[float | int], quantiles: Sequence[float]) -> list[
     Raises:
         ValueError: If ``values`` is empty and ``quantiles`` is not.
 
+    Notes:
+        If ``values`` contains a ``NaN``, every quantile is ``NaN``, like
+        with NumPy: the sort order of the ``NaN`` is undefined, so the
+        quantiles would depend on the position of the ``NaN``.
+
     Example:
         ```pycon
         >>> from coola.utils.stats import quantile
         >>> quantile([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], (0.2, 0.5, 0.9))
         [2.0, 5.0, 9.0]
+        >>> quantile([1.0, float("nan")], (0.5,))
+        [nan]
 
         ```
     """
@@ -37,15 +44,21 @@ def quantile(values: Sequence[float | int], quantiles: Sequence[float]) -> list[
         if not 0.0 <= q <= 1.0:
             msg = f"quantiles must be in [0, 1], got {q}"
             raise ValueError(msg)
-    values = sorted(values)
-    n = len(values)
-    if n == 0 and len(quantiles) > 0:
+    if len(values) == 0 and len(quantiles) > 0:
         msg = "values must not be empty when quantiles is not empty"
         raise ValueError(msg)
+    if any(math.isnan(value) for value in values):
+        return [math.nan] * len(quantiles)
+    values = sorted(values)
+    n = len(values)
     output: list[float] = []
     for q in quantiles:
         virtual_index = max(0.0, min(n - 1.0, q * (n - 1.0)))
         index = math.floor(virtual_index)
         g = virtual_index - index
-        output.append((1.0 - g) * values[index] + g * values[max(0, min(n - 1, index + 1))])
+        if g == 0.0:
+            # Exact value: the interpolation would compute ``0 * inf = nan`` next to an infinite value.
+            output.append(float(values[index]))
+        else:
+            output.append((1.0 - g) * values[index] + g * values[max(0, min(n - 1, index + 1))])
     return output
