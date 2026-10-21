@@ -774,7 +774,8 @@ The exact equality, the tolerance (`atol`, `rtol`) and `equal_nan` are all handl
 - [`polars.DataFrame`](https://www.pola.rs/), [`polars.Series`](https://www.pola.rs/) and
   `polars.LazyFrame`: `null` is always equal to `null`, and a `LazyFrame` is collected, so the
   comparison runs the query
-- [`pyarrow.Array`](https://arrow.apache.org/docs/python/generated/pyarrow.Array.html) and
+- [`pyarrow.Array`](https://arrow.apache.org/docs/python/generated/pyarrow.Array.html),
+  `pyarrow.ChunkedArray`, `pyarrow.RecordBatch` and
   [`pyarrow.Table`](https://arrow.apache.org/docs/python/generated/pyarrow.Table.html)
   (experimental): `equal_nan`, `atol` and `rtol` are ignored (a `RuntimeWarning` is emitted)
 - `numpy.ndarray` with a non-numeric dtype: `str`, `bytes` and `object` arrays are compared
@@ -1474,10 +1475,10 @@ Details:
   missing value is never equal to another one, **even to a copy of itself**, because the missing
   values are not equal to each other. Use `equal_nan=True` to compare the data frames with missing
   values.
-- **PyArrow**: when one of the ignored arguments is set, a `RuntimeWarning` is emitted by each
-  comparison (for example `atol is ignored because it is not supported for ...`). Python's default
-  warning filter shows a warning once per location, so comparing a large nested object does not
-  flood the output, but a test runner can show all of them.
+- **PyArrow**: when one of the ignored arguments is set, a `RuntimeWarning` is emitted (for example
+  `atol is ignored because it is not supported for ...`), once per ignored argument for each
+  comparison, even if the compared object contains many Arrow arrays. `pyarrow.Array`,
+  `pyarrow.ChunkedArray`, `pyarrow.RecordBatch` and `pyarrow.Table` are supported.
 - **NumPy**: `equal_nan=True` can safely be used with an object that contains arrays of strings:
   the argument is only applied to the dtypes that have a `NaN`.
 - **`-0.0`** is equal to `0.0` for all the types, whatever the tolerance.

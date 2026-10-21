@@ -66,7 +66,8 @@ def object_equal(obj1: Any, obj2: Any, config: EqualityConfig) -> bool:
     tolerance.
 
     ``config.equal_nan``, ``config.atol`` and ``config.rtol``
-    arguments are ignored.
+    arguments are ignored. A ``RuntimeWarning`` is emitted for each
+    ignored argument, once per comparison (not for each object).
 
     Args:
         obj1: The first array or table to compare.
@@ -91,23 +92,28 @@ def object_equal(obj1: Any, obj2: Any, config: EqualityConfig) -> bool:
         ```
     """
     if config.equal_nan:
-        warnings.warn(
-            f"equal_nan is ignored because it is not supported for {type(obj1)}",
-            RuntimeWarning,
-            stacklevel=3,
-        )
+        _warn_ignored(config, "equal_nan", obj1)
     if config.atol > 0:
-        warnings.warn(
-            f"atol is ignored because it is not supported for {type(obj1)}",
-            RuntimeWarning,
-            stacklevel=3,
-        )
+        _warn_ignored(config, "atol", obj1)
     if config.rtol > 0:
-        warnings.warn(
-            f"rtol is ignored because it is not supported for {type(obj1)}",
-            RuntimeWarning,
-            stacklevel=3,
-        )
+        _warn_ignored(config, "rtol", obj1)
     with suppress(TypeError):
         return obj1.equals(obj2)
     return False
+
+
+def _warn_ignored(config: EqualityConfig, name: str, obj: Any) -> None:
+    r"""Warn that a setting is ignored, once per setting for a
+    comparison.
+
+    A nested structure can contain many Arrow objects, and the same
+    warning for each of them would flood the output.
+    """
+    if name in config._warned:
+        return
+    config._warned.add(name)
+    warnings.warn(
+        f"{name} is ignored because it is not supported for {type(obj)}",
+        RuntimeWarning,
+        stacklevel=4,
+    )

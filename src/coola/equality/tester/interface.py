@@ -367,7 +367,13 @@ def _get_pyarrow_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
         return {}
 
     tester = PyarrowEqualityTester()
-    return {cast("Any", pa).Array: tester, cast("Any", pa).Table: tester}
+    pyarrow = cast("Any", pa)
+    return {
+        pyarrow.Array: tester,
+        pyarrow.ChunkedArray: tester,
+        pyarrow.RecordBatch: tester,
+        pyarrow.Table: tester,
+    }
 
 
 def _get_torch_equality_testers() -> dict[type, BaseEqualityTester[Any]]:

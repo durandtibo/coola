@@ -4,6 +4,7 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.handler import (
+    FalseHandler,
     HandlerCycleError,
     ObjectEqualHandler,
     SameLengthHandler,
@@ -242,3 +243,54 @@ def test_validate_chain_cycle_raises_handler_cycle_error() -> None:
     second._next_handler = first  # bypass the check to create a cycle
     with pytest.raises(HandlerCycleError, match="Cycle detected in the chain"):
         first.validate_chain()
+
+
+class FalsyHandler(TrueHandler):
+    r"""A handler that is falsy, like a handler with an empty ``__len__``."""
+
+    def __bool__(self) -> bool:
+        return False
+
+    def __len__(self) -> int:
+        return 0
+
+
+def test_falsy_handler_can_be_the_next_handler() -> None:
+    handler = TrueHandler(next_handler=FalsyHandler())
+    assert isinstance(handler.next_handler, FalsyHandler)
+
+
+def test_falsy_handler_get_chain_length() -> None:
+    handler = TrueHandler(next_handler=FalsyHandler(next_handler=FalseHandler()))
+    assert handler.get_chain_length() == 3
+
+
+def test_falsy_handler_validate_chain() -> None:
+    TrueHandler(next_handler=FalsyHandler(next_handler=FalseHandler())).validate_chain()
+
+
+def test_falsy_handler_validate_chain_detects_a_cycle() -> None:
+    first = TrueHandler()
+    second = FalsyHandler()
+    first.set_next_handler(second)
+    second._next_handler = first
+    with pytest.raises(HandlerCycleError, match="Cycle detected"):
+        first.validate_chain()
+
+
+def test_falsy_handler_visualize_chain() -> None:
+    handler = TrueHandler(next_handler=FalsyHandler(next_handler=FalseHandler()))
+    assert (
+        handler.visualize_chain() == "(0): TrueHandler()\n(1): FalsyHandler()\n(2): FalseHandler()"
+    )
+
+
+def test_falsy_handler_repr_shows_the_next_handler() -> None:
+    assert repr(TrueHandler(next_handler=FalsyHandler())) == (
+        "TrueHandler(next_handler=FalsyHandler())"
+    )
+
+
+def test_falsy_handler_is_called_by_the_previous_handler(config: EqualityConfig) -> None:
+    handler = SameObjectHandler(next_handler=FalsyHandler())
+    assert handler.handle(1, 2, config)
