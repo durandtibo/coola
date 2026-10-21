@@ -12,6 +12,7 @@ from __future__ import annotations
 
 __all__ = ["SupportsRegisterMany", "register_default_handlers"]
 
+from collections import deque
 from collections.abc import Collection, Mapping
 from typing import Protocol, TypeVar
 
@@ -23,7 +24,7 @@ _SCALAR_TYPES = (object, str, bytes, int, float, complex, bool)
 # Collections (excluding mappings) are expanded into their elements. Iterators and
 # generators are not collections: they are leaves, so they are never consumed (or
 # iterated forever) by a traversal.
-_ITERABLE_TYPES = (list, tuple, range, Collection, set, frozenset)
+_ITERABLE_TYPES = (list, tuple, deque, range, Collection, set, frozenset)
 # Mappings are expanded into their values.
 _MAPPING_TYPES = (dict, Mapping)
 

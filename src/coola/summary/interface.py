@@ -9,6 +9,7 @@ __all__ = [
     "summarize",
 ]
 
+from collections import deque
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any
 
@@ -255,6 +256,7 @@ def _get_native_summarizers() -> dict[type, Summarizer[Any]]:
         # Sequences - summary transformation preserving order
         list: sequence_summarizer,
         tuple: sequence_summarizer,
+        deque: sequence_summarizer,
         Sequence: sequence_summarizer,
         # Sets - summary transformation without order
         set: set_summarizer,

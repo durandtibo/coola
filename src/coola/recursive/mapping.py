@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
 from coola.recursive.base import BaseTransformer
-from coola.utils.introspection import get_type_constructor
+from coola.recursive.rebuild import rebuild_mapping
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -67,5 +67,4 @@ class MappingTransformer(
         transformed = {key: registry.transform(value, func) for key, value in data.items()}
 
         # Rebuild with original type to preserve mapping characteristics
-        data_type = get_type_constructor(data)
-        return data_type(transformed)
+        return rebuild_mapping(data, transformed)

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from typing import TYPE_CHECKING, Any, Never
 
 import pytest
@@ -129,3 +129,12 @@ def test_mapping_transformer_transform_with_closure(registry: TransformerRegistr
     assert MappingTransformer().transform(
         {"a": 1, "b": 2}, func=multiply_by, registry=registry
     ) == {"a": 3, "b": 6}
+
+
+def test_mapping_transformer_transform_defaultdict(registry: TransformerRegistry) -> None:
+    result = MappingTransformer().transform(
+        defaultdict(list, {"a": 1}), func=lambda x: x + 1, registry=registry
+    )
+    assert type(result) is defaultdict
+    assert result.default_factory is list
+    assert result == {"a": 2}

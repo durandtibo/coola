@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import defaultdict, deque
 from collections.abc import Generator, Mapping, Sequence
 
 import pytest
@@ -147,6 +148,7 @@ def test_get_default_registry_sequences() -> None:
     registry = get_default_registry()
     assert registry.has_transformer(list)
     assert registry.has_transformer(tuple)
+    assert registry.has_transformer(deque)
     assert registry.has_transformer(Sequence)
 
 
@@ -194,3 +196,18 @@ def test_get_default_registry_singleton_persists_modifications() -> None:
     registry2 = get_default_registry()
     assert registry1 is registry2
     assert registry2.has_transformer(CustomList)
+
+
+def test_recursive_apply_with_deque() -> None:
+    result = recursive_apply(
+        deque([1, [2]], maxlen=5), lambda x: x + 1 if isinstance(x, int) else x
+    )
+    assert result == deque([2, [3]])
+    assert result.maxlen == 5
+
+
+def test_recursive_apply_with_defaultdict() -> None:
+    result = recursive_apply(defaultdict(list, {"a": [1]}), lambda x: x + 1)
+    assert type(result) is defaultdict
+    assert result.default_factory is list
+    assert result == {"a": [2]}

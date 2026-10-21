@@ -10,6 +10,7 @@ __all__ = [
     "register_transformers",
 ]
 
+from collections import deque
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any
 
@@ -178,6 +179,7 @@ def _register_default_transformers(registry: TransformerRegistry) -> None:
             # Sequences - recursive transformation preserving order
             list: sequence_transformer,
             tuple: sequence_transformer,
+            deque: sequence_transformer,
             Sequence: sequence_transformer,
             # Sets - recursive transformation without order
             set: set_transformer,

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import deque
 from typing import TYPE_CHECKING, Any, NamedTuple, Never
 
 import pytest
@@ -127,3 +128,12 @@ def test_sequence_transformer_transform_with_closure(registry: TransformerRegist
         6,
         9,
     ]
+
+
+def test_sequence_transformer_transform_deque(registry: TransformerRegistry) -> None:
+    result = SequenceTransformer().transform(
+        deque([1, 2], maxlen=4), func=lambda x: x + 1, registry=registry
+    )
+    assert type(result) is deque
+    assert result == deque([2, 3])
+    assert result.maxlen == 4

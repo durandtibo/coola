@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
 from coola.recursive.base import BaseTransformer
-from coola.utils.introspection import get_type_constructor
+from coola.recursive.rebuild import rebuild_sequence
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -74,7 +74,4 @@ class SequenceTransformer(InlineDisplayMixin, NoArgsDisplayMixin, BaseTransforme
         transformed = [registry.transform(item, func) for item in data]
 
         # Rebuild with original type
-        data_type = get_type_constructor(data)
-        if isinstance(data, tuple) and hasattr(data, "_fields"):  # namedtuple special case
-            return data_type(*transformed)
-        return data_type(transformed)
+        return rebuild_sequence(data, transformed)

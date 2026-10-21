@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import deque
 from collections.abc import Generator, Mapping, Sequence
 from unittest.mock import Mock, patch
 
@@ -196,7 +197,7 @@ def test_get_default_registry_default(dtype: type) -> None:
     assert isinstance(registry.find_summarizer(dtype), DefaultSummarizer)
 
 
-@pytest.mark.parametrize("dtype", [list, tuple, Sequence])
+@pytest.mark.parametrize("dtype", [list, tuple, deque, Sequence])
 def test_get_default_registry_sequences(dtype: type) -> None:
     """Test that sequence types are registered with
     SequenceSummarizer."""

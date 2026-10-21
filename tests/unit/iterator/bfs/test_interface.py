@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import deque
 from collections.abc import Collection, Generator, Iterator, Mapping
 from typing import Any
 
@@ -116,7 +117,7 @@ def test_get_default_registry_scalar_types(data_type: type) -> None:
     assert isinstance(registry.find_child_finder(data_type), DefaultChildFinder)
 
 
-@pytest.mark.parametrize("data_type", [list, tuple, range, Collection, set, frozenset])
+@pytest.mark.parametrize("data_type", [list, tuple, deque, range, Collection, set, frozenset])
 def test_get_default_registry_iterable(data_type: type) -> None:
     """Test that iterable types are registered with
     IterableChildFinder."""
@@ -187,3 +188,7 @@ def test_bfs_iterate_self_referencing_list_raises() -> None:
     data.append(data)
     with pytest.raises(ValueError, match="Cycle detected"):
         list(bfs_iterate(data))
+
+
+def test_default_registry_iterates_over_a_deque() -> None:
+    assert list(bfs_iterate(deque([1, [2, 3]]))) == [1, 2, 3]

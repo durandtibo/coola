@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import deque
 from collections.abc import Collection, Mapping
 from typing import Any
 
@@ -66,6 +67,7 @@ def test_register_default_handlers_registers_all_types_exactly_once() -> None:
         bool,
         list,
         tuple,
+        deque,
         range,
         Collection,
         set,

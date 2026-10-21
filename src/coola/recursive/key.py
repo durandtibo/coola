@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
 from coola.recursive.base import BaseTransformer
-from coola.utils.introspection import get_type_constructor
+from coola.recursive.rebuild import rebuild_mapping
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -106,8 +106,7 @@ class KeyFilterTransformer(InlineDisplayMixin, BaseTransformer[Mapping[Any, Any]
             for key, value in data.items()
             if not func(key)
         }
-        data_type = get_type_constructor(data)
-        return data_type(filtered)
+        return rebuild_mapping(data, filtered)
 
     @staticmethod
     def _value_func(
