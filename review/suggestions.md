@@ -25,9 +25,26 @@ itself changed no source file; the fixes listed below were made afterwards.
 | 1.6  | **Fixed** (`defaultdict` rebuild, `deque` registered; ABC fallback not added) |
 | 1.7  | **Fixed** (`bytes` leaves, `restore_lists`, `to_jsonable` types) |
 | 1.8  | **Fixed** (`Array` columns cast to `List`) |
-| 1.9 to 1.13, 2.x, 3 | Open                                                                                      |
+| 1.9  | **Fixed** in #2047 (heartbeat, lock token, hidden temporary file, `JsonLoader(encoding=...)`) |
+| 1.10 | **Fixed** in #2048 (clear `RuntimeError` instead of a deadlock) |
+| 1.11 | **Fixed** in #2049 (out-of-range values rejected) |
+| 1.12 | **Fixed** in #2050 (NaN in the reducers). Not done: `auto_reducer` order |
+| 1.13 | **Fixed** in #2051 (`coords.variables`). Not done: the dask-backed `DataArray` (dask is not installed) |
+| 2.1  | **Fixed** in #2053 (fallbacks, NumPy scalars, `UUID`, `Decimal`, `Fraction`, `range`, `ZoneInfo`) |
+| 2.2  | **Not done**, by decision (see the item) |
+| 2.3  | **Fixed** in #2054 (`resolve_timestamp_ms` removed; the other items kept) |
+| 2.4  | **Fixed** in #2055 (keyword-only options of `hash_object` with a deprecation, `RandomManagerRegistry.find_manager`/`unregister`) |
+| 2.5  | **Fixed** in #2056 (O(1) cycle check). Not done, by decision: an explicit stack for `dfs_iterate` |
+| 2.6  | **Fixed** in #2057 (`key_predicate`) |
+| 2.7  | **Fixed** in #2058 (`is None` checks, `repr`, PyArrow types and one warning per setting) |
+| 2.8  | **Fixed** in #2059 (`max_characters=1000`, `max_fields`, abstract methods) |
+| 2.9  | **Fixed** in #2060 (documented; a duplicate ID after a backward clock fixed) |
+| 2.10 | **Fixed** in #2061 (lazy fixtures, `quantile`, `char_diff_summary`, `LRUCache` doc). Not done: `__getattr__` on the fake `torch` module |
+| 3    | Open |
 
-Each fixed item also has a _Status_ line under its title.
+The explanations of the design decisions were added to the code in #2052.
+
+Each item also has a _Status_ line under its title.
 
 Priority: **P1** wrong result or crash on realistic input, **P2** inconsistent or fragile
 behaviour, **P3** cleanup.
@@ -181,6 +198,8 @@ operation, got: Array(Int64, 2)`. Use `.arr` for `Array` (the width is also know
 
 ### 1.9 Files: save-lock robustness (`io/base.py`) (P2)
 
+_(Status: fixed in #2047. The save lock is refreshed by a heartbeat thread while the data is written, the lock file holds a token and is removed only by its owner, the temporary file is hidden (`.name-<uuid>.ext`, the extension is kept), and `JsonLoader`/`load_json` take an `encoding`. `stale_after` is still a module constant. Not done: `JsonSaver(default=to_jsonable)`.)_
+
 - **Stale detection can break a live lock.** A lock file older than 300 s is "stale" and removed, but the
   lock's mtime is never refreshed while the holder writes. A legitimate save of a large checkpoint to a
   slow or network disk that takes more than 5 minutes will have its lock broken by a second process, which
@@ -203,6 +222,8 @@ ensure_ascii=False)` writes a file that `JsonLoader().load()` cannot read (`Unic
 
 ### 1.10 `LazySingleton` deadlocks if a plugin touches the same registry **[verified]** (P2)
 
+_(Status: fixed in #2048. Instead of an `RLock`, `LazySingleton.get` raises a `RuntimeError` that explains the problem when the factory requests the value being built on the same thread; the plugin is then skipped with a warning (or the error is raised in strict mode). The partially built registry is not returned, because it would silently miss registrations.)_
+
 `LazySingleton.get` holds a non-reentrant `threading.Lock` while it runs the factory, and the factory runs
 the entry-point plugins. A plugin that calls any default-registry function during registration (for
 instance `objects_are_equal(...)`, `hash_object(...)`, or an import that does so) re-enters `get()` on the same
@@ -212,12 +233,16 @@ clear `RuntimeError`).
 
 ### 1.11 `decode_obfuscated_id` wraps instead of rejecting **[verified]** (P3)
 
+_(Status: fixed in #2049. `decode_obfuscated_id` raises a `ValueError` for a string that encodes a value above `2**64 - 1`. The docstrings already said that this is obfuscation.)_
+
 `decode_obfuscated_id(encode(5 + 2**64)) == decode_obfuscated_id(encode(5))`: the decoded base-62 value is
 masked to 64 bits without a range check, so many strings decode to the same number. Reject values above
 `2**64 - 1`. The docstring should also say that this is an affine map modulo 2^64 (two known pairs recover
 the key), so it is obfuscation, not protection.
 
 ### 1.12 Reducers disagree on NaN **[verified]** (P3)
+
+_(Status: fixed in #2050. `NativeReducer` and `TorchReducer` agree with `NumpyReducer`: `NaN` gives `NaN` for `max`, `min`, `mean`, `median`, `std` and `quantile` whatever its position, `sort` puts it last (first if descending), and `std` is `NaN` for infinite values. Not done: the order of `auto_reducer`, which needs a reducer that dispatches on the input type.)_
 
 `NativeReducer().max([1.0, nan, 2.0])` returns `2.0` and `max([nan, 1.0, 2.0])` returns `nan` (built-in
 `max` is order dependent), while the NumPy and torch reducers always return `nan`. The reducers are meant to
@@ -226,6 +251,8 @@ Also: `auto_reducer()` prefers torch over NumPy; importing torch costs seconds, 
 default for `Sequence[float]`. Consider NumPy first, torch only when the input is a tensor.
 
 ### 1.13 xarray equality relies on a private attribute (P2)
+
+_(Status: fixed in #2051. The DataArray tester compares `coords.variables` (public); `SameAttributeHandler` accepts a dotted name through `operator.attrgetter`. Using `coords` directly recurses forever. Not done: the dask-backed `DataArray`, because dask is not installed.)_
 
 `XarrayDataArrayEqualityTester` compares `SameAttributeHandler("_coords")`. `_coords` is a private
 attribute of `DataArray` and can change between releases; `coords` (a `Mapping`) is the public way. Also,
@@ -237,6 +264,8 @@ attribute of `DataArray` and can change between releases; `coords` (a `Mapping`)
 ## 2. Design and API
 
 ### 2.1 Hashing covers fewer types than equality (P2) **[verified]**
+
+_(Status: fixed in #2053. `HasherRegistry.register_fallback(predicate, hasher)`, with dataclasses (`DataclassHasher`) and classes with a `hash()` method (`HashableHasher`) registered as fallbacks in the default registry; NumPy scalars hash like the equivalent builtin; `UUID`, `ZoneInfo` (`StrHasher`), `Decimal`, `Fraction` and `range` (`coola.hashing.canonical`, canonical forms); the error for an unsupported type lists the three remedies. Not done: `tzinfo` in general, arrays and data frames.)_
 
 `hash_object` raises `TypeNotRegisteredError` for `np.float32`, `np.int64`, `uuid.UUID`, `Decimal`, `range`
 and any dataclass instance. `np.float64` works only because it subclasses `float`.
@@ -253,6 +282,8 @@ hasher)`), and register dataclasses and `SupportsHash` there. The same mechanism
 
 ### 2.2 Boilerplate that can be generated (P3)
 
+_(Status: not done, by decision. A table-driven factory would make the helpers dynamic, which breaks three things: the API reference (mkdocstrings reads the source statically, so the functions and their docstrings would disappear), the tests that patch `coola.utils.imports.numpy.is_numpy_available` (the `check_*` functions look the name up in the module; with a factory they would call a closure), and the precise types for `ty`. The hand-written modules are repetitive but simple, explicit and greppable. The `_required_package` idea for the testers has the same problem with the tests that patch `check_numpy`.)_
+
 - `utils/imports/*.py` has 13 near-identical modules (four functions each; 14 files with `universal.py`) and
   `utils/fallback/*.py` has 10 more. A table-driven factory (`make_availability_helpers("pandas", install="pandas")` returning the four
   functions) would remove several hundred lines and make adding a dependency a one-line change. Keep the
@@ -263,6 +294,8 @@ hasher)`), and register dataclasses and `SupportsHash` there. The same mechanism
 
 ### 2.3 Unused or unexported code (P3)
 
+_(Status: fixed in #2054 for `resolve_timestamp_ms` (removed). Kept: `configure_colorlog_logging` is documented and tested (`coola.display.colorlog`), the `rich` helpers are public API like the other optional packages, and `StrHasher` is now used by the default hasher registry (#2053).)_
+
 - `identifier.validation.resolve_timestamp_ms` has no caller (ULID and UUIDv7 inline the same logic).
 - `display/colorlog.py:configure_colorlog_logging` is not exported from `coola.display` and nothing in the
   repo calls it. Same for the whole `rich` helper set (`is_rich_available`, `check_rich`, ...) and the `rich`
@@ -272,6 +305,8 @@ hasher)`), and register dataclasses and `SupportsHash` there. The same mechanism
 
 ### 2.4 Inconsistent entry-point signatures (P3)
 
+_(Status: fixed in #2055. `hash_object(data, *, registry, length, ignore_unhashable)`: the positional form still works with a `DeprecationWarning`, and `hash_object(data, 32)` raises a `TypeError` that explains it. `RandomManagerRegistry` has `find_manager` and `unregister`. Not changed: `generate_stable_content_id` and `generate_stable_uuid5`.)_
+
 `hash_object(data, registry=None, length=64, ignore_unhashable=False)` takes everything positionally,
 while `objects_are_equal`, `summarize` and `recursive_apply` make options keyword-only. Making the options
 keyword-only in `hash_object` (after a deprecation cycle) prevents the `hash_object(x, 32)` mistake where
@@ -279,6 +314,8 @@ keyword-only in `hash_object` (after a deprecation cycle) prevents the `hash_obj
 `unregister`, `get` or `find`, unlike the other registries.
 
 ### 2.5 Iterators (P3)
+
+_(Status: fixed in #2056. One `PathRegistry` per traversal with a set of ancestor ids (added on entry, removed on exit, also when the generator is closed): O(1) per object and no allocation per object. Not done, by decision: an explicit stack for `dfs_iterate`, because the iterators visit their children with `registry.iterate` (the extension point). The limit is documented, and `bfs_iterate` is iterative.)_
 
 - `IteratorRegistry._iterate` copies the ancestor tuple (`(*ancestors, id(data))`) and builds a
   `PathRegistry` for every node, and `id(data) in ancestors` is a linear scan: O(n x depth) time and
@@ -291,6 +328,8 @@ keyword-only in `hash_object` (after a deprecation cycle) prevents the `hash_obj
 
 ### 2.6 `KeyFilterTransformer` double-purposes `func` (P3)
 
+_(Status: fixed in #2057. `KeyFilterTransformer(key_predicate=...)` keeps the predicate in the transformer, so `func` is the function of the values at every depth. The legacy mode (no `key_predicate`) is kept, with `transform_func` defaulting to the identity instead of the predicate. `remove_keys_if` builds its registry for each call.)_
+
 `func` is the predicate for keys, and, through `_value_func`, also the function applied to non-container
 values unless `transform_func` is given. With the registry built in `nested/mapping.py` the leaves are
 identity transformers, so it works, but with a registry whose leaf is `DefaultTransformer` the predicate
@@ -298,6 +337,8 @@ would be applied to every value and replace it with a `bool`. Split into two par
 (`key_predicate`, `value_func`) and make `value_func` default to identity.
 
 ### 2.7 Handler details (P3)
+
+_(Status: fixed in #2058. `is None` checks in `BaseEqualityHandler`, `repr` of the next handler in `SameAttributeHandler`, `ChunkedArray` and `RecordBatch` registered, and one `RuntimeWarning` per ignored setting for each comparison (state on `EqualityConfig`).)_
 
 - `if not handler:` / `while current:` in `BaseEqualityHandler` use truthiness; use `is None`/`is not None`
   (a handler subclass with `__len__` or `__bool__` would behave oddly).
@@ -310,6 +351,8 @@ would be applied to every value and replace it with a `bool`. Split into two par
 
 ### 2.8 Summaries (P3)
 
+_(Status: fixed in #2059. `DefaultSummarizer(max_characters=1000)` by default (behaviour change; `str(data)` is still computed before it is truncated), `BaseFieldsSummarizer` with `max_fields` for the data frames, table and dataset summarizers, and abstract `_get_preview`/`_format_items`. `reprlib` was not used.)_
+
 - `DefaultSummarizer(max_characters=-1)` calls `str(data)` on the whole object and truncates afterwards. For a
   very large custom object the cost is paid before truncation, and the default has no limit. Choose a finite
   default (for example 1000) and truncate through `reprlib` where possible.
@@ -320,6 +363,8 @@ would be applied to every value and replace it with a `bool`. Split into two par
 
 ### 2.9 Identifiers (P3)
 
+_(Status: fixed in #2060. The fork and clock behaviour is documented. While documenting it, a real bug was found and fixed: after the sequence of a millisecond was exhausted and the clock moved backward during the wait, the next call could mint an ID that had already been used.)_
+
 - `SnowflakeIdGenerator._reset_after_fork` replaces the lock but keeps the sequence and last timestamp.
   Parent and child (same `worker_id`) can then produce the same id in the same millisecond. Document that
   `worker_id` must be unique per process, or mix `os.getpid()` into the default worker id after a fork.
@@ -327,6 +372,8 @@ would be applied to every value and replace it with a `bool`. Split into two par
   it in the guide, with NTP step adjustments as the typical cause.
 
 ### 2.10 Smaller points
+
+_(Status: fixed in #2061: lazy markers in `coola.testing.fixtures` (module `__getattr__`), `quantile` with `NaN` (and an exact quantile next to an infinite value), `char_diff_summary` (`n/a`), `LRUCache` documented as not thread-safe. Not done: `__getattr__` on the fake `torch` module, which would break `hasattr`/`getattr(..., default)`.)_
 
 - `testing/fixtures.py` evaluates `is_cuda_available()` and `is_mps_available()` at import. The latter
   allocates a tensor on the MPS device, so merely importing the fixtures initialises a GPU context. Make the
