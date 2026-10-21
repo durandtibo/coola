@@ -22,6 +22,7 @@ from __future__ import annotations
 __all__ = [
     "BaseChainEqualityTester",
     "BaseEqualityTester",
+    "DataclassEqualityTester",
     "DefaultEqualityTester",
     "EqualEqualityTester",
     "EqualNanEqualityTester",
@@ -58,6 +59,7 @@ from coola.equality.tester.collection import (
     OrderedMappingEqualityTester,
     SequenceEqualityTester,
 )
+from coola.equality.tester.dataclass import DataclassEqualityTester
 from coola.equality.tester.default import DefaultEqualityTester
 from coola.equality.tester.equal import EqualEqualityTester, EqualNanEqualityTester
 from coola.equality.tester.handler import HandlerEqualityTester

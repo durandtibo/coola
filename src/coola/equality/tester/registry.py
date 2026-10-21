@@ -8,8 +8,9 @@ checking of nested data structures.
 
 from __future__ import annotations
 
-__all__ = ["EqualityTesterRegistry"]
+__all__ = ["DataclassMarker", "EqualityTesterRegistry"]
 
+import dataclasses
 from typing import TYPE_CHECKING, Any
 
 from coola.equality.tester.base import BaseEqualityTester
@@ -17,6 +18,17 @@ from coola.registry import BaseTypeDispatchRegistry
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
+
+
+class DataclassMarker:
+    """Registry key for the tester used by the dataclass types that
+    have no tester of their own.
+
+    A dataclass cannot be registered by type because every dataclass
+    is a different type. The tester registered for this key is used
+    for the dataclasses (with the generated ``__eq__``) that would
+    otherwise be handled by the catch-all ``object`` tester.
+    """
 
 
 class EqualityTesterRegistry(BaseTypeDispatchRegistry[BaseEqualityTester[Any]]):
@@ -124,7 +136,16 @@ class EqualityTesterRegistry(BaseTypeDispatchRegistry[BaseEqualityTester[Any]]):
 
             ```
         """
-        return self.find(data_type)
+        tester = self.find(data_type)
+        if (
+            dataclasses.is_dataclass(data_type)
+            and self.has(DataclassMarker)
+            and self.has(object)
+            and tester is self.find(object)
+            and data_type.__dataclass_params__.eq  # type: ignore[attr-defined]
+        ):
+            return self.find(DataclassMarker)
+        return tester
 
     def objects_are_equal(self, actual: object, expected: object, config: EqualityConfig) -> bool:
         """Check if two objects are equal by recursively comparing their

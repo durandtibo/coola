@@ -82,12 +82,12 @@ TESTER_TYPES: list[tuple[type, type, bool]] = [
     # Default
     (object, DefaultEqualityTester, True),
     (str, DefaultEqualityTester, False),
-    (complex, DefaultEqualityTester, False),
     (set, DefaultEqualityTester, False),
     (frozenset, DefaultEqualityTester, False),
     # Scalar
     (int, ScalarEqualityTester, True),
     (float, ScalarEqualityTester, True),
+    (complex, ScalarEqualityTester, True),
     (bool, ScalarEqualityTester, False),
     # Sequence
     (list, SequenceEqualityTester, True),
