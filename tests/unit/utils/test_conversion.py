@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import base64
 import datetime
+import json
 from dataclasses import dataclass
+from decimal import Decimal
 from enum import Enum
 from pathlib import Path
+from uuid import UUID
 
 from coola.testing.fixtures import numpy_available, pydantic_available, torch_available
 from coola.utils.conversion import to_jsonable
@@ -206,3 +210,32 @@ def test_to_json_dataclass_with_tuple_and_set_fields() -> None:
 
     result = to_jsonable(Container(values=(1, (2, 3)), unique={4}, nested={"a": (5,)}))
     assert result == {"values": [1, [2, 3]], "unique": [4], "nested": {"a": [5]}}
+
+
+def test_to_jsonable_bytes() -> None:
+    assert to_jsonable(b"xy") == "eHk="
+
+
+def test_to_jsonable_bytearray() -> None:
+    assert to_jsonable(bytearray(b"xy")) == "eHk="
+
+
+def test_to_jsonable_empty_bytes() -> None:
+    assert to_jsonable(b"") == ""
+
+
+def test_to_jsonable_bytes_round_trip() -> None:
+    data = bytes(range(256))
+    assert base64.b64decode(to_jsonable(data)) == data
+
+
+def test_to_jsonable_decimal() -> None:
+    assert to_jsonable(Decimal("1.10")) == "1.10"
+
+
+def test_to_jsonable_uuid() -> None:
+    assert to_jsonable(UUID(int=1)) == "00000000-0000-0000-0000-000000000001"
+
+
+def test_to_jsonable_new_types_are_json_serializable() -> None:
+    assert json.dumps([to_jsonable(x) for x in (b"a", Decimal(1), UUID(int=2))])

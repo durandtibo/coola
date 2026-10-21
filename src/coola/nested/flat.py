@@ -9,23 +9,36 @@ from typing import Any, cast
 
 from coola.validation import validate_not_empty
 
+# ``str``, ``bytes`` and ``bytearray`` are sequences, but they are leaves.
+_LEAF_SEQUENCES = (str, bytes, bytearray)
 
-def from_flat_dict(data: dict[str, Any], separator: str = ".") -> dict[str, Any]:
+
+def from_flat_dict(
+    data: dict[str, Any], separator: str = ".", restore_lists: bool = False
+) -> dict[str, Any]:
     r"""Return a nested dict from a flat dict produced by
     ``to_flat_dict``.
 
     Each key in ``data`` is split on ``separator`` to reconstruct the
-    nesting depth.  Keys whose segments are all decimal integers are
-    **not** converted to lists; the output is always a plain ``dict``
-    so the round-trip is lossless for the dict-of-dicts case and
-    predictable for the list-originated case (integer string keys are
-    preserved as strings).
+    nesting depth.  By default the keys whose segments are decimal
+    integers are **not** converted to lists; the output only contains
+    ``dict`` objects, so the round-trip is lossless for the
+    dict-of-dicts case and the integer keys are preserved as strings
+    for the list-originated case.  Use ``restore_lists=True`` to
+    rebuild the lists.
 
     Args:
         data: A flat dictionary whose keys use ``separator`` to encode
             nesting depth, as produced by :func:`to_flat_dict`.
         separator: The separator that was used when the flat dict was
             created.  Defaults to ``"."``.
+        restore_lists: If ``True``, every ``dict`` whose keys are
+            exactly the strings ``"0"``, ``"1"``, ..., ``"n-1"``
+            (``n >= 1``) is converted to a ``list``. A ``dict`` that
+            was originally built with such keys is converted too, so
+            the original container type is not always recovered, and
+            ``tuple`` objects come back as ``list`` objects.
+            Defaults to ``False``.
 
     Returns:
         A nested ``dict``.
@@ -45,6 +58,12 @@ def from_flat_dict(data: dict[str, Any], separator: str = ".") -> dict[str, Any]
         >>> # Integer-string keys are preserved as strings
         >>> from_flat_dict({"module.0.0": 1, "module.0.1": 2, "module.1.bool": True, "str": "abc"})
         {'module': {'0': {'0': 1, '1': 2}, '1': {'bool': True}}, 'str': 'abc'}
+        >>> # The lists can be restored
+        >>> from_flat_dict(
+        ...     {"module.0.0": 1, "module.0.1": 2, "module.1.bool": True, "str": "abc"},
+        ...     restore_lists=True,
+        ... )
+        {'module': [[1, 2], {'bool': True}], 'str': 'abc'}
 
         ```
     """
@@ -57,7 +76,19 @@ def from_flat_dict(data: dict[str, Any], separator: str = ".") -> dict[str, Any]
             raise TypeError(msg)
         segments = flat_key.split(separator)
         _set_nested(nested, segments, value, flat_key, separator)
+    if restore_lists:
+        # The root is always a dict, only its children can become lists.
+        return {key: _restore_lists(value) for key, value in nested.items()}
     return nested
+
+
+def _restore_lists(node: Any) -> Any:
+    if not isinstance(node, dict):
+        return node
+    restored = {key: _restore_lists(value) for key, value in node.items()}
+    if restored and set(restored) == {str(i) for i in range(len(restored))}:
+        return [restored[str(i)] for i in range(len(restored))]
+    return restored
 
 
 def _set_nested(
@@ -130,7 +161,7 @@ def to_flat_dict(
 
     Args:
         data: The nested structure to flatten. Any :class:`Mapping` or
-            non-string :class:`Sequence` is recursed into; everything
+            non-string, non-bytes :class:`Sequence` is recursed into; everything
             else is treated as a leaf value.
         prefix: The prefix prepended to each key. ``None`` means no
             prefix; only valid when ``data`` is a mapping or sequence —
@@ -217,7 +248,9 @@ def _flatten_into(
             )
             raise ValueError(msg)
         _set_leaf(flat, prefix, str(data))
-    elif isinstance(data, (Mapping, Sequence)) and not isinstance(data, str) and not data:
+    elif (
+        isinstance(data, (Mapping, Sequence)) and not isinstance(data, _LEAF_SEQUENCES) and not data
+    ):
         # Keep empty containers: they would otherwise vanish from the output.
         if prefix is not None:
             _set_leaf(flat, prefix, data)
@@ -225,9 +258,9 @@ def _flatten_into(
         for key, value in cast("Mapping[Any, Any]", data).items():
             child = _build_key(prefix, str(key), separator)
             _flatten_into(flat, value, child, separator, to_str)
-    # str is a Sequence, so it must be excluded before the Sequence check
-    # to avoid iterating over individual characters.
-    elif isinstance(data, Sequence) and not isinstance(data, str):
+    # str, bytes and bytearray are Sequences, so they must be excluded before
+    # the Sequence check to avoid iterating over individual characters or bytes.
+    elif isinstance(data, Sequence) and not isinstance(data, _LEAF_SEQUENCES):
         for i, value in enumerate(cast("Sequence[Any]", data)):
             child = _build_key(prefix, str(i), separator)
             _flatten_into(flat, value, child, separator, to_str)

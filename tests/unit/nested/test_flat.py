@@ -484,3 +484,53 @@ def test_to_flat_dict_separator_collision_raises() -> None:
 def test_flat_dict_round_trip_with_empty_containers() -> None:
     data = {"a": {}, "b": {"c": 1, "d": {}}}
     assert from_flat_dict(to_flat_dict(data)) == data
+
+
+@pytest.mark.parametrize("value", [b"xy", bytearray(b"xy"), b""])
+def test_to_flat_dict_bytes_are_leaves(value: bytes) -> None:
+    result = to_flat_dict({"a": value, "b": [value]})
+    assert objects_are_equal(result, {"a": value, "b.0": value})
+
+
+def test_to_flat_dict_bytes_with_prefix() -> None:
+    assert objects_are_equal(to_flat_dict(b"xy", prefix="a"), {"a": b"xy"})
+
+
+@pytest.mark.parametrize(
+    ("data", "expected"),
+    [
+        pytest.param({"a.0": 1, "a.1": 2}, {"a": [1, 2]}, id="list"),
+        pytest.param({"a.0.0": 1, "a.0.1": 2, "a.1.x": 3}, {"a": [[1, 2], {"x": 3}]}, id="nested"),
+        pytest.param({"0": 1, "1": 2}, {"0": 1, "1": 2}, id="top level stays a dict"),
+        pytest.param({"a.0": 1, "a.2": 2}, {"a": {"0": 1, "2": 2}}, id="gap in the indices"),
+        pytest.param({"a.1": 1, "a.2": 2}, {"a": {"1": 1, "2": 2}}, id="indices not from 0"),
+        pytest.param({"a.0": 1, "a.x": 2}, {"a": {"0": 1, "x": 2}}, id="mixed keys"),
+        pytest.param({"a.1": "b", "a.0": "a"}, {"a": ["a", "b"]}, id="unordered keys"),
+        pytest.param({"a.00": 1}, {"a": {"00": 1}}, id="not a canonical index"),
+        pytest.param({"a": []}, {"a": []}, id="empty list leaf"),
+        pytest.param({}, {}, id="empty"),
+    ],
+)
+def test_from_flat_dict_restore_lists(data: dict, expected: dict) -> None:
+    assert objects_are_equal(from_flat_dict(data, restore_lists=True), expected)
+
+
+def test_from_flat_dict_restore_lists_is_off_by_default() -> None:
+    assert objects_are_equal(from_flat_dict({"a.0": 1}), {"a": {"0": 1}})
+
+
+def test_from_flat_dict_restore_lists_separator() -> None:
+    assert objects_are_equal(from_flat_dict({"a/0": 1, "a/1": 2}, "/", True), {"a": [1, 2]})
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        {"a": [1, 2, 3]},
+        {"a": [[1, 2], {"b": [3]}], "c": 4},
+        {"a": {"b": {"c": [1, {"d": 2}]}}},
+        {"a": [], "b": {}},
+    ],
+)
+def test_from_flat_dict_restore_lists_round_trip(data: dict) -> None:
+    assert objects_are_equal(from_flat_dict(to_flat_dict(data), restore_lists=True), data)

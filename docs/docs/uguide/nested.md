@@ -186,6 +186,24 @@ The function works with any combination of dicts, lists, and tuples:
 
 ```
 
+`str`, `bytes` and `bytearray` values are leaves: they are never split into characters or bytes.
+
+#### Restoring Lists
+
+`from_flat_dict()` keeps the integer segments as dictionary keys by default, so a list does not come
+back as a list. Use `restore_lists=True` to rebuild the lists. A dictionary whose keys are exactly
+`"0"`, `"1"`, ..., `"n-1"` is converted, and the tuples come back as lists:
+
+```pycon
+>>> from coola.nested import from_flat_dict
+>>> flat = {"items.0": 10, "items.1": 20, "matrix.0.0": 1, "matrix.1.0": 3}
+>>> from_flat_dict(flat)
+{'items': {'0': 10, '1': 20}, 'matrix': {'0': {'0': 1}, '1': {'0': 3}}}
+>>> from_flat_dict(flat, restore_lists=True)
+{'items': [10, 20], 'matrix': [[1], [3]]}
+
+```
+
 #### Converting Types to Strings
 
 Use the `to_str` parameter to specify types that should be converted to strings instead of being
