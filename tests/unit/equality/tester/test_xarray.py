@@ -119,7 +119,7 @@ XARRAY_DATA_ARRAY_NOT_EQUAL = [
         ExamplePair(
             actual=xr.DataArray(np.arange(6), coords={"z": [1, 2, 3, 4, 5, 6]}),
             expected=xr.DataArray(np.arange(6), coords={"z": [10, 20, 30, 40, 50, 60]}),
-            expected_message="objects have different _coords:",
+            expected_message="objects have different coords.variables:",
         ),
         id="different coords",
     ),
@@ -854,3 +854,42 @@ def test_xarray_variable_equality_tester_no_xarray() -> None:
         ),
     ):
         XarrayVariableEqualityTester()
+
+
+@xarray_available
+def test_xarray_data_array_equality_tester_non_index_coordinate(config: EqualityConfig) -> None:
+    tester = XarrayDataArrayEqualityTester()
+    kwargs = {"dims": ["z"], "coords": {"label": ("z", ["a", "b", "c"])}}
+    actual = xr.DataArray(np.arange(3), **kwargs)
+    assert tester.objects_are_equal(actual, xr.DataArray(np.arange(3), **kwargs), config)
+    other = xr.DataArray(np.arange(3), dims=["z"], coords={"label": ("z", ["a", "b", "d"])})
+    assert not tester.objects_are_equal(actual, other, config)
+
+
+@xarray_available
+def test_xarray_data_array_equality_tester_missing_coordinate(config: EqualityConfig) -> None:
+    tester = XarrayDataArrayEqualityTester()
+    with_coord = xr.DataArray(np.arange(3), dims=["z"], coords={"z": [1, 2, 3]})
+    without_coord = xr.DataArray(np.arange(3), dims=["z"])
+    assert not tester.objects_are_equal(with_coord, without_coord, config)
+    assert not tester.objects_are_equal(without_coord, with_coord, config)
+
+
+@xarray_available
+def test_xarray_data_array_equality_tester_coordinate_tolerance() -> None:
+    tester = XarrayDataArrayEqualityTester()
+    actual = xr.DataArray(np.arange(3), dims=["z"], coords={"z": [1.0, 2.0, 3.0]})
+    expected = xr.DataArray(np.arange(3), dims=["z"], coords={"z": [1.0, 2.0, 3.05]})
+    assert not tester.objects_are_equal(actual, expected, EqualityConfig())
+    assert tester.objects_are_equal(actual, expected, EqualityConfig(atol=0.1))
+
+
+@xarray_available
+def test_xarray_data_array_equality_tester_coordinates_do_not_recurse(
+    config: EqualityConfig,
+) -> None:
+    # ``coords`` is a mapping of DataArrays, and each coordinate has its own coordinates
+    # (including itself): comparing it would recurse forever. The tester compares
+    # ``coords.variables``, which only contains Variables.
+    data = xr.DataArray(np.arange(2), dims=["z"], coords={"z": [0, 1], "w": ("z", [3, 4])})
+    assert XarrayDataArrayEqualityTester().objects_are_equal(data, data.copy(), config)
