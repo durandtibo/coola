@@ -8,6 +8,7 @@ __all__ = [
     "create_chain",
     "handlers_are_equal",
     "report_difference",
+    "track_comparison",
 ]
 
 from contextlib import contextmanager
@@ -189,3 +190,50 @@ def check_recursion_depth(config: EqualityConfig) -> Generator[None]:
         yield
     finally:
         config.decrement_depth()
+
+
+@contextmanager
+def track_comparison(config: EqualityConfig, actual: object, expected: object) -> Generator[bool]:
+    r"""Context manager to detect the cycles in the objects to compare.
+
+    It records that ``actual`` and ``expected`` are being compared. If
+    this pair is already being compared higher in the call stack, the
+    objects contain a cycle (for example, a list that contains
+    itself). The pair is then not recorded again and ``True`` is
+    yielded: the handler should consider the pair as equal, because
+    the cycle only repeats the comparison that is already in progress.
+
+    Args:
+        config: The equality configuration that stores the pairs.
+        actual: The actual object.
+        expected: The expected object.
+
+    Yields:
+        ``True`` if the pair is already being compared, otherwise
+            ``False``.
+
+    Example:
+        ```pycon
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.handler import track_comparison
+        >>> config = EqualityConfig()
+        >>> x, y = [], []
+        >>> with track_comparison(config, x, y) as in_progress:
+        ...     print(in_progress)
+        ...     with track_comparison(config, x, y) as in_progress:
+        ...         print(in_progress)
+        ...
+        False
+        True
+
+        ```
+    """
+    key = (id(actual), id(expected))
+    if key in config._in_progress:
+        yield True
+        return
+    config._in_progress.add(key)
+    try:
+        yield False
+    finally:
+        config._in_progress.discard(key)

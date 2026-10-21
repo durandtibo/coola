@@ -1,4 +1,5 @@
-r"""Property-based tests for the type validators of ``coola.validation``."""
+r"""Property-based tests for the type validators of
+``coola.validation``."""
 
 from __future__ import annotations
 
