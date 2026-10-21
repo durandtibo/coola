@@ -153,18 +153,18 @@ def transforming_registry() -> TransformerRegistry:
     )
 
 
-def test_key_filter_transformer_transform_default_transform_func_reuses_predicate(
+def test_key_filter_transformer_transform_default_transform_func_leaves_values_unchanged(
     transforming_registry: TransformerRegistry,
 ) -> None:
-    # Without an explicit transform_func, kept values are run through the
-    # key predicate too, reproducing the surprising legacy behavior.
+    # Without a transform_func, the kept values are left unchanged: the key
+    # predicate is not applied to them (it used to replace them with booleans).
     assert objects_are_equal(
         KeyFilterTransformer().transform(
             {"keep": 1, "secret": 2},
             func=lambda key: key == "secret",
             registry=transforming_registry,
         ),
-        {"keep": False},
+        {"keep": 1},
     )
 
 
@@ -232,16 +232,22 @@ def test_key_filter_transformer_transform_default_transform_func_nested_mapping_
 
 
 def test_key_filter_transformer_repr_default() -> None:
-    assert repr(KeyFilterTransformer()) == "KeyFilterTransformer(transform_func=None)"
+    assert (
+        repr(KeyFilterTransformer())
+        == "KeyFilterTransformer(key_predicate=None, transform_func=None)"
+    )
 
 
 def test_key_filter_transformer_str_default() -> None:
-    assert str(KeyFilterTransformer()) == "KeyFilterTransformer(transform_func=None)"
+    assert (
+        str(KeyFilterTransformer())
+        == "KeyFilterTransformer(key_predicate=None, transform_func=None)"
+    )
 
 
 def test_key_filter_transformer_repr_with_transform_func() -> None:
     assert repr(KeyFilterTransformer(transform_func=str)).startswith(
-        "KeyFilterTransformer(transform_func="
+        "KeyFilterTransformer(key_predicate=None, transform_func="
     )
 
 
@@ -273,3 +279,96 @@ def test_key_filter_transformer_transform_defaultdict(registry: TransformerRegis
     assert type(result) is defaultdict
     assert result.default_factory is int
     assert result == {"b": 2}
+
+
+##########################################
+#     Tests with the key predicate      #
+##########################################
+
+
+def is_secret(key: Any) -> bool:
+    return key == "secret"
+
+
+@pytest.fixture
+def predicate_registry() -> TransformerRegistry:
+    r"""A registry whose leaf transformer applies the function."""
+    key_filter = KeyFilterTransformer(key_predicate=is_secret)
+    return TransformerRegistry(
+        {
+            object: DefaultTransformer(),
+            list: SequenceTransformer(),
+            tuple: SequenceTransformer(),
+            set: SetTransformer(),
+            dict: key_filter,
+            OrderedDict: key_filter,
+        }
+    )
+
+
+def test_key_filter_transformer_key_predicate_drops_the_keys(
+    predicate_registry: TransformerRegistry,
+) -> None:
+    assert objects_are_equal(
+        predicate_registry.transform({"keep": 1, "secret": 2}, lambda x: x), {"keep": 1}
+    )
+
+
+def test_key_filter_transformer_key_predicate_func_is_applied_to_the_values(
+    predicate_registry: TransformerRegistry,
+) -> None:
+    assert objects_are_equal(
+        predicate_registry.transform({"keep": 1, "secret": 2}, str), {"keep": "1"}
+    )
+
+
+def test_key_filter_transformer_key_predicate_func_is_applied_to_nested_values(
+    predicate_registry: TransformerRegistry,
+) -> None:
+    data = {"a": {"secret": 1, "b": [1, {"secret": 2, "c": 3}]}, "secret": 4}
+    assert objects_are_equal(
+        predicate_registry.transform(data, lambda x: x * 10), {"a": {"b": [10, {"c": 30}]}}
+    )
+
+
+def test_key_filter_transformer_key_predicate_is_not_applied_to_the_values(
+    predicate_registry: TransformerRegistry,
+) -> None:
+    # The values are not keys: a value equal to "secret" is kept.
+    assert objects_are_equal(
+        predicate_registry.transform({"keep": "secret", "x": ["secret"]}, lambda x: x),
+        {"keep": "secret", "x": ["secret"]},
+    )
+
+
+def test_key_filter_transformer_key_predicate_keeps_the_type(
+    predicate_registry: TransformerRegistry,
+) -> None:
+    result = predicate_registry.transform(OrderedDict(a=1, secret=2), lambda x: x)
+    assert type(result) is OrderedDict
+    assert result == OrderedDict(a=1)
+
+
+def test_key_filter_transformer_key_predicate_ignores_the_predicate_forwarded_as_func(
+    predicate_registry: TransformerRegistry,
+) -> None:
+    # In the legacy mode, ``func`` is the predicate. With a ``key_predicate``, ``func`` is
+    # the function of the values, so a predicate given as ``func`` is applied to the values.
+    result = predicate_registry.transform({"keep": 1, "secret": 2}, lambda key: key == "keep")
+    assert objects_are_equal(result, {"keep": False})
+
+
+def test_key_filter_transformer_key_predicate_and_transform_func_raises() -> None:
+    with pytest.raises(ValueError, match="`transform_func` is only used without `key_predicate`"):
+        KeyFilterTransformer(key_predicate=is_secret, transform_func=str)
+
+
+def test_key_filter_transformer_key_predicate_repr() -> None:
+    assert repr(KeyFilterTransformer(key_predicate=is_secret)).startswith(
+        "KeyFilterTransformer(key_predicate=<function is_secret"
+    )
+
+
+def test_key_filter_transformer_key_predicate_follows_the_transformer_protocol() -> None:
+    transformer: Transformer[Any] = KeyFilterTransformer(key_predicate=is_secret)
+    assert isinstance(transformer, KeyFilterTransformer)

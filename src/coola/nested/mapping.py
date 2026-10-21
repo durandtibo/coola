@@ -14,7 +14,6 @@ __all__ = [
 ]
 
 from collections.abc import Mapping, Sequence, Set as AbstractSet
-from functools import cache
 from typing import TYPE_CHECKING, Any, Literal, TypeVar, assert_never, cast
 
 from coola.equality import objects_are_equal
@@ -349,8 +348,7 @@ def merge_mappings(
     return out
 
 
-@cache
-def _get_key_filter_registry() -> TransformerRegistry:
+def _make_key_filter_registry(key_predicate: Callable[[Any], bool]) -> TransformerRegistry:
     """Build the registry used by ``remove_keys_if`` to recurse through
     arbitrary nested containers.
 
@@ -360,13 +358,20 @@ def _get_key_filter_registry() -> TransformerRegistry:
     rebuilt with its original type, while every other value (including
     ``str``) is left untouched.
 
+    The registry is built for each call because the key predicate is
+    stored in the transformer of the mappings (building it takes about
+    a microsecond).
+
+    Args:
+        key_predicate: The function that selects the keys to remove.
+
     Returns:
         A registry mapping container types to the transformers used
         to recurse into them.
     """
     identity = IdentityTransformer()
     sequence = SequenceTransformer()
-    key_filter = KeyFilterTransformer()
+    key_filter = KeyFilterTransformer(key_predicate=key_predicate)
     return TransformerRegistry(
         {
             object: identity,
@@ -417,7 +422,7 @@ def remove_keys_if(mapping: Mapping[Any, Any], predicate: Callable[[Any], bool])
 
         ```
     """
-    return _get_key_filter_registry().transform(mapping, predicate)
+    return _make_key_filter_registry(predicate).transform(mapping, lambda value: value)
 
 
 def remove_keys_containing(mapping: Mapping[Any, Any], substring: str) -> dict[Any, Any]:
