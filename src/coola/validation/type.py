@@ -37,9 +37,7 @@ def validate_bool(value: Any, *, name: str = "value") -> None:
 
         ```
     """
-    if not isinstance(value, bool):
-        msg = f"{name} must be a bool, got {type(value)}"
-        raise TypeError(msg)
+    validate_isinstance(value, bool, name=name)
 
 
 def validate_int(value: Any, *, name: str = "value") -> None:
@@ -85,9 +83,7 @@ def validate_float(value: Any, *, name: str = "value") -> None:
 
         ```
     """
-    if not (isinstance(value, float)):
-        msg = f"{name} must be a float, got {type(value)}"
-        raise TypeError(msg)
+    validate_isinstance(value, float, name=name)
 
 
 def validate_str(value: Any, *, name: str = "value") -> None:
@@ -107,9 +103,7 @@ def validate_str(value: Any, *, name: str = "value") -> None:
 
         ```
     """
-    if not (isinstance(value, str)):
-        msg = f"{name} must be a str, got {type(value)}"
-        raise TypeError(msg)
+    validate_isinstance(value, str, name=name)
 
 
 def validate_list(value: Any, *, name: str = "value") -> None:
@@ -129,9 +123,7 @@ def validate_list(value: Any, *, name: str = "value") -> None:
 
         ```
     """
-    if not (isinstance(value, list)):
-        msg = f"{name} must be a list, got {type(value)}"
-        raise TypeError(msg)
+    validate_isinstance(value, list, name=name)
 
 
 def validate_tuple(value: Any, *, name: str = "value") -> None:
@@ -151,9 +143,7 @@ def validate_tuple(value: Any, *, name: str = "value") -> None:
 
         ```
     """
-    if not (isinstance(value, tuple)):
-        msg = f"{name} must be a tuple, got {type(value)}"
-        raise TypeError(msg)
+    validate_isinstance(value, tuple, name=name)
 
 
 def validate_dict(value: Any, *, name: str = "value") -> None:
@@ -173,9 +163,7 @@ def validate_dict(value: Any, *, name: str = "value") -> None:
 
         ```
     """
-    if not (isinstance(value, dict)):
-        msg = f"{name} must be a dict, got {type(value)}"
-        raise TypeError(msg)
+    validate_isinstance(value, dict, name=name)
 
 
 def validate_set(value: Any, *, name: str = "value") -> None:
@@ -195,9 +183,7 @@ def validate_set(value: Any, *, name: str = "value") -> None:
 
         ```
     """
-    if not (isinstance(value, set)):
-        msg = f"{name} must be a set, got {type(value)}"
-        raise TypeError(msg)
+    validate_isinstance(value, set, name=name)
 
 
 def validate_frozenset(value: Any, *, name: str = "value") -> None:
@@ -217,9 +203,7 @@ def validate_frozenset(value: Any, *, name: str = "value") -> None:
 
         ```
     """
-    if not (isinstance(value, frozenset)):
-        msg = f"{name} must be a frozenset, got {type(value)}"
-        raise TypeError(msg)
+    validate_isinstance(value, frozenset, name=name)
 
 
 def validate_isinstance(value: Any, cls: type | tuple[type, ...], *, name: str = "value") -> None:

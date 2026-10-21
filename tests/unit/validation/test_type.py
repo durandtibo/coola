@@ -46,12 +46,12 @@ def test_validate_bool_valid(value: bool) -> None:
 
 @pytest.mark.parametrize("value", [0, 1, "True", None, 1.0])
 def test_validate_bool_invalid(value: object) -> None:
-    with pytest.raises(TypeError, match="value must be a bool"):
+    with pytest.raises(TypeError, match="value must be an instance of <class 'bool'>"):
         validate_bool(value)
 
 
 def test_validate_bool_custom_name() -> None:
-    with pytest.raises(TypeError, match="flag must be a bool"):
+    with pytest.raises(TypeError, match="flag must be an instance of <class 'bool'>"):
         validate_bool(1, name="flag")
 
 
@@ -78,12 +78,12 @@ def test_validate_float_valid(value: object) -> None:
 
 @pytest.mark.parametrize("value", [1, True, "1.0", None])
 def test_validate_float_invalid(value: object) -> None:
-    with pytest.raises(TypeError, match="value must be a float"):
+    with pytest.raises(TypeError, match="value must be an instance of <class 'float'>"):
         validate_float(value)
 
 
 def test_validate_float_custom_name() -> None:
-    with pytest.raises(TypeError, match="foo must be a float"):
+    with pytest.raises(TypeError, match="foo must be an instance of <class 'float'>"):
         validate_float(object(), name="foo")
 
 
@@ -94,12 +94,12 @@ def test_validate_str_valid(value: object) -> None:
 
 @pytest.mark.parametrize("value", [1, b"abc", None, ["a"]])
 def test_validate_str_invalid(value: object) -> None:
-    with pytest.raises(TypeError, match="value must be a str"):
+    with pytest.raises(TypeError, match="value must be an instance of <class 'str'>"):
         validate_str(value)
 
 
 def test_validate_str_custom_name() -> None:
-    with pytest.raises(TypeError, match="foo must be a str"):
+    with pytest.raises(TypeError, match="foo must be an instance of <class 'str'>"):
         validate_str(object(), name="foo")
 
 
@@ -110,12 +110,12 @@ def test_validate_list_valid(value: object) -> None:
 
 @pytest.mark.parametrize("value", [(1, 2), {1}, "ab", None])
 def test_validate_list_invalid(value: object) -> None:
-    with pytest.raises(TypeError, match="value must be a list"):
+    with pytest.raises(TypeError, match="value must be an instance of <class 'list'>"):
         validate_list(value)
 
 
 def test_validate_list_custom_name() -> None:
-    with pytest.raises(TypeError, match="foo must be a list"):
+    with pytest.raises(TypeError, match="foo must be an instance of <class 'list'>"):
         validate_list(object(), name="foo")
 
 
@@ -126,12 +126,12 @@ def test_validate_tuple_valid(value: object) -> None:
 
 @pytest.mark.parametrize("value", [[1, 2], {1}, "ab", None])
 def test_validate_tuple_invalid(value: object) -> None:
-    with pytest.raises(TypeError, match="value must be a tuple"):
+    with pytest.raises(TypeError, match="value must be an instance of <class 'tuple'>"):
         validate_tuple(value)
 
 
 def test_validate_tuple_custom_name() -> None:
-    with pytest.raises(TypeError, match="foo must be a tuple"):
+    with pytest.raises(TypeError, match="foo must be an instance of <class 'tuple'>"):
         validate_tuple(object(), name="foo")
 
 
@@ -142,12 +142,12 @@ def test_validate_dict_valid(value: object) -> None:
 
 @pytest.mark.parametrize("value", [[("a", 1)], {1}, "ab", None])
 def test_validate_dict_invalid(value: object) -> None:
-    with pytest.raises(TypeError, match="value must be a dict"):
+    with pytest.raises(TypeError, match="value must be an instance of <class 'dict'>"):
         validate_dict(value)
 
 
 def test_validate_dict_custom_name() -> None:
-    with pytest.raises(TypeError, match="foo must be a dict"):
+    with pytest.raises(TypeError, match="foo must be an instance of <class 'dict'>"):
         validate_dict(object(), name="foo")
 
 
@@ -158,12 +158,12 @@ def test_validate_set_valid(value: object) -> None:
 
 @pytest.mark.parametrize("value", [frozenset({1}), [1], {"a": 1}, None])
 def test_validate_set_invalid(value: object) -> None:
-    with pytest.raises(TypeError, match="value must be a set"):
+    with pytest.raises(TypeError, match="value must be an instance of <class 'set'>"):
         validate_set(value)
 
 
 def test_validate_set_custom_name() -> None:
-    with pytest.raises(TypeError, match="foo must be a set"):
+    with pytest.raises(TypeError, match="foo must be an instance of <class 'set'>"):
         validate_set(object(), name="foo")
 
 
@@ -174,10 +174,10 @@ def test_validate_frozenset_valid(value: object) -> None:
 
 @pytest.mark.parametrize("value", [{1}, [1], (1,), None])
 def test_validate_frozenset_invalid(value: object) -> None:
-    with pytest.raises(TypeError, match="value must be a frozenset"):
+    with pytest.raises(TypeError, match="value must be an instance of <class 'frozenset'>"):
         validate_frozenset(value)
 
 
 def test_validate_frozenset_custom_name() -> None:
-    with pytest.raises(TypeError, match="foo must be a frozenset"):
+    with pytest.raises(TypeError, match="foo must be an instance of <class 'frozenset'>"):
         validate_frozenset(object(), name="foo")
