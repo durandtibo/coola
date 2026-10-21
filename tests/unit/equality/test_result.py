@@ -19,8 +19,8 @@ from coola.equality.tester.interface import get_default_registry
 LOGGER_NAME = "coola.equality"
 
 
-def equal_result(actual: object, expected: object) -> ComparisonResult:
-    return ComparisonResult(True, actual=repr(actual), expected=repr(expected))
+def equal_result(*_args: object) -> ComparisonResult:
+    return ComparisonResult(True)
 
 
 def different_result(
@@ -431,3 +431,29 @@ def test_compare_python_recursion_limit_message() -> None:
         data1, data2 = [data1], [data2]
     with pytest.raises(RecursionError, match="Python recursion limit"):
         compare(data1, data2, max_depth=10**6)
+
+
+class NoRepr:
+    def __repr__(self) -> str:
+        msg = "repr must not be called"
+        raise RuntimeError(msg)
+
+
+def test_compare_equal_does_not_compute_the_repr() -> None:
+    obj = NoRepr()
+    result = compare([obj], [obj])
+    assert result.equal
+    assert result.actual == ""
+    assert result.expected == ""
+
+
+def test_compare_equal_has_empty_representations() -> None:
+    result = compare({"a": [1, 2]}, {"a": [1, 2]})
+    assert result == ComparisonResult(True)
+    assert (result.actual, result.expected) == ("", "")
+
+
+def test_compare_different_has_the_representations() -> None:
+    result = compare([1], [2])
+    assert result.actual == "[1]"
+    assert result.expected == "[2]"
