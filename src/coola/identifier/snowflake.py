@@ -67,6 +67,12 @@ class SnowflakeIdGenerator:
         the generator of their parent: give each process or worker a
         distinct ``worker_id``.
 
+    Note:
+        If the system clock moves backward, ``generate`` raises a
+        ``RuntimeError`` instead of waiting for the clock to catch up
+        (the wait could be unbounded). The state of the generator is
+        not modified by the failed call.
+
     Args:
         last_timestamp_ms: The millisecond timestamp of the last ID
             minted by this generator, or ``-1`` (default) if none has
@@ -208,6 +214,7 @@ class SnowflakeIdGenerator:
                     # was released, so this call does not commit a
                     # timestamp/sequence pair another thread already used.
                     last_timestamp_ms = self._last_timestamp_ms
+                    entry_timestamp_ms = last_timestamp_ms
                     while timestamp_ms <= last_timestamp_ms:
                         self._lock.release()
                         try:
@@ -216,6 +223,13 @@ class SnowflakeIdGenerator:
                             self._lock.acquire()
                         timestamp_ms = time.time_ns() // 1_000_000
                         if timestamp_ms < last_timestamp_ms:
+                            # The sequence wrapped to 0 above, but no ID was minted: put
+                            # it back, otherwise the next call at the same millisecond
+                            # (once the clock is back) would mint again the IDs of the
+                            # sequence numbers 1, 2, ... that were already used. It is
+                            # left alone if another thread moved the state on.
+                            if self._last_timestamp_ms == entry_timestamp_ms:
+                                self._sequence = _MAX_SEQUENCE
                             msg = (
                                 f"clock moved backward: last timestamp was "
                                 f"{last_timestamp_ms} ms, got {timestamp_ms} ms"
