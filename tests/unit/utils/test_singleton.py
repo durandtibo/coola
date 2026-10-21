@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import threading
 from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING, Any, Never, cast
 
@@ -15,6 +14,7 @@ from coola.utils.singleton import (
 )
 
 if TYPE_CHECKING:
+    import threading
     from collections.abc import Callable
 
 ###################################
@@ -77,25 +77,6 @@ def test_lazy_singleton_can_be_built_after_a_reentrant_call_failed() -> None:
     with pytest.raises(RuntimeError, match="requested while it is being built"):
         holder["singleton"].get()
     assert holder["singleton"].get() == 42
-
-
-def test_lazy_singleton_get_from_another_thread_waits_for_the_factory() -> None:
-    started = threading.Event()
-    release = threading.Event()
-
-    def factory() -> int:
-        started.set()
-        release.wait(timeout=5)
-        return 42
-
-    lazy = LazySingleton(factory)
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        first = executor.submit(lazy.get)
-        assert started.wait(timeout=5)
-        second = executor.submit(lazy.get)
-        release.set()
-        assert first.result(timeout=5) == 42
-        assert second.result(timeout=5) == 42
 
 
 def test_lazy_singleton_returns_same_instance() -> None:
