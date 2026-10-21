@@ -415,3 +415,19 @@ def test_compare_does_not_modify_logger_while_running() -> None:
     compare([Spy()], [Spy()])
     assert seen
     assert all(state == before for state in seen)
+
+
+def test_compare_self_referencing_list() -> None:
+    a: list = []
+    a.append(a)
+    b: list = []
+    b.append(b)
+    assert compare(a, b).equal
+
+
+def test_compare_python_recursion_limit_message() -> None:
+    data1, data2 = [], []
+    for _ in range(2000):
+        data1, data2 = [data1], [data2]
+    with pytest.raises(RecursionError, match="Python recursion limit"):
+        compare(data1, data2, max_depth=10**6)

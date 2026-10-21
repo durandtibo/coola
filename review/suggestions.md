@@ -20,7 +20,8 @@ itself changed no source file; the fixes listed below were made afterwards.
 | 1.1  | **Fixed**                                                                                                |
 | 1.2  | **Fixed** for NumPy scalars, `complex` and dataclasses. Not done: `set`/`frozenset`, NumPy datetime arrays |
 | 1.3  | **Fixed**                                                                                                |
-| 1.4 to 1.13, 2.x, 3 | Open                                                                                      |
+| 1.4  | **Fixed** (cycles compared by value; `compare()` uses the same wrapper). `max_depth` is unchanged |
+| 1.5 to 1.13, 2.x, 3 | Open                                                                                      |
 
 Each fixed item also has a _Status_ line under its title.
 
@@ -102,6 +103,8 @@ integer types, but `is_nan` exists only for floats. Use `dtype.is_float()` (and 
 `cs.float()` for frames).
 
 ### 1.4 Deeply nested or cyclic data: raw `RecursionError` from `compare()` **[verified]** (P2)
+
+_(Status: fixed. `EqualityConfig` records the `(id(actual), id(expected))` pairs being compared, through the new `track_comparison` context manager used by the mapping, sequence and dataclass handlers. A pair that is already in progress is treated as equal (the usual coinductive definition), so `a = [a]` and `b = [b]` are equal, as are `a = [a]` and `b = [[b]]`, and cyclic structures with different values are still different. `compare()` now goes through the same `_compare` wrapper as the other entry points, so very deep structures give the friendly `RecursionError`. Not done: `max_depth=1000` is still unreachable under the default Python recursion limit; I kept it as a user-set guard.)_
 
 - `a = []; a.append(a); b = []; b.append(b)`: `objects_are_equal(a, b)` raises a `RecursionError` with the
   friendly message, but `compare(a, b)` (and so `assert_objects_equal`) raises the bare
