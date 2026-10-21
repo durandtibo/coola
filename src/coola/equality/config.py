@@ -84,6 +84,9 @@ class EqualityConfig:
         default=None, repr=False, compare=False
     )
     _current_depth: int = field(default=0, init=False, repr=False, compare=False)
+    _in_progress: set[tuple[int, int]] = field(
+        default_factory=set, init=False, repr=False, compare=False
+    )
 
     def __post_init__(self) -> None:
         """Validate configuration parameters after initialization."""

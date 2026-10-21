@@ -10,7 +10,11 @@ from typing import TYPE_CHECKING, Any
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_sequence_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
-from coola.equality.handler.utils import check_recursion_depth, report_difference
+from coola.equality.handler.utils import (
+    check_recursion_depth,
+    report_difference,
+    track_comparison,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -56,7 +60,13 @@ class SequenceSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
         expected: Sequence[Any],
         config: EqualityConfig,
     ) -> bool:
-        with check_recursion_depth(config):
+        with (
+            check_recursion_depth(config),
+            track_comparison(config, actual, expected) as in_progress,
+        ):
+            if in_progress:
+                # Cycle: the comparison of this pair is already in progress.
+                return True
             if len(actual) != len(expected):
                 if config.show_difference:
                     report_difference(

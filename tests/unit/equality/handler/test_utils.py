@@ -16,6 +16,7 @@ from coola.equality.handler import (
     create_chain,
     handlers_are_equal,
     report_difference,
+    track_comparison,
 )
 
 if TYPE_CHECKING:
@@ -162,3 +163,66 @@ def test_check_recursion_depth_raises_max_depth_exceeded_error() -> None:
         check_recursion_depth(config),
     ):
         pass
+
+
+#####################################
+#     Tests for track_comparison    #
+#####################################
+
+
+def test_track_comparison_first_time() -> None:
+    config = EqualityConfig()
+    with track_comparison(config, [], []) as in_progress:
+        assert not in_progress
+
+
+def test_track_comparison_same_pair_is_in_progress() -> None:
+    config = EqualityConfig()
+    a, b = [], []
+    with track_comparison(config, a, b) as outer:
+        assert not outer
+        with track_comparison(config, a, b) as inner:
+            assert inner
+
+
+def test_track_comparison_other_pair_is_not_in_progress() -> None:
+    config = EqualityConfig()
+    a, b = [], []
+    with track_comparison(config, a, b):
+        with track_comparison(config, b, a) as swapped:
+            assert not swapped
+        with track_comparison(config, a, []) as other:
+            assert not other
+
+
+def test_track_comparison_pair_is_removed_on_exit() -> None:
+    config = EqualityConfig()
+    a, b = [], []
+    with track_comparison(config, a, b):
+        pass
+    assert not config._in_progress
+    with track_comparison(config, a, b) as in_progress:
+        assert not in_progress
+
+
+def _fail() -> None:
+    msg = "boom"
+    raise RuntimeError(msg)
+
+
+def test_track_comparison_pair_is_removed_on_error() -> None:
+    config = EqualityConfig()
+    a, b = [], []
+    with pytest.raises(RuntimeError, match="boom"), track_comparison(config, a, b):
+        _fail()
+    assert not config._in_progress
+
+
+def test_track_comparison_inner_exit_keeps_outer_pair() -> None:
+    config = EqualityConfig()
+    a, b = [], []
+    with track_comparison(config, a, b):
+        with track_comparison(config, a, b):
+            pass
+        with track_comparison(config, a, b) as in_progress:
+            assert in_progress

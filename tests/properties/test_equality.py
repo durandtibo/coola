@@ -351,13 +351,38 @@ def test_pure_inputs_are_not_modified_and_answer_is_stable(data: Any, other: Any
 #########################
 
 
-def test_failure_mode_self_referencing_list_raises_recursion_error() -> None:
+def test_failure_mode_self_referencing_lists_are_equal() -> None:
     a: list = []
     a.append(a)
     b: list = []
     b.append(b)
-    with pytest.raises(RecursionError):
-        objects_are_equal(a, b)
+    assert objects_are_equal(a, b)
+    assert objects_are_allclose(a, b)
+
+
+@given(x=st.integers(), y=st.integers())
+def test_failure_mode_cycles_are_compared_by_their_values(x: int, y: int) -> None:
+    a: list = [x]
+    a.append(a)
+    b: list = [y]
+    b.append(b)
+    assert objects_are_equal(a, b) == (x == y)
+    assert objects_are_equal(b, a) == (x == y)
+
+
+@given(depth=st.integers(1, 5))
+def test_failure_mode_cycles_of_different_lengths_are_equal(depth: int) -> None:
+    # ``a = [a]`` and ``b = [[b]]`` unfold to the same infinite value.
+    a: list = []
+    a.append(a)
+    b: list = []
+    inner = b
+    for _ in range(depth):
+        new: list = []
+        inner.append(new)
+        inner = new
+    inner.append(b)
+    assert objects_are_equal(a, b)
 
 
 @given(data=values, other=values)

@@ -786,7 +786,9 @@ The exact equality, the tolerance (`atol`, `rtol`) and `equal_nan` are all handl
   type's `__eq__` returns. If `==` does not return a value that can be converted to a `bool`
   (for example, a class that compares arrays), a `TypeError` is raised: register a tester for
   this type
-- Objects with a reference cycle (a list that contains itself) raise a `RecursionError`
+- Objects with a reference cycle (a list that contains itself) are supported: a pair of objects that
+  is already being compared is considered equal, so two cyclic structures are equal if they unfold to
+  the same values. Very deep (but not cyclic) structures can still raise a `RecursionError`
 - Two objects are only compared if they have exactly the same type: a subclass is not equal to
   its parent class, and `numpy.float32(1)` is not equal to `numpy.float64(1)`
 

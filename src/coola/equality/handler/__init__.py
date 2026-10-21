@@ -46,6 +46,7 @@ __all__ = [
     "create_chain",
     "handlers_are_equal",
     "report_difference",
+    "track_comparison",
 ]
 
 from coola.equality.handler.allclose import AllCloseNanHandler
@@ -95,4 +96,5 @@ from coola.equality.handler.utils import (
     create_chain,
     handlers_are_equal,
     report_difference,
+    track_comparison,
 )

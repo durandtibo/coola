@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from coola.equality.config import EqualityConfig
+from coola.equality.interface import _compare
 from coola.equality.tester.interface import get_default_registry
 from coola.validation import validate_non_negative
 
@@ -157,7 +158,7 @@ def compare(
     )
     reports: list[tuple[str, tuple[object, ...]]] = []
     config.reporter = lambda message, path: reports.append((message, path))
-    equal = registry.objects_are_equal(actual, expected, config)
+    equal = _compare(registry, actual, expected, config)
     if equal:
         return ComparisonResult(True, actual=repr(actual), expected=repr(expected))
     # Handlers report innermost differences first: the outermost path

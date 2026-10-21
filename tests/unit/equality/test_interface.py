@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import OrderedDict
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -11,7 +12,7 @@ from coola.equality.tester import DefaultEqualityTester, EqualityTesterRegistry
 from coola.testing.fixtures import numpy_available, torch_available
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Callable, Mapping, Sequence
 
 
 np = pytest.importorskip("numpy")
@@ -552,3 +553,62 @@ def test_objects_are_equal_python_recursion_error_is_wrapped() -> None:
         objects_are_equal(data1, data2, max_depth=10**6)
     assert not isinstance(exc_info.value, MaxDepthExceededError)
     assert isinstance(exc_info.value.__cause__, RecursionError)
+
+
+def _cycle(value: object) -> list:
+    data: list = [value]
+    data.append(data)
+    return data
+
+
+@pytest.mark.parametrize("function", [objects_are_equal, objects_are_allclose])
+def test_objects_are_equal_self_referencing_list(function: Callable) -> None:
+    assert function(_cycle(1), _cycle(1))
+    assert not function(_cycle(1), _cycle(2))
+
+
+def test_objects_are_equal_self_referencing_dict() -> None:
+    a: dict = {"x": 1}
+    a["self"] = a
+    b: dict = {"x": 1}
+    b["self"] = b
+    assert objects_are_equal(a, b)
+    b["x"] = 2
+    assert not objects_are_equal(a, b)
+
+
+def test_objects_are_equal_mutually_referencing_objects() -> None:
+    a1: list = []
+    a2: list = [a1]
+    a1.append(a2)
+    b1: list = []
+    b2: list = [b1]
+    b1.append(b2)
+    assert objects_are_equal(a1, b1)
+
+
+def test_objects_are_equal_cycles_of_different_lengths() -> None:
+    a: list = []
+    a.append(a)
+    b: list = []
+    b.append([b])
+    assert objects_are_equal(a, b)
+
+
+def test_objects_are_equal_shared_reference_is_not_a_cycle() -> None:
+    shared = [1.0]
+    assert not objects_are_equal([shared, shared], [shared, [2.0]])
+    assert objects_are_equal([shared, shared], [[1.0], [1.0]])
+
+
+def test_objects_are_equal_self_referencing_dataclass() -> None:
+    @dataclass
+    class Node:
+        value: int
+        child: object = None
+
+    a, b = Node(1), Node(1)
+    a.child, b.child = a, b
+    assert objects_are_equal(a, b)
+    b.value = 2
+    assert not objects_are_equal(a, b)
