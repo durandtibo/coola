@@ -172,6 +172,25 @@ Sort sequences in ascending or descending order:
 
 ```
 
+## NaN Values
+
+The three reducers behave the same way if a sequence contains `NaN`, whatever its position:
+`max`, `min`, `mean`, `median`, `std` and `quantile` return `NaN`, and `sort` puts the `NaN` values
+last (first if `descending=True`). `std` also returns `NaN` if a value is infinite.
+
+```pycon
+>>> import math
+>>> from coola.reducer import NativeReducer
+>>> reducer = NativeReducer()
+>>> math.isnan(reducer.max([float("nan"), 1.0, 2.0]))
+True
+>>> math.isnan(reducer.max([1.0, 2.0, float("nan")]))
+True
+>>> reducer.sort([2.0, 1.0])
+[1.0, 2.0]
+
+```
+
 ## Automatic Backend Selection
 
 Use `auto_reducer()` to automatically select the best available reducer based on installed

@@ -187,3 +187,36 @@ def test_native_reducer_std_empty(values: Sequence[int | float]) -> None:
         match=r"Cannot compute the standard deviation because the sequence is empty",
     ):
         NativeReducer().std(values)
+
+
+def test_native_reducer_max_nan_does_not_depend_on_the_order() -> None:
+    nan = float("nan")
+    assert math.isnan(NativeReducer().max([1.0, nan, 2.0]))
+    assert math.isnan(NativeReducer().max([nan, 1.0, 2.0]))
+
+
+def test_native_reducer_min_nan_does_not_depend_on_the_order() -> None:
+    nan = float("nan")
+    assert math.isnan(NativeReducer().min([1.0, nan, 2.0]))
+    assert math.isnan(NativeReducer().min([nan, 1.0, 2.0]))
+
+
+def test_native_reducer_sort_ints_unchanged() -> None:
+    assert NativeReducer().sort([3, 1, 2]) == [1, 2, 3]
+    assert NativeReducer().sort([3, 1, 2], descending=True) == [3, 2, 1]
+
+
+def test_native_reducer_std_infinite_value_is_nan() -> None:
+    assert math.isnan(NativeReducer().std([1.0, float("-inf"), 2.0]))
+
+
+def test_native_reducer_median_nan_does_not_depend_on_the_order() -> None:
+    nan = float("nan")
+    for values in ([nan, 1.0, 2.0], [1.0, nan, 2.0], [1.0, 2.0, nan]):
+        assert math.isnan(NativeReducer().median(values))
+
+
+def test_native_reducer_quantile_nan() -> None:
+    result = NativeReducer().quantile([1.0, float("nan"), 2.0], [0.0, 0.5, 1.0])
+    assert len(result) == 3
+    assert all(math.isnan(q) for q in result)

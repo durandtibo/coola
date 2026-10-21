@@ -61,6 +61,35 @@ def test_max_min_and_sort_agree_with_the_native_reducer(
     assert reducer.sort(values, descending=True) == reference.sort(values, descending=True)
 
 
+@pytest.mark.parametrize("make_reducer", [NativeReducer, *OTHERS])
+@given(values=float_lists, data=st.data())
+def test_a_nan_propagates_whatever_its_position(
+    make_reducer: Callable[[], BaseReducer], values: list[float], data: st.DataObject
+) -> None:
+    index = data.draw(st.integers(0, len(values)))
+    with_nan = [*values[:index], float("nan"), *values[index:]]
+    reducer = make_reducer()
+    for method in ("max", "min", "mean", "median", "std"):
+        assert math.isnan(getattr(reducer, method)(with_nan)), method
+    assert all(math.isnan(q) for q in reducer.quantile(with_nan, [0.0, 0.5, 1.0]))
+
+
+@pytest.mark.parametrize("make_reducer", [NativeReducer, *OTHERS])
+@given(values=float_lists, data=st.data())
+def test_sort_puts_the_nan_values_last(
+    make_reducer: Callable[[], BaseReducer], values: list[float], data: st.DataObject
+) -> None:
+    index = data.draw(st.integers(0, len(values)))
+    with_nan = [*values[:index], float("nan"), *values[index:]]
+    reducer = make_reducer()
+    ascending = reducer.sort(with_nan)
+    assert ascending[:-1] == sorted(values)
+    assert math.isnan(ascending[-1])
+    descending = reducer.sort(with_nan, descending=True)
+    assert descending[1:] == sorted(values, reverse=True)
+    assert math.isnan(descending[0])
+
+
 @pytest.mark.parametrize("make_reducer", OTHERS)
 @given(values=float_lists)
 def test_mean_and_median_agree_with_the_native_reducer(

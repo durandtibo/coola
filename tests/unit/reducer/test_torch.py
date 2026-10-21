@@ -359,3 +359,13 @@ def test_torch_reducer_float16_quantile() -> None:
 @torch_available
 def test_torch_reducer_python_floats_keep_double_precision() -> None:
     assert TorchReducer().mean([0.1, 0.2]) == pytest.approx(0.15, rel=1e-15)
+
+
+@torch_available
+def test_torch_reducer_median_nan_tensor() -> None:
+    assert math.isnan(TorchReducer().median(torch.tensor([1.0, float("nan"), 2.0, 3.0])))
+
+
+@torch_available
+def test_torch_reducer_median_int_tensor_is_not_nan() -> None:
+    assert TorchReducer().median(torch.tensor([1, 2, 3, 4])) == 2.5
