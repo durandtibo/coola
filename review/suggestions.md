@@ -24,7 +24,8 @@ itself changed no source file; the fixes listed below were made afterwards.
 | 1.5  | **Fixed** (`repr` not computed for equal objects) |
 | 1.6  | **Fixed** (`defaultdict` rebuild, `deque` registered; ABC fallback not added) |
 | 1.7  | **Fixed** (`bytes` leaves, `restore_lists`, `to_jsonable` types) |
-| 1.8 to 1.13, 2.x, 3 | Open                                                                                      |
+| 1.8  | **Fixed** (`Array` columns cast to `List`) |
+| 1.9 to 1.13, 2.x, 3 | Open                                                                                      |
 
 Each fixed item also has a _Status_ line under its title.
 
@@ -170,6 +171,8 @@ _(Status: fixed. `to_flat_dict` treats `str`, `bytes` and `bytearray` as leaves.
   docstrings, and handle `bytes`, `Decimal`, `UUID` and `set` (see 2.1).
 
 ### 1.8 `polars` `flatten_frame(expand_lists=True)` fails on `Array` columns **[verified]** (P2)
+
+_(Status: fixed. `expand_list_columns` casts an `Array` column to `List` of the same inner type before using the `list` namespace, so `Array` columns are expanded like `List` columns (nulls become null elements). Tests in `tests/unit/nested/test_polars.py`. Not done: the width-from-`dtype.size` variant, which was not needed.)_
 
 `expand_list_columns` selects `pl.List` and `pl.Array` columns, then calls `.list.len()` and `.list.get()`.
 `Array` Series have no `.list` namespace: `InvalidOperationError: expected List data type for list
