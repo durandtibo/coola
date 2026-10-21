@@ -130,6 +130,8 @@ if is_pyarrow_available():
     TESTER_TYPES.extend(
         [
             (pa.Array, PyarrowEqualityTester, True),
+            (pa.ChunkedArray, PyarrowEqualityTester, True),
+            (pa.RecordBatch, PyarrowEqualityTester, True),
             (pa.Table, PyarrowEqualityTester, True),
         ],
     )

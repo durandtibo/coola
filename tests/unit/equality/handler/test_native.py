@@ -921,3 +921,14 @@ def test_same_attribute_handler_dotted_name_missing_attribute(config: EqualityCo
     handler = SameAttributeHandler(name="inner.missing", next_handler=TrueHandler())
     with pytest.raises(AttributeError, match="missing"):
         handler.handle(_Outer(1), _Outer(1), config)
+
+
+def test_same_attribute_handler_repr_uses_repr_of_the_next_handler() -> None:
+    handler = SameAttributeHandler(
+        name="a", next_handler=SameAttributeHandler(name="b", next_handler=FalseHandler())
+    )
+    assert repr(handler) == (
+        "SameAttributeHandler(name=a, next_handler="
+        "SameAttributeHandler(name=b, next_handler=FalseHandler()))"
+    )
+    assert str(handler) == "SameAttributeHandler(name=a)"

@@ -7,6 +7,7 @@ from unittest.mock import Mock
 
 import pytest
 
+from coola.equality import objects_are_allclose
 from coola.equality.config import EqualityConfig
 from coola.equality.handler import FalseHandler, PyarrowEqualHandler, TrueHandler
 from coola.equality.handler.pyarrow import object_equal
@@ -230,3 +231,45 @@ def test_object_equal_true(example: ExamplePair, config: EqualityConfig) -> None
 @pytest.mark.parametrize("example", PYARROW_NOT_EQUAL)
 def test_object_equal_false(example: ExamplePair, config: EqualityConfig) -> None:
     assert not object_equal(example.actual, example.expected, config=config)
+
+
+@pyarrow_available
+def test_pyarrow_equal_handler_chunked_array_and_record_batch() -> None:
+    handler = PyarrowEqualHandler()
+    config = EqualityConfig()
+    assert handler.handle(pa.chunked_array([[1, 2]]), pa.chunked_array([[1, 2]]), config)
+    assert not handler.handle(pa.chunked_array([[1, 2]]), pa.chunked_array([[1, 3]]), config)
+    assert handler.handle(pa.record_batch({"a": [1]}), pa.record_batch({"a": [1]}), config)
+    assert not handler.handle(pa.record_batch({"a": [1]}), pa.record_batch({"a": [2]}), config)
+
+
+@pyarrow_available
+def test_object_equal_warns_once_per_setting_for_a_config() -> None:
+    config = EqualityConfig(equal_nan=True, atol=0.1, rtol=0.1)
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        for _ in range(5):
+            object_equal(pa.array([1]), pa.array([1]), config)
+    assert len(w) == 3
+    messages = sorted(str(item.message).split(" ")[0] for item in w)
+    assert messages == ["atol", "equal_nan", "rtol"]
+
+
+@pyarrow_available
+def test_object_equal_warns_again_for_another_config() -> None:
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        for _ in range(2):
+            object_equal(pa.array([1]), pa.array([1]), EqualityConfig(atol=0.1))
+    assert len(w) == 2
+
+
+@pyarrow_available
+def test_objects_are_equal_with_many_arrow_arrays_warns_once() -> None:
+    data = [pa.array([i]) for i in range(10)]
+    expected = [pa.array([i]) for i in range(10)]
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        assert objects_are_allclose(data, expected, atol=0.1, rtol=0.0)
+    assert len(w) == 1
+    assert "atol is ignored" in str(w[0].message)

@@ -170,8 +170,8 @@ class SameAttributeHandler(HandlerEqualityMixin, BaseEqualityHandler):
 
     def __repr__(self) -> str:
         args = ""
-        if self.next_handler:
-            args += f", next_handler={self.next_handler}"
+        if self.next_handler is not None:
+            args += f", next_handler={self.next_handler!r}"
         return f"{self.__class__.__qualname__}(name={self._name}{args})"
 
     def __str__(self) -> str:

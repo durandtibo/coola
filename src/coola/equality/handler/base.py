@@ -222,7 +222,7 @@ class BaseEqualityHandler(ABC):
         """
         count = 1
         current = self.next_handler
-        while current:
+        while current is not None:
             count += 1
             current = current.next_handler
         return count
@@ -268,7 +268,7 @@ class BaseEqualityHandler(ABC):
         visited: set[int] = set()
         current: BaseEqualityHandler | None = self
 
-        while current:
+        while current is not None:
             if id(current) in visited:
                 msg = f"Cycle detected in the chain: {current}"
                 raise HandlerCycleError(msg)
@@ -301,7 +301,7 @@ class BaseEqualityHandler(ABC):
         """
         handlers: list[BaseEqualityHandler] = []
         current: BaseEqualityHandler | None = self
-        while current:
+        while current is not None:
             handlers.append(current)
             current = current.next_handler
         return str_sequence(handlers)
@@ -320,7 +320,7 @@ class BaseEqualityHandler(ABC):
         Raises:
             RuntimeError: if the next handler is not defined.
         """
-        if not self._next_handler:
+        if self._next_handler is None:
             msg = "next handler is not defined"
             raise RuntimeError(msg)
         return self._next_handler.handle(actual, expected, config=config)
@@ -335,7 +335,7 @@ class BaseEqualityHandler(ABC):
             HandlerCycleError: if the next handler is self.
             TypeError: if the next handler is not a BaseEqualityHandler.
         """
-        if not handler:
+        if handler is None:
             return
         if handler is self:
             msg = "Cycle detected! the current handler cannot be its next handler"
@@ -348,7 +348,7 @@ class BaseEqualityHandler(ABC):
             raise TypeError(msg)
 
     def __repr__(self) -> str:
-        if self.next_handler:
+        if self.next_handler is not None:
             return f"{self.__class__.__qualname__}(next_handler={self.next_handler!r})"
         return f"{self.__class__.__qualname__}()"
 
