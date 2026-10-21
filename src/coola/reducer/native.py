@@ -18,11 +18,11 @@ T = TypeVar("T", bound=Sequence[float])
 
 
 def _has_nan(values: Sequence[float]) -> bool:
-    return any(value != value for value in values)  # noqa: PLR0124
+    return any(math.isnan(value) for value in values)
 
 
 def _nan_last_key(value: float) -> tuple[bool, float]:
-    return value != value, value  # noqa: PLR0124
+    return math.isnan(value), value
 
 
 class NativeReducer(InlineDisplayMixin, NoArgsDisplayMixin, BaseBasicReducer[T]):
