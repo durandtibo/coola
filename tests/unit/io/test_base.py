@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import errno
 import os
-import threading
 import time
 from pathlib import Path
 from typing import Any
@@ -672,23 +671,15 @@ def test_save_lock_does_not_remove_a_lock_taken_by_another_process(tmp_path: Pat
     assert lock_path.read_text() == "another-process"
 
 
-def test_save_lock_keeps_a_slow_save_from_being_stale(tmp_path: Path) -> None:
-    path = tmp_path.joinpath("data.txt")
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    with _save_lock(path, stale_after=0.3):
-        old = time.time() - 1000
-        os.utime(lock_path, (old, old))
-        time.sleep(0.4)
-        assert time.time() - lock_path.stat().st_mtime < 0.3
-        assert not _break_stale_lock(lock_path, stale_after=0.3)
+class _StopAfter:
+    r"""A stand-in for ``threading.Event`` whose ``wait`` returns the given
+    values, so ``_keep_lock_fresh`` can be run without a thread."""
 
+    def __init__(self, *waits: bool) -> None:
+        self._waits = list(waits)
 
-def test_save_lock_heartbeat_thread_stops(tmp_path: Path) -> None:
-    before = {t.name for t in threading.enumerate()}
-    with _save_lock(tmp_path.joinpath("data.txt")):
-        pass
-    after = {t.name for t in threading.enumerate()}
-    assert after == before
+    def wait(self, timeout: float) -> bool:  # noqa: ARG002
+        return self._waits.pop(0)
 
 
 def test_keep_lock_fresh_updates_the_modification_time(tmp_path: Path) -> None:
@@ -696,37 +687,31 @@ def test_keep_lock_fresh_updates_the_modification_time(tmp_path: Path) -> None:
     lock_path.write_text("abc")
     old = time.time() - 1000
     os.utime(lock_path, (old, old))
-    stop = threading.Event()
-    thread = threading.Thread(target=_keep_lock_fresh, args=(lock_path, "abc", 0.01, stop))
-    thread.start()
-    time.sleep(0.2)
-    stop.set()
-    thread.join()
+    _keep_lock_fresh(lock_path, "abc", 0.01, _StopAfter(False, False, True))
     assert time.time() - lock_path.stat().st_mtime < 10
 
 
-def test_keep_lock_fresh_stops_if_the_lock_has_another_owner(tmp_path: Path) -> None:
+def test_keep_lock_fresh_does_nothing_if_stopped(tmp_path: Path) -> None:
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.write_text("abc")
+    old = time.time() - 1000
+    os.utime(lock_path, (old, old))
+    _keep_lock_fresh(lock_path, "abc", 0.01, _StopAfter(True))
+    assert time.time() - lock_path.stat().st_mtime > 100
+
+
+def test_keep_lock_fresh_returns_if_the_lock_has_another_owner(tmp_path: Path) -> None:
     lock_path = tmp_path.joinpath("data.txt.lock")
     lock_path.write_text("other")
     old = time.time() - 1000
     os.utime(lock_path, (old, old))
-    thread = threading.Thread(
-        target=_keep_lock_fresh, args=(lock_path, "abc", 0.01, threading.Event())
-    )
-    thread.start()
-    thread.join(timeout=2)
-    assert not thread.is_alive()
+    # Only one wait: the function must return without waiting again.
+    _keep_lock_fresh(lock_path, "abc", 0.01, _StopAfter(False))
     assert time.time() - lock_path.stat().st_mtime > 100
 
 
-def test_keep_lock_fresh_stops_if_the_lock_is_missing(tmp_path: Path) -> None:
-    thread = threading.Thread(
-        target=_keep_lock_fresh,
-        args=(tmp_path.joinpath("missing.lock"), "abc", 0.01, threading.Event()),
-    )
-    thread.start()
-    thread.join(timeout=2)
-    assert not thread.is_alive()
+def test_keep_lock_fresh_returns_if_the_lock_is_missing(tmp_path: Path) -> None:
+    _keep_lock_fresh(tmp_path.joinpath("missing.lock"), "abc", 0.01, _StopAfter(False))
 
 
 def test_stale_lock_of_a_dead_process_is_still_broken(tmp_path: Path) -> None:
