@@ -22,7 +22,8 @@ itself changed no source file; the fixes listed below were made afterwards.
 | 1.3  | **Fixed**                                                                                                |
 | 1.4  | **Fixed** (cycles compared by value; `compare()` uses the same wrapper). `max_depth` is unchanged |
 | 1.5  | **Fixed** (`repr` not computed for equal objects) |
-| 1.6 to 1.13, 2.x, 3 | Open                                                                                      |
+| 1.6  | **Fixed** (`defaultdict` rebuild, `deque` registered; ABC fallback not added) |
+| 1.7 to 1.13, 2.x, 3 | Open                                                                                      |
 
 Each fixed item also has a _Status_ line under its title.
 
@@ -131,6 +132,8 @@ _(Status: fixed by skipping the `repr` on the success path: `compare()` returns 
   limit (`reprlib`), or only compute them for the failing case.
 
 ### 1.6 `recursive_apply` and friends mishandle common containers **[verified]** (P1/P2)
+
+_(Status: fixed. New `coola.recursive.rebuild` (`rebuild_mapping`, `rebuild_sequence`) is used by the mapping, sequence and key-filter transformers: a `defaultdict` is rebuilt with its `default_factory`, a `deque` keeps its `maxlen`, namedtuples are unchanged. `deque` is now registered in the default recursive, BFS, DFS and summary registries (hashing and equality already had it). The registry guide has a warning that registering an ABC only matches real subclasses. Not done: the opt-in ABC fallback in `TypeRegistry._resolve_uncached`, a shared list of container types across the five registries, and a `copy.copy`-based fallback for other container subclasses with a different constructor.)_
 
 - `recursive_apply(defaultdict(int, {'a': 1}), f)` raises `TypeError: first argument must be callable or
 None`: `MappingTransformer` rebuilds with `type(data)(dict)`, which `defaultdict` does not accept. The

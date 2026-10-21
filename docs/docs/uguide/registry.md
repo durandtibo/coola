@@ -31,6 +31,32 @@ The `Registry` class provides a thread-safe container for storing and retrieving
 
 ```
 
+!!! warning "Abstract base classes are only matched if they are real base classes"
+
+    The lookup follows `__mro__`, it does not call `issubclass`. A registration for an abstract
+    base class such as `collections.abc.Sequence` or `collections.abc.Mapping` therefore applies only
+    to the classes that inherit from it. A class that is only _registered_ as a virtual subclass is
+    not matched: `collections.deque` is a `MutableSequence` for `isinstance`, but it is not in the MRO
+    of `Sequence`. Register such types explicitly (the default registries of `coola` register
+    `deque` for this reason).
+
+```pycon
+>>> from collections import deque
+>>> from collections.abc import Sequence
+>>> from coola.registry import TypeRegistry
+>>> registry = TypeRegistry[str]()
+>>> registry.register(object, "object")
+>>> registry.register(Sequence, "sequence")
+>>> registry.resolve(list)  # list is not a subclass of Sequence
+'object'
+>>> registry.resolve(deque)
+'object'
+>>> registry.register(deque, "deque")
+>>> registry.resolve(deque)
+'deque'
+
+```
+
 ### Dictionary-Style Operations
 
 The registry supports standard dictionary operations:

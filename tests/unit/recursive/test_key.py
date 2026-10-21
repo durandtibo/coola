@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -264,3 +264,12 @@ def test_key_filter_transformer_transform_rejects_transform_func_argument(
         KeyFilterTransformer().transform(  # type: ignore[call-arg]
             {"a": 1}, lambda _: False, registry, transform_func=str
         )
+
+
+def test_key_filter_transformer_transform_defaultdict(registry: TransformerRegistry) -> None:
+    result = KeyFilterTransformer().transform(
+        defaultdict(int, {"a": 1, "b": 2}), func=lambda key: key == "a", registry=registry
+    )
+    assert type(result) is defaultdict
+    assert result.default_factory is int
+    assert result == {"b": 2}
