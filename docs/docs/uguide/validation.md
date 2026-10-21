@@ -11,7 +11,8 @@ For a refresher, see the [Python tutorial](https://docs.python.org/tutorial/).
 
 The `coola.validation` package provides:
 
-1. **Type checks** - `validate_isinstance` to check a value is an instance of a given type
+1. **Type checks** - `validate_isinstance` to check a value is an instance of a given type, and
+   `validate_bool` to check a value is a `bool`
 2. **Container checks** - `validate_not_empty` to check a value is not empty, and `validate_in`
    to check a value belongs to a set of valid values
 3. **Comparison checks** - `validate_ge`, `validate_gt`, `validate_le`, and `validate_lt` to
