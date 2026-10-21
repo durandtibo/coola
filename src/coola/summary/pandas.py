@@ -10,7 +10,7 @@ __all__ = ["PandasDataFrameSummarizer", "PandasSeriesSummarizer"]
 
 from typing import TYPE_CHECKING
 
-from coola.summary.metadata import BaseMetadataSummarizer, format_fields
+from coola.summary.metadata import BaseFieldsSummarizer, BaseMetadataSummarizer
 from coola.utils.imports import check_pandas, is_pandas_available
 
 if TYPE_CHECKING or is_pandas_available():
@@ -19,7 +19,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.pandas import pandas as pd
 
 
-class PandasDataFrameSummarizer(BaseMetadataSummarizer[pd.DataFrame]):
+class PandasDataFrameSummarizer(BaseFieldsSummarizer[pd.DataFrame]):
     r"""Implement a summarizer for ``pandas.DataFrame`` objects.
 
     By default, it displays the metadata (type, shape, columns with their
@@ -53,7 +53,7 @@ class PandasDataFrameSummarizer(BaseMetadataSummarizer[pd.DataFrame]):
     def _describe(self, data: pd.DataFrame) -> list[str]:
         return [
             f"shape={data.shape}",
-            f"columns={format_fields(data.dtypes.items())}",
+            f"columns={self._format_fields(data.dtypes.items())}",
         ]
 
 

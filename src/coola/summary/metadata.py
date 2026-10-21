@@ -3,7 +3,7 @@ an object (shape, dtype...) instead of its values."""
 
 from __future__ import annotations
 
-__all__ = ["BaseMetadataSummarizer", "format_fields"]
+__all__ = ["BaseFieldsSummarizer", "BaseMetadataSummarizer", "format_fields"]
 
 from abc import abstractmethod
 from typing import TYPE_CHECKING, Any, TypeVar
@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any, TypeVar
 from coola.display import InlineDisplayMixin
 from coola.summary.base import BaseSummarizer
 from coola.utils.introspection import is_same_type
+from coola.validation import validate_non_negative
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -127,3 +128,66 @@ class BaseMetadataSummarizer(InlineDisplayMixin, BaseSummarizer[T]):
         if self._show_data:
             return repr(data)
         return " | ".join([f"{type(data)}", *self._describe(data)])
+
+
+class BaseFieldsSummarizer(BaseMetadataSummarizer[T]):
+    r"""Define the base class for the metadata summarizers that list
+    the fields of an object (the columns of a data frame, the variables
+    of a dataset).
+
+    The listed fields are limited to ``max_fields``, to keep the
+    summary short for an object with hundreds of columns. A child class
+    uses ``self._format_fields`` to format its fields.
+
+    Args:
+        show_data: If ``True``, the summary is ``repr(data)``, which
+            shows the values. If ``False`` (default), only the
+            metadata is shown.
+        max_fields: The maximum number of fields to list. The other
+            fields are replaced by ``... (+N more)``. Defaults to
+            ``MAX_FIELDS`` (10).
+
+    Example:
+        ```pycon
+        >>> from coola.summary import SummarizerRegistry
+        >>> from coola.summary.metadata import BaseFieldsSummarizer
+        >>> class ColumnsSummarizer(BaseFieldsSummarizer[dict]):
+        ...     def _describe(self, data):
+        ...         return [f"columns={self._format_fields(data.items())}"]
+        ...
+        >>> data = {"a": "int", "b": "float", "c": "str"}
+        >>> print(ColumnsSummarizer().summarize(data, SummarizerRegistry()))
+        <class 'dict'> | columns=a: int, b: float, c: str
+        >>> print(ColumnsSummarizer(max_fields=2).summarize(data, SummarizerRegistry()))
+        <class 'dict'> | columns=a: int, b: float, ... (+1 more)
+
+        ```
+    """
+
+    def __init__(self, show_data: bool = False, max_fields: int = MAX_FIELDS) -> None:
+        super().__init__(show_data=show_data)
+        validate_non_negative(max_fields, name="max_fields")
+        self._max_fields = max_fields
+
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        kwargs = super()._get_repr_kwargs()
+        # Shown only if it is not the default, so the usual summarizers have a short repr.
+        if self._max_fields != MAX_FIELDS:
+            kwargs["max_fields"] = self._max_fields
+        return kwargs
+
+    def equal(self, other: object) -> bool:
+        if not is_same_type(other, self):
+            return False
+        return self._show_data == other._show_data and self._max_fields == other._max_fields
+
+    def _format_fields(self, fields: Iterable[tuple[Any, Any]]) -> str:
+        r"""Format the fields, limited to ``max_fields``.
+
+        Args:
+            fields: The ``(name, type)`` pairs to format.
+
+        Returns:
+            The formatted fields.
+        """
+        return format_fields(fields, max_fields=self._max_fields)

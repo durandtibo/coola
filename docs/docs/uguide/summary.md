@@ -273,7 +273,9 @@ To show all items, set `max_items=-1`:
 
 ### Truncating Long Strings
 
-For very long strings or values, you can use `DefaultSummarizer` with `max_characters`:
+`DefaultSummarizer` shows at most 1000 characters by default (the `str` of the object is computed
+before it is truncated). Use `max_characters` to change the limit, or a negative value to show
+everything:
 
 ```pycon
 >>> from coola.summary import SummarizerRegistry, DefaultSummarizer
@@ -282,6 +284,22 @@ For very long strings or values, you can use `DefaultSummarizer` with `max_chara
 >>> registry.register(object, DefaultSummarizer(max_characters=30))
 >>> print(registry.summarize(long_string))
 <class 'str'> This is a very long string tha...
+
+```
+
+### Limiting the Listed Columns
+
+The summary of a data frame, a table or a dataset lists the columns (the variables) and their types.
+Only the first 10 are listed, and the other ones are replaced by `... (+N more)`. Use `max_fields` to
+change the limit:
+
+```pycon
+>>> import pandas as pd
+>>> from coola.summary import PandasDataFrameSummarizer, SummarizerRegistry
+>>> df = pd.DataFrame({"a": [1], "b": [2.0], "c": ["x"]})
+>>> registry = SummarizerRegistry()
+>>> print(PandasDataFrameSummarizer(max_fields=2).summarize(df, registry))
+<class 'pandas.DataFrame'> | shape=(1, 3) | columns=a: int64, b: float64, ... (+1 more)
 
 ```
 
@@ -480,12 +498,12 @@ The `SummarizerRegistry` manages the mapping from types to summarizers:
 >>> registry
 SummarizerRegistry(
   (state): TypeRegistry(
-      (<class 'object'>): DefaultSummarizer(max_characters=-1)
-      (<class 'str'>): DefaultSummarizer(max_characters=-1)
-      (<class 'int'>): DefaultSummarizer(max_characters=-1)
-      (<class 'float'>): DefaultSummarizer(max_characters=-1)
-      (<class 'complex'>): DefaultSummarizer(max_characters=-1)
-      (<class 'bool'>): DefaultSummarizer(max_characters=-1)
+      (<class 'object'>): DefaultSummarizer(max_characters=1,000)
+      (<class 'str'>): DefaultSummarizer(max_characters=1,000)
+      (<class 'int'>): DefaultSummarizer(max_characters=1,000)
+      (<class 'float'>): DefaultSummarizer(max_characters=1,000)
+      (<class 'complex'>): DefaultSummarizer(max_characters=1,000)
+      (<class 'bool'>): DefaultSummarizer(max_characters=1,000)
       (<class 'list'>): SequenceSummarizer(max_items=5, num_spaces=2)
       (<class 'tuple'>): SequenceSummarizer(max_items=5, num_spaces=2)
       (<class 'collections.abc.Sequence'>): SequenceSummarizer(max_items=5, num_spaces=2)
@@ -659,7 +677,7 @@ For deeper inspection with truncation, increase `max_depth`:
 The `coola.summary` package provides the following built-in summarizers:
 
 - **`DefaultSummarizer`**: For generic objects and scalar types (int, float, str, bool, etc.)
-  - Configurable: `max_characters` (default: -1, no limit)
+  - Configurable: `max_characters` (default: 1000, use a negative value for no limit)
 - **`SequenceSummarizer`**: For sequences (list, tuple, Sequence ABC)
   - Configurable: `max_items` (default: 5), `num_spaces` (default: 2)
 - **`MappingSummarizer`**: For mappings (dict, Mapping ABC)

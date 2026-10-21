@@ -141,3 +141,12 @@ def test_polars_series_summarizer_summarize(registry: SummarizerRegistry) -> Non
 def test_polars_series_summarizer_summarize_show_data(registry: SummarizerRegistry) -> None:
     series = pl.Series("a", [1, 2])
     assert PolarsSeriesSummarizer(show_data=True).summarize(series, registry) == repr(series)
+
+
+@polars_available
+def test_dataframe_and_lazyframe_summarizer_max_fields(registry: SummarizerRegistry) -> None:
+    df = pl.DataFrame({"a": [1], "b": [2.0], "c": ["x"]})
+    out = PolarsDataFrameSummarizer(max_fields=1).summarize(df, registry)
+    assert out.endswith("columns=a: Int64, ... (+2 more)")
+    out = PolarsLazyFrameSummarizer(max_fields=1).summarize(df.lazy(), registry)
+    assert out.endswith("columns=a: Int64, ... (+2 more)")

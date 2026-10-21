@@ -42,7 +42,7 @@ class SummarizerRegistry(BaseTypeDispatchRegistry[Summarizer[Any]]):
         >>> registry
         SummarizerRegistry(
           (state): TypeRegistry(
-              (<class 'object'>): DefaultSummarizer(max_characters=-1)
+              (<class 'object'>): DefaultSummarizer(max_characters=1,000)
               (<class 'list'>): SequenceSummarizer(max_items=5, num_spaces=2)
             )
         )
