@@ -1,4 +1,11 @@
-r"""Contain functions to validate types."""
+r"""Contain functions to validate types.
+
+The checks are strict and do not convert the value. ``validate_isinstance``
+is the general function, and the other functions are shortcuts for the most
+common builtin types, with the same error message, so a developer does not have
+to write ``validate_isinstance(value, int)`` and remember the ``bool`` special
+case.
+"""
 
 from __future__ import annotations
 
@@ -59,6 +66,9 @@ def validate_int(value: Any, *, name: str = "value") -> None:
 
         ```
     """
+    # ``bool`` is a subclass of ``int``, but ``True`` is rarely meant as the number 1
+    # (for example for a size or a count), so it is rejected like in the other
+    # strict checks of this module. Use ``validate_isinstance(value, int)`` to accept it.
     if not (isinstance(value, int) and not isinstance(value, bool)):
         msg = f"{name} must be an int, got {type(value)}"
         raise TypeError(msg)

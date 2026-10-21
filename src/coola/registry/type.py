@@ -287,7 +287,13 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
         if dtype in self._state:
             return self._state[dtype]
 
-        # MRO lookup for inheritance - finds the most specific parent type
+        # MRO lookup for inheritance - finds the most specific parent type.
+        # ``issubclass`` is not used on purpose: it is slower and ambiguous when
+        # several registered types match, and the MRO gives a deterministic "most
+        # specific first" order. The consequence is that an abstract base class
+        # (e.g. ``Sequence``) only matches the types that really inherit from it, not
+        # the virtual subclasses (``list``, ``tuple``, ``deque``): these types must be
+        # registered explicitly.
         for base_type in dtype.__mro__:
             if base_type in self._state:
                 return self._state[base_type]

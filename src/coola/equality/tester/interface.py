@@ -302,7 +302,10 @@ def _get_numpy_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
 
     scalar = ScalarEqualityTester()
     return {
-        # NumPy scalars (``np.float64`` is also a ``float``)
+        # NumPy scalars use the scalar tester to get the tolerance and ``equal_nan``;
+        # without it, ``==`` is used and both are ignored. ``np.float64`` is also a
+        # ``float``, the other types (``np.float32``, ``np.int64``...) are not.
+        # ``np.bool_`` is not registered: a boolean has no tolerance.
         np.floating: scalar,
         np.integer: scalar,
         np.complexfloating: scalar,

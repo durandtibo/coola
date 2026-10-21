@@ -10,6 +10,11 @@ from typing import Any
 
 from coola.utils.introspection import get_type_constructor
 
+# The transformers rebuild a container with ``type(data)(items)`` so the subclasses
+# keep their type. This works for the builtin containers and the subclasses that
+# do not change ``__init__``; the types with another constructor need a special
+# case here (``defaultdict``, ``deque``, named tuples).
+
 
 def rebuild_mapping(data: Any, items: dict[Any, Any]) -> Any:
     r"""Rebuild a mapping of the same type as ``data`` from ``items``.

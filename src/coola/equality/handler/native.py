@@ -123,7 +123,10 @@ class ObjectEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         try:
             object_equal = bool(result)
         except (TypeError, ValueError) as exc:
-            # e.g. a dataclass holding an array: ``==`` returns an array.
+            # e.g. a dataclass holding an array: ``==`` returns an array. A
+            # ``TypeError`` is raised instead of returning ``False``, because
+            # ``False`` would claim that the objects are different when they were
+            # not compared at all.
             msg = (
                 f"`==` returned a value of type {type(result)} that cannot be converted "
                 f"to a bool when comparing {type(actual)} objects. Register an equality "

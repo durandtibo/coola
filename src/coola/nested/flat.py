@@ -83,6 +83,10 @@ def from_flat_dict(
 
 
 def _restore_lists(node: Any) -> Any:
+    # A dict is converted to a list only if its keys are exactly "0", "1", ...,
+    # "n-1": a gap or a different key means that it was not built from a list, and
+    # converting it would lose the keys. The conversion is opt-in (``restore_lists``)
+    # because a dict built with such keys looks the same as a list in the flat dict.
     if not isinstance(node, dict):
         return node
     restored = {key: _restore_lists(value) for key, value in node.items()}
