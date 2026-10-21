@@ -4,11 +4,14 @@ from __future__ import annotations
 
 __all__ = ["to_jsonable"]
 
+import base64
 import datetime
 from dataclasses import asdict, is_dataclass
+from decimal import Decimal
 from enum import Enum
 from pathlib import PurePath
 from typing import TYPE_CHECKING, Any, cast
+from uuid import UUID
 
 from coola.utils.imports import (
     is_numpy_available,
@@ -40,9 +43,11 @@ def to_jsonable(data: Any) -> Any:
 
     This function converts ``pydantic.BaseModel``, dataclass,
     ``numpy.ndarray``, ``numpy`` scalar, ``torch.Tensor``,
-    ``pathlib`` path, ``datetime.date``/``datetime.datetime`` and
-    ``enum.Enum`` objects. Paths are converted to strings, dates to
-    ISO 8601 strings and enum members to their (converted) value.
+    ``pathlib`` path, ``datetime.date``/``datetime.datetime``,
+    ``decimal.Decimal``, ``uuid.UUID``, ``bytes``/``bytearray`` and
+    ``enum.Enum`` objects. Paths, decimals and UUIDs are converted to
+    strings, dates to ISO 8601 strings, bytes to a Base64 string
+    (ASCII) and enum members to their (converted) value.
     Dataclasses are
     converted recursively because ``dataclasses.asdict`` can produce
     nested dataclass or ``BaseModel`` fields. All other object types,
@@ -88,7 +93,8 @@ _CONVERTERS: tuple[tuple[tuple[type, ...], Callable[[Any], Any]], ...] = (
         (np.ndarray, np.generic, torch.Tensor) if is_numpy_available() else (torch.Tensor,),
         lambda data: data.tolist(),
     ),
-    ((PurePath,), str),
+    ((PurePath, Decimal, UUID), str),
+    ((bytes, bytearray), lambda data: base64.b64encode(data).decode("ascii")),
     ((datetime.date,), lambda data: data.isoformat()),
     ((Enum,), lambda data: to_jsonable(data.value)),
 )

@@ -40,6 +40,26 @@ def test_from_flat_dict_inverts_to_flat_dict(data: dict[str, Any]) -> None:
     assert from_flat_dict(to_flat_dict(data)) == data
 
 
+lists_and_dicts = st.recursive(
+    flat_leaves,
+    lambda children: st.one_of(
+        st.lists(children, min_size=1, max_size=3),
+        st.dictionaries(keys, children, min_size=1, max_size=3),
+    ),
+    max_leaves=8,
+)
+
+
+@given(data=st.dictionaries(keys, lists_and_dicts, max_size=4))
+def test_from_flat_dict_restores_the_lists(data: dict[str, Any]) -> None:
+    assert from_flat_dict(to_flat_dict(data), restore_lists=True) == data
+
+
+@given(data=st.dictionaries(keys, st.binary(max_size=4), max_size=4))
+def test_to_flat_dict_keeps_bytes_as_leaves(data: dict[str, bytes]) -> None:
+    assert to_flat_dict(data) == data
+
+
 @given(data=nested_dicts, separator=separators)
 def test_round_trip_with_any_separator(data: dict[str, Any], separator: str) -> None:
     flat = to_flat_dict(data, separator=separator)

@@ -23,7 +23,8 @@ itself changed no source file; the fixes listed below were made afterwards.
 | 1.4  | **Fixed** (cycles compared by value; `compare()` uses the same wrapper). `max_depth` is unchanged |
 | 1.5  | **Fixed** (`repr` not computed for equal objects) |
 | 1.6  | **Fixed** (`defaultdict` rebuild, `deque` registered; ABC fallback not added) |
-| 1.7 to 1.13, 2.x, 3 | Open                                                                                      |
+| 1.7  | **Fixed** (`bytes` leaves, `restore_lists`, `to_jsonable` types) |
+| 1.8 to 1.13, 2.x, 3 | Open                                                                                      |
 
 Each fixed item also has a _Status_ line under its title.
 
@@ -155,6 +156,8 @@ None`: `MappingTransformer` rebuilds with `type(data)(dict)`, which `defaultdict
   `DataclassHasher`/`HashableHasher` problem in 2.1.
 
 ### 1.7 Flat-dict helpers **[verified]** (P2)
+
+_(Status: fixed. `to_flat_dict` treats `str`, `bytes` and `bytearray` as leaves. `from_flat_dict(..., restore_lists=True)` converts the dicts whose keys are exactly `"0"` to `"n-1"` to lists below the root (the root stays a dict, tuples come back as lists); the default behaviour is unchanged and documented in the docstring and the nested guide. `to_jsonable` converts `bytes`/`bytearray` (Base64 string), `Decimal` and `UUID` (strings). The docstrings of `to_jsonable` and `convert_to_jsonable` already cross-referenced each other. Not done: `set` in `to_jsonable` (a set at the top level is still returned unchanged; `convert_to_jsonable` keeps sets as sets).)_
 
 - `to_flat_dict({'a': b'xy'})` gives `{'a.0': 120, 'a.1': 121}`: `bytes` and `bytearray` are `Sequence`s and
   are flattened byte by byte. Exclude `(str, bytes, bytearray)` together (and probably `memoryview`).
