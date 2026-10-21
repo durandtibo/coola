@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from unittest.mock import Mock
 
 import pytest
@@ -109,3 +110,31 @@ def test_quantile_invalid_quantile_raises(q: float) -> None:
 
 def test_quantile_boundaries() -> None:
     assert quantile([1, 2, 3], [0.0, 1.0]) == [1, 3]
+
+
+@pytest.mark.parametrize(
+    "values",
+    [
+        [float("nan"), 1.0, 2.0],
+        [1.0, float("nan"), 2.0],
+        [1.0, 2.0, float("nan")],
+        [float("nan")],
+    ],
+)
+def test_quantile_nan_gives_nan_whatever_the_position(values: list[float]) -> None:
+    result = quantile(values, (0.0, 0.5, 1.0))
+    assert len(result) == 3
+    assert all(math.isnan(value) for value in result)
+
+
+def test_quantile_nan_with_no_quantile() -> None:
+    assert quantile([1.0, float("nan")], ()) == []
+
+
+def test_quantile_nan_invalid_quantile_still_raises() -> None:
+    with pytest.raises(ValueError, match="quantiles must be in"):
+        quantile([float("nan")], (2.0,))
+
+
+def test_quantile_infinite_values_are_not_nan() -> None:
+    assert quantile([1.0, float("inf")], (0.0,)) == [1.0]
