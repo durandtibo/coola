@@ -221,7 +221,7 @@ the format is only known at runtime (e.g. read from a config file):
 >>> from coola.io import resolve_loader, resolve_saver
 >>> loader = resolve_loader({"_target_": "coola.io.JsonLoader"})
 >>> loader
-JsonLoader()
+JsonLoader(encoding=None)
 >>> saver = resolve_saver({"_target_": "coola.io.JsonSaver"})
 >>> saver
 JsonSaver(encoding='utf-8')

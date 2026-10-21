@@ -7,7 +7,7 @@ __all__ = ["JsonLoader", "JsonSaver", "load_json", "save_json"]
 import json
 from typing import TYPE_CHECKING, Any, TypeVar
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.equality.interface import objects_are_equal
 from coola.io.base import BaseFileSaver, BaseLoader
 from coola.utils.introspection import is_same_type
@@ -20,8 +20,14 @@ T = TypeVar("T")
 DEFAULT_ENCODING = "utf-8"
 
 
-class JsonLoader(InlineDisplayMixin, NoArgsDisplayMixin, BaseLoader[T]):
+class JsonLoader(InlineDisplayMixin, BaseLoader[T]):
     r"""Implement a data loader to load data in a JSON file.
+
+    Args:
+        encoding: The encoding of the file, which should be the one
+            used to save it. If ``None`` (default), the file is read
+            in binary mode and ``json`` detects the encoding, which
+            only works for UTF-8, UTF-16 and UTF-32.
 
     Example:
         ```pycon
@@ -39,11 +45,22 @@ class JsonLoader(InlineDisplayMixin, NoArgsDisplayMixin, BaseLoader[T]):
         ```
     """
 
+    def __init__(self, encoding: str | None = None) -> None:
+        self._encoding = encoding
+
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        return {"encoding": self._encoding}
+
     def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
-        return is_same_type(other, self)
+        if not is_same_type(other, self):
+            return False
+        return self._encoding == other._encoding
 
     def load(self, path: Path) -> T:
-        with path.open(mode="rb") as file:
+        if self._encoding is None:
+            with path.open(mode="rb") as file:
+                return json.load(file)
+        with path.open(encoding=self._encoding) as file:
             return json.load(file)
 
 
@@ -91,11 +108,13 @@ class JsonSaver(InlineDisplayMixin, BaseFileSaver[T]):
             json.dump(to_save, file, **self._kwargs)
 
 
-def load_json(path: Path) -> Any:
+def load_json(path: Path, encoding: str | None = None) -> Any:
     r"""Load the data from a given JSON file.
 
     Args:
         path: The path to the JSON file.
+        encoding: The encoding of the file. If ``None``, the encoding
+            is detected (UTF-8, UTF-16 and UTF-32 only).
 
     Returns:
         The data from the JSON file.
@@ -115,7 +134,7 @@ def load_json(path: Path) -> Any:
 
         ```
     """
-    return JsonLoader[Any]().load(path)
+    return JsonLoader[Any](encoding=encoding).load(path)
 
 
 def save_json(

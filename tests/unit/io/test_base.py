@@ -31,7 +31,15 @@ from coola.io import (
     save_pickle,
     save_text,
 )
-from coola.io.base import _acquire_file_lock, _break_stale_lock, _get_save_lock
+from coola.io.base import (
+    _acquire_file_lock,
+    _break_stale_lock,
+    _get_save_lock,
+    _keep_lock_fresh,
+    _release_file_lock,
+    _save_lock,
+    _tmp_path,
+)
 
 ######################################
 #     Tests for is_loader_config     #
@@ -610,3 +618,152 @@ def test_resolve_saver_allowed_prefixes() -> None:
     assert isinstance(resolve_saver(config, allowed_prefixes=["coola.io"]), JsonSaver)
     with pytest.raises(ImportError, match="target object does not exist"):
         resolve_saver(config, allowed_prefixes=["os"])
+
+
+#############################
+#     Tests for the lock    #
+#############################
+
+
+def test_acquire_file_lock_writes_the_token(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    lock_path = _acquire_file_lock(path, token="abc")  # noqa: S106
+    assert lock_path.read_text() == "abc"
+    lock_path.unlink()
+
+
+def test_release_file_lock_removes_own_lock(tmp_path: Path) -> None:
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.write_text("abc")
+    _release_file_lock(lock_path, "abc")
+    assert not lock_path.exists()
+
+
+def test_release_file_lock_keeps_lock_of_another_owner(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.write_text("other")
+    _release_file_lock(lock_path, "abc")
+    assert lock_path.read_text() == "other"
+    assert "owned by another process" in caplog.text
+
+
+def test_release_file_lock_missing_lock(tmp_path: Path) -> None:
+    _release_file_lock(tmp_path.joinpath("data.txt.lock"), "abc")
+
+
+def test_save_lock_creates_and_removes_the_lock(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    with _save_lock(path):
+        assert lock_path.is_file()
+    assert not lock_path.exists()
+
+
+def test_save_lock_does_not_remove_a_lock_taken_by_another_process(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    with _save_lock(path):
+        # Another process considered the lock stale and took it.
+        lock_path.unlink()
+        lock_path.write_text("another-process")
+    assert lock_path.read_text() == "another-process"
+
+
+class _StopAfter:
+    r"""A stand-in for ``threading.Event`` whose ``wait`` returns the given
+    values, so ``_keep_lock_fresh`` can be run without a thread."""
+
+    def __init__(self, *waits: bool) -> None:
+        self._waits = list(waits)
+
+    def wait(self, timeout: float) -> bool:  # noqa: ARG002
+        return self._waits.pop(0)
+
+
+def test_keep_lock_fresh_updates_the_modification_time(tmp_path: Path) -> None:
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.write_text("abc")
+    old = time.time() - 1000
+    os.utime(lock_path, (old, old))
+    _keep_lock_fresh(lock_path, "abc", 0.01, _StopAfter(False, False, True))
+    assert time.time() - lock_path.stat().st_mtime < 10
+
+
+def test_keep_lock_fresh_does_nothing_if_stopped(tmp_path: Path) -> None:
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.write_text("abc")
+    old = time.time() - 1000
+    os.utime(lock_path, (old, old))
+    _keep_lock_fresh(lock_path, "abc", 0.01, _StopAfter(True))
+    assert time.time() - lock_path.stat().st_mtime > 100
+
+
+def test_keep_lock_fresh_returns_if_the_lock_has_another_owner(tmp_path: Path) -> None:
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.write_text("other")
+    old = time.time() - 1000
+    os.utime(lock_path, (old, old))
+    # Only one wait: the function must return without waiting again.
+    _keep_lock_fresh(lock_path, "abc", 0.01, _StopAfter(False))
+    assert time.time() - lock_path.stat().st_mtime > 100
+
+
+def test_keep_lock_fresh_returns_if_the_lock_is_missing(tmp_path: Path) -> None:
+    _keep_lock_fresh(tmp_path.joinpath("missing.lock"), "abc", 0.01, _StopAfter(False))
+
+
+def test_stale_lock_of_a_dead_process_is_still_broken(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.write_text("dead-process")
+    old = time.time() - 1000
+    os.utime(lock_path, (old, old))
+    with _save_lock(path, stale_after=10):
+        assert lock_path.read_text() != "dead-process"
+
+
+###################################
+#     Tests for the tmp path      #
+###################################
+
+
+def test_tmp_path_is_hidden_and_keeps_the_extension(tmp_path: Path) -> None:
+    result = _tmp_path(tmp_path.joinpath("data.json"))
+    assert result.parent == tmp_path
+    assert result.name.startswith(".data-")
+    assert result.suffix == ".json"
+
+
+def test_tmp_path_without_extension(tmp_path: Path) -> None:
+    result = _tmp_path(tmp_path.joinpath("data"))
+    assert result.name.startswith(".data-")
+    assert result.suffix == ""
+
+
+def test_tmp_path_is_unique(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.json")
+    assert _tmp_path(path) != _tmp_path(path)
+
+
+def test_save_does_not_write_a_visible_file_while_saving(tmp_path: Path) -> None:
+    seen: list[list[str]] = []
+
+    class Saver(BaseFileSaver[str]):
+        def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
+            return True
+
+        def _save_file(self, to_save: str, path: Path) -> None:
+            path.write_text(to_save)
+            seen.append(
+                [
+                    p.name
+                    for p in tmp_path.iterdir()
+                    if not p.name.startswith(".") and p.suffix != ".lock"
+                ]
+            )
+
+    Saver().save("abc", tmp_path.joinpath("data.json"))
+    assert seen == [[]]
+    assert tmp_path.joinpath("data.json").read_text() == "abc"

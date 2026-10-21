@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 import threading
@@ -9,7 +10,7 @@ from typing import TYPE_CHECKING, Any
 import pytest
 
 from coola.io import BaseFileSaver
-from coola.io.base import _acquire_file_lock
+from coola.io.base import _acquire_file_lock, _break_stale_lock, _keep_lock_fresh, _save_lock
 from tests.integration.helpers import run_python, run_threads
 
 if TYPE_CHECKING:
@@ -209,6 +210,79 @@ def test_acquire_file_lock_recovers_after_holder_process_is_killed(tmp_path: Pat
     time.sleep(0.1)
     assert _acquire_file_lock(path, timeout=5, stale_after=0.05) == lock_path
     lock_path.unlink()
+
+
+#####################################
+#     Tests for the lock heartbeat  #
+#####################################
+
+
+def test_save_lock_keeps_a_slow_save_from_being_stale(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    with _save_lock(path, stale_after=0.3):
+        old = time.time() - 1000
+        os.utime(lock_path, (old, old))
+        # The heartbeat thread refreshes the lock while the save is running.
+        time.sleep(0.4)
+        assert time.time() - lock_path.stat().st_mtime < 0.3
+        assert not _break_stale_lock(lock_path, stale_after=0.3)
+
+
+def test_save_lock_heartbeat_thread_stops(tmp_path: Path) -> None:
+    before = {t.name for t in threading.enumerate()}
+    with _save_lock(tmp_path.joinpath("data.txt")):
+        pass
+    after = {t.name for t in threading.enumerate()}
+    assert after == before
+
+
+def test_keep_lock_fresh_updates_the_modification_time(tmp_path: Path) -> None:
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.write_text("abc")
+    old = time.time() - 1000
+    os.utime(lock_path, (old, old))
+    stop = threading.Event()
+
+    def stop_later() -> None:
+        time.sleep(0.2)
+        stop.set()
+
+    run_threads(
+        [
+            threading.Thread(target=_keep_lock_fresh, args=(lock_path, "abc", 0.01, stop)),
+            threading.Thread(target=stop_later),
+        ]
+    )
+    assert time.time() - lock_path.stat().st_mtime < 10
+
+
+def test_keep_lock_fresh_stops_if_the_lock_has_another_owner(tmp_path: Path) -> None:
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.write_text("other")
+    old = time.time() - 1000
+    os.utime(lock_path, (old, old))
+    # The thread returns by itself because the lock is not owned by the token.
+    run_threads(
+        [
+            threading.Thread(
+                target=_keep_lock_fresh, args=(lock_path, "abc", 0.01, threading.Event())
+            )
+        ]
+    )
+    assert time.time() - lock_path.stat().st_mtime > 100
+
+
+def test_keep_lock_fresh_stops_if_the_lock_is_missing(tmp_path: Path) -> None:
+    # The thread returns by itself because the lock does not exist.
+    run_threads(
+        [
+            threading.Thread(
+                target=_keep_lock_fresh,
+                args=(tmp_path.joinpath("missing.lock"), "abc", 0.01, threading.Event()),
+            )
+        ]
+    )
 
 
 ############################################

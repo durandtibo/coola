@@ -89,6 +89,7 @@ def _acquire_file_lock(
     timeout: float = _FILE_LOCK_TIMEOUT,
     poll_interval: float = _FILE_LOCK_POLL_INTERVAL,
     stale_after: float = _FILE_LOCK_STALE_AFTER,
+    token: str = "",
 ) -> Path:
     r"""Create a lock file next to ``path``, blocking until it can be
     created exclusively.
@@ -107,7 +108,11 @@ def _acquire_file_lock(
     deadline = time.monotonic() + timeout
     while True:
         try:
-            os.close(os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY))
+            fd = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            try:
+                os.write(fd, token.encode())
+            finally:
+                os.close(fd)
         except FileExistsError:
             if _break_stale_lock(lock_path, stale_after):
                 continue
@@ -120,6 +125,17 @@ def _acquire_file_lock(
             time.sleep(poll_interval)
         else:
             return lock_path
+
+
+def _tmp_path(path: Path) -> Path:
+    r"""Return the path of the temporary file used to write ``path``.
+
+    The name starts with a dot, so the file is hidden and a reader that
+    lists the directory does not take it for the final file while it is
+    being written. The extension is kept because some writers choose
+    the format or add an extension from it.
+    """
+    return add_uuid_suffix(path.with_name(f".{path.name}"))
 
 
 def _fsync_file(path: Path) -> None:
@@ -146,18 +162,56 @@ def _fsync_directory(path: Path) -> None:
             os.close(fd)
 
 
+def _release_file_lock(lock_path: Path, token: str) -> None:
+    r"""Remove the lock file, only if it is still owned by ``token``.
+
+    If the lock was broken as stale by another process, the file now
+    belongs to this other process and must not be removed.
+    """
+    try:
+        owner = lock_path.read_text()
+    except FileNotFoundError:
+        return
+    if owner != token:
+        logger.warning("The save lock %s is owned by another process: not removed", lock_path)
+        return
+    lock_path.unlink(missing_ok=True)
+
+
+def _keep_lock_fresh(lock_path: Path, token: str, interval: float, stop: threading.Event) -> None:
+    r"""Update the modification time of the lock file until ``stop`` is
+    set, so a slow save is not mistaken for a dead process.
+
+    The thread stops if the lock is not owned by ``token`` anymore.
+    """
+    while not stop.wait(interval):
+        try:
+            if lock_path.read_text() != token:
+                return
+            os.utime(lock_path)
+        except OSError:
+            return
+
+
 @contextlib.contextmanager
-def _save_lock(path: Path) -> Generator[None]:
-    r"""Serialize ``save`` calls targeting ``path``, both within this
-    process (fast in-memory lock) and across processes (lock file), so
-    that no two calls can interleave their write/commit steps regardless
-    of ``exist_ok``."""
+def _save_lock(path: Path, stale_after: float = _FILE_LOCK_STALE_AFTER) -> Generator[None]:
     with _get_save_lock(path):
-        lock_path = _acquire_file_lock(path)
+        token = uuid.uuid4().hex
+        lock_path = _acquire_file_lock(path, stale_after=stale_after, token=token)
+        stop = threading.Event()
+        heartbeat = threading.Thread(
+            target=_keep_lock_fresh,
+            args=(lock_path, token, stale_after / 3, stop),
+            name="coola-save-lock-heartbeat",
+            daemon=True,
+        )
+        heartbeat.start()
         try:
             yield
         finally:
-            lock_path.unlink(missing_ok=True)
+            stop.set()
+            heartbeat.join()
+            _release_file_lock(lock_path, token)
 
 
 class BaseLoader(ABC, Generic[T]):
@@ -355,6 +409,13 @@ class BaseFileSaver(BaseSaver[T]):
                 is removed once the holder releases it, so it does not
                 accumulate on disk.
 
+                The lock file is kept fresh while the data is written,
+                so a long save is not mistaken for a dead process. A
+                lock file that was not refreshed for five minutes
+                (the process died) is broken. The data is first
+                written to a hidden temporary file next to ``path``
+                (``.<name>-<uuid>.<ext>``), which is then committed.
+
             fsync: If ``True``, the data is flushed to the disk before
                 the file is committed, and the directory is flushed
                 after, so the file is not empty or missing after a
@@ -413,7 +474,7 @@ class BaseFileSaver(BaseSaver[T]):
         with _save_lock(path):
             # Save to tmp, then commit by moving the file in case the job
             # gets interrupted while writing the file.
-            tmp_path = add_uuid_suffix(path)
+            tmp_path = _tmp_path(path)
             try:
                 self._save_file(to_save, tmp_path)
                 if fsync:
@@ -594,7 +655,7 @@ def resolve_loader(
         >>> from coola.io import resolve_loader
         >>> loader = resolve_loader({"_target_": "coola.io.JsonLoader"})
         >>> loader
-        JsonLoader()
+        JsonLoader(encoding=None)
 
         ```
     """
