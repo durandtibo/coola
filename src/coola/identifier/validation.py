@@ -11,12 +11,9 @@ from __future__ import annotations
 __all__ = [
     "CROCKFORD_BASE32_ALPHABET",
     "decode_crockford_base32",
-    "resolve_timestamp_ms",
     "validate_bit_range",
     "validate_timestamp_ms",
 ]
-
-import time
 
 _TIMESTAMP_BITS = 48
 
@@ -57,32 +54,6 @@ def validate_timestamp_ms(timestamp_ms: int) -> None:
             is negative or exceeds ``2**48 - 1``).
     """
     validate_bit_range(timestamp_ms, _TIMESTAMP_BITS, name="timestamp_ms")
-
-
-def resolve_timestamp_ms(timestamp_ms: int | None) -> int:
-    r"""Return ``timestamp_ms``, defaulting to the current time and
-    validating that the result fits in 48 bits.
-
-    Shared by the generators (``generate_ulid``, ``generate_uuid7``)
-    that accept an optional 48-bit millisecond timestamp, defaulting to
-    ``time.time_ns() // 1_000_000`` when not given.
-
-    Args:
-        timestamp_ms: The Unix timestamp in milliseconds, or ``None``
-            to use the current time.
-
-    Returns:
-        ``timestamp_ms``, or the current time in milliseconds if it
-        was ``None``.
-
-    Raises:
-        ValueError: If the resolved timestamp does not fit in 48 bits
-            (i.e. is negative or exceeds ``2**48 - 1``).
-    """
-    if timestamp_ms is None:
-        timestamp_ms = time.time_ns() // 1_000_000
-    validate_timestamp_ms(timestamp_ms)
-    return timestamp_ms
 
 
 def decode_crockford_base32(text: str, *, name: str) -> int:
