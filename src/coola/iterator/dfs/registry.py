@@ -11,7 +11,7 @@ from coola.iterator.dfs.base import BaseIterator
 from coola.registry import BaseTypeDispatchRegistry
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Iterable, Iterator
 
 
 class IteratorRegistry(BaseTypeDispatchRegistry[BaseIterator[Any]]):
@@ -150,32 +150,7 @@ class IteratorRegistry(BaseTypeDispatchRegistry[BaseIterator[Any]]):
 
             ```
         """
-        yield from self._iterate(data, ())
-
-    def _iterate(self, data: object, ancestors: tuple[int, ...]) -> Iterator[Any]:
-        r"""Iterate over a data structure, checking for cycles.
-
-        The iterator receives a registry that remembers the ancestors of
-        ``data``, so the calls to ``registry.iterate`` made by the
-        iterators to visit the children can detect that a container
-        contains itself.
-
-        Args:
-            data: The data structure to iterate over.
-            ancestors: The ids of the containers being traversed that
-                contain ``data``.
-
-        Yields:
-            The elements of the data structure.
-
-        Raises:
-            ValueError: If ``data`` is one of its ancestors.
-        """
-        if id(data) in ancestors:
-            msg = f"Cycle detected: an object of type {type(data)} contains itself"
-            raise ValueError(msg)
-        iterator = self.find_iterator(type(data))
-        yield from iterator.iterate(data, PathRegistry(self, (*ancestors, id(data))))
+        yield from PathRegistry(self).iterate(data)
 
 
 class PathRegistry(IteratorRegistry):
@@ -188,10 +163,16 @@ class PathRegistry(IteratorRegistry):
     its state with the registry it was created from: the iterators
     registered in one are visible in the other.
 
+    One instance is used for a whole traversal. The ids of the
+    containers on the path are kept in a set: an id is added when a
+    container is entered and removed when it is left, so checking for a
+    cycle costs ``O(1)`` per object, and no object is created per
+    visited object.
+
     Args:
         registry: The registry to view.
-        ancestors: The ids of the containers on the path to the object
-            being iterated, including the object itself.
+        ancestors: The ids of the containers that are already on the
+            path to the object to iterate. Defaults to no container.
 
     Example:
         ```pycon
@@ -214,10 +195,11 @@ class PathRegistry(IteratorRegistry):
         ```
     """
 
-    def __init__(self, registry: IteratorRegistry, ancestors: tuple[int, ...]) -> None:
+    def __init__(self, registry: IteratorRegistry, ancestors: Iterable[int] = ()) -> None:
+        super().__init__()
+        # The state is shared on purpose: this registry is a view of ``registry``.
         self._state = registry._state
-        self._registry = registry
-        self._ancestors = ancestors
+        self._ancestors: set[int] = set(ancestors)
 
     def iterate(self, data: object) -> Iterator[Any]:
         r"""Iterate over a data structure that is reached from the path.
@@ -232,4 +214,14 @@ class PathRegistry(IteratorRegistry):
             ValueError: If ``data`` is one of the containers of the
                 path (a cycle).
         """
-        yield from self._registry._iterate(data, self._ancestors)
+        key = id(data)
+        if key in self._ancestors:
+            msg = f"Cycle detected: an object of type {type(data)} contains itself"
+            raise ValueError(msg)
+        iterator = self.find_iterator(type(data))
+        self._ancestors.add(key)
+        try:
+            yield from iterator.iterate(data, self)
+        finally:
+            # Also reached when the generator is closed before the end.
+            self._ancestors.discard(key)

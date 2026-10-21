@@ -272,3 +272,74 @@ def test_path_registry_is_given_to_the_iterators() -> None:
     registry = IteratorRegistry({object: DefaultIterator(), Wrapper: RecordingIterator()})
     assert list(registry.iterate(Wrapper(1, 2))) == [1, 2]
     assert isinstance(received[0], PathRegistry)
+
+
+def test_path_registry_is_the_same_object_for_all_the_objects_of_a_traversal() -> None:
+    received: list[IteratorRegistry] = []
+
+    class RecordingIterator(BaseIterator[Wrapper]):
+        def iterate(self, data: Wrapper, registry: IteratorRegistry) -> Iterator[Any]:
+            received.append(registry)
+            for item in data.items:
+                yield from registry.iterate(item)
+
+    registry = IteratorRegistry({object: DefaultIterator(), Wrapper: RecordingIterator()})
+    data = Wrapper(Wrapper(1, 2), Wrapper(3, Wrapper(4)))
+    assert list(registry.iterate(data)) == [1, 2, 3, 4]
+    assert len(received) == 4
+    assert all(r is received[0] for r in received)
+
+
+def test_path_registry_removes_the_ancestors_when_leaving_a_container() -> None:
+    registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
+    path_registry = PathRegistry(registry)
+    shared = [1]
+    # ``shared`` is visited twice, but never inside itself: it is not a cycle.
+    assert list(path_registry.iterate([shared, shared])) == [1, 1]
+    assert path_registry._ancestors == set()
+
+
+def test_path_registry_removes_the_ancestors_after_an_error() -> None:
+    registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
+    path_registry = PathRegistry(registry)
+    data: list = [1]
+    data.append(data)
+    with pytest.raises(ValueError, match="Cycle detected"):
+        list(path_registry.iterate(data))
+    assert path_registry._ancestors == set()
+
+
+def test_path_registry_removes_the_ancestors_when_the_generator_is_closed() -> None:
+    registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
+    path_registry = PathRegistry(registry)
+    iterator = path_registry.iterate([[1, 2], [3, 4]])
+    assert next(iterator) == 1
+    # The outer list, the first inner list and the leaf being yielded.
+    assert len(path_registry._ancestors) == 3
+    iterator.close()
+    assert path_registry._ancestors == set()
+
+
+def test_path_registry_initial_ancestors_are_copied() -> None:
+    registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
+    ancestors = {1}
+    path_registry = PathRegistry(registry, ancestors)
+    list(path_registry.iterate([1]))
+    assert ancestors == {1}
+    assert path_registry._ancestors == {1}
+
+
+def test_registry_iterate_wide_structure() -> None:
+    registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
+    data = [[i] for i in range(20_000)]
+    assert sum(registry.iterate(data)) == sum(range(20_000))
+
+
+def test_registry_iterate_two_traversals_are_independent() -> None:
+    registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
+    data = [[1, 2], [3, 4]]
+    first = registry.iterate(data)
+    second = registry.iterate(data)
+    assert next(first) == 1
+    assert list(second) == [1, 2, 3, 4]
+    assert list(first) == [2, 3, 4]

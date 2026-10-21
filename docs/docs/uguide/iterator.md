@@ -352,6 +352,7 @@ A custom child finder for leaf types must override `is_leaf` to return `True` (l
 | Every leaf is returned       | A container that appears several times, without containing itself, gives its leaves each time.                                          |
 | Cycle-safe                   | A container that contains itself raises `ValueError` instead of looping forever or hitting the recursion limit.                         |
 | Iterators are leaves         | The default registries never consume an iterator or a generator, so an infinite iterator cannot hang the traversal.                     |
+| Depth                        | `bfs_iterate` is iterative. `dfs_iterate` is recursive (the iterators visit their children with `registry.iterate`), so a structure nested a few hundred levels deep raises `RecursionError`: use `bfs_iterate` for a very deep structure. |
 | Same leaves, different order | DFS and BFS visit the same leaves. Only the order differs.                                                                              |
 | Extensible                   | Support for a new container type is added with a child finder that registers its children. `is_leaf` must return `True` for leaf types. |
 
