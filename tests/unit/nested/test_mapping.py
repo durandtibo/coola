@@ -649,3 +649,17 @@ def test_merge_mappings_suffix_key_colliding_with_later_key_raises() -> None:
     # The suffixed duplicate "a_1" collides with the original key "a_1" of the third mapping.
     with pytest.raises(DuplicateKeyError, match="collides"):
         merge_mappings([{"a": 1}, {"a": 2}, {"a_1": 3}], on_duplicate="suffix")
+
+
+def test_remove_keys_if_uses_the_predicate_of_each_call() -> None:
+    data = {"a": 1, "b": {"a": 2, "b": 3}}
+    assert remove_keys_if(data, lambda key: key == "a") == {"b": {"b": 3}}
+    assert remove_keys_if(data, lambda key: key == "b") == {"a": 1}
+    assert remove_keys_if(data, lambda key: False) == data  # noqa: ARG005
+
+
+def test_remove_keys_if_values_equal_to_the_removed_key_are_kept() -> None:
+    assert remove_keys_if({"x": "a", "a": 1, "y": ["a"]}, lambda key: key == "a") == {
+        "x": "a",
+        "y": ["a"],
+    }
