@@ -1,4 +1,5 @@
-r"""Implement a handler to check if two dataclass instances are equal."""
+r"""Implement a handler to check if two dataclass instances are
+equal."""
 
 from __future__ import annotations
 

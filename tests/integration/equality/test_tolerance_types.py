@@ -1,4 +1,5 @@
-r"""Check that the tolerance and ``equal_nan`` apply to the common numeric types."""
+r"""Check that the tolerance and ``equal_nan`` apply to the common
+numeric types."""
 
 from __future__ import annotations
 
