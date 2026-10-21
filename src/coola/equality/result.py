@@ -36,8 +36,12 @@ class ComparisonResult:
             difference is at the root.
         reason: A description of the first difference found, or
             ``None`` if the objects are equal.
-        actual: The ``repr`` of the actual object.
-        expected: The ``repr`` of the expected object.
+        actual: The ``repr`` of the actual object if the objects are
+            different, otherwise an empty string. The ``repr`` is not
+            computed for equal objects because it can be expensive for
+            large objects.
+        expected: The ``repr`` of the expected object if the objects
+            are different, otherwise an empty string.
 
     Example:
         ```pycon
@@ -160,7 +164,7 @@ def compare(
     config.reporter = lambda message, path: reports.append((message, path))
     equal = _compare(registry, actual, expected, config)
     if equal:
-        return ComparisonResult(True, actual=repr(actual), expected=repr(expected))
+        return ComparisonResult(True)
     # Handlers report innermost differences first: the outermost path
     # component is reported last.
     path: list[object] = []

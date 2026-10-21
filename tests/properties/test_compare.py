@@ -69,8 +69,11 @@ def test_different_data_has_a_reason(data: Any, other: Any) -> None:
 @given(data=small_values, other=small_values)
 def test_the_representations_are_the_ones_of_the_inputs(data: Any, other: Any) -> None:
     result = compare(data, other)
-    assert result.actual == repr(data)
-    assert result.expected == repr(other)
+    if result.equal:
+        assert (result.actual, result.expected) == ("", "")
+    else:
+        assert result.actual == repr(data)
+        assert result.expected == repr(other)
 
 
 ######################

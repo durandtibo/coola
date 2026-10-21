@@ -21,7 +21,8 @@ itself changed no source file; the fixes listed below were made afterwards.
 | 1.2  | **Fixed** for NumPy scalars, `complex` and dataclasses. Not done: `set`/`frozenset`, NumPy datetime arrays |
 | 1.3  | **Fixed**                                                                                                |
 | 1.4  | **Fixed** (cycles compared by value; `compare()` uses the same wrapper). `max_depth` is unchanged |
-| 1.5 to 1.13, 2.x, 3 | Open                                                                                      |
+| 1.5  | **Fixed** (`repr` not computed for equal objects) |
+| 1.6 to 1.13, 2.x, 3 | Open                                                                                      |
 
 Each fixed item also has a _Status_ line under its title.
 
@@ -119,6 +120,8 @@ _(Status: fixed. `EqualityConfig` records the `(id(actual), id(expected))` pairs
 - Route `compare()` through the same wrapper as the other entry points.
 
 ### 1.5 `compare()` builds two full `repr` strings even when the objects are equal **[verified]** (P2)
+
+_(Status: fixed by skipping the `repr` on the success path: `compare()` returns `ComparisonResult(True)` with empty `actual`/`expected` strings, and computes both `repr`s only when the objects differ. This is a small behaviour change for code that reads `result.actual`/`result.expected` of an equal result. Not done: the `repr` of huge objects is still computed in full for a difference; truncating it would change the documented attribute.)_
 
 `ComparisonResult(True, actual=repr(actual), expected=repr(expected))` runs on every call.
 `compare(list(range(10**6)), list(range(10**6))).actual` is a 7.9 MB string, computed on the success path.
