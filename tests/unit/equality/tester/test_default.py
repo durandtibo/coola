@@ -41,12 +41,6 @@ DEFAULT_NOT_EQUAL = [
         id="different values - str",
     ),
     pytest.param(
-        ExamplePair(
-            actual=complex(4, 2), expected=complex(4, 3), expected_message="objects are different:"
-        ),
-        id="different values - complex",
-    ),
-    pytest.param(
         ExamplePair(actual=4.2, expected="meow", expected_message="objects have different types:"),
         id="float vs str",
     ),
@@ -58,6 +52,16 @@ DEFAULT_NOT_EQUAL = [
         ExamplePair(actual=1.0, expected=None, expected_message="objects have different types:"),
         id="float vs none",
     ),
+]
+
+# Other testers are more specific for these types
+DEFAULT_SPECIFIC_NOT_EQUAL = [
+    pytest.param(
+        ExamplePair(
+            actual=complex(4, 2), expected=complex(4, 3), expected_message="objects are different:"
+        ),
+        id="different values - complex",
+    ),
     pytest.param(
         ExamplePair(
             actual=Person(name="Alice", age=30),
@@ -66,10 +70,6 @@ DEFAULT_NOT_EQUAL = [
         ),
         id="dataclass with different values",
     ),
-]
-
-# Other testers are more specific for these types
-DEFAULT_SPECIFIC_NOT_EQUAL = [
     pytest.param(
         ExamplePair(actual=1, expected=2, expected_message="objects are different:"),
         id="different values - int",

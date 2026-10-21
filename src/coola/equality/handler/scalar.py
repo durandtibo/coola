@@ -4,8 +4,10 @@ from __future__ import annotations
 
 __all__ = ["NanEqualHandler", "ScalarEqualHandler"]
 
+import cmath
 import logging
 import math
+import numbers
 from fractions import Fraction
 from typing import TYPE_CHECKING
 
@@ -48,7 +50,7 @@ class NanEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         expected: float,
         config: EqualityConfig,
     ) -> bool:
-        if config.equal_nan and math.isnan(actual) and math.isnan(expected):
+        if config.equal_nan and cmath.isnan(actual) and cmath.isnan(expected):
             return True
         return self._handle_next(actual, expected, config=config)
 
@@ -114,12 +116,17 @@ def number_equal(number1: float, number2: float, config: EqualityConfig) -> bool
         ```
     """
     if config.atol > 0.0 or config.rtol > 0.0:
+        if not isinstance(number1, numbers.Real) or not isinstance(number2, numbers.Real):
+            # Complex numbers (``math.isclose`` would drop the imaginary part
+            # or raise for them).
+            return cmath.isclose(number1, number2, abs_tol=config.atol, rel_tol=config.rtol)
         try:
             return math.isclose(number1, number2, abs_tol=config.atol, rel_tol=config.rtol)
         except OverflowError:
             # An ``int`` too large for a float: compare with exact arithmetic.
             return int_isclose(number1, number2, rtol=config.rtol, atol=config.atol)
-    return number1 == number2
+    # ``bool(...)``: NumPy scalars return ``numpy.bool_``.
+    return bool(number1 == number2)
 
 
 def int_isclose(number1: float, number2: float, rtol: float = 0.0, atol: float = 0.0) -> bool:

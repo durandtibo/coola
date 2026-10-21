@@ -734,27 +734,62 @@ two objects are equal or not.
 
 ### Supported Types
 
-The current supported types are:
+!!! note "These lists are not exhaustive"
 
-- [`jax.numpy.ndarray`](https://jax.readthedocs.io/en/latest/index.html)
-- [`numpy.ndarray`](https://numpy.org/doc/stable/index.html)
+    `coola` dispatches on the type of the first argument and, for a type without a specific
+    tester, falls back to `actual == expected` (after checking that both objects have the same
+    type). So many types that are not listed here also work, and some types listed as working
+    well have limits. When a type matters for your use case, check it with a small example
+    (see [Explaining a Difference](#explaining-a-difference)), or register your own tester (see
+    [Using Custom Registries](#using-custom-registries)).
+
+#### Types that work well
+
+The exact equality, the tolerance (`atol`, `rtol`) and `equal_nan` are all handled for:
+
+- Python numbers: `int`, `float`, `bool` and `complex`
+- NumPy scalars (`numpy.floating`, `numpy.integer`, `numpy.complexfloating`, for example
+  `numpy.float32`) and [`numpy.ndarray`](https://numpy.org/doc/stable/index.html) with a numeric
+  dtype
 - [`numpy.ma.MaskedArray`](https://numpy.org/doc/stable/reference/maskedarray.generic.html)
-- [`pandas.DataFrame`](https://pandas.pydata.org/)
-- [`pandas.Series`](https://pandas.pydata.org/)
-- [`polars.DataFrame`](https://www.pola.rs/)
-- [`polars.Series`](https://www.pola.rs/)
-- [`torch.Tensor`](https://pytorch.org/)
-- [`torch.nn.utils.rnn.PackedSequence`](https://pytorch.org/)
-- [`xarray.DataArray`](https://docs.xarray.dev/en/stable/)
-- [`xarray.Dataset`](https://docs.xarray.dev/en/stable/)
-- [`xarray.Variable`](https://docs.xarray.dev/en/stable/)
+- [`jax.numpy.ndarray`](https://jax.readthedocs.io/en/latest/index.html)
+- [`torch.Tensor`](https://pytorch.org/) and
+  [`torch.nn.utils.rnn.PackedSequence`](https://pytorch.org/)
+- [`xarray.DataArray`](https://docs.xarray.dev/en/stable/),
+  [`xarray.Dataset`](https://docs.xarray.dev/en/stable/) and
+  [`xarray.Variable`](https://docs.xarray.dev/en/stable/)
+- The containers `list`, `tuple`, `collections.deque`, `dict`, `collections.OrderedDict` and
+  the other `Sequence` and `Mapping` types: they are compared item by item, so the items can be
+  of any supported type
+- Dataclass instances: the fields with `compare=True` are compared with the registry (so a field
+  can be a float, an array, another dataclass, and so on). A dataclass defined with `eq=False`
+  keeps its own `__eq__`
 
-`coola` also provides experimental/partial support for the following types:
+#### Types that work with caveats
 
-- [`pyarrow.Array`](https://arrow.apache.org/docs/python/generated/pyarrow.Array.html) (`equal_nan`,
-  `atol` and `rtol` arguments are ignored)
-- [`pyarrow.Table`](https://arrow.apache.org/docs/python/generated/pyarrow.Table.html) (`equal_nan`,
-  `atol` and `rtol` arguments are ignored)
+- [`pandas.DataFrame`](https://pandas.pydata.org/) and
+  [`pandas.Series`](https://pandas.pydata.org/): any missing value (`NaN`, `None`, `NaT`,
+  `pd.NA`) is treated as `NaN`, and an object with a missing value is not equal to a copy of
+  itself unless `equal_nan=True`
+- [`polars.DataFrame`](https://www.pola.rs/), [`polars.Series`](https://www.pola.rs/) and
+  `polars.LazyFrame`: `null` is always equal to `null`, and a `LazyFrame` is collected, so the
+  comparison runs the query. `Decimal` columns are known to fail (the `NaN` check is not
+  defined for them)
+- [`pyarrow.Array`](https://arrow.apache.org/docs/python/generated/pyarrow.Array.html) and
+  [`pyarrow.Table`](https://arrow.apache.org/docs/python/generated/pyarrow.Table.html)
+  (experimental): `equal_nan`, `atol` and `rtol` are ignored (a `RuntimeWarning` is emitted)
+- `numpy.ndarray` with a non-numeric dtype: `str`, `bytes` and `object` arrays are compared
+  exactly, and so are `datetime64` and `timedelta64` arrays, even if a tolerance is given
+- `set` and `frozenset`: compared with `==`, so the tolerance is not applied to the items (a set
+  of floats is compared exactly)
+- Any other type, for example `str`, `bytes`, `range`, `datetime.datetime` or `decimal.Decimal`:
+  compared with `==`, so the tolerance and `equal_nan` are ignored, and the result is what the
+  type's `__eq__` returns. If `==` does not return a value that can be converted to a `bool`
+  (for example, a class that compares arrays), a `TypeError` is raised: register a tester for
+  this type
+- Objects with a reference cycle (a list that contains itself) raise a `RecursionError`
+- Two objects are only compared if they have exactly the same type: a subclass is not equal to
+  its parent class, and `numpy.float32(1)` is not equal to `numpy.float64(1)`
 
 ### Exact Equality Rules
 
@@ -1075,7 +1110,7 @@ False
 
 ```
 
-#### Numbers: `bool` | `int` | `float`
+#### Numbers: `bool` | `int` | `float` | `complex` | NumPy scalars
 
 Two numbers are equal within a tolerance if:
 
@@ -1102,6 +1137,10 @@ True
 False
 
 ```
+
+The tolerance also applies to `complex` numbers (the distance in the complex plane is used) and to
+the NumPy scalars like `numpy.float32` or `numpy.int64`. Two numbers of different types are never
+equal, for example `numpy.float32(1.0)` and `numpy.float64(1.0)`.
 
 Note that booleans are explicitly considered as integers in Python so the tolerance can be used with
 booleans:
@@ -1413,7 +1452,8 @@ summarizes what each type does with them (it was checked for each type with `obj
 
 | Type                                                    | `equal_nan`                                                                                 | `atol` / `rtol`                                                                                        | Also compared                                            |
 | ------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------- |
-| `float`, `int`                                          | Honored for distinct `NaN` objects\*                                                        | `math.isclose`, for `int` too                                                                          | The types must be the same (`1` and `1.0` are different) |
+| `float`, `int`, `complex`, NumPy scalars                | Honored for distinct `NaN` objects\*                                                        | `math.isclose` (`cmath.isclose` for complex), for `int` too                                            | The types must be the same (`1` and `1.0` are different) |
+| dataclass instances                                     | Honored for the fields                                                                      | Honored for the fields                                                                                 | Same type; the fields with `compare=True`                |
 | `numpy.ndarray`                                         | Honored for numeric and datetime dtypes; **ignored for `str`, `bytes` and `object` arrays** | Numeric dtypes only (`bool`, `int`, `uint`, `float`, `complex`); the other dtypes are compared exactly | dtype, shape                                             |
 | `numpy.ma.MaskedArray`                                  | Honored for the data                                                                        | Honored for the data                                                                                   | dtype, shape, mask, `fill_value`                         |
 | `torch.Tensor`                                          | Honored                                                                                     | Honored (`torch.allclose`), integer tensors included                                                   | dtype, shape, device                                     |

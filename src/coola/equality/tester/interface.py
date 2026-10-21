@@ -20,6 +20,7 @@ from coola.equality.tester.collection import (
     OrderedMappingEqualityTester,
     SequenceEqualityTester,
 )
+from coola.equality.tester.dataclass import DataclassEqualityTester
 from coola.equality.tester.default import DefaultEqualityTester
 from coola.equality.tester.equal import EqualEqualityTester, EqualNanEqualityTester
 from coola.equality.tester.jax import JaxArrayEqualityTester, get_array_impl_class
@@ -37,7 +38,7 @@ from coola.equality.tester.polars import (
     PolarsSeriesEqualityTester,
 )
 from coola.equality.tester.pyarrow import PyarrowEqualityTester
-from coola.equality.tester.registry import EqualityTesterRegistry
+from coola.equality.tester.registry import DataclassMarker, EqualityTesterRegistry
 from coola.equality.tester.scalar import ScalarEqualityTester
 from coola.equality.tester.torch import (
     TorchPackedSequenceEqualityTester,
@@ -228,6 +229,9 @@ def _get_native_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
         # Numeric types - no recursion needed
         int: scalar,
         float: scalar,
+        complex: scalar,
+        # Dataclasses without their own tester
+        DataclassMarker: DataclassEqualityTester(),
         # Sequences - recursive transformation preserving order
         deque: sequence,
         list: sequence,
@@ -296,7 +300,12 @@ def _get_numpy_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
     if not is_numpy_available():  # pragma: no cover
         return {}
 
+    scalar = ScalarEqualityTester()
     return {
+        # NumPy scalars (``np.float64`` is also a ``float``)
+        np.floating: scalar,
+        np.integer: scalar,
+        np.complexfloating: scalar,
         np.ndarray: NumpyArrayEqualityTester(),
         np.ma.MaskedArray: NumpyMaskedArrayEqualityTester(),
     }

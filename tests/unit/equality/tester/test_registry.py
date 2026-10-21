@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Any
 
 import pytest
@@ -7,11 +8,13 @@ import pytest
 from coola.equality.config import EqualityConfig
 from coola.equality.tester import (
     BaseEqualityTester,
+    DataclassEqualityTester,
     DefaultEqualityTester,
     EqualityTesterRegistry,
     MappingEqualityTester,
     SequenceEqualityTester,
 )
+from coola.equality.tester.registry import DataclassMarker
 from coola.registry import AlreadyRegisteredError
 
 
@@ -184,3 +187,52 @@ def test_equality_tester_registry_registry_isolation() -> None:
 
     assert registry1._state[list] is tester1
     assert registry2._state[list] is tester2
+
+
+@dataclass
+class _Point:
+    x: float
+
+
+@dataclass(eq=False)
+class _NoEq:
+    x: float
+
+
+def test_equality_tester_registry_find_equality_tester_dataclass() -> None:
+    dataclass_tester = DataclassEqualityTester()
+    registry = EqualityTesterRegistry(
+        {object: DefaultEqualityTester(), DataclassMarker: dataclass_tester}
+    )
+    assert registry.find_equality_tester(_Point) is dataclass_tester
+
+
+def test_equality_tester_registry_find_equality_tester_dataclass_registered_type() -> None:
+    tester = SequenceEqualityTester()
+    registry = EqualityTesterRegistry(
+        {
+            object: DefaultEqualityTester(),
+            DataclassMarker: DataclassEqualityTester(),
+            _Point: tester,
+        }
+    )
+    assert registry.find_equality_tester(_Point) is tester
+
+
+def test_equality_tester_registry_find_equality_tester_dataclass_eq_false() -> None:
+    registry = EqualityTesterRegistry(
+        {object: DefaultEqualityTester(), DataclassMarker: DataclassEqualityTester()}
+    )
+    assert isinstance(registry.find_equality_tester(_NoEq), DefaultEqualityTester)
+
+
+def test_equality_tester_registry_find_equality_tester_dataclass_no_marker() -> None:
+    registry = EqualityTesterRegistry({object: DefaultEqualityTester()})
+    assert isinstance(registry.find_equality_tester(_Point), DefaultEqualityTester)
+
+
+def test_equality_tester_registry_find_equality_tester_not_dataclass() -> None:
+    registry = EqualityTesterRegistry(
+        {object: DefaultEqualityTester(), DataclassMarker: DataclassEqualityTester()}
+    )
+    assert isinstance(registry.find_equality_tester(int), DefaultEqualityTester)
