@@ -5,12 +5,13 @@ from __future__ import annotations
 
 __all__ = ["get_default_hasher_registry", "get_default_registry", "hash_object", "register_hashers"]
 
+import warnings
 from collections import OrderedDict, deque
 from collections.abc import Mapping, Sequence
 from datetime import date, datetime, time, timedelta, timezone
 from enum import Enum
 from pathlib import PurePath
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, overload
 
 from coola.hashing.bytes import BytesHasher
 from coola.hashing.datetime import DatetimeHasher
@@ -30,8 +31,32 @@ if TYPE_CHECKING:
     from coola.hashing.base import Hasher
 
 
+_LEGACY_POSITIONAL_NAMES = ("registry", "length", "ignore_unhashable")
+_DEFAULTS: dict[str, Any] = {"registry": None, "length": 64, "ignore_unhashable": False}
+
+
+@overload
 def hash_object(
     data: object,
+    *,
+    registry: HasherRegistry | None = None,
+    length: int = 64,
+    ignore_unhashable: bool = False,
+) -> str: ...
+
+
+@overload
+def hash_object(
+    data: object,
+    registry: HasherRegistry | None,
+    length: int = 64,
+    ignore_unhashable: bool = False,
+) -> str: ...
+
+
+def hash_object(
+    data: object,
+    *args: Any,
     registry: HasherRegistry | None = None,
     length: int = 64,
     ignore_unhashable: bool = False,
@@ -46,9 +71,16 @@ def hash_object(
     the order of its keys matters, so two ``OrderedDict`` with the same
     items in a different order hash differently.
 
+    The options must be passed by keyword. Passing ``registry``,
+    ``length`` or ``ignore_unhashable`` as positional arguments is
+    deprecated and emits a ``DeprecationWarning``: it was easy to write
+    ``hash_object(data, 32)`` and pass ``32`` as the registry.
+
     Args:
         data: The data to hash. Can be a nested structure such as a
             ``list``, ``dict``, or ``tuple``.
+        *args: Deprecated positional form of ``registry``, ``length``
+            and ``ignore_unhashable``, in this order.
         registry: The registry used to resolve hashers for each data
             type. If ``None``, the default registry is used.
         length: The desired length of the returned hex string. Must be
@@ -79,12 +111,57 @@ def hash_object(
         >>> from coola.hashing import hash_object
         >>> len(hash_object({"a": 1, "b": "abc"}))
         64
+        >>> len(hash_object({"a": 1, "b": "abc"}, length=16))
+        16
 
         ```
     """
+    if args:
+        registry, length, ignore_unhashable = _resolve_legacy_arguments(
+            args, registry=registry, length=length, ignore_unhashable=ignore_unhashable
+        )
     if registry is None:
         registry = get_default_registry()
     return registry.hash(data, length=length, ignore_unhashable=ignore_unhashable)
+
+
+def _resolve_legacy_arguments(
+    args: tuple[Any, ...], **kwargs: Any
+) -> tuple[HasherRegistry | None, int, bool]:
+    r"""Map the deprecated positional arguments of ``hash_object`` to the
+    keyword arguments.
+
+    Raises:
+        TypeError: if there are too many positional arguments, or an
+            argument is given twice (by position and by keyword), or the
+            second positional argument is not a registry (the common
+            mistake ``hash_object(data, 32)``).
+    """
+    if len(args) > len(_LEGACY_POSITIONAL_NAMES):
+        msg = (
+            f"hash_object() takes at most {len(_LEGACY_POSITIONAL_NAMES) + 1} positional "
+            f"arguments but {len(args) + 1} were given"
+        )
+        raise TypeError(msg)
+    if args[0] is not None and not isinstance(args[0], HasherRegistry):
+        msg = (
+            f"The second positional argument of hash_object() is `registry`, which must be a "
+            f"HasherRegistry or None, got {type(args[0]).__qualname__}. "
+            "Pass `length` and `ignore_unhashable` by keyword, e.g. `length=32`."
+        )
+        raise TypeError(msg)
+    warnings.warn(
+        "Passing `registry`, `length` and `ignore_unhashable` to `hash_object` as positional "
+        "arguments is deprecated, use keyword arguments",
+        DeprecationWarning,
+        stacklevel=3,
+    )
+    for name, value in zip(_LEGACY_POSITIONAL_NAMES, args, strict=False):
+        if kwargs[name] != _DEFAULTS[name]:
+            msg = f"hash_object() got multiple values for argument {name!r}"
+            raise TypeError(msg)
+        kwargs[name] = value
+    return kwargs["registry"], kwargs["length"], kwargs["ignore_unhashable"]
 
 
 def register_hashers(

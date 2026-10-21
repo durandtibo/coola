@@ -211,3 +211,42 @@ def test_random_manager_registry_seed() -> None:
     with rng.seed(42):
         second = random.uniform(0, 1)  # noqa: S311
     assert first == second
+
+
+def test_random_manager_registry_find_manager() -> None:
+    manager = RandomRandomManager()
+    registry = RandomManagerRegistry({"random": manager})
+    assert registry.find_manager("random") is manager
+
+
+def test_random_manager_registry_find_manager_missing_raises() -> None:
+    registry = RandomManagerRegistry({"random": RandomRandomManager()})
+    with pytest.raises(KeyError, match="Key 'torch' is not registered"):
+        registry.find_manager("torch")
+
+
+def test_random_manager_registry_unregister_returns_the_manager() -> None:
+    manager = RandomRandomManager()
+    registry = RandomManagerRegistry({"random": manager})
+    assert registry.unregister("random") is manager
+    assert not registry.has_manager("random")
+
+
+def test_random_manager_registry_unregister_missing_raises() -> None:
+    registry = RandomManagerRegistry()
+    with pytest.raises(KeyError, match="Key 'random' is not registered"):
+        registry.unregister("random")
+
+
+def test_random_manager_registry_unregistered_manager_is_not_seeded() -> None:
+    registry = RandomManagerRegistry({"random": RandomRandomManager()})
+    registry.unregister("random")
+    state = random.getstate()
+    registry.manual_seed(1)
+    assert random.getstate() == state
+
+
+def test_random_manager_registry_unregistered_manager_is_not_in_the_state() -> None:
+    registry = RandomManagerRegistry({"random": RandomRandomManager()})
+    registry.unregister("random")
+    assert registry.get_rng_state() == {}

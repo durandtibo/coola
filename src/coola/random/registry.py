@@ -164,6 +164,59 @@ class RandomManagerRegistry(MultilineDisplayMixin, BaseRandomManager):
         """
         return key in self._state
 
+    def find_manager(self, key: str) -> BaseRandomManager:
+        """Find the random manager registered for the given key.
+
+        Args:
+            key: The string key of the manager.
+
+        Returns:
+            The random manager registered for ``key``.
+
+        Raises:
+            KeyNotRegisteredError: If no manager is registered for ``key``.
+
+        Example:
+            ```pycon
+            >>> from coola.random import RandomManagerRegistry, RandomRandomManager
+            >>> registry = RandomManagerRegistry()
+            >>> registry.register("random", RandomRandomManager())
+            >>> registry.find_manager("random")
+            RandomRandomManager()
+
+            ```
+        """
+        return self._state[key]
+
+    def unregister(self, key: str) -> BaseRandomManager:
+        """Unregister the random manager of the given key.
+
+        The state of the removed manager is no longer saved, restored
+        or seeded by the registry.
+
+        Args:
+            key: The string key of the manager.
+
+        Returns:
+            The random manager that was registered for ``key``.
+
+        Raises:
+            KeyNotRegisteredError: If no manager is registered for ``key``.
+
+        Example:
+            ```pycon
+            >>> from coola.random import RandomManagerRegistry, RandomRandomManager
+            >>> registry = RandomManagerRegistry()
+            >>> registry.register("random", RandomRandomManager())
+            >>> registry.unregister("random")
+            RandomRandomManager()
+            >>> registry.has_manager("random")
+            False
+
+            ```
+        """
+        return self._state.unregister(key)
+
     def get_rng_state(self) -> dict[str, Any]:
         return {key: value.get_rng_state() for key, value in self._state.items()}
 
