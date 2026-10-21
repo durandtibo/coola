@@ -38,3 +38,47 @@ def test_lazy_singleton_is_thread_safe() -> None:
     assert not errors
     assert build_count == 1
     assert all(result is results[0] for result in results)
+
+
+def test_lazy_singleton_get_from_another_thread_waits_for_the_factory() -> None:
+    started = threading.Event()
+    release = threading.Event()
+    results: list[int | None] = [None, None]
+    errors: list[BaseException] = []
+
+    def factory() -> int:
+        started.set()
+        release.wait(timeout=5)
+        return 42
+
+    singleton = LazySingleton(factory)
+
+    def first() -> None:
+        try:
+            results[0] = singleton.get()
+        except BaseException as exc:  # noqa: BLE001
+            errors.append(exc)
+
+    def second() -> None:
+        # The factory is running in the first thread: this call waits for it.
+        started.wait(timeout=5)
+        try:
+            results[1] = singleton.get()
+        except BaseException as exc:  # noqa: BLE001
+            errors.append(exc)
+
+    def release_later() -> None:
+        started.wait(timeout=5)
+        threading.Event().wait(0.1)
+        release.set()
+
+    run_threads(
+        [
+            threading.Thread(target=first),
+            threading.Thread(target=second),
+            threading.Thread(target=release_later),
+        ]
+    )
+
+    assert not errors
+    assert results == [42, 42]
