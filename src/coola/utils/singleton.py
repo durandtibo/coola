@@ -49,6 +49,14 @@ class LazySingleton(Generic[T]):
             is called at most once, even if multiple threads call
             ``get`` concurrently before the value exists.
 
+    Raises:
+        RuntimeError: If ``get`` is called by the factory itself (on
+            the same thread) while the value is being built. The value
+            does not exist yet, so waiting for it would block forever.
+            For a default registry, this happens when a plugin calls a
+            function that uses the registry that is being built; the
+            plugin should use the registry it receives instead.
+
     Example:
         ```pycon
         >>> from coola.utils.singleton import LazySingleton
@@ -72,6 +80,7 @@ class LazySingleton(Generic[T]):
         self._factory = factory
         self._instance: T | None = None
         self._lock = threading.Lock()
+        self._building_thread: int | None = None
 
     def get(self) -> T:
         r"""Return the cached value, building it on the first call.
@@ -80,9 +89,21 @@ class LazySingleton(Generic[T]):
             The singleton value.
         """
         if self._instance is None:
+            if self._building_thread == threading.get_ident():
+                msg = (
+                    "The value is requested while it is being built, which would wait "
+                    "forever. Use the object that is being built instead of requesting "
+                    "the singleton again (for a plugin of a default registry, use the "
+                    "registry that the plugin receives)."
+                )
+                raise RuntimeError(msg)
             with self._lock:
                 if self._instance is None:
-                    self._instance = self._factory()
+                    self._building_thread = threading.get_ident()
+                    try:
+                        self._instance = self._factory()
+                    finally:
+                        self._building_thread = None
         return self._instance
 
 

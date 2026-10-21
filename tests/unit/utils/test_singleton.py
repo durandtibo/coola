@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING, Any, Never, cast
 
@@ -14,7 +15,6 @@ from coola.utils.singleton import (
 )
 
 if TYPE_CHECKING:
-    import threading
     from collections.abc import Callable
 
 ###################################
@@ -50,6 +50,52 @@ def test_lazy_singleton_calls_factory_only_once() -> None:
     singleton.get()
     singleton.get()
     assert len(calls) == 1
+
+
+def test_lazy_singleton_get_in_factory_raises_instead_of_blocking() -> None:
+    holder: dict[str, LazySingleton[int]] = {}
+
+    def factory() -> int:
+        return holder["singleton"].get()
+
+    holder["singleton"] = LazySingleton(factory)
+    with pytest.raises(RuntimeError, match="requested while it is being built"):
+        holder["singleton"].get()
+
+
+def test_lazy_singleton_can_be_built_after_a_reentrant_call_failed() -> None:
+    holder: dict[str, LazySingleton[int]] = {}
+    calls = []
+
+    def factory() -> int:
+        calls.append(1)
+        if len(calls) == 1:
+            return holder["singleton"].get()
+        return 42
+
+    holder["singleton"] = LazySingleton(factory)
+    with pytest.raises(RuntimeError, match="requested while it is being built"):
+        holder["singleton"].get()
+    assert holder["singleton"].get() == 42
+
+
+def test_lazy_singleton_get_from_another_thread_waits_for_the_factory() -> None:
+    started = threading.Event()
+    release = threading.Event()
+
+    def factory() -> int:
+        started.set()
+        release.wait(timeout=5)
+        return 42
+
+    lazy = LazySingleton(factory)
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        first = executor.submit(lazy.get)
+        assert started.wait(timeout=5)
+        second = executor.submit(lazy.get)
+        release.set()
+        assert first.result(timeout=5) == 42
+        assert second.result(timeout=5) == 42
 
 
 def test_lazy_singleton_returns_same_instance() -> None:
@@ -283,3 +329,24 @@ def test_make_default_registry_singleton_loads_plugins(monkeypatch: pytest.Monke
     _patch_entry_points(monkeypatch, [_FakeEntryPoint("a", lambda r: r.update(p=1))])
     holder = make_default_registry_singleton(dict, lambda r: r.update(d=0), plugin_group="grp")
     assert holder.get() == {"d": 0, "p": 1}
+
+
+def test_default_registry_singleton_plugin_cannot_request_the_registry_being_built(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    holder: dict[str, LazySingleton[dict[str, int]]] = {}
+
+    def bad_plugin(registry: Any) -> None:  # noqa: ARG001
+        holder["singleton"].get()
+
+    def good_plugin(registry: dict[str, int]) -> None:
+        registry["good"] = 1
+
+    _patch_entry_points(
+        monkeypatch, [_FakeEntryPoint("bad", bad_plugin), _FakeEntryPoint("good", good_plugin)]
+    )
+    holder["singleton"] = make_default_registry_singleton(dict, lambda _: None, "grp")
+    with pytest.warns(RuntimeWarning, match="requested while it is being built"):
+        registry = holder["singleton"].get()
+    assert registry == {"good": 1}
+    assert holder["singleton"].get() is registry
