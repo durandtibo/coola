@@ -773,8 +773,7 @@ The exact equality, the tolerance (`atol`, `rtol`) and `equal_nan` are all handl
   itself unless `equal_nan=True`
 - [`polars.DataFrame`](https://www.pola.rs/), [`polars.Series`](https://www.pola.rs/) and
   `polars.LazyFrame`: `null` is always equal to `null`, and a `LazyFrame` is collected, so the
-  comparison runs the query. `Decimal` columns are known to fail (the `NaN` check is not
-  defined for them)
+  comparison runs the query
 - [`pyarrow.Array`](https://arrow.apache.org/docs/python/generated/pyarrow.Array.html) and
   [`pyarrow.Table`](https://arrow.apache.org/docs/python/generated/pyarrow.Table.html)
   (experimental): `equal_nan`, `atol` and `rtol` are ignored (a `RuntimeWarning` is emitted)

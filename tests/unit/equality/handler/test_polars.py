@@ -754,6 +754,11 @@ HAS_NAN_TRUE = [
     pl.DataFrame({"col": [1, 2, 3]}, schema={"col": pl.Float64}),
     pl.DataFrame({"col": ["A", "B", "C"]}),
     pl.DataFrame({}),
+    pl.Series([1, 2], dtype=pl.Decimal(10, 2)),
+    pl.DataFrame({"col": [1, 2]}, schema={"col": pl.Decimal(10, 2)}),
+    pl.DataFrame(
+        {"col": [1, 2], "other": [1.0, 2.0]}, schema={"col": pl.Decimal(10, 2), "other": pl.Float64}
+    ),
 ]
 HAS_NAN_FALSE = [
     pl.Series([1.0, 2.0, float("nan")]),
@@ -849,3 +854,26 @@ def test_polars_lazyframe_equal_handler_different_schema_does_not_collect() -> N
     assert not PolarsLazyFrameEqualHandler().handle(actual, expected, EqualityConfig())
     actual.collect.assert_not_called()
     expected.collect.assert_not_called()
+
+
+@polars_available
+def test_has_nan_decimal_with_float_nan() -> None:
+    df = pl.DataFrame(
+        {"dec": [1, 2], "num": [1.0, float("nan")]},
+        schema={"dec": pl.Decimal(10, 2), "num": pl.Float64},
+    )
+    assert has_nan(df)
+
+
+@polars_available
+@pytest.mark.parametrize("equal_nan", [True, False])
+def test_frame_equal_decimal(equal_nan: bool) -> None:
+    df = pl.DataFrame({"col": [1, 2]}, schema={"col": pl.Decimal(10, 2)})
+    assert frame_equal(df, df.clone(), EqualityConfig(equal_nan=equal_nan))
+
+
+@polars_available
+@pytest.mark.parametrize("equal_nan", [True, False])
+def test_series_equal_decimal(equal_nan: bool) -> None:
+    series = pl.Series([1, 2], dtype=pl.Decimal(10, 2))
+    assert series_equal(series, series.clone(), EqualityConfig(equal_nan=equal_nan))
