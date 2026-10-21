@@ -25,6 +25,9 @@ def _compare(
     level, so the interpreter limit (``sys.getrecursionlimit()``) is
     usually reached well before ``config.max_depth``.
     """
+    # Shared by all the entry points (including ``compare``) so they raise the same,
+    # actionable error. The cycles do not reach this error, they are handled by
+    # ``track_comparison``.
     try:
         return registry.objects_are_equal(actual, expected, config)
     except MaxDepthExceededError:

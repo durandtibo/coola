@@ -175,6 +175,8 @@ def has_nan(df_or_series: pl.DataFrame | pl.Series) -> bool:
         ``True`` if the DataFrame or Series has NaN values,
             otherwise ``False``.
     """
+    # Only the float dtypes have NaN values, and ``is_nan`` is not defined for the
+    # other numeric dtypes (``is_numeric`` also includes ``Decimal``, which raises).
     if isinstance(df_or_series, pl.Series):
         return df_or_series.dtype.is_float() and df_or_series.is_nan().any()
     frame = df_or_series.select(cs.float())

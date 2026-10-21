@@ -116,9 +116,10 @@ def number_equal(number1: float, number2: float, config: EqualityConfig) -> bool
         ```
     """
     if config.atol > 0.0 or config.rtol > 0.0:
+        # ``numbers.Real`` also covers the NumPy scalars (NumPy registers them), so
+        # only the complex numbers use ``cmath`` (``math.isclose`` would raise for
+        # ``complex`` and drop the imaginary part for ``numpy.complex64``).
         if not isinstance(number1, numbers.Real) or not isinstance(number2, numbers.Real):
-            # Complex numbers (``math.isclose`` would drop the imaginary part
-            # or raise for them).
             return cmath.isclose(number1, number2, abs_tol=config.atol, rel_tol=config.rtol)
         try:
             return math.isclose(number1, number2, abs_tol=config.atol, rel_tol=config.rtol)

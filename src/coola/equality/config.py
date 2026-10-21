@@ -79,11 +79,20 @@ class EqualityConfig:
     atol: float = 0.0
     rtol: float = 0.0
     show_difference: bool = False
+    # With the default Python recursion limit (1000 frames) and several frames per
+    # nesting level, the interpreter limit is usually reached before ``max_depth``;
+    # ``max_depth`` is a guard that the user can lower (the cycles do not need it,
+    # they are detected with ``_in_progress``).
     max_depth: int = 1000
     reporter: Callable[[str, tuple[object, ...]], None] | None = field(
         default=None, repr=False, compare=False
     )
+    # Internal state of one comparison: a config must not be shared by
+    # concurrent comparisons (each ``objects_are_*`` call creates its own).
     _current_depth: int = field(default=0, init=False, repr=False, compare=False)
+    # ``(id(actual), id(expected))`` of the pairs being compared, used to detect
+    # the cycles (see ``track_comparison``). The ids are safe to use as keys
+    # because the pairs are alive during the whole comparison.
     _in_progress: set[tuple[int, int]] = field(
         default_factory=set, init=False, repr=False, compare=False
     )

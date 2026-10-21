@@ -164,6 +164,9 @@ def compare(
     config.reporter = lambda message, path: reports.append((message, path))
     equal = _compare(registry, actual, expected, config)
     if equal:
+        # The ``repr`` of the objects is not computed for equal objects, because it
+        # is expensive for large objects and ``compare`` is used for each passing
+        # assertion in the tests (see ``assert_objects_equal``).
         return ComparisonResult(True)
     # Handlers report innermost differences first: the outermost path
     # component is reported last.
