@@ -118,7 +118,17 @@ class ObjectEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         expected: object,
         config: EqualityConfig,
     ) -> bool:
-        object_equal = actual == expected
+        result = actual == expected
+        try:
+            object_equal = bool(result)
+        except (TypeError, ValueError) as exc:
+            # e.g. a dataclass holding an array: ``==`` returns an array.
+            msg = (
+                f"`==` returned a value of type {type(result)} that cannot be converted "
+                f"to a bool when comparing {type(actual)} objects. Register an equality "
+                "tester for this type."
+            )
+            raise TypeError(msg) from exc
         if config.show_difference and not object_equal:
             report_difference(
                 logger, config, format_value_difference(actual=actual, expected=expected)

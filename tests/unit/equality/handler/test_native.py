@@ -859,3 +859,22 @@ def test_same_type_handler_set_next_handler_incorrect() -> None:
     handler = SameTypeHandler()
     with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)
+
+
+def test_object_equal_handler_handle_non_bool_result() -> None:
+    class Eq:
+        def __eq__(self, other: object) -> object:
+            return [True, False]  # noqa: PLW1641
+
+    class Ambiguous:
+        def __eq__(self, other: object) -> object:  # noqa: PLW1641
+            return Bad()
+
+    class Bad:
+        def __bool__(self) -> bool:
+            msg = "ambiguous"
+            raise ValueError(msg)
+
+    assert ObjectEqualHandler().handle(Eq(), Eq(), EqualityConfig()) is True
+    with pytest.raises(TypeError, match="cannot be converted to a bool"):
+        ObjectEqualHandler().handle(Ambiguous(), Ambiguous(), EqualityConfig())
