@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from coola.identifier import decode_obfuscated_id, generate_obfuscated_id
-from coola.identifier.obfuscated import _multiplier_and_increment
+from coola.identifier.obfuscated import _decode_base62, _encode_base62, _multiplier_and_increment
 
 
 def test_generate_obfuscated_id_returns_str() -> None:
@@ -138,3 +138,28 @@ def test_generate_obfuscated_id_sequential_numbers_differ_by_multiplier_only() -
     b = _decode_base62_for_test(generate_obfuscated_id(501, salt="orders"))
     c = _decode_base62_for_test(generate_obfuscated_id(502, salt="orders"))
     assert (b - a) & mask == (c - b) & mask
+
+
+def test_decode_obfuscated_id_largest_value() -> None:
+    # ``2**64 - 1`` in base 62 is the largest value that can be decoded.
+    largest = _encode_base62(2**64 - 1, min_length=0)
+    assert isinstance(decode_obfuscated_id(largest), int)
+
+
+@pytest.mark.parametrize("value", [2**64, 2**64 + 5, 62**12, 2**100])
+def test_decode_obfuscated_id_value_out_of_range_raises(value: int) -> None:
+    with pytest.raises(ValueError, match="does not encode a 64-bit value"):
+        decode_obfuscated_id(_encode_base62(value, min_length=0))
+
+
+def test_decode_obfuscated_id_does_not_wrap_around() -> None:
+    encoded = generate_obfuscated_id(5)
+    value = _decode_base62(encoded)
+    with pytest.raises(ValueError, match="does not encode a 64-bit value"):
+        decode_obfuscated_id(_encode_base62(value + 2**64, min_length=0))
+
+
+def test_decode_obfuscated_id_padded_value() -> None:
+    encoded = generate_obfuscated_id(7, salt="s", min_length=30)
+    assert len(encoded) == 30
+    assert decode_obfuscated_id(encoded, salt="s") == 7
