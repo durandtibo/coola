@@ -341,3 +341,27 @@ def test_int_isclose_agrees_with_math_isclose_for_small_ints() -> None:
         assert int_isclose(number1, number2, rtol=0.01, atol=0.5) == math.isclose(
             number1, number2, rel_tol=0.01, abs_tol=0.5
         )
+
+
+def test_number_equal_complex_exact() -> None:
+    assert number_equal(1 + 1j, 1 + 1j, EqualityConfig())
+    assert not number_equal(1 + 1j, 1 + 2j, EqualityConfig())
+
+
+def test_number_equal_complex_tolerance() -> None:
+    assert number_equal(1 + 1j, 1 + 1.05j, EqualityConfig(atol=0.1))
+    assert number_equal(1 + 1j, 1.05 + 1j, EqualityConfig(rtol=0.1))
+
+
+def test_number_equal_complex_tolerance_not_equal() -> None:
+    assert not number_equal(1 + 1j, 1 + 2j, EqualityConfig(atol=0.1))
+
+
+def test_number_equal_complex_tolerance_checks_imaginary_part() -> None:
+    assert not number_equal(1 + 0j, 1 + 5j, EqualityConfig(atol=0.1))
+
+
+def test_number_equal_complex_and_real_tolerance() -> None:
+    assert number_equal(1 + 0j, 1.05, EqualityConfig(atol=0.1))
+    assert number_equal(1.05, 1 + 0j, EqualityConfig(atol=0.1))
+    assert not number_equal(1 + 1j, 1.0, EqualityConfig(atol=0.1))
