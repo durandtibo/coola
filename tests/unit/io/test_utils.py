@@ -36,3 +36,17 @@ def test_add_uuid_suffix_two_suffixes(tmp_path: Path) -> None:
 def test_add_uuid_suffix_dir(tmp_path: Path) -> None:
     with patch("coola.io.utils.uuid.uuid4", lambda: Mock(hex="a1b2c3")):
         assert add_uuid_suffix(tmp_path.joinpath("data/")) == tmp_path.joinpath("data-a1b2c3")
+
+
+def test_add_uuid_suffix_dots_in_stem(tmp_path: Path) -> None:
+    with patch("coola.io.utils.uuid.uuid4", lambda: Mock(hex="a1b2c3")):
+        assert add_uuid_suffix(tmp_path.joinpath("v1.2.model")) == tmp_path.joinpath(
+            "v1.2-a1b2c3.model"
+        )
+
+
+def test_add_uuid_suffix_compound_extension_with_dots_in_stem(tmp_path: Path) -> None:
+    with patch("coola.io.utils.uuid.uuid4", lambda: Mock(hex="a1b2c3")):
+        assert add_uuid_suffix(tmp_path.joinpath("v1.2.tar.gz")) == tmp_path.joinpath(
+            "v1.2-a1b2c3.tar.gz"
+        )
