@@ -47,3 +47,9 @@ def test_mask_secret_single_char() -> None:
 
 def test_mask_secret_empty_string() -> None:
     assert mask_secret("") == ""
+
+
+@pytest.mark.parametrize("kwargs", [{"show_first": -2}, {"show_last": -2}])
+def test_mask_secret_negative_raises(kwargs: dict) -> None:
+    with pytest.raises(ValueError, match="must be greater than or equal to 0"):
+        mask_secret("abcdefghijkl", **kwargs)
