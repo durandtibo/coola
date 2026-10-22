@@ -53,6 +53,12 @@ def objects_are_allclose(
 ) -> bool:
     r"""Indicate if two objects are equal within a tolerance.
 
+    Note:
+        The types are compared first, so ``1`` and ``1.0`` are different
+        (as are ``[1]`` and ``[1.0]``), even with a tolerance. A ``bool``
+        is an ``int``, so ``True`` and ``False`` are close with
+        ``atol=1``, unlike ``numpy.bool_``.
+
     Args:
         actual: The actual object.
         expected: The expected object.
@@ -111,6 +117,12 @@ def objects_are_equal(
     registry: EqualityTesterRegistry | None = None,
 ) -> bool:
     r"""Indicate if two objects are equal or not.
+
+    Note:
+        The types are compared first, so ``1`` and ``1.0`` are different
+        (as are ``[1]`` and ``[1.0]``), even with a tolerance. A ``bool``
+        is an ``int``, so ``True`` and ``False`` are close with
+        ``atol=1``, unlike ``numpy.bool_``.
 
     Args:
         actual: The actual object.
