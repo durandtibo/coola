@@ -30,8 +30,16 @@ __all__ = [
     "HashableHasher",
     "Hasher",
     "HasherRegistry",
+    "JaxArrayHasher",
     "MappingHasher",
+    "NumpyArrayHasher",
+    "PandasDataFrameHasher",
+    "PandasSeriesHasher",
     "PathHasher",
+    "PolarsDataFrameHasher",
+    "PolarsSeriesHasher",
+    "PyarrowArrayHasher",
+    "PyarrowTableHasher",
     "PydanticModelHasher",
     "ReprHasher",
     "ResolvedPathHasher",
@@ -40,6 +48,8 @@ __all__ = [
     "StrHasher",
     "StringHasher",
     "SupportsHash",
+    "TorchTensorHasher",
+    "XarrayHasher",
     "get_default_hasher_registry",
     "get_default_registry",
     "hash_bytes",
@@ -64,8 +74,13 @@ from coola.hashing.interface import (
     hash_object,
     register_hashers,
 )
+from coola.hashing.jax import JaxArrayHasher
 from coola.hashing.mapping import MappingHasher
+from coola.hashing.numpy import NumpyArrayHasher
+from coola.hashing.pandas import PandasDataFrameHasher, PandasSeriesHasher
 from coola.hashing.path import PathHasher, ResolvedPathHasher, hash_path
+from coola.hashing.polars import PolarsDataFrameHasher, PolarsSeriesHasher
+from coola.hashing.pyarrow import PyarrowArrayHasher, PyarrowTableHasher
 from coola.hashing.pydantic import PydanticModelHasher, hash_pydantic_model
 from coola.hashing.registry import HasherRegistry
 from coola.hashing.repr import ReprHasher
@@ -73,3 +88,5 @@ from coola.hashing.sequence import SequenceHasher
 from coola.hashing.set import SetHasher
 from coola.hashing.str import StrHasher
 from coola.hashing.string import StringHasher, hash_enum, hash_string, hash_tagged
+from coola.hashing.torch import TorchTensorHasher
+from coola.hashing.xarray import XarrayHasher
