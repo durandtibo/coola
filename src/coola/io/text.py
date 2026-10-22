@@ -25,6 +25,11 @@ class TextLoader(InlineDisplayMixin, BaseLoader[str]):
         encoding: The file encoding to use when reading the file.
             Defaults to ``"utf-8"``.
 
+    Note:
+        The line endings are returned as they are in the file
+        (no universal newline translation), so ``\\r\\n`` and ``\\r`` are
+        preserved.
+
     Example:
         ```pycon
         >>> import tempfile
@@ -53,7 +58,7 @@ class TextLoader(InlineDisplayMixin, BaseLoader[str]):
         return self._encoding == other._encoding
 
     def load(self, path: Path) -> str:
-        with path.open(encoding=self._encoding) as file:
+        with path.open(encoding=self._encoding, newline="") as file:
             return file.read()
 
 
@@ -65,6 +70,9 @@ class TextSaver(InlineDisplayMixin, BaseFileSaver[str]):
             Defaults to ``"utf-8"``.
 
     Note:
+        The line endings are written as they are in the string (no
+        translation of ``\\n``, even on Windows).
+
         If the data to save is not a string, it is converted to
             a string before being saved by using ``str``.
 
@@ -96,7 +104,7 @@ class TextSaver(InlineDisplayMixin, BaseFileSaver[str]):
         return self._encoding == other._encoding
 
     def _save_file(self, to_save: str, path: Path) -> None:
-        with path.open(mode="w", encoding=self._encoding) as file:
+        with path.open(mode="w", encoding=self._encoding, newline="") as file:
             file.write(str(to_save))
 
 
