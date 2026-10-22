@@ -11,6 +11,7 @@ from coola.equality.handler import FalseHandler, TrueHandler
 from coola.equality.handler.torch import (
     TorchTensorEqualHandler,
     TorchTensorSameDeviceHandler,
+    tensor_equal,
 )
 from coola.testing.fixtures import torch_available, torch_cuda_available
 from coola.utils.imports import is_torch_available
@@ -326,3 +327,22 @@ def test_torch_tensor_same_device_handler_set_next_handler_incorrect() -> None:
     handler = TorchTensorSameDeviceHandler()
     with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)
+
+
+@torch_available
+def test_tensor_equal_sparse(config: EqualityConfig) -> None:
+    eye = torch.eye(2)
+    assert tensor_equal(eye.to_sparse(), eye.to_sparse(), config)
+    assert not tensor_equal(eye.to_sparse(), (2 * eye).to_sparse(), config)
+
+
+@torch_available
+def test_tensor_equal_different_layout(config: EqualityConfig) -> None:
+    eye = torch.eye(2)
+    assert not tensor_equal(eye.to_sparse(), eye, config)
+
+
+@torch_available
+def test_tensor_equal_meta(config: EqualityConfig) -> None:
+    assert tensor_equal(torch.empty(2, device="meta"), torch.empty(2, device="meta"), config)
+    assert not tensor_equal(torch.empty(2, device="meta"), torch.empty(3, device="meta"), config)
