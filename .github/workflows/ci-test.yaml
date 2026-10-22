@@ -42,6 +42,14 @@ jobs:
       - name: Run integration tests
         run: |
           inv test.integration --cov
+      # Fail if the coverage of the whole test suite drops below the threshold.
+      # Only the cell with all the dependencies on one platform is checked: the
+      # cells without the optional dependencies cannot reach the threshold, and
+      # the unit and integration steps above overwrite each other's data.
+      - name: Check the coverage threshold
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
+        run: |
+          pytest tests/unit tests/integration --cov --cov-report= --cov-fail-under=99
       # Upload coverage from a single representative cell of the matrix (only
       # for the main repository, to avoid spam from forks).
       - name: Upload coverage to Codecov
