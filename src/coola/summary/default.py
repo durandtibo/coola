@@ -67,11 +67,10 @@ def _safe_str(data: object) -> str:
     r"""Convert the data to a string without ever raising.
 
     Falls back to a placeholder when ``str`` fails, e.g. a ``__str__``
-    that raises or an ``int`` above the string conversion limit.
+    that raises or an ``int`` above the string conversion limit, with
+    ``<ClassName object at 0x...>``.
     """
     try:
         return str(data)
     except Exception:  # noqa: BLE001
-        if isinstance(data, int):
-            return f"<{type(data).__qualname__} with {data.bit_length():,} bits>"
-        return f"<{type(data).__qualname__} object at {id(data):#x}>"
+        return f"<{type(data).__name__} object at {id(data):#x}>"

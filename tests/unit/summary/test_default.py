@@ -190,8 +190,9 @@ def test_default_summarizer_negative_max_characters_shows_everything() -> None:
 
 def test_default_summarizer_summarize_huge_int() -> None:
     assert (
-        DefaultSummarizer().summarize(10**5000, SummarizerRegistry(), max_depth=0)
-        == "<int with 16,610 bits>"
+        DefaultSummarizer()
+        .summarize(10**5000, SummarizerRegistry(), max_depth=0)
+        .startswith("<int object at 0x")
     )
 
 
