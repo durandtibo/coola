@@ -11,6 +11,11 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
+# The compound extensions kept together; any other dotted part of the name
+# (e.g. a version number in ``v1.2.model``) belongs to the stem.
+_COMPOUND_EXTENSIONS = frozenset({".tar.gz", ".tar.bz2", ".tar.xz", ".tar.zst", ".tar.lz4"})
+
+
 def add_uuid_suffix(path: Path) -> Path:
     r"""Return a new path with a unique UUID suffix added to the file
     name.
@@ -24,7 +29,8 @@ def add_uuid_suffix(path: Path) -> Path:
 
     Returns:
         A new path with the same parent and extension, and a unique
-            UUID appended to the stem.
+            UUID appended to the stem. The extension is the last
+            suffix, or a compound extension such as ``.tar.gz``.
 
     Example:
         ```pycon
@@ -40,10 +46,7 @@ def add_uuid_suffix(path: Path) -> Path:
         ```
     """
     h = uuid.uuid4().hex
-    extension = "".join(path.suffixes)[1:]
-    if extension:
-        extension = "." + extension
-        stem = path.name.removesuffix(extension)
-    else:
-        stem = path.name
+    compound = "".join(path.suffixes[-2:])
+    extension = compound if compound.lower() in _COMPOUND_EXTENSIONS else path.suffix
+    stem = path.name.removesuffix(extension)
     return path.with_name(f"{stem}-{h}{extension}")
