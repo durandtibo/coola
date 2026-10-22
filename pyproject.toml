@@ -13,11 +13,14 @@ only-include = ["src"]
 [project]
 name = "coola"
 version = "1.2.0a2"
-description = "Library to check equality between two complex/nested objects"
+description = "Library to compare, hash and summarize complex/nested objects"
 readme = "README.md"
 authors = [{ name = "Thibaut Durand", email = "durand.tibo+gh@gmail.com" }]
 keywords = [
   "equality",
+  "hashing",
+  "identifiers",
+  "summary",
   "testing",
   "jax",
   "numpy",
