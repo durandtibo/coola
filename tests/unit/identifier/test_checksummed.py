@@ -108,3 +108,8 @@ def test_generate_checksummed_id_sep_empty_is_verifiable() -> None:
 def test_generate_checksummed_id_sep_multichar_raises() -> None:
     with pytest.raises(ValueError, match="sep must be empty or a single character"):
         generate_checksummed_id(sep="--")
+
+
+@pytest.mark.parametrize("identifier", [None, 123, b"abc"])
+def test_verify_checksummed_id_not_a_str(identifier: object) -> None:
+    assert not verify_checksummed_id(identifier)

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 __all__ = ["get_file_size"]
 
+import os
+import stat
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -14,7 +16,9 @@ def get_file_size(path: Path) -> int:
     r"""Return the size of a file or directory, in bytes.
 
     If ``path`` is a directory, returns the total size of all files
-    it contains (recursively). Symlinks are not followed.
+    it contains (recursively). Symlinks inside the directory are
+    neither followed nor counted, and files deleted while the directory
+    is being scanned are skipped.
 
     Args:
         path: The path to the file or directory.
@@ -39,4 +43,13 @@ def get_file_size(path: Path) -> int:
         raise FileNotFoundError(msg)
     if path.is_file():
         return path.stat().st_size
-    return sum(f.stat().st_size for f in path.rglob("*") if f.is_file())
+    total = 0
+    for dirpath, _, filenames in os.walk(path, followlinks=False):
+        for name in filenames:
+            try:
+                info = os.lstat(os.path.join(dirpath, name))  # noqa: PTH118
+            except OSError:  # the file vanished during the scan
+                continue
+            if stat.S_ISREG(info.st_mode):  # a regular file, not a symlink
+                total += info.st_size
+    return total

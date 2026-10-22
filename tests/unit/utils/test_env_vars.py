@@ -355,3 +355,9 @@ def test_temp_env_vars_restores_when_setting_fails() -> None:
         pass  # pragma: no cover
     assert name not in os.environ
     assert "BAD" not in os.environ
+
+
+def test_check_env_vars_missing_level(caplog: pytest.LogCaptureFixture) -> None:
+    with caplog.at_level(logging.DEBUG):
+        check_env_vars(["MISSING_VAR_FOR_LEVEL"], missing_level=logging.INFO)
+    assert [r.levelno for r in caplog.records if "NOT defined" in r.message] == [logging.INFO]

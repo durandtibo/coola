@@ -72,8 +72,8 @@ def test_generate_nano_id_alphabet_too_large_raises() -> None:
         generate_nano_id(alphabet="".join(chr(i) for i in range(300)))
 
 
-def test_generate_nano_id_single_character_alphabet() -> None:
-    assert generate_nano_id(length=5, alphabet="a") == "aaaaa"
+def test_generate_nano_id_two_character_alphabet() -> None:
+    assert set(generate_nano_id(length=50, alphabet="ab")) <= {"a", "b"}
 
 
 def test_generate_nano_id_rejects_out_of_range_bytes(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -104,3 +104,8 @@ def test_generate_nano_id_alphabet_just_above_power_of_two() -> None:
     value = generate_nano_id(length=50, alphabet=alphabet)
     assert len(value) == 50
     assert all(char in alphabet for char in value)
+
+
+def test_generate_nano_id_single_character_alphabet() -> None:
+    with pytest.raises(ValueError, match="at least 2 characters"):
+        generate_nano_id(5, alphabet="a")

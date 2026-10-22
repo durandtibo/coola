@@ -77,7 +77,8 @@ def get_current_branch(cwd: Path | str | None = None) -> str:
             If ``None``, the current working directory is used.
 
     Returns:
-        The name of the current branch.
+        The name of the current branch, or the literal ``"HEAD"`` if
+            the checkout is detached.
 
     Raises:
         OSError: If the current directory is not part of a git
