@@ -1,417 +1,226 @@
-# Codebase review: new suggestions
+# Codebase review: suggestions (round 3)
 
-Scope: every module in `src/coola` (~26k lines, 18 subpackages), plus `pyproject.toml`, the
-pre-commit config, the CI workflows and the test layout. I read the source with docstrings
-stripped, so docstring quality was not reviewed.
+This file **replaces the previous `review/suggestions.md`** (417 lines, items 1.1 to 2.10 handled).
+That version is in git history (last touched by `55086b7f`). Nothing below repeats an item of that
+review, `src-coola-review.md`, `noqa-review.md` or `python-311-modernization.md`, except where
+an item is explicitly marked _still open_.
 
-This file **replaces the previous `review/suggestions.md`** (697 lines, every item marked as
-handled). That version is still in git history (last commit touching it: `2b558481`). The items below
-are new: none of them repeats an item of that review, `src-coola-review.md`, `noqa-review.md` or
-`python-311-modernization.md`.
+## How this review was done (and its limits)
 
-Items marked **[verified]** were reproduced on this checkout (`.venv`, Python 3.14, NumPy, torch, pandas,
-polars, pyarrow, xarray, JAX, pydantic installed). The others are leads from reading the code. The review
-itself changed no source file; the fixes listed below were made afterwards.
+I did **not** read all 27k lines of `src/coola`. After the two earlier full read-throughs, I
+concentrated on running probes against the checkout (`.venv`, Python 3.14, NumPy, torch, pandas, polars,
+pyarrow, xarray installed) and reading the modules those probes pointed at: `utils`, `io`,
+`identifier`, `nested`, `random`, `hashing`, `summary` and the equality testers for third-party types.
+Items marked **[verified]** were reproduced; the others are leads from reading. The review changed no
+source file. Not covered this time: `registry/`, `factory/`, `display/`, `validation/`, the
+`iterator`/`recursive` internals, the docs site, and the CI workflow contents beyond their file names.
 
-## Status
-
-| Item | Status                                                                                                                                  |
-| ---- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| 1.1  | **Fixed**                                                                                                                               |
-| 1.2  | **Fixed** for NumPy scalars, `complex` and dataclasses. Not done: `set`/`frozenset`, NumPy datetime arrays                              |
-| 1.3  | **Fixed**                                                                                                                               |
-| 1.4  | **Fixed** (cycles compared by value; `compare()` uses the same wrapper). `max_depth` is unchanged                                       |
-| 1.5  | **Fixed** (`repr` not computed for equal objects)                                                                                       |
-| 1.6  | **Fixed** (`defaultdict` rebuild, `deque` registered; ABC fallback not added)                                                           |
-| 1.7  | **Fixed** (`bytes` leaves, `restore_lists`, `to_jsonable` types)                                                                        |
-| 1.8  | **Fixed** (`Array` columns cast to `List`)                                                                                              |
-| 1.9  | **Fixed** in #2047 (heartbeat, lock token, hidden temporary file, `JsonLoader(encoding=...)`)                                           |
-| 1.10 | **Fixed** in #2048 (clear `RuntimeError` instead of a deadlock)                                                                         |
-| 1.11 | **Fixed** in #2049 (out-of-range values rejected)                                                                                       |
-| 1.12 | **Fixed** in #2050 (NaN in the reducers). Not done: `auto_reducer` order                                                                |
-| 1.13 | **Fixed** in #2051 (`coords.variables`). Not done: the dask-backed `DataArray` (dask is not installed)                                  |
-| 2.1  | **Fixed** in #2053 (fallbacks, NumPy scalars, `UUID`, `Decimal`, `Fraction`, `range`, `ZoneInfo`)                                       |
-| 2.2  | **Not done**, by decision (see the item)                                                                                                |
-| 2.3  | **Fixed** in #2054 (`resolve_timestamp_ms` removed; the other items kept)                                                               |
-| 2.4  | **Fixed** in #2055 (keyword-only options of `hash_object` with a deprecation, `RandomManagerRegistry.find_manager`/`unregister`)        |
-| 2.5  | **Fixed** in #2056 (O(1) cycle check). Not done, by decision: an explicit stack for `dfs_iterate`                                       |
-| 2.6  | **Fixed** in #2057 (`key_predicate`)                                                                                                    |
-| 2.7  | **Fixed** in #2058 (`is None` checks, `repr`, PyArrow types and one warning per setting)                                                |
-| 2.8  | **Fixed** in #2059 (`max_characters=1000`, `max_fields`, abstract methods)                                                              |
-| 2.9  | **Fixed** in #2060 (documented; a duplicate ID after a backward clock fixed)                                                            |
-| 2.10 | **Fixed** in #2061 (lazy fixtures, `quantile`, `char_diff_summary`, `LRUCache` doc). Not done: `__getattr__` on the fake `torch` module |
-| 3    | Open                                                                                                                                    |
-
-The explanations of the design decisions were added to the code in #2052.
-
-Each item also has a _Status_ line under its title.
-
-Priority: **P1** wrong result or crash on realistic input, **P2** inconsistent or fragile
-behaviour, **P3** cleanup.
+Priority: **P1** wrong result or leak on realistic input, **P2** inconsistent or surprising behaviour,
+**P3** cleanup.
 
 ---
 
-## 1. Correctness
+## 1. Correctness and robustness
 
-### 1.1 `objects_are_equal` can return a non-`bool` **[verified]** (P1)
+### 1.1 `mask_secret` leaks the secret with negative arguments **[verified]** (P1)
 
-_(Status: fixed. `ObjectEqualHandler` converts the result of `==` with `bool()`; if that fails it raises a `TypeError` that names the type and says to register an equality tester (it does not return `False`). Regression tests are in `tests/unit/equality/handler/test_native.py`. Not done: the property test `type(objects_are_equal(a, b)) is bool`.)_
-
-`ObjectEqualHandler` returns `actual == expected` unchanged. For a dataclass that holds a NumPy
-array, `@dataclass` builds `__eq__` from a tuple comparison and the result is an array:
+`utils/secret.py` never validates `show_first` / `show_last`. Python slicing turns a negative value into
+"all but the last N":
 
 ```python
-@dataclass
-class D:
-    a: np.ndarray
-
-
-objects_are_equal(D(np.ones(3)), D(np.ones(3)))  # array([ True,  True,  True])
+mask_secret("abcdefghijkl", show_first=-2)  # 'abcdefghij**********ijkl'  (10 of 12 characters shown)
+mask_secret("abcdefghijkl", show_last=-2)   # 'abc***********'
 ```
 
-The function is typed `-> bool`, and `if objects_are_equal(...)` then raises "truth value of an array
-is ambiguous". The same happens for any type whose `__eq__` returns an array-like or a lazy object
-(pandas `Index`, dask arrays, SciPy sparse matrices).
+Reject negative values with `validate_ge(..., 0)` (the `validation` module is already used elsewhere in
+`utils`). Also consider whether it is acceptable that the output length reveals the secret length for
+short secrets (`'*' * len(secret)`); a fixed-width mask is the safer default for a function named
+`mask_secret`.
 
-- Coerce in `ObjectEqualHandler`: `try: result = bool(actual == expected)`, and decide what
-  `ValueError` means (fall back to `False` and report, or re-raise with a message that names the type
-  and says to register a tester).
-- Add a property test: for every pair from the existing strategies, `type(objects_are_equal(a, b)) is bool`.
+### 1.2 `summarize` raises on values that cannot be converted to `str` **[verified]** (P1)
 
-### 1.2 Tolerance and `equal_nan` are silently ignored for several common types **[verified]** (P1)
-
-_(Status: fixed for the cases in the table, except `set`/`frozenset`.
-`np.floating`, `np.integer` and `np.complexfloating` use the scalar tester, `complex` uses it too (`cmath.isclose`, `cmath.isnan`), and `ScalarEqualHandler` now returns a real `bool`. A new `DataclassEqualityTester` compares the fields with the registry (skips `compare=False` fields); it is selected through a `DataclassMarker` key in `EqualityTesterRegistry.find_equality_tester` for dataclasses that have no tester of their own and keep the generated `__eq__` (`eq=True`). Not done: `set`/`frozenset` still compare exactly, with no warning; NumPy `M`/`m` arrays still ignore the tolerance silently (a warning would fire on every call with the default tolerances of `objects_are_allclose`). The "Supported Types" section of the equality user guide now lists what works and the caveats. Tests: `tests/integration/equality/test_tolerance_types.py` and the unit tests of the new handler, tester and registry fallback.)_
-
-Only `int` and `float` (and their subclasses) go through `ScalarEqualityTester`. Everything else falls to
-`DefaultEqualityTester` (`==`), which ignores `atol`, `rtol` and `equal_nan`:
-
-| Input                                                                              | Result  |
-| ---------------------------------------------------------------------------------- | ------- |
-| `objects_are_allclose(np.float32(1.0), np.float32(1.0000001), atol=1e-3)`          | `False` |
-| `objects_are_equal(np.float32('nan'), np.float32('nan'), equal_nan=True)`          | `False` |
-| `objects_are_allclose(1+1j, 1+1.0000001j, atol=1e-3)`                              | `False` |
-| `objects_are_equal(complex('nan'), complex('nan'), equal_nan=True)`                | `False` |
-| `objects_are_allclose(F(1.0), F(1.0000001), atol=1e-3)` (a dataclass with a float) | `False` |
-| `objects_are_allclose({1.0}, {1.0000001}, atol=1e-3)`                              | `False` |
-
-`np.float64` works only because it subclasses `float`; `np.float32`, `np.int64` and `np.bool_` do not. This
-is the most surprising gap for a library whose purpose is tolerant comparison of nested objects.
-
-- Register `np.floating`/`np.integer`/`np.bool_` (guarded by `is_numpy_available`) with the scalar
-  tester, converting with `float()`/`int()` inside the handler. Add `complex` with a
-  `cmath.isclose`-based handler.
-- Add a `DataclassEqualityTester` (same type, then compare the fields through the registry, like
-  `MappingEqualityTester`). It fixes 1.1 for dataclasses and gives tolerance inside them.
-- Decide whether `set`/`frozenset` should stay exact-only, and document it either way.
-- NumPy arrays of dtype `M`/`m` skip the tolerance branch (`is_numeric_array` excludes them) and use
-  exact comparison, again without a warning. `PyarrowEqualHandler` does warn when it ignores a
-  setting; do the same here.
-
-### 1.3 Polars `Decimal` columns crash the equality check **[verified]** (P1)
-
-_(Status: fixed. `has_nan` in `equality/handler/polars.py` uses `dtype.is_float()` and `cs.float()` instead of `is_numeric()`/`cs.numeric()`, so `Decimal` columns no longer raise. Tests added in `tests/unit/equality/handler/test_polars.py`.)_
+`summarize` is the function used to build error and log messages, so it should never be the thing that
+fails.
 
 ```python
-objects_are_equal(
-    pl.Series([1, 2]).cast(pl.Decimal(10, 2)), pl.Series([1, 2]).cast(pl.Decimal(10, 2))
-)
-# InvalidOperationError: `is_nan` operation not supported for dtype `decimal[10,2]`
+summarize(10**5000)                                   # ValueError: Exceeds the limit (4300 digits) ...
+summarize(type("B", (), {"__repr__": lambda s: 1 / 0})())  # ZeroDivisionError
 ```
 
-`has_nan` (`equality/handler/polars.py`) uses `dtype.is_numeric()`, which is true for `Decimal` and the
-integer types, but `is_nan` exists only for floats. Use `dtype.is_float()` (and select
-`cs.float()` for frames).
+The default summarizer calls `str(data)` / `repr(data)` before truncating. Wrap that call in a
+`try/except Exception` that falls back to `<ClassName object at 0x...>`, and truncate big integers by
+`int.bit_length()` rather than converting them.
 
-### 1.4 Deeply nested or cyclic data: raw `RecursionError` from `compare()` **[verified]** (P2)
+### 1.3 `equal_nan=True` is ignored for object-dtype NumPy arrays **[verified]** (P2)
 
-_(Status: fixed. `EqualityConfig` records the `(id(actual), id(expected))` pairs being compared, through the new `track_comparison` context manager used by the mapping, sequence and dataclass handlers. A pair that is already in progress is treated as equal (the usual coinductive definition), so `a = [a]` and `b = [b]` are equal, as are `a = [a]` and `b = [[b]]`, and cyclic structures with different values are still different. `compare()` now goes through the same `_compare` wrapper as the other entry points, so very deep structures give the friendly `RecursionError`. Not done: `max_depth=1000` is still unreachable under the default Python recursion limit; I kept it as a user-set guard.)_
+```python
+a = np.array([np.nan], dtype=object)
+objects_are_equal(a, a.copy(), equal_nan=True)   # False
+```
 
-- `a = []; a.append(a); b = []; b.append(b)`: `objects_are_equal(a, b)` raises a `RecursionError` with the
-  friendly message, but `compare(a, b)` (and so `assert_objects_equal`) raises the bare
-  "maximum recursion depth exceeded". `compare()` calls `registry.objects_are_equal` directly and skips the
-  `_compare` wrapper in `interface.py`.
-- `max_depth=1000` can never fire with the default Python recursion limit (every level uses several
-  frames), so the friendly `MaxDepthExceededError` is unreachable for the default settings.
-- Better: detect cycles. Keep a set of `(id(actual), id(expected))` pairs that are currently being
-  compared (add on entry, remove on exit, in `check_recursion_depth` or a sibling context manager). A pair
-  seen twice is a cycle; treat it as equal (the usual coinductive definition) or raise a clear error.
-  This also lets `max_depth` be removed or raised without risk.
-- Route `compare()` through the same wrapper as the other entry points.
+Pandas columns of `object` dtype that hold floats take the same path. Either compare object arrays
+element-wise through `objects_are_equal` (so `equal_nan` and the nested testers apply), or warn like the
+PyArrow tester does. Related: `np.ma.MaskedArray` with different data under the mask compares unequal
+(`eq(ma([1, 2], mask=[0, 1]), ma([1, 9], mask=[0, 1]))` is `False`). That is defensible, but it is not
+documented and the masked entries are not the user-visible values.
 
-### 1.5 `compare()` builds two full `repr` strings even when the objects are equal **[verified]** (P2)
+### 1.4 Torch sparse and `meta` tensors crash instead of comparing **[verified]** (P2)
 
-_(Status: fixed by skipping the `repr` on the success path: `compare()` returns `ComparisonResult(True)` with empty `actual`/`expected` strings, and computes both `repr`s only when the objects differ. This is a small behaviour change for code that reads `result.actual`/`result.expected` of an equal result. Not done: the `repr` of huge objects is still computed in full for a difference; truncating it would change the documented attribute.)_
+```python
+objects_are_equal(torch.eye(2).to_sparse(), torch.eye(2).to_sparse())   # NotImplementedError (aten::equal)
+objects_are_equal(torch.empty(2, device="meta"), torch.empty(2, device="meta"))  # NotImplementedError
+```
 
-`ComparisonResult(True, actual=repr(actual), expected=repr(expected))` runs on every call.
-`compare(list(range(10**6)), list(range(10**6))).actual` is a 7.9 MB string, computed on the success path.
-`assert_objects_equal` (the common test helper) pays this on every passing assertion.
+`objects_are_equal` is documented as returning a `bool`, and 1.1 of the previous review made that a
+contract. Handle `layout != torch.strided` (compare `to_dense()`, or indices and values) and
+`device.type == "meta"` (compare shape and dtype only), or convert `NotImplementedError` into a clear
+`TypeError` that names the tensor kind. `summarize` already handles meta tensors, so the support
+is inconsistent across modules.
 
-- Store the objects lazily (`actual: object`, with a `repr`-on-demand property), or truncate with a
-  limit (`reprlib`), or only compute them for the failing case.
+### 1.5 `convert_to_jsonable` does not produce JSON **[verified]** (P2)
 
-### 1.6 `recursive_apply` and friends mishandle common containers **[verified]** (P1/P2)
+The docstring says "JSON-compatible representation", but only dataclasses and pydantic models are
+converted:
 
-_(Status: fixed. New `coola.recursive.rebuild` (`rebuild_mapping`, `rebuild_sequence`) is used by the mapping, sequence and key-filter transformers: a `defaultdict` is rebuilt with its `default_factory`, a `deque` keeps its `maxlen`, namedtuples are unchanged. `deque` is now registered in the default recursive, BFS, DFS and summary registries (hashing and equality already had it). The registry guide has a warning that registering an ABC only matches real subclasses. Not done: the opt-in ABC fallback in `TypeRegistry._resolve_uncached`, a shared list of container types across the five registries, and a `copy.copy`-based fallback for other container subclasses with a different constructor.)_
+```python
+json.dumps(convert_to_jsonable({"a": {1, 2}}))            # TypeError (set)
+json.dumps(convert_to_jsonable({"a": range(2)}))          # TypeError (range)
+json.dumps(convert_to_jsonable({(1, 2): 1}))              # TypeError (tuple key)
+json.dumps(convert_to_jsonable({"a": float("nan")}), allow_nan=False)  # ValueError
+```
 
-- `recursive_apply(defaultdict(int, {'a': 1}), f)` raises `TypeError: first argument must be callable or
-None`: `MappingTransformer` rebuilds with `type(data)(dict)`, which `defaultdict` does not accept. The
-  same constructor trick breaks for any mapping or sequence subclass with a different `__init__`.
-- `deque` is not a `Sequence` by inheritance (only registered virtually), and `TypeRegistry` resolves by
-  `__mro__` only. So `recursive_apply(deque([1, 2]), lambda x: x + 1)` applies `f` to the whole deque
-  (`TypeError: can only concatenate deque`), and `dfs_iterate` and `bfs_iterate` yield the deque itself as a
-  leaf. The equality registry registers `deque` explicitly; the recursive, iterator, summary and hashing
-  registries do not (hashing has it).
-- Fixes:
-  - Register `deque` (and `OrderedDict` where missing) in every default registry; share one list of
-    "container types" instead of five copies (`iterator/bootstrap.py` already does this for two of them).
-  - For rebuilding, special-case `defaultdict` (`type(data)(data.default_factory, transformed)`) and fall
-    back to `copy.copy(data)` + update for unknown subclasses, or document the constructor contract.
-- General point: `Sequence: ...`, `Mapping: ...`, `Collection: ...` entries look like they cover every
-  ABC-compatible class, but `TypeRegistry.resolve` never uses `issubclass`, so they only match real
-  subclasses. Either say so in the registry docs, or add an opt-in ABC fallback in `_resolve_uncached`
-  (after the MRO loop, try registered ABC keys with `issubclass`). The ABC fallback also solves the
-  `DataclassHasher`/`HashableHasher` problem in 2.1.
+Either rename or reword (it is "dataclass/pydantic to dict"), or finish the job: `set` and `frozenset`
+to sorted lists, `range` to a list, non-string keys to `str`, `nan`/`inf` to `None` or a string, `Path`
+to `str`, `datetime` to ISO format. The same applies to `save_json`: int keys silently become strings on
+the round trip (`{1: 'a'}` loads as `{'1': 'a'}`) and `NaN` is written as the non-standard token `NaN`.
+Pass `allow_nan=False` by default or document both.
 
-### 1.7 Flat-dict helpers **[verified]** (P2)
+### 1.6 Text round trip is not lossless **[verified]** (P2)
 
-_(Status: fixed. `to_flat_dict` treats `str`, `bytes` and `bytearray` as leaves. `from_flat_dict(..., restore_lists=True)` converts the dicts whose keys are exactly `"0"` to `"n-1"` to lists below the root (the root stays a dict, tuples come back as lists); the default behaviour is unchanged and documented in the docstring and the nested guide. `to_jsonable` converts `bytes`/`bytearray` (Base64 string), `Decimal` and `UUID` (strings). The docstrings of `to_jsonable` and `convert_to_jsonable` already cross-referenced each other. Not done: `set` in `to_jsonable` (a set at the top level is still returned unchanged; `convert_to_jsonable` keeps sets as sets).)_
+`save_text("a\r\nb\rc", p); load_text(p)` returns `'a\nb\nc'`: `TextLoader` opens the file in text mode with
+universal newlines, so `\r\n` and `\r` are rewritten. On Windows `TextSaver` also translates `\n` to
+`\r\n`. Open both with `newline=""`, or add a `newline` option and say so in the docstring. The same
+applies to `JsonLoader`/`JsonSaver`, which are less affected because JSON escapes control characters.
 
-- `to_flat_dict({'a': b'xy'})` gives `{'a.0': 120, 'a.1': 121}`: `bytes` and `bytearray` are `Sequence`s and
-  are flattened byte by byte. Exclude `(str, bytes, bytearray)` together (and probably `memoryview`).
-- `from_flat_dict(to_flat_dict({'a': [1, 2]}))` gives `{'a': {'0': 1, '1': 2}}`. The two functions are not
-  inverses for lists. That is fine if documented; if so, name it in both docstrings and add a
-  `restore_lists: bool` option, or at least a test that pins the behaviour.
-- `to_jsonable` (in `utils/conversion.py`) converts arrays, tensors, paths, enums, dates and models, but only
-  recurses for dataclasses. `to_jsonable([np.arange(2)])` returns `[array([0, 1])]`. `convert_to_jsonable`
-  does recurse (through `recursive_apply`), so the two are easy to confuse: cross-reference them in the
-  docstrings, and handle `bytes`, `Decimal`, `UUID` and `set` (see 2.1).
+### 1.7 `manual_seed` can leave the generators half-seeded **[verified]** (P2)
 
-### 1.8 `polars` `flatten_frame(expand_lists=True)` fails on `Array` columns **[verified]** (P2)
+`manual_seed(2**70)` raises `ValueError: Overflow when unpacking long long` from the torch manager
+_after_ `random` and NumPy were already seeded (NumPy uses `seed % 2**32`, so it accepts anything).
+Two consequences: the global state is partially changed when the call fails, and
+`seed` and `seed + 2**32` give the same NumPy stream without any warning.
+Validate the seed once in `manual_seed` (`0 <= seed < 2**63`, an `int`) before calling the managers, and
+state the range in the docstring. Negative seeds are currently accepted by two of the three backends.
 
-_(Status: fixed. `expand_list_columns` casts an `Array` column to `List` of the same inner type before using the `list` namespace, so `Array` columns are expanded like `List` columns (nulls become null elements). Tests in `tests/unit/nested/test_polars.py`. Not done: the width-from-`dtype.size` variant, which was not needed.)_
+### 1.8 `str_time_human` on negative, NaN and infinite durations **[verified]** (P3)
 
-`expand_list_columns` selects `pl.List` and `pl.Array` columns, then calls `.list.len()` and `.list.get()`.
-`Array` Series have no `.list` namespace: `InvalidOperationError: expected List data type for list
-operation, got: Array(Int64, 2)`. Use `.arr` for `Array` (the width is also known statically from
-`dtype.size`, so no `max()` scan is needed).
+```python
+str_time_human(-5)            # '-1 day, 23:59:55'
+str_time_human(float("nan"))  # ValueError: cannot convert float NaN to integer
+str_time_human(float("inf"))  # OverflowError
+```
 
-### 1.9 Files: save-lock robustness (`io/base.py`) (P2)
+The first output is the `timedelta` default and is misleading; the other two are raw conversion errors.
+Handle the sign explicitly (`'-0:00:05'`) and raise a message that names the argument, like
+`str_human_byte_size` and `make_bar` do. Also `str_indent("a\nb\n", 2)` returns `'a\n  b\n  '`, which
+indents the empty last line and leaves trailing whitespace; skip empty lines.
 
-_(Status: fixed in #2047. The save lock is refreshed by a heartbeat thread while the data is written, the lock file holds a token and is removed only by its owner, the temporary file is hidden (`.name-<uuid>.ext`, the extension is kept), and `JsonLoader`/`load_json` take an `encoding`. `stale_after` is still a module constant. Not done: `JsonSaver(default=to_jsonable)`.)_
+### 1.9 `add_uuid_suffix` treats dots in the stem as an extension **[verified]** (P3)
 
-- **Stale detection can break a live lock.** A lock file older than 300 s is "stale" and removed, but the
-  lock's mtime is never refreshed while the holder writes. A legitimate save of a large checkpoint to a
-  slow or network disk that takes more than 5 minutes will have its lock broken by a second process, which
-  then writes concurrently. Either refresh the mtime from a heartbeat thread, record `pid`/`hostname` in the
-  lock file and check liveness, or make `stale_after` a parameter (today the three constants are
-  module-private).
-- **A broken lock is unlinked by its old owner.** After process B breaks A's stale lock and creates its
-  own, A finishes and runs `lock_path.unlink()`, deleting B's lock; process C can then enter while B is
-  still writing. Write a unique token into the lock file and delete it only if the token still matches.
-- **Temporary file name.** `add_uuid_suffix` produces `data-<hex>.json`, which matches `*.json` globs used by
-  readers (dataset loaders, watchers) while a write is in progress. A hidden name (`.data.json.<hex>.tmp`)
-  avoids this.
-- **`JsonSaver` and `JsonLoader` are asymmetric (verified).** `JsonSaver(encoding="latin-1",
-ensure_ascii=False)` writes a file that `JsonLoader().load()` cannot read (`UnicodeDecodeError`; the loader
-  opens in binary mode and `json` only auto-detects UTF-8/16/32). Give `JsonLoader` an `encoding` argument.
-  `JsonSaver` also has no `default=` hook; `to_jsonable` exists in the package and could be offered as
-  `JsonSaver(..., default=to_jsonable)`.
-- `fsync=False` by default combined with `replace` can leave an empty file after a power loss. This is
-  acceptable, but the docstring of `save_*` should say it in one sentence.
+`add_uuid_suffix(Path("v1.2.model"))` gives `v1-<uuid>.2.model` because `''.join(path.suffixes)` takes
+every dotted part. That is deliberate for `.tar.gz`, but a version number in a file name is common.
+Limit the compound suffix to a known allow-list (`.tar.gz`, `.tar.bz2`, `.tar.xz`, ...) and use
+`path.suffix` otherwise.
 
-### 1.10 `LazySingleton` deadlocks if a plugin touches the same registry **[verified]** (P2)
+### 1.10 Smaller correctness leads (P3)
 
-_(Status: fixed in #2048. Instead of an `RLock`, `LazySingleton.get` raises a `RuntimeError` that explains the problem when the factory requests the value being built on the same thread; the plugin is then skipped with a warning (or the error is raised in strict mode). The partially built registry is not returned, because it would silently miss registrations.)_
-
-`LazySingleton.get` holds a non-reentrant `threading.Lock` while it runs the factory, and the factory runs
-the entry-point plugins. A plugin that calls any default-registry function during registration (for
-instance `objects_are_equal(...)`, `hash_object(...)`, or an import that does so) re-enters `get()` on the same
-thread and hangs forever; I reproduced it with a `register_defaults` function that calls `singleton.get()`.
-Use `threading.RLock`, and have the re-entrant call return the registry that is being built (or raise a
-clear `RuntimeError`).
-
-### 1.11 `decode_obfuscated_id` wraps instead of rejecting **[verified]** (P3)
-
-_(Status: fixed in #2049. `decode_obfuscated_id` raises a `ValueError` for a string that encodes a value above `2**64 - 1`. The docstrings already said that this is obfuscation.)_
-
-`decode_obfuscated_id(encode(5 + 2**64)) == decode_obfuscated_id(encode(5))`: the decoded base-62 value is
-masked to 64 bits without a range check, so many strings decode to the same number. Reject values above
-`2**64 - 1`. The docstring should also say that this is an affine map modulo 2^64 (two known pairs recover
-the key), so it is obfuscation, not protection.
-
-### 1.12 Reducers disagree on NaN **[verified]** (P3)
-
-_(Status: fixed in #2050. `NativeReducer` and `TorchReducer` agree with `NumpyReducer`: `NaN` gives `NaN` for `max`, `min`, `mean`, `median`, `std` and `quantile` whatever its position, `sort` puts it last (first if descending), and `std` is `NaN` for infinite values. Not done: the order of `auto_reducer`, which needs a reducer that dispatches on the input type.)_
-
-`NativeReducer().max([1.0, nan, 2.0])` returns `2.0` and `max([nan, 1.0, 2.0])` returns `nan` (built-in
-`max` is order dependent), while the NumPy and torch reducers always return `nan`. The reducers are meant to
-be interchangeable. Add a NaN check to the native `min`/`max`, or document that NaN input is unsupported.
-Also: `auto_reducer()` prefers torch over NumPy; importing torch costs seconds, and NumPy is the better
-default for `Sequence[float]`. Consider NumPy first, torch only when the input is a tensor.
-
-### 1.13 xarray equality relies on a private attribute (P2)
-
-_(Status: fixed in #2051. The DataArray tester compares `coords.variables` (public); `SameAttributeHandler` accepts a dotted name through `operator.attrgetter`. Using `coords` directly recurses forever. Not done: the dask-backed `DataArray`, because dask is not installed.)_
-
-`XarrayDataArrayEqualityTester` compares `SameAttributeHandler("_coords")`. `_coords` is a private
-attribute of `DataArray` and can change between releases; `coords` (a `Mapping`) is the public way. Also,
-`SameDataHandler` compares `Variable.data`, which for dask-backed data is a dask array that falls to `==`
-(see 1.1). Check `xr.DataArray` backed by dask and add a test.
+- `verify_checksummed_id(None)` raises `AttributeError`; a verifier should return `False` for non-`str`
+  input (or raise a `TypeError`).
+- `generate_nano_id(5, alphabet="a")` returns `'aaaaa'`: an alphabet of one character gives zero
+  entropy. Require at least 2 characters (ideally more), or at least document it.
+- `get_file_size(dir)` counts symlinked files twice and raises `FileNotFoundError` if a file is deleted
+  between `rglob` and `stat`. Use `os.scandir` with `follow_symlinks=False`, and skip vanished entries.
+- `get_current_branch()` returns the literal `HEAD` on a detached checkout. Say so in the docstring or
+  return `None`.
+- `get_password` requires `stdin` and `stderr` to be TTYs, but `getpass` reads from `/dev/tty`
+  and works when `stdin` is piped. The check rejects usable setups (for example `cmd | python script.py`).
+- `temp_env_vars` is not thread-safe (it mutates `os.environ`). One sentence in the docstring is enough.
+- `check_env_vars` logs absent variables at `WARNING` even when `raise_on_missing=False` and the caller
+  treats them as optional. Make the level a parameter, or log at `INFO`.
 
 ---
 
 ## 2. Design and API
 
-### 2.1 Hashing covers fewer types than equality (P2) **[verified]**
+### 2.1 Equality, hashing and summaries cover different sets of types (P2) **[verified]**
 
-_(Status: fixed in #2053. `HasherRegistry.register_fallback(predicate, hasher)`, with dataclasses (`DataclassHasher`) and classes with a `hash()` method (`HashableHasher`) registered as fallbacks in the default registry; NumPy scalars hash like the equivalent builtin; `UUID`, `ZoneInfo` (`StrHasher`), `Decimal`, `Fraction` and `range` (`coola.hashing.canonical`, canonical forms); the error for an unsupported type lists the three remedies. Not done: `tzinfo` in general, arrays and data frames.)_
+_Still open from earlier review item 2.1, which fixed only the scalar and standard-library types._
+`hash_object(np.arange(3))` raises `TypeNotRegisteredError`, and the same happens for torch, pandas,
+polars, xarray and PyArrow objects, while equality supports all of them. For the library's main use
+(a stable content hash of test fixtures and experiment configs) this is the largest gap.
+`hash_object` can build on the equality work: arrays hash as `(dtype.str, shape, tobytes())`,
+DataFrames as their column names plus a per-column hash. Keep it opt-in per library, as in the equality
+registry, so the import cost stays zero.
 
-`hash_object` raises `TypeNotRegisteredError` for `np.float32`, `np.int64`, `uuid.UUID`, `Decimal`, `range`
-and any dataclass instance. `np.float64` works only because it subclasses `float`.
+### 2.2 PyArrow ignores `atol`, `rtol` and `equal_nan` (P2) **[verified]**
 
-- `DataclassHasher` and `HashableHasher` (for objects with a `.hash()` method) exist but cannot be used by
-  default: a `type`-keyed registry cannot express "any dataclass" or "any object with this method". Add a
-  predicate-based fallback tried after the type lookup fails (`registry.register_fallback(predicate,
-hasher)`), and register dataclasses and `SupportsHash` there. The same mechanism would give equality a
-  `DataclassEqualityTester` (1.2) and summaries a dataclass summarizer without listing types.
-- Register NumPy scalars (`np.integer`, `np.floating`, `np.bool_`) through the built-in hashers (they
-  already normalise `float` subclasses), plus `UUID`, `Decimal`, `Fraction`, `range`, `ZoneInfo` and
-  `tzinfo`. Make unsupported types fail with a message that names the three remedies (register a hasher,
-  `ignore_unhashable=True`, or implement `.hash()`).
+`objects_are_allclose(pa.table(...), pa.table(...))` warns and compares exactly, and with
+`equal_nan=True` two arrays of `nan` are unequal (`False`). This is documented and
+warned about, so it is not a bug, but it is the only major backend with that limit. Converting the
+numeric columns with `to_numpy(zero_copy_only=False)` and delegating to the NumPy tester (the pandas tester
+probably already has the right structure) would close it. If not, make the warning an opt-out
+error (`config.strict=True`) so that a test cannot pass on an exact comparison when the user asked for a
+tolerance.
 
-### 2.2 Boilerplate that can be generated (P3)
+### 2.3 Python 3.15 is in the classifiers while the version is `1.2.0a2` (P3)
 
-_(Status: not done, by decision. A table-driven factory would make the helpers dynamic, which breaks three things: the API reference (mkdocstrings reads the source statically, so the functions and their docstrings would disappear), the tests that patch `coola.utils.imports.numpy.is_numpy_available` (the `check_*` functions look the name up in the module; with a factory they would call a closure), and the precise types for `ty`. The hand-written modules are repetitive but simple, explicit and greppable. The `_required_package` idea for the testers has the same problem with the tests that patch `check_numpy`.)_
+`pyproject.toml` declares `Development Status :: 5 - Production/Stable` for an alpha version, and lists 3.15.
+Either drop the 3.15 classifier until it is in the required CI matrix, or confirm the matrix has it.
+The `description` ("Library to check equality between two complex/nested objects") undersells the package:
+it now ships hashing, summaries, identifiers, I/O, random-state management and filesystem utilities. The
+keywords are all about array libraries; add `hashing`, `summary`, `identifiers`.
 
-- `utils/imports/*.py` has 13 near-identical modules (four functions each; 14 files with `universal.py`) and
-  `utils/fallback/*.py` has 10 more. A table-driven factory (`make_availability_helpers("pandas", install="pandas")` returning the four
-  functions) would remove several hundred lines and make adding a dependency a one-line change. Keep the
-  per-module names for backward compatibility by assigning the results in each file.
-- `utils/imports/__init__.py` re-exports 52 names by hand; `__all__` can be built from the same table.
-- Every `*Tester`/`*Summarizer` repeats `_check_dependencies`; a class attribute (`_required_package =
-"pandas"`) would do.
+### 2.4 Scope: `utils` keeps growing into unrelated territory (P3)
 
-### 2.3 Unused or unexported code (P3)
+_Related to scope item 1 of `src-coola-review.md`._ `utils/git.py`, `utils/password.py`, `utils/secret.py`,
+`utils/bloom_filter.py`, `utils/file_size.py`, `utils/env_vars.py` and `identifier/` have nothing to do
+with comparing nested objects and are exercised by none of the core modules. They add API surface to
+version, document and secure (item 1.1 is a leak in one of them). Options: move them into a clearly
+labelled `coola.contrib` or a separate `coola-utils` distribution, or mark them in the docs as
+"not part of the stable API" until that is decided.
 
-_(Status: fixed in #2054 for `resolve_timestamp_ms` (removed). Kept: `configure_colorlog_logging` is documented and tested (`coola.display.colorlog`), the `rich` helpers are public API like the other optional packages, and `StrHasher` is now used by the default hasher registry (#2053).)_
+### 2.5 `random` has no way to scope a seed across all backends in one context manager (P3)
 
-- `identifier.validation.resolve_timestamp_ms` has no caller (ULID and UUIDv7 inline the same logic).
-- `display/colorlog.py:configure_colorlog_logging` is not exported from `coola.display` and nothing in the
-  repo calls it. Same for the whole `rich` helper set (`is_rich_available`, `check_rich`, ...) and the `rich`
-  extra in `pyproject.toml`: no module imports `rich`.
-- `hashing.StrHasher` is exported but not part of the default registry (only used in doctests).
-- Decide per item: export and document, or delete.
-
-### 2.4 Inconsistent entry-point signatures (P3)
-
-_(Status: fixed in #2055. `hash_object(data, *, registry, length, ignore_unhashable)`: the positional form still works with a `DeprecationWarning`, and `hash_object(data, 32)` raises a `TypeError` that explains it. `RandomManagerRegistry` has `find_manager` and `unregister`. Not changed: `generate_stable_content_id` and `generate_stable_uuid5`.)_
-
-`hash_object(data, registry=None, length=64, ignore_unhashable=False)` takes everything positionally,
-while `objects_are_equal`, `summarize` and `recursive_apply` make options keyword-only. Making the options
-keyword-only in `hash_object` (after a deprecation cycle) prevents the `hash_object(x, 32)` mistake where
-`32` becomes the registry. `RandomManagerRegistry` has `register`, `register_many` and `has_manager` but no
-`unregister`, `get` or `find`, unlike the other registries.
-
-### 2.5 Iterators (P3)
-
-_(Status: fixed in #2056. One `PathRegistry` per traversal with a set of ancestor ids (added on entry, removed on exit, also when the generator is closed): O(1) per object and no allocation per object. Not done, by decision: an explicit stack for `dfs_iterate`, because the iterators visit their children with `registry.iterate` (the extension point). The limit is documented, and `bfs_iterate` is iterative.)_
-
-- `IteratorRegistry._iterate` copies the ancestor tuple (`(*ancestors, id(data))`) and builds a
-  `PathRegistry` for every node, and `id(data) in ancestors` is a linear scan: O(n x depth) time and
-  allocations. `PathRegistry.__init__` also skips `super().__init__` and aliases `_state`, which is fragile if
-  `BaseTypeDispatchRegistry` gains state. A single mutable set of ancestor ids passed down (add on entry,
-  remove on exit) is O(1) per node and removes the subclass.
-- The depth-first iterator is built from nested generators, so it hits the recursion limit between depth 300 and 400 (**[verified]**: 300 ok, 400 fails)
-  and each yielded leaf pays O(depth) for the `yield from` chain. If deep structures matter, give it an
-  explicit stack like the breadth-first one.
-
-### 2.6 `KeyFilterTransformer` double-purposes `func` (P3)
-
-_(Status: fixed in #2057. `KeyFilterTransformer(key_predicate=...)` keeps the predicate in the transformer, so `func` is the function of the values at every depth. The legacy mode (no `key_predicate`) is kept, with `transform_func` defaulting to the identity instead of the predicate. `remove_keys_if` builds its registry for each call.)_
-
-`func` is the predicate for keys, and, through `_value_func`, also the function applied to non-container
-values unless `transform_func` is given. With the registry built in `nested/mapping.py` the leaves are
-identity transformers, so it works, but with a registry whose leaf is `DefaultTransformer` the predicate
-would be applied to every value and replace it with a `bool`. Split into two parameters
-(`key_predicate`, `value_func`) and make `value_func` default to identity.
-
-### 2.7 Handler details (P3)
-
-_(Status: fixed in #2058. `is None` checks in `BaseEqualityHandler`, `repr` of the next handler in `SameAttributeHandler`, `ChunkedArray` and `RecordBatch` registered, and one `RuntimeWarning` per ignored setting for each comparison (state on `EqualityConfig`).)_
-
-- `if not handler:` / `while current:` in `BaseEqualityHandler` use truthiness; use `is None`/`is not None`
-  (a handler subclass with `__len__` or `__bool__` would behave oddly).
-- `SameAttributeHandler.__repr__` formats the next handler with `str` (`{self.next_handler}`), the base class
-  uses `repr`.
-- Pyarrow: `PyarrowEqualityTester` is registered for `pa.Array` and `pa.Table` only. `ChunkedArray` and
-  `RecordBatch` go through `==`, which works, but skip the "tolerance is ignored" warnings. Register them.
-  The handler emits up to three warnings per call, so a nested structure with many Arrow arrays floods the
-  log; warn once per `objects_are_equal` call (state on the config) or once per process.
-
-### 2.8 Summaries (P3)
-
-_(Status: fixed in #2059. `DefaultSummarizer(max_characters=1000)` by default (behaviour change; `str(data)` is still computed before it is truncated), `BaseFieldsSummarizer` with `max_fields` for the data frames, table and dataset summarizers, and abstract `_get_preview`/`_format_items`. `reprlib` was not used.)_
-
-- `DefaultSummarizer(max_characters=-1)` calls `str(data)` on the whole object and truncates afterwards. For a
-  very large custom object the cost is paid before truncation, and the default has no limit. Choose a finite
-  default (for example 1000) and truncate through `reprlib` where possible.
-- `format_fields` hides everything after `MAX_FIELDS = 10`, but the limit is a module constant that no
-  summarizer exposes. Pass `max_fields` through the summarizer constructors.
-- `BaseCollectionSummarizer._get_preview`/`_format_items` raise `NotImplementedError`; make them
-  `@abstractmethod` so an incomplete subclass fails at instantiation.
-
-### 2.9 Identifiers (P3)
-
-_(Status: fixed in #2060. The fork and clock behaviour is documented. While documenting it, a real bug was found and fixed: after the sequence of a millisecond was exhausted and the clock moved backward during the wait, the next call could mint an ID that had already been used.)_
-
-- `SnowflakeIdGenerator._reset_after_fork` replaces the lock but keeps the sequence and last timestamp.
-  Parent and child (same `worker_id`) can then produce the same id in the same millisecond. Document that
-  `worker_id` must be unique per process, or mix `os.getpid()` into the default worker id after a fork.
-- `snowflake` raises `RuntimeError` when the clock moves backwards, which is a legitimate choice. Mention
-  it in the guide, with NTP step adjustments as the typical cause.
-
-### 2.10 Smaller points
-
-_(Status: fixed in #2061: lazy markers in `coola.testing.fixtures` (module `__getattr__`), `quantile` with `NaN` (and an exact quantile next to an infinite value), `char_diff_summary` (`n/a`), `LRUCache` documented as not thread-safe. Not done: `__getattr__` on the fake `torch` module, which would break `hasattr`/`getattr(..., default)`.)_
-
-- `testing/fixtures.py` evaluates `is_cuda_available()` and `is_mps_available()` at import. The latter
-  allocates a tensor on the MPS device, so merely importing the fixtures initialises a GPU context. Make the
-  markers lazy (`pytest.mark.skipif` accepts a callable condition string, or use `pytest_collection_modifyitems`).
-- `LRUCache` is the only stateful container in `utils` that is not thread-safe (the registries and
-  singletons are). Say so in the docstring or add a lock.
-- `utils.stats.quantile` sorts NaN-containing input in an undefined order; either reject NaN or document it.
-- `char_diff_summary` reports `+0.0%` for growth from an empty string (division guarded to `0.0`), which
-  hides the change; return `n/a`.
-- `utils.fallback.torch` fakes only `cuda`, `nn.utils.rnn.PackedSequence`, `Tensor` and `tensor`; any new
-  torch attribute used at import time in a module that is imported without torch will raise `AttributeError`
-  instead of the helpful "install torch" message. A `__getattr__` on the fake module that calls
-  `raise_torch_missing_error()` makes this robust for every missing attribute.
+`random_seed`, `numpy_seed` and `torch_seed` are per-backend; `manual_seed` is global and permanent. The
+common test need is "seed everything and restore afterwards". A single `seed_everything(seed)` context
+manager built on `get_rng_state` / `set_rng_state`, whose default is the registry's managers, would remove
+code that every user writes by hand.
 
 ---
 
 ## 3. Tests, tooling and CI
 
-- Add regression tests for every **[verified]** item above. Most are one-liners; the repro snippets are in
-  this file.
-- Extend the property tests with invariants that would have caught 1.1 and 1.2:
-  `type(objects_are_equal(a, b)) is bool`; `objects_are_allclose(x, x)` for every scalar type produced by the
-  strategies (include `np.float32`, `np.int64`, `complex`); `objects_are_equal(x, deepcopy(x))` for nested
-  structures with `equal_nan=True`.
-- Add a concurrency test for the save lock (two processes, a slow `_save_file`, `stale_after` shortened) to pin
-  1.9.
-- Still open from the earlier review: a one-off mutation-testing run, a coverage `fail_under`, and a second
-  type checker in CI. The mutation run would be most useful on `equality/handler` and `registry`.
-- `ci-test.yaml` runs the whole unit and integration suite with a 5-minute timeout per matrix cell. That is
-  fine today; if the matrix grows, `pytest-xdist` is the cheap way to keep the budget.
+- **Add regression tests for every [verified] item above.** Each is a one- or two-line repro and
+  they are listed in this file.
+- **Property test for the cross-module invariants.** Not yet present, and cheap with Hypothesis:
+  `hash_object(x) == hash_object(deepcopy(x))`, `objects_are_equal(a, b)` implies
+  `hash_object(a) == hash_object(b)` for hashable types, `summarize(x)` never raises for any generated
+  value, and `convert_to_jsonable(x)` is accepted by `json.dumps(..., allow_nan=False)`. The last two would
+  have caught 1.2 and 1.5.
+- **Windows and `newline` behaviour.** The classifiers list only POSIX and macOS, and 1.6 only shows
+  on Windows in the other direction. Either add a Windows runner for the `io` tests or state in the README
+  that Windows is untested.
+- **Generated files in the working tree.** `coverage.xml` and `htmlcov/` are ignored by git, so this is
+  only a note: `codespell` skips them explicitly in `pyproject.toml`, which suggests they get in the way
+  of local runs. `make clean` (or an `invoke` task) that removes them would be convenient.
+- _Still open from the earlier reviews:_ one mutation-testing run (best on `equality/handler`), a coverage
+  `fail_under`, a second type checker in CI, and `pytest-xdist` if the matrix grows.
 
 ---
 
 ## 4. Suggested order
 
-1. 1.1 + 1.2 + 1.3 (wrong or crashing equality results; small, local changes with clear tests).
-2. 1.6 + 1.7 (container handling in `recursive`, `iterator`, `nested`).
-3. 1.4 + 1.5 (cycle detection and the eager `repr`).
-4. 1.9 + 1.10 (lock token and `RLock`).
-5. 2.1 (predicate fallback in the registry, then dataclass support for equality, hashing and summaries).
-6. The rest, as cleanup.
+1. 1.1 (secret leak) and 1.2 (`summarize` crash): one-line fixes with a clear test each.
+2. 1.3, 1.4 (equality returns or crashes), 1.7 (partial seeding).
+3. 1.5 and 1.6 (JSON and text round trips): decide the contract first, then fix.
+4. 2.1 (hashing for array and table types) and 2.2 (PyArrow tolerance): the two largest feature gaps.
+5. 2.3 to 2.5 and the small leads in 1.8 to 1.10, as cleanup.
