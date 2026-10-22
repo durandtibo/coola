@@ -21,6 +21,7 @@ __all__ = [
 ]
 
 import datetime
+import math
 from typing import TYPE_CHECKING, Any
 
 from coola.validation import validate_non_negative, validate_positive
@@ -249,7 +250,8 @@ def str_indent(original: object, num_spaces: int = 2) -> str:
     if len(formatted) == 1:  # single line
         return formatted[0]
     first = formatted.pop(0)
-    formatted = "\n".join([(num_spaces * " ") + line for line in formatted])
+    # The empty lines are not indented to avoid trailing whitespace.
+    formatted = "\n".join([(num_spaces * " ") + line if line else line for line in formatted])
     return first + "\n" + formatted
 
 
@@ -377,6 +379,10 @@ def str_time_human(seconds: float) -> str:
 
     Returns:
         The number of seconds in a string format (``hh:mm:ss``).
+            A negative duration is prefixed with ``-``.
+
+    Raises:
+        ValueError: if ``seconds`` is not finite or too large.
 
     Example:
         ```pycon
@@ -387,10 +393,20 @@ def str_time_human(seconds: float) -> str:
         '0:01:01.200000'
         >>> str_time_human(3661.2)
         '1:01:01.200000'
+        >>> str_time_human(-5)
+        '-0:00:05'
 
         ```
     """
-    return str(datetime.timedelta(seconds=seconds))
+    if not math.isfinite(seconds):
+        msg = f"seconds must be finite, got {seconds}"
+        raise ValueError(msg)
+    sign = "-" if seconds < 0 else ""
+    try:
+        return sign + str(datetime.timedelta(seconds=abs(seconds)))
+    except OverflowError as exc:
+        msg = f"seconds is too large to be represented, got {seconds}"
+        raise ValueError(msg) from exc
 
 
 def str_human_byte_size(size: int, unit: str | None = None) -> str:
