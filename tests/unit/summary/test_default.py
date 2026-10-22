@@ -186,3 +186,20 @@ def test_default_summarizer_negative_max_characters_shows_everything() -> None:
         "a" * 5000, SummarizerRegistry(), depth=1, max_depth=1
     )
     assert out == "a" * 5000
+
+
+def test_default_summarizer_summarize_huge_int() -> None:
+    assert (
+        DefaultSummarizer()
+        .summarize(10**5000, SummarizerRegistry(), max_depth=0)
+        .startswith("<int object at 0x")
+    )
+
+
+def test_default_summarizer_summarize_failing_str() -> None:
+    class Bad:
+        def __str__(self) -> str:
+            return 1 / 0
+
+    out = DefaultSummarizer().summarize(Bad(), SummarizerRegistry(), max_depth=0)
+    assert "Bad object at 0x" in out

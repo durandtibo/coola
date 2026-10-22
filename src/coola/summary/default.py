@@ -52,11 +52,25 @@ class DefaultSummarizer(BaseSummarizer[object]):
         depth: int = 0,
         max_depth: int = 1,
     ) -> str:
+        text = self._summarize(_safe_str(data))
         if depth >= max_depth:
-            return self._summarize(str(data))
-        return f"{type(data)} {self._summarize(str(data))}"
+            return text
+        return f"{type(data)} {text}"
 
     def _summarize(self, value: str) -> str:
         if self._max_characters >= 0 and len(value) > self._max_characters:
             value = value[: self._max_characters] + "..."
         return value
+
+
+def _safe_str(data: object) -> str:
+    r"""Convert the data to a string without ever raising.
+
+    Falls back to a placeholder when ``str`` fails, e.g. a ``__str__``
+    that raises or an ``int`` above the string conversion limit, with
+    ``<ClassName object at 0x...>``.
+    """
+    try:
+        return str(data)
+    except Exception:  # noqa: BLE001
+        return f"<{type(data).__name__} object at {id(data):#x}>"
