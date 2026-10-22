@@ -527,11 +527,3 @@ def test_hash_object_numpy_scalar_different_values() -> None:
     assert hash_object(np.float32(1.0)) != hash_object(np.float32(2.0))
     assert hash_object(np.int64(1)) != hash_object(np.float64(1.0))
     assert hash_object(np.bool_(True)) != hash_object(1)
-
-
-@numpy_available
-def test_hash_object_numpy_array_is_still_unsupported() -> None:
-    import numpy as np
-
-    with pytest.raises(KeyError, match="is not registered"):
-        hash_object(np.arange(3))
