@@ -108,4 +108,4 @@ class SequenceSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
 def is_exact_scalar_sequence(seq: Sequence[Any]) -> bool:
     r"""Indicate if ``seq`` is a list or tuple containing only exact
     built-in scalars."""
-    return type(seq) in {list, tuple} and set(map(type, seq)) <= _EXACT_SCALAR_TYPES
+    return type(seq) in (list, tuple) and set(map(type, seq)) <= _EXACT_SCALAR_TYPES
