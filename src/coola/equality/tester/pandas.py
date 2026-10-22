@@ -6,12 +6,19 @@ pandas.Series using pandas' built-in equality testing methods.
 
 from __future__ import annotations
 
-__all__ = ["PandasDataFrameEqualityTester", "PandasSeriesEqualityTester"]
+__all__ = [
+    "PandasDataFrameEqualityTester",
+    "PandasExtensionArrayEqualityTester",
+    "PandasIndexEqualityTester",
+    "PandasSeriesEqualityTester",
+]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler import (
     PandasDataFrameEqualHandler,
+    PandasExtensionArrayEqualHandler,
+    PandasIndexEqualHandler,
     PandasSeriesEqualHandler,
     SameObjectHandler,
     SameTypeHandler,
@@ -141,3 +148,69 @@ class PandasSeriesEqualityTester(BaseChainEqualityTester[pd.Series]):
 
     def _create_handler(self) -> BaseEqualityHandler:
         return create_chain(SameObjectHandler(), SameTypeHandler(), PandasSeriesEqualHandler())
+
+
+class PandasIndexEqualityTester(BaseChainEqualityTester[pd.Index]):
+    r"""Implement an equality tester for ``pandas.Index``.
+
+    The comparison checks the values, the dtype and the names. The
+    handler chain:
+    1. SameObjectHandler: Check for object identity
+    2. SameTypeHandler: Verify both are the same pandas Index type
+    3. PandasIndexEqualHandler: Use pandas' assert_index_equal internally
+
+    Example:
+        ```pycon
+        >>> import pandas as pd
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.tester import PandasIndexEqualityTester
+        >>> config = EqualityConfig()
+        >>> tester = PandasIndexEqualityTester()
+        >>> tester.objects_are_equal(pd.Index([1, 2, 3]), pd.Index([1, 2, 3]), config)
+        True
+        >>> tester.objects_are_equal(pd.Index([1, 2, 3]), pd.Index([1, 2, 4]), config)
+        False
+
+        ```
+    """
+
+    def _check_dependencies(self) -> None:
+        check_pandas()
+
+    def _create_handler(self) -> BaseEqualityHandler:
+        return create_chain(SameObjectHandler(), SameTypeHandler(), PandasIndexEqualHandler())
+
+
+class PandasExtensionArrayEqualityTester(BaseChainEqualityTester[Any]):
+    r"""Implement an equality tester for pandas extension arrays.
+
+    The extension arrays include ``pandas.Categorical`` and the arrays
+    behind the nullable, string, interval and period dtypes. The
+    handler chain:
+    1. SameObjectHandler: Check for object identity
+    2. SameTypeHandler: Verify both are the same array type
+    3. PandasExtensionArrayEqualHandler: Use pandas'
+        assert_extension_array_equal internally
+
+    Example:
+        ```pycon
+        >>> import pandas as pd
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.tester import PandasExtensionArrayEqualityTester
+        >>> config = EqualityConfig()
+        >>> tester = PandasExtensionArrayEqualityTester()
+        >>> tester.objects_are_equal(pd.Categorical(["a", "b"]), pd.Categorical(["a", "b"]), config)
+        True
+        >>> tester.objects_are_equal(pd.Categorical(["a", "b"]), pd.Categorical(["a", "c"]), config)
+        False
+
+        ```
+    """
+
+    def _check_dependencies(self) -> None:
+        check_pandas()
+
+    def _create_handler(self) -> BaseEqualityHandler:
+        return create_chain(
+            SameObjectHandler(), SameTypeHandler(), PandasExtensionArrayEqualHandler()
+        )

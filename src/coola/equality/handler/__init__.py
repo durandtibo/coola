@@ -24,6 +24,8 @@ __all__ = [
     "NumpyArrayEqualHandler",
     "ObjectEqualHandler",
     "PandasDataFrameEqualHandler",
+    "PandasExtensionArrayEqualHandler",
+    "PandasIndexEqualHandler",
     "PandasSeriesEqualHandler",
     "PolarsDataFrameEqualHandler",
     "PolarsLazyFrameEqualHandler",
@@ -74,6 +76,8 @@ from coola.equality.handler.native import (
 from coola.equality.handler.numpy import NumpyArrayEqualHandler
 from coola.equality.handler.pandas import (
     PandasDataFrameEqualHandler,
+    PandasExtensionArrayEqualHandler,
+    PandasIndexEqualHandler,
     PandasSeriesEqualHandler,
 )
 from coola.equality.handler.polars import (

@@ -8,6 +8,8 @@ import pytest
 from coola.equality.config import EqualityConfig
 from coola.equality.tester import (
     PandasDataFrameEqualityTester,
+    PandasExtensionArrayEqualityTester,
+    PandasIndexEqualityTester,
     PandasSeriesEqualityTester,
 )
 from coola.testing.fixtures import pandas_available
@@ -515,3 +517,163 @@ def test_pandas_series_equality_tester_no_pandas() -> None:
         ),
     ):
         PandasSeriesEqualityTester()
+
+
+##############################################
+#     Tests for PandasIndexEqualityTester    #
+##############################################
+
+
+@pandas_available
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [
+        pytest.param(pd.Index([1, 2, 3]), pd.Index([1, 2, 3]), id="int"),
+        pytest.param(pd.Index(["a", "b"], name="x"), pd.Index(["a", "b"], name="x"), id="named"),
+        pytest.param(
+            pd.MultiIndex.from_tuples([(1, "a"), (2, "b")]),
+            pd.MultiIndex.from_tuples([(1, "a"), (2, "b")]),
+            id="multi",
+        ),
+        pytest.param(
+            pd.date_range("2020-01-01", periods=3),
+            pd.date_range("2020-01-01", periods=3),
+            id="datetime",
+        ),
+    ],
+)
+def test_pandas_index_equality_tester_objects_are_equal_true(
+    actual: pd.Index, expected: pd.Index, config: EqualityConfig
+) -> None:
+    assert PandasIndexEqualityTester().objects_are_equal(actual, expected, config)
+
+
+@pandas_available
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [
+        pytest.param(pd.Index([1, 2, 3]), pd.Index([1, 2, 4]), id="different values"),
+        pytest.param(pd.Index([1, 2, 3]), pd.Index([1, 2]), id="different length"),
+        pytest.param(pd.Index([1, 2]), pd.Index([1.0, 2.0]), id="different dtype"),
+        pytest.param(pd.Index([1, 2], name="a"), pd.Index([1, 2], name="b"), id="different name"),
+        pytest.param(
+            pd.MultiIndex.from_tuples([(1, "a")]),
+            pd.MultiIndex.from_tuples([(1, "b")]),
+            id="multi",
+        ),
+    ],
+)
+def test_pandas_index_equality_tester_objects_are_equal_false(
+    actual: pd.Index, expected: pd.Index, config: EqualityConfig
+) -> None:
+    assert not PandasIndexEqualityTester().objects_are_equal(actual, expected, config)
+
+
+@pandas_available
+def test_pandas_index_equality_tester_objects_are_equal_false_show_difference(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    config.show_difference = True
+    with caplog.at_level(logging.INFO):
+        assert not PandasIndexEqualityTester().objects_are_equal(
+            pd.Index([1]), pd.Index([2]), config
+        )
+        assert "pandas.Index are different:" in caplog.messages[-1]
+
+
+@pandas_available
+@pytest.mark.parametrize(
+    "index", [pd.Index([1.0, float("nan")]), pd.MultiIndex.from_tuples([(1.0, float("nan"))])]
+)
+def test_pandas_index_equality_tester_objects_are_equal_nan(index: pd.Index) -> None:
+    copy = index.copy()
+    tester = PandasIndexEqualityTester()
+    assert not tester.objects_are_equal(index, copy, EqualityConfig())
+    assert tester.objects_are_equal(index, copy, EqualityConfig(equal_nan=True))
+
+
+@pandas_available
+def test_pandas_index_equality_tester_objects_are_equal_tolerance() -> None:
+    tester = PandasIndexEqualityTester()
+    actual, expected = pd.Index([1.0, 2.0]), pd.Index([1.0, 2.001])
+    assert not tester.objects_are_equal(actual, expected, EqualityConfig())
+    assert tester.objects_are_equal(actual, expected, EqualityConfig(atol=0.01))
+
+
+def test_pandas_index_equality_tester_no_pandas() -> None:
+    with (
+        patch("coola.utils.imports.pandas.is_pandas_available", lambda: False),
+        pytest.raises(
+            MissingPackageError, match=r"'pandas' package is required but not installed."
+        ),
+    ):
+        PandasIndexEqualityTester()
+
+
+#########################################################
+#     Tests for PandasExtensionArrayEqualityTester      #
+#########################################################
+
+
+@pandas_available
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [
+        pytest.param(pd.Categorical(["a", "b"]), pd.Categorical(["a", "b"]), id="categorical"),
+        pytest.param(
+            pd.array([1, 2], dtype="Int64"), pd.array([1, 2], dtype="Int64"), id="nullable int"
+        ),
+        pytest.param(
+            pd.array(["a", "b"], dtype="string"), pd.array(["a", "b"], dtype="string"), id="string"
+        ),
+    ],
+)
+def test_pandas_extension_array_equality_tester_objects_are_equal_true(
+    actual: object, expected: object, config: EqualityConfig
+) -> None:
+    assert PandasExtensionArrayEqualityTester().objects_are_equal(actual, expected, config)
+
+
+@pandas_available
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [
+        pytest.param(pd.Categorical(["a", "b"]), pd.Categorical(["a", "c"]), id="values"),
+        pytest.param(pd.Categorical(["a", "b"]), pd.Categorical(["a"]), id="length"),
+        pytest.param(pd.array([1, 2], dtype="Int64"), pd.array([1, 3], dtype="Int64"), id="int"),
+    ],
+)
+def test_pandas_extension_array_equality_tester_objects_are_equal_false(
+    actual: object, expected: object, config: EqualityConfig
+) -> None:
+    assert not PandasExtensionArrayEqualityTester().objects_are_equal(actual, expected, config)
+
+
+@pandas_available
+def test_pandas_extension_array_equality_tester_objects_are_equal_false_show_difference(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    config.show_difference = True
+    with caplog.at_level(logging.INFO):
+        assert not PandasExtensionArrayEqualityTester().objects_are_equal(
+            pd.Categorical(["a"]), pd.Categorical(["b"]), config
+        )
+        assert "pandas arrays are different:" in caplog.messages[-1]
+
+
+@pandas_available
+def test_pandas_extension_array_equality_tester_objects_are_equal_nan() -> None:
+    array = pd.array([1, None], dtype="Int64")
+    tester = PandasExtensionArrayEqualityTester()
+    assert not tester.objects_are_equal(array, array.copy(), EqualityConfig())
+    assert tester.objects_are_equal(array, array.copy(), EqualityConfig(equal_nan=True))
+
+
+def test_pandas_extension_array_equality_tester_no_pandas() -> None:
+    with (
+        patch("coola.utils.imports.pandas.is_pandas_available", lambda: False),
+        pytest.raises(
+            MissingPackageError, match=r"'pandas' package is required but not installed."
+        ),
+    ):
+        PandasExtensionArrayEqualityTester()
