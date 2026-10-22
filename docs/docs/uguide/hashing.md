@@ -111,7 +111,7 @@ The default registry hashes **only** the following types (and their subclasses):
 | `uuid.UUID`, `zoneinfo.ZoneInfo`             | The string form (the UUID text, the zone key)                                                     |
 | `decimal.Decimal`                            | The normalised value: `Decimal('1.0')` and `Decimal('1.00')` have the same hash                   |
 | `fractions.Fraction`                         | The numerator and the denominator in lowest terms                                                 |
-| `range`                                      | The items, not the arguments: `range(0)` and `range(5, 5)` have the same hash, in constant time  |
+| `range`                                      | The items, not the arguments: `range(0)` and `range(5, 5)` have the same hash, in constant time   |
 | NumPy scalars (`np.float32`, `np.int64`...)  | Like the equivalent builtin value: `np.float32(1.5)` hashes like `1.5`                            |
 | dataclass instances                          | The qualified class name and the fields, hashed through the registry                              |
 | objects with a `hash()` method               | The result of their `hash()` (see `SupportsHash`), tagged with the class name                     |
@@ -348,7 +348,7 @@ If you need an isolated registry instead of mutating the shared singleton, creat
 
 ### Fallbacks
 
-A registry maps *types* to hashers, so it cannot say "every dataclass" or "every class with a
+A registry maps _types_ to hashers, so it cannot say "every dataclass" or "every class with a
 `hash()` method". `HasherRegistry.register_fallback(predicate, hasher)` registers a hasher for the
 types that satisfy a predicate. A fallback is only used if no hasher is registered for the type or
 for one of its parent types, so a hasher registered for a type always wins. The default registry

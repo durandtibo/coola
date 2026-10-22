@@ -15,32 +15,32 @@ itself changed no source file; the fixes listed below were made afterwards.
 
 ## Status
 
-| Item | Status                                                                                                   |
-| ---- | -------------------------------------------------------------------------------------------------------- |
-| 1.1  | **Fixed**                                                                                                |
-| 1.2  | **Fixed** for NumPy scalars, `complex` and dataclasses. Not done: `set`/`frozenset`, NumPy datetime arrays |
-| 1.3  | **Fixed**                                                                                                |
-| 1.4  | **Fixed** (cycles compared by value; `compare()` uses the same wrapper). `max_depth` is unchanged |
-| 1.5  | **Fixed** (`repr` not computed for equal objects) |
-| 1.6  | **Fixed** (`defaultdict` rebuild, `deque` registered; ABC fallback not added) |
-| 1.7  | **Fixed** (`bytes` leaves, `restore_lists`, `to_jsonable` types) |
-| 1.8  | **Fixed** (`Array` columns cast to `List`) |
-| 1.9  | **Fixed** in #2047 (heartbeat, lock token, hidden temporary file, `JsonLoader(encoding=...)`) |
-| 1.10 | **Fixed** in #2048 (clear `RuntimeError` instead of a deadlock) |
-| 1.11 | **Fixed** in #2049 (out-of-range values rejected) |
-| 1.12 | **Fixed** in #2050 (NaN in the reducers). Not done: `auto_reducer` order |
-| 1.13 | **Fixed** in #2051 (`coords.variables`). Not done: the dask-backed `DataArray` (dask is not installed) |
-| 2.1  | **Fixed** in #2053 (fallbacks, NumPy scalars, `UUID`, `Decimal`, `Fraction`, `range`, `ZoneInfo`) |
-| 2.2  | **Not done**, by decision (see the item) |
-| 2.3  | **Fixed** in #2054 (`resolve_timestamp_ms` removed; the other items kept) |
-| 2.4  | **Fixed** in #2055 (keyword-only options of `hash_object` with a deprecation, `RandomManagerRegistry.find_manager`/`unregister`) |
-| 2.5  | **Fixed** in #2056 (O(1) cycle check). Not done, by decision: an explicit stack for `dfs_iterate` |
-| 2.6  | **Fixed** in #2057 (`key_predicate`) |
-| 2.7  | **Fixed** in #2058 (`is None` checks, `repr`, PyArrow types and one warning per setting) |
-| 2.8  | **Fixed** in #2059 (`max_characters=1000`, `max_fields`, abstract methods) |
-| 2.9  | **Fixed** in #2060 (documented; a duplicate ID after a backward clock fixed) |
+| Item | Status                                                                                                                                  |
+| ---- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.1  | **Fixed**                                                                                                                               |
+| 1.2  | **Fixed** for NumPy scalars, `complex` and dataclasses. Not done: `set`/`frozenset`, NumPy datetime arrays                              |
+| 1.3  | **Fixed**                                                                                                                               |
+| 1.4  | **Fixed** (cycles compared by value; `compare()` uses the same wrapper). `max_depth` is unchanged                                       |
+| 1.5  | **Fixed** (`repr` not computed for equal objects)                                                                                       |
+| 1.6  | **Fixed** (`defaultdict` rebuild, `deque` registered; ABC fallback not added)                                                           |
+| 1.7  | **Fixed** (`bytes` leaves, `restore_lists`, `to_jsonable` types)                                                                        |
+| 1.8  | **Fixed** (`Array` columns cast to `List`)                                                                                              |
+| 1.9  | **Fixed** in #2047 (heartbeat, lock token, hidden temporary file, `JsonLoader(encoding=...)`)                                           |
+| 1.10 | **Fixed** in #2048 (clear `RuntimeError` instead of a deadlock)                                                                         |
+| 1.11 | **Fixed** in #2049 (out-of-range values rejected)                                                                                       |
+| 1.12 | **Fixed** in #2050 (NaN in the reducers). Not done: `auto_reducer` order                                                                |
+| 1.13 | **Fixed** in #2051 (`coords.variables`). Not done: the dask-backed `DataArray` (dask is not installed)                                  |
+| 2.1  | **Fixed** in #2053 (fallbacks, NumPy scalars, `UUID`, `Decimal`, `Fraction`, `range`, `ZoneInfo`)                                       |
+| 2.2  | **Not done**, by decision (see the item)                                                                                                |
+| 2.3  | **Fixed** in #2054 (`resolve_timestamp_ms` removed; the other items kept)                                                               |
+| 2.4  | **Fixed** in #2055 (keyword-only options of `hash_object` with a deprecation, `RandomManagerRegistry.find_manager`/`unregister`)        |
+| 2.5  | **Fixed** in #2056 (O(1) cycle check). Not done, by decision: an explicit stack for `dfs_iterate`                                       |
+| 2.6  | **Fixed** in #2057 (`key_predicate`)                                                                                                    |
+| 2.7  | **Fixed** in #2058 (`is None` checks, `repr`, PyArrow types and one warning per setting)                                                |
+| 2.8  | **Fixed** in #2059 (`max_characters=1000`, `max_fields`, abstract methods)                                                              |
+| 2.9  | **Fixed** in #2060 (documented; a duplicate ID after a backward clock fixed)                                                            |
 | 2.10 | **Fixed** in #2061 (lazy fixtures, `quantile`, `char_diff_summary`, `LRUCache` doc). Not done: `__getattr__` on the fake `torch` module |
-| 3    | Open |
+| 3    | Open                                                                                                                                    |
 
 The explanations of the design decisions were added to the code in #2052.
 
