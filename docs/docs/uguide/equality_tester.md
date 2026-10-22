@@ -328,6 +328,22 @@ True
 
 ```
 
+#### `PandasIndexEqualityTester` and `PandasExtensionArrayEqualityTester`
+
+Handle pandas `Index` (including `MultiIndex`, with the dtype and names compared) and the pandas
+extension arrays such as `Categorical`:
+
+```pycon
+>>> import pandas as pd
+>>> from coola.equality.config import EqualityConfig
+>>> from coola.equality.tester import PandasIndexEqualityTester
+>>> config = EqualityConfig()
+>>> tester = PandasIndexEqualityTester()
+>>> tester.objects_are_equal(pd.Index([1, 2, 3]), pd.Index([1, 2, 3]), config)
+True
+
+```
+
 ### polars Testers
 
 The package includes testers for polars DataFrames, Series, and LazyFrames:

@@ -1,4 +1,5 @@
-r"""Property-based tests for the invariants shared by several modules."""
+r"""Property-based tests for the invariants shared by several
+modules."""
 
 from __future__ import annotations
 

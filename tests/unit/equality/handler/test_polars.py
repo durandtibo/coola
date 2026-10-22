@@ -877,3 +877,42 @@ def test_frame_equal_decimal(equal_nan: bool) -> None:
 def test_series_equal_decimal(equal_nan: bool) -> None:
     series = pl.Series([1, 2], dtype=pl.Decimal(10, 2))
     assert series_equal(series, series.clone(), EqualityConfig(equal_nan=equal_nan))
+
+
+@polars_available
+@pytest.mark.parametrize(
+    "series",
+    [
+        pytest.param(pl.Series([[1.0, float("nan")]]), id="list"),
+        pytest.param(pl.Series([[1.0, float("nan")]], dtype=pl.Array(pl.Float64, 2)), id="array"),
+        pytest.param(pl.Series([{"a": float("nan"), "b": 1}]), id="struct"),
+        pytest.param(pl.Series([{"a": [float("nan")]}]), id="struct of list"),
+        pytest.param(pl.Series([[[float("nan")]]]), id="list of list"),
+    ],
+)
+def test_has_nan_nested_true(series: pl.Series) -> None:
+    assert has_nan(series)
+    assert has_nan(pl.DataFrame({"x": series}))
+
+
+@polars_available
+@pytest.mark.parametrize(
+    "series",
+    [
+        pytest.param(pl.Series([[1.0, 2.0]]), id="list"),
+        pytest.param(pl.Series([[], []], dtype=pl.List(pl.Float64)), id="empty lists"),
+        pytest.param(pl.Series([None, [1.0]]), id="null list"),
+        pytest.param(pl.Series([{"a": 1.0, "b": 1}]), id="struct"),
+        pytest.param(pl.Series([[1, 2]]), id="list of int"),
+    ],
+)
+def test_has_nan_nested_false(series: pl.Series) -> None:
+    assert not has_nan(series)
+    assert not has_nan(pl.DataFrame({"x": series}))
+
+
+@polars_available
+def test_series_equal_nested_nan_equal_nan() -> None:
+    series = pl.Series([[1.0, float("nan")]])
+    assert not series_equal(series, series.clone(), EqualityConfig(equal_nan=False))
+    assert series_equal(series, series.clone(), EqualityConfig(equal_nan=True))

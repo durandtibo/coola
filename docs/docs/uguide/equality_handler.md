@@ -311,6 +311,8 @@ The package includes specialized handlers for specific types:
 - **`TorchTensorSameDeviceHandler`**: Check if tensors are on the same device
 - **`PandasDataFrameEqualHandler`**: Compare pandas DataFrames
 - **`PandasSeriesEqualHandler`**: Compare pandas Series
+- **`PandasIndexEqualHandler`**: Compare pandas Index and MultiIndex
+- **`PandasExtensionArrayEqualHandler`**: Compare pandas extension arrays (e.g. Categorical)
 - **`PolarsDataFrameEqualHandler`**: Compare polars DataFrames
 - **`PolarsSeriesEqualHandler`**: Compare polars Series
 - **`JaxArrayEqualHandler`**: Compare JAX arrays

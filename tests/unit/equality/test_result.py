@@ -13,6 +13,7 @@ from coola.equality import (
     assert_objects_equal,
     compare,
 )
+from coola.equality.handler import AttributeName
 from coola.equality.tester import EqualityTesterRegistry
 from coola.equality.tester.interface import get_default_registry
 
@@ -464,3 +465,25 @@ def test_compare_different_with_failing_repr() -> None:
     assert not result.equal
     assert result.actual == "<unrepresentable list object>"
     assert result.expected == "<unrepresentable list object>"
+
+
+@dataclasses.dataclass
+class _Inner:
+    x: int
+    y: list[int]
+
+
+def test_compare_dataclass_field_path() -> None:
+    result = compare(_Inner(1, [1]), _Inner(1, [2]))
+    assert result.path == ("y", 0)
+    assert isinstance(result.path[0], AttributeName)
+    assert result.format_path("actual") == "actual.y[0]"
+
+
+def test_compare_dataclass_field_path_in_container() -> None:
+    result = compare({"a": [_Inner(1, [1])]}, {"a": [_Inner(2, [1])]})
+    assert result.format_path("actual") == "actual['a'][0].x"
+
+
+def test_attribute_name_format_path_without_root() -> None:
+    assert ComparisonResult(False, (AttributeName("x"), 0)).format_path() == ".x[0]"

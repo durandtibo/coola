@@ -410,3 +410,26 @@ def test_mapping_same_key_order_handler_handle_without_next_handler(config: Equa
     handler = MappingSameKeyOrderHandler()
     with pytest.raises(RuntimeError, match=r"next handler is not defined"):
         handler.handle({"a": 1}, {"a": 1}, config)
+
+
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [
+        pytest.param({1: "a"}, {True: "a"}, id="int vs bool"),
+        pytest.param({1: "a"}, {1.0: "a"}, id="int vs float"),
+    ],
+)
+def test_mapping_same_keys_handler_handle_keys_of_different_types(
+    actual: Mapping, expected: Mapping, config: EqualityConfig
+) -> None:
+    assert not MappingSameKeysHandler().handle(actual, expected, config)
+
+
+def test_mapping_same_keys_handler_handle_keys_of_different_types_show_difference(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    config.show_difference = True
+    with caplog.at_level(logging.INFO):
+        assert not MappingSameKeysHandler().handle({1: "a"}, {True: "a"}, config)
+    assert "missing keys    : [1]" in caplog.text
+    assert "additional keys : [True]" in caplog.text

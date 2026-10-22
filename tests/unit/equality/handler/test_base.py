@@ -11,6 +11,7 @@ from coola.equality.handler import (
     SameObjectHandler,
     SameTypeHandler,
     TrueHandler,
+    create_chain,
 )
 
 
@@ -174,6 +175,22 @@ def test_set_next_handler_with_cycle() -> None:
         handler.set_next_handler(handler)
 
 
+def test_set_next_handler_with_indirect_cycle() -> None:
+    first = SameObjectHandler()
+    second = SameTypeHandler()
+    first.set_next_handler(second)
+    with pytest.raises(HandlerCycleError, match=r"Cycle detected"):
+        second.set_next_handler(first)
+    assert second.next_handler is None
+    assert first.get_chain_length() == 2
+
+
+def test_create_chain_with_repeated_handler() -> None:
+    handler = SameObjectHandler()
+    with pytest.raises(HandlerCycleError, match=r"Cycle detected"):
+        create_chain(handler, SameTypeHandler(), handler)
+
+
 def test_set_next_handler_handler_none() -> None:
     handler = SameObjectHandler()
     handler.set_next_handler(None)
@@ -199,7 +216,8 @@ def test_validate_chain_multiple_handlers() -> None:
 
 def test_validate_chain_multiple_handlers_with_cycle() -> None:
     handler = SameObjectHandler()
-    handler.chain_all(SameTypeHandler(), SameLengthHandler(), handler)
+    last = handler.chain_all(SameTypeHandler(), SameLengthHandler())
+    last._next_handler = handler  # bypass the check to create a cycle
     with pytest.raises(HandlerCycleError, match=r"Cycle detected in the chain"):
         handler.validate_chain()
 

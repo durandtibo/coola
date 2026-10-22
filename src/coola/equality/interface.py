@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING
 from coola.equality.config import EqualityConfig
 from coola.equality.handler.utils import MaxDepthExceededError
 from coola.equality.tester.interface import get_default_registry
-from coola.validation import validate_non_negative
 
 if TYPE_CHECKING:
     from coola.equality.tester.registry import EqualityTesterRegistry
@@ -49,10 +48,16 @@ def objects_are_allclose(
     atol: float = 1e-8,
     equal_nan: bool = False,
     show_difference: bool = False,
-    max_depth: int = 1000,
+    max_depth: int = 100,
     registry: EqualityTesterRegistry | None = None,
 ) -> bool:
     r"""Indicate if two objects are equal within a tolerance.
+
+    Note:
+        The types are compared first, so ``1`` and ``1.0`` are different
+        (as are ``[1]`` and ``[1.0]``), even with a tolerance. A ``bool``
+        is an ``int``, so ``True`` and ``False`` are close with
+        ``atol=1``, unlike ``numpy.bool_``.
 
     Args:
         actual: The actual object.
@@ -63,7 +68,7 @@ def objects_are_allclose(
         show_difference: If ``True``, log a readable description when the
             comparison fails.
         max_depth: Maximum recursion depth for nested comparisons.
-            Must be positive. Defaults to 1000.
+            Must be positive. Defaults to 100.
         registry: Registry used to resolve type-specific equality testers.
             If ``None``, the default registry is used.
 
@@ -89,8 +94,6 @@ def objects_are_allclose(
 
         ```
     """
-    validate_non_negative(rtol, name="rtol")
-    validate_non_negative(atol, name="atol")
     if registry is None:
         registry = get_default_registry()
     config = EqualityConfig(
@@ -110,10 +113,16 @@ def objects_are_equal(
     *,
     equal_nan: bool = False,
     show_difference: bool = False,
-    max_depth: int = 1000,
+    max_depth: int = 100,
     registry: EqualityTesterRegistry | None = None,
 ) -> bool:
     r"""Indicate if two objects are equal or not.
+
+    Note:
+        The types are compared first, so ``1`` and ``1.0`` are different
+        (as are ``[1]`` and ``[1.0]``), even with a tolerance. A ``bool``
+        is an ``int``, so ``True`` and ``False`` are close with
+        ``atol=1``, unlike ``numpy.bool_``.
 
     Args:
         actual: The actual object.
@@ -122,7 +131,7 @@ def objects_are_equal(
         show_difference: If ``True``, log a readable description when the
             comparison fails.
         max_depth: Maximum recursion depth for nested comparisons.
-            Must be positive. Defaults to 1000.
+            Must be positive. Defaults to 100.
         registry: Registry used to resolve type-specific equality testers.
             If ``None``, the default registry is used.
 

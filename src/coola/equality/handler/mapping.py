@@ -28,7 +28,9 @@ class MappingSameKeysHandler(HandlerEqualityMixin, BaseEqualityHandler):
     r"""Check if the two objects have the same keys.
 
     This handler returns ``False`` if the two objects have different
-    keys, otherwise it passes the inputs to the next handler.
+    keys, otherwise it passes the inputs to the next handler. Keys are
+    compared with their type, so ``1``, ``1.0`` and ``True`` are
+    different keys.
 
     Example:
         ```pycon
@@ -48,15 +50,18 @@ class MappingSameKeysHandler(HandlerEqualityMixin, BaseEqualityHandler):
         expected: Mapping[Any, Any],
         config: EqualityConfig,
     ) -> bool:
-        keys1 = set(actual.keys())
-        keys2 = set(expected.keys())
-        if keys1 != keys2:
+        # Keys are compared with their type, like the elements of sequences:
+        # ``{1: "a"}`` and ``{True: "a"}`` are not the same mapping.
+        keys1 = {(type(key), key): key for key in actual}
+        keys2 = {(type(key), key): key for key in expected}
+        if keys1.keys() != keys2.keys():
             if config.show_difference:
                 report_difference(
                     logger,
                     config,
                     format_mapping_difference(
-                        missing_keys=keys1 - keys2, additional_keys=keys2 - keys1
+                        missing_keys={keys1[k] for k in keys1.keys() - keys2.keys()},
+                        additional_keys={keys2[k] for k in keys2.keys() - keys1.keys()},
                     ),
                 )
             return False

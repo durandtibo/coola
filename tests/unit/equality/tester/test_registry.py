@@ -199,6 +199,21 @@ class _NoEq:
     x: float
 
 
+@dataclass
+class _CustomEq:
+    x: float
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, _CustomEq)
+
+
+def test_equality_tester_registry_find_equality_tester_dataclass_custom_eq() -> None:
+    registry = EqualityTesterRegistry(
+        {object: DefaultEqualityTester(), DataclassMarker: DataclassEqualityTester()}
+    )
+    assert isinstance(registry.find_equality_tester(_CustomEq), DefaultEqualityTester)
+
+
 def test_equality_tester_registry_find_equality_tester_dataclass() -> None:
     dataclass_tester = DataclassEqualityTester()
     registry = EqualityTesterRegistry(

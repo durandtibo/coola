@@ -58,3 +58,8 @@ def test_objects_are_allclose_true_tolerance(example: ExamplePair) -> None:
     assert objects_are_allclose(
         example.actual, example.expected, atol=example.atol, rtol=example.rtol
     )
+
+
+def test_objects_are_allclose_int_and_float_are_different_types() -> None:
+    assert not objects_are_allclose(1, 1.0)
+    assert not objects_are_allclose([1.0], [1])

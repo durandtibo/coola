@@ -30,6 +30,8 @@ from coola.equality.tester.numpy import (
 )
 from coola.equality.tester.pandas import (
     PandasDataFrameEqualityTester,
+    PandasExtensionArrayEqualityTester,
+    PandasIndexEqualityTester,
     PandasSeriesEqualityTester,
 )
 from coola.equality.tester.polars import (
@@ -330,6 +332,8 @@ def _get_pandas_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
     return {
         pd.DataFrame: PandasDataFrameEqualityTester(),
         pd.Series: PandasSeriesEqualityTester(),
+        pd.Index: PandasIndexEqualityTester(),
+        pd.api.extensions.ExtensionArray: PandasExtensionArrayEqualityTester(),
     }
 
 

@@ -173,16 +173,32 @@ def has_nan(df_or_series: pl.DataFrame | pl.Series) -> bool:
 
     Returns:
         ``True`` if the DataFrame or Series has NaN values,
-            otherwise ``False``.
+            otherwise ``False``. The floats nested in ``List``,
+            ``Array`` and ``Struct`` columns are checked too.
     """
+    if isinstance(df_or_series, pl.Series):
+        return _series_has_nan(df_or_series)
+    frame = df_or_series.select(cs.float())
+    if not frame.is_empty() and frame.select(pl.any_horizontal(pl.all().is_nan().any())).item():
+        return True
+    # The nested columns (List, Array, Struct) can hold floats
+    return any(
+        _series_has_nan(df_or_series[name])
+        for name in df_or_series.select(cs.by_dtype(pl.List, pl.Array, pl.Struct)).columns
+    )
+
+
+def _series_has_nan(series: pl.Series) -> bool:
     # Only the float dtypes have NaN values, and ``is_nan`` is not defined for the
     # other numeric dtypes (``is_numeric`` also includes ``Decimal``, which raises).
-    if isinstance(df_or_series, pl.Series):
-        return df_or_series.dtype.is_float() and df_or_series.is_nan().any()
-    frame = df_or_series.select(cs.float())
-    if frame.is_empty():  # This if is necessary for previous polars version (1.0)
-        return False
-    return frame.select(pl.any_horizontal(pl.all().is_nan().any())).item()
+    dtype = series.dtype
+    if dtype.is_float():
+        return bool(series.is_nan().any())
+    if isinstance(dtype, (pl.List, pl.Array)):
+        return _series_has_nan(series.explode())
+    if isinstance(dtype, pl.Struct):
+        return any(_series_has_nan(series.struct.field(field.name)) for field in dtype.fields)
+    return False
 
 
 def frame_equal(df1: pl.DataFrame, df2: pl.DataFrame, config: EqualityConfig) -> bool:
