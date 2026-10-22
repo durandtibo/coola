@@ -207,8 +207,8 @@ def test_nan_equal_nan_makes_nan_equal(data: Any) -> None:
 
 
 def _fresh_floats(data: Any) -> Any:
-    r"""Copy ``data`` with new float objects (``deepcopy`` keeps them), so
-    that a NaN is not equal to its copy by identity."""
+    r"""Copy ``data`` with new float objects (``deepcopy`` keeps them),
+    so that a NaN is not equal to its copy by identity."""
     if isinstance(data, float):
         return float.fromhex(data.hex())
     if isinstance(data, complex):
