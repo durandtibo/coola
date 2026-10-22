@@ -15,6 +15,7 @@ __all__ = [
     "keys",
     "lengths",
     "literal_values",
+    "nan_values",
     "nested",
     "nested_dicts",
     "quantile_lists",
@@ -59,6 +60,10 @@ def nested(base: st.SearchStrategy, *, with_sets: bool = True) -> st.SearchStrat
 
 
 values = nested(scalars)
+# Nested data whose leaves can be NaN (also in the complex numbers).
+nan_values = nested(
+    st.one_of(literal_scalars, st.floats(allow_nan=True), st.complex_numbers(allow_nan=True))
+)
 # The ``repr`` of a set is not always a Python literal.
 literal_values = nested(literal_scalars, with_sets=False)
 # A tiny domain, so that independent draws are often equal.

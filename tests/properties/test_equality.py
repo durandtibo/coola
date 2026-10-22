@@ -17,7 +17,7 @@ from hypothesis import assume, given, strategies as st
 
 from coola.equality import objects_are_allclose, objects_are_equal
 from coola.hashing import hash_object
-from tests.properties.strategies import rebuild, scalars, small_values, values
+from tests.properties.strategies import nan_values, rebuild, scalars, small_values, values
 
 finite_floats = st.floats(allow_nan=False, allow_infinity=False, min_value=-1e6, max_value=1e6)
 
@@ -204,6 +204,27 @@ def test_nan_same_object_is_always_equal(x: Any) -> None:
 def test_nan_equal_nan_makes_nan_equal(data: Any) -> None:
     assert objects_are_equal([data, float("nan")], [data, float("nan")], equal_nan=True)
     assert objects_are_allclose({"a": float("nan")}, {"a": float("nan")}, equal_nan=True)
+
+
+def _fresh_floats(data: Any) -> Any:
+    r"""Copy ``data`` with new float objects (``deepcopy`` keeps them), so
+    that a NaN is not equal to its copy by identity."""
+    if isinstance(data, float):
+        return float.fromhex(data.hex())
+    if isinstance(data, complex):
+        return complex(_fresh_floats(data.real), _fresh_floats(data.imag))
+    if isinstance(data, dict):
+        return {k: _fresh_floats(v) for k, v in data.items()}
+    if isinstance(data, (list, tuple)):
+        return type(data)(_fresh_floats(v) for v in data)
+    return data
+
+
+@given(data=nan_values)
+def test_equal_nan_makes_nested_data_equal_to_its_copy(data: Any) -> None:
+    other = _fresh_floats(copy.deepcopy(data))
+    assert objects_are_equal(data, other, equal_nan=True)
+    assert objects_are_allclose(data, other, equal_nan=True)
 
 
 @given(x=values)
