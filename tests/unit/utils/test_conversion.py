@@ -239,3 +239,7 @@ def test_to_jsonable_uuid() -> None:
 
 def test_to_jsonable_new_types_are_json_serializable() -> None:
     assert json.dumps([to_jsonable(x) for x in (b"a", Decimal(1), UUID(int=2))])
+
+
+def test_to_jsonable_range() -> None:
+    assert to_jsonable(range(3)) == [0, 1, 2]

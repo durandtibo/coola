@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 
 import pytest
@@ -8,6 +9,7 @@ from coola.nested import (
     convert_to_dict_of_lists,
     convert_to_jsonable,
     convert_to_list_of_dicts,
+    try_sorted_list,
 )
 from coola.testing.fixtures import numpy_available, pydantic_available, torch_available
 from coola.utils.imports import (
@@ -214,3 +216,19 @@ def test_convert_to_json_dict_of_torch_tensors() -> None:
         "a": [1, 2],
         "b": [3, 4],
     }
+
+
+def test_convert_to_jsonable_set_and_range() -> None:
+    data = {"a": {3, 1, 2}, "b": [frozenset({"x"})], "c": range(2)}
+    out = convert_to_jsonable(data)
+    assert out == {"a": [1, 2, 3], "b": [["x"]], "c": [0, 1]}
+    json.dumps(out)
+
+
+def test_try_sorted_list() -> None:
+    assert try_sorted_list({3, 1, 2}) == [1, 2, 3]
+    assert try_sorted_list(frozenset({"b", "a"})) == ["a", "b"]
+
+
+def test_try_sorted_list_not_comparable() -> None:
+    assert sorted(try_sorted_list({1, "a"}), key=str) == [1, "a"]

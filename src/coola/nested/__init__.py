@@ -16,12 +16,14 @@ __all__ = [
     "remove_keys_if",
     "remove_keys_starting_with",
     "to_flat_dict",
+    "try_sorted_list",
 ]
 
 from coola.nested.conversion import (
     convert_to_dict_of_lists,
     convert_to_jsonable,
     convert_to_list_of_dicts,
+    try_sorted_list,
 )
 from coola.nested.flat import from_flat_dict, to_flat_dict
 from coola.nested.mapping import (
