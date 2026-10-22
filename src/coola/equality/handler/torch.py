@@ -11,7 +11,6 @@ from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
 from coola.equality.handler.utils import report_difference
-
 from coola.utils.imports import is_torch_available
 
 if TYPE_CHECKING or is_torch_available():
