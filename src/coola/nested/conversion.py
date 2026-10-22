@@ -6,7 +6,7 @@ __all__ = [
     "convert_to_dict_of_lists",
     "convert_to_jsonable",
     "convert_to_list_of_dicts",
-    "sorted_list",
+    "try_sorted_list",
 ]
 
 from typing import TYPE_CHECKING, Any
@@ -136,7 +136,7 @@ def _sets_to_lists(data: Any) -> Any:
     so the sets are converted after the elements.
     """
     if isinstance(data, (set, frozenset)):
-        return sorted_list(data)
+        return try_sorted_list(data)
     if isinstance(data, dict):
         return {key: _sets_to_lists(value) for key, value in data.items()}
     if type(data) in {list, tuple}:  # not the subclasses, e.g. namedtuple
@@ -144,7 +144,7 @@ def _sets_to_lists(data: Any) -> Any:
     return data
 
 
-def sorted_list(values: Iterable[Any]) -> list[Any]:
+def try_sorted_list(values: Iterable[Any]) -> list[Any]:
     r"""Convert an iterable (e.g. a set) to a list, sorted when the
     values are comparable so the output is deterministic.
 
@@ -157,10 +157,10 @@ def sorted_list(values: Iterable[Any]) -> list[Any]:
 
     Example:
         ```pycon
-        >>> from coola.nested import sorted_list
-        >>> sorted_list({3, 1, 2})
+        >>> from coola.nested import try_sorted_list
+        >>> try_sorted_list({3, 1, 2})
         [1, 2, 3]
-        >>> sorted_list({1, "a"}) == [1, "a"] or sorted_list({1, "a"}) == ["a", 1]
+        >>> try_sorted_list({1, "a"}) == [1, "a"] or try_sorted_list({1, "a"}) == ["a", 1]
         True
 
         ```
