@@ -10,6 +10,8 @@ from coola.equality.config import EqualityConfig
 from coola.equality.handler import (
     FalseHandler,
     PandasDataFrameEqualHandler,
+    PandasExtensionArrayEqualHandler,
+    PandasIndexEqualHandler,
     PandasSeriesEqualHandler,
     TrueHandler,
 )
@@ -507,3 +509,19 @@ def test_pandas_frame_and_series_equal_different_shape() -> None:
     config = EqualityConfig(equal_nan=True)
     assert not frame_equal(pd.DataFrame({"a": [1, 2]}), pd.DataFrame({"a": [1, 2, 3]}), config)
     assert not series_equal(pd.Series([1, 2]), pd.Series([1, 2, 3]), config)
+
+
+@pandas_available
+def test_pandas_index_equal_handler_handle() -> None:
+    handler = PandasIndexEqualHandler()
+    config = EqualityConfig()
+    assert handler.handle(pd.Index([1, 2]), pd.Index([1, 2]), config)
+    assert not handler.handle(pd.Index([1, 2]), pd.Index([1, 3]), config)
+
+
+@pandas_available
+def test_pandas_extension_array_equal_handler_handle() -> None:
+    handler = PandasExtensionArrayEqualHandler()
+    config = EqualityConfig()
+    assert handler.handle(pd.Categorical([1, 2]), pd.Categorical([1, 2]), config)
+    assert not handler.handle(pd.Categorical([1, 2]), pd.Categorical([1, 3]), config)

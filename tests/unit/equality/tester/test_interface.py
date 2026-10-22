@@ -17,6 +17,8 @@ from coola.equality.tester import (
     NumpyArrayEqualityTester,
     OrderedMappingEqualityTester,
     PandasDataFrameEqualityTester,
+    PandasExtensionArrayEqualityTester,
+    PandasIndexEqualityTester,
     PandasSeriesEqualityTester,
     PolarsDataFrameEqualityTester,
     PolarsLazyFrameEqualityTester,
@@ -116,6 +118,9 @@ if is_pandas_available():
         [
             (pd.DataFrame, PandasDataFrameEqualityTester, True),
             (pd.Series, PandasSeriesEqualityTester, True),
+            (pd.Index, PandasIndexEqualityTester, True),
+            (pd.MultiIndex, PandasIndexEqualityTester, False),
+            (pd.Categorical, PandasExtensionArrayEqualityTester, False),
         ]
     )
 if is_polars_available():

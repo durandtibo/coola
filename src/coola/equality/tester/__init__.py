@@ -34,6 +34,8 @@ __all__ = [
     "NumpyMaskedArrayEqualityTester",
     "OrderedMappingEqualityTester",
     "PandasDataFrameEqualityTester",
+    "PandasExtensionArrayEqualityTester",
+    "PandasIndexEqualityTester",
     "PandasSeriesEqualityTester",
     "PolarsDataFrameEqualityTester",
     "PolarsLazyFrameEqualityTester",
@@ -75,6 +77,8 @@ from coola.equality.tester.numpy import (
 )
 from coola.equality.tester.pandas import (
     PandasDataFrameEqualityTester,
+    PandasExtensionArrayEqualityTester,
+    PandasIndexEqualityTester,
     PandasSeriesEqualityTester,
 )
 from coola.equality.tester.polars import (
