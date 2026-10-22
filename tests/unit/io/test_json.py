@@ -203,25 +203,25 @@ def test_save_json_file_exist_ok_dir(tmp_path: Path) -> None:
 @pytest.mark.parametrize("encoding", ["utf-8", "utf-16", "latin-1", "cp1252"])
 def test_json_saver_loader_round_trip_with_encoding(tmp_path: Path, encoding: str) -> None:
     path = tmp_path.joinpath("data.json")
-    data = {"key": "caf\u00e9"}
+    data = {"key": "\u00e9t\u00e9"}
     JsonSaver(encoding=encoding, ensure_ascii=False).save(data, path)
     assert JsonLoader(encoding=encoding).load(path) == data
 
 
 def test_load_json_encoding(tmp_path: Path) -> None:
     path = tmp_path.joinpath("data.json")
-    save_json({"key": "caf\u00e9"}, path, encoding="latin-1", ensure_ascii=False)
-    assert load_json(path, encoding="latin-1") == {"key": "caf\u00e9"}
+    save_json({"key": "\u00e9t\u00e9"}, path, encoding="latin-1", ensure_ascii=False)
+    assert load_json(path, encoding="latin-1") == {"key": "\u00e9t\u00e9"}
 
 
 def test_load_json_without_encoding_detects_utf16(tmp_path: Path) -> None:
     path = tmp_path.joinpath("data.json")
-    save_json({"key": "caf\u00e9"}, path, encoding="utf-16", ensure_ascii=False)
-    assert load_json(path) == {"key": "caf\u00e9"}
+    save_json({"key": "\u00e9t\u00e9"}, path, encoding="utf-16", ensure_ascii=False)
+    assert load_json(path) == {"key": "\u00e9t\u00e9"}
 
 
 def test_json_loader_without_encoding_cannot_read_latin1(tmp_path: Path) -> None:
     path = tmp_path.joinpath("data.json")
-    save_json({"key": "caf\u00e9"}, path, encoding="latin-1", ensure_ascii=False)
+    save_json({"key": "\u00e9t\u00e9"}, path, encoding="latin-1", ensure_ascii=False)
     with pytest.raises(UnicodeDecodeError):
         load_json(path)
