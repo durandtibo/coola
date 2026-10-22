@@ -105,7 +105,7 @@ def compare(
     equal_nan: bool = False,
     atol: float = 0.0,
     rtol: float = 0.0,
-    max_depth: int = 1000,
+    max_depth: int = 100,
     registry: EqualityTesterRegistry | None = None,
 ) -> ComparisonResult:
     r"""Compare two objects and explain the first difference.
@@ -188,7 +188,7 @@ def assert_objects_allclose(
     rtol: float = 1e-5,
     atol: float = 1e-8,
     equal_nan: bool = False,
-    max_depth: int = 1000,
+    max_depth: int = 100,
     registry: EqualityTesterRegistry | None = None,
     root: str = "actual",
 ) -> None:
@@ -243,7 +243,7 @@ def assert_objects_equal(
     expected: object,
     *,
     equal_nan: bool = False,
-    max_depth: int = 1000,
+    max_depth: int = 100,
     registry: EqualityTesterRegistry | None = None,
     root: str = "actual",
 ) -> None:

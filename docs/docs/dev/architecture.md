@@ -87,7 +87,7 @@ class EqualityConfig:
     atol: float = 0.0
     rtol: float = 0.0
     show_difference: bool = False
-    max_depth: int = 1000
+    max_depth: int = 100
 ```
 
 This allows behavior to be customized without changing tester signatures. A config tracks the
@@ -257,7 +257,7 @@ The registry caches tester lookups by type for performance.
 
 ### Recursive Depth
 
-For deeply nested structures, comparison is recursive. `EqualityConfig.max_depth` (default 1000)
+For deeply nested structures, comparison is recursive. `EqualityConfig.max_depth` (default 100)
 bounds the nesting depth. Each level uses several interpreter frames, so Python's own recursion
 limit (`sys.setrecursionlimit`) may be reached first, in which case a `RecursionError` with an
 actionable message is raised.

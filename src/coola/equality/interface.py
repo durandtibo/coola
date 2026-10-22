@@ -48,7 +48,7 @@ def objects_are_allclose(
     atol: float = 1e-8,
     equal_nan: bool = False,
     show_difference: bool = False,
-    max_depth: int = 1000,
+    max_depth: int = 100,
     registry: EqualityTesterRegistry | None = None,
 ) -> bool:
     r"""Indicate if two objects are equal within a tolerance.
@@ -68,7 +68,7 @@ def objects_are_allclose(
         show_difference: If ``True``, log a readable description when the
             comparison fails.
         max_depth: Maximum recursion depth for nested comparisons.
-            Must be positive. Defaults to 1000.
+            Must be positive. Defaults to 100.
         registry: Registry used to resolve type-specific equality testers.
             If ``None``, the default registry is used.
 
@@ -113,7 +113,7 @@ def objects_are_equal(
     *,
     equal_nan: bool = False,
     show_difference: bool = False,
-    max_depth: int = 1000,
+    max_depth: int = 100,
     registry: EqualityTesterRegistry | None = None,
 ) -> bool:
     r"""Indicate if two objects are equal or not.
@@ -131,7 +131,7 @@ def objects_are_equal(
         show_difference: If ``True``, log a readable description when the
             comparison fails.
         max_depth: Maximum recursion depth for nested comparisons.
-            Must be positive. Defaults to 1000.
+            Must be positive. Defaults to 100.
         registry: Registry used to resolve type-specific equality testers.
             If ``None``, the default registry is used.
 
