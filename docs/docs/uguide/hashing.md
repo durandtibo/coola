@@ -363,7 +363,6 @@ has two fallbacks: dataclasses (`DataclassHasher`) and the classes with a `hash(
 >>> @dataclass
 ... class Point:
 ...     x: int
-...
 >>> registry.find_hasher(Point)
 DataclassHasher()
 

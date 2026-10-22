@@ -322,8 +322,8 @@ def _get_value_hashers() -> dict[type, Hasher[Any]]:
 
 
 def _get_numpy_hashers(hasher: Hasher[Any]) -> dict[type, Hasher[Any]]:
-    r"""Get the hashers of the NumPy scalars (``np.float64`` is a ``float``,
-    the other scalars are not)."""
+    r"""Get the hashers of the NumPy scalars (``np.float64`` is a
+    ``float``, the other scalars are not)."""
     if not is_numpy_available():  # pragma: no cover
         return {}
     import numpy as np  # noqa: PLC0415

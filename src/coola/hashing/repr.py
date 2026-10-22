@@ -24,9 +24,9 @@ if TYPE_CHECKING:
 def _numpy_scalar_to_builtin(data: Any) -> Any:
     """Convert a NumPy scalar to the equivalent builtin value.
 
-    The ``repr`` of a NumPy scalar depends on the NumPy version
-    (``1.0`` with NumPy 1, ``np.float32(1.0)`` with NumPy 2), so the scalars
-    are converted before hashing. The other values are returned unchanged.
+    The ``repr`` of a NumPy scalar depends on the NumPy version (``1.0``
+    with NumPy 1, ``np.float32(1.0)`` with NumPy 2), so the scalars are
+    converted before hashing. The other values are returned unchanged.
     """
     if not is_numpy_available() or not isinstance(data, np.generic):
         return data
