@@ -325,3 +325,29 @@ def test_array_equal_equal_nan_datetime_dtype(config: EqualityConfig) -> None:
         np.array(["2020-01-01", "NaT"], dtype="datetime64[D]"),
         config,
     )
+
+
+@numpy_available
+def test_array_equal_object_dtype_equal_nan() -> None:
+    array1 = np.array([float("nan")], dtype=object)
+    array2 = np.array([float("nan")], dtype=object)
+    assert array_equal(array1, array2, EqualityConfig(equal_nan=True))
+    assert not array_equal(array1, array2, EqualityConfig(equal_nan=False))
+
+
+@numpy_available
+def test_array_equal_object_dtype_nested_arrays() -> None:
+    array1 = np.empty(2, dtype=object)
+    array1[0], array1[1] = np.ones(2), np.zeros(3)
+    array2 = np.empty(2, dtype=object)
+    array2[0], array2[1] = np.ones(2), np.zeros(3)
+    array3 = np.empty(2, dtype=object)
+    array3[0], array3[1] = np.ones(2), np.ones(3)
+    config = EqualityConfig()
+    assert array_equal(array1, array2, config)
+    assert not array_equal(array1, array3, config)
+
+
+@numpy_available
+def test_array_equal_object_dtype_different_shape(config: EqualityConfig) -> None:
+    assert not array_equal(np.array([1, 2], dtype=object), np.array([[1, 2]], dtype=object), config)

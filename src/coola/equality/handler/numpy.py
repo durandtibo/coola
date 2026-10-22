@@ -86,6 +86,13 @@ def array_equal(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) 
 
         ```
     """
+    if array1.dtype.kind == "O" and array2.dtype.kind == "O":
+        # Compare the elements through the registry so ``equal_nan``, the
+        # tolerances and the nested testers apply to the stored objects.
+        return array1.shape == array2.shape and all(
+            config.registry.objects_are_equal(x, y, config)
+            for x, y in zip(array1.ravel().tolist(), array2.ravel().tolist(), strict=True)
+        )
     if (
         (config.atol > 0 or config.rtol > 0)
         and is_numeric_array(array1)
