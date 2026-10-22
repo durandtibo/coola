@@ -43,6 +43,10 @@ True
 
 ```
 
+The options (`registry`, `length` and `ignore_unhashable`) are keyword arguments. Passing them by
+position is deprecated and emits a `DeprecationWarning`, because `hash_object(data, 32)` passes `32`
+as the registry. A positional `length` raises an error that says so.
+
 ### Controlling the Hash Length
 
 The `length` argument controls the length of the returned hex string (an even number between 2
@@ -359,7 +363,6 @@ has two fallbacks: dataclasses (`DataclassHasher`) and the classes with a `hash(
 >>> @dataclass
 ... class Point:
 ...     x: int
-...
 >>> registry.find_hasher(Point)
 DataclassHasher()
 

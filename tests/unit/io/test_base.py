@@ -672,8 +672,9 @@ def test_save_lock_does_not_remove_a_lock_taken_by_another_process(tmp_path: Pat
 
 
 class _StopAfter:
-    r"""A stand-in for ``threading.Event`` whose ``wait`` returns the given
-    values, so ``_keep_lock_fresh`` can be run without a thread."""
+    r"""A stand-in for ``threading.Event`` whose ``wait`` returns the
+    given values, so ``_keep_lock_fresh`` can be run without a
+    thread."""
 
     def __init__(self, *waits: bool) -> None:
         self._waits = list(waits)

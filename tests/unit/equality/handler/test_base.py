@@ -246,7 +246,8 @@ def test_validate_chain_cycle_raises_handler_cycle_error() -> None:
 
 
 class FalsyHandler(TrueHandler):
-    r"""A handler that is falsy, like a handler with an empty ``__len__``."""
+    r"""A handler that is falsy, like a handler with an empty
+    ``__len__``."""
 
     def __bool__(self) -> bool:
         return False

@@ -1,9 +1,10 @@
 r"""Contain functions to validate types.
 
-The checks are strict and do not convert the value. ``validate_isinstance``
-is the general function, and the other functions are shortcuts for the most
-common builtin types, with the same error message, so a developer does not have
-to write ``validate_isinstance(value, int)`` and remember the ``bool`` special
+The checks are strict and do not convert the value.
+``validate_isinstance`` is the general function, and the other functions
+are shortcuts for the most common builtin types, with the same error
+message, so a developer does not have to write
+``validate_isinstance(value, int)`` and remember the ``bool`` special
 case.
 """
 

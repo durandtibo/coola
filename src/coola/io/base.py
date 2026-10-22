@@ -132,8 +132,8 @@ def _tmp_path(path: Path) -> Path:
 
     The name starts with a dot, so the file is hidden and a reader that
     lists the directory does not take it for the final file while it is
-    being written. The extension is kept because some writers choose
-    the format or add an extension from it.
+    being written. The extension is kept because some writers choose the
+    format or add an extension from it.
     """
     return add_uuid_suffix(path.with_name(f".{path.name}"))
 
