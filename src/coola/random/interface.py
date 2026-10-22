@@ -86,7 +86,14 @@ def manual_seed(seed: int) -> None:
     r"""Set the seed for generating random numbers.
 
     Args:
-        seed: The desired random seed.
+        seed: The desired random seed. It must be an ``int`` in the
+            range ``[0, 2**63)`` (the range supported by all the
+            backends).
+
+    Raises:
+        TypeError: If the seed is not an ``int``.
+        ValueError: If the seed is out of range. No generator is
+            seeded in this case.
 
     Example:
         ```pycon

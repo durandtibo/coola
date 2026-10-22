@@ -221,6 +221,14 @@ class RandomManagerRegistry(MultilineDisplayMixin, BaseRandomManager):
         return {key: value.get_rng_state() for key, value in self._state.items()}
 
     def manual_seed(self, seed: int) -> None:
+        # Validate once before seeding, so a seed rejected by one backend
+        # does not leave the others half-seeded.
+        if not isinstance(seed, int) or isinstance(seed, bool):
+            msg = f"seed must be an int, got {type(seed)}"
+            raise TypeError(msg)
+        if not 0 <= seed < 2**63:
+            msg = f"seed must be in the range [0, 2**63), got {seed}"
+            raise ValueError(msg)
         for value in self._state.values():
             value.manual_seed(seed)
 

@@ -250,3 +250,20 @@ def test_random_manager_registry_unregistered_manager_is_not_in_the_state() -> N
     registry = RandomManagerRegistry({"random": RandomRandomManager()})
     registry.unregister("random")
     assert registry.get_rng_state() == {}
+
+
+@pytest.mark.parametrize("seed", [-1, 2**63, 2**70])
+def test_random_manager_registry_manual_seed_out_of_range(seed: int) -> None:
+    random.seed(1)
+    state = random.getstate()
+    registry = RandomManagerRegistry({"random": RandomRandomManager()})
+    with pytest.raises(ValueError, match="seed must be in the range"):
+        registry.manual_seed(seed)
+    assert random.getstate() == state  # nothing was seeded
+
+
+@pytest.mark.parametrize("seed", [1.5, "1", True, None])
+def test_random_manager_registry_manual_seed_not_int(seed: object) -> None:
+    registry = RandomManagerRegistry({"random": RandomRandomManager()})
+    with pytest.raises(TypeError, match="seed must be an int"):
+        registry.manual_seed(seed)
