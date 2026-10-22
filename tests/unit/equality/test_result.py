@@ -463,8 +463,8 @@ def test_compare_different_has_the_representations() -> None:
 def test_compare_different_with_failing_repr() -> None:
     result = compare([NoRepr()], [NoRepr()])
     assert not result.equal
-    assert result.actual == "<unrepresentable list object>"
-    assert result.expected == "<unrepresentable list object>"
+    assert result.actual.startswith("<list object at 0x")
+    assert result.expected.startswith("<list object at 0x")
 
 
 @dataclasses.dataclass

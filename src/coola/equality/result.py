@@ -16,6 +16,7 @@ from coola.equality.config import EqualityConfig
 from coola.equality.handler.utils import AttributeName
 from coola.equality.interface import _compare
 from coola.equality.tester.interface import get_default_registry
+from coola.utils.safe import safe_repr
 
 if TYPE_CHECKING:
     from coola.equality.tester.registry import EqualityTesterRegistry
@@ -178,17 +179,8 @@ def compare(
         path.extend(location)
     reason = reports[0][0] if reports else None
     return ComparisonResult(
-        False, tuple(path), reason, actual=_safe_repr(actual), expected=_safe_repr(expected)
+        False, tuple(path), reason, actual=safe_repr(actual), expected=safe_repr(expected)
     )
-
-
-def _safe_repr(obj: object) -> str:
-    """Return ``repr(obj)``, or a placeholder if ``__repr__`` raises, so a
-    broken ``__repr__`` cannot hide the comparison result."""
-    try:
-        return repr(obj)
-    except Exception:  # noqa: BLE001
-        return f"<unrepresentable {type(obj).__qualname__} object>"
 
 
 def assert_objects_allclose(

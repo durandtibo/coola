@@ -13,6 +13,8 @@ __all__ = [
 import logging
 from typing import TYPE_CHECKING, Any
 
+from coola.utils.safe import safe_str
+
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
@@ -189,12 +191,6 @@ def format_value_difference(actual: Any, expected: Any, *, name: str = "objects"
 
         ```
     """
-    return f"{name} are different:\n  actual   : {_safe_str(actual)}\n  expected : {_safe_str(expected)}"
-
-
-def _safe_str(value: Any) -> str:
-    # A broken ``__str__`` must not hide the difference being reported.
-    try:
-        return str(value)
-    except Exception:  # noqa: BLE001
-        return f"<unprintable {type(value).__qualname__} object>"
+    return (
+        f"{name} are different:\n  actual   : {safe_str(actual)}\n  expected : {safe_str(expected)}"
+    )
