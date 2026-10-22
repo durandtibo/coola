@@ -327,6 +327,36 @@ True
 
 ```
 
+The exact type is checked at every level of a nested structure, so the native `==` quirks do not
+leak into containers: `[1]` and `[True]` are different, and so are `(1,)` and `(True,)` or
+`{"a": 1}` and `{"a": True}`. This avoids surprising results such as `[1] == [True]` being `True`
+with the native operator.
+
+```pycon
+>>> from coola.equality import objects_are_equal
+>>> [1] == [True]
+True
+>>> objects_are_equal([1], [True])
+False
+>>> objects_are_equal({"a": 1}, {"a": True})
+False
+
+```
+
+:warning: The check applies to the values that `coola` compares one by one (items of sequences,
+values of mappings, attributes, ...). The members of a `set` and the keys of a `dict` are matched
+with the native hash and equality, so `{1}` and `{True}` (or `{1: "a"}` and `{True: "a"}`) are still
+considered equal.
+
+```pycon
+>>> from coola.equality import objects_are_equal
+>>> {1} == {True}
+True
+>>> objects_are_equal({1}, {True})
+True
+
+```
+
 ## Checking Equality with Tolerance
 
 ### First Example

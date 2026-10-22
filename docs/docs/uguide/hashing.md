@@ -118,10 +118,10 @@ The default registry hashes **only** the following types (and their subclasses):
 | `pathlib.PurePath`, `pathlib.Path`           | The POSIX form of the path as written, without touching the filesystem                            |
 | pydantic `BaseModel` (if pydantic installed) | The qualified class name and the fields, hashed through the registry                              |
 
-| `numpy.ndarray`, `torch.Tensor`, `jax.Array`  | The dtype, the shape and the values (not the memory layout, the device or `requires_grad`); `-0.0` hashes like `0.0` |
-| `pandas`, `polars` data frames and series    | The names, the dtypes, the index (pandas) and the values                                          |
-| `pyarrow` arrays and tables                  | The names, the types and the values; the chunk layout is ignored                                  |
-| `xarray` `DataArray`, `Dataset`, `Variable`  | The dimensions, the values, the coordinates, the attributes and the name                          |
+| `numpy.ndarray`, `torch.Tensor`, `jax.Array` | The dtype, the shape and the values (not the memory layout, the device or `requires_grad`); `-0.0` hashes like `0.0` |
+| `pandas`, `polars` data frames and series | The names, the dtypes, the index (pandas) and the values |
+| `pyarrow` arrays and tables | The names, the types and the values; the chunk layout is ignored |
+| `xarray` `DataArray`, `Dataset`, `Variable` | The dimensions, the values, the coordinates, the attributes and the name |
 
 The array libraries are only imported if they are installed. A NumPy array and a PyTorch tensor with
 the same content hash differently. Your own classes still need a registered hasher (a class with a
