@@ -932,3 +932,11 @@ def test_same_attribute_handler_repr_uses_repr_of_the_next_handler() -> None:
         "SameAttributeHandler(name=b, next_handler=FalseHandler()))"
     )
     assert str(handler) == "SameAttributeHandler(name=a)"
+
+
+def test_same_object_handler_handle_nan_same_object_is_equal_without_equal_nan() -> None:
+    nan = float("nan")
+    handler = SameObjectHandler(FalseHandler())
+    config = EqualityConfig(equal_nan=False)
+    assert handler.handle(nan, nan, config)
+    assert not handler.handle(nan, float("nan"), config)

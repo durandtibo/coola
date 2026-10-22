@@ -253,6 +253,11 @@ class SameObjectHandler(HandlerEqualityMixin, BaseEqualityHandler):
     This handler returns ``True`` if the two objects refer to the
     same object, otherwise it passes the inputs to the next handler.
 
+    Notes:
+        The identity shortcut also applies to objects that are not equal
+        to themselves, like ``float("nan")`` or a container holding it,
+        even with ``equal_nan=False``.
+
     Example:
         ```pycon
         >>> from coola.equality.config import EqualityConfig

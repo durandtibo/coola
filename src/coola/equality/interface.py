@@ -59,6 +59,12 @@ def objects_are_allclose(
         is an ``int``, so ``True`` and ``False`` are close with
         ``atol=1``, unlike ``numpy.bool_``.
 
+        An object is always equal to itself, even if it contains ``NaN``
+        and ``equal_nan=False``: ``[n]`` equals ``[n]`` for
+        ``n = float("nan")``, but not ``[float("nan")]``. Two distinct
+        objects that contain ``NaN`` are equal only with
+        ``equal_nan=True``.
+
     Args:
         actual: The actual object.
         expected: The expected object.
@@ -123,6 +129,12 @@ def objects_are_equal(
         (as are ``[1]`` and ``[1.0]``), even with a tolerance. A ``bool``
         is an ``int``, so ``True`` and ``False`` are close with
         ``atol=1``, unlike ``numpy.bool_``.
+
+        An object is always equal to itself, even if it contains ``NaN``
+        and ``equal_nan=False``: ``[n]`` equals ``[n]`` for
+        ``n = float("nan")``, but not ``[float("nan")]``. Two distinct
+        objects that contain ``NaN`` are equal only with
+        ``equal_nan=True``.
 
     Args:
         actual: The actual object.
