@@ -35,6 +35,11 @@ def test_format_mapping_difference_different_value() -> None:
     assert msg == "mappings have different values for key 'b'"
 
 
+def test_format_mapping_difference_different_value_none_key() -> None:
+    msg = format_mapping_difference(different_value_key=None)
+    assert msg == "mappings have different values for key None"
+
+
 def test_format_mapping_difference_missing_and_different() -> None:
     msg = format_mapping_difference(
         missing_keys={"b"}, additional_keys={"c"}, different_value_key="a"
