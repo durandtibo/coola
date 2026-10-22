@@ -134,17 +134,11 @@ def test_pyarrow_equal_handler_handle_equal_nan_false(config: EqualityConfig) ->
 @pyarrow_available
 def test_pyarrow_equal_handler_handle_equal_nan_true(config: EqualityConfig) -> None:
     config.equal_nan = True
-    with warnings.catch_warnings(record=True) as w:
-        # Not equal because equal_nan is ignored
-        assert not PyarrowEqualHandler().handle(
-            pa.array([0.0, float("nan"), float("nan"), 1.2]),
-            pa.array([0.0, float("nan"), float("nan"), 1.2]),
-            config,
-        )
-
-        assert len(w) == 1
-        assert issubclass(w[-1].category, RuntimeWarning)
-        assert "equal_nan is ignored because it is not supported" in str(w[-1].message)
+    assert PyarrowEqualHandler().handle(
+        pa.array([0.0, float("nan"), float("nan"), 1.2]),
+        pa.array([0.0, float("nan"), float("nan"), 1.2]),
+        config,
+    )
 
 
 @pyarrow_available
@@ -169,13 +163,9 @@ def test_pyarrow_equal_handler_handle_true_tolerance(
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
-    with warnings.catch_warnings(record=True) as w:
-        assert PyarrowEqualHandler().handle(
-            actual=example.actual, expected=example.expected, config=config
-        )
-        assert len(w) == 1
-        assert issubclass(w[-1].category, RuntimeWarning)
-        assert "tol is ignored because it is not supported" in str(w[-1].message)
+    assert PyarrowEqualHandler().handle(
+        actual=example.actual, expected=example.expected, config=config
+    )
 
 
 @pyarrow_available
@@ -185,13 +175,9 @@ def test_pyarrow_equal_handler_handle_false_tolerance(
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
-    with warnings.catch_warnings(record=True) as w:
-        assert not PyarrowEqualHandler().handle(
-            actual=example.actual, expected=example.expected, config=config
-        )
-        assert len(w) == 1
-        assert issubclass(w[-1].category, RuntimeWarning)
-        assert "tol is ignored because it is not supported" in str(w[-1].message)
+    assert not PyarrowEqualHandler().handle(
+        actual=example.actual, expected=example.expected, config=config
+    )
 
 
 def test_pyarrow_equal_handler_set_next_handler() -> None:
@@ -244,32 +230,49 @@ def test_pyarrow_equal_handler_chunked_array_and_record_batch() -> None:
 
 
 @pyarrow_available
-def test_object_equal_warns_once_per_setting_for_a_config() -> None:
-    config = EqualityConfig(equal_nan=True, atol=0.1, rtol=0.1)
-    with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter("always")
-        for _ in range(5):
-            object_equal(pa.array([1]), pa.array([1]), config)
-    assert len(w) == 3
-    messages = sorted(str(item.message).split(" ")[0] for item in w)
-    assert messages == ["atol", "equal_nan", "rtol"]
+def test_object_equal_null_positions_must_match() -> None:
+    config = EqualityConfig(atol=0.1)
+    assert object_equal(pa.array([1.0, None]), pa.array([1.05, None]), config)
+    assert not object_equal(pa.array([1.0, None]), pa.array([1.0, 0.0]), config)
 
 
 @pyarrow_available
-def test_object_equal_warns_again_for_another_config() -> None:
-    with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter("always")
-        for _ in range(2):
-            object_equal(pa.array([1]), pa.array([1]), EqualityConfig(atol=0.1))
-    assert len(w) == 2
+def test_object_equal_table_tolerance() -> None:
+    config = EqualityConfig(atol=0.1)
+    table = pa.table({"a": [1.0, 2.0], "b": ["x", "y"]})
+    assert object_equal(table, pa.table({"a": [1.0, 2.05], "b": ["x", "y"]}), config)
+    assert not object_equal(table, pa.table({"a": [1.0, 2.5], "b": ["x", "y"]}), config)
+    assert not object_equal(table, pa.table({"a": [1.0, 2.0], "b": ["x", "z"]}), config)
+    assert not object_equal(table, pa.table({"a": [1.0, 2.0], "c": ["x", "y"]}), config)
+    assert not object_equal(table, pa.table({"a": [1.0], "b": ["x"]}), config)
 
 
 @pyarrow_available
-def test_objects_are_equal_with_many_arrow_arrays_warns_once() -> None:
-    data = [pa.array([i]) for i in range(10)]
-    expected = [pa.array([i]) for i in range(10)]
-    with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter("always")
-        assert objects_are_allclose(data, expected, atol=0.1, rtol=0.0)
-    assert len(w) == 1
-    assert "atol is ignored" in str(w[0].message)
+def test_object_equal_chunked_array_tolerance() -> None:
+    config = EqualityConfig(atol=0.1)
+    assert object_equal(
+        pa.chunked_array([[1.0, 2.0], [3.0]]), pa.chunked_array([[1.0, 2.05, 3.0]]), config
+    )
+
+
+@pyarrow_available
+def test_object_equal_integer_tolerance() -> None:
+    assert object_equal(pa.array([1, 2]), pa.array([1, 3]), EqualityConfig(atol=1.0))
+    assert not object_equal(pa.array([1, 2]), pa.array([1, 4]), EqualityConfig(atol=1.0))
+
+
+@pyarrow_available
+def test_object_equal_different_types_with_tolerance() -> None:
+    config = EqualityConfig(atol=1.0)
+    assert not object_equal(pa.array([1.0]), pa.array([1]), config)
+    assert not object_equal(pa.array([1.0]), pa.chunked_array([[1.0]]), config)
+    assert not object_equal(pa.array([1.0]), pa.array([1.0, 1.0]), config)
+    assert not object_equal(pa.array(["a"]), pa.array(["b"]), config)
+    assert not object_equal(pa.table({"a": [1.0]}), pa.record_batch({"a": [1.0]}), config)
+
+
+@pyarrow_available
+def test_objects_are_allclose_does_not_warn() -> None:
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        assert objects_are_allclose([pa.array([1.0])] * 3, [pa.array([1.05])] * 3, atol=0.1)

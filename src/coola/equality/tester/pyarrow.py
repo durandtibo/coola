@@ -33,9 +33,9 @@ class PyarrowEqualityTester(BaseChainEqualityTester[Any]):
     3. PyarrowEqualHandler: Use PyArrow's equals() method
 
     Note:
-        The ``config.equal_nan``, ``config.atol``, and ``config.rtol`` arguments
-        are ignored as PyArrow's equals() method does not support these parameters.
-        PyArrow performs its own equality checking logic.
+        If the objects are different, the integer and floating-point columns
+        honor ``config.equal_nan``, ``config.atol`` and ``config.rtol`` (NumPy
+        is required). The other types are compared exactly.
 
     Example:
         Basic array comparison:

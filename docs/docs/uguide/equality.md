@@ -777,7 +777,8 @@ The exact equality, the tolerance (`atol`, `rtol`) and `equal_nan` are all handl
 - [`pyarrow.Array`](https://arrow.apache.org/docs/python/generated/pyarrow.Array.html),
   `pyarrow.ChunkedArray`, `pyarrow.RecordBatch` and
   [`pyarrow.Table`](https://arrow.apache.org/docs/python/generated/pyarrow.Table.html)
-  (experimental): `equal_nan`, `atol` and `rtol` are ignored (a `RuntimeWarning` is emitted)
+  (experimental): `equal_nan`, `atol` and `rtol` are honored for the integer and floating-point
+  columns (this requires NumPy), and the other types are compared exactly
 - `numpy.ndarray` with a non-numeric dtype: `str`, `bytes` and `object` arrays are compared
   exactly, and so are `datetime64` and `timedelta64` arrays, even if a tolerance is given
 - `set` and `frozenset`: compared with `==`, so the tolerance is not applied to the items (a set
@@ -1464,7 +1465,7 @@ summarizes what each type does with them (it was checked for each type with `obj
 | `pandas.DataFrame`, `pandas.Series`                     | **Any missing value counts as `NaN`**: `NaN`, `None`, `NaT`, `pd.NA`                        | Honored (exact if both are `0`)                                                                        | dtype, index, columns                                    |
 | `polars.DataFrame`, `polars.Series`, `polars.LazyFrame` | Honored for float `NaN`. **`null` is always equal to `null`**                               | Honored (exact if both are `0`)                                                                        | dtype, schema; a `LazyFrame` is collected                |
 | `xarray.DataArray`, `xarray.Dataset`, `xarray.Variable` | Honored                                                                                     | Honored                                                                                                | dimensions, coordinates, attributes                      |
-| `pyarrow.Array`, `pyarrow.Table`                        | **Ignored**: `NaN` is never equal to `NaN`, but `null` is equal to `null`                   | **Ignored**: exact comparison                                                                          | Whatever `pyarrow`'s `equals` compares                   |
+| `pyarrow.Array`, `pyarrow.Table`                        | Honored for the floating-point columns; `null` is equal to `null`                           | Honored for the integer and floating-point columns; the other types are compared exactly               | Type, length, `null` positions, schema for tables        |
 
 \* Python short-circuits on identity, so `x is x` is always equal. Two distinct `NaN` floats are
 not equal unless `equal_nan=True`.
@@ -1475,10 +1476,12 @@ Details:
   missing value is never equal to another one, **even to a copy of itself**, because the missing
   values are not equal to each other. Use `equal_nan=True` to compare the data frames with missing
   values.
-- **PyArrow**: when one of the ignored arguments is set, a `RuntimeWarning` is emitted (for example
-  `atol is ignored because it is not supported for ...`), once per ignored argument for each
-  comparison, even if the compared object contains many Arrow arrays. `pyarrow.Array`,
-  `pyarrow.ChunkedArray`, `pyarrow.RecordBatch` and `pyarrow.Table` are supported.
+- **PyArrow**: the objects are first compared with `equals`. If they are different and a tolerance
+  or `equal_nan` is set, the integer and floating-point columns are compared like NumPy arrays, and
+  the `null` values must be at the same positions. The other types (strings, nested types, etc.)
+  are compared exactly. Without NumPy, these arguments are ignored and a `RuntimeWarning` is
+  emitted. `pyarrow.Array`, `pyarrow.ChunkedArray`, `pyarrow.RecordBatch` and `pyarrow.Table` are
+  supported.
 - **NumPy**: `equal_nan=True` can safely be used with an object that contains arrays of strings:
   the argument is only applied to the dtypes that have a `NaN`.
 - **`-0.0`** is equal to `0.0` for all the types, whatever the tolerance.
