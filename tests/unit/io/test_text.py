@@ -227,3 +227,10 @@ def test_save_text_file_exist_ok_dir(tmp_path: Path) -> None:
     path.mkdir(parents=True, exist_ok=True)
     with pytest.raises(IsADirectoryError, match=r"path .* is a directory"):
         save_text("hello", path)
+
+
+def test_save_text_load_text_preserves_line_endings(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    save_text("a\r\nb\rc\n", path)
+    assert path.read_bytes() == b"a\r\nb\rc\n"
+    assert load_text(path) == "a\r\nb\rc\n"
