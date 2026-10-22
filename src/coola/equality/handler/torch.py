@@ -122,6 +122,16 @@ def tensor_equal(tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityC
 
         ```
     """
+    import torch  # noqa: PLC0415
+
+    if tensor1.device.type == "meta" or tensor2.device.type == "meta":
+        # Meta tensors have no data: only the metadata can be compared.
+        return tensor1.shape == tensor2.shape and tensor1.dtype == tensor2.dtype
+    if tensor1.layout != tensor2.layout:
+        return False
+    if tensor1.layout != torch.strided:
+        # ``equal`` and ``allclose`` are not implemented for sparse layouts.
+        tensor1, tensor2 = tensor1.to_dense(), tensor2.to_dense()
     if config.equal_nan or config.atol > 0 or config.rtol > 0:
         return tensor1.allclose(
             tensor2, atol=config.atol, rtol=config.rtol, equal_nan=config.equal_nan
