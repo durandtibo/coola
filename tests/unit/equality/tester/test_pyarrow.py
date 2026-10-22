@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import warnings
 from datetime import UTC, datetime
 from unittest.mock import Mock, patch
 
@@ -208,7 +207,7 @@ PYARROW_ARRAY_EQUAL_TOLERANCE = [
     ),
 ]
 PYARROW_ARRAY_NOT_EQUAL_TOLERANCE = [
-    # The arrays are different because the atol and rtol arguments are ignored.
+    # The arrays are different without tolerance and equal with it.
     # atol
     pytest.param(
         ExamplePair(
@@ -362,8 +361,25 @@ PYARROW_TABLE_NOT_EQUAL = [
 
 PYARROW_EQUAL = PYARROW_ARRAY_EQUAL + PYARROW_TABLE_EQUAL
 PYARROW_NOT_EQUAL = PYARROW_ARRAY_NOT_EQUAL + PYARROW_TABLE_NOT_EQUAL
-PYARROW_EQUAL_TOLERANCE = PYARROW_ARRAY_EQUAL_TOLERANCE
-PYARROW_NOT_EQUAL_TOLERANCE = PYARROW_ARRAY_NOT_EQUAL_TOLERANCE
+PYARROW_EQUAL_TOLERANCE = PYARROW_ARRAY_EQUAL_TOLERANCE + PYARROW_ARRAY_NOT_EQUAL_TOLERANCE
+PYARROW_NOT_EQUAL_TOLERANCE = [
+    pytest.param(
+        ExamplePair(
+            actual=pa.array([1.0, 1.0, 1.0], type=pa.float64()),
+            expected=pa.array([1.5, 1.5, 1.5], type=pa.float64()),
+            atol=0.1,
+        ),
+        id="array atol too small",
+    ),
+    pytest.param(
+        ExamplePair(
+            actual=pa.array([1.0, 1.0, 1.0], type=pa.float64()),
+            expected=pa.array([1.5, 1.5, 1.5], type=pa.float64()),
+            rtol=0.1,
+        ),
+        id="array rtol too small",
+    ),
+]
 
 
 ###########################################
@@ -480,16 +496,11 @@ def test_pyarrow_equality_tester_objects_are_equal_nan_false(config: EqualityCon
 @pyarrow_available
 def test_pyarrow_equality_tester_objects_are_equal_nan_true(config: EqualityConfig) -> None:
     config.equal_nan = True
-    with warnings.catch_warnings(record=True) as w:
-        # Not equal because equal_nan is ignored
-        assert not PyarrowEqualityTester().objects_are_equal(
-            actual=pa.array([0.0, float("nan"), float("nan"), 1.2]),
-            expected=pa.array([0.0, float("nan"), float("nan"), 1.2]),
-            config=config,
-        )
-        assert len(w) == 1
-        assert issubclass(w[-1].category, RuntimeWarning)
-        assert "equal_nan is ignored because it is not supported" in str(w[-1].message)
+    assert PyarrowEqualityTester().objects_are_equal(
+        actual=pa.array([0.0, float("nan"), float("nan"), 1.2]),
+        expected=pa.array([0.0, float("nan"), float("nan"), 1.2]),
+        config=config,
+    )
 
 
 @pyarrow_available
@@ -499,13 +510,9 @@ def test_pyarrow_equality_tester_objects_are_equal_true_tolerance(
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
-    with warnings.catch_warnings(record=True) as w:
-        assert PyarrowEqualityTester().objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
-        assert len(w) == 1
-        assert issubclass(w[-1].category, RuntimeWarning)
-        assert "tol is ignored because it is not supported" in str(w[-1].message)
+    assert PyarrowEqualityTester().objects_are_equal(
+        actual=example.actual, expected=example.expected, config=config
+    )
 
 
 def test_pyarrow_equality_tester_no_pyarrow() -> None:
