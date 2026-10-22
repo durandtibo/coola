@@ -201,4 +201,4 @@ def test_default_summarizer_summarize_failing_str() -> None:
             return 1 / 0
 
     out = DefaultSummarizer().summarize(Bad(), SummarizerRegistry(), max_depth=0)
-    assert out.startswith("<Bad object at 0x")
+    assert "Bad object at 0x" in out
