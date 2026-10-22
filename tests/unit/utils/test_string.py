@@ -25,7 +25,7 @@ def test_char_diff_summary_returns_string() -> None:
         pytest.param("<p>Hello</p>", "Hello", "12 -> 5 chars (-7 chars, -58.3%).", id="shrink"),
         pytest.param("Hi", "Hello world", "2 -> 11 chars (+9 chars, +450.0%).", id="grow"),
         pytest.param("hello", "world", "5 -> 5 chars (+0 chars, +0.0%).", id="no-change"),
-        pytest.param("", "hello", "0 -> 5 chars (+5 chars, +0.0%).", id="empty-before"),
+        pytest.param("", "hello", "0 -> 5 chars (+5 chars, n/a).", id="empty-before"),
         pytest.param("hello", "", "5 -> 0 chars (-5 chars, -100.0%).", id="empty-after"),
         pytest.param("", "", "0 -> 0 chars (+0 chars, +0.0%).", id="both-empty"),
         pytest.param(
@@ -184,3 +184,7 @@ def test_truncate_str_max_len_less_than_suffix() -> None:
         ValueError, match=r"max_len .* must be greater than or equal to the suffix length"
     ):
         truncate_str("hello world", max_len=2)
+
+
+def test_char_diff_summary_growth_from_empty_text_is_not_a_percentage() -> None:
+    assert char_diff_summary("", "abc") == "0 -> 3 chars (+3 chars, n/a)."

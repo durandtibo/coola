@@ -5,6 +5,7 @@ from typing import Any
 import pytest
 
 from coola.hashing import HasherRegistry, ReprHasher, hash_tagged
+from coola.testing.fixtures import numpy_available
 
 
 @pytest.fixture
@@ -192,3 +193,11 @@ def test_repr_hasher_hash_negative_zero_complex_components(registry: HasherRegis
 def test_repr_hasher_hash_zero_differs_from_one(registry: HasherRegistry) -> None:
     hasher = ReprHasher()
     assert hasher.hash(0.0, registry=registry) != hasher.hash(1.0, registry=registry)
+
+
+@numpy_available
+def test_repr_hasher_numpy_scalar_without_builtin_equivalent(registry: HasherRegistry) -> None:
+    import numpy as np
+
+    value = np.datetime64("2020-01-01")
+    assert ReprHasher().hash(value, registry) == hash_tagged("datetime64", repr(value))

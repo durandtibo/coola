@@ -46,12 +46,27 @@ def registry() -> SummarizerRegistry:
 ##############################################
 
 
-def test_base_collection_summarizer_not_implemented() -> None:
-    summarizer = BaseCollectionSummarizer()
-    with pytest.raises(NotImplementedError):
-        summarizer._get_preview([1, 2, 3], limit=2)
-    with pytest.raises(NotImplementedError):
-        summarizer._format_items([1, 2, 3], SummarizerRegistry(), depth=0, max_depth=1)
+def test_base_collection_summarizer_is_abstract() -> None:
+    with pytest.raises(TypeError, match="abstract"):
+        BaseCollectionSummarizer()
+
+
+def test_base_collection_summarizer_child_without_get_preview_cannot_be_instantiated() -> None:
+    class MissingPreview(BaseCollectionSummarizer[Sequence[Any]]):
+        def _format_items(self, data, registry, depth, max_depth) -> str:  # noqa: ANN001, ARG002
+            return ""
+
+    with pytest.raises(TypeError, match="_get_preview"):
+        MissingPreview()
+
+
+def test_base_collection_summarizer_child_without_format_items_cannot_be_instantiated() -> None:
+    class MissingItems(BaseCollectionSummarizer[Sequence[Any]]):
+        def _get_preview(self, data, limit) -> list:  # noqa: ANN001, ARG002
+            return []
+
+    with pytest.raises(TypeError, match="_format_items"):
+        MissingItems()
 
 
 def test_base_collection_summarizer_summarize_empty(registry: SummarizerRegistry) -> None:

@@ -163,3 +163,17 @@ def test_summarizer_depth_and_max_depth_ignored(
     summarizer = summarizer_cls()
     expected = summarizer.summarize(data, registry)
     assert summarizer.summarize(data, registry, depth=5, max_depth=10) == expected
+
+
+@pandas_available
+def test_dataframe_summarizer_max_fields(registry: SummarizerRegistry) -> None:
+    df = pd.DataFrame({"a": [1], "b": [2.0], "c": ["x"]})
+    out = PandasDataFrameSummarizer(max_fields=2).summarize(df, registry)
+    assert out.endswith("columns=a: int64, b: float64, ... (+1 more)")
+
+
+@pandas_available
+def test_dataframe_summarizer_max_fields_repr() -> None:
+    assert repr(PandasDataFrameSummarizer(max_fields=2)) == (
+        "PandasDataFrameSummarizer(show_data=False, max_fields=2)"
+    )

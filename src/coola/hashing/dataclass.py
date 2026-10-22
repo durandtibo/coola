@@ -21,8 +21,9 @@ class DataclassHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Any]):
     The hash combines the qualified class name with the hash of a
     mapping from field name to field value, with every value hashed
     through the registry. Because dataclasses have no common base
-    class, this hasher is not registered by default: register it for
-    each dataclass type with ``register_hashers``.
+    class, it cannot be registered for a type: the default registry
+    uses it as a fallback (see ``HasherRegistry.register_fallback``)
+    for every dataclass that has no hasher of its own.
 
     Example:
         ```pycon

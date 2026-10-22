@@ -126,3 +126,17 @@ def test_pyarrow_table_summarizer_summarize_many_columns(registry: SummarizerReg
 def test_pyarrow_table_summarizer_summarize_show_data(registry: SummarizerRegistry) -> None:
     table = pa.table({"a": [1, 2]})
     assert PyarrowTableSummarizer(show_data=True).summarize(table, registry) == repr(table)
+
+
+@pyarrow_available
+def test_table_summarizer_max_fields(registry: SummarizerRegistry) -> None:
+    table = pa.table({"a": [1], "b": [2.0], "c": ["x"]})
+    out = PyarrowTableSummarizer(max_fields=1).summarize(table, registry)
+    assert out.endswith("columns=a: int64, ... (+2 more)")
+
+
+@pyarrow_available
+def test_table_summarizer_max_fields_repr() -> None:
+    assert repr(PyarrowTableSummarizer(max_fields=2)) == (
+        "PyarrowTableSummarizer(show_data=False, max_fields=2)"
+    )

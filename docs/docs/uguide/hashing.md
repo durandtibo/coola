@@ -108,13 +108,21 @@ The default registry hashes **only** the following types (and their subclasses):
 | `set`, `frozenset`                           | Independent of the iteration order. A `set` and a `frozenset` hash differently                    |
 | `date`, `datetime`, `time`                   | ISO 8601 form, including the UTC offset when there is one                                         |
 | `timedelta`, `timezone`                      | The `repr` of the value                                                                           |
+| `uuid.UUID`, `zoneinfo.ZoneInfo`             | The string form (the UUID text, the zone key)                                                     |
+| `decimal.Decimal`                            | The normalised value: `Decimal('1.0')` and `Decimal('1.00')` have the same hash                   |
+| `fractions.Fraction`                         | The numerator and the denominator in lowest terms                                                 |
+| `range`                                      | The items, not the arguments: `range(0)` and `range(5, 5)` have the same hash, in constant time  |
+| NumPy scalars (`np.float32`, `np.int64`...)  | Like the equivalent builtin value: `np.float32(1.5)` hashes like `1.5`                            |
+| dataclass instances                          | The qualified class name and the fields, hashed through the registry                              |
+| objects with a `hash()` method               | The result of their `hash()` (see `SupportsHash`), tagged with the class name                     |
 | `pathlib.PurePath`, `pathlib.Path`           | The POSIX form of the path as written, without touching the filesystem                            |
 | pydantic `BaseModel` (if pydantic installed) | The qualified class name and the fields, hashed through the registry                              |
 
-Nothing else is supported: **NumPy arrays, PyTorch tensors, pandas and polars data frames,
-dataclasses and your own classes need a registered hasher** (use `DataclassHasher` for
-dataclasses). Otherwise `hash_object` raises a
-`TypeNotRegisteredError` (or hashes a placeholder with `ignore_unhashable=True`). There is no
+Nothing else is supported: **NumPy arrays, PyTorch tensors, pandas and polars data frames
+and your own classes need a registered hasher** (a class with a `hash()` method and a dataclass
+work without registration, see below). Otherwise `hash_object` raises a
+`TypeNotRegisteredError` that lists the three remedies (or hashes a placeholder with
+`ignore_unhashable=True`). There is no
 default hasher for arrays and data frames because there is no canonical byte form for them: you
 decide what must be part of the hash (the dtype? the memory layout? the index?). For example, for
 NumPy arrays:
@@ -225,19 +233,18 @@ True
 
   Nested models use the same `on_secret` policy.
 
-- **Dataclasses**: the qualified class name plus the field values, with `DataclassHasher`
-  registered for each dataclass type.
+- **Dataclasses**: the qualified class name plus the field values. The default registry hashes every
+  dataclass with `DataclassHasher` (a fallback, see [Fallbacks](#fallbacks)), without registration.
 - **Objects with their own `hash` method**: the result of `hash`, tagged with the qualified class
   name (see [Custom Objects](#custom-objects)).
 
 ```pycon
 >>> from dataclasses import dataclass
->>> from coola.hashing import DataclassHasher, hash_object, register_hashers
+>>> from coola.hashing import hash_object
 >>> @dataclass
 ... class Point:
 ...     x: int
 ...     y: int
->>> register_hashers({Point: DataclassHasher()})
 >>> hash_object(Point(1, 2)) == hash_object(Point(1, 2))
 True
 >>> hash_object(Point(1, 2)) != hash_object({"x": 1, "y": 2})
@@ -279,7 +286,7 @@ delegating to a `HasherRegistry` to hash any nested values. The built-in hashers
   order does not affect the result (unless `ordered=True`)
 - `SetHasher` - hashes `set` and `frozenset`, sorted by item hash
 - `DataclassHasher` - hashes dataclass instances from the class name and the field values
-  (register it for each dataclass type)
+  (used for every dataclass by the default registry)
 - `PydanticModelHasher` / `hash_pydantic_model` - hashes pydantic `BaseModel` objects from the
   class name and the fields, with configurable handling of `SecretStr`/`SecretBytes` fields
 - `HashableHasher` - hashes objects that implement the `SupportsHash` protocol (i.e. that define
@@ -338,6 +345,32 @@ it is a singleton, any modification made via `register_hashers` affects every su
 
 If you need an isolated registry instead of mutating the shared singleton, create a
 `HasherRegistry` instance directly, as shown above.
+
+### Fallbacks
+
+A registry maps *types* to hashers, so it cannot say "every dataclass" or "every class with a
+`hash()` method". `HasherRegistry.register_fallback(predicate, hasher)` registers a hasher for the
+types that satisfy a predicate. A fallback is only used if no hasher is registered for the type or
+for one of its parent types, so a hasher registered for a type always wins. The default registry
+has two fallbacks: dataclasses (`DataclassHasher`) and the classes with a `hash()` method
+(`HashableHasher`). A dataclass that also defines `hash()` uses the dataclass hasher.
+
+```pycon
+>>> from coola.hashing import HasherRegistry, SequenceHasher, DataclassHasher
+>>> from dataclasses import dataclass, is_dataclass
+>>> registry = HasherRegistry({list: SequenceHasher()})
+>>> registry.register_fallback(is_dataclass, DataclassHasher())
+>>> @dataclass
+... class Point:
+...     x: int
+...
+>>> registry.find_hasher(Point)
+DataclassHasher()
+
+```
+
+Registering a hasher for `object` makes the fallbacks unreachable, because `object` matches every
+type.
 
 ## Custom Objects
 

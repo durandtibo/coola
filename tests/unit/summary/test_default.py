@@ -16,7 +16,7 @@ def registry() -> SummarizerRegistry:
 
 
 def test_default_summarizer_init_default() -> None:
-    assert DefaultSummarizer()._max_characters == -1
+    assert DefaultSummarizer()._max_characters == 1000
 
 
 def test_default_summarizer_init_with_max_characters() -> None:
@@ -28,7 +28,7 @@ def test_default_summarizer_init_with_zero_max_characters() -> None:
 
 
 def test_default_summarizer_repr_default() -> None:
-    assert repr(DefaultSummarizer()) == "DefaultSummarizer(max_characters=-1)"
+    assert repr(DefaultSummarizer()) == "DefaultSummarizer(max_characters=1,000)"
 
 
 def test_default_summarizer_repr_with_max_characters() -> None:
@@ -39,7 +39,7 @@ def test_default_summarizer_repr_with_max_characters() -> None:
 
 
 def test_default_summarizer_str_default() -> None:
-    assert repr(DefaultSummarizer()) == "DefaultSummarizer(max_characters=-1)"
+    assert repr(DefaultSummarizer()) == "DefaultSummarizer(max_characters=1,000)"
 
 
 def test_default_summarizer_str_with_max_characters() -> None:
@@ -169,3 +169,20 @@ def test_default_summarizer_summarize_with_negative_max_characters(
 ) -> None:
     summarizer = DefaultSummarizer(max_characters=-100)
     assert summarizer.summarize("test string", registry) == "<class 'str'> test string"
+
+
+def test_default_summarizer_truncates_long_values_by_default() -> None:
+    out = DefaultSummarizer().summarize("a" * 5000, SummarizerRegistry(), depth=1, max_depth=1)
+    assert out == "a" * 1000 + "..."
+
+
+def test_default_summarizer_does_not_truncate_values_of_1000_characters() -> None:
+    out = DefaultSummarizer().summarize("a" * 1000, SummarizerRegistry(), depth=1, max_depth=1)
+    assert out == "a" * 1000
+
+
+def test_default_summarizer_negative_max_characters_shows_everything() -> None:
+    out = DefaultSummarizer(max_characters=-1).summarize(
+        "a" * 5000, SummarizerRegistry(), depth=1, max_depth=1
+    )
+    assert out == "a" * 5000

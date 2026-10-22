@@ -138,3 +138,36 @@ def test_all_names_are_requires_and_the_available_and_not_available_marks() -> N
     for name in marks:
         assert name.endswith(("_available", "_not_available"))
         assert isinstance(getattr(fixtures, name), pytest.MarkDecorator)
+
+
+##########################################
+#     Tests for the lazy attributes      #
+##########################################
+
+
+def test_unknown_attribute_raises_attribute_error() -> None:
+    with pytest.raises(AttributeError, match="has no attribute 'unknown_available'"):
+        _ = fixtures.unknown_available
+
+
+def test_unknown_attribute_close_to_a_marker_raises_attribute_error() -> None:
+    with pytest.raises(AttributeError, match="numpy_availabl"):
+        _ = fixtures.numpy_availabl
+
+
+def test_markers_are_cached() -> None:
+    assert fixtures.pandas_available is fixtures.pandas_available
+    assert fixtures.pandas_not_available is fixtures.pandas_not_available
+
+
+def test_available_and_not_available_markers_are_created_together() -> None:
+    available = fixtures.polars_not_available
+    assert "polars_available" in vars(fixtures)
+    assert vars(fixtures)["polars_not_available"] is available
+
+
+@pytest.mark.parametrize("name", fixtures.__all__)
+def test_all_names_are_markers(name: str) -> None:
+    if name == "requires":
+        return
+    assert isinstance(getattr(fixtures, name), pytest.MarkDecorator)

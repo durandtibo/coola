@@ -2,20 +2,27 @@ from __future__ import annotations
 
 import warnings
 from collections.abc import Generator, Mapping, Sequence
+from dataclasses import dataclass
 from datetime import UTC, date, datetime
+from decimal import Decimal
+from fractions import Fraction
 from pathlib import Path
 from unittest.mock import patch
+from uuid import UUID
+from zoneinfo import ZoneInfo
 
 import pytest
 
 from coola.hashing import (
     BytesHasher,
+    DataclassHasher,
     DatetimeHasher,
     HasherRegistry,
     MappingHasher,
     PathHasher,
     ReprHasher,
     SequenceHasher,
+    StrHasher,
     StringHasher,
     get_default_registry,
     hash_object,
@@ -26,7 +33,7 @@ from coola.hashing import (
 from coola.hashing.interface import _register_default_hashers
 from coola.hashing.pydantic import PydanticModelHasher
 from coola.registry import AlreadyRegisteredError
-from coola.testing.fixtures import pydantic_available
+from coola.testing.fixtures import numpy_available, pydantic_available
 from coola.utils.imports import is_pydantic_available
 from tests.unit.hashing.helpers import Unhashable
 
@@ -358,3 +365,173 @@ def test_hash_object_argument_given_by_position_and_keyword_raises(
         pytest.raises(TypeError, match=f"multiple values for argument '{name}'"),
     ):
         hash_object([1], *args, **kwargs)
+
+
+################################################
+#     Tests for the types of the registry      #
+################################################
+
+
+@dataclass
+class _Point:
+    x: int
+    y: int
+
+
+@dataclass
+class _Line:
+    start: _Point
+    end: _Point
+
+
+class _HasHash:
+    def hash(
+        self,
+        registry: object = None,  # noqa: ARG002
+        length: int = 64,
+        ignore_unhashable: bool = False,  # noqa: ARG002
+    ) -> str:
+        return "a" * length
+
+
+def test_hash_object_dataclass() -> None:
+    assert hash_object(_Point(1, 2)) == hash_object(_Point(1, 2))
+    assert hash_object(_Point(1, 2)) != hash_object(_Point(2, 1))
+
+
+def test_hash_object_nested_dataclass() -> None:
+    line = _Line(_Point(0, 0), _Point(1, 1))
+    assert hash_object(line) == hash_object(_Line(_Point(0, 0), _Point(1, 1)))
+    assert hash_object(line) != hash_object(_Line(_Point(0, 0), _Point(1, 2)))
+    assert hash_object([line, {"k": line}])
+
+
+def test_hash_object_dataclass_is_tagged_with_the_class() -> None:
+    @dataclass
+    class Other:
+        x: int
+        y: int
+
+    assert hash_object(_Point(1, 2)) != hash_object(Other(1, 2))
+
+
+def test_hash_object_dataclass_class_is_not_an_instance() -> None:
+    with pytest.raises(KeyError, match="is not registered"):
+        hash_object(_Point)
+
+
+def test_hash_object_dataclass_registered_hasher_wins() -> None:
+    registry = HasherRegistry()
+    _register_default_hashers(registry)
+    hasher = StrHasher()
+    registry.register(_Line, hasher)
+    assert registry.find_hasher(_Line) is hasher
+    assert isinstance(registry.find_hasher(_Point), DataclassHasher)
+
+
+def test_hash_object_supports_hash() -> None:
+    assert hash_object(_HasHash(), length=8) != hash_object(
+        _HasHash(), length=8, registry=HasherRegistry({object: StrHasher()})
+    )
+    assert hash_object(_HasHash()) == hash_object(_HasHash())
+
+
+def test_hash_object_dataclass_with_hash_method_uses_the_dataclass_hasher() -> None:
+    @dataclass
+    class Both:
+        x: int
+
+        def hash(
+            self,
+            registry: object = None,  # noqa: ARG002
+            length: int = 64,
+            ignore_unhashable: bool = False,  # noqa: ARG002
+        ) -> str:
+            return "b" * length
+
+    assert hash_object(Both(1)) != hash_object(Both(2))
+
+
+def test_hash_object_unregistered_type_raises() -> None:
+    class Plain: ...
+
+    with pytest.raises(KeyError, match="is not registered"):
+        hash_object(Plain())
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        pytest.param(UUID(int=1), id="uuid"),
+        pytest.param(Decimal("1.5"), id="decimal"),
+        pytest.param(Fraction(1, 3), id="fraction"),
+        pytest.param(range(3), id="range"),
+        pytest.param(ZoneInfo("UTC"), id="zoneinfo"),
+    ],
+)
+def test_hash_object_standard_library_values(data: object) -> None:
+    assert len(hash_object(data)) == 64
+    assert hash_object(data) == hash_object(data)
+
+
+def test_hash_object_standard_library_values_are_different() -> None:
+    assert hash_object(UUID(int=1)) != hash_object(UUID(int=2))
+    assert hash_object(UUID(int=1)) != hash_object(str(UUID(int=1)))
+    assert hash_object(ZoneInfo("UTC")) != hash_object(ZoneInfo("Europe/Paris"))
+    assert hash_object(Decimal(1)) != hash_object(1)
+    assert hash_object(Fraction(1, 1)) != hash_object(1)
+    assert hash_object(range(3)) != hash_object([0, 1, 2])
+
+
+def test_hash_object_equal_values_have_the_same_hash() -> None:
+    assert hash_object(Decimal("1.0")) == hash_object(Decimal("1.00"))
+    assert hash_object(Fraction(1, 2)) == hash_object(Fraction(2, 4))
+    assert hash_object(range(0)) == hash_object(range(5, 5))
+    assert hash_object({"k": [Decimal("1.0")]}) == hash_object({"k": [Decimal(1)]})
+
+
+@numpy_available
+@pytest.mark.parametrize(
+    ("scalar", "builtin"),
+    [
+        pytest.param("float32", 1.5, id="float32"),
+        pytest.param("float64", 1.5, id="float64"),
+        pytest.param("float16", 1.5, id="float16"),
+        pytest.param("int8", 3, id="int8"),
+        pytest.param("int64", 3, id="int64"),
+        pytest.param("uint16", 3, id="uint16"),
+        pytest.param("bool_", True, id="bool"),
+        pytest.param("complex64", 1 + 2j, id="complex64"),
+        pytest.param("complex128", 1 + 2j, id="complex128"),
+    ],
+)
+def test_hash_object_numpy_scalar_hashes_like_the_builtin_value(
+    scalar: str, builtin: object
+) -> None:
+    import numpy as np
+
+    assert hash_object(getattr(np, scalar)(builtin)) == hash_object(builtin)
+
+
+@numpy_available
+def test_hash_object_numpy_scalar_in_a_container() -> None:
+    import numpy as np
+
+    assert hash_object({"a": [np.float32(0.5), np.int64(2)]}) == hash_object({"a": [0.5, 2]})
+
+
+@numpy_available
+def test_hash_object_numpy_scalar_different_values() -> None:
+    import numpy as np
+
+    assert hash_object(np.float32(1.0)) != hash_object(np.float32(2.0))
+    assert hash_object(np.int64(1)) != hash_object(np.float64(1.0))
+    assert hash_object(np.bool_(True)) != hash_object(1)
+
+
+@numpy_available
+def test_hash_object_numpy_array_is_still_unsupported() -> None:
+    import numpy as np
+
+    with pytest.raises(KeyError, match="is not registered"):
+        hash_object(np.arange(3))

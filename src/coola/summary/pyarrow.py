@@ -10,7 +10,7 @@ __all__ = ["PyarrowArraySummarizer", "PyarrowTableSummarizer"]
 
 from typing import TYPE_CHECKING
 
-from coola.summary.metadata import BaseMetadataSummarizer, format_fields
+from coola.summary.metadata import BaseFieldsSummarizer, BaseMetadataSummarizer
 from coola.utils.imports import check_pyarrow, is_pyarrow_available
 
 if TYPE_CHECKING or is_pyarrow_available():
@@ -53,7 +53,7 @@ class PyarrowArraySummarizer(BaseMetadataSummarizer["pa.Array | pa.ChunkedArray"
         return [f"length={len(data)}", f"type={data.type}"]
 
 
-class PyarrowTableSummarizer(BaseMetadataSummarizer[pa.Table]):
+class PyarrowTableSummarizer(BaseFieldsSummarizer[pa.Table]):
     r"""Implement a summarizer for ``pyarrow.Table`` objects.
 
     By default, it displays the metadata (type, shape, columns with their
@@ -85,4 +85,4 @@ class PyarrowTableSummarizer(BaseMetadataSummarizer[pa.Table]):
 
     def _describe(self, data: pa.Table) -> list[str]:
         fields = [(field.name, field.type) for field in data.schema]
-        return [f"shape={data.shape}", f"columns={format_fields(fields)}"]
+        return [f"shape={data.shape}", f"columns={self._format_fields(fields)}"]

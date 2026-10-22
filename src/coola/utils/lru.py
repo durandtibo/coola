@@ -33,6 +33,12 @@ class LRUCache(Generic[K, V]):
     ``__iter__``, ``__delitem__``, ``keys``/``values``/``items``,
     ``clear``, ``pop``) needed to act as a drop-in cache store.
 
+    Warning:
+        The cache is **not thread-safe**, unlike the registries of
+        ``coola``: even a read (``__getitem__``, ``get``) modifies the
+        order of the entries. Protect it with a lock if it is shared
+        between threads.
+
     Args:
         maxsize: The maximum number of entries the cache holds. Must be
             a positive integer. Once a new entry would push the cache

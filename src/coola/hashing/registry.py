@@ -11,11 +11,14 @@ __all__ = ["HasherRegistry"]
 
 import threading
 import warnings
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from coola.hashing.base import Hasher
 from coola.hashing.string import hash_string
-from coola.registry import BaseTypeDispatchRegistry
+from coola.registry import BaseTypeDispatchRegistry, TypeNotRegisteredError
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 _state = threading.local()
 
@@ -73,6 +76,50 @@ class HasherRegistry(BaseTypeDispatchRegistry[Hasher[Any]]):
         ```
     """
 
+    def __init__(self, initial_state: dict[type, Hasher[Any]] | None = None) -> None:
+        super().__init__(initial_state=initial_state)
+        # Copy-on-write tuple: readers do not need a lock.
+        self._fallbacks: tuple[tuple[Callable[[type], bool], Hasher[Any]], ...] = ()
+
+    def _get_repr_kwargs(self) -> dict[str, Any]:
+        kwargs = super()._get_repr_kwargs()
+        if self._fallbacks:
+            kwargs["fallbacks"] = [hasher for _, hasher in self._fallbacks]
+        return kwargs
+
+    def register_fallback(self, predicate: Callable[[type], bool], hasher: Hasher[Any]) -> None:
+        r"""Register a hasher for the types that satisfy a predicate.
+
+        A type-keyed registry cannot express "any dataclass" or "any
+        class that defines a ``hash`` method". A fallback is used only
+        if no hasher is registered for the type or for one of its
+        parent types, so a hasher registered for a type always wins.
+        If several predicates match, the first registered one is used.
+        Note that registering a hasher for ``object`` makes the
+        fallbacks unreachable, since ``object`` matches every type.
+
+        Args:
+            predicate: A function that takes a type and returns ``True``
+                if ``hasher`` can hash the instances of this type.
+            hasher: The hasher to use for these types.
+
+        Example:
+            ```pycon
+            >>> from dataclasses import dataclass, is_dataclass
+            >>> from coola.hashing import DataclassHasher, HasherRegistry, SequenceHasher
+            >>> registry = HasherRegistry({list: SequenceHasher()})
+            >>> registry.register_fallback(is_dataclass, DataclassHasher())
+            >>> @dataclass
+            ... class Point:
+            ...     x: int
+            ...
+            >>> registry.find_hasher(Point)
+            DataclassHasher()
+
+            ```
+        """
+        self._fallbacks = (*self._fallbacks, (predicate, hasher))
+
     def has_hasher(self, data_type: type) -> bool:
         """Type-specific alias for :meth:`has`: check if a hasher is
         explicitly registered for the given type.
@@ -107,14 +154,18 @@ class HasherRegistry(BaseTypeDispatchRegistry[Hasher[Any]]):
 
         See :meth:`BaseTypeDispatchRegistry.find` for the full behavior
         description (MRO resolution, caching, and the ``KeyError`` on no
-        match).
+        match). If no hasher is registered for the type or its parent
+        types, the fallbacks (see :meth:`register_fallback`) are tried.
 
         Args:
             data_type: The Python type to find a hasher for.
 
         Returns:
             The most specific registered hasher for this type, resolved
-            via MRO, or the default hasher if no match is found.
+            via MRO, or the hasher of the first matching fallback.
+
+        Raises:
+            TypeNotRegisteredError: If no hasher is found.
 
         Example:
             ```pycon
@@ -128,7 +179,13 @@ class HasherRegistry(BaseTypeDispatchRegistry[Hasher[Any]]):
 
             ```
         """
-        return self.find(data_type)
+        try:
+            return self.find(data_type)
+        except TypeNotRegisteredError:
+            for predicate, hasher in self._fallbacks:
+                if predicate(data_type):
+                    return hasher
+            raise
 
     def hash(self, data: object, length: int = 64, ignore_unhashable: bool = False) -> str:
         r"""Hash the given data by recursively traversing its structure.
@@ -178,7 +235,7 @@ class HasherRegistry(BaseTypeDispatchRegistry[Hasher[Any]]):
         """
         try:
             hasher = self.find_hasher(type(data))
-        except KeyError:
+        except KeyError as exc:
             if ignore_unhashable:
                 warnings.warn(
                     f"No hasher registered for {type(data)!r}: using a type-only placeholder, "
@@ -187,6 +244,15 @@ class HasherRegistry(BaseTypeDispatchRegistry[Hasher[Any]]):
                     stacklevel=2,
                 )
                 return hash_string(f"<unhashable:{type(data)!r}>", length=length)
+            if isinstance(exc, TypeNotRegisteredError):
+                msg = (
+                    f"{exc}\nTo hash this type, register a hasher "
+                    f"(`register_hashers({{{type(data).__name__}: ...}})`), "
+                    "give the class a `hash()` method (see `SupportsHash`), "
+                    "or pass `ignore_unhashable=True` to hash a placeholder that only "
+                    "depends on the type."
+                )
+                raise TypeNotRegisteredError(msg) from exc
             raise
         active: set[int] | None = getattr(_state, "active", None)
         if active is None:
