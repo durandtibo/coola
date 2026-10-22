@@ -308,3 +308,49 @@ def test_default_equality_registry_has_the_io_testers_after_importing_coola_io()
         "registry.has_equality_tester(coola.io.BaseSaver))"
     )
     assert run_python(code) == ["True", "True"]
+
+
+#########################################################
+#     Tests for the save lock across several processes  #
+#########################################################
+
+_LOCKED_WRITER_SCRIPT = """
+import sys
+import time
+from pathlib import Path
+
+from coola.io.base import _save_lock
+
+path, log, name, hold = Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3], float(sys.argv[4])
+with _save_lock(path, stale_after=0.3):
+    with log.open("a") as f:
+        f.write(f"{name} start\\n")
+    time.sleep(hold)
+    with log.open("a") as f:
+        f.write(f"{name} end\\n")
+"""
+
+
+def test_save_lock_serializes_two_processes_even_if_the_save_outlasts_stale_after(
+    tmp_path: Path,
+) -> None:
+    # Each process holds the lock for 1s, which is longer than ``stale_after``
+    # (0.3s): the heartbeat must keep the lock alive, otherwise the second
+    # process breaks it and both write at the same time.
+    path = tmp_path.joinpath("data.txt")
+    log = tmp_path.joinpath("log.txt")
+    children = [
+        subprocess.Popen(  # noqa: S603
+            [sys.executable, "-c", _LOCKED_WRITER_SCRIPT, str(path), str(log), name, "1.0"],
+        )
+        for name in ("a", "b")
+    ]
+    for child in children:
+        assert child.wait(timeout=60) == 0
+
+    events = [line.split() for line in log.read_text().splitlines()]
+    assert len(events) == 4
+    assert [event for _, event in events] == ["start", "end", "start", "end"]
+    assert events[0][0] == events[1][0]
+    assert events[2][0] == events[3][0]
+    assert not tmp_path.joinpath("data.txt.lock").is_file()
