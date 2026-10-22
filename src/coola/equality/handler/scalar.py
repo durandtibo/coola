@@ -121,6 +121,10 @@ def number_equal(number1: float, number2: float, config: EqualityConfig) -> bool
         # ``complex`` and drop the imaginary part for ``numpy.complex64``).
         if not isinstance(number1, numbers.Real) or not isinstance(number2, numbers.Real):
             return cmath.isclose(number1, number2, abs_tol=config.atol, rel_tol=config.rtol)
+        if isinstance(number1, int) and isinstance(number2, int):
+            # Exact arithmetic: converting large integers to ``float`` rounds them.
+            # NumPy integers are not ``int`` and keep the ``float`` comparison.
+            return int_isclose(number1, number2, rtol=config.rtol, atol=config.atol)
         try:
             return math.isclose(number1, number2, abs_tol=config.atol, rel_tol=config.rtol)
         except OverflowError:

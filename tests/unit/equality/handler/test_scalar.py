@@ -289,6 +289,12 @@ def test_number_equal_huge_int_tolerance() -> None:
     assert number_equal(big, big + 1, EqualityConfig(atol=1.0))
 
 
+def test_number_equal_large_ints_are_not_rounded_to_float() -> None:
+    config = EqualityConfig(rtol=0.0, atol=1e-8)
+    assert not number_equal(2**60, 2**60 + 1, config)
+    assert number_equal(2**60, 2**60, config)
+
+
 def test_number_equal_huge_int_and_infinity() -> None:
     assert not number_equal(10**400, float("inf"), EqualityConfig(rtol=1e-5))
 
