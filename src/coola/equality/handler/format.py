@@ -18,11 +18,14 @@ if TYPE_CHECKING:
 
 logger: logging.Logger = logging.getLogger(__name__)
 
+# Sentinel for "no key": ``None`` is a valid mapping key.
+_NO_KEY: Any = object()
+
 
 def format_mapping_difference(
     missing_keys: set[Any] | None = None,
     additional_keys: set[Any] | None = None,
-    different_value_key: Any | None = None,
+    different_value_key: Any = _NO_KEY,
     different_key_order: tuple[Sequence[Any], Sequence[Any]] | None = None,
 ) -> str:
     r"""Format a user-friendly difference message for mappings.
@@ -31,6 +34,7 @@ def format_mapping_difference(
         missing_keys: Keys present in actual but not in expected.
         additional_keys: Keys present in expected but not in actual.
         different_value_key: A key with different values in both mappings.
+            ``None`` is a valid key; omit the argument for no key.
         different_key_order: The keys of actual and the keys of expected,
             in iteration order, when the mappings have the same keys in
             a different order.
@@ -64,7 +68,7 @@ def format_mapping_difference(
             lines.append(f"  missing keys    : {sorted(missing_keys, key=str)}")
         if additional_keys:
             lines.append(f"  additional keys : {sorted(additional_keys, key=str)}")
-    if different_value_key is not None:
+    if different_value_key is not _NO_KEY:
         # Just show which key has different values, not the full objects
         lines.append(f"mappings have different values for key {different_value_key!r}")
     if different_key_order is not None:

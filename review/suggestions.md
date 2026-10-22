@@ -26,11 +26,53 @@ appears in both `summarize` and `hash_object`).
 Priority: **P1** wrong result or leak on realistic input, **P2** inconsistent or surprising behaviour,
 **P3** cleanup.
 
+## Status (updated 2026-10-22)
+
+Checked against the git history up to `5008f540`. "Fixed" means a merged commit addresses the item;
+the PR number is given. Items not listed are **open**.
+
+### Part A
+
+| ID   | Status         | Notes                                                                                                                                                                                                   |
+| ---- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.1  | Fixed (#2070)  | Negative `show_first`/`show_last` rejected.                                                                                                                                                             |
+| 1.2  | Fixed (#2071)  | Default summarizer survives `str`/`repr` failures.                                                                                                                                                      |
+| 1.3  | Fixed (#2072)  | Object-dtype arrays compared element-wise (also 5.1). Masked-array note not documented.                                                                                                                 |
+| 1.4  | Fixed (#2073)  | Sparse and meta tensors supported.                                                                                                                                                                      |
+| 1.5  | Partly (#2074) | Sets and ranges converted; `save_json` limits documented. Non-string keys, `nan`/`inf`, `Path`, `datetime` still not converted by `convert_to_jsonable`.                                                |
+| 1.6  | Fixed (#2075)  | Line endings preserved.                                                                                                                                                                                 |
+| 1.7  | Fixed (#2076)  | Seed validated once before seeding.                                                                                                                                                                     |
+| 1.8  | Fixed (#2077)  | Negative/non-finite durations; `str_indent` skips empty lines.                                                                                                                                          |
+| 1.9  | Fixed (#2078)  | Compound suffix allow-list.                                                                                                                                                                             |
+| 1.10 | Mostly (#2079) | Fixed: `verify_checksummed_id`, nano ID alphabet, `get_file_size`, `get_current_branch` (documented), `temp_env_vars` (documented), `check_env_vars` level. Not checked/open: `get_password` TTY check. |
+| 2.1  | Fixed (#2083)  | Default hashers for NumPy, torch, JAX, pandas, polars, PyArrow, xarray.                                                                                                                                 |
+| 2.2  | Fixed (#2081)  | PyArrow numeric columns honour `equal_nan`, `atol`, `rtol` (also 5.11 in part).                                                                                                                         |
+| 2.3  | Partly (#2080) | Description and keywords updated. The 3.15 classifier and Development Status were not addressed.                                                                                                        |
+| 2.4  | Open           | Scope of `utils`.                                                                                                                                                                                       |
+| 2.5  | Open           | `seed_everything` context manager.                                                                                                                                                                      |
+| 3    | Partly         | Cross-module property tests added (#2084); `make clean` added (#2085). Regression tests exist for the fixed items; Windows runner, mutation testing, coverage `fail_under` still open.                  |
+
+### Part B
+
+| ID   | Status             | Notes                                                                                              |
+| ---- | ------------------ | -------------------------------------------------------------------------------------------------- |
+| 5.1  | Fixed (#2072)      | Same fix as 1.3.                                                                                   |
+| 5.2  | Fixed (#2095)      | Testers for pandas `Index` and extension arrays. Scipy sparse not checked.                         |
+| 5.5  | Fixed (#2096)      | Nested polars NaN detected.                                                                        |
+| 5.7  | Documented (#2094) | Scalar comparison rules documented, behaviour unchanged.                                           |
+| 5.8  | Fixed (#2097)      | Dataclass fields and attributes in the `compare` path. `coola_path_kind` not checked.              |
+| 5.13 | Fixed (#2092)      | Default `max_depth` lowered to 100.                                                                |
+| 5.14 | Partly (#2091)     | Exact integer comparison with a tolerance. Complex NaN parts not addressed.                        |
+| 5.15 | Partly (#2098)     | Duplicate validation, config comments and the sequence set per call cleaned up. Other points open. |
+
+All other items in sections 5 to 10 (including 6.x, 7.x, 8.x, 9.x, 10.x) have no matching commit and are **open**.
+The earlier "Suggested order" lists below are unchanged.
+
 ---
 
 ## 1. Correctness and robustness
 
-### 1.1 `mask_secret` leaks the secret with negative arguments **[verified]** (P1)
+### 1.1 `mask_secret` leaks the secret with negative arguments **[verified]** (P1) — **Fixed (#2070)**
 
 `utils/secret.py` never validates `show_first` / `show_last`. Python slicing turns a negative value into
 "all but the last N":
@@ -47,7 +89,7 @@ Reject negative values with `validate_ge(..., 0)` (the `validation` module is al
 short secrets (`'*' * len(secret)`); a fixed-width mask is the safer default for a function named
 `mask_secret`.
 
-### 1.2 `summarize` raises on values that cannot be converted to `str` **[verified]** (P1)
+### 1.2 `summarize` raises on values that cannot be converted to `str` **[verified]** (P1) — **Fixed (#2071)**
 
 `summarize` is the function used to build error and log messages, so it should never be the thing that
 fails.
@@ -61,7 +103,7 @@ The default summarizer calls `str(data)` / `repr(data)` before truncating. Wrap 
 `try/except Exception` that falls back to `<ClassName object at 0x...>`, and truncate big integers by
 `int.bit_length()` rather than converting them.
 
-### 1.3 `equal_nan=True` is ignored for object-dtype NumPy arrays **[verified]** (P2)
+### 1.3 `equal_nan=True` is ignored for object-dtype NumPy arrays **[verified]** (P2) — **Fixed (#2072)**
 
 ```python
 a = np.array([np.nan], dtype=object)
@@ -74,7 +116,7 @@ PyArrow tester does. Related: `np.ma.MaskedArray` with different data under the 
 (`eq(ma([1, 2], mask=[0, 1]), ma([1, 9], mask=[0, 1]))` is `False`). That is defensible, but it is not
 documented and the masked entries are not the user-visible values.
 
-### 1.4 Torch sparse and `meta` tensors crash instead of comparing **[verified]** (P2)
+### 1.4 Torch sparse and `meta` tensors crash instead of comparing **[verified]** (P2) — **Fixed (#2073)**
 
 ```python
 objects_are_equal(
@@ -91,7 +133,7 @@ contract. Handle `layout != torch.strided` (compare `to_dense()`, or indices and
 `TypeError` that names the tensor kind. `summarize` already handles meta tensors, so the support
 is inconsistent across modules.
 
-### 1.5 `convert_to_jsonable` does not produce JSON **[verified]** (P2)
+### 1.5 `convert_to_jsonable` does not produce JSON **[verified]** (P2) — **Partly fixed (#2074)**
 
 The docstring says "JSON-compatible representation", but only dataclasses and pydantic models are
 converted:
@@ -109,14 +151,14 @@ to `str`, `datetime` to ISO format. The same applies to `save_json`: int keys si
 the round trip (`{1: 'a'}` loads as `{'1': 'a'}`) and `NaN` is written as the non-standard token `NaN`.
 Pass `allow_nan=False` by default or document both.
 
-### 1.6 Text round trip is not lossless **[verified]** (P2)
+### 1.6 Text round trip is not lossless **[verified]** (P2) — **Fixed (#2075)**
 
 `save_text("a\r\nb\rc", p); load_text(p)` returns `'a\nb\nc'`: `TextLoader` opens the file in text mode with
 universal newlines, so `\r\n` and `\r` are rewritten. On Windows `TextSaver` also translates `\n` to
 `\r\n`. Open both with `newline=""`, or add a `newline` option and say so in the docstring. The same
 applies to `JsonLoader`/`JsonSaver`, which are less affected because JSON escapes control characters.
 
-### 1.7 `manual_seed` can leave the generators half-seeded **[verified]** (P2)
+### 1.7 `manual_seed` can leave the generators half-seeded **[verified]** (P2) — **Fixed (#2076)**
 
 `manual_seed(2**70)` raises `ValueError: Overflow when unpacking long long` from the torch manager
 _after_ `random` and NumPy were already seeded (NumPy uses `seed % 2**32`, so it accepts anything).
@@ -125,7 +167,7 @@ Two consequences: the global state is partially changed when the call fails, and
 Validate the seed once in `manual_seed` (`0 <= seed < 2**63`, an `int`) before calling the managers, and
 state the range in the docstring. Negative seeds are currently accepted by two of the three backends.
 
-### 1.8 `str_time_human` on negative, NaN and infinite durations **[verified]** (P3)
+### 1.8 `str_time_human` on negative, NaN and infinite durations **[verified]** (P3) — **Fixed (#2077)**
 
 ```python
 str_time_human(-5)  # '-1 day, 23:59:55'
@@ -138,14 +180,14 @@ Handle the sign explicitly (`'-0:00:05'`) and raise a message that names the arg
 `str_human_byte_size` and `make_bar` do. Also `str_indent("a\nb\n", 2)` returns `'a\n  b\n  '`, which
 indents the empty last line and leaves trailing whitespace; skip empty lines.
 
-### 1.9 `add_uuid_suffix` treats dots in the stem as an extension **[verified]** (P3)
+### 1.9 `add_uuid_suffix` treats dots in the stem as an extension **[verified]** (P3) — **Fixed (#2078)**
 
 `add_uuid_suffix(Path("v1.2.model"))` gives `v1-<uuid>.2.model` because `''.join(path.suffixes)` takes
 every dotted part. That is deliberate for `.tar.gz`, but a version number in a file name is common.
 Limit the compound suffix to a known allow-list (`.tar.gz`, `.tar.bz2`, `.tar.xz`, ...) and use
 `path.suffix` otherwise.
 
-### 1.10 Smaller correctness leads (P3)
+### 1.10 Smaller correctness leads (P3) — **Mostly fixed (#2079)**
 
 - `verify_checksummed_id(None)` raises `AttributeError`; a verifier should return `False` for non-`str`
   input (or raise a `TypeError`).
@@ -165,7 +207,7 @@ Limit the compound suffix to a known allow-list (`.tar.gz`, `.tar.bz2`, `.tar.xz
 
 ## 2. Design and API
 
-### 2.1 Equality, hashing and summaries cover different sets of types (P2) **[verified]**
+### 2.1 Equality, hashing and summaries cover different sets of types (P2) **[verified]** — **Fixed (#2083)**
 
 _Still open from earlier review item 2.1, which fixed only the scalar and standard-library types._
 `hash_object(np.arange(3))` raises `TypeNotRegisteredError`, and the same happens for torch, pandas,
@@ -175,7 +217,7 @@ polars, xarray and PyArrow objects, while equality supports all of them. For the
 DataFrames as their column names plus a per-column hash. Keep it opt-in per library, as in the equality
 registry, so the import cost stays zero.
 
-### 2.2 PyArrow ignores `atol`, `rtol` and `equal_nan` (P2) **[verified]**
+### 2.2 PyArrow ignores `atol`, `rtol` and `equal_nan` (P2) **[verified]** — **Fixed (#2081)**
 
 `objects_are_allclose(pa.table(...), pa.table(...))` warns and compares exactly, and with
 `equal_nan=True` two arrays of `nan` are unequal (`False`). This is documented and
@@ -185,7 +227,7 @@ probably already has the right structure) would close it. If not, make the warni
 error (`config.strict=True`) so that a test cannot pass on an exact comparison when the user asked for a
 tolerance.
 
-### 2.3 Python 3.15 is in the classifiers while the version is `1.2.0a2` (P3)
+### 2.3 Python 3.15 is in the classifiers while the version is `1.2.0a2` (P3) — **Partly fixed (#2080)**
 
 `pyproject.toml` declares `Development Status :: 5 - Production/Stable` for an alpha version, and lists 3.15.
 Either drop the 3.15 classifier until it is in the required CI matrix, or confirm the matrix has it.
@@ -193,7 +235,7 @@ The `description` ("Library to check equality between two complex/nested objects
 it now ships hashing, summaries, identifiers, I/O, random-state management and filesystem utilities. The
 keywords are all about array libraries; add `hashing`, `summary`, `identifiers`.
 
-### 2.4 Scope: `utils` keeps growing into unrelated territory (P3)
+### 2.4 Scope: `utils` keeps growing into unrelated territory (P3) — **Open**
 
 _Related to scope item 1 of `src-coola-review.md`._ `utils/git.py`, `utils/password.py`, `utils/secret.py`,
 `utils/bloom_filter.py`, `utils/file_size.py`, `utils/env_vars.py` and `identifier/` have nothing to do
@@ -202,7 +244,7 @@ version, document and secure (item 1.1 is a leak in one of them). Options: move 
 labelled `coola.contrib` or a separate `coola-utils` distribution, or mark them in the docs as
 "not part of the stable API" until that is decided.
 
-### 2.5 `random` has no way to scope a seed across all backends in one context manager (P3)
+### 2.5 `random` has no way to scope a seed across all backends in one context manager (P3) — **Open**
 
 `random_seed`, `numpy_seed` and `torch_seed` are per-backend; `manual_seed` is global and permanent. The
 common test need is "seed everything and restore afterwards". A single `seed_everything(seed)` context

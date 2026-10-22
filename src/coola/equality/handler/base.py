@@ -332,20 +332,34 @@ class BaseEqualityHandler(ABC):
             handler: The next handler.
 
         Raises:
-            HandlerCycleError: if the next handler is self.
+            HandlerCycleError: if the next handler is self or its chain
+                contains self.
             TypeError: if the next handler is not a BaseEqualityHandler.
         """
         if handler is None:
             return
-        if handler is self:
-            msg = "Cycle detected! the current handler cannot be its next handler"
-            raise HandlerCycleError(msg)
         if not isinstance(handler, BaseEqualityHandler):
             msg = (
                 f"Incorrect type for 'handler'. Expected "
                 f"{BaseEqualityHandler} but received {type(handler)}"
             )
             raise TypeError(msg)
+        # The handler is accepted only if ``self`` is not in the chain that
+        # starts at ``handler``, otherwise the chain would loop forever.
+        visited: set[int] = set()
+        current: BaseEqualityHandler | None = handler
+        # ``type`` is used because test doubles (``Mock(spec=...)``) pass
+        # ``isinstance`` and invent a new ``next_handler`` on every access.
+        while (
+            current is not None
+            and issubclass(type(current), BaseEqualityHandler)
+            and id(current) not in visited
+        ):
+            if current is self:
+                msg = "Cycle detected! the current handler cannot be its next handler"
+                raise HandlerCycleError(msg)
+            visited.add(id(current))
+            current = current.next_handler
 
     def __repr__(self) -> str:
         if self.next_handler is not None:

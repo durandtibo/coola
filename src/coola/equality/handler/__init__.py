@@ -8,6 +8,7 @@ from __future__ import annotations
 
 __all__ = [
     "AllCloseNanHandler",
+    "AttributeName",
     "BaseEqualityHandler",
     "DataclassSameFieldsHandler",
     "EqualHandler",
@@ -24,6 +25,8 @@ __all__ = [
     "NumpyArrayEqualHandler",
     "ObjectEqualHandler",
     "PandasDataFrameEqualHandler",
+    "PandasExtensionArrayEqualHandler",
+    "PandasIndexEqualHandler",
     "PandasSeriesEqualHandler",
     "PolarsDataFrameEqualHandler",
     "PolarsLazyFrameEqualHandler",
@@ -74,6 +77,8 @@ from coola.equality.handler.native import (
 from coola.equality.handler.numpy import NumpyArrayEqualHandler
 from coola.equality.handler.pandas import (
     PandasDataFrameEqualHandler,
+    PandasExtensionArrayEqualHandler,
+    PandasIndexEqualHandler,
     PandasSeriesEqualHandler,
 )
 from coola.equality.handler.polars import (
@@ -91,6 +96,7 @@ from coola.equality.handler.torch import (
     TorchTensorSameDeviceHandler,
 )
 from coola.equality.handler.utils import (
+    AttributeName,
     MaxDepthExceededError,
     check_recursion_depth,
     create_chain,

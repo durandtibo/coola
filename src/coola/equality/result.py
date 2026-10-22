@@ -13,9 +13,9 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from coola.equality.config import EqualityConfig
+from coola.equality.handler.utils import AttributeName
 from coola.equality.interface import _compare
 from coola.equality.tester.interface import get_default_registry
-from coola.validation import validate_non_negative
 
 if TYPE_CHECKING:
     from coola.equality.tester.registry import EqualityTesterRegistry
@@ -32,7 +32,9 @@ class ComparisonResult:
     Attributes:
         equal: ``True`` if the objects are equal.
         path: The location of the first difference, e.g. ``("a", 2)``
-            for ``actual["a"][2]``. Empty if equal, or if the
+            for ``actual["a"][2]``. The attributes (the fields of a
+            dataclass) are ``AttributeName`` instances and are
+            formatted as ``.name``. Empty if equal, or if the
             difference is at the root.
         reason: A description of the first difference found, or
             ``None`` if the objects are equal.
@@ -75,7 +77,9 @@ class ComparisonResult:
         Returns:
             The formatted path, e.g. ``data['a'][2]``.
         """
-        return root + "".join(f"[{key!r}]" for key in self.path)
+        return root + "".join(
+            f".{key}" if isinstance(key, AttributeName) else f"[{key!r}]" for key in self.path
+        )
 
     def format_message(self, root: str = "actual") -> str:
         r"""Format a human-readable description of the result.
@@ -101,7 +105,7 @@ def compare(
     equal_nan: bool = False,
     atol: float = 0.0,
     rtol: float = 0.0,
-    max_depth: int = 1000,
+    max_depth: int = 100,
     registry: EqualityTesterRegistry | None = None,
 ) -> ComparisonResult:
     r"""Compare two objects and explain the first difference.
@@ -148,8 +152,6 @@ def compare(
 
         ```
     """
-    validate_non_negative(atol, name="atol")
-    validate_non_negative(rtol, name="rtol")
     if registry is None:
         registry = get_default_registry()
     config = EqualityConfig(
@@ -186,7 +188,7 @@ def assert_objects_allclose(
     rtol: float = 1e-5,
     atol: float = 1e-8,
     equal_nan: bool = False,
-    max_depth: int = 1000,
+    max_depth: int = 100,
     registry: EqualityTesterRegistry | None = None,
     root: str = "actual",
 ) -> None:
@@ -241,7 +243,7 @@ def assert_objects_equal(
     expected: object,
     *,
     equal_nan: bool = False,
-    max_depth: int = 1000,
+    max_depth: int = 100,
     registry: EqualityTesterRegistry | None = None,
     root: str = "actual",
 ) -> None:

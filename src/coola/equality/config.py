@@ -50,7 +50,7 @@ class EqualityConfig:
         show_difference: If ``True``, shows differences between
             non-equal objects. Defaults to ``False``.
         max_depth: Maximum recursion depth for nested object
-            comparisons. Must be positive. Defaults to 1000.
+            comparisons. Must be positive. Defaults to 100.
             Set to a lower value to protect against stack overflow
             with extremely deeply nested structures.
         reporter: An optional callable that receives the differences
@@ -69,7 +69,7 @@ class EqualityConfig:
         >>> from coola.equality.config import EqualityConfig
         >>> config = EqualityConfig()
         >>> config
-        EqualityConfig(registry=EqualityTesterRegistry(...), equal_nan=False, atol=0.0, rtol=0.0, show_difference=False, max_depth=1000)
+        EqualityConfig(registry=EqualityTesterRegistry(...), equal_nan=False, atol=0.0, rtol=0.0, show_difference=False, max_depth=100)
 
         ```
     """
@@ -79,24 +79,24 @@ class EqualityConfig:
     atol: float = 0.0
     rtol: float = 0.0
     show_difference: bool = False
-    # With the default Python recursion limit (1000 frames) and several frames per
-    # nesting level, the interpreter limit is usually reached before ``max_depth``;
-    # ``max_depth`` is a guard that the user can lower (the cycles do not need it,
-    # they are detected with ``_in_progress``).
-    max_depth: int = 1000
+    # With the default Python recursion limit (1000 frames) and about 6 frames per
+    # nesting level, the interpreter limit is reached at roughly 150 levels, so the
+    # default is below it and the clear ``MaxDepthExceededError`` comes first (the
+    # cycles do not need it, they are detected with ``_in_progress``).
+    max_depth: int = 100
     reporter: Callable[[str, tuple[object, ...]], None] | None = field(
         default=None, repr=False, compare=False
     )
     # Internal state of one comparison: a config must not be shared by
     # concurrent comparisons (each ``objects_are_*`` call creates its own).
     _current_depth: int = field(default=0, init=False, repr=False, compare=False)
-    # ``(id(actual), id(expected))`` of the pairs being compared, used to detect
-    # the cycles (see ``track_comparison``). The ids are safe to use as keys
-    # because the pairs are alive during the whole comparison.
     # The names of the ignored settings (``equal_nan``, ``atol``, ``rtol``) that were
     # already reported in a warning, so a comparison warns once per setting and not for
     # each object (see ``warn_ignored_setting``).
     _warned: set[str] = field(default_factory=set, init=False, repr=False, compare=False)
+    # ``(id(actual), id(expected))`` of the pairs being compared, used to detect
+    # the cycles (see ``track_comparison``). The ids are safe to use as keys
+    # because the pairs are alive during the whole comparison.
     _in_progress: set[tuple[int, int]] = field(
         default_factory=set, init=False, repr=False, compare=False
     )
