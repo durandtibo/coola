@@ -6,6 +6,11 @@ identifiers for nested data structures and for time-ordered records.
 **Prerequisites:** You'll need to know a bit of Python.
 For a refresher, see the [Python tutorial](https://docs.python.org/tutorial/).
 
+!!! warning "Not part of the stable API"
+
+    The identifier generators are not used by the comparison features of `coola`. They may be moved
+    to a separate package in a future release, with a deprecation period.
+
 ## Overview
 
 The `coola.identifier` package provides several identifier generators, covering two different

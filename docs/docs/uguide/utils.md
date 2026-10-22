@@ -41,6 +41,12 @@ comparing, summarizing or transforming data, so do not look for `coola`'s core f
 | `coola.utils.version`      | Version of an installed package                           |
 | `coola.utils.batching`     | Split an iterable in batches                              |
 
+!!! warning "Not part of the stable API"
+
+    The general helpers above are **not part of the stable API**: they may be moved to a separate
+    package (or to a `contrib` namespace) or removed in a future release, with a deprecation
+    period. Do not build on them if you need long-term stability.
+
 ## Import Utilities (`coola.utils.imports`)
 
 ### Checking Package Availability
