@@ -2,6 +2,8 @@ r"""Define utility functions for secrets."""
 
 from __future__ import annotations
 
+from coola.validation import validate_ge
+
 __all__ = ["mask_secret"]
 
 
@@ -20,6 +22,9 @@ def mask_secret(secret: str, show_first: int = 3, show_last: int = 4) -> str:
     Returns:
         The masked secret.
 
+    Raises:
+        ValueError: If ``show_first`` or ``show_last`` is negative.
+
     Example:
         ```pycon
         >>> from coola.utils.secret import mask_secret
@@ -35,6 +40,8 @@ def mask_secret(secret: str, show_first: int = 3, show_last: int = 4) -> str:
 
         ```
     """
+    validate_ge(show_first, 0, name="show_first")
+    validate_ge(show_last, 0, name="show_last")
     if len(secret) <= show_first + show_last:
         return "*" * len(secret)
     suffix = secret[-show_last:] if show_last > 0 else ""
