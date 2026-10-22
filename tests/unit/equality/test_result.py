@@ -460,6 +460,13 @@ def test_compare_different_has_the_representations() -> None:
     assert result.expected == "[2]"
 
 
+def test_compare_different_with_failing_repr() -> None:
+    result = compare([NoRepr()], [NoRepr()])
+    assert not result.equal
+    assert result.actual == "<unrepresentable list object>"
+    assert result.expected == "<unrepresentable list object>"
+
+
 @dataclasses.dataclass
 class _Inner:
     x: int

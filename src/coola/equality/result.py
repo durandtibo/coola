@@ -39,7 +39,8 @@ class ComparisonResult:
         reason: A description of the first difference found, or
             ``None`` if the objects are equal.
         actual: The ``repr`` of the actual object if the objects are
-            different, otherwise an empty string. The ``repr`` is not
+            different (a placeholder if its ``__repr__`` raises),
+            otherwise an empty string. The ``repr`` is not
             computed for equal objects because it can be expensive for
             large objects.
         expected: The ``repr`` of the expected object if the objects
@@ -177,8 +178,17 @@ def compare(
         path.extend(location)
     reason = reports[0][0] if reports else None
     return ComparisonResult(
-        False, tuple(path), reason, actual=repr(actual), expected=repr(expected)
+        False, tuple(path), reason, actual=_safe_repr(actual), expected=_safe_repr(expected)
     )
+
+
+def _safe_repr(obj: object) -> str:
+    """Return ``repr(obj)``, or a placeholder if ``__repr__`` raises, so a
+    broken ``__repr__`` cannot hide the comparison result."""
+    try:
+        return repr(obj)
+    except Exception:  # noqa: BLE001
+        return f"<unrepresentable {type(obj).__qualname__} object>"
 
 
 def assert_objects_allclose(
