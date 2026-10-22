@@ -96,7 +96,8 @@ def convert_to_jsonable(data: Any) -> Any:
     This function walks through nested containers (e.g. ``list``,
     ``tuple``, ``dict``) and applies ``coola.utils.conversion.to_jsonable``
     to every object, converting ``pydantic.BaseModel`` and dataclass
-    objects found at any depth. Use ``to_jsonable`` directly if the data
+    objects found at any depth (see ``to_jsonable`` for the supported
+    types and the limits: keys are not converted, ``NaN`` is kept). Use ``to_jsonable`` directly if the data
     is a single, non-nested object.
 
     Args:
@@ -119,4 +120,19 @@ def convert_to_jsonable(data: Any) -> Any:
 
         ```
     """
-    return recursive_apply(data, to_jsonable)
+    return _sets_to_lists(recursive_apply(data, to_jsonable))
+
+
+def _sets_to_lists(data: Any) -> Any:
+    r"""Convert the sets found in the converted data to lists.
+
+    ``recursive_apply`` treats a set as a container and rebuilds a set,
+    so the sets are converted after the elements.
+    """
+    if isinstance(data, (set, frozenset)):
+        return to_jsonable(data)
+    if isinstance(data, dict):
+        return {key: _sets_to_lists(value) for key, value in data.items()}
+    if type(data) in {list, tuple}:  # not the subclasses, e.g. namedtuple
+        return type(data)(_sets_to_lists(value) for value in data)
+    return data

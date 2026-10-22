@@ -73,6 +73,12 @@ class JsonSaver(InlineDisplayMixin, BaseFileSaver[T]):
         **kwargs: Additional arguments passed to ``json.dump``, e.g.
             ``indent`` or ``sort_keys``.
 
+    Note:
+        JSON has only string keys: ``int`` keys are loaded back as
+        ``str``. ``NaN`` and infinite floats are written as the
+        non-standard ``NaN``/``Infinity`` tokens unless
+        ``allow_nan=False`` is passed (which raises a ``ValueError``).
+
     Example:
         ```pycon
         >>> import tempfile

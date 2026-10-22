@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 
 import pytest
@@ -214,3 +215,10 @@ def test_convert_to_json_dict_of_torch_tensors() -> None:
         "a": [1, 2],
         "b": [3, 4],
     }
+
+
+def test_convert_to_jsonable_set_and_range() -> None:
+    data = {"a": {3, 1, 2}, "b": [frozenset({"x"})], "c": range(2)}
+    out = convert_to_jsonable(data)
+    assert out == {"a": [1, 2, 3], "b": [["x"]], "c": [0, 1]}
+    json.dumps(out)

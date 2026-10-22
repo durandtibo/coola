@@ -239,3 +239,16 @@ def test_to_jsonable_uuid() -> None:
 
 def test_to_jsonable_new_types_are_json_serializable() -> None:
     assert json.dumps([to_jsonable(x) for x in (b"a", Decimal(1), UUID(int=2))])
+
+
+def test_to_jsonable_set_sorted() -> None:
+    assert to_jsonable({3, 1, 2}) == [1, 2, 3]
+    assert to_jsonable(frozenset({"b", "a"})) == ["a", "b"]
+
+
+def test_to_jsonable_set_not_comparable() -> None:
+    assert sorted(to_jsonable({1, "a"}), key=str) == [1, "a"]
+
+
+def test_to_jsonable_range() -> None:
+    assert to_jsonable(range(3)) == [0, 1, 2]
