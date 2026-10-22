@@ -2,7 +2,12 @@ r"""Contain some utility functions to convert nested data structure."""
 
 from __future__ import annotations
 
-__all__ = ["convert_to_dict_of_lists", "convert_to_jsonable", "convert_to_list_of_dicts"]
+__all__ = [
+    "convert_to_dict_of_lists",
+    "convert_to_jsonable",
+    "convert_to_list_of_dicts",
+    "sorted_list",
+]
 
 from typing import TYPE_CHECKING, Any
 
@@ -10,7 +15,7 @@ from coola.recursive import recursive_apply
 from coola.utils.conversion import to_jsonable
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Iterable, Mapping, Sequence
 
 
 def convert_to_dict_of_lists(
@@ -97,8 +102,9 @@ def convert_to_jsonable(data: Any) -> Any:
     ``tuple``, ``dict``) and applies ``coola.utils.conversion.to_jsonable``
     to every object, converting ``pydantic.BaseModel`` and dataclass
     objects found at any depth (see ``to_jsonable`` for the supported
-    types and the limits: keys are not converted, ``NaN`` is kept). Use ``to_jsonable`` directly if the data
-    is a single, non-nested object.
+    types and the limits: keys are not converted, ``NaN`` is kept).
+    Sets are converted to sorted lists. Use ``to_jsonable`` directly if
+    the data is a single, non-nested object.
 
     Args:
         data: The nested data structure to convert.
@@ -130,9 +136,36 @@ def _sets_to_lists(data: Any) -> Any:
     so the sets are converted after the elements.
     """
     if isinstance(data, (set, frozenset)):
-        return to_jsonable(data)
+        return sorted_list(data)
     if isinstance(data, dict):
         return {key: _sets_to_lists(value) for key, value in data.items()}
     if type(data) in {list, tuple}:  # not the subclasses, e.g. namedtuple
         return type(data)(_sets_to_lists(value) for value in data)
     return data
+
+
+def sorted_list(values: Iterable[Any]) -> list[Any]:
+    r"""Convert an iterable (e.g. a set) to a list, sorted when the
+    values are comparable so the output is deterministic.
+
+    Args:
+        values: The values to convert.
+
+    Returns:
+        The values as a sorted list, or in iteration order if they
+            cannot be compared.
+
+    Example:
+        ```pycon
+        >>> from coola.nested import sorted_list
+        >>> sorted_list({3, 1, 2})
+        [1, 2, 3]
+        >>> sorted_list({1, "a"}) == [1, "a"] or sorted_list({1, "a"}) == ["a", 1]
+        True
+
+        ```
+    """
+    try:
+        return sorted(values)
+    except TypeError:
+        return list(values)

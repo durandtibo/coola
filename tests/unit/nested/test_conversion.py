@@ -9,6 +9,7 @@ from coola.nested import (
     convert_to_dict_of_lists,
     convert_to_jsonable,
     convert_to_list_of_dicts,
+    sorted_list,
 )
 from coola.testing.fixtures import numpy_available, pydantic_available, torch_available
 from coola.utils.imports import (
@@ -222,3 +223,12 @@ def test_convert_to_jsonable_set_and_range() -> None:
     out = convert_to_jsonable(data)
     assert out == {"a": [1, 2, 3], "b": [["x"]], "c": [0, 1]}
     json.dumps(out)
+
+
+def test_sorted_list() -> None:
+    assert sorted_list({3, 1, 2}) == [1, 2, 3]
+    assert sorted_list(frozenset({"b", "a"})) == ["a", "b"]
+
+
+def test_sorted_list_not_comparable() -> None:
+    assert sorted(sorted_list({1, "a"}), key=str) == [1, "a"]

@@ -45,9 +45,9 @@ def to_jsonable(data: Any) -> Any:
     ``numpy.ndarray``, ``numpy`` scalar, ``torch.Tensor``,
     ``pathlib`` path, ``datetime.date``/``datetime.datetime``,
     ``decimal.Decimal``, ``uuid.UUID``, ``bytes``/``bytearray`` and
-    ``enum.Enum``, ``set``, ``frozenset`` and ``range`` objects. Paths,
-    decimals and UUIDs are converted to strings, sets to sorted lists
-    (unsorted if the values cannot be compared), ranges to lists, dates to ISO 8601 strings, bytes to a Base64 string
+    ``enum.Enum`` and ``range`` objects. Paths, decimals and UUIDs are
+    converted to strings, ranges to lists, dates to ISO 8601 strings,
+    bytes to a Base64 string
     (ASCII) and enum members to their (converted) value.
     Dataclasses are
     converted recursively because ``dataclasses.asdict`` can produce
@@ -56,7 +56,9 @@ def to_jsonable(data: Any) -> Any:
     unchanged. Non-string ``dict`` keys are not converted, so the result
     is accepted by ``json.dumps`` only if the keys are ``str``, ``int``,
     ``float``, ``bool`` or ``None``; ``NaN`` and infinite floats are
-    kept as they are. To recursively convert every object in a nested data
+    kept as they are. Sets are not converted (use
+    ``coola.nested.convert_to_jsonable``, which converts them to sorted
+    lists). To recursively convert every object in a nested data
     structure, use ``coola.nested.convert_to_jsonable`` instead.
 
     Args:
@@ -90,15 +92,6 @@ def to_jsonable(data: Any) -> Any:
     return data
 
 
-def _sorted_list(values: Iterable[Any]) -> list[Any]:
-    r"""Convert a set to a list, sorted when the values are comparable
-    so the output is deterministic."""
-    try:
-        return sorted(values)
-    except TypeError:
-        return list(values)
-
-
 # (types, converter) pairs, checked in order by ``to_jsonable``.
 _CONVERTERS: tuple[tuple[tuple[type, ...], Callable[[Any], Any]], ...] = (
     ((BaseModel,), lambda data: data.model_dump(mode="json")),
@@ -110,7 +103,6 @@ _CONVERTERS: tuple[tuple[tuple[type, ...], Callable[[Any], Any]], ...] = (
     ((bytes, bytearray), lambda data: base64.b64encode(data).decode("ascii")),
     ((datetime.date,), lambda data: data.isoformat()),
     ((Enum,), lambda data: to_jsonable(data.value)),
-    ((set, frozenset), _sorted_list),
     ((range,), list),
 )
 
