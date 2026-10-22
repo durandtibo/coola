@@ -32,6 +32,9 @@ _DEFAULT_LENGTH = 21
 _MAX_LENGTH = 1024
 
 
+_MIN_ALPHABET_SIZE = 2
+
+
 def generate_nano_id(length: int = _DEFAULT_LENGTH, alphabet: str = _DEFAULT_ALPHABET) -> str:
     r"""Generate a Nano ID style random identifier.
 
@@ -44,7 +47,7 @@ def generate_nano_id(length: int = _DEFAULT_LENGTH, alphabet: str = _DEFAULT_ALP
     Args:
         length: The number of characters to generate. Must be positive.
         alphabet: The set of characters to draw from. Must contain
-            between 1 and 256 distinct characters. Defaults to a
+            between 2 and 256 distinct characters. Defaults to a
             64-character URL-safe alphabet (digits, upper- and
             lowercase ASCII letters, ``-``, and ``_``), matching the
             reference Nano ID implementation's default.
@@ -54,7 +57,7 @@ def generate_nano_id(length: int = _DEFAULT_LENGTH, alphabet: str = _DEFAULT_ALP
 
     Raises:
         ValueError: If ``length`` is not positive or exceeds 1024, or
-            ``alphabet`` is empty, has duplicate characters, or has
+            ``alphabet`` has fewer than 2 characters, has duplicate characters, or has
             more than 256 distinct characters.
 
     Example:
@@ -75,6 +78,9 @@ def generate_nano_id(length: int = _DEFAULT_LENGTH, alphabet: str = _DEFAULT_ALP
         raise ValueError(msg)
     validate_not_empty(alphabet, name="alphabet")
     n = len(alphabet)
+    if n < _MIN_ALPHABET_SIZE:
+        msg = f"alphabet must contain at least {_MIN_ALPHABET_SIZE} characters, got {alphabet!r}"
+        raise ValueError(msg)
     if len(set(alphabet)) != n:
         msg = f"alphabet must not contain duplicate characters, got {alphabet!r}"
         raise ValueError(msg)

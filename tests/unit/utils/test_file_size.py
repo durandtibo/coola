@@ -53,3 +53,15 @@ def test_get_file_size_returns_int(tmp_path: Path) -> None:
     file.write_bytes(b"123")
 
     assert isinstance(get_file_size(file), int)
+
+
+def test_get_file_size_directory_ignores_symlinks(tmp_path: Path) -> None:
+    tmp_path.joinpath("a.txt").write_text("abcde")
+    tmp_path.joinpath("link.txt").symlink_to(tmp_path.joinpath("a.txt"))
+    assert get_file_size(tmp_path) == 5
+
+
+def test_get_file_size_directory_ignores_broken_symlinks(tmp_path: Path) -> None:
+    tmp_path.joinpath("a.txt").write_text("abcde")
+    tmp_path.joinpath("broken.txt").symlink_to(tmp_path.joinpath("missing.txt"))
+    assert get_file_size(tmp_path) == 5

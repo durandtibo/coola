@@ -16,7 +16,11 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-def check_env_vars(var_names: Sequence[str], raise_on_missing: bool = False) -> dict[str, bool]:
+def check_env_vars(
+    var_names: Sequence[str],
+    raise_on_missing: bool = False,
+    missing_level: int = logging.WARNING,
+) -> dict[str, bool]:
     r"""Check whether each environment variable in ``var_names`` is
     defined.
 
@@ -27,6 +31,9 @@ def check_env_vars(var_names: Sequence[str], raise_on_missing: bool = False) -> 
             check.
         raise_on_missing: If ``True``, raises ``OSError`` when any
             variable is missing. Defaults to ``False``.
+        missing_level: The logging level used to report a missing
+            variable. Use ``logging.INFO`` when the variables are
+            optional. Defaults to ``logging.WARNING``.
 
     Returns:
         A mapping of variable name to ``True`` if defined, ``False``
@@ -57,7 +64,7 @@ def check_env_vars(var_names: Sequence[str], raise_on_missing: bool = False) -> 
         if is_defined:
             logger.info("'%s' is defined.", name)
         else:
-            logger.warning("'%s' is NOT defined.", name)
+            logger.log(missing_level, "'%s' is NOT defined.", name)
             missing.append(name)
 
     if missing and raise_on_missing:
@@ -118,6 +125,10 @@ def temp_env_vars(env_vars: dict[str, Any]) -> Generator[None]:
     doesn't exist, it is created temporarily and removed on exit. All
     operations are guaranteed to execute via ``try``/``finally``, even
     if an exception is raised inside the ``with`` block.
+
+    Note:
+        This context manager mutates ``os.environ``, which is
+        process-wide: it is **not thread-safe**.
 
     Args:
         env_vars: The environment variables to set, as a mapping of
