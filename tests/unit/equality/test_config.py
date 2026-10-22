@@ -55,7 +55,7 @@ def test_equality_config_zero_tolerances() -> None:
 
 def test_equality_config_max_depth_default() -> None:
     config = EqualityConfig()
-    assert config.max_depth == 1000
+    assert config.max_depth == 100
 
 
 def test_equality_config_max_depth_custom() -> None:
@@ -127,4 +127,4 @@ def test_equality_config_eq_false_different_show_difference() -> None:
 
 
 def test_equality_config_eq_false_different_max_depth() -> None:
-    assert EqualityConfig() != EqualityConfig(max_depth=100)
+    assert EqualityConfig() != EqualityConfig(max_depth=50)
