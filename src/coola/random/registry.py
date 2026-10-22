@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.display import MultilineDisplayMixin
 from coola.random.base import BaseRandomManager
+from coola.random.seed import validate_seed
 from coola.registry import Registry
 
 if TYPE_CHECKING:
@@ -223,12 +224,7 @@ class RandomManagerRegistry(MultilineDisplayMixin, BaseRandomManager):
     def manual_seed(self, seed: int) -> None:
         # Validate once before seeding, so a seed rejected by one backend
         # does not leave the others half-seeded.
-        if not isinstance(seed, int) or isinstance(seed, bool):
-            msg = f"seed must be an int, got {type(seed)}"
-            raise TypeError(msg)
-        if not 0 <= seed < 2**63:
-            msg = f"seed must be in the range [0, 2**63), got {seed}"
-            raise ValueError(msg)
+        validate_seed(seed)
         for value in self._state.values():
             value.manual_seed(seed)
 
