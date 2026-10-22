@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.mixin import HandlerEqualityMixin
 from coola.equality.handler.utils import (
+    AttributeName,
     check_recursion_depth,
     report_difference,
     track_comparison,
@@ -73,6 +74,10 @@ class DataclassSameFieldsHandler(HandlerEqualityMixin, BaseEqualityHandler):
                             field.name,
                             value1,
                             value2,
+                            extra={
+                                "coola_path": (AttributeName(field.name),),
+                                "coola_path_kind": "attribute",
+                            },
                         )
                     return False
             return self._handle_next(actual, expected, config=config)

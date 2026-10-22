@@ -8,6 +8,7 @@ from __future__ import annotations
 
 __all__ = [
     "AllCloseNanHandler",
+    "AttributeName",
     "BaseEqualityHandler",
     "DataclassSameFieldsHandler",
     "EqualHandler",
@@ -91,6 +92,7 @@ from coola.equality.handler.torch import (
     TorchTensorSameDeviceHandler,
 )
 from coola.equality.handler.utils import (
+    AttributeName,
     MaxDepthExceededError,
     check_recursion_depth,
     create_chain,
