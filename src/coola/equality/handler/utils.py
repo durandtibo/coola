@@ -3,6 +3,7 @@ r"""Contain utilities for handlers."""
 from __future__ import annotations
 
 __all__ = [
+    "AttributeName",
     "MaxDepthExceededError",
     "check_recursion_depth",
     "create_chain",
@@ -20,6 +21,25 @@ if TYPE_CHECKING:
 
     from coola.equality.config import EqualityConfig
     from coola.equality.handler.base import BaseEqualityHandler
+
+
+class AttributeName(str):
+    r"""Name of an attribute in the location of a difference.
+
+    It is a ``str`` that marks a path component as an attribute (a
+    dataclass field, for example) rather than a key or an index, so a
+    path is formatted as ``['a'][2].x`` and not as ``['a'][2]['x']``.
+
+    Example:
+        ```pycon
+        >>> from coola.equality.handler.utils import AttributeName
+        >>> AttributeName("x") == "x"
+        True
+
+        ```
+    """
+
+    __slots__ = ()
 
 
 class MaxDepthExceededError(RecursionError):
@@ -57,7 +77,8 @@ def report_difference(
         extra: Extra information about the difference. The
             ``"coola_path"`` entry is a tuple with the location of the
             difference in the compared objects, relative to the current
-            level of nesting.
+            level of nesting. The components that are attributes are
+            ``AttributeName`` instances.
 
     Example:
         ```pycon

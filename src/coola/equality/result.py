@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from coola.equality.config import EqualityConfig
+from coola.equality.handler.utils import AttributeName
 from coola.equality.interface import _compare
 from coola.equality.tester.interface import get_default_registry
 from coola.validation import validate_non_negative
@@ -32,7 +33,9 @@ class ComparisonResult:
     Attributes:
         equal: ``True`` if the objects are equal.
         path: The location of the first difference, e.g. ``("a", 2)``
-            for ``actual["a"][2]``. Empty if equal, or if the
+            for ``actual["a"][2]``. The attributes (the fields of a
+            dataclass) are ``AttributeName`` instances and are
+            formatted as ``.name``. Empty if equal, or if the
             difference is at the root.
         reason: A description of the first difference found, or
             ``None`` if the objects are equal.
@@ -75,7 +78,9 @@ class ComparisonResult:
         Returns:
             The formatted path, e.g. ``data['a'][2]``.
         """
-        return root + "".join(f"[{key!r}]" for key in self.path)
+        return root + "".join(
+            f".{key}" if isinstance(key, AttributeName) else f"[{key!r}]" for key in self.path
+        )
 
     def format_message(self, root: str = "actual") -> str:
         r"""Format a human-readable description of the result.
