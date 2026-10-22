@@ -15,7 +15,6 @@ from typing import TYPE_CHECKING
 from coola.equality.config import EqualityConfig
 from coola.equality.interface import _compare
 from coola.equality.tester.interface import get_default_registry
-from coola.validation import validate_non_negative
 
 if TYPE_CHECKING:
     from coola.equality.tester.registry import EqualityTesterRegistry
@@ -148,8 +147,6 @@ def compare(
 
         ```
     """
-    validate_non_negative(atol, name="atol")
-    validate_non_negative(rtol, name="rtol")
     if registry is None:
         registry = get_default_registry()
     config = EqualityConfig(

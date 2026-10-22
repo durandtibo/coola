@@ -90,13 +90,13 @@ class EqualityConfig:
     # Internal state of one comparison: a config must not be shared by
     # concurrent comparisons (each ``objects_are_*`` call creates its own).
     _current_depth: int = field(default=0, init=False, repr=False, compare=False)
-    # ``(id(actual), id(expected))`` of the pairs being compared, used to detect
-    # the cycles (see ``track_comparison``). The ids are safe to use as keys
-    # because the pairs are alive during the whole comparison.
     # The names of the ignored settings (``equal_nan``, ``atol``, ``rtol``) that were
     # already reported in a warning, so a comparison warns once per setting and not for
     # each object (see ``warn_ignored_setting``).
     _warned: set[str] = field(default_factory=set, init=False, repr=False, compare=False)
+    # ``(id(actual), id(expected))`` of the pairs being compared, used to detect
+    # the cycles (see ``track_comparison``). The ids are safe to use as keys
+    # because the pairs are alive during the whole comparison.
     _in_progress: set[tuple[int, int]] = field(
         default_factory=set, init=False, repr=False, compare=False
     )
