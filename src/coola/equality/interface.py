@@ -54,6 +54,13 @@ def objects_are_allclose(
 ) -> bool:
     r"""Indicate if two objects are equal within a tolerance.
 
+    Note:
+        An object is always equal to itself, even if it contains ``NaN``
+        and ``equal_nan=False``: ``[n]`` equals ``[n]`` for
+        ``n = float("nan")``, but not ``[float("nan")]``. Two distinct
+        objects that contain ``NaN`` are equal only with
+        ``equal_nan=True``.
+
     Args:
         actual: The actual object.
         expected: The expected object.
@@ -114,6 +121,13 @@ def objects_are_equal(
     registry: EqualityTesterRegistry | None = None,
 ) -> bool:
     r"""Indicate if two objects are equal or not.
+
+    Note:
+        An object is always equal to itself, even if it contains ``NaN``
+        and ``equal_nan=False``: ``[n]`` equals ``[n]`` for
+        ``n = float("nan")``, but not ``[float("nan")]``. Two distinct
+        objects that contain ``NaN`` are equal only with
+        ``equal_nan=True``.
 
     Args:
         actual: The actual object.
