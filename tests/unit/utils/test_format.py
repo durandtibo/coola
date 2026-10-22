@@ -551,3 +551,19 @@ def test_find_best_byte_unit_exact_gb_boundary() -> None:
 def test_find_best_byte_unit_negative_size() -> None:
     with pytest.raises(ValueError, match=r"Size must be non-negative"):
         assert find_best_byte_unit(-1)
+
+
+def test_str_time_human_negative() -> None:
+    assert str_time_human(-5) == "-0:00:05"
+    assert str_time_human(-3661.2) == "-1:01:01.200000"
+
+
+@pytest.mark.parametrize("seconds", [float("nan"), float("inf"), float("-inf"), 1e30])
+def test_str_time_human_invalid(seconds: float) -> None:
+    with pytest.raises(ValueError, match="seconds"):
+        str_time_human(seconds)
+
+
+def test_str_indent_skips_empty_lines() -> None:
+    assert str_indent("a\nb\n", 2) == "a\n  b\n"
+    assert str_indent("a\n\nb", 2) == "a\n\n  b"
