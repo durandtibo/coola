@@ -72,15 +72,24 @@ class NumpyArrayHasher(InlineDisplayMixin, BaseHasher["np.ndarray"]):
             data = canonicalize_floats(data)
             raw_hash = hash_bytes(np.ascontiguousarray(data).tobytes(), length=length)
         return hash_array_content(
-            tag, str(data.dtype.str), data.shape, raw_hash + mask_hash, length=length
+            tag, _dtype_str(data.dtype), data.shape, raw_hash + mask_hash, length=length
         )
+
+
+def _dtype_str(dtype: np.dtype) -> str:
+    r"""Return a string that identifies a data type.
+
+    ``dtype.str`` is ``'|V8'`` for every structured dtype of 8 bytes, so
+    the field names, formats and padding (``descr``) are used for them.
+    """
+    return str(dtype.descr) if dtype.names else str(dtype.str)
 
 
 def canonicalize_floats(data: np.ndarray) -> np.ndarray:
     r"""Return an array where the floating-point values have one bit
     pattern per value.
 
-    ``-0.0`` becomes ``0.0`` and every NaN becomes the default NaN, so
+    The fields of a structured array are processed one by one. ``-0.0`` becomes ``0.0`` and every NaN becomes the default NaN, so
     equal values (and NaNs, which are equal for ``equal_nan``) have the
     same bytes whatever the sign or the payload of the NaN. The real and
     the imaginary parts of a complex array are processed separately. The
@@ -103,6 +112,13 @@ def canonicalize_floats(data: np.ndarray) -> np.ndarray:
 
         ```
     """
+    names = data.dtype.names
+    if names:
+        # A structured array: its float fields are canonicalized one by one, on a copy.
+        data = data.copy()
+        for name in names:
+            data[name] = canonicalize_floats(data[name])
+        return data
     kind = data.dtype.kind
     if kind == "f":
         return np.where(np.isnan(data), np.array(np.nan, dtype=data.dtype), data + 0)
