@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import abc
+import gc
+import weakref
 from typing import TYPE_CHECKING, cast
 
 import pytest
@@ -631,3 +633,13 @@ def test_type_registry_many_already_registered_msg_is_sorted() -> None:
     registry = TypeRegistry[str]({str: "a", int: "b", float: "c"})
     with pytest.raises(AlreadyRegisteredError, match=r"float.*int.*str"):
         registry.register_many({str: "x", int: "y", float: "z"})
+
+
+def test_type_registry_cache_does_not_keep_a_dynamic_class_alive() -> None:
+    registry = TypeRegistry[str]({object: "obj"})
+    dynamic = type("Dynamic", (), {})
+    registry.resolve(dynamic)
+    reference = weakref.ref(dynamic)
+    del dynamic
+    gc.collect()
+    assert reference() is None

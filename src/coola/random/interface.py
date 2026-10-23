@@ -59,7 +59,7 @@ def random_seed(seed: int, manager: RandomManagerRegistry | None = None) -> Gene
 
         ```
     """
-    manager = manager or get_default_registry()
+    manager = get_default_registry() if manager is None else manager
     with manager.seed(seed):
         yield
 

@@ -21,7 +21,7 @@ This guide documents the testing conventions and best practices used in the cool
 
 ### Directory Structure
 
-Tests are organized into two main categories:
+Tests are organized into the following categories:
 
 ```
 tests/
@@ -35,10 +35,19 @@ tests/
     ├── equality/
     ├── iterator/
     └── registry/
+├── properties/     # Property-based tests (hypothesis)
+└── benchmarks/     # Performance benchmarks (pytest-benchmark)
 ```
 
 - **Unit tests**: Test individual functions, classes, or methods in isolation
 - **Integration tests**: Test interactions between multiple modules or components
+- **Property tests**: Check properties that must hold for any generated input (they need the
+  `property` dependency group)
+- **Benchmarks**: Measure the performance (`inv test.benchmark`)
+- **Doctests**: The examples of the docstrings and of the Markdown files are tests
+  (`inv test.doctest`)
+- **CUDA tests**: Marked with `cuda_available`; they are skipped without a GPU
+- **Timeout**: `pytest-timeout` is installed; use `--timeout N` to fail a test that is too slow
 
 ### File Organization
 

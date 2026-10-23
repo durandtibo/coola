@@ -201,7 +201,9 @@ class ChildFinderRegistry(BaseTypeDispatchRegistry[BaseChildFinder[Any]]):
         Containers themselves are never yielded, even if they are empty.
         A value is a container if its child finder is not a leaf
         (``is_leaf``). Iterators and generators are not containers by
-        default: they are yielded as they are, never consumed.
+        default: they are yielded as they are, never consumed. The value
+        of a type whose child finder is not a leaf and finds no child is
+        not yielded either, like an empty container.
 
         Args:
             data: The data structure to traverse.
@@ -236,6 +238,10 @@ class ChildFinderRegistry(BaseTypeDispatchRegistry[BaseChildFinder[Any]]):
         # Each item of the queue comes with its ancestors, as a linked list of
         # ``(id, parent)`` pairs, which is used to detect the cycles.
         queue: deque[tuple[object, _Ancestors]] = deque([(data, None)])
+        # A container can be its own ancestor only if it is expanded twice, so the
+        # (linear) walk over its ancestors is needed only for the ids already expanded.
+        # It keeps a deep chain linear instead of quadratic in its depth.
+        expanded: set[int] = set()
 
         while queue:
             current, ancestors = queue.popleft()
@@ -243,9 +249,10 @@ class ChildFinderRegistry(BaseTypeDispatchRegistry[BaseChildFinder[Any]]):
             if child_finder.is_leaf:
                 yield current
                 continue
-            if _is_ancestor(current, ancestors):
+            if id(current) in expanded and _is_ancestor(current, ancestors):
                 msg = f"Cycle detected: an object of type {type(current)} contains itself"
                 raise ValueError(msg)
+            expanded.add(id(current))
             children_ancestors = (id(current), ancestors)
             queue.extend(
                 (child, children_ancestors) for child in child_finder.find_children(current)

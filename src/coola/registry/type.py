@@ -6,6 +6,7 @@ __all__ = ["TypeRegistry"]
 
 from collections import Counter
 from typing import Generic, TypeVar
+from weakref import WeakKeyDictionary
 
 from coola.registry.base import BaseRegistry
 from coola.registry.exceptions import TypeNotRegisteredError
@@ -57,7 +58,8 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
 
     Attributes:
         _state: Internal dictionary storing the type-value pairs.
-        _cache: Bounded snapshot of type resolution lookups, swapped atomically.
+        _cache: Bounded snapshot of type resolution lookups, swapped atomically. It holds
+            weak references to the types, so it does not keep a dynamic class alive.
         _lock: Threading lock for synchronizing access to both state and cache.
 
     Example:
@@ -142,13 +144,13 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
         # Bounded copy-on-write cache for type lookups. It is never mutated in
         # place: writers (holding the lock) publish a new dict, so readers can
         # use whichever snapshot they grab without locking.
-        self._cache: dict[type, T] = {}
+        self._cache: WeakKeyDictionary[type, T] = WeakKeyDictionary()
 
     _not_registered_error = TypeNotRegisteredError
 
     def _on_change(self) -> None:
         # Clear cache when registry changes to ensure new registrations are used
-        self._cache = {}
+        self._cache = WeakKeyDictionary()
 
     def _validate_key(self, key: type) -> None:
         if not isinstance(key, type):
@@ -277,7 +279,7 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
             # lock. A miss costs O(len(cache)) (at most ``_MAX_CACHE_SIZE`` entries) and
             # misses are rare after warm-up: resolving a type is cached for the life of
             # the registry until the next ``register``/``unregister``.
-            new_cache = cache.copy() if len(cache) < _MAX_CACHE_SIZE else {}
+            new_cache = cache.copy() if len(cache) < _MAX_CACHE_SIZE else WeakKeyDictionary()
             new_cache[dtype] = value
             self._cache = new_cache
             return value

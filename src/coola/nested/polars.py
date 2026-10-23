@@ -13,7 +13,7 @@ __all__ = [
 from typing import TYPE_CHECKING, cast
 
 from coola.utils.imports import is_polars_available
-from coola.validation import validate_positive
+from coola.validation import validate_non_negative
 
 if TYPE_CHECKING or is_polars_available():
     import polars as pl
@@ -83,7 +83,9 @@ def expand_list_columns(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
     For each ``List`` or ``Array`` column, creates new columns named
     ``<col><separator><index>`` for each position up to the maximum list
     length across all rows. Rows with lists shorter than the maximum are
-    filled with ``None``. The original list columns are dropped.
+    filled with ``None``. The original list columns are dropped, except
+    the columns where every list is null or empty: they have no position
+    to expand, so they are kept as they are instead of being lost.
 
     Args:
         frame: A DataFrame that may contain list or array columns.
@@ -94,6 +96,10 @@ def expand_list_columns(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
         A DataFrame with list and array columns replaced by
         their expanded positional columns. Non-list columns are unchanged.
         If no list or array columns are present the frame is returned as-is.
+
+    Raises:
+        ValueError: If a new column name is already used by a column of
+            the frame or by another new column.
     """
     list_cols = [
         name for name, dtype in frame.schema.items() if isinstance(dtype, (pl.List, pl.Array))
@@ -102,16 +108,25 @@ def expand_list_columns(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
         return frame
 
     expansions: dict[str, pl.Series] = {}
+    expanded_cols: list[str] = []
     for col in list_cols:
         series = frame[col]
         if isinstance(series.dtype, pl.Array):
             # The ``list`` namespace is not defined for the ``Array`` dtype.
             series = series.cast(pl.List(series.dtype.inner))
         max_len = cast("int", series.list.len().max() or 0)
+        if max_len == 0:
+            # Nothing to expand: dropping the column would lose it.
+            continue
+        expanded_cols.append(col)
         for i in range(max_len):
-            expansions[f"{col}{separator}{i}"] = series.list.get(i, null_on_oob=True)
+            name = f"{col}{separator}{i}"
+            if name in frame.columns or name in expansions:
+                msg = f"Cannot expand the list column {col!r}: the column {name!r} already exists"
+                raise ValueError(msg)
+            expansions[name] = series.list.get(i, null_on_oob=True)
 
-    return frame.drop(list_cols).with_columns(
+    return frame.drop(expanded_cols).with_columns(
         pl.Series(name, values) for name, values in expansions.items()
     )
 
@@ -135,16 +150,35 @@ def unnest_one_level(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
     nested_struct_cols = [name for name, dtype in frame.schema.items() if is_nested_struct(dtype)]
     if nested_struct_cols:
         try:
-            frame = frame.explode(nested_struct_cols, empty_as_null=True)
-        except TypeError:
-            # empty_as_null is not available in older polars versions
-            frame = frame.explode(nested_struct_cols)
+            frame = _explode(frame, nested_struct_cols)
+        except pl.exceptions.ShapeError:
+            # The lists of a row have different lengths, so they cannot be exploded in
+            # parallel: explode them one after the other (cross product of the lists).
+            for name in nested_struct_cols:
+                frame = _explode(frame, [name])
 
     struct_cols = [name for name, dtype in frame.schema.items() if isinstance(dtype, pl.Struct)]
     if not struct_cols:
         return frame
 
     return unnest_with_separator(frame, struct_cols, separator)
+
+
+def _explode(frame: pl.DataFrame, columns: list[str]) -> pl.DataFrame:
+    r"""Explode the given columns, keeping the empty lists as null.
+
+    Args:
+        frame: The DataFrame to explode.
+        columns: The names of the list columns to explode.
+
+    Returns:
+        The exploded DataFrame.
+    """
+    try:
+        return frame.explode(columns, empty_as_null=True)
+    except TypeError:
+        # empty_as_null is not available in older polars versions
+        return frame.explode(columns)
 
 
 def flatten_frame(
@@ -159,6 +193,9 @@ def flatten_frame(
     Non-nested columns are passed through unchanged. Struct columns are expanded level by level up
     to ``depth`` levels. Columns that are lists or arrays of structs are
     automatically exploded to expose their inner structs before unnesting.
+    Several such columns are exploded together if their lists have the same
+    length in every row, otherwise one after the other, which gives one row
+    for each combination of their elements.
     If ``expand_lists`` is enabled, remaining ``List`` and ``Array`` columns
     are expanded into one column per index position following the
     ``<col><separator><index>`` pattern, filled with ``None`` where the list
@@ -171,6 +208,7 @@ def flatten_frame(
             ``<parent><separator><field>`` pattern. Defaults to ``"."``.
         depth: Maximum number of struct nesting levels to expand. ``None``
             (default) expands all levels until no struct columns remain.
+            ``0`` expands no struct column.
         expand_lists: If ``True``, ``List`` and ``Array`` columns are expanded
             into one column per index position. If ``False`` (default), list
             and array columns are left as-is.
@@ -181,7 +219,7 @@ def flatten_frame(
         positional columns.
 
     Raises:
-        ValueError: If ``depth`` is not a positive integer or ``None``.
+        ValueError: If ``depth`` is negative.
 
     Example:
         ```pycon
@@ -231,7 +269,7 @@ def flatten_frame(
         ```
     """
     if depth is not None:
-        validate_positive(depth, name="depth")
+        validate_non_negative(depth, name="depth")
 
     current_depth = 0
     while depth is None or current_depth < depth:

@@ -86,7 +86,7 @@ that need inputs and the pull request security review.
 - **`.github/workflows/lib-*.yaml`** (reusable workflows called with `uses:
 ./.github/workflows/lib-....yaml`): used when the output needs to feed a
   matrix, or when the shared logic is naturally a whole job (e.g. reading
-  `../dev/config/test_matrix.json` once and handing the JSON down to several
+  the supported Python versions and operating systems once and handing the JSON down to several
   jobs via `needs:`).
 
 When adding new duplication, prefer extending an existing composite
@@ -124,8 +124,9 @@ action/reusable workflow over copy-pasting steps.
 Values that would otherwise be duplicated across workflows are centralized in
 `../dev/config`:
 
-- `../dev/config/test_matrix.json` — supported Python versions / OS matrix,
-  read once per run by `lib-get-test-matrix.yaml`.
+- The supported Python versions / OS matrix is not in this directory: it is the default
+  config of `durandtibo/workflow-config-action`, read once per run by
+  `lib-get-test-matrix.yaml`.
 - `../dev/config/package_versions.json` — version ranges to test optional
   dependencies against, read by `lib-get-package-versions.yaml` and kept
   current by `bot-generate-package-versions.yaml`.

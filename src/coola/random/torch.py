@@ -24,8 +24,8 @@ else:  # pragma: no cover
 class TorchRandomManager(InlineDisplayMixin, NoArgsDisplayMixin, BaseRandomManager):
     r"""Implement a random manager for the library ``torch``.
 
-    Only the default generators of PyTorch (the CPU one and the CUDA
-    ones) are managed. The generators created with ``torch.Generator()``
+    Only the default generators of PyTorch (the CPU one, the CUDA
+    ones and the MPS one if it is available) are managed. The generators created with ``torch.Generator()``
     are independent objects: they are not seeded, and their state is not
     saved nor restored.
 
@@ -48,19 +48,44 @@ class TorchRandomManager(InlineDisplayMixin, NoArgsDisplayMixin, BaseRandomManag
         return hash(type(self))
 
     def get_rng_state(self) -> dict[str, Any]:
-        return {
+        state = {
             "torch": torch.get_rng_state(),
             "torch.cuda": torch.cuda.get_rng_state_all(),
         }
+        if _is_mps_available():
+            state["torch.mps"] = torch.mps.get_rng_state()
+        return state
 
     def manual_seed(self, seed: int) -> None:
         cast("Any", torch).manual_seed(seed)
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(seed)
+        if _is_mps_available():
+            torch.mps.manual_seed(seed)
 
     def set_rng_state(self, state: dict[str, Any]) -> None:
-        torch.set_rng_state(state["torch"])
-        torch.cuda.set_rng_state_all(state["torch.cuda"])
+        # Only the generators in ``state`` are restored.
+        if "torch" in state:
+            torch.set_rng_state(state["torch"])
+        if "torch.cuda" in state:
+            num_devices = torch.cuda.device_count()
+            if len(state["torch.cuda"]) != num_devices:
+                msg = (
+                    f"The state has {len(state['torch.cuda'])} CUDA generators, "
+                    f"but {num_devices} CUDA devices are available"
+                )
+                raise ValueError(msg)
+            torch.cuda.set_rng_state_all(state["torch.cuda"])
+        if "torch.mps" in state:
+            if not _is_mps_available():
+                msg = "The state has a MPS generator, but MPS is not available"
+                raise ValueError(msg)
+            torch.mps.set_rng_state(state["torch.mps"])
+
+
+def _is_mps_available() -> bool:
+    r"""Indicate if the MPS backend is available."""
+    return torch.backends.mps.is_available()
 
 
 @contextmanager

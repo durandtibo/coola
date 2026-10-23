@@ -8,7 +8,7 @@ on:
         required: false
         type: string
       test-matrix:
-        description: "JSON test matrix from get-test-matrix.yaml, loaded once by the caller"
+        description: "JSON test matrix from lib-get-test-matrix.yaml, loaded once by the caller"
         required: true
         type: string
 

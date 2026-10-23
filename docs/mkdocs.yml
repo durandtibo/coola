@@ -1,5 +1,12 @@
 site_name: coola
 site_url: "https://durandtibo.github.io/coola/"
+# A warning (for example a broken link or cross reference) fails the build.
+strict: true
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
 theme:
   name: material
   features:

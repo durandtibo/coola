@@ -346,3 +346,14 @@ def test_child_finder_registry_iterate_repeated_leaf_is_not_a_cycle() -> None:
     value = "x"
     registry = ChildFinderRegistry({object: DefaultChildFinder(), list: IterableChildFinder()})
     assert list(registry.iterate([value, [value, value]])) == ["x", "x", "x"]
+
+
+def test_child_finder_registry_iterate_not_leaf_without_children_is_not_yielded() -> None:
+    class NoChildFinder(BaseChildFinder[Any]):
+        def find_children(self, data: Any) -> Iterator[Any]:  # noqa: ARG002
+            return iter(())
+
+    registry = ChildFinderRegistry(
+        {object: DefaultChildFinder(), list: IterableChildFinder(), complex: NoChildFinder()}
+    )
+    assert list(registry.iterate([1, 2j, 3])) == [1, 3]
