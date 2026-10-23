@@ -272,6 +272,16 @@ def test_numpy_reducer_std_empty(values: Sequence[int | float]) -> None:
 
 
 @numpy_available
+def test_numpy_reducer_std_2d_array() -> None:
+    assert math.isclose(NumpyReducer().std(np.ones((1, 3))), 0.0, abs_tol=1e-6)
+
+
+@numpy_available
+def test_numpy_reducer_std_2d_array_one_element() -> None:
+    assert math.isnan(NumpyReducer().std(np.ones((1, 1))))
+
+
+@numpy_available
 def test_numpy_reducer_no_numpy() -> None:
     with (
         patch("coola.utils.imports.numpy.is_numpy_available", lambda: False),

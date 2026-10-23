@@ -73,6 +73,7 @@ class NumpyReducer(InlineDisplayMixin, NoArgsDisplayMixin, BaseBasicReducer[T]):
         return array.tolist()
 
     def _std(self, values: T) -> float:
-        if len(values) <= 1:
+        array = np.asarray(values)
+        if array.size <= 1:
             return float("nan")
-        return np.std(np.asarray(values), ddof=1).item()
+        return np.std(array, ddof=1).item()
