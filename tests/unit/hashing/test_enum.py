@@ -106,3 +106,18 @@ def test_default_registry_enum_is_not_collapsed_into_value() -> None:
     assert registry.hash(Label.A) != registry.hash("a")
     assert registry.hash(MixedStr.A) != registry.hash("a")
     assert registry.hash(MixedInt.ONE) != registry.hash(1)
+
+
+class MixedBytes(bytes, Enum):
+    A = b"a"
+
+
+class MixedTuple(tuple, Enum):
+    A = (1, 2)
+
+
+@pytest.mark.parametrize("member", [MixedBytes.A, MixedTuple.A])
+def test_default_registry_hashes_enum_mixins_as_enum(member: Enum) -> None:
+    registry = get_default_registry()
+    assert registry.hash(member) == hash_enum(member)
+    assert registry.hash(member) != registry.hash(member.value)

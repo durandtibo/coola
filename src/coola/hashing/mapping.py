@@ -93,11 +93,14 @@ class MappingHasher(InlineDisplayMixin, BaseHasher[Mapping[Any, Any]]):
             ValueError: If ``length`` is not an even number between 2
                 and 128.
         """
-        items: list[tuple[str, str]] = []
+        items: list[str] = []
         for key, value in data.items():
             key_hash = registry.hash(key, length=length, ignore_unhashable=ignore_unhashable)
             val_hash = registry.hash(value, length=length, ignore_unhashable=ignore_unhashable)
-            items.append((key_hash, key_hash + val_hash))
+            items.append(key_hash + val_hash)
         if not self._ordered:
-            items.sort(key=lambda item: item[0])
-        return hash_tagged(self._tag, "".join(item for _, item in items), length=length)
+            # Sort by the full entry: keys can share a hash (placeholder of
+            # unhashable keys, short ``length``), and equal mappings must
+            # not depend on the insertion order.
+            items.sort()
+        return hash_tagged(self._tag, "".join(items), length=length)

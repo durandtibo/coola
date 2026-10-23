@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING
 from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_tagged
+from coola.utils.integer import int_repr
 
 if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
@@ -33,13 +34,12 @@ def _canonical_decimal(data: Decimal) -> str:
     if not data.is_finite():
         return str(data)
     sign, digits, exponent = data.as_tuple()
-    coefficient = int("".join(map(str, digits)))
-    if coefficient == 0:  # ``Decimal('-0') == Decimal('0')``
+    coefficient = "".join(map(str, digits)).lstrip("0")  # no int(): the digits are not limited
+    if not coefficient:  # ``Decimal('-0') == Decimal('0')``
         return "0"
-    while coefficient % 10 == 0:
-        coefficient //= 10
-        exponent += 1
-    return f"{'-' if sign else ''}{coefficient:x}e{exponent}"
+    stripped = coefficient.rstrip("0")
+    exponent += len(coefficient) - len(stripped)
+    return f"{'-' if sign else ''}{stripped}e{exponent}"
 
 
 class DecimalHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Decimal]):
@@ -99,7 +99,9 @@ class FractionHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Fraction
         length: int = 64,
         ignore_unhashable: bool = False,  # noqa: ARG002
     ) -> str:
-        return hash_tagged("Fraction", f"{data.numerator}/{data.denominator}", length=length)
+        return hash_tagged(
+            "Fraction", f"{int_repr(data.numerator)}/{int_repr(data.denominator)}", length=length
+        )
 
 
 class RangeHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[range]):
@@ -133,7 +135,7 @@ class RangeHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[range]):
         if size == 0:
             payload = "0"
         elif size == 1:
-            payload = f"1:{data[0]}"
+            payload = f"1:{int_repr(data[0])}"
         else:
-            payload = f"{size}:{data[0]}:{data.step}"
+            payload = f"{size}:{int_repr(data[0])}:{int_repr(data.step)}"
         return hash_tagged("range", payload, length=length)

@@ -174,3 +174,28 @@ def test_decimal_hasher_hash_ignores_context(registry: HasherRegistry) -> None:
 def test_decimal_hasher_hash_negative_zero(registry: HasherRegistry) -> None:
     hasher = DecimalHasher()
     assert hasher.hash(Decimal("-0"), registry) == hasher.hash(Decimal("0.00"), registry)
+
+
+def test_fraction_hasher_hash_huge_numerator() -> None:
+    hasher = FractionHasher()
+    registry = HasherRegistry()
+    assert hasher.hash(Fraction(10**5000, 3), registry) != hasher.hash(
+        Fraction(10**5000 + 1, 3), registry
+    )
+
+
+def test_range_hasher_hash_huge_bounds() -> None:
+    hasher = RangeHasher()
+    registry = HasherRegistry()
+    assert hasher.hash(range(10**5000, 10**5000 + 3), registry) != hasher.hash(
+        range(10**5000 + 1, 10**5000 + 4), registry
+    )
+
+
+def test_decimal_hasher_hash_more_digits_than_the_int_conversion_limit(
+    registry: HasherRegistry,
+) -> None:
+    hasher = DecimalHasher()
+    assert hasher.hash(Decimal("1" + "0" * 5000 + "1"), registry) != hasher.hash(
+        Decimal("1" + "0" * 5000 + "2"), registry
+    )
