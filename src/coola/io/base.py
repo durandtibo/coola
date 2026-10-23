@@ -64,8 +64,8 @@ _MAX_DERIVED_NAME_BYTES = 100
 def _short_name(name: str) -> str:
     r"""Return ``name``, or a short stable name if ``name`` is too long.
 
-    The short name is a hash of ``name`` followed by its extension, so the
-    names derived from it (temporary file, lock file) stay below the
+    The short name is a hash of ``name`` followed by its extension, so
+    the names derived from it (temporary file, lock file) stay below the
     filesystem limit for any legal target name.
     """
     if len(name.encode()) <= _MAX_DERIVED_NAME_BYTES:
@@ -93,8 +93,8 @@ def _get_save_lock(path: Path) -> threading.Lock:
 def _make_lock_token() -> str:
     r"""Return a unique token that identifies the owner of a lock.
 
-    The token starts with the host name and the process id (``host:pid:``)
-    so a waiter can tell that the owner is dead.
+    The token starts with the host name and the process id
+    (``host:pid:``) so a waiter can tell that the owner is dead.
     """
     return f"{socket.gethostname()}:{os.getpid()}:{uuid.uuid4().hex}"
 

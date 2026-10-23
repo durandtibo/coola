@@ -65,6 +65,7 @@
   #     Tests for Fixed     #
   ###########################
   ```
+
 - Seed random data (`default_rng(0)`); no unseeded randomness in tests.
 
 ## Reporting
