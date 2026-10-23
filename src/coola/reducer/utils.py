@@ -6,11 +6,13 @@ __all__ = ["auto_reducer"]
 
 from typing import TYPE_CHECKING
 
-from coola.reducer import BaseReducer, NativeReducer, NumpyReducer, TorchReducer
-from coola.utils.imports import is_numpy_available, is_torch_available
+from coola.reducer import BaseReducer, NativeReducer
+from coola.utils.imports import import_object, is_numpy_available, is_torch_available
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+
+    from coola.reducer import BaseReducer
 
 
 def auto_reducer() -> BaseReducer[Sequence[float]]:
@@ -39,7 +41,7 @@ def auto_reducer() -> BaseReducer[Sequence[float]]:
         ```
     """
     if is_torch_available():
-        return TorchReducer()
+        return import_object("coola.reducer.torch:TorchReducer")()
     if is_numpy_available():
-        return NumpyReducer()
+        return import_object("coola.reducer.numpy:NumpyReducer")()
     return NativeReducer()

@@ -14,7 +14,7 @@ __all__ = [
     "PolarsSeriesEqualityTester",
 ]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler import (
     PolarsDataFrameEqualHandler,
@@ -34,6 +34,7 @@ else:  # pragma: no cover
 
 if TYPE_CHECKING:
     from coola.equality.handler import BaseEqualityHandler
+    from coola.equality.tester.base import BaseEqualityTester
 
 
 class PolarsDataFrameEqualityTester(BaseChainEqualityTester[pl.DataFrame]):
@@ -159,3 +160,23 @@ class PolarsSeriesEqualityTester(BaseChainEqualityTester[pl.Series]):
 
     def _create_handler(self) -> BaseEqualityHandler:
         return create_chain(SameObjectHandler(), SameTypeHandler(), PolarsSeriesEqualHandler())
+
+
+def get_default_testers() -> dict[type, BaseEqualityTester[Any]]:
+    r"""Get the default equality testers of the polars objects.
+
+    Returns:
+        The equality testers of the polars objects and their associated types.
+
+    Notes:
+        This function is called by the default registry the first time it
+        needs the equality testers of the polars objects.
+    """
+    if not is_polars_available():
+        return {}
+
+    return {
+        pl.DataFrame: PolarsDataFrameEqualityTester(),
+        pl.LazyFrame: PolarsLazyFrameEqualityTester(),
+        pl.Series: PolarsSeriesEqualityTester(),
+    }

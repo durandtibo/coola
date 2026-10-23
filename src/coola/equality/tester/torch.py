@@ -9,7 +9,7 @@ from __future__ import annotations
 
 __all__ = ["TorchPackedSequenceEqualityTester", "TorchTensorEqualityTester"]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler import (
     SameAttributeHandler,
@@ -35,6 +35,7 @@ else:  # pragma: no cover
 
 if TYPE_CHECKING:
     from coola.equality.handler import BaseEqualityHandler
+    from coola.equality.tester.base import BaseEqualityTester
 
 
 class TorchPackedSequenceEqualityTester(BaseChainEqualityTester[torch.nn.utils.rnn.PackedSequence]):
@@ -173,3 +174,22 @@ class TorchTensorEqualityTester(BaseChainEqualityTester[torch.Tensor]):
             TorchTensorSameDeviceHandler(),
             TorchTensorEqualHandler(),
         )
+
+
+def get_default_testers() -> dict[type, BaseEqualityTester[Any]]:
+    r"""Get the default equality testers of the PyTorch objects.
+
+    Returns:
+        The equality testers of the PyTorch objects and their associated types.
+
+    Notes:
+        This function is called by the default registry the first time it
+        needs the equality testers of the PyTorch objects.
+    """
+    if not is_torch_available():
+        return {}
+
+    return {
+        torch.nn.utils.rnn.PackedSequence: TorchPackedSequenceEqualityTester(),
+        torch.Tensor: TorchTensorEqualityTester(),
+    }

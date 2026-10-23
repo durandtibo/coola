@@ -9,8 +9,15 @@ from typing import TYPE_CHECKING, Any
 from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_tagged
+from coola.utils.imports import is_xarray_available
+
+if TYPE_CHECKING or is_xarray_available():
+    import xarray as xr
+else:  # pragma: no cover
+    from coola.utils.fallback.xarray import xarray as xr
 
 if TYPE_CHECKING:
+    from coola.hashing.base import Hasher
     from coola.hashing.registry import HasherRegistry
 
 
@@ -71,3 +78,22 @@ class XarrayHasher(InlineDisplayMixin, BaseHasher[Any]):
                 sub(dict(data.attrs)),
             ]
         return hash_tagged(tag, "\0".join(parts), length=length)
+
+
+def get_default_hashers() -> dict[type, Hasher[Any]]:
+    r"""Get the default hashers of the xarray objects.
+
+    Returns:
+        The hashers of the xarray objects and their associated types.
+
+    Notes:
+        This function is called by the default registry the first time it
+        needs the hashers of the xarray objects.
+    """
+    if not is_xarray_available():
+        return {}
+    return {
+        xr.Variable: XarrayHasher("Variable"),
+        xr.DataArray: XarrayHasher("DataArray"),
+        xr.Dataset: XarrayHasher("Dataset"),
+    }

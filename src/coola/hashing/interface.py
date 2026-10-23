@@ -25,37 +25,34 @@ from coola.hashing.dataclass import DataclassHasher
 from coola.hashing.datetime import DatetimeHasher
 from coola.hashing.enum import EnumHasher
 from coola.hashing.hashable import HashableHasher
-from coola.hashing.jax import JaxArrayHasher
 from coola.hashing.mapping import MappingHasher
-from coola.hashing.numpy import NumpyArrayHasher
-from coola.hashing.pandas import PandasDataFrameHasher, PandasSeriesHasher
 from coola.hashing.path import PathHasher
-from coola.hashing.polars import PolarsDataFrameHasher, PolarsSeriesHasher
-from coola.hashing.pyarrow import PyarrowArrayHasher, PyarrowTableHasher
-from coola.hashing.pydantic import PydanticModelHasher
 from coola.hashing.registry import HasherRegistry
 from coola.hashing.repr import ReprHasher
 from coola.hashing.sequence import SequenceHasher
 from coola.hashing.set import SetHasher
 from coola.hashing.str import StrHasher
 from coola.hashing.string import StringHasher, validate_hash_length
-from coola.hashing.torch import TorchTensorHasher
-from coola.hashing.xarray import XarrayHasher
 from coola.utils.imports import (
-    is_jax_available,
-    is_numpy_available,
-    is_pandas_available,
-    is_polars_available,
-    is_pyarrow_available,
-    is_pydantic_available,
-    is_torch_available,
-    is_xarray_available,
+    package_available,
 )
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
 if TYPE_CHECKING:
     from coola.hashing.base import Hasher
 
+
+# (names of the library in the module of the types, module with the hashers)
+_LAZY_HASHERS = (
+    (("jax", "jaxlib"), "coola.hashing.jax"),
+    (("numpy",), "coola.hashing.numpy"),
+    (("pandas",), "coola.hashing.pandas"),
+    (("polars",), "coola.hashing.polars"),
+    (("pyarrow",), "coola.hashing.pyarrow"),
+    (("pydantic",), "coola.hashing.pydantic"),
+    (("torch",), "coola.hashing.torch"),
+    (("xarray",), "coola.hashing.xarray"),
+)
 
 _LEGACY_POSITIONAL_NAMES = ("registry", "length", "ignore_unhashable")
 _DEFAULTS: dict[str, Any] = {"registry": None, "length": 64, "ignore_unhashable": False}
@@ -316,18 +313,16 @@ def _register_default_hashers(registry: HasherRegistry) -> None:
         }
     )
     registry.register_many(_get_value_hashers())
-    registry.register_many(_get_numpy_hashers(repr_hasher))
-    registry.register_many(_get_array_library_hashers())
     # The types that cannot be registered one by one: any dataclass, and any class
     # that defines a ``hash`` method. The type lookup comes first, so a hasher
     # registered for a type wins.
     registry.register_fallback(dataclasses.is_dataclass, DataclassHasher())
     registry.register_fallback(_has_hash_method, HashableHasher())
-    if is_pydantic_available():
-        import pydantic  # noqa: PLC0415
-
-        # Pydantic models - the fields are hashed through the registry.
-        registry.register(pydantic.BaseModel, PydanticModelHasher())
+    # The hashers of the optional libraries are loaded the first time the registry needs a type
+    # of the library, so the libraries are not imported with ``coola.hashing``.
+    for names, module in _LAZY_HASHERS:
+        if package_available(names[0]):
+            registry.register_lazy(names, f"{module}:get_default_hashers")
 
 
 def _has_hash_method(data_type: type) -> bool:
@@ -365,64 +360,6 @@ def _get_value_hashers() -> dict[type, Hasher[Any]]:
         Fraction: FractionHasher(),
         range: RangeHasher(),
     }
-
-
-def _get_numpy_hashers(hasher: Hasher[Any]) -> dict[type, Hasher[Any]]:
-    r"""Get the hashers of the NumPy scalars (``np.float64`` is a
-    ``float``, the other scalars are not)."""
-    if not is_numpy_available():  # pragma: no cover
-        return {}
-    import numpy as np  # noqa: PLC0415
-
-    return {np.bool_: hasher, np.integer: hasher, np.floating: hasher, np.complexfloating: hasher}
-
-
-def _get_array_library_hashers() -> dict[type, Hasher[Any]]:
-    r"""Get the hashers of the array and data frame libraries that are
-    installed.
-
-    The libraries are only imported if they are available, like in the
-    equality registry.
-    """
-    hashers: dict[type, Hasher[Any]] = {}
-    if is_numpy_available():  # pragma: no cover
-        import numpy as np  # noqa: PLC0415
-
-        hashers[np.ndarray] = NumpyArrayHasher()
-    if is_torch_available():  # pragma: no cover
-        import torch  # noqa: PLC0415
-
-        hashers[torch.Tensor] = TorchTensorHasher()
-    if is_jax_available():  # pragma: no cover
-        import jax  # noqa: PLC0415
-
-        hashers[jax.Array] = JaxArrayHasher()
-    if is_pandas_available():  # pragma: no cover
-        import pandas as pd  # noqa: PLC0415
-
-        hashers[pd.Series] = PandasSeriesHasher()
-        hashers[pd.DataFrame] = PandasDataFrameHasher()
-    if is_polars_available():  # pragma: no cover
-        import polars as pl  # noqa: PLC0415
-
-        hashers[pl.Series] = PolarsSeriesHasher()
-        hashers[pl.DataFrame] = PolarsDataFrameHasher()
-    if is_pyarrow_available():  # pragma: no cover
-        import pyarrow as pa  # noqa: PLC0415
-
-        array_hasher = PyarrowArrayHasher()
-        table_hasher = PyarrowTableHasher()
-        hashers[pa.Array] = array_hasher
-        hashers[pa.ChunkedArray] = array_hasher
-        hashers[pa.Table] = table_hasher
-        hashers[pa.RecordBatch] = table_hasher
-    if is_xarray_available():  # pragma: no cover
-        import xarray as xr  # noqa: PLC0415
-
-        hashers[xr.Variable] = XarrayHasher("Variable")
-        hashers[xr.DataArray] = XarrayHasher("DataArray")
-        hashers[xr.Dataset] = XarrayHasher("Dataset")
-    return hashers
 
 
 _default_registry: LazySingleton[HasherRegistry] = make_default_registry_singleton(

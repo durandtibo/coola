@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import OrderedDict, deque
 from collections.abc import Generator, Mapping, Sequence
+from unittest.mock import patch
 
 import pytest
 
@@ -37,7 +38,9 @@ from coola.equality.tester import (
 )
 from coola.equality.tester.jax import get_array_impl_class
 from coola.registry import AlreadyRegisteredError
+from coola.testing.fixtures import numpy_available
 from coola.utils.imports import (
+    import_object,
     is_jax_available,
     is_numpy_available,
     is_pandas_available,
@@ -233,3 +236,62 @@ def test_get_default_registry_singleton_persists_modifications_across_calls() ->
     """Test that modifications to the registry persist across calls."""
     get_default_registry().register(CustomList, SequenceEqualityTester())
     assert get_default_registry().has_equality_tester(CustomList)
+
+
+@numpy_available
+@patch("coola.equality.tester.interface.package_available", lambda name: False)  # noqa: ARG005
+def test_register_default_equality_testers_skips_the_libraries_that_are_not_installed() -> None:
+    registry = EqualityTesterRegistry()
+    tester_interface._register_default_equality_testers(registry)
+    assert not registry.has(np.ndarray)
+
+
+#############################################
+#     Tests for the lazy equality testers     #
+#############################################
+
+LAZY_MODULES = [
+    pytest.param("coola.equality.tester.jax", ("jax", "jaxlib"), id="jax"),
+    pytest.param("coola.equality.tester.numpy", ("numpy",), id="numpy"),
+    pytest.param("coola.equality.tester.pandas", ("pandas",), id="pandas"),
+    pytest.param("coola.equality.tester.polars", ("polars",), id="polars"),
+    pytest.param("coola.equality.tester.pyarrow", ("pyarrow",), id="pyarrow"),
+    pytest.param("coola.equality.tester.torch", ("torch",), id="torch"),
+    pytest.param("coola.equality.tester.xarray", ("xarray",), id="xarray"),
+]
+
+LAZY_MODULE_NAMES = [
+    "coola.equality.tester.jax",
+    "coola.equality.tester.numpy",
+    "coola.equality.tester.pandas",
+    "coola.equality.tester.polars",
+    "coola.equality.tester.pyarrow",
+    "coola.equality.tester.torch",
+    "coola.equality.tester.xarray",
+]
+
+
+@pytest.mark.parametrize(("module", "names"), LAZY_MODULES)
+def test_get_default_testers_types_come_from_the_library(
+    module: str, names: tuple[str, ...]
+) -> None:
+    """Test that the lazy group is loaded for each type that it
+    registers."""
+    pytest.importorskip(names[0])
+    mapping = import_object(f"{module}:get_default_testers")()
+    assert {t.__module__.partition(".")[0] for t in mapping} <= set(names)
+
+
+@pytest.mark.parametrize(("module", "names"), LAZY_MODULES)
+def test_get_default_testers_returns_entries_if_the_library_is_available(
+    module: str, names: tuple[str, ...]
+) -> None:
+    pytest.importorskip(names[0])
+    assert len(import_object(f"{module}:get_default_testers")()) > 0
+
+
+@pytest.mark.parametrize("module", LAZY_MODULE_NAMES)
+def test_get_default_testers_returns_nothing_if_the_library_is_unavailable(module: str) -> None:
+    name = module.rpartition(".")[2]
+    with patch(f"{module}.is_{name}_available", lambda: False):
+        assert import_object(f"{module}:get_default_testers")() == {}

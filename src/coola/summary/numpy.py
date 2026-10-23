@@ -9,7 +9,7 @@ from __future__ import annotations
 
 __all__ = ["NDArraySummarizer"]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.summary.metadata import BaseMetadataSummarizer
 from coola.utils.imports import check_numpy, is_numpy_available
@@ -18,6 +18,10 @@ if TYPE_CHECKING or is_numpy_available():
     import numpy as np
 else:  # pragma: no cover
     from coola.utils.fallback.numpy import numpy as np
+
+
+if TYPE_CHECKING:
+    from coola.summary.base import Summarizer
 
 
 class NDArraySummarizer(BaseMetadataSummarizer[np.ndarray]):
@@ -67,3 +71,19 @@ class NDArraySummarizer(BaseMetadataSummarizer[np.ndarray]):
 
     def _describe(self, data: np.ndarray) -> list[str]:
         return [f"shape={data.shape}", f"dtype={data.dtype}"]
+
+
+def get_default_summarizers() -> dict[type, Summarizer[Any]]:
+    r"""Get the default summarizers of the NumPy arrays.
+
+    Returns:
+        The summarizers of the NumPy arrays and their associated types.
+
+    Notes:
+        This function is called by the default registry the first time it
+        needs the summarizers of the NumPy arrays.
+    """
+    if not is_numpy_available():
+        return {}
+
+    return {np.ndarray: NDArraySummarizer()}

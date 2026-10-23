@@ -1,3 +1,4 @@
+from typing import Any
 from unittest.mock import Mock, patch
 
 from coola.reducer import NativeReducer, NumpyReducer, TorchReducer, auto_reducer
@@ -27,49 +28,43 @@ def test_auto_reducer_basic() -> None:
         assert isinstance(auto_reducer(), NativeReducer)
 
 
-def _auto_reducer_with_torch_and_numpy() -> tuple[Mock, Mock, Mock, Mock]:
-    torch_reducer = Mock(spec=TorchReducer)
+def _auto_reducer_with_torch_and_numpy() -> tuple[Any, Mock]:
+    import_object = Mock()
     with (
         patch("coola.reducer.utils.is_torch_available", lambda: True),
         patch("coola.reducer.utils.is_numpy_available", lambda: True),
-        patch("coola.reducer.utils.TorchReducer", Mock(return_value=torch_reducer)) as torch_cls,
-        patch("coola.reducer.utils.NumpyReducer", Mock()) as numpy_cls,
+        patch("coola.reducer.utils.import_object", import_object),
     ):
         reducer = auto_reducer()
-    return reducer, torch_reducer, torch_cls, numpy_cls
+    return reducer, import_object
 
 
 def test_auto_reducer_prioritizes_torch_over_numpy() -> None:
-    reducer, torch_reducer, _, _ = _auto_reducer_with_torch_and_numpy()
-    assert reducer is torch_reducer
+    reducer, import_object = _auto_reducer_with_torch_and_numpy()
+    assert reducer is import_object.return_value.return_value
 
 
-def test_auto_reducer_creates_the_torch_reducer() -> None:
-    _, _, torch_cls, _ = _auto_reducer_with_torch_and_numpy()
-    torch_cls.assert_called_once_with()
+def test_auto_reducer_imports_only_the_torch_reducer_if_torch_is_available() -> None:
+    _, import_object = _auto_reducer_with_torch_and_numpy()
+    import_object.assert_called_once_with("coola.reducer.torch:TorchReducer")
 
 
-def test_auto_reducer_does_not_create_the_numpy_reducer_if_torch_is_available() -> None:
-    _, _, _, numpy_cls = _auto_reducer_with_torch_and_numpy()
-    numpy_cls.assert_not_called()
-
-
-def _auto_reducer_with_numpy_only() -> tuple[Mock, Mock, Mock]:
-    numpy_reducer = Mock(spec=NumpyReducer)
+def _auto_reducer_with_numpy_only() -> tuple[Any, Mock]:
+    import_object = Mock()
     with (
         patch("coola.reducer.utils.is_torch_available", lambda: False),
         patch("coola.reducer.utils.is_numpy_available", lambda: True),
-        patch("coola.reducer.utils.NumpyReducer", Mock(return_value=numpy_reducer)) as numpy_cls,
+        patch("coola.reducer.utils.import_object", import_object),
     ):
         reducer = auto_reducer()
-    return reducer, numpy_reducer, numpy_cls
+    return reducer, import_object
 
 
 def test_auto_reducer_falls_back_to_numpy() -> None:
-    reducer, numpy_reducer, _ = _auto_reducer_with_numpy_only()
-    assert reducer is numpy_reducer
+    reducer, import_object = _auto_reducer_with_numpy_only()
+    assert reducer is import_object.return_value.return_value
 
 
-def test_auto_reducer_creates_the_numpy_reducer() -> None:
-    _, _, numpy_cls = _auto_reducer_with_numpy_only()
-    numpy_cls.assert_called_once_with()
+def test_auto_reducer_imports_the_numpy_reducer() -> None:
+    _, import_object = _auto_reducer_with_numpy_only()
+    import_object.assert_called_once_with("coola.reducer.numpy:NumpyReducer")

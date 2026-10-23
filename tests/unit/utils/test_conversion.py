@@ -10,7 +10,7 @@ from pathlib import Path
 from uuid import UUID
 
 from coola.testing.fixtures import numpy_available, pydantic_available, torch_available
-from coola.utils.conversion import to_jsonable
+from coola.utils.conversion import _is_instance_of_loaded, to_jsonable
 from coola.utils.imports import (
     is_numpy_available,
     is_pydantic_available,
@@ -270,3 +270,20 @@ def test_to_jsonable_time() -> None:
 
 def test_to_jsonable_timedelta() -> None:
     assert to_jsonable(datetime.timedelta(minutes=1, milliseconds=500)) == 60.5
+
+
+##########################################
+#     Tests for _is_instance_of_loaded   #
+##########################################
+
+
+def test_is_instance_of_loaded_true() -> None:
+    assert _is_instance_of_loaded(1, "builtins", "str", "int")
+
+
+def test_is_instance_of_loaded_false() -> None:
+    assert not _is_instance_of_loaded("a", "builtins", "int")
+
+
+def test_is_instance_of_loaded_library_not_loaded() -> None:
+    assert not _is_instance_of_loaded(1, "coola_missing_library", "int")

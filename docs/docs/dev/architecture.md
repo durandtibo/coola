@@ -308,7 +308,11 @@ The `coola` codebase uses:
 - **jax**: JAX array support
 - **pyarrow**: PyArrow table support
 
-Each optional dependency is only imported when used (lazy loading).
+Each optional dependency is only imported when used (lazy loading): `import coola` and the
+import of its subpackages do not import any of them. The `__init__.py` files expose the names that
+need a library with `lazy_exports`, and the default registries load the entries of a library the
+first time they look for one of its types (`register_lazy`). See
+[Lazy imports](add_backend.md#lazy-imports).
 
 ## Module Organization
 

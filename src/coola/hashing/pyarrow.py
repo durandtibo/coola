@@ -9,10 +9,15 @@ from typing import TYPE_CHECKING, Any
 from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_tagged
+from coola.utils.imports import is_pyarrow_available
+
+if TYPE_CHECKING or is_pyarrow_available():
+    import pyarrow as pa
+else:  # pragma: no cover
+    from coola.utils.fallback.pyarrow import pyarrow as pa
 
 if TYPE_CHECKING:
-    import pyarrow as pa
-
+    from coola.hashing.base import Hasher
     from coola.hashing.registry import HasherRegistry
 
 
@@ -89,3 +94,25 @@ class PyarrowTableHasher(InlineDisplayMixin, BaseHasher["pa.Table | pa.RecordBat
             parts.append(registry.hash(name, length=length, ignore_unhashable=ignore_unhashable))
             parts.append(_hash_array(column, registry, length, ignore_unhashable))
         return hash_tagged("pyarrow.Table", "\0".join(parts), length=length)
+
+
+def get_default_hashers() -> dict[type, Hasher[Any]]:
+    r"""Get the default hashers of the pyarrow objects.
+
+    Returns:
+        The hashers of the pyarrow objects and their associated types.
+
+    Notes:
+        This function is called by the default registry the first time it
+        needs the hashers of the pyarrow objects.
+    """
+    if not is_pyarrow_available():
+        return {}
+    array_hasher = PyarrowArrayHasher()
+    table_hasher = PyarrowTableHasher()
+    return {
+        pa.Array: array_hasher,
+        pa.ChunkedArray: array_hasher,
+        pa.Table: table_hasher,
+        pa.RecordBatch: table_hasher,
+    }

@@ -34,6 +34,7 @@ else:  # pragma: no cover
 
 if TYPE_CHECKING:
     from coola.equality.handler import BaseEqualityHandler
+    from coola.equality.tester.base import BaseEqualityTester
 
 
 class PandasDataFrameEqualityTester(BaseChainEqualityTester[pd.DataFrame]):
@@ -214,3 +215,24 @@ class PandasExtensionArrayEqualityTester(BaseChainEqualityTester[Any]):
         return create_chain(
             SameObjectHandler(), SameTypeHandler(), PandasExtensionArrayEqualHandler()
         )
+
+
+def get_default_testers() -> dict[type, BaseEqualityTester[Any]]:
+    r"""Get the default equality testers of the pandas objects.
+
+    Returns:
+        The equality testers of the pandas objects and their associated types.
+
+    Notes:
+        This function is called by the default registry the first time it
+        needs the equality testers of the pandas objects.
+    """
+    if not is_pandas_available():
+        return {}
+
+    return {
+        pd.DataFrame: PandasDataFrameEqualityTester(),
+        pd.Series: PandasSeriesEqualityTester(),
+        pd.Index: PandasIndexEqualityTester(),
+        pd.api.extensions.ExtensionArray: PandasExtensionArrayEqualityTester(),
+    }

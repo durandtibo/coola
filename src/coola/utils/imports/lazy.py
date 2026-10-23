@@ -2,11 +2,14 @@ r"""Implement some utility functions to lazily import a module."""
 
 from __future__ import annotations
 
-__all__ = ["LazyModule", "lazy_import"]
+__all__ = ["LazyModule", "import_object", "lazy_exports", "lazy_import"]
 
 import importlib
 from types import ModuleType
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Mapping
 
 
 # The implementation of LazyModule is based on
@@ -84,3 +87,81 @@ def lazy_import(name: str) -> LazyModule:
         ```
     """
     return LazyModule(name)
+
+
+def import_object(path: str) -> Any:
+    r"""Import an object from a module.
+
+    Args:
+        path: The path of the object, with the form
+            ``"package.module:name"``.
+
+    Returns:
+        The object, which is not imported until this function is called.
+
+    Raises:
+        ValueError: If ``path`` does not have the form
+            ``"package.module:name"``.
+
+    Example:
+        ```pycon
+        >>> from coola.utils.imports import import_object
+        >>> import_object("collections:OrderedDict")
+        <class 'collections.OrderedDict'>
+
+        ```
+    """
+    module_name, separator, name = path.partition(":")
+    if not (module_name and separator and name):
+        msg = f"Expected a path with the form 'package.module:name', got {path!r}"
+        raise ValueError(msg)
+    return getattr(importlib.import_module(module_name), name)
+
+
+def lazy_exports(
+    package: str, exports: Mapping[str, str], namespace: dict[str, Any]
+) -> tuple[Callable[[str], Any], Callable[[], list[str]]]:
+    r"""Create the ``__getattr__`` and ``__dir__`` of a package that
+    imports some of its names when they are used.
+
+    The names are in the ``__all__`` of the package, so ``from package
+    import name`` works as usual, but the module that defines a name is
+    imported the first time the name is used. This avoids importing the
+    optional libraries that a module needs when the package is
+    imported.
+
+    Args:
+        package: The name of the package, usually ``__name__``.
+        exports: The module that defines each lazy name.
+        namespace: The namespace of the package, usually ``globals()``.
+            A name is added to it when it is imported, so the next
+            access does not call ``__getattr__``.
+
+    Returns:
+        The ``__getattr__`` and ``__dir__`` functions of the package.
+
+    Example:
+        ```pycon
+        >>> namespace = {}
+        >>> getattr_, dir_ = lazy_exports("example", {"OrderedDict": "collections"}, namespace)
+        >>> getattr_("OrderedDict")
+        <class 'collections.OrderedDict'>
+        >>> "OrderedDict" in namespace
+        True
+
+        ```
+    """
+
+    def __getattr__(name: str) -> Any:  # noqa: N807
+        module_name = exports.get(name)
+        if module_name is None:
+            msg = f"module {package!r} has no attribute {name!r}"
+            raise AttributeError(msg)
+        value = getattr(importlib.import_module(module_name), name)
+        namespace[name] = value
+        return value
+
+    def __dir__() -> list[str]:  # noqa: N807
+        return sorted({*namespace, *exports})
+
+    return __getattr__, __dir__

@@ -6,17 +6,49 @@ from __future__ import annotations
 __all__ = ["BaseRegistry"]
 
 import threading
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Generic, TypeVar
 
 from coola.registry.exceptions import AlreadyRegisteredError, KeyNotRegisteredError
 from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
+from coola.utils.imports import import_object
 from coola.utils.introspection import is_same_type
 
 if TYPE_CHECKING:
-    from collections.abc import ItemsView, Iterator, KeysView, Mapping, ValuesView
+    from collections.abc import (
+        Callable,
+        ItemsView,
+        Iterable,
+        Iterator,
+        KeysView,
+        Mapping,
+        Sequence,
+        ValuesView,
+    )
 
 K = TypeVar("K")  # Key type
 V = TypeVar("V")  # Value type
+
+
+@dataclass
+class _LazyEntry(Generic[K, V]):
+    r"""Entries of a registry that are loaded when they are needed.
+
+    Attributes:
+        names: The names of the group. The entries are loaded the first
+            time the registry needs one of these names.
+        factory: A callable that returns the entries, or the path
+            ``"package.module:name"`` of this callable. A path is not
+            imported until the entries are loaded.
+    """
+
+    names: tuple[str, ...]
+    factory: str | Callable[[], Mapping[K, V]]
+
+    def load(self) -> Mapping[K, V]:
+        r"""Build the entries."""
+        factory = import_object(self.factory) if isinstance(self.factory, str) else self.factory
+        return factory()
 
 
 class BaseRegistry(Generic[K, V]):
@@ -49,11 +81,14 @@ class BaseRegistry(Generic[K, V]):
         # read-only calls between mutations reuse the same copy instead of paying for
         # a fresh O(n) ``dict.copy()`` each time.
         self._snapshot: dict[K, V] | None = None
+        # Entries that are not loaded yet, by group name (see ``register_lazy``).
+        self._lazy: dict[str, _LazyEntry[K, V]] = {}
 
     def __contains__(self, key: K) -> bool:
         return self.has(key)
 
     def __getitem__(self, key: K) -> V:
+        self._load_lazy_for(key)
         with self._lock:
             if key not in self._state:
                 raise self._not_registered_error(self._getitem_not_registered_msg(key))
@@ -70,6 +105,7 @@ class BaseRegistry(Generic[K, V]):
             return iter(self._get_snapshot())
 
     def __len__(self) -> int:
+        self._load_lazy_all()
         with self._lock:
             return len(self._state)
 
@@ -166,6 +202,7 @@ class BaseRegistry(Generic[K, V]):
         """
         with self._lock:
             self._state.clear()
+            self._lazy.clear()
             self._invalidate()
 
     def equal(self, other: object, equal_nan: bool = False) -> bool:
@@ -198,6 +235,8 @@ class BaseRegistry(Generic[K, V]):
 
         if not is_same_type(other, self):
             return False
+        self._load_lazy_all()
+        other._load_lazy_all()
 
         # Acquire locks in a consistent order based on object id to avoid deadlock
         first, second = (self, other) if id(self) < id(other) else (other, self)
@@ -228,6 +267,7 @@ class BaseRegistry(Generic[K, V]):
 
             ```
         """
+        self._load_lazy_for(key)
         with self._lock:
             return self._state.get(key, default)
 
@@ -254,6 +294,7 @@ class BaseRegistry(Generic[K, V]):
 
             ```
         """
+        self._load_lazy_for(key)
         with self._lock:
             return key in self._state
 
@@ -308,6 +349,7 @@ class BaseRegistry(Generic[K, V]):
         """
         self._validate_key(key)
         with self._lock:
+            self._load_lazy_for(key)
             if key in self._state and not exist_ok:
                 raise AlreadyRegisteredError(self._already_registered_msg(key))
             self._state[key] = value
@@ -371,6 +413,8 @@ class BaseRegistry(Generic[K, V]):
         for key in mapping:
             self._validate_key(key)
         with self._lock:
+            for key in mapping:
+                self._load_lazy_for(key)
             # Check all keys first if exist_ok is False
             if not exist_ok and (duplicates := set(mapping) & set(self._state)):
                 raise AlreadyRegisteredError(self._many_already_registered_msg(duplicates))
@@ -412,6 +456,7 @@ class BaseRegistry(Generic[K, V]):
             ```
         """
         with self._lock:
+            self._load_lazy_for(key)
             if key not in self._state:
                 raise self._not_registered_error(self._not_registered_msg(key))
             value = self._state.pop(key)
@@ -428,9 +473,96 @@ class BaseRegistry(Generic[K, V]):
         ``dict.copy()`` instead of paying for a fresh O(n) allocation
         every time.
         """
+        self._load_lazy_all()
         if self._snapshot is None:
             self._snapshot = self._state.copy()
         return self._snapshot
+
+    def register_lazy(
+        self, names: str | Sequence[str], factory: str | Callable[[], Mapping[K, V]]
+    ) -> None:
+        r"""Register entries that are built the first time they are needed.
+
+        This is used to register the entries that depend on an optional
+        library without importing the library when the registry is
+        created. The entries are loaded the first time the registry is
+        asked for a key that is related to one of the ``names`` (see
+        ``_lazy_names``; by default, all the groups are related to every
+        key), or for the whole content of the registry (``len``,
+        iteration, ``items``, ``repr``, ``equal``...).
+
+        The entries that are loaded never replace the entries that are
+        already registered, so a key that was registered by hand keeps
+        its value. ``clear`` removes the entries that are not loaded.
+
+        Args:
+            names: The name or the names of the group of entries. The
+                group is loaded when any of these names is needed.
+            factory: A callable that returns the entries, or its path
+                ``"package.module:name"``. A path is imported when the
+                entries are loaded.
+
+        Example:
+            ```pycon
+            >>> from coola.registry import Registry
+            >>> registry = Registry[str, int]()
+            >>> registry.register_lazy("group", lambda: {"key": 42})
+            >>> len(registry)
+            1
+            >>> registry.get("key")
+            42
+
+            ```
+        """
+        entry = _LazyEntry((names,) if isinstance(names, str) else tuple(names), factory)
+        with self._lock:
+            for name in entry.names:
+                self._lazy[name] = entry
+
+    def _lazy_names(self, key: K) -> Iterable[str]:  # noqa: ARG002
+        r"""Return the names of the lazy groups related to a key.
+
+        By default, the keys do not tell which group they come from, so
+        all the groups that are not loaded are related to every key.
+        Subclasses can override it to load only the groups that matter
+        for the key.
+        """
+        return list(self._lazy)
+
+    def _load_lazy_for(self, key: K) -> None:
+        r"""Load the lazy groups that are related to a key."""
+        if self._lazy:
+            self._load_lazy(self._lazy_names(key))
+
+    def _load_lazy_all(self) -> None:
+        r"""Load all the lazy groups."""
+        if self._lazy:
+            self._load_lazy(list(self._lazy))
+
+    def _load_lazy(self, names: Iterable[str]) -> None:
+        r"""Load the lazy groups with these names.
+
+        The entries that are already registered are not replaced.
+        """
+        with self._lock:
+            for name in names:
+                entry = self._lazy.get(name)
+                if entry is None:
+                    continue  # The group is loaded or has no entries for this name
+                for alias in entry.names:
+                    del self._lazy[alias]
+                try:
+                    entries = entry.load()
+                except BaseException:
+                    # Keep the group so the next call tries again and fails the same way,
+                    # instead of silently continuing without these entries.
+                    for alias in entry.names:
+                        self._lazy[alias] = entry
+                    raise
+                for key, value in entries.items():
+                    self._validate_key(key)
+                    self._state.setdefault(key, value)
+                self._invalidate()
 
     def items(self) -> ItemsView[K, V]:
         r"""Return key-value pairs.
