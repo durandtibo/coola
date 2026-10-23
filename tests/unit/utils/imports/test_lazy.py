@@ -132,6 +132,13 @@ def test_lazy_module_str_does_not_import() -> None:
     assert str(LazyModule("missing")) == "<module 'missing'>"
 
 
+def test_lazy_module_missing_attribute_after_import() -> None:
+    module = LazyModule("os")
+    _ = module.getcwd
+    with pytest.raises(AttributeError, match=r"has no attribute 'missing_attr'"):
+        _ = module.missing_attr
+
+
 ###########################
 #     import_object       #
 ###########################
