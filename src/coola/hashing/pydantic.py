@@ -5,6 +5,7 @@ from __future__ import annotations
 
 __all__ = ["PydanticModelHasher", "hash_pydantic_model", "unwrap_secrets"]
 
+import threading
 from typing import TYPE_CHECKING, Any, Literal, assert_never
 
 from coola.display import InlineDisplayMixin
@@ -215,6 +216,9 @@ def unwrap_secrets(
     return value
 
 
+_state = threading.local()
+
+
 def hash_pydantic_model(
     model: pydantic.BaseModel,
     *,
@@ -232,6 +236,11 @@ def hash_pydantic_model(
     registry, so it follows the same rules as any other data (type
     sensitivity, order-insensitive sets, ...), and the hash is stable
     regardless of field declaration order.
+
+    The nested models found in the dicts, lists, tuples and sets of the
+    fields are hashed with the same ``on_secret`` policy. A model nested
+    in another kind of object (a dataclass, for example) is hashed by the
+    registry with the default policy.
 
     Args:
         model: The pydantic model instance to hash.
@@ -253,8 +262,9 @@ def hash_pydantic_model(
 
     Raises:
         ValueError: If ``on_secret="error"`` (the default) and the
-            model contains a ``SecretStr``/``SecretBytes`` field, or
-            if ``length`` is not an even number between 2 and 128.
+            model contains a ``SecretStr``/``SecretBytes`` field, if
+            the model contains itself, or if ``length`` is not an even
+            number between 2 and 128.
         KeyError: If a field value has a type for which no hasher is
             registered in ``registry`` and ``ignore_unhashable`` is
             ``False``.
@@ -279,6 +289,26 @@ def hash_pydantic_model(
         from coola.hashing.interface import get_default_registry  # noqa: PLC0415
 
         registry = get_default_registry()
+    active: set[int] | None = getattr(_state, "active", None)
+    if active is None:
+        active = _state.active = set()
+    if id(model) in active:
+        msg = f"Cannot hash a self-referencing {type(model)!r}."
+        raise ValueError(msg)
+    active.add(id(model))
+    try:
+        return _hash_pydantic_model(model, length, on_secret, registry, ignore_unhashable)
+    finally:
+        active.discard(id(model))
+
+
+def _hash_pydantic_model(
+    model: pydantic.BaseModel,
+    length: int,
+    on_secret: Literal["reveal", "exclude", "error"],
+    registry: HasherRegistry,
+    ignore_unhashable: bool,
+) -> str:
     cls = type(model)
     fields = {name: getattr(model, name) for name in cls.model_fields}
     fields.update(model.model_extra or {})
