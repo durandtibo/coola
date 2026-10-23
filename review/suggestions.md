@@ -85,6 +85,7 @@ the PR number is given. Items not listed are **open**.
 | 6.19 | PR open (#2124)         | Shared length validation, checked before hashing; `memoryview` supported.                                                                    |
 | 6.20 | PR open (#2125)         | `get_default_generator` removed from both `__all__`.                                                                                         |
 | 6.21 | Partly, PR open (#2126) | Prefix and generator result validated, `chars` tidied. Open: Windows/Posix path hash, duplicate registry export, `register_hashers` doctest. |
+| 7.9 | PR open (#2137) | `datetime.time` becomes an ISO string and `timedelta` a number of seconds. |
 
 All other items in sections 5 to 10 (including 7.x, 8.x, 9.x, 10.x) have no matching commit and are **open**.
 The earlier "Suggested order" lists below are unchanged.
