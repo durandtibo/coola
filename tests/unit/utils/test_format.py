@@ -569,5 +569,11 @@ def test_str_indent_skips_empty_lines() -> None:
     assert str_indent("a\n\nb", 2) == "a\n\n  b"
 
 
+def test_str_human_byte_size_rounds_up_to_the_next_unit() -> None:
+    assert str_human_byte_size(1048575) == "1.00 MB"
+
+
+def test_str_human_byte_size_largest_unit_is_not_promoted() -> None:
+    assert str_human_byte_size(1024**4 * 2000) == "2,000.00 TB"
 def test_repr_mapping_sorted_keys_mixed_key_types() -> None:
     assert repr_mapping({"b": 1, 1: 2}, sorted_keys=True) == "(1): 2\n(b): 1"
