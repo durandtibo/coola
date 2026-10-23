@@ -110,14 +110,29 @@ class BaseRegistry(Generic[K, V]):
             return len(self._state)
 
     def __repr__(self) -> str:
+        # Displaying a registry must not import the optional libraries: the entries that
+        # are not loaded yet are listed by group name instead.
         with self._lock:
-            snapshot = self._get_snapshot()
-        return f"{self.__class__.__qualname__}(\n  {repr_indent(repr_mapping(snapshot))}\n)"
+            snapshot = self._get_snapshot(load=False)
+            pending = self._pending_msg()
+        body = "\n  ".join(filter(None, [repr_indent(repr_mapping(snapshot)), pending]))
+        return f"{self.__class__.__qualname__}(\n  {body}\n)"
 
     def __str__(self) -> str:
         with self._lock:
-            snapshot = self._get_snapshot()
-        return f"{self.__class__.__qualname__}(\n  {str_indent(str_mapping(snapshot))}\n)"
+            snapshot = self._get_snapshot(load=False)
+            pending = self._pending_msg()
+        body = "\n  ".join(filter(None, [str_indent(str_mapping(snapshot)), pending]))
+        return f"{self.__class__.__qualname__}(\n  {body}\n)"
+
+    def _pending_msg(self) -> str:
+        r"""Return the line that lists the lazy groups that are not loaded.
+
+        This must be called while holding ``self._lock``.
+        """
+        if not self._lazy:
+            return ""
+        return f"<not loaded: {', '.join(sorted(self._lazy))}>"
 
     def _on_change(self) -> None:
         r"""React to a mutation of the registry state.
@@ -463,7 +478,7 @@ class BaseRegistry(Generic[K, V]):
             self._invalidate()
             return value
 
-    def _get_snapshot(self) -> dict[K, V]:
+    def _get_snapshot(self, *, load: bool = True) -> dict[K, V]:
         r"""Return a cached, read-only-by-convention copy of ``_state``.
 
         This must be called while holding ``self._lock``. The copy is
@@ -472,8 +487,14 @@ class BaseRegistry(Generic[K, V]):
         ``items``/``keys``/ ``values`` between mutations reuse the same
         ``dict.copy()`` instead of paying for a fresh O(n) allocation
         every time.
+
+        Args:
+            load: If ``True``, the entries that are not loaded yet are
+                loaded first. If ``False``, only the entries that are
+                already loaded are in the snapshot.
         """
-        self._load_lazy_all()
+        if load:
+            self._load_lazy_all()
         if self._snapshot is None:
             self._snapshot = self._state.copy()
         return self._snapshot
