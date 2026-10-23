@@ -51,25 +51,25 @@ In this page, `<pkg>` is the name of the library, e.g. `pandas`.
 Decide for each package whether the library needs an entry, and write the decision down in the
 pull request.
 
-| Package           | What to do                                                                                                                                                                                                | Default                                                                     |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| `coola.summary`   | Add a `BaseMetadataSummarizer` in `summary/<pkg>.py` that describes the metadata (shape, dtype, columns) in `_describe`, export it as a lazy name, and register it with a `get_default_summarizers` function and the `_LAZY_SUMMARIZERS` table of `summary/interface.py`. | Without it, the summary is the `str` of the object, which can be very long. |
-| `coola.hashing`   | Nothing by default: there is no canonical byte form for arrays and data frames. Document how to register a hasher with `register_hashers`.                                                                | The type is not hashable.                                                   |
-| `coola.recursive` | Nothing: the objects of the library are leaves, passed to the function.                                                                                                                                   | Leaf.                                                                       |
-| `coola.iterator`  | Nothing: the objects are leaves, and are not expanded.                                                                                                                                                    | Leaf.                                                                       |
-| `coola.random`    | If the library has a global random number generator, add a `BaseRandomManager` in `random/<pkg>.py`, and register it in `random/interface.py` (the manager is imported with `import_object`, because the RNG of the library must be seeded even if the library is imported later).                                                            | Not managed.                                                                |
-| `coola.reducer`   | If the library can compute statistics, add a `BaseBasicReducer` in `reducer/<pkg>.py`. Its results must agree with `NativeReducer` (see `tests/unit/reducer/test_consistency.py`).                        | Not supported.                                                              |
+| Package           | What to do                                                                                                                                                                                                                                                                         | Default                                                                     |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `coola.summary`   | Add a `BaseMetadataSummarizer` in `summary/<pkg>.py` that describes the metadata (shape, dtype, columns) in `_describe`, export it as a lazy name, and register it with a `get_default_summarizers` function and the `_LAZY_SUMMARIZERS` table of `summary/interface.py`.          | Without it, the summary is the `str` of the object, which can be very long. |
+| `coola.hashing`   | Nothing by default: there is no canonical byte form for arrays and data frames. Document how to register a hasher with `register_hashers`.                                                                                                                                         | The type is not hashable.                                                   |
+| `coola.recursive` | Nothing: the objects of the library are leaves, passed to the function.                                                                                                                                                                                                            | Leaf.                                                                       |
+| `coola.iterator`  | Nothing: the objects are leaves, and are not expanded.                                                                                                                                                                                                                             | Leaf.                                                                       |
+| `coola.random`    | If the library has a global random number generator, add a `BaseRandomManager` in `random/<pkg>.py`, and register it in `random/interface.py` (the manager is imported with `import_object`, because the RNG of the library must be seeded even if the library is imported later). | Not managed.                                                                |
+| `coola.reducer`   | If the library can compute statistics, add a `BaseBasicReducer` in `reducer/<pkg>.py`. Its results must agree with `NativeReducer` (see `tests/unit/reducer/test_consistency.py`).                                                                                                 | Not supported.                                                              |
 
 ## Lazy imports
 
 Importing `coola` must not import the optional libraries, because it can take seconds (for example
 `torch`). The modules that need a library import it at the top, as usual, with the fallback module
-when it is not installed. What is lazy is *who imports these modules*:
+when it is not installed. What is lazy is _who imports these modules_:
 
 - **Package exports.** The `__init__.py` of a package lists the names that are defined in a module
   of an optional library in a `_LAZY_EXPORTS` table, and defines `__getattr__` and `__dir__` with
   `lazy_exports`. The names stay in `__all__`, and `from coola.equality.tester import
-  TorchTensorEqualityTester` works as before, but the module is imported when the name is used.
+TorchTensorEqualityTester` works as before, but the module is imported when the name is used.
   Import the names for the type checkers in the `if TYPE_CHECKING:` block.
 - **Registries.** The default registries do not import the modules of the optional libraries.
   `registry.register_lazy(names, "package.module:get_default_...")` registers a group of entries
