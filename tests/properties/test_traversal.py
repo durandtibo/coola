@@ -14,8 +14,8 @@ from tests.properties.strategies import values
 
 
 def leaves_of(data: Any) -> list[Any]:
-    r"""Return the leaves of nested containers (the empty containers have
-    no leaf)."""
+    r"""Return the leaves of nested containers (the empty containers
+    have no leaf)."""
     if isinstance(data, dict):
         return [leaf for value in data.values() for leaf in leaves_of(value)]
     if isinstance(data, (list, tuple, frozenset)):

@@ -126,7 +126,6 @@ Both `generate_stable_uuid5` and `generate_stable_content_id` forward `registry`
 >>> with warnings.catch_warnings():
 ...     warnings.simplefilter("ignore")  # a warning says that the type has no hasher
 ...     generate_stable_content_id(object(), ignore_unhashable=True)  # doctest: +ELLIPSIS
-...
 '...'
 
 ```
