@@ -26,7 +26,8 @@ def import_object(object_path: object, *, allowed_prefixes: Sequence[str] | None
         allowed_prefixes: An optional allow-list of module prefixes.
             If provided, ``object_path`` must be equal to a prefix or
             start with ``prefix + "."``, otherwise an ``ImportError``
-            is raised *before* anything is imported.
+            is raised *before* anything is imported. A string is
+            treated as a single prefix.
 
     Returns:
         The imported object.
@@ -68,6 +69,9 @@ def import_object(object_path: object, *, allowed_prefixes: Sequence[str] | None
         msg = f"`object_path` is not a string: {object_path}"
         raise TypeError(msg)
 
+    if isinstance(allowed_prefixes, str):
+        # A string is a single prefix, not a sequence of one-character prefixes.
+        allowed_prefixes = (allowed_prefixes,)
     if allowed_prefixes is not None and not any(
         object_path == prefix or object_path.startswith(prefix + ".") for prefix in allowed_prefixes
     ):
@@ -84,7 +88,7 @@ def import_object(object_path: object, *, allowed_prefixes: Sequence[str] | None
         return getattr(module, attr)
     except AttributeError as err:
         msg = f"Module {module_name!r} has no attribute {attr!r}"
-        raise ImportError(msg) from err
+        raise ImportError(msg, name=object_path) from err
 
 
 def instantiate_object(

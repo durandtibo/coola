@@ -311,3 +311,12 @@ def test_import_object_allowed_prefixes_checked_before_import() -> None:
 def test_import_object_allowed_prefixes_non_string() -> None:
     with pytest.raises(TypeError, match="not a string"):
         import_object(42, allowed_prefixes=["collections"])
+
+
+def test_import_object_allowed_prefixes_string_is_a_single_prefix() -> None:
+    assert import_object("collections.Counter", allowed_prefixes="collections") is Counter
+
+
+def test_import_object_allowed_prefixes_string_rejects_other_modules() -> None:
+    with pytest.raises(ImportError, match="not allowed"):
+        import_object("os.system", allowed_prefixes="collections")

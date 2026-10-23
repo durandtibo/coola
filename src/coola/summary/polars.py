@@ -64,6 +64,11 @@ class PolarsLazyFrameSummarizer(BaseFieldsSummarizer[pl.LazyFrame]):
             the query plan. If ``False`` (default), returns only the
             columns: ``<class> | columns=<name: dtype, ...>``.
 
+    ``collect_schema()`` resolves the whole query plan, which can read
+    file metadata (``scan_parquet``, ``scan_csv``, possibly remote). If
+    the plan is invalid, the columns are replaced by
+    ``<unresolved schema: ExceptionType>`` instead of raising.
+
     Raises:
         MissingPackageError: If polars is not installed.
 
@@ -84,7 +89,11 @@ class PolarsLazyFrameSummarizer(BaseFieldsSummarizer[pl.LazyFrame]):
         check_polars()
 
     def _describe(self, data: pl.LazyFrame) -> list[str]:
-        return [f"columns={self._format_fields(data.collect_schema().items())}"]
+        try:
+            schema = data.collect_schema()
+        except pl.exceptions.PolarsError as exc:
+            return [f"columns=<unresolved schema: {type(exc).__name__}>"]
+        return [f"columns={self._format_fields(schema.items())}"]
 
 
 class PolarsSeriesSummarizer(BaseMetadataSummarizer[pl.Series]):
