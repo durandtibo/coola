@@ -16,6 +16,7 @@ __all__ = [
 import contextlib
 import logging
 import os
+import socket
 import threading
 import time
 import uuid
@@ -63,8 +64,39 @@ def _get_save_lock(path: Path) -> threading.Lock:
         return lock
 
 
+def _make_lock_token() -> str:
+    r"""Return a unique token that identifies the owner of a lock.
+
+    The token starts with the host name and the process id (``host:pid:``)
+    so a waiter can tell that the owner is dead.
+    """
+    return f"{socket.gethostname()}:{os.getpid()}:{uuid.uuid4().hex}"
+
+
+def _lock_owner_is_dead(lock_path: Path) -> bool:
+    r"""Indicate if the process that owns the lock file is dead.
+
+    Only a lock taken on this host by a process that does not exist
+    anymore is reported as dead. If the owner cannot be found out (other
+    host, unknown token format, Windows), ``False`` is returned.
+    """
+    if os.name != "posix":
+        return False
+    try:
+        host, pid, _ = lock_path.read_text().split(":", maxsplit=2)
+        if host != socket.gethostname():
+            return False
+        os.kill(int(pid), 0)
+    except ProcessLookupError:
+        return True
+    except (OSError, ValueError):
+        return False
+    return False
+
+
 def _break_stale_lock(lock_path: Path, stale_after: float) -> bool:
-    r"""Remove ``lock_path`` if its age exceeds ``stale_after`` seconds.
+    r"""Remove ``lock_path`` if its age exceeds ``stale_after`` seconds,
+    or if the process that owns it is dead.
 
     The file is first renamed to a unique name so that, if several
     waiters notice the same stale lock, only one of them removes it.
@@ -73,14 +105,15 @@ def _break_stale_lock(lock_path: Path, stale_after: float) -> bool:
         ``True`` if a stale lock was removed.
     """
     try:
-        if time.time() - lock_path.stat().st_mtime <= stale_after:
+        age = time.time() - lock_path.stat().st_mtime
+        if age <= stale_after and not _lock_owner_is_dead(lock_path):
             return False
         broken = lock_path.with_name(f"{lock_path.name}.{os.getpid()}.{uuid.uuid4().hex}.stale")
         lock_path.rename(broken)
     except FileNotFoundError:
         return False
     broken.unlink(missing_ok=True)
-    logger.warning("Removed stale save lock %s (older than %ss)", lock_path, stale_after)
+    logger.warning("Removed stale save lock %s (age %.1fs, limit %ss)", lock_path, age, stale_after)
     return True
 
 
@@ -196,7 +229,7 @@ def _keep_lock_fresh(lock_path: Path, token: str, interval: float, stop: threadi
 @contextlib.contextmanager
 def _save_lock(path: Path, stale_after: float = _FILE_LOCK_STALE_AFTER) -> Generator[None]:
     with _get_save_lock(path):
-        token = uuid.uuid4().hex
+        token = _make_lock_token()
         lock_path = _acquire_file_lock(path, stale_after=stale_after, token=token)
         stop = threading.Event()
         heartbeat = threading.Thread(

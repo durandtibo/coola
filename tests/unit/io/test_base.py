@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import errno
 import os
+import socket
 import time
 from pathlib import Path
 from typing import Any
@@ -36,6 +37,8 @@ from coola.io.base import (
     _break_stale_lock,
     _get_save_lock,
     _keep_lock_fresh,
+    _lock_owner_is_dead,
+    _make_lock_token,
     _release_file_lock,
     _save_lock,
     _tmp_path,
@@ -768,3 +771,58 @@ def test_save_does_not_write_a_visible_file_while_saving(tmp_path: Path) -> None
     Saver().save("abc", tmp_path.joinpath("data.json"))
     assert seen == [[]]
     assert tmp_path.joinpath("data.json").read_text() == "abc"
+
+
+#####################################
+#     Tests for dead lock owners     #
+#####################################
+
+
+def test_make_lock_token_starts_with_host_and_pid() -> None:
+    assert _make_lock_token().startswith(f"{socket.gethostname()}:{os.getpid()}:")
+
+
+def test_lock_owner_is_dead_false_for_current_process(tmp_path: Path) -> None:
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.write_text(_make_lock_token())
+    assert not _lock_owner_is_dead(lock_path)
+
+
+def test_lock_owner_is_dead_true_if_process_does_not_exist(tmp_path: Path) -> None:
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.write_text(f"{socket.gethostname()}:1234:abc")
+    with patch("os.kill", side_effect=ProcessLookupError):
+        assert _lock_owner_is_dead(lock_path)
+
+
+def test_lock_owner_is_dead_false_for_another_host(tmp_path: Path) -> None:
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.write_text("another-host-xyz:1234:abc")
+    with patch("os.kill", side_effect=ProcessLookupError):
+        assert not _lock_owner_is_dead(lock_path)
+
+
+@pytest.mark.parametrize("content", ["", "abc", f"{socket.gethostname()}:notapid:abc"])
+def test_lock_owner_is_dead_false_for_unknown_token(tmp_path: Path, content: str) -> None:
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.write_text(content)
+    assert not _lock_owner_is_dead(lock_path)
+
+
+def test_lock_owner_is_dead_false_if_lock_is_missing(tmp_path: Path) -> None:
+    assert not _lock_owner_is_dead(tmp_path.joinpath("data.txt.lock"))
+
+
+def test_break_stale_lock_removes_recent_lock_of_dead_owner(tmp_path: Path) -> None:
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.write_text(f"{socket.gethostname()}:1234:abc")
+    with patch("os.kill", side_effect=ProcessLookupError):
+        assert _break_stale_lock(lock_path, stale_after=1000)
+
+
+def test_acquire_file_lock_replaces_lock_of_dead_owner(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    path.with_name("data.txt.lock").write_text(f"{socket.gethostname()}:1234:abc")
+    with patch("os.kill", side_effect=ProcessLookupError):
+        lock_path = _acquire_file_lock(path, timeout=1, token="new")  # noqa: S106
+    assert lock_path.read_text() == "new"
