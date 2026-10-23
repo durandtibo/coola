@@ -1,8 +1,7 @@
 from __future__ import annotations
 
+import multiprocessing
 import os
-import subprocess
-import sys
 import threading
 import time
 from typing import TYPE_CHECKING, Any
@@ -15,6 +14,11 @@ from tests.integration.helpers import run_python, run_threads
 
 if TYPE_CHECKING:
     from pathlib import Path
+
+# The children are forked, not spawned: they do not pay the import of coola again.
+_FORK: Any = multiprocessing.get_context("fork") if hasattr(os, "fork") else None
+requires_fork = pytest.mark.skipif(_FORK is None, reason="Requires os.fork")
+pytestmark = pytest.mark.filterwarnings("ignore:.*fork.*:DeprecationWarning")
 
 ########################################
 #     Tests for BaseFileSaver.save     #
@@ -166,39 +170,28 @@ def test_base_file_saver_save_blocks_while_lock_file_is_held(tmp_path: Path) -> 
     assert not lock_path.is_file()
 
 
-_HOLD_LOCK_SCRIPT = """
-import sys
-import time
-from pathlib import Path
-
-from coola.io.base import _acquire_file_lock
-
-_acquire_file_lock(Path(sys.argv[1]))
-print("locked", flush=True)
-time.sleep(60)
-"""
+def _hold_lock(path: Path, locked: Any) -> None:  # pragma: no cover  (runs in a child)
+    _acquire_file_lock(path)
+    locked.set()
+    time.sleep(60)
 
 
+@requires_fork
 def test_acquire_file_lock_recovers_after_holder_process_is_killed(tmp_path: Path) -> None:
     # Regression test for stale lock-file recovery: a process killed while
     # holding the lock never releases it, so the lock file is left behind.
     # A later writer must be able to break it once it is old enough.
     path = tmp_path.joinpath("data.txt")
     lock_path = tmp_path.joinpath("data.txt.lock")
-    child = subprocess.Popen(  # noqa: S603
-        [sys.executable, "-c", _HOLD_LOCK_SCRIPT, str(path)],
-        stdout=subprocess.PIPE,
-        text=True,
-    )
+    locked = _FORK.Event()
+    child = _FORK.Process(target=_hold_lock, args=(path, locked))
+    child.start()
     try:
-        assert child.stdout is not None
-        assert child.stdout.readline().strip() == "locked"
+        assert locked.wait(timeout=30)
         assert lock_path.is_file()
     finally:
         child.kill()
-        child.wait()
-        if child.stdout is not None:
-            child.stdout.close()
+        child.join()
 
     # The killed process cannot release the lock, so it is still there and
     # a writer that does not consider it stale times out.
@@ -207,8 +200,8 @@ def test_acquire_file_lock_recovers_after_holder_process_is_killed(tmp_path: Pat
         _acquire_file_lock(path, timeout=0.05, poll_interval=0.001, stale_after=3600)
 
     # Once the lock is older than ``stale_after`` it is broken.
-    time.sleep(0.06)
-    assert _acquire_file_lock(path, timeout=5, stale_after=0.05) == lock_path
+    time.sleep(0.03)
+    assert _acquire_file_lock(path, timeout=5, stale_after=0.02) == lock_path
     lock_path.unlink()
 
 
@@ -315,39 +308,36 @@ def test_default_equality_registry_has_the_io_testers_after_importing_coola_io()
 #     Tests for the save lock across several processes  #
 #########################################################
 
-_LOCKED_WRITER_SCRIPT = """
-import sys
-import time
-from pathlib import Path
 
-from coola.io.base import _save_lock
-
-path, log, name, hold = Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3], float(sys.argv[4])
-with _save_lock(path, stale_after=float(sys.argv[5])):
-    with log.open("a") as f:
-        f.write(f"{name} start\\n")
-    time.sleep(hold)
-    with log.open("a") as f:
-        f.write(f"{name} end\\n")
-"""
+def _locked_writer(
+    path: Path, log: Path, name: str, hold: float, stale_after: float
+) -> None:  # pragma: no cover  (runs in a child)
+    with _save_lock(path, stale_after=stale_after):
+        with log.open("a") as f:
+            f.write(f"{name} start\n")
+        time.sleep(hold)
+        with log.open("a") as f:
+            f.write(f"{name} end\n")
 
 
+@requires_fork
 def test_save_lock_serializes_two_processes_even_if_the_save_outlasts_stale_after(
     tmp_path: Path,
 ) -> None:
-    # Each process holds the lock for 0.4s, which is longer than ``stale_after``
-    # (0.15s): the heartbeat must keep the lock alive, otherwise the second
+    # Each process holds the lock for 0.2s, which is longer than ``stale_after``
+    # (0.09s): the heartbeat must keep the lock alive, otherwise the second
     # process breaks it and both write at the same time.
     path = tmp_path.joinpath("data.txt")
     log = tmp_path.joinpath("log.txt")
     children = [
-        subprocess.Popen(  # noqa: S603
-            [sys.executable, "-c", _LOCKED_WRITER_SCRIPT, str(path), str(log), name, "0.4", "0.15"],
-        )
+        _FORK.Process(target=_locked_writer, args=(path, log, name, 0.2, 0.09))
         for name in ("a", "b")
     ]
     for child in children:
-        assert child.wait(timeout=60) == 0
+        child.start()
+    for child in children:
+        child.join(timeout=60)
+        assert child.exitcode == 0
 
     events = [line.split() for line in log.read_text().splitlines()]
     assert len(events) == 4
