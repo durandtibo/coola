@@ -216,6 +216,12 @@ def unwrap_secrets(
     return value
 
 
+# Ids of the models being hashed by the current thread, to detect a model that
+# contains itself. The state is thread-local, like the cycle guard of
+# ``HasherRegistry.hash``, so a model hashed by two threads at the same time
+# is not reported as a cycle. The nested models are reached through the
+# ``on_model`` callback of ``unwrap_secrets``, which has no argument to carry
+# the set of active models.
 _state = threading.local()
 
 
