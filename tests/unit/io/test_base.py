@@ -457,7 +457,7 @@ def test_break_stale_lock_keeps_the_live_lock_after_a_renewal(tmp_path: Path) ->
 def test_equality_tester_registry_has_io_testers_after_the_singleton_is_reset() -> None:
     # The testers are part of the default registry: they do not depend on a registration
     # made when ``coola.io`` was imported, so they survive a reset of the singleton.
-    equality_interface._default_registry._instance = None
+    equality_interface._default_registry.reset()
     try:
         registry = get_default_registry()
         assert isinstance(registry.find_equality_tester(BaseLoader), EqualNanEqualityTester)
@@ -466,7 +466,7 @@ def test_equality_tester_registry_has_io_testers_after_the_singleton_is_reset() 
             BaseLoader
         )
     finally:
-        equality_interface._default_registry._instance = None
+        equality_interface._default_registry.reset()
 
 
 def test_loaders_and_savers_are_compared_with_equal() -> None:

@@ -22,9 +22,9 @@ from coola.registry import AlreadyRegisteredError
 @pytest.fixture(autouse=True)
 def _reset_default_registry() -> Generator[None, None, None]:
     """Reset the registry before and after each test."""
-    recursive_interface._default_registry._instance = None
+    recursive_interface._default_registry.reset()
     yield
-    recursive_interface._default_registry._instance = None
+    recursive_interface._default_registry.reset()
 
 
 class CustomList(list):

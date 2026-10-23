@@ -85,9 +85,9 @@ else:  # pragma: no cover
 @pytest.fixture(autouse=True)
 def _reset_default_registry() -> Generator[None, None, None]:
     """Reset the registry before and after each test."""
-    summary_interface._default_registry._instance = None
+    summary_interface._default_registry.reset()
     yield
-    summary_interface._default_registry._instance = None
+    summary_interface._default_registry.reset()
 
 
 class CustomList(list):
