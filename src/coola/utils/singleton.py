@@ -23,7 +23,7 @@ import os
 import threading
 import warnings
 from importlib.metadata import entry_points
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -38,6 +38,9 @@ STRICT_PLUGINS_ENV_VAR = "COOLA_STRICT_PLUGINS"
 
 T = TypeVar("T")
 R = TypeVar("R")
+
+
+_UNSET: Any = object()
 
 
 class LazySingleton(Generic[T]):
@@ -78,7 +81,7 @@ class LazySingleton(Generic[T]):
 
     def __init__(self, factory: Callable[[], T]) -> None:
         self._factory = factory
-        self._instance: T | None = None
+        self._instance: T = _UNSET
         self._lock = threading.Lock()
         self._building_thread: int | None = None
 
@@ -88,7 +91,7 @@ class LazySingleton(Generic[T]):
         Returns:
             The singleton value.
         """
-        if self._instance is None:
+        if self._instance is _UNSET:
             if self._building_thread == threading.get_ident():
                 msg = (
                     "The value is requested while it is being built, which would wait "
@@ -98,7 +101,7 @@ class LazySingleton(Generic[T]):
                 )
                 raise RuntimeError(msg)
             with self._lock:
-                if self._instance is None:
+                if self._instance is _UNSET:
                     self._building_thread = threading.get_ident()
                     try:
                         self._instance = self._factory()
