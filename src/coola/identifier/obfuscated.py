@@ -32,6 +32,12 @@ who can observe two ``(plaintext, obfuscated)`` pairs for a known
 ``salt`` (adjacent or not) can solve the resulting linear system for
 both constants. Do not rely on it to hide data from anyone who can query
 your API repeatedly under a fixed ``salt``.
+
+The map also leaks the parity of consecutive integers: ``multiplier`` is
+odd, so the lowest bit of the 64-bit value is ``(number + increment) & 1``
+and alternates for consecutive numbers. The ordering and the magnitude
+are hidden only as far as that structure allows; do not rely on this
+module to hide how many IDs were minted in a time window.
 """
 
 from __future__ import annotations
