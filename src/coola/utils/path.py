@@ -121,6 +121,10 @@ def working_directory(path: str | os.PathLike[str]) -> Generator[None]:
 
     source: https://gist.github.com/nottrobin/3d675653244f8814838a
 
+    Note:
+        The working directory is process-wide, so this context manager
+        is **not thread-safe**: other threads see the new directory.
+
     Args:
         path: The path to the temporary working directory. This can
             be any path-like object, i.e. a string or an object
