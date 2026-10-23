@@ -10,7 +10,7 @@ from collections.abc import Sequence
 from statistics import mean, median, stdev
 from typing import TypeVar
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.reducer.base import BaseBasicReducer
 from coola.utils.stats import quantile
 
@@ -25,7 +25,7 @@ def _nan_last_key(value: float) -> tuple[bool, float]:
     return math.isnan(value), value
 
 
-class NativeReducer(InlineDisplayMixin, NoArgsDisplayMixin, BaseBasicReducer[T]):
+class NativeReducer(InlineDisplayMixin, BaseBasicReducer[T]):
     r"""Implement a native reducer.
 
     Example:

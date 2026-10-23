@@ -7,16 +7,14 @@ __all__ = ["MappingChildFinder"]
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.iterator.bfs.base import BaseChildFinder
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
 
-class MappingChildFinder(
-    InlineDisplayMixin, NoArgsDisplayMixin, BaseChildFinder[Mapping[Any, Any]]
-):
+class MappingChildFinder(InlineDisplayMixin, BaseChildFinder[Mapping[Any, Any]]):
     r"""Child finder for mapping objects.
 
     This child finder handles mapping objects by yielding the values

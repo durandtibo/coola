@@ -8,14 +8,14 @@ __all__ = ["IterableIterator"]
 from collections.abc import Iterable, Iterator
 from typing import TYPE_CHECKING, Any
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.iterator.dfs.base import BaseIterator
 
 if TYPE_CHECKING:
     from coola.iterator.dfs.registry import IteratorRegistry
 
 
-class IterableIterator(InlineDisplayMixin, NoArgsDisplayMixin, BaseIterator[Iterable[Any]]):
+class IterableIterator(InlineDisplayMixin, BaseIterator[Iterable[Any]]):
     r"""Iterator for performing a depth-first traversal over iterable
     data structures.
 

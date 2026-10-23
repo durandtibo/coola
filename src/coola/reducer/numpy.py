@@ -11,7 +11,7 @@ import math
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, TypeVar
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.reducer.base import BaseBasicReducer
 from coola.utils.imports import check_numpy, is_numpy_available
 
@@ -24,7 +24,7 @@ else:  # pragma: no cover
 T = TypeVar("T", Sequence[float], np.ndarray)
 
 
-class NumpyReducer(InlineDisplayMixin, NoArgsDisplayMixin, BaseBasicReducer[T]):
+class NumpyReducer(InlineDisplayMixin, BaseBasicReducer[T]):
     r"""Implement a reducer based on NumPy functions.
 
     Raises:

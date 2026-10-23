@@ -7,7 +7,7 @@ __all__ = ["EnumHasher"]
 from enum import Enum
 from typing import TYPE_CHECKING
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_enum
 
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
 
 
-class EnumHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Enum]):
+class EnumHasher(InlineDisplayMixin, BaseHasher[Enum]):
     r"""Hasher for ``enum.Enum`` members.
 
     The hash depends on the qualified class name and the member name,

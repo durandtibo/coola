@@ -10,7 +10,6 @@ from coola.display import (
     BaseDisplayMixin,
     InlineDisplayMixin,
     MultilineDisplayMixin,
-    NoArgsDisplayMixin,
 )
 from coola.display.mixin import BaseDisplayMixin as BaseDisplayMixinFromSubmodule
 
@@ -24,7 +23,7 @@ class MultilineObj(MultilineDisplayMixin):
         self.key1 = key1
         self.key2 = key2
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
+    def _display_fields(self) -> dict[str, Any]:
         return {"key1": self.key1, "key2": self.key2}
 
 
@@ -33,17 +32,17 @@ class InlineObj(InlineDisplayMixin):
         self.key1 = key1
         self.key2 = key2
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
+    def _display_fields(self) -> dict[str, Any]:
         return {"key1": self.key1, "key2": self.key2}
 
 
 class EmptyKwargsMultiline(MultilineDisplayMixin):
-    def _get_repr_kwargs(self) -> dict[str, Any]:
+    def _display_fields(self) -> dict[str, Any]:
         return {}
 
 
 class EmptyKwargsInline(InlineDisplayMixin):
-    def _get_repr_kwargs(self) -> dict[str, Any]:
+    def _display_fields(self) -> dict[str, Any]:
         return {}
 
 
@@ -72,11 +71,6 @@ def test_multiline_str_empty_kwargs() -> None:
     assert str(EmptyKwargsMultiline()) == "EmptyKwargsMultiline(\n  \n)"
 
 
-def test_multiline_abstract_without_get_repr_kwargs_raises() -> None:
-    with pytest.raises(TypeError, match="Can't instantiate abstract class MultilineDisplayMixin"):
-        MultilineDisplayMixin()
-
-
 ########################################
 #     Tests for InlineDisplayMixin     #
 ########################################
@@ -98,11 +92,6 @@ def test_inline_str_empty_kwargs() -> None:
     assert str(EmptyKwargsInline()) == "EmptyKwargsInline()"
 
 
-def test_inline_abstract_without_get_repr_kwargs_raises() -> None:
-    with pytest.raises(TypeError, match="Can't instantiate abstract class InlineDisplayMixin"):
-        InlineDisplayMixin()
-
-
 ######################################
 #     Tests for BaseDisplayMixin     #
 ######################################
@@ -117,60 +106,50 @@ def test_base_display_mixin_is_base_of_multiline_and_inline() -> None:
     assert issubclass(InlineDisplayMixin, BaseDisplayMixin)
 
 
+def test_base_display_mixin_custom_layout() -> None:
+    class BracketObj(BaseDisplayMixin):
+        def _display_fields(self) -> dict[str, Any]:
+            return {"a": "x"}
+
+        def _render_fields(self, fields: dict[str, Any], *, use_repr: bool) -> str:
+            return f"{fields['a']!r}" if use_repr else f"{fields['a']!s}"
+
+    assert repr(BracketObj()) == "'x'"
+
+
 def test_base_display_mixin_abstract_raises() -> None:
     with pytest.raises(TypeError, match="Can't instantiate abstract class BaseDisplayMixin"):
         BaseDisplayMixin()
 
 
-########################################
-#     Tests for NoArgsDisplayMixin     #
-########################################
+####################################
+#     Tests for default fields     #
+####################################
 
 
-class NoArgsInlineObj(NoArgsDisplayMixin, InlineDisplayMixin):
+class NoFieldsInlineObj(InlineDisplayMixin):
     pass
 
 
-class NoArgsMultilineObj(NoArgsDisplayMixin, MultilineDisplayMixin):
+class NoFieldsMultilineObj(MultilineDisplayMixin):
     pass
 
 
-def test_no_args_display_mixin_get_repr_kwargs_returns_empty_dict() -> None:
-    assert NoArgsInlineObj()._get_repr_kwargs() == {}
+def test_display_fields_default_is_empty_dict() -> None:
+    assert NoFieldsInlineObj()._display_fields() == {}
 
 
-def test_no_args_display_mixin_is_base_display_mixin() -> None:
-    assert issubclass(NoArgsDisplayMixin, BaseDisplayMixin)
+def test_no_fields_inline_repr() -> None:
+    assert repr(NoFieldsInlineObj()) == "NoFieldsInlineObj()"
 
 
-def test_no_args_display_mixin_with_inline_repr() -> None:
-    assert repr(NoArgsInlineObj()) == "NoArgsInlineObj()"
+def test_no_fields_inline_str() -> None:
+    assert str(NoFieldsInlineObj()) == "NoFieldsInlineObj()"
 
 
-def test_no_args_display_mixin_with_inline_str() -> None:
-    assert str(NoArgsInlineObj()) == "NoArgsInlineObj()"
+def test_no_fields_multiline_repr() -> None:
+    assert repr(NoFieldsMultilineObj()) == "NoFieldsMultilineObj(\n  \n)"
 
 
-def test_no_args_display_mixin_with_multiline_repr() -> None:
-    assert repr(NoArgsMultilineObj()) == "NoArgsMultilineObj(\n  \n)"
-
-
-def test_no_args_display_mixin_with_multiline_str() -> None:
-    assert str(NoArgsMultilineObj()) == "NoArgsMultilineObj(\n  \n)"
-
-
-def test_no_args_display_mixin_is_instantiable_directly() -> None:
-    # NoArgsDisplayMixin alone does not implement __repr__/__str__ from
-    # Inline/MultilineDisplayMixin, but it does satisfy the abstract
-    # _get_repr_kwargs contract, so it can be instantiated on its own.
-    obj = NoArgsDisplayMixin()
-    assert obj._get_repr_kwargs() == {}
-
-
-class CustomOverride(NoArgsDisplayMixin, InlineDisplayMixin):
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {"key": "value"}
-
-
-def test_no_args_display_mixin_override_takes_precedence() -> None:
-    assert repr(CustomOverride()) == "CustomOverride(key='value')"
+def test_no_fields_multiline_str() -> None:
+    assert str(NoFieldsMultilineObj()) == "NoFieldsMultilineObj(\n  \n)"

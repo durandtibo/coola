@@ -7,7 +7,7 @@ __all__ = ["NumpyRandomManager"]
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.random.base import BaseRandomManager
 from coola.utils.imports import check_numpy, is_numpy_available
 from coola.utils.introspection import is_same_type
@@ -21,7 +21,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.numpy import numpy as np
 
 
-class NumpyRandomManager(InlineDisplayMixin, NoArgsDisplayMixin, BaseRandomManager):
+class NumpyRandomManager(InlineDisplayMixin, BaseRandomManager):
     r"""Implement a random manager for the library ``numpy``.
 
     Only the legacy global generator of NumPy (``numpy.random.seed``,

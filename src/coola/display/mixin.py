@@ -3,7 +3,7 @@ formatting."""
 
 from __future__ import annotations
 
-__all__ = ["InlineDisplayMixin", "MultilineDisplayMixin", "NoArgsDisplayMixin"]
+__all__ = ["BaseDisplayMixin", "InlineDisplayMixin", "MultilineDisplayMixin"]
 
 from abc import ABC, abstractmethod
 from typing import Any
@@ -21,17 +21,43 @@ from coola.utils.format import (
 class BaseDisplayMixin(ABC):
     """Abstract base for display mixins.
 
-    Subclasses must implement ``_get_repr_kwargs`` to return a dict
-    of constructor arguments used by ``__repr__`` and ``__str__``.
+    ``__repr__`` and ``__str__`` are defined here: they get the fields
+    from ``_display_fields`` and delegate the layout to
+    ``_render_fields``. Subclasses must implement ``_render_fields``
+    to choose the layout. Classes that use a layout mixin override
+    ``_display_fields`` to return the values to show; by default no
+    field is shown.
     """
 
-    @abstractmethod
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        """Return a display-friendly dict of constructor arguments.
+    def __repr__(self) -> str:
+        return self._render_fields(self._display_fields(), use_repr=True)
+
+    def __str__(self) -> str:
+        return self._render_fields(self._display_fields(), use_repr=False)
+
+    def _display_fields(self) -> dict[str, Any]:
+        """Return the fields to display.
 
         Returns:
-            A dict mapping argument names to their values, used to
-            build the ``__repr__`` and ``__str__`` output.
+            A dict mapping field names to their values, used to
+                build the ``__repr__`` and ``__str__`` output.
+                The values are formatted with ``repr`` in
+                ``__repr__`` and with ``str`` in ``__str__``.
+                By default, the dict is empty.
+        """
+        return {}
+
+    @abstractmethod
+    def _render_fields(self, fields: dict[str, Any], *, use_repr: bool) -> str:
+        """Format the fields with the class name.
+
+        Args:
+            fields: The fields to display.
+            use_repr: If ``True``, format the values with ``repr``,
+                otherwise with ``str``.
+
+        Returns:
+            The formatted string.
         """
 
 
@@ -39,9 +65,11 @@ class MultilineDisplayMixin(BaseDisplayMixin):
     r"""Mixin that renders ``__repr__`` and ``__str__`` in multiline dict
     format.
 
-    Each constructor argument is displayed on its own indented line.
-    Best suited for objects with several arguments or deeply nested
-    values where a single-line format would be hard to read.
+    Each field is displayed on its own indented line. Best suited for
+    objects with several fields or deeply nested values where a
+    single-line format would be hard to read. Override
+    ``_display_fields`` to choose the fields to show; by default none
+    is shown.
 
     Example:
         ```pycon
@@ -51,7 +79,7 @@ class MultilineDisplayMixin(BaseDisplayMixin):
         ...     def __init__(self, key1: str, key2: str) -> None:
         ...         self.key1 = key1
         ...         self.key2 = key2
-        ...     def _get_repr_kwargs(self) -> dict[str, Any]:
+        ...     def _display_fields(self) -> dict[str, Any]:
         ...         return {"key1": self.key1, "key2": self.key2}
         ...
         >>> obj = MyClass(key1="value1", key2="value2")
@@ -69,21 +97,18 @@ class MultilineDisplayMixin(BaseDisplayMixin):
         ```
     """
 
-    def __repr__(self) -> str:
-        args = repr_indent(repr_mapping(self._get_repr_kwargs()))
-        return f"{self.__class__.__qualname__}(\n  {args}\n)"
-
-    def __str__(self) -> str:
-        args = str_indent(str_mapping(self._get_repr_kwargs()))
+    def _render_fields(self, fields: dict[str, Any], *, use_repr: bool) -> str:
+        args = repr_indent(repr_mapping(fields)) if use_repr else str_indent(str_mapping(fields))
         return f"{self.__class__.__qualname__}(\n  {args}\n)"
 
 
 class InlineDisplayMixin(BaseDisplayMixin):
-    """Mixin that renders ``__repr__`` and ``__str__`` on a single line.
+    r"""Mixin that renders ``__repr__`` and ``__str__`` on a single line.
 
-    All constructor arguments are displayed inline. Best suited for
-    simple objects with few, short arguments where a compact single-line
-    format aids readability.
+    All fields are displayed inline. Best suited for simple objects
+    with few, short fields where a compact single-line format aids
+    readability. Override ``_display_fields`` to choose the fields to
+    show; by default none is shown, which suits stateless classes.
 
     Example:
         ```pycon
@@ -93,7 +118,7 @@ class InlineDisplayMixin(BaseDisplayMixin):
         ...     def __init__(self, key1: str, key2: str) -> None:
         ...         self.key1 = key1
         ...         self.key2 = key2
-        ...     def _get_repr_kwargs(self) -> dict[str, Any]:
+        ...     def _display_fields(self) -> dict[str, Any]:
         ...         return {"key1": self.key1, "key2": self.key2}
         ...
         >>> obj = MyClass(key1="value1", key2="value2")
@@ -101,45 +126,15 @@ class InlineDisplayMixin(BaseDisplayMixin):
         MyClass(key1='value1', key2='value2')
         >>> print(str(obj))
         MyClass(key1=value1, key2=value2)
-
-        ```
-    """
-
-    def __repr__(self) -> str:
-        args = repr_mapping_line(self._get_repr_kwargs())
-        return f"{self.__class__.__qualname__}({args})"
-
-    def __str__(self) -> str:
-        args = str_mapping_line(self._get_repr_kwargs())
-        return f"{self.__class__.__qualname__}({args})"
-
-
-class NoArgsDisplayMixin(BaseDisplayMixin):
-    r"""Mixin that provides a default, no-op ``_get_repr_kwargs``
-    implementation for classes with no constructor arguments to show.
-
-    Many stateless classes (e.g. handlers, hashers, transformers without
-    configuration) only need to satisfy the ``BaseDisplayMixin``
-    abstract method contract with an empty dict. Combine this mixin with
-    ``InlineDisplayMixin`` or ``MultilineDisplayMixin`` to avoid
-    writing a trivial ``_get_repr_kwargs`` override that just returns
-    ``{}``. A subclass with actual constructor arguments should override
-    ``_get_repr_kwargs`` instead of using this mixin.
-
-    Example:
-        ```pycon
-        >>> from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
-        >>> class MyClass(NoArgsDisplayMixin, InlineDisplayMixin):
+        >>> class NoFields(InlineDisplayMixin):
         ...     pass
         ...
-        >>> obj = MyClass()
-        >>> print(repr(obj))
-        MyClass()
-        >>> print(str(obj))
-        MyClass()
+        >>> print(repr(NoFields()))
+        NoFields()
 
         ```
     """
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        return {}
+    def _render_fields(self, fields: dict[str, Any], *, use_repr: bool) -> str:
+        args = repr_mapping_line(fields) if use_repr else str_mapping_line(fields)
+        return f"{self.__class__.__qualname__}({args})"

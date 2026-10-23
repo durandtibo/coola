@@ -7,7 +7,7 @@ __all__ = ["SequenceTransformer"]
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.recursive.base import BaseTransformer
 from coola.recursive.rebuild import rebuild_sequence
 
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from coola.recursive.registry import TransformerRegistry
 
 
-class SequenceTransformer(InlineDisplayMixin, NoArgsDisplayMixin, BaseTransformer[Sequence[Any]]):
+class SequenceTransformer(InlineDisplayMixin, BaseTransformer[Sequence[Any]]):
     r"""Transformer for sequence types that recursively transforms
     elements.
 

@@ -7,7 +7,7 @@ __all__ = ["ReprHasher"]
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_enum, hash_tagged
 from coola.utils.imports import is_numpy_available
@@ -57,7 +57,7 @@ def _builtin_repr(base: Any, data: Any) -> str:
     return base.__repr__(data)
 
 
-class ReprHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Any]):
+class ReprHasher(InlineDisplayMixin, BaseHasher[Any]):
     r"""Hasher for objects whose ``repr()`` is a reliable canonical
     representation.
 

@@ -8,14 +8,14 @@ import hashlib
 from enum import Enum
 from typing import TYPE_CHECKING
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 
 if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
 
 
-class StringHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[str]):
+class StringHasher(InlineDisplayMixin, BaseHasher[str]):
     r"""Hasher for string objects.
 
     This hasher computes the hash of the string, namespaced by the

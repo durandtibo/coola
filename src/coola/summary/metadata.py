@@ -89,7 +89,7 @@ class BaseMetadataSummarizer(InlineDisplayMixin, BaseSummarizer[T]):
         self._check_dependencies()
         self._show_data = bool(show_data)
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
+    def _display_fields(self) -> dict[str, Any]:
         return {"show_data": self._show_data}
 
     def _check_dependencies(self) -> None:
@@ -169,8 +169,8 @@ class BaseFieldsSummarizer(BaseMetadataSummarizer[T]):
         validate_non_negative(max_fields, name="max_fields")
         self._max_fields = max_fields
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        kwargs = super()._get_repr_kwargs()
+    def _display_fields(self) -> dict[str, Any]:
+        kwargs = super()._display_fields()
         # Shown only if it is not the default, so the usual summarizers have a short repr.
         if self._max_fields != MAX_FIELDS:
             kwargs["max_fields"] = self._max_fields

@@ -71,7 +71,7 @@ class PydanticModelHasher(InlineDisplayMixin, BaseHasher[pydantic.BaseModel]):
     ) -> None:
         self._on_secret: Literal["reveal", "exclude", "error"] = on_secret
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
+    def _display_fields(self) -> dict[str, Any]:
         return {"on_secret": self._on_secret}
 
     def hash(

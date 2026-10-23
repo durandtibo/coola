@@ -62,7 +62,7 @@ class RandomManagerRegistry(MultilineDisplayMixin, BaseRandomManager):
             initial_state
         )
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
+    def _display_fields(self) -> dict[str, Any]:
         return {"state": self._state}
 
     def register(

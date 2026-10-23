@@ -40,7 +40,7 @@ class TimingResult(InlineDisplayMixin):
             return None
         return self.finished_at - self.started_at
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
+    def _display_fields(self) -> dict[str, Any]:
         return {
             "started_at": self.started_at,
             "finished_at": self.finished_at,

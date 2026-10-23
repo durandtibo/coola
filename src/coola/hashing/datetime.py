@@ -8,7 +8,7 @@ from contextlib import suppress
 from datetime import UTC, date, datetime, time
 from typing import TYPE_CHECKING
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_tagged
 
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
 
 
-class DatetimeHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[date | time]):
+class DatetimeHasher(InlineDisplayMixin, BaseHasher[date | time]):
     r"""Hasher for ``datetime.date``, ``datetime.datetime``
     and ``datetime.time`` objects.
 

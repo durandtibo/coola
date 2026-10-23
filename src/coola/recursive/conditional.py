@@ -74,7 +74,7 @@ class ConditionalTransformer(MultilineDisplayMixin, BaseTransformer[T]):
         self._transformer = transformer
         self._condition = condition
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
+    def _display_fields(self) -> dict[str, Any]:
         return {"transformer": self._transformer, "condition": self._condition}
 
     def transform(

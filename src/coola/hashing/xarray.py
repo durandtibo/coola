@@ -41,7 +41,7 @@ class XarrayHasher(InlineDisplayMixin, BaseHasher[Any]):
     def __init__(self, tag: str) -> None:
         self._tag = tag
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
+    def _display_fields(self) -> dict[str, Any]:
         return {"tag": self._tag}
 
     def hash(

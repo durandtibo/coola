@@ -7,7 +7,7 @@ __all__ = ["DataclassHasher"]
 import dataclasses
 from typing import TYPE_CHECKING, Any
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_tagged
 
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
 
 
-class DataclassHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Any]):
+class DataclassHasher(InlineDisplayMixin, BaseHasher[Any]):
     r"""Hasher for dataclass instances.
 
     The hash combines the qualified class name with the hash of a

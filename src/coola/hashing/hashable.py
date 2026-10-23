@@ -6,7 +6,7 @@ __all__ = ["HashableHasher", "SupportsHash"]
 
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_tagged
 
@@ -42,7 +42,7 @@ class SupportsHash(Protocol):
         ...
 
 
-class HashableHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[SupportsHash]):
+class HashableHasher(InlineDisplayMixin, BaseHasher[SupportsHash]):
     r"""Hasher for objects that implement their own ``hash`` method.
 
     This hasher delegates to the object's own ``hash`` method, passing

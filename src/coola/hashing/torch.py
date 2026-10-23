@@ -6,7 +6,7 @@ __all__ = ["TorchTensorHasher"]
 
 from typing import TYPE_CHECKING
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.bytes import hash_bytes
 from coola.hashing.numpy import hash_array_content
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
 
 
-class TorchTensorHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher["torch.Tensor"]):
+class TorchTensorHasher(InlineDisplayMixin, BaseHasher["torch.Tensor"]):
     r"""Hasher for ``torch.Tensor`` objects.
 
     The hash depends on the dtype, the shape and the values. The device

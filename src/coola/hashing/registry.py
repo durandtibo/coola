@@ -82,8 +82,8 @@ class HasherRegistry(BaseTypeDispatchRegistry[Hasher[Any]]):
         # Copy-on-write tuple: readers do not need a lock.
         self._fallbacks: tuple[tuple[Callable[[type], bool], Hasher[Any]], ...] = ()
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
-        kwargs = super()._get_repr_kwargs()
+    def _display_fields(self) -> dict[str, Any]:
+        kwargs = super()._display_fields()
         if self._fallbacks:
             kwargs["fallbacks"] = [hasher for _, hasher in self._fallbacks]
         return kwargs
