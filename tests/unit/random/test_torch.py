@@ -105,6 +105,15 @@ def test_torch_random_manager_manual_seed_with_mps() -> None:
 
 
 @torch_available
+@patch("torch.backends.mps.is_available", lambda: False)
+def test_torch_random_manager_manual_seed_without_mps() -> None:
+    # ``torch.manual_seed`` seeds MPS by itself, so it is patched to isolate the call.
+    with patch("torch.manual_seed"), patch("torch.mps.manual_seed") as mock_manual_seed:
+        TorchRandomManager().manual_seed(42)
+        mock_manual_seed.assert_not_called()
+
+
+@torch_available
 @patch("torch.backends.mps.is_available", lambda: True)
 def test_torch_random_manager_set_rng_state_with_mps() -> None:
     with patch("torch.mps.set_rng_state") as mock_set_rng_state:
