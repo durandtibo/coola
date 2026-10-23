@@ -24,6 +24,7 @@ import datetime
 import math
 from typing import TYPE_CHECKING, Any
 
+from coola.utils.mapping import sort_by_keys
 from coola.validation import validate_non_negative, validate_positive
 
 if TYPE_CHECKING:
@@ -482,4 +483,4 @@ def find_best_byte_unit(size: int) -> str:
 
 def _iter_items(mapping: Mapping[Any, Any], sorted_keys: bool) -> Iterable[tuple[Any, Any]]:
     r"""Return the items of a mapping, sorted by key if requested."""
-    return sorted(mapping.items()) if sorted_keys else mapping.items()
+    return sort_by_keys(mapping).items() if sorted_keys else mapping.items()

@@ -63,6 +63,16 @@ def test_torch_loader_equal_false_different_kwargs() -> None:
 
 
 @torch_available
+def test_torch_loader_equal_true_default_weights_only() -> None:
+    assert TorchLoader().equal(TorchLoader(weights_only=True))
+
+
+@torch_available
+def test_torch_loader_equal_false_default_and_weights_only_false() -> None:
+    assert not TorchLoader().equal(TorchLoader(weights_only=False))
+
+
+@torch_available
 def test_torch_loader_equal_false_different_type() -> None:
     assert not TorchLoader().equal(TorchSaver())
 

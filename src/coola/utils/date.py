@@ -45,7 +45,8 @@ def to_date(d: date | str, date_format: str = DEFAULT_DATE_FORMAT) -> date:
 
     Args:
         d: The date to convert. If a string is given, it is parsed
-            using ``date_format``.
+            using ``date_format``. If a ``datetime`` is given, its
+            date part is returned.
         date_format: A :func:`~datetime.datetime.strptime` format
             string used to parse ``d`` when it is a string.
             Defaults to ``"%Y-%m-%d"``.
@@ -67,6 +68,8 @@ def to_date(d: date | str, date_format: str = DEFAULT_DATE_FORMAT) -> date:
     if isinstance(d, str):
         # tzinfo is only set to satisfy ruff's DTZ007; it is discarded by ``.date()``.
         return datetime.strptime(d, date_format).replace(tzinfo=UTC).date()
+    if isinstance(d, datetime):
+        return d.date()
     return d
 
 

@@ -7,7 +7,7 @@ __all__ = ["get_available_devices", "is_cuda_available", "is_mps_available", "to
 from functools import cache
 from typing import TYPE_CHECKING, Any, cast
 
-from coola.utils.imports import is_numpy_available, is_torch_available
+from coola.utils.imports import check_torch, is_numpy_available, is_torch_available
 
 if TYPE_CHECKING or is_numpy_available():
     import numpy as np
@@ -95,6 +95,9 @@ def to_tensor(data: Sequence[int | float] | torch.Tensor | np.ndarray) -> torch.
     Returns:
         A tensor.
 
+    Raises:
+        MissingPackageError: if ``torch`` is not installed.
+
     Example:
         ```pycon
         >>> from coola.utils.tensor import to_tensor
@@ -108,6 +111,7 @@ def to_tensor(data: Sequence[int | float] | torch.Tensor | np.ndarray) -> torch.
 
         ```
     """
+    check_torch()
     if is_numpy_available() and isinstance(data, np.ndarray):
         if any(stride < 0 for stride in data.strides):
             data = data.copy()  # ``torch.from_numpy`` does not support negative strides

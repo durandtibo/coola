@@ -24,7 +24,9 @@ def check_env_vars(
     r"""Check whether each environment variable in ``var_names`` is
     defined.
 
-    Logs the status of each variable to the terminal.
+    Logs the status of each variable to the terminal. A variable set to
+    an empty (or blank) string is reported as not defined, as in
+    :func:`get_required_env_var`.
 
     Args:
         var_names: The sequence of environment variable names to
@@ -58,7 +60,8 @@ def check_env_vars(
 
     for name in var_names:
         value = os.environ.get(name)
-        is_defined = value is not None
+        # Same rule as ``get_required_env_var``: empty means not defined.
+        is_defined = value is not None and bool(value.strip())
         results[name] = is_defined
 
         if is_defined:

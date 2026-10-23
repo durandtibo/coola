@@ -130,6 +130,17 @@ def test_is_git_repo_returns_false() -> None:
         assert is_git_repo() is False
 
 
+def test_is_git_repo_returns_false_inside_git_directory() -> None:
+    """Test that False is returned when git prints ``false`` (inside a
+    ``.git`` directory)."""
+    completed = subprocess.CompletedProcess(args=[], returncode=0, stdout="false\n")
+    with (
+        patch("shutil.which", return_value=GIT_PATH),
+        patch("subprocess.run", return_value=completed),
+    ):
+        assert is_git_repo() is False
+
+
 def test_is_git_repo_returns_false_when_git_not_found() -> None:
     """Test that False is returned when the git executable is
     missing."""
@@ -195,5 +206,16 @@ def test_run_git_command_raises_error_when_git_not_found() -> None:
     with (
         patch("shutil.which", return_value=None),
         pytest.raises(OSError, match="git' executable could not be found"),
+    ):
+        run_git_command(["status"])
+
+
+def test_run_git_command_includes_stderr_in_error() -> None:
+    """Test that the stderr of git is part of the error message."""
+    error = subprocess.CalledProcessError(128, "git", stderr="fatal: not a git repository\n")
+    with (
+        patch("shutil.which", return_value=GIT_PATH),
+        patch("subprocess.run", side_effect=error),
+        pytest.raises(OSError, match="fatal: not a git repository"),
     ):
         run_git_command(["status"])
