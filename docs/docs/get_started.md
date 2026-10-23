@@ -16,7 +16,7 @@ uv pip install coola
 **Install with several optional dependencies:**
 
 ```shell
-uv pip install coola[jax,numpy,packaging,pandas,polars,pyarrow,pydantic,torch,xarray,colorlog,rich]
+uv pip install coola[all,jax,numpy,packaging,pandas,polars,pyarrow,pydantic,torch,xarray,colorlog,rich]  # "all" installs everything
 ```
 
 **Install with specific optional dependencies:**
@@ -36,7 +36,7 @@ pip install coola
 **Install with several optional dependencies:**
 
 ```shell
-pip install coola[jax,numpy,packaging,pandas,polars,pyarrow,pydantic,torch,xarray,colorlog,rich]
+pip install coola[all,jax,numpy,packaging,pandas,polars,pyarrow,pydantic,torch,xarray,colorlog,rich]  # "all" installs everything
 ```
 
 **Install with specific optional dependencies:**
