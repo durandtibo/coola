@@ -122,4 +122,13 @@ class ReprHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Any]):
                 # Use the builtin repr so subclasses and the NumPy scalars
                 # hash like the builtin value, independent of library versions.
                 return hash_tagged(base.__name__, _builtin_repr(base, data), length=length)
-        return hash_tagged(type(data).__qualname__, repr(data), length=length)
+        cls = type(data)
+        # The module keeps a user class named ``Decimal`` or ``Path`` out of
+        # the tag namespace of the other hashers; the builtins keep the bare
+        # name (``NoneType``).
+        tag = (
+            cls.__qualname__
+            if cls.__module__ == "builtins"
+            else f"{cls.__module__}.{cls.__qualname__}"
+        )
+        return hash_tagged(tag, repr(data), length=length)
