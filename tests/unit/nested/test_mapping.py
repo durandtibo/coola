@@ -663,3 +663,18 @@ def test_remove_keys_if_values_equal_to_the_removed_key_are_kept() -> None:
         "x": "a",
         "y": ["a"],
     }
+
+
+def test_flatten_mapping_always_prefix_colliding_keys_raises() -> None:
+    with pytest.raises(DuplicateKeyError, match="collides"):
+        flatten_mapping({"a.b": {"c": 1}, "a": {"b.c": 2}}, always_prefix=True)
+
+
+def test_flatten_mapping_prefix_colliding_with_plain_key_raises() -> None:
+    with pytest.raises(DuplicateKeyError, match="collides"):
+        flatten_mapping({"m1": {"b": 1}, "m2": {"b": 2}, "x": {"m1.b": 5}}, on_duplicate="prefix")
+
+
+def test_flatten_mapping_prefix_colliding_with_prefixed_key_raises() -> None:
+    with pytest.raises(DuplicateKeyError, match="collides"):
+        flatten_mapping({"x": {"m1.b": 5}, "m1": {"b": 1}, "m2": {"b": 2}}, on_duplicate="prefix")
