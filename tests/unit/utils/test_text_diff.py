@@ -114,3 +114,16 @@ def test_unified_diff_context_lines_one() -> None:
 def test_unified_diff_negative_context_lines_raises() -> None:
     with pytest.raises(ValueError, match="non-negative"):
         unified_diff(TEXT_A, TEXT_B, context_lines=-1)
+
+
+def test_unified_diff_no_trailing_newline() -> None:
+    assert unified_diff("a", "b") == (
+        "--- previous\n+++ latest\n@@ -1 +1 @@\n-a\n\\ No newline at end of file\n"
+        "+b\n\\ No newline at end of file\n"
+    )
+
+
+def test_unified_diff_no_trailing_newline_only_in_one_text() -> None:
+    assert unified_diff("a\n", "a") == (
+        "--- previous\n+++ latest\n@@ -1 +1 @@\n-a\n+a\n\\ No newline at end of file\n"
+    )
