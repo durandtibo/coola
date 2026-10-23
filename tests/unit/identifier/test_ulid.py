@@ -196,3 +196,13 @@ def test_generate_ulid_explicit_timestamp_does_not_use_the_monotonic_state() -> 
 
 def test_generate_ulid_explicit_timestamp_random_part_is_random() -> None:
     assert generate_ulid(timestamp_ms=42) != generate_ulid(timestamp_ms=42)
+
+
+def test_extract_ulid_timestamp_ms_rejects_a_value_larger_than_128_bits() -> None:
+    with pytest.raises(ValueError, match="larger than"):
+        extract_ulid_timestamp_ms("Z" * 26)
+
+
+def test_extract_ulid_timestamp_ms_accepts_lowercase() -> None:
+    ulid = generate_ulid(timestamp_ms=1704067200000)
+    assert extract_ulid_timestamp_ms(ulid.lower()) == 1704067200000
