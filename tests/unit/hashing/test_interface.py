@@ -32,7 +32,7 @@ from coola.hashing import (
 )
 from coola.hashing.interface import _register_default_hashers
 from coola.hashing.pydantic import PydanticModelHasher
-from coola.registry import AlreadyRegisteredError
+from coola.registry import AlreadyRegisteredError, TypeNotRegisteredError
 from coola.testing.fixtures import numpy_available, pydantic_available
 from coola.utils.imports import is_pydantic_available
 from tests.unit.hashing.helpers import Unhashable
@@ -537,3 +537,18 @@ def test_hash_object_invalid_length_is_rejected_before_hashing() -> None:
 
 def test_hash_object_memoryview_hashes_like_bytes() -> None:
     assert hash_object(memoryview(b"abc")) == hash_object(b"abc")
+
+
+class _OtherHash:
+    def hash(self, seed: int = 0) -> int:
+        return seed
+
+
+def test_hash_object_hash_method_with_another_signature_raises() -> None:
+    with pytest.raises(TypeNotRegisteredError, match="register a hasher"):
+        hash_object(_OtherHash())
+
+
+def test_hash_object_hash_method_with_another_signature_ignore_unhashable() -> None:
+    with pytest.warns(UserWarning, match="No hasher registered"):
+        hash_object(_OtherHash(), ignore_unhashable=True)

@@ -201,3 +201,11 @@ def test_repr_hasher_numpy_scalar_without_builtin_equivalent(registry: HasherReg
 
     value = np.datetime64("2020-01-01")
     assert ReprHasher().hash(value, registry) == hash_tagged("datetime64", repr(value))
+
+
+def test_repr_hasher_hash_int_above_str_conversion_limit(registry: HasherRegistry) -> None:
+    hasher = ReprHasher()
+    value = 10**5000
+    assert hasher.hash(value, registry) == hasher.hash(value, registry)
+    assert hasher.hash(value, registry) != hasher.hash(value + 1, registry)
+    assert hasher.hash(-value, registry) != hasher.hash(value, registry)
