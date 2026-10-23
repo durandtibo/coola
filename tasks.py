@@ -17,6 +17,4 @@ def import_time(c: Context) -> None:
     )
 
 
-benchmark = Collection("benchmark")
-benchmark.add_task(import_time)
-ns.add_collection(benchmark)
+ns.add_collection(Collection("benchmark", import_time))

@@ -53,7 +53,7 @@ print(json.dumps({{
 def run_import(statement: str, *flags: str) -> subprocess.CompletedProcess[str]:
     r"""Run ``statement`` in a fresh isolated interpreter."""
     code = CODE.format(statement=statement, libraries=OPTIONAL_LIBRARIES)
-    return subprocess.run(
+    return subprocess.run(  # noqa: S603
         [sys.executable, "-I", *flags, "-c", code],
         capture_output=True,
         text=True,
@@ -73,7 +73,9 @@ def slowest_imports(statement: str) -> list[dict[str, int | str]]:
     return sorted(rows, key=lambda row: row["cumulative_us"], reverse=True)[:TOP_N]
 
 
-def benchmark_import(benchmark: BenchmarkFixture, statement: str) -> None:
+def benchmark_import(
+    benchmark: BenchmarkFixture, statement: str, import_results: dict[str, dict]
+) -> None:
     r"""Benchmark ``statement`` and save the details in ``extra_info``."""
     results = []
 
@@ -82,6 +84,12 @@ def benchmark_import(benchmark: BenchmarkFixture, statement: str) -> None:
 
     benchmark.pedantic(target, rounds=10, warmup_rounds=1, iterations=1)
     seconds = [r["seconds"] for r in results[1:]]  # the first run is the warm-up
+    import_results[statement] = {
+        "min": min(seconds),
+        "median": statistics.median(seconds),
+        "num_modules": results[-1]["num_modules"],
+        "optional_libraries": results[-1]["optional_libraries"],
+    }
     benchmark.extra_info.update(
         {
             "import_seconds_min": min(seconds),
@@ -93,14 +101,14 @@ def benchmark_import(benchmark: BenchmarkFixture, statement: str) -> None:
     )
 
 
-def test_python_startup_benchmark(benchmark) -> None:  # noqa: ANN001
-    benchmark_import(benchmark, "pass")
+def test_python_startup_benchmark(benchmark, import_results) -> None:  # noqa: ANN001
+    benchmark_import(benchmark, "pass", import_results)
 
 
-def test_import_coola_benchmark(benchmark) -> None:  # noqa: ANN001
-    benchmark_import(benchmark, "import coola")
+def test_import_coola_benchmark(benchmark, import_results) -> None:  # noqa: ANN001
+    benchmark_import(benchmark, "import coola", import_results)
 
 
 @pytest.mark.parametrize("subpackage", SUBPACKAGES)
-def test_from_coola_import_subpackage_benchmark(benchmark, subpackage: str) -> None:  # noqa: ANN001
-    benchmark_import(benchmark, f"from coola import {subpackage}")
+def test_from_coola_import_subpackage_benchmark(benchmark, import_results, subpackage: str) -> None:  # noqa: ANN001
+    benchmark_import(benchmark, f"from coola import {subpackage}", import_results)
