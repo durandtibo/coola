@@ -253,6 +253,10 @@ class BaseRegistry(Generic[K, V]):
         self._load_lazy_all()
         other._load_lazy_all()
 
+        # Design choice: both locks are held during the whole comparison so that the result
+        # is consistent. If the locks were released after taking a snapshot, a registry
+        # could be updated before the comparison ends and the result would describe a state
+        # that no longer exists. The cost is that a slow comparison blocks registrations.
         # Acquire locks in a consistent order based on object id to avoid deadlock
         first, second = (self, other) if id(self) < id(other) else (other, self)
         with first._lock, second._lock:
