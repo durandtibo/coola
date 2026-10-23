@@ -12,6 +12,7 @@ __all__ = [
 
 from collections import deque
 from collections.abc import Mapping, Sequence
+from types import MappingProxyType
 from typing import TYPE_CHECKING, Any
 
 from coola.recursive.default import (
@@ -187,6 +188,7 @@ def _register_default_transformers(registry: TransformerRegistry) -> None:
             # Mappings - recursive transformation of keys and values
             dict: mapping_transformer,
             Mapping: mapping_transformer,
+            MappingProxyType: mapping_transformer,
         }
     )
 
