@@ -57,8 +57,14 @@
 - Add a regression test for every bug fixed, and check that it fails without the fix (revert the
   `src` change with `git stash push src` and run it).
 - Do not add tests for the exports of `__all__` or other trivial structure.
-- Test banners follow the existing style:
-  `#####` lines the width of the `#     Tests for X     #` title line.
+- Section headers in the tests have three lines. The second line is `#`, 5 spaces, the name,
+  5 spaces and `#`. The first and third lines repeat `#` to match the length of the second line:
+
+  ```python
+  ###########################
+  #     Tests for Fixed     #
+  ###########################
+  ```
 - Seed random data (`default_rng(0)`); no unseeded randomness in tests.
 
 ## Reporting
