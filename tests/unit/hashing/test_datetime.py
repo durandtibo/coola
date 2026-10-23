@@ -184,10 +184,13 @@ def test_datetime_hasher_hash_aware_datetime_near_limits(
     assert hasher.hash(value, registry=registry) == hasher.hash(value, registry=registry)
 
 
-def test_datetime_near_limits_cannot_be_converted_to_utc() -> None:
+def test_datetime_min_cannot_be_converted_to_utc() -> None:
     # Guards the premise of the tests below: converting to UTC overflows.
     with pytest.raises(OverflowError):
         datetime.min.replace(tzinfo=timezone(timedelta(hours=1))).astimezone(UTC)
+
+
+def test_datetime_max_cannot_be_converted_to_utc() -> None:
     with pytest.raises(OverflowError):
         datetime.max.replace(tzinfo=timezone(timedelta(hours=-1))).astimezone(UTC)
 
@@ -233,6 +236,11 @@ def test_default_registry_hashes_aware_datetime_near_limits() -> None:
     registry = get_default_registry()
     value = datetime.max.replace(tzinfo=timezone(timedelta(hours=-1)))
     assert registry.hash(value) == registry.hash(value)
+
+
+def test_default_registry_hashes_nested_aware_datetime_near_limits() -> None:
+    registry = get_default_registry()
+    value = datetime.max.replace(tzinfo=timezone(timedelta(hours=-1)))
     assert registry.hash([value, {"k": value}])
 
 
