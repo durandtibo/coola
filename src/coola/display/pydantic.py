@@ -6,7 +6,7 @@ from __future__ import annotations
 __all__ = ["repr_pydantic_model", "secret_field_names", "str_pydantic_model"]
 
 import warnings
-from typing import TYPE_CHECKING, Any, cast, get_args
+from typing import TYPE_CHECKING, Any, cast, get_args, get_origin
 
 from coola.utils.format import repr_mapping_line, str_mapping_line
 from coola.utils.imports import is_pydantic_available
@@ -16,21 +16,36 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
 if TYPE_CHECKING or is_pydantic_available():  # pragma: no cover
-    from pydantic import BaseModel, SecretStr
+    import pydantic
+    from pydantic import BaseModel, SecretBytes, SecretStr
 else:  # pragma: no cover
-    from coola.utils.fallback.pydantic import BaseModel, SecretStr
+    from coola.utils.fallback.pydantic import BaseModel, SecretBytes, SecretStr, pydantic
+
+
+def _is_secret_annotation(annotation: object) -> bool:
+    """Indicate if an annotation is, or contains, a secret type."""
+    # ``Secret`` is only available in pydantic 2.7 and later.
+    secret_types = (SecretStr, SecretBytes, getattr(pydantic, "Secret", SecretBytes))
+    origin = get_origin(annotation) or annotation
+    if isinstance(origin, type) and issubclass(origin, secret_types):
+        return True
+    return any(_is_secret_annotation(arg) for arg in get_args(annotation))
 
 
 def secret_field_names(model: BaseModel) -> set[str]:
-    """Return the names of fields annotated as ``SecretStr`` (including
-    ``Optional[SecretStr]``).
+    """Return the names of fields annotated as a secret type.
+
+    A field is secret if its annotation is ``SecretStr``,
+    ``SecretBytes`` or ``Secret``, or contains one of them (for example
+    ``Optional[SecretStr]`` or ``tuple[SecretStr, int]``). The whole
+    field is then considered secret.
 
     Args:
         model: The pydantic model to inspect.
 
     Returns:
-        The set of field names whose annotation is (or includes)
-            ``SecretStr``.
+        The set of field names whose annotation is (or includes) a
+            secret type.
 
     Example:
         ```pycon
@@ -45,13 +60,11 @@ def secret_field_names(model: BaseModel) -> set[str]:
 
         ```
     """
-    names: set[str] = set()
-    for name, field in type(model).model_fields.items():
-        annotation = field.annotation
-        candidates = get_args(annotation) or (annotation,)
-        if SecretStr in candidates:
-            names.add(name)
-    return names
+    return {
+        name
+        for name, field in type(model).model_fields.items()
+        if _is_secret_annotation(field.annotation)
+    }
 
 
 def _mask_secret_fields(model: BaseModel, dumped: dict[str, Any]) -> dict[str, Any]:
@@ -136,7 +149,8 @@ def str_pydantic_model(
         model: The pydantic model to format.
         sort: If ``True``, sort fields by name.
         exclude_none: If ``True``, omit fields whose value is ``None``.
-        exclude_secret: If ``True``, omit fields typed as ``SecretStr``
+        exclude_secret: If ``True``, omit fields typed as a secret type
+            (``SecretStr``, ``SecretBytes``, ``Secret``)
             entirely, rather than showing the masked value.
         exclude_fields: Optional list of field names to omit. Names
             that do not exist on the model are silently ignored.
@@ -182,7 +196,8 @@ def repr_pydantic_model(
         model: The pydantic model to format.
         sort: If ``True``, sort fields by name.
         exclude_none: If ``True``, omit fields whose value is ``None``.
-        exclude_secret: If ``True``, omit fields typed as ``SecretStr``
+        exclude_secret: If ``True``, omit fields typed as a secret type
+            (``SecretStr``, ``SecretBytes``, ``Secret``)
             entirely, rather than showing the masked value.
         exclude_fields: Optional list of field names to omit. Names
             that do not exist on the model are silently ignored.

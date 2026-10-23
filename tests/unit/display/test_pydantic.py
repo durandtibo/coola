@@ -10,9 +10,9 @@ from coola.testing.fixtures import pydantic_available
 from coola.utils.imports import is_pydantic_available
 
 if is_pydantic_available():
-    from pydantic import BaseModel, SecretStr
+    from pydantic import BaseModel, Secret, SecretBytes, SecretStr
 else:
-    BaseModel, SecretStr = object, object
+    BaseModel, Secret, SecretBytes, SecretStr = object, object, object, object
 
 
 class MyModel(BaseModel):
@@ -29,6 +29,13 @@ class NoSecretModel(BaseModel):
 
 class OptionalSecretModel(BaseModel):
     key: SecretStr | None = None
+    value: int = 0
+
+
+class OtherSecretsModel(BaseModel):
+    data: SecretBytes
+    wrapped: Secret[int]
+    pair: tuple[SecretStr, int]
     value: int = 0
 
 
@@ -73,6 +80,12 @@ def test_secret_field_names_no_secret() -> None:
 def test_secret_field_names_optional_secret() -> None:
     model = OptionalSecretModel(key=SecretStr("s3cr3t"), value=1)
     assert secret_field_names(model) == {"key"}
+
+
+@pydantic_available
+def test_secret_field_names_secret_bytes_secret_and_generic() -> None:
+    model = OtherSecretsModel(data=b"x", wrapped=1, pair=(SecretStr("s3cr3t"), 1))
+    assert secret_field_names(model) == {"data", "wrapped", "pair"}
 
 
 @pydantic_available
@@ -134,6 +147,12 @@ def test_str_pydantic_model_exclude_fields_missing_field() -> None:
     with pytest.warns(RuntimeWarning, match="does_not_exist"):
         out = str_pydantic_model(model, exclude_fields=["does_not_exist"])
     assert out == "MyModel(age=30, name=alice, nickname=None)"
+
+
+@pydantic_available
+def test_str_pydantic_model_secret_bytes_secret_and_generic_excluded() -> None:
+    model = OtherSecretsModel(data=b"x", wrapped=1, pair=(SecretStr("s3cr3t"), 1))
+    assert str_pydantic_model(model) == "OtherSecretsModel(value=0)"
 
 
 @pydantic_available
