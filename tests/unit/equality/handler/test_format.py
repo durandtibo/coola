@@ -155,3 +155,15 @@ def test_format_mapping_difference_different_key_order() -> None:
         "  actual   : ['a', 'b']\n"
         "  expected : ['b', 'a']"
     )
+
+
+class BadStr:
+    def __str__(self) -> str:
+        msg = "broken"
+        raise RuntimeError(msg)
+
+
+def test_format_value_difference_failing_str() -> None:
+    message = format_value_difference(BadStr(), 1)
+    assert message.startswith("objects are different:\n  actual   : <BadStr object at 0x")
+    assert message.endswith("\n  expected : 1")
