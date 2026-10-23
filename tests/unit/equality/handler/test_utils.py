@@ -231,7 +231,7 @@ def test_track_comparison_inner_exit_keeps_outer_pair() -> None:
 
 def test_report_difference_attribute_kind_converts_path() -> None:
     reports = []
-    config = EqualityConfig(reporter=lambda msg, path: reports.append(path))
+    config = EqualityConfig(reporter=lambda _msg, path: reports.append(path))
     report_difference(
         logging.getLogger(),
         config,
