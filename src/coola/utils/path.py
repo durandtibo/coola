@@ -2,7 +2,7 @@ r"""Contain path utility functions."""
 
 from __future__ import annotations
 
-__all__ = ["find_root_package_parent", "sanitize_path", "to_path", "working_directory"]
+__all__ = ["find_root_package_parent", "sanitize_path", "working_directory"]
 
 import contextlib
 import os
@@ -73,41 +73,7 @@ def find_root_package_parent(start_path: str | os.PathLike[str]) -> Path:
         current = parent
 
 
-def to_path(path: str | os.PathLike[str]) -> Path:
-    r"""Convert a ``str`` or a path-like object to a ``pathlib.Path``.
-
-    Unlike ``sanitize_path``, the path is not expanded or resolved: it
-    is only converted, so a relative path stays relative.
-
-    Args:
-        path: The path to convert. A ``str`` or an object implementing
-            the ``os.PathLike`` protocol.
-
-    Returns:
-        The path as a ``pathlib.Path`` object. A ``Path`` is returned
-            as is (the same object).
-
-    Raises:
-        TypeError: if ``path`` is neither a ``str`` nor a path-like
-            object.
-
-    Example:
-        ```pycon
-        >>> from pathlib import Path
-        >>> from coola.utils.path import to_path
-        >>> to_path("data/a.txt")
-        PosixPath('data/a.txt')
-        >>> to_path(Path("data/a.txt"))
-        PosixPath('data/a.txt')
-
-        ```
-    """
-    if isinstance(path, Path):
-        return path
-    return Path(os.fspath(path))
-
-
-def sanitize_path(path: str | os.PathLike[str]) -> Path:
+def sanitize_path(path: str | os.PathLike[str], *, resolve: bool = True) -> Path:
     r"""Sanitize the given path.
 
     Args:
@@ -121,6 +87,11 @@ def sanitize_path(path: str | os.PathLike[str]) -> Path:
             collapses ``"file:///a"`` to ``"file:/a"`` before this
             function ever sees it, so the URI can no longer be
             detected and it is treated as a plain relative path.
+        resolve: If ``True`` (default), the path is made absolute and
+            the symbolic links are resolved. If ``False``, the path is
+            only converted to a ``Path`` (``~`` and ``file://`` URIs
+            are still expanded): a relative path stays relative and a
+            symbolic link is kept.
 
     Returns:
         The sanitized path as a ``pathlib.Path`` object.
@@ -142,6 +113,8 @@ def sanitize_path(path: str | os.PathLike[str]) -> Path:
         PosixPath('.../something')
         >>> sanitize_path(Path("something/./../"))
         PosixPath('...')
+        >>> sanitize_path("something", resolve=False)
+        PosixPath('something')
 
         ```
     """
@@ -158,7 +131,8 @@ def sanitize_path(path: str | os.PathLike[str]) -> Path:
     else:
         path = Path(path)
     try:
-        return path.expanduser().resolve()
+        path = path.expanduser()
+        return path.resolve() if resolve else path
     except RuntimeError as error:
         msg = f"Could not expand the home directory of {str(path)!r}"
         raise ValueError(msg) from error

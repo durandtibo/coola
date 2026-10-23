@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any, TypeVar
 from coola.display import InlineDisplayMixin
 from coola.io.base import BaseFileSaver, BaseLoader
 from coola.utils.introspection import is_same_type
-from coola.utils.path import to_path
+from coola.utils.path import sanitize_path
 
 if TYPE_CHECKING:
     import os
@@ -60,7 +60,7 @@ class TextLoader(InlineDisplayMixin, BaseLoader[str]):
         return self._encoding == other._encoding
 
     def load(self, path: str | os.PathLike[str]) -> str:
-        path = to_path(path)
+        path = sanitize_path(path, resolve=False)
         with path.open(encoding=self._encoding, newline="") as file:
             return file.read()
 

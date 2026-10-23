@@ -29,7 +29,7 @@ from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
 from coola.factory import is_object_config, resolve_object
 from coola.io.utils import add_uuid_suffix
-from coola.utils.path import to_path
+from coola.utils.path import sanitize_path
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Sequence
@@ -553,7 +553,7 @@ class BaseFileSaver(BaseSaver[T]):
 
             ```
         """
-        path = to_path(path)
+        path = sanitize_path(path, resolve=False)
         if path.is_dir():
             msg = f"path ({path}) is a directory"
             raise IsADirectoryError(msg)

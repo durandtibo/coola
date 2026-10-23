@@ -11,7 +11,7 @@ from coola.display import InlineDisplayMixin
 from coola.equality.interface import objects_are_equal
 from coola.io.base import BaseFileSaver, BaseLoader
 from coola.utils.introspection import is_same_type
-from coola.utils.path import to_path
+from coola.utils.path import sanitize_path
 
 if TYPE_CHECKING:
     import os
@@ -50,7 +50,7 @@ class PickleLoader(InlineDisplayMixin, BaseLoader[T]):
         return is_same_type(other, self)
 
     def load(self, path: str | os.PathLike[str]) -> T:
-        path = to_path(path)
+        path = sanitize_path(path, resolve=False)
         with path.open(mode="rb") as file:
             return pickle.load(file)  # noqa: S301
 
