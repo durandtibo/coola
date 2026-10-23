@@ -1,9 +1,15 @@
 from __future__ import annotations
 
+from enum import Enum
+
 import pytest
 
-from coola.hashing import HasherRegistry, StringHasher, hash_string, hash_tagged
+from coola.hashing import HasherRegistry, StringHasher, hash_enum, hash_string, hash_tagged
 from coola.hashing.string import validate_hash_length
+
+
+class MixedStr(str, Enum):  # noqa: UP042
+    A = "a"
 
 
 @pytest.fixture
@@ -238,3 +244,7 @@ def test_validate_hash_length_error_message_contains_length() -> None:
 
 def test_validate_hash_length_returns_none() -> None:
     assert validate_hash_length(64) is None
+
+
+def test_string_hasher_hash_enum_member_of_str_mixin(registry: HasherRegistry) -> None:
+    assert StringHasher().hash(MixedStr.A, registry) == hash_enum(MixedStr.A)

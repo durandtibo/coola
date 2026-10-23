@@ -39,8 +39,10 @@ from coola.io.base import (
     _keep_lock_fresh,
     _lock_owner_is_dead,
     _make_lock_token,
+    _make_parent_dir,
     _release_file_lock,
     _save_lock,
+    _short_name,
     _tmp_path,
 )
 
@@ -916,3 +918,24 @@ def test_save_long_file_name_exist_ok_false(tmp_path: Path) -> None:
     path = tmp_path.joinpath("a" * 240 + ".json")
     JsonSaver().save({"a": 1}, path, exist_ok=False)
     assert JsonLoader().load(path) == {"a": 1}
+
+
+def test_short_name_long_suffix_is_dropped() -> None:
+    assert "." not in _short_name("a" * 200 + "." + "b" * 20)
+
+
+def test_break_stale_lock_returns_false_when_renamed_lock_disappears(tmp_path: Path) -> None:
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.touch()
+    old = time.time() - 1000
+    os.utime(lock_path, (old, old))
+    with patch.object(Path, "read_text", side_effect=[lock_path.read_text(), FileNotFoundError]):
+        assert not _break_stale_lock(lock_path, stale_after=10)
+
+
+def test_make_parent_dir_reraises_if_the_parent_is_a_directory(tmp_path: Path) -> None:
+    with (
+        patch.object(Path, "mkdir", side_effect=FileExistsError),
+        pytest.raises(FileExistsError),
+    ):
+        _make_parent_dir(tmp_path.joinpath("data.txt"))
