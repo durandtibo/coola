@@ -414,6 +414,41 @@ def test_break_stale_lock_removes_old_lock(tmp_path: Path) -> None:
     assert list(tmp_path.iterdir()) == []
 
 
+def test_break_stale_lock_restores_a_lock_renewed_before_the_rename(tmp_path: Path) -> None:
+    # Another waiter broke the stale lock and took a new one between the
+    # check of the age and the rename: the live lock must be put back.
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.write_text("old")
+    old = time.time() - 1000
+    os.utime(lock_path, (old, old))
+    original_rename = Path.rename
+
+    def rename_after_renewal(self: Path, target: Path) -> Path:
+        self.unlink()
+        self.write_text("live")
+        return original_rename(self, target)
+
+    with patch.object(Path, "rename", rename_after_renewal):
+        assert not _break_stale_lock(lock_path, stale_after=10)
+
+
+def test_break_stale_lock_keeps_the_live_lock_after_a_renewal(tmp_path: Path) -> None:
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.write_text("old")
+    old = time.time() - 1000
+    os.utime(lock_path, (old, old))
+    original_rename = Path.rename
+
+    def rename_after_renewal(self: Path, target: Path) -> Path:
+        self.unlink()
+        self.write_text("live")
+        return original_rename(self, target)
+
+    with patch.object(Path, "rename", rename_after_renewal):
+        _break_stale_lock(lock_path, stale_after=10)
+    assert lock_path.read_text() == "live"
+
+
 ##################################################
 #     Tests for the equality tester registry     #
 ##################################################
