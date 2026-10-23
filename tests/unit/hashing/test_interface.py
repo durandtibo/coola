@@ -527,3 +527,13 @@ def test_hash_object_numpy_scalar_different_values() -> None:
     assert hash_object(np.float32(1.0)) != hash_object(np.float32(2.0))
     assert hash_object(np.int64(1)) != hash_object(np.float64(1.0))
     assert hash_object(np.bool_(True)) != hash_object(1)
+
+
+def test_hash_object_invalid_length_is_rejected_before_hashing() -> None:
+    # The unhashable value would raise another error if the data was traversed first.
+    with pytest.raises(ValueError, match="even number"):
+        hash_object([Unhashable()], length=3)
+
+
+def test_hash_object_memoryview_hashes_like_bytes() -> None:
+    assert hash_object(memoryview(b"abc")) == hash_object(b"abc")

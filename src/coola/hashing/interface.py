@@ -37,7 +37,7 @@ from coola.hashing.repr import ReprHasher
 from coola.hashing.sequence import SequenceHasher
 from coola.hashing.set import SetHasher
 from coola.hashing.str import StrHasher
-from coola.hashing.string import StringHasher
+from coola.hashing.string import StringHasher, validate_hash_length
 from coola.hashing.torch import TorchTensorHasher
 from coola.hashing.xarray import XarrayHasher
 from coola.utils.imports import (
@@ -145,6 +145,7 @@ def hash_object(
         registry, length, ignore_unhashable = _resolve_legacy_arguments(
             args, registry=registry, length=length, ignore_unhashable=ignore_unhashable
         )
+    validate_hash_length(length)  # before the (possibly expensive) traversal
     if registry is None:
         registry = get_default_registry()
     return registry.hash(data, length=length, ignore_unhashable=ignore_unhashable)
@@ -272,6 +273,7 @@ def _register_default_hashers(registry: HasherRegistry) -> None:
             str: string_hasher,
             bytes: bytes_hasher,
             bytearray: bytes_hasher,
+            memoryview: bytes_hasher,
             # Numeric types - no recursion needed
             int: repr_hasher,
             float: repr_hasher,
