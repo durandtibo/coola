@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 
 from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
 from coola.hashing.base import BaseHasher
+from coola.hashing.string import validate_hash_length
 
 if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
@@ -93,8 +94,6 @@ def hash_bytes(value: bytes, length: int = 64) -> str:
 
         ```
     """
-    if length % 2 != 0 or not (2 <= length <= 128):
-        msg = f"length must be an even number between 2 and 128, got {length}."
-        raise ValueError(msg)
+    validate_hash_length(length)
     digest_size = length // 2
     return hashlib.blake2b(value, digest_size=digest_size).hexdigest()

@@ -29,6 +29,7 @@ from coola.validation import validate_positive
 _CHECK_SYMBOLS = "*~$=U"
 
 _DEFAULT_LENGTH = 12
+_MAX_LENGTH = 1024
 _DEFAULT_GROUP_SIZE = 4
 
 # Crockford Base32 decoding is case-insensitive and normalizes the
@@ -109,7 +110,7 @@ def generate_checksummed_id(
 
     Raises:
         ValueError: If ``length`` or ``group_size`` is not positive,
-            or if ``sep`` contains a character from the extended
+            if ``length`` exceeds 1024, or if ``sep`` contains a character from the extended
             Crockford Base32 alphabet.
 
     Example:
@@ -124,6 +125,9 @@ def generate_checksummed_id(
         ```
     """
     validate_positive(length, name="length")
+    if length > _MAX_LENGTH:
+        msg = f"length must be at most {_MAX_LENGTH}, got {length}"
+        raise ValueError(msg)
     validate_positive(group_size, name="group_size")
     _validate_sep(sep)
     payload = "".join(CROCKFORD_BASE32_ALPHABET[b % 32] for b in os.urandom(length))
@@ -153,7 +157,7 @@ def verify_checksummed_id(identifier: str, sep: str = "-") -> bool:
         the characters preceding it, ``False`` otherwise (including
         when ``identifier`` contains a character outside the extended
         Crockford Base32 alphabet, or is too short to contain a
-        payload and a check symbol, or is not a ``str``).
+        payload and a check symbol, is not a ``str``, or contains a non-ASCII character).
 
     Example:
         ```pycon
@@ -167,7 +171,8 @@ def verify_checksummed_id(identifier: str, sep: str = "-") -> bool:
 
         ```
     """
-    if not isinstance(identifier, str):
+    if not isinstance(identifier, str) or not identifier.isascii():
+        # Non-ASCII look-alikes (the dotless i upper-cases to ``'I'``) must not verify.
         return False
     full = _normalize(identifier.replace(sep, "") if sep else identifier)
     if len(full) < 2:

@@ -100,7 +100,8 @@ def extract_ulid_timestamp_ms(ulid: str) -> int:
     Raises:
         ValueError: If ``ulid`` is not 26 characters long, or contains
             a character outside the Crockford Base32 alphabet used by
-            ``generate_ulid``.
+            ``generate_ulid`` (the case is ignored), or encodes a value
+            larger than 128 bits.
 
     Example:
         ```pycon
@@ -114,6 +115,9 @@ def extract_ulid_timestamp_ms(ulid: str) -> int:
         msg = f"ulid must be 26 characters long, got {len(ulid)}"
         raise ValueError(msg)
     value = decode_crockford_base32(ulid, name="ulid")
+    if value >> 128:
+        msg = f"ulid is larger than 2**128 - 1 (the first character must be at most '7'), got {ulid!r}"
+        raise ValueError(msg)
     return value >> 80
 
 

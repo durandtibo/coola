@@ -20,16 +20,15 @@ __all__ = [
     "ObjectIdGenerator",
     "extract_object_id_timestamp",
     "generate_object_id",
-    "get_default_generator",
 ]
 
 import os
 import threading
 import time
-from functools import cache
 
 from coola.identifier.fork import track_fork
 from coola.identifier.validation import validate_bit_range
+from coola.utils.singleton import LazySingleton
 
 _TIMESTAMP_BYTES = 4
 _PROCESS_BYTES = 5
@@ -138,19 +137,22 @@ class ObjectIdGenerator:
         return payload.hex()
 
 
-@cache
+_default_generator: LazySingleton[ObjectIdGenerator] = LazySingleton(ObjectIdGenerator)
+
+
 def get_default_generator() -> ObjectIdGenerator:
     r"""Get or create the default, process-wide generator backing
     ``generate_object_id``.
 
     Returns a singleton ``ObjectIdGenerator`` instance shared by every
     call to ``generate_object_id``. Uses the same lazy,
-    ``functools.cache`` singleton pattern.
+    ``LazySingleton`` pattern, so concurrent first calls
+    build a single generator.
 
     Returns:
         The shared, process-wide ``ObjectIdGenerator`` instance.
     """
-    return ObjectIdGenerator()
+    return _default_generator.get()
 
 
 def generate_object_id(timestamp: int | None = None) -> str:

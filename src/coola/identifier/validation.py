@@ -72,12 +72,14 @@ def decode_crockford_base32(text: str, *, name: str) -> int:
 
     Raises:
         ValueError: If ``text`` contains a character outside
-            ``CROCKFORD_BASE32_ALPHABET``.
+            ``CROCKFORD_BASE32_ALPHABET`` (case is ignored).
     """
     value = 0
     for char in text:
         try:
-            digit = CROCKFORD_BASE32_ALPHABET.index(char)
+            # Crockford decoding is case-insensitive (ASCII only: ``str.upper``
+            # maps some non-ASCII characters to ASCII ones).
+            digit = CROCKFORD_BASE32_ALPHABET.index(char.upper() if char.isascii() else char)
         except ValueError as error:
             msg = f"{name} contains a character outside the Crockford Base32 alphabet, got {char!r}"
             raise ValueError(msg) from error
