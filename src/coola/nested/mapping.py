@@ -24,6 +24,7 @@ from coola.recursive import (
     SetTransformer,
     TransformerRegistry,
 )
+from coola.recursive.rebuild import rebuild_sequence
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
@@ -91,7 +92,10 @@ def flatten_mapping(
     Raises:
         ValueError: if ``on_duplicate`` is not a valid value.
         DuplicateKeyError: if ``on_duplicate='raise'`` and an inner key
-            appears more than once with different values.
+            appears more than once with different values, or if
+            two different keys are flattened to the same key (for
+            example ``{"a.b": {"c": 1}, "a": {"b.c": 2}}`` with
+            ``always_prefix=True``).
 
     Example:
         ```pycon
@@ -115,13 +119,13 @@ def flatten_mapping(
             prefixed_key = f"{outer_key}{separator}{inner_key}"
 
             if always_prefix:
-                out[prefixed_key] = value
+                _add_key(out, prefixed_key, value)
                 continue
 
             if inner_key not in seen:
                 seen[inner_key] = value
                 origins[inner_key] = outer_key
-                out[inner_key] = value
+                _add_key(out, inner_key, value)
                 continue
 
             if objects_are_equal(seen[inner_key], value):
@@ -142,7 +146,7 @@ def flatten_mapping(
             # Re-key the first occurrence too, the first time a real
             # conflict is found for this inner key.
             _prefix_first_occurrence(out, inner_key, f"{origins[inner_key]}{separator}{inner_key}")
-            out[prefixed_key] = value
+            _add_key(out, prefixed_key, value)
 
     return out
 
@@ -162,6 +166,26 @@ def _validate_on_duplicate(on_duplicate: str, strategies: set[str]) -> None:
         raise ValueError(msg)
 
 
+def _add_key(out: dict[Any, Any], key: Any, value: Any) -> None:
+    r"""Add a new key, refusing to overwrite an existing entry.
+
+    Different (outer key, inner key) pairs can give the same prefixed
+    key, e.g. ``("a.b", "c")`` and ``("a", "b.c")``.
+
+    Args:
+        out: The flattened mapping, modified in-place.
+        key: The key to add.
+        value: The value to store.
+
+    Raises:
+        DuplicateKeyError: if ``key`` is already in ``out``.
+    """
+    if key in out:
+        msg = f"Duplicate key found: {key!r} (it collides with another flattened key)"
+        raise DuplicateKeyError(msg)
+    out[key] = value
+
+
 def _prefix_first_occurrence(out: dict[Any, Any], key: Any, prefixed_key: str) -> None:
     r"""Re-key the first occurrence of ``key`` with its prefixed key, if
     it is still stored with its original key.
@@ -172,7 +196,8 @@ def _prefix_first_occurrence(out: dict[Any, Any], key: Any, prefixed_key: str) -
         prefixed_key: The key with the prefix of its first occurrence.
     """
     if key in out:
-        out[prefixed_key] = out.pop(key)
+        value = out.pop(key)
+        _add_key(out, prefixed_key, value)
 
 
 def _free_suffixed_key(out: dict[Any, Any], key: Any, suffix: int) -> str:
@@ -208,7 +233,8 @@ def add_prefix_suffix_to_keys(
         prefix: The prefix to prepend to the keys.
         suffix: The suffix to append to the keys.
         recursive: If ``True``, the prefix and suffix are also added
-            to the keys of every nested mapping. If ``False``, only
+            to the keys of every nested mapping, including the mappings
+            in the lists and the tuples. If ``False``, only
             the keys of the top-level mapping are renamed.
 
     Returns:
@@ -226,18 +252,39 @@ def add_prefix_suffix_to_keys(
 
         ```
     """
-    out: dict[Any, Any] = {}
-    for key, value in mapping.items():
-        new_key = f"{prefix}{key}{suffix}" if isinstance(key, str) else key
-        new_value = (
-            add_prefix_suffix_to_keys(
-                cast("Mapping[Any, Any]", value), prefix=prefix, suffix=suffix, recursive=True
-            )
-            if recursive and isinstance(value, Mapping)
-            else value
+    return {
+        (f"{prefix}{key}{suffix}" if isinstance(key, str) else key): (
+            _rename_nested_keys(value, prefix, suffix) if recursive else value
         )
-        out[new_key] = new_value
-    return out
+        for key, value in mapping.items()
+    }
+
+
+def _rename_nested_keys(data: Any, prefix: str, suffix: str) -> Any:
+    r"""Add a prefix and a suffix to the keys of the mappings in a value.
+
+    The mappings are found in the value itself and in the sequences
+    (``list``, ``tuple``, ...) it contains. Any other value is returned
+    as-is.
+
+    Args:
+        data: The value to process.
+        prefix: The prefix to prepend to the keys.
+        suffix: The suffix to append to the keys.
+
+    Returns:
+        The value with the renamed keys.
+    """
+    if isinstance(data, Mapping):
+        return add_prefix_suffix_to_keys(
+            cast("Mapping[Any, Any]", data), prefix=prefix, suffix=suffix, recursive=True
+        )
+    if isinstance(data, Sequence) and not isinstance(data, (str, bytes, bytearray)):
+        return rebuild_sequence(
+            data,
+            [_rename_nested_keys(item, prefix, suffix) for item in cast("Sequence[Any]", data)],
+        )
+    return data
 
 
 def get_first_value(data: Mapping[Any, T]) -> T:

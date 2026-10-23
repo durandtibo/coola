@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import abc
+import gc
+import weakref
 from typing import TYPE_CHECKING, cast
 
 import pytest
@@ -613,3 +615,13 @@ def test_type_registry_setitem_non_type_key_raises() -> None:
     registry = TypeRegistry[str]()
     with pytest.raises(TypeError, match="Expected a type as key"):
         registry["abc"] = "value"  # ty: ignore[invalid-key]
+
+
+def test_type_registry_cache_does_not_keep_a_dynamic_class_alive() -> None:
+    registry = TypeRegistry[str]({object: "obj"})
+    dynamic = type("Dynamic", (), {})
+    registry.resolve(dynamic)
+    reference = weakref.ref(dynamic)
+    del dynamic
+    gc.collect()
+    assert reference() is None

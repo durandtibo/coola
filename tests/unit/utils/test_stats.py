@@ -12,8 +12,10 @@ from coola.utils.stats import quantile
 
 if is_numpy_available():
     import numpy as np
+    from numpy.random import default_rng
 else:
     np = Mock()
+    default_rng = Mock()
 
 ##############################
 #     Tests for quantile     #
@@ -49,11 +51,16 @@ def test_quantile_21_decile() -> None:
 @numpy_available
 @pytest.mark.parametrize(
     "array",
-    [np.random.randn(5), np.random.randn(100), np.random.randn(1000), np.random.rand(1000)],
+    [
+        default_rng(0).standard_normal(5),
+        default_rng(1).standard_normal(100),
+        default_rng(2).standard_normal(1000),
+        default_rng(3).random(1000),
+    ],
 )
 @pytest.mark.parametrize("num_quantiles", [0, 1, 2, 4, 8])
 def test_quantile_numpy(array: np.ndarray, num_quantiles: int) -> None:
-    q: list[float] = np.random.rand(num_quantiles).tolist()
+    q: list[float] = default_rng(4).random(num_quantiles).tolist()
     assert objects_are_allclose(
         quantile(array.tolist(), q),
         np.quantile(array, q=q).tolist(),
