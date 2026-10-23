@@ -768,3 +768,29 @@ def test_save_does_not_write_a_visible_file_while_saving(tmp_path: Path) -> None
     Saver().save("abc", tmp_path.joinpath("data.json"))
     assert seen == [[]]
     assert tmp_path.joinpath("data.json").read_text() == "abc"
+
+
+def test_save_exist_ok_keeps_the_mode(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.json")
+    path.write_text("{}")
+    path.chmod(0o600)
+    JsonSaver().save({"a": 1}, path, exist_ok=True)
+    assert path.stat().st_mode & 0o777 == 0o600
+
+
+def test_save_exist_ok_follows_a_symlink(tmp_path: Path) -> None:
+    target = tmp_path.joinpath("target.json")
+    target.write_text("{}")
+    link = tmp_path.joinpath("link.json")
+    link.symlink_to(target)
+    JsonSaver().save({"a": 1}, link, exist_ok=True)
+    assert link.is_symlink()
+
+
+def test_save_exist_ok_writes_the_target_of_a_symlink(tmp_path: Path) -> None:
+    target = tmp_path.joinpath("target.json")
+    target.write_text("{}")
+    link = tmp_path.joinpath("link.json")
+    link.symlink_to(target)
+    JsonSaver().save({"a": 1}, link, exist_ok=True)
+    assert JsonLoader().load(target) == {"a": 1}
