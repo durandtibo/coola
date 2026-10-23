@@ -86,6 +86,10 @@ the PR number is given. Items not listed are **open**.
 | 6.20 | PR open (#2125)         | `get_default_generator` removed from both `__all__`.                                                                                         |
 | 6.21 | Partly, PR open (#2126) | Prefix and generator result validated, `chars` tidied. Open: Windows/Posix path hash, duplicate registry export, `register_hashers` doctest. |
 | 7.10 | PR open (#2136) | `check_env_vars` treats an empty or blank value as not defined. |
+| 7.6 | PR open (#2135) | `is_git_repo` compares to `true`; the stderr of git is kept in the error. |
+| 7.7 | PR open (#2134) | `to_date` returns the date part of a `datetime`. |
+| 7.2 | PR open (#2133) | `unified_diff` marks lines without a trailing newline like `git diff`. |
+| 7.1 | PR open (#2132) | Temporary and lock names derived from a hash when the target name is long. |
 
 All other items in sections 5 to 10 (including 7.x, 8.x, 9.x, 10.x) have no matching commit and are **open**.
 The earlier "Suggested order" lists below are unchanged.
