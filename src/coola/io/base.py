@@ -73,11 +73,28 @@ def _break_stale_lock(lock_path: Path, stale_after: float) -> bool:
         ``True`` if a stale lock was removed.
     """
     try:
-        if time.time() - lock_path.stat().st_mtime <= stale_after:
+        stat = lock_path.stat()
+        if time.time() - stat.st_mtime <= stale_after:
             return False
+        owner = lock_path.read_text()
         broken = lock_path.with_name(f"{lock_path.name}.{os.getpid()}.{uuid.uuid4().hex}.stale")
         lock_path.rename(broken)
     except FileNotFoundError:
+        return False
+    # Another waiter may have broken the same lock and taken a new one between
+    # the checks above and the rename: then the renamed file is a live lock.
+    # Put it back (``os.link`` fails if the path was taken again meanwhile).
+    try:
+        renamed_is_stale = broken.read_text() == owner and (
+            time.time() - broken.stat().st_mtime > stale_after
+        )
+    except FileNotFoundError:
+        return False
+    if not renamed_is_stale:
+        with contextlib.suppress(OSError):
+            os.link(broken, lock_path)
+        broken.unlink(missing_ok=True)
+        logger.warning("The save lock %s was renewed while it was broken: restored", lock_path)
         return False
     broken.unlink(missing_ok=True)
     logger.warning("Removed stale save lock %s (older than %ss)", lock_path, stale_after)
