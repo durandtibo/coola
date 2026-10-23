@@ -534,3 +534,22 @@ def test_from_flat_dict_restore_lists_separator() -> None:
 )
 def test_from_flat_dict_restore_lists_round_trip(data: dict) -> None:
     assert objects_are_equal(from_flat_dict(to_flat_dict(data), restore_lists=True), data)
+
+
+def test_to_flat_dict_self_referencing_list_raises() -> None:
+    data: list = [1]
+    data.append(data)
+    with pytest.raises(ValueError, match="Cycle detected"):
+        to_flat_dict(data, prefix="x")
+
+
+def test_to_flat_dict_self_referencing_dict_raises() -> None:
+    data: dict = {}
+    data["a"] = data
+    with pytest.raises(ValueError, match="Cycle detected"):
+        to_flat_dict(data)
+
+
+def test_to_flat_dict_shared_container_is_not_a_cycle() -> None:
+    shared = [1]
+    assert to_flat_dict({"a": shared, "b": shared}) == {"a.0": 1, "b.0": 1}
