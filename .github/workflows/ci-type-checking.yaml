@@ -30,3 +30,11 @@ jobs:
       - name: Verify public API types
         run: |
           inv types.check
+
+      # Informational: the tests are not type-checked by the step above (see
+      # ``[tool.ty.src]``). This step shows how many diagnostics the unit tests have, and
+      # it does not fail the job.
+      - name: Check types of the tests (non-blocking)
+        continue-on-error: true
+        run: |
+          ty check --config 'src.include=["tests/unit"]'
