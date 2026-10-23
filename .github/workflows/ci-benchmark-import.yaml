@@ -1,0 +1,54 @@
+# Import time benchmark workflow.
+# Runs the import time benchmarks (tests/benchmarks/test_import_benchmark.py)
+# daily to track the import time of coola and of its subpackages. Not part of
+# the blocking PR checks: runs on its own schedule instead of on every PR/push,
+# and can also be triggered manually.
+
+name: Benchmark Import
+on:
+  schedule:
+    - cron: "40 9 * * *" # Run daily at 9:40 AM UTC, after the other benchmarks
+  workflow_dispatch: # to trigger manually
+
+permissions:
+  contents: read
+  actions: read # to download the results of the previous run
+
+jobs:
+  benchmark-import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
+
+      - name: Setup python environment
+        uses: durandtibo/setup-venv-uv-action@269cae0b38051f39b2cfb10230687ba2b8093424 # ratchet:durandtibo/setup-venv-uv-action@v0.2.0
+
+      - name: Download the results of the previous run
+        continue-on-error: true # there is no previous run the first time
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          run_id=$(gh run list --workflow ci-benchmark-import.yaml --status success --limit 1 \
+            --json databaseId --jq '.[0].databaseId')
+          gh run download "$run_id" --name benchmark-import-results --dir .benchmarks
+
+      - name: Run the import time benchmarks
+        # Save the results and fail if an import is more than 50% slower than in the previous
+        # run (the runners are noisy, so the threshold is loose).
+        run: |
+          compare=""
+          if [ -n "$(find .benchmarks -name '*.json' 2>/dev/null)" ]; then
+            compare="--benchmark-compare --benchmark-compare-fail=mean:50%"
+          fi
+          python -m pytest tests/benchmarks/test_import_benchmark.py --benchmark-only \
+            --benchmark-storage=.benchmarks --benchmark-save=daily $compare
+
+      - name: Upload the results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # ratchet:actions/upload-artifact@v7.0.2
+        with:
+          name: benchmark-import-results
+          path: .benchmarks
+          if-no-files-found: ignore

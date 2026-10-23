@@ -5,6 +5,7 @@
 # separate full test run.
 #
 # Deliberately NOT called from here, each standalone with its own trigger:
+#   - ci-benchmark-import.yaml: runs daily to track the import time.
 #   - ci-benchmark.yaml: runs nightly on its own schedule instead of gating
 #     every PR/push, since a benchmark regression isn't a merge blocker.
 #   - ci-verify-workflows.yaml: lints .github/workflows/* itself, so it has its
