@@ -105,6 +105,7 @@ the PR number is given. Items not listed are **open**.
 | 7.7 | PR open (#2134) | `to_date` returns the date part of a `datetime`. |
 | 7.2 | PR open (#2133) | `unified_diff` marks lines without a trailing newline like `git diff`. |
 | 7.1 | PR open (#2132) | Temporary and lock names derived from a hash when the target name is long. |
+| 7.20 | Won't fix (#2156; #2152 closed) | Windows is not a supported OS for coola; PR #2152 closed. |
 
 All other items in sections 5 to 10 (including 7.x, 8.x, 9.x, 10.x) have no matching commit and are **open**.
 The earlier "Suggested order" lists below are unchanged.

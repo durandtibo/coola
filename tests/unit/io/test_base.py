@@ -813,6 +813,8 @@ def test_save_parent_is_a_file(tmp_path: Path) -> None:
 def test_get_save_lock_same_lock_for_two_spellings_of_a_path(tmp_path: Path) -> None:
     lock = _get_save_lock(tmp_path.joinpath("data.txt"))
     assert _get_save_lock(tmp_path.joinpath("sub", "..", "data.txt")) is lock
+
+
 ################################
 #     Tests for long names     #
 ################################
