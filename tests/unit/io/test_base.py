@@ -805,6 +805,9 @@ def test_save_does_not_write_a_visible_file_while_saving(tmp_path: Path) -> None
     assert tmp_path.joinpath("data.json").read_text() == "abc"
 
 
+def test_get_save_lock_same_lock_for_two_spellings_of_a_path(tmp_path: Path) -> None:
+    lock = _get_save_lock(tmp_path.joinpath("data.txt"))
+    assert _get_save_lock(tmp_path.joinpath("sub", "..", "data.txt")) is lock
 ################################
 #     Tests for long names     #
 ################################
