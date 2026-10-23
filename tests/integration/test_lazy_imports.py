@@ -25,7 +25,8 @@ OPTIONAL_LIBRARIES = ("jax", "numpy", "pandas", "polars", "pyarrow", "torch", "x
 
 @pytest.mark.parametrize("package", PACKAGES)
 def test_importing_a_package_does_not_import_the_optional_libraries(package: str) -> None:
-    """Test that importing a package does not load the optional libraries."""
+    """Test that importing a package does not load the optional
+    libraries."""
     code = (
         f"import sys, {package}; "
         f"print(*[name for name in {OPTIONAL_LIBRARIES!r} if name in sys.modules])"
