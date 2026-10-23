@@ -32,7 +32,8 @@ def unified_diff(
 
     Returns:
         A unified diff string, or an empty string if the two texts are
-        identical.
+        identical. A last line without a trailing newline is followed
+        by ``\\ No newline at end of file``, as in ``git diff``.
 
     Raises:
         ValueError: If ``context_lines`` is negative.
@@ -61,4 +62,8 @@ def unified_diff(
         tofile=label_b,
         n=context_lines,
     )
-    return "".join(diff)
+    # ``difflib`` keeps the lines as they are: a line without a trailing
+    # newline would be glued to the next one, so mark it as ``git diff`` does.
+    return "".join(
+        line if line.endswith("\n") else f"{line}\n\\ No newline at end of file\n" for line in diff
+    )
