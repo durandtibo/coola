@@ -8,13 +8,19 @@ from __future__ import annotations
 
 __all__ = ["PyarrowArraySummarizer", "PyarrowTableSummarizer"]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.summary.metadata import BaseFieldsSummarizer, BaseMetadataSummarizer
-from coola.utils.imports import check_pyarrow
+from coola.utils.imports import check_pyarrow, is_pyarrow_available
+
+if TYPE_CHECKING or is_pyarrow_available():
+    import pyarrow as pa
+else:  # pragma: no cover
+    from coola.utils.fallback.pyarrow import pyarrow as pa
+
 
 if TYPE_CHECKING:
-    import pyarrow as pa
+    from coola.summary.base import Summarizer
 
 
 class PyarrowArraySummarizer(BaseMetadataSummarizer["pa.Array | pa.ChunkedArray"]):
@@ -51,7 +57,7 @@ class PyarrowArraySummarizer(BaseMetadataSummarizer["pa.Array | pa.ChunkedArray"
         return [f"length={len(data)}", f"type={data.type}"]
 
 
-class PyarrowTableSummarizer(BaseFieldsSummarizer["pa.Table"]):
+class PyarrowTableSummarizer(BaseFieldsSummarizer[pa.Table]):
     r"""Implement a summarizer for ``pyarrow.Table`` objects.
 
     By default, it displays the metadata (type, shape, columns with their
@@ -84,3 +90,24 @@ class PyarrowTableSummarizer(BaseFieldsSummarizer["pa.Table"]):
     def _describe(self, data: pa.Table) -> list[str]:
         fields = [(field.name, field.type) for field in data.schema]
         return [f"shape={data.shape}", f"columns={self._format_fields(fields)}"]
+
+
+def get_default_summarizers() -> dict[type, Summarizer[Any]]:
+    r"""Get the default summarizers of the pyarrow objects.
+
+    Returns:
+        The summarizers of the pyarrow objects and their associated types.
+
+    Notes:
+        This function is called by the default registry the first time it
+        needs the summarizers of the pyarrow objects.
+    """
+    if not is_pyarrow_available():
+        return {}
+
+    array_summarizer = PyarrowArraySummarizer()
+    return {
+        pa.Array: array_summarizer,
+        pa.ChunkedArray: array_summarizer,
+        pa.Table: PyarrowTableSummarizer(),
+    }

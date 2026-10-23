@@ -14,39 +14,27 @@ from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any
 
 from coola.summary.default import DefaultSummarizer
-from coola.summary.jax import JaxArraySummarizer
 from coola.summary.mapping import MappingSummarizer
-from coola.summary.numpy import NDArraySummarizer
-from coola.summary.pandas import PandasDataFrameSummarizer, PandasSeriesSummarizer
-from coola.summary.polars import (
-    PolarsDataFrameSummarizer,
-    PolarsLazyFrameSummarizer,
-    PolarsSeriesSummarizer,
-)
-from coola.summary.pyarrow import PyarrowArraySummarizer, PyarrowTableSummarizer
 from coola.summary.registry import SummarizerRegistry
 from coola.summary.sequence import SequenceSummarizer
 from coola.summary.set import SetSummarizer
-from coola.summary.torch import TensorSummarizer
-from coola.summary.xarray import (
-    XarrayDataArraySummarizer,
-    XarrayDatasetSummarizer,
-    XarrayVariableSummarizer,
-)
-from coola.utils.imports import (
-    is_jax_available,
-    is_numpy_available,
-    is_pandas_available,
-    is_polars_available,
-    is_pyarrow_available,
-    is_torch_available,
-    is_xarray_available,
-)
+from coola.utils.imports import package_available
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 from coola.validation import validate_non_negative
 
 if TYPE_CHECKING:
     from coola.summary.base import Summarizer
+
+# (names of the library in the module of the types, module with the summarizers)
+_LAZY_SUMMARIZERS = (
+    (("jax", "jaxlib"), "coola.summary.jax"),
+    (("numpy",), "coola.summary.numpy"),
+    (("pandas",), "coola.summary.pandas"),
+    (("polars",), "coola.summary.polars"),
+    (("pyarrow",), "coola.summary.pyarrow"),
+    (("torch",), "coola.summary.torch"),
+    (("xarray",), "coola.summary.xarray"),
+)
 
 
 def summarize(data: object, max_depth: int = 1, registry: SummarizerRegistry | None = None) -> str:
@@ -188,15 +176,12 @@ def _register_default_summarizers(registry: SummarizerRegistry) -> None:
         This function is called internally by get_default_registry() and should
         not typically be called directly by users.
     """
-    summarizers: dict[type, Summarizer[Any]] = _get_native_summarizers()
-    summarizers.update(_get_jax_summarizers())
-    summarizers.update(_get_numpy_summarizers())
-    summarizers.update(_get_pandas_summarizers())
-    summarizers.update(_get_polars_summarizers())
-    summarizers.update(_get_pyarrow_summarizers())
-    summarizers.update(_get_torch_summarizers())
-    summarizers.update(_get_xarray_summarizers())
-    registry.register_many(summarizers)
+    registry.register_many(_get_native_summarizers())
+    # The summarizers of the optional libraries are loaded the first time the registry needs a
+    # type of the library, so the libraries are not imported with ``coola.summary``.
+    for names, module in _LAZY_SUMMARIZERS:
+        if package_available(names[0]):
+            registry.register_lazy(names, f"{module}:get_default_summarizers")
 
 
 def _get_native_summarizers() -> dict[type, Summarizer[Any]]:
@@ -235,146 +220,6 @@ def _get_native_summarizers() -> dict[type, Summarizer[Any]]:
         # Mappings - summary transformation of keys and values
         dict: mapping_summarizer,
         Mapping: mapping_summarizer,
-    }
-
-
-def _get_numpy_summarizers() -> dict[type, Summarizer[Any]]:
-    r"""Get the native summarizers for NumPy types.
-
-    Returns:
-        The summarizers for NumPy array types.
-
-    Notes:
-        This function is called internally by get_default_registry() and should
-        not typically be called directly by users.
-    """
-    if not is_numpy_available():  # pragma: no cover
-        return {}
-    import numpy as np  # noqa: PLC0415
-
-    return {np.ndarray: NDArraySummarizer()}
-
-
-def _get_torch_summarizers() -> dict[type, Summarizer[Any]]:
-    r"""Get the native summarizers for PyTorch types.
-
-    Returns:
-        The summarizers for PyTorch tensor types.
-
-    Notes:
-        This function is called internally by get_default_registry() and should
-        not typically be called directly by users.
-    """
-    if not is_torch_available():  # pragma: no cover
-        return {}
-    import torch  # noqa: PLC0415
-
-    return {torch.Tensor: TensorSummarizer()}
-
-
-def _get_jax_summarizers() -> dict[type, Summarizer[Any]]:
-    r"""Get the summarizers for JAX types.
-
-    Returns:
-        The summarizers for JAX types, or an empty dictionary if the
-            package is not installed.
-
-    Notes:
-        This function is called internally by get_default_registry() and should
-        not typically be called directly by users.
-    """
-    if not is_jax_available():  # pragma: no cover
-        return {}
-    import jax.numpy as jnp  # noqa: PLC0415
-
-    summarizer = JaxArraySummarizer()
-    # ``jnp.ndarray`` is ``jax.Array``, in the MRO of the concrete array class. Creating an
-    # array to get this class would initialize the JAX backend as a side effect.
-    return {jnp.ndarray: summarizer}
-
-
-def _get_pandas_summarizers() -> dict[type, Summarizer[Any]]:
-    r"""Get the summarizers for pandas types.
-
-    Returns:
-        The summarizers for pandas types, or an empty dictionary if the
-            package is not installed.
-
-    Notes:
-        This function is called internally by get_default_registry() and should
-        not typically be called directly by users.
-    """
-    if not is_pandas_available():  # pragma: no cover
-        return {}
-    import pandas as pd  # noqa: PLC0415
-
-    return {pd.DataFrame: PandasDataFrameSummarizer(), pd.Series: PandasSeriesSummarizer()}
-
-
-def _get_polars_summarizers() -> dict[type, Summarizer[Any]]:
-    r"""Get the summarizers for polars types.
-
-    Returns:
-        The summarizers for polars types, or an empty dictionary if the
-            package is not installed.
-
-    Notes:
-        This function is called internally by get_default_registry() and should
-        not typically be called directly by users.
-    """
-    if not is_polars_available():  # pragma: no cover
-        return {}
-    import polars as pl  # noqa: PLC0415
-
-    return {
-        pl.DataFrame: PolarsDataFrameSummarizer(),
-        pl.LazyFrame: PolarsLazyFrameSummarizer(),
-        pl.Series: PolarsSeriesSummarizer(),
-    }
-
-
-def _get_pyarrow_summarizers() -> dict[type, Summarizer[Any]]:
-    r"""Get the summarizers for pyarrow types.
-
-    Returns:
-        The summarizers for pyarrow types, or an empty dictionary if the
-            package is not installed.
-
-    Notes:
-        This function is called internally by get_default_registry() and should
-        not typically be called directly by users.
-    """
-    if not is_pyarrow_available():  # pragma: no cover
-        return {}
-    import pyarrow as pa  # noqa: PLC0415
-
-    array_summarizer = PyarrowArraySummarizer()
-    return {
-        pa.Array: array_summarizer,
-        pa.ChunkedArray: array_summarizer,
-        pa.Table: PyarrowTableSummarizer(),
-    }
-
-
-def _get_xarray_summarizers() -> dict[type, Summarizer[Any]]:
-    r"""Get the summarizers for xarray types.
-
-    Returns:
-        The summarizers for xarray types, or an empty dictionary if the
-            package is not installed.
-
-    Notes:
-        This function is called internally by get_default_registry() and should
-        not typically be called directly by users.
-    """
-    if not is_xarray_available():  # pragma: no cover
-        return {}
-    import xarray as xr  # noqa: PLC0415
-
-    return {
-        xr.DataArray: XarrayDataArraySummarizer(),
-        xr.Dataset: XarrayDatasetSummarizer(),
-        xr.Variable: XarrayVariableSummarizer(),
     }
 
 

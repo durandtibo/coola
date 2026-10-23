@@ -13,13 +13,15 @@ from typing import TYPE_CHECKING, TypeVar
 
 from coola.display import InlineDisplayMixin
 from coola.reducer.base import BaseBasicReducer
-from coola.utils.imports import check_numpy
+from coola.utils.imports import check_numpy, is_numpy_available
 
-if TYPE_CHECKING:
+if TYPE_CHECKING or is_numpy_available():
     import numpy as np
+else:  # pragma: no cover
+    from coola.utils.fallback.numpy import numpy as np
 
 
-T = TypeVar("T", Sequence[float], "np.ndarray")
+T = TypeVar("T", Sequence[float], np.ndarray)
 
 
 class NumpyReducer(InlineDisplayMixin, BaseBasicReducer[T]):
@@ -46,25 +48,17 @@ class NumpyReducer(InlineDisplayMixin, BaseBasicReducer[T]):
         check_numpy()
 
     def _is_empty(self, values: T) -> bool:
-        import numpy as np  # noqa: PLC0415
-
         if isinstance(values, np.ndarray):
             return values.size == 0
         return not values
 
     def _max(self, values: T) -> int | float:
-        import numpy as np  # noqa: PLC0415
-
         return np.max(np.asarray(values)).item()
 
     def _mean(self, values: T) -> float:
-        import numpy as np  # noqa: PLC0415
-
         return np.mean(np.asarray(values)).item()
 
     def _median(self, values: T) -> int | float:
-        import numpy as np  # noqa: PLC0415
-
         array = np.asarray(values)
         if array.dtype.kind in "iu" and array.size % 2 == 1:
             # Like the other reducers, the median of an odd number of integers is an integer.
@@ -77,26 +71,18 @@ class NumpyReducer(InlineDisplayMixin, BaseBasicReducer[T]):
         return result
 
     def _min(self, values: T) -> int | float:
-        import numpy as np  # noqa: PLC0415
-
         return np.min(np.asarray(values)).item()
 
     def _quantile(self, values: T, quantiles: Sequence[float]) -> list[float]:
-        import numpy as np  # noqa: PLC0415
-
         return np.quantile(np.asarray(values), q=quantiles).tolist()
 
     def sort(self, values: T, descending: bool = False) -> list[int | float]:
-        import numpy as np  # noqa: PLC0415
-
         array = np.sort(np.asarray(values))
         if descending:
             return array[::-1].tolist()
         return array.tolist()
 
     def _std(self, values: T) -> float:
-        import numpy as np  # noqa: PLC0415
-
         array = np.asarray(values)
         if array.size <= 1:
             return float("nan")

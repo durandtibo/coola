@@ -9,11 +9,16 @@ from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
 from coola.random.base import BaseRandomManager
-from coola.utils.imports import check_numpy
+from coola.utils.imports import check_numpy, is_numpy_available
 from coola.utils.introspection import is_same_type
 
 if TYPE_CHECKING:
     from collections.abc import Generator
+
+if is_numpy_available():
+    import numpy as np
+else:  # pragma: no cover
+    from coola.utils.fallback.numpy import numpy as np
 
 
 class NumpyRandomManager(InlineDisplayMixin, BaseRandomManager):
@@ -51,19 +56,13 @@ class NumpyRandomManager(InlineDisplayMixin, BaseRandomManager):
         return hash(type(self))
 
     def get_rng_state(self) -> tuple[Any, ...]:
-        import numpy as np  # noqa: PLC0415
-
-        return np.random.get_state()  # noqa: NPY002
+        return np.random.get_state()
 
     def manual_seed(self, seed: int) -> None:
-        import numpy as np  # noqa: PLC0415
-
-        np.random.seed(seed % 2**32)  # noqa: NPY002
+        np.random.seed(seed % 2**32)
 
     def set_rng_state(self, state: tuple[Any, ...]) -> None:
-        import numpy as np  # noqa: PLC0415
-
-        np.random.set_state(state)  # noqa: NPY002
+        np.random.set_state(state)
 
 
 @contextmanager

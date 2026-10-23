@@ -25,15 +25,19 @@ from coola.equality.handler import (
     create_chain,
 )
 from coola.equality.tester.chain import BaseChainEqualityTester
-from coola.utils.imports import check_pandas
+from coola.utils.imports import check_pandas, is_pandas_available
+
+if TYPE_CHECKING or is_pandas_available():
+    import pandas as pd
+else:  # pragma: no cover
+    from coola.utils.fallback.pandas import pandas as pd
 
 if TYPE_CHECKING:
-    import pandas as pd  # noqa: F401
-
     from coola.equality.handler import BaseEqualityHandler
+    from coola.equality.tester.base import BaseEqualityTester
 
 
-class PandasDataFrameEqualityTester(BaseChainEqualityTester["pd.DataFrame"]):
+class PandasDataFrameEqualityTester(BaseChainEqualityTester[pd.DataFrame]):
     r"""Implement an equality tester for ``pandas.DataFrame``.
 
     This tester uses pandas' DataFrame equality testing which compares shape,
@@ -94,7 +98,7 @@ class PandasDataFrameEqualityTester(BaseChainEqualityTester["pd.DataFrame"]):
         return create_chain(SameObjectHandler(), SameTypeHandler(), PandasDataFrameEqualHandler())
 
 
-class PandasSeriesEqualityTester(BaseChainEqualityTester["pd.Series"]):
+class PandasSeriesEqualityTester(BaseChainEqualityTester[pd.Series]):
     r"""Implement an equality tester for ``pandas.Series``.
 
     This tester uses pandas' Series equality testing which compares length,
@@ -147,7 +151,7 @@ class PandasSeriesEqualityTester(BaseChainEqualityTester["pd.Series"]):
         return create_chain(SameObjectHandler(), SameTypeHandler(), PandasSeriesEqualHandler())
 
 
-class PandasIndexEqualityTester(BaseChainEqualityTester["pd.Index"]):
+class PandasIndexEqualityTester(BaseChainEqualityTester[pd.Index]):
     r"""Implement an equality tester for ``pandas.Index``.
 
     The comparison checks the values, the dtype and the names. The
@@ -211,3 +215,24 @@ class PandasExtensionArrayEqualityTester(BaseChainEqualityTester[Any]):
         return create_chain(
             SameObjectHandler(), SameTypeHandler(), PandasExtensionArrayEqualHandler()
         )
+
+
+def get_default_testers() -> dict[type, BaseEqualityTester[Any]]:
+    r"""Get the default equality testers of the pandas objects.
+
+    Returns:
+        The equality testers of the pandas objects and their associated types.
+
+    Notes:
+        This function is called by the default registry the first time it
+        needs the equality testers of the pandas objects.
+    """
+    if not is_pandas_available():
+        return {}
+
+    return {
+        pd.DataFrame: PandasDataFrameEqualityTester(),
+        pd.Series: PandasSeriesEqualityTester(),
+        pd.Index: PandasIndexEqualityTester(),
+        pd.api.extensions.ExtensionArray: PandasExtensionArrayEqualityTester(),
+    }

@@ -4,13 +4,13 @@ from __future__ import annotations
 
 __all__ = ["ReprHasher"]
 
+import sys
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_enum, hash_tagged
-from coola.utils.imports import is_numpy_available
 from coola.utils.integer import int_repr
 
 if TYPE_CHECKING:
@@ -24,9 +24,9 @@ def _numpy_scalar_to_builtin(data: Any) -> Any:
     with NumPy 1, ``np.float32(1.0)`` with NumPy 2), so the scalars are
     converted before hashing. The other values are returned unchanged.
     """
-    import numpy as np  # noqa: PLC0415
-
-    if not is_numpy_available() or not isinstance(data, np.generic):
+    # A NumPy scalar cannot exist before NumPy is imported, so NumPy is not imported here.
+    np = sys.modules.get("numpy")
+    if np is None or not isinstance(data, np.generic):
         return data
     if isinstance(data, np.bool_):
         return bool(data)

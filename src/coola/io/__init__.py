@@ -29,6 +29,8 @@ __all__ = [
     "save_torch",
 ]
 
+from typing import TYPE_CHECKING
+
 from coola.io.base import (
     BaseFileSaver,
     BaseLoader,
@@ -41,5 +43,19 @@ from coola.io.base import (
 from coola.io.json import JsonLoader, JsonSaver, load_json, save_json
 from coola.io.pickle import PickleLoader, PickleSaver, load_pickle, save_pickle
 from coola.io.text import TextLoader, TextSaver, load_text, save_text
-from coola.io.torch import TorchLoader, TorchSaver, load_torch, save_torch
 from coola.io.utils import add_uuid_suffix
+from coola.utils.imports import lazy_exports
+
+if TYPE_CHECKING:
+    from coola.io.torch import TorchLoader, TorchSaver, load_torch, save_torch
+
+
+# The names defined in the modules that import an optional library are imported the first time they
+# are used, so the library is not imported with the package.
+_LAZY_EXPORTS = {
+    "TorchLoader": "coola.io.torch",
+    "TorchSaver": "coola.io.torch",
+    "load_torch": "coola.io.torch",
+    "save_torch": "coola.io.torch",
+}
+__getattr__, __dir__ = lazy_exports(__name__, _LAZY_EXPORTS, globals())

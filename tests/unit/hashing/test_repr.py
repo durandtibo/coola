@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import sys
 from enum import Enum
 from typing import Any
+from unittest.mock import patch
 
 import pytest
 
 from coola.hashing import HasherRegistry, ReprHasher, hash_enum, hash_tagged
+from coola.hashing.repr import _numpy_scalar_to_builtin
 from coola.testing.fixtures import numpy_available
 
 
@@ -271,3 +274,14 @@ def test_repr_hasher_hash_int_above_str_conversion_limit_negative(
 
 def test_repr_hasher_hash_enum_member_of_int_mixin(registry: HasherRegistry) -> None:
     assert ReprHasher().hash(MixedInt.ONE, registry) == hash_enum(MixedInt.ONE)
+
+
+##########################################
+#     Tests for _numpy_scalar_to_builtin #
+##########################################
+
+
+def test_numpy_scalar_to_builtin_does_not_import_numpy() -> None:
+    value = object()
+    with patch.dict(sys.modules, {"numpy": None}):
+        assert _numpy_scalar_to_builtin(value) is value

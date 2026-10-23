@@ -14,10 +14,16 @@ from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
 from coola.equality.handler.utils import report_difference
+from coola.utils.imports import is_polars_available
+
+if TYPE_CHECKING or is_polars_available():
+    import polars as pl
+    import polars.selectors as cs
+    from polars import testing
+else:  # pragma: no cover
+    from coola.utils.fallback.polars import polars as pl
 
 if TYPE_CHECKING:
-    import polars as pl
-
     from coola.equality.config import EqualityConfig
 
 logger: logging.Logger = logging.getLogger(__name__)
@@ -170,9 +176,6 @@ def has_nan(df_or_series: pl.DataFrame | pl.Series) -> bool:
             otherwise ``False``. The floats nested in ``List``,
             ``Array`` and ``Struct`` columns are checked too.
     """
-    import polars as pl  # noqa: PLC0415
-    import polars.selectors as cs  # noqa: PLC0415
-
     if isinstance(df_or_series, pl.Series):
         return _series_has_nan(df_or_series)
     frame = df_or_series.select(cs.float())
@@ -188,8 +191,6 @@ def has_nan(df_or_series: pl.DataFrame | pl.Series) -> bool:
 def _series_has_nan(series: pl.Series) -> bool:
     # Only the float dtypes have NaN values, and ``is_nan`` is not defined for the
     # other numeric dtypes (``is_numeric`` also includes ``Decimal``, which raises).
-    import polars as pl  # noqa: PLC0415
-
     dtype = series.dtype
     if dtype.is_float():
         return bool(series.is_nan().any())
@@ -291,8 +292,6 @@ def assert_frame_equal(
         rtol: The relative tolerance parameter.
         atol: The absolute tolerance parameter.
     """
-    from polars import testing  # noqa: PLC0415
-
     check_exact = atol == 0 and rtol == 0
     if is_new_naming():
         testing.assert_frame_equal(df1, df2, abs_tol=atol, rel_tol=rtol, check_exact=check_exact)
@@ -317,8 +316,6 @@ def assert_series_equal(
         rtol: The relative tolerance parameter.
         atol: The absolute tolerance parameter.
     """
-    from polars import testing  # noqa: PLC0415
-
     check_exact = atol == 0 and rtol == 0
     if is_new_naming():
         testing.assert_series_equal(
@@ -338,6 +335,4 @@ def is_new_naming() -> bool:
         ``True`` if ``abs_tol`` and ``rel_tol`` are used,
             otherwise ``atol`` and ``rtol`` are used.
     """
-    from polars import testing  # noqa: PLC0415
-
     return "abs_tol" in inspect.signature(testing.assert_frame_equal).parameters

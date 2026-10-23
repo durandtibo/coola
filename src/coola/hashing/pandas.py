@@ -9,10 +9,15 @@ from typing import TYPE_CHECKING, Any
 from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_tagged
+from coola.utils.imports import is_pandas_available
+
+if TYPE_CHECKING or is_pandas_available():
+    import pandas as pd
+else:  # pragma: no cover
+    from coola.utils.fallback.pandas import pandas as pd
 
 if TYPE_CHECKING:
-    import pandas as pd
-
+    from coola.hashing.base import Hasher
     from coola.hashing.registry import HasherRegistry
 
 
@@ -96,3 +101,18 @@ class PandasDataFrameHasher(InlineDisplayMixin, BaseHasher["pd.DataFrame"]):
             parts.append(str(column.dtype))
             parts.append(_hash_values(column.to_numpy(), registry, length, ignore_unhashable))
         return hash_tagged("pandas.DataFrame", "\0".join(parts), length=length)
+
+
+def get_default_hashers() -> dict[type, Hasher[Any]]:
+    r"""Get the default hashers of the pandas objects.
+
+    Returns:
+        The hashers of the pandas objects and their associated types.
+
+    Notes:
+        This function is called by the default registry the first time it
+        needs the hashers of the pandas objects.
+    """
+    if not is_pandas_available():
+        return {}
+    return {pd.Series: PandasSeriesHasher(), pd.DataFrame: PandasDataFrameHasher()}

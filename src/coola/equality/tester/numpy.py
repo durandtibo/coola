@@ -9,7 +9,7 @@ from __future__ import annotations
 
 __all__ = ["NumpyArrayEqualityTester", "NumpyMaskedArrayEqualityTester"]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler import (
     NumpyArrayEqualHandler,
@@ -23,15 +23,20 @@ from coola.equality.handler import (
     create_chain,
 )
 from coola.equality.tester.chain import BaseChainEqualityTester
-from coola.utils.imports import check_numpy
+from coola.equality.tester.scalar import ScalarEqualityTester
+from coola.utils.imports import check_numpy, is_numpy_available
+
+if TYPE_CHECKING or is_numpy_available():
+    import numpy as np
+else:  # pragma: no cover
+    from coola.utils.fallback.numpy import numpy as np
 
 if TYPE_CHECKING:
-    import numpy as np  # noqa: F401
-
     from coola.equality.handler import BaseEqualityHandler
+    from coola.equality.tester.base import BaseEqualityTester
 
 
-class NumpyArrayEqualityTester(BaseChainEqualityTester["np.ndarray"]):
+class NumpyArrayEqualityTester(BaseChainEqualityTester[np.ndarray]):
     r"""Implement an equality tester for ``numpy.ndarray``.
 
     This tester compares NumPy arrays element-wise with support for NaN equality
@@ -92,7 +97,7 @@ class NumpyArrayEqualityTester(BaseChainEqualityTester["np.ndarray"]):
         )
 
 
-class NumpyMaskedArrayEqualityTester(BaseChainEqualityTester["np.ma.MaskedArray"]):
+class NumpyMaskedArrayEqualityTester(BaseChainEqualityTester[np.ma.MaskedArray]):
     r"""Implement an equality tester for ``numpy.ma.MaskedArray``.
 
     This tester compares NumPy masked arrays by checking data, mask, and fill_value.
@@ -162,3 +167,30 @@ class NumpyMaskedArrayEqualityTester(BaseChainEqualityTester["np.ma.MaskedArray"
             SameAttributeHandler("fill_value"),
             TrueHandler(),
         )
+
+
+def get_default_testers() -> dict[type, BaseEqualityTester[Any]]:
+    r"""Get the default equality testers of the NumPy arrays and scalars.
+
+    Returns:
+        The equality testers of the NumPy arrays and scalars and their associated types.
+
+    Notes:
+        This function is called by the default registry the first time it
+        needs the equality testers of the NumPy arrays and scalars.
+    """
+    if not is_numpy_available():
+        return {}
+
+    scalar = ScalarEqualityTester()
+    return {
+        # NumPy scalars use the scalar tester to get the tolerance and ``equal_nan``;
+        # without it, ``==`` is used and both are ignored. ``np.float64`` is also a
+        # ``float``, the other types (``np.float32``, ``np.int64``...) are not.
+        # ``np.bool_`` is not registered: a boolean has no tolerance.
+        np.floating: scalar,
+        np.integer: scalar,
+        np.complexfloating: scalar,
+        np.ndarray: NumpyArrayEqualityTester(),
+        np.ma.MaskedArray: NumpyMaskedArrayEqualityTester(),
+    }

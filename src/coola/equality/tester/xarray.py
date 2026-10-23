@@ -13,7 +13,7 @@ __all__ = [
     "XarrayVariableEqualityTester",
 ]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler import (
     SameAttributeHandler,
@@ -24,15 +24,19 @@ from coola.equality.handler import (
     create_chain,
 )
 from coola.equality.tester.chain import BaseChainEqualityTester
-from coola.utils.imports import check_xarray
+from coola.utils.imports import check_xarray, is_xarray_available
+
+if TYPE_CHECKING or is_xarray_available():
+    import xarray as xr
+else:  # pragma: no cover
+    from coola.utils.fallback.xarray import xarray as xr
 
 if TYPE_CHECKING:
-    import xarray as xr  # noqa: F401
-
     from coola.equality.handler import BaseEqualityHandler
+    from coola.equality.tester.base import BaseEqualityTester
 
 
-class XarrayDataArrayEqualityTester(BaseChainEqualityTester["xr.DataArray"]):
+class XarrayDataArrayEqualityTester(BaseChainEqualityTester[xr.DataArray]):
     r"""Implement an equality tester for ``xarray.DataArray``.
 
     This tester compares xarray DataArrays by checking their variable, name,
@@ -84,7 +88,7 @@ class XarrayDataArrayEqualityTester(BaseChainEqualityTester["xr.DataArray"]):
         )
 
 
-class XarrayDatasetEqualityTester(BaseChainEqualityTester["xr.Dataset"]):
+class XarrayDatasetEqualityTester(BaseChainEqualityTester[xr.Dataset]):
     r"""Implement an equality tester for ``xarray.Dataset``.
 
     This tester compares xarray Datasets by checking their data variables,
@@ -136,7 +140,7 @@ class XarrayDatasetEqualityTester(BaseChainEqualityTester["xr.Dataset"]):
         )
 
 
-class XarrayVariableEqualityTester(BaseChainEqualityTester["xr.Variable"]):
+class XarrayVariableEqualityTester(BaseChainEqualityTester[xr.Variable]):
     r"""Implement an equality tester for ``xarray.Variable``.
 
     This tester compares xarray Variables by checking their data, dimensions,
@@ -186,3 +190,23 @@ class XarrayVariableEqualityTester(BaseChainEqualityTester["xr.Variable"]):
             SameAttributeHandler(name="attrs"),
             TrueHandler(),
         )
+
+
+def get_default_testers() -> dict[type, BaseEqualityTester[Any]]:
+    r"""Get the default equality testers of the xarray objects.
+
+    Returns:
+        The equality testers of the xarray objects and their associated types.
+
+    Notes:
+        This function is called by the default registry the first time it
+        needs the equality testers of the xarray objects.
+    """
+    if not is_xarray_available():
+        return {}
+
+    return {
+        xr.DataArray: XarrayDataArrayEqualityTester(),
+        xr.Dataset: XarrayDatasetEqualityTester(),
+        xr.Variable: XarrayVariableEqualityTester(),
+    }

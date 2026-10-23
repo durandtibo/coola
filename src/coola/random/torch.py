@@ -9,11 +9,16 @@ from typing import TYPE_CHECKING, Any, cast
 
 from coola.display import InlineDisplayMixin
 from coola.random.base import BaseRandomManager
-from coola.utils.imports import check_torch
+from coola.utils.imports import check_torch, is_torch_available
 from coola.utils.introspection import is_same_type
 
 if TYPE_CHECKING:
     from collections.abc import Generator
+
+if is_torch_available():
+    import torch
+else:  # pragma: no cover
+    from coola.utils.fallback.torch import torch
 
 
 class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):
@@ -43,8 +48,6 @@ class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):
         return hash(type(self))
 
     def get_rng_state(self) -> dict[str, Any]:
-        import torch  # noqa: PLC0415
-
         state = {
             "torch": torch.get_rng_state(),
             "torch.cuda": torch.cuda.get_rng_state_all(),
@@ -54,8 +57,6 @@ class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):
         return state
 
     def manual_seed(self, seed: int) -> None:
-        import torch  # noqa: PLC0415
-
         cast("Any", torch).manual_seed(seed)
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(seed)
@@ -63,8 +64,6 @@ class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):
             torch.mps.manual_seed(seed)
 
     def set_rng_state(self, state: dict[str, Any]) -> None:
-        import torch  # noqa: PLC0415
-
         # Only the generators in ``state`` are restored.
         if "torch" in state:
             torch.set_rng_state(state["torch"])
@@ -86,8 +85,6 @@ class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):
 
 def _is_mps_available() -> bool:
     r"""Indicate if the MPS backend is available."""
-    import torch  # noqa: PLC0415
-
     return torch.backends.mps.is_available()
 
 

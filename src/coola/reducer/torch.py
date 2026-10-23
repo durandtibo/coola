@@ -13,13 +13,15 @@ from typing import TYPE_CHECKING, Any, TypeVar
 
 from coola.display import InlineDisplayMixin
 from coola.reducer.base import BaseBasicReducer
-from coola.utils.imports import check_torch
+from coola.utils.imports import check_torch, is_torch_available
 from coola.utils.tensor import to_tensor
 
-if TYPE_CHECKING:
+if TYPE_CHECKING or is_torch_available():
     import torch
+else:  # pragma: no cover
+    from coola.utils.fallback.torch import torch
 
-T = TypeVar("T", Sequence[float], "torch.Tensor")
+T = TypeVar("T", Sequence[float], torch.Tensor)
 
 
 class TorchReducer(InlineDisplayMixin, BaseBasicReducer[T]):
@@ -46,8 +48,6 @@ class TorchReducer(InlineDisplayMixin, BaseBasicReducer[T]):
         check_torch()
 
     def _is_empty(self, values: T) -> bool:
-        import torch  # noqa: PLC0415
-
         if isinstance(values, torch.Tensor):
             return values.numel() == 0
         return not values
@@ -72,8 +72,6 @@ class TorchReducer(InlineDisplayMixin, BaseBasicReducer[T]):
         return _to_tensor(values).min().item()
 
     def _quantile(self, values: T, quantiles: Sequence[float]) -> list[float]:
-        import torch  # noqa: PLC0415
-
         tensor = _to_float_tensor(values)
         if tensor.dtype not in {torch.float32, torch.float64}:
             tensor = tensor.float()  # ``torch.quantile`` only supports float32/float64
@@ -81,8 +79,6 @@ class TorchReducer(InlineDisplayMixin, BaseBasicReducer[T]):
         return result.tolist()
 
     def sort(self, values: T, descending: bool = False) -> list[int | float]:
-        import torch  # noqa: PLC0415
-
         result: Any = torch.sort(_to_tensor(values), descending=descending)[0]
         return result.tolist()
 
@@ -113,8 +109,6 @@ def _to_float_tensor(values: Any) -> torch.Tensor:
     torch). Tensors and arrays that are already floating-point keep
     their dtype; integer and boolean ones are promoted to ``float64``.
     """
-    import torch  # noqa: PLC0415
-
     if isinstance(values, (list, tuple)):
         return torch.as_tensor(values, dtype=torch.float64)
     tensor = _to_tensor(values)
@@ -129,8 +123,6 @@ def _to_tensor(values: Any) -> torch.Tensor:
     default of torch). A list of ints stays integer. Tensors and arrays
     keep their dtype.
     """
-    import torch  # noqa: PLC0415
-
     if isinstance(values, (list, tuple)):
         has_float = any(isinstance(value, float) for value in values)
         return torch.as_tensor(values, dtype=torch.float64 if has_float else None)

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from decimal import Decimal
+
 import pytest
 
 from coola.equality.tester.registry import EqualityTesterRegistry
@@ -229,3 +231,20 @@ def test_base_type_dispatch_registry_equal_false_different_handlers() -> None:
 
 def test_base_type_dispatch_registry_equal_false_different_type() -> None:
     assert not BaseTypeDispatchRegistry[str]({int: "a"}).equal({int: "a"})
+
+
+###########################################
+#     Tests for the lazy registration     #
+###########################################
+
+
+def test_base_type_dispatch_registry_register_lazy_find_loads_the_handlers() -> None:
+    registry = BaseTypeDispatchRegistry[str]()
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    assert registry.find(Decimal) == "decimal"
+
+
+def test_base_type_dispatch_registry_register_lazy_len_loads_the_handlers() -> None:
+    registry = BaseTypeDispatchRegistry[str]()
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    assert len(registry) == 1

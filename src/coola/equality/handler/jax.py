@@ -11,11 +11,12 @@ from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
 from coola.equality.handler.utils import report_difference
+from coola.utils.imports import is_jax_available
 
-if TYPE_CHECKING:
+if TYPE_CHECKING or is_jax_available():
     import jax.numpy as jnp
-
-    from coola.equality.config import EqualityConfig
+else:  # pragma: no cover
+    from coola.utils.fallback.jax import jnp
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -89,8 +90,6 @@ def array_equal(array1: jnp.ndarray, array2: jnp.ndarray, config: EqualityConfig
 
         ```
     """
-    import jax.numpy as jnp  # noqa: PLC0415
-
     if config.atol > 0 or config.rtol > 0:
         return jnp.allclose(
             array1, array2, rtol=config.rtol, atol=config.atol, equal_nan=config.equal_nan

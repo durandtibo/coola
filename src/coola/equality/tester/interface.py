@@ -11,7 +11,7 @@ __all__ = [
 
 from collections import OrderedDict, deque
 from collections.abc import Mapping, Sequence
-from typing import Any, cast
+from typing import Any
 
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.tester.base import BaseEqualityTester
@@ -23,44 +23,21 @@ from coola.equality.tester.collection import (
 from coola.equality.tester.dataclass import DataclassEqualityTester
 from coola.equality.tester.default import DefaultEqualityTester
 from coola.equality.tester.equal import EqualEqualityTester, EqualNanEqualityTester
-from coola.equality.tester.jax import JaxArrayEqualityTester, get_array_impl_class
-from coola.equality.tester.numpy import (
-    NumpyArrayEqualityTester,
-    NumpyMaskedArrayEqualityTester,
-)
-from coola.equality.tester.pandas import (
-    PandasDataFrameEqualityTester,
-    PandasExtensionArrayEqualityTester,
-    PandasIndexEqualityTester,
-    PandasSeriesEqualityTester,
-)
-from coola.equality.tester.polars import (
-    PolarsDataFrameEqualityTester,
-    PolarsLazyFrameEqualityTester,
-    PolarsSeriesEqualityTester,
-)
-from coola.equality.tester.pyarrow import PyarrowEqualityTester
 from coola.equality.tester.registry import DataclassMarker, EqualityTesterRegistry
 from coola.equality.tester.scalar import ScalarEqualityTester
-from coola.equality.tester.torch import (
-    TorchPackedSequenceEqualityTester,
-    TorchTensorEqualityTester,
-)
-from coola.equality.tester.xarray import (
-    XarrayDataArrayEqualityTester,
-    XarrayDatasetEqualityTester,
-    XarrayVariableEqualityTester,
-)
-from coola.utils.imports import (
-    is_jax_available,
-    is_numpy_available,
-    is_pandas_available,
-    is_polars_available,
-    is_pyarrow_available,
-    is_torch_available,
-    is_xarray_available,
-)
+from coola.utils.imports import package_available
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
+
+# (names of the library in the module of the types, module with the testers)
+_LAZY_TESTERS = (
+    (("jax", "jaxlib"), "coola.equality.tester.jax"),
+    (("numpy",), "coola.equality.tester.numpy"),
+    (("pandas",), "coola.equality.tester.pandas"),
+    (("polars",), "coola.equality.tester.polars"),
+    (("pyarrow",), "coola.equality.tester.pyarrow"),
+    (("torch",), "coola.equality.tester.torch"),
+    (("xarray",), "coola.equality.tester.xarray"),
+)
 
 
 def register_equality_testers(
@@ -166,18 +143,12 @@ def _register_default_equality_testers(registry: EqualityTesterRegistry) -> None
         This function is called internally by get_default_registry() and should
         not typically be called directly by users.
     """
-    testers = (
-        _get_native_equality_testers()
-        | _get_io_equality_testers()
-        | _get_jax_equality_testers()
-        | _get_numpy_equality_testers()
-        | _get_pandas_equality_testers()
-        | _get_polars_equality_testers()
-        | _get_pyarrow_equality_testers()
-        | _get_torch_equality_testers()
-        | _get_xarray_equality_testers()
-    )
-    registry.register_many(testers)
+    registry.register_many(_get_native_equality_testers() | _get_io_equality_testers())
+    # The testers of the optional libraries are loaded the first time the registry needs a
+    # type of the library, so the libraries are not imported with ``coola.equality``.
+    for names, module in _LAZY_TESTERS:
+        if package_available(names[0]):
+            registry.register_lazy(names, f"{module}:get_default_testers")
 
 
 def _get_native_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
@@ -241,160 +212,6 @@ def _get_io_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
 
     tester = EqualNanEqualityTester()
     return {BaseLoader: tester, BaseSaver: tester}
-
-
-def _get_jax_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
-    r"""Get the equality testers for jax objects.
-
-    Returns:
-        A dict of equality testers for jax objects.
-
-    Notes:
-        This function is called internally by get_default_registry() and should
-        not typically be called directly by users.
-    """
-    if not is_jax_available():  # pragma: no cover
-        return {}
-    import jax.numpy as jnp  # noqa: PLC0415
-
-    tester = JaxArrayEqualityTester()
-    return {jnp.ndarray: tester, get_array_impl_class(): tester}
-
-
-def _get_numpy_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
-    r"""Get the equality testers for NumPy objects.
-
-    Returns:
-        A dict of equality testers for NumPy objects.
-
-    Notes:
-        This function is called internally by get_default_registry() and should
-        not typically be called directly by users.
-    """
-    if not is_numpy_available():  # pragma: no cover
-        return {}
-    import numpy as np  # noqa: PLC0415
-
-    scalar = ScalarEqualityTester()
-    return {
-        # NumPy scalars use the scalar tester to get the tolerance and ``equal_nan``;
-        # without it, ``==`` is used and both are ignored. ``np.float64`` is also a
-        # ``float``, the other types (``np.float32``, ``np.int64``...) are not.
-        # ``np.bool_`` is not registered: a boolean has no tolerance.
-        np.floating: scalar,
-        np.integer: scalar,
-        np.complexfloating: scalar,
-        np.ndarray: NumpyArrayEqualityTester(),
-        np.ma.MaskedArray: NumpyMaskedArrayEqualityTester(),
-    }
-
-
-def _get_pandas_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
-    r"""Get the equality testers for pandas objects.
-
-    Returns:
-        A dict of equality testers for pandas objects.
-
-    Notes:
-        This function is called internally by get_default_registry() and should
-        not typically be called directly by users.
-    """
-    if not is_pandas_available():  # pragma: no cover
-        return {}
-    import pandas as pd  # noqa: PLC0415
-
-    return {
-        pd.DataFrame: PandasDataFrameEqualityTester(),
-        pd.Series: PandasSeriesEqualityTester(),
-        pd.Index: PandasIndexEqualityTester(),
-        pd.api.extensions.ExtensionArray: PandasExtensionArrayEqualityTester(),
-    }
-
-
-def _get_polars_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
-    r"""Get the equality testers for polars objects.
-
-    Returns:
-        A dict of equality testers for polars objects.
-
-    Notes:
-        This function is called internally by get_default_registry() and should
-        not typically be called directly by users.
-    """
-    if not is_polars_available():  # pragma: no cover
-        return {}
-    import polars as pl  # noqa: PLC0415
-
-    return {
-        pl.DataFrame: PolarsDataFrameEqualityTester(),
-        pl.LazyFrame: PolarsLazyFrameEqualityTester(),
-        pl.Series: PolarsSeriesEqualityTester(),
-    }
-
-
-def _get_pyarrow_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
-    r"""Get the equality testers for pyarrow objects.
-
-    Returns:
-        A dict of equality testers for pyarrow objects.
-
-    Notes:
-        This function is called internally by get_default_registry() and should
-        not typically be called directly by users.
-    """
-    if not is_pyarrow_available():  # pragma: no cover
-        return {}
-    import pyarrow as pa  # noqa: PLC0415
-
-    tester = PyarrowEqualityTester()
-    pyarrow = cast("Any", pa)
-    return {
-        pyarrow.Array: tester,
-        pyarrow.ChunkedArray: tester,
-        pyarrow.RecordBatch: tester,
-        pyarrow.Table: tester,
-    }
-
-
-def _get_torch_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
-    r"""Get the equality testers for PyTorch objects.
-
-    Returns:
-        A dict of equality testers for PyTorch objects.
-
-    Notes:
-        This function is called internally by get_default_registry() and should
-        not typically be called directly by users.
-    """
-    if not is_torch_available():  # pragma: no cover
-        return {}
-    import torch  # noqa: PLC0415
-
-    return {
-        torch.nn.utils.rnn.PackedSequence: TorchPackedSequenceEqualityTester(),
-        torch.Tensor: TorchTensorEqualityTester(),
-    }
-
-
-def _get_xarray_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
-    r"""Get the equality testers for xarray objects.
-
-    Returns:
-        A dict of equality testers for xarray objects.
-
-    Notes:
-        This function is called internally by get_default_registry() and should
-        not typically be called directly by users.
-    """
-    if not is_xarray_available():  # pragma: no cover
-        return {}
-    import xarray as xr  # noqa: PLC0415
-
-    return {
-        xr.DataArray: XarrayDataArrayEqualityTester(),
-        xr.Dataset: XarrayDatasetEqualityTester(),
-        xr.Variable: XarrayVariableEqualityTester(),
-    }
 
 
 _default_registry: LazySingleton[EqualityTesterRegistry] = make_default_registry_singleton(

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 __all__ = ["TorchPackedSequenceEqualityTester", "TorchTensorEqualityTester"]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler import (
     SameAttributeHandler,
@@ -26,17 +26,19 @@ from coola.equality.handler.torch import (
     TorchTensorSameDeviceHandler,
 )
 from coola.equality.tester.chain import BaseChainEqualityTester
-from coola.utils.imports import check_torch
+from coola.utils.imports import check_torch, is_torch_available
+
+if TYPE_CHECKING or is_torch_available():
+    import torch
+else:  # pragma: no cover
+    from coola.utils.fallback.torch import torch
 
 if TYPE_CHECKING:
-    import torch  # noqa: F401
-
     from coola.equality.handler import BaseEqualityHandler
+    from coola.equality.tester.base import BaseEqualityTester
 
 
-class TorchPackedSequenceEqualityTester(
-    BaseChainEqualityTester["torch.nn.utils.rnn.PackedSequence"]
-):
+class TorchPackedSequenceEqualityTester(BaseChainEqualityTester[torch.nn.utils.rnn.PackedSequence]):
     r"""Implement an equality tester for
     ``torch.nn.utils.rnn.PackedSequence``.
 
@@ -92,7 +94,7 @@ class TorchPackedSequenceEqualityTester(
         )
 
 
-class TorchTensorEqualityTester(BaseChainEqualityTester["torch.Tensor"]):
+class TorchTensorEqualityTester(BaseChainEqualityTester[torch.Tensor]):
     r"""Implement an equality tester for ``torch.Tensor``.
 
     This tester compares PyTorch tensors element-wise with support for device,
@@ -172,3 +174,22 @@ class TorchTensorEqualityTester(BaseChainEqualityTester["torch.Tensor"]):
             TorchTensorSameDeviceHandler(),
             TorchTensorEqualHandler(),
         )
+
+
+def get_default_testers() -> dict[type, BaseEqualityTester[Any]]:
+    r"""Get the default equality testers of the PyTorch objects.
+
+    Returns:
+        The equality testers of the PyTorch objects and their associated types.
+
+    Notes:
+        This function is called by the default registry the first time it
+        needs the equality testers of the PyTorch objects.
+    """
+    if not is_torch_available():
+        return {}
+
+    return {
+        torch.nn.utils.rnn.PackedSequence: TorchPackedSequenceEqualityTester(),
+        torch.Tensor: TorchTensorEqualityTester(),
+    }

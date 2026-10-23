@@ -4,17 +4,21 @@ from __future__ import annotations
 
 __all__ = ["TorchTensorHasher"]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.bytes import hash_bytes
 from coola.hashing.numpy import hash_array_content
+from coola.utils.imports import is_torch_available
 
-if TYPE_CHECKING:
+if TYPE_CHECKING or is_torch_available():
     import torch
+else:  # pragma: no cover
+    from coola.utils.fallback.torch import torch
 
 if TYPE_CHECKING:
+    from coola.hashing.base import Hasher
     from coola.hashing.registry import HasherRegistry
 
 
@@ -48,8 +52,6 @@ class TorchTensorHasher(InlineDisplayMixin, BaseHasher["torch.Tensor"]):
         length: int = 64,
         ignore_unhashable: bool = False,  # noqa: ARG002
     ) -> str:
-        import torch  # noqa: PLC0415
-
         tensor = data.detach()
         if tensor.layout != torch.strided:
             tensor = tensor.to_dense()
@@ -64,3 +66,18 @@ class TorchTensorHasher(InlineDisplayMixin, BaseHasher["torch.Tensor"]):
             hash_bytes(raw, length=length),
             length=length,
         )
+
+
+def get_default_hashers() -> dict[type, Hasher[Any]]:
+    r"""Get the default hashers of the PyTorch tensors.
+
+    Returns:
+        The hashers of the PyTorch tensors and their associated types.
+
+    Notes:
+        This function is called by the default registry the first time it
+        needs the hashers of the PyTorch tensors.
+    """
+    if not is_torch_available():
+        return {}
+    return {torch.Tensor: TorchTensorHasher()}
