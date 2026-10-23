@@ -2,7 +2,7 @@ r"""Contain path utility functions."""
 
 from __future__ import annotations
 
-__all__ = ["find_root_package_parent", "sanitize_path", "working_directory"]
+__all__ = ["find_root_package_parent", "sanitize_path", "to_path", "working_directory"]
 
 import contextlib
 import os
@@ -71,6 +71,40 @@ def find_root_package_parent(start_path: str | os.PathLike[str]) -> Path:
             return current
 
         current = parent
+
+
+def to_path(path: str | os.PathLike[str]) -> Path:
+    r"""Convert a ``str`` or a path-like object to a ``pathlib.Path``.
+
+    Unlike ``sanitize_path``, the path is not expanded or resolved: it
+    is only converted, so a relative path stays relative.
+
+    Args:
+        path: The path to convert. A ``str`` or an object implementing
+            the ``os.PathLike`` protocol.
+
+    Returns:
+        The path as a ``pathlib.Path`` object. A ``Path`` is returned
+            as is (the same object).
+
+    Raises:
+        TypeError: if ``path`` is neither a ``str`` nor a path-like
+            object.
+
+    Example:
+        ```pycon
+        >>> from pathlib import Path
+        >>> from coola.utils.path import to_path
+        >>> to_path("data/a.txt")
+        PosixPath('data/a.txt')
+        >>> to_path(Path("data/a.txt"))
+        PosixPath('data/a.txt')
+
+        ```
+    """
+    if isinstance(path, Path):
+        return path
+    return Path(os.fspath(path))
 
 
 def sanitize_path(path: str | os.PathLike[str]) -> Path:

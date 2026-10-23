@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from coola.utils.path import find_root_package_parent, sanitize_path, working_directory
+from coola.utils.path import find_root_package_parent, sanitize_path, to_path, working_directory
 
 ##############################################
 #     Tests for find_root_package_parent     #
@@ -295,3 +295,43 @@ def test_sanitize_path_file_uri_with_localhost() -> None:
 def test_sanitize_path_unknown_user_raises() -> None:
     with pytest.raises(ValueError, match="home directory"):
         sanitize_path("~coola_unknown_user_xyz/data")
+
+
+###########################
+#     Tests for to_path     #
+###########################
+
+
+def test_to_path_str() -> None:
+    assert to_path("data/a.txt") == Path("data/a.txt")
+
+
+def test_to_path_str_returns_a_path() -> None:
+    assert isinstance(to_path("data/a.txt"), Path)
+
+
+def test_to_path_path_returns_the_same_object() -> None:
+    path = Path("data/a.txt")
+    assert to_path(path) is path
+
+
+def test_to_path_does_not_resolve_a_relative_path() -> None:
+    assert not to_path("data/a.txt").is_absolute()
+
+
+def test_to_path_path_like() -> None:
+    class PathLike:
+        def __fspath__(self) -> str:
+            return "data/a.txt"
+
+    assert to_path(PathLike()) == Path("data/a.txt")
+
+
+def test_to_path_empty_str() -> None:
+    assert to_path("") == Path()
+
+
+@pytest.mark.parametrize("path", [1, None])
+def test_to_path_incorrect_type_raises(path: object) -> None:
+    with pytest.raises(TypeError, match=r"expected str, bytes or os\.PathLike"):
+        to_path(path)

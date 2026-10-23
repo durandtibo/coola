@@ -11,6 +11,7 @@ from coola.display import InlineDisplayMixin
 from coola.equality.interface import objects_are_equal
 from coola.io.base import BaseFileSaver, BaseLoader
 from coola.utils.introspection import is_same_type
+from coola.utils.path import to_path
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -56,7 +57,8 @@ class JsonLoader(InlineDisplayMixin, BaseLoader[T]):
             return False
         return self._encoding == other._encoding
 
-    def load(self, path: Path) -> T:
+    def load(self, path: Path | str) -> T:
+        path = to_path(path)
         if self._encoding is None:
             with path.open(mode="rb") as file:
                 return json.load(file)
@@ -114,11 +116,11 @@ class JsonSaver(InlineDisplayMixin, BaseFileSaver[T]):
             json.dump(to_save, file, **self._kwargs)
 
 
-def load_json(path: Path, encoding: str | None = None) -> Any:
+def load_json(path: Path | str, encoding: str | None = None) -> Any:
     r"""Load the data from a given JSON file.
 
     Args:
-        path: The path to the JSON file.
+        path: The path to the JSON file. A ``str`` is converted to a ``Path``.
         encoding: The encoding of the file. If ``None``, the encoding
             is detected (UTF-8, UTF-16 and UTF-32 only).
 
@@ -145,7 +147,7 @@ def load_json(path: Path, encoding: str | None = None) -> Any:
 
 def save_json(
     to_save: Any,
-    path: Path,
+    path: Path | str,
     *,
     encoding: str = DEFAULT_ENCODING,
     exist_ok: bool = False,
@@ -156,7 +158,7 @@ def save_json(
 
     Args:
         to_save: The data to write in a JSON file.
-        path: The path where to write the JSON file.
+        path: The path where to write the JSON file. A ``str`` is converted to a ``Path``.
         encoding: The file encoding to use when writing the file.
             Defaults to ``"utf-8"``.
         exist_ok: If ``exist_ok`` is ``False`` (the default),
