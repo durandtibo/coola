@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import warnings
 from typing import TYPE_CHECKING
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -276,3 +276,31 @@ def test_objects_are_allclose_does_not_warn() -> None:
     with warnings.catch_warnings():
         warnings.simplefilter("error")
         assert objects_are_allclose([pa.array([1.0])] * 3, [pa.array([1.05])] * 3, atol=0.1)
+
+
+@pyarrow_available
+def test_object_equal_scalars_with_tolerance() -> None:
+    assert not object_equal(pa.scalar(1.0), pa.scalar(1.05), EqualityConfig(atol=0.1))
+
+
+@pyarrow_available
+@pytest.mark.parametrize("name", ["equal_nan", "atol", "rtol"])
+def test_object_equal_warns_once_that_a_setting_is_ignored_without_numpy(name: str) -> None:
+    value = True if name == "equal_nan" else 0.1
+    config = EqualityConfig(**{name: value})
+    with (
+        patch("coola.equality.handler.pyarrow.is_numpy_available", return_value=False),
+        pytest.warns(RuntimeWarning, match=f"{name} is ignored"),
+    ):
+        assert not object_equal(pa.array([1.0]), pa.array([1.05]), config)
+
+
+@pyarrow_available
+def test_object_equal_does_not_repeat_the_warning_without_numpy() -> None:
+    config = EqualityConfig(atol=0.1)
+    with patch("coola.equality.handler.pyarrow.is_numpy_available", return_value=False):
+        with pytest.warns(RuntimeWarning, match="atol is ignored"):
+            object_equal(pa.array([1.0]), pa.array([1.05]), config)
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            assert not object_equal(pa.array([1.0]), pa.array([1.05]), config)

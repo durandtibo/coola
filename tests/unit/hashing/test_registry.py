@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from enum import Enum
 from typing import Any
 
 import pytest
@@ -473,3 +474,12 @@ def test_hasher_registry_hash_is_usable_after_deeply_nested_data() -> None:
     with pytest.raises(ValueError, match="nested too deeply"):
         registry.hash(_deeply_nested())
     assert registry.hash([1])
+
+
+class MixedStr(str, Enum):  # noqa: UP042
+    A = "a"
+
+
+def test_hasher_registry_hash_enum_mixed_with_str_without_enum_hasher() -> None:
+    registry = HasherRegistry({str: StrHasher()})
+    assert registry.hash(MixedStr.A) == StrHasher().hash(MixedStr.A, registry)

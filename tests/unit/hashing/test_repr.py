@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+from enum import Enum
 from typing import Any
 
 import pytest
 
-from coola.hashing import HasherRegistry, ReprHasher, hash_tagged
+from coola.hashing import HasherRegistry, ReprHasher, hash_enum, hash_tagged
 from coola.testing.fixtures import numpy_available
+
+
+class MixedInt(int, Enum):
+    ONE = 1
 
 
 @pytest.fixture
@@ -235,3 +240,7 @@ def test_repr_hasher_hash_int_above_str_conversion_limit_negative(
 ) -> None:
     hasher = ReprHasher()
     assert hasher.hash(-(10**5000), registry) != hasher.hash(10**5000, registry)
+
+
+def test_repr_hasher_hash_enum_member_of_int_mixin(registry: HasherRegistry) -> None:
+    assert ReprHasher().hash(MixedInt.ONE, registry) == hash_enum(MixedInt.ONE)

@@ -198,12 +198,10 @@ class HasherRegistry(BaseTypeDispatchRegistry[Hasher[Any]]):
         """
         if not self.has(Enum):
             return None
-        for base in data_type.__mro__:
-            if self.has(base):
-                # A hasher registered for the enum itself (or for ``Enum``)
-                # is the most specific one.
-                return None if issubclass(base, Enum) else self.find(Enum)
-        return None
+        # A hasher registered for the enum itself (or for ``Enum``) is the
+        # most specific one.
+        base = next((base for base in data_type.__mro__ if self.has(base)), Enum)
+        return None if issubclass(base, Enum) else self.find(Enum)
 
     def hash(self, data: object, length: int = 64, ignore_unhashable: bool = False) -> str:
         r"""Hash the given data by recursively traversing its structure.

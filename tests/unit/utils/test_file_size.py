@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from unittest.mock import patch
 
 import pytest
 
@@ -65,3 +66,9 @@ def test_get_file_size_directory_ignores_broken_symlinks(tmp_path: Path) -> None
     tmp_path.joinpath("a.txt").write_text("abcde")
     tmp_path.joinpath("broken.txt").symlink_to(tmp_path.joinpath("missing.txt"))
     assert get_file_size(tmp_path) == 5
+
+
+def test_get_file_size_ignores_a_file_that_vanishes_during_the_scan(tmp_path: Path) -> None:
+    (tmp_path / "a.txt").write_bytes(b"12345")
+    with patch("coola.utils.file_size.os.lstat", side_effect=FileNotFoundError):
+        assert get_file_size(tmp_path) == 0

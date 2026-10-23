@@ -552,3 +552,11 @@ def test_hash_object_hash_method_with_another_signature_raises() -> None:
 def test_hash_object_hash_method_with_another_signature_ignore_unhashable() -> None:
     with pytest.warns(UserWarning, match="No hasher registered"):
         hash_object(_OtherHash(), ignore_unhashable=True)
+
+
+def test_hash_object_hash_method_without_signature_raises() -> None:
+    with (
+        patch("coola.hashing.interface.inspect.signature", side_effect=ValueError),
+        pytest.raises(TypeNotRegisteredError, match="register a hasher"),
+    ):
+        hash_object(_OtherHash())
