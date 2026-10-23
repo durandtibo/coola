@@ -356,7 +356,6 @@ converted to sorted lists:
 ... class Point:
 ...     x: int
 ...     y: int
-...
 >>> convert_to_jsonable([Point(x=1, y=2), {"key": Point(x=3, y=4)}, {3, 1, 2}])
 [{'x': 1, 'y': 2}, {'key': {'x': 3, 'y': 4}}, [1, 2, 3]]
 

@@ -120,7 +120,8 @@ def test_path_leads_to_a_difference(data: Any, other: Any) -> None:
 
 
 def nest(key: str, depth: int) -> tuple[Any, Any, tuple[Any, ...]]:
-    r"""Return two nested mappings that differ at ``depth`` and the path of the difference."""
+    r"""Return two nested mappings that differ at ``depth`` and the path
+    of the difference."""
     actual: Any = {"leaf": 1}
     expected: Any = {"leaf": 2}
     path: tuple[Any, ...] = ("leaf",)

@@ -128,7 +128,6 @@ def test_registries_register_many_shares_base_implementation(
     """Test that ``register_many`` on a concrete registry actually
     delegates to the shared base implementation (registers all entries,
     is exist_ok-aware, does not partially mutate state on failure)."""
-
     registry = registry_cls()
     h1, h2 = Handler(), Handler()
     registry.register_many({int: h1, str: h2})

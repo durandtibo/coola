@@ -242,8 +242,8 @@ def test_temp_env_vars_restore_existing_variable_after_the_context() -> None:
 
 @mock.patch.dict(os.environ, {"VAR1": "original1", "VAR2": "original2"}, clear=True)
 def test_temp_env_vars_mix_new_and_existing_overrides() -> None:
-    """Test overriding an existing variable when mixing new and
-    existing ones."""
+    """Test overriding an existing variable when mixing new and existing
+    ones."""
     with temp_env_vars({"VAR1": "temp1", "VAR3": "temp3"}):
         assert os.environ["VAR1"] == "temp1"
 
@@ -309,7 +309,8 @@ def test_temp_env_vars_converts_to_string(name: str, value: str) -> None:
 @pytest.mark.parametrize("name", ["INT_VAR", "FLOAT_VAR", "BOOL_VAR"])
 @mock.patch.dict(os.environ, {}, clear=True)
 def test_temp_env_vars_removes_converted_variables_after_the_context(name: str) -> None:
-    """Test that the converted variables are removed after the context."""
+    """Test that the converted variables are removed after the
+    context."""
     with temp_env_vars({"INT_VAR": 42, "FLOAT_VAR": 3.14, "BOOL_VAR": True}):
         pass
     assert name not in os.environ
@@ -395,7 +396,8 @@ def test_temp_env_vars_nested_with_different_vars(name: str, value: str) -> None
 def test_temp_env_vars_nested_with_different_vars_keeps_the_outer_vars(
     name: str, value: str
 ) -> None:
-    """Test that the outer variables are kept after the inner context."""
+    """Test that the outer variables are kept after the inner
+    context."""
     with temp_env_vars({"VAR1": "temp1", "VAR2": "temp2"}):
         with temp_env_vars({"VAR3": "temp3"}):
             pass

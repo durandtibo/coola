@@ -79,7 +79,6 @@ A class with no field to show does not need to override anything:
 >>> from coola.display import InlineDisplayMixin
 >>> class MyClass(InlineDisplayMixin):
 ...     pass
-...
 >>> print(repr(MyClass()))
 MyClass()
 
@@ -93,7 +92,7 @@ which receives the fields and a `use_repr` flag and returns the formatted string
 
 | Property             | Statement                                                                                                         |
 | -------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| One hook             | A subclass only overrides `_display_fields`. `__repr__` and `__str__` come from the mixin.                       |
+| One hook             | A subclass only overrides `_display_fields`. `__repr__` and `__str__` come from the mixin.                        |
 | Consistent format    | All the objects that use a mixin share the same layout: `Name(key=value)` inline, or one `(key): value` per line. |
 | `repr` vs `str`      | `__repr__` shows the `repr` of the values, and `__str__` shows their `str`.                                       |
 | Safe terminal output | The colored logging is used only if `colorlog` is installed and the output is a terminal. Otherwise it is plain.  |

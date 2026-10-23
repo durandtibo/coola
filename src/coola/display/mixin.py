@@ -23,8 +23,8 @@ class BaseDisplayMixin(ABC):
 
     ``__repr__`` and ``__str__`` are defined here: they get the fields
     from ``_display_fields`` and delegate the layout to
-    ``_render_fields``. Subclasses must implement ``_render_fields``
-    to choose the layout. Classes that use a layout mixin override
+    ``_render_fields``. Subclasses must implement ``_render_fields`` to
+    choose the layout. Classes that use a layout mixin override
     ``_display_fields`` to return the values to show; by default no
     field is shown.
     """
