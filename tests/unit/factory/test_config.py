@@ -237,3 +237,25 @@ def test_is_object_config_allowed_prefixes_checked_before_the_import() -> None:
 
 def test_is_object_config_allowed_prefixes_without_target() -> None:
     assert not is_object_config({}, object, allowed_prefixes=["collections"])
+
+
+def create_list_generic() -> list[int]:
+    """Helper function that returns a list with a generic type hint."""
+    return [1, 2, 3, 4]
+
+
+def create_list_or_none_generic() -> list[int] | None:
+    """Helper function with a union of a generic alias and None."""
+    return [1, 2, 3, 4]
+
+
+def test_is_object_config_function_generic_return_type() -> None:
+    assert is_object_config({OBJECT_TARGET: f"{__name__}.create_list_generic"}, list)
+
+
+def test_is_object_config_function_generic_return_type_wrong_class() -> None:
+    assert not is_object_config({OBJECT_TARGET: f"{__name__}.create_list_generic"}, dict)
+
+
+def test_is_object_config_function_generic_union_return_type() -> None:
+    assert is_object_config({OBJECT_TARGET: f"{__name__}.create_list_or_none_generic"}, list)
