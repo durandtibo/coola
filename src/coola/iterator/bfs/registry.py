@@ -201,7 +201,9 @@ class ChildFinderRegistry(BaseTypeDispatchRegistry[BaseChildFinder[Any]]):
         Containers themselves are never yielded, even if they are empty.
         A value is a container if its child finder is not a leaf
         (``is_leaf``). Iterators and generators are not containers by
-        default: they are yielded as they are, never consumed.
+        default: they are yielded as they are, never consumed. The value
+        of a type whose child finder is not a leaf and finds no child is
+        not yielded either, like an empty container.
 
         Args:
             data: The data structure to traverse.
