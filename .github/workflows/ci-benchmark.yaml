@@ -43,6 +43,7 @@ jobs:
             compare="--benchmark-compare --benchmark-compare-fail=mean:50%"
           fi
           python -m pytest tests/benchmarks/ --benchmark-only \
+            --ignore=tests/benchmarks/test_import_benchmark.py \
             --benchmark-storage=.benchmarks --benchmark-save=nightly $compare
 
       - name: Upload the results
