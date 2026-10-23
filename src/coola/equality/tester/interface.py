@@ -144,8 +144,8 @@ def _register_default_equality_testers(registry: EqualityTesterRegistry) -> None
         not typically be called directly by users.
     """
     registry.register_many(_get_native_equality_testers() | _get_io_equality_testers())
-    # The testers of the optional libraries are loaded the first time the registry needs a
-    # type of the library, so the libraries are not imported with ``coola.equality``.
+    # The testers of the optional libraries are loaded the first time the registry needs
+    # a type of the library, so the libraries are not imported with ``coola.equality``.
     for names, module in _LAZY_TESTERS:
         if package_available(names[0]):
             registry.register_lazy(names, f"{module}:get_default_testers")

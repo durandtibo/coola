@@ -177,8 +177,8 @@ def _register_default_summarizers(registry: SummarizerRegistry) -> None:
         not typically be called directly by users.
     """
     registry.register_many(_get_native_summarizers())
-    # The summarizers of the optional libraries are loaded the first time the registry needs a
-    # type of the library, so the libraries are not imported with ``coola.summary``.
+    # The summarizers of the optional libraries are loaded the first time the registry needs
+    # a type of the library, so the libraries are not imported with ``coola.summary``.
     for names, module in _LAZY_SUMMARIZERS:
         if package_available(names[0]):
             registry.register_lazy(names, f"{module}:get_default_summarizers")
