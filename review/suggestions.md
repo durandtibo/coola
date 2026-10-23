@@ -109,7 +109,7 @@ the PR number is given. Items not listed are **open**.
 | 7.7  | PR open (#2134)                 | `to_date` returns the date part of a `datetime`.                                                                                                                                                      |
 | 7.8  | PR open (#2138)                 | `ß` and similar letters mapped; non-ASCII-only text falls back to a hash.                                                                                                                             |
 | 7.9  | PR open (#2137)                 | `datetime.time` becomes an ISO string and `timedelta` a number of seconds.                                                                                                                            |
-| 8.2  | PR open (#PR)                   | `TypeRegistry` raises `TypeError` for a non-type key in `register`, `register_many`, `__setitem__` and `initial_state`.                                                                               |
+| 8.2  | PR open (#2162)                   | `TypeRegistry` raises `TypeError` for a non-type key in `register`, `register_many`, `__setitem__` and `initial_state`.                                                                               |
 
 All other items in sections 5 to 10 (including 7.x, 8.x, 9.x, 10.x) have no matching commit and are **open**.
 The earlier "Suggested order" lists below are unchanged.
