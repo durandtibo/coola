@@ -294,7 +294,8 @@ def test_importing_coola_io_does_not_modify_the_default_equality_registry() -> N
     code = (
         "import coola.io; "
         "from coola.equality.tester import interface; "
-        "print(interface._default_registry._instance is None)"
+        "from coola.utils.singleton import _UNSET; "
+        "print(interface._default_registry._instance is _UNSET)"
     )
     assert run_python(code) == ["True"]
 

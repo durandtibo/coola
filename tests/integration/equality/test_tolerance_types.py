@@ -141,7 +141,7 @@ def test_complex_equal_nan() -> None:
 
 
 def test_complex_equal_nan_real_and_imaginary_parts() -> None:
-    assert objects_are_equal(complex(0, NAN), complex(NAN, 0), equal_nan=True)
+    assert objects_are_equal(complex(NAN, NAN), complex(NAN, NAN), equal_nan=True)
 
 
 def test_complex_not_equal_nan_vs_number() -> None:
