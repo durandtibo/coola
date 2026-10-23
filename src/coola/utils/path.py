@@ -53,8 +53,8 @@ def find_root_package_parent(start_path: str | os.PathLike[str]) -> Path:
     """
     path = sanitize_path(start_path)
 
-    # If it's a file, start from its containing directory
-    if path.is_file():
+    # If it's a file (or a path that does not exist), start from its containing directory
+    if not path.is_dir():
         path = path.parent
 
     current = path
@@ -91,6 +91,11 @@ def sanitize_path(path: str | os.PathLike[str]) -> Path:
     Returns:
         The sanitized path as a ``pathlib.Path`` object.
 
+    Raises:
+        ValueError: if a ``file://`` URI has a host other than
+            ``localhost`` (for example ``file://server/share/x``), or
+            if the home directory of ``~user`` cannot be found.
+
     Example:
         ```pycon
         >>> from pathlib import Path
@@ -110,8 +115,19 @@ def sanitize_path(path: str | os.PathLike[str]) -> Path:
         path = os.fspath(path)
     # use urlparse to parse file URI
     # source: https://stackoverflow.com/a/15048213
-    path = Path(unquote(urlparse(path).path)) if path.startswith("file://") else Path(path)
-    return path.expanduser().resolve()
+    if path.startswith("file://"):
+        uri = urlparse(path)
+        if uri.netloc not in {"", "localhost"}:
+            msg = f"file URI with a host is not supported, got {path!r}"
+            raise ValueError(msg)
+        path = Path(unquote(uri.path))
+    else:
+        path = Path(path)
+    try:
+        return path.expanduser().resolve()
+    except RuntimeError as error:
+        msg = f"Could not expand the home directory of {str(path)!r}"
+        raise ValueError(msg) from error
 
 
 @contextlib.contextmanager

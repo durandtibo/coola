@@ -4,6 +4,7 @@ from __future__ import annotations
 
 __all__ = ["char_diff_summary", "count_lines", "remove_empty_lines", "slugify", "truncate_str"]
 
+import hashlib
 import re
 import unicodedata
 
@@ -96,6 +97,26 @@ def remove_empty_lines(text: str) -> str:
     return "\n".join([line for line in text.splitlines() if line.strip()])
 
 
+# Letters that do not decompose into an ASCII letter and an accent.
+_ASCII_LETTERS = str.maketrans(
+    {
+        "ß": "ss",
+        "æ": "ae",
+        "Æ": "AE",
+        "œ": "oe",
+        "Œ": "OE",
+        "ø": "o",
+        "Ø": "O",
+        "ł": "l",
+        "Ł": "L",
+        "đ": "d",
+        "Đ": "D",
+        "þ": "th",
+        "Þ": "TH",
+    }
+)
+
+
 def slugify(text: str) -> str:
     r"""Convert arbitrary text into a URL/filesystem-safe slug.
 
@@ -110,7 +131,10 @@ def slugify(text: str) -> str:
 
     Returns:
         A lowercase, hyphen-separated slug safe to use as a filename,
-            URL path segment, or dict key.
+            URL path segment, or dict key. If the text has letters or
+            digits but none can be written in ASCII (e.g. ``"日本語"``),
+            the slug is a short hash of the text instead of an empty
+            string.
 
     Example:
         ```pycon
@@ -127,11 +151,16 @@ def slugify(text: str) -> str:
         ```
     """
     # Normalize unicode (e.g. accented characters) to closest ASCII form.
-    text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
+    original = text
+    text = unicodedata.normalize("NFKD", text.translate(_ASCII_LETTERS))
+    text = text.encode("ascii", "ignore").decode("ascii")
     text = text.lower()
     # Replace any run of non-alphanumeric characters with a single hyphen.
-    text = re.sub(r"[^a-z0-9]+", "-", text)
-    return text.strip("-")
+    text = re.sub(r"[^a-z0-9]+", "-", text).strip("-")
+    if not text and any(c.isalnum() for c in original):
+        # Distinct texts that cannot be written in ASCII keep distinct slugs.
+        return hashlib.sha256(original.encode()).hexdigest()[:8]
+    return text
 
 
 def truncate_str(s: str, max_len: int = 100, suffix: str = "...") -> str:

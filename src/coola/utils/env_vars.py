@@ -24,7 +24,9 @@ def check_env_vars(
     r"""Check whether each environment variable in ``var_names`` is
     defined.
 
-    Logs the status of each variable to the terminal.
+    Logs the status of each variable to the terminal. A variable set to
+    an empty (or blank) string is reported as not defined, as in
+    :func:`get_required_env_var`.
 
     Args:
         var_names: The sequence of environment variable names to
@@ -58,7 +60,8 @@ def check_env_vars(
 
     for name in var_names:
         value = os.environ.get(name)
-        is_defined = value is not None
+        # Same rule as ``get_required_env_var``: empty means not defined.
+        is_defined = value is not None and bool(value.strip())
         results[name] = is_defined
 
         if is_defined:
@@ -100,7 +103,9 @@ def get_required_env_var(name: str) -> str:
         >>> os.environ["API_KEY"] = "my-secret-key"
         >>> get_required_env_var("API_KEY")
         'my-secret-key'
-        >>> get_required_env_var("MISSING_VAR")  # doctest: +SKIP
+        >>> get_required_env_var("MISSING_VAR")
+        Traceback (most recent call last):
+            ...
         ValueError: Environment variable 'MISSING_VAR' is required but not set or is empty
 
         ```
@@ -137,19 +142,25 @@ def temp_env_vars(env_vars: dict[str, Any]) -> Generator[None]:
 
     Example:
         ```pycon
+        >>> import os
         >>> from coola.utils.env_vars import temp_env_vars
         >>> # Temporarily override an existing variable
-        >>> os.environ["HOME"] = "/original/home"
-        >>> with temp_env_vars({"HOME": "/tmp/home"}):
-        ...     print(os.environ["HOME"])  # '/tmp/home'
+        >>> os.environ["MY_HOME"] = "/original/home"
+        >>> with temp_env_vars({"MY_HOME": "/tmp/home"}):
+        ...     print(os.environ["MY_HOME"])
         ...
-        >>> print(os.environ["HOME"])  # '/original/home'
+        /tmp/home
+        >>> print(os.environ["MY_HOME"])
+        /original/home
         >>> # Temporarily create new variables
-        >>> with temp_env_vars({"API_KEY": "secret123", "DEBUG": "true"}):
-        ...     print(os.environ["API_KEY"])  # 'secret123'
-        ...     print(os.environ["DEBUG"])  # 'true'
+        >>> with temp_env_vars({"TEMP_API_KEY": "secret123", "TEMP_DEBUG": "true"}):
+        ...     print(os.environ["TEMP_API_KEY"])
+        ...     print(os.environ["TEMP_DEBUG"])
         ...
-        >>> print(os.environ.get("API_KEY"))  # None (removed)
+        secret123
+        true
+        >>> print(os.environ.get("TEMP_API_KEY"))
+        None
 
         ```
 
