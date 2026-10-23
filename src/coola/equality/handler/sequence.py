@@ -99,7 +99,7 @@ class SequenceSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
                                 expected,
                                 different_index=idx,
                             ),
-                            extra={"coola_path": (idx,), "coola_path_kind": "index"},
+                            extra={"coola_path": (idx,)},
                         )
                     return False
             return self._handle_next(actual, expected, config=config)

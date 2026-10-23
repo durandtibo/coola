@@ -22,7 +22,7 @@ from coola.equality.handler.format import (
     format_value_difference,
 )
 from coola.equality.handler.mixin import HandlerEqualityMixin
-from coola.equality.handler.utils import report_difference
+from coola.equality.handler.utils import AttributeName, report_difference
 
 if TYPE_CHECKING:
     from collections.abc import Sized
@@ -202,8 +202,7 @@ class SameAttributeHandler(HandlerEqualityMixin, BaseEqualityHandler):
                     value1,
                     value2,
                     extra={
-                        "coola_path": tuple(self._name.split(".")),
-                        "coola_path_kind": "attribute",
+                        "coola_path": tuple(AttributeName(name) for name in self._name.split(".")),
                     },
                 )
             return False

@@ -210,7 +210,6 @@ def test_sequence_same_values_handler_handle_false_log_record_path(
     with caplog.at_level(logging.INFO):
         assert not handler.handle(actual=[1, 2, 3], expected=[1, 2, 4], config=config)
     assert caplog.records[-1].coola_path == (2,)
-    assert caplog.records[-1].coola_path_kind == "index"
 
 
 def test_sequence_same_values_handler_handle_without_next_handler(config: EqualityConfig) -> None:

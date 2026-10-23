@@ -174,7 +174,7 @@ class MappingSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
                             logger,
                             config,
                             format_mapping_difference(different_value_key=key),
-                            extra={"coola_path": (key,), "coola_path_kind": "key"},
+                            extra={"coola_path": (key,)},
                         )
                     return False
             return self._handle_next(actual, expected, config=config)

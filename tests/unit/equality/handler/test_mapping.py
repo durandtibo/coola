@@ -283,7 +283,6 @@ def test_mapping_same_values_handler_handle_false_log_record_path(
     with caplog.at_level(logging.INFO):
         assert not handler.handle(actual={"a": 1, "b": 2}, expected={"a": 1, "b": 3}, config=config)
     assert caplog.records[-1].coola_path == ("b",)
-    assert caplog.records[-1].coola_path_kind == "key"
 
 
 def test_mapping_same_values_handler_handle_without_next_handler(config: EqualityConfig) -> None:

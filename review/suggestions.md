@@ -60,7 +60,7 @@ the PR number is given. Items not listed are **open**.
 | 5.2  | Fixed (#2095)      | Testers for pandas `Index` and extension arrays. Scipy sparse not checked.                         |
 | 5.5  | Fixed (#2096)      | Nested polars NaN detected.                                                                        |
 | 5.7  | Documented (#2094) | Scalar comparison rules documented, behaviour unchanged.                                           |
-| 5.8  | Fixed (#2097)      | Dataclass fields and attributes in the `compare` path. `coola_path_kind` not checked.              |
+| 5.8  | Fixed (#2097)      | Dataclass fields and attributes in the `compare` path.              |
 | 5.13 | Fixed (#2092)      | Default `max_depth` lowered to 100.                                                                |
 | 5.14 | Partly (#2091)     | Exact integer comparison with a tolerance. Complex NaN parts not addressed.                        |
 | 5.15 | Partly (#2098)     | Duplicate validation, config comments and the sequence set per call cleaned up. Other points open. |
