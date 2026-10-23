@@ -79,7 +79,8 @@ def _short_name(name: str) -> str:
 def _get_save_lock(path: Path) -> threading.Lock:
     r"""Get (creating if needed) the lock used to serialize ``save``
     calls targeting the given path."""
-    key = str(path)
+    # Resolved, so two spellings of one path (``a/../b``, a symlink) share the lock.
+    key = str(path.resolve())
     with _SAVE_LOCKS_GUARD:
         lock = _SAVE_LOCKS.get(key)
         if lock is None:
@@ -102,10 +103,8 @@ def _lock_owner_is_dead(lock_path: Path) -> bool:
 
     Only a lock taken on this host by a process that does not exist
     anymore is reported as dead. If the owner cannot be found out (other
-    host, unknown token format, Windows), ``False`` is returned.
+    host, unknown token format), ``False`` is returned.
     """
-    if os.name != "posix":
-        return False
     try:
         host, pid, _ = lock_path.read_text().split(":", maxsplit=2)
         if host != socket.gethostname():

@@ -863,6 +863,9 @@ def test_acquire_file_lock_replaces_lock_of_dead_owner(tmp_path: Path) -> None:
     assert lock_path.read_text() == "new"
 
 
+def test_get_save_lock_same_lock_for_two_spellings_of_a_path(tmp_path: Path) -> None:
+    lock = _get_save_lock(tmp_path.joinpath("data.txt"))
+    assert _get_save_lock(tmp_path.joinpath("sub", "..", "data.txt")) is lock
 ################################
 #     Tests for long names     #
 ################################
