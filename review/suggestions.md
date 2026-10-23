@@ -85,6 +85,7 @@ the PR number is given. Items not listed are **open**.
 | 6.19 | PR open (#2124)         | Shared length validation, checked before hashing; `memoryview` supported.                                                                    |
 | 6.20 | PR open (#2125)         | `get_default_generator` removed from both `__all__`.                                                                                         |
 | 6.21 | Partly, PR open (#2126) | Prefix and generator result validated, `chars` tidied. Open: Windows/Posix path hash, duplicate registry export, `register_hashers` doctest. |
+| 7.6 | PR open (#2135) | `is_git_repo` compares to `true`; the stderr of git is kept in the error. |
 | 7.7 | PR open (#2134) | `to_date` returns the date part of a `datetime`. |
 | 7.2 | PR open (#2133) | `unified_diff` marks lines without a trailing newline like `git diff`. |
 | 7.1 | PR open (#2132) | Temporary and lock names derived from a hash when the target name is long. |
