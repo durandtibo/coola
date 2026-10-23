@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from coola.testing.fixtures import numpy_available, torch_available
-from coola.utils.imports import is_numpy_available, is_torch_available
+from coola.utils.imports import MissingPackageError, is_numpy_available, is_torch_available
 from coola.utils.tensor import (
     get_available_devices,
     is_cuda_available,
@@ -175,3 +175,9 @@ def test_to_tensor_numpy() -> None:
 def test_to_tensor_numpy_negative_strides() -> None:
     out = to_tensor(np.array([1, 2, 3])[::-1])
     assert out.tolist() == [3, 2, 1]
+
+
+@patch("coola.utils.imports.torch.is_torch_available", lambda: False)
+def test_to_tensor_no_torch() -> None:
+    with pytest.raises(MissingPackageError, match=r"'torch' package is required"):
+        to_tensor([1, 2, 3])

@@ -14,6 +14,7 @@ __all__ = [
 ]
 
 import contextlib
+import hashlib
 import logging
 import os
 import threading
@@ -21,6 +22,7 @@ import time
 import uuid
 import weakref
 from abc import ABC, abstractmethod
+from pathlib import PurePath
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
 from coola.factory import is_object_config, resolve_object
@@ -51,6 +53,28 @@ _FILE_LOCK_POLL_INTERVAL = 0.01
 _FILE_LOCK_STALE_AFTER = 300.0
 
 
+# Longest target name (in bytes) for which the temporary and lock names are
+# derived from the name. Most filesystems limit a name to 255 bytes, and these
+# names add a prefix, a uuid or a suffix to it.
+_MAX_DERIVED_NAME_BYTES = 100
+
+
+def _short_name(name: str) -> str:
+    r"""Return ``name``, or a short stable name if ``name`` is too long.
+
+    The short name is a hash of ``name`` followed by its extension, so the
+    names derived from it (temporary file, lock file) stay below the
+    filesystem limit for any legal target name.
+    """
+    if len(name.encode()) <= _MAX_DERIVED_NAME_BYTES:
+        return name
+    digest = hashlib.sha256(name.encode()).hexdigest()[:16]
+    suffix = PurePath(name).suffix
+    if len(suffix.encode()) > 16:
+        suffix = ""
+    return f"{digest}{suffix}"
+
+
 def _get_save_lock(path: Path) -> threading.Lock:
     r"""Get (creating if needed) the lock used to serialize ``save``
     calls targeting the given path."""
@@ -73,11 +97,28 @@ def _break_stale_lock(lock_path: Path, stale_after: float) -> bool:
         ``True`` if a stale lock was removed.
     """
     try:
-        if time.time() - lock_path.stat().st_mtime <= stale_after:
+        stat = lock_path.stat()
+        if time.time() - stat.st_mtime <= stale_after:
             return False
+        owner = lock_path.read_text()
         broken = lock_path.with_name(f"{lock_path.name}.{os.getpid()}.{uuid.uuid4().hex}.stale")
         lock_path.rename(broken)
     except FileNotFoundError:
+        return False
+    # Another waiter may have broken the same lock and taken a new one between
+    # the checks above and the rename: then the renamed file is a live lock.
+    # Put it back (``os.link`` fails if the path was taken again meanwhile).
+    try:
+        renamed_is_stale = broken.read_text() == owner and (
+            time.time() - broken.stat().st_mtime > stale_after
+        )
+    except FileNotFoundError:
+        return False
+    if not renamed_is_stale:
+        with contextlib.suppress(OSError):
+            os.link(broken, lock_path)
+        broken.unlink(missing_ok=True)
+        logger.warning("The save lock %s was renewed while it was broken: restored", lock_path)
         return False
     broken.unlink(missing_ok=True)
     logger.warning("Removed stale save lock %s (older than %ss)", lock_path, stale_after)
@@ -104,7 +145,7 @@ def _acquire_file_lock(
     over by a crashed process and is broken, so a killed writer does not
     block every later save.
     """
-    lock_path = path.with_name(path.name + ".lock")
+    lock_path = path.with_name(_short_name(path.name) + ".lock")
     deadline = time.monotonic() + timeout
     while True:
         try:
@@ -135,7 +176,7 @@ def _tmp_path(path: Path) -> Path:
     being written. The extension is kept because some writers choose the
     format or add an extension from it.
     """
-    return add_uuid_suffix(path.with_name(f".{path.name}"))
+    return add_uuid_suffix(path.with_name(f".{_short_name(path.name)}"))
 
 
 def _fsync_file(path: Path) -> None:
