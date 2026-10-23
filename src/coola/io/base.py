@@ -139,8 +139,12 @@ def _tmp_path(path: Path) -> Path:
 
 
 def _fsync_file(path: Path) -> None:
-    r"""Flush the content of a file to the disk."""
-    fd = os.open(path, os.O_RDONLY)
+    r"""Flush the content of a file to the disk.
+
+    The file is opened for writing because ``os.fsync`` fails on Windows
+    for a descriptor that is read-only.
+    """
+    fd = os.open(path, os.O_RDWR)
     try:
         os.fsync(fd)
     finally:

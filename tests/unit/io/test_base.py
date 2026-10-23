@@ -34,6 +34,7 @@ from coola.io import (
 from coola.io.base import (
     _acquire_file_lock,
     _break_stale_lock,
+    _fsync_file,
     _get_save_lock,
     _keep_lock_fresh,
     _release_file_lock,
@@ -768,3 +769,16 @@ def test_save_does_not_write_a_visible_file_while_saving(tmp_path: Path) -> None
     Saver().save("abc", tmp_path.joinpath("data.json"))
     assert seen == [[]]
     assert tmp_path.joinpath("data.json").read_text() == "abc"
+
+
+###############################
+#     Tests for _fsync_file     #
+###############################
+
+
+def test_fsync_file_opens_the_file_for_writing(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    path.write_text("abc")
+    with patch("os.open", wraps=os.open) as mock_open:
+        _fsync_file(path)
+    assert mock_open.call_args.args[1] == os.O_RDWR
