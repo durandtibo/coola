@@ -207,7 +207,7 @@ def test_acquire_file_lock_recovers_after_holder_process_is_killed(tmp_path: Pat
         _acquire_file_lock(path, timeout=0.05, poll_interval=0.001, stale_after=3600)
 
     # Once the lock is older than ``stale_after`` it is broken.
-    time.sleep(0.1)
+    time.sleep(0.06)
     assert _acquire_file_lock(path, timeout=5, stale_after=0.05) == lock_path
     lock_path.unlink()
 
@@ -220,13 +220,13 @@ def test_acquire_file_lock_recovers_after_holder_process_is_killed(tmp_path: Pat
 def test_save_lock_keeps_a_slow_save_from_being_stale(tmp_path: Path) -> None:
     path = tmp_path.joinpath("data.txt")
     lock_path = tmp_path.joinpath("data.txt.lock")
-    with _save_lock(path, stale_after=0.3):
+    with _save_lock(path, stale_after=0.2):
         old = time.time() - 1000
         os.utime(lock_path, (old, old))
         # The heartbeat thread refreshes the lock while the save is running.
-        time.sleep(0.4)
-        assert time.time() - lock_path.stat().st_mtime < 0.3
-        assert not _break_stale_lock(lock_path, stale_after=0.3)
+        time.sleep(0.25)
+        assert time.time() - lock_path.stat().st_mtime < 0.2
+        assert not _break_stale_lock(lock_path, stale_after=0.2)
 
 
 def test_save_lock_heartbeat_thread_stops(tmp_path: Path) -> None:
@@ -245,7 +245,7 @@ def test_keep_lock_fresh_updates_the_modification_time(tmp_path: Path) -> None:
     stop = threading.Event()
 
     def stop_later() -> None:
-        time.sleep(0.2)
+        time.sleep(0.05)
         stop.set()
 
     run_threads(
@@ -323,7 +323,7 @@ from pathlib import Path
 from coola.io.base import _save_lock
 
 path, log, name, hold = Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3], float(sys.argv[4])
-with _save_lock(path, stale_after=0.3):
+with _save_lock(path, stale_after=float(sys.argv[5])):
     with log.open("a") as f:
         f.write(f"{name} start\\n")
     time.sleep(hold)
@@ -335,14 +335,14 @@ with _save_lock(path, stale_after=0.3):
 def test_save_lock_serializes_two_processes_even_if_the_save_outlasts_stale_after(
     tmp_path: Path,
 ) -> None:
-    # Each process holds the lock for 1s, which is longer than ``stale_after``
-    # (0.3s): the heartbeat must keep the lock alive, otherwise the second
+    # Each process holds the lock for 0.4s, which is longer than ``stale_after``
+    # (0.15s): the heartbeat must keep the lock alive, otherwise the second
     # process breaks it and both write at the same time.
     path = tmp_path.joinpath("data.txt")
     log = tmp_path.joinpath("log.txt")
     children = [
         subprocess.Popen(  # noqa: S603
-            [sys.executable, "-c", _LOCKED_WRITER_SCRIPT, str(path), str(log), name, "1.0"],
+            [sys.executable, "-c", _LOCKED_WRITER_SCRIPT, str(path), str(log), name, "0.4", "0.15"],
         )
         for name in ("a", "b")
     ]
