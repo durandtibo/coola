@@ -100,3 +100,13 @@ def test_to_datetime_from_str_invalid_format() -> None:
     """Test that an invalid string raises the built-in exception."""
     with pytest.raises(ValueError, match="Invalid isoformat string"):
         to_datetime("2026/03/19 12:00:00")
+
+
+def test_to_date_from_datetime() -> None:
+    """Test that a datetime is converted to its date."""
+    assert to_date(datetime(2026, 3, 19, 12, 0, 0, tzinfo=UTC)) == date(2026, 3, 19)
+
+
+def test_to_date_from_datetime_returns_date_type() -> None:
+    """Test that the result of a datetime is not a datetime."""
+    assert not isinstance(to_date(datetime(2026, 3, 19, 12, 0, 0, tzinfo=UTC)), datetime)
