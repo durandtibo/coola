@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import sys
+
 import pytest
 
 from coola.utils.integer import int_repr
@@ -16,8 +18,6 @@ def test_int_repr_above_the_conversion_limit() -> None:
 
 
 def test_int_repr_at_the_conversion_limit() -> None:
-    import sys
-
     limit = sys.get_int_max_str_digits()
     below = 10 ** (limit - 1)
     assert int_repr(below) == repr(below)
