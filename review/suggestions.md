@@ -109,6 +109,7 @@ the PR number is given. Items not listed are **open**.
 | 7.7  | PR open (#2134)                 | `to_date` returns the date part of a `datetime`.                                                                                                                                                      |
 | 7.8  | PR open (#2138)                 | `ß` and similar letters mapped; non-ASCII-only text falls back to a hash.                                                                                                                             |
 | 7.9  | PR open (#2137)                 | `datetime.time` becomes an ISO string and `timedelta` a number of seconds.                                                                                                                            |
+| 8.5  | PR open (#2165)                   | On a TTY the coloured handler uses `stream` and `datefmt`; `handlers`, `filename`, `filemode`, `format`, `style` give the plain `basicConfig`; `sys.stderr = None` is handled. The package location of the helper is unchanged.|
 | 8.2  | PR open (#2162)                   | `TypeRegistry` raises `TypeError` for a non-type key in `register`, `register_many`, `__setitem__` and `initial_state`.                                                                               |
 | 8.1  | PR open (#2161)                   | `PolarsLazyFrameSummarizer` shows `<unresolved schema: ExceptionType>` for an invalid plan.                                                                                                           |
 
