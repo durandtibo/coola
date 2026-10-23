@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import threading
+import time
 from unittest.mock import patch
 
 import pytest
@@ -456,3 +458,29 @@ def test_snowflake_id_generator_backward_clock_in_the_busy_wait_keeps_the_state_
         generator.generate()
     assert generator._last_timestamp_ms == first_ms + 5
     assert generator._sequence == 7
+
+
+def test_get_default_generator_concurrent_first_calls_build_one_generator() -> None:
+    from coola.identifier import snowflake as module
+    from coola.utils.singleton import LazySingleton
+
+    built = []
+
+    def factory() -> object:
+        time.sleep(0.01)
+        generator = module.SnowflakeIdGenerator()
+        built.append(generator)
+        return generator
+
+    with patch.object(module, "_default_generator", LazySingleton(factory)):
+        results = []
+        threads = [
+            threading.Thread(target=lambda: results.append(module.get_default_generator()))
+            for _ in range(8)
+        ]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+    assert len(built) == 1
+    assert all(result is built[0] for result in results)
