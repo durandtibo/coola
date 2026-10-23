@@ -7,6 +7,7 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.handler import (
+    AttributeName,
     FalseHandler,
     MaxDepthExceededError,
     ObjectEqualHandler,
@@ -226,3 +227,15 @@ def test_track_comparison_inner_exit_keeps_outer_pair() -> None:
             pass
         with track_comparison(config, a, b) as in_progress:
             assert in_progress
+
+
+def test_report_difference_attribute_kind_converts_path() -> None:
+    reports = []
+    config = EqualityConfig(reporter=lambda msg, path: reports.append(path))
+    report_difference(
+        logging.getLogger(),
+        config,
+        "msg",
+        extra={"coola_path": ("a", "b"), "coola_path_kind": "attribute"},
+    )
+    assert all(isinstance(key, AttributeName) for key in reports[0])

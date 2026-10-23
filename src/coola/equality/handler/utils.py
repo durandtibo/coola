@@ -77,8 +77,10 @@ def report_difference(
         extra: Extra information about the difference. The
             ``"coola_path"`` entry is a tuple with the location of the
             difference in the compared objects, relative to the current
-            level of nesting. The components that are attributes are
-            ``AttributeName`` instances.
+            level of nesting. The ``"coola_path_kind"`` entry
+            (``"index"``, ``"key"`` or ``"attribute"``) says what the
+            components are: for ``"attribute"``, they are given to the
+            reporter as ``AttributeName`` instances.
 
     Example:
         ```pycon
@@ -98,7 +100,10 @@ def report_difference(
     if config.reporter is None:
         logger.info(msg, *args, extra=extra)
         return
-    path = cast("tuple[object, ...]", (extra or {}).get("coola_path", ()))
+    extra = extra or {}
+    path = cast("tuple[object, ...]", extra.get("coola_path", ()))
+    if extra.get("coola_path_kind") == "attribute":
+        path = tuple(AttributeName(str(name)) for name in path)
     config.reporter(msg % args if args else msg, path)
 
 
