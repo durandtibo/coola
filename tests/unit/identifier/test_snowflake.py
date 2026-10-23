@@ -456,3 +456,7 @@ def test_snowflake_id_generator_backward_clock_in_the_busy_wait_keeps_the_state_
         generator.generate()
     assert generator._last_timestamp_ms == first_ms + 5
     assert generator._sequence == 7
+
+
+def test_get_default_generator_is_not_exported_by_star_import() -> None:
+    assert "get_default_generator" not in snowflake.__all__

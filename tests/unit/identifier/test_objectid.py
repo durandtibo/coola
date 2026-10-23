@@ -196,3 +196,7 @@ def test_object_id_generator_after_fork_ids_use_the_new_process_value() -> None:
     generator._reset_after_fork()
     after = generator.generate()
     assert before[8:18] != after[8:18]  # the 5-byte process value
+
+
+def test_get_default_generator_is_not_exported_by_star_import() -> None:
+    assert "get_default_generator" not in objectid_module.__all__

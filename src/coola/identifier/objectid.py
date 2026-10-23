@@ -20,7 +20,6 @@ __all__ = [
     "ObjectIdGenerator",
     "extract_object_id_timestamp",
     "generate_object_id",
-    "get_default_generator",
 ]
 
 import os
