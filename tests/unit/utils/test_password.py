@@ -40,20 +40,34 @@ def test_get_password_basic_success() -> None:
 
 @pytest.mark.usefixtures("mock_interactive_terminal")
 def test_get_password_with_username() -> None:
+    """Test password is returned when a username is provided."""
+    with patch("getpass.getpass", MagicMock(return_value="mypassword")):
+        assert get_password(username="alice") == "mypassword"
+
+
+@pytest.mark.usefixtures("mock_interactive_terminal")
+def test_get_password_with_username_prompt() -> None:
     """Test password prompt includes username when provided."""
     mock_getpass_func = MagicMock(return_value="mypassword")
     with patch("getpass.getpass", mock_getpass_func):
-        assert get_password(username="alice") == "mypassword"
-        mock_getpass_func.assert_called_once_with("Enter password for user alice: ")
+        get_password(username="alice")
+    mock_getpass_func.assert_called_once_with("Enter password for user alice: ")
 
 
 @pytest.mark.usefixtures("mock_interactive_terminal")
 def test_get_password_without_username() -> None:
+    """Test password is returned without username."""
+    with patch("getpass.getpass", MagicMock(return_value="mypassword")):
+        assert get_password(username=None) == "mypassword"
+
+
+@pytest.mark.usefixtures("mock_interactive_terminal")
+def test_get_password_without_username_prompt() -> None:
     """Test password prompt without username."""
     mock_getpass_func = MagicMock(return_value="mypassword")
     with patch("getpass.getpass", mock_getpass_func):
-        assert get_password(username=None) == "mypassword"
-        mock_getpass_func.assert_called_once_with("Enter password: ")
+        get_password(username=None)
+    mock_getpass_func.assert_called_once_with("Enter password: ")
 
 
 @pytest.mark.usefixtures("mock_interactive_terminal")
@@ -84,9 +98,7 @@ def test_get_password_at_max_length() -> None:
     """Test that password at exactly max length is accepted."""
     max_length_password = "a" * MAX_PASSWORD_LENGTH
     with patch("getpass.getpass", return_value=max_length_password):
-        password = get_password()
-        assert password == max_length_password
-        assert len(password) == MAX_PASSWORD_LENGTH
+        assert get_password() == max_length_password
 
 
 @pytest.mark.usefixtures("mock_interactive_terminal")
@@ -120,10 +132,25 @@ def test_get_password_confirm_prompt_called_twice() -> None:
     mock_getpass_func = MagicMock(side_effect=["mypassword", "mypassword"])
     with patch("getpass.getpass", mock_getpass_func):
         get_password(confirm=True)
-        assert mock_getpass_func.call_count == 2
-        calls = mock_getpass_func.call_args_list
-        assert calls[0][0][0] == "Enter password: "
-        assert calls[1][0][0] == "Confirm password: "
+    assert mock_getpass_func.call_count == 2
+
+
+@pytest.mark.usefixtures("mock_interactive_terminal")
+def test_get_password_confirm_first_prompt() -> None:
+    """Test the first prompt of the confirmation mode."""
+    mock_getpass_func = MagicMock(side_effect=["mypassword", "mypassword"])
+    with patch("getpass.getpass", mock_getpass_func):
+        get_password(confirm=True)
+    assert mock_getpass_func.call_args_list[0][0][0] == "Enter password: "
+
+
+@pytest.mark.usefixtures("mock_interactive_terminal")
+def test_get_password_confirm_second_prompt() -> None:
+    """Test the second prompt of the confirmation mode."""
+    mock_getpass_func = MagicMock(side_effect=["mypassword", "mypassword"])
+    with patch("getpass.getpass", mock_getpass_func):
+        get_password(confirm=True)
+    assert mock_getpass_func.call_args_list[1][0][0] == "Confirm password: "
 
 
 @pytest.mark.usefixtures("mock_non_interactive_terminal")

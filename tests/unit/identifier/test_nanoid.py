@@ -26,9 +26,13 @@ def test_generate_nano_id_many_calls_are_unique() -> None:
     assert len(values) == 1000
 
 
-def test_generate_nano_id_custom_alphabet() -> None:
+def test_generate_nano_id_custom_alphabet_length() -> None:
     value = generate_nano_id(length=100, alphabet="01")
     assert len(value) == 100
+
+
+def test_generate_nano_id_custom_alphabet_alphabet() -> None:
+    value = generate_nano_id(length=100, alphabet="01")
     assert set(value) <= {"0", "1"}
 
 
@@ -96,13 +100,21 @@ def test_generate_nano_id_needs_multiple_urandom_batches(monkeypatch: pytest.Mon
     assert generate_nano_id(length=3, alphabet="abc") == "abc"
 
 
-def test_generate_nano_id_alphabet_just_above_power_of_two() -> None:
+def test_generate_nano_id_alphabet_just_above_power_of_two_length() -> None:
     # alphabet length 129 sits just above the 128 power-of-two boundary,
     # so the rejection mask (255) accepts only ~50% of bytes: a
     # worst-case-ish rejection rate worth exercising explicitly.
     alphabet = "".join(chr(ord("!") + i) for i in range(129))
     value = generate_nano_id(length=50, alphabet=alphabet)
     assert len(value) == 50
+
+
+def test_generate_nano_id_alphabet_just_above_power_of_two_alphabet() -> None:
+    # alphabet length 129 sits just above the 128 power-of-two boundary,
+    # so the rejection mask (255) accepts only ~50% of bytes: a
+    # worst-case-ish rejection rate worth exercising explicitly.
+    alphabet = "".join(chr(ord("!") + i) for i in range(129))
+    value = generate_nano_id(length=50, alphabet=alphabet)
     assert all(char in alphabet for char in value)
 
 

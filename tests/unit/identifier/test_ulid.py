@@ -160,36 +160,68 @@ def test_extract_ulid_timestamp_ms_invalid_character_raises() -> None:
 #########################################
 
 
-def test_generate_ulid_monotonic_in_the_same_millisecond() -> None:
+def _generate_ulids_in_the_same_millisecond() -> list[str]:
     with patch("coola.identifier.monotonic.time.time_ns", return_value=1_700_000_000_000 * 10**6):
-        ulids = [generate_ulid() for _ in range(1000)]
+        return [generate_ulid() for _ in range(1000)]
+
+
+def test_generate_ulid_monotonic_in_the_same_millisecond() -> None:
+    ulids = _generate_ulids_in_the_same_millisecond()
     assert ulids == sorted(ulids)
-    assert len(set(ulids)) == 1000
+
+
+def test_generate_ulid_unique_in_the_same_millisecond() -> None:
+    assert len(set(_generate_ulids_in_the_same_millisecond())) == 1000
+
+
+def test_generate_ulid_same_timestamp_in_the_same_millisecond() -> None:
+    ulids = _generate_ulids_in_the_same_millisecond()
     assert {extract_ulid_timestamp_ms(u) for u in ulids} == {1_700_000_000_000}
 
 
-def test_generate_ulid_monotonic_with_the_real_clock() -> None:
+def test_generate_ulid_monotonic_with_the_real_clock_sorted() -> None:
     ulids = [generate_ulid() for _ in range(5000)]
     assert ulids == sorted(ulids)
+
+
+def test_generate_ulid_monotonic_with_the_real_clock_unique() -> None:
+    ulids = [generate_ulid() for _ in range(5000)]
     assert len(set(ulids)) == 5000
 
 
-def test_generate_ulid_monotonic_if_the_clock_moves_backward() -> None:
+def _generate_ulids_with_a_backward_clock() -> tuple[str, str]:
     with patch("coola.identifier.monotonic.time.time_ns", return_value=2_000 * 10**6):
         first = generate_ulid()
     with patch("coola.identifier.monotonic.time.time_ns", return_value=1_000 * 10**6):
         second = generate_ulid()
+    return first, second
+
+
+def test_generate_ulid_monotonic_if_the_clock_moves_backward() -> None:
+    first, second = _generate_ulids_with_a_backward_clock()
     assert second > first
+
+
+def test_generate_ulid_keeps_the_timestamp_if_the_clock_moves_backward() -> None:
+    _, second = _generate_ulids_with_a_backward_clock()
     assert extract_ulid_timestamp_ms(second) == 2_000
 
 
-def test_generate_ulid_explicit_timestamp_does_not_use_the_monotonic_state() -> None:
+def test_generate_ulid_explicit_timestamp_is_used() -> None:
+    assert extract_ulid_timestamp_ms(generate_ulid(timestamp_ms=1)) == 1
+
+
+def test_generate_ulid_explicit_timestamp_is_before_the_current_time() -> None:
     with patch("coola.identifier.monotonic.time.time_ns", return_value=5_000 * 10**6):
         current = generate_ulid()
-    old = generate_ulid(timestamp_ms=1)
-    assert extract_ulid_timestamp_ms(old) == 1
-    assert old < current
+    assert generate_ulid(timestamp_ms=1) < current
+
+
+def test_generate_ulid_explicit_timestamp_does_not_use_the_monotonic_state() -> None:
     # the explicit timestamps do not consume the sequence of the current time
+    with patch("coola.identifier.monotonic.time.time_ns", return_value=5_000 * 10**6):
+        current = generate_ulid()
+    generate_ulid(timestamp_ms=1)
     with patch("coola.identifier.monotonic.time.time_ns", return_value=5_000 * 10**6):
         assert generate_ulid() > current
 

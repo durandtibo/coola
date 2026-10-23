@@ -45,10 +45,15 @@ def test_capture_handler_records_initially_empty() -> None:
     assert CaptureHandler().records == []
 
 
+def test_capture_handler_records_are_added_to_the_emitting_instance() -> None:
+    handler1 = CaptureHandler()
+    handler1.emit(make_record())
+    assert len(handler1.records) == 1
+
+
 def test_capture_handler_records_are_not_shared_between_instances() -> None:
     handler1, handler2 = CaptureHandler(), CaptureHandler()
     handler1.emit(make_record())
-    assert len(handler1.records) == 1
     assert handler2.records == []
 
 
@@ -70,8 +75,7 @@ def test_capture_handler_emit_ignores_other_threads() -> None:
 def test_capture_handler_emit_preserves_order() -> None:
     handler = CaptureHandler()
     records = [make_record(msg=f"msg{i}") for i in range(5)]
-    for record in records:
-        handler.emit(record)
+    list(map(handler.emit, records))
     assert handler.records == records
 
 
@@ -119,6 +123,16 @@ def test_capture_handler_thread_id_is_current_thread() -> None:
     assert CaptureHandler()._thread_id == threading.get_ident()
 
 
+def test_capture_handler_records_the_messages(logger: logging.Logger) -> None:
+    handler = CaptureHandler()
+    logger.addHandler(handler)
+    try:
+        logger.info("msg")
+    finally:
+        logger.removeHandler(handler)
+    assert [record.getMessage() for record in handler.records] == ["msg"]
+
+
 def test_capture_handler_does_not_propagate_by_itself(
     logger: logging.Logger, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -130,7 +144,6 @@ def test_capture_handler_does_not_propagate_by_itself(
     finally:
         logger.removeHandler(handler)
     # The handler only records; the record still reaches other handlers.
-    assert [record.getMessage() for record in handler.records] == ["msg"]
     assert caplog.messages == ["msg"]
 
 

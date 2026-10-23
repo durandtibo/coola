@@ -13,11 +13,19 @@ from coola.equality import objects_are_equal
 from coola.hashing import hash_object
 from coola.nested import convert_to_jsonable
 from coola.summary import summarize
-from tests.properties.strategies import nan_values, nested, rebuild, small_values, values
+from tests.properties.strategies import (
+    nan_values,
+    nested,
+    rebuild,
+    small_values,
+    tiny_values,
+    values,
+)
 
 hypothesis = pytest.importorskip("hypothesis")
 
 from hypothesis import (  # noqa: E402
+    assume,
     given,
     strategies as st,
 )
@@ -41,16 +49,19 @@ def test_hash_object_is_unchanged_by_deepcopy(data: Any) -> None:
 
 
 @given(data=small_values)
+def test_rebuilt_objects_are_equal(data: Any) -> None:
+    assert objects_are_equal(data, rebuild(data))
+
+
+@given(data=small_values)
 def test_equal_objects_have_the_same_hash(data: Any) -> None:
-    other = rebuild(data)
-    assert objects_are_equal(data, other)
-    assert hash_object(data) == hash_object(other)
+    assert hash_object(data) == hash_object(rebuild(data))
 
 
-@given(a=small_values, b=small_values)
+@given(a=tiny_values, b=tiny_values)
 def test_equal_implies_same_hash(a: Any, b: Any) -> None:
-    if objects_are_equal(a, b):
-        assert hash_object(a) == hash_object(b)
+    assume(objects_are_equal(a, b))
+    assert hash_object(a) == hash_object(b)
 
 
 @given(data=nan_values)

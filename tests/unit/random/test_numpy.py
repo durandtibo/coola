@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 from unittest.mock import patch
 
 import pytest
@@ -64,26 +65,46 @@ def test_numpy_random_manager_get_rng_state() -> None:
 
 
 @numpy_available
-def test_numpy_random_manager_manual_seed() -> None:
+def test_numpy_random_manager_manual_seed_same_seed_same_values() -> None:
+    rng = NumpyRandomManager()
+    rng.manual_seed(42)
+    x1 = np.random.randn(4, 6)  # noqa: NPY002
+    np.random.randn(4, 6)  # noqa: NPY002
+    rng.manual_seed(42)
+    x3 = np.random.randn(4, 6)  # noqa: NPY002
+    assert np.array_equal(x1, x3)
+
+
+@numpy_available
+def test_numpy_random_manager_manual_seed_different_values() -> None:
     rng = NumpyRandomManager()
     rng.manual_seed(42)
     x1 = np.random.randn(4, 6)  # noqa: NPY002
     x2 = np.random.randn(4, 6)  # noqa: NPY002
     rng.manual_seed(42)
-    x3 = np.random.randn(4, 6)  # noqa: NPY002
-    assert np.array_equal(x1, x3)
+    np.random.randn(4, 6)  # noqa: NPY002
     assert not np.array_equal(x1, x2)
 
 
 @numpy_available
-def test_numpy_random_manager_set_rng_state() -> None:
+def test_numpy_random_manager_set_rng_state_restored_values() -> None:
+    rng = NumpyRandomManager()
+    state = rng.get_rng_state()
+    x1 = np.random.randn(4, 6)  # noqa: NPY002
+    np.random.randn(4, 6)  # noqa: NPY002
+    rng.set_rng_state(state)
+    x3 = np.random.randn(4, 6)  # noqa: NPY002
+    assert np.array_equal(x1, x3)
+
+
+@numpy_available
+def test_numpy_random_manager_set_rng_state_different_values() -> None:
     rng = NumpyRandomManager()
     state = rng.get_rng_state()
     x1 = np.random.randn(4, 6)  # noqa: NPY002
     x2 = np.random.randn(4, 6)  # noqa: NPY002
     rng.set_rng_state(state)
-    x3 = np.random.randn(4, 6)  # noqa: NPY002
-    assert np.array_equal(x1, x3)
+    np.random.randn(4, 6)  # noqa: NPY002
     assert not np.array_equal(x1, x2)
 
 
@@ -109,9 +130,17 @@ def test_numpy_seed_restore_random_seed() -> None:
 
 
 @numpy_available
+def test_numpy_seed_with_exception_raises_the_error() -> None:
+    with pytest.raises(RuntimeError, match=r"Exception"), numpy_seed(42):  # noqa: PT012
+        np.random.randn(4, 6)  # noqa: NPY002
+        msg = "Exception"
+        raise RuntimeError(msg)
+
+
+@numpy_available
 def test_numpy_seed_restore_random_seed_with_exception() -> None:
     state = np.random.get_state()  # noqa: NPY002
-    with pytest.raises(RuntimeError, match=r"Exception"), numpy_seed(42):  # noqa: PT012
+    with contextlib.suppress(RuntimeError), numpy_seed(42):
         np.random.randn(4, 6)  # noqa: NPY002
         msg = "Exception"
         raise RuntimeError(msg)
@@ -128,12 +157,19 @@ def test_numpy_seed_same_random_seed() -> None:
 
 
 @numpy_available
-def test_numpy_random_manager_seed() -> None:
+def test_numpy_random_manager_seed_restores_the_state() -> None:
     manager = NumpyRandomManager()
     state = np.random.get_state()  # noqa: NPY002
     with manager.seed(42):
-        first = np.random.rand()  # noqa: NPY002
+        np.random.rand()  # noqa: NPY002
     assert objects_are_equal(state, np.random.get_state())  # noqa: NPY002
+
+
+@numpy_available
+def test_numpy_random_manager_seed_is_reproducible() -> None:
+    manager = NumpyRandomManager()
+    with manager.seed(42):
+        first = np.random.rand()  # noqa: NPY002
     with manager.seed(42):
         second = np.random.rand()  # noqa: NPY002
     assert first == second

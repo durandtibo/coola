@@ -72,6 +72,11 @@ def test_bytes_hasher_hash_parametrized(
 def test_bytes_hasher_hash_length(length: int, expected: str, registry: HasherRegistry) -> None:
     result = BytesHasher().hash(b"hello", registry=registry, length=length)
     assert result == expected
+
+
+@pytest.mark.parametrize("length", [16, 32, 64])
+def test_bytes_hasher_hash_length_is_respected(length: int, registry: HasherRegistry) -> None:
+    result = BytesHasher().hash(b"hello", registry=registry, length=length)
     assert len(result) == length
 
 
@@ -161,6 +166,10 @@ def test_hash_bytes_is_deterministic() -> None:
 def test_hash_bytes_empty_bytes_is_valid() -> None:
     result = hash_bytes(b"")
     assert isinstance(result, str)
+
+
+def test_hash_bytes_empty_bytes_is_valid_length() -> None:
+    result = hash_bytes(b"")
     assert len(result) == 64
 
 
@@ -210,11 +219,19 @@ def test_bytes_hasher_hash_bytearray_differs_from_bytes(registry: HasherRegistry
     )
 
 
-def test_bytes_hasher_hash_bytearray_depends_on_content(registry: HasherRegistry) -> None:
+def test_bytes_hasher_hash_bytearray_depends_on_content_same_content(
+    registry: HasherRegistry,
+) -> None:
     hasher = BytesHasher()
     assert hasher.hash(bytearray(b"abc"), registry=registry) == hasher.hash(
         bytearray(b"abc"), registry=registry
     )
+
+
+def test_bytes_hasher_hash_bytearray_depends_on_content_different_content(
+    registry: HasherRegistry,
+) -> None:
+    hasher = BytesHasher()
     assert hasher.hash(bytearray(b"abc"), registry=registry) != hasher.hash(
         bytearray(b"xyz"), registry=registry
     )

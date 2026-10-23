@@ -23,9 +23,17 @@ def test_set_hasher_str() -> None:
     assert str(SetHasher()) == "SetHasher(tag=set)"
 
 
-def test_set_hasher_hash_returns_str_of_requested_length(registry: HasherRegistry) -> None:
+def test_set_hasher_hash_returns_str_of_requested_length_returns_str(
+    registry: HasherRegistry,
+) -> None:
     result = SetHasher().hash({1, 2, 3}, registry=registry, length=16)
     assert isinstance(result, str)
+
+
+def test_set_hasher_hash_returns_str_of_requested_length_requested_length(
+    registry: HasherRegistry,
+) -> None:
+    result = SetHasher().hash({1, 2, 3}, registry=registry, length=16)
     assert len(result) == 16
 
 

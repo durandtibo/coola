@@ -79,9 +79,19 @@ def test_get_package_version_invalid_version() -> None:
 
 
 @packaging_available
+def test_get_package_version_is_cached() -> None:
+    with patch("coola.utils.version.version", return_value="1.0"):
+        get_package_version("cached_package")
+    with patch("coola.utils.version.version", return_value="2.0"):
+        assert get_package_version("cached_package") == Version("1.0")
+    clear_availability_caches()
+
+
+@packaging_available
 def test_get_package_version_cache_is_cleared() -> None:
     with patch("coola.utils.version.version", return_value="1.0"):
-        assert get_package_version("cleared_package") == Version("1.0")
+        get_package_version("cleared_package")
     clear_availability_caches()
     with patch("coola.utils.version.version", return_value="2.0"):
         assert get_package_version("cleared_package") == Version("2.0")
+    clear_availability_caches()

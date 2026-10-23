@@ -24,18 +24,30 @@ def test_native_reducer_str() -> None:
 
 
 @pytest.mark.parametrize("values", [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2), [2], [2, -1, -2, -3]])
-def test_native_reducer_max_int(values: Sequence[int | float]) -> None:
+def test_native_reducer_max_int_type(values: Sequence[int | float]) -> None:
     val = NativeReducer().max(values)
     assert isinstance(val, int)
+
+
+@pytest.mark.parametrize("values", [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2), [2], [2, -1, -2, -3]])
+def test_native_reducer_max_int_value(values: Sequence[int | float]) -> None:
+    val = NativeReducer().max(values)
     assert val == 2
 
 
 @pytest.mark.parametrize(
     "values", [[-2.5, -1.5, 0.5, 1.5, 2.5], (-2.5, -1.5, 0.5, 1.5, 2.5), [2.5], [2.5, -1.5, -2, -3]]
 )
-def test_native_reducer_max_float(values: Sequence[int | float]) -> None:
+def test_native_reducer_max_float_type(values: Sequence[int | float]) -> None:
     val = NativeReducer().max(values)
     assert isinstance(val, float)
+
+
+@pytest.mark.parametrize(
+    "values", [[-2.5, -1.5, 0.5, 1.5, 2.5], (-2.5, -1.5, 0.5, 1.5, 2.5), [2.5], [2.5, -1.5, -2, -3]]
+)
+def test_native_reducer_max_float_value(values: Sequence[int | float]) -> None:
+    val = NativeReducer().max(values)
     assert val == 2.5
 
 
@@ -48,18 +60,30 @@ def test_native_reducer_max_empty(values: Sequence[int | float]) -> None:
 
 
 @pytest.mark.parametrize("values", [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2), [0]])
-def test_native_reducer_mean_int(values: Sequence[int | float]) -> None:
+def test_native_reducer_mean_int_type(values: Sequence[int | float]) -> None:
     val = NativeReducer().mean(values)
     assert isinstance(val, float)
+
+
+@pytest.mark.parametrize("values", [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2), [0]])
+def test_native_reducer_mean_int_value(values: Sequence[int | float]) -> None:
+    val = NativeReducer().mean(values)
     assert val == 0.0
 
 
 @pytest.mark.parametrize(
     "values", [[-1.5, -0.5, 0.5, 1.5, 2.5], (-1.5, -0.5, 0.5, 1.5, 2.5), [0.5]]
 )
-def test_native_reducer_mean_float(values: Sequence[int | float]) -> None:
+def test_native_reducer_mean_float_type(values: Sequence[int | float]) -> None:
     val = NativeReducer().mean(values)
     assert isinstance(val, float)
+
+
+@pytest.mark.parametrize(
+    "values", [[-1.5, -0.5, 0.5, 1.5, 2.5], (-1.5, -0.5, 0.5, 1.5, 2.5), [0.5]]
+)
+def test_native_reducer_mean_float_value(values: Sequence[int | float]) -> None:
+    val = NativeReducer().mean(values)
     assert val == 0.5
 
 
@@ -72,18 +96,30 @@ def test_native_reducer_mean_empty(values: Sequence[int | float]) -> None:
 
 
 @pytest.mark.parametrize("values", [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2), [0]])
-def test_native_reducer_median_int(values: Sequence[int | float]) -> None:
+def test_native_reducer_median_int_type(values: Sequence[int | float]) -> None:
     val = NativeReducer().median(values)
     assert isinstance(val, int)
+
+
+@pytest.mark.parametrize("values", [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2), [0]])
+def test_native_reducer_median_int_value(values: Sequence[int | float]) -> None:
+    val = NativeReducer().median(values)
     assert val == 0
 
 
 @pytest.mark.parametrize(
     "values", [[-1.5, -0.5, 0.5, 1.5, 2.5], (-1.5, -0.5, 0.5, 1.5, 2.5), [0.5]]
 )
-def test_native_reducer_median_float(values: Sequence[int | float]) -> None:
+def test_native_reducer_median_float_type(values: Sequence[int | float]) -> None:
     val = NativeReducer().median(values)
     assert isinstance(val, float)
+
+
+@pytest.mark.parametrize(
+    "values", [[-1.5, -0.5, 0.5, 1.5, 2.5], (-1.5, -0.5, 0.5, 1.5, 2.5), [0.5]]
+)
+def test_native_reducer_median_float_value(values: Sequence[int | float]) -> None:
+    val = NativeReducer().median(values)
     assert val == 0.5
 
 
@@ -96,18 +132,30 @@ def test_native_reducer_median_empty(values: Sequence[int | float]) -> None:
 
 
 @pytest.mark.parametrize("values", [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2), [-2], [-2, 1, 2, 3]])
-def test_native_reducer_min_int(values: Sequence[int | float]) -> None:
+def test_native_reducer_min_int_type(values: Sequence[int | float]) -> None:
     val = NativeReducer().min(values)
     assert isinstance(val, int)
+
+
+@pytest.mark.parametrize("values", [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2), [-2], [-2, 1, 2, 3]])
+def test_native_reducer_min_int_value(values: Sequence[int | float]) -> None:
+    val = NativeReducer().min(values)
     assert val == -2
 
 
 @pytest.mark.parametrize(
     "values", [[-2.5, -1.5, 0.5, 1.5, 2.5], (-2.5, -1.5, 0.5, 1.5, 2.5), [-2.5], [-2.5, 1.5, 2, 3]]
 )
-def test_native_reducer_min_float(values: Sequence[int | float]) -> None:
+def test_native_reducer_min_float_type(values: Sequence[int | float]) -> None:
     val = NativeReducer().min(values)
     assert isinstance(val, float)
+
+
+@pytest.mark.parametrize(
+    "values", [[-2.5, -1.5, 0.5, 1.5, 2.5], (-2.5, -1.5, 0.5, 1.5, 2.5), [-2.5], [-2.5, 1.5, 2, 3]]
+)
+def test_native_reducer_min_float_value(values: Sequence[int | float]) -> None:
+    val = NativeReducer().min(values)
     assert val == -2.5
 
 
@@ -189,20 +237,31 @@ def test_native_reducer_std_empty(values: Sequence[int | float]) -> None:
         NativeReducer().std(values)
 
 
-def test_native_reducer_max_nan_does_not_depend_on_the_order() -> None:
+def test_native_reducer_max_nan_does_not_depend_on_the_order_nan_first() -> None:
     nan = float("nan")
     assert math.isnan(NativeReducer().max([1.0, nan, 2.0]))
+
+
+def test_native_reducer_max_nan_does_not_depend_on_the_order_nan_second() -> None:
+    nan = float("nan")
     assert math.isnan(NativeReducer().max([nan, 1.0, 2.0]))
 
 
-def test_native_reducer_min_nan_does_not_depend_on_the_order() -> None:
+def test_native_reducer_min_nan_does_not_depend_on_the_order_nan_first() -> None:
     nan = float("nan")
     assert math.isnan(NativeReducer().min([1.0, nan, 2.0]))
+
+
+def test_native_reducer_min_nan_does_not_depend_on_the_order_nan_second() -> None:
+    nan = float("nan")
     assert math.isnan(NativeReducer().min([nan, 1.0, 2.0]))
 
 
-def test_native_reducer_sort_ints_unchanged() -> None:
+def test_native_reducer_sort_ints_unchanged_ascending() -> None:
     assert NativeReducer().sort([3, 1, 2]) == [1, 2, 3]
+
+
+def test_native_reducer_sort_ints_unchanged_descending() -> None:
     assert NativeReducer().sort([3, 1, 2], descending=True) == [3, 2, 1]
 
 
@@ -210,15 +269,25 @@ def test_native_reducer_std_infinite_value_is_nan() -> None:
     assert math.isnan(NativeReducer().std([1.0, float("-inf"), 2.0]))
 
 
-def test_native_reducer_median_nan_does_not_depend_on_the_order() -> None:
-    nan = float("nan")
-    for values in ([nan, 1.0, 2.0], [1.0, nan, 2.0], [1.0, 2.0, nan]):
-        assert math.isnan(NativeReducer().median(values))
+@pytest.mark.parametrize(
+    "values",
+    [
+        pytest.param([float("nan"), 1.0, 2.0], id="nan first"),
+        pytest.param([1.0, float("nan"), 2.0], id="nan second"),
+        pytest.param([1.0, 2.0, float("nan")], id="nan last"),
+    ],
+)
+def test_native_reducer_median_nan_does_not_depend_on_the_order(values: list[float]) -> None:
+    assert math.isnan(NativeReducer().median(values))
 
 
-def test_native_reducer_quantile_nan() -> None:
+def test_native_reducer_quantile_nan_length() -> None:
     result = NativeReducer().quantile([1.0, float("nan"), 2.0], [0.0, 0.5, 1.0])
     assert len(result) == 3
+
+
+def test_native_reducer_quantile_nan_all_nan() -> None:
+    result = NativeReducer().quantile([1.0, float("nan"), 2.0], [0.0, 0.5, 1.0])
     assert all(math.isnan(q) for q in result)
 
 

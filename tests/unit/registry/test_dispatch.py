@@ -50,6 +50,11 @@ def test_base_type_dispatch_registry_register_many() -> None:
     registry = BaseTypeDispatchRegistry[str]()
     registry.register_many({int: "int_handler", str: "str_handler"})
     assert registry.find(int) == "int_handler"
+
+
+def test_base_type_dispatch_registry_register_many_registers_all_the_types() -> None:
+    registry = BaseTypeDispatchRegistry[str]()
+    registry.register_many({int: "int_handler", str: "str_handler"})
     assert registry.find(str) == "str_handler"
 
 
@@ -91,17 +96,22 @@ def test_base_type_dispatch_registry_repr() -> None:
     )
 
 
-@pytest.mark.parametrize(
-    "registry_cls",
-    [
-        EqualityTesterRegistry,
-        HasherRegistry,
-        TransformerRegistry,
-        SummarizerRegistry,
-        ChildFinderRegistry,
-        IteratorRegistry,
-    ],
-)
+REGISTRY_CLASSES = [
+    EqualityTesterRegistry,
+    HasherRegistry,
+    TransformerRegistry,
+    SummarizerRegistry,
+    ChildFinderRegistry,
+    IteratorRegistry,
+]
+
+
+class Handler:
+    def __repr__(self) -> str:
+        return "Handler()"
+
+
+@pytest.mark.parametrize("registry_cls", REGISTRY_CLASSES)
 def test_registries_are_subclasses_of_base_type_dispatch_registry(
     registry_cls: type[BaseTypeDispatchRegistry],
 ) -> None:
@@ -111,38 +121,50 @@ def test_registries_are_subclasses_of_base_type_dispatch_registry(
     assert issubclass(registry_cls, BaseTypeDispatchRegistry)
 
 
-@pytest.mark.parametrize(
-    "registry_cls",
-    [
-        EqualityTesterRegistry,
-        HasherRegistry,
-        TransformerRegistry,
-        SummarizerRegistry,
-        ChildFinderRegistry,
-        IteratorRegistry,
-    ],
-)
+@pytest.mark.parametrize("registry_cls", REGISTRY_CLASSES)
 def test_registries_register_many_shares_base_implementation(
     registry_cls: type[BaseTypeDispatchRegistry],
 ) -> None:
     """Test that ``register_many`` on a concrete registry actually
     delegates to the shared base implementation (registers all entries,
     is exist_ok-aware, does not partially mutate state on failure)."""
-
-    class Handler:
-        def __repr__(self) -> str:
-            return "Handler()"
-
     registry = registry_cls()
     h1, h2 = Handler(), Handler()
     registry.register_many({int: h1, str: h2})
     assert registry.has(int)
+
+
+@pytest.mark.parametrize("registry_cls", REGISTRY_CLASSES)
+def test_registries_register_many_registers_all_the_entries(
+    registry_cls: type[BaseTypeDispatchRegistry],
+) -> None:
+    """Test that ``register_many`` on a concrete registry registers the
+    second entry."""
+    registry = registry_cls()
+    registry.register_many({int: Handler(), str: Handler()})
     assert registry.has(str)
 
+
+@pytest.mark.parametrize("registry_cls", REGISTRY_CLASSES)
+def test_registries_register_many_raises_on_duplicate(
+    registry_cls: type[BaseTypeDispatchRegistry],
+) -> None:
+    """Test that ``register_many`` on a concrete registry raises when a
+    type is already registered."""
+    registry = registry_cls()
+    registry.register_many({int: Handler()})
     with pytest.raises(AlreadyRegisteredError, match="already registered"):
         registry.register_many({int: Handler()})
 
-    # exist_ok=True overwrites without error
+
+@pytest.mark.parametrize("registry_cls", REGISTRY_CLASSES)
+def test_registries_register_many_exist_ok_overwrites(
+    registry_cls: type[BaseTypeDispatchRegistry],
+) -> None:
+    """Test that ``register_many`` with ``exist_ok=True`` overwrites
+    without error."""
+    registry = registry_cls()
+    registry.register_many({int: Handler()})
     h3 = Handler()
     registry.register_many({int: h3}, exist_ok=True)
     assert registry.find(int) is h3

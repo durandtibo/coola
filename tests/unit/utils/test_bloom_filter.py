@@ -37,8 +37,7 @@ def test_bloom_filter_add_and_check_repeated_item_returns_true() -> None:
 def test_bloom_filter_never_has_false_negatives() -> None:
     bloom = BloomFilter(expected_items=1000, fp_rate=0.01)
     items = [f"item-{i}".encode() for i in range(1000)]
-    for item in items:
-        bloom.add_and_check(item)
+    list(map(bloom.add_and_check, items))
     # Every item, once added, must always be reported as present.
     assert all(bloom.add_and_check(item) is True for item in items)
 
@@ -83,6 +82,11 @@ def test_bloom_filter_add_and_check_works_with_capped_hash_count() -> None:
     # negatives) once the hash count has been clamped by the cap.
     bloom = BloomFilter(expected_items=1, fp_rate=1e-300)
     assert bloom.add_and_check(b"hello") is False
+
+
+def test_bloom_filter_add_and_check_reports_a_duplicate_with_capped_hash_count() -> None:
+    bloom = BloomFilter(expected_items=1, fp_rate=1e-300)
+    bloom.add_and_check(b"hello")
     assert bloom.add_and_check(b"hello") is True
 
 
@@ -100,9 +104,12 @@ def test_bloom_filter_hashes_uses_blake2b() -> None:
 
 def test_bloom_filter_hashes_yields_hash_count_indices() -> None:
     bloom = BloomFilter(expected_items=100, fp_rate=0.01)
-    indices = list(bloom._hashes(b"hello"))
-    assert len(indices) == bloom.hash_count
-    assert all(0 <= idx < bloom.size for idx in indices)
+    assert len(list(bloom._hashes(b"hello"))) == bloom.hash_count
+
+
+def test_bloom_filter_hashes_yields_indices_in_range() -> None:
+    bloom = BloomFilter(expected_items=100, fp_rate=0.01)
+    assert all(0 <= idx < bloom.size for idx in bloom._hashes(b"hello"))
 
 
 def test_bloom_filter_hashes_is_deterministic() -> None:

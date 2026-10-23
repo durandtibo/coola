@@ -1,17 +1,19 @@
 from __future__ import annotations
 
+import contextlib
 import errno
 import os
 import socket
 import time
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import patch
 
 import pytest
 
 from coola.equality import objects_are_equal
 from coola.equality.tester import (
+    EqualityTesterRegistry,
     EqualNanEqualityTester,
     get_default_registry,
     interface as equality_interface,
@@ -49,6 +51,9 @@ from coola.io.base import (
 ######################################
 #     Tests for is_loader_config     #
 ######################################
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Iterator
 
 
 def test_is_loader_config_true() -> None:
@@ -110,8 +115,11 @@ def test_resolve_saver_incorrect_type() -> None:
         resolve_saver({OBJECT_TARGET: "coola.io.JsonLoader"})
 
 
-def test_equality_tester_registry_has_equality_tester() -> None:
+def test_equality_tester_registry_has_equality_tester_loader() -> None:
     assert get_default_registry().has_equality_tester(BaseLoader)
+
+
+def test_equality_tester_registry_has_equality_tester_saver() -> None:
     assert get_default_registry().has_equality_tester(BaseSaver)
 
 
@@ -143,25 +151,83 @@ class FailingFileSaver(BaseFileSaver[Any]):
         raise RuntimeError(msg)
 
 
-def test_base_file_saver_save_removes_tmp_file_on_failure(tmp_path: Path) -> None:
+def test_base_file_saver_save_removes_tmp_file_on_failure_raises(tmp_path: Path) -> None:
     path = tmp_path.joinpath("data.txt")
     saver = FailingFileSaver()
     with pytest.raises(RuntimeError, match="failed to save"):
         saver.save("hello", path)
+
+
+def test_base_file_saver_save_removes_tmp_file_on_failure_state_target_is_not_created(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path.joinpath("data.txt")
+    saver = FailingFileSaver()
+    with contextlib.suppress(RuntimeError):
+        saver.save("hello", path)
     assert not path.is_file()
+
+
+def test_base_file_saver_save_removes_tmp_file_on_failure_state_tmp_file_is_set(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path.joinpath("data.txt")
+    saver = FailingFileSaver()
+    with contextlib.suppress(RuntimeError):
+        saver.save("hello", path)
     assert saver.tmp_path is not None
+
+
+def test_base_file_saver_save_removes_tmp_file_on_failure_state_tmp_file_is_removed(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path.joinpath("data.txt")
+    saver = FailingFileSaver()
+    with contextlib.suppress(RuntimeError):
+        saver.save("hello", path)
     assert not saver.tmp_path.is_file()
+
+
+def test_base_file_saver_save_removes_tmp_file_on_failure_state_directory_is_empty(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path.joinpath("data.txt")
+    saver = FailingFileSaver()
+    with contextlib.suppress(RuntimeError):
+        saver.save("hello", path)
     assert list(tmp_path.iterdir()) == []
 
 
-def test_base_file_saver_save_missing_tmp_file_on_failure(tmp_path: Path) -> None:
+def test_base_file_saver_save_missing_tmp_file_on_failure_raises(tmp_path: Path) -> None:
     # ``unlink(missing_ok=True)`` must not raise even if the tmp file
     # does not exist anymore when the failure is handled.
     path = tmp_path.joinpath("data.txt")
     saver = FailingFileSaver(delete_tmp_file=True)
     with pytest.raises(RuntimeError, match="failed to save"):
         saver.save("hello", path)
+
+
+def test_base_file_saver_save_missing_tmp_file_on_failure_state_target_is_not_created(
+    tmp_path: Path,
+) -> None:
+    # ``unlink(missing_ok=True)`` must not raise even if the tmp file
+    # does not exist anymore when the failure is handled.
+    path = tmp_path.joinpath("data.txt")
+    saver = FailingFileSaver(delete_tmp_file=True)
+    with contextlib.suppress(RuntimeError):
+        saver.save("hello", path)
     assert not path.is_file()
+
+
+def test_base_file_saver_save_missing_tmp_file_on_failure_state_directory_is_empty(
+    tmp_path: Path,
+) -> None:
+    # ``unlink(missing_ok=True)`` must not raise even if the tmp file
+    # does not exist anymore when the failure is handled.
+    path = tmp_path.joinpath("data.txt")
+    saver = FailingFileSaver(delete_tmp_file=True)
+    with contextlib.suppress(RuntimeError):
+        saver.save("hello", path)
     assert list(tmp_path.iterdir()) == []
 
 
@@ -176,16 +242,23 @@ class SimpleFileSaver(BaseFileSaver[str]):
         path.write_text(str(to_save))
 
 
-def test_base_file_saver_save_exist_ok_overwrites_content(tmp_path: Path) -> None:
+def test_base_file_saver_save_exist_ok_overwrites_content_target_is_a_file(tmp_path: Path) -> None:
     path = tmp_path.joinpath("data.txt")
     saver = SimpleFileSaver()
     saver.save("hello", path)
     saver.save("world", path, exist_ok=True)
     assert path.is_file()
+
+
+def test_base_file_saver_save_exist_ok_overwrites_content_content(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    saver = SimpleFileSaver()
+    saver.save("hello", path)
+    saver.save("world", path, exist_ok=True)
     assert path.read_text() == "world"
 
 
-def test_base_file_saver_save_removes_tmp_file_on_commit_failure(
+def test_base_file_saver_save_removes_tmp_file_on_commit_failure_raises(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     # A failure during the final commit step (``Path.replace``) must
@@ -201,11 +274,47 @@ def test_base_file_saver_save_removes_tmp_file_on_commit_failure(
     monkeypatch.setattr(Path, "replace", failing_replace)
     with pytest.raises(RuntimeError, match="failed to commit"):
         saver.save("hello", path, exist_ok=True)
+
+
+def test_base_file_saver_save_removes_tmp_file_on_commit_failure_state_target_is_not_created(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A failure during the final commit step (``Path.replace``) must
+    # still trigger the cleanup of the temporary file, not just a
+    # failure in ``_save_file``.
+    path = tmp_path.joinpath("data.txt")
+    saver = SimpleFileSaver()
+
+    def failing_replace(self: Path, target: Path) -> Path:  # noqa: ARG001
+        msg = "failed to commit"
+        raise RuntimeError(msg)
+
+    monkeypatch.setattr(Path, "replace", failing_replace)
+    with contextlib.suppress(RuntimeError):
+        saver.save("hello", path, exist_ok=True)
     assert not path.is_file()
+
+
+def test_base_file_saver_save_removes_tmp_file_on_commit_failure_state_directory_is_empty(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A failure during the final commit step (``Path.replace``) must
+    # still trigger the cleanup of the temporary file, not just a
+    # failure in ``_save_file``.
+    path = tmp_path.joinpath("data.txt")
+    saver = SimpleFileSaver()
+
+    def failing_replace(self: Path, target: Path) -> Path:  # noqa: ARG001
+        msg = "failed to commit"
+        raise RuntimeError(msg)
+
+    monkeypatch.setattr(Path, "replace", failing_replace)
+    with contextlib.suppress(RuntimeError):
+        saver.save("hello", path, exist_ok=True)
     assert list(tmp_path.iterdir()) == []
 
 
-def test_base_file_saver_save_removes_tmp_file_on_link_failure(
+def test_base_file_saver_save_removes_tmp_file_on_link_failure_raises(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     # A failure during the final commit step (``os.link``, used when
@@ -221,7 +330,43 @@ def test_base_file_saver_save_removes_tmp_file_on_link_failure(
     monkeypatch.setattr(os, "link", failing_link)
     with pytest.raises(RuntimeError, match="failed to commit"):
         saver.save("hello", path)
+
+
+def test_base_file_saver_save_removes_tmp_file_on_link_failure_state_target_is_not_created(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A failure during the final commit step (``os.link``, used when
+    # ``exist_ok=False``) must still trigger the cleanup of the
+    # temporary file, not just a failure in ``_save_file``.
+    path = tmp_path.joinpath("data.txt")
+    saver = SimpleFileSaver()
+
+    def failing_link(src: str, dst: str) -> None:  # noqa: ARG001
+        msg = "failed to commit"
+        raise RuntimeError(msg)
+
+    monkeypatch.setattr(os, "link", failing_link)
+    with contextlib.suppress(RuntimeError):
+        saver.save("hello", path)
     assert not path.is_file()
+
+
+def test_base_file_saver_save_removes_tmp_file_on_link_failure_state_directory_is_empty(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A failure during the final commit step (``os.link``, used when
+    # ``exist_ok=False``) must still trigger the cleanup of the
+    # temporary file, not just a failure in ``_save_file``.
+    path = tmp_path.joinpath("data.txt")
+    saver = SimpleFileSaver()
+
+    def failing_link(src: str, dst: str) -> None:  # noqa: ARG001
+        msg = "failed to commit"
+        raise RuntimeError(msg)
+
+    monkeypatch.setattr(os, "link", failing_link)
+    with contextlib.suppress(RuntimeError):
+        saver.save("hello", path)
     assert list(tmp_path.iterdir()) == []
 
 
@@ -285,7 +430,7 @@ def test_base_file_saver_save_original_exception_survives_unlink_failure_in_fina
         saver.save("hello", path)
 
 
-def test_base_file_saver_save_exist_ok_false_fails_atomically_on_concurrent_create(
+def test_base_file_saver_save_exist_ok_false_fails_atomically_on_concurrent_create_raises(
     tmp_path: Path,
 ) -> None:
     # If the target path is created after the initial existence check but
@@ -302,6 +447,25 @@ def test_base_file_saver_save_exist_ok_false_fails_atomically_on_concurrent_crea
     saver._save_file = save_file_then_create_target
     with pytest.raises(FileExistsError):
         saver.save("hello", target_path)
+
+
+def test_base_file_saver_save_exist_ok_false_fails_atomically_on_concurrent_create_state(
+    tmp_path: Path,
+) -> None:
+    # If the target path is created after the initial existence check but
+    # before the commit step, ``exist_ok=False`` must still raise instead
+    # of silently overwriting it.
+    target_path = tmp_path.joinpath("data.txt")
+    saver = SimpleFileSaver()
+    original_save_file = saver._save_file
+
+    def save_file_then_create_target(to_save: Any, path: Path) -> None:
+        original_save_file(to_save, path)
+        target_path.write_text("concurrent")
+
+    saver._save_file = save_file_then_create_target
+    with contextlib.suppress(FileExistsError):
+        saver.save("hello", target_path)
     assert target_path.read_text() == "concurrent"
 
 
@@ -314,16 +478,20 @@ def test_get_save_lock_reuses_existing_lock_for_same_path(tmp_path: Path) -> Non
     assert _get_save_lock(path) is lock
 
 
-def test_acquire_file_lock_creates_and_removes_lock_file(tmp_path: Path) -> None:
-    path = tmp_path.joinpath("data.txt")
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    assert not lock_path.is_file()
-    acquired = _acquire_file_lock(path)
-    assert acquired == lock_path
-    assert lock_path.is_file()
+def test_acquire_file_lock_has_no_lock_file_initially(tmp_path: Path) -> None:
+    assert not tmp_path.joinpath("data.txt.lock").is_file()
+
+
+def test_acquire_file_lock_returns_the_lock_path(tmp_path: Path) -> None:
     # Releasing is the caller's responsibility (``_save_lock`` does this);
     # ``_acquire_file_lock`` itself only creates the lock file.
-    lock_path.unlink()
+    path = tmp_path.joinpath("data.txt")
+    assert _acquire_file_lock(path) == tmp_path.joinpath("data.txt.lock")
+
+
+def test_acquire_file_lock_creates_the_lock_file(tmp_path: Path) -> None:
+    _acquire_file_lock(tmp_path.joinpath("data.txt"))
+    assert tmp_path.joinpath("data.txt.lock").is_file()
 
 
 def test_acquire_file_lock_times_out_when_never_released(tmp_path: Path) -> None:
@@ -343,9 +511,15 @@ def test_base_file_saver_save_removes_lock_file_after_success(tmp_path: Path) ->
     assert not tmp_path.joinpath("data.txt.lock").is_file()
 
 
-def test_base_file_saver_save_removes_lock_file_after_failure(tmp_path: Path) -> None:
+def test_base_file_saver_save_removes_lock_file_after_failure_raises(tmp_path: Path) -> None:
     path = tmp_path.joinpath("data.txt")
     with pytest.raises(RuntimeError, match="failed to save"):
+        FailingFileSaver().save("value", path)
+
+
+def test_base_file_saver_save_removes_lock_file_after_failure_state(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    with contextlib.suppress(RuntimeError):
         FailingFileSaver().save("value", path)
     assert not tmp_path.joinpath("data.txt.lock").is_file()
 
@@ -370,27 +544,55 @@ def test_base_file_saver_save_exist_ok_true_silently_overwrites_concurrent_creat
     assert target_path.read_text() == "hello"
 
 
-def test_acquire_file_lock_breaks_stale_lock(tmp_path: Path) -> None:
-    path = tmp_path.joinpath("data.txt")
+def _make_stale_lock(tmp_path: Path) -> Path:
     lock_path = tmp_path.joinpath("data.txt.lock")
     lock_path.touch()
     old = time.time() - 1000
     os.utime(lock_path, (old, old))
-    assert _acquire_file_lock(path, timeout=0.5, stale_after=10) == lock_path
+    return lock_path
+
+
+def test_acquire_file_lock_breaks_stale_lock(tmp_path: Path) -> None:
+    lock_path = _make_stale_lock(tmp_path)
+    assert _acquire_file_lock(tmp_path.joinpath("data.txt"), timeout=0.5, stale_after=10) == (
+        lock_path
+    )
+
+
+def test_acquire_file_lock_recreates_the_stale_lock(tmp_path: Path) -> None:
+    lock_path = _make_stale_lock(tmp_path)
+    _acquire_file_lock(tmp_path.joinpath("data.txt"), timeout=0.5, stale_after=10)
     assert lock_path.is_file()
+
+
+def test_acquire_file_lock_refreshes_the_stale_lock(tmp_path: Path) -> None:
+    lock_path = _make_stale_lock(tmp_path)
+    _acquire_file_lock(tmp_path.joinpath("data.txt"), timeout=0.5, stale_after=10)
     assert time.time() - lock_path.stat().st_mtime < 10
+
+
+def test_acquire_file_lock_removes_the_stale_file(tmp_path: Path) -> None:
+    _make_stale_lock(tmp_path)
+    _acquire_file_lock(tmp_path.joinpath("data.txt"), timeout=0.5, stale_after=10)
     assert list(tmp_path.glob("*.stale")) == []
-    lock_path.unlink()
 
 
 def test_acquire_file_lock_keeps_fresh_lock(tmp_path: Path) -> None:
-    path = tmp_path.joinpath("data.txt")
+    tmp_path.joinpath("data.txt.lock").touch()
+    with pytest.raises(TimeoutError, match="timed out"):
+        _acquire_file_lock(
+            tmp_path.joinpath("data.txt"), timeout=0.01, poll_interval=0.001, stale_after=100
+        )
+
+
+def test_acquire_file_lock_does_not_remove_fresh_lock(tmp_path: Path) -> None:
     lock_path = tmp_path.joinpath("data.txt.lock")
     lock_path.touch()
-    with pytest.raises(TimeoutError, match="timed out"):
-        _acquire_file_lock(path, timeout=0.01, poll_interval=0.001, stale_after=100)
+    with contextlib.suppress(TimeoutError):
+        _acquire_file_lock(
+            tmp_path.joinpath("data.txt"), timeout=0.01, poll_interval=0.001, stale_after=100
+        )
     assert lock_path.is_file()
-    lock_path.unlink()
 
 
 def test_break_stale_lock_returns_false_when_lock_is_missing(tmp_path: Path) -> None:
@@ -410,12 +612,20 @@ def test_break_stale_lock_returns_false_when_lock_disappears_before_rename(
         assert not _break_stale_lock(lock_path, stale_after=10)
 
 
-def test_break_stale_lock_removes_old_lock(tmp_path: Path) -> None:
+def test_break_stale_lock_removes_old_lock_returns_true(tmp_path: Path) -> None:
     lock_path = tmp_path.joinpath("data.txt.lock")
     lock_path.touch()
     old = time.time() - 1000
     os.utime(lock_path, (old, old))
     assert _break_stale_lock(lock_path, stale_after=10)
+
+
+def test_break_stale_lock_removes_old_lock_directory_is_empty(tmp_path: Path) -> None:
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.touch()
+    old = time.time() - 1000
+    os.utime(lock_path, (old, old))
+    _break_stale_lock(lock_path, stale_after=10)
     assert list(tmp_path.iterdir()) == []
 
 
@@ -459,25 +669,53 @@ def test_break_stale_lock_keeps_the_live_lock_after_a_renewal(tmp_path: Path) ->
 ##################################################
 
 
-def test_equality_tester_registry_has_io_testers_after_the_singleton_is_reset() -> None:
+@pytest.fixture
+def reset_default_registry() -> Iterator[EqualityTesterRegistry]:
     # The testers are part of the default registry: they do not depend on a registration
     # made when ``coola.io`` was imported, so they survive a reset of the singleton.
     equality_interface._default_registry.reset()
     try:
-        registry = get_default_registry()
-        assert isinstance(registry.find_equality_tester(BaseLoader), EqualNanEqualityTester)
-        assert isinstance(registry.find_equality_tester(BaseSaver), EqualNanEqualityTester)
-        assert registry.find_equality_tester(JsonLoader) is registry.find_equality_tester(
-            BaseLoader
-        )
+        yield get_default_registry()
     finally:
         equality_interface._default_registry.reset()
 
 
-def test_loaders_and_savers_are_compared_with_equal() -> None:
+def test_equality_tester_registry_has_the_loader_tester_after_the_singleton_is_reset(
+    reset_default_registry: EqualityTesterRegistry,
+) -> None:
+    assert isinstance(
+        reset_default_registry.find_equality_tester(BaseLoader), EqualNanEqualityTester
+    )
+
+
+def test_equality_tester_registry_has_the_saver_tester_after_the_singleton_is_reset(
+    reset_default_registry: EqualityTesterRegistry,
+) -> None:
+    assert isinstance(
+        reset_default_registry.find_equality_tester(BaseSaver), EqualNanEqualityTester
+    )
+
+
+def test_equality_tester_registry_uses_the_loader_tester_for_the_subclasses(
+    reset_default_registry: EqualityTesterRegistry,
+) -> None:
+    registry = reset_default_registry
+    assert registry.find_equality_tester(JsonLoader) is registry.find_equality_tester(BaseLoader)
+
+
+def test_loaders_and_savers_are_compared_with_equal_equal_loaders() -> None:
     assert objects_are_equal(JsonLoader(), JsonLoader())
+
+
+def test_loaders_and_savers_are_compared_with_equal_different_loaders() -> None:
     assert not objects_are_equal(JsonLoader(), TextLoader())
+
+
+def test_loaders_and_savers_are_compared_with_equal_equal_savers_in_a_dict() -> None:
     assert objects_are_equal({"saver": JsonSaver(indent=2)}, {"saver": JsonSaver(indent=2)})
+
+
+def test_loaders_and_savers_are_compared_with_equal_different_savers() -> None:
     assert not objects_are_equal(JsonSaver(indent=2), JsonSaver(indent=4))
 
 
@@ -490,17 +728,25 @@ def unsupported_link(src: str, dst: str) -> None:  # noqa: ARG001
     raise OSError(errno.ENOTSUP, "Operation not supported")
 
 
-def test_base_file_saver_save_falls_back_to_rename_if_hard_links_are_not_supported(
+def test_base_file_saver_save_falls_back_to_rename_if_hard_links_are_not_supported_content(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     path = tmp_path.joinpath("data.txt")
     monkeypatch.setattr(os, "link", unsupported_link)
     SimpleFileSaver().save("hello", path)
     assert path.read_text() == "hello"
+
+
+def test_base_file_saver_save_falls_back_to_rename_if_hard_links_are_not_supported_no_other_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path.joinpath("data.txt")
+    monkeypatch.setattr(os, "link", unsupported_link)
+    SimpleFileSaver().save("hello", path)
     assert sorted(p.name for p in tmp_path.iterdir()) == ["data.txt"]  # no tmp or lock file
 
 
-def test_base_file_saver_save_fallback_raises_if_the_file_exists(
+def test_base_file_saver_save_fallback_raises_if_the_file_exists_raises(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     path = tmp_path.joinpath("data.txt")
@@ -514,11 +760,43 @@ def test_base_file_saver_save_fallback_raises_if_the_file_exists(
     monkeypatch.setattr(os, "link", unsupported_link)
     with pytest.raises(FileExistsError, match="already exists"):
         CreatingFileSaver().save("hello", path)
+
+
+def test_base_file_saver_save_fallback_raises_if_the_file_exists_state_content(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path.joinpath("data.txt")
+
+    class CreatingFileSaver(SimpleFileSaver):
+        def _save_file(self, to_save: str, path: Path) -> None:
+            super()._save_file(to_save, path)
+            # The target is created between the initial check and the commit.
+            tmp_path.joinpath("data.txt").write_text("other")
+
+    monkeypatch.setattr(os, "link", unsupported_link)
+    with contextlib.suppress(FileExistsError):
+        CreatingFileSaver().save("hello", path)
     assert path.read_text() == "other"
+
+
+def test_base_file_saver_save_fallback_raises_if_the_file_exists_state_directory_content(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path.joinpath("data.txt")
+
+    class CreatingFileSaver(SimpleFileSaver):
+        def _save_file(self, to_save: str, path: Path) -> None:
+            super()._save_file(to_save, path)
+            # The target is created between the initial check and the commit.
+            tmp_path.joinpath("data.txt").write_text("other")
+
+    monkeypatch.setattr(os, "link", unsupported_link)
+    with contextlib.suppress(FileExistsError):
+        CreatingFileSaver().save("hello", path)
     assert sorted(p.name for p in tmp_path.iterdir()) == ["data.txt"]
 
 
-def test_base_file_saver_save_link_file_exists_error_is_not_swallowed(
+def test_base_file_saver_save_link_file_exists_error_is_not_swallowed_raises(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     path = tmp_path.joinpath("data.txt")
@@ -529,10 +807,23 @@ def test_base_file_saver_save_link_file_exists_error_is_not_swallowed(
     monkeypatch.setattr(os, "link", exists_link)
     with pytest.raises(FileExistsError):
         SimpleFileSaver().save("hello", path)
+
+
+def test_base_file_saver_save_link_file_exists_error_is_not_swallowed_state(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path.joinpath("data.txt")
+
+    def exists_link(src: str, dst: str) -> None:  # noqa: ARG001
+        raise FileExistsError
+
+    monkeypatch.setattr(os, "link", exists_link)
+    with contextlib.suppress(FileExistsError):
+        SimpleFileSaver().save("hello", path)
     assert not path.exists()
 
 
-def test_base_file_saver_save_fallback_failure_removes_the_tmp_file(
+def test_base_file_saver_save_fallback_failure_removes_the_tmp_file_raises(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     path = tmp_path.joinpath("data.txt")
@@ -544,6 +835,21 @@ def test_base_file_saver_save_fallback_failure_removes_the_tmp_file(
 
     monkeypatch.setattr(Path, "replace", failing_replace)
     with pytest.raises(OSError, match="no space left"):
+        SimpleFileSaver().save("hello", path)
+
+
+def test_base_file_saver_save_fallback_failure_removes_the_tmp_file_state(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path.joinpath("data.txt")
+    monkeypatch.setattr(os, "link", unsupported_link)
+
+    def failing_replace(self: Path, target: Path) -> Path:  # noqa: ARG001
+        msg = "no space left"
+        raise OSError(errno.ENOSPC, msg)
+
+    monkeypatch.setattr(Path, "replace", failing_replace)
+    with contextlib.suppress(OSError):
         SimpleFileSaver().save("hello", path)
     assert list(tmp_path.iterdir()) == []
 
@@ -560,13 +866,20 @@ def test_base_file_saver_save_does_not_fsync_by_default(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("exist_ok", [False, True])
+def test_base_file_saver_save_fsync_saves_the_file(tmp_path: Path, exist_ok: bool) -> None:
+    path = tmp_path.joinpath("data.txt")
+    with patch("coola.io.base.os.fsync"):
+        SimpleFileSaver().save("hello", path, exist_ok=exist_ok, fsync=True)
+    assert path.read_text() == "hello"
+
+
+@pytest.mark.parametrize("exist_ok", [False, True])
 def test_base_file_saver_save_fsync_flushes_the_file_and_the_directory(
     tmp_path: Path, exist_ok: bool
 ) -> None:
     path = tmp_path.joinpath("data.txt")
     with patch("coola.io.base.os.fsync") as mock_fsync:
         SimpleFileSaver().save("hello", path, exist_ok=exist_ok, fsync=True)
-    assert path.read_text() == "hello"
     assert mock_fsync.call_count == 2  # the file, then the directory
 
 
@@ -589,8 +902,8 @@ def test_base_file_saver_save_fsync_flushes_the_file_before_the_commit(
     assert events == ["fsync", "commit", "fsync"]
 
 
-def test_base_file_saver_save_fsync_directory_error_is_ignored(tmp_path: Path) -> None:
-    path = tmp_path.joinpath("data.txt")
+@pytest.fixture
+def failing_directory_open(tmp_path: Path) -> Callable[..., int]:
     real_open = os.open
 
     def failing_directory_open(p: Any, flags: int, *args: Any, **kwargs: Any) -> int:
@@ -599,15 +912,30 @@ def test_base_file_saver_save_fsync_directory_error_is_ignored(tmp_path: Path) -
             raise PermissionError(msg)
         return real_open(p, flags, *args, **kwargs)
 
+    return failing_directory_open
+
+
+def test_base_file_saver_save_fsync_directory_error_is_ignored(
+    tmp_path: Path, failing_directory_open: Callable[..., int]
+) -> None:
+    path = tmp_path.joinpath("data.txt")
     with patch("coola.io.base.os.open", failing_directory_open):
         SimpleFileSaver().save("hello", path, fsync=True)
     assert path.read_text() == "hello"
 
 
+def test_base_file_saver_save_fails_with_fsync(tmp_path: Path) -> None:
+    with (
+        patch("coola.io.base.os.fsync"),
+        pytest.raises(RuntimeError, match="failed to save"),
+    ):
+        FailingFileSaver().save("hello", tmp_path.joinpath("data.txt"), fsync=True)
+
+
 def test_base_file_saver_save_fsync_not_called_if_saving_fails(tmp_path: Path) -> None:
     with (
         patch("coola.io.base.os.fsync") as mock_fsync,
-        pytest.raises(RuntimeError, match="failed to save"),
+        contextlib.suppress(RuntimeError),
     ):
         FailingFileSaver().save("hello", tmp_path.joinpath("data.txt"), fsync=True)
     mock_fsync.assert_not_called()
@@ -635,6 +963,10 @@ def test_save_functions_forward_fsync(save: Any, name: str, data: Any, tmp_path:
 def test_is_loader_config_allowed_prefixes() -> None:
     config = {OBJECT_TARGET: "coola.io.JsonLoader"}
     assert is_loader_config(config, allowed_prefixes=["coola.io"])
+
+
+def test_is_loader_config_not_allowed_prefixes() -> None:
+    config = {OBJECT_TARGET: "coola.io.JsonLoader"}
     with pytest.raises(ImportError, match="not allowed"):
         is_loader_config(config, allowed_prefixes=["os"])
 
@@ -642,6 +974,10 @@ def test_is_loader_config_allowed_prefixes() -> None:
 def test_is_saver_config_allowed_prefixes() -> None:
     config = {OBJECT_TARGET: "coola.io.JsonSaver"}
     assert is_saver_config(config, allowed_prefixes=["coola.io"])
+
+
+def test_is_saver_config_not_allowed_prefixes() -> None:
+    config = {OBJECT_TARGET: "coola.io.JsonSaver"}
     with pytest.raises(ImportError, match="not allowed"):
         is_saver_config(config, allowed_prefixes=["os"])
 
@@ -649,6 +985,10 @@ def test_is_saver_config_allowed_prefixes() -> None:
 def test_resolve_loader_allowed_prefixes() -> None:
     config = {OBJECT_TARGET: "coola.io.JsonLoader"}
     assert isinstance(resolve_loader(config, allowed_prefixes=["coola.io"]), JsonLoader)
+
+
+def test_resolve_loader_not_allowed_prefixes() -> None:
+    config = {OBJECT_TARGET: "coola.io.JsonLoader"}
     with pytest.raises(ImportError, match="not allowed"):
         resolve_loader(config, allowed_prefixes=["os"])
 
@@ -656,6 +996,10 @@ def test_resolve_loader_allowed_prefixes() -> None:
 def test_resolve_saver_allowed_prefixes() -> None:
     config = {OBJECT_TARGET: "coola.io.JsonSaver"}
     assert isinstance(resolve_saver(config, allowed_prefixes=["coola.io"]), JsonSaver)
+
+
+def test_resolve_saver_not_allowed_prefixes() -> None:
+    config = {OBJECT_TARGET: "coola.io.JsonSaver"}
     with pytest.raises(ImportError, match="not allowed"):
         resolve_saver(config, allowed_prefixes=["os"])
 
@@ -679,13 +1023,19 @@ def test_release_file_lock_removes_own_lock(tmp_path: Path) -> None:
     assert not lock_path.exists()
 
 
-def test_release_file_lock_keeps_lock_of_another_owner(
+def test_release_file_lock_keeps_lock_of_another_owner_keeps_the_lock(tmp_path: Path) -> None:
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    lock_path.write_text("other")
+    _release_file_lock(lock_path, "abc")
+    assert lock_path.read_text() == "other"
+
+
+def test_release_file_lock_keeps_lock_of_another_owner_logs_a_message(
     tmp_path: Path, caplog: pytest.LogCaptureFixture
 ) -> None:
     lock_path = tmp_path.joinpath("data.txt.lock")
     lock_path.write_text("other")
     _release_file_lock(lock_path, "abc")
-    assert lock_path.read_text() == "other"
     assert "owned by another process" in caplog.text
 
 
@@ -693,11 +1043,16 @@ def test_release_file_lock_missing_lock(tmp_path: Path) -> None:
     _release_file_lock(tmp_path.joinpath("data.txt.lock"), "abc")
 
 
-def test_save_lock_creates_and_removes_the_lock(tmp_path: Path) -> None:
-    path = tmp_path.joinpath("data.txt")
+def test_save_lock_creates_the_lock(tmp_path: Path) -> None:
     lock_path = tmp_path.joinpath("data.txt.lock")
-    with _save_lock(path):
+    with _save_lock(tmp_path.joinpath("data.txt")):
         assert lock_path.is_file()
+
+
+def test_save_lock_creates_and_removes_the_lock(tmp_path: Path) -> None:
+    lock_path = tmp_path.joinpath("data.txt.lock")
+    with _save_lock(tmp_path.joinpath("data.txt")):
+        pass
     assert not lock_path.exists()
 
 
@@ -770,16 +1125,28 @@ def test_stale_lock_of_a_dead_process_is_still_broken(tmp_path: Path) -> None:
 ###################################
 
 
-def test_tmp_path_is_hidden_and_keeps_the_extension(tmp_path: Path) -> None:
+def test_tmp_path_is_hidden_and_keeps_the_extension_parent(tmp_path: Path) -> None:
     result = _tmp_path(tmp_path.joinpath("data.json"))
     assert result.parent == tmp_path
+
+
+def test_tmp_path_is_hidden_and_keeps_the_extension_hidden_name(tmp_path: Path) -> None:
+    result = _tmp_path(tmp_path.joinpath("data.json"))
     assert result.name.startswith(".data-")
+
+
+def test_tmp_path_is_hidden_and_keeps_the_extension_extension(tmp_path: Path) -> None:
+    result = _tmp_path(tmp_path.joinpath("data.json"))
     assert result.suffix == ".json"
 
 
-def test_tmp_path_without_extension(tmp_path: Path) -> None:
+def test_tmp_path_without_extension_hidden_name(tmp_path: Path) -> None:
     result = _tmp_path(tmp_path.joinpath("data"))
     assert result.name.startswith(".data-")
+
+
+def test_tmp_path_without_extension_no_extension(tmp_path: Path) -> None:
+    result = _tmp_path(tmp_path.joinpath("data"))
     assert result.suffix == ""
 
 
@@ -788,7 +1155,7 @@ def test_tmp_path_is_unique(tmp_path: Path) -> None:
     assert _tmp_path(path) != _tmp_path(path)
 
 
-def test_save_does_not_write_a_visible_file_while_saving(tmp_path: Path) -> None:
+def test_save_does_not_write_a_visible_file_while_saving_no_visible_file(tmp_path: Path) -> None:
     seen: list[list[str]] = []
 
     class Saver(BaseFileSaver[str]):
@@ -807,6 +1174,26 @@ def test_save_does_not_write_a_visible_file_while_saving(tmp_path: Path) -> None
 
     Saver().save("abc", tmp_path.joinpath("data.json"))
     assert seen == [[]]
+
+
+def test_save_does_not_write_a_visible_file_while_saving_content(tmp_path: Path) -> None:
+    seen: list[list[str]] = []
+
+    class Saver(BaseFileSaver[str]):
+        def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
+            return True
+
+        def _save_file(self, to_save: str, path: Path) -> None:
+            path.write_text(to_save)
+            seen.append(
+                [
+                    p.name
+                    for p in tmp_path.iterdir()
+                    if not p.name.startswith(".") and p.suffix != ".lock"
+                ]
+            )
+
+    Saver().save("abc", tmp_path.joinpath("data.json"))
     assert tmp_path.joinpath("data.json").read_text() == "abc"
 
 

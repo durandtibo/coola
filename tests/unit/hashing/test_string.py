@@ -79,6 +79,13 @@ def test_string_hasher_hash_parametrized(
 def test_string_hasher_hash_length(length: int, expected: str, registry: HasherRegistry) -> None:
     result = StringHasher().hash("hello", registry=registry, length=length)
     assert result == expected
+
+
+@pytest.mark.parametrize("length", [16, 32, 64])
+def test_string_hasher_hash_length_length_is_respected(
+    length: int, registry: HasherRegistry
+) -> None:
+    result = StringHasher().hash("hello", registry=registry, length=length)
     assert len(result) == length
 
 
@@ -163,9 +170,13 @@ def test_hash_string_is_deterministic() -> None:
     assert hash_string("hello") == hash_string("hello")
 
 
-def test_hash_string_empty_string_is_valid() -> None:
+def test_hash_string_empty_string_is_valid_returns_str() -> None:
     result = hash_string("")
     assert isinstance(result, str)
+
+
+def test_hash_string_empty_string_is_valid_default_length() -> None:
+    result = hash_string("")
     assert len(result) == 64
 
 

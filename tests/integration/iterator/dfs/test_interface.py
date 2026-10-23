@@ -12,6 +12,7 @@ from coola.iterator.dfs import (
     get_default_registry,
     interface as dfs_interface,
 )
+from tests.helpers import nest
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -71,7 +72,5 @@ def test_dfs_iterate_performance_wide_shallow() -> None:
 
 def test_dfs_iterate_performance_narrow_deep() -> None:
     # Performance test: deep nesting
-    data = 1
-    for _ in range(100):
-        data = [data]
+    data = nest(1, 100)
     assert objects_are_equal(list(dfs_iterate(data)), [1])

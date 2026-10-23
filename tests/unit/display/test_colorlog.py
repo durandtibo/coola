@@ -5,7 +5,7 @@ from __future__ import annotations
 import io
 import logging
 from typing import TYPE_CHECKING
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -121,8 +121,7 @@ def test_configure_colorlog_logging_force_false_is_noop_when_handlers_exist() ->
 ######################################################
 
 
-@colorlog_available
-def test_configure_colorlog_logging_not_a_tty_falls_back_to_basic_config() -> None:
+def _configure_without_a_tty() -> tuple[Mock, Mock]:
     with (
         patch(f"{MODULE}.is_colorlog_available", return_value=True),
         patch(f"{MODULE}.sys.stderr.isatty", return_value=False),
@@ -130,24 +129,49 @@ def test_configure_colorlog_logging_not_a_tty_falls_back_to_basic_config() -> No
         patch(f"{MODULE}.colorlog.StreamHandler") as mock_stream_handler,
     ):
         configure_colorlog_logging(level=logging.DEBUG, force=True)
-
-    mock_stream_handler.assert_not_called()
-    mock_basicconfig.assert_called_once_with(level=logging.DEBUG, force=True)
+    return mock_basicconfig, mock_stream_handler
 
 
 @colorlog_available
-def test_configure_colorlog_logging_tty_attaches_colored_handler() -> None:
+def test_configure_colorlog_logging_not_a_tty_does_not_create_a_colored_handler() -> None:
+    _, mock_stream_handler = _configure_without_a_tty()
+    mock_stream_handler.assert_not_called()
+
+
+@colorlog_available
+def test_configure_colorlog_logging_not_a_tty_falls_back_to_basic_config() -> None:
+    mock_basicconfig, _ = _configure_without_a_tty()
+    mock_basicconfig.assert_called_once_with(level=logging.DEBUG, force=True)
+
+
+def _configure_with_a_tty() -> Mock:
     with (
         patch(f"{MODULE}.is_colorlog_available", return_value=True),
         patch(f"{MODULE}.sys.stderr.isatty", return_value=True),
         patch(f"{MODULE}.logging.basicConfig") as mock_basicconfig,
     ):
         configure_colorlog_logging(level=logging.DEBUG, force=True)
+    return mock_basicconfig
 
-    assert mock_basicconfig.call_args.kwargs["level"] == logging.DEBUG
-    assert mock_basicconfig.call_args.kwargs["force"] is True
-    handlers = mock_basicconfig.call_args.kwargs["handlers"]
-    assert len(handlers) == 1
+
+@colorlog_available
+def test_configure_colorlog_logging_tty_sets_the_level() -> None:
+    assert _configure_with_a_tty().call_args.kwargs["level"] == logging.DEBUG
+
+
+@colorlog_available
+def test_configure_colorlog_logging_tty_sets_force() -> None:
+    assert _configure_with_a_tty().call_args.kwargs["force"] is True
+
+
+@colorlog_available
+def test_configure_colorlog_logging_tty_attaches_one_handler() -> None:
+    assert len(_configure_with_a_tty().call_args.kwargs["handlers"]) == 1
+
+
+@colorlog_available
+def test_configure_colorlog_logging_tty_attaches_colored_handler() -> None:
+    handlers = _configure_with_a_tty().call_args.kwargs["handlers"]
     assert isinstance(handlers[0], colorlog.StreamHandler)
 
 

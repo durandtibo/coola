@@ -20,7 +20,15 @@ logger = logging.getLogger(__name__)
 def test_lazy_module() -> None:
     os = LazyModule("os")
     assert isinstance(os.getcwd(), str)
+
+
+def test_lazy_module_second_function() -> None:
+    os = LazyModule("os")
     assert isinstance(os.cpu_count(), int)
+
+
+def test_lazy_module_missing_attribute() -> None:
+    os = LazyModule("os")
     with pytest.raises(AttributeError, match=r"module 'os' has no attribute 'missing'"):
         os.missing()
 
@@ -28,12 +36,22 @@ def test_lazy_module() -> None:
 def test_lazy_module_getattr_first() -> None:
     pathlib = LazyModule("pathlib")
     assert isinstance(pathlib.Path.cwd().as_posix(), str)
+
+
+def test_lazy_module_getattr_first_then_dir() -> None:
+    pathlib = LazyModule("pathlib")
+    pathlib.Path.cwd()
     assert "Path" in dir(pathlib)
 
 
 def test_lazy_module_dir_first() -> None:
     pathlib = LazyModule("pathlib")
     assert "Path" in dir(pathlib)
+
+
+def test_lazy_module_dir_first_then_getattr() -> None:
+    pathlib = LazyModule("pathlib")
+    dir(pathlib)
     assert isinstance(pathlib.Path.cwd().as_posix(), str)
 
 
@@ -56,7 +74,15 @@ def test_lazy_module_missing() -> None:
 def test_lazy_import() -> None:
     os = lazy_import("os")
     assert isinstance(os.getcwd(), str)
+
+
+def test_lazy_import_second_function() -> None:
+    os = lazy_import("os")
     assert isinstance(os.cpu_count(), int)
+
+
+def test_lazy_import_missing_attribute() -> None:
+    os = lazy_import("os")
     with pytest.raises(AttributeError, match=r"module 'os' has no attribute 'missing'"):
         os.missing()
 
@@ -64,12 +90,22 @@ def test_lazy_import() -> None:
 def test_lazy_import_getattr_first() -> None:
     pathlib = lazy_import("pathlib")
     assert isinstance(pathlib.Path.cwd().as_posix(), str)
+
+
+def test_lazy_import_getattr_first_then_dir() -> None:
+    pathlib = lazy_import("pathlib")
+    pathlib.Path.cwd()
     assert "Path" in dir(pathlib)
 
 
 def test_lazy_import_dir_first() -> None:
     pathlib = lazy_import("pathlib")
     assert "Path" in dir(pathlib)
+
+
+def test_lazy_import_dir_first_then_getattr() -> None:
+    pathlib = lazy_import("pathlib")
+    dir(pathlib)
     assert isinstance(pathlib.Path.cwd().as_posix(), str)
 
 

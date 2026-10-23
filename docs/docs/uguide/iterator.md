@@ -255,7 +255,6 @@ iterator registered for their type. `MappingIterator` is the built-in iterator f
 ...     def iterate(self, data, registry):
 ...         for item in reversed(data):
 ...             yield from registry.iterate(item)
-...
 >>> list(MappingIterator().iterate({"a": 1, "b": 2}, get_default_registry()))
 [1, 2]
 >>> registry = get_default_registry()

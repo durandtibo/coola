@@ -101,10 +101,16 @@ def test_is_object_config_false_function_without_type_hint() -> None:
     )
 
 
-def test_is_object_config_empty_config() -> None:
+def test_is_object_config_empty_config_str() -> None:
     """Test is_object_config with completely empty config."""
     assert not is_object_config({}, str)
+
+
+def test_is_object_config_empty_config_dict() -> None:
     assert not is_object_config({}, dict)
+
+
+def test_is_object_config_empty_config_object() -> None:
     assert not is_object_config({}, object)
 
 
@@ -123,29 +129,44 @@ def test_is_object_config_with_extra_keys() -> None:
     assert is_object_config(config, Counter)
 
 
-def test_is_object_config_builtin_str() -> None:
+def test_is_object_config_builtin_str_str() -> None:
     """Test is_object_config with builtin string type."""
     assert is_object_config({OBJECT_TARGET: "builtins.str"}, str)
+
+
+def test_is_object_config_builtin_str_object() -> None:
     assert is_object_config({OBJECT_TARGET: "builtins.str"}, object)
 
 
-def test_is_object_config_builtin_list() -> None:
+def test_is_object_config_builtin_list_list() -> None:
     """Test is_object_config with builtin list type."""
     assert is_object_config({OBJECT_TARGET: "builtins.list"}, list)
+
+
+def test_is_object_config_builtin_list_object() -> None:
     assert is_object_config({OBJECT_TARGET: "builtins.list"}, object)
 
 
-def test_is_object_config_builtin_dict() -> None:
+def test_is_object_config_builtin_dict_dict() -> None:
     """Test is_object_config with builtin dict type."""
     assert is_object_config({OBJECT_TARGET: "builtins.dict"}, dict)
+
+
+def test_is_object_config_builtin_dict_object() -> None:
     assert is_object_config({OBJECT_TARGET: "builtins.dict"}, object)
 
 
-def test_is_object_config_with_object_class() -> None:
+def test_is_object_config_with_object_class_int() -> None:
     """Test is_object_config with object base class."""
     # Any class should match object since everything inherits from object
     assert is_object_config({OBJECT_TARGET: "builtins.int"}, object)
+
+
+def test_is_object_config_with_object_class_str() -> None:
     assert is_object_config({OBJECT_TARGET: "builtins.str"}, object)
+
+
+def test_is_object_config_with_object_class_counter() -> None:
     assert is_object_config({OBJECT_TARGET: "collections.Counter"}, object)
 
 
@@ -207,9 +228,13 @@ def test_is_object_config_not_a_virtual_subclass() -> None:
     assert not is_object_config({OBJECT_TARGET: "builtins.int"}, Interface)
 
 
-def test_is_object_config_allowed_prefixes_match() -> None:
+def test_is_object_config_allowed_prefixes_match_module() -> None:
     config = {OBJECT_TARGET: "collections.Counter"}
     assert is_object_config(config, Counter, allowed_prefixes=["collections"])
+
+
+def test_is_object_config_allowed_prefixes_match_class() -> None:
+    config = {OBJECT_TARGET: "collections.Counter"}
     assert is_object_config(config, Counter, allowed_prefixes=["os", "collections.Counter"])
 
 

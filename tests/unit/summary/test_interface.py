@@ -190,49 +190,79 @@ def test_get_default_registry_returns_singleton() -> None:
 
 
 @pytest.mark.parametrize("dtype", [object, int, float, str, bool, complex])
-def test_get_default_registry_default(dtype: type) -> None:
+def test_get_default_registry_default_is_registered(dtype: type) -> None:
     """Test that scalar types are registered with DefaultSummarizer."""
     registry = get_default_registry()
     assert registry.has_summarizer(dtype)
+
+
+@pytest.mark.parametrize("dtype", [object, int, float, str, bool, complex])
+def test_get_default_registry_default_summarizer(dtype: type) -> None:
+    registry = get_default_registry()
     assert isinstance(registry.find_summarizer(dtype), DefaultSummarizer)
 
 
 @pytest.mark.parametrize("dtype", [list, tuple, deque, Sequence])
-def test_get_default_registry_sequences(dtype: type) -> None:
+def test_get_default_registry_sequences_is_registered(dtype: type) -> None:
     """Test that sequence types are registered with
     SequenceSummarizer."""
     registry = get_default_registry()
     assert registry.has_summarizer(dtype)
+
+
+@pytest.mark.parametrize("dtype", [list, tuple, deque, Sequence])
+def test_get_default_registry_sequences_summarizer(dtype: type) -> None:
+    registry = get_default_registry()
     assert isinstance(registry.find_summarizer(dtype), SequenceSummarizer)
 
 
 @pytest.mark.parametrize("dtype", [set, frozenset])
-def test_get_default_registry_sets(dtype: type) -> None:
+def test_get_default_registry_sets_is_registered(dtype: type) -> None:
     """Test that set types are registered with SetSummarizer."""
     registry = get_default_registry()
     assert registry.has_summarizer(dtype)
+
+
+@pytest.mark.parametrize("dtype", [set, frozenset])
+def test_get_default_registry_sets_summarizer(dtype: type) -> None:
+    registry = get_default_registry()
     assert isinstance(registry.find_summarizer(dtype), SetSummarizer)
 
 
 @pytest.mark.parametrize("dtype", [dict, Mapping])
-def test_register_default_summarizers_registers_mappings(dtype: type) -> None:
+def test_register_default_summarizers_registers_mappings_is_registered(dtype: type) -> None:
     """Test that mapping types are registered with MappingSummarizer."""
     registry = get_default_registry()
     assert registry.has_summarizer(dtype)
+
+
+@pytest.mark.parametrize("dtype", [dict, Mapping])
+def test_register_default_summarizers_registers_mappings_summarizer(dtype: type) -> None:
+    registry = get_default_registry()
     assert isinstance(registry.find_summarizer(dtype), MappingSummarizer)
 
 
 @numpy_available
-def test_register_default_summarizers_registers_ndarray() -> None:
+def test_register_default_summarizers_registers_ndarray_is_registered() -> None:
     registry = get_default_registry()
     assert registry.has_summarizer(np.ndarray)
+
+
+@numpy_available
+def test_register_default_summarizers_registers_ndarray_summarizer() -> None:
+    registry = get_default_registry()
     assert isinstance(registry.find_summarizer(np.ndarray), NDArraySummarizer)
 
 
 @torch_available
-def test_register_default_summarizers_registers_tensor() -> None:
+def test_register_default_summarizers_registers_tensor_is_registered() -> None:
     registry = get_default_registry()
     assert registry.has_summarizer(torch.Tensor)
+
+
+@torch_available
+def test_register_default_summarizers_registers_tensor_summarizer() -> None:
+    registry = get_default_registry()
     assert isinstance(registry.find_summarizer(torch.Tensor), TensorSummarizer)
 
 
@@ -250,84 +280,154 @@ def test_default_registry_can_summarize_dict() -> None:
     assert registry.summarize({"a": 1, "b": 2}) == "<class 'dict'> (length=2)\n  (a): 1\n  (b): 2"
 
 
+def test_get_default_registry_singleton_does_not_have_the_custom_type() -> None:
+    """Test that the registry does not have the custom type."""
+    assert not get_default_registry().has_summarizer(CustomList)
+
+
 def test_get_default_registry_singleton_persists_modifications() -> None:
-    """Test that modifications to the registry persist across calls."""
+    """Test that modifications to the registry persist."""
     registry1 = get_default_registry()
-    assert not registry1.has_summarizer(CustomList)
     registry1.register(CustomList, SequenceSummarizer())
     assert registry1.has_summarizer(CustomList)
 
-    # Get registry again
-    registry2 = get_default_registry()
-    assert registry1 is registry2
-    assert registry2.has_summarizer(CustomList)
+
+def test_get_default_registry_singleton_returns_the_same_registry() -> None:
+    """Test that the registry is the same across calls."""
+    registry1 = get_default_registry()
+    registry1.register(CustomList, SequenceSummarizer())
+    assert registry1 is get_default_registry()
 
 
-def test_get_default_registry_registers_numpy_summarizer_when_numpy_available() -> None:
-    fake_ndarray = type("FakeNDArray", (), {})
-    fake_summarizer = object()
+def test_get_default_registry_singleton_persists_modifications_across_calls() -> None:
+    """Test that modifications to the registry persist across calls."""
+    get_default_registry().register(CustomList, SequenceSummarizer())
+    assert get_default_registry().has_summarizer(CustomList)
+
+
+def _get_registry_with_fake_numpy(
+    fake_ndarray: type, fake_summarizer: object
+) -> SummarizerRegistry:
     with (
         patch("coola.summary.interface.is_numpy_available", lambda: True),
         patch("coola.summary.interface.is_torch_available", lambda: False),
         patch("coola.summary.interface.np", Mock(ndarray=fake_ndarray), create=True),
         patch("coola.summary.interface.NDArraySummarizer", Mock(return_value=fake_summarizer)),
     ):
-        registry = get_default_registry()
+        return get_default_registry()
 
+
+def test_get_default_registry_registers_numpy_summarizer_when_numpy_available() -> None:
+    fake_ndarray = type("FakeNDArray", (), {})
+    registry = _get_registry_with_fake_numpy(fake_ndarray, object())
     assert registry.has_summarizer(fake_ndarray)
+
+
+def test_get_default_registry_registers_the_numpy_summarizer() -> None:
+    fake_ndarray = type("FakeNDArray", (), {})
+    fake_summarizer = object()
+    registry = _get_registry_with_fake_numpy(fake_ndarray, fake_summarizer)
     assert registry.find_summarizer(fake_ndarray) is fake_summarizer
 
 
-def test_get_default_registry_registers_torch_summarizer_when_torch_available() -> None:
-    fake_tensor = type("FakeTensor", (), {})
-    fake_summarizer = object()
+def _get_registry_with_fake_torch(fake_tensor: type, fake_summarizer: object) -> SummarizerRegistry:
     with (
         patch("coola.summary.interface.is_torch_available", lambda: True),
         patch("coola.summary.interface.is_numpy_available", lambda: False),
         patch("coola.summary.interface.torch", Mock(Tensor=fake_tensor), create=True),
         patch("coola.summary.interface.TensorSummarizer", Mock(return_value=fake_summarizer)),
     ):
-        registry = get_default_registry()
+        return get_default_registry()
 
+
+def test_get_default_registry_registers_torch_summarizer_when_torch_available() -> None:
+    fake_tensor = type("FakeTensor", (), {})
+    registry = _get_registry_with_fake_torch(fake_tensor, object())
     assert registry.has_summarizer(fake_tensor)
+
+
+def test_get_default_registry_registers_the_torch_summarizer() -> None:
+    fake_tensor = type("FakeTensor", (), {})
+    fake_summarizer = object()
+    registry = _get_registry_with_fake_torch(fake_tensor, fake_summarizer)
     assert registry.find_summarizer(fake_tensor) is fake_summarizer
 
 
 @pandas_available
-def test_get_default_registry_pandas_summarizers() -> None:
+def test_get_default_registry_pandas_summarizers_dataframe() -> None:
     registry = get_default_registry()
     assert isinstance(registry.find_summarizer(pd.DataFrame), PandasDataFrameSummarizer)
+
+
+@pandas_available
+def test_get_default_registry_pandas_summarizers_series() -> None:
+    registry = get_default_registry()
     assert isinstance(registry.find_summarizer(pd.Series), PandasSeriesSummarizer)
 
 
 @polars_available
-def test_get_default_registry_polars_summarizers() -> None:
+def test_get_default_registry_polars_summarizers_dataframe() -> None:
     registry = get_default_registry()
     assert isinstance(registry.find_summarizer(pl.DataFrame), PolarsDataFrameSummarizer)
+
+
+@polars_available
+def test_get_default_registry_polars_summarizers_lazyframe() -> None:
+    registry = get_default_registry()
     assert isinstance(registry.find_summarizer(pl.LazyFrame), PolarsLazyFrameSummarizer)
+
+
+@polars_available
+def test_get_default_registry_polars_summarizers_series() -> None:
+    registry = get_default_registry()
     assert isinstance(registry.find_summarizer(pl.Series), PolarsSeriesSummarizer)
 
 
 @pyarrow_available
-def test_get_default_registry_pyarrow_summarizers() -> None:
+def test_get_default_registry_pyarrow_summarizers_array() -> None:
     registry = get_default_registry()
     assert isinstance(registry.find_summarizer(pa.Array), PyarrowArraySummarizer)
+
+
+@pyarrow_available
+def test_get_default_registry_pyarrow_summarizers_chunked_array() -> None:
+    registry = get_default_registry()
     assert isinstance(registry.find_summarizer(pa.ChunkedArray), PyarrowArraySummarizer)
+
+
+@pyarrow_available
+def test_get_default_registry_pyarrow_summarizers_table() -> None:
+    registry = get_default_registry()
     assert isinstance(registry.find_summarizer(pa.Table), PyarrowTableSummarizer)
 
 
 @xarray_available
-def test_get_default_registry_xarray_summarizers() -> None:
+def test_get_default_registry_xarray_summarizers_data_array() -> None:
     registry = get_default_registry()
     assert isinstance(registry.find_summarizer(xr.DataArray), XarrayDataArraySummarizer)
+
+
+@xarray_available
+def test_get_default_registry_xarray_summarizers_dataset() -> None:
+    registry = get_default_registry()
     assert isinstance(registry.find_summarizer(xr.Dataset), XarrayDatasetSummarizer)
+
+
+@xarray_available
+def test_get_default_registry_xarray_summarizers_variable() -> None:
+    registry = get_default_registry()
     assert isinstance(registry.find_summarizer(xr.Variable), XarrayVariableSummarizer)
 
 
 @jax_available
-def test_get_default_registry_jax_summarizers() -> None:
+def test_get_default_registry_jax_summarizers_ndarray() -> None:
     registry = get_default_registry()
     assert isinstance(registry.find_summarizer(jnp.ndarray), JaxArraySummarizer)
+
+
+@jax_available
+def test_get_default_registry_jax_summarizers_array_type() -> None:
+    registry = get_default_registry()
     assert isinstance(registry.find_summarizer(type(jnp.ones(1))), JaxArraySummarizer)
 
 
@@ -343,10 +443,20 @@ def test_get_jax_summarizers_does_not_create_an_array() -> None:
 @pyarrow_available
 @xarray_available
 @jax_available
-def test_summarize_nested_structure_with_dataframes() -> None:
+def test_summarize_nested_structure_with_dataframes_pandas() -> None:
     data = {"pandas": pd.DataFrame({"a": [1]}), "polars": pl.DataFrame({"a": [1]})}
     result = summarize(data, max_depth=2)
     assert "pandas.DataFrame'> | shape=(1, 1) | columns=a: int64" in result
+
+
+@pandas_available
+@polars_available
+@pyarrow_available
+@xarray_available
+@jax_available
+def test_summarize_nested_structure_with_dataframes_polars() -> None:
+    data = {"pandas": pd.DataFrame({"a": [1]}), "polars": pl.DataFrame({"a": [1]})}
+    result = summarize(data, max_depth=2)
     assert "shape=(1, 1) | columns=a: Int64" in result
 
 

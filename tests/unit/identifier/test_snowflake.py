@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import contextlib
+import itertools
 import time
 from unittest.mock import patch
 
@@ -36,15 +38,23 @@ def _decode(snowflake_id: int) -> tuple[int, int, int]:
 ##########################################
 
 
-def test_snowflake_id_generator_init_default_state() -> None:
+def test_snowflake_id_generator_init_default_state_last_timestamp() -> None:
     generator = SnowflakeIdGenerator()
     assert generator._last_timestamp_ms == -1
+
+
+def test_snowflake_id_generator_init_default_state_sequence() -> None:
+    generator = SnowflakeIdGenerator()
     assert generator._sequence == 0
 
 
-def test_snowflake_id_generator_init_resumes_state() -> None:
+def test_snowflake_id_generator_init_resumes_state_last_timestamp() -> None:
     generator = SnowflakeIdGenerator(last_timestamp_ms=1_800_000_000_000, sequence=42)
     assert generator._last_timestamp_ms == 1_800_000_000_000
+
+
+def test_snowflake_id_generator_init_resumes_state_sequence() -> None:
+    generator = SnowflakeIdGenerator(last_timestamp_ms=1_800_000_000_000, sequence=42)
     assert generator._sequence == 42
 
 
@@ -106,14 +116,11 @@ def test_snowflake_id_generator_generate_is_unique_across_calls() -> None:
 
 def test_snowflake_id_generator_generate_is_monotonically_increasing() -> None:
     generator = SnowflakeIdGenerator()
-    previous = generator.generate()
-    for _ in range(1000):
-        current = generator.generate()
-        assert current > previous
-        previous = current
+    ids = [generator.generate() for _ in range(1001)]
+    assert all(current > previous for previous, current in itertools.pairwise(ids))
 
 
-def test_snowflake_id_generator_instances_are_independent() -> None:
+def _generate_from_two_generators() -> tuple[int, int, int]:
     # Two generators must not share sequence/timestamp state: minting
     # from one must not affect what the other returns next.
     generator1 = SnowflakeIdGenerator()
@@ -122,8 +129,21 @@ def test_snowflake_id_generator_instances_are_independent() -> None:
         first_from_1 = generator1.generate()
         first_from_2 = generator2.generate()
         second_from_1 = generator1.generate()
+    return first_from_1, first_from_2, second_from_1
+
+
+def test_snowflake_id_generator_instances_are_independent_first_generator() -> None:
+    first_from_1, _, _ = _generate_from_two_generators()
     assert _decode(first_from_1)[2] == 0
+
+
+def test_snowflake_id_generator_instances_are_independent_second_generator() -> None:
+    _, first_from_2, _ = _generate_from_two_generators()
     assert _decode(first_from_2)[2] == 0
+
+
+def test_snowflake_id_generator_instances_are_independent_sequence() -> None:
+    _, _, second_from_1 = _generate_from_two_generators()
     assert _decode(second_from_1)[2] == 1
 
 
@@ -230,7 +250,7 @@ def test_snowflake_id_generator_generate_encodes_timestamp_roundtrip() -> None:
     assert decoded_ms == fixed_ms
 
 
-def test_snowflake_id_generator_generate_sequence_rollover_advances_to_next_millisecond() -> None:
+def _generate_after_a_sequence_rollover() -> int:
     first_ms = 1_800_000_000_000
     next_ms = first_ms + 1
     generator = SnowflakeIdGenerator(last_timestamp_ms=first_ms, sequence=_MAX_SEQUENCE)
@@ -241,9 +261,16 @@ def test_snowflake_id_generator_generate_sequence_rollover_advances_to_next_mill
         "time.time_ns",
         side_effect=[first_ms * 1_000_000, first_ms * 1_000_000, next_ms * 1_000_000],
     ):
-        snowflake_id = generator.generate()
-    decoded_ms, _, sequence = _decode(snowflake_id)
-    assert decoded_ms == next_ms
+        return generator.generate()
+
+
+def test_snowflake_id_generator_generate_sequence_rollover_advances_to_next_millisecond() -> None:
+    decoded_ms, _, _ = _decode(_generate_after_a_sequence_rollover())
+    assert decoded_ms == 1_800_000_000_001
+
+
+def test_snowflake_id_generator_generate_sequence_rollover_resets_the_sequence() -> None:
+    _, _, sequence = _decode(_generate_after_a_sequence_rollover())
     assert sequence == 0
 
 
@@ -295,11 +322,8 @@ def test_snowflake_id_generator_generate_sequence_wraps_within_same_millisecond(
     generator = SnowflakeIdGenerator()
     fixed_ms = 1_800_000_000_000
     with patch("time.time_ns", return_value=fixed_ms * 1_000_000):
-        first = generator.generate()
-        current = first
-        for _ in range(_MAX_SEQUENCE):
-            current = generator.generate()
-        assert current == first + _MAX_SEQUENCE
+        ids = [generator.generate() for _ in range(_MAX_SEQUENCE + 1)]
+    assert ids[-1] == ids[0] + _MAX_SEQUENCE
 
 
 ###########################################
@@ -398,9 +422,21 @@ def test_snowflake_generator_reset_after_fork_keeps_the_ids_monotonic() -> None:
     assert generator.generate() > first
 
 
-def test_snowflake_id_generator_state_is_unchanged_after_a_backward_clock_in_the_busy_wait() -> (
-    None
-):
+def _generate_with_a_backward_clock_in_the_busy_wait() -> SnowflakeIdGenerator:
+    first_ms = 1_800_000_000_000
+    generator = SnowflakeIdGenerator(last_timestamp_ms=first_ms, sequence=_MAX_SEQUENCE)
+    with (
+        patch(
+            "time.time_ns",
+            side_effect=[first_ms * 1_000_000, (first_ms - 1) * 1_000_000],
+        ),
+        contextlib.suppress(RuntimeError),
+    ):
+        generator.generate()
+    return generator
+
+
+def test_snowflake_id_generator_backward_clock_in_the_busy_wait_raises_error() -> None:
     first_ms = 1_800_000_000_000
     generator = SnowflakeIdGenerator(last_timestamp_ms=first_ms, sequence=_MAX_SEQUENCE)
     with (
@@ -411,25 +447,30 @@ def test_snowflake_id_generator_state_is_unchanged_after_a_backward_clock_in_the
         pytest.raises(RuntimeError, match="clock moved backward"),
     ):
         generator.generate()
-    assert generator._last_timestamp_ms == first_ms
+
+
+def test_snowflake_id_generator_last_timestamp_is_unchanged_after_a_backward_clock() -> None:
+    generator = _generate_with_a_backward_clock_in_the_busy_wait()
+    assert generator._last_timestamp_ms == 1_800_000_000_000
+
+
+def test_snowflake_id_generator_sequence_is_unchanged_after_a_backward_clock() -> None:
+    generator = _generate_with_a_backward_clock_in_the_busy_wait()
     assert generator._sequence == _MAX_SEQUENCE
 
 
-def test_snowflake_id_generator_does_not_repeat_an_id_after_a_backward_clock_in_the_busy_wait() -> (
-    None
-):
+def _generate_after_a_backward_clock_in_the_busy_wait() -> tuple[set[int], int]:
     first_ms = 1_800_000_000_000
     generator = SnowflakeIdGenerator()
     with patch("time.time_ns", return_value=first_ms * 1_000_000):
         ids = {generator.generate() for _ in range(_MAX_SEQUENCE + 1)}
-    assert len(ids) == _MAX_SEQUENCE + 1
     # The sequence is exhausted for first_ms, and the clock moves backward during the wait.
     with (
         patch(
             "time.time_ns",
             side_effect=[first_ms * 1_000_000, (first_ms - 1) * 1_000_000],
         ),
-        pytest.raises(RuntimeError, match="clock moved backward"),
+        contextlib.suppress(RuntimeError),
     ):
         generator.generate()
     # The clock is back at first_ms and the next millisecond: no ID of first_ms is repeated.
@@ -438,5 +479,21 @@ def test_snowflake_id_generator_does_not_repeat_an_id_after_a_backward_clock_in_
         side_effect=[first_ms * 1_000_000, (first_ms + 1) * 1_000_000, (first_ms + 1) * 1_000_000],
     ):
         new_id = generator.generate()
+    return ids, new_id
+
+
+def test_snowflake_id_generator_exhausts_the_sequence_with_unique_ids() -> None:
+    ids, _ = _generate_after_a_backward_clock_in_the_busy_wait()
+    assert len(ids) == _MAX_SEQUENCE + 1
+
+
+def test_snowflake_id_generator_does_not_repeat_an_id_after_a_backward_clock_in_the_busy_wait() -> (
+    None
+):
+    ids, new_id = _generate_after_a_backward_clock_in_the_busy_wait()
     assert new_id not in ids
+
+
+def test_snowflake_id_generator_increases_after_a_backward_clock_in_the_busy_wait() -> None:
+    ids, new_id = _generate_after_a_backward_clock_in_the_busy_wait()
     assert new_id > max(ids)

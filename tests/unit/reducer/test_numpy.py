@@ -37,9 +37,18 @@ def test_numpy_reducer_str() -> None:
     "values",
     [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2), [2], [2, -1, -2, -3], np.array([-2, -1, 0, 1, 2])],
 )
-def test_numpy_reducer_max_int(values: Sequence[int | float]) -> None:
+def test_numpy_reducer_max_int_type(values: Sequence[int | float]) -> None:
     val = NumpyReducer().max(values)
     assert isinstance(val, int)
+
+
+@numpy_available
+@pytest.mark.parametrize(
+    "values",
+    [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2), [2], [2, -1, -2, -3], np.array([-2, -1, 0, 1, 2])],
+)
+def test_numpy_reducer_max_int_value(values: Sequence[int | float]) -> None:
+    val = NumpyReducer().max(values)
     assert val == 2
 
 
@@ -54,9 +63,24 @@ def test_numpy_reducer_max_int(values: Sequence[int | float]) -> None:
         np.array([-2.5, -1.5, 0.5, 1.5, 2.5]),
     ],
 )
-def test_numpy_reducer_max_float(values: Sequence[int | float]) -> None:
+def test_numpy_reducer_max_float_type(values: Sequence[int | float]) -> None:
     val = NumpyReducer().max(values)
     assert isinstance(val, float)
+
+
+@numpy_available
+@pytest.mark.parametrize(
+    "values",
+    [
+        [-2.5, -1.5, 0.5, 1.5, 2.5],
+        (-2.5, -1.5, 0.5, 1.5, 2.5),
+        [2.5],
+        [2.5, -1.5, -2, -3],
+        np.array([-2.5, -1.5, 0.5, 1.5, 2.5]),
+    ],
+)
+def test_numpy_reducer_max_float_value(values: Sequence[int | float]) -> None:
+    val = NumpyReducer().max(values)
     assert val == 2.5
 
 
@@ -73,9 +97,17 @@ def test_numpy_reducer_max_empty(values: Sequence[int | float]) -> None:
 @pytest.mark.parametrize(
     "values", [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2), [0], np.array([-2, -1, 0, 1, 2])]
 )
-def test_numpy_reducer_mean_int(values: Sequence[int | float]) -> None:
+def test_numpy_reducer_mean_int_type(values: Sequence[int | float]) -> None:
     val = NumpyReducer().mean(values)
     assert isinstance(val, float)
+
+
+@numpy_available
+@pytest.mark.parametrize(
+    "values", [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2), [0], np.array([-2, -1, 0, 1, 2])]
+)
+def test_numpy_reducer_mean_int_value(values: Sequence[int | float]) -> None:
+    val = NumpyReducer().mean(values)
     assert val == 0.0
 
 
@@ -89,9 +121,23 @@ def test_numpy_reducer_mean_int(values: Sequence[int | float]) -> None:
         np.array([-1.5, -0.5, 0.5, 1.5, 2.5]),
     ],
 )
-def test_numpy_reducer_mean_float(values: Sequence[int | float]) -> None:
+def test_numpy_reducer_mean_float_type(values: Sequence[int | float]) -> None:
     val = NumpyReducer().mean(values)
     assert isinstance(val, float)
+
+
+@numpy_available
+@pytest.mark.parametrize(
+    "values",
+    [
+        [-1.5, -0.5, 0.5, 1.5, 2.5],
+        (-1.5, -0.5, 0.5, 1.5, 2.5),
+        [0.5],
+        np.array([-1.5, -0.5, 0.5, 1.5, 2.5]),
+    ],
+)
+def test_numpy_reducer_mean_float_value(values: Sequence[int | float]) -> None:
+    val = NumpyReducer().mean(values)
     assert val == 0.5
 
 
@@ -140,9 +186,18 @@ def test_numpy_reducer_median_empty(values: Sequence[int | float]) -> None:
     "values",
     [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2), [-2], [-2, 1, 2, 3], np.array([-2, -1, 0, 1, 2])],
 )
-def test_numpy_reducer_min_int(values: Sequence[int | float]) -> None:
+def test_numpy_reducer_min_int_type(values: Sequence[int | float]) -> None:
     val = NumpyReducer().min(values)
     assert isinstance(val, int)
+
+
+@numpy_available
+@pytest.mark.parametrize(
+    "values",
+    [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2), [-2], [-2, 1, 2, 3], np.array([-2, -1, 0, 1, 2])],
+)
+def test_numpy_reducer_min_int_value(values: Sequence[int | float]) -> None:
+    val = NumpyReducer().min(values)
     assert val == -2
 
 
@@ -157,9 +212,24 @@ def test_numpy_reducer_min_int(values: Sequence[int | float]) -> None:
         np.array([-2.5, -1.5, 0.5, 1.5, 2.5]),
     ],
 )
-def test_numpy_reducer_min_float(values: Sequence[int | float]) -> None:
+def test_numpy_reducer_min_float_type(values: Sequence[int | float]) -> None:
     val = NumpyReducer().min(values)
     assert isinstance(val, float)
+
+
+@numpy_available
+@pytest.mark.parametrize(
+    "values",
+    [
+        [-2.5, -1.5, 0.5, 1.5, 2.5],
+        (-2.5, -1.5, 0.5, 1.5, 2.5),
+        [-2.5],
+        [-2.5, 1.5, 2, 3],
+        np.array([-2.5, -1.5, 0.5, 1.5, 2.5]),
+    ],
+)
+def test_numpy_reducer_min_float_value(values: Sequence[int | float]) -> None:
+    val = NumpyReducer().min(values)
     assert val == -2.5
 
 

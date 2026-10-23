@@ -20,8 +20,8 @@ class Transformer(Protocol[T_contra]):
     r"""Structural interface of a type-specific transformer.
 
     Any object with a compatible ``transform`` method can be registered
-    without subclassing ``BaseTransformer``, which remains
-    available as a convenience base class.
+    without subclassing ``BaseTransformer``, which remains available as
+    a convenience base class.
     """
 
     def transform(

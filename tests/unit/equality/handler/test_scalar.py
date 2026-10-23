@@ -235,14 +235,18 @@ def test_scalar_equal_handler_handle_false(example: ExamplePair, config: Equalit
     assert not ScalarEqualHandler().handle(example.actual, example.expected, config)
 
 
-def test_scalar_equal_handler_handle_false_show_difference(
+def test_scalar_equal_handler_handle_false_show_difference(config: EqualityConfig) -> None:
+    config.show_difference = True
+    assert not ScalarEqualHandler().handle(actual=1.0, expected=2.0, config=config)
+
+
+def test_scalar_equal_handler_handle_false_show_difference_logs(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
-    handler = ScalarEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(actual=1.0, expected=2.0, config=config)
-        assert caplog.messages[0].startswith("numbers are different:")
+        ScalarEqualHandler().handle(actual=1.0, expected=2.0, config=config)
+    assert caplog.messages[0].startswith("numbers are different:")
 
 
 @pytest.mark.parametrize("equal_nan", [True, False])
@@ -279,19 +283,38 @@ def test_scalar_equal_handler_set_next_handler_incorrect() -> None:
         handler.set_next_handler(42)
 
 
-def test_number_equal_huge_int_tolerance() -> None:
+def test_number_equal_huge_int_rtol() -> None:
     big = 10**400
-    config = EqualityConfig(rtol=1e-5)
-    assert number_equal(big, big + 1, config)
-    assert not number_equal(big, 2 * big, config)
+    assert number_equal(big, big + 1, EqualityConfig(rtol=1e-5))
+
+
+def test_number_equal_huge_int_rtol_different() -> None:
+    big = 10**400
+    assert not number_equal(big, 2 * big, EqualityConfig(rtol=1e-5))
+
+
+def test_number_equal_huge_int_atol_same() -> None:
+    big = 10**400
     assert number_equal(big, big, EqualityConfig(atol=1.0))
+
+
+def test_number_equal_huge_int_atol_different() -> None:
+    big = 10**400
     assert not number_equal(big, big + 2, EqualityConfig(atol=1.0))
+
+
+def test_number_equal_huge_int_atol_close() -> None:
+    big = 10**400
     assert number_equal(big, big + 1, EqualityConfig(atol=1.0))
 
 
 def test_number_equal_large_ints_are_not_rounded_to_float() -> None:
     config = EqualityConfig(rtol=0.0, atol=1e-8)
     assert not number_equal(2**60, 2**60 + 1, config)
+
+
+def test_number_equal_large_ints_are_equal_to_themselves() -> None:
+    config = EqualityConfig(rtol=0.0, atol=1e-8)
     assert number_equal(2**60, 2**60, config)
 
 
@@ -339,23 +362,32 @@ def test_int_isclose_is_symmetric() -> None:
 
 def test_int_isclose_default_tolerances_are_exact() -> None:
     assert int_isclose(10**400, 10**400)
+
+
+def test_int_isclose_default_tolerances_are_exact_different() -> None:
     assert not int_isclose(10**400, 10**400 + 1)
 
 
-def test_int_isclose_agrees_with_math_isclose_for_small_ints() -> None:
-    for number1, number2 in [(100, 101), (1000, 1001), (7, 8), (0, 1)]:
-        assert int_isclose(number1, number2, rtol=0.01, atol=0.5) == math.isclose(
-            number1, number2, rel_tol=0.01, abs_tol=0.5
-        )
+@pytest.mark.parametrize(("number1", "number2"), [(100, 101), (1000, 1001), (7, 8), (0, 1)])
+def test_int_isclose_agrees_with_math_isclose_for_small_ints(number1: int, number2: int) -> None:
+    assert int_isclose(number1, number2, rtol=0.01, atol=0.5) == math.isclose(
+        number1, number2, rel_tol=0.01, abs_tol=0.5
+    )
 
 
 def test_number_equal_complex_exact() -> None:
     assert number_equal(1 + 1j, 1 + 1j, EqualityConfig())
+
+
+def test_number_equal_complex_exact_different() -> None:
     assert not number_equal(1 + 1j, 1 + 2j, EqualityConfig())
 
 
-def test_number_equal_complex_tolerance() -> None:
+def test_number_equal_complex_atol() -> None:
     assert number_equal(1 + 1j, 1 + 1.05j, EqualityConfig(atol=0.1))
+
+
+def test_number_equal_complex_rtol() -> None:
     assert number_equal(1 + 1j, 1.05 + 1j, EqualityConfig(rtol=0.1))
 
 
@@ -369,7 +401,13 @@ def test_number_equal_complex_tolerance_checks_imaginary_part() -> None:
 
 def test_number_equal_complex_and_real_tolerance() -> None:
     assert number_equal(1 + 0j, 1.05, EqualityConfig(atol=0.1))
+
+
+def test_number_equal_real_and_complex_tolerance() -> None:
     assert number_equal(1.05, 1 + 0j, EqualityConfig(atol=0.1))
+
+
+def test_number_equal_complex_with_imaginary_part_and_real_tolerance() -> None:
     assert not number_equal(1 + 1j, 1.0, EqualityConfig(atol=0.1))
 
 
@@ -377,7 +415,21 @@ def test_nan_equal_handler_handle_complex_nan_parts(config: EqualityConfig) -> N
     config.equal_nan = True
     handler = NanEqualHandler(next_handler=ScalarEqualHandler())
     assert handler.handle(complex(float("nan"), 1), complex(float("nan"), 1), config)
+
+
+def test_nan_equal_handler_handle_complex_nan_real_parts_different_imaginary_parts(
+    config: EqualityConfig,
+) -> None:
+    config.equal_nan = True
+    handler = NanEqualHandler(next_handler=ScalarEqualHandler())
     assert not handler.handle(complex(float("nan"), 1), complex(float("nan"), 2), config)
+
+
+def test_nan_equal_handler_handle_complex_nan_imaginary_parts_different_real_parts(
+    config: EqualityConfig,
+) -> None:
+    config.equal_nan = True
+    handler = NanEqualHandler(next_handler=ScalarEqualHandler())
     assert not handler.handle(complex(1, float("nan")), complex(2, float("nan")), config)
 
 
@@ -415,4 +467,8 @@ def test_complex_are_equal_false(actual: complex, expected: complex) -> None:
 def test_complex_are_equal_tolerance() -> None:
     config = EqualityConfig(equal_nan=True, atol=0.1)
     assert complex_are_equal(complex(NAN, 1), complex(NAN, 1.05), config)
+
+
+def test_complex_are_equal_tolerance_different() -> None:
+    config = EqualityConfig(equal_nan=True, atol=0.1)
     assert not complex_are_equal(complex(NAN, 1), complex(NAN, 1.5), config)

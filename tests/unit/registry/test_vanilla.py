@@ -19,9 +19,16 @@ def test_registry_init_with_initial_state() -> None:
     """Test creating a registry with initial state."""
     registry = Registry[str, int]({"a": 1, "b": 2, "c": 3})
     assert len(registry) == 3
-    assert registry.get("a") == 1
-    assert registry.get("b") == 2
-    assert registry.get("c") == 3
+
+
+@pytest.mark.parametrize(("key", "value"), [("a", 1), ("b", 2), ("c", 3)])
+def test_registry_init_with_initial_state_get(key: str, value: int) -> None:
+    registry = Registry[str, int]({"a": 1, "b": 2, "c": 3})
+    assert registry.get(key) == value
+
+
+def test_registry_init_with_initial_state_content() -> None:
+    registry = Registry[str, int]({"a": 1, "b": 2, "c": 3})
     assert registry._state == {"a": 1, "b": 2, "c": 3}
 
 
@@ -31,7 +38,19 @@ def test_registry_init_copies_initial_state() -> None:
     registry = Registry[str, int](initial)
     initial["b"] = 2
     assert len(registry) == 1
+
+
+def test_registry_init_copies_initial_state_has() -> None:
+    initial = {"a": 1}
+    registry = Registry[str, int](initial)
+    initial["b"] = 2
     assert not registry.has("b")
+
+
+def test_registry_init_copies_initial_state_content() -> None:
+    initial = {"a": 1}
+    registry = Registry[str, int](initial)
+    initial["b"] = 2
     assert registry._state == {"a": 1}
 
 
@@ -168,8 +187,13 @@ def test_registry_unregister_existing_key() -> None:
     """Test unregistering an existing key."""
     registry = Registry[str, int]()
     registry.register("key1", 42)
-    value = registry.unregister("key1")
-    assert value == 42
+    assert registry.unregister("key1") == 42
+
+
+def test_registry_unregister_existing_key_removes_the_key() -> None:
+    registry = Registry[str, int]()
+    registry.register("key1", 42)
+    registry.unregister("key1")
     assert registry.equal(Registry[str, int]())
 
 
@@ -183,9 +207,13 @@ def test_registry_unregister_missing_key_raises_error() -> None:
 def test_registry_unregister_reduces_length() -> None:
     """Test that unregister reduces registry length."""
     registry = Registry[str, int]({"a": 1, "b": 2})
-    assert len(registry) == 2
     registry.unregister("a")
     assert len(registry) == 1
+
+
+def test_registry_unregister_keeps_the_other_keys() -> None:
+    registry = Registry[str, int]({"a": 1, "b": 2})
+    registry.unregister("a")
     assert registry.equal(Registry[str, int]({"b": 2}))
 
 
@@ -258,6 +286,11 @@ def test_registry_contains_operator() -> None:
     """Test the 'in' operator."""
     registry = Registry[str, int]({"key1": 42})
     assert "key1" in registry
+
+
+def test_registry_not_contains_operator() -> None:
+    """Test the 'not in' operator."""
+    registry = Registry[str, int]({"key1": 42})
     assert "missing" not in registry
 
 
@@ -326,10 +359,18 @@ def test_registry_iter_empty() -> None:
 
 def test_registry_len_operator() -> None:
     """Test the len() function."""
+    assert len(Registry[str, int]()) == 0
+
+
+def test_registry_len_operator_one_item() -> None:
     registry = Registry[str, int]()
-    assert len(registry) == 0
     registry.register("a", 1)
     assert len(registry) == 1
+
+
+def test_registry_len_operator_two_items() -> None:
+    registry = Registry[str, int]()
+    registry.register("a", 1)
     registry.register("b", 2)
     assert len(registry) == 2
 
@@ -343,6 +384,12 @@ def test_registry_with_int_keys() -> None:
     registry.register(1, "one")
     registry.register(2, "two")
     assert registry.get(1) == "one"
+
+
+def test_registry_with_int_keys_second_key() -> None:
+    registry = Registry[int, str]()
+    registry.register(1, "one")
+    registry.register(2, "two")
     assert registry.get(2) == "two"
 
 
@@ -359,4 +406,10 @@ def test_registry_with_complex_values() -> None:
     registry.register("list1", [1, 2, 3])
     registry.register("list2", ["a", "b", "c"])
     assert registry.get("list1") == [1, 2, 3]
+
+
+def test_registry_with_complex_values_second_value() -> None:
+    registry = Registry[str, list]()
+    registry.register("list1", [1, 2, 3])
+    registry.register("list2", ["a", "b", "c"])
     assert registry.get("list2") == ["a", "b", "c"]

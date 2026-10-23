@@ -14,6 +14,10 @@ def test_sort_by_keys_empty() -> None:
 def test_sort_by_keys() -> None:
     data = sort_by_keys({"dog": 1, "cat": 5, "fish": 2})
     assert data == {"cat": 5, "dog": 1, "fish": 2}
+
+
+def test_sort_by_keys_order() -> None:
+    data = sort_by_keys({"dog": 1, "cat": 5, "fish": 2})
     assert list(data.keys()) == ["cat", "dog", "fish"]
 
 
@@ -26,6 +30,11 @@ def test_sort_by_keys_numeric_keys() -> None:
     """Test sort_by_keys with numeric keys."""
     data = sort_by_keys({3: "c", 1: "a", 2: "b"})
     assert data == {1: "a", 2: "b", 3: "c"}
+
+
+def test_sort_by_keys_numeric_keys_order() -> None:
+    """Test sort_by_keys with numeric keys."""
+    data = sort_by_keys({3: "c", 1: "a", 2: "b"})
     assert list(data.keys()) == [1, 2, 3]
 
 
@@ -48,6 +57,10 @@ def test_sort_by_values_empty() -> None:
 def test_sort_by_values() -> None:
     data = sort_by_values({"dog": 1, "cat": 5, "fish": 2})
     assert data == {"dog": 1, "fish": 2, "cat": 5}
+
+
+def test_sort_by_values_order() -> None:
+    data = sort_by_values({"dog": 1, "cat": 5, "fish": 2})
     assert list(data.keys()) == ["dog", "fish", "cat"]
 
 
@@ -60,6 +73,11 @@ def test_sort_by_values_string_values() -> None:
     """Test sort_by_values with string values."""
     data = sort_by_values({"a": "zebra", "b": "apple", "c": "banana"})
     assert data == {"b": "apple", "c": "banana", "a": "zebra"}
+
+
+def test_sort_by_values_string_values_order() -> None:
+    """Test sort_by_values with string values."""
+    data = sort_by_values({"a": "zebra", "b": "apple", "c": "banana"})
     assert list(data.keys()) == ["b", "c", "a"]
 
 
@@ -67,6 +85,11 @@ def test_sort_by_values_negative_values() -> None:
     """Test sort_by_values with negative numeric values."""
     data = sort_by_values({"a": -5, "b": 10, "c": -2})
     assert data == {"a": -5, "c": -2, "b": 10}
+
+
+def test_sort_by_values_negative_values_order() -> None:
+    """Test sort_by_values with negative numeric values."""
+    data = sort_by_values({"a": -5, "b": 10, "c": -2})
     assert list(data.keys()) == ["a", "c", "b"]
 
 
@@ -75,6 +98,10 @@ def test_sort_by_values_identical_values() -> None:
     stable)."""
     data = sort_by_values({"a": 1, "b": 1, "c": 1})
     assert all(v == 1 for v in data.values())
+
+
+def test_sort_by_values_identical_values_keeps_the_length() -> None:
+    data = sort_by_values({"a": 1, "b": 1, "c": 1})
     assert len(data) == 3
 
 

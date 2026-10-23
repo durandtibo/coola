@@ -490,12 +490,12 @@ def test_str_human_byte_size_exact_gb_boundary() -> None:
 
 def test_str_human_byte_size_incorrect_unit() -> None:
     with pytest.raises(ValueError, match=r"Incorrect unit ''. The available units are"):
-        assert str_human_byte_size(1, "")
+        str_human_byte_size(1, "")
 
 
 def test_str_human_byte_size_negative_size() -> None:
     with pytest.raises(ValueError, match=r"Size must be non-negative"):
-        assert str_human_byte_size(-1)
+        str_human_byte_size(-1)
 
 
 #########################################
@@ -550,11 +550,14 @@ def test_find_best_byte_unit_exact_gb_boundary() -> None:
 
 def test_find_best_byte_unit_negative_size() -> None:
     with pytest.raises(ValueError, match=r"Size must be non-negative"):
-        assert find_best_byte_unit(-1)
+        find_best_byte_unit(-1)
 
 
 def test_str_time_human_negative() -> None:
     assert str_time_human(-5) == "-0:00:05"
+
+
+def test_str_time_human_negative_with_microseconds() -> None:
     assert str_time_human(-3661.2) == "-1:01:01.200000"
 
 
@@ -564,8 +567,11 @@ def test_str_time_human_invalid(seconds: float) -> None:
         str_time_human(seconds)
 
 
-def test_str_indent_skips_empty_lines() -> None:
+def test_str_indent_skips_trailing_empty_line() -> None:
     assert str_indent("a\nb\n", 2) == "a\n  b\n"
+
+
+def test_str_indent_skips_empty_lines() -> None:
     assert str_indent("a\n\nb", 2) == "a\n\n  b"
 
 

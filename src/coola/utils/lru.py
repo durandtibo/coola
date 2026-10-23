@@ -2,9 +2,9 @@ r"""Define a bounded, dict-like LRU (least-recently-used) cache.
 
 Used by ``TypeRegistry`` (and other data structures that need a bounded
 lookup cache) to cap memory usage while keeping the most recently used
-entries around. This class is not thread-safe on its own — callers
-that share an instance across threads (e.g. ``TypeRegistry``) are
-expected to guard access with their own lock.
+entries around. This class is not thread-safe on its own — callers that
+share an instance across threads (e.g. ``TypeRegistry``) are expected to
+guard access with their own lock.
 """
 
 from __future__ import annotations

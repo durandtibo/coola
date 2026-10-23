@@ -3,11 +3,12 @@ r"""Property-based tests for the guarantees of the functions of
 
 from __future__ import annotations
 
+import contextlib
 import copy
 from typing import TYPE_CHECKING, Any
 
 import pytest
-from hypothesis import given, strategies as st
+from hypothesis import assume, given, strategies as st
 
 from coola.equality import objects_are_equal
 from coola.nested import (
@@ -71,9 +72,13 @@ def test_round_trip_with_any_separator(data: dict[str, Any], separator: str) -> 
 
 
 @given(data=nested_dicts)
-def test_flat_dict_has_string_keys_and_no_nested_dict(data: dict[str, Any]) -> None:
+def test_flat_dict_has_string_keys(data: dict[str, Any]) -> None:
+    assert all(isinstance(key, str) for key in to_flat_dict(data))
+
+
+@given(data=nested_dicts)
+def test_flat_dict_has_no_nested_dict(data: dict[str, Any]) -> None:
     flat = to_flat_dict(data)
-    assert all(isinstance(key, str) for key in flat)
     assert all(not isinstance(value, dict) or value == {} for value in flat.values())
 
 
@@ -91,10 +96,10 @@ def test_flat_dict_is_a_fixed_point(data: dict[str, Any]) -> None:
 
 @given(data=nested_dicts, prefix=keys)
 def test_prefix_is_added_to_all_the_keys(data: dict[str, Any], prefix: str) -> None:
+    assume(data)
     flat = to_flat_dict(data, prefix=prefix)
     expected = {f"{prefix}.{key}": value for key, value in to_flat_dict(data).items()}
-    if data:
-        assert flat == expected
+    assert flat == expected
 
 
 @given(first=keys, second=keys, value=flat_leaves, other=flat_leaves)
@@ -103,14 +108,24 @@ def test_a_key_that_is_a_scalar_and_a_prefix_is_a_conflict(
 ) -> None:
     with pytest.raises(ValueError, match="conflict"):
         from_flat_dict({first: value, f"{first}.{second}": other})
+
+
+@given(first=keys, second=keys, value=flat_leaves, other=flat_leaves)
+def test_a_key_that_is_a_scalar_and_a_prefix_is_a_conflict_in_any_order(
+    first: str, second: str, value: Any, other: Any
+) -> None:
     with pytest.raises(ValueError, match="conflict"):
         from_flat_dict({f"{first}.{second}": other, first: value})
 
 
-@given(key=keys, value=flat_leaves, other=flat_leaves)
-def test_keys_that_have_the_same_string_collide(key: str, value: Any, other: Any) -> None:
+@given(value=flat_leaves, other=flat_leaves)
+def test_keys_that_have_the_same_string_collide(value: Any, other: Any) -> None:
     with pytest.raises(ValueError, match="collision"):
         to_flat_dict({1: value, "1": other})
+
+
+@given(key=keys, value=flat_leaves)
+def test_a_single_key_does_not_collide(key: str, value: Any) -> None:
     assert to_flat_dict({key: value}) == {key: value}
 
 
@@ -139,11 +154,19 @@ def test_from_flat_dict_does_not_depend_on_the_order_of_the_keys(
 
 
 @given(first=keys, second=keys, leaf=st.dictionaries(keys, flat_leaves, min_size=1, max_size=3))
-def test_from_flat_dict_never_extends_a_dict_given_as_a_value(
+def test_from_flat_dict_raises_for_a_dict_given_as_a_value(
+    first: str, second: str, leaf: dict[str, Any]
+) -> None:
+    with pytest.raises(ValueError, match="conflict"):
+        from_flat_dict({first: leaf, f"{first}.{second}": 0})
+
+
+@given(first=keys, second=keys, leaf=st.dictionaries(keys, flat_leaves, min_size=1, max_size=3))
+def test_from_flat_dict_does_not_modify_a_dict_given_as_a_value(
     first: str, second: str, leaf: dict[str, Any]
 ) -> None:
     expected = copy.deepcopy(leaf)
-    with pytest.raises(ValueError, match="conflict"):
+    with contextlib.suppress(ValueError):
         from_flat_dict({first: leaf, f"{first}.{second}": 0})
     assert leaf == expected
 
@@ -186,51 +209,61 @@ def test_merge_of_a_merged_mapping_is_unchanged(
     assert merge_mappings([merged, merged], on_duplicate=on_duplicate) == merged
 
 
+@pytest.mark.parametrize("on_duplicate", ["first", "last"])
 @given(first=int_mappings, second=int_mappings)
-def test_merge_keeps_every_key(first: dict[str, int], second: dict[str, int]) -> None:
-    for on_duplicate in ("first", "last"):
-        merged = merge_mappings([first, second], on_duplicate=on_duplicate)
-        assert set(merged) == set(first) | set(second)
+def test_merge_keeps_every_key(
+    on_duplicate: str, first: dict[str, int], second: dict[str, int]
+) -> None:
+    merged = merge_mappings([first, second], on_duplicate=on_duplicate)
+    assert set(merged) == set(first) | set(second)
 
 
 @given(first=int_mappings, second=int_mappings)
-def test_merge_first_keeps_the_first_value_and_last_the_last_value(
+def test_merge_first_keeps_the_first_value(first: dict[str, int], second: dict[str, int]) -> None:
+    merged = merge_mappings([first, second], on_duplicate="first")
+    assert merged == {**second, **first}
+
+
+@given(first=int_mappings, second=int_mappings)
+def test_merge_last_keeps_the_last_value(first: dict[str, int], second: dict[str, int]) -> None:
+    merged = merge_mappings([first, second], on_duplicate="last")
+    assert merged == {**first, **second}
+
+
+@given(first=int_mappings, second=int_mappings)
+def test_merge_raise_raises_if_a_key_has_two_values(
     first: dict[str, int], second: dict[str, int]
 ) -> None:
-    kept_first = merge_mappings([first, second], on_duplicate="first")
-    kept_last = merge_mappings([first, second], on_duplicate="last")
-    for key in set(first) | set(second):
-        assert kept_first[key] == first.get(key, second.get(key))
-        assert kept_last[key] == second.get(key, first.get(key))
+    assume(first)
+    key = next(iter(first))
+    with pytest.raises(DuplicateKeyError):
+        merge_mappings([first, {**second, key: first[key] + 1}], on_duplicate="raise")
 
 
 @given(first=int_mappings, second=int_mappings)
-def test_merge_raise_raises_iff_a_key_has_two_values(
+def test_merge_raise_merges_if_no_key_has_two_values(
     first: dict[str, int], second: dict[str, int]
 ) -> None:
-    conflict = any(key in second and second[key] != value for key, value in first.items())
-    if conflict:
-        with pytest.raises(DuplicateKeyError):
-            merge_mappings([first, second], on_duplicate="raise")
-    else:
-        merged = merge_mappings([first, second], on_duplicate="raise")
-        assert merged == {**second, **first}
+    assume(not any(key in second and second[key] != value for key, value in first.items()))
+    merged = merge_mappings([first, second], on_duplicate="raise")
+    assert merged == {**second, **first}
 
 
 @given(first=int_mappings, second=int_mappings)
 def test_merge_suffix_loses_no_value(first: dict[str, int], second: dict[str, int]) -> None:
     merged = merge_mappings([first, second], on_duplicate="suffix")
-    for mapping in (first, second):
-        for key, value in mapping.items():
-            assert value in {v for k, v in merged.items() if k == key or k.startswith(f"{key}_")}
+    assert all(
+        value in {v for k, v in merged.items() if k == key or k.startswith(f"{key}_")}
+        for mapping in (first, second)
+        for key, value in mapping.items()
+    )
 
 
-@given(first=int_mappings, second=int_mappings, third=int_mappings, on_duplicate=strategies)
+@pytest.mark.parametrize("on_duplicate", ["first", "last"])
+@given(first=int_mappings, second=int_mappings, third=int_mappings)
 def test_merge_is_associative_for_the_keys(
-    first: dict[str, int], second: dict[str, int], third: dict[str, int], on_duplicate: str
+    on_duplicate: str, first: dict[str, int], second: dict[str, int], third: dict[str, int]
 ) -> None:
-    if on_duplicate == "suffix":
-        return
     left = merge_mappings([merge_mappings([first, second], on_duplicate), third], on_duplicate)
     right = merge_mappings([first, merge_mappings([second, third], on_duplicate)], on_duplicate)
     assert left == right
@@ -241,6 +274,15 @@ def test_merge_is_associative_for_the_keys(
 #############################
 
 nested_mappings = st.dictionaries(keys, int_mappings, max_size=4)
+
+
+def inner_values(mapping: dict[str, dict[str, int]]) -> dict[str, set[int]]:
+    r"""Collect the values found for each key of the inner mappings."""
+    seen: dict[str, set[int]] = {}
+    for inner_mapping in mapping.values():
+        for key, value in inner_mapping.items():
+            seen.setdefault(key, set()).add(value)
+    return seen
 
 
 @given(mapping=nested_mappings, separator=separators)
@@ -267,22 +309,27 @@ def test_flatten_is_idempotent_on_a_flat_mapping(
 @given(mapping=nested_mappings)
 def test_flatten_prefix_loses_no_value(mapping: dict[str, dict[str, int]]) -> None:
     flat = flatten_mapping(mapping, on_duplicate="prefix")
-    for inner_mapping in mapping.values():
-        for value in inner_mapping.values():
-            assert value in flat.values()
+    assert all(
+        value in flat.values()
+        for inner_mapping in mapping.values()
+        for value in inner_mapping.values()
+    )
 
 
 @given(mapping=nested_mappings)
-def test_flatten_raise_raises_iff_an_inner_key_has_two_values(
+def test_flatten_raise_raises_if_an_inner_key_has_two_values(
     mapping: dict[str, dict[str, int]],
 ) -> None:
-    seen: dict[str, set[int]] = {}
-    for inner_mapping in mapping.values():
-        for key, value in inner_mapping.items():
-            seen.setdefault(key, set()).add(value)
-    if any(len(found) > 1 for found in seen.values()):
-        with pytest.raises(DuplicateKeyError):
-            flatten_mapping(mapping, on_duplicate="raise")
-    else:
-        flat = flatten_mapping(mapping, on_duplicate="raise")
-        assert objects_are_equal(flat, {key: next(iter(found)) for key, found in seen.items()})
+    assume(any(len(found) > 1 for found in inner_values(mapping).values()))
+    with pytest.raises(DuplicateKeyError):
+        flatten_mapping(mapping, on_duplicate="raise")
+
+
+@given(mapping=nested_mappings)
+def test_flatten_raise_flattens_if_no_inner_key_has_two_values(
+    mapping: dict[str, dict[str, int]],
+) -> None:
+    seen = inner_values(mapping)
+    assume(all(len(found) == 1 for found in seen.values()))
+    flat = flatten_mapping(mapping, on_duplicate="raise")
+    assert objects_are_equal(flat, {key: next(iter(found)) for key, found in seen.items()})

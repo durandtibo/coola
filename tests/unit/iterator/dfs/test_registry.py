@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -30,13 +31,20 @@ def test_iterator_registry_init_empty() -> None:
 
 
 def test_iterator_registry_init_with_registry() -> None:
+    registry = IteratorRegistry({list: IterableIterator()})
+    assert list in registry._state
+
+
+def test_iterator_registry_init_with_registry_keeps_the_iterator() -> None:
+    iterator = IterableIterator()
+    registry = IteratorRegistry({list: iterator})
+    assert registry._state[list] is iterator
+
+
+def test_iterator_registry_init_with_registry_copies_the_registry() -> None:
     iterator = IterableIterator()
     initial_registry: dict[type, BaseIterator[Any]] = {list: iterator}
     registry = IteratorRegistry(initial_registry)
-
-    assert list in registry._state
-    assert registry._state[list] is iterator
-    # Verify it's a copy
     initial_registry[tuple] = iterator
     assert tuple not in registry._state
 
@@ -49,11 +57,17 @@ def test_iterator_registry_str() -> None:
     assert str(IteratorRegistry()).startswith("IteratorRegistry(")
 
 
-def test_iterator_registry_register_new_type() -> None:
+def test_iterator_registry_register_new_type_has_iterator() -> None:
     registry = IteratorRegistry()
     iterator = IterableIterator()
     registry.register(list, iterator)
     assert registry.has_iterator(list)
+
+
+def test_iterator_registry_register_new_type_keeps_the_iterator() -> None:
+    registry = IteratorRegistry()
+    iterator = IterableIterator()
+    registry.register(list, iterator)
     assert registry._state[list] is iterator
 
 
@@ -77,7 +91,7 @@ def test_iterator_registry_register_existing_type_with_exist_ok() -> None:
     assert registry._state[list] is iterator2
 
 
-def test_iterator_registry_register_many() -> None:
+def test_iterator_registry_register_many_list() -> None:
     registry = IteratorRegistry()
     registry.register_many(
         {
@@ -87,7 +101,29 @@ def test_iterator_registry_register_many() -> None:
         }
     )
     assert registry.has_iterator(list)
+
+
+def test_iterator_registry_register_many_dict() -> None:
+    registry = IteratorRegistry()
+    registry.register_many(
+        {
+            list: IterableIterator(),
+            dict: MappingIterator(),
+            set: IterableIterator(),
+        }
+    )
     assert registry.has_iterator(dict)
+
+
+def test_iterator_registry_register_many_set() -> None:
+    registry = IteratorRegistry()
+    registry.register_many(
+        {
+            list: IterableIterator(),
+            dict: MappingIterator(),
+            set: IterableIterator(),
+        }
+    )
     assert registry.has_iterator(set)
 
 
@@ -144,14 +180,21 @@ def test_iterator_registry_iterate_default(data: Any, expected: Any) -> None:
     assert list(IteratorRegistry({object: DefaultIterator()}).iterate(data)) == expected
 
 
-def test_iterator_registry_registry_isolation() -> None:
+def test_iterator_registry_registry_isolation_first_registry() -> None:
     iterator1 = IterableIterator()
     iterator2 = MappingIterator()
 
     registry1 = IteratorRegistry({list: iterator1})
-    registry2 = IteratorRegistry({list: iterator2})
-
+    IteratorRegistry({list: iterator2})
     assert registry1._state[list] is iterator1
+
+
+def test_iterator_registry_registry_isolation_second_registry() -> None:
+    iterator1 = IterableIterator()
+    iterator2 = MappingIterator()
+
+    IteratorRegistry({list: iterator1})
+    registry2 = IteratorRegistry({list: iterator2})
     assert registry2._state[list] is iterator2
 
 
@@ -218,10 +261,16 @@ def test_iterator_registry_iterate_repeated_leaf_is_not_a_cycle() -> None:
     assert list(registry.iterate([value, [value, value]])) == ["x", "x", "x"]
 
 
-def test_iterator_registry_iterate_sees_registrations_made_after_a_traversal_started() -> None:
+def test_iterator_registry_iterate_yields_the_first_item_before_the_registration() -> None:
     registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
     iterator = registry.iterate([1, Wrapper(2)])
     assert next(iterator) == 1
+
+
+def test_iterator_registry_iterate_sees_registrations_made_after_a_traversal_started() -> None:
+    registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
+    iterator = registry.iterate([1, Wrapper(2)])
+    next(iterator)
     registry.register(Wrapper, WrapperIterator())
     assert list(iterator) == [2]
 
@@ -239,6 +288,11 @@ def test_path_registry_shares_the_state_of_the_registry() -> None:
     registry = IteratorRegistry({object: DefaultIterator()})
     path_registry = PathRegistry(registry, ())
     assert path_registry._state is registry._state
+
+
+def test_path_registry_sees_the_registrations_of_the_registry() -> None:
+    registry = IteratorRegistry({object: DefaultIterator()})
+    path_registry = PathRegistry(registry, ())
     registry.register(list, IterableIterator())
     assert path_registry.has(list)
 
@@ -261,71 +315,124 @@ def test_path_registry_iterate_not_an_ancestor() -> None:
     assert list(PathRegistry(registry, (id(other),)).iterate([1, 2])) == [1, 2]
 
 
+class RecordingIterator(BaseIterator[Wrapper]):
+    def __init__(self, received: list[IteratorRegistry], *, recursive: bool = False) -> None:
+        self._received = received
+        self._recursive = recursive
+
+    def iterate(self, data: Wrapper, registry: IteratorRegistry) -> Iterator[Any]:
+        self._received.append(registry)
+        for item in data.items:
+            if self._recursive:
+                yield from registry.iterate(item)
+            else:
+                yield item
+
+
+def test_path_registry_is_given_to_the_iterators_values() -> None:
+    registry = IteratorRegistry({object: DefaultIterator(), Wrapper: RecordingIterator([])})
+    assert list(registry.iterate(Wrapper(1, 2))) == [1, 2]
+
+
 def test_path_registry_is_given_to_the_iterators() -> None:
     received: list[IteratorRegistry] = []
-
-    class RecordingIterator(BaseIterator[Wrapper]):
-        def iterate(self, data: Wrapper, registry: IteratorRegistry) -> Iterator[Any]:
-            received.append(registry)
-            yield from data.items
-
-    registry = IteratorRegistry({object: DefaultIterator(), Wrapper: RecordingIterator()})
-    assert list(registry.iterate(Wrapper(1, 2))) == [1, 2]
+    registry = IteratorRegistry({object: DefaultIterator(), Wrapper: RecordingIterator(received)})
+    list(registry.iterate(Wrapper(1, 2)))
     assert isinstance(received[0], PathRegistry)
 
 
-def test_path_registry_is_the_same_object_for_all_the_objects_of_a_traversal() -> None:
+def _traverse_nested_wrappers() -> tuple[list[Any], list[IteratorRegistry]]:
     received: list[IteratorRegistry] = []
-
-    class RecordingIterator(BaseIterator[Wrapper]):
-        def iterate(self, data: Wrapper, registry: IteratorRegistry) -> Iterator[Any]:
-            received.append(registry)
-            for item in data.items:
-                yield from registry.iterate(item)
-
-    registry = IteratorRegistry({object: DefaultIterator(), Wrapper: RecordingIterator()})
+    registry = IteratorRegistry(
+        {object: DefaultIterator(), Wrapper: RecordingIterator(received, recursive=True)}
+    )
     data = Wrapper(Wrapper(1, 2), Wrapper(3, Wrapper(4)))
-    assert list(registry.iterate(data)) == [1, 2, 3, 4]
+    return list(registry.iterate(data)), received
+
+
+def test_path_registry_traverses_all_the_objects() -> None:
+    values, _ = _traverse_nested_wrappers()
+    assert values == [1, 2, 3, 4]
+
+
+def test_path_registry_is_given_to_all_the_wrappers_of_a_traversal() -> None:
+    _, received = _traverse_nested_wrappers()
     assert len(received) == 4
+
+
+def test_path_registry_is_the_same_object_for_all_the_objects_of_a_traversal() -> None:
+    _, received = _traverse_nested_wrappers()
     assert all(r is received[0] for r in received)
+
+
+def test_path_registry_shared_container_is_not_a_cycle() -> None:
+    registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
+    path_registry = PathRegistry(registry)
+    shared = [1]
+    # ``shared`` is visited twice, but never inside itself: it is not a cycle.
+    assert list(path_registry.iterate([shared, shared])) == [1, 1]
 
 
 def test_path_registry_removes_the_ancestors_when_leaving_a_container() -> None:
     registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
     path_registry = PathRegistry(registry)
     shared = [1]
-    # ``shared`` is visited twice, but never inside itself: it is not a cycle.
-    assert list(path_registry.iterate([shared, shared])) == [1, 1]
+    list(path_registry.iterate([shared, shared]))
     assert path_registry._ancestors == set()
+
+
+def _make_cycle() -> list:
+    data: list = [1]
+    data.append(data)
+    return data
+
+
+def test_path_registry_raises_an_error_for_a_cycle() -> None:
+    registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
+    path_registry = PathRegistry(registry)
+    with pytest.raises(ValueError, match="Cycle detected"):
+        list(path_registry.iterate(_make_cycle()))
 
 
 def test_path_registry_removes_the_ancestors_after_an_error() -> None:
     registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
     path_registry = PathRegistry(registry)
-    data: list = [1]
-    data.append(data)
-    with pytest.raises(ValueError, match="Cycle detected"):
-        list(path_registry.iterate(data))
+    with contextlib.suppress(ValueError):
+        list(path_registry.iterate(_make_cycle()))
     assert path_registry._ancestors == set()
+
+
+def test_path_registry_keeps_the_ancestors_while_the_generator_is_running() -> None:
+    registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
+    path_registry = PathRegistry(registry)
+    iterator = path_registry.iterate([[1, 2], [3, 4]])
+    next(iterator)
+    # The outer list, the first inner list and the leaf being yielded.
+    assert len(path_registry._ancestors) == 3
 
 
 def test_path_registry_removes_the_ancestors_when_the_generator_is_closed() -> None:
     registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
     path_registry = PathRegistry(registry)
     iterator = path_registry.iterate([[1, 2], [3, 4]])
-    assert next(iterator) == 1
-    # The outer list, the first inner list and the leaf being yielded.
-    assert len(path_registry._ancestors) == 3
+    next(iterator)
     iterator.close()
     assert path_registry._ancestors == set()
 
 
-def test_path_registry_initial_ancestors_are_copied() -> None:
+def test_path_registry_initial_ancestors_are_copied_initial_ancestors() -> None:
     registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
     ancestors = {1}
     path_registry = PathRegistry(registry, ancestors)
     list(path_registry.iterate([1]))
     assert ancestors == {1}
+
+
+def test_path_registry_initial_ancestors_are_copied_path_ancestors() -> None:
+    registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
+    ancestors = {1}
+    path_registry = PathRegistry(registry, ancestors)
+    list(path_registry.iterate([1]))
     assert path_registry._ancestors == {1}
 
 
@@ -335,11 +442,25 @@ def test_registry_iterate_wide_structure() -> None:
     assert sum(registry.iterate(data)) == sum(range(20_000))
 
 
-def test_registry_iterate_two_traversals_are_independent() -> None:
+def test_registry_iterate_first_traversal_yields_the_first_item() -> None:
+    registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
+    assert next(registry.iterate([[1, 2], [3, 4]])) == 1
+
+
+def test_registry_iterate_second_traversal_is_independent() -> None:
     registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
     data = [[1, 2], [3, 4]]
     first = registry.iterate(data)
     second = registry.iterate(data)
-    assert next(first) == 1
+    next(first)
     assert list(second) == [1, 2, 3, 4]
+
+
+def test_registry_iterate_first_traversal_is_not_affected_by_the_second() -> None:
+    registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
+    data = [[1, 2], [3, 4]]
+    first = registry.iterate(data)
+    second = registry.iterate(data)
+    next(first)
+    list(second)
     assert list(first) == [2, 3, 4]

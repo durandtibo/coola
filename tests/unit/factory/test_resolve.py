@@ -61,60 +61,104 @@ class Dog(Animal):
 #############################
 
 
-def test_factory_valid_object() -> None:
+def test_factory_valid_object_type() -> None:
     """Test factory with a valid built-in class."""
     counter = factory("collections.Counter", [1, 2, 1, 3])
     assert isinstance(counter, Counter)
+
+
+def test_factory_valid_object_most_common() -> None:
+    counter = factory("collections.Counter", [1, 2, 1, 3])
     assert counter.most_common(5) == [(1, 2), (2, 1), (3, 1)]
 
 
-def test_factory_ordered_dict() -> None:
+def test_factory_ordered_dict_type() -> None:
     """Test factory with OrderedDict class."""
     obj = factory("collections.OrderedDict", [("a", 1), ("b", 2)])
     assert isinstance(obj, OrderedDict)
+
+
+def test_factory_ordered_dict_keys() -> None:
+    obj = factory("collections.OrderedDict", [("a", 1), ("b", 2)])
     assert list(obj.keys()) == ["a", "b"]
 
 
-def test_factory_with_kwargs() -> None:
+def test_factory_with_kwargs_a() -> None:
     """Test factory with keyword arguments."""
     counter = factory("collections.Counter", a=4, b=2)
     assert counter["a"] == 4
+
+
+def test_factory_with_kwargs_b() -> None:
+    counter = factory("collections.Counter", a=4, b=2)
     assert counter["b"] == 2
 
 
-def test_factory_with_args_and_kwargs() -> None:
+def test_factory_with_args_and_kwargs_type() -> None:
     """Test factory with both positional and keyword arguments."""
     obj = factory("tests.unit.factory.test_resolve.FakeClass", 10, arg2="mixed")
     assert isinstance(obj, FakeClass)
+
+
+def test_factory_with_args_and_kwargs_arg1() -> None:
+    obj = factory("tests.unit.factory.test_resolve.FakeClass", 10, arg2="mixed")
     assert obj.arg1 == 10
+
+
+def test_factory_with_args_and_kwargs_arg2() -> None:
+    obj = factory("tests.unit.factory.test_resolve.FakeClass", 10, arg2="mixed")
     assert obj.arg2 == "mixed"
 
 
-def test_factory_with_only_kwargs() -> None:
+def test_factory_with_only_kwargs_type() -> None:
     """Test factory with only keyword arguments."""
     obj = factory("tests.unit.factory.test_resolve.FakeClass", arg1=20, arg2="kwargs_only")
     assert isinstance(obj, FakeClass)
+
+
+def test_factory_with_only_kwargs_arg1() -> None:
+    obj = factory("tests.unit.factory.test_resolve.FakeClass", arg1=20, arg2="kwargs_only")
     assert obj.arg1 == 20
+
+
+def test_factory_with_only_kwargs_arg2() -> None:
+    obj = factory("tests.unit.factory.test_resolve.FakeClass", arg1=20, arg2="kwargs_only")
     assert obj.arg2 == "kwargs_only"
 
 
-def test_factory_with_default_parameter() -> None:
+def test_factory_with_default_parameter_type() -> None:
     """Test factory where default parameter is used."""
     obj = factory("tests.unit.factory.test_resolve.FakeClass", 30)
     assert isinstance(obj, FakeClass)
+
+
+def test_factory_with_default_parameter_arg1() -> None:
+    obj = factory("tests.unit.factory.test_resolve.FakeClass", 30)
     assert obj.arg1 == 30
+
+
+def test_factory_with_default_parameter_arg2() -> None:
+    obj = factory("tests.unit.factory.test_resolve.FakeClass", 30)
     assert obj.arg2 == "default"
 
 
-def test_factory_with_classmethod_init() -> None:
+def test_factory_with_classmethod_init_type() -> None:
     """Test factory with custom class method as initializer."""
     obj = factory("tests.unit.factory.test_resolve.FakeClass", _init_="create_with_defaults")
     assert isinstance(obj, FakeClass)
+
+
+def test_factory_with_classmethod_init_arg1() -> None:
+    obj = factory("tests.unit.factory.test_resolve.FakeClass", _init_="create_with_defaults")
     assert obj.arg1 == 42
+
+
+def test_factory_with_classmethod_init_arg2() -> None:
+    obj = factory("tests.unit.factory.test_resolve.FakeClass", _init_="create_with_defaults")
     assert obj.arg2 == "factory_method"
 
 
-def test_factory_with_classmethod_init_and_args() -> None:
+def test_factory_with_classmethod_init_and_args_type() -> None:
     """Test factory with custom class method and arguments."""
     obj = factory(
         "tests.unit.factory.test_resolve.FakeClass",
@@ -122,11 +166,27 @@ def test_factory_with_classmethod_init_and_args() -> None:
         _init_="create_with_custom_arg2",
     )
     assert isinstance(obj, FakeClass)
+
+
+def test_factory_with_classmethod_init_and_args_arg1() -> None:
+    obj = factory(
+        "tests.unit.factory.test_resolve.FakeClass",
+        "custom_value",
+        _init_="create_with_custom_arg2",
+    )
     assert obj.arg1 == 100
+
+
+def test_factory_with_classmethod_init_and_args_arg2() -> None:
+    obj = factory(
+        "tests.unit.factory.test_resolve.FakeClass",
+        "custom_value",
+        _init_="create_with_custom_arg2",
+    )
     assert obj.arg2 == "custom_value"
 
 
-def test_factory_with_classmethod_init_and_kwargs() -> None:
+def test_factory_with_classmethod_init_and_kwargs_type() -> None:
     """Test factory with custom class method and keyword arguments."""
     obj = factory(
         "tests.unit.factory.test_resolve.FakeClass",
@@ -134,15 +194,39 @@ def test_factory_with_classmethod_init_and_kwargs() -> None:
         arg2="kwarg_value",
     )
     assert isinstance(obj, FakeClass)
+
+
+def test_factory_with_classmethod_init_and_kwargs_arg1() -> None:
+    obj = factory(
+        "tests.unit.factory.test_resolve.FakeClass",
+        _init_="create_with_custom_arg2",
+        arg2="kwarg_value",
+    )
     assert obj.arg1 == 100
+
+
+def test_factory_with_classmethod_init_and_kwargs_arg2() -> None:
+    obj = factory(
+        "tests.unit.factory.test_resolve.FakeClass",
+        _init_="create_with_custom_arg2",
+        arg2="kwarg_value",
+    )
     assert obj.arg2 == "kwarg_value"
 
 
-def test_factory_with_static_method_init() -> None:
+def test_factory_with_static_method_init_type() -> None:
     """Test factory with static method as initializer."""
     obj = factory("tests.unit.factory.test_resolve.FakeClass", _init_="static_create")
     assert isinstance(obj, FakeClass)
+
+
+def test_factory_with_static_method_init_arg1() -> None:
+    obj = factory("tests.unit.factory.test_resolve.FakeClass", _init_="static_create")
     assert obj.arg1 == 999
+
+
+def test_factory_with_static_method_init_arg2() -> None:
+    obj = factory("tests.unit.factory.test_resolve.FakeClass", _init_="static_create")
     assert obj.arg2 == "static"
 
 
@@ -152,40 +236,65 @@ def test_factory_with_new_init() -> None:
     assert isinstance(obj, FakeClass)
 
 
-def test_factory_function_target() -> None:
+def test_factory_function_target_type() -> None:
     """Test factory with a function as target."""
     obj = factory("tests.unit.factory.test_resolve.fake_function", 60)
     assert isinstance(obj, FakeClass)
+
+
+def test_factory_function_target_arg1() -> None:
+    obj = factory("tests.unit.factory.test_resolve.fake_function", 60)
     assert obj.arg1 == 60
+
+
+def test_factory_function_target_arg2() -> None:
+    obj = factory("tests.unit.factory.test_resolve.fake_function", 60)
     assert obj.arg2 == "function_default"
 
 
-def test_factory_function_with_kwargs() -> None:
+def test_factory_function_with_kwargs_arg1() -> None:
     """Test factory with a function and keyword arguments."""
     obj = factory("tests.unit.factory.test_resolve.fake_function", arg1=70, arg2="function_kwargs")
     assert obj.arg1 == 70
+
+
+def test_factory_function_with_kwargs_arg2() -> None:
+    obj = factory("tests.unit.factory.test_resolve.fake_function", arg1=70, arg2="function_kwargs")
     assert obj.arg2 == "function_kwargs"
 
 
-def test_factory_builtin_type() -> None:
+def test_factory_builtin_type_value() -> None:
     """Test factory with built-in types."""
     obj = factory("builtins.int", "42")
     assert obj == 42
+
+
+def test_factory_builtin_type_type() -> None:
+    obj = factory("builtins.int", "42")
     assert isinstance(obj, int)
 
 
-def test_factory_builtin_list() -> None:
+def test_factory_builtin_list_value() -> None:
     """Test factory with built-in list type."""
     obj = factory("builtins.list", [1, 2, 3])
     assert obj == [1, 2, 3]
+
+
+def test_factory_builtin_list_type() -> None:
+    obj = factory("builtins.list", [1, 2, 3])
     assert isinstance(obj, list)
 
 
 @pytest.mark.parametrize(("arg1", "arg2"), [(1, "a"), (10, "z"), (-5, "test")])
-def test_factory_parametrized(arg1: int, arg2: str) -> None:
+def test_factory_parametrized_arg1(arg1: int, arg2: str) -> None:
     """Test factory with parametrized inputs."""
     obj = factory("tests.unit.factory.test_resolve.FakeClass", arg1=arg1, arg2=arg2)
     assert obj.arg1 == arg1
+
+
+@pytest.mark.parametrize(("arg1", "arg2"), [(1, "a"), (10, "z"), (-5, "test")])
+def test_factory_parametrized_arg2(arg1: int, arg2: str) -> None:
+    obj = factory("tests.unit.factory.test_resolve.FakeClass", arg1=arg1, arg2=arg2)
     assert obj.arg2 == arg2
 
 
@@ -211,7 +320,7 @@ def test_factory_non_existing_module() -> None:
         factory("non_existing_module.SomeClass")
 
 
-def test_factory_object_init_constant_matches_literal_key() -> None:
+def test_factory_object_init_constant_matches_literal_key_type() -> None:
     """Test that the OBJECT_INIT constant is wired to the actual
     ``_init_`` behavior of factory, i.e. that using the constant as a
     dict key has the same effect as the literal ``"_init_"`` string."""
@@ -223,7 +332,27 @@ def test_factory_object_init_constant_matches_literal_key() -> None:
         }
     )
     assert isinstance(obj, FakeClass)
+
+
+def test_factory_object_init_constant_matches_literal_key_arg1() -> None:
+    obj = factory(
+        **{
+            OBJECT_TARGET: "tests.unit.factory.test_resolve.FakeClass",
+            OBJECT_INIT: "create_with_custom_arg2",
+            "arg2": "custom_value",
+        }
+    )
     assert obj.arg1 == 100
+
+
+def test_factory_object_init_constant_matches_literal_key_arg2() -> None:
+    obj = factory(
+        **{
+            OBJECT_TARGET: "tests.unit.factory.test_resolve.FakeClass",
+            OBJECT_INIT: "create_with_custom_arg2",
+            "arg2": "custom_value",
+        }
+    )
     assert obj.arg2 == "custom_value"
 
 
@@ -245,17 +374,25 @@ def test_factory_malformed_target() -> None:
         factory("collections.")
 
 
-def test_factory_with_custom_class() -> None:
+def test_factory_with_custom_class_arg1() -> None:
     """Test factory with custom test class."""
     obj = factory("tests.unit.factory.test_resolve.FakeClass", arg1=123, arg2="test")
     assert obj.arg1 == 123
+
+
+def test_factory_with_custom_class_arg2() -> None:
+    obj = factory("tests.unit.factory.test_resolve.FakeClass", arg1=123, arg2="test")
     assert obj.arg2 == "test"
 
 
-def test_factory_preserves_type() -> None:
+def test_factory_preserves_type_is_instance() -> None:
     """Test that factory preserves the correct type."""
     counter = factory("collections.Counter")
     assert type(counter).__name__ == "Counter"
+
+
+def test_factory_preserves_type_type() -> None:
+    counter = factory("collections.Counter")
     assert isinstance(counter, Counter)
 
 
@@ -345,11 +482,17 @@ def test_resolve_object_counter_instance_matching_cls_is_passed_through() -> Non
     assert resolve_object(counter, cls=Counter) is counter
 
 
-def test_resolve_object_plain_dict_with_dict_subclass_cls_is_treated_as_config() -> None:
+def test_resolve_object_plain_dict_with_dict_subclass_cls_is_treated_as_config_type() -> None:
     # A plain `dict` (not already an instance of `cls`) describing a
     # `dict`-subclass target is still treated as a factory configuration.
     result = resolve_object({OBJECT_TARGET: "collections.OrderedDict", "a": 1}, cls=OrderedDict)
     assert isinstance(result, OrderedDict)
+
+
+def test_resolve_object_plain_dict_with_dict_subclass_cls_is_treated_as_config_value() -> None:
+    # A plain `dict` (not already an instance of `cls`) describing a
+    # `dict`-subclass target is still treated as a factory configuration.
+    result = resolve_object({OBJECT_TARGET: "collections.OrderedDict", "a": 1}, cls=OrderedDict)
     assert result == OrderedDict(a=1)
 
 
@@ -362,6 +505,9 @@ def test_resolve_object_dict_subclass_instance_not_matching_cls_is_treated_as_co
 
 def test_factory_allowed_prefixes() -> None:
     assert factory("collections.Counter", [1, 1], _allowed_prefixes_=["collections"])
+
+
+def test_factory_not_allowed_prefixes() -> None:
     with pytest.raises(ImportError, match="is not allowed"):
         factory("os.getcwd", _allowed_prefixes_=["collections"])
 

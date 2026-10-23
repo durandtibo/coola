@@ -49,9 +49,13 @@ def test_iterable_child_finder_find_children(data: Any, expected: Any) -> None:
     assert objects_are_equal(list(iterator.find_children(data)), expected)
 
 
-def test_iterable_child_finder_find_children_set() -> None:
+def test_iterable_child_finder_find_children_set_not_empty() -> None:
     result = list(IterableChildFinder().find_children({1, 2, 3}))
     assert len(result)
+
+
+def test_iterable_child_finder_find_children_set_values() -> None:
+    result = list(IterableChildFinder().find_children({1, 2, 3}))
     assert objects_are_equal(set(result), {1, 2, 3})
 
 

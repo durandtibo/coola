@@ -133,38 +133,74 @@ def test_get_default_registry_returns_singleton() -> None:
     assert registry1 is registry2
 
 
-def test_get_default_registry_scalar_types() -> None:
+def test_get_default_registry_scalar_types_int() -> None:
     """Test that scalar types are registered with DefaultTransformer."""
     registry = get_default_registry()
     assert registry.has_transformer(int)
+
+
+def test_get_default_registry_scalar_types_float() -> None:
+    registry = get_default_registry()
     assert registry.has_transformer(float)
+
+
+def test_get_default_registry_scalar_types_complex() -> None:
+    registry = get_default_registry()
     assert registry.has_transformer(complex)
+
+
+def test_get_default_registry_scalar_types_bool() -> None:
+    registry = get_default_registry()
     assert registry.has_transformer(bool)
+
+
+def test_get_default_registry_scalar_types_str() -> None:
+    registry = get_default_registry()
     assert registry.has_transformer(str)
 
 
-def test_get_default_registry_sequences() -> None:
+def test_get_default_registry_sequences_list() -> None:
     """Test that sequence types are registered with
     SequenceTransformer."""
     registry = get_default_registry()
     assert registry.has_transformer(list)
+
+
+def test_get_default_registry_sequences_tuple() -> None:
+    registry = get_default_registry()
     assert registry.has_transformer(tuple)
+
+
+def test_get_default_registry_sequences_deque() -> None:
+    registry = get_default_registry()
     assert registry.has_transformer(deque)
+
+
+def test_get_default_registry_sequences_sequence() -> None:
+    registry = get_default_registry()
     assert registry.has_transformer(Sequence)
 
 
-def test_get_default_registry_sets() -> None:
+def test_get_default_registry_sets_set() -> None:
     """Test that set types are registered with SetTransformer."""
     registry = get_default_registry()
     assert registry.has_transformer(set)
+
+
+def test_get_default_registry_sets_frozenset() -> None:
+    registry = get_default_registry()
     assert registry.has_transformer(frozenset)
 
 
-def test_register_default_transformers_registers_mappings() -> None:
+def test_register_default_transformers_registers_mappings_dict() -> None:
     """Test that mapping types are registered with
     MappingTransformer."""
     registry = get_default_registry()
     assert registry.has_transformer(dict)
+
+
+def test_register_default_transformers_registers_mappings_mapping() -> None:
+    registry = get_default_registry()
     assert registry.has_transformer(Mapping)
 
 
@@ -186,37 +222,67 @@ def test_default_registry_can_transform_dict() -> None:
     assert registry.transform({"a": 1, "b": 2}, lambda x: x * 10) == {"a": 10, "b": 20}
 
 
+def test_get_default_registry_singleton_does_not_have_the_custom_type() -> None:
+    """Test that the registry does not have the custom type."""
+    assert not get_default_registry().has_transformer(CustomList)
+
+
 def test_get_default_registry_singleton_persists_modifications() -> None:
-    """Test that modifications to the registry persist across calls."""
+    """Test that modifications to the registry persist."""
     registry1 = get_default_registry()
-    assert not registry1.has_transformer(CustomList)
     registry1.register(CustomList, SequenceTransformer())
     assert registry1.has_transformer(CustomList)
 
-    # Get registry again
-    registry2 = get_default_registry()
-    assert registry1 is registry2
-    assert registry2.has_transformer(CustomList)
+
+def test_get_default_registry_singleton_returns_the_same_registry() -> None:
+    """Test that the registry is the same across calls."""
+    registry1 = get_default_registry()
+    registry1.register(CustomList, SequenceTransformer())
+    assert registry1 is get_default_registry()
 
 
-def test_recursive_apply_with_deque() -> None:
+def test_get_default_registry_singleton_persists_modifications_across_calls() -> None:
+    """Test that modifications to the registry persist across calls."""
+    get_default_registry().register(CustomList, SequenceTransformer())
+    assert get_default_registry().has_transformer(CustomList)
+
+
+def test_recursive_apply_with_deque_values() -> None:
     result = recursive_apply(
         deque([1, [2]], maxlen=5), lambda x: x + 1 if isinstance(x, int) else x
     )
     assert result == deque([2, [3]])
+
+
+def test_recursive_apply_with_deque_maxlen() -> None:
+    result = recursive_apply(
+        deque([1, [2]], maxlen=5), lambda x: x + 1 if isinstance(x, int) else x
+    )
     assert result.maxlen == 5
 
 
-def test_recursive_apply_with_defaultdict() -> None:
+def test_recursive_apply_with_defaultdict_type() -> None:
     result = recursive_apply(defaultdict(list, {"a": [1]}), lambda x: x + 1)
     assert type(result) is defaultdict
+
+
+def test_recursive_apply_with_defaultdict_default_factory() -> None:
+    result = recursive_apply(defaultdict(list, {"a": [1]}), lambda x: x + 1)
     assert result.default_factory is list
+
+
+def test_recursive_apply_with_defaultdict_values() -> None:
+    result = recursive_apply(defaultdict(list, {"a": [1]}), lambda x: x + 1)
     assert result == {"a": [2]}
 
 
-def test_recursive_apply_with_mapping_proxy() -> None:
+def test_recursive_apply_with_mapping_proxy_type() -> None:
     result = recursive_apply(MappingProxyType({"a": 1, "b": [2]}), lambda x: x + 1)
     assert isinstance(result, MappingProxyType)
+
+
+def test_recursive_apply_with_mapping_proxy_values() -> None:
+    result = recursive_apply(MappingProxyType({"a": 1, "b": [2]}), lambda x: x + 1)
     assert result == {"a": 2, "b": [3]}
 
 

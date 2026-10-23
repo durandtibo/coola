@@ -165,17 +165,27 @@ def test_hash_path_is_case_sensitive(tmp_path: Path) -> None:
 # --- Resolution behavior ---
 
 
-def test_hash_path_resolves_relative_segments(tmp_path: Path) -> None:
+def test_hash_path_resolves_relative_segments_resolved(tmp_path: Path) -> None:
     direct = tmp_path / "file.txt"
     indirect = tmp_path / "sub" / ".." / "file.txt"
     assert hash_path(direct, resolve=True) == hash_path(indirect, resolve=True)
+
+
+def test_hash_path_resolves_relative_segments_not_resolved(tmp_path: Path) -> None:
+    direct = tmp_path / "file.txt"
+    indirect = tmp_path / "sub" / ".." / "file.txt"
     assert hash_path(direct) != hash_path(indirect)
 
 
-def test_hash_path_resolves_relative_to_absolute() -> None:
+def test_hash_path_resolves_relative_to_absolute_resolved() -> None:
     relative = Path("file.txt")
     absolute = Path.cwd() / "file.txt"
     assert hash_path(relative, resolve=True) == hash_path(absolute, resolve=True)
+
+
+def test_hash_path_resolves_relative_to_absolute_not_resolved() -> None:
+    relative = Path("file.txt")
+    absolute = Path.cwd() / "file.txt"
     assert hash_path(relative) != hash_path(absolute)
 
 
@@ -228,9 +238,13 @@ def test_hash_path_windows_path_uses_posix_form() -> None:
     assert hash_path(PureWindowsPath("a\\b")) == hash_tagged("Path", "a/b")
 
 
-def test_default_registry_hashes_paths_without_resolving() -> None:
+def test_default_registry_hashes_paths_without_resolving_path() -> None:
     registry = get_default_registry()
     assert registry.hash(Path("a")) == hash_path(Path("a"))
+
+
+def test_default_registry_hashes_paths_without_resolving_pure_path() -> None:
+    registry = get_default_registry()
     assert registry.hash(PurePosixPath("a")) == hash_path(PurePosixPath("a"))
 
 

@@ -173,31 +173,50 @@ def test_to_json_path() -> None:
     assert to_jsonable(Path("a/b.txt")) == str(Path("a/b.txt"))
 
 
-def test_to_json_date_and_datetime() -> None:
+def test_to_json_date() -> None:
     assert to_jsonable(datetime.date(2024, 1, 2)) == "2024-01-02"
+
+
+def test_to_json_datetime() -> None:
     assert (
         to_jsonable(datetime.datetime(2024, 1, 2, 3, 4, 5, tzinfo=datetime.UTC))
         == "2024-01-02T03:04:05+00:00"
     )
 
 
-def test_to_json_enum() -> None:
-    class Color(Enum):
-        RED = 1
+class Color(Enum):
+    RED = 1
 
-    class Name(Enum):
-        A = "a"
 
+class Name(Enum):
+    A = "a"
+
+
+def test_to_json_enum_with_int_value() -> None:
     assert to_jsonable(Color.RED) == 1
+
+
+def test_to_json_enum_with_str_value() -> None:
     assert to_jsonable(Name.A) == "a"
 
 
 @numpy_available
 def test_to_json_numpy_scalar() -> None:
-    result = to_jsonable(np.float32(1.5))
-    assert result == 1.5
-    assert type(result) is float
+    assert to_jsonable(np.float32(1.5)) == 1.5
+
+
+@numpy_available
+def test_to_json_numpy_float_scalar_type() -> None:
+    assert type(to_jsonable(np.float32(1.5))) is float
+
+
+@numpy_available
+def test_to_json_numpy_int_scalar_type() -> None:
     assert type(to_jsonable(np.int64(3))) is int
+
+
+@numpy_available
+def test_to_json_numpy_bool_scalar_type() -> None:
     assert type(to_jsonable(np.bool_(True))) is bool
 
 

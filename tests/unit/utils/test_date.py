@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, date, datetime
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import pytest
@@ -13,37 +13,64 @@ from coola.utils.date import get_today_date, to_date, to_datetime
 ####################################
 
 
-def test_get_today_date_default() -> None:
-    """Test that it defaults to UTC and YYYY-MM-DD format."""
+def _get_today_date_default() -> tuple[str, Mock]:
     with patch("coola.utils.date.datetime") as mock_datetime:
         mock_datetime.now.return_value = datetime(
             year=2026, month=3, day=19, hour=12, minute=0, second=0, tzinfo=ZoneInfo("UTC")
         )
         result = get_today_date()
-        assert result == "2026-03-19"
-        mock_datetime.now.assert_called_once_with(ZoneInfo("UTC"))
+    return result, mock_datetime
 
 
-def test_get_today_date_custom_timezone() -> None:
-    """Test that it correctly applies a specific timezone."""
+def test_get_today_date_default() -> None:
+    """Test that it defaults to UTC and YYYY-MM-DD format."""
+    result, _ = _get_today_date_default()
+    assert result == "2026-03-19"
+
+
+def test_get_today_date_default_uses_the_timezone() -> None:
+    _, mock_datetime = _get_today_date_default()
+    mock_datetime.now.assert_called_once_with(ZoneInfo("UTC"))
+
+
+def _get_today_date_custom_timezone() -> tuple[str, Mock]:
     with patch("coola.utils.date.datetime") as mock_datetime:
         mock_datetime.now.return_value = datetime(
             year=2026, month=3, day=20, hour=3, minute=0, second=0, tzinfo=ZoneInfo("Asia/Tokyo")
         )
         result = get_today_date(timezone="Asia/Tokyo")
-        assert result == "2026-03-20"
-        mock_datetime.now.assert_called_once_with(ZoneInfo("Asia/Tokyo"))
+    return result, mock_datetime
 
 
-def test_get_today_date_custom_format() -> None:
-    """Test that it respects a custom date format string."""
+def test_get_today_date_custom_timezone() -> None:
+    """Test that it correctly applies a specific timezone."""
+    result, _ = _get_today_date_custom_timezone()
+    assert result == "2026-03-20"
+
+
+def test_get_today_date_custom_timezone_uses_the_timezone() -> None:
+    _, mock_datetime = _get_today_date_custom_timezone()
+    mock_datetime.now.assert_called_once_with(ZoneInfo("Asia/Tokyo"))
+
+
+def _get_today_date_custom_format() -> tuple[str, Mock]:
     with patch("coola.utils.date.datetime") as mock_datetime:
         mock_datetime.now.return_value = datetime(
             year=2026, month=3, day=19, hour=12, minute=0, second=0, tzinfo=ZoneInfo("UTC")
         )
         result = get_today_date(date_format="%d-%m-%Y")
-        assert result == "19-03-2026"
-        mock_datetime.now.assert_called_once_with(ZoneInfo("UTC"))
+    return result, mock_datetime
+
+
+def test_get_today_date_custom_format() -> None:
+    """Test that it respects a custom date format string."""
+    result, _ = _get_today_date_custom_format()
+    assert result == "19-03-2026"
+
+
+def test_get_today_date_custom_format_uses_the_timezone() -> None:
+    _, mock_datetime = _get_today_date_custom_format()
+    mock_datetime.now.assert_called_once_with(ZoneInfo("UTC"))
 
 
 def test_get_today_date_invalid_timezone() -> None:

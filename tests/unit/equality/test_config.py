@@ -9,20 +9,36 @@ from coola.equality.config import EqualityConfig
 ####################################
 
 
-def test_equality_config_default() -> None:
-    config = EqualityConfig()
-    assert config.equal_nan is False
-    assert config.atol == 0.0
-    assert config.rtol == 0.0
-    assert config.show_difference is False
+def test_equality_config_default_equal_nan() -> None:
+    assert EqualityConfig().equal_nan is False
 
 
-def test_equality_config_with_parameters() -> None:
-    config = EqualityConfig(equal_nan=True, atol=1e-6, rtol=1e-5, show_difference=True)
-    assert config.equal_nan is True
-    assert config.atol == 1e-6
-    assert config.rtol == 1e-5
-    assert config.show_difference is True
+def test_equality_config_default_atol() -> None:
+    assert EqualityConfig().atol == 0.0
+
+
+def test_equality_config_default_rtol() -> None:
+    assert EqualityConfig().rtol == 0.0
+
+
+def test_equality_config_default_show_difference() -> None:
+    assert EqualityConfig().show_difference is False
+
+
+def test_equality_config_with_parameters_equal_nan() -> None:
+    assert EqualityConfig(equal_nan=True).equal_nan is True
+
+
+def test_equality_config_with_parameters_atol() -> None:
+    assert EqualityConfig(atol=1e-6).atol == 1e-6
+
+
+def test_equality_config_with_parameters_rtol() -> None:
+    assert EqualityConfig(rtol=1e-5).rtol == 1e-5
+
+
+def test_equality_config_with_parameters_show_difference() -> None:
+    assert EqualityConfig(show_difference=True).show_difference is True
 
 
 def test_equality_config_negative_atol() -> None:
@@ -47,10 +63,12 @@ def test_equality_config_unknown_option() -> None:
         EqualityConfig(unknown=1)
 
 
-def test_equality_config_zero_tolerances() -> None:
-    config = EqualityConfig(atol=0.0, rtol=0.0)
-    assert config.atol == 0.0
-    assert config.rtol == 0.0
+def test_equality_config_zero_atol() -> None:
+    assert EqualityConfig(atol=0.0, rtol=0.0).atol == 0.0
+
+
+def test_equality_config_zero_rtol() -> None:
+    assert EqualityConfig(atol=0.0, rtol=0.0).rtol == 0.0
 
 
 def test_equality_config_max_depth_default() -> None:
@@ -82,6 +100,11 @@ def test_equality_config_increment_depth() -> None:
     config = EqualityConfig()
     config.increment_depth()
     assert config.depth == 1
+
+
+def test_equality_config_increment_depth_twice() -> None:
+    config = EqualityConfig()
+    config.increment_depth()
     config.increment_depth()
     assert config.depth == 2
 
@@ -90,6 +113,11 @@ def test_equality_config_decrement_depth() -> None:
     config = EqualityConfig()
     config.decrement_depth()
     assert config.depth == -1
+
+
+def test_equality_config_decrement_depth_twice() -> None:
+    config = EqualityConfig()
+    config.decrement_depth()
     config.decrement_depth()
     assert config.depth == -2
 

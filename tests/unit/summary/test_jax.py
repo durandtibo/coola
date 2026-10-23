@@ -41,8 +41,13 @@ def test_summarizer_init_show_data(summarizer_cls: type) -> None:
 
 @jax_available
 @pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
-def test_summarizer_repr(summarizer_cls: type) -> None:
+def test_summarizer_repr_default(summarizer_cls: type) -> None:
     assert repr(summarizer_cls()) == f"{summarizer_cls.__name__}(show_data=False)"
+
+
+@jax_available
+@pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
+def test_summarizer_repr_show_data(summarizer_cls: type) -> None:
     assert repr(summarizer_cls(show_data=True)) == f"{summarizer_cls.__name__}(show_data=True)"
 
 
@@ -54,8 +59,13 @@ def test_summarizer_str(summarizer_cls: type) -> None:
 
 @jax_available
 @pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
-def test_summarizer_equal_true(summarizer_cls: type) -> None:
+def test_summarizer_equal_true_default(summarizer_cls: type) -> None:
     assert summarizer_cls().equal(summarizer_cls())
+
+
+@jax_available
+@pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
+def test_summarizer_equal_true_show_data(summarizer_cls: type) -> None:
     assert summarizer_cls(show_data=True).equal(summarizer_cls(show_data=True))
 
 

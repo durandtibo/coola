@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 from collections import OrderedDict, deque
 from unittest.mock import Mock
 
@@ -432,10 +433,16 @@ def test_to_flat_dict_tensor_passthrough() -> None:
 
 
 @torch_available
-def test_to_flat_dict_tensor_mixed_with_scalars() -> None:
+def test_to_flat_dict_tensor_mixed_with_scalars_scalar() -> None:
     tensor = torch.zeros(3)
     result = to_flat_dict({"a": 1, "b": tensor})
     assert result["a"] == 1
+
+
+@torch_available
+def test_to_flat_dict_tensor_mixed_with_scalars_tensor() -> None:
+    tensor = torch.zeros(3)
+    result = to_flat_dict({"a": 1, "b": tensor})
     assert objects_are_equal(result["b"], tensor)
 
 
@@ -446,10 +453,16 @@ def test_to_flat_dict_numpy_array_passthrough() -> None:
 
 
 @numpy_available
-def test_to_flat_dict_numpy_array_mixed_with_scalars() -> None:
+def test_to_flat_dict_numpy_array_mixed_with_scalars_scalar() -> None:
     array = np.ones(4)
     result = to_flat_dict({"x": "hello", "y": array})
     assert result["x"] == "hello"
+
+
+@numpy_available
+def test_to_flat_dict_numpy_array_mixed_with_scalars_array() -> None:
+    array = np.ones(4)
+    result = to_flat_dict({"x": "hello", "y": array})
     assert objects_are_equal(result["y"], array)
 
 
@@ -560,9 +573,15 @@ def test_from_flat_dict_dict_leaf_then_nested_raises() -> None:
         from_flat_dict({"a": {"x": 1}, "a.y": 2})
 
 
-def test_from_flat_dict_dict_leaf_then_nested_does_not_mutate_input() -> None:
+def test_from_flat_dict_dict_leaf_then_nested_does_not_mutate_input_raises() -> None:
     leaf = {"x": 1}
     with pytest.raises(ValueError, match="conflict"):
+        from_flat_dict({"a": leaf, "a.y": 2})
+
+
+def test_from_flat_dict_dict_leaf_then_nested_does_not_mutate_input_input_is_not_mutated() -> None:
+    leaf = {"x": 1}
+    with contextlib.suppress(ValueError):
         from_flat_dict({"a": leaf, "a.y": 2})
     assert leaf == {"x": 1}
 

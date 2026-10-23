@@ -15,8 +15,14 @@ salts = st.text(max_size=8)
 @given(number=numbers, salt=salts, min_length=st.integers(0, 30))
 def test_obfuscated_id_round_trip(number: int, salt: str, min_length: int) -> None:
     encoded = generate_obfuscated_id(number, salt=salt, min_length=min_length)
-    assert len(encoded) >= min_length
     assert decode_obfuscated_id(encoded, salt=salt) == number
+
+
+@given(number=numbers, salt=salts, min_length=st.integers(0, 30))
+def test_obfuscated_id_has_at_least_the_minimum_length(
+    number: int, salt: str, min_length: int
+) -> None:
+    assert len(generate_obfuscated_id(number, salt=salt, min_length=min_length)) >= min_length
 
 
 @given(number=numbers, other=numbers, salt=salts)

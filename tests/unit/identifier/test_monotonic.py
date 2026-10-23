@@ -21,24 +21,48 @@ def at(ms: int) -> int:
 #####################################
 
 
-def test_monotonic_random_increases_in_the_same_millisecond() -> None:
+def _generate_in_the_same_millisecond() -> list[tuple[int, int]]:
     generator = MonotonicRandom(bits=80)
     with patch(TIME_NS, return_value=at(1000)):
-        values = [generator.next() for _ in range(100)]
+        return [generator.next() for _ in range(100)]
+
+
+def test_monotonic_random_same_timestamp_in_the_same_millisecond() -> None:
+    values = _generate_in_the_same_millisecond()
     assert [timestamp for timestamp, _ in values] == [1000] * 100
+
+
+def test_monotonic_random_increases_in_the_same_millisecond() -> None:
+    values = _generate_in_the_same_millisecond()
     assert values == sorted(values)
-    randoms = [r for _, r in values]
+
+
+def test_monotonic_random_increments_the_random_part_in_the_same_millisecond() -> None:
+    randoms = [r for _, r in _generate_in_the_same_millisecond()]
     assert all(b == a + 1 for a, b in itertools.pairwise(randoms))
 
 
-def test_monotonic_random_new_millisecond_gets_a_fresh_random_part() -> None:
+def _generate_in_two_milliseconds() -> tuple[tuple[int, int], tuple[int, int]]:
     generator = MonotonicRandom(bits=80)
     with patch(TIME_NS, return_value=at(1000)):
         first = generator.next()
     with patch(TIME_NS, return_value=at(1001)):
         second = generator.next()
+    return first, second
+
+
+def test_monotonic_random_new_millisecond_has_the_new_timestamp() -> None:
+    _, second = _generate_in_two_milliseconds()
     assert second[0] == 1001
+
+
+def test_monotonic_random_new_millisecond_increases() -> None:
+    first, second = _generate_in_two_milliseconds()
     assert second > first
+
+
+def test_monotonic_random_new_millisecond_gets_a_fresh_random_part() -> None:
+    first, second = _generate_in_two_milliseconds()
     assert second[1] != first[1] + 1  # the probability of a collision is 2**-80
 
 
@@ -51,13 +75,28 @@ def test_monotonic_random_clock_moved_backward_keeps_increasing() -> None:
     assert second == (1000, first[1] + 1)
 
 
-def test_monotonic_random_overflow_borrows_the_next_millisecond() -> None:
+def _generate_with_an_overflow() -> list[tuple[int, int]]:
     generator = MonotonicRandom(bits=2)
     with patch(TIME_NS, return_value=at(1000)):
-        values = [generator.next() for _ in range(20)]
+        return [generator.next() for _ in range(20)]
+
+
+def test_monotonic_random_overflow_increases() -> None:
+    values = _generate_with_an_overflow()
     assert values == sorted(values)
-    assert len(set(values)) == 20
+
+
+def test_monotonic_random_overflow_is_unique() -> None:
+    assert len(set(_generate_with_an_overflow())) == 20
+
+
+def test_monotonic_random_overflow_borrows_the_next_millisecond() -> None:
+    values = _generate_with_an_overflow()
     assert values[-1][0] > 1000  # more than 4 values needed more than one millisecond
+
+
+def test_monotonic_random_overflow_keeps_the_random_part_in_range() -> None:
+    values = _generate_with_an_overflow()
     assert all(0 <= r < 4 for _, r in values)
 
 
@@ -74,17 +113,33 @@ def test_monotonic_random_random_part_is_random() -> None:
     assert len(randoms) == 50
 
 
-def test_monotonic_random_reset_after_fork() -> None:
+def _reset_after_fork() -> tuple[MonotonicRandom, threading.Lock, tuple[int, int]]:
     generator = MonotonicRandom(bits=80)
     lock = generator._lock
     with patch(TIME_NS, return_value=at(1000)):
         generator.next()
         lock.acquire()  # held by a thread that does not exist in the child
         generator._reset_after_fork()
-        assert generator._lock is not lock
-        assert generator._last_timestamp_ms == -1
         # a fresh random part is used (not the previous one + 1) and it does not block
         second = generator.next()
+    return generator, lock, second
+
+
+def test_monotonic_random_reset_after_fork_resets_the_last_timestamp() -> None:
+    generator = MonotonicRandom(bits=80)
+    with patch(TIME_NS, return_value=at(1000)):
+        generator.next()
+    generator._reset_after_fork()
+    assert generator._last_timestamp_ms == -1
+
+
+def test_monotonic_random_reset_after_fork_replaces_the_lock() -> None:
+    generator, lock, _ = _reset_after_fork()
+    assert generator._lock is not lock
+
+
+def test_monotonic_random_reset_after_fork_does_not_block() -> None:
+    _, _, second = _reset_after_fork()
     assert second[0] == 1000
 
 
@@ -93,7 +148,7 @@ def test_monotonic_random_max_random_is_bits_wide(bits: int) -> None:
     assert MonotonicRandom(bits=bits)._max == 2**bits - 1
 
 
-def test_monotonic_random_thread_safe() -> None:
+def test_monotonic_random_thread_safe_count() -> None:
     generator = MonotonicRandom(bits=80)
     values: list[tuple[int, int]] = []
     lock = threading.Lock()
@@ -105,4 +160,17 @@ def test_monotonic_random_thread_safe() -> None:
 
     run_threads([threading.Thread(target=worker) for _ in range(8)])
     assert len(values) == 1600
+
+
+def test_monotonic_random_thread_safe_uniqueness() -> None:
+    generator = MonotonicRandom(bits=80)
+    values: list[tuple[int, int]] = []
+    lock = threading.Lock()
+
+    def worker() -> None:
+        local = [generator.next() for _ in range(200)]
+        with lock:
+            values.extend(local)
+
+    run_threads([threading.Thread(target=worker) for _ in range(8)])
     assert len(set(values)) == 1600  # no duplicates

@@ -85,12 +85,19 @@ def test_object_id_generator_instances_use_independent_process_values() -> None:
     assert first[8:18] != second[8:18]
 
 
-def test_object_id_generator_generate_counter_wraps() -> None:
+def test_object_id_generator_generate_counter_wraps_last_value() -> None:
     generator = ObjectIdGenerator()
     generator._counter = (1 << 24) - 2
     first = generator.generate()
-    second = generator.generate()
+    generator.generate()
     assert int(first[18:], 16) == (1 << 24) - 1
+
+
+def test_object_id_generator_generate_counter_wraps_wrapped_value() -> None:
+    generator = ObjectIdGenerator()
+    generator._counter = (1 << 24) - 2
+    generator.generate()
+    second = generator.generate()
     assert int(second[18:], 16) == 0
 
 
@@ -174,12 +181,24 @@ def test_object_id_generator_is_tracked_for_forks() -> None:
     assert generator in fork._TRACKED
 
 
-def test_object_id_generator_reset_after_fork_regenerates_the_random_state() -> None:
+def test_object_id_generator_reset_after_fork_regenerates_the_random_state_process_value() -> None:
     generator = ObjectIdGenerator()
-    process_value, counter, lock = generator._process_value, generator._counter, generator._lock
+    process_value, _counter, _lock = generator._process_value, generator._counter, generator._lock
     generator._reset_after_fork()
     assert generator._process_value != process_value  # 2**-40 chance of a false failure
+
+
+def test_object_id_generator_reset_after_fork_regenerates_the_random_state_counter() -> None:
+    generator = ObjectIdGenerator()
+    _process_value, counter, _lock = generator._process_value, generator._counter, generator._lock
+    generator._reset_after_fork()
     assert generator._counter != counter  # 2**-24 chance of a false failure
+
+
+def test_object_id_generator_reset_after_fork_regenerates_the_random_state_lock() -> None:
+    generator = ObjectIdGenerator()
+    _process_value, _counter, lock = generator._process_value, generator._counter, generator._lock
+    generator._reset_after_fork()
     assert generator._lock is not lock
 
 

@@ -22,6 +22,7 @@ __all__ = [
     "rebuild",
     "scalars",
     "small_values",
+    "tiny_values",
     "values",
 ]
 
@@ -70,6 +71,8 @@ literal_values = nested(literal_scalars, with_sets=False)
 small_values = nested(
     st.one_of(st.none(), st.booleans(), st.integers(-2, 2), st.sampled_from(["", "a", "b"]))
 )
+# A domain so small that independent draws are often equal.
+tiny_values = st.sampled_from([0, 1, 0.0, "a"])
 
 
 def rebuild(data: Any) -> Any:

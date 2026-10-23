@@ -10,6 +10,7 @@ from coola.equality import objects_are_allclose, objects_are_equal
 from coola.equality.handler import MaxDepthExceededError
 from coola.equality.tester import DefaultEqualityTester, EqualityTesterRegistry
 from coola.testing.fixtures import numpy_available, torch_available
+from tests.helpers import nest
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping, Sequence
@@ -319,43 +320,25 @@ def test_objects_are_allclose_negative_rtol() -> None:
 
 
 def test_objects_are_equal_deep_nesting() -> None:
-    # Create a deeply nested structure
-    nested1 = [1]
-    nested2 = [1]
-    for _ in range(SAFE_NESTING_DEPTH):
-        nested1 = [nested1]
-        nested2 = [nested2]
-    assert objects_are_equal(nested1, nested2)
+    assert objects_are_equal(nest(1, SAFE_NESTING_DEPTH + 1), nest(1, SAFE_NESTING_DEPTH + 1))
 
 
 def test_objects_are_equal_exceeds_max_depth() -> None:
-    # Create a structure that exceeds max_depth
-    nested1 = [1]
-    nested2 = [1]
-    for _ in range(EXCESSIVE_NESTING_DEPTH):
-        nested1 = [nested1]
-        nested2 = [nested2]
+    nested1 = nest(1, EXCESSIVE_NESTING_DEPTH + 1)
+    nested2 = nest(1, EXCESSIVE_NESTING_DEPTH + 1)
     with pytest.raises(RecursionError, match=r"Maximum recursion depth.*exceeded"):
         objects_are_equal(nested1, nested2, max_depth=10)
 
 
 def test_objects_are_allclose_deep_nesting() -> None:
-    # Create a deeply nested structure
-    nested1 = [1.0]
-    nested2 = [1.0 + 1e-9]
-    for _ in range(SAFE_NESTING_DEPTH):
-        nested1 = [nested1]
-        nested2 = [nested2]
-    assert objects_are_allclose(nested1, nested2)
+    assert objects_are_allclose(
+        nest(1.0, SAFE_NESTING_DEPTH + 1), nest(1.0 + 1e-9, SAFE_NESTING_DEPTH + 1)
+    )
 
 
 def test_objects_are_allclose_exceeds_max_depth() -> None:
-    # Create a structure that exceeds max_depth
-    nested1 = [1.0]
-    nested2 = [1.0]
-    for _ in range(EXCESSIVE_NESTING_DEPTH):
-        nested1 = [nested1]
-        nested2 = [nested2]
+    nested1 = nest(1.0, EXCESSIVE_NESTING_DEPTH + 1)
+    nested2 = nest(1.0, EXCESSIVE_NESTING_DEPTH + 1)
     with pytest.raises(RecursionError, match=r"Maximum recursion depth.*exceeded"):
         objects_are_allclose(nested1, nested2, max_depth=10)
 
@@ -530,28 +513,34 @@ def test_objects_are_equal_custom_registry() -> None:
 
 
 def test_objects_are_equal_python_recursion_limit_message() -> None:
-    data1, data2 = [], []
-    for _ in range(2000):
-        data1, data2 = [data1], [data2]
+    data1, data2 = nest([], 2000), nest([], 2000)
     with pytest.raises(RecursionError, match="Python recursion limit"):
         objects_are_equal(data1, data2, max_depth=10**6)
 
 
 def test_objects_are_equal_max_depth_error_is_not_rewritten() -> None:
-    data1, data2 = [], []
-    for _ in range(50):
-        data1, data2 = [data1], [data2]
+    data1, data2 = nest([], 50), nest([], 50)
     with pytest.raises(MaxDepthExceededError, match=r"Maximum recursion depth \(10\) exceeded"):
         objects_are_equal(data1, data2, max_depth=10)
 
 
 def test_objects_are_equal_python_recursion_error_is_wrapped() -> None:
-    data1, data2 = [], []
-    for _ in range(2000):
-        data1, data2 = [data1], [data2]
-    with pytest.raises(RecursionError, match="Python recursion limit") as exc_info:
+    data1, data2 = nest([], 2000), nest([], 2000)
+    with pytest.raises(RecursionError, match="Python recursion limit"):
+        objects_are_equal(data1, data2, max_depth=10**6)
+
+
+def test_objects_are_equal_python_recursion_error_is_not_a_max_depth_error() -> None:
+    data1, data2 = nest([], 2000), nest([], 2000)
+    with pytest.raises(RecursionError) as exc_info:
         objects_are_equal(data1, data2, max_depth=10**6)
     assert not isinstance(exc_info.value, MaxDepthExceededError)
+
+
+def test_objects_are_equal_python_recursion_error_has_the_original_cause() -> None:
+    data1, data2 = nest([], 2000), nest([], 2000)
+    with pytest.raises(RecursionError) as exc_info:
+        objects_are_equal(data1, data2, max_depth=10**6)
     assert isinstance(exc_info.value.__cause__, RecursionError)
 
 
@@ -564,6 +553,10 @@ def _cycle(value: object) -> list:
 @pytest.mark.parametrize("function", [objects_are_equal, objects_are_allclose])
 def test_objects_are_equal_self_referencing_list(function: Callable) -> None:
     assert function(_cycle(1), _cycle(1))
+
+
+@pytest.mark.parametrize("function", [objects_are_equal, objects_are_allclose])
+def test_objects_are_equal_self_referencing_list_different(function: Callable) -> None:
     assert not function(_cycle(1), _cycle(2))
 
 
@@ -573,7 +566,13 @@ def test_objects_are_equal_self_referencing_dict() -> None:
     b: dict = {"x": 1}
     b["self"] = b
     assert objects_are_equal(a, b)
-    b["x"] = 2
+
+
+def test_objects_are_equal_self_referencing_dict_different() -> None:
+    a: dict = {"x": 1}
+    a["self"] = a
+    b: dict = {"x": 2}
+    b["self"] = b
     assert not objects_are_equal(a, b)
 
 
@@ -598,17 +597,26 @@ def test_objects_are_equal_cycles_of_different_lengths() -> None:
 def test_objects_are_equal_shared_reference_is_not_a_cycle() -> None:
     shared = [1.0]
     assert not objects_are_equal([shared, shared], [shared, [2.0]])
+
+
+def test_objects_are_equal_shared_reference_is_equal_to_copies() -> None:
+    shared = [1.0]
     assert objects_are_equal([shared, shared], [[1.0], [1.0]])
 
 
-def test_objects_are_equal_self_referencing_dataclass() -> None:
-    @dataclass
-    class Node:
-        value: int
-        child: object = None
+@dataclass
+class Node:
+    value: int
+    child: object = None
 
+
+def test_objects_are_equal_self_referencing_dataclass() -> None:
     a, b = Node(1), Node(1)
     a.child, b.child = a, b
     assert objects_are_equal(a, b)
-    b.value = 2
+
+
+def test_objects_are_equal_self_referencing_dataclass_different() -> None:
+    a, b = Node(1), Node(2)
+    a.child, b.child = a, b
     assert not objects_are_equal(a, b)

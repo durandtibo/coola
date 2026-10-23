@@ -114,12 +114,19 @@ def test_pickle_saver_save_file_exist(tmp_path: Path) -> None:
         saver.save({"key1": [1, 2, 3], "key2": "abc"}, path)
 
 
-def test_pickle_saver_save_file_exist_ok(tmp_path: Path) -> None:
+def test_pickle_saver_save_file_exist_ok_is_file(tmp_path: Path) -> None:
     path = tmp_path.joinpath("tmp/data.pkl")
     save_text("hello", path)
     saver = PickleSaver()
     saver.save({"key1": [3, 2, 1], "key2": "abc"}, path, exist_ok=True)
     assert path.is_file()
+
+
+def test_pickle_saver_save_file_exist_ok_content(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("tmp/data.pkl")
+    save_text("hello", path)
+    saver = PickleSaver()
+    saver.save({"key1": [3, 2, 1], "key2": "abc"}, path, exist_ok=True)
     assert load_pickle(path) == {"key1": [3, 2, 1], "key2": "abc"}
 
 
@@ -132,12 +139,20 @@ def test_pickle_saver_save_file_exist_ok_dir(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("protocol", list(range(1, pickle.HIGHEST_PROTOCOL + 1)))
-def test_pickle_saver_save_protocol(tmp_path: Path, protocol: int) -> None:
+def test_pickle_saver_save_protocol_is_file(tmp_path: Path, protocol: int) -> None:
     path = tmp_path.joinpath("tmp/data.pkl")
     data = {"key1": [1, 2, 3], "key2": "abc"}
     saver = PickleSaver(protocol=protocol)
     saver.save(data, path)
     assert path.is_file()
+
+
+@pytest.mark.parametrize("protocol", list(range(1, pickle.HIGHEST_PROTOCOL + 1)))
+def test_pickle_saver_save_protocol_content(tmp_path: Path, protocol: int) -> None:
+    path = tmp_path.joinpath("tmp/data.pkl")
+    data = {"key1": [1, 2, 3], "key2": "abc"}
+    saver = PickleSaver(protocol=protocol)
+    saver.save(data, path)
     assert objects_are_equal(load_pickle(path), data)
 
 
@@ -168,11 +183,17 @@ def test_save_pickle_file_exist(tmp_path: Path) -> None:
         save_pickle({"key1": [1, 2, 3], "key2": "abc"}, path)
 
 
-def test_save_pickle_file_exist_ok(tmp_path: Path) -> None:
+def test_save_pickle_file_exist_ok_is_file(tmp_path: Path) -> None:
     path = tmp_path.joinpath("tmp/data.pkl")
     save_text("hello", path)
     save_pickle({"key1": [3, 2, 1], "key2": "abc"}, path, exist_ok=True)
     assert path.is_file()
+
+
+def test_save_pickle_file_exist_ok_content(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("tmp/data.pkl")
+    save_text("hello", path)
+    save_pickle({"key1": [3, 2, 1], "key2": "abc"}, path, exist_ok=True)
     assert load_pickle(path) == {"key1": [3, 2, 1], "key2": "abc"}
 
 
@@ -184,9 +205,16 @@ def test_save_pickle_file_exist_ok_dir(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("protocol", list(range(1, pickle.HIGHEST_PROTOCOL + 1)))
-def test_save_pickle_protocol(tmp_path: Path, protocol: int) -> None:
+def test_save_pickle_protocol_is_file(tmp_path: Path, protocol: int) -> None:
     path = tmp_path.joinpath("data", "data.pkl")
     data = {"key1": [1, 2, 3], "key2": "abc"}
     save_pickle(data, path, protocol=protocol)
     assert path.is_file()
+
+
+@pytest.mark.parametrize("protocol", list(range(1, pickle.HIGHEST_PROTOCOL + 1)))
+def test_save_pickle_protocol_content(tmp_path: Path, protocol: int) -> None:
+    path = tmp_path.joinpath("data", "data.pkl")
+    data = {"key1": [1, 2, 3], "key2": "abc"}
+    save_pickle(data, path, protocol=protocol)
     assert objects_are_equal(load_pickle(path), data)

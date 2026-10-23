@@ -427,13 +427,21 @@ def test_pyarrow_equality_tester_objects_are_equal_true_same_object(
 def test_pyarrow_equality_tester_objects_are_equal_true(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    tester = PyarrowEqualityTester()
+    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+
+
+@pyarrow_available
+@pytest.mark.parametrize("example", PYARROW_EQUAL)
+def test_pyarrow_equality_tester_objects_are_equal_true_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = PyarrowEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -442,14 +450,23 @@ def test_pyarrow_equality_tester_objects_are_equal_true(
 def test_pyarrow_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    tester = PyarrowEqualityTester()
+    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+
+
+@pyarrow_available
+@pytest.mark.parametrize("example", PYARROW_EQUAL)
+def test_pyarrow_equality_tester_objects_are_equal_true_show_difference_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     tester = PyarrowEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -458,13 +475,23 @@ def test_pyarrow_equality_tester_objects_are_equal_true_show_difference(
 def test_pyarrow_equality_tester_objects_are_equal_false(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    tester = PyarrowEqualityTester()
+    assert not tester.objects_are_equal(
+        actual=example.actual, expected=example.expected, config=config
+    )
+
+
+@pyarrow_available
+@pytest.mark.parametrize("example", PYARROW_NOT_EQUAL)
+def test_pyarrow_equality_tester_objects_are_equal_false_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = PyarrowEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert not tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -473,14 +500,25 @@ def test_pyarrow_equality_tester_objects_are_equal_false(
 def test_pyarrow_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    tester = PyarrowEqualityTester()
+    assert not tester.objects_are_equal(
+        actual=example.actual, expected=example.expected, config=config
+    )
+
+
+@pyarrow_available
+@pytest.mark.parametrize("example", PYARROW_NOT_EQUAL)
+def test_pyarrow_equality_tester_objects_are_equal_false_show_difference_logs(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     tester = PyarrowEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert not tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 

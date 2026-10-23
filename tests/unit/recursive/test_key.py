@@ -110,13 +110,21 @@ def test_key_filter_transformer_transform_nested_set(registry: TransformerRegist
     )
 
 
-def test_key_filter_transformer_transform_preserves_mapping_type(
+def test_key_filter_transformer_transform_preserves_mapping_type_type(
     registry: TransformerRegistry,
 ) -> None:
     result = KeyFilterTransformer().transform(
         OrderedDict(key=1, b=2), func=lambda key: key == "key", registry=registry
     )
     assert isinstance(result, OrderedDict)
+
+
+def test_key_filter_transformer_transform_preserves_mapping_type_values(
+    registry: TransformerRegistry,
+) -> None:
+    result = KeyFilterTransformer().transform(
+        OrderedDict(key=1, b=2), func=lambda key: key == "key", registry=registry
+    )
     assert result == {"b": 2}
 
 
@@ -272,12 +280,26 @@ def test_key_filter_transformer_transform_rejects_transform_func_argument(
         )
 
 
-def test_key_filter_transformer_transform_defaultdict(registry: TransformerRegistry) -> None:
+def test_key_filter_transformer_transform_defaultdict_type(registry: TransformerRegistry) -> None:
     result = KeyFilterTransformer().transform(
         defaultdict(int, {"a": 1, "b": 2}), func=lambda key: key == "a", registry=registry
     )
     assert type(result) is defaultdict
+
+
+def test_key_filter_transformer_transform_defaultdict_default_factory(
+    registry: TransformerRegistry,
+) -> None:
+    result = KeyFilterTransformer().transform(
+        defaultdict(int, {"a": 1, "b": 2}), func=lambda key: key == "a", registry=registry
+    )
     assert result.default_factory is int
+
+
+def test_key_filter_transformer_transform_defaultdict_values(registry: TransformerRegistry) -> None:
+    result = KeyFilterTransformer().transform(
+        defaultdict(int, {"a": 1, "b": 2}), func=lambda key: key == "a", registry=registry
+    )
     assert result == {"b": 2}
 
 
@@ -341,11 +363,17 @@ def test_key_filter_transformer_key_predicate_is_not_applied_to_the_values(
     )
 
 
-def test_key_filter_transformer_key_predicate_keeps_the_type(
+def test_key_filter_transformer_key_predicate_keeps_the_type_type(
     predicate_registry: TransformerRegistry,
 ) -> None:
     result = predicate_registry.transform(OrderedDict(a=1, secret=2), lambda x: x)
     assert type(result) is OrderedDict
+
+
+def test_key_filter_transformer_key_predicate_keeps_the_type_values(
+    predicate_registry: TransformerRegistry,
+) -> None:
+    result = predicate_registry.transform(OrderedDict(a=1, secret=2), lambda x: x)
     assert result == OrderedDict(a=1)
 
 

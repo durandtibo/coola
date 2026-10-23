@@ -126,18 +126,27 @@ def test_same_dtype_handler_handle_false(
 
 
 @numpy_available
-def test_same_dtype_handler_handle_false_show_difference(
+def test_same_dtype_handler_handle_false_show_difference(config: EqualityConfig) -> None:
+    config.show_difference = True
+    assert not SameDTypeHandler().handle(
+        actual=np.ones(shape=(2, 3), dtype=float),
+        expected=np.ones(shape=(2, 3), dtype=int),
+        config=config,
+    )
+
+
+@numpy_available
+def test_same_dtype_handler_handle_false_show_difference_logs(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
-    handler = SameDTypeHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
+        SameDTypeHandler().handle(
             actual=np.ones(shape=(2, 3), dtype=float),
             expected=np.ones(shape=(2, 3), dtype=int),
             config=config,
         )
-        assert caplog.messages[0].startswith("objects have different data types:")
+    assert caplog.messages[0].startswith("objects have different data types:")
 
 
 @numpy_available

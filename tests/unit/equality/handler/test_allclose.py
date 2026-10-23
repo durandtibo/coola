@@ -180,7 +180,23 @@ def test_allclose_nan_handler_handle_false_show_difference(
         assert not handler.handle(
             actual=MyFloatAllCloseNan(42), expected=MyFloatAllCloseNan(1), config=config
         )
-        assert caplog.messages[-1].startswith("objects are different:")
+
+
+def test_allclose_nan_handler_handle_false_show_difference_logs(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    config.show_difference = True
+    handler = AllCloseNanHandler()
+    with caplog.at_level(logging.INFO):
+        handler.handle(actual=MyFloatAllCloseNan(42), expected=MyFloatAllCloseNan(1), config=config)
+    assert caplog.messages[-1].startswith("objects are different:")
+
+
+def test_allclose_nan_handler_handle_true_show_difference(config: EqualityConfig) -> None:
+    config.show_difference = True
+    assert AllCloseNanHandler().handle(
+        actual=MyFloatAllCloseNan(42), expected=MyFloatAllCloseNan(42), config=config
+    )
 
 
 def test_allclose_nan_handler_handle_no_log_when_equal(
@@ -188,10 +204,19 @@ def test_allclose_nan_handler_handle_no_log_when_equal(
 ) -> None:
     config.show_difference = True
     with caplog.at_level(logging.INFO):
-        assert AllCloseNanHandler().handle(
+        AllCloseNanHandler().handle(
             actual=MyFloatAllCloseNan(42), expected=MyFloatAllCloseNan(42), config=config
         )
     assert not caplog.messages
+
+
+def test_allclose_nan_handler_handle_false_when_show_difference_false(
+    config: EqualityConfig,
+) -> None:
+    config.show_difference = False
+    assert not AllCloseNanHandler().handle(
+        actual=MyFloatAllCloseNan(42), expected=MyFloatAllCloseNan(1), config=config
+    )
 
 
 def test_allclose_nan_handler_handle_no_log_when_show_difference_false(
@@ -199,7 +224,7 @@ def test_allclose_nan_handler_handle_no_log_when_show_difference_false(
 ) -> None:
     config.show_difference = False
     with caplog.at_level(logging.INFO):
-        assert not AllCloseNanHandler().handle(
+        AllCloseNanHandler().handle(
             actual=MyFloatAllCloseNan(42), expected=MyFloatAllCloseNan(1), config=config
         )
     assert not caplog.messages

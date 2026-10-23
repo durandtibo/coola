@@ -32,13 +32,20 @@ def test_child_finder_registry_init_empty() -> None:
 
 
 def test_child_finder_registry_init_with_registry() -> None:
+    registry = ChildFinderRegistry({list: IterableChildFinder()})
+    assert list in registry._state
+
+
+def test_child_finder_registry_init_with_registry_keeps_the_child_finder() -> None:
+    child_finder = IterableChildFinder()
+    registry = ChildFinderRegistry({list: child_finder})
+    assert registry._state[list] is child_finder
+
+
+def test_child_finder_registry_init_with_registry_copies_the_registry() -> None:
     child_finder = IterableChildFinder()
     initial_registry: dict[type, BaseChildFinder[Any]] = {list: child_finder}
     registry = ChildFinderRegistry(initial_registry)
-
-    assert list in registry._state
-    assert registry._state[list] is child_finder
-    # Verify it's a copy
     initial_registry[tuple] = child_finder
     assert tuple not in registry._state
 
@@ -51,11 +58,17 @@ def test_child_finder_registry_str() -> None:
     assert str(ChildFinderRegistry()).startswith("ChildFinderRegistry(")
 
 
-def test_child_finder_registry_register_new_type() -> None:
+def test_child_finder_registry_register_new_type_has_child_finder() -> None:
     registry = ChildFinderRegistry()
     child_finder = IterableChildFinder()
     registry.register(list, child_finder)
     assert registry.has_child_finder(list)
+
+
+def test_child_finder_registry_register_new_type_keeps_the_child_finder() -> None:
+    registry = ChildFinderRegistry()
+    child_finder = IterableChildFinder()
+    registry.register(list, child_finder)
     assert registry._state[list] is child_finder
 
 
@@ -79,7 +92,7 @@ def test_child_finder_registry_register_existing_type_with_exist_ok() -> None:
     assert registry._state[list] is child_finder2
 
 
-def test_child_finder_registry_register_many() -> None:
+def test_child_finder_registry_register_many_list() -> None:
     registry = ChildFinderRegistry()
     registry.register_many(
         {
@@ -89,7 +102,29 @@ def test_child_finder_registry_register_many() -> None:
         }
     )
     assert registry.has_child_finder(list)
+
+
+def test_child_finder_registry_register_many_dict() -> None:
+    registry = ChildFinderRegistry()
+    registry.register_many(
+        {
+            list: IterableChildFinder(),
+            dict: MappingChildFinder(),
+            set: IterableChildFinder(),
+        }
+    )
     assert registry.has_child_finder(dict)
+
+
+def test_child_finder_registry_register_many_set() -> None:
+    registry = ChildFinderRegistry()
+    registry.register_many(
+        {
+            list: IterableChildFinder(),
+            dict: MappingChildFinder(),
+            set: IterableChildFinder(),
+        }
+    )
     assert registry.has_child_finder(set)
 
 
@@ -201,33 +236,46 @@ def test_child_finder_registry_iterate_container_type_without_registered_finder(
     assert list(registry.iterate([1, 2, 3])) == [[1, 2, 3]]
 
 
+class LeafButRegisteredAsContainer:
+    pass
+
+
 def test_child_finder_registry_iterate_agrees_with_find_child_finder() -> None:
     r"""Containership must be decided solely from the resolved child
     finder, so a type registered with a non-default finder is always
     expanded, even if it would not structurally look like a
     container."""
-
-    class LeafButRegisteredAsContainer:
-        pass
-
     child_finder = IterableChildFinder()
     registry = ChildFinderRegistry(
         {object: DefaultChildFinder(), LeafButRegisteredAsContainer: child_finder}
     )
     assert registry.find_child_finder(LeafButRegisteredAsContainer) is child_finder
+
+
+def test_child_finder_registry_iterate_expands_the_registered_type() -> None:
+    registry = ChildFinderRegistry(
+        {object: DefaultChildFinder(), LeafButRegisteredAsContainer: IterableChildFinder()}
+    )
     # No __iter__, so IterableChildFinder.find_children raises when actually expanded.
     with pytest.raises(TypeError):
         list(registry.iterate(LeafButRegisteredAsContainer()))
 
 
-def test_child_finder_registry_registry_isolation() -> None:
+def test_child_finder_registry_registry_isolation_first_registry() -> None:
     child_finder1 = IterableChildFinder()
     child_finder2 = MappingChildFinder()
 
     registry1 = ChildFinderRegistry({list: child_finder1})
-    registry2 = ChildFinderRegistry({list: child_finder2})
-
+    ChildFinderRegistry({list: child_finder2})
     assert registry1._state[list] is child_finder1
+
+
+def test_child_finder_registry_registry_isolation_second_registry() -> None:
+    child_finder1 = IterableChildFinder()
+    child_finder2 = MappingChildFinder()
+
+    ChildFinderRegistry({list: child_finder1})
+    registry2 = ChildFinderRegistry({list: child_finder2})
     assert registry2._state[list] is child_finder2
 
 

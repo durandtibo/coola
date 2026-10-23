@@ -307,14 +307,18 @@ def test_object_equal_handler_handle_false(
     assert not ObjectEqualHandler().handle(actual, expected, config)
 
 
-def test_object_equal_handler_handle_false_show_difference(
+def test_object_equal_handler_handle_false_show_difference(config: EqualityConfig) -> None:
+    config.show_difference = True
+    assert not ObjectEqualHandler().handle(actual=[1, 2, 3], expected=[1, 2, 3, 4], config=config)
+
+
+def test_object_equal_handler_handle_false_show_difference_logs(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
-    handler = ObjectEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(actual=[1, 2, 3], expected=[1, 2, 3, 4], config=config)
-        assert caplog.messages[0].startswith("objects are different:")
+        ObjectEqualHandler().handle(actual=[1, 2, 3], expected=[1, 2, 3, 4], config=config)
+    assert caplog.messages[0].startswith("objects are different:")
 
 
 def test_object_equal_handler_equal_handle_set_next_handler() -> None:
@@ -450,18 +454,23 @@ def test_same_attribute_handler_handle_false(
 
 
 @numpy_available
-def test_same_attribute_handler_handle_false_show_difference(
+def test_same_attribute_handler_handle_false_show_difference(config: EqualityConfig) -> None:
+    config.show_difference = True
+    assert not SameAttributeHandler(name="data").handle(
+        actual=Mock(data=1), expected=Mock(data=2), config=config
+    )
+
+
+@numpy_available
+def test_same_attribute_handler_handle_false_show_difference_logs(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
-    handler = SameAttributeHandler(name="data")
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
-            actual=Mock(data=1),
-            expected=Mock(data=2),
-            config=config,
+        SameAttributeHandler(name="data").handle(
+            actual=Mock(data=1), expected=Mock(data=2), config=config
         )
-        assert caplog.messages[-1].startswith("objects have different data:")
+    assert caplog.messages[-1].startswith("objects have different data:")
 
 
 @numpy_available
@@ -607,14 +616,18 @@ def test_same_length_handler_handle_false(
     assert not SameLengthHandler().handle(actual, expected, config)
 
 
-def test_same_length_handler_handle_false_show_difference(
+def test_same_length_handler_handle_false_show_difference(config: EqualityConfig) -> None:
+    config.show_difference = True
+    assert not SameLengthHandler().handle(actual=[1, 2, 3], expected=[1, 2, 3, 4], config=config)
+
+
+def test_same_length_handler_handle_false_show_difference_logs(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
-    handler = SameLengthHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(actual=[1, 2, 3], expected=[1, 2, 3, 4], config=config)
-        assert caplog.messages[0].startswith("objects have different lengths:")
+        SameLengthHandler().handle(actual=[1, 2, 3], expected=[1, 2, 3, 4], config=config)
+    assert caplog.messages[0].startswith("objects have different lengths:")
 
 
 def test_same_length_handler_handle_without_next_handler(config: EqualityConfig) -> None:
@@ -827,14 +840,18 @@ def test_same_type_handler_handle_false(actual: Any, expected: Any, config: Equa
     assert not SameTypeHandler().handle(actual, expected, config)
 
 
-def test_same_type_handler_handle_false_show_difference(
+def test_same_type_handler_handle_false_show_difference(config: EqualityConfig) -> None:
+    config.show_difference = True
+    assert not SameTypeHandler().handle(actual=0, expected="abc", config=config)
+
+
+def test_same_type_handler_handle_false_show_difference_logs(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
-    handler = SameTypeHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(actual=0, expected="abc", config=config)
-        assert caplog.messages[0].startswith("objects have different types:")
+        SameTypeHandler().handle(actual=0, expected="abc", config=config)
+    assert caplog.messages[0].startswith("objects have different types:")
 
 
 def test_same_type_handler_handle_without_next_handler(config: EqualityConfig) -> None:
@@ -905,15 +922,24 @@ class _Outer:
 def test_same_attribute_handler_dotted_name(config: EqualityConfig) -> None:
     handler = SameAttributeHandler(name="inner.value", next_handler=TrueHandler())
     assert handler.handle(_Outer(1), _Outer(1), config)
+
+
+def test_same_attribute_handler_dotted_name_different(config: EqualityConfig) -> None:
+    handler = SameAttributeHandler(name="inner.value", next_handler=TrueHandler())
     assert not handler.handle(_Outer(1), _Outer(2), config)
 
 
-def test_same_attribute_handler_dotted_name_show_difference(
+def test_same_attribute_handler_dotted_name_show_difference() -> None:
+    handler = SameAttributeHandler(name="inner.value", next_handler=TrueHandler())
+    assert not handler.handle(_Outer(1), _Outer(2), EqualityConfig(show_difference=True))
+
+
+def test_same_attribute_handler_dotted_name_show_difference_logs(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = SameAttributeHandler(name="inner.value", next_handler=TrueHandler())
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(_Outer(1), _Outer(2), EqualityConfig(show_difference=True))
+        handler.handle(_Outer(1), _Outer(2), EqualityConfig(show_difference=True))
     assert caplog.messages[-1] == "objects have different inner.value: 1 vs 2"
 
 
@@ -931,12 +957,21 @@ def test_same_attribute_handler_repr_uses_repr_of_the_next_handler() -> None:
         "SameAttributeHandler(name=a, next_handler="
         "SameAttributeHandler(name=b, next_handler=FalseHandler()))"
     )
+
+
+def test_same_attribute_handler_str_does_not_use_the_next_handler() -> None:
+    handler = SameAttributeHandler(
+        name="a", next_handler=SameAttributeHandler(name="b", next_handler=FalseHandler())
+    )
     assert str(handler) == "SameAttributeHandler(name=a)"
 
 
 def test_same_object_handler_handle_nan_same_object_is_equal_without_equal_nan() -> None:
     nan = float("nan")
     handler = SameObjectHandler(FalseHandler())
-    config = EqualityConfig(equal_nan=False)
-    assert handler.handle(nan, nan, config)
-    assert not handler.handle(nan, float("nan"), config)
+    assert handler.handle(nan, nan, EqualityConfig(equal_nan=False))
+
+
+def test_same_object_handler_handle_nan_other_object_is_different_without_equal_nan() -> None:
+    handler = SameObjectHandler(FalseHandler())
+    assert not handler.handle(float("nan"), float("nan"), EqualityConfig(equal_nan=False))

@@ -177,12 +177,20 @@ def test_torch_saver_save_file_exist(tmp_path: Path) -> None:
 
 
 @torch_available
-def test_torch_saver_save_file_exist_ok(tmp_path: Path) -> None:
+def test_torch_saver_save_file_exist_ok_is_file(tmp_path: Path) -> None:
     path = tmp_path.joinpath("tmp/data.pt")
     save_text("hello", path)
     saver = TorchSaver()
     saver.save({"key1": [3, 2, 1], "key2": "abc"}, path, exist_ok=True)
     assert path.is_file()
+
+
+@torch_available
+def test_torch_saver_save_file_exist_ok_content(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("tmp/data.pt")
+    save_text("hello", path)
+    saver = TorchSaver()
+    saver.save({"key1": [3, 2, 1], "key2": "abc"}, path, exist_ok=True)
     assert load_torch(path) == {"key1": [3, 2, 1], "key2": "abc"}
 
 
@@ -226,11 +234,18 @@ def test_save_torch_file_exist(tmp_path: Path) -> None:
 
 
 @torch_available
-def test_save_torch_file_exist_ok(tmp_path: Path) -> None:
+def test_save_torch_file_exist_ok_is_file(tmp_path: Path) -> None:
     path = tmp_path.joinpath("tmp/data.pt")
     save_text("hello", path)
     save_torch({"key1": [3, 2, 1], "key2": "abc"}, path, exist_ok=True)
     assert path.is_file()
+
+
+@torch_available
+def test_save_torch_file_exist_ok_content(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("tmp/data.pt")
+    save_text("hello", path)
+    save_torch({"key1": [3, 2, 1], "key2": "abc"}, path, exist_ok=True)
     assert load_torch(path) == {"key1": [3, 2, 1], "key2": "abc"}
 
 
@@ -243,11 +258,17 @@ def test_save_torch_file_exist_ok_dir(tmp_path: Path) -> None:
 
 
 @torch_available
-def test_torch_loader_weights_only_default(tmp_path: Path) -> None:
+def test_torch_loader_weights_only_default_raises(tmp_path: Path) -> None:
     path = tmp_path.joinpath("obj.pt")
     torch.save(PurePosixPath("a"), path)
     with pytest.raises(Exception, match=r"(?i)weights|unsupported|global"):
         TorchLoader().load(path)
+
+
+@torch_available
+def test_torch_loader_weights_only_default_weights_only_false(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("obj.pt")
+    torch.save(PurePosixPath("a"), path)
     assert TorchLoader(weights_only=False).load(path) == PurePosixPath("a")
 
 
@@ -266,9 +287,15 @@ def test_torch_loader_does_not_mutate_kwargs() -> None:
 
 
 @torch_available
-def test_load_torch_weights_only_default(tmp_path: Path) -> None:
+def test_load_torch_weights_only_default_raises(tmp_path: Path) -> None:
     path = tmp_path.joinpath("obj.pt")
     torch.save(PurePosixPath("a"), path)
     with pytest.raises(Exception, match=r"(?i)weights|unsupported|global"):
         load_torch(path)
+
+
+@torch_available
+def test_load_torch_weights_only_default_weights_only_false(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("obj.pt")
+    torch.save(PurePosixPath("a"), path)
     assert load_torch(path, weights_only=False) == PurePosixPath("a")

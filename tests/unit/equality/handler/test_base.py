@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import contextlib
+
 import pytest
 
 from coola.equality.config import EqualityConfig
@@ -67,21 +69,52 @@ def test_str_with_multiple_next_handler() -> None:
     assert str(handler) == "SameObjectHandler()"
 
 
-def test_chain_1_handler(config: EqualityConfig) -> None:
+def test_chain_1_handler_next_handler() -> None:
     handler = SameObjectHandler()
     handler.chain(ObjectEqualHandler())
     assert handler.next_handler.equal(ObjectEqualHandler())
+
+
+def test_chain_1_handler_end_of_chain() -> None:
+    handler = SameObjectHandler()
+    handler.chain(ObjectEqualHandler())
     assert handler.next_handler.next_handler is None
+
+
+def test_chain_1_handler(config: EqualityConfig) -> None:
+    handler = SameObjectHandler()
+    handler.chain(ObjectEqualHandler())
     assert handler.handle(actual=[1, 2, 3], expected=[1, 2, 3], config=config)
 
 
-def test_chain_multiple_handlers(config: EqualityConfig) -> None:
+def make_chain() -> SameObjectHandler:
     handler = SameObjectHandler()
     handler.chain(SameTypeHandler()).chain(SameLengthHandler()).chain(ObjectEqualHandler())
+    return handler
+
+
+def test_chain_multiple_handlers_first_next_handler() -> None:
+    handler = make_chain()
     assert handler.next_handler.equal(SameTypeHandler(SameLengthHandler(ObjectEqualHandler())))
+
+
+def test_chain_multiple_handlers_second_next_handler() -> None:
+    handler = make_chain()
     assert handler.next_handler.next_handler.equal(SameLengthHandler(ObjectEqualHandler()))
+
+
+def test_chain_multiple_handlers_third_next_handler() -> None:
+    handler = make_chain()
     assert handler.next_handler.next_handler.next_handler.equal(ObjectEqualHandler())
+
+
+def test_chain_multiple_handlers_end_of_chain() -> None:
+    handler = make_chain()
     assert handler.next_handler.next_handler.next_handler.next_handler is None
+
+
+def test_chain_multiple_handlers(config: EqualityConfig) -> None:
+    handler = make_chain()
     assert handler.handle(actual=[1, 2, 3], expected=[1, 2, 3], config=config)
 
 
@@ -105,28 +138,69 @@ def test_chain_handler_incorrect() -> None:
         handler.chain(42)
 
 
-def test_chain_all_1_handler(config: EqualityConfig) -> None:
+def test_chain_all_1_handler_next_handler() -> None:
     handler = SameObjectHandler()
     handler.chain_all(ObjectEqualHandler())
     assert handler.next_handler.equal(ObjectEqualHandler())
+
+
+def test_chain_all_1_handler_end_of_chain() -> None:
+    handler = SameObjectHandler()
+    handler.chain_all(ObjectEqualHandler())
     assert handler.next_handler.next_handler is None
+
+
+def test_chain_all_1_handler(config: EqualityConfig) -> None:
+    handler = SameObjectHandler()
+    handler.chain_all(ObjectEqualHandler())
     assert handler.handle(actual=[1, 2, 3], expected=[1, 2, 3], config=config)
+
+
+def make_chain_all() -> SameObjectHandler:
+    handler = SameObjectHandler()
+    handler.chain_all(SameTypeHandler(), SameLengthHandler(), ObjectEqualHandler())
+    return handler
+
+
+def test_chain_all_multiple_handlers_first_next_handler() -> None:
+    handler = make_chain_all()
+    assert handler.next_handler.equal(SameTypeHandler(SameLengthHandler(ObjectEqualHandler())))
+
+
+def test_chain_all_multiple_handlers_second_next_handler() -> None:
+    handler = make_chain_all()
+    assert handler.next_handler.next_handler.equal(SameLengthHandler(ObjectEqualHandler()))
+
+
+def test_chain_all_multiple_handlers_third_next_handler() -> None:
+    handler = make_chain_all()
+    assert handler.next_handler.next_handler.next_handler.equal(ObjectEqualHandler())
+
+
+def test_chain_all_multiple_handlers_end_of_chain() -> None:
+    handler = make_chain_all()
+    assert handler.next_handler.next_handler.next_handler.next_handler is None
 
 
 def test_chain_all_multiple_handlers(config: EqualityConfig) -> None:
-    handler = SameObjectHandler()
-    handler.chain_all(SameTypeHandler(), SameLengthHandler(), ObjectEqualHandler())
-    assert handler.next_handler.equal(SameTypeHandler(SameLengthHandler(ObjectEqualHandler())))
-    assert handler.next_handler.next_handler.equal(SameLengthHandler(ObjectEqualHandler()))
-    assert handler.next_handler.next_handler.next_handler.equal(ObjectEqualHandler())
-    assert handler.next_handler.next_handler.next_handler.next_handler is None
+    handler = make_chain_all()
     assert handler.handle(actual=[1, 2, 3], expected=[1, 2, 3], config=config)
 
 
-def test_chain_all_no_handlers() -> None:
+def test_chain_all_no_handlers_returns_the_handler() -> None:
     handler = SameObjectHandler()
     assert handler.chain_all() is handler
+
+
+def test_chain_all_no_handlers_has_no_next_handler() -> None:
+    handler = SameObjectHandler()
+    handler.chain_all()
     assert handler.next_handler is None
+
+
+def test_chain_all_no_handlers_chain_length() -> None:
+    handler = SameObjectHandler()
+    handler.chain_all()
     assert handler.get_chain_length() == 1
 
 
@@ -181,7 +255,23 @@ def test_set_next_handler_with_indirect_cycle() -> None:
     first.set_next_handler(second)
     with pytest.raises(HandlerCycleError, match=r"Cycle detected"):
         second.set_next_handler(first)
+
+
+def test_set_next_handler_with_indirect_cycle_does_not_set_the_next_handler() -> None:
+    first = SameObjectHandler()
+    second = SameTypeHandler()
+    first.set_next_handler(second)
+    with contextlib.suppress(HandlerCycleError):
+        second.set_next_handler(first)
     assert second.next_handler is None
+
+
+def test_set_next_handler_with_indirect_cycle_keeps_the_chain_length() -> None:
+    first = SameObjectHandler()
+    second = SameTypeHandler()
+    first.set_next_handler(second)
+    with contextlib.suppress(HandlerCycleError):
+        second.set_next_handler(first)
     assert first.get_chain_length() == 2
 
 
@@ -244,8 +334,11 @@ def test_visualize_chain_with_multiple_next_handler() -> None:
     )
 
 
-def test_handler_cycle_error_is_value_error_and_runtime_error() -> None:
+def test_handler_cycle_error_is_value_error() -> None:
     assert issubclass(HandlerCycleError, ValueError)
+
+
+def test_handler_cycle_error_is_runtime_error() -> None:
     assert issubclass(HandlerCycleError, RuntimeError)
 
 

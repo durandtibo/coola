@@ -100,11 +100,23 @@ def test_default_registry_hashes_enum_members_with_hash_enum(member: Enum) -> No
     assert get_default_registry().hash(member) == hash_enum(member)
 
 
-def test_default_registry_enum_is_not_collapsed_into_value() -> None:
+def test_default_registry_enum_is_not_collapsed_into_value_int_enum() -> None:
     registry = get_default_registry()
     assert registry.hash(Number.ONE) != registry.hash(1)
+
+
+def test_default_registry_enum_is_not_collapsed_into_value_str_enum() -> None:
+    registry = get_default_registry()
     assert registry.hash(Label.A) != registry.hash("a")
+
+
+def test_default_registry_enum_is_not_collapsed_into_value_mixed_str_enum() -> None:
+    registry = get_default_registry()
     assert registry.hash(MixedStr.A) != registry.hash("a")
+
+
+def test_default_registry_enum_is_not_collapsed_into_value_mixed_int_enum() -> None:
+    registry = get_default_registry()
     assert registry.hash(MixedInt.ONE) != registry.hash(1)
 
 

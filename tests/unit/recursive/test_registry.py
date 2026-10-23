@@ -31,13 +31,19 @@ def test_transformer_registry_init_empty() -> None:
 
 
 def test_transformer_registry_init_with_registry() -> None:
-    transformer = SequenceTransformer()
-    initial_registry: dict[type, BaseTransformer[Any]] = {list: transformer}
-    registry = TransformerRegistry(initial_registry)
-
+    registry = TransformerRegistry({list: SequenceTransformer()})
     assert list in registry._state
+
+
+def test_transformer_registry_init_with_registry_keeps_the_transformer() -> None:
+    transformer = SequenceTransformer()
+    registry = TransformerRegistry({list: transformer})
     assert registry._state[list] is transformer
-    # Verify it's a copy
+
+
+def test_transformer_registry_init_with_registry_copies_the_registry() -> None:
+    initial_registry: dict[type, BaseTransformer[Any]] = {list: SequenceTransformer()}
+    registry = TransformerRegistry(initial_registry)
     initial_registry[tuple] = SetTransformer()
     assert tuple not in registry._state
 
@@ -50,11 +56,17 @@ def test_transformer_registry_str() -> None:
     assert str(TransformerRegistry()).startswith("TransformerRegistry(")
 
 
-def test_transformer_registry_register_new_type() -> None:
+def test_transformer_registry_register_new_type_has_transformer() -> None:
     registry = TransformerRegistry()
     transformer = SequenceTransformer()
     registry.register(list, transformer)
     assert registry.has_transformer(list)
+
+
+def test_transformer_registry_register_new_type_keeps_the_transformer() -> None:
+    registry = TransformerRegistry()
+    transformer = SequenceTransformer()
+    registry.register(list, transformer)
     assert registry._state[list] is transformer
 
 
@@ -78,7 +90,7 @@ def test_transformer_registry_register_existing_type_with_exist_ok() -> None:
     assert registry._state[list] is transformer2
 
 
-def test_transformer_registry_register_many() -> None:
+def test_transformer_registry_register_many_list() -> None:
     registry = TransformerRegistry()
     registry.register_many(
         {
@@ -88,7 +100,29 @@ def test_transformer_registry_register_many() -> None:
         }
     )
     assert registry.has_transformer(list)
+
+
+def test_transformer_registry_register_many_dict() -> None:
+    registry = TransformerRegistry()
+    registry.register_many(
+        {
+            list: SequenceTransformer(),
+            dict: MappingTransformer(),
+            set: SetTransformer(),
+        }
+    )
     assert registry.has_transformer(dict)
+
+
+def test_transformer_registry_register_many_set() -> None:
+    registry = TransformerRegistry()
+    registry.register_many(
+        {
+            list: SequenceTransformer(),
+            dict: MappingTransformer(),
+            set: SetTransformer(),
+        }
+    )
     assert registry.has_transformer(set)
 
 
@@ -190,14 +224,21 @@ def test_transformer_registry_transform_with_custom_function() -> None:
     )
 
 
-def test_transformer_registry_registry_isolation() -> None:
+def test_transformer_registry_registry_isolation_first_registry() -> None:
     transformer1 = SequenceTransformer()
     transformer2 = MappingTransformer()
 
     registry1 = TransformerRegistry({list: transformer1})
-    registry2 = TransformerRegistry({list: transformer2})
-
+    TransformerRegistry({list: transformer2})
     assert registry1._state[list] is transformer1
+
+
+def test_transformer_registry_registry_isolation_second_registry() -> None:
+    transformer1 = SequenceTransformer()
+    transformer2 = MappingTransformer()
+
+    TransformerRegistry({list: transformer1})
+    registry2 = TransformerRegistry({list: transformer2})
     assert registry2._state[list] is transformer2
 
 

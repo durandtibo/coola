@@ -157,14 +157,21 @@ def test_torch_tensor_equal_handler_handle_equal_nan_true(config: EqualityConfig
 
 
 @torch_available
-def test_torch_tensor_equal_handler_handle_false_show_difference(
+def test_torch_tensor_equal_handler_handle_false_show_difference(config: EqualityConfig) -> None:
+    config.show_difference = True
+    handler = TorchTensorEqualHandler()
+    assert not handler.handle(actual=torch.ones(2, 3), expected=torch.ones(3, 2), config=config)
+
+
+@torch_available
+def test_torch_tensor_equal_handler_handle_false_show_difference_logs(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = TorchTensorEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(actual=torch.ones(2, 3), expected=torch.ones(3, 2), config=config)
-        assert caplog.messages[0].startswith("torch.Tensors are different:")
+        handler.handle(actual=torch.ones(2, 3), expected=torch.ones(3, 2), config=config)
+    assert caplog.messages[0].startswith("torch.Tensors are different:")
 
 
 @torch_available
@@ -289,17 +296,28 @@ def test_torch_tensor_same_device_handler_handle_false_mock(config: EqualityConf
 
 @torch_available
 def test_torch_tensor_same_device_handler_handle_false_show_difference(
+    config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    assert not TorchTensorSameDeviceHandler().handle(
+        actual=Mock(spec=torch.Tensor, device=torch.device("cpu")),
+        expected=Mock(spec=torch.Tensor, device=torch.device("cuda:0")),
+        config=config,
+    )
+
+
+@torch_available
+def test_torch_tensor_same_device_handler_handle_false_show_difference_logs(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
-    handler = TorchTensorSameDeviceHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
+        TorchTensorSameDeviceHandler().handle(
             actual=Mock(spec=torch.Tensor, device=torch.device("cpu")),
             expected=Mock(spec=torch.Tensor, device=torch.device("cuda:0")),
             config=config,
         )
-        assert caplog.messages[0].startswith("torch.Tensors have different devices:")
+    assert caplog.messages[0].startswith("torch.Tensors have different devices:")
 
 
 @torch_available
@@ -333,6 +351,11 @@ def test_torch_tensor_same_device_handler_set_next_handler_incorrect() -> None:
 def test_tensor_equal_sparse(config: EqualityConfig) -> None:
     eye = torch.eye(2)
     assert tensor_equal(eye.to_sparse(), eye.to_sparse(), config)
+
+
+@torch_available
+def test_tensor_equal_sparse_different(config: EqualityConfig) -> None:
+    eye = torch.eye(2)
     assert not tensor_equal(eye.to_sparse(), (2 * eye).to_sparse(), config)
 
 
@@ -345,4 +368,8 @@ def test_tensor_equal_different_layout(config: EqualityConfig) -> None:
 @torch_available
 def test_tensor_equal_meta(config: EqualityConfig) -> None:
     assert tensor_equal(torch.empty(2, device="meta"), torch.empty(2, device="meta"), config)
+
+
+@torch_available
+def test_tensor_equal_meta_different(config: EqualityConfig) -> None:
     assert not tensor_equal(torch.empty(2, device="meta"), torch.empty(3, device="meta"), config)

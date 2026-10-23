@@ -55,9 +55,13 @@ def test_iterable_iterator_iterate(data: Any, expected: Any, registry: IteratorR
     )
 
 
-def test_iterable_iterator_iterate_set(registry: IteratorRegistry) -> None:
+def test_iterable_iterator_iterate_set_not_empty(registry: IteratorRegistry) -> None:
     result = list(IterableIterator().iterate({1, 2, 3}, registry=registry))
     assert len(result)
+
+
+def test_iterable_iterator_iterate_set_values(registry: IteratorRegistry) -> None:
+    result = list(IterableIterator().iterate({1, 2, 3}, registry=registry))
     assert objects_are_equal(set(result), {1, 2, 3})
 
 

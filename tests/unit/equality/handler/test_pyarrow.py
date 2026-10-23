@@ -142,13 +142,24 @@ def test_pyarrow_equal_handler_handle_equal_nan_true(config: EqualityConfig) -> 
 
 
 @pyarrow_available
-def test_pyarrow_equal_handler_handle_false_show_difference(
+def test_pyarrow_equal_handler_handle_false_show_difference(config: EqualityConfig) -> None:
+    config.show_difference = True
+    handler = PyarrowEqualHandler()
+    assert not handler.handle(
+        actual=pa.array([1.0, 2.0, 3.0], type=pa.float64()),
+        expected=pa.array([1.0, 2.0, 4.0], type=pa.float64()),
+        config=config,
+    )
+
+
+@pyarrow_available
+def test_pyarrow_equal_handler_handle_false_show_difference_logs(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = PyarrowEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
+        handler.handle(
             actual=pa.array([1.0, 2.0, 3.0], type=pa.float64()),
             expected=pa.array([1.0, 2.0, 4.0], type=pa.float64()),
             config=config,
@@ -220,19 +231,44 @@ def test_object_equal_false(example: ExamplePair, config: EqualityConfig) -> Non
 
 
 @pyarrow_available
-def test_pyarrow_equal_handler_chunked_array_and_record_batch() -> None:
+def test_pyarrow_equal_handler_chunked_array() -> None:
     handler = PyarrowEqualHandler()
-    config = EqualityConfig()
-    assert handler.handle(pa.chunked_array([[1, 2]]), pa.chunked_array([[1, 2]]), config)
-    assert not handler.handle(pa.chunked_array([[1, 2]]), pa.chunked_array([[1, 3]]), config)
-    assert handler.handle(pa.record_batch({"a": [1]}), pa.record_batch({"a": [1]}), config)
-    assert not handler.handle(pa.record_batch({"a": [1]}), pa.record_batch({"a": [2]}), config)
+    assert handler.handle(pa.chunked_array([[1, 2]]), pa.chunked_array([[1, 2]]), EqualityConfig())
+
+
+@pyarrow_available
+def test_pyarrow_equal_handler_chunked_array_different() -> None:
+    handler = PyarrowEqualHandler()
+    assert not handler.handle(
+        pa.chunked_array([[1, 2]]), pa.chunked_array([[1, 3]]), EqualityConfig()
+    )
+
+
+@pyarrow_available
+def test_pyarrow_equal_handler_record_batch() -> None:
+    handler = PyarrowEqualHandler()
+    assert handler.handle(
+        pa.record_batch({"a": [1]}), pa.record_batch({"a": [1]}), EqualityConfig()
+    )
+
+
+@pyarrow_available
+def test_pyarrow_equal_handler_record_batch_different() -> None:
+    handler = PyarrowEqualHandler()
+    assert not handler.handle(
+        pa.record_batch({"a": [1]}), pa.record_batch({"a": [2]}), EqualityConfig()
+    )
+
+
+@pyarrow_available
+def test_object_equal_null_positions_are_the_same() -> None:
+    config = EqualityConfig(atol=0.1)
+    assert object_equal(pa.array([1.0, None]), pa.array([1.05, None]), config)
 
 
 @pyarrow_available
 def test_object_equal_null_positions_must_match() -> None:
     config = EqualityConfig(atol=0.1)
-    assert object_equal(pa.array([1.0, None]), pa.array([1.05, None]), config)
     assert not object_equal(pa.array([1.0, None]), pa.array([1.0, 0.0]), config)
 
 
@@ -241,9 +277,33 @@ def test_object_equal_table_tolerance() -> None:
     config = EqualityConfig(atol=0.1)
     table = pa.table({"a": [1.0, 2.0], "b": ["x", "y"]})
     assert object_equal(table, pa.table({"a": [1.0, 2.05], "b": ["x", "y"]}), config)
+
+
+@pyarrow_available
+def test_object_equal_table_different_value() -> None:
+    config = EqualityConfig(atol=0.1)
+    table = pa.table({"a": [1.0, 2.0], "b": ["x", "y"]})
     assert not object_equal(table, pa.table({"a": [1.0, 2.5], "b": ["x", "y"]}), config)
+
+
+@pyarrow_available
+def test_object_equal_table_different_string_value() -> None:
+    config = EqualityConfig(atol=0.1)
+    table = pa.table({"a": [1.0, 2.0], "b": ["x", "y"]})
     assert not object_equal(table, pa.table({"a": [1.0, 2.0], "b": ["x", "z"]}), config)
+
+
+@pyarrow_available
+def test_object_equal_table_different_column_name() -> None:
+    config = EqualityConfig(atol=0.1)
+    table = pa.table({"a": [1.0, 2.0], "b": ["x", "y"]})
     assert not object_equal(table, pa.table({"a": [1.0, 2.0], "c": ["x", "y"]}), config)
+
+
+@pyarrow_available
+def test_object_equal_table_different_length() -> None:
+    config = EqualityConfig(atol=0.1)
+    table = pa.table({"a": [1.0, 2.0], "b": ["x", "y"]})
     assert not object_equal(table, pa.table({"a": [1.0], "b": ["x"]}), config)
 
 
@@ -258,17 +318,38 @@ def test_object_equal_chunked_array_tolerance() -> None:
 @pyarrow_available
 def test_object_equal_integer_tolerance() -> None:
     assert object_equal(pa.array([1, 2]), pa.array([1, 3]), EqualityConfig(atol=1.0))
+
+
+@pyarrow_available
+def test_object_equal_integer_tolerance_different() -> None:
     assert not object_equal(pa.array([1, 2]), pa.array([1, 4]), EqualityConfig(atol=1.0))
 
 
 @pyarrow_available
-def test_object_equal_different_types_with_tolerance() -> None:
-    config = EqualityConfig(atol=1.0)
-    assert not object_equal(pa.array([1.0]), pa.array([1]), config)
-    assert not object_equal(pa.array([1.0]), pa.chunked_array([[1.0]]), config)
-    assert not object_equal(pa.array([1.0]), pa.array([1.0, 1.0]), config)
-    assert not object_equal(pa.array(["a"]), pa.array(["b"]), config)
-    assert not object_equal(pa.table({"a": [1.0]}), pa.record_batch({"a": [1.0]}), config)
+def test_object_equal_different_dtypes_with_tolerance() -> None:
+    assert not object_equal(pa.array([1.0]), pa.array([1]), EqualityConfig(atol=1.0))
+
+
+@pyarrow_available
+def test_object_equal_array_and_chunked_array_with_tolerance() -> None:
+    assert not object_equal(pa.array([1.0]), pa.chunked_array([[1.0]]), EqualityConfig(atol=1.0))
+
+
+@pyarrow_available
+def test_object_equal_different_lengths_with_tolerance() -> None:
+    assert not object_equal(pa.array([1.0]), pa.array([1.0, 1.0]), EqualityConfig(atol=1.0))
+
+
+@pyarrow_available
+def test_object_equal_different_strings_with_tolerance() -> None:
+    assert not object_equal(pa.array(["a"]), pa.array(["b"]), EqualityConfig(atol=1.0))
+
+
+@pyarrow_available
+def test_object_equal_table_and_record_batch_with_tolerance() -> None:
+    assert not object_equal(
+        pa.table({"a": [1.0]}), pa.record_batch({"a": [1.0]}), EqualityConfig(atol=1.0)
+    )
 
 
 @pyarrow_available
@@ -292,6 +373,16 @@ def test_object_equal_warns_once_that_a_setting_is_ignored_without_numpy(name: s
         patch("coola.equality.handler.pyarrow.is_numpy_available", return_value=False),
         pytest.warns(RuntimeWarning, match=f"{name} is ignored"),
     ):
+        object_equal(pa.array([1.0]), pa.array([1.05]), config)
+
+
+@pyarrow_available
+@pytest.mark.parametrize("name", ["equal_nan", "atol", "rtol"])
+@pytest.mark.filterwarnings("ignore::RuntimeWarning")
+def test_object_equal_is_false_when_a_setting_is_ignored_without_numpy(name: str) -> None:
+    value = True if name == "equal_nan" else 0.1
+    config = EqualityConfig(**{name: value})
+    with patch("coola.equality.handler.pyarrow.is_numpy_available", return_value=False):
         assert not object_equal(pa.array([1.0]), pa.array([1.05]), config)
 
 
@@ -303,4 +394,4 @@ def test_object_equal_does_not_repeat_the_warning_without_numpy() -> None:
             object_equal(pa.array([1.0]), pa.array([1.05]), config)
         with warnings.catch_warnings():
             warnings.simplefilter("error")
-            assert not object_equal(pa.array([1.0]), pa.array([1.05]), config)
+            object_equal(pa.array([1.0]), pa.array([1.05]), config)

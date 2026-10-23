@@ -400,7 +400,6 @@ True
 >>> with tempfile.TemporaryDirectory() as tmpdir:
 ...     with working_directory(tmpdir):
 ...         Path.cwd() == Path(tmpdir).resolve()
-...
 True
 
 ```
@@ -437,7 +436,6 @@ The `coola.utils.env_vars` module provides utilities for working with environmen
 >>> with temp_env_vars({"COOLA_EXAMPLE": "value"}):
 ...     get_required_env_var("COOLA_EXAMPLE")
 ...     check_env_vars(["COOLA_EXAMPLE"])
-...
 'value'
 {'COOLA_EXAMPLE': True}
 >>> get_required_env_var("COOLA_EXAMPLE")
@@ -473,9 +471,7 @@ False
 >>> supports_methods([], "append", "pop")
 True
 >>> class A: ...
-...
 >>> class B(A): ...
-...
 >>> get_all_child_classes(A) == {B}
 True
 

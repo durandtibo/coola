@@ -225,8 +225,11 @@ def test_convert_to_jsonable_set_and_range() -> None:
     json.dumps(out)
 
 
-def test_try_sorted_list() -> None:
+def test_try_sorted_list_set() -> None:
     assert try_sorted_list({3, 1, 2}) == [1, 2, 3]
+
+
+def test_try_sorted_list_frozenset() -> None:
     assert try_sorted_list(frozenset({"b", "a"})) == ["a", "b"]
 
 

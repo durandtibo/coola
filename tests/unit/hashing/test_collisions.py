@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 from collections import OrderedDict, deque
 from datetime import UTC, date, datetime, timedelta, timezone
 from enum import Enum, IntEnum, StrEnum
@@ -144,10 +145,17 @@ def test_hash_object_repeated_shared_object_is_not_a_cycle() -> None:
     assert isinstance(hash_object([shared, shared]), str)
 
 
-def test_hash_object_recovers_after_self_reference_error() -> None:
+def test_hash_object_recovers_after_self_reference_error_raises() -> None:
     data: list = []
     data.append(data)
     with pytest.raises(ValueError, match="self-referencing"):
+        hash_object(data)
+
+
+def test_hash_object_recovers_after_self_reference_error() -> None:
+    data: list = []
+    data.append(data)
+    with contextlib.suppress(ValueError):
         hash_object(data)
     assert isinstance(hash_object([1, 2]), str)
 
@@ -186,11 +194,38 @@ def test_hash_object_numpy_scalar_hashes_like_builtin() -> None:
 def test_hash_object_is_consistent_with_objects_are_equal(first: object, second: object) -> None:
     # Objects that coola considers equal must have the same hash.
     assert objects_are_equal(first, second)
+
+
+@pytest.mark.parametrize(
+    ("first", "second"),
+    [
+        pytest.param({"a": 1, "b": [1, 2]}, {"b": [1, 2], "a": 1}, id="dict"),
+        pytest.param(OrderedDict(a=1, b=2), OrderedDict(a=1, b=2), id="ordereddict"),
+        pytest.param({1, 2, 3}, {3, 2, 1}, id="set"),
+        pytest.param(0.0, -0.0, id="negative-zero"),
+        pytest.param(
+            datetime(2024, 1, 1, 12, tzinfo=UTC),
+            datetime(2024, 1, 1, 13, tzinfo=timezone(timedelta(hours=1))),
+            id="aware-datetime",
+        ),
+        pytest.param(Point(1, 2), Point(1, 2), id="namedtuple"),
+        pytest.param([1, (2, {3})], [1, (2, {3})], id="nested"),
+    ],
+)
+def test_hash_object_is_consistent_with_objects_are_equal_same_hash(
+    first: object, second: object
+) -> None:
+    # Objects that coola considers equal must have the same hash.
     assert hash_object(first) == hash_object(second)
 
 
-def test_hash_object_ordereddict_is_order_sensitive_but_dict_is_not() -> None:
+def test_hash_object_ordereddict_is_order_sensitive_but_dict_is_not_ordereddict_is_order_sensitive() -> (
+    None
+):
     assert hash_object(OrderedDict(a=1, b=2)) != hash_object(OrderedDict(b=2, a=1))
+
+
+def test_hash_object_ordereddict_is_order_sensitive_but_dict_is_not_dict_is_not() -> None:
     assert hash_object({"a": 1, "b": 2}) == hash_object({"b": 2, "a": 1})
 
 
@@ -198,6 +233,11 @@ def test_hash_object_ordereddict_consistent_with_objects_are_equal() -> None:
     first = OrderedDict(a=1, b=2)
     second = OrderedDict(b=2, a=1)
     assert not objects_are_equal(first, second)
+
+
+def test_hash_object_ordereddict_consistent_with_objects_are_equal_different_hash() -> None:
+    first = OrderedDict(a=1, b=2)
+    second = OrderedDict(b=2, a=1)
     assert hash_object(first) != hash_object(second)
 
 
@@ -208,7 +248,23 @@ def test_hash_object_ordereddict_subclass_is_order_sensitive() -> None:
     first = MyOrderedDict(a=1, b=2)
     second = MyOrderedDict(b=2, a=1)
     assert not objects_are_equal(first, second)
+
+
+def test_hash_object_ordereddict_subclass_is_order_sensitive_different_hash() -> None:
+    class MyOrderedDict(OrderedDict):
+        pass
+
+    first = MyOrderedDict(a=1, b=2)
+    second = MyOrderedDict(b=2, a=1)
     assert hash_object(first) != hash_object(second)
+
+
+def test_hash_object_ordereddict_subclass_is_order_sensitive_same_order_same_hash() -> None:
+    class MyOrderedDict(OrderedDict):
+        pass
+
+    first = MyOrderedDict(a=1, b=2)
+    MyOrderedDict(b=2, a=1)
     assert hash_object(first) == hash_object(MyOrderedDict(a=1, b=2))
 
 
@@ -216,4 +272,9 @@ def test_hash_object_ordereddict_nested_order_is_checked() -> None:
     first = {"k": [OrderedDict(a=1, b=2)]}
     second = {"k": [OrderedDict(b=2, a=1)]}
     assert not objects_are_equal(first, second)
+
+
+def test_hash_object_ordereddict_nested_order_is_checked_different_hash() -> None:
+    first = {"k": [OrderedDict(a=1, b=2)]}
+    second = {"k": [OrderedDict(b=2, a=1)]}
     assert hash_object(first) != hash_object(second)

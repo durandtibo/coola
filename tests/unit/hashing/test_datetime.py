@@ -74,6 +74,11 @@ def test_datetime_hasher_hash_parametrized(
 def test_datetime_hasher_hash_length(length: int, expected: str, registry: HasherRegistry) -> None:
     result = DatetimeHasher().hash(date(2021, 1, 1), registry=registry, length=length)
     assert result == expected
+
+
+@pytest.mark.parametrize("length", [16, 32, 64])
+def test_datetime_hasher_hash_length_is_respected(length: int, registry: HasherRegistry) -> None:
+    result = DatetimeHasher().hash(date(2021, 1, 1), registry=registry, length=length)
     assert len(result) == length
 
 
@@ -126,11 +131,15 @@ def test_datetime_hasher_hash_does_not_use_registry(registry: HasherRegistry) ->
     )
 
 
-def test_datetime_hasher_hash_time(registry: HasherRegistry) -> None:
+def test_datetime_hasher_hash_time_same_time(registry: HasherRegistry) -> None:
     hasher = DatetimeHasher()
     assert hasher.hash(time(12, 30), registry=registry) == hasher.hash(
         time(12, 30), registry=registry
     )
+
+
+def test_datetime_hasher_hash_time_different_time(registry: HasherRegistry) -> None:
+    hasher = DatetimeHasher()
     assert hasher.hash(time(12, 30), registry=registry) != hasher.hash(
         time(12, 31), registry=registry
     )
@@ -144,12 +153,17 @@ def test_datetime_hasher_hash_time_differs_from_datetime(registry: HasherRegistr
     )
 
 
-def test_datetime_hasher_hash_same_instant_different_zone_is_equal(
+def test_datetime_hasher_hash_same_instant_different_zone_is_equal_instants_are_equal() -> None:
+    utc = datetime(2024, 1, 1, 12, tzinfo=UTC)
+    paris = utc.astimezone(timezone(timedelta(hours=1)))
+    assert utc == paris
+
+
+def test_datetime_hasher_hash_same_instant_different_zone_is_equal_hash(
     registry: HasherRegistry,
 ) -> None:
     utc = datetime(2024, 1, 1, 12, tzinfo=UTC)
     paris = utc.astimezone(timezone(timedelta(hours=1)))
-    assert utc == paris
     assert DatetimeHasher().hash(utc, registry=registry) == DatetimeHasher().hash(
         paris, registry=registry
     )
@@ -163,10 +177,18 @@ def test_datetime_hasher_hash_different_instants_differ(registry: HasherRegistry
     )
 
 
-def test_default_registry_hashes_timedelta_and_timezone() -> None:
+def test_default_registry_hashes_timedelta_and_timezone_equal_timedeltas() -> None:
     registry = get_default_registry()
     assert registry.hash(timedelta(days=1)) == registry.hash(timedelta(hours=24))
+
+
+def test_default_registry_hashes_timedelta_and_timezone_different_timedeltas() -> None:
+    registry = get_default_registry()
     assert registry.hash(timedelta(days=1)) != registry.hash(timedelta(days=2))
+
+
+def test_default_registry_hashes_timedelta_and_timezone_different_timezones() -> None:
+    registry = get_default_registry()
     assert registry.hash(UTC) != registry.hash(timezone(timedelta(hours=1)))
 
 

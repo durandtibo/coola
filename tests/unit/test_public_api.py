@@ -23,11 +23,17 @@ def test_public_module_has_all(name: str) -> None:
     assert hasattr(module, "__all__"), f"{name} has no __all__"
 
 
-@pytest.mark.parametrize("name", _public_modules())
-def test_all_names_are_importable(name: str) -> None:
+_PUBLIC_NAMES = [
+    (name, attr)
+    for name in _public_modules()
+    for attr in getattr(importlib.import_module(name), "__all__", [])
+]
+
+
+@pytest.mark.parametrize(("name", "attr"), _PUBLIC_NAMES)
+def test_all_names_are_importable(name: str, attr: str) -> None:
     module = importlib.import_module(name)
-    for attr in getattr(module, "__all__", []):
-        assert hasattr(module, attr), f"{name}.__all__ lists missing name {attr!r}"
+    assert hasattr(module, attr), f"{name}.__all__ lists missing name {attr!r}"
 
 
 @pytest.mark.parametrize(

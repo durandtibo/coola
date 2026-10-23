@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import contextlib
 import dataclasses
 import logging
 from collections import OrderedDict
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -16,6 +18,10 @@ from coola.equality import (
 from coola.equality.handler import AttributeName
 from coola.equality.tester import EqualityTesterRegistry
 from coola.equality.tester.interface import get_default_registry
+from tests.helpers import nest
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 LOGGER_NAME = "coola.equality"
 
@@ -215,6 +221,10 @@ def test_compare_max_depth() -> None:
 def test_compare_explicit_registry() -> None:
     registry = get_default_registry()
     assert compare([1], [1], registry=registry) == equal_result([1], [1])
+
+
+def test_compare_explicit_registry_different() -> None:
+    registry = get_default_registry()
     assert compare([1], [2], registry=registry) == different_result([1], [2], (0,), numbers(1, 2))
 
 
@@ -236,25 +246,42 @@ def test_compare_restores_logger(logger_state: tuple) -> None:
     assert (logger.level, logger.propagate, list(logger.handlers)) == logger_state
 
 
-def test_compare_restores_logger_on_error(logger_state: tuple) -> None:
+def test_compare_raises_the_error_of_the_registry() -> None:
     with pytest.raises(KeyError):
+        compare(1, 1, registry=EqualityTesterRegistry())
+
+
+def test_compare_restores_logger_on_error(logger_state: tuple) -> None:
+    with contextlib.suppress(KeyError):
         compare(1, 1, registry=EqualityTesterRegistry())
     logger = logging.getLogger(LOGGER_NAME)
     assert (logger.level, logger.propagate, list(logger.handlers)) == logger_state
 
 
-def test_compare_restores_custom_logger_level() -> None:
+@pytest.fixture
+def error_logger() -> Iterator[logging.Logger]:
     logger = logging.getLogger(LOGGER_NAME)
     level, propagate = logger.level, logger.propagate
     logger.setLevel(logging.ERROR)
     logger.propagate = False
-    try:
-        assert compare([1], [2]) == different_result([1], [2], (0,), numbers(1, 2))
-        assert logger.level == logging.ERROR
-        assert logger.propagate is False
-    finally:
-        logger.setLevel(level)
-        logger.propagate = propagate
+    yield logger
+    logger.setLevel(level)
+    logger.propagate = propagate
+
+
+@pytest.mark.usefixtures("error_logger")
+def test_compare_with_custom_logger_level() -> None:
+    assert compare([1], [2]) == different_result([1], [2], (0,), numbers(1, 2))
+
+
+def test_compare_restores_custom_logger_level(error_logger: logging.Logger) -> None:
+    compare([1], [2])
+    assert error_logger.level == logging.ERROR
+
+
+def test_compare_restores_custom_logger_propagate(error_logger: logging.Logger) -> None:
+    compare([1], [2])
+    assert error_logger.propagate is False
 
 
 ##########################################
@@ -352,14 +379,26 @@ def test_assert_objects_allclose_negative_tolerance(name: str) -> None:
 ####################################
 
 
-def test_public_exports() -> None:
-    for name in ["ComparisonResult", "assert_objects_allclose", "assert_objects_equal", "compare"]:
-        assert name in eq.__all__
-        assert hasattr(eq, name)
+@pytest.mark.parametrize(
+    "name", ["ComparisonResult", "assert_objects_allclose", "assert_objects_equal", "compare"]
+)
+def test_public_exports_are_in_all(name: str) -> None:
+    assert name in eq.__all__
+
+
+@pytest.mark.parametrize(
+    "name", ["ComparisonResult", "assert_objects_allclose", "assert_objects_equal", "compare"]
+)
+def test_public_exports_are_attributes(name: str) -> None:
+    assert hasattr(eq, name)
 
 
 def test_compare_result_is_independent_between_calls() -> None:
     assert compare([1], [2]) == different_result([1], [2], (0,), numbers(1, 2))
+
+
+def test_compare_result_is_independent_between_calls_after_a_difference() -> None:
+    compare([1], [2])
     assert compare([1], [1]) == equal_result([1], [1])
 
 
@@ -403,18 +442,27 @@ def test_compare_does_not_leak_records_between_calls() -> None:
     assert compare({"a": 1}, {"a": 1}) == equal_result({"a": 1}, {"a": 1})
 
 
+class Spy:
+    def __init__(self, seen: list) -> None:
+        self._seen = seen
+
+    def __eq__(self, other: object) -> bool:
+        logger = logging.getLogger(LOGGER_NAME)
+        self._seen.append((logger.level, logger.propagate, list(logger.handlers)))
+        return False
+
+
+def test_compare_calls_the_spy() -> None:
+    seen: list[tuple[int, bool, list[logging.Handler]]] = []
+    compare([Spy(seen)], [Spy(seen)])
+    assert seen
+
+
 def test_compare_does_not_modify_logger_while_running() -> None:
     logger = logging.getLogger(LOGGER_NAME)
     before = (logger.level, logger.propagate, list(logger.handlers))
     seen: list[tuple[int, bool, list[logging.Handler]]] = []
-
-    class Spy:
-        def __eq__(self, other: object) -> bool:
-            seen.append((logger.level, logger.propagate, list(logger.handlers)))
-            return False
-
-    compare([Spy()], [Spy()])
-    assert seen
+    compare([Spy(seen)], [Spy(seen)])
     assert all(state == before for state in seen)
 
 
@@ -427,9 +475,7 @@ def test_compare_self_referencing_list() -> None:
 
 
 def test_compare_python_recursion_limit_message() -> None:
-    data1, data2 = [], []
-    for _ in range(2000):
-        data1, data2 = [data1], [data2]
+    data1, data2 = nest([], 2000), nest([], 2000)
     with pytest.raises(RecursionError, match="Python recursion limit"):
         compare(data1, data2, max_depth=10**6)
 
@@ -442,29 +488,46 @@ class NoRepr:
 
 def test_compare_equal_does_not_compute_the_repr() -> None:
     obj = NoRepr()
-    result = compare([obj], [obj])
-    assert result.equal
-    assert result.actual == ""
-    assert result.expected == ""
+    assert compare([obj], [obj]).equal
+
+
+def test_compare_equal_has_an_empty_actual_repr() -> None:
+    obj = NoRepr()
+    assert compare([obj], [obj]).actual == ""
+
+
+def test_compare_equal_has_an_empty_expected_repr() -> None:
+    obj = NoRepr()
+    assert compare([obj], [obj]).expected == ""
+
+
+def test_compare_equal_result() -> None:
+    assert compare({"a": [1, 2]}, {"a": [1, 2]}) == ComparisonResult(True)
 
 
 def test_compare_equal_has_empty_representations() -> None:
     result = compare({"a": [1, 2]}, {"a": [1, 2]})
-    assert result == ComparisonResult(True)
     assert (result.actual, result.expected) == ("", "")
 
 
-def test_compare_different_has_the_representations() -> None:
-    result = compare([1], [2])
-    assert result.actual == "[1]"
-    assert result.expected == "[2]"
+def test_compare_different_has_the_actual_representation() -> None:
+    assert compare([1], [2]).actual == "[1]"
+
+
+def test_compare_different_has_the_expected_representation() -> None:
+    assert compare([1], [2]).expected == "[2]"
 
 
 def test_compare_different_with_failing_repr() -> None:
-    result = compare([NoRepr()], [NoRepr()])
-    assert not result.equal
-    assert result.actual.startswith("<list object at 0x")
-    assert result.expected.startswith("<list object at 0x")
+    assert not compare([NoRepr()], [NoRepr()]).equal
+
+
+def test_compare_different_with_failing_repr_actual() -> None:
+    assert compare([NoRepr()], [NoRepr()]).actual.startswith("<list object at 0x")
+
+
+def test_compare_different_with_failing_repr_expected() -> None:
+    assert compare([NoRepr()], [NoRepr()]).expected.startswith("<list object at 0x")
 
 
 @dataclasses.dataclass
@@ -474,10 +537,15 @@ class _Inner:
 
 
 def test_compare_dataclass_field_path() -> None:
-    result = compare(_Inner(1, [1]), _Inner(1, [2]))
-    assert result.path == ("y", 0)
-    assert isinstance(result.path[0], AttributeName)
-    assert result.format_path("actual") == "actual.y[0]"
+    assert compare(_Inner(1, [1]), _Inner(1, [2])).path == ("y", 0)
+
+
+def test_compare_dataclass_field_path_is_an_attribute_name() -> None:
+    assert isinstance(compare(_Inner(1, [1]), _Inner(1, [2])).path[0], AttributeName)
+
+
+def test_compare_dataclass_field_path_format() -> None:
+    assert compare(_Inner(1, [1]), _Inner(1, [2])).format_path("actual") == "actual.y[0]"
 
 
 def test_compare_dataclass_field_path_in_container() -> None:

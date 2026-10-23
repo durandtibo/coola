@@ -183,20 +183,36 @@ def test_raise_package_missing_error_message_format() -> None:
 #########################################
 
 
-def test_missing_package_error_is_import_error_and_runtime_error() -> None:
+def test_missing_package_error_is_module_not_found_error() -> None:
     assert issubclass(MissingPackageError, ModuleNotFoundError)
+
+
+def test_missing_package_error_is_import_error() -> None:
     assert issubclass(MissingPackageError, ImportError)
+
+
+def test_missing_package_error_is_runtime_error() -> None:
     assert issubclass(MissingPackageError, RuntimeError)
 
 
 def test_check_package_missing_raises_missing_package_error() -> None:
-    with pytest.raises(MissingPackageError, match="'not_a_package' package is required") as info:
+    with pytest.raises(MissingPackageError, match="'not_a_package' package is required"):
+        check_package("not_a_package")
+
+
+def test_check_package_missing_error_name() -> None:
+    with pytest.raises(MissingPackageError) as info:
         check_package("not_a_package")
     assert info.value.name == "not_a_package"
 
 
 def test_raise_package_missing_error_raises_missing_package_error() -> None:
-    with pytest.raises(MissingPackageError, match="'my_package' package is required") as info:
+    with pytest.raises(MissingPackageError, match="'my_package' package is required"):
+        raise_package_missing_error("my_package", "my-package")
+
+
+def test_raise_package_missing_error_name() -> None:
+    with pytest.raises(MissingPackageError) as info:
         raise_package_missing_error("my_package", "my-package")
     assert info.value.name == "my_package"
 
@@ -216,28 +232,45 @@ def test_missing_package_error_can_still_be_caught_as_runtime_error() -> None:
 ##########################################################
 
 
-@pytest.mark.parametrize(
-    "error", [OSError("libfoo.so not found"), RuntimeError("ABI"), AttributeError("x")]
-)
-def test_module_available_broken_module_returns_false_and_warns(
+BROKEN_ERRORS = [OSError("libfoo.so not found"), RuntimeError("ABI"), AttributeError("x")]
+
+
+@pytest.mark.parametrize("error", BROKEN_ERRORS)
+def test_module_available_broken_module_returns_false(error: Exception) -> None:
+    name = f"broken_module_{type(error).__name__}"
+    with patch(f"{MODULE}.importlib.import_module", side_effect=error):
+        assert not module_available(name)
+
+
+@pytest.mark.parametrize("error", BROKEN_ERRORS)
+def test_module_available_broken_module_warns(
     error: Exception, caplog: pytest.LogCaptureFixture
 ) -> None:
-    name = f"broken_module_{type(error).__name__}"
+    name = f"broken_module_warns_{type(error).__name__}"
     with (
         patch(f"{MODULE}.importlib.import_module", side_effect=error),
         caplog.at_level(logging.WARNING, logger=MODULE),
     ):
-        assert not module_available(name)
+        module_available(name)
     assert f"The module '{name}' is installed but cannot be imported" in caplog.text
+
+
+def test_module_available_missing_module_returns_false() -> None:
+    assert not module_available("missing_module_returns_false")
 
 
 def test_module_available_missing_module_does_not_warn(caplog: pytest.LogCaptureFixture) -> None:
     with caplog.at_level(logging.WARNING, logger=MODULE):
-        assert not module_available("missing_module_without_warning")
+        module_available("missing_module_without_warning")
     assert not caplog.records
+
+
+def test_package_available_with_a_broken_package() -> None:
+    with patch(f"{MODULE}.importlib.import_module", side_effect=OSError("broken")):
+        assert package_available("json")
 
 
 def test_package_available_does_not_import_the_package() -> None:
     with patch(f"{MODULE}.importlib.import_module", side_effect=OSError("broken")) as mock:
-        assert package_available("json")
+        package_available("json")
     mock.assert_not_called()

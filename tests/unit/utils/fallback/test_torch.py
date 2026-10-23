@@ -16,10 +16,19 @@ def test_torch_module_name() -> None:
     assert torch.__name__ == "torch"
 
 
-def test_torch_nested_module_access() -> None:
+def test_torch_nested_module_access_cuda() -> None:
     assert hasattr(torch, "cuda")
+
+
+def test_torch_nested_module_access_nn() -> None:
     assert hasattr(torch, "nn")
+
+
+def test_torch_nested_module_access_nn_utils() -> None:
     assert hasattr(torch.nn, "utils")
+
+
+def test_torch_nested_module_access_nn_utils_rnn() -> None:
     assert hasattr(torch.nn.utils, "rnn")
 
 

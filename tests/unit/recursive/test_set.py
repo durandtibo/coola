@@ -95,15 +95,27 @@ def test_set_transformer_transform_preserves_function_behavior(
     )
 
 
-def test_set_transformer_transform_with_stateful_function(registry: TransformerRegistry) -> None:
+def _make_stateful_func() -> Callable[[Any], Any]:
     counter = {"count": 0}
 
     def stateful_func(x: Any) -> Any:
         counter["count"] += 1
         return x * counter["count"]
 
+    return stateful_func
+
+
+def test_set_transformer_transform_with_stateful_function(registry: TransformerRegistry) -> None:
     transformer = SetTransformer()
-    assert transformer.transform({1, 2}, func=stateful_func, registry=registry) == {1, 4}
+    assert transformer.transform({1, 2}, func=_make_stateful_func(), registry=registry) == {1, 4}
+
+
+def test_set_transformer_transform_with_stateful_function_second_call(
+    registry: TransformerRegistry,
+) -> None:
+    transformer = SetTransformer()
+    stateful_func = _make_stateful_func()
+    transformer.transform({1, 2}, func=stateful_func, registry=registry)
     assert transformer.transform({1, 2}, func=stateful_func, registry=registry) == {3, 8}
 
 

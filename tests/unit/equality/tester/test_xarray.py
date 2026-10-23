@@ -481,13 +481,21 @@ def test_xarray_data_array_equality_tester_objects_are_equal_true_same_object(
 def test_xarray_data_array_equality_tester_objects_are_equal_true(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    tester = XarrayDataArrayEqualityTester()
+    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+
+
+@xarray_available
+@pytest.mark.parametrize("example", XARRAY_DATA_ARRAY_EQUAL)
+def test_xarray_data_array_equality_tester_objects_are_equal_true_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = XarrayDataArrayEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -496,14 +504,23 @@ def test_xarray_data_array_equality_tester_objects_are_equal_true(
 def test_xarray_data_array_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    tester = XarrayDataArrayEqualityTester()
+    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+
+
+@xarray_available
+@pytest.mark.parametrize("example", XARRAY_DATA_ARRAY_EQUAL)
+def test_xarray_data_array_equality_tester_objects_are_equal_true_show_difference_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     tester = XarrayDataArrayEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -512,13 +529,23 @@ def test_xarray_data_array_equality_tester_objects_are_equal_true_show_differenc
 def test_xarray_data_array_equality_tester_objects_are_equal_false(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    tester = XarrayDataArrayEqualityTester()
+    assert not tester.objects_are_equal(
+        actual=example.actual, expected=example.expected, config=config
+    )
+
+
+@xarray_available
+@pytest.mark.parametrize("example", XARRAY_DATA_ARRAY_NOT_EQUAL)
+def test_xarray_data_array_equality_tester_objects_are_equal_false_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = XarrayDataArrayEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert not tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -527,14 +554,25 @@ def test_xarray_data_array_equality_tester_objects_are_equal_false(
 def test_xarray_data_array_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    tester = XarrayDataArrayEqualityTester()
+    assert not tester.objects_are_equal(
+        actual=example.actual, expected=example.expected, config=config
+    )
+
+
+@xarray_available
+@pytest.mark.parametrize("example", XARRAY_DATA_ARRAY_NOT_EQUAL)
+def test_xarray_data_array_equality_tester_objects_are_equal_false_show_difference_logs(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     tester = XarrayDataArrayEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert not tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
@@ -621,13 +659,21 @@ def test_xarray_dataset_equality_tester_objects_are_equal_true_same_object(
 def test_xarray_dataset_equality_tester_objects_are_equal_true(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    tester = XarrayDatasetEqualityTester()
+    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+
+
+@xarray_available
+@pytest.mark.parametrize("example", XARRAY_DATASET_EQUAL)
+def test_xarray_dataset_equality_tester_objects_are_equal_true_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = XarrayDatasetEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -636,14 +682,23 @@ def test_xarray_dataset_equality_tester_objects_are_equal_true(
 def test_xarray_dataset_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    tester = XarrayDatasetEqualityTester()
+    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+
+
+@xarray_available
+@pytest.mark.parametrize("example", XARRAY_DATASET_EQUAL)
+def test_xarray_dataset_equality_tester_objects_are_equal_true_show_difference_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     tester = XarrayDatasetEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -652,13 +707,23 @@ def test_xarray_dataset_equality_tester_objects_are_equal_true_show_difference(
 def test_xarray_dataset_equality_tester_objects_are_equal_false(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    tester = XarrayDatasetEqualityTester()
+    assert not tester.objects_are_equal(
+        actual=example.actual, expected=example.expected, config=config
+    )
+
+
+@xarray_available
+@pytest.mark.parametrize("example", XARRAY_DATASET_NOT_EQUAL)
+def test_xarray_dataset_equality_tester_objects_are_equal_false_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = XarrayDatasetEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert not tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -667,14 +732,25 @@ def test_xarray_dataset_equality_tester_objects_are_equal_false(
 def test_xarray_dataset_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    tester = XarrayDatasetEqualityTester()
+    assert not tester.objects_are_equal(
+        actual=example.actual, expected=example.expected, config=config
+    )
+
+
+@xarray_available
+@pytest.mark.parametrize("example", XARRAY_DATASET_NOT_EQUAL)
+def test_xarray_dataset_equality_tester_objects_are_equal_false_show_difference_logs(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     tester = XarrayDatasetEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert not tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
@@ -761,13 +837,21 @@ def test_xarray_variable_equality_tester_objects_are_equal_true_same_object(
 def test_xarray_variable_equality_tester_objects_are_equal_true(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    tester = XarrayVariableEqualityTester()
+    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+
+
+@xarray_available
+@pytest.mark.parametrize("example", XARRAY_VARIABLE_EQUAL)
+def test_xarray_variable_equality_tester_objects_are_equal_true_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = XarrayVariableEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -776,14 +860,23 @@ def test_xarray_variable_equality_tester_objects_are_equal_true(
 def test_xarray_variable_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    tester = XarrayVariableEqualityTester()
+    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+
+
+@xarray_available
+@pytest.mark.parametrize("example", XARRAY_VARIABLE_EQUAL)
+def test_xarray_variable_equality_tester_objects_are_equal_true_show_difference_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     tester = XarrayVariableEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -792,13 +885,23 @@ def test_xarray_variable_equality_tester_objects_are_equal_true_show_difference(
 def test_xarray_variable_equality_tester_objects_are_equal_false(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    tester = XarrayVariableEqualityTester()
+    assert not tester.objects_are_equal(
+        actual=example.actual, expected=example.expected, config=config
+    )
+
+
+@xarray_available
+@pytest.mark.parametrize("example", XARRAY_VARIABLE_NOT_EQUAL)
+def test_xarray_variable_equality_tester_objects_are_equal_false_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = XarrayVariableEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert not tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -807,14 +910,25 @@ def test_xarray_variable_equality_tester_objects_are_equal_false(
 def test_xarray_variable_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    tester = XarrayVariableEqualityTester()
+    assert not tester.objects_are_equal(
+        actual=example.actual, expected=example.expected, config=config
+    )
+
+
+@xarray_available
+@pytest.mark.parametrize("example", XARRAY_VARIABLE_NOT_EQUAL)
+def test_xarray_variable_equality_tester_objects_are_equal_false_show_difference_logs(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     tester = XarrayVariableEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert not tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
@@ -862,6 +976,15 @@ def test_xarray_data_array_equality_tester_non_index_coordinate(config: Equality
     kwargs = {"dims": ["z"], "coords": {"label": ("z", ["a", "b", "c"])}}
     actual = xr.DataArray(np.arange(3), **kwargs)
     assert tester.objects_are_equal(actual, xr.DataArray(np.arange(3), **kwargs), config)
+
+
+@xarray_available
+def test_xarray_data_array_equality_tester_non_index_coordinate_different(
+    config: EqualityConfig,
+) -> None:
+    tester = XarrayDataArrayEqualityTester()
+    kwargs = {"dims": ["z"], "coords": {"label": ("z", ["a", "b", "c"])}}
+    actual = xr.DataArray(np.arange(3), **kwargs)
     other = xr.DataArray(np.arange(3), dims=["z"], coords={"label": ("z", ["a", "b", "d"])})
     assert not tester.objects_are_equal(actual, other, config)
 
@@ -872,7 +995,24 @@ def test_xarray_data_array_equality_tester_missing_coordinate(config: EqualityCo
     with_coord = xr.DataArray(np.arange(3), dims=["z"], coords={"z": [1, 2, 3]})
     without_coord = xr.DataArray(np.arange(3), dims=["z"])
     assert not tester.objects_are_equal(with_coord, without_coord, config)
+
+
+@xarray_available
+def test_xarray_data_array_equality_tester_missing_expected_coordinate(
+    config: EqualityConfig,
+) -> None:
+    tester = XarrayDataArrayEqualityTester()
+    with_coord = xr.DataArray(np.arange(3), dims=["z"], coords={"z": [1, 2, 3]})
+    without_coord = xr.DataArray(np.arange(3), dims=["z"])
     assert not tester.objects_are_equal(without_coord, with_coord, config)
+
+
+@xarray_available
+def test_xarray_data_array_equality_tester_coordinate_without_tolerance() -> None:
+    tester = XarrayDataArrayEqualityTester()
+    actual = xr.DataArray(np.arange(3), dims=["z"], coords={"z": [1.0, 2.0, 3.0]})
+    expected = xr.DataArray(np.arange(3), dims=["z"], coords={"z": [1.0, 2.0, 3.05]})
+    assert not tester.objects_are_equal(actual, expected, EqualityConfig())
 
 
 @xarray_available
@@ -880,7 +1020,6 @@ def test_xarray_data_array_equality_tester_coordinate_tolerance() -> None:
     tester = XarrayDataArrayEqualityTester()
     actual = xr.DataArray(np.arange(3), dims=["z"], coords={"z": [1.0, 2.0, 3.0]})
     expected = xr.DataArray(np.arange(3), dims=["z"], coords={"z": [1.0, 2.0, 3.05]})
-    assert not tester.objects_are_equal(actual, expected, EqualityConfig())
     assert tester.objects_are_equal(actual, expected, EqualityConfig(atol=0.1))
 
 
