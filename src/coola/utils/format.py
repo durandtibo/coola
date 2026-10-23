@@ -96,8 +96,8 @@ def repr_indent(original: object, num_spaces: int = 2) -> str:
         >>> from coola.utils.format import repr_indent
         >>> print(repr_indent("string1\nstring2\n  string3", 4))
         string1
-        string2
-          string3
+            string2
+              string3
 
         ```
     """
@@ -162,7 +162,7 @@ def repr_mapping_line(
     Example:
         ```pycon
         >>> from coola.utils.format import repr_mapping_line
-        >>> repr_mapping_line({"key1": "abc", "key2": "meow", "key3": 42})
+        >>> print(repr_mapping_line({"key1": "abc", "key2": "meow", "key3": 42}))
         key1='abc', key2='meow', key3=42
 
         ```
@@ -210,7 +210,7 @@ def repr_sequence_line(sequence: Sequence[Any], separator: str = ", ") -> str:
     Example:
         ```pycon
         >>> from coola.utils.format import repr_sequence_line
-        >>> repr_sequence_line(["abc", "meow", 42])
+        >>> print(repr_sequence_line(["abc", "meow", 42]))
         'abc', 'meow', 42
 
         ```
@@ -239,8 +239,8 @@ def str_indent(original: object, num_spaces: int = 2) -> str:
         >>> from coola.utils.format import str_indent
         >>> print(str_indent("string1\nstring2\n  string3", 4))
         string1
-        string2
-          string3
+            string2
+              string3
 
         ```
     """
@@ -312,7 +312,7 @@ def str_mapping_line(
     Example:
         ```pycon
         >>> from coola.utils.format import str_mapping_line
-        >>> str_mapping_line({"key1": "abc", "key2": "meow", "key3": 42})
+        >>> print(str_mapping_line({"key1": "abc", "key2": "meow", "key3": 42}))
         key1=abc, key2=meow, key3=42
 
         ```
@@ -360,7 +360,7 @@ def str_sequence_line(sequence: Sequence[Any], separator: str = ", ") -> str:
     Example:
         ```pycon
         >>> from coola.utils.format import str_sequence_line
-        >>> str_sequence_line(["abc", "meow", 42])
+        >>> print(str_sequence_line(["abc", "meow", 42]))
         abc, meow, 42
 
         ```

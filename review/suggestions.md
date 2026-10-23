@@ -85,6 +85,7 @@ the PR number is given. Items not listed are **open**.
 | 6.19 | PR open (#2124)         | Shared length validation, checked before hashing; `memoryview` supported.                                                                    |
 | 6.20 | PR open (#2125)         | `get_default_generator` removed from both `__all__`.                                                                                         |
 | 6.21 | Partly, PR open (#2126) | Prefix and generator result validated, `chars` tidied. Open: Windows/Posix path hash, duplicate registry export, `register_hashers` doctest. |
+| 7.23 | Mostly (#2151) | The listed examples fixed. Other doctests of `utils` still fail under pytest's doctest runner (they pass with xdoctest). |
 | 7.16 | PR open (#2145) | Host in a file URI and unknown `~user` raise `ValueError`; a missing path starts from its parent. |
 | 7.14 | PR open (#2143) | `LazySingleton` uses a sentinel, so a `None` value is cached. |
 | 7.13 | Partly (#2141) | Dunder names and `_module` raise `AttributeError` without importing. `hasattr(proxy, "a")` of a missing package still raises `ModuleNotFoundError` on purpose; `copy.copy` is impossible for modules. |
