@@ -18,7 +18,12 @@ if TYPE_CHECKING:
 # The children are forked, not spawned: they do not pay the import of coola again.
 _FORK: Any = multiprocessing.get_context("fork") if hasattr(os, "fork") else None
 requires_fork = pytest.mark.skipif(_FORK is None, reason="Requires os.fork")
-pytestmark = pytest.mark.filterwarnings("ignore:.*fork.*:DeprecationWarning")
+# JAX (when another test imported it) warns about ``os.fork``: the children only use the standard
+# library.
+pytestmark = [
+    pytest.mark.filterwarnings("ignore:.*fork.*:DeprecationWarning"),
+    pytest.mark.filterwarnings("ignore:os.fork\\(\\) was called:RuntimeWarning"),
+]
 
 ########################################
 #     Tests for BaseFileSaver.save     #
