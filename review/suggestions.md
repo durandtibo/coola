@@ -109,7 +109,7 @@ the PR number is given. Items not listed are **open**.
 | 7.7  | PR open (#2134)                 | `to_date` returns the date part of a `datetime`.                                                                                                                                                      |
 | 7.8  | PR open (#2138)                 | `ß` and similar letters mapped; non-ASCII-only text falls back to a hash.                                                                                                                             |
 | 7.9  | PR open (#2137)                 | `datetime.time` becomes an ISO string and `timedelta` a number of seconds.                                                                                                                            |
-| 8.9  | Partly, PR open (#PR)           | The depth-limited preview keeps `tuple`, `deque`, `set`, `frozenset`, `OrderedDict` and `Counter`. Not changed: `max_items < 0` still caps the preview at 5 items (deliberate, #27); documented.      |
+| 8.9  | Partly, PR open (#2169)           | The depth-limited preview keeps `tuple`, `deque`, `set`, `frozenset`, `OrderedDict` and `Counter`. Not changed: `max_items < 0` still caps the preview at 5 items (deliberate, #27); documented.      |
 
 All other items in sections 5 to 10 (including 7.x, 8.x, 9.x, 10.x) have no matching commit and are **open**.
 The earlier "Suggested order" lists below are unchanged.
