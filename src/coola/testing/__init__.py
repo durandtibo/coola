@@ -5,6 +5,9 @@ The fixtures are defined in ``coola.testing.fixtures``. Import one from
 there and use it as a test decorator, e.g. ``from coola.testing.fixtures
 import numpy_available`` then ``@numpy_available`` skips the test unless
 NumPy is installed.
+
+``pytest`` is required: install ``coola`` with the ``testing`` extra
+(``pip install coola[testing]``).
 """
 
 from __future__ import annotations

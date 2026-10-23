@@ -73,7 +73,7 @@ def find_root_package_parent(start_path: str | os.PathLike[str]) -> Path:
         current = parent
 
 
-def sanitize_path(path: str | os.PathLike[str]) -> Path:
+def sanitize_path(path: str | os.PathLike[str], *, resolve: bool = True) -> Path:
     r"""Sanitize the given path.
 
     Args:
@@ -87,6 +87,11 @@ def sanitize_path(path: str | os.PathLike[str]) -> Path:
             collapses ``"file:///a"`` to ``"file:/a"`` before this
             function ever sees it, so the URI can no longer be
             detected and it is treated as a plain relative path.
+        resolve: If ``True`` (default), the path is made absolute and
+            the symbolic links are resolved. If ``False``, the path is
+            only converted to a ``Path`` (``~`` and ``file://`` URIs
+            are still expanded): a relative path stays relative and a
+            symbolic link is kept.
 
     Returns:
         The sanitized path as a ``pathlib.Path`` object.
@@ -108,6 +113,8 @@ def sanitize_path(path: str | os.PathLike[str]) -> Path:
         PosixPath('.../something')
         >>> sanitize_path(Path("something/./../"))
         PosixPath('...')
+        >>> sanitize_path("something", resolve=False)
+        PosixPath('something')
 
         ```
     """
@@ -124,7 +131,8 @@ def sanitize_path(path: str | os.PathLike[str]) -> Path:
     else:
         path = Path(path)
     try:
-        return path.expanduser().resolve()
+        path = path.expanduser()
+        return path.resolve() if resolve else path
     except RuntimeError as error:
         msg = f"Could not expand the home directory of {str(path)!r}"
         raise ValueError(msg) from error

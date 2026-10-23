@@ -36,7 +36,6 @@ from coola.equality.tester import (
     interface as tester_interface,
     register_equality_testers,
 )
-from coola.equality.tester.jax import get_array_impl_class
 from coola.registry import AlreadyRegisteredError
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import (
@@ -112,7 +111,7 @@ if is_jax_available():
     TESTER_TYPES.extend(
         [
             (jnp.ndarray, JaxArrayEqualityTester, True),
-            (get_array_impl_class(), JaxArrayEqualityTester, True),
+            (type(jnp.ones(1)), JaxArrayEqualityTester, False),
         ]
     )
 if is_numpy_available():

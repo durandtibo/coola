@@ -295,3 +295,53 @@ def test_sanitize_path_file_uri_with_localhost() -> None:
 def test_sanitize_path_unknown_user_raises() -> None:
     with pytest.raises(ValueError, match="home directory"):
         sanitize_path("~coola_unknown_user_xyz/data")
+
+
+def test_sanitize_path_resolve_false_keeps_a_relative_path() -> None:
+    assert sanitize_path("data/a.txt", resolve=False) == Path("data/a.txt")
+
+
+def test_sanitize_path_resolve_false_is_not_absolute() -> None:
+    assert not sanitize_path("data/a.txt", resolve=False).is_absolute()
+
+
+def test_sanitize_path_resolve_false_returns_a_path() -> None:
+    assert isinstance(sanitize_path("data/a.txt", resolve=False), Path)
+
+
+def test_sanitize_path_resolve_false_path_like() -> None:
+    class PathLike:
+        def __fspath__(self) -> str:
+            return "data/a.txt"
+
+    assert sanitize_path(PathLike(), resolve=False) == Path("data/a.txt")
+
+
+def test_sanitize_path_resolve_false_expands_the_home_directory() -> None:
+    assert sanitize_path("~/a.txt", resolve=False) == Path.home() / "a.txt"
+
+
+def test_sanitize_path_resolve_false_decodes_a_file_uri() -> None:
+    assert sanitize_path("file:///a/b.txt", resolve=False) == Path("/a/b.txt")
+
+
+def test_sanitize_path_resolve_false_keeps_a_symbolic_link(tmp_path: Path) -> None:
+    target = tmp_path / "target.txt"
+    target.touch()
+    link = tmp_path / "link.txt"
+    link.symlink_to(target)
+    assert sanitize_path(link, resolve=False) == link
+
+
+def test_sanitize_path_resolve_true_resolves_a_symbolic_link(tmp_path: Path) -> None:
+    target = tmp_path / "target.txt"
+    target.touch()
+    link = tmp_path / "link.txt"
+    link.symlink_to(target)
+    assert sanitize_path(link) == target.resolve()
+
+
+@pytest.mark.parametrize("path", [1, None])
+def test_sanitize_path_resolve_false_incorrect_type_raises(path: object) -> None:
+    with pytest.raises(TypeError, match=r"expected str, bytes or os\.PathLike"):
+        sanitize_path(path, resolve=False)

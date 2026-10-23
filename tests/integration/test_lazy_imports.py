@@ -127,3 +127,15 @@ def test_manual_seed_seeds_numpy_even_if_it_is_imported_after() -> None:
         "print(np.random.rand())"
     )
     assert run_python(code) == run_python(code)
+
+
+def test_importing_coola_does_not_import_importlib_metadata() -> None:
+    """Test that the version is read only when it is used."""
+    code = "import sys, coola; print('importlib.metadata' in sys.modules)"
+    assert run_python(code) == ["False"]
+
+
+def test_using_the_version_imports_importlib_metadata() -> None:
+    """Test that ``__version__`` is read from the metadata."""
+    code = "import sys, coola; coola.__version__; print('importlib.metadata' in sys.modules)"
+    assert run_python(code) == ["True"]
