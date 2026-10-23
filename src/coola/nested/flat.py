@@ -282,20 +282,26 @@ def to_flat_dict(
     """
     flat: dict[str, Any] = {}
     _flatten_into(
-        flat, data, prefix, separator, _normalize_to_str(to_str), ancestors=set(), escape=escape
+        flat=flat,
+        data=data,
+        prefix=prefix,
+        separator=separator,
+        to_str=_normalize_to_str(to_str),
+        ancestors=set(),
+        escape=escape,
     )
     return flat
 
 
 def _flatten_into(
+    *,
     flat: dict[str, Any],
     data: object,
     prefix: str | None,
     separator: str,
     to_str: tuple[type, ...],
-    *,
     ancestors: set[int],
-    escape: bool = False,
+    escape: bool,
 ) -> None:
     """Flatten *data* into the shared output dict *flat*.
 
@@ -339,7 +345,15 @@ def _flatten_into(
         for key, value in cast("Mapping[Any, Any]", data).items():
             segment = _escape_key(str(key), separator) if escape else str(key)
             child = _build_key(prefix, segment, separator)
-            _flatten_into(flat, value, child, separator, to_str, ancestors=ancestors, escape=escape)
+            _flatten_into(
+                flat=flat,
+                data=value,
+                prefix=child,
+                separator=separator,
+                to_str=to_str,
+                ancestors=ancestors,
+                escape=escape,
+            )
         ancestors.remove(id(data))
     # str, bytes and bytearray are Sequences, so they must be excluded before
     # the Sequence check to avoid iterating over individual characters or bytes.
@@ -347,7 +361,15 @@ def _flatten_into(
         _check_no_cycle(data, ancestors)
         for i, value in enumerate(cast("Sequence[Any]", data)):
             child = _build_key(prefix, str(i), separator)
-            _flatten_into(flat, value, child, separator, to_str, ancestors=ancestors, escape=escape)
+            _flatten_into(
+                flat=flat,
+                data=value,
+                prefix=child,
+                separator=separator,
+                to_str=to_str,
+                ancestors=ancestors,
+                escape=escape,
+            )
         ancestors.remove(id(data))
     elif prefix is None:
         msg = (
