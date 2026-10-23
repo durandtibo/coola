@@ -85,6 +85,7 @@ the PR number is given. Items not listed are **open**.
 | 6.19 | PR open (#2124)         | Shared length validation, checked before hashing; `memoryview` supported.                                                                    |
 | 6.20 | PR open (#2125)         | `get_default_generator` removed from both `__all__`.                                                                                         |
 | 6.21 | Partly, PR open (#2126) | Prefix and generator result validated, `chars` tidied. Open: Windows/Posix path hash, duplicate registry export, `register_hashers` doctest. |
+| 7.15 | Fixed (options) (#2150) | Options `level` and `all_threads` added; defaults unchanged. |
 | 7.22 | PR open (#2149) | Invalid versions give `None`; cache cleared by `clear_availability_caches`. |
 | 7.24 | Mostly (#2155) | Fixed: bfloat16 `to_array`, resolved lock key, docs. Not changed: >2**53 ints in `stats.py`, `fsync` on `BaseSaver.save`. |
 | 7.5 | Partly (#2154) | Renamed lock re-checked and restored if it was renewed. The window is narrowed, not closed (no kernel locks). |
