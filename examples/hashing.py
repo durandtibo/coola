@@ -1,4 +1,5 @@
-r"""Show examples of the ``coola.hashing`` and ``coola.identifier`` functions.
+r"""Show examples of the ``coola.hashing`` and ``coola.identifier``
+functions.
 
 Run with: ``python examples/hashing.py``
 """

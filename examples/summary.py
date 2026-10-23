@@ -1,4 +1,5 @@
-r"""Show examples of the ``coola.summary`` and ``coola.reducer`` functions.
+r"""Show examples of the ``coola.summary`` and ``coola.reducer``
+functions.
 
 Run with: ``python examples/summary.py``
 """
