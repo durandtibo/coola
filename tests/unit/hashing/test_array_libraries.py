@@ -85,6 +85,57 @@ def test_hash_numpy_array_negative_zero() -> None:
 
 
 @numpy_available
+def test_hash_numpy_array_nan_sign() -> None:
+    assert hash_object(np.array([np.nan])) == hash_object(np.array([-np.nan]))
+
+
+@numpy_available
+def test_hash_numpy_array_nan_payload() -> None:
+    payload = np.array([0x7FF8000000000001], dtype=np.uint64).view(np.float64)
+    assert hash_object(np.array([np.nan])) == hash_object(payload)
+
+
+@numpy_available
+def test_hash_numpy_array_float32_nan_sign() -> None:
+    first, second = np.array([np.nan], dtype=np.float32), np.array([-np.nan], dtype=np.float32)
+    assert hash_object(first) == hash_object(second)
+
+
+@numpy_available
+def test_hash_numpy_array_nan_differs_from_a_number() -> None:
+    assert hash_object(np.array([np.nan])) != hash_object(np.array([0.0]))
+
+
+@numpy_available
+def test_hash_numpy_array_nan_differs_from_inf() -> None:
+    assert hash_object(np.array([np.nan])) != hash_object(np.array([np.inf]))
+
+
+@numpy_available
+def test_hash_numpy_array_complex_nan_sign() -> None:
+    first, second = np.array([complex(np.nan, 1.0)]), np.array([complex(-np.nan, 1.0)])
+    assert hash_object(first) == hash_object(second)
+
+
+@numpy_available
+def test_hash_numpy_array_complex_nan_keeps_the_other_part() -> None:
+    first, second = np.array([complex(np.nan, 1.0)]), np.array([complex(np.nan, 2.0)])
+    assert hash_object(first) != hash_object(second)
+
+
+@numpy_available
+def test_hash_numpy_array_nan_does_not_modify_the_input() -> None:
+    array = np.array([-np.nan])
+    hash_object(array)
+    assert np.signbit(array[0])
+
+
+@numpy_available
+def test_hash_numpy_array_zero_dimension_nan_sign() -> None:
+    assert hash_object(np.array(np.nan)) == hash_object(np.array(-np.nan))
+
+
+@numpy_available
 def test_hash_numpy_array_object_dtype_equal_arrays() -> None:
     first = np.array(["a", None, 1], dtype=object)
     assert hash_object(first) == hash_object(np.array(["a", None, 1], dtype=object))
@@ -140,6 +191,37 @@ def test_hash_torch_tensor_negative_zero() -> None:
 
 
 @torch_available
+def test_hash_torch_tensor_nan_sign() -> None:
+    nan = torch.tensor([float("nan")])
+    assert hash_object(nan) == hash_object(-nan)
+
+
+@torch_available
+def test_hash_torch_tensor_nan_differs_from_a_number() -> None:
+    assert hash_object(torch.tensor([float("nan")])) != hash_object(torch.tensor([0.0]))
+
+
+@torch_available
+def test_hash_torch_tensor_complex_nan_sign() -> None:
+    first = torch.tensor([complex(float("nan"), 1.0)])
+    second = torch.tensor([complex(-float("nan"), 1.0)])
+    assert hash_object(first) == hash_object(second)
+
+
+@torch_available
+def test_hash_torch_tensor_complex_nan_keeps_the_other_part() -> None:
+    first = torch.tensor([complex(float("nan"), 1.0)])
+    second = torch.tensor([complex(float("nan"), 2.0)])
+    assert hash_object(first) != hash_object(second)
+
+
+@torch_available
+def test_hash_torch_tensor_bfloat16_nan_sign() -> None:
+    nan = torch.tensor([float("nan")]).bfloat16()
+    assert hash_object(nan) == hash_object(-nan)
+
+
+@torch_available
 @pytest.mark.parametrize(
     "tensor",
     [
@@ -178,6 +260,12 @@ def test_hash_jax_array_differs_by_dtype() -> None:
 @jax_available
 def test_hash_jax_array_negative_zero() -> None:
     assert hash_object(jnp.array([0.0])) == hash_object(jnp.array([-0.0]))
+
+
+@jax_available
+def test_hash_jax_array_nan_sign() -> None:
+    nan = jnp.array([jnp.nan])
+    assert hash_object(nan) == hash_object(-nan)
 
 
 @pandas_available
@@ -314,6 +402,11 @@ def test_hash_pandas_series_categorical_index_differs_by_categories() -> None:
     first = pd.Series([1, 2], index=pd.CategoricalIndex(["a", "b"], categories=["a", "b"]))
     second = pd.Series([1, 2], index=pd.CategoricalIndex(["a", "b"], categories=["a", "b", "c"]))
     assert hash_object(first) != hash_object(second)
+
+
+@pandas_available
+def test_hash_pandas_series_nan_sign() -> None:
+    assert hash_object(pd.Series([np.nan])) == hash_object(pd.Series([-np.nan]))
 
 
 @polars_available

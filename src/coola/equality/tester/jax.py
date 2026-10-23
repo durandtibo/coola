@@ -8,8 +8,7 @@ from __future__ import annotations
 
 __all__ = ["JaxArrayEqualityTester"]
 
-from functools import cache
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler import (
     JaxArrayEqualHandler,
@@ -77,24 +76,6 @@ class JaxArrayEqualityTester(BaseChainEqualityTester[jnp.ndarray]):
         )
 
 
-@cache
-def get_array_impl_class() -> type:
-    r"""Get the JAX array implementation class.
-
-    JAX uses different concrete array implementations depending on the backend
-    and compilation status. This function creates a simple array and returns
-    its class, which is then registered in the equality tester registry.
-
-    Returns:
-        The JAX array implementation class (e.g., ArrayImpl).
-
-    Note:
-        This function is cached to avoid creating arrays repeatedly. The result
-        is used to register the concrete JAX array type in the default registry.
-    """
-    return cast("type", cast("Any", jnp).ones(1).__class__)
-
-
 def get_default_testers() -> dict[type, BaseEqualityTester[Any]]:
     r"""Get the default equality testers of the JAX arrays.
 
@@ -109,4 +90,5 @@ def get_default_testers() -> dict[type, BaseEqualityTester[Any]]:
         return {}
 
     tester = JaxArrayEqualityTester()
-    return {jnp.ndarray: tester, get_array_impl_class(): tester}
+    # ``jnp.ndarray`` is ``jax.Array``, which is in the MRO of the concrete array classes.
+    return {jnp.ndarray: tester}

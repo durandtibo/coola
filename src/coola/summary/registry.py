@@ -7,12 +7,24 @@ nested data structures while preserving their original structure.
 
 from __future__ import annotations
 
-__all__ = ["SummarizerRegistry"]
+__all__ = ["DataclassMarker", "SummarizerRegistry"]
 
+import dataclasses
 from typing import Any
 
 from coola.registry import BaseTypeDispatchRegistry
 from coola.summary.base import Summarizer
+
+
+class DataclassMarker:
+    """Registry key for the summarizer used by the dataclass types that
+    have no summarizer of their own.
+
+    A dataclass cannot be registered by type because every dataclass is
+    a different type. The summarizer registered for this key is used for
+    the dataclasses that would otherwise be handled by the catch-all
+    ``object`` summarizer.
+    """
 
 
 class SummarizerRegistry(BaseTypeDispatchRegistry[Summarizer[Any]]):
@@ -133,7 +145,18 @@ class SummarizerRegistry(BaseTypeDispatchRegistry[Summarizer[Any]]):
 
             ```
         """
-        return self.find(data_type)
+        summarizer = self.find(data_type)
+        # A dataclass has no summarizer by type, so ``DataclassMarker`` is used if the
+        # lookup ended on the catch-all ``object`` summarizer. The cheap ``is_dataclass``
+        # check is first so the other types are not slowed down.
+        if (
+            dataclasses.is_dataclass(data_type)
+            and self.has(DataclassMarker)
+            and self.has(object)
+            and summarizer is self.find(object)
+        ):
+            return self.find(DataclassMarker)
+        return summarizer
 
     def summarize(self, data: object, depth: int = 0, max_depth: int = 1) -> str:
         r"""Generate a formatted string summary of the provided data.

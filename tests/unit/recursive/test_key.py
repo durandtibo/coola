@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from collections import OrderedDict, defaultdict
 from typing import TYPE_CHECKING, Any
 
@@ -19,6 +20,12 @@ from coola.recursive import (
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+
+# The legacy mode is deprecated: its tests do not fail on the warning.
+pytestmark = pytest.mark.filterwarnings(
+    "ignore:The legacy mode of `KeyFilterTransformer`:DeprecationWarning"
+)
 
 
 @pytest.fixture
@@ -400,3 +407,26 @@ def test_key_filter_transformer_key_predicate_repr() -> None:
 def test_key_filter_transformer_key_predicate_follows_the_transformer_protocol() -> None:
     transformer: Transformer[Any] = KeyFilterTransformer(key_predicate=is_secret)
     assert isinstance(transformer, KeyFilterTransformer)
+
+
+def test_key_filter_transformer_legacy_mode_warns() -> None:
+    with pytest.warns(DeprecationWarning, match="legacy mode of `KeyFilterTransformer`"):
+        KeyFilterTransformer()
+
+
+def test_key_filter_transformer_legacy_mode_with_transform_func_warns() -> None:
+    with pytest.warns(DeprecationWarning, match="legacy mode of `KeyFilterTransformer`"):
+        KeyFilterTransformer(transform_func=str)
+
+
+def test_key_filter_transformer_legacy_mode_warning_points_to_the_caller() -> None:
+    with pytest.warns(DeprecationWarning, match="legacy mode") as record:
+        KeyFilterTransformer()
+    assert record[0].filename == __file__
+
+
+def test_key_filter_transformer_key_predicate_mode_does_not_warn() -> None:
+    # ``filterwarnings = error`` would fail the test on a warning.
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        KeyFilterTransformer(key_predicate=lambda key: key == "a")
