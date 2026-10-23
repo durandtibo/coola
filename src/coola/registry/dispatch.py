@@ -34,8 +34,8 @@ class BaseTypeDispatchRegistry(MultilineDisplayMixin, Generic[V]):
     the Method Resolution Order (MRO) for type lookup, via an internal
     ``TypeRegistry``. When resolving a handler for some data, the most
     specific registered handler for the data's type is used, falling
-    back to parent types (or a default handler, if one is registered
-    for ``object``) if needed.
+    back to parent types (or the handler registered for ``object``, if
+    any) if needed.
 
     Subclasses typically expose their own, more specifically named
     ``has_<x>``/``find_<x>`` wrappers around ``has``/``find`` plus a
@@ -82,7 +82,8 @@ class BaseTypeDispatchRegistry(MultilineDisplayMixin, Generic[V]):
         r"""Register multiple handlers at once.
 
         This is a convenience method for bulk registration that
-        internally calls ``register`` for each type-handler pair.
+        registers all the pairs at once: nothing is registered if one
+        of the types is invalid or (with ``exist_ok=False``) already registered.
 
         Args:
             mapping: Dictionary mapping Python types to handler
@@ -103,7 +104,7 @@ class BaseTypeDispatchRegistry(MultilineDisplayMixin, Generic[V]):
 
         Note that this only checks for direct registration. Even if
         this returns ``False``, ``find`` may still return a handler
-        via MRO lookup or the default handler.
+        via MRO lookup or the handler registered for ``object``.
 
         Args:
             data_type: The type to check.
@@ -127,12 +128,13 @@ class BaseTypeDispatchRegistry(MultilineDisplayMixin, Generic[V]):
 
         Returns:
             The most specific registered handler for this type,
-            resolved via MRO, or the default handler if no match is
-            found.
+            resolved via MRO (the handler registered for ``object``
+            matches every type).
 
         Raises:
-            KeyError: If no handler is registered for ``data_type``
-                (or any of its parent types).
+            TypeNotRegisteredError: If no handler is registered for
+                ``data_type`` or any of its parent types. It is a
+                ``KeyError``.
 
         Note:
             Results are cached internally (see ``TypeRegistry.resolve``)
