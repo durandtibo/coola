@@ -12,7 +12,7 @@ from coola.equality.handler import (
     ScalarEqualHandler,
     TrueHandler,
 )
-from coola.equality.handler.scalar import int_isclose, number_equal
+from coola.equality.handler.scalar import complex_are_equal, int_isclose, number_equal
 from tests.unit.equality.tester.test_scalar import SCALAR_EQUAL_TOLERANCE
 from tests.unit.equality.utils import ExamplePair
 
@@ -379,3 +379,40 @@ def test_nan_equal_handler_handle_complex_nan_parts(config: EqualityConfig) -> N
     assert handler.handle(complex(float("nan"), 1), complex(float("nan"), 1), config)
     assert not handler.handle(complex(float("nan"), 1), complex(float("nan"), 2), config)
     assert not handler.handle(complex(1, float("nan")), complex(2, float("nan")), config)
+
+
+NAN = float("nan")
+
+
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [
+        (1 + 2j, 1 + 2j),
+        (complex(NAN, 1), complex(NAN, 1)),
+        (complex(1, NAN), complex(1, NAN)),
+        (complex(NAN, NAN), complex(NAN, NAN)),
+        (complex(float("inf"), 1), complex(float("inf"), 1)),
+    ],
+)
+def test_complex_are_equal_true(actual: complex, expected: complex) -> None:
+    assert complex_are_equal(actual, expected, EqualityConfig(equal_nan=True))
+
+
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [
+        (1 + 2j, 1 + 3j),
+        (complex(NAN, 1), complex(NAN, 2)),
+        (complex(1, NAN), complex(2, NAN)),
+        (complex(NAN, 1), complex(1, 1)),
+        (complex(NAN, NAN), complex(NAN, 1)),
+    ],
+)
+def test_complex_are_equal_false(actual: complex, expected: complex) -> None:
+    assert not complex_are_equal(actual, expected, EqualityConfig(equal_nan=True))
+
+
+def test_complex_are_equal_tolerance() -> None:
+    config = EqualityConfig(equal_nan=True, atol=0.1)
+    assert complex_are_equal(complex(NAN, 1), complex(NAN, 1.05), config)
+    assert not complex_are_equal(complex(NAN, 1), complex(NAN, 1.5), config)
