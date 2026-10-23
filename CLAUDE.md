@@ -29,6 +29,9 @@
 
 - Match the surrounding code: comment density, naming, docstring style (Google style with
   `Args:`, `Returns:`, `Raises:` and a `pycon` example that runs as a doctest).
+- Follow the current style of the repository in everything you add (source, tests, docs, commit
+  messages, PR descriptions). Look at a few neighbouring files first, and do not introduce a new
+  convention or reformat code you do not otherwise change.
 - Shared helpers belong in `coola.utils` as public functions (no leading underscore) with their
   own tests, not as private functions imported across modules.
 - Prefer `LazySingleton` for lazily built process-wide objects, not `functools.cache`.
