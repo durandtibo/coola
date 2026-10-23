@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 from coola.validation import validate_finite
@@ -19,3 +21,13 @@ def test_validate_finite_invalid(value: float) -> None:
 def test_validate_finite_custom_name() -> None:
     with pytest.raises(ValueError, match="atol must be finite, got inf"):
         validate_finite(float("inf"), name="atol")
+
+
+def test_validate_finite_huge_int() -> None:
+    validate_finite(10**400)
+
+
+@pytest.mark.parametrize("value", [None, "a"])
+def test_validate_finite_not_a_number_raises(value: Any) -> None:
+    with pytest.raises(TypeError, match="real number"):
+        validate_finite(value)

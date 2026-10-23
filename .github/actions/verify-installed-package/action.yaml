@@ -1,5 +1,6 @@
 # Composite action shared by every workflow that verifies an already-installed
-# coola package (test-package.yaml, test-package-dep.yaml, test-package-extras.yaml).
+# coola package (nightly-test-package.yaml, nightly-test-package-dep.yaml,
+# nightly-test-package-extras.yaml).
 # Prints the resolved dependency tree for debugging, then runs the same
 # package-level sanity checks (imports, version, ...) used everywhere else, so
 # the three callers can't drift on what "verify the package" means.

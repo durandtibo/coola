@@ -7,7 +7,7 @@ from coola.hashing.registry import HasherRegistry
 from coola.iterator.bfs.registry import ChildFinderRegistry
 from coola.iterator.dfs.registry import IteratorRegistry
 from coola.recursive.registry import TransformerRegistry
-from coola.registry import AlreadyRegisteredError
+from coola.registry import AlreadyRegisteredError, KeyNotRegisteredError
 from coola.registry.dispatch import BaseTypeDispatchRegistry
 from coola.summary.registry import SummarizerRegistry
 
@@ -146,3 +146,64 @@ def test_registries_register_many_shares_base_implementation(
     h3 = Handler()
     registry.register_many({int: h3}, exist_ok=True)
     assert registry.find(int) is h3
+
+
+def test_base_type_dispatch_registry_len() -> None:
+    assert len(BaseTypeDispatchRegistry[str]({int: "a", str: "b"})) == 2
+
+
+def test_base_type_dispatch_registry_contains_true() -> None:
+    assert int in BaseTypeDispatchRegistry[str]({int: "a"})
+
+
+def test_base_type_dispatch_registry_contains_false() -> None:
+    assert str not in BaseTypeDispatchRegistry[str]({int: "a"})
+
+
+def test_base_type_dispatch_registry_unregister_returns_handler() -> None:
+    registry = BaseTypeDispatchRegistry[str]({int: "a"})
+    assert registry.unregister(int) == "a"
+
+
+def test_base_type_dispatch_registry_unregister_removes_type() -> None:
+    registry = BaseTypeDispatchRegistry[str]({int: "a"})
+    registry.unregister(int)
+    assert not registry.has(int)
+
+
+def test_base_type_dispatch_registry_unregister_clears_the_cache() -> None:
+    registry = BaseTypeDispatchRegistry[str]({object: "obj", int: "a"})
+    registry.find(int)
+    registry.unregister(int)
+    assert registry.find(int) == "obj"
+
+
+def test_base_type_dispatch_registry_unregister_missing_raises() -> None:
+    with pytest.raises(KeyNotRegisteredError, match="not registered"):
+        BaseTypeDispatchRegistry[str]().unregister(int)
+
+
+def test_base_type_dispatch_registry_clear() -> None:
+    registry = BaseTypeDispatchRegistry[str]({int: "a"})
+    registry.clear()
+    assert len(registry) == 0
+
+
+def test_base_type_dispatch_registry_items() -> None:
+    assert dict(BaseTypeDispatchRegistry[str]({int: "a"}).items()) == {int: "a"}
+
+
+def test_base_type_dispatch_registry_equal_true() -> None:
+    assert BaseTypeDispatchRegistry[str]({int: "a"}).equal(
+        BaseTypeDispatchRegistry[str]({int: "a"})
+    )
+
+
+def test_base_type_dispatch_registry_equal_false_different_handlers() -> None:
+    assert not BaseTypeDispatchRegistry[str]({int: "a"}).equal(
+        BaseTypeDispatchRegistry[str]({int: "b"})
+    )
+
+
+def test_base_type_dispatch_registry_equal_false_different_type() -> None:
+    assert not BaseTypeDispatchRegistry[str]({int: "a"}).equal({int: "a"})

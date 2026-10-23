@@ -2,7 +2,7 @@ r"""Benchmarks for type registry resolution.
 
 Run them explicitly with:
 
-    inv benchmark
+    inv test.benchmark
 """
 
 from __future__ import annotations

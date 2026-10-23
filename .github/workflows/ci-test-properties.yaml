@@ -9,7 +9,7 @@ on:
   workflow_call:
     inputs:
       test-matrix:
-        description: "JSON test matrix from get-test-matrix.yaml, loaded once by the caller"
+        description: "JSON test matrix from lib-get-test-matrix.yaml, loaded once by the caller"
         required: true
         type: string
 
@@ -36,5 +36,8 @@ jobs:
           install-args: "--groups dev,property"
 
       - name: Run property-based tests
+        env:
+          # Same examples for every run, and the blob to replay a failure.
+          HYPOTHESIS_PROFILE: ci
         run: |
-          pytest tests/properties
+          pytest tests/properties --cov=coola --cov-report=term-missing

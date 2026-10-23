@@ -5,11 +5,12 @@ from __future__ import annotations
 __all__ = ["AlreadyRegisteredError", "KeyNotRegisteredError", "TypeNotRegisteredError"]
 
 
-class KeyNotRegisteredError(KeyError, LookupError):
+class KeyNotRegisteredError(KeyError):
     r"""Raised when no value is registered for a key.
 
     It subclasses ``KeyError`` so existing ``except KeyError`` code keeps
-    working. Registries whose keys are types raise the more specific
+    working (``KeyError`` is already a ``LookupError``). Registries whose
+    keys are types raise the more specific
     ``TypeNotRegisteredError``.
 
     Example:

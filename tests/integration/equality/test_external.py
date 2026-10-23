@@ -29,58 +29,75 @@ else:
 # Verify the behavior is consistent with existing libraries.
 
 
+NUMPY_DATA = [
+    pytest.param(np.ones((2, 3)), id="numpy ndarray"),
+    pytest.param(
+        {"key1": np.ones((2, 3)), "key2": np.ones((2, 3)), "key3": 42},
+        id="dict with array like objects",
+    ),
+    pytest.param(
+        {"key1": np.ones((2, 3)), "key2": np.ones((2, 3)), "key3": 42, "key4": "abc"},
+        id="dict with string",
+    ),
+    pytest.param([np.ones((2, 3)), np.zeros((2, 3)), 42], id="list with array like objects"),
+    pytest.param([np.ones((2, 3)), np.zeros((2, 3)), 42, "abc"], id="list with string"),
+]
+TORCH_DATA = [
+    pytest.param(torch.ones(2, 3), id="torch Tensor"),
+    pytest.param(
+        {"key1": torch.ones(2, 3), "key2": torch.ones(2, 3), "key3": 42},
+        id="dict with tensor like objects",
+    ),
+    pytest.param([torch.ones(2, 3), torch.zeros(2, 3), 42], id="list with tensor like objects"),
+]
+# numpy and torch fail on these data, but ``objects_are_equal`` does not.
+NUMPY_UNSUPPORTED_DATA = [
+    pytest.param(
+        deque([np.ones((2, 3)), np.zeros((2, 3)), 42]), id="deque with array like objects"
+    ),
+]
+TORCH_UNSUPPORTED_DATA = [
+    pytest.param(
+        {"key1": torch.ones(2, 3), "key2": torch.ones(2, 3), "key3": 42, "key4": "abc"},
+        id="dict with string",
+    ),
+    pytest.param([torch.ones(2, 3), torch.zeros(2, 3), 42, "abc"], id="list with string"),
+]
+
+
 @numpy_available
-@pytest.mark.parametrize(
-    "data",
-    [
-        pytest.param(np.ones((2, 3)), id="numpy ndarray"),
-        pytest.param(
-            {"key1": np.ones((2, 3)), "key2": np.ones((2, 3)), "key3": 42},
-            id="dict with array like objects",
-        ),
-        pytest.param(
-            {"key1": np.ones((2, 3)), "key2": np.ones((2, 3)), "key3": 42, "key4": "abc"},
-            id="dict with string",
-        ),
-        pytest.param([np.ones((2, 3)), np.zeros((2, 3)), 42], id="list with array like objects"),
-        pytest.param(
-            [np.ones((2, 3)), np.zeros((2, 3)), 42, "abc"],
-            id="list with string",
-        ),
-        pytest.param(
-            deque([np.ones((2, 3)), np.zeros((2, 3)), 42]),
-            marks=pytest.mark.xfail,
-            id="deque with array like objects",
-        ),
-    ],
-)
+@pytest.mark.parametrize("data", NUMPY_DATA)
 def test_numpy_assert_equal(data: Any) -> None:
     np.testing.assert_equal(data, copy.deepcopy(data))
+
+
+@numpy_available
+@pytest.mark.parametrize("data", NUMPY_DATA + NUMPY_UNSUPPORTED_DATA)
+def test_objects_are_equal_numpy_data(data: Any) -> None:
+    assert objects_are_equal(data, copy.deepcopy(data))
+
+
+@numpy_available
+@pytest.mark.xfail(strict=True, raises=ValueError, reason="numpy cannot compare a deque of arrays")
+@pytest.mark.parametrize("data", NUMPY_UNSUPPORTED_DATA)
+def test_numpy_assert_equal_unsupported(data: Any) -> None:
+    np.testing.assert_equal(data, copy.deepcopy(data))
+
+
+@torch_available
+@pytest.mark.parametrize("data", TORCH_DATA)
+def test_torch_assert_close(data: Any) -> None:
+    torch.testing.assert_close(data, copy.deepcopy(data))
+
+
+@torch_available
+@pytest.mark.parametrize("data", TORCH_DATA + TORCH_UNSUPPORTED_DATA)
+def test_objects_are_equal_torch_data(data: Any) -> None:
     assert objects_are_equal(data, copy.deepcopy(data))
 
 
 @torch_available
-@pytest.mark.parametrize(
-    "data",
-    [
-        pytest.param(torch.ones(2, 3), id="torch Tensor"),
-        pytest.param(
-            {"key1": torch.ones(2, 3), "key2": torch.ones(2, 3), "key3": 42},
-            id="dict with tensor like objects",
-        ),
-        pytest.param(
-            {"key1": torch.ones(2, 3), "key2": torch.ones(2, 3), "key3": 42, "key4": "abc"},
-            marks=pytest.mark.xfail,
-            id="dict with string",
-        ),
-        pytest.param([torch.ones(2, 3), torch.zeros(2, 3), 42], id="list with tensor like objects"),
-        pytest.param(
-            [torch.ones(2, 3), torch.zeros(2, 3), 42, "abc"],
-            marks=pytest.mark.xfail,
-            id="list with string",
-        ),
-    ],
-)
-def test_torch_assert_close(data: Any) -> None:
+@pytest.mark.xfail(strict=True, raises=TypeError, reason="torch cannot compare strings")
+@pytest.mark.parametrize("data", TORCH_UNSUPPORTED_DATA)
+def test_torch_assert_close_unsupported(data: Any) -> None:
     torch.testing.assert_close(data, copy.deepcopy(data))
-    assert objects_are_equal(data, copy.deepcopy(data))
