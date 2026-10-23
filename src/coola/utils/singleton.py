@@ -194,6 +194,10 @@ def load_registry_plugins(registry: object, group: str) -> None:
         group: The entry-point group to load, e.g.
             ``"coola.equality.testers"``.
 
+    Raises:
+        ExceptionGroup: If ``COOLA_STRICT_PLUGINS`` is set and at least
+            one plugin failed to load or run.
+
     Example:
         ```pycon
         >>> from coola.utils.singleton import load_registry_plugins

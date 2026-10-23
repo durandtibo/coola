@@ -6,9 +6,9 @@ transformations and iteration.
 
 This top-level module only exposes ``__version__``; it does not re-
 export the package's entry points (e.g. ``objects_are_equal``,
-``objects_are_allclose``, ``summary``). Import them from their
+``objects_are_allclose``, ``summarize``). Import them from their
 respective submodules instead, e.g. ``from coola.equality import
-objects_are_equal`` or ``from coola.summary import summary``.
+objects_are_equal`` or ``from coola.summary import summarize``.
 """
 
 __all__ = ["__version__"]
