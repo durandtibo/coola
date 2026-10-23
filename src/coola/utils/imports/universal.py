@@ -224,7 +224,7 @@ def decorator_package_available(fn: F, condition: Callable[[], bool]) -> F:
         ...     return 42 + n
         ...
         >>> my_function(2)
-            44
+        44
 
         ```
     """
