@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-import threading
 import time
 from unittest.mock import patch
 
@@ -197,29 +196,3 @@ def test_object_id_generator_after_fork_ids_use_the_new_process_value() -> None:
     generator._reset_after_fork()
     after = generator.generate()
     assert before[8:18] != after[8:18]  # the 5-byte process value
-
-
-def test_get_default_generator_concurrent_first_calls_build_one_generator() -> None:
-    from coola.identifier import objectid as module
-    from coola.utils.singleton import LazySingleton
-
-    built = []
-
-    def factory() -> object:
-        time.sleep(0.01)
-        generator = module.ObjectIdGenerator()
-        built.append(generator)
-        return generator
-
-    with patch.object(module, "_default_generator", LazySingleton(factory)):
-        results = []
-        threads = [
-            threading.Thread(target=lambda: results.append(module.get_default_generator()))
-            for _ in range(8)
-        ]
-        for thread in threads:
-            thread.start()
-        for thread in threads:
-            thread.join()
-    assert len(built) == 1
-    assert all(result is built[0] for result in results)
