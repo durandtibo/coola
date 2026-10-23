@@ -59,12 +59,15 @@ class TorchLoader(InlineDisplayMixin, BaseLoader[T]):
     def equal(self, other: Any, equal_nan: bool = False) -> bool:
         if not is_same_type(other, self):
             return False
-        return objects_are_equal(self._kwargs, other._kwargs, equal_nan=equal_nan)
+        # Compare the arguments that ``load`` uses, so the default is not
+        # different from an explicit ``weights_only=True``.
+        return objects_are_equal(self._load_kwargs(), other._load_kwargs(), equal_nan=equal_nan)
+
+    def _load_kwargs(self) -> dict[str, Any]:
+        return {"weights_only": True, **self._kwargs}
 
     def load(self, path: Path) -> T:
-        kwargs = dict(self._kwargs)
-        kwargs.setdefault("weights_only", True)
-        return torch.load(path, **kwargs)
+        return torch.load(path, **self._load_kwargs())
 
 
 class TorchSaver(InlineDisplayMixin, BaseFileSaver[T]):
