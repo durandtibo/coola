@@ -1326,3 +1326,46 @@ def test_make_parent_dir_reraises_if_the_parent_is_a_directory(tmp_path: Path) -
         pytest.raises(FileExistsError),
     ):
         _make_parent_dir(tmp_path.joinpath("data.txt"))
+
+
+def test_base_file_saver_save_lock_true_takes_the_lock(tmp_path: Path) -> None:
+    with patch("coola.io.base._save_lock") as save_lock:
+        SimpleFileSaver().save("hello", tmp_path.joinpath("data.txt"))
+    save_lock.assert_called_once()
+
+
+def test_base_file_saver_save_lock_false_does_not_take_the_lock(tmp_path: Path) -> None:
+    with patch("coola.io.base._save_lock") as save_lock:
+        SimpleFileSaver().save("hello", tmp_path.joinpath("data.txt"), lock=False)
+    save_lock.assert_not_called()
+
+
+def test_base_file_saver_save_lock_false_saves_the_data(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    SimpleFileSaver().save("hello", path, lock=False)
+    assert path.read_text() == "hello"
+
+
+def test_base_file_saver_save_lock_false_leaves_only_the_file(tmp_path: Path) -> None:
+    SimpleFileSaver().save("hello", tmp_path.joinpath("data.txt"), lock=False)
+    assert [p.name for p in tmp_path.iterdir()] == ["data.txt"]
+
+
+def test_base_file_saver_save_lock_false_exist_ok_false_raises(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    SimpleFileSaver().save("hello", path, lock=False)
+    with pytest.raises(FileExistsError, match="already exists"):
+        SimpleFileSaver().save("world", path, lock=False)
+
+
+def test_base_file_saver_save_lock_false_exist_ok_true_overwrites(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    SimpleFileSaver().save("hello", path, lock=False)
+    SimpleFileSaver().save("world", path, exist_ok=True, lock=False)
+    assert path.read_text() == "world"
+
+
+def test_base_file_saver_save_lock_false_removes_tmp_file_on_failure(tmp_path: Path) -> None:
+    with pytest.raises(RuntimeError, match="failed to save"):
+        FailingFileSaver().save("hello", tmp_path.joinpath("data.txt"), lock=False)
+    assert list(tmp_path.iterdir()) == []

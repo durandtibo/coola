@@ -125,7 +125,13 @@ def load_pickle(path: Path) -> Any:
 
 
 def save_pickle(
-    to_save: Any, path: Path, *, exist_ok: bool = False, fsync: bool = False, **kwargs: Any
+    to_save: Any,
+    path: Path,
+    *,
+    exist_ok: bool = False,
+    fsync: bool = False,
+    lock: bool = True,
+    **kwargs: Any,
 ) -> None:
     r"""Save the given data in a pickle file.
 
@@ -144,6 +150,14 @@ def save_pickle(
             atomically, but its content may be lost if the machine
             crashes right after the call.
         **kwargs: Additional arguments passed to ``pickle.dump``.
+        lock: If ``True`` (the default), concurrent saves to the same
+            path are serialized with a lock file next to the path (see
+            ``BaseFileSaver.save``). If ``False``, no lock is used:
+            the file is still written to a temporary file and committed
+            atomically, so a reader never sees a partial file, but two
+            concurrent writers of the same path are not serialized
+            (the last one wins). It is faster, which matters for
+            batch jobs that write many distinct files.
 
     Raises:
         FileExistsError: if the file already exists.
@@ -163,4 +177,4 @@ def save_pickle(
 
         ```
     """
-    PickleSaver[Any](**kwargs).save(to_save, path, exist_ok=exist_ok, fsync=fsync)
+    PickleSaver[Any](**kwargs).save(to_save, path, exist_ok=exist_ok, fsync=fsync, lock=lock)

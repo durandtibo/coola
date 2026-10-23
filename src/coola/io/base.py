@@ -461,7 +461,15 @@ class BaseFileSaver(BaseSaver[T]):
         ```
     """
 
-    def save(self, to_save: T, path: Path, *, exist_ok: bool = False, fsync: bool = False) -> None:
+    def save(
+        self,
+        to_save: T,
+        path: Path,
+        *,
+        exist_ok: bool = False,
+        fsync: bool = False,
+        lock: bool = True,
+    ) -> None:
         r"""Save the data into the given path.
 
         Args:
@@ -515,6 +523,20 @@ class BaseFileSaver(BaseSaver[T]):
                 machine crashes right after the call. This is fine for
                 caches and most logs.
 
+            lock: If ``True`` (the default), concurrent saves to the same
+                path are serialized (see ``exist_ok``). If ``False``, no
+                lock is taken and no ``.lock`` file is created: the data
+                is still written to a temporary file and committed
+                atomically (``os.link`` or ``replace``), so a reader never
+                sees a partial file and ``exist_ok=False`` still fails if
+                the file exists, but two concurrent writers of the same
+                path are not serialized and the last commit wins. Use it
+                for batch jobs that write many distinct files: the lock
+                makes a save about 8 times slower than a plain write. The
+                lock file protocol relies on ``O_EXCL``, which is
+                unreliable on some network filesystems (for example old
+                NFS versions).
+
         Note:
             The caller needs write access to the *directory* of
             ``path``, not only to the file: the data is first written
@@ -563,7 +585,7 @@ class BaseFileSaver(BaseSaver[T]):
         # ``os.link``/``replace`` landing after call B's, silently
         # discarding whichever of A's or B's data lost the race in a
         # non-deterministic, hard-to-reproduce way.
-        with _save_lock(path):
+        with _save_lock(path) if lock else contextlib.nullcontext():
             # Save to tmp, then commit by moving the file in case the job
             # gets interrupted while writing the file.
             tmp_path = _tmp_path(path)
