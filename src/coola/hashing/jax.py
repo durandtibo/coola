@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.bytes import hash_bytes
-from coola.hashing.numpy import hash_array_content
+from coola.hashing.numpy import canonicalize_floats, hash_array_content
 from coola.utils.imports import is_jax_available, is_numpy_available
 
 if TYPE_CHECKING or is_numpy_available():
@@ -56,8 +56,7 @@ class JaxArrayHasher(InlineDisplayMixin, BaseHasher["jax.Array"]):
         ignore_unhashable: bool = False,  # noqa: ARG002
     ) -> str:
         array = np.asarray(data)
-        if array.dtype.kind in "fc":
-            array = array + 0
+        array = canonicalize_floats(array)
         return hash_array_content(
             "jax.Array",
             str(array.dtype),

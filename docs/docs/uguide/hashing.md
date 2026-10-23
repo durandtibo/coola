@@ -382,6 +382,10 @@ DataclassHasher()
 Registering a hasher for `object` makes the fallbacks unreachable, because `object` matches every
 type.
 
+`HasherRegistry.unregister_fallback(predicate)` removes a fallback, `clear()` removes the hashers
+and the fallbacks, and `equal()` compares the fallbacks (predicates, in order, and hashers) as well
+as the hashers.
+
 ## Custom Objects
 
 For a class that can compute its own hash, implement the `SupportsHash` protocol by defining a

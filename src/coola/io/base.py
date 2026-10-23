@@ -29,6 +29,7 @@ from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
 from coola.factory import is_object_config, resolve_object
 from coola.io.utils import add_uuid_suffix
+from coola.utils.path import sanitize_path
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Sequence
@@ -345,11 +346,11 @@ class BaseLoader(ABC, Generic[T]):
         """
 
     @abstractmethod
-    def load(self, path: Path) -> T:
+    def load(self, path: str | os.PathLike[str]) -> T:
         r"""Load the data from the given path.
 
         Args:
-            path: The path with the data to load.
+            path: The path with the data to load. A ``str`` or any path-like object is converted to a ``Path``.
 
         Returns:
             The data
@@ -414,13 +415,13 @@ class BaseSaver(ABC, Generic[T]):
         """
 
     @abstractmethod
-    def save(self, to_save: T, path: Path, *, exist_ok: bool = False) -> None:
+    def save(self, to_save: T, path: str | os.PathLike[str], *, exist_ok: bool = False) -> None:
         r"""Save the data into the given path.
 
         Args:
             to_save: The data to save. The data should be compatible
                 with the saving engine.
-            path: The path where to save the data.
+            path: The path where to save the data. A ``str`` or any path-like object is converted to a ``Path``.
             exist_ok: If ``exist_ok`` is ``False`` (the default),
                 an exception is raised if the target path already
                 exists.
@@ -461,13 +462,20 @@ class BaseFileSaver(BaseSaver[T]):
         ```
     """
 
-    def save(self, to_save: T, path: Path, *, exist_ok: bool = False, fsync: bool = False) -> None:
+    def save(
+        self,
+        to_save: T,
+        path: str | os.PathLike[str],
+        *,
+        exist_ok: bool = False,
+        fsync: bool = False,
+    ) -> None:
         r"""Save the data into the given path.
 
         Args:
             to_save: The data to save. The data should be compatible
                 with the saving engine.
-            path: The path where to save the data.
+            path: The path where to save the data. A ``str`` or any path-like object is converted to a ``Path``.
             exist_ok: If ``exist_ok`` is ``False`` (the default),
                 ``FileExistsError`` is raised if the target file
                 already exists. If ``exist_ok`` is ``True``,
@@ -545,6 +553,7 @@ class BaseFileSaver(BaseSaver[T]):
 
             ```
         """
+        path = sanitize_path(path, resolve=False)
         if path.is_dir():
             msg = f"path ({path}) is a directory"
             raise IsADirectoryError(msg)
@@ -644,7 +653,7 @@ class BaseFileSaver(BaseSaver[T]):
         Args:
             to_save: The data to save. The data should be compatible
                 with the saving engine.
-            path: The path where to save the data.
+            path: The path where to save the data. A ``str`` or any path-like object is converted to a ``Path``.
         """
 
 
@@ -721,7 +730,10 @@ def is_saver_config(
 
 
 def resolve_loader(
-    loader: BaseLoader[T] | dict[Any, Any], *, allowed_prefixes: Sequence[str] | None = None
+    loader: BaseLoader[T] | dict[Any, Any],
+    *,
+    allowed_prefixes: Sequence[str] | None = None,
+    strict: bool = False,
 ) -> BaseLoader[T]:
     r"""Set up a data loader.
 
@@ -733,6 +745,9 @@ def resolve_loader(
         allowed_prefixes: An optional allow-list of module prefixes that
             the ``"_target_"`` must match, e.g. ``["coola.io"]``. If
             ``None`` (default), any ``"_target_"`` is allowed.
+        strict: If ``True``, a ``"_target_"`` that is not a class and
+            has no usable return type hint is refused before it is
+            called (see ``resolve_object``).
 
     Returns:
         The instantiated data loader.
@@ -756,12 +771,16 @@ def resolve_loader(
         ```
     """
     return cast(
-        "BaseLoader[T]", resolve_object(loader, BaseLoader, allowed_prefixes=allowed_prefixes)
+        "BaseLoader[T]",
+        resolve_object(loader, BaseLoader, allowed_prefixes=allowed_prefixes, strict=strict),
     )
 
 
 def resolve_saver(
-    saver: BaseSaver[T] | dict[Any, Any], *, allowed_prefixes: Sequence[str] | None = None
+    saver: BaseSaver[T] | dict[Any, Any],
+    *,
+    allowed_prefixes: Sequence[str] | None = None,
+    strict: bool = False,
 ) -> BaseSaver[T]:
     r"""Set up a data saver.
 
@@ -773,6 +792,9 @@ def resolve_saver(
         allowed_prefixes: An optional allow-list of module prefixes that
             the ``"_target_"`` must match, e.g. ``["coola.io"]``. If
             ``None`` (default), any ``"_target_"`` is allowed.
+        strict: If ``True``, a ``"_target_"`` that is not a class and
+            has no usable return type hint is refused before it is
+            called (see ``resolve_object``).
 
     Returns:
         The instantiated data saver.
@@ -795,4 +817,7 @@ def resolve_saver(
 
         ```
     """
-    return cast("BaseSaver[T]", resolve_object(saver, BaseSaver, allowed_prefixes=allowed_prefixes))
+    return cast(
+        "BaseSaver[T]",
+        resolve_object(saver, BaseSaver, allowed_prefixes=allowed_prefixes, strict=strict),
+    )

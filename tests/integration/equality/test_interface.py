@@ -31,6 +31,11 @@ def test_object_are_equal_custom_type() -> None:
     assert objects_are_equal(CustomList([1, 2, 3]), CustomList([1, 2, 3]))
 
 
+def test_objects_are_equal_large_lists_that_differ_at_the_end_are_different() -> None:
+    first = list(range(100_000))
+    assert not objects_are_equal(first, [*first[:-1], -1])
+
+
 def test_objects_are_equal_dict_values_equal() -> None:
     assert objects_are_equal({"a": 1, "b": [2.0]}.values(), {"a": 1, "b": [2.0]}.values())
 

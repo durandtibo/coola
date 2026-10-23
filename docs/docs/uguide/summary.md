@@ -115,6 +115,26 @@ Sets display their type, length, and elements:
 
 Note: Sets are unordered, so the element order in the summary may vary.
 
+### Dataclasses and Pydantic Models
+
+Dataclasses and pydantic models list their fields. The values are summarized like the items of a
+dictionary, so `max_depth` and the summarizers of the field types apply. The fields of a pydantic
+model that are annotated as a secret (`SecretStr`, `SecretBytes`) are not shown:
+
+```pycon
+>>> from dataclasses import dataclass
+>>> from coola.summary import summarize
+>>> @dataclass
+... class Point:
+...     x: float
+...     y: float
+>>> print(summarize(Point(1.0, 2.0)).replace(f"{Point}", "Point"))
+Point (fields=2)
+  (x): 1.0
+  (y): 2.0
+
+```
+
 ## Working with Nested Structures
 
 ### Depth Control

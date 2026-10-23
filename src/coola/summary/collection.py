@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any, TypeVar
 from coola.summary.base import BaseSummarizer
 from coola.utils.format import str_indent
 from coola.utils.introspection import is_same_type
+from coola.utils.safe import safe_repr, safe_str
 
 if TYPE_CHECKING:
     from coola.summary.registry import SummarizerRegistry
@@ -106,9 +107,9 @@ class BaseCollectionSummarizer(BaseSummarizer[T]):
             )
             if len(data) > preview_limit:
                 preview = self._get_preview(data, preview_limit)
-                text = f"{preview!r} ..."
+                text = f"{safe_repr(preview)} ..."
             else:
-                text = str(data)
+                text = safe_str(data)
             return registry.summarize(text, depth=depth + 1, max_depth=max_depth)
         typ = type(data)
         length = len(data)

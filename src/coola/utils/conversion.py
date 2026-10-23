@@ -41,7 +41,9 @@ def to_jsonable(data: Any) -> Any:
     kept as they are. Sets are not converted (use
     ``coola.nested.convert_to_jsonable``, which converts them to sorted
     lists). To recursively convert every object in a nested data
-    structure, use ``coola.nested.convert_to_jsonable`` instead.
+    structure, use ``coola.nested.convert_to_jsonable`` instead. The
+    contract is "accepted by the Python ``json`` module", not "strict
+    JSON" (see the notes on the keys and on ``NaN`` above).
 
     Args:
         data: The object to convert.
