@@ -39,6 +39,8 @@ class BaseRegistry(Generic[K, V]):
     """
 
     def __init__(self, initial_state: dict[K, V] | None = None) -> None:
+        for key in initial_state or ():
+            self._validate_key(key)
         self._state: dict[K, V] = initial_state.copy() if initial_state else {}
         self._lock: threading.RLock = threading.RLock()  # RLock allows re-entrant locking
         # Cached snapshot of ``_state`` used by ``items``/``keys``/``values`` and by
@@ -102,6 +104,19 @@ class BaseRegistry(Generic[K, V]):
 
     _not_registered_error: type[KeyNotRegisteredError] = KeyNotRegisteredError
     """The exception raised when a key is not registered."""
+
+    def _validate_key(self, key: K) -> None:
+        r"""Validate a key before it is stored in the registry.
+
+        The default implementation accepts every key. Subclasses override
+        it to reject invalid keys.
+
+        Args:
+            key: The key to validate.
+
+        Raises:
+            TypeError: If the key is invalid.
+        """
 
     def _not_registered_msg(self, key: K) -> str:
         r"""Return the error message used when ``key`` is not
@@ -258,6 +273,8 @@ class BaseRegistry(Generic[K, V]):
 
         Raises:
             AlreadyRegisteredError: If the key is already registered and exist_ok is False.
+            TypeError: If the key is rejected by the registry (for example a
+                non-type key in a ``TypeRegistry``).
                 The error message provides guidance on how to resolve the conflict.
 
         Example:
@@ -289,6 +306,7 @@ class BaseRegistry(Generic[K, V]):
 
             ```
         """
+        self._validate_key(key)
         with self._lock:
             if key in self._state and not exist_ok:
                 raise AlreadyRegisteredError(self._already_registered_msg(key))
@@ -321,6 +339,7 @@ class BaseRegistry(Generic[K, V]):
             AlreadyRegisteredError: If exist_ok is False and any key in the mapping
                 is already registered. The error occurs on the first duplicate
                 encountered, and no partial registration occurs.
+            TypeError: If a key is rejected by the registry. No key is registered.
 
         Example:
             Registering multiple entries at once:
@@ -349,6 +368,8 @@ class BaseRegistry(Generic[K, V]):
 
             ```
         """
+        for key in mapping:
+            self._validate_key(key)
         with self._lock:
             # Check all keys first if exist_ok is False
             if not exist_ok and (duplicates := set(mapping) & set(self._state)):
