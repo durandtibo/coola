@@ -62,7 +62,8 @@ def run_import(statement: str, *flags: str) -> subprocess.CompletedProcess[str]:
 
 
 def slowest_imports(statement: str) -> list[dict[str, int | str]]:
-    r"""Return the ``TOP_N`` imports with the largest cumulative time."""
+    r"""Return the ``TOP_N`` imports with the largest cumulative
+    time."""
     lines = run_import(statement, "-X", "importtime").stderr.splitlines()
     rows = []
     for line in lines:
@@ -76,7 +77,8 @@ def slowest_imports(statement: str) -> list[dict[str, int | str]]:
 def benchmark_import(
     benchmark: BenchmarkFixture, statement: str, import_results: dict[str, dict]
 ) -> None:
-    r"""Benchmark ``statement`` and save the details in ``extra_info``."""
+    r"""Benchmark ``statement`` and save the details in
+    ``extra_info``."""
     results = []
 
     def target() -> None:

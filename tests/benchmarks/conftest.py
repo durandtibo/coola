@@ -13,7 +13,8 @@ IMPORT_RESULTS = pytest.StashKey[dict[str, dict]]()
 
 @pytest.fixture
 def import_results(request: pytest.FixtureRequest) -> dict[str, dict]:
-    r"""Return the dict where the import benchmarks save their results."""
+    r"""Return the dict where the import benchmarks save their
+    results."""
     return request.config.stash.setdefault(IMPORT_RESULTS, {})
 
 
