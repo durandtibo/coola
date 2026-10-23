@@ -99,6 +99,7 @@ TESTER_TYPES: list[tuple[type, type, bool]] = [
     (tuple, SequenceEqualityTester, True),
     (Sequence, SequenceEqualityTester, True),
     (deque, SequenceEqualityTester, True),
+    (type({}.values()), SequenceEqualityTester, True),
     # Mapping
     (dict, MappingEqualityTester, True),
     (Mapping, MappingEqualityTester, True),
