@@ -657,3 +657,17 @@ def test_hash_pydantic_model_secret_bytes_reveal_matches_bytes_field() -> None:
         Secret(token=b"b"), on_secret="reveal"
     )
     assert isinstance(hash_pydantic_model(Plain(token=b"a")), str)
+
+
+@pydantic_available
+def test_hash_pydantic_model_self_referencing_model_raises_value_error() -> None:
+    model = AnyValue(value=None)
+    model.value = [model]
+    with pytest.raises(ValueError, match="self-referencing"):
+        hash_pydantic_model(model)
+
+
+@pydantic_available
+def test_hash_pydantic_model_same_model_twice_is_not_a_cycle() -> None:
+    inner = Point(x=1, y=2)
+    assert hash_pydantic_model(AnyValue(value=[inner, inner]))

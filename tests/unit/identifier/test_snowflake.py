@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import threading
+import time
 from unittest.mock import patch
 
 import pytest
@@ -196,11 +198,23 @@ def test_snowflake_id_generator_generate_timestamp_ms_min_is_valid() -> None:
     assert decoded_ms == _EPOCH_MS
 
 
-def test_snowflake_id_generator_generate_explicit_timestamp_ms_backward_raises() -> None:
+def test_snowflake_id_generator_generate_explicit_timestamp_ms_keeps_the_state() -> None:
     generator = SnowflakeIdGenerator()
-    generator.generate(timestamp_ms=1_800_000_000_000)
-    with pytest.raises(RuntimeError, match="clock moved backward"):
-        generator.generate(timestamp_ms=1_750_000_000_000)
+    generator.generate(timestamp_ms=time.time_ns() // 1_000_000 + 10 * 86_400_000)
+    assert generator._last_timestamp_ms == -1
+
+
+def test_snowflake_id_generator_generate_after_a_future_explicit_timestamp_ms() -> None:
+    generator = SnowflakeIdGenerator()
+    generator.generate(timestamp_ms=time.time_ns() // 1_000_000 + 10 * 86_400_000)
+    assert generator.generate() > 0
+
+
+def test_snowflake_id_generator_generate_explicit_timestamp_ms_in_the_past() -> None:
+    generator = SnowflakeIdGenerator()
+    generator.generate()
+    snowflake_id = generator.generate(timestamp_ms=1_750_000_000_000)
+    assert _decode(snowflake_id)[0] == 1_750_000_000_000
 
 
 def test_snowflake_id_generator_generate_clock_moved_backward_raises() -> None:
@@ -234,11 +248,9 @@ def test_snowflake_id_generator_generate_sequence_rollover_advances_to_next_mill
     assert sequence == 0
 
 
-def test_snowflake_id_generator_generate_releases_lock_during_busy_wait() -> None:
-    # The busy-wait spin (entered once the per-millisecond sequence
-    # wraps) must release the generator's lock for the sleep itself, so
-    # other threads calling generate() are not blocked for the whole
-    # wait -- only for the brief windows in between spins.
+def test_snowflake_id_generator_generate_holds_lock_during_busy_wait() -> None:
+    # Releasing the lock during the wait lets another thread mint the
+    # (timestamp, sequence) pair that this call has already used.
     first_ms = 1_800_000_000_000
     next_ms = first_ms + 1
     generator = SnowflakeIdGenerator(last_timestamp_ms=first_ms, sequence=_MAX_SEQUENCE)
@@ -260,10 +272,24 @@ def test_snowflake_id_generator_generate_releases_lock_during_busy_wait() -> Non
     ):
         generator.generate()
 
-    # Two spins happen before the clock advances past first_ms (see the
-    # rollover test above), so the lock must have been observed free
-    # from within the sleep both times.
-    assert lock_was_free_during_sleep == [True, True]
+    assert lock_was_free_during_sleep == [False, False]
+
+
+def test_snowflake_id_generator_generate_threads_sequence_wrap_no_duplicate() -> None:
+    generator = SnowflakeIdGenerator()
+    ids: list[int] = []
+    # A small sequence space is not configurable, so mint enough IDs to wrap it.
+    n_threads, per_thread = 8, 2_000
+
+    def mint() -> None:
+        ids.extend(generator.generate() for _ in range(per_thread))
+
+    threads = [threading.Thread(target=mint) for _ in range(n_threads)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    assert len(ids) == len(set(ids)) == n_threads * per_thread
 
 
 def test_snowflake_id_generator_generate_clock_moved_backward_during_busy_wait_raises() -> None:
@@ -385,9 +411,9 @@ def test_snowflake_generator_reset_after_fork_does_not_block_if_the_lock_was_hel
 
 def test_snowflake_generator_reset_after_fork_keeps_the_ids_monotonic() -> None:
     generator = SnowflakeIdGenerator()
-    first = generator.generate(timestamp_ms=1_800_000_000_000)
+    first = generator.generate()
     generator._reset_after_fork()
-    assert generator.generate(timestamp_ms=1_800_000_000_000) > first
+    assert generator.generate() > first
 
 
 def test_snowflake_id_generator_state_is_unchanged_after_a_backward_clock_in_the_busy_wait() -> (
@@ -432,27 +458,3 @@ def test_snowflake_id_generator_does_not_repeat_an_id_after_a_backward_clock_in_
         new_id = generator.generate()
     assert new_id not in ids
     assert new_id > max(ids)
-
-
-def test_snowflake_id_generator_backward_clock_in_the_busy_wait_keeps_the_state_of_another_thread() -> (
-    None
-):
-    first_ms = 1_800_000_000_000
-    generator = SnowflakeIdGenerator(last_timestamp_ms=first_ms, sequence=_MAX_SEQUENCE)
-
-    def another_thread_moves_the_state(_: float) -> None:
-        # Called while the lock is released by the busy wait.
-        generator._last_timestamp_ms = first_ms + 5
-        generator._sequence = 7
-
-    with (
-        patch("time.sleep", side_effect=another_thread_moves_the_state),
-        patch(
-            "time.time_ns",
-            side_effect=[first_ms * 1_000_000, (first_ms - 1) * 1_000_000],
-        ),
-        pytest.raises(RuntimeError, match="clock moved backward"),
-    ):
-        generator.generate()
-    assert generator._last_timestamp_ms == first_ms + 5
-    assert generator._sequence == 7

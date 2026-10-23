@@ -157,7 +157,7 @@ def test_repr_hasher_hash_uses_repr_not_str(registry: HasherRegistry) -> None:
 
     obj = MyObj()
     hasher = ReprHasher()
-    tag = type(obj).__qualname__
+    tag = f"{type(obj).__module__}.{type(obj).__qualname__}"
     assert hasher.hash(obj, registry=registry) != hash_tagged(tag, str(obj))
     assert hasher.hash(obj, registry=registry) == hash_tagged(tag, repr(obj))
 
@@ -200,4 +200,38 @@ def test_repr_hasher_numpy_scalar_without_builtin_equivalent(registry: HasherReg
     import numpy as np
 
     value = np.datetime64("2020-01-01")
-    assert ReprHasher().hash(value, registry) == hash_tagged("datetime64", repr(value))
+    assert ReprHasher().hash(value, registry) == hash_tagged("numpy.datetime64", repr(value))
+
+
+def test_repr_hasher_hash_user_class_does_not_share_the_tag_of_a_builtin_name(
+    registry: HasherRegistry,
+) -> None:
+    class Decimal:
+        def __repr__(self) -> str:
+            return "Decimal('1')"
+
+    hasher = ReprHasher()
+    assert hasher.hash(Decimal(), registry) != hash_tagged("Decimal", "Decimal('1')")
+
+
+def test_repr_hasher_hash_builtin_class_keeps_the_bare_name(registry: HasherRegistry) -> None:
+    assert ReprHasher().hash(None, registry) == hash_tagged("NoneType", "None")
+
+
+def test_repr_hasher_hash_int_above_str_conversion_limit(registry: HasherRegistry) -> None:
+    hasher = ReprHasher()
+    assert hasher.hash(10**5000, registry) == hasher.hash(10**5000, registry)
+
+
+def test_repr_hasher_hash_int_above_str_conversion_limit_different_values(
+    registry: HasherRegistry,
+) -> None:
+    hasher = ReprHasher()
+    assert hasher.hash(10**5000, registry) != hasher.hash(10**5000 + 1, registry)
+
+
+def test_repr_hasher_hash_int_above_str_conversion_limit_negative(
+    registry: HasherRegistry,
+) -> None:
+    hasher = ReprHasher()
+    assert hasher.hash(-(10**5000), registry) != hasher.hash(10**5000, registry)

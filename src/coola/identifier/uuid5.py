@@ -29,6 +29,7 @@ _NAMESPACE = uuid.UUID("2b6f6a52-6e83-4b1b-9e3a-0a2e9b2d9c6a")
 
 def generate_stable_uuid5(
     data: object,
+    *,
     registry: HasherRegistry | None = None,
     namespace: uuid.UUID = _NAMESPACE,
     ignore_unhashable: bool = False,

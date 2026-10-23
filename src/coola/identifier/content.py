@@ -23,6 +23,7 @@ if TYPE_CHECKING:
 
 def generate_stable_content_id(
     data: object,
+    *,
     registry: HasherRegistry | None = None,
     length: int = 64,
     ignore_unhashable: bool = False,
