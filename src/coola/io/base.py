@@ -483,6 +483,7 @@ class BaseFileSaver(BaseSaver[T]):
         Raises:
             FileExistsError: if the file already exists and ``exist_ok`` is ``False``.
             IsADirectoryError: If ``path`` is a directory.
+            NotADirectoryError: If the parent of ``path`` is a file.
 
         Example:
             ```pycon
@@ -505,10 +506,20 @@ class BaseFileSaver(BaseSaver[T]):
         if path.is_file() and not exist_ok:
             msg = f"path ({path}) already exists. Use `exist_ok=True` to overwrite the file"
             raise FileExistsError(msg)
+<<<<<<< HEAD
         if exist_ok and path.is_symlink():
             # Overwrite the file that the link points to, not the link itself.
             path = path.resolve()
         path.parent.mkdir(exist_ok=True, parents=True)
+=======
+        try:
+            path.parent.mkdir(exist_ok=True, parents=True)
+        except FileExistsError as error:
+            if path.parent.is_dir():
+                raise
+            msg = f"the parent of path ({path}) exists and is not a directory"
+            raise NotADirectoryError(msg) from error
+>>>>>>> origin/main
 
         # Serialize concurrent ``save`` calls targeting the same path, both
         # in-process and across processes (see the note in the docstring):
