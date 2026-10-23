@@ -132,3 +132,23 @@ def test_capture_handler_does_not_propagate_by_itself(
     # The handler only records; the record still reaches other handlers.
     assert [record.getMessage() for record in handler.records] == ["msg"]
     assert caplog.messages == ["msg"]
+
+
+def test_capture_handler_custom_level() -> None:
+    assert CaptureHandler(level=logging.DEBUG).level == logging.DEBUG
+
+
+def test_capture_handler_all_threads_captures_other_thread() -> None:
+    handler = CaptureHandler(all_threads=True)
+    record = make_record()
+    record.thread = -1
+    handler.emit(record)
+    assert handler.records == [record]
+
+
+def test_capture_handler_ignores_other_thread_by_default() -> None:
+    handler = CaptureHandler()
+    record = make_record()
+    record.thread = -1
+    handler.emit(record)
+    assert handler.records == []

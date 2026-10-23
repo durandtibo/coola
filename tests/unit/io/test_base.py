@@ -805,6 +805,7 @@ def test_save_does_not_write_a_visible_file_while_saving(tmp_path: Path) -> None
     assert tmp_path.joinpath("data.json").read_text() == "abc"
 
 
+<<<<<<< HEAD
 def test_save_exist_ok_keeps_the_mode(tmp_path: Path) -> None:
     path = tmp_path.joinpath("data.json")
     path.write_text("{}")
@@ -829,6 +830,11 @@ def test_save_exist_ok_writes_the_target_of_a_symlink(tmp_path: Path) -> None:
     link.symlink_to(target)
     JsonSaver().save({"a": 1}, link, exist_ok=True)
     assert JsonLoader().load(target) == {"a": 1}
+=======
+def test_get_save_lock_same_lock_for_two_spellings_of_a_path(tmp_path: Path) -> None:
+    lock = _get_save_lock(tmp_path.joinpath("data.txt"))
+    assert _get_save_lock(tmp_path.joinpath("sub", "..", "data.txt")) is lock
+>>>>>>> origin/main
 ################################
 #     Tests for long names     #
 ################################
