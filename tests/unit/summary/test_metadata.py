@@ -208,3 +208,35 @@ def test_fields_summarizer_equal_false_different_type() -> None:
 
 def test_fields_summarizer_show_data(registry: SummarizerRegistry) -> None:
     assert DictFieldsSummarizer(show_data=True).summarize({"a": 1}, registry) == "{'a': 1}"
+
+
+class BadRepr:
+    def __repr__(self) -> str:
+        msg = "broken __repr__"
+        raise ZeroDivisionError(msg)
+
+
+def test_base_metadata_summarizer_summarize_show_data_failing_repr(
+    registry: SummarizerRegistry,
+) -> None:
+    assert (
+        ListSummarizer(show_data=True)
+        .summarize(BadRepr(), registry)
+        .startswith("<BadRepr object at 0x")
+    )
+
+
+def test_base_metadata_summarizer_summarize_show_data_truncates(
+    registry: SummarizerRegistry,
+) -> None:
+    assert ListSummarizer(show_data=True).summarize(["x" * 2000], registry) == (
+        "['" + "x" * 998 + "..."
+    )
+
+
+def test_base_metadata_summarizer_summarize_show_data_at_the_limit(
+    registry: SummarizerRegistry,
+) -> None:
+    assert (
+        ListSummarizer(show_data=True).summarize(["x" * 996], registry) == "['" + "x" * 996 + "']"
+    )

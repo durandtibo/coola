@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any, TypeVar
 from coola.display import InlineDisplayMixin
 from coola.summary.base import BaseSummarizer
 from coola.utils.introspection import is_same_type
+from coola.utils.safe import safe_repr
 from coola.validation import validate_non_negative
 
 if TYPE_CHECKING:
@@ -19,6 +20,9 @@ if TYPE_CHECKING:
     from coola.summary.registry import SummarizerRegistry
 
 T = TypeVar("T")
+
+#: Maximum number of characters of the ``repr`` shown with ``show_data=True``.
+_MAX_DATA_CHARACTERS = 1000
 
 MAX_FIELDS = 10
 r"""The maximum number of columns/variables listed in a summary."""
@@ -63,9 +67,10 @@ class BaseMetadataSummarizer(InlineDisplayMixin, BaseSummarizer[T]):
     to raise an error if a required optional package is not installed.
 
     Args:
-        show_data: If ``True``, the summary is ``repr(data)``, which
-            shows the values. If ``False`` (default), only the
-            metadata is shown.
+        show_data: If ``True``, the summary is ``repr(data)`` (a
+            placeholder if the ``repr`` raises), truncated to 1000
+            characters, which shows the values. If ``False``
+            (default), only the metadata is shown.
 
     Example:
         ```pycon
@@ -126,7 +131,10 @@ class BaseMetadataSummarizer(InlineDisplayMixin, BaseSummarizer[T]):
         max_depth: int = 1,  # noqa: ARG002
     ) -> str:
         if self._show_data:
-            return repr(data)
+            text = safe_repr(data)
+            if len(text) > _MAX_DATA_CHARACTERS:
+                text = text[:_MAX_DATA_CHARACTERS] + "..."
+            return text
         return " | ".join([f"{type(data)}", *self._describe(data)])
 
 
@@ -140,9 +148,10 @@ class BaseFieldsSummarizer(BaseMetadataSummarizer[T]):
     uses ``self._format_fields`` to format its fields.
 
     Args:
-        show_data: If ``True``, the summary is ``repr(data)``, which
-            shows the values. If ``False`` (default), only the
-            metadata is shown.
+        show_data: If ``True``, the summary is ``repr(data)`` (a
+            placeholder if the ``repr`` raises), truncated to 1000
+            characters, which shows the values. If ``False``
+            (default), only the metadata is shown.
         max_fields: The maximum number of fields to list. The other
             fields are replaced by ``... (+N more)``. Defaults to
             ``MAX_FIELDS`` (10).
