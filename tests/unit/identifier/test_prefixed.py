@@ -69,3 +69,14 @@ def test_generate_prefixed_id_propagates_generator_error() -> None:
 
     with pytest.raises(RuntimeError, match="boom"):
         generate_prefixed_id("cus", generator=_failing_generator)
+
+
+@pytest.mark.parametrize("prefix", ["a b", "a/b", "café"])
+def test_generate_prefixed_id_invalid_prefix_characters_raise(prefix: str) -> None:
+    with pytest.raises(ValueError, match="ASCII letters"):
+        generate_prefixed_id(prefix)
+
+
+def test_generate_prefixed_id_non_str_generator_result_raises() -> None:
+    with pytest.raises(TypeError, match="must return a str"):
+        generate_prefixed_id("cus", generator=lambda: 1)  # type: ignore[arg-type,return-value]

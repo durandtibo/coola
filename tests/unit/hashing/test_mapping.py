@@ -218,3 +218,14 @@ def test_mapping_hasher_tag_changes_hash(registry: HasherRegistry) -> None:
     assert MappingHasher("dict").hash({"a": 1}, registry=registry) != MappingHasher(
         "OrderedDict"
     ).hash({"a": 1}, registry=registry)
+
+
+def test_mapping_hasher_hash_keys_with_the_same_hash_do_not_depend_on_the_order() -> None:
+    # Unhashable keys get the same placeholder hash with ignore_unhashable.
+    registry = HasherRegistry({str: StrHasher(), Mapping: MappingHasher()})
+    first = {Unhashable(): "a", Unhashable(): "b"}
+    second = dict(reversed(list(first.items())))
+    hasher = MappingHasher()
+    assert hasher.hash(first, registry, ignore_unhashable=True) == hasher.hash(
+        second, registry, ignore_unhashable=True
+    )
