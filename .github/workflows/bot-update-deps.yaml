@@ -51,7 +51,11 @@ jobs:
           uv pip tree --show-version-specifiers
 
       # Run tests to ensure updates don't break functionality
+      # The pull request is created even if the tests fail (to see the update), but
+      # its description says so.
       - name: Run unit tests
+        id: tests
+        continue-on-error: true
         run: |
           inv test.unit --cov
 
@@ -64,5 +68,8 @@ jobs:
           branch: update/dependencies
           title: Update dependencies
           commit-message: "Update dependencies"
-          body: Update dependencies to latest compatible version.
+          body: |
+            Update dependencies to latest compatible version.
+
+            Unit tests: **${{ steps.tests.outcome == 'success' && 'passed' || 'FAILED or not run: do not merge before checking' }}**
           author: ci-bot <${{ secrets.CI_BOT_EMAIL }}>
