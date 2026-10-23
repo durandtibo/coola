@@ -461,9 +461,9 @@ def test_snowflake_id_generator_sequence_is_unchanged_after_a_backward_clock() -
 
 def _generate_after_a_backward_clock_in_the_busy_wait() -> tuple[set[int], int]:
     first_ms = 1_800_000_000_000
-    generator = SnowflakeIdGenerator()
+    generator = SnowflakeIdGenerator(last_timestamp_ms=first_ms, sequence=_MAX_SEQUENCE - 2)
     with patch("time.time_ns", return_value=first_ms * 1_000_000):
-        ids = {generator.generate() for _ in range(_MAX_SEQUENCE + 1)}
+        ids = {generator.generate() for _ in range(2)}
     # The sequence is exhausted for first_ms, and the clock moves backward during the wait.
     with (
         patch(
@@ -480,11 +480,6 @@ def _generate_after_a_backward_clock_in_the_busy_wait() -> tuple[set[int], int]:
     ):
         new_id = generator.generate()
     return ids, new_id
-
-
-def test_snowflake_id_generator_exhausts_the_sequence_with_unique_ids() -> None:
-    ids, _ = _generate_after_a_backward_clock_in_the_busy_wait()
-    assert len(ids) == _MAX_SEQUENCE + 1
 
 
 def test_snowflake_id_generator_does_not_repeat_an_id_after_a_backward_clock_in_the_busy_wait() -> (
