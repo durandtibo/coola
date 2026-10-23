@@ -62,10 +62,10 @@ class IteratorRegistry(BaseTypeDispatchRegistry[BaseIterator[Any]]):
     """
 
     def has_iterator(self, data_type: type) -> bool:
-        r"""Type-specific alias for :meth:`has`: check if an iterator is
+        r"""Type-specific alias for ``has``: check if an iterator is
         registered for a given data type.
 
-        See :meth:`BaseTypeDispatchRegistry.has` for the full behavior
+        See ``BaseTypeDispatchRegistry.has`` for the full behavior
         description.
 
         Args:
@@ -88,10 +88,10 @@ class IteratorRegistry(BaseTypeDispatchRegistry[BaseIterator[Any]]):
         return self.has(data_type)
 
     def find_iterator(self, data_type: type) -> BaseIterator[Any]:
-        r"""Type-specific alias for :meth:`find`: find the appropriate
+        r"""Type-specific alias for ``find``: find the appropriate
         iterator for a given type.
 
-        See :meth:`BaseTypeDispatchRegistry.find` for the full behavior
+        See ``BaseTypeDispatchRegistry.find`` for the full behavior
         description (MRO resolution, caching, and the ``KeyError`` on no
         match).
 

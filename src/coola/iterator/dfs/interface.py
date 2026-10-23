@@ -35,7 +35,7 @@ def dfs_iterate(data: object, registry: IteratorRegistry | None = None) -> Itera
 
     The traversal is recursive: each nesting level uses a few Python frames, so a very deep
     structure (a few hundred levels) reaches the interpreter recursion limit and raises a
-    ``RecursionError``. :func:`bfs_iterate` is iterative and has no such limit. The recursion is
+    ``RecursionError``. ``bfs_iterate`` is iterative and has no such limit. The recursion is
     the contract of the iterators (they visit the children with ``registry.iterate``), which
     lets a custom iterator choose the order of its children.
 

@@ -37,11 +37,11 @@ def configure_colorlog_logging(
     available.
 
     If the ``colorlog`` package is installed and ``sys.stderr`` is
-    attached to a terminal, attaches a :class:`colorlog.StreamHandler`
+    attached to a terminal, attaches a ``colorlog.StreamHandler``
     with per-level colours for both the log metadata (level, logger
     name, line number) and the message itself.  If ``colorlog`` is not
     installed, or output is not a terminal (e.g. redirected to a file
-    or running in CI), falls back to plain :func:`logging.basicConfig`
+    or running in CI), falls back to plain ``logging.basicConfig``
     with no formatting, to avoid emitting raw ANSI escape codes into
     non-interactive output.
 
@@ -49,23 +49,23 @@ def configure_colorlog_logging(
     ``sys.stderr`` otherwise; the terminal check applies to this
     stream. If ``handlers``, ``filename``, ``filemode``, ``format`` or
     ``style`` is given, the caller controls the output and the call is
-    forwarded to :func:`logging.basicConfig` without a coloured
+    forwarded to ``logging.basicConfig`` without a coloured
     handler. ``datefmt`` is used by the coloured formatter.
 
     Note:
-        :func:`logging.basicConfig` is a **no-op** if the root logger
+        ``logging.basicConfig`` is a **no-op** if the root logger
         already has handlers configured.  Pass ``force=True`` to remove
         existing handlers and reconfigure unconditionally.
 
     Args:
         level: Minimum log level for the root logger.  Accepts any
-            constant from :mod:`logging` (e.g. ``logging.DEBUG``,
+            constant from ``logging`` (e.g. ``logging.DEBUG``,
             ``logging.WARNING``).  Defaults to ``logging.INFO``.
         force: When ``True``, removes any existing handlers before
             applying the new configuration, ensuring this call always
             takes effect.  Defaults to ``False``.
         **kwargs: Additional keyword arguments passed to
-            :func:`logging.basicConfig` (e.g. ``stream``, ``filename``,
+            ``logging.basicConfig`` (e.g. ``stream``, ``filename``,
             ``datefmt``).
 
     Example:

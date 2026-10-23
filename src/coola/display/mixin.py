@@ -21,7 +21,7 @@ from coola.utils.format import (
 class BaseDisplayMixin(ABC):
     """Abstract base for display mixins.
 
-    Subclasses must implement :meth:`_get_repr_kwargs` to return a dict
+    Subclasses must implement ``_get_repr_kwargs`` to return a dict
     of constructor arguments used by ``__repr__`` and ``__str__``.
     """
 
@@ -119,9 +119,9 @@ class NoArgsDisplayMixin(BaseDisplayMixin):
     implementation for classes with no constructor arguments to show.
 
     Many stateless classes (e.g. handlers, hashers, transformers without
-    configuration) only need to satisfy the :class:`BaseDisplayMixin`
+    configuration) only need to satisfy the ``BaseDisplayMixin``
     abstract method contract with an empty dict. Combine this mixin with
-    :class:`InlineDisplayMixin` or :class:`MultilineDisplayMixin` to avoid
+    ``InlineDisplayMixin`` or ``MultilineDisplayMixin`` to avoid
     writing a trivial ``_get_repr_kwargs`` override that just returns
     ``{}``. A subclass with actual constructor arguments should override
     ``_get_repr_kwargs`` instead of using this mixin.

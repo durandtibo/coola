@@ -79,7 +79,7 @@ def flatten_mapping(
                 the first occurrence. The result depends on the order of
                 the mappings: a key is renamed only when a conflict is
                 found. This differs from
-                :func:`merge_mappings`'s ``on_duplicate='suffix'``
+                ``merge_mappings``'s ``on_duplicate='suffix'``
                 strategy, which leaves the first occurrence under
                 the plain key.
         always_prefix: If ``True``, every key in the output is named
@@ -368,7 +368,7 @@ def merge_mappings(
         With ``on_duplicate='suffix'``, only the *later* occurrences
         of a conflicting key are renamed (``'{key}_1'``,
         ``'{key}_2'``, ...); the first occurrence keeps the plain
-        key. This differs from :func:`flatten_mapping`'s
+        key. This differs from ``flatten_mapping``'s
         ``on_duplicate='prefix'`` strategy, which renames *every*
         occurrence, including the first, once a genuine conflict is
         detected for a key.
@@ -473,7 +473,7 @@ def remove_keys_if(mapping: Mapping[Any, Any], predicate: Callable[[Any], bool])
     r"""Recursively remove the keys that satisfy a given predicate.
 
     The mapping is traversed recursively using the same type-dispatch
-    machinery as :func:`coola.recursive.recursive_apply`, so it works
+    machinery as ``coola.recursive.recursive_apply``, so it works
     on arbitrary nested combinations of mappings (``dict``,
     ``OrderedDict``, ...), sequences (``list``, ``tuple``, named
     tuples, ...), and sets/frozensets, not just plain ``dict``/

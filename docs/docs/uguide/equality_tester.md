@@ -352,6 +352,18 @@ The package includes testers for polars DataFrames, Series, and LazyFrames:
 - **`PolarsSeriesEqualityTester`**: Compare polars Series
 - **`PolarsLazyFrameEqualityTester`**: Compare polars LazyFrames
 
+### Testers for Objects with Methods
+
+- **`DataclassEqualityTester`**: Compare two instances of the same dataclass. The fields are
+  compared through the registry, so they support the tolerance and `equal_nan`
+- **`EqualNanEqualityTester`**: Compare objects that have an `equal(other, equal_nan)` method
+- **`TolerantEqualEqualityTester`**: Compare objects that have both an `allclose` method and an
+  `equal` method. `allclose` is used when `atol` or `rtol` is not zero, otherwise `equal`
+
+`BaseChainEqualityTester` is the base class of the testers that compare two objects with a chain of
+handlers. A child class only implements `_create_handler`, which returns the first handler of the
+chain, and can override `_check_dependencies` to raise an error if an optional package is missing.
+
 ### Other Library Testers
 
 - **`JaxArrayEqualityTester`**: Compare JAX arrays

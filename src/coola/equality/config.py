@@ -111,13 +111,25 @@ class EqualityConfig:
 
     @property
     def depth(self) -> int:
-        r"""The current recursion depth counter."""
+        r"""The current recursion depth counter.
+
+        Returns:
+            The current depth, which is ``0`` at the root of the
+            comparison.
+        """
         return self._current_depth
 
     def increment_depth(self) -> None:
-        """Increment the current depth counter."""
+        """Increment the current depth counter.
+
+        The handlers that recurse call it before they compare the
+        children, and ``decrement_depth`` after.
+        """
         self._current_depth += 1
 
     def decrement_depth(self) -> None:
-        """Decrement the current depth counter."""
+        """Decrement the current depth counter.
+
+        It is the inverse of ``increment_depth``.
+        """
         self._current_depth -= 1

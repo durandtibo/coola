@@ -17,14 +17,14 @@ if TYPE_CHECKING:
 
 
 class DatetimeHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[date | time]):
-    r"""Hasher for :class:`datetime.date`, :class:`datetime.datetime`
-    and :class:`datetime.time` objects.
+    r"""Hasher for ``datetime.date``, ``datetime.datetime``
+    and ``datetime.time`` objects.
 
     This hasher converts the object to its ISO 8601 string representation
     via ``isoformat()`` and hashes that string under a tag made of the
     concrete class name.
 
-    Since :class:`datetime.datetime` is a subclass of :class:`datetime.date`,
+    Since ``datetime.datetime`` is a subclass of ``datetime.date``,
     both types are handled by this hasher. The class name is part of the
     tag, so a ``date`` and a ``datetime`` never produce the same hash,
     even for the same calendar day.

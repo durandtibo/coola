@@ -32,7 +32,7 @@ def is_object_config(
     the class. A function whose return type hint cannot be resolved
     (e.g. a forward reference to an undefined name, or a string
     annotation that is not valid Python) is not a configuration for
-    ``cls``. A ``config`` that is not a :class:`dict` is not a
+    ``cls``. A ``config`` that is not a ``dict`` is not a
     configuration for ``cls``.
 
     Args:

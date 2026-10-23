@@ -17,7 +17,7 @@ def get_today_date(timezone: str = "UTC", date_format: str = DEFAULT_DATE_FORMAT
     Args:
         timezone: The IANA timezone name to use when determining
             the current date. Defaults to ``"UTC"``.
-        date_format: A :func:`~datetime.datetime.strftime` format
+        date_format: A ``datetime.datetime.strftime`` format
             string used to format the returned date.
             Defaults to ``"%Y-%m-%d"``.
 
@@ -47,7 +47,7 @@ def to_date(d: date | str, date_format: str = DEFAULT_DATE_FORMAT) -> date:
         d: The date to convert. If a string is given, it is parsed
             using ``date_format``. If a ``datetime`` is given, its
             date part is returned.
-        date_format: A :func:`~datetime.datetime.strptime` format
+        date_format: A ``datetime.datetime.strptime`` format
             string used to parse ``d`` when it is a string.
             Defaults to ``"%Y-%m-%d"``.
 
@@ -78,7 +78,7 @@ def to_datetime(d: datetime | str) -> datetime:
 
     Args:
         d: The datetime to convert. If a string is given, it is
-            parsed using :meth:`~datetime.datetime.fromisoformat`.
+            parsed using ``datetime.datetime.fromisoformat``.
 
     Returns:
         The input as a ``datetime`` object.

@@ -245,15 +245,18 @@ For feature requests, please include:
 ### Code Style
 
 - Follow [PEP 8](https://www.python.org/dev/peps/pep-0008/)
-- Use [Black](https://black.readthedocs.io/) for code formatting
-- Use [Ruff](https://github.com/astral-sh/ruff) for linting
+- Use [Ruff](https://github.com/astral-sh/ruff) for linting and formatting
+- Use [ty](https://github.com/astral-sh/ty) for type checking
 - Maximum line length: 100 characters
 
 ### Docstring Style
 
 - Follow [Google style docstrings](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings)
 - Include type hints in function signatures
-- Document all public APIs
+- Document all public APIs, and update the docstrings whenever the behavior, the signature or the
+  options of the code change
+- Write the examples of the docstrings as `pycon` blocks that run as doctests (`inv test.doctest`),
+  ending with an empty line before the closing fence
 
 **Example:**
 
@@ -275,9 +278,11 @@ def my_function(param1: int, param2: str) -> bool:
         ValueError: When param1 is negative.
 
     Example:
-        ```python
-        result = my_function(42, "hello")
-        print(result)  # True
+        ```pycon
+        >>> from my_package import my_function  # doctest: +SKIP
+        >>> my_function(42, "hello")  # doctest: +SKIP
+        True
+
         ```
     """
     if param1 < 0:
@@ -291,7 +296,7 @@ Follow the conventions of the [testing guide](tests/TESTING_GUIDE.md) (organizat
 fixtures, markers, logging assertions).
 
 - Write unit tests for all new code
-- Aim for >90% code coverage
+- Cover 100% of the code you add or change, and add a regression test for every bug fixed
 - Use descriptive test names: `test_<function>_<condition>_<expected_result>`
 - Use fixtures for common test data
 - Test edge cases and error conditions

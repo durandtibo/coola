@@ -88,10 +88,14 @@ class EqualityConfig:
     rtol: float = 0.0
     show_difference: bool = False
     max_depth: int = 100
+    reporter: Callable[[str, tuple[object, ...]], None] | None = None
 ```
 
-This allows behavior to be customized without changing tester signatures. A config tracks the
-current recursion depth, so it is not thread-safe: create one config per comparison.
+This allows behavior to be customized without changing tester signatures. `reporter` receives the
+description and the location of each difference instead of the logger, when `show_difference` is `True` (it is how `compare` builds its
+result). A config tracks the current recursion depth and the pairs of objects being compared (to
+detect the structures that contain themselves), so it is not thread-safe: create one config per
+comparison.
 
 ### 5. Handlers
 

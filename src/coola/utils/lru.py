@@ -119,12 +119,25 @@ class LRUCache(Generic[K, V]):
 
     @property
     def maxsize(self) -> int:
-        r"""The maximum number of entries the cache holds."""
+        r"""The maximum number of entries the cache holds.
+
+        Returns:
+            The maximum number of entries.
+        """
         return self._maxsize
 
     def get(self, key: K, default: V | None = None) -> V | None:
         r"""Get the value associated with ``key``, or ``default`` if the
-        key is missing, marking a hit as most-recently-used."""
+        key is missing, marking a hit as most-recently-used.
+
+        Args:
+            key: The key to look up.
+            default: The value returned if ``key`` is missing.
+
+        Returns:
+            The value associated with ``key``, or ``default`` if
+                ``key`` is missing.
+        """
         if key not in self._data:
             return default
         return self[key]
@@ -138,6 +151,10 @@ class LRUCache(Generic[K, V]):
                 ``KeyError`` when ``key`` is missing, mirroring
                 ``dict.pop``.
 
+        Returns:
+            The value that was associated with ``key``, or the default
+                value if ``key`` is missing.
+
         Raises:
             KeyError: if ``key`` is missing and no default is given.
         """
@@ -149,15 +166,27 @@ class LRUCache(Generic[K, V]):
 
     def keys(self) -> KeysView[K]:
         r"""Return a view of the cache's keys, in least- to most-
-        recently-used order."""
+        recently-used order.
+
+        Returns:
+            A view of the keys.
+        """
         return self._data.keys()
 
     def values(self) -> ValuesView[V]:
         r"""Return a view of the cache's values, in least- to most-
-        recently-used order."""
+        recently-used order.
+
+        Returns:
+            A view of the values.
+        """
         return self._data.values()
 
     def items(self) -> ItemsView[K, V]:
         r"""Return a view of the cache's ``(key, value)`` pairs, in
-        least- to most-recently-used order."""
+        least- to most-recently-used order.
+
+        Returns:
+            A view of the ``(key, value)`` pairs.
+        """
         return self._data.items()

@@ -18,7 +18,7 @@ class Hasher(Protocol[T_contra]):
     r"""Structural interface of a type-specific hasher.
 
     Any object with a compatible ``hash`` method can be registered
-    without subclassing :class:`BaseHasher`, which remains available as
+    without subclassing ``BaseHasher``, which remains available as
     a convenience base class.
     """
 

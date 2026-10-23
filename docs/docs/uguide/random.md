@@ -50,6 +50,26 @@ This sets the seed for:
 - NumPy's random generator (if NumPy is available)
 - PyTorch's random generator (if PyTorch is available)
 
+### Validating a Seed
+
+`manual_seed()` validates the seed before it seeds any library. `validate_seed()` is available to
+validate a seed without seeding: it accepts an `int` in the range `[0, 2**63)`, raises a
+`TypeError` for another type and a `ValueError` for a seed out of range:
+
+```pycon
+>>> from coola.random import validate_seed
+>>> validate_seed(42)
+>>> validate_seed(-1)
+Traceback (most recent call last):
+    ...
+ValueError: seed must be in the range [0, 2**63), got -1
+>>> validate_seed("42")
+Traceback (most recent call last):
+    ...
+TypeError: seed must be an int, got <class 'str'>
+
+```
+
 ### Using a Random Seed Context
 
 Use the `random_seed` context manager to temporarily set a seed and automatically restore the

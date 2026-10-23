@@ -123,7 +123,7 @@ Work with nested dictionaries efficiently:
 
 - Flatten nested dictionaries into flat key-value pairs
 - Extract specific values from complex nested structures
-- Filter dictionary keys based on patterns or criteria
+- Filter dictionary keys based on patterns or criteria, rename keys and merge mappings
 
 [Learn more →](uguide/nested.md)
 
@@ -146,6 +146,43 @@ Compute statistics on sequences with flexible backends:
 - Consistent API regardless of backend choice
 
 [Learn more →](uguide/reducer.md)
+
+### #️⃣ **Hashing**
+
+Compute stable hashes of nested objects:
+
+- Hash dicts, lists, sets, dataclasses, pydantic models, arrays and data frames
+- Independent of the insertion order of mappings and sets
+- Extensible with custom hashers
+
+[Learn more →](uguide/hashing.md)
+
+### 🆔 **Identifiers**
+
+Generate unique identifiers: ULID, UUID (v4, v5, v7), Snowflake, ObjectId, NanoID, and
+prefixed, checksummed, obfuscated and content-based identifiers.
+
+[Learn more →](uguide/identifier.md)
+
+### 💾 **Data Loading and Saving**
+
+Load and save JSON, pickle, text and PyTorch files with atomic writes, an overwrite policy and
+optional durability (`fsync`).
+
+[Learn more →](uguide/io.md)
+
+### 🎲 **Random Number Generators**
+
+Seed, save and restore the random number generators of `random`, NumPy and PyTorch in one call.
+
+[Learn more →](uguide/random.md)
+
+### 🔧 **Recursive Transformation and Validation**
+
+- Apply a function to every leaf of a nested structure
+- Validate arguments with clear error messages
+
+[Learn more about transformation →](uguide/recursive.md) · [Learn more about validation →](uguide/validation.md)
 
 ## Contributing
 

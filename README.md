@@ -148,7 +148,7 @@ Work with nested dictionaries efficiently:
 
 - Flatten nested dictionaries into flat key-value pairs
 - Extract specific values from complex nested structures
-- Filter dictionary keys based on patterns or criteria
+- Filter dictionary keys based on patterns or criteria, rename keys and merge mappings
 
 [Learn more →](https://durandtibo.github.io/coola/uguide/nested)
 
@@ -172,6 +172,43 @@ Compute statistics on sequences with flexible backends:
 
 [Learn more →](https://durandtibo.github.io/coola/uguide/reducer)
 
+### #️⃣ **Hashing**
+
+Compute stable hashes of nested objects:
+
+- Hash dicts, lists, sets, dataclasses, pydantic models, arrays and data frames
+- Independent of the insertion order of mappings and sets
+- Extensible with custom hashers
+
+[Learn more →](https://durandtibo.github.io/coola/uguide/hashing)
+
+### 🆔 **Identifiers**
+
+Generate unique identifiers: ULID, UUID (v4, v5, v7), Snowflake, ObjectId, NanoID, and
+prefixed, checksummed, obfuscated and content-based identifiers.
+
+[Learn more →](https://durandtibo.github.io/coola/uguide/identifier)
+
+### 💾 **Data Loading and Saving**
+
+Load and save JSON, pickle, text and PyTorch files with atomic writes, an overwrite policy and
+optional durability (`fsync`).
+
+[Learn more →](https://durandtibo.github.io/coola/uguide/io)
+
+### 🎲 **Random Number Generators**
+
+Seed, save and restore the random number generators of `random`, NumPy and PyTorch in one call.
+
+[Learn more →](https://durandtibo.github.io/coola/uguide/random)
+
+### 🔧 **Recursive Transformation and Validation**
+
+- Apply a function to every leaf of a nested structure
+- Validate arguments with clear error messages
+
+[Learn more about transformation →](https://durandtibo.github.io/coola/uguide/recursive) · [Learn more about validation →](https://durandtibo.github.io/coola/uguide/validation)
+
 ## Installation
 
 We highly recommend installing
@@ -187,10 +224,10 @@ to avoid dependency conflicts.
 uv pip install coola
 ```
 
-**Install with all optional dependencies:**
+**Install with several optional dependencies:**
 
 ```shell
-uv pip install coola[all]
+uv pip install coola[jax,numpy,packaging,pandas,polars,pyarrow,pydantic,torch,xarray,colorlog,rich]
 ```
 
 **Install with specific optional dependencies:**
@@ -207,10 +244,10 @@ Alternatively, you can use `pip`:
 pip install coola
 ```
 
-**Install with all optional dependencies:**
+**Install with several optional dependencies:**
 
 ```shell
-pip install coola[all]
+pip install coola[jax,numpy,packaging,pandas,polars,pyarrow,pydantic,torch,xarray,colorlog,rich]
 ```
 
 **Install with specific optional dependencies:**
@@ -225,14 +262,18 @@ pip install coola[numpy,torch]  # with NumPy and PyTorch
 - **Operating system**: Linux or macOS (no Windows support)
 - **Core dependencies**: None (fully optional dependencies)
 
-**Optional dependencies** (install with `coola[all]`):
+**Optional dependencies** (install with `coola[<name>]`, e.g. `coola[numpy,torch]`):
 [JAX](https://jax.readthedocs.io/) •
 [NumPy](https://numpy.org/) •
 [pandas](https://pandas.pydata.org/) •
 [polars](https://www.pola.rs/) •
 [PyArrow](https://arrow.apache.org/docs/python/) •
 [PyTorch](https://pytorch.org/) •
-[xarray](https://docs.xarray.dev/)
+[xarray](https://docs.xarray.dev/) •
+[pydantic](https://docs.pydantic.dev/) •
+[packaging](https://packaging.pypa.io/) •
+[colorlog](https://pypi.org/project/colorlog/) •
+[rich](https://rich.readthedocs.io/)
 
 > **Note:** the `jax` and `torch` extras are further restricted to Linux and Apple Silicon (macOS
 > arm64), matching the platforms these libraries publish wheels for — installing `coola[jax]` or
@@ -245,7 +286,7 @@ methods, see the [installation guide](https://durandtibo.github.io/coola/get_sta
 
 | `coola`  | `jax`<sup>*</sup> | `numpy`<sup>*</sup> | `packaging`<sup>*</sup> | `pandas`<sup>*</sup> | `polars`<sup>*</sup> | `pyarrow`<sup>*</sup> | `pydantic`<sup>*</sup> | `torch`<sup>*</sup> | `xarray`<sup>*</sup> | `python` |
 | -------- | ----------------- | ------------------- | ----------------------- | -------------------- | -------------------- | --------------------- | ---------------------- | ------------------- | -------------------- | -------- |
-| `main`   | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<4.0`         | `>=1.0,<2.0`         | `>=11.0`              | `>=2.0,<3.0`           | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.11` |
+| `main`   | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<4.0`         | `>=1.0,<3.0`         | `>=11.0`              | `>=2.0,<3.0`           | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.11` |
 | `1.1.10` | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<4.0`         | `>=1.0,<2.0`         | `>=11.0`              | `>=2.0,<3.0`           | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10` |
 | `1.1.9`  | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<4.0`         | `>=1.0,<2.0`         | `>=11.0`              | `>=2.0,<3.0`           | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10` |
 | `1.1.8`  | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<4.0`         | `>=1.0,<2.0`         | `>=11.0`              |                        | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10` |

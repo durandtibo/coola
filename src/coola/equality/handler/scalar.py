@@ -57,7 +57,33 @@ class NanEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
 
 
 def complex_are_equal(actual: complex, expected: complex, config: EqualityConfig) -> bool:
-    r"""Compare the real and imaginary parts, NaN being equal to NaN."""
+    r"""Compare the real and imaginary parts, NaN being equal to NaN.
+
+    The parts are compared one by one with the tolerances of ``config``,
+    so ``complex(nan, 1)`` and ``complex(nan, 2)`` are different.
+
+    Args:
+        actual: The actual complex number.
+        expected: The expected complex number.
+        config: The equality configuration, which gives the tolerances
+            ``atol`` and ``rtol``.
+
+    Returns:
+        ``True`` if the real parts and the imaginary parts are equal
+            (a NaN part is equal to a NaN part), otherwise ``False``.
+
+    Example:
+        ```pycon
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.handler.scalar import complex_are_equal
+        >>> config = EqualityConfig()
+        >>> complex_are_equal(complex(float("nan"), 1), complex(float("nan"), 1), config)
+        True
+        >>> complex_are_equal(complex(float("nan"), 1), complex(float("nan"), 2), config)
+        False
+
+        ```
+    """
     for a, b in ((actual.real, expected.real), (actual.imag, expected.imag)):
         if math.isnan(a) and math.isnan(b):
             continue

@@ -26,7 +26,7 @@ def check_env_vars(
 
     Logs the status of each variable to the terminal. A variable set to
     an empty (or blank) string is reported as not defined, as in
-    :func:`get_required_env_var`.
+    ``get_required_env_var``.
 
     Args:
         var_names: The sequence of environment variable names to

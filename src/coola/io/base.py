@@ -671,7 +671,7 @@ def is_loader_config(
 
     Security:
         The ``"_target_"`` is imported to check its class: see
-        :func:`coola.factory.is_object_config`.
+        ``coola.factory.is_object_config``.
 
     Example:
         ```pycon
@@ -707,7 +707,7 @@ def is_saver_config(
 
     Security:
         The ``"_target_"`` is imported to check its class: see
-        :func:`coola.factory.is_object_config`.
+        ``coola.factory.is_object_config``.
 
     Example:
         ```pycon
@@ -738,9 +738,9 @@ def resolve_loader(
         The instantiated data loader.
 
     Security:
-        When ``loader`` is a configuration :class:`dict`, its
+        When ``loader`` is a configuration ``dict``, its
         ``"_target_"`` value is imported and instantiated with no
-        allowlist by default (see :func:`coola.factory.factory`). Only
+        allowlist by default (see ``coola.factory.factory``). Only
         call this function with a configuration that comes from a
         trusted source, or restrict it with ``allowed_prefixes``; never
         resolve a loader configuration derived from untrusted input
@@ -778,9 +778,9 @@ def resolve_saver(
         The instantiated data saver.
 
     Security:
-        When ``saver`` is a configuration :class:`dict`, its
+        When ``saver`` is a configuration ``dict``, its
         ``"_target_"`` value is imported and instantiated with no
-        allowlist by default (see :func:`coola.factory.factory`). Only
+        allowlist by default (see ``coola.factory.factory``). Only
         call this function with a configuration that comes from a
         trusted source, or restrict it with ``allowed_prefixes``; never
         resolve a saver configuration derived from untrusted input

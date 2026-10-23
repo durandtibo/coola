@@ -107,5 +107,32 @@ class SequenceSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
 
 def is_exact_scalar_sequence(seq: Sequence[Any]) -> bool:
     r"""Indicate if ``seq`` is a list or tuple containing only exact
-    built-in scalars."""
+    built-in scalars.
+
+    The exact scalars are the ``int``, ``str``, ``bytes``, ``bool`` and
+    ``None`` values: ``==`` is exact for them (no NaN, no tolerance), so
+    a sequence of exact scalars can be compared at once. The type of
+    ``seq`` and the types of its items are compared exactly (no
+    subclass), so a subclass of ``list`` is not accepted, and neither is
+    a ``float`` (it can be NaN or compared with a tolerance).
+
+    Args:
+        seq: The sequence to check.
+
+    Returns:
+        ``True`` if ``seq`` is a ``list`` or a ``tuple`` and all its
+            items have an exact scalar type, otherwise ``False``.
+
+    Example:
+        ```pycon
+        >>> from coola.equality.handler.sequence import is_exact_scalar_sequence
+        >>> is_exact_scalar_sequence([1, "abc", None])
+        True
+        >>> is_exact_scalar_sequence([1, 2.0])
+        False
+        >>> is_exact_scalar_sequence([1, [2]])
+        False
+
+        ```
+    """
     return type(seq) in (list, tuple) and set(map(type, seq)) <= _EXACT_SCALAR_TYPES

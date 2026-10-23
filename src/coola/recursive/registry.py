@@ -80,10 +80,10 @@ class TransformerRegistry(BaseTypeDispatchRegistry[Transformer[Any]]):
     """
 
     def has_transformer(self, data_type: type) -> bool:
-        """Type-specific alias for :meth:`has`: check if a transformer
+        """Type-specific alias for ``has``: check if a transformer
         is explicitly registered for the given type.
 
-        See :meth:`BaseTypeDispatchRegistry.has` for the full behavior
+        See ``BaseTypeDispatchRegistry.has`` for the full behavior
         description.
 
         Args:
@@ -108,10 +108,10 @@ class TransformerRegistry(BaseTypeDispatchRegistry[Transformer[Any]]):
         return self.has(data_type)
 
     def find_transformer(self, data_type: type) -> Transformer[Any]:
-        """Type-specific alias for :meth:`find`: find the appropriate
+        """Type-specific alias for ``find``: find the appropriate
         transformer for a given type.
 
-        See :meth:`BaseTypeDispatchRegistry.find` for the full behavior
+        See ``BaseTypeDispatchRegistry.find`` for the full behavior
         description (MRO resolution, caching, and the ``KeyError`` on no
         match).
 

@@ -149,6 +149,12 @@ class SameAttributeHandler(HandlerEqualityMixin, BaseEqualityHandler):
     path (for example ``"coords.variables"``) to compare the
     attribute of an attribute.
 
+    Args:
+        name: The name of the attribute to compare. It can be a dotted
+            path (for example ``"coords.variables"``).
+        next_handler: The next handler in the chain. Defaults to
+            ``None``.
+
     Example:
         ```pycon
         >>> import numpy as np

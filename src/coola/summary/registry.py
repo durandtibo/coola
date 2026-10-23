@@ -82,10 +82,10 @@ class SummarizerRegistry(BaseTypeDispatchRegistry[Summarizer[Any]]):
     """
 
     def has_summarizer(self, data_type: type) -> bool:
-        """Type-specific alias for :meth:`has`: check if a summarizer
+        """Type-specific alias for ``has``: check if a summarizer
         is explicitly registered for the given type.
 
-        See :meth:`BaseTypeDispatchRegistry.has` for the full behavior
+        See ``BaseTypeDispatchRegistry.has`` for the full behavior
         description.
 
         Args:
@@ -109,10 +109,10 @@ class SummarizerRegistry(BaseTypeDispatchRegistry[Summarizer[Any]]):
         return self.has(data_type)
 
     def find_summarizer(self, data_type: type) -> Summarizer[Any]:
-        """Type-specific alias for :meth:`find`: find the appropriate
+        """Type-specific alias for ``find``: find the appropriate
         summarizer for a given type.
 
-        See :meth:`BaseTypeDispatchRegistry.find` for the full behavior
+        See ``BaseTypeDispatchRegistry.find`` for the full behavior
         description (MRO resolution, caching, and the ``KeyError`` on no
         match).
 

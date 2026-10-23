@@ -29,7 +29,7 @@ def from_flat_dict(
 
     Args:
         data: A flat dictionary whose keys use ``separator`` to encode
-            nesting depth, as produced by :func:`to_flat_dict`.
+            nesting depth, as produced by ``to_flat_dict``.
         separator: The separator that was used when the flat dict was
             created.  Defaults to ``"."``.
         restore_lists: If ``True``, every ``dict`` whose keys are
@@ -174,8 +174,8 @@ def to_flat_dict(
     using dotted keys.
 
     Args:
-        data: The nested structure to flatten. Any :class:`Mapping` or
-            non-string, non-bytes :class:`Sequence` (including ``range``) is
+        data: The nested structure to flatten. Any ``Mapping`` or
+            non-string, non-bytes ``Sequence`` (including ``range``) is
             recursed into; everything else, including the sets (they are
             not ordered, so they have no index), is treated as a leaf value.
         prefix: The prefix prepended to each key. ``None`` means no

@@ -91,10 +91,10 @@ class EqualityTesterRegistry(BaseTypeDispatchRegistry[BaseEqualityTester[Any]]):
     """
 
     def has_equality_tester(self, data_type: type) -> bool:
-        """Type-specific alias for :meth:`has`: check if an equality
+        """Type-specific alias for ``has``: check if an equality
         tester is explicitly registered for the given type.
 
-        See :meth:`BaseTypeDispatchRegistry.has` for the full behavior
+        See ``BaseTypeDispatchRegistry.has`` for the full behavior
         description.
 
         Args:
@@ -117,10 +117,10 @@ class EqualityTesterRegistry(BaseTypeDispatchRegistry[BaseEqualityTester[Any]]):
         return self.has(data_type)
 
     def find_equality_tester(self, data_type: type) -> BaseEqualityTester[Any]:
-        """Type-specific alias for :meth:`find`: find the appropriate
+        """Type-specific alias for ``find``: find the appropriate
         equality tester for a given type.
 
-        See :meth:`BaseTypeDispatchRegistry.find` for the full behavior
+        See ``BaseTypeDispatchRegistry.find`` for the full behavior
         description (MRO resolution, caching, and the ``KeyError`` on no
         match).
 

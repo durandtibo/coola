@@ -90,6 +90,12 @@ class LazySingleton(Generic[T]):
 
         Returns:
             The singleton value.
+
+        Raises:
+            RuntimeError: If the value is requested again by the thread
+                that is building it (the factory requests the
+                singleton it builds), which would otherwise wait
+                forever.
         """
         if self._instance is _UNSET:
             if self._building_thread == threading.get_ident():

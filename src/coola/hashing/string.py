@@ -74,8 +74,18 @@ class StringHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[str]):
 def validate_hash_length(length: int) -> None:
     """Check that ``length`` is a valid length for a hex digest.
 
+    Args:
+        length: The length of the hex digest to validate.
+
     Raises:
         ValueError: If ``length`` is not an even number between 2 and 128.
+
+    Example:
+        ```pycon
+        >>> from coola.hashing.string import validate_hash_length
+        >>> validate_hash_length(64)
+
+        ```
     """
     if length % 2 != 0 or not (2 <= length <= 128):
         msg = f"length must be an even number between 2 and 128, got {length}."
@@ -132,6 +142,18 @@ def hash_tagged(tag: str, value: str, length: int = 64) -> str:
     Returns:
         A lowercase hexadecimal string of exactly ``length``
         characters.
+
+    Raises:
+        ValueError: If ``length`` is not an even number between 2 and
+            128.
+
+    Example:
+        ```pycon
+        >>> from coola.hashing.string import hash_tagged
+        >>> hash_tagged("int", "1") == hash_tagged("str", "1")
+        False
+
+        ```
     """
     return hash_string(f"{tag}\0{value}", length=length)
 
