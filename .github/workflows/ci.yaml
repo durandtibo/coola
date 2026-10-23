@@ -7,8 +7,8 @@
 # Deliberately NOT called from here, each standalone with its own trigger:
 #   - ci-benchmark.yaml: runs nightly on its own schedule instead of gating
 #     every PR/push, since a benchmark regression isn't a merge blocker.
-#   - ci-verify-workflows.yaml: lints .github/workflows/* itself, so it
-#     triggers on workflow-file changes rather than every PR/push.
+#   - ci-verify-workflows.yaml: lints .github/workflows/* itself, so it has its
+#     own trigger instead of being part of this workflow.
 # See .github/GUIDELINES.md for the naming/prefix and runs-on/timeout
 # conventions shared across every workflow in this directory.
 #
@@ -34,7 +34,8 @@ permissions:
   contents: read
 
 jobs:
-  # Load the shared python-version/OS matrix from dev/config/test_matrix.json
+  # Load the shared python-version/OS matrix from the default config of
+  # durandtibo/workflow-config-action
   # once, and pass it down to every job below that needs it.
   get-matrix:
     uses: ./.github/workflows/lib-get-test-matrix.yaml
