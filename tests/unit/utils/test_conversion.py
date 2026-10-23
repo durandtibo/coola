@@ -243,3 +243,11 @@ def test_to_jsonable_new_types_are_json_serializable() -> None:
 
 def test_to_jsonable_range() -> None:
     assert to_jsonable(range(3)) == [0, 1, 2]
+
+
+def test_to_jsonable_time() -> None:
+    assert to_jsonable(datetime.time(1, 2, 3)) == "01:02:03"
+
+
+def test_to_jsonable_timedelta() -> None:
+    assert to_jsonable(datetime.timedelta(minutes=1, milliseconds=500)) == 60.5
