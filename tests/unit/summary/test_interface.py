@@ -331,6 +331,13 @@ def test_get_default_registry_jax_summarizers() -> None:
     assert isinstance(registry.find_summarizer(type(jnp.ones(1))), JaxArraySummarizer)
 
 
+@jax_available
+def test_get_jax_summarizers_does_not_create_an_array() -> None:
+    with patch("jax.numpy.ones", side_effect=AssertionError("array created")):
+        summarizers = summary_interface._get_jax_summarizers()
+    assert set(summarizers) == {jnp.ndarray}
+
+
 @pandas_available
 @polars_available
 @pyarrow_available
