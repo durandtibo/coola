@@ -27,6 +27,18 @@ def test_lazy_singleton_get_returns_value_from_factory() -> None:
     assert singleton.get() == 42
 
 
+def test_lazy_singleton_get_returns_none_from_factory() -> None:
+    assert LazySingleton(lambda: None).get() is None
+
+
+def test_lazy_singleton_calls_factory_only_once_when_it_returns_none() -> None:
+    calls = []
+    singleton_none = LazySingleton(lambda: calls.append(1))
+    singleton_none.get()
+    singleton_none.get()
+    assert len(calls) == 1
+
+
 def test_lazy_singleton_does_not_call_factory_until_get() -> None:
     calls = []
 
