@@ -125,6 +125,13 @@ def test_polars_lazyframe_summarizer_summarize_does_not_collect(
 
 
 @polars_available
+def test_polars_lazyframe_summarizer_summarize_invalid_plan(registry: SummarizerRegistry) -> None:
+    frame = pl.LazyFrame({"a": [1, 2, 3]}).select("missing")
+    result = PolarsLazyFrameSummarizer().summarize(frame, registry)
+    assert result.endswith(" | columns=<unresolved schema: ColumnNotFoundError>")
+
+
+@polars_available
 def test_polars_lazyframe_summarizer_summarize_show_data(registry: SummarizerRegistry) -> None:
     frame = pl.LazyFrame({"a": [1, 2]})
     assert PolarsLazyFrameSummarizer(show_data=True).summarize(frame, registry) == repr(frame)
