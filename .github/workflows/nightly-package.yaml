@@ -12,7 +12,8 @@ jobs:
   # dev/config/package_versions.json.
   get-deps:
     uses: ./.github/workflows/lib-get-package-deps.yaml
-  # Load the shared python-version/OS matrix from dev/config/test_matrix.json
+  # Load the shared python-version/OS matrix from the default config of
+  # durandtibo/workflow-config-action
   # once, and pass it down to every job below that needs it.
   get-matrix:
     uses: ./.github/workflows/lib-get-test-matrix.yaml
