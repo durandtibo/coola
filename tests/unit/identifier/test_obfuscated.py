@@ -163,3 +163,13 @@ def test_decode_obfuscated_id_padded_value() -> None:
     encoded = generate_obfuscated_id(7, salt="s", min_length=30)
     assert len(encoded) == 30
     assert decode_obfuscated_id(encoded, salt="s") == 7
+
+
+def test_decode_obfuscated_id_too_long_raises() -> None:
+    with pytest.raises(ValueError, match="64-bit"):
+        decode_obfuscated_id("1" * 12)
+
+
+def test_decode_obfuscated_id_max_value_roundtrip() -> None:
+    value = (1 << 64) - 1
+    assert decode_obfuscated_id(generate_obfuscated_id(value)) == value

@@ -90,3 +90,8 @@ def test_generate_stable_content_id_does_not_mutate_default_registry_when_custom
     custom_registry = HasherRegistry({object: StringHasher()})
     generate_stable_content_id("meow", registry=custom_registry)
     assert hashing_interface._default_registry._instance is None
+
+
+def test_generate_stable_content_id_options_are_keyword_only() -> None:
+    with pytest.raises(TypeError, match="positional"):
+        generate_stable_content_id({"a": 1}, 32)  # type: ignore[misc]

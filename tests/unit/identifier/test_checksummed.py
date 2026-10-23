@@ -113,3 +113,24 @@ def test_generate_checksummed_id_sep_multichar_raises() -> None:
 @pytest.mark.parametrize("identifier", [None, 123, b"abc"])
 def test_verify_checksummed_id_not_a_str(identifier: object) -> None:
     assert not verify_checksummed_id(identifier)
+
+
+def test_verify_checksummed_id_ascii_look_alike_source_is_valid() -> None:
+    payload = "1" * 8
+    assert verify_checksummed_id(payload + _checksum_symbol(payload))
+
+
+def test_verify_checksummed_id_rejects_non_ascii_look_alikes() -> None:
+    # The dotless i (U+0131) upper-cases to 'I', which normalizes to '1'.
+    payload = "1" * 8
+    identifier = payload + _checksum_symbol(payload)
+    assert not verify_checksummed_id("\u0131" + identifier[1:])
+
+
+def test_generate_checksummed_id_length_above_the_maximum_raises() -> None:
+    with pytest.raises(ValueError, match="at most 1024"):
+        generate_checksummed_id(length=1025)
+
+
+def test_generate_checksummed_id_length_at_the_maximum() -> None:
+    assert verify_checksummed_id(generate_checksummed_id(length=1024))
