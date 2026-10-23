@@ -462,7 +462,8 @@ LAZY_MODULE_NAMES = [
 def test_get_default_summarizers_types_come_from_the_library(
     module: str, names: tuple[str, ...]
 ) -> None:
-    """Test that the lazy group is loaded for each type that it registers."""
+    """Test that the lazy group is loaded for each type that it
+    registers."""
     pytest.importorskip(names[0])
     mapping = import_object(f"{module}:get_default_summarizers")()
     assert {t.__module__.partition(".")[0] for t in mapping} <= set(names)

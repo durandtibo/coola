@@ -29,7 +29,8 @@ def loaded_libraries(statement: str) -> list[str]:
 
 @pytest.mark.parametrize("package", PACKAGES)
 def test_importing_a_package_does_not_import_the_optional_libraries(package: str) -> None:
-    """Test that importing a package does not load the optional libraries."""
+    """Test that importing a package does not load the optional
+    libraries."""
     assert loaded_libraries(f"import {package}") == []
 
 
