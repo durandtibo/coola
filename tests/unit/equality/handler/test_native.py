@@ -18,6 +18,7 @@ from coola.equality.handler import (
 )
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
+from tests.unit.equality.utils import BadStr
 
 if is_numpy_available():
     import numpy as np
@@ -975,3 +976,22 @@ def test_same_object_handler_handle_nan_same_object_is_equal_without_equal_nan()
 def test_same_object_handler_handle_nan_other_object_is_different_without_equal_nan() -> None:
     handler = SameObjectHandler(FalseHandler())
     assert not handler.handle(float("nan"), float("nan"), EqualityConfig(equal_nan=False))
+
+
+class WithValue:
+    def __init__(self, value: object) -> None:
+        self.value = value
+
+
+def test_same_attribute_handler_handle_attribute_with_failing_str() -> None:
+    reports: list[str] = []
+    config = EqualityConfig(show_difference=True, reporter=lambda msg, _: reports.append(msg))
+    handler = SameAttributeHandler(name="value")
+    assert not handler.handle(WithValue(BadStr(1)), WithValue(BadStr(2)), config)
+
+
+def test_same_attribute_handler_handle_attribute_with_failing_str_message() -> None:
+    reports: list[str] = []
+    config = EqualityConfig(show_difference=True, reporter=lambda msg, _: reports.append(msg))
+    SameAttributeHandler(name="value").handle(WithValue(BadStr(1)), WithValue(BadStr(2)), config)
+    assert reports[-1].startswith("objects have different value: <BadStr object at 0x")
