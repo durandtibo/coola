@@ -91,7 +91,7 @@ class PolarsLazyFrameSummarizer(BaseFieldsSummarizer[pl.LazyFrame]):
     def _describe(self, data: pl.LazyFrame) -> list[str]:
         try:
             schema = data.collect_schema()
-        except Exception as exc:
+        except pl.exceptions.PolarsError as exc:
             return [f"columns=<unresolved schema: {type(exc).__name__}>"]
         return [f"columns={self._format_fields(schema.items())}"]
 
