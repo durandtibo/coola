@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections import deque
+from collections import UserString, deque
 from collections.abc import Collection, Generator, Iterator, Mapping
 from typing import Any
 from unittest.mock import patch
@@ -210,3 +210,8 @@ def test_bfs_iterate_deep_chain_does_not_walk_the_ancestors() -> None:
     with patch("coola.iterator.bfs.registry._is_ancestor") as mock_is_ancestor:
         assert list(bfs_iterate(data)) == [1]
     mock_is_ancestor.assert_not_called()
+
+
+def test_bfs_iterate_user_string_is_a_leaf() -> None:
+    value = UserString("abc")
+    assert list(bfs_iterate([value, 1])) == [value, 1]

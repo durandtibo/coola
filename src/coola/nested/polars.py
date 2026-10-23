@@ -83,7 +83,9 @@ def expand_list_columns(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
     For each ``List`` or ``Array`` column, creates new columns named
     ``<col><separator><index>`` for each position up to the maximum list
     length across all rows. Rows with lists shorter than the maximum are
-    filled with ``None``. The original list columns are dropped.
+    filled with ``None``. The original list columns are dropped, except
+    the columns where every list is null or empty: they have no position
+    to expand, so they are kept as they are instead of being lost.
 
     Args:
         frame: A DataFrame that may contain list or array columns.
@@ -94,6 +96,10 @@ def expand_list_columns(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
         A DataFrame with list and array columns replaced by
         their expanded positional columns. Non-list columns are unchanged.
         If no list or array columns are present the frame is returned as-is.
+
+    Raises:
+        ValueError: If a new column name is already used by a column of
+            the frame or by another new column.
     """
     list_cols = [
         name for name, dtype in frame.schema.items() if isinstance(dtype, (pl.List, pl.Array))
@@ -102,16 +108,25 @@ def expand_list_columns(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
         return frame
 
     expansions: dict[str, pl.Series] = {}
+    expanded_cols: list[str] = []
     for col in list_cols:
         series = frame[col]
         if isinstance(series.dtype, pl.Array):
             # The ``list`` namespace is not defined for the ``Array`` dtype.
             series = series.cast(pl.List(series.dtype.inner))
         max_len = cast("int", series.list.len().max() or 0)
+        if max_len == 0:
+            # Nothing to expand: dropping the column would lose it.
+            continue
+        expanded_cols.append(col)
         for i in range(max_len):
-            expansions[f"{col}{separator}{i}"] = series.list.get(i, null_on_oob=True)
+            name = f"{col}{separator}{i}"
+            if name in frame.columns or name in expansions:
+                msg = f"Cannot expand the list column {col!r}: the column {name!r} already exists"
+                raise ValueError(msg)
+            expansions[name] = series.list.get(i, null_on_oob=True)
 
-    return frame.drop(list_cols).with_columns(
+    return frame.drop(expanded_cols).with_columns(
         pl.Series(name, values) for name, values in expansions.items()
     )
 
