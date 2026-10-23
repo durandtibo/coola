@@ -29,6 +29,7 @@ on:
   schedule:
     - cron: "10 9 * * *" # Run nightly at 9:10 AM UTC to catch issues from external changes
   workflow_dispatch: # to trigger manually
+  workflow_call: # the release workflows run the CI before publishing
 
 permissions:
   contents: read
