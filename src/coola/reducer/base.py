@@ -5,6 +5,7 @@ from __future__ import annotations
 __all__ = ["BaseBasicReducer", "BaseReducer", "EmptySequenceError"]
 
 from abc import ABC, abstractmethod
+from collections.abc import Iterator
 from typing import TYPE_CHECKING, Generic, TypeVar
 
 if TYPE_CHECKING:
@@ -28,7 +29,7 @@ class BaseReducer(ABC, Generic[T]):
         >>> reducer.max([-2, -1, 0, 1, 2])
         2
         >>> reducer.median([-2, -1, 0, 1, 2])
-        0.0
+        0
         >>> reducer.sort([2, 1, -2, 3, 0])
         [-2, 0, 1, 2, 3]
 
@@ -47,6 +48,7 @@ class BaseReducer(ABC, Generic[T]):
 
         Raises:
             EmptySequenceError: if the input sequence is empty.
+            TypeError: if the input is an iterator (e.g. a generator).
 
         Example:
             ```pycon
@@ -220,10 +222,28 @@ class BaseBasicReducer(BaseReducer[T]):
             ``True`` if the values are empty, ``False`` otherwise.
         """
 
-    def max(self, values: T) -> int | float:
+    def _check_values(self, values: T, name: str) -> None:
+        r"""Check that the values can be reduced.
+
+        Args:
+            values: The values.
+            name: The name of the reduction, used in the error message.
+
+        Raises:
+            TypeError: if ``values`` is an iterator (e.g. a generator),
+                because the reducers need to go over the values
+                several times. Convert it to a list first.
+            EmptySequenceError: if the input sequence is empty.
+        """
+        if isinstance(values, Iterator):
+            msg = f"Cannot compute {name} of an iterator, convert it to a list first"
+            raise TypeError(msg)
         if self._is_empty(values):
-            msg = "Cannot compute the maximum because the sequence is empty"
+            msg = f"Cannot compute {name} because the sequence is empty"
             raise EmptySequenceError(msg)
+
+    def max(self, values: T) -> int | float:
+        self._check_values(values, "the maximum")
         return self._max(values)
 
     @abstractmethod
@@ -238,9 +258,7 @@ class BaseBasicReducer(BaseReducer[T]):
         """
 
     def mean(self, values: T) -> int | float:
-        if self._is_empty(values):
-            msg = "Cannot compute the mean because the sequence is empty"
-            raise EmptySequenceError(msg)
+        self._check_values(values, "the mean")
         return self._mean(values)
 
     @abstractmethod
@@ -255,9 +273,7 @@ class BaseBasicReducer(BaseReducer[T]):
         """
 
     def median(self, values: T) -> int | float:
-        if self._is_empty(values):
-            msg = "Cannot compute the median because the sequence is empty"
-            raise EmptySequenceError(msg)
+        self._check_values(values, "the median")
         return self._median(values)
 
     @abstractmethod
@@ -272,9 +288,7 @@ class BaseBasicReducer(BaseReducer[T]):
         """
 
     def min(self, values: T) -> int | float:
-        if self._is_empty(values):
-            msg = "Cannot compute the minimum because the sequence is empty"
-            raise EmptySequenceError(msg)
+        self._check_values(values, "the minimum")
         return self._min(values)
 
     @abstractmethod
@@ -289,9 +303,7 @@ class BaseBasicReducer(BaseReducer[T]):
         """
 
     def quantile(self, values: T, quantiles: Sequence[float]) -> list[float]:
-        if self._is_empty(values):
-            msg = "Cannot compute the quantiles because the sequence is empty"
-            raise EmptySequenceError(msg)
+        self._check_values(values, "the quantiles")
         return self._quantile(values, quantiles)
 
     @abstractmethod
@@ -315,9 +327,7 @@ class BaseBasicReducer(BaseReducer[T]):
     # directly.
 
     def std(self, values: T) -> float:
-        if self._is_empty(values):
-            msg = "Cannot compute the standard deviation because the sequence is empty"
-            raise EmptySequenceError(msg)
+        self._check_values(values, "the standard deviation")
         return self._std(values)
 
     @abstractmethod
