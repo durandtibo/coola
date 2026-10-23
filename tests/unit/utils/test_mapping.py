@@ -76,3 +76,7 @@ def test_sort_by_values_identical_values() -> None:
     data = sort_by_values({"a": 1, "b": 1, "c": 1})
     assert all(v == 1 for v in data.values())
     assert len(data) == 3
+
+
+def test_sort_by_keys_mixed_key_types() -> None:
+    assert list(sort_by_keys({"b": 1, 2: 2, "a": 3, 1: 4})) == [1, 2, "a", "b"]
