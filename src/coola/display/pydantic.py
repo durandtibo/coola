@@ -3,7 +3,12 @@ objects."""
 
 from __future__ import annotations
 
-__all__ = ["repr_pydantic_model", "secret_field_names", "str_pydantic_model"]
+__all__ = [
+    "is_secret_annotation",
+    "repr_pydantic_model",
+    "secret_field_names",
+    "str_pydantic_model",
+]
 
 import warnings
 from typing import TYPE_CHECKING, Any, cast, get_args, get_origin
@@ -22,14 +27,37 @@ else:  # pragma: no cover
     from coola.utils.fallback.pydantic import BaseModel, SecretBytes, SecretStr, pydantic
 
 
-def _is_secret_annotation(annotation: object) -> bool:
-    """Indicate if an annotation is, or contains, a secret type."""
+def is_secret_annotation(annotation: object) -> bool:
+    """Indicate if an annotation is, or contains, a secret type.
+
+    The secret types are ``SecretStr``, ``SecretBytes`` and ``Secret``.
+    The arguments of generic aliases (``Optional``, ``tuple``,
+    ``Annotated``, ...) are inspected recursively.
+
+    Args:
+        annotation: The type annotation to inspect.
+
+    Returns:
+        ``True`` if the annotation is or contains a secret type.
+
+    Example:
+        ```pycon
+        >>> from typing import Optional
+        >>> from pydantic import SecretStr
+        >>> from coola.display.pydantic import is_secret_annotation
+        >>> is_secret_annotation(Optional[SecretStr])
+        True
+        >>> is_secret_annotation(int)
+        False
+
+        ```
+    """
     # ``Secret`` is only available in pydantic 2.7 and later.
     secret_types = (SecretStr, SecretBytes, getattr(pydantic, "Secret", SecretBytes))
     origin = get_origin(annotation) or annotation
     if isinstance(origin, type) and issubclass(origin, secret_types):
         return True
-    return any(_is_secret_annotation(arg) for arg in get_args(annotation))
+    return any(is_secret_annotation(arg) for arg in get_args(annotation))
 
 
 def secret_field_names(model: BaseModel) -> set[str]:
@@ -63,7 +91,7 @@ def secret_field_names(model: BaseModel) -> set[str]:
     return {
         name
         for name, field in type(model).model_fields.items()
-        if _is_secret_annotation(field.annotation)
+        if is_secret_annotation(field.annotation)
     }
 
 

@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import warnings
+from typing import Annotated, Optional
 
 import pytest
 
 from coola.display import repr_pydantic_model, str_pydantic_model
-from coola.display.pydantic import secret_field_names
+from coola.display.pydantic import is_secret_annotation, secret_field_names
 from coola.testing.fixtures import pydantic_available
 from coola.utils.imports import is_pydantic_available
 
@@ -57,6 +58,39 @@ class ParentWithChildListModel(BaseModel):
 class ParentWithChildDictModel(BaseModel):
     name: str
     children: dict[str, ChildModel]
+
+
+##########################################
+#     Tests for is_secret_annotation     #
+##########################################
+
+
+@pydantic_available
+@pytest.mark.parametrize(
+    "annotation",
+    [
+        SecretStr,
+        SecretBytes,
+        Secret[int],
+        Optional[SecretStr],  # noqa: UP045
+        SecretStr | None,
+        tuple[SecretStr, int],
+        list[SecretStr],
+        dict[str, list[SecretBytes]],
+        Annotated[SecretStr, "meta"],
+    ],
+)
+def test_is_secret_annotation_true(annotation: object) -> None:
+    assert is_secret_annotation(annotation)
+
+
+@pydantic_available
+@pytest.mark.parametrize(
+    "annotation",
+    [str, int, None, "SecretStr", list[int], dict[str, str], int | None, Annotated[int, "meta"]],
+)
+def test_is_secret_annotation_false(annotation: object) -> None:
+    assert not is_secret_annotation(annotation)
 
 
 ########################################
