@@ -69,6 +69,21 @@ def test_summarize_never_raises(data: Any) -> None:
     assert isinstance(summarize(data), str)
 
 
+class _BadRepr:
+    r"""An object whose ``__repr__`` and ``__str__`` raise."""
+
+    def __repr__(self) -> str:
+        msg = "broken __repr__"
+        raise ZeroDivisionError(msg)
+
+    __str__ = __repr__
+
+
+@given(items=st.lists(st.just(_BadRepr()) | st.integers(), max_size=5), max_depth=st.integers(0, 2))
+def test_summarize_never_raises_with_a_failing_repr(items: list[Any], max_depth: int) -> None:
+    assert isinstance(summarize({"a": items, "b": tuple(items)}, max_depth=max_depth), str)
+
+
 @given(data=json_values)
 def test_convert_to_jsonable_is_accepted_by_strict_json(data: Any) -> None:
     json.dumps(convert_to_jsonable(data), allow_nan=False)

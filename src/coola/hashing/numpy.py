@@ -69,7 +69,7 @@ class NumpyArrayHasher(InlineDisplayMixin, BaseHasher["np.ndarray"]):
             ]
             raw_hash = hash_tagged("items", "".join(items), length=length)
         else:
-            data = _normalize_zeros(data)
+            data = canonicalize_floats(data)
             raw_hash = hash_bytes(np.ascontiguousarray(data).tobytes(), length=length)
         return hash_array_content(
             tag, _dtype_str(data.dtype), data.shape, raw_hash + mask_hash, length=length
@@ -85,17 +85,48 @@ def _dtype_str(dtype: np.dtype) -> str:
     return str(dtype.descr) if dtype.names else str(dtype.str)
 
 
-def _normalize_zeros(data: np.ndarray) -> np.ndarray:
-    r"""Replace ``-0.0`` by ``0.0``, also in the fields of a structured
-    array."""
+def canonicalize_floats(data: np.ndarray) -> np.ndarray:
+    r"""Return an array where the floating-point values have one bit
+    pattern per value.
+
+    The fields of a structured array are processed one by one. ``-0.0`` becomes ``0.0`` and every NaN becomes the default NaN, so
+    equal values (and NaNs, which are equal for ``equal_nan``) have the
+    same bytes whatever the sign or the payload of the NaN. The real and
+    the imaginary parts of a complex array are processed separately. The
+    other dtypes are returned unchanged.
+
+    Args:
+        data: The array to canonicalize. It is not modified.
+
+    Returns:
+        The canonicalized array.
+
+    Example:
+        ```pycon
+        >>> import numpy as np
+        >>> from coola.hashing.numpy import canonicalize_floats
+        >>> canonicalize_floats(np.array([-0.0, -np.nan])).tobytes() == (
+        ...     np.array([0.0, np.nan]).tobytes()
+        ... )
+        True
+
+        ```
+    """
     names = data.dtype.names
     if names:
+        # A structured array: its float fields are canonicalized one by one, on a copy.
         data = data.copy()
         for name in names:
-            data[name] = _normalize_zeros(data[name])
+            data[name] = canonicalize_floats(data[name])
         return data
-    if data.dtype.kind in "fc":
-        return data + 0  # -0.0 becomes 0.0, and the result is contiguous
+    kind = data.dtype.kind
+    if kind == "f":
+        return np.where(np.isnan(data), np.array(np.nan, dtype=data.dtype), data + 0)
+    if kind == "c":
+        out = np.empty_like(data)
+        out.real = canonicalize_floats(data.real)
+        out.imag = canonicalize_floats(data.imag)
+        return out
     return data
 
 

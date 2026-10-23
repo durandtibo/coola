@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["TypeRegistry"]
 
 from collections import Counter
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 from weakref import WeakKeyDictionary
 
 from coola.registry.base import BaseRegistry
@@ -18,6 +18,7 @@ T = TypeVar("T")
 
 #: Maximum number of entries kept in the ``resolve()`` cache.
 _MAX_CACHE_SIZE = 1024
+_MISSING: Any = object()  # Returned by ``_resolve_uncached`` if no type matches
 
 
 class TypeRegistry(BaseRegistry[type, T], Generic[T]):
@@ -278,6 +279,46 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
 
             ```
         """
+        value = self._resolve(dtype)
+        if value is _MISSING:
+            raise TypeNotRegisteredError(self._not_registered_msg(dtype))
+        return value
+
+    def resolve_or(self, dtype: type, default: T | None = None) -> T | None:
+        r"""Resolve a type like ``resolve``, but return a default if no
+        value matches.
+
+        Unlike ``resolve``, it does not build the error message of
+        ``TypeNotRegisteredError``, so it is cheap to call for the types
+        that are often not registered.
+
+        Args:
+            dtype: The type to resolve.
+            default: The value to return if no matching type is found
+                in the registry, including parent types in the MRO.
+
+        Returns:
+            The value associated with the type or its nearest registered
+            parent type in the MRO, or ``default``.
+
+        Raises:
+            TypeError: If ``dtype`` is not a type.
+
+        Example:
+            ```pycon
+            >>> from coola.registry import TypeRegistry
+            >>> registry = TypeRegistry[str]({int: "integer"})
+            >>> registry.resolve_or(bool)
+            'integer'
+            >>> registry.resolve_or(str, "missing")
+            'missing'
+
+            ```
+        """
+        value = self._resolve(dtype)
+        return default if value is _MISSING else value
+
+    def _resolve(self, dtype: type) -> T:
         # Lock-free fast path: the snapshot is immutable once published.
         cache = self._cache
         if dtype in cache:
@@ -290,6 +331,8 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
             self._load_lazy_for(dtype)
             cache = self._cache  # Loading entries clears the cache
             value = self._resolve_uncached(dtype)
+            if value is _MISSING:
+                return value  # A miss is not cached
             # Copy on write: readers hold an immutable snapshot, so cache hits need no
             # lock. A miss costs O(len(cache)) (at most ``_MAX_CACHE_SIZE`` entries) and
             # misses are rare after warm-up: resolving a type is cached for the life of
@@ -312,10 +355,8 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
             dtype: The type to find a value for.
 
         Returns:
-            The appropriate value for the type or its nearest parent type.
-
-        Raises:
-            TypeNotRegisteredError: If no matching type is found in the registry.
+            The appropriate value for the type or its nearest parent type, or
+            ``_MISSING`` if no type matches.
         """
         # Direct lookup first (most common case, O(1))
         if dtype in self._state:
@@ -332,4 +373,4 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
             if base_type in self._state:
                 return self._state[base_type]
 
-        raise TypeNotRegisteredError(self._not_registered_msg(dtype))
+        return _MISSING

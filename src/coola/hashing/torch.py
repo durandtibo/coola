@@ -56,9 +56,15 @@ class TorchTensorHasher(InlineDisplayMixin, BaseHasher["torch.Tensor"]):
         if tensor.layout != torch.strided:
             tensor = tensor.to_dense()
         tensor = tensor.cpu()
-        if tensor.is_floating_point() or tensor.is_complex():
-            tensor = tensor + 0  # -0.0 becomes 0.0
-        raw = tensor.contiguous().reshape(-1).view(torch.uint8).numpy().tobytes()
+        values = tensor
+        if tensor.is_complex():
+            values = torch.view_as_real(tensor.contiguous())  # the real and imaginary parts
+        if values.is_floating_point():
+            # -0.0 becomes 0.0 and every NaN becomes the default NaN
+            values = torch.where(
+                torch.isnan(values), torch.full_like(values, float("nan")), values + 0
+            )
+        raw = values.contiguous().reshape(-1).view(torch.uint8).numpy().tobytes()
         return hash_array_content(
             "torch.Tensor",
             str(tensor.dtype),

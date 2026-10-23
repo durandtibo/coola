@@ -27,6 +27,7 @@ These functions work with a wide variety of types, including:
 - JAX arrays
 - xarray DataArrays and Datasets
 - PyArrow arrays and tables
+- pydantic models
 
 The comparison is recursive, so nested structures like lists of dictionaries containing arrays are
 handled correctly.
@@ -794,6 +795,9 @@ The exact equality, the tolerance (`atol`, `rtol`) and `equal_nan` are all handl
 - Dataclass instances: the fields with `compare=True` are compared with the registry (so a field
   can be a float, an array, another dataclass, and so on). A dataclass defined with `eq=False`
   keeps its own `__eq__`
+- [`pydantic.BaseModel`](https://docs.pydantic.dev/) instances: the fields and the extra values
+  are compared with the registry (so a field can be a float, an array, another model, and so on),
+  and the private attributes are ignored
 
 #### Types that work with caveats
 
@@ -815,9 +819,9 @@ The exact equality, the tolerance (`atol`, `rtol`) and `equal_nan` are all handl
   of floats is compared exactly)
 - Any other type, for example `str`, `bytes`, `range`, `datetime.datetime` or `decimal.Decimal`:
   compared with `==`, so the tolerance and `equal_nan` are ignored, and the result is what the
-  type's `__eq__` returns. If `==` does not return a value that can be converted to a `bool`
-  (for example, a class that compares arrays), a `TypeError` is raised: register a tester for
-  this type
+  type's `__eq__` returns. If `==` raises a `TypeError` or a `ValueError`, or does not return a
+  value that can be converted to a `bool` (for example, a class that compares arrays), a
+  `TypeError` is raised: register a tester for this type
 - Objects with a reference cycle (a list that contains itself) are supported: a pair of objects that
   is already being compared is considered equal, so two cyclic structures are equal if they unfold to
   the same values. Very deep (but not cyclic) structures can still raise a `RecursionError`

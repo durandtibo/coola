@@ -67,10 +67,11 @@ def test_torch_random_manager_get_rng_state_is_a_dict() -> None:
 
 @torch_available
 @patch("torch.backends.mps.is_available", lambda: False)
+@patch("torch.cuda.is_initialized", lambda: False)
 def test_torch_random_manager_get_rng_state_length() -> None:
     rng = TorchRandomManager()
     state = rng.get_rng_state()
-    assert len(state) == 2
+    assert len(state) == 1
 
 
 @torch_available
@@ -83,10 +84,40 @@ def test_torch_random_manager_get_rng_state_torch_state() -> None:
 
 @torch_available
 @patch("torch.backends.mps.is_available", lambda: False)
+@patch("torch.cuda.is_initialized", lambda: True)
+@patch("torch.cuda.get_rng_state_all", list)
 def test_torch_random_manager_get_rng_state_cuda_state() -> None:
     rng = TorchRandomManager()
     state = rng.get_rng_state()
-    assert isinstance(state["torch.cuda"], list)
+    assert state["torch.cuda"] == []
+
+
+@torch_available
+@patch("torch.backends.mps.is_available", lambda: False)
+@patch("torch.cuda.is_initialized", lambda: False)
+def test_torch_random_manager_get_rng_state_cuda_not_initialized_has_no_cuda_state() -> None:
+    state = TorchRandomManager().get_rng_state()
+    assert "torch.cuda" not in state
+
+
+@torch_available
+@patch("torch.backends.mps.is_available", lambda: False)
+@patch("torch.cuda.is_initialized", lambda: False)
+def test_torch_random_manager_get_rng_state_cuda_not_initialized_does_not_read_cuda() -> None:
+    with patch("torch.cuda.get_rng_state_all") as get_rng_state_all:
+        TorchRandomManager().get_rng_state()
+    get_rng_state_all.assert_not_called()
+
+
+@torch_available
+@patch("torch.backends.mps.is_available", lambda: False)
+@patch("torch.cuda.is_initialized", lambda: False)
+def test_torch_random_manager_set_rng_state_without_cuda_state_restores_the_cpu_state() -> None:
+    rng = TorchRandomManager()
+    state = rng.get_rng_state()
+    expected = torch.rand(2)
+    rng.set_rng_state(state)
+    assert torch.rand(2).equal(expected)
 
 
 @torch_available

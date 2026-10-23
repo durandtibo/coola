@@ -11,8 +11,10 @@ from coola.display import InlineDisplayMixin
 from coola.equality.interface import objects_are_equal
 from coola.io.base import BaseFileSaver, BaseLoader
 from coola.utils.introspection import is_same_type
+from coola.utils.path import sanitize_path
 
 if TYPE_CHECKING:
+    import os
     from pathlib import Path
 
 T = TypeVar("T")
@@ -56,7 +58,8 @@ class JsonLoader(InlineDisplayMixin, BaseLoader[T]):
             return False
         return self._encoding == other._encoding
 
-    def load(self, path: Path) -> T:
+    def load(self, path: str | os.PathLike[str]) -> T:
+        path = sanitize_path(path, resolve=False)
         if self._encoding is None:
             with path.open(mode="rb") as file:
                 return json.load(file)
@@ -114,11 +117,11 @@ class JsonSaver(InlineDisplayMixin, BaseFileSaver[T]):
             json.dump(to_save, file, **self._kwargs)
 
 
-def load_json(path: Path, encoding: str | None = None) -> Any:
+def load_json(path: str | os.PathLike[str], encoding: str | None = None) -> Any:
     r"""Load the data from a given JSON file.
 
     Args:
-        path: The path to the JSON file.
+        path: The path to the JSON file. A ``str`` or any path-like object is converted to a ``Path``.
         encoding: The encoding of the file. If ``None``, the encoding
             is detected (UTF-8, UTF-16 and UTF-32 only).
 
@@ -145,7 +148,7 @@ def load_json(path: Path, encoding: str | None = None) -> Any:
 
 def save_json(
     to_save: Any,
-    path: Path,
+    path: str | os.PathLike[str],
     *,
     encoding: str = DEFAULT_ENCODING,
     exist_ok: bool = False,
@@ -154,9 +157,19 @@ def save_json(
 ) -> None:
     r"""Save the given data in a JSON file.
 
+    The file is what ``json.dump`` writes, so the output follows the
+    Python ``json`` module and is not strict JSON by default:
+    ``NaN`` and infinite floats are written as the non-standard tokens
+    ``NaN`` and ``Infinity``, and the keys that are not strings (for
+    example ``int``) are written as strings, so they are strings after
+    ``load_json``. Pass ``allow_nan=False`` to raise an error for
+    ``NaN`` and infinite floats. The data is not converted: use
+    ``coola.nested.convert_to_jsonable`` first for the objects that
+    ``json`` does not support.
+
     Args:
         to_save: The data to write in a JSON file.
-        path: The path where to write the JSON file.
+        path: The path where to write the JSON file. A ``str`` or any path-like object is converted to a ``Path``.
         encoding: The file encoding to use when writing the file.
             Defaults to ``"utf-8"``.
         exist_ok: If ``exist_ok`` is ``False`` (the default),
