@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import pytest
 
-from coola.display.colorlog import configure_colorlog_logging, is_tty
+from coola.display.colorlog import configure_colorlog_logging
 from coola.testing.fixtures import colorlog_available
 from coola.utils.imports import is_colorlog_available
 
@@ -284,42 +284,3 @@ def test_configure_colorlog_logging_stream_without_isatty_falls_back_to_basic_co
     with patch(f"{MODULE}.logging.basicConfig") as mock_basicconfig:
         configure_colorlog_logging(stream=object())  # ty: ignore[invalid-argument-type]
     mock_basicconfig.assert_called_once()
-
-
-############################
-#     Tests for is_tty     #
-############################
-
-
-class FakeStream:
-    def __init__(self, tty: bool) -> None:
-        self._tty = tty
-
-    def isatty(self) -> bool:
-        return self._tty
-
-
-def test_is_tty_true() -> None:
-    assert is_tty(FakeStream(tty=True))
-
-
-def test_is_tty_false() -> None:
-    assert not is_tty(FakeStream(tty=False))
-
-
-def test_is_tty_string_io() -> None:
-    assert not is_tty(io.StringIO())
-
-
-def test_is_tty_none() -> None:
-    assert not is_tty(None)
-
-
-def test_is_tty_without_isatty() -> None:
-    assert not is_tty(object())
-
-
-def test_is_tty_isatty_not_callable() -> None:
-    stream = FakeStream(tty=True)
-    stream.isatty = True  # ty: ignore[invalid-assignment]
-    assert not is_tty(stream)

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__all__ = ["configure_colorlog_logging", "is_tty"]
+__all__ = ["configure_colorlog_logging"]
 
 import logging
 import sys
@@ -21,28 +21,10 @@ else:  # pragma: no cover
 _PLAIN_OPTIONS = frozenset({"handlers", "filename", "filemode", "format", "style"})
 
 
-def is_tty(stream: object) -> bool:
+def _is_tty(stream: object) -> bool:
     """Indicate if a stream is attached to a terminal.
 
     ``sys.stderr`` can be ``None`` (for example with ``pythonw``).
-
-    Args:
-        stream: The stream to check. An object without an ``isatty``
-            method, or ``None``, is not a terminal.
-
-    Returns:
-        ``True`` if the stream is attached to a terminal.
-
-    Example:
-        ```pycon
-        >>> import io
-        >>> from coola.display.colorlog import is_tty
-        >>> is_tty(io.StringIO())
-        False
-        >>> is_tty(None)
-        False
-
-        ```
     """
     isatty = getattr(stream, "isatty", None)
     return callable(isatty) and bool(isatty())
@@ -95,7 +77,7 @@ def configure_colorlog_logging(
         ```
     """
     stream = kwargs.get("stream") or sys.stderr
-    if not is_colorlog_available() or _PLAIN_OPTIONS & kwargs.keys() or not is_tty(stream):
+    if not is_colorlog_available() or _PLAIN_OPTIONS & kwargs.keys() or not _is_tty(stream):
         logging.basicConfig(level=level, force=force, **kwargs)
         return
 
