@@ -3,7 +3,8 @@ r"""Property-based tests for the guarantees of the functions of
 
 from __future__ import annotations
 
-from typing import Any
+import copy
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from hypothesis import given, strategies as st
@@ -17,6 +18,9 @@ from coola.nested import (
     to_flat_dict,
 )
 from tests.properties.strategies import flat_leaves, int_mappings, keys, nested_dicts
+
+if TYPE_CHECKING:
+    import random
 
 separators = st.sampled_from([".", "/", "::", "->"])
 strategies = st.sampled_from(["first", "last", "suffix"])
@@ -108,6 +112,55 @@ def test_keys_that_have_the_same_string_collide(key: str, value: Any, other: Any
     with pytest.raises(ValueError, match="collision"):
         to_flat_dict({1: value, "1": other})
     assert to_flat_dict({key: value}) == {key: value}
+
+
+@given(data=nested_dicts)
+def test_to_flat_dict_does_not_modify_the_input(data: dict[str, Any]) -> None:
+    expected = copy.deepcopy(data)
+    to_flat_dict(data)
+    assert data == expected
+
+
+@given(data=nested_dicts)
+def test_from_flat_dict_does_not_modify_the_input(data: dict[str, Any]) -> None:
+    flat = to_flat_dict(data)
+    expected = copy.deepcopy(flat)
+    from_flat_dict(flat)
+    assert flat == expected
+
+
+@given(data=nested_dicts, seed=st.randoms(use_true_random=False))
+def test_from_flat_dict_does_not_depend_on_the_order_of_the_keys(
+    data: dict[str, Any], seed: random.Random
+) -> None:
+    items = list(to_flat_dict(data).items())
+    seed.shuffle(items)
+    assert from_flat_dict(dict(items)) == data
+
+
+@given(first=keys, second=keys, leaf=st.dictionaries(keys, flat_leaves, min_size=1, max_size=3))
+def test_from_flat_dict_never_extends_a_dict_given_as_a_value(
+    first: str, second: str, leaf: dict[str, Any]
+) -> None:
+    expected = copy.deepcopy(leaf)
+    with pytest.raises(ValueError, match="conflict"):
+        from_flat_dict({first: leaf, f"{first}.{second}": 0})
+    assert leaf == expected
+
+
+@given(values=st.lists(flat_leaves, min_size=1, max_size=4), key=keys)
+def test_to_flat_dict_flattens_a_tuple_like_a_list(values: list[Any], key: str) -> None:
+    assert to_flat_dict({key: tuple(values)}) == to_flat_dict({key: values})
+
+
+@given(value=flat_leaves, key=keys)
+def test_to_flat_dict_accepts_a_container_shared_in_two_places(value: Any, key: str) -> None:
+    shared = [value]
+    assert to_flat_dict({"a": shared, "b": shared, key + "x": shared}) == {
+        "a.0": value,
+        "b.0": value,
+        key + "x.0": value,
+    }
 
 
 ############################
