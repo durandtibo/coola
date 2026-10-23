@@ -567,3 +567,7 @@ def test_str_time_human_invalid(seconds: float) -> None:
 def test_str_indent_skips_empty_lines() -> None:
     assert str_indent("a\nb\n", 2) == "a\n  b\n"
     assert str_indent("a\n\nb", 2) == "a\n\n  b"
+
+
+def test_repr_mapping_sorted_keys_mixed_key_types() -> None:
+    assert repr_mapping({"b": 1, 1: 2}, sorted_keys=True) == "(1): 2\n(b): 1"
