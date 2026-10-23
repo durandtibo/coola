@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from decimal import Decimal
+from decimal import Decimal, localcontext
 from fractions import Fraction
 
 import pytest
@@ -153,3 +153,24 @@ def test_range_hasher_huge_range_is_fast(registry: HasherRegistry) -> None:
 
 def test_range_hasher_length(registry: HasherRegistry) -> None:
     assert len(RangeHasher().hash(range(3), registry, length=8)) == 8
+
+
+def test_decimal_hasher_hash_beyond_context_precision(registry: HasherRegistry) -> None:
+    hasher = DecimalHasher()
+    first = Decimal("1." + "0" * 30 + "1")
+    second = Decimal("1." + "0" * 30 + "2")
+    assert hasher.hash(first, registry) != hasher.hash(second, registry)
+
+
+def test_decimal_hasher_hash_ignores_context(registry: HasherRegistry) -> None:
+    hasher = DecimalHasher()
+    value = Decimal("1.234567890123456789")
+    expected = hasher.hash(value, registry)
+    with localcontext() as ctx:
+        ctx.prec = 3
+        assert hasher.hash(value, registry) == expected
+
+
+def test_decimal_hasher_hash_negative_zero(registry: HasherRegistry) -> None:
+    hasher = DecimalHasher()
+    assert hasher.hash(Decimal("-0"), registry) == hasher.hash(Decimal("0.00"), registry)

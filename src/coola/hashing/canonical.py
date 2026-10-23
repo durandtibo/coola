@@ -10,7 +10,7 @@ from __future__ import annotations
 
 __all__ = ["DecimalHasher", "FractionHasher", "RangeHasher"]
 
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 from fractions import Fraction
 from typing import TYPE_CHECKING
 
@@ -20,6 +20,26 @@ from coola.hashing.string import hash_tagged
 
 if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
+
+
+def _canonical_decimal(data: Decimal) -> str:
+    """Return a canonical string of a decimal.
+
+    The string is computed from ``as_tuple()`` instead of
+    ``Decimal.normalize()``, because ``normalize()`` rounds to the
+    precision of the current context, so it can merge different decimals
+    and depends on the thread-local context.
+    """
+    if not data.is_finite():
+        return str(data)
+    sign, digits, exponent = data.as_tuple()
+    coefficient = int("".join(map(str, digits)))
+    if coefficient == 0:  # ``Decimal('-0') == Decimal('0')``
+        return "0"
+    while coefficient % 10 == 0:
+        coefficient //= 10
+        exponent += 1
+    return f"{'-' if sign else ''}{coefficient:x}e{exponent}"
 
 
 class DecimalHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Decimal]):
@@ -49,11 +69,7 @@ class DecimalHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Decimal])
         length: int = 64,
         ignore_unhashable: bool = False,  # noqa: ARG002
     ) -> str:
-        try:
-            canonical = str(data.normalize())
-        except InvalidOperation:  # a signaling NaN cannot be normalized
-            canonical = str(data)
-        return hash_tagged("Decimal", canonical, length=length)
+        return hash_tagged("Decimal", _canonical_decimal(data), length=length)
 
 
 class FractionHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Fraction]):
