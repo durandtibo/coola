@@ -118,6 +118,10 @@ class MixedTuple(tuple, Enum):
 
 @pytest.mark.parametrize("member", [MixedBytes.A, MixedTuple.A])
 def test_default_registry_hashes_enum_mixins_as_enum(member: Enum) -> None:
+    assert get_default_registry().hash(member) == hash_enum(member)
+
+
+@pytest.mark.parametrize("member", [MixedBytes.A, MixedTuple.A])
+def test_default_registry_hashes_enum_mixins_differently_from_the_value(member: Enum) -> None:
     registry = get_default_registry()
-    assert registry.hash(member) == hash_enum(member)
     assert registry.hash(member) != registry.hash(member.value)
