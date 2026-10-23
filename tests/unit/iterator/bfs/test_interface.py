@@ -20,6 +20,7 @@ from coola.iterator.bfs import (
     register_child_finders,
 )
 from coola.registry import AlreadyRegisteredError
+from tests.helpers import nest
 from tests.unit.iterator.bfs.helpers import (
     DEFAULT_ITERATE_SAMPLES,
     ITERATE_SAMPLES,
@@ -263,20 +264,13 @@ def test_bfs_iterate_mutual_cycle_raises() -> None:
         list(bfs_iterate(first))
 
 
-def _make_deep_chain() -> list:
-    data: list = [1]
-    for _ in range(50):
-        data = [data]
-    return data
-
-
 def test_bfs_iterate_deep_chain_yields_the_leaf() -> None:
-    assert list(bfs_iterate(_make_deep_chain())) == [1]
+    assert list(bfs_iterate(nest(1, 51))) == [1]
 
 
 def test_bfs_iterate_deep_chain_does_not_walk_the_ancestors() -> None:
     with patch("coola.iterator.bfs.registry._is_ancestor") as mock_is_ancestor:
-        list(bfs_iterate(_make_deep_chain()))
+        list(bfs_iterate(nest(1, 51)))
     mock_is_ancestor.assert_not_called()
 
 

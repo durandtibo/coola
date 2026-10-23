@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import functools
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -12,6 +11,7 @@ from coola.iterator.bfs import (
     get_default_registry,
     interface as bfs_interface,
 )
+from tests.helpers import nest
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Iterator
@@ -85,5 +85,5 @@ def test_bfs_iterate_performance_wide_shallow() -> None:
 
 def test_bfs_iterate_performance_narrow_deep() -> None:
     # Performance test: deep nesting
-    data = functools.reduce(lambda data, _: [data], range(100), 1)
+    data = nest(1, 100)
     assert objects_are_equal(list(bfs_iterate(data)), [1])

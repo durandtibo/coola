@@ -10,6 +10,7 @@ from coola.equality import objects_are_allclose, objects_are_equal
 from coola.equality.handler import MaxDepthExceededError
 from coola.equality.tester import DefaultEqualityTester, EqualityTesterRegistry
 from coola.testing.fixtures import numpy_available, torch_available
+from tests.helpers import nest
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping, Sequence
@@ -318,41 +319,26 @@ def test_objects_are_allclose_negative_rtol() -> None:
         objects_are_allclose([1, 2, 3], [1, 2, 3], rtol=-0.5)
 
 
-def _nest_deeply(depth: int) -> tuple[list, list]:
-    data1, data2 = [], []
-    for _ in range(depth):
-        data1, data2 = [data1], [data2]
-    return data1, data2
-
-
-def _nest(leaf: Any, depth: int) -> list:
-    r"""Create a list that nests ``leaf`` ``depth`` times."""
-    data = [leaf]
-    for _ in range(depth):
-        data = [data]
-    return data
-
-
 def test_objects_are_equal_deep_nesting() -> None:
-    assert objects_are_equal(_nest(1, SAFE_NESTING_DEPTH), _nest(1, SAFE_NESTING_DEPTH))
+    assert objects_are_equal(nest(1, SAFE_NESTING_DEPTH + 1), nest(1, SAFE_NESTING_DEPTH + 1))
 
 
 def test_objects_are_equal_exceeds_max_depth() -> None:
-    nested1 = _nest(1, EXCESSIVE_NESTING_DEPTH)
-    nested2 = _nest(1, EXCESSIVE_NESTING_DEPTH)
+    nested1 = nest(1, EXCESSIVE_NESTING_DEPTH + 1)
+    nested2 = nest(1, EXCESSIVE_NESTING_DEPTH + 1)
     with pytest.raises(RecursionError, match=r"Maximum recursion depth.*exceeded"):
         objects_are_equal(nested1, nested2, max_depth=10)
 
 
 def test_objects_are_allclose_deep_nesting() -> None:
     assert objects_are_allclose(
-        _nest(1.0, SAFE_NESTING_DEPTH), _nest(1.0 + 1e-9, SAFE_NESTING_DEPTH)
+        nest(1.0, SAFE_NESTING_DEPTH + 1), nest(1.0 + 1e-9, SAFE_NESTING_DEPTH + 1)
     )
 
 
 def test_objects_are_allclose_exceeds_max_depth() -> None:
-    nested1 = _nest(1.0, EXCESSIVE_NESTING_DEPTH)
-    nested2 = _nest(1.0, EXCESSIVE_NESTING_DEPTH)
+    nested1 = nest(1.0, EXCESSIVE_NESTING_DEPTH + 1)
+    nested2 = nest(1.0, EXCESSIVE_NESTING_DEPTH + 1)
     with pytest.raises(RecursionError, match=r"Maximum recursion depth.*exceeded"):
         objects_are_allclose(nested1, nested2, max_depth=10)
 
@@ -527,32 +513,32 @@ def test_objects_are_equal_custom_registry() -> None:
 
 
 def test_objects_are_equal_python_recursion_limit_message() -> None:
-    data1, data2 = _nest_deeply(2000)
+    data1, data2 = nest([], 2000), nest([], 2000)
     with pytest.raises(RecursionError, match="Python recursion limit"):
         objects_are_equal(data1, data2, max_depth=10**6)
 
 
 def test_objects_are_equal_max_depth_error_is_not_rewritten() -> None:
-    data1, data2 = _nest_deeply(50)
+    data1, data2 = nest([], 50), nest([], 50)
     with pytest.raises(MaxDepthExceededError, match=r"Maximum recursion depth \(10\) exceeded"):
         objects_are_equal(data1, data2, max_depth=10)
 
 
 def test_objects_are_equal_python_recursion_error_is_wrapped() -> None:
-    data1, data2 = _nest_deeply(2000)
+    data1, data2 = nest([], 2000), nest([], 2000)
     with pytest.raises(RecursionError, match="Python recursion limit"):
         objects_are_equal(data1, data2, max_depth=10**6)
 
 
 def test_objects_are_equal_python_recursion_error_is_not_a_max_depth_error() -> None:
-    data1, data2 = _nest_deeply(2000)
+    data1, data2 = nest([], 2000), nest([], 2000)
     with pytest.raises(RecursionError) as exc_info:
         objects_are_equal(data1, data2, max_depth=10**6)
     assert not isinstance(exc_info.value, MaxDepthExceededError)
 
 
 def test_objects_are_equal_python_recursion_error_has_the_original_cause() -> None:
-    data1, data2 = _nest_deeply(2000)
+    data1, data2 = nest([], 2000), nest([], 2000)
     with pytest.raises(RecursionError) as exc_info:
         objects_are_equal(data1, data2, max_depth=10**6)
     assert isinstance(exc_info.value.__cause__, RecursionError)

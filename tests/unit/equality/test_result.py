@@ -18,6 +18,7 @@ from coola.equality import (
 from coola.equality.handler import AttributeName
 from coola.equality.tester import EqualityTesterRegistry
 from coola.equality.tester.interface import get_default_registry
+from tests.helpers import nest
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -473,15 +474,8 @@ def test_compare_self_referencing_list() -> None:
     assert compare(a, b).equal
 
 
-def _nest_deeply(depth: int) -> tuple[list, list]:
-    data1, data2 = [], []
-    for _ in range(depth):
-        data1, data2 = [data1], [data2]
-    return data1, data2
-
-
 def test_compare_python_recursion_limit_message() -> None:
-    data1, data2 = _nest_deeply(2000)
+    data1, data2 = nest([], 2000), nest([], 2000)
     with pytest.raises(RecursionError, match="Python recursion limit"):
         compare(data1, data2, max_depth=10**6)
 

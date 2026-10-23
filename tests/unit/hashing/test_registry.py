@@ -18,6 +18,7 @@ from coola.hashing import (
     get_default_registry,
 )
 from coola.registry import AlreadyRegisteredError, TypeNotRegisteredError
+from tests.helpers import nest
 from tests.unit.hashing.helpers import Unhashable
 
 
@@ -536,28 +537,21 @@ def test_hasher_registry_hash_reraises_a_key_error_that_is_not_a_missing_type() 
     assert not isinstance(exc_info.value, TypeNotRegisteredError)
 
 
-def _deeply_nested() -> list:
-    data: list = []
-    for _ in range(5000):
-        data = [data]
-    return data
-
-
 def test_hasher_registry_hash_deeply_nested_data_raises_value_error() -> None:
     with pytest.raises(ValueError, match="nested too deeply"):
-        get_default_registry().hash(_deeply_nested())
+        get_default_registry().hash(nest([], 5000))
 
 
 def test_hasher_registry_hash_is_usable_after_deeply_nested_data_raises() -> None:
     registry = get_default_registry()
     with pytest.raises(ValueError, match="nested too deeply"):
-        registry.hash(_deeply_nested())
+        registry.hash(nest([], 5000))
 
 
 def test_hasher_registry_hash_is_usable_after_deeply_nested_data() -> None:
     registry = get_default_registry()
     with contextlib.suppress(ValueError):
-        registry.hash(_deeply_nested())
+        registry.hash(nest([], 5000))
     assert registry.hash([1])
 
 
