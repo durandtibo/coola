@@ -534,7 +534,9 @@ def test_from_flat_dict_restore_lists_is_off_by_default() -> None:
 
 
 def test_from_flat_dict_restore_lists_separator() -> None:
-    assert objects_are_equal(from_flat_dict({"a/0": 1, "a/1": 2}, "/", True), {"a": [1, 2]})
+    assert objects_are_equal(
+        from_flat_dict({"a/0": 1, "a/1": 2}, separator="/", restore_lists=True), {"a": [1, 2]}
+    )
 
 
 @pytest.mark.parametrize(
@@ -672,3 +674,13 @@ def test_from_flat_dict_escape_false_splits_every_separator() -> None:
 )
 def test_escape_round_trip(data: dict[str, Any]) -> None:
     assert from_flat_dict(to_flat_dict(data, escape=True), escape=True, restore_lists=True) == data
+
+
+def test_from_flat_dict_separator_is_keyword_only() -> None:
+    with pytest.raises(TypeError, match="positional argument"):
+        from_flat_dict({"a/b": 1}, "/")
+
+
+def test_from_flat_dict_restore_lists_is_keyword_only() -> None:
+    with pytest.raises(TypeError, match="positional argument"):
+        from_flat_dict({"a.0": 1}, ".", True)

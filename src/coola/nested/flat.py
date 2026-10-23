@@ -15,9 +15,9 @@ _LEAF_SEQUENCES = (str, bytes, bytearray)
 
 def from_flat_dict(
     data: dict[str, Any],
+    *,
     separator: str = ".",
     restore_lists: bool = False,
-    *,
     escape: bool = False,
 ) -> dict[str, Any]:
     r"""Return a nested dict from a flat dict produced by
