@@ -423,3 +423,21 @@ def test_resolve_object_allowed_prefixes_ignored_for_an_instance() -> None:
 
 def test_resolve_object_without_allowed_prefixes_allows_any_target() -> None:
     assert resolve_object({OBJECT_TARGET: "collections.Counter", "a": 1}) == Counter(a=1)
+
+
+def test_resolve_object_tuple_of_classes_instance() -> None:
+    assert resolve_object(1, (int, str)) == 1
+
+
+def test_resolve_object_tuple_of_classes_config() -> None:
+    assert resolve_object({OBJECT_TARGET: "builtins.str", "object": "a"}, (int, str)) == "a"
+
+
+def test_resolve_object_tuple_of_classes_wrong_type() -> None:
+    with pytest.raises(TypeError, match=r"not a int \| str instance"):
+        resolve_object(1.5, (int, str))
+
+
+def test_resolve_object_tuple_of_classes_with_dict_subclass() -> None:
+    counter = Counter(a=1)
+    assert resolve_object(counter, (int, Counter)) is counter

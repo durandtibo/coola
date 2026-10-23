@@ -30,7 +30,9 @@ def is_object_config(
     is valid. It does not check the other values. If ``_target_``
     indicates a function, the returned type hint is used to check
     the class. A function whose return type hint cannot be resolved
-    (e.g. a forward reference to an undefined name) is not a
+    (e.g. a forward reference to an undefined name, or a string
+    annotation that is not valid Python) is not a configuration for
+    ``cls``. A ``config`` that is not a :class:`dict` is not a
     configuration for ``cls``.
 
     Args:
@@ -64,6 +66,8 @@ def is_object_config(
 
         ```
     """
+    if not isinstance(config, dict):
+        return False
     target = config.get(OBJECT_TARGET)
     if target is None:
         return False
@@ -71,7 +75,7 @@ def is_object_config(
     if inspect.isfunction(target):
         try:
             target = get_type_hints(target).get("return")
-        except (NameError, TypeError):
+        except (NameError, SyntaxError, TypeError):
             # The return type hint cannot be resolved (e.g. a forward reference
             # to a name that is not defined): it cannot be checked.
             return False

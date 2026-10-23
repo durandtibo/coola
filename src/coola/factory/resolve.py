@@ -89,8 +89,17 @@ def resolve_object(
 ) -> T: ...
 
 
+@overload
 def resolve_object(
-    obj: Any, cls: type = object, *, allowed_prefixes: Sequence[str] | None = None
+    obj: Any, cls: tuple[type, ...], *, allowed_prefixes: Sequence[str] | None = None
+) -> Any: ...
+
+
+def resolve_object(
+    obj: Any,
+    cls: type | tuple[type, ...] = object,
+    *,
+    allowed_prefixes: Sequence[str] | None = None,
 ) -> Any:
     """Resolve an instance of ``cls`` from an existing object or a
     configuration dictionary.
@@ -117,7 +126,8 @@ def resolve_object(
             :class:`dict` containing a factory specification (must
             include a ``"_target_"`` key pointing to the
             fully-qualified class name).
-        cls: The expected type. Used to validate the resolved object,
+        cls: The expected type, or a tuple of types (as accepted by
+            :func:`isinstance`). Used to validate the resolved object,
             whether ``obj`` was already an instance or was built from
             a configuration dictionary. Defaults to :class:`object`,
             which accepts any resolved value without validation.
@@ -166,8 +176,9 @@ def resolve_object(
 
         ```
     """
-    cls_name = cls.__qualname__
-    cls_is_dict_subclass = issubclass(cls, dict)
+    classes = cls if isinstance(cls, tuple) else (cls,)
+    cls_name = " | ".join(c.__qualname__ for c in classes)
+    cls_is_dict_subclass = any(issubclass(c, dict) for c in classes)
     if isinstance(obj, dict) and not (cls_is_dict_subclass and isinstance(obj, cls)):
         if OBJECT_TARGET not in obj:
             msg = (

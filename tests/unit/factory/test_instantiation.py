@@ -311,3 +311,9 @@ def test_import_object_allowed_prefixes_checked_before_import() -> None:
 def test_import_object_allowed_prefixes_non_string() -> None:
     with pytest.raises(TypeError, match="not a string"):
         import_object(42, allowed_prefixes=["collections"])
+
+
+@pytest.mark.parametrize("object_path", ["", ".", ".Counter", "collections..Counter"])
+def test_import_object_empty_part_raises_import_error(object_path: str) -> None:
+    with pytest.raises(ImportError, match="Invalid object path"):
+        import_object(object_path)
