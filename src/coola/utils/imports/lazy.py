@@ -38,6 +38,12 @@ class LazyModule(ModuleType):
         self._module: object = None
 
     def __getattr__(self, name: str) -> Any:
+        # Special names are looked up by the interpreter and by libraries
+        # (``hasattr``, ``str``, ``inspect``...) on the proxy itself: they
+        # must not trigger the import. ``_module`` is missing on an object
+        # created without ``__init__``.
+        if name == "_module" or (name.startswith("__") and name.endswith("__")):
+            raise AttributeError(name)
         if self._module is None:
             self._import_module()
         return getattr(self._module, name)

@@ -27,6 +27,18 @@ def test_lazy_singleton_get_returns_value_from_factory() -> None:
     assert singleton.get() == 42
 
 
+def test_lazy_singleton_get_returns_none_from_factory() -> None:
+    assert LazySingleton(lambda: None).get() is None
+
+
+def test_lazy_singleton_calls_factory_only_once_when_it_returns_none() -> None:
+    calls = []
+    singleton_none = LazySingleton(lambda: calls.append(1))
+    singleton_none.get()
+    singleton_none.get()
+    assert len(calls) == 1
+
+
 def test_lazy_singleton_does_not_call_factory_until_get() -> None:
     calls = []
 
@@ -112,21 +124,6 @@ def test_lazy_singleton_falsy_value_is_cached_correctly() -> None:
     assert singleton.get() == 0
     assert singleton.get() == 0
     assert len(calls) == 1
-
-
-def test_lazy_singleton_none_value_calls_factory_every_time() -> None:
-    # A factory returning None cannot be cached because the implementation
-    # uses `self._instance is None` as the "not built yet" sentinel.
-    calls = []
-
-    def factory() -> None:
-        calls.append(1)
-        return
-
-    singleton = LazySingleton(factory)
-    singleton.get()
-    singleton.get()
-    assert len(calls) == 2
 
 
 def test_lazy_singleton_propagates_factory_exception() -> None:
