@@ -27,6 +27,11 @@ class BloomFilter:
     actually added. It is a standalone utility, typically used for
     approximate duplicate detection over large streams of items.
 
+    Warning:
+        The filter is **not thread-safe**: concurrent ``add`` or
+        ``add_and_check`` calls can lose bits. Protect it with a lock if
+        it is shared between threads.
+
     Example:
         ```pycon
         >>> from coola.utils.bloom_filter import BloomFilter
@@ -35,6 +40,10 @@ class BloomFilter:
         False
         >>> bf.add_and_check(b"hello")
         True
+        >>> b"hello" in bf
+        True
+        >>> b"world" in bf
+        False
 
         ```
     """
@@ -139,3 +148,66 @@ class BloomFilter:
                 already_present = False
                 self.bits[byte_idx] |= 1 << bit_idx
         return already_present
+
+    def add(self, item: bytes) -> None:
+        r"""Add an item to the filter.
+
+        Args:
+            item: The raw bytes to add.
+
+        Example:
+            ```pycon
+            >>> from coola.utils.bloom_filter import BloomFilter
+            >>> bf = BloomFilter(expected_items=1000)
+            >>> bf.add(b"hello")
+            >>> b"hello" in bf
+            True
+
+            ```
+        """
+        self.add_and_check(item)
+
+    def __contains__(self, item: object) -> bool:
+        r"""Indicate if an item is probably in the filter, without adding
+        it.
+
+        Args:
+            item: The raw bytes to check.
+
+        Returns:
+            ``False`` if ``item`` is definitely not in the filter,
+            ``True`` if it probably is (subject to the false-positive
+            rate).
+
+        Example:
+            ```pycon
+            >>> from coola.utils.bloom_filter import BloomFilter
+            >>> bf = BloomFilter(expected_items=1000)
+            >>> b"hello" in bf
+            False
+
+            ```
+        """
+        if not isinstance(item, bytes):
+            return False
+        return all(self.bits[idx // 8] & (1 << (idx % 8)) for idx in self._hashes(item))
+
+    def fill_ratio(self) -> float:
+        r"""Return the fraction of the bits that are set.
+
+        A ratio close to 1 means that the false-positive rate is much
+        higher than the requested one.
+
+        Returns:
+            The fraction of set bits, in ``[0, 1]``.
+
+        Example:
+            ```pycon
+            >>> from coola.utils.bloom_filter import BloomFilter
+            >>> bf = BloomFilter(expected_items=1000)
+            >>> bf.fill_ratio()
+            0.0
+
+            ```
+        """
+        return sum(byte.bit_count() for byte in self.bits) / self.size
