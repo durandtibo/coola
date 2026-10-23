@@ -73,3 +73,9 @@ def test_to_array_tensor_requires_grad() -> None:
     x = torch.tensor([1.0, 2.0], requires_grad=True)
     out = to_array(x)
     assert out.tolist() == [1.0, 2.0]
+
+
+@numpy_available
+@torch_available
+def test_to_array_bfloat16_tensor() -> None:
+    assert to_array(torch.tensor([1.0, 2.0], dtype=torch.bfloat16)).dtype == np.float32
