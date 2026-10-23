@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from unittest.mock import patch
 
 import pytest
@@ -196,11 +197,14 @@ def test_snowflake_id_generator_generate_timestamp_ms_min_is_valid() -> None:
     assert decoded_ms == _EPOCH_MS
 
 
-def test_snowflake_id_generator_generate_explicit_timestamp_ms_backward_raises() -> None:
+def test_snowflake_id_generator_generate_explicit_timestamp_ms_keeps_the_state() -> None:
     generator = SnowflakeIdGenerator()
-    generator.generate(timestamp_ms=1_800_000_000_000)
-    with pytest.raises(RuntimeError, match="clock moved backward"):
-        generator.generate(timestamp_ms=1_750_000_000_000)
+    future_ms = time.time_ns() // 1_000_000 + 10 * 86_400_000
+    generator.generate(timestamp_ms=future_ms)
+    assert generator._last_timestamp_ms == -1
+    # The clock is not considered as moved backward afterwards.
+    assert generator.generate() > 0
+    generator.generate(timestamp_ms=1_750_000_000_000)
 
 
 def test_snowflake_id_generator_generate_clock_moved_backward_raises() -> None:
@@ -385,9 +389,9 @@ def test_snowflake_generator_reset_after_fork_does_not_block_if_the_lock_was_hel
 
 def test_snowflake_generator_reset_after_fork_keeps_the_ids_monotonic() -> None:
     generator = SnowflakeIdGenerator()
-    first = generator.generate(timestamp_ms=1_800_000_000_000)
+    first = generator.generate()
     generator._reset_after_fork()
-    assert generator.generate(timestamp_ms=1_800_000_000_000) > first
+    assert generator.generate() > first
 
 
 def test_snowflake_id_generator_state_is_unchanged_after_a_backward_clock_in_the_busy_wait() -> (
