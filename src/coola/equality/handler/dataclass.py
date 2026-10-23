@@ -76,7 +76,6 @@ class DataclassSameFieldsHandler(HandlerEqualityMixin, BaseEqualityHandler):
                             value2,
                             extra={
                                 "coola_path": (AttributeName(field.name),),
-                                "coola_path_kind": "attribute",
                             },
                         )
                     return False

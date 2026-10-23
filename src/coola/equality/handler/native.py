@@ -203,7 +203,6 @@ class SameAttributeHandler(HandlerEqualityMixin, BaseEqualityHandler):
                     value2,
                     extra={
                         "coola_path": tuple(AttributeName(name) for name in self._name.split(".")),
-                        "coola_path_kind": "attribute",
                     },
                 )
             return False

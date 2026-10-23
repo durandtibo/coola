@@ -65,7 +65,7 @@ class SameDataHandler(HandlerEqualityMixin, BaseEqualityHandler):
                     "objects have different data: %s vs %s",
                     actual.data,
                     expected.data,
-                    extra={"coola_path": (AttributeName("data"),), "coola_path_kind": "attribute"},
+                    extra={"coola_path": (AttributeName("data"),)},
                 )
             return False
         return self._handle_next(actual, expected, config=config)
