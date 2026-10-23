@@ -768,3 +768,10 @@ def test_save_does_not_write_a_visible_file_while_saving(tmp_path: Path) -> None
     Saver().save("abc", tmp_path.joinpath("data.json"))
     assert seen == [[]]
     assert tmp_path.joinpath("data.json").read_text() == "abc"
+
+
+def test_save_parent_is_a_file(tmp_path: Path) -> None:
+    parent = tmp_path.joinpath("file")
+    parent.write_text("abc")
+    with pytest.raises(NotADirectoryError, match="is not a directory"):
+        JsonSaver().save({"a": 1}, parent.joinpath("data.json"))
