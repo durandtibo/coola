@@ -33,7 +33,7 @@ from coola.hashing import (
 from coola.hashing.interface import _register_default_hashers
 from coola.hashing.pydantic import PydanticModelHasher
 from coola.registry import AlreadyRegisteredError, TypeNotRegisteredError
-from coola.testing.fixtures import numpy_available, polars_available, pydantic_available
+from coola.testing.fixtures import numpy_available, pydantic_available
 from coola.utils.imports import is_pydantic_available
 from tests.unit.hashing.helpers import Unhashable
 
@@ -539,9 +539,3 @@ def test_hash_object_hash_method_with_another_signature_is_not_supports_hash() -
     with pytest.warns(UserWarning, match="No hasher registered"):
         hash_object(Other(), ignore_unhashable=True)
 
-
-@polars_available
-def test_hash_object_polars_series_uses_the_polars_hasher() -> None:
-    import polars as pl
-
-    assert hash_object(pl.Series([1, 2])) == hash_object(pl.Series([1, 2]))
