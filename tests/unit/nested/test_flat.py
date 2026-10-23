@@ -534,3 +534,19 @@ def test_from_flat_dict_restore_lists_separator() -> None:
 )
 def test_from_flat_dict_restore_lists_round_trip(data: dict) -> None:
     assert objects_are_equal(from_flat_dict(to_flat_dict(data), restore_lists=True), data)
+
+
+def test_from_flat_dict_dict_leaf_then_nested_raises() -> None:
+    with pytest.raises(ValueError, match="conflict"):
+        from_flat_dict({"a": {"x": 1}, "a.y": 2})
+
+
+def test_from_flat_dict_dict_leaf_then_nested_does_not_mutate_input() -> None:
+    leaf = {"x": 1}
+    with pytest.raises(ValueError, match="conflict"):
+        from_flat_dict({"a": leaf, "a.y": 2})
+    assert leaf == {"x": 1}
+
+
+def test_from_flat_dict_dict_leaf_is_kept_with_restore_lists() -> None:
+    assert from_flat_dict({"a": {"0": 1}}, restore_lists=True) == {"a": [1]}

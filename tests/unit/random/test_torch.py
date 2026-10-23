@@ -57,6 +57,7 @@ def test_torch_random_manager__hash__different_type_child() -> None:
 
 
 @torch_available
+@patch("torch.backends.mps.is_available", lambda: False)
 def test_torch_random_manager_get_rng_state() -> None:
     rng = TorchRandomManager()
     state = rng.get_rng_state()
@@ -85,6 +86,55 @@ def test_torch_random_manager_manual_seed_with_cuda() -> None:
     with patch("torch.cuda.manual_seed_all") as mock_manual_seed_all:
         rng.manual_seed(42)
         mock_manual_seed_all.assert_called_with(42)
+
+
+@torch_available
+@patch("torch.backends.mps.is_available", lambda: True)
+def test_torch_random_manager_get_rng_state_with_mps() -> None:
+    with patch("torch.mps.get_rng_state", return_value=torch.zeros(1)):
+        state = TorchRandomManager().get_rng_state()
+    assert objects_are_equal(state["torch.mps"], torch.zeros(1))
+
+
+@torch_available
+@patch("torch.backends.mps.is_available", lambda: True)
+def test_torch_random_manager_manual_seed_with_mps() -> None:
+    with patch("torch.mps.manual_seed") as mock_manual_seed:
+        TorchRandomManager().manual_seed(42)
+        mock_manual_seed.assert_called_with(42)
+
+
+@torch_available
+@patch("torch.backends.mps.is_available", lambda: True)
+def test_torch_random_manager_set_rng_state_with_mps() -> None:
+    with patch("torch.mps.set_rng_state") as mock_set_rng_state:
+        TorchRandomManager().set_rng_state({"torch.mps": torch.zeros(1)})
+        mock_set_rng_state.assert_called_once()
+
+
+@torch_available
+@patch("torch.backends.mps.is_available", lambda: False)
+def test_torch_random_manager_set_rng_state_mps_not_available_raises() -> None:
+    with pytest.raises(ValueError, match="MPS is not available"):
+        TorchRandomManager().set_rng_state({"torch.mps": torch.zeros(1)})
+
+
+@torch_available
+def test_torch_random_manager_set_rng_state_partial_state() -> None:
+    rng = TorchRandomManager()
+    state = rng.get_rng_state()
+    x1 = torch.randn(4, 6)
+    rng.set_rng_state({"torch": state["torch"]})
+    assert x1.equal(torch.randn(4, 6))
+
+
+@torch_available
+def test_torch_random_manager_set_rng_state_wrong_number_of_cuda_devices_raises() -> None:
+    with (
+        patch("torch.cuda.device_count", lambda: 2),
+        pytest.raises(ValueError, match="CUDA generators"),
+    ):
+        TorchRandomManager().set_rng_state({"torch.cuda": [torch.zeros(1)]})
 
 
 @torch_available
