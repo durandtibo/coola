@@ -370,3 +370,8 @@ def test_register_default_summarizers_without_optional_package(name: str, data_t
     with patch(f"coola.summary.interface.{name}", lambda: False):
         summary_interface._register_default_summarizers(registry)
     assert not registry.has(data_type)
+
+
+def test_summarize_negative_max_depth_raises() -> None:
+    with pytest.raises(ValueError, match="max_depth must be non-negative"):
+        summarize([1, 2], max_depth=-1)

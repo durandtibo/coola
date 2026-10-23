@@ -10,8 +10,9 @@ __all__ = [
     "register_transformers",
 ]
 
-from collections import deque
+from collections import UserString, deque
 from collections.abc import Mapping, Sequence
+from types import MappingProxyType
 from typing import TYPE_CHECKING, Any
 
 from coola.recursive.default import (
@@ -46,6 +47,10 @@ def recursive_apply(
     Notes:
         Mapping keys are preserved. By default, values of ``str`` are treated
         as leaves and are not iterated character by character.
+
+        The function is recursive: each nesting level uses a few Python frames, so a very
+        deep structure (about a thousand levels) reaches the interpreter recursion limit and
+        raises a ``RecursionError``.
 
     Example:
         ```pycon
@@ -171,6 +176,8 @@ def _register_default_transformers(registry: TransformerRegistry) -> None:
             object: default_transformer,
             # Strings should not be iterated character by character
             str: default_transformer,
+            # UserString is a Sequence of UserString: expanding it never ends
+            UserString: default_transformer,
             # Numeric types - no recursion needed
             int: default_transformer,
             float: default_transformer,
@@ -187,6 +194,7 @@ def _register_default_transformers(registry: TransformerRegistry) -> None:
             # Mappings - recursive transformation of keys and values
             dict: mapping_transformer,
             Mapping: mapping_transformer,
+            MappingProxyType: mapping_transformer,
         }
     )
 

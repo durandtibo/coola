@@ -70,6 +70,18 @@ Run specific tests:
 pytest tests/unit/path/to/test_file.py
 ```
 
+Other kinds of tests (see `tests/TESTING_GUIDE.md`):
+
+```shell
+inv test.integration  # tests/integration
+inv test.doctest      # doctests of the source code and of the Markdown files
+inv test.benchmark    # tests/benchmarks
+pytest tests/properties  # property-based tests (needs the `property` dependency group)
+pytest --timeout 10 tests/unit  # fail a test that takes more than 10 seconds
+```
+
+Tests that need a CUDA device are skipped when there is none.
+
 ### Code Quality
 
 **Format your code:**

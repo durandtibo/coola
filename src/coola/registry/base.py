@@ -140,7 +140,7 @@ class BaseRegistry(Generic[K, V]):
         r"""Return the error message used when several keys are already
         registered."""
         return (
-            f"Keys already registered: {', '.join(map(str, duplicates))}. "
+            f"Keys already registered: {', '.join(sorted(map(str, duplicates)))}. "
             "Use different keys or set exist_ok=True to override."
         )
 

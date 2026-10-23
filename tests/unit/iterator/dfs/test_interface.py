@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from collections import deque
+from collections import UserString, deque
 from collections.abc import Collection, Generator, Iterator, Mapping
+from types import MappingProxyType
 from typing import Any
 
 import pytest
@@ -168,3 +169,12 @@ def test_dfs_iterate_self_referencing_list_raises() -> None:
 
 def test_default_registry_iterates_over_a_deque() -> None:
     assert list(dfs_iterate(deque([1, [2, 3]]))) == [1, 2, 3]
+
+
+def test_dfs_iterate_mapping_proxy() -> None:
+    assert list(dfs_iterate(MappingProxyType({"a": 1, "b": [2, 3]}))) == [1, 2, 3]
+
+
+def test_dfs_iterate_user_string_is_a_leaf() -> None:
+    value = UserString("abc")
+    assert list(dfs_iterate([value, 1])) == [value, 1]

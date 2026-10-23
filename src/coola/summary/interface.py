@@ -43,6 +43,7 @@ from coola.utils.imports import (
     is_xarray_available,
 )
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
+from coola.validation import validate_non_negative
 
 if TYPE_CHECKING:
     from coola.summary.base import Summarizer
@@ -98,6 +99,9 @@ def summarize(data: object, max_depth: int = 1, registry: SummarizerRegistry | N
     Returns:
         A formatted string summary of ``data``.
 
+    Raises:
+        ValueError: If ``max_depth`` is negative.
+
     Example:
         ```pycon
         >>> from coola.summary import summarize
@@ -108,6 +112,7 @@ def summarize(data: object, max_depth: int = 1, registry: SummarizerRegistry | N
 
         ```
     """
+    validate_non_negative(max_depth, name="max_depth")
     if registry is None:
         registry = get_default_registry()
     return registry.summarize(data, max_depth=max_depth)

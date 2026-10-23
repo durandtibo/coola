@@ -65,7 +65,11 @@ def convert_to_list_of_dicts(
 ) -> list[dict[Any, Any]]:
     r"""Convert a mapping of sequences to a list of dictionaries.
 
-    All the sequences must have the same length.
+    All the sequences must have the same length. A string (or bytes) is
+    not accepted as a sequence, because it would be split per character.
+    An empty mapping gives an empty list, so a list of empty
+    dictionaries (``[{}, {}]``) does not round trip with
+    :func:`convert_to_dict_of_lists`.
 
     Args:
         mapping_of_seqs: The mapping of sequences to convert.
@@ -74,6 +78,7 @@ def convert_to_list_of_dicts(
         A list of dictionaries.
 
     Raises:
+        TypeError: If a value is a ``str``, ``bytes`` or ``bytearray``.
         ValueError: If the sequences do not all have the same length.
 
     Example:
@@ -84,6 +89,10 @@ def convert_to_list_of_dicts(
 
         ```
     """
+    for key, seq in mapping_of_seqs.items():
+        if isinstance(seq, (str, bytes, bytearray)):
+            msg = f"The value of {key!r} must be a sequence of items, not a {type(seq).__name__}"
+            raise TypeError(msg)
     lengths = {key: len(seq) for key, seq in mapping_of_seqs.items()}
     if len(set(lengths.values())) > 1:
         msg = f"All the sequences must have the same length, but received lengths {lengths}"

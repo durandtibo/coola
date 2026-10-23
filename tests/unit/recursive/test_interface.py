@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from collections import defaultdict, deque
+from collections import UserString, defaultdict, deque
 from collections.abc import Generator, Mapping, Sequence
+from types import MappingProxyType
 
 import pytest
 
@@ -211,3 +212,13 @@ def test_recursive_apply_with_defaultdict() -> None:
     assert type(result) is defaultdict
     assert result.default_factory is list
     assert result == {"a": [2]}
+
+
+def test_recursive_apply_with_mapping_proxy() -> None:
+    result = recursive_apply(MappingProxyType({"a": 1, "b": [2]}), lambda x: x + 1)
+    assert isinstance(result, MappingProxyType)
+    assert result == {"a": 2, "b": [3]}
+
+
+def test_recursive_apply_with_user_string() -> None:
+    assert recursive_apply([UserString("abc")], lambda x: x) == ["abc"]

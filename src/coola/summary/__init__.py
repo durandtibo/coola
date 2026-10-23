@@ -3,7 +3,10 @@ r"""Utilities to build readable summaries for nested data structures."""
 from __future__ import annotations
 
 __all__ = [
+    "MAX_FIELDS",
     "BaseCollectionSummarizer",
+    "BaseFieldsSummarizer",
+    "BaseMetadataSummarizer",
     "BaseSummarizer",
     "DefaultSummarizer",
     "JaxArraySummarizer",
@@ -24,6 +27,7 @@ __all__ = [
     "XarrayDataArraySummarizer",
     "XarrayDatasetSummarizer",
     "XarrayVariableSummarizer",
+    "format_fields",
     "get_default_registry",
     "get_default_summarizer_registry",
     "register_summarizers",
@@ -41,6 +45,12 @@ from coola.summary.interface import (
 )
 from coola.summary.jax import JaxArraySummarizer
 from coola.summary.mapping import MappingSummarizer
+from coola.summary.metadata import (
+    MAX_FIELDS,
+    BaseFieldsSummarizer,
+    BaseMetadataSummarizer,
+    format_fields,
+)
 from coola.summary.numpy import NDArraySummarizer
 from coola.summary.pandas import PandasDataFrameSummarizer, PandasSeriesSummarizer
 from coola.summary.polars import (

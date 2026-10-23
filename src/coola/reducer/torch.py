@@ -7,6 +7,7 @@ from __future__ import annotations
 
 __all__ = ["TorchReducer"]
 
+import math
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -58,17 +59,14 @@ class TorchReducer(InlineDisplayMixin, NoArgsDisplayMixin, BaseBasicReducer[T]):
         return _to_float_tensor(values).mean().item()
 
     def _median(self, values: T) -> int | float:
-        # ``torch.median`` returns the lower of the two middle values;
-        # average them to match ``statistics.median`` and ``numpy.median``.
         tensor = _to_tensor(values).flatten()
         if tensor.isnan().any():
             return float("nan")
-        n = tensor.numel()
-        ordered = tensor.sort()[0]
-        if n % 2 == 1:
-            return ordered[n // 2].item()
-        middle = _to_float_tensor(ordered[n // 2 - 1 : n // 2 + 1])
-        return middle.mean().item()
+        result = _median_of(tensor)
+        if math.isinf(result) and tensor.isfinite().all():
+            # The mean of the two middle values overflowed: halve the values first.
+            return _median_of(_to_float_tensor(tensor) / 2) * 2
+        return result
 
     def _min(self, values: T) -> int | float:
         return _to_tensor(values).min().item()
@@ -89,6 +87,17 @@ class TorchReducer(InlineDisplayMixin, NoArgsDisplayMixin, BaseBasicReducer[T]):
         if tensor.numel() == 1:
             return float("nan")
         return tensor.std().item()
+
+
+def _median_of(tensor: torch.Tensor) -> int | float:
+    # ``torch.median`` returns the lower of the two middle values;
+    # average them to match ``statistics.median`` and ``numpy.median``.
+    n = tensor.numel()
+    ordered = tensor.sort()[0]
+    if n % 2 == 1:
+        return ordered[n // 2].item()
+    middle = _to_float_tensor(ordered[n // 2 - 1 : n // 2 + 1])
+    return middle.mean().item()
 
 
 def _to_float_tensor(values: Any) -> torch.Tensor:
