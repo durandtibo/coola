@@ -69,12 +69,34 @@ class NumpyArrayHasher(InlineDisplayMixin, BaseHasher["np.ndarray"]):
             ]
             raw_hash = hash_tagged("items", "".join(items), length=length)
         else:
-            if data.dtype.kind in "fc":
-                data = data + 0  # -0.0 becomes 0.0, and the result is contiguous
+            data = _normalize_zeros(data)
             raw_hash = hash_bytes(np.ascontiguousarray(data).tobytes(), length=length)
         return hash_array_content(
-            tag, str(data.dtype.str), data.shape, raw_hash + mask_hash, length=length
+            tag, _dtype_str(data.dtype), data.shape, raw_hash + mask_hash, length=length
         )
+
+
+def _dtype_str(dtype: np.dtype) -> str:
+    r"""Return a string that identifies a data type.
+
+    ``dtype.str`` is ``'|V8'`` for every structured dtype of 8 bytes, so
+    the field names, formats and padding (``descr``) are used for them.
+    """
+    return str(dtype.descr) if dtype.names else str(dtype.str)
+
+
+def _normalize_zeros(data: np.ndarray) -> np.ndarray:
+    r"""Replace ``-0.0`` by ``0.0``, also in the fields of a structured
+    array."""
+    names = data.dtype.names
+    if names:
+        data = data.copy()
+        for name in names:
+            data[name] = _normalize_zeros(data[name])
+        return data
+    if data.dtype.kind in "fc":
+        return data + 0  # -0.0 becomes 0.0, and the result is contiguous
+    return data
 
 
 def hash_array_content(

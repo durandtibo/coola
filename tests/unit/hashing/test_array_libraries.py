@@ -85,6 +85,61 @@ def test_hash_numpy_array_negative_zero() -> None:
 
 
 @numpy_available
+def test_hash_numpy_structured_array_equal_arrays() -> None:
+    dtype = [("a", "f8"), ("b", "i4")]
+    assert hash_object(np.zeros(2, dtype=dtype)) == hash_object(np.zeros(2, dtype=dtype))
+
+
+@numpy_available
+def test_hash_numpy_structured_array_different_field_names() -> None:
+    assert hash_object(np.zeros(2, dtype=[("a", "f8")])) != hash_object(
+        np.zeros(2, dtype=[("b", "f8")])
+    )
+
+
+@numpy_available
+def test_hash_numpy_structured_array_different_field_types() -> None:
+    assert hash_object(np.zeros(2, dtype=[("a", "f8")])) != hash_object(
+        np.zeros(2, dtype=[("a", "i8")])
+    )
+
+
+@numpy_available
+def test_hash_numpy_structured_array_different_values() -> None:
+    dtype = [("a", "f8")]
+    assert hash_object(np.zeros(2, dtype=dtype)) != hash_object(np.ones(2, dtype=dtype))
+
+
+@numpy_available
+def test_hash_numpy_structured_array_negative_zero_in_a_field() -> None:
+    dtype = [("a", "f8"), ("b", "i4")]
+    assert hash_object(np.array([(-0.0, 1)], dtype=dtype)) == hash_object(
+        np.array([(0.0, 1)], dtype=dtype)
+    )
+
+
+@numpy_available
+def test_hash_numpy_structured_array_negative_zero_in_a_nested_field() -> None:
+    dtype = [("p", [("x", "f4")]), ("q", "f8", (2,))]
+    first, second = np.zeros(1, dtype=dtype), np.zeros(1, dtype=dtype)
+    first["p"]["x"] = -0.0
+    first["q"] = -0.0
+    assert hash_object(first) == hash_object(second)
+
+
+@numpy_available
+def test_hash_numpy_structured_array_does_not_modify_the_input() -> None:
+    array = np.array([(-0.0, 1)], dtype=[("a", "f8"), ("b", "i4")])
+    hash_object(array)
+    assert str(array["a"][0]) == "-0.0"
+
+
+@numpy_available
+def test_hash_numpy_void_array_different_sizes() -> None:
+    assert hash_object(np.zeros(2, dtype="V8")) != hash_object(np.zeros(2, dtype="V4"))
+
+
+@numpy_available
 def test_hash_numpy_array_object_dtype_equal_arrays() -> None:
     first = np.array(["a", None, 1], dtype=object)
     assert hash_object(first) == hash_object(np.array(["a", None, 1], dtype=object))
