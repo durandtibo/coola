@@ -2,5 +2,5 @@ tasklib:
   package:
     name: coola
   groups:
-    install: dev,docs
+    install: dev,docs,property
     update: dev,docs,property
