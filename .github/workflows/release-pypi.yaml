@@ -17,7 +17,13 @@ permissions:
   contents: read
 
 jobs:
+  # Nothing is published unless the whole CI passes on the released commit.
+  ci:
+    uses: ./.github/workflows/ci.yaml
+    secrets: inherit
+
   build:
+    needs: ci
     # Manual runs are only allowed from main; tag pushes are always allowed.
     if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
