@@ -80,4 +80,6 @@ def is_object_config(
     origin = get_origin(target)
     # Union[T1, T2] or T1 | T2
     targets = get_args(target) if origin in (Union, UnionType) else (target,)
+    # A generic alias such as ``list[int]`` is not a class: check its origin (``list``).
+    targets = tuple(get_origin(t) or t for t in targets)
     return any(inspect.isclass(t) and issubclass(t, cls) for t in targets)
