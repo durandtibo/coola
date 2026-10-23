@@ -12,6 +12,7 @@ from __future__ import annotations
 
 __all__ = ["generate_prefixed_id"]
 
+import re
 from typing import TYPE_CHECKING
 
 from coola.identifier.ulid import generate_ulid
@@ -19,6 +20,8 @@ from coola.validation import validate_not_empty
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+_PREFIX_PATTERN = re.compile(r"[A-Za-z0-9-]+")
 
 
 def generate_prefixed_id(prefix: str, generator: Callable[[], str] = generate_ulid) -> str:
@@ -39,8 +42,10 @@ def generate_prefixed_id(prefix: str, generator: Callable[[], str] = generate_ul
         ``f"{prefix}_{generator()}"``.
 
     Raises:
-        ValueError: If ``prefix`` is empty or contains ``"_"``, or if
-            ``generator()`` returns an empty string.
+        ValueError: If ``prefix`` is empty, contains ``"_"`` or a
+            character other than an ASCII letter, a digit and ``"-"``,
+            or if ``generator()`` returns an empty string.
+        TypeError: If ``generator()`` does not return a ``str``.
 
     Example:
         ```pycon
@@ -56,7 +61,13 @@ def generate_prefixed_id(prefix: str, generator: Callable[[], str] = generate_ul
     if "_" in prefix:
         msg = f"prefix must not contain '_', got {prefix!r}"
         raise ValueError(msg)
+    if not _PREFIX_PATTERN.fullmatch(prefix):
+        msg = f"prefix must only contain ASCII letters, digits and '-', got {prefix!r}"
+        raise ValueError(msg)
     identifier = generator()
+    if not isinstance(identifier, str):
+        msg = f"generator() must return a str, got {type(identifier)!r}"
+        raise TypeError(msg)
     if not identifier:
         msg = f"generator() must return a non-empty string, got {identifier!r}"
         raise ValueError(msg)
