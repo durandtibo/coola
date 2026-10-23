@@ -64,7 +64,10 @@ def run_git_command(args: list[str], cwd: Path | str | None = None) -> str:
             text=True,
         )
     except subprocess.CalledProcessError as error:
+        stderr = (error.stderr or "").strip()
         msg = f"Failed to run git command 'git {' '.join(args)}': {error}"
+        if stderr:
+            msg = f"{msg}: {stderr}"
         raise OSError(msg) from error
     return result.stdout.strip()
 
@@ -143,7 +146,8 @@ def is_git_repo(cwd: Path | str | None = None) -> bool:
         ```
     """
     try:
-        run_git_command(["rev-parse", "--is-inside-work-tree"], cwd=cwd)
+        output = run_git_command(["rev-parse", "--is-inside-work-tree"], cwd=cwd)
     except OSError:
         return False
-    return True
+    # Inside a ``.git`` directory, git succeeds and prints ``false``.
+    return output == "true"

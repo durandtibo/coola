@@ -43,10 +43,12 @@ def to_jsonable(data: Any) -> Any:
 
     This function converts ``pydantic.BaseModel``, dataclass,
     ``numpy.ndarray``, ``numpy`` scalar, ``torch.Tensor``,
-    ``pathlib`` path, ``datetime.date``/``datetime.datetime``,
+    ``pathlib`` path, ``datetime.date``/``datetime.datetime``/``datetime.time``,
+    ``datetime.timedelta``,
     ``decimal.Decimal``, ``uuid.UUID``, ``bytes``/``bytearray`` and
     ``enum.Enum`` and ``range`` objects. Paths, decimals and UUIDs are
-    converted to strings, ranges to lists, dates to ISO 8601 strings,
+    converted to strings, ranges to lists, dates and times to ISO 8601 strings,
+    timedeltas to a number of seconds,
     bytes to a Base64 string
     (ASCII) and enum members to their (converted) value.
     Dataclasses are
@@ -101,7 +103,8 @@ _CONVERTERS: tuple[tuple[tuple[type, ...], Callable[[Any], Any]], ...] = (
     ),
     ((PurePath, Decimal, UUID), str),
     ((bytes, bytearray), lambda data: base64.b64encode(data).decode("ascii")),
-    ((datetime.date,), lambda data: data.isoformat()),
+    ((datetime.date, datetime.time), lambda data: data.isoformat()),
+    ((datetime.timedelta,), lambda data: data.total_seconds()),
     ((Enum,), lambda data: to_jsonable(data.value)),
     ((range,), list),
 )
