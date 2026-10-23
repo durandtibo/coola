@@ -414,3 +414,37 @@ def test_base_registry_values_consistent_with_items() -> None:
     registry = BaseRegistry[str, int]({"key1": 1, "key2": 2})
     registry.items()
     assert list(registry.values()) == [1, 2]
+
+
+class _RecordLockOwnership:
+    r"""Record whether the locks of the registries are held when two values
+    are compared."""
+
+    def __init__(self, registries: list[BaseRegistry], owned: list[bool]) -> None:
+        self.registries = registries
+        self.owned = owned
+
+    def __eq__(self, other: object) -> bool:
+        self.owned.extend(registry._lock._is_owned() for registry in self.registries)
+        return True
+
+
+def test_base_registry_equal_does_not_hold_the_locks_during_the_comparison() -> None:
+    """Test that ``equal`` releases both locks before it compares the
+    values."""
+    owned: list[bool] = []
+    registries: list[BaseRegistry] = []
+    registry1 = BaseRegistry[str, object]({"key": _RecordLockOwnership(registries, owned)})
+    registry2 = BaseRegistry[str, object]({"key": _RecordLockOwnership(registries, owned)})
+    registries.extend([registry1, registry2])
+    assert registry1.equal(registry2)
+    assert owned == [False, False]
+
+
+def test_base_registry_equal_loads_the_lazy_groups() -> None:
+    """Test that ``equal`` compares the entries that are not loaded
+    yet."""
+    registry1 = BaseRegistry[str, int]()
+    registry1.register_lazy("group", lambda: {"key": 1})
+    registry2 = BaseRegistry[str, int]({"key": 2})
+    assert not registry1.equal(registry2)

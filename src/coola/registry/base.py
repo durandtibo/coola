@@ -235,13 +235,14 @@ class BaseRegistry(Generic[K, V]):
 
         if not is_same_type(other, self):
             return False
-        self._load_lazy_all()
-        other._load_lazy_all()
-
-        # Acquire locks in a consistent order based on object id to avoid deadlock
-        first, second = (self, other) if id(self) < id(other) else (other, self)
-        with first._lock, second._lock:
-            return objects_are_equal(self._state, other._state, equal_nan=equal_nan)
+        # The snapshots are taken one at a time and the locks are released before the
+        # comparison: it can call arbitrary ``equal``/``__eq__`` code (for example a value
+        # that holds another registry), which must not run while a lock is held.
+        with self._lock:
+            snapshot = self._get_snapshot()
+        with other._lock:
+            other_snapshot = other._get_snapshot()
+        return objects_are_equal(snapshot, other_snapshot, equal_nan=equal_nan)
 
     def get(self, key: K, default: V | None = None) -> V | None:
         r"""Retrieve the value associated with a key.
