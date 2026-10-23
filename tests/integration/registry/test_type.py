@@ -5,6 +5,9 @@ import time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+import pytest
+
+from coola.equality.tester import get_default_registry
 from coola.registry import TypeRegistry
 from tests.integration.helpers import run_threads
 
@@ -671,3 +674,16 @@ def test_type_registry_resolve_cache_is_reset_at_the_default_size() -> None:
     for tp in classes:
         registry.resolve(tp)
     assert registry._cache == {classes[1024]: "object"}
+
+
+def test_default_registry_contains_non_type_is_false() -> None:
+    assert "abc" not in get_default_registry()
+
+
+def test_default_registry_has_non_type_is_false() -> None:
+    assert not get_default_registry().has(None)
+
+
+def test_default_registry_find_non_type_raises() -> None:
+    with pytest.raises(TypeError, match="Expected a type as key"):
+        get_default_registry().find("abc")

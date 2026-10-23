@@ -13,6 +13,7 @@ from coola.equality.handler import (
 )
 from coola.testing.fixtures import numpy_available, torch_available
 from coola.utils.imports import is_numpy_available, is_torch_available
+from tests.unit.equality.utils import BadStr
 
 if is_numpy_available():
     import numpy as np
@@ -199,3 +200,21 @@ def test_same_data_handler_set_next_handler_incorrect() -> None:
     handler = SameDataHandler()
     with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)
+
+
+class WithData:
+    def __init__(self, data: object) -> None:
+        self.data = data
+
+
+def test_same_data_handler_handle_data_with_failing_str() -> None:
+    reports: list[str] = []
+    config = EqualityConfig(show_difference=True, reporter=lambda msg, _: reports.append(msg))
+    assert not SameDataHandler().handle(WithData(BadStr(1)), WithData(BadStr(2)), config)
+
+
+def test_same_data_handler_handle_data_with_failing_str_message() -> None:
+    reports: list[str] = []
+    config = EqualityConfig(show_difference=True, reporter=lambda msg, _: reports.append(msg))
+    SameDataHandler().handle(WithData(BadStr(1)), WithData(BadStr(2)), config)
+    assert reports[-1].startswith("objects have different data: <BadStr object at 0x")

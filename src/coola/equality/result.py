@@ -17,9 +17,13 @@ from coola.equality.handler.utils import AttributeName
 from coola.equality.interface import _compare
 from coola.equality.tester.interface import get_default_registry
 from coola.utils.safe import safe_repr
+from coola.utils.string import truncate_str
 
 if TYPE_CHECKING:
     from coola.equality.tester.registry import EqualityTesterRegistry
+
+
+_TRUNCATION_SUFFIX = "..."
 
 
 @dataclass(frozen=True, slots=True)
@@ -41,11 +45,13 @@ class ComparisonResult:
             ``None`` if the objects are equal.
         actual: The ``repr`` of the actual object if the objects are
             different (a placeholder if its ``__repr__`` raises),
-            otherwise an empty string. The ``repr`` is not
+            otherwise an empty string. The ``repr`` is truncated to
+            ``max_repr_chars`` characters (see ``compare``). It is not
             computed for equal objects because it can be expensive for
             large objects.
         expected: The ``repr`` of the expected object if the objects
-            are different, otherwise an empty string.
+            are different, otherwise an empty string. It is truncated
+            like ``actual``.
 
     Example:
         ```pycon
@@ -108,6 +114,7 @@ def compare(
     atol: float = 0.0,
     rtol: float = 0.0,
     max_depth: int = 100,
+    max_repr_chars: int = 1000,
     registry: EqualityTesterRegistry | None = None,
 ) -> ComparisonResult:
     r"""Compare two objects and explain the first difference.
@@ -132,6 +139,9 @@ def compare(
         atol: The absolute tolerance. Must be non-negative.
         rtol: The relative tolerance. Must be non-negative.
         max_depth: Maximum recursion depth for nested comparisons.
+        max_repr_chars: The maximum number of characters of the
+            ``actual`` and ``expected`` attributes of the result. A
+            longer ``repr`` is truncated and ends with ``...``.
         registry: Registry used to resolve type-specific equality
             testers. If ``None``, the default registry is used.
 
@@ -139,7 +149,8 @@ def compare(
         The comparison result.
 
     Raises:
-        ValueError: If ``atol`` or ``rtol`` is negative.
+        ValueError: If ``atol`` or ``rtol`` is negative, or if
+            ``max_repr_chars`` is less than 3.
 
     Example:
         ```pycon
@@ -154,6 +165,9 @@ def compare(
 
         ```
     """
+    if max_repr_chars < len(_TRUNCATION_SUFFIX):
+        msg = f"max_repr_chars must be at least {len(_TRUNCATION_SUFFIX)}, got {max_repr_chars}"
+        raise ValueError(msg)
     if registry is None:
         registry = get_default_registry()
     config = EqualityConfig(
@@ -179,7 +193,11 @@ def compare(
         path.extend(location)
     reason = reports[0][0] if reports else None
     return ComparisonResult(
-        False, tuple(path), reason, actual=safe_repr(actual), expected=safe_repr(expected)
+        False,
+        tuple(path),
+        reason,
+        actual=truncate_str(safe_repr(actual), max_len=max_repr_chars),
+        expected=truncate_str(safe_repr(expected), max_len=max_repr_chars),
     )
 
 

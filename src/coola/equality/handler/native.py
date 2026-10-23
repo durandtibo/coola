@@ -23,6 +23,7 @@ from coola.equality.handler.format import (
 )
 from coola.equality.handler.mixin import HandlerEqualityMixin
 from coola.equality.handler.utils import AttributeName, report_difference
+from coola.utils.safe import safe_str
 
 if TYPE_CHECKING:
     from collections.abc import Sized
@@ -205,8 +206,8 @@ class SameAttributeHandler(HandlerEqualityMixin, BaseEqualityHandler):
                     config,
                     "objects have different %s: %s vs %s",
                     self._name,
-                    value1,
-                    value2,
+                    safe_str(value1),
+                    safe_str(value2),
                     extra={
                         "coola_path": tuple(AttributeName(name) for name in self._name.split(".")),
                     },
