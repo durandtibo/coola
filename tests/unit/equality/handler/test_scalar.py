@@ -371,3 +371,11 @@ def test_number_equal_complex_and_real_tolerance() -> None:
     assert number_equal(1 + 0j, 1.05, EqualityConfig(atol=0.1))
     assert number_equal(1.05, 1 + 0j, EqualityConfig(atol=0.1))
     assert not number_equal(1 + 1j, 1.0, EqualityConfig(atol=0.1))
+
+
+def test_nan_equal_handler_handle_complex_nan_parts(config: EqualityConfig) -> None:
+    config.equal_nan = True
+    handler = NanEqualHandler(next_handler=ScalarEqualHandler())
+    assert handler.handle(complex(float("nan"), 1), complex(float("nan"), 1), config)
+    assert not handler.handle(complex(float("nan"), 1), complex(float("nan"), 2), config)
+    assert not handler.handle(complex(1, float("nan")), complex(2, float("nan")), config)
