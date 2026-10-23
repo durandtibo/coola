@@ -168,3 +168,17 @@ def test_default_registry_hashes_timedelta_and_timezone() -> None:
     assert registry.hash(timedelta(days=1)) == registry.hash(timedelta(hours=24))
     assert registry.hash(timedelta(days=1)) != registry.hash(timedelta(days=2))
     assert registry.hash(UTC) != registry.hash(timezone(timedelta(hours=1)))
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        datetime.min.replace(tzinfo=timezone(timedelta(hours=1))),
+        datetime.max.replace(tzinfo=timezone(timedelta(hours=-1))),
+    ],
+)
+def test_datetime_hasher_hash_aware_datetime_near_limits(
+    value: datetime, registry: HasherRegistry
+) -> None:
+    hasher = DatetimeHasher()
+    assert hasher.hash(value, registry=registry) == hasher.hash(value, registry=registry)
