@@ -571,3 +571,45 @@ def test_type_registry_resolve_returns_cached_value_set_during_lock_acquisition(
 
     registry._lock = cast("threading.RLock", PopulatingLock())
     assert registry.resolve(int) == "cached-by-another-caller"
+
+
+###############################################
+#     Tests for the validation of the keys    #
+###############################################
+
+
+def test_type_registry_register_non_type_key_raises() -> None:
+    registry = TypeRegistry[str]()
+    with pytest.raises(TypeError, match="Expected a type as key"):
+        registry.register("abc", "value")  # ty: ignore[invalid-argument-type]
+
+
+def test_type_registry_register_non_type_key_does_not_change_state() -> None:
+    registry = TypeRegistry[str]()
+    with pytest.raises(TypeError, match="Expected a type as key"):
+        registry.register("abc", "value")  # ty: ignore[invalid-argument-type]
+    assert len(registry) == 0
+
+
+def test_type_registry_register_many_non_type_key_raises() -> None:
+    registry = TypeRegistry[str]()
+    with pytest.raises(TypeError, match="Expected a type as key"):
+        registry.register_many({int: "integer", "abc": "value"})  # ty: ignore[invalid-argument-type]
+
+
+def test_type_registry_register_many_non_type_key_does_not_change_state() -> None:
+    registry = TypeRegistry[str]()
+    with pytest.raises(TypeError, match="Expected a type as key"):
+        registry.register_many({int: "integer", "abc": "value"})  # ty: ignore[invalid-argument-type]
+    assert len(registry) == 0
+
+
+def test_type_registry_init_non_type_key_raises() -> None:
+    with pytest.raises(TypeError, match="Expected a type as key"):
+        TypeRegistry[str]({"abc": "value"})  # ty: ignore[invalid-argument-type]
+
+
+def test_type_registry_setitem_non_type_key_raises() -> None:
+    registry = TypeRegistry[str]()
+    with pytest.raises(TypeError, match="Expected a type as key"):
+        registry["abc"] = "value"  # ty: ignore[invalid-key]
