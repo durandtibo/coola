@@ -60,12 +60,17 @@ the PR number is given. Items not listed are **open**.
 | 5.2  | Fixed (#2095)      | Testers for pandas `Index` and extension arrays. Scipy sparse not checked.                         |
 | 5.5  | Fixed (#2096)      | Nested polars NaN detected.                                                                        |
 | 5.7  | Documented (#2094) | Scalar comparison rules documented, behaviour unchanged.                                           |
-| 5.8  | Fixed (#2097)      | Dataclass fields and attributes in the `compare` path.              |
+| 5.8  | Fixed (#2097, #2104) | Dataclass fields and attributes in the `compare` path; unused `coola_path_kind` removed. |
 | 5.13 | Fixed (#2092)      | Default `max_depth` lowered to 100.                                                                |
-| 5.14 | Partly (#2091)     | Exact integer comparison with a tolerance. Complex NaN parts not addressed.                        |
+| 5.14 | Fixed (#2091, #2102) | Exact integer comparison with a tolerance; complex NaN parts compared separately.                |
 | 5.15 | Partly (#2098)     | Duplicate validation, config comments and the sequence set per call cleaned up. Other points open. |
+| 6.1  | PR open (#2105)    | Integers above the int-to-str limit hashed in hexadecimal (`int`, `Fraction`, `range`).             |
+| 6.2  | PR open (#2106)    | `DecimalHasher` canonical form built from `as_tuple()`.                                            |
+| 6.3  | PR open (#2107)    | Aware datetimes near `min`/`max` no longer overflow.                                               |
+| 6.4  | PR open (#2108)    | Snowflake lock held during the next-millisecond wait.                                              |
+| 6.5  | PR open (#2109)    | Default Snowflake and ObjectId generators use `LazySingleton`.                                     |
 
-All other items in sections 5 to 10 (including 6.x, 7.x, 8.x, 9.x, 10.x) have no matching commit and are **open**.
+All other items in sections 5 to 10 (including 6.6 to 6.21, 7.x, 8.x, 9.x, 10.x) have no matching commit and are **open**.
 The earlier "Suggested order" lists below are unchanged.
 
 ---
