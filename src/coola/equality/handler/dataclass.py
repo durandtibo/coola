@@ -17,6 +17,7 @@ from coola.equality.handler.utils import (
     report_difference,
     track_comparison,
 )
+from coola.utils.safe import safe_str
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -72,8 +73,8 @@ class DataclassSameFieldsHandler(HandlerEqualityMixin, BaseEqualityHandler):
                             config,
                             "objects have different %s: %s vs %s",
                             field.name,
-                            value1,
-                            value2,
+                            safe_str(value1),
+                            safe_str(value2),
                             extra={
                                 "coola_path": (AttributeName(field.name),),
                             },
