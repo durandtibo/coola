@@ -894,6 +894,24 @@ class AmbiguousEq:
         return BadBool()
 
 
+class RaisingEq:
+    def __eq__(self, other: object) -> bool:
+        msg = "cannot compare"
+        raise ValueError(msg)
+
+
+class TypeErrorEq:
+    def __eq__(self, other: object) -> bool:
+        msg = "cannot compare"
+        raise TypeError(msg)
+
+
+class KeyErrorEq:
+    def __eq__(self, other: object) -> bool:
+        msg = "key"
+        raise KeyError(msg)
+
+
 def test_object_equal_handler_handle_non_bool_result_convertible() -> None:
     assert ObjectEqualHandler().handle(NonBoolEq(), NonBoolEq(), EqualityConfig()) is True
 
@@ -901,6 +919,27 @@ def test_object_equal_handler_handle_non_bool_result_convertible() -> None:
 def test_object_equal_handler_handle_non_bool_result_not_convertible() -> None:
     with pytest.raises(TypeError, match="cannot be converted to a bool"):
         ObjectEqualHandler().handle(AmbiguousEq(), AmbiguousEq(), EqualityConfig())
+
+
+def test_object_equal_handler_handle_eq_raises_value_error() -> None:
+    with pytest.raises(TypeError, match="Register an equality tester"):
+        ObjectEqualHandler().handle(RaisingEq(), RaisingEq(), EqualityConfig())
+
+
+def test_object_equal_handler_handle_eq_raises_value_error_cause() -> None:
+    with pytest.raises(TypeError) as exc_info:
+        ObjectEqualHandler().handle(RaisingEq(), RaisingEq(), EqualityConfig())
+    assert isinstance(exc_info.value.__cause__, ValueError)
+
+
+def test_object_equal_handler_handle_eq_raises_type_error() -> None:
+    with pytest.raises(TypeError, match="cannot compare"):
+        ObjectEqualHandler().handle(TypeErrorEq(), TypeErrorEq(), EqualityConfig())
+
+
+def test_object_equal_handler_handle_eq_raises_other_error_is_not_wrapped() -> None:
+    with pytest.raises(KeyError):
+        ObjectEqualHandler().handle(KeyErrorEq(), KeyErrorEq(), EqualityConfig())
 
 
 def test_object_equal_handler_handle_non_bool_result_error_cause() -> None:

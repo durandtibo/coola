@@ -35,6 +35,7 @@ _LAZY_TESTERS = (
     (("pandas",), "coola.equality.tester.pandas"),
     (("polars",), "coola.equality.tester.polars"),
     (("pyarrow",), "coola.equality.tester.pyarrow"),
+    (("pydantic",), "coola.equality.tester.pydantic"),
     (("torch",), "coola.equality.tester.torch"),
     (("xarray",), "coola.equality.tester.xarray"),
 )

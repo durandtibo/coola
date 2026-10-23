@@ -119,17 +119,17 @@ class ObjectEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         expected: object,
         config: EqualityConfig,
     ) -> bool:
-        result = actual == expected
         try:
+            result = actual == expected
             object_equal = bool(result)
         except (TypeError, ValueError) as exc:
-            # e.g. a dataclass holding an array: ``==`` returns an array. A
-            # ``TypeError`` is raised instead of returning ``False``, because
-            # ``False`` would claim that the objects are different when they were
-            # not compared at all.
+            # e.g. a dataclass holding an array: ``==`` returns an array, or ``==`` itself
+            # raises (a pydantic model holding an array). A ``TypeError`` is raised
+            # instead of returning ``False``, because ``False`` would claim that the
+            # objects are different when they were not compared at all.
             msg = (
-                f"`==` returned a value of type {type(result)} that cannot be converted "
-                f"to a bool when comparing {type(actual)} objects. Register an equality "
+                f"`==` raised or returned a value that cannot be converted to a bool "
+                f"({exc}) when comparing {type(actual)} objects. Register an equality "
                 "tester for this type."
             )
             raise TypeError(msg) from exc
