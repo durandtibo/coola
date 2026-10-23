@@ -11,6 +11,7 @@ from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_enum, hash_tagged
 from coola.utils.imports import is_numpy_available
+from coola.utils.integer import int_repr
 
 if TYPE_CHECKING or is_numpy_available():
     import numpy as np
@@ -51,6 +52,8 @@ def _builtin_repr(base: Any, data: Any) -> str:
         return float.__repr__(float(data) + 0.0)
     if base is complex:
         return complex.__repr__(complex(float(data.real) + 0.0, float(data.imag) + 0.0))
+    if base is int:
+        return int_repr(data)
     return base.__repr__(data)
 
 

@@ -216,3 +216,22 @@ def test_repr_hasher_hash_user_class_does_not_share_the_tag_of_a_builtin_name(
 
 def test_repr_hasher_hash_builtin_class_keeps_the_bare_name(registry: HasherRegistry) -> None:
     assert ReprHasher().hash(None, registry) == hash_tagged("NoneType", "None")
+
+
+def test_repr_hasher_hash_int_above_str_conversion_limit(registry: HasherRegistry) -> None:
+    hasher = ReprHasher()
+    assert hasher.hash(10**5000, registry) == hasher.hash(10**5000, registry)
+
+
+def test_repr_hasher_hash_int_above_str_conversion_limit_different_values(
+    registry: HasherRegistry,
+) -> None:
+    hasher = ReprHasher()
+    assert hasher.hash(10**5000, registry) != hasher.hash(10**5000 + 1, registry)
+
+
+def test_repr_hasher_hash_int_above_str_conversion_limit_negative(
+    registry: HasherRegistry,
+) -> None:
+    hasher = ReprHasher()
+    assert hasher.hash(-(10**5000), registry) != hasher.hash(10**5000, registry)
