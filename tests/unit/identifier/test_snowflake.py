@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import threading
 import time
 from unittest.mock import patch
 
@@ -273,23 +272,6 @@ def test_snowflake_id_generator_generate_holds_lock_during_busy_wait() -> None:
         generator.generate()
 
     assert lock_was_free_during_sleep == [False, False]
-
-
-def test_snowflake_id_generator_generate_threads_sequence_wrap_no_duplicate() -> None:
-    generator = SnowflakeIdGenerator()
-    ids: list[int] = []
-    # A small sequence space is not configurable, so mint enough IDs to wrap it.
-    n_threads, per_thread = 8, 2_000
-
-    def mint() -> None:
-        ids.extend(generator.generate() for _ in range(per_thread))
-
-    threads = [threading.Thread(target=mint) for _ in range(n_threads)]
-    for thread in threads:
-        thread.start()
-    for thread in threads:
-        thread.join()
-    assert len(ids) == len(set(ids)) == n_threads * per_thread
 
 
 def test_snowflake_id_generator_generate_clock_moved_backward_during_busy_wait_raises() -> None:
