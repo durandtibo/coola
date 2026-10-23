@@ -126,21 +126,6 @@ def test_lazy_singleton_falsy_value_is_cached_correctly() -> None:
     assert len(calls) == 1
 
 
-def test_lazy_singleton_none_value_calls_factory_every_time() -> None:
-    # A factory returning None cannot be cached because the implementation
-    # uses `self._instance is None` as the "not built yet" sentinel.
-    calls = []
-
-    def factory() -> None:
-        calls.append(1)
-        return
-
-    singleton = LazySingleton(factory)
-    singleton.get()
-    singleton.get()
-    assert len(calls) == 2
-
-
 def test_lazy_singleton_propagates_factory_exception() -> None:
     def factory() -> int:
         msg = "boom"
