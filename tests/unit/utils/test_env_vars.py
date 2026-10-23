@@ -28,11 +28,18 @@ def test_check_env_vars_returns_false_for_missing_var() -> None:
     assert check_env_vars(["MISSING_VAR"]) == {"MISSING_VAR": False}
 
 
-@patch.dict(os.environ, {"TEST_VAR": "test_value"}, clear=True)
-def test_check_env_vars_returns_true_for_empty_string_value() -> None:
-    """Test that a variable defined as an empty string is still
-    considered defined."""
-    assert check_env_vars(["TEST_VAR"]) == {"TEST_VAR": True}
+@patch.dict(os.environ, {"TEST_VAR": ""}, clear=True)
+def test_check_env_vars_returns_false_for_empty_string_value() -> None:
+    """Test that a variable set to an empty string is reported as not
+    defined."""
+    assert check_env_vars(["TEST_VAR"]) == {"TEST_VAR": False}
+
+
+@patch.dict(os.environ, {"TEST_VAR": "  "}, clear=True)
+def test_check_env_vars_returns_false_for_blank_value() -> None:
+    """Test that a variable set to blank characters is reported as not
+    defined."""
+    assert check_env_vars(["TEST_VAR"]) == {"TEST_VAR": False}
 
 
 @patch.dict(os.environ, {"VAR_ONE": "value_one"}, clear=True)
