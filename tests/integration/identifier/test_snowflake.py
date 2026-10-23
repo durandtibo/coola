@@ -50,3 +50,23 @@ def test_snowflake_id_generator_generate_thread_safe_during_sequence_rollover() 
 
     assert len(ids) == num_threads
     assert len(ids) == len(set(ids))
+
+
+def test_snowflake_id_generator_generate_thread_safe_when_the_sequence_wraps_repeatedly() -> None:
+    """Test that concurrent calls never produce duplicate identifiers
+    when the per-millisecond sequence wraps several times."""
+    generator = SnowflakeIdGenerator()
+    ids: list[int] = []
+    lock = threading.Lock()
+    num_threads = 8
+    num_ids_per_thread = 2_000
+
+    def _worker() -> None:
+        local_ids = [generator.generate() for _ in range(num_ids_per_thread)]
+        with lock:
+            ids.extend(local_ids)
+
+    run_threads([threading.Thread(target=_worker) for _ in range(num_threads)])
+
+    assert len(ids) == num_threads * num_ids_per_thread
+    assert len(ids) == len(set(ids))
