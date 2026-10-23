@@ -340,3 +340,41 @@ def test_is_exact_scalar_sequence_true(seq: object) -> None:
 @pytest.mark.parametrize("seq", [[1.0], [1, [2]], {1, 2}, "abc", range(3)])
 def test_is_exact_scalar_sequence_false(seq: object) -> None:
     assert not is_exact_scalar_sequence(seq)
+
+
+def test_sequence_same_values_handler_handle_fast_path_false_skips_the_item_loop(
+    config: EqualityConfig,
+) -> None:
+    registry = Mock(wraps=config.registry)
+    config.registry = registry
+    SequenceSameValuesHandler(next_handler=TrueHandler()).handle([1, 2, 3], [1, 2, 4], config)
+    assert registry.objects_are_equal.call_count == 0
+
+
+def test_sequence_same_values_handler_handle_fast_path_false_does_not_call_next_handler(
+    config: EqualityConfig,
+) -> None:
+    next_handler = Mock(spec=TrueHandler)
+    assert not SequenceSameValuesHandler(next_handler=next_handler).handle(
+        [1, 2, 3], [1, 2, 4], config
+    )
+    next_handler.handle.assert_not_called()
+
+
+def test_sequence_same_values_handler_handle_fast_path_false_show_difference_locates_the_item(
+    config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    registry = Mock(wraps=config.registry)
+    config.registry = registry
+    SequenceSameValuesHandler().handle([1, 2, 3], [1, 2, 4], config)
+    assert registry.objects_are_equal.call_count == 3
+
+
+def test_sequence_same_values_handler_handle_fast_path_false_with_tolerance_compares_the_items(
+    config: EqualityConfig,
+) -> None:
+    config.atol = 1.0
+    assert SequenceSameValuesHandler(next_handler=TrueHandler()).handle(
+        [1, 2, 3], [1, 2, 4], config
+    )

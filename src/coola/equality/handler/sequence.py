@@ -78,16 +78,19 @@ class SequenceSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
                     )
                 return False
             # Fast path: skip the per-element dispatch. ``==`` ignores the type
-            # (``False == 0``), so the types must match item by item. On
-            # mismatch, fall through to the slow path to locate the first
-            # difference.
+            # (``False == 0``), so the types must match item by item. If the
+            # sequences differ and there is no tolerance (the integers are compared
+            # within a tolerance), the answer is ``False`` at once: the slow path is only
+            # needed to locate the first difference when it is reported.
             if (
                 is_exact_scalar_sequence(actual)
                 and is_exact_scalar_sequence(expected)
                 and list(map(type, actual)) == list(map(type, expected))
-                and actual == expected
             ):
-                return self._handle_next(actual, expected, config=config)
+                if actual == expected:
+                    return self._handle_next(actual, expected, config=config)
+                if not config.show_difference and config.atol == 0.0 and config.rtol == 0.0:
+                    return False
             for idx, (value1, value2) in enumerate(zip(actual, expected, strict=True)):
                 if not config.registry.objects_are_equal(value1, value2, config):
                     if config.show_difference:
