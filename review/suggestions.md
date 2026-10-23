@@ -109,7 +109,7 @@ the PR number is given. Items not listed are **open**.
 | 7.7  | PR open (#2134)                 | `to_date` returns the date part of a `datetime`.                                                                                                                                                      |
 | 7.8  | PR open (#2138)                 | `ß` and similar letters mapped; non-ASCII-only text falls back to a hash.                                                                                                                             |
 | 7.9  | PR open (#2137)                 | `datetime.time` becomes an ISO string and `timedelta` a number of seconds.                                                                                                                            |
-| 8.5  | PR open (#PR)                   | On a TTY the coloured handler uses `stream` and `datefmt`; `handlers`, `filename`, `filemode`, `format`, `style` give the plain `basicConfig`; `sys.stderr = None` is handled. The package location of the helper is unchanged.|
+| 8.5  | PR open (#2165)                   | On a TTY the coloured handler uses `stream` and `datefmt`; `handlers`, `filename`, `filemode`, `format`, `style` give the plain `basicConfig`; `sys.stderr = None` is handled. The package location of the helper is unchanged.|
 
 All other items in sections 5 to 10 (including 7.x, 8.x, 9.x, 10.x) have no matching commit and are **open**.
 The earlier "Suggested order" lists below are unchanged.
