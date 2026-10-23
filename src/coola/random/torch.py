@@ -7,7 +7,7 @@ __all__ = ["TorchRandomManager", "torch_seed"]
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any, cast
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.random.base import BaseRandomManager
 from coola.utils.imports import check_torch, is_torch_available
 from coola.utils.introspection import is_same_type
@@ -21,7 +21,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.torch import torch
 
 
-class TorchRandomManager(InlineDisplayMixin, NoArgsDisplayMixin, BaseRandomManager):
+class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):
     r"""Implement a random manager for the library ``torch``.
 
     Only the default generators of PyTorch (the CPU one, the CUDA

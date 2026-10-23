@@ -53,7 +53,7 @@ class TorchLoader(InlineDisplayMixin, BaseLoader[T]):
         check_torch()
         self._kwargs = kwargs
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
+    def _display_fields(self) -> dict[str, Any]:
         return self._kwargs
 
     def equal(self, other: Any, equal_nan: bool = False) -> bool:
@@ -96,7 +96,7 @@ class TorchSaver(InlineDisplayMixin, BaseFileSaver[T]):
         check_torch()
         self._kwargs = kwargs
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
+    def _display_fields(self) -> dict[str, Any]:
         return self._kwargs
 
     def equal(self, other: Any, equal_nan: bool = False) -> bool:

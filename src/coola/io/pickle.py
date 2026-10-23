@@ -7,7 +7,7 @@ __all__ = ["PickleLoader", "PickleSaver", "load_pickle", "save_pickle"]
 import pickle
 from typing import TYPE_CHECKING, Any, TypeVar
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.equality.interface import objects_are_equal
 from coola.io.base import BaseFileSaver, BaseLoader
 from coola.utils.introspection import is_same_type
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 T = TypeVar("T")
 
 
-class PickleLoader(InlineDisplayMixin, NoArgsDisplayMixin, BaseLoader[T]):
+class PickleLoader(InlineDisplayMixin, BaseLoader[T]):
     r"""Implement a data loader to load data in a pickle file.
 
     Warning:
@@ -77,7 +77,7 @@ class PickleSaver(InlineDisplayMixin, BaseFileSaver[T]):
     def __init__(self, **kwargs: Any) -> None:
         self._kwargs = kwargs
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
+    def _display_fields(self) -> dict[str, Any]:
         return self._kwargs
 
     def equal(self, other: Any, equal_nan: bool = False) -> bool:

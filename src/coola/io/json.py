@@ -48,7 +48,7 @@ class JsonLoader(InlineDisplayMixin, BaseLoader[T]):
     def __init__(self, encoding: str | None = None) -> None:
         self._encoding = encoding
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
+    def _display_fields(self) -> dict[str, Any]:
         return {"encoding": self._encoding}
 
     def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
@@ -99,7 +99,7 @@ class JsonSaver(InlineDisplayMixin, BaseFileSaver[T]):
         self._encoding = encoding
         self._kwargs = kwargs
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
+    def _display_fields(self) -> dict[str, Any]:
         return {"encoding": self._encoding, **self._kwargs}
 
     def equal(self, other: Any, equal_nan: bool = False) -> bool:

@@ -6,7 +6,7 @@ __all__ = ["PyarrowArrayHasher", "PyarrowTableHasher"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_tagged
 
@@ -26,9 +26,7 @@ def _hash_array(array: Any, registry: HasherRegistry, length: int, ignore_unhash
     return hash_tagged("pyarrow.Array", "\0".join(parts), length=length)
 
 
-class PyarrowArrayHasher(
-    InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher["pa.Array | pa.ChunkedArray"]
-):
+class PyarrowArrayHasher(InlineDisplayMixin, BaseHasher["pa.Array | pa.ChunkedArray"]):
     r"""Hasher for ``pyarrow.Array`` and ``pyarrow.ChunkedArray``
     objects.
 
@@ -59,9 +57,7 @@ class PyarrowArrayHasher(
         return _hash_array(data, registry, length, ignore_unhashable)
 
 
-class PyarrowTableHasher(
-    InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher["pa.Table | pa.RecordBatch"]
-):
+class PyarrowTableHasher(InlineDisplayMixin, BaseHasher["pa.Table | pa.RecordBatch"]):
     r"""Hasher for ``pyarrow.Table`` and ``pyarrow.RecordBatch``
     objects.
 

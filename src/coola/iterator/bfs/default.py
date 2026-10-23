@@ -6,14 +6,14 @@ __all__ = ["DefaultChildFinder"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.iterator.bfs.base import BaseChildFinder
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
 
-class DefaultChildFinder(InlineDisplayMixin, NoArgsDisplayMixin, BaseChildFinder[Any]):
+class DefaultChildFinder(InlineDisplayMixin, BaseChildFinder[Any]):
     r"""Default child finder for breadth-first search traversal.
 
     This child finder serves as the fallback handler for objects that don't have

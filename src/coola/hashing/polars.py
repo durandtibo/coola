@@ -6,7 +6,7 @@ __all__ = ["PolarsDataFrameHasher", "PolarsSeriesHasher"]
 
 from typing import TYPE_CHECKING
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_tagged
 
@@ -32,7 +32,7 @@ def _hash_series(
     return hash_tagged("polars.Series", "\0".join(parts), length=length)
 
 
-class PolarsSeriesHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher["pl.Series"]):
+class PolarsSeriesHasher(InlineDisplayMixin, BaseHasher["pl.Series"]):
     r"""Hasher for ``polars.Series`` objects.
 
     The hash depends on the name, the dtype and the values, ``null``
@@ -62,7 +62,7 @@ class PolarsSeriesHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher["pl.
         return _hash_series(data, registry, length, ignore_unhashable)
 
 
-class PolarsDataFrameHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher["pl.DataFrame"]):
+class PolarsDataFrameHasher(InlineDisplayMixin, BaseHasher["pl.DataFrame"]):
     r"""Hasher for ``polars.DataFrame`` objects.
 
     The hash depends on the column names, the dtypes and the values.

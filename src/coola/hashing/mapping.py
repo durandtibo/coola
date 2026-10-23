@@ -58,7 +58,7 @@ class MappingHasher(InlineDisplayMixin, BaseHasher[Mapping[Any, Any]]):
         self._tag = tag
         self._ordered = ordered
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
+    def _display_fields(self) -> dict[str, Any]:
         return {"tag": self._tag, "ordered": self._ordered}
 
     def hash(

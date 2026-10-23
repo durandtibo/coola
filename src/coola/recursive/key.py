@@ -93,7 +93,7 @@ class KeyFilterTransformer(InlineDisplayMixin, BaseTransformer[Mapping[Any, Any]
         self._key_predicate = key_predicate
         self._transform_func = transform_func
 
-    def _get_repr_kwargs(self) -> dict[str, Any]:
+    def _display_fields(self) -> dict[str, Any]:
         return {"key_predicate": self._key_predicate, "transform_func": self._transform_func}
 
     def transform(

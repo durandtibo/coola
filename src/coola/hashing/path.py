@@ -7,7 +7,7 @@ __all__ = ["PathHasher", "ResolvedPathHasher", "hash_path"]
 from pathlib import Path, PurePath
 from typing import TYPE_CHECKING
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_tagged
 
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
 
 
-class PathHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[PurePath]):
+class PathHasher(InlineDisplayMixin, BaseHasher[PurePath]):
     r"""Hasher for ``pathlib.PurePath`` and ``pathlib.Path`` objects.
 
     This hasher delegates to ``hash_path``, which hashes the POSIX
@@ -71,7 +71,7 @@ class PathHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[PurePath]):
         return hash_path(data, length=length)
 
 
-class ResolvedPathHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Path]):
+class ResolvedPathHasher(InlineDisplayMixin, BaseHasher[Path]):
     r"""Hasher for ``pathlib.Path`` objects that hashes the resolved
     location.
 

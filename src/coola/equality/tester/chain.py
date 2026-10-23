@@ -8,7 +8,7 @@ __all__ = ["BaseChainEqualityTester"]
 from abc import abstractmethod
 from typing import TYPE_CHECKING, TypeVar
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.equality.tester.base import BaseEqualityTester
 from coola.utils.introspection import is_same_type
 
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 T = TypeVar("T")
 
 
-class BaseChainEqualityTester(InlineDisplayMixin, NoArgsDisplayMixin, BaseEqualityTester[T]):
+class BaseChainEqualityTester(InlineDisplayMixin, BaseEqualityTester[T]):
     r"""Define the base class for the equality testers that compare two
     objects with a chain of handlers.
 
@@ -30,7 +30,7 @@ class BaseChainEqualityTester(InlineDisplayMixin, NoArgsDisplayMixin, BaseEquali
     created when the tester is initialized.
 
     Two testers of the same class are equal. A child class with
-    parameters must override ``_get_repr_kwargs`` and ``equal``.
+    parameters must override ``_display_fields`` and ``equal``.
 
     Example:
         ```pycon

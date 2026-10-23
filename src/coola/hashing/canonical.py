@@ -14,7 +14,7 @@ from decimal import Decimal
 from fractions import Fraction
 from typing import TYPE_CHECKING
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_tagged
 from coola.utils.integer import int_repr
@@ -42,7 +42,7 @@ def _canonical_decimal(data: Decimal) -> str:
     return f"{'-' if sign else ''}{stripped}e{exponent}"
 
 
-class DecimalHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Decimal]):
+class DecimalHasher(InlineDisplayMixin, BaseHasher[Decimal]):
     r"""Hasher for ``decimal.Decimal``.
 
     The decimal is normalized first, so the equal decimals
@@ -72,7 +72,7 @@ class DecimalHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Decimal])
         return hash_tagged("Decimal", _canonical_decimal(data), length=length)
 
 
-class FractionHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Fraction]):
+class FractionHasher(InlineDisplayMixin, BaseHasher[Fraction]):
     r"""Hasher for ``fractions.Fraction``.
 
     A ``Fraction`` is always stored in lowest terms, so the numerator
@@ -104,7 +104,7 @@ class FractionHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Fraction
         )
 
 
-class RangeHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[range]):
+class RangeHasher(InlineDisplayMixin, BaseHasher[range]):
     r"""Hasher for ``range``.
 
     Two ranges are equal if they contain the same items, so the hash is

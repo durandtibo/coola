@@ -7,7 +7,7 @@ __all__ = ["BytesHasher", "hash_bytes"]
 import hashlib
 from typing import TYPE_CHECKING
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import validate_hash_length
 
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
 
 
-class BytesHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[bytes | bytearray]):
+class BytesHasher(InlineDisplayMixin, BaseHasher[bytes | bytearray]):
     r"""Hasher for ``bytes`` and ``bytearray`` objects.
 
     This hasher computes the hash of the bytes namespaced by the type

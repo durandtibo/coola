@@ -13,9 +13,8 @@ The `coola.display` package provides:
 - **`InlineDisplayMixin`**: a mixin that renders `__repr__`/`__str__` on a single line
 - **`MultilineDisplayMixin`**: a mixin that renders `__repr__`/`__str__` as an indented,
   multiline block
-- **`NoArgsDisplayMixin`**: a mixin for classes with no argument to show (e.g. stateless handlers)
-- **`BaseDisplayMixin`**: the abstract base class of the mixins, which defines the
-  `_get_repr_kwargs` method
+- **`BaseDisplayMixin`**: the abstract base class of the mixins, which defines `__repr__`, `__str__` and
+  the `_display_fields` hook
 - **`str_pydantic_model`** / **`repr_pydantic_model`**: formatted, single-line string/repr
   representations of [pydantic](https://docs.pydantic.dev/) models, with automatic masking of
   `SecretStr` fields
@@ -25,8 +24,9 @@ The `coola.display` package provides:
 ## Display mixins
 
 `InlineDisplayMixin` and `MultilineDisplayMixin` remove the boilerplate of writing consistent
-`__repr__`/`__str__` methods. Subclasses only need to implement `_get_repr_kwargs`, which
-returns a dict mapping constructor argument names to their values.
+`__repr__`/`__str__` methods. Subclasses only need to override `_display_fields`, which
+returns a dict mapping field names to their values. The default returns an empty dict, so a
+stateless class needs no override.
 
 `InlineDisplayMixin` is best suited for simple objects with a few, short arguments:
 
@@ -39,7 +39,7 @@ returns a dict mapping constructor argument names to their values.
 ...         self.key1 = key1
 ...         self.key2 = key2
 ...
-...     def _get_repr_kwargs(self) -> dict[str, Any]:
+...     def _display_fields(self) -> dict[str, Any]:
 ...         return {"key1": self.key1, "key2": self.key2}
 >>> obj = MyClass(key1="value1", key2="value2")
 >>> print(repr(obj))
@@ -61,7 +61,7 @@ values, where a single-line format would be hard to read:
 ...         self.key1 = key1
 ...         self.key2 = key2
 ...
-...     def _get_repr_kwargs(self) -> dict[str, Any]:
+...     def _display_fields(self) -> dict[str, Any]:
 ...         return {"key1": self.key1, "key2": self.key2}
 >>> obj = MyClass(key1="value1", key2="value2")
 >>> print(repr(obj))
@@ -72,14 +72,12 @@ MyClass(
 
 ```
 
-`NoArgsDisplayMixin` provides a `_get_repr_kwargs` that returns an empty dict, for the classes
-with no constructor argument to show. Combine it with one of the other mixins instead of writing a
-trivial `_get_repr_kwargs`:
+A class with no field to show does not need to override anything:
 
 ```pycon
 
->>> from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
->>> class MyClass(NoArgsDisplayMixin, InlineDisplayMixin):
+>>> from coola.display import InlineDisplayMixin
+>>> class MyClass(InlineDisplayMixin):
 ...     pass
 ...
 >>> print(repr(MyClass()))
@@ -87,14 +85,15 @@ MyClass()
 
 ```
 
-To create a new kind of mixin, inherit from `BaseDisplayMixin` and implement `__repr__`,
-`__str__` and `_get_repr_kwargs`.
+To create a new kind of mixin, inherit from `BaseDisplayMixin` and implement `_render_fields`,
+which receives the fields and a `use_repr` flag and returns the formatted string.
+`__repr__` and `__str__` are already defined by `BaseDisplayMixin`.
 
 ## Properties
 
 | Property             | Statement                                                                                                         |
 | -------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| One hook             | A subclass only implements `_get_repr_kwargs`. `__repr__` and `__str__` come from the mixin.                      |
+| One hook             | A subclass only overrides `_display_fields`. `__repr__` and `__str__` come from the mixin.                       |
 | Consistent format    | All the objects that use a mixin share the same layout: `Name(key=value)` inline, or one `(key): value` per line. |
 | `repr` vs `str`      | `__repr__` shows the `repr` of the values, and `__str__` shows their `str`.                                       |
 | Safe terminal output | The colored logging is used only if `colorlog` is installed and the output is a terminal. Otherwise it is plain.  |

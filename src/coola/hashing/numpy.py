@@ -6,7 +6,7 @@ __all__ = ["NumpyArrayHasher", "hash_array_content"]
 
 from typing import TYPE_CHECKING
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.bytes import hash_bytes
 from coola.hashing.string import hash_tagged
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
 
 
-class NumpyArrayHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher["np.ndarray"]):
+class NumpyArrayHasher(InlineDisplayMixin, BaseHasher["np.ndarray"]):
     r"""Hasher for ``numpy.ndarray`` objects.
 
     The hash depends on the dtype (with its byte order), the shape and

@@ -7,7 +7,7 @@ __all__ = ["SetTransformer"]
 from collections.abc import Set as AbstractSet
 from typing import TYPE_CHECKING, Any
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.recursive.base import BaseTransformer
 from coola.utils.introspection import get_type_constructor
 
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from coola.recursive.registry import TransformerRegistry
 
 
-class SetTransformer(InlineDisplayMixin, NoArgsDisplayMixin, BaseTransformer[AbstractSet[Any]]):
+class SetTransformer(InlineDisplayMixin, BaseTransformer[AbstractSet[Any]]):
     r"""Transformer for set types that recursively transforms elements.
 
     This transformer handles set structures (set, frozenset) by recursively

@@ -6,7 +6,7 @@ __all__ = ["PandasDataFrameHasher", "PandasSeriesHasher"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_tagged
 
@@ -22,7 +22,7 @@ def _hash_values(
     return registry.hash(values, length=length, ignore_unhashable=ignore_unhashable)
 
 
-class PandasSeriesHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher["pd.Series"]):
+class PandasSeriesHasher(InlineDisplayMixin, BaseHasher["pd.Series"]):
     r"""Hasher for ``pandas.Series`` objects.
 
     The hash depends on the name, the dtype, the index and the values.
@@ -60,7 +60,7 @@ class PandasSeriesHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher["pd.
         return hash_tagged("pandas.Series", "\0".join(parts), length=length)
 
 
-class PandasDataFrameHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher["pd.DataFrame"]):
+class PandasDataFrameHasher(InlineDisplayMixin, BaseHasher["pd.DataFrame"]):
     r"""Hasher for ``pandas.DataFrame`` objects.
 
     The hash depends on the column labels, the index and, for each
