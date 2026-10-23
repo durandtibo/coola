@@ -721,7 +721,10 @@ def is_saver_config(
 
 
 def resolve_loader(
-    loader: BaseLoader[T] | dict[Any, Any], *, allowed_prefixes: Sequence[str] | None = None
+    loader: BaseLoader[T] | dict[Any, Any],
+    *,
+    allowed_prefixes: Sequence[str] | None = None,
+    strict: bool = False,
 ) -> BaseLoader[T]:
     r"""Set up a data loader.
 
@@ -733,6 +736,9 @@ def resolve_loader(
         allowed_prefixes: An optional allow-list of module prefixes that
             the ``"_target_"`` must match, e.g. ``["coola.io"]``. If
             ``None`` (default), any ``"_target_"`` is allowed.
+        strict: If ``True``, a ``"_target_"`` that is not a class and
+            has no usable return type hint is refused before it is
+            called (see ``resolve_object``).
 
     Returns:
         The instantiated data loader.
@@ -756,12 +762,16 @@ def resolve_loader(
         ```
     """
     return cast(
-        "BaseLoader[T]", resolve_object(loader, BaseLoader, allowed_prefixes=allowed_prefixes)
+        "BaseLoader[T]",
+        resolve_object(loader, BaseLoader, allowed_prefixes=allowed_prefixes, strict=strict),
     )
 
 
 def resolve_saver(
-    saver: BaseSaver[T] | dict[Any, Any], *, allowed_prefixes: Sequence[str] | None = None
+    saver: BaseSaver[T] | dict[Any, Any],
+    *,
+    allowed_prefixes: Sequence[str] | None = None,
+    strict: bool = False,
 ) -> BaseSaver[T]:
     r"""Set up a data saver.
 
@@ -773,6 +783,9 @@ def resolve_saver(
         allowed_prefixes: An optional allow-list of module prefixes that
             the ``"_target_"`` must match, e.g. ``["coola.io"]``. If
             ``None`` (default), any ``"_target_"`` is allowed.
+        strict: If ``True``, a ``"_target_"`` that is not a class and
+            has no usable return type hint is refused before it is
+            called (see ``resolve_object``).
 
     Returns:
         The instantiated data saver.
@@ -795,4 +808,7 @@ def resolve_saver(
 
         ```
     """
-    return cast("BaseSaver[T]", resolve_object(saver, BaseSaver, allowed_prefixes=allowed_prefixes))
+    return cast(
+        "BaseSaver[T]",
+        resolve_object(saver, BaseSaver, allowed_prefixes=allowed_prefixes, strict=strict),
+    )
