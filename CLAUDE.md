@@ -35,9 +35,13 @@
 - Keep new options keyword-only (`*`), as `hash_object` does.
 - Optional libraries (numpy, torch, pandas, polars, ...) are imported lazily; do not import them
   at module level in `src`.
+- Keep docstrings and documentation up to date and comprehensive: update them whenever the
+  behaviour, signature or options of the code change.
 
 ## Tests
 
+- Always write tests for the code in `src/`. Unit tests must be fast and efficient; move big or
+  slow tests to `tests/integration/` if needed.
 - Unit tests mirror the source tree (`tests/unit/<package>/test_<module>.py`). Cross-thread
   behaviour goes in `tests/integration/`, using `run_threads` from `tests/integration/helpers.py`,
   a lock around the shared list, and a docstring starting with "Test that ...".
@@ -67,6 +71,38 @@
   ```
 
 - Seed random data (`default_rng(0)`); no unseeded randomness in tests.
+
+### Test assertions
+
+- When asserting an expected value, write the final computed number, not the arithmetic
+  expression that produces it (for example `0.6666666666666666`, not `1.0 * 0.4 + 0.0 * 0.2`).
+  If the derivation is not obvious, keep the expression as a comment above the assertion.
+- When a function returns a composite value (a dict, a list, ...), include at least one test that
+  asserts the entire output against a fully-specified literal, not only individual keys or fields.
+  This catches unexpected extra or missing entries that per-field assertions miss:
+
+  ```python
+  result = compute(...)
+  assert result == {...}
+  ```
+
+### Test coverage
+
+When implementing or modifying a function, write comprehensive unit tests, not just a happy-path
+check. Cover, where applicable:
+
+- Typical inputs.
+- Edge cases: empty inputs, single-element inputs, duplicate inputs.
+- Boundary values (0, negative numbers, min/max of a valid range).
+- Error conditions: inputs that should raise, with the right exception type and message
+  (including errors raised by collaborators the function calls).
+- Interactions between parameters, for example a cross-product of two input lists, or the order
+  of output keys or entries.
+- Side effects: the function does not mutate its inputs, is deterministic across repeated calls,
+  and does not leak state when given reused or stateful collaborators.
+
+Prefer many small, precisely named tests (one behavior per test) over a few broad ones, so a
+failure points at the specific behavior that broke.
 
 ## Reporting
 
