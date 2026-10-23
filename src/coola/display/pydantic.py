@@ -142,13 +142,14 @@ def _format_pydantic_model(
     """Shared implementation for ``str_pydantic_model`` and
     ``repr_pydantic_model``."""
     config: dict[str, Any] = model.model_dump()
+    known_fields = set(type(model).model_fields)
     if exclude_secret:
         config = _mask_secret_fields(model, config)
     if exclude_none:
         config = {k: v for k, v in config.items() if v is not None}
     if exclude_fields:
         excluded = set(exclude_fields)
-        unknown = excluded - config.keys()
+        unknown = excluded - known_fields
         if unknown:
             msg = (
                 f"'exclude_fields' contains field names that do not exist on "
@@ -180,8 +181,10 @@ def str_pydantic_model(
         exclude_secret: If ``True``, omit fields typed as a secret type
             (``SecretStr``, ``SecretBytes``, ``Secret``)
             entirely, rather than showing the masked value.
-        exclude_fields: Optional list of field names to omit. Names
-            that do not exist on the model are silently ignored.
+        exclude_fields: Optional list of field names to omit. A
+            ``RuntimeWarning`` is emitted for names that are not fields
+            of the model; a field already omitted by ``exclude_none`` or
+            ``exclude_secret`` is not reported.
 
     Returns:
         A string like ``"ClassName(field1=value1, field2=value2)"``.
@@ -227,8 +230,10 @@ def repr_pydantic_model(
         exclude_secret: If ``True``, omit fields typed as a secret type
             (``SecretStr``, ``SecretBytes``, ``Secret``)
             entirely, rather than showing the masked value.
-        exclude_fields: Optional list of field names to omit. Names
-            that do not exist on the model are silently ignored.
+        exclude_fields: Optional list of field names to omit. A
+            ``RuntimeWarning`` is emitted for names that are not fields
+            of the model; a field already omitted by ``exclude_none`` or
+            ``exclude_secret`` is not reported.
 
     Returns:
         A string like ``"ClassName(field1=value1, field2=value2)"``

@@ -28,7 +28,9 @@ class BaseCollectionSummarizer(BaseSummarizer[T]):
     Args:
         max_items: The maximum number of items to display in the summary.
             If set to a negative value (e.g., -1), all items in the collection
-            will be shown without truncation. Defaults to 5.
+            will be shown without truncation, except when the depth limit
+            is reached: the preview is then capped at 5 items to avoid
+            building the string of a very large collection. Defaults to 5.
         num_spaces: The number of spaces to use for indentation in the formatted
             output. This affects the visual structure of nested summaries.
             Defaults to 2.
