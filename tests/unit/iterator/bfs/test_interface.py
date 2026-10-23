@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections import deque
 from collections.abc import Collection, Generator, Iterator, Mapping
 from typing import Any
+from unittest.mock import patch
 
 import pytest
 
@@ -192,3 +193,20 @@ def test_bfs_iterate_self_referencing_list_raises() -> None:
 
 def test_default_registry_iterates_over_a_deque() -> None:
     assert list(bfs_iterate(deque([1, [2, 3]]))) == [1, 2, 3]
+
+
+def test_bfs_iterate_mutual_cycle_raises() -> None:
+    first: list = [1]
+    second: list = [first]
+    first.append(second)
+    with pytest.raises(ValueError, match="Cycle detected"):
+        list(bfs_iterate(first))
+
+
+def test_bfs_iterate_deep_chain_does_not_walk_the_ancestors() -> None:
+    data: list = [1]
+    for _ in range(50):
+        data = [data]
+    with patch("coola.iterator.bfs.registry._is_ancestor") as mock_is_ancestor:
+        assert list(bfs_iterate(data)) == [1]
+    mock_is_ancestor.assert_not_called()
