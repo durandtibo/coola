@@ -181,6 +181,8 @@ def _get_native_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
         list: sequence,
         tuple: sequence,
         Sequence: sequence,
+        # The values of a dict have no ``__eq__``: they are compared in the order of the dict
+        type({}.values()): sequence,
         # Mappings - recursive transformation of keys and values
         dict: mapping,
         OrderedDict: ordered_mapping,
