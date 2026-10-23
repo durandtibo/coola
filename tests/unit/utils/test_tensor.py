@@ -112,14 +112,14 @@ def test_is_mps_available() -> None:
 @torch_available
 @patch("coola.utils.tensor.is_torch_available", lambda: True)
 def test_is_mps_available_with_mps() -> None:
-    with patch("coola.utils.tensor.torch.ones", Mock(return_value=torch.ones(1))):
+    with patch("torch.ones", Mock(return_value=torch.ones(1))):
         assert is_mps_available()
 
 
 @torch_available
 @patch("coola.utils.tensor.is_torch_available", lambda: True)
 def test_is_mps_available_without_mps() -> None:
-    with patch("coola.utils.tensor.torch.ones", Mock(side_effect=RuntimeError)):
+    with patch("torch.ones", Mock(side_effect=RuntimeError)):
         assert not is_mps_available()
 
 
@@ -181,3 +181,9 @@ def test_to_tensor_numpy_negative_strides() -> None:
 def test_to_tensor_no_torch() -> None:
     with pytest.raises(MissingPackageError, match=r"'torch' package is required"):
         to_tensor([1, 2, 3])
+
+
+@torch_available
+@patch("coola.utils.tensor.is_numpy_available", lambda: False)
+def test_to_tensor_list_without_numpy() -> None:
+    assert to_tensor([1, 2, 3]).tolist() == [1, 2, 3]

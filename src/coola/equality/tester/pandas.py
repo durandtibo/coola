@@ -25,18 +25,15 @@ from coola.equality.handler import (
     create_chain,
 )
 from coola.equality.tester.chain import BaseChainEqualityTester
-from coola.utils.imports import check_pandas, is_pandas_available
-
-if TYPE_CHECKING or is_pandas_available():
-    import pandas as pd
-else:  # pragma: no cover
-    from coola.utils.fallback.pandas import pandas as pd
+from coola.utils.imports import check_pandas
 
 if TYPE_CHECKING:
+    import pandas as pd  # noqa: F401
+
     from coola.equality.handler import BaseEqualityHandler
 
 
-class PandasDataFrameEqualityTester(BaseChainEqualityTester[pd.DataFrame]):
+class PandasDataFrameEqualityTester(BaseChainEqualityTester["pd.DataFrame"]):
     r"""Implement an equality tester for ``pandas.DataFrame``.
 
     This tester uses pandas' DataFrame equality testing which compares shape,
@@ -97,7 +94,7 @@ class PandasDataFrameEqualityTester(BaseChainEqualityTester[pd.DataFrame]):
         return create_chain(SameObjectHandler(), SameTypeHandler(), PandasDataFrameEqualHandler())
 
 
-class PandasSeriesEqualityTester(BaseChainEqualityTester[pd.Series]):
+class PandasSeriesEqualityTester(BaseChainEqualityTester["pd.Series"]):
     r"""Implement an equality tester for ``pandas.Series``.
 
     This tester uses pandas' Series equality testing which compares length,
@@ -150,7 +147,7 @@ class PandasSeriesEqualityTester(BaseChainEqualityTester[pd.Series]):
         return create_chain(SameObjectHandler(), SameTypeHandler(), PandasSeriesEqualHandler())
 
 
-class PandasIndexEqualityTester(BaseChainEqualityTester[pd.Index]):
+class PandasIndexEqualityTester(BaseChainEqualityTester["pd.Index"]):
     r"""Implement an equality tester for ``pandas.Index``.
 
     The comparison checks the values, the dtype and the names. The

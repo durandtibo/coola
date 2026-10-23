@@ -10,12 +10,9 @@ from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.bytes import hash_bytes
 from coola.hashing.string import hash_tagged
-from coola.utils.imports import is_numpy_available
 
-if TYPE_CHECKING or is_numpy_available():
+if TYPE_CHECKING:
     import numpy as np
-else:  # pragma: no cover
-    from coola.utils.fallback.numpy import numpy as np
 
 if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
@@ -52,6 +49,8 @@ class NumpyArrayHasher(InlineDisplayMixin, BaseHasher["np.ndarray"]):
         length: int = 64,
         ignore_unhashable: bool = False,
     ) -> str:
+        import numpy as np  # noqa: PLC0415
+
         tag = "numpy.ndarray"
         if isinstance(data, np.ma.MaskedArray):
             tag = "numpy.ma.MaskedArray"

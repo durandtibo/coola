@@ -24,18 +24,15 @@ from coola.equality.handler import (
     create_chain,
 )
 from coola.equality.tester.chain import BaseChainEqualityTester
-from coola.utils.imports import check_xarray, is_xarray_available
-
-if TYPE_CHECKING or is_xarray_available():
-    import xarray as xr
-else:  # pragma: no cover
-    from coola.utils.fallback.xarray import xarray as xr
+from coola.utils.imports import check_xarray
 
 if TYPE_CHECKING:
+    import xarray as xr  # noqa: F401
+
     from coola.equality.handler import BaseEqualityHandler
 
 
-class XarrayDataArrayEqualityTester(BaseChainEqualityTester[xr.DataArray]):
+class XarrayDataArrayEqualityTester(BaseChainEqualityTester["xr.DataArray"]):
     r"""Implement an equality tester for ``xarray.DataArray``.
 
     This tester compares xarray DataArrays by checking their variable, name,
@@ -87,7 +84,7 @@ class XarrayDataArrayEqualityTester(BaseChainEqualityTester[xr.DataArray]):
         )
 
 
-class XarrayDatasetEqualityTester(BaseChainEqualityTester[xr.Dataset]):
+class XarrayDatasetEqualityTester(BaseChainEqualityTester["xr.Dataset"]):
     r"""Implement an equality tester for ``xarray.Dataset``.
 
     This tester compares xarray Datasets by checking their data variables,
@@ -139,7 +136,7 @@ class XarrayDatasetEqualityTester(BaseChainEqualityTester[xr.Dataset]):
         )
 
 
-class XarrayVariableEqualityTester(BaseChainEqualityTester[xr.Variable]):
+class XarrayVariableEqualityTester(BaseChainEqualityTester["xr.Variable"]):
     r"""Implement an equality tester for ``xarray.Variable``.
 
     This tester compares xarray Variables by checking their data, dimensions,

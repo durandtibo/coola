@@ -26,18 +26,17 @@ from coola.equality.handler.torch import (
     TorchTensorSameDeviceHandler,
 )
 from coola.equality.tester.chain import BaseChainEqualityTester
-from coola.utils.imports import check_torch, is_torch_available
-
-if TYPE_CHECKING or is_torch_available():
-    import torch
-else:  # pragma: no cover
-    from coola.utils.fallback.torch import torch
+from coola.utils.imports import check_torch
 
 if TYPE_CHECKING:
+    import torch  # noqa: F401
+
     from coola.equality.handler import BaseEqualityHandler
 
 
-class TorchPackedSequenceEqualityTester(BaseChainEqualityTester[torch.nn.utils.rnn.PackedSequence]):
+class TorchPackedSequenceEqualityTester(
+    BaseChainEqualityTester["torch.nn.utils.rnn.PackedSequence"]
+):
     r"""Implement an equality tester for
     ``torch.nn.utils.rnn.PackedSequence``.
 
@@ -93,7 +92,7 @@ class TorchPackedSequenceEqualityTester(BaseChainEqualityTester[torch.nn.utils.r
         )
 
 
-class TorchTensorEqualityTester(BaseChainEqualityTester[torch.Tensor]):
+class TorchTensorEqualityTester(BaseChainEqualityTester["torch.Tensor"]):
     r"""Implement an equality tester for ``torch.Tensor``.
 
     This tester compares PyTorch tensors element-wise with support for device,

@@ -17,12 +17,11 @@ from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
 from coola.equality.handler.utils import report_difference
-from coola.utils.imports import is_pandas_available
 
-if TYPE_CHECKING or is_pandas_available():
+if TYPE_CHECKING:
     import pandas as pd
-else:  # pragma: no cover
-    from coola.utils.fallback.pandas import pandas as pd
+
+    from coola.equality.config import EqualityConfig
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -224,6 +223,8 @@ def index_equal(index1: pd.Index, index2: pd.Index, config: EqualityConfig) -> b
         return False
     if not config.equal_nan and _index_has_nan(index1):
         return False
+    import pandas as pd  # noqa: PLC0415
+
     try:
         cast("Any", pd.testing).assert_index_equal(
             index1,
@@ -239,6 +240,8 @@ def index_equal(index1: pd.Index, index2: pd.Index, config: EqualityConfig) -> b
 
 
 def _index_has_nan(index: pd.Index) -> bool:
+    import pandas as pd  # noqa: PLC0415
+
     if isinstance(index, pd.MultiIndex):  # ``isna`` is not defined for MultiIndex
         return bool(cast("Any", index).to_frame(index=False).isna().to_numpy().any())
     return bool(cast("Any", index).isna().any())
@@ -272,6 +275,8 @@ def extension_array_equal(array1: Any, array2: Any, config: EqualityConfig) -> b
         return False
     if not config.equal_nan and array1.isna().any():
         return False
+    import pandas as pd  # noqa: PLC0415
+
     try:
         cast("Any", pd.testing).assert_extension_array_equal(
             array1,
@@ -317,6 +322,8 @@ def frame_equal(df1: pd.DataFrame, df2: pd.DataFrame, config: EqualityConfig) ->
         return False
     if not config.equal_nan and cast("Any", df1).isna().any().any():
         return False
+    import pandas as pd  # noqa: PLC0415
+
     try:
         cast("Any", pd.testing).assert_frame_equal(
             df1,
@@ -359,6 +366,8 @@ def series_equal(series1: pd.Series, series2: pd.Series, config: EqualityConfig)
         return False
     if not config.equal_nan and cast("Any", series1).isna().any():
         return False
+    import pandas as pd  # noqa: PLC0415
+
     try:
         cast("Any", pd.testing).assert_series_equal(
             series1,

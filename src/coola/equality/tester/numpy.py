@@ -23,18 +23,15 @@ from coola.equality.handler import (
     create_chain,
 )
 from coola.equality.tester.chain import BaseChainEqualityTester
-from coola.utils.imports import check_numpy, is_numpy_available
-
-if TYPE_CHECKING or is_numpy_available():
-    import numpy as np
-else:  # pragma: no cover
-    from coola.utils.fallback.numpy import numpy as np
+from coola.utils.imports import check_numpy
 
 if TYPE_CHECKING:
+    import numpy as np  # noqa: F401
+
     from coola.equality.handler import BaseEqualityHandler
 
 
-class NumpyArrayEqualityTester(BaseChainEqualityTester[np.ndarray]):
+class NumpyArrayEqualityTester(BaseChainEqualityTester["np.ndarray"]):
     r"""Implement an equality tester for ``numpy.ndarray``.
 
     This tester compares NumPy arrays element-wise with support for NaN equality
@@ -95,7 +92,7 @@ class NumpyArrayEqualityTester(BaseChainEqualityTester[np.ndarray]):
         )
 
 
-class NumpyMaskedArrayEqualityTester(BaseChainEqualityTester[np.ma.MaskedArray]):
+class NumpyMaskedArrayEqualityTester(BaseChainEqualityTester["np.ma.MaskedArray"]):
     r"""Implement an equality tester for ``numpy.ma.MaskedArray``.
 
     This tester compares NumPy masked arrays by checking data, mask, and fill_value.

@@ -9,18 +9,11 @@ from typing import TYPE_CHECKING, Any, cast
 
 from coola.utils.imports import check_torch, is_numpy_available, is_torch_available
 
-if TYPE_CHECKING or is_numpy_available():
-    import numpy as np
-else:  # pragma: no cover
-    from coola.utils.fallback.numpy import numpy as np
-
-if TYPE_CHECKING or is_torch_available():
-    import torch
-else:  # pragma: no cover
-    from coola.utils.fallback.torch import torch
-
 if TYPE_CHECKING:
     from collections.abc import Sequence
+
+    import numpy as np
+    import torch
 
 
 @cache
@@ -60,7 +53,11 @@ def is_cuda_available() -> bool:
 
         ```
     """
-    return is_torch_available() and torch.cuda.is_available()
+    if not is_torch_available():
+        return False
+    import torch  # noqa: PLC0415
+
+    return torch.cuda.is_available()
 
 
 @cache
@@ -79,6 +76,8 @@ def is_mps_available() -> bool:
     """
     if not is_torch_available():
         return False
+    import torch  # noqa: PLC0415
+
     try:
         torch.ones(1, device="mps")
     except RuntimeError:
@@ -114,10 +113,15 @@ def to_tensor(data: Sequence[int | float] | torch.Tensor | np.ndarray) -> torch.
         ```
     """
     check_torch()
-    if is_numpy_available() and isinstance(data, np.ndarray):
-        if any(stride < 0 for stride in data.strides):
-            data = data.copy()  # ``torch.from_numpy`` does not support negative strides
-        return cast("Any", torch).from_numpy(data)
+    import torch  # noqa: PLC0415
+
+    if is_numpy_available():
+        import numpy as np  # noqa: PLC0415
+
+        if isinstance(data, np.ndarray):
+            if any(stride < 0 for stride in data.strides):
+                data = data.copy()  # ``torch.from_numpy`` does not support negative strides
+            return cast("Any", torch).from_numpy(data)
     if not torch.is_tensor(data):
         return torch.as_tensor(data)
     return data

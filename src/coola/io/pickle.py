@@ -8,6 +8,7 @@ import pickle
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from coola.display import InlineDisplayMixin
+from coola.equality.interface import objects_are_equal
 from coola.io.base import BaseFileSaver, BaseLoader
 from coola.utils.introspection import is_same_type
 
@@ -80,8 +81,6 @@ class PickleSaver(InlineDisplayMixin, BaseFileSaver[T]):
         return self._kwargs
 
     def equal(self, other: Any, equal_nan: bool = False) -> bool:
-        from coola.equality.interface import objects_are_equal  # noqa: PLC0415
-
         if not is_same_type(other, self):
             return False
         return objects_are_equal(self._kwargs, other._kwargs, equal_nan=equal_nan)

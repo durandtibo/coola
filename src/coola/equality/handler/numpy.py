@@ -11,12 +11,11 @@ from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
 from coola.equality.handler.utils import report_difference
-from coola.utils.imports import is_numpy_available
 
-if TYPE_CHECKING or is_numpy_available():
+if TYPE_CHECKING:
     import numpy as np
-else:  # pragma: no cover
-    from coola.utils.fallback.numpy import numpy as np
+
+    from coola.equality.config import EqualityConfig
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -93,6 +92,8 @@ def array_equal(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) 
             config.registry.objects_are_equal(x, y, config)
             for x, y in zip(array1.ravel().tolist(), array2.ravel().tolist(), strict=True)
         )
+    import numpy as np  # noqa: PLC0415
+
     if (
         (config.atol > 0 or config.rtol > 0)
         and is_numeric_array(array1)

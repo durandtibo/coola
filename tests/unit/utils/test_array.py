@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from contextlib import suppress
 from typing import TYPE_CHECKING
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -79,3 +79,9 @@ def test_to_array_tensor_requires_grad() -> None:
 @torch_available
 def test_to_array_bfloat16_tensor() -> None:
     assert to_array(torch.tensor([1.0, 2.0], dtype=torch.bfloat16)).dtype == np.float32
+
+
+@numpy_available
+@patch("coola.utils.array.is_torch_available", lambda: False)
+def test_to_array_list_without_torch() -> None:
+    assert np.array_equal(to_array([1, 2, 3]), np.array([1, 2, 3]))

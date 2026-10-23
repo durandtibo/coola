@@ -7,10 +7,11 @@ from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
 from pathlib import Path
+from unittest.mock import patch
 from uuid import UUID
 
 from coola.testing.fixtures import numpy_available, pydantic_available, torch_available
-from coola.utils.conversion import to_jsonable
+from coola.utils.conversion import _build_converters, to_jsonable
 from coola.utils.imports import (
     is_numpy_available,
     is_pydantic_available,
@@ -270,3 +271,26 @@ def test_to_jsonable_time() -> None:
 
 def test_to_jsonable_timedelta() -> None:
     assert to_jsonable(datetime.timedelta(minutes=1, milliseconds=500)) == 60.5
+
+
+#######################################
+#     Tests for _build_converters     #
+#######################################
+
+
+@numpy_available
+@torch_available
+def test_build_converters_array_types() -> None:
+    assert _build_converters()[1][0] == (np.ndarray, np.generic, torch.Tensor)
+
+
+@numpy_available
+@patch("coola.utils.conversion.is_torch_available", lambda: False)
+def test_build_converters_array_types_without_torch() -> None:
+    assert _build_converters()[1][0] == (np.ndarray, np.generic)
+
+
+@torch_available
+@patch("coola.utils.conversion.is_numpy_available", lambda: False)
+def test_build_converters_array_types_without_numpy() -> None:
+    assert _build_converters()[1][0] == (torch.Tensor,)

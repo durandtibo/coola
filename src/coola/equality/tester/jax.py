@@ -20,19 +20,17 @@ from coola.equality.handler import (
     create_chain,
 )
 from coola.equality.tester.chain import BaseChainEqualityTester
-from coola.utils.imports import check_jax, is_jax_available
+from coola.utils.imports import check_jax
 
-if TYPE_CHECKING or is_jax_available():
-    import jax.numpy as jnp
-else:  # pragma: no cover
-    from coola.utils.fallback.jax import jnp
+if TYPE_CHECKING:
+    import jax.numpy as jnp  # noqa: F401
 
 
 if TYPE_CHECKING:
     from coola.equality.handler import BaseEqualityHandler
 
 
-class JaxArrayEqualityTester(BaseChainEqualityTester[jnp.ndarray]):
+class JaxArrayEqualityTester(BaseChainEqualityTester["jnp.ndarray"]):
     r"""Implement an equality tester for ``jax.numpy.ndarray``.
 
     This tester compares JAX arrays element-wise with support for NaN equality
@@ -91,4 +89,6 @@ def get_array_impl_class() -> type:
         This function is cached to avoid creating arrays repeatedly. The result
         is used to register the concrete JAX array type in the default registry.
     """
+    import jax.numpy as jnp  # noqa: PLC0415
+
     return cast("type", cast("Any", jnp).ones(1).__class__)

@@ -13,11 +13,8 @@ from pathlib import PurePath
 from typing import TYPE_CHECKING, Any, cast
 from uuid import UUID
 
-from coola.utils.imports import (
-    is_numpy_available,
-    is_pydantic_available,
-    is_torch_available,
-)
+from coola.utils.imports import is_numpy_available, is_pydantic_available, is_torch_available
+from coola.utils.singleton import LazySingleton
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
@@ -26,16 +23,6 @@ if is_pydantic_available():
     from pydantic import BaseModel
 else:  # pragma: no cover
     from coola.utils.fallback.pydantic import BaseModel
-
-if is_numpy_available():
-    import numpy as np
-else:  # pragma: no cover
-    from coola.utils.fallback.numpy import numpy as np
-
-if is_torch_available():
-    import torch
-else:  # pragma: no cover
-    from coola.utils.fallback.torch import torch
 
 
 def to_jsonable(data: Any) -> Any:
@@ -86,7 +73,7 @@ def to_jsonable(data: Any) -> Any:
 
         ```
     """
-    for types, convert in _CONVERTERS:
+    for types, convert in _converters.get():
         if isinstance(data, types):
             return convert(data)
     if is_dataclass(data) and not isinstance(data, type):
@@ -94,19 +81,36 @@ def to_jsonable(data: Any) -> Any:
     return data
 
 
-# (types, converter) pairs, checked in order by ``to_jsonable``.
-_CONVERTERS: tuple[tuple[tuple[type, ...], Callable[[Any], Any]], ...] = (
-    ((BaseModel,), lambda data: data.model_dump(mode="json")),
-    (
-        (np.ndarray, np.generic, torch.Tensor) if is_numpy_available() else (torch.Tensor,),
-        lambda data: data.tolist(),
-    ),
-    ((PurePath, Decimal, UUID), str),
-    ((bytes, bytearray), lambda data: base64.b64encode(data).decode("ascii")),
-    ((datetime.date, datetime.time), lambda data: data.isoformat()),
-    ((datetime.timedelta,), lambda data: data.total_seconds()),
-    ((Enum,), lambda data: to_jsonable(data.value)),
-    ((range,), list),
+def _build_converters() -> tuple[tuple[tuple[type, ...], Callable[[Any], Any]], ...]:
+    r"""Build the ``(types, converter)`` pairs checked in order by
+    ``to_jsonable``.
+
+    The optional libraries are imported here, not at the import of the
+    module, to keep the import time short.
+    """
+    array_types: tuple[type, ...] = ()
+    if is_numpy_available():
+        import numpy as np  # noqa: PLC0415
+
+        array_types += (np.ndarray, np.generic)
+    if is_torch_available():
+        import torch  # noqa: PLC0415
+
+        array_types += (torch.Tensor,)
+    return (
+        ((BaseModel,), lambda data: data.model_dump(mode="json")),
+        (array_types, lambda data: data.tolist()),
+        ((PurePath, Decimal, UUID), str),
+        ((bytes, bytearray), lambda data: base64.b64encode(data).decode("ascii")),
+        ((datetime.date, datetime.time), lambda data: data.isoformat()),
+        ((datetime.timedelta,), lambda data: data.total_seconds()),
+        ((Enum,), lambda data: to_jsonable(data.value)),
+        ((range,), list),
+    )
+
+
+_converters: LazySingleton[tuple[tuple[tuple[type, ...], Callable[[Any], Any]], ...]] = (
+    LazySingleton(_build_converters)
 )
 
 

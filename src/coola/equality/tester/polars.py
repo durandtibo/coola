@@ -25,18 +25,15 @@ from coola.equality.handler import (
     create_chain,
 )
 from coola.equality.tester.chain import BaseChainEqualityTester
-from coola.utils.imports import check_polars, is_polars_available
-
-if TYPE_CHECKING or is_polars_available():
-    import polars as pl
-else:  # pragma: no cover
-    from coola.utils.fallback.polars import polars as pl
+from coola.utils.imports import check_polars
 
 if TYPE_CHECKING:
+    import polars as pl  # noqa: F401
+
     from coola.equality.handler import BaseEqualityHandler
 
 
-class PolarsDataFrameEqualityTester(BaseChainEqualityTester[pl.DataFrame]):
+class PolarsDataFrameEqualityTester(BaseChainEqualityTester["pl.DataFrame"]):
     r"""Implement an equality tester for ``polars.DataFrame``.
 
     This tester uses Polars' DataFrame equality testing. The handler chain:
@@ -79,7 +76,7 @@ class PolarsDataFrameEqualityTester(BaseChainEqualityTester[pl.DataFrame]):
         return create_chain(SameObjectHandler(), SameTypeHandler(), PolarsDataFrameEqualHandler())
 
 
-class PolarsLazyFrameEqualityTester(BaseChainEqualityTester[pl.LazyFrame]):
+class PolarsLazyFrameEqualityTester(BaseChainEqualityTester["pl.LazyFrame"]):
     r"""Implement an equality tester for ``polars.LazyFrame``.
 
     This tester uses Polars' LazyFrame equality testing. The handler chain:
@@ -126,7 +123,7 @@ class PolarsLazyFrameEqualityTester(BaseChainEqualityTester[pl.LazyFrame]):
         return create_chain(SameObjectHandler(), SameTypeHandler(), PolarsLazyFrameEqualHandler())
 
 
-class PolarsSeriesEqualityTester(BaseChainEqualityTester[pl.Series]):
+class PolarsSeriesEqualityTester(BaseChainEqualityTester["pl.Series"]):
     r"""Implement an equality tester for ``polars.Series``.
 
     This tester uses Polars' Series equality testing. The handler chain:

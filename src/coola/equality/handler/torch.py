@@ -11,12 +11,11 @@ from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
 from coola.equality.handler.utils import report_difference
-from coola.utils.imports import is_torch_available
 
-if TYPE_CHECKING or is_torch_available():
+if TYPE_CHECKING:
     import torch
-else:  # pragma: no cover
-    from coola.utils.fallback.torch import torch
+
+    from coola.equality.config import EqualityConfig
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -126,6 +125,8 @@ def tensor_equal(tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityC
 
         ```
     """
+    import torch  # noqa: PLC0415
+
     if tensor1.device.type == "meta" or tensor2.device.type == "meta":
         # Meta tensors have no data: only the metadata can be compared.
         return tensor1.shape == tensor2.shape and tensor1.dtype == tensor2.dtype

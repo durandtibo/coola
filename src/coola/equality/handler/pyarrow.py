@@ -13,15 +13,7 @@ from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
 from coola.equality.handler.utils import report_difference
-from coola.utils.imports import is_numpy_available, is_pyarrow_available
-
-if TYPE_CHECKING or is_pyarrow_available():
-    import pyarrow as pa
-    import pyarrow.compute as pc
-else:  # pragma: no cover
-    from coola.utils.fallback.pyarrow import pyarrow as pa
-
-    pc = pa
+from coola.utils.imports import is_numpy_available
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -127,6 +119,8 @@ def object_equal(obj1: Any, obj2: Any, config: EqualityConfig) -> bool:
 
 def _close(obj1: Any, obj2: Any, config: EqualityConfig) -> bool:
     r"""Compare two arrays or tables with a tolerance."""
+    import pyarrow as pa  # noqa: PLC0415
+
     if isinstance(obj1, (pa.Table, pa.RecordBatch)):
         return _close_table(obj1, obj2, config)
     if isinstance(obj1, (pa.Array, pa.ChunkedArray)):
@@ -145,6 +139,8 @@ def _close_table(obj1: Any, obj2: Any, config: EqualityConfig) -> bool:
 
 
 def _close_array(obj1: Any, obj2: Any, config: EqualityConfig) -> bool:
+    import pyarrow as pa  # noqa: PLC0415
+
     if not isinstance(obj2, type(obj1)) or obj1.type != obj2.type or len(obj1) != len(obj2):
         return False
     if not (pa.types.is_floating(obj1.type) or pa.types.is_integer(obj1.type)):
@@ -159,6 +155,8 @@ def _close_array(obj1: Any, obj2: Any, config: EqualityConfig) -> bool:
 def _to_numpy(array: Any) -> Any:
     r"""Convert a numeric array to NumPy, with the ``null`` values
     replaced by zero (the positions of the nulls are compared apart)."""
+    import pyarrow.compute as pc  # noqa: PLC0415
+
     return pc.fill_null(array, 0).to_numpy(zero_copy_only=False)
 
 

@@ -4,6 +4,18 @@ import pytest
 
 from tests.integration.helpers import run_python
 
+PACKAGES = [
+    "coola",
+    "coola.equality",
+    "coola.hashing",
+    "coola.identifier",
+    "coola.io",
+    "coola.nested",
+    "coola.random",
+    "coola.reducer",
+    "coola.summary",
+    "coola.utils",
+]
 OPTIONAL_LIBRARIES = ("jax", "numpy", "pandas", "polars", "pyarrow", "torch", "xarray")
 
 ###################################################
@@ -11,7 +23,7 @@ OPTIONAL_LIBRARIES = ("jax", "numpy", "pandas", "polars", "pyarrow", "torch", "x
 ###################################################
 
 
-@pytest.mark.parametrize("package", ["coola", "coola.io", "coola.summary"])
+@pytest.mark.parametrize("package", PACKAGES)
 def test_importing_a_package_does_not_import_the_optional_libraries(package: str) -> None:
     """Test that importing a package does not load the optional libraries."""
     code = (
@@ -19,8 +31,3 @@ def test_importing_a_package_does_not_import_the_optional_libraries(package: str
         f"print(*[name for name in {OPTIONAL_LIBRARIES!r} if name in sys.modules])"
     )
     assert run_python(code) == []
-
-
-def test_importing_coola_io_does_not_import_coola_equality() -> None:
-    """Test that importing ``coola.io`` does not load ``coola.equality``."""
-    assert run_python("import sys, coola.io; print('coola.equality' in sys.modules)") == ["False"]

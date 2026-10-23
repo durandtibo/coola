@@ -10,12 +10,6 @@ from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.bytes import hash_bytes
 from coola.hashing.numpy import hash_array_content
-from coola.utils.imports import is_numpy_available
-
-if TYPE_CHECKING or is_numpy_available():
-    import numpy as np
-else:  # pragma: no cover
-    from coola.utils.fallback.numpy import numpy as np
 
 if TYPE_CHECKING:
     import jax
@@ -51,6 +45,8 @@ class JaxArrayHasher(InlineDisplayMixin, BaseHasher["jax.Array"]):
         length: int = 64,
         ignore_unhashable: bool = False,  # noqa: ARG002
     ) -> str:
+        import numpy as np  # noqa: PLC0415
+
         array = np.asarray(data)
         if array.dtype.kind in "fc":
             array = array + 0

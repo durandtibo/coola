@@ -10,12 +10,9 @@ from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.bytes import hash_bytes
 from coola.hashing.numpy import hash_array_content
-from coola.utils.imports import is_torch_available
 
-if TYPE_CHECKING or is_torch_available():
+if TYPE_CHECKING:
     import torch
-else:  # pragma: no cover
-    from coola.utils.fallback.torch import torch
 
 if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
@@ -51,6 +48,8 @@ class TorchTensorHasher(InlineDisplayMixin, BaseHasher["torch.Tensor"]):
         length: int = 64,
         ignore_unhashable: bool = False,  # noqa: ARG002
     ) -> str:
+        import torch  # noqa: PLC0415
+
         tensor = data.detach()
         if tensor.layout != torch.strided:
             tensor = tensor.to_dense()

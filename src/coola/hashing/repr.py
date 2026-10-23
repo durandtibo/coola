@@ -13,11 +13,6 @@ from coola.hashing.string import hash_enum, hash_tagged
 from coola.utils.imports import is_numpy_available
 from coola.utils.integer import int_repr
 
-if TYPE_CHECKING or is_numpy_available():
-    import numpy as np
-else:  # pragma: no cover
-    from coola.utils.fallback.numpy import numpy as np
-
 if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
 
@@ -29,6 +24,8 @@ def _numpy_scalar_to_builtin(data: Any) -> Any:
     with NumPy 1, ``np.float32(1.0)`` with NumPy 2), so the scalars are
     converted before hashing. The other values are returned unchanged.
     """
+    import numpy as np  # noqa: PLC0415
+
     if not is_numpy_available() or not isinstance(data, np.generic):
         return data
     if isinstance(data, np.bool_):

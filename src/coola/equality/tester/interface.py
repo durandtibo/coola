@@ -62,35 +62,6 @@ from coola.utils.imports import (
 )
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
-if is_jax_available():  # pragma: no cover
-    import jax.numpy as jnp
-else:  # pragma: no cover
-    from coola.utils.fallback.jax import jnp
-if is_numpy_available():  # pragma: no cover
-    import numpy as np
-else:  # pragma: no cover
-    from coola.utils.fallback.numpy import numpy as np
-if is_pandas_available():  # pragma: no cover
-    import pandas as pd
-else:  # pragma: no cover
-    from coola.utils.fallback.pandas import pandas as pd
-if is_polars_available():  # pragma: no cover
-    import polars as pl
-else:  # pragma: no cover
-    from coola.utils.fallback.polars import polars as pl
-if is_pyarrow_available():  # pragma: no cover
-    import pyarrow as pa
-else:  # pragma: no cover
-    from coola.utils.fallback.pyarrow import pyarrow as pa
-if is_torch_available():  # pragma: no cover
-    import torch
-else:  # pragma: no cover
-    from coola.utils.fallback.torch import torch
-if is_xarray_available():  # pragma: no cover
-    import xarray as xr
-else:  # pragma: no cover
-    from coola.utils.fallback.xarray import xarray as xr
-
 
 def register_equality_testers(
     mapping: Mapping[type, BaseEqualityTester[Any]],
@@ -284,6 +255,7 @@ def _get_jax_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
     """
     if not is_jax_available():  # pragma: no cover
         return {}
+    import jax.numpy as jnp  # noqa: PLC0415
 
     tester = JaxArrayEqualityTester()
     return {jnp.ndarray: tester, get_array_impl_class(): tester}
@@ -301,6 +273,7 @@ def _get_numpy_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
     """
     if not is_numpy_available():  # pragma: no cover
         return {}
+    import numpy as np  # noqa: PLC0415
 
     scalar = ScalarEqualityTester()
     return {
@@ -328,6 +301,7 @@ def _get_pandas_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
     """
     if not is_pandas_available():  # pragma: no cover
         return {}
+    import pandas as pd  # noqa: PLC0415
 
     return {
         pd.DataFrame: PandasDataFrameEqualityTester(),
@@ -349,6 +323,7 @@ def _get_polars_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
     """
     if not is_polars_available():  # pragma: no cover
         return {}
+    import polars as pl  # noqa: PLC0415
 
     return {
         pl.DataFrame: PolarsDataFrameEqualityTester(),
@@ -369,6 +344,7 @@ def _get_pyarrow_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
     """
     if not is_pyarrow_available():  # pragma: no cover
         return {}
+    import pyarrow as pa  # noqa: PLC0415
 
     tester = PyarrowEqualityTester()
     pyarrow = cast("Any", pa)
@@ -392,6 +368,7 @@ def _get_torch_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
     """
     if not is_torch_available():  # pragma: no cover
         return {}
+    import torch  # noqa: PLC0415
 
     return {
         torch.nn.utils.rnn.PackedSequence: TorchPackedSequenceEqualityTester(),
@@ -411,6 +388,7 @@ def _get_xarray_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
     """
     if not is_xarray_available():  # pragma: no cover
         return {}
+    import xarray as xr  # noqa: PLC0415
 
     return {
         xr.DataArray: XarrayDataArrayEqualityTester(),
