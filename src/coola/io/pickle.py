@@ -11,8 +11,10 @@ from coola.display import InlineDisplayMixin
 from coola.equality.interface import objects_are_equal
 from coola.io.base import BaseFileSaver, BaseLoader
 from coola.utils.introspection import is_same_type
+from coola.utils.path import sanitize_path
 
 if TYPE_CHECKING:
+    import os
     from pathlib import Path
 
 T = TypeVar("T")
@@ -47,7 +49,8 @@ class PickleLoader(InlineDisplayMixin, BaseLoader[T]):
     def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
         return is_same_type(other, self)
 
-    def load(self, path: Path) -> T:
+    def load(self, path: str | os.PathLike[str]) -> T:
+        path = sanitize_path(path, resolve=False)
         with path.open(mode="rb") as file:
             return pickle.load(file)  # noqa: S301
 
@@ -90,11 +93,11 @@ class PickleSaver(InlineDisplayMixin, BaseFileSaver[T]):
             pickle.dump(to_save, file, **self._kwargs)
 
 
-def load_pickle(path: Path) -> Any:
+def load_pickle(path: str | os.PathLike[str]) -> Any:
     r"""Load the data from a given pickle file.
 
     Args:
-        path: The path to the pickle file.
+        path: The path to the pickle file. A ``str`` or any path-like object is converted to a ``Path``.
 
     Returns:
         The data from the pickle file.
@@ -126,7 +129,7 @@ def load_pickle(path: Path) -> Any:
 
 def save_pickle(
     to_save: Any,
-    path: Path,
+    path: str | os.PathLike[str],
     *,
     exist_ok: bool = False,
     fsync: bool = False,
@@ -137,7 +140,7 @@ def save_pickle(
 
     Args:
         to_save: The data to write in a pickle file.
-        path: The path where to write the pickle file.
+        path: The path where to write the pickle file. A ``str`` or any path-like object is converted to a ``Path``.
         exist_ok: If ``exist_ok`` is ``False`` (the default),
             ``FileExistsError`` is raised if the target file
             already exists. If ``exist_ok`` is ``True``,

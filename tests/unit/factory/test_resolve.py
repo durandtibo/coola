@@ -606,3 +606,129 @@ def test_resolve_object_tuple_of_classes_wrong_type() -> None:
 def test_resolve_object_tuple_of_classes_with_dict_subclass() -> None:
     counter = Counter(a=1)
     assert resolve_object(counter, (int, Counter)) is counter
+
+
+#####################################################
+#     Tests for the check of the target (resolve)   #
+#####################################################
+
+CALLS: list[str] = []
+
+
+class Tracked(Animal):
+    def __init__(self) -> None:
+        CALLS.append("Tracked")
+
+
+def make_tracked() -> Tracked:
+    CALLS.append("make_tracked")
+    return Tracked()
+
+
+def make_tracked_unannotated():  # noqa: ANN201
+    CALLS.append("make_tracked_unannotated")
+    return Tracked()
+
+
+def make_unresolvable() -> UndefinedName:  # noqa: F821
+    CALLS.append("make_unresolvable")
+    return Tracked()
+
+
+@pytest.fixture(autouse=True)
+def _clear_calls() -> None:
+    CALLS.clear()
+
+
+def test_resolve_object_wrong_class_target_is_not_called() -> None:
+    with pytest.raises(TypeError, match="it was not called"):
+        resolve_object({OBJECT_TARGET: f"{__name__}.Tracked"}, cls=str)
+    assert CALLS == []
+
+
+def test_resolve_object_wrong_class_target_message() -> None:
+    with pytest.raises(TypeError, match="Received object is not a str instance"):
+        resolve_object({OBJECT_TARGET: f"{__name__}.Tracked"}, cls=str)
+
+
+def test_resolve_object_wrong_return_hint_target_is_not_called() -> None:
+    with pytest.raises(TypeError, match="it was not called"):
+        resolve_object({OBJECT_TARGET: f"{__name__}.make_tracked"}, cls=str)
+    assert CALLS == []
+
+
+def test_resolve_object_subclass_target_is_called() -> None:
+    resolve_object({OBJECT_TARGET: f"{__name__}.Tracked"}, cls=Animal)
+    assert CALLS == ["Tracked"]
+
+
+def test_resolve_object_return_hint_subclass_is_called() -> None:
+    resolve_object({OBJECT_TARGET: f"{__name__}.make_tracked"}, cls=Animal)
+    assert CALLS == ["make_tracked", "Tracked"]
+
+
+def test_resolve_object_tuple_of_classes_accepts_a_matching_target() -> None:
+    resolve_object({OBJECT_TARGET: f"{__name__}.Tracked"}, cls=(str, Animal))
+    assert CALLS == ["Tracked"]
+
+
+def test_resolve_object_tuple_of_classes_refuses_a_wrong_target() -> None:
+    with pytest.raises(TypeError, match=r"str \| int"):
+        resolve_object({OBJECT_TARGET: f"{__name__}.Tracked"}, cls=(str, int))
+
+
+def test_resolve_object_unannotated_function_is_called_by_default() -> None:
+    resolve_object({OBJECT_TARGET: f"{__name__}.make_tracked_unannotated"}, cls=Animal)
+    assert CALLS == ["make_tracked_unannotated", "Tracked"]
+
+
+def test_resolve_object_unannotated_function_wrong_result_raises_after_the_call() -> None:
+    with pytest.raises(TypeError, match="Received object is not a str instance"):
+        resolve_object({OBJECT_TARGET: f"{__name__}.make_tracked_unannotated"}, cls=str)
+    assert CALLS == ["make_tracked_unannotated", "Tracked"]
+
+
+def test_resolve_object_strict_unannotated_function_is_not_called() -> None:
+    with pytest.raises(TypeError, match="no return type hint"):
+        resolve_object(
+            {OBJECT_TARGET: f"{__name__}.make_tracked_unannotated"}, cls=Animal, strict=True
+        )
+    assert CALLS == []
+
+
+def test_resolve_object_strict_unresolvable_hint_is_not_called() -> None:
+    with pytest.raises(TypeError, match="no return type hint"):
+        resolve_object({OBJECT_TARGET: f"{__name__}.make_unresolvable"}, cls=Animal, strict=True)
+    assert CALLS == []
+
+
+def test_resolve_object_strict_builtin_function_is_not_called() -> None:
+    with pytest.raises(TypeError, match="no return type hint"):
+        resolve_object({OBJECT_TARGET: "os.getpid"}, cls=int, strict=True)
+
+
+def test_resolve_object_strict_class_target_is_called() -> None:
+    resolve_object({OBJECT_TARGET: f"{__name__}.Tracked"}, cls=Animal, strict=True)
+    assert CALLS == ["Tracked"]
+
+
+def test_resolve_object_strict_annotated_function_is_called() -> None:
+    resolve_object({OBJECT_TARGET: f"{__name__}.make_tracked"}, cls=Animal, strict=True)
+    assert CALLS == ["make_tracked", "Tracked"]
+
+
+def test_resolve_object_alternative_constructor_is_not_checked() -> None:
+    resolve_object(
+        {OBJECT_TARGET: "collections.OrderedDict", OBJECT_INIT: "fromkeys", "iterable": [1]},
+        cls=OrderedDict,
+    )
+
+
+def test_resolve_object_default_cls_does_not_check_the_target() -> None:
+    resolve_object({OBJECT_TARGET: f"{__name__}.make_tracked_unannotated"}, strict=True)
+    assert CALLS == ["make_tracked_unannotated", "Tracked"]
+
+
+def test_resolve_object_target_outside_allowed_prefixes_still_raises_import_error() -> None:
+    with pytest.raises(ImportError, match="allowed"):
+        resolve_object({OBJECT_TARGET: f"{__name__}.Tracked"}, cls=Animal, allowed_prefixes=["os"])

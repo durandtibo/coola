@@ -27,7 +27,9 @@ class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):
     Only the default generators of PyTorch (the CPU one, the CUDA
     ones and the MPS one if it is available) are managed. The generators created with ``torch.Generator()``
     are independent objects: they are not seeded, and their state is not
-    saved nor restored.
+    saved nor restored. The CUDA state is saved only if CUDA is already
+    initialized: reading it would initialize CUDA, which fails in a
+    forked worker, and an uninitialized CUDA has no state to save.
 
     Example:
         ```pycon
@@ -48,10 +50,11 @@ class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):
         return hash(type(self))
 
     def get_rng_state(self) -> dict[str, Any]:
-        state = {
-            "torch": torch.get_rng_state(),
-            "torch.cuda": torch.cuda.get_rng_state_all(),
-        }
+        state = {"torch": torch.get_rng_state()}
+        # ``get_rng_state_all`` initializes CUDA, which fails in a forked worker. A CUDA
+        # that is not initialized has no generator state to save.
+        if torch.cuda.is_initialized():
+            state["torch.cuda"] = torch.cuda.get_rng_state_all()
         if _is_mps_available():
             state["torch.mps"] = torch.mps.get_rng_state()
         return state

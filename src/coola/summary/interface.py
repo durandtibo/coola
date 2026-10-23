@@ -13,9 +13,10 @@ from collections import deque
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any
 
+from coola.summary.dataclass import DataclassSummarizer
 from coola.summary.default import DefaultSummarizer
 from coola.summary.mapping import MappingSummarizer
-from coola.summary.registry import SummarizerRegistry
+from coola.summary.registry import DataclassMarker, SummarizerRegistry
 from coola.summary.sequence import SequenceSummarizer
 from coola.summary.set import SetSummarizer
 from coola.utils.imports import package_available
@@ -31,6 +32,7 @@ _LAZY_SUMMARIZERS = (
     (("numpy",), "coola.summary.numpy"),
     (("pandas",), "coola.summary.pandas"),
     (("polars",), "coola.summary.polars"),
+    (("pydantic",), "coola.summary.pydantic"),
     (("pyarrow",), "coola.summary.pyarrow"),
     (("torch",), "coola.summary.torch"),
     (("xarray",), "coola.summary.xarray"),
@@ -209,6 +211,8 @@ def _get_native_summarizers() -> dict[type, Summarizer[Any]]:
         float: default_summarizer,
         complex: default_summarizer,
         bool: default_summarizer,
+        # Dataclasses without their own summarizer
+        DataclassMarker: DataclassSummarizer(),
         # Sequences - summary transformation preserving order
         list: sequence_summarizer,
         tuple: sequence_summarizer,

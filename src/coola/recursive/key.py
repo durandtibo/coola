@@ -4,6 +4,7 @@ from __future__ import annotations
 
 __all__ = ["KeyFilterTransformer"]
 
+import warnings
 from collections.abc import Mapping, Sequence, Set as AbstractSet
 from typing import TYPE_CHECKING, Any
 
@@ -32,7 +33,9 @@ class KeyFilterTransformer(InlineDisplayMixin, BaseTransformer[Mapping[Any, Any]
       ``transform`` is the function for the values: it is forwarded
       unchanged to the registry and applied by the transformers of the
       leaf types.
-    - **Without** ``key_predicate`` (legacy): ``func`` is the key predicate,
+    - **Without** ``key_predicate`` (legacy, **deprecated**: a
+      ``DeprecationWarning`` is emitted and the mode will be removed in
+      the next breaking release): ``func`` is the key predicate,
       and it is forwarded to the nested containers so they are
       filtered with the same predicate. The values that are not
       containers are transformed with ``transform_func`` (the
@@ -46,7 +49,7 @@ class KeyFilterTransformer(InlineDisplayMixin, BaseTransformer[Mapping[Any, Any]
     Args:
         key_predicate: A function applied to each key: the entries whose
             key satisfies it are dropped. If ``None`` (default), the
-            legacy mode is used.
+            deprecated legacy mode is used.
         transform_func: Only for the legacy mode. The function applied
             (via the registry) to the values of the kept entries that
             are not containers. If ``None`` (default), the values are
@@ -90,6 +93,14 @@ class KeyFilterTransformer(InlineDisplayMixin, BaseTransformer[Mapping[Any, Any]
                 "`key_predicate`, the function of `transform` is applied to the values"
             )
             raise ValueError(msg)
+        if key_predicate is None:
+            warnings.warn(
+                "The legacy mode of `KeyFilterTransformer` (without `key_predicate`) is "
+                "deprecated and will be removed in the next breaking release: pass "
+                "`key_predicate`",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         self._key_predicate = key_predicate
         self._transform_func = transform_func
 

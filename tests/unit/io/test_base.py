@@ -1369,3 +1369,27 @@ def test_base_file_saver_save_lock_false_removes_tmp_file_on_failure(tmp_path: P
     with pytest.raises(RuntimeError, match="failed to save"):
         FailingFileSaver().save("hello", tmp_path.joinpath("data.txt"), lock=False)
     assert list(tmp_path.iterdir()) == []
+
+
+def test_resolve_saver_wrong_target_is_not_called(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("marker")
+    with pytest.raises(TypeError, match="no return type hint"):
+        resolve_saver({OBJECT_TARGET: "os.mkdir", "path": str(path)}, strict=True)
+    assert not path.exists()
+
+
+def test_resolve_loader_wrong_target_is_not_called(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("marker")
+    with pytest.raises(TypeError, match="no return type hint"):
+        resolve_loader({OBJECT_TARGET: "os.mkdir", "path": str(path)}, strict=True)
+    assert not path.exists()
+
+
+def test_resolve_saver_wrong_class_target_message() -> None:
+    with pytest.raises(TypeError, match="it was not called"):
+        resolve_saver({OBJECT_TARGET: "coola.io.JsonLoader"})
+
+
+def test_resolve_loader_wrong_class_target_message() -> None:
+    with pytest.raises(TypeError, match="it was not called"):
+        resolve_loader({OBJECT_TARGET: "coola.io.JsonSaver"})

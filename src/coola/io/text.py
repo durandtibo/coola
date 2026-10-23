@@ -9,8 +9,10 @@ from typing import TYPE_CHECKING, Any, TypeVar
 from coola.display import InlineDisplayMixin
 from coola.io.base import BaseFileSaver, BaseLoader
 from coola.utils.introspection import is_same_type
+from coola.utils.path import sanitize_path
 
 if TYPE_CHECKING:
+    import os
     from pathlib import Path
 
 T = TypeVar("T")
@@ -57,7 +59,8 @@ class TextLoader(InlineDisplayMixin, BaseLoader[str]):
             return False
         return self._encoding == other._encoding
 
-    def load(self, path: Path) -> str:
+    def load(self, path: str | os.PathLike[str]) -> str:
+        path = sanitize_path(path, resolve=False)
         with path.open(encoding=self._encoding, newline="") as file:
             return file.read()
 
@@ -108,11 +111,11 @@ class TextSaver(InlineDisplayMixin, BaseFileSaver[str]):
             file.write(str(to_save))
 
 
-def load_text(path: Path, encoding: str = DEFAULT_ENCODING) -> str:
+def load_text(path: str | os.PathLike[str], encoding: str = DEFAULT_ENCODING) -> str:
     r"""Load the data from a given text file.
 
     Args:
-        path: The path to the text file.
+        path: The path to the text file. A ``str`` or any path-like object is converted to a ``Path``.
         encoding: The file encoding to use when reading the file.
             Defaults to ``"utf-8"``.
 
@@ -139,7 +142,7 @@ def load_text(path: Path, encoding: str = DEFAULT_ENCODING) -> str:
 
 def save_text(
     to_save: Any,
-    path: Path,
+    path: str | os.PathLike[str],
     *,
     encoding: str = DEFAULT_ENCODING,
     exist_ok: bool = False,
@@ -150,7 +153,7 @@ def save_text(
 
     Args:
         to_save: The data to write to the text file.
-        path: The path where to write the text file.
+        path: The path where to write the text file. A ``str`` or any path-like object is converted to a ``Path``.
         encoding: The file encoding to use when writing the file.
             Defaults to ``"utf-8"``.
         exist_ok: If ``exist_ok`` is ``False`` (the default),

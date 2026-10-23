@@ -8,6 +8,7 @@ __all__ = [
     "BaseFieldsSummarizer",
     "BaseMetadataSummarizer",
     "BaseSummarizer",
+    "DataclassSummarizer",
     "DefaultSummarizer",
     "JaxArraySummarizer",
     "MappingSummarizer",
@@ -19,6 +20,7 @@ __all__ = [
     "PolarsSeriesSummarizer",
     "PyarrowArraySummarizer",
     "PyarrowTableSummarizer",
+    "PydanticModelSummarizer",
     "SequenceSummarizer",
     "SetSummarizer",
     "Summarizer",
@@ -38,6 +40,7 @@ from typing import TYPE_CHECKING
 
 from coola.summary.base import BaseSummarizer, Summarizer
 from coola.summary.collection import BaseCollectionSummarizer
+from coola.summary.dataclass import DataclassSummarizer
 from coola.summary.default import DefaultSummarizer
 from coola.summary.interface import (
     get_default_registry,
@@ -67,6 +70,7 @@ if TYPE_CHECKING:
         PolarsSeriesSummarizer,
     )
     from coola.summary.pyarrow import PyarrowArraySummarizer, PyarrowTableSummarizer
+    from coola.summary.pydantic import PydanticModelSummarizer
     from coola.summary.torch import TensorSummarizer
     from coola.summary.xarray import (
         XarrayDataArraySummarizer,
@@ -85,6 +89,7 @@ _LAZY_EXPORTS = {
     "PolarsDataFrameSummarizer": "coola.summary.polars",
     "PolarsLazyFrameSummarizer": "coola.summary.polars",
     "PolarsSeriesSummarizer": "coola.summary.polars",
+    "PydanticModelSummarizer": "coola.summary.pydantic",
     "PyarrowArraySummarizer": "coola.summary.pyarrow",
     "PyarrowTableSummarizer": "coola.summary.pyarrow",
     "TensorSummarizer": "coola.summary.torch",

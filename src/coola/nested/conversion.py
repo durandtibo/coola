@@ -115,6 +115,15 @@ def convert_to_jsonable(data: Any) -> Any:
     Sets are converted to sorted lists. Use ``to_jsonable`` directly if
     the data is a single, non-nested object.
 
+    The contract is "accepted by the Python ``json`` module", not
+    "strict JSON": the keys of the dictionaries are not converted
+    (``json.dumps`` raises a ``TypeError`` for a key such as a tuple,
+    and turns an ``int`` key into a string), and ``NaN`` and infinite
+    floats are kept (``json.dumps(..., allow_nan=False)`` raises a
+    ``ValueError``). ``coola.utils.conversion.to_jsonable`` converts one
+    object and leaves the containers unchanged; this function applies
+    it to every object of a nested structure.
+
     Args:
         data: The nested data structure to convert.
 
