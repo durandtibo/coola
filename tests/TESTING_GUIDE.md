@@ -44,8 +44,8 @@ tests/
 - **Property tests**: Check properties that must hold for any generated input (they need the
   `property` dependency group)
 - **Benchmarks**: Measure the performance (`inv test.benchmark`). The import time of
-  `coola` and of each subpackage is measured in a fresh interpreter (`inv test.benchmark-import`). The nightly
-  `Benchmark` workflow runs them and fails if a benchmark is more than 50% slower than in the previous run
+  `coola` and of each subpackage is measured in a fresh interpreter
+  (`inv test.benchmark-import`). The nightly `Benchmark` workflow runs them and fails if a benchmark is more than 50% slower than in the previous run
 - **Doctests**: The examples of the docstrings and of the Markdown files are tests
   (`inv test.doctest`)
 - **CUDA tests**: Marked with `cuda_available`; they are skipped without a GPU
