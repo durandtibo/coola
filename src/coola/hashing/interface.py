@@ -97,6 +97,16 @@ def hash_object(
     the order of its keys matters, so two ``OrderedDict`` with the same
     items in a different order hash differently.
 
+    Note:
+        The hash of a dataclass, a pydantic model, an enum member or an
+        object with a ``hash`` method includes the module and the
+        qualified name of its class. The hash changes when the class is
+        renamed or moved to another module, and a class defined in a
+        script run as ``__main__`` hashes differently from the same
+        class imported. Do not persist these hashes (or the IDs derived
+        from them, such as ``generate_stable_uuid5``) across such a
+        change.
+
     The options must be passed by keyword. Passing ``registry``,
     ``length`` or ``ignore_unhashable`` as positional arguments is
     deprecated and emits a ``DeprecationWarning``: it was easy to write
