@@ -29,7 +29,7 @@ jobs:
     needs: get-matrix
     uses: ./.github/workflows/nightly-test-package.yaml
     with:
-      install-cmd: 'uv pip install "coola[all]"'
+      install-cmd: 'uv pip install "coola[all]"' # "all" installs everything
       test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}
 
   stable-extras:
@@ -49,7 +49,7 @@ jobs:
     needs: get-matrix
     uses: ./.github/workflows/nightly-test-package.yaml
     with:
-      install-cmd: 'uv pip install --pre "coola[all]"'
+      install-cmd: 'uv pip install --pre "coola[all]"' # "all" installs everything
       test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}
 
   latest-extras:

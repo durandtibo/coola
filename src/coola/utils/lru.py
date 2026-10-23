@@ -86,6 +86,12 @@ class LRUCache(Generic[K, V]):
         r"""Get the value associated with ``key`` and mark it as most-
         recently-used.
 
+        Args:
+            key: The key to look up.
+
+        Returns:
+            The value associated with ``key``.
+
         Raises:
             KeyError: if ``key`` is not in the cache.
         """
@@ -95,7 +101,12 @@ class LRUCache(Generic[K, V]):
     def __setitem__(self, key: K, value: V) -> None:
         r"""Set ``value`` for ``key``, marking it as most-recently-used,
         and evict the least-recently-used entry if the cache is now over
-        capacity."""
+        capacity.
+
+        Args:
+            key: The key to set.
+            value: The value to associate with ``key``.
+        """
         if key in self._data:
             self._data.move_to_end(key)
         self._data[key] = value

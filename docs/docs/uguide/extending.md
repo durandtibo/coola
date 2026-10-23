@@ -2,7 +2,7 @@
 
 :book: This tutorial walks through teaching `coola` about one custom class by registering an
 **equality tester**, a **summarizer**, and a **hasher**. Each one is registered in the default
-registry of its package, so the top-level functions (`objects_are_equal`, `summary`,
+registry of its package, so the top-level functions (`objects_are_equal`, `summarize`,
 `hash_object`) pick it up automatically.
 
 **Prerequisites:** You'll need to know a bit of Python.

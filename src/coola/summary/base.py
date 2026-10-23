@@ -49,7 +49,7 @@ class BaseSummarizer(ABC, Generic[T]):
     specialize for specific data types while maintaining type safety.
 
     Notes:
-        Concrete implementations must override the ``summary`` method to define
+        Concrete implementations must override the ``summarize`` method to define
         how data should be formatted and displayed.
 
         The depth mechanism allows for progressive disclosure of nested structures,

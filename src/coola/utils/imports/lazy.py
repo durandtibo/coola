@@ -139,6 +139,8 @@ def lazy_exports(
 
     Returns:
         The ``__getattr__`` and ``__dir__`` functions of the package.
+        The returned ``__getattr__`` raises an ``AttributeError`` if the
+        name is not in ``exports``.
 
     Example:
         ```pycon
