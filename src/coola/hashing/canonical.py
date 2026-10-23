@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING
 from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_tagged
+from coola.utils.integer import int_repr
 
 if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
@@ -83,7 +84,9 @@ class FractionHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Fraction
         length: int = 64,
         ignore_unhashable: bool = False,  # noqa: ARG002
     ) -> str:
-        return hash_tagged("Fraction", f"{data.numerator}/{data.denominator}", length=length)
+        return hash_tagged(
+            "Fraction", f"{int_repr(data.numerator)}/{int_repr(data.denominator)}", length=length
+        )
 
 
 class RangeHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[range]):
@@ -117,7 +120,7 @@ class RangeHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[range]):
         if size == 0:
             payload = "0"
         elif size == 1:
-            payload = f"1:{data[0]}"
+            payload = f"1:{int_repr(data[0])}"
         else:
-            payload = f"{size}:{data[0]}:{data.step}"
+            payload = f"{size}:{int_repr(data[0])}:{int_repr(data.step)}"
         return hash_tagged("range", payload, length=length)

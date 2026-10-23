@@ -153,3 +153,19 @@ def test_range_hasher_huge_range_is_fast(registry: HasherRegistry) -> None:
 
 def test_range_hasher_length(registry: HasherRegistry) -> None:
     assert len(RangeHasher().hash(range(3), registry, length=8)) == 8
+
+
+def test_fraction_hasher_hash_huge_numerator() -> None:
+    hasher = FractionHasher()
+    registry = HasherRegistry()
+    assert hasher.hash(Fraction(10**5000, 3), registry) != hasher.hash(
+        Fraction(10**5000 + 1, 3), registry
+    )
+
+
+def test_range_hasher_hash_huge_bounds() -> None:
+    hasher = RangeHasher()
+    registry = HasherRegistry()
+    assert hasher.hash(range(10**5000, 10**5000 + 3), registry) != hasher.hash(
+        range(10**5000 + 1, 10**5000 + 4), registry
+    )
