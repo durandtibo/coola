@@ -14,19 +14,27 @@ def test_int_repr_small(value: int) -> None:
 
 def test_int_repr_above_the_conversion_limit() -> None:
     assert int_repr(10**5000) == f"0x{10**5000:x}"
+
+
+def test_int_repr_above_the_conversion_limit_negative() -> None:
     assert int_repr(-(10**5000)) == f"0x{-(10**5000):x}"
 
 
+def test_int_repr_below_the_conversion_limit() -> None:
+    value = 10 ** (sys.get_int_max_str_digits() - 1)
+    assert int_repr(value) == repr(value)
+
+
 def test_int_repr_at_the_conversion_limit() -> None:
-    limit = sys.get_int_max_str_digits()
-    below = 10 ** (limit - 1)
-    assert int_repr(below) == repr(below)
-    assert int_repr(10**limit).startswith("0x")
+    assert int_repr(10 ** sys.get_int_max_str_digits()).startswith("0x")
 
 
-def test_int_repr_bool_and_int_subclass() -> None:
+def test_int_repr_bool() -> None:
+    assert int_repr(True) == "1"
+
+
+def test_int_repr_int_subclass() -> None:
     class MyInt(int):
         pass
 
-    assert int_repr(True) == "1"
     assert int_repr(MyInt(5)) == "5"

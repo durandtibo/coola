@@ -205,7 +205,18 @@ def test_repr_hasher_numpy_scalar_without_builtin_equivalent(registry: HasherReg
 
 def test_repr_hasher_hash_int_above_str_conversion_limit(registry: HasherRegistry) -> None:
     hasher = ReprHasher()
-    value = 10**5000
-    assert hasher.hash(value, registry) == hasher.hash(value, registry)
-    assert hasher.hash(value, registry) != hasher.hash(value + 1, registry)
-    assert hasher.hash(-value, registry) != hasher.hash(value, registry)
+    assert hasher.hash(10**5000, registry) == hasher.hash(10**5000, registry)
+
+
+def test_repr_hasher_hash_int_above_str_conversion_limit_different_values(
+    registry: HasherRegistry,
+) -> None:
+    hasher = ReprHasher()
+    assert hasher.hash(10**5000, registry) != hasher.hash(10**5000 + 1, registry)
+
+
+def test_repr_hasher_hash_int_above_str_conversion_limit_negative(
+    registry: HasherRegistry,
+) -> None:
+    hasher = ReprHasher()
+    assert hasher.hash(-(10**5000), registry) != hasher.hash(10**5000, registry)
