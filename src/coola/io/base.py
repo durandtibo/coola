@@ -170,6 +170,21 @@ def _acquire_file_lock(
             return lock_path
 
 
+def _make_parent_dir(path: Path) -> None:
+    r"""Create the parent directory of ``path``.
+
+    Raises:
+        NotADirectoryError: if the parent exists and is not a directory.
+    """
+    try:
+        path.parent.mkdir(exist_ok=True, parents=True)
+    except FileExistsError as error:
+        if path.parent.is_dir():
+            raise
+        msg = f"the parent of path ({path}) exists and is not a directory"
+        raise NotADirectoryError(msg) from error
+
+
 def _tmp_path(path: Path) -> Path:
     r"""Return the path of the temporary file used to write ``path``.
 
@@ -509,13 +524,7 @@ class BaseFileSaver(BaseSaver[T]):
         if exist_ok and path.is_symlink():
             # Overwrite the file that the link points to, not the link itself.
             path = path.resolve()
-        try:
-            path.parent.mkdir(exist_ok=True, parents=True)
-        except FileExistsError as error:
-            if path.parent.is_dir():
-                raise
-            msg = f"the parent of path ({path}) exists and is not a directory"
-            raise NotADirectoryError(msg) from error
+        _make_parent_dir(path)
 
         # Serialize concurrent ``save`` calls targeting the same path, both
         # in-process and across processes (see the note in the docstring):
