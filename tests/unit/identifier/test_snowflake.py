@@ -199,12 +199,21 @@ def test_snowflake_id_generator_generate_timestamp_ms_min_is_valid() -> None:
 
 def test_snowflake_id_generator_generate_explicit_timestamp_ms_keeps_the_state() -> None:
     generator = SnowflakeIdGenerator()
-    future_ms = time.time_ns() // 1_000_000 + 10 * 86_400_000
-    generator.generate(timestamp_ms=future_ms)
+    generator.generate(timestamp_ms=time.time_ns() // 1_000_000 + 10 * 86_400_000)
     assert generator._last_timestamp_ms == -1
-    # The clock is not considered as moved backward afterwards.
+
+
+def test_snowflake_id_generator_generate_after_a_future_explicit_timestamp_ms() -> None:
+    generator = SnowflakeIdGenerator()
+    generator.generate(timestamp_ms=time.time_ns() // 1_000_000 + 10 * 86_400_000)
     assert generator.generate() > 0
-    generator.generate(timestamp_ms=1_750_000_000_000)
+
+
+def test_snowflake_id_generator_generate_explicit_timestamp_ms_in_the_past() -> None:
+    generator = SnowflakeIdGenerator()
+    generator.generate()
+    snowflake_id = generator.generate(timestamp_ms=1_750_000_000_000)
+    assert _decode(snowflake_id)[0] == 1_750_000_000_000
 
 
 def test_snowflake_id_generator_generate_clock_moved_backward_raises() -> None:
