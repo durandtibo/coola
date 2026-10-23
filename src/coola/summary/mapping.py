@@ -4,6 +4,7 @@ from __future__ import annotations
 
 __all__ = ["MappingSummarizer"]
 
+from collections import Counter, OrderedDict
 from collections.abc import Mapping
 from itertools import islice
 from typing import TYPE_CHECKING, Any
@@ -46,8 +47,14 @@ class MappingSummarizer(BaseCollectionSummarizer[Mapping[Any, Any]]):
         ```
     """
 
-    def _get_preview(self, data: Mapping[Any, Any], limit: int) -> dict[Any, Any]:
-        return dict(islice(data.items(), limit))
+    def _get_preview(self, data: Mapping[Any, Any], limit: int) -> Mapping[Any, Any]:
+        items = dict(islice(data.items(), limit))
+        # The type is kept for the common mappings, any other mapping is shown as a dict.
+        if type(data) is OrderedDict:
+            return OrderedDict(items)
+        if type(data) is Counter:
+            return Counter(items)
+        return items
 
     def _format_items(
         self,
