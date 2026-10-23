@@ -182,3 +182,64 @@ def test_datetime_hasher_hash_aware_datetime_near_limits(
 ) -> None:
     hasher = DatetimeHasher()
     assert hasher.hash(value, registry=registry) == hasher.hash(value, registry=registry)
+
+
+def test_datetime_near_limits_cannot_be_converted_to_utc() -> None:
+    # Guards the premise of the tests below: converting to UTC overflows.
+    with pytest.raises(OverflowError):
+        datetime.min.replace(tzinfo=timezone(timedelta(hours=1))).astimezone(UTC)
+    with pytest.raises(OverflowError):
+        datetime.max.replace(tzinfo=timezone(timedelta(hours=-1))).astimezone(UTC)
+
+
+def test_datetime_hasher_hash_aware_datetime_near_limits_different_values(
+    registry: HasherRegistry,
+) -> None:
+    hasher = DatetimeHasher()
+    plus_one = timezone(timedelta(hours=1))
+    first = datetime.min.replace(tzinfo=plus_one)
+    second = first + timedelta(microseconds=1)
+    assert hasher.hash(first, registry=registry) != hasher.hash(second, registry=registry)
+
+
+def test_datetime_hasher_hash_aware_datetime_near_limits_different_offsets(
+    registry: HasherRegistry,
+) -> None:
+    hasher = DatetimeHasher()
+    first = datetime.min.replace(tzinfo=timezone(timedelta(hours=1)))
+    second = datetime.min.replace(tzinfo=timezone(timedelta(hours=2)))
+    assert hasher.hash(first, registry=registry) != hasher.hash(second, registry=registry)
+
+
+def test_datetime_hasher_hash_aware_datetime_near_limits_differs_from_naive(
+    registry: HasherRegistry,
+) -> None:
+    hasher = DatetimeHasher()
+    aware = datetime.max.replace(tzinfo=timezone(timedelta(hours=-1)))
+    assert hasher.hash(aware, registry=registry) != hasher.hash(
+        aware.replace(tzinfo=None), registry=registry
+    )
+
+
+@pytest.mark.parametrize("length", [2, 16, 128])
+def test_datetime_hasher_hash_aware_datetime_near_limits_length(
+    length: int, registry: HasherRegistry
+) -> None:
+    value = datetime.min.replace(tzinfo=timezone(timedelta(hours=1)))
+    assert len(DatetimeHasher().hash(value, registry=registry, length=length)) == length
+
+
+def test_default_registry_hashes_aware_datetime_near_limits() -> None:
+    registry = get_default_registry()
+    value = datetime.max.replace(tzinfo=timezone(timedelta(hours=-1)))
+    assert registry.hash(value) == registry.hash(value)
+    assert registry.hash([value, {"k": value}])
+
+
+def test_datetime_hasher_hash_equal_instants_away_from_limits_still_equal(
+    registry: HasherRegistry,
+) -> None:
+    hasher = DatetimeHasher()
+    first = datetime(2024, 1, 1, 12, tzinfo=UTC)
+    second = datetime(2024, 1, 1, 13, tzinfo=timezone(timedelta(hours=1)))
+    assert hasher.hash(first, registry=registry) == hasher.hash(second, registry=registry)
