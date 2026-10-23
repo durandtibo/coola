@@ -100,20 +100,31 @@ def test_mapping_transformer_transform_preserves_function_behavior(
     )
 
 
-def test_mapping_transformer_transform_with_stateful_function(
-    registry: TransformerRegistry,
-) -> None:
+def _make_stateful_func() -> Callable[[Any], Any]:
     counter = {"count": 0}
 
     def stateful_func(x: Any) -> Any:
         counter["count"] += 1
         return x * counter["count"]
 
+    return stateful_func
+
+
+def test_mapping_transformer_transform_with_stateful_function(
+    registry: TransformerRegistry,
+) -> None:
     transformer = MappingTransformer()
-    assert transformer.transform({"a": 1, "b": 2}, func=stateful_func, registry=registry) == {
-        "a": 1,
-        "b": 4,
-    }
+    assert transformer.transform(
+        {"a": 1, "b": 2}, func=_make_stateful_func(), registry=registry
+    ) == {"a": 1, "b": 4}
+
+
+def test_mapping_transformer_transform_with_stateful_function_second_call(
+    registry: TransformerRegistry,
+) -> None:
+    transformer = MappingTransformer()
+    stateful_func = _make_stateful_func()
+    transformer.transform({"a": 1, "b": 2}, func=stateful_func, registry=registry)
     assert transformer.transform({"a": 1, "b": 2}, func=stateful_func, registry=registry) == {
         "a": 3,
         "b": 8,
@@ -131,10 +142,24 @@ def test_mapping_transformer_transform_with_closure(registry: TransformerRegistr
     ) == {"a": 3, "b": 6}
 
 
-def test_mapping_transformer_transform_defaultdict(registry: TransformerRegistry) -> None:
+def test_mapping_transformer_transform_defaultdict_type(registry: TransformerRegistry) -> None:
     result = MappingTransformer().transform(
         defaultdict(list, {"a": 1}), func=lambda x: x + 1, registry=registry
     )
     assert type(result) is defaultdict
+
+
+def test_mapping_transformer_transform_defaultdict_default_factory(
+    registry: TransformerRegistry,
+) -> None:
+    result = MappingTransformer().transform(
+        defaultdict(list, {"a": 1}), func=lambda x: x + 1, registry=registry
+    )
     assert result.default_factory is list
+
+
+def test_mapping_transformer_transform_defaultdict_values(registry: TransformerRegistry) -> None:
+    result = MappingTransformer().transform(
+        defaultdict(list, {"a": 1}), func=lambda x: x + 1, registry=registry
+    )
     assert result == {"a": 2}

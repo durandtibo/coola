@@ -39,9 +39,18 @@ def test_torch_reducer_str() -> None:
     "values",
     [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2), [2], [2, -1, -2, -3], torch.tensor([-2, -1, 0, 1, 2])],
 )
-def test_torch_reducer_max_int(values: Sequence[int | float]) -> None:
+def test_torch_reducer_max_int_type(values: Sequence[int | float]) -> None:
     val = TorchReducer().max(values)
     assert isinstance(val, int)
+
+
+@torch_available
+@pytest.mark.parametrize(
+    "values",
+    [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2), [2], [2, -1, -2, -3], torch.tensor([-2, -1, 0, 1, 2])],
+)
+def test_torch_reducer_max_int_value(values: Sequence[int | float]) -> None:
+    val = TorchReducer().max(values)
     assert val == 2
 
 
@@ -56,9 +65,24 @@ def test_torch_reducer_max_int(values: Sequence[int | float]) -> None:
         torch.tensor([-2.5, -1.5, 0.5, 1.5, 2.5]),
     ],
 )
-def test_torch_reducer_max_float(values: Sequence[int | float]) -> None:
+def test_torch_reducer_max_float_type(values: Sequence[int | float]) -> None:
     val = TorchReducer().max(values)
     assert isinstance(val, float)
+
+
+@torch_available
+@pytest.mark.parametrize(
+    "values",
+    [
+        [-2.5, -1.5, 0.5, 1.5, 2.5],
+        (-2.5, -1.5, 0.5, 1.5, 2.5),
+        [2.5],
+        [2.5, -1.5, -2, -3],
+        torch.tensor([-2.5, -1.5, 0.5, 1.5, 2.5]),
+    ],
+)
+def test_torch_reducer_max_float_value(values: Sequence[int | float]) -> None:
+    val = TorchReducer().max(values)
     assert val == 2.5
 
 
@@ -75,9 +99,17 @@ def test_torch_reducer_max_empty(values: Sequence[int | float]) -> None:
 @pytest.mark.parametrize(
     "values", [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2), [0], torch.tensor([-2, -1, 0, 1, 2])]
 )
-def test_torch_reducer_mean_int(values: Sequence[int | float]) -> None:
+def test_torch_reducer_mean_int_type(values: Sequence[int | float]) -> None:
     val = TorchReducer().mean(values)
     assert isinstance(val, float)
+
+
+@torch_available
+@pytest.mark.parametrize(
+    "values", [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2), [0], torch.tensor([-2, -1, 0, 1, 2])]
+)
+def test_torch_reducer_mean_int_value(values: Sequence[int | float]) -> None:
+    val = TorchReducer().mean(values)
     assert val == 0.0
 
 
@@ -91,9 +123,23 @@ def test_torch_reducer_mean_int(values: Sequence[int | float]) -> None:
         torch.tensor([-1.5, -0.5, 0.5, 1.5, 2.5]),
     ],
 )
-def test_torch_reducer_mean_float(values: Sequence[int | float]) -> None:
+def test_torch_reducer_mean_float_type(values: Sequence[int | float]) -> None:
     val = TorchReducer().mean(values)
     assert isinstance(val, float)
+
+
+@torch_available
+@pytest.mark.parametrize(
+    "values",
+    [
+        [-1.5, -0.5, 0.5, 1.5, 2.5],
+        (-1.5, -0.5, 0.5, 1.5, 2.5),
+        [0.5],
+        torch.tensor([-1.5, -0.5, 0.5, 1.5, 2.5]),
+    ],
+)
+def test_torch_reducer_mean_float_value(values: Sequence[int | float]) -> None:
+    val = TorchReducer().mean(values)
     assert val == 0.5
 
 
@@ -110,9 +156,17 @@ def test_torch_reducer_mean_empty(values: Sequence[int | float]) -> None:
 @pytest.mark.parametrize(
     "values", [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2), [0], torch.tensor([-2, -1, 0, 1, 2])]
 )
-def test_torch_reducer_median_int(values: Sequence[int | float]) -> None:
+def test_torch_reducer_median_int_type(values: Sequence[int | float]) -> None:
     val = TorchReducer().median(values)
     assert isinstance(val, int)
+
+
+@torch_available
+@pytest.mark.parametrize(
+    "values", [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2), [0], torch.tensor([-2, -1, 0, 1, 2])]
+)
+def test_torch_reducer_median_int_value(values: Sequence[int | float]) -> None:
+    val = TorchReducer().median(values)
     assert val == 0
 
 
@@ -126,9 +180,23 @@ def test_torch_reducer_median_int(values: Sequence[int | float]) -> None:
         torch.tensor([-1.5, -0.5, 0.5, 1.5, 2.5]),
     ],
 )
-def test_torch_reducer_median_float(values: Sequence[int | float]) -> None:
+def test_torch_reducer_median_float_type(values: Sequence[int | float]) -> None:
     val = TorchReducer().median(values)
     assert isinstance(val, float)
+
+
+@torch_available
+@pytest.mark.parametrize(
+    "values",
+    [
+        [-1.5, -0.5, 0.5, 1.5, 2.5],
+        (-1.5, -0.5, 0.5, 1.5, 2.5),
+        [0.5],
+        torch.tensor([-1.5, -0.5, 0.5, 1.5, 2.5]),
+    ],
+)
+def test_torch_reducer_median_float_value(values: Sequence[int | float]) -> None:
+    val = TorchReducer().median(values)
     assert val == 0.5
 
 
@@ -146,9 +214,18 @@ def test_torch_reducer_median_empty(values: Sequence[int | float]) -> None:
     "values",
     [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2), [-2], [-2, 1, 2, 3], torch.tensor([-2, -1, 0, 1, 2])],
 )
-def test_torch_reducer_min_int(values: Sequence[int | float]) -> None:
+def test_torch_reducer_min_int_type(values: Sequence[int | float]) -> None:
     val = TorchReducer().min(values)
     assert isinstance(val, int)
+
+
+@torch_available
+@pytest.mark.parametrize(
+    "values",
+    [[-2, -1, 0, 1, 2], (-2, -1, 0, 1, 2), [-2], [-2, 1, 2, 3], torch.tensor([-2, -1, 0, 1, 2])],
+)
+def test_torch_reducer_min_int_value(values: Sequence[int | float]) -> None:
+    val = TorchReducer().min(values)
     assert val == -2
 
 
@@ -163,9 +240,24 @@ def test_torch_reducer_min_int(values: Sequence[int | float]) -> None:
         torch.tensor([-2.5, -1.5, 0.5, 1.5, 2.5]),
     ],
 )
-def test_torch_reducer_min_float(values: Sequence[int | float]) -> None:
+def test_torch_reducer_min_float_type(values: Sequence[int | float]) -> None:
     val = TorchReducer().min(values)
     assert isinstance(val, float)
+
+
+@torch_available
+@pytest.mark.parametrize(
+    "values",
+    [
+        [-2.5, -1.5, 0.5, 1.5, 2.5],
+        (-2.5, -1.5, 0.5, 1.5, 2.5),
+        [-2.5],
+        [-2.5, 1.5, 2, 3],
+        torch.tensor([-2.5, -1.5, 0.5, 1.5, 2.5]),
+    ],
+)
+def test_torch_reducer_min_float_value(values: Sequence[int | float]) -> None:
+    val = TorchReducer().min(values)
     assert val == -2.5
 
 
@@ -313,12 +405,30 @@ def test_torch_reducer_median_odd() -> None:
 
 
 @torch_available
-def test_torch_reducer_matches_native_reducer() -> None:
+def test_torch_reducer_matches_native_reducer_median() -> None:
     values = [0.1, 0.7, 0.3, 2.5, 1.1, 9.9]
     torch_reducer, native = TorchReducer(), NativeReducer()
     assert torch_reducer.median(values) == pytest.approx(native.median(values))
+
+
+@torch_available
+def test_torch_reducer_matches_native_reducer_mean() -> None:
+    values = [0.1, 0.7, 0.3, 2.5, 1.1, 9.9]
+    torch_reducer, native = TorchReducer(), NativeReducer()
     assert torch_reducer.mean(values) == pytest.approx(native.mean(values), rel=1e-12)
+
+
+@torch_available
+def test_torch_reducer_matches_native_reducer_std() -> None:
+    values = [0.1, 0.7, 0.3, 2.5, 1.1, 9.9]
+    torch_reducer, native = TorchReducer(), NativeReducer()
     assert torch_reducer.std(values) == pytest.approx(native.std(values), rel=1e-12)
+
+
+@torch_available
+def test_torch_reducer_matches_native_reducer_quantile() -> None:
+    values = [0.1, 0.7, 0.3, 2.5, 1.1, 9.9]
+    torch_reducer, native = TorchReducer(), NativeReducer()
     assert torch_reducer.quantile(values, [0.1, 0.5]) == pytest.approx(
         native.quantile(values, [0.1, 0.5]), rel=1e-12
     )
@@ -343,10 +453,20 @@ def test_to_float_tensor_dtype(values: object, dtype: str) -> None:
 
 
 @torch_available
-def test_torch_reducer_float32_input_keeps_float32_precision() -> None:
+def test_torch_reducer_float32_input_keeps_float32_precision_mean() -> None:
     values = torch.tensor([0.1, 0.2, 0.3, 0.4], dtype=torch.float32)
     assert TorchReducer().mean(values) == values.mean().item()
+
+
+@torch_available
+def test_torch_reducer_float32_input_keeps_float32_precision_std() -> None:
+    values = torch.tensor([0.1, 0.2, 0.3, 0.4], dtype=torch.float32)
     assert TorchReducer().std(values) == values.std().item()
+
+
+@torch_available
+def test_torch_reducer_float32_input_keeps_float32_precision_median() -> None:
+    values = torch.tensor([0.1, 0.2, 0.3, 0.4], dtype=torch.float32)
     assert TorchReducer().median(values) == pytest.approx(0.25)
 
 

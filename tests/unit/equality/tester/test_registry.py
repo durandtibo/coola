@@ -38,13 +38,19 @@ def test_equality_tester_registry_init_empty() -> None:
 
 
 def test_equality_tester_registry_init_with_registry() -> None:
-    tester = SequenceEqualityTester()
-    initial_registry: dict[type, BaseEqualityTester[Any]] = {list: tester}
-    registry = EqualityTesterRegistry(initial_registry)
-
+    registry = EqualityTesterRegistry({list: SequenceEqualityTester()})
     assert list in registry._state
+
+
+def test_equality_tester_registry_init_with_registry_keeps_the_tester() -> None:
+    tester = SequenceEqualityTester()
+    registry = EqualityTesterRegistry({list: tester})
     assert registry._state[list] is tester
-    # Verify it's a copy
+
+
+def test_equality_tester_registry_init_with_registry_copies_the_registry() -> None:
+    initial_registry: dict[type, BaseEqualityTester[Any]] = {list: SequenceEqualityTester()}
+    registry = EqualityTesterRegistry(initial_registry)
     initial_registry[tuple] = DefaultEqualityTester()
     assert tuple not in registry._state
 
@@ -59,9 +65,14 @@ def test_equality_tester_registry_str() -> None:
 
 def test_equality_tester_registry_register_new_type() -> None:
     registry = EqualityTesterRegistry()
+    registry.register(list, SequenceEqualityTester())
+    assert registry.has_equality_tester(list)
+
+
+def test_equality_tester_registry_register_new_type_keeps_the_tester() -> None:
+    registry = EqualityTesterRegistry()
     tester = SequenceEqualityTester()
     registry.register(list, tester)
-    assert registry.has_equality_tester(list)
     assert registry._state[list] is tester
 
 
@@ -85,7 +96,7 @@ def test_equality_tester_registry_register_existing_type_with_exist_ok() -> None
     assert registry._state[list] is tester2
 
 
-def test_equality_tester_registry_register_many() -> None:
+def _register_many() -> EqualityTesterRegistry:
     registry = EqualityTesterRegistry()
     registry.register_many(
         {
@@ -94,9 +105,12 @@ def test_equality_tester_registry_register_many() -> None:
             set: DefaultEqualityTester(),
         }
     )
-    assert registry.has_equality_tester(list)
-    assert registry.has_equality_tester(dict)
-    assert registry.has_equality_tester(set)
+    return registry
+
+
+@pytest.mark.parametrize("dtype", [list, dict, set])
+def test_equality_tester_registry_register_many(dtype: type) -> None:
+    assert _register_many().has_equality_tester(dtype)
 
 
 def test_equality_tester_registry_register_many_with_existing_type() -> None:
@@ -180,12 +194,15 @@ def test_equality_tester_registry_objects_are_equal_false(config: EqualityConfig
 
 def test_equality_tester_registry_registry_isolation() -> None:
     tester1 = SequenceEqualityTester()
-    tester2 = MappingEqualityTester()
-
     registry1 = EqualityTesterRegistry({list: tester1})
-    registry2 = EqualityTesterRegistry({list: tester2})
-
+    EqualityTesterRegistry({list: MappingEqualityTester()})
     assert registry1._state[list] is tester1
+
+
+def test_equality_tester_registry_registry_isolation_other_registry() -> None:
+    tester2 = MappingEqualityTester()
+    EqualityTesterRegistry({list: SequenceEqualityTester()})
+    registry2 = EqualityTesterRegistry({list: tester2})
     assert registry2._state[list] is tester2
 
 

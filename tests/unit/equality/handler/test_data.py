@@ -127,16 +127,23 @@ def test_same_data_handler_handle_false(
 
 
 @numpy_available
-def test_same_data_handler_handle_false_show_difference(
+def test_same_data_handler_handle_false_show_difference(config: EqualityConfig) -> None:
+    config.show_difference = True
+    assert not SameDataHandler().handle(
+        actual=np.ones(shape=(2, 3)), expected=np.zeros(shape=(2, 3)), config=config
+    )
+
+
+@numpy_available
+def test_same_data_handler_handle_false_show_difference_logs(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
-    handler = SameDataHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
+        SameDataHandler().handle(
             actual=np.ones(shape=(2, 3)), expected=np.zeros(shape=(2, 3)), config=config
         )
-        assert caplog.messages[-1].startswith("objects have different data:")
+    assert caplog.messages[-1].startswith("objects have different data:")
 
 
 @numpy_available
@@ -150,6 +157,11 @@ def test_same_data_handler_handle_without_next_handler(config: EqualityConfig) -
 def test_same_data_handler_handle_tensor(config: EqualityConfig) -> None:
     handler = SameDataHandler(next_handler=TrueHandler())
     assert handler.handle(torch.ones(2, 3), torch.ones(2, 3), config)
+
+
+@torch_available
+def test_same_data_handler_handle_tensor_false(config: EqualityConfig) -> None:
+    handler = SameDataHandler(next_handler=TrueHandler())
     assert not handler.handle(torch.ones(2, 3), torch.zeros(2, 3), config)
 
 

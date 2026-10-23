@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 from unittest.mock import patch
 
 import pytest
@@ -58,24 +59,55 @@ def test_torch_random_manager__hash__different_type_child() -> None:
 
 @torch_available
 @patch("torch.backends.mps.is_available", lambda: False)
-def test_torch_random_manager_get_rng_state() -> None:
+def test_torch_random_manager_get_rng_state_is_a_dict() -> None:
     rng = TorchRandomManager()
     state = rng.get_rng_state()
     assert isinstance(state, dict)
+
+
+@torch_available
+@patch("torch.backends.mps.is_available", lambda: False)
+def test_torch_random_manager_get_rng_state_length() -> None:
+    rng = TorchRandomManager()
+    state = rng.get_rng_state()
     assert len(state) == 2
+
+
+@torch_available
+@patch("torch.backends.mps.is_available", lambda: False)
+def test_torch_random_manager_get_rng_state_torch_state() -> None:
+    rng = TorchRandomManager()
+    state = rng.get_rng_state()
     assert torch.is_tensor(state["torch"])
+
+
+@torch_available
+@patch("torch.backends.mps.is_available", lambda: False)
+def test_torch_random_manager_get_rng_state_cuda_state() -> None:
+    rng = TorchRandomManager()
+    state = rng.get_rng_state()
     assert isinstance(state["torch.cuda"], list)
 
 
 @torch_available
-def test_torch_random_manager_manual_seed() -> None:
+def test_torch_random_manager_manual_seed_same_seed_same_values() -> None:
+    rng = TorchRandomManager()
+    rng.manual_seed(42)
+    x1 = torch.randn(4, 6)
+    torch.randn(4, 6)
+    rng.manual_seed(42)
+    x3 = torch.randn(4, 6)
+    assert x1.equal(x3)
+
+
+@torch_available
+def test_torch_random_manager_manual_seed_different_values() -> None:
     rng = TorchRandomManager()
     rng.manual_seed(42)
     x1 = torch.randn(4, 6)
     x2 = torch.randn(4, 6)
     rng.manual_seed(42)
-    x3 = torch.randn(4, 6)
-    assert x1.equal(x3)
+    torch.randn(4, 6)
     assert not x1.equal(x2)
 
 
@@ -147,14 +179,24 @@ def test_torch_random_manager_set_rng_state_wrong_number_of_cuda_devices_raises(
 
 
 @torch_available
-def test_torch_random_manager_set_rng_state() -> None:
+def test_torch_random_manager_set_rng_state_restored_values() -> None:
+    rng = TorchRandomManager()
+    state = rng.get_rng_state()
+    x1 = torch.randn(4, 6)
+    torch.randn(4, 6)
+    rng.set_rng_state(state)
+    x3 = torch.randn(4, 6)
+    assert x1.equal(x3)
+
+
+@torch_available
+def test_torch_random_manager_set_rng_state_different_values() -> None:
     rng = TorchRandomManager()
     state = rng.get_rng_state()
     x1 = torch.randn(4, 6)
     x2 = torch.randn(4, 6)
     rng.set_rng_state(state)
-    x3 = torch.randn(4, 6)
-    assert x1.equal(x3)
+    torch.randn(4, 6)
     assert not x1.equal(x2)
 
 
@@ -180,9 +222,17 @@ def test_torch_seed_restore_random_seed() -> None:
 
 
 @torch_available
+def test_torch_seed_with_exception_raises_the_error() -> None:
+    with pytest.raises(RuntimeError, match=r"Exception"), torch_seed(42):  # noqa: PT012
+        torch.randn(4, 6)
+        msg = "Exception"
+        raise RuntimeError(msg)
+
+
+@torch_available
 def test_torch_seed_restore_random_seed_with_exception() -> None:
     state = torch.get_rng_state()
-    with pytest.raises(RuntimeError, match=r"Exception"), torch_seed(42):  # noqa: PT012
+    with contextlib.suppress(RuntimeError), torch_seed(42):
         torch.randn(4, 6)
         msg = "Exception"
         raise RuntimeError(msg)
@@ -208,12 +258,19 @@ def test_torch_seed_different_random_seeds() -> None:
 
 
 @torch_available
-def test_torch_random_manager_seed() -> None:
+def test_torch_random_manager_seed_restores_the_state() -> None:
     manager = TorchRandomManager()
     state = torch.get_rng_state()
     with manager.seed(42):
-        first = torch.rand(3)
+        torch.rand(3)
     assert objects_are_equal(state, torch.get_rng_state())
+
+
+@torch_available
+def test_torch_random_manager_seed_is_reproducible() -> None:
+    manager = TorchRandomManager()
+    with manager.seed(42):
+        first = torch.rand(3)
     with manager.seed(42):
         second = torch.rand(3)
     assert objects_are_equal(first, second)

@@ -43,8 +43,13 @@ def test_summarizer_init_show_data(summarizer_cls: type) -> None:
 
 @pandas_available
 @pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
-def test_summarizer_repr(summarizer_cls: type) -> None:
+def test_summarizer_repr_default(summarizer_cls: type) -> None:
     assert repr(summarizer_cls()) == f"{summarizer_cls.__name__}(show_data=False)"
+
+
+@pandas_available
+@pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
+def test_summarizer_repr_show_data(summarizer_cls: type) -> None:
     assert repr(summarizer_cls(show_data=True)) == f"{summarizer_cls.__name__}(show_data=True)"
 
 
@@ -56,8 +61,13 @@ def test_summarizer_str(summarizer_cls: type) -> None:
 
 @pandas_available
 @pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
-def test_summarizer_equal_true(summarizer_cls: type) -> None:
+def test_summarizer_equal_true_default(summarizer_cls: type) -> None:
     assert summarizer_cls().equal(summarizer_cls())
+
+
+@pandas_available
+@pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
+def test_summarizer_equal_true_show_data(summarizer_cls: type) -> None:
     assert summarizer_cls(show_data=True).equal(summarizer_cls(show_data=True))
 
 
@@ -105,17 +115,36 @@ def test_pandas_dataframe_summarizer_summarize_empty(registry: SummarizerRegistr
 
 
 @pandas_available
-def test_pandas_dataframe_summarizer_summarize_class_name(registry: SummarizerRegistry) -> None:
+def test_pandas_dataframe_summarizer_summarize_class_name_class_prefix(
+    registry: SummarizerRegistry,
+) -> None:
     result = PandasDataFrameSummarizer().summarize(pd.DataFrame({"a": [1]}), registry)
     assert "<class 'pandas." in result
+
+
+@pandas_available
+def test_pandas_dataframe_summarizer_summarize_class_name_class_name(
+    registry: SummarizerRegistry,
+) -> None:
+    result = PandasDataFrameSummarizer().summarize(pd.DataFrame({"a": [1]}), registry)
     assert ".DataFrame'>" in result
 
 
 @pandas_available
-def test_pandas_dataframe_summarizer_summarize_many_columns(registry: SummarizerRegistry) -> None:
+def test_pandas_dataframe_summarizer_summarize_many_columns_shows_the_first_columns(
+    registry: SummarizerRegistry,
+) -> None:
     frame = pd.DataFrame({f"c{i}": [i] for i in range(13)})
     result = PandasDataFrameSummarizer().summarize(frame, registry)
     assert "c9: int64, ... (+3 more)" in result
+
+
+@pandas_available
+def test_pandas_dataframe_summarizer_summarize_many_columns_hides_the_other_columns(
+    registry: SummarizerRegistry,
+) -> None:
+    frame = pd.DataFrame({f"c{i}": [i] for i in range(13)})
+    result = PandasDataFrameSummarizer().summarize(frame, registry)
     assert "c10" not in result
 
 
@@ -133,9 +162,18 @@ def test_pandas_series_summarizer_summarize(registry: SummarizerRegistry) -> Non
 
 
 @pandas_available
-def test_pandas_series_summarizer_summarize_class_name(registry: SummarizerRegistry) -> None:
+def test_pandas_series_summarizer_summarize_class_name_class_prefix(
+    registry: SummarizerRegistry,
+) -> None:
     result = PandasSeriesSummarizer().summarize(pd.Series([1]), registry)
     assert "<class 'pandas." in result
+
+
+@pandas_available
+def test_pandas_series_summarizer_summarize_class_name_class_name(
+    registry: SummarizerRegistry,
+) -> None:
+    result = PandasSeriesSummarizer().summarize(pd.Series([1]), registry)
     assert ".Series'>" in result
 
 

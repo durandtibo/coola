@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock
 
 import pytest
@@ -103,13 +103,18 @@ def test_reducers_min_empty_raises(reducer: BaseReducer, values: Sequence[int | 
         reducer.min(values)
 
 
-def test_reducers_quantile_consistent(reducer: BaseReducer) -> None:
+def test_reducers_quantile_consistent_length(reducer: BaseReducer) -> None:
+    r"""All ``BaseReducer`` implementations must return one value for
+    each quantile."""
+    assert len(reducer.quantile([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], (0.2, 0.5, 0.9))) == 3
+
+
+@pytest.mark.parametrize(("index", "expected"), [(0, 2.0), (1, 5.0), (2, 9.0)])
+def test_reducers_quantile_consistent(reducer: BaseReducer, index: int, expected: float) -> None:
     r"""All ``BaseReducer`` implementations must agree on the
     quantiles."""
     quantiles = reducer.quantile([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], (0.2, 0.5, 0.9))
-    assert len(quantiles) == 3
-    for value, expected in zip(quantiles, [2.0, 5.0, 9.0], strict=True):
-        assert math.isclose(value, expected, abs_tol=1e-6)
+    assert math.isclose(quantiles[index], expected, abs_tol=1e-6)
 
 
 @pytest.mark.parametrize("values", [[], ()])
@@ -278,19 +283,25 @@ def test_reducers_median_odd_length_is_a_value_of_the_sequence(reducer: BaseRedu
     assert reducer.median([9, 1, 5, 3, 7]) == 5
 
 
+@pytest.mark.parametrize("method", ["max", "min", "mean", "median", "std"])
 @pytest.mark.parametrize("values", [[1, 2, 3, 4], [0.5, 1.5, 2.5]])
-def test_reducers_return_python_numbers(reducer: BaseReducer, values: Sequence[float]) -> None:
+def test_reducers_return_python_numbers(
+    reducer: BaseReducer, method: str, values: Sequence[float]
+) -> None:
     r"""All reducers must return plain Python numbers (not NumPy or
     torch scalars) so the results are interchangeable."""
-    for result in (
-        reducer.max(values),
-        reducer.min(values),
-        reducer.mean(values),
-        reducer.median(values),
-        reducer.std(values),
-    ):
-        assert type(result) in {int, float}
+    assert type(getattr(reducer, method)(values)) in {int, float}
+
+
+@pytest.mark.parametrize("values", [[1, 2, 3, 4], [0.5, 1.5, 2.5]])
+def test_reducers_quantile_return_python_floats(
+    reducer: BaseReducer, values: Sequence[float]
+) -> None:
     assert all(type(q) is float for q in reducer.quantile(values, (0.25, 0.75)))
+
+
+@pytest.mark.parametrize("values", [[1, 2, 3, 4], [0.5, 1.5, 2.5]])
+def test_reducers_sort_return_python_numbers(reducer: BaseReducer, values: Sequence[float]) -> None:
     assert all(type(v) in {int, float} for v in reducer.sort(values))
 
 
@@ -312,27 +323,65 @@ def test_reducers_quantile_median_matches_median(reducer: BaseReducer) -> None:
     assert reducer.quantile(values, (0.5,))[0] == pytest.approx(reducer.median(values))
 
 
-@numpy_available
-@torch_available
-@pytest.mark.parametrize("dtype", ["float32", "float64", "int64"])
-def test_reducers_agree_on_array_and_tensor_inputs(dtype: str) -> None:
-    r"""The NumPy and torch reducers must agree with each other, and
-    with the native reducer, on array/tensor inputs of various
-    dtypes."""
+def _array_and_tensor_reducers(dtype: str) -> list[tuple[BaseReducer, Any]]:
     data = [4, 1, 3, 2, 8, 6]
     array = np.array(data, dtype=dtype)
     tensor = torch.tensor(data, dtype=getattr(torch, dtype))
-    reducers = [(NativeReducer(), data), (NumpyReducer(), array), (TorchReducer(), tensor)]
-    tol = {"rel": 1e-6}
-    for method in ("max", "min", "mean", "median", "std"):
-        results = [getattr(reducer, method)(values) for reducer, values in reducers]
-        assert results[1] == pytest.approx(results[0], **tol), method
-        assert results[2] == pytest.approx(results[0], **tol), method
-    quantiles = [reducer.quantile(values, (0.1, 0.5, 0.9)) for reducer, values in reducers]
-    assert quantiles[1] == pytest.approx(quantiles[0], **tol)
-    assert quantiles[2] == pytest.approx(quantiles[0], **tol)
-    sorts = [reducer.sort(values) for reducer, values in reducers]
-    assert sorts[0] == sorts[1] == sorts[2]
+    return [(NativeReducer(), data), (NumpyReducer(), array), (TorchReducer(), tensor)]
+
+
+@numpy_available
+@torch_available
+@pytest.mark.parametrize("method", ["max", "min", "mean", "median", "std"])
+@pytest.mark.parametrize("dtype", ["float32", "float64", "int64"])
+def test_reducers_agree_on_array_inputs(dtype: str, method: str) -> None:
+    r"""The NumPy reducer must agree with the native reducer on array
+    inputs of various dtypes."""
+    results = [getattr(r, method)(v) for r, v in _array_and_tensor_reducers(dtype)]
+    assert results[1] == pytest.approx(results[0], rel=1e-6)
+
+
+@numpy_available
+@torch_available
+@pytest.mark.parametrize("method", ["max", "min", "mean", "median", "std"])
+@pytest.mark.parametrize("dtype", ["float32", "float64", "int64"])
+def test_reducers_agree_on_tensor_inputs(dtype: str, method: str) -> None:
+    r"""The torch reducer must agree with the native reducer on tensor
+    inputs of various dtypes."""
+    results = [getattr(r, method)(v) for r, v in _array_and_tensor_reducers(dtype)]
+    assert results[2] == pytest.approx(results[0], rel=1e-6)
+
+
+@numpy_available
+@torch_available
+@pytest.mark.parametrize("dtype", ["float32", "float64", "int64"])
+def test_reducers_quantile_agree_on_array_inputs(dtype: str) -> None:
+    quantiles = [r.quantile(v, (0.1, 0.5, 0.9)) for r, v in _array_and_tensor_reducers(dtype)]
+    assert quantiles[1] == pytest.approx(quantiles[0], rel=1e-6)
+
+
+@numpy_available
+@torch_available
+@pytest.mark.parametrize("dtype", ["float32", "float64", "int64"])
+def test_reducers_quantile_agree_on_tensor_inputs(dtype: str) -> None:
+    quantiles = [r.quantile(v, (0.1, 0.5, 0.9)) for r, v in _array_and_tensor_reducers(dtype)]
+    assert quantiles[2] == pytest.approx(quantiles[0], rel=1e-6)
+
+
+@numpy_available
+@torch_available
+@pytest.mark.parametrize("dtype", ["float32", "float64", "int64"])
+def test_reducers_sort_agree_on_array_inputs(dtype: str) -> None:
+    sorts = [r.sort(v) for r, v in _array_and_tensor_reducers(dtype)]
+    assert sorts[0] == sorts[1]
+
+
+@numpy_available
+@torch_available
+@pytest.mark.parametrize("dtype", ["float32", "float64", "int64"])
+def test_reducers_sort_agree_on_tensor_inputs(dtype: str) -> None:
+    sorts = [r.sort(v) for r, v in _array_and_tensor_reducers(dtype)]
+    assert sorts[0] == sorts[2]
 
 
 NAN = float("nan")
@@ -363,20 +412,34 @@ def test_reducers_nan_quantile(reducer: BaseReducer, values: list[float]) -> Non
 
 
 @pytest.mark.parametrize("values", NAN_VALUES[:3])
-def test_reducers_nan_sort_ascending_puts_nan_last(
+def test_reducers_nan_sort_ascending_puts_nan_last_sorted_values(
     reducer: BaseReducer, values: list[float]
 ) -> None:
     result = reducer.sort(values)
     assert result[:2] == [1.0, 2.0]
+
+
+@pytest.mark.parametrize("values", NAN_VALUES[:3])
+def test_reducers_nan_sort_ascending_puts_nan_last_nan_last(
+    reducer: BaseReducer, values: list[float]
+) -> None:
+    result = reducer.sort(values)
     assert math.isnan(result[2])
 
 
 @pytest.mark.parametrize("values", NAN_VALUES[:3])
-def test_reducers_nan_sort_descending_puts_nan_first(
+def test_reducers_nan_sort_descending_puts_nan_first_nan_first(
     reducer: BaseReducer, values: list[float]
 ) -> None:
     result = reducer.sort(values, descending=True)
     assert math.isnan(result[0])
+
+
+@pytest.mark.parametrize("values", NAN_VALUES[:3])
+def test_reducers_nan_sort_descending_puts_nan_first_sorted_values(
+    reducer: BaseReducer, values: list[float]
+) -> None:
+    result = reducer.sort(values, descending=True)
     assert result[1:] == [2.0, 1.0]
 
 

@@ -144,16 +144,23 @@ def test_jax_array_equal_handler_handle_equal_nan_true(config: EqualityConfig) -
 
 
 @jax_available
-def test_jax_array_equal_handler_handle_false_show_difference(
+def test_jax_array_equal_handler_handle_false_show_difference(config: EqualityConfig) -> None:
+    config.show_difference = True
+    assert not JaxArrayEqualHandler().handle(
+        actual=jnp.ones(shape=(2, 3)), expected=jnp.ones(shape=(3, 2)), config=config
+    )
+
+
+@jax_available
+def test_jax_array_equal_handler_handle_false_show_difference_logs(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
-    handler = JaxArrayEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
+        JaxArrayEqualHandler().handle(
             actual=jnp.ones(shape=(2, 3)), expected=jnp.ones(shape=(3, 2)), config=config
         )
-        assert caplog.messages[0].startswith("jax.numpy.ndarrays are different:")
+    assert caplog.messages[0].startswith("jax.numpy.ndarrays are different:")
 
 
 @jax_available

@@ -117,13 +117,20 @@ def test_tolerant_equal_equality_tester_objects_are_equal_true_same_object(
 def test_tolerant_equal_equality_tester_objects_are_equal_true(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    tester = TolerantEqualEqualityTester()
+    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+
+
+@pytest.mark.parametrize("example", TOLERANT_EQUAL_EQUAL)
+def test_tolerant_equal_equality_tester_objects_are_equal_true_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = TolerantEqualEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -131,14 +138,22 @@ def test_tolerant_equal_equality_tester_objects_are_equal_true(
 def test_tolerant_equal_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    tester = TolerantEqualEqualityTester()
+    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+
+
+@pytest.mark.parametrize("example", TOLERANT_EQUAL_EQUAL)
+def test_tolerant_equal_equality_tester_objects_are_equal_true_show_difference_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     tester = TolerantEqualEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -146,13 +161,22 @@ def test_tolerant_equal_equality_tester_objects_are_equal_true_show_difference(
 def test_tolerant_equal_equality_tester_objects_are_equal_false(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    tester = TolerantEqualEqualityTester()
+    assert not tester.objects_are_equal(
+        actual=example.actual, expected=example.expected, config=config
+    )
+
+
+@pytest.mark.parametrize("example", TOLERANT_EQUAL_NOT_EQUAL)
+def test_tolerant_equal_equality_tester_objects_are_equal_false_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = TolerantEqualEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert not tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -160,14 +184,24 @@ def test_tolerant_equal_equality_tester_objects_are_equal_false(
 def test_tolerant_equal_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    tester = TolerantEqualEqualityTester()
+    assert not tester.objects_are_equal(
+        actual=example.actual, expected=example.expected, config=config
+    )
+
+
+@pytest.mark.parametrize("example", TOLERANT_EQUAL_NOT_EQUAL)
+def test_tolerant_equal_equality_tester_objects_are_equal_false_show_difference_logs(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     tester = TolerantEqualEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert not tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
@@ -192,19 +226,14 @@ def test_tolerant_equal_equality_tester_objects_are_equal_false_nan(
 def test_tolerant_equal_equality_tester_objects_are_equal_true_with_tolerance(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.atol = 0.5
     tester = TolerantEqualEqualityTester()
-    with caplog.at_level(logging.INFO):
-        assert tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
-        assert not caplog.messages
+    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
 
 
-@pytest.mark.parametrize("example", TOLERANT_EQUAL_NOT_EQUAL_WITH_TOLERANCE)
-def test_tolerant_equal_equality_tester_objects_are_equal_false_with_tolerance(
+@pytest.mark.parametrize("example", TOLERANT_EQUAL_EQUAL_WITH_TOLERANCE)
+def test_tolerant_equal_equality_tester_objects_are_equal_true_with_tolerance_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
@@ -212,14 +241,50 @@ def test_tolerant_equal_equality_tester_objects_are_equal_false_with_tolerance(
     config.atol = 0.5
     tester = TolerantEqualEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert not tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+        assert not caplog.messages
+
+
+@pytest.mark.parametrize("example", TOLERANT_EQUAL_NOT_EQUAL_WITH_TOLERANCE)
+def test_tolerant_equal_equality_tester_objects_are_equal_false_with_tolerance(
+    example: ExamplePair,
+    config: EqualityConfig,
+) -> None:
+    config.atol = 0.5
+    tester = TolerantEqualEqualityTester()
+    assert not tester.objects_are_equal(
+        actual=example.actual, expected=example.expected, config=config
+    )
+
+
+@pytest.mark.parametrize("example", TOLERANT_EQUAL_NOT_EQUAL_WITH_TOLERANCE)
+def test_tolerant_equal_equality_tester_objects_are_equal_false_with_tolerance_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    config.atol = 0.5
+    tester = TolerantEqualEqualityTester()
+    with caplog.at_level(logging.INFO):
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
 @pytest.mark.parametrize("example", TOLERANT_EQUAL_NOT_EQUAL_WITH_TOLERANCE)
 def test_tolerant_equal_equality_tester_objects_are_equal_false_show_difference_with_tolerance(
+    example: ExamplePair,
+    config: EqualityConfig,
+) -> None:
+    config.atol = 0.5
+    config.show_difference = True
+    tester = TolerantEqualEqualityTester()
+    assert not tester.objects_are_equal(
+        actual=example.actual, expected=example.expected, config=config
+    )
+
+
+@pytest.mark.parametrize("example", TOLERANT_EQUAL_NOT_EQUAL_WITH_TOLERANCE)
+def test_tolerant_equal_equality_tester_objects_are_equal_false_show_difference_with_tolerance_logs(
     example: ExamplePair,
     config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
@@ -228,7 +293,5 @@ def test_tolerant_equal_equality_tester_objects_are_equal_false_show_difference_
     config.show_difference = True
     tester = TolerantEqualEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert not tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)

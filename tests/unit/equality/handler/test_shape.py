@@ -142,16 +142,23 @@ def test_same_shape_handler_handle_false(
 
 
 @numpy_available
-def test_same_shape_handler_handle_false_show_difference(
+def test_same_shape_handler_handle_false_show_difference(config: EqualityConfig) -> None:
+    config.show_difference = True
+    assert not SameShapeHandler().handle(
+        actual=np.ones(shape=(2, 3)), expected=np.ones(shape=(3, 2)), config=config
+    )
+
+
+@numpy_available
+def test_same_shape_handler_handle_false_show_difference_logs(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
-    handler = SameShapeHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
+        SameShapeHandler().handle(
             actual=np.ones(shape=(2, 3)), expected=np.ones(shape=(3, 2)), config=config
         )
-        assert caplog.messages[0].startswith("objects have different shapes:")
+    assert caplog.messages[0].startswith("objects have different shapes:")
 
 
 @numpy_available

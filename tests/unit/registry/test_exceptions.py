@@ -18,8 +18,11 @@ from coola.registry import (
 ############################################
 
 
-def test_already_registered_error_is_value_error_and_runtime_error() -> None:
+def test_already_registered_error_is_value_error() -> None:
     assert issubclass(AlreadyRegisteredError, ValueError)
+
+
+def test_already_registered_error_is_runtime_error() -> None:
     assert issubclass(AlreadyRegisteredError, RuntimeError)
 
 
@@ -56,6 +59,9 @@ def test_already_registered_error_can_still_be_caught_as_runtime_error() -> None
 def test_already_registered_error_is_not_a_key_error() -> None:
     # A missing key raises ``TypeNotRegisteredError`` (a ``KeyError``): the two must not be mixed.
     assert not issubclass(AlreadyRegisteredError, KeyError)
+
+
+def test_type_not_registered_error_is_a_key_error() -> None:
     assert issubclass(TypeNotRegisteredError, KeyError)
 
 
@@ -64,8 +70,11 @@ def test_already_registered_error_is_not_a_key_error() -> None:
 ###########################################
 
 
-def test_key_not_registered_error_is_key_error_and_lookup_error() -> None:
+def test_key_not_registered_error_is_key_error() -> None:
     assert issubclass(KeyNotRegisteredError, KeyError)
+
+
+def test_key_not_registered_error_is_lookup_error() -> None:
     assert issubclass(KeyNotRegisteredError, LookupError)
 
 
@@ -78,13 +87,23 @@ def test_key_not_registered_error_str_is_not_quoted() -> None:
 
 
 def test_registry_getitem_missing_raises_key_not_registered_error() -> None:
-    with pytest.raises(KeyNotRegisteredError, match="Key 'missing' is not registered") as info:
+    with pytest.raises(KeyNotRegisteredError, match="Key 'missing' is not registered"):
+        Registry[str, int]()["missing"]
+
+
+def test_registry_getitem_missing_does_not_raise_type_not_registered_error() -> None:
+    with pytest.raises(KeyNotRegisteredError) as info:
         Registry[str, int]()["missing"]
     assert not isinstance(info.value, TypeNotRegisteredError)
 
 
 def test_registry_unregister_missing_raises_key_not_registered_error() -> None:
-    with pytest.raises(KeyNotRegisteredError, match="Key 'missing' is not registered") as info:
+    with pytest.raises(KeyNotRegisteredError, match="Key 'missing' is not registered"):
+        Registry[str, int]().unregister("missing")
+
+
+def test_registry_unregister_missing_does_not_raise_type_not_registered_error() -> None:
+    with pytest.raises(KeyNotRegisteredError) as info:
         Registry[str, int]().unregister("missing")
     assert not isinstance(info.value, TypeNotRegisteredError)
 
@@ -114,4 +133,8 @@ def test_type_registry_resolve_does_not_use_virtual_subclasses() -> None:
     # handler registered for ``Sequence``.
     registry = TypeRegistry[str]({Sequence: "sequence", object: "object"})
     assert registry.resolve(str) == "object"
+
+
+def test_type_registry_resolve_uses_real_subclasses() -> None:
+    registry = TypeRegistry[str]({Sequence: "sequence", object: "object"})
     assert registry.resolve(UserList) == "sequence"  # a real subclass of Sequence

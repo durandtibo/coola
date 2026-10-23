@@ -101,8 +101,11 @@ def test_base_display_mixin_exported_from_coola_display() -> None:
     assert BaseDisplayMixin is BaseDisplayMixinFromSubmodule
 
 
-def test_base_display_mixin_is_base_of_multiline_and_inline() -> None:
+def test_base_display_mixin_is_base_of_multiline_and_inline_multiline() -> None:
     assert issubclass(MultilineDisplayMixin, BaseDisplayMixin)
+
+
+def test_base_display_mixin_is_base_of_multiline_and_inline_inline() -> None:
     assert issubclass(InlineDisplayMixin, BaseDisplayMixin)
 
 

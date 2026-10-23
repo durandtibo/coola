@@ -65,7 +65,9 @@ def test_conditional_transformer_transform_with_none(registry: TransformerRegist
     )
 
 
-def test_conditional_transformer_transform_complex_condition(registry: TransformerRegistry) -> None:
+def test_conditional_transformer_transform_complex_condition_matching(
+    registry: TransformerRegistry,
+) -> None:
     """Test ConditionalTransformer with complex condition (string length
     > 5)."""
 
@@ -77,6 +79,15 @@ def test_conditional_transformer_transform_complex_condition(registry: Transform
     assert objects_are_equal(
         transformer.transform("verylongstring", func=str.upper, registry=registry), "VERYLONGSTRING"
     )
+
+
+def test_conditional_transformer_transform_complex_condition_not_matching(
+    registry: TransformerRegistry,
+) -> None:
+    def is_long_string(obj: Any) -> bool:
+        return isinstance(obj, str) and len(obj) > 5
+
+    transformer = ConditionalTransformer(transformer=DefaultTransformer(), condition=is_long_string)
     # Short string - condition False, should not transform
     assert objects_are_equal(
         transformer.transform("short", func=str.upper, registry=registry), "short"

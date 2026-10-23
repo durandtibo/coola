@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 from typing import Any
 
 import pytest
@@ -58,33 +59,59 @@ def test_base_random_manager_seed_calls_order() -> None:
     assert manager.calls == ["get", "seed(42)", "set(0)"]
 
 
+def test_base_random_manager_seed_raises_the_exception() -> None:
+    manager = CounterRandomManager()
+    with pytest.raises(RuntimeError, match="boom"), manager.seed(42):  # noqa: PT012
+        msg = "boom"
+        raise RuntimeError(msg)
+
+
 def test_base_random_manager_seed_restores_the_state_with_exception() -> None:
     manager = CounterRandomManager()
     manager.value = 7
-    with pytest.raises(RuntimeError, match="boom"), manager.seed(42):  # noqa: PT012
+    with contextlib.suppress(RuntimeError), manager.seed(42):
         msg = "boom"
         raise RuntimeError(msg)
     assert manager.value == 7
 
 
-def test_base_random_manager_seed_restores_the_state_if_seeding_fails() -> None:
-    class FailingManager(CounterRandomManager):
-        def manual_seed(self, seed: int) -> None:  # noqa: ARG002
-            self.value = -1
-            msg = "invalid seed"
-            raise ValueError(msg)
+class FailingManager(CounterRandomManager):
+    def manual_seed(self, seed: int) -> None:  # noqa: ARG002
+        self.value = -1
+        msg = "invalid seed"
+        raise ValueError(msg)
 
+
+def test_base_random_manager_seed_raises_the_error_if_seeding_fails() -> None:
+    manager = FailingManager()
+    with pytest.raises(ValueError, match="invalid seed"), manager.seed(42):
+        pass  # pragma: no cover
+
+
+def test_base_random_manager_seed_restores_the_state_if_seeding_fails() -> None:
     manager = FailingManager()
     manager.value = 7
-    with pytest.raises(ValueError, match="invalid seed"), manager.seed(42):
+    with contextlib.suppress(ValueError), manager.seed(42):
         pass  # pragma: no cover
     assert manager.value == 7
 
 
 def test_base_random_manager_seed_can_be_nested() -> None:
     manager = CounterRandomManager()
+    with manager.seed(1), manager.seed(2):
+        assert manager.value == 2
+
+
+def test_base_random_manager_seed_nested_restores_the_outer_seed() -> None:
+    manager = CounterRandomManager()
     with manager.seed(1):
         with manager.seed(2):
-            assert manager.value == 2
+            pass
         assert manager.value == 1
+
+
+def test_base_random_manager_seed_nested_restores_the_initial_state() -> None:
+    manager = CounterRandomManager()
+    with manager.seed(1), manager.seed(2):
+        pass
     assert manager.value == 0

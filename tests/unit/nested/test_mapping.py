@@ -418,7 +418,7 @@ def test_merge_mappings(mappings: list[dict], on_duplicate: str, expected: dict)
     assert merge_mappings(mappings, on_duplicate=on_duplicate) == expected
 
 
-def test_merge_mappings_flatten_mapping_first_occurrence_asymmetry() -> None:
+def test_merge_mappings_first_occurrence_keeps_the_plain_key() -> None:
     """Test and document the documented asymmetry between
     ``merge_mappings(on_duplicate='suffix')``, which leaves the first
     occurrence of a conflicting key under the plain key, and
@@ -427,6 +427,8 @@ def test_merge_mappings_flatten_mapping_first_occurrence_asymmetry() -> None:
     merged = merge_mappings([{"a": 1}, {"a": 2}], on_duplicate="suffix")
     assert merged == {"a": 1, "a_1": 2}  # first occurrence keeps the plain key
 
+
+def test_flatten_mapping_first_occurrence_is_renamed() -> None:
     flattened = flatten_mapping({"m1": {"a": 1}, "m2": {"a": 2}}, on_duplicate="prefix")
     assert flattened == {"m1.a": 1, "m2.a": 2}  # first occurrence is renamed too
 
@@ -511,15 +513,21 @@ def test_remove_keys_if_nested_set() -> None:
     ) == {"set": {1, 2, 3}}
 
 
-def test_remove_keys_if_preserves_mapping_type() -> None:
+def test_remove_keys_if_preserves_mapping_type_values() -> None:
     out = remove_keys_if(
         OrderedDict(key=1, abc=2), lambda key: isinstance(key, str) and "key" in key
     )
     assert out == {"abc": 2}
+
+
+def test_remove_keys_if_preserves_mapping_type_type() -> None:
+    out = remove_keys_if(
+        OrderedDict(key=1, abc=2), lambda key: isinstance(key, str) and "key" in key
+    )
     assert isinstance(out, OrderedDict)
 
 
-def test_remove_keys_if_preserves_namedtuple() -> None:
+def test_remove_keys_if_preserves_namedtuple_values() -> None:
     class Point(NamedTuple):
         x: int
         y: dict
@@ -529,6 +537,17 @@ def test_remove_keys_if_preserves_namedtuple() -> None:
         lambda key: isinstance(key, str) and "key" in key,
     )
     assert out == {"point": Point(1, {"abc": 3})}
+
+
+def test_remove_keys_if_preserves_namedtuple_type() -> None:
+    class Point(NamedTuple):
+        x: int
+        y: dict
+
+    out = remove_keys_if(
+        {"point": Point(1, {"key": 2, "abc": 3})},
+        lambda key: isinstance(key, str) and "key" in key,
+    )
     assert isinstance(out["point"], Point)
 
 
@@ -620,8 +639,11 @@ def test_remove_keys_starting_with_nested_mapping() -> None:
     }
 
 
-def test_duplicate_key_error_is_key_error_and_value_error() -> None:
+def test_duplicate_key_error_is_key_error_and_value_error_key_error() -> None:
     assert issubclass(DuplicateKeyError, KeyError)
+
+
+def test_duplicate_key_error_is_key_error_and_value_error_value_error() -> None:
     assert issubclass(DuplicateKeyError, ValueError)
 
 
@@ -651,10 +673,18 @@ def test_merge_mappings_suffix_key_colliding_with_later_key_raises() -> None:
         merge_mappings([{"a": 1}, {"a": 2}, {"a_1": 3}], on_duplicate="suffix")
 
 
-def test_remove_keys_if_uses_the_predicate_of_each_call() -> None:
+def test_remove_keys_if_uses_the_predicate_of_each_call_first_predicate() -> None:
     data = {"a": 1, "b": {"a": 2, "b": 3}}
     assert remove_keys_if(data, lambda key: key == "a") == {"b": {"b": 3}}
+
+
+def test_remove_keys_if_uses_the_predicate_of_each_call_second_predicate() -> None:
+    data = {"a": 1, "b": {"a": 2, "b": 3}}
     assert remove_keys_if(data, lambda key: key == "b") == {"a": 1}
+
+
+def test_remove_keys_if_uses_the_predicate_of_each_call_predicate_that_keeps_all() -> None:
+    data = {"a": 1, "b": {"a": 2, "b": 3}}
     assert remove_keys_if(data, lambda key: False) == data  # noqa: ARG005
 
 

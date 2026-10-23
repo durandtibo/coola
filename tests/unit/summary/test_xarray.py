@@ -47,8 +47,13 @@ def test_summarizer_init_show_data(summarizer_cls: type) -> None:
 
 @xarray_available
 @pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
-def test_summarizer_repr(summarizer_cls: type) -> None:
+def test_summarizer_repr_default(summarizer_cls: type) -> None:
     assert repr(summarizer_cls()) == f"{summarizer_cls.__name__}(show_data=False)"
+
+
+@xarray_available
+@pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
+def test_summarizer_repr_show_data(summarizer_cls: type) -> None:
     assert repr(summarizer_cls(show_data=True)) == f"{summarizer_cls.__name__}(show_data=True)"
 
 
@@ -60,8 +65,13 @@ def test_summarizer_str(summarizer_cls: type) -> None:
 
 @xarray_available
 @pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
-def test_summarizer_equal_true(summarizer_cls: type) -> None:
+def test_summarizer_equal_true_default(summarizer_cls: type) -> None:
     assert summarizer_cls().equal(summarizer_cls())
+
+
+@xarray_available
+@pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
+def test_summarizer_equal_true_show_data(summarizer_cls: type) -> None:
     assert summarizer_cls(show_data=True).equal(summarizer_cls(show_data=True))
 
 
@@ -95,10 +105,16 @@ def test_summarizer_missing_package_raises(summarizer_cls: type) -> None:
 
 
 @xarray_available
-def test_xarray_dataarray_summarizer_summarize(registry: SummarizerRegistry) -> None:
+def test_xarray_dataarray_summarizer_summarize_dims(registry: SummarizerRegistry) -> None:
     array = xr.DataArray(np.ones((2, 3)), dims=("x", "y"), name="a")
     result = XarrayDataArraySummarizer().summarize(array, registry)
     assert result.endswith(" | dims=('x', 'y') | shape=(2, 3) | dtype=float64 | name='a'")
+
+
+@xarray_available
+def test_xarray_dataarray_summarizer_summarize_class_name(registry: SummarizerRegistry) -> None:
+    array = xr.DataArray(np.ones((2, 3)), dims=("x", "y"), name="a")
+    result = XarrayDataArraySummarizer().summarize(array, registry)
     assert "DataArray" in result.split(" | ")[0]
 
 
@@ -115,10 +131,16 @@ def test_xarray_dataarray_summarizer_summarize_show_data(registry: SummarizerReg
 
 
 @xarray_available
-def test_xarray_dataset_summarizer_summarize(registry: SummarizerRegistry) -> None:
+def test_xarray_dataset_summarizer_summarize_dims(registry: SummarizerRegistry) -> None:
     dataset = xr.Dataset({"a": (("x",), np.ones(3)), "b": (("x",), np.zeros(3, dtype=np.int32))})
     result = XarrayDatasetSummarizer().summarize(dataset, registry)
     assert result.endswith(" | dims={'x': 3} | data_vars=a: float64, b: int32")
+
+
+@xarray_available
+def test_xarray_dataset_summarizer_summarize_class_name(registry: SummarizerRegistry) -> None:
+    dataset = xr.Dataset({"a": (("x",), np.ones(3)), "b": (("x",), np.zeros(3, dtype=np.int32))})
+    result = XarrayDatasetSummarizer().summarize(dataset, registry)
     assert "Dataset" in result.split(" | ")[0]
 
 
@@ -142,10 +164,16 @@ def test_xarray_dataset_summarizer_summarize_show_data(registry: SummarizerRegis
 
 
 @xarray_available
-def test_xarray_variable_summarizer_summarize(registry: SummarizerRegistry) -> None:
+def test_xarray_variable_summarizer_summarize_dims(registry: SummarizerRegistry) -> None:
     variable = xr.Variable(("x", "y"), np.ones((2, 3)))
     result = XarrayVariableSummarizer().summarize(variable, registry)
     assert result.endswith(" | dims=('x', 'y') | shape=(2, 3) | dtype=float64")
+
+
+@xarray_available
+def test_xarray_variable_summarizer_summarize_class_name(registry: SummarizerRegistry) -> None:
+    variable = xr.Variable(("x", "y"), np.ones((2, 3)))
+    result = XarrayVariableSummarizer().summarize(variable, registry)
     assert "Variable" in result.split(" | ")[0]
 
 

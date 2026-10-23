@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import contextlib
+
 import pytest
 
 from coola.utils.fallback.factory import make_fake_class, make_fake_function
@@ -31,6 +33,16 @@ def test_make_fake_class_instantiation_raises_error_with_args() -> None:
 
 
 def test_make_fake_class_uses_given_callable() -> None:
+    def raise_error() -> None:
+        msg = "custom error"
+        raise RuntimeError(msg)
+
+    fake = make_fake_class(raise_error)
+    with pytest.raises(RuntimeError, match=r"custom error"):
+        fake()
+
+
+def test_make_fake_class_calls_the_given_callable_once() -> None:
     calls = []
 
     def raise_error() -> None:
@@ -38,9 +50,9 @@ def test_make_fake_class_uses_given_callable() -> None:
         msg = "custom error"
         raise RuntimeError(msg)
 
-    fake_class = make_fake_class(raise_error)
-    with pytest.raises(RuntimeError, match=r"custom error"):
-        fake_class()
+    fake = make_fake_class(raise_error)
+    with contextlib.suppress(RuntimeError):
+        fake()
     assert calls == [1]
 
 
@@ -67,6 +79,16 @@ def test_make_fake_function_call_raises_error_with_args() -> None:
 
 
 def test_make_fake_function_uses_given_callable() -> None:
+    def raise_error() -> None:
+        msg = "custom error"
+        raise RuntimeError(msg)
+
+    fake = make_fake_function(raise_error)
+    with pytest.raises(RuntimeError, match=r"custom error"):
+        fake()
+
+
+def test_make_fake_function_calls_the_given_callable_once() -> None:
     calls = []
 
     def raise_error() -> None:
@@ -74,7 +96,7 @@ def test_make_fake_function_uses_given_callable() -> None:
         msg = "custom error"
         raise RuntimeError(msg)
 
-    fake_function = make_fake_function(raise_error)
-    with pytest.raises(RuntimeError, match=r"custom error"):
-        fake_function()
+    fake = make_fake_function(raise_error)
+    with contextlib.suppress(RuntimeError):
+        fake()
     assert calls == [1]

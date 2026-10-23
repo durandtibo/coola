@@ -125,17 +125,28 @@ def test_default_transformer_transform_preserves_function_behavior() -> None:
     )
 
 
-def test_default_transformer_transform_with_stateful_function() -> None:
+def _make_stateful_func() -> Callable[[Any], Any]:
     counter = {"count": 0}
 
     def stateful_func(x: Any) -> Any:
         counter["count"] += 1
         return x * counter["count"]
 
-    transformer = DefaultTransformer()
+    return stateful_func
+
+
+def test_default_transformer_transform_with_stateful_function() -> None:
     registry = TransformerRegistry()
-    assert transformer.transform(5, func=stateful_func, registry=registry) == 5  # 5 * 1
-    assert transformer.transform(5, func=stateful_func, registry=registry) == 10  # 5 * 2
+    transformer = DefaultTransformer()
+    assert transformer.transform(5, func=_make_stateful_func(), registry=registry) == 5
+
+
+def test_default_transformer_transform_with_stateful_function_second_call() -> None:
+    registry = TransformerRegistry()
+    transformer = DefaultTransformer()
+    stateful_func = _make_stateful_func()
+    transformer.transform(5, func=stateful_func, registry=registry)
+    assert transformer.transform(5, func=stateful_func, registry=registry) == 10
 
 
 def test_default_transformer_transform_with_closure() -> None:
@@ -147,4 +158,14 @@ def test_default_transformer_transform_with_closure() -> None:
     transformer = DefaultTransformer()
     registry = TransformerRegistry()
     assert transformer.transform(7, func=multiply_by, registry=registry) == 21
+
+
+def test_default_transformer_transform_with_closure_other_value() -> None:
+    multiplier = 3
+
+    def multiply_by(x: Any) -> Any:
+        return x * multiplier
+
+    transformer = DefaultTransformer()
+    registry = TransformerRegistry()
     assert transformer.transform(1, func=multiply_by, registry=registry) == 3

@@ -122,6 +122,11 @@ def test_str_hasher_hash_parametrized(data: Any, expected: str, registry: Hasher
 def test_str_hasher_hash_length(length: int, expected: str, registry: HasherRegistry) -> None:
     result = StrHasher().hash("hello", registry=registry, length=length)
     assert result == expected
+
+
+@pytest.mark.parametrize("length", [16, 32, 64])
+def test_str_hasher_hash_length_length_is_respected(length: int, registry: HasherRegistry) -> None:
+    result = StrHasher().hash("hello", registry=registry, length=length)
     assert len(result) == length
 
 
@@ -145,7 +150,7 @@ def test_str_hasher_hash_bool_and_int_different_hashes(registry: HasherRegistry)
     assert hasher.hash(True, registry=registry) != hasher.hash(1, registry=registry)
 
 
-def test_str_hasher_hash_uses_str_not_repr(registry: HasherRegistry) -> None:
+def test_str_hasher_hash_uses_str_not_repr_equals_the_str_hash(registry: HasherRegistry) -> None:
     # For objects where str() and repr() differ, StrHasher must use str().
     # str("hello") == 'hello' while repr("hello") == "'hello'".
     class MyObj:
@@ -159,6 +164,23 @@ def test_str_hasher_hash_uses_str_not_repr(registry: HasherRegistry) -> None:
     hasher = StrHasher()
     tag = f"str:{MyObj.__qualname__}"
     assert hasher.hash(obj, registry=registry) == hash_tagged(tag, str(obj))
+
+
+def test_str_hasher_hash_uses_str_not_repr_differs_from_the_repr_hash(
+    registry: HasherRegistry,
+) -> None:
+    # For objects where str() and repr() differ, StrHasher must use str().
+    # str("hello") == 'hello' while repr("hello") == "'hello'".
+    class MyObj:
+        def __str__(self) -> str:
+            return "str_val"
+
+        def __repr__(self) -> str:
+            return "repr_val"
+
+    obj = MyObj()
+    hasher = StrHasher()
+    tag = f"str:{MyObj.__qualname__}"
     assert hasher.hash(obj, registry=registry) != hash_tagged(tag, repr(obj))
 
 

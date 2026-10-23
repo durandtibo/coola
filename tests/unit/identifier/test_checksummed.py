@@ -15,8 +15,7 @@ def test_generate_checksummed_id_is_verifiable() -> None:
 
 
 def test_generate_checksummed_id_many_are_verifiable() -> None:
-    for _ in range(200):
-        assert verify_checksummed_id(generate_checksummed_id())
+    assert all(verify_checksummed_id(generate_checksummed_id()) for _ in range(200))
 
 
 def test_generate_checksummed_id_grouping() -> None:
@@ -27,9 +26,13 @@ def test_generate_checksummed_id_grouping() -> None:
     assert [len(g) for g in groups] == [4, 4, 4, 1]
 
 
-def test_generate_checksummed_id_no_separator() -> None:
+def test_generate_checksummed_id_no_separator_length() -> None:
     value = generate_checksummed_id(length=8, group_size=100, sep="")
     assert len(value) == 9
+
+
+def test_generate_checksummed_id_no_separator_no_separator() -> None:
+    value = generate_checksummed_id(length=8, group_size=100, sep="")
     assert "-" not in value
 
 
@@ -47,8 +50,11 @@ def test_verify_checksummed_id_rejects_garbage() -> None:
     assert not verify_checksummed_id("not-a-valid-id!!")
 
 
-def test_verify_checksummed_id_rejects_too_short() -> None:
+def test_verify_checksummed_id_rejects_too_short_empty_string() -> None:
     assert not verify_checksummed_id("")
+
+
+def test_verify_checksummed_id_rejects_too_short_one_character() -> None:
     assert not verify_checksummed_id("A")
 
 
@@ -99,9 +105,13 @@ def test_verify_checksummed_id_normalizes_l_as_one() -> None:
     assert verify_checksummed_id(value.replace("1", "L"), sep="")
 
 
-def test_generate_checksummed_id_sep_empty_is_verifiable() -> None:
+def test_generate_checksummed_id_sep_empty_is_verifiable_no_separator() -> None:
     value = generate_checksummed_id(sep="")
     assert "-" not in value
+
+
+def test_generate_checksummed_id_sep_empty_is_verifiable_verifiable() -> None:
+    value = generate_checksummed_id(sep="")
     assert verify_checksummed_id(value, sep="")
 
 

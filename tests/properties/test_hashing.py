@@ -25,13 +25,14 @@ from tests.properties.strategies import (
     lengths,
     literal_values,
     rebuild,
-    small_values,
+    tiny_values,
     values,
 )
 
 hypothesis = pytest.importorskip("hypothesis")
 
 from hypothesis import (  # noqa: E402
+    assume,
     given,
     settings,
     strategies as st,
@@ -46,9 +47,12 @@ HEX_PATTERN = re.compile(r"^[0-9a-f]+$")
 
 @given(data=values, length=lengths)
 def test_fixed_width_output_is_lowercase_hex_of_given_length(data: Any, length: int) -> None:
-    result = hash_object(data, length=length)
-    assert len(result) == length
-    assert HEX_PATTERN.match(result)
+    assert len(hash_object(data, length=length)) == length
+
+
+@given(data=values, length=lengths)
+def test_fixed_width_output_is_lowercase_hex(data: Any, length: int) -> None:
+    assert HEX_PATTERN.match(hash_object(data, length=length))
 
 
 @given(data=values, length=st.integers(min_value=0, max_value=64).map(lambda n: 2 * n + 1))
@@ -72,26 +76,23 @@ def test_deterministic_independent_of_object_identity(data: Any) -> None:
     assert hash_object(data) == hash_object(copy.deepcopy(data))
 
 
+@pytest.mark.parametrize("seed", ["0", "12345"])
 @settings(max_examples=10, deadline=None)
 @given(data=literal_values)
-def test_deterministic_independent_of_pythonhashseed(data: Any) -> None:
+def test_deterministic_independent_of_pythonhashseed(seed: str, data: Any) -> None:
     code = (
         "import ast, sys\n"
         "from coola.hashing import hash_object\n"
         "print(hash_object(ast.literal_eval(sys.argv[1])))"
     )
-    results = set()
-    for seed in ("0", "12345"):
-        env = {**os.environ, "PYTHONHASHSEED": seed}
-        out = subprocess.run(  # noqa: S603
-            [sys.executable, "-c", code, repr(data)],
-            capture_output=True,
-            text=True,
-            check=True,
-            env=env,
-        )
-        results.add(out.stdout.strip())
-    assert results == {hash_object(data)}
+    out = subprocess.run(  # noqa: S603
+        [sys.executable, "-c", code, repr(data)],
+        capture_output=True,
+        text=True,
+        check=True,
+        env={**os.environ, "PYTHONHASHSEED": seed},
+    )
+    assert out.stdout.strip() == hash_object(data)
 
 
 ###############################
@@ -100,28 +101,34 @@ def test_deterministic_independent_of_pythonhashseed(data: Any) -> None:
 
 
 @given(data=values)
+def test_equality_consistent_rebuilt_objects_are_equal(data: Any) -> None:
+    assert objects_are_equal(data, rebuild(data))
+
+
+@given(data=values)
 def test_equality_consistent_equal_objects_have_same_hash(data: Any) -> None:
-    other = rebuild(data)
-    assert objects_are_equal(data, other)
+    assert hash_object(data) == hash_object(rebuild(data))
+
+
+@given(data=tiny_values, other=tiny_values)
+def test_equality_consistent_for_arbitrary_pairs(data: Any, other: Any) -> None:
+    assume(objects_are_equal(data, other))
     assert hash_object(data) == hash_object(other)
 
 
-@given(data=small_values, other=small_values)
-def test_equality_consistent_for_arbitrary_pairs(data: Any, other: Any) -> None:
-    if objects_are_equal(data, other):
-        assert hash_object(data) == hash_object(other)
-
-
-@given(data=small_values, other=small_values)
+@given(data=tiny_values, other=tiny_values)
 def test_equality_converse_holds_for_builtins(data: Any, other: Any) -> None:
     # The converse can fail for a few types that share a hash on purpose, but
     # not for the builtin types.
-    if hash_object(data) == hash_object(other):
-        assert objects_are_equal(data, other)
+    assume(hash_object(data) == hash_object(other))
+    assert objects_are_equal(data, other)
 
 
-def test_equality_consistent_negative_zero_and_nan() -> None:
+def test_equality_consistent_negative_zero() -> None:
     assert hash_object(-0.0) == hash_object(0.0)
+
+
+def test_equality_consistent_negative_nan() -> None:
     assert hash_object(float("nan")) == hash_object(-float("nan"))
 
 
@@ -194,6 +201,10 @@ def test_type_sensitive_enum_member_differs_from_its_value_and_siblings() -> Non
 @given(x=st.integers(), y=st.integers())
 def test_type_sensitive_namedtuple_differs_from_tuple(x: int, y: int) -> None:
     assert hash_object(Point(x, y)) != hash_object((x, y))
+
+
+@given(x=st.integers(), y=st.integers())
+def test_type_sensitive_namedtuple_hash_is_stable(x: int, y: int) -> None:
     assert hash_object(Point(x, y)) == hash_object(Point(x, y))
 
 
@@ -217,9 +228,12 @@ def test_naive_datetime_differs_from_aware_datetime(value: dt.datetime) -> None:
 
 @given(parts=st.lists(st.text(alphabet="abc", min_size=1, max_size=3), min_size=1, max_size=4))
 def test_path_relative_differs_from_absolute(parts: list[str]) -> None:
-    relative = PurePosixPath(*parts)
-    assert hash_object(relative) != hash_object(PurePosixPath("/", *parts))
-    assert hash_object(relative) == hash_object(PurePosixPath(*parts))
+    assert hash_object(PurePosixPath(*parts)) != hash_object(PurePosixPath("/", *parts))
+
+
+@given(parts=st.lists(st.text(alphabet="abc", min_size=1, max_size=3), min_size=1, max_size=4))
+def test_path_hash_is_stable(parts: list[str]) -> None:
+    assert hash_object(PurePosixPath(*parts)) == hash_object(PurePosixPath(*parts))
 
 
 ###############################
@@ -244,24 +258,23 @@ def test_structure_sensitive_item_boundaries_matter(s: str, data: st.DataObject)
 #######################
 
 
+@pytest.mark.parametrize("cls", [list, tuple, deque])
 @given(items=st.lists(st.integers(), unique=True, min_size=2, max_size=8), data=st.data())
 def test_order_ordered_containers_are_order_sensitive(
-    items: list[int], data: st.DataObject
+    cls: type, items: list[int], data: st.DataObject
 ) -> None:
     shuffled = data.draw(st.permutations(items))
     hypothesis.assume(shuffled != items)
-    assert hash_object(items) != hash_object(shuffled)
-    assert hash_object(tuple(items)) != hash_object(tuple(shuffled))
-    assert hash_object(deque(items)) != hash_object(deque(shuffled))
+    assert hash_object(cls(items)) != hash_object(cls(shuffled))
 
 
+@pytest.mark.parametrize("cls", [set, frozenset])
 @given(items=st.lists(st.integers(), unique=True, max_size=8), data=st.data())
 def test_order_unordered_containers_are_order_insensitive(
-    items: list[int], data: st.DataObject
+    cls: type, items: list[int], data: st.DataObject
 ) -> None:
     shuffled = data.draw(st.permutations(items))
-    assert hash_object(set(items)) == hash_object(set(shuffled))
-    assert hash_object(frozenset(items)) == hash_object(frozenset(shuffled))
+    assert hash_object(cls(items)) == hash_object(cls(shuffled))
 
 
 @given(
@@ -340,18 +353,39 @@ class Unsupported:
     r"""A type with no registered hasher."""
 
 
+def test_no_silent_false_equality_unsupported_type_raises() -> None:
+    with pytest.raises(KeyError, match=r"is not registered"):
+        hash_object(Unsupported())
+
+
 @given(x=values)
-def test_no_silent_false_equality_unsupported_type_raises(x: Any) -> None:
-    for data in (Unsupported(), [x, Unsupported()], {"a": Unsupported()}, (Unsupported(), x)):
-        with pytest.raises(KeyError, match=r"is not registered"):
-            hash_object(data)
+def test_no_silent_false_equality_unsupported_type_in_a_list_raises(x: Any) -> None:
+    with pytest.raises(KeyError, match=r"is not registered"):
+        hash_object([x, Unsupported()])
+
+
+@given(x=values)
+def test_no_silent_false_equality_unsupported_type_in_a_dict_raises(x: Any) -> None:
+    with pytest.raises(KeyError, match=r"is not registered"):
+        hash_object({"a": Unsupported(), "b": x})
+
+
+@given(x=values)
+def test_no_silent_false_equality_unsupported_type_in_a_tuple_raises(x: Any) -> None:
+    with pytest.raises(KeyError, match=r"is not registered"):
+        hash_object((Unsupported(), x))
 
 
 @given(x=values)
 def test_no_silent_false_equality_placeholder_warns(x: Any) -> None:
     with pytest.warns(UserWarning, match=r"No hasher registered"):
-        result = hash_object([x, Unsupported()], ignore_unhashable=True)
-    assert len(result) == 64
+        hash_object([x, Unsupported()], ignore_unhashable=True)
+
+
+@pytest.mark.filterwarnings("ignore::UserWarning")
+@given(x=values)
+def test_no_silent_false_equality_placeholder_has_the_default_length(x: Any) -> None:
+    assert len(hash_object([x, Unsupported()], ignore_unhashable=True)) == 64
 
 
 #################################

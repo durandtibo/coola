@@ -7,7 +7,7 @@ from datetime import UTC, date, datetime
 from decimal import Decimal
 from fractions import Fraction
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
@@ -131,9 +131,13 @@ def test_hash_object_with_custom_registry() -> None:
     assert hash_object([1, 2, 3], registry=registry) == hash_tagged("list", repr([1, 2, 3]))
 
 
-def test_hash_object_with_custom_length() -> None:
+def test_hash_object_with_custom_length_returns_str() -> None:
     result = hash_object("hello", length=16)
     assert isinstance(result, str)
+
+
+def test_hash_object_with_custom_length_length() -> None:
+    result = hash_object("hello", length=16)
     assert len(result) == 16
 
 
@@ -157,26 +161,41 @@ def test_hash_object_unhashable_raises_when_explicitly_false() -> None:
         hash_object(Unhashable(), ignore_unhashable=False)
 
 
+def test_hash_object_ignore_unhashable_returns_str_warns() -> None:
+    with pytest.warns(UserWarning, match=r"No hasher registered"):
+        hash_object(Unhashable(), ignore_unhashable=True)
+
+
+@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_hash_object_ignore_unhashable_returns_str() -> None:
+    assert isinstance(hash_object(Unhashable(), ignore_unhashable=True), str)
+
+
+def test_hash_object_ignore_unhashable_nested_in_list_warns() -> None:
     with pytest.warns(UserWarning, match=r"No hasher registered"):
-        assert isinstance(hash_object(Unhashable(), ignore_unhashable=True), str)
+        hash_object([1, Unhashable(), 3], ignore_unhashable=True)
 
 
+@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_hash_object_ignore_unhashable_nested_in_list() -> None:
+    assert isinstance(hash_object([1, Unhashable(), 3], ignore_unhashable=True), str)
+
+
+def test_hash_object_ignore_unhashable_nested_in_dict_warns() -> None:
     with pytest.warns(UserWarning, match=r"No hasher registered"):
-        assert isinstance(hash_object([1, Unhashable(), 3], ignore_unhashable=True), str)
+        hash_object({"a": Unhashable()}, ignore_unhashable=True)
 
 
+@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_hash_object_ignore_unhashable_nested_in_dict() -> None:
-    with pytest.warns(UserWarning, match=r"No hasher registered"):
-        assert isinstance(hash_object({"a": Unhashable()}, ignore_unhashable=True), str)
+    assert isinstance(hash_object({"a": Unhashable()}, ignore_unhashable=True), str)
 
 
+@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_hash_object_ignore_unhashable_is_deterministic() -> None:
-    with pytest.warns(UserWarning, match=r"No hasher registered"):
-        assert hash_object(Unhashable(), ignore_unhashable=True) == hash_object(
-            Unhashable(), ignore_unhashable=True
-        )
+    assert hash_object(Unhashable(), ignore_unhashable=True) == hash_object(
+        Unhashable(), ignore_unhashable=True
+    )
 
 
 ######################################
@@ -218,9 +237,16 @@ def test_get_default_registry_singleton_persists_modifications() -> None:
     registry1.register(CustomList, SequenceHasher())
     assert isinstance(registry1.find_hasher(CustomList), SequenceHasher)
 
-    registry2 = get_default_registry()
-    assert registry1 is registry2
-    assert isinstance(registry2.find_hasher(CustomList), SequenceHasher)
+
+def test_get_default_registry_singleton_returns_the_same_registry() -> None:
+    registry1 = get_default_registry()
+    registry1.register(CustomList, SequenceHasher())
+    assert registry1 is get_default_registry()
+
+
+def test_get_default_registry_singleton_persists_modifications_across_calls() -> None:
+    get_default_registry().register(CustomList, SequenceHasher())
+    assert isinstance(get_default_registry().find_hasher(CustomList), SequenceHasher)
 
 
 def test_get_default_registry_does_not_register_object() -> None:
@@ -228,11 +254,23 @@ def test_get_default_registry_does_not_register_object() -> None:
     assert not get_default_registry().has_hasher(object)
 
 
-def test_get_default_registry_registers_numeric_types() -> None:
+def test_get_default_registry_registers_numeric_types_bool() -> None:
     registry = get_default_registry()
     assert isinstance(registry.find_hasher(bool), ReprHasher)
+
+
+def test_get_default_registry_registers_numeric_types_int() -> None:
+    registry = get_default_registry()
     assert isinstance(registry.find_hasher(int), ReprHasher)
+
+
+def test_get_default_registry_registers_numeric_types_float() -> None:
+    registry = get_default_registry()
     assert isinstance(registry.find_hasher(float), ReprHasher)
+
+
+def test_get_default_registry_registers_numeric_types_complex() -> None:
+    registry = get_default_registry()
     assert isinstance(registry.find_hasher(complex), ReprHasher)
 
 
@@ -244,22 +282,38 @@ def test_get_default_registry_registers_bytes() -> None:
     assert isinstance(get_default_registry().find_hasher(bytes), BytesHasher)
 
 
-def test_get_default_registry_registers_sequences() -> None:
+def test_get_default_registry_registers_sequences_list() -> None:
     registry = get_default_registry()
     assert isinstance(registry.find_hasher(list), SequenceHasher)
+
+
+def test_get_default_registry_registers_sequences_tuple() -> None:
+    registry = get_default_registry()
     assert isinstance(registry.find_hasher(tuple), SequenceHasher)
+
+
+def test_get_default_registry_registers_sequences_sequence() -> None:
+    registry = get_default_registry()
     assert isinstance(registry.find_hasher(Sequence), SequenceHasher)
 
 
-def test_get_default_registry_registers_mappings() -> None:
+def test_get_default_registry_registers_mappings_dict() -> None:
     registry = get_default_registry()
     assert isinstance(registry.find_hasher(dict), MappingHasher)
+
+
+def test_get_default_registry_registers_mappings_mapping() -> None:
+    registry = get_default_registry()
     assert isinstance(registry.find_hasher(Mapping), MappingHasher)
 
 
-def test_get_default_registry_registers_datetime_types() -> None:
+def test_get_default_registry_registers_datetime_types_date() -> None:
     registry = get_default_registry()
     assert isinstance(registry.find_hasher(date), DatetimeHasher)
+
+
+def test_get_default_registry_registers_datetime_types_datetime() -> None:
+    registry = get_default_registry()
     assert isinstance(registry.find_hasher(datetime), DatetimeHasher)
 
 
@@ -291,14 +345,25 @@ def test_register_default_hashers_registers_pydantic_model_when_available() -> N
     assert isinstance(registry.find_hasher(pydantic.BaseModel), PydanticModelHasher)
 
 
-def test_register_default_hashers_skips_pydantic_model_when_unavailable() -> None:
+def _register_default_hashers_without_pydantic() -> tuple[HasherRegistry, Mock]:
     registry = HasherRegistry()
     with (
         patch("coola.hashing.interface.is_pydantic_available", lambda: False),
         patch("coola.hashing.interface.PydanticModelHasher") as hasher_cls,
     ):
         _register_default_hashers(registry)
+    return registry, hasher_cls
+
+
+def test_register_default_hashers_skips_pydantic_model_when_unavailable() -> None:
+    _, hasher_cls = _register_default_hashers_without_pydantic()
     hasher_cls.assert_not_called()
+
+
+def test_register_default_hashers_registers_the_other_hashers_when_pydantic_is_unavailable() -> (
+    None
+):
+    registry, _ = _register_default_hashers_without_pydantic()
     assert registry.has_hasher(list)
 
 
@@ -317,19 +382,35 @@ def test_hash_object_keyword_arguments_do_not_warn() -> None:
 def test_hash_object_positional_registry_is_deprecated() -> None:
     registry = get_default_registry()
     with pytest.warns(DeprecationWarning, match="positional arguments is deprecated"):
-        result = hash_object([1], registry)
+        hash_object([1], registry)
+
+
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+def test_hash_object_positional_registry_is_deprecated_result() -> None:
+    registry = get_default_registry()
+    result = hash_object([1], registry)
     assert result == hash_object([1], registry=registry)
 
 
 def test_hash_object_positional_registry_none_is_deprecated() -> None:
     with pytest.warns(DeprecationWarning, match="positional arguments is deprecated"):
-        result = hash_object([1], None)
+        hash_object([1], None)
+
+
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+def test_hash_object_positional_registry_none_is_deprecated_result() -> None:
+    result = hash_object([1], None)
     assert result == hash_object([1])
 
 
 def test_hash_object_positional_length_and_ignore_unhashable_are_deprecated() -> None:
     with pytest.warns(DeprecationWarning, match="positional arguments is deprecated"):
-        result = hash_object([1], None, 16, False)
+        hash_object([1], None, 16, False)
+
+
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+def test_hash_object_positional_length_and_ignore_unhashable_are_deprecated_result() -> None:
+    result = hash_object([1], None, 16, False)
     assert result == hash_object([1], length=16)
 
 
@@ -394,15 +475,26 @@ class _HasHash:
         return "a" * length
 
 
-def test_hash_object_dataclass() -> None:
+def test_hash_object_dataclass_same_value() -> None:
     assert hash_object(_Point(1, 2)) == hash_object(_Point(1, 2))
+
+
+def test_hash_object_dataclass_different_value() -> None:
     assert hash_object(_Point(1, 2)) != hash_object(_Point(2, 1))
 
 
-def test_hash_object_nested_dataclass() -> None:
+def test_hash_object_nested_dataclass_same_value() -> None:
     line = _Line(_Point(0, 0), _Point(1, 1))
     assert hash_object(line) == hash_object(_Line(_Point(0, 0), _Point(1, 1)))
+
+
+def test_hash_object_nested_dataclass_different_value() -> None:
+    line = _Line(_Point(0, 0), _Point(1, 1))
     assert hash_object(line) != hash_object(_Line(_Point(0, 0), _Point(1, 2)))
+
+
+def test_hash_object_nested_dataclass_in_containers() -> None:
+    line = _Line(_Point(0, 0), _Point(1, 1))
     assert hash_object([line, {"k": line}])
 
 
@@ -420,19 +512,29 @@ def test_hash_object_dataclass_class_is_not_an_instance() -> None:
         hash_object(_Point)
 
 
-def test_hash_object_dataclass_registered_hasher_wins() -> None:
+def test_hash_object_dataclass_registered_hasher_wins_registered_hasher() -> None:
     registry = HasherRegistry()
     _register_default_hashers(registry)
     hasher = StrHasher()
     registry.register(_Line, hasher)
     assert registry.find_hasher(_Line) is hasher
+
+
+def test_hash_object_dataclass_registered_hasher_wins_default_hasher() -> None:
+    registry = HasherRegistry()
+    _register_default_hashers(registry)
+    hasher = StrHasher()
+    registry.register(_Line, hasher)
     assert isinstance(registry.find_hasher(_Point), DataclassHasher)
 
 
-def test_hash_object_supports_hash() -> None:
+def test_hash_object_supports_hash_differs_from_the_fallback() -> None:
     assert hash_object(_HasHash(), length=8) != hash_object(
         _HasHash(), length=8, registry=HasherRegistry({object: StrHasher()})
     )
+
+
+def test_hash_object_supports_hash_same_object() -> None:
     assert hash_object(_HasHash()) == hash_object(_HasHash())
 
 
@@ -469,24 +571,61 @@ def test_hash_object_unregistered_type_raises() -> None:
         pytest.param(ZoneInfo("UTC"), id="zoneinfo"),
     ],
 )
-def test_hash_object_standard_library_values(data: object) -> None:
+def test_hash_object_standard_library_values_length(data: object) -> None:
     assert len(hash_object(data)) == 64
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        pytest.param(UUID(int=1), id="uuid"),
+        pytest.param(Decimal("1.5"), id="decimal"),
+        pytest.param(Fraction(1, 3), id="fraction"),
+        pytest.param(range(3), id="range"),
+        pytest.param(ZoneInfo("UTC"), id="zoneinfo"),
+    ],
+)
+def test_hash_object_standard_library_values_deterministic(data: object) -> None:
     assert hash_object(data) == hash_object(data)
 
 
-def test_hash_object_standard_library_values_are_different() -> None:
+def test_hash_object_standard_library_values_are_different_uuid() -> None:
     assert hash_object(UUID(int=1)) != hash_object(UUID(int=2))
+
+
+def test_hash_object_standard_library_values_are_different_uuid_and_str() -> None:
     assert hash_object(UUID(int=1)) != hash_object(str(UUID(int=1)))
+
+
+def test_hash_object_standard_library_values_are_different_zone_info() -> None:
     assert hash_object(ZoneInfo("UTC")) != hash_object(ZoneInfo("Europe/Paris"))
+
+
+def test_hash_object_standard_library_values_are_different_decimal() -> None:
     assert hash_object(Decimal(1)) != hash_object(1)
+
+
+def test_hash_object_standard_library_values_are_different_fraction() -> None:
     assert hash_object(Fraction(1, 1)) != hash_object(1)
+
+
+def test_hash_object_standard_library_values_are_different_range() -> None:
     assert hash_object(range(3)) != hash_object([0, 1, 2])
 
 
-def test_hash_object_equal_values_have_the_same_hash() -> None:
+def test_hash_object_equal_values_have_the_same_hash_decimal() -> None:
     assert hash_object(Decimal("1.0")) == hash_object(Decimal("1.00"))
+
+
+def test_hash_object_equal_values_have_the_same_hash_fraction() -> None:
     assert hash_object(Fraction(1, 2)) == hash_object(Fraction(2, 4))
+
+
+def test_hash_object_equal_values_have_the_same_hash_range() -> None:
     assert hash_object(range(0)) == hash_object(range(5, 5))
+
+
+def test_hash_object_equal_values_have_the_same_hash_nested() -> None:
     assert hash_object({"k": [Decimal("1.0")]}) == hash_object({"k": [Decimal(1)]})
 
 
@@ -521,11 +660,23 @@ def test_hash_object_numpy_scalar_in_a_container() -> None:
 
 
 @numpy_available
-def test_hash_object_numpy_scalar_different_values() -> None:
+def test_hash_object_numpy_scalar_different_values_float32() -> None:
     import numpy as np
 
     assert hash_object(np.float32(1.0)) != hash_object(np.float32(2.0))
+
+
+@numpy_available
+def test_hash_object_numpy_scalar_different_values_int64_and_float64() -> None:
+    import numpy as np
+
     assert hash_object(np.int64(1)) != hash_object(np.float64(1.0))
+
+
+@numpy_available
+def test_hash_object_numpy_scalar_different_values_bool() -> None:
+    import numpy as np
+
     assert hash_object(np.bool_(True)) != hash_object(1)
 
 

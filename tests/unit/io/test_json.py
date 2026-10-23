@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 from typing import TYPE_CHECKING
 
 import pytest
@@ -38,8 +39,11 @@ def test_json_loader_equal_true_encoding() -> None:
     assert JsonLoader(encoding="latin-1").equal(JsonLoader(encoding="latin-1"))
 
 
-def test_json_loader_equal_false_different_encoding() -> None:
+def test_json_loader_equal_false_different_encoding_default_encoding() -> None:
     assert not JsonLoader(encoding="latin-1").equal(JsonLoader())
+
+
+def test_json_loader_equal_false_different_encoding_other_encoding() -> None:
     assert not JsonLoader(encoding="latin-1").equal(JsonLoader(encoding="utf-8"))
 
 
@@ -117,29 +121,60 @@ def test_json_saver_save_file_exist(tmp_path: Path) -> None:
         saver.save({"key1": [1, 2, 3], "key2": "abc"}, path)
 
 
-def test_json_saver_save_file_exist_ok(tmp_path: Path) -> None:
+def test_json_saver_save_file_exist_ok_is_file(tmp_path: Path) -> None:
     path = tmp_path.joinpath("tmp/data.json")
     save_json({"key1": [1, 2, 3], "key2": "abc"}, path)
     saver = JsonSaver()
     saver.save({"key1": [3, 2, 1], "key2": "meow"}, path, exist_ok=True)
     assert path.is_file()
+
+
+def test_json_saver_save_file_exist_ok_content(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("tmp/data.json")
+    save_json({"key1": [1, 2, 3], "key2": "abc"}, path)
+    saver = JsonSaver()
+    saver.save({"key1": [3, 2, 1], "key2": "meow"}, path, exist_ok=True)
     assert load_json(path) == {"key1": [3, 2, 1], "key2": "meow"}
 
 
-def test_json_saver_save_respects_encoding(tmp_path: Path) -> None:
+def test_json_saver_save_respects_encoding_file_content(tmp_path: Path) -> None:
     path = tmp_path.joinpath("data.json")
     content = {"key": "Résultats: €1.2B"}
     JsonSaver(encoding="utf-8").save(content, path)
     assert path.read_text(encoding="utf-8") == '{"key": "R\\u00e9sultats: \\u20ac1.2B"}'
+
+
+def test_json_saver_save_respects_encoding_loaded_content(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.json")
+    content = {"key": "Résultats: €1.2B"}
+    JsonSaver(encoding="utf-8").save(content, path)
     assert JsonLoader().load(path) == content
 
 
-def test_json_saver_save_not_serializable_no_leftover_tmp_file(tmp_path: Path) -> None:
+def test_json_saver_save_not_serializable_no_leftover_tmp_file_raises(tmp_path: Path) -> None:
     path = tmp_path.joinpath("tmp/data.json")
     saver = JsonSaver()
     with pytest.raises(TypeError):
         saver.save({"key1": object()}, path)
+
+
+def test_json_saver_save_not_serializable_no_leftover_tmp_file_no_leftover_tmp_file_target_is_not_created(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path.joinpath("tmp/data.json")
+    saver = JsonSaver()
+    with contextlib.suppress(TypeError):
+        saver.save({"key1": object()}, path)
     assert not path.is_file()
+
+
+def test_json_saver_save_not_serializable_no_leftover_tmp_file_no_leftover_tmp_file_directory_is_empty(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path.joinpath("tmp/data.json")
+    saver = JsonSaver()
+    with contextlib.suppress(TypeError):
+        saver.save({"key1": object()}, path)
     assert list(path.parent.iterdir()) == []
 
 
@@ -185,11 +220,17 @@ def test_save_json_file_exist(tmp_path: Path) -> None:
         save_json({"key1": [1, 2, 3], "key2": "abc"}, path)
 
 
-def test_save_json_file_exist_ok(tmp_path: Path) -> None:
+def test_save_json_file_exist_ok_is_file(tmp_path: Path) -> None:
     path = tmp_path.joinpath("tmp/data.json")
     save_json({"key1": [1, 2, 3], "key2": "abc"}, path)
     save_json({"key1": [3, 2, 1], "key2": "meow"}, path, exist_ok=True)
     assert path.is_file()
+
+
+def test_save_json_file_exist_ok_content(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("tmp/data.json")
+    save_json({"key1": [1, 2, 3], "key2": "abc"}, path)
+    save_json({"key1": [3, 2, 1], "key2": "meow"}, path, exist_ok=True)
     assert load_json(path) == {"key1": [3, 2, 1], "key2": "meow"}
 
 

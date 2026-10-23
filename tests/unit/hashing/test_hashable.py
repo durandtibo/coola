@@ -67,17 +67,22 @@ def test_hashable_hasher_hash_matches_object_hash(registry: HasherRegistry) -> N
         pytest.param(
             "abc", "d7b8e3ab7c17b5c3caa49d8ac09758c8238eb7540baa482463684ae43e656b93", id="str"
         ),
-        pytest.param([1, 2, 3], None, id="list"),
     ],
 )
 def test_hashable_hasher_hash_known_values(
-    value: Any, expected: str | None, registry: HasherRegistry
+    value: Any, expected: str, registry: HasherRegistry
 ) -> None:
-    result = HashableHasher().hash(MyObj(value), registry=registry)
-    if expected is not None:
-        assert result == expected
-    assert isinstance(result, str)
-    assert len(result) == 64
+    assert HashableHasher().hash(MyObj(value), registry=registry) == expected
+
+
+@pytest.mark.parametrize("value", [42, "abc", [1, 2, 3]])
+def test_hashable_hasher_hash_value_returns_str(value: Any, registry: HasherRegistry) -> None:
+    assert isinstance(HashableHasher().hash(MyObj(value), registry=registry), str)
+
+
+@pytest.mark.parametrize("value", [42, "abc", [1, 2, 3]])
+def test_hashable_hasher_hash_has_the_default_length(value: Any, registry: HasherRegistry) -> None:
+    assert len(HashableHasher().hash(MyObj(value), registry=registry)) == 64
 
 
 def test_hashable_hasher_hash_returns_str(registry: HasherRegistry) -> None:
@@ -94,6 +99,22 @@ def test_hashable_hasher_hash_different_values_different_hashes(registry: Hasher
     assert hasher.hash(MyObj(1), registry=registry) != hasher.hash(MyObj(2), registry=registry)
 
 
+class OtherObj(MyObj):
+    def hash(
+        self,
+        registry: HasherRegistry | None = None,
+        length: int = 64,
+        ignore_unhashable: bool = False,
+    ) -> str:
+        if registry is None:
+            registry = get_default_registry()
+        return registry.hash(
+            (type(self).__qualname__, self._value),
+            length=length,
+            ignore_unhashable=ignore_unhashable,
+        )
+
+
 def test_hashable_hasher_hash_different_types_different_hashes(registry: HasherRegistry) -> None:
     # Two objects with the same nested value but different concrete types
     # are free to hash differently, since HashableHasher just
@@ -101,21 +122,6 @@ def test_hashable_hasher_hash_different_types_different_hashes(registry: HasherR
     # class whose hash() mixes in its class name demonstrates that
     # HashableHasher does not collapse type identity on its own - that
     # guarantee is entirely up to the delegate's ``hash`` method.
-    class OtherObj(MyObj):
-        def hash(
-            self,
-            registry: HasherRegistry | None = None,
-            length: int = 64,
-            ignore_unhashable: bool = False,
-        ) -> str:
-            if registry is None:
-                registry = get_default_registry()
-            return registry.hash(
-                (type(self).__qualname__, self._value),
-                length=length,
-                ignore_unhashable=ignore_unhashable,
-            )
-
     hasher = HashableHasher()
     assert hasher.hash(MyObj(1), registry=registry) != hasher.hash(OtherObj(1), registry=registry)
 
@@ -133,6 +139,11 @@ def test_hashable_hasher_hash_different_types_different_hashes(registry: HasherR
 def test_hashable_hasher_hash_length(length: int, expected: str, registry: HasherRegistry) -> None:
     result = HashableHasher().hash(MyObj(42), registry=registry, length=length)
     assert result == expected
+
+
+@pytest.mark.parametrize("length", [16, 32, 64])
+def test_hashable_hasher_hash_length_is_respected(length: int, registry: HasherRegistry) -> None:
+    result = HashableHasher().hash(MyObj(42), registry=registry, length=length)
     assert len(result) == length
 
 
@@ -140,14 +151,20 @@ def test_hashable_hasher_hash_default_length_is_64(registry: HasherRegistry) -> 
     assert len(HashableHasher().hash(MyObj(42), registry=registry)) == 64
 
 
-def test_hashable_hasher_hash_forwards_registry_argument() -> None:
+def _hash_a_mock_object() -> tuple[Mock, HasherRegistry, str]:
     obj = Mock(spec_set=SupportsHash)
     obj.hash.return_value = "cafe"
     registry = HasherRegistry()
+    return obj, registry, HashableHasher().hash(obj, registry=registry)
 
-    result = HashableHasher().hash(obj, registry=registry)
 
+def test_hashable_hasher_hash_forwards_registry_argument() -> None:
+    obj, registry, _ = _hash_a_mock_object()
     obj.hash.assert_called_once_with(registry=registry, length=64, ignore_unhashable=False)
+
+
+def test_hashable_hasher_hash_returns_the_tagged_hash_of_the_object() -> None:
+    obj, _, result = _hash_a_mock_object()
     assert result == hash_tagged(f"custom:{type(obj).__module__}.{type(obj).__qualname__}", "cafe")
 
 
@@ -184,11 +201,18 @@ def test_hashable_hasher_hash_propagates_unhashable_nested_value() -> None:
         HashableHasher().hash(obj, registry=empty_registry)
 
 
-def test_hashable_hasher_hash_ignore_unhashable_nested_value_returns_str() -> None:
+def test_hashable_hasher_hash_ignore_unhashable_nested_value_returns_str_warns() -> None:
     empty_registry = HasherRegistry()
     obj = MyObj(Unhashable())
     with pytest.warns(UserWarning, match=r"No hasher registered"):
-        result = HashableHasher().hash(obj, registry=empty_registry, ignore_unhashable=True)
+        HashableHasher().hash(obj, registry=empty_registry, ignore_unhashable=True)
+
+
+@pytest.mark.filterwarnings("ignore::UserWarning")
+def test_hashable_hasher_hash_ignore_unhashable_nested_value_returns_str() -> None:
+    empty_registry = HasherRegistry()
+    obj = MyObj(Unhashable())
+    result = HashableHasher().hash(obj, registry=empty_registry, ignore_unhashable=True)
     assert isinstance(result, str)
 
 

@@ -89,33 +89,52 @@ def test_get_default_registry_returns_singleton() -> None:
 
 
 @pytest.mark.parametrize("data_type", [int, float, complex, bool, str, bytes])
-def test_get_default_registry_scalar_types(data_type: type) -> None:
+def test_get_default_registry_scalar_types_is_registered(data_type: type) -> None:
     """Test that scalar types are registered with DefaultIterator."""
     registry = get_default_registry()
     assert registry.has_iterator(data_type)
+
+
+@pytest.mark.parametrize("data_type", [int, float, complex, bool, str, bytes])
+def test_get_default_registry_scalar_types_finder(data_type: type) -> None:
+    registry = get_default_registry()
     assert isinstance(registry.find_iterator(data_type), DefaultIterator)
 
 
 @pytest.mark.parametrize("data_type", [list, tuple, deque, range, Collection, set, frozenset])
-def test_get_default_registry_iterables(data_type: type) -> None:
+def test_get_default_registry_iterables_is_registered(data_type: type) -> None:
     """Test that iterable types are registered with IterableIterator."""
     registry = get_default_registry()
     assert registry.has_iterator(data_type)
+
+
+@pytest.mark.parametrize("data_type", [list, tuple, deque, range, Collection, set, frozenset])
+def test_get_default_registry_iterables_finder(data_type: type) -> None:
+    registry = get_default_registry()
     assert isinstance(registry.find_iterator(data_type), IterableIterator)
 
 
 @pytest.mark.parametrize("data_type", [dict, Mapping])
-def test_register_default_iterators_registers_mappings(data_type: type) -> None:
+def test_register_default_iterators_registers_mappings_is_registered(data_type: type) -> None:
     """Test that mapping types are registered with MappingIterator."""
     registry = get_default_registry()
     assert registry.has_iterator(data_type)
+
+
+@pytest.mark.parametrize("data_type", [dict, Mapping])
+def test_register_default_iterators_registers_mappings_finder(data_type: type) -> None:
+    registry = get_default_registry()
     assert isinstance(registry.find_iterator(data_type), MappingIterator)
 
 
-def test_register_default_iterators_registers_object() -> None:
+def test_register_default_iterators_registers_object_is_registered() -> None:
     """Test that object type is registered as catch-all."""
     registry = get_default_registry()
     assert registry.has_iterator(object)
+
+
+def test_register_default_iterators_registers_object_finder() -> None:
+    registry = get_default_registry()
     assert isinstance(registry.find_iterator(object), DefaultIterator)
 
 
@@ -125,17 +144,29 @@ def test_default_registry_can_iterate(data: Any, expected: Any) -> None:
     assert objects_are_equal(list(get_default_registry().iterate(data)), expected)
 
 
+def test_get_default_registry_singleton_does_not_have_the_custom_type() -> None:
+    """Test that the registry does not have the custom type."""
+    assert not get_default_registry().has_iterator(CustomList)
+
+
 def test_get_default_registry_singleton_persists_modifications() -> None:
-    """Test that modifications to the registry persist across calls."""
+    """Test that modifications to the registry persist."""
     registry1 = get_default_registry()
-    assert not registry1.has_iterator(CustomList)
     registry1.register(CustomList, IterableIterator())
     assert registry1.has_iterator(CustomList)
 
-    # Get registry again
-    registry2 = get_default_registry()
-    assert registry1 is registry2
-    assert registry2.has_iterator(CustomList)
+
+def test_get_default_registry_singleton_returns_the_same_registry() -> None:
+    """Test that the registry is the same across calls."""
+    registry1 = get_default_registry()
+    registry1.register(CustomList, IterableIterator())
+    assert registry1 is get_default_registry()
+
+
+def test_get_default_registry_singleton_persists_modifications_across_calls() -> None:
+    """Test that modifications to the registry persist across calls."""
+    get_default_registry().register(CustomList, IterableIterator())
+    assert get_default_registry().has_iterator(CustomList)
 
 
 class CustomIterator(Iterator):
@@ -149,14 +180,38 @@ class CustomIterator(Iterator):
         return next(self._values)
 
 
-def test_dfs_iterate_iterators_are_leaves_and_not_consumed() -> None:
+def test_dfs_iterate_iterators_are_leaves_and_not_consumed_first_is_the_iterator() -> None:
     iterator = CustomIterator([1, 2, 3])
     generator = (i for i in range(3))
     result = list(dfs_iterate([iterator, generator, 4]))
     assert result[0] is iterator
+
+
+def test_dfs_iterate_iterators_are_leaves_and_not_consumed_second_is_the_generator() -> None:
+    iterator = CustomIterator([1, 2, 3])
+    generator = (i for i in range(3))
+    result = list(dfs_iterate([iterator, generator, 4]))
     assert result[1] is generator
+
+
+def test_dfs_iterate_iterators_are_leaves_and_not_consumed_third_value() -> None:
+    iterator = CustomIterator([1, 2, 3])
+    generator = (i for i in range(3))
+    result = list(dfs_iterate([iterator, generator, 4]))
     assert result[2] == 4
+
+
+def test_dfs_iterate_iterators_are_leaves_and_not_consumed_iterator_is_not_consumed() -> None:
+    iterator = CustomIterator([1, 2, 3])
+    generator = (i for i in range(3))
+    list(dfs_iterate([iterator, generator, 4]))
     assert list(iterator) == [1, 2, 3]
+
+
+def test_dfs_iterate_iterators_are_leaves_and_not_consumed_generator_is_not_consumed() -> None:
+    iterator = CustomIterator([1, 2, 3])
+    generator = (i for i in range(3))
+    list(dfs_iterate([iterator, generator, 4]))
     assert list(generator) == [0, 1, 2]
 
 

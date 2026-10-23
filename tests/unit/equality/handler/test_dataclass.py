@@ -70,11 +70,17 @@ def test_dataclass_same_fields_handler_handle_tolerance() -> None:
     assert handler.handle(Point(1.0), Point(1.05), config)
 
 
-def test_dataclass_same_fields_handler_handle_show_difference(
+def test_dataclass_same_fields_handler_handle_show_difference() -> None:
+    config = EqualityConfig(show_difference=True)
+    handler = DataclassSameFieldsHandler(next_handler=TrueHandler())
+    assert not handler.handle(Point(1.0, 2.0), Point(1.0, 3.0), config)
+
+
+def test_dataclass_same_fields_handler_handle_show_difference_logs(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config = EqualityConfig(show_difference=True)
     handler = DataclassSameFieldsHandler(next_handler=TrueHandler())
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(Point(1.0, 2.0), Point(1.0, 3.0), config)
+        handler.handle(Point(1.0, 2.0), Point(1.0, 3.0), config)
     assert caplog.messages[-1] == "objects have different y: 2.0 vs 3.0"

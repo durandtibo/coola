@@ -71,6 +71,11 @@ def test_mapping_hasher_hash_parametrized(
 def test_mapping_hasher_hash_length(length: int, expected: str, registry: HasherRegistry) -> None:
     result = MappingHasher().hash({"a": 1, "b": 2}, registry=registry, length=length)
     assert result == expected
+
+
+@pytest.mark.parametrize("length", [16, 32, 64])
+def test_mapping_hasher_hash_length_is_respected(length: int, registry: HasherRegistry) -> None:
+    result = MappingHasher().hash({"a": 1, "b": 2}, registry=registry, length=length)
     assert len(result) == length
 
 
@@ -159,38 +164,55 @@ def test_mapping_hasher_hash_unhashable_value_raises_when_explicitly_false(
         )
 
 
+def test_mapping_hasher_hash_ignore_unhashable_value_returns_str_warns(
+    registry_without_fallback: HasherRegistry,
+) -> None:
+    with pytest.warns(UserWarning, match=r"No hasher registered"):
+        MappingHasher().hash(
+            {"a": Unhashable()}, registry=registry_without_fallback, ignore_unhashable=True
+        )
+
+
+@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_mapping_hasher_hash_ignore_unhashable_value_returns_str(
     registry_without_fallback: HasherRegistry,
 ) -> None:
-    with pytest.warns(UserWarning, match=r"No hasher registered"):
-        result = MappingHasher().hash(
-            {"a": Unhashable()}, registry=registry_without_fallback, ignore_unhashable=True
-        )
+    result = MappingHasher().hash(
+        {"a": Unhashable()}, registry=registry_without_fallback, ignore_unhashable=True
+    )
     assert isinstance(result, str)
 
 
-def test_mapping_hasher_hash_ignore_unhashable_key_returns_str(
+def test_mapping_hasher_hash_ignore_unhashable_key_returns_str_warns(
     registry_without_fallback: HasherRegistry,
 ) -> None:
     with pytest.warns(UserWarning, match=r"No hasher registered"):
-        result = MappingHasher().hash(
+        MappingHasher().hash(
             {Unhashable(): "a"}, registry=registry_without_fallback, ignore_unhashable=True
         )
+
+
+@pytest.mark.filterwarnings("ignore::UserWarning")
+def test_mapping_hasher_hash_ignore_unhashable_key_returns_str(
+    registry_without_fallback: HasherRegistry,
+) -> None:
+    result = MappingHasher().hash(
+        {Unhashable(): "a"}, registry=registry_without_fallback, ignore_unhashable=True
+    )
     assert isinstance(result, str)
 
 
+@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_mapping_hasher_hash_ignore_unhashable_is_deterministic(
     registry_without_fallback: HasherRegistry,
 ) -> None:
     hasher = MappingHasher()
-    with pytest.warns(UserWarning, match=r"No hasher registered"):
-        first = hasher.hash(
-            {"a": Unhashable()}, registry=registry_without_fallback, ignore_unhashable=True
-        )
-    with pytest.warns(UserWarning, match=r"No hasher registered"):
-        second = hasher.hash(
-            {"a": Unhashable()}, registry=registry_without_fallback, ignore_unhashable=True
-        )
+    first = hasher.hash(
+        {"a": Unhashable()}, registry=registry_without_fallback, ignore_unhashable=True
+    )
+    second = hasher.hash(
+        {"a": Unhashable()}, registry=registry_without_fallback, ignore_unhashable=True
+    )
     assert first == second
 
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 from collections.abc import Sequence
 from enum import Enum
 from typing import Any
@@ -35,13 +36,20 @@ def test_hasher_registry_init_empty() -> None:
 
 
 def test_hasher_registry_init_with_state() -> None:
-    hasher = SequenceHasher()
-    initial_state: dict[type, BaseHasher[Any]] = {list: hasher}
-    registry = HasherRegistry(initial_state)
-
+    registry = HasherRegistry({list: SequenceHasher()})
     assert list in registry._state
+
+
+def test_hasher_registry_init_with_state_keeps_the_hasher() -> None:
+    hasher = SequenceHasher()
+    registry = HasherRegistry({list: hasher})
     assert registry._state[list] is hasher
+
+
+def test_hasher_registry_init_with_state_copies_the_state() -> None:
     # Verify it's a copy — mutations to the source dict don't affect the registry.
+    initial_state: dict[type, BaseHasher[Any]] = {list: SequenceHasher()}
+    registry = HasherRegistry(initial_state)
     initial_state[tuple] = ReprHasher()
     assert tuple not in registry._state
 
@@ -59,11 +67,17 @@ def test_hasher_registry_str() -> None:
 ##############################
 
 
-def test_hasher_registry_register_new_type() -> None:
+def test_hasher_registry_register_new_type_has_hasher() -> None:
     registry = HasherRegistry()
     hasher = SequenceHasher()
     registry.register(list, hasher)
     assert registry.has_hasher(list)
+
+
+def test_hasher_registry_register_new_type_keeps_the_hasher() -> None:
+    registry = HasherRegistry()
+    hasher = SequenceHasher()
+    registry.register(list, hasher)
     assert registry._state[list] is hasher
 
 
@@ -85,7 +99,7 @@ def test_hasher_registry_register_existing_type_with_exist_ok() -> None:
 ###################################
 
 
-def test_hasher_registry_register_many() -> None:
+def test_hasher_registry_register_many_list() -> None:
     registry = HasherRegistry()
     registry.register_many(
         {
@@ -95,7 +109,29 @@ def test_hasher_registry_register_many() -> None:
         }
     )
     assert registry.has_hasher(list)
+
+
+def test_hasher_registry_register_many_dict() -> None:
+    registry = HasherRegistry()
+    registry.register_many(
+        {
+            list: SequenceHasher(),
+            dict: MappingHasher(),
+            str: StringHasher(),
+        }
+    )
     assert registry.has_hasher(dict)
+
+
+def test_hasher_registry_register_many_str() -> None:
+    registry = HasherRegistry()
+    registry.register_many(
+        {
+            list: SequenceHasher(),
+            dict: MappingHasher(),
+            str: StringHasher(),
+        }
+    )
     assert registry.has_hasher(str)
 
 
@@ -213,15 +249,26 @@ def test_hasher_registry_hash_with_empty_dict() -> None:
 def test_hasher_registry_hash_with_length() -> None:
     result = HasherRegistry({object: ReprHasher()}).hash(42, length=16)
     assert result == "4d693658248572a8"
+
+
+def test_hasher_registry_hash_with_length_length() -> None:
+    result = HasherRegistry({object: ReprHasher()}).hash(42, length=16)
     assert len(result) == 16
 
 
-def test_hasher_registry_hash_registry_isolation() -> None:
+def test_hasher_registry_hash_registry_isolation_first_registry() -> None:
     hasher1 = SequenceHasher()
     hasher2 = MappingHasher()
     registry1 = HasherRegistry({list: hasher1})
-    registry2 = HasherRegistry({list: hasher2})
+    HasherRegistry({list: hasher2})
     assert registry1._state[list] is hasher1
+
+
+def test_hasher_registry_hash_registry_isolation_second_registry() -> None:
+    hasher1 = SequenceHasher()
+    hasher2 = MappingHasher()
+    HasherRegistry({list: hasher1})
+    registry2 = HasherRegistry({list: hasher2})
     assert registry2._state[list] is hasher2
 
 
@@ -235,33 +282,50 @@ def test_hasher_registry_hash_unhashable_raises_when_explicitly_false() -> None:
         HasherRegistry().hash(Unhashable(), ignore_unhashable=False)
 
 
-def test_hasher_registry_hash_ignore_unhashable_returns_str() -> None:
+def test_hasher_registry_hash_ignore_unhashable_returns_str_warns() -> None:
     with pytest.warns(UserWarning, match=r"No hasher registered"):
-        result = HasherRegistry().hash(Unhashable(), ignore_unhashable=True)
+        HasherRegistry().hash(Unhashable(), ignore_unhashable=True)
+
+
+@pytest.mark.filterwarnings("ignore::UserWarning")
+def test_hasher_registry_hash_ignore_unhashable_returns_str() -> None:
+    result = HasherRegistry().hash(Unhashable(), ignore_unhashable=True)
     assert isinstance(result, str)
 
 
-def test_hasher_registry_hash_ignore_unhashable_respects_length() -> None:
+def test_hasher_registry_hash_ignore_unhashable_respects_length_warns() -> None:
     with pytest.warns(UserWarning, match=r"No hasher registered"):
-        result = HasherRegistry().hash(Unhashable(), length=16, ignore_unhashable=True)
+        HasherRegistry().hash(Unhashable(), length=16, ignore_unhashable=True)
+
+
+@pytest.mark.filterwarnings("ignore::UserWarning")
+def test_hasher_registry_hash_ignore_unhashable_respects_length() -> None:
+    result = HasherRegistry().hash(Unhashable(), length=16, ignore_unhashable=True)
     assert len(result) == 16
 
 
+@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_hasher_registry_hash_ignore_unhashable_is_deterministic() -> None:
     registry = HasherRegistry()
-    with pytest.warns(UserWarning, match=r"No hasher registered"):
-        first = registry.hash(Unhashable(), ignore_unhashable=True)
-    with pytest.warns(UserWarning, match=r"No hasher registered"):
-        second = registry.hash(Unhashable(), ignore_unhashable=True)
+    first = registry.hash(Unhashable(), ignore_unhashable=True)
+    second = registry.hash(Unhashable(), ignore_unhashable=True)
     assert first == second
 
 
-def test_hasher_registry_hash_ignore_unhashable_nested_in_list() -> None:
+def test_hasher_registry_hash_ignore_unhashable_nested_in_list_warns() -> None:
     # No `object` fallback registered, so the `Unhashable` element would
     # normally be unresolvable; ignore_unhashable=True must handle it.
     registry = HasherRegistry({int: StrHasher(), list: SequenceHasher()})
     with pytest.warns(UserWarning, match=r"No hasher registered"):
-        result = registry.hash([1, Unhashable(), 3], ignore_unhashable=True)
+        registry.hash([1, Unhashable(), 3], ignore_unhashable=True)
+
+
+@pytest.mark.filterwarnings("ignore::UserWarning")
+def test_hasher_registry_hash_ignore_unhashable_nested_in_list() -> None:
+    # No `object` fallback registered, so the `Unhashable` element would
+    # normally be unresolvable; ignore_unhashable=True must handle it.
+    registry = HasherRegistry({int: StrHasher(), list: SequenceHasher()})
+    result = registry.hash([1, Unhashable(), 3], ignore_unhashable=True)
     assert isinstance(result, str)
 
 
@@ -273,12 +337,20 @@ def test_hasher_registry_hash_ignore_unhashable_nested_in_list_raises_by_default
         registry.hash([1, Unhashable(), 3])
 
 
-def test_hasher_registry_hash_ignore_unhashable_nested_in_dict() -> None:
+def test_hasher_registry_hash_ignore_unhashable_nested_in_dict_warns() -> None:
     # No `object` fallback registered, so the `Unhashable` value would
     # normally be unresolvable; ignore_unhashable=True must handle it.
     registry = HasherRegistry({str: StrHasher(), dict: MappingHasher()})
     with pytest.warns(UserWarning, match=r"No hasher registered"):
-        result = registry.hash({"a": Unhashable()}, ignore_unhashable=True)
+        registry.hash({"a": Unhashable()}, ignore_unhashable=True)
+
+
+@pytest.mark.filterwarnings("ignore::UserWarning")
+def test_hasher_registry_hash_ignore_unhashable_nested_in_dict() -> None:
+    # No `object` fallback registered, so the `Unhashable` value would
+    # normally be unresolvable; ignore_unhashable=True must handle it.
+    registry = HasherRegistry({str: StrHasher(), dict: MappingHasher()})
+    result = registry.hash({"a": Unhashable()}, ignore_unhashable=True)
     assert isinstance(result, str)
 
 
@@ -422,23 +494,30 @@ def test_hasher_registry_has_hasher_ignores_the_fallbacks() -> None:
     assert not registry.has_hasher(Marked)
 
 
+def test_hasher_registry_repr_does_not_show_the_fallbacks_without_fallback() -> None:
+    assert "fallbacks" not in repr(HasherRegistry())
+
+
 def test_hasher_registry_repr_shows_the_fallbacks() -> None:
     registry = HasherRegistry()
-    assert "fallbacks" not in repr(registry)
     registry.register_fallback(is_marked, StrHasher())
     assert "fallbacks" in repr(registry)
+
+
+def test_hasher_registry_repr_shows_the_fallback_hashers() -> None:
+    registry = HasherRegistry()
+    registry.register_fallback(is_marked, StrHasher())
     assert "StrHasher()" in repr(registry)
 
 
-def test_hasher_registry_unhashable_error_names_the_remedies() -> None:
+@pytest.mark.parametrize(
+    "text", ["register a hasher", "hash()", "ignore_unhashable=True", "Unhashable"]
+)
+def test_hasher_registry_unhashable_error_names_the_remedies(text: str) -> None:
     registry = HasherRegistry()
     with pytest.raises(KeyError) as exc_info:
         registry.hash(Unhashable())
-    message = str(exc_info.value)
-    assert "register a hasher" in message
-    assert "hash()" in message
-    assert "ignore_unhashable=True" in message
-    assert "Unhashable" in message
+    assert text in str(exc_info.value)
 
 
 def test_hasher_registry_unhashable_error_is_a_type_not_registered_error() -> None:
@@ -469,9 +548,15 @@ def test_hasher_registry_hash_deeply_nested_data_raises_value_error() -> None:
         get_default_registry().hash(_deeply_nested())
 
 
-def test_hasher_registry_hash_is_usable_after_deeply_nested_data() -> None:
+def test_hasher_registry_hash_is_usable_after_deeply_nested_data_raises() -> None:
     registry = get_default_registry()
     with pytest.raises(ValueError, match="nested too deeply"):
+        registry.hash(_deeply_nested())
+
+
+def test_hasher_registry_hash_is_usable_after_deeply_nested_data() -> None:
+    registry = get_default_registry()
+    with contextlib.suppress(ValueError):
         registry.hash(_deeply_nested())
     assert registry.hash([1])
 

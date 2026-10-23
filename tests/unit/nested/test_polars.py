@@ -371,13 +371,22 @@ def test_expand_list_columns_array_with_null() -> None:
 
 
 @polars_available
-def test_expand_list_columns_array_and_list() -> None:
+def test_expand_list_columns_array_and_list_columns() -> None:
     frame = pl.DataFrame(
         {"vec": [[1, 2]], "tags": [["a"]]},
         schema={"vec": pl.Array(pl.Int64, 2), "tags": pl.List(pl.String)},
     )
     result = expand_list_columns(frame, separator=".")
     assert sorted(result.columns) == ["tags.0", "vec.0", "vec.1"]
+
+
+@polars_available
+def test_expand_list_columns_array_and_list_row() -> None:
+    frame = pl.DataFrame(
+        {"vec": [[1, 2]], "tags": [["a"]]},
+        schema={"vec": pl.Array(pl.Int64, 2), "tags": pl.List(pl.String)},
+    )
+    result = expand_list_columns(frame, separator=".")
     assert result.row(0, named=True) == {"vec.0": 1, "vec.1": 2, "tags.0": "a"}
 
 

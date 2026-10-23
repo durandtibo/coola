@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import random
 
 import pytest
@@ -22,13 +23,19 @@ def test_random_manager_registry_init_empty() -> None:
 
 
 def test_manager_registry_init_with_registry() -> None:
-    manager = RandomRandomManager()
-    initial_registry: dict[str, BaseRandomManager] = {"random": manager}
-    registry = RandomManagerRegistry(initial_registry)
-
+    registry = RandomManagerRegistry({"random": RandomRandomManager()})
     assert "random" in registry._state
+
+
+def test_manager_registry_init_with_registry_keeps_the_manager() -> None:
+    manager = RandomRandomManager()
+    registry = RandomManagerRegistry({"random": manager})
     assert registry._state["random"] is manager
-    # Verify it's a copy
+
+
+def test_manager_registry_init_with_registry_copies_the_registry() -> None:
+    initial_registry: dict[str, BaseRandomManager] = {"random": RandomRandomManager()}
+    registry = RandomManagerRegistry(initial_registry)
     initial_registry["default"] = RandomRandomManager()
     assert "default" not in registry._state
 
@@ -41,11 +48,17 @@ def test_random_manager_registry_str() -> None:
     assert str(RandomManagerRegistry()).startswith("RandomManagerRegistry(")
 
 
-def test_random_manager_registry_register_new_key() -> None:
+def test_random_manager_registry_register_new_key_has_manager() -> None:
     registry = RandomManagerRegistry()
     manager = RandomRandomManager()
     registry.register("random", manager)
     assert registry.has_manager("random")
+
+
+def test_random_manager_registry_register_new_key_keeps_the_manager() -> None:
+    registry = RandomManagerRegistry()
+    manager = RandomRandomManager()
+    registry.register("random", manager)
     assert registry._state["random"] is manager
 
 
@@ -69,7 +82,7 @@ def test_random_manager_registry_register_existing_key_with_exist_ok() -> None:
     assert registry._state["random"] is manager2
 
 
-def test_random_manager_registry_register_many() -> None:
+def test_random_manager_registry_register_many_random() -> None:
     registry = RandomManagerRegistry()
     registry.register_many(
         {
@@ -78,6 +91,16 @@ def test_random_manager_registry_register_many() -> None:
         }
     )
     assert registry.has_manager("random")
+
+
+def test_random_manager_registry_register_many_default() -> None:
+    registry = RandomManagerRegistry()
+    registry.register_many(
+        {
+            "random": RandomRandomManager(),
+            "default": RandomRandomManager(),
+        }
+    )
     assert registry.has_manager("default")
 
 
@@ -119,25 +142,43 @@ def test_random_manager_registry_get_rng_state() -> None:
     assert isinstance(state, dict)
 
 
-def test_random_manager_registry_manual_seed() -> None:
+def test_random_manager_registry_manual_seed_same_seed_same_values() -> None:
+    rng = RandomManagerRegistry({"random": RandomRandomManager()})
+    rng.manual_seed(42)
+    x1 = random.uniform(0, 1)  # noqa: S311
+    random.uniform(0, 1)  # noqa: S311
+    rng.manual_seed(42)
+    x3 = random.uniform(0, 1)  # noqa: S311
+    assert x1 == x3
+
+
+def test_random_manager_registry_manual_seed_different_values() -> None:
     rng = RandomManagerRegistry({"random": RandomRandomManager()})
     rng.manual_seed(42)
     x1 = random.uniform(0, 1)  # noqa: S311
     x2 = random.uniform(0, 1)  # noqa: S311
     rng.manual_seed(42)
-    x3 = random.uniform(0, 1)  # noqa: S311
-    assert x1 == x3
+    random.uniform(0, 1)  # noqa: S311
     assert x1 != x2
 
 
-def test_random_manager_registry_set_rng_state() -> None:
+def test_random_manager_registry_set_rng_state_restored_values() -> None:
+    rng = RandomManagerRegistry({"random": RandomRandomManager()})
+    state = rng.get_rng_state()
+    x1 = random.uniform(0, 1)  # noqa: S311
+    random.uniform(0, 1)  # noqa: S311
+    rng.set_rng_state(state)
+    x3 = random.uniform(0, 1)  # noqa: S311
+    assert x1 == x3
+
+
+def test_random_manager_registry_set_rng_state_different_values() -> None:
     rng = RandomManagerRegistry({"random": RandomRandomManager()})
     state = rng.get_rng_state()
     x1 = random.uniform(0, 1)  # noqa: S311
     x2 = random.uniform(0, 1)  # noqa: S311
     rng.set_rng_state(state)
-    x3 = random.uniform(0, 1)  # noqa: S311
-    assert x1 == x3
+    random.uniform(0, 1)  # noqa: S311
     assert x1 != x2
 
 
@@ -202,12 +243,18 @@ def test_random_manager_registry_set_rng_state_empty_state_warns_for_registered_
     assert "['random']" in caplog.text
 
 
-def test_random_manager_registry_seed() -> None:
+def test_random_manager_registry_seed_restores_the_state() -> None:
     rng = RandomManagerRegistry({"random": RandomRandomManager()})
     state = random.getstate()
     with rng.seed(42):
-        first = random.uniform(0, 1)  # noqa: S311
+        random.uniform(0, 1)  # noqa: S311
     assert random.getstate() == state
+
+
+def test_random_manager_registry_seed_is_reproducible() -> None:
+    rng = RandomManagerRegistry({"random": RandomRandomManager()})
+    with rng.seed(42):
+        first = random.uniform(0, 1)  # noqa: S311
     with rng.seed(42):
         second = random.uniform(0, 1)  # noqa: S311
     assert first == second
@@ -225,10 +272,16 @@ def test_random_manager_registry_find_manager_missing_raises() -> None:
         registry.find_manager("torch")
 
 
-def test_random_manager_registry_unregister_returns_the_manager() -> None:
+def test_random_manager_registry_unregister_returns_the_manager_returns_the_manager() -> None:
     manager = RandomRandomManager()
     registry = RandomManagerRegistry({"random": manager})
     assert registry.unregister("random") is manager
+
+
+def test_random_manager_registry_unregister_returns_the_manager_removes_the_manager() -> None:
+    manager = RandomRandomManager()
+    registry = RandomManagerRegistry({"random": manager})
+    registry.unregister("random")
     assert not registry.has_manager("random")
 
 
@@ -254,10 +307,17 @@ def test_random_manager_registry_unregistered_manager_is_not_in_the_state() -> N
 
 @pytest.mark.parametrize("seed", [-1, 2**63, 2**70])
 def test_random_manager_registry_manual_seed_out_of_range(seed: int) -> None:
+    registry = RandomManagerRegistry({"random": RandomRandomManager()})
+    with pytest.raises(ValueError, match="seed must be in the range"):
+        registry.manual_seed(seed)
+
+
+@pytest.mark.parametrize("seed", [-1, 2**63, 2**70])
+def test_random_manager_registry_manual_seed_out_of_range_does_not_seed(seed: int) -> None:
     random.seed(1)
     state = random.getstate()
     registry = RandomManagerRegistry({"random": RandomRandomManager()})
-    with pytest.raises(ValueError, match="seed must be in the range"):
+    with contextlib.suppress(ValueError):
         registry.manual_seed(seed)
     assert random.getstate() == state  # nothing was seeded
 

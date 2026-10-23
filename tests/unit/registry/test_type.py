@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import abc
+import contextlib
 import gc
 import weakref
 from typing import TYPE_CHECKING, cast
@@ -27,8 +28,20 @@ def test_type_registry_init_with_initial_state() -> None:
     """Test creating a registry with initial state."""
     registry = TypeRegistry[str]({int: "integer", float: "float"})
     assert len(registry) == 2
+
+
+def test_type_registry_init_with_initial_state_get_first() -> None:
+    registry = TypeRegistry[str]({int: "integer", float: "float"})
     assert registry.get(int) == "integer"
+
+
+def test_type_registry_init_with_initial_state_get_second() -> None:
+    registry = TypeRegistry[str]({int: "integer", float: "float"})
     assert registry.get(float) == "float"
+
+
+def test_type_registry_init_with_initial_state_content() -> None:
+    registry = TypeRegistry[str]({int: "integer", float: "float"})
     assert registry._state == {int: "integer", float: "float"}
 
 
@@ -38,7 +51,19 @@ def test_type_registry_init_copies_initial_state() -> None:
     registry = TypeRegistry[str](initial)
     initial[float] = "float"
     assert len(registry) == 1
+
+
+def test_type_registry_init_copies_initial_state_has() -> None:
+    initial: dict[type, str] = {int: "integer"}
+    registry = TypeRegistry[str](initial)
+    initial[float] = "float"
     assert not registry.has(float)
+
+
+def test_type_registry_init_copies_initial_state_content() -> None:
+    initial: dict[type, str] = {int: "integer"}
+    registry = TypeRegistry[str](initial)
+    initial[float] = "float"
     assert registry._state == {int: "integer"}
 
 
@@ -55,6 +80,12 @@ def test_type_registry_clear_empty_registry() -> None:
     registry = TypeRegistry[str]()
     registry.clear()
     assert registry.equal(TypeRegistry[str]())
+
+
+def test_type_registry_clear_empty_registry_resets_the_cache() -> None:
+    """Test clearing an empty registry."""
+    registry = TypeRegistry[str]()
+    registry.clear()
     assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
@@ -63,6 +94,12 @@ def test_type_registry_clear_populated_registry() -> None:
     registry = TypeRegistry[str]({int: "integer", float: "float"})
     registry.clear()
     assert registry.equal(TypeRegistry[str]())
+
+
+def test_type_registry_clear_populated_registry_resets_the_cache() -> None:
+    """Test clearing a populated registry."""
+    registry = TypeRegistry[str]({int: "integer", float: "float"})
+    registry.clear()
     assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
@@ -133,6 +170,12 @@ def test_type_registry_register_basic() -> None:
     registry = TypeRegistry[str]()
     registry.register(int, "integer")
     assert registry.equal(TypeRegistry[str]({int: "integer"}))
+
+
+def test_type_registry_register_basic_resets_the_cache() -> None:
+    """Test basic registration of a key-value pair."""
+    registry = TypeRegistry[str]()
+    registry.register(int, "integer")
     assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
@@ -151,6 +194,13 @@ def test_type_registry_register_duplicate_with_exist_ok() -> None:
     registry.register(int, "integer")
     registry.register(int, "int", exist_ok=True)
     assert registry.equal(TypeRegistry[str]({int: "int"}))
+
+
+def test_type_registry_register_duplicate_with_exist_ok_resets_the_cache() -> None:
+    """Test that exist_ok=True allows overwriting."""
+    registry = TypeRegistry[str]()
+    registry.register(int, "integer")
+    registry.register(int, "int", exist_ok=True)
     assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
@@ -160,6 +210,13 @@ def test_type_registry_register_multiple_keys() -> None:
     registry.register(int, "integer")
     registry.register(float, "float")
     assert registry.equal(TypeRegistry[str]({int: "integer", float: "float"}))
+
+
+def test_type_registry_register_multiple_keys_resets_the_cache() -> None:
+    """Test registering multiple different keys."""
+    registry = TypeRegistry[str]()
+    registry.register(int, "integer")
+    registry.register(float, "float")
     assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
@@ -168,6 +225,12 @@ def test_type_registry_register_many_basic() -> None:
     registry = TypeRegistry[str]()
     registry.register_many({int: "integer", float: "float"})
     assert registry.equal(TypeRegistry[str]({int: "integer", float: "float"}))
+
+
+def test_type_registry_register_many_basic_resets_the_cache() -> None:
+    """Test bulk registration with register_many."""
+    registry = TypeRegistry[str]()
+    registry.register_many({int: "integer", float: "float"})
     assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
@@ -176,6 +239,12 @@ def test_type_registry_register_many_empty_mapping() -> None:
     registry = TypeRegistry[str]()
     registry.register_many({})
     assert registry.equal(TypeRegistry[str]())
+
+
+def test_type_registry_register_many_empty_mapping_resets_the_cache() -> None:
+    """Test register_many with an empty mapping."""
+    registry = TypeRegistry[str]()
+    registry.register_many({})
     assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
@@ -192,12 +261,22 @@ def test_type_registry_register_many_with_exist_ok() -> None:
     registry = TypeRegistry[str]({int: "integer"})
     registry.register_many({int: "int", float: "float"}, exist_ok=True)
     assert registry.equal(TypeRegistry[str]({int: "int", float: "float"}))
+
+
+def test_type_registry_register_many_with_exist_ok_resets_the_cache() -> None:
+    """Test register_many with exist_ok=True allows overwriting."""
+    registry = TypeRegistry[str]({int: "integer"})
+    registry.register_many({int: "int", float: "float"}, exist_ok=True)
     assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
 def test_type_registry_resolve_direct_match() -> None:
     registry = TypeRegistry[str]({int: "integer", float: "float"})
     assert registry.resolve(int) == "integer"
+
+
+def test_type_registry_resolve_direct_match_second_type() -> None:
+    registry = TypeRegistry[str]({int: "integer", float: "float"})
     assert registry.resolve(float) == "float"
 
 
@@ -205,22 +284,50 @@ def test_type_registry_resolve_via_mro() -> None:
     registry = TypeRegistry[str]({object: "object", int: "integer"})
     # bool inherits from int
     assert registry.resolve(bool) == "integer"
+
+
+def test_type_registry_resolve_via_mro_object() -> None:
+    registry = TypeRegistry[str]({object: "object", int: "integer"})
     # str inherits from object
     assert registry.resolve(str) == "object"
+
+
+def test_type_registry_resolve_via_mro_populates_the_cache() -> None:
+    registry = TypeRegistry[str]({object: "object", int: "integer"})
+    registry.resolve(bool)
+    registry.resolve(str)
     assert registry._cache == {bool: "integer", str: "object"}
 
 
+class Animal: ...
+
+
+class Dog(Animal): ...
+
+
+class Poodle(Dog): ...
+
+
 def test_type_registry_resolve_custom_class_hierarchy() -> None:
-    class Animal: ...
-
-    class Dog(Animal): ...
-
-    class Poodle(Dog): ...
-
     registry = TypeRegistry[str]({Animal: "animal", Dog: "dog"})
     assert registry.resolve(Dog) == "dog"
+
+
+def test_type_registry_resolve_custom_class_hierarchy_subclass() -> None:
+    registry = TypeRegistry[str]({Animal: "animal", Dog: "dog"})
     assert registry.resolve(Poodle) == "dog"
+
+
+def test_type_registry_resolve_custom_class_hierarchy_base() -> None:
+    registry = TypeRegistry[str]({Animal: "animal", Dog: "dog"})
     assert registry.resolve(Animal) == "animal"
+
+
+def test_type_registry_resolve_custom_class_hierarchy_cache() -> None:
+    registry = TypeRegistry[str]({Animal: "animal", Dog: "dog"})
+    registry.resolve(Dog)
+    registry.resolve(Poodle)
+    registry.resolve(Animal)
     assert registry._cache == {Animal: "animal", Poodle: "dog", Dog: "dog"}
 
 
@@ -230,41 +337,61 @@ def test_type_registry_resolve_missing_type_raises_keyerror() -> None:
         registry.resolve(int)
 
 
-def test_type_registry_not_registered_message_is_consistent() -> None:
-    """``resolve``, ``__getitem__`` and ``unregister`` must raise
-    ``KeyError`` with identical wording for the same "not registered"
-    condition."""
+def test_type_registry_not_registered_message_of_getitem_is_the_one_of_resolve() -> None:
+    """``resolve`` and ``__getitem__`` must raise ``KeyError`` with
+    identical wording for the same "not registered" condition."""
     registry = TypeRegistry[str]()
     with pytest.raises(KeyError) as resolve_exc_info:
         registry.resolve(int)
     with pytest.raises(KeyError) as getitem_exc_info:
         _ = registry[int]
+    assert str(resolve_exc_info.value) == str(getitem_exc_info.value)
+
+
+def test_type_registry_not_registered_message_of_unregister_is_the_one_of_resolve() -> None:
+    """``resolve`` and ``unregister`` must raise ``KeyError`` with
+    identical wording for the same "not registered" condition."""
+    registry = TypeRegistry[str]()
+    with pytest.raises(KeyError) as resolve_exc_info:
+        registry.resolve(int)
     with pytest.raises(KeyError) as unregister_exc_info:
         registry.unregister(int)
+    assert str(resolve_exc_info.value) == str(unregister_exc_info.value)
 
-    assert (
-        str(resolve_exc_info.value) == str(getitem_exc_info.value) == str(unregister_exc_info.value)
-    )
+
+def test_type_registry_resolve_populates_the_cache() -> None:
+    registry = TypeRegistry[str]({object: "object"})
+    registry.resolve(int)
+    assert registry._cache == {int: "object"}
 
 
 def test_type_registry_resolve_uses_cache() -> None:
     registry = TypeRegistry[str]({object: "object"})
-    # First resolve populates cache
     result1 = registry.resolve(int)
-    assert registry._cache == {int: "object"}
-    # Second resolve uses cache
-    result2 = registry.resolve(int)
-    assert result1 == result2 == "object"
+    assert registry.resolve(int) == result1
+
+
+def _make_types(num_types: int) -> list[type]:
+    return [type(f"Type{i}", (), {}) for i in range(num_types)]
+
+
+def _resolve_all(registry: TypeRegistry[str], types: list[type]) -> None:
+    for tp in types:
+        registry.resolve(tp)
 
 
 def test_type_registry_resolve_cache_is_bounded() -> None:
-    """Test the resolve() cache never grows past 1024 entries and is
-    reset when full."""
+    """Test the resolve() cache never grows past 1024 entries."""
     registry = TypeRegistry[str]({object: "object"})
-    types = [type(f"Type{i}", (), {}) for i in range(1025)]
-    for tp in types[:1024]:
-        registry.resolve(tp)
+    _resolve_all(registry, _make_types(1024))
     assert len(registry._cache) == 1024
+
+
+def test_type_registry_resolve_cache_is_reset_when_full() -> None:
+    """Test the resolve() cache is reset when full."""
+    registry = TypeRegistry[str]({object: "object"})
+    types = _make_types(1025)
+    _resolve_all(registry, types[:1024])
     registry.resolve(types[1024])
     assert registry._cache == {types[1024]: "object"}
 
@@ -277,6 +404,12 @@ def test_type_registry_resolve_cache_snapshot_not_mutated() -> None:
     snapshot = registry._cache
     registry.resolve(str)
     assert snapshot == {int: "object"}
+
+
+def test_type_registry_resolve_cache_snapshot_is_published() -> None:
+    registry = TypeRegistry[str]({object: "object"})
+    registry.resolve(int)
+    registry.resolve(str)
     assert registry._cache == {int: "object", str: "object"}
 
 
@@ -285,6 +418,12 @@ def test_type_registry_resolve_cache_cleared_on_change() -> None:
     registry.resolve(int)
     registry.register(int, "integer")
     assert registry._cache == {}
+
+
+def test_type_registry_resolve_after_change_uses_the_new_state() -> None:
+    registry = TypeRegistry[str]({object: "object"})
+    registry.resolve(int)
+    registry.register(int, "integer")
     assert registry.resolve(int) == "integer"
 
 
@@ -292,15 +431,28 @@ def test_type_registry_resolve_most_specific_type() -> None:
     registry = TypeRegistry[str]({object: "object", int: "int", float: "float"})
     # Should get most specific match
     assert registry.resolve(bool) == "int"
+
+
+def test_type_registry_resolve_most_specific_type_exact_match() -> None:
+    registry = TypeRegistry[str]({object: "object", int: "int", float: "float"})
     assert registry.resolve(int) == "int"
 
 
 def test_type_registry_unregister_existing_key() -> None:
     """Test unregistering an existing key."""
     registry = TypeRegistry[str]({int: "integer"})
-    value = registry.unregister(int)
-    assert value == "integer"
+    assert registry.unregister(int) == "integer"
+
+
+def test_type_registry_unregister_existing_key_removes_the_key() -> None:
+    registry = TypeRegistry[str]({int: "integer"})
+    registry.unregister(int)
     assert registry.equal(TypeRegistry[str]())
+
+
+def test_type_registry_unregister_existing_key_resets_the_cache() -> None:
+    registry = TypeRegistry[str]({int: "integer"})
+    registry.unregister(int)
     assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
@@ -314,10 +466,19 @@ def test_type_registry_unregister_missing_key_raises_error() -> None:
 def test_type_registry_unregister_reduces_length() -> None:
     """Test that unregister reduces registry length."""
     registry = TypeRegistry[str]({int: "integer", float: "float"})
-    assert len(registry) == 2
     registry.unregister(int)
     assert len(registry) == 1
+
+
+def test_type_registry_unregister_keeps_the_other_keys() -> None:
+    registry = TypeRegistry[str]({int: "integer", float: "float"})
+    registry.unregister(int)
     assert registry.equal(TypeRegistry[str]({float: "float"}))
+
+
+def test_type_registry_unregister_one_of_two_keys_resets_the_cache() -> None:
+    registry = TypeRegistry[str]({int: "integer", float: "float"})
+    registry.unregister(int)
     assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
@@ -390,6 +551,11 @@ def test_type_registry_contains_operator() -> None:
     """Test the 'in' operator."""
     registry = TypeRegistry[str]({int: "integer"})
     assert int in registry
+
+
+def test_type_registry_not_contains_operator() -> None:
+    """Test the 'not in' operator."""
+    registry = TypeRegistry[str]({int: "integer"})
     assert float not in registry
 
 
@@ -411,6 +577,12 @@ def test_type_registry_setitem_operator() -> None:
     registry = TypeRegistry[str]()
     registry[int] = "integer"
     assert registry.equal(TypeRegistry[str]({int: "integer"}))
+
+
+def test_type_registry_setitem_operator_resets_the_cache() -> None:
+    """Test the bracket assignment operator."""
+    registry = TypeRegistry[str]()
+    registry[int] = "integer"
     assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
@@ -420,6 +592,13 @@ def test_type_registry_setitem_overwrites() -> None:
     registry[int] = "int"
     registry[int] = "integer"
     assert registry.equal(TypeRegistry[str]({int: "integer"}))
+
+
+def test_type_registry_setitem_overwrites_resets_the_cache() -> None:
+    """Test that bracket assignment overwrites existing values."""
+    registry = TypeRegistry[str]()
+    registry[int] = "int"
+    registry[int] = "integer"
     assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
@@ -428,6 +607,12 @@ def test_type_registry_delitem_operator() -> None:
     registry = TypeRegistry[str]({int: "integer"})
     del registry[int]
     assert registry.equal(TypeRegistry[str]())
+
+
+def test_type_registry_delitem_operator_resets_the_cache() -> None:
+    """Test the del operator."""
+    registry = TypeRegistry[str]({int: "integer"})
+    del registry[int]
     assert registry._cache == {}  # verify the cache is reset because the state changed
 
 
@@ -461,10 +646,18 @@ def test_type_registry_iter_empty() -> None:
 
 def test_type_registry_len_operator() -> None:
     """Test the len() function."""
+    assert len(TypeRegistry[str]()) == 0
+
+
+def test_type_registry_len_operator_one_item() -> None:
     registry = TypeRegistry[str]()
-    assert len(registry) == 0
     registry[int] = "integer"
     assert len(registry) == 1
+
+
+def test_type_registry_len_operator_two_items() -> None:
+    registry = TypeRegistry[str]()
+    registry[int] = "integer"
     registry[float] = "float"
     assert len(registry) == 2
 
@@ -473,32 +666,49 @@ def test_type_registry_len_operator() -> None:
 
 
 def test_type_registry_registry_with_int_keys() -> None:
-    """Test registry with integer keys."""
+    """Test registry with integer values."""
     registry = TypeRegistry[int]()
     registry.register(int, 1)
     registry.register(float, 2)
     assert registry.get(int) == 1
+
+
+def test_type_registry_registry_with_int_keys_second_value() -> None:
+    registry = TypeRegistry[int]()
+    registry.register(int, 1)
+    registry.register(float, 2)
     assert registry.get(float) == 2
+
+
+def test_type_registry_registry_with_int_keys_equal() -> None:
+    registry = TypeRegistry[int]()
+    registry.register(int, 1)
+    registry.register(float, 2)
     assert registry.equal(TypeRegistry[int]({int: 1, float: 2}))
 
 
 # Test resolve() with ABC virtual subclasses
 
 
+class MyABC(abc.ABC):  # noqa: B024
+    pass
+
+
+class NotARealSubclass:
+    pass
+
+
+MyABC.register(NotARealSubclass)
+
+
+def test_type_registry_virtual_subclass_is_seen_by_isinstance() -> None:
+    """Test that isinstance() sees the virtual subclass relationship."""
+    assert isinstance(NotARealSubclass(), MyABC)
+
+
 def test_type_registry_resolve_does_not_match_abc_virtual_subclass() -> None:
     """Test that resolve() does not follow ABC virtual subclass
     registration, since it only walks __mro__ (static inheritance)."""
-
-    class MyABC(abc.ABC):  # noqa: B024
-        pass
-
-    class NotARealSubclass:
-        pass
-
-    MyABC.register(NotARealSubclass)
-    # isinstance() sees the virtual subclass relationship...
-    assert isinstance(NotARealSubclass(), MyABC)
-    # ...but resolve() does not, because it is not in __mro__.
     registry = TypeRegistry[str]()
     registry.register(MyABC, "abc value")
     with pytest.raises(KeyError, match="is not registered"):
@@ -510,24 +720,26 @@ def test_type_registry_resolve_abc_virtual_subclass_registered_after_lookup() ->
     has already been resolved does not retroactively make resolve()
     match the virtual subclass (the cache is not the cause: even an
     uncached lookup does not follow virtual subclass relationships)."""
-
-    class MyABC(abc.ABC):  # noqa: B024
-        pass
-
-    class NotARealSubclass:
-        pass
-
-    MyABC.register(NotARealSubclass)
     registry = TypeRegistry[str]()
     with pytest.raises(KeyError, match="is not registered"):
         registry.resolve(NotARealSubclass)
+
+
+def test_type_registry_resolve_abc_virtual_subclass_still_not_resolved_after_register() -> None:
+    """Test that virtual subclasses never appear in __mro__, cache or no
+    cache."""
+    registry = TypeRegistry[str]()
+    with contextlib.suppress(KeyError):
+        registry.resolve(NotARealSubclass)
     # Register the ABC only after the failed lookup above.
     registry.register(MyABC, "abc value")
-    # Still does not resolve: virtual subclasses never appear in __mro__,
-    # cache or no cache.
     with pytest.raises(KeyError, match="is not registered"):
         registry.resolve(NotARealSubclass)
-    # Registering the concrete subclass itself does work.
+
+
+def test_type_registry_resolve_registered_concrete_subclass_of_abc() -> None:
+    """Test that registering the concrete subclass itself does work."""
+    registry = TypeRegistry[str]({MyABC: "abc value"})
     registry.register(NotARealSubclass, "concrete value")
     assert registry.resolve(NotARealSubclass) == "concrete value"
 
@@ -535,25 +747,51 @@ def test_type_registry_resolve_abc_virtual_subclass_registered_after_lookup() ->
 def test_type_registry_resolve_raises_type_not_registered_error() -> None:
     registry = TypeRegistry[str]()
     registry.register(str, "string")
-    with pytest.raises(TypeNotRegisteredError, match=r"MRO: int, object") as exc_info:
+    with pytest.raises(TypeNotRegisteredError, match=r"MRO: int, object"):
+        registry.resolve(int)
+
+
+def test_type_registry_resolve_raises_a_key_error() -> None:
+    registry = TypeRegistry[str]({str: "string"})
+    with pytest.raises(TypeNotRegisteredError) as exc_info:
         registry.resolve(int)
     assert isinstance(exc_info.value, KeyError)
+
+
+def test_type_registry_resolve_error_lists_the_registered_types() -> None:
+    registry = TypeRegistry[str]({str: "string"})
+    with pytest.raises(TypeNotRegisteredError) as exc_info:
+        registry.resolve(int)
     assert "Registered types: str" in str(exc_info.value)
 
 
 def test_type_registry_not_registered_msg_without_mro() -> None:
     """The MRO section is omitted when the key has no ``__mro__``."""
     registry = TypeRegistry[str]({int: "integer"})
+    assert "MRO" not in registry._not_registered_msg(cast("type", "not a type"))
+
+
+def test_type_registry_not_registered_msg_without_mro_starts_with_the_key() -> None:
+    registry = TypeRegistry[str]({int: "integer"})
     msg = registry._not_registered_msg(cast("type", "not a type"))
-    assert "MRO" not in msg
     assert msg.startswith("Type 'not a type' is not registered")
+
+
+def test_type_registry_not_registered_msg_without_mro_lists_the_registered_types() -> None:
+    registry = TypeRegistry[str]({int: "integer"})
+    msg = registry._not_registered_msg(cast("type", "not a type"))
     assert "Registered types: int" in msg
 
 
 def test_type_registry_not_registered_msg_empty_registry() -> None:
-    """The registered-types section is omitted for an empty registry."""
+    """The MRO section is kept for an empty registry."""
     msg = TypeRegistry[str]()._not_registered_msg(int)
     assert "MRO: int, object" in msg
+
+
+def test_type_registry_not_registered_msg_empty_registry_omits_registered_types() -> None:
+    """The registered-types section is omitted for an empty registry."""
+    msg = TypeRegistry[str]()._not_registered_msg(int)
     assert "Registered types" not in msg
 
 
@@ -586,9 +824,15 @@ def test_type_registry_register_non_type_key_raises() -> None:
         registry.register("abc", "value")  # ty: ignore[invalid-argument-type]
 
 
-def test_type_registry_register_non_type_key_does_not_change_state() -> None:
+def test_type_registry_register_non_type_key_raises_error() -> None:
     registry = TypeRegistry[str]()
     with pytest.raises(TypeError, match="Expected a type as key"):
+        registry.register("abc", "value")  # ty: ignore[invalid-argument-type]
+
+
+def test_type_registry_register_non_type_key_does_not_change_state() -> None:
+    registry = TypeRegistry[str]()
+    with contextlib.suppress(TypeError):
         registry.register("abc", "value")  # ty: ignore[invalid-argument-type]
     assert len(registry) == 0
 
@@ -599,9 +843,15 @@ def test_type_registry_register_many_non_type_key_raises() -> None:
         registry.register_many({int: "integer", "abc": "value"})  # ty: ignore[invalid-argument-type]
 
 
-def test_type_registry_register_many_non_type_key_does_not_change_state() -> None:
+def test_type_registry_register_many_non_type_key_raises_error() -> None:
     registry = TypeRegistry[str]()
     with pytest.raises(TypeError, match="Expected a type as key"):
+        registry.register_many({int: "integer", "abc": "value"})  # ty: ignore[invalid-argument-type]
+
+
+def test_type_registry_register_many_non_type_key_does_not_change_state() -> None:
+    registry = TypeRegistry[str]()
+    with contextlib.suppress(TypeError):
         registry.register_many({int: "integer", "abc": "value"})  # ty: ignore[invalid-argument-type]
     assert len(registry) == 0
 

@@ -284,13 +284,21 @@ def test_pandas_dataframe_equality_tester_objects_are_equal_true_same_object(
 def test_pandas_dataframe_equality_tester_objects_are_equal_true(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    tester = PandasDataFrameEqualityTester()
+    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+
+
+@pandas_available
+@pytest.mark.parametrize("example", PANDAS_DATAFRAME_EQUAL)
+def test_pandas_dataframe_equality_tester_objects_are_equal_true_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = PandasDataFrameEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -299,14 +307,23 @@ def test_pandas_dataframe_equality_tester_objects_are_equal_true(
 def test_pandas_dataframe_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    tester = PandasDataFrameEqualityTester()
+    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+
+
+@pandas_available
+@pytest.mark.parametrize("example", PANDAS_DATAFRAME_EQUAL)
+def test_pandas_dataframe_equality_tester_objects_are_equal_true_show_difference_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     tester = PandasDataFrameEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -315,13 +332,23 @@ def test_pandas_dataframe_equality_tester_objects_are_equal_true_show_difference
 def test_pandas_dataframe_equality_tester_objects_are_equal_false(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    tester = PandasDataFrameEqualityTester()
+    assert not tester.objects_are_equal(
+        actual=example.actual, expected=example.expected, config=config
+    )
+
+
+@pandas_available
+@pytest.mark.parametrize("example", PANDAS_DATAFRAME_NOT_EQUAL)
+def test_pandas_dataframe_equality_tester_objects_are_equal_false_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = PandasDataFrameEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert not tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -330,14 +357,25 @@ def test_pandas_dataframe_equality_tester_objects_are_equal_false(
 def test_pandas_dataframe_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    tester = PandasDataFrameEqualityTester()
+    assert not tester.objects_are_equal(
+        actual=example.actual, expected=example.expected, config=config
+    )
+
+
+@pandas_available
+@pytest.mark.parametrize("example", PANDAS_DATAFRAME_NOT_EQUAL)
+def test_pandas_dataframe_equality_tester_objects_are_equal_false_show_difference_logs(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     tester = PandasDataFrameEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert not tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert caplog.messages[0].startswith(example.expected_message)
 
 
@@ -424,13 +462,21 @@ def test_pandas_series_equality_tester_objects_are_equal_true_same_object(
 def test_pandas_series_equality_tester_objects_are_equal_true(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    tester = PandasSeriesEqualityTester()
+    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+
+
+@pandas_available
+@pytest.mark.parametrize("example", PANDAS_SERIES_EQUAL)
+def test_pandas_series_equality_tester_objects_are_equal_true_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = PandasSeriesEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -439,14 +485,23 @@ def test_pandas_series_equality_tester_objects_are_equal_true(
 def test_pandas_series_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    tester = PandasSeriesEqualityTester()
+    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+
+
+@pandas_available
+@pytest.mark.parametrize("example", PANDAS_SERIES_EQUAL)
+def test_pandas_series_equality_tester_objects_are_equal_true_show_difference_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     tester = PandasSeriesEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -455,13 +510,23 @@ def test_pandas_series_equality_tester_objects_are_equal_true_show_difference(
 def test_pandas_series_equality_tester_objects_are_equal_false(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    tester = PandasSeriesEqualityTester()
+    assert not tester.objects_are_equal(
+        actual=example.actual, expected=example.expected, config=config
+    )
+
+
+@pandas_available
+@pytest.mark.parametrize("example", PANDAS_SERIES_NOT_EQUAL)
+def test_pandas_series_equality_tester_objects_are_equal_false_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = PandasSeriesEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert not tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -470,14 +535,25 @@ def test_pandas_series_equality_tester_objects_are_equal_false(
 def test_pandas_series_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    tester = PandasSeriesEqualityTester()
+    assert not tester.objects_are_equal(
+        actual=example.actual, expected=example.expected, config=config
+    )
+
+
+@pandas_available
+@pytest.mark.parametrize("example", PANDAS_SERIES_NOT_EQUAL)
+def test_pandas_series_equality_tester_objects_are_equal_false_show_difference_logs(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     tester = PandasSeriesEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert not tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert caplog.messages[0].startswith(example.expected_message)
 
 
@@ -571,32 +647,53 @@ def test_pandas_index_equality_tester_objects_are_equal_false(
 
 @pandas_available
 def test_pandas_index_equality_tester_objects_are_equal_false_show_difference(
+    config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    assert not PandasIndexEqualityTester().objects_are_equal(pd.Index([1]), pd.Index([2]), config)
+
+
+@pandas_available
+def test_pandas_index_equality_tester_objects_are_equal_false_show_difference_logs(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     with caplog.at_level(logging.INFO):
-        assert not PandasIndexEqualityTester().objects_are_equal(
-            pd.Index([1]), pd.Index([2]), config
-        )
+        PandasIndexEqualityTester().objects_are_equal(pd.Index([1]), pd.Index([2]), config)
         assert "pandas.Index are different:" in caplog.messages[-1]
 
 
+PANDAS_NAN_INDEXES = [
+    pytest.param(pd.Index([1.0, float("nan")]), id="index"),
+    pytest.param(pd.MultiIndex.from_tuples([(1.0, float("nan"))]), id="multi index"),
+]
+
+
 @pandas_available
-@pytest.mark.parametrize(
-    "index", [pd.Index([1.0, float("nan")]), pd.MultiIndex.from_tuples([(1.0, float("nan"))])]
-)
+@pytest.mark.parametrize("index", PANDAS_NAN_INDEXES)
 def test_pandas_index_equality_tester_objects_are_equal_nan(index: pd.Index) -> None:
-    copy = index.copy()
     tester = PandasIndexEqualityTester()
-    assert not tester.objects_are_equal(index, copy, EqualityConfig())
-    assert tester.objects_are_equal(index, copy, EqualityConfig(equal_nan=True))
+    assert not tester.objects_are_equal(index, index.copy(), EqualityConfig())
+
+
+@pandas_available
+@pytest.mark.parametrize("index", PANDAS_NAN_INDEXES)
+def test_pandas_index_equality_tester_objects_are_equal_equal_nan(index: pd.Index) -> None:
+    tester = PandasIndexEqualityTester()
+    assert tester.objects_are_equal(index, index.copy(), EqualityConfig(equal_nan=True))
+
+
+@pandas_available
+def test_pandas_index_equality_tester_objects_are_equal_without_tolerance() -> None:
+    tester = PandasIndexEqualityTester()
+    actual, expected = pd.Index([1.0, 2.0]), pd.Index([1.0, 2.001])
+    assert not tester.objects_are_equal(actual, expected, EqualityConfig())
 
 
 @pandas_available
 def test_pandas_index_equality_tester_objects_are_equal_tolerance() -> None:
     tester = PandasIndexEqualityTester()
     actual, expected = pd.Index([1.0, 2.0]), pd.Index([1.0, 2.001])
-    assert not tester.objects_are_equal(actual, expected, EqualityConfig())
     assert tester.objects_are_equal(actual, expected, EqualityConfig(atol=0.01))
 
 
@@ -651,11 +748,21 @@ def test_pandas_extension_array_equality_tester_objects_are_equal_false(
 
 @pandas_available
 def test_pandas_extension_array_equality_tester_objects_are_equal_false_show_difference(
+    config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    assert not PandasExtensionArrayEqualityTester().objects_are_equal(
+        pd.Categorical(["a"]), pd.Categorical(["b"]), config
+    )
+
+
+@pandas_available
+def test_pandas_extension_array_equality_tester_objects_are_equal_false_show_difference_logs(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     with caplog.at_level(logging.INFO):
-        assert not PandasExtensionArrayEqualityTester().objects_are_equal(
+        PandasExtensionArrayEqualityTester().objects_are_equal(
             pd.Categorical(["a"]), pd.Categorical(["b"]), config
         )
         assert "pandas arrays are different:" in caplog.messages[-1]
@@ -666,6 +773,12 @@ def test_pandas_extension_array_equality_tester_objects_are_equal_nan() -> None:
     array = pd.array([1, None], dtype="Int64")
     tester = PandasExtensionArrayEqualityTester()
     assert not tester.objects_are_equal(array, array.copy(), EqualityConfig())
+
+
+@pandas_available
+def test_pandas_extension_array_equality_tester_objects_are_equal_equal_nan() -> None:
+    array = pd.array([1, None], dtype="Int64")
+    tester = PandasExtensionArrayEqualityTester()
     assert tester.objects_are_equal(array, array.copy(), EqualityConfig(equal_nan=True))
 
 

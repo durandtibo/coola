@@ -34,11 +34,17 @@ def test_generate_prefixed_id_uses_given_generator() -> None:
     assert generate_prefixed_id("evt", generator=lambda: "42") == "evt_42"
 
 
-def test_generate_prefixed_id_custom_generator_called_each_time() -> None:
+def test_generate_prefixed_id_custom_generator_called_each_time_first_value() -> None:
     counter = iter(range(2))
     value1 = generate_prefixed_id("evt", generator=lambda: str(next(counter)))
-    value2 = generate_prefixed_id("evt", generator=lambda: str(next(counter)))
+    generate_prefixed_id("evt", generator=lambda: str(next(counter)))
     assert value1 == "evt_0"
+
+
+def test_generate_prefixed_id_custom_generator_called_each_time_second_value() -> None:
+    counter = iter(range(2))
+    generate_prefixed_id("evt", generator=lambda: str(next(counter)))
+    value2 = generate_prefixed_id("evt", generator=lambda: str(next(counter)))
     assert value2 == "evt_1"
 
 

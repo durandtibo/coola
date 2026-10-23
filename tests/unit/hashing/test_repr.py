@@ -128,6 +128,11 @@ def test_repr_hasher_hash_parametrized(data: Any, expected: str, registry: Hashe
 def test_repr_hasher_hash_length(length: int, expected: str, registry: HasherRegistry) -> None:
     result = ReprHasher().hash(1234, registry=registry, length=length)
     assert result == expected
+
+
+@pytest.mark.parametrize("length", [16, 32, 64])
+def test_repr_hasher_hash_length_length_is_respected(length: int, registry: HasherRegistry) -> None:
+    result = ReprHasher().hash(1234, registry=registry, length=length)
     assert len(result) == length
 
 
@@ -151,7 +156,9 @@ def test_repr_hasher_hash_bool_and_int_different_hashes(registry: HasherRegistry
     assert hasher.hash(True, registry=registry) != hasher.hash(1, registry=registry)
 
 
-def test_repr_hasher_hash_uses_repr_not_str(registry: HasherRegistry) -> None:
+def test_repr_hasher_hash_uses_repr_not_str_differs_from_the_str_hash(
+    registry: HasherRegistry,
+) -> None:
     # For objects where repr() and str() differ, ReprHasher must use repr().
     class MyObj:
         def __str__(self) -> str:
@@ -164,6 +171,20 @@ def test_repr_hasher_hash_uses_repr_not_str(registry: HasherRegistry) -> None:
     hasher = ReprHasher()
     tag = f"{type(obj).__module__}.{type(obj).__qualname__}"
     assert hasher.hash(obj, registry=registry) != hash_tagged(tag, str(obj))
+
+
+def test_repr_hasher_hash_uses_repr_not_str_equals_the_repr_hash(registry: HasherRegistry) -> None:
+    # For objects where repr() and str() differ, ReprHasher must use repr().
+    class MyObj:
+        def __str__(self) -> str:
+            return "str_val"
+
+        def __repr__(self) -> str:
+            return "repr_val"
+
+    obj = MyObj()
+    hasher = ReprHasher()
+    tag = f"{type(obj).__module__}.{type(obj).__qualname__}"
     assert hasher.hash(obj, registry=registry) == hash_tagged(tag, repr(obj))
 
 
@@ -187,9 +208,15 @@ def test_repr_hasher_hash_negative_zero_equals_zero(registry: HasherRegistry) ->
     assert hasher.hash(-0.0, registry=registry) == hasher.hash(0.0, registry=registry)
 
 
-def test_repr_hasher_hash_negative_zero_complex_components(registry: HasherRegistry) -> None:
+def test_repr_hasher_hash_negative_zero_complex_components_zero(registry: HasherRegistry) -> None:
     hasher = ReprHasher()
     assert hasher.hash(complex(-0.0, -0.0), registry=registry) == hasher.hash(0j, registry=registry)
+
+
+def test_repr_hasher_hash_negative_zero_complex_components_imaginary_part(
+    registry: HasherRegistry,
+) -> None:
+    hasher = ReprHasher()
     assert hasher.hash(complex(-0.0, 1.0), registry=registry) == hasher.hash(
         complex(0.0, 1.0), registry=registry
     )

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import random
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
@@ -55,17 +56,30 @@ class CustomList(list):
 #################################
 
 
-def test_random_seed_restore_random_seed() -> None:
+def test_random_seed_changes_the_state() -> None:
     state = random.getstate()
     with random_seed(42):
         random.uniform(0, 1)  # noqa: S311
         assert not objects_are_equal(state, random.getstate())
+
+
+def test_random_seed_restore_random_seed() -> None:
+    state = random.getstate()
+    with random_seed(42):
+        random.uniform(0, 1)  # noqa: S311
     assert objects_are_equal(state, random.getstate())
+
+
+def test_random_seed_with_exception_raises_the_error() -> None:
+    with pytest.raises(RuntimeError, match=r"Exception"), random_seed(42):  # noqa: PT012
+        random.uniform(0, 1)  # noqa: S311
+        msg = "Exception"
+        raise RuntimeError(msg)
 
 
 def test_random_seed_restore_random_seed_with_exception() -> None:
     state = random.getstate()
-    with pytest.raises(RuntimeError, match=r"Exception"), random_seed(42):  # noqa: PT012
+    with contextlib.suppress(RuntimeError), random_seed(42):
         random.uniform(0, 1)  # noqa: S311
         msg = "Exception"
         raise RuntimeError(msg)
@@ -88,12 +102,11 @@ def test_random_seed_different_random_seeds() -> None:
     assert not objects_are_equal(x1, x2)
 
 
-def test_random_seed_uses_custom_manager() -> None:
-    """Test that random_seed delegates to the ``seed`` context manager
-    of the provided manager."""
+@pytest.fixture
+def seed_calls() -> tuple[list[int], list[int], Mock]:
     mock_manager = Mock()
-    entered = []
-    exited = []
+    entered: list[int] = []
+    exited: list[int] = []
 
     @contextmanager
     def fake_seed(seed: int) -> Generator[None]:
@@ -102,11 +115,33 @@ def test_random_seed_uses_custom_manager() -> None:
         exited.append(seed)
 
     mock_manager.seed = fake_seed
+    return entered, exited, mock_manager
 
+
+def test_random_seed_uses_custom_manager_enters_the_seed(
+    seed_calls: tuple[list[int], list[int], Mock],
+) -> None:
+    """Test that random_seed delegates to the ``seed`` context manager
+    of the provided manager."""
+    entered, _, mock_manager = seed_calls
     with random_seed(42, manager=mock_manager):
         assert entered == [42]
+
+
+def test_random_seed_uses_custom_manager_does_not_exit_inside_the_context(
+    seed_calls: tuple[list[int], list[int], Mock],
+) -> None:
+    _, exited, mock_manager = seed_calls
+    with random_seed(42, manager=mock_manager):
         assert exited == []
 
+
+def test_random_seed_uses_custom_manager_exits_the_seed(
+    seed_calls: tuple[list[int], list[int], Mock],
+) -> None:
+    _, exited, mock_manager = seed_calls
+    with random_seed(42, manager=mock_manager):
+        pass
     assert exited == [42]
 
 
@@ -115,9 +150,13 @@ def test_random_seed_uses_custom_manager() -> None:
 ###################################
 
 
-def test_get_rng_state() -> None:
+def test_get_rng_state_is_a_dict() -> None:
     state = get_rng_state()
     assert isinstance(state, dict)
+
+
+def test_get_rng_state_not_empty() -> None:
+    state = get_rng_state()
     assert len(state) >= 1
 
 
@@ -127,23 +166,38 @@ def test_get_rng_state() -> None:
 
 
 @torch_available
-def test_manual_seed() -> None:
+def test_manual_seed_same_seed_same_values() -> None:
+    manual_seed(42)
+    x1 = torch.randn(4, 6)
+    torch.randn(4, 6)
+    manual_seed(42)
+    x3 = torch.randn(4, 6)
+    assert x1.equal(x3)
+
+
+@torch_available
+def test_manual_seed_different_values() -> None:
     manual_seed(42)
     x1 = torch.randn(4, 6)
     x2 = torch.randn(4, 6)
     manual_seed(42)
-    x3 = torch.randn(4, 6)
-    assert x1.equal(x3)
+    torch.randn(4, 6)
     assert not x1.equal(x2)
 
 
-def test_manual_seed_calls_default_registry() -> None:
+def test_manual_seed_gets_the_default_registry() -> None:
     manager = Mock()
     with patch(
         "coola.random.interface.get_default_registry", Mock(return_value=manager)
     ) as get_registry:
         manual_seed(42)
     get_registry.assert_called_once()
+
+
+def test_manual_seed_calls_default_registry() -> None:
+    manager = Mock()
+    with patch("coola.random.interface.get_default_registry", Mock(return_value=manager)):
+        manual_seed(42)
     manager.manual_seed.assert_called_once_with(42)
 
 
@@ -153,24 +207,39 @@ def test_manual_seed_calls_default_registry() -> None:
 
 
 @torch_available
-def test_set_rng_state() -> None:
+def test_set_rng_state_restored_values() -> None:
+    state = get_rng_state()
+    x1 = torch.randn(4, 6)
+    torch.randn(4, 6)
+    set_rng_state(state)
+    x3 = torch.randn(4, 6)
+    assert x1.equal(x3)
+
+
+@torch_available
+def test_set_rng_state_different_values() -> None:
     state = get_rng_state()
     x1 = torch.randn(4, 6)
     x2 = torch.randn(4, 6)
     set_rng_state(state)
-    x3 = torch.randn(4, 6)
-    assert x1.equal(x3)
+    torch.randn(4, 6)
     assert not x1.equal(x2)
+
+
+def test_set_rng_state_gets_the_default_registry() -> None:
+    manager = Mock()
+    with patch(
+        "coola.random.interface.get_default_registry", Mock(return_value=manager)
+    ) as get_registry:
+        set_rng_state({"random": ("state",)})
+    get_registry.assert_called_once()
 
 
 def test_set_rng_state_calls_default_registry() -> None:
     manager = Mock()
     state = {"random": ("state",)}
-    with patch(
-        "coola.random.interface.get_default_registry", Mock(return_value=manager)
-    ) as get_registry:
+    with patch("coola.random.interface.get_default_registry", Mock(return_value=manager)):
         set_rng_state(state)
-    get_registry.assert_called_once()
     manager.set_rng_state.assert_called_once_with(state)
 
 
@@ -259,18 +328,30 @@ def test_get_default_registry_without_torch() -> None:
     assert not registry.has_manager("torch")
 
 
+def test_get_default_registry_singleton_does_not_have_the_custom_manager() -> None:
+    """Test that the registry does not have the custom manager."""
+    assert not get_default_registry().has_manager("custom")
+
+
 def test_get_default_registry_singleton_persists_modifications() -> None:
-    """Test that modifications to the singleton registry persist across
-    multiple calls to get_default_registry."""
+    """Test that modifications to the singleton registry persist."""
     registry1 = get_default_registry()
-    assert not registry1.has_manager("custom")
     registry1.register("custom", RandomRandomManager())
     assert registry1.has_manager("custom")
 
-    # Get registry again and verify the modification persists
-    registry2 = get_default_registry()
-    assert registry1 is registry2
-    assert registry2.has_manager("custom")
+
+def test_get_default_registry_singleton_returns_the_same_registry() -> None:
+    """Test that the registry is the same across calls."""
+    registry1 = get_default_registry()
+    registry1.register("custom", RandomRandomManager())
+    assert registry1 is get_default_registry()
+
+
+def test_get_default_registry_singleton_persists_modifications_across_calls() -> None:
+    """Test that modifications persist across multiple calls to
+    get_default_registry."""
+    get_default_registry().register("custom", RandomRandomManager())
+    assert get_default_registry().has_manager("custom")
 
 
 def test_random_seed_uses_an_empty_registry() -> None:

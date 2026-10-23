@@ -69,19 +69,43 @@ def test_check_not_lambda_function_non_function_does_not_raise(obj: Any) -> None
 
 
 def test_get_all_child_classes() -> None:
-    """Test get_all_child_classes with a simple hierarchy."""
+    """Test get_all_child_classes with a class without child."""
 
     class Foo: ...
 
     assert get_all_child_classes(Foo) == set()
 
+
+def test_get_all_child_classes_one_child() -> None:
+    """Test get_all_child_classes with one child."""
+
+    class Foo: ...
+
     class Bar(Foo): ...
 
     assert get_all_child_classes(Foo) == {Bar}
 
+
+def test_get_all_child_classes_two_children() -> None:
+    """Test get_all_child_classes with two children."""
+
+    class Foo: ...
+
+    class Bar(Foo): ...
+
     class Baz(Foo): ...
 
     assert get_all_child_classes(Foo) == {Bar, Baz}
+
+
+def test_get_all_child_classes_grandchild() -> None:
+    """Test get_all_child_classes with a grandchild."""
+
+    class Foo: ...
+
+    class Bar(Foo): ...
+
+    class Baz(Foo): ...
 
     class Bing(Bar): ...
 
@@ -373,6 +397,9 @@ def test_is_same_type_false_different_classes() -> None:
 
 def test_is_same_type_false_subclass() -> None:
     assert not is_same_type(Child(), Parent())
+
+
+def test_is_same_type_false_parent() -> None:
     assert not is_same_type(Parent(), Child())
 
 
@@ -380,22 +407,35 @@ def test_is_same_type_bool_is_not_int() -> None:
     assert not is_same_type(True, 1)
 
 
-def test_is_same_type_builtin_types() -> None:
+def test_is_same_type_int() -> None:
     assert is_same_type(1, 2)
+
+
+def test_is_same_type_str() -> None:
     assert is_same_type("a", "b")
+
+
+def test_is_same_type_int_and_float() -> None:
     assert not is_same_type(1, 1.0)
 
 
+class Point:
+    def __init__(self, x: int) -> None:
+        self.x = x
+
+    def equal(self, other: object) -> bool:
+        if not is_same_type(other, self):
+            return False
+        return self.x == other.x
+
+
 def test_is_same_type_narrows_for_attribute_access() -> None:
-    class Point:
-        def __init__(self, x: int) -> None:
-            self.x = x
-
-        def equal(self, other: object) -> bool:
-            if not is_same_type(other, self):
-                return False
-            return self.x == other.x
-
     assert Point(1).equal(Point(1))
+
+
+def test_is_same_type_narrows_for_attribute_access_different_value() -> None:
     assert not Point(1).equal(Point(2))
+
+
+def test_is_same_type_narrows_for_attribute_access_different_type() -> None:
     assert not Point(1).equal(1)

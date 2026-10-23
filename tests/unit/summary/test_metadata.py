@@ -78,8 +78,11 @@ def test_base_metadata_summarizer_summarize_show_data(registry: SummarizerRegist
     assert ListSummarizer(show_data=True).summarize([1, 2], registry) == "[1, 2]"
 
 
-def test_base_metadata_summarizer_repr() -> None:
+def test_base_metadata_summarizer_repr_default() -> None:
     assert repr(ListSummarizer()) == "ListSummarizer(show_data=False)"
+
+
+def test_base_metadata_summarizer_repr_show_data() -> None:
     assert repr(ListSummarizer(show_data=True)) == "ListSummarizer(show_data=True)"
 
 
@@ -87,9 +90,15 @@ def test_base_metadata_summarizer_show_data_is_a_bool() -> None:
     assert ListSummarizer(show_data=1)._show_data is True  # type: ignore[arg-type]
 
 
-def test_base_metadata_summarizer_equal() -> None:
+def test_base_metadata_summarizer_equal_equal() -> None:
     assert ListSummarizer().equal(ListSummarizer())
+
+
+def test_base_metadata_summarizer_equal_different_show_data() -> None:
     assert not ListSummarizer().equal(ListSummarizer(show_data=True))
+
+
+def test_base_metadata_summarizer_equal_different_type() -> None:
     assert not ListSummarizer().equal(1)
 
 
@@ -124,10 +133,21 @@ class DictFieldsSummarizer(BaseFieldsSummarizer[dict]):
 FIELDS = {f"c{i}": "int" for i in range(12)}
 
 
-def test_fields_summarizer_default_max_fields(registry: SummarizerRegistry) -> None:
+def test_fields_summarizer_default_max_fields() -> None:
     assert DictFieldsSummarizer()._max_fields == MAX_FIELDS
+
+
+def test_fields_summarizer_default_max_fields_truncates_the_fields(
+    registry: SummarizerRegistry,
+) -> None:
     out = DictFieldsSummarizer().summarize(FIELDS, registry)
     assert out.endswith("c9: int, ... (+2 more)")
+
+
+def test_fields_summarizer_default_max_fields_hides_the_other_fields(
+    registry: SummarizerRegistry,
+) -> None:
+    out = DictFieldsSummarizer().summarize(FIELDS, registry)
     assert "c10" not in out
 
 
@@ -136,9 +156,17 @@ def test_fields_summarizer_max_fields(registry: SummarizerRegistry) -> None:
     assert out == "<class 'dict'> | fields=c0: int, c1: int, c2: int, ... (+9 more)"
 
 
-def test_fields_summarizer_max_fields_larger_than_the_fields(registry: SummarizerRegistry) -> None:
+def test_fields_summarizer_max_fields_larger_than_the_fields_no_more_marker(
+    registry: SummarizerRegistry,
+) -> None:
     out = DictFieldsSummarizer(max_fields=100).summarize(FIELDS, registry)
     assert "more" not in out
+
+
+def test_fields_summarizer_max_fields_larger_than_the_fields_last_field(
+    registry: SummarizerRegistry,
+) -> None:
+    out = DictFieldsSummarizer(max_fields=100).summarize(FIELDS, registry)
     assert "c11: int" in out
 
 

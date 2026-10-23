@@ -64,8 +64,11 @@ def test_base_chain_equality_tester_equal_true() -> None:
     assert MyTester().equal(MyTester())
 
 
-def test_base_chain_equality_tester_equal_false_different_type() -> None:
+def test_base_chain_equality_tester_equal_false_different_tester() -> None:
     assert not MyTester().equal(MyOtherTester())
+
+
+def test_base_chain_equality_tester_equal_false_different_type() -> None:
     assert not MyTester().equal(1)
 
 
@@ -75,6 +78,11 @@ def test_base_chain_equality_tester_objects_are_equal_true(config: EqualityConfi
 
 def test_base_chain_equality_tester_objects_are_equal_false(config: EqualityConfig) -> None:
     assert not MyTester().objects_are_equal(1, 2, config)
+
+
+def test_base_chain_equality_tester_objects_are_equal_false_different_types(
+    config: EqualityConfig,
+) -> None:
     assert not MyTester().objects_are_equal(1, 1.0, config)
 
 

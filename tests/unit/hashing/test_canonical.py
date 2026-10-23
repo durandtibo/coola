@@ -61,9 +61,13 @@ def test_decimal_hasher_different_values(
     assert hasher.hash(first, registry) != hasher.hash(second, registry)
 
 
-def test_decimal_hasher_signaling_nan(registry: HasherRegistry) -> None:
+def test_decimal_hasher_signaling_nan_same_value(registry: HasherRegistry) -> None:
     hasher = DecimalHasher()
     assert hasher.hash(Decimal("sNaN"), registry) == hasher.hash(Decimal("sNaN"), registry)
+
+
+def test_decimal_hasher_signaling_nan_differs_from_quiet_nan(registry: HasherRegistry) -> None:
+    hasher = DecimalHasher()
     assert hasher.hash(Decimal("sNaN"), registry) != hasher.hash(Decimal("NaN"), registry)
 
 
@@ -80,16 +84,28 @@ def test_fraction_hasher_repr() -> None:
     assert repr(FractionHasher()) == "FractionHasher()"
 
 
-def test_fraction_hasher_equal_values(registry: HasherRegistry) -> None:
+def test_fraction_hasher_equal_values_normalized(registry: HasherRegistry) -> None:
     hasher = FractionHasher()
     assert hasher.hash(Fraction(1, 2), registry) == hasher.hash(Fraction(2, 4), registry)
+
+
+def test_fraction_hasher_equal_values_from_string(registry: HasherRegistry) -> None:
+    hasher = FractionHasher()
     assert hasher.hash(Fraction(1, 2), registry) == hasher.hash(Fraction("0.5"), registry)
 
 
-def test_fraction_hasher_different_values(registry: HasherRegistry) -> None:
+def test_fraction_hasher_different_values_denominator(registry: HasherRegistry) -> None:
     hasher = FractionHasher()
     assert hasher.hash(Fraction(1, 2), registry) != hasher.hash(Fraction(1, 3), registry)
+
+
+def test_fraction_hasher_different_values_integer(registry: HasherRegistry) -> None:
+    hasher = FractionHasher()
     assert hasher.hash(Fraction(1, 2), registry) != hasher.hash(Fraction(2, 1), registry)
+
+
+def test_fraction_hasher_different_values_sign(registry: HasherRegistry) -> None:
+    hasher = FractionHasher()
     assert hasher.hash(Fraction(1, 2), registry) != hasher.hash(Fraction(-1, 2), registry)
 
 
@@ -111,37 +127,45 @@ def test_range_hasher_repr() -> None:
     assert repr(RangeHasher()) == "RangeHasher()"
 
 
-@pytest.mark.parametrize(
-    ("first", "second"),
-    [
-        (range(0), range(5, 5)),
-        (range(0), range(10, 0)),
-        (range(3, 4), range(3, 100, 100)),
-        (range(0, 10, 2), range(0, 9, 2)),
-        (range(5), range(0, 5, 1)),
-    ],
-)
-def test_range_hasher_equal_ranges(first: range, second: range, registry: HasherRegistry) -> None:
+EQUAL_RANGES = [
+    (range(0), range(5, 5)),
+    (range(0), range(10, 0)),
+    (range(3, 4), range(3, 100, 100)),
+    (range(0, 10, 2), range(0, 9, 2)),
+    (range(5), range(0, 5, 1)),
+]
+
+
+@pytest.mark.parametrize(("first", "second"), EQUAL_RANGES)
+def test_range_equal_ranges_are_equal(first: range, second: range) -> None:
     assert first == second
+
+
+@pytest.mark.parametrize(("first", "second"), EQUAL_RANGES)
+def test_range_hasher_equal_ranges(first: range, second: range, registry: HasherRegistry) -> None:
     hasher = RangeHasher()
     assert hasher.hash(first, registry) == hasher.hash(second, registry)
 
 
-@pytest.mark.parametrize(
-    ("first", "second"),
-    [
-        (range(5), range(6)),
-        (range(5), range(1, 6)),
-        (range(0, 10, 2), range(0, 10, 3)),
-        (range(0), range(1)),
-        (range(3, 4), range(4, 5)),
-        (range(0, 6, 2), range(0, 6, 3)),
-    ],
-)
+DIFFERENT_RANGES = [
+    (range(5), range(6)),
+    (range(5), range(1, 6)),
+    (range(0, 10, 2), range(0, 10, 3)),
+    (range(0), range(1)),
+    (range(3, 4), range(4, 5)),
+    (range(0, 6, 2), range(0, 6, 3)),
+]
+
+
+@pytest.mark.parametrize(("first", "second"), DIFFERENT_RANGES)
+def test_range_different_ranges_are_different(first: range, second: range) -> None:
+    assert first != second
+
+
+@pytest.mark.parametrize(("first", "second"), DIFFERENT_RANGES)
 def test_range_hasher_different_ranges(
     first: range, second: range, registry: HasherRegistry
 ) -> None:
-    assert first != second
     hasher = RangeHasher()
     assert hasher.hash(first, registry) != hasher.hash(second, registry)
 

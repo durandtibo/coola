@@ -31,9 +31,13 @@ def test_track_fork_resets_at_each_fork() -> None:
     assert obj.resets == 2
 
 
-def test_track_fork_does_not_keep_the_object_alive() -> None:
+def test_track_fork_tracks_the_object() -> None:
     obj = Resettable()
     assert obj in fork._TRACKED
+
+
+def test_track_fork_does_not_keep_the_object_alive() -> None:
+    obj = Resettable()
     size = len(fork._TRACKED)
     del obj
     assert len(fork._TRACKED) == size - 1

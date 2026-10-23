@@ -103,17 +103,33 @@ def test_sequence_transformer_transform_preserves_function_behavior(
     )
 
 
-def test_sequence_transformer_transform_with_stateful_function(
-    registry: TransformerRegistry,
-) -> None:
+def _make_stateful_func() -> Callable[[Any], Any]:
     counter = {"count": 0}
 
     def stateful_func(x: Any) -> Any:
         counter["count"] += 1
         return x * counter["count"]
 
+    return stateful_func
+
+
+def test_sequence_transformer_transform_with_stateful_function(
+    registry: TransformerRegistry,
+) -> None:
     transformer = SequenceTransformer()
-    assert transformer.transform([1, 2, 3], func=stateful_func, registry=registry) == [1, 4, 9]
+    assert transformer.transform([1, 2, 3], func=_make_stateful_func(), registry=registry) == [
+        1,
+        4,
+        9,
+    ]
+
+
+def test_sequence_transformer_transform_with_stateful_function_second_call(
+    registry: TransformerRegistry,
+) -> None:
+    transformer = SequenceTransformer()
+    stateful_func = _make_stateful_func()
+    transformer.transform([1, 2, 3], func=stateful_func, registry=registry)
     assert transformer.transform([1, 2, 3], func=stateful_func, registry=registry) == [4, 10, 18]
 
 
@@ -130,10 +146,22 @@ def test_sequence_transformer_transform_with_closure(registry: TransformerRegist
     ]
 
 
-def test_sequence_transformer_transform_deque(registry: TransformerRegistry) -> None:
+def test_sequence_transformer_transform_deque_type(registry: TransformerRegistry) -> None:
     result = SequenceTransformer().transform(
         deque([1, 2], maxlen=4), func=lambda x: x + 1, registry=registry
     )
     assert type(result) is deque
+
+
+def test_sequence_transformer_transform_deque_values(registry: TransformerRegistry) -> None:
+    result = SequenceTransformer().transform(
+        deque([1, 2], maxlen=4), func=lambda x: x + 1, registry=registry
+    )
     assert result == deque([2, 3])
+
+
+def test_sequence_transformer_transform_deque_maxlen(registry: TransformerRegistry) -> None:
+    result = SequenceTransformer().transform(
+        deque([1, 2], maxlen=4), func=lambda x: x + 1, registry=registry
+    )
     assert result.maxlen == 4

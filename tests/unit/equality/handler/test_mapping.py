@@ -124,16 +124,22 @@ def test_mapping_same_keys_handler_handle_false(
     assert not MappingSameKeysHandler().handle(actual, expected, config)
 
 
-def test_mapping_same_keys_handler_handle_false_show_difference(
+def test_mapping_same_keys_handler_handle_false_show_difference(config: EqualityConfig) -> None:
+    config.show_difference = True
+    assert not MappingSameKeysHandler().handle(
+        actual={"a": 1, "b": 2}, expected={"a": 1, "b": 2, "c": 1}, config=config
+    )
+
+
+def test_mapping_same_keys_handler_handle_false_show_difference_logs(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
-    handler = MappingSameKeysHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
+        MappingSameKeysHandler().handle(
             actual={"a": 1, "b": 2}, expected={"a": 1, "b": 2, "c": 1}, config=config
         )
-        assert caplog.messages[0].startswith("mappings have different keys:")
+    assert caplog.messages[0].startswith("mappings have different keys:")
 
 
 def test_mapping_same_keys_handler_handle_without_next_handler(config: EqualityConfig) -> None:
@@ -265,14 +271,20 @@ def test_mapping_same_values_handler_handle_false(
     assert not MappingSameValuesHandler().handle(actual, expected, config)
 
 
-def test_mapping_same_values_handler_handle_false_show_difference(
+def test_mapping_same_values_handler_handle_false_show_difference(config: EqualityConfig) -> None:
+    config.show_difference = True
+    handler = MappingSameValuesHandler()
+    assert not handler.handle(actual={"a": 1, "b": 2}, expected={"a": 1, "b": 3}, config=config)
+
+
+def test_mapping_same_values_handler_handle_false_show_difference_logs(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = MappingSameValuesHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(actual={"a": 1, "b": 2}, expected={"a": 1, "b": 3}, config=config)
-        assert "mappings have different values for key 'b'" in caplog.messages[-1]
+        handler.handle(actual={"a": 1, "b": 2}, expected={"a": 1, "b": 3}, config=config)
+    assert "mappings have different values for key 'b'" in caplog.messages[-1]
 
 
 def test_mapping_same_values_handler_handle_false_log_record_path(
@@ -281,7 +293,7 @@ def test_mapping_same_values_handler_handle_false_log_record_path(
     config.show_difference = True
     handler = MappingSameValuesHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(actual={"a": 1, "b": 2}, expected={"a": 1, "b": 3}, config=config)
+        handler.handle(actual={"a": 1, "b": 2}, expected={"a": 1, "b": 3}, config=config)
     assert caplog.records[-1].coola_path == ("b",)
 
 
@@ -296,9 +308,18 @@ def test_mapping_same_values_handler_handle_does_not_reuse_cache_across_differen
 ) -> None:
     actual = {"a": 1, "b": 2}
     expected = {"a": 1, "b": 2}
+    config.registry = Mock(wraps=config.registry)
+    assert MappingSameValuesHandler(next_handler=TrueHandler()).handle(actual, expected, config)
+
+
+def test_mapping_same_values_handler_handle_compares_each_value_for_different_objects(
+    config: EqualityConfig,
+) -> None:
+    actual = {"a": 1, "b": 2}
+    expected = {"a": 1, "b": 2}
     registry = Mock(wraps=config.registry)
     config.registry = registry
-    assert MappingSameValuesHandler(next_handler=TrueHandler()).handle(actual, expected, config)
+    MappingSameValuesHandler(next_handler=TrueHandler()).handle(actual, expected, config)
     assert registry.objects_are_equal.call_count == 2
 
 
@@ -324,9 +345,19 @@ def test_mapping_same_values_handler_handle_does_not_cache_by_identity(
     config: EqualityConfig,
 ) -> None:
     shared = [1, 2, 3]
+    config.registry = Mock(wraps=config.registry)
+    assert MappingSameValuesHandler(next_handler=TrueHandler()).handle(
+        {"a": shared, "b": shared}, {"a": shared, "b": shared}, config
+    )
+
+
+def test_mapping_same_values_handler_handle_compares_each_shared_value(
+    config: EqualityConfig,
+) -> None:
+    shared = [1, 2, 3]
     registry = Mock(wraps=config.registry)
     config.registry = registry
-    assert MappingSameValuesHandler(next_handler=TrueHandler()).handle(
+    MappingSameValuesHandler(next_handler=TrueHandler()).handle(
         {"a": shared, "b": shared}, {"a": shared, "b": shared}, config
     )
     assert registry.objects_are_equal.call_count == 2
@@ -384,15 +415,44 @@ def test_mapping_same_key_order_handler_handle_false(
 
 
 def test_mapping_same_key_order_handler_handle_false_show_difference(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+    config: EqualityConfig,
 ) -> None:
     config.show_difference = True
     handler = MappingSameKeyOrderHandler(next_handler=TrueHandler())
+    assert not handler.handle(actual={"a": 1, "b": 2}, expected={"b": 2, "a": 1}, config=config)
+
+
+def _log_key_order_difference(config: EqualityConfig, caplog: pytest.LogCaptureFixture) -> str:
+    config.show_difference = True
+    handler = MappingSameKeyOrderHandler(next_handler=TrueHandler())
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(actual={"a": 1, "b": 2}, expected={"b": 2, "a": 1}, config=config)
-        assert caplog.messages[0].startswith("mappings have the same keys in a different order:")
-        assert "['a', 'b']" in caplog.messages[0]
-        assert "['b', 'a']" in caplog.messages[0]
+        handler.handle(actual={"a": 1, "b": 2}, expected={"b": 2, "a": 1}, config=config)
+    return caplog.messages[0]
+
+
+def test_mapping_same_key_order_handler_handle_false_show_difference_logs(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    message = _log_key_order_difference(config, caplog)
+    assert message.startswith("mappings have the same keys in a different order:")
+
+
+def test_mapping_same_key_order_handler_handle_false_show_difference_logs_actual_keys(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    assert "['a', 'b']" in _log_key_order_difference(config, caplog)
+
+
+def test_mapping_same_key_order_handler_handle_false_show_difference_logs_expected_keys(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    assert "['b', 'a']" in _log_key_order_difference(config, caplog)
+
+
+def test_mapping_same_key_order_handler_handle_true_show_difference(config: EqualityConfig) -> None:
+    config.show_difference = True
+    handler = MappingSameKeyOrderHandler(next_handler=TrueHandler())
+    assert handler.handle(actual={"a": 1}, expected={"a": 1}, config=config)
 
 
 def test_mapping_same_key_order_handler_handle_true_does_not_log(
@@ -401,8 +461,8 @@ def test_mapping_same_key_order_handler_handle_true_does_not_log(
     config.show_difference = True
     handler = MappingSameKeyOrderHandler(next_handler=TrueHandler())
     with caplog.at_level(logging.INFO):
-        assert handler.handle(actual={"a": 1}, expected={"a": 1}, config=config)
-        assert not caplog.messages
+        handler.handle(actual={"a": 1}, expected={"a": 1}, config=config)
+    assert not caplog.messages
 
 
 def test_mapping_same_key_order_handler_handle_without_next_handler(config: EqualityConfig) -> None:
@@ -425,10 +485,25 @@ def test_mapping_same_keys_handler_handle_keys_of_different_types(
 
 
 def test_mapping_same_keys_handler_handle_keys_of_different_types_show_difference(
+    config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    assert not MappingSameKeysHandler().handle({1: "a"}, {True: "a"}, config)
+
+
+def test_mapping_same_keys_handler_handle_keys_of_different_types_logs_missing_keys(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     with caplog.at_level(logging.INFO):
-        assert not MappingSameKeysHandler().handle({1: "a"}, {True: "a"}, config)
+        MappingSameKeysHandler().handle({1: "a"}, {True: "a"}, config)
     assert "missing keys    : [1]" in caplog.text
+
+
+def test_mapping_same_keys_handler_handle_keys_of_different_types_logs_additional_keys(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    config.show_difference = True
+    with caplog.at_level(logging.INFO):
+        MappingSameKeysHandler().handle({1: "a"}, {True: "a"}, config)
     assert "additional keys : [True]" in caplog.text

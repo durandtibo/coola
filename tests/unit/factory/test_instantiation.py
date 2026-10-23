@@ -101,48 +101,112 @@ def test_import_object_incorrect_type() -> None:
 
 @pytest.mark.parametrize("arg1", [-1, 1])
 @pytest.mark.parametrize("arg2", ["arg2", "cba"])
-def test_instantiate_object_class_args(arg1: int, arg2: str) -> None:
+def test_instantiate_object_class_args_type(arg1: int, arg2: str) -> None:
     obj = instantiate_object(Fake, arg1, arg2)
     assert isinstance(obj, Fake)
+
+
+@pytest.mark.parametrize("arg1", [-1, 1])
+@pytest.mark.parametrize("arg2", ["arg2", "cba"])
+def test_instantiate_object_class_args_arg1(arg1: int, arg2: str) -> None:
+    obj = instantiate_object(Fake, arg1, arg2)
     assert obj.arg1 == arg1
+
+
+@pytest.mark.parametrize("arg1", [-1, 1])
+@pytest.mark.parametrize("arg2", ["arg2", "cba"])
+def test_instantiate_object_class_args_arg2(arg1: int, arg2: str) -> None:
+    obj = instantiate_object(Fake, arg1, arg2)
     assert obj.arg2 == arg2
 
 
 @pytest.mark.parametrize("arg1", [-1, 1])
 @pytest.mark.parametrize("arg2", ["arg2", "cba"])
-def test_instantiate_object_class_kwargs(arg1: int, arg2: str) -> None:
+def test_instantiate_object_class_kwargs_type(arg1: int, arg2: str) -> None:
     obj = instantiate_object(Fake, arg1=arg1, arg2=arg2)
     assert isinstance(obj, Fake)
+
+
+@pytest.mark.parametrize("arg1", [-1, 1])
+@pytest.mark.parametrize("arg2", ["arg2", "cba"])
+def test_instantiate_object_class_kwargs_arg1(arg1: int, arg2: str) -> None:
+    obj = instantiate_object(Fake, arg1=arg1, arg2=arg2)
     assert obj.arg1 == arg1
+
+
+@pytest.mark.parametrize("arg1", [-1, 1])
+@pytest.mark.parametrize("arg2", ["arg2", "cba"])
+def test_instantiate_object_class_kwargs_arg2(arg1: int, arg2: str) -> None:
+    obj = instantiate_object(Fake, arg1=arg1, arg2=arg2)
     assert obj.arg2 == arg2
 
 
-def test_instantiate_object_class_init_classmethod() -> None:
+def test_instantiate_object_class_init_classmethod_type() -> None:
     obj = instantiate_object(Fake, _init_="class_method")
     assert isinstance(obj, Fake)
+
+
+def test_instantiate_object_class_init_classmethod_arg1() -> None:
+    obj = instantiate_object(Fake, _init_="class_method")
     assert obj.arg1 == 35
+
+
+def test_instantiate_object_class_init_classmethod_arg2() -> None:
+    obj = instantiate_object(Fake, _init_="class_method")
     assert obj.arg2 == "bac"
 
 
-def test_instantiate_object_class_init_classmethod_with_arg() -> None:
+def test_instantiate_object_class_init_classmethod_with_arg_type() -> None:
     obj = instantiate_object(
         Fake,
         "meow",
         _init_="class_method_with_arg",
     )
     assert isinstance(obj, Fake)
+
+
+def test_instantiate_object_class_init_classmethod_with_arg_arg1() -> None:
+    obj = instantiate_object(
+        Fake,
+        "meow",
+        _init_="class_method_with_arg",
+    )
     assert obj.arg1 == 333
+
+
+def test_instantiate_object_class_init_classmethod_with_arg_arg2() -> None:
+    obj = instantiate_object(
+        Fake,
+        "meow",
+        _init_="class_method_with_arg",
+    )
     assert obj.arg2 == "meow"
 
 
-def test_instantiate_object_class_init_classmethod_with_kwarg() -> None:
+def test_instantiate_object_class_init_classmethod_with_kwarg_type() -> None:
     obj = instantiate_object(
         Fake,
         _init_="class_method_with_arg",
         arg2="meow",
     )
     assert isinstance(obj, Fake)
+
+
+def test_instantiate_object_class_init_classmethod_with_kwarg_arg1() -> None:
+    obj = instantiate_object(
+        Fake,
+        _init_="class_method_with_arg",
+        arg2="meow",
+    )
     assert obj.arg1 == 333
+
+
+def test_instantiate_object_class_init_classmethod_with_kwarg_arg2() -> None:
+    obj = instantiate_object(
+        Fake,
+        _init_="class_method_with_arg",
+        arg2="meow",
+    )
     assert obj.arg2 == "meow"
 
 
@@ -150,27 +214,42 @@ def test_instantiate_object_class_init_new() -> None:
     assert isinstance(instantiate_object(Fake, _init_="__new__"), Fake)
 
 
-def test_instantiate_object_class_init_new_bypasses_init() -> None:
+def test_instantiate_object_class_init_new_bypasses_init_arg1() -> None:
     # `__new__` must not run `Fake.__init__`, unlike the default `__init__` path.
     obj = instantiate_object(Fake, _init_="__new__")
     assert "arg1" not in obj.__dict__
+
+
+def test_instantiate_object_class_init_new_bypasses_init_arg2() -> None:
+    # `__new__` must not run `Fake.__init__`, unlike the default `__init__` path.
+    obj = instantiate_object(Fake, _init_="__new__")
     assert "arg2" not in obj.__dict__
 
 
-def test_instantiate_object_class_init_new_vs_default_init() -> None:
+def test_instantiate_object_class_default_init_sets_the_attributes() -> None:
     # Sanity check contrasting the two paths: the default path always
     # runs `__init__` and sets the attributes, `__new__` never does.
     default_obj = instantiate_object(Fake, 1, "abc")
     assert default_obj.__dict__ == {"arg1": 1, "arg2": "abc"}
 
+
+def test_instantiate_object_class_init_new_does_not_set_the_attributes() -> None:
     new_obj = instantiate_object(Fake, _init_="__new__")
     assert new_obj.__dict__ == {}
 
 
-def test_instantiate_object_class_init_static_method() -> None:
+def test_instantiate_object_class_init_static_method_type() -> None:
     obj = instantiate_object(Fake, _init_="static_method")
     assert isinstance(obj, Fake)
+
+
+def test_instantiate_object_class_init_static_method_arg1() -> None:
+    obj = instantiate_object(Fake, _init_="static_method")
     assert obj.arg1 == 1
+
+
+def test_instantiate_object_class_init_static_method_arg2() -> None:
+    obj = instantiate_object(Fake, _init_="static_method")
     assert obj.arg2 == "qwerty"
 
 
@@ -210,35 +289,75 @@ def test_instantiate_object_abstract_class() -> None:
         instantiate_object(FakeAbstractClass, 42)
 
 
-def test_instantiate_object_function() -> None:
+def test_instantiate_object_function_type() -> None:
     obj = instantiate_object(fake_func, 42)
     assert isinstance(obj, Fake)
+
+
+def test_instantiate_object_function_arg1() -> None:
+    obj = instantiate_object(fake_func, 42)
     assert obj.arg1 == 42
+
+
+def test_instantiate_object_function_arg2() -> None:
+    obj = instantiate_object(fake_func, 42)
     assert obj.arg2 == "abc"
 
 
-def test_instantiate_object_function_init() -> None:
+def test_instantiate_object_function_init_type() -> None:
     obj = instantiate_object(fake_func, 42, _init_="my_init_function")
     assert isinstance(obj, Fake)
+
+
+def test_instantiate_object_function_init_arg1() -> None:
+    obj = instantiate_object(fake_func, 42, _init_="my_init_function")
     assert obj.arg1 == 42
+
+
+def test_instantiate_object_function_init_arg2() -> None:
+    obj = instantiate_object(fake_func, 42, _init_="my_init_function")
     assert obj.arg2 == "abc"
 
 
 @pytest.mark.parametrize("arg1", [-1, 1])
 @pytest.mark.parametrize("arg2", ["arg2", "cba"])
-def test_instantiate_object_function_args(arg1: int, arg2: str) -> None:
+def test_instantiate_object_function_args_type(arg1: int, arg2: str) -> None:
     obj = instantiate_object(fake_func, arg1, arg2)
     assert isinstance(obj, Fake)
+
+
+@pytest.mark.parametrize("arg1", [-1, 1])
+@pytest.mark.parametrize("arg2", ["arg2", "cba"])
+def test_instantiate_object_function_args_arg1(arg1: int, arg2: str) -> None:
+    obj = instantiate_object(fake_func, arg1, arg2)
     assert obj.arg1 == arg1
+
+
+@pytest.mark.parametrize("arg1", [-1, 1])
+@pytest.mark.parametrize("arg2", ["arg2", "cba"])
+def test_instantiate_object_function_args_arg2(arg1: int, arg2: str) -> None:
+    obj = instantiate_object(fake_func, arg1, arg2)
     assert obj.arg2 == arg2
 
 
 @pytest.mark.parametrize("arg1", [-1, 1])
 @pytest.mark.parametrize("arg2", ["arg2", "cba"])
-def test_instantiate_object_function_kwargs(arg1: int, arg2: str) -> None:
+def test_instantiate_object_function_kwargs_type(arg1: int, arg2: str) -> None:
     obj = instantiate_object(fake_func, arg1=arg1, arg2=arg2)
     assert isinstance(obj, Fake)
+
+
+@pytest.mark.parametrize("arg1", [-1, 1])
+@pytest.mark.parametrize("arg2", ["arg2", "cba"])
+def test_instantiate_object_function_kwargs_arg1(arg1: int, arg2: str) -> None:
+    obj = instantiate_object(fake_func, arg1=arg1, arg2=arg2)
     assert obj.arg1 == arg1
+
+
+@pytest.mark.parametrize("arg1", [-1, 1])
+@pytest.mark.parametrize("arg2", ["arg2", "cba"])
+def test_instantiate_object_function_kwargs_arg2(arg1: int, arg2: str) -> None:
+    obj = instantiate_object(fake_func, arg1=arg1, arg2=arg2)
     assert obj.arg2 == arg2
 
 
@@ -253,32 +372,62 @@ def test_instantiate_object_builtin_function() -> None:
     assert instantiate_object(len, [1, 2, 3]) == 3
 
 
-def test_instantiate_object_partial() -> None:
+def test_instantiate_object_partial_type() -> None:
     obj = instantiate_object(functools.partial(fake_func, arg2="partial"), 42)
     assert isinstance(obj, Fake)
+
+
+def test_instantiate_object_partial_arg1() -> None:
+    obj = instantiate_object(functools.partial(fake_func, arg2="partial"), 42)
     assert obj.arg1 == 42
+
+
+def test_instantiate_object_partial_arg2() -> None:
+    obj = instantiate_object(functools.partial(fake_func, arg2="partial"), 42)
     assert obj.arg2 == "partial"
 
 
-def test_instantiate_object_callable_instance() -> None:
+def test_instantiate_object_callable_instance_type() -> None:
     class CallableFactory:
         def __call__(self, arg1: int) -> Fake:
             return Fake(arg1=arg1, arg2="callable")
 
     obj = instantiate_object(CallableFactory(), 7)
     assert isinstance(obj, Fake)
+
+
+def test_instantiate_object_callable_instance_arg1() -> None:
+    class CallableFactory:
+        def __call__(self, arg1: int) -> Fake:
+            return Fake(arg1=arg1, arg2="callable")
+
+    obj = instantiate_object(CallableFactory(), 7)
     assert obj.arg1 == 7
+
+
+def test_instantiate_object_callable_instance_arg2() -> None:
+    class CallableFactory:
+        def __call__(self, arg1: int) -> Fake:
+            return Fake(arg1=arg1, arg2="callable")
+
+    obj = instantiate_object(CallableFactory(), 7)
     assert obj.arg2 == "callable"
 
 
-def test_import_object_allowed_prefixes() -> None:
+def test_import_object_allowed_prefixes_class() -> None:
     assert import_object("collections.Counter", allowed_prefixes=["collections"]) is Counter
+
+
+def test_import_object_allowed_prefixes_module() -> None:
     assert import_object("collections", allowed_prefixes=["collections"])
 
 
 def test_import_object_not_allowed_prefixes() -> None:
     with pytest.raises(ImportError, match="not allowed"):
         import_object("os.system", allowed_prefixes=["collections"])
+
+
+def test_import_object_not_allowed_prefixes_similar_prefix() -> None:
     with pytest.raises(ImportError, match="not allowed"):
         import_object("collectionsx.Counter", allowed_prefixes=["collections"])
 
@@ -298,6 +447,9 @@ def test_import_object_allowed_prefixes_multiple() -> None:
 
 def test_import_object_allowed_prefixes_submodule() -> None:
     assert import_object("os.path.join", allowed_prefixes=["os.path"]) is not None
+
+
+def test_import_object_not_allowed_prefixes_submodule() -> None:
     with pytest.raises(ImportError, match="not allowed"):
         import_object("os.getcwd", allowed_prefixes=["os.path"])
 

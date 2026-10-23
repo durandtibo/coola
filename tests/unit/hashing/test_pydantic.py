@@ -126,6 +126,14 @@ def test_pydantic_model_hasher_hash_length(
 ) -> None:
     result = PydanticModelHasher().hash(Point(x=1, y=2), registry=registry, length=length)
     assert result == expected
+
+
+@pydantic_available
+@pytest.mark.parametrize("length", [16, 32, 64])
+def test_pydantic_model_hasher_hash_length_length_is_respected(
+    length: int, registry: HasherRegistry
+) -> None:
+    result = PydanticModelHasher().hash(Point(x=1, y=2), registry=registry, length=length)
     assert len(result) == length
 
 
@@ -176,10 +184,21 @@ def test_pydantic_model_hasher_hash_unhashable_field_raises(registry: HasherRegi
 
 
 @pydantic_available
-def test_pydantic_model_hasher_hash_unhashable_field_ignored(registry: HasherRegistry) -> None:
+def test_pydantic_model_hasher_hash_unhashable_field_ignored_warns(
+    registry: HasherRegistry,
+) -> None:
     model = AnyValue(value=object())
     with pytest.warns(UserWarning, match="placeholder"):
-        result = PydanticModelHasher().hash(model, registry=registry, ignore_unhashable=True)
+        PydanticModelHasher().hash(model, registry=registry, ignore_unhashable=True)
+
+
+@pydantic_available
+@pytest.mark.filterwarnings("ignore::UserWarning")
+def test_pydantic_model_hasher_hash_unhashable_field_ignored_returns_str(
+    registry: HasherRegistry,
+) -> None:
+    model = AnyValue(value=object())
+    result = PydanticModelHasher().hash(model, registry=registry, ignore_unhashable=True)
     assert isinstance(result, str)
 
 
@@ -200,13 +219,20 @@ def test_pydantic_model_hasher_hash_depends_on_model_class(registry: HasherRegis
 
 
 @pydantic_available
-def test_pydantic_model_hasher_hash_field_types_are_not_collapsed(
+def test_pydantic_model_hasher_hash_field_types_are_not_collapsed_list_and_tuple(
     registry: HasherRegistry,
 ) -> None:
     hasher = PydanticModelHasher()
     assert hasher.hash(AnyValue(value=[1, 2]), registry=registry) != hasher.hash(
         AnyValue(value=(1, 2)), registry=registry
     )
+
+
+@pydantic_available
+def test_pydantic_model_hasher_hash_field_types_are_not_collapsed_int_and_float(
+    registry: HasherRegistry,
+) -> None:
+    hasher = PydanticModelHasher()
     assert hasher.hash(AnyValue(value=1), registry=registry) != hasher.hash(
         AnyValue(value=1.0), registry=registry
     )
@@ -316,9 +342,17 @@ def test_unwrap_secrets_nested_structure_no_secrets() -> None:
 
 
 @pydantic_available
-def test_unwrap_secrets_scalar_passthrough() -> None:
+def test_unwrap_secrets_scalar_passthrough_int() -> None:
     assert unwrap_secrets(42, on_secret="error") == 42
+
+
+@pydantic_available
+def test_unwrap_secrets_scalar_passthrough_str() -> None:
     assert unwrap_secrets("hello", on_secret="error") == "hello"
+
+
+@pydantic_available
+def test_unwrap_secrets_scalar_passthrough_none() -> None:
     assert unwrap_secrets(None, on_secret="error") is None
 
 
@@ -617,12 +651,30 @@ def test_hash_pydantic_model_set_is_order_independent() -> None:
 
 
 @pydantic_available
-def test_unwrap_secrets_preserves_container_types() -> None:
+def test_unwrap_secrets_preserves_container_types_values() -> None:
     value = {"a": (1, SecretStr("x")), "b": {1, 2}, "c": frozenset({3}), "d": [1]}
     result = unwrap_secrets(value, on_secret="reveal")
     assert result == {"a": (1, "x"), "b": {1, 2}, "c": frozenset({3}), "d": [1]}
+
+
+@pydantic_available
+def test_unwrap_secrets_preserves_container_types_tuple() -> None:
+    value = {"a": (1, SecretStr("x")), "b": {1, 2}, "c": frozenset({3}), "d": [1]}
+    result = unwrap_secrets(value, on_secret="reveal")
     assert isinstance(result["a"], tuple)
+
+
+@pydantic_available
+def test_unwrap_secrets_preserves_container_types_set() -> None:
+    value = {"a": (1, SecretStr("x")), "b": {1, 2}, "c": frozenset({3}), "d": [1]}
+    result = unwrap_secrets(value, on_secret="reveal")
     assert isinstance(result["b"], set)
+
+
+@pydantic_available
+def test_unwrap_secrets_preserves_container_types_frozenset() -> None:
+    value = {"a": (1, SecretStr("x")), "b": {1, 2}, "c": frozenset({3}), "d": [1]}
+    result = unwrap_secrets(value, on_secret="reveal")
     assert isinstance(result["c"], frozenset)
 
 
@@ -644,7 +696,7 @@ def test_hash_pydantic_model_depends_on_model_class() -> None:
 
 
 @pydantic_available
-def test_hash_pydantic_model_secret_bytes_reveal_matches_bytes_field() -> None:
+def test_hash_pydantic_model_secret_bytes_reveal_matches_bytes_field_differs_by_secret() -> None:
     class Plain(BaseModel):
         token: bytes
 
@@ -656,6 +708,16 @@ def test_hash_pydantic_model_secret_bytes_reveal_matches_bytes_field() -> None:
     assert hash_pydantic_model(Secret(token=b"a"), on_secret="reveal") != hash_pydantic_model(
         Secret(token=b"b"), on_secret="reveal"
     )
+
+
+@pydantic_available
+def test_hash_pydantic_model_secret_bytes_reveal_matches_bytes_field_plain_model_is_a_str() -> None:
+    class Plain(BaseModel):
+        token: bytes
+
+    class Secret(BaseModel):
+        token: SecretBytes
+
     assert isinstance(hash_pydantic_model(Plain(token=b"a")), str)
 
 

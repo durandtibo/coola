@@ -26,6 +26,11 @@ def test_lru_cache_setitem_getitem() -> None:
     cache = LRUCache[str, int](maxsize=3)
     cache["a"] = 1
     assert cache["a"] == 1
+
+
+def test_lru_cache_setitem_adds_an_item() -> None:
+    cache = LRUCache[str, int](maxsize=3)
+    cache["a"] = 1
     assert len(cache) == 1
 
 
@@ -40,6 +45,12 @@ def test_lru_cache_setitem_updates_existing_key() -> None:
     cache["a"] = 1
     cache["a"] = 2
     assert cache["a"] == 2
+
+
+def test_lru_cache_setitem_existing_key_keeps_the_length() -> None:
+    cache = LRUCache[str, int](maxsize=3)
+    cache["a"] = 1
+    cache["a"] = 2
     assert len(cache) == 1
 
 
@@ -47,6 +58,11 @@ def test_lru_cache_contains() -> None:
     cache = LRUCache[str, int](maxsize=3)
     cache["a"] = 1
     assert "a" in cache
+
+
+def test_lru_cache_not_contains() -> None:
+    cache = LRUCache[str, int](maxsize=3)
+    cache["a"] = 1
     assert "b" not in cache
 
 
@@ -64,6 +80,13 @@ def test_lru_cache_evicts_least_recently_used_on_insert() -> None:
     cache["b"] = 2
     cache["c"] = 3  # evicts "a"
     assert "a" not in cache
+
+
+def test_lru_cache_keeps_the_most_recently_used_on_insert() -> None:
+    cache = LRUCache[str, int](maxsize=2)
+    cache["a"] = 1
+    cache["b"] = 2
+    cache["c"] = 3  # evicts "a"
     assert list(cache) == ["b", "c"]
 
 
@@ -74,7 +97,23 @@ def test_lru_cache_getitem_marks_key_as_most_recently_used() -> None:
     _ = cache["a"]  # "a" becomes most-recently-used
     cache["c"] = 3  # evicts "b", not "a"
     assert "b" not in cache
+
+
+def test_lru_cache_getitem_keeps_the_accessed_key() -> None:
+    cache = LRUCache[str, int](maxsize=2)
+    cache["a"] = 1
+    cache["b"] = 2
+    _ = cache["a"]
+    cache["c"] = 3
     assert "a" in cache
+
+
+def test_lru_cache_getitem_keeps_the_new_key() -> None:
+    cache = LRUCache[str, int](maxsize=2)
+    cache["a"] = 1
+    cache["b"] = 2
+    _ = cache["a"]
+    cache["c"] = 3
     assert "c" in cache
 
 
@@ -85,7 +124,23 @@ def test_lru_cache_setitem_existing_key_marks_as_most_recently_used() -> None:
     cache["a"] = 10  # "a" becomes most-recently-used
     cache["c"] = 3  # evicts "b", not "a"
     assert "b" not in cache
+
+
+def test_lru_cache_setitem_existing_key_keeps_the_updated_value() -> None:
+    cache = LRUCache[str, int](maxsize=2)
+    cache["a"] = 1
+    cache["b"] = 2
+    cache["a"] = 10
+    cache["c"] = 3
     assert cache["a"] == 10
+
+
+def test_lru_cache_setitem_existing_key_keeps_the_new_key() -> None:
+    cache = LRUCache[str, int](maxsize=2)
+    cache["a"] = 1
+    cache["b"] = 2
+    cache["a"] = 10
+    cache["c"] = 3
     assert "c" in cache
 
 
@@ -112,6 +167,14 @@ def test_lru_cache_get_marks_key_as_most_recently_used() -> None:
     cache.get("a")  # "a" becomes most-recently-used
     cache["c"] = 3  # evicts "b", not "a"
     assert "b" not in cache
+
+
+def test_lru_cache_get_keeps_the_accessed_key() -> None:
+    cache = LRUCache[str, int](maxsize=2)
+    cache["a"] = 1
+    cache["b"] = 2
+    cache.get("a")
+    cache["c"] = 3
     assert "a" in cache
 
 
@@ -120,6 +183,12 @@ def test_lru_cache_delitem() -> None:
     cache["a"] = 1
     del cache["a"]
     assert "a" not in cache
+
+
+def test_lru_cache_delitem_reduces_the_length() -> None:
+    cache = LRUCache[str, int](maxsize=3)
+    cache["a"] = 1
+    del cache["a"]
     assert len(cache) == 0
 
 
@@ -133,6 +202,12 @@ def test_lru_cache_pop_existing_key() -> None:
     cache = LRUCache[str, int](maxsize=3)
     cache["a"] = 1
     assert cache.pop("a") == 1
+
+
+def test_lru_cache_pop_existing_key_removes_the_key() -> None:
+    cache = LRUCache[str, int](maxsize=3)
+    cache["a"] = 1
+    cache.pop("a")
     assert "a" not in cache
 
 
@@ -153,6 +228,13 @@ def test_lru_cache_clear() -> None:
     cache["b"] = 2
     cache.clear()
     assert len(cache) == 0
+
+
+def test_lru_cache_clear_removes_the_keys() -> None:
+    cache = LRUCache[str, int](maxsize=3)
+    cache["a"] = 1
+    cache["b"] = 2
+    cache.clear()
     assert list(cache) == []
 
 

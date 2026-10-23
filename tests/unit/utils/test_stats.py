@@ -119,19 +119,22 @@ def test_quantile_boundaries() -> None:
     assert quantile([1, 2, 3], [0.0, 1.0]) == [1, 3]
 
 
-@pytest.mark.parametrize(
-    "values",
-    [
-        [float("nan"), 1.0, 2.0],
-        [1.0, float("nan"), 2.0],
-        [1.0, 2.0, float("nan")],
-        [float("nan")],
-    ],
-)
+NAN_VALUES = [
+    [float("nan"), 1.0, 2.0],
+    [1.0, float("nan"), 2.0],
+    [1.0, 2.0, float("nan")],
+    [float("nan")],
+]
+
+
+@pytest.mark.parametrize("values", NAN_VALUES)
+def test_quantile_nan_gives_a_value_for_each_quantile(values: list[float]) -> None:
+    assert len(quantile(values, (0.0, 0.5, 1.0))) == 3
+
+
+@pytest.mark.parametrize("values", NAN_VALUES)
 def test_quantile_nan_gives_nan_whatever_the_position(values: list[float]) -> None:
-    result = quantile(values, (0.0, 0.5, 1.0))
-    assert len(result) == 3
-    assert all(math.isnan(value) for value in result)
+    assert all(math.isnan(value) for value in quantile(values, (0.0, 0.5, 1.0)))
 
 
 def test_quantile_nan_with_no_quantile() -> None:

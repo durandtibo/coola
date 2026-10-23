@@ -58,15 +58,27 @@ def test_format_mapping_difference_missing_keys_heterogeneous_types() -> None:
     # crashing.
     msg = format_mapping_difference(missing_keys={1, "y"})
     assert msg.startswith("mappings have different keys:\n  missing keys    : ")
-    assert "1" in msg
-    assert "'y'" in msg
+
+
+def test_format_mapping_difference_missing_keys_heterogeneous_types_int_key() -> None:
+    assert "1" in format_mapping_difference(missing_keys={1, "y"})
+
+
+def test_format_mapping_difference_missing_keys_heterogeneous_types_str_key() -> None:
+    assert "'y'" in format_mapping_difference(missing_keys={1, "y"})
 
 
 def test_format_mapping_difference_additional_keys_heterogeneous_types() -> None:
     msg = format_mapping_difference(additional_keys={1, "y"})
     assert msg.startswith("mappings have different keys:\n  additional keys : ")
-    assert "1" in msg
-    assert "'y'" in msg
+
+
+def test_format_mapping_difference_additional_keys_heterogeneous_types_int_key() -> None:
+    assert "1" in format_mapping_difference(additional_keys={1, "y"})
+
+
+def test_format_mapping_difference_additional_keys_heterogeneous_types_str_key() -> None:
+    assert "'y'" in format_mapping_difference(additional_keys={1, "y"})
 
 
 ################################################
@@ -166,4 +178,8 @@ class BadStr:
 def test_format_value_difference_failing_str() -> None:
     message = format_value_difference(BadStr(), 1)
     assert message.startswith("objects are different:\n  actual   : <BadStr object at 0x")
+
+
+def test_format_value_difference_failing_str_expected() -> None:
+    message = format_value_difference(BadStr(), 1)
     assert message.endswith("\n  expected : 1")

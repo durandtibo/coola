@@ -130,10 +130,15 @@ def test_text_saver_save(tmp_path: Path) -> None:
     assert path.is_file()
 
 
-def test_text_saver_save_list(tmp_path: Path) -> None:
+def test_text_saver_save_list_is_file(tmp_path: Path) -> None:
     path = tmp_path.joinpath("tmp/data.txt")
     TextSaver().save([1, 2, 3], path)
     assert path.is_file()
+
+
+def test_text_saver_save_list_content(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("tmp/data.txt")
+    TextSaver().save([1, 2, 3], path)
     assert load_text(path) == "[1, 2, 3]"
 
 
@@ -151,11 +156,17 @@ def test_text_saver_save_file_exist(tmp_path: Path) -> None:
         TextSaver().save("hello", path)
 
 
-def test_text_saver_save_file_exist_ok(tmp_path: Path) -> None:
+def test_text_saver_save_file_exist_ok_is_file(tmp_path: Path) -> None:
     path = tmp_path.joinpath("tmp/data.txt")
     save_text("hello", path)
     TextSaver().save("meow", path, exist_ok=True)
     assert path.is_file()
+
+
+def test_text_saver_save_file_exist_ok_content(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("tmp/data.txt")
+    save_text("hello", path)
+    TextSaver().save("meow", path, exist_ok=True)
     assert load_text(path) == "meow"
 
 
@@ -193,10 +204,15 @@ def test_save_text(tmp_path: Path) -> None:
     assert path.is_file()
 
 
-def test_save_text_list(tmp_path: Path) -> None:
+def test_save_text_list_is_file(tmp_path: Path) -> None:
     path = tmp_path.joinpath("tmp/data.txt")
     save_text([1, 2, 3], path)
     assert path.is_file()
+
+
+def test_save_text_list_content(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("tmp/data.txt")
+    save_text([1, 2, 3], path)
     assert load_text(path) == "[1, 2, 3]"
 
 
@@ -214,11 +230,17 @@ def test_save_text_file_exist(tmp_path: Path) -> None:
         save_text("hello", path)
 
 
-def test_save_text_file_exist_ok(tmp_path: Path) -> None:
+def test_save_text_file_exist_ok_is_file(tmp_path: Path) -> None:
     path = tmp_path.joinpath("tmp/data.txt")
     save_text("hello", path)
     save_text("meow", path, exist_ok=True)
     assert path.is_file()
+
+
+def test_save_text_file_exist_ok_content(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("tmp/data.txt")
+    save_text("hello", path)
+    save_text("meow", path, exist_ok=True)
     assert load_text(path) == "meow"
 
 
@@ -229,8 +251,13 @@ def test_save_text_file_exist_ok_dir(tmp_path: Path) -> None:
         save_text("hello", path)
 
 
-def test_save_text_load_text_preserves_line_endings(tmp_path: Path) -> None:
+def test_save_text_load_text_preserves_line_endings_file_content(tmp_path: Path) -> None:
     path = tmp_path.joinpath("data.txt")
     save_text("a\r\nb\rc\n", path)
     assert path.read_bytes() == b"a\r\nb\rc\n"
+
+
+def test_save_text_load_text_preserves_line_endings_loaded_content(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    save_text("a\r\nb\rc\n", path)
     assert load_text(path) == "a\r\nb\rc\n"

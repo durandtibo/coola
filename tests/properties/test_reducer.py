@@ -7,7 +7,7 @@ import math
 from typing import TYPE_CHECKING
 
 import pytest
-from hypothesis import given, strategies as st
+from hypothesis import assume, given, strategies as st
 
 from coola.reducer import BaseReducer, NativeReducer, NumpyReducer, TorchReducer
 from coola.testing.fixtures import numpy_available, torch_available
@@ -51,27 +51,60 @@ def close(first: float, second: float) -> bool:
 
 @pytest.mark.parametrize("make_reducer", OTHERS)
 @given(values=float_lists)
-def test_max_min_and_sort_agree_with_the_native_reducer(
+def test_max_agrees_with_the_native_reducer(
     make_reducer: Callable[[], BaseReducer], values: list[float]
 ) -> None:
-    reducer, reference = make_reducer(), NativeReducer()
-    assert reducer.max(values) == reference.max(values)
-    assert reducer.min(values) == reference.min(values)
-    assert reducer.sort(values) == reference.sort(values)
-    assert reducer.sort(values, descending=True) == reference.sort(values, descending=True)
+    assert make_reducer().max(values) == NativeReducer().max(values)
+
+
+@pytest.mark.parametrize("make_reducer", OTHERS)
+@given(values=float_lists)
+def test_min_agrees_with_the_native_reducer(
+    make_reducer: Callable[[], BaseReducer], values: list[float]
+) -> None:
+    assert make_reducer().min(values) == NativeReducer().min(values)
+
+
+@pytest.mark.parametrize("make_reducer", OTHERS)
+@given(values=float_lists)
+def test_sort_agrees_with_the_native_reducer(
+    make_reducer: Callable[[], BaseReducer], values: list[float]
+) -> None:
+    assert make_reducer().sort(values) == NativeReducer().sort(values)
+
+
+@pytest.mark.parametrize("make_reducer", OTHERS)
+@given(values=float_lists)
+def test_sort_descending_agrees_with_the_native_reducer(
+    make_reducer: Callable[[], BaseReducer], values: list[float]
+) -> None:
+    assert make_reducer().sort(values, descending=True) == NativeReducer().sort(
+        values, descending=True
+    )
+
+
+def insert_nan(values: list[float], index: int) -> list[float]:
+    r"""Insert a NaN in ``values`` at ``index``."""
+    return [*values[:index], float("nan"), *values[index:]]
+
+
+@pytest.mark.parametrize("method", ["max", "min", "mean", "median", "std"])
+@pytest.mark.parametrize("make_reducer", [NativeReducer, *OTHERS])
+@given(values=float_lists, data=st.data())
+def test_a_nan_propagates_whatever_its_position(
+    make_reducer: Callable[[], BaseReducer], method: str, values: list[float], data: st.DataObject
+) -> None:
+    with_nan = insert_nan(values, data.draw(st.integers(0, len(values))))
+    assert math.isnan(getattr(make_reducer(), method)(with_nan))
 
 
 @pytest.mark.parametrize("make_reducer", [NativeReducer, *OTHERS])
 @given(values=float_lists, data=st.data())
-def test_a_nan_propagates_whatever_its_position(
+def test_a_nan_propagates_to_the_quantiles_whatever_its_position(
     make_reducer: Callable[[], BaseReducer], values: list[float], data: st.DataObject
 ) -> None:
-    index = data.draw(st.integers(0, len(values)))
-    with_nan = [*values[:index], float("nan"), *values[index:]]
-    reducer = make_reducer()
-    for method in ("max", "min", "mean", "median", "std"):
-        assert math.isnan(getattr(reducer, method)(with_nan)), method
-    assert all(math.isnan(q) for q in reducer.quantile(with_nan, [0.0, 0.5, 1.0]))
+    with_nan = insert_nan(values, data.draw(st.integers(0, len(values))))
+    assert all(math.isnan(q) for q in make_reducer().quantile(with_nan, [0.0, 0.5, 1.0]))
 
 
 @pytest.mark.parametrize("make_reducer", [NativeReducer, *OTHERS])
@@ -79,25 +112,51 @@ def test_a_nan_propagates_whatever_its_position(
 def test_sort_puts_the_nan_values_last(
     make_reducer: Callable[[], BaseReducer], values: list[float], data: st.DataObject
 ) -> None:
-    index = data.draw(st.integers(0, len(values)))
-    with_nan = [*values[:index], float("nan"), *values[index:]]
-    reducer = make_reducer()
-    ascending = reducer.sort(with_nan)
-    assert ascending[:-1] == sorted(values)
-    assert math.isnan(ascending[-1])
-    descending = reducer.sort(with_nan, descending=True)
-    assert descending[1:] == sorted(values, reverse=True)
-    assert math.isnan(descending[0])
+    with_nan = insert_nan(values, data.draw(st.integers(0, len(values))))
+    assert make_reducer().sort(with_nan)[:-1] == sorted(values)
+
+
+@pytest.mark.parametrize("make_reducer", [NativeReducer, *OTHERS])
+@given(values=float_lists, data=st.data())
+def test_sort_ends_with_a_nan(
+    make_reducer: Callable[[], BaseReducer], values: list[float], data: st.DataObject
+) -> None:
+    with_nan = insert_nan(values, data.draw(st.integers(0, len(values))))
+    assert math.isnan(make_reducer().sort(with_nan)[-1])
+
+
+@pytest.mark.parametrize("make_reducer", [NativeReducer, *OTHERS])
+@given(values=float_lists, data=st.data())
+def test_sort_descending_puts_the_nan_values_first(
+    make_reducer: Callable[[], BaseReducer], values: list[float], data: st.DataObject
+) -> None:
+    with_nan = insert_nan(values, data.draw(st.integers(0, len(values))))
+    assert make_reducer().sort(with_nan, descending=True)[1:] == sorted(values, reverse=True)
+
+
+@pytest.mark.parametrize("make_reducer", [NativeReducer, *OTHERS])
+@given(values=float_lists, data=st.data())
+def test_sort_descending_starts_with_a_nan(
+    make_reducer: Callable[[], BaseReducer], values: list[float], data: st.DataObject
+) -> None:
+    with_nan = insert_nan(values, data.draw(st.integers(0, len(values))))
+    assert math.isnan(make_reducer().sort(with_nan, descending=True)[0])
 
 
 @pytest.mark.parametrize("make_reducer", OTHERS)
 @given(values=float_lists)
-def test_mean_and_median_agree_with_the_native_reducer(
+def test_mean_agrees_with_the_native_reducer(
     make_reducer: Callable[[], BaseReducer], values: list[float]
 ) -> None:
-    reducer, reference = make_reducer(), NativeReducer()
-    assert close(reducer.mean(values), reference.mean(values))
-    assert close(reducer.median(values), reference.median(values))
+    assert close(make_reducer().mean(values), NativeReducer().mean(values))
+
+
+@pytest.mark.parametrize("make_reducer", OTHERS)
+@given(values=float_lists)
+def test_median_agrees_with_the_native_reducer(
+    make_reducer: Callable[[], BaseReducer], values: list[float]
+) -> None:
+    assert close(make_reducer().median(values), NativeReducer().median(values))
 
 
 @pytest.mark.parametrize("make_reducer", OTHERS)
@@ -105,12 +164,16 @@ def test_mean_and_median_agree_with_the_native_reducer(
 def test_std_agrees_with_the_native_reducer(
     make_reducer: Callable[[], BaseReducer], values: list[float]
 ) -> None:
-    result, expected = make_reducer().std(values), NativeReducer().std(values)
-    if len(values) == 1:
-        assert math.isnan(result)
-        assert math.isnan(expected)
-    else:
-        assert close(result, expected)
+    assume(len(values) > 1)
+    assert close(make_reducer().std(values), NativeReducer().std(values))
+
+
+@pytest.mark.parametrize("make_reducer", [NativeReducer, *OTHERS])
+@given(value=st.floats(min_value=-1e6, max_value=1e6))
+def test_std_of_a_single_value_is_nan(
+    make_reducer: Callable[[], BaseReducer], value: float
+) -> None:
+    assert math.isnan(make_reducer().std([value]))
 
 
 @pytest.mark.parametrize("make_reducer", OTHERS)
@@ -123,17 +186,47 @@ def test_quantile_agrees_with_the_native_reducer(
     assert all(close(r, e) for r, e in zip(result, expected, strict=True))
 
 
+integer_lists = st.lists(st.integers(-1000, 1000), min_size=1, max_size=30)
+
+
 @pytest.mark.parametrize("make_reducer", OTHERS)
-@given(values=st.lists(st.integers(-1000, 1000), min_size=1, max_size=30))
-def test_integers_agree_with_the_native_reducer(
+@given(values=integer_lists)
+def test_integers_max_agrees_with_the_native_reducer(
     make_reducer: Callable[[], BaseReducer], values: list[int]
 ) -> None:
-    reducer, reference = make_reducer(), NativeReducer()
-    assert reducer.max(values) == reference.max(values)
-    assert reducer.min(values) == reference.min(values)
-    assert reducer.sort(values) == reference.sort(values)
-    assert close(reducer.mean(values), reference.mean(values))
-    assert close(reducer.median(values), reference.median(values))
+    assert make_reducer().max(values) == NativeReducer().max(values)
+
+
+@pytest.mark.parametrize("make_reducer", OTHERS)
+@given(values=integer_lists)
+def test_integers_min_agrees_with_the_native_reducer(
+    make_reducer: Callable[[], BaseReducer], values: list[int]
+) -> None:
+    assert make_reducer().min(values) == NativeReducer().min(values)
+
+
+@pytest.mark.parametrize("make_reducer", OTHERS)
+@given(values=integer_lists)
+def test_integers_sort_agrees_with_the_native_reducer(
+    make_reducer: Callable[[], BaseReducer], values: list[int]
+) -> None:
+    assert make_reducer().sort(values) == NativeReducer().sort(values)
+
+
+@pytest.mark.parametrize("make_reducer", OTHERS)
+@given(values=integer_lists)
+def test_integers_mean_agrees_with_the_native_reducer(
+    make_reducer: Callable[[], BaseReducer], values: list[int]
+) -> None:
+    assert close(make_reducer().mean(values), NativeReducer().mean(values))
+
+
+@pytest.mark.parametrize("make_reducer", OTHERS)
+@given(values=integer_lists)
+def test_integers_median_agrees_with_the_native_reducer(
+    make_reducer: Callable[[], BaseReducer], values: list[int]
+) -> None:
+    assert close(make_reducer().median(values), NativeReducer().median(values))
 
 
 #######################
@@ -143,13 +236,38 @@ def test_integers_agree_with_the_native_reducer(
 
 @pytest.mark.parametrize("make_reducer", REDUCERS)
 @given(values=float_lists)
-def test_mean_and_median_are_between_the_min_and_the_max(
+def test_mean_is_not_below_the_min(
     make_reducer: Callable[[], BaseReducer], values: list[float]
 ) -> None:
     reducer = make_reducer()
-    low, high = reducer.min(values), reducer.max(values)
-    assert low - 1e-6 <= reducer.mean(values) <= high + 1e-6
-    assert low <= reducer.median(values) <= high
+    assert reducer.min(values) - 1e-6 <= reducer.mean(values)
+
+
+@pytest.mark.parametrize("make_reducer", REDUCERS)
+@given(values=float_lists)
+def test_mean_is_not_above_the_max(
+    make_reducer: Callable[[], BaseReducer], values: list[float]
+) -> None:
+    reducer = make_reducer()
+    assert reducer.mean(values) <= reducer.max(values) + 1e-6
+
+
+@pytest.mark.parametrize("make_reducer", REDUCERS)
+@given(values=float_lists)
+def test_median_is_not_below_the_min(
+    make_reducer: Callable[[], BaseReducer], values: list[float]
+) -> None:
+    reducer = make_reducer()
+    assert reducer.min(values) <= reducer.median(values)
+
+
+@pytest.mark.parametrize("make_reducer", REDUCERS)
+@given(values=float_lists)
+def test_median_is_not_above_the_max(
+    make_reducer: Callable[[], BaseReducer], values: list[float]
+) -> None:
+    reducer = make_reducer()
+    assert reducer.median(values) <= reducer.max(values)
 
 
 @pytest.mark.parametrize("make_reducer", REDUCERS)
@@ -157,35 +275,77 @@ def test_mean_and_median_are_between_the_min_and_the_max(
 def test_sort_returns_the_sorted_values(
     make_reducer: Callable[[], BaseReducer], values: list[float]
 ) -> None:
+    assert make_reducer().sort(values) == sorted(values)
+
+
+@pytest.mark.parametrize("make_reducer", REDUCERS)
+@given(values=float_lists)
+def test_sort_descending_returns_the_reversed_sorted_values(
+    make_reducer: Callable[[], BaseReducer], values: list[float]
+) -> None:
+    assert make_reducer().sort(values, descending=True) == sorted(values)[::-1]
+
+
+@pytest.mark.parametrize("make_reducer", REDUCERS)
+@given(values=float_lists)
+def test_min_is_the_first_sorted_value(
+    make_reducer: Callable[[], BaseReducer], values: list[float]
+) -> None:
     reducer = make_reducer()
-    ascending = reducer.sort(values)
-    assert ascending == sorted(values)
-    assert reducer.sort(values, descending=True) == ascending[::-1]
-    assert reducer.min(values) == ascending[0]
-    assert reducer.max(values) == ascending[-1]
+    assert reducer.min(values) == reducer.sort(values)[0]
+
+
+@pytest.mark.parametrize("make_reducer", REDUCERS)
+@given(values=float_lists)
+def test_max_is_the_last_sorted_value(
+    make_reducer: Callable[[], BaseReducer], values: list[float]
+) -> None:
+    reducer = make_reducer()
+    assert reducer.max(values) == reducer.sort(values)[-1]
 
 
 @pytest.mark.parametrize("make_reducer", REDUCERS)
 @given(values=float_lists, quantiles=quantile_lists)
-def test_quantile_is_bounded_and_monotonic(
+def test_quantile_returns_one_value_for_each_quantile(
     make_reducer: Callable[[], BaseReducer], values: list[float], quantiles: list[float]
 ) -> None:
-    reducer = make_reducer()
-    result = reducer.quantile(values, sorted(quantiles))
-    assert len(result) == len(quantiles)
+    assert len(make_reducer().quantile(values, sorted(quantiles))) == len(quantiles)
+
+
+@pytest.mark.parametrize("make_reducer", REDUCERS)
+@given(values=float_lists, quantiles=quantile_lists)
+def test_quantile_is_bounded(
+    make_reducer: Callable[[], BaseReducer], values: list[float], quantiles: list[float]
+) -> None:
+    result = make_reducer().quantile(values, sorted(quantiles))
     assert all(min(values) - 1e-6 <= q <= max(values) + 1e-6 for q in result)
+
+
+@pytest.mark.parametrize("make_reducer", REDUCERS)
+@given(values=float_lists, quantiles=quantile_lists)
+def test_quantile_is_monotonic(
+    make_reducer: Callable[[], BaseReducer], values: list[float], quantiles: list[float]
+) -> None:
+    result = make_reducer().quantile(values, sorted(quantiles))
     assert all(a <= b + 1e-6 for a, b in itertools.pairwise(result))
 
 
 @pytest.mark.parametrize("make_reducer", REDUCERS)
 @given(values=float_lists)
-def test_quantile_extremes_are_the_min_and_the_max(
+def test_quantile_of_zero_is_the_min(
     make_reducer: Callable[[], BaseReducer], values: list[float]
 ) -> None:
     reducer = make_reducer()
-    low, high = reducer.quantile(values, [0.0, 1.0])
-    assert close(low, reducer.min(values))
-    assert close(high, reducer.max(values))
+    assert close(reducer.quantile(values, [0.0])[0], reducer.min(values))
+
+
+@pytest.mark.parametrize("make_reducer", REDUCERS)
+@given(values=float_lists)
+def test_quantile_of_one_is_the_max(
+    make_reducer: Callable[[], BaseReducer], values: list[float]
+) -> None:
+    reducer = make_reducer()
+    assert close(reducer.quantile(values, [1.0])[0], reducer.max(values))
 
 
 @pytest.mark.parametrize("make_reducer", REDUCERS)
@@ -200,8 +360,8 @@ def test_quantile_of_one_half_is_the_median(
 @pytest.mark.parametrize("make_reducer", REDUCERS)
 @given(values=float_lists)
 def test_std_is_not_negative(make_reducer: Callable[[], BaseReducer], values: list[float]) -> None:
-    result = make_reducer().std(values)
-    assert math.isnan(result) if len(values) == 1 else result >= 0
+    assume(len(values) > 1)
+    assert make_reducer().std(values) >= 0
 
 
 #########################
@@ -209,48 +369,102 @@ def test_std_is_not_negative(make_reducer: Callable[[], BaseReducer], values: li
 #########################
 
 
+@pytest.mark.parametrize("method", ["max", "min", "median"])
 @pytest.mark.parametrize("make_reducer", REDUCERS)
 @given(values=float_lists, data=st.data())
-def test_the_statistics_do_not_depend_on_the_order(
+def test_the_exact_statistics_do_not_depend_on_the_order(
+    make_reducer: Callable[[], BaseReducer], method: str, values: list[float], data: st.DataObject
+) -> None:
+    reducer = make_reducer()
+    shuffled = data.draw(st.permutations(values))
+    assert getattr(reducer, method)(shuffled) == getattr(reducer, method)(values)
+
+
+@pytest.mark.parametrize("make_reducer", REDUCERS)
+@given(values=float_lists, data=st.data())
+def test_the_mean_does_not_depend_on_the_order(
     make_reducer: Callable[[], BaseReducer], values: list[float], data: st.DataObject
 ) -> None:
     reducer = make_reducer()
     shuffled = data.draw(st.permutations(values))
-    assert reducer.max(shuffled) == reducer.max(values)
-    assert reducer.min(shuffled) == reducer.min(values)
-    assert reducer.median(shuffled) == reducer.median(values)
     assert close(reducer.mean(shuffled), reducer.mean(values))
+
+
+@pytest.mark.parametrize("make_reducer", REDUCERS)
+@given(values=float_lists, data=st.data())
+def test_the_sort_does_not_depend_on_the_order(
+    make_reducer: Callable[[], BaseReducer], values: list[float], data: st.DataObject
+) -> None:
+    reducer = make_reducer()
+    shuffled = data.draw(st.permutations(values))
     assert reducer.sort(shuffled) == reducer.sort(values)
+
+
+@pytest.mark.parametrize("method", ["max", "min", "mean", "median", "std", "sort"])
+@pytest.mark.parametrize("make_reducer", REDUCERS)
+@given(values=float_lists)
+def test_the_reducers_do_not_modify_the_input(
+    make_reducer: Callable[[], BaseReducer], method: str, values: list[float]
+) -> None:
+    before = list(values)
+    getattr(make_reducer(), method)(values)
+    assert values == before
 
 
 @pytest.mark.parametrize("make_reducer", REDUCERS)
 @given(values=float_lists)
-def test_the_reducers_do_not_modify_the_input_and_return_python_numbers(
+def test_quantile_does_not_modify_the_input(
     make_reducer: Callable[[], BaseReducer], values: list[float]
 ) -> None:
-    reducer, before = make_reducer(), list(values)
-    results = [
-        reducer.max(values),
-        reducer.min(values),
-        reducer.mean(values),
-        reducer.median(values),
-        reducer.std(values),
-    ]
-    reducer.sort(values)
-    reducer.quantile(values, [0.5])
+    before = list(values)
+    make_reducer().quantile(values, [0.5])
     assert values == before
-    assert all(type(result) in {int, float} for result in results)
+
+
+@pytest.mark.parametrize("method", ["max", "min", "mean", "median", "std"])
+@pytest.mark.parametrize("make_reducer", REDUCERS)
+@given(values=float_lists)
+def test_the_reducers_return_python_numbers(
+    make_reducer: Callable[[], BaseReducer], method: str, values: list[float]
+) -> None:
+    assert type(getattr(make_reducer(), method)(values)) in {int, float}
 
 
 @pytest.mark.parametrize("make_reducer", REDUCERS)
 @given(value=st.floats(min_value=-1e6, max_value=1e6), size=st.integers(1, 20))
-def test_a_constant_sequence_has_that_value_as_statistic(
+def test_a_constant_sequence_has_that_value_as_max(
     make_reducer: Callable[[], BaseReducer], value: float, size: int
 ) -> None:
-    reducer, values = make_reducer(), [value] * size
-    assert reducer.max(values) == value
-    assert reducer.min(values) == value
-    assert close(reducer.mean(values), value)
-    assert close(reducer.median(values), value)
-    if size > 1:
-        assert close(reducer.std(values), 0.0)
+    assert make_reducer().max([value] * size) == value
+
+
+@pytest.mark.parametrize("make_reducer", REDUCERS)
+@given(value=st.floats(min_value=-1e6, max_value=1e6), size=st.integers(1, 20))
+def test_a_constant_sequence_has_that_value_as_min(
+    make_reducer: Callable[[], BaseReducer], value: float, size: int
+) -> None:
+    assert make_reducer().min([value] * size) == value
+
+
+@pytest.mark.parametrize("make_reducer", REDUCERS)
+@given(value=st.floats(min_value=-1e6, max_value=1e6), size=st.integers(1, 20))
+def test_a_constant_sequence_has_that_value_as_mean(
+    make_reducer: Callable[[], BaseReducer], value: float, size: int
+) -> None:
+    assert close(make_reducer().mean([value] * size), value)
+
+
+@pytest.mark.parametrize("make_reducer", REDUCERS)
+@given(value=st.floats(min_value=-1e6, max_value=1e6), size=st.integers(1, 20))
+def test_a_constant_sequence_has_that_value_as_median(
+    make_reducer: Callable[[], BaseReducer], value: float, size: int
+) -> None:
+    assert close(make_reducer().median([value] * size), value)
+
+
+@pytest.mark.parametrize("make_reducer", REDUCERS)
+@given(value=st.floats(min_value=-1e6, max_value=1e6), size=st.integers(2, 20))
+def test_a_constant_sequence_has_a_zero_std(
+    make_reducer: Callable[[], BaseReducer], value: float, size: int
+) -> None:
+    assert close(make_reducer().std([value] * size), 0.0)

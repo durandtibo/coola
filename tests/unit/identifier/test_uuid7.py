@@ -149,48 +149,100 @@ def test_extract_uuid7_timestamp_ms_rejects_non_v7_uuid() -> None:
 ##########################################
 
 
-def test_generate_uuid7_monotonic_in_the_same_millisecond() -> None:
+def _generate_uuid7_in_the_same_millisecond() -> list[str]:
     with patch("coola.identifier.monotonic.time.time_ns", return_value=1_700_000_000_000 * 10**6):
-        values = [generate_uuid7() for _ in range(1000)]
+        return [generate_uuid7() for _ in range(1000)]
+
+
+def test_generate_uuid7_monotonic_in_the_same_millisecond() -> None:
+    values = _generate_uuid7_in_the_same_millisecond()
     assert values == sorted(values)
-    assert len(set(values)) == 1000
+
+
+def test_generate_uuid7_unique_in_the_same_millisecond() -> None:
+    assert len(set(_generate_uuid7_in_the_same_millisecond())) == 1000
+
+
+def test_generate_uuid7_same_timestamp_in_the_same_millisecond() -> None:
+    values = _generate_uuid7_in_the_same_millisecond()
     assert {extract_uuid7_timestamp_ms(v) for v in values} == {1_700_000_000_000}
+
+
+def test_generate_uuid7_valid_pattern_in_the_same_millisecond() -> None:
+    values = _generate_uuid7_in_the_same_millisecond()
     assert all(UUID7_PATTERN.match(v) for v in values)
 
 
-def test_generate_uuid7_monotonic_with_the_real_clock() -> None:
+def test_generate_uuid7_monotonic_with_the_real_clock_sorted() -> None:
     values = [generate_uuid7() for _ in range(5000)]
     assert values == sorted(values)
+
+
+def test_generate_uuid7_monotonic_with_the_real_clock_unique() -> None:
+    values = [generate_uuid7() for _ in range(5000)]
     assert len(set(values)) == 5000
+
+
+def test_generate_uuid7_monotonic_with_the_real_clock_pattern() -> None:
+    values = [generate_uuid7() for _ in range(5000)]
     assert all(UUID7_PATTERN.match(v) for v in values)
 
 
-def test_generate_uuid7_monotonic_if_the_clock_moves_backward() -> None:
+def _generate_uuid7_with_a_backward_clock() -> tuple[str, str]:
     with patch("coola.identifier.monotonic.time.time_ns", return_value=2_000 * 10**6):
         first = generate_uuid7()
     with patch("coola.identifier.monotonic.time.time_ns", return_value=1_000 * 10**6):
         second = generate_uuid7()
+    return first, second
+
+
+def test_generate_uuid7_monotonic_if_the_clock_moves_backward() -> None:
+    first, second = _generate_uuid7_with_a_backward_clock()
     assert second > first
+
+
+def test_generate_uuid7_keeps_the_timestamp_if_the_clock_moves_backward() -> None:
+    _, second = _generate_uuid7_with_a_backward_clock()
     assert extract_uuid7_timestamp_ms(second) == 2_000
 
 
-def test_generate_uuid7_monotonic_keeps_version_and_variant_when_the_counter_is_large() -> None:
+def _generate_uuid7_with_a_large_counter() -> list[str]:
     # Start with a random part that is all ones in the 12 bits before the variant bits.
     with (
         patch("coola.identifier.monotonic.time.time_ns", return_value=1_000 * 10**6),
         patch.object(uuid7_module._MONOTONIC, "_fresh_random", return_value=2**74 - 3),
     ):
-        values = [generate_uuid7() for _ in range(5)]
+        return [generate_uuid7() for _ in range(5)]
+
+
+def test_generate_uuid7_monotonic_keeps_version_and_variant_when_the_counter_is_large() -> None:
+    values = _generate_uuid7_with_a_large_counter()
     assert all(UUID7_PATTERN.match(v) for v in values)
+
+
+def test_generate_uuid7_monotonic_when_the_counter_is_large() -> None:
+    values = _generate_uuid7_with_a_large_counter()
     assert values == sorted(values)
-    assert len(set(values)) == 5  # the overflow borrowed the next millisecond
+
+
+def test_generate_uuid7_unique_when_the_counter_is_large() -> None:
+    # the overflow borrowed the next millisecond
+    assert len(set(_generate_uuid7_with_a_large_counter())) == 5
+
+
+def test_generate_uuid7_explicit_timestamp_is_used() -> None:
+    assert extract_uuid7_timestamp_ms(generate_uuid7(timestamp_ms=1)) == 1
+
+
+def test_generate_uuid7_explicit_timestamp_is_before_the_current_time() -> None:
+    with patch("coola.identifier.monotonic.time.time_ns", return_value=5_000 * 10**6):
+        current = generate_uuid7()
+    assert generate_uuid7(timestamp_ms=1) < current
 
 
 def test_generate_uuid7_explicit_timestamp_does_not_use_the_monotonic_state() -> None:
     with patch("coola.identifier.monotonic.time.time_ns", return_value=5_000 * 10**6):
         current = generate_uuid7()
-    old = generate_uuid7(timestamp_ms=1)
-    assert extract_uuid7_timestamp_ms(old) == 1
-    assert old < current
+    generate_uuid7(timestamp_ms=1)
     with patch("coola.identifier.monotonic.time.time_ns", return_value=5_000 * 10**6):
         assert generate_uuid7() > current

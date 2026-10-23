@@ -45,8 +45,13 @@ def test_summarizer_init_show_data(summarizer_cls: type) -> None:
 
 @polars_available
 @pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
-def test_summarizer_repr(summarizer_cls: type) -> None:
+def test_summarizer_repr_default(summarizer_cls: type) -> None:
     assert repr(summarizer_cls()) == f"{summarizer_cls.__name__}(show_data=False)"
+
+
+@polars_available
+@pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
+def test_summarizer_repr_show_data(summarizer_cls: type) -> None:
     assert repr(summarizer_cls(show_data=True)) == f"{summarizer_cls.__name__}(show_data=True)"
 
 
@@ -58,8 +63,13 @@ def test_summarizer_str(summarizer_cls: type) -> None:
 
 @polars_available
 @pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
-def test_summarizer_equal_true(summarizer_cls: type) -> None:
+def test_summarizer_equal_true_default(summarizer_cls: type) -> None:
     assert summarizer_cls().equal(summarizer_cls())
+
+
+@polars_available
+@pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
+def test_summarizer_equal_true_show_data(summarizer_cls: type) -> None:
     assert summarizer_cls(show_data=True).equal(summarizer_cls(show_data=True))
 
 
@@ -93,10 +103,16 @@ def test_summarizer_missing_package_raises(summarizer_cls: type) -> None:
 
 
 @polars_available
-def test_polars_dataframe_summarizer_summarize(registry: SummarizerRegistry) -> None:
+def test_polars_dataframe_summarizer_summarize_columns(registry: SummarizerRegistry) -> None:
     frame = pl.DataFrame({"a": [1, 2, 3], "b": [0.1, 0.2, 0.3]})
     result = PolarsDataFrameSummarizer().summarize(frame, registry)
     assert result.endswith(" | shape=(3, 2) | columns=a: Int64, b: Float64")
+
+
+@polars_available
+def test_polars_dataframe_summarizer_summarize_class_name(registry: SummarizerRegistry) -> None:
+    frame = pl.DataFrame({"a": [1, 2, 3], "b": [0.1, 0.2, 0.3]})
+    result = PolarsDataFrameSummarizer().summarize(frame, registry)
     assert "DataFrame" in result.split(" | ")[0]
 
 
@@ -121,6 +137,12 @@ def test_polars_lazyframe_summarizer_summarize_does_not_collect(
     with patch.object(pl.LazyFrame, "collect", side_effect=AssertionError("collected")):
         result = PolarsLazyFrameSummarizer().summarize(frame, registry)
     assert result.endswith(" | columns=a: Int64, b: String")
+
+
+@polars_available
+def test_polars_lazyframe_summarizer_summarize_class_name(registry: SummarizerRegistry) -> None:
+    frame = pl.LazyFrame({"a": [1, 2, 3], "b": ["x", "y", "z"]})
+    result = PolarsLazyFrameSummarizer().summarize(frame, registry)
     assert "LazyFrame" in result.split(" | ")[0]
 
 
@@ -138,9 +160,14 @@ def test_polars_lazyframe_summarizer_summarize_show_data(registry: SummarizerReg
 
 
 @polars_available
-def test_polars_series_summarizer_summarize(registry: SummarizerRegistry) -> None:
+def test_polars_series_summarizer_summarize_columns(registry: SummarizerRegistry) -> None:
     result = PolarsSeriesSummarizer().summarize(pl.Series("a", [1, 2, 3]), registry)
     assert result.endswith(" | shape=(3,) | dtype=Int64 | name='a'")
+
+
+@polars_available
+def test_polars_series_summarizer_summarize_class_name(registry: SummarizerRegistry) -> None:
+    result = PolarsSeriesSummarizer().summarize(pl.Series("a", [1, 2, 3]), registry)
     assert "Series" in result.split(" | ")[0]
 
 
@@ -151,9 +178,14 @@ def test_polars_series_summarizer_summarize_show_data(registry: SummarizerRegist
 
 
 @polars_available
-def test_dataframe_and_lazyframe_summarizer_max_fields(registry: SummarizerRegistry) -> None:
+def test_dataframe_summarizer_max_fields(registry: SummarizerRegistry) -> None:
     df = pl.DataFrame({"a": [1], "b": [2.0], "c": ["x"]})
     out = PolarsDataFrameSummarizer(max_fields=1).summarize(df, registry)
     assert out.endswith("columns=a: Int64, ... (+2 more)")
+
+
+@polars_available
+def test_lazyframe_summarizer_max_fields(registry: SummarizerRegistry) -> None:
+    df = pl.DataFrame({"a": [1], "b": [2.0], "c": ["x"]})
     out = PolarsLazyFrameSummarizer(max_fields=1).summarize(df.lazy(), registry)
     assert out.endswith("columns=a: Int64, ... (+2 more)")

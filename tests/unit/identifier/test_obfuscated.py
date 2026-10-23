@@ -10,10 +10,10 @@ def test_generate_obfuscated_id_returns_str() -> None:
     assert isinstance(generate_obfuscated_id(1), str)
 
 
-def test_generate_obfuscated_id_roundtrip_values() -> None:
-    for number in (0, 1, 42, 1234, 2**32, 2**64 - 1):
-        encoded = generate_obfuscated_id(number, salt="orders")
-        assert decode_obfuscated_id(encoded, salt="orders") == number
+@pytest.mark.parametrize("number", [0, 1, 42, 1234, 2**32, 2**64 - 1])
+def test_generate_obfuscated_id_roundtrip_values(number: int) -> None:
+    encoded = generate_obfuscated_id(number, salt="orders")
+    assert decode_obfuscated_id(encoded, salt="orders") == number
 
 
 def test_generate_obfuscated_id_different_salt_differs() -> None:
@@ -25,7 +25,7 @@ def test_generate_obfuscated_id_decode_wrong_salt_gives_wrong_value() -> None:
     assert decode_obfuscated_id(encoded, salt="wrong") != 42
 
 
-def test_generate_obfuscated_id_min_length() -> None:
+def test_generate_obfuscated_id_min_length_length() -> None:
     # The affine map (multiply then add a salt-derived increment) means
     # 0 no longer necessarily encodes to the shortest possible string,
     # so padding can only be asserted as a lower bound, not exact
@@ -33,6 +33,15 @@ def test_generate_obfuscated_id_min_length() -> None:
     # 2**64 - 1 (11 characters) so padding is actually exercised.
     encoded = generate_obfuscated_id(0, salt="", min_length=16)
     assert len(encoded) == 16
+
+
+def test_generate_obfuscated_id_min_length_roundtrip() -> None:
+    # The affine map (multiply then add a salt-derived increment) means
+    # 0 no longer necessarily encodes to the shortest possible string,
+    # so padding can only be asserted as a lower bound, not exact
+    # equality: use a min_length comfortably above the base62 length of
+    # 2**64 - 1 (11 characters) so padding is actually exercised.
+    encoded = generate_obfuscated_id(0, salt="", min_length=16)
     assert decode_obfuscated_id(encoded, salt="") == 0
 
 
@@ -109,7 +118,7 @@ def _decode_base62_for_test(encoded: str) -> int:
     return number
 
 
-def test_generate_obfuscated_id_encodes_to_zero_for_the_right_number() -> None:
+def test_generate_obfuscated_id_encodes_to_zero_for_the_right_number_encoded() -> None:
     # _encode_base62's `number == 0` branch (returning "0" directly,
     # rather than falling through the divmod loop) is only reachable
     # when the affine map itself produces exactly 0, i.e. for the one
@@ -123,6 +132,21 @@ def test_generate_obfuscated_id_encodes_to_zero_for_the_right_number() -> None:
 
     encoded = generate_obfuscated_id(zero_plaintext, salt=salt)
     assert encoded == "0"
+
+
+def test_generate_obfuscated_id_encodes_to_zero_for_the_right_number_roundtrip() -> None:
+    # _encode_base62's `number == 0` branch (returning "0" directly,
+    # rather than falling through the divmod loop) is only reachable
+    # when the affine map itself produces exactly 0, i.e. for the one
+    # plaintext solving `number * multiplier + increment == 0 (mod
+    # 2**64)`. Solve for that plaintext so the branch gets exercised
+    # here, instead of relying on hitting it by chance.
+    salt = "orders"
+    multiplier, increment = _multiplier_and_increment(salt)
+    mask = 2**64 - 1
+    zero_plaintext = (-increment * pow(multiplier, -1, 1 << 64)) & mask
+
+    encoded = generate_obfuscated_id(zero_plaintext, salt=salt)
     assert decode_obfuscated_id(encoded, salt=salt) == zero_plaintext
 
 
@@ -159,9 +183,13 @@ def test_decode_obfuscated_id_does_not_wrap_around() -> None:
         decode_obfuscated_id(_encode_base62(value + 2**64, min_length=0))
 
 
-def test_decode_obfuscated_id_padded_value() -> None:
+def test_decode_obfuscated_id_padded_value_length() -> None:
     encoded = generate_obfuscated_id(7, salt="s", min_length=30)
     assert len(encoded) == 30
+
+
+def test_decode_obfuscated_id_padded_value_roundtrip() -> None:
+    encoded = generate_obfuscated_id(7, salt="s", min_length=30)
     assert decode_obfuscated_id(encoded, salt="s") == 7
 
 

@@ -379,13 +379,21 @@ def test_torch_packed_sequence_equality_tester_objects_are_equal_true_same_obj(
 def test_torch_packed_sequence_equality_tester_objects_are_equal_true(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    tester = TorchPackedSequenceEqualityTester()
+    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+
+
+@torch_available
+@pytest.mark.parametrize("example", TORCH_PACKED_SEQUENCE_EQUAL)
+def test_torch_packed_sequence_equality_tester_objects_are_equal_true_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = TorchPackedSequenceEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -394,14 +402,23 @@ def test_torch_packed_sequence_equality_tester_objects_are_equal_true(
 def test_torch_packed_sequence_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    tester = TorchPackedSequenceEqualityTester()
+    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+
+
+@torch_available
+@pytest.mark.parametrize("example", TORCH_PACKED_SEQUENCE_EQUAL)
+def test_torch_packed_sequence_equality_tester_objects_are_equal_true_show_difference_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     tester = TorchPackedSequenceEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -410,13 +427,23 @@ def test_torch_packed_sequence_equality_tester_objects_are_equal_true_show_diffe
 def test_torch_packed_sequence_equality_tester_objects_are_equal_false(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    tester = TorchPackedSequenceEqualityTester()
+    assert not tester.objects_are_equal(
+        actual=example.actual, expected=example.expected, config=config
+    )
+
+
+@torch_available
+@pytest.mark.parametrize("example", TORCH_PACKED_SEQUENCE_NOT_EQUAL)
+def test_torch_packed_sequence_equality_tester_objects_are_equal_false_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = TorchPackedSequenceEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert not tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -425,14 +452,25 @@ def test_torch_packed_sequence_equality_tester_objects_are_equal_false(
 def test_torch_packed_sequence_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    tester = TorchPackedSequenceEqualityTester()
+    assert not tester.objects_are_equal(
+        actual=example.actual, expected=example.expected, config=config
+    )
+
+
+@torch_available
+@pytest.mark.parametrize("example", TORCH_PACKED_SEQUENCE_NOT_EQUAL)
+def test_torch_packed_sequence_equality_tester_objects_are_equal_false_show_difference_logs(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     tester = TorchPackedSequenceEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert not tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
@@ -519,13 +557,21 @@ def test_torch_tensor_equality_tester_objects_are_equal_true_same_object(
 def test_torch_tensor_equality_tester_objects_are_equal_true(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    tester = TorchTensorEqualityTester()
+    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+
+
+@torch_available
+@pytest.mark.parametrize("example", TORCH_TENSOR_EQUAL)
+def test_torch_tensor_equality_tester_objects_are_equal_true_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = TorchTensorEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -534,14 +580,23 @@ def test_torch_tensor_equality_tester_objects_are_equal_true(
 def test_torch_tensor_equality_tester_objects_are_equal_true_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    tester = TorchTensorEqualityTester()
+    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+
+
+@torch_available
+@pytest.mark.parametrize("example", TORCH_TENSOR_EQUAL)
+def test_torch_tensor_equality_tester_objects_are_equal_true_show_difference_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     tester = TorchTensorEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -550,13 +605,23 @@ def test_torch_tensor_equality_tester_objects_are_equal_true_show_difference(
 def test_torch_tensor_equality_tester_objects_are_equal_false(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    tester = TorchTensorEqualityTester()
+    assert not tester.objects_are_equal(
+        actual=example.actual, expected=example.expected, config=config
+    )
+
+
+@torch_available
+@pytest.mark.parametrize("example", TORCH_TENSOR_NOT_EQUAL)
+def test_torch_tensor_equality_tester_objects_are_equal_false_does_not_log(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = TorchTensorEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert not tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert not caplog.messages
 
 
@@ -565,26 +630,51 @@ def test_torch_tensor_equality_tester_objects_are_equal_false(
 def test_torch_tensor_equality_tester_objects_are_equal_false_show_difference(
     example: ExamplePair,
     config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    tester = TorchTensorEqualityTester()
+    assert not tester.objects_are_equal(
+        actual=example.actual, expected=example.expected, config=config
+    )
+
+
+@torch_available
+@pytest.mark.parametrize("example", TORCH_TENSOR_NOT_EQUAL)
+def test_torch_tensor_equality_tester_objects_are_equal_false_show_difference_logs(
+    example: ExamplePair,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     tester = TorchTensorEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert not tester.objects_are_equal(
-            actual=example.actual, expected=example.expected, config=config
-        )
+        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
 @torch_available
 def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_meta(
+    config: EqualityConfig,
+) -> None:
+    # The meta device exists without a GPU, so the check of the devices always runs.
+    config.show_difference = True
+    tester = TorchTensorEqualityTester()
+    assert not tester.objects_are_equal(
+        torch.ones(2, 3, device=torch.device("cpu")),
+        torch.zeros(2, 3, device=torch.device("meta")),
+        config,
+    )
+
+
+@torch_available
+def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_meta_logs(
     caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
     # The meta device exists without a GPU, so the check of the devices always runs.
     config.show_difference = True
     tester = TorchTensorEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert not tester.objects_are_equal(
+        tester.objects_are_equal(
             torch.ones(2, 3, device=torch.device("cpu")),
             torch.zeros(2, 3, device=torch.device("meta")),
             config,
@@ -595,12 +685,26 @@ def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_m
 @torch_available
 @torch_cuda_available
 def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_cuda(
+    config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    tester = TorchTensorEqualityTester()
+    assert not tester.objects_are_equal(
+        torch.ones(2, 3, device=torch.device("cpu")),
+        torch.zeros(2, 3, device=torch.device("cuda:0")),
+        config,
+    )
+
+
+@torch_available
+@torch_cuda_available
+def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_cuda_logs(
     caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
     config.show_difference = True
     tester = TorchTensorEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert not tester.objects_are_equal(
+        tester.objects_are_equal(
             torch.ones(2, 3, device=torch.device("cpu")),
             torch.zeros(2, 3, device=torch.device("cuda:0")),
             config,
@@ -611,12 +715,26 @@ def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_c
 @torch_available
 @torch_mps_available
 def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_mps(
+    config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    tester = TorchTensorEqualityTester()
+    assert not tester.objects_are_equal(
+        torch.ones(2, 3, device=torch.device("cpu")),
+        torch.zeros(2, 3, device=torch.device("mps:0")),
+        config,
+    )
+
+
+@torch_available
+@torch_mps_available
+def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_mps_logs(
     caplog: pytest.LogCaptureFixture, config: EqualityConfig
 ) -> None:
     config.show_difference = True
     tester = TorchTensorEqualityTester()
     with caplog.at_level(logging.INFO):
-        assert not tester.objects_are_equal(
+        tester.objects_are_equal(
             torch.ones(2, 3, device=torch.device("cpu")),
             torch.zeros(2, 3, device=torch.device("mps:0")),
             config,

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 from pathlib import Path
 
 import pytest
@@ -172,34 +173,49 @@ def test_sanitize_path_path_uri_not_parsed() -> None:
 
 
 def test_working_directory_path() -> None:
-    cwd_before = Path.cwd()
-    new_path = cwd_before.parent
+    new_path = Path.cwd().parent
     with working_directory(new_path):
         assert Path.cwd() == new_path
 
+
+def test_working_directory_path_restores_the_directory() -> None:
+    cwd_before = Path.cwd()
+    with working_directory(cwd_before.parent):
+        pass
     assert Path.cwd() == cwd_before
 
 
 def test_working_directory_str() -> None:
-    cwd_before = Path.cwd()
-    new_path = cwd_before.parent
+    new_path = Path.cwd().parent
     with working_directory(str(new_path)):
         assert Path.cwd() == new_path
 
+
+def test_working_directory_str_restores_the_directory() -> None:
+    cwd_before = Path.cwd()
+    with working_directory(str(cwd_before.parent)):
+        pass
     assert Path.cwd() == cwd_before
 
 
+class MyPathLike:
+    def __init__(self, path: Path) -> None:
+        self._path = path
+
+    def __fspath__(self) -> str:
+        return str(self._path)
+
+
 def test_working_directory_pathlike() -> None:
-    cwd_before = Path.cwd()
-    new_path = cwd_before.parent
-
-    class MyPathLike:
-        def __fspath__(self) -> str:
-            return str(new_path)
-
-    with working_directory(MyPathLike()):
+    new_path = Path.cwd().parent
+    with working_directory(MyPathLike(new_path)):
         assert Path.cwd() == new_path
 
+
+def test_working_directory_pathlike_restores_the_directory() -> None:
+    cwd_before = Path.cwd()
+    with working_directory(MyPathLike(cwd_before.parent)):
+        pass
     assert Path.cwd() == cwd_before
 
 
@@ -208,31 +224,55 @@ def test_working_directory_relative() -> None:
     with working_directory(".."):
         assert Path.cwd() == cwd_before.parent
 
+
+def test_working_directory_relative_restores_the_directory() -> None:
+    cwd_before = Path.cwd()
+    with working_directory(".."):
+        pass
     assert Path.cwd() == cwd_before
 
 
 def test_working_directory_nested() -> None:
-    cwd_before = Path.cwd()
-    parent = cwd_before.parent
-    grandparent = parent.parent
+    parent = Path.cwd().parent
     with working_directory(parent):
         assert Path.cwd() == parent
-        with working_directory(grandparent):
-            assert Path.cwd() == grandparent
+
+
+def test_working_directory_nested_inner() -> None:
+    grandparent = Path.cwd().parent.parent
+    with working_directory(Path.cwd().parent), working_directory(grandparent):
+        assert Path.cwd() == grandparent
+
+
+def test_working_directory_nested_restores_the_outer_directory() -> None:
+    parent = Path.cwd().parent
+    with working_directory(parent):
+        with working_directory(parent.parent):
+            pass
         assert Path.cwd() == parent
 
+
+def test_working_directory_nested_restores_the_directory() -> None:
+    cwd_before = Path.cwd()
+    with working_directory(cwd_before.parent), working_directory(cwd_before.parent.parent):
+        pass
     assert Path.cwd() == cwd_before
 
 
 def test_working_directory_error() -> None:
-    cwd_before = Path.cwd()
     with (  # noqa: PT012
         pytest.raises(RuntimeError, match=r"Exception"),
-        working_directory(cwd_before.parent),
+        working_directory(Path.cwd().parent),
     ):
         msg = "Exception"
         raise RuntimeError(msg)
 
+
+def test_working_directory_error_restores_the_directory() -> None:
+    cwd_before = Path.cwd()
+    with contextlib.suppress(RuntimeError), working_directory(cwd_before.parent):
+        msg = "Exception"
+        raise RuntimeError(msg)
     assert Path.cwd() == cwd_before
 
 

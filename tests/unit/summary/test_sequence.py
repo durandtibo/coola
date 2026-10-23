@@ -25,15 +25,23 @@ def registry() -> SummarizerRegistry:
 ########################################
 
 
-def test_sequence_summarizer_init_default() -> None:
+def test_sequence_summarizer_init_default_max_items() -> None:
     summarizer = SequenceSummarizer()
     assert summarizer._max_items == 5
+
+
+def test_sequence_summarizer_init_default_num_spaces() -> None:
+    summarizer = SequenceSummarizer()
     assert summarizer._num_spaces == 2
 
 
-def test_sequence_summarizer_init_custom() -> None:
+def test_sequence_summarizer_init_custom_max_items() -> None:
     summarizer = SequenceSummarizer(max_items=10, num_spaces=4)
     assert summarizer._max_items == 10
+
+
+def test_sequence_summarizer_init_custom_num_spaces() -> None:
+    summarizer = SequenceSummarizer(max_items=10, num_spaces=4)
     assert summarizer._num_spaces == 4
 
 
@@ -180,7 +188,7 @@ def test_sequence_summarizer_summarize_depth_limit_not_reached(
     )
 
 
-def test_sequence_summarizer_summarize_depth_limit_negative_max_items_is_capped(
+def test_sequence_summarizer_summarize_depth_limit_negative_max_items_is_capped_preview(
     registry: SummarizerRegistry,
 ) -> None:
     """Regression test for issue #27: max_items=-1 must not dump an
@@ -189,6 +197,14 @@ def test_sequence_summarizer_summarize_depth_limit_negative_max_items_is_capped(
         list(range(100_000)), registry, depth=1, max_depth=1
     )
     assert result == "[0, 1, 2, 3, 4] ..."
+
+
+def test_sequence_summarizer_summarize_depth_limit_negative_max_items_is_capped_length(
+    registry: SummarizerRegistry,
+) -> None:
+    result = SequenceSummarizer(max_items=-1).summarize(
+        list(range(100_000)), registry, depth=1, max_depth=1
+    )
     assert len(result) < 1_000
 
 

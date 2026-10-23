@@ -14,10 +14,17 @@ AWARE_PLUS_ONE_OTHER_INSTANT = datetime(2024, 1, 1, 12, tzinfo=PLUS_ONE)
 NAIVE = datetime(2024, 1, 1, 12)  # noqa: DTZ001
 
 
+def test_datetime_same_instant_is_equal_in_python() -> None:
+    assert AWARE_UTC == AWARE_PLUS_ONE_SAME_INSTANT
+
+
 @pytest.mark.parametrize("compare", [objects_are_equal, objects_are_allclose])
 def test_datetime_same_instant_different_time_zone_is_equal(compare) -> None:  # noqa: ANN001
-    assert AWARE_UTC == AWARE_PLUS_ONE_SAME_INSTANT
     assert compare(AWARE_UTC, AWARE_PLUS_ONE_SAME_INSTANT)
+
+
+@pytest.mark.parametrize("compare", [objects_are_equal, objects_are_allclose])
+def test_datetime_same_instant_different_time_zone_is_equal_reversed(compare) -> None:  # noqa: ANN001
     assert compare(AWARE_PLUS_ONE_SAME_INSTANT, AWARE_UTC)
 
 
@@ -35,6 +42,10 @@ def test_datetime_different_instant_is_not_equal(compare) -> None:  # noqa: ANN0
 @pytest.mark.parametrize("compare", [objects_are_equal, objects_are_allclose])
 def test_datetime_naive_and_aware_are_not_equal(compare) -> None:  # noqa: ANN001
     assert not compare(NAIVE, AWARE_UTC)
+
+
+@pytest.mark.parametrize("compare", [objects_are_equal, objects_are_allclose])
+def test_datetime_aware_and_naive_are_not_equal(compare) -> None:  # noqa: ANN001
     assert not compare(AWARE_UTC, NAIVE)
 
 
@@ -50,6 +61,9 @@ def test_datetime_and_date_are_not_equal(compare) -> None:  # noqa: ANN001
 
 @pytest.mark.parametrize("compare", [objects_are_equal, objects_are_allclose])
 def test_datetime_nested_in_containers(compare) -> None:  # noqa: ANN001
-    actual = {"when": [AWARE_UTC]}
-    assert compare(actual, {"when": [AWARE_PLUS_ONE_SAME_INSTANT]})
-    assert not compare(actual, {"when": [NAIVE]})
+    assert compare({"when": [AWARE_UTC]}, {"when": [AWARE_PLUS_ONE_SAME_INSTANT]})
+
+
+@pytest.mark.parametrize("compare", [objects_are_equal, objects_are_allclose])
+def test_datetime_nested_in_containers_naive_and_aware(compare) -> None:  # noqa: ANN001
+    assert not compare({"when": [AWARE_UTC]}, {"when": [NAIVE]})

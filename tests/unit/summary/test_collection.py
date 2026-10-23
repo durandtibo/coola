@@ -121,7 +121,7 @@ def test_base_collection_summarizer_summarize_depth_limit_negative_max_items_no_
     assert out == "[1, 2, 3]"
 
 
-def test_base_collection_summarizer_summarize_depth_limit_negative_max_items_is_capped(
+def test_base_collection_summarizer_summarize_depth_limit_negative_max_items_is_capped_preview(
     registry: SummarizerRegistry,
 ) -> None:
     # Regression test for issue #27: max_items=-1 (i.e. "no truncation") must
@@ -131,4 +131,15 @@ def test_base_collection_summarizer_summarize_depth_limit_negative_max_items_is_
     data = list(range(100_000))
     out = summarizer.summarize(data, registry, depth=1, max_depth=1)
     assert out == f"{list(range(BaseCollectionSummarizer._DEPTH_LIMIT_PREVIEW_ITEMS))} ..."
+
+
+def test_base_collection_summarizer_summarize_depth_limit_negative_max_items_is_capped_length(
+    registry: SummarizerRegistry,
+) -> None:
+    # Regression test for issue #27: max_items=-1 (i.e. "no truncation") must
+    # still cap the preview length when the depth limit is hit, instead of
+    # falling back to an unbounded str(data).
+    summarizer = FakeSequenceSummarizer(max_items=-1)
+    data = list(range(100_000))
+    out = summarizer.summarize(data, registry, depth=1, max_depth=1)
     assert len(out) < 1_000

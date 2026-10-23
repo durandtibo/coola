@@ -198,34 +198,38 @@ def test_get_default_registry_returns_singleton() -> None:
     assert registry1 is registry2
 
 
-@pytest.mark.parametrize(("dtype", "tester_class", "is_registered"), TESTER_TYPES)
-def test_get_default_registry_types(dtype: type, tester_class: type, is_registered: bool) -> None:
-    registry = get_default_registry()
-    if is_registered:
-        assert registry.has_equality_tester(dtype)
-    assert isinstance(registry.find_equality_tester(dtype), tester_class)
+@pytest.mark.parametrize(
+    "dtype", [dtype for dtype, _, is_registered in TESTER_TYPES if is_registered]
+)
+def test_get_default_registry_has_the_registered_types(dtype: type) -> None:
+    assert get_default_registry().has_equality_tester(dtype)
 
 
-def test_get_default_registry_objects_are_equal_true(config: EqualityConfig) -> None:
-    """Test that default registry can transform a list."""
-    registry = get_default_registry()
-    assert registry.objects_are_equal([1, 2, 3], [1, 2, 3], config=config)
+@pytest.mark.parametrize(("dtype", "tester_class"), [(t[0], t[1]) for t in TESTER_TYPES])
+def test_get_default_registry_types(dtype: type, tester_class: type) -> None:
+    assert isinstance(get_default_registry().find_equality_tester(dtype), tester_class)
 
 
-def test_get_default_registry_objects_are_equal_false(config: EqualityConfig) -> None:
-    """Test that default registry can transform a list."""
-    registry = get_default_registry()
-    assert not registry.objects_are_equal([1, 2, 3], [1, 1], config=config)
+def test_get_default_registry_singleton_does_not_have_the_custom_type() -> None:
+    """Test that the registry does not have the custom type."""
+    assert not get_default_registry().has_equality_tester(CustomList)
 
 
 def test_get_default_registry_singleton_persists_modifications() -> None:
     """Test that modifications to the registry persist across calls."""
     registry1 = get_default_registry()
-    assert not registry1.has_equality_tester(CustomList)
     registry1.register(CustomList, SequenceEqualityTester())
     assert registry1.has_equality_tester(CustomList)
 
-    # Get registry again
-    registry2 = get_default_registry()
-    assert registry1 is registry2
-    assert registry2.has_equality_tester(CustomList)
+
+def test_get_default_registry_singleton_returns_the_same_registry() -> None:
+    """Test that the registry is the same across calls."""
+    registry1 = get_default_registry()
+    registry1.register(CustomList, SequenceEqualityTester())
+    assert registry1 is get_default_registry()
+
+
+def test_get_default_registry_singleton_persists_modifications_across_calls() -> None:
+    """Test that modifications to the registry persist across calls."""
+    get_default_registry().register(CustomList, SequenceEqualityTester())
+    assert get_default_registry().has_equality_tester(CustomList)

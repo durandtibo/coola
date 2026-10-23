@@ -28,6 +28,9 @@ def test_supports_tolerant_equal_does_not_redefine_allclose() -> None:
     # ``allclose`` must be inherited from ``SupportsAllCloseNan``, not
     # re-declared, to avoid the duplicated signature/docstring.
     assert "allclose" not in SupportsTolerantEqual.__dict__
+
+
+def test_supports_all_close_nan_defines_allclose() -> None:
     assert "allclose" in SupportsAllCloseNan.__dict__
 
 
@@ -189,6 +192,14 @@ def test_tolerant_equal_handler_equal_false_different_type_child() -> None:
 # --- handle: zero tolerance dispatches to equal ---
 
 
+def test_default_config_has_a_zero_atol(config: EqualityConfig) -> None:
+    assert config.atol == 0
+
+
+def test_default_config_has_a_zero_rtol(config: EqualityConfig) -> None:
+    assert config.rtol == 0
+
+
 @pytest.mark.parametrize(
     ("actual", "expected"),
     [
@@ -200,8 +211,6 @@ def test_tolerant_equal_handler_equal_false_different_type_child() -> None:
 def test_tolerant_equal_handler_handle_true_uses_equal(
     actual: SupportsTolerantEqual, expected: Any, config: EqualityConfig
 ) -> None:
-    assert config.atol == 0
-    assert config.rtol == 0
     assert TolerantEqualHandler().handle(actual, expected, config)
 
 
@@ -222,8 +231,6 @@ def test_tolerant_equal_handler_handle_true_uses_equal(
 def test_tolerant_equal_handler_handle_false_uses_equal(
     actual: Any, expected: Any, config: EqualityConfig
 ) -> None:
-    assert config.atol == 0
-    assert config.rtol == 0
     assert not TolerantEqualHandler().handle(actual, expected, config)
 
 
@@ -267,8 +274,6 @@ def test_tolerant_equal_handler_handle_equal_nan_uses_equal(
     config: EqualityConfig, equal_nan: bool
 ) -> None:
     config.equal_nan = equal_nan
-    assert config.atol == 0
-    assert config.rtol == 0
     assert (
         TolerantEqualHandler().handle(MyFloat(float("nan")), MyFloat(float("nan")), config)
         == equal_nan
@@ -319,15 +324,23 @@ def test_tolerant_equal_handler_handle_dispatches_to_equal_when_tolerances_zero(
 # --- handle: logging ---
 
 
-def test_tolerant_equal_handler_handle_false_show_difference(
+def test_tolerant_equal_handler_handle_false_show_difference(config: EqualityConfig) -> None:
+    config.show_difference = True
+    assert not TolerantEqualHandler().handle(actual=MyFloat(42), expected=MyFloat(1), config=config)
+
+
+def test_tolerant_equal_handler_handle_false_show_difference_logs(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     with caplog.at_level(logging.INFO):
-        assert not TolerantEqualHandler().handle(
-            actual=MyFloat(42), expected=MyFloat(1), config=config
-        )
-        assert caplog.messages[-1].startswith("objects are different:")
+        TolerantEqualHandler().handle(actual=MyFloat(42), expected=MyFloat(1), config=config)
+    assert caplog.messages[-1].startswith("objects are different:")
+
+
+def test_tolerant_equal_handler_handle_true_show_difference(config: EqualityConfig) -> None:
+    config.show_difference = True
+    assert TolerantEqualHandler().handle(actual=MyFloat(42), expected=MyFloat(42), config=config)
 
 
 def test_tolerant_equal_handler_handle_no_log_when_equal(
@@ -335,10 +348,15 @@ def test_tolerant_equal_handler_handle_no_log_when_equal(
 ) -> None:
     config.show_difference = True
     with caplog.at_level(logging.INFO):
-        assert TolerantEqualHandler().handle(
-            actual=MyFloat(42), expected=MyFloat(42), config=config
-        )
+        TolerantEqualHandler().handle(actual=MyFloat(42), expected=MyFloat(42), config=config)
     assert not caplog.messages
+
+
+def test_tolerant_equal_handler_handle_false_when_show_difference_false(
+    config: EqualityConfig,
+) -> None:
+    config.show_difference = False
+    assert not TolerantEqualHandler().handle(actual=MyFloat(42), expected=MyFloat(1), config=config)
 
 
 def test_tolerant_equal_handler_handle_no_log_when_show_difference_false(
@@ -346,9 +364,7 @@ def test_tolerant_equal_handler_handle_no_log_when_show_difference_false(
 ) -> None:
     config.show_difference = False
     with caplog.at_level(logging.INFO):
-        assert not TolerantEqualHandler().handle(
-            actual=MyFloat(42), expected=MyFloat(1), config=config
-        )
+        TolerantEqualHandler().handle(actual=MyFloat(42), expected=MyFloat(1), config=config)
     assert not caplog.messages
 
 

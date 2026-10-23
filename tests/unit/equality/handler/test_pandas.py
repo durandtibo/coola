@@ -141,73 +141,151 @@ def test_pandas_dataframe_equal_handler_handle_true(
     actual: pd.DataFrame,
     expected: pd.DataFrame,
     config: EqualityConfig,
+) -> None:
+    handler = PandasDataFrameEqualHandler()
+    assert handler.handle(actual, expected, config)
+
+
+@pandas_available
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [
+        (pd.DataFrame({}), pd.DataFrame({})),
+        (pd.DataFrame({"col": [1, 2, 3]}), pd.DataFrame({"col": [1, 2, 3]})),
+        (
+            pd.DataFrame(
+                {
+                    "col1": [1, 2, 3, 4, 5],
+                    "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+                    "col3": ["a", "b", "c", "d", "e"],
+                }
+            ),
+            pd.DataFrame(
+                {
+                    "col1": [1, 2, 3, 4, 5],
+                    "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+                    "col3": ["a", "b", "c", "d", "e"],
+                }
+            ),
+        ),
+    ],
+)
+def test_pandas_dataframe_equal_handler_handle_true_does_not_log(
+    actual: pd.DataFrame,
+    expected: pd.DataFrame,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PandasDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert handler.handle(actual, expected, config)
+        handler.handle(actual, expected, config)
         assert not caplog.messages
 
 
 @pandas_available
 def test_pandas_dataframe_equal_handler_handle_true_show_difference(
     config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    handler = PandasDataFrameEqualHandler()
+    assert handler.handle(
+        pd.DataFrame({"col": [1, 2, 3]}), pd.DataFrame({"col": [1, 2, 3]}), config
+    )
+
+
+@pandas_available
+def test_pandas_dataframe_equal_handler_handle_true_show_difference_does_not_log(
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     handler = PandasDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert handler.handle(
-            pd.DataFrame({"col": [1, 2, 3]}), pd.DataFrame({"col": [1, 2, 3]}), config
-        )
+        handler.handle(pd.DataFrame({"col": [1, 2, 3]}), pd.DataFrame({"col": [1, 2, 3]}), config)
         assert not caplog.messages
 
 
 @pandas_available
 def test_pandas_dataframe_equal_handler_handle_false(
     config: EqualityConfig,
+) -> None:
+    handler = PandasDataFrameEqualHandler()
+    assert not handler.handle(pd.DataFrame({}), pd.DataFrame({"col": [1, 2, 3]}), config)
+
+
+@pandas_available
+def test_pandas_dataframe_equal_handler_handle_false_does_not_log(
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PandasDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(pd.DataFrame({}), pd.DataFrame({"col": [1, 2, 3]}), config)
+        handler.handle(pd.DataFrame({}), pd.DataFrame({"col": [1, 2, 3]}), config)
         assert not caplog.messages
 
 
 @pandas_available
 def test_pandas_dataframe_equal_handler_handle_false_different_column(
     config: EqualityConfig,
+) -> None:
+    handler = PandasDataFrameEqualHandler()
+    assert not handler.handle(
+        pd.DataFrame({"col1": [1, 2, 3]}), pd.DataFrame({"col2": [1, 2, 3]}), config
+    )
+
+
+@pandas_available
+def test_pandas_dataframe_equal_handler_handle_false_different_column_does_not_log(
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PandasDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
-            pd.DataFrame({"col1": [1, 2, 3]}), pd.DataFrame({"col2": [1, 2, 3]}), config
-        )
+        handler.handle(pd.DataFrame({"col1": [1, 2, 3]}), pd.DataFrame({"col2": [1, 2, 3]}), config)
         assert not caplog.messages
 
 
 @pandas_available
 def test_pandas_dataframe_equal_handler_handle_false_different_value(
     config: EqualityConfig,
+) -> None:
+    handler = PandasDataFrameEqualHandler()
+    assert not handler.handle(
+        pd.DataFrame({"col": [1, 2, 3]}), pd.DataFrame({"col": [1, 2, 4]}), config
+    )
+
+
+@pandas_available
+def test_pandas_dataframe_equal_handler_handle_false_different_value_does_not_log(
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PandasDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
-            pd.DataFrame({"col": [1, 2, 3]}), pd.DataFrame({"col": [1, 2, 4]}), config
-        )
+        handler.handle(pd.DataFrame({"col": [1, 2, 3]}), pd.DataFrame({"col": [1, 2, 4]}), config)
         assert not caplog.messages
 
 
 @pandas_available
 def test_pandas_dataframe_equal_handler_handle_false_different_dtype(
     config: EqualityConfig,
+) -> None:
+    handler = PandasDataFrameEqualHandler()
+    assert not handler.handle(
+        pd.DataFrame(data={"col": [1, 2, 3]}, dtype=float),
+        pd.DataFrame(data={"col": [1, 2, 3]}, dtype=int),
+        config,
+    )
+
+
+@pandas_available
+def test_pandas_dataframe_equal_handler_handle_false_different_dtype_does_not_log(
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PandasDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
+        handler.handle(
             pd.DataFrame(data={"col": [1, 2, 3]}, dtype=float),
             pd.DataFrame(data={"col": [1, 2, 3]}, dtype=int),
             config,
@@ -217,12 +295,25 @@ def test_pandas_dataframe_equal_handler_handle_false_different_dtype(
 
 @pandas_available
 def test_pandas_dataframe_equal_handler_handle_false_show_difference(
+    config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    handler = PandasDataFrameEqualHandler()
+    assert not handler.handle(
+        pd.DataFrame({"col": [1, 2, 3]}),
+        pd.DataFrame({"col": [1, 2, 4]}),
+        config=config,
+    )
+
+
+@pandas_available
+def test_pandas_dataframe_equal_handler_handle_false_show_difference_logs(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = PandasDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
+        handler.handle(
             pd.DataFrame({"col": [1, 2, 3]}),
             pd.DataFrame({"col": [1, 2, 4]}),
             config=config,
@@ -368,45 +459,92 @@ def test_pandas_series_equal_handler_handle_true(
     actual: pd.Series,
     expected: pd.Series,
     config: EqualityConfig,
+) -> None:
+    handler = PandasSeriesEqualHandler()
+    assert handler.handle(actual, expected, config)
+
+
+@pandas_available
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [
+        (pd.Series(data=[], dtype=object), pd.Series(data=[], dtype=object)),
+        (pd.Series(data=[1, 2, 3]), pd.Series(data=[1, 2, 3])),
+        (pd.Series(data=["a", "b", "c"]), pd.Series(data=["a", "b", "c"])),
+    ],
+)
+def test_pandas_series_equal_handler_handle_true_does_not_log(
+    actual: pd.Series,
+    expected: pd.Series,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PandasSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert handler.handle(actual, expected, config)
+        handler.handle(actual, expected, config)
         assert not caplog.messages
 
 
 @pandas_available
 def test_pandas_series_equal_handler_handle_true_show_difference(
     config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    handler = PandasSeriesEqualHandler()
+    assert handler.handle(pd.Series(data=[1, 2, 3]), pd.Series(data=[1, 2, 3]), config)
+
+
+@pandas_available
+def test_pandas_series_equal_handler_handle_true_show_difference_does_not_log(
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     handler = PandasSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert handler.handle(pd.Series(data=[1, 2, 3]), pd.Series(data=[1, 2, 3]), config)
+        handler.handle(pd.Series(data=[1, 2, 3]), pd.Series(data=[1, 2, 3]), config)
         assert not caplog.messages
 
 
 @pandas_available
 def test_pandas_series_equal_handler_handle_false_different_shape(
     config: EqualityConfig,
+) -> None:
+    handler = PandasSeriesEqualHandler()
+    assert not handler.handle(pd.Series(data=[1, 2, 3]), pd.Series(data=[1, 2, 3, 4]), config)
+
+
+@pandas_available
+def test_pandas_series_equal_handler_handle_false_different_shape_does_not_log(
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PandasSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(pd.Series(data=[1, 2, 3]), pd.Series(data=[1, 2, 3, 4]), config)
+        handler.handle(pd.Series(data=[1, 2, 3]), pd.Series(data=[1, 2, 3, 4]), config)
         assert not caplog.messages
 
 
 @pandas_available
 def test_pandas_series_equal_handler_handle_false_different_dtype(
     config: EqualityConfig,
+) -> None:
+    handler = PandasSeriesEqualHandler()
+    assert not handler.handle(
+        pd.Series(data=[1, 2, 3], dtype=int),
+        pd.Series(data=[1, 2, 3], dtype=float),
+        config,
+    )
+
+
+@pandas_available
+def test_pandas_series_equal_handler_handle_false_different_dtype_does_not_log(
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PandasSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
+        handler.handle(
             pd.Series(data=[1, 2, 3], dtype=int),
             pd.Series(data=[1, 2, 3], dtype=float),
             config,
@@ -417,22 +555,42 @@ def test_pandas_series_equal_handler_handle_false_different_dtype(
 @pandas_available
 def test_pandas_series_equal_handler_handle_false_different_value(
     config: EqualityConfig,
+) -> None:
+    handler = PandasSeriesEqualHandler()
+    assert not handler.handle(pd.Series(data=[1, 2, 3]), pd.Series(data=[1, 2, 4]), config)
+
+
+@pandas_available
+def test_pandas_series_equal_handler_handle_false_different_value_does_not_log(
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PandasSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(pd.Series(data=[1, 2, 3]), pd.Series(data=[1, 2, 4]), config)
+        handler.handle(pd.Series(data=[1, 2, 3]), pd.Series(data=[1, 2, 4]), config)
         assert not caplog.messages
 
 
 @pandas_available
 def test_pandas_series_equal_handler_handle_false_different_index(
     config: EqualityConfig,
+) -> None:
+    handler = PandasSeriesEqualHandler()
+    assert not handler.handle(
+        pd.Series(data=[1, 2, 3]),
+        pd.Series(data=[1, 2, 3], index=pd.Index([2, 3, 4])),
+        config,
+    )
+
+
+@pandas_available
+def test_pandas_series_equal_handler_handle_false_different_index_does_not_log(
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PandasSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
+        handler.handle(
             pd.Series(data=[1, 2, 3]),
             pd.Series(data=[1, 2, 3], index=pd.Index([2, 3, 4])),
             config,
@@ -441,13 +599,24 @@ def test_pandas_series_equal_handler_handle_false_different_index(
 
 
 @pandas_available
-def test_pandas_series_equal_handler_handle_false_show_difference(
+def test_pandas_series_equal_handler_handle_false_show_difference(config: EqualityConfig) -> None:
+    config.show_difference = True
+    handler = PandasSeriesEqualHandler()
+    assert not handler.handle(
+        actual=pd.Series(data=[1, 2, 3]),
+        expected=pd.Series(data=[1, 2, 3, 4]),
+        config=config,
+    )
+
+
+@pandas_available
+def test_pandas_series_equal_handler_handle_false_show_difference_logs(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = PandasSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
+        handler.handle(
             actual=pd.Series(data=[1, 2, 3]),
             expected=pd.Series(data=[1, 2, 3, 4]),
             config=config,
@@ -505,23 +674,36 @@ def test_pandas_series_equal_handle_set_next_handler_incorrect() -> None:
 
 
 @pandas_available
-def test_pandas_frame_and_series_equal_different_shape() -> None:
+def test_pandas_frame_equal_different_shape() -> None:
     config = EqualityConfig(equal_nan=True)
     assert not frame_equal(pd.DataFrame({"a": [1, 2]}), pd.DataFrame({"a": [1, 2, 3]}), config)
+
+
+@pandas_available
+def test_pandas_series_equal_different_shape() -> None:
+    config = EqualityConfig(equal_nan=True)
     assert not series_equal(pd.Series([1, 2]), pd.Series([1, 2, 3]), config)
 
 
 @pandas_available
 def test_pandas_index_equal_handler_handle() -> None:
     handler = PandasIndexEqualHandler()
-    config = EqualityConfig()
-    assert handler.handle(pd.Index([1, 2]), pd.Index([1, 2]), config)
-    assert not handler.handle(pd.Index([1, 2]), pd.Index([1, 3]), config)
+    assert handler.handle(pd.Index([1, 2]), pd.Index([1, 2]), EqualityConfig())
+
+
+@pandas_available
+def test_pandas_index_equal_handler_handle_false() -> None:
+    handler = PandasIndexEqualHandler()
+    assert not handler.handle(pd.Index([1, 2]), pd.Index([1, 3]), EqualityConfig())
 
 
 @pandas_available
 def test_pandas_extension_array_equal_handler_handle() -> None:
     handler = PandasExtensionArrayEqualHandler()
-    config = EqualityConfig()
-    assert handler.handle(pd.Categorical([1, 2]), pd.Categorical([1, 2]), config)
-    assert not handler.handle(pd.Categorical([1, 2]), pd.Categorical([1, 3]), config)
+    assert handler.handle(pd.Categorical([1, 2]), pd.Categorical([1, 2]), EqualityConfig())
+
+
+@pandas_available
+def test_pandas_extension_array_equal_handler_handle_false() -> None:
+    handler = PandasExtensionArrayEqualHandler()
+    assert not handler.handle(pd.Categorical([1, 2]), pd.Categorical([1, 3]), EqualityConfig())

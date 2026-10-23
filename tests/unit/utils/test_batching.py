@@ -66,16 +66,22 @@ def test_batchify_with_mixed_types() -> None:
     assert list(batchify([1, "a", None, 3.14], size=2)) == [(1, "a"), (None, 3.14)]
 
 
-def test_batchify_returns_iterator() -> None:
-    result = batchify([1, 2, 3], size=2)
-    assert hasattr(result, "__iter__")
-    assert hasattr(result, "__next__")
+def test_batchify_returns_an_iterable() -> None:
+    assert hasattr(batchify([1, 2, 3], size=2), "__iter__")
+
+
+def test_batchify_returns_an_iterator() -> None:
+    assert hasattr(batchify([1, 2, 3], size=2), "__next__")
 
 
 def test_batchify_is_lazy() -> None:
-
     it = batchify(infinite(), size=3)
     assert next(it) == (0, 1, 2)
+
+
+def test_batchify_is_lazy_second_batch() -> None:
+    it = batchify(infinite(), size=3)
+    next(it)
     assert next(it) == (3, 4, 5)
 
 

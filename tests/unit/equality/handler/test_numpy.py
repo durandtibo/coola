@@ -147,16 +147,23 @@ def test_numpy_array_equal_handler_handle_equal_nan_true(config: EqualityConfig)
 
 
 @numpy_available
-def test_numpy_array_equal_handler_handle_false_show_difference(
+def test_numpy_array_equal_handler_handle_false_show_difference(config: EqualityConfig) -> None:
+    config.show_difference = True
+    assert not NumpyArrayEqualHandler().handle(
+        actual=np.ones(shape=(2, 3)), expected=np.ones(shape=(3, 2)), config=config
+    )
+
+
+@numpy_available
+def test_numpy_array_equal_handler_handle_false_show_difference_logs(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
-    handler = NumpyArrayEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
+        NumpyArrayEqualHandler().handle(
             actual=np.ones(shape=(2, 3)), expected=np.ones(shape=(3, 2)), config=config
         )
-        assert caplog.messages[0].startswith("numpy.ndarrays are different:")
+    assert caplog.messages[0].startswith("numpy.ndarrays are different:")
 
 
 @numpy_available
@@ -312,6 +319,14 @@ def test_is_numeric_array_false(array: np.ndarray) -> None:
 def test_array_equal_equal_nan_non_numeric_dtype(dtype: str, config: EqualityConfig) -> None:
     config.equal_nan = True
     assert array_equal(np.array(["a", "b"], dtype=dtype), np.array(["a", "b"], dtype=dtype), config)
+
+
+@numpy_available
+@pytest.mark.parametrize("dtype", ["U3", "S3", "O"])
+def test_array_equal_equal_nan_non_numeric_dtype_different(
+    dtype: str, config: EqualityConfig
+) -> None:
+    config.equal_nan = True
     assert not array_equal(
         np.array(["a", "b"], dtype=dtype), np.array(["a", "c"], dtype=dtype), config
     )
@@ -332,20 +347,29 @@ def test_array_equal_object_dtype_equal_nan() -> None:
     array1 = np.array([float("nan")], dtype=object)
     array2 = np.array([float("nan")], dtype=object)
     assert array_equal(array1, array2, EqualityConfig(equal_nan=True))
+
+
+@numpy_available
+def test_array_equal_object_dtype_not_equal_nan() -> None:
+    array1 = np.array([float("nan")], dtype=object)
+    array2 = np.array([float("nan")], dtype=object)
     assert not array_equal(array1, array2, EqualityConfig(equal_nan=False))
+
+
+def _object_array(second: np.ndarray) -> np.ndarray:
+    array = np.empty(2, dtype=object)
+    array[0], array[1] = np.ones(2), second
+    return array
 
 
 @numpy_available
 def test_array_equal_object_dtype_nested_arrays() -> None:
-    array1 = np.empty(2, dtype=object)
-    array1[0], array1[1] = np.ones(2), np.zeros(3)
-    array2 = np.empty(2, dtype=object)
-    array2[0], array2[1] = np.ones(2), np.zeros(3)
-    array3 = np.empty(2, dtype=object)
-    array3[0], array3[1] = np.ones(2), np.ones(3)
-    config = EqualityConfig()
-    assert array_equal(array1, array2, config)
-    assert not array_equal(array1, array3, config)
+    assert array_equal(_object_array(np.zeros(3)), _object_array(np.zeros(3)), EqualityConfig())
+
+
+@numpy_available
+def test_array_equal_object_dtype_nested_arrays_different() -> None:
+    assert not array_equal(_object_array(np.zeros(3)), _object_array(np.ones(3)), EqualityConfig())
 
 
 @numpy_available

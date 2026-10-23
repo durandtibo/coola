@@ -31,13 +31,19 @@ def test_summarizer_registry_init_empty() -> None:
 
 
 def test_summarizer_registry_init_with_registry() -> None:
-    summarizer = SequenceSummarizer()
-    initial_registry: dict[type, BaseSummarizer[Any]] = {list: summarizer}
-    registry = SummarizerRegistry(initial_registry)
-
+    registry = SummarizerRegistry({list: SequenceSummarizer()})
     assert list in registry._state
+
+
+def test_summarizer_registry_init_with_registry_keeps_the_summarizer() -> None:
+    summarizer = SequenceSummarizer()
+    registry = SummarizerRegistry({list: summarizer})
     assert registry._state[list] is summarizer
-    # Verify it's a copy
+
+
+def test_summarizer_registry_init_with_registry_copies_the_registry() -> None:
+    initial_registry: dict[type, BaseSummarizer[Any]] = {list: SequenceSummarizer()}
+    registry = SummarizerRegistry(initial_registry)
     initial_registry[tuple] = SetSummarizer()
     assert tuple not in registry._state
 
@@ -50,11 +56,17 @@ def test_summarizer_registry_str() -> None:
     assert str(SummarizerRegistry()).startswith("SummarizerRegistry(")
 
 
-def test_summarizer_registry_register_new_type() -> None:
+def test_summarizer_registry_register_new_type_has_summarizer() -> None:
     registry = SummarizerRegistry()
     summarizer = SequenceSummarizer()
     registry.register(list, summarizer)
     assert registry.has_summarizer(list)
+
+
+def test_summarizer_registry_register_new_type_keeps_the_summarizer() -> None:
+    registry = SummarizerRegistry()
+    summarizer = SequenceSummarizer()
+    registry.register(list, summarizer)
     assert registry._state[list] is summarizer
 
 
@@ -78,7 +90,7 @@ def test_summarizer_registry_register_existing_type_with_exist_ok() -> None:
     assert registry._state[list] is summarizer2
 
 
-def test_summarizer_registry_register_many() -> None:
+def test_summarizer_registry_register_many_list() -> None:
     registry = SummarizerRegistry()
     registry.register_many(
         {
@@ -88,7 +100,29 @@ def test_summarizer_registry_register_many() -> None:
         }
     )
     assert registry.has_summarizer(list)
+
+
+def test_summarizer_registry_register_many_dict() -> None:
+    registry = SummarizerRegistry()
+    registry.register_many(
+        {
+            list: SequenceSummarizer(),
+            dict: MappingSummarizer(),
+            set: SetSummarizer(),
+        }
+    )
     assert registry.has_summarizer(dict)
+
+
+def test_summarizer_registry_register_many_set() -> None:
+    registry = SummarizerRegistry()
+    registry.register_many(
+        {
+            list: SequenceSummarizer(),
+            dict: MappingSummarizer(),
+            set: SetSummarizer(),
+        }
+    )
     assert registry.has_summarizer(set)
 
 
@@ -186,12 +220,19 @@ def test_summarizer_registry_summarize_empty_dict() -> None:
     assert SummarizerRegistry({dict: MappingSummarizer()}).summarize({}) == "<class 'dict'> {}"
 
 
-def test_summarizer_registry_registry_isolation() -> None:
+def test_summarizer_registry_registry_isolation_first_registry() -> None:
     summarizer1 = SequenceSummarizer()
     summarizer2 = MappingSummarizer()
 
     registry1 = SummarizerRegistry({list: summarizer1})
-    registry2 = SummarizerRegistry({list: summarizer2})
-
+    SummarizerRegistry({list: summarizer2})
     assert registry1._state[list] is summarizer1
+
+
+def test_summarizer_registry_registry_isolation_second_registry() -> None:
+    summarizer1 = SequenceSummarizer()
+    summarizer2 = MappingSummarizer()
+
+    SummarizerRegistry({list: summarizer1})
+    registry2 = SummarizerRegistry({list: summarizer2})
     assert registry2._state[list] is summarizer2

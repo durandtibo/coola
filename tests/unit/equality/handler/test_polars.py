@@ -148,73 +148,151 @@ def test_polars_dataframe_equal_handler_handle_true(
     actual: pl.DataFrame,
     expected: pl.DataFrame,
     config: EqualityConfig,
+) -> None:
+    handler = PolarsDataFrameEqualHandler()
+    assert handler.handle(actual, expected, config)
+
+
+@polars_available
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [
+        (pl.DataFrame({}), pl.DataFrame({})),
+        (pl.DataFrame({"col": [1, 2, 3]}), pl.DataFrame({"col": [1, 2, 3]})),
+        (
+            pl.DataFrame(
+                {
+                    "col1": [1, 2, 3, 4, 5],
+                    "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+                    "col3": ["a", "b", "c", "d", "e"],
+                }
+            ),
+            pl.DataFrame(
+                {
+                    "col1": [1, 2, 3, 4, 5],
+                    "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+                    "col3": ["a", "b", "c", "d", "e"],
+                }
+            ),
+        ),
+    ],
+)
+def test_polars_dataframe_equal_handler_handle_true_does_not_log(
+    actual: pl.DataFrame,
+    expected: pl.DataFrame,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert handler.handle(actual, expected, config)
+        handler.handle(actual, expected, config)
         assert not caplog.messages
 
 
 @polars_available
 def test_polars_dataframe_equal_handler_handle_true_show_difference(
     config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    handler = PolarsDataFrameEqualHandler()
+    assert handler.handle(
+        pl.DataFrame({"col": [1, 2, 3]}), pl.DataFrame({"col": [1, 2, 3]}), config
+    )
+
+
+@polars_available
+def test_polars_dataframe_equal_handler_handle_true_show_difference_does_not_log(
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     handler = PolarsDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert handler.handle(
-            pl.DataFrame({"col": [1, 2, 3]}), pl.DataFrame({"col": [1, 2, 3]}), config
-        )
+        handler.handle(pl.DataFrame({"col": [1, 2, 3]}), pl.DataFrame({"col": [1, 2, 3]}), config)
         assert not caplog.messages
 
 
 @polars_available
 def test_polars_dataframe_equal_handler_handle_false(
     config: EqualityConfig,
+) -> None:
+    handler = PolarsDataFrameEqualHandler()
+    assert not handler.handle(pl.DataFrame({}), pl.DataFrame({"col": [1, 2, 3]}), config)
+
+
+@polars_available
+def test_polars_dataframe_equal_handler_handle_false_does_not_log(
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(pl.DataFrame({}), pl.DataFrame({"col": [1, 2, 3]}), config)
+        handler.handle(pl.DataFrame({}), pl.DataFrame({"col": [1, 2, 3]}), config)
         assert not caplog.messages
 
 
 @polars_available
 def test_polars_dataframe_equal_handler_handle_false_different_column(
     config: EqualityConfig,
+) -> None:
+    handler = PolarsDataFrameEqualHandler()
+    assert not handler.handle(
+        pl.DataFrame({"col1": [1, 2, 3]}), pl.DataFrame({"col2": [1, 2, 3]}), config
+    )
+
+
+@polars_available
+def test_polars_dataframe_equal_handler_handle_false_different_column_does_not_log(
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
-            pl.DataFrame({"col1": [1, 2, 3]}), pl.DataFrame({"col2": [1, 2, 3]}), config
-        )
+        handler.handle(pl.DataFrame({"col1": [1, 2, 3]}), pl.DataFrame({"col2": [1, 2, 3]}), config)
         assert not caplog.messages
 
 
 @polars_available
 def test_polars_dataframe_equal_handler_handle_false_different_value(
     config: EqualityConfig,
+) -> None:
+    handler = PolarsDataFrameEqualHandler()
+    assert not handler.handle(
+        pl.DataFrame({"col": [1, 2, 3]}), pl.DataFrame({"col": [1, 2, 4]}), config
+    )
+
+
+@polars_available
+def test_polars_dataframe_equal_handler_handle_false_different_value_does_not_log(
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
-            pl.DataFrame({"col": [1, 2, 3]}), pl.DataFrame({"col": [1, 2, 4]}), config
-        )
+        handler.handle(pl.DataFrame({"col": [1, 2, 3]}), pl.DataFrame({"col": [1, 2, 4]}), config)
         assert not caplog.messages
 
 
 @polars_available
 def test_polars_dataframe_equal_handler_handle_false_different_dtype(
     config: EqualityConfig,
+) -> None:
+    handler = PolarsDataFrameEqualHandler()
+    assert not handler.handle(
+        pl.DataFrame(data={"col": [1, 2, 3]}),
+        pl.DataFrame(data={"col": [1.0, 2.0, 3.0]}),
+        config,
+    )
+
+
+@polars_available
+def test_polars_dataframe_equal_handler_handle_false_different_dtype_does_not_log(
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
+        handler.handle(
             pl.DataFrame(data={"col": [1, 2, 3]}),
             pl.DataFrame(data={"col": [1.0, 2.0, 3.0]}),
             config,
@@ -224,12 +302,25 @@ def test_polars_dataframe_equal_handler_handle_false_different_dtype(
 
 @polars_available
 def test_polars_dataframe_equal_handler_handle_false_show_difference(
+    config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    handler = PolarsDataFrameEqualHandler()
+    assert not handler.handle(
+        pl.DataFrame({"col": [1, 2, 3]}),
+        pl.DataFrame({"col": [1, 2, 4]}),
+        config=config,
+    )
+
+
+@polars_available
+def test_polars_dataframe_equal_handler_handle_false_show_difference_logs(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = PolarsDataFrameEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
+        handler.handle(
             pl.DataFrame({"col": [1, 2, 3]}),
             pl.DataFrame({"col": [1, 2, 4]}),
             config=config,
@@ -390,73 +481,151 @@ def test_polars_lazyframe_equal_handler_handle_true(
     actual: pl.LazyFrame,
     expected: pl.LazyFrame,
     config: EqualityConfig,
+) -> None:
+    handler = PolarsLazyFrameEqualHandler()
+    assert handler.handle(actual, expected, config)
+
+
+@polars_available
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [
+        (pl.LazyFrame({}), pl.LazyFrame({})),
+        (pl.LazyFrame({"col": [1, 2, 3]}), pl.LazyFrame({"col": [1, 2, 3]})),
+        (
+            pl.LazyFrame(
+                {
+                    "col1": [1, 2, 3, 4, 5],
+                    "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+                    "col3": ["a", "b", "c", "d", "e"],
+                }
+            ),
+            pl.LazyFrame(
+                {
+                    "col1": [1, 2, 3, 4, 5],
+                    "col2": [1.1, 2.2, 3.3, 4.4, 5.5],
+                    "col3": ["a", "b", "c", "d", "e"],
+                }
+            ),
+        ),
+    ],
+)
+def test_polars_lazyframe_equal_handler_handle_true_does_not_log(
+    actual: pl.LazyFrame,
+    expected: pl.LazyFrame,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsLazyFrameEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert handler.handle(actual, expected, config)
+        handler.handle(actual, expected, config)
         assert not caplog.messages
 
 
 @polars_available
 def test_polars_lazyframe_equal_handler_handle_true_show_difference(
     config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    handler = PolarsLazyFrameEqualHandler()
+    assert handler.handle(
+        pl.LazyFrame({"col": [1, 2, 3]}), pl.LazyFrame({"col": [1, 2, 3]}), config
+    )
+
+
+@polars_available
+def test_polars_lazyframe_equal_handler_handle_true_show_difference_does_not_log(
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     handler = PolarsLazyFrameEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert handler.handle(
-            pl.LazyFrame({"col": [1, 2, 3]}), pl.LazyFrame({"col": [1, 2, 3]}), config
-        )
+        handler.handle(pl.LazyFrame({"col": [1, 2, 3]}), pl.LazyFrame({"col": [1, 2, 3]}), config)
         assert not caplog.messages
 
 
 @polars_available
 def test_polars_lazyframe_equal_handler_handle_false(
     config: EqualityConfig,
+) -> None:
+    handler = PolarsLazyFrameEqualHandler()
+    assert not handler.handle(pl.LazyFrame({}), pl.LazyFrame({"col": [1, 2, 3]}), config)
+
+
+@polars_available
+def test_polars_lazyframe_equal_handler_handle_false_does_not_log(
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsLazyFrameEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(pl.LazyFrame({}), pl.LazyFrame({"col": [1, 2, 3]}), config)
+        handler.handle(pl.LazyFrame({}), pl.LazyFrame({"col": [1, 2, 3]}), config)
         assert not caplog.messages
 
 
 @polars_available
 def test_polars_lazyframe_equal_handler_handle_false_different_column(
     config: EqualityConfig,
+) -> None:
+    handler = PolarsLazyFrameEqualHandler()
+    assert not handler.handle(
+        pl.LazyFrame({"col1": [1, 2, 3]}), pl.LazyFrame({"col2": [1, 2, 3]}), config
+    )
+
+
+@polars_available
+def test_polars_lazyframe_equal_handler_handle_false_different_column_does_not_log(
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsLazyFrameEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
-            pl.LazyFrame({"col1": [1, 2, 3]}), pl.LazyFrame({"col2": [1, 2, 3]}), config
-        )
+        handler.handle(pl.LazyFrame({"col1": [1, 2, 3]}), pl.LazyFrame({"col2": [1, 2, 3]}), config)
         assert not caplog.messages
 
 
 @polars_available
 def test_polars_lazyframe_equal_handler_handle_false_different_value(
     config: EqualityConfig,
+) -> None:
+    handler = PolarsLazyFrameEqualHandler()
+    assert not handler.handle(
+        pl.LazyFrame({"col": [1, 2, 3]}), pl.LazyFrame({"col": [1, 2, 4]}), config
+    )
+
+
+@polars_available
+def test_polars_lazyframe_equal_handler_handle_false_different_value_does_not_log(
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsLazyFrameEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
-            pl.LazyFrame({"col": [1, 2, 3]}), pl.LazyFrame({"col": [1, 2, 4]}), config
-        )
+        handler.handle(pl.LazyFrame({"col": [1, 2, 3]}), pl.LazyFrame({"col": [1, 2, 4]}), config)
         assert not caplog.messages
 
 
 @polars_available
 def test_polars_lazyframe_equal_handler_handle_false_different_dtype(
     config: EqualityConfig,
+) -> None:
+    handler = PolarsLazyFrameEqualHandler()
+    assert not handler.handle(
+        pl.LazyFrame(data={"col": [1, 2, 3]}),
+        pl.LazyFrame(data={"col": [1.0, 2.0, 3.0]}),
+        config,
+    )
+
+
+@polars_available
+def test_polars_lazyframe_equal_handler_handle_false_different_dtype_does_not_log(
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsLazyFrameEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
+        handler.handle(
             pl.LazyFrame(data={"col": [1, 2, 3]}),
             pl.LazyFrame(data={"col": [1.0, 2.0, 3.0]}),
             config,
@@ -466,12 +635,25 @@ def test_polars_lazyframe_equal_handler_handle_false_different_dtype(
 
 @polars_available
 def test_polars_lazyframe_equal_handler_handle_false_show_difference(
+    config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    handler = PolarsLazyFrameEqualHandler()
+    assert not handler.handle(
+        pl.LazyFrame({"col": [1, 2, 3]}),
+        pl.LazyFrame({"col": [1, 2, 4]}),
+        config=config,
+    )
+
+
+@polars_available
+def test_polars_lazyframe_equal_handler_handle_false_show_difference_logs(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = PolarsLazyFrameEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
+        handler.handle(
             pl.LazyFrame({"col": [1, 2, 3]}),
             pl.LazyFrame({"col": [1, 2, 4]}),
             config=config,
@@ -617,45 +799,92 @@ def test_polars_series_equal_handler_handle_true(
     actual: pl.Series,
     expected: pl.Series,
     config: EqualityConfig,
+) -> None:
+    handler = PolarsSeriesEqualHandler()
+    assert handler.handle(actual, expected, config)
+
+
+@polars_available
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [
+        (pl.Series([]), pl.Series([])),
+        (pl.Series([1, 2, 3]), pl.Series([1, 2, 3])),
+        (pl.Series(["a", "b", "c"]), pl.Series(["a", "b", "c"])),
+    ],
+)
+def test_polars_series_equal_handler_handle_true_does_not_log(
+    actual: pl.Series,
+    expected: pl.Series,
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert handler.handle(actual, expected, config)
+        handler.handle(actual, expected, config)
         assert not caplog.messages
 
 
 @polars_available
 def test_polars_series_equal_handler_handle_true_show_difference(
     config: EqualityConfig,
+) -> None:
+    config.show_difference = True
+    handler = PolarsSeriesEqualHandler()
+    assert handler.handle(pl.Series([1, 2, 3]), pl.Series([1, 2, 3]), config)
+
+
+@polars_available
+def test_polars_series_equal_handler_handle_true_show_difference_does_not_log(
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config.show_difference = True
     handler = PolarsSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert handler.handle(pl.Series([1, 2, 3]), pl.Series([1, 2, 3]), config)
+        handler.handle(pl.Series([1, 2, 3]), pl.Series([1, 2, 3]), config)
         assert not caplog.messages
 
 
 @polars_available
 def test_polars_series_equal_handler_handle_false_different_shape(
     config: EqualityConfig,
+) -> None:
+    handler = PolarsSeriesEqualHandler()
+    assert not handler.handle(pl.Series([1, 2, 3]), pl.Series([1, 2, 3, 4]), config)
+
+
+@polars_available
+def test_polars_series_equal_handler_handle_false_different_shape_does_not_log(
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(pl.Series([1, 2, 3]), pl.Series([1, 2, 3, 4]), config)
+        handler.handle(pl.Series([1, 2, 3]), pl.Series([1, 2, 3, 4]), config)
         assert not caplog.messages
 
 
 @polars_available
 def test_polars_series_equal_handler_handle_false_different_dtype(
     config: EqualityConfig,
+) -> None:
+    handler = PolarsSeriesEqualHandler()
+    assert not handler.handle(
+        pl.Series([1, 2, 3]),
+        pl.Series([1.0, 2.0, 3.0]),
+        config,
+    )
+
+
+@polars_available
+def test_polars_series_equal_handler_handle_false_different_dtype_does_not_log(
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
+        handler.handle(
             pl.Series([1, 2, 3]),
             pl.Series([1.0, 2.0, 3.0]),
             config,
@@ -666,22 +895,41 @@ def test_polars_series_equal_handler_handle_false_different_dtype(
 @polars_available
 def test_polars_series_equal_handler_handle_false_different_value(
     config: EqualityConfig,
+) -> None:
+    handler = PolarsSeriesEqualHandler()
+    assert not handler.handle(pl.Series([1, 2, 3]), pl.Series([1, 2, 4]), config)
+
+
+@polars_available
+def test_polars_series_equal_handler_handle_false_different_value_does_not_log(
+    config: EqualityConfig,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     handler = PolarsSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(pl.Series([1, 2, 3]), pl.Series([1, 2, 4]), config)
+        handler.handle(pl.Series([1, 2, 3]), pl.Series([1, 2, 4]), config)
         assert not caplog.messages
 
 
 @polars_available
-def test_polars_series_equal_handler_handle_false_show_difference(
+def test_polars_series_equal_handler_handle_false_show_difference(config: EqualityConfig) -> None:
+    config.show_difference = True
+    handler = PolarsSeriesEqualHandler()
+    assert not handler.handle(
+        actual=pl.Series([1, 2, 3]),
+        expected=pl.Series([1, 2, 3, 4]),
+        config=config,
+    )
+
+
+@polars_available
+def test_polars_series_equal_handler_handle_false_show_difference_logs(
     config: EqualityConfig, caplog: pytest.LogCaptureFixture
 ) -> None:
     config.show_difference = True
     handler = PolarsSeriesEqualHandler()
     with caplog.at_level(logging.INFO):
-        assert not handler.handle(
+        handler.handle(
             actual=pl.Series([1, 2, 3]),
             expected=pl.Series([1, 2, 3, 4]),
             config=config,
@@ -839,20 +1087,42 @@ def test_assert_series_equal_old_naming() -> None:
 
 
 @polars_available
-def test_polars_frame_and_series_equal_different_shape() -> None:
+def test_polars_frame_equal_different_shape() -> None:
     config = EqualityConfig(equal_nan=True)
     assert not frame_equal(pl.DataFrame({"a": [1, 2]}), pl.DataFrame({"a": [1, 2, 3]}), config)
-    assert not series_equal(pl.Series([1, 2]), pl.Series([1, 2, 3]), config)
 
 
 @polars_available
-def test_polars_lazyframe_equal_handler_different_schema_does_not_collect() -> None:
+def test_polars_series_equal_different_shape() -> None:
+    config = EqualityConfig(equal_nan=True)
+    assert not series_equal(pl.Series([1, 2]), pl.Series([1, 2, 3]), config)
+
+
+def _make_lazyframes_with_different_schemas() -> tuple[Mock, Mock]:
     actual = Mock(spec=pl.LazyFrame)
     actual.collect_schema.return_value = pl.Schema({"a": pl.Int64})
     expected = Mock(spec=pl.LazyFrame)
     expected.collect_schema.return_value = pl.Schema({"a": pl.Float64})
+    return actual, expected
+
+
+@polars_available
+def test_polars_lazyframe_equal_handler_different_schema() -> None:
+    actual, expected = _make_lazyframes_with_different_schemas()
     assert not PolarsLazyFrameEqualHandler().handle(actual, expected, EqualityConfig())
+
+
+@polars_available
+def test_polars_lazyframe_equal_handler_different_schema_does_not_collect_actual() -> None:
+    actual, expected = _make_lazyframes_with_different_schemas()
+    PolarsLazyFrameEqualHandler().handle(actual, expected, EqualityConfig())
     actual.collect.assert_not_called()
+
+
+@polars_available
+def test_polars_lazyframe_equal_handler_different_schema_does_not_collect_expected() -> None:
+    actual, expected = _make_lazyframes_with_different_schemas()
+    PolarsLazyFrameEqualHandler().handle(actual, expected, EqualityConfig())
     expected.collect.assert_not_called()
 
 
@@ -879,40 +1149,55 @@ def test_series_equal_decimal(equal_nan: bool) -> None:
     assert series_equal(series, series.clone(), EqualityConfig(equal_nan=equal_nan))
 
 
+NESTED_NAN_SERIES = [
+    pytest.param(pl.Series([[1.0, float("nan")]]), id="list"),
+    pytest.param(pl.Series([[1.0, float("nan")]], dtype=pl.Array(pl.Float64, 2)), id="array"),
+    pytest.param(pl.Series([{"a": float("nan"), "b": 1}]), id="struct"),
+    pytest.param(pl.Series([{"a": [float("nan")]}]), id="struct of list"),
+    pytest.param(pl.Series([[[float("nan")]]]), id="list of list"),
+]
+
+
 @polars_available
-@pytest.mark.parametrize(
-    "series",
-    [
-        pytest.param(pl.Series([[1.0, float("nan")]]), id="list"),
-        pytest.param(pl.Series([[1.0, float("nan")]], dtype=pl.Array(pl.Float64, 2)), id="array"),
-        pytest.param(pl.Series([{"a": float("nan"), "b": 1}]), id="struct"),
-        pytest.param(pl.Series([{"a": [float("nan")]}]), id="struct of list"),
-        pytest.param(pl.Series([[[float("nan")]]]), id="list of list"),
-    ],
-)
+@pytest.mark.parametrize("series", NESTED_NAN_SERIES)
 def test_has_nan_nested_true(series: pl.Series) -> None:
     assert has_nan(series)
+
+
+@polars_available
+@pytest.mark.parametrize("series", NESTED_NAN_SERIES)
+def test_has_nan_nested_true_dataframe(series: pl.Series) -> None:
     assert has_nan(pl.DataFrame({"x": series}))
 
 
+NESTED_NO_NAN_SERIES = [
+    pytest.param(pl.Series([[1.0, 2.0]]), id="list"),
+    pytest.param(pl.Series([[], []], dtype=pl.List(pl.Float64)), id="empty lists"),
+    pytest.param(pl.Series([None, [1.0]]), id="null list"),
+    pytest.param(pl.Series([{"a": 1.0, "b": 1}]), id="struct"),
+    pytest.param(pl.Series([[1, 2]]), id="list of int"),
+]
+
+
 @polars_available
-@pytest.mark.parametrize(
-    "series",
-    [
-        pytest.param(pl.Series([[1.0, 2.0]]), id="list"),
-        pytest.param(pl.Series([[], []], dtype=pl.List(pl.Float64)), id="empty lists"),
-        pytest.param(pl.Series([None, [1.0]]), id="null list"),
-        pytest.param(pl.Series([{"a": 1.0, "b": 1}]), id="struct"),
-        pytest.param(pl.Series([[1, 2]]), id="list of int"),
-    ],
-)
+@pytest.mark.parametrize("series", NESTED_NO_NAN_SERIES)
 def test_has_nan_nested_false(series: pl.Series) -> None:
     assert not has_nan(series)
+
+
+@polars_available
+@pytest.mark.parametrize("series", NESTED_NO_NAN_SERIES)
+def test_has_nan_nested_false_dataframe(series: pl.Series) -> None:
     assert not has_nan(pl.DataFrame({"x": series}))
+
+
+@polars_available
+def test_series_equal_nested_nan_not_equal_nan() -> None:
+    series = pl.Series([[1.0, float("nan")]])
+    assert not series_equal(series, series.clone(), EqualityConfig(equal_nan=False))
 
 
 @polars_available
 def test_series_equal_nested_nan_equal_nan() -> None:
     series = pl.Series([[1.0, float("nan")]])
-    assert not series_equal(series, series.clone(), EqualityConfig(equal_nan=False))
     assert series_equal(series, series.clone(), EqualityConfig(equal_nan=True))

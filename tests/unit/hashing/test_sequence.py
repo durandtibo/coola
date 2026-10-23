@@ -94,6 +94,13 @@ def test_sequence_hasher_hash_parametrized(
 def test_sequence_hasher_hash_length(length: int, expected: str, registry: HasherRegistry) -> None:
     result = SequenceHasher().hash([1, 2, 3], registry=registry, length=length)
     assert result == expected
+
+
+@pytest.mark.parametrize("length", [16, 32, 64])
+def test_sequence_hasher_hash_length_length_is_respected(
+    length: int, registry: HasherRegistry
+) -> None:
+    result = SequenceHasher().hash([1, 2, 3], registry=registry, length=length)
     assert len(result) == length
 
 
@@ -167,28 +174,36 @@ def test_sequence_hasher_hash_unhashable_item_raises_when_explicitly_false(
         )
 
 
-def test_sequence_hasher_hash_ignore_unhashable_item_returns_str(
+def test_sequence_hasher_hash_ignore_unhashable_item_returns_str_warns(
     registry_without_fallback: HasherRegistry,
 ) -> None:
     with pytest.warns(UserWarning, match=r"No hasher registered"):
-        result = SequenceHasher().hash(
+        SequenceHasher().hash(
             [1, Unhashable(), 3], registry=registry_without_fallback, ignore_unhashable=True
         )
+
+
+@pytest.mark.filterwarnings("ignore::UserWarning")
+def test_sequence_hasher_hash_ignore_unhashable_item_returns_str(
+    registry_without_fallback: HasherRegistry,
+) -> None:
+    result = SequenceHasher().hash(
+        [1, Unhashable(), 3], registry=registry_without_fallback, ignore_unhashable=True
+    )
     assert isinstance(result, str)
 
 
+@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_sequence_hasher_hash_ignore_unhashable_is_deterministic(
     registry_without_fallback: HasherRegistry,
 ) -> None:
     hasher = SequenceHasher()
-    with pytest.warns(UserWarning, match=r"No hasher registered"):
-        first = hasher.hash(
-            [1, Unhashable(), 3], registry=registry_without_fallback, ignore_unhashable=True
-        )
-    with pytest.warns(UserWarning, match=r"No hasher registered"):
-        second = hasher.hash(
-            [1, Unhashable(), 3], registry=registry_without_fallback, ignore_unhashable=True
-        )
+    first = hasher.hash(
+        [1, Unhashable(), 3], registry=registry_without_fallback, ignore_unhashable=True
+    )
+    second = hasher.hash(
+        [1, Unhashable(), 3], registry=registry_without_fallback, ignore_unhashable=True
+    )
     assert first == second
 
 

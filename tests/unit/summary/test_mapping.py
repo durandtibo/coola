@@ -20,15 +20,23 @@ def registry() -> SummarizerRegistry:
 #######################################
 
 
-def test_mapping_summarizer_init_default() -> None:
+def test_mapping_summarizer_init_default_max_items() -> None:
     summarizer = MappingSummarizer()
     assert summarizer._max_items == 5
+
+
+def test_mapping_summarizer_init_default_num_spaces() -> None:
+    summarizer = MappingSummarizer()
     assert summarizer._num_spaces == 2
 
 
-def test_mapping_summarizer_init_custom() -> None:
+def test_mapping_summarizer_init_custom_max_items() -> None:
     summarizer = MappingSummarizer(max_items=10, num_spaces=4)
     assert summarizer._max_items == 10
+
+
+def test_mapping_summarizer_init_custom_num_spaces() -> None:
+    summarizer = MappingSummarizer(max_items=10, num_spaces=4)
     assert summarizer._num_spaces == 4
 
 
@@ -200,7 +208,7 @@ def test_mapping_summarizer_summarize_max_items_zero(registry: SummarizerRegistr
     assert result == "<class 'dict'> (length=3) ..."
 
 
-def test_mapping_summarizer_summarize_depth_limit_negative_max_items_is_capped(
+def test_mapping_summarizer_summarize_depth_limit_negative_max_items_is_capped_preview(
     registry: SummarizerRegistry,
 ) -> None:
     """Regression test for issue #27: max_items=-1 must not dump an
@@ -208,6 +216,13 @@ def test_mapping_summarizer_summarize_depth_limit_negative_max_items_is_capped(
     data = {f"key{i}": i for i in range(2_000)}
     result = MappingSummarizer(max_items=-1).summarize(data, registry, depth=1, max_depth=1)
     assert result == "{'key0': 0, 'key1': 1, 'key2': 2, 'key3': 3, 'key4': 4} ..."
+
+
+def test_mapping_summarizer_summarize_depth_limit_negative_max_items_is_capped_length(
+    registry: SummarizerRegistry,
+) -> None:
+    data = {f"key{i}": i for i in range(2_000)}
+    result = MappingSummarizer(max_items=-1).summarize(data, registry, depth=1, max_depth=1)
     assert len(result) < 1_000
 
 

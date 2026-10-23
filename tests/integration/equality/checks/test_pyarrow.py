@@ -40,32 +40,58 @@ def test_objects_are_equal_true(
     function: Callable,
     example: ExamplePair,
     show_difference: bool,
+) -> None:
+    assert function(example.actual, example.expected, show_difference=show_difference)
+
+
+@pyarrow_available
+@pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
+@pytest.mark.parametrize("example", PYARROW_EQUAL)
+@pytest.mark.parametrize("show_difference", [True, False])
+def test_objects_are_equal_true_does_not_log(
+    function: Callable,
+    example: ExamplePair,
+    show_difference: bool,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
-        assert function(example.actual, example.expected, show_difference=show_difference)
+        function(example.actual, example.expected, show_difference=show_difference)
         assert not caplog.messages
 
 
 @pyarrow_available
 @pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
 @pytest.mark.parametrize("example", PYARROW_NOT_EQUAL)
-def test_objects_are_equal_false(
+def test_objects_are_equal_false(function: Callable, example: ExamplePair) -> None:
+    assert not function(example.actual, example.expected)
+
+
+@pyarrow_available
+@pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
+@pytest.mark.parametrize("example", PYARROW_NOT_EQUAL)
+def test_objects_are_equal_false_does_not_log(
     function: Callable, example: ExamplePair, caplog: pytest.LogCaptureFixture
 ) -> None:
     with caplog.at_level(logging.INFO):
-        assert not function(example.actual, example.expected)
+        function(example.actual, example.expected)
         assert not caplog.messages
 
 
 @pyarrow_available
 @pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
 @pytest.mark.parametrize("example", PYARROW_NOT_EQUAL)
-def test_objects_are_equal_false_show_difference(
+def test_objects_are_equal_false_show_difference(function: Callable, example: ExamplePair) -> None:
+    assert not function(example.actual, example.expected, show_difference=True)
+
+
+@pyarrow_available
+@pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
+@pytest.mark.parametrize("example", PYARROW_NOT_EQUAL)
+def test_objects_are_equal_false_show_difference_logs(
     function: Callable, example: ExamplePair, caplog: pytest.LogCaptureFixture
 ) -> None:
     with caplog.at_level(logging.INFO):
-        assert not function(example.actual, example.expected, show_difference=True)
+        function(example.actual, example.expected, show_difference=True)
         assert caplog.messages[-1].startswith(example.expected_message)
 
 
