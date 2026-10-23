@@ -10,7 +10,7 @@ __all__ = [
     "register_transformers",
 ]
 
-from collections import deque
+from collections import UserString, deque
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any
 
@@ -171,6 +171,8 @@ def _register_default_transformers(registry: TransformerRegistry) -> None:
             object: default_transformer,
             # Strings should not be iterated character by character
             str: default_transformer,
+            # UserString is a Sequence of UserString: expanding it never ends
+            UserString: default_transformer,
             # Numeric types - no recursion needed
             int: default_transformer,
             float: default_transformer,

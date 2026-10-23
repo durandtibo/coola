@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections import defaultdict, deque
+from collections import UserString, defaultdict, deque
 from collections.abc import Generator, Mapping, Sequence
 
 import pytest
@@ -211,3 +211,7 @@ def test_recursive_apply_with_defaultdict() -> None:
     assert type(result) is defaultdict
     assert result.default_factory is list
     assert result == {"a": [2]}
+
+
+def test_recursive_apply_with_user_string() -> None:
+    assert recursive_apply([UserString("abc")], lambda x: x) == ["abc"]
