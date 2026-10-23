@@ -31,9 +31,9 @@ def _canonical_decimal(data: Decimal) -> str:
     precision of the current context, so it can merge different decimals
     and depends on the thread-local context.
     """
-    if not data.is_finite():
-        return str(data)
     sign, digits, exponent = data.as_tuple()
+    if not isinstance(exponent, int):  # 'F', 'n' or 'N': infinity or NaN
+        return str(data)
     coefficient = "".join(map(str, digits)).lstrip("0")  # no int(): the digits are not limited
     if not coefficient:  # ``Decimal('-0') == Decimal('0')``
         return "0"
