@@ -502,10 +502,9 @@ def test_expand_list_columns_separator(separator: str) -> None:
 
 
 @polars_available
-def test_flatten_frame_invalid_depth() -> None:
-    frame = pl.DataFrame({"id": [1]}, schema={"id": pl.Int64})
-    with pytest.raises(ValueError, match="depth"):
-        flatten_frame(frame, depth=0)
+def test_flatten_frame_depth_zero_is_a_no_op() -> None:
+    frame = pl.DataFrame({"s": [{"x": 1}]})
+    assert_frame_equal(flatten_frame(frame, depth=0), frame)
 
 
 @polars_available
@@ -795,6 +794,28 @@ def test_flatten_frame_struct_with_list_field_expanded() -> None:
 
 
 @polars_available
+def test_flatten_frame_two_lists_of_structs_with_different_lengths() -> None:
+    frame = pl.DataFrame(
+        {"a": [[{"x": 1}], [{"x": 2}, {"x": 3}]], "b": [[{"y": 1}, {"y": 2}], [{"y": 3}]]}
+    )
+    assert_frame_equal(
+        flatten_frame(frame),
+        pl.DataFrame(
+            {"a.x": [1, 1, 2, 3], "b.y": [1, 2, 3, 3]},
+            schema={"a.x": pl.Int64, "b.y": pl.Int64},
+        ),
+    )
+
+
+@polars_available
+def test_flatten_frame_two_lists_of_structs_with_same_lengths() -> None:
+    frame = pl.DataFrame({"a": [[{"x": 1}, {"x": 2}]], "b": [[{"y": 3}, {"y": 4}]]})
+    assert_frame_equal(
+        flatten_frame(frame),
+        pl.DataFrame({"a.x": [1, 2], "b.y": [3, 4]}, schema={"a.x": pl.Int64, "b.y": pl.Int64}),
+    )
+
+
 def test_expand_list_columns_existing_column_raises() -> None:
     frame = pl.DataFrame(
         {"l": [[1, 2], [3]], "l.0": [9, 9]},

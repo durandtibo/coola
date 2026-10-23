@@ -271,3 +271,9 @@ def test_get_default_registry_singleton_persists_modifications() -> None:
     registry2 = get_default_registry()
     assert registry1 is registry2
     assert registry2.has_manager("custom")
+
+
+def test_random_seed_uses_an_empty_registry() -> None:
+    state = random.getstate()
+    with random_seed(42, manager=RandomManagerRegistry()):
+        assert objects_are_equal(state, random.getstate())

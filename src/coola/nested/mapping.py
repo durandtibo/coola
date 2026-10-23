@@ -24,6 +24,7 @@ from coola.recursive import (
     SetTransformer,
     TransformerRegistry,
 )
+from coola.recursive.rebuild import rebuild_sequence
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
@@ -253,7 +254,8 @@ def add_prefix_suffix_to_keys(
         prefix: The prefix to prepend to the keys.
         suffix: The suffix to append to the keys.
         recursive: If ``True``, the prefix and suffix are also added
-            to the keys of every nested mapping. If ``False``, only
+            to the keys of every nested mapping, including the mappings
+            in the lists and the tuples. If ``False``, only
             the keys of the top-level mapping are renamed.
 
     Returns:
@@ -271,18 +273,39 @@ def add_prefix_suffix_to_keys(
 
         ```
     """
-    out: dict[Any, Any] = {}
-    for key, value in mapping.items():
-        new_key = f"{prefix}{key}{suffix}" if isinstance(key, str) else key
-        new_value = (
-            add_prefix_suffix_to_keys(
-                cast("Mapping[Any, Any]", value), prefix=prefix, suffix=suffix, recursive=True
-            )
-            if recursive and isinstance(value, Mapping)
-            else value
+    return {
+        (f"{prefix}{key}{suffix}" if isinstance(key, str) else key): (
+            _rename_nested_keys(value, prefix, suffix) if recursive else value
         )
-        out[new_key] = new_value
-    return out
+        for key, value in mapping.items()
+    }
+
+
+def _rename_nested_keys(data: Any, prefix: str, suffix: str) -> Any:
+    r"""Add a prefix and a suffix to the keys of the mappings in a value.
+
+    The mappings are found in the value itself and in the sequences
+    (``list``, ``tuple``, ...) it contains. Any other value is returned
+    as-is.
+
+    Args:
+        data: The value to process.
+        prefix: The prefix to prepend to the keys.
+        suffix: The suffix to append to the keys.
+
+    Returns:
+        The value with the renamed keys.
+    """
+    if isinstance(data, Mapping):
+        return add_prefix_suffix_to_keys(
+            cast("Mapping[Any, Any]", data), prefix=prefix, suffix=suffix, recursive=True
+        )
+    if isinstance(data, Sequence) and not isinstance(data, (str, bytes, bytearray)):
+        return rebuild_sequence(
+            data,
+            [_rename_nested_keys(item, prefix, suffix) for item in cast("Sequence[Any]", data)],
+        )
+    return data
 
 
 def get_first_value(data: Mapping[Any, T]) -> T:

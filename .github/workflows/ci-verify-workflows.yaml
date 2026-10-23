@@ -1,6 +1,7 @@
 # Workflow validation workflow.
 # Verifies GitHub Actions workflow files are valid and follow best practices.
-# Triggers on changes to workflow files to catch issues early.
+# Runs on every pull request and push to main (no path filter, so it can be a
+# required check).
 
 name: Verify Workflows
 

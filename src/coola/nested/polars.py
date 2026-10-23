@@ -13,7 +13,7 @@ __all__ = [
 from typing import TYPE_CHECKING, cast
 
 from coola.utils.imports import is_polars_available
-from coola.validation import validate_positive
+from coola.validation import validate_non_negative
 
 if TYPE_CHECKING or is_polars_available():
     import polars as pl
@@ -150,16 +150,35 @@ def unnest_one_level(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
     nested_struct_cols = [name for name, dtype in frame.schema.items() if is_nested_struct(dtype)]
     if nested_struct_cols:
         try:
-            frame = frame.explode(nested_struct_cols, empty_as_null=True)
-        except TypeError:
-            # empty_as_null is not available in older polars versions
-            frame = frame.explode(nested_struct_cols)
+            frame = _explode(frame, nested_struct_cols)
+        except pl.exceptions.ShapeError:
+            # The lists of a row have different lengths, so they cannot be exploded in
+            # parallel: explode them one after the other (cross product of the lists).
+            for name in nested_struct_cols:
+                frame = _explode(frame, [name])
 
     struct_cols = [name for name, dtype in frame.schema.items() if isinstance(dtype, pl.Struct)]
     if not struct_cols:
         return frame
 
     return unnest_with_separator(frame, struct_cols, separator)
+
+
+def _explode(frame: pl.DataFrame, columns: list[str]) -> pl.DataFrame:
+    r"""Explode the given columns, keeping the empty lists as null.
+
+    Args:
+        frame: The DataFrame to explode.
+        columns: The names of the list columns to explode.
+
+    Returns:
+        The exploded DataFrame.
+    """
+    try:
+        return frame.explode(columns, empty_as_null=True)
+    except TypeError:
+        # empty_as_null is not available in older polars versions
+        return frame.explode(columns)
 
 
 def flatten_frame(
@@ -174,6 +193,9 @@ def flatten_frame(
     Non-nested columns are passed through unchanged. Struct columns are expanded level by level up
     to ``depth`` levels. Columns that are lists or arrays of structs are
     automatically exploded to expose their inner structs before unnesting.
+    Several such columns are exploded together if their lists have the same
+    length in every row, otherwise one after the other, which gives one row
+    for each combination of their elements.
     If ``expand_lists`` is enabled, remaining ``List`` and ``Array`` columns
     are expanded into one column per index position following the
     ``<col><separator><index>`` pattern, filled with ``None`` where the list
@@ -186,6 +208,7 @@ def flatten_frame(
             ``<parent><separator><field>`` pattern. Defaults to ``"."``.
         depth: Maximum number of struct nesting levels to expand. ``None``
             (default) expands all levels until no struct columns remain.
+            ``0`` expands no struct column.
         expand_lists: If ``True``, ``List`` and ``Array`` columns are expanded
             into one column per index position. If ``False`` (default), list
             and array columns are left as-is.
@@ -196,7 +219,7 @@ def flatten_frame(
         positional columns.
 
     Raises:
-        ValueError: If ``depth`` is not a positive integer or ``None``.
+        ValueError: If ``depth`` is negative.
 
     Example:
         ```pycon
@@ -246,7 +269,7 @@ def flatten_frame(
         ```
     """
     if depth is not None:
-        validate_positive(depth, name="depth")
+        validate_non_negative(depth, name="depth")
 
     current_depth = 0
     while depth is None or current_depth < depth:

@@ -577,6 +577,22 @@ def test_torch_tensor_equality_tester_objects_are_equal_false_show_difference(
 
 
 @torch_available
+def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_meta(
+    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+) -> None:
+    # The meta device exists without a GPU, so the check of the devices always runs.
+    config.show_difference = True
+    tester = TorchTensorEqualityTester()
+    with caplog.at_level(logging.INFO):
+        assert not tester.objects_are_equal(
+            torch.ones(2, 3, device=torch.device("cpu")),
+            torch.zeros(2, 3, device=torch.device("meta")),
+            config,
+        )
+        assert caplog.messages[0].startswith("torch.Tensors have different devices:")
+
+
+@torch_available
 @torch_cuda_available
 def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_cuda(
     caplog: pytest.LogCaptureFixture, config: EqualityConfig
