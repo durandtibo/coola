@@ -234,3 +234,24 @@ def test_working_directory_error() -> None:
         raise RuntimeError(msg)
 
     assert Path.cwd() == cwd_before
+
+
+def test_find_root_package_parent_missing_file(tmp_path: Path) -> None:
+    pkg = tmp_path / "pkg"
+    pkg.mkdir()
+    (pkg / "__init__.py").touch()
+    assert find_root_package_parent(pkg / "missing.py") == tmp_path
+
+
+def test_sanitize_path_file_uri_with_host_raises() -> None:
+    with pytest.raises(ValueError, match="host is not supported"):
+        sanitize_path("file://server/share/x")
+
+
+def test_sanitize_path_file_uri_with_localhost() -> None:
+    assert sanitize_path("file://localhost/my/path") == Path("/my/path")
+
+
+def test_sanitize_path_unknown_user_raises() -> None:
+    with pytest.raises(ValueError, match="home directory"):
+        sanitize_path("~coola_unknown_user_xyz/data")
