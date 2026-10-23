@@ -14,6 +14,7 @@ from coola.utils.introspection import is_same_type
 from coola.utils.path import to_path
 
 if TYPE_CHECKING:
+    import os
     from pathlib import Path
 
 if TYPE_CHECKING or is_torch_available():  # pragma: no cover
@@ -67,7 +68,7 @@ class TorchLoader(InlineDisplayMixin, BaseLoader[T]):
     def _load_kwargs(self) -> dict[str, Any]:
         return {"weights_only": True, **self._kwargs}
 
-    def load(self, path: Path | str) -> T:
+    def load(self, path: str | os.PathLike[str]) -> T:
         path = to_path(path)
         return torch.load(path, **self._load_kwargs())
 
@@ -110,11 +111,11 @@ class TorchSaver(InlineDisplayMixin, BaseFileSaver[T]):
         torch.save(to_save, path, **self._kwargs)
 
 
-def load_torch(path: Path | str, **kwargs: Any) -> Any:
+def load_torch(path: str | os.PathLike[str], **kwargs: Any) -> Any:
     r"""Load the data from a given PyTorch file.
 
     Args:
-        path: The path to the PyTorch file. A ``str`` is converted to a ``Path``.
+        path: The path to the PyTorch file. A ``str`` or any path-like object is converted to a ``Path``.
         **kwargs: Additional arguments passed to ``torch.load``.
 
     Returns:
@@ -145,13 +146,18 @@ def load_torch(path: Path | str, **kwargs: Any) -> Any:
 
 
 def save_torch(
-    to_save: Any, path: Path | str, *, exist_ok: bool = False, fsync: bool = False, **kwargs: Any
+    to_save: Any,
+    path: str | os.PathLike[str],
+    *,
+    exist_ok: bool = False,
+    fsync: bool = False,
+    **kwargs: Any,
 ) -> None:
     r"""Save the given data in a PyTorch file.
 
     Args:
         to_save: The data to write in a PyTorch file.
-        path: The path where to write the PyTorch file. A ``str`` is converted to a ``Path``.
+        path: The path where to write the PyTorch file. A ``str`` or any path-like object is converted to a ``Path``.
         exist_ok: If ``exist_ok`` is ``False`` (the default),
             ``FileExistsError`` is raised if the target file
             already exists. If ``exist_ok`` is ``True``,
