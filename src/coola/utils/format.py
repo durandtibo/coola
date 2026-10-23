@@ -441,6 +441,11 @@ def str_human_byte_size(size: int, unit: str | None = None) -> str:
     validate_non_negative(size, name="Size")
     if unit is None:  # Find the best unit.
         unit = find_best_byte_unit(size)
+        # Pick the unit after rounding: 1048575 B is 1,024.00 KB, i.e. 1.00 MB.
+        units = list(BYTE_UNITS)
+        index = units.index(unit)
+        if index + 1 < len(units) and round(size / BYTE_UNITS[unit], 2) >= 1024:
+            unit = units[index + 1]
     if unit not in BYTE_UNITS:
         msg = f"Incorrect unit '{unit}'. The available units are {list(BYTE_UNITS.keys())}"
         raise ValueError(msg)

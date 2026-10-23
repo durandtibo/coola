@@ -567,3 +567,11 @@ def test_str_time_human_invalid(seconds: float) -> None:
 def test_str_indent_skips_empty_lines() -> None:
     assert str_indent("a\nb\n", 2) == "a\n  b\n"
     assert str_indent("a\n\nb", 2) == "a\n\n  b"
+
+
+def test_str_human_byte_size_rounds_up_to_the_next_unit() -> None:
+    assert str_human_byte_size(1048575) == "1.00 MB"
+
+
+def test_str_human_byte_size_largest_unit_is_not_promoted() -> None:
+    assert str_human_byte_size(1024**4 * 2000) == "2,000.00 TB"
