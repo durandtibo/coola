@@ -133,7 +133,9 @@ def package_available(name: str) -> bool:
 
         ```
     """
-    with suppress(ModuleNotFoundError):
+    # ``find_spec`` raises ``ValueError`` if the module is in ``sys.modules`` with
+    # no ``__spec__``, and ``ImportError`` if a parent package cannot be imported.
+    with suppress(ImportError, ValueError):
         return find_spec(name) is not None
     return False
 
