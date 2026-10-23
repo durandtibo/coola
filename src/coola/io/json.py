@@ -154,6 +154,16 @@ def save_json(
 ) -> None:
     r"""Save the given data in a JSON file.
 
+    The file is what ``json.dump`` writes, so the output follows the
+    Python ``json`` module and is not strict JSON by default:
+    ``NaN`` and infinite floats are written as the non-standard tokens
+    ``NaN`` and ``Infinity``, and the keys that are not strings (for
+    example ``int``) are written as strings, so they are strings after
+    ``load_json``. Pass ``allow_nan=False`` to raise an error for
+    ``NaN`` and infinite floats. The data is not converted: use
+    ``coola.nested.convert_to_jsonable`` first for the objects that
+    ``json`` does not support.
+
     Args:
         to_save: The data to write in a JSON file.
         path: The path where to write the JSON file.
