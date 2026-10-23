@@ -7,6 +7,7 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.handler import DataclassSameFieldsHandler, FalseHandler, TrueHandler
+from tests.unit.equality.utils import BadStr
 
 
 @dataclass
@@ -84,3 +85,24 @@ def test_dataclass_same_fields_handler_handle_show_difference_logs(
     with caplog.at_level(logging.INFO):
         handler.handle(Point(1.0, 2.0), Point(1.0, 3.0), config)
     assert caplog.messages[-1] == "objects have different y: 2.0 vs 3.0"
+
+
+@dataclass
+class Holder:
+    value: object
+
+
+def test_dataclass_same_fields_handler_handle_field_with_failing_str() -> None:
+    reports: list[str] = []
+    config = EqualityConfig(show_difference=True, reporter=lambda msg, _: reports.append(msg))
+    handler = DataclassSameFieldsHandler(next_handler=TrueHandler())
+    assert not handler.handle(Holder(BadStr(1)), Holder(BadStr(2)), config)
+
+
+def test_dataclass_same_fields_handler_handle_field_with_failing_str_message() -> None:
+    reports: list[str] = []
+    config = EqualityConfig(show_difference=True, reporter=lambda msg, _: reports.append(msg))
+    DataclassSameFieldsHandler(next_handler=TrueHandler()).handle(
+        Holder(BadStr(1)), Holder(BadStr(2)), config
+    )
+    assert reports[-1].startswith("objects have different value: <BadStr object at 0x")

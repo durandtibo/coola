@@ -159,7 +159,10 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
     def _lazy_names(self, key: type) -> Iterable[str]:
         # Only an object whose class (or a base class) comes from a library can need the
         # entries of this library, so the library is the first part of the module name.
-        return {getattr(base, "__module__", "").partition(".")[0] for base in key.__mro__}
+        return {
+            getattr(base, "__module__", "").partition(".")[0]
+            for base in getattr(key, "__mro__", ())
+        }
 
     def _validate_key(self, key: type) -> None:
         if not isinstance(key, type):
@@ -229,6 +232,7 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
             parent type in the MRO.
 
         Raises:
+            TypeError: If ``dtype`` is not a type.
             TypeNotRegisteredError: If no matching type is found in the registry, including
                 parent types in the MRO.
 
@@ -323,6 +327,7 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
             cache = self._cache
             if dtype in cache:
                 return cache[dtype]
+            self._validate_key(dtype)
             self._load_lazy_for(dtype)
             cache = self._cache  # Loading entries clears the cache
             value = self._resolve_uncached(dtype)

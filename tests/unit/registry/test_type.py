@@ -1053,3 +1053,56 @@ def test_type_registry_resolve_or_loads_the_group_of_the_type() -> None:
 def test_type_registry_resolve_no_match_raises() -> None:
     with pytest.raises(TypeNotRegisteredError, match="is not registered"):
         TypeRegistry[str]().resolve(int)
+
+
+def test_type_registry_register_lazy_contains_non_type_is_false() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    assert "abc" not in registry
+
+
+def test_type_registry_register_lazy_has_non_type_is_false() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    assert not registry.has(None)
+
+
+def test_type_registry_register_lazy_get_non_type_returns_default() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    assert registry.get("abc", "default") == "default"
+
+
+def test_type_registry_register_lazy_getitem_non_type_raises() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    with pytest.raises(KeyError):
+        registry["abc"]
+
+
+def test_type_registry_register_lazy_resolve_non_type_raises() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    with pytest.raises(TypeError, match="Expected a type as key"):
+        registry.resolve("abc")
+
+
+def test_type_registry_register_lazy_resolve_non_type_does_not_load_the_groups() -> None:
+    factory = Mock(return_value={Decimal: "decimal"})
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", factory)
+    with pytest.raises(TypeError, match="Expected a type as key"):
+        registry.resolve("abc")
+    factory.assert_not_called()
+
+
+def test_type_registry_register_lazy_unregister_non_type_raises() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    with pytest.raises(TypeNotRegisteredError, match="is not registered"):
+        registry.unregister("abc")
+
+
+def test_type_registry_resolve_or_non_type_raises() -> None:
+    with pytest.raises(TypeError, match="Expected a type as key"):
+        TypeRegistry[str]().resolve_or("abc")
