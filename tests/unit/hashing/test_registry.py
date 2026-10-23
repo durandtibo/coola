@@ -4,6 +4,7 @@ import contextlib
 from collections.abc import Sequence
 from enum import Enum
 from typing import Any
+from unittest.mock import patch
 
 import pytest
 
@@ -17,7 +18,7 @@ from coola.hashing import (
     StringHasher,
     get_default_registry,
 )
-from coola.registry import AlreadyRegisteredError, TypeNotRegisteredError
+from coola.registry import AlreadyRegisteredError, TypeNotRegisteredError, TypeRegistry
 from tests.helpers import nest
 from tests.unit.hashing.helpers import Unhashable
 
@@ -409,6 +410,14 @@ def is_marked(data_type: type) -> bool:
     return issubclass(data_type, Marked)
 
 
+class Other:
+    r"""A type matched by another fallback."""
+
+
+def is_other(data_type: type) -> bool:
+    return issubclass(data_type, Other)
+
+
 def test_hasher_registry_find_hasher_uses_the_fallback() -> None:
     hasher = StrHasher()
     registry = HasherRegistry({list: SequenceHasher()})
@@ -562,3 +571,99 @@ class MixedStr(str, Enum):  # noqa: UP042
 def test_hasher_registry_hash_enum_mixed_with_str_without_enum_hasher() -> None:
     registry = HasherRegistry({str: StrHasher()})
     assert registry.hash(MixedStr.A) == StrHasher().hash(MixedStr.A, registry)
+
+
+def test_hasher_registry_find_hasher_fallback_does_not_build_the_error_message() -> None:
+    registry = HasherRegistry()
+    registry.register_fallback(is_marked, StrHasher())
+    with patch.object(TypeRegistry, "_not_registered_msg") as msg:
+        registry.find_hasher(Marked)
+    msg.assert_not_called()
+
+
+def test_hasher_registry_unregister_fallback_removes_the_fallback() -> None:
+    registry = HasherRegistry()
+    registry.register_fallback(is_marked, StrHasher())
+    registry.unregister_fallback(is_marked)
+    with pytest.raises(TypeNotRegisteredError, match="is not registered"):
+        registry.find_hasher(Marked)
+
+
+def test_hasher_registry_unregister_fallback_keeps_the_other_fallbacks() -> None:
+    hasher = ReprHasher()
+    registry = HasherRegistry()
+    registry.register_fallback(is_marked, StrHasher())
+    registry.register_fallback(is_other, hasher)
+    registry.unregister_fallback(is_marked)
+    assert registry.find_hasher(Other) is hasher
+
+
+def test_hasher_registry_unregister_fallback_missing_raises() -> None:
+    with pytest.raises(KeyError, match="No fallback is registered"):
+        HasherRegistry().unregister_fallback(is_marked)
+
+
+def test_hasher_registry_clear_removes_the_hashers() -> None:
+    registry = HasherRegistry({list: SequenceHasher()})
+    registry.clear()
+    assert not registry.has_hasher(list)
+
+
+def test_hasher_registry_clear_removes_the_fallbacks() -> None:
+    registry = HasherRegistry()
+    registry.register_fallback(is_marked, StrHasher())
+    registry.clear()
+    with pytest.raises(TypeNotRegisteredError, match="is not registered"):
+        registry.find_hasher(Marked)
+
+
+def test_hasher_registry_equal_same_fallbacks() -> None:
+    hasher = StrHasher()
+    registry1 = HasherRegistry()
+    registry1.register_fallback(is_marked, hasher)
+    registry2 = HasherRegistry()
+    registry2.register_fallback(is_marked, hasher)
+    assert registry1.equal(registry2)
+
+
+def test_hasher_registry_equal_different_number_of_fallbacks() -> None:
+    registry1 = HasherRegistry()
+    registry1.register_fallback(is_marked, StrHasher())
+    assert not registry1.equal(HasherRegistry())
+
+
+def test_hasher_registry_equal_different_predicates() -> None:
+    hasher = StrHasher()
+    registry1 = HasherRegistry()
+    registry1.register_fallback(is_marked, hasher)
+    registry2 = HasherRegistry()
+    registry2.register_fallback(is_other, hasher)
+    assert not registry1.equal(registry2)
+
+
+def test_hasher_registry_equal_different_fallback_hashers() -> None:
+    registry1 = HasherRegistry()
+    registry1.register_fallback(is_marked, StrHasher())
+    registry2 = HasherRegistry()
+    registry2.register_fallback(is_marked, ReprHasher())
+    assert not registry1.equal(registry2)
+
+
+def test_hasher_registry_equal_different_order_of_fallbacks() -> None:
+    hasher = StrHasher()
+    registry1 = HasherRegistry()
+    registry1.register_fallback(is_marked, hasher)
+    registry1.register_fallback(is_other, hasher)
+    registry2 = HasherRegistry()
+    registry2.register_fallback(is_other, hasher)
+    registry2.register_fallback(is_marked, hasher)
+    assert not registry1.equal(registry2)
+
+
+def test_hasher_registry_equal_different_hashers() -> None:
+    hasher = StrHasher()
+    assert not HasherRegistry({list: hasher}).equal(HasherRegistry({tuple: hasher}))
+
+
+def test_hasher_registry_equal_different_type() -> None:
+    assert not HasherRegistry().equal(object())

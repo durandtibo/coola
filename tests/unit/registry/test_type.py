@@ -7,7 +7,7 @@ import weakref
 from decimal import Decimal
 from fractions import Fraction
 from typing import TYPE_CHECKING, cast
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -987,3 +987,69 @@ def test_type_registry_register_lazy_validates_the_loaded_keys() -> None:
     registry.register_lazy("decimal", lambda: {"Decimal": "decimal"})
     with pytest.raises(TypeError, match="Expected a type as key"):
         registry.resolve(Decimal)
+
+
+###################################
+#     Tests for resolve_or        #
+###################################
+
+
+def test_type_registry_resolve_or_direct_match() -> None:
+    registry = TypeRegistry[str]({int: "integer"})
+    assert registry.resolve_or(int) == "integer"
+
+
+def test_type_registry_resolve_or_parent_match() -> None:
+    registry = TypeRegistry[str]({int: "integer"})
+    assert registry.resolve_or(bool) == "integer"
+
+
+def test_type_registry_resolve_or_no_match_returns_none() -> None:
+    registry = TypeRegistry[str]({int: "integer"})
+    assert registry.resolve_or(str) is None
+
+
+def test_type_registry_resolve_or_no_match_returns_the_default() -> None:
+    registry = TypeRegistry[str]({int: "integer"})
+    assert registry.resolve_or(str, "default") == "default"
+
+
+def test_type_registry_resolve_or_empty_registry() -> None:
+    assert TypeRegistry[str]().resolve_or(int, "default") == "default"
+
+
+def test_type_registry_resolve_or_does_not_build_the_error_message() -> None:
+    registry = TypeRegistry[str]()
+    with patch.object(TypeRegistry, "_not_registered_msg") as msg:
+        registry.resolve_or(int)
+    msg.assert_not_called()
+
+
+def test_type_registry_resolve_or_caches_a_match() -> None:
+    registry = TypeRegistry[str]({int: "integer"})
+    registry.resolve_or(bool)
+    assert registry._cache == {bool: "integer"}
+
+
+def test_type_registry_resolve_or_does_not_cache_a_miss() -> None:
+    registry = TypeRegistry[str]({int: "integer"})
+    registry.resolve_or(str)
+    assert registry._cache == {}
+
+
+def test_type_registry_resolve_or_registration_after_a_miss_is_used() -> None:
+    registry = TypeRegistry[str]()
+    registry.resolve_or(int)
+    registry.register(int, "integer")
+    assert registry.resolve_or(int) == "integer"
+
+
+def test_type_registry_resolve_or_loads_the_group_of_the_type() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    assert registry.resolve_or(Decimal) == "decimal"
+
+
+def test_type_registry_resolve_no_match_raises() -> None:
+    with pytest.raises(TypeNotRegisteredError, match="is not registered"):
+        TypeRegistry[str]().resolve(int)
