@@ -41,6 +41,16 @@ def _numpy_scalar_to_builtin(data: Any) -> Any:
     return data
 
 
+def _int_repr(value: int) -> str:
+    """Return the decimal ``repr`` of an integer, or its hexadecimal form
+    when it exceeds the int-to-str conversion limit of the interpreter.
+    """
+    try:
+        return int.__repr__(value)
+    except ValueError:  # more digits than ``sys.get_int_max_str_digits()``
+        return f"0x{value:x}"
+
+
 def _builtin_repr(base: Any, data: Any) -> str:
     """Return the ``repr`` of ``data`` as the builtin type ``base``.
 
@@ -51,6 +61,8 @@ def _builtin_repr(base: Any, data: Any) -> str:
         return float.__repr__(float(data) + 0.0)
     if base is complex:
         return complex.__repr__(complex(float(data.real) + 0.0, float(data.imag) + 0.0))
+    if base is int:
+        return _int_repr(data)
     return base.__repr__(data)
 
 
