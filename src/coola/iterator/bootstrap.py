@@ -19,7 +19,10 @@ from typing import Protocol, TypeVar
 T = TypeVar("T")
 T_contra = TypeVar("T_contra", contravariant=True)
 
-# Scalar types are treated as leaves: they never need to be expanded further.
+# Scalar types are treated as leaves: they never need to be expanded further. The handlers
+# are resolved with the MRO, so ``object`` alone would be enough: the other types are
+# registered explicitly so that they appear in the registry (``has``) and document the
+# types that must never be expanded, notably ``str`` and ``bytes`` (they are ``Sequence``).
 # ``UserString`` is a ``Sequence`` of ``UserString``, so expanding it would never end.
 _SCALAR_TYPES = (object, str, bytes, int, float, complex, bool, UserString)
 # Collections (excluding mappings) are expanded into their elements. Iterators and
