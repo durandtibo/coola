@@ -829,11 +829,15 @@ def test_save_exist_ok_writes_the_target_of_a_symlink(tmp_path: Path) -> None:
     link.symlink_to(target)
     JsonSaver().save({"a": 1}, link, exist_ok=True)
     assert JsonLoader().load(target) == {"a": 1}
+
+
 def test_save_parent_is_a_file(tmp_path: Path) -> None:
     parent = tmp_path.joinpath("file")
     parent.write_text("abc")
     with pytest.raises(NotADirectoryError, match="is not a directory"):
         JsonSaver().save({"a": 1}, parent.joinpath("data.json"))
+
+
 def test_get_save_lock_same_lock_for_two_spellings_of_a_path(tmp_path: Path) -> None:
     lock = _get_save_lock(tmp_path.joinpath("data.txt"))
     assert _get_save_lock(tmp_path.joinpath("sub", "..", "data.txt")) is lock
