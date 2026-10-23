@@ -78,7 +78,8 @@ def _short_name(name: str) -> str:
 def _get_save_lock(path: Path) -> threading.Lock:
     r"""Get (creating if needed) the lock used to serialize ``save``
     calls targeting the given path."""
-    key = str(path)
+    # Resolved, so two spellings of one path (``a/../b``, a symlink) share the lock.
+    key = str(path.resolve())
     with _SAVE_LOCKS_GUARD:
         lock = _SAVE_LOCKS.get(key)
         if lock is None:

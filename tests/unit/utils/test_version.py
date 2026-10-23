@@ -6,7 +6,11 @@ from unittest.mock import patch
 import pytest
 
 from coola.testing.fixtures import packaging_available
-from coola.utils.imports import MissingPackageError, is_packaging_available
+from coola.utils.imports import (
+    MissingPackageError,
+    clear_availability_caches,
+    is_packaging_available,
+)
 from coola.utils.version import compare_version, get_package_version
 
 if is_packaging_available():
@@ -66,3 +70,18 @@ def test_get_package_version_missing_packaging() -> None:
         ),
     ):
         get_package_version("my_package")
+
+
+@packaging_available
+def test_get_package_version_invalid_version() -> None:
+    with patch("coola.utils.version.version", return_value="not-a-version"):
+        assert get_package_version("invalid_version_package") is None
+
+
+@packaging_available
+def test_get_package_version_cache_is_cleared() -> None:
+    with patch("coola.utils.version.version", return_value="1.0"):
+        assert get_package_version("cleared_package") == Version("1.0")
+    clear_availability_caches()
+    with patch("coola.utils.version.version", return_value="2.0"):
+        assert get_package_version("cleared_package") == Version("2.0")

@@ -93,7 +93,9 @@ def to_tensor(data: Sequence[int | float] | torch.Tensor | np.ndarray) -> torch.
         data: The data to convert to a tensor.
 
     Returns:
-        A tensor.
+        A tensor. A tensor is returned as is, and the tensor of a
+            NumPy array may share its memory with the array; a list is
+            copied.
 
     Raises:
         MissingPackageError: if ``torch`` is not installed.
