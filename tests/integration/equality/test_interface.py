@@ -29,3 +29,8 @@ class CustomList(list): ...
 def test_object_are_equal_custom_type() -> None:
     register_equality_testers({CustomList: SequenceEqualityTester()})
     assert objects_are_equal(CustomList([1, 2, 3]), CustomList([1, 2, 3]))
+
+
+def test_objects_are_equal_large_lists_that_differ_at_the_end_are_different() -> None:
+    first = list(range(100_000))
+    assert not objects_are_equal(first, [*first[:-1], -1])
