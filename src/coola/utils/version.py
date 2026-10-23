@@ -4,19 +4,18 @@ from __future__ import annotations
 
 __all__ = ["compare_version", "get_package_version"]
 
-from functools import lru_cache
 from importlib.metadata import PackageNotFoundError, version
 from typing import TYPE_CHECKING
 
-from coola.utils.imports import check_packaging, is_packaging_available
+from coola.utils.imports import availability_cache, check_packaging, is_packaging_available
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 if TYPE_CHECKING or is_packaging_available():
-    from packaging.version import Version
+    from packaging.version import InvalidVersion, Version
 else:  # pragma: no cover
-    from coola.utils.fallback.packaging import Version
+    from coola.utils.fallback.packaging import InvalidVersion, Version
 
 
 def compare_version(package: str, op: Callable[[Version, Version], bool], version: str) -> bool:
@@ -46,7 +45,7 @@ def compare_version(package: str, op: Callable[[Version, Version], bool], versio
     return op(pkg_version, Version(version))
 
 
-@lru_cache
+@availability_cache
 def get_package_version(package: str) -> Version | None:
     r"""Get the package version.
 
@@ -54,7 +53,10 @@ def get_package_version(package: str) -> Version | None:
         package: The package name.
 
     Returns:
-        The package version.
+        The package version, or ``None`` if the package is not
+            installed or if its version is not a valid PEP 440
+            version. The result is cached; use
+            ``clear_availability_caches`` to reset it.
 
     Example:
         ```pycon
@@ -67,5 +69,5 @@ def get_package_version(package: str) -> Version | None:
     check_packaging()
     try:
         return Version(version(package))
-    except PackageNotFoundError:
+    except (PackageNotFoundError, InvalidVersion):
         return None
