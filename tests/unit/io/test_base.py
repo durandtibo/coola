@@ -647,14 +647,14 @@ def test_is_saver_config_allowed_prefixes() -> None:
 def test_resolve_loader_allowed_prefixes() -> None:
     config = {OBJECT_TARGET: "coola.io.JsonLoader"}
     assert isinstance(resolve_loader(config, allowed_prefixes=["coola.io"]), JsonLoader)
-    with pytest.raises(ImportError, match="target object does not exist"):
+    with pytest.raises(ImportError, match="not allowed"):
         resolve_loader(config, allowed_prefixes=["os"])
 
 
 def test_resolve_saver_allowed_prefixes() -> None:
     config = {OBJECT_TARGET: "coola.io.JsonSaver"}
     assert isinstance(resolve_saver(config, allowed_prefixes=["coola.io"]), JsonSaver)
-    with pytest.raises(ImportError, match="target object does not exist"):
+    with pytest.raises(ImportError, match="not allowed"):
         resolve_saver(config, allowed_prefixes=["os"])
 
 
