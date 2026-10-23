@@ -11,6 +11,7 @@ __all__ = ["HasherRegistry"]
 
 import threading
 import warnings
+from enum import Enum
 from typing import TYPE_CHECKING, Any
 
 from coola.hashing.base import Hasher
@@ -187,6 +188,23 @@ class HasherRegistry(BaseTypeDispatchRegistry[Hasher[Any]]):
                     return hasher
             raise
 
+    def _find_enum_hasher(self, data_type: type) -> Hasher[Any] | None:
+        """Return the ``Enum`` hasher for an enum mixed with another
+        type, or ``None`` if the regular lookup should be used.
+
+        A member of ``class C(bytes, Enum)`` would otherwise resolve to
+        the hasher of ``bytes`` and hash as the plain value, like a
+        member of a different enum with the same value.
+        """
+        if not self.has(Enum):
+            return None
+        for base in data_type.__mro__:
+            if self.has(base):
+                # A hasher registered for the enum itself (or for ``Enum``)
+                # is the most specific one.
+                return None if issubclass(base, Enum) else self.find(Enum)
+        return None
+
     def hash(self, data: object, length: int = 64, ignore_unhashable: bool = False) -> str:
         r"""Hash the given data by recursively traversing its structure.
 
@@ -234,7 +252,9 @@ class HasherRegistry(BaseTypeDispatchRegistry[Hasher[Any]]):
             ```
         """
         try:
-            hasher = self.find_hasher(type(data))
+            hasher = self._find_enum_hasher(type(data)) if isinstance(data, Enum) else None
+            if hasher is None:
+                hasher = self.find_hasher(type(data))
         except KeyError as exc:
             if ignore_unhashable:
                 warnings.warn(
