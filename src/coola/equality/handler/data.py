@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any, Protocol
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.mixin import HandlerEqualityMixin
 from coola.equality.handler.utils import AttributeName, report_difference
+from coola.utils.safe import safe_str
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -63,8 +64,8 @@ class SameDataHandler(HandlerEqualityMixin, BaseEqualityHandler):
                     logger,
                     config,
                     "objects have different data: %s vs %s",
-                    actual.data,
-                    expected.data,
+                    safe_str(actual.data),
+                    safe_str(expected.data),
                     extra={"coola_path": (AttributeName("data"),)},
                 )
             return False
