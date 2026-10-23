@@ -85,6 +85,7 @@ the PR number is given. Items not listed are **open**.
 | 6.19 | PR open (#2124)         | Shared length validation, checked before hashing; `memoryview` supported.                                                                    |
 | 6.20 | PR open (#2125)         | `get_default_generator` removed from both `__all__`.                                                                                         |
 | 6.21 | Partly, PR open (#2126) | Prefix and generator result validated, `chars` tidied. Open: Windows/Posix path hash, duplicate registry export, `register_hashers` doctest. |
+| 7.4 | PR open (#2147) | Mode copied from the replaced file; a symlink is followed. |
 | 7.19 | PR open (#2146) | `NotADirectoryError` when the parent is a file. |
 | 7.17 | PR open (#2144) | Unit chosen after rounding. |
 | 7.15 | Fixed (options) (#2150) | Options `level` and `all_threads` added; defaults unchanged. |

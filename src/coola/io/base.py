@@ -17,6 +17,7 @@ import contextlib
 import hashlib
 import logging
 import os
+import shutil
 import threading
 import time
 import uuid
@@ -505,6 +506,12 @@ class BaseFileSaver(BaseSaver[T]):
         if path.is_file() and not exist_ok:
             msg = f"path ({path}) already exists. Use `exist_ok=True` to overwrite the file"
             raise FileExistsError(msg)
+<<<<<<< HEAD
+        if exist_ok and path.is_symlink():
+            # Overwrite the file that the link points to, not the link itself.
+            path = path.resolve()
+        path.parent.mkdir(exist_ok=True, parents=True)
+=======
         try:
             path.parent.mkdir(exist_ok=True, parents=True)
         except FileExistsError as error:
@@ -512,6 +519,7 @@ class BaseFileSaver(BaseSaver[T]):
                 raise
             msg = f"the parent of path ({path}) exists and is not a directory"
             raise NotADirectoryError(msg) from error
+>>>>>>> origin/main
 
         # Serialize concurrent ``save`` calls targeting the same path, both
         # in-process and across processes (see the note in the docstring):
@@ -529,6 +537,10 @@ class BaseFileSaver(BaseSaver[T]):
                 if fsync:
                     _fsync_file(tmp_path)
                 if exist_ok:
+                    if path.is_file():
+                        # Keep the permissions of the file that is overwritten.
+                        with contextlib.suppress(OSError):
+                            shutil.copymode(path, tmp_path)
                     tmp_path.replace(path)
                 else:
                     # ``os.link`` + unlink is used instead of a plain rename so the
