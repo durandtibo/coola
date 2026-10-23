@@ -22,6 +22,7 @@ import time
 import uuid
 import weakref
 from abc import ABC, abstractmethod
+from pathlib import PurePath
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
 from coola.factory import is_object_config, resolve_object
@@ -68,7 +69,7 @@ def _short_name(name: str) -> str:
     if len(name.encode()) <= _MAX_DERIVED_NAME_BYTES:
         return name
     digest = hashlib.sha256(name.encode()).hexdigest()[:16]
-    suffix = os.path.splitext(name)[1]
+    suffix = PurePath(name).suffix
     if len(suffix.encode()) > 16:
         suffix = ""
     return f"{digest}{suffix}"
