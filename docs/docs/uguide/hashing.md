@@ -117,11 +117,10 @@ The default registry hashes **only** the following types (and their subclasses):
 | objects with a `hash()` method               | The result of their `hash()` (see `SupportsHash`), tagged with the class name                     |
 | `pathlib.PurePath`, `pathlib.Path`           | The POSIX form of the path as written, without touching the filesystem                            |
 | pydantic `BaseModel` (if pydantic installed) | The qualified class name and the fields, hashed through the registry                              |
-
 | `numpy.ndarray`, `torch.Tensor`, `jax.Array` | The dtype, the shape and the values (not the memory layout, the device or `requires_grad`); `-0.0` hashes like `0.0` |
-| `pandas`, `polars` data frames and series | The names, the dtypes, the index (pandas) and the values |
-| `pyarrow` arrays and tables | The names, the types and the values; the chunk layout is ignored |
-| `xarray` `DataArray`, `Dataset`, `Variable` | The dimensions, the values, the coordinates, the attributes and the name |
+| `pandas`, `polars` data frames and series    | The names, the dtypes, the index (pandas) and the values                                          |
+| `pyarrow` arrays and tables                  | The names, the types and the values; the chunk layout is ignored                                  |
+| `xarray` `DataArray`, `Dataset`, `Variable`  | The dimensions, the values, the coordinates, the attributes and the name                          |
 
 The array libraries are only imported if they are installed. A NumPy array and a PyTorch tensor with
 the same content hash differently. Your own classes still need a registered hasher (a class with a
@@ -294,6 +293,15 @@ delegating to a `HasherRegistry` to hash any nested values. The built-in hashers
   class name and the fields, with configurable handling of `SecretStr`/`SecretBytes` fields
 - `HashableHasher` - hashes objects that implement the `SupportsHash` protocol (i.e. that define
   their own `hash()` method), namespaced by the class name
+- `NumpyArrayHasher`, `TorchTensorHasher`, `JaxArrayHasher` - hash the dtype, the shape and the
+  values of an array or of a tensor (require the corresponding package)
+- `PandasSeriesHasher`, `PandasDataFrameHasher`, `PolarsSeriesHasher`, `PolarsDataFrameHasher` - hash
+  the names, the dtypes and the values of a series or of a data frame (require the corresponding
+  package)
+- `PyarrowArrayHasher`, `PyarrowTableHasher` - hash the types and the values of a PyArrow array or
+  table (require `pyarrow`)
+- `XarrayHasher` - hashes the dimensions, the values, the coordinates, the attributes and the name of
+  an xarray `DataArray`, `Dataset` or `Variable` (requires `xarray`)
 
 Each hasher can be used directly:
 

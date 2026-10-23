@@ -82,6 +82,23 @@ class BaseCollectionSummarizer(BaseSummarizer[T]):
         Subclasses only need to implement ``_get_preview`` and
         ``_format_items`` to control how items are previewed and
         formatted.
+
+        Args:
+            data: The collection to summarize.
+            registry: The registry used to summarize the items.
+            depth: The current depth of the summarization.
+            max_depth: The maximum depth to summarize. When ``depth``
+                reaches ``max_depth``, the items are not summarized:
+                the collection is shown as a single line, truncated
+                with ``...`` if it has more items than the preview
+                limit.
+
+        Returns:
+            The summary of the collection. An empty collection shows
+                its type and its content. If ``max_items`` is ``0``,
+                only the type and the length are shown. If the
+                collection has more than ``max_items`` items, the
+                summary ends with ``...``.
         """
         if depth >= max_depth:
             preview_limit = (

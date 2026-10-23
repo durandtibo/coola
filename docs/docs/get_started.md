@@ -13,10 +13,10 @@ to avoid dependency conflicts.
 uv pip install coola
 ```
 
-**Install with all optional dependencies:**
+**Install with several optional dependencies:**
 
 ```shell
-uv pip install coola[all]
+uv pip install coola[all,jax,numpy,packaging,pandas,polars,pyarrow,pydantic,torch,xarray,colorlog,rich]
 ```
 
 **Install with specific optional dependencies:**
@@ -33,10 +33,10 @@ Alternatively, you can use `pip`:
 pip install coola
 ```
 
-**Install with all optional dependencies:**
+**Install with several optional dependencies:**
 
 ```shell
-pip install coola[all]
+pip install coola[all,jax,numpy,packaging,pandas,polars,pyarrow,pydantic,torch,xarray,colorlog,rich]
 ```
 
 **Install with specific optional dependencies:**

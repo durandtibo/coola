@@ -108,7 +108,7 @@ def _mask_secret_fields(model: BaseModel, dumped: dict[str, Any]) -> dict[str, A
 
 
 def _mask_nested_secret_fields(value: object, dumped: object) -> Any:
-    """Apply :func:`_mask_secret_fields` to ``value``/``dumped`` pairs
+    """Apply ``_mask_secret_fields`` to ``value``/``dumped`` pairs
     nested in ``BaseModel``, list/tuple, or dict containers."""
     if isinstance(value, BaseModel) and isinstance(dumped, dict):
         return _mask_secret_fields(value, cast("dict[str, Any]", dumped))

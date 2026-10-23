@@ -69,7 +69,7 @@ def convert_to_list_of_dicts(
     not accepted as a sequence, because it would be split per character.
     An empty mapping gives an empty list, so a list of empty
     dictionaries (``[{}, {}]``) does not round trip with
-    :func:`convert_to_dict_of_lists`.
+    ``convert_to_dict_of_lists``.
 
     Args:
         mapping_of_seqs: The mapping of sequences to convert.

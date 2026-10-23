@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 class EnumHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[Enum]):
-    r"""Hasher for :class:`enum.Enum` members.
+    r"""Hasher for ``enum.Enum`` members.
 
     The hash depends on the qualified class name and the member name,
     not on the member value. ``IntEnum`` and ``StrEnum`` members are

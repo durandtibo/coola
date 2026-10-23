@@ -13,6 +13,9 @@ The `coola.display` package provides:
 - **`InlineDisplayMixin`**: a mixin that renders `__repr__`/`__str__` on a single line
 - **`MultilineDisplayMixin`**: a mixin that renders `__repr__`/`__str__` as an indented,
   multiline block
+- **`NoArgsDisplayMixin`**: a mixin for classes with no argument to show (e.g. stateless handlers)
+- **`BaseDisplayMixin`**: the abstract base class of the mixins, which defines the
+  `_get_repr_kwargs` method
 - **`str_pydantic_model`** / **`repr_pydantic_model`**: formatted, single-line string/repr
   representations of [pydantic](https://docs.pydantic.dev/) models, with automatic masking of
   `SecretStr` fields
@@ -68,6 +71,24 @@ MyClass(
 )
 
 ```
+
+`NoArgsDisplayMixin` provides a `_get_repr_kwargs` that returns an empty dict, for the classes
+with no constructor argument to show. Combine it with one of the other mixins instead of writing a
+trivial `_get_repr_kwargs`:
+
+```pycon
+
+>>> from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
+>>> class MyClass(NoArgsDisplayMixin, InlineDisplayMixin):
+...     pass
+...
+>>> print(repr(MyClass()))
+MyClass()
+
+```
+
+To create a new kind of mixin, inherit from `BaseDisplayMixin` and implement `__repr__`,
+`__str__` and `_get_repr_kwargs`.
 
 ## Properties
 

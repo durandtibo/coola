@@ -145,6 +145,21 @@ File savers (`BaseFileSaver` subclasses, i.e. all the built-in savers) write to 
 first and then atomically move it into place, so a job interrupted while writing never leaves a
 partially written file at the target path.
 
+### Unique File Names
+
+`add_uuid_suffix()` returns a new path with a unique UUID suffix added to the file name, before the
+extension. It is useful to build a file name that does not collide with an existing file, without
+`exist_ok=True`:
+
+```pycon
+>>> from pathlib import Path
+>>> from coola.io import add_uuid_suffix
+>>> path = add_uuid_suffix(Path("data.json"))
+>>> path.name.startswith("data-") and path.suffix == ".json"
+True
+
+```
+
 ### Durability
 
 The move is atomic, but by default the data is only written to the operating system cache: if the

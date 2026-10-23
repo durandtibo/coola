@@ -122,10 +122,10 @@ class HasherRegistry(BaseTypeDispatchRegistry[Hasher[Any]]):
         self._fallbacks = (*self._fallbacks, (predicate, hasher))
 
     def has_hasher(self, data_type: type) -> bool:
-        """Type-specific alias for :meth:`has`: check if a hasher is
+        """Type-specific alias for ``has``: check if a hasher is
         explicitly registered for the given type.
 
-        See :meth:`BaseTypeDispatchRegistry.has` for the full behavior
+        See ``BaseTypeDispatchRegistry.has`` for the full behavior
         description.
 
         Args:
@@ -150,13 +150,13 @@ class HasherRegistry(BaseTypeDispatchRegistry[Hasher[Any]]):
         return self.has(data_type)
 
     def find_hasher(self, data_type: type) -> Hasher[Any]:
-        """Type-specific alias for :meth:`find`: find the appropriate
+        """Type-specific alias for ``find``: find the appropriate
         hasher for a given type.
 
-        See :meth:`BaseTypeDispatchRegistry.find` for the full behavior
+        See ``BaseTypeDispatchRegistry.find`` for the full behavior
         description (MRO resolution, caching, and the ``KeyError`` on no
         match). If no hasher is registered for the type or its parent
-        types, the fallbacks (see :meth:`register_fallback`) are tried.
+        types, the fallbacks (see ``register_fallback``) are tried.
 
         Args:
             data_type: The Python type to find a hasher for.

@@ -18,6 +18,8 @@ The `coola.validation` package provides:
    to check a value belongs to a set of valid values
 3. **Comparison checks** - `validate_ge`, `validate_gt`, `validate_le`, and `validate_lt` to
    check a value against a bound
+4. **Sign and finiteness checks** - `validate_positive`, `validate_non_negative`,
+   `validate_negative`, `validate_non_positive` and `validate_finite`
 
 Every function takes the value to validate as its first argument, and an optional `name` keyword
 argument used to identify the value in the error message. On success, the function returns
@@ -73,6 +75,35 @@ exclusive bounds:
 Traceback (most recent call last):
     ...
 ValueError: count must be greater than 1, got 1
+
+```
+
+## Sign and Finiteness
+
+`validate_positive`/`validate_negative` check strict signs, and `validate_non_negative`/
+`validate_non_positive` accept zero. `validate_finite` rejects infinite values and `NaN`:
+
+```pycon
+>>> from coola.validation import (
+...     validate_finite,
+...     validate_negative,
+...     validate_non_negative,
+...     validate_non_positive,
+...     validate_positive,
+... )
+>>> validate_positive(1)
+>>> validate_non_negative(0)
+>>> validate_negative(-1)
+>>> validate_non_positive(0)
+>>> validate_finite(1.5)
+>>> validate_positive(0, name="count")
+Traceback (most recent call last):
+    ...
+ValueError: count must be positive, got 0
+>>> validate_finite(float("inf"), name="lr")
+Traceback (most recent call last):
+    ...
+ValueError: lr must be finite, got inf
 
 ```
 

@@ -242,6 +242,49 @@ registry system.
 
 ```
 
+### Writing an Iterator
+
+A DFS iterator inherits from `BaseIterator` and implements `iterate(data, registry)`. A container
+iterator calls `registry.iterate()` on its children, so the nested values are iterated with the
+iterator registered for their type. `MappingIterator` is the built-in iterator for the mappings
+(it iterates over the values), and `IterableIterator` the one for the other containers:
+
+```pycon
+>>> from coola.iterator.dfs import BaseIterator, MappingIterator, get_default_registry
+>>> class ReversedListIterator(BaseIterator[list]):
+...     def iterate(self, data, registry):
+...         for item in reversed(data):
+...             yield from registry.iterate(item)
+...
+>>> list(MappingIterator().iterate({"a": 1, "b": 2}, get_default_registry()))
+[1, 2]
+>>> registry = get_default_registry()
+>>> list(ReversedListIterator().iterate([1, 2, 3], registry))
+[3, 2, 1]
+
+```
+
+A BFS child finder inherits from `BaseChildFinder` and implements `find_children(data)`, which
+yields the direct children of the object. Override `is_leaf` to return `True` for a type that must
+be yielded as a value instead of being expanded. `MappingChildFinder` yields the values of a mapping:
+
+```pycon
+>>> from coola.iterator.bfs import MappingChildFinder
+>>> list(MappingChildFinder().find_children({"a": {"b": 1, "c": 2}, "d": 3}))
+[{'b': 1, 'c': 2}, 3]
+
+```
+
+### Default Registries
+
+`get_default_registry()` returns the process-wide registry used by `dfs_iterate` (and the BFS
+equivalent by `bfs_iterate`). They are also available as `get_default_iterator_registry()` (DFS) and
+`get_default_child_finder_registry()` (BFS). `register_iterators()` and `register_child_finders()`
+register types on these registries. The registry that `IteratorRegistry.iterate` gives to the
+iterators is a `PathRegistry`, a view of the registry that remembers the containers on the path to
+the current object, so that a container that contains itself is detected (see
+[Iterators and Cycles](#iterators-and-cycles)).
+
 ### Using Custom Registry
 
 You can create and use a custom registry:

@@ -89,5 +89,9 @@ def hash_array_content(
 
     Returns:
         The hash of the array.
+
+    Raises:
+        ValueError: If ``length`` is not an even number between 2 and
+            128.
     """
     return hash_tagged(tag, f"{dtype}\0{tuple(shape)}\0{content_hash}", length=length)

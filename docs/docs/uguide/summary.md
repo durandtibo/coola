@@ -685,6 +685,13 @@ The `coola.summary` package provides the following built-in summarizers:
   the corresponding package)
   - Configurable: `show_data` (default: False)
 
+The summarizers of the sequences, mappings and sets share the base class
+`BaseCollectionSummarizer`, which implements the truncation (`max_items`) and the depth limit. A
+subclass only implements how the items are previewed and formatted. `BaseFieldsSummarizer` is the
+base class of the summarizers that list the fields (columns) of an object, and `MAX_FIELDS` is the
+default maximum number of fields listed. `format_fields()` formats `(name, type)` pairs as `name: type`.
+`get_default_summarizer_registry()` returns the registry used by `summarize()`.
+
 ## Properties
 
 | Property       | Statement                                                                                                                          |

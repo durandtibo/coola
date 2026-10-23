@@ -25,7 +25,7 @@ class Summarizer(Protocol[T_contra]):
     r"""Structural interface of a type-specific summarizer.
 
     Any object with a compatible ``summarize`` method can be registered
-    without subclassing :class:`BaseSummarizer`, which remains available
+    without subclassing ``BaseSummarizer``, which remains available
     as a convenience base class.
     """
 

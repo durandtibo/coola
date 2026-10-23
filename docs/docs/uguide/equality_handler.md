@@ -315,8 +315,21 @@ The package includes specialized handlers for specific types:
 - **`PandasExtensionArrayEqualHandler`**: Compare pandas extension arrays (e.g. Categorical)
 - **`PolarsDataFrameEqualHandler`**: Compare polars DataFrames
 - **`PolarsSeriesEqualHandler`**: Compare polars Series
+- **`PolarsLazyFrameEqualHandler`**: Compare polars LazyFrames
 - **`JaxArrayEqualHandler`**: Compare JAX arrays
 - **`PyarrowEqualHandler`**: Compare PyArrow arrays and tables
+
+### Handlers for Objects with Methods
+
+These handlers delegate the comparison to the methods of the objects:
+
+- **`SameDataHandler`**: Check that the `data` attributes of the two objects are equal
+- **`EqualNanHandler`**: Call the `equal(other, equal_nan)` method of the first object
+- **`AllCloseNanHandler`**: Call the `allclose` method of the first object, with the tolerances and
+  `equal_nan` of the configuration
+- **`TolerantEqualHandler`**: Call `allclose` when `atol` or `rtol` is not zero, otherwise `equal`
+- **`DataclassSameFieldsHandler`**: Compare the fields of two instances of the same dataclass through
+  the registry (the fields with `compare=False` are ignored)
 
 ### Terminal Handlers
 
@@ -532,6 +545,22 @@ loops in circular structures:
 ```
 
 This is automatically managed by the handlers that perform recursive comparisons.
+`check_recursion_depth(config)` is the context manager that increments the depth, decrements it on
+exit and raises a `RecursionError` when `max_depth` is exceeded.
+
+A structure that contains itself (a list that contains itself, for example) is detected with
+`track_comparison(config, actual, expected)`: it records the pair of objects that are being compared and
+yields `True` if the pair is already being compared higher in the call stack. The handler then
+considers the pair as equal, because the cycle only repeats the comparison in progress.
+
+### Helpers
+
+- **`HandlerEqualityMixin`**: Provides the `equal` method of the handlers that only have a type and
+  a `next_handler` to compare. Use it together with `BaseEqualityHandler`.
+- **`HandlerCycleError`**: Raised when a handler chain contains a cycle (it is a `ValueError`).
+- **`AttributeName`**: A `str` that marks a component of the location of a difference as an
+  attribute (a dataclass field) instead of a key or an index, so a location is formatted as
+  `['a'][2].x`.
 
 ## Common Use Cases
 

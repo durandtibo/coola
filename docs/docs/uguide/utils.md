@@ -14,8 +14,8 @@ submodules:
 1. **Import utilities** - Check if packages are available and handle optional dependencies
 2. **Formatting utilities** - Format objects, sequences, and mappings for display
 3. **Array utilities** - Utilities for working with arrays
-4. **Other utilities** - Bloom filter, path, version, environment variable, and introspection
-   utilities
+4. **Other utilities** - Bloom filter, mapping, path, version, environment variable,
+   introspection, string, date, secret, and statistics utilities
 
 ### Core helpers and general helpers
 
@@ -88,6 +88,9 @@ Available check functions:
 - `is_xarray_available()` - Check if xarray is available
 - `is_pyarrow_available()` - Check if PyArrow is available
 - `is_packaging_available()` - Check if packaging is available
+- `is_pydantic_available()` - Check if pydantic is available
+- `is_rich_available()` - Check if rich is available
+- `is_colorlog_available()` - Check if colorlog is available
 - `is_torch_numpy_available()` - Check if both PyTorch and NumPy are available
 
 ### Context Managers for Availability
@@ -116,6 +119,9 @@ Available context managers:
 - `xarray_available()` - Execute block if xarray is available
 - `pyarrow_available()` - Execute block if PyArrow is available
 - `packaging_available()` - Execute block if packaging is available
+- `pydantic_available()` - Execute block if pydantic is available
+- `rich_available()` - Execute block if rich is available
+- `colorlog_available()` - Execute block if colorlog is available
 - `torch_numpy_available()` - Execute block if both PyTorch and NumPy are available
 
 ### Raising Errors for Missing Packages
@@ -125,11 +131,13 @@ Use check functions to raise informative errors when required packages are missi
 ```pycon
 >>> from coola.utils.imports import check_numpy
 >>> check_numpy()  # doctest: +SKIP
->>> # Raises RuntimeError with helpful message if NumPy is not installed
+>>> # Raises MissingPackageError with helpful message if NumPy is not installed
 
 ```
 
-Available check functions (raise `RuntimeError` if package is missing):
+Available check functions (raise `MissingPackageError` if the package is missing).
+`MissingPackageError` is a subclass of both `ModuleNotFoundError` (so of `ImportError`) and
+`RuntimeError`, so code that catches either keeps working:
 
 - `check_numpy()` - Require NumPy
 - `check_torch()` - Require PyTorch
@@ -139,7 +147,17 @@ Available check functions (raise `RuntimeError` if package is missing):
 - `check_xarray()` - Require xarray
 - `check_pyarrow()` - Require PyArrow
 - `check_packaging()` - Require packaging
+- `check_pydantic()` - Require pydantic
+- `check_rich()` - Require rich
+- `check_colorlog()` - Require colorlog
 - `check_torch_numpy()` - Require both PyTorch and NumPy
+- `check_package(package, command=None)` - Require any package. `command` is the install command
+  added to the error message (by default, the message has no install command)
+
+The `raise_<package>_missing_error()` functions (for example `raise_numpy_missing_error()`) raise the
+same error unconditionally. They are used by the fallback classes and functions of
+`coola.utils.fallback`, and `raise_package_missing_error(package_name, install_cmd)` does it for any
+package.
 
 ### Decorator for Package Availability
 
@@ -303,7 +321,15 @@ Use `str_time_human()` to format time durations:
 ## Array Utilities (`coola.utils.array`)
 
 The `coola.utils.array` module provides utilities for working with array-like objects across
-different backends (NumPy, PyTorch).
+different backends (NumPy, PyTorch). `to_array()` converts a sequence of numbers, a
+`numpy.ndarray` or a `torch.Tensor` to a `numpy.ndarray`:
+
+```pycon
+>>> from coola.utils.array import to_array
+>>> to_array([1, 2, 3])
+array([1, 2, 3])
+
+```
 
 ## Tensor Utilities (`coola.utils.tensor`)
 
@@ -311,6 +337,9 @@ The `coola.utils.tensor` module provides utilities for working with PyTorch tens
 
 - `is_cuda_available()` - Check if CUDA is available with PyTorch
 - `is_mps_available()` - Check if MPS (Apple Silicon) is available with PyTorch
+- `get_available_devices()` - Get the PyTorch devices available on the machine
+- `to_tensor()` - Convert a sequence of numbers, a `numpy.ndarray` or a `torch.Tensor` to a
+  `torch.Tensor`
 
 ```pycon
 >>> from coola.utils.tensor import is_cuda_available, is_mps_available
@@ -340,23 +369,183 @@ True
 
 ## Mapping Utilities (`coola.utils.mapping`)
 
-The `coola.utils.mapping` module provides utilities for working with mappings.
+The `coola.utils.mapping` module provides `sort_by_keys()` and `sort_by_values()`, which return a
+new dictionary sorted by keys or by values:
+
+```pycon
+>>> from coola.utils.mapping import sort_by_keys, sort_by_values
+>>> sort_by_keys({"b": 1, "a": 2})
+{'a': 2, 'b': 1}
+>>> sort_by_values({"a": 2, "b": 1})
+{'b': 1, 'a': 2}
+
+```
 
 ## Path Utilities (`coola.utils.path`)
 
-The `coola.utils.path` module provides utilities for working with file paths.
+The `coola.utils.path` module provides utilities for working with file paths:
+
+- `sanitize_path()` - Convert a path to an absolute, normalized `Path` (it expands `~` and resolves
+  `.` and `..`)
+- `find_root_package_parent()` - Walk upward from a file or a directory to find the directory that
+  contains the root Python package
+- `working_directory()` - Context manager that temporarily changes the working directory
+
+```pycon
+>>> import tempfile
+>>> from pathlib import Path
+>>> from coola.utils.path import sanitize_path, working_directory
+>>> sanitize_path("~").is_absolute()
+True
+>>> with tempfile.TemporaryDirectory() as tmpdir:
+...     with working_directory(tmpdir):
+...         Path.cwd() == Path(tmpdir).resolve()
+...
+True
+
+```
 
 ## Version Utilities (`coola.utils.version`)
 
 The `coola.utils.version` module provides utilities for working with package versions.
+`get_package_version()` returns the installed version of a package (or `None` if the package is not
+installed), and `compare_version()` compares it to a version with a comparison operator:
+
+```pycon
+>>> import operator
+>>> from coola.utils.version import compare_version, get_package_version
+>>> get_package_version("missing_package") is None
+True
+>>> compare_version("missing_package", operator.ge, "1.0")
+False
+
+```
 
 ## Environment Variable Utilities (`coola.utils.env_vars`)
 
-The `coola.utils.env_vars` module provides utilities for working with environment variables.
+The `coola.utils.env_vars` module provides utilities for working with environment variables:
+
+- `get_required_env_var()` - Get an environment variable and raise a `ValueError` if it is not set
+  or is empty
+- `check_env_vars()` - Indicate which environment variables are defined, and optionally raise or log
+  at a given level when some are missing
+- `temp_env_vars()` - Context manager that temporarily sets environment variables and restores them
+  on exit
+
+```pycon
+>>> from coola.utils.env_vars import check_env_vars, get_required_env_var, temp_env_vars
+>>> with temp_env_vars({"COOLA_EXAMPLE": "value"}):
+...     get_required_env_var("COOLA_EXAMPLE")
+...     check_env_vars(["COOLA_EXAMPLE"])
+...
+'value'
+{'COOLA_EXAMPLE': True}
+>>> get_required_env_var("COOLA_EXAMPLE")
+Traceback (most recent call last):
+    ...
+ValueError: Environment variable 'COOLA_EXAMPLE' is required but not set or is empty
+
+```
 
 ## Introspection Utilities (`coola.utils.introspection`)
 
-The `coola.utils.introspection` module provides utilities for introspecting Python objects.
+The `coola.utils.introspection` module provides utilities for introspecting Python objects:
+
+- `get_fully_qualified_name()` - Fully qualified name of an object
+- `get_type_constructor()` - Type of an object as a callable
+- `get_all_child_classes()` - All the subclasses of a class, recursively
+- `is_same_type()` - Indicate if an object has exactly the type of a reference (no subclass)
+- `supports_methods()` - Indicate if an object has all the given callable methods
+- `is_lambda_function()` and `check_not_lambda_function()` - Detect a lambda function
+
+```pycon
+>>> from pathlib import Path
+>>> from coola.utils.introspection import (
+...     get_all_child_classes,
+...     get_fully_qualified_name,
+...     is_same_type,
+...     supports_methods,
+... )
+>>> get_fully_qualified_name(Path)
+'pathlib.Path'
+>>> is_same_type(True, 1)
+False
+>>> supports_methods([], "append", "pop")
+True
+>>> class A: ...
+...
+>>> class B(A): ...
+...
+>>> get_all_child_classes(A) == {B}
+True
+
+```
+
+## String Utilities (`coola.utils.string`)
+
+The `coola.utils.string` module provides small helpers to work with strings: `count_lines()`,
+`remove_empty_lines()`, `slugify()`, `truncate_str()` and `char_diff_summary()`:
+
+```pycon
+>>> from coola.utils.string import (
+...     char_diff_summary,
+...     count_lines,
+...     remove_empty_lines,
+...     slugify,
+...     truncate_str,
+... )
+>>> count_lines("a\nb\nc")
+3
+>>> remove_empty_lines("a\n\nb")
+'a\nb'
+>>> slugify("Hello, World! 2024")
+'hello-world-2024'
+>>> truncate_str("abcdefghij", max_len=8)
+'abcde...'
+>>> char_diff_summary("abc", "abcdef")
+'3 -> 6 chars (+3 chars, +100.0%).'
+
+```
+
+## Date Utilities (`coola.utils.date`)
+
+The `coola.utils.date` module provides `get_today_date()` (today's date in a timezone, as a
+string), `to_date()` and `to_datetime()` (convert a string to a `date` or a `datetime`):
+
+```pycon
+>>> from coola.utils.date import to_date, to_datetime
+>>> to_date("2024-01-31")
+datetime.date(2024, 1, 31)
+>>> to_datetime("2024-01-31T10:00:00")
+datetime.datetime(2024, 1, 31, 10, 0)
+
+```
+
+## Secret Utilities (`coola.utils.secret`)
+
+`mask_secret()` masks the content of a secret with `*` before displaying it. Only the first
+`show_first` and the last `show_last` characters are kept, and a short secret is fully masked:
+
+```pycon
+>>> from coola.utils.secret import mask_secret
+>>> mask_secret("sk-abcdefghijklmnop")
+'sk-************mnop'
+>>> mask_secret("short")
+'*****'
+
+```
+
+## Statistics Utilities (`coola.utils.stats`)
+
+`quantile()` computes quantiles of a sequence of numbers with the linear method (the default of
+`numpy.quantile`), without any dependency:
+
+```pycon
+>>> from coola.utils.stats import quantile
+>>> quantile([1, 2, 3, 4, 5], [0.25, 0.5])
+[2.0, 3.0]
+
+```
 
 ## Common Use Cases
 

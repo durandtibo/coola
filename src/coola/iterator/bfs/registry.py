@@ -99,10 +99,10 @@ class ChildFinderRegistry(BaseTypeDispatchRegistry[BaseChildFinder[Any]]):
     """
 
     def has_child_finder(self, data_type: type) -> bool:
-        r"""Type-specific alias for :meth:`has`: check if a child finder
+        r"""Type-specific alias for ``has``: check if a child finder
         is directly registered for a data type.
 
-        See :meth:`BaseTypeDispatchRegistry.has` for the full behavior
+        See ``BaseTypeDispatchRegistry.has`` for the full behavior
         description.
 
         Args:
@@ -126,10 +126,10 @@ class ChildFinderRegistry(BaseTypeDispatchRegistry[BaseChildFinder[Any]]):
         return self.has(data_type)
 
     def find_child_finder(self, data_type: type) -> BaseChildFinder[Any]:
-        r"""Type-specific alias for :meth:`find`: find the appropriate
+        r"""Type-specific alias for ``find``: find the appropriate
         child finder for a given data type.
 
-        See :meth:`BaseTypeDispatchRegistry.find` for the full behavior
+        See ``BaseTypeDispatchRegistry.find`` for the full behavior
         description (MRO resolution, caching, and the ``KeyError`` on no
         match).
 

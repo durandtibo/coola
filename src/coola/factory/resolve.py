@@ -112,17 +112,17 @@ def resolve_object(
     configuration dictionary.
 
     If ``obj`` is already an instance of ``cls`` it is returned
-    as-is. Otherwise, if it is a :class:`dict`, it is treated as a
+    as-is. Otherwise, if it is a ``dict``, it is treated as a
     factory configuration and instantiated via
-    :func:`coola.factory.factory`.
+    ``coola.factory.factory``.
 
     Note:
-        If ``cls`` is itself a :class:`dict` subclass (e.g.
+        If ``cls`` is itself a ``dict`` subclass (e.g.
         ``Counter`` or ``OrderedDict``), a ``dict`` (or ``dict``
         subclass) instance that is already a valid instance of
         ``cls`` is returned as-is rather than being treated as a
-        factory configuration. Any other :class:`dict` is treated as
-        a factory configuration, including a plain :class:`dict`
+        factory configuration. Any other ``dict`` is treated as
+        a factory configuration, including a plain ``dict``
         used to describe how to build a ``dict``-subclass instance,
         and a ``dict`` subclass instance that is not itself a valid
         ``cls`` instance (e.g. a ``Counter`` when ``cls`` is
@@ -130,13 +130,13 @@ def resolve_object(
 
     Args:
         obj: Either a fully configured instance of ``cls``, or a
-            :class:`dict` containing a factory specification (must
+            ``dict`` containing a factory specification (must
             include a ``"_target_"`` key pointing to the
             fully-qualified class name).
         cls: The expected type, or a tuple of types (as accepted by
-            :func:`isinstance`). Used to validate the resolved object,
+            ``isinstance``). Used to validate the resolved object,
             whether ``obj`` was already an instance or was built from
-            a configuration dictionary. Defaults to :class:`object`,
+            a configuration dictionary. Defaults to ``object``,
             which accepts any resolved value without validation.
         allowed_prefixes: An optional allow-list of module prefixes
             that the ``"_target_"`` of the configuration must match
@@ -151,15 +151,15 @@ def resolve_object(
         A configured instance of ``cls``.
 
     Raises:
-        TypeError: If ``obj`` is a :class:`dict` missing the
+        TypeError: If ``obj`` is a ``dict`` missing the
             ``"_target_"`` key, or if the resolved object is not an
             instance of ``cls``.
         ImportError: If the ``"_target_"`` does not match
             ``allowed_prefixes``, or if it cannot be found.
 
     Security:
-        When ``obj`` is a :class:`dict`, its ``"_target_"`` value is
-        passed to :func:`coola.factory.factory`, which imports and
+        When ``obj`` is a ``dict``, its ``"_target_"`` value is
+        passed to ``coola.factory.factory``, which imports and
         instantiates arbitrary objects from a dotted path string with
         no allowlist by default. Only call this function with a
         configuration dictionary that comes from a trusted source;
