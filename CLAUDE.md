@@ -74,6 +74,12 @@
   ```
 
 - Seed random data (`default_rng(0)`); no unseeded randomness in tests.
+- Patching (`monkeypatch`, `unittest.mock.patch`) is fine in unit tests: it keeps them fast and
+  simple and isolates the logic under test. But a patched test only proves the logic works against
+  the patched stand-in, which may not match the real collaborator (signature, return type,
+  behaviour). A passing patched unit test does not mean the feature works. Every patched behaviour
+  needs an integration test in `tests/integration/` that exercises the real thing without patching.
+  The two kinds of test have different purposes; do not drop one because the other exists.
 
 ### Test assertions
 
