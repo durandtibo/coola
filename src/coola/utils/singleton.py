@@ -109,6 +109,20 @@ class LazySingleton(Generic[T]):
                         self._building_thread = None
         return self._instance
 
+    def is_built(self) -> bool:
+        r"""Indicate if the value has been built.
+
+        Returns:
+            ``True`` if the value has been built, otherwise ``False``.
+        """
+        return self._instance is not _UNSET
+
+    def reset(self) -> None:
+        r"""Forget the cached value, so the next ``get`` call builds a
+        new one."""
+        with self._lock:
+            self._instance = _UNSET
+
 
 def make_default_registry_singleton(
     registry_cls: Callable[[], R],

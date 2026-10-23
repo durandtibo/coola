@@ -51,6 +51,36 @@ def test_check_torch_numpy_missing() -> None:
         check_torch_numpy()
 
 
+def test_check_torch_numpy_missing_error_name() -> None:
+    with (
+        patch(f"{MODULE}.is_torch_numpy_available", lambda: False),
+        patch(f"{MODULE}.is_torch_available", lambda: False),
+        pytest.raises(MissingPackageError) as exc_info,
+    ):
+        check_torch_numpy()
+    assert exc_info.value.name == "torch"
+
+
+def test_check_torch_numpy_missing_numpy_error_name() -> None:
+    with (
+        patch(f"{MODULE}.is_torch_numpy_available", lambda: False),
+        patch(f"{MODULE}.is_torch_available", lambda: True),
+        patch(f"{MODULE}.is_numpy_available", lambda: False),
+        pytest.raises(MissingPackageError) as exc_info,
+    ):
+        check_torch_numpy()
+    assert exc_info.value.name == "numpy"
+
+
+def test_check_torch_numpy_message_has_no_trailing_space() -> None:
+    with (
+        patch(f"{MODULE}.is_torch_numpy_available", lambda: False),
+        pytest.raises(MissingPackageError) as exc_info,
+    ):
+        check_torch_numpy()
+    assert not str(exc_info.value).endswith(" ")
+
+
 def test_is_torch_numpy_available() -> None:
     assert isinstance(is_torch_numpy_available(), bool)
 

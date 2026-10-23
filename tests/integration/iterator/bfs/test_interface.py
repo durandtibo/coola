@@ -19,9 +19,9 @@ if TYPE_CHECKING:
 @pytest.fixture(autouse=True)
 def _reset_default_registry() -> Generator[None, None, None]:
     """Reset the registry before and after each test."""
-    bfs_interface._default_registry._instance = None
+    bfs_interface._default_registry.reset()
     yield
-    bfs_interface._default_registry._instance = None
+    bfs_interface._default_registry.reset()
 
 
 class LinkedListNode:

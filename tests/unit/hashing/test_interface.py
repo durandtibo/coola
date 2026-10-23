@@ -44,9 +44,9 @@ if is_pydantic_available():
 @pytest.fixture(autouse=True)
 def _reset_default_registry() -> Generator[None, None, None]:
     """Reset the singleton registry before and after each test."""
-    hashing_interface._default_registry._instance = None
+    hashing_interface._default_registry.reset()
     yield
-    hashing_interface._default_registry._instance = None
+    hashing_interface._default_registry.reset()
 
 
 class CustomList(list):
