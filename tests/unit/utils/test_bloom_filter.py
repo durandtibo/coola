@@ -120,3 +120,55 @@ def test_bloom_filter_hashes_is_deterministic() -> None:
 def test_bloom_filter_hashes_differ_for_different_items() -> None:
     bloom = BloomFilter(expected_items=100, fp_rate=0.01)
     assert list(bloom._hashes(b"hello")) != list(bloom._hashes(b"world"))
+
+
+def test_bloom_filter_contains_added_item() -> None:
+    bf = BloomFilter(expected_items=100)
+    bf.add(b"hello")
+    assert b"hello" in bf
+
+
+def test_bloom_filter_contains_item_added_with_add_and_check() -> None:
+    bf = BloomFilter(expected_items=100)
+    bf.add_and_check(b"hello")
+    assert b"hello" in bf
+
+
+def test_bloom_filter_contains_missing_item() -> None:
+    assert b"hello" not in BloomFilter(expected_items=100)
+
+
+def test_bloom_filter_contains_does_not_add_the_item() -> None:
+    bf = BloomFilter(expected_items=100)
+    assert b"hello" not in bf
+    assert not bf.add_and_check(b"hello")
+
+
+def test_bloom_filter_contains_non_bytes_is_false() -> None:
+    bf = BloomFilter(expected_items=100)
+    bf.add(b"hello")
+    assert "hello" not in bf
+
+
+def test_bloom_filter_add_twice() -> None:
+    bf = BloomFilter(expected_items=100)
+    bf.add(b"hello")
+    bf.add(b"hello")
+    assert bf.add_and_check(b"hello")
+
+
+def test_bloom_filter_fill_ratio_empty() -> None:
+    assert BloomFilter(expected_items=100).fill_ratio() == 0.0
+
+
+def test_bloom_filter_fill_ratio_increases_after_add() -> None:
+    bf = BloomFilter(expected_items=100)
+    bf.add(b"hello")
+    assert bf.fill_ratio() > 0.0
+
+
+def test_bloom_filter_fill_ratio_is_at_most_one() -> None:
+    bf = BloomFilter(expected_items=10)
+    for i in range(1000):
+        bf.add(str(i).encode())
+    assert bf.fill_ratio() <= 1.0
