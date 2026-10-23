@@ -490,30 +490,20 @@ Person(name='Alice', age=30)
 
 ### Understanding the Registry
 
-The `SummarizerRegistry` manages the mapping from types to summarizers:
+The `SummarizerRegistry` manages the mapping from types to summarizers. `find_summarizer` returns the
+summarizer of a type, or of its nearest registered parent type. The full content of the global
+registry depends on the installed libraries and on the summarizers registered so far, so it is not
+shown here:
 
 ```pycon
 >>> from coola.summary import get_default_registry
 >>> registry = get_default_registry()
->>> registry
-SummarizerRegistry(
-  (state): TypeRegistry(
-      (<class 'object'>): DefaultSummarizer(max_characters=1,000)
-      (<class 'str'>): DefaultSummarizer(max_characters=1,000)
-      (<class 'int'>): DefaultSummarizer(max_characters=1,000)
-      (<class 'float'>): DefaultSummarizer(max_characters=1,000)
-      (<class 'complex'>): DefaultSummarizer(max_characters=1,000)
-      (<class 'bool'>): DefaultSummarizer(max_characters=1,000)
-      (<class 'list'>): SequenceSummarizer(max_items=5, num_spaces=2)
-      (<class 'tuple'>): SequenceSummarizer(max_items=5, num_spaces=2)
-      (<class 'collections.abc.Sequence'>): SequenceSummarizer(max_items=5, num_spaces=2)
-      (<class 'set'>): SetSummarizer(max_items=5, num_spaces=2)
-      (<class 'frozenset'>): SetSummarizer(max_items=5, num_spaces=2)
-      (<class 'dict'>): MappingSummarizer(max_items=5, num_spaces=2)
-      (<class 'collections.abc.Mapping'>): MappingSummarizer(max_items=5, num_spaces=2)
-      ...
-    )
-)
+>>> registry.find_summarizer(list)
+SequenceSummarizer(max_items=5, num_spaces=2)
+>>> registry.find_summarizer(dict)
+MappingSummarizer(max_items=5, num_spaces=2)
+>>> registry.find_summarizer(str)
+DefaultSummarizer(max_characters=1,000)
 
 ```
 

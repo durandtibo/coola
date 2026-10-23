@@ -118,6 +118,7 @@ the PR number is given. Items not listed are **open**.
 | 8.7  | Fixed (#2167)                   | `import_object("")` raises `ImportError`; `resolve_object` accepts a tuple; `is_object_config` robust to bad input.                                                                                   |
 | 8.8  | Fixed (#2168)                   | `is_object_config` checks `get_origin(t) or t`, so `-> list[int]` matches `list`.                                                                                                                     |
 | 8.9  | Partly (#2169)                  | Preview keeps the type (tuple, deque, set, frozenset, OrderedDict, Counter). `max_items < 0` still capped at 5 (deliberate, #27).                                                                     |
+| 10.1 | Fixed (#PR)                     | `summary.md` prints stable `find_summarizer` lookups instead of the whole registry. `factory.md` updated for 8.6.                                                                                     |
 
 All other items in sections 5 to 10 (including 7.x, 8.x, 9.x, 10.x) have no matching commit and are **open**.
 The earlier "Suggested order" lists below are unchanged.

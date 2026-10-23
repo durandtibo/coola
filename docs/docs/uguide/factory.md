@@ -129,7 +129,7 @@ Counter({'a': 2})
 >>> resolve_object({"_target_": "os.getcwd"}, allowed_prefixes=["collections"])
 Traceback (most recent call last):
     ...
-ImportError: The target object does not exist: os.getcwd
+ImportError: Object path 'os.getcwd' is not allowed. Allowed prefixes: ['collections']
 
 ```
 
