@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import io
 import logging
 from typing import TYPE_CHECKING
 from unittest.mock import patch
@@ -190,3 +191,96 @@ def test_configure_colorlog_logging_kwargs_forwarded_tty() -> None:
     ):
         configure_colorlog_logging(datefmt="%H:%M")
     assert mock_basicconfig.call_args.kwargs["datefmt"] == "%H:%M"
+
+
+########################################
+#     Tests for the tty and kwargs     #
+########################################
+
+
+@colorlog_available
+def test_configure_colorlog_logging_tty_stream_is_used_by_handler() -> None:
+    stream = io.StringIO()
+    stream.isatty = lambda: True  # ty: ignore[invalid-assignment]
+    with (
+        patch(f"{MODULE}.is_colorlog_available", return_value=True),
+        patch(f"{MODULE}.logging.basicConfig") as mock_basicconfig,
+    ):
+        configure_colorlog_logging(stream=stream)
+    assert mock_basicconfig.call_args.kwargs["handlers"][0].stream is stream
+
+
+@colorlog_available
+def test_configure_colorlog_logging_tty_stream_is_not_forwarded() -> None:
+    stream = io.StringIO()
+    stream.isatty = lambda: True  # ty: ignore[invalid-assignment]
+    with (
+        patch(f"{MODULE}.is_colorlog_available", return_value=True),
+        patch(f"{MODULE}.logging.basicConfig") as mock_basicconfig,
+    ):
+        configure_colorlog_logging(stream=stream)
+    assert "stream" not in mock_basicconfig.call_args.kwargs
+
+
+@colorlog_available
+def test_configure_colorlog_logging_stream_not_a_tty_falls_back_to_basic_config() -> None:
+    stream = io.StringIO()
+    with (
+        patch(f"{MODULE}.is_colorlog_available", return_value=True),
+        patch(f"{MODULE}.sys.stderr.isatty", return_value=True),
+        patch(f"{MODULE}.logging.basicConfig") as mock_basicconfig,
+    ):
+        configure_colorlog_logging(stream=stream)
+    mock_basicconfig.assert_called_once_with(level=logging.INFO, force=False, stream=stream)
+
+
+@colorlog_available
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"handlers": []},
+        {"filename": "app.log"},
+        {"filemode": "a"},
+        {"format": "%(message)s"},
+        {"style": "{"},
+    ],
+)
+def test_configure_colorlog_logging_tty_plain_options_forwarded_without_handler(
+    kwargs: dict,
+) -> None:
+    with (
+        patch(f"{MODULE}.is_colorlog_available", return_value=True),
+        patch(f"{MODULE}.sys.stderr.isatty", return_value=True),
+        patch(f"{MODULE}.logging.basicConfig") as mock_basicconfig,
+    ):
+        configure_colorlog_logging(**kwargs)
+    mock_basicconfig.assert_called_once_with(level=logging.INFO, force=False, **kwargs)
+
+
+@colorlog_available
+def test_configure_colorlog_logging_tty_datefmt_used_by_formatter() -> None:
+    with (
+        patch(f"{MODULE}.is_colorlog_available", return_value=True),
+        patch(f"{MODULE}.sys.stderr.isatty", return_value=True),
+        patch(f"{MODULE}.logging.basicConfig") as mock_basicconfig,
+    ):
+        configure_colorlog_logging(datefmt="%H:%M")
+    handler = mock_basicconfig.call_args.kwargs["handlers"][0]
+    assert handler.formatter.datefmt == "%H:%M"
+
+
+@colorlog_available
+def test_configure_colorlog_logging_stderr_none_falls_back_to_basic_config() -> None:
+    with (
+        patch(f"{MODULE}.is_colorlog_available", return_value=True),
+        patch(f"{MODULE}.sys.stderr", None),
+        patch(f"{MODULE}.logging.basicConfig") as mock_basicconfig,
+    ):
+        configure_colorlog_logging()
+    mock_basicconfig.assert_called_once_with(level=logging.INFO, force=False)
+
+
+def test_configure_colorlog_logging_stream_without_isatty_falls_back_to_basic_config() -> None:
+    with patch(f"{MODULE}.logging.basicConfig") as mock_basicconfig:
+        configure_colorlog_logging(stream=object())  # ty: ignore[invalid-argument-type]
+    mock_basicconfig.assert_called_once()

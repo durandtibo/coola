@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import deque
 from collections.abc import Sequence
 
 import pytest
@@ -275,3 +276,19 @@ def test_sequence_summarizer_summarize_single_item_list(registry: SummarizerRegi
     """Test summarizing a list with a single item."""
     result = SequenceSummarizer().summarize([42], registry)
     assert result == "<class 'list'> (length=1)\n  (0): 42"
+
+
+@pytest.mark.parametrize(
+    ("data", "expected"),
+    [
+        ((1, 2, 3, 4), "(1, 2) ..."),
+        (deque([1, 2, 3, 4]), "deque([1, 2]) ..."),
+        ([1, 2, 3, 4], "[1, 2] ..."),
+        (range(4), "[0, 1] ..."),
+    ],
+)
+def test_sequence_summarizer_summarize_depth_limit_preview_keeps_the_type(
+    registry: SummarizerRegistry, data: Sequence, expected: str
+) -> None:
+    result = SequenceSummarizer(max_items=2).summarize(data, registry, depth=1, max_depth=1)
+    assert result == expected

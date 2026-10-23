@@ -224,3 +224,18 @@ def test_set_summarizer_summarize_max_items_greater_than_length(
     assert result.startswith("<class 'set'> (length=3)\n")
     assert not result.endswith("\n...")
     assert result.count("\n  (") == 3
+
+
+@pytest.mark.parametrize(
+    ("data", "expected"),
+    [
+        ({1, 2, 3, 4}, "{1, 2} ..."),
+        (frozenset({1, 2, 3, 4}), "frozenset({1, 2}) ..."),
+        ({1: 0, 2: 0, 3: 0, 4: 0}.keys(), "[1, 2] ..."),
+    ],
+)
+def test_set_summarizer_summarize_depth_limit_preview_keeps_the_type(
+    registry: SummarizerRegistry, data: AbstractSet, expected: str
+) -> None:
+    result = SetSummarizer(max_items=2).summarize(data, registry, depth=1, max_depth=1)
+    assert result == expected
