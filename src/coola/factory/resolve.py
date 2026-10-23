@@ -4,8 +4,9 @@ from __future__ import annotations
 
 __all__ = ["factory", "resolve_object"]
 
+import inspect
 import logging
-from typing import TYPE_CHECKING, Any, TypeVar, cast, overload
+from typing import TYPE_CHECKING, Any, TypeVar, cast, get_type_hints, overload
 
 from coola.factory.constants import OBJECT_INIT, OBJECT_TARGET
 from coola.factory.instantiation import import_object, instantiate_object
@@ -84,21 +85,69 @@ def factory(_target_: str, *args: Any, **kwargs: Any) -> Any:
     return instantiate_object(target, *args, _init_=init, **kwargs)
 
 
+def _check_target(
+    config: dict[str, Any],
+    cls: type | tuple[type, ...],
+    classes: tuple[type, ...],
+    cls_name: str,
+    *,
+    strict: bool,
+) -> None:
+    r"""Refuse a configuration whose target cannot build an instance of
+    ``cls``, before the target is called.
+
+    A class that is not a subclass of ``cls`` is refused. A function is
+    refused if its return type hint is a class that is not a subclass
+    of ``cls``; a function without a usable type hint is accepted
+    (the result is checked after the call) unless ``strict`` is
+    ``True``, in which case it is refused. A configuration with an
+    alternative constructor (``_init_``) is not checked.
+    """
+    if cls is object or OBJECT_INIT in config:
+        return
+    target = import_object(config[OBJECT_TARGET], allowed_prefixes=config.get("_allowed_prefixes_"))
+    if inspect.isfunction(target):
+        try:
+            target = get_type_hints(target).get("return")
+        except (NameError, SyntaxError, TypeError):
+            target = None
+    if inspect.isclass(target) and not issubclass(target, classes):
+        msg = (
+            f"Received object is not a {cls_name} instance (the target "
+            f"{config[OBJECT_TARGET]!r} builds a {target.__qualname__}: it was not called)"
+        )
+        raise TypeError(msg)
+    if strict and not inspect.isclass(target):
+        msg = (
+            f"Cannot check that the target {config[OBJECT_TARGET]!r} builds a {cls_name} "
+            "instance because it is not a class and has no return type hint: it was not called"
+        )
+        raise TypeError(msg)
+
+
 @overload
 def resolve_object(
-    obj: T | dict[str, Any], *, allowed_prefixes: Sequence[str] | None = None
+    obj: T | dict[str, Any], *, allowed_prefixes: Sequence[str] | None = None, strict: bool = False
 ) -> T: ...
 
 
 @overload
 def resolve_object(
-    obj: T | dict[str, Any], cls: type[T], *, allowed_prefixes: Sequence[str] | None = None
+    obj: T | dict[str, Any],
+    cls: type[T],
+    *,
+    allowed_prefixes: Sequence[str] | None = None,
+    strict: bool = False,
 ) -> T: ...
 
 
 @overload
 def resolve_object(
-    obj: Any, cls: tuple[type, ...], *, allowed_prefixes: Sequence[str] | None = None
+    obj: Any,
+    cls: tuple[type, ...],
+    *,
+    allowed_prefixes: Sequence[str] | None = None,
+    strict: bool = False,
 ) -> Any: ...
 
 
@@ -107,6 +156,7 @@ def resolve_object(
     cls: type | tuple[type, ...] = object,
     *,
     allowed_prefixes: Sequence[str] | None = None,
+    strict: bool = False,
 ) -> Any:
     """Resolve an instance of ``cls`` from an existing object or a
     configuration dictionary.
@@ -146,14 +196,22 @@ def resolve_object(
             ``"_target_"`` is allowed. When it is set, it replaces the
             ``"_allowed_prefixes_"`` key of the configuration, so
             a configuration cannot widen it.
+        strict: If ``True``, a ``"_target_"`` that is not a class and
+            has no usable return type hint (a function without
+            annotation, a built-in function) is refused before it is
+            called, because the type of its result cannot be checked
+            beforehand. If ``False`` (default), it is called and the
+            result is checked afterwards.
 
     Returns:
         A configured instance of ``cls``.
 
     Raises:
         TypeError: If ``obj`` is a ``dict`` missing the
-            ``"_target_"`` key, or if the resolved object is not an
-            instance of ``cls``.
+            ``"_target_"`` key, if the ``"_target_"`` is a class (or a
+            function whose return type hint is a class) that is not a
+            subclass of ``cls`` -- it is then not called --, or if
+            the resolved object is not an instance of ``cls``.
         ImportError: If the ``"_target_"`` does not match
             ``allowed_prefixes``, or if it cannot be found.
 
@@ -198,6 +256,7 @@ def resolve_object(
         if allowed_prefixes is not None:
             # The caller's allow-list wins over the one of the configuration.
             config["_allowed_prefixes_"] = allowed_prefixes
+        _check_target(config, cls, classes, cls_name, strict=strict)
         obj = factory(**config)
     if not isinstance(obj, cls):
         msg = (
