@@ -113,3 +113,11 @@ def test_generate_checksummed_id_sep_multichar_raises() -> None:
 @pytest.mark.parametrize("identifier", [None, 123, b"abc"])
 def test_verify_checksummed_id_not_a_str(identifier: object) -> None:
     assert not verify_checksummed_id(identifier)
+
+
+def test_verify_checksummed_id_rejects_non_ascii_look_alikes() -> None:
+    # The dotless i (U+0131) upper-cases to 'I', which normalizes to '1'.
+    payload = "1" * 8
+    identifier = payload + _checksum_symbol(payload)
+    assert verify_checksummed_id(identifier)
+    assert not verify_checksummed_id("\u0131" + identifier[1:])

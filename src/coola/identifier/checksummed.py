@@ -153,7 +153,7 @@ def verify_checksummed_id(identifier: str, sep: str = "-") -> bool:
         the characters preceding it, ``False`` otherwise (including
         when ``identifier`` contains a character outside the extended
         Crockford Base32 alphabet, or is too short to contain a
-        payload and a check symbol, or is not a ``str``).
+        payload and a check symbol, is not a ``str``, or contains a non-ASCII character).
 
     Example:
         ```pycon
@@ -167,7 +167,8 @@ def verify_checksummed_id(identifier: str, sep: str = "-") -> bool:
 
         ```
     """
-    if not isinstance(identifier, str):
+    if not isinstance(identifier, str) or not identifier.isascii():
+        # Non-ASCII look-alikes (the dotless i upper-cases to ``'I'``) must not verify.
         return False
     full = _normalize(identifier.replace(sep, "") if sep else identifier)
     if len(full) < 2:
