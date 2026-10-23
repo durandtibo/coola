@@ -29,7 +29,11 @@ def to_array(data: Sequence[int | float] | torch.Tensor | np.ndarray) -> np.ndar
         data: The data to convert to a NumPy array.
 
     Returns:
-        A NumPy array.
+        A NumPy array. A NumPy array is returned as is, and the
+            array of a tensor or of a NumPy-compatible input may share
+            its memory with the input; a list is copied. A ``bfloat16``
+            tensor (not supported by NumPy) is converted to
+            ``float32``.
 
     Example:
         ```pycon
@@ -45,7 +49,10 @@ def to_array(data: Sequence[int | float] | torch.Tensor | np.ndarray) -> np.ndar
         ```
     """
     if is_torch_available() and torch.is_tensor(data):
-        return data.detach().cpu().numpy()
+        data = data.detach().cpu()
+        if data.dtype == torch.bfloat16:
+            data = data.float()
+        return data.numpy()
     if not isinstance(data, np.ndarray):
         return np.asarray(data)
     return data
