@@ -124,7 +124,7 @@ def main() -> None:
     args = parser.parse_args()
     runs = load_runs(args.storage, args.days, prune=args.prune)
     if not runs:
-        sys.stdout.write("No results.\n")
+        logger.info("No results.")
         return
     sys.stdout.write(
         f"## Import time over the last {args.days} days ({len(runs)} runs)\n\n{make_table(runs)}\n"
@@ -132,5 +132,6 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+    # The table is written to stdout so it can be piped into a file.
+    logging.basicConfig(level=logging.INFO, format="%(message)s", stream=sys.stdout)
     main()
