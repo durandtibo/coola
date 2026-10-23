@@ -803,3 +803,20 @@ def test_save_does_not_write_a_visible_file_while_saving(tmp_path: Path) -> None
     Saver().save("abc", tmp_path.joinpath("data.json"))
     assert seen == [[]]
     assert tmp_path.joinpath("data.json").read_text() == "abc"
+
+
+################################
+#     Tests for long names     #
+################################
+
+
+def test_save_long_file_name(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("a" * 240 + ".json")
+    JsonSaver().save({"a": 1}, path)
+    assert JsonLoader().load(path) == {"a": 1}
+
+
+def test_save_long_file_name_exist_ok_false(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("a" * 240 + ".json")
+    JsonSaver().save({"a": 1}, path, exist_ok=False)
+    assert JsonLoader().load(path) == {"a": 1}

@@ -45,7 +45,7 @@ def test_lazy_module_missing_attribute_first() -> None:
 
 def test_lazy_module_missing() -> None:
     with pytest.raises(ModuleNotFoundError, match=r"No module named 'missing'"):
-        str(LazyModule("missing"))
+        _ = LazyModule("missing").attr
 
 
 #######################
@@ -81,4 +81,12 @@ def test_lazy_import_missing_attribute_first() -> None:
 
 def test_lazy_import_missing() -> None:
     with pytest.raises(ModuleNotFoundError, match=r"No module named 'missing'"):
-        str(lazy_import("missing"))
+        _ = lazy_import("missing").attr
+
+
+def test_lazy_module_special_attribute_does_not_import() -> None:
+    assert not hasattr(LazyModule("missing"), "__wrapped__")
+
+
+def test_lazy_module_str_does_not_import() -> None:
+    assert str(LazyModule("missing")) == "<module 'missing'>"

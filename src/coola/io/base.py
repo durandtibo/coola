@@ -14,6 +14,7 @@ __all__ = [
 ]
 
 import contextlib
+import hashlib
 import logging
 import os
 import threading
@@ -21,6 +22,7 @@ import time
 import uuid
 import weakref
 from abc import ABC, abstractmethod
+from pathlib import PurePath
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
 from coola.factory import is_object_config, resolve_object
@@ -49,6 +51,28 @@ _FILE_LOCK_POLL_INTERVAL = 0.01
 # A lock file older than this many seconds is assumed to have been left
 # behind by a process that died while holding it, and is broken.
 _FILE_LOCK_STALE_AFTER = 300.0
+
+
+# Longest target name (in bytes) for which the temporary and lock names are
+# derived from the name. Most filesystems limit a name to 255 bytes, and these
+# names add a prefix, a uuid or a suffix to it.
+_MAX_DERIVED_NAME_BYTES = 100
+
+
+def _short_name(name: str) -> str:
+    r"""Return ``name``, or a short stable name if ``name`` is too long.
+
+    The short name is a hash of ``name`` followed by its extension, so the
+    names derived from it (temporary file, lock file) stay below the
+    filesystem limit for any legal target name.
+    """
+    if len(name.encode()) <= _MAX_DERIVED_NAME_BYTES:
+        return name
+    digest = hashlib.sha256(name.encode()).hexdigest()[:16]
+    suffix = PurePath(name).suffix
+    if len(suffix.encode()) > 16:
+        suffix = ""
+    return f"{digest}{suffix}"
 
 
 def _get_save_lock(path: Path) -> threading.Lock:
@@ -121,7 +145,7 @@ def _acquire_file_lock(
     over by a crashed process and is broken, so a killed writer does not
     block every later save.
     """
-    lock_path = path.with_name(path.name + ".lock")
+    lock_path = path.with_name(_short_name(path.name) + ".lock")
     deadline = time.monotonic() + timeout
     while True:
         try:
@@ -152,7 +176,7 @@ def _tmp_path(path: Path) -> Path:
     being written. The extension is kept because some writers choose the
     format or add an extension from it.
     """
-    return add_uuid_suffix(path.with_name(f".{path.name}"))
+    return add_uuid_suffix(path.with_name(f".{_short_name(path.name)}"))
 
 
 def _fsync_file(path: Path) -> None:
