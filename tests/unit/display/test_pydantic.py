@@ -137,6 +137,24 @@ def test_str_pydantic_model_exclude_fields_missing_field() -> None:
 
 
 @pydantic_available
+def test_str_pydantic_model_exclude_fields_secret_field_no_warning() -> None:
+    model = MyModel(name="alice", age=30, token=SecretStr("s3cr3t"))
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        out = str_pydantic_model(model, exclude_fields=["token"])
+    assert out == "MyModel(age=30, name=alice, nickname=None)"
+
+
+@pydantic_available
+def test_str_pydantic_model_exclude_fields_none_field_no_warning() -> None:
+    model = MyModel(name="alice", age=30, token=SecretStr("s3cr3t"))
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        out = str_pydantic_model(model, exclude_none=True, exclude_fields=["nickname"])
+    assert out == "MyModel(age=30, name=alice)"
+
+
+@pydantic_available
 def test_str_pydantic_model_exclude_fields_missing_field_and_valid_field() -> None:
     model = MyModel(name="alice", age=30, token=SecretStr("s3cr3t"))
     with pytest.warns(RuntimeWarning, match="does_not_exist"):

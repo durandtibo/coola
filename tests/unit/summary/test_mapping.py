@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections import OrderedDict
+from collections import Counter, OrderedDict
 from collections.abc import Mapping
 
 import pytest
@@ -209,3 +209,18 @@ def test_mapping_summarizer_summarize_depth_limit_negative_max_items_is_capped(
     result = MappingSummarizer(max_items=-1).summarize(data, registry, depth=1, max_depth=1)
     assert result == "{'key0': 0, 'key1': 1, 'key2': 2, 'key3': 3, 'key4': 4} ..."
     assert len(result) < 1_000
+
+
+@pytest.mark.parametrize(
+    ("data", "expected"),
+    [
+        (OrderedDict([("a", 1), ("b", 2), ("c", 3)]), "OrderedDict({'a': 1, 'b': 2}) ..."),
+        (Counter({"a": 3, "b": 2, "c": 1}), "Counter({'a': 3, 'b': 2}) ..."),
+        ({"a": 1, "b": 2, "c": 3}, "{'a': 1, 'b': 2} ..."),
+    ],
+)
+def test_mapping_summarizer_summarize_depth_limit_preview_keeps_the_type(
+    registry: SummarizerRegistry, data: Mapping, expected: str
+) -> None:
+    result = MappingSummarizer(max_items=2).summarize(data, registry, depth=1, max_depth=1)
+    assert result == expected

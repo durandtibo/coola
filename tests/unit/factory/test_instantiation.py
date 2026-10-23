@@ -317,3 +317,12 @@ def test_import_object_allowed_prefixes_non_string() -> None:
 def test_import_object_empty_part_raises_import_error(object_path: str) -> None:
     with pytest.raises(ImportError, match="Invalid object path"):
         import_object(object_path)
+
+
+def test_import_object_allowed_prefixes_string_is_a_single_prefix() -> None:
+    assert import_object("collections.Counter", allowed_prefixes="collections") is Counter
+
+
+def test_import_object_allowed_prefixes_string_rejects_other_modules() -> None:
+    with pytest.raises(ImportError, match="not allowed"):
+        import_object("os.system", allowed_prefixes="collections")

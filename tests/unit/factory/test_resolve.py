@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections import Counter, OrderedDict
+from unittest.mock import patch
 
 import pytest
 
@@ -361,8 +362,27 @@ def test_resolve_object_dict_subclass_instance_not_matching_cls_is_treated_as_co
 
 def test_factory_allowed_prefixes() -> None:
     assert factory("collections.Counter", [1, 1], _allowed_prefixes_=["collections"])
-    with pytest.raises(ImportError, match="does not exist"):
+    with pytest.raises(ImportError, match="is not allowed"):
         factory("os.getcwd", _allowed_prefixes_=["collections"])
+
+
+def test_factory_allowed_prefixes_violation_is_not_reported_as_missing() -> None:
+    with pytest.raises(ImportError) as info:
+        factory("os.getcwd", _allowed_prefixes_=["collections"])
+    assert "does not exist" not in str(info.value)
+
+
+def test_factory_allowed_prefixes_string_is_a_single_prefix() -> None:
+    assert factory("collections.Counter", [1, 1], _allowed_prefixes_="collections")
+
+
+def test_factory_import_error_inside_the_target_module_is_not_reported_as_missing() -> None:
+    error = ModuleNotFoundError("No module named 'missing_dependency'", name="missing_dependency")
+    with (
+        patch("coola.factory.instantiation.importlib.import_module", side_effect=error),
+        pytest.raises(ModuleNotFoundError, match="missing_dependency"),
+    ):
+        factory("some_package.SomeClass")
 
 
 def test_factory_allowed_prefixes_not_forwarded_to_target() -> None:
@@ -382,25 +402,24 @@ def test_resolve_object_allowed_prefixes_match() -> None:
 
 
 def test_resolve_object_allowed_prefixes_no_match() -> None:
-    with pytest.raises(ImportError, match="target object does not exist") as info:
+    with pytest.raises(ImportError, match="is not allowed"):
         resolve_object({OBJECT_TARGET: "collections.Counter"}, allowed_prefixes=["os"])
-    assert "not allowed" in str(info.value.__cause__)
 
 
 def test_resolve_object_allowed_prefixes_no_match_does_not_call_the_target() -> None:
-    with pytest.raises(ImportError, match="target object does not exist"):
+    with pytest.raises(ImportError, match="is not allowed"):
         resolve_object({OBJECT_TARGET: "os.getcwd"}, allowed_prefixes=["collections"])
 
 
 def test_resolve_object_allowed_prefixes_must_match_a_whole_module_name() -> None:
-    with pytest.raises(ImportError, match="target object does not exist"):
+    with pytest.raises(ImportError, match="is not allowed"):
         resolve_object({OBJECT_TARGET: "collections.Counter"}, allowed_prefixes=["collection"])
 
 
 def test_resolve_object_allowed_prefixes_overrides_the_prefixes_of_the_config() -> None:
     # A configuration cannot widen the allow-list given by the caller.
     config = {OBJECT_TARGET: "os.getcwd", "_allowed_prefixes_": ["os"]}
-    with pytest.raises(ImportError, match="target object does not exist"):
+    with pytest.raises(ImportError, match="is not allowed"):
         resolve_object(config, allowed_prefixes=["collections"])
 
 
@@ -412,7 +431,7 @@ def test_resolve_object_allowed_prefixes_does_not_modify_the_config() -> None:
 
 def test_resolve_object_prefixes_of_the_config_are_used_without_allowed_prefixes() -> None:
     config = {OBJECT_TARGET: "os.getcwd", "_allowed_prefixes_": ["collections"]}
-    with pytest.raises(ImportError, match="target object does not exist"):
+    with pytest.raises(ImportError, match="is not allowed"):
         resolve_object(config)
 
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 __all__ = ["SequenceSummarizer"]
 
+from collections import deque
 from collections.abc import Sequence
 from itertools import islice
 from typing import TYPE_CHECKING, Any
@@ -50,8 +51,14 @@ class SequenceSummarizer(BaseCollectionSummarizer[Sequence[Any]]):
         ```
     """
 
-    def _get_preview(self, data: Sequence[Any], limit: int) -> list[Any]:
-        return list(islice(data, limit))
+    def _get_preview(self, data: Sequence[Any], limit: int) -> Sequence[Any]:
+        items = islice(data, limit)
+        # The type is kept for the common sequences, any other sequence is shown as a list.
+        if type(data) is tuple:
+            return tuple(items)
+        if type(data) is deque:
+            return deque(items)
+        return list(items)
 
     def _format_items(
         self,
