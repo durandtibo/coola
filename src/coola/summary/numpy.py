@@ -12,15 +12,13 @@ __all__ = ["NDArraySummarizer"]
 from typing import TYPE_CHECKING
 
 from coola.summary.metadata import BaseMetadataSummarizer
-from coola.utils.imports import check_numpy, is_numpy_available
+from coola.utils.imports import check_numpy
 
-if TYPE_CHECKING or is_numpy_available():
+if TYPE_CHECKING:
     import numpy as np
-else:  # pragma: no cover
-    from coola.utils.fallback.numpy import numpy as np
 
 
-class NDArraySummarizer(BaseMetadataSummarizer[np.ndarray]):
+class NDArraySummarizer(BaseMetadataSummarizer["np.ndarray"]):
     r"""Implement a summarizer for ``numpy.ndarray`` objects.
 
     This summarizer generates compact string representations of NumPy

@@ -11,15 +11,13 @@ __all__ = ["JaxArraySummarizer"]
 from typing import TYPE_CHECKING
 
 from coola.summary.metadata import BaseMetadataSummarizer
-from coola.utils.imports import check_jax, is_jax_available
+from coola.utils.imports import check_jax
 
-if TYPE_CHECKING or is_jax_available():
+if TYPE_CHECKING:
     import jax.numpy as jnp
-else:  # pragma: no cover
-    from coola.utils.fallback.jax import jnp
 
 
-class JaxArraySummarizer(BaseMetadataSummarizer[jnp.ndarray]):
+class JaxArraySummarizer(BaseMetadataSummarizer["jnp.ndarray"]):
     r"""Implement a summarizer for ``jax.numpy.ndarray`` objects.
 
     By default, it displays the metadata (type, shape, dtype) rather

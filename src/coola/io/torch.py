@@ -7,16 +7,12 @@ __all__ = ["TorchLoader", "TorchSaver", "load_torch", "save_torch"]
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from coola.display import InlineDisplayMixin
-from coola.equality.interface import objects_are_equal
 from coola.io.base import BaseFileSaver, BaseLoader
-from coola.utils.imports import check_torch, is_torch_available
+from coola.utils.imports import check_torch
 from coola.utils.introspection import is_same_type
 
 if TYPE_CHECKING:
     from pathlib import Path
-
-if TYPE_CHECKING or is_torch_available():  # pragma: no cover
-    import torch
 
 T = TypeVar("T")
 
@@ -57,6 +53,8 @@ class TorchLoader(InlineDisplayMixin, BaseLoader[T]):
         return self._kwargs
 
     def equal(self, other: Any, equal_nan: bool = False) -> bool:
+        from coola.equality.interface import objects_are_equal  # noqa: PLC0415
+
         if not is_same_type(other, self):
             return False
         # Compare the arguments that ``load`` uses, so the default is not
@@ -67,6 +65,8 @@ class TorchLoader(InlineDisplayMixin, BaseLoader[T]):
         return {"weights_only": True, **self._kwargs}
 
     def load(self, path: Path) -> T:
+        import torch  # noqa: PLC0415
+
         return torch.load(path, **self._load_kwargs())
 
 
@@ -100,11 +100,15 @@ class TorchSaver(InlineDisplayMixin, BaseFileSaver[T]):
         return self._kwargs
 
     def equal(self, other: Any, equal_nan: bool = False) -> bool:
+        from coola.equality.interface import objects_are_equal  # noqa: PLC0415
+
         if not is_same_type(other, self):
             return False
         return objects_are_equal(self._kwargs, other._kwargs, equal_nan=equal_nan)
 
     def _save_file(self, to_save: T, path: Path) -> None:
+        import torch  # noqa: PLC0415
+
         torch.save(to_save, path, **self._kwargs)
 
 

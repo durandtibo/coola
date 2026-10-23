@@ -11,15 +11,13 @@ __all__ = ["PolarsDataFrameSummarizer", "PolarsLazyFrameSummarizer", "PolarsSeri
 from typing import TYPE_CHECKING
 
 from coola.summary.metadata import BaseFieldsSummarizer, BaseMetadataSummarizer
-from coola.utils.imports import check_polars, is_polars_available
+from coola.utils.imports import check_polars
 
-if TYPE_CHECKING or is_polars_available():
+if TYPE_CHECKING:
     import polars as pl
-else:  # pragma: no cover
-    from coola.utils.fallback.polars import polars as pl
 
 
-class PolarsDataFrameSummarizer(BaseFieldsSummarizer[pl.DataFrame]):
+class PolarsDataFrameSummarizer(BaseFieldsSummarizer["pl.DataFrame"]):
     r"""Implement a summarizer for ``polars.DataFrame`` objects.
 
     By default, it displays the metadata (type, shape, columns with their
@@ -53,7 +51,7 @@ class PolarsDataFrameSummarizer(BaseFieldsSummarizer[pl.DataFrame]):
         return [f"shape={data.shape}", f"columns={self._format_fields(data.schema.items())}"]
 
 
-class PolarsLazyFrameSummarizer(BaseFieldsSummarizer[pl.LazyFrame]):
+class PolarsLazyFrameSummarizer(BaseFieldsSummarizer["pl.LazyFrame"]):
     r"""Implement a summarizer for ``polars.LazyFrame`` objects.
 
     The lazy frame is **not** collected: only its schema is read, so the
@@ -89,6 +87,8 @@ class PolarsLazyFrameSummarizer(BaseFieldsSummarizer[pl.LazyFrame]):
         check_polars()
 
     def _describe(self, data: pl.LazyFrame) -> list[str]:
+        import polars as pl  # noqa: PLC0415
+
         try:
             schema = data.collect_schema()
         except pl.exceptions.PolarsError as exc:
@@ -96,7 +96,7 @@ class PolarsLazyFrameSummarizer(BaseFieldsSummarizer[pl.LazyFrame]):
         return [f"columns={self._format_fields(schema.items())}"]
 
 
-class PolarsSeriesSummarizer(BaseMetadataSummarizer[pl.Series]):
+class PolarsSeriesSummarizer(BaseMetadataSummarizer["pl.Series"]):
     r"""Implement a summarizer for ``polars.Series`` objects.
 
     By default, it displays the metadata (type, shape, dtype, name)

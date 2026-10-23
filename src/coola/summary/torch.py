@@ -12,15 +12,13 @@ __all__ = ["TensorSummarizer"]
 from typing import TYPE_CHECKING
 
 from coola.summary.metadata import BaseMetadataSummarizer
-from coola.utils.imports import check_torch, is_torch_available
+from coola.utils.imports import check_torch
 
-if TYPE_CHECKING or is_torch_available():
+if TYPE_CHECKING:
     import torch
-else:  # pragma: no cover
-    from coola.utils.fallback.torch import torch
 
 
-class TensorSummarizer(BaseMetadataSummarizer[torch.Tensor]):
+class TensorSummarizer(BaseMetadataSummarizer["torch.Tensor"]):
     r"""Implement a summarizer for ``torch.Tensor`` objects.
 
     This summarizer generates compact string representations of PyTorch

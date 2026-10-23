@@ -48,41 +48,6 @@ from coola.validation import validate_non_negative
 if TYPE_CHECKING:
     from coola.summary.base import Summarizer
 
-if is_jax_available():  # pragma: no cover
-    import jax.numpy as jnp
-else:  # pragma: no cover
-    from coola.utils.fallback.jax import jnp
-
-if is_pandas_available():  # pragma: no cover
-    import pandas as pd
-else:  # pragma: no cover
-    from coola.utils.fallback.pandas import pandas as pd
-
-if is_polars_available():  # pragma: no cover
-    import polars as pl
-else:  # pragma: no cover
-    from coola.utils.fallback.polars import polars as pl
-
-if is_pyarrow_available():  # pragma: no cover
-    import pyarrow as pa
-else:  # pragma: no cover
-    from coola.utils.fallback.pyarrow import pyarrow as pa
-
-if is_xarray_available():  # pragma: no cover
-    import xarray as xr
-else:  # pragma: no cover
-    from coola.utils.fallback.xarray import xarray as xr
-
-if is_torch_available():  # pragma: no cover
-    import torch
-else:  # pragma: no cover
-    from coola.utils.fallback.torch import torch
-
-if is_numpy_available():  # pragma: no cover
-    import numpy as np
-else:  # pragma: no cover
-    from coola.utils.fallback.numpy import numpy as np
-
 
 def summarize(data: object, max_depth: int = 1, registry: SummarizerRegistry | None = None) -> str:
     r"""Create a summary string representation of nested data.
@@ -285,6 +250,8 @@ def _get_numpy_summarizers() -> dict[type, Summarizer[Any]]:
     """
     if not is_numpy_available():  # pragma: no cover
         return {}
+    import numpy as np  # noqa: PLC0415
+
     return {np.ndarray: NDArraySummarizer()}
 
 
@@ -300,6 +267,8 @@ def _get_torch_summarizers() -> dict[type, Summarizer[Any]]:
     """
     if not is_torch_available():  # pragma: no cover
         return {}
+    import torch  # noqa: PLC0415
+
     return {torch.Tensor: TensorSummarizer()}
 
 
@@ -316,6 +285,8 @@ def _get_jax_summarizers() -> dict[type, Summarizer[Any]]:
     """
     if not is_jax_available():  # pragma: no cover
         return {}
+    import jax.numpy as jnp  # noqa: PLC0415
+
     summarizer = JaxArraySummarizer()
     # ``jnp.ndarray`` is ``jax.Array``, in the MRO of the concrete array class. Creating an
     # array to get this class would initialize the JAX backend as a side effect.
@@ -335,6 +306,8 @@ def _get_pandas_summarizers() -> dict[type, Summarizer[Any]]:
     """
     if not is_pandas_available():  # pragma: no cover
         return {}
+    import pandas as pd  # noqa: PLC0415
+
     return {pd.DataFrame: PandasDataFrameSummarizer(), pd.Series: PandasSeriesSummarizer()}
 
 
@@ -351,6 +324,8 @@ def _get_polars_summarizers() -> dict[type, Summarizer[Any]]:
     """
     if not is_polars_available():  # pragma: no cover
         return {}
+    import polars as pl  # noqa: PLC0415
+
     return {
         pl.DataFrame: PolarsDataFrameSummarizer(),
         pl.LazyFrame: PolarsLazyFrameSummarizer(),
@@ -371,6 +346,8 @@ def _get_pyarrow_summarizers() -> dict[type, Summarizer[Any]]:
     """
     if not is_pyarrow_available():  # pragma: no cover
         return {}
+    import pyarrow as pa  # noqa: PLC0415
+
     array_summarizer = PyarrowArraySummarizer()
     return {
         pa.Array: array_summarizer,
@@ -392,6 +369,8 @@ def _get_xarray_summarizers() -> dict[type, Summarizer[Any]]:
     """
     if not is_xarray_available():  # pragma: no cover
         return {}
+    import xarray as xr  # noqa: PLC0415
+
     return {
         xr.DataArray: XarrayDataArraySummarizer(),
         xr.Dataset: XarrayDatasetSummarizer(),

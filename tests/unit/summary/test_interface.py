@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 from collections import deque
 from collections.abc import Generator, Mapping, Sequence
 from unittest.mock import Mock, patch
@@ -311,7 +312,7 @@ def _get_registry_with_fake_numpy(
     with (
         patch("coola.summary.interface.is_numpy_available", lambda: True),
         patch("coola.summary.interface.is_torch_available", lambda: False),
-        patch("coola.summary.interface.np", Mock(ndarray=fake_ndarray), create=True),
+        patch.dict(sys.modules, {"numpy": Mock(ndarray=fake_ndarray)}),
         patch("coola.summary.interface.NDArraySummarizer", Mock(return_value=fake_summarizer)),
     ):
         return get_default_registry()
@@ -334,7 +335,7 @@ def _get_registry_with_fake_torch(fake_tensor: type, fake_summarizer: object) ->
     with (
         patch("coola.summary.interface.is_torch_available", lambda: True),
         patch("coola.summary.interface.is_numpy_available", lambda: False),
-        patch("coola.summary.interface.torch", Mock(Tensor=fake_tensor), create=True),
+        patch.dict(sys.modules, {"torch": Mock(Tensor=fake_tensor)}),
         patch("coola.summary.interface.TensorSummarizer", Mock(return_value=fake_summarizer)),
     ):
         return get_default_registry()

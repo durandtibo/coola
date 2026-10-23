@@ -11,15 +11,13 @@ __all__ = ["XarrayDataArraySummarizer", "XarrayDatasetSummarizer", "XarrayVariab
 from typing import TYPE_CHECKING
 
 from coola.summary.metadata import BaseFieldsSummarizer, BaseMetadataSummarizer
-from coola.utils.imports import check_xarray, is_xarray_available
+from coola.utils.imports import check_xarray
 
-if TYPE_CHECKING or is_xarray_available():
+if TYPE_CHECKING:
     import xarray as xr
-else:  # pragma: no cover
-    from coola.utils.fallback.xarray import xarray as xr
 
 
-class XarrayDataArraySummarizer(BaseMetadataSummarizer[xr.DataArray]):
+class XarrayDataArraySummarizer(BaseMetadataSummarizer["xr.DataArray"]):
     r"""Implement a summarizer for ``xarray.DataArray`` objects.
 
     By default, it displays the metadata (type, dimensions, shape,
@@ -59,7 +57,7 @@ class XarrayDataArraySummarizer(BaseMetadataSummarizer[xr.DataArray]):
         ]
 
 
-class XarrayDatasetSummarizer(BaseFieldsSummarizer[xr.Dataset]):
+class XarrayDatasetSummarizer(BaseFieldsSummarizer["xr.Dataset"]):
     r"""Implement a summarizer for ``xarray.Dataset`` objects.
 
     By default, it displays the metadata (type, dimensions with their
@@ -96,7 +94,7 @@ class XarrayDatasetSummarizer(BaseFieldsSummarizer[xr.Dataset]):
         return [f"dims={dict(data.sizes)}", f"data_vars={self._format_fields(variables)}"]
 
 
-class XarrayVariableSummarizer(BaseMetadataSummarizer[xr.Variable]):
+class XarrayVariableSummarizer(BaseMetadataSummarizer["xr.Variable"]):
     r"""Implement a summarizer for ``xarray.Variable`` objects.
 
     By default, it displays the metadata (type, dimensions, shape,
