@@ -222,7 +222,8 @@ class HasherRegistry(BaseTypeDispatchRegistry[Hasher[Any]]):
                 (or any of its parent types) and ``ignore_unhashable``
                 is ``False``.
             ValueError: If ``data`` contains itself (a self-referencing
-                container).
+                container), or is nested too deeply for the recursion
+                limit of the interpreter.
 
         Example:
             ```pycon
@@ -266,5 +267,10 @@ class HasherRegistry(BaseTypeDispatchRegistry[Hasher[Any]]):
             return hasher.hash(
                 data, registry=self, length=length, ignore_unhashable=ignore_unhashable
             )
+        except RecursionError as exc:
+            if len(active) > 1:  # only the outermost call reports the error
+                raise
+            msg = "Cannot hash data that is nested too deeply (maximum recursion depth exceeded)."
+            raise ValueError(msg) from exc
         finally:
             active.discard(key)

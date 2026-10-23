@@ -13,6 +13,7 @@ from coola.hashing import (
     SequenceHasher,
     StrHasher,
     StringHasher,
+    get_default_registry,
 )
 from coola.registry import AlreadyRegisteredError, TypeNotRegisteredError
 from tests.unit.hashing.helpers import Unhashable
@@ -453,3 +454,14 @@ def test_hasher_registry_hash_reraises_a_key_error_that_is_not_a_missing_type() 
     with pytest.raises(KeyError, match="broken") as exc_info:
         BrokenRegistry().hash(1)
     assert not isinstance(exc_info.value, TypeNotRegisteredError)
+
+
+def test_hasher_registry_hash_deeply_nested_data_raises_value_error() -> None:
+    registry = get_default_registry()
+    data: list = []
+    for _ in range(5000):
+        data = [data]
+    with pytest.raises(ValueError, match="nested too deeply"):
+        registry.hash(data)
+    # The registry is still usable afterwards.
+    assert registry.hash([1])
