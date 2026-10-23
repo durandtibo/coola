@@ -456,12 +456,20 @@ def test_hasher_registry_hash_reraises_a_key_error_that_is_not_a_missing_type() 
     assert not isinstance(exc_info.value, TypeNotRegisteredError)
 
 
-def test_hasher_registry_hash_deeply_nested_data_raises_value_error() -> None:
-    registry = get_default_registry()
+def _deeply_nested() -> list:
     data: list = []
     for _ in range(5000):
         data = [data]
+    return data
+
+
+def test_hasher_registry_hash_deeply_nested_data_raises_value_error() -> None:
     with pytest.raises(ValueError, match="nested too deeply"):
-        registry.hash(data)
-    # The registry is still usable afterwards.
+        get_default_registry().hash(_deeply_nested())
+
+
+def test_hasher_registry_hash_is_usable_after_deeply_nested_data() -> None:
+    registry = get_default_registry()
+    with pytest.raises(ValueError, match="nested too deeply"):
+        registry.hash(_deeply_nested())
     assert registry.hash([1])
