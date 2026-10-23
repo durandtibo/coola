@@ -236,16 +236,10 @@ src = ["src"]
 [tool.ruff.lint.per-file-ignores]
 # Ignore all directories named `tests`.
 "tests/**" = [
-  "D",       # pydocstyle
-  "PLC1802", # Pylint: len without comparison
-  "PLE",     # Pylint: error
-  "PLR",     # Pylint: refactor
-  "PLW",     # Pylint: warning
-  "S101",    # flake8-bandit: assert
+  "D",    # pydocstyle
+  "PL",   # Pylint
+  "S101", # flake8-bandit: assert
 ]
-# The imports of the tests are at the top of the module (PLC0415 is enforced), except here: ``rich``
-# is optional and its import is delayed on purpose, to print the table only if it is installed.
-"tests/benchmarks/conftest.py" = ["PLC0415"]
 "tests/unit/hashing/test_pydantic.py" = ["S106"]
 
 [tool.ruff.lint.mccabe]
