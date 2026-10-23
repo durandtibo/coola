@@ -37,6 +37,13 @@ if TYPE_CHECKING:
 def random_seed(seed: int, manager: RandomManagerRegistry | None = None) -> Generator[None]:
     r"""Temporarily set a random seed and restore previous RNG state.
 
+    Note:
+        The first call with the default registry creates it, and it
+        imports every installed library that it can seed (NumPy and
+        PyTorch), which can take about a second. The libraries are
+        imported then, not when they are used later, so that a library
+        that is imported after this call is still seeded.
+
     Args:
         seed: Seed used while inside the context manager.
         manager: Random manager registry to use. If ``None``, the default
@@ -82,6 +89,13 @@ def get_rng_state() -> dict[str, Any]:
 
 def manual_seed(seed: int) -> None:
     r"""Set the seed for generating random numbers.
+
+    Note:
+        The first call with the default registry creates it, and it
+        imports every installed library that it can seed (NumPy and
+        PyTorch), which can take about a second. The libraries are
+        imported then, not when they are used later, so that a library
+        that is imported after this call is still seeded.
 
     Args:
         seed: The desired random seed. It must be an ``int`` in the

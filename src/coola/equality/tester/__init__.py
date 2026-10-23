@@ -41,6 +41,7 @@ __all__ = [
     "PolarsLazyFrameEqualityTester",
     "PolarsSeriesEqualityTester",
     "PyarrowEqualityTester",
+    "PydanticModelEqualityTester",
     "ScalarEqualityTester",
     "SequenceEqualityTester",
     "TolerantEqualEqualityTester",
@@ -95,6 +96,7 @@ if TYPE_CHECKING:
         PolarsSeriesEqualityTester,
     )
     from coola.equality.tester.pyarrow import PyarrowEqualityTester
+    from coola.equality.tester.pydantic import PydanticModelEqualityTester
     from coola.equality.tester.torch import (
         TorchPackedSequenceEqualityTester,
         TorchTensorEqualityTester,
@@ -119,6 +121,7 @@ _LAZY_EXPORTS = {
     "PolarsDataFrameEqualityTester": "coola.equality.tester.polars",
     "PolarsLazyFrameEqualityTester": "coola.equality.tester.polars",
     "PolarsSeriesEqualityTester": "coola.equality.tester.polars",
+    "PydanticModelEqualityTester": "coola.equality.tester.pydantic",
     "PyarrowEqualityTester": "coola.equality.tester.pyarrow",
     "TorchPackedSequenceEqualityTester": "coola.equality.tester.torch",
     "TorchTensorEqualityTester": "coola.equality.tester.torch",

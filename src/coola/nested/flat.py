@@ -14,7 +14,11 @@ _LEAF_SEQUENCES = (str, bytes, bytearray)
 
 
 def from_flat_dict(
-    data: dict[str, Any], separator: str = ".", restore_lists: bool = False
+    data: dict[str, Any],
+    *,
+    separator: str = ".",
+    restore_lists: bool = False,
+    escape: bool = False,
 ) -> dict[str, Any]:
     r"""Return a nested dict from a flat dict produced by
     ``to_flat_dict``.
@@ -39,6 +43,11 @@ def from_flat_dict(
             the original container type is not always recovered, and
             ``tuple`` objects come back as ``list`` objects.
             Defaults to ``False``.
+        escape: If ``True``, a backslash escapes the separator (and
+            the backslash itself) in the keys, as written by
+            ``to_flat_dict(..., escape=True)``, so the keys of the
+            original dict that contain the separator are restored.
+            If ``False`` (default), every separator splits the key.
 
     Returns:
         A nested ``dict``. The root is always a ``dict``, even with
@@ -78,12 +87,44 @@ def from_flat_dict(
         if not isinstance(flat_key, str):
             msg = f"Flat dict keys must be strings, got {flat_key!r} ({type(flat_key).__name__})"
             raise TypeError(msg)
-        segments = flat_key.split(separator)
+        segments = _split_key(flat_key, separator) if escape else flat_key.split(separator)
         _set_nested(nested, segments, value, flat_key, separator, created=created)
     if restore_lists:
         # The root is always a dict, only its children can become lists.
         return {key: _restore_lists(value) for key, value in nested.items()}
     return nested
+
+
+def _split_key(key: str, separator: str) -> list[str]:
+    """Split *key* on the separators that are not escaped.
+
+    A backslash followed by the separator or by a backslash gives the
+    separator or the backslash; any other backslash is kept.
+    """
+    segments: list[str] = []
+    current: list[str] = []
+    i = 0
+    while i < len(key):
+        if key[i] == "\\" and key.startswith("\\", i + 1):
+            current.append("\\")
+            i += 2
+        elif key[i] == "\\" and key.startswith(separator, i + 1):
+            current.append(separator)
+            i += 1 + len(separator)
+        elif key.startswith(separator, i):
+            segments.append("".join(current))
+            current = []
+            i += len(separator)
+        else:
+            current.append(key[i])
+            i += 1
+    segments.append("".join(current))
+    return segments
+
+
+def _escape_key(key: str, separator: str) -> str:
+    """Escape the backslashes and the separators of a key segment."""
+    return key.replace("\\", "\\\\").replace(separator, "\\" + separator)
 
 
 def _restore_lists(node: Any) -> Any:
@@ -169,9 +210,17 @@ def to_flat_dict(
     prefix: str | None = None,
     separator: str = ".",
     to_str: type | tuple[type, ...] | None = None,
+    *,
+    escape: bool = False,
 ) -> dict[str, Any]:
     r"""Return a flat representation of a nested structure as a dict
     using dotted keys.
+
+    The keys of the nested dicts are joined with ``separator``, so by
+    default a key that contains the separator is ambiguous:
+    ``{"a.b": 1}`` and ``{"a": {"b": 1}}`` give the same flat dict, and
+    ``from_flat_dict`` rebuilds the second one. Use ``escape=True`` to
+    keep them apart.
 
     Args:
         data: The nested structure to flatten. Any ``Mapping`` or
@@ -186,6 +235,12 @@ def to_flat_dict(
         to_str: A type or tuple of types that should be converted to
             their string representation instead of being recursed into.
             ``None`` (default) recurses into all supported containers.
+        escape: If ``True``, a backslash is added before every
+            separator and every backslash in the keys of the mappings
+            (the ``prefix`` is used as is), so that
+            ``from_flat_dict(..., escape=True)`` restores the keys that
+            contain the separator. If ``False`` (default), the keys are
+            joined as they are.
 
     Returns:
         A flat dictionary whose keys are the separator-joined
@@ -226,18 +281,27 @@ def to_flat_dict(
         ```
     """
     flat: dict[str, Any] = {}
-    _flatten_into(flat, data, prefix, separator, _normalize_to_str(to_str), ancestors=set())
+    _flatten_into(
+        flat=flat,
+        data=data,
+        prefix=prefix,
+        separator=separator,
+        to_str=_normalize_to_str(to_str),
+        ancestors=set(),
+        escape=escape,
+    )
     return flat
 
 
 def _flatten_into(
+    *,
     flat: dict[str, Any],
     data: object,
     prefix: str | None,
     separator: str,
     to_str: tuple[type, ...],
-    *,
     ancestors: set[int],
+    escape: bool,
 ) -> None:
     """Flatten *data* into the shared output dict *flat*.
 
@@ -254,6 +318,8 @@ def _flatten_into(
             rather than recursed into.
         ancestors: The ids of the containers being flattened, from the
             root to ``data``, used to detect the cycles.
+        escape: If ``True``, the separators and the backslashes of the
+            mapping keys are escaped.
 
     Raises:
         ValueError: If a leaf is reached with no key to store it under,
@@ -277,8 +343,17 @@ def _flatten_into(
     elif isinstance(data, Mapping):
         _check_no_cycle(data, ancestors)
         for key, value in cast("Mapping[Any, Any]", data).items():
-            child = _build_key(prefix, str(key), separator)
-            _flatten_into(flat, value, child, separator, to_str, ancestors=ancestors)
+            segment = _escape_key(str(key), separator) if escape else str(key)
+            child = _build_key(prefix, segment, separator)
+            _flatten_into(
+                flat=flat,
+                data=value,
+                prefix=child,
+                separator=separator,
+                to_str=to_str,
+                ancestors=ancestors,
+                escape=escape,
+            )
         ancestors.remove(id(data))
     # str, bytes and bytearray are Sequences, so they must be excluded before
     # the Sequence check to avoid iterating over individual characters or bytes.
@@ -286,7 +361,15 @@ def _flatten_into(
         _check_no_cycle(data, ancestors)
         for i, value in enumerate(cast("Sequence[Any]", data)):
             child = _build_key(prefix, str(i), separator)
-            _flatten_into(flat, value, child, separator, to_str, ancestors=ancestors)
+            _flatten_into(
+                flat=flat,
+                data=value,
+                prefix=child,
+                separator=separator,
+                to_str=to_str,
+                ancestors=ancestors,
+                escape=escape,
+            )
         ancestors.remove(id(data))
     elif prefix is None:
         msg = (

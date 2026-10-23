@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import contextlib
 from collections import OrderedDict, deque
+from typing import Any
 from unittest.mock import Mock
 
 import pytest
@@ -533,7 +534,9 @@ def test_from_flat_dict_restore_lists_is_off_by_default() -> None:
 
 
 def test_from_flat_dict_restore_lists_separator() -> None:
-    assert objects_are_equal(from_flat_dict({"a/0": 1, "a/1": 2}, "/", True), {"a": [1, 2]})
+    assert objects_are_equal(
+        from_flat_dict({"a/0": 1, "a/1": 2}, separator="/", restore_lists=True), {"a": [1, 2]}
+    )
 
 
 @pytest.mark.parametrize(
@@ -588,3 +591,96 @@ def test_from_flat_dict_dict_leaf_then_nested_does_not_mutate_input_input_is_not
 
 def test_from_flat_dict_dict_leaf_is_kept_with_restore_lists() -> None:
     assert from_flat_dict({"a": {"0": 1}}, restore_lists=True) == {"a": [1]}
+
+
+#######################################
+#     Tests for the escape option     #
+#######################################
+
+
+def test_to_flat_dict_escape_key_with_separator() -> None:
+    assert to_flat_dict({"a.b": 1}, escape=True) == {"a\\.b": 1}
+
+
+def test_to_flat_dict_escape_nested_and_dotted_keys_are_different() -> None:
+    assert to_flat_dict({"a.b": 1}, escape=True) != to_flat_dict({"a": {"b": 1}}, escape=True)
+
+
+def test_to_flat_dict_escape_nested_key_is_unchanged() -> None:
+    assert to_flat_dict({"a": {"b": 1}}, escape=True) == {"a.b": 1}
+
+
+def test_to_flat_dict_escape_backslash() -> None:
+    assert to_flat_dict({"a\\b": 1}, escape=True) == {"a\\\\b": 1}
+
+
+def test_to_flat_dict_escape_multi_character_separator() -> None:
+    assert to_flat_dict({"a::b": {"c": 1}}, separator="::", escape=True) == {"a\\::b::c": 1}
+
+
+def test_to_flat_dict_escape_key_in_a_list() -> None:
+    assert to_flat_dict([{"a.b": 1}], escape=True) == {"0.a\\.b": 1}
+
+
+def test_to_flat_dict_escape_prefix_is_not_escaped() -> None:
+    assert to_flat_dict({"a": 1}, prefix="x.y", escape=True) == {"x.y.a": 1}
+
+
+def test_to_flat_dict_escape_false_is_the_default() -> None:
+    assert to_flat_dict({"a.b": 1}) == {"a.b": 1}
+
+
+def test_from_flat_dict_escape_key_with_separator() -> None:
+    assert from_flat_dict({"a\\.b": 1}, escape=True) == {"a.b": 1}
+
+
+def test_from_flat_dict_escape_nested_key() -> None:
+    assert from_flat_dict({"a.b": 1}, escape=True) == {"a": {"b": 1}}
+
+
+def test_from_flat_dict_escape_backslash() -> None:
+    assert from_flat_dict({"a\\\\b": 1}, escape=True) == {"a\\b": 1}
+
+
+def test_from_flat_dict_escape_backslash_before_separator() -> None:
+    assert from_flat_dict({"a\\\\.b": 1}, escape=True) == {"a\\": {"b": 1}}
+
+
+def test_from_flat_dict_escape_lone_backslash_is_kept() -> None:
+    assert from_flat_dict({"a\\b": 1}, escape=True) == {"a\\b": 1}
+
+
+def test_from_flat_dict_escape_trailing_backslash_is_kept() -> None:
+    assert from_flat_dict({"a\\": 1}, escape=True) == {"a\\": 1}
+
+
+def test_from_flat_dict_escape_multi_character_separator() -> None:
+    assert from_flat_dict({"a\\::b::c": 1}, separator="::", escape=True) == {"a::b": {"c": 1}}
+
+
+def test_from_flat_dict_escape_false_splits_every_separator() -> None:
+    assert from_flat_dict({"a\\.b": 1}) == {"a\\": {"b": 1}}
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        {"a.b": 1, "c": {"d": 2}},
+        {"a\\b": 1},
+        {"a\\.b": {"c.d": [1, {"e.f": 2}]}},
+        {"": {"": 1}},
+        {"..": 1},
+    ],
+)
+def test_escape_round_trip(data: dict[str, Any]) -> None:
+    assert from_flat_dict(to_flat_dict(data, escape=True), escape=True, restore_lists=True) == data
+
+
+def test_from_flat_dict_separator_is_keyword_only() -> None:
+    with pytest.raises(TypeError, match="positional argument"):
+        from_flat_dict({"a/b": 1}, "/")
+
+
+def test_from_flat_dict_restore_lists_is_keyword_only() -> None:
+    with pytest.raises(TypeError, match="positional argument"):
+        from_flat_dict({"a.0": 1}, ".", True)
