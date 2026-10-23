@@ -199,10 +199,14 @@ class BaseRegistry(Generic[K, V]):
         if not is_same_type(other, self):
             return False
 
-        # Acquire locks in a consistent order based on object id to avoid deadlock
-        first, second = (self, other) if id(self) < id(other) else (other, self)
-        with first._lock, second._lock:
-            return objects_are_equal(self._state, other._state, equal_nan=equal_nan)
+        # Take a snapshot of each registry (one lock at a time), then compare without
+        # holding any lock: the comparison runs user code, which could wait for a lock
+        # held by another thread comparing the registries in the reverse order.
+        with self._lock:
+            state = self._get_snapshot()
+        with other._lock:
+            other_state = other._get_snapshot()
+        return objects_are_equal(state, other_state, equal_nan=equal_nan)
 
     def get(self, key: K, default: V | None = None) -> V | None:
         r"""Retrieve the value associated with a key.

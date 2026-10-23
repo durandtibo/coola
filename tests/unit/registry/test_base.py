@@ -313,3 +313,22 @@ def test_base_registry_items_keys_values_consistent_with_each_other() -> None:
     assert dict(registry.items()) == {"key1": 1, "key2": 2}
     assert list(registry.keys()) == ["key1", "key2"]
     assert list(registry.values()) == [1, 2]
+
+
+def test_base_registry_equal_does_not_hold_the_locks_during_the_comparison() -> None:
+    held: list[bool] = []
+
+    class Probe:
+        def __init__(self, registries: list[BaseRegistry]) -> None:
+            self.registries = registries
+
+        def __eq__(self, other: object) -> bool:
+            held.append(any(registry._lock._is_owned() for registry in self.registries))
+            return True
+
+    registries: list[BaseRegistry] = []
+    registry1 = BaseRegistry[str, Probe]({"a": Probe(registries)})
+    registry2 = BaseRegistry[str, Probe]({"a": Probe(registries)})
+    registries.extend([registry1, registry2])
+    registry1.equal(registry2)
+    assert held == [False]
