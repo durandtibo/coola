@@ -47,8 +47,14 @@ class SetSummarizer(BaseCollectionSummarizer[AbstractSet[Any]]):
         ```
     """
 
-    def _get_preview(self, data: AbstractSet[Any], limit: int) -> list[Any]:
-        return list(islice(iter(data), limit))
+    def _get_preview(self, data: AbstractSet[Any], limit: int) -> Any:
+        items = islice(iter(data), limit)
+        # The type is kept for the builtin sets, any other set is shown as a list.
+        if type(data) is set:
+            return set(items)
+        if type(data) is frozenset:
+            return frozenset(items)
+        return list(items)
 
     def _format_items(
         self,
