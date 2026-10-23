@@ -59,7 +59,11 @@ class NativeReducer(InlineDisplayMixin, NoArgsDisplayMixin, BaseBasicReducer[T])
     def _median(self, values: T) -> int | float:
         if _has_nan(values):
             return float("nan")
-        return median(values)
+        result = median(values)
+        if math.isinf(result) and all(math.isfinite(value) for value in values):
+            # The mean of the two middle values overflowed: halve the values first.
+            return median([value / 2 for value in values]) * 2
+        return result
 
     def _min(self, values: T) -> int | float:
         if _has_nan(values):
