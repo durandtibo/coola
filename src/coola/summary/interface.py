@@ -253,7 +253,8 @@ def _get_native_summarizers() -> dict[type, Summarizer[Any]]:
         object: default_summarizer,
         # Strings should not be iterated character by character
         str: default_summarizer,
-        # Numeric types - no recursion needed
+        # Numeric types - no recursion needed. The summarizers are resolved with the MRO, so
+        # ``object`` alone would be enough: these entries make the registry explicit.
         int: default_summarizer,
         float: default_summarizer,
         complex: default_summarizer,
@@ -316,7 +317,9 @@ def _get_jax_summarizers() -> dict[type, Summarizer[Any]]:
     if not is_jax_available():  # pragma: no cover
         return {}
     summarizer = JaxArraySummarizer()
-    return {jnp.ndarray: summarizer, type(jnp.ones(1)): summarizer}
+    # ``jnp.ndarray`` is ``jax.Array``, in the MRO of the concrete array class. Creating an
+    # array to get this class would initialize the JAX backend as a side effect.
+    return {jnp.ndarray: summarizer}
 
 
 def _get_pandas_summarizers() -> dict[type, Summarizer[Any]]:
