@@ -16,16 +16,15 @@ __all__ = [
     "SnowflakeIdGenerator",
     "extract_snowflake_timestamp_ms",
     "generate_snowflake_id",
-    "get_default_generator",
 ]
 
 import secrets
 import threading
 import time
-from functools import cache
 
 from coola.identifier.fork import track_fork
 from coola.identifier.validation import validate_bit_range
+from coola.utils.singleton import LazySingleton
 
 # Sleep briefly between spins while waiting for the next millisecond, to
 # avoid busy-waiting a full CPU core (and holding the lock) at 100%
@@ -214,47 +213,30 @@ class SnowflakeIdGenerator:
                 if self._sequence == 0:
                     # Sequence exhausted for this millisecond: spin-wait
                     # for the next one so the ID stays monotonically
-                    # increasing. The lock is released for the sleep
-                    # itself (re-acquired immediately after) rather than
-                    # held for the whole wait, so other threads calling
-                    # generate() get a chance to make progress between
-                    # spins instead of being blocked until the clock
-                    # ticks. Re-check for backward clock movement on
-                    # every spin, since the clock could jump backward
-                    # while this loop is running, which would otherwise
-                    # spin forever; and re-check the shared timestamp on
-                    # every spin too, in case another thread advanced it
-                    # (and possibly reset the sequence) while the lock
-                    # was released, so this call does not commit a
-                    # timestamp/sequence pair another thread already used.
+                    # increasing. The lock is held during the wait (at
+                    # most one millisecond): releasing it without
+                    # committing a timestamp lets another thread mint a
+                    # (timestamp, sequence) pair this call already used.
+                    # Re-check for backward clock movement on every spin,
+                    # since the clock could jump backward while this loop
+                    # is running, which would otherwise spin forever.
                     last_timestamp_ms = self._last_timestamp_ms
-                    entry_timestamp_ms = last_timestamp_ms
                     while timestamp_ms <= last_timestamp_ms:
-                        self._lock.release()
-                        try:
-                            time.sleep(_SPIN_SLEEP_S)
-                        finally:
-                            self._lock.acquire()
+                        time.sleep(_SPIN_SLEEP_S)
                         timestamp_ms = time.time_ns() // 1_000_000
                         if timestamp_ms < last_timestamp_ms:
                             # The sequence wrapped to 0 above, but no ID was minted: put
                             # it back, otherwise the next call at the same millisecond
                             # (once the clock is back) would mint again the IDs of the
-                            # sequence numbers 1, 2, ... that were already used. It is
-                            # left alone if another thread moved the state on.
-                            if self._last_timestamp_ms == entry_timestamp_ms:
-                                self._sequence = _MAX_SEQUENCE
+                            # sequence numbers 1, 2, ... that were already used.
+                            self._sequence = _MAX_SEQUENCE
                             msg = (
                                 f"clock moved backward: last timestamp was "
                                 f"{last_timestamp_ms} ms, got {timestamp_ms} ms"
                             )
                             raise RuntimeError(msg)
-                        last_timestamp_ms = max(last_timestamp_ms, self._last_timestamp_ms)
-                    # timestamp_ms is now strictly greater than every
-                    # last_timestamp_ms observed above (ours and any
-                    # other thread's), so the sequence restarts at 0
-                    # rather than keeping whatever another thread left it
-                    # at for its own (earlier) timestamp.
+                    # timestamp_ms is now strictly greater than the last
+                    # timestamp, so the sequence restarts at 0.
                     self._sequence = 0
             else:
                 self._sequence = 0
@@ -268,19 +250,22 @@ class SnowflakeIdGenerator:
         )
 
 
-@cache
+_default_generator: LazySingleton[SnowflakeIdGenerator] = LazySingleton(SnowflakeIdGenerator)
+
+
 def get_default_generator() -> SnowflakeIdGenerator:
     r"""Get or create the default, process-wide generator backing
     ``generate_snowflake_id``.
 
     Returns a singleton ``SnowflakeIdGenerator`` instance shared by
     every call to ``generate_snowflake_id``. Uses the same lazy,
-    ``functools.cache`` singleton pattern.
+    ``LazySingleton`` pattern, so concurrent first calls
+    build a single generator.
 
     Returns:
         The shared, process-wide ``SnowflakeIdGenerator`` instance.
     """
-    return SnowflakeIdGenerator()
+    return _default_generator.get()
 
 
 def generate_snowflake_id(worker_id: int = 0, timestamp_ms: int | None = None) -> int:

@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import threading
 import time
+from unittest.mock import patch
 
-from coola.identifier import SnowflakeIdGenerator
+from coola.identifier import SnowflakeIdGenerator, snowflake as module
 from coola.identifier.snowflake import _MAX_SEQUENCE
+from coola.utils.singleton import LazySingleton
 from tests.integration.helpers import run_threads
 
 ##########################################
@@ -50,3 +52,35 @@ def test_snowflake_id_generator_generate_thread_safe_during_sequence_rollover() 
 
     assert len(ids) == num_threads
     assert len(ids) == len(set(ids))
+
+
+###########################################
+#     Tests for get_default_generator     #
+###########################################
+
+
+def test_get_default_generator_thread_safe() -> None:
+    """Test that concurrent first calls build a single generator."""
+    built: list[SnowflakeIdGenerator] = []
+
+    def _factory() -> SnowflakeIdGenerator:
+        time.sleep(0.01)
+        generator = module.SnowflakeIdGenerator()
+        built.append(generator)
+        return generator
+
+    generators: list[SnowflakeIdGenerator] = []
+    lock = threading.Lock()
+    num_threads = 8
+
+    def _worker() -> None:
+        generator = module.get_default_generator()
+        with lock:
+            generators.append(generator)
+
+    with patch.object(module, "_default_generator", LazySingleton(_factory)):
+        run_threads([threading.Thread(target=_worker) for _ in range(num_threads)])
+
+    assert len(built) == 1
+    assert len(generators) == num_threads
+    assert all(generator is built[0] for generator in generators)

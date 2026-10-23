@@ -32,6 +32,12 @@ who can observe two ``(plaintext, obfuscated)`` pairs for a known
 ``salt`` (adjacent or not) can solve the resulting linear system for
 both constants. Do not rely on it to hide data from anyone who can query
 your API repeatedly under a fixed ``salt``.
+
+The map also leaks the parity of consecutive integers: ``multiplier`` is
+odd, so the lowest bit of the 64-bit value is ``(number + increment) & 1``
+and alternates for consecutive numbers. The ordering and the magnitude
+are hidden only as far as that structure allows; do not rely on this
+module to hide how many IDs were minted in a time window.
 """
 
 from __future__ import annotations
@@ -45,6 +51,7 @@ from coola.validation import validate_non_negative, validate_not_empty
 
 _BITS = 64
 _MASK = (1 << _BITS) - 1
+_MAX_ENCODED_LENGTH = 11  # 62**11 > 2**64 > 62**10
 _ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 _BASE = len(_ALPHABET)
 
@@ -66,10 +73,10 @@ def _multiplier_and_increment(salt: str) -> tuple[int, int]:
 
 
 def _encode_base62(number: int, min_length: int) -> str:
+    chars: list[str] = []
     if number == 0:
-        chars = ["0"]
+        chars.append(_ALPHABET[0])
     else:
-        chars: list[str] = []
         while number > 0:
             number, rem = divmod(number, _BASE)
             chars.append(_ALPHABET[rem])
@@ -157,7 +164,8 @@ def decode_obfuscated_id(encoded: str, salt: str = "") -> int:
     Raises:
         ValueError: If ``encoded`` is empty or contains a character
             outside the base62 alphabet used by
-            ``generate_obfuscated_id``, or if it encodes a value that
+            ``generate_obfuscated_id``, or if it has more than 11
+            significant characters or encodes a value that
             does not fit in 64 bits (``generate_obfuscated_id`` never
             produces such a string).
 
@@ -170,6 +178,11 @@ def decode_obfuscated_id(encoded: str, salt: str = "") -> int:
         ```
     """
     validate_not_empty(encoded, name="encoded")
+    if len(encoded.lstrip(_ALPHABET[0])) > _MAX_ENCODED_LENGTH:
+        # Checked before decoding: the big-integer decoding is quadratic.
+        # The leading zeros are the padding of ``min_length``.
+        msg = f"encoded does not encode a 64-bit value, got {encoded[:32]!r}..."
+        raise ValueError(msg)
     try:
         obfuscated = _decode_base62(encoded)
     except ValueError as error:
