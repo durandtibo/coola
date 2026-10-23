@@ -95,32 +95,32 @@ Self-referencing containers (e.g. a list that contains itself) raise a `ValueErr
 
 The default registry hashes **only** the following types (and their subclasses):
 
-| Type                                         | Notes                                                                                             |
-| -------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `str`                                        | UTF-8 text, no Unicode normalisation                                                              |
-| `bytes`, `bytearray`                         | A `bytes` and a `bytearray` with the same content hash differently                                |
-| `int`, `float`, `complex`, `bool`, `None`    | The `repr` of the builtin value, so a NumPy scalar that is a `float` hashes like the same `float` |
-| `Enum` (including `IntEnum`, `StrEnum`)      | The qualified class name and the member name, not the value                                       |
-| `list`, `tuple`, `deque`, other `Sequence`   | Order matters. One tag per family: a `list` and a `tuple` with the same items hash differently    |
-| `NamedTuple`                                 | Tagged with the class and field names, so it differs from a plain `tuple`                         |
-| `dict`, other `Mapping`                      | Independent of the order of the keys                                                              |
-| `OrderedDict`                                | Own tag. The order of the keys matters, like in `objects_are_equal`                               |
-| `set`, `frozenset`                           | Independent of the iteration order. A `set` and a `frozenset` hash differently                    |
-| `date`, `datetime`, `time`                   | ISO 8601 form, including the UTC offset when there is one                                         |
-| `timedelta`, `timezone`                      | The `repr` of the value                                                                           |
-| `uuid.UUID`, `zoneinfo.ZoneInfo`             | The string form (the UUID text, the zone key)                                                     |
-| `decimal.Decimal`                            | The normalised value: `Decimal('1.0')` and `Decimal('1.00')` have the same hash                   |
-| `fractions.Fraction`                         | The numerator and the denominator in lowest terms                                                 |
-| `range`                                      | The items, not the arguments: `range(0)` and `range(5, 5)` have the same hash, in constant time   |
-| NumPy scalars (`np.float32`, `np.int64`...)  | Like the equivalent builtin value: `np.float32(1.5)` hashes like `1.5`                            |
-| dataclass instances                          | The qualified class name and the fields, hashed through the registry                              |
-| objects with a `hash()` method               | The result of their `hash()` (see `SupportsHash`), tagged with the class name                     |
-| `pathlib.PurePath`, `pathlib.Path`           | The POSIX form of the path as written, without touching the filesystem                            |
-| pydantic `BaseModel` (if pydantic installed) | The qualified class name and the fields, hashed through the registry                              |
+| Type                                         | Notes                                                                                                                |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `str`                                        | UTF-8 text, no Unicode normalisation                                                                                 |
+| `bytes`, `bytearray`                         | A `bytes` and a `bytearray` with the same content hash differently                                                   |
+| `int`, `float`, `complex`, `bool`, `None`    | The `repr` of the builtin value, so a NumPy scalar that is a `float` hashes like the same `float`                    |
+| `Enum` (including `IntEnum`, `StrEnum`)      | The qualified class name and the member name, not the value                                                          |
+| `list`, `tuple`, `deque`, other `Sequence`   | Order matters. One tag per family: a `list` and a `tuple` with the same items hash differently                       |
+| `NamedTuple`                                 | Tagged with the class and field names, so it differs from a plain `tuple`                                            |
+| `dict`, other `Mapping`                      | Independent of the order of the keys                                                                                 |
+| `OrderedDict`                                | Own tag. The order of the keys matters, like in `objects_are_equal`                                                  |
+| `set`, `frozenset`                           | Independent of the iteration order. A `set` and a `frozenset` hash differently                                       |
+| `date`, `datetime`, `time`                   | ISO 8601 form, including the UTC offset when there is one                                                            |
+| `timedelta`, `timezone`                      | The `repr` of the value                                                                                              |
+| `uuid.UUID`, `zoneinfo.ZoneInfo`             | The string form (the UUID text, the zone key)                                                                        |
+| `decimal.Decimal`                            | The normalised value: `Decimal('1.0')` and `Decimal('1.00')` have the same hash                                      |
+| `fractions.Fraction`                         | The numerator and the denominator in lowest terms                                                                    |
+| `range`                                      | The items, not the arguments: `range(0)` and `range(5, 5)` have the same hash, in constant time                      |
+| NumPy scalars (`np.float32`, `np.int64`...)  | Like the equivalent builtin value: `np.float32(1.5)` hashes like `1.5`                                               |
+| dataclass instances                          | The qualified class name and the fields, hashed through the registry                                                 |
+| objects with a `hash()` method               | The result of their `hash()` (see `SupportsHash`), tagged with the class name                                        |
+| `pathlib.PurePath`, `pathlib.Path`           | The POSIX form of the path as written, without touching the filesystem                                               |
+| pydantic `BaseModel` (if pydantic installed) | The qualified class name and the fields, hashed through the registry                                                 |
 | `numpy.ndarray`, `torch.Tensor`, `jax.Array` | The dtype, the shape and the values (not the memory layout, the device or `requires_grad`); `-0.0` hashes like `0.0` |
-| `pandas`, `polars` data frames and series    | The names, the dtypes, the index (pandas) and the values                                          |
-| `pyarrow` arrays and tables                  | The names, the types and the values; the chunk layout is ignored                                  |
-| `xarray` `DataArray`, `Dataset`, `Variable`  | The dimensions, the values, the coordinates, the attributes and the name                          |
+| `pandas`, `polars` data frames and series    | The names, the dtypes, the index (pandas) and the values                                                             |
+| `pyarrow` arrays and tables                  | The names, the types and the values; the chunk layout is ignored                                                     |
+| `xarray` `DataArray`, `Dataset`, `Variable`  | The dimensions, the values, the coordinates, the attributes and the name                                             |
 
 The array libraries are only imported if they are installed. A NumPy array and a PyTorch tensor with
 the same content hash differently. Your own classes still need a registered hasher (a class with a

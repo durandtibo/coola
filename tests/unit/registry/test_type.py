@@ -380,20 +380,22 @@ def _resolve_all(registry: TypeRegistry[str], types: list[type]) -> None:
         registry.resolve(tp)
 
 
-def test_type_registry_resolve_cache_is_bounded() -> None:
-    """Test the resolve() cache never grows past 1024 entries."""
+def test_type_registry_resolve_cache_is_bounded(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test the resolve() cache never grows past its maximum size."""
+    monkeypatch.setattr("coola.registry.type._MAX_CACHE_SIZE", 8)
     registry = TypeRegistry[str]({object: "object"})
-    _resolve_all(registry, _make_types(1024))
-    assert len(registry._cache) == 1024
+    _resolve_all(registry, _make_types(8))
+    assert len(registry._cache) == 8
 
 
-def test_type_registry_resolve_cache_is_reset_when_full() -> None:
+def test_type_registry_resolve_cache_is_reset_when_full(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test the resolve() cache is reset when full."""
+    monkeypatch.setattr("coola.registry.type._MAX_CACHE_SIZE", 8)
     registry = TypeRegistry[str]({object: "object"})
-    types = _make_types(1025)
-    _resolve_all(registry, types[:1024])
-    registry.resolve(types[1024])
-    assert registry._cache == {types[1024]: "object"}
+    types = _make_types(9)
+    _resolve_all(registry, types[:8])
+    registry.resolve(types[8])
+    assert registry._cache == {types[8]: "object"}
 
 
 def test_type_registry_resolve_cache_snapshot_not_mutated() -> None:

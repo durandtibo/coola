@@ -104,3 +104,22 @@ def test_get_default_generator_thread_safe() -> None:
     assert len(built) == 1
     assert len(generators) == num_threads
     assert all(generator is built[0] for generator in generators)
+
+
+def test_snowflake_id_generator_generate_fills_the_sequence_within_one_millisecond() -> None:
+    """Test that a full sequence of IDs minted within the same
+    millisecond is consecutive."""
+    generator = SnowflakeIdGenerator()
+    fixed_ms = 1_800_000_000_000
+    with patch("time.time_ns", return_value=fixed_ms * 1_000_000):
+        ids = [generator.generate() for _ in range(_MAX_SEQUENCE + 1)]
+    assert ids[-1] == ids[0] + _MAX_SEQUENCE
+
+
+def test_snowflake_id_generator_generate_exhausts_the_sequence_with_unique_ids() -> None:
+    """Test that the whole sequence of a millisecond gives unique
+    identifiers."""
+    generator = SnowflakeIdGenerator()
+    with patch("time.time_ns", return_value=1_800_000_000_000 * 1_000_000):
+        ids = {generator.generate() for _ in range(_MAX_SEQUENCE + 1)}
+    assert len(ids) == _MAX_SEQUENCE + 1

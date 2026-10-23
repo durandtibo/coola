@@ -653,3 +653,21 @@ def test_type_registry_cache_invalidated_by_concurrent_register_and_unregister()
     assert not errors, f"Errors occurred: {errors}"
     # The last operation was an unregister, so the cache must not keep "dog".
     assert registry.resolve(Poodle) == "base"
+
+
+def test_type_registry_resolve_cache_is_bounded_at_the_default_size() -> None:
+    """Test that the resolve() cache never grows past 1024 entries."""
+    registry = TypeRegistry[str]({object: "object"})
+    for tp in create_classes(1024):
+        registry.resolve(tp)
+    assert len(registry._cache) == 1024
+
+
+def test_type_registry_resolve_cache_is_reset_at_the_default_size() -> None:
+    """Test that the resolve() cache is reset when it holds 1024
+    entries."""
+    registry = TypeRegistry[str]({object: "object"})
+    classes = create_classes(1025)
+    for tp in classes:
+        registry.resolve(tp)
+    assert registry._cache == {classes[1024]: "object"}
