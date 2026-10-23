@@ -74,6 +74,23 @@ def test_using_the_registries_with_builtin_types_does_not_import_the_optional_li
     assert loaded_libraries(statement) == []
 
 
+@pytest.mark.parametrize(
+    "statement",
+    [
+        "from coola.equality.tester import get_default_registry as f; repr(f())",
+        "from coola.equality.tester import get_default_registry as f; str(f())",
+        "from coola.hashing import get_default_registry as f; repr(f())",
+        "from coola.summary import get_default_registry as f; repr(f())",
+    ],
+)
+def test_displaying_a_default_registry_does_not_import_the_optional_libraries(
+    statement: str,
+) -> None:
+    """Test that the repr of a default registry does not load the
+    entries of the optional libraries."""
+    assert loaded_libraries(statement) == []
+
+
 @numpy_available
 @pytest.mark.parametrize(
     "statement",

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+from unittest.mock import Mock
 
 import pytest
 
@@ -253,6 +254,57 @@ def test_base_registry_str_uses_cached_snapshot() -> None:
     registry = BaseRegistry[str, int]({"key1": 1, "key2": 2})
     str(registry)
     assert registry._snapshot is registry._get_snapshot()
+
+
+def test_base_registry_repr_does_not_load_the_lazy_groups() -> None:
+    """Test that ``__repr__`` does not call the factory of a lazy
+    group."""
+    factory = Mock(return_value={"key2": 2})
+    registry = BaseRegistry[str, int]({"key1": 1})
+    registry.register_lazy("group", factory)
+    repr(registry)
+    factory.assert_not_called()
+
+
+def test_base_registry_repr_lists_the_lazy_groups() -> None:
+    """Test that ``__repr__`` lists the groups that are not loaded."""
+    registry = BaseRegistry[str, int]({"key1": 1})
+    registry.register_lazy("group", lambda: {"key2": 2})
+    assert repr(registry) == "BaseRegistry(\n  (key1): 1\n  <not loaded: group>\n)"
+
+
+def test_base_registry_repr_only_lazy_groups() -> None:
+    """Test that ``__repr__`` has no empty line when no entry is
+    loaded."""
+    registry = BaseRegistry[str, int]()
+    registry.register_lazy(["b", "a"], lambda: {"key": 1})
+    assert repr(registry) == "BaseRegistry(\n  <not loaded: a, b>\n)"
+
+
+def test_base_registry_repr_after_loading_shows_the_entries() -> None:
+    """Test that ``__repr__`` shows the entries of a group once it is
+    loaded."""
+    registry = BaseRegistry[str, int]()
+    registry.register_lazy("group", lambda: {"key": 1})
+    len(registry)
+    assert repr(registry) == "BaseRegistry(\n  (key): 1\n)"
+
+
+def test_base_registry_str_does_not_load_the_lazy_groups() -> None:
+    """Test that ``__str__`` does not call the factory of a lazy
+    group."""
+    factory = Mock(return_value={"key2": 2})
+    registry = BaseRegistry[str, int]({"key1": 1})
+    registry.register_lazy("group", factory)
+    str(registry)
+    factory.assert_not_called()
+
+
+def test_base_registry_str_lists_the_lazy_groups() -> None:
+    """Test that ``__str__`` lists the groups that are not loaded."""
+    registry = BaseRegistry[str, int]({"key1": 1})
+    registry.register_lazy("group", lambda: {"key2": 2})
+    assert str(registry) == "BaseRegistry(\n  (key1): 1\n  <not loaded: group>\n)"
 
 
 def _iterate_and_register(registry: BaseRegistry[str, int]) -> list[str]:
