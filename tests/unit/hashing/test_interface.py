@@ -7,7 +7,7 @@ from datetime import UTC, date, datetime
 from decimal import Decimal
 from fractions import Fraction
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
@@ -34,7 +34,7 @@ from coola.hashing.interface import _register_default_hashers
 from coola.hashing.pydantic import PydanticModelHasher
 from coola.registry import AlreadyRegisteredError, TypeNotRegisteredError
 from coola.testing.fixtures import numpy_available, pydantic_available
-from coola.utils.imports import is_pydantic_available
+from coola.utils.imports import import_object, is_pydantic_available
 from tests.unit.hashing.helpers import Unhashable
 
 if is_pydantic_available():
@@ -345,25 +345,20 @@ def test_register_default_hashers_registers_pydantic_model_when_available() -> N
     assert isinstance(registry.find_hasher(pydantic.BaseModel), PydanticModelHasher)
 
 
-def _register_default_hashers_without_pydantic() -> tuple[HasherRegistry, Mock]:
-    registry = HasherRegistry()
-    with (
-        patch("coola.hashing.interface.is_pydantic_available", lambda: False),
-        patch("coola.hashing.interface.PydanticModelHasher") as hasher_cls,
-    ):
-        _register_default_hashers(registry)
-    return registry, hasher_cls
-
-
+@pydantic_available
+@patch("coola.hashing.interface.package_available", lambda name: False)  # noqa: ARG005
 def test_register_default_hashers_skips_pydantic_model_when_unavailable() -> None:
-    _, hasher_cls = _register_default_hashers_without_pydantic()
-    hasher_cls.assert_not_called()
+    registry = HasherRegistry()
+    _register_default_hashers(registry)
+    assert not registry.has_hasher(pydantic.BaseModel)
 
 
+@patch("coola.hashing.interface.package_available", lambda name: False)  # noqa: ARG005
 def test_register_default_hashers_registers_the_other_hashers_when_pydantic_is_unavailable() -> (
     None
 ):
-    registry, _ = _register_default_hashers_without_pydantic()
+    registry = HasherRegistry()
+    _register_default_hashers(registry)
     assert registry.has_hasher(list)
 
 
@@ -711,3 +706,56 @@ def test_hash_object_hash_method_without_signature_raises() -> None:
         pytest.raises(TypeNotRegisteredError, match="register a hasher"),
     ):
         hash_object(_OtherHash())
+
+
+#############################################
+#     Tests for the lazy hashers     #
+#############################################
+
+LAZY_MODULES = [
+    pytest.param("coola.hashing.jax", ("jax", "jaxlib"), id="jax"),
+    pytest.param("coola.hashing.numpy", ("numpy",), id="numpy"),
+    pytest.param("coola.hashing.pandas", ("pandas",), id="pandas"),
+    pytest.param("coola.hashing.polars", ("polars",), id="polars"),
+    pytest.param("coola.hashing.pyarrow", ("pyarrow",), id="pyarrow"),
+    pytest.param("coola.hashing.torch", ("torch",), id="torch"),
+    pytest.param("coola.hashing.xarray", ("xarray",), id="xarray"),
+    pytest.param("coola.hashing.pydantic", ("pydantic",), id="pydantic"),
+]
+
+LAZY_MODULE_NAMES = [
+    "coola.hashing.jax",
+    "coola.hashing.numpy",
+    "coola.hashing.pandas",
+    "coola.hashing.polars",
+    "coola.hashing.pyarrow",
+    "coola.hashing.torch",
+    "coola.hashing.xarray",
+    "coola.hashing.pydantic",
+]
+
+
+@pytest.mark.parametrize(("module", "names"), LAZY_MODULES)
+def test_get_default_hashers_types_come_from_the_library(
+    module: str, names: tuple[str, ...]
+) -> None:
+    """Test that the lazy group is loaded for each type that it
+    registers."""
+    pytest.importorskip(names[0])
+    mapping = import_object(f"{module}:get_default_hashers")()
+    assert {t.__module__.partition(".")[0] for t in mapping} <= set(names)
+
+
+@pytest.mark.parametrize(("module", "names"), LAZY_MODULES)
+def test_get_default_hashers_returns_entries_if_the_library_is_available(
+    module: str, names: tuple[str, ...]
+) -> None:
+    pytest.importorskip(names[0])
+    assert len(import_object(f"{module}:get_default_hashers")()) > 0
+
+
+@pytest.mark.parametrize("module", LAZY_MODULE_NAMES)
+def test_get_default_hashers_returns_nothing_if_the_library_is_unavailable(module: str) -> None:
+    name = module.rpartition(".")[2]
+    with patch(f"{module}.is_{name}_available", lambda: False):
+        assert import_object(f"{module}:get_default_hashers")() == {}

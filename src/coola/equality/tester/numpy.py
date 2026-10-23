@@ -9,7 +9,7 @@ from __future__ import annotations
 
 __all__ = ["NumpyArrayEqualityTester", "NumpyMaskedArrayEqualityTester"]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler import (
     NumpyArrayEqualHandler,
@@ -23,6 +23,7 @@ from coola.equality.handler import (
     create_chain,
 )
 from coola.equality.tester.chain import BaseChainEqualityTester
+from coola.equality.tester.scalar import ScalarEqualityTester
 from coola.utils.imports import check_numpy, is_numpy_available
 
 if TYPE_CHECKING or is_numpy_available():
@@ -32,6 +33,7 @@ else:  # pragma: no cover
 
 if TYPE_CHECKING:
     from coola.equality.handler import BaseEqualityHandler
+    from coola.equality.tester.base import BaseEqualityTester
 
 
 class NumpyArrayEqualityTester(BaseChainEqualityTester[np.ndarray]):
@@ -165,3 +167,30 @@ class NumpyMaskedArrayEqualityTester(BaseChainEqualityTester[np.ma.MaskedArray])
             SameAttributeHandler("fill_value"),
             TrueHandler(),
         )
+
+
+def get_default_testers() -> dict[type, BaseEqualityTester[Any]]:
+    r"""Get the default equality testers of the NumPy arrays and scalars.
+
+    Returns:
+        The equality testers of the NumPy arrays and scalars and their associated types.
+
+    Notes:
+        This function is called by the default registry the first time it
+        needs the equality testers of the NumPy arrays and scalars.
+    """
+    if not is_numpy_available():
+        return {}
+
+    scalar = ScalarEqualityTester()
+    return {
+        # NumPy scalars use the scalar tester to get the tolerance and ``equal_nan``;
+        # without it, ``==`` is used and both are ignored. ``np.float64`` is also a
+        # ``float``, the other types (``np.float32``, ``np.int64``...) are not.
+        # ``np.bool_`` is not registered: a boolean has no tolerance.
+        np.floating: scalar,
+        np.integer: scalar,
+        np.complexfloating: scalar,
+        np.ndarray: NumpyArrayEqualityTester(),
+        np.ma.MaskedArray: NumpyMaskedArrayEqualityTester(),
+    }

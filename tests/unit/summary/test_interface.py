@@ -41,6 +41,7 @@ from coola.testing.fixtures import (
     xarray_available,
 )
 from coola.utils.imports import (
+    import_object,
     is_jax_available,
     is_numpy_available,
     is_pandas_available,
@@ -305,54 +306,6 @@ def test_get_default_registry_singleton_persists_modifications_across_calls() ->
     assert get_default_registry().has_summarizer(CustomList)
 
 
-def _get_registry_with_fake_numpy(
-    fake_ndarray: type, fake_summarizer: object
-) -> SummarizerRegistry:
-    with (
-        patch("coola.summary.interface.is_numpy_available", lambda: True),
-        patch("coola.summary.interface.is_torch_available", lambda: False),
-        patch("coola.summary.interface.np", Mock(ndarray=fake_ndarray), create=True),
-        patch("coola.summary.interface.NDArraySummarizer", Mock(return_value=fake_summarizer)),
-    ):
-        return get_default_registry()
-
-
-def test_get_default_registry_registers_numpy_summarizer_when_numpy_available() -> None:
-    fake_ndarray = type("FakeNDArray", (), {})
-    registry = _get_registry_with_fake_numpy(fake_ndarray, object())
-    assert registry.has_summarizer(fake_ndarray)
-
-
-def test_get_default_registry_registers_the_numpy_summarizer() -> None:
-    fake_ndarray = type("FakeNDArray", (), {})
-    fake_summarizer = object()
-    registry = _get_registry_with_fake_numpy(fake_ndarray, fake_summarizer)
-    assert registry.find_summarizer(fake_ndarray) is fake_summarizer
-
-
-def _get_registry_with_fake_torch(fake_tensor: type, fake_summarizer: object) -> SummarizerRegistry:
-    with (
-        patch("coola.summary.interface.is_torch_available", lambda: True),
-        patch("coola.summary.interface.is_numpy_available", lambda: False),
-        patch("coola.summary.interface.torch", Mock(Tensor=fake_tensor), create=True),
-        patch("coola.summary.interface.TensorSummarizer", Mock(return_value=fake_summarizer)),
-    ):
-        return get_default_registry()
-
-
-def test_get_default_registry_registers_torch_summarizer_when_torch_available() -> None:
-    fake_tensor = type("FakeTensor", (), {})
-    registry = _get_registry_with_fake_torch(fake_tensor, object())
-    assert registry.has_summarizer(fake_tensor)
-
-
-def test_get_default_registry_registers_the_torch_summarizer() -> None:
-    fake_tensor = type("FakeTensor", (), {})
-    fake_summarizer = object()
-    registry = _get_registry_with_fake_torch(fake_tensor, fake_summarizer)
-    assert registry.find_summarizer(fake_tensor) is fake_summarizer
-
-
 @pandas_available
 def test_get_default_registry_pandas_summarizers_dataframe() -> None:
     registry = get_default_registry()
@@ -431,13 +384,6 @@ def test_get_default_registry_jax_summarizers_array_type() -> None:
     assert isinstance(registry.find_summarizer(type(jnp.ones(1))), JaxArraySummarizer)
 
 
-@jax_available
-def test_get_jax_summarizers_does_not_create_an_array() -> None:
-    with patch("jax.numpy.ones", side_effect=AssertionError("array created")):
-        summarizers = summary_interface._get_jax_summarizers()
-    assert set(summarizers) == {jnp.ndarray}
-
-
 @pandas_available
 @polars_available
 @pyarrow_available
@@ -461,13 +407,13 @@ def test_summarize_nested_structure_with_dataframes_polars() -> None:
 
 
 @pytest.mark.parametrize(
-    ("name", "data_type"),
+    "data_type",
     [
-        pytest.param("is_jax_available", jnp.ndarray, id="jax"),
-        pytest.param("is_pandas_available", pd.DataFrame, id="pandas"),
-        pytest.param("is_polars_available", pl.DataFrame, id="polars"),
-        pytest.param("is_pyarrow_available", pa.Table, id="pyarrow"),
-        pytest.param("is_xarray_available", xr.Dataset, id="xarray"),
+        pytest.param(jnp.ndarray, id="jax"),
+        pytest.param(pd.DataFrame, id="pandas"),
+        pytest.param(pl.DataFrame, id="polars"),
+        pytest.param(pa.Table, id="pyarrow"),
+        pytest.param(xr.Dataset, id="xarray"),
     ],
 )
 @jax_available
@@ -475,13 +421,64 @@ def test_summarize_nested_structure_with_dataframes_polars() -> None:
 @polars_available
 @pyarrow_available
 @xarray_available
-def test_register_default_summarizers_without_optional_package(name: str, data_type: type) -> None:
+@patch("coola.summary.interface.package_available", lambda name: False)  # noqa: ARG005
+def test_register_default_summarizers_without_optional_package(data_type: type) -> None:
     registry = SummarizerRegistry()
-    with patch(f"coola.summary.interface.{name}", lambda: False):
-        summary_interface._register_default_summarizers(registry)
+    summary_interface._register_default_summarizers(registry)
     assert not registry.has(data_type)
 
 
 def test_summarize_negative_max_depth_raises() -> None:
     with pytest.raises(ValueError, match="max_depth must be non-negative"):
         summarize([1, 2], max_depth=-1)
+
+
+#############################################
+#     Tests for the lazy summarizers     #
+#############################################
+
+LAZY_MODULES = [
+    pytest.param("coola.summary.jax", ("jax", "jaxlib"), id="jax"),
+    pytest.param("coola.summary.numpy", ("numpy",), id="numpy"),
+    pytest.param("coola.summary.pandas", ("pandas",), id="pandas"),
+    pytest.param("coola.summary.polars", ("polars",), id="polars"),
+    pytest.param("coola.summary.pyarrow", ("pyarrow",), id="pyarrow"),
+    pytest.param("coola.summary.torch", ("torch",), id="torch"),
+    pytest.param("coola.summary.xarray", ("xarray",), id="xarray"),
+]
+
+LAZY_MODULE_NAMES = [
+    "coola.summary.jax",
+    "coola.summary.numpy",
+    "coola.summary.pandas",
+    "coola.summary.polars",
+    "coola.summary.pyarrow",
+    "coola.summary.torch",
+    "coola.summary.xarray",
+]
+
+
+@pytest.mark.parametrize(("module", "names"), LAZY_MODULES)
+def test_get_default_summarizers_types_come_from_the_library(
+    module: str, names: tuple[str, ...]
+) -> None:
+    """Test that the lazy group is loaded for each type that it
+    registers."""
+    pytest.importorskip(names[0])
+    mapping = import_object(f"{module}:get_default_summarizers")()
+    assert {t.__module__.partition(".")[0] for t in mapping} <= set(names)
+
+
+@pytest.mark.parametrize(("module", "names"), LAZY_MODULES)
+def test_get_default_summarizers_returns_entries_if_the_library_is_available(
+    module: str, names: tuple[str, ...]
+) -> None:
+    pytest.importorskip(names[0])
+    assert len(import_object(f"{module}:get_default_summarizers")()) > 0
+
+
+@pytest.mark.parametrize("module", LAZY_MODULE_NAMES)
+def test_get_default_summarizers_returns_nothing_if_the_library_is_unavailable(module: str) -> None:
+    name = module.rpartition(".")[2]
+    with patch(f"{module}.is_{name}_available", lambda: False):
+        assert import_object(f"{module}:get_default_summarizers")() == {}

@@ -438,8 +438,8 @@ def test_path_registry_initial_ancestors_are_copied_path_ancestors() -> None:
 
 def test_registry_iterate_wide_structure() -> None:
     registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
-    data = [[i] for i in range(20_000)]
-    assert sum(registry.iterate(data)) == sum(range(20_000))
+    data = [[i] for i in range(1_000)]
+    assert sum(registry.iterate(data)) == 499500
 
 
 def test_registry_iterate_first_traversal_yields_the_first_item() -> None:

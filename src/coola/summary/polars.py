@@ -8,7 +8,7 @@ from __future__ import annotations
 
 __all__ = ["PolarsDataFrameSummarizer", "PolarsLazyFrameSummarizer", "PolarsSeriesSummarizer"]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.summary.metadata import BaseFieldsSummarizer, BaseMetadataSummarizer
 from coola.utils.imports import check_polars, is_polars_available
@@ -17,6 +17,10 @@ if TYPE_CHECKING or is_polars_available():
     import polars as pl
 else:  # pragma: no cover
     from coola.utils.fallback.polars import polars as pl
+
+
+if TYPE_CHECKING:
+    from coola.summary.base import Summarizer
 
 
 class PolarsDataFrameSummarizer(BaseFieldsSummarizer[pl.DataFrame]):
@@ -127,3 +131,23 @@ class PolarsSeriesSummarizer(BaseMetadataSummarizer[pl.Series]):
 
     def _describe(self, data: pl.Series) -> list[str]:
         return [f"shape={data.shape}", f"dtype={data.dtype}", f"name={data.name!r}"]
+
+
+def get_default_summarizers() -> dict[type, Summarizer[Any]]:
+    r"""Get the default summarizers of the polars objects.
+
+    Returns:
+        The summarizers of the polars objects and their associated types.
+
+    Notes:
+        This function is called by the default registry the first time it
+        needs the summarizers of the polars objects.
+    """
+    if not is_polars_available():
+        return {}
+
+    return {
+        pl.DataFrame: PolarsDataFrameSummarizer(),
+        pl.LazyFrame: PolarsLazyFrameSummarizer(),
+        pl.Series: PolarsSeriesSummarizer(),
+    }

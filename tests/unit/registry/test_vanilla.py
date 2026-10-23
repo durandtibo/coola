@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from unittest.mock import Mock
+
 import pytest
 
 from coola.registry import AlreadyRegisteredError, Registry
@@ -413,3 +415,133 @@ def test_registry_with_complex_values_second_value() -> None:
     registry.register("list1", [1, 2, 3])
     registry.register("list2", ["a", "b", "c"])
     assert registry.get("list2") == ["a", "b", "c"]
+
+
+###########################################
+#     Tests for the lazy registration     #
+###########################################
+
+
+def test_registry_register_lazy_does_not_call_the_factory() -> None:
+    factory = Mock(return_value={"a": 1})
+    registry = Registry[str, int]()
+    registry.register_lazy("group", factory)
+    factory.assert_not_called()
+
+
+def test_registry_register_lazy_len_loads_the_entries() -> None:
+    registry = Registry[str, int]()
+    registry.register_lazy("group", lambda: {"a": 1, "b": 2})
+    assert len(registry) == 2
+
+
+def test_registry_register_lazy_get_loads_the_entries() -> None:
+    registry = Registry[str, int]()
+    registry.register_lazy("group", lambda: {"a": 1})
+    assert registry.get("a") == 1
+
+
+def test_registry_register_lazy_has_loads_the_entries() -> None:
+    registry = Registry[str, int]()
+    registry.register_lazy("group", lambda: {"a": 1})
+    assert registry.has("a")
+
+
+def test_registry_register_lazy_getitem_loads_the_entries() -> None:
+    registry = Registry[str, int]()
+    registry.register_lazy("group", lambda: {"a": 1})
+    assert registry["a"] == 1
+
+
+def test_registry_register_lazy_iter_loads_the_entries() -> None:
+    registry = Registry[str, int]()
+    registry.register_lazy("group", lambda: {"a": 1, "b": 2})
+    assert list(registry) == ["a", "b"]
+
+
+def test_registry_register_lazy_items_loads_the_entries() -> None:
+    registry = Registry[str, int]()
+    registry.register_lazy("group", lambda: {"a": 1})
+    assert dict(registry.items()) == {"a": 1}
+
+
+def test_registry_register_lazy_repr_loads_the_entries() -> None:
+    registry = Registry[str, int]()
+    registry.register_lazy("group", lambda: {"a": 1})
+    assert "a" in repr(registry)
+
+
+def test_registry_register_lazy_unregister_loads_the_entries() -> None:
+    registry = Registry[str, int]()
+    registry.register_lazy("group", lambda: {"a": 1})
+    assert registry.unregister("a") == 1
+
+
+def test_registry_register_lazy_register_loads_the_entries() -> None:
+    registry = Registry[str, int]()
+    registry.register_lazy("group", lambda: {"a": 1})
+    with pytest.raises(AlreadyRegisteredError, match="already registered"):
+        registry.register("a", 2)
+
+
+def test_registry_register_lazy_register_many_loads_the_entries() -> None:
+    registry = Registry[str, int]()
+    registry.register_lazy("group", lambda: {"a": 1})
+    with pytest.raises(AlreadyRegisteredError, match="already registered"):
+        registry.register_many({"a": 2})
+
+
+def test_registry_register_lazy_equal_loads_the_entries_of_both_registries() -> None:
+    registry1 = Registry[str, int]()
+    registry1.register_lazy("group", lambda: {"a": 1})
+    registry2 = Registry[str, int]({"a": 1})
+    assert registry1.equal(registry2)
+
+
+def test_registry_register_lazy_calls_the_factory_once() -> None:
+    factory = Mock(return_value={"a": 1})
+    registry = Registry[str, int]()
+    registry.register_lazy("group", factory)
+    len(registry)
+    len(registry)
+    factory.assert_called_once_with()
+
+
+def test_registry_register_lazy_does_not_replace_a_registered_key() -> None:
+    registry = Registry[str, int]({"a": 1})
+    registry.register_lazy("group", lambda: {"a": 2, "b": 3})
+    assert dict(registry.items()) == {"a": 1, "b": 3}
+
+
+def test_registry_register_lazy_names_load_the_group_once() -> None:
+    factory = Mock(return_value={"a": 1})
+    registry = Registry[str, int]()
+    registry.register_lazy(("group1", "group2"), factory)
+    len(registry)
+    factory.assert_called_once_with()
+
+
+def test_registry_register_lazy_imports_the_factory_when_it_is_a_path() -> None:
+    registry = Registry[str, int]()
+    registry.register_lazy("group", "tests.unit.registry.test_vanilla:lazy_entries")
+    assert registry.get("a") == 1
+
+
+def test_registry_register_lazy_clear_removes_the_entries_that_are_not_loaded() -> None:
+    registry = Registry[str, int]()
+    registry.register_lazy("group", lambda: {"a": 1})
+    registry.clear()
+    assert len(registry) == 0
+
+
+def test_registry_register_lazy_keeps_the_group_if_the_factory_fails() -> None:
+    factory = Mock(side_effect=[ImportError("failed"), {"a": 1}])
+    registry = Registry[str, int]()
+    registry.register_lazy("group", factory)
+    with pytest.raises(ImportError, match="failed"):
+        len(registry)
+    assert registry.get("a") == 1
+
+
+def lazy_entries() -> dict[str, int]:
+    return {"a": 1}

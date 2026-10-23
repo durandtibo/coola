@@ -30,6 +30,7 @@ else:  # pragma: no cover
 
 if TYPE_CHECKING:
     from coola.equality.handler import BaseEqualityHandler
+    from coola.equality.tester.base import BaseEqualityTester
 
 
 class JaxArrayEqualityTester(BaseChainEqualityTester[jnp.ndarray]):
@@ -92,3 +93,20 @@ def get_array_impl_class() -> type:
         is used to register the concrete JAX array type in the default registry.
     """
     return cast("type", cast("Any", jnp).ones(1).__class__)
+
+
+def get_default_testers() -> dict[type, BaseEqualityTester[Any]]:
+    r"""Get the default equality testers of the JAX arrays.
+
+    Returns:
+        The equality testers of the JAX arrays and their associated types.
+
+    Notes:
+        This function is called by the default registry the first time it
+        needs the equality testers of the JAX arrays.
+    """
+    if not is_jax_available():
+        return {}
+
+    tester = JaxArrayEqualityTester()
+    return {jnp.ndarray: tester, get_array_impl_class(): tester}

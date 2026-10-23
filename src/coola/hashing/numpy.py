@@ -4,11 +4,12 @@ from __future__ import annotations
 
 __all__ = ["NumpyArrayHasher", "hash_array_content"]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.bytes import hash_bytes
+from coola.hashing.repr import ReprHasher
 from coola.hashing.string import hash_tagged
 from coola.utils.imports import is_numpy_available
 
@@ -18,6 +19,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.numpy import numpy as np
 
 if TYPE_CHECKING:
+    from coola.hashing.base import Hasher
     from coola.hashing.registry import HasherRegistry
 
 
@@ -95,3 +97,26 @@ def hash_array_content(
             128.
     """
     return hash_tagged(tag, f"{dtype}\0{tuple(shape)}\0{content_hash}", length=length)
+
+
+def get_default_hashers() -> dict[type, Hasher[Any]]:
+    r"""Get the default hashers of the NumPy arrays and scalars.
+
+    Returns:
+        The hashers of the NumPy arrays and scalars and their associated types.
+
+    Notes:
+        This function is called by the default registry the first time it
+        needs the hashers of the NumPy arrays and scalars.
+    """
+    if not is_numpy_available():
+        return {}
+    # The NumPy scalars are hashed like the equivalent builtin values.
+    hasher = ReprHasher()
+    return {
+        np.ndarray: NumpyArrayHasher(),
+        np.bool_: hasher,
+        np.integer: hasher,
+        np.floating: hasher,
+        np.complexfloating: hasher,
+    }

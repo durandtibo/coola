@@ -16,6 +16,7 @@ from coola.utils.imports import is_pydantic_available
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from coola.hashing.base import Hasher
     from coola.hashing.registry import HasherRegistry
 
 if TYPE_CHECKING or is_pydantic_available():
@@ -331,3 +332,19 @@ def _hash_pydantic_model(
     resolved = unwrap_secrets(fields, on_secret=on_secret, on_model=hash_nested)
     digest = registry.hash(resolved, length=length, ignore_unhashable=ignore_unhashable)
     return hash_tagged(f"pydantic:{cls.__module__}.{cls.__qualname__}", digest, length=length)
+
+
+def get_default_hashers() -> dict[type, Hasher[Any]]:
+    r"""Get the default hashers of the pydantic models.
+
+    Returns:
+        The hashers of the pydantic models and their associated types.
+
+    Notes:
+        This function is called by the default registry the first time it
+        needs the hashers of the pydantic models.
+    """
+    if not is_pydantic_available():
+        return {}
+    # Pydantic models - the fields are hashed through the registry.
+    return {pydantic.BaseModel: PydanticModelHasher()}

@@ -4,15 +4,20 @@ from __future__ import annotations
 
 __all__ = ["PolarsDataFrameHasher", "PolarsSeriesHasher"]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_tagged
+from coola.utils.imports import is_polars_available
+
+if TYPE_CHECKING or is_polars_available():
+    import polars as pl
+else:  # pragma: no cover
+    from coola.utils.fallback.polars import polars as pl
 
 if TYPE_CHECKING:
-    import polars as pl
-
+    from coola.hashing.base import Hasher
     from coola.hashing.registry import HasherRegistry
 
 
@@ -90,3 +95,18 @@ class PolarsDataFrameHasher(InlineDisplayMixin, BaseHasher["pl.DataFrame"]):
     ) -> str:
         parts = [_hash_series(s, registry, length, ignore_unhashable) for s in data.get_columns()]
         return hash_tagged("polars.DataFrame", "\0".join(parts), length=length)
+
+
+def get_default_hashers() -> dict[type, Hasher[Any]]:
+    r"""Get the default hashers of the polars objects.
+
+    Returns:
+        The hashers of the polars objects and their associated types.
+
+    Notes:
+        This function is called by the default registry the first time it
+        needs the hashers of the polars objects.
+    """
+    if not is_polars_available():
+        return {}
+    return {pl.Series: PolarsSeriesHasher(), pl.DataFrame: PolarsDataFrameHasher()}

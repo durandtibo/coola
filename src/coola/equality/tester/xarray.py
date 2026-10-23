@@ -13,7 +13,7 @@ __all__ = [
     "XarrayVariableEqualityTester",
 ]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler import (
     SameAttributeHandler,
@@ -33,6 +33,7 @@ else:  # pragma: no cover
 
 if TYPE_CHECKING:
     from coola.equality.handler import BaseEqualityHandler
+    from coola.equality.tester.base import BaseEqualityTester
 
 
 class XarrayDataArrayEqualityTester(BaseChainEqualityTester[xr.DataArray]):
@@ -189,3 +190,23 @@ class XarrayVariableEqualityTester(BaseChainEqualityTester[xr.Variable]):
             SameAttributeHandler(name="attrs"),
             TrueHandler(),
         )
+
+
+def get_default_testers() -> dict[type, BaseEqualityTester[Any]]:
+    r"""Get the default equality testers of the xarray objects.
+
+    Returns:
+        The equality testers of the xarray objects and their associated types.
+
+    Notes:
+        This function is called by the default registry the first time it
+        needs the equality testers of the xarray objects.
+    """
+    if not is_xarray_available():
+        return {}
+
+    return {
+        xr.DataArray: XarrayDataArrayEqualityTester(),
+        xr.Dataset: XarrayDatasetEqualityTester(),
+        xr.Variable: XarrayVariableEqualityTester(),
+    }

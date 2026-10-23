@@ -8,7 +8,7 @@ from __future__ import annotations
 
 __all__ = ["XarrayDataArraySummarizer", "XarrayDatasetSummarizer", "XarrayVariableSummarizer"]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.summary.metadata import BaseFieldsSummarizer, BaseMetadataSummarizer
 from coola.utils.imports import check_xarray, is_xarray_available
@@ -17,6 +17,10 @@ if TYPE_CHECKING or is_xarray_available():
     import xarray as xr
 else:  # pragma: no cover
     from coola.utils.fallback.xarray import xarray as xr
+
+
+if TYPE_CHECKING:
+    from coola.summary.base import Summarizer
 
 
 class XarrayDataArraySummarizer(BaseMetadataSummarizer[xr.DataArray]):
@@ -129,3 +133,23 @@ class XarrayVariableSummarizer(BaseMetadataSummarizer[xr.Variable]):
 
     def _describe(self, data: xr.Variable) -> list[str]:
         return [f"dims={data.dims}", f"shape={data.shape}", f"dtype={data.dtype}"]
+
+
+def get_default_summarizers() -> dict[type, Summarizer[Any]]:
+    r"""Get the default summarizers of the xarray objects.
+
+    Returns:
+        The summarizers of the xarray objects and their associated types.
+
+    Notes:
+        This function is called by the default registry the first time it
+        needs the summarizers of the xarray objects.
+    """
+    if not is_xarray_available():
+        return {}
+
+    return {
+        xr.DataArray: XarrayDataArraySummarizer(),
+        xr.Dataset: XarrayDatasetSummarizer(),
+        xr.Variable: XarrayVariableSummarizer(),
+    }

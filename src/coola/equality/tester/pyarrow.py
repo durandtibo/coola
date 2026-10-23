@@ -8,7 +8,7 @@ from __future__ import annotations
 
 __all__ = ["PyarrowEqualityTester"]
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from coola.equality.handler import (
     PyarrowEqualHandler,
@@ -17,10 +17,16 @@ from coola.equality.handler import (
     create_chain,
 )
 from coola.equality.tester.chain import BaseChainEqualityTester
-from coola.utils.imports import check_pyarrow
+from coola.utils.imports import check_pyarrow, is_pyarrow_available
+
+if TYPE_CHECKING or is_pyarrow_available():
+    import pyarrow as pa
+else:  # pragma: no cover
+    from coola.utils.fallback.pyarrow import pyarrow as pa
 
 if TYPE_CHECKING:
     from coola.equality.handler import BaseEqualityHandler
+    from coola.equality.tester.base import BaseEqualityTester
 
 
 class PyarrowEqualityTester(BaseChainEqualityTester[Any]):
@@ -74,3 +80,26 @@ class PyarrowEqualityTester(BaseChainEqualityTester[Any]):
 
     def _create_handler(self) -> BaseEqualityHandler:
         return create_chain(SameObjectHandler(), SameTypeHandler(), PyarrowEqualHandler())
+
+
+def get_default_testers() -> dict[type, BaseEqualityTester[Any]]:
+    r"""Get the default equality testers of the pyarrow objects.
+
+    Returns:
+        The equality testers of the pyarrow objects and their associated types.
+
+    Notes:
+        This function is called by the default registry the first time it
+        needs the equality testers of the pyarrow objects.
+    """
+    if not is_pyarrow_available():
+        return {}
+
+    tester = PyarrowEqualityTester()
+    pyarrow = cast("Any", pa)
+    return {
+        pyarrow.Array: tester,
+        pyarrow.ChunkedArray: tester,
+        pyarrow.RecordBatch: tester,
+        pyarrow.Table: tester,
+    }

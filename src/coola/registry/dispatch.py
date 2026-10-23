@@ -20,7 +20,7 @@ from coola.display import MultilineDisplayMixin
 from coola.registry.type import TypeRegistry
 
 if TYPE_CHECKING:
-    from collections.abc import ItemsView, Mapping
+    from collections.abc import Callable, ItemsView, Mapping, Sequence
 
 V = TypeVar("V")
 
@@ -103,6 +103,38 @@ class BaseTypeDispatchRegistry(MultilineDisplayMixin, Generic[V]):
                 ``exist_ok`` is ``False``.
         """
         self._state.register_many(mapping, exist_ok=exist_ok)
+
+    def register_lazy(
+        self, names: str | Sequence[str], factory: str | Callable[[], Mapping[type, V]]
+    ) -> None:
+        r"""Register handlers that are built the first time they are needed.
+
+        This registers the handlers of the types of an optional library
+        without importing the library. They are loaded the first time
+        the registry looks for a type that comes from one of the
+        ``names``, or for the whole content of the registry. A handler
+        that is already registered is not replaced.
+
+        Args:
+            names: The name or the names of the top-level packages that
+                define the types, as they appear in the ``__module__``
+                of the types (e.g. ``"torch"``).
+            factory: A callable that returns the mapping from types to
+                handlers, or its path ``"package.module:name"``. A path
+                is imported when the handlers are loaded.
+
+        Example:
+            ```pycon
+            >>> from decimal import Decimal
+            >>> from coola.registry import BaseTypeDispatchRegistry
+            >>> registry = BaseTypeDispatchRegistry[str]()
+            >>> registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+            >>> registry.find(Decimal)
+            'decimal'
+
+            ```
+        """
+        self._state.register_lazy(names, factory)
 
     def has(self, data_type: type) -> bool:
         r"""Check if a handler is explicitly registered for the given

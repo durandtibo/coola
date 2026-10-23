@@ -5,11 +5,14 @@ from __future__ import annotations
 __all__ = ["TypeRegistry"]
 
 from collections import Counter
-from typing import Generic, TypeVar
+from typing import TYPE_CHECKING, Generic, TypeVar
 from weakref import WeakKeyDictionary
 
 from coola.registry.base import BaseRegistry
 from coola.registry.exceptions import TypeNotRegisteredError
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 T = TypeVar("T")
 
@@ -152,6 +155,11 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
         # Clear cache when registry changes to ensure new registrations are used
         self._cache = WeakKeyDictionary()
 
+    def _lazy_names(self, key: type) -> Iterable[str]:
+        # Only an object whose class (or a base class) comes from a library can need the
+        # entries of this library, so the library is the first part of the module name.
+        return {getattr(base, "__module__", "").partition(".")[0] for base in key.__mro__}
+
     def _validate_key(self, key: type) -> None:
         if not isinstance(key, type):
             msg = f"Expected a type as key, got {key!r} of type {type(key).__qualname__}"
@@ -274,6 +282,8 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
             cache = self._cache
             if dtype in cache:
                 return cache[dtype]
+            self._load_lazy_for(dtype)
+            cache = self._cache  # Loading entries clears the cache
             value = self._resolve_uncached(dtype)
             # Copy on write: readers hold an immutable snapshot, so cache hits need no
             # lock. A miss costs O(len(cache)) (at most ``_MAX_CACHE_SIZE`` entries) and

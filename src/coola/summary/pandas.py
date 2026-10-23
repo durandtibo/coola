@@ -8,7 +8,7 @@ from __future__ import annotations
 
 __all__ = ["PandasDataFrameSummarizer", "PandasSeriesSummarizer"]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.summary.metadata import BaseFieldsSummarizer, BaseMetadataSummarizer
 from coola.utils.imports import check_pandas, is_pandas_available
@@ -17,6 +17,10 @@ if TYPE_CHECKING or is_pandas_available():
     import pandas as pd
 else:  # pragma: no cover
     from coola.utils.fallback.pandas import pandas as pd
+
+
+if TYPE_CHECKING:
+    from coola.summary.base import Summarizer
 
 
 class PandasDataFrameSummarizer(BaseFieldsSummarizer[pd.DataFrame]):
@@ -88,3 +92,19 @@ class PandasSeriesSummarizer(BaseMetadataSummarizer[pd.Series]):
 
     def _describe(self, data: pd.Series) -> list[str]:
         return [f"shape={data.shape}", f"dtype={data.dtype}", f"name={data.name!r}"]
+
+
+def get_default_summarizers() -> dict[type, Summarizer[Any]]:
+    r"""Get the default summarizers of the pandas objects.
+
+    Returns:
+        The summarizers of the pandas objects and their associated types.
+
+    Notes:
+        This function is called by the default registry the first time it
+        needs the summarizers of the pandas objects.
+    """
+    if not is_pandas_available():
+        return {}
+
+    return {pd.DataFrame: PandasDataFrameSummarizer(), pd.Series: PandasSeriesSummarizer()}

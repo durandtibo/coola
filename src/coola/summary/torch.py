@@ -9,7 +9,7 @@ from __future__ import annotations
 
 __all__ = ["TensorSummarizer"]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.summary.metadata import BaseMetadataSummarizer
 from coola.utils.imports import check_torch, is_torch_available
@@ -18,6 +18,10 @@ if TYPE_CHECKING or is_torch_available():
     import torch
 else:  # pragma: no cover
     from coola.utils.fallback.torch import torch
+
+
+if TYPE_CHECKING:
+    from coola.summary.base import Summarizer
 
 
 class TensorSummarizer(BaseMetadataSummarizer[torch.Tensor]):
@@ -74,3 +78,19 @@ class TensorSummarizer(BaseMetadataSummarizer[torch.Tensor]):
             f"device={data.device}",
             f"requires_grad={data.requires_grad}",
         ]
+
+
+def get_default_summarizers() -> dict[type, Summarizer[Any]]:
+    r"""Get the default summarizers of the PyTorch tensors.
+
+    Returns:
+        The summarizers of the PyTorch tensors and their associated types.
+
+    Notes:
+        This function is called by the default registry the first time it
+        needs the summarizers of the PyTorch tensors.
+    """
+    if not is_torch_available():
+        return {}
+
+    return {torch.Tensor: TensorSummarizer()}

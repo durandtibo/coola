@@ -38,12 +38,20 @@ jobs:
         # Save the results and fail if an import is more than 50% slower than in the previous
         # run (the runners are noisy, so the threshold is loose).
         run: |
-          compare=""
+          compare=()
           if [ -n "$(find .benchmarks -name '*.json' 2>/dev/null)" ]; then
-            compare="--benchmark-compare --benchmark-compare-fail=mean:50%"
+            compare=(--benchmark-compare --benchmark-compare-fail=mean:50%)
           fi
           python -m pytest tests/benchmarks/test_import_benchmark.py --benchmark-only \
-            --benchmark-storage=.benchmarks --benchmark-save=daily $compare
+            --benchmark-storage=.benchmarks --benchmark-save=daily "${compare[@]}"
+
+      - name: Show the trend over the past 3 months
+        # The artifact keeps the results of all the previous runs: show their trend and delete
+        # the results older than 90 days so the artifact does not grow forever.
+        if: always()
+        run: |
+          python dev/benchmark_import_trend.py .benchmarks --days 90 --prune | tee trend.md
+          cat trend.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload the results
         if: always()

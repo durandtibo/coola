@@ -4,7 +4,10 @@ import abc
 import contextlib
 import gc
 import weakref
+from decimal import Decimal
+from fractions import Fraction
 from typing import TYPE_CHECKING, cast
+from unittest.mock import Mock
 
 import pytest
 
@@ -380,20 +383,22 @@ def _resolve_all(registry: TypeRegistry[str], types: list[type]) -> None:
         registry.resolve(tp)
 
 
-def test_type_registry_resolve_cache_is_bounded() -> None:
-    """Test the resolve() cache never grows past 1024 entries."""
+def test_type_registry_resolve_cache_is_bounded(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test the resolve() cache never grows past its maximum size."""
+    monkeypatch.setattr("coola.registry.type._MAX_CACHE_SIZE", 8)
     registry = TypeRegistry[str]({object: "object"})
-    _resolve_all(registry, _make_types(1024))
-    assert len(registry._cache) == 1024
+    _resolve_all(registry, _make_types(8))
+    assert len(registry._cache) == 8
 
 
-def test_type_registry_resolve_cache_is_reset_when_full() -> None:
+def test_type_registry_resolve_cache_is_reset_when_full(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test the resolve() cache is reset when full."""
+    monkeypatch.setattr("coola.registry.type._MAX_CACHE_SIZE", 8)
     registry = TypeRegistry[str]({object: "object"})
-    types = _make_types(1025)
-    _resolve_all(registry, types[:1024])
-    registry.resolve(types[1024])
-    assert registry._cache == {types[1024]: "object"}
+    types = _make_types(9)
+    _resolve_all(registry, types[:8])
+    registry.resolve(types[8])
+    assert registry._cache == {types[8]: "object"}
 
 
 def test_type_registry_resolve_cache_snapshot_not_mutated() -> None:
@@ -893,3 +898,92 @@ def test_type_registry_cache_does_not_keep_a_dynamic_class_alive() -> None:
     del dynamic
     gc.collect()
     assert reference() is None
+
+
+###########################################
+#     Tests for the lazy registration     #
+###########################################
+
+
+def test_type_registry_register_lazy_resolve_loads_the_group_of_the_type() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    assert registry.resolve(Decimal) == "decimal"
+
+
+def test_type_registry_register_lazy_resolve_loads_the_group_of_a_base_class() -> None:
+    class MyDecimal(Decimal):
+        pass
+
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    assert registry.resolve(MyDecimal) == "decimal"
+
+
+def test_type_registry_register_lazy_resolve_does_not_load_the_group_of_another_type() -> None:
+    factory = Mock(return_value={Decimal: "decimal"})
+    registry = TypeRegistry[str]({object: "object"})
+    registry.register_lazy("decimal", factory)
+    registry.resolve(int)
+    factory.assert_not_called()
+
+
+def test_type_registry_register_lazy_resolve_uses_the_loaded_value_over_the_parent() -> None:
+    registry = TypeRegistry[str]({object: "object"})
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    assert registry.resolve(Decimal) == "decimal"
+
+
+def test_type_registry_register_lazy_has_loads_the_group_of_the_type() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    assert registry.has(Decimal)
+
+
+def test_type_registry_register_lazy_has_does_not_load_the_group_of_another_type() -> None:
+    factory = Mock(return_value={Decimal: "decimal"})
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", factory)
+    registry.has(int)
+    factory.assert_not_called()
+
+
+def test_type_registry_register_lazy_register_loads_the_group_of_the_type() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    with pytest.raises(AlreadyRegisteredError, match="already registered"):
+        registry.register(Decimal, "custom")
+
+
+def test_type_registry_register_lazy_register_exist_ok_replaces_the_loaded_value() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    registry.register(Decimal, "custom", exist_ok=True)
+    assert registry.resolve(Decimal) == "custom"
+
+
+def test_type_registry_register_lazy_does_not_replace_a_registered_type() -> None:
+    registry = TypeRegistry[str]({Decimal: "custom"})
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    assert registry.resolve(Decimal) == "custom"
+
+
+def test_type_registry_register_lazy_len_loads_all_the_groups() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    registry.register_lazy("fractions", lambda: {Fraction: "fraction"})
+    assert len(registry) == 2
+
+
+def test_type_registry_register_lazy_resolve_clears_the_cache_of_the_loaded_group() -> None:
+    registry = TypeRegistry[str]({object: "object"})
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    registry.resolve(int)
+    assert registry.resolve(Decimal) == "decimal"
+
+
+def test_type_registry_register_lazy_validates_the_loaded_keys() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", lambda: {"Decimal": "decimal"})
+    with pytest.raises(TypeError, match="Expected a type as key"):
+        registry.resolve(Decimal)
