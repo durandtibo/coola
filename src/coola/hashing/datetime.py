@@ -4,6 +4,7 @@ from __future__ import annotations
 
 __all__ = ["DatetimeHasher"]
 
+from contextlib import suppress
 from datetime import UTC, date, datetime, time
 from typing import TYPE_CHECKING
 
@@ -78,5 +79,8 @@ class DatetimeHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[date | t
         """
         if isinstance(data, datetime) and data.utcoffset() is not None:
             # Aware datetimes that represent the same instant are equal.
-            data = data.astimezone(UTC)
+            # Near ``datetime.min``/``datetime.max`` the UTC instant may not
+            # be representable, so the value is hashed with its own offset.
+            with suppress(OverflowError):
+                data = data.astimezone(UTC)
         return hash_tagged(type(data).__qualname__, data.isoformat(), length=length)
