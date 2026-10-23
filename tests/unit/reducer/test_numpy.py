@@ -272,9 +272,45 @@ def test_numpy_reducer_std_empty(values: Sequence[int | float]) -> None:
 
 
 @numpy_available
+def test_numpy_reducer_std_2d_array() -> None:
+    assert math.isclose(NumpyReducer().std(np.ones((1, 3))), 0.0, abs_tol=1e-6)
+
+
+@numpy_available
+def test_numpy_reducer_std_2d_array_one_element() -> None:
+    assert math.isnan(NumpyReducer().std(np.ones((1, 1))))
+
+
+@numpy_available
 def test_numpy_reducer_no_numpy() -> None:
     with (
         patch("coola.utils.imports.numpy.is_numpy_available", lambda: False),
         pytest.raises(MissingPackageError, match=r"'numpy' package is required but not installed."),
     ):
         NumpyReducer()
+
+
+@numpy_available
+def test_numpy_reducer_median_odd_integers_is_an_integer() -> None:
+    assert isinstance(NumpyReducer().median([3, 1, 2]), int)
+
+
+@numpy_available
+def test_numpy_reducer_median_even_integers_is_a_float() -> None:
+    assert NumpyReducer().median([1, 2, 3, 4]) == 2.5
+
+
+@numpy_available
+def test_numpy_reducer_median_does_not_overflow() -> None:
+    assert NumpyReducer().median([1e308, 1e308]) == 1e308
+
+
+@numpy_available
+def test_numpy_reducer_median_infinite_values() -> None:
+    assert NumpyReducer().median([float("inf"), float("inf")]) == float("inf")
+
+
+@numpy_available
+def test_numpy_reducer_max_generator_raises() -> None:
+    with pytest.raises(TypeError, match="iterator"):
+        NumpyReducer().max(i for i in range(3))

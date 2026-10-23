@@ -7,6 +7,7 @@ from __future__ import annotations
 
 __all__ = ["NumpyReducer"]
 
+import math
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, TypeVar
 
@@ -36,7 +37,7 @@ class NumpyReducer(InlineDisplayMixin, NoArgsDisplayMixin, BaseBasicReducer[T]):
         >>> reducer.max([-2, -1, 0, 1, 2])
         2
         >>> reducer.median([-2, -1, 0, 1, 2])
-        0.0
+        0
         >>> reducer.sort([2, 1, -2, 3, 0])
         [-2, 0, 1, 2, 3]
 
@@ -58,7 +59,16 @@ class NumpyReducer(InlineDisplayMixin, NoArgsDisplayMixin, BaseBasicReducer[T]):
         return np.mean(np.asarray(values)).item()
 
     def _median(self, values: T) -> int | float:
-        return np.median(np.asarray(values)).item()
+        array = np.asarray(values)
+        if array.dtype.kind in "iu" and array.size % 2 == 1:
+            # Like the other reducers, the median of an odd number of integers is an integer.
+            return np.sort(array, axis=None)[array.size // 2].item()
+        with np.errstate(over="ignore"):
+            result = np.median(array).item()
+        if math.isinf(result) and np.isfinite(array).all():
+            # The mean of the two middle values overflowed: halve the values first.
+            return np.median(array / 2).item() * 2
+        return result
 
     def _min(self, values: T) -> int | float:
         return np.min(np.asarray(values)).item()
@@ -73,6 +83,7 @@ class NumpyReducer(InlineDisplayMixin, NoArgsDisplayMixin, BaseBasicReducer[T]):
         return array.tolist()
 
     def _std(self, values: T) -> float:
-        if len(values) <= 1:
+        array = np.asarray(values)
+        if array.size <= 1:
             return float("nan")
-        return np.std(np.asarray(values), ddof=1).item()
+        return np.std(array, ddof=1).item()

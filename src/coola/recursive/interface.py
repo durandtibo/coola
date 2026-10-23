@@ -48,6 +48,10 @@ def recursive_apply(
         Mapping keys are preserved. By default, values of ``str`` are treated
         as leaves and are not iterated character by character.
 
+        The function is recursive: each nesting level uses a few Python frames, so a very
+        deep structure (about a thousand levels) reaches the interpreter recursion limit and
+        raises a ``RecursionError``.
+
     Example:
         ```pycon
         >>> from coola.recursive import recursive_apply

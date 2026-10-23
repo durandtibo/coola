@@ -369,3 +369,19 @@ def test_torch_reducer_median_nan_tensor() -> None:
 @torch_available
 def test_torch_reducer_median_int_tensor_is_not_nan() -> None:
     assert TorchReducer().median(torch.tensor([1, 2, 3, 4])) == 2.5
+
+
+@torch_available
+def test_torch_reducer_median_does_not_overflow() -> None:
+    assert TorchReducer().median([1e308, 1e308]) == 1e308
+
+
+@torch_available
+def test_torch_reducer_median_infinite_values() -> None:
+    assert TorchReducer().median([float("inf"), float("inf")]) == float("inf")
+
+
+@torch_available
+def test_torch_reducer_max_generator_raises() -> None:
+    with pytest.raises(TypeError, match="iterator"):
+        TorchReducer().max(i for i in range(3))

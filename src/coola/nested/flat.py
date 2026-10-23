@@ -41,7 +41,8 @@ def from_flat_dict(
             Defaults to ``False``.
 
     Returns:
-        A nested ``dict``.
+        A nested ``dict``. The root is always a ``dict``, even with
+        ``restore_lists=True`` and the keys ``"0"``, ``"1"``, ...
 
     Raises:
         ValueError: If ``separator`` is empty, which would make key
@@ -174,8 +175,9 @@ def to_flat_dict(
 
     Args:
         data: The nested structure to flatten. Any :class:`Mapping` or
-            non-string, non-bytes :class:`Sequence` is recursed into; everything
-            else is treated as a leaf value.
+            non-string, non-bytes :class:`Sequence` (including ``range``) is
+            recursed into; everything else, including the sets (they are
+            not ordered, so they have no index), is treated as a leaf value.
         prefix: The prefix prepended to each key. ``None`` means no
             prefix; only valid when ``data`` is a mapping or sequence —
             a ``ValueError`` is raised if a bare scalar is passed
@@ -192,7 +194,7 @@ def to_flat_dict(
     Raises:
         ValueError: If ``data`` is a scalar (non-mapping, non-sequence)
             and ``prefix`` is ``None``, since this would produce a
-            ``None`` key.
+            ``None`` key, or if a container contains itself.
 
     Example:
         ```pycon
@@ -224,7 +226,7 @@ def to_flat_dict(
         ```
     """
     flat: dict[str, Any] = {}
-    _flatten_into(flat, data, prefix, separator, _normalize_to_str(to_str))
+    _flatten_into(flat, data, prefix, separator, _normalize_to_str(to_str), ancestors=set())
     return flat
 
 
@@ -234,6 +236,8 @@ def _flatten_into(
     prefix: str | None,
     separator: str,
     to_str: tuple[type, ...],
+    *,
+    ancestors: set[int],
 ) -> None:
     """Flatten *data* into the shared output dict *flat*.
 
@@ -248,9 +252,12 @@ def _flatten_into(
         separator: The string used to join key segments.
         to_str: Normalised tuple of types that should be stringified
             rather than recursed into.
+        ancestors: The ids of the containers being flattened, from the
+            root to ``data``, used to detect the cycles.
 
     Raises:
-        ValueError: If a leaf is reached with no key to store it under.
+        ValueError: If a leaf is reached with no key to store it under,
+            or if a container contains itself.
     """
     if isinstance(data, to_str):
         if prefix is None:
@@ -268,15 +275,19 @@ def _flatten_into(
         if prefix is not None:
             _set_leaf(flat, prefix, data)
     elif isinstance(data, Mapping):
+        _check_no_cycle(data, ancestors)
         for key, value in cast("Mapping[Any, Any]", data).items():
             child = _build_key(prefix, str(key), separator)
-            _flatten_into(flat, value, child, separator, to_str)
+            _flatten_into(flat, value, child, separator, to_str, ancestors=ancestors)
+        ancestors.remove(id(data))
     # str, bytes and bytearray are Sequences, so they must be excluded before
     # the Sequence check to avoid iterating over individual characters or bytes.
     elif isinstance(data, Sequence) and not isinstance(data, _LEAF_SEQUENCES):
+        _check_no_cycle(data, ancestors)
         for i, value in enumerate(cast("Sequence[Any]", data)):
             child = _build_key(prefix, str(i), separator)
-            _flatten_into(flat, value, child, separator, to_str)
+            _flatten_into(flat, value, child, separator, to_str, ancestors=ancestors)
+        ancestors.remove(id(data))
     elif prefix is None:
         msg = (
             f"Cannot create a flat dict entry with a None key. "
@@ -286,6 +297,19 @@ def _flatten_into(
         raise ValueError(msg)
     else:
         _set_leaf(flat, prefix, data)
+
+
+def _check_no_cycle(data: object, ancestors: set[int]) -> None:
+    """Add *data* to the ancestors, refusing a container that contains
+    itself.
+
+    Raises:
+        ValueError: If *data* is already one of its ancestors.
+    """
+    if id(data) in ancestors:
+        msg = f"Cycle detected: an object of type {type(data)} contains itself"
+        raise ValueError(msg)
+    ancestors.add(id(data))
 
 
 def _set_leaf(flat: dict[str, Any], key: str, value: Any) -> None:

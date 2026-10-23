@@ -4,6 +4,7 @@ from collections import UserString, deque
 from collections.abc import Collection, Generator, Iterator, Mapping
 from types import MappingProxyType
 from typing import Any
+from unittest.mock import patch
 
 import pytest
 
@@ -197,6 +198,23 @@ def test_default_registry_iterates_over_a_deque() -> None:
 
 def test_bfs_iterate_mapping_proxy() -> None:
     assert list(bfs_iterate(MappingProxyType({"a": 1, "b": [2, 3]}))) == [1, 2, 3]
+
+
+def test_bfs_iterate_mutual_cycle_raises() -> None:
+    first: list = [1]
+    second: list = [first]
+    first.append(second)
+    with pytest.raises(ValueError, match="Cycle detected"):
+        list(bfs_iterate(first))
+
+
+def test_bfs_iterate_deep_chain_does_not_walk_the_ancestors() -> None:
+    data: list = [1]
+    for _ in range(50):
+        data = [data]
+    with patch("coola.iterator.bfs.registry._is_ancestor") as mock_is_ancestor:
+        assert list(bfs_iterate(data)) == [1]
+    mock_is_ancestor.assert_not_called()
 
 
 def test_bfs_iterate_user_string_is_a_leaf() -> None:

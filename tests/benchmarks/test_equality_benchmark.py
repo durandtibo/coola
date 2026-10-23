@@ -5,7 +5,7 @@ These benchmarks are not part of the regular unit/integration test suite
 ``tests/integration`` explicitly, so this directory is skipped). Run them
 explicitly with:
 
-    inv benchmark
+    inv test.benchmark
 
 They exist to catch performance regressions in the equality comparison
 machinery (tester/handler dispatch) as the codebase evolves, especially for

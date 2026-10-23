@@ -220,3 +220,16 @@ def test_native_reducer_quantile_nan() -> None:
     result = NativeReducer().quantile([1.0, float("nan"), 2.0], [0.0, 0.5, 1.0])
     assert len(result) == 3
     assert all(math.isnan(q) for q in result)
+
+
+def test_native_reducer_median_does_not_overflow() -> None:
+    assert NativeReducer().median([1e308, 1e308]) == 1e308
+
+
+def test_native_reducer_median_infinite_values() -> None:
+    assert NativeReducer().median([float("inf"), float("inf")]) == float("inf")
+
+
+def test_native_reducer_max_generator_raises() -> None:
+    with pytest.raises(TypeError, match="iterator"):
+        NativeReducer().max(i for i in range(3))
