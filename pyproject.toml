@@ -138,7 +138,10 @@ exclude_lines = [
 minversion = "9.0"
 testpaths = ["tests/"]
 log_format = "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
-addopts = ["--color", "yes", "--durations", "10", "-rf"]
+addopts = ["--color", "yes", "--durations", "10", "-rf", "--strict-markers", "--strict-config"]
+xfail_strict = true
+timeout = 300
+filterwarnings = ["error"]
 # Configuration of the short test summary info
 # https://docs.pytest.org/en/stable/usage.html#detailed-summary-report
 
