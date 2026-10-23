@@ -54,61 +54,61 @@ the PR number is given. Items not listed are **open**.
 
 ### Part B
 
-| ID   | Status                  | Notes                                                                                                                                        |
-| ---- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| 5.1  | Fixed (#2072)           | Same fix as 1.3.                                                                                                                             |
-| 5.2  | Fixed (#2095)           | Testers for pandas `Index` and extension arrays. Scipy sparse not checked.                                                                   |
-| 5.5  | Fixed (#2096)           | Nested polars NaN detected.                                                                                                                  |
-| 5.7  | Documented (#2094)      | Scalar comparison rules documented, behaviour unchanged.                                                                                     |
-| 5.8  | Fixed (#2097, #2104)    | Dataclass fields and attributes in the `compare` path; unused `coola_path_kind` removed.                                                     |
-| 5.13 | Fixed (#2092)           | Default `max_depth` lowered to 100.                                                                                                          |
-| 5.14 | Fixed (#2091, #2102)    | Exact integer comparison with a tolerance; complex NaN parts compared separately.                                                            |
-| 5.15 | Partly (#2098)          | Duplicate validation, config comments and the sequence set per call cleaned up. Other points open.                                           |
-| 6.1  | PR open (#2105)         | Integers above the int-to-str limit hashed in hexadecimal (`int`, `Fraction`, `range`).                                                      |
-| 6.2  | PR open (#2106)         | `DecimalHasher` canonical form built from `as_tuple()`.                                                                                      |
-| 6.3  | PR open (#2107)         | Aware datetimes near `min`/`max` no longer overflow.                                                                                         |
-| 6.4  | PR open (#2108)         | Snowflake lock held during the next-millisecond wait.                                                                                        |
-| 6.5  | PR open (#2109)         | Default Snowflake and ObjectId generators use `LazySingleton`.                                                                               |
-| 6.6  | PR open (#2111)         | Explicit timestamp leaves the Snowflake state untouched (random sequence).                                                                   |
-| 6.7  | PR open (#2112)         | Mapping entries sorted by the full key and value hash.                                                                                       |
-| 6.8  | PR open (#2113)         | Enum mixins routed to `EnumHasher`.                                                                                                          |
-| 6.9  | PR open (#2114)         | `hash` method fallback requires the `SupportsHash` signature.                                                                                |
-| 6.10 | PR open (#2115)         | Documented only; module and class name stay in the hash.                                                                                     |
-| 6.11 | PR open (#2116)         | `ReprHasher` fallback tag is `module.qualname` (builtins keep the bare name).                                                                |
-| 6.12 | PR open (#2117)         | `generate_stable_content_id` and `generate_stable_uuid5` options are keyword-only.                                                           |
-| 6.13 | Partly, PR open (#2118) | Cycle guard for nested pydantic models. A model inside a dataclass still uses the default `on_secret` (documented).                          |
-| 6.14 | PR open (#2119)         | `ValueError` instead of `RecursionError` for data nested too deeply.                                                                         |
-| 6.15 | PR open (#2120)         | ULID range validated; lowercase accepted.                                                                                                    |
-| 6.16 | PR open (#2121)         | Non-ASCII input rejected by `verify_checksummed_id`. `sep` is still case-sensitive.                                                          |
-| 6.17 | PR open (#2122)         | `length` capped at 1024; `decode_obfuscated_id` input bounded.                                                                               |
-| 6.18 | PR open (#2123)         | Documented only (parity leak); no Feistel step.                                                                                              |
-| 6.19 | PR open (#2124)         | Shared length validation, checked before hashing; `memoryview` supported.                                                                    |
-| 6.20 | PR open (#2125)         | `get_default_generator` removed from both `__all__`.                                                                                         |
-| 6.21 | Partly, PR open (#2126) | Prefix and generator result validated, `chars` tidied. Open: Windows/Posix path hash, duplicate registry export, `register_hashers` doctest. |
-| 7.3 | Partly (#2153) | Dead owner (same host) detected from the `host:pid:uuid` token and the lock broken at once. Timeout still not configurable; no kernel locks. |
-| 7.21 | PR open (#2148) | Error `name` set and message tidied; `package_available` catches `ValueError`/`ImportError`. |
-| 7.4 | PR open (#2147) | Mode copied from the replaced file; a symlink is followed. |
-| 7.19 | PR open (#2146) | `NotADirectoryError` when the parent is a file. |
-| 7.17 | PR open (#2144) | Unit chosen after rounding. |
-| 7.15 | Fixed (options) (#2150) | Options `level` and `all_threads` added; defaults unchanged. |
-| 7.22 | PR open (#2149) | Invalid versions give `None`; cache cleared by `clear_availability_caches`. |
-| 7.24 | Mostly (#2155) | Fixed: bfloat16 `to_array`, resolved lock key, docs. Not changed: >2**53 ints in `stats.py`, `fsync` on `BaseSaver.save`. |
-| 7.5 | Partly (#2154) | Renamed lock re-checked and restored if it was renewed. The window is narrowed, not closed (no kernel locks). |
-| 7.23 | Mostly (#2151) | The listed examples fixed. Other doctests of `utils` still fail under pytest's doctest runner (they pass with xdoctest). |
-| 7.16 | PR open (#2145) | Host in a file URI and unknown `~user` raise `ValueError`; a missing path starts from its parent. |
-| 7.14 | PR open (#2143) | `LazySingleton` uses a sentinel, so a `None` value is cached. |
-| 7.13 | Partly (#2141) | Dunder names and `_module` raise `AttributeError` without importing. `hasattr(proxy, "a")` of a missing package still raises `ModuleNotFoundError` on purpose; `copy.copy` is impossible for modules. |
-| 7.12 | PR open (#2140) | `to_tensor` calls `check_torch()` first. |
-| 7.11 | PR open (#2139) | `sort_by_keys` falls back to (type name, key); used by the `sorted_keys` options. |
-| 7.8 | PR open (#2138) | `ß` and similar letters mapped; non-ASCII-only text falls back to a hash. |
-| 7.9 | PR open (#2137) | `datetime.time` becomes an ISO string and `timedelta` a number of seconds. |
-| 7.18 | PR open (#2142) | `TorchLoader.equal` applies the `weights_only` default. |
-| 7.10 | PR open (#2136) | `check_env_vars` treats an empty or blank value as not defined. |
-| 7.6 | PR open (#2135) | `is_git_repo` compares to `true`; the stderr of git is kept in the error. |
-| 7.7 | PR open (#2134) | `to_date` returns the date part of a `datetime`. |
-| 7.2 | PR open (#2133) | `unified_diff` marks lines without a trailing newline like `git diff`. |
-| 7.1 | PR open (#2132) | Temporary and lock names derived from a hash when the target name is long. |
-| 7.20 | Won't fix (#2156; #2152 closed) | Windows is not a supported OS for coola; PR #2152 closed. |
+| ID   | Status                          | Notes                                                                                                                                                                                                 |
+| ---- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 5.1  | Fixed (#2072)                   | Same fix as 1.3.                                                                                                                                                                                      |
+| 5.2  | Fixed (#2095)                   | Testers for pandas `Index` and extension arrays. Scipy sparse not checked.                                                                                                                            |
+| 5.5  | Fixed (#2096)                   | Nested polars NaN detected.                                                                                                                                                                           |
+| 5.7  | Documented (#2094)              | Scalar comparison rules documented, behaviour unchanged.                                                                                                                                              |
+| 5.8  | Fixed (#2097, #2104)            | Dataclass fields and attributes in the `compare` path; unused `coola_path_kind` removed.                                                                                                              |
+| 5.13 | Fixed (#2092)                   | Default `max_depth` lowered to 100.                                                                                                                                                                   |
+| 5.14 | Fixed (#2091, #2102)            | Exact integer comparison with a tolerance; complex NaN parts compared separately.                                                                                                                     |
+| 5.15 | Partly (#2098)                  | Duplicate validation, config comments and the sequence set per call cleaned up. Other points open.                                                                                                    |
+| 6.1  | PR open (#2105)                 | Integers above the int-to-str limit hashed in hexadecimal (`int`, `Fraction`, `range`).                                                                                                               |
+| 6.2  | PR open (#2106)                 | `DecimalHasher` canonical form built from `as_tuple()`.                                                                                                                                               |
+| 6.3  | PR open (#2107)                 | Aware datetimes near `min`/`max` no longer overflow.                                                                                                                                                  |
+| 6.4  | PR open (#2108)                 | Snowflake lock held during the next-millisecond wait.                                                                                                                                                 |
+| 6.5  | PR open (#2109)                 | Default Snowflake and ObjectId generators use `LazySingleton`.                                                                                                                                        |
+| 6.6  | PR open (#2111)                 | Explicit timestamp leaves the Snowflake state untouched (random sequence).                                                                                                                            |
+| 6.7  | PR open (#2112)                 | Mapping entries sorted by the full key and value hash.                                                                                                                                                |
+| 6.8  | PR open (#2113)                 | Enum mixins routed to `EnumHasher`.                                                                                                                                                                   |
+| 6.9  | PR open (#2114)                 | `hash` method fallback requires the `SupportsHash` signature.                                                                                                                                         |
+| 6.10 | PR open (#2115)                 | Documented only; module and class name stay in the hash.                                                                                                                                              |
+| 6.11 | PR open (#2116)                 | `ReprHasher` fallback tag is `module.qualname` (builtins keep the bare name).                                                                                                                         |
+| 6.12 | PR open (#2117)                 | `generate_stable_content_id` and `generate_stable_uuid5` options are keyword-only.                                                                                                                    |
+| 6.13 | Partly, PR open (#2118)         | Cycle guard for nested pydantic models. A model inside a dataclass still uses the default `on_secret` (documented).                                                                                   |
+| 6.14 | PR open (#2119)                 | `ValueError` instead of `RecursionError` for data nested too deeply.                                                                                                                                  |
+| 6.15 | PR open (#2120)                 | ULID range validated; lowercase accepted.                                                                                                                                                             |
+| 6.16 | PR open (#2121)                 | Non-ASCII input rejected by `verify_checksummed_id`. `sep` is still case-sensitive.                                                                                                                   |
+| 6.17 | PR open (#2122)                 | `length` capped at 1024; `decode_obfuscated_id` input bounded.                                                                                                                                        |
+| 6.18 | PR open (#2123)                 | Documented only (parity leak); no Feistel step.                                                                                                                                                       |
+| 6.19 | PR open (#2124)                 | Shared length validation, checked before hashing; `memoryview` supported.                                                                                                                             |
+| 6.20 | PR open (#2125)                 | `get_default_generator` removed from both `__all__`.                                                                                                                                                  |
+| 6.21 | Partly, PR open (#2126)         | Prefix and generator result validated, `chars` tidied. Open: Windows/Posix path hash, duplicate registry export, `register_hashers` doctest.                                                          |
+| 7.1  | PR open (#2132)                 | Temporary and lock names derived from a hash when the target name is long.                                                                                                                            |
+| 7.10 | PR open (#2136)                 | `check_env_vars` treats an empty or blank value as not defined.                                                                                                                                       |
+| 7.11 | PR open (#2139)                 | `sort_by_keys` falls back to (type name, key); used by the `sorted_keys` options.                                                                                                                     |
+| 7.12 | PR open (#2140)                 | `to_tensor` calls `check_torch()` first.                                                                                                                                                              |
+| 7.13 | Partly (#2141)                  | Dunder names and `_module` raise `AttributeError` without importing. `hasattr(proxy, "a")` of a missing package still raises `ModuleNotFoundError` on purpose; `copy.copy` is impossible for modules. |
+| 7.14 | PR open (#2143)                 | `LazySingleton` uses a sentinel, so a `None` value is cached.                                                                                                                                         |
+| 7.15 | Fixed (options) (#2150)         | Options `level` and `all_threads` added; defaults unchanged.                                                                                                                                          |
+| 7.16 | PR open (#2145)                 | Host in a file URI and unknown `~user` raise `ValueError`; a missing path starts from its parent.                                                                                                     |
+| 7.17 | PR open (#2144)                 | Unit chosen after rounding.                                                                                                                                                                           |
+| 7.18 | PR open (#2142)                 | `TorchLoader.equal` applies the `weights_only` default.                                                                                                                                               |
+| 7.19 | PR open (#2146)                 | `NotADirectoryError` when the parent is a file.                                                                                                                                                       |
+| 7.2  | PR open (#2133)                 | `unified_diff` marks lines without a trailing newline like `git diff`.                                                                                                                                |
+| 7.20 | Won't fix (#2156; #2152 closed) | Windows is not a supported OS for coola; PR #2152 closed.                                                                                                                                             |
+| 7.21 | PR open (#2148)                 | Error `name` set and message tidied; `package_available` catches `ValueError`/`ImportError`.                                                                                                          |
+| 7.22 | PR open (#2149)                 | Invalid versions give `None`; cache cleared by `clear_availability_caches`.                                                                                                                           |
+| 7.23 | Mostly (#2151)                  | The listed examples fixed. Other doctests of `utils` still fail under pytest's doctest runner (they pass with xdoctest).                                                                              |
+| 7.24 | Mostly (#2155)                  | Fixed: bfloat16 `to_array`, resolved lock key, docs. Not changed: >2**53 ints in `stats.py`, `fsync` on `BaseSaver.save`.                                                                             |
+| 7.3  | Partly (#2153)                  | Dead owner (same host) detected from the `host:pid:uuid` token and the lock broken at once. Timeout still not configurable; no kernel locks.                                                          |
+| 7.4  | PR open (#2147)                 | Mode copied from the replaced file; a symlink is followed.                                                                                                                                            |
+| 7.5  | Partly (#2154)                  | Renamed lock re-checked and restored if it was renewed. The window is narrowed, not closed (no kernel locks).                                                                                         |
+| 7.6  | PR open (#2135)                 | `is_git_repo` compares to `true`; the stderr of git is kept in the error.                                                                                                                             |
+| 7.7  | PR open (#2134)                 | `to_date` returns the date part of a `datetime`.                                                                                                                                                      |
+| 7.8  | PR open (#2138)                 | `ß` and similar letters mapped; non-ASCII-only text falls back to a hash.                                                                                                                             |
+| 7.9  | PR open (#2137)                 | `datetime.time` becomes an ISO string and `timedelta` a number of seconds.                                                                                                                            |
 
 All other items in sections 5 to 10 (including 7.x, 8.x, 9.x, 10.x) have no matching commit and are **open**.
 The earlier "Suggested order" lists below are unchanged.
