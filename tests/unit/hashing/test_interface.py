@@ -34,8 +34,11 @@ from coola.hashing.interface import _register_default_hashers
 from coola.hashing.pydantic import PydanticModelHasher
 from coola.registry import AlreadyRegisteredError, TypeNotRegisteredError
 from coola.testing.fixtures import numpy_available, pydantic_available
-from coola.utils.imports import import_object, is_pydantic_available
+from coola.utils.imports import import_object, is_numpy_available, is_pydantic_available
 from tests.unit.hashing.helpers import Unhashable
+
+if is_numpy_available():
+    import numpy as np
 
 if is_pydantic_available():
     import pydantic
@@ -642,36 +645,26 @@ def test_hash_object_equal_values_have_the_same_hash_nested() -> None:
 def test_hash_object_numpy_scalar_hashes_like_the_builtin_value(
     scalar: str, builtin: object
 ) -> None:
-    import numpy as np
-
     assert hash_object(getattr(np, scalar)(builtin)) == hash_object(builtin)
 
 
 @numpy_available
 def test_hash_object_numpy_scalar_in_a_container() -> None:
-    import numpy as np
-
     assert hash_object({"a": [np.float32(0.5), np.int64(2)]}) == hash_object({"a": [0.5, 2]})
 
 
 @numpy_available
 def test_hash_object_numpy_scalar_different_values_float32() -> None:
-    import numpy as np
-
     assert hash_object(np.float32(1.0)) != hash_object(np.float32(2.0))
 
 
 @numpy_available
 def test_hash_object_numpy_scalar_different_values_int64_and_float64() -> None:
-    import numpy as np
-
     assert hash_object(np.int64(1)) != hash_object(np.float64(1.0))
 
 
 @numpy_available
 def test_hash_object_numpy_scalar_different_values_bool() -> None:
-    import numpy as np
-
     assert hash_object(np.bool_(True)) != hash_object(1)
 
 

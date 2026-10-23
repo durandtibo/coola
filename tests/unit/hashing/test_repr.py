@@ -10,6 +10,10 @@ import pytest
 from coola.hashing import HasherRegistry, ReprHasher, hash_enum, hash_tagged
 from coola.hashing.repr import _numpy_scalar_to_builtin
 from coola.testing.fixtures import numpy_available
+from coola.utils.imports import is_numpy_available
+
+if is_numpy_available():
+    import numpy as np
 
 
 class MixedInt(int, Enum):
@@ -232,8 +236,6 @@ def test_repr_hasher_hash_zero_differs_from_one(registry: HasherRegistry) -> Non
 
 @numpy_available
 def test_repr_hasher_numpy_scalar_without_builtin_equivalent(registry: HasherRegistry) -> None:
-    import numpy as np
-
     value = np.datetime64("2020-01-01")
     assert ReprHasher().hash(value, registry) == hash_tagged("numpy.datetime64", repr(value))
 
