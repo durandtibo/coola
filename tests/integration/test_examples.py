@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 import pytest
+from examples import hashing, nested, summary
 
 from tests.integration.helpers import run_python
 
@@ -27,22 +29,35 @@ def test_example_runs_without_error(path: Path) -> None:
     run_python(f"import runpy; runpy.run_path({str(path)!r}, run_name='__main__')")
 
 
-def run_example(name: str) -> list[str]:
-    path = Path(__file__).parents[2].joinpath("examples", name)
-    return run_python(f"import runpy; runpy.run_path({str(path)!r}, run_name='__main__')")
+def test_hashing_example_logs_that_the_hashes_behave_as_expected(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    with caplog.at_level(logging.INFO):
+        hashing.main()
+    assert caplog.messages.count("same hash for the same content: True") == 1
 
 
-def test_hashing_example_prints_that_the_hashes_behave_as_expected() -> None:
-    assert run_example("hashing.py").count("True") == 3
+def test_hashing_example_logs_that_the_content_id_has_the_right_length(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    with caplog.at_level(logging.INFO):
+        hashing.main()
+    assert "content id has 8 characters: True" in caplog.messages
 
 
-def test_nested_example_prints_the_flat_keys() -> None:
-    assert "'model.layers.0.units'," in run_example("nested.py")
+def test_nested_example_logs_the_flat_keys(caplog: pytest.LogCaptureFixture) -> None:
+    with caplog.at_level(logging.INFO):
+        nested.main()
+    assert caplog.messages[0].startswith("flat keys: ['lr', 'model.layers.0.units'")
 
 
-def test_nested_example_prints_that_the_round_trip_works() -> None:
-    assert run_example("nested.py")[run_example("nested.py").index("trip:") + 1] == "True"
+def test_nested_example_logs_that_the_round_trip_works(caplog: pytest.LogCaptureFixture) -> None:
+    with caplog.at_level(logging.INFO):
+        nested.main()
+    assert "round trip: True" in caplog.messages
 
 
-def test_summary_example_prints_the_median() -> None:
-    assert run_example("summary.py")[-3:] == ["median:", "2", "max:", "3"][-3:]
+def test_summary_example_logs_the_median(caplog: pytest.LogCaptureFixture) -> None:
+    with caplog.at_level(logging.INFO):
+        summary.main()
+    assert "median: 2" in caplog.messages

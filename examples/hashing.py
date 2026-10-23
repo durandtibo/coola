@@ -5,15 +5,13 @@ Run with: ``python examples/hashing.py``
 
 from __future__ import annotations
 
-import sys
+import logging
 
+from coola.display.colorlog import configure_colorlog_logging
 from coola.hashing import hash_object
 from coola.identifier import generate_stable_content_id
 
-
-def show(text: object) -> None:
-    r"""Write a line on the standard output."""
-    sys.stdout.write(f"{text}\n")
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 def main() -> None:
@@ -21,10 +19,13 @@ def main() -> None:
     data = {"a": [1, 2, 3], "b": {"c": "text"}}
     same = {"b": {"c": "text"}, "a": [1, 2, 3]}
     other = {"a": [1, 2, 4], "b": {"c": "text"}}
-    show(f"same hash for the same content: {hash_object(data) == hash_object(same)}")
-    show(f"different hash for other content: {hash_object(data) != hash_object(other)}")
-    show(f"content id has 8 characters: {len(generate_stable_content_id(data, length=8)) == 8}")
+    logger.info("same hash for the same content: %s", hash_object(data) == hash_object(same))
+    logger.info("different hash for other content: %s", hash_object(data) != hash_object(other))
+    logger.info(
+        "content id has 8 characters: %s", len(generate_stable_content_id(data, length=8)) == 8
+    )
 
 
 if __name__ == "__main__":
+    configure_colorlog_logging(level=logging.INFO)
     main()

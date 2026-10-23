@@ -5,24 +5,23 @@ Run with: ``python examples/summary.py``
 
 from __future__ import annotations
 
-import sys
+import logging
 
+from coola.display.colorlog import configure_colorlog_logging
 from coola.reducer import NativeReducer
 from coola.summary import summarize
 
-
-def show(text: object) -> None:
-    r"""Write a line on the standard output."""
-    sys.stdout.write(f"{text}\n")
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 def main() -> None:
     r"""Run the examples."""
-    show(summarize({"a": 1, "b": [1, 2, 3]}, max_depth=2))
+    logger.info("%s", summarize({"a": 1, "b": [1, 2, 3]}, max_depth=2))
     reducer = NativeReducer()
-    show(f"median: {reducer.median([3, 1, 2])}")
-    show(f"max: {reducer.max([3, 1, 2])}")
+    logger.info("median: %s", reducer.median([3, 1, 2]))
+    logger.info("max: %s", reducer.max([3, 1, 2]))
 
 
 if __name__ == "__main__":
+    configure_colorlog_logging(level=logging.INFO)
     main()
