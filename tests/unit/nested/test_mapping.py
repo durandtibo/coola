@@ -665,6 +665,44 @@ def test_remove_keys_if_values_equal_to_the_removed_key_are_kept() -> None:
     }
 
 
+def test_merge_mappings_suffix_compares_with_all_kept_values() -> None:
+    assert merge_mappings([{"a": 1}, {"a": 2}, {"a": 2}], on_duplicate="suffix") == {
+        "a": 1,
+        "a_1": 2,
+    }
+
+
+def test_merge_mappings_suffix_compares_with_first_value() -> None:
+    assert merge_mappings([{"a": 1}, {"a": 2}, {"a": 1}], on_duplicate="suffix") == {
+        "a": 1,
+        "a_1": 2,
+    }
+
+
+def test_merge_mappings_last_keeps_the_last_value() -> None:
+    assert merge_mappings([{"a": 1}, {"a": 2}, {"a": 1}], on_duplicate="last") == {"a": 1}
+
+
+def test_merge_mappings_nan_are_different_by_default() -> None:
+    with pytest.raises(DuplicateKeyError, match="Duplicate key"):
+        merge_mappings([{"a": float("nan")}, {"a": float("nan")}])
+
+
+def test_merge_mappings_equal_nan() -> None:
+    result = merge_mappings([{"a": float("nan")}, {"a": float("nan")}], equal_nan=True)
+    assert list(result) == ["a"]
+
+
+def test_flatten_mapping_nan_are_different_by_default() -> None:
+    with pytest.raises(DuplicateKeyError, match="Duplicate key"):
+        flatten_mapping({"x": {"a": float("nan")}, "y": {"a": float("nan")}})
+
+
+def test_flatten_mapping_equal_nan() -> None:
+    result = flatten_mapping({"x": {"a": float("nan")}, "y": {"a": float("nan")}}, equal_nan=True)
+    assert list(result) == ["a"]
+
+
 def test_add_prefix_suffix_to_keys_recursive_list_of_dicts() -> None:
     assert add_prefix_suffix_to_keys(
         {"a": [{"b": 1}, [{"c": 2}], 3]}, prefix="p_", recursive=True

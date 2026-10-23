@@ -15,6 +15,7 @@ def validate_finite(value: float, *, name: str = "value") -> None:
         name: The name of the value, used in the error message.
 
     Raises:
+        TypeError: If ``value`` is not a number.
         ValueError: If ``value`` is infinite or NaN.
 
     Example:
@@ -24,6 +25,7 @@ def validate_finite(value: float, *, name: str = "value") -> None:
 
         ```
     """
-    if not math.isfinite(value):
+    # An int is always finite, but ``math.isfinite`` overflows for the huge ones.
+    if not isinstance(value, int) and not math.isfinite(value):
         msg = f"{name} must be finite, got {value}"
         raise ValueError(msg)

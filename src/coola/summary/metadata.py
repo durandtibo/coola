@@ -3,7 +3,7 @@ an object (shape, dtype...) instead of its values."""
 
 from __future__ import annotations
 
-__all__ = ["BaseFieldsSummarizer", "BaseMetadataSummarizer", "format_fields"]
+__all__ = ["MAX_FIELDS", "BaseFieldsSummarizer", "BaseMetadataSummarizer", "format_fields"]
 
 from abc import abstractmethod
 from typing import TYPE_CHECKING, Any, TypeVar
