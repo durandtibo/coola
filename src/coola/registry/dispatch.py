@@ -14,13 +14,13 @@ from __future__ import annotations
 
 __all__ = ["BaseTypeDispatchRegistry"]
 
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
 from coola.display import MultilineDisplayMixin
 from coola.registry.type import TypeRegistry
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import ItemsView, Mapping
 
 V = TypeVar("V")
 
@@ -57,6 +57,12 @@ class BaseTypeDispatchRegistry(MultilineDisplayMixin, Generic[V]):
 
     def _get_repr_kwargs(self) -> dict[str, Any]:
         return {"state": self._state}
+
+    def __contains__(self, data_type: type) -> bool:
+        return self.has(data_type)
+
+    def __len__(self) -> int:
+        return len(self._state)
 
     def register(self, data_type: type, value: V, exist_ok: bool = False) -> None:
         r"""Register a handler for a given data type.
@@ -140,3 +146,45 @@ class BaseTypeDispatchRegistry(MultilineDisplayMixin, Generic[V]):
             is invalidated automatically by ``register``/``register_many``.
         """
         return self._state.resolve(data_type)
+
+    def unregister(self, data_type: type) -> V:
+        r"""Remove the handler registered for a given data type.
+
+        Args:
+            data_type: The type to unregister.
+
+        Returns:
+            The handler that was registered for this type.
+
+        Raises:
+            TypeNotRegisteredError: If no handler is directly registered
+                for ``data_type``.
+        """
+        return self._state.unregister(data_type)
+
+    def clear(self) -> None:
+        r"""Remove all the registered handlers."""
+        self._state.clear()
+
+    def items(self) -> ItemsView[type, V]:
+        r"""Return a view of the registered ``(type, handler)`` pairs.
+
+        The view is a snapshot: it is not updated by later changes.
+        """
+        return self._state.items()
+
+    def equal(self, other: object, equal_nan: bool = False) -> bool:
+        r"""Indicate if two registries are equal or not.
+
+        Args:
+            other: The object to compare with.
+            equal_nan: If ``True``, then two ``NaN``s will be
+                considered equal.
+
+        Returns:
+            ``True`` if ``other`` has the same type and the same
+                registered handlers, otherwise ``False``.
+        """
+        if type(other) is not type(self):
+            return False
+        return self._state.equal(cast("BaseTypeDispatchRegistry[V]", other)._state, equal_nan)
