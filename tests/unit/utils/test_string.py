@@ -188,3 +188,19 @@ def test_truncate_str_max_len_less_than_suffix() -> None:
 
 def test_char_diff_summary_growth_from_empty_text_is_not_a_percentage() -> None:
     assert char_diff_summary("", "abc") == "0 -> 3 chars (+3 chars, n/a)."
+
+
+def test_slugify_sharp_s() -> None:
+    assert slugify("Straße") == "strasse"
+
+
+def test_slugify_non_ascii_text_uses_a_hash() -> None:
+    assert slugify("日本語") == "77710aed"
+
+
+def test_slugify_different_non_ascii_texts_have_different_slugs() -> None:
+    assert slugify("日本語") != slugify("中文")
+
+
+def test_slugify_punctuation_only_is_empty() -> None:
+    assert slugify("!!!") == ""
