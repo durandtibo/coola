@@ -52,11 +52,11 @@ class NanEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     ) -> bool:
         if config.equal_nan and cmath.isnan(actual) and cmath.isnan(expected):
             # ``complex(nan, 1)`` and ``complex(nan, 2)`` differ: compare the parts.
-            return _parts_equal(actual, expected, config)
+            return complex_are_equal(actual, expected, config)
         return self._handle_next(actual, expected, config=config)
 
 
-def _parts_equal(actual: complex, expected: complex, config: EqualityConfig) -> bool:
+def complex_are_equal(actual: complex, expected: complex, config: EqualityConfig) -> bool:
     r"""Compare the real and imaginary parts, NaN being equal to NaN."""
     for a, b in ((actual.real, expected.real), (actual.imag, expected.imag)):
         if math.isnan(a) and math.isnan(b):
