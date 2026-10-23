@@ -52,9 +52,12 @@ def check_torch_numpy() -> None:
     if not is_torch_numpy_available():
         msg = (
             "'torch' and 'numpy' packages are required but one of the package is not "
-            "installed or they are not compatible. "
+            "installed or they are not compatible."
         )
-        raise MissingPackageError(msg)
+        # ``name`` is the first package that is missing, or ``torch`` if both
+        # are installed but not compatible.
+        name = "torch" if not is_torch_available() or is_numpy_available() else "numpy"
+        raise MissingPackageError(msg, name=name)
 
 
 @availability_cache

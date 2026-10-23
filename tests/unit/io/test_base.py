@@ -863,11 +863,39 @@ def test_acquire_file_lock_replaces_lock_of_dead_owner(tmp_path: Path) -> None:
     assert lock_path.read_text() == "new"
 
 
+def test_save_exist_ok_keeps_the_mode(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.json")
+    path.write_text("{}")
+    path.chmod(0o600)
+    JsonSaver().save({"a": 1}, path, exist_ok=True)
+    assert path.stat().st_mode & 0o777 == 0o600
+
+
+def test_save_exist_ok_follows_a_symlink(tmp_path: Path) -> None:
+    target = tmp_path.joinpath("target.json")
+    target.write_text("{}")
+    link = tmp_path.joinpath("link.json")
+    link.symlink_to(target)
+    JsonSaver().save({"a": 1}, link, exist_ok=True)
+    assert link.is_symlink()
+
+
+def test_save_exist_ok_writes_the_target_of_a_symlink(tmp_path: Path) -> None:
+    target = tmp_path.joinpath("target.json")
+    target.write_text("{}")
+    link = tmp_path.joinpath("link.json")
+    link.symlink_to(target)
+    JsonSaver().save({"a": 1}, link, exist_ok=True)
+    assert JsonLoader().load(target) == {"a": 1}
+
+
 def test_save_parent_is_a_file(tmp_path: Path) -> None:
     parent = tmp_path.joinpath("file")
     parent.write_text("abc")
     with pytest.raises(NotADirectoryError, match="is not a directory"):
         JsonSaver().save({"a": 1}, parent.joinpath("data.json"))
+
+
 def test_get_save_lock_same_lock_for_two_spellings_of_a_path(tmp_path: Path) -> None:
     lock = _get_save_lock(tmp_path.joinpath("data.txt"))
     assert _get_save_lock(tmp_path.joinpath("sub", "..", "data.txt")) is lock

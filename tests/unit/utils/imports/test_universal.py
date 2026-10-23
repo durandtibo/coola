@@ -38,6 +38,15 @@ def test_package_available_false() -> None:
     assert not package_available("missing_package")
 
 
+@pytest.mark.parametrize(
+    ("error", "name"), [(ValueError, "pkg_value_error"), (ImportError, "pkg_import_error")]
+)
+def test_package_available_false_if_find_spec_fails(error: type[Exception], name: str) -> None:
+    # The name differs per case because the result is cached.
+    with patch(f"{MODULE}.find_spec", side_effect=error("failed")):
+        assert not package_available(name)
+
+
 def test_package_available_false_subpackage() -> None:
     assert not package_available("missing.package")
 
