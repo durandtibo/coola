@@ -16,7 +16,6 @@ __all__ = [
     "SnowflakeIdGenerator",
     "extract_snowflake_timestamp_ms",
     "generate_snowflake_id",
-    "get_default_generator",
 ]
 
 import threading
