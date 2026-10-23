@@ -149,6 +149,11 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
         # Clear cache when registry changes to ensure new registrations are used
         self._cache = {}
 
+    def _validate_key(self, key: type) -> None:
+        if not isinstance(key, type):
+            msg = f"Expected a type as key, got {key!r} of type {type(key).__qualname__}"
+            raise TypeError(msg)
+
     def _not_registered_msg(self, key: type) -> str:
         msg = f"Type '{key}' is not registered"
         mro = getattr(key, "__mro__", None)
