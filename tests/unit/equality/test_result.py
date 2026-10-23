@@ -555,3 +555,33 @@ def test_compare_dataclass_field_path_in_container() -> None:
 
 def test_attribute_name_format_path_without_root() -> None:
     assert ComparisonResult(False, (AttributeName("x"), 0)).format_path() == ".x[0]"
+
+
+def test_compare_different_truncates_the_actual_representation() -> None:
+    assert compare(list(range(1000)), [0], max_repr_chars=10).actual == "[0, 1, ..."
+
+
+def test_compare_different_truncates_the_expected_representation() -> None:
+    assert compare([0], list(range(1000)), max_repr_chars=10).expected == "[0, 1, ..."
+
+
+def test_compare_different_truncates_to_1000_characters_by_default() -> None:
+    assert len(compare(list(range(1000)), [0]).actual) == 1000
+
+
+def test_compare_different_default_truncation_ends_with_ellipsis() -> None:
+    assert compare(list(range(1000)), [0]).actual.endswith("...")
+
+
+def test_compare_different_representation_within_the_limit_is_not_truncated() -> None:
+    assert compare([1], [2], max_repr_chars=3).actual == "[1]"
+
+
+def test_compare_max_repr_chars_too_small_raises() -> None:
+    with pytest.raises(ValueError, match="max_repr_chars must be at least 3"):
+        compare([1], [2], max_repr_chars=2)
+
+
+def test_compare_max_repr_chars_too_small_raises_for_equal_objects() -> None:
+    with pytest.raises(ValueError, match="max_repr_chars must be at least 3"):
+        compare([1], [1], max_repr_chars=2)
