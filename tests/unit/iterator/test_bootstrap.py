@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import UserString, deque
 from collections.abc import Collection, Mapping
+from types import MappingProxyType
 from typing import Any
 
 import pytest
@@ -46,7 +47,7 @@ def test_register_default_handlers_iterable_types(data_type: type) -> None:
     assert registry.state[data_type] == iterable_handler
 
 
-@pytest.mark.parametrize("data_type", [dict, Mapping])
+@pytest.mark.parametrize("data_type", [dict, Mapping, MappingProxyType])
 def test_register_default_handlers_mapping_types(data_type: type) -> None:
     registry = _FakeRegistry()
     mapping_handler = "mapping"
@@ -75,6 +76,7 @@ def test_register_default_handlers_registers_all_types_exactly_once() -> None:
         frozenset,
         dict,
         Mapping,
+        MappingProxyType,
     }
     assert set(registry.state) == expected_types
 

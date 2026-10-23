@@ -4,6 +4,7 @@ from __future__ import annotations
 
 __all__ = ["TypeRegistry"]
 
+from collections import Counter
 from typing import Generic, TypeVar
 from weakref import WeakKeyDictionary
 
@@ -158,12 +159,23 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
 
     def _not_registered_msg(self, key: type) -> str:
         msg = f"Type '{key}' is not registered"
-        mro = getattr(key, "__mro__", None)
+        mro = getattr(key, "__mro__", None) or ()
+        registered = list(self._state)
+        # Two classes can have the same ``__qualname__`` (e.g. a class redefined in another
+        # module): the module is added to the names that would otherwise be ambiguous.
+        counts = Counter(t.__qualname__ for t in {*mro, *registered})
+
+        def name(t: type) -> str:
+            return (
+                t.__qualname__
+                if counts[t.__qualname__] == 1
+                else f"{t.__module__}.{t.__qualname__}"
+            )
+
         if mro:
-            msg += f" (MRO: {', '.join(t.__qualname__ for t in mro)})"
-        registered = [t.__qualname__ for t in self._state]
+            msg += f" (MRO: {', '.join(name(t) for t in mro)})"
         if registered:
-            msg += f". Registered types: {', '.join(sorted(registered))}"
+            msg += f". Registered types: {', '.join(sorted(name(t) for t in registered))}"
         return msg
 
     def _already_registered_msg(self, key: type) -> str:
@@ -174,7 +186,7 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
 
     def _many_already_registered_msg(self, duplicates: set[type]) -> str:
         return (
-            f"Types already registered: {', '.join(map(str, duplicates))}. "
+            f"Types already registered: {', '.join(sorted(map(str, duplicates)))}. "
             "Use different types or set exist_ok=True to override."
         )
 
