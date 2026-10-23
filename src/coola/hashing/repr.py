@@ -11,6 +11,7 @@ from coola.display import InlineDisplayMixin, NoArgsDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_enum, hash_tagged
 from coola.utils.imports import is_numpy_available
+from coola.utils.integer import int_repr
 
 if TYPE_CHECKING or is_numpy_available():
     import numpy as np
@@ -41,16 +42,6 @@ def _numpy_scalar_to_builtin(data: Any) -> Any:
     return data
 
 
-def _int_repr(value: int) -> str:
-    """Return the decimal ``repr`` of an integer, or its hexadecimal form
-    when it exceeds the int-to-str conversion limit of the interpreter.
-    """
-    try:
-        return int.__repr__(value)
-    except ValueError:  # more digits than ``sys.get_int_max_str_digits()``
-        return f"0x{value:x}"
-
-
 def _builtin_repr(base: Any, data: Any) -> str:
     """Return the ``repr`` of ``data`` as the builtin type ``base``.
 
@@ -62,7 +53,7 @@ def _builtin_repr(base: Any, data: Any) -> str:
     if base is complex:
         return complex.__repr__(complex(float(data.real) + 0.0, float(data.imag) + 0.0))
     if base is int:
-        return _int_repr(data)
+        return int_repr(data)
     return base.__repr__(data)
 
 
