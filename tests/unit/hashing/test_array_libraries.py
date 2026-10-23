@@ -311,6 +311,100 @@ def test_hash_pandas_series_differs_by_dtype() -> None:
 
 
 @pandas_available
+def test_hash_pandas_dataframe_differs_by_index_name() -> None:
+    frame = pd.DataFrame({"a": [1, 2]}, index=pd.Index([0, 1], name="x"))
+    assert hash_object(frame) != hash_object(frame.rename_axis(index="y"))
+
+
+@pandas_available
+def test_hash_pandas_dataframe_differs_by_columns_name() -> None:
+    frame = pd.DataFrame({"a": [1, 2]}).rename_axis(columns="x")
+    assert hash_object(frame) != hash_object(frame.rename_axis(columns="y"))
+
+
+@pandas_available
+def test_hash_pandas_dataframe_index_without_name_equals_a_copy() -> None:
+    frame = pd.DataFrame({"a": [1, 2]})
+    assert hash_object(frame) == hash_object(frame.copy())
+
+
+@pandas_available
+def test_hash_pandas_dataframe_differs_by_index_dtype() -> None:
+    frame = pd.DataFrame({"a": [1, 2]}, index=pd.Index([0, 1], dtype="int64"))
+    assert hash_object(frame) != hash_object(frame.set_axis(pd.Index([0, 1], dtype="int32")))
+
+
+@pandas_available
+def test_hash_pandas_dataframe_multiindex_equal_frames() -> None:
+    index = pd.MultiIndex.from_tuples([(1, "a"), (2, "b")], names=["p", "q"])
+    frame = pd.DataFrame({"v": [1, 2]}, index=index)
+    assert hash_object(frame) == hash_object(frame.copy())
+
+
+@pandas_available
+def test_hash_pandas_dataframe_multiindex_differs_by_level_name() -> None:
+    index = pd.MultiIndex.from_tuples([(1, "a"), (2, "b")], names=["p", "q"])
+    frame = pd.DataFrame({"v": [1, 2]}, index=index)
+    assert hash_object(frame) != hash_object(frame.rename_axis(index=["p", "r"]))
+
+
+@pandas_available
+def test_hash_pandas_dataframe_multiindex_differs_by_values() -> None:
+    first = pd.MultiIndex.from_tuples([(1, "a"), (2, "b")])
+    second = pd.MultiIndex.from_tuples([(1, "a"), (2, "c")])
+    assert hash_object(pd.DataFrame({"v": [1, 2]}, index=first)) != hash_object(
+        pd.DataFrame({"v": [1, 2]}, index=second)
+    )
+
+
+@pandas_available
+def test_hash_pandas_series_differs_by_index_name() -> None:
+    series = pd.Series([1, 2], index=pd.Index([0, 1], name="x"))
+    assert hash_object(series) != hash_object(series.rename_axis("y"))
+
+
+@pandas_available
+def test_hash_pandas_series_categorical_equal_series() -> None:
+    series = pd.Series(pd.Categorical(["a", "b"], categories=["a", "b"]))
+    assert hash_object(series) == hash_object(series.copy())
+
+
+@pandas_available
+def test_hash_pandas_series_categorical_differs_by_categories() -> None:
+    first = pd.Series(pd.Categorical(["a", "b"], categories=["a", "b"]))
+    second = pd.Series(pd.Categorical(["a", "b"], categories=["a", "b", "c"]))
+    assert hash_object(first) != hash_object(second)
+
+
+@pandas_available
+def test_hash_pandas_series_categorical_differs_by_order_of_categories() -> None:
+    first = pd.Series(pd.Categorical(["a", "b"], categories=["a", "b"]))
+    second = pd.Series(pd.Categorical(["a", "b"], categories=["b", "a"]))
+    assert hash_object(first) != hash_object(second)
+
+
+@pandas_available
+def test_hash_pandas_series_categorical_differs_by_ordered() -> None:
+    first = pd.Series(pd.Categorical(["a", "b"], categories=["a", "b"], ordered=False))
+    second = pd.Series(pd.Categorical(["a", "b"], categories=["a", "b"], ordered=True))
+    assert hash_object(first) != hash_object(second)
+
+
+@pandas_available
+def test_hash_pandas_dataframe_categorical_column_differs_by_categories() -> None:
+    first = pd.DataFrame({"a": pd.Categorical(["a", "b"], categories=["a", "b"])})
+    second = pd.DataFrame({"a": pd.Categorical(["a", "b"], categories=["a", "b", "c"])})
+    assert hash_object(first) != hash_object(second)
+
+
+@pandas_available
+def test_hash_pandas_series_categorical_index_differs_by_categories() -> None:
+    first = pd.Series([1, 2], index=pd.CategoricalIndex(["a", "b"], categories=["a", "b"]))
+    second = pd.Series([1, 2], index=pd.CategoricalIndex(["a", "b"], categories=["a", "b", "c"]))
+    assert hash_object(first) != hash_object(second)
+
+
+@pandas_available
 def test_hash_pandas_series_nan_sign() -> None:
     assert hash_object(pd.Series([np.nan])) == hash_object(pd.Series([-np.nan]))
 
