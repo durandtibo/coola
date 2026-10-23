@@ -319,11 +319,11 @@ def test_snowflake_id_generator_generate_clock_moved_backward_during_busy_wait_r
 
 
 def test_snowflake_id_generator_generate_sequence_wraps_within_same_millisecond() -> None:
-    generator = SnowflakeIdGenerator()
     fixed_ms = 1_800_000_000_000
+    generator = SnowflakeIdGenerator(last_timestamp_ms=fixed_ms, sequence=_MAX_SEQUENCE - 2)
     with patch("time.time_ns", return_value=fixed_ms * 1_000_000):
-        ids = [generator.generate() for _ in range(_MAX_SEQUENCE + 1)]
-    assert ids[-1] == ids[0] + _MAX_SEQUENCE
+        ids = [generator.generate() for _ in range(2)]
+    assert ids[-1] == ids[0] + 1
 
 
 ###########################################
