@@ -1,542 +1,643 @@
-# Codebase review: suggestions (round 3)
+# Codebase review: suggestions (round 4)
 
-This file **replaces the previous `review/suggestions.md`** (417 lines, items 1.1 to 2.10 handled).
-That version is in git history (last touched by `55086b7f`). Nothing below repeats an item of that
-review, `src-coola-review.md`, `noqa-review.md` or `python-311-modernization.md`, except where
-an item is explicitly marked _still open_.
+This file **replaces the previous `review/suggestions.md`** (round 3, 543 lines, items 1.1 to 11).
+That version is in git history (last touched by `55086b7f`). Section 20 gives the status of its
+items. Nothing below repeats an item of round 3, `src-coola-review.md`, `noqa-review.md` or
+`python-311-modernization.md`, except where an item is explicitly marked _carried over_.
+
+The numbering **continues** the previous rounds (sections 12 to 20), so that an ID such as `13.2` in a
+branch name or a commit message is unambiguous.
 
 ## How this review was done
 
-Two passes on the checkout (`.venv`, Python 3.14, NumPy, torch, pandas, polars, pyarrow, xarray, JAX,
-pydantic installed):
+Checkout of `main` at `0287a61a` (`.venv`, Python 3.14.8, NumPy, torch, pandas, polars, pyarrow,
+xarray, JAX, pydantic, SciPy installed). Baseline: `pytest tests/unit tests/integration` gives
+12237 passed, 40 skipped, 3 xfailed in 26 s with 99% line coverage (6149 statements, 0 missed, 1
+partial branch); `ruff check src tests` and `ty check` are clean. The review changed no source file.
 
-1. **Part A (sections 1 to 4)**: my own probes of `utils`, `io`, `identifier`, `nested`, `random`,
-   `hashing`, `summary` and the third-party equality testers.
-2. **Part B (sections 5 to 10)**: a full read-through, in parallel, of every package. One reviewer per
-   group read every file in full: `equality`, `hashing` + `identifier`, `io` + `utils`, `registry` +
-   `summary` + `factory` + `validation` + `display` + `testing`, `iterator` + `recursive` + `nested` +
-   `reducer` + `random`, and everything outside `src/coola` (tests, CI, docs, tooling). The tests (about
-   50k lines) were surveyed and sampled, not read line by line.
+1. **Read-through.** Every module of `src/coola` (207 files, about 30.5k lines) was read with the
+   docstrings stripped, package by package: `registry`, `equality`, `hashing`, `identifier`, `utils`,
+   `io`, `summary`, `iterator`, `recursive`, `nested`, `reducer`, `random`, `display`, `factory`,
+   `validation`, `testing`. The tests (311 files, 62.9k lines), the docs and the CI were surveyed with
+   scripts (conventions, structure, coverage), not read line by line.
+2. **Probes.** Items marked **[verified]** were reproduced on this checkout with a script and the
+   repro is given. Items marked **[reading]** or **[lead]** come from reading the code and were not
+   reproduced (GPU, Windows and CI-only behaviour were not run).
+3. **Support matrix.** About 100 representative types (NumPy, torch, pandas, polars, pyarrow, xarray,
+   JAX, SciPy, pydantic, stdlib containers and scalars) were run through `objects_are_equal`
+   (against a deep copy), `hash_object`, `summarize`, `dfs_iterate` and `recursive_apply`. The gaps
+   are in 14.4 and 18.1.
 
-Items marked **[verified]** were reproduced; the others are leads from reading the code. Baseline:
-`pytest tests` gives 8521 passed, 39 skipped, 3 xfailed, and `ruff check .` is clean. The review changed
-no source file. Where Part B repeats a Part A item it is merged here (for example the big-integer crash
-appears in both `summarize` and `hash_object`).
+Almost all round-3 items were merged in the meantime (PRs #2070 to #2235, section 20). The new
+findings are mostly in two places: the lazy registries of #2231 (section 12), and the places where
+`equality`, `hashing` and `summary` treat the same type differently (sections 13 to 15).
 
-Priority: **P1** wrong result or leak on realistic input, **P2** inconsistent or surprising behaviour,
-**P3** cleanup.
+Priority: **P1** wrong result or crash on realistic input, **P2** inconsistent or surprising
+behaviour, **P3** cleanup or design.
 
-## Status (updated 2026-10-22)
+## Summary
 
-Checked against the git history up to `5008f540`. "Fixed" means a merged commit addresses the item;
-the PR number is given. Items not listed are **open**.
+| ID   | P   | Area     | Finding                                                                                         |
+| ---- | --- | -------- | ----------------------------------------------------------------------------------------------- |
+| 12.1 | P1  | registry | `in`, `has`, `get`, `[]`, `find` with a non-type raise `AttributeError` (regression of #2231)   |
+| 14.1 | P1  | hashing  | NumPy structured dtypes with different field names or types hash the same                       |
+| 14.2 | P1  | hashing  | pandas objects that differ by index name, `columns.name` or categories hash the same            |
+| 15.1 | P1  | summary  | `summarize` of a collection at the depth limit raises when an item cannot be converted to `str` |
+| 12.2 | P2  | registry | `repr`, `len` or iteration of a default registry imports every installed optional library       |
+| 12.4 | P2  | hashing  | `HasherRegistry` fallbacks: slow (16 µs per dataclass), ignored by `equal`, not locked          |
+| 13.1 | P2  | equality | No pydantic tester, and an exception raised by `==` itself escapes `ObjectEqualHandler`         |
+| 13.2 | P2  | equality | `objects_are_allclose` is asymmetric for NumPy and torch, symmetric for scalars, pandas, polars |
+| 13.4 | P2  | equality | `compare` and `assert_objects_equal` raise when a compared field has a failing `__str__`        |
+| 14.3 | P2  | hashing  | Arrays and tensors with different NaN bit patterns hash differently, floats do not              |
+| 14.4 | P2  | hashing  | Types supported by equality are not hashable; wrong exception for `np.timedelta64` and `pd.NaT` |
+| 14.6 | P2  | hashing  | The "stable" IDs have no golden vectors and no format version                                   |
+| 14.7 | P2  | hashing  | Equal dataclasses hash differently when a field has `compare=False`                             |
+| 16.1 | P2  | io       | `save_*` and `load_*` raise `AttributeError` for a `str` path                                   |
+| 16.3 | P2  | factory  | `resolve_saver`/`resolve_loader` call the target before checking its type                       |
 
-### Part A
+## 12. `registry` and lazy loading
 
-| ID   | Status         | Notes                                                                                                                                                                                                   |
-| ---- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1.1  | Fixed (#2070)  | Negative `show_first`/`show_last` rejected.                                                                                                                                                             |
-| 1.2  | Fixed (#2071)  | Default summarizer survives `str`/`repr` failures.                                                                                                                                                      |
-| 1.3  | Fixed (#2072)  | Object-dtype arrays compared element-wise (also 5.1). Masked-array note not documented.                                                                                                                 |
-| 1.4  | Fixed (#2073)  | Sparse and meta tensors supported.                                                                                                                                                                      |
-| 1.5  | Partly (#2074) | Sets and ranges converted; `save_json` limits documented. Non-string keys, `nan`/`inf`, `Path`, `datetime` still not converted by `convert_to_jsonable`.                                                |
-| 1.6  | Fixed (#2075)  | Line endings preserved.                                                                                                                                                                                 |
-| 1.7  | Fixed (#2076)  | Seed validated once before seeding.                                                                                                                                                                     |
-| 1.8  | Fixed (#2077)  | Negative/non-finite durations; `str_indent` skips empty lines.                                                                                                                                          |
-| 1.9  | Fixed (#2078)  | Compound suffix allow-list.                                                                                                                                                                             |
-| 1.10 | Mostly (#2079) | Fixed: `verify_checksummed_id`, nano ID alphabet, `get_file_size`, `get_current_branch` (documented), `temp_env_vars` (documented), `check_env_vars` level. Not checked/open: `get_password` TTY check. |
-| 2.1  | Fixed (#2083)  | Default hashers for NumPy, torch, JAX, pandas, polars, PyArrow, xarray.                                                                                                                                 |
-| 2.2  | Fixed (#2081)  | PyArrow numeric columns honour `equal_nan`, `atol`, `rtol` (also 5.11 in part).                                                                                                                         |
-| 2.3  | Partly (#2080) | Description and keywords updated. The 3.15 classifier and Development Status were not addressed.                                                                                                        |
-| 2.4  | Open           | Scope of `utils`.                                                                                                                                                                                       |
-| 2.5  | Open           | `seed_everything` context manager.                                                                                                                                                                      |
-| 3    | Partly         | Cross-module property tests added (#2084); `make clean` added (#2085). Regression tests exist for the fixed items; Windows runner, mutation testing, coverage `fail_under` still open.                  |
+### 12.1 Non-type keys raise `AttributeError` once a lazy group is pending **[verified]** (P1)
 
-### Part B
-
-| ID    | Status                          | Notes                                                                                                                                                                                                 |
-| ----- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 5.1   | Fixed (#2072)                   | Same fix as 1.3.                                                                                                                                                                                      |
-| 5.2   | Fixed (#2095)                   | Testers for pandas `Index` and extension arrays. Scipy sparse not checked.                                                                                                                            |
-| 5.5   | Fixed (#2096)                   | Nested polars NaN detected.                                                                                                                                                                           |
-| 5.7   | Documented (#2094)              | Scalar comparison rules documented, behaviour unchanged.                                                                                                                                              |
-| 5.8   | Fixed (#2097, #2104)            | Dataclass fields and attributes in the `compare` path; unused `coola_path_kind` removed.                                                                                                              |
-| 5.13  | Fixed (#2092)                   | Default `max_depth` lowered to 100.                                                                                                                                                                   |
-| 5.14  | Fixed (#2091, #2102)            | Exact integer comparison with a tolerance; complex NaN parts compared separately.                                                                                                                     |
-| 5.15  | Partly (#2098)                  | Duplicate validation, config comments and the sequence set per call cleaned up. Other points open.                                                                                                    |
-| 6.1   | PR open (#2105)                 | Integers above the int-to-str limit hashed in hexadecimal (`int`, `Fraction`, `range`).                                                                                                               |
-| 6.2   | PR open (#2106)                 | `DecimalHasher` canonical form built from `as_tuple()`.                                                                                                                                               |
-| 6.3   | PR open (#2107)                 | Aware datetimes near `min`/`max` no longer overflow.                                                                                                                                                  |
-| 6.4   | PR open (#2108)                 | Snowflake lock held during the next-millisecond wait.                                                                                                                                                 |
-| 6.5   | PR open (#2109)                 | Default Snowflake and ObjectId generators use `LazySingleton`.                                                                                                                                        |
-| 6.6   | PR open (#2111)                 | Explicit timestamp leaves the Snowflake state untouched (random sequence).                                                                                                                            |
-| 6.7   | PR open (#2112)                 | Mapping entries sorted by the full key and value hash.                                                                                                                                                |
-| 6.8   | PR open (#2113)                 | Enum mixins routed to `EnumHasher`.                                                                                                                                                                   |
-| 6.9   | PR open (#2114)                 | `hash` method fallback requires the `SupportsHash` signature.                                                                                                                                         |
-| 6.10  | PR open (#2115)                 | Documented only; module and class name stay in the hash.                                                                                                                                              |
-| 6.11  | PR open (#2116)                 | `ReprHasher` fallback tag is `module.qualname` (builtins keep the bare name).                                                                                                                         |
-| 6.12  | PR open (#2117)                 | `generate_stable_content_id` and `generate_stable_uuid5` options are keyword-only.                                                                                                                    |
-| 6.13  | Partly, PR open (#2118)         | Cycle guard for nested pydantic models. A model inside a dataclass still uses the default `on_secret` (documented).                                                                                   |
-| 6.14  | PR open (#2119)                 | `ValueError` instead of `RecursionError` for data nested too deeply.                                                                                                                                  |
-| 6.15  | PR open (#2120)                 | ULID range validated; lowercase accepted.                                                                                                                                                             |
-| 6.16  | PR open (#2121)                 | Non-ASCII input rejected by `verify_checksummed_id`. `sep` is still case-sensitive.                                                                                                                   |
-| 6.17  | PR open (#2122)                 | `length` capped at 1024; `decode_obfuscated_id` input bounded.                                                                                                                                        |
-| 6.18  | PR open (#2123)                 | Documented only (parity leak); no Feistel step.                                                                                                                                                       |
-| 6.19  | PR open (#2124)                 | Shared length validation, checked before hashing; `memoryview` supported.                                                                                                                             |
-| 6.20  | PR open (#2125)                 | `get_default_generator` removed from both `__all__`.                                                                                                                                                  |
-| 6.21  | Partly, PR open (#2126)         | Prefix and generator result validated, `chars` tidied. Open: Windows/Posix path hash, duplicate registry export, `register_hashers` doctest.                                                          |
-| 7.1   | PR open (#2132)                 | Temporary and lock names derived from a hash when the target name is long.                                                                                                                            |
-| 7.10  | PR open (#2136)                 | `check_env_vars` treats an empty or blank value as not defined.                                                                                                                                       |
-| 7.11  | PR open (#2139)                 | `sort_by_keys` falls back to (type name, key); used by the `sorted_keys` options.                                                                                                                     |
-| 7.12  | PR open (#2140)                 | `to_tensor` calls `check_torch()` first.                                                                                                                                                              |
-| 7.13  | Partly (#2141)                  | Dunder names and `_module` raise `AttributeError` without importing. `hasattr(proxy, "a")` of a missing package still raises `ModuleNotFoundError` on purpose; `copy.copy` is impossible for modules. |
-| 7.14  | PR open (#2143)                 | `LazySingleton` uses a sentinel, so a `None` value is cached.                                                                                                                                         |
-| 7.15  | Fixed (options) (#2150)         | Options `level` and `all_threads` added; defaults unchanged.                                                                                                                                          |
-| 7.16  | PR open (#2145)                 | Host in a file URI and unknown `~user` raise `ValueError`; a missing path starts from its parent.                                                                                                     |
-| 7.17  | PR open (#2144)                 | Unit chosen after rounding.                                                                                                                                                                           |
-| 7.18  | PR open (#2142)                 | `TorchLoader.equal` applies the `weights_only` default.                                                                                                                                               |
-| 7.19  | PR open (#2146)                 | `NotADirectoryError` when the parent is a file.                                                                                                                                                       |
-| 7.2   | PR open (#2133)                 | `unified_diff` marks lines without a trailing newline like `git diff`.                                                                                                                                |
-| 7.20  | Won't fix (#2156; #2152 closed) | Windows is not a supported OS for coola; PR #2152 closed.                                                                                                                                             |
-| 7.21  | PR open (#2148)                 | Error `name` set and message tidied; `package_available` catches `ValueError`/`ImportError`.                                                                                                          |
-| 7.22  | PR open (#2149)                 | Invalid versions give `None`; cache cleared by `clear_availability_caches`.                                                                                                                           |
-| 7.23  | Mostly (#2151)                  | The listed examples fixed. Other doctests of `utils` still fail under pytest's doctest runner (they pass with xdoctest).                                                                              |
-| 7.24  | Mostly (#2155)                  | Fixed: bfloat16 `to_array`, resolved lock key, docs. Not changed: >2**53 ints in `stats.py`, `fsync` on `BaseSaver.save`.                                                                             |
-| 7.3   | Partly (#2153)                  | Dead owner (same host) detected from the `host:pid:uuid` token and the lock broken at once. Timeout still not configurable; no kernel locks.                                                          |
-| 7.4   | PR open (#2147)                 | Mode copied from the replaced file; a symlink is followed.                                                                                                                                            |
-| 7.5   | Partly (#2154)                  | Renamed lock re-checked and restored if it was renewed. The window is narrowed, not closed (no kernel locks).                                                                                         |
-| 7.6   | PR open (#2135)                 | `is_git_repo` compares to `true`; the stderr of git is kept in the error.                                                                                                                             |
-| 7.7   | PR open (#2134)                 | `to_date` returns the date part of a `datetime`.                                                                                                                                                      |
-| 7.8   | PR open (#2138)                 | `ß` and similar letters mapped; non-ASCII-only text falls back to a hash.                                                                                                                             |
-| 7.9   | PR open (#2137)                 | `datetime.time` becomes an ISO string and `timedelta` a number of seconds.                                                                                                                            |
-| 8.1   | Fixed (#2161)                   | `PolarsLazyFrameSummarizer` shows `<unresolved schema: ExceptionType>` for an invalid plan.                                                                                                           |
-| 8.2   | Fixed (#2162)                   | `TypeRegistry` raises `TypeError` for a non-type key (`register`, `register_many`, `initial_state`).                                                                                                  |
-| 8.3   | Fixed (#2164)                   | `exclude_fields` warns only for names that are not fields of the model. Docstrings corrected.                                                                                                         |
-| 8.4   | Mostly (#2163)                  | `SecretBytes` and `Secret` omitted like `SecretStr`. A generic with a secret still drops the whole field.                                                                                             |
-| 8.5   | Mostly (#2165)                  | On a TTY `stream`, `datefmt` used; `handlers`, `filename`, `format`, `style` give plain config; `stderr=None` handled.                                                                                |
-| 8.6   | Fixed (#2166)                   | "Does not exist" only for a missing module or attribute; a `str` `allowed_prefixes` is one prefix.                                                                                                    |
-| 8.7   | Fixed (#2167)                   | `import_object("")` raises `ImportError`; `resolve_object` accepts a tuple; `is_object_config` robust to bad input.                                                                                   |
-| 8.8   | Fixed (#2168)                   | `is_object_config` checks `get_origin(t) or t`, so `-> list[int]` matches `list`.                                                                                                                     |
-| 8.9   | Partly (#2169)                  | Preview keeps the type (tuple, deque, set, frozenset, OrderedDict, Counter). `max_items < 0` still capped at 5 (deliberate, #27).                                                                     |
-| 9.1   | PR open (#2174)                 | `from_flat_dict` no longer mutates or extends a dict given as a value; it raises a key conflict.                                                                                                      |
-| 9.2   | PR open (#2175)                 | `UserString` registered as a leaf in the iterators and `recursive_apply`.                                                                                                                             |
-| 9.3   | PR open (#2176)                 | `flatten_mapping` raises `DuplicateKeyError` when two different keys flatten to the same key.                                                                                                         |
-| 9.4   | PR open (#2177)                 | `expand_list_columns` raises on a name collision and keeps all-empty list columns.                                                                                                                    |
-| 9.5   | PR open (#2178)                 | `flatten_frame` explodes several lists of structs one after the other when the lengths differ; `depth=0` is a no-op.                                                                                  |
-| 9.6   | PR open (#2179)                 | `TorchRandomManager` manages the MPS generator; `set_rng_state` validates the state.                                                                                                                  |
-| 9.7   | PR open (#2180)                 | BFS cycle check linear in the depth; `recursive_apply` recursion limit documented.                                                                                                                    |
-| 9.8   | PR open (#2181)                 | `MappingProxyType` registered; MRO rule documented. `UserList` already kept its type on `main`.                                                                                                       |
-| 9.9   | PR open (#2182)                 | `suffix` compares with all kept values; `equal_nan` added. A genuine `a_1` after a generated one still raises under `suffix`; `prefix` stays order dependent (documented).                            |
-| 9.10  | PR open (#2183)                 | `add_prefix_suffix_to_keys(recursive=True)` descends into sequences.                                                                                                                                  |
-| 9.11  | PR open (#2184)                 | `to_flat_dict` raises `ValueError` for cycles. `range`/`set` rule and the dict root of `from_flat_dict` documented, not changed.                                                                      |
-| 9.12  | PR open (#2185)                 | `convert_to_list_of_dicts` rejects string values; the `[{}, {}]` round trip is documented.                                                                                                            |
-| 9.13  | PR open (#2186)                 | `NumpyReducer.std` uses the array size.                                                                                                                                                               |
-| 9.14  | PR open (#2187)                 | `NumpyReducer.median` int for odd integers; no overflow in `median`; iterators raise `TypeError`. Large ints and the `auto_reducer` order unchanged (documented).                                     |
-| 9.15  | PR open (#2189)                 | Documented only; the dead scalar registrations are kept.                                                                                                                                              |
-| 9.16  | PR open (#2188)                 | `random_seed` tests the manager with `is None`.                                                                                                                                                       |
-| 9.17  | Already fixed (#2057)           | The legacy mode of `KeyFilterTransformer` keeps the values (identity or `transform_func`); no change needed.                                                                                          |
-| 10.1  | Fixed (#2172)                   | `summary.md` prints stable `find_summarizer` lookups instead of the whole registry. `factory.md` updated for 8.6.                                                                                     |
-| 10.2  | PR open (#2202)                 | Library assertion and `objects_are_equal` split; strict `xfail(raises=...)`.                                                                                                                          |
-| 10.3  | PR open (#2203)                 | `default_rng` with fixed seeds.                                                                                                                                                                       |
-| 10.4  | PR open (#2204)                 | `--strict-markers`, `--strict-config`, `xfail_strict`, `filterwarnings = error`, `timeout = 300`.                                                                                                     |
-| 10.5  | Mostly (#2205)                  | Benchmarks skipped by default; nightly saves and compares the results (workflow not yet run).                                                                                                         |
-| 10.6  | Partly (#2206)                  | YAML lint and TOML format check in CI. Markdown and Makefile linters fail on the current tree (not added).                                                                                            |
-| 10.7  | PR open (#2207)                 | Releases run the CI first; stable docs only from a tag. Manual PyPI publish from `main` still allowed.                                                                                                |
-| 10.8  | Already fixed                   | No `-W error` failure left in the PyArrow tests on `main` (the one remaining failure is fixed in #2204).                                                                                              |
-| 10.9  | Partly (#2208)                  | `identifier.md` example fixed. The `inv test.doctest` globs are in the external `invoke_tasklib`.                                                                                                     |
-| 10.10 | PR open (#2209)                 | Stale references fixed; testing docs updated.                                                                                                                                                         |
-| 10.11 | Partly (#2210)                  | Three examples added with output checks; `equality.py` still checks the exit code only.                                                                                                               |
-| 10.12 | Partly (#2211)                  | Empty `tests/unit/properties` removed; `test_tensor.py` renamed. Other missing mirrors and sample duplication left.                                                                                   |
-| 10.13 | Partly (#2212)                  | Property tests for iterator, recursive, summary, random; `ci` profile and coverage. No `io`/`utils`.                                                                                                  |
-| 10.14 | Mostly (#2213)                  | Meta-device tests run without a GPU; wrong expectation of the CUDA summary test fixed.                                                                                                                |
-| 10.15 | Partly (#2214)                  | Timeouts raised, `min` coverage removed. Wheel-less cells not excluded (needs data).                                                                                                                  |
-| 10.16 | Mostly (#2215)                  | `property` group installed. `docs/site` already ignored.                                                                                                                                              |
-| 10.17 | Mostly (#2216)                  | PR says if tests failed; Dependabot groups and cooldown; weekly `pip-audit`. Overlap of the bots unresolved.                                                                                          |
-| 10.18 | PR open (#2217)                 | `strict: true` and `validation:` in `mkdocs.yml`. include-markdown plugin unused.                                                                                                                     |
-
-All other items in sections 5 to 10 (including 7.x, 8.x, 9.x, 10.x) have no matching commit and are **open**.
-The earlier "Suggested order" lists below are unchanged.
-
----
-
-## 1. Correctness and robustness
-
-### 1.1 `mask_secret` leaks the secret with negative arguments **[verified]** (P1) — **Fixed (#2070)**
-
-`utils/secret.py` never validates `show_first` / `show_last`. Python slicing turns a negative value into
-"all but the last N":
+`TypeRegistry._lazy_names` (`registry/type.py:158-161`) reads `key.__mro__`. `has`, `get`, `__getitem__`,
+`unregister`, `__contains__` and `resolve` call it **before** the key is validated, so any non-type
+raises as soon as the registry has an unloaded group. All default registries have one.
 
 ```python
-mask_secret(
-    "abcdefghijkl", show_first=-2
-)  # 'abcdefghij**********ijkl'  (10 of 12 characters shown)
-mask_secret("abcdefghijkl", show_last=-2)  # 'abc***********'
+from coola.equality.tester import get_default_registry
+
+registry = get_default_registry()
+"abc" in registry  # AttributeError: 'str' object has no attribute '__mro__'
+registry.has(None)  # AttributeError
+registry.find("abc")  # AttributeError (it already raised it before #2231)
 ```
 
-Reject negative values with `validate_ge(..., 0)` (the `validation` module is already used elsewhere in
-`utils`). Also consider whether it is acceptable that the output length reveals the secret length for
-short secrets (`'*' * len(secret)`); a fixed-width mask is the safer default for a function named
-`mask_secret`.
+Before #2231 `"abc" in registry` and `has("abc")` were `False` and `get("abc")` returned the default;
+those are the regressions. `register` still raises the intended `TypeError` (#2162) because it validates
+first. Fix: `_lazy_names` returns `()` for a non-type (`getattr(key, "__mro__", ())`), so the lookups
+fall through to `key in self._state` (`False`), and make `resolve`/`find` of a non-type raise the
+documented `TypeError` instead of the `AttributeError`. Add the regression test in
+`tests/unit/registry/test_type.py` **and** one that goes through a default registry with a pending
+group (the lazy tests added in #2231 never look up a non-type, which is why the suite stayed green).
 
-### 1.2 `summarize` raises on values that cannot be converted to `str` **[verified]** (P1) — **Fixed (#2071)**
+### 12.2 Reading a registry loads every lazy group **[verified]** (P2)
 
-`summarize` is the function used to build error and log messages, so it should never be the thing that
-fails.
+`repr`, `str`, `len`, iteration, `items`, `keys`, `values` and `equal` call `_load_lazy_all`.
 
 ```python
-summarize(10**5000)  # ValueError: Exceeds the limit (4300 digits) ...
-summarize(type("B", (), {"__repr__": lambda s: 1 / 0})())  # ZeroDivisionError
+from coola.equality.tester import get_default_registry
+import sys
+
+repr(get_default_registry())
+[m for m in ("torch", "pandas", "polars", "pyarrow", "xarray", "jax") if m in sys.modules]
+# all six
 ```
 
-The default summarizer calls `str(data)` / `repr(data)` before truncating. Wrap that call in a
-`try/except Exception` that falls back to `<ClassName object at 0x...>`, and truncate big integers by
-`int.bit_length()` rather than converting them.
+So printing a registry in a debugger, a log line or an error message imports JAX, torch, pandas, ...,
+which is the cost #2231 removed. Fix: `_display_fields` of `BaseTypeDispatchRegistry` should show the
+loaded entries and a placeholder for the pending groups (`<not loaded: jax, torch>`), without loading.
+`len` can keep loading (it must be exact), but `repr` should not.
 
-### 1.3 `equal_nan=True` is ignored for object-dtype NumPy arrays **[verified]** (P2) — **Fixed (#2072)**
+### 12.3 `BaseRegistry.equal` holds both locks while it runs the comparison **[reading]** (P3, _carried over_ from 8.19)
+
+`registry/base.py:243-244` still runs `objects_are_equal(self._state, other._state)` under
+`first._lock, second._lock`. PR #2195 (snapshot, release, then compare) was never merged. The id-based
+lock order avoids the A/B deadlock, but a value whose `equal`/`__eq__` takes another registry's lock
+(for example a tester that holds a registry) can still deadlock, and a slow comparison blocks all
+registrations. Snapshot with `_get_snapshot()`, release, compare.
+
+### 12.4 `HasherRegistry` fallbacks **[verified]** (P2)
+
+Types that are handled by a fallback (every dataclass, every class with a `hash` method) take a
+**failing lookup per object**: `find` raises `TypeNotRegisteredError`, whose message is built eagerly
+(MRO, a `Counter`, a sorted list of all registered type names), then `find_hasher` catches it and walks
+the predicates.
 
 ```python
-a = np.array([np.nan], dtype=object)
-objects_are_equal(a, a.copy(), equal_nan=True)  # False
+@dataclass
+class P:
+    x: int
+
+
+hash_object([P(i) for i in range(20000)])  # 0.33 s: 16 µs per object, 70% in find_hasher
+hash_object(list(range(20000)))  # 0.034 s
 ```
 
-Pandas columns of `object` dtype that hold floats take the same path. Either compare object arrays
-element-wise through `objects_are_equal` (so `equal_nan` and the nested testers apply), or warn like the
-PyArrow tester does. Related: `np.ma.MaskedArray` with different data under the mask compares unequal
-(`eq(ma([1, 2], mask=[0, 1]), ma([1, 9], mask=[0, 1]))` is `False`). That is defensible, but it is not
-documented and the masked entries are not the user-visible values.
+Related defects in the same code (`hashing/registry.py:82-122`, `BaseTypeDispatchRegistry.equal`):
 
-### 1.4 Torch sparse and `meta` tensors crash instead of comparing **[verified]** (P2) — **Fixed (#2073)**
+- `equal` compares only `_state`, so two registries with different fallbacks are equal **[verified]**.
+- `clear()` does not reset `_fallbacks`; there is no `unregister_fallback`.
+- `register_fallback` does `self._fallbacks = (*self._fallbacks, ...)` without the lock: two threads can
+  lose one registration **[reading]**.
+- The equality registry solves the same problem differently (`DataclassMarker` plus
+  `_has_generated_eq`). Two mechanisms for "a type that cannot be registered one by one".
+
+Fix: cache the fallback result per type (put the resolved type in the `TypeRegistry` cache, or keep a
+small `WeakKeyDictionary`), build the error message lazily, lock the writes, include the fallbacks in
+`equal`. Longer term: one `register_fallback(predicate, value)` in `BaseTypeDispatchRegistry` used by
+both the equality and the hashing registries (and the dataclass summarizer of 15.3).
+
+## 13. `equality`
+
+### 13.1 No tester for pydantic models, and `==` can raise inside `ObjectEqualHandler` **[verified]** (P2)
+
+Hashing, display and `to_jsonable` have pydantic support; equality does not, so a model is compared
+with its own `__eq__`:
 
 ```python
-objects_are_equal(
-    torch.eye(2).to_sparse(), torch.eye(2).to_sparse()
-)  # NotImplementedError (aten::equal)
-objects_are_equal(
-    torch.empty(2, device="meta"), torch.empty(2, device="meta")
-)  # NotImplementedError
+class M(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    x: np.ndarray
+
+
+objects_are_equal(M(x=np.ones(2)), M(x=np.ones(2)))  # ValueError: truth value of an array ... ambiguous
 ```
 
-`objects_are_equal` is documented as returning a `bool`, and 1.1 of the previous review made that a
-contract. Handle `layout != torch.strided` (compare `to_dense()`, or indices and values) and
-`device.type == "meta"` (compare shape and dtype only), or convert `NotImplementedError` into a clear
-`TypeError` that names the tensor kind. `summarize` already handles meta tensors, so the support
-is inconsistent across modules.
+Two defects:
 
-### 1.5 `convert_to_jsonable` does not produce JSON **[verified]** (P2) — **Partly fixed (#2074)**
+1. `ObjectEqualHandler.handle` (`handler/native.py:122-135`) wraps only `bool(result)` in the `try`. The
+   `actual == expected` on the line before is outside it, so the documented "`TypeError: register an
+equality tester`" does not cover a `==` that raises (pydantic with an array field, SciPy sparse
+   gives the documented `TypeError` only because its `==` returns a matrix). Move the `==` into the
+   `try` and re-raise as `TypeError` from the cause.
+2. Even when `==` works, `equal_nan` and the tolerances are ignored for float fields:
+   `objects_are_allclose(P(x=[1.0]), P(x=[1.0 + 1e-9]))` is `False`, and `equal_nan=True` does not
+   make two `P(x=[nan])` equal. Add a `PydanticModelEqualityTester` (same type, then `model_fields`
+   plus `model_extra`, each value through the registry; private attributes optional), registered
+   lazily like the other library testers. A generic opt-in `ObjectAttributesEqualityTester`
+   (`vars()`/`__slots__`) would cover plain classes and attrs classes the same way the dataclass tester
+   does (`Foo(1)` and `Foo(1)` are `False` today, and so are two equal exceptions).
 
-The docstring says "JSON-compatible representation", but only dataclasses and pydantic models are
-converted:
+### 13.2 `objects_are_allclose` is asymmetric for NumPy and torch **[verified]** (P2)
+
+`np.allclose` and `torch.allclose` test `|a - b| <= atol + rtol * |b|`: only the expected value scales
+the tolerance. Scalars (`math.isclose`), pandas and polars use the larger of the two.
 
 ```python
-json.dumps(convert_to_jsonable({"a": {1, 2}}))  # TypeError (set)
-json.dumps(convert_to_jsonable({"a": range(2)}))  # TypeError (range)
-json.dumps(convert_to_jsonable({(1, 2): 1}))  # TypeError (tuple key)
-json.dumps(convert_to_jsonable({"a": float("nan")}), allow_nan=False)  # ValueError
+kw = dict(rtol=0.01, atol=0.0)
+objects_are_allclose(100.0, 101.005, **kw), objects_are_allclose(101.005, 100.0, **kw)  # True, True
+objects_are_allclose(np.array([100.0]), np.array([101.005]), **kw)  # True
+objects_are_allclose(np.array([101.005]), np.array([100.0]), **kw)  # False
 ```
 
-Either rename or reword (it is "dataclass/pydantic to dict"), or finish the job: `set` and `frozenset`
-to sorted lists, `range` to a list, non-string keys to `str`, `nan`/`inf` to `None` or a string, `Path`
-to `str`, `datetime` to ISO format. The same applies to `save_json`: int keys silently become strings on
-the round trip (`{1: 'a'}` loads as `{'1': 'a'}`) and `NaN` is written as the non-standard token `NaN`.
-Pass `allow_nan=False` by default or document both.
+So `objects_are_allclose(a, b)` can differ from `objects_are_allclose(b, a)`, and a value can pass as a
+scalar and fail as a one-element array. For a library whose purpose is "are these two equal", symmetry
+is expected. Fix in `handler/numpy.py:101`, `handler/torch.py:138` and `handler/jax.py:94`: use the
+`math.isclose` rule that the scalar path uses, `|a - b| <= max(rtol * max(|a|, |b|), atol)`, with the
+`inf`/`nan` rules of `allclose`, so that the array, scalar and DataFrame paths agree. Or document the
+asymmetry in the "Tolerance" column of `docs/docs/uguide/equality.md` and in the docstrings.
 
-### 1.6 Text round trip is not lossless **[verified]** (P2) — **Fixed (#2075)**
+### 13.3 Requested tolerance or `equal_nan` is silently not applied to some types **[verified]** (P3, documented)
 
-`save_text("a\r\nb\rc", p); load_text(p)` returns `'a\nb\nc'`: `TextLoader` opens the file in text mode with
-universal newlines, so `\r\n` and `\r` are rewritten. On Windows `TextSaver` also translates `\n` to
-`\r\n`. Open both with `newline=""`, or add a `newline` option and say so in the docstring. The same
-applies to `JsonLoader`/`JsonSaver`, which are less affected because JSON escapes control characters.
-
-### 1.7 `manual_seed` can leave the generators half-seeded **[verified]** (P2) — **Fixed (#2076)**
-
-`manual_seed(2**70)` raises `ValueError: Overflow when unpacking long long` from the torch manager
-_after_ `random` and NumPy were already seeded (NumPy uses `seed % 2**32`, so it accepts anything).
-Two consequences: the global state is partially changed when the call fails, and
-`seed` and `seed + 2**32` give the same NumPy stream without any warning.
-Validate the seed once in `manual_seed` (`0 <= seed < 2**63`, an `int`) before calling the managers, and
-state the range in the docstring. Negative seeds are currently accepted by two of the three backends.
-
-### 1.8 `str_time_human` on negative, NaN and infinite durations **[verified]** (P3) — **Fixed (#2077)**
+`docs/docs/uguide/equality.md:813-819` documents it, but the user still gets `False` with no hint:
 
 ```python
-str_time_human(-5)  # '-1 day, 23:59:55'
-str_time_human(float("nan"))  # ValueError: cannot convert float NaN to integer
-str_time_human(float("inf"))  # OverflowError
+objects_are_allclose(Decimal("1.0"), Decimal("1.00001"), atol=1e-3)  # False
+objects_are_allclose(Fraction(1, 3), Fraction(333333, 1000000), atol=1e-3)  # False
+objects_are_allclose(timedelta(seconds=1), timedelta(seconds=1.0001), atol=1e-3)  # False
+objects_are_allclose({1.0}, {1.0 + 1e-9})  # False
+objects_are_equal(np.datetime64("NaT"), np.datetime64("NaT"), equal_nan=True)  # False (the array version is True)
 ```
 
-The first output is the `timedelta` default and is misleading; the other two are raw conversion errors.
-Handle the sign explicitly (`'-0:00:05'`) and raise a message that names the argument, like
-`str_human_byte_size` and `make_bar` do. Also `str_indent("a\nb\n", 2)` returns `'a\n  b\n  '`, which
-indents the empty last line and leaves trailing whitespace; skip empty lines.
+The pyarrow handler already has the right mechanism (`_warn_ignored` with `config._warned`, once per
+setting). Options: (a) register tolerant testers for `Decimal`, `Fraction`, `timedelta`/`datetime`
+(`abs(a - b) <= atol`) and treat NumPy `datetime64`/`timedelta64` NaT scalars like the arrays;
+(b) make `DefaultEqualityTester` warn once when a tolerance or `equal_nan` was requested and the type is
+not an exact-comparison type. Move the shared helper out of `handler/pyarrow.py` (the comment in
+`config.py:95` refers to a `warn_ignored_setting` that does not exist).
 
-### 1.9 `add_uuid_suffix` treats dots in the stem as an extension **[verified]** (P3) — **Fixed (#2078)**
+### 13.4 `compare` and `assert_objects_equal` raise for a field with a failing `__str__` **[verified]** (P2)
 
-`add_uuid_suffix(Path("v1.2.model"))` gives `v1-<uuid>.2.model` because `''.join(path.suffixes)` takes
-every dotted part. That is deliberate for `.tar.gz`, but a version number in a file name is common.
-Limit the compound suffix to a known allow-list (`.tar.gz`, `.tar.bz2`, `.tar.xz`, ...) and use
-`path.suffix` otherwise.
+`DataclassSameFieldsHandler`, `SameAttributeHandler` and `SameDataHandler` pass the raw objects as `%s`
+arguments to `report_difference`. With a `reporter` (always the case in `compare`) the message is
+formatted eagerly with `msg % args`:
 
-### 1.10 Smaller correctness leads (P3) — **Mostly fixed (#2079)**
+```python
+compare(D(Bad(1)), D(Bad(2)))  # ZeroDivisionError from Bad.__str__
+```
 
-- `verify_checksummed_id(None)` raises `AttributeError`; a verifier should return `False` for non-`str`
-  input (or raise a `TypeError`).
-- `generate_nano_id(5, alphabet="a")` returns `'aaaaa'`: an alphabet of one character gives zero
-  entropy. Require at least 2 characters (ideally more), or at least document it.
-- `get_file_size(dir)` counts symlinked files twice and raises `FileNotFoundError` if a file is deleted
-  between `rglob` and `stat`. Use `os.scandir` with `follow_symlinks=False`, and skip vanished entries.
-- `get_current_branch()` returns the literal `HEAD` on a detached checkout. Say so in the docstring or
-  return `None`.
-- `get_password` requires `stdin` and `stderr` to be TTYs, but `getpass` reads from `/dev/tty`
-  and works when `stdin` is piped. The check rejects usable setups (for example `cmd | python script.py`).
-- `temp_env_vars` is not thread-safe (it mutates `os.environ`). One sentence in the docstring is enough.
-- `check_env_vars` logs absent variables at `WARNING` even when `raise_on_missing=False` and the caller
-  treats them as optional. Make the level a parameter, or log at `INFO`.
+With the logging path the error goes to logging's `handleError` ("--- Logging error ---" on stderr).
+`format_value_difference` already uses `safe_str`; the three handlers should do the same (and truncate:
+`SameAttributeHandler("coords.variables")` and a large `.data` are formatted in full). 5.12 of round 3
+fixed the `repr` of the roots in `compare`, not these.
 
----
+### 13.5 `ComparisonResult.actual` and `.expected` are unbounded **[verified]** (P3)
 
-## 2. Design and API
+`compare` stores `safe_repr(actual)` and `safe_repr(expected)` for every failing comparison. For two
+lists of 2M ints that is two strings of 16.9 MB each, and `format_message` (so `assert_objects_equal`)
+does not use them. Truncate (`safe_repr(obj, max_chars=...)` with a `...` suffix, 1000 by default) or
+make them lazy cached properties.
 
-### 2.1 Equality, hashing and summaries cover different sets of types (P2) **[verified]** — **Fixed (#2083)**
+### 13.6 Container edge cases **[verified]** (P3)
 
-_Still open from earlier review item 2.1, which fixed only the scalar and standard-library types._
-`hash_object(np.arange(3))` raises `TypeNotRegisteredError`, and the same happens for torch, pandas,
-polars, xarray and PyArrow objects, while equality supports all of them. For the library's main use
-(a stable content hash of test fixtures and experiment configs) this is the largest gap.
-`hash_object` can build on the equality work: arrays hash as `(dtype.str, shape, tobytes())`,
-DataFrames as their column names plus a per-column hash. Keep it opt-in per library, as in the equality
-registry, so the import cost stays zero.
+- `dict_values` of equal dicts are `False` (the type has no `__eq__`, only identity):
+  `objects_are_equal({"a": d.values()}, {"a": dict(d).values()})`. Register it with the sequence tester
+  (order is the dict order) or document it.
+- `Counter({"a": 0})` and `Counter()` are `==` since Python 3.10 but `False` here (the length handler
+  runs first). Say so in the mapping section or register a `Counter` tester.
+- `torch.nested` tensors raise `RuntimeError: NestedTensorImpl doesn't support sizes` (same family as
+  the sparse and meta tensors fixed in #2073); NumPy structured arrays ignore `equal_nan`; SciPy
+  sparse matrices give the clear `TypeError` of 13.1 and could simply get a tester (`(a != b).nnz == 0`
+  plus format and shape; carried over from 5.2).
 
-### 2.2 PyArrow ignores `atol`, `rtol` and `equal_nan` (P2) **[verified]** — **Fixed (#2081)**
+### 13.7 Sequences that differ always take the slow path **[verified]** (P3)
 
-`objects_are_allclose(pa.table(...), pa.table(...))` warns and compares exactly, and with
-`equal_nan=True` two arrays of `nan` are unequal (`False`). This is documented and
-warned about, so it is not a bug, but it is the only major backend with that limit. Converting the
-numeric columns with `to_numpy(zero_copy_only=False)` and delegating to the NumPy tester (the pandas tester
-probably already has the right structure) would close it. If not, make the warning an opt-out
-error (`config.strict=True`) so that a test cannot pass on an exact comparison when the user asked for a
-tolerance.
+`SequenceSameValuesHandler` (`handler/sequence.py:84-90`) returns early only when the fast path says
+"equal". When the items have the same exact types but different values, it falls through to the
+per-item loop (0.8 µs per item): `objects_are_equal(big, big2)` for two lists of 2M ints that differ in
+the last item takes 1.57 s, almost all of it spent re-proving that `actual != expected`. If the fast
+path conditions hold and `actual != expected`, the answer is `False` immediately; the loop is needed
+only to locate the index when `show_difference` is on.
 
-### 2.3 Python 3.15 is in the classifiers while the version is `1.2.0a2` (P3) — **Partly fixed (#2080)**
+## 14. `hashing`
 
-`pyproject.toml` declares `Development Status :: 5 - Production/Stable` for an alpha version, and lists 3.15.
-Either drop the 3.15 classifier until it is in the required CI matrix, or confirm the matrix has it.
-The `description` ("Library to check equality between two complex/nested objects") undersells the package:
-it now ships hashing, summaries, identifiers, I/O, random-state management and filesystem utilities. The
-keywords are all about array libraries; add `hashing`, `summary`, `identifiers`.
+### 14.1 NumPy structured dtypes collide **[verified]** (P1)
 
-### 2.4 Scope: `utils` keeps growing into unrelated territory (P3) — **Open**
+`NumpyArrayHasher` uses `data.dtype.str`, which is `'|V8'` for every 8-byte structured dtype:
 
-_Related to scope item 1 of `src-coola-review.md`._ `utils/git.py`, `utils/password.py`, `utils/secret.py`,
-`utils/bloom_filter.py`, `utils/file_size.py`, `utils/env_vars.py` and `identifier/` have nothing to do
-with comparing nested objects and are exercised by none of the core modules. They add API surface to
-version, document and secure (item 1.1 is a leak in one of them). Options: move them into a clearly
-labelled `coola.contrib` or a separate `coola-utils` distribution, or mark them in the docs as
-"not part of the stable API" until that is decided.
+```python
+hash_object(np.zeros(2, dtype=[("a", "f8")])) == hash_object(np.zeros(2, dtype=[("b", "f8")]))  # True
+hash_object(np.zeros(2, dtype=[("a", "f8")])) == hash_object(np.zeros(2, dtype=[("a", "i8")]))  # True
+```
 
-### 2.5 `random` has no way to scope a seed across all backends in one context manager (P3) — **Open**
+`objects_are_equal` says these arrays are different (different dtype). A content hash that is equal for
+values that are not equal breaks `generate_stable_content_id`. Fix: for `dtype.kind == "V"` use
+`str(data.dtype.descr)` (field names, formats, offsets) in `hash_array_content`, and normalise `-0.0` and
+NaN inside the float fields. Add a Hypothesis strategy for structured dtypes (18.2).
 
-`random_seed`, `numpy_seed` and `torch_seed` are per-backend; `manual_seed` is global and permanent. The
-common test need is "seed everything and restore afterwards". A single `seed_everything(seed)` context
-manager built on `get_rng_state` / `set_rng_state`, whose default is the registry's managers, would remove
-code that every user writes by hand.
+### 14.2 pandas hashing ignores metadata that equality compares **[verified]** (P1)
 
----
+`PandasSeriesHasher`/`PandasDataFrameHasher` hash `index.to_numpy()` and the column values. They drop:
 
-## 3. Tests, tooling and CI
+| Dropped                        | `objects_are_equal` | `hash_object` |
+| ------------------------------ | ------------------- | ------------- |
+| `df.index.name` (`x` vs `y`)   | different           | **same**      |
+| `df.columns.name` (`x` vs `y`) | different           | **same**      |
+| `Categorical` `categories`     | different           | **same**      |
+| `Categorical` `ordered`        | different           | **same**      |
 
-- **Add regression tests for every [verified] item above.** Each is a one- or two-line repro and
-  they are listed in this file.
-- **Property test for the cross-module invariants.** Not yet present, and cheap with Hypothesis:
-  `hash_object(x) == hash_object(deepcopy(x))`, `objects_are_equal(a, b)` implies
-  `hash_object(a) == hash_object(b)` for hashable types, `summarize(x)` never raises for any generated
-  value, and `convert_to_jsonable(x)` is accepted by `json.dumps(..., allow_nan=False)`. The last two would
-  have caught 1.2 and 1.5.
-- **Windows and `newline` behaviour.** The classifiers list only POSIX and macOS, and 1.6 only shows
-  on Windows in the other direction. Either add a Windows runner for the `io` tests or state in the README
-  that Windows is untested.
-- **Generated files in the working tree.** `coverage.xml` and `htmlcov/` are ignored by git, so this is
-  only a note: `codespell` skips them explicitly in `pyproject.toml`, which suggests they get in the way
-  of local runs. `make clean` (or an `invoke` task) that removes them would be convenient.
-- _Still open from the earlier reviews:_ one mutation-testing run (best on `equality/handler`), a coverage
-  `fail_under`, a second type checker in CI, and `pytest-xdist` if the matrix grows.
+(`df.attrs` is ignored by both, which is consistent: equality is the reference.) Fix: hash
+`index.names`, `columns.names`, the index dtype, and for categoricals the categories and the `ordered`
+flag. For a `MultiIndex` hash `index.to_frame(index=False)` instead of the object array of tuples.
 
----
+### 14.3 NaN bit patterns change the hash of arrays and tensors **[verified]** (P2)
 
-## 4. Suggested order for Part A
+`-0.0` is normalised (`data + 0`), NaN is not. Floats and lists are canonical (`repr` gives `'nan'`),
+arrays and tensors hash the raw bytes:
 
-1. 1.1 (secret leak) and 1.2 (`summarize` crash): one-line fixes with a clear test each.
-2. 1.3, 1.4 (equality returns or crashes), 1.7 (partial seeding).
-3. 1.5 and 1.6 (JSON and text round trips): decide the contract first, then fix.
-4. 2.1 (hashing for array and table types) and 2.2 (PyArrow tolerance): the two largest feature gaps.
-5. 2.3 to 2.5 and the small leads in 1.8 to 1.10, as cleanup.
+```python
+hash_object(np.array([np.nan])) == hash_object(np.array([-np.nan]))  # False
+hash_object(float("nan")) == hash_object(-float("nan"))  # True
+objects_are_equal(np.array([np.nan]), np.array([-np.nan]), equal_nan=True)  # True
+```
 
----
+`np.inf - np.inf` produces the negative quiet NaN on x86-64 (default NaN of SSE, from the architecture
+manual; not run here) and the positive one on Apple silicon (the probe here printed `000000000000f87f`
+for both), so the same computation can give different IDs on different CPUs **[reading]**. The `-np.nan`
+repro above is enough to show the difference on any machine. The same applies to `torch` (verified:
+`False`), `jax`, and through them pandas and polars (they go through `to_numpy`). Fix: `np.where(np.isnan(data), np.nan, data)` for kinds `f` and `c` next to the `-0.0`
+normalisation (and `torch.where(tensor != tensor, nan, tensor)`).
 
-# Part B: full read-through findings
+### 14.4 Types supported by equality but not by hashing, and wrong exceptions **[verified]** (P2)
 
-Item IDs are `<section>.<n>`. Paths are relative to `src/coola/` unless noted.
+From the support matrix (`TypeNotRegisteredError` unless stated):
 
-## 5. `equality`
+- NumPy: `np.datetime64`, `np.void` scalars; `np.timedelta64` raises a raw `TypeError: int() argument
+must be ... not 'datetime.timedelta'` because it is an `np.integer` and reaches `ReprHasher`.
+- pandas: `Index`, `MultiIndex`, `DatetimeIndex`, `RangeIndex`, `Categorical`, extension arrays,
+  `pd.NA`, `Interval`, `Period`; `pd.NaT` raises a bare `ValueError: NaTType does not support
+utcoffset` (it is a `datetime` subclass, so it reaches `DatetimeHasher`).
+- polars `LazyFrame`; pyarrow `Scalar`, `Schema`, `DataType`; `array.array`, `dict_keys`,
+  `dict_values`, `dict_items`, `MappingProxyType`, `slice`, `Ellipsis`; torch `dtype`/`device`.
 
-| ID   | P   | Finding                                                                                                                                                                                                                                                                                                                                                                                           |
-| ---- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 5.1  | P1  | **[verified]** Object-dtype ndarray holding arrays raises `ValueError` (`handler/numpy.py:100`, `np.array_equal`). Compare element-wise through the registry for `dtype.kind == "O"` (also fixes 1.3).                                                                                                                                                                                            |
-| 5.2  | P2  | **[verified]** `==` that does not return a bool crashes: `pd.Index`, `MultiIndex`, `Categorical`, extension arrays, scipy sparse give `TypeError` for copies, but `True` for the same object. Register `pd.Index` (`.equals` + dtype + names) and `Categorical`/`ExtensionArray`, or add an `.equals` fallback.                                                                                   |
-| 5.3  | P2  | **[verified]** `tester/registry.py:149-156`: a dataclass with its own `__eq__` is still compared field by field (`__dataclass_params__.eq` is True when the user defines `__eq__`). The comment says the custom `__eq__` is respected. Check that `__eq__` was generated.                                                                                                                         |
-| 5.4  | P2  | **[verified]** `handler/mapping.py:51-53`: keys that are `==` but of different type are the same key (`{1: "a"}` equals `{True: "a"}` and `{1.0: "a"}`), unlike sequences (`[1]` vs `[True]` is `False`). NaN keys never match, even with `equal_nan=True`. Compare keys as `(type(k), k)`.                                                                                                       |
-| 5.5  | P2  | **[verified]** Polars: `equal_nan=False` is ignored for NaN inside `List`/`Array`/`Struct` columns (`handler/polars.py:168-185`); flat float columns are handled. Detect NaN recursively or document.                                                                                                                                                                                             |
-| 5.6  | P2  | **[verified]** `SameObjectHandler` (`handler/native.py:270`) makes NaN comparison depend on identity: `[n]` equals `[n]` but not `[float("nan")]`; an array with NaN equals itself, not its copy. Document it on `objects_are_equal`, or skip the shortcut when `equal_nan=False` for float types.                                                                                                |
-| 5.7  | P2  | **[verified]** Scalars: `objects_are_allclose(1, 1.0)` and `([1.0], [1])` are `False`; `objects_are_allclose(True, False, atol=2)` is `True` while `np.bool_` is deliberately not tolerant. Register `bool` with the default tester and let real numbers compare across int/float (or document).                                                                                                  |
-| 5.8  | P2  | **[verified]** `compare()` paths ignore dataclass fields and attributes (`handler/dataclass.py:67-77`, `native.py:195-205`, `data.py:60-68`): the path of a difference inside `E(1, [1])` is `(0,)`, not `("y", 0)`, so `format_path` prints a wrong location. `extra={"coola_path_kind": ...}` is written (`sequence.py:102`, `mapping.py:172`) and never read: use it or delete it.             |
-| 5.9  | P2  | **[verified]** `handler/format.py:67`: `if different_value_key is not None` yields an empty message when the differing key is `None`. Use a sentinel.                                                                                                                                                                                                                                             |
-| 5.10 | P2  | **[verified]** `handler/base.py:299-317` rejects only direct cycles (`handler is self`). `a -> b -> a` is accepted, then `get_chain_length`/`visualize_chain` loop forever. `validate_chain()` exists but nothing calls it; call it in `set_next_handler` and `create_chain`.                                                                                                                     |
-| 5.11 | P2  | **[verified]** `handler/pyarrow.py:96-99`: a plain `objects_are_allclose` warns that `atol`/`rtol` are ignored because the defaults are non-zero. Warn only if the arrays differ, and see 2.2. `stacklevel=4` points inside coola.                                                                                                                                                                |
-| 5.12 | P2  | **[verified]** `result.py:~148`: `compare()` calls `repr()` on both objects (a raising `__repr__` crashes `assert_objects_equal`, and a huge list is rendered twice for a message that never shows it). Use `summarize` with a fallback, or build it lazily.                                                                                                                                      |
-| 5.13 | P3  | **[verified]** `max_depth=1000` can never trigger: about 6 frames per level means a depth of 200 already raises `RecursionError`. Lower the default or derive it from `sys.getrecursionlimit()`.                                                                                                                                                                                                  |
-| 5.14 | P3  | **[verified]** `handler/scalar.py:125`: `objects_are_allclose(2**60, 2**60 + 1, rtol=0, atol=1e-8)` is `True` (ints converted to `float`); use exact integer arithmetic when both are `int`. With `equal_nan=True`, `complex(nan, 1)` equals `complex(nan, 2)`; compare the parts separately.                                                                                                     |
-| 5.15 | P3  | Cleanups: `rtol`/`atol` validated twice (`interface.py`, `config.py`); interleaved comments in `config.py:84-99`; `type(seq) in {list, tuple}` builds a set per call (`handler/sequence.py:111`); the fast path skips lists of floats (73 ms vs 11 ms for 200k items); chains with no terminal handler fail only at compare time; `handler/polars.py:313-322` is probably dead for `polars>=1.0`. |
+Equality has testers for the pandas `Index` and extension-array family (#2095), the hashing registry
+does not. Add the hashers (index and extension arrays share the Series code path: hash `dtype`, `name(s)`
+and the values), make `ReprHasher` skip `np.timedelta64`/`np.datetime64` (register a
+`DatetimeHasher`-like hasher for them) and route `NaTType` before the `datetime` hasher. The parity
+test of 18.1 keeps the two registries aligned.
 
-## 6. `hashing` and `identifier`
+### 14.5 Meta tensors and float8 tensors raise raw errors **[verified]** (P3)
 
-| ID   | P   | Finding                                                                                                                                                                                                                                                                                                                                                                                                    |
-| ---- | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 6.1  | P1  | **[verified]** `hash_object(10**5000)` and `Fraction(10**5000, 3)` raise the int-to-str limit `ValueError` (`hashing/repr.py`, `canonical.py`). Hash `format(n, "x")` (not limited). Same family as 1.2.                                                                                                                                                                                                   |
-| 6.2  | P1  | **[verified]** `DecimalHasher` (`canonical.py:49`) uses `normalize()`, which rounds to the context precision (28 digits): two different decimals collide, and the result depends on the thread-local context. Normalise from `as_tuple()`.                                                                                                                                                                 |
-| 6.3  | P1  | **[verified]** `DatetimeHasher` (`datetime.py:80`) raises `OverflowError` for aware datetimes near `min`/`max` (`astimezone(UTC)`). Compute `naive - utcoffset()` or fall back to ISO with offset.                                                                                                                                                                                                         |
-| 6.4  | P1  | **[verified]** `SnowflakeIdGenerator` can mint a duplicate and a non-monotonic ID when the sequence wraps: the lock is released during the sleep without committing a timestamp, so a second thread mints `(T, 1)` again (`identifier/snowflake.py:~165-205`). Sleep under the lock or commit `timestamp + 1`.                                                                                             |
-| 6.5  | P2  | **[verified]** `@cache` on `get_default_generator` (`snowflake.py`, `objectid.py`) does not serialise the first call: two threads build two generators with the same `worker_id`. Use `LazySingleton`.                                                                                                                                                                                                     |
-| 6.6  | P2  | **[verified]** `generate_snowflake_id(timestamp_ms=future)` stores the value as `_last_timestamp_ms` in the shared default generator; later calls raise "clock moved backward" until restart. Do not update state for an explicit timestamp (as `generate_ulid` does).                                                                                                                                     |
-| 6.7  | P2  | **[verified]** `MappingHasher` (`mapping.py:99-100`) sorts by key hash only; keys with equal hashes (unhashable keys with `ignore_unhashable=True`, short `length`) keep insertion order, so equal dicts hash differently. Sort by the full `key_hash + val_hash`.                                                                                                                                         |
-| 6.8  | P2  | **[verified]** Enum mixins of `bytes`, `datetime`, `tuple`, `Mapping` hash as the plain base value (only `str`/`int`/`float` check `Enum`). Route every `Enum` to `EnumHasher` first in `HasherRegistry.hash`.                                                                                                                                                                                             |
-| 6.9  | P2  | **[verified]** Any object with a callable `hash` attribute is taken as `SupportsHash` (`interface.py:_has_hash_method`): `hash_object(pl.Series([1]))` raises `TypeError` that `ignore_unhashable` does not catch. Check the signature, or require a marker.                                                                                                                                               |
-| 6.10 | P2  | Hashes include `__module__`/`__qualname__` (`dataclass.py:85`, `pydantic.py`, `hashable.py`, `string.py`): a class defined in `__main__` hashes differently from the imported one, and renaming a class changes persisted hashes and `generate_stable_uuid5` IDs. Document, or allow a stable tag.                                                                                                         |
-| 6.11 | P2  | `ReprHasher` (`repr.py:125`) tags by bare `__qualname__`, so a user class named `Decimal` or `Path` shares the tag namespace with the built-in hashers. Use `module.qualname`.                                                                                                                                                                                                                             |
-| 6.12 | P2  | `generate_stable_content_id` and `generate_stable_uuid5` still take positional `registry, length, ignore_unhashable`, while `hash_object` made them keyword-only; `generate_stable_content_id(data, 32)` fails with `AttributeError`. Make them keyword-only.                                                                                                                                              |
-| 6.13 | P2  | Nested pydantic models bypass the cycle guard (`pydantic.py`, `hash_nested`): a self-referencing model gives `RecursionError` instead of the documented `ValueError`, and a model inside a dataclass ignores the outer `on_secret` policy. Route through `registry.hash`.                                                                                                                                  |
-| 6.14 | P2  | **[verified]** Deep nesting (2000 levels) raises a raw `RecursionError` in `hashing/registry.py`.                                                                                                                                                                                                                                                                                                          |
-| 6.15 | P2  | **[verified]** `extract_ulid_timestamp_ms("Z" * 26)` returns a 50-bit "timestamp" (the first character must be `<= 7`), and lowercase ULIDs are rejected although Crockford decoding is case-insensitive. Validate `< 2**128`; normalise in `decode_crockford_base32`.                                                                                                                                     |
-| 6.16 | P3  | **[verified]** `verify_checksummed_id` accepts non-ASCII look-alikes (`ı` upper-cases to `I`, then maps to `1`) and checks `sep` case-sensitively. Reject non-ASCII input first.                                                                                                                                                                                                                           |
-| 6.17 | P3  | No upper bound on `generate_checksummed_id(length=...)` or on `decode_obfuscated_id` input (quadratic big-int decode; a valid value has at most 11 base62 characters). `nanoid` already caps at 1024.                                                                                                                                                                                                      |
-| 6.18 | P3  | Obfuscated IDs: bit 0 of the output is `(n + c) & 1`, so consecutive IDs alternate parity. The docs claim to hide ordering and magnitude; add the caveat or mix with a Feistel step.                                                                                                                                                                                                                       |
-| 6.19 | P3  | `hash_bytes`/`hash_string` duplicate the length validation; validate `length` before hashing a whole structure; `hash_bytes` rejects `memoryview`.                                                                                                                                                                                                                                                         |
-| 6.20 | P3  | `get_default_generator` is in `__all__` of both `objectid.py` and `snowflake.py` (different objects): star imports clobber each other.                                                                                                                                                                                                                                                                     |
-| 6.21 | P3  | Minor: `chars` declared twice in `_encode_base62`; `get_default_hasher_registry` and `get_default_registry` both exported; `generate_prefixed_id` accepts spaces, `/` and non-ASCII in the prefix and a non-`str` generator result; the `register_hashers` docstring example pollutes the global registry under doctest; `PureWindowsPath("a/b")` and `PurePosixPath("a/b")` hash the same **[verified]**. |
+`hash_object(torch.empty(2, device="meta"))` raises `NotImplementedError: Cannot copy out of meta tensor`
+(equality and summary support meta tensors, #2073) and a float8 tensor raises `"add_stub" not
+implemented for 'Float8_e4m3fn'` from the `tensor + 0` normalisation. Hash `(shape, dtype)` for meta
+tensors, and for float8 view the bytes and normalise `-0.0` with `torch.where(t == 0, zeros, t)` or
+skip the normalisation for those dtypes.
 
-## 7. `io` and `utils`
+### 14.6 The "stable" identifiers have no golden vectors and no format version **[reading]** (P2)
 
-| ID   | P   | Finding                                                                                                                                                                                                                                                                                                                                                    |
-| ---- | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 7.1  | P1  | **[verified]** `io/base.py:107,130-138`: the temporary file name (`.{name}-{32 hex}{ext}`) and lock name (`{name}.lock`) are longer than the target, so saving to a legal 221+ character file name raises `OSError: File name too long`. Use a short fixed prefix and a hash for the lock name.                                                            |
-| 7.2  | P1  | **[verified]** `utils/text_diff.py:58-64`: `unified_diff("a", "b")` returns `...-a+b`: texts without a trailing newline get their last lines glued together. Add the missing `\n` (git prints `\ No newline at end of file`).                                                                                                                              |
-| 7.3  | P2  | `io/base.py:47-51,107-125`: the lock acquire timeout (60 s) is shorter than the stale-lock threshold (300 s), so a crashed writer makes every save to that path fail for 4 minutes. The timeout is not configurable. Record the pid and check it, or use `fcntl`/`msvcrt` locks.                                                                           |
-| 7.4  | P2  | **[verified]** `io/base.py:482-483`: `exist_ok=True` resets the mode of an existing file (0600 becomes 0644) and replaces a symlink with a regular file. Copy the mode and resolve the symlink.                                                                                                                                                            |
-| 7.5  | P2  | Stale-lock breaking has a check-then-rename race that can steal a live lock (`io/base.py:75-82`, `165-178`). Not reproduced. Re-check the renamed file or use kernel locks.                                                                                                                                                                                |
-| 7.6  | P2  | **[verified]** `utils/git.py:145-148`: `is_git_repo(".git")` is `True`; `--is-inside-work-tree` prints `false` there and the output is ignored. Compare to `"true"`. `run_git_command` also drops git's stderr from the error (`git.py:69-71`).                                                                                                            |
-| 7.7  | P2  | **[verified]** `to_date(datetime)` returns the datetime unchanged (`utils/date.py:90-92`), so it does not equal `date(...)`. Call `.date()`.                                                                                                                                                                                                               |
-| 7.8  | P2  | **[verified]** `slugify("日本語")` is `''` and `slugify("Straße")` is `'strae'` (`utils/string.py:121-126`). Fall back to a hash when empty; map `ß` before the ASCII encode.                                                                                                                                                                              |
-| 7.9  | P2  | **[verified]** `to_jsonable` returns `datetime.time` and `timedelta` unchanged (`utils/conversion.py:104-110`). Add them.                                                                                                                                                                                                                                  |
-| 7.10 | P2  | **[verified]** `check_env_vars` treats `X=""` as defined; `get_required_env_var` treats it as missing (`utils/env_vars.py:46-47` vs `108`).                                                                                                                                                                                                                |
-| 7.11 | P2  | **[verified]** `repr_mapping(..., sorted_keys=True)` and `sort_by_keys` raise `TypeError` for mixed key types (`utils/format.py:467-469`, `utils/mapping.py:26`). Sort by `(type name, key)`.                                                                                                                                                              |
-| 7.12 | P2  | `to_tensor` without torch raises `AttributeError: module 'torch' has no attribute 'is_tensor'` instead of `MissingPackageError`: the fake torch lacks `is_tensor`, `as_tensor`, `from_numpy`, `ones` (`utils/fallback/torch.py:26-34`). Call `check_torch()` first.                                                                                        |
-| 7.13 | P2  | **[verified]** `LazyModule` (`utils/imports/lazy.py:42-45`): `hasattr(LazyModule("missing"), "a")` raises `ModuleNotFoundError`; `copy.copy` fails. Raise `AttributeError` for dunder names and guard `_module`.                                                                                                                                           |
-| 7.14 | P3  | **[verified]** `LazySingleton` rebuilds on every call if the factory returns `None` (`singleton.py:64-84`); use a sentinel.                                                                                                                                                                                                                                |
-| 7.15 | P3  | `CaptureHandler` only records from the creating thread and drops records below INFO (`utils/logging.py:35-41`).                                                                                                                                                                                                                                            |
-| 7.16 | P3  | **[verified]** `sanitize_path` silently drops the host of `file://server/share/x` and raises `RuntimeError` for an unknown `~user` (`utils/path.py:112-114`). `find_root_package_parent` returns a non-existent file path itself (`path.py:55-71`).                                                                                                        |
-| 7.17 | P3  | **[verified]** `str_human_byte_size(1048575)` gives `'1,024.00 KB'` (pick the unit after rounding) (`utils/format.py:424-425`).                                                                                                                                                                                                                            |
-| 7.18 | P3  | **[verified]** `TorchLoader() != TorchLoader(weights_only=True)` although identical in behaviour: the default is applied in `load`, not `__init__` (`io/torch.py:62-71`).                                                                                                                                                                                  |
-| 7.19 | P3  | **[verified]** `save_text("x", d/"file"/"g.txt")` where `file` is a regular file raises `FileExistsError`, which reads like `exist_ok=False` (`io/base.py:465`). Raise `NotADirectoryError`.                                                                                                                                                               |
-| 7.20 | P3  | `_fsync_file` opens the file `O_RDONLY`; `fsync=True` fails on Windows (`io/base.py:141-147`).                                                                                                                                                                                                                                                             |
-| 7.21 | P3  | `check_torch_numpy` raises `MissingPackageError` without `name` and with a dangling space (`utils/imports/torch_numpy.py:44-49,90-93`). `package_available` suppresses only `ModuleNotFoundError` (`universal.py:99-100`); also catch `ValueError`/`ImportError`.                                                                                          |
-| 7.22 | P3  | `get_package_version` raises on non-PEP 440 strings and its `lru_cache` is not cleared by `clear_availability_caches` (`utils/version.py:48-53`).                                                                                                                                                                                                          |
-| 7.23 | P3  | Wrong docstring examples that fail as doctests: `repr_sequence` (`format.py:155`), `universal.py:204-205`, `env_vars.py:99-117`.                                                                                                                                                                                                                           |
-| 7.24 | P3  | Minor: `float()` of ints above 2**53 in `stats.py:60`; `to_array`/`to_tensor` share memory for arrays and copy for lists (undocumented); `to_array(bfloat16 tensor)` raises; `working_directory` is process-wide (no thread warning); `BaseFileSaver.save` has `fsync` which `BaseSaver.save` lacks; the in-process lock key is `str(path)`, not resolved. |
+`generate_stable_content_id` and `generate_stable_uuid5` promise stability in their names, and the guide
+(`docs/docs/uguide/hashing.md:147`) says the values "can change between versions". During this cycle
+they did change several times (#2083 new hashers, #2105 to #2126). No test pins a hash value of a
+representative payload, so a refactor of a hasher changes persisted IDs without a failing test.
 
-## 8. `registry`, `summary`, `factory`, `validation`, `display`, `testing`
+- Add `tests/unit/hashing/test_golden.py`: one fixed value per hasher family (int, float, str, bytes,
+  list, dict, set, dataclass, datetime, Decimal, Enum, ndarray, tensor, DataFrame...). A change then
+  needs a deliberate edit of the expected values.
+- Add a public `HASH_FORMAT_VERSION` constant (and mention it in the release notes, 19.3). Optionally
+  mix it into `generate_stable_uuid5`/`generate_stable_content_id` behind a `version=` argument so that
+  callers can keep producing the old IDs.
+- Either soften the names in the docs ("content ID, may change between minor versions") or promise
+  stability from 1.x and enforce it with the golden test.
 
-| ID   | P   | Finding                                                                                                                                                                                                                                                                                                                    |
-| ---- | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 8.1  | P1  | **[verified]** `summarize` of a polars `LazyFrame` with an invalid plan raises `ColumnNotFoundError`, and `collect_schema()` resolves the whole plan (file metadata of `scan_parquet`/`scan_csv`, possibly remote) (`summary/polars.py:~96`). Wrap in `try/except` and say so in the docstring.                            |
-| 8.2  | P1  | **[verified]** `TypeRegistry.register("abc", ...)` accepts a non-type key; every later miss then raises `AttributeError` instead of `TypeNotRegisteredError` (`registry/type.py:152-160,297`). Validate keys in `register`/`register_many`/`initial_state`.                                                                |
-| 8.3  | P2  | **[verified]** `str_pydantic_model(m, exclude_fields=["token"])` warns that an existing `SecretStr` field "does not exist" (the check runs after secrets/`None` were removed); the docstrings say unknown names are "silently ignored" (`display/pydantic.py:96-104`).                                                     |
-| 8.4  | P2  | **[verified]** `exclude_secret` handles `SecretStr` only: any generic containing it (`tuple[SecretStr, int]`) drops the whole field, but `SecretBytes` and `Secret` are shown masked (`display/pydantic.py:53-57`).                                                                                                        |
-| 8.5  | P2  | **[verified]** `configure_colorlog_logging` differs on a TTY: `stream=`, `handlers=` fail or are ignored, `format=` is silently ignored; `sys.stderr = None` raises `AttributeError` (`display/colorlog.py:61-87`).                                                                                                        |
-| 8.6  | P2  | **[verified]** `factory`: an `allowed_prefixes` violation, or any `ImportError` inside the target module, is reported as "target object does not exist"; a `str` `allowed_prefixes` is iterated per character (`factory/resolve.py:~83-88`).                                                                               |
-| 8.7  | P2  | **[verified]** `import_object("")` raises `ValueError`, `resolve_object(1, (int, str))` raises `AttributeError` (tuple has no `__qualname__`), `is_object_config("x", Foo)` raises `AttributeError`; a `SyntaxError` in a string annotation escapes (`factory/instantiation.py`, `resolve.py`, `config.py`).               |
-| 8.8  | P2  | **[verified]** `is_object_config` rejects functions annotated `-> list[int]` (`inspect.isclass` is `False` for generic aliases) (`factory/config.py:~82-85`). Use `get_origin(t) or t`.                                                                                                                                    |
-| 8.9  | P2  | **[verified]** The depth-limited preview changes the type: a tuple or set longer than the preview shows as a list, a `Counter` as a `dict`; `max_items < 0` still previews 5 items (`summary/collection.py:84-93`, `sequence.py`, `set.py`, `mapping.py`).                                                                 |
-| 8.10 | P2  | **[verified]** `BaseTypeDispatchRegistry` (so `SummarizerRegistry` and 5 other registries) has no `unregister`, `clear`, `__len__`, `__contains__`, `items` or `equal`; `register_summarizers` on the global is irreversible without touching `_state` (`registry/dispatch.py`).                                           |
-| 8.11 | P2  | **[verified]** Validators break their documented contract: `validate_finite(10**400)` raises `OverflowError`, `validate_finite(None)` and `validate_non_negative("a")` raise `TypeError`, `validate_non_negative(True)` passes, an ndarray gives "truth value is ambiguous" (`validation/comparison.py`, `numeric.py:28`). |
-| 8.12 | P3  | **[verified]** Not-registered message lists a class with the same `__qualname__` as the missing one; duplicates message order comes from a `set` (`registry/type.py:157-172`, `base.py:128`).                                                                                                                              |
-| 8.13 | P3  | **[verified]** `TypeRegistry._cache` holds strong references to resolved dynamic classes (bounded at 1024) (`registry/type.py:263-265`).                                                                                                                                                                                   |
-| 8.14 | P3  | `KeyNotRegisteredError(KeyError, LookupError)` has a redundant base. Stale docstrings in `registry/dispatch.py` (`register_many`, `KeyError` vs `TypeNotRegisteredError`, "default handler").                                                                                                                              |
-| 8.15 | P3  | Export gaps: `summary/__init__.py` omits `BaseMetadataSummarizer`, `BaseFieldsSummarizer`, `format_fields`, `MAX_FIELDS`; `display/__init__.py` omits `secret_field_names` and `configure_colorlog_logging` (a logging helper in a "display" package); the `Summarizer` protocol has no `equal`.                           |
-| 8.16 | P3  | Dead registrations in `summary/interface.py:~160-170` (`str`, `int`, `float`, `complex`, `bool` map to the `object` summarizer); `_get_jax_summarizers` allocates a device array, which initialises the JAX backend as a side effect.                                                                                      |
-| 8.17 | P3  | **[verified]** `import coola.summary` takes about 1.7 s and imports every installed array library; `import coola.registry` imports pydantic through `coola.display`. Register lazily by qualified type name.                                                                                                               |
-| 8.18 | P3  | `summarize(max_depth<0)` is accepted although the docstring says "Must be non-negative" (`summary/interface.py`).                                                                                                                                                                                                          |
-| 8.19 | P3  | `BaseRegistry.equal` runs the user comparison while holding both locks (`registry/base.py:187-190`), which can deadlock with another thread comparing the reverse pair. Snapshot, release, then compare.                                                                                                                   |
-| 8.20 | P3  | `testing/fixtures.py`: no defect. Names served by `__getattr__` are not in `dir(module)`; add `__dir__` if tooling matters.                                                                                                                                                                                                |
+### 14.7 Equal dataclasses can hash differently **[verified]** (P2)
 
-## 9. `iterator`, `recursive`, `nested`, `reducer`, `random`
+`DataclassHasher` hashes every field; `DataclassSameFieldsHandler` skips the fields with
+`compare=False`, as `dataclass.__eq__` does:
 
-| ID   | P               | Finding                                                                                                                                                                                                                                                                                                                                                                                   |
-| ---- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 8.10 | PR open (#2191) | `BaseTypeDispatchRegistry` has `unregister`, `clear`, `items`, `equal`, `__len__`, `__contains__`.                                                                                                                                                                                                                                                                                        |
-| 8.11 | Mostly (#2192)  | `validate_finite` accepts huge ints; uncomparable values raise one clear `TypeError`. `validate_non_negative(True)` still passes (deliberate).                                                                                                                                                                                                                                            |
-| 8.12 | PR open (#2193) | Same-name classes qualified with their module; duplicates sorted.                                                                                                                                                                                                                                                                                                                         |
-| 8.13 | PR open (#2199) | The resolution cache holds weak references.                                                                                                                                                                                                                                                                                                                                               |
-| 8.14 | PR open (#2194) | Redundant `LookupError` base removed; dispatch docstrings fixed.                                                                                                                                                                                                                                                                                                                          |
-| 8.15 | Mostly (#2197)  | Missing names of `coola.summary` exported. `coola.display` left unchanged (by decision); the `Summarizer` protocol still has no `equal`.                                                                                                                                                                                                                                                  |
-| 8.16 | Mostly (#2198)  | No JAX array created at registration. Dead scalar registrations kept (documented).                                                                                                                                                                                                                                                                                                        |
-| 8.17 | Open            | Not done: needs lazy registration by qualified type name and lazy imports in every summarizer module.                                                                                                                                                                                                                                                                                     |
-| 8.18 | PR open (#2196) | `summarize(max_depth<0)` raises `ValueError`.                                                                                                                                                                                                                                                                                                                                             |
-| 8.19 | PR open (#2195) | `BaseRegistry.equal` compares snapshots without holding the locks.                                                                                                                                                                                                                                                                                                                        |
-| 9.1  | P1              | **[verified]** `from_flat_dict({"a": d, "a.y": 2})` mutates the caller's dict `d`; with `restore_lists=True` a user-supplied dict leaf can be turned into a list (`nested/flat.py`, `_set_nested`). Track the dicts the function created and raise "Key conflict" for others.                                                                                                             |
-| 9.2  | P1              | **[verified]** `UserString` crashes every traversal: `dfs_iterate` and `recursive_apply` raise `RecursionError`, `bfs_iterate` a false "Cycle detected". It is a real `Sequence` of `UserString`s. Register it as a leaf in `iterator/bootstrap.py` and `recursive/interface.py`.                                                                                                         |
-| 9.3  | P2              | **[verified]** `flatten_mapping(always_prefix=True)` and `"prefix"` overwrite colliding keys silently (`nested/mapping.py`). Raise `DuplicateKeyError`.                                                                                                                                                                                                                                   |
-| 9.4  | P2              | **[verified]** `expand_list_columns` replaces an existing column named `l.0`, and drops the column when every list is null or empty (`nested/polars.py:~120`).                                                                                                                                                                                                                            |
-| 9.5  | P2              | **[verified]** `flatten_frame` with two list-of-struct columns raises `ShapeError` (parallel `explode`); `depth=0` is rejected although it is a sensible no-op (`nested/polars.py`, `unnest_one_level`).                                                                                                                                                                                  |
-| 9.6  | P2              | **[verified on this machine]** `TorchRandomManager` does not save or restore the MPS generator, so `torch_seed()` leaves it changed; `set_rng_state` raises a bare `KeyError: 'torch.cuda'` on a partial dict or a changed device count (`random/torch.py`).                                                                                                                              |
-| 9.7  | P2              | **[verified]** The BFS cycle check is quadratic in depth (`iterator/bfs/registry.py`, `_is_ancestor`): depth 20000 takes 4.2 s, 40000 takes 18 s. DFS and `recursive_apply` raise `RecursionError` at about 1000 levels; document it.                                                                                                                                                     |
-| 9.8  | P2              | **[verified]** Resolution is by MRO only, so virtual `Mapping`/`Collection` members are leaves: `MappingProxyType`, `dict.values()`, `range` (in `recursive_apply`). `recursive_apply(UserList([1]), f)` returned a plain `list`. Register `MappingProxyType` and document the rule.                                                                                                      |
-| 9.9  | P3              | **[verified]** `merge_mappings(on_duplicate="suffix")` compares only with the first value (`[{"a":1},{"a":2},{"a":2}]` stores `a_2` again), NaN values never merge, and a genuine `a_1` raises under `"first"`/`"last"`. Add `equal_nan`. `flatten_mapping(on_duplicate="prefix")` is order dependent.                                                                                    |
-| 9.10 | P3              | **[verified]** `add_prefix_suffix_to_keys(recursive=True)` ignores lists of dicts, while `remove_keys_if` descends into sequences.                                                                                                                                                                                                                                                        |
-| 9.11 | P3              | **[verified]** `to_flat_dict` flattens a `range` but keeps a `set`, and raises `RecursionError` for cycles where the iterators raise `ValueError`. `from_flat_dict` does not restore a top-level list.                                                                                                                                                                                    |
-| 9.12 | P3              | **[verified]** `convert_to_list_of_dicts({"a": "ab", "b": [1, 2]})` splits the string per character; `[{}, {}]` does not round trip.                                                                                                                                                                                                                                                      |
-| 9.13 | P3              | **[verified]** `NumpyReducer.std(np.ones((1, 3)))` is `nan` (`len(values) <= 1`; use `np.size`).                                                                                                                                                                                                                                                                                          |
-| 9.14 | P3              | **[verified]** Reducers disagree: `median([1, 2, 3])` is `2` (Native, Torch) and `2.0` (Numpy); `max([2**63, 1])` is an int, a lossy float, or an overflow error; `median([1e308, 1e308])` is `inf` everywhere; generators fail with three different exceptions. `auto_reducer()` returns the torch reducer for plain lists whenever torch is importable (slower, and fails above 2**63). |
-| 9.15 | P3              | `_SCALAR_TYPES` in `iterator/bootstrap.py` and `recursive/interface.py`: with MRO resolution everything except `object` is dead (keep `str`/`bytes` only if documented). `DefaultChildFinder` and `DefaultIterator` express "leaf" differently, so a custom child finder with no children silently drops the element in BFS.                                                              |
-| 9.16 | P3              | `random_seed(..., manager=...)` uses `manager or get_default_registry()`; use `is None`.                                                                                                                                                                                                                                                                                                  |
-| 9.17 | P3              | **[verified]** `KeyFilterTransformer(transform_func=...)`: without a predicate, `func` is reused as the key predicate and leaves become booleans. Split into two classes or drop the mode (see 2.6 of the previous review).                                                                                                                                                               |
+```python
+@dataclass
+class D:
+    a: int
+    cache: int = field(default=0, compare=False)
 
-## 10. Tests, docs, CI and packaging
 
-| ID    | P   | Finding                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| ----- | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 10.1  | P1  | **[verified]** `docs/docs/uguide/summary.md:498-515` fails its own doctest: the registry repr omits `collections.deque -> SequenceSummarizer`, and depends on test order (earlier examples register `Person`). Print only the relevant keys, or use a fresh registry and unregister (needs 8.10). `ci-doctest.yaml` should be red on this.                                                                                                                                                                              |
-| 10.2  | P2  | `xfail` cases in `tests/integration/equality/test_external.py:48-80` run the numpy/torch assertion first, so `objects_are_equal(...)` never runs for the 3 xfail ids; they are non-strict. Split the tests and use `xfail(strict=True, raises=...)`.                                                                                                                                                                                                                                                                    |
-| 10.3  | P2  | Unseeded `np.random` data in `tests/unit/utils/test_stats.py:50-56`, generated at collection time: failures cannot be reproduced. Use `default_rng(0)`.                                                                                                                                                                                                                                                                                                                                                                 |
-| 10.4  | P2  | pytest configuration is minimal: add `--strict-markers`, `--strict-config`, `xfail_strict = true`, `filterwarnings = ["error", ...]` and a default `timeout` (only `inv test.*` passes one; `ci-test-properties.yaml` has none).                                                                                                                                                                                                                                                                                        |
-| 10.5  | P2  | Benchmarks run as ordinary tests (7 tests, about 6 s) and the nightly job never saves or compares results (no `--benchmark-save`/`--benchmark-compare`), so it cannot catch a regression. Only equality and registry are benchmarked.                                                                                                                                                                                                                                                                                   |
-| 10.6  | P2  | The YAML, Markdown, TOML and Makefile lint/format targets exist in the `Makefile` but are not run in `ci-format.yaml` or pre-commit.                                                                                                                                                                                                                                                                                                                                                                                    |
-| 10.7  | P2  | The release workflows are not gated on tests: a `v*.*.*` tag publishes immediately, `workflow_dispatch` from `main` also publishes to PyPI without a tag, and `release-docs.yaml` publishes `stable` docs from any ref. Call `ci.yaml` with `workflow_call` and add `needs:`.                                                                                                                                                                                                                                           |
-| 10.8  | P3  | **[verified]** 28 PyArrow tolerance tests fail under `-W error`: they use `warnings.catch_warnings(record=True)` without `simplefilter("always")` (`tests/unit/equality/tester/test_pyarrow.py:497-508`, `handler/test_pyarrow.py`). Use `pytest.warns`.                                                                                                                                                                                                                                                                |
-| 10.9  | P3  | `inv test.doctest` globs every `*.md`, including `review/*.md` and the synced `.make/` tree. The `identifier.md` example triggers a `UserWarning` (run the markdown doctests with `-W error::UserWarning`).                                                                                                                                                                                                                                                                                                             |
-| 10.10 | P3  | Stale tooling docs: `setup-doc-deploy` and `verify-installed-package` actions name workflows that do not exist; `ci.yaml`, `nightly-package.yaml` and `ci-test-deps.yaml` cite a missing `dev/config/test_matrix.json`; the benchmark file says `inv benchmark` (the task is `inv test.benchmark`); `ci-verify-workflows.yaml` says it triggers on workflow changes but has no `paths:` filter; `tests/TESTING_GUIDE.md` and `CONTRIBUTING.md` omit `properties/`, `benchmarks/`, `--timeout`, doctests and CUDA tests. |
-| 10.11 | P3  | `examples/` has one script (`equality.py`) and its test only checks the exit code.                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| 10.12 | P3  | **[verified]** `tests/unit/properties/` holds only an `__init__.py`; 9 source modules have no mirrored test file (`summary/torch.py` is tested in `test_tensor.py`); two copies of the equality test helpers and the BFS/DFS samples.                                                                                                                                                                                                                                                                                   |
-| 10.13 | P3  | Property tests cover equality, hashing, identifier, nested, reducer, registry and validation but not `summary`, `io`, `random`, `iterator`, `recursive`, `utils`; they run without `--cov` and with the default `max_examples`. Add a CI profile with `derandomize=True` and `print_blob=True`.                                                                                                                                                                                                                         |
-| 10.14 | P3  | Three CUDA tests never run (`unit/equality/handler/test_torch.py:270`, `unit/equality/tester/test_torch.py:579`, `unit/summary/test_tensor.py:209`): mock the device or use a GPU runner nightly.                                                                                                                                                                                                                                                                                                                       |
-| 10.15 | P3  | Dependency matrix (lead): `ci-test-code-dep.yaml` multiplies every Python version by every sampled package version (for example `numpy 1.24.0` on Python 3.14), which have no wheels. Filter with `exclude:`. The 5-minute timeout is tight for free-threaded and macOS cells; the `min` job writes coverage nobody uploads.                                                                                                                                                                                            |
-| 10.16 | P3  | `install: dev,docs` in `invoke.yaml` omits the `property` group, so a contributor following `CONTRIBUTING.md` silently skips all of `tests/properties`. Add it. `docs/site` is a build output present in the tree (check `git check-ignore`); `inv clean` should remove `htmlcov`, `coverage.xml`, `.hypothesis`.                                                                                                                                                                                                       |
-| 10.17 | P3  | `bot-update-deps.yaml` opens the PR with `if: always()` without saying that tests failed. `dependabot.yml` has no `groups:`/`cooldown:` and overlaps with `bot-update-deps` and `bot-pre-commit-autoupdate`. `inv security.audit` is not run by any workflow (add a weekly `pip-audit`).                                                                                                                                                                                                                                |
-| 10.18 | P3  | Docs build: `mkdocs.yml` has no `strict: true` or `validation:` block, so broken cross references do not fail CI; `mkdocs-include-markdown-plugin` is in the `docs` group but not enabled.                                                                                                                                                                                                                                                                                                                              |
+D(1, 1) == D(1, 2), objects_are_equal(D(1, 1), D(1, 2)), hash_object(D(1, 1)) == hash_object(D(1, 2))
+# True, True, False
+```
 
----
+This breaks the cross-module invariant "equal implies same hash" that `tests/properties/test_cross_module.py`
+states. Hash only the fields with `compare=True` (and document `field(metadata=...)` if an opt-in for the
+other fields is wanted), or document that `compare=False` fields are part of the hash.
 
-## 11. Suggested order for Part B
+## 15. `summary`
 
-1. **Crashes and data loss**: 9.1 (input mutated), 9.2 (`UserString`), 7.1 (long file names), 5.1, 6.1 to 6.3, 8.1, 8.2.
-2. **Concurrency bugs in IDs and locks**: 6.4 to 6.6, 7.3, 7.5.
-3. **Silent wrong results**: 5.3, 5.4, 5.8, 6.7, 6.8, 7.2, 7.4, 7.6, 7.7, 8.9.
-4. **CI and test hygiene**, which stops regressions: 10.1, 10.4, 10.7, 10.8, 10.2, 10.3, 10.6.
-5. **API consistency and exports** (8.5 to 8.11, 8.15, 6.12, 6.20), then the P3 items.
+### 15.1 Collections at the depth limit call `str`/`repr` on the items without protection **[verified]** (P1)
+
+`BaseCollectionSummarizer.summarize` (`summary/collection.py:103-112`) builds
+`text = f"{preview!r} ..."` or `text = str(data)` for a collection that reaches `max_depth`. That runs the
+`repr` of up to `max_items` **items**, outside the `safe_str` protection that #2071 added to
+`DefaultSummarizer` (it only protects the final string):
+
+```python
+summarize([Bad()], max_depth=0)  # ZeroDivisionError (Bad.__repr__ raises)
+summarize({"a": Bad()}, max_depth=0)  # ZeroDivisionError
+summarize({Bad()}, max_depth=0)  # ZeroDivisionError
+```
+
+The same code builds the full string before truncating it to 1000 characters:
+`summarize(["x" * 50_000_000] * 3, max_depth=0)` creates three 50 MB strings and takes 0.28 s.
+`summarize` is the function used to build error messages, it must not raise. Fix: summarize each of the
+first `limit` items with `registry.summarize(item, depth=depth + 1, max_depth=max_depth)` and join, or
+at least use `safe_repr` per item with a per-item length bound. Add `Bad` items to the Hypothesis
+strategy of `test_summarize_never_raises` (it currently generates only well-behaved literals).
+
+### 15.2 `show_data=True` uses an unbounded, unprotected `repr` **[reading]** (P3)
+
+`BaseMetadataSummarizer.summarize` (`summary/metadata.py:128-129`) returns `repr(data)`: no `safe_repr`,
+no length bound (a `pa.Table` or a `LazyFrame` plan repr can be large). Use `safe_repr` and the
+`DefaultSummarizer` truncation.
+
+### 15.3 Dataclasses and pydantic models are summarized as one truncated string **[verified]** (P3)
+
+Equality (`DataclassEqualityTester`) and hashing (`DataclassHasher`) see inside dataclasses, the
+summary does not. The same `DataFrame` is summarized as `<class 'pandas.DataFrame'> | shape=(100, 1) |
+columns=a: int64` inside a dict, but as the full multi-line pandas `repr` inside a dataclass, because
+the dataclass goes to `DefaultSummarizer` (`str(config)`, cut at 1000 characters), and `max_depth` has
+no effect on it:
+
+```python
+summarize(Config(name="x", data=np.arange(2000.0), frame=pd.DataFrame({"a": range(100)})), max_depth=3)
+# Config(name='x', data=array([0.000e+00, ..., 1.999e+03], shape=(2000,)), frame=     a\n0    0\n1    1 ...
+```
+
+Add a `DataclassSummarizer` (field names and `registry.summarize` of the values, with the depth rules
+of the collections, registered through the fallback of 12.4) and a pydantic one that reuses the secret
+masking of `display.pydantic`.
+
+## 16. `io`, `factory`, `random`
+
+### 16.1 `str` paths are not accepted **[verified]** (P2)
+
+```python
+save_text("x", "out/a.txt")  # AttributeError: 'str' object has no attribute 'is_dir'
+load_text("out/a.txt")  # AttributeError: 'str' object has no attribute 'open'
+```
+
+All the signatures say `Path`, but nearly every other path API of the library goes through
+`sanitize_path` (`str | os.PathLike`), and callers pass strings. Convert with
+`Path(os.fspath(path))` at the entry of `BaseFileSaver.save` and of each `load` (or raise a `TypeError`
+that names the argument). Document the choice and test both.
+
+### 16.2 The save lock costs 8x a plain write and starts a thread per call **[verified]** (P3)
+
+`save_text("x", path)` takes 0.82 ms, a plain `write_text` 0.10 ms (300 files in a temporary directory
+on macOS, so the figure is indicative). The difference
+is the sidecar `.lock` file, the lock token, the heartbeat thread started and joined per call, the tmp
+file and the `link`. It protects against two writers racing on one path, a case where "last writer wins
+atomically" (the `replace`/`link` commit is already atomic) is often enough, and the protocol has known
+holes (7.3 and 7.5 of round 3: the stale-lock window is narrowed, not closed). Consider
+`save(..., lock=True)` (or a `lock=False` class option) so batch jobs that write thousands of distinct
+files can skip it, and document the filesystems where `O_EXCL` locks are unreliable (NFS).
+
+### 16.3 `resolve_saver`/`resolve_loader` execute the target before the type check **[verified]** (P2)
+
+`resolve_object` builds the object with `factory(**config)` and only then checks
+`isinstance(obj, cls)` (`factory/resolve.py:201-206`):
+
+```python
+resolve_saver({"_target_": "os.mkdir", "path": "/tmp/marker"})
+# TypeError: Received object is not a BaseSaver instance (received: <class 'NoneType'>)
+os.path.isdir("/tmp/marker")  # True: the call ran
+```
+
+The `Security:` notes document that `_target_` is code, and `allowed_prefixes` exists, so this is
+hardening, not a new hole. But `resolve_loader`/`resolve_saver` know the only acceptable result type, so
+they can refuse before calling: when the target is a class, check `issubclass(target, cls)`; when it is a
+function, use the return annotation as `is_object_config` does (and refuse a function with no usable
+annotation unless the caller opts in). Same for `is_object_config`, which imports the module of an
+untrusted `_target_` just to answer a boolean.
+
+### 16.4 Reading the torch RNG state may initialise CUDA **[lead]** (P3)
+
+`TorchRandomManager.get_rng_state` calls `torch.cuda.get_rng_state_all()` (`random/torch.py:53`), which
+calls `_lazy_init()` for each device, whereas `manual_seed` uses the deferred
+`torch.cuda.manual_seed_all`. On a GPU machine, `random_seed(0)` (which saves the state first) can
+initialise CUDA contexts, and in a forked worker that fails with "Cannot re-initialize CUDA in forked
+subprocess". Not reproducible here (no GPU). Guard with `torch.cuda.is_initialized()` (an
+uninitialised CUDA has no state to save) and add a test with the device functions patched.
+
+### 16.5 `coola.random` imports NumPy and torch on first use **[verified]** (P3)
+
+The first `manual_seed(1)` takes about 0.9 s here because the default registry imports both libraries
+when they are installed (the comment in `random/interface.py:218` explains why: a library imported later
+must still be seeded). Say so in the docstrings of `manual_seed`/`random_seed` so that nobody
+discovers it in a test run, or offer `register_managers` with a lazy manager that seeds on import.
+
+## 17. `utils`, `nested` and small API issues
+
+### 17.1 Two "to JSON" functions, one still not strict-JSON safe **[verified]** (P3, _carried over_ from 1.5)
+
+`coola.utils.to_jsonable` converts one level (it leaves lists and dicts as they are, by design) and
+`coola.nested.convert_to_jsonable` is the recursive one. Names and places are easy to confuse. What is
+still not converted by `convert_to_jsonable`: non-string keys (`{(1, 2): 1}` raises `TypeError` in
+`json.dumps`, `{1: 2}` silently becomes `"1"`) and `nan`/`inf` (`allow_nan=False` raises). `save_json`
+still writes the non-standard token `NaN` and turns int keys into strings on the round trip. Decide the
+contract (strict JSON or "Python `json` module output") and state it in the three docstrings.
+
+### 17.2 Dead or stale code **[verified]** (P3)
+
+- `utils/lru.py`: `LRUCache` is used nowhere in `src` and its docstring says it is "used by
+  `TypeRegistry`", which now uses a `WeakKeyDictionary`. Remove it or document it as standalone (it is
+  not thread-safe, the docstring says so).
+- `utils/bloom_filter.py`: the only operation is `add_and_check`, so there is no read-only query,
+  no `__contains__`, no size/fill information; not thread-safe. Round 2 decided to keep it; if it
+  stays, give it `__contains__`/`add` and document the thread-safety.
+- `equality/tester/jax.py:80-95`: `get_array_impl_class()` creates an array (`jnp.ones(1)`) to get the
+  concrete class, the pattern #2198 removed from the summary. It runs only when a JAX array is already
+  being compared, so the backend is initialised anyway: cosmetic, but `jnp.ndarray` (`jax.Array`) is in
+  the MRO of the concrete class, as the summary registration already relies on, so it is redundant.
+- `equality/config.py:95` refers to `warn_ignored_setting`, which does not exist (13.3).
+
+### 17.3 `import coola` spends most of its time on `importlib.metadata` **[verified]** (P3)
+
+`coola/__init__.py` calls `version(__name__)` at import to fill `__version__`: `-X importtime` shows
+`importlib.metadata` at 18 ms of the 25 ms of `import coola`, and it pulls `email`, `zipfile` and `json`.
+Every subpackage pays it. Use a module-level `__getattr__("__version__")` (PEP 562) that reads the
+metadata on first access; `lazy_exports` already shows the pattern.
+
+### 17.4 Eleven copies of the same availability module **[reading]** (P3)
+
+`utils/imports/{colorlog,jax,numpy,pandas,polars,pyarrow,pydantic,rich,torch,xarray,packaging}.py` are
+97 to 102 lines each with the same four functions (`check_X`, `is_X_available`, `X_available`,
+`raise_X_missing_error`), 44 exported names, plus `utils/fallback/*` with the same shape. Adding a
+backend (see `docs/docs/dev/add_backend.md`) means copying a file and editing three strings.
+A small factory (`make_package_helpers("numpy", install="numpy")` returning the four callables, still
+declared explicitly in each module for the type checker) would cut several hundred lines and remove
+the drift risk (7.21 of round 3 was one such drift).
+
+### 17.5 `KeyFilterTransformer` legacy mode **[reading]** (P3, _carried over_ from 9.17)
+
+`recursive/key.py:140-157` chooses the function to apply to a value by sniffing its type
+(`str` → `transform_func`, container → `func`, anything else → `transform_func`). It is fragile and
+only exists for the legacy `transform_func` mode. Deprecate the mode (a `DeprecationWarning` now, removal
+in the next breaking release) and keep the `key_predicate` mode only.
+
+### 17.6 `to_flat_dict`/`from_flat_dict` do not round-trip keys that contain the separator **[verified]** (P3)
+
+`to_flat_dict({"a.b": 1, "c": {"d": 2}})` gives `{"a.b": 1, "c.d": 2}` and `from_flat_dict` of that gives
+`{"a": {"b": 1}, "c": {"d": 2}}`. Add an `escape` option (or reject keys that contain the separator in
+`to_flat_dict` with a clear error) and document the rule next to `restore_lists`.
+
+### 17.7 `coola.testing` needs pytest, which is in no extra **[reading]** (P3)
+
+`coola/testing/fixtures.py` imports `pytest` at the top, and `pytest` is only in the `dev` group. Add a
+`testing = ["pytest>=..."]` extra (the autoextras hook then lists it in `all`) or import lazily and raise
+a `MissingPackageError`.
+
+## 18. Tests, CI and tooling
+
+### 18.1 No test keeps `equality`, `hashing` and `summary` aligned **[verified]** (P2)
+
+Most of sections 13, 14 and 15 are the same shape: one module supports a type, another does not. The
+support-matrix script of this review (about 100 types × `equal`, `hash`, `summarize`, `dfs_iterate`,
+`recursive_apply`) found 41 rows with a failure. `dfs_iterate`, `recursive_apply` and `summarize` pass
+for all of them; `equal` fails only for SciPy sparse matrices, `pl.Expr` and objects without value
+semantics (`object()`, iterators, exceptions); `hash_object` is the gap (all 41 rows). Turn the script into
+`tests/integration/test_support_matrix.py` with a table of `(object factory, supported_by)` and
+`xfail(strict=True)` for the known gaps, so each fixed gap flips the xfail and each new type must be
+added to the table. Generate the "supported types" table of the docs (`equality.md`, `hashing.md`,
+`summary.md`) from the same table.
+
+### 18.2 The property tests do not generate the classes of defect found here (P2)
+
+`tests/properties/strategies.py` builds nested containers of scalars, and `test_cross_module.py` states
+the right invariants (equal implies same hash, `summarize` never raises, strict JSON). The defects of
+14.1 to 14.3, 14.7 and 15.1 are outside the generated space. Add, to the library-type strategies:
+`-0.0`, `-nan`, structured dtypes, DataFrames with index/column names and categoricals, `NaT`,
+dataclasses with `compare=False` fields, and items whose `__repr__`/`__str__` raise. The invariants
+catch each of them as is.
+
+### 18.3 Local imports in tests **[verified]** (P3)
+
+`CLAUDE.md` forbids imports inside test bodies. An AST scan finds 8 in 3 files:
+`tests/unit/hashing/test_interface.py:645` (5), `tests/benchmarks/conftest.py` (2),
+`tests/unit/hashing/test_repr.py:235` (1). Move them to the top (or into a fixture for the benchmark
+conftest, where the import may be deliberately delayed: say so in a comment). The whole `PL` family
+is in the `tests/**` per-file ignores, which hides `PLC0415` (import outside top level); selecting
+`PLC0415` for the tests, with a per-file ignore for `tests/benchmarks/conftest.py`, would make the
+`CLAUDE.md` convention enforceable.
+
+### 18.4 Smaller points (P3)
+
+- Coverage is 99% but `[tool.coverage.report]` has no `fail_under`; add `fail_under = 99` (or 98) so
+  the number cannot drop silently. A mutation-testing run on `equality/handler` is still not done
+  (carried over from the earlier reviews).
+- `[tool.ty.src] include = ["src"]`: the tests are not type-checked. Adding `tests/unit` as a
+  non-blocking CI job would show how much of the fixtures typing is missing.
+- A `pytest` plugin in `coola.testing` that implements `pytest_assertrepr_compare` for nested data
+  would make a plain `assert actual == expected` print the path of `compare()` (`['a'][2]`) without
+  changing the tests. Opt-in through a `pytest11` entry point. This is a feature, not a fix.
+
+## 19. Packaging and documentation
+
+### 19.1 Classifiers and Python 3.15 (P3, _carried over_ from 2.3)
+
+`Development Status :: 5 - Production/Stable` is still declared for `1.2.0a2`, and Python 3.15 is in the
+classifiers. Use `4 - Beta` (or `3 - Alpha`) until the release, and keep 3.15 only if it is in the
+required CI matrix (`lib-get-test-matrix.yaml` takes it from an external action, so the repo itself
+cannot show it).
+
+### 19.2 No changelog or migration notes since 1.0 (P2)
+
+The only migration page is `docs/docs/migration/v0.11_to_v1.0.md`, and the changelog points to GitHub
+releases. This cycle contains changes that users can notice: hash values (14.6), the default `max_depth`
+of 1000 lowered to 100 (5.13), `hash_object`/`generate_stable_*` options keyword-only (6.12), mapping
+keys compared with their type (5.4), `get_default_generator` removed from `__all__` (6.20),
+`TypeRegistry` rejecting non-type keys (8.2). Add a `CHANGELOG.md` (or a "What changed in 1.2" page) that
+lists them under "Behaviour changes", and mention the file in `CONTRIBUTING.md`; the PR template of
+`CLAUDE.md` ("any behaviour change") already collects the content.
+
+### 19.3 Docstring slips (P3)
+
+- `objects_are_equal` repeats the tolerance paragraph of `objects_are_allclose` ("so `True` and `False`
+  are close with `atol=1`"), which does not apply to an exact comparison; its `Raises` says
+  `RecursionError`, the class is `MaxDepthExceededError` (a subclass, and the Python `RecursionError`
+  is wrapped too, `equality/interface.py:25-32`).
+- README overview: the first paragraph still says the library "makes it easy to compare complex and
+  nested data structures", while the feature list (hashing, summaries, identifiers, I/O, random) is
+  half of the package. `pyproject.toml` was updated in #2080, the README was not.
+
+## 20. Status of round 3
+
+Checked against the git history up to `0287a61a` and by re-running the repros marked in this file.
+Round 3 contained the items 1.1 to 10.18. **All but the ones below were merged** (PRs #2070 to #2217,
+see `git log --grep` for the item numbers), including every "PR open" row of the round-3 table.
+
+| Round-3 ID                              | Status now    | Notes                                                                                                                                                                                                                                                                   |
+| --------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.3                                     | Open (doc)    | The masked-array rule (data under the mask is compared) is still not documented in `equality.md`.                                                                                                                                                                       |
+| 1.5                                     | Partly        | Tuple keys, `nan`/`inf` and int keys still not strict-JSON: see 17.1.                                                                                                                                                                                                   |
+| 2.3                                     | Partly        | See 19.1.                                                                                                                                                                                                                                                               |
+| 2.4                                     | Decided       | `utils`/`identifier` stay (decision in `src-coola-review.md` 1.1). 17.2 lists the unused pieces.                                                                                                                                                                        |
+| 2.5                                     | Already there | `coola.random.random_seed(seed)` is the "seed everything and restore" context manager; only the first-call cost is open (16.5).                                                                                                                                         |
+| 3                                       | Partly        | Windows is a non-goal (7.20); `fail_under` and mutation testing: 18.4.                                                                                                                                                                                                  |
+| 5.2                                     | Partly        | `pd.Index` and extension arrays done; SciPy sparse still raises the `TypeError` of 13.1/13.6.                                                                                                                                                                           |
+| 5.3, 5.4, 5.6, 5.9, 5.10, 5.12          | Fixed         | Verified fixed on `main` (custom `__eq__` of dataclasses respected, keys compared with their type, documented identity shortcut, `None` key sentinel, `HandlerCycleError` for `a -> b -> a`, `safe_repr`). NaN keys never match, even with `equal_nan=True` (P3, left). |
+| 5.15                                    | Partly        | The fast path for lists of floats and the missing terminal handler check are still open; see 13.7 for the sequence fast path.                                                                                                                                           |
+| 6.10, 6.18                              | Documented    | Module/class name in hashes, parity leak of the obfuscated IDs: documentation only, by decision.                                                                                                                                                                        |
+| 6.21                                    | Partly        | `PureWindowsPath("a/b")` and `PurePosixPath("a/b")` still hash the same (hashed as POSIX, probably intended: add one sentence to `hashing.md`).                                                                                                                         |
+| 7.3, 7.5                                | Partly        | Dead-owner detection and the renewed-lock restore merged; no kernel locks, timeout not configurable (16.2).                                                                                                                                                             |
+| 7.24                                    | Partly        | `float()` of ints above 2**53 in `stats.py` and `fsync` on `BaseSaver.save` unchanged.                                                                                                                                                                                  |
+| 8.4                                     | Mostly        | A generic that contains a secret (`tuple[SecretStr, int]`) still drops the whole field.                                                                                                                                                                                 |
+| 8.9                                     | Mostly        | `max_items < 0` still previews 5 items (deliberate).                                                                                                                                                                                                                    |
+| 8.15                                    | Mostly        | The `Summarizer` protocol still has no `equal`.                                                                                                                                                                                                                         |
+| 8.17                                    | Fixed         | Lazy registries (#2231). New problems from it: 12.1, 12.2.                                                                                                                                                                                                              |
+| 8.19                                    | **Open**      | PR #2195 was not merged: 12.3.                                                                                                                                                                                                                                          |
+| 9.14                                    | Mostly        | `auto_reducer()` still prefers torch over NumPy for plain lists (the import is the cost).                                                                                                                                                                               |
+| 9.17                                    | Open (design) | 17.5.                                                                                                                                                                                                                                                                   |
+| 10.6                                    | Partly        | The Markdown and Makefile linters still fail on the current tree and are not in CI.                                                                                                                                                                                     |
+| 10.9, 10.11, 10.12, 10.13, 10.15, 10.17 | Partly        | As in the round-3 table (external `invoke_tasklib` globs, `equality.py` example checks only the exit code, test mirrors, no `io`/`utils` property tests, wheel-less matrix cells, overlap of the dependency bots). Not re-checked.                                      |
+
+## 21. Suggested order
+
+1. **Regression and crashes (one small PR each, with the test that would have caught it):** 12.1
+   (non-type keys), 15.1 (`summarize` at the depth limit), 13.4 (`compare` with a failing `__str__`),
+   13.1 first half (`==` that raises).
+2. **Collisions and invariants of the hashing module:** 14.1, 14.2, 14.7, 14.3, then 14.6 (golden
+   vectors, before changing more hashes, so the changes of 14.1 to 14.3 are visible in the diff).
+3. **Parity:** 18.1 (the matrix test), then 14.4/14.5 (hashers for what equality already supports) and
+   13.1 second half (pydantic tester), 15.3 (dataclass summarizer).
+4. **Consistency:** 13.2 (symmetric tolerance), 16.1 (`str` paths), 16.3 (check before calling),
+   12.2 (lazy `repr`), 12.4 (fallback cache).
+5. **Cleanup and docs:** 12.3, 13.3, 13.5 to 13.7, 17.x, 18.2 to 18.4, 19.x.
