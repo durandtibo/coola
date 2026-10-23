@@ -50,6 +50,10 @@ This sets the seed for:
 - NumPy's random generator (if NumPy is available)
 - PyTorch's random generator (if PyTorch is available)
 
+The first call creates the default registry, which imports NumPy and PyTorch when they are
+installed (about a second). They are imported at that point, and not when they are used later, so
+that a library that is imported after the call is still seeded. The same applies to `random_seed()`.
+
 ### Validating a Seed
 
 `manual_seed()` validates the seed before it seeds any library. `validate_seed()` is available to
