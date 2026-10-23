@@ -232,3 +232,9 @@ def test_try_sorted_list() -> None:
 
 def test_try_sorted_list_not_comparable() -> None:
     assert sorted(try_sorted_list({1, "a"}), key=str) == [1, "a"]
+
+
+@pytest.mark.parametrize("value", ["ab", b"ab", bytearray(b"ab")])
+def test_convert_to_list_of_dicts_string_value_raises(value: object) -> None:
+    with pytest.raises(TypeError, match="must be a sequence of items"):
+        convert_to_list_of_dicts({"a": value, "b": [1, 2]})
