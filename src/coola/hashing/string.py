@@ -71,6 +71,17 @@ class StringHasher(InlineDisplayMixin, NoArgsDisplayMixin, BaseHasher[str]):
         return hash_tagged("str", data, length=length)
 
 
+def validate_hash_length(length: int) -> None:
+    """Check that ``length`` is a valid length for a hex digest.
+
+    Raises:
+        ValueError: If ``length`` is not an even number between 2 and 128.
+    """
+    if length % 2 != 0 or not (2 <= length <= 128):
+        msg = f"length must be an even number between 2 and 128, got {length}."
+        raise ValueError(msg)
+
+
 def hash_string(value: str, length: int = 64) -> str:
     """Generate a hexadecimal hash of a string using BLAKE2b.
 
@@ -95,9 +106,7 @@ def hash_string(value: str, length: int = 64) -> str:
 
         ```
     """
-    if length % 2 != 0 or not (2 <= length <= 128):
-        msg = f"length must be an even number between 2 and 128, got {length}."
-        raise ValueError(msg)
+    validate_hash_length(length)
     digest_size = length // 2
     try:
         encoded = value.encode()

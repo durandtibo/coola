@@ -6,6 +6,7 @@ from __future__ import annotations
 __all__ = ["get_default_hasher_registry", "get_default_registry", "hash_object", "register_hashers"]
 
 import dataclasses
+import inspect
 import warnings
 from collections import OrderedDict, deque
 from collections.abc import Mapping, Sequence
@@ -37,7 +38,7 @@ from coola.hashing.repr import ReprHasher
 from coola.hashing.sequence import SequenceHasher
 from coola.hashing.set import SetHasher
 from coola.hashing.str import StrHasher
-from coola.hashing.string import StringHasher
+from coola.hashing.string import StringHasher, validate_hash_length
 from coola.hashing.torch import TorchTensorHasher
 from coola.hashing.xarray import XarrayHasher
 from coola.utils.imports import (
@@ -96,6 +97,16 @@ def hash_object(
     the order of its keys matters, so two ``OrderedDict`` with the same
     items in a different order hash differently.
 
+    Note:
+        The hash of a dataclass, a pydantic model, an enum member or an
+        object with a ``hash`` method includes the module and the
+        qualified name of its class. The hash changes when the class is
+        renamed or moved to another module, and a class defined in a
+        script run as ``__main__`` hashes differently from the same
+        class imported. Do not persist these hashes (or the IDs derived
+        from them, such as ``generate_stable_uuid5``) across such a
+        change.
+
     The options must be passed by keyword. Passing ``registry``,
     ``length`` or ``ignore_unhashable`` as positional arguments is
     deprecated and emits a ``DeprecationWarning``: it was easy to write
@@ -145,6 +156,7 @@ def hash_object(
         registry, length, ignore_unhashable = _resolve_legacy_arguments(
             args, registry=registry, length=length, ignore_unhashable=ignore_unhashable
         )
+    validate_hash_length(length)  # before the (possibly expensive) traversal
     if registry is None:
         registry = get_default_registry()
     return registry.hash(data, length=length, ignore_unhashable=ignore_unhashable)
@@ -272,6 +284,7 @@ def _register_default_hashers(registry: HasherRegistry) -> None:
             str: string_hasher,
             bytes: bytes_hasher,
             bytearray: bytes_hasher,
+            memoryview: bytes_hasher,
             # Numeric types - no recursion needed
             int: repr_hasher,
             float: repr_hasher,
@@ -320,7 +333,23 @@ def _register_default_hashers(registry: HasherRegistry) -> None:
 def _has_hash_method(data_type: type) -> bool:
     r"""Indicate if the instances of a type have a ``hash`` method (see
     ``SupportsHash``)."""
-    return callable(getattr(data_type, "hash", None))
+    method = getattr(data_type, "hash", None)
+    if not callable(method):
+        return False
+    # A ``hash`` method with another signature (``polars.Series.hash(seed=...)``)
+    # is not the ``SupportsHash`` protocol.
+    try:
+        signature = inspect.signature(method)
+    except (TypeError, ValueError):
+        return False
+    kwargs = {"registry": None, "length": 64, "ignore_unhashable": False}
+    for args in ((None,), ()):  # with and without ``self``
+        try:
+            signature.bind(*args, **kwargs)
+        except TypeError:
+            continue
+        return True
+    return False
 
 
 def _get_value_hashers() -> dict[type, Hasher[Any]]:

@@ -16,15 +16,15 @@ __all__ = [
     "SnowflakeIdGenerator",
     "extract_snowflake_timestamp_ms",
     "generate_snowflake_id",
-    "get_default_generator",
 ]
 
+import secrets
 import threading
 import time
-from functools import cache
 
 from coola.identifier.fork import track_fork
 from coola.identifier.validation import validate_bit_range
+from coola.utils.singleton import LazySingleton
 
 # Sleep briefly between spins while waiting for the next millisecond, to
 # avoid busy-waiting a full CPU core (and holding the lock) at 100%
@@ -153,10 +153,11 @@ class SnowflakeIdGenerator:
                 use case.
             timestamp_ms: The Unix timestamp in milliseconds to encode.
                 If ``None`` (default), the current time is used.
-                Exposed mainly for deterministic testing; passing a
-                value that moves the clock backward relative to the
-                last call raises ``RuntimeError`` just like an actual
-                backward clock movement would.
+                Exposed mainly for deterministic testing. An explicit
+                timestamp does not update the state of the generator,
+                and the sequence number is random instead of
+                incrementing, so such IDs are neither monotonic nor
+                guaranteed to be unique.
 
         Returns:
             A 64-bit non-negative integer, monotonically increasing
@@ -184,8 +185,20 @@ class SnowflakeIdGenerator:
         validate_bit_range(worker_id, _WORKER_ID_BITS, name="worker_id")
 
         with self._lock:
-            if timestamp_ms is None:
-                timestamp_ms = time.time_ns() // 1_000_000
+            if timestamp_ms is not None:
+                # An explicit timestamp does not touch the state of the
+                # generator (a future value would make every later call
+                # fail with "clock moved backward"), so the sequence is
+                # random, like the random part of ``generate_ulid``.
+                validate_bit_range(
+                    timestamp_ms - _EPOCH_MS, _TIMESTAMP_BITS, name="timestamp_ms - epoch"
+                )
+                return (
+                    ((timestamp_ms - _EPOCH_MS) << _TIMESTAMP_SHIFT)
+                    | (worker_id << _WORKER_ID_SHIFT)
+                    | secrets.randbits(_SEQUENCE_BITS)
+                )
+            timestamp_ms = time.time_ns() // 1_000_000
             validate_bit_range(
                 timestamp_ms - _EPOCH_MS, _TIMESTAMP_BITS, name="timestamp_ms - epoch"
             )
@@ -237,19 +250,22 @@ class SnowflakeIdGenerator:
         )
 
 
-@cache
+_default_generator: LazySingleton[SnowflakeIdGenerator] = LazySingleton(SnowflakeIdGenerator)
+
+
 def get_default_generator() -> SnowflakeIdGenerator:
     r"""Get or create the default, process-wide generator backing
     ``generate_snowflake_id``.
 
     Returns a singleton ``SnowflakeIdGenerator`` instance shared by
     every call to ``generate_snowflake_id``. Uses the same lazy,
-    ``functools.cache`` singleton pattern.
+    ``LazySingleton`` pattern, so concurrent first calls
+    build a single generator.
 
     Returns:
         The shared, process-wide ``SnowflakeIdGenerator`` instance.
     """
-    return SnowflakeIdGenerator()
+    return _default_generator.get()
 
 
 def generate_snowflake_id(worker_id: int = 0, timestamp_ms: int | None = None) -> int:

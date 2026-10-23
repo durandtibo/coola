@@ -157,3 +157,8 @@ def test_generate_stable_uuid5_same_data_different_namespace_matches_manual_uuid
     assert generate_stable_uuid5(data, namespace=namespace) == str(
         uuid.uuid5(namespace, hash_object(data, length=128))
     )
+
+
+def test_generate_stable_uuid5_options_are_keyword_only() -> None:
+    with pytest.raises(TypeError, match="positional"):
+        generate_stable_uuid5({"a": 1}, None)  # type: ignore[misc]

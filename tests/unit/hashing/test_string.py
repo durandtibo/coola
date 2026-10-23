@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from coola.hashing import HasherRegistry, StringHasher, hash_string, hash_tagged
+from coola.hashing.string import validate_hash_length
 
 
 @pytest.fixture
@@ -212,3 +213,28 @@ def test_string_hasher_hash_differs_from_untagged_hash_string(registry: HasherRe
 def test_hash_string_lone_surrogate_raises_value_error() -> None:
     with pytest.raises(ValueError, match="not valid UTF-8"):
         hash_string("\ud800")
+
+
+##########################################
+#     Tests for validate_hash_length     #
+##########################################
+
+
+@pytest.mark.parametrize("length", [2, 4, 64, 126, 128])
+def test_validate_hash_length_valid(length: int) -> None:
+    validate_hash_length(length)
+
+
+@pytest.mark.parametrize("length", [0, 1, 3, 63, 127, 129, 130, -2, -1])
+def test_validate_hash_length_invalid_raises(length: int) -> None:
+    with pytest.raises(ValueError, match="length must be an even number between 2 and 128"):
+        validate_hash_length(length)
+
+
+def test_validate_hash_length_error_message_contains_length() -> None:
+    with pytest.raises(ValueError, match="got 3"):
+        validate_hash_length(3)
+
+
+def test_validate_hash_length_returns_none() -> None:
+    assert validate_hash_length(64) is None
