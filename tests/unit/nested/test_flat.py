@@ -553,3 +553,19 @@ def test_to_flat_dict_self_referencing_dict_raises() -> None:
 def test_to_flat_dict_shared_container_is_not_a_cycle() -> None:
     shared = [1]
     assert to_flat_dict({"a": shared, "b": shared}) == {"a.0": 1, "b.0": 1}
+
+
+def test_from_flat_dict_dict_leaf_then_nested_raises() -> None:
+    with pytest.raises(ValueError, match="conflict"):
+        from_flat_dict({"a": {"x": 1}, "a.y": 2})
+
+
+def test_from_flat_dict_dict_leaf_then_nested_does_not_mutate_input() -> None:
+    leaf = {"x": 1}
+    with pytest.raises(ValueError, match="conflict"):
+        from_flat_dict({"a": leaf, "a.y": 2})
+    assert leaf == {"x": 1}
+
+
+def test_from_flat_dict_dict_leaf_is_kept_with_restore_lists() -> None:
+    assert from_flat_dict({"a": {"0": 1}}, restore_lists=True) == {"a": [1]}

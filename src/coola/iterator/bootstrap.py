@@ -12,7 +12,7 @@ from __future__ import annotations
 
 __all__ = ["SupportsRegisterMany", "register_default_handlers"]
 
-from collections import deque
+from collections import UserString, deque
 from collections.abc import Collection, Mapping
 from typing import Protocol, TypeVar
 
@@ -20,7 +20,8 @@ T = TypeVar("T")
 T_contra = TypeVar("T_contra", contravariant=True)
 
 # Scalar types are treated as leaves: they never need to be expanded further.
-_SCALAR_TYPES = (object, str, bytes, int, float, complex, bool)
+# ``UserString`` is a ``Sequence`` of ``UserString``, so expanding it would never end.
+_SCALAR_TYPES = (object, str, bytes, int, float, complex, bool, UserString)
 # Collections (excluding mappings) are expanded into their elements. Iterators and
 # generators are not collections: they are leaves, so they are never consumed (or
 # iterated forever) by a traversal.

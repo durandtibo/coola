@@ -71,12 +71,15 @@ def from_flat_dict(
     validate_not_empty(separator, name="separator")
 
     nested: dict[str, Any] = {}
+    # Only the dicts created here can be extended. A dict given as a value belongs
+    # to the caller and must be neither mutated nor extended.
+    created: set[int] = {id(nested)}
     for flat_key, value in data.items():
         if not isinstance(flat_key, str):
             msg = f"Flat dict keys must be strings, got {flat_key!r} ({type(flat_key).__name__})"
             raise TypeError(msg)
         segments = flat_key.split(separator)
-        _set_nested(nested, segments, value, flat_key, separator)
+        _set_nested(nested, segments, value, flat_key, separator, created=created)
     if restore_lists:
         # The root is always a dict, only its children can become lists.
         return {key: _restore_lists(value) for key, value in nested.items()}
@@ -102,6 +105,8 @@ def _set_nested(
     value: Any,
     original_key: str,
     separator: str,
+    *,
+    created: set[int],
 ) -> None:
     """Drill into *target* along *segments* and set the leaf to *value*.
 
@@ -118,6 +123,9 @@ def _set_nested(
         value: The leaf value to assign.
         original_key: The original flat key, used only for error messages.
         separator: The separator used to rejoin segments in error messages.
+        created: The ids of the dicts created by ``from_flat_dict``
+            (updated in-place). A dict that is not in this set is a
+            value given by the caller and is never extended.
 
     Raises:
         ValueError: If an interior segment collides with an existing
@@ -129,9 +137,10 @@ def _set_nested(
         if segment not in current:
             current[segment] = {}
             current = current[segment]
+            created.add(id(current))
         else:
             existing: Any = current[segment]
-            if isinstance(existing, dict):
+            if isinstance(existing, dict) and id(existing) in created:
                 current = cast("dict[str, Any]", existing)
             else:
                 path_so_far = separator.join(segments[: depth + 1])
