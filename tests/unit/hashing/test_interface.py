@@ -529,13 +529,16 @@ def test_hash_object_numpy_scalar_different_values() -> None:
     assert hash_object(np.bool_(True)) != hash_object(1)
 
 
-def test_hash_object_hash_method_with_another_signature_is_not_supports_hash() -> None:
-    class Other:
-        def hash(self, seed: int = 0) -> int:
-            return seed
+class _OtherHash:
+    def hash(self, seed: int = 0) -> int:
+        return seed
 
+
+def test_hash_object_hash_method_with_another_signature_raises() -> None:
     with pytest.raises(TypeNotRegisteredError, match="register a hasher"):
-        hash_object(Other())
-    with pytest.warns(UserWarning, match="No hasher registered"):
-        hash_object(Other(), ignore_unhashable=True)
+        hash_object(_OtherHash())
 
+
+def test_hash_object_hash_method_with_another_signature_ignore_unhashable() -> None:
+    with pytest.warns(UserWarning, match="No hasher registered"):
+        hash_object(_OtherHash(), ignore_unhashable=True)
