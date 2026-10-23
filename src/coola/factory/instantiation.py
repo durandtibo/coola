@@ -34,7 +34,8 @@ def import_object(object_path: object, *, allowed_prefixes: Sequence[str] | None
 
     Raises:
         TypeError: if ``object_path`` is not a string.
-        ImportError: if ``object_path`` cannot be imported or is not
+        ImportError: if ``object_path`` is empty or has an empty module
+            name (``""``, ``".Counter"``), cannot be imported, or is not
             allowed by ``allowed_prefixes``.
 
     Security:
@@ -76,6 +77,11 @@ def import_object(object_path: object, *, allowed_prefixes: Sequence[str] | None
         object_path == prefix or object_path.startswith(prefix + ".") for prefix in allowed_prefixes
     ):
         msg = f"Object path {object_path!r} is not allowed. Allowed prefixes: {list(allowed_prefixes)}"
+        raise ImportError(msg)
+
+    # An empty attribute name ("collections.") is reported below with the module name.
+    if not object_path or not all(object_path.split(".")[:-1]):
+        msg = f"Invalid object path {object_path!r}: empty module name"
         raise ImportError(msg)
 
     # If there's no dot, treat it as a module/package import.

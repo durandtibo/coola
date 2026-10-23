@@ -239,6 +239,24 @@ def test_is_object_config_allowed_prefixes_without_target() -> None:
     assert not is_object_config({}, object, allowed_prefixes=["collections"])
 
 
+def create_list_invalid_annotation():  # noqa: ANN201
+    """Helper function whose return annotation is not valid Python."""
+    return [1, 2, 3, 4]
+
+
+create_list_invalid_annotation.__annotations__["return"] = "list["
+
+
+def test_is_object_config_invalid_string_annotation() -> None:
+    config = {OBJECT_TARGET: f"{__name__}.create_list_invalid_annotation"}
+    assert not is_object_config(config, list)
+
+
+@pytest.mark.parametrize("config", ["x", None, 1, ["_target_"]])
+def test_is_object_config_config_is_not_a_dict(config: object) -> None:
+    assert not is_object_config(config, Counter)  # ty: ignore[invalid-argument-type]
+
+
 def create_list_generic() -> list[int]:
     """Helper function that returns a list with a generic type hint."""
     return [1, 2, 3, 4]
